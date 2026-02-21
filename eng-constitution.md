@@ -46,7 +46,7 @@ When test case requirements are unclear or ambiguous, clarifying questions MUST 
 - Both success and failure scenarios must be tested
 
 **Testing Framework:**
-All tests must use Vitest, except React Native apps which use Jest (via `jest-expo` preset) due to Metro bundler incompatibility with Vitest; Test files must use ".test" or ".spec" suffixes and be colocated with the code they test; Vitest configuration in `package.json` or `vitest.config.ts`; Test discovery via Vitest's default or explicit configuration; E2E tests use Playwright.
+All tests must use Vitest, except React Native apps which use Jest (via `jest-expo` preset) due to Metro bundler incompatibility with Vitest; Test files must use ".test" or ".spec" suffixes and be placed in a sibling `__tests__/` directory adjacent to the code they test (e.g., `src/auth/__tests__/useAuth.test.ts` tests `src/auth/useAuth.ts`); Vitest configuration in `package.json` or `vitest.config.ts`; Test discovery via Vitest's default or explicit configuration; E2E tests use Playwright.
 
 **Completion Criteria:**
 A feature is NOT considered complete until all tests pass. Implementation without passing tests is incomplete work.
