@@ -1,3 +1,4 @@
+import type { User } from "@supabase/supabase-js";
 import { renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it } from "vitest";
@@ -25,7 +26,7 @@ describe("useUser", () => {
   });
 
   it("returns user when signed in", () => {
-    const mockUser = { id: "123", email: "test@test.com" } as any;
+    const mockUser = { id: "123", email: "test@test.com" } as unknown as User;
     function wrapper({ children }: { children: ReactNode }) {
       return (
         <AuthContext.Provider value={{ ...mockValue, user: mockUser }}>

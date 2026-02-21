@@ -1,3 +1,4 @@
+import type { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createSupabaseMiddleware } from "../nextjs";
 
@@ -18,7 +19,7 @@ const mockRedirect = vi.fn((url: URL) => ({
   cookies: { set: vi.fn() },
 }));
 
-const mockNext = vi.fn((opts?: { request: any }) => ({
+const mockNext = vi.fn((opts?: { request: unknown }) => ({
   type: "next" as const,
   request: opts?.request,
   cookies: { set: vi.fn() },
@@ -27,7 +28,7 @@ const mockNext = vi.fn((opts?: { request: any }) => ({
 vi.mock("next/server", () => ({
   NextResponse: {
     redirect: (url: URL) => mockRedirect(url),
-    next: (opts?: { request: any }) => mockNext(opts),
+    next: (opts?: { request: unknown }) => mockNext(opts),
   },
 }));
 
@@ -72,7 +73,7 @@ describe("createSupabaseMiddleware", () => {
     });
 
     const request = createMockRequest("/dashboard/settings");
-    await middleware(request as any);
+    await middleware(request as unknown as NextRequest);
 
     expect(mockRedirect).toHaveBeenCalledOnce();
     const redirectUrl = mockRedirect.mock.calls[0]![0] as URL;
@@ -93,7 +94,7 @@ describe("createSupabaseMiddleware", () => {
     });
 
     const request = createMockRequest("/dashboard");
-    await middleware(request as any);
+    await middleware(request as unknown as NextRequest);
 
     expect(mockRedirect).not.toHaveBeenCalled();
     expect(mockNext).toHaveBeenCalled();
@@ -110,7 +111,7 @@ describe("createSupabaseMiddleware", () => {
     });
 
     const request = createMockRequest("/about");
-    await middleware(request as any);
+    await middleware(request as unknown as NextRequest);
 
     expect(mockRedirect).not.toHaveBeenCalled();
     expect(mockNext).toHaveBeenCalled();
@@ -126,7 +127,7 @@ describe("createSupabaseMiddleware", () => {
     });
 
     const request = createMockRequest("/settings");
-    await middleware(request as any);
+    await middleware(request as unknown as NextRequest);
 
     expect(mockRedirect).toHaveBeenCalledOnce();
     const redirectUrl = mockRedirect.mock.calls[0]![0] as URL;

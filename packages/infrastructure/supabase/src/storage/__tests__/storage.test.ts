@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it, vi } from "vitest";
 import { createStorageClient } from "../storage";
 
@@ -36,7 +37,7 @@ function createMockErrorSupabase() {
 describe("createStorageClient", () => {
   it("uploads a file to the specified bucket", async () => {
     const mockSupabase = createMockSupabase();
-    const storage = createStorageClient(mockSupabase as any);
+    const storage = createStorageClient(mockSupabase as unknown as SupabaseClient);
 
     const result = await storage.upload("avatars", "photo.jpg", new Blob(["data"]));
 
@@ -46,7 +47,7 @@ describe("createStorageClient", () => {
 
   it("downloads a file from the specified bucket", async () => {
     const mockSupabase = createMockSupabase();
-    const storage = createStorageClient(mockSupabase as any);
+    const storage = createStorageClient(mockSupabase as unknown as SupabaseClient);
 
     const blob = await storage.download("avatars", "photo.jpg");
 
@@ -56,7 +57,7 @@ describe("createStorageClient", () => {
 
   it("returns a public URL for a file", () => {
     const mockSupabase = createMockSupabase();
-    const storage = createStorageClient(mockSupabase as any);
+    const storage = createStorageClient(mockSupabase as unknown as SupabaseClient);
 
     const url = storage.getPublicUrl("avatars", "photo.jpg");
 
@@ -65,7 +66,7 @@ describe("createStorageClient", () => {
 
   it("removes files from a bucket", async () => {
     const mockSupabase = createMockSupabase();
-    const storage = createStorageClient(mockSupabase as any);
+    const storage = createStorageClient(mockSupabase as unknown as SupabaseClient);
 
     await storage.remove("avatars", ["photo.jpg", "old.jpg"]);
 
@@ -74,7 +75,7 @@ describe("createStorageClient", () => {
 
   it("throws on upload error", async () => {
     const mockSupabase = createMockErrorSupabase();
-    const storage = createStorageClient(mockSupabase as any);
+    const storage = createStorageClient(mockSupabase as unknown as SupabaseClient);
 
     await expect(storage.upload("avatars", "photo.jpg", new Blob(["data"]))).rejects.toThrow(
       "Upload failed"
@@ -83,14 +84,14 @@ describe("createStorageClient", () => {
 
   it("throws on download error", async () => {
     const mockSupabase = createMockErrorSupabase();
-    const storage = createStorageClient(mockSupabase as any);
+    const storage = createStorageClient(mockSupabase as unknown as SupabaseClient);
 
     await expect(storage.download("avatars", "photo.jpg")).rejects.toThrow("Download failed");
   });
 
   it("throws on remove error", async () => {
     const mockSupabase = createMockErrorSupabase();
-    const storage = createStorageClient(mockSupabase as any);
+    const storage = createStorageClient(mockSupabase as unknown as SupabaseClient);
 
     await expect(storage.remove("avatars", ["photo.jpg"])).rejects.toThrow("Remove failed");
   });

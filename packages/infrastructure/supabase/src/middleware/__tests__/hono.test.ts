@@ -1,3 +1,4 @@
+import { createClient } from "@supabase/supabase-js";
 import { Hono } from "hono";
 import { describe, expect, it, vi } from "vitest";
 import { supabaseMiddleware } from "../hono";
@@ -68,7 +69,6 @@ describe("supabaseMiddleware", () => {
   });
 
   it("continues without user when token is invalid", async () => {
-    const { createClient } = await import("@supabase/supabase-js");
     vi.mocked(createClient).mockReturnValueOnce({
       auth: {
         getUser: vi.fn(() =>
@@ -79,7 +79,7 @@ describe("supabaseMiddleware", () => {
         ),
       },
       from: vi.fn(),
-    } as any);
+    } as unknown as ReturnType<typeof createClient>);
 
     const app = new Hono();
     const middleware = supabaseMiddleware({

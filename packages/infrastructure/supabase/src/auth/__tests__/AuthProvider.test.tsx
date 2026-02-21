@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -9,7 +10,7 @@ function createMockSupabaseClient() {
     auth: {
       getSession: vi.fn(() => Promise.resolve({ data: { session: null }, error: null })),
       getUser: vi.fn(() => Promise.resolve({ data: { user: null }, error: null })),
-      onAuthStateChange: vi.fn((_callback: any) => {
+      onAuthStateChange: vi.fn((_callback: unknown) => {
         return {
           data: {
             subscription: { unsubscribe: vi.fn() },
@@ -36,7 +37,9 @@ describe("AuthProvider", () => {
   });
 
   function wrapper({ children }: { children: ReactNode }) {
-    return <AuthProvider supabase={mockClient as any}>{children}</AuthProvider>;
+    return (
+      <AuthProvider supabase={mockClient as unknown as SupabaseClient}>{children}</AuthProvider>
+    );
   }
 
   it("provides initial loading state", () => {

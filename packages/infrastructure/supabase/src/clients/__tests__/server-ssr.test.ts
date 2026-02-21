@@ -24,7 +24,7 @@ describe("createSSRServerClient", () => {
     const client = createSSRServerClient(
       "http://localhost:54321",
       "test-anon-key",
-      mockCookieStore as any
+      mockCookieStore as unknown as Parameters<typeof createSSRServerClient>[2]
     );
 
     expect(mockCreateServerClient).toHaveBeenCalledWith(
@@ -47,7 +47,11 @@ describe("createSSRServerClient", () => {
       set: vi.fn(),
     };
 
-    createSSRServerClient("http://localhost:54321", "key", mockCookieStore as any);
+    createSSRServerClient(
+      "http://localhost:54321",
+      "key",
+      mockCookieStore as unknown as Parameters<typeof createSSRServerClient>[2]
+    );
 
     const lastCall = mockCreateServerClient.mock.calls[0] as unknown as [
       string,
