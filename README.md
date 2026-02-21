@@ -51,6 +51,7 @@ Starting a multi-platform project usually means stitching together separate repo
 - **Type-safe end to end** — oRPC contracts generate typed clients; mismatches caught at compile time
 - **Cross-platform** — Next.js 16 web + Expo SDK 54 mobile + Hono API, all in one repo
 - **Modern tooling** — React 19, React Compiler, Tailwind v4, Turborepo, Biome, pnpm
+- **Auth & database built in** — Supabase provides authentication, PostgreSQL with Row Level Security, and auto-generated TypeScript types
 - **Production CI/CD** — GitHub Actions for linting, testing, and database migrations on every PR
 
 ## Tech Stack
@@ -60,6 +61,7 @@ Starting a multi-platform project usually means stitching together separate repo
 | **Frontend (Web)** | Next.js 16, React 19, React Compiler | App Router with automatic memoization |
 | **Frontend (Mobile)** | Expo SDK 54, React Native 0.81, Expo Router | iOS, Android, and mobile web with file-based routing |
 | **API** | Hono, oRPC | Lightweight server with end-to-end typed RPC |
+| **Database & Auth** | Supabase, PostgreSQL | Auth, Row Level Security, type-safe database client |
 | **Styling** | Tailwind v4, shadcn/ui, UniWind | CSS-first config; shared design tokens across platforms |
 | **Language** | TypeScript | Strict types everywhere, no `any` |
 | **Monorepo** | Turborepo, pnpm | Cached builds, workspace dependency catalog |
@@ -69,6 +71,7 @@ Starting a multi-platform project usually means stitching together separate repo
 
 - **Node.js 22** — [download](https://nodejs.org/) or use a version manager like `fnm` / `nvm`
 - **pnpm 10.29.3** — install via `corepack enable && corepack prepare pnpm@10.29.3 --activate`
+- **Docker** — required for local Supabase (database and auth)
 
 ## Quick Start
 
@@ -76,6 +79,13 @@ Starting a multi-platform project usually means stitching together separate repo
 git clone https://github.com/howarewoo/monorepo-template.git
 cd monorepo-template
 pnpm install
+
+# Optional: start local Supabase (requires Docker)
+pnpm --filter supabase-db start
+cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.local.example apps/web/.env.local
+# Fill in values from the Supabase start output
+
 pnpm dev
 ```
 
@@ -94,12 +104,14 @@ monorepo-template/
 │   ├── web/           Next.js 16 — App Router, React Compiler, shadcn/ui
 │   ├── landing/       Next.js 16 — Marketing page
 │   ├── mobile/        Expo SDK 54 — iOS, Android, Web
-│   └── api/           Hono + oRPC — Type-safe API server
+│   ├── api/           Hono + oRPC — Type-safe API server
+│   └── supabase/      Supabase CLI — Config, migrations, seed data
 ├── packages/
 │   ├── features/      Business logic — contracts, routers, procedures
 │   └── infrastructure/
 │       ├── api-client        oRPC client utilities, shared schemas
 │       ├── navigation        Platform-agnostic Link + useNavigation
+│       ├── supabase          Auth hooks, typed clients, middleware
 │       ├── ui                Design tokens, cn(), theme CSS
 │       ├── ui-web            Shared shadcn/ui components
 │       ├── utils             Cross-platform helpers
@@ -130,6 +142,10 @@ Three-tier dependency flow:
 | `pnpm lint` | Lint with Biome |
 | `pnpm format` | Format with Biome |
 | `pnpm clean` | Remove build artifacts and node_modules |
+| `pnpm --filter supabase-db start` | Start local Supabase (requires Docker) |
+| `pnpm --filter supabase-db stop` | Stop local Supabase |
+| `pnpm --filter supabase-db reset` | Reset database (reapply migrations + seed) |
+| `pnpm gencode` | Generate Router types + Supabase DB types |
 | `pnpm --filter <app> dev` | Run a single app (e.g. `pnpm --filter web dev`) |
 
 ## Key Patterns
@@ -163,6 +179,17 @@ import { Link, useNavigation } from "@infrastructure/navigation";
 import { Button, Card } from "@infrastructure/ui-web";
 ```
 
+**Authentication & database** — Supabase provides auth, PostgreSQL with Row Level Security, and typed clients:
+
+```typescript
+// Auth context in client apps
+import { AuthProvider, useAuth, useUser } from "@infrastructure/supabase";
+
+// Typed database access in API procedures (via oRPC context)
+const user = context.user;        // authenticated user or undefined
+const db = context.supabase;      // RLS-scoped Supabase client
+```
+
 **Dependency catalog** — single source of truth for shared versions:
 
 ```yaml
@@ -193,7 +220,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and workflow. Architectural dec
 
 ## Acknowledgments
 
-Built with [Next.js](https://nextjs.org/), [Expo](https://expo.dev/), [Hono](https://hono.dev/), [oRPC](https://orpc.unnoq.com/), [Tailwind CSS](https://tailwindcss.com/), [shadcn/ui](https://ui.shadcn.com/), [Turborepo](https://turbo.build/), and [Biome](https://biomejs.dev/).
+Built with [Next.js](https://nextjs.org/), [Expo](https://expo.dev/), [Hono](https://hono.dev/), [oRPC](https://orpc.unnoq.com/), [Supabase](https://supabase.com/), [Tailwind CSS](https://tailwindcss.com/), [shadcn/ui](https://ui.shadcn.com/), [Turborepo](https://turbo.build/), and [Biome](https://biomejs.dev/).
 
 ## License
 
