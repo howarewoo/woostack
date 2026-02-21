@@ -1,8 +1,8 @@
 import { renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AuthProvider } from "./AuthProvider";
-import { useAuth } from "./useAuth";
+import { AuthProvider } from "../AuthProvider";
+import { useAuth } from "../useAuth";
 
 function createMockSupabaseClient() {
   return {

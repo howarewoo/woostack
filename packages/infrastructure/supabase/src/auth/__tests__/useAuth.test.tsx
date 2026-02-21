@@ -1,9 +1,9 @@
 import { renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it } from "vitest";
-import { AuthContext } from "./context";
-import type { AuthContextValue } from "./types";
-import { useAuth } from "./useAuth";
+import { AuthContext } from "../context";
+import type { AuthContextValue } from "../types";
+import { useAuth } from "../useAuth";
 
 const mockValue: AuthContextValue = {
   session: null,
