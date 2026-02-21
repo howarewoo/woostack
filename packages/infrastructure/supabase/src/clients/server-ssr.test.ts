@@ -24,7 +24,7 @@ describe("createSSRServerClient", () => {
     const client = createSSRServerClient(
       "http://localhost:54321",
       "test-anon-key",
-      mockCookieStore as any,
+      mockCookieStore as any
     );
 
     expect(mockCreateServerClient).toHaveBeenCalledWith(
@@ -35,7 +35,7 @@ describe("createSSRServerClient", () => {
           getAll: expect.any(Function),
           setAll: expect.any(Function),
         }),
-      }),
+      })
     );
     expect(client).toBeDefined();
   });

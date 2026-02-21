@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
 import { Hono } from "hono";
+import { describe, expect, it, vi } from "vitest";
 import { supabaseMiddleware } from "./hono";
 
 vi.mock("@supabase/supabase-js", () => ({
@@ -15,7 +15,7 @@ vi.mock("@supabase/supabase-js", () => ({
             },
           },
           error: null,
-        }),
+        })
       ),
     },
     from: vi.fn(),

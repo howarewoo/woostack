@@ -17,5 +17,4 @@ export type TablesUpdate<T extends keyof Database["public"]["Tables"]> =
   Database["public"]["Tables"][T]["Update"];
 
 /** Helper to extract an enum type by name. */
-export type Enums<T extends keyof Database["public"]["Enums"]> =
-  Database["public"]["Enums"][T];
+export type Enums<T extends keyof Database["public"]["Enums"]> = Database["public"]["Enums"][T];

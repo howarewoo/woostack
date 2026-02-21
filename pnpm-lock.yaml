@@ -191,6 +191,9 @@ importers:
       '@infrastructure/api-client':
         specifier: workspace:*
         version: link:../../packages/infrastructure/api-client
+      '@infrastructure/supabase':
+        specifier: workspace:*
+        version: link:../../packages/infrastructure/supabase
       '@orpc/server':
         specifier: 'catalog:'
         version: 1.13.5(ws@8.19.0)
@@ -204,6 +207,9 @@ importers:
       '@infrastructure/typescript-config':
         specifier: workspace:*
         version: link:../../packages/infrastructure/typescript-config
+      '@supabase/supabase-js':
+        specifier: 'catalog:'
+        version: 2.97.0
       '@types/node':
         specifier: 25.2.3
         version: 25.2.3
@@ -289,6 +295,9 @@ importers:
       '@infrastructure/navigation':
         specifier: workspace:*
         version: link:../../packages/infrastructure/navigation
+      '@infrastructure/supabase':
+        specifier: workspace:*
+        version: link:../../packages/infrastructure/supabase
       '@infrastructure/ui':
         specifier: workspace:*
         version: link:../../packages/infrastructure/ui
@@ -404,6 +413,9 @@ importers:
       '@infrastructure/navigation':
         specifier: workspace:*
         version: link:../../packages/infrastructure/navigation
+      '@infrastructure/supabase':
+        specifier: workspace:*
+        version: link:../../packages/infrastructure/supabase
       '@infrastructure/ui':
         specifier: workspace:*
         version: link:../../packages/infrastructure/ui

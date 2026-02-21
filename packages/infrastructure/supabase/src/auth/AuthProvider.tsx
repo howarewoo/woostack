@@ -37,7 +37,7 @@ export function AuthProvider({ supabase, children }: AuthProviderProps) {
       const { error } = await supabase.auth.signInWithPassword(credentials);
       if (error) throw error;
     },
-    [supabase],
+    [supabase]
   );
 
   const signUp = useCallback(
@@ -45,7 +45,7 @@ export function AuthProvider({ supabase, children }: AuthProviderProps) {
       const { error } = await supabase.auth.signUp(credentials);
       if (error) throw error;
     },
-    [supabase],
+    [supabase]
   );
 
   const signOut = useCallback(async () => {
@@ -58,12 +58,12 @@ export function AuthProvider({ supabase, children }: AuthProviderProps) {
       const { error } = await supabase.auth.signInWithOAuth({ provider });
       if (error) throw error;
     },
-    [supabase],
+    [supabase]
   );
 
   const value = useMemo<AuthContextValue>(
     () => ({ session, user, isLoading, signIn, signUp, signOut, signInWithOAuth }),
-    [session, user, isLoading, signIn, signUp, signOut, signInWithOAuth],
+    [session, user, isLoading, signIn, signUp, signOut, signInWithOAuth]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

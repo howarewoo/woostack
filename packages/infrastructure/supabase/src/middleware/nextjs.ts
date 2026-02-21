@@ -43,9 +43,7 @@ export function createSupabaseMiddleware(options: SupabaseMiddlewareOptions) {
       data: { user },
     } = await supabase.auth.getUser();
 
-    const isProtected = protectedRoutes.some((route) =>
-      request.nextUrl.pathname.startsWith(route),
-    );
+    const isProtected = protectedRoutes.some((route) => request.nextUrl.pathname.startsWith(route));
 
     if (isProtected && !user) {
       const url = request.nextUrl.clone();

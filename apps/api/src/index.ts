@@ -1,4 +1,5 @@
 import { serve } from "@hono/node-server";
+import { supabaseMiddleware } from "@infrastructure/supabase/middleware/hono";
 import { RPCHandler } from "@orpc/server/fetch";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
@@ -10,6 +11,14 @@ const app = new Hono();
 app.use("*", logger());
 app.use("*", cors());
 
+app.use(
+  "/api/*",
+  supabaseMiddleware({
+    supabaseUrl: process.env.SUPABASE_URL || "http://127.0.0.1:54321",
+    supabaseServiceKey: process.env.SUPABASE_SERVICE_ROLE_KEY || "",
+  })
+);
+
 const handler = new RPCHandler(router);
 
 app.all("/api/*", async (c) => {
@@ -20,7 +29,11 @@ app.all("/api/*", async (c) => {
 
   const result = await handler.handle(request, {
     prefix: "/",
-    context: { requestId: c.req.header("x-request-id") },
+    context: {
+      requestId: c.req.header("x-request-id"),
+      user: c.get("user"),
+      supabase: c.get("supabase"),
+    },
   });
 
   if (result.matched) {

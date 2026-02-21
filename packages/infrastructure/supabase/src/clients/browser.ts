@@ -1,4 +1,4 @@
-import { type SupabaseClientOptions, createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClientOptions } from "@supabase/supabase-js";
 import type { Database } from "../generated/database";
 import type { TypedSupabaseClient } from "../types";
 
@@ -9,7 +9,7 @@ import type { TypedSupabaseClient } from "../types";
 export function createBrowserClient(
   supabaseUrl: string,
   supabaseAnonKey: string,
-  options?: SupabaseClientOptions<"public">,
+  options?: SupabaseClientOptions<"public">
 ): TypedSupabaseClient {
   return createClient<Database>(supabaseUrl, supabaseAnonKey, options);
 }

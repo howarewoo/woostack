@@ -16,14 +16,12 @@ function createMockSupabaseClient() {
         };
       }),
       signInWithPassword: vi.fn(() =>
-        Promise.resolve({ data: { session: null, user: null }, error: null }),
+        Promise.resolve({ data: { session: null, user: null }, error: null })
       ),
-      signUp: vi.fn(() =>
-        Promise.resolve({ data: { session: null, user: null }, error: null }),
-      ),
+      signUp: vi.fn(() => Promise.resolve({ data: { session: null, user: null }, error: null })),
       signOut: vi.fn(() => Promise.resolve({ error: null })),
       signInWithOAuth: vi.fn(() =>
-        Promise.resolve({ data: { url: null, provider: "google" }, error: null }),
+        Promise.resolve({ data: { url: null, provider: "google" }, error: null })
       ),
     },
   };

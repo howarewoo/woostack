@@ -15,6 +15,7 @@
   "dependencies": {
     "@infrastructure/api-client": "workspace:*",
     "@infrastructure/navigation": "workspace:*",
+    "@infrastructure/supabase": "workspace:*",
     "@infrastructure/ui": "workspace:*",
     "@infrastructure/ui-web": "workspace:*",
     "@infrastructure/utils": "workspace:*",

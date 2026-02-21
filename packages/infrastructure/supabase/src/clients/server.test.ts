@@ -19,7 +19,7 @@ describe("createServerClient", () => {
           autoRefreshToken: false,
           persistSession: false,
         }),
-      }),
+      })
     );
     expect(client).toBeDefined();
   });

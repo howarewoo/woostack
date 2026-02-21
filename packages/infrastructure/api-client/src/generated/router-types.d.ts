@@ -7,9 +7,13 @@ export type Router = {
   health: import("@orpc/server").DecoratedProcedure<
     {
       requestId?: string;
+      user?: import("@supabase/supabase-js").User;
+      supabase?: import("@supabase/supabase-js").SupabaseClient;
     } & Record<never, never>,
     {
       requestId?: string;
+      user?: import("@supabase/supabase-js").User;
+      supabase?: import("@supabase/supabase-js").SupabaseClient;
     },
     import("@orpc/contract").Schema<unknown, unknown>,
     import("zod").ZodObject<

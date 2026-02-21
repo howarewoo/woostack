@@ -5,6 +5,11 @@ vi.mock("@hono/node-server", () => ({
   serve: vi.fn(),
 }));
 
+// Mock the Supabase middleware to be a pass-through
+vi.mock("@infrastructure/supabase/middleware/hono", () => ({
+  supabaseMiddleware: () => async (_c: unknown, next: () => Promise<void>) => next(),
+}));
+
 // Mock the router
 vi.mock("../router", () => ({
   router: {},
@@ -51,7 +56,11 @@ describe("API Server", () => {
       expect.any(Request),
       expect.objectContaining({
         prefix: "/",
-        context: expect.objectContaining({ requestId: undefined }),
+        context: expect.objectContaining({
+          requestId: undefined,
+          user: undefined,
+          supabase: undefined,
+        }),
       })
     );
   });

@@ -21,6 +21,7 @@
     "@react-navigation/native": "catalog:",
     "@infrastructure/api-client": "workspace:*",
     "@infrastructure/navigation": "workspace:*",
+    "@infrastructure/supabase": "workspace:*",
     "@infrastructure/ui": "workspace:*",
     "@infrastructure/utils": "workspace:*",
     "@tanstack/react-query": "catalog:",

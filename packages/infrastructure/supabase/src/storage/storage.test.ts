@@ -5,9 +5,7 @@ function createMockSupabase() {
   return {
     storage: {
       from: vi.fn(() => ({
-        upload: vi.fn(() =>
-          Promise.resolve({ data: { path: "avatars/photo.jpg" }, error: null }),
-        ),
+        upload: vi.fn(() => Promise.resolve({ data: { path: "avatars/photo.jpg" }, error: null })),
         download: vi.fn(() => Promise.resolve({ data: new Blob(["test"]), error: null })),
         getPublicUrl: vi.fn(() => ({
           data: {

@@ -25,7 +25,7 @@ describe("createBrowserClient", () => {
       "test-anon-key",
       expect.objectContaining({
         auth: expect.objectContaining({ flowType: "pkce" }),
-      }),
+      })
     );
   });
 });

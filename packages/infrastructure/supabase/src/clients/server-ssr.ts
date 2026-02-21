@@ -20,7 +20,7 @@ interface CookieStore {
 export function createSSRServerClient(
   supabaseUrl: string,
   supabaseAnonKey: string,
-  cookieStore: CookieStore,
+  cookieStore: CookieStore
 ): TypedSupabaseClient {
   return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
     cookies: {
