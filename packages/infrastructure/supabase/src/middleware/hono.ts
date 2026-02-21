@@ -25,9 +25,20 @@ interface SupabaseMiddlewareOptions {
  *   is an anon-key client (respects RLS, no elevated privileges).
  */
 export function supabaseMiddleware(options: SupabaseMiddlewareOptions): MiddlewareHandler {
-  return async (c, next) => {
-    const { supabaseUrl, supabaseServiceKey, supabaseAnonKey } = options;
+  const { supabaseUrl, supabaseServiceKey, supabaseAnonKey } = options;
 
+  // Cache the anon client — same config for all unauthenticated requests
+  let anonClient: ReturnType<typeof createClient<Database>> | null = null;
+  function getAnonClient() {
+    if (!anonClient) {
+      anonClient = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+        auth: { autoRefreshToken: false, persistSession: false },
+      });
+    }
+    return anonClient;
+  }
+
+  return async (c, next) => {
     const authHeader = c.req.header("Authorization");
     const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : undefined;
 
@@ -49,11 +60,8 @@ export function supabaseMiddleware(options: SupabaseMiddlewareOptions): Middlewa
       }
     }
 
-    const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
     c.set("user", undefined);
-    c.set("supabase", supabase);
+    c.set("supabase", getAnonClient());
 
     return next();
   };

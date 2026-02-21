@@ -15,21 +15,39 @@ export function AuthProvider({ supabase, children }: AuthProviderProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
-      setSession(initialSession);
-      setUser(initialSession?.user ?? null);
-      setIsLoading(false);
-    });
+    let isMounted = true;
+    let initialLoadDone = false;
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      if (!isMounted) return;
+      initialLoadDone = true;
       setSession(newSession);
       setUser(newSession?.user ?? null);
       setIsLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    // Fallback: only use getUser if onAuthStateChange hasn't fired yet
+    supabase.auth.getUser().then(({ data: { user: validatedUser }, error }) => {
+      if (!isMounted || initialLoadDone) return;
+      if (error || !validatedUser) {
+        setSession(null);
+        setUser(null);
+      } else {
+        supabase.auth.getSession().then(({ data: { session: validatedSession } }) => {
+          if (!isMounted || initialLoadDone) return;
+          setSession(validatedSession);
+          setUser(validatedUser);
+        });
+      }
+      setIsLoading(false);
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, [supabase]);
 
   const signIn = useCallback(

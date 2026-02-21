@@ -37,6 +37,10 @@
     "./storage": {
       "types": "./src/storage/storage.ts",
       "default": "./src/storage/storage.ts"
+    },
+    "./types": {
+      "types": "./src/types.ts",
+      "default": "./src/types.ts"
     }
   },
   "scripts": {

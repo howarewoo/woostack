@@ -1,11 +1,12 @@
 import { usersRouter } from "@features/users/router";
 import { MessageSchema } from "@infrastructure/api-client";
+import type { SupabaseUser, TypedSupabaseClient } from "@infrastructure/supabase/types";
 import { os } from "@orpc/server";
 
 const pub = os.$context<{
   requestId?: string;
-  user?: import("@supabase/supabase-js").User;
-  supabase: import("@supabase/supabase-js").SupabaseClient;
+  user?: SupabaseUser;
+  supabase: TypedSupabaseClient;
 }>();
 
 export const router = {

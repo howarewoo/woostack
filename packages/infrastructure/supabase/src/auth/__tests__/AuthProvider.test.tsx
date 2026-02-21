@@ -8,6 +8,7 @@ function createMockSupabaseClient() {
   return {
     auth: {
       getSession: vi.fn(() => Promise.resolve({ data: { session: null }, error: null })),
+      getUser: vi.fn(() => Promise.resolve({ data: { user: null }, error: null })),
       onAuthStateChange: vi.fn((_callback: any) => {
         return {
           data: {
@@ -50,8 +51,8 @@ describe("AuthProvider", () => {
     expect(mockClient.auth.onAuthStateChange).toHaveBeenCalledOnce();
   });
 
-  it("calls getSession on mount", () => {
+  it("calls getUser on mount for server-validated auth", () => {
     renderHook(() => useAuth(), { wrapper });
-    expect(mockClient.auth.getSession).toHaveBeenCalledOnce();
+    expect(mockClient.auth.getUser).toHaveBeenCalledOnce();
   });
 });

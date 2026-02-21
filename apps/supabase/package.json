@@ -12,6 +12,6 @@
     "gencode": "pnpm gen-types || echo 'Skipping: local Supabase not running (run pnpm --filter supabase-db start first)'"
   },
   "devDependencies": {
-    "supabase": "2.76.12"
+    "supabase": "catalog:"
   }
 }

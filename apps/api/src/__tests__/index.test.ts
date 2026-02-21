@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+// Set required env vars before app module loads (hoisted alongside vi.mock)
+vi.hoisted(() => {
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
+  process.env.SUPABASE_ANON_KEY = "test-anon-key";
+});
+
 // Mock @hono/node-server BEFORE importing app
 vi.mock("@hono/node-server", () => ({
   serve: vi.fn(),
@@ -92,8 +98,10 @@ describe("API Server", () => {
     expect(res.status).toBe(404);
   });
 
-  it("should include CORS headers", async () => {
-    const res = await app.request("/");
-    expect(res.headers.get("access-control-allow-origin")).toBeTruthy();
+  it("should include CORS headers for allowed origins", async () => {
+    const res = await app.request("/", {
+      headers: { Origin: "http://localhost:3000" },
+    });
+    expect(res.headers.get("access-control-allow-origin")).toBe("http://localhost:3000");
   });
 });

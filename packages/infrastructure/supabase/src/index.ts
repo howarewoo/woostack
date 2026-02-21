@@ -14,4 +14,11 @@ export { supabaseMiddleware } from "./middleware/hono";
 export { createSupabaseMiddleware } from "./middleware/nextjs";
 // Storage
 export { createStorageClient } from "./storage/storage";
-export type { Enums, Tables, TablesInsert, TablesUpdate, TypedSupabaseClient } from "./types";
+export type {
+  Enums,
+  SupabaseUser,
+  Tables,
+  TablesInsert,
+  TablesUpdate,
+  TypedSupabaseClient,
+} from "./types";

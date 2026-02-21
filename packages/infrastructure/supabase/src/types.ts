@@ -1,5 +1,8 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { Database } from "./generated/database";
+
+/** Re-exported Supabase User type — consumers should use this instead of importing @supabase/supabase-js directly. */
+export type SupabaseUser = User;
 
 /** Supabase client typed with the generated Database schema. */
 export type TypedSupabaseClient = SupabaseClient<Database>;

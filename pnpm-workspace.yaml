@@ -73,6 +73,7 @@ catalog:
   # Supabase
   "@supabase/supabase-js": "2.97.0"
   "@supabase/ssr": "0.8.0"
+  supabase: "2.76.12"
 
   # Tailwind
   tailwindcss: "4.1.18"

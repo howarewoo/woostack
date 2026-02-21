@@ -18,6 +18,21 @@ function createMockSupabase() {
   };
 }
 
+function createMockErrorSupabase() {
+  return {
+    storage: {
+      from: vi.fn(() => ({
+        upload: vi.fn(() => Promise.resolve({ data: null, error: new Error("Upload failed") })),
+        download: vi.fn(() => Promise.resolve({ data: null, error: new Error("Download failed") })),
+        getPublicUrl: vi.fn(() => ({
+          data: { publicUrl: "" },
+        })),
+        remove: vi.fn(() => Promise.resolve({ data: null, error: new Error("Remove failed") })),
+      })),
+    },
+  };
+}
+
 describe("createStorageClient", () => {
   it("uploads a file to the specified bucket", async () => {
     const mockSupabase = createMockSupabase();
@@ -55,5 +70,28 @@ describe("createStorageClient", () => {
     await storage.remove("avatars", ["photo.jpg", "old.jpg"]);
 
     expect(mockSupabase.storage.from).toHaveBeenCalledWith("avatars");
+  });
+
+  it("throws on upload error", async () => {
+    const mockSupabase = createMockErrorSupabase();
+    const storage = createStorageClient(mockSupabase as any);
+
+    await expect(storage.upload("avatars", "photo.jpg", new Blob(["data"]))).rejects.toThrow(
+      "Upload failed"
+    );
+  });
+
+  it("throws on download error", async () => {
+    const mockSupabase = createMockErrorSupabase();
+    const storage = createStorageClient(mockSupabase as any);
+
+    await expect(storage.download("avatars", "photo.jpg")).rejects.toThrow("Download failed");
+  });
+
+  it("throws on remove error", async () => {
+    const mockSupabase = createMockErrorSupabase();
+    const storage = createStorageClient(mockSupabase as any);
+
+    await expect(storage.remove("avatars", ["photo.jpg"])).rejects.toThrow("Remove failed");
   });
 });

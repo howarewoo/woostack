@@ -75,8 +75,8 @@ import { UserSchema, CreateUserSchema } from "../contracts/usersContract";
 
 const pub = os.$context<{
   requestId?: string;
-  user?: import("@supabase/supabase-js").User;
-  supabase: import("@supabase/supabase-js").SupabaseClient;
+  user?: import("@infrastructure/supabase").SupabaseUser;
+  supabase: import("@infrastructure/supabase").TypedSupabaseClient;
 }>();
 
 export const usersRouter = {
