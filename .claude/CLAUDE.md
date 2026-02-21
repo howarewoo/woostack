@@ -116,14 +116,17 @@ Feature packages must never import `next/navigation` or `expo-router` directly. 
 - **Clients**: `createServerClient()`, `createBrowserClient()`, `createSSRServerClient()`, `createSSRBrowserClient()`
 - **Auth**: `AuthProvider`, `useAuth()`, `useUser()` (React context pattern like NavigationProvider)
 - **Storage**: `createStorageClient()` for upload/download/getPublicUrl
-- **Middleware**: `supabaseMiddleware` (Hono — JWT validation for apps/api), `createSupabaseMiddleware` (Next.js — session refresh)
+- **Middleware**: `supabaseMiddleware` (Hono — JWT validation, requires `supabaseUrl`+`supabaseServiceKey`+`supabaseAnonKey`), `createSupabaseMiddleware` (Next.js — session refresh)
 - **Types**: Auto-generated `Database` type + helpers (`Tables`, `TablesInsert`, `Enums`)
 
-Feature procedures access `context.user` and `context.supabase` (RLS-scoped) via oRPC context. The API client supports dynamic token injection via `getToken` option:
+Feature procedures access `context.user` (authenticated user or `undefined`) and `context.supabase` (RLS-scoped client) via oRPC context. Unauthenticated requests get an anon-key client (respects RLS, no elevated privileges). The API client supports dynamic token injection via `getToken` option:
 
 ```typescript
 const client = createTypedApiClient("http://localhost:3001/api", {
-  getToken: () => supabase.auth.getSession().then(({ data }) => data.session?.access_token),
+  getToken: async () => {
+    const { data } = await supabase.auth.getSession();
+    return data.session?.access_token;
+  },
 });
 ```
 
@@ -176,6 +179,20 @@ react: "19.1.0"
 **Gotcha**: pnpm 10 disables dependency lifecycle scripts by default. If a new dependency has a `postinstall` script (e.g., `esbuild`, `prisma`, native modules), add it to `pnpm.onlyBuiltDependencies` in the root `package.json` or it will silently fail to build.
 
 **Gotcha**: After changing any feature router or `apps/api/src/router.ts`, run `pnpm gencode` to regenerate the Router type in `@infrastructure/api-client`. The generated file (`packages/infrastructure/api-client/src/generated/router-types.d.ts`) must be committed — it is not regenerated during build or CI.
+
+### Environment Variables
+
+Each app has a `.env.example` file. Copy and fill in values from `pnpm --filter supabase-db start` output:
+
+| App | Variable | Description |
+|-----|----------|-------------|
+| `apps/api` | `SUPABASE_URL` | Supabase API URL (default: `http://127.0.0.1:54321`) |
+| `apps/api` | `SUPABASE_SERVICE_ROLE_KEY` | Service role key for JWT validation |
+| `apps/api` | `SUPABASE_ANON_KEY` | Anon key for unauthenticated RLS-scoped requests |
+| `apps/web` | `NEXT_PUBLIC_SUPABASE_URL` | Supabase API URL (public, embedded in client bundle) |
+| `apps/web` | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Anon key (public, embedded in client bundle) |
+| `apps/mobile` | `EXPO_PUBLIC_SUPABASE_URL` | Supabase API URL (public, embedded in app bundle) |
+| `apps/mobile` | `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Anon key (public, embedded in app bundle) |
 
 ## Conventions
 
