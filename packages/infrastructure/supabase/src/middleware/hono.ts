@@ -25,7 +25,7 @@ interface SupabaseMiddlewareOptions {
  *   is a publishable-key client (respects RLS, no elevated privileges).
  */
 export function supabaseMiddleware(options: SupabaseMiddlewareOptions): MiddlewareHandler {
-  const { supabaseUrl, supabaseSecretKey, supabasePublishableKey } = options;
+  const { supabaseUrl, supabasePublishableKey } = options;
 
   // Cache the publishable client — same config for all unauthenticated requests
   let publishableClient: ReturnType<typeof createClient<Database>> | null = null;

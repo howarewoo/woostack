@@ -103,7 +103,7 @@ describe("qualifyBareWorkspaceTypes", () => {
   });
 
   it("leaves unrelated types unchanged", () => {
-    const input = "Record<string, import(\"zod\").ZodString>";
+    const input = 'Record<string, import("zod").ZodString>';
     expect(qualifyBareWorkspaceTypes(input)).toBe(input);
   });
 });

@@ -1,11 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as ts from "typescript";
-import {
-  formatTypeString,
-  qualifyBareWorkspaceTypes,
-  replaceAbsolutePaths,
-} from "./gencode-utils";
+import { formatTypeString, qualifyBareWorkspaceTypes, replaceAbsolutePaths } from "./gencode-utils";
 
 const API_ROOT = path.resolve(import.meta.dirname, "..");
 const ROUTER_FILE = path.join(API_ROOT, "src/router.ts");
