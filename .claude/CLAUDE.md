@@ -183,7 +183,7 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
 ## Testing
 
 - **Framework**: Vitest (unit/integration), Jest via `jest-expo` (mobile/React Native), Playwright (E2E)
-- **Test locations**: colocated as `{filename}.test.ts` or in `__tests__/` directories
+- **Test locations**: in sibling `__tests__/` directories (e.g., `src/auth/__tests__/useAuth.test.ts`)
 - Run `pnpm test` before committing; new procedures require tests
 - Run per-app: `pnpm --filter web test`, `pnpm --filter landing test`, `pnpm --filter api test`, `pnpm --filter mobile test`
 
