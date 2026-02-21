@@ -15,6 +15,17 @@ vi.mock("@/lib/navigation", () => ({
   useWebNavigation: () => mockNavigationValue,
 }));
 
+vi.mock("@/lib/supabase", () => ({
+  createBrowserSupabase: () => ({
+    auth: {
+      getSession: vi.fn(() => Promise.resolve({ data: { session: null }, error: null })),
+      onAuthStateChange: vi.fn(() => ({
+        data: { subscription: { unsubscribe: vi.fn() } },
+      })),
+    },
+  }),
+}));
+
 const navigationProviderSpy = vi.fn();
 
 vi.mock("@infrastructure/navigation", () => ({

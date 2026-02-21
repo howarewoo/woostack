@@ -1,9 +1,6 @@
 # Supabase local development configuration
 # Full reference: https://supabase.com/docs/guides/cli/config
 
-[project]
-id = "monorepo-template"
-
 [api]
 enabled = true
 port = 54321

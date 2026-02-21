@@ -28,7 +28,7 @@ pnpm format:unsafe    # Format + apply unsafe fixes (used by pre-commit)
 pnpm pre-commit       # Install, format, typecheck, react-doctor, and test changed files
 pnpm clean            # Remove build artifacts and node_modules
 pnpm reset            # Deep clean: node_modules, .next, dist, .turbo, untracked files
-pnpm gencode          # Generate Router types from apps/api into @infrastructure/api-client
+pnpm gencode          # Generate Router types + Supabase DB types (requires local Supabase for DB types)
 
 # Run a single package
 pnpm --filter web dev
@@ -42,6 +42,11 @@ pnpm --filter landing dev
 pnpm --filter mobile ios
 pnpm --filter mobile android
 pnpm --filter mobile web
+
+# Supabase (requires Docker)
+pnpm --filter supabase-db start   # Start local Supabase
+pnpm --filter supabase-db stop    # Stop local Supabase
+pnpm --filter supabase-db reset   # Reset DB (reapply migrations + seed)
 ```
 
 ## Architecture
@@ -52,6 +57,7 @@ pnpm --filter mobile web
   - `apps/landing` — Next.js 16 marketing/landing page consuming shared UI components (port 3002)
   - `apps/mobile` — Expo SDK 54 + React Native 0.81 + UniWind + react-native-reusables
   - `apps/api` — Hono + oRPC API server (port 3001)
+  - `apps/supabase` — Supabase CLI project (config, migrations, seed data; local dev via Docker)
 - **Features** (`packages/features/*`): Standalone business feature packages; own their contracts (`contracts/`), routers (`routers/`), and procedures (`procedures/`); can only import from infrastructure
 - **Infrastructure** (`packages/infrastructure/*`): Shared utilities; can be used anywhere
   - `@infrastructure/api-client` — oRPC client utilities (`createApiClient`, `createTypedApiClient`), generated Router type, and shared base schemas
@@ -59,6 +65,7 @@ pnpm --filter mobile web
   - `@infrastructure/ui` — Shared design tokens, CSS utilities (`cn()`, `tokens`)
   - `@infrastructure/ui-web` — Shared shadcn/ui components (Button, Card, etc.) for web apps
   - `@infrastructure/utils` — Cross-platform utility functions
+  - `@infrastructure/supabase` — Supabase clients (server, browser, SSR), auth hooks/context (AuthProvider, useAuth, useUser), storage utilities, Hono/Next.js middleware, generated DB types
   - `@infrastructure/typescript-config` — Shared TypeScript configs (base, library, nextjs, react-native)
 
 ## Key Patterns
@@ -100,6 +107,29 @@ Feature packages must never import `next/navigation` or `expo-router` directly. 
 - `<Link href="/path">` for declarative navigation
 - `useNavigation()` for imperative (`navigate`, `replace`, `back`)
 - Each app provides its adapter via `NavigationProvider` (see `apps/web/lib/navigation.tsx`, `apps/mobile/lib/navigation.tsx`)
+
+### Supabase (Auth + Database + Storage)
+
+`apps/supabase` holds the Supabase CLI project (config.toml, migrations, seed.sql). Run `pnpm --filter supabase-db start` to spin up local Supabase via Docker.
+
+`@infrastructure/supabase` provides everything apps need:
+- **Clients**: `createServerClient()`, `createBrowserClient()`, `createSSRServerClient()`, `createSSRBrowserClient()`
+- **Auth**: `AuthProvider`, `useAuth()`, `useUser()` (React context pattern like NavigationProvider)
+- **Storage**: `createStorageClient()` for upload/download/getPublicUrl
+- **Middleware**: `supabaseMiddleware` (Hono — JWT validation for apps/api), `createSupabaseMiddleware` (Next.js — session refresh)
+- **Types**: Auto-generated `Database` type + helpers (`Tables`, `TablesInsert`, `Enums`)
+
+Feature procedures access `context.user` and `context.supabase` (RLS-scoped) via oRPC context. The API client supports dynamic token injection via `getToken` option:
+
+```typescript
+const client = createTypedApiClient("http://localhost:3001/api", {
+  getToken: () => supabase.auth.getSession().then(({ data }) => data.session?.access_token),
+});
+```
+
+**Gotcha**: After changing migrations, run `pnpm --filter supabase-db reset` then `pnpm gencode` to regenerate DB types.
+
+**Gotcha**: The `gen-types` script requires local Supabase to be running (`pnpm --filter supabase-db start`). If Supabase isn't running, `pnpm gencode` gracefully skips DB type generation.
 
 ### Cross-Platform UI
 
