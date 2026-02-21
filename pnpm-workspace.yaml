@@ -70,6 +70,10 @@ catalog:
   jest-expo: "54.0.17"
   "@types/jest": "29.5.14"
 
+  # Supabase
+  "@supabase/supabase-js": "2.97.0"
+  "@supabase/ssr": "0.8.0"
+
   # Tailwind
   tailwindcss: "4.1.18"
   "@tailwindcss/postcss": "4.1.18"

@@ -27,6 +27,7 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "@biomejs/biome",
+      "supabase",
       "turbo"
     ]
   }
