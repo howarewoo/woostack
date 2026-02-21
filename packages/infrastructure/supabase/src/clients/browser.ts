@@ -4,12 +4,12 @@ import type { TypedSupabaseClient } from "../types";
 
 /**
  * Creates a Supabase browser client for use in client-side React code.
- * Uses the anon/publishable key. Session is managed automatically via localStorage.
+ * Uses the publishable key. Session is managed automatically via localStorage.
  */
 export function createBrowserClient(
   supabaseUrl: string,
-  supabaseAnonKey: string,
+  supabasePublishableKey: string,
   options?: SupabaseClientOptions<"public">
 ): TypedSupabaseClient {
-  return createClient<Database>(supabaseUrl, supabaseAnonKey, options);
+  return createClient<Database>(supabaseUrl, supabasePublishableKey, options);
 }

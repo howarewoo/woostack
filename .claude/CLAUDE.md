@@ -116,10 +116,10 @@ Feature packages must never import `next/navigation` or `expo-router` directly. 
 - **Clients**: `createServerClient()`, `createBrowserClient()`, `createSSRServerClient()`, `createSSRBrowserClient()`
 - **Auth**: `AuthProvider`, `useAuth()`, `useUser()` (React context pattern like NavigationProvider)
 - **Storage**: `createStorageClient()` for upload/download/getPublicUrl
-- **Middleware**: `supabaseMiddleware` (Hono — JWT validation, requires `supabaseUrl`+`supabaseServiceKey`+`supabaseAnonKey`), `createSupabaseMiddleware` (Next.js — session refresh)
+- **Middleware**: `supabaseMiddleware` (Hono — JWT validation, requires `supabaseUrl`+`supabaseSecretKey`+`supabasePublishableKey`), `createSupabaseMiddleware` (Next.js — session refresh)
 - **Types**: Auto-generated `Database` type + helpers (`Tables`, `TablesInsert`, `TablesUpdate`, `Enums`, `SupabaseUser`, `TypedSupabaseClient`)
 
-Feature procedures access `context.user` (authenticated user or `undefined`) and `context.supabase` (RLS-scoped client) via oRPC context. Unauthenticated requests get an anon-key client (respects RLS, no elevated privileges). The API client supports dynamic token injection via `getToken` option:
+Feature procedures access `context.user` (authenticated user or `undefined`) and `context.supabase` (RLS-scoped client) via oRPC context. Unauthenticated requests get a publishable-key client (respects RLS, no elevated privileges). The API client supports dynamic token injection via `getToken` option:
 
 ```typescript
 const client = createTypedApiClient("http://localhost:3001/api", {
@@ -187,12 +187,12 @@ Each app has an env example file (`.env.example` for `api`/`mobile`, `.env.local
 | App | Variable | Description |
 |-----|----------|-------------|
 | `apps/api` | `SUPABASE_URL` | Supabase API URL (default: `http://127.0.0.1:54321`) |
-| `apps/api` | `SUPABASE_SERVICE_ROLE_KEY` | Service role key for JWT validation |
-| `apps/api` | `SUPABASE_ANON_KEY` | Anon key for unauthenticated RLS-scoped requests |
+| `apps/api` | `SUPABASE_SECRET_KEY` | Secret key for JWT validation |
+| `apps/api` | `SUPABASE_PUBLISHABLE_KEY` | Publishable key for unauthenticated RLS-scoped requests |
 | `apps/web` | `NEXT_PUBLIC_SUPABASE_URL` | Supabase API URL (public, embedded in client bundle) |
-| `apps/web` | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Anon key (public, embedded in client bundle) |
+| `apps/web` | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key (public, embedded in client bundle) |
 | `apps/mobile` | `EXPO_PUBLIC_SUPABASE_URL` | Supabase API URL (public, embedded in app bundle) |
-| `apps/mobile` | `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Anon key (public, embedded in app bundle) |
+| `apps/mobile` | `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key (public, embedded in app bundle) |
 
 ## Conventions
 

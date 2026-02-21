@@ -54,7 +54,7 @@ describe("createSupabaseMiddleware", () => {
   it("returns a middleware function", () => {
     const middleware = createSupabaseMiddleware({
       supabaseUrl: "http://localhost:54321",
-      supabaseAnonKey: "test-anon-key",
+      supabasePublishableKey: "test-publishable-key",
       protectedRoutes: ["/dashboard"],
       loginPath: "/login",
     });
@@ -67,7 +67,7 @@ describe("createSupabaseMiddleware", () => {
 
     const middleware = createSupabaseMiddleware({
       supabaseUrl: "http://localhost:54321",
-      supabaseAnonKey: "test-anon-key",
+      supabasePublishableKey: "test-publishable-key",
       protectedRoutes: ["/dashboard"],
       loginPath: "/login",
     });
@@ -88,7 +88,7 @@ describe("createSupabaseMiddleware", () => {
 
     const middleware = createSupabaseMiddleware({
       supabaseUrl: "http://localhost:54321",
-      supabaseAnonKey: "test-anon-key",
+      supabasePublishableKey: "test-publishable-key",
       protectedRoutes: ["/dashboard"],
       loginPath: "/login",
     });
@@ -105,7 +105,7 @@ describe("createSupabaseMiddleware", () => {
 
     const middleware = createSupabaseMiddleware({
       supabaseUrl: "http://localhost:54321",
-      supabaseAnonKey: "test-anon-key",
+      supabasePublishableKey: "test-publishable-key",
       protectedRoutes: ["/dashboard"],
       loginPath: "/login",
     });
@@ -122,7 +122,7 @@ describe("createSupabaseMiddleware", () => {
 
     const middleware = createSupabaseMiddleware({
       supabaseUrl: "http://localhost:54321",
-      supabaseAnonKey: "test-anon-key",
+      supabasePublishableKey: "test-publishable-key",
       protectedRoutes: ["/settings"],
     });
 

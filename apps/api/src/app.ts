@@ -11,8 +11,8 @@ function requireEnv(name: string): string {
 }
 
 const supabaseUrl = process.env.SUPABASE_URL || "http://127.0.0.1:54321";
-const supabaseServiceKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
-const supabaseAnonKey = requireEnv("SUPABASE_ANON_KEY");
+const supabaseSecretKey = requireEnv("SUPABASE_SECRET_KEY");
+const supabasePublishableKey = requireEnv("SUPABASE_PUBLISHABLE_KEY");
 
 const app = new Hono();
 
@@ -33,8 +33,8 @@ app.use(
   "/api/*",
   supabaseMiddleware({
     supabaseUrl,
-    supabaseServiceKey,
-    supabaseAnonKey,
+    supabaseSecretKey,
+    supabasePublishableKey,
   })
 );
 

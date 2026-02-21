@@ -422,21 +422,21 @@ import { createClient } from "@supabase/supabase-js";
 import { createBrowserClient } from "./browser";
 
 describe("createBrowserClient", () => {
-  it("creates a Supabase client with the provided URL and anon key", () => {
-    const client = createBrowserClient("http://localhost:54321", "test-anon-key");
+  it("creates a Supabase client with the provided URL and publishable key", () => {
+    const client = createBrowserClient("http://localhost:54321", "test-publishable-key");
 
-    expect(createClient).toHaveBeenCalledWith("http://localhost:54321", "test-anon-key", undefined);
+    expect(createClient).toHaveBeenCalledWith("http://localhost:54321", "test-publishable-key", undefined);
     expect(client).toBeDefined();
   });
 
   it("passes through custom options", () => {
-    createBrowserClient("http://localhost:54321", "test-anon-key", {
+    createBrowserClient("http://localhost:54321", "test-publishable-key", {
       auth: { flowType: "pkce" },
     });
 
     expect(createClient).toHaveBeenCalledWith(
       "http://localhost:54321",
-      "test-anon-key",
+      "test-publishable-key",
       expect.objectContaining({
         auth: expect.objectContaining({ flowType: "pkce" }),
       }),
@@ -461,14 +461,14 @@ import type { TypedSupabaseClient } from "../types";
 
 /**
  * Creates a Supabase browser client for use in client-side React code.
- * Uses the anon/publishable key. Session is managed automatically via localStorage.
+ * Uses the publishable key. Session is managed automatically via localStorage.
  */
 export function createBrowserClient(
   supabaseUrl: string,
-  supabaseAnonKey: string,
+  supabasePublishableKey: string,
   options?: SupabaseClientOptions<"public">,
 ): TypedSupabaseClient {
-  return createClient<Database>(supabaseUrl, supabaseAnonKey, options);
+  return createClient<Database>(supabaseUrl, supabasePublishableKey, options);
 }
 ```
 
@@ -525,13 +525,13 @@ describe("createSSRServerClient", () => {
 
     const client = createSSRServerClient(
       "http://localhost:54321",
-      "test-anon-key",
+      "test-publishable-key",
       mockCookieStore as any,
     );
 
     expect(mockCreateServerClient).toHaveBeenCalledWith(
       "http://localhost:54321",
-      "test-anon-key",
+      "test-publishable-key",
       expect.objectContaining({
         cookies: expect.objectContaining({
           getAll: expect.any(Function),
@@ -590,10 +590,10 @@ interface CookieStore {
  */
 export function createSSRServerClient(
   supabaseUrl: string,
-  supabaseAnonKey: string,
+  supabasePublishableKey: string,
   cookieStore: CookieStore,
 ): TypedSupabaseClient {
-  return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
+  return createServerClient<Database>(supabaseUrl, supabasePublishableKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll();
@@ -634,11 +634,11 @@ import { createSSRBrowserClient } from "./browser-ssr";
 
 describe("createSSRBrowserClient", () => {
   it("calls @supabase/ssr createBrowserClient with URL and key", () => {
-    const client = createSSRBrowserClient("http://localhost:54321", "test-anon-key");
+    const client = createSSRBrowserClient("http://localhost:54321", "test-publishable-key");
 
     expect(mockCreateBrowserClient).toHaveBeenCalledWith(
       "http://localhost:54321",
-      "test-anon-key",
+      "test-publishable-key",
     );
     expect(client).toBeDefined();
   });
@@ -666,9 +666,9 @@ import type { TypedSupabaseClient } from "../types";
  */
 export function createSSRBrowserClient(
   supabaseUrl: string,
-  supabaseAnonKey: string,
+  supabasePublishableKey: string,
 ): TypedSupabaseClient {
-  return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
+  return createBrowserClient<Database>(supabaseUrl, supabasePublishableKey);
 }
 ```
 
@@ -1142,7 +1142,7 @@ describe("supabaseMiddleware", () => {
     const app = new Hono();
     const middleware = supabaseMiddleware({
       supabaseUrl: "http://localhost:54321",
-      supabaseServiceKey: "test-service-key",
+      supabaseSecretKey: "test-secret-key",
     });
 
     app.use("*", middleware);
@@ -1164,7 +1164,7 @@ describe("supabaseMiddleware", () => {
     const app = new Hono();
     const middleware = supabaseMiddleware({
       supabaseUrl: "http://localhost:54321",
-      supabaseServiceKey: "test-service-key",
+      supabaseSecretKey: "test-secret-key",
     });
 
     app.use("*", middleware);
@@ -1205,7 +1205,7 @@ declare module "hono" {
 
 interface SupabaseMiddlewareOptions {
   supabaseUrl: string;
-  supabaseServiceKey: string;
+  supabaseSecretKey: string;
 }
 
 /**
@@ -1221,14 +1221,14 @@ export function supabaseMiddleware(
   options: SupabaseMiddlewareOptions,
 ): MiddlewareHandler {
   return async (c, next) => {
-    const { supabaseUrl, supabaseServiceKey } = options;
+    const { supabaseUrl, supabaseSecretKey } = options;
 
     const authHeader = c.req.header("Authorization");
     const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : undefined;
 
     if (token) {
       // Create a client using the user's JWT for RLS-scoped queries
-      const supabase = createClient<Database>(supabaseUrl, supabaseServiceKey, {
+      const supabase = createClient<Database>(supabaseUrl, supabaseSecretKey, {
         global: { headers: { Authorization: `Bearer ${token}` } },
         auth: { autoRefreshToken: false, persistSession: false },
       });
@@ -1243,7 +1243,7 @@ export function supabaseMiddleware(
     }
 
     // No token or invalid token — set unauthenticated service client
-    const supabase = createClient<Database>(supabaseUrl, supabaseServiceKey, {
+    const supabase = createClient<Database>(supabaseUrl, supabaseSecretKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
     c.set("user", undefined);
@@ -1287,7 +1287,7 @@ describe("createSupabaseMiddleware", () => {
   it("returns a middleware function", () => {
     const middleware = createSupabaseMiddleware({
       supabaseUrl: "http://localhost:54321",
-      supabaseAnonKey: "test-anon-key",
+      supabasePublishableKey: "test-publishable-key",
       protectedRoutes: ["/dashboard"],
       loginPath: "/login",
     });
@@ -1313,7 +1313,7 @@ import type { Database } from "../generated/database";
 
 interface SupabaseMiddlewareOptions {
   supabaseUrl: string;
-  supabaseAnonKey: string;
+  supabasePublishableKey: string;
   /** Route prefixes that require authentication. E.g., ["/dashboard", "/settings"]. */
   protectedRoutes?: string[];
   /** Path to redirect unauthenticated users to. Defaults to "/login". */
@@ -1326,12 +1326,12 @@ interface SupabaseMiddlewareOptions {
  * protected routes to the login page.
  */
 export function createSupabaseMiddleware(options: SupabaseMiddlewareOptions) {
-  const { supabaseUrl, supabaseAnonKey, protectedRoutes = [], loginPath = "/login" } = options;
+  const { supabaseUrl, supabasePublishableKey, protectedRoutes = [], loginPath = "/login" } = options;
 
   return async function middleware(request: NextRequest) {
     let supabaseResponse = NextResponse.next({ request });
 
-    const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
+    const supabase = createServerClient<Database>(supabaseUrl, supabasePublishableKey, {
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -1643,7 +1643,7 @@ app.use(
   "/api/*",
   supabaseMiddleware({
     supabaseUrl: process.env.SUPABASE_URL || "http://127.0.0.1:54321",
-    supabaseServiceKey: process.env.SUPABASE_SERVICE_ROLE_KEY || "",
+    supabaseSecretKey: process.env.SUPABASE_SECRET_KEY || "",
   }),
 );
 
@@ -1678,7 +1678,7 @@ Create `apps/api/.env.example`:
 
 ```
 SUPABASE_URL=http://127.0.0.1:54321
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-from-supabase-start
+SUPABASE_SECRET_KEY=your-secret-key-from-supabase-start
 ```
 
 **Step 5: Verify typecheck**
@@ -1728,17 +1728,17 @@ import { createSSRBrowserClient } from "@infrastructure/supabase/browser-ssr";
 import { createSSRServerClient } from "@infrastructure/supabase/server-ssr";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
 
 /** Creates a Supabase client for use in client components. */
 export function createBrowserSupabase() {
-  return createSSRBrowserClient(supabaseUrl, supabaseAnonKey);
+  return createSSRBrowserClient(supabaseUrl, supabasePublishableKey);
 }
 
 /** Creates a Supabase client for use in server components. */
 export async function createServerSupabase() {
   const { cookies } = await import("next/headers");
-  return createSSRServerClient(supabaseUrl, supabaseAnonKey, await cookies());
+  return createSSRServerClient(supabaseUrl, supabasePublishableKey, await cookies());
 }
 ```
 
@@ -1768,7 +1768,7 @@ import { createSupabaseMiddleware } from "@infrastructure/supabase/middleware/ne
 
 export default createSupabaseMiddleware({
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  supabasePublishableKey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
   protectedRoutes: ["/dashboard", "/settings"],
   loginPath: "/login",
 });
@@ -1786,7 +1786,7 @@ Create `apps/web/.env.local.example`:
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-from-supabase-start
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key-from-supabase-start
 ```
 
 **Step 6: Verify typecheck**
@@ -1828,11 +1828,11 @@ Create `apps/mobile/lib/supabase.ts`:
 import { createBrowserClient } from "@infrastructure/supabase";
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
+const supabasePublishableKey = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
 
 /** Creates a Supabase client for React Native. */
 export function createMobileSupabase() {
-  return createBrowserClient(supabaseUrl, supabaseAnonKey);
+  return createBrowserClient(supabaseUrl, supabasePublishableKey);
 }
 ```
 
@@ -1861,7 +1861,7 @@ Create `apps/mobile/.env.example`:
 
 ```
 EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
-EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-from-supabase-start
+EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key-from-supabase-start
 ```
 
 **Step 5: Verify typecheck**

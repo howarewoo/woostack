@@ -158,7 +158,7 @@ Supabase is the canonical backend for authentication, database (PostgreSQL + Row
 - Feature packages and apps must never import `@supabase/supabase-js` directly — all Supabase access flows through `@infrastructure/supabase`
 - Auth state in client apps is provided via `AuthProvider` / `useAuth()` / `useUser()` (React context pattern, same as `NavigationProvider`)
 - Feature procedures access the authenticated user and an RLS-scoped Supabase client via oRPC context (`context.user`, `context.supabase`)
-- Unauthenticated API requests receive an anon-key client that respects RLS — never the service role key
+- Unauthenticated API requests receive a publishable-key client that respects RLS — never the secret key
 
 **Type Generation:**
 After changing migrations, run `pnpm --filter supabase-db reset` then `pnpm gencode` to regenerate the `Database` type in `@infrastructure/supabase`. The generated types must be committed.

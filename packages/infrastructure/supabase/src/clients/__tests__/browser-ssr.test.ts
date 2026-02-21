@@ -12,9 +12,9 @@ import { createSSRBrowserClient } from "../browser-ssr";
 
 describe("createSSRBrowserClient", () => {
   it("calls @supabase/ssr createBrowserClient with URL and key", () => {
-    const client = createSSRBrowserClient("http://localhost:54321", "test-anon-key");
+    const client = createSSRBrowserClient("http://localhost:54321", "test-publishable-key");
 
-    expect(mockCreateBrowserClient).toHaveBeenCalledWith("http://localhost:54321", "test-anon-key");
+    expect(mockCreateBrowserClient).toHaveBeenCalledWith("http://localhost:54321", "test-publishable-key");
     expect(client).toBeDefined();
   });
 });

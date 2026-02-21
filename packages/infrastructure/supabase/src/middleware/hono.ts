@@ -11,8 +11,8 @@ declare module "hono" {
 
 interface SupabaseMiddlewareOptions {
   supabaseUrl: string;
-  supabaseServiceKey: string;
-  supabaseAnonKey: string;
+  supabaseSecretKey: string;
+  supabasePublishableKey: string;
 }
 
 /**
@@ -22,20 +22,20 @@ interface SupabaseMiddlewareOptions {
  * - If a valid Bearer token is present, `c.get("user")` returns the authenticated user
  *   and `c.get("supabase")` returns a client scoped to that user's JWT (respects RLS).
  * - If no token or invalid token, `c.get("user")` is undefined and `c.get("supabase")`
- *   is an anon-key client (respects RLS, no elevated privileges).
+ *   is a publishable-key client (respects RLS, no elevated privileges).
  */
 export function supabaseMiddleware(options: SupabaseMiddlewareOptions): MiddlewareHandler {
-  const { supabaseUrl, supabaseServiceKey, supabaseAnonKey } = options;
+  const { supabaseUrl, supabaseSecretKey, supabasePublishableKey } = options;
 
-  // Cache the anon client — same config for all unauthenticated requests
-  let anonClient: ReturnType<typeof createClient<Database>> | null = null;
-  function getAnonClient() {
-    if (!anonClient) {
-      anonClient = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  // Cache the publishable client — same config for all unauthenticated requests
+  let publishableClient: ReturnType<typeof createClient<Database>> | null = null;
+  function getPublishableClient() {
+    if (!publishableClient) {
+      publishableClient = createClient<Database>(supabaseUrl, supabasePublishableKey, {
         auth: { autoRefreshToken: false, persistSession: false },
       });
     }
-    return anonClient;
+    return publishableClient;
   }
 
   return async (c, next) => {
@@ -43,7 +43,7 @@ export function supabaseMiddleware(options: SupabaseMiddlewareOptions): Middlewa
     const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : undefined;
 
     if (token) {
-      const supabase = createClient<Database>(supabaseUrl, supabaseServiceKey, {
+      const supabase = createClient<Database>(supabaseUrl, supabaseSecretKey, {
         global: { headers: { Authorization: `Bearer ${token}` } },
         auth: { autoRefreshToken: false, persistSession: false },
       });
@@ -61,7 +61,7 @@ export function supabaseMiddleware(options: SupabaseMiddlewareOptions): Middlewa
     }
 
     c.set("user", undefined);
-    c.set("supabase", getAnonClient());
+    c.set("supabase", getPublishableClient());
 
     return next();
   };

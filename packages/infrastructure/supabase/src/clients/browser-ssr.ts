@@ -9,7 +9,7 @@ import type { TypedSupabaseClient } from "../types";
  */
 export function createSSRBrowserClient(
   supabaseUrl: string,
-  supabaseAnonKey: string
+  supabasePublishableKey: string
 ): TypedSupabaseClient {
-  return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
+  return createBrowserClient<Database>(supabaseUrl, supabasePublishableKey);
 }

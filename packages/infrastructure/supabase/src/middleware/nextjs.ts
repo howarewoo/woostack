@@ -4,7 +4,7 @@ import type { Database } from "../generated/database";
 
 interface SupabaseMiddlewareOptions {
   supabaseUrl: string;
-  supabaseAnonKey: string;
+  supabasePublishableKey: string;
   /** Route prefixes that require authentication. E.g., ["/dashboard", "/settings"]. */
   protectedRoutes?: string[];
   /** Path to redirect unauthenticated users to. Defaults to "/login". */
@@ -17,12 +17,12 @@ interface SupabaseMiddlewareOptions {
  * protected routes to the login page.
  */
 export function createSupabaseMiddleware(options: SupabaseMiddlewareOptions) {
-  const { supabaseUrl, supabaseAnonKey, protectedRoutes = [], loginPath = "/login" } = options;
+  const { supabaseUrl, supabasePublishableKey, protectedRoutes = [], loginPath = "/login" } = options;
 
   return async function middleware(request: NextRequest) {
     let supabaseResponse = NextResponse.next({ request });
 
-    const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
+    const supabase = createServerClient<Database>(supabaseUrl, supabasePublishableKey, {
       cookies: {
         getAll() {
           return request.cookies.getAll();

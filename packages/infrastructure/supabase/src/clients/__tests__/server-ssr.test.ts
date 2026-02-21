@@ -23,13 +23,13 @@ describe("createSSRServerClient", () => {
 
     const client = createSSRServerClient(
       "http://localhost:54321",
-      "test-anon-key",
+      "test-publishable-key",
       mockCookieStore as unknown as Parameters<typeof createSSRServerClient>[2]
     );
 
     expect(mockCreateServerClient).toHaveBeenCalledWith(
       "http://localhost:54321",
-      "test-anon-key",
+      "test-publishable-key",
       expect.objectContaining({
         cookies: expect.objectContaining({
           getAll: expect.any(Function),
