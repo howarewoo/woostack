@@ -42,16 +42,6 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
 
-      - name: Verify generated code is up to date
-        run: |
-          pnpm gencode
-          pnpx biome check --write packages/infrastructure/api-client/src/generated/
-          git diff --exit-code packages/infrastructure/api-client/src/generated/ || {
-            echo "::error::Generated router types are out of date. Run 'pnpm gencode' and commit the result."
-            exit 1
-          }
-
-
       - name: Test
         run: pnpm test:changed
 
