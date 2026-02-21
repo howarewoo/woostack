@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { formatTypeString, replaceAbsolutePaths } from "../gencode-utils";
+import {
+  formatTypeString,
+  qualifyBareWorkspaceTypes,
+  replaceAbsolutePaths,
+} from "../gencode-utils";
 
 describe("replaceAbsolutePaths", () => {
   it("replaces absolute pnpm store path with bare package specifier", () => {
@@ -68,6 +72,39 @@ describe("replaceAbsolutePaths", () => {
     expect(replaceAbsolutePaths(input)).toBe(
       'import("zod").ZodString, import("@orpc/server").Procedure'
     );
+  });
+});
+
+describe("qualifyBareWorkspaceTypes", () => {
+  it("qualifies bare SupabaseUser with import() syntax", () => {
+    const input = "user?: SupabaseUser;";
+    expect(qualifyBareWorkspaceTypes(input)).toBe(
+      'user?: import("@infrastructure/supabase").SupabaseUser;'
+    );
+  });
+
+  it("qualifies bare TypedSupabaseClient with import() syntax", () => {
+    const input = "supabase: TypedSupabaseClient;";
+    expect(qualifyBareWorkspaceTypes(input)).toBe(
+      'supabase: import("@infrastructure/supabase").TypedSupabaseClient;'
+    );
+  });
+
+  it("does not double-qualify already-qualified types", () => {
+    const input = 'import("@infrastructure/supabase").SupabaseUser';
+    expect(qualifyBareWorkspaceTypes(input)).toBe(input);
+  });
+
+  it("handles multiple bare references in one string", () => {
+    const input = "{ user?: SupabaseUser; supabase: TypedSupabaseClient; }";
+    const expected =
+      '{ user?: import("@infrastructure/supabase").SupabaseUser; supabase: import("@infrastructure/supabase").TypedSupabaseClient; }';
+    expect(qualifyBareWorkspaceTypes(input)).toBe(expected);
+  });
+
+  it("leaves unrelated types unchanged", () => {
+    const input = "Record<string, import(\"zod\").ZodString>";
+    expect(qualifyBareWorkspaceTypes(input)).toBe(input);
   });
 });
 

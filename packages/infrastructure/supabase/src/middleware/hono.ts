@@ -43,7 +43,7 @@ export function supabaseMiddleware(options: SupabaseMiddlewareOptions): Middlewa
     const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : undefined;
 
     if (token) {
-      const supabase = createClient<Database>(supabaseUrl, supabaseSecretKey, {
+      const supabase = createClient<Database>(supabaseUrl, supabasePublishableKey, {
         global: { headers: { Authorization: `Bearer ${token}` } },
         auth: { autoRefreshToken: false, persistSession: false },
       });

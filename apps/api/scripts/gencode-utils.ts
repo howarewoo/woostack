@@ -59,6 +59,27 @@ export function replaceAbsolutePaths(typeStr: string): string {
   });
 }
 
+/**
+ * Workspace type references that TypeScript serializes as bare names
+ * (because workspace packages resolve via symlinks, not node_modules).
+ * Maps type name → package specifier.
+ */
+const WORKSPACE_TYPE_MAP: Record<string, string> = {
+  SupabaseUser: "@infrastructure/supabase",
+  TypedSupabaseClient: "@infrastructure/supabase",
+};
+
+/** Qualify bare workspace type references with import() syntax. */
+export function qualifyBareWorkspaceTypes(typeStr: string): string {
+  let result = typeStr;
+  for (const [typeName, pkg] of Object.entries(WORKSPACE_TYPE_MAP)) {
+    // Match bare type name not already preceded by "." (import("pkg").Type)
+    const regex = new RegExp(`(?<!\\.)\\b${typeName}\\b`, "g");
+    result = result.replace(regex, `import("${pkg}").${typeName}`);
+  }
+  return result;
+}
+
 /** Format a type string with indentation, respecting string literals. */
 export function formatTypeString(typeStr: string): string {
   const lines: string[] = [];
