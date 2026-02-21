@@ -9,6 +9,7 @@ jobs:
     name: Tests
     timeout-minutes: 15
     runs-on: ubuntu-latest
+    environment: ${{ github.base_ref != 'main' && 'Staging' || '' }}
     concurrency:
       group: ci-${{ github.event.pull_request.number }}
       cancel-in-progress: true

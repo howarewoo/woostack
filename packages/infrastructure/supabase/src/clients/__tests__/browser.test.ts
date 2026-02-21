@@ -11,7 +11,11 @@ describe("createBrowserClient", () => {
   it("creates a Supabase client with the provided URL and publishable key", () => {
     const client = createBrowserClient("http://localhost:54321", "test-publishable-key");
 
-    expect(createClient).toHaveBeenCalledWith("http://localhost:54321", "test-publishable-key", undefined);
+    expect(createClient).toHaveBeenCalledWith(
+      "http://localhost:54321",
+      "test-publishable-key",
+      undefined
+    );
     expect(client).toBeDefined();
   });
 

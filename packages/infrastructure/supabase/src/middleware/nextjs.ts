@@ -17,7 +17,12 @@ interface SupabaseMiddlewareOptions {
  * protected routes to the login page.
  */
 export function createSupabaseMiddleware(options: SupabaseMiddlewareOptions) {
-  const { supabaseUrl, supabasePublishableKey, protectedRoutes = [], loginPath = "/login" } = options;
+  const {
+    supabaseUrl,
+    supabasePublishableKey,
+    protectedRoutes = [],
+    loginPath = "/login",
+  } = options;
 
   return async function middleware(request: NextRequest) {
     let supabaseResponse = NextResponse.next({ request });

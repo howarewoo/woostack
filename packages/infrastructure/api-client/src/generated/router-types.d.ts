@@ -4,52 +4,102 @@
 // Generated from: apps/api/src/router.ts
 
 export type Router = {
-  health: import("@orpc/server").DecoratedProcedure<{
-    requestId?: string;
-    user?: import("@infrastructure/supabase").SupabaseUser;
-    supabase: import("@infrastructure/supabase").TypedSupabaseClient;
-  } & Record<never, never>, {
-    requestId?: string;
-    user?: import("@infrastructure/supabase").SupabaseUser;
-    supabase: import("@infrastructure/supabase").TypedSupabaseClient;
-  }, import("@orpc/contract").Schema<unknown, unknown>, import("zod").ZodObject<{
-    message: import("zod").ZodString;
-  }, import("zod/v4/core").$strip>, Record<never, never>, Record<never, never>>;
+  health: import("@orpc/server").DecoratedProcedure<
+    {
+      requestId?: string;
+      user?: import("@infrastructure/supabase").SupabaseUser;
+      supabase: import("@infrastructure/supabase").TypedSupabaseClient;
+    } & Record<never, never>,
+    {
+      requestId?: string;
+      user?: import("@infrastructure/supabase").SupabaseUser;
+      supabase: import("@infrastructure/supabase").TypedSupabaseClient;
+    },
+    import("@orpc/contract").Schema<unknown, unknown>,
+    import("zod").ZodObject<
+      {
+        message: import("zod").ZodString;
+      },
+      import("zod/v4/core").$strip
+    >,
+    Record<never, never>,
+    Record<never, never>
+  >;
   users: {
-    list: import("@orpc/server").DecoratedProcedure<{
-      requestId?: string;
-    } & Record<never, never>, {
-      requestId?: string;
-    }, import("@orpc/contract").Schema<unknown, unknown>, import("zod").ZodArray<import("zod").ZodObject<{
-      id: import("zod").ZodString;
-      name: import("zod").ZodString;
-      email: import("zod").ZodEmail;
-      createdAt: import("zod").ZodISODateTime;
-    }, import("zod/v4/core").$strip>>, Record<never, never>, Record<never, never>>;
-    get: import("@orpc/server").DecoratedProcedure<{
-      requestId?: string;
-    } & Record<never, never>, {
-      requestId?: string;
-    }, import("zod").ZodObject<{
-      id: import("zod").ZodString;
-    }, import("zod/v4/core").$strip>, import("zod").ZodNullable<import("zod").ZodObject<{
-      id: import("zod").ZodString;
-      name: import("zod").ZodString;
-      email: import("zod").ZodEmail;
-      createdAt: import("zod").ZodISODateTime;
-    }, import("zod/v4/core").$strip>>, Record<never, never>, Record<never, never>>;
-    create: import("@orpc/server").DecoratedProcedure<{
-      requestId?: string;
-    } & Record<never, never>, {
-      requestId?: string;
-    }, import("zod").ZodObject<{
-      name: import("zod").ZodString;
-      email: import("zod").ZodEmail;
-    }, import("zod/v4/core").$strip>, import("zod").ZodObject<{
-      id: import("zod").ZodString;
-      name: import("zod").ZodString;
-      email: import("zod").ZodEmail;
-      createdAt: import("zod").ZodISODateTime;
-    }, import("zod/v4/core").$strip>, Record<never, never>, Record<never, never>>;
+    list: import("@orpc/server").DecoratedProcedure<
+      {
+        requestId?: string;
+      } & Record<never, never>,
+      {
+        requestId?: string;
+      },
+      import("@orpc/contract").Schema<unknown, unknown>,
+      import("zod").ZodArray<
+        import("zod").ZodObject<
+          {
+            id: import("zod").ZodString;
+            name: import("zod").ZodString;
+            email: import("zod").ZodEmail;
+            createdAt: import("zod").ZodISODateTime;
+          },
+          import("zod/v4/core").$strip
+        >
+      >,
+      Record<never, never>,
+      Record<never, never>
+    >;
+    get: import("@orpc/server").DecoratedProcedure<
+      {
+        requestId?: string;
+      } & Record<never, never>,
+      {
+        requestId?: string;
+      },
+      import("zod").ZodObject<
+        {
+          id: import("zod").ZodString;
+        },
+        import("zod/v4/core").$strip
+      >,
+      import("zod").ZodNullable<
+        import("zod").ZodObject<
+          {
+            id: import("zod").ZodString;
+            name: import("zod").ZodString;
+            email: import("zod").ZodEmail;
+            createdAt: import("zod").ZodISODateTime;
+          },
+          import("zod/v4/core").$strip
+        >
+      >,
+      Record<never, never>,
+      Record<never, never>
+    >;
+    create: import("@orpc/server").DecoratedProcedure<
+      {
+        requestId?: string;
+      } & Record<never, never>,
+      {
+        requestId?: string;
+      },
+      import("zod").ZodObject<
+        {
+          name: import("zod").ZodString;
+          email: import("zod").ZodEmail;
+        },
+        import("zod/v4/core").$strip
+      >,
+      import("zod").ZodObject<
+        {
+          id: import("zod").ZodString;
+          name: import("zod").ZodString;
+          email: import("zod").ZodEmail;
+          createdAt: import("zod").ZodISODateTime;
+        },
+        import("zod/v4/core").$strip
+      >,
+      Record<never, never>,
+      Record<never, never>
+    >;
   };
 };

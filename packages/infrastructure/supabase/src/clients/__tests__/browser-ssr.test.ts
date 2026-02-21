@@ -14,7 +14,10 @@ describe("createSSRBrowserClient", () => {
   it("calls @supabase/ssr createBrowserClient with URL and key", () => {
     const client = createSSRBrowserClient("http://localhost:54321", "test-publishable-key");
 
-    expect(mockCreateBrowserClient).toHaveBeenCalledWith("http://localhost:54321", "test-publishable-key");
+    expect(mockCreateBrowserClient).toHaveBeenCalledWith(
+      "http://localhost:54321",
+      "test-publishable-key"
+    );
     expect(client).toBeDefined();
   });
 });
