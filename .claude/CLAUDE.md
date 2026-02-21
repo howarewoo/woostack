@@ -117,7 +117,7 @@ Feature packages must never import `next/navigation` or `expo-router` directly. 
 - **Auth**: `AuthProvider`, `useAuth()`, `useUser()` (React context pattern like NavigationProvider)
 - **Storage**: `createStorageClient()` for upload/download/getPublicUrl
 - **Middleware**: `supabaseMiddleware` (Hono — JWT validation, requires `supabaseUrl`+`supabaseServiceKey`+`supabaseAnonKey`), `createSupabaseMiddleware` (Next.js — session refresh)
-- **Types**: Auto-generated `Database` type + helpers (`Tables`, `TablesInsert`, `Enums`)
+- **Types**: Auto-generated `Database` type + helpers (`Tables`, `TablesInsert`, `TablesUpdate`, `Enums`, `SupabaseUser`, `TypedSupabaseClient`)
 
 Feature procedures access `context.user` (authenticated user or `undefined`) and `context.supabase` (RLS-scoped client) via oRPC context. Unauthenticated requests get an anon-key client (respects RLS, no elevated privileges). The API client supports dynamic token injection via `getToken` option:
 
@@ -182,7 +182,7 @@ react: "19.1.0"
 
 ### Environment Variables
 
-Each app has a `.env.example` file. Copy and fill in values from `pnpm --filter supabase-db start` output:
+Each app has an env example file (`.env.example` for `api`/`mobile`, `.env.local.example` for `web`). Copy and fill in values from `pnpm --filter supabase-db start` output:
 
 | App | Variable | Description |
 |-----|----------|-------------|

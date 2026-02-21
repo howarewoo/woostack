@@ -147,6 +147,9 @@ catalogs:
     react-native-worklets:
       specifier: 0.5.1
       version: 0.5.1
+    supabase:
+      specifier: 2.76.12
+      version: 2.76.12
     tailwind-merge:
       specifier: 3.4.0
       version: 3.4.0
@@ -207,9 +210,6 @@ importers:
       '@infrastructure/typescript-config':
         specifier: workspace:*
         version: link:../../packages/infrastructure/typescript-config
-      '@supabase/supabase-js':
-        specifier: 'catalog:'
-        version: 2.97.0
       '@types/node':
         specifier: 25.2.3
         version: 25.2.3
@@ -402,7 +402,7 @@ importers:
   apps/supabase:
     devDependencies:
       supabase:
-        specifier: 2.76.12
+        specifier: 'catalog:'
         version: 2.76.12
 
   apps/web:
