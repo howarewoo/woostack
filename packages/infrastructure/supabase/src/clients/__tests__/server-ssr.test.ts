@@ -8,7 +8,7 @@ vi.mock("@supabase/ssr", () => ({
   createServerClient: mockCreateServerClient,
 }));
 
-import { createSSRServerClient } from "./server-ssr";
+import { createSSRServerClient } from "../server-ssr";
 
 describe("createSSRServerClient", () => {
   beforeEach(() => {

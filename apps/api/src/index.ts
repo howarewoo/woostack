@@ -6,6 +6,16 @@ import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { router } from "./router";
 
+const supabaseUrl = process.env.SUPABASE_URL || "http://127.0.0.1:54321";
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+
+if (!supabaseServiceKey) {
+  console.warn(
+    "SUPABASE_SERVICE_ROLE_KEY not set — Supabase auth middleware will not validate tokens"
+  );
+}
+
 const app = new Hono();
 
 app.use("*", logger());
@@ -14,8 +24,9 @@ app.use("*", cors());
 app.use(
   "/api/*",
   supabaseMiddleware({
-    supabaseUrl: process.env.SUPABASE_URL || "http://127.0.0.1:54321",
-    supabaseServiceKey: process.env.SUPABASE_SERVICE_ROLE_KEY || "",
+    supabaseUrl,
+    supabaseServiceKey: supabaseServiceKey || "",
+    supabaseAnonKey: supabaseAnonKey || "",
   })
 );
 

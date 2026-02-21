@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createStorageClient } from "./storage";
+import { createStorageClient } from "../storage";
 
 function createMockSupabase() {
   return {

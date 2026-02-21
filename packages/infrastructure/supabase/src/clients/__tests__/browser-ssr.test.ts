@@ -8,7 +8,7 @@ vi.mock("@supabase/ssr", () => ({
   createBrowserClient: mockCreateBrowserClient,
 }));
 
-import { createSSRBrowserClient } from "./browser-ssr";
+import { createSSRBrowserClient } from "../browser-ssr";
 
 describe("createSSRBrowserClient", () => {
   it("calls @supabase/ssr createBrowserClient with URL and key", () => {

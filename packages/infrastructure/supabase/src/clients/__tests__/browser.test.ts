@@ -5,7 +5,7 @@ vi.mock("@supabase/supabase-js", () => ({
 }));
 
 import { createClient } from "@supabase/supabase-js";
-import { createBrowserClient } from "./browser";
+import { createBrowserClient } from "../browser";
 
 describe("createBrowserClient", () => {
   it("creates a Supabase client with the provided URL and anon key", () => {

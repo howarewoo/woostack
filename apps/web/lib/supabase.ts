@@ -2,8 +2,14 @@ import type { TypedSupabaseClient } from "@infrastructure/supabase";
 import { createSSRBrowserClient } from "@infrastructure/supabase/browser-ssr";
 import { createSSRServerClient } from "@infrastructure/supabase/server-ssr";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`${name} is required`);
+  return value;
+}
+
+const supabaseUrl = requireEnv("NEXT_PUBLIC_SUPABASE_URL");
+const supabaseAnonKey = requireEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
 
 /** Creates a Supabase client for use in client components. */
 export function createBrowserSupabase(): TypedSupabaseClient {

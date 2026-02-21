@@ -12,6 +12,7 @@ declare module "hono" {
 interface SupabaseMiddlewareOptions {
   supabaseUrl: string;
   supabaseServiceKey: string;
+  supabaseAnonKey: string;
 }
 
 /**
@@ -21,11 +22,11 @@ interface SupabaseMiddlewareOptions {
  * - If a valid Bearer token is present, `c.get("user")` returns the authenticated user
  *   and `c.get("supabase")` returns a client scoped to that user's JWT (respects RLS).
  * - If no token or invalid token, `c.get("user")` is undefined and `c.get("supabase")`
- *   is an unauthenticated service client.
+ *   is an anon-key client (respects RLS, no elevated privileges).
  */
 export function supabaseMiddleware(options: SupabaseMiddlewareOptions): MiddlewareHandler {
   return async (c, next) => {
-    const { supabaseUrl, supabaseServiceKey } = options;
+    const { supabaseUrl, supabaseServiceKey, supabaseAnonKey } = options;
 
     const authHeader = c.req.header("Authorization");
     const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : undefined;
@@ -48,7 +49,7 @@ export function supabaseMiddleware(options: SupabaseMiddlewareOptions): Middlewa
       }
     }
 
-    const supabase = createClient<Database>(supabaseUrl, supabaseServiceKey, {
+    const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
     c.set("user", undefined);

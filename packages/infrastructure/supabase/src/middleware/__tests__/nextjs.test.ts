@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createSupabaseMiddleware } from "./nextjs";
+import { createSupabaseMiddleware } from "../nextjs";
 
 describe("createSupabaseMiddleware", () => {
   it("returns a middleware function", () => {

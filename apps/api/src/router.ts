@@ -5,7 +5,7 @@ import { os } from "@orpc/server";
 const pub = os.$context<{
   requestId?: string;
   user?: import("@supabase/supabase-js").User;
-  supabase?: import("@supabase/supabase-js").SupabaseClient;
+  supabase: import("@supabase/supabase-js").SupabaseClient;
 }>();
 
 export const router = {
