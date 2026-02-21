@@ -45,7 +45,7 @@ jobs:
       - name: Verify generated code is up to date
         run: |
           pnpm gencode
-          pnpx biome format --write packages/infrastructure/api-client/src/generated/
+          pnpx biome check --write packages/infrastructure/api-client/src/generated/
           git diff --exit-code packages/infrastructure/api-client/src/generated/ || {
             echo "::error::Generated router types are out of date. Run 'pnpm gencode' and commit the result."
             exit 1
