@@ -116,7 +116,7 @@ Feature packages must never import `next/navigation` or `expo-router` directly. 
 - **Clients**: `createServerClient()`, `createBrowserClient()`, `createSSRServerClient()`, `createSSRBrowserClient()`
 - **Auth**: `AuthProvider`, `useAuth()`, `useUser()` (React context pattern like NavigationProvider)
 - **Storage**: `createStorageClient()` for upload/download/getPublicUrl
-- **Middleware**: `supabaseMiddleware` (Hono — JWT validation, requires `supabaseUrl`+`supabasePublishableKey`), `createSupabaseMiddleware` (Next.js — session refresh)
+- **Middleware/Proxy**: `supabaseMiddleware` (Hono — JWT validation, requires `supabaseUrl`+`supabasePublishableKey`), `createSupabaseMiddleware` (Next.js proxy — session refresh, used in `proxy.ts`)
 - **Types**: Auto-generated `Database` type + helpers (`Tables`, `TablesInsert`, `TablesUpdate`, `Enums`, `SupabaseUser`, `TypedSupabaseClient`)
 
 Feature procedures access `context.user` (authenticated user or `undefined`) and `context.supabase` (RLS-scoped client) via oRPC context. Unauthenticated requests get a publishable-key client (respects RLS, no elevated privileges). The API client supports dynamic token injection via `getToken` option:
