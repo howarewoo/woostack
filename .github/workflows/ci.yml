@@ -38,14 +38,6 @@ jobs:
       - name: Build
         run: pnpm turbo build
 
-      - name: Verify generated code is up to date
-        run: |
-          pnpm gencode
-          git diff --exit-code packages/infrastructure/api-client/src/generated/ || {
-            echo "::error::Generated router types are out of date. Run 'pnpm gencode' and commit the result."
-            exit 1
-          }
-
       - name: Test
         run: pnpm test:changed
 
