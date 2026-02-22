@@ -67,6 +67,9 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.head_ref }}
 
+      - name: Fetch base branch for diff
+        run: git fetch origin main:main
+
       - uses: millionco/react-doctor@main
         with:
           diff: main
