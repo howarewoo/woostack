@@ -1,25 +1,26 @@
 ---
 name: pr-review
 description: AI-driven deep code review of pull requests with intelligent bug detection, architecture analysis, constitution compliance checking, and mermaid logic flow diagrams. Supports standard mode (post to GitHub), local mode (create task list), and loop mode (iterative review + auto-fix). Use when reviewing PRs, analyzing code changes, or checking architecture compliance.
-allowed-tools: Bash(gh:*), Bash(git:*), Bash(gt:*), Bash(pnpm:*), Read, Edit, Write, Glob, Grep, Task, TaskOutput, TaskCreate, TaskUpdate
+allowed-tools: Bash(gh:*), Bash(git:*), Bash(gt:*), Bash(pnpm:*), Bash(npx:*), Read, Edit, Write, Glob, Grep, Task, TaskOutput, TaskCreate, TaskUpdate
 ---
 
 # PR Review Skill
 
-This skill provides comprehensive pull request analysis with deep semantic understanding of code changes using **parallel specialized auditors**.
+This skill provides comprehensive pull request analysis with deep semantic understanding of code changes using **react-doctor pre-check** and **parallel specialized auditors**.
 
 ## Capabilities
 
-1. **Parallel Sub-Agent Architecture** - 5 specialized auditors run concurrently for faster, deeper analysis:
+1. **React Doctor Pre-Check** - Runs react-doctor (63+ rules) before auditors to catch React, Next.js, and React Native issues with a 0-100 health score (threshold: 90)
+2. **Parallel Sub-Agent Architecture** - 5 specialized auditors run concurrently for faster, deeper analysis:
    - Security Auditor - Injection vulnerabilities, auth gaps, data exposure, race conditions
    - Architecture Auditor - Import boundaries, monorepo structure, file organization, naming
    - Constitution Auditor - All 14 project principles compliance verification
-   - Code Quality Auditor - Complexity, code smells, performance, testing gaps
+   - Code Quality Auditor - Complexity, code smells, performance, testing gaps (React rules delegated to react-doctor)
    - API Stability Auditor - oRPC compliance (Principle IX), breaking changes (Principle XIII)
-2. **Smart Aggregation** - Findings merged, deduplicated, and sorted by severity
-3. **PR Metadata Updates** - Automatically updates PR title and description (never just recommends)
-4. **Logic Flow Visualization** - Mermaid diagrams for complex workflows
-5. **Local Mode** - Create task list for local fixes instead of posting to GitHub
+3. **Smart Aggregation** - Findings from react-doctor and 5 auditors merged, deduplicated, and sorted by severity
+4. **PR Metadata Updates** - Automatically updates PR title and description (never just recommends)
+5. **Logic Flow Visualization** - Mermaid diagrams for complex workflows
+6. **Local Mode** - Create task list for local fixes instead of posting to GitHub
 
 ## Usage Modes
 
@@ -82,17 +83,18 @@ Execute the entire workflow from start to finish:
 - **Constitution Knowledge**: Understands all 14 project principles (v1.0.0)
 - **Completion Criteria**: See [WORKFLOW.md](WORKFLOW.md) Tasks 7 and 8 for success criteria
 
-## Specialized Auditors
+## Analysis Sources
 
-| Auditor | Focus Area | Key Checks |
-|---------|------------|------------|
+| Source | Focus Area | Key Checks |
+|--------|------------|------------|
+| **React Doctor** | React Health | 63+ rules: state/effects, performance, Next.js, RN, bundle size, security |
 | **Security** | Vulnerabilities | Injection, XSS, auth gaps, data exposure, race conditions |
 | **Architecture** | Structure | Import boundaries, file organization, naming conventions |
 | **Constitution** | 14 Principles | Full compliance with all project principles |
 | **Code Quality** | Maintainability | Complexity, code smells, performance, testing |
 | **API Stability** | oRPC/APIs | Principle IX & XIII, breaking changes |
 
-Each auditor runs independently via the Task tool and returns findings in a structured format for aggregation.
+React Doctor runs as a pre-check (Task 2.5) before the 5 parallel auditor agents. Its findings are merged into the final review.
 
 ## Workflow
 
