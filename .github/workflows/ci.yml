@@ -68,11 +68,11 @@ jobs:
           ref: ${{ github.head_ref }}
 
       - name: Fetch base branch for diff
-        run: git fetch origin main:main
+        run: git fetch origin ${{ github.event.pull_request.base.ref }}:${{ github.event.pull_request.base.ref }}
 
       - uses: millionco/react-doctor@main
         with:
-          diff: main
+          diff: ${{ github.event.pull_request.base.ref }}
           verbose: "true"
           github-token: ${{ secrets.GITHUB_TOKEN }}
           fail-on: "error"
