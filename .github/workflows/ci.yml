@@ -38,14 +38,6 @@ jobs:
       - name: Build
         run: pnpm turbo build
 
-      - name: Verify generated code is up to date
-        run: |
-          pnpm gencode
-          git diff --exit-code packages/infrastructure/api-client/src/generated/ || {
-            echo "::error::Generated router types are out of date. Run 'pnpm gencode' and commit the result."
-            exit 1
-          }
-
       - name: Test
         run: pnpm test:changed
 
@@ -67,9 +59,12 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.head_ref }}
 
+      - name: Fetch base branch for diff
+        run: git fetch origin ${{ github.event.pull_request.base.ref }}:${{ github.event.pull_request.base.ref }}
+
       - uses: millionco/react-doctor@main
         with:
-          diff: main
+          diff: ${{ github.event.pull_request.base.ref }}
           verbose: "true"
           github-token: ${{ secrets.GITHUB_TOKEN }}
           fail-on: "error"

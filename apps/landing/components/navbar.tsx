@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@infrastructure/ui-web";
+import Link from "next/link";
 import { useState } from "react";
 import { Logo } from "@/components/logo";
 
@@ -18,10 +19,10 @@ export function Navbar() {
     <header className="sticky top-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-xl">
       <nav className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
         {/* Logo */}
-        <a href="/" className="flex items-center gap-2.5 font-semibold tracking-tight">
+        <Link href="/" className="flex items-center gap-2.5 font-semibold tracking-tight">
           <Logo />
           <span>Monorepo Template</span>
-        </a>
+        </Link>
 
         {/* Desktop links */}
         <div className="hidden items-center gap-8 md:flex">

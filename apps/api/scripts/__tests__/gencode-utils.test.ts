@@ -48,7 +48,7 @@ describe("replaceAbsolutePaths", () => {
   });
 
   it("throws on subpath with quotes", () => {
-    const input = "import(\"/path/to/node_modules/pkg/sub'path\")";
+    const input = 'import("/path/to/node_modules/pkg/sub\'path")';
     expect(() => replaceAbsolutePaths(input)).toThrow("Invalid subpath");
   });
 
@@ -66,7 +66,7 @@ describe("replaceAbsolutePaths", () => {
     const input =
       'import("/a/node_modules/zod/dist/index").ZodString, import("/b/node_modules/@orpc/server/dist/index").Procedure';
     expect(replaceAbsolutePaths(input)).toBe(
-      'import("zod").ZodString, import("@orpc/server").Procedure',
+      'import("zod").ZodString, import("@orpc/server").Procedure'
     );
   });
 });

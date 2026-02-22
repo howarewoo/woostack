@@ -25,7 +25,7 @@ pnpm lint             # Lint via Biome
 pnpm lint:fix         # Auto-fix linting issues
 pnpm format           # Format via Biome + sort package.json
 pnpm format:unsafe    # Format + apply unsafe fixes (used by pre-commit)
-pnpm pre-commit       # Install, format, typecheck, and test changed files
+pnpm pre-commit       # Install, format, typecheck, react-doctor, and test changed files
 pnpm clean            # Remove build artifacts and node_modules
 pnpm reset            # Deep clean: node_modules, .next, dist, .turbo, untracked files
 pnpm gencode          # Generate Router types from apps/api into @infrastructure/api-client

@@ -9,5 +9,5 @@
   "lint": true,
   "deadCode": false,
   "verbose": true,
-  "diff": "main"
+  "diff": "staging"
 }

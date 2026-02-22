@@ -44,8 +44,12 @@ export default function HomeScreen() {
           <View className="gap-4">
             <Card>
               <CardHeader>
-                <CardTitle>Next.js</CardTitle>
-                <CardDescription>Web application</CardDescription>
+                <CardTitle>
+                  <Text>Next.js</Text>
+                </CardTitle>
+                <CardDescription>
+                  <Text>Web application</Text>
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <Text className="text-sm text-muted-foreground">
@@ -56,8 +60,12 @@ export default function HomeScreen() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Expo</CardTitle>
-                <CardDescription>Mobile application</CardDescription>
+                <CardTitle>
+                  <Text>Expo</Text>
+                </CardTitle>
+                <CardDescription>
+                  <Text>Mobile application</Text>
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <Text className="text-sm text-muted-foreground">
@@ -68,8 +76,12 @@ export default function HomeScreen() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Hono + oRPC</CardTitle>
-                <CardDescription>Type-safe API</CardDescription>
+                <CardTitle>
+                  <Text>Hono + oRPC</Text>
+                </CardTitle>
+                <CardDescription>
+                  <Text>Type-safe API</Text>
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <Text className="text-sm text-muted-foreground">
@@ -81,8 +93,12 @@ export default function HomeScreen() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Users from API</CardTitle>
-              <CardDescription>Data fetched from the Hono API</CardDescription>
+              <CardTitle>
+                <Text>Users from API</Text>
+              </CardTitle>
+              <CardDescription>
+                <Text>Data fetched from the Hono API</Text>
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <UserList />
