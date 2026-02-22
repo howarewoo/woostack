@@ -14,7 +14,7 @@ This skill provides comprehensive pull request analysis with deep semantic under
 2. **Parallel Sub-Agent Architecture** - 5 specialized auditors run concurrently for faster, deeper analysis:
    - Security Auditor - Injection vulnerabilities, auth gaps, data exposure, race conditions
    - Architecture Auditor - Import boundaries, monorepo structure, file organization, naming
-   - Constitution Auditor - All 14 project principles compliance verification
+   - Constitution Auditor - All project principles compliance verification
    - Code Quality Auditor - Complexity, code smells, performance, testing gaps (React rules delegated to react-doctor)
    - API Stability Auditor - oRPC compliance (Principle IX), breaking changes (Principle XIII)
 3. **Smart Aggregation** - Findings from react-doctor and 5 auditors merged, deduplicated, and sorted by severity
@@ -80,7 +80,7 @@ Execute the entire workflow from start to finish:
 - **GitHub CLI Required**: Must have `gh` authenticated and be in a git repository
 - **Parallel Execution**: Uses Task tool to launch 5 specialized auditors concurrently
 - **AI-Driven Analysis**: All findings generated through semantic analysis
-- **Constitution Knowledge**: Understands all 14 project principles (v1.0.0)
+- **Constitution Knowledge**: Understands all project principles defined in `eng-constitution.md`
 - **Completion Criteria**: See [WORKFLOW.md](WORKFLOW.md) Tasks 7 and 8 for success criteria
 
 ## Analysis Sources
@@ -90,7 +90,7 @@ Execute the entire workflow from start to finish:
 | **React Doctor** | React Health | 63+ rules: state/effects, performance, Next.js, RN, bundle size, security |
 | **Security** | Vulnerabilities | Injection, XSS, auth gaps, data exposure, race conditions |
 | **Architecture** | Structure | Import boundaries, file organization, naming conventions |
-| **Constitution** | 14 Principles | Full compliance with all project principles |
+| **Constitution** | All Principles | Full compliance with all project principles |
 | **Code Quality** | Maintainability | Complexity, code smells, performance, testing |
 | **API Stability** | oRPC/APIs | Principle IX & XIII, breaking changes |
 

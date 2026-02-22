@@ -416,6 +416,7 @@ Combine all agent findings into the final review output.
 2. **Merge** findings into categories:
    - Critical Issues (security findings with HIGH severity)
    - Architecture Concerns (architecture findings)
+   - React Health (react-doctor findings from Task 2.5)
    - Code Quality Issues (quality findings)
    - Constitution Violations (constitution findings)
    - oRPC/API Compliance (api findings)
