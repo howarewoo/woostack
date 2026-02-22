@@ -11,7 +11,6 @@ Analyze the provided code changes for these quality concerns:
 - **High Cyclomatic Complexity** - More than 10 branches in a single function
 - **Deep Nesting** - More than 3 levels of nested conditionals/loops
 - **Too Many Parameters** - Functions with more than 5 parameters (use object parameter)
-- **God Components** - React components doing too much (data fetching + state + UI + business logic)
 
 ### Code Smells
 - **Duplicated Code** - Copy-pasted logic that should be extracted
@@ -34,21 +33,12 @@ Analyze the provided code changes for these quality concerns:
 
 ### Performance Concerns
 - **N+1 Query Patterns** - Fetching related data in loops
-- **Missing Memoization** - Expensive computations without useMemo/useCallback
-- **Unnecessary Re-renders** - Missing React.memo for pure components
 - **Large Bundle Imports** - Importing entire libraries instead of specific modules
-- **Missing Code Splitting** - Large components that should be lazy-loaded
 
 ### Testing Gaps
 - **Missing Tests** - New server actions or complex logic without tests
 - **Insufficient Coverage** - Tests that don't cover edge cases or error paths
 - **Hardcoded Test Values** - Values that should be configurable or factored
-
-### React-Specific Issues
-- **Missing Keys** - Lists without proper key props
-- **Inline Object/Function Props** - Creating new references on every render
-- **State Management Issues** - Derived state that should be computed
-- **Effect Dependencies** - Missing or incorrect useEffect dependencies
 
 ## Input
 
@@ -72,7 +62,7 @@ FINDINGS_COUNT: [N]
 - **Severity**: [HIGH|MEDIUM|LOW]
 - **Blocking**: [true|false]
 - **File**: path/to/file.ts (lines X-Y)
-- **Category**: [complexity|smell|error-handling|typescript|performance|testing|react]
+- **Category**: [complexity|smell|error-handling|typescript|performance|testing]
 - **Description**: [Clear explanation of the quality issue and its impact]
 - **Code**:
 ```typescript
@@ -99,7 +89,7 @@ FINDINGS_COUNT: 0
 ## Severity Guidelines
 
 - **HIGH**: N+1 queries, swallowed errors, missing error handling on critical paths, severe complexity
-- **MEDIUM**: Missing memoization, code smells, moderate complexity, missing tests
+- **MEDIUM**: Code smells, moderate complexity, missing tests
 - **LOW**: Minor style improvements, optional optimizations, documentation gaps
 
 ## Blocking Classification

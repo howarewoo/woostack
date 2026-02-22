@@ -6,10 +6,11 @@ This document provides detailed analysis criteria, finding formats, templates, a
 
 ## Parallel Auditor Architecture
 
-The PR review skill uses 5 specialized auditors that run in parallel:
+The PR review skill uses react-doctor pre-check + 5 specialized auditors that run in parallel:
 
-| Auditor | Type Tag | Focus Areas |
-|---------|----------|-------------|
+| Source | Type Tag | Focus Areas |
+|--------|----------|-------------|
+| React Doctor | `react-doctor` | 63+ React/Next.js/RN rules (state, effects, performance, bundle, security) |
 | Security | `critical` | Injection, XSS, auth, data exposure, race conditions |
 | Architecture | `architecture` | Import boundaries, file organization, naming |
 | Constitution | `constitution` | All 19 project principles |
@@ -26,7 +27,7 @@ AGENT: [agent-name]
 FINDINGS_COUNT: [N]
 
 ### Finding 1
-- **Type**: [critical|architecture|constitution|quality|api]
+- **Type**: [critical|architecture|constitution|quality|api|react-doctor]
 - **Severity**: [HIGH|MEDIUM|LOW]
 - **File**: path/to/file.ts (lines X-Y)
 - **Principle**: [Principle NUMBER if applicable]
@@ -56,14 +57,15 @@ FINDINGS_COUNT: 0
 
 ### Aggregation Rules
 
-When combining findings from all 5 auditors:
+When combining findings from react-doctor and all 5 auditors:
 
 1. **Parse** each agent's `---AUDIT_FINDINGS---` block
 2. **Map findings to categories**:
    - `critical` type → Critical Issues section
    - `architecture` type → Architecture Concerns section
-   - `constitution` type → Constitution Violations section
+   - `react-doctor` type → React Health section
    - `quality` type → Code Quality Issues section
+   - `constitution` type → Constitution Violations section
    - `api` type → oRPC/API Compliance section
 3. **Deduplicate** findings that reference the same file:line with similar descriptions
 4. **Sort** within each category by severity: HIGH → MEDIUM → LOW
@@ -136,7 +138,6 @@ When duplicates found:
 - Duplicated code blocks
 - Dead code or unused imports
 - Magic numbers/strings without constants
-- God components (components doing too much)
 - Primitive obsession (using primitives instead of domain types)
 
 **Error Handling:**
@@ -146,10 +147,7 @@ When duplicates found:
 
 **Performance Concerns:**
 - N+1 query patterns in data fetching
-- Missing memoization for expensive computations
-- Unnecessary re-renders (missing React.memo, useMemo, useCallback)
 - Large bundle imports (importing entire libraries)
-- Missing code splitting for large components
 
 **Testing Gaps:**
 - Missing or inadequate tests for server actions
@@ -157,11 +155,11 @@ When duplicates found:
 
 ### 5. BEST PRACTICES - Framework and Language Specific
 
-- React patterns (hooks, component lifecycle, rendering)
 - TypeScript best practices
-- Next.js specific patterns
 - Naming consistency (Principle III)
 - JSDoc documentation gaps
+
+> **Note:** React patterns, Next.js patterns, and React Native patterns are covered by react-doctor (Task 2.5). The Code Quality Auditor no longer checks these.
 
 ### 6. oRPC AND API COMPLIANCE - Principles IX and XIII
 
@@ -468,15 +466,16 @@ Use this template for the final review comment:
 
 ## Summary
 
-Found **[TOTAL_COUNT]** issue(s) from 5 parallel auditors:
+Found **[TOTAL_COUNT]** issue(s) from react-doctor + 5 parallel auditors:
 
 ### Auditor Results
-| Auditor | Findings |
-|---------|----------|
+| Source | Findings |
+|--------|----------|
+| React Doctor | [N] (Score: XX/100) |
 | Security | [N] |
 | Architecture | [N] |
-| Constitution | [N] |
 | Code Quality | [N] |
+| Constitution | [N] |
 | API Stability | [N] |
 
 ### Issue Breakdown by Severity
@@ -490,6 +489,7 @@ Found **[TOTAL_COUNT]** issue(s) from 5 parallel auditors:
 
 - [Critical Issues](#critical-issues-findings)
 - [Architecture Concerns](#architecture-concerns-findings)
+- [React Health](#react-health-findings)
 - [Code Quality Issues](#code-quality-findings)
 - [Constitution Violations](#constitution-violations-findings)
 - [oRPC/API Compliance](#orpc-api-compliance-findings)
@@ -537,6 +537,28 @@ Found **[COUNT]** architecture issue(s):
 
 ### Issue X: [Issue Title]
 [Same format as above]
+
+---
+
+## React Health Findings
+
+**React Doctor Score: [XX]/100** (threshold: 90)
+
+Found **[COUNT]** react health issue(s):
+
+### Issue X: [Rule Name]
+
+| Attribute | Value |
+|-----------|-------|
+| **File** | `path/to/file.tsx` (line X) |
+| **Severity** | HIGH |
+| **Rule** | [react-doctor rule name] |
+| **Impact** | [Brief impact description] |
+
+**Description:**
+[react-doctor message and help text]
+
+[... additional react health issues ...]
 
 ---
 
@@ -588,14 +610,14 @@ Found **[COUNT]** oRPC/API issue(s):
 ---
 
 *Review generated: [TIMESTAMP]*
-*Auditors: Security, Architecture, Constitution, Code Quality, API Stability*
+*Auditors: React Doctor, Security, Architecture, Constitution, Code Quality, API Stability*
 *Constitution version: 1.31.0 (19 principles)*
 *Review findings are recommendations - use your judgment when deciding on fixes*
 ```
 
 ### Template Rules
 
-- Sort findings by category (critical -> architecture -> quality -> constitution -> oRPC/API)
+- Sort findings by category (critical -> architecture -> react-health -> quality -> constitution -> oRPC/API)
 - Within each category, sort by severity (high -> medium -> low)
 - Use severity indicators: HIGH, MEDIUM, LOW
 - Include file paths with line numbers in attribute tables
@@ -615,14 +637,14 @@ Found **[COUNT]** oRPC/API issue(s):
 
 ## Summary
 
-No issues found! All 5 auditors (Security, Architecture, Constitution, Code Quality, API Stability) completed their analysis and found no concerns.
+No issues found! React Doctor and all 5 auditors (Security, Architecture, Constitution, Code Quality, API Stability) completed their analysis with no concerns.
 
 The code changes look good.
 
 ---
 
 *Review generated: [TIMESTAMP]*
-*Auditors: Security, Architecture, Constitution, Code Quality, API Stability*
+*Auditors: React Doctor, Security, Architecture, Constitution, Code Quality, API Stability*
 *Constitution version: 1.31.0 (19 principles)*
 *Review findings are recommendations - use your judgment when deciding on fixes*
 ```
@@ -802,6 +824,7 @@ sequenceDiagram
 - **Semantic Understanding**: AI analyzes code meaning, not just patterns
 - **Context Awareness**: Full file and project context informs analysis
 - **Deep Bug Detection**: Focuses on logic errors, edge cases, race conditions
+- **React Health Scanning**: Automated react-doctor analysis with 63+ rules covering state, effects, performance, Next.js, and React Native
 - **Constitution Knowledge**: Understands all 19 principles and their implications (v1.31.0)
 - **oRPC Compliance**: Validates query-only usage, contract naming, folder structure
 - **API Stability Detection**: Identifies breaking changes in schemas and endpoints

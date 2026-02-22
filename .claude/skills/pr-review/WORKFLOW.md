@@ -1,6 +1,6 @@
 # PR Review Workflow
 
-This document details the workflow for performing AI-driven code reviews with **parallel specialized auditors**. Standard and local modes execute all 8 numbered tasks (in local mode, Task 2 is skipped). Loop mode wraps Tasks 3-6 in an iteration loop with Task 9 (fix findings), commits fixes via Task 10, and routes post-loop output through Tasks 7-8.
+This document details the workflow for performing AI-driven code reviews with **react-doctor pre-check** and **parallel specialized auditors**. Standard and local modes execute all numbered tasks (in local mode, Task 2 is skipped). Loop mode wraps Tasks 2.5-6 in an iteration loop with Task 9 (fix findings), commits fixes via Task 10, and routes post-loop output through Tasks 7-8.
 
 ## IMPORTANT: Autonomous Execution Mode
 
@@ -9,7 +9,7 @@ This document details the workflow for performing AI-driven code reviews with **
 - **Do NOT ask for confirmation** before executing any task or command
 - **Do NOT pause** between tasks to await user approval
 - **Proceed immediately** from one task to the next
-- **Complete all 8 tasks** in sequence without stopping (in local mode, Task 2's posting step is skipped)
+- **Complete all tasks** in sequence without stopping (in local mode, Task 2's posting step is skipped)
 
 **Standard mode (default):**
 - **Do NOT ask** before posting comments or updating the PR
@@ -52,7 +52,7 @@ Examples:
 
 ## Review Workflow Tasks
 
-> **Note:** Tasks 1, 3-6 execute identically in both modes. Tasks 2, 7, and 8 have mode-specific behavior (Task 2 is skipped in local mode).
+> **Note:** Tasks 1, 2.5, 3-6 execute identically in both modes. Tasks 2, 7, and 8 have mode-specific behavior (Task 2 is skipped in local mode).
 
 ### Task 1: Validate Prerequisites and Gather PR Metadata
 
@@ -88,7 +88,11 @@ In standard mode, post a starting comment to indicate the AI review is in progre
 ```bash
 gh pr comment <PR_NUMBER> --body "**AI-Driven Deep Code Review Starting**
 
-The AI-powered review process is now analyzing this pull request using **5 parallel specialized auditors**:
+The AI-powered review process is now analyzing this pull request:
+
+**Step 1: React Doctor Pre-Check** (63+ React/Next.js/RN rules, health score)
+
+**Step 2: 5 Parallel Specialized Auditors**
 
 | Auditor | Focus |
 |---------|-------|
@@ -98,12 +102,69 @@ The AI-powered review process is now analyzing this pull request using **5 paral
 | Code Quality | Complexity, code smells, performance |
 | API Stability | oRPC compliance, breaking changes |
 
-Review findings will be posted shortly once all auditors complete their analysis."
+Review findings will be posted shortly once all analysis completes."
 ```
 
 **Success Criteria**:
 - Standard mode: Starting comment is posted to PR
 - Local mode: Task skipped, proceed to Task 3
+
+---
+
+### Task 2.5: React Doctor Pre-Check
+
+Run react-doctor to scan changed files for React-specific issues. This task runs in **all modes** (standard, local, loop).
+
+**Step 2.5.1: Run react-doctor**
+
+Run this command (replace `<BASE_BRANCH>` with the base branch from Task 1 metadata):
+
+```bash
+npx -y react-doctor@latest . --verbose --diff <BASE_BRANCH> --no-dead-code --no-ami 2>&1 || true
+```
+
+Note: The `|| true` ensures the workflow continues regardless of react-doctor's exit code. We parse the output ourselves.
+
+**Step 2.5.2: Parse output**
+
+Extract from the react-doctor output:
+- **Score**: The 0-100 health score (look for `Score: XX/100` or similar)
+- **Diagnostics**: Each diagnostic has: file path, rule name, severity (`error` or `warning`), message, line number, column number
+
+**Step 2.5.3: Convert diagnostics to AUDIT_FINDINGS format**
+
+Convert each react-doctor diagnostic into the standard finding format:
+
+```
+---AUDIT_FINDINGS---
+AGENT: react-doctor
+FINDINGS_COUNT: [N]
+
+### Finding 1
+- **Type**: react-doctor
+- **Severity**: [HIGH if error, MEDIUM if warning]
+- **Blocking**: [true if error, false if warning]
+- **File**: path/to/file.ts (line X)
+- **Category**: [react-doctor rule name, e.g. "no-derived-state-effect"]
+- **Description**: [react-doctor message + help text]
+- **Code**: [not available from CLI output — omit or leave empty]
+- **Suggestion**: [react-doctor help text if available]
+
+### Finding 2
+...
+---END_AUDIT_FINDINGS---
+```
+
+Store these findings for merging in Task 6.
+
+**Step 2.5.4: Log score**
+
+Display to the user:
+- `"React Doctor Score: XX/100 (threshold: 90)"`
+- If score >= 90: `"React health check passed"`
+- If score < 90: `"React health check: X issues found, continuing with full review"`
+
+**Success Criteria**: react-doctor has run, diagnostics are parsed and converted to AUDIT_FINDINGS format, score is logged. Workflow always continues to Task 3.
 
 ---
 
@@ -121,11 +182,12 @@ In loop mode, Tasks 3-6 are wrapped in an iteration loop. The loop runs up to 5 
 
 **For each iteration (1 through max_iterations):**
 
-1. Execute **Task 3** (Prepare Shared Context) — re-read all changed files
-2. Execute **Task 4** (Launch 5 Parallel Auditors)
-3. Execute **Task 5** (Collect Agent Results)
-4. Execute **Task 6** (Aggregate & Generate Review)
-5. Count findings from aggregated results:
+1. Execute **Task 2.5** (React Doctor Pre-Check) — re-scan changed files
+2. Execute **Task 3** (Prepare Shared Context) — re-read all changed files
+3. Execute **Task 4** (Launch 5 Parallel Auditors)
+4. Execute **Task 5** (Collect Agent Results)
+5. Execute **Task 6** (Aggregate & Generate Review)
+6. Count findings from aggregated results (including react-doctor findings):
    - `current_finding_count` = total findings
    - `blocking_count` = count of findings where `Blocking: true`
    - `nonblocking_count` = count of findings where `Blocking: false`
@@ -354,6 +416,7 @@ Combine all agent findings into the final review output.
 2. **Merge** findings into categories:
    - Critical Issues (security findings with HIGH severity)
    - Architecture Concerns (architecture findings)
+   - React Health (react-doctor findings from Task 2.5)
    - Code Quality Issues (quality findings)
    - Constitution Violations (constitution findings)
    - oRPC/API Compliance (api findings)
@@ -539,21 +602,23 @@ Include:
 **Status**: OPEN
 
 ### Auditor Results
-| Auditor | Findings |
-|---------|----------|
+| Source | Findings |
+|--------|----------|
+| React Doctor | 3 (Score: 72/100) |
 | Security | 2 |
 | Architecture | 1 |
 | Constitution | 3 |
-| Code Quality | 4 |
+| Code Quality | 2 |
 | API Stability | 0 |
-| **Total** | **10** |
+| **Total** | **11** |
 
 ### Actions Completed
-1. Ran 5 parallel auditors on X changed files
-2. Aggregated and deduplicated findings
-3. Updated PR title with conventional commit format
-4. Updated PR description with comprehensive summary
-5. Posted detailed review comment to GitHub
+1. Ran react-doctor pre-check on changed files
+2. Ran 5 parallel auditors on X changed files
+3. Aggregated and deduplicated findings
+4. Updated PR title with conventional commit format
+5. Updated PR description with comprehensive summary
+6. Posted detailed review comment to GitHub
 ```
 
 **Success Criteria**: Summary displayed with PR metadata, auditor results, and completed actions.
@@ -580,14 +645,15 @@ Include:
 **Status**: OPEN
 
 ### Auditor Results
-| Auditor | Findings |
-|---------|----------|
+| Source | Findings |
+|--------|----------|
+| React Doctor | 3 (Score: 72/100) |
 | Security | 2 |
 | Architecture | 1 |
 | Constitution | 3 |
-| Code Quality | 4 |
+| Code Quality | 2 |
 | API Stability | 0 |
-| **Total** | **10** |
+| **Total** | **11** |
 
 ### Tasks Created
 - 2 HIGH severity tasks
@@ -638,12 +704,13 @@ Display a final summary showing the loop converged to 0 findings.
 *These observations are informational and do not block merge.*
 
 ### Actions Completed
-1. Ran iterative review-fix loop (3 iterations)
-2. Auto-fixed all findings across iterations
-3. Committed fixes via `gt modify`
-4. Updated PR title with conventional commit format
-5. Updated PR description with comprehensive summary
-6. Posted clean review comment to GitHub
+1. Ran react-doctor pre-check each iteration
+2. Ran iterative review-fix loop (3 iterations)
+3. Auto-fixed all findings across iterations
+4. Committed fixes via `gt modify`
+5. Updated PR title with conventional commit format
+6. Updated PR description with comprehensive summary
+7. Posted clean review comment to GitHub
 
 *Reviewed and auto-fixed in 3 iterations (12 → 4 → 0 blocking findings)*
 ~~~
@@ -784,7 +851,8 @@ gt modify --message "fix: address PR review findings"
 ```mermaid
 flowchart TD
     T1[Task 1: Prerequisites & Metadata] --> T2[Task 2: Post Starting Comment]
-    T2 --> T3[Task 3: Prepare Shared Context]
+    T2 --> T25[Task 2.5: React Doctor Pre-Check]
+    T25 --> T3[Task 3: Prepare Shared Context]
     T3 --> T4[Task 4: Launch 5 Parallel Auditors]
 
     T4 --> A1[Security Auditor]
@@ -809,7 +877,8 @@ flowchart TD
 ```mermaid
 flowchart TD
     T1[Task 1: Prerequisites & Metadata] --> T2[Task 2: Skipped]
-    T2 -.-> T3[Task 3: Prepare Shared Context]
+    T2 -.-> T25[Task 2.5: React Doctor Pre-Check]
+    T25 --> T3[Task 3: Prepare Shared Context]
     T3 --> T4[Task 4: Launch 5 Parallel Auditors]
     style T2 fill:#f5f5f5,stroke:#999,stroke-dasharray: 5 5
 
@@ -835,7 +904,8 @@ flowchart TD
 ```mermaid
 flowchart TD
     T1[Task 1: Prerequisites & Metadata] --> LOOP_START{Iteration ≤ 5?}
-    LOOP_START -->|Yes| T3[Task 3: Prepare Shared Context]
+    LOOP_START -->|Yes| T25[Task 2.5: React Doctor Pre-Check]
+    T25 --> T3[Task 3: Prepare Shared Context]
     T3 --> T4[Task 4: Launch 5 Parallel Auditors]
 
     T4 --> A1[Security Auditor]

@@ -48,3 +48,28 @@ jobs:
 
       - name: Test
         run: pnpm test:changed
+
+  react-doctor:
+    name: React Doctor
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    concurrency:
+      group: react-doctor-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+
+      - uses: millionco/react-doctor@main
+        with:
+          diff: main
+          verbose: "true"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          fail-on: "error"
