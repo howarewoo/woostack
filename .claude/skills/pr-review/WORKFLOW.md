@@ -88,7 +88,11 @@ In standard mode, post a starting comment to indicate the AI review is in progre
 ```bash
 gh pr comment <PR_NUMBER> --body "**AI-Driven Deep Code Review Starting**
 
-The AI-powered review process is now analyzing this pull request using **5 parallel specialized auditors**:
+The AI-powered review process is now analyzing this pull request:
+
+**Step 1: React Doctor Pre-Check** (63+ React/Next.js/RN rules, health score)
+
+**Step 2: 5 Parallel Specialized Auditors**
 
 | Auditor | Focus |
 |---------|-------|
@@ -98,7 +102,7 @@ The AI-powered review process is now analyzing this pull request using **5 paral
 | Code Quality | Complexity, code smells, performance |
 | API Stability | oRPC compliance, breaking changes |
 
-Review findings will be posted shortly once all auditors complete their analysis."
+Review findings will be posted shortly once all analysis completes."
 ```
 
 **Success Criteria**:
@@ -597,21 +601,23 @@ Include:
 **Status**: OPEN
 
 ### Auditor Results
-| Auditor | Findings |
-|---------|----------|
+| Source | Findings |
+|--------|----------|
+| React Doctor | 3 (Score: 72/100) |
 | Security | 2 |
 | Architecture | 1 |
 | Constitution | 3 |
-| Code Quality | 4 |
+| Code Quality | 2 |
 | API Stability | 0 |
-| **Total** | **10** |
+| **Total** | **11** |
 
 ### Actions Completed
-1. Ran 5 parallel auditors on X changed files
-2. Aggregated and deduplicated findings
-3. Updated PR title with conventional commit format
-4. Updated PR description with comprehensive summary
-5. Posted detailed review comment to GitHub
+1. Ran react-doctor pre-check on changed files
+2. Ran 5 parallel auditors on X changed files
+3. Aggregated and deduplicated findings
+4. Updated PR title with conventional commit format
+5. Updated PR description with comprehensive summary
+6. Posted detailed review comment to GitHub
 ```
 
 **Success Criteria**: Summary displayed with PR metadata, auditor results, and completed actions.
@@ -638,14 +644,15 @@ Include:
 **Status**: OPEN
 
 ### Auditor Results
-| Auditor | Findings |
-|---------|----------|
+| Source | Findings |
+|--------|----------|
+| React Doctor | 3 (Score: 72/100) |
 | Security | 2 |
 | Architecture | 1 |
 | Constitution | 3 |
-| Code Quality | 4 |
+| Code Quality | 2 |
 | API Stability | 0 |
-| **Total** | **10** |
+| **Total** | **11** |
 
 ### Tasks Created
 - 2 HIGH severity tasks
@@ -696,12 +703,13 @@ Display a final summary showing the loop converged to 0 findings.
 *These observations are informational and do not block merge.*
 
 ### Actions Completed
-1. Ran iterative review-fix loop (3 iterations)
-2. Auto-fixed all findings across iterations
-3. Committed fixes via `gt modify`
-4. Updated PR title with conventional commit format
-5. Updated PR description with comprehensive summary
-6. Posted clean review comment to GitHub
+1. Ran react-doctor pre-check each iteration
+2. Ran iterative review-fix loop (3 iterations)
+3. Auto-fixed all findings across iterations
+4. Committed fixes via `gt modify`
+5. Updated PR title with conventional commit format
+6. Updated PR description with comprehensive summary
+7. Posted clean review comment to GitHub
 
 *Reviewed and auto-fixed in 3 iterations (12 → 4 → 0 blocking findings)*
 ~~~
