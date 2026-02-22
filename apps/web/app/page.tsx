@@ -6,7 +6,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@infrastructure/ui-web";
+import type { Metadata } from "next";
 import { UserList } from "@/components/user-list";
+
+export const metadata: Metadata = {
+  title: "Monorepo Template",
+  description:
+    "A production-ready monorepo with Next.js, Expo, and Hono. Type-safe APIs, shared packages, and platform-specific apps.",
+};
 
 export default function Home() {
   return (
