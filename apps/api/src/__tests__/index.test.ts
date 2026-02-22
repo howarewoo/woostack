@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Set required env vars before app module loads (hoisted alongside vi.mock)
 vi.hoisted(() => {
-  process.env.SUPABASE_SECRET_KEY = "test-secret-key";
   process.env.SUPABASE_PUBLISHABLE_KEY = "test-publishable-key";
 });
 

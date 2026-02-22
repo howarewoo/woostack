@@ -11,7 +11,6 @@ declare module "hono" {
 
 interface SupabaseMiddlewareOptions {
   supabaseUrl: string;
-  supabaseSecretKey: string;
   supabasePublishableKey: string;
 }
 

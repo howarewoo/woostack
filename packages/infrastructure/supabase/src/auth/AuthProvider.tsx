@@ -29,20 +29,29 @@ export function AuthProvider({ supabase, children }: AuthProviderProps) {
     });
 
     // Fallback: only use getUser if onAuthStateChange hasn't fired yet
-    supabase.auth.getUser().then(({ data: { user: validatedUser }, error }) => {
-      if (!isMounted || initialLoadDone) return;
-      if (error || !validatedUser) {
-        setSession(null);
-        setUser(null);
-      } else {
-        supabase.auth.getSession().then(({ data: { session: validatedSession } }) => {
+    supabase.auth
+      .getUser()
+      .then(({ data: { user: validatedUser }, error }) => {
+        if (!isMounted || initialLoadDone) return;
+        if (error || !validatedUser) {
+          setSession(null);
+          setUser(null);
+          setIsLoading(false);
+          return;
+        }
+        return supabase.auth.getSession().then(({ data: { session: validatedSession } }) => {
           if (!isMounted || initialLoadDone) return;
           setSession(validatedSession);
           setUser(validatedUser);
+          setIsLoading(false);
         });
-      }
-      setIsLoading(false);
-    });
+      })
+      .catch(() => {
+        if (!isMounted || initialLoadDone) return;
+        setSession(null);
+        setUser(null);
+        setIsLoading(false);
+      });
 
     return () => {
       isMounted = false;
