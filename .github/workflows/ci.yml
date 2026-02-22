@@ -51,6 +51,7 @@ jobs:
 
   react-doctor:
     name: React Doctor
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     concurrency:
       group: react-doctor-${{ github.event.pull_request.number }}
@@ -61,6 +62,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          ref: ${{ github.head_ref }}
 
       - uses: millionco/react-doctor@main
         with:
