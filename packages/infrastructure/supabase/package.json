@@ -1,0 +1,66 @@
+{
+  "name": "@infrastructure/supabase",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./server": {
+      "types": "./src/clients/server.ts",
+      "default": "./src/clients/server.ts"
+    },
+    "./server-ssr": {
+      "types": "./src/clients/server-ssr.ts",
+      "default": "./src/clients/server-ssr.ts"
+    },
+    "./browser-ssr": {
+      "types": "./src/clients/browser-ssr.ts",
+      "default": "./src/clients/browser-ssr.ts"
+    },
+    "./auth": {
+      "types": "./src/auth/index.ts",
+      "default": "./src/auth/index.ts"
+    },
+    "./middleware/hono": {
+      "types": "./src/middleware/hono.ts",
+      "default": "./src/middleware/hono.ts"
+    },
+    "./middleware/nextjs": {
+      "types": "./src/middleware/nextjs.ts",
+      "default": "./src/middleware/nextjs.ts"
+    },
+    "./storage": {
+      "types": "./src/storage/storage.ts",
+      "default": "./src/storage/storage.ts"
+    },
+    "./types": {
+      "types": "./src/types.ts",
+      "default": "./src/types.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "catalog:",
+    "@supabase/ssr": "catalog:",
+    "hono": "catalog:",
+    "react": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@infrastructure/typescript-config": "workspace:*",
+    "@testing-library/react": "catalog:",
+    "@types/react": "catalog:",
+    "jsdom": "catalog:",
+    "next": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

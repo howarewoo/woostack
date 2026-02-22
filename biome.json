@@ -20,6 +20,9 @@
       },
       "style": {
         "noNonNullAssertion": "off"
+      },
+      "suspicious": {
+        "noExplicitAny": "error"
       }
     }
   },
@@ -53,7 +56,8 @@
       "!**/coverage",
       "!**/*.config.js",
       "!**/*.config.mjs",
-      "!**/.claude/skills"
+      "!**/.claude/skills",
+      "!**/src/generated"
     ]
   }
 }

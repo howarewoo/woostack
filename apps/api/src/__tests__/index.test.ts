@@ -1,8 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+// Set required env vars before app module loads (hoisted alongside vi.mock)
+vi.hoisted(() => {
+  process.env.SUPABASE_PUBLISHABLE_KEY = "test-publishable-key";
+});
+
 // Mock @hono/node-server BEFORE importing app
 vi.mock("@hono/node-server", () => ({
   serve: vi.fn(),
+}));
+
+// Mock the Supabase middleware to be a pass-through
+vi.mock("@infrastructure/supabase/middleware/hono", () => ({
+  supabaseMiddleware: () => async (_c: unknown, next: () => Promise<void>) => next(),
 }));
 
 // Mock the router
@@ -51,7 +61,11 @@ describe("API Server", () => {
       expect.any(Request),
       expect.objectContaining({
         prefix: "/",
-        context: expect.objectContaining({ requestId: undefined }),
+        context: expect.objectContaining({
+          requestId: undefined,
+          user: undefined,
+          supabase: undefined,
+        }),
       })
     );
   });
@@ -83,8 +97,10 @@ describe("API Server", () => {
     expect(res.status).toBe(404);
   });
 
-  it("should include CORS headers", async () => {
-    const res = await app.request("/");
-    expect(res.headers.get("access-control-allow-origin")).toBeTruthy();
+  it("should include CORS headers for allowed origins", async () => {
+    const res = await app.request("/", {
+      headers: { Origin: "http://localhost:3000" },
+    });
+    expect(res.headers.get("access-control-allow-origin")).toBe("http://localhost:3000");
   });
 });

@@ -1,0 +1,17 @@
+{
+  "name": "supabase-db",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "start": "supabase start",
+    "stop": "supabase stop",
+    "reset": "supabase db reset",
+    "status": "supabase status",
+    "gen-types": "supabase gen types --lang=typescript --local > /tmp/supabase-types.ts && mv /tmp/supabase-types.ts ../../packages/infrastructure/supabase/src/generated/database.ts",
+    "gencode": "pnpm gen-types || echo 'Skipping: local Supabase not running (run pnpm --filter supabase-db start first)'"
+  },
+  "devDependencies": {
+    "supabase": "catalog:"
+  }
+}

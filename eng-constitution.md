@@ -12,7 +12,7 @@ Every feature is implemented as a standalone package with clear boundaries; Feat
 All code in feature packages must follow standardized naming conventions and directory structure (excluding infrastructure packages and apps); Components must use PascalCase (UpperCamelCase) with one default export per file; Helper functions must use camelCase; Custom hooks must use camelCase with "use" prefix (e.g., `useHookName`); Constants must use UPPER_SNAKE_CASE; TypeScript types and interfaces must use PascalCase; Schemas must use PascalCase; Procedure files must use camelCase names describing the operation (e.g., `createUser`, `fetchUsers`) and be located in the `procedures/` folder; oRPC contracts must use `{feature}Contract.ts` naming (e.g., `usersContract.ts`) in the `contracts/` folder; oRPC routers must use `{feature}ORPCRouter.ts` naming (e.g., `usersORPCRouter.ts`) in the `routers/` folder; oRPC procedure names must use camelCase (e.g., `listUsers`, `createUser`); File organization must use dedicated folders: `procedures/`, `contracts/`, `routers/`, `components/`, `surfaces/`, `schemas/`, and `layouts/`; Use `.ts` file extension by default and only use `.tsx` when the file contains JSX; Prioritize using default exports over named exports for feature packages (infrastructure packages should use named exports for better discoverability and tree-shaking); Consistent naming, code organization, and file structure across all feature packages ensures maintainability, readability, and scalability.
 
 ### IV. Infrastructure Package Priority
-Infrastructure packages provide shared utilities, UI components, and cross-cutting concerns; Prioritize using components from `@infrastructure/ui` for shared styles and utilities; Use `@infrastructure/api-client` for oRPC client utilities (`createApiClient`, `createOrpcUtils`) and shared base schemas; Use `@infrastructure/utils` for cross-platform utilities; Use `@infrastructure/typescript-config` for shared TypeScript configuration.
+Infrastructure packages provide shared utilities, UI components, and cross-cutting concerns; Prioritize using components from `@infrastructure/ui` for shared styles and utilities; Use `@infrastructure/api-client` for oRPC client utilities (`createApiClient`, `createOrpcUtils`) and shared base schemas; Use `@infrastructure/supabase` for all Supabase access (clients, auth hooks, storage, middleware, generated DB types); Use `@infrastructure/utils` for cross-platform utilities; Use `@infrastructure/typescript-config` for shared TypeScript configuration.
 
 ### V. pnpm Catalog Protocol
 All dependencies must be managed through pnpm catalog to prevent version conflicts; Catalog definitions in `pnpm-workspace.yaml` ensure consistent dependency versions across the monorepo; No direct dependency declarations in individual `package.json` files; All versions in the catalog must be pinned to exact versions (no `^` or `~` prefixes) to ensure deterministic installs.
@@ -46,7 +46,7 @@ When test case requirements are unclear or ambiguous, clarifying questions MUST 
 - Both success and failure scenarios must be tested
 
 **Testing Framework:**
-All tests must use Vitest, except React Native apps which use Jest (via `jest-expo` preset) due to Metro bundler incompatibility with Vitest; Test files must use ".test" or ".spec" suffixes and be colocated with the code they test; Vitest configuration in `package.json` or `vitest.config.ts`; Test discovery via Vitest's default or explicit configuration; E2E tests use Playwright.
+All tests must use Vitest, except React Native apps which use Jest (via `jest-expo` preset) due to Metro bundler incompatibility with Vitest; Test files must use ".test" or ".spec" suffixes and be placed in a sibling `__tests__/` directory adjacent to the code they test (e.g., `src/auth/__tests__/useAuth.test.ts` tests `src/auth/useAuth.ts`); Vitest configuration in `package.json` or `vitest.config.ts`; Test discovery via Vitest's default or explicit configuration; E2E tests use Playwright.
 
 **Completion Criteria:**
 A feature is NOT considered complete until all tests pass. Implementation without passing tests is incomplete work.
@@ -73,7 +73,11 @@ export const CreateUserSchema = z.object({ name: z.string().min(1) });
 import { os } from "@orpc/server";
 import { UserSchema, CreateUserSchema } from "../contracts/usersContract";
 
-const pub = os.$context<{ requestId?: string }>();
+const pub = os.$context<{
+  requestId?: string;
+  user?: import("@infrastructure/supabase").SupabaseUser;
+  supabase: import("@infrastructure/supabase").TypedSupabaseClient;
+}>();
 
 export const usersRouter = {
   list: pub.output(UserSchema.array()).handler(() => {
@@ -146,6 +150,18 @@ All HTTP API endpoints must maintain backward compatibility within a major versi
 
 ### XIV. Platform-Agnostic Navigation
 Feature packages must never import platform-specific routing (`next/navigation`, `expo-router`). All navigation in feature packages must use `@infrastructure/navigation` — `useNavigation()` for imperative navigation and `<Link>` for declarative navigation. Each app provides its own implementation via `NavigationProvider`.
+
+### XV. Supabase Backend Services
+Supabase is the canonical backend for authentication, database (PostgreSQL + Row Level Security), and file storage. `apps/supabase` holds the Supabase CLI project (config, migrations, seed data); `@infrastructure/supabase` provides typed clients, auth context, storage utilities, and middleware for all apps.
+
+**Access Rules:**
+- Feature packages and apps must never import `@supabase/supabase-js` directly — all Supabase access flows through `@infrastructure/supabase`
+- Auth state in client apps is provided via `AuthProvider` / `useAuth()` / `useUser()` (React context pattern, same as `NavigationProvider`)
+- Feature procedures access the authenticated user and an RLS-scoped Supabase client via oRPC context (`context.user`, `context.supabase`)
+- Unauthenticated API requests receive a publishable-key client that respects RLS — never the secret key
+
+**Type Generation:**
+After changing migrations, run `pnpm --filter supabase-db reset` then `pnpm gencode` to regenerate the `Database` type in `@infrastructure/supabase`. The generated types must be committed.
 
 ## Development Workflow
 

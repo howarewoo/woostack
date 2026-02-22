@@ -43,6 +43,10 @@ pnpm-debug.log*
 # Playwright MCP
 .playwright-mcp/
 
+# Build-generated type declarations
+next-env.d.ts
+uniwind-types.d.ts
+
 # Misc
 *.tsbuildinfo
 .vercel

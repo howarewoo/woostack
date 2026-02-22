@@ -59,36 +59,62 @@ export function replaceAbsolutePaths(typeStr: string): string {
   });
 }
 
+/**
+ * Workspace type references that TypeScript serializes as bare names
+ * (because workspace packages resolve via symlinks, not node_modules).
+ * Maps type name → package specifier.
+ */
+const WORKSPACE_TYPE_MAP: Record<string, string> = {
+  SupabaseUser: "@infrastructure/supabase",
+  TypedSupabaseClient: "@infrastructure/supabase",
+};
+
+/** Qualify bare workspace type references with import() syntax. */
+export function qualifyBareWorkspaceTypes(typeStr: string): string {
+  let result = typeStr;
+  for (const [typeName, pkg] of Object.entries(WORKSPACE_TYPE_MAP)) {
+    // Match bare type name not already preceded by "." (import("pkg").Type)
+    const regex = new RegExp(`(?<!\\.)\\b${typeName}\\b`, "g");
+    result = result.replace(regex, `import("${pkg}").${typeName}`);
+  }
+  return result;
+}
+
+/** Iterate characters, yielding each with whether it's inside a string literal. */
+function* iterateChars(typeStr: string): Generator<{ char: string; inString: boolean }> {
+  let inString = false;
+  let stringChar = "";
+  for (let i = 0; i < typeStr.length; i++) {
+    const char = typeStr[i] as string;
+    if (!inString && (char === '"' || char === "'" || char === "`")) {
+      inString = true;
+      stringChar = char;
+      yield { char, inString: true };
+      continue;
+    }
+    if (inString) {
+      if (char === "\\" && i + 1 < typeStr.length) {
+        yield { char: char + (typeStr[++i] as string), inString: true };
+        continue;
+      }
+      if (char === stringChar) inString = false;
+      yield { char, inString: true };
+      continue;
+    }
+    yield { char, inString: false };
+  }
+}
+
 /** Format a type string with indentation, respecting string literals. */
 export function formatTypeString(typeStr: string): string {
   const lines: string[] = [];
   let currentLine = "";
   let indent = 0;
-  let inString = false;
-  let stringChar = "";
   const INDENT = "  ";
 
-  for (let i = 0; i < typeStr.length; i++) {
-    const char = typeStr[i] as string;
-
-    // Track whether we're inside a string literal (single, double, or backtick quoted)
-    if (!inString && (char === '"' || char === "'" || char === "`")) {
-      inString = true;
-      stringChar = char;
-      currentLine += char;
-      continue;
-    }
+  for (const { char, inString } of iterateChars(typeStr)) {
     if (inString) {
       currentLine += char;
-      // Handle escaped characters
-      if (char === "\\" && i + 1 < typeStr.length) {
-        i++;
-        currentLine += typeStr[i] as string;
-        continue;
-      }
-      if (char === stringChar) {
-        inString = false;
-      }
       continue;
     }
 
@@ -115,6 +141,7 @@ export function formatTypeString(typeStr: string): string {
         currentLine += ";";
       }
     } else if (char === " " && currentLine === INDENT.repeat(indent)) {
+      // skip leading whitespace
     } else {
       currentLine += char;
     }

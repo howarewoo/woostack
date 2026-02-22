@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assertDefined, isDefined, isValidEmail } from "./validation";
+import { assertDefined, isDefined, isValidEmail } from "../validation";
 
 describe("isValidEmail", () => {
   it("should validate correct email", () => {
