@@ -53,6 +53,9 @@ jobs:
     name: React Doctor
     timeout-minutes: 10
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     concurrency:
       group: react-doctor-${{ github.event.pull_request.number }}
       cancel-in-progress: true
