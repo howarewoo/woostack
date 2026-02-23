@@ -4,6 +4,10 @@ import { render, screen } from "@testing-library/react";
 import type React from "react";
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("@infrastructure/navigation", () => ({
+  Link: ({ children, ...props }: React.ComponentProps<"a">) => <a {...props}>{children}</a>,
+}));
+
 vi.mock("@/components/auth-form", () => ({
   AuthForm: ({
     title,
@@ -25,29 +29,21 @@ vi.mock("@/components/auth-form", () => ({
   ),
 }));
 
-vi.mock("@/lib/supabase", () => ({
-  createBrowserSupabase: () => ({
-    auth: {
-      resetPasswordForEmail: vi.fn().mockResolvedValue({ error: null }),
-    },
-  }),
-}));
+import { ForgotPasswordForm } from "../forgot-password-form";
 
-import ForgotPasswordPage from "../page";
-
-describe("ForgotPasswordPage", () => {
+describe("ForgotPasswordForm", () => {
   it("renders with correct title", () => {
-    render(<ForgotPasswordPage />);
+    render(<ForgotPasswordForm />);
     expect(screen.getByText("Forgot Password")).toBeDefined();
   });
 
   it("hides password field", () => {
-    render(<ForgotPasswordPage />);
+    render(<ForgotPasswordForm />);
     expect(screen.getByTestId("hide-password").textContent).toBe("true");
   });
 
   it("renders back to sign-in link", () => {
-    render(<ForgotPasswordPage />);
+    render(<ForgotPasswordForm />);
     expect(screen.getByText(/Sign In/)).toBeDefined();
   });
 });

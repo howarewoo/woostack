@@ -17,6 +17,7 @@ vi.mock("@infrastructure/supabase/auth", () => ({
 }));
 
 vi.mock("@infrastructure/navigation", () => ({
+  Link: ({ children, ...props }: React.ComponentProps<"a">) => <a {...props}>{children}</a>,
   useNavigation: () => ({
     navigate: vi.fn(),
     replace: vi.fn(),
@@ -41,32 +42,32 @@ vi.mock("@/components/user-list", () => ({
   UserList: () => <div data-testid="user-list">Mocked UserList</div>,
 }));
 
-import DashboardPage from "../page";
+import { DashboardContent } from "../dashboard-content";
 
-describe("DashboardPage", () => {
+describe("DashboardContent", () => {
   it("renders welcome message with user email", () => {
-    render(<DashboardPage />);
+    render(<DashboardContent email="test@example.com" />);
     expect(screen.getByText(/Welcome back/)).toBeDefined();
     expect(screen.getAllByText(/test@example.com/).length).toBeGreaterThan(0);
   });
 
   it("renders user avatar with first letter of email", () => {
-    render(<DashboardPage />);
+    render(<DashboardContent email="test@example.com" />);
     expect(screen.getByText("t")).toBeDefined();
   });
 
   it("renders sign out button", () => {
-    render(<DashboardPage />);
+    render(<DashboardContent email="test@example.com" />);
     expect(screen.getByText("Sign Out")).toBeDefined();
   });
 
   it("renders settings link", () => {
-    render(<DashboardPage />);
+    render(<DashboardContent email="test@example.com" />);
     expect(screen.getByText("Settings")).toBeDefined();
   });
 
   it("renders UserList component", () => {
-    render(<DashboardPage />);
+    render(<DashboardContent email="test@example.com" />);
     expect(screen.getByTestId("user-list")).toBeDefined();
   });
 });

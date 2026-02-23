@@ -1,7 +1,12 @@
 "use client";
 
 import { render, screen } from "@testing-library/react";
+import type React from "react";
 import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@infrastructure/navigation", () => ({
+  Link: ({ children, ...props }: React.ComponentProps<"a">) => <a {...props}>{children}</a>,
+}));
 
 vi.mock("@/components/auth-form", () => ({
   AuthForm: ({ title, submitLabel }: { title: string; submitLabel: string }) => (
@@ -12,32 +17,16 @@ vi.mock("@/components/auth-form", () => ({
   ),
 }));
 
-vi.mock("@infrastructure/navigation", () => ({
-  useNavigation: () => ({
-    navigate: vi.fn(),
-    replace: vi.fn(),
-    back: vi.fn(),
-  }),
-}));
+import { ResetPasswordForm } from "../reset-password-form";
 
-vi.mock("@/lib/supabase", () => ({
-  createBrowserSupabase: () => ({
-    auth: {
-      updateUser: vi.fn().mockResolvedValue({ error: null }),
-    },
-  }),
-}));
-
-import ResetPasswordPage from "../page";
-
-describe("ResetPasswordPage", () => {
+describe("ResetPasswordForm", () => {
   it("renders with correct title", () => {
-    render(<ResetPasswordPage />);
+    render(<ResetPasswordForm />);
     expect(screen.getByText("Reset Password")).toBeDefined();
   });
 
   it("renders Update Password submit label", () => {
-    render(<ResetPasswordPage />);
+    render(<ResetPasswordForm />);
     expect(screen.getByText("Update Password")).toBeDefined();
   });
 });

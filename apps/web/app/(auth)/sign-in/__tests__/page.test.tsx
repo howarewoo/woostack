@@ -20,6 +20,7 @@ vi.mock("@infrastructure/supabase/auth", () => ({
 }));
 
 vi.mock("@infrastructure/navigation", () => ({
+  Link: ({ children, ...props }: React.ComponentProps<"a">) => <a {...props}>{children}</a>,
   useNavigation: () => ({
     navigate: vi.fn(),
     replace: vi.fn(),
@@ -45,21 +46,21 @@ vi.mock("@/components/auth-form", () => ({
   ),
 }));
 
-import SignInPage from "../page";
+import { SignInForm } from "../sign-in-form";
 
-describe("SignInPage", () => {
+describe("SignInForm", () => {
   it("renders AuthForm with sign-in title", () => {
-    render(<SignInPage />);
+    render(<SignInForm />);
     expect(screen.getByTestId("auth-title").textContent).toBe("Sign In");
   });
 
   it("renders sign-up link", () => {
-    render(<SignInPage />);
+    render(<SignInForm />);
     expect(screen.getByText(/Sign Up/)).toBeDefined();
   });
 
   it("renders forgot password link", () => {
-    render(<SignInPage />);
+    render(<SignInForm />);
     expect(screen.getByText(/Forgot password/i)).toBeDefined();
   });
 });

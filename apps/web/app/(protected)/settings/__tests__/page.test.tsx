@@ -21,6 +21,7 @@ vi.mock("@infrastructure/supabase/auth", () => ({
 }));
 
 vi.mock("@infrastructure/navigation", () => ({
+  Link: ({ children, ...props }: React.ComponentProps<"a">) => <a {...props}>{children}</a>,
   useNavigation: () => ({
     navigate: vi.fn(),
     replace: vi.fn(),
@@ -41,31 +42,41 @@ vi.mock("@infrastructure/ui-web", () => ({
   CardTitle: ({ children }: { children: React.ReactNode }) => <h3>{children}</h3>,
 }));
 
-import SettingsPage from "../page";
+import { SettingsContent } from "../settings-content";
 
-describe("SettingsPage", () => {
+describe("SettingsContent", () => {
   it("renders Settings heading", () => {
-    render(<SettingsPage />);
+    render(
+      <SettingsContent email="test@example.com" userId="abc-123" createdAt="2026-01-15T10:30:00Z" />
+    );
     expect(screen.getByText("Settings")).toBeDefined();
   });
 
   it("renders user email", () => {
-    render(<SettingsPage />);
+    render(
+      <SettingsContent email="test@example.com" userId="abc-123" createdAt="2026-01-15T10:30:00Z" />
+    );
     expect(screen.getByText("test@example.com")).toBeDefined();
   });
 
   it("renders user ID", () => {
-    render(<SettingsPage />);
+    render(
+      <SettingsContent email="test@example.com" userId="abc-123" createdAt="2026-01-15T10:30:00Z" />
+    );
     expect(screen.getByText(/abc-123/)).toBeDefined();
   });
 
   it("renders sign out button", () => {
-    render(<SettingsPage />);
+    render(
+      <SettingsContent email="test@example.com" userId="abc-123" createdAt="2026-01-15T10:30:00Z" />
+    );
     expect(screen.getByText("Sign Out")).toBeDefined();
   });
 
   it("renders back to dashboard link", () => {
-    render(<SettingsPage />);
+    render(
+      <SettingsContent email="test@example.com" userId="abc-123" createdAt="2026-01-15T10:30:00Z" />
+    );
     expect(screen.getByText(/Dashboard/)).toBeDefined();
   });
 });
