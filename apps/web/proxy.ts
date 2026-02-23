@@ -11,7 +11,7 @@ export default createSupabaseMiddleware({
   supabaseUrl,
   supabasePublishableKey,
   protectedRoutes: ["/dashboard", "/settings"],
-  loginPath: "/login",
+  loginPath: "/sign-in",
 });
 
 export const config = {
