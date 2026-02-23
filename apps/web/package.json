@@ -13,6 +13,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@features/auth": "workspace:*",
     "@infrastructure/api-client": "workspace:*",
     "@infrastructure/navigation": "workspace:*",
     "@infrastructure/supabase": "workspace:*",
@@ -21,6 +22,7 @@
     "@infrastructure/utils": "workspace:*",
     "@orpc/client": "catalog:",
     "@orpc/tanstack-query": "catalog:",
+    "@tanstack/react-form": "catalog:",
     "@tanstack/react-query": "catalog:",
     "next": "catalog:",
     "react": "catalog:",
