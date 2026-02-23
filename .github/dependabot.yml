@@ -6,10 +6,70 @@ updates:
     schedule:
       interval: "weekly"
     groups:
-      production:
-        dependency-type: "production"
-      development:
-        dependency-type: "development"
+      react-core:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react*"
+      expo-react-native:
+        patterns:
+          - "expo*"
+          - "react-native*"
+          - "@react-navigation/*"
+          - "@babel/*"
+          - "jest-expo"
+          - "@testing-library/react-native"
+      nextjs:
+        patterns:
+          - "next"
+          - "babel-plugin-react-compiler"
+      orpc:
+        patterns:
+          - "@orpc/*"
+      supabase:
+        patterns:
+          - "@supabase/*"
+          - "supabase"
+      tanstack:
+        patterns:
+          - "@tanstack/*"
+      styling:
+        patterns:
+          - "tailwindcss"
+          - "@tailwindcss/*"
+          - "uniwind"
+          - "postcss"
+          - "class-variance-authority"
+          - "clsx"
+          - "tailwind-merge"
+      ui-components:
+        patterns:
+          - "@base-ui/*"
+          - "@radix-ui/*"
+          - "lucide-react"
+          - "sonner"
+      testing:
+        patterns:
+          - "vitest"
+          - "@testing-library/react"
+          - "@playwright/test"
+          - "jsdom"
+          - "jest"
+          - "@types/jest"
+      linting-and-build:
+        patterns:
+          - "@biomejs/biome"
+          - "turbo"
+          - "tsx"
+          - "typescript"
+          - "@types/node"
+      hono:
+        patterns:
+          - "hono"
+          - "@hono/*"
+      zod:
+        patterns:
+          - "zod"
     open-pull-requests-limit: 10
 
   - package-ecosystem: "github-actions"
