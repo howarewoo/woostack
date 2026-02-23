@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@infrastructure/typescript-config": "workspace:*",
-    "@types/node": "25.2.3",
+    "@types/node": "25.3.0",
     "tsx": "4.21.0",
     "typescript": "catalog:",
     "vitest": "catalog:"
