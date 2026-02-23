@@ -169,6 +169,8 @@ catalogs:
       specifier: 4.3.6
       version: 4.3.6
 
+packageExtensionsChecksum: sha256-2RBYbw2Jcrx18tKEXCjzF4E2bXHKVpe4N/p4AoCIhww=
+
 importers:
 
   .:
@@ -366,7 +368,7 @@ importers:
         version: 0.5.1(@babel/core@7.29.0)(react-native@0.81.5(@babel/core@7.29.0)(@react-native/metro-config@0.84.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
       uniwind:
         specifier: 'catalog:'
-        version: 1.3.1(react-native@0.81.5(@babel/core@7.29.0)(@react-native/metro-config@0.84.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)(tailwindcss@4.1.18)
+        version: 1.3.1(metro-cache@0.83.3)(react-native@0.81.5(@babel/core@7.29.0)(@react-native/metro-config@0.84.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)(tailwindcss@4.1.18)
     devDependencies:
       '@babel/core':
         specifier: 'catalog:'
@@ -5641,6 +5643,7 @@ packages:
   uniwind@1.3.1:
     resolution: {integrity: sha512-rXhalY2VN9jvZzLiotPltpq4SNsSXpy6CzwhqdeglmgVWIFRSYzIgEa+UnVbyjzPtwy9stfSHwQ4kbR5DmjhUA==}
     peerDependencies:
+      metro-cache: '*'
       react: '>=19.0.0'
       react-native: '>=0.81.0'
       tailwindcss: '>=4'
@@ -7938,7 +7941,9 @@ snapshots:
       metro-runtime: 0.83.3
     transitivePeerDependencies:
       - '@babel/core'
+      - bufferutil
       - supports-color
+      - utf-8-validate
     optional: true
 
   '@react-native/normalize-colors@0.74.89': {}
@@ -11558,12 +11563,13 @@ snapshots:
 
   universalify@0.2.0: {}
 
-  uniwind@1.3.1(react-native@0.81.5(@babel/core@7.29.0)(@react-native/metro-config@0.84.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)(tailwindcss@4.1.18):
+  uniwind@1.3.1(metro-cache@0.83.3)(react-native@0.81.5(@babel/core@7.29.0)(@react-native/metro-config@0.84.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)(tailwindcss@4.1.18):
     dependencies:
       '@tailwindcss/node': 4.1.17
       '@tailwindcss/oxide': 4.1.17
       culori: 4.0.2
       lightningcss: 1.30.2
+      metro-cache: 0.83.3
       react: 19.1.0
       react-native: 0.81.5(@babel/core@7.29.0)(@react-native/metro-config@0.84.0(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.1.0)
       tailwindcss: 4.1.18

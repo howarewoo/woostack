@@ -5,12 +5,21 @@ vi.mock("@infrastructure/api-client", () => ({
   createTypedOrpcUtils: vi.fn((client: unknown) => ({ client })),
 }));
 
+vi.mock("@/lib/supabase", () => ({
+  createBrowserSupabase: vi.fn(() => ({
+    auth: { getSession: vi.fn(() => Promise.resolve({ data: { session: null } })) },
+  })),
+}));
+
 describe("api", () => {
   it("creates API client with default URL when env var not set", async () => {
     const { createTypedApiClient } = await import("@infrastructure/api-client");
     const { apiClient } = await import("@/lib/api");
 
-    expect(createTypedApiClient).toHaveBeenCalledWith("http://localhost:3001/api");
+    expect(createTypedApiClient).toHaveBeenCalledWith(
+      "http://localhost:3001/api",
+      expect.objectContaining({ getToken: expect.any(Function) })
+    );
     expect(apiClient).toBeDefined();
   });
 
