@@ -126,15 +126,17 @@ const form = useForm({
   },
 });
 
-// In JSX: use form.Field with children render prop
-<form.Field name="email" children={(field) => (
-  <Field data-invalid={field.state.meta.isTouched && !field.state.meta.isValid}>
-    <FieldLabel htmlFor={field.name}>Email</FieldLabel>
-    <Input value={field.state.value} onBlur={field.handleBlur}
-      onChange={(e) => field.handleChange(e.target.value)} />
-    <FieldError errors={field.state.meta.errors} />
-  </Field>
-)} />
+// In JSX: use form.Field with JSX children (not the children prop — react-doctor flags that)
+<form.Field name="email">
+  {(field) => (
+    <Field data-invalid={field.state.meta.isTouched && !field.state.meta.isValid}>
+      <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+      <Input value={field.state.value} onBlur={field.handleBlur}
+        onChange={(e) => field.handleChange(e.target.value)} />
+      <FieldError errors={field.state.meta.errors} />
+    </Field>
+  )}
+</form.Field>
 ```
 
 **Gotcha**: TanStack Form v1 uses Standard Schema — Zod works natively. Do NOT install `@tanstack/zod-form-adapter` (that was a v0 concept).

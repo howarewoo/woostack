@@ -54,9 +54,8 @@ export function ResetPasswordForm() {
             }}
           >
             <div className="flex flex-col gap-4">
-              <form.Field
-                name="password"
-                children={(field) => {
+              <form.Field name="password">
+                {(field) => {
                   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
                   return (
                     <Field data-invalid={isInvalid}>
@@ -74,10 +73,9 @@ export function ResetPasswordForm() {
                     </Field>
                   );
                 }}
-              />
-              <form.Field
-                name="confirmPassword"
-                children={(field) => {
+              </form.Field>
+              <form.Field name="confirmPassword">
+                {(field) => {
                   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
                   return (
                     <Field data-invalid={isInvalid}>
@@ -95,7 +93,7 @@ export function ResetPasswordForm() {
                     </Field>
                   );
                 }}
-              />
+              </form.Field>
               {serverError && (
                 <p role="alert" className="text-sm text-destructive">
                   {serverError}

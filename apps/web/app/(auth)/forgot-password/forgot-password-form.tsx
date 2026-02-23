@@ -72,9 +72,8 @@ export function ForgotPasswordForm() {
             }}
           >
             <div className="flex flex-col gap-4">
-              <form.Field
-                name="email"
-                children={(field) => {
+              <form.Field name="email">
+                {(field) => {
                   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
                   return (
                     <Field data-invalid={isInvalid}>
@@ -93,7 +92,7 @@ export function ForgotPasswordForm() {
                     </Field>
                   );
                 }}
-              />
+              </form.Field>
               {serverError && (
                 <p role="alert" className="text-sm text-destructive">
                   {serverError}

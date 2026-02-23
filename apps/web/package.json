@@ -29,6 +29,13 @@
     "react-dom": "catalog:",
     "sonner": "catalog:"
   },
+  "reactDoctor": {
+    "ignore": {
+      "rules": [
+        "react-doctor/no-prevent-default"
+      ]
+    }
+  },
   "devDependencies": {
     "@infrastructure/typescript-config": "workspace:*",
     "@playwright/test": "catalog:",

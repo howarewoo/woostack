@@ -64,9 +64,8 @@ export function SignInForm() {
             }}
           >
             <div className="flex flex-col gap-4">
-              <form.Field
-                name="email"
-                children={(field) => {
+              <form.Field name="email">
+                {(field) => {
                   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
                   return (
                     <Field data-invalid={isInvalid}>
@@ -85,10 +84,9 @@ export function SignInForm() {
                     </Field>
                   );
                 }}
-              />
-              <form.Field
-                name="password"
-                children={(field) => {
+              </form.Field>
+              <form.Field name="password">
+                {(field) => {
                   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
                   return (
                     <Field data-invalid={isInvalid}>
@@ -106,7 +104,7 @@ export function SignInForm() {
                     </Field>
                   );
                 }}
-              />
+              </form.Field>
               {serverError && (
                 <p role="alert" className="text-sm text-destructive">
                   {serverError}
