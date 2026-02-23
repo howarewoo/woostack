@@ -59,7 +59,7 @@ pnpm --filter supabase-db reset   # Reset DB (reapply migrations + seed)
   - `apps/api` — Hono + oRPC API server (port 3001)
   - `apps/supabase` — Supabase CLI project (config, migrations, seed data; local dev via Docker)
 - **Features** (`packages/features/*`): Standalone business feature packages; own their contracts (`contracts/`), routers (`routers/`), and procedures (`procedures/`); can only import from infrastructure
-  - `@features/auth` — Auth form Zod schemas (`signInSchema`, `signUpSchema`, `forgotPasswordSchema`, `resetPasswordSchema`); portable to mobile
+  - `@features/auth` — Auth form Zod schemas (`SignInSchema`, `SignUpSchema`, `ForgotPasswordSchema`, `ResetPasswordSchema`); portable to mobile
 - **Infrastructure** (`packages/infrastructure/*`): Shared utilities; can be used anywhere
   - `@infrastructure/api-client` — oRPC client utilities (`createApiClient`, `createTypedApiClient`), generated Router type, and shared base schemas
   - `@infrastructure/navigation` — Platform-agnostic navigation (Link, useNavigation, NavigationProvider)
@@ -114,13 +114,13 @@ Feature packages must never import `next/navigation` or `expo-router` directly. 
 Auth forms use TanStack Form v1 (`@tanstack/react-form`) with Zod schemas from `@features/auth`. Each form gets its own `useForm()` — no shared wrapper component. Field components (`Field`, `FieldLabel`, `FieldError`) live in `@infrastructure/ui-web`.
 
 ```typescript
-import { signInSchema } from "@features/auth";
+import { SignInSchema } from "@features/auth";
 import { Field, FieldError, FieldLabel, Input, Button } from "@infrastructure/ui-web";
 import { useForm } from "@tanstack/react-form";
 
 const form = useForm({
   defaultValues: { email: "", password: "" },
-  validators: { onBlur: signInSchema, onSubmit: signInSchema },
+  validators: { onBlur: SignInSchema, onSubmit: SignInSchema },
   onSubmit: async ({ value }) => {
     await signIn(value.email, value.password);
   },

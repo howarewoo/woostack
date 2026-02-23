@@ -6,8 +6,8 @@ export type {
 } from "./contracts/authSchemas";
 
 export {
-  forgotPasswordSchema,
-  resetPasswordSchema,
-  signInSchema,
-  signUpSchema,
+  ForgotPasswordSchema,
+  ResetPasswordSchema,
+  SignInSchema,
+  SignUpSchema,
 } from "./contracts/authSchemas";

@@ -1,6 +1,6 @@
 "use client";
 
-import { forgotPasswordSchema } from "@features/auth";
+import { ForgotPasswordSchema } from "@features/auth";
 import { Link } from "@infrastructure/navigation";
 import {
   Button,
@@ -26,8 +26,8 @@ export function ForgotPasswordForm() {
   const form = useForm({
     defaultValues: { email: "" },
     validators: {
-      onBlur: forgotPasswordSchema,
-      onSubmit: forgotPasswordSchema,
+      onBlur: ForgotPasswordSchema,
+      onSubmit: ForgotPasswordSchema,
     },
     onSubmit: async ({ value: _value }) => {
       setServerError("");

@@ -1,6 +1,6 @@
 "use client";
 
-import { signUpSchema } from "@features/auth";
+import { SignUpSchema } from "@features/auth";
 import { Link } from "@infrastructure/navigation";
 import {
   Button,
@@ -25,8 +25,8 @@ export function SignUpForm() {
   const form = useForm({
     defaultValues: { email: "", password: "" },
     validators: {
-      onBlur: signUpSchema,
-      onSubmit: signUpSchema,
+      onBlur: SignUpSchema,
+      onSubmit: SignUpSchema,
     },
     onSubmit: async ({ value: _value }) => {
       setServerError("");

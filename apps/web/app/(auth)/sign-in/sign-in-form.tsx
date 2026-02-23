@@ -1,6 +1,6 @@
 "use client";
 
-import { signInSchema } from "@features/auth";
+import { SignInSchema } from "@features/auth";
 import { Link, useNavigation } from "@infrastructure/navigation";
 import { useAuth } from "@infrastructure/supabase/auth";
 import {
@@ -19,8 +19,6 @@ import { useForm } from "@tanstack/react-form";
 import { useState } from "react";
 import { toast } from "sonner";
 
-const isDev = process.env.NODE_ENV === "development";
-
 /** Client-side sign-in form with email/password validation and OAuth support. */
 export function SignInForm() {
   const { signIn } = useAuth();
@@ -29,12 +27,12 @@ export function SignInForm() {
 
   const form = useForm({
     defaultValues: {
-      email: isDev ? "demo@example.com" : "",
-      password: isDev ? "demo1234" : "",
+      email: "",
+      password: "",
     },
     validators: {
-      onBlur: signInSchema,
-      onSubmit: signInSchema,
+      onBlur: SignInSchema,
+      onSubmit: SignInSchema,
     },
     onSubmit: async ({ value }) => {
       setServerError("");

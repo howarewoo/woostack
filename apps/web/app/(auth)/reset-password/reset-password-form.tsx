@@ -1,6 +1,6 @@
 "use client";
 
-import { resetPasswordSchema } from "@features/auth";
+import { ResetPasswordSchema } from "@features/auth";
 import { Link } from "@infrastructure/navigation";
 import {
   Button,
@@ -25,8 +25,8 @@ export function ResetPasswordForm() {
   const form = useForm({
     defaultValues: { password: "", confirmPassword: "" },
     validators: {
-      onBlur: resetPasswordSchema,
-      onSubmit: resetPasswordSchema,
+      onBlur: ResetPasswordSchema,
+      onSubmit: ResetPasswordSchema,
     },
     onSubmit: async ({ value: _value }) => {
       setServerError("");
