@@ -9,7 +9,7 @@ jobs:
     name: Tests
     timeout-minutes: 15
     runs-on: ubuntu-latest
-    environment: ${{ github.head_ref == 'main' && 'Production' || github.head_ref == 'staging' && 'Staging' || 'Preview' }}
+    environment: ${{ github.head_ref == 'main' && 'Production' || 'Staging' }}
     concurrency:
       group: ci-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -20,7 +20,7 @@ jobs:
           echo "base_ref: ${{ github.base_ref }}"
           echo "head_ref: ${{ github.head_ref }}"
           echo "event_name: ${{ github.event_name }}"
-          echo "environment: ${{ github.head_ref == 'main' && 'Production' || github.head_ref == 'staging' && 'Staging' || 'Preview' }}"
+          echo "environment: ${{ github.head_ref == 'main' && 'Production' || 'Staging' }}"
 
       - name: Check out code
         uses: actions/checkout@v6
