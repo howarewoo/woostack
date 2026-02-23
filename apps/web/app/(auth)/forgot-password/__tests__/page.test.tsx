@@ -8,27 +8,6 @@ vi.mock("@infrastructure/navigation", () => ({
   Link: ({ children, ...props }: React.ComponentProps<"a">) => <a {...props}>{children}</a>,
 }));
 
-vi.mock("@/components/auth-form", () => ({
-  AuthForm: ({
-    title,
-    submitLabel,
-    footer,
-    hidePassword,
-  }: {
-    title: string;
-    submitLabel: string;
-    footer?: React.ReactNode;
-    hidePassword?: boolean;
-  }) => (
-    <div data-testid="auth-form">
-      <span>{title}</span>
-      <span>{submitLabel}</span>
-      <span data-testid="hide-password">{String(hidePassword)}</span>
-      {footer}
-    </div>
-  ),
-}));
-
 import { ForgotPasswordForm } from "../forgot-password-form";
 
 describe("ForgotPasswordForm", () => {
@@ -37,9 +16,9 @@ describe("ForgotPasswordForm", () => {
     expect(screen.getByText("Forgot Password")).toBeDefined();
   });
 
-  it("hides password field", () => {
+  it("does not render a password field", () => {
     render(<ForgotPasswordForm />);
-    expect(screen.getByTestId("hide-password").textContent).toBe("true");
+    expect(screen.queryByLabelText(/password/i)).toBeNull();
   });
 
   it("renders back to sign-in link", () => {

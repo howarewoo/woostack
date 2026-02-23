@@ -59,11 +59,12 @@ pnpm --filter supabase-db reset   # Reset DB (reapply migrations + seed)
   - `apps/api` — Hono + oRPC API server (port 3001)
   - `apps/supabase` — Supabase CLI project (config, migrations, seed data; local dev via Docker)
 - **Features** (`packages/features/*`): Standalone business feature packages; own their contracts (`contracts/`), routers (`routers/`), and procedures (`procedures/`); can only import from infrastructure
+  - `@features/auth` — Auth form Zod schemas (`SignInSchema`, `SignUpSchema`, `ForgotPasswordSchema`, `ResetPasswordSchema`); portable to mobile
 - **Infrastructure** (`packages/infrastructure/*`): Shared utilities; can be used anywhere
   - `@infrastructure/api-client` — oRPC client utilities (`createApiClient`, `createTypedApiClient`), generated Router type, and shared base schemas
   - `@infrastructure/navigation` — Platform-agnostic navigation (Link, useNavigation, NavigationProvider)
   - `@infrastructure/ui` — Shared design tokens, CSS utilities (`cn()`, `tokens`)
-  - `@infrastructure/ui-web` — Shared shadcn/ui components (Button, Card, etc.) for web apps
+  - `@infrastructure/ui-web` — Shared shadcn/ui components (Button, Card, Field, FieldLabel, FieldError, etc.) for web apps
   - `@infrastructure/utils` — Cross-platform utility functions
   - `@infrastructure/supabase` — Supabase clients (server, browser, SSR), auth hooks/context (AuthProvider, useAuth, useUser), storage utilities, Hono/Next.js middleware, generated DB types
   - `@infrastructure/typescript-config` — Shared TypeScript configs (base, library, nextjs, react-native)
@@ -107,6 +108,40 @@ Feature packages must never import `next/navigation` or `expo-router` directly. 
 - `<Link href="/path">` for declarative navigation
 - `useNavigation()` for imperative (`navigate`, `replace`, `back`)
 - Each app provides its adapter via `NavigationProvider` (see `apps/web/lib/navigation.tsx`, `apps/mobile/lib/navigation.tsx`)
+
+### TanStack Form (Form State Management)
+
+Auth forms use TanStack Form v1 (`@tanstack/react-form`) with Zod schemas from `@features/auth`. Each form gets its own `useForm()` — no shared wrapper component. Field components (`Field`, `FieldLabel`, `FieldError`) live in `@infrastructure/ui-web`.
+
+```typescript
+import { SignInSchema } from "@features/auth";
+import { Field, FieldError, FieldLabel, Input, Button } from "@infrastructure/ui-web";
+import { useForm } from "@tanstack/react-form";
+
+const form = useForm({
+  defaultValues: { email: "", password: "" },
+  validators: { onBlur: SignInSchema, onSubmit: SignInSchema },
+  onSubmit: async ({ value }) => {
+    await signIn(value.email, value.password);
+  },
+});
+
+// In JSX: use form.Field with JSX children (not the children prop — react-doctor flags that)
+<form.Field name="email">
+  {(field) => (
+    <Field data-invalid={field.state.meta.isTouched && !field.state.meta.isValid}>
+      <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+      <Input value={field.state.value} onBlur={field.handleBlur}
+        onChange={(e) => field.handleChange(e.target.value)} />
+      <FieldError errors={field.state.meta.errors} />
+    </Field>
+  )}
+</form.Field>
+```
+
+**Gotcha**: TanStack Form v1 uses Standard Schema — Zod works natively. Do NOT install `@tanstack/zod-form-adapter` (that was a v0 concept).
+
+**Gotcha**: Validation timing is `onBlur` + `onSubmit` for all auth forms. Server errors are handled via `useState` and displayed as a `<p role="alert">` above the submit button — they are separate from field-level validation errors.
 
 ### Supabase (Auth + Database + Storage)
 
