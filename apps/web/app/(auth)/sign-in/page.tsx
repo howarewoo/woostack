@@ -3,6 +3,7 @@
 import { useNavigation } from "@infrastructure/navigation";
 import { useAuth } from "@infrastructure/supabase/auth";
 import { useState } from "react";
+import { toast } from "sonner";
 import { AuthForm } from "@/components/auth-form";
 
 export default function SignInPage() {
@@ -28,7 +29,7 @@ export default function SignInPage() {
     try {
       await signInWithOAuth(provider);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "OAuth sign in failed");
+      toast.error(err instanceof Error ? err.message : "OAuth sign in failed");
     }
   }
 

@@ -3,6 +3,7 @@
 import { useNavigation } from "@infrastructure/navigation";
 // import { useAuth } from "@infrastructure/supabase/auth";
 import { useState } from "react";
+import { toast } from "sonner";
 import { AuthForm } from "@/components/auth-form";
 
 export default function SignUpPage() {
@@ -33,7 +34,7 @@ export default function SignUpPage() {
       // TODO: This is a placeholder for the actual OAuth sign-up logic, which will depend on your backend/auth provider. For example, if using Supabase, you would call signInWithOAuth(provider) here to initiate the OAuth flow.
       // await signInWithOAuth(provider);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "OAuth sign in failed");
+      toast.error(err instanceof Error ? err.message : "OAuth sign in failed");
     }
   }
 
