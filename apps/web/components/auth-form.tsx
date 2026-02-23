@@ -10,7 +10,7 @@ import {
   Input,
   Label,
 } from "@infrastructure/ui-web";
-import { type ReactNode, useState } from "react";
+import type { ReactNode } from "react";
 
 interface AuthFormProps {
   title: string;
@@ -44,12 +44,10 @@ export function AuthForm({
   defaultPassword = "",
   disabled,
 }: AuthFormProps) {
-  const [email, setEmail] = useState(defaultEmail);
-  const [password, setPassword] = useState(defaultPassword);
-
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    onSubmit(email, password);
+    const formData = new FormData(e.currentTarget);
+    onSubmit(formData.get("email") as string, formData.get("password") as string);
   }
 
   return (
@@ -66,10 +64,10 @@ export function AuthForm({
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
                   placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  defaultValue={defaultEmail}
                   disabled={disabled}
                 />
               </div>
@@ -78,9 +76,9 @@ export function AuthForm({
                   <Label htmlFor="password">Password</Label>
                   <Input
                     id="password"
+                    name="password"
                     type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    defaultValue={defaultPassword}
                     disabled={disabled}
                   />
                 </div>
