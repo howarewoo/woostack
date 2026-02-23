@@ -24,9 +24,13 @@ export default function SignInPage() {
     }
   }
 
-  async function handleOAuth(provider: "google" | "apple" | "github") {
+  async function handleOAuth(_provider: "google" | "apple" | "github") {
     try {
-      await signInWithOAuth(provider);
+      toast.error(
+        "OAuth for provider sign in is not implemented yet. Please use email and password to sign in."
+      );
+      // TODO: Implement OAuth sign-in logic for provider, which will depend on your backend/auth provider. For example, if using Supabase, you would call signInWithOAuth(provider) here to initiate the OAuth flow.
+      // await signInWithOAuth(provider);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "OAuth sign in failed");
     }

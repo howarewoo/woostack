@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { AuthForm } from "@/components/auth-form";
 // import { createBrowserSupabase } from "@/lib/supabase";
 
@@ -9,11 +10,11 @@ export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
-  async function handleSubmit(email: string) {
+  async function handleSubmit(_email: string) {
     setError("");
     setIsLoading(true);
     try {
-      console.log("TODO: Implement password reset logic for email:", email);
+      toast.info("TODO: Implement password reset email");
       // TODO: This is a placeholder for the actual password reset logic, which will depend on your backend/auth provider. For example, if using Supabase, you would call supabase.auth.resetPasswordForEmail(email) here.
       // const supabase = createBrowserSupabase();
       // const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {

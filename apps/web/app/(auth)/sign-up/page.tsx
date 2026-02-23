@@ -12,12 +12,11 @@ export default function SignUpPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  async function handleSubmit(email: string, password: string) {
+  async function handleSubmit(_email: string, _password: string) {
     setError("");
     setIsLoading(true);
     try {
-      console.log("TODO: Implement sign-up logic for email:", email);
-      console.log("TODO: Implement sign-up logic for password:", password);
+      toast.info("TODO: Implement sign-up logic");
       // TODO: This is a placeholder for the actual sign-up logic, which will depend on your backend/auth provider. For example, if using Supabase, you would call signUp({ email, password }) here to create the user, and then redirect to the dashboard or sign-in page.
       // await signUp({ email, password });
       replace("/dashboard");
@@ -29,7 +28,7 @@ export default function SignUpPage() {
 
   async function handleOAuth(provider: "google" | "apple" | "github") {
     try {
-      console.log("TODO: Implement OAuth sign-up logic for provider:", provider);
+      toast.info(`TODO: Implement OAuth sign-up for ${provider}`);
       // TODO: This is a placeholder for the actual OAuth sign-up logic, which will depend on your backend/auth provider. For example, if using Supabase, you would call signInWithOAuth(provider) here to initiate the OAuth flow.
       // await signInWithOAuth(provider);
     } catch (err) {
