@@ -94,7 +94,11 @@ export function ForgotPasswordForm() {
                   );
                 }}
               />
-              {serverError && <p className="text-sm text-destructive">{serverError}</p>}
+              {serverError && (
+                <p role="alert" className="text-sm text-destructive">
+                  {serverError}
+                </p>
+              )}
               <Button type="submit" className="w-full" disabled={form.state.isSubmitting}>
                 Send Reset Link
               </Button>

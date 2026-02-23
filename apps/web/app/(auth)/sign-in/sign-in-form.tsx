@@ -82,7 +82,6 @@ export function SignInForm() {
                         onBlur={field.handleBlur}
                         onChange={(e) => field.handleChange(e.target.value)}
                         aria-invalid={isInvalid}
-                        disabled={isDev}
                       />
                       <FieldError errors={field.state.meta.errors} />
                     </Field>
@@ -104,14 +103,17 @@ export function SignInForm() {
                         onBlur={field.handleBlur}
                         onChange={(e) => field.handleChange(e.target.value)}
                         aria-invalid={isInvalid}
-                        disabled={isDev}
                       />
                       <FieldError errors={field.state.meta.errors} />
                     </Field>
                   );
                 }}
               />
-              {serverError && <p className="text-sm text-destructive">{serverError}</p>}
+              {serverError && (
+                <p role="alert" className="text-sm text-destructive">
+                  {serverError}
+                </p>
+              )}
               <Button type="submit" className="w-full" disabled={form.state.isSubmitting}>
                 Sign In
               </Button>

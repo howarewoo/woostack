@@ -28,30 +28,14 @@ vi.mock("@infrastructure/navigation", () => ({
   }),
 }));
 
-vi.mock("@/components/auth-form", () => ({
-  AuthForm: ({
-    title,
-    submitLabel,
-    footer,
-  }: {
-    title: string;
-    submitLabel: string;
-    footer?: React.ReactNode;
-  }) => (
-    <div data-testid="auth-form">
-      <span data-testid="auth-title">{title}</span>
-      <span data-testid="auth-submit">{submitLabel}</span>
-      {footer}
-    </div>
-  ),
-}));
-
 import { SignInForm } from "../sign-in-form";
 
 describe("SignInForm", () => {
-  it("renders AuthForm with sign-in title", () => {
+  it("renders sign-in title and submit button", () => {
     render(<SignInForm />);
-    expect(screen.getByTestId("auth-title").textContent).toBe("Sign In");
+    const matches = screen.getAllByText("Sign In");
+    expect(matches.length).toBe(2);
+    expect(screen.getByRole("button", { name: "Sign In" })).toBeDefined();
   });
 
   it("renders sign-up link", () => {

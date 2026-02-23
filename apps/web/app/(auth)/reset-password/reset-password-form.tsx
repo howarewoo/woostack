@@ -96,7 +96,11 @@ export function ResetPasswordForm() {
                   );
                 }}
               />
-              {serverError && <p className="text-sm text-destructive">{serverError}</p>}
+              {serverError && (
+                <p role="alert" className="text-sm text-destructive">
+                  {serverError}
+                </p>
+              )}
               <Button type="submit" className="w-full" disabled={form.state.isSubmitting}>
                 Update Password
               </Button>

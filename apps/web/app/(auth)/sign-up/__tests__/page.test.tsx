@@ -8,33 +8,15 @@ vi.mock("@infrastructure/navigation", () => ({
   Link: ({ children, ...props }: React.ComponentProps<"a">) => <a {...props}>{children}</a>,
 }));
 
-vi.mock("@/components/auth-form", () => ({
-  AuthForm: ({
-    title,
-    submitLabel,
-    footer,
-  }: {
-    title: string;
-    submitLabel: string;
-    footer?: React.ReactNode;
-  }) => (
-    <div data-testid="auth-form">
-      <span>{title}</span>
-      <span>{submitLabel}</span>
-      {footer}
-    </div>
-  ),
-}));
-
 import { SignUpForm } from "../sign-up-form";
 
 describe("SignUpForm", () => {
-  it("renders AuthForm with sign-up title", () => {
+  it("renders sign-up title", () => {
     render(<SignUpForm />);
     expect(screen.getByText("Sign Up")).toBeDefined();
   });
 
-  it("renders Create Account submit label", () => {
+  it("renders Create Account submit button", () => {
     render(<SignUpForm />);
     expect(screen.getByText("Create Account")).toBeDefined();
   });
