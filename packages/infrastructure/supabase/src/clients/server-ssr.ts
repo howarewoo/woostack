@@ -32,9 +32,9 @@ export function createSSRServerClient(
           for (const { name, value, options } of cookiesToSet) {
             cookieStore.set(name, value, options);
           }
-        } catch {
-          // Called from a Server Component where cookies can't be set.
-          // The middleware proxy handles token refresh in this case.
+        } catch (_error) {
+          // Expected in Server Components where cookies are read-only.
+          // The Next.js middleware handles token refresh in this case.
         }
       },
     },

@@ -34,7 +34,6 @@ Analyze the provided code changes for these architectural concerns:
 ### Component Organization
 - **File Extension Misuse** - Using `.tsx` when no JSX present (should be `.ts`)
 - **Multiple Exports** - Feature files with multiple exports (should have one default export)
-- **God Components** - Components doing too much (mixing data fetching, state, UI, business logic)
 
 ### Infrastructure Usage (Principle IV)
 - **Duplicate Implementations** - Re-implementing functionality that exists in `@infrastructure/*`

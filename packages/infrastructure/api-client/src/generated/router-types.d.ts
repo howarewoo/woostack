@@ -4,27 +4,17 @@
 // Generated from: apps/api/src/router.ts
 
 export type Router = {
-  health: import("@orpc/server").DecoratedProcedure<
-    {
-      requestId?: string;
-      user?: import("@infrastructure/supabase").SupabaseUser;
-      supabase: import("@infrastructure/supabase").TypedSupabaseClient;
-    } & Record<never, never>,
-    {
-      requestId?: string;
-      user?: import("@infrastructure/supabase").SupabaseUser;
-      supabase: import("@infrastructure/supabase").TypedSupabaseClient;
-    },
-    import("@orpc/contract").Schema<unknown, unknown>,
-    import("zod").ZodObject<
-      {
-        message: import("zod").ZodString;
-      },
-      import("zod/v4/core").$strip
-    >,
-    Record<never, never>,
-    Record<never, never>
-  >;
+  health: import("@orpc/server").DecoratedProcedure<{
+    requestId?: string;
+    user?: import("@infrastructure/supabase").SupabaseUser;
+    supabase: import("@infrastructure/supabase").TypedSupabaseClient;
+  } & Record<never, never>, {
+    requestId?: string;
+    user?: import("@infrastructure/supabase").SupabaseUser;
+    supabase: import("@infrastructure/supabase").TypedSupabaseClient;
+  }, import("@orpc/contract").Schema<unknown, unknown>, import("zod").ZodObject<{
+    message: import("zod").ZodString;
+  }, import("zod/v4/core").$strip>, Record<never, never>, Record<never, never>>;
   users: {
     list: import("@orpc/server").DecoratedProcedure<
       {

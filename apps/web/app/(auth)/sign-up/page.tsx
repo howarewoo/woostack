@@ -23,7 +23,6 @@ export default function SignUpPage() {
       replace("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign up failed");
-    } finally {
       setIsLoading(false);
     }
   }

@@ -25,7 +25,7 @@ pnpm lint             # Lint via Biome
 pnpm lint:fix         # Auto-fix linting issues
 pnpm format           # Format via Biome + sort package.json
 pnpm format:unsafe    # Format + apply unsafe fixes (used by pre-commit)
-pnpm pre-commit       # Install, format, typecheck, and test changed files
+pnpm pre-commit       # Install, format, typecheck, react-doctor, and test changed files
 pnpm clean            # Remove build artifacts and node_modules
 pnpm reset            # Deep clean: node_modules, .next, dist, .turbo, untracked files
 pnpm gencode          # Generate Router types + Supabase DB types (requires local Supabase for DB types)
@@ -116,7 +116,7 @@ Feature packages must never import `next/navigation` or `expo-router` directly. 
 - **Clients**: `createServerClient()`, `createBrowserClient()`, `createSSRServerClient()`, `createSSRBrowserClient()`
 - **Auth**: `AuthProvider`, `useAuth()`, `useUser()` (React context pattern like NavigationProvider)
 - **Storage**: `createStorageClient()` for upload/download/getPublicUrl
-- **Middleware**: `supabaseMiddleware` (Hono — JWT validation, requires `supabaseUrl`+`supabaseSecretKey`+`supabasePublishableKey`), `createSupabaseMiddleware` (Next.js — session refresh)
+- **Middleware/Proxy**: `supabaseMiddleware` (Hono — JWT validation, requires `supabaseUrl`+`supabasePublishableKey`), `createSupabaseMiddleware` (Next.js proxy — session refresh, used in `proxy.ts`)
 - **Types**: Auto-generated `Database` type + helpers (`Tables`, `TablesInsert`, `TablesUpdate`, `Enums`, `SupabaseUser`, `TypedSupabaseClient`)
 
 Feature procedures access `context.user` (authenticated user or `undefined`) and `context.supabase` (RLS-scoped client) via oRPC context. Unauthenticated requests get a publishable-key client (respects RLS, no elevated privileges). The API client supports dynamic token injection via `getToken` option:
@@ -187,7 +187,6 @@ Each app has an env example file (`.env.example` for `api`/`mobile`, `.env.local
 | App | Variable | Description |
 |-----|----------|-------------|
 | `apps/api` | `SUPABASE_URL` | Supabase API URL (default: `http://127.0.0.1:54321`) |
-| `apps/api` | `SUPABASE_SECRET_KEY` | Secret key for JWT validation |
 | `apps/api` | `SUPABASE_PUBLISHABLE_KEY` | Publishable key for unauthenticated RLS-scoped requests |
 | `apps/web` | `NEXT_PUBLIC_SUPABASE_URL` | Supabase API URL (public, embedded in client bundle) |
 | `apps/web` | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key (public, embedded in client bundle) |

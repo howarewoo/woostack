@@ -28,7 +28,7 @@ describe("supabaseMiddleware", () => {
     const app = new Hono();
     const middleware = supabaseMiddleware({
       supabaseUrl: "http://localhost:54321",
-      supabaseSecretKey: "test-secret-key",
+
       supabasePublishableKey: "test-publishable-key",
     });
 
@@ -51,7 +51,7 @@ describe("supabaseMiddleware", () => {
     const app = new Hono();
     const middleware = supabaseMiddleware({
       supabaseUrl: "http://localhost:54321",
-      supabaseSecretKey: "test-secret-key",
+
       supabasePublishableKey: "test-publishable-key",
     });
 
@@ -84,7 +84,7 @@ describe("supabaseMiddleware", () => {
     const app = new Hono();
     const middleware = supabaseMiddleware({
       supabaseUrl: "http://localhost:54321",
-      supabaseSecretKey: "test-secret-key",
+
       supabasePublishableKey: "test-publishable-key",
     });
 

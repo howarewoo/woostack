@@ -12,9 +12,14 @@ interface SupabaseMiddlewareOptions {
 }
 
 /**
- * Creates a Next.js middleware that refreshes the Supabase auth session
- * on every request and optionally redirects unauthenticated users from
- * protected routes to the login page.
+ * Creates a Next.js proxy (formerly middleware) that refreshes the Supabase
+ * auth session on every request and optionally redirects unauthenticated
+ * users from protected routes to the login page.
+ *
+ * Usage in `proxy.ts`:
+ * ```typescript
+ * export default createSupabaseMiddleware({ supabaseUrl, supabasePublishableKey });
+ * ```
  */
 export function createSupabaseMiddleware(options: SupabaseMiddlewareOptions) {
   const {
@@ -24,7 +29,7 @@ export function createSupabaseMiddleware(options: SupabaseMiddlewareOptions) {
     loginPath = "/login",
   } = options;
 
-  return async function middleware(request: NextRequest) {
+  return async function proxy(request: NextRequest) {
     let supabaseResponse = NextResponse.next({ request });
 
     const supabase = createServerClient<Database>(supabaseUrl, supabasePublishableKey, {

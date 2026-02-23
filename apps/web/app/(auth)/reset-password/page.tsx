@@ -23,7 +23,6 @@ export default function ResetPasswordPage() {
       replace("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to reset password");
-    } finally {
       setIsLoading(false);
     }
   }

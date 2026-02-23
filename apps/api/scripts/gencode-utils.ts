@@ -80,36 +80,41 @@ export function qualifyBareWorkspaceTypes(typeStr: string): string {
   return result;
 }
 
+/** Iterate characters, yielding each with whether it's inside a string literal. */
+function* iterateChars(typeStr: string): Generator<{ char: string; inString: boolean }> {
+  let inString = false;
+  let stringChar = "";
+  for (let i = 0; i < typeStr.length; i++) {
+    const char = typeStr[i] as string;
+    if (!inString && (char === '"' || char === "'" || char === "`")) {
+      inString = true;
+      stringChar = char;
+      yield { char, inString: true };
+      continue;
+    }
+    if (inString) {
+      if (char === "\\" && i + 1 < typeStr.length) {
+        yield { char: char + (typeStr[++i] as string), inString: true };
+        continue;
+      }
+      if (char === stringChar) inString = false;
+      yield { char, inString: true };
+      continue;
+    }
+    yield { char, inString: false };
+  }
+}
+
 /** Format a type string with indentation, respecting string literals. */
 export function formatTypeString(typeStr: string): string {
   const lines: string[] = [];
   let currentLine = "";
   let indent = 0;
-  let inString = false;
-  let stringChar = "";
   const INDENT = "  ";
 
-  for (let i = 0; i < typeStr.length; i++) {
-    const char = typeStr[i] as string;
-
-    // Track whether we're inside a string literal (single, double, or backtick quoted)
-    if (!inString && (char === '"' || char === "'" || char === "`")) {
-      inString = true;
-      stringChar = char;
-      currentLine += char;
-      continue;
-    }
+  for (const { char, inString } of iterateChars(typeStr)) {
     if (inString) {
       currentLine += char;
-      // Handle escaped characters
-      if (char === "\\" && i + 1 < typeStr.length) {
-        i++;
-        currentLine += typeStr[i] as string;
-        continue;
-      }
-      if (char === stringChar) {
-        inString = false;
-      }
       continue;
     }
 
@@ -136,6 +141,7 @@ export function formatTypeString(typeStr: string): string {
         currentLine += ";";
       }
     } else if (char === " " && currentLine === INDENT.repeat(indent)) {
+      // skip leading whitespace
     } else {
       currentLine += char;
     }

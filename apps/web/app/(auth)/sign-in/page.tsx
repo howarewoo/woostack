@@ -20,7 +20,6 @@ export default function SignInPage() {
       replace("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign in failed");
-    } finally {
       setIsLoading(false);
     }
   }

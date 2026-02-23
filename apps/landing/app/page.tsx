@@ -1,9 +1,16 @@
 import { Button, Card, CardContent, CardHeader, CardTitle } from "@infrastructure/ui-web";
+import type { Metadata } from "next";
 import { FeatureSection } from "@/components/feature-section";
 import { Footer } from "@/components/footer";
 import { Hero } from "@/components/hero";
 import { TechStackBar } from "@/components/logo-bar";
 import { Navbar } from "@/components/navbar";
+
+export const metadata: Metadata = {
+  title: "Monorepo Template — Web, Mobile & API in One Codebase",
+  description:
+    "A production-ready monorepo template with Next.js, Expo, Hono, and oRPC. Shared packages, type-safe APIs, and platform-specific apps that deploy independently.",
+};
 
 const valueProps = [
   {

@@ -1,0 +1,13 @@
+{
+  "ignore": {
+    "rules": [],
+    "files": [
+      "packages/infrastructure/api-client/src/generated/**",
+      "packages/infrastructure/supabase/src/generated/**"
+    ]
+  },
+  "lint": true,
+  "deadCode": false,
+  "verbose": true,
+  "diff": "staging"
+}
