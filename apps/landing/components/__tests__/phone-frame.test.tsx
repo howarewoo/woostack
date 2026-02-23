@@ -6,21 +6,30 @@ import { PhoneFrame } from "@/components/phone-frame";
 describe("PhoneFrame", () => {
   it("renders app header", () => {
     render(<PhoneFrame />);
-    expect(screen.getAllByText("Monorepo Template")).toHaveLength(2);
+    expect(screen.getByText("Monorepo Template")).toBeTruthy();
   });
 
-  it("renders three stacked cards", () => {
+  it("renders sign-in title", () => {
     render(<PhoneFrame />);
-    expect(screen.getByText("Next.js")).toBeTruthy();
-    expect(screen.getByText("Expo")).toBeTruthy();
-    expect(screen.getByText("Hono + oRPC")).toBeTruthy();
+    expect(screen.getAllByText("Sign In").length).toBeGreaterThan(0);
   });
 
-  it("renders card subtitles", () => {
+  it("renders form fields", () => {
     render(<PhoneFrame />);
-    expect(screen.getByText("Web application")).toBeTruthy();
-    expect(screen.getByText("Mobile application")).toBeTruthy();
-    expect(screen.getByText("Type-safe API")).toBeTruthy();
+    expect(screen.getByText("Email")).toBeTruthy();
+    expect(screen.getByText("Password")).toBeTruthy();
+  });
+
+  it("renders OAuth provider buttons", () => {
+    render(<PhoneFrame />);
+    expect(screen.getByText("Google")).toBeTruthy();
+    expect(screen.getByText("Apple")).toBeTruthy();
+    expect(screen.getByText("GitHub")).toBeTruthy();
+  });
+
+  it("renders sign-up link", () => {
+    render(<PhoneFrame />);
+    expect(screen.getByText("Sign Up")).toBeTruthy();
   });
 
   it("renders status bar time", () => {

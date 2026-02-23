@@ -24,7 +24,7 @@ export function Hero() {
         <div className="mb-8 flex justify-center">
           <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/50 px-4 py-1.5 text-xs font-medium text-muted-foreground">
             <span className="size-1.5 rounded-full bg-primary" />
-            Now with Next.js 16, Expo SDK 54, and Hono
+            Now with Supabase Auth, Database & Storage
           </span>
         </div>
 
@@ -37,8 +37,8 @@ export function Hero() {
 
         {/* Subtitle */}
         <p className="mx-auto mt-6 max-w-xl text-center text-base leading-relaxed text-muted-foreground md:text-lg">
-          Ship web, mobile, and API from a single codebase. Type-safe from database to device, with
-          shared packages that keep your team moving fast.
+          Ship web, mobile, and API from a single codebase. Authentication, database, and storage
+          included. Type-safe from backend to device.
         </p>
 
         {/* CTA buttons */}

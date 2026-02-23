@@ -4,6 +4,7 @@ const technologies = [
   "React Native",
   "Hono",
   "oRPC",
+  "Supabase",
   "Tailwind CSS",
   "TypeScript",
   "Turborepo",

@@ -29,6 +29,13 @@
       "@biomejs/biome",
       "supabase",
       "turbo"
-    ]
+    ],
+    "packageExtensions": {
+      "uniwind": {
+        "peerDependencies": {
+          "metro-cache": "*"
+        }
+      }
+    }
   }
 }

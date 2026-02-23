@@ -18,11 +18,12 @@ describe("Hero", () => {
   it("renders subtitle", () => {
     render(<Hero />);
     expect(screen.getByText(/Ship web, mobile, and API from a single codebase/)).toBeTruthy();
+    expect(screen.getByText(/Authentication, database, and storage/)).toBeTruthy();
   });
 
   it("renders announcement badge", () => {
     render(<Hero />);
-    expect(screen.getByText("Now with Next.js 16, Expo SDK 54, and Hono")).toBeTruthy();
+    expect(screen.getByText("Now with Supabase Auth, Database & Storage")).toBeTruthy();
   });
 
   it("renders CTA buttons", () => {
@@ -38,6 +39,6 @@ describe("Hero", () => {
 
   it("renders phone frame content", () => {
     render(<Hero />);
-    expect(screen.getAllByText("Monorepo Template")).toHaveLength(3);
+    expect(screen.getAllByText("Monorepo Template")).toHaveLength(2);
   });
 });

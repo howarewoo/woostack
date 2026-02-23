@@ -13,28 +13,19 @@ const BROWSER_TRANSFORM_STYLE = { transform: "rotateX(2deg) rotateY(-1deg)" } as
  * so these hex values are inlined in the JSX rather than interpolated from constants.
  */
 
-const WEB_ITEMS = ["App Router", "React Compiler", "shadcn/ui", "Tailwind CSS v4"] as const;
-const MOBILE_ITEMS = [
-  "React Native 0.81",
-  "UniWind",
-  "react-native-reusables",
-  "iOS, Android, Web",
+const USER_ROWS = [
+  { name: "Alex Chen", email: "alex@example.com", id: "1" },
+  { name: "Sarah Park", email: "sarah@example.com", id: "2" },
 ] as const;
-const API_ITEMS = [
-  "Type-safe RPC",
-  "Zod validation",
-  "End-to-end types",
-  "Typed client SDK",
-] as const;
-const INFRA_PACKAGES = ["api-client", "navigation", "ui", "ui-web", "utils", "ts-config"] as const;
+
+const INFRA_PACKAGES = ["api-client", "navigation", "supabase", "ui", "ui-web", "utils"] as const;
 const TOOLING = ["Turborepo", "pnpm", "Biome", "Vitest", "Playwright"] as const;
 const BADGE_SECTIONS = [
   { label: "Shared Infrastructure", items: INFRA_PACKAGES },
   { label: "Tooling", items: TOOLING },
 ] as const;
-const QUICK_START_CMDS = ["pnpm install", "pnpm dev", "pnpm build", "pnpm test"] as const;
 
-/** Desktop browser chrome mockup showing a miniature web dashboard. */
+/** Desktop browser chrome mockup showing an authenticated dashboard. */
 export function BrowserFrame() {
   return (
     <div style={PERSPECTIVE_STYLE}>
@@ -60,23 +51,47 @@ export function BrowserFrame() {
         </div>
 
         {/* Dashboard content — 16:10 MacBook aspect ratio */}
-        <div className="bg-background p-5 aspect-[16/10]">
-          {/* Header */}
-          <div className="mb-4 text-center">
-            <div className="text-[13px] font-bold text-foreground">Monorepo Template</div>
-            <div className="mt-0.5 text-[9px] text-muted-foreground">
-              A production-ready monorepo with Next.js, Expo, and Hono
+        <div className="aspect-[16/10] bg-background p-5">
+          {/* Header bar */}
+          <div className="mb-3 flex items-center justify-between">
+            <div className="text-[11px] font-semibold text-foreground">Monorepo Template</div>
+            <div className="flex items-center gap-2">
+              <span className="flex size-4 items-center justify-center rounded-full bg-primary text-[7px] font-semibold text-primary-foreground">
+                u
+              </span>
+              <span className="text-[8px] text-muted-foreground">user@email.com</span>
+              <span className="rounded bg-muted px-1.5 py-0.5 text-[7px] text-muted-foreground">
+                Sign Out
+              </span>
             </div>
           </div>
 
-          {/* 3-column card grid */}
-          <div className="grid grid-cols-3 gap-2.5">
-            <AppCard title="Web" subtitle="Next.js 16" items={WEB_ITEMS} />
-            <AppCard title="Mobile" subtitle="Expo SDK 54" items={MOBILE_ITEMS} />
-            <AppCard title="API" subtitle="Hono + oRPC" items={API_ITEMS} />
+          {/* Welcome */}
+          <div className="mb-3">
+            <div className="text-[12px] font-bold text-foreground">Welcome back</div>
+            <div className="text-[8px] text-muted-foreground">user@email.com</div>
           </div>
 
-          {/* Infrastructure + Tooling row */}
+          {/* Users card */}
+          <div className="rounded-lg border border-border/60 bg-card p-2.5">
+            <div className="text-[10px] font-semibold text-foreground">Users from API</div>
+            <div className="mt-1.5 flex flex-col gap-1">
+              {USER_ROWS.map((row) => (
+                <div
+                  key={row.name}
+                  className="flex items-center justify-between rounded border border-border/40 px-2 py-1"
+                >
+                  <div>
+                    <div className="text-[8px] font-medium text-foreground">{row.name}</div>
+                    <div className="text-[7px] text-muted-foreground">{row.email}</div>
+                  </div>
+                  <div className="text-[7px] text-muted-foreground">ID: {row.id}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Infrastructure badges */}
           <div className="mt-2.5 grid grid-cols-2 gap-2.5">
             {BADGE_SECTIONS.map((section) => (
               <div key={section.label} className="rounded-lg border border-border/60 bg-card p-2.5">
@@ -96,45 +111,7 @@ export function BrowserFrame() {
               </div>
             ))}
           </div>
-
-          {/* Quick Start bar */}
-          <div className="mt-2.5 rounded-lg border border-border/60 bg-card p-2.5">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[10px] font-semibold text-foreground">Quick Start</span>
-              {QUICK_START_CMDS.map((cmd) => (
-                <span
-                  key={cmd}
-                  className="rounded bg-muted px-1.5 py-0.5 font-mono text-[8px] text-muted-foreground"
-                >
-                  {cmd}
-                </span>
-              ))}
-            </div>
-          </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-interface AppCardProps {
-  title: string;
-  subtitle: string;
-  items: readonly string[];
-}
-
-/** Renders a single app card within the browser frame dashboard. */
-function AppCard({ title, subtitle, items }: AppCardProps) {
-  return (
-    <div className="rounded-lg border border-border/60 bg-card p-2.5">
-      <div className="text-[11px] font-semibold text-foreground">{title}</div>
-      <div className="text-[8px] text-muted-foreground">{subtitle}</div>
-      <div className="mt-1.5 flex flex-col gap-0.5">
-        {items.map((item) => (
-          <div key={item} className="text-[8px] text-muted-foreground/70">
-            {item}
-          </div>
-        ))}
       </div>
     </div>
   );

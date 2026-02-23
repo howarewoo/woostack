@@ -27,9 +27,9 @@ const valueProps = [
   },
   {
     figure: "FIG 0.3",
-    title: "Zero Config DX",
+    title: "Auth & Storage Built In",
     description:
-      "Turborepo caching, Biome linting, React Compiler, and pnpm workspaces. Everything just works out of the box.",
+      "Supabase provides authentication, database, and file storage out of the box. Row-level security, OAuth providers, and typed queries — no backend assembly required.",
   },
 ];
 
@@ -160,6 +160,31 @@ export const router = {
 
         <FeatureSection
           number="4.0"
+          title="Backend"
+          description="Supabase for authentication, PostgreSQL database, and file storage. Row-level security scopes every query. JWT validation at the API layer. Auto-generated TypeScript types from your schema."
+          features={[
+            "Supabase Auth",
+            "PostgreSQL",
+            "Row-Level Security",
+            "File Storage",
+            "Generated Types",
+          ]}
+          codeLabel="packages/features/auth/src/example.ts"
+          code={`import { useAuth } from "@infrastructure/supabase/auth";
+import { createStorageClient } from "@infrastructure/supabase/storage";
+
+// Auth — sign in with email or OAuth
+const { signIn, signInWithOAuth, user } = useAuth();
+await signIn({ email, password });
+await signInWithOAuth("github");
+
+// Storage — upload with RLS
+const storage = createStorageClient(supabase);
+await storage.upload("avatars", \`\${user.id}.png\`, file);`}
+        />
+
+        <FeatureSection
+          number="5.0"
           title="Infrastructure"
           description="Shared packages for navigation, UI tokens, utilities, and TypeScript configs. Feature packages for isolated business logic. Clean dependency boundaries enforced by convention."
           features={[

@@ -6,7 +6,7 @@ const PHONE_TRANSFORM_STYLE = { transform: "rotateX(2deg)" } as const;
 /** The canonical time shown in Apple marketing screenshots. */
 const IOS_MARKETING_TIME = "9:41" as const;
 
-/** Phone bezel mockup showing a miniature mobile app. */
+/** Phone bezel mockup showing a sign-in screen. */
 export function PhoneFrame() {
   return (
     <div className="flex justify-center" style={PERSPECTIVE_STYLE}>
@@ -22,11 +22,11 @@ export function PhoneFrame() {
           </div>
 
           {/* Status bar */}
-          <div className="flex items-center justify-between px-6 pt-1 pb-2">
+          <div className="flex items-center justify-between px-6 pb-2 pt-1">
             {/* iOS default marketing screenshot time */}
             <span className="text-[9px] font-medium text-foreground">{IOS_MARKETING_TIME}</span>
             <div className="flex items-center gap-1" aria-hidden="true">
-              <div className="flex gap-0.5 items-end">
+              <div className="flex items-end gap-0.5">
                 <div className="h-1.5 w-0.5 rounded-sm bg-foreground/40" />
                 <div className="h-2 w-0.5 rounded-sm bg-foreground/40" />
                 <div className="h-2.5 w-0.5 rounded-sm bg-foreground/40" />
@@ -43,21 +43,59 @@ export function PhoneFrame() {
             <div className="text-[11px] font-semibold text-foreground">Monorepo Template</div>
           </div>
 
-          {/* App content */}
-          <div className="p-3">
-            {/* Title */}
+          {/* Sign-in form */}
+          <div className="flex-1 p-4">
             <div className="mb-3 text-center">
-              <div className="text-[14px] font-bold text-foreground">Monorepo Template</div>
-              <div className="mt-0.5 text-[8px] text-muted-foreground">
-                A modern monorepo with Next.js, Expo, Hono, and oRPC
+              <div className="text-[13px] font-bold text-foreground">Sign In</div>
+              <div className="mt-0.5 text-[7px] text-muted-foreground">Enter your credentials</div>
+            </div>
+
+            {/* Email field */}
+            <div className="mb-2">
+              <div className="mb-0.5 text-[7px] font-medium text-foreground">Email</div>
+              <div className="rounded-md border border-border/60 bg-muted/30 px-2 py-1.5">
+                <span className="text-[8px] text-muted-foreground/50">you@example.com</span>
               </div>
             </div>
 
-            {/* Stacked cards */}
-            <div className="flex flex-col gap-2">
-              <PhoneCard title="Next.js" subtitle="Web application" />
-              <PhoneCard title="Expo" subtitle="Mobile application" />
-              <PhoneCard title="Hono + oRPC" subtitle="Type-safe API" />
+            {/* Password field */}
+            <div className="mb-3">
+              <div className="mb-0.5 text-[7px] font-medium text-foreground">Password</div>
+              <div className="rounded-md border border-border/60 bg-muted/30 px-2 py-1.5">
+                <span className="text-[8px] text-muted-foreground/50">Your password</span>
+              </div>
+            </div>
+
+            {/* Sign In button */}
+            <div className="rounded-md bg-primary px-3 py-1.5 text-center">
+              <span className="text-[9px] font-medium text-primary-foreground">Sign In</span>
+            </div>
+
+            {/* Divider */}
+            <div className="my-3 flex items-center gap-2">
+              <div className="h-px flex-1 bg-border/40" />
+              <span className="text-[7px] text-muted-foreground">Or continue with</span>
+              <div className="h-px flex-1 bg-border/40" />
+            </div>
+
+            {/* OAuth buttons */}
+            <div className="grid grid-cols-3 gap-1.5">
+              {(["Google", "Apple", "GitHub"] as const).map((provider) => (
+                <div
+                  key={provider}
+                  className="rounded-md border border-border/60 py-1.5 text-center"
+                >
+                  <span className="text-[8px] font-medium text-muted-foreground">{provider}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Sign up link */}
+            <div className="mt-3 text-center">
+              <span className="text-[7px] text-muted-foreground">
+                Don&apos;t have an account?{" "}
+                <span className="text-foreground underline">Sign Up</span>
+              </span>
             </div>
           </div>
 
@@ -67,21 +105,6 @@ export function PhoneFrame() {
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-interface PhoneCardProps {
-  title: string;
-  subtitle: string;
-}
-
-/** Renders a single stacked card within the phone frame. */
-function PhoneCard({ title, subtitle }: PhoneCardProps) {
-  return (
-    <div className="rounded-lg border border-border/60 bg-card px-3 py-2">
-      <div className="text-[10px] font-semibold text-foreground">{title}</div>
-      <div className="text-[8px] text-muted-foreground">{subtitle}</div>
     </div>
   );
 }

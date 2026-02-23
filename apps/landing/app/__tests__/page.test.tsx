@@ -44,7 +44,7 @@ describe("LandingPage", () => {
     render(<LandingPage />);
     expect(screen.getByText("Shared by Default")).toBeTruthy();
     expect(screen.getByText("Type-Safe End to End")).toBeTruthy();
-    expect(screen.getByText("Zero Config DX")).toBeTruthy();
+    expect(screen.getByText("Auth & Storage Built In")).toBeTruthy();
   });
 
   it("renders value prop figure labels", () => {
