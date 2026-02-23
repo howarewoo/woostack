@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AuthForm } from "@/components/auth-form";
-import { createBrowserSupabase } from "@/lib/supabase";
+// import { createBrowserSupabase } from "@/lib/supabase";
 
 export default function ForgotPasswordPage() {
   const [error, setError] = useState("");
@@ -13,11 +13,13 @@ export default function ForgotPasswordPage() {
     setError("");
     setIsLoading(true);
     try {
-      const supabase = createBrowserSupabase();
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      if (resetError) throw resetError;
+      console.log("TODO: Implement password reset logic for email:", email);
+      // TODO: This is a placeholder for the actual password reset logic, which will depend on your backend/auth provider. For example, if using Supabase, you would call supabase.auth.resetPasswordForEmail(email) here.
+      // const supabase = createBrowserSupabase();
+      // const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+      //   redirectTo: `${window.location.origin}/reset-password`,
+      // });
+      // if (resetError) throw resetError;
       setSent(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send reset email");

@@ -9,7 +9,6 @@ import {
   CardTitle,
   Input,
   Label,
-  Separator,
 } from "@infrastructure/ui-web";
 import { type ReactNode, useState } from "react";
 
@@ -24,6 +23,9 @@ interface AuthFormProps {
   error?: string;
   isLoading?: boolean;
   hidePassword?: boolean;
+  defaultEmail?: string;
+  defaultPassword?: string;
+  disabled?: boolean;
 }
 
 /** Reusable authentication form supporting sign-in, sign-up, forgot-password, and reset-password flows via props. */
@@ -38,9 +40,12 @@ export function AuthForm({
   error,
   isLoading,
   hidePassword,
+  defaultEmail = "",
+  defaultPassword = "",
+  disabled,
 }: AuthFormProps) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState(defaultEmail);
+  const [password, setPassword] = useState(defaultPassword);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -65,6 +70,7 @@ export function AuthForm({
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={disabled}
                 />
               </div>
               {!hidePassword && (
@@ -75,6 +81,7 @@ export function AuthForm({
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    disabled={disabled}
                   />
                 </div>
               )}
@@ -86,11 +93,8 @@ export function AuthForm({
           </form>
           {showOAuth && (
             <div className="mt-4 space-y-4">
-              <div className="relative">
-                <Separator className="my-4" />
-                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
-                  Or continue with
-                </span>
+              <div className="relative justify-center flex">
+                <span className="bg-card px-2 text-xs text-muted-foreground">Or continue with</span>
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <Button

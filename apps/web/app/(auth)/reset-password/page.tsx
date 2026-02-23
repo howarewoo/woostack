@@ -3,20 +3,23 @@
 import { useNavigation } from "@infrastructure/navigation";
 import { useState } from "react";
 import { AuthForm } from "@/components/auth-form";
-import { createBrowserSupabase } from "@/lib/supabase";
+// import { createBrowserSupabase } from "@/lib/supabase";
 
 export default function ResetPasswordPage() {
   const { replace } = useNavigation();
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  async function handleSubmit(_email: string, password: string) {
+  async function handleSubmit(email: string, password: string) {
     setError("");
     setIsLoading(true);
     try {
-      const supabase = createBrowserSupabase();
-      const { error: updateError } = await supabase.auth.updateUser({ password });
-      if (updateError) throw updateError;
+      console.log("TODO: Implement password reset logic for email:", email);
+      console.log("TODO: Implement password reset logic for new password:", password);
+      // TODO: This is a placeholder for the actual password reset logic, which will depend on your backend/auth provider. For example, if using Supabase, you would call supabase.auth.updateUser({ password }) here to update the user's password, and then redirect to the dashboard or sign-in page.
+      // const supabase = createBrowserSupabase();
+      // const { error: updateError } = await supabase.auth.updateUser({ password });
+      // if (updateError) throw updateError;
       replace("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to reset password");

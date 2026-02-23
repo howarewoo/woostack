@@ -42,6 +42,9 @@ export default function SignInPage() {
       onOAuthClick={handleOAuth}
       error={error}
       isLoading={isLoading}
+      defaultEmail="demo@example.com"
+      defaultPassword="demo1234"
+      disabled
       footer={
         <>
           <a href="/forgot-password" className="text-muted-foreground hover:text-foreground">
