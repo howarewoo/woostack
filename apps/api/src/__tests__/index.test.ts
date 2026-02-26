@@ -99,8 +99,8 @@ describe("API Server", () => {
 
   it("should include CORS headers for allowed origins", async () => {
     const res = await app.request("/", {
-      headers: { Origin: "http://localhost:3000" },
+      headers: { Origin: "http://localhost:3001" },
     });
-    expect(res.headers.get("access-control-allow-origin")).toBe("http://localhost:3000");
+    expect(res.headers.get("access-control-allow-origin")).toBe("http://localhost:3001");
   });
 });

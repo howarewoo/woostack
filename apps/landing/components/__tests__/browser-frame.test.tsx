@@ -4,9 +4,9 @@ import { describe, expect, it } from "vitest";
 import { BrowserFrame } from "@/components/browser-frame";
 
 describe("BrowserFrame", () => {
-  it("renders URL bar with localhost:3000", () => {
+  it("renders URL bar with localhost:3001", () => {
     render(<BrowserFrame />);
-    expect(screen.getByText("localhost:3000")).toBeTruthy();
+    expect(screen.getByText("localhost:3001")).toBeTruthy();
   });
 
   it("renders welcome message", () => {

@@ -91,9 +91,9 @@ pnpm dev
 
 | App | Port |
 | --- | --- |
-| Web | [localhost:3000](http://localhost:3000) |
-| API | [localhost:3001](http://localhost:3001) |
-| Landing | [localhost:3002](http://localhost:3002) |
+| Landing | [localhost:3000](http://localhost:3000) |
+| Web | [localhost:3001](http://localhost:3001) |
+| API | [localhost:3100](http://localhost:3100) |
 | Mobile | [localhost:8081](http://localhost:8081) |
 
 ## Architecture

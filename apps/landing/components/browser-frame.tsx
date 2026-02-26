@@ -43,7 +43,7 @@ export function BrowserFrame() {
           </div>
           <div className="ml-3 flex-1">
             <div className="mx-auto max-w-xs rounded-md bg-background/60 px-3 py-1 text-center text-[10px] text-muted-foreground">
-              localhost:3000
+              localhost:3001
             </div>
           </div>
           {/* Spacer: balances the traffic-light dots (3 x 10px + 2 x 6px gap) + ml-3 (12px) on the left */}

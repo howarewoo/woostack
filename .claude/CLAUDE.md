@@ -8,14 +8,14 @@ See [eng-constitution.md](../eng-constitution.md) for foundational rules. The co
 
 ## Prerequisites
 
-- **pnpm 10.29.3** (enforced via `packageManager` in root `package.json`)
+- **pnpm 10.30.1** (enforced via `packageManager` in root `package.json`)
 - **Node.js 22** (CI pins v22; compatible with ES2022 target)
 
 ## Commands
 
 ```bash
 pnpm install          # Install dependencies
-pnpm dev              # Start all apps (web:3000, api:3001, landing:3002, mobile:8081)
+pnpm dev              # Start all apps (landing:3000, web:3001, api:3100, mobile:8081)
 pnpm build            # Build all packages/apps via Turborepo
 pnpm test             # Run tests across all packages
 pnpm test:changed     # Run tests for packages changed since last commit
@@ -53,10 +53,10 @@ pnpm --filter supabase-db reset   # Reset DB (reapply migrations + seed)
 
 **Monorepo with three package types.** Apps use unscoped names (`web`, `api`, `landing`, `mobile`); infrastructure uses `@infrastructure/*` scope.
 - **Apps** (`apps/*`): Deployable applications
-  - `apps/web` — Next.js 16 (App Router) + React Compiler + shadcn/ui (Base UI) + Tailwind CSS (port 3000)
-  - `apps/landing` — Next.js 16 marketing/landing page consuming shared UI components (port 3002)
+  - `apps/web` — Next.js 16 (App Router) + React Compiler + shadcn/ui (Base UI) + Tailwind CSS (port 3001)
+  - `apps/landing` — Next.js 16 marketing/landing page consuming shared UI components (port 3000)
   - `apps/mobile` — Expo SDK 54 + React Native 0.81 + UniWind + react-native-reusables
-  - `apps/api` — Hono + oRPC API server (port 3001)
+  - `apps/api` — Hono + oRPC API server (port 3100)
   - `apps/supabase` — Supabase CLI project (config, migrations, seed data; local dev via Docker)
 - **Features** (`packages/features/*`): Standalone business feature packages; own their contracts (`contracts/`), routers (`routers/`), and procedures (`procedures/`); can only import from infrastructure
   - `@features/auth` — Auth form Zod schemas (`SignInSchema`, `SignUpSchema`, `ForgotPasswordSchema`, `ResetPasswordSchema`); portable to mobile
@@ -97,7 +97,7 @@ export type Router = typeof router;
 
 // Consuming app (web/mobile)
 import { createTypedApiClient, createTypedOrpcUtils } from "@infrastructure/api-client";
-const client = createTypedApiClient("http://localhost:3001/api");
+const client = createTypedApiClient("http://localhost:3100/api");
 const orpc = createTypedOrpcUtils(client);
 const { data } = useQuery(orpc.users.list.queryOptions());
 ```
@@ -157,7 +157,7 @@ const form = useForm({
 Feature procedures access `context.user` (authenticated user or `undefined`) and `context.supabase` (RLS-scoped client) via oRPC context. Unauthenticated requests get a publishable-key client (respects RLS, no elevated privileges). The API client supports dynamic token injection via `getToken` option:
 
 ```typescript
-const client = createTypedApiClient("http://localhost:3001/api", {
+const client = createTypedApiClient("http://localhost:3100/api", {
   getToken: async () => {
     const { data } = await supabase.auth.getSession();
     return data.session?.access_token;
@@ -227,6 +227,9 @@ Each app has an env example file (`.env.example` for `api`/`mobile`, `.env.local
 | `apps/web` | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key (public, embedded in client bundle) |
 | `apps/mobile` | `EXPO_PUBLIC_SUPABASE_URL` | Supabase API URL (public, embedded in app bundle) |
 | `apps/mobile` | `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key (public, embedded in app bundle) |
+| `apps/web` | `NEXT_PUBLIC_API_URL` | API base URL (optional; defaults to `http://localhost:3100/api`) |
+| `apps/api` | `PORT` | Server listen port (optional; defaults to `3100`) |
+| `apps/api` | `CORS_ALLOWED_ORIGINS` | Comma-separated allowed origins (optional; defaults to `http://localhost:3000,http://localhost:3001`) |
 
 ## Conventions
 
@@ -252,8 +255,9 @@ Each app has an env example file (`.env.example` for `api`/`mobile`, `.env.local
 GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
 1. `biome ci` — lint + format check
 2. `pnpm turbo build` — build all packages
-3. Verify generated code is up to date (`pnpm gencode` + `git diff --exit-code`)
-4. `pnpm test:changed` — tests for changed packages only
+3. `pnpm test:changed` — tests for changed packages only
+
+**React Doctor** runs as a separate CI job on every PR — checks for React anti-patterns and posts review comments.
 
 **Note**: CI does not run `typecheck` — run `pnpm typecheck` locally before pushing.
 

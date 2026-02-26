@@ -1,7 +1,7 @@
 import { createTypedApiClient, createTypedOrpcUtils } from "@infrastructure/api-client";
 import { createBrowserSupabase } from "./supabase";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3100/api";
 
 export const apiClient = createTypedApiClient(API_URL, {
   getToken: async () => {

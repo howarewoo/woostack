@@ -20,7 +20,7 @@ export function UserList() {
   if (error) {
     return (
       <div className="text-destructive">
-        Failed to load users. Make sure the API is running on port 3001.
+        Failed to load users. Make sure the API is running on port 3100.
       </div>
     );
   }

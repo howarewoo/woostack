@@ -34,7 +34,7 @@ describe("Hero", () => {
 
   it("renders browser frame content", () => {
     render(<Hero />);
-    expect(screen.getByText("localhost:3000")).toBeTruthy();
+    expect(screen.getByText("localhost:3001")).toBeTruthy();
   });
 
   it("renders phone frame content", () => {

@@ -24,14 +24,14 @@ import { createApiClient, createOrpcUtils } from "../client";
 describe("createApiClient", () => {
   it("creates a typed client for the given base URL", () => {
     type TestRouter = { health: { message: string } };
-    const client = createApiClient<TestRouter>("http://localhost:3001/api");
+    const client = createApiClient<TestRouter>("http://localhost:3100/api");
     expect(client).toBeDefined();
   });
 
   it("creates RPCLink without headers when getToken is not provided", () => {
     type TestRouter = { health: { message: string } };
-    createApiClient<TestRouter>("http://localhost:3001/api");
-    expect(capturedRPCLinkOptions.url).toBe("http://localhost:3001/api");
+    createApiClient<TestRouter>("http://localhost:3100/api");
+    expect(capturedRPCLinkOptions.url).toBe("http://localhost:3100/api");
     expect(capturedRPCLinkOptions.headers).toBeUndefined();
   });
 
@@ -39,7 +39,7 @@ describe("createApiClient", () => {
     type TestRouter = { health: { message: string } };
     const getToken = vi.fn().mockResolvedValue("test-jwt-token");
 
-    createApiClient<TestRouter>("http://localhost:3001/api", { getToken });
+    createApiClient<TestRouter>("http://localhost:3100/api", { getToken });
 
     expect(capturedRPCLinkOptions.headers).toBeInstanceOf(Function);
     const headersFn = capturedRPCLinkOptions.headers as () => Promise<Record<string, string>>;
@@ -52,7 +52,7 @@ describe("createApiClient", () => {
     type TestRouter = { health: { message: string } };
     const getToken = vi.fn().mockResolvedValue(undefined);
 
-    createApiClient<TestRouter>("http://localhost:3001/api", { getToken });
+    createApiClient<TestRouter>("http://localhost:3100/api", { getToken });
 
     const headersFn = capturedRPCLinkOptions.headers as () => Promise<Record<string, string>>;
     const headers = await headersFn();
