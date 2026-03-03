@@ -71,11 +71,20 @@ jobs:
           ref: ${{ github.head_ref }}
 
       - name: Fetch base branch for diff
-        run: git fetch origin ${{ github.event.pull_request.base.ref }}:${{ github.event.pull_request.base.ref }}
+        id: fetch-base
+        run: |
+          BASE_REF="${{ github.event.pull_request.base.ref }}"
+          if git fetch origin "$BASE_REF":"$BASE_REF" 2>/dev/null; then
+            echo "ref=$BASE_REF" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Base ref '$BASE_REF' not found, falling back to staging"
+            git fetch origin staging:staging
+            echo "ref=staging" >> "$GITHUB_OUTPUT"
+          fi
 
       - uses: millionco/react-doctor@main
         with:
-          diff: ${{ github.event.pull_request.base.ref }}
+          diff: ${{ steps.fetch-base.outputs.ref }}
           verbose: "true"
           github-token: ${{ secrets.GITHUB_TOKEN }}
           fail-on: "error"
