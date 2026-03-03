@@ -319,14 +319,16 @@ git add src/types/user.ts
 | `refactor` | Code cleanup, no behavior change                |
 | `chore`    | Config, tooling, dependencies                   |
 
-**4. Commit:**
+**4. Commit using Graphite (creates stacked branch):**
 ```bash
-git commit -m "{type}({phase}-{plan}): {concise task description}
+gt create -m "{type}({phase}-{plan}): {concise task description}
 
 - {key change 1}
 - {key change 2}
 "
 ```
+
+**IMPORTANT:** Never use raw `git commit`. Never commit directly to `main` or `staging`. If on a protected branch, first run `gt create -m "description"` to create a feature branch.
 
 **5. Record hash:** `TASK_COMMIT=$(git rev-parse --short HEAD)` — track for SUMMARY.
 </task_commit_protocol>

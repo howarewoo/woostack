@@ -134,6 +134,14 @@ function isGitIgnored(cwd, targetPath) {
   }
 }
 
+function assertNotProtectedBranch(cwd) {
+  const result = execGit(cwd, ['branch', '--show-current']);
+  const branch = result.stdout.trim();
+  if (branch === 'main' || branch === 'staging') {
+    error('Refusing to commit on protected branch "' + branch + '". Create a feature branch first with: gt create -m "description"');
+  }
+}
+
 function execGit(cwd, args) {
   try {
     const escaped = args.map(a => {
@@ -416,6 +424,7 @@ module.exports = {
   safeReadFile,
   loadConfig,
   isGitIgnored,
+  assertNotProtectedBranch,
   execGit,
   escapeRegex,
   normalizePhaseName,
