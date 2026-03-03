@@ -20,12 +20,10 @@ function runGt(args, cwd) {
   }
 }
 
-/** Check if a branch is tracked by Graphite via `gt log short`. */
+/** Check if a branch is tracked by Graphite via `gt branch info`. */
 function isGtTracked(cwd, branch) {
-  const result = runGt(['log', 'short', '--branch', branch], cwd);
-  if (result.exitCode === 0) return true;
-  if (result.stderr.includes('untracked') || result.stderr.includes('Cannot perform')) return false;
-  return false;
+  const result = runGt(['branch', 'info', branch], cwd);
+  return result.exitCode === 0;
 }
 
 /** Ensure a branch exists and is Graphite-tracked. Creates, tracks, or checks out as needed. */
