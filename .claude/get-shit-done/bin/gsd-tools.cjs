@@ -61,6 +61,11 @@
  * Todos:
  *   todo complete <filename>           Move todo from pending to completed
  *
+ * Branch Management:
+ *   ensure-branch <name>              Ensure branch exists and is Graphite-tracked
+ *     [--parent <branch>]             Parent branch (default: staging)
+ *   cleanup-branches [delete|track]   Report/delete/track untracked local branches
+ *
  * Scaffolding:
  *   scaffold context --phase <N>       Create CONTEXT.md template
  *   scaffold uat --phase <N>           Create UAT.md template
@@ -577,6 +582,19 @@ async function main() {
         limit: limitIdx !== -1 ? parseInt(args[limitIdx + 1], 10) : 10,
         freshness: freshnessIdx !== -1 ? args[freshnessIdx + 1] : null,
       }, raw);
+      break;
+    }
+
+    case 'ensure-branch': {
+      const parentIdx = args.indexOf('--parent');
+      const parent = parentIdx !== -1 ? args[parentIdx + 1] : 'staging';
+      commands.cmdEnsureBranch(cwd, args[1], parent, raw);
+      break;
+    }
+
+    case 'cleanup-branches': {
+      const mode = args[1] || null; // 'delete', 'track', or null (report)
+      commands.cmdCleanupBranches(cwd, mode, raw);
       break;
     }
 
