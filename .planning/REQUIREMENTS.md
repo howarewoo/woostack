@@ -70,27 +70,27 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUN-01 | — | Pending |
-| FOUN-02 | — | Pending |
-| FOUN-03 | — | Pending |
-| COLR-01 | — | Pending |
-| COLR-02 | — | Pending |
-| COLR-03 | — | Pending |
-| TYPO-01 | — | Pending |
-| TYPO-02 | — | Pending |
-| SPAC-01 | — | Pending |
-| SPAC-02 | — | Pending |
-| COMP-01 | — | Pending |
-| COMP-02 | — | Pending |
-| COMP-03 | — | Pending |
-| COMP-04 | — | Pending |
-| COMP-05 | — | Pending |
+| FOUN-01 | Phase 1 | Pending |
+| FOUN-02 | Phase 1 | Pending |
+| FOUN-03 | Phase 4 | Pending |
+| COLR-01 | Phase 2 | Pending |
+| COLR-02 | Phase 2 | Pending |
+| COLR-03 | Phase 2 | Pending |
+| TYPO-01 | Phase 2 | Pending |
+| TYPO-02 | Phase 2 | Pending |
+| SPAC-01 | Phase 3 | Pending |
+| SPAC-02 | Phase 3 | Pending |
+| COMP-01 | Phase 3 | Pending |
+| COMP-02 | Phase 3 | Pending |
+| COMP-03 | Phase 3 | Pending |
+| COMP-04 | Phase 3 | Pending |
+| COMP-05 | Phase 3 | Pending |
 
 **Coverage:**
 - v1 requirements: 15 total
-- Mapped to phases: 0
-- Unmapped: 15
+- Mapped to phases: 15
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-02*
-*Last updated: 2026-03-02 after initial definition*
+*Last updated: 2026-03-02 after roadmap creation*
