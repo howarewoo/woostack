@@ -29,7 +29,8 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. `pnpm typecheck` passes with `apps/brand` included
   4. The theme toggle button switches the entire page between light and dark mode with no visible flash on load
   5. No React hydration warnings appear in the browser console on page load
-**Plans**: TBD
+**Plans**: 1 plan
+- [ ] 01-01-PLAN.md — Scaffold apps/brand with config, theme toggle, and build verification
 
 ### Phase 2: Token Display
 **Goal**: The color palette section and typography section are visible, accurate, and update correctly when the theme is toggled
@@ -73,7 +74,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/? | Not started | - |
+| 1. Foundation | 0/1 | Planned | - |
 | 2. Token Display | 0/? | Not started | - |
 | 3. Component Showcase | 0/? | Not started | - |
 | 4. Navigation | 0/? | Not started | - |
