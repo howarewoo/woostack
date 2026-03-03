@@ -57,6 +57,7 @@
       "!**/*.config.js",
       "!**/*.config.mjs",
       "!**/.claude/skills",
+      "!**/.claude/get-shit-done",
       "!**/src/generated"
     ]
   }
