@@ -154,34 +154,34 @@ INIT=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" state load)
 # Parse branching_strategy, phase_branch_template, milestone_branch_template from JSON
 ```
 
-**Branch creation:**
+**Branch creation (using Graphite):**
 
 ```bash
 # For phase strategy
 if [ "$BRANCHING_STRATEGY" = "phase" ]; then
   PHASE_SLUG=$(echo "$PHASE_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//;s/-$//')
   BRANCH_NAME=$(echo "$PHASE_BRANCH_TEMPLATE" | sed "s/{phase}/$PADDED_PHASE/g" | sed "s/{slug}/$PHASE_SLUG/g")
-  git checkout -b "$BRANCH_NAME" 2>/dev/null || git checkout "$BRANCH_NAME"
+  gt create "$BRANCH_NAME" 2>/dev/null || git checkout "$BRANCH_NAME"
 fi
 
 # For milestone strategy
 if [ "$BRANCHING_STRATEGY" = "milestone" ]; then
   MILESTONE_SLUG=$(echo "$MILESTONE_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//;s/-$//')
   BRANCH_NAME=$(echo "$MILESTONE_BRANCH_TEMPLATE" | sed "s/{milestone}/$MILESTONE_VERSION/g" | sed "s/{slug}/$MILESTONE_SLUG/g")
-  git checkout -b "$BRANCH_NAME" 2>/dev/null || git checkout "$BRANCH_NAME"
+  gt create "$BRANCH_NAME" 2>/dev/null || git checkout "$BRANCH_NAME"
 fi
 ```
 
 **Merge options at complete-milestone:**
 
-| Option | Git command | Result |
-|--------|-------------|--------|
-| Squash merge (recommended) | `git merge --squash` | Single clean commit per branch |
-| Merge with history | `git merge --no-ff` | Preserves all individual commits |
-| Delete without merging | `git branch -D` | Discard branch work |
+| Option | Graphite command | Result |
+|--------|------------------|--------|
+| Submit PR (recommended) | `gt submit` | Creates PR via Graphite for review |
+| Squash merge | `git merge --squash` | Single clean commit per branch |
+| Delete without merging | `gt delete <branch>` | Discard branch work |
 | Keep branches | (none) | Manual handling later |
 
-Squash merge is recommended — keeps main branch history clean while preserving the full development history in the branch (until deleted).
+Submit via Graphite is recommended — creates a PR targeting `staging` for review before merging.
 
 **Use cases:**
 

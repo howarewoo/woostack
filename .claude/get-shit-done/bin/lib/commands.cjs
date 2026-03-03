@@ -4,7 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
-const { safeReadFile, loadConfig, isGitIgnored, execGit, normalizePhaseName, comparePhaseNum, getArchivedPhaseDirs, generateSlugInternal, getMilestoneInfo, resolveModelInternal, MODEL_PROFILES, output, error, findPhaseInternal } = require('./core.cjs');
+const { safeReadFile, loadConfig, isGitIgnored, assertNotProtectedBranch, execGit, normalizePhaseName, comparePhaseNum, getArchivedPhaseDirs, generateSlugInternal, getMilestoneInfo, resolveModelInternal, MODEL_PROFILES, output, error, findPhaseInternal } = require('./core.cjs');
 const { extractFrontmatter } = require('./frontmatter.cjs');
 
 function cmdGenerateSlug(text, raw) {
@@ -234,22 +234,52 @@ function cmdCommit(cwd, message, files, raw, amend) {
     return;
   }
 
+  // Guard against committing on protected branches
+  assertNotProtectedBranch(cwd);
+
   // Stage files
   const filesToStage = files && files.length > 0 ? files : ['.planning/'];
   for (const file of filesToStage) {
     execGit(cwd, ['add', file]);
   }
 
-  // Commit
-  const commitArgs = amend ? ['commit', '--amend', '--no-edit'] : ['commit', '-m', message];
-  const commitResult = execGit(cwd, commitArgs);
+  // Commit using Graphite
+  let commitResult;
+  if (amend) {
+    // gt modify --no-edit amends the current branch's commit
+    try {
+      execSync('gt modify --no-edit', { cwd, stdio: 'pipe', encoding: 'utf-8' });
+      commitResult = { exitCode: 0, stdout: '', stderr: '' };
+    } catch (err) {
+      commitResult = {
+        exitCode: err.status ?? 1,
+        stdout: (err.stdout ?? '').toString().trim(),
+        stderr: (err.stderr ?? '').toString().trim(),
+      };
+    }
+  } else {
+    // gt create -m "message" creates a new stacked branch with the commit
+    const escaped = message.replace(/'/g, "'\\''");
+    try {
+      execSync("gt create -m '" + escaped + "'", { cwd, stdio: 'pipe', encoding: 'utf-8' });
+      commitResult = { exitCode: 0, stdout: '', stderr: '' };
+    } catch (err) {
+      commitResult = {
+        exitCode: err.status ?? 1,
+        stdout: (err.stdout ?? '').toString().trim(),
+        stderr: (err.stderr ?? '').toString().trim(),
+      };
+    }
+  }
+
   if (commitResult.exitCode !== 0) {
-    if (commitResult.stdout.includes('nothing to commit') || commitResult.stderr.includes('nothing to commit')) {
+    if (commitResult.stdout.includes('nothing to commit') || commitResult.stderr.includes('nothing to commit') ||
+        commitResult.stderr.includes('No changes to commit')) {
       const result = { committed: false, hash: null, reason: 'nothing_to_commit' };
       output(result, raw, 'nothing');
       return;
     }
-    const result = { committed: false, hash: null, reason: 'nothing_to_commit', error: commitResult.stderr };
+    const result = { committed: false, hash: null, reason: 'commit_failed', error: commitResult.stderr };
     output(result, raw, 'nothing');
     return;
   }

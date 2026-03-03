@@ -2,6 +2,8 @@
 
 Commit planning artifacts using the gsd-tools CLI, which automatically checks `commit_docs` config and gitignore status.
 
+The CLI internally uses `gt create -m` (Graphite) instead of raw `git commit`. This ensures all GSD commits create stacked branches and never land directly on `main` or `staging`.
+
 ## Commit via CLI
 
 Always use `gsd-tools.cjs commit` for `.planning/` files — it handles `commit_docs` and gitignore checks automatically:

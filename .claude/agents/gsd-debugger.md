@@ -1033,14 +1033,16 @@ INIT=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" state load)
 
 **Commit the fix:**
 
-Stage and commit code changes (NEVER `git add -A` or `git add .`):
+Stage and commit code changes using Graphite (NEVER `git add -A` or `git add .`):
 ```bash
 git add src/path/to/fixed-file.ts
 git add src/path/to/other-file.ts
-git commit -m "fix: {brief description}
+gt create -m "fix: {brief description}
 
 Root cause: {root_cause}"
 ```
+
+**IMPORTANT:** Never use raw `git commit`. Never commit directly to `main` or `staging`.
 
 Then commit planning docs via CLI (respects `commit_docs` config automatically):
 ```bash

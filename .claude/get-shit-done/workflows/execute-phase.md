@@ -35,10 +35,12 @@ Check `branching_strategy` from init:
 
 **"phase" or "milestone":** Use pre-computed `branch_name` from init:
 ```bash
-git checkout -b "$BRANCH_NAME" 2>/dev/null || git checkout "$BRANCH_NAME"
+gt create "$BRANCH_NAME" 2>/dev/null || git checkout "$BRANCH_NAME"
 ```
 
-All subsequent commits go to this branch. User handles merging.
+All subsequent commits go to this branch. User handles merging via `gt submit`.
+
+**Protected branch guard:** Before any commit, verify current branch is not `main` or `staging`. If on a protected branch, error with: "Create a feature branch first: `gt create -m 'description'`"
 </step>
 
 <step name="validate_phase">

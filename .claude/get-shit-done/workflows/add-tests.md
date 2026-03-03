@@ -303,7 +303,7 @@ If there are passing tests to commit:
 
 ```bash
 git add {test files}
-git commit -m "test(phase-${phase_number}): add unit and E2E tests from add-tests command"
+gt create -m "test(phase-${phase_number}): add unit and E2E tests from add-tests command"
 ```
 
 Present next steps:
