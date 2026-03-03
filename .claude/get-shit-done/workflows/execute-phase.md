@@ -35,8 +35,10 @@ Check `branching_strategy` from init:
 
 **"phase" or "milestone":** Use pre-computed `branch_name` from init:
 ```bash
-gt create "$BRANCH_NAME" 2>/dev/null || git checkout "$BRANCH_NAME"
+BRANCH_RESULT=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" ensure-branch "$BRANCH_NAME" --parent staging)
 ```
+
+Parse JSON result. If `success` is `false`, report the error from the `error` field and halt execution. Do NOT fall back to raw git commands.
 
 All subsequent commits go to this branch. User handles merging via `gt submit`.
 
