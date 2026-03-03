@@ -20,6 +20,99 @@ function runGt(args, cwd) {
   }
 }
 
+/** Check if a branch is tracked by Graphite via `gt log short`. */
+function isGtTracked(cwd, branch) {
+  const result = runGt(['log', 'short', '--branch', branch], cwd);
+  if (result.exitCode === 0) return true;
+  if (result.stderr.includes('untracked') || result.stderr.includes('Cannot perform')) return false;
+  return false;
+}
+
+/** Ensure a branch exists and is Graphite-tracked. Creates, tracks, or checks out as needed. */
+function cmdEnsureBranch(cwd, branchName, parent, raw) {
+  if (!branchName) {
+    error('branch name required for ensure-branch');
+  }
+  parent = parent || 'staging';
+
+  // Check if branch already exists locally
+  const branchCheck = execGit(cwd, ['branch', '--list', branchName]);
+  const branchExists = branchCheck.stdout.trim().length > 0;
+
+  if (branchExists) {
+    // Branch exists — check if Graphite-tracked
+    if (isGtTracked(cwd, branchName)) {
+      // Already tracked, just checkout
+      execGit(cwd, ['checkout', branchName]);
+      output({ success: true, action: 'checked_out', branch: branchName, parent }, raw, branchName);
+      return;
+    }
+
+    // Exists but untracked — track it with Graphite
+    const trackResult = runGt(['track', branchName, '--parent', parent, '--force'], cwd);
+    if (trackResult.exitCode !== 0) {
+      output({
+        success: false,
+        action: 'track_failed',
+        branch: branchName,
+        parent,
+        error: trackResult.stderr || 'gt track failed',
+      }, raw, '');
+      return;
+    }
+    execGit(cwd, ['checkout', branchName]);
+    output({ success: true, action: 'tracked_and_checked_out', branch: branchName, parent }, raw, branchName);
+    return;
+  }
+
+  // Branch doesn't exist — create it with Graphite
+  // First, ensure we're on the parent branch
+  const currentBranch = execGit(cwd, ['branch', '--show-current']).stdout.trim();
+  if (currentBranch !== parent) {
+    const checkoutResult = execGit(cwd, ['checkout', parent]);
+    if (checkoutResult.exitCode !== 0) {
+      output({
+        success: false,
+        action: 'checkout_parent_failed',
+        branch: branchName,
+        parent,
+        error: checkoutResult.stderr || 'Failed to checkout parent branch',
+      }, raw, '');
+      return;
+    }
+  }
+
+  // Ensure parent is tracked (staging/main should always be, but be safe)
+  if (!isGtTracked(cwd, parent)) {
+    const trackParent = runGt(['track', parent, '--force'], cwd);
+    if (trackParent.exitCode !== 0) {
+      output({
+        success: false,
+        action: 'parent_track_failed',
+        branch: branchName,
+        parent,
+        error: trackParent.stderr || 'Failed to track parent branch',
+      }, raw, '');
+      return;
+    }
+  }
+
+  // Create the branch with Graphite
+  const createResult = runGt(['branch', 'create', branchName], cwd);
+  if (createResult.exitCode !== 0) {
+    output({
+      success: false,
+      action: 'create_failed',
+      branch: branchName,
+      parent,
+      error: createResult.stderr || 'gt branch create failed',
+    }, raw, '');
+    return;
+  }
+
+  output({ success: true, action: 'created', branch: branchName, parent }, raw, branchName);
+}
+
 function cmdGenerateSlug(text, raw) {
   if (!text) {
     error('text required for slug generation');
@@ -553,6 +646,7 @@ function cmdScaffold(cwd, type, options, raw) {
 }
 
 module.exports = {
+  cmdEnsureBranch,
   cmdGenerateSlug,
   cmdCurrentTimestamp,
   cmdListTodos,
