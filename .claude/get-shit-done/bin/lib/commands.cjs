@@ -3,9 +3,22 @@
  */
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 const { safeReadFile, loadConfig, isGitIgnored, assertNotProtectedBranch, execGit, normalizePhaseName, comparePhaseNum, getArchivedPhaseDirs, generateSlugInternal, getMilestoneInfo, resolveModelInternal, MODEL_PROFILES, output, error, findPhaseInternal } = require('./core.cjs');
 const { extractFrontmatter } = require('./frontmatter.cjs');
+
+function runGt(args, cwd) {
+  try {
+    execFileSync('gt', args, { cwd, stdio: 'pipe', encoding: 'utf-8' });
+    return { exitCode: 0, stdout: '', stderr: '' };
+  } catch (err) {
+    return {
+      exitCode: err.status ?? 1,
+      stdout: (err.stdout ?? '').toString().trim(),
+      stderr: (err.stderr ?? '').toString().trim(),
+    };
+  }
+}
 
 function cmdGenerateSlug(text, raw) {
   if (!text) {
@@ -243,34 +256,11 @@ function cmdCommit(cwd, message, files, raw, amend) {
     execGit(cwd, ['add', file]);
   }
 
-  // Commit using Graphite
-  let commitResult;
-  if (amend) {
-    // gt modify --no-edit amends the current branch's commit
-    try {
-      execSync('gt modify --no-edit', { cwd, stdio: 'pipe', encoding: 'utf-8' });
-      commitResult = { exitCode: 0, stdout: '', stderr: '' };
-    } catch (err) {
-      commitResult = {
-        exitCode: err.status ?? 1,
-        stdout: (err.stdout ?? '').toString().trim(),
-        stderr: (err.stderr ?? '').toString().trim(),
-      };
-    }
-  } else {
-    // gt create -m "message" creates a new stacked branch with the commit
-    const escaped = message.replace(/'/g, "'\\''");
-    try {
-      execSync("gt create -m '" + escaped + "'", { cwd, stdio: 'pipe', encoding: 'utf-8' });
-      commitResult = { exitCode: 0, stdout: '', stderr: '' };
-    } catch (err) {
-      commitResult = {
-        exitCode: err.status ?? 1,
-        stdout: (err.stdout ?? '').toString().trim(),
-        stderr: (err.stderr ?? '').toString().trim(),
-      };
-    }
-  }
+  // Commit using Graphite (execFileSync avoids shell interpretation)
+  const gtArgs = amend
+    ? ['modify', '--no-edit']
+    : ['create', '-m', message];
+  const commitResult = runGt(gtArgs, cwd);
 
   if (commitResult.exitCode !== 0) {
     if (commitResult.stdout.includes('nothing to commit') || commitResult.stderr.includes('nothing to commit') ||
