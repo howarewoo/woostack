@@ -9,8 +9,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Foundation
 
-- [ ] **FOUN-01**: Standalone Next.js app at `apps/brand` with dev server on port 3002
-- [ ] **FOUN-02**: Light/dark theme toggle that switches the entire page via `.dark` class on `<html>`
+- [x] **FOUN-01**: Standalone Next.js app at `apps/brand` with dev server on port 3002
+- [x] **FOUN-02**: Light/dark theme toggle that switches the entire page via `.dark` class on `<html>`
 - [ ] **FOUN-03**: Sticky sidebar or top nav with anchor links to each section
 
 ### Colors
@@ -70,8 +70,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUN-01 | Phase 1 | Pending |
-| FOUN-02 | Phase 1 | Pending |
+| FOUN-01 | Phase 1 | Complete |
+| FOUN-02 | Phase 1 | Complete |
 | FOUN-03 | Phase 4 | Pending |
 | COLR-01 | Phase 2 | Pending |
 | COLR-02 | Phase 2 | Pending |
