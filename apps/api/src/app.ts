@@ -20,7 +20,7 @@ app.use(
   cors({
     origin: process.env.CORS_ALLOWED_ORIGINS?.split(",") || [
       "http://localhost:3000",
-      "http://localhost:3002",
+      "http://localhost:3001",
     ],
     allowMethods: ["GET", "POST", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization", "x-request-id"],

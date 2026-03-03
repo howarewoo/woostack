@@ -4,7 +4,7 @@ import { app } from "./app";
 
 app.use("*", logger());
 
-const port = Number(process.env.PORT) || 3001;
+const port = Number(process.env.PORT) || 3100;
 console.log(`Server is running on http://localhost:${port}`);
 
 serve({

@@ -106,7 +106,7 @@ export type Router = typeof router;
 // In consuming apps (web, mobile)
 import { createTypedApiClient, createTypedOrpcUtils } from "@infrastructure/api-client";
 
-const client = createTypedApiClient("http://localhost:3001/api");
+const client = createTypedApiClient("http://localhost:3100/api");
 const orpc = createTypedOrpcUtils(client);
 const users = await client.users.list();
 ```

@@ -23,14 +23,14 @@ import { createTypedApiClient, createTypedOrpcUtils } from "../typed-client";
 
 describe("createTypedApiClient", () => {
   it("creates a pre-typed client for the given base URL", () => {
-    const client = createTypedApiClient("http://localhost:3001/api");
+    const client = createTypedApiClient("http://localhost:3100/api");
     expect(client).toBeDefined();
   });
 
   it("passes getToken option through to RPCLink headers", async () => {
     const getToken = vi.fn().mockResolvedValue("typed-jwt-token");
 
-    createTypedApiClient("http://localhost:3001/api", { getToken });
+    createTypedApiClient("http://localhost:3100/api", { getToken });
 
     expect(capturedRPCLinkOptions.headers).toBeInstanceOf(Function);
     const headersFn = capturedRPCLinkOptions.headers as () => Promise<Record<string, string>>;
@@ -41,7 +41,7 @@ describe("createTypedApiClient", () => {
 
 describe("createTypedOrpcUtils", () => {
   it("creates pre-typed tanstack query utils from a typed client", () => {
-    const client = createTypedApiClient("http://localhost:3001/api");
+    const client = createTypedApiClient("http://localhost:3100/api");
     const utils = createTypedOrpcUtils(client);
     expect(utils).toBeDefined();
   });

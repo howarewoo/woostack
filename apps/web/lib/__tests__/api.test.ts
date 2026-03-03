@@ -17,7 +17,7 @@ describe("api", () => {
     const { apiClient } = await import("@/lib/api");
 
     expect(createTypedApiClient).toHaveBeenCalledWith(
-      "http://localhost:3001/api",
+      "http://localhost:3100/api",
       expect.objectContaining({ getToken: expect.any(Function) })
     );
     expect(apiClient).toBeDefined();
