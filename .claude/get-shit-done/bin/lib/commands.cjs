@@ -113,6 +113,71 @@ function cmdEnsureBranch(cwd, branchName, parent, raw) {
   output({ success: true, action: 'created', branch: branchName, parent }, raw, branchName);
 }
 
+/** List, delete, or track untracked local branches. */
+function cmdCleanupBranches(cwd, mode, raw) {
+  // List all local branches
+  const branchResult = execGit(cwd, ['branch', '--format=%(refname:short)']);
+  if (branchResult.exitCode !== 0) {
+    error('Failed to list branches: ' + branchResult.stderr);
+  }
+
+  const branches = branchResult.stdout.split('\n').filter(b => b.trim().length > 0);
+  const protectedBranches = ['main', 'staging'];
+  const untracked = [];
+
+  for (const branch of branches) {
+    if (protectedBranches.includes(branch)) continue;
+
+    if (!isGtTracked(cwd, branch)) {
+      // Check if branch has a remote counterpart
+      const remoteCheck = execGit(cwd, ['branch', '-r', '--list', 'origin/' + branch]);
+      const hasRemote = remoteCheck.stdout.trim().length > 0;
+
+      untracked.push({ branch, has_remote: hasRemote });
+    }
+  }
+
+  if (mode === 'delete') {
+    const deleted = [];
+    const skipped = [];
+    for (const { branch, has_remote } of untracked) {
+      // Use -d (safe delete) — refuses if unmerged
+      const delResult = execGit(cwd, ['branch', '-d', branch]);
+      if (delResult.exitCode === 0) {
+        deleted.push(branch);
+      } else {
+        // Try -D for branches that are not merged but have no remote
+        if (!has_remote) {
+          const forceDelResult = execGit(cwd, ['branch', '-D', branch]);
+          if (forceDelResult.exitCode === 0) {
+            deleted.push(branch);
+          } else {
+            skipped.push({ branch, reason: forceDelResult.stderr });
+          }
+        } else {
+          skipped.push({ branch, reason: delResult.stderr });
+        }
+      }
+    }
+    output({ deleted, skipped, total_untracked: untracked.length }, raw);
+  } else if (mode === 'track') {
+    const tracked = [];
+    const failed = [];
+    for (const { branch } of untracked) {
+      const trackResult = runGt(['track', branch, '--parent', 'staging', '--force'], cwd);
+      if (trackResult.exitCode === 0) {
+        tracked.push(branch);
+      } else {
+        failed.push({ branch, error: trackResult.stderr });
+      }
+    }
+    output({ tracked, failed, total_untracked: untracked.length }, raw);
+  } else {
+    // Default: report only
+    output({ untracked, total: untracked.length }, raw);
+  }
+}
+
 function cmdGenerateSlug(text, raw) {
   if (!text) {
     error('text required for slug generation');
@@ -647,6 +712,7 @@ function cmdScaffold(cwd, type, options, raw) {
 
 module.exports = {
   cmdEnsureBranch,
+  cmdCleanupBranches,
   cmdGenerateSlug,
   cmdCurrentTimestamp,
   cmdListTodos,
