@@ -85,10 +85,5 @@ jobs:
             echo "ref=staging" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: millionco/react-doctor@main
-        with:
-          project: "landing,web"
-          diff: ${{ steps.fetch-base.outputs.ref }}
-          verbose: "true"
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          fail-on: "error"
+      - name: Run React Doctor
+        run: npx -y react-doctor@latest . --project landing,web --diff ${{ steps.fetch-base.outputs.ref }} --verbose --fail-on error
