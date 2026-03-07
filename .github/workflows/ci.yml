@@ -63,8 +63,20 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
 
+      - name: Fetch base ref for test filtering
+        id: fetch-base
+        if: github.event_name == 'pull_request'
+        run: |
+          BASE_REF="${{ github.base_ref }}"
+          if git fetch origin "$BASE_REF" 2>/dev/null; then
+            echo "filter=--filter='...[origin/$BASE_REF]'" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Base ref '$BASE_REF' not found, running all tests"
+            echo "filter=" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Test
-        run: pnpm turbo run test --filter='...[origin/${{ github.base_ref }}]' --output-logs=errors-only
+        run: pnpm turbo run test ${{ steps.fetch-base.outputs.filter }} --output-logs=errors-only
 
   react-doctor:
     name: React Doctor
