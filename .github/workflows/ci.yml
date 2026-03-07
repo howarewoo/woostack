@@ -25,11 +25,9 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v6
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 10
+      - uses: pnpm/action-setup@v4
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v6
@@ -39,6 +37,15 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Cache Turborepo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+            turbo-${{ runner.os }}-
 
       - name: Run Biome CI
         run: pnpx biome ci .
@@ -53,7 +60,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
 
       - name: Test
-        run: pnpm test:changed
+        run: pnpm turbo run test --filter='...[origin/${{ github.base_ref }}]' --output-logs=errors-only
 
   react-doctor:
     name: React Doctor
@@ -86,4 +93,4 @@ jobs:
           fi
 
       - name: Run React Doctor
-        run: npx -y react-doctor@latest . --project landing,web --diff ${{ steps.fetch-base.outputs.ref }} --verbose --fail-on error
+        run: npx -y react-doctor@0.0.30 . --project landing,web --diff ${{ steps.fetch-base.outputs.ref }} --verbose --fail-on error
