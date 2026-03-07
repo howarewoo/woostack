@@ -209,7 +209,7 @@ react: "19.1.0"
 
 **Gotcha**: Zod v4 changed string validation methods: `z.string().email()` → `z.email()`, `z.string().datetime()` → `z.iso.datetime()`. Other APIs (`z.object()`, `z.string()`, `z.string().min()`, `z.infer<>`, `.array()`, `.nullable()`) are unchanged.
 
-**Gotcha**: `pnpm build` runs `pnpm self-update && turbo build` — this upgrades pnpm before building. If local builds behave differently from CI, check whether `pnpm --version` still matches the `packageManager` field in root `package.json`.
+**Gotcha**: `pnpm build` runs `turbo build`. The pnpm version is pinned via the `packageManager` field in root `package.json`.
 
 **Gotcha**: pnpm 10 disables dependency lifecycle scripts by default. If a new dependency has a `postinstall` script (e.g., `esbuild`, `prisma`, native modules), add it to `pnpm.onlyBuiltDependencies` in the root `package.json` or it will silently fail to build.
 
@@ -259,7 +259,7 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
 
 **React Doctor** runs as a separate CI job on every PR — checks for React anti-patterns and posts review comments.
 
-**Note**: CI does not run `typecheck` — run `pnpm typecheck` locally before pushing.
+**Note**: CI runs `typecheck` between the Biome and Build steps.
 
 **Dependabot** (`.github/dependabot.yml`) runs weekly scans for npm and GitHub Actions updates. PRs target `staging` (not `main`).
 
