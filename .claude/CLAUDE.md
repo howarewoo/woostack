@@ -60,6 +60,7 @@ pnpm --filter supabase-db reset   # Reset DB (reapply migrations + seed)
   - `apps/supabase` — Supabase CLI project (config, migrations, seed data; local dev via Docker)
 - **Features** (`packages/features/*`): Standalone business feature packages; own their contracts (`contracts/`), routers (`routers/`), and procedures (`procedures/`); can only import from infrastructure
   - `@features/auth` — Auth form Zod schemas (`SignInSchema`, `SignUpSchema`, `ForgotPasswordSchema`, `ResetPasswordSchema`); portable to mobile
+  - `@features/users` — User contracts and oRPC routers
 - **Infrastructure** (`packages/infrastructure/*`): Shared utilities; can be used anywhere
   - `@infrastructure/api-client` — oRPC client utilities (`createApiClient`, `createTypedApiClient`), generated Router type, and shared base schemas
   - `@infrastructure/navigation` — Platform-agnostic navigation (Link, useNavigation, NavigationProvider)
@@ -213,7 +214,7 @@ react: "19.1.0"
 
 **Gotcha**: pnpm 10 disables dependency lifecycle scripts by default. If a new dependency has a `postinstall` script (e.g., `esbuild`, `prisma`, native modules), add it to `pnpm.onlyBuiltDependencies` in the root `package.json` or it will silently fail to build.
 
-**Gotcha**: After changing any feature router or `apps/api/src/router.ts`, run `pnpm gencode` to regenerate the Router type in `@infrastructure/api-client`. The generated file (`packages/infrastructure/api-client/src/generated/router-types.d.ts`) must be committed — it is not regenerated during build or CI.
+**Gotcha**: After changing any feature router or `apps/api/src/router.ts`, run `pnpm gencode` to regenerate the Router type in `@infrastructure/api-client`. The generated file (`packages/infrastructure/api-client/src/generated/router-types.d.ts`) must be committed. CI checks for staleness but does not auto-regenerate.
 
 ### Environment Variables
 
@@ -252,14 +253,15 @@ Each app has an env example file (`.env.example` for `api`/`mobile`, `.env.local
 
 ## CI
 
-GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
+GitHub Actions (`.github/workflows/ci.yml`) runs on every PR (and on push to `main`/`staging`):
 1. `biome ci` — lint + format check
-2. `pnpm turbo build` — build all packages
-3. `pnpm test:changed` — tests for changed packages only
+2. `pnpm typecheck` — type check all packages
+3. `pnpm turbo build` — build all packages
+4. `pnpm test:changed` — tests for changed packages (compares against base branch in CI)
 
-**React Doctor** runs as a separate CI job on every PR — checks for React anti-patterns and posts review comments.
+**React Doctor** runs as a separate CI job on PRs only — checks for React anti-patterns and posts review comments.
 
-**Note**: CI runs `typecheck` between the Biome and Build steps.
+**CodeQL** (`.github/workflows/codeql.yml`) runs JavaScript/TypeScript SAST on PRs, pushes to main/staging, and weekly.
 
 **Dependabot** (`.github/dependabot.yml`) runs weekly scans for npm and GitHub Actions updates. PRs target `staging` (not `main`).
 
