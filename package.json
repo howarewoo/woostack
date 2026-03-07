@@ -10,7 +10,7 @@
     "gencode": "turbo gencode",
     "lint": "turbo lint",
     "lint:fix": "turbo lint:fix",
-    "pre-commit": "pnpm install && pnpm format:unsafe && pnpm typecheck && pnpx react-doctor@latest . -y --verbose --no-dead-code --no-ami --fail-on error && pnpm test:changed",
+    "pre-commit": "pnpm install && pnpm format:unsafe && pnpm typecheck && pnpx react-doctor@latest . --project landing,web --verbose --no-dead-code --fail-on error && pnpm test:changed",
     "reset": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' + && find . -name '.next' -type d -prune -exec rm -rf '{}' + && find . -name 'dist' -type d -prune -exec rm -rf '{}' + && find . -name '.turbo' -type d -prune -exec rm -rf '{}' + && git clean -fd -e '*.env*' -e '.env*'",
     "sort:package.json": "pnpm -r --workspace-root exec -- pnpx sort-package-json",
     "test": "turbo test",

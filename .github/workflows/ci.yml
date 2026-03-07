@@ -87,6 +87,7 @@ jobs:
 
       - uses: millionco/react-doctor@main
         with:
+          project: "landing,web"
           diff: ${{ steps.fetch-base.outputs.ref }}
           verbose: "true"
           github-token: ${{ secrets.GITHUB_TOKEN }}
