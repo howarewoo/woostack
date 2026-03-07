@@ -45,7 +45,7 @@ pnpm-debug.log*
 
 # Build-generated type declarations
 next-env.d.ts
-uniwind-types.d.ts
+# Note: uniwind-types.d.ts is committed because CI needs it for typecheck
 
 # Misc
 *.tsbuildinfo
