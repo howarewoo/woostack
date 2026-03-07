@@ -43,6 +43,9 @@ jobs:
       - name: Run Biome CI
         run: pnpx biome ci .
 
+      - name: Typecheck
+        run: pnpm typecheck
+
       - name: Build
         run: pnpm turbo build
         env:
