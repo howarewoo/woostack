@@ -118,6 +118,7 @@ jobs:
     needs: tests
     timeout-minutes: 10
     runs-on: ubuntu-latest
+    environment: ${{ github.head_ref == 'main' && 'Production' || 'Staging' }}
     concurrency:
       group: e2e-${{ github.event.pull_request.number }}
       cancel-in-progress: true
