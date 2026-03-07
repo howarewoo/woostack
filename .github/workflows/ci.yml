@@ -3,6 +3,8 @@ name: CI
 on:
   pull_request:
     types: [opened, synchronize]
+  push:
+    branches: [main, staging]
 
 jobs:
   tests:
@@ -11,17 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ github.head_ref == 'main' && 'Production' || 'Staging' }}
     concurrency:
-      group: ci-${{ github.event.pull_request.number }}
+      group: ci-${{ github.event.pull_request.number || github.sha }}
       cancel-in-progress: true
 
     steps:
-      - name: Debug context
-        run: |
-          echo "base_ref: ${{ github.base_ref }}"
-          echo "head_ref: ${{ github.head_ref }}"
-          echo "event_name: ${{ github.event_name }}"
-          echo "environment: ${{ github.head_ref == 'main' && 'Production' || 'Staging' }}"
-
       - name: Check out code
         uses: actions/checkout@v6
         with:
@@ -47,6 +42,15 @@ jobs:
             turbo-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
             turbo-${{ runner.os }}-
 
+      - name: Security audit
+        run: pnpm audit --audit-level=high
+        continue-on-error: true
+
+      - name: Check generated files are up to date
+        run: |
+          pnpm gencode
+          git diff --exit-code -- packages/infrastructure/api-client/src/generated/
+
       - name: Run Biome CI
         run: pnpx biome ci .
 
@@ -64,6 +68,7 @@ jobs:
 
   react-doctor:
     name: React Doctor
+    if: github.event_name == 'pull_request'
     timeout-minutes: 10
     runs-on: ubuntu-latest
     permissions:
