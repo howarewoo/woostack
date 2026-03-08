@@ -8,7 +8,7 @@ test.describe("Home Page", () => {
 
   test("should display sign-in form", async ({ page }) => {
     await page.goto("/sign-in");
-    await expect(page.getByRole("heading", { name: "Sign In" })).toBeVisible();
+    await expect(page.locator('[data-slot="card-title"]', { hasText: "Sign In" })).toBeVisible();
     await expect(page.getByLabel("Email")).toBeVisible();
     await expect(page.getByLabel("Password")).toBeVisible();
   });
