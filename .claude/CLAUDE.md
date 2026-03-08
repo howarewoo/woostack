@@ -265,6 +265,8 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on every PR (and on push to `ma
 
 **Dependabot** (`.github/dependabot.yml`) runs weekly scans for npm and GitHub Actions updates. PRs target `staging` (not `main`).
 
+**Claude PR Review** (`.github/workflows/claude-review.yml`) runs on every PR (open/sync) and on-demand via `/review` comment. Performs single-pass AI review across 5 dimensions: security, architecture, constitution compliance, code quality, and API stability. Posts inline review comments + summary. Uses `CLAUDE_CODE_OAUTH_TOKEN` secret (generated via `claude setup-token`).
+
 **Community files**: Issue templates (bug report, feature request), PR template, and `CONTRIBUTING.md` guide new contributors.
 
 ## Testing
