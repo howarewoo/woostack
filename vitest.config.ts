@@ -4,5 +4,14 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html", "lcov"],
+      thresholds: {
+        lines: 80,
+        branches: 80,
+        functions: 80,
+      },
+    },
   },
 });

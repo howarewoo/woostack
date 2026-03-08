@@ -57,6 +57,9 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      - name: Check import boundaries
+        run: pnpm check:boundaries
+
       - name: Build
         run: pnpm turbo build
         env:

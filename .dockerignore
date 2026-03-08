@@ -1,0 +1,10 @@
+node_modules
+.next
+dist
+.turbo
+.git
+*.md
+apps/web
+apps/landing
+apps/mobile
+apps/supabase
