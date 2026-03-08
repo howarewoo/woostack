@@ -63,8 +63,20 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
 
+      - name: Fetch base ref for test filtering
+        id: fetch-base
+        if: github.event_name == 'pull_request'
+        run: |
+          BASE_REF="${{ github.base_ref }}"
+          if git fetch origin "$BASE_REF" 2>/dev/null; then
+            echo "filter=--filter='...[origin/$BASE_REF]'" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Base ref '$BASE_REF' not found, running all tests"
+            echo "filter=" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Test
-        run: pnpm turbo run test --filter='...[origin/${{ github.base_ref }}]' --output-logs=errors-only
+        run: pnpm turbo run test ${{ steps.fetch-base.outputs.filter }} --output-logs=errors-only
 
   react-doctor:
     name: React Doctor
@@ -85,6 +97,36 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.head_ref }}
 
+      - name: Resolve catalog versions for react-doctor
+        run: |
+          node -e "
+            const fs = require('fs');
+            const lines = fs.readFileSync('pnpm-workspace.yaml', 'utf8').split('\n');
+            const catalog = {};
+            let inCatalog = false;
+            for (const line of lines) {
+              if (/^catalog:/.test(line)) { inCatalog = true; continue; }
+              if (inCatalog && /^\S/.test(line)) { inCatalog = false; }
+              if (inCatalog) {
+                const m = line.match(/^\s+(.+?):\s*['\"](.+?)['\"]/);
+                if (m) catalog[m[1]] = m[2];
+              }
+            }
+            for (const app of ['apps/web', 'apps/landing']) {
+              const pkgPath = app + '/package.json';
+              const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+              for (const depType of ['dependencies', 'devDependencies']) {
+                if (!pkg[depType]) continue;
+                for (const [name, ver] of Object.entries(pkg[depType])) {
+                  if (ver === 'catalog:' && catalog[name]) {
+                    pkg[depType][name] = catalog[name];
+                  }
+                }
+              }
+              fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
+            }
+          "
+
       - name: Fetch base branch for diff
         id: fetch-base
         run: |
@@ -99,3 +141,47 @@ jobs:
 
       - name: Run React Doctor
         run: npx -y react-doctor@0.0.30 . --project landing,web --diff ${{ steps.fetch-base.outputs.ref }} --verbose --fail-on error
+
+  e2e:
+    name: E2E Tests
+    if: github.event_name == 'pull_request'
+    needs: tests
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    environment: ${{ github.head_ref == 'main' && 'Production' || 'Staging' }}
+    concurrency:
+      group: e2e-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache Turborepo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+            turbo-${{ runner.os }}-
+
+      - name: Install Playwright browsers
+        run: pnpx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: pnpm test:e2e
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}

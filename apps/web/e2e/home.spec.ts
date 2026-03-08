@@ -1,21 +1,23 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("Home Page", () => {
-  test("should display the title", async ({ page }) => {
+  test("should redirect to sign-in page", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: "Monorepo Template" })).toBeVisible();
+    await expect(page).toHaveURL(/\/sign-in/);
   });
 
-  test("should display feature cards", async ({ page }) => {
-    await page.goto("/");
-    await expect(page.getByText("Next.js")).toBeVisible();
-    await expect(page.getByText("Expo")).toBeVisible();
-    await expect(page.getByText("Hono + oRPC")).toBeVisible();
+  test("should display sign-in form", async ({ page }) => {
+    await page.goto("/sign-in");
+    await expect(page.locator('[data-slot="card-title"]', { hasText: "Sign In" })).toBeVisible();
+    await expect(page.getByLabel("Email")).toBeVisible();
+    await expect(page.getByLabel("Password")).toBeVisible();
   });
 
-  test("should have action buttons", async ({ page }) => {
-    await page.goto("/");
-    await expect(page.getByRole("button", { name: "Get Started" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Documentation" })).toBeVisible();
+  test("should display sign-in actions", async ({ page }) => {
+    await page.goto("/sign-in");
+    await expect(page.getByRole("button", { name: "Sign In" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Google/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Apple/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /GitHub/ })).toBeVisible();
   });
 });
