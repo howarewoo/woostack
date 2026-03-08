@@ -1,0 +1,13 @@
+# Infrastructure packages require review
+packages/infrastructure/** @howarewoo
+
+# CI/CD config requires review
+.github/** @howarewoo
+
+# Constitution changes require review
+eng-constitution.md @howarewoo
+
+# Root config files
+package.json @howarewoo
+pnpm-workspace.yaml @howarewoo
+turbo.json @howarewoo

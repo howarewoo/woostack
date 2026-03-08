@@ -3,6 +3,8 @@
   "private": true,
   "scripts": {
     "build": "turbo build",
+    "changeset": "changeset",
+    "check:boundaries": "pnpx tsx scripts/check-import-boundaries.ts",
     "clean": "turbo clean && rm -rf node_modules",
     "dev": "pnpm install && turbo dev",
     "format": "biome check --write . && pnpm sort:package.json",
@@ -10,16 +12,24 @@
     "gencode": "turbo gencode",
     "lint": "turbo lint",
     "lint:fix": "turbo lint:fix",
-    "pre-commit": "pnpm install && pnpm format:unsafe && pnpm typecheck && pnpx react-doctor@latest . --project landing,web --verbose --no-dead-code --fail-on error && pnpm test:changed",
+    "pre-commit": "pnpm install && pnpm format:unsafe && pnpm typecheck && (pnpx tsx scripts/resolve-catalog-for-react-doctor.ts && pnpx react-doctor@latest . --project landing,web --verbose --no-dead-code --fail-on error; RD=$?; git checkout apps/web/package.json apps/landing/package.json 2>/dev/null; exit $RD) && pnpm test:changed",
+    "prepare": "husky",
+    "release": "changeset publish",
     "reset": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' + && find . -name '.next' -type d -prune -exec rm -rf '{}' + && find . -name 'dist' -type d -prune -exec rm -rf '{}' + && find . -name '.turbo' -type d -prune -exec rm -rf '{}' + && git clean -fd -e '*.env*' -e '.env*'",
     "sort:package.json": "pnpm -r --workspace-root exec -- pnpx sort-package-json",
     "test": "turbo test",
     "test:changed": "turbo run test --filter='...[HEAD^1]' --output-logs=errors-only",
+    "test:coverage": "turbo test -- --coverage",
     "test:e2e": "turbo test:e2e",
-    "typecheck": "turbo typecheck"
+    "typecheck": "turbo typecheck",
+    "version-packages": "changeset version"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.6",
+    "@changesets/changelog-github": "catalog:",
+    "@changesets/cli": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "husky": "catalog:",
     "turbo": "2.8.14",
     "typescript": "catalog:"
   },
