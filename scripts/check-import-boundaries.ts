@@ -30,11 +30,7 @@ function grep(pattern: string, paths: string[]): string[] {
       );
   } catch (error: unknown) {
     // grep exits with code 1 for "no matches" — that's expected
-    if (
-      error instanceof Error &&
-      "status" in error &&
-      (error as { status: number }).status === 1
-    ) {
+    if (error instanceof Error && "status" in error && (error as { status: number }).status === 1) {
       return [];
     }
     throw error;
