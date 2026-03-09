@@ -1,3 +1,4 @@
+import { type Logger, createLogger, otelMiddleware } from "@infrastructure/observability";
 import { supabaseMiddleware } from "@infrastructure/supabase/middleware/hono";
 import { RPCHandler } from "@orpc/server/fetch";
 import { Hono } from "hono";
@@ -13,7 +14,11 @@ function requireEnv(name: string): string {
 const supabaseUrl = process.env.SUPABASE_URL || "http://127.0.0.1:54321";
 const supabasePublishableKey = requireEnv("SUPABASE_PUBLISHABLE_KEY");
 
+const logger: Logger = createLogger({ serviceName: "api" });
+
 const app = new Hono();
+
+app.use("*", otelMiddleware({ logger }));
 
 app.use(
   "*",
@@ -64,4 +69,4 @@ app.get("/", (c) => {
   return c.json({ message: "Monorepo API is running!" });
 });
 
-export { app };
+export { app, logger };

@@ -1,0 +1,31 @@
+{
+  "name": "@infrastructure/observability",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "catalog:",
+    "pino": "catalog:"
+  },
+  "devDependencies": {
+    "@infrastructure/typescript-config": "workspace:*",
+    "hono": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "hono": ">=4.0.0"
+  }
+}
