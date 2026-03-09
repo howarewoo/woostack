@@ -1,4 +1,6 @@
-import { type Logger, createLogger, otelMiddleware } from "@infrastructure/observability";
+import { ConsoleReporter, createErrorBoundary } from "@infrastructure/error-tracking";
+import { createLogger, type Logger, otelMiddleware } from "@infrastructure/observability";
+import { bodyLimit, securityHeaders } from "@infrastructure/security";
 import { supabaseMiddleware } from "@infrastructure/supabase/middleware/hono";
 import { RPCHandler } from "@orpc/server/fetch";
 import { Hono } from "hono";
@@ -16,9 +18,15 @@ const supabasePublishableKey = requireEnv("SUPABASE_PUBLISHABLE_KEY");
 
 const logger: Logger = createLogger({ serviceName: "api" });
 
+const errorReporter = new ConsoleReporter();
+
 const app = new Hono();
 
+app.onError(createErrorBoundary({ reporter: errorReporter }));
+
 app.use("*", otelMiddleware({ logger }));
+app.use("*", securityHeaders());
+app.use("*", bodyLimit({ maxSize: 1_048_576 }));
 
 app.use(
   "*",

@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import { Hono } from "hono";
+import { describe, expect, it } from "vitest";
 import { csrfProtection } from "../csrf";
 
 const ALLOWED_ORIGINS = ["http://localhost:3000", "http://localhost:3001"];
@@ -88,10 +88,7 @@ describe("csrfProtection", () => {
 
   it("strips trailing slashes from allowed origins for comparison", async () => {
     const app = new Hono();
-    app.use(
-      "*",
-      csrfProtection({ allowedOrigins: ["http://localhost:3000/"] })
-    );
+    app.use("*", csrfProtection({ allowedOrigins: ["http://localhost:3000/"] }));
     app.post("/", (c) => c.text("ok"));
 
     const res = await app.request("/", {

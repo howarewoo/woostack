@@ -9,9 +9,7 @@ const STATE_CHANGING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
  * of allowed origins.
  */
 export function csrfProtection(options: CsrfProtectionOptions): MiddlewareHandler {
-  const allowedOrigins = new Set(
-    options.allowedOrigins.map((origin) => origin.replace(/\/$/, ""))
-  );
+  const allowedOrigins = new Set(options.allowedOrigins.map((origin) => origin.replace(/\/$/, "")));
 
   return async (c, next) => {
     if (!STATE_CHANGING_METHODS.has(c.req.method)) {

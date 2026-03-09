@@ -25,7 +25,7 @@ describe("withSpan", () => {
     await expect(
       withSpan("error-span", async () => {
         throw new Error("boom");
-      }),
+      })
     ).rejects.toThrow("boom");
   });
 });

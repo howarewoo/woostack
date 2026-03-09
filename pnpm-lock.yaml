@@ -238,9 +238,15 @@ importers:
       '@infrastructure/api-client':
         specifier: workspace:*
         version: link:../../packages/infrastructure/api-client
+      '@infrastructure/error-tracking':
+        specifier: workspace:*
+        version: link:../../packages/infrastructure/error-tracking
       '@infrastructure/observability':
         specifier: workspace:*
         version: link:../../packages/infrastructure/observability
+      '@infrastructure/security':
+        specifier: workspace:*
+        version: link:../../packages/infrastructure/security
       '@infrastructure/supabase':
         specifier: workspace:*
         version: link:../../packages/infrastructure/supabase

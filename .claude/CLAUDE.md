@@ -69,6 +69,14 @@ pnpm --filter supabase-db reset   # Reset DB (reapply migrations + seed)
   - `@infrastructure/utils` — Cross-platform utility functions
   - `@infrastructure/supabase` — Supabase clients (server, browser, SSR), auth hooks/context (AuthProvider, useAuth, useUser), storage utilities, Hono/Next.js middleware, generated DB types
   - `@infrastructure/typescript-config` — Shared TypeScript configs (base, library, nextjs, react-native)
+  - `@infrastructure/observability` — Structured logging (`createLogger`, pino) and OpenTelemetry middleware (`otelMiddleware`) for Hono; request ID propagation via `x-request-id`
+  - `@infrastructure/security` — Hono middleware for security headers (`securityHeaders`), CSRF protection (`csrfProtection`), and request body size limiting (`bodyLimit`)
+  - `@infrastructure/error-tracking` — `ErrorReporter` interface with `ConsoleReporter` default; `createErrorBoundary()` Hono error handler; `reportError`/`reportMessage` convenience functions
+  - `@infrastructure/rate-limit` — Sliding window rate limiter with `MemoryStore`; `createRateLimiter()` Hono middleware with `X-RateLimit-*` headers
+  - `@infrastructure/cache` — `CacheStore` interface with `MemoryCacheStore` (LRU + TTL); `createCache()` factory with key prefix support
+  - `@infrastructure/feature-flags` — Flag evaluation (`evaluateFlag`) with user targeting, percentage rollout (deterministic hash); `MemoryFlagStore`; Supabase migration for `feature_flags` table
+  - `@infrastructure/jobs` — `defineJob()` factory with Zod schema validation for background job definitions
+  - `@infrastructure/notifications` — `NotificationService` with `NotificationChannel` interface; `ConsoleChannel` default adapter for dev
 
 ## Key Patterns
 

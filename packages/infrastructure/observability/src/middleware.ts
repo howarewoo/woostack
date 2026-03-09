@@ -1,5 +1,5 @@
-import type { Logger } from "pino";
 import type { MiddlewareHandler } from "hono";
+import type { Logger } from "pino";
 
 declare module "hono" {
   interface ContextVariableMap {

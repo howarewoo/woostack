@@ -18,7 +18,9 @@
     "@orpc/server": "catalog:",
     "@features/users": "workspace:*",
     "@infrastructure/api-client": "workspace:*",
+    "@infrastructure/error-tracking": "workspace:*",
     "@infrastructure/observability": "workspace:*",
+    "@infrastructure/security": "workspace:*",
     "@infrastructure/supabase": "workspace:*",
     "hono": "catalog:",
     "zod": "catalog:"

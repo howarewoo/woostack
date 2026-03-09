@@ -22,7 +22,7 @@ describe("ConsoleChannel", () => {
 
     expect(spy).toHaveBeenCalledOnce();
     expect(spy).toHaveBeenCalledWith(
-      '[notification] to=user@example.com subject="Test Subject" body="Test body content"',
+      '[notification] to=user@example.com subject="Test Subject" body="Test body content"'
     );
 
     spy.mockRestore();

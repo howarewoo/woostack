@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import { Hono } from "hono";
+import { describe, expect, it } from "vitest";
 import { securityHeaders } from "../headers";
 
 function createApp(options?: Parameters<typeof securityHeaders>[0]) {

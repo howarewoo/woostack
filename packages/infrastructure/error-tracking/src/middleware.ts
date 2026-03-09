@@ -28,7 +28,7 @@ export function createErrorBoundary(options: ErrorBoundaryOptions): ErrorHandler
           ...(requestId ? { requestId } : {}),
         },
       },
-      500,
+      500
     );
   };
 }

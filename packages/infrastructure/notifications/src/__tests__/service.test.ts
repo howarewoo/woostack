@@ -10,10 +10,7 @@ describe("NotificationService", () => {
     metadata: { priority: "high" },
   };
 
-  function createMockChannel(
-    name: string,
-    success = true,
-  ): NotificationChannel {
+  function createMockChannel(name: string, success = true): NotificationChannel {
     return {
       name,
       send: vi.fn(async () => ({ channel: name, success })),
@@ -22,9 +19,7 @@ describe("NotificationService", () => {
 
   it("throws when no channels are configured", async () => {
     const service = new NotificationService();
-    await expect(service.send(notification)).rejects.toThrow(
-      "No notification channels configured",
-    );
+    await expect(service.send(notification)).rejects.toThrow("No notification channels configured");
   });
 
   it("dispatches to a single channel", async () => {

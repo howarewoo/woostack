@@ -29,8 +29,6 @@ export class ConsoleReporter implements ErrorReporter {
       case "warning":
         console.warn("[ErrorTracking]", JSON.stringify(entry));
         break;
-      case "fatal":
-      case "error":
       default:
         console.error("[ErrorTracking]", JSON.stringify(entry));
         break;
