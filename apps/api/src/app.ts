@@ -1,4 +1,4 @@
-import { type Logger, createLogger, otelMiddleware } from "@infrastructure/observability";
+import { createLogger, type Logger, otelMiddleware } from "@infrastructure/observability";
 import { supabaseMiddleware } from "@infrastructure/supabase/middleware/hono";
 import { RPCHandler } from "@orpc/server/fetch";
 import { Hono } from "hono";
@@ -52,7 +52,7 @@ app.all("/api/*", async (c) => {
   const result = await handler.handle(request, {
     prefix: "/",
     context: {
-      requestId: c.req.header("x-request-id"),
+      requestId: c.get("requestId"),
       user: c.get("user"),
       supabase: c.get("supabase"),
     },

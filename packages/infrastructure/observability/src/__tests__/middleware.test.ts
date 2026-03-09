@@ -1,6 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
-import type { Logger } from "pino";
 import { Hono } from "hono";
+import type { Logger } from "pino";
+import { describe, expect, it, vi } from "vitest";
 import { otelMiddleware } from "../middleware";
 
 function createMockLogger() {
@@ -47,9 +47,7 @@ describe("otelMiddleware", () => {
     const requestId = res.headers.get("x-request-id");
     expect(requestId).toBeTruthy();
     // UUID v4 format
-    expect(requestId).toMatch(
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
-    );
+    expect(requestId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
   });
 
   it("makes requestId available via c.get('requestId')", async () => {

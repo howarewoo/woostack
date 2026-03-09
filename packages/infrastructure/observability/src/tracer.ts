@@ -1,5 +1,5 @@
-import { SpanStatusCode, trace } from "@opentelemetry/api";
 import type { Span, Tracer } from "@opentelemetry/api";
+import { SpanStatusCode, trace } from "@opentelemetry/api";
 
 const DEFAULT_TRACER_NAME = "app";
 

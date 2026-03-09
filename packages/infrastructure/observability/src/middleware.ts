@@ -1,5 +1,5 @@
-import type { Logger } from "pino";
 import type { MiddlewareHandler } from "hono";
+import type { Logger } from "pino";
 
 declare module "hono" {
   interface ContextVariableMap {
@@ -27,25 +27,27 @@ export function otelMiddleware({ logger }: OtelMiddlewareOptions): MiddlewareHan
 
     const start = performance.now();
 
-    await next();
+    try {
+      await next();
+    } finally {
+      const duration = Math.round(performance.now() - start);
 
-    const duration = Math.round(performance.now() - start);
+      const MAX_PATH_LOG_LENGTH = 256;
+      const logPath =
+        c.req.path.length > MAX_PATH_LOG_LENGTH
+          ? `${c.req.path.slice(0, MAX_PATH_LOG_LENGTH)}...[truncated]`
+          : c.req.path;
 
-    const MAX_PATH_LOG_LENGTH = 256;
-    const logPath =
-      c.req.path.length > MAX_PATH_LOG_LENGTH
-        ? c.req.path.slice(0, MAX_PATH_LOG_LENGTH) + "...[truncated]"
-        : c.req.path;
-
-    logger.info(
-      {
-        requestId,
-        method: c.req.method,
-        path: logPath,
-        status: c.res.status,
-        duration,
-      },
-      "request completed"
-    );
+      logger.info(
+        {
+          requestId,
+          method: c.req.method,
+          path: logPath,
+          status: c.res.status,
+          duration,
+        },
+        "request completed"
+      );
+    }
   };
 }
