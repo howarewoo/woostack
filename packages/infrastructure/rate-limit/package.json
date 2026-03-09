@@ -1,0 +1,27 @@
+{
+  "name": "@infrastructure/rate-limit",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "hono": "catalog:"
+  },
+  "devDependencies": {
+    "@infrastructure/typescript-config": "workspace:*",
+    "hono": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
