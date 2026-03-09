@@ -65,6 +65,45 @@ app.all("/api/*", async (c) => {
   return c.notFound();
 });
 
+// --- Health check routes (outside /api/* — no auth required) ---
+
+const startTime = Date.now();
+
+/** Liveness probe — confirms the process is running. */
+app.get("/health", (c) => {
+  const uptimeSeconds = Math.floor((Date.now() - startTime) / 1000);
+  return c.json({ status: "ok", uptime: uptimeSeconds });
+});
+
+/**
+ * Readiness probe — confirms the service can handle requests.
+ * Checks Supabase DB connectivity when env vars are configured.
+ */
+app.get("/ready", async (c) => {
+  if (!supabaseUrl || !supabasePublishableKey) {
+    return c.json({ status: "ready", checks: { db: "skipped" } });
+  }
+
+  try {
+    const response = await fetch(`${supabaseUrl}/rest/v1/`, {
+      method: "HEAD",
+      headers: {
+        apikey: supabasePublishableKey,
+        Authorization: `Bearer ${supabasePublishableKey}`,
+      },
+      signal: AbortSignal.timeout(5000),
+    });
+
+    if (!response.ok) {
+      return c.json({ status: "not_ready", checks: { db: "failed" } }, 503);
+    }
+
+    return c.json({ status: "ready", checks: { db: "ok" } });
+  } catch {
+    return c.json({ status: "not_ready", checks: { db: "failed" } }, 503);
+  }
+});
+
 app.get("/", (c) => {
   return c.json({ message: "Monorepo API is running!" });
 });

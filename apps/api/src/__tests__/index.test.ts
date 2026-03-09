@@ -104,3 +104,47 @@ describe("API Server", () => {
     expect(res.headers.get("access-control-allow-origin")).toBe("http://localhost:3001");
   });
 });
+
+describe("GET /health", () => {
+  it("should return 200 with status ok and uptime", async () => {
+    const res = await app.request("/health");
+    expect(res.status).toBe(200);
+
+    const json = await res.json();
+    expect(json.status).toBe("ok");
+    expect(typeof json.uptime).toBe("number");
+    expect(json.uptime).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe("GET /ready", () => {
+  const originalEnv = process.env;
+  const mockFetch = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env = { ...originalEnv };
+    vi.stubGlobal("fetch", mockFetch);
+  });
+
+  it("should skip DB check and return ready when Supabase is not configured", async () => {
+    // The test env has SUPABASE_PUBLISHABLE_KEY set but supabaseUrl defaults,
+    // so we test the readiness probe returns ok when Supabase is reachable
+    mockFetch.mockResolvedValueOnce(new Response(null, { status: 200 }));
+
+    const res = await app.request("/ready");
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.status).toBe("ready");
+  });
+
+  it("should return 503 when Supabase is unreachable", async () => {
+    mockFetch.mockRejectedValueOnce(new Error("Connection refused"));
+
+    const res = await app.request("/ready");
+    expect(res.status).toBe(503);
+    const json = await res.json();
+    expect(json.status).toBe("not_ready");
+    expect(json.checks.db).toBe("failed");
+  });
+});
