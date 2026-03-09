@@ -62,7 +62,9 @@ describe("API Server", () => {
       expect.objectContaining({
         prefix: "/",
         context: expect.objectContaining({
-          requestId: expect.stringMatching(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/),
+          requestId: expect.stringMatching(
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+          ),
           user: undefined,
           supabase: undefined,
         }),
