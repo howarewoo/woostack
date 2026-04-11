@@ -25,12 +25,12 @@
     "version-packages": "changeset version"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.7",
+    "@biomejs/biome": "2.4.11",
     "@changesets/changelog-github": "catalog:",
     "@changesets/cli": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "husky": "catalog:",
-    "turbo": "2.8.17",
+    "turbo": "2.9.6",
     "typescript": "catalog:"
   },
   "packageManager": "pnpm@10.30.1",
