@@ -1,47 +1,33 @@
-name: Bug Report
-description: Report a bug in the monorepo template
-labels: ["bug"]
+name: Spec Issue
+description: Report a problem with the spec — incorrect guidance, broken bootstrap step, outdated gotcha, etc.
+labels: ["spec-issue"]
 body:
   - type: dropdown
-    id: app
+    id: section
     attributes:
-      label: Affected app/package
+      label: Affected spec section
       options:
-        - apps/web
-        - apps/landing
-        - apps/mobile
-        - apps/api
-        - "@infrastructure/ui"
-        - "@infrastructure/ui-web"
-        - "@infrastructure/navigation"
-        - "@infrastructure/api-client"
-        - "@infrastructure/utils"
+        - spec/architecture.md
+        - spec/frameworks.md
+        - spec/infrastructure.md
+        - spec/patterns.md
+        - spec/development.md
+        - spec/bootstrap.md
+        - README.md
         - Other
     validations:
       required: true
   - type: textarea
     id: description
     attributes:
-      label: Description
-      description: What happened, and what did you expect?
+      label: What's wrong?
+      description: What does the spec say, and what should it say instead?
     validations:
       required: true
   - type: textarea
-    id: steps
+    id: context
     attributes:
-      label: Steps to reproduce
-      description: Minimal steps to trigger the bug.
-      placeholder: |
-        1. Run `pnpm dev`
-        2. Navigate to ...
-        3. See error
-    validations:
-      required: true
-  - type: textarea
-    id: environment
-    attributes:
-      label: Environment
-      description: Node version, OS, browser/device, etc.
-      placeholder: "Node 22, macOS 15, Chrome 131"
+      label: Context
+      description: Did you hit this while bootstrapping a project? Reviewing existing code? Reading the spec?
     validations:
       required: false
