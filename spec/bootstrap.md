@@ -79,6 +79,7 @@ For each `@infrastructure/*` package:
 **Required infrastructure contents:**
 
 - `api-client` — `createApiClient<Router>(baseUrl)`, `createOrpcUtils(client)`, shared base Zod schemas.
+- `flags` — every `flag(...)` definition (Vercel Flags SDK), the shared `identify()` reading Supabase session, and the chosen adapter wiring. See [infrastructure.md#feature-flags](infrastructure.md#feature-flags).
 - `navigation` — `<Link>`, `useNavigation()`, `NavigationProvider`, platform-agnostic types.
 - `ui` — design tokens (`tokens.ts`), `cn()` helper, shared `globals.css` with theme.
 - `ui-web` — shadcn components shared across web apps; barrel exports.
