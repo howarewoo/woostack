@@ -1,16 +1,16 @@
 # woo-stack
 
-**A spec for bootstrapping AI-built web + mobile + API projects.**
+**A spec for bootstrapping AI-built web, mobile, and API projects.**
 
-Not a template. Not boilerplate. Just the rules — frameworks, architecture, infrastructure, and patterns — that an AI agent uses to scaffold a fresh project at the latest versions.
+Not a template. It's the rules an AI agent follows when scaffolding a fresh project: frameworks, architecture, infrastructure, patterns.
 
 ## Why a spec instead of a template?
 
-Templates rot. Dependencies drift, breaking changes pile up, and every new project starts from a six-month-stale snapshot. With capable coding agents, scaffolding from scratch is cheap. What's expensive is **deciding** — which frameworks, which architecture, which hosting, which patterns. This repo encodes those decisions so the AI doesn't have to re-litigate them every time.
+Templates rot. Dependencies drift, breaking changes pile up, and every new project starts from a snapshot that was already six months stale by the time you cloned it. Coding agents are good enough now that scaffolding from scratch is cheap. What's expensive is deciding what to scaffold. This repo holds those decisions so the agent doesn't re-litigate them every time someone wants a new project.
 
 ## How to use it
 
-Point an AI coding agent at this repo and tell it to bootstrap a new project. The agent reads [`spec/bootstrap.md`](spec/bootstrap.md), resolves the latest versions of the frameworks listed in [`spec/frameworks.md`](spec/frameworks.md), scaffolds the layout from [`spec/architecture.md`](spec/architecture.md), wires up infrastructure per [`spec/infrastructure.md`](spec/infrastructure.md), and applies the patterns in [`spec/patterns.md`](spec/patterns.md). The end-to-end development loop (brainstorm → plan → execute → review → merge) lives in [`spec/development.md`](spec/development.md).
+Point an AI coding agent at this repo and tell it to bootstrap a new project. The agent works through [`spec/bootstrap.md`](spec/bootstrap.md), which references the other spec files: [`frameworks.md`](spec/frameworks.md) for what to install, [`architecture.md`](spec/architecture.md) for the monorepo layout, [`infrastructure.md`](spec/infrastructure.md) for hosting and services, and [`patterns.md`](spec/patterns.md) for how the code should be organized. The dev loop the agent should use afterward (brainstorm, plan, execute, review, merge) is in [`spec/development.md`](spec/development.md).
 
 Example prompt:
 
@@ -26,7 +26,7 @@ Bootstrap a new project called "acme" using this spec. Surfaces: web, api, mobil
 | [spec/frameworks.md](spec/frameworks.md) | Recommended frameworks per layer, catalog protocol, known gotchas |
 | [spec/infrastructure.md](spec/infrastructure.md) | Hosting, CI/CD, env management, observability, auth, data layer |
 | [spec/patterns.md](spec/patterns.md) | oRPC contracts, TanStack Query, server components, navigation, TDD, feature exposure |
-| [spec/development.md](spec/development.md) | End-to-end development workflow: brainstorm → grill → plan → execute → review → merge, plus branching model |
+| [spec/development.md](spec/development.md) | Development workflow (brainstorm through merge) and branching model |
 | [spec/bootstrap.md](spec/bootstrap.md) | Step-by-step bootstrap procedure for AI agents |
 
 ## Default stack
@@ -47,7 +47,7 @@ Versions are resolved at bootstrap time. See [spec/frameworks.md](spec/framework
 
 ## Contributing
 
-Spec evolution happens here. Open a PR against this repo to:
+Spec evolution happens here. Open a PR to:
 
 - Update default framework choices
 - Add or revise patterns
@@ -58,7 +58,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Spec version
 
-`2.0.0` — first spec-only release (boilerplate code removed; see git history for the prior template).
+`2.0.0`. First spec-only release. The prior template lives in git history.
 
 ## License
 
