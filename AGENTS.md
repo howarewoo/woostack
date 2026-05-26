@@ -113,9 +113,13 @@ Feature branches are cut from `staging`, never `main`. PRs target `staging`. `st
 
 ### Skills
 
-This repo dogfoods one skill: `howarewoo/woo-review` (used to review spec PRs). It is checked in under `.agents/skills/woo-review/` with a symlink at `.claude/skills/woo-review` and version pinning in `skills-lock.json`. Skill installation/upgrades go through whatever tool produced `skills-lock.json` (typically `skills.sh` from the `howarewoo/woo-review` repo).
+The skills referenced in [spec/development.md](spec/development.md) are checked into this repo so spec PRs can be reviewed and refined with the same tooling the spec recommends:
 
-Other skills referenced in [spec/development.md](spec/development.md) (`obra/superpowers:*`, `grill-me`) are expected to be installed in the contributor's agent environment, not checked into this repo.
+- `howarewoo/woo-review` — automated PR review
+- `obra/superpowers:*` — brainstorming, writing-plans, executing-plans, receiving-code-review, verification-before-completion, test-driven-development, etc.
+- `grill-me` — adversarial spec review
+
+All sources live under `.agents/skills/<name>/` with symlinks at `.claude/skills/<name>`. Versions are pinned in `skills-lock.json`. Install / upgrade through whatever tool produced `skills-lock.json` (typically `skills.sh` from the `howarewoo/woo-review` repo); do not hand-edit lock entries.
 
 ## Quick reference
 
