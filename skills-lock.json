@@ -31,6 +31,12 @@
       "skillPath": "skills/productivity/grill-me/SKILL.md",
       "computedHash": "784f0dbb7403b0f00324bce9a112f715342777a0daee7bbb7385f9c6f0a170ea"
     },
+    "humanizer": {
+      "source": "blader/humanizer",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "b813857f183da05d08d5a80adac671df94c139f855809bd47ab8b7bb245546a2"
+    },
     "receiving-code-review": {
       "source": "obra/superpowers",
       "sourceType": "github",
