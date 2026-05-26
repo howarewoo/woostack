@@ -23,6 +23,7 @@ Reference monorepo layout for new projects bootstrapped from this spec. AI agent
 │   │       └── schemas/       Domain schemas
 │   └── infrastructure/        Shared utilities (scoped @infrastructure/*)
 │       ├── api-client/        oRPC client factories, shared base schemas
+│       ├── flags/             Vercel Flags SDK definitions + identify()
 │       ├── navigation/        Platform-agnostic Link + useNavigation
 │       ├── ui/                Design tokens, cn(), shared theme CSS
 │       ├── ui-web/            Shared shadcn/ui components
