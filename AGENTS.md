@@ -16,8 +16,12 @@ woo-stack/
 ├── AGENTS.md          This file
 ├── CONTRIBUTING.md    How to evolve the spec
 ├── LICENSE
+├── .agents/
+│   └── skills/        Installed skills (managed by skills-lock.json)
 ├── .claude/
-│   └── CLAUDE.md      Symlink → ../AGENTS.md
+│   ├── CLAUDE.md      Symlink → ../AGENTS.md
+│   └── skills/        Symlinks into .agents/skills/
+├── skills-lock.json   Pins installed skill versions
 ├── .github/           Issue + PR templates (no workflows)
 └── spec/
     ├── architecture.md     Monorepo layout, package tiers, naming
@@ -104,9 +108,14 @@ Feature branches are cut from `staging`, never `main`. PRs target `staging`. `st
 
 - Do not regenerate `apps/`, `packages/`, `pnpm-workspace.yaml`, or root build configs in this repo. They were removed deliberately.
 - Do not propose adding a working CI workflow here. The spec describes the CI a downstream project should run; this repo has nothing to test.
-- Do not write to `.claude/skills/` or `.claude/commands/`. They were removed deliberately.
 - Do not rename `spec/*.md` files without updating every cross-link.
 - Do not commit `.env*`, secrets, or generated files.
+
+### Skills
+
+This repo dogfoods one skill: `howarewoo/woo-review` (used to review spec PRs). It is checked in under `.agents/skills/woo-review/` with a symlink at `.claude/skills/woo-review` and version pinning in `skills-lock.json`. Skill installation/upgrades go through whatever tool produced `skills-lock.json` (typically `skills.sh` from the `howarewoo/woo-review` repo).
+
+Other skills referenced in [spec/development.md](spec/development.md) (`obra/superpowers:*`, `grill-me`) are expected to be installed in the contributor's agent environment, not checked into this repo.
 
 ## Quick reference
 

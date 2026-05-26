@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "woo-review": {
+      "source": "howarewoo/woo-review",
+      "sourceType": "github",
+      "skillPath": "skills/woo-review/SKILL.md",
+      "computedHash": "0bbf27d631171aa5ecda585cd4a8062a6f1a1d44dfb5099c7f35c8739ab92eee"
+    }
+  }
+}
