@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Instructions for AI coding agents working in this repository. Compatible with Claude Code, Codex, Cursor, Aider, and any agent that respects an `AGENTS.md` convention. For Claude-specific operational notes see [.claude/CLAUDE.md](.claude/CLAUDE.md).
+Instructions for AI coding agents working in this repository. Compatible with Claude Code, Codex, Cursor, Aider, and any agent that respects an `AGENTS.md` convention. `.claude/CLAUDE.md` is a symlink to this file — there is one source of truth.
 
 ## What this repo is
 
@@ -17,7 +17,7 @@ woo-stack/
 ├── CONTRIBUTING.md    How to evolve the spec
 ├── LICENSE
 ├── .claude/
-│   └── CLAUDE.md      Claude Code operational notes
+│   └── CLAUDE.md      Symlink → ../AGENTS.md
 ├── .github/           Issue + PR templates (no workflows)
 └── spec/
     ├── architecture.md     Monorepo layout, package tiers, naming
@@ -119,4 +119,4 @@ Feature branches are cut from `staging`, never `main`. PRs target `staging`. `st
 | Add or revise a development pattern | [spec/patterns.md](spec/patterns.md) |
 | Update the dev loop or branching model | [spec/development.md](spec/development.md) |
 | Refine the bootstrap procedure | [spec/bootstrap.md](spec/bootstrap.md) |
-| Add Claude-specific instructions | [.claude/CLAUDE.md](.claude/CLAUDE.md) |
+| Update agent instructions (Claude or any) | this file (`AGENTS.md`) |
