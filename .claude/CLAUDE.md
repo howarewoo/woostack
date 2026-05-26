@@ -1,182 +1,64 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code when working with this monorepo template.
+This repo is a **spec**, not a codebase. It defines how new web + mobile + API projects should be built; AI agents use it to bootstrap fresh projects at the latest framework versions.
 
-## Project Overview
+## Repo contents
 
-See [eng-constitution.md](../eng-constitution.md) for foundational rules. The constitution is **binding** and supersedes other instructions.
-
-## Prerequisites
-
-- **pnpm 10.29.3** (enforced via `packageManager` in root `package.json`)
-- **Node.js 22** (CI pins v22; compatible with ES2022 target)
-
-## Commands
-
-```bash
-pnpm install          # Install dependencies
-pnpm dev              # Start all apps (web:3000, api:3001, landing:3002, mobile:8081)
-pnpm build            # Build all packages/apps via Turborepo
-pnpm test             # Run tests across all packages
-pnpm test:changed     # Run tests for packages changed since last commit
-pnpm test:e2e         # Run Playwright E2E tests
-pnpm typecheck        # Type check all packages
-pnpm lint             # Lint via Biome
-pnpm lint:fix         # Auto-fix linting issues
-pnpm format           # Format via Biome + sort package.json
-pnpm format:unsafe    # Format + apply unsafe fixes (used by pre-commit)
-pnpm pre-commit       # Install, format, and test changed files
-pnpm clean            # Remove build artifacts and node_modules
-pnpm reset            # Deep clean: node_modules, .next, dist, .turbo, untracked files
-pnpm gencode          # Run code generation tasks via Turborepo
-
-# Run a single package
-pnpm --filter web dev
-pnpm --filter api dev
-pnpm --filter @infrastructure/navigation test
-
-# Landing page
-pnpm --filter landing dev
-
-# Mobile platform targets
-pnpm --filter mobile ios
-pnpm --filter mobile android
-pnpm --filter mobile web
+```
+woo-stack/
+├── README.md          Public-facing overview
+├── CONTRIBUTING.md    How to evolve the spec
+├── LICENSE
+└── spec/
+    ├── architecture.md     Monorepo layout, package tiers, naming
+    ├── frameworks.md       Default frameworks + catalog + gotchas
+    ├── infrastructure.md   Hosting, CI/CD, env, services
+    ├── patterns.md         oRPC, TanStack Query, RSC, navigation, TDD
+    ├── development.md      End-to-end dev loop + branching model
+    └── bootstrap.md        Step-by-step bootstrap procedure
 ```
 
-## Architecture
+No `apps/`, `packages/`, lockfiles, or build configs live here. They get generated at bootstrap into a fresh project.
 
-**Monorepo with three package types.** Apps use unscoped names (`web`, `api`, `landing`, `mobile`); infrastructure uses `@infrastructure/*` scope.
-- **Apps** (`apps/*`): Deployable applications
-  - `apps/web` — Next.js 16 (App Router) + React Compiler + shadcn/ui (Base UI) + Tailwind CSS (port 3000)
-  - `apps/landing` — Next.js 16 marketing/landing page consuming shared UI components (port 3002)
-  - `apps/mobile` — Expo SDK 54 + React Native 0.81 + UniWind + react-native-reusables
-  - `apps/api` — Hono + oRPC API server (port 3001)
-- **Features** (`packages/features/*`): Standalone business feature packages; own their contracts (`contracts/`), routers (`routers/`), and procedures (`procedures/`); can only import from infrastructure
-- **Infrastructure** (`packages/infrastructure/*`): Shared utilities; can be used anywhere
-  - `@infrastructure/api-client` — oRPC client utilities (`createApiClient`, `createOrpcUtils`) and shared base schemas
-  - `@infrastructure/navigation` — Platform-agnostic navigation (Link, useNavigation, NavigationProvider)
-  - `@infrastructure/ui` — Shared design tokens, CSS utilities (`cn()`, `tokens`)
-  - `@infrastructure/ui-web` — Shared shadcn/ui components (Button, Card, etc.) for web apps
-  - `@infrastructure/utils` — Cross-platform utility functions
-  - `@infrastructure/typescript-config` — Shared TypeScript configs (base, library, nextjs, react-native)
+## Two modes Claude may be invoked in
 
-## Key Patterns
+### Mode A — editing the spec (this repo)
 
-### oRPC (Type-Safe API)
+User is updating the spec itself: adding a new pattern, swapping a default framework, documenting a gotcha, refining the bootstrap procedure.
 
-Feature packages own their contracts (`contracts/`) and routers (`routers/`). `apps/api` imports feature routers and composes the master router, exporting `Router` type. `@infrastructure/api-client` provides generic client utilities (`createApiClient`, `createOrpcUtils`) and shared base schemas. Apps (web, mobile) import `Router` type from `apps/api` and pass it to client utilities for fully typed clients. Query integration uses `@orpc/tanstack-query`.
+Rules:
+- Keep changes scoped — one spec section per PR where possible.
+- Cross-link related sections (markdown `[label](path.md#anchor)`) rather than duplicating prose.
+- When adding a gotcha, put it under [spec/frameworks.md](../spec/frameworks.md#known-gotchas-to-respect-at-bootstrap).
+- When changing the dev workflow or branching model, update [spec/development.md](../spec/development.md).
+- No code to lint or test — just markdown. Verify links resolve before declaring done.
 
-**Gotcha**: oRPC v1 routers are plain object literals — do not wrap with `.router()`. The `@orpc/react-query` package was renamed to `@orpc/tanstack-query`.
+### Mode B — bootstrapping a new project from the spec
 
-```typescript
-// Feature package: packages/features/users/src/contracts/usersContract.ts
-import { z } from "zod";
-export const UserSchema = z.object({ id: z.string(), name: z.string() });
+User has pointed Claude at this repo and asked for a new project. Follow [spec/bootstrap.md](../spec/bootstrap.md) end to end. The spec files are inputs; the output is a fresh repo in a different directory.
 
-// Feature package: packages/features/users/src/routers/usersORPCRouter.ts
-import { os } from "@orpc/server";
-import { UserSchema } from "../contracts/usersContract";
-const pub = os.$context<{ requestId?: string }>();
-export const usersRouter = {
-  list: pub.output(UserSchema.array()).handler(() => { /* ... */ }),
-};
+When in this mode:
+- Treat all `spec/*.md` files as binding for the scaffolded project.
+- Apply [spec/development.md](../spec/development.md) for any subsequent feature work after bootstrap.
+- Resolve framework versions live (`npm view <pkg> version`) — don't hard-code from memory.
+- Cross-check every resolution against the gotchas list in [spec/frameworks.md](../spec/frameworks.md).
+- After scaffolding, run `pnpm install && pnpm typecheck && pnpm build && pnpm test && pnpm dev` to verify each surface boots.
 
-// API app: apps/api/src/router.ts
-import { usersRouter } from "@features/users/src/routers/usersORPCRouter";
-export const router = { users: usersRouter };
-export type Router = typeof router;
+## Editing conventions
 
-// Consuming app (web/mobile)
-import type { Router } from "api/router";
-import { createApiClient, createOrpcUtils } from "@infrastructure/api-client";
-const client = createApiClient<Router>("http://localhost:3001/api");
-const orpc = createOrpcUtils(client);
-const { data } = useQuery(orpc.users.list.queryOptions());
-```
+- Markdown only in this repo. Code samples are illustrative — they live inside fenced blocks, not real files.
+- Keep tables for option matrices; bullets for stepwise procedures.
+- Reference frameworks by name, not version. Versions live in [spec/frameworks.md](../spec/frameworks.md) only — and that file specifies "latest" rather than literal numbers where possible.
+- No screenshots in this repo. Old `docs/web-app.png` was tied to the deleted boilerplate.
 
-### Navigation
+## What this repo does **not** have
 
-Feature packages must never import `next/navigation` or `expo-router` directly. Use `@infrastructure/navigation` instead:
-- `<Link href="/path">` for declarative navigation
-- `useNavigation()` for imperative (`navigate`, `replace`, `back`)
-- Each app provides its adapter via `NavigationProvider` (see `apps/web/lib/navigation.tsx`, `apps/mobile/lib/navigation.tsx`)
+Spelled out so Claude doesn't go looking:
 
-### Cross-Platform UI
+- No `package.json`, no `pnpm-lock.yaml`, no `tsconfig.json` at root.
+- No `apps/`, no `packages/`.
+- No Biome / Turborepo / Vitest configs.
+- No CI workflow (no code to build or test).
+- No skills under `.claude/skills/`.
 
-- **Web**: shadcn/ui components (Base UI primitives, `base-vega` style) + Tailwind CSS
-- **Mobile**: react-native-reusables + UniWind
-- **Shared**: Design tokens and CSS utilities in `@infrastructure/ui`; both platforms consume the same theme
-- **Tailwind v4**: CSS-first config (no `tailwind.config.ts`); web uses `@tailwindcss/postcss`; mobile uses `uniwind/metro`
-- **Web CSS**: `apps/web/app/globals.css` imports from `@infrastructure/ui/globals.css` — single source of truth
-- **Mobile CSS**: `apps/mobile/global.css` hardcodes theme tokens (UniWind on RN doesn't support CSS `var()` indirection in `@theme` blocks); light/dark colors use `@layer theme { :root { @variant light {} @variant dark {} } }` — both variants are required
-- **Adding components**: `pnpx shadcn@latest add <component>` from `apps/web/` or `apps/landing/`; `components.json` configures style (`base-vega`), utils alias (`@infrastructure/ui`), and icon library (`lucide`). To share a component across web apps, move it from `apps/<app>/components/ui/` to `packages/infrastructure/ui-web/src/components/` and re-export from the barrel index
-
-**Note**: Mobile web export is enabled — Expo SDK 54 ships with RN 0.81, satisfying UniWind's `react-native>=0.81.0` requirement.
-
-**New web app checklist**: When creating a new Next.js app that consumes `@infrastructure/ui-web`: (1) add `"@infrastructure/ui-web": "workspace:*"` to dependencies, (2) add `"@infrastructure/ui-web"` to `transpilePackages` in `next.config.ts`, (3) add `@source "../node_modules/@infrastructure/ui-web/src";` in `app/globals.css`.
-
-**Gotcha**: Tailwind v4 does not auto-scan `@infrastructure/ui-web` for class names. Each consuming web app must add `@source "../node_modules/@infrastructure/ui-web/src";` in its `app/globals.css` (path relative to the CSS file) to ensure component styles are compiled.
-
-**Gotcha**: Do not set `config.resolver.unstable_conditionNames` in `apps/mobile/metro.config.js` — it overrides Metro's platform-aware defaults and breaks UniWind's web resolver (causes `createOrderedCSSStyleSheet` resolution failures).
-
-**Gotcha**: Mobile theme tokens in `apps/mobile/global.css` are hardcoded HSL values that must stay in sync with `packages/infrastructure/ui/src/globals.css` `:root` / `.dark` blocks. When updating the shared theme, update both files. UniWind requires both `@variant light` and `@variant dark` inside `@layer theme` — putting color tokens only in `@theme` without a `@variant light` block causes always-dark rendering.
-
-**Gotcha**: Do not use `space-y-*` or `space-x-*` in mobile components — they compile to CSS logical properties (`margin-block-start`/`margin-block-end`) which React Native does not support. Use `gap-*` on flex containers instead.
-
-**Gotcha**: React Navigation's default `Stack` header does not use UniWind theme tokens. Use `headerShown: false` with a custom header component styled via UniWind classes and `useSafeAreaInsets()` for status bar spacing.
-
-### Dependencies
-
-Use pnpm catalog for shared dependency versions. All versions must be exact (no `^` or `~`):
-```yaml
-# pnpm-workspace.yaml catalog:
-react: "19.1.0"
-```
-```json
-// package.json
-"dependencies": { "react": "catalog:" }
-```
-
-**Gotcha**: React is pinned to exact `19.1.0` because React Native 0.81's bundled renderer (`react-native-renderer@19.1.0`) performs a strict equality check against the installed React version. Using `^19.2.0` causes a hard runtime crash on iOS.
-
-**Gotcha**: Zod v4 changed string validation methods: `z.string().email()` → `z.email()`, `z.string().datetime()` → `z.iso.datetime()`. Other APIs (`z.object()`, `z.string()`, `z.string().min()`, `z.infer<>`, `.array()`, `.nullable()`) are unchanged.
-
-**Gotcha**: `pnpm build` runs `pnpm self-update && turbo build` — this upgrades pnpm before building. If local builds behave differently from CI, check whether `pnpm --version` still matches the `packageManager` field in root `package.json`.
-
-**Gotcha**: pnpm 10 disables dependency lifecycle scripts by default. If a new dependency has a `postinstall` script (e.g., `esbuild`, `prisma`, native modules), add it to `pnpm.onlyBuiltDependencies` in the root `package.json` or it will silently fail to build.
-
-## Conventions
-
-- **Biome**: 100-char line width, double quotes, semicolons, ES5 trailing commas
-- **pnpm** exclusively (not npm/yarn); `pnpx` instead of `npx`
-- **Graphite** (`gt`) for branch management — use `gt create`, `gt modify`, `gt submit` instead of raw git branch/commit/push
-- `.ts` by default; `.tsx` only when file contains JSX
-- Infrastructure packages use **named exports**; feature packages use **default exports**
-- No `any` or `unknown` — use explicit, safely narrowed types
-- Max 500 lines per non-test source file
-- TDD methodology (see constitution Principle VIII)
-- All user-facing components and procedures need JSDoc comments
-- React Compiler is enabled in `apps/web` and `apps/landing`
-
-## CI
-
-GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
-1. `biome ci` — lint + format check
-2. `pnpm turbo build` — build all packages
-3. `pnpm test:changed` — tests for changed packages only
-
-**Note**: CI does not run `typecheck` — run `pnpm typecheck` locally before pushing.
-
-**Dependabot** (`.github/dependabot.yml`) runs weekly scans for npm and GitHub Actions updates. PRs target `staging` (not `main`).
-
-**Community files**: Issue templates (bug report, feature request), PR template, and `CONTRIBUTING.md` guide new contributors.
-
-## Testing
-
-- **Framework**: Vitest (unit/integration), Jest via `jest-expo` (mobile/React Native), Playwright (E2E)
-- **Test locations**: colocated as `{filename}.test.ts` or in `__tests__/` directories
-- Run `pnpm test` before committing; new procedures require tests
-- Run per-app: `pnpm --filter web test`, `pnpm --filter landing test`, `pnpm --filter api test`, `pnpm --filter mobile test`
-
-**Gotcha**: Vitest 4 requires `function` expressions (not arrow functions) in `vi.fn()` when the mock is used as a constructor with `new`. Arrow functions are not constructable — use `vi.fn(function () { return { ... }; })`.
+If a future change needs any of these, justify it against the spec-only goal first.

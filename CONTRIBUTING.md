@@ -1,75 +1,43 @@
 # Contributing
 
-Thanks for your interest in contributing! This guide will get you up and running.
+This repo is a spec. Contributions are edits to the spec — markdown files in `spec/` and the supporting docs at the root.
 
-## Prerequisites
+## What to change
 
-- **Node.js 22**
-- **pnpm 10.29.3** — install with `corepack enable && corepack prepare`
+| You want to... | Edit |
+|---|---|
+| Swap a default framework | `spec/frameworks.md` |
+| Document a new gotcha | `spec/frameworks.md` (Known gotchas section) |
+| Adjust the monorepo layout or naming | `spec/architecture.md` |
+| Recommend a new hosting/CI/auth choice | `spec/infrastructure.md` |
+| Add or revise a development pattern | `spec/patterns.md` |
+| Change the development workflow or branching model | `spec/development.md` |
+| Refine the bootstrap procedure | `spec/bootstrap.md` |
 
-## Setup
+## Workflow
 
-```bash
-git clone https://github.com/howarewoo/monorepo-template.git
-cd monorepo-template
-pnpm install
-pnpm dev
-```
+1. Fork or branch from `main`.
+2. Edit the relevant markdown files.
+3. Verify every cross-link still resolves (`[label](path.md#anchor)`).
+4. Open a PR — fill out the template.
 
-## Development workflow
+## Editing conventions
 
-1. Create a branch from `main`.
-2. Make your changes following the [engineering constitution](eng-constitution.md).
-3. Run checks before committing:
+- Markdown only. No code, no configs, no lockfiles in this repo.
+- Reference frameworks by name, not by version, except in `spec/frameworks.md`. That file may pin exact versions when a known incompatibility forces it.
+- Prefer tables for option matrices, bulleted lists for stepwise procedures.
+- Keep examples short. The spec describes intent; project-local docs cover the specifics.
+- Cross-link rather than duplicate. If a fact lives in `architecture.md`, link to it from `patterns.md`; don't restate.
 
-```bash
-pnpm lint        # Biome lint + format check
-pnpm test        # Vitest tests
-pnpm typecheck   # TypeScript
-```
+## Reviewing
 
-4. Open a pull request against `main`.
+Reviewers should ask:
 
-## Project structure
+- Does this change make the spec clearer or just longer?
+- Is there a load-bearing reason this isn't already in the spec?
+- Will an AI agent applying this guidance during bootstrap produce a working project?
+- Does it conflict with an existing pattern? If so, update the pattern explicitly rather than letting two patterns disagree.
 
-| Directory | Purpose |
-| --- | --- |
-| `apps/*` | Deployable applications (web, landing, mobile, api) |
-| `packages/features/*` | Standalone business features |
-| `packages/infrastructure/*` | Shared utilities, UI, navigation, types |
+## Questions
 
-Dependencies flow **one way**: apps -> features -> infrastructure. See the [README](README.md#architecture) for details.
-
-## Code style
-
-- **Biome** handles linting and formatting (100-char lines, double quotes, semicolons)
-- **pnpm** exclusively — never npm or yarn
-- `.ts` by default; `.tsx` only when the file contains JSX
-- No `any` or `unknown` — use explicit, narrowed types
-- Max 500 lines per non-test source file
-- TDD: write tests before implementation
-
-## Adding dependencies
-
-All shared versions go through the pnpm catalog in `pnpm-workspace.yaml`:
-
-```yaml
-catalog:
-  some-package: "^1.0.0"
-```
-
-Then reference with `"some-package": "catalog:"` in the relevant `package.json`.
-
-## Adding UI components
-
-```bash
-# Web (shadcn/ui)
-pnpx shadcn@latest add <component>   # run from apps/web/ or apps/landing/
-
-# To share across web apps, move from apps/<app>/components/ui/ to
-# packages/infrastructure/ui-web/src/components/ and re-export from the barrel index
-```
-
-## Questions?
-
-Open an issue or check the [engineering constitution](eng-constitution.md) for architectural decisions.
+Open a [spec issue](.github/ISSUE_TEMPLATE/bug_report.yml) or [spec proposal](.github/ISSUE_TEMPLATE/feature_request.yml).

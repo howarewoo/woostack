@@ -1,25 +1,32 @@
-name: Feature Request
-description: Suggest a new feature or improvement
-labels: ["enhancement"]
+name: Spec Proposal
+description: Propose a new pattern, framework swap, or principle to add to the spec.
+labels: ["spec-proposal"]
 body:
   - type: textarea
     id: problem
     attributes:
       label: Problem
-      description: What problem does this solve?
+      description: What gap or pain point in the current spec does this address?
     validations:
       required: true
   - type: textarea
-    id: solution
+    id: proposal
     attributes:
-      label: Proposed solution
-      description: How should it work?
+      label: Proposed change
+      description: What should the spec say? Which section(s) would change?
     validations:
       required: true
   - type: textarea
     id: alternatives
     attributes:
       label: Alternatives considered
-      description: Other approaches you thought about.
+      description: Other approaches you weighed.
+    validations:
+      required: false
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact on existing projects
+      description: Would projects bootstrapped from the current spec need to update? Anything breaking?
     validations:
       required: false

@@ -1,14 +1,22 @@
 ## Summary
 
-<!-- What does this PR do and why? -->
+<!-- What does this PR change in the spec, and why? -->
 
-## Changes
+## Affected spec sections
 
--
+- [ ] `spec/architecture.md`
+- [ ] `spec/frameworks.md`
+- [ ] `spec/infrastructure.md`
+- [ ] `spec/patterns.md`
+- [ ] `spec/development.md`
+- [ ] `spec/bootstrap.md`
+- [ ] `README.md` / other top-level docs
 
-## Test plan
+## Notes for downstream projects
 
-- [ ] `pnpm lint` passes
-- [ ] `pnpm test:changed` passes
-- [ ] `pnpm typecheck` passes
-- [ ] Tested manually on relevant platform (web/mobile/API)
+<!-- Does this change require existing projects bootstrapped from the spec to update? Anything breaking? -->
+
+## Checklist
+
+- [ ] Cross-links to related sections still resolve
+- [ ] No version numbers hard-coded in `frameworks.md` where "latest" suffices
