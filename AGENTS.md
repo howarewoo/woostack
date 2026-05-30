@@ -20,6 +20,7 @@ woo-stack/
 │   └── woo-stack/
 │       ├── SKILL.md           Skill entry point (frontmatter + procedure)
 │       └── references/        Binding rules, loaded on demand
+│           ├── decisions.md        Decision catalog + pre-scaffold confirmation gate
 │           ├── architecture.md     Monorepo layout, package tiers, naming
 │           ├── frameworks.md       Default frameworks + catalog + gotchas
 │           ├── infrastructure.md   Hosting, CI/CD, env, services
@@ -51,15 +52,16 @@ Rules:
 
 ### Mode B — bootstrapping a new project with the skill
 
-The agent has the skill installed (or is pointed at this repo) and is asked for a new project somewhere else.
+The agent has the skill installed (or is pointed at this repo) and is asked for a new project somewhere else — typically via `/woo-stack <goal>` (e.g. `/woo-stack create a mobile app for cataloging recipes`). Infer a recommended shape from the goal, then confirm.
 
 Procedure:
-1. Read [SKILL.md](skills/woo-stack/SKILL.md), then the six files in [`references/`](skills/woo-stack/references/) — they are inputs.
-2. Follow [references/bootstrap.md](skills/woo-stack/references/bootstrap.md) step by step.
-3. Resolve framework versions live (`npm view <pkg> version`) — do not hard-code from training data.
-4. Cross-check every resolution against the gotchas list in [references/frameworks.md](skills/woo-stack/references/frameworks.md).
-5. After scaffolding, verify: `pnpm install && pnpm typecheck && pnpm build && pnpm test && pnpm dev`. Every surface should boot on its expected port.
-6. Apply the development workflow in [references/development.md](skills/woo-stack/references/development.md) for any further feature work.
+1. Read [SKILL.md](skills/woo-stack/SKILL.md), then the files in [`references/`](skills/woo-stack/references/) — they are inputs.
+2. Walk the user through [references/decisions.md](skills/woo-stack/references/decisions.md) and get explicit sign-off on every relevant decision before scaffolding anything.
+3. Follow [references/bootstrap.md](skills/woo-stack/references/bootstrap.md) step by step.
+4. Resolve framework versions live (`npm view <pkg> version`) — your training memory is stale; do not hard-code from it.
+5. Cross-check every resolution against the gotchas list in [references/frameworks.md](skills/woo-stack/references/frameworks.md).
+6. After scaffolding, verify: `pnpm install && pnpm typecheck && pnpm build && pnpm test && pnpm dev`. Every surface should boot on its expected port.
+7. Apply the development workflow in [references/development.md](skills/woo-stack/references/development.md) for any further feature work.
 
 The output is a fresh repo in a different directory. **Do not** add code, packages, or build configs to this repo while in Mode B.
 
@@ -127,6 +129,7 @@ All sources live under `.agents/skills/<name>/` with symlinks at `.claude/skills
 
 | Task | File to edit |
 |---|---|
+| Add/revise a bootstrap decision or its default | [references/decisions.md](skills/woo-stack/references/decisions.md) |
 | Swap a default framework | [references/frameworks.md](skills/woo-stack/references/frameworks.md) |
 | Document a gotcha | [references/frameworks.md](skills/woo-stack/references/frameworks.md#known-gotchas-to-respect-at-bootstrap) |
 | Change the monorepo layout or naming | [references/architecture.md](skills/woo-stack/references/architecture.md) |

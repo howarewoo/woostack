@@ -6,6 +6,7 @@ This repo is a published skill. Contributions are edits to the skill — the mar
 
 | You want to... | Edit |
 |---|---|
+| Add/revise a bootstrap decision or its default | `skills/woo-stack/references/decisions.md` |
 | Swap a default framework | `skills/woo-stack/references/frameworks.md` |
 | Document a new gotcha | `skills/woo-stack/references/frameworks.md` (Known gotchas section) |
 | Adjust the monorepo layout or naming | `skills/woo-stack/references/architecture.md` |

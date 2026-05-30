@@ -4,15 +4,19 @@ How an AI agent (or human) uses this spec to spin up a new project. The spec is 
 
 ## Inputs the agent needs
 
-Before running, the agent should know:
+The skill is invoked as `/woo-stack <goal>` — a plain-language description of what to build. Derive the following from the goal and confirm them in step 0; don't require the user to spell them out:
 
 1. **Project name** (used for repo, root `package.json`, default app names).
 2. **Surfaces required** — any subset of: `web`, `landing`, `mobile`, `api`.
-3. **Initial features** — list of feature names to scaffold (e.g. `users`, `billing`). Can be empty.
-4. **Hosting target** — confirm Vercel defaults from [infrastructure.md](infrastructure.md) or override.
-5. **Repo host** — GitHub by default.
+3. **Initial features** — list of feature names to scaffold (e.g. `recipes`, `users`). Can be empty.
+
+Everything else — hosting, data layer, auth, capabilities, repo host — is resolved with the user in step 0, not assumed.
 
 ## Steps
+
+### 0. Interpret the goal, then confirm decisions with the user
+
+Read the `/woo-stack` goal and infer a recommended shape — name, surfaces, candidate features, likely capabilities. Then walk the user through [decisions.md](decisions.md), presenting every relevant decision **pre-filled with the goal-aware recommendation** alongside its default and alternatives. Get explicit sign-off, resolve the genuine forks (e.g. API host), and treat capabilities (billing, email, flags, observability, …) as opt-in. **Do not scaffold any decision the user has not confirmed**, and do not silently apply a default. If the user defers ("use the defaults"), state the full set you'll apply so they can object first.
 
 ### 1. Read the spec
 
@@ -28,9 +32,11 @@ These define the binding rules. Do not deviate without a documented reason.
 
 ### 2. Resolve framework versions
 
+**Always query the registry — never use a version from memory.** Your training data is stale by the time you run; every version you "remember" is a guess that will drift the project from current releases. Resolve live, every time.
+
 For each catalog entry in [frameworks.md](frameworks.md):
 
-1. Query the latest stable version (`npm view <pkg> version`).
+1. Query the latest version from the registry (`npm view <pkg> version` for latest stable; `npm view <pkg> dist-tags` when you need a specific channel). Do not skip this for packages you think you know.
 2. Cross-check against the **known gotchas** list — some packages (notably `react` for RN compatibility) must match a specific peer version.
 3. Write the resolved versions into `pnpm-workspace.yaml` `catalog:` as exact strings.
 

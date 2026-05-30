@@ -18,11 +18,11 @@ This installs the `woo-stack` skill (`skills/woo-stack/SKILL.md` plus its `refer
 
 ## Use
 
-Ask your agent to bootstrap a project. It reads the skill, gathers inputs, and works through the procedure.
+Invoke the skill with `/woo-stack <goal>` — a plain-language description of what to build. It infers a recommended architecture from the goal, walks you through every decision (confirming defaults, resolving forks, asking about opt-in capabilities), then scaffolds.
 
 ```
-Bootstrap a new project called "acme" using woo-stack.
-Surfaces: web, api, mobile. Initial features: users, billing.
+/woo-stack create a new mobile app for cataloging recipes
+/woo-stack a SaaS dashboard with a marketing site and a billing API
 ```
 
 The skill entry point is [`skills/woo-stack/SKILL.md`](skills/woo-stack/SKILL.md); the binding rules live in [`skills/woo-stack/references/`](skills/woo-stack/references/).
@@ -31,6 +31,7 @@ The skill entry point is [`skills/woo-stack/SKILL.md`](skills/woo-stack/SKILL.md
 
 | Reference | What it defines |
 |---|---|
+| [decisions.md](skills/woo-stack/references/decisions.md) | Decision catalog the agent walks the user through before scaffolding |
 | [bootstrap.md](skills/woo-stack/references/bootstrap.md) | Step-by-step bootstrap procedure for AI agents |
 | [architecture.md](skills/woo-stack/references/architecture.md) | Monorepo layout, package tiers, import boundaries, naming |
 | [frameworks.md](skills/woo-stack/references/frameworks.md) | Recommended frameworks per layer, catalog protocol, known gotchas |
