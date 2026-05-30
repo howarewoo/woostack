@@ -4,15 +4,19 @@ How an AI agent (or human) uses this spec to spin up a new project. The spec is 
 
 ## Inputs the agent needs
 
-Before running, the agent should know:
+The skill is invoked as `/woo-stack <goal>` — a plain-language description of what to build. Derive the following from the goal and confirm them in step 0; don't require the user to spell them out:
 
 1. **Project name** (used for repo, root `package.json`, default app names).
 2. **Surfaces required** — any subset of: `web`, `landing`, `mobile`, `api`.
-3. **Initial features** — list of feature names to scaffold (e.g. `users`, `billing`). Can be empty.
-4. **Hosting target** — confirm Vercel defaults from [infrastructure.md](infrastructure.md) or override.
-5. **Repo host** — GitHub by default.
+3. **Initial features** — list of feature names to scaffold (e.g. `recipes`, `users`). Can be empty.
+
+Everything else — hosting, data layer, auth, capabilities, repo host — is resolved with the user in step 0, not assumed.
 
 ## Steps
+
+### 0. Interpret the goal, then confirm decisions with the user
+
+Read the `/woo-stack` goal and infer a recommended shape — name, surfaces, candidate features, likely capabilities. Then walk the user through [decisions.md](decisions.md), presenting every relevant decision **pre-filled with the goal-aware recommendation** alongside its default and alternatives. Get explicit sign-off, resolve the genuine forks (e.g. API host), and treat capabilities (billing, email, flags, observability, …) as opt-in. **Do not scaffold any decision the user has not confirmed**, and do not silently apply a default. If the user defers ("use the defaults"), state the full set you'll apply so they can object first.
 
 ### 1. Read the spec
 
@@ -28,9 +32,11 @@ These define the binding rules. Do not deviate without a documented reason.
 
 ### 2. Resolve framework versions
 
+**Always query the registry — never use a version from memory.** Your training data is stale by the time you run; every version you "remember" is a guess that will drift the project from current releases. Resolve live, every time.
+
 For each catalog entry in [frameworks.md](frameworks.md):
 
-1. Query the latest stable version (`npm view <pkg> version`).
+1. Query the latest version from the registry (`npm view <pkg> version` for latest stable; `npm view <pkg> dist-tags` when you need a specific channel). Do not skip this for packages you think you know.
 2. Cross-check against the **known gotchas** list — some packages (notably `react` for RN compatibility) must match a specific peer version.
 3. Write the resolved versions into `pnpm-workspace.yaml` `catalog:` as exact strings.
 
@@ -79,7 +85,7 @@ For each `@infrastructure/*` package:
 **Required infrastructure contents:**
 
 - `api-client` — `createApiClient<Router>(baseUrl)`, `createOrpcUtils(client)`, shared base Zod schemas.
-- `flags` — every `flag(...)` definition (Vercel Flags SDK), the shared `identify()` reading Supabase session, and the chosen adapter wiring. See [infrastructure.md#feature-flags](infrastructure.md#feature-flags).
+- `flags` — every `flag(...)` definition (Vercel Flags SDK), the shared `identify()` reading Supabase session, and the chosen adapter wiring. See [infrastructure.md#feature-flags](infrastructure.md#feature-flags). Scaffold this for every project regardless of surface mix — it is a standing package; leave the definitions empty (just `identify()` + adapter wiring) until the first flag is added.
 - `navigation` — `<Link>`, `useNavigation()`, `NavigationProvider`, platform-agnostic types.
 - `ui` — design tokens (`tokens.ts`), `cn()` helper, shared `globals.css` with theme.
 - `ui-web` — shadcn components shared across web apps; barrel exports.
@@ -111,7 +117,8 @@ packages/features/<feature>/
 │   ├── procedures/                        # empty
 │   ├── components/                        # empty
 │   ├── surfaces/                          # empty
-│   └── layouts/                           # empty
+│   ├── layouts/                           # empty
+│   └── schemas/                           # empty (internal domain schemas)
 ├── package.json
 └── tsconfig.json
 ```
@@ -120,7 +127,7 @@ Wire the router into `apps/api/src/router.ts` if `api` is in the surfaces list.
 
 ### 8. CI workflow
 
-Write `.github/workflows/ci.yml` per [infrastructure.md](infrastructure.md). Jobs: `biome ci`, `pnpm turbo build`, `pnpm test:changed`. Pin Node + pnpm versions.
+Write `.github/workflows/ci.yml` per [infrastructure.md](infrastructure.md#cicd). Jobs: `biome ci`, `pnpm turbo build`, `pnpm test:changed`. Pin Node + pnpm versions. Do **not** add a `typecheck` job — it is a local-only script (step 4); CI relies on `build` to catch type errors. See [infrastructure.md](infrastructure.md#cicd).
 
 ### 9. Verify
 
@@ -164,4 +171,4 @@ When this spec changes:
 
 - New projects pick up changes at their next bootstrap.
 - Existing projects do **not** auto-update — treat spec changes as advisory upgrades they opt into.
-- Breaking changes to the spec (e.g. removing a required pattern) should bump a top-level `SPEC_VERSION` recorded in the root [README.md](../README.md) so downstream projects can detect drift.
+- Breaking changes to the spec (e.g. removing a required pattern) should bump the `SPEC_VERSION` recorded in [SKILL.md](../SKILL.md) so downstream projects can detect drift.
