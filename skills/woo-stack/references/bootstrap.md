@@ -164,4 +164,4 @@ When this spec changes:
 
 - New projects pick up changes at their next bootstrap.
 - Existing projects do **not** auto-update — treat spec changes as advisory upgrades they opt into.
-- Breaking changes to the spec (e.g. removing a required pattern) should bump a top-level `SPEC_VERSION` recorded in the root [README.md](../README.md) so downstream projects can detect drift.
+- Breaking changes to the spec (e.g. removing a required pattern) should bump the `SPEC_VERSION` recorded in [SKILL.md](../SKILL.md) so downstream projects can detect drift.
