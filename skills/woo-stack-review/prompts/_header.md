@@ -26,10 +26,10 @@ Every artifact you write under `$OUTDIR/findings.*.json` (default `/tmp/pr-revie
 - **PR metadata** (title, body, headRefOid, baseRefName, files, author): `/tmp/pr-review/meta.json`
 - **Enabled angles** (one per line): `/tmp/pr-review/angles.txt`
 - **Project rules** (optional, present only if discovered): `/tmp/pr-review/rules.md`
-- **Per-repo config** (always present, defaults to `{"severity_floor":"high"}`): `/tmp/pr-review/config.json` — parsed from `.woo-review/config.json` in the consumer repo.
+- **Per-repo config** (always present, defaults to `{"severity_floor":"high"}`): `/tmp/pr-review/config.json` — parsed from `.woo-stack/config.json` in the consumer repo.
 - **Incremental base SHA** (always present, may be empty): `/tmp/pr-review/last_sha.txt` — non-empty means `diff.txt` covers only the new commits since the last woo-review pass. Treat findings as scoped to those commits.
 - **Prior unresolved review threads** (always present, may be `[]`): `/tmp/pr-review/prior-findings.json` — array of `{file, line, title, author}` for any unresolved thread on the PR. Consumed by the posting stage for the event-floor gate; angle workers MUST ignore this file. No per-entry `blocking` flag — any non-empty list floors the review event to `REQUEST_CHANGES` (conservative "do not APPROVE while threads open" rule).
-- **Cross-PR memory** (optional, present only if the consumer repo has `.woo-review/memory.md`): `/tmp/pr-review/memory.md` — a plain-markdown list of gotchas and previously-accepted issues the team curates. Treat it as additional rubric: do NOT re-flag an issue the memory file already records as known/accepted. See *Cross-PR memory* below.
+- **Cross-PR memory** (optional, present only if the consumer repo has `.woo-stack/memory.md`): `/tmp/pr-review/memory.md` — a plain-markdown list of gotchas and previously-accepted issues the team curates. Treat it as additional rubric: do NOT re-flag an issue the memory file already records as known/accepted. See *Cross-PR memory* below.
 - **Chunk manifest** (optional, present only when the diff exceeds `chunking.max_loc`): `/tmp/pr-review/chunks.txt` (one chunk id per line) and `/tmp/pr-review/chunks.json` (manifest: `[{id, files, loc, diff_path, boundary}]`). Each chunk also has its own diff at `/tmp/pr-review/diff.chunk-<id>.txt`. When a worker is dispatched with a chunk id (env `CHUNK` non-empty), it MUST read the chunk-specific diff and write findings to `/tmp/pr-review/findings.<angle>.<chunk>.json`. In the GitHub Action this swap happens transparently — `diff.txt` is replaced with the chunk's diff before the worker runs, and the worker's output is renamed afterwards. When `chunks.txt` is absent, chunking did not activate and the diff fits a single worker (no overhead).
 
 If `/tmp/pr-review/rules.md` exists, treat it as an additional rubric on top of the per-angle scope. Each section is prefixed by a `## SOURCE: <path>` header identifying its origin file (`AGENTS.md`, `CLAUDE.md`, `.cursorrules`, `.windsurfrules`, or `GEMINI.md`). Any finding that claims a project-rule violation MUST populate `rule_quote` with a verbatim substring of `rules.md` (the rule text itself, not the source header). The validator discards rule-cited findings whose `rule_quote` is missing or not literally present in `rules.md`.
@@ -71,11 +71,11 @@ Each angle prompt and the validator declare a `tier:` in frontmatter — `fast`,
 - **Single model per session** (Codex Action, Gemini CLI): pin the whole run to the `standard` tier model. You lose `fast`-tier savings on rubric angles, but `standard` is the safe default that handles every angle. If `inputs.model` is set explicitly, honor that and ignore tiers.
 - **Override**: `inputs.model` (action.yml) or a runner-specific override always wins over the tier resolution.
 
-**Per-repo tier overrides (`.woo-review/config.json`):** before resolving any `tier:` to a model slug, read `/tmp/pr-review/config.json`. If `models.<tier>` is set, use that slug INSTEAD of the table entry above. Example: `jq -r '.models.deep // empty' /tmp/pr-review/config.json` — empty means use the table default. `inputs.model` (action.yml) still wins over the per-repo override.
+**Per-repo tier overrides (`.woo-stack/config.json`):** before resolving any `tier:` to a model slug, read `/tmp/pr-review/config.json`. If `models.<tier>` is set, use that slug INSTEAD of the table entry above. Example: `jq -r '.models.deep // empty' /tmp/pr-review/config.json` — empty means use the table default. `inputs.model` (action.yml) still wins over the per-repo override.
 
 ## Per-repo Config (`/tmp/pr-review/config.json`)
 
-The prefetch step parses an optional `.woo-review/config.json` in the consumer repo and writes a canonical JSON copy to `/tmp/pr-review/config.json`. Missing file = `{"severity_floor":"high"}` (the noise-control default). The full schema is documented in `SKILL.md`; runners only need to know which keys are consumed at which stage:
+The prefetch step parses an optional `.woo-stack/config.json` in the consumer repo and writes a canonical JSON copy to `/tmp/pr-review/config.json`. Missing file = `{"severity_floor":"high"}` (the noise-control default). The full schema is documented in `SKILL.md`; runners only need to know which keys are consumed at which stage:
 
 | Key | Consumed by | When |
 |---|---|---|

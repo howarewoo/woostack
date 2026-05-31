@@ -21,7 +21,7 @@ This skill is **host-agnostic**: it works in any AI coding agent that supports s
 - `/woo-review --full` (or `@review --full` in a PR comment) — Force a complete re-review even when a prior SHA marker exists. Skips the incremental path described below.
 - `woo-review install` — Verify local deps (`gh`, `jq`, `node`) and pre-fetch `impeccable` + `react-doctor` (run once per repo).
 - `woo-review status` — Show the current PR's review status.
-- `woo-review address <PR#>` — Autonomously address the PR's unresolved review threads (fix or push back, reply, resolve) and record accept-by-design dismissals to `.woo-review/memory.md`. Local hosts only. See *Addressing Reviews* below.
+- `woo-review address <PR#>` — Autonomously address the PR's unresolved review threads (fix or push back, reply, resolve) and record accept-by-design dismissals to `.woo-stack/memory.md`. Local hosts only. See *Addressing Reviews* below.
 
 ### PR-comment triggers (issue #19)
 
@@ -39,7 +39,7 @@ The legacy `@review` trigger phrase still works; `/woo-review` is an alias the e
 
 `prefetch.sh` short-circuits the review with a single one-line PR comment when either condition holds (before fetching the diff, so token cost is ~zero):
 
-- **PR author matches `authors_skip`.** Default list: `dependabot[bot]`, `renovate[bot]`, `github-actions[bot]`. Override with `"authors_skip": [...]` in `.woo-review/config.json`; explicit `"authors_skip": []` opts out entirely.
+- **PR author matches `authors_skip`.** Default list: `dependabot[bot]`, `renovate[bot]`, `github-actions[bot]`. Override with `"authors_skip": [...]` in `.woo-stack/config.json`; explicit `"authors_skip": []` opts out entirely.
 - **PR title matches `release_rollup_pattern`** (Python regex). Default: `^(staging|release|chore\(release\))`. Override with any string; explicit empty string opts out.
 
 The skip comment carries a `<!-- woo-review:skipped -->` marker; subsequent triggers on the same PR detect the marker and re-skip silently (no comment spam). To force a full review of a skipped PR, post `/woo-review force`.
@@ -63,14 +63,14 @@ When the incremental diff has no new commits (i.e. `LAST_SHA == HEAD_SHA`, e.g. 
 
 Marker semantics are state-light: the marker IS the state. There is no DB or workflow artifact retention beyond what GitHub already keeps in review history.
 
-## Cross-PR Memory (`.woo-review/memory.md`)
+## Cross-PR Memory (`.woo-stack/memory.md`)
 
-Reviews stay useful across PRs through a single plain-markdown file in the consumer repo: **`.woo-review/memory.md`**. It is the team's running list of gotchas, intentional design choices, and issues a prior review already surfaced and the team consciously accepted. There is no database, no sharded JSONL, no hooks — just a file you can read and edit by hand.
+Reviews stay useful across PRs through a single plain-markdown file in the consumer repo: **`.woo-stack/memory.md`**. It is the team's running list of gotchas, intentional design choices, and issues a prior review already surfaced and the team consciously accepted. There is no database, no sharded JSONL, no hooks — just a file you can read and edit by hand.
 
 ### How it's used
 
-- **Read as context.** `prefetch.sh` copies `.woo-review/memory.md` (if present, 100KB cap) into `$OUTDIR/memory.md`. Every angle worker and both validator passes treat it as additional rubric and **drop any finding the memory already records as known/accepted/wontfix**. This is what keeps re-reviews quiet: an issue the team has consciously accepted is not re-flagged on the next PR.
-- **Written inline (local).** When you run `/woo-review` locally and dismiss a finding (or note a gotcha worth remembering), the skill records the **learning** in `.woo-review/memory.md` — first checking that no existing entry already covers it, so the file stays a small deduplicated set of reusable rules rather than a log of every dismissal. The local skill has direct write access — no post-session hook, no permission-isolated job. See Stage 6 below.
+- **Read as context.** `prefetch.sh` copies `.woo-stack/memory.md` (if present, 100KB cap) into `$OUTDIR/memory.md`. Every angle worker and both validator passes treat it as additional rubric and **drop any finding the memory already records as known/accepted/wontfix**. This is what keeps re-reviews quiet: an issue the team has consciously accepted is not re-flagged on the next PR.
+- **Written inline (local).** When you run `/woo-review` locally and dismiss a finding (or note a gotcha worth remembering), the skill records the **learning** in `.woo-stack/memory.md` — first checking that no existing entry already covers it, so the file stays a small deduplicated set of reusable rules rather than a log of every dismissal. The local skill has direct write access — no post-session hook, no permission-isolated job. See Stage 6 below.
 - **Curated by humans.** The file is meant to be edited directly. Add a bullet, delete a stale one, group entries under headings — whatever keeps it readable.
 
 ### Event-floor rule (prior threads)
@@ -79,7 +79,7 @@ Reviews stay useful across PRs through a single plain-markdown file in the consu
 
 ### Noise control (`severity_floor`)
 
-`severity_floor` **defaults to `high`** — by default only high-priority findings surface. Widen it per-repo in `.woo-review/config.json` (`"severity_floor": "low"` or `"medium"`). The validator applies the floor after its own severity check.
+`severity_floor` **defaults to `high`** — by default only high-priority findings surface. Widen it per-repo in `.woo-stack/config.json` (`"severity_floor": "low"` or `"medium"`). The validator applies the floor after its own severity check.
 
 ## Knowledge Aggregation
 
@@ -100,9 +100,9 @@ The audit frameworks themselves are embedded in `prompts/` (inside this skill bu
 
 Prefetch auto-discovers project rule files (`AGENTS.md`, `CLAUDE.md`, `.cursorrules`, `.windsurfrules`, `GEMINI.md`) at the repo root, and additionally walks up from each changed file path to collect any `AGENTS.md` / `CLAUDE.md` along the way. The discovered content is concatenated (each section prefixed by a `## SOURCE: <path>` header, 100KB cap) into `$OUTDIR/rules.md` and surfaced to every angle as additional rubric. When that file is present, an extra `conventions` angle fires; the validator drops any finding that claims a rule violation but cannot quote the rule verbatim. Repos without rule files run unchanged.
 
-## Per-repo Configuration (`.woo-review/config.json`)
+## Per-repo Configuration (`.woo-stack/config.json`)
 
-Drop an optional `.woo-review/config.json` in the consumer repo to tune the review without forking the skill. Prefetch parses it into `$OUTDIR/config.json` (canonical copy); downstream stages read from there. Missing file = defaults (`severity_floor: high`). **All keys are optional — specify only the ones you want to override; the rest keep their built-in defaults.** Invalid JSON or unknown keys → loud `::error file=.woo-review/config.json,line=N::<msg>` annotation and the workflow fails (no silent fallback).
+Drop an optional `.woo-stack/config.json` in the consumer repo to tune the review without forking the skill. Prefetch parses it into `$OUTDIR/config.json` (canonical copy); downstream stages read from there. Missing file = defaults (`severity_floor: high`). **All keys are optional — specify only the ones you want to override; the rest keep their built-in defaults.** Invalid JSON or unknown keys → loud `::error file=.woo-stack/config.json,line=N::<msg>` annotation and the workflow fails (no silent fallback).
 
 Minimal example — override one knob, everything else stays default:
 
@@ -155,7 +155,7 @@ Key reference (JSON has no comments, so the per-key semantics live here):
 - **`models`** — per-tier slug overrides; the action input `inputs.model` still wins.
 - **`fix_commands`** — reserved for `--loop` mode (issue #15).
 - **`disable_adversarial`** — cost-sensitive opt-out for the prosecutor+defender validator (issue #13). When `true`, only the defender pass runs and its output becomes `findings.json` directly.
-- **`metrics`**: opt in to per-angle signal/noise metrics (bool, default `false`) — emit `findings.metrics.json` per run and fold a rolling `.woo-review/metrics.json` aggregate (local only). See Stage 6.5.
+- **`metrics`**: opt in to per-angle signal/noise metrics (bool, default `false`) — emit `findings.metrics.json` per run and fold a rolling `.woo-stack/metrics.json` aggregate (local only). See Stage 6.5.
 - **`chunking.max_loc`** — diff-chunking threshold (issue #14). When the post-ignore diff exceeds this many changed lines, prefetch splits it into chunks honoring workspace package roots > top-level dirs > file-LOC-balanced groups; each angle fans out as angles × chunks parallel sub-agents. `0` disables chunking; missing => 4000.
 
 **Precedence**: for the angle set, `angles.force` beats `angles.skip` when the same angle is listed in both. For model resolution, the action input `inputs.model` beats `models.<tier>` which beats the table default in `prompts/_header.md`. `ignore` is applied to both file paths and the per-file diff sections before angle gates evaluate.
@@ -195,7 +195,7 @@ export PR_NUMBER=<n>   # optional; prefetch.sh derives it from the branch when u
 bash "$WOO_REVIEW_ACTION_PATH/scripts/prefetch.sh"   # prints outdir=<path>; honors the exported OUTDIR
 ```
 
-When prefetch resolves a PR number AND finds an open PR, it produces the full artifact tree (`diff.txt`, `meta.json`, `last_sha.txt`, `prior-findings.json`, `rules.md` when applicable, `memory.md` when the consumer repo has `.woo-review/memory.md`). When no PR resolves, it emits `skip=true` — the host then falls back to local-diff mode below.
+When prefetch resolves a PR number AND finds an open PR, it produces the full artifact tree (`diff.txt`, `meta.json`, `last_sha.txt`, `prior-findings.json`, `rules.md` when applicable, `memory.md` when the consumer repo has `.woo-stack/memory.md`). When no PR resolves, it emits `skip=true` — the host then falls back to local-diff mode below.
 
 **Artifact reference.** All paths are under `$OUTDIR` (default per-project `/tmp/pr-review-<hash>/`):
 
@@ -206,7 +206,7 @@ When prefetch resolves a PR number AND finds an open PR, it produces the full ar
 | `last_sha.txt` | `prefetch.sh` | Stage 5 watermark | Present only when a prior watermark was found |
 | `prior-findings.json` | `prefetch.sh` | event-floor gate | Unresolved + resolved prior review threads |
 | `rules.md` | `prefetch.sh` | `conventions` angle, validator | Concatenated project rule files; triggers `conventions` angle when present |
-| `memory.md` | `prefetch.sh` | all angles, validator | Cross-PR memory (`.woo-review/memory.md`); findings it records as known/accepted are dropped. Present only when the consumer repo has the file |
+| `memory.md` | `prefetch.sh` | all angles, validator | Cross-PR memory (`.woo-stack/memory.md`); findings it records as known/accepted are dropped. Present only when the consumer repo has the file |
 | `angles.txt` | `detect-angles.sh` | Stage 3 orchestrator | One angle name per line |
 | `findings.<angle>.json` | angle workers | `merge-findings.sh` | Raw per-angle output |
 | `raw_findings.json` | `merge-findings.sh` | validator passes | Merged, chunk-collapsed findings |
@@ -236,7 +236,7 @@ git diff --name-only "$BASE"...HEAD \
 ### Stage 2 — Detect Angles
 
 ```bash
-bash "$WOO_REVIEW_ACTION_PATH/scripts/load-config.sh"   # parses .woo-review/config.json (defaults severity_floor=high)
+bash "$WOO_REVIEW_ACTION_PATH/scripts/load-config.sh"   # parses .woo-stack/config.json (defaults severity_floor=high)
 bash "$WOO_REVIEW_ACTION_PATH/scripts/detect-angles.sh"
 ```
 
@@ -387,14 +387,14 @@ After reporting, when the user **dismisses** a finding as a known/intentional/ac
 
 Before writing anything:
 
-1. **Read the existing `.woo-review/memory.md`** (it was already loaded to `$OUTDIR/memory.md` in Stage 1; re-read the repo copy in case it changed).
+1. **Read the existing `.woo-stack/memory.md`** (it was already loaded to `$OUTDIR/memory.md` in Stage 1; re-read the repo copy in case it changed).
 2. **Check coverage.** If an existing entry already captures this learning — even phrased differently, or scoped more narrowly/broadly — do **NOT** append a duplicate. If the existing entry is close but the new dismissal generalizes it (e.g. the same pattern in a second file), edit that entry to widen its scope rather than adding a near-duplicate.
 3. **Only when the learning is genuinely new**, append one short bullet phrased as a reusable rule, then stop.
 
 ```bash
-mkdir -p .woo-review
+mkdir -p .woo-stack
 # Append ONLY after confirming no existing entry covers this learning.
-printf -- '- %s\n' "<general pattern>: <why it is accepted / what not to re-flag>" >> .woo-review/memory.md
+printf -- '- %s\n' "<general pattern>: <why it is accepted / what not to re-flag>" >> .woo-stack/memory.md
 ```
 
 Phrase entries as patterns, not instances — prefer "Generated `*.pb.go` files are intentional; do not flag their style" over "dismissed line 42 in user.pb.go". The local skill writes this file directly — no post-session hook, no permission-isolated job. Only record on an explicit dismissal or a stated gotcha — never auto-record every finding. Do NOT write memory in CI: the GitHub Action's validator job holds `contents: read` and posts the review only; memory is curated locally and by humans editing the file. Memory is read back as review context on the next run (Stage 1) and the validator drops findings it records.
@@ -426,9 +426,9 @@ the next review run (Stage 1), keeping re-reviews quiet.
 
 ### Stage 6.5 — Fold per-angle metrics (local hosts, opt-in)
 
-Only when the consumer repo sets `metrics: true` in `.woo-review/config.json`. The
+Only when the consumer repo sets `metrics: true` in `.woo-stack/config.json`. The
 per-run `findings.metrics.json` (written by `intersect-findings.sh`) is folded into a
-rolling, **per-clone** aggregate at `.woo-review/metrics.json`. The fold script also
+rolling, **per-clone** aggregate at `.woo-stack/metrics.json`. The fold script also
 ensures that path is gitignored — the aggregate is local data, never committed
 (cross-host aggregation is the job of the opt-in central sink, a separate feature).
 
@@ -450,7 +450,7 @@ jq -r '.angles | to_entries
          keep_rate: (if .value.raw_total > 0 then .value.kept_total / .value.raw_total else 0 end)})
   | sort_by(-.drop_rate)[]
   | "\(.angle)\traw=\(.raw)\tdrop=\((.drop_rate*100|floor))%\tkeep=\((.keep_rate*100|floor))%"' \
-  .woo-review/metrics.json
+  .woo-stack/metrics.json
 ```
 
 A high `raw` with a high `drop` rate is a noise candidate; a high `keep` rate is a useful angle.

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Loads .woo-review/config.json from the consumer repo and emits canonical JSON
+# Loads .woo-stack/config.json from the consumer repo and emits canonical JSON
 # to /tmp/pr-review/config.json. Missing file -> defaults (severity_floor=high).
 # Invalid JSON or invalid schema -> loud GitHub-style ::error annotation and
 # non-zero exit (per issue #11 acceptance bullet 4).
@@ -44,11 +44,11 @@ source "$(dirname "${BASH_SOURCE[0]}")/resolve-outdir.sh"
 mkdir -p "$OUTDIR"
 
 ROOT="${GITHUB_WORKSPACE:-$(pwd)}"
-CFG_PATH="$ROOT/.woo-review/config.json"
+CFG_PATH="$ROOT/.woo-stack/config.json"
 
 if [ ! -f "$CFG_PATH" ]; then
   echo '{"severity_floor":"high"}' > "$OUTDIR/config.json"
-  echo "load-config: no .woo-review/config.json at $CFG_PATH, using defaults (severity_floor=high)"
+  echo "load-config: no .woo-stack/config.json at $CFG_PATH, using defaults (severity_floor=high)"
   exit 0
 fi
 
@@ -75,10 +75,10 @@ def loud(msg, line=None, col=None):
     """Emit a GitHub-style error annotation and exit non-zero."""
     if line is not None:
         sys.stderr.write(
-            "::error file=.woo-review/config.json,line={},col={}::{}\n".format(line, col, msg)
+            "::error file=.woo-stack/config.json,line={},col={}::{}\n".format(line, col, msg)
         )
     else:
-        sys.stderr.write("::error file=.woo-review/config.json::{}\n".format(msg))
+        sys.stderr.write("::error file=.woo-stack/config.json::{}\n".format(msg))
     sys.exit(1)
 
 
@@ -97,7 +97,7 @@ if text.strip() == "":
     # Empty file is equivalent to defaults.
     with open(dst, "w") as fh:
         json.dump({"severity_floor": "high"}, fh)
-    print("load-config: .woo-review/config.json is empty, using defaults (severity_floor=high)")
+    print("load-config: .woo-stack/config.json is empty, using defaults (severity_floor=high)")
     sys.exit(0)
 
 try:
@@ -207,5 +207,5 @@ with open(dst, "w") as fh:
     json.dump(out, fh, indent=2, sort_keys=True)
     fh.write("\n")
 
-print("load-config: parsed .woo-review/config.json -> {} keys: {}".format(len(out), ", ".join(sorted(out.keys())) or "(empty)"))
+print("load-config: parsed .woo-stack/config.json -> {} keys: {}".format(len(out), ", ".join(sorted(out.keys())) or "(empty)"))
 PY

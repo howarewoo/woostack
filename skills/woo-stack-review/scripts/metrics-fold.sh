@@ -5,10 +5,10 @@
 # Reads:
 #   $OUTDIR/config.json             resolved config; .metrics gates this step
 #   $OUTDIR/findings.metrics.json   per-run per-angle record (intersect-findings.sh)
-#   <repo>/.woo-review/metrics.json  existing rolling aggregate (optional)
+#   <repo>/.woo-stack/metrics.json  existing rolling aggregate (optional)
 # Writes:
-#   <repo>/.woo-review/metrics.json  updated running totals (per-clone, gitignored)
-#   <repo>/.gitignore                appends `.woo-review/metrics.json` if absent
+#   <repo>/.woo-stack/metrics.json  updated running totals (per-clone, gitignored)
+#   <repo>/.gitignore                appends `.woo-stack/metrics.json` if absent
 #
 # No-op (exit 0) when metrics is off or the per-run record is missing/empty.
 set -euo pipefail
@@ -18,7 +18,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/resolve-outdir.sh"
 CONFIG="$OUTDIR/config.json"
 PER_RUN="$OUTDIR/findings.metrics.json"
 ROOT="${GITHUB_WORKSPACE:-$(pwd)}"
-ROLLING="$ROOT/.woo-review/metrics.json"
+ROLLING="$ROOT/.woo-stack/metrics.json"
 GITIGNORE="$ROOT/.gitignore"
 SCHEMA_VERSION=1
 
@@ -38,12 +38,12 @@ if [ ! -s "$PER_RUN" ]; then
   exit 0
 fi
 
-mkdir -p "$ROOT/.woo-review"
+mkdir -p "$ROOT/.woo-stack"
 
 # Ensure the rolling file is gitignored (per-clone local data, never committed).
-if ! { [ -f "$GITIGNORE" ] && grep -qxF '.woo-review/metrics.json' "$GITIGNORE"; }; then
-  printf '%s\n' '.woo-review/metrics.json' >> "$GITIGNORE"
-  echo "metrics-fold: added .woo-review/metrics.json to .gitignore"
+if ! { [ -f "$GITIGNORE" ] && grep -qxF '.woo-stack/metrics.json' "$GITIGNORE"; }; then
+  printf '%s\n' '.woo-stack/metrics.json' >> "$GITIGNORE"
+  echo "metrics-fold: added .woo-stack/metrics.json to .gitignore"
 fi
 
 python3 - "$PER_RUN" "$ROLLING" "$SCHEMA_VERSION" <<'PY'

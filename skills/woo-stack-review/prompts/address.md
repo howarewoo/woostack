@@ -27,7 +27,7 @@ then report. Do not ask the user between threads.
 
 - **FIX**: edit the working tree. Accumulate all fixes; do NOT commit per thread.
 - **ACCEPT**: this is the issue-#53 step. First check `/tmp/pr-review/memory.md`
-  (and the live `.woo-review/memory.md`): if an existing entry already covers
+  (and the live `.woo-stack/memory.md`): if an existing entry already covers
   this learning — even phrased differently or more broadly — do NOT add a
   duplicate; widen the existing entry instead. Only when the learning is
   genuinely new, record it as a **pattern, not an instance**:

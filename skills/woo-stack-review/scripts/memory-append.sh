@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Appends one accept-by-design learning to ./.woo-review/memory.md as a bullet,
+# Appends one accept-by-design learning to ./.woo-stack/memory.md as a bullet,
 # unless a whitespace-normalized identical bullet is already present. Creates
 # the file (and dir) on first write. This is the deterministic safety net under
 # the LLM's semantic dedup in prompts/address.md — and the write that issue #53
@@ -7,11 +7,11 @@
 #
 # Inputs (env):
 #   LEARNING   the pattern-phrased rule (required, non-empty)
-#   MEMORY_FILE  path (default ./.woo-review/memory.md)
+#   MEMORY_FILE  path (default ./.woo-stack/memory.md)
 set -euo pipefail
 
 LEARNING="${LEARNING:?LEARNING env var required}"
-MEMORY_FILE="${MEMORY_FILE:-.woo-review/memory.md}"
+MEMORY_FILE="${MEMORY_FILE:-.woo-stack/memory.md}"
 
 # Normalize: collapse runs of whitespace, trim ends — for the dup comparison.
 norm() { printf '%s' "$1" | tr -s '[:space:]' ' ' | sed 's/^ *//; s/ *$//'; }

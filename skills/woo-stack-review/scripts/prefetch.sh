@@ -563,7 +563,7 @@ echo "Prior review threads (open + resolved): $PRIOR_COUNT"
 # curates (and the local skill appends to). Surfaced to every angle + the
 # validator as additional context so already-known issues are not re-flagged.
 # Missing file => no memory context (normal for fresh repos).
-MEMORY_SRC="${GITHUB_WORKSPACE:-$(pwd)}/.woo-review/memory.md"
+MEMORY_SRC="${GITHUB_WORKSPACE:-$(pwd)}/.woo-stack/memory.md"
 MEMORY_OUT="$OUTDIR/memory.md"
 if [ -f "$MEMORY_SRC" ]; then
   MEM_SIZE=$(wc -c < "$MEMORY_SRC" 2>/dev/null || echo 0)
