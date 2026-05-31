@@ -6,7 +6,7 @@ Every choice a bootstrap makes. Walk the user through **all** of these before sc
 
 Run this gate **before** any scaffolding (it is step 0 of [bootstrap.md](bootstrap.md)).
 
-0. **Start from the goal.** The skill is invoked as `/woo-stack <goal>`. Read that goal first and infer a *recommended* shape — name, surfaces, candidate features, likely capabilities — then present each decision below pre-filled with that recommendation, not a blank default. Example: "mobile app for cataloging recipes" → recommend `mobile` (+ `api` for sync), a `recipes` feature, Supabase Postgres + Storage (images) + Auth (accounts), and *no* billing. The user still confirms or overrides every item; the goal just makes the recommendations specific instead of generic.
+0. **Start from the goal.** The skill is invoked as `/woo-stack-bootstrap <goal>`. Read that goal first and infer a *recommended* shape — name, surfaces, candidate features, likely capabilities — then present each decision below pre-filled with that recommendation, not a blank default. Example: "mobile app for cataloging recipes" → recommend `mobile` (+ `api` for sync), a `recipes` feature, Supabase Postgres + Storage (images) + Auth (accounts), and *no* billing. The user still confirms or overrides every item; the goal just makes the recommendations specific instead of generic.
 1. **Surface only the relevant decisions.** Filter by the recommended/confirmed surfaces — don't ask mobile questions if there's no `mobile` surface, don't ask the API-host question if there's no `api`.
 2. **For every decision below, state the default and the alternatives, then get an explicit answer.** "Confirm everything" means the user actively accepts each default — silence is not consent. Group related decisions so the user answers in batches, not one popup at a time.
 3. **Capabilities are opt-in.** For billing, transactional email, webhooks, chat, observability, and realtime, first ask whether the project needs the capability at all. If no, skip its package and env entirely. If yes, confirm the provider. (`flags` is the exception — it is **not** opt-in: a standing package scaffolded empty in every project regardless of answer; see section 5 below.)
@@ -17,7 +17,7 @@ Do not proceed to scaffolding until every relevant decision below is confirmed.
 
 ## 1. Project basics — derive a recommendation from the goal, then confirm
 
-Infer each of these from the `/woo-stack` goal and propose it; the user confirms or corrects.
+Infer each of these from the `/woo-stack-bootstrap` goal and propose it; the user confirms or corrects.
 
 | Decision | Notes |
 |---|---|

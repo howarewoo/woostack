@@ -1,9 +1,9 @@
 ---
-name: woo-stack
+name: woo-stack-bootstrap
 description: Use when bootstrapping a new web, mobile, or API project from scratch — scaffolding a fresh monorepo, choosing which frameworks/hosting/data layer to use, or setting up architecture, CI, and conventions for a new full-stack app at current framework versions.
 ---
 
-# woo-stack
+# woo-stack-bootstrap
 
 ## Overview
 
@@ -13,11 +13,11 @@ A spec — not a template — for bootstrapping AI-built web + mobile + API proj
 
 ## Invocation
 
-Invoke with `/woo-stack <goal>`, where the goal is a plain-language description of what to build:
+Invoke with `/woo-stack-bootstrap <goal>`, where the goal is a plain-language description of what to build:
 
 ```
-/woo-stack create a new mobile app for cataloging recipes
-/woo-stack a SaaS dashboard with a marketing site and a billing API
+/woo-stack-bootstrap create a new mobile app for cataloging recipes
+/woo-stack-bootstrap a SaaS dashboard with a marketing site and a billing API
 ```
 
 From the goal, infer a *recommended* shape — surfaces, features, and provider choices — then walk the user through it (see Procedure). The goal seeds the recommendations; the user confirms or overrides every one.

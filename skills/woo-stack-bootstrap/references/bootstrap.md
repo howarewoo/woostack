@@ -4,7 +4,7 @@ How an AI agent (or human) uses this spec to spin up a new project. The spec is 
 
 ## Inputs the agent needs
 
-The skill is invoked as `/woo-stack <goal>` — a plain-language description of what to build. Derive the following from the goal and confirm them in step 0; don't require the user to spell them out:
+The skill is invoked as `/woo-stack-bootstrap <goal>` — a plain-language description of what to build. Derive the following from the goal and confirm them in step 0; don't require the user to spell them out:
 
 1. **Project name** (used for repo, root `package.json`, default app names).
 2. **Surfaces required** — any subset of: `web`, `landing`, `mobile`, `api`.
@@ -16,7 +16,7 @@ Everything else — hosting, data layer, auth, capabilities, repo host — is re
 
 ### 0. Interpret the goal, then confirm decisions with the user
 
-Read the `/woo-stack` goal and infer a recommended shape — name, surfaces, candidate features, likely capabilities. Then walk the user through [decisions.md](decisions.md), presenting every relevant decision **pre-filled with the goal-aware recommendation** alongside its default and alternatives. Get explicit sign-off, resolve the genuine forks (e.g. API host), and treat capabilities (billing, email, flags, observability, …) as opt-in. **Do not scaffold any decision the user has not confirmed**, and do not silently apply a default. If the user defers ("use the defaults"), state the full set you'll apply so they can object first.
+Read the `/woo-stack-bootstrap` goal and infer a recommended shape — name, surfaces, candidate features, likely capabilities. Then walk the user through [decisions.md](decisions.md), presenting every relevant decision **pre-filled with the goal-aware recommendation** alongside its default and alternatives. Get explicit sign-off, resolve the genuine forks (e.g. API host), and treat capabilities (billing, email, flags, observability, …) as opt-in. **Do not scaffold any decision the user has not confirmed**, and do not silently apply a default. If the user defers ("use the defaults"), state the full set you'll apply so they can object first.
 
 ### 1. Read the spec
 
