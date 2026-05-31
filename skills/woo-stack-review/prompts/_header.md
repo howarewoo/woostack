@@ -161,7 +161,7 @@ cat <<'BODY_EOF' > /tmp/pr_review_body.txt
 
 ---
 ${STATUS_LINE}
-*Audited by woo-review · Host: <host> · Provider: <provider> · Model: <model>*
+*Audited by woo-stack-review · Host: <host> · Provider: <provider> · Model: <model>*
 
 <!-- woo-stack-review:sha=${HEAD_SHA} -->
 BODY_EOF

@@ -52,7 +52,7 @@ Identify which mode applies before doing anything.
 The user wants to update one of the skills: add a pattern, swap a default framework, document a gotcha, refine the bootstrap procedure, the build loop, the review engine, or any SKILL.md entry.
 
 Rules:
-- Markdown edits only. No application code, configs, or app lockfiles belong in this repo.
+- Skill assets only — Markdown, plus the support files a skill ships (HTML templates and specs, the review engine's shell scripts and prompts, JSON config). No *application* code, app build configs, or app lockfiles belong in this repo.
 - One reference section per PR where possible.
 - Cross-link related sections (`[label](path.md#anchor)`) rather than duplicating prose.
 - Add new gotchas under [references/frameworks.md](skills/woo-stack-bootstrap/references/frameworks.md#known-gotchas-to-respect-at-bootstrap).
