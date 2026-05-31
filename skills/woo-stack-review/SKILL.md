@@ -1,14 +1,14 @@
 ---
-name: woo-review
+name: woo-stack-review
 description: Managed agentic PR reviews with parallel matrix execution and skeptical validation.
-install: npx skills add howarewoo/woo-review
+install: npx skills add howarewoo/woo-stack
 requires:
   bins: [gh, jq, node]
 recommends:
   skills: [pbakaus/impeccable, coreyhaines31/seo-audit, coreyhaines31/ai-seo, openai/security-best-practices, supabase/supabase-postgres-best-practices]
 ---
 
-# woo-review
+# woo-stack-review
 
 Spawn a parallel swarm of review sub-agents against a pull request (or the local diff), validate their findings with a Skeptical Validator, and — when a PR is targeted — post a single batched GitHub Review.
 
@@ -16,12 +16,12 @@ This skill is **host-agnostic**: it works in any AI coding agent that supports s
 
 ## Commands
 
-- `/woo-review` — Auto-detect: if the current branch has an open PR (via `gh pr view --json number`), behave as `/woo-review <PR#>`. Otherwise review the local diff (no GitHub posting).
-- `/woo-review <PR#>` — Fetch the PR via `gh`, run the swarm, and post a native batched GitHub Review.
-- `/woo-review --full` (or `@review --full` in a PR comment) — Force a complete re-review even when a prior SHA marker exists. Skips the incremental path described below.
-- `woo-review install` — Verify local deps (`gh`, `jq`, `node`) and pre-fetch `impeccable` + `react-doctor` (run once per repo).
-- `woo-review status` — Show the current PR's review status.
-- `woo-review address <PR#>` — Autonomously address the PR's unresolved review threads (fix or push back, reply, resolve) and record accept-by-design dismissals to `.woo-stack/memory.md`. Local hosts only. See *Addressing Reviews* below.
+- `/woo-stack-review` — Auto-detect: if the current branch has an open PR (via `gh pr view --json number`), behave as `/woo-stack-review <PR#>`. Otherwise review the local diff (no GitHub posting).
+- `/woo-stack-review <PR#>` — Fetch the PR via `gh`, run the swarm, and post a native batched GitHub Review.
+- `/woo-stack-review --full` (or `@review --full` in a PR comment) — Force a complete re-review even when a prior SHA marker exists. Skips the incremental path described below.
+- `woo-stack-review install` — Verify local deps (`gh`, `jq`, `node`) and pre-fetch `impeccable` + `react-doctor` (run once per repo).
+- `woo-stack-review status` — Show the current PR's review status.
+- `woo-stack-review address <PR#>` — Autonomously address the PR's unresolved review threads (fix or push back, reply, resolve) and record accept-by-design dismissals to `.woo-stack/memory.md`. Local hosts only. See *Addressing Reviews* below.
 
 ### PR-comment triggers (issue #19)
 
@@ -29,11 +29,11 @@ When the companion GitHub Action is installed, the following comment commands re
 
 | Comment | Effect |
 |---|---|
-| `/woo-review` | Full re-review (sets `incremental=off`). Equivalent to `@review --full`. |
-| `/woo-review recheck` | Incremental review of new commits since the last marker. Same path as a `synchronize` event. |
-| `/woo-review force` | Bypass auto-skip (see *Auto-skip* below). Combinable: `/woo-review force recheck`. |
+| `/woo-stack-review` | Full re-review (sets `incremental=off`). Equivalent to `@review --full`. |
+| `/woo-stack-review recheck` | Incremental review of new commits since the last marker. Same path as a `synchronize` event. |
+| `/woo-stack-review force` | Bypass auto-skip (see *Auto-skip* below). Combinable: `/woo-stack-review force recheck`. |
 
-The legacy `@review` trigger phrase still works; `/woo-review` is an alias the example workflow's `issue_comment` `if:` recognizes.
+The legacy `@review` trigger phrase still works; `/woo-stack-review` is an alias the example workflow's `issue_comment` `if:` recognizes.
 
 ### Auto-skip (bot PRs + release rollups)
 
@@ -42,7 +42,7 @@ The legacy `@review` trigger phrase still works; `/woo-review` is an alias the e
 - **PR author matches `authors_skip`.** Default list: `dependabot[bot]`, `renovate[bot]`, `github-actions[bot]`. Override with `"authors_skip": [...]` in `.woo-stack/config.json`; explicit `"authors_skip": []` opts out entirely.
 - **PR title matches `release_rollup_pattern`** (Python regex). Default: `^(staging|release|chore\(release\))`. Override with any string; explicit empty string opts out.
 
-The skip comment carries a `<!-- woo-review:skipped -->` marker; subsequent triggers on the same PR detect the marker and re-skip silently (no comment spam). To force a full review of a skipped PR, post `/woo-review force`.
+The skip comment carries a `<!-- woo-review:skipped -->` marker; subsequent triggers on the same PR detect the marker and re-skip silently (no comment spam). To force a full review of a skipped PR, post `/woo-stack-review force`.
 
 ## Incremental Mode
 
@@ -70,7 +70,7 @@ Reviews stay useful across PRs through a single plain-markdown file in the consu
 ### How it's used
 
 - **Read as context.** `prefetch.sh` copies `.woo-stack/memory.md` (if present, 100KB cap) into `$OUTDIR/memory.md`. Every angle worker and both validator passes treat it as additional rubric and **drop any finding the memory already records as known/accepted/wontfix**. This is what keeps re-reviews quiet: an issue the team has consciously accepted is not re-flagged on the next PR.
-- **Written inline (local).** When you run `/woo-review` locally and dismiss a finding (or note a gotcha worth remembering), the skill records the **learning** in `.woo-stack/memory.md` — first checking that no existing entry already covers it, so the file stays a small deduplicated set of reusable rules rather than a log of every dismissal. The local skill has direct write access — no post-session hook, no permission-isolated job. See Stage 6 below.
+- **Written inline (local).** When you run `/woo-stack-review` locally and dismiss a finding (or note a gotcha worth remembering), the skill records the **learning** in `.woo-stack/memory.md` — first checking that no existing entry already covers it, so the file stays a small deduplicated set of reusable rules rather than a log of every dismissal. The local skill has direct write access — no post-session hook, no permission-isolated job. See Stage 6 below.
 - **Curated by humans.** The file is meant to be edited directly. Add a bullet, delete a stale one, group entries under headings — whatever keeps it readable.
 
 ### Event-floor rule (prior threads)
@@ -160,9 +160,9 @@ Key reference (JSON has no comments, so the per-key semantics live here):
 
 **Precedence**: for the angle set, `angles.force` beats `angles.skip` when the same angle is listed in both. For model resolution, the action input `inputs.model` beats `models.<tier>` which beats the table default in `prompts/_header.md`. `ignore` is applied to both file paths and the per-file diff sections before angle gates evaluate.
 
-## `/woo-review` Workflow
+## `/woo-stack-review` Workflow
 
-When the user invokes `/woo-review [PR#]`, the host agent MUST perform the following stages. **All file paths below are relative to `$WOO_REVIEW_ACTION_PATH`**.
+When the user invokes `/woo-stack-review [PR#]`, the host agent MUST perform the following stages. **All file paths below are relative to `$WOO_REVIEW_ACTION_PATH`**.
 
 ### Stage 0 — Resolve skill path
 
@@ -399,7 +399,7 @@ printf -- '- %s\n' "<general pattern>: <why it is accepted / what not to re-flag
 
 Phrase entries as patterns, not instances — prefer "Generated `*.pb.go` files are intentional; do not flag their style" over "dismissed line 42 in user.pb.go". The local skill writes this file directly — no post-session hook, no permission-isolated job. Only record on an explicit dismissal or a stated gotcha — never auto-record every finding. Do NOT write memory in CI: the GitHub Action's validator job holds `contents: read` and posts the review only; memory is curated locally and by humans editing the file. Memory is read back as review context on the next run (Stage 1) and the validator drops findings it records.
 
-## Addressing Reviews (`woo-review address <PR#>`, local hosts)
+## Addressing Reviews (`woo-stack-review address <PR#>`, local hosts)
 
 Stage 6 only fires when a finding is dismissed *during a live local run*. For
 PR-targeted reviews the accept/dismiss decision happens **later**, on the PR
@@ -504,7 +504,7 @@ Zero local setup required in the consumer repo — the action ships its own prom
 - **Sub-agent writes findings to the wrong path** — caused by host workspace drift (the sub-agent's CWD differs from the orchestrator's). Export `OUTDIR` to every sub-agent — see Stage 1.
 - **Adversarial validators dropped a finding both passes agreed on** — the intersection now applies a fuzzy second pass (`±10` lines, prefix-20 title-stem match). Check `$OUTDIR/validator-metrics.json` for `disagreement_count`; surprises usually mean title-stem prefix mismatch, not line drift.
 - **Caller-side `PR_NUMBER="$(gh pr view ...)"` blocked by host sandbox** — some hosts (Gemini CLI, sandboxed runtimes) reject inline `$(...)` substitutions on tool calls. Skip the caller-side resolution: `bash $WOO_REVIEW_ACTION_PATH/scripts/prefetch.sh` derives the PR number itself from the current branch when `PR_NUMBER` is unset and `GITHUB_ACTIONS != "true"`.
-- **`prefetch.sh` skipped with "bot already commented and trigger is not explicit" on a local run** — fixed: that re-run guard now only applies inside GitHub Actions (`GITHUB_ACTIONS=true`). Local `/woo-review` invocations are explicit by definition and no longer trip the gate.
+- **`prefetch.sh` skipped with "bot already commented and trigger is not explicit" on a local run** — fixed: that re-run guard now only applies inside GitHub Actions (`GITHUB_ACTIONS=true`). Local `/woo-stack-review` invocations are explicit by definition and no longer trip the gate.
 - **GitHub API rejects `REQUEST_CHANGES` / `APPROVE` on a self-authored PR** — fixed in `_header.md`: the payload-builder compares `gh api user --jq .login` against `meta.json .author.login` and downgrades the event to `COMMENT` when they match. The STATUS_LINE in the review body still carries the accurate verdict; a small note is appended explaining the downgrade.
 - **Sub-agent died mid-run and left no `findings.<angle>.json`** — orchestrator prompts now write `[]` to the findings path on entry (so a crash leaves an empty array, not a missing file) and re-launch any angle whose file is missing or non-array after the swarm completes (one retry per `(angle, chunk)` pair). If the retry also fails, that angle simply contributes no findings — the rest of the review still posts.
 - **`merge-findings.sh` failed on bad JSON escapes from a worker** — the recovery path now tries `json.loads(strict=False)` and a fallback that strips bare control bytes + invalid `\<char>` escapes inside strings. Workers that emit raw tabs/newlines or Windows paths inside `description` fields no longer sink the whole merge. The Output Discipline section of `_header.md` documents the escape rules workers should follow up-front.
