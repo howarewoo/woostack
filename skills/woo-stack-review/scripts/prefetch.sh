@@ -8,7 +8,7 @@
 #               .windsurfrules / GEMINI.md) are discovered.
 #
 # Incremental mode (INPUT_INCREMENTAL=auto, default): if a prior woo-review marker
-# `<!-- woo-review:sha=<oid> -->` is found in any prior review body, diff
+# `<!-- woo-stack-review:sha=<oid> -->` is found in any prior review body, diff
 # <last_sha>...HEAD via the GitHub compare API instead of the full PR diff. A
 # `--full` substring in COMMENT_BODY (issue_comment trigger) overrides to off.
 # Test hooks (env, only active when WOO_REVIEW_TEST_MODE=1):
@@ -122,7 +122,7 @@ emit_skip() {
 }
 
 # Auto-skip (issue #19): emit a single explanatory comment then exit. Idempotent
-# via the `<!-- woo-review:skipped -->` marker — repeat triggers (synchronize on
+# via the `<!-- woo-stack-review:skipped -->` marker — repeat triggers (synchronize on
 # a dependabot PR, etc.) re-skip silently. Marker scan also picks up prior skip
 # comments authored by the action across re-runs, so the comment is posted at
 # most once per PR until a human types `/woo-review force`.
@@ -130,10 +130,10 @@ emit_skip_with_comment() {
   local reason="$1"
   local body="woo-review skipped: ${reason}
 
-<!-- woo-review:skipped -->"
+<!-- woo-stack-review:skipped -->"
   local existing
   existing=$(gh pr view "$PR_NUMBER" --json comments \
-    --jq '[.comments[]? | select((.body // "") | test("<!-- woo-review:skipped -->"))] | length' \
+    --jq '[.comments[]? | select((.body // "") | test("<!-- woo-stack-review:skipped -->"))] | length' \
     2>/dev/null || echo 0)
   if [ "${existing:-0}" = "0" ]; then
     if gh pr comment "$PR_NUMBER" --body "$body" >/dev/null 2>&1; then
@@ -198,12 +198,12 @@ LAST_SHA=$(printf '%s' "$REVIEWS_JSON" | jq -r --arg bots "$BOT_NAME_PATTERN" '
         submittedAt: (.submittedAt // ""),
         login: (.author.login // "") }
     | select(.login | test("^(" + $bots + ")"; "i"))
-    | select(.body | test("<!-- woo-review:sha=[a-f0-9]+ -->"))
+    | select(.body | test("<!-- woo-stack-review:sha=[a-f0-9]+ -->"))
   ]
   | sort_by(.submittedAt)
   | last
   | if . == null then empty
-    else (.body | capture("<!-- woo-review:sha=(?<sha>[a-f0-9]+) -->") | .sha)
+    else (.body | capture("<!-- woo-stack-review:sha=(?<sha>[a-f0-9]+) -->") | .sha)
     end
 ' 2>/dev/null || true)
 

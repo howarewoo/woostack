@@ -42,14 +42,14 @@ The legacy `@review` trigger phrase still works; `/woo-stack-review` is an alias
 - **PR author matches `authors_skip`.** Default list: `dependabot[bot]`, `renovate[bot]`, `github-actions[bot]`. Override with `"authors_skip": [...]` in `.woo-stack/config.json`; explicit `"authors_skip": []` opts out entirely.
 - **PR title matches `release_rollup_pattern`** (Python regex). Default: `^(staging|release|chore\(release\))`. Override with any string; explicit empty string opts out.
 
-The skip comment carries a `<!-- woo-review:skipped -->` marker; subsequent triggers on the same PR detect the marker and re-skip silently (no comment spam). To force a full review of a skipped PR, post `/woo-stack-review force`.
+The skip comment carries a `<!-- woo-stack-review:skipped -->` marker; subsequent triggers on the same PR detect the marker and re-skip silently (no comment spam). To force a full review of a skipped PR, post `/woo-stack-review force`.
 
 ## Incremental Mode
 
 By default (`incremental: auto` on the GitHub Action), every posted review carries a hidden watermark:
 
 ```
-<!-- woo-review:sha=<headRefOid> -->
+<!-- woo-stack-review:sha=<headRefOid> -->
 ```
 
 On the next run, `prefetch.sh` scans **bot-authored** prior review bodies (the same `BOT_NAME_PATTERN` used elsewhere) for the marker — non-bot reviewers cannot forge a marker to narrow the window. If found, prefetch diffs `<last_sha>...HEAD` via the GitHub compare API instead of the full PR diff — only the new commits since the last pass are reviewed. Unresolved prior review threads (any author) are dumped to `$OUTDIR/prior-findings.json` and consumed by the posting stage as an **event floor**: any non-empty priors list keeps the new review at minimum `REQUEST_CHANGES`, a conservative gate so a stale open thread is never auto-resolved by a clean incremental pass.
@@ -83,7 +83,7 @@ Reviews stay useful across PRs through a single plain-markdown file in the consu
 
 ## Knowledge Aggregation
 
-woo-review wires in domain skills as tool calls inside specific angles, not as a runtime dependency:
+woo-stack-review wires in domain skills as tool calls inside specific angles, not as a runtime dependency:
 
 | Source | Used by | How |
 |---|---|---|

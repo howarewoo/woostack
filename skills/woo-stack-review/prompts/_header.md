@@ -146,7 +146,7 @@ fi
 export AUTH_LOGIN PR_AUTHOR
 
 # 1. Prepare the review body (Summary + Status Line + hidden SHA marker).
-# The trailing <!-- woo-review:sha=$HEAD_SHA --> marker is read by the next run's
+# The trailing <!-- woo-stack-review:sha=$HEAD_SHA --> marker is read by the next run's
 # prefetch step to enable incremental review (diffs LAST_SHA...HEAD only). DO NOT
 # remove or rename — it is the only state we persist across runs.
 #
@@ -163,7 +163,7 @@ cat <<'BODY_EOF' > /tmp/pr_review_body.txt
 ${STATUS_LINE}
 *Audited by woo-review · Host: <host> · Provider: <provider> · Model: <model>*
 
-<!-- woo-review:sha=${HEAD_SHA} -->
+<!-- woo-stack-review:sha=${HEAD_SHA} -->
 BODY_EOF
 
 # Surface a degraded adversarial pass (issue #47). When intersect-findings.sh
@@ -288,7 +288,7 @@ The `pr_review_body.txt` should contain:
 - A 1-2 sentence high-level summary of the findings.
 - The `${STATUS_LINE}`.
 - Credits line (*Audited by woo-review...*).
-- A hidden HTML comment `<!-- woo-review:sha=${HEAD_SHA} -->` as the last line. This is the watermark the next run's prefetch step reads to enable incremental review.
+- A hidden HTML comment `<!-- woo-stack-review:sha=${HEAD_SHA} -->` as the last line. This is the watermark the next run's prefetch step reads to enable incremental review.
 - **DO NOT** update the main PR description or title.
 
 ### Credits line substitution
