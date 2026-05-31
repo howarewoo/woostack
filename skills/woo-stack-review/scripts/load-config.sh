@@ -39,7 +39,7 @@
 
 set -euo pipefail
 
-# shellcheck source=skills/woo-review/scripts/resolve-outdir.sh
+# shellcheck source=skills/woo-stack-review/scripts/resolve-outdir.sh
 source "$(dirname "${BASH_SOURCE[0]}")/resolve-outdir.sh"
 mkdir -p "$OUTDIR"
 

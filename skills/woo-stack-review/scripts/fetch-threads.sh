@@ -14,7 +14,7 @@
 # truncation is logged below, never silent.
 set -euo pipefail
 
-# shellcheck source=skills/woo-review/scripts/resolve-outdir.sh
+# shellcheck source=skills/woo-stack-review/scripts/resolve-outdir.sh
 source "$(dirname "${BASH_SOURCE[0]}")/resolve-outdir.sh"
 mkdir -p "$OUTDIR"
 PR_NUMBER="${PR_NUMBER:?PR_NUMBER env var required}"

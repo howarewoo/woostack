@@ -13,7 +13,7 @@
 # No-op (exit 0) when metrics is off or the per-run record is missing/empty.
 set -euo pipefail
 
-# shellcheck source=skills/woo-review/scripts/resolve-outdir.sh
+# shellcheck source=skills/woo-stack-review/scripts/resolve-outdir.sh
 source "$(dirname "${BASH_SOURCE[0]}")/resolve-outdir.sh"
 CONFIG="$OUTDIR/config.json"
 PER_RUN="$OUTDIR/findings.metrics.json"
