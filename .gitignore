@@ -46,3 +46,8 @@ pnpm-debug.log*
 # Misc
 *.tsbuildinfo
 .vercel
+
+# woo-stack: local-only review metrics (config.json and memory.md stay tracked)
+.woo-stack/metrics.json
+# Claude Code scheduling runtime lock (generated, not source)
+.claude/scheduled_tasks.lock
