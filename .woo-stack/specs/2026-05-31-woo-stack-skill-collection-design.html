@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>woo-stack — Skill Collection Redesign (Design Spec)</title>
+<style>
+  :root {
+    --bg: #0f1115; --panel: #171a21; --ink: #e6e9ef; --muted: #9aa4b2;
+    --accent: #6ea8fe; --accent2: #7ee787; --warn: #f2b65a; --line: #2a2f3a;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.55; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 48px 24px 96px; }
+  header.doc { border-bottom: 1px solid var(--line); padding-bottom: 20px; margin-bottom: 28px; }
+  header.doc h1 { margin: 0 0 6px; font-size: 30px; letter-spacing: -0.02em; }
+  header.doc .meta { color: var(--muted); font-size: 13px; }
+  header.doc .meta span { margin-right: 16px; }
+  h2 { margin: 40px 0 12px; font-size: 21px; letter-spacing: -0.01em; border-left: 3px solid var(--accent); padding-left: 10px; }
+  h3 { margin: 24px 0 8px; font-size: 16px; color: var(--accent2); }
+  p, li { font-size: 15px; }
+  code { font-family: var(--mono); background: #20242d; padding: 1px 6px; border-radius: 5px; font-size: 13px; color: #cdd6e3; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; margin: 14px 0; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 14px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+  td code { white-space: nowrap; }
+  .tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+  .tag.dep { color: var(--accent); border-color: #2d4a78; }
+  .tag.none { color: var(--accent2); border-color: #2f5a38; }
+  .flow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 14px 0; }
+  .flow .step { background: #20242d; border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font-size: 13px; font-family: var(--mono); }
+  .flow .arrow { color: var(--muted); }
+  .flow .gate { border-color: var(--warn); color: var(--warn); }
+  .note { border-left: 3px solid var(--warn); background: #1d1a12; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 14px; }
+  ul { margin: 8px 0; padding-left: 22px; }
+  li { margin: 4px 0; }
+  .nongoal { color: var(--muted); }
+  .open { border-left: 3px solid var(--accent); background: #121a26; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 10px 0; font-size: 14px; }
+  footer { margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+  <h1>woo-stack — Skill Collection Redesign</h1>
+  <div class="meta">
+    <span><strong>Status:</strong> Design / pending approval</span>
+    <span><strong>Date:</strong> 2026-05-31</span>
+    <span><strong>Branch:</strong> pivot-to-skill</span>
+  </div>
+</header>
+
+<h2>1. What woo-stack becomes</h2>
+<p>
+  woo-stack stops being a single bootstrap skill and becomes an <strong>opinionated collection of
+  orchestration skills</strong>. Each skill is thin glue that sequences existing, proven skills in a
+  fixed order, inherits their gates, and — on completion — offers the natural next step. The value is the
+  <em>sequence and the handoffs</em>, not re-implementing brainstorming, planning, or review.
+</p>
+<p>Packaging stays a <strong>multi-skill skills collection</strong> (the <code>npx skills add</code> path), not a
+  Claude Code plugin. <code>skills-lock.json</code> already keys multiple skills per source repo by
+  <code>skillPath</code>, so one repo publishing several skills is native.</p>
+
+<h2>2. Skill inventory</h2>
+<table>
+  <thead>
+    <tr><th>Skill (command)</th><th>Engine</th><th>Ends by</th><th>Skill deps</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>woo-stack-bootstrap</code></td>
+      <td>Today's woo-stack spec (decisions / architecture / frameworks / infrastructure / patterns). Behavior unchanged — renamed and repackaged only.</td>
+      <td>Scaffolded + verified repo</td>
+      <td><span class="tag none">none</span></td>
+    </tr>
+    <tr>
+      <td><code>woo-stack-build</code></td>
+      <td>brainstorming → write spec (HTML) → grill-me → writing-plans → executing-plans</td>
+      <td>Asking whether to open a PR</td>
+      <td><span class="tag dep">superpowers + grill-me</span></td>
+    </tr>
+    <tr>
+      <td><code>woo-stack-review</code></td>
+      <td><strong>Ported</strong> woo-review — review verb (parallel review swarm + skeptical validator, batched GitHub review or local diff)</td>
+      <td>Offering address-comments</td>
+      <td><span class="tag none">none</span></td>
+    </tr>
+    <tr>
+      <td><code>woo-stack-address-comments</code></td>
+      <td><strong>Ported</strong> woo-review — address verb (fetch unresolved threads, decide FIX / ACCEPT / CLARIFY, reply, resolve, push — autonomous)</td>
+      <td>Offering re-review — <strong>no merge</strong></td>
+      <td><span class="tag none">none</span></td>
+    </tr>
+  </tbody>
+</table>
+<p><code>woo-stack-review</code> and <code>woo-stack-address-comments</code> are two command entry points over
+  <strong>one shared ported woo-review engine</strong> (scripts + prompts).</p>
+
+<h3>Command relationship</h3>
+<p>Discrete commands — each invoked on its own, each ending by <strong>offering the next step</strong>. The user
+  stays in control and never has to remember the sequence. Nothing chains automatically; nothing merges.</p>
+<div class="flow">
+  <span class="step">build</span><span class="arrow">→ offer PR →</span>
+  <span class="step">review</span><span class="arrow">→ offer →</span>
+  <span class="step">address-comments</span><span class="arrow">→ offer re-review →</span>
+  <span class="step">review</span><span class="arrow">→ … →</span>
+  <span class="step gate">user merges (outside woo-stack)</span>
+</div>
+
+<h2>3. woo-stack-build in detail</h2>
+<p>The core deliverable. Thin glue: it sequences the sub-skills and <strong>inherits their gates only</strong>
+  (brainstorming requires design approval; writing-plans and executing-plans have their own checkpoints). It adds
+  no extra phase gates of its own.</p>
+<div class="flow">
+  <span class="step">brainstorming</span><span class="arrow">→</span>
+  <span class="step">write spec (HTML)</span><span class="arrow">→</span>
+  <span class="step">grill-me</span><span class="arrow">→</span>
+  <span class="step">writing-plans</span><span class="arrow">→</span>
+  <span class="step">executing-plans</span><span class="arrow">→</span>
+  <span class="step gate">ask: open PR?</span>
+</div>
+
+<h3>Output overrides (diverges from superpowers defaults)</h3>
+<p>superpowers writes markdown specs to <code>docs/superpowers/specs/</code>. <code>build</code> overrides both
+  <strong>location and format</strong>, so its SKILL.md explicitly directs the write step rather than inheriting it:</p>
+<table>
+  <thead><tr><th>Artifact</th><th>Format</th><th>Location</th></tr></thead>
+  <tbody>
+    <tr><td>Spec</td><td>Self-contained styled <strong>HTML</strong> (inline CSS, diagrams) — no markdown source kept</td><td><code>.woo-stack/specs/</code></td></tr>
+    <tr><td>Plan</td><td>Markdown (working checklist)</td><td><code>.woo-stack/plans/</code></td></tr>
+  </tbody>
+</table>
+<p>HTML specs are for visualization — richer than plain markdown. grill-me hardens the HTML spec in place.
+  Plans remain markdown because they are working checklists, not visualization artifacts. This very document is the
+  first instance of the HTML-spec convention.</p>
+
+<h2>4. Dependency model</h2>
+<p>Porting woo-review in shrinks external skill dependencies to <strong>superpowers</strong>
+  (brainstorming, writing-plans, executing-plans) and <strong>grill-me</strong> — used by <code>build</code> alone.
+  woo-review is internalized: it carries its own binary requirements (<code>gh</code>, <code>jq</code>, <code>node</code>)
+  and its optional review-angle skills as <code>recommends</code>.</p>
+<h3>Preflight (shared behavior, primarily build)</h3>
+<ul>
+  <li><strong>Declared at install</strong> — the install script / lock pulls each required skill (<code>npx skills add</code> per dep). Most users never hit a gap.</li>
+  <li><strong>Checked at skill start</strong> — each orchestrator preflights its own deps.</li>
+  <li><strong>Missing → offer inline install and continue</strong> — name exactly what's missing; do not end the task and force a re-invoke.</li>
+  <li><strong>Declined →</strong> methodology deps (superpowers, grill-me) fall back to following the principle manually, <em>stated clearly as degraded</em>. (woo-review no longer applies — it's first-party.)</li>
+</ul>
+
+<h2>5. review + address-comments (ported woo-review)</h2>
+<p>woo-review is ported into this repo in full and the upstream <code>howarewoo/woo-review</code> repo is deprecated
+  (deprecation notice lives in <em>that</em> repo — follow-up, out of scope here).</p>
+<ul>
+  <li><strong>review</strong> — runs the parallel review swarm, validates findings with the Skeptical Validator, posts a single batched GitHub review when a PR is targeted (or reviews the local diff with no posting).</li>
+  <li><strong>address-comments</strong> — drives woo-review's existing <code>address</code> verb: fetch unresolved threads, restate, verify against the code, choose FIX / ACCEPT (push back) / CLARIFY, reply without performative language, resolve, push. The receiving-code-review judgment is already embedded — no superpowers dependency.</li>
+</ul>
+
+<h2>6. Repo changes</h2>
+<ul>
+  <li><code>skills/woo-stack/</code> → <code>skills/woo-stack-bootstrap/</code> (SKILL.md + <code>references/</code> moved intact).</li>
+  <li>New skill dirs: <code>skills/woo-stack-build/</code>, <code>skills/woo-stack-review/</code>, <code>skills/woo-stack-address-comments/</code>, plus the shared ported woo-review engine.</li>
+  <li>Promote woo-review from <code>.agents/skills/woo-review/</code> (dev copy) to first-party <code>skills/</code> (canonical). The repo then dogfoods its own review skill.</li>
+  <li><code>references/development.md</code> → trimmed to a pointer (the loop is automated by the orchestrator skills) plus the branching model, which stays prose-worthy. The skills become source of truth for the loop; no duplicated step lists.</li>
+  <li><code>README.md</code> / <code>AGENTS.md</code> → document the four commands; note the woo-review repo is deprecated and lives here now; update layout + quick-reference tables + the two-modes framing.</li>
+  <li><code>skills-lock.json</code> → drop the woo-review entry (now first-party); keep superpowers + grill-me.</li>
+</ul>
+
+<h2>7. Naming</h2>
+<div class="note">
+  Commands are <strong>hyphenated</strong>: <code>/woo-stack-bootstrap</code>, <code>/woo-stack-build</code>,
+  <code>/woo-stack-review</code>, <code>/woo-stack-address-comments</code>. The literal colon form
+  (<code>woo-stack:build</code>) is a Claude Code <em>plugin</em> feature; the skills-collection packaging chosen here
+  uses flat skill names, so the colon is not available without restructuring as a plugin.
+</div>
+
+<h2>8. Non-goals</h2>
+<ul class="nongoal">
+  <li>No merge automation — woo-stack stops short of merge; the user merges through their own process / branch protection.</li>
+  <li>No plugin restructure — stays a skills collection.</li>
+  <li>No application code in this repo (markdown + skill assets only).</li>
+  <li>Bootstrap behavior is unchanged — renamed and repackaged, not redesigned.</li>
+  <li>Actually deprecating the old woo-review repo is a follow-up in that repo, not part of this work.</li>
+</ul>
+
+<h2>9. Open items (resolve during planning)</h2>
+<div class="open"><strong>Shared-engine placement.</strong> Verify how the skills tool installs a skill's auxiliary files
+  (scripts/, prompts/). Decide whether the ported woo-review engine lives in one shared dir referenced by both entry
+  points, or is vendored under each skill — driven by whether the tool installs per-skill subtrees or the whole repo.</div>
+<div class="open"><strong>Multi-skill resolution.</strong> Confirm how <code>npx skills add howarewoo/woo-stack</code> resolves
+  a multi-skill repo — installs all skills, or one per <code>skillPath</code> — and document the exact install command(s)
+  for the collection.</div>
+<div class="open"><strong>.agents dev copy.</strong> Once woo-review is first-party under <code>skills/</code>, decide whether the
+  <code>.agents/skills/woo-review</code> dev copy is replaced by a local consume / symlink or removed.</div>
+<div class="open"><strong>HTML authoring mechanics in build.</strong> Pin down how <code>build</code> instructs the spec write
+  step to emit self-contained HTML to <code>.woo-stack/specs/</code> while still using brainstorming for the dialogue
+  (override the skill's write step vs. post-author the HTML after design approval).</div>
+
+<footer>
+  woo-stack design spec · authored as the first HTML-format spec under the new convention · <code>.woo-stack/specs/</code>
+</footer>
+
+</div>
+</body>
+</html>
