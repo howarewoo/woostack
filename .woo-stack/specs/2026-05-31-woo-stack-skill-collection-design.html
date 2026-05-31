@@ -170,9 +170,13 @@
     <tr><td><code>.woo-stack/plans/</code></td><td>build</td><td>markdown plans</td></tr>
     <tr><td><code>.woo-stack/config.json</code></td><td>review (was <code>.woo-review/config.json</code>)</td><td>per-repo review tuning (severity floor, etc.)</td></tr>
     <tr><td><code>.woo-stack/memory.md</code></td><td>review + address (was <code>.woo-review/memory.md</code>)</td><td>cross-PR accept-by-design memory</td></tr>
-    <tr><td><code>.woo-stack/metrics.json</code></td><td>review (was <code>.woo-review/metrics.json</code>)</td><td>optional rolling signal/noise metrics</td></tr>
+    <tr><td><code>.woo-stack/metrics.json</code> <span class="tag">gitignored</span></td><td>review (was <code>.woo-review/metrics.json</code>)</td><td>optional rolling signal/noise metrics — local only</td></tr>
   </tbody>
 </table>
+<div class="note"><strong><code>.woo-stack/metrics.json</code> is gitignored by default.</strong> It is a local-only rolling
+  aggregate, not shared team state. The skill ensures the ignore entry exists (adds it to <code>.gitignore</code> when
+  first writing metrics). The other <code>.woo-stack/</code> files stay tracked: <code>config.json</code> and
+  <code>memory.md</code> are shared team state; <code>specs/</code> and <code>plans/</code> are artifacts.</div>
 <div class="note">This is the consumer-repo state dir rename only. It is distinct from the internal
   <code>skills/woo-review/scripts/...</code> source paths, which change because the skill directory itself moves
   (see Repo changes).</div>
