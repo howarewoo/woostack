@@ -124,6 +124,20 @@
   <span class="step gate">ask: open PR?</span>
 </div>
 
+<h3>PR-sized decomposition</h3>
+<p>build steers work toward <strong>well-scoped PRs of preferably ≤500 lines of code</strong>. This is a soft target
+  that shapes planning, not an enforced gate. When the spec implies more change than fits one reviewable PR, build:</p>
+<ul>
+  <li><strong>decomposes during planning</strong> — writing-plans structures the work as a sequence of independently
+    shippable increments, each sized to land as one small PR;</li>
+  <li><strong>runs one increment per build cycle</strong> — each cycle ends by offering a PR for that slice, so a large
+    project becomes a chain of small reviewable PRs rather than one giant diff;</li>
+  <li><strong>flags oversize slices</strong> — if an increment can't reasonably stay under the target, build says so and
+    proposes a further split before executing.</li>
+</ul>
+<p>The 500-LOC figure is a guideline for reviewability; genuinely atomic changes that exceed it are allowed when
+  splitting would be artificial.</p>
+
 <h3>Output overrides (diverges from superpowers defaults)</h3>
 <p>superpowers writes markdown specs to <code>docs/superpowers/specs/</code>. <code>build</code> overrides both
   <strong>location and format</strong>, so its SKILL.md explicitly directs the write step rather than inheriting it:</p>
