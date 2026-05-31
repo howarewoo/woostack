@@ -159,11 +159,30 @@
   <li><strong>address-comments</strong> — drives woo-review's existing <code>address</code> verb: fetch unresolved threads, restate, verify against the code, choose FIX / ACCEPT (push back) / CLARIFY, reply without performative language, resolve, push. The receiving-code-review judgment is already embedded — no superpowers dependency.</li>
 </ul>
 
+<h3>Unified consumer working directory: <code>.woo-stack/</code></h3>
+<p>When ported, woo-review's per-repo state directory is renamed from <code>.woo-review/</code> to
+  <strong><code>.woo-stack/</code></strong> in the consumer repo, so the whole collection shares one working dir.
+  Every <code>.woo-review/...</code> reference across woo-review's scripts, SKILL.md, and prompts is rewritten:</p>
+<table>
+  <thead><tr><th>Consumer path</th><th>Written / read by</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td><code>.woo-stack/specs/</code></td><td>build</td><td>HTML specs</td></tr>
+    <tr><td><code>.woo-stack/plans/</code></td><td>build</td><td>markdown plans</td></tr>
+    <tr><td><code>.woo-stack/config.json</code></td><td>review (was <code>.woo-review/config.json</code>)</td><td>per-repo review tuning (severity floor, etc.)</td></tr>
+    <tr><td><code>.woo-stack/memory.md</code></td><td>review + address (was <code>.woo-review/memory.md</code>)</td><td>cross-PR accept-by-design memory</td></tr>
+    <tr><td><code>.woo-stack/metrics.json</code></td><td>review (was <code>.woo-review/metrics.json</code>)</td><td>optional rolling signal/noise metrics</td></tr>
+  </tbody>
+</table>
+<div class="note">This is the consumer-repo state dir rename only. It is distinct from the internal
+  <code>skills/woo-review/scripts/...</code> source paths, which change because the skill directory itself moves
+  (see Repo changes).</div>
+
 <h2>6. Repo changes</h2>
 <ul>
   <li><code>skills/woo-stack/</code> → <code>skills/woo-stack-bootstrap/</code> (SKILL.md + <code>references/</code> moved intact).</li>
   <li>New skill dirs: <code>skills/woo-stack-build/</code>, <code>skills/woo-stack-review/</code>, <code>skills/woo-stack-address-comments/</code>, plus the shared ported woo-review engine.</li>
   <li>Promote woo-review from <code>.agents/skills/woo-review/</code> (dev copy) to first-party <code>skills/</code> (canonical). The repo then dogfoods its own review skill.</li>
+  <li>Rewrite the consumer state dir <code>.woo-review/</code> → <code>.woo-stack/</code> everywhere in the ported woo-review (scripts, SKILL.md, prompts) — see section 5.</li>
   <li><code>references/development.md</code> → trimmed to a pointer (the loop is automated by the orchestrator skills) plus the branching model, which stays prose-worthy. The skills become source of truth for the loop; no duplicated step lists.</li>
   <li><code>README.md</code> / <code>AGENTS.md</code> → document the four commands; note the woo-review repo is deprecated and lives here now; update layout + quick-reference tables + the two-modes framing.</li>
   <li><code>skills-lock.json</code> → drop the woo-review entry (now first-party); keep superpowers + grill-me.</li>
