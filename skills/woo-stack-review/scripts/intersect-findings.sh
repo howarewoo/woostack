@@ -15,15 +15,23 @@
 #                               mode: "adversarial" | "defender-only",
 #                               degraded: bool}
 #
-# Intersection key: two-pass match. Pass 1 is exact `(file, line, title_stem)`
+# Intersection key: three-pass match. Pass 1 is exact `(file, line, title_stem)`
 # where `title_stem` is lowercase alphanumeric truncated to 40 chars — same
 # key used by prior-thread dedupe in _header.md so the two stay consistent.
 # Pass 2 is a fuzzy fallback for the unmatched remainder: same `file`, line
 # within ±10, and `title_stem` matches on its first 20 characters (so minor
-# rewording survives). Ties resolved by smallest absolute line delta. This
-# stops genuine agreement from being dropped when the two validators anchor
-# the same finding at slightly different lines (e.g. 33 vs 39 for the same
-# REVOKE block) or reword the headline.
+# rewording survives). Ties resolved by smallest absolute line delta. Pass 3 is
+# a location-only fallback: same `file` and line within ±10 with NO title
+# constraint, smallest delta wins, ambiguous ties skipped. It exists because
+# cross-angle dedupe in merge-findings.sh can leave the same issue with
+# different titles in the two validator inputs, so the title-gated passes drop a
+# finding both passes actually agreed on (the bug behind disagreement_count
+# inflation). Dropping agreed findings is a worse failure than an occasional
+# over-merge, and the merge is conservative (lower severity, AND of blocking),
+# so a wrong pairing can never escalate a finding. Together these stop genuine
+# agreement from being dropped when the two validators anchor the same finding
+# at slightly different lines (e.g. 33 vs 39 for the same REVOKE block) or
+# reword the headline past the prefix-20 cutoff.
 #
 # When `disable_adversarial: true` is set in config.json, OR
 # findings.prosecutor.json is missing/empty, intersection is skipped and
@@ -304,11 +312,9 @@ for df in defender:
 # Pass 2: fuzzy fallback. For each unmatched defender finding, find the
 # closest unmatched prosecutor finding by same `file`, |line delta| <= 10,
 # prefix-20 title stem equal. Ties broken by smallest line delta.
-unmatched_pros = [pf for pf in prosecutor if id(pf) not in matched_pros_ids]
-
 LINE_WINDOW = 10
 fuzzy_matches = 0
-for df in unmatched_def:
+for df in unmatched_def[:]:
     df_file = df.get("file") or ""
     df_line = safe_line(df.get("line"))
     df_prefix = title_stem_prefix(df.get("title"))
@@ -316,7 +322,7 @@ for df in unmatched_def:
         continue
     best = None
     best_delta = LINE_WINDOW + 1
-    for pf in unmatched_pros:
+    for pf in prosecutor:
         if id(pf) in matched_pros_ids:
             continue
         if (pf.get("file") or "") != df_file:
@@ -333,17 +339,63 @@ for df in unmatched_def:
     if best is None:
         continue
     matched_pros_ids.add(id(best))
+    unmatched_def.remove(df)
     merged = dict(df)
     merged["severity"] = sev_label(min(sev_rank(df.get("severity")), sev_rank(best.get("severity"))))
     merged["blocking"] = bool(df.get("blocking", False)) and bool(best.get("blocking", False))
     kept.append(merged)
     fuzzy_matches += 1
 
+# Pass 3: location-only fallback. Cross-angle dedupe in merge-findings.sh can
+# leave the SAME issue with different titles in the two validator inputs, so
+# passes 1 and 2 (both title-gated) drop it even though both passes agreed.
+# Here we match the remaining unmatched defender findings on `(file, line)`
+# proximity alone — no title constraint — within the same ±10 window, smallest
+# line delta wins. An ambiguous tie (two prosecutor candidates equidistant) is
+# skipped to avoid an arbitrary merge. Rationale: dropping a finding both passes
+# raised is a worse failure than an occasional over-merge, and the merge is
+# conservative (lower severity, AND of blocking), so a wrong pairing cannot
+# escalate a finding — at worst it keeps one that should have been kept anyway.
+location_matches = 0
+for df in unmatched_def:
+    df_file = df.get("file") or ""
+    df_line = safe_line(df.get("line"))
+    if not df_file:
+        continue
+    best = None
+    best_delta = LINE_WINDOW + 1
+    tie = False
+    for pf in prosecutor:
+        if id(pf) in matched_pros_ids:
+            continue
+        if (pf.get("file") or "") != df_file:
+            continue
+        delta = abs(df_line - safe_line(pf.get("line")))
+        if delta > LINE_WINDOW:
+            continue
+        if delta < best_delta:
+            best = pf
+            best_delta = delta
+            tie = False
+        elif delta == best_delta:
+            tie = True
+    if best is None or tie:
+        continue
+    matched_pros_ids.add(id(best))
+    merged = dict(df)
+    merged["severity"] = sev_label(min(sev_rank(df.get("severity")), sev_rank(best.get("severity"))))
+    merged["blocking"] = bool(df.get("blocking", False)) and bool(best.get("blocking", False))
+    kept.append(merged)
+    location_matches += 1
+
 with open(final_path, "w") as fh:
     json.dump(kept, fh, indent=2)
     fh.write("\n")
 
-sys.stderr.write(f"intersect-findings: fuzzy-matched {fuzzy_matches} finding(s) on second pass\n")
+sys.stderr.write(
+    f"intersect-findings: fuzzy-matched {fuzzy_matches} finding(s) on second pass, "
+    f"{location_matches} on location-only third pass\n"
+)
 PY
 
 kept_count="$(jq 'length' "$FINAL")"
