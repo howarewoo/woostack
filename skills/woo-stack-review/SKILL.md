@@ -21,7 +21,8 @@ This skill is **host-agnostic**: it works in any AI coding agent that supports s
 - `/woo-stack-review --full` (or `@review --full` in a PR comment) — Force a complete re-review even when a prior SHA marker exists. Skips the incremental path described below.
 - `woo-stack-review install` — Verify local deps (`gh`, `jq`, `node`) and pre-fetch `impeccable` + `react-doctor` (run once per repo).
 - `woo-stack-review status` — Show the current PR's review status.
-- `woo-stack-review address <PR#>` — Autonomously address the PR's unresolved review threads (fix or push back, reply, resolve) and record accept-by-design dismissals to `.woo-stack/memory.md`. Local hosts only. See *Addressing Reviews* below.
+- `woo-stack-review address <PR#>` — Walk through the PR's unresolved review threads: the skill recommends a verdict per thread (fix / push back / clarify), then you approve the batch or override specific threads before anything is applied. Local hosts only. See *Addressing Reviews* below.
+- `woo-stack-review address <PR#> --auto` — Skip the confirmation gate and address autonomously (fix or push back, commit, reply, resolve, and record accept-by-design dismissals to `.woo-stack/memory.md`). This is the pre-walk-through behavior, for trusted/non-interactive runs.
 
 ### PR-comment triggers (issue #19)
 
@@ -407,23 +408,27 @@ PR-targeted reviews the accept/dismiss decision happens **later**, on the PR
 (often in a separate comment-addressing session) — so Stage 6's memory write
 structurally never fires for the primary flow (issue #53). The `address` verb
 closes that gap by owning the comment-addressing flow itself, with the memory
-write at the exact moment a finding is accepted-by-design.
+write at the moment a dismissal is **confirmed** — by the user in the default
+interactive flow, or by the skill itself under `--auto`.
 
 `address` is **local only** — it commits, pushes, and writes memory, none of
 which the GitHub Action's `contents: read` validator job can do.
 
-**Lifecycle (A1→A6):**
+**Lifecycle (A1→A7):**
 
 1. **Fetch** — resolve the PR# (explicit arg, else the current branch's open PR), then `bash "$WOO_REVIEW_ACTION_PATH/scripts/fetch-threads.sh"` writes every unresolved thread (any author) to `$OUTDIR/address-threads.json`. Memory + config are loaded as in Stage 1.
 2. **Precondition** — the working tree must be clean **and** the current branch must be the PR head. Otherwise abort before any edit; tell the user to checkout the PR head on a clean tree.
-3. **Reception loop** — per thread, follow `prompts/address.md`: read → understand → verify → evaluate → decide `FIX` / `ACCEPT` / `CLARIFY`.
-4. **Commit + push** — one commit for all fixes → push to the PR head → capture `<sha>` (before any reply, so "Fixed in `<sha>`" is real). Never force-push.
-5. **Reply + resolve** — per handled thread, `scripts/resolve-thread.sh` posts the reply then resolves (CLARIFY threads use `RESOLVE=0`: reply only, left open).
-6. **Report** — summary table: thread → decision → action → memory-written?
+3. **Reception loop (analysis only)** — per thread, follow `prompts/address.md`: read → understand → verify → evaluate → **recommend** `FIX` / `ACCEPT` / `CLARIFY`. The loop makes **no** working-tree edits, **no** replies, **no** resolves, and **no** memory writes; it stages a recommended verdict + reasoning per thread.
+4. **Verdict gate** — default: the user approves the batch or overrides specific threads before anything is applied; `--auto` skips the gate; a non-interactive host with no `--auto` aborts rather than acting unapproved. The **final** verdict per thread is the override where given, else the recommendation. See `prompts/address.md` § Phase 2 for the gate mechanics (table shape, override syntax, host primitives).
+5. **Commit + push** — apply all final `FIX` edits to the working tree → one commit referencing the threads → push to the PR head → capture `<sha>` (before any reply, so "Fixed in `<sha>`" is real). Never force-push.
+6. **Reply + resolve + memory** — per handled thread, `scripts/resolve-thread.sh` posts the reply then resolves (CLARIFY threads use `RESOLVE=0`: reply only, left open). Only a **final** `ACCEPT` writes memory.
+7. **Report** — summary table: thread → recommended → final → action → memory-written?
 
-Only an **ACCEPT** (accept-by-design) writes memory, deduplicated and phrased as
-a reusable pattern — never a log of every fix. Memory is read back as context on
-the next review run (Stage 1), keeping re-reviews quiet.
+Only a **final ACCEPT** (accept-by-design — an ACCEPT the user kept in the
+default flow, or one the skill produced itself under `--auto`) writes memory,
+deduplicated and phrased as a reusable pattern — never a log of every fix.
+Memory is read back as context on the next review run (Stage 1), keeping
+re-reviews quiet.
 
 ### Stage 6.5 — Fold per-angle metrics (local hosts, opt-in)
 
