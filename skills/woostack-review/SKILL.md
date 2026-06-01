@@ -40,7 +40,7 @@ The legacy `@review` trigger phrase still works; `/woostack-review` is an alias 
 
 `prefetch.sh` short-circuits the review with a single one-line PR comment when either condition holds (before fetching the diff, so token cost is ~zero):
 
-- **PR author matches `authors_skip`.** Default list: `dependabot[bot]`, `renovate[bot]`, `github-actions[bot]`. Override with `review.authors_skip` in `.woostack/config.json`; explicit `"authors_skip": []` opts out entirely.
+- **PR author matches `authors_skip`.** Default list: `dependabot[bot]`, `renovate[bot]`, `github-actions[bot]`. Override with `review.authors_skip` in `.woostack/config.json`; explicit `"review": { "authors_skip": [] }` opts out entirely.
 - **PR title matches `release_rollup_pattern`** (Python regex). Default: `^(staging|release|chore\(release\))`. Override with any string; explicit empty string opts out.
 
 The skip comment carries a `<!-- woostack-review:skipped -->` marker; subsequent triggers on the same PR detect the marker and re-skip silently (no comment spam). To force a full review of a skipped PR, post `/woostack-review force`.
@@ -103,7 +103,7 @@ Prefetch auto-discovers project rule files (`AGENTS.md`, `CLAUDE.md`, `.cursorru
 
 ## Per-repo Configuration (`.woostack/config.json`)
 
-Drop an optional `.woostack/config.json` in the consumer repo to tune the review without forking the skill. **Review settings nest under a top-level `review` object** so the file can hold sibling config namespaces for other woostack tools without collision; keys outside `review` are ignored by the review loader. Prefetch parses the `review` block into `$OUTDIR/config.json` (canonical copy, flattened); downstream stages read from there. Missing file = defaults (`severity_floor: high`). **All keys are optional — specify only the ones you want to override; the rest keep their built-in defaults.** Invalid JSON or unknown keys → loud `::error file=.woostack/config.json,line=N::<msg>` annotation and the workflow fails (no silent fallback).
+Drop an optional `.woostack/config.json` in the consumer repo to tune the review without forking the skill. **Review settings nest under a top-level `review` object** so the file can hold sibling config namespaces for other woostack tools without collision; keys outside `review` are ignored by the review loader. Prefetch parses the `review` block into `$OUTDIR/config.json` (canonical copy, flattened); downstream stages read from there. Missing file = defaults (`severity_floor: high`). **All keys are optional — specify only the ones you want to override; the rest keep their built-in defaults.** Invalid JSON, a non-object `review`, or an unknown key *inside* `review` → loud `::error file=.woostack/config.json,line=N::<msg>` annotation and the workflow fails (no silent fallback). Sibling top-level keys outside `review` are ignored, not errors.
 
 > **Transition note:** review keys placed at the top level (the pre-nesting layout) are still accepted but emit a deprecation `::warning`. Migrate them under `review`.
 
