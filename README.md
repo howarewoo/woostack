@@ -1,4 +1,4 @@
-# woo-stack
+# woostack
 
 **An installable collection of opinionated skills for building software — bootstrap, build, review, address review feedback.**
 
@@ -11,33 +11,33 @@ Templates rot. Dependencies drift, breaking changes pile up, and every new proje
 ## Install
 
 ```bash
-npx skills add howarewoo/woo-stack
+npx skills add howarewoo/woostack
 ```
 
-This installs the woo-stack **collection** (skills: woo-stack-bootstrap, woo-stack-build, woo-stack-review, woo-stack-address-comments) into your agent's skill directory and records it in `skills-lock.json`.
+This installs the woostack **collection** (skills: woostack-bootstrap, woostack-build, woostack-review, woostack-address-comments) into your agent's skill directory and records it in `skills-lock.json`.
 
 ## Commands
 
 | Command | What it does |
 |---|---|
-| `/woo-stack-bootstrap <goal>` | Scaffold a new web/mobile/API monorepo at latest versions. |
-| `/woo-stack-build <goal>` | Feature loop: brainstorm → HTML spec → grill → plan → execute. |
-| `/woo-stack-review [PR#]` | Parallel review swarm + skeptical validation; posts a batched GitHub review. |
-| `/woo-stack-address-comments [PR#]` | Address unresolved review threads autonomously. No merge. |
+| `/woostack-bootstrap <goal>` | Scaffold a new web/mobile/API monorepo at latest versions. |
+| `/woostack-build <goal>` | Feature loop: brainstorm → HTML spec → grill → plan → execute. |
+| `/woostack-review [PR#]` | Parallel review swarm + skeptical validation; posts a batched GitHub review. |
+| `/woostack-address-comments [PR#]` | Address unresolved review threads autonomously. No merge. |
 
-Artifacts land under `.woo-stack/` (HTML specs, markdown plans, review config/memory).
+Artifacts land under `.woostack/` (HTML specs, markdown plans, review config/memory).
 
 ## What it defines
 
 | Reference | What it defines |
 |---|---|
-| [decisions.md](skills/woo-stack-bootstrap/references/decisions.md) | Decision catalog the agent walks the user through before scaffolding |
-| [bootstrap.md](skills/woo-stack-bootstrap/references/bootstrap.md) | Step-by-step bootstrap procedure for AI agents |
-| [architecture.md](skills/woo-stack-bootstrap/references/architecture.md) | Monorepo layout, package tiers, import boundaries, naming |
-| [frameworks.md](skills/woo-stack-bootstrap/references/frameworks.md) | Recommended frameworks per layer, catalog protocol, known gotchas |
-| [infrastructure.md](skills/woo-stack-bootstrap/references/infrastructure.md) | Hosting, CI/CD, env, observability, auth, data layer |
-| [patterns.md](skills/woo-stack-bootstrap/references/patterns.md) | oRPC contracts, TanStack Query, RSC, navigation, TDD, feature exposure |
-| [development.md](skills/woo-stack-bootstrap/references/development.md) | Development workflow and branching model |
+| [decisions.md](skills/woostack-bootstrap/references/decisions.md) | Decision catalog the agent walks the user through before scaffolding |
+| [bootstrap.md](skills/woostack-bootstrap/references/bootstrap.md) | Step-by-step bootstrap procedure for AI agents |
+| [architecture.md](skills/woostack-bootstrap/references/architecture.md) | Monorepo layout, package tiers, import boundaries, naming |
+| [frameworks.md](skills/woostack-bootstrap/references/frameworks.md) | Recommended frameworks per layer, catalog protocol, known gotchas |
+| [infrastructure.md](skills/woostack-bootstrap/references/infrastructure.md) | Hosting, CI/CD, env, observability, auth, data layer |
+| [patterns.md](skills/woostack-bootstrap/references/patterns.md) | oRPC contracts, TanStack Query, RSC, navigation, TDD, feature exposure |
+| [development.md](skills/woostack-bootstrap/references/development.md) | Development workflow and branching model |
 
 ## Default stack
 
@@ -53,7 +53,7 @@ Artifacts land under `.woo-stack/` (HTML specs, markdown plans, review config/me
 | Testing | Vitest, Jest (RN), Playwright |
 | Hosting | Vercel (web + api) + Expo EAS (mobile) |
 
-Versions are resolved at bootstrap time. See [frameworks.md](skills/woo-stack-bootstrap/references/frameworks.md).
+Versions are resolved at bootstrap time. See [frameworks.md](skills/woostack-bootstrap/references/frameworks.md).
 
 **woo-review is now first-party here; the standalone `howarewoo/woo-review` repo is deprecated.**
 
