@@ -1,13 +1,15 @@
 # woostack
 
-**An installable collection of opinionated skills for building software — bootstrap, build, review, address review feedback.**
+**An installable collection of opinionated skills that encode my software-development process — bootstrap, build, review, iterate — for both new and existing codebases.**
 
-Not a template. It's the rules an AI coding agent follows when scaffolding a fresh full-stack monorepo: frameworks, architecture, infrastructure, patterns — resolved at the latest versions every time.
+This is a public representation of how I build software, packaged so any AI coding agent can follow the same loop. It covers the life of a change end to end: scaffold a project (greenfield), drive a feature, review it, and address the feedback (brownfield — these work in any existing repo, not just one woostack created). The scope grows over time toward the rest of the loop — commit hygiene with good messages and other day-to-day utilities are on the way.
+
+Not a template. It's the decisions and workflow an agent follows: for greenfield, the frameworks, architecture, infrastructure, and patterns to scaffold — resolved at the latest versions every time; for brownfield, the gated build → review → iterate loop applied to whatever repo you're in.
 
 - [Why a skill instead of a template?](#why-a-skill-instead-of-a-template)
 - [Install](#install)
 - [How it works](#how-it-works) — what each command actually does
-- [Quickstart](#quickstart) — install → bootstrap → build → review
+- [Quickstart](#quickstart) — greenfield and brownfield entry points
 - [Concepts](#concepts) — artifacts, branching, the review swarm
 - [Default stack](#default-stack)
 - [What it defines](#what-it-defines)
@@ -27,7 +29,7 @@ This installs the woostack **collection** (skills: woostack-bootstrap, woostack-
 
 ## How it works
 
-Each command is a skill with its own gated procedure. The four cover the full life of a change — scaffold, build, review, address. Run a command by name in your agent (e.g. `/woostack-build add password reset`); the agent loads that skill's `SKILL.md` and follows it.
+Each command is a skill with its own gated procedure. Together they cover the life of a change — scaffold, build, review, iterate. Run a command by name in your agent (e.g. `/woostack-build add password reset`); the agent loads that skill's `SKILL.md` and follows it. Only `bootstrap` is greenfield-specific — `build`, `review`, and `address-comments` operate on any repo, woostack-scaffolded or not.
 
 ### `/woostack-bootstrap <goal>` — scaffold a new monorepo
 
@@ -51,26 +53,36 @@ Detects relevant review angles for the diff (bugs and security always on; SEO, d
 
 Walks every unresolved review thread on a PR, recommends a verdict per thread (fix / push back / clarify), and — after you approve the batch — applies fixes, replies, resolves, and pushes. Accept-by-design dismissals are recorded to `.woostack/memory.md` so future reviews don't re-raise them. Never merges. A thin delegator to the review skill's `address` verb. → [SKILL.md](skills/woostack-address-comments/SKILL.md)
 
+### Growing scope
+
+The collection tracks more of my day-to-day loop as it matures. Planned next: a commit utility that writes well-documented, conventional commit messages, plus other small tools that smooth the edges between the steps above.
+
 ## Quickstart
 
+Install once, then pick the entry point that matches where you are.
+
+**Greenfield — start a new project:**
+
 ```bash
-# 1. Install the collection into your agent
-npx skills add howarewoo/woostack
+npx skills add howarewoo/woostack          # install the collection into your agent
 
-# 2. Scaffold a new project (the agent walks you through decisions first)
-/woostack-bootstrap a habit-tracker with web + mobile + API
-
-# 3. In the new repo, build a feature end to end
-/woostack-build add streak tracking with a weekly reset
-
-# 4. Open a PR (build offers this), then review it
-/woostack-review 42
-
-# 5. Address the review's findings
-/woostack-address-comments 42
+/woostack-bootstrap a habit-tracker with web + mobile + API   # scaffolds a fresh repo; walks you through decisions first
+/woostack-build add streak tracking with a weekly reset       # build a feature in the new repo
+/woostack-review 42                                            # review the PR build opened
+/woostack-address-comments 42                                 # iterate on the review's findings
 ```
 
-Bootstrap produces a fresh repo in its own directory. Steps 3–5 run inside that repo. Review and address-comments need the GitHub CLI (`gh`) authenticated for any step that touches a PR.
+**Brownfield — work in an existing repo:** skip `bootstrap` and run the loop in place.
+
+```bash
+npx skills add howarewoo/woostack          # install once
+
+/woostack-build add CSV export to the reports page   # feature loop in your current repo
+/woostack-review 1337                                 # review the PR
+/woostack-address-comments 1337                       # iterate
+```
+
+Review and address-comments need the GitHub CLI (`gh`) authenticated for any step that touches a PR.
 
 ## Concepts
 
@@ -128,6 +140,15 @@ on:
 
 jobs:
   review:
+    # Authorization gate. issue_comment fires in the base-repo context where
+    # secrets are live, for ANY commenter — so restrict comment-triggered runs
+    # to trusted actors. Without this, a fork contributor's comment can spend
+    # your token (the GitHub "pwn-requests" pattern).
+    if: >-
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.pull_request != null &&
+       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association))
     uses: howarewoo/woostack/.github/workflows/reusable-review.yml@main
     with:
       provider: anthropic
@@ -135,7 +156,7 @@ jobs:
       anthropic_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 ```
 
-Zero local setup in the consumer repo — the action ships its own prompts and scripts and installs the `react-doctor` / `impeccable` CLIs via `npx` at run time. The provider is pluggable (Anthropic, OpenAI, Google, OpenRouter); pin `@main` to a release tag once one is cut. PR comments like `/woostack-review`, `/woostack-review recheck`, and `/woostack-review force` re-trigger it without leaving the PR. → [SKILL.md](skills/woostack-review/SKILL.md#companion-github-action)
+The `if:` gate matters: the `issue_comment` trigger runs in the base-repo context with secrets available to *any* commenter, so it's restricted to the repo owner / members / collaborators — drop it and a fork contributor's comment could trigger a run on your token. Otherwise, zero local setup in the consumer repo — the action ships its own prompts and scripts and installs the `react-doctor` / `impeccable` CLIs via `npx` at run time. The provider is pluggable (Anthropic, OpenAI, Google, OpenRouter); pin `@main` to a release tag once one is cut. PR comments like `/woostack-review`, `/woostack-review recheck`, and `/woostack-review force` re-trigger it without leaving the PR. → [SKILL.md](skills/woostack-review/SKILL.md#companion-github-action)
 
 ## Contributing
 
