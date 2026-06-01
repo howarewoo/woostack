@@ -4,10 +4,22 @@
 # Invalid JSON or invalid schema -> loud GitHub-style ::error annotation and
 # non-zero exit (per issue #11 acceptance bullet 4).
 #
+# Config nesting: review settings live under a top-level `review` object so the
+# file can hold sibling namespaces for other woostack tools (build, bootstrap)
+# without collision. Sibling top-level keys are ignored by this loader. The
+# emitted canonical JSON is still FLAT (review keys hoisted to top level) so
+# downstream stages read `.severity_floor`, `.angles`, etc. unchanged.
+#
+#   { "review": { "severity_floor": "medium", "angles": { "skip": ["seo"] } } }
+#
+# Legacy (transition): a file with review keys at the top level and no `review`
+# object is still accepted; it emits a non-fatal deprecation notice. Remove the
+# legacy path once consumers have migrated to the nested form.
+#
 # Noise control: severity_floor defaults to "high" so only high-priority
 # findings surface unless the consumer widens it (low | medium) in config.json.
 #
-# Schema (all keys optional):
+# Schema under `review` (all keys optional):
 #   angles.force        list[str] subset of angle enum
 #   angles.skip         list[str] subset of angle enum (bugs/security protected)
 #   severity_floor      "low" | "medium" | "high" (case-insensitive)
@@ -63,7 +75,8 @@ src, dst = sys.argv[1], sys.argv[2]
 
 VALID_ANGLES = {"bugs", "security", "conventions", "seo", "aeo", "design", "react", "database", "tests", "api", "infra", "observability", "types", "i18n", "docs", "deps", "architecture"}
 VALID_FLOORS = {"low", "medium", "high"}
-TOP_KEYS = {
+# Keys recognized inside the `review` block (and the legacy top-level form).
+REVIEW_KEYS = {
     "angles", "severity_floor", "ignore", "project_rules",
     "authors_skip", "release_rollup_pattern", "models", "fix_commands",
     "disable_adversarial", "metrics", "chunking",
@@ -108,11 +121,31 @@ except json.JSONDecodeError as exc:
 if not isinstance(raw, dict):
     loud("top-level JSON must be an object, got {}".format(type(raw).__name__))
 
-unknown = sorted(set(raw.keys()) - TOP_KEYS)
-if unknown:
-    loud("unknown top-level key(s): {}".format(", ".join(unknown)))
+# Resolve the review config block. Canonical form nests it under `review`;
+# sibling top-level namespaces (e.g. build/bootstrap config) are left alone.
+# Legacy form puts review keys at the top level — accepted with a deprecation
+# notice during the transition.
+if "review" in raw:
+    rc = raw["review"]
+    if not isinstance(rc, dict):
+        loud("`review` must be an object, got {}".format(type(rc).__name__))
+    unknown = sorted(set(rc.keys()) - REVIEW_KEYS)
+    if unknown:
+        loud("unknown `review` key(s): {}".format(", ".join(unknown)))
+else:
+    rc = raw
+    legacy_review = sorted(set(rc.keys()) & REVIEW_KEYS)
+    unknown = sorted(set(rc.keys()) - REVIEW_KEYS)
+    if unknown:
+        loud("unknown top-level key(s): {} (review settings now nest under `review`)".format(", ".join(unknown)))
+    if legacy_review:
+        sys.stderr.write(
+            "::warning file=.woostack/config.json::review settings at the top level are deprecated; "
+            "nest them under a `review` object, e.g. {\"review\": {...}}\n"
+        )
 
 out = {}
+raw = rc
 
 if "angles" in raw:
     angles = raw["angles"]
