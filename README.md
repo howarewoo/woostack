@@ -22,10 +22,12 @@ Templates rot. Dependencies drift, breaking changes pile up, and every new proje
 ## Install
 
 ```bash
-npx skills add howarewoo/woostack
+pnpx skills add howarewoo/woostack
 ```
 
 This installs the woostack **collection** (skills: woostack-bootstrap, woostack-build, woostack-review, woostack-address-comments) into your agent's skill directory and records it in `skills-lock.json`. Works in any agent that respects the `skills` convention — Claude Code, Cursor, Codex, Aider, and others.
+
+> **pnpm is the recommended package manager.** Commands in this repo use `pnpx` (and `pnpm`) over `npx` / `npm`. If you only have npm, `npx skills add howarewoo/woostack` works too — but woostack-bootstrapped projects use a pnpm catalog, so pnpm is the path of least friction.
 
 ## How it works
 
@@ -64,7 +66,7 @@ Install once, then pick the entry point that matches where you are.
 **Greenfield — start a new project:**
 
 ```bash
-npx skills add howarewoo/woostack          # install the collection into your agent
+pnpx skills add howarewoo/woostack          # install the collection into your agent
 
 /woostack-bootstrap a habit-tracker with web + mobile + API   # scaffolds a fresh repo; walks you through decisions first
 /woostack-build add streak tracking with a weekly reset       # build a feature in the new repo
@@ -75,7 +77,7 @@ npx skills add howarewoo/woostack          # install the collection into your ag
 **Brownfield — work in an existing repo:** skip `bootstrap` and run the loop in place.
 
 ```bash
-npx skills add howarewoo/woostack          # install once
+pnpx skills add howarewoo/woostack          # install once
 
 /woostack-build add CSV export to the reports page   # feature loop in your current repo
 /woostack-review 1337                                 # review the PR
