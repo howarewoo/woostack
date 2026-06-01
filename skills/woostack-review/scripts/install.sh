@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Install dependencies for woo-review skill
+# Install dependencies for woostack-review skill
 
 set -euo pipefail
 
-echo "🔍 Checking dependencies for woo-review..."
+echo "🔍 Checking dependencies for woostack-review..."
 
 # 1. Check for gh CLI
 if ! command -v gh &> /dev/null; then

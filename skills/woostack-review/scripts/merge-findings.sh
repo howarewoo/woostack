@@ -57,7 +57,7 @@ for f in "${FILES[@]}"; do
   #   3. Sanitize: strip bare control bytes (U+0000–U+001F except \t\n\r),
   #      replace invalid `\<char>` escapes with the literal char, retry with
   #      strict=False.
-  # Only sub-agents authored by woo-review write these files; recovery is
+  # Only sub-agents authored by woostack-review write these files; recovery is
   # tolerant of LLM-introduced noise, NOT of attacker-supplied JSON. The
   # downstream finding schema still validates structure.
   RECOVERED="$(python3 - "$f" <<'PY' 2>/dev/null || true
