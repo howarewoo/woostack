@@ -40,7 +40,7 @@ The legacy `@review` trigger phrase still works; `/woostack-review` is an alias 
 
 `prefetch.sh` short-circuits the review with a single one-line PR comment when either condition holds (before fetching the diff, so token cost is ~zero):
 
-- **PR author matches `authors_skip`.** Default list: `dependabot[bot]`, `renovate[bot]`, `github-actions[bot]`. Override with `"authors_skip": [...]` in `.woostack/config.json`; explicit `"authors_skip": []` opts out entirely.
+- **PR author matches `authors_skip`.** Default list: `dependabot[bot]`, `renovate[bot]`, `github-actions[bot]`. Override with `review.authors_skip` in `.woostack/config.json`; explicit `"authors_skip": []` opts out entirely.
 - **PR title matches `release_rollup_pattern`** (Python regex). Default: `^(staging|release|chore\(release\))`. Override with any string; explicit empty string opts out.
 
 The skip comment carries a `<!-- woostack-review:skipped -->` marker; subsequent triggers on the same PR detect the marker and re-skip silently (no comment spam). To force a full review of a skipped PR, post `/woostack-review force`.
@@ -80,7 +80,7 @@ Reviews stay useful across PRs through a single plain-markdown file in the consu
 
 ### Noise control (`severity_floor`)
 
-`severity_floor` **defaults to `high`** — by default only high-priority findings surface. Widen it per-repo in `.woostack/config.json` (`"severity_floor": "low"` or `"medium"`). The validator applies the floor after its own severity check.
+`severity_floor` **defaults to `high`** — by default only high-priority findings surface. Widen it per-repo in `.woostack/config.json` (`review.severity_floor` set to `"low"` or `"medium"`). The validator applies the floor after its own severity check.
 
 ## Knowledge Aggregation
 
@@ -103,45 +103,49 @@ Prefetch auto-discovers project rule files (`AGENTS.md`, `CLAUDE.md`, `.cursorru
 
 ## Per-repo Configuration (`.woostack/config.json`)
 
-Drop an optional `.woostack/config.json` in the consumer repo to tune the review without forking the skill. Prefetch parses it into `$OUTDIR/config.json` (canonical copy); downstream stages read from there. Missing file = defaults (`severity_floor: high`). **All keys are optional — specify only the ones you want to override; the rest keep their built-in defaults.** Invalid JSON or unknown keys → loud `::error file=.woostack/config.json,line=N::<msg>` annotation and the workflow fails (no silent fallback).
+Drop an optional `.woostack/config.json` in the consumer repo to tune the review without forking the skill. **Review settings nest under a top-level `review` object** so the file can hold sibling config namespaces for other woostack tools without collision; keys outside `review` are ignored by the review loader. Prefetch parses the `review` block into `$OUTDIR/config.json` (canonical copy, flattened); downstream stages read from there. Missing file = defaults (`severity_floor: high`). **All keys are optional — specify only the ones you want to override; the rest keep their built-in defaults.** Invalid JSON or unknown keys → loud `::error file=.woostack/config.json,line=N::<msg>` annotation and the workflow fails (no silent fallback).
+
+> **Transition note:** review keys placed at the top level (the pre-nesting layout) are still accepted but emit a deprecation `::warning`. Migrate them under `review`.
 
 Minimal example — override one knob, everything else stays default:
 
 ```json
-{ "severity_floor": "medium" }
+{ "review": { "severity_floor": "medium" } }
 ```
 
 Full schema (every key shown; all optional):
 
 ```json
 {
-  "angles": {
-    "force": ["database"],
-    "skip": ["seo"]
-  },
-  "severity_floor": "high",
-  "ignore": [
-    "**/*.generated.ts",
-    "migrations/*.sql"
-  ],
-  "project_rules": [
-    "constitution.md",
-    "docs/standards/*.md"
-  ],
-  "authors_skip": [
-    "dependabot[bot]",
-    "renovate[bot]"
-  ],
-  "release_rollup_pattern": "^(staging|release|chore\\(release\\))",
-  "models": {
-    "fast": "anthropic/claude-haiku-4-5",
-    "standard": "openai/gpt-5",
-    "deep": "anthropic/claude-opus-4-7"
-  },
-  "fix_commands": ["pnpm lint:fix", "pnpm format"],
-  "disable_adversarial": false,
-  "chunking": {
-    "max_loc": 4000
+  "review": {
+    "angles": {
+      "force": ["database"],
+      "skip": ["seo"]
+    },
+    "severity_floor": "high",
+    "ignore": [
+      "**/*.generated.ts",
+      "migrations/*.sql"
+    ],
+    "project_rules": [
+      "constitution.md",
+      "docs/standards/*.md"
+    ],
+    "authors_skip": [
+      "dependabot[bot]",
+      "renovate[bot]"
+    ],
+    "release_rollup_pattern": "^(staging|release|chore\\(release\\))",
+    "models": {
+      "fast": "anthropic/claude-haiku-4-5",
+      "standard": "openai/gpt-5",
+      "deep": "anthropic/claude-opus-4-7"
+    },
+    "fix_commands": ["pnpm lint:fix", "pnpm format"],
+    "disable_adversarial": false,
+    "chunking": {
+      "max_loc": 4000
+    }
   }
 }
 ```
@@ -213,7 +217,7 @@ When prefetch resolves a PR number AND finds an open PR, it produces the full ar
 | `raw_findings.json` | `merge-findings.sh` | validator passes | Merged, chunk-collapsed findings |
 | `findings.json` | `intersect-findings.sh` | Stage 5 posting | Final validated set |
 | `validator-metrics.json` | `intersect-findings.sh` | observability | `prosecutor_count`, `defender_count`, `kept_count`, `disagreement_count`, `mode`, `degraded` |
-| `findings.metrics.json` | `intersect-findings.sh` | metrics fold, telemetry | Per-angle signal/noise breakdown. Emitted **only when `metrics: true`** in config. Keyed by angle: `raw_count`, `prosecutor_kept`, `defender_kept`, `kept`, `dropped_by_defender`, `dropped_by_prosecutor`, `blocking_count`, `nonblocking_count`, `severity` |
+| `findings.metrics.json` | `intersect-findings.sh` | metrics fold, telemetry | Per-angle signal/noise breakdown. Emitted **only when `review.metrics: true`** in config. Keyed by angle: `raw_count`, `prosecutor_kept`, `defender_kept`, `kept`, `dropped_by_defender`, `dropped_by_prosecutor`, `blocking_count`, `nonblocking_count`, `severity` |
 
 **If no PR number resolved (local mode):**
 
@@ -432,7 +436,7 @@ re-reviews quiet.
 
 ### Stage 6.5 — Fold per-angle metrics (local hosts, opt-in)
 
-Only when the consumer repo sets `metrics: true` in `.woostack/config.json`. The
+Only when the consumer repo sets `review.metrics: true` in `.woostack/config.json`. The
 per-run `findings.metrics.json` (written by `intersect-findings.sh`) is folded into a
 rolling, **per-clone** aggregate at `.woostack/metrics.json`. The fold script also
 ensures that path is gitignored — the aggregate is local data, never committed
