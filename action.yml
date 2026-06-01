@@ -1,6 +1,6 @@
-name: 'woo-stack-review (CI extension)'
-description: 'CI extension of the woo-stack-review skill. Runs the same swarm — detect → parallel angle workers → skeptical validator → batched GitHub Review — dispatched to the first-party action of the chosen provider (Anthropic, OpenAI, Google, OpenRouter via opencode).'
-author: 'woo-stack-review'
+name: 'woostack-review (CI extension)'
+description: 'CI extension of the woostack-review skill. Runs the same swarm — detect → parallel angle workers → skeptical validator → batched GitHub Review — dispatched to the first-party action of the chosen provider (Anthropic, OpenAI, Google, OpenRouter via opencode).'
+author: 'woostack-review'
 
 branding:
   icon: 'check-circle'
@@ -125,7 +125,7 @@ runs:
         INPUT_GOOGLE_API_KEY: ${{ inputs.google_api_key }}
         INPUT_GEMINI_API_KEY: ${{ inputs.gemini_api_key }}
         INPUT_OPENROUTER_API_KEY: ${{ inputs.openrouter_api_key }}
-      run: bash "${{ github.action_path }}/skills/woo-stack-review/scripts/detect-provider.sh"
+      run: bash "${{ github.action_path }}/skills/woostack-review/scripts/detect-provider.sh"
 
     - name: Resolve PR number
       id: pr
@@ -147,7 +147,7 @@ runs:
         INPUT_SKIP_LABELS: ${{ inputs.skip_labels }}
         INPUT_INCREMENTAL: ${{ inputs.incremental }}
         COMMENT_BODY: ${{ github.event.comment.body }}
-      run: bash "${{ github.action_path }}/skills/woo-stack-review/scripts/prefetch.sh"
+      run: bash "${{ github.action_path }}/skills/woostack-review/scripts/prefetch.sh"
 
     - name: Detect review angles
       id: angles
@@ -163,16 +163,16 @@ runs:
             echo "angles=$CSV" >> "$GITHUB_OUTPUT"
             echo "Loaded angles from angles.txt: $CSV"
           else
-            bash "${{ github.action_path }}/skills/woo-stack-review/scripts/detect-angles.sh"
+            bash "${{ github.action_path }}/skills/woostack-review/scripts/detect-angles.sh"
           fi
         else
-          bash "${{ github.action_path }}/skills/woo-stack-review/scripts/detect-angles.sh"
+          bash "${{ github.action_path }}/skills/woostack-review/scripts/detect-angles.sh"
         fi
 
     - name: Merge findings (validate modes)
       if: steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'validate' || inputs.mode == 'validate-prosecutor')
       shell: bash
-      run: bash "${{ github.action_path }}/skills/woo-stack-review/scripts/merge-findings.sh"
+      run: bash "${{ github.action_path }}/skills/woostack-review/scripts/merge-findings.sh"
 
     - name: Setup Node.js (for react-doctor + impeccable CLIs)
       if: |
@@ -209,12 +209,12 @@ runs:
       shell: bash
       env:
         PROVIDER: ${{ steps.detect.outputs.provider }}
-        ACTION_PATH: ${{ github.action_path }}/skills/woo-stack-review
+        ACTION_PATH: ${{ github.action_path }}/skills/woostack-review
         # The adversarial validator runs as two passes against the same `raw_findings.json`.
         # `validate-prosecutor` mode loads validator-prosecutor.md (inclusive bias);
         # `validate` mode loads validator.md (defender bias) which runs the intersect
         # script + posts the final review. See issue #13.
-        INPUT_PROMPT_OVERRIDE: ${{ (inputs.mode == 'validate' && format('{0}/skills/woo-stack-review/prompts/validator.md', github.action_path)) || (inputs.mode == 'validate-prosecutor' && format('{0}/skills/woo-stack-review/prompts/validator-prosecutor.md', github.action_path)) || inputs.prompt_override }}
+        INPUT_PROMPT_OVERRIDE: ${{ (inputs.mode == 'validate' && format('{0}/skills/woostack-review/prompts/validator.md', github.action_path)) || (inputs.mode == 'validate-prosecutor' && format('{0}/skills/woostack-review/prompts/validator-prosecutor.md', github.action_path)) || inputs.prompt_override }}
         PR_NUMBER: ${{ steps.pr.outputs.number }}
         GITHUB_REPOSITORY: ${{ github.repository }}
         EVENT_NAME: ${{ github.event_name }}
@@ -222,7 +222,7 @@ runs:
         ENABLED_ANGLES: ${{ (inputs.mode == 'review' && inputs.angle) || steps.angles.outputs.angles }}
         MODE: ${{ inputs.mode }}
         ANGLE: ${{ inputs.angle }}
-      run: bash "${{ github.action_path }}/skills/woo-stack-review/scripts/load-prompt.sh"
+      run: bash "${{ github.action_path }}/skills/woostack-review/scripts/load-prompt.sh"
 
     # --- Provider runners (mutually exclusive) ---
 
@@ -292,7 +292,7 @@ runs:
             }
           }
       env:
-        WOO_REVIEW_ACTION_PATH: ${{ github.action_path }}/skills/woo-stack-review
+        WOO_REVIEW_ACTION_PATH: ${{ github.action_path }}/skills/woostack-review
         WOO_REVIEW_SEQUENTIAL_VALIDATE: ${{ inputs.mode == 'validate' && '1' || '' }}
         ENABLED_ANGLES: ${{ (inputs.mode == 'review' && inputs.angle) || steps.angles.outputs.angles }}
         IMPECCABLE_VERSION: ${{ inputs.impeccable_version }}
@@ -312,7 +312,7 @@ runs:
       env:
         GH_TOKEN: ${{ github.token }}
         GITHUB_REPOSITORY: ${{ github.repository }}
-        WOO_REVIEW_ACTION_PATH: ${{ github.action_path }}/skills/woo-stack-review
+        WOO_REVIEW_ACTION_PATH: ${{ github.action_path }}/skills/woostack-review
         WOO_REVIEW_SEQUENTIAL_VALIDATE: ${{ inputs.mode == 'validate' && '1' || '' }}
         ENABLED_ANGLES: ${{ (inputs.mode == 'review' && inputs.angle) || steps.angles.outputs.angles }}
         IMPECCABLE_VERSION: ${{ inputs.impeccable_version }}
@@ -330,7 +330,7 @@ runs:
       env:
         GH_TOKEN: ${{ github.token }}
         GITHUB_REPOSITORY: ${{ github.repository }}
-        WOO_REVIEW_ACTION_PATH: ${{ github.action_path }}/skills/woo-stack-review
+        WOO_REVIEW_ACTION_PATH: ${{ github.action_path }}/skills/woostack-review
         WOO_REVIEW_SEQUENTIAL_VALIDATE: ${{ inputs.mode == 'validate' && '1' || '' }}
         ENABLED_ANGLES: ${{ (inputs.mode == 'review' && inputs.angle) || steps.angles.outputs.angles }}
         IMPECCABLE_VERSION: ${{ inputs.impeccable_version }}
@@ -350,7 +350,7 @@ runs:
         OPENROUTER_API_KEY: ${{ inputs.openrouter_api_key }}
         GH_TOKEN: ${{ github.token }}
         GITHUB_REPOSITORY: ${{ github.repository }}
-        WOO_REVIEW_ACTION_PATH: ${{ github.action_path }}/skills/woo-stack-review
+        WOO_REVIEW_ACTION_PATH: ${{ github.action_path }}/skills/woostack-review
         WOO_REVIEW_SEQUENTIAL_VALIDATE: ${{ inputs.mode == 'validate' && '1' || '' }}
         ENABLED_ANGLES: ${{ (inputs.mode == 'review' && inputs.angle) || steps.angles.outputs.angles }}
         IMPECCABLE_VERSION: ${{ inputs.impeccable_version }}

@@ -1,6 +1,6 @@
 # Contributing
 
-This repo is a **published collection of skills**, not a codebase. Contributions are edits to the skills — the Markdown under `skills/` plus the support files a skill ships (HTML templates, the review engine's shell scripts and prompts, JSON config). The four skills are `woo-stack-bootstrap`, `woo-stack-build`, `woo-stack-review`, and `woo-stack-address-comments`.
+This repo is a **published collection of skills**, not a codebase. Contributions are edits to the skills — the Markdown under `skills/` plus the support files a skill ships (HTML templates, the review engine's shell scripts and prompts, JSON config). The four skills are `woostack-bootstrap`, `woostack-build`, `woostack-review`, and `woostack-address-comments`.
 
 See [AGENTS.md](AGENTS.md) for the full repo contract; this file is the short contributor's version.
 
@@ -8,18 +8,18 @@ See [AGENTS.md](AGENTS.md) for the full repo contract; this file is the short co
 
 | You want to... | Edit |
 |---|---|
-| Add/revise a bootstrap decision or its default | `skills/woo-stack-bootstrap/references/decisions.md` |
-| Swap a default framework | `skills/woo-stack-bootstrap/references/frameworks.md` |
-| Document a new gotcha | `skills/woo-stack-bootstrap/references/frameworks.md` (Known gotchas section) |
-| Adjust the monorepo layout or naming | `skills/woo-stack-bootstrap/references/architecture.md` |
-| Recommend a new hosting/CI/auth choice | `skills/woo-stack-bootstrap/references/infrastructure.md` |
-| Add or revise a development pattern | `skills/woo-stack-bootstrap/references/patterns.md` |
-| Update the branching model | `skills/woo-stack-bootstrap/references/development.md` |
-| Refine the bootstrap procedure | `skills/woo-stack-bootstrap/references/bootstrap.md` |
-| Change the bootstrap skill entry / discovery description | `skills/woo-stack-bootstrap/SKILL.md` |
-| Change the build loop (brainstorm→spec→grill→plan→execute) | `skills/woo-stack-build/SKILL.md` |
-| Change the review engine | `skills/woo-stack-review/SKILL.md`, `skills/woo-stack-review/scripts/`, `skills/woo-stack-review/prompts/` |
-| Change the address-comments delegator | `skills/woo-stack-address-comments/SKILL.md` |
+| Add/revise a bootstrap decision or its default | `skills/woostack-bootstrap/references/decisions.md` |
+| Swap a default framework | `skills/woostack-bootstrap/references/frameworks.md` |
+| Document a new gotcha | `skills/woostack-bootstrap/references/frameworks.md` (Known gotchas section) |
+| Adjust the monorepo layout or naming | `skills/woostack-bootstrap/references/architecture.md` |
+| Recommend a new hosting/CI/auth choice | `skills/woostack-bootstrap/references/infrastructure.md` |
+| Add or revise a development pattern | `skills/woostack-bootstrap/references/patterns.md` |
+| Update the branching model | `skills/woostack-bootstrap/references/development.md` |
+| Refine the bootstrap procedure | `skills/woostack-bootstrap/references/bootstrap.md` |
+| Change the bootstrap skill entry / discovery description | `skills/woostack-bootstrap/SKILL.md` |
+| Change the build loop (brainstorm→spec→grill→plan→execute) | `skills/woostack-build/SKILL.md` |
+| Change the review engine | `skills/woostack-review/SKILL.md`, `skills/woostack-review/scripts/`, `skills/woostack-review/prompts/` |
+| Change the address-comments delegator | `skills/woostack-address-comments/SKILL.md` |
 | Update agent instructions (Claude or any) | `AGENTS.md` (`.claude/CLAUDE.md` is a symlink to it) |
 
 ## Workflow
@@ -33,8 +33,8 @@ See [AGENTS.md](AGENTS.md) for the full repo contract; this file is the short co
 ## Editing conventions
 
 - **Skill assets only.** Markdown, plus the support files a skill ships (HTML templates and specs, the review engine's shell scripts and prompts, JSON config). No *application* code, app build configs, or app lockfiles belong in this repo.
-- **No fabricated versions.** When a skill needs a version, the procedure resolves it live (`npm view <pkg> version`). Reference frameworks by name, not by version, except in `skills/woo-stack-bootstrap/references/frameworks.md`, which may pin exact versions when a known incompatibility forces it.
-- **Consumer state lives under `.woo-stack/`** in the *target* repo a skill runs against — `specs/`, `plans/`, `config.json`, `memory.md` (tracked), and `metrics.json` (gitignored). Don't reintroduce the old `.woo-review/` paths.
+- **No fabricated versions.** When a skill needs a version, the procedure resolves it live (`npm view <pkg> version`). Reference frameworks by name, not by version, except in `skills/woostack-bootstrap/references/frameworks.md`, which may pin exact versions when a known incompatibility forces it.
+- **Consumer state lives under `.woostack/`** in the *target* repo a skill runs against — `specs/`, `plans/`, `config.json`, `memory.md` (tracked), and `metrics.json` (gitignored). Don't reintroduce the old `.woo-review/` paths.
 - Prefer tables for option matrices, bulleted lists for stepwise procedures.
 - Keep examples short. The skill describes intent; project-local docs cover the specifics.
 - **Cross-link rather than duplicate.** If a fact lives in `architecture.md`, link to it from `patterns.md`; don't restate.
