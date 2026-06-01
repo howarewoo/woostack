@@ -449,9 +449,16 @@ used = 0
 for sec in ranked:
     # Always keep the single highest-value section even if it alone exceeds the
     # budget — one oversized section beats reviewing nothing. Never split it.
-    if not kept_idx or used + sec["bytes"] <= budget:
+    forced = not kept_idx
+    if forced or used + sec["bytes"] <= budget:
         kept_idx.add(sec["orig"])
-        used += sec["bytes"]
+        # An oversized forced keep is an allowed one-time overflow: it must NOT
+        # consume the budget meant for the remaining sections, or every later
+        # section fails the `used + bytes <= budget` check and is dropped even
+        # when it would trivially fit (issue #150 follow-up). Only count bytes
+        # that actually fit the budget; the forced overflow is free.
+        if not forced or sec["bytes"] <= budget:
+            used += sec["bytes"]
     else:
         dropped.append(sec)
 
