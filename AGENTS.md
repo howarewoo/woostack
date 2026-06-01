@@ -6,7 +6,7 @@ Instructions for AI coding agents working in this repository. Compatible with Cl
 
 A **published collection of skills**, not a codebase. It packages the decisions for building new web + mobile + API projects so any agent can install it (`npx skills add howarewoo/woostack`) and bootstrap fresh projects at the latest framework versions. The four skills are: `woostack-bootstrap`, `woostack-build`, `woostack-review`, and `woostack-address-comments`.
 
-There is no application source code, no app lockfile, no build, and no CI that runs on this repo's own events, by design. (`skills-lock.json` pins the *dev* skills this repo consumes to review itself — see [Skills](#skills) — it is not an app lockfile.)
+There is no application source code, no app lockfile, no build, and no CI that runs on this repo's own events, by design. (`skills-lock.json` is the manifest for any *dev* skills this repo bundles for its own use — see [Skills](#skills) — it is not an app lockfile. It is currently empty: the repo bundles no external dev skills and relies on the agent's global install.)
 
 The one exception is the `woostack-review` cloud delivery: `action.yml` (a composite GitHub Action) and `.github/workflows/reusable-review.yml` (a `workflow_call`-only reusable workflow) ship from this repo so consumers can run the review in their own CI via `uses: howarewoo/woostack@<ref>`. Neither runs on this repo's push/PR events — they are *shipped assets*, not CI for woostack. Both drive the same `skills/woostack-review/` scripts and prompts as the chat-host skill. Do not delete them as stray workflows.
 
@@ -40,9 +40,9 @@ woostack/
 │   └── woostack-address-comments/
 │       └── SKILL.md           Thin delegator to woostack-review address verb
 ├── action.yml         Composite GitHub Action — cloud delivery of woostack-review
-├── .agents/skills/    Dev skills this repo consumes (managed by skills-lock.json)
-├── .claude/           CLAUDE.md symlink + skill symlinks
-├── skills-lock.json   Pins the dev skills above
+├── .agents/skills/    Empty — bundled dev skills removed; rely on the agent's global install
+├── .claude/           CLAUDE.md symlink + first-party skill symlinks
+├── skills-lock.json   Dev-skill manifest (currently empty)
 └── .github/           Issue + PR templates + reusable-review.yml (workflow_call only)
 ```
 
@@ -134,13 +134,11 @@ Feature branches are cut from `staging`, never `main`. PRs target `staging`. `st
 
 ### Skills
 
-The dev skills this repo consumes to review and evolve itself are checked in so PRs can use the same tooling the collection recommends:
-
-- `obra/superpowers:*` — brainstorming, writing-plans, executing-plans, receiving-code-review, verification-before-completion, test-driven-development, etc.
+This repo bundles **no** external dev skills. The development loop references `obra/superpowers:*` and `grill-me`, but they are no longer checked in — the agent picks them up from its own global install, and falls back to following each step's principle manually when one is unavailable. `skills-lock.json` is therefore empty.
 
 Note: `woostack-review` is **first-party** in this repo (`skills/woostack-review/`), not a consumed external skill. The standalone `howarewoo/woo-review` repo is deprecated.
 
-All external dev skill sources live under `.agents/skills/<name>/` with symlinks at `.claude/skills/<name>`. Versions are pinned in `skills-lock.json`; do not hand-edit lock entries.
+To bundle a dev skill again, use the `skills` CLI (`pnpx skills add <source>`) rather than hand-editing `skills-lock.json` or creating symlinks by hand. The CLI writes the files under `.agents/skills/<name>/`, the symlinks at `.claude/skills/<name>`, and the lock entry together.
 
 ## Quick reference
 
