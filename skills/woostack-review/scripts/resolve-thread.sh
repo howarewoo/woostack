@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Posts a reply to a PR review thread, then (unless RESOLVE=0) resolves it.
-# Used by `woo-review address` after a thread is FIXED or ACCEPTed. CLARIFY
+# Used by `woostack-review address` after a thread is FIXED or ACCEPTed. CLARIFY
 # threads call with RESOLVE=0 (reply only, leave open).
 #
 # Inputs (env):

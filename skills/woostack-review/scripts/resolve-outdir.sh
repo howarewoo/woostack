@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Single source of truth for the default OUTDIR.
 #
-# Sourced (not executed) by every woo-review script. Respect an explicit
+# Sourced (not executed) by every woostack-review script. Respect an explicit
 # OUTDIR override (host sandbox dirs, the GitHub Action's pin, tests); otherwise
 # derive a per-project path so concurrent reviews of different repos on one
 # machine do not share — and clobber — the same /tmp/pr-review tree.

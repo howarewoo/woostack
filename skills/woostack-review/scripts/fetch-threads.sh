@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Fetches every UNRESOLVED review thread on a PR (any author) with full comment
 # bodies, the thread GraphQL node-id (for reply + resolve), and the diff hunk.
-# Used by the `woo-review address <PR#>` verb (local hosts only).
+# Used by the `woostack-review address <PR#>` verb (local hosts only).
 #
 # Inputs (env): GITHUB_REPOSITORY, PR_NUMBER, OUTDIR (default /tmp/pr-review).
 # Output: $OUTDIR/address-threads.json — an array of:

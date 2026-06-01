@@ -7,7 +7,7 @@
 #               and rules.md when project-rule files (AGENTS.md / CLAUDE.md / .cursorrules /
 #               .windsurfrules / GEMINI.md) are discovered.
 #
-# Incremental mode (INPUT_INCREMENTAL=auto, default): if a prior woo-review marker
+# Incremental mode (INPUT_INCREMENTAL=auto, default): if a prior woostack-review marker
 # `<!-- woostack-review:sha=<oid> -->` is found in any prior review body, diff
 # <last_sha>...HEAD via the GitHub compare API instead of the full PR diff. A
 # `--full` substring in COMMENT_BODY (issue_comment trigger) overrides to off.
@@ -54,7 +54,7 @@ EVENT_NAME="${EVENT_NAME:-}"
 EVENT_ACTION="${EVENT_ACTION:-}"
 # GITHUB_REPOSITORY is set by CI but unset on local hosts. Resolve it once here
 # (via gh) so the later bare ${GITHUB_REPOSITORY} uses don't trip `set -u` and
-# abort a local /woo-review run with "GITHUB_REPOSITORY: unbound variable".
+# abort a local /woostack-review run with "GITHUB_REPOSITORY: unbound variable".
 GITHUB_REPOSITORY="${GITHUB_REPOSITORY:-$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null || echo)}"
 export GITHUB_REPOSITORY
 # Hardcoded — not exposed as a knob. Fed into a jq test() regex below; allowing
@@ -73,7 +73,7 @@ if [ "$TEST_MODE" = "1" ] && [ "${GITHUB_ACTIONS:-}" = "true" ]; then
 fi
 # Trigger-comment parsing (issue #19 + existing --full override). Two channels:
 #   1. `--full` substring → INCREMENTAL=off (legacy `@review --full` syntax).
-#   2. `/woo-review [force|recheck]` slash command:
+#   2. `/woostack-review [force|recheck]` slash command:
 #        force   → bypass authors_skip + release_rollup_pattern (FORCE_BYPASS=1)
 #        recheck → INCREMENTAL=auto (default; explicit override of --full)
 #        (none)  → INCREMENTAL=off (full re-review)
@@ -85,29 +85,29 @@ if [ "$EVENT_NAME" = "issue_comment" ]; then
     INCREMENTAL="off"
     echo "Incremental: forced to 'off' by --full in trigger comment"
   fi
-  if printf '%s' "${COMMENT_BODY:-}" | grep -qE '(^|[[:space:]])/woo-review([[:space:]]|$)'; then
+  if printf '%s' "${COMMENT_BODY:-}" | grep -qE '(^|[[:space:]])/woostack-review([[:space:]]|$)'; then
     HAS_FORCE=0; HAS_RECHECK=0
-    if printf '%s' "${COMMENT_BODY:-}" | grep -qE '(^|[[:space:]])/woo-review[[:space:]]+(force|recheck[[:space:]]+force)([[:space:]]|$)'; then
+    if printf '%s' "${COMMENT_BODY:-}" | grep -qE '(^|[[:space:]])/woostack-review[[:space:]]+(force|recheck[[:space:]]+force)([[:space:]]|$)'; then
       HAS_FORCE=1
-    elif printf '%s' "${COMMENT_BODY:-}" | grep -qE '(^|[[:space:]])/woo-review[[:space:]]+force([[:space:]]|$)'; then
+    elif printf '%s' "${COMMENT_BODY:-}" | grep -qE '(^|[[:space:]])/woostack-review[[:space:]]+force([[:space:]]|$)'; then
       HAS_FORCE=1
     fi
-    if printf '%s' "${COMMENT_BODY:-}" | grep -qE '(^|[[:space:]])/woo-review[[:space:]]+(recheck|force[[:space:]]+recheck)([[:space:]]|$)'; then
+    if printf '%s' "${COMMENT_BODY:-}" | grep -qE '(^|[[:space:]])/woostack-review[[:space:]]+(recheck|force[[:space:]]+recheck)([[:space:]]|$)'; then
       HAS_RECHECK=1
-    elif printf '%s' "${COMMENT_BODY:-}" | grep -qE '(^|[[:space:]])/woo-review[[:space:]]+recheck([[:space:]]|$)'; then
+    elif printf '%s' "${COMMENT_BODY:-}" | grep -qE '(^|[[:space:]])/woostack-review[[:space:]]+recheck([[:space:]]|$)'; then
       HAS_RECHECK=1
     fi
     if [ "$HAS_FORCE" = "1" ]; then
       FORCE_BYPASS=1
-      echo "Auto-skip bypass: '/woo-review force' detected in trigger comment"
+      echo "Auto-skip bypass: '/woostack-review force' detected in trigger comment"
     fi
     if [ "$HAS_RECHECK" = "1" ]; then
       INCREMENTAL="auto"
-      echo "Incremental: forced to 'auto' by '/woo-review recheck'"
+      echo "Incremental: forced to 'auto' by '/woostack-review recheck'"
     elif [ "$HAS_FORCE" = "0" ]; then
-      # Bare `/woo-review` → full review.
+      # Bare `/woostack-review` → full review.
       INCREMENTAL="off"
-      echo "Incremental: forced to 'off' by bare '/woo-review' trigger"
+      echo "Incremental: forced to 'off' by bare '/woostack-review' trigger"
     fi
   fi
 fi
@@ -125,10 +125,10 @@ emit_skip() {
 # via the `<!-- woostack-review:skipped -->` marker — repeat triggers (synchronize on
 # a dependabot PR, etc.) re-skip silently. Marker scan also picks up prior skip
 # comments authored by the action across re-runs, so the comment is posted at
-# most once per PR until a human types `/woo-review force`.
+# most once per PR until a human types `/woostack-review force`.
 emit_skip_with_comment() {
   local reason="$1"
-  local body="woo-review skipped: ${reason}
+  local body="woostack-review skipped: ${reason}
 
 <!-- woostack-review:skipped -->"
   local existing
@@ -177,7 +177,7 @@ if [ -n "$SKIP_LABELS" ]; then
   done
 fi
 
-# Marker lookup: pull the latest woo-review SHA watermark from prior review bodies.
+# Marker lookup: pull the latest woostack-review SHA watermark from prior review bodies.
 # Empty result means no prior marker → full diff path (first run, or marker absent).
 # Hand-edited / malformed markers also yield empty → silent fallback to full diff.
 LAST_SHA=""
@@ -186,7 +186,7 @@ if [ "$TEST_MODE" = "1" ] && [ -n "${WOO_REVIEW_FAKE_PR_REVIEWS_JSON:-}" ]; then
 else
   REVIEWS_JSON=$(gh pr view "$PR_NUMBER" --json reviews 2>/dev/null || echo '{"reviews":[]}')
 fi
-# Marker trust: only honor reviews authored by woo-review bots. Without this
+# Marker trust: only honor reviews authored by woostack-review bots. Without this
 # filter any PR collaborator could submit a fake review with a forged marker
 # pointing past their own malicious commits, narrowing the next incremental
 # window to exclude them. The login pattern is anchored to the start of the
@@ -228,7 +228,7 @@ echo "Event: $EVENT_NAME, Action: $EVENT_ACTION, Prior bot comments: $TOTAL_BOT_
 # Re-run guard scope: this check only applies inside GitHub Actions, where the
 # review is auto-triggered by GitHub events and "explicit" is a meaningful
 # concept. When invoked from a local host (Claude Code, Gemini CLI, opencode
-# /woo-review skill), the user typed the command — by definition explicit —
+# /woostack-review skill), the user typed the command — by definition explicit —
 # so EVENT_NAME is empty and the gate would otherwise misclassify the run as
 # implicit and skip it whenever any prior bot comment exists on the PR.
 if [ "${GITHUB_ACTIONS:-}" = "true" ] && \
@@ -254,7 +254,7 @@ bash "$SCRIPT_DIR/load-config.sh"
 # Issue #19: auto-skip mechanical bot PRs (renovate / dependabot / etc.) and
 # release-rollup PRs. Effective lists fall back to defaults when the user did
 # not supply them. An explicit empty list (`authors_skip: []`) opts out.
-# `/woo-review force` in a trigger comment bypasses both checks.
+# `/woostack-review force` in a trigger comment bypasses both checks.
 if [ "${FORCE_BYPASS:-}" != "1" ]; then
   AUTHOR_LOGIN=$(jq -r '.author.login // empty' "$OUTDIR/meta.json")
   PR_TITLE=$(jq -r '.title // ""' "$OUTDIR/meta.json")
@@ -267,7 +267,7 @@ if [ "${FORCE_BYPASS:-}" != "1" ]; then
     | if index($login) then "yes" else "no" end
   ' "$OUTDIR/config.json" 2>/dev/null || echo "no")
   if [ -n "$AUTHOR_LOGIN" ] && [ "$SKIP_MATCH" = "yes" ]; then
-    emit_skip_with_comment "author '$AUTHOR_LOGIN' matches authors_skip (override with \`/woo-review force\`)"
+    emit_skip_with_comment "author '$AUTHOR_LOGIN' matches authors_skip (override with \`/woostack-review force\`)"
   fi
 
   # release_rollup_pattern — same precedence. Empty string opts out.
@@ -283,7 +283,7 @@ import re, sys
 pattern, title = sys.argv[1], sys.argv[2]
 sys.exit(0 if re.search(pattern, title) else 1)
 ' "$ROLLUP_PATTERN" "$PR_TITLE" 2>/dev/null; then
-      emit_skip_with_comment "PR title matches release_rollup_pattern (override with \`/woo-review force\`)"
+      emit_skip_with_comment "PR title matches release_rollup_pattern (override with \`/woostack-review force\`)"
     fi
   fi
 fi

@@ -27,7 +27,7 @@ Every artifact you write under `$OUTDIR/findings.*.json` (default `/tmp/pr-revie
 - **Enabled angles** (one per line): `/tmp/pr-review/angles.txt`
 - **Project rules** (optional, present only if discovered): `/tmp/pr-review/rules.md`
 - **Per-repo config** (always present, defaults to `{"severity_floor":"high"}`): `/tmp/pr-review/config.json` — parsed from `.woostack/config.json` in the consumer repo.
-- **Incremental base SHA** (always present, may be empty): `/tmp/pr-review/last_sha.txt` — non-empty means `diff.txt` covers only the new commits since the last woo-review pass. Treat findings as scoped to those commits.
+- **Incremental base SHA** (always present, may be empty): `/tmp/pr-review/last_sha.txt` — non-empty means `diff.txt` covers only the new commits since the last woostack-review pass. Treat findings as scoped to those commits.
 - **Prior unresolved review threads** (always present, may be `[]`): `/tmp/pr-review/prior-findings.json` — array of `{file, line, title, author}` for any unresolved thread on the PR. Consumed by the posting stage for the event-floor gate; angle workers MUST ignore this file. No per-entry `blocking` flag — any non-empty list floors the review event to `REQUEST_CHANGES` (conservative "do not APPROVE while threads open" rule).
 - **Cross-PR memory** (optional, present only if the consumer repo has `.woostack/memory.md`): `/tmp/pr-review/memory.md` — a plain-markdown list of gotchas and previously-accepted issues the team curates. Treat it as additional rubric: do NOT re-flag an issue the memory file already records as known/accepted. See *Cross-PR memory* below.
 - **Chunk manifest** (optional, present only when the diff exceeds `chunking.max_loc`): `/tmp/pr-review/chunks.txt` (one chunk id per line) and `/tmp/pr-review/chunks.json` (manifest: `[{id, files, loc, diff_path, boundary}]`). Each chunk also has its own diff at `/tmp/pr-review/diff.chunk-<id>.txt`. When a worker is dispatched with a chunk id (env `CHUNK` non-empty), it MUST read the chunk-specific diff and write findings to `/tmp/pr-review/findings.<angle>.<chunk>.json`. In the GitHub Action this swap happens transparently — `diff.txt` is replaced with the chunk's diff before the worker runs, and the worker's output is renamed afterwards. When `chunks.txt` is absent, chunking did not activate and the diff fits a single worker (no overhead).
@@ -288,7 +288,7 @@ gh api "repos/${GITHUB_REPOSITORY}/pulls/$PR_NUMBER/reviews" \
 The `pr_review_body.txt` should contain:
 - A 1-2 sentence high-level summary of the findings.
 - The `${STATUS_LINE}`.
-- Credits line (*Audited by woo-review...*).
+- Credits line (*Audited by woostack-review...*).
 - A hidden HTML comment `<!-- woostack-review:sha=${HEAD_SHA} -->` as the last line. This is the watermark the next run's prefetch step reads to enable incremental review.
 - **DO NOT** update the main PR description or title.
 
