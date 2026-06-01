@@ -6,7 +6,9 @@ Instructions for AI coding agents working in this repository. Compatible with Cl
 
 A **published collection of skills**, not a codebase. It packages the decisions for building new web + mobile + API projects so any agent can install it (`npx skills add howarewoo/woo-stack`) and bootstrap fresh projects at the latest framework versions. The four skills are: `woo-stack-bootstrap`, `woo-stack-build`, `woo-stack-review`, and `woo-stack-address-comments`.
 
-There is no application source code, no app lockfile, no build, no CI in this repo by design. (`skills-lock.json` pins the *dev* skills this repo consumes to review itself — see [Skills](#skills) — it is not an app lockfile.)
+There is no application source code, no app lockfile, no build, and no CI that runs on this repo's own events, by design. (`skills-lock.json` pins the *dev* skills this repo consumes to review itself — see [Skills](#skills) — it is not an app lockfile.)
+
+The one exception is the `woo-stack-review` cloud delivery: `action.yml` (a composite GitHub Action) and `.github/workflows/reusable-review.yml` (a `workflow_call`-only reusable workflow) ship from this repo so consumers can run the review in their own CI via `uses: howarewoo/woo-stack@<ref>`. Neither runs on this repo's push/PR events — they are *shipped assets*, not CI for woo-stack. Both drive the same `skills/woo-stack-review/` scripts and prompts as the chat-host skill. Do not delete them as stray workflows.
 
 ## Repo layout
 
@@ -37,10 +39,11 @@ woo-stack/
 │   │   └── prompts/           Review angle prompts
 │   └── woo-stack-address-comments/
 │       └── SKILL.md           Thin delegator to woo-stack-review address verb
+├── action.yml         Composite GitHub Action — cloud delivery of woo-stack-review
 ├── .agents/skills/    Dev skills this repo consumes (managed by skills-lock.json)
 ├── .claude/           CLAUDE.md symlink + skill symlinks
 ├── skills-lock.json   Pins the dev skills above
-└── .github/           Issue + PR templates (no workflows)
+└── .github/           Issue + PR templates + reusable-review.yml (workflow_call only)
 ```
 
 ## Two modes
@@ -87,7 +90,7 @@ The output is a fresh repo in a different directory. **Do not** add code, packag
 Apply in both modes:
 
 - **No fabricated versions.** When the skill or a generated project needs a version, run `npm view <pkg> version` (or equivalent). Do not invent numbers.
-- **No hidden tools.** This repo has no CI and no app test runner. Don't pretend they exist; don't add them without justification.
+- **No hidden tools.** This repo has no CI that runs on its own events and no app test runner. Don't pretend they exist; don't add them without justification. (`action.yml` + `.github/workflows/reusable-review.yml` are consumer-facing shipped assets, not self-CI — see [What this repo is](#what-this-repo-is).)
 - **Respect branch protection.** `main` is protected and requires PRs. Push changes to a feature branch and open a PR; never force-push to `main`.
 - **Cross-link, don't duplicate.** If a fact lives in `architecture.md`, link to it from `patterns.md`; don't restate.
 - **Reference frameworks by name, not version**, except in [references/frameworks.md](skills/woo-stack-bootstrap/references/frameworks.md), which may pin exact versions when an incompatibility forces it.
@@ -124,7 +127,7 @@ Feature branches are cut from `staging`, never `main`. PRs target `staging`. `st
 ## What NOT to do
 
 - Do not regenerate `apps/`, `packages/`, `pnpm-workspace.yaml`, or root build configs in this repo. They were removed deliberately.
-- Do not propose adding a working CI workflow here. The skill describes the CI a downstream project should run; this repo has nothing to test.
+- Do not add a CI workflow that runs on this repo's own push/PR events — woo-stack has nothing to test. (The shipped `reusable-review.yml` is `workflow_call`-only and `action.yml` is a composite action consumers reference; neither triggers on this repo. Leave them in place.)
 - Do not rename files under `skills/woo-stack-bootstrap/references/` without updating every cross-link and the SKILL.md table.
 - Do not move or rename any of the four SKILL.md files (`skills/woo-stack-bootstrap/SKILL.md`, `skills/woo-stack-build/SKILL.md`, `skills/woo-stack-review/SKILL.md`, `skills/woo-stack-address-comments/SKILL.md`) — `npx skills add` resolves skills by those paths.
 - Do not commit `.env*`, secrets, or generated files.
