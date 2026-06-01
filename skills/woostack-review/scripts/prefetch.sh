@@ -132,8 +132,10 @@ emit_skip_with_comment() {
 
 <!-- woostack-review:skipped -->"
   local existing
+  # Read side accepts the legacy `woo-stack-review:skipped` marker too (woo-?stack),
+  # so PRs skipped before the woostack rename aren't double-commented. Writes use the new brand.
   existing=$(gh pr view "$PR_NUMBER" --json comments \
-    --jq '[.comments[]? | select((.body // "") | test("<!-- woostack-review:skipped -->"))] | length' \
+    --jq '[.comments[]? | select((.body // "") | test("<!-- woo-?stack-review:skipped -->"))] | length' \
     2>/dev/null || echo 0)
   if [ "${existing:-0}" = "0" ]; then
     if gh pr comment "$PR_NUMBER" --body "$body" >/dev/null 2>&1; then
@@ -192,18 +194,20 @@ fi
 # for logins that START with a bot prefix (e.g. `claude-evil`), which would
 # require an attacker to register such a login AND obtain PR-collaborator
 # access — defense-in-depth, not a hard guarantee.
+# Read side accepts the legacy `woo-stack-review:sha=` watermark too (woo-?stack), so a
+# PR last reviewed before the woostack rename still resolves incrementally. Writes use the new brand.
 LAST_SHA=$(printf '%s' "$REVIEWS_JSON" | jq -r --arg bots "$BOT_NAME_PATTERN" '
   [ .reviews[]?
     | { body: (.body // ""),
         submittedAt: (.submittedAt // ""),
         login: (.author.login // "") }
     | select(.login | test("^(" + $bots + ")"; "i"))
-    | select(.body | test("<!-- woostack-review:sha=[a-f0-9]+ -->"))
+    | select(.body | test("<!-- woo-?stack-review:sha=[a-f0-9]+ -->"))
   ]
   | sort_by(.submittedAt)
   | last
   | if . == null then empty
-    else (.body | capture("<!-- woostack-review:sha=(?<sha>[a-f0-9]+) -->") | .sha)
+    else (.body | capture("<!-- woo-?stack-review:sha=(?<sha>[a-f0-9]+) -->") | .sha)
     end
 ' 2>/dev/null || true)
 
