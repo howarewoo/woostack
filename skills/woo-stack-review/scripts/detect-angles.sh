@@ -60,6 +60,10 @@
 #               pnpm-lock.yaml, yarn.lock, bun.lockb, requirements.txt,
 #               pyproject.toml, poetry.lock, uv.lock, go.mod, go.sum,
 #               Cargo.toml, Cargo.lock, Gemfile(.lock), composer.{json,lock}.
+#   architecture — general-purpose source files in the diff:
+#               *.{ts,tsx,cts,mts,js,jsx,mjs,cjs,py,go,rs,java,kt,kts,swift,rb,
+#               php,cs,scala,c,h,cc,cpp,hpp,cxx,m,mm}. Structural-quality /
+#               code-judo pass; skips doc-only and config-only PRs.
 
 set -euo pipefail
 
@@ -185,6 +189,12 @@ has_types_signal() {
   echo "$CHANGED_PATHS" | grep -qE '\.(ts|tsx|cts|mts)$'
 }
 
+has_code_file() {
+  # General-purpose source files. Drives the `architecture` (structural-quality)
+  # angle, which should not fire on doc-only or config-only PRs.
+  echo "$CHANGED_PATHS" | grep -qiE '\.(ts|tsx|cts|mts|js|jsx|mjs|cjs|py|go|rs|java|kt|kts|swift|rb|php|cs|scala|c|h|cc|cpp|hpp|cxx|m|mm)$'
+}
+
 has_i18n_file() {
   echo "$CHANGED_PATHS" | grep -qE '(^|/)(locales|messages|i18n|translations)/' && return 0
   echo "$CHANGED_PATHS" | grep -qE '\.(po|pot)$' && return 0
@@ -276,6 +286,10 @@ fi
 
 if has_deps_file; then
   ANGLES+=("deps")
+fi
+
+if has_code_file; then
+  ANGLES+=("architecture")
 fi
 
 # Merge config.angles.skip into the disable CSV. Config-driven and input-driven

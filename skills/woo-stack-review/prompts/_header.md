@@ -57,7 +57,7 @@ Each angle prompt and the validator declare a `tier:` in frontmatter — `fast`,
 | Tier | Use for | Anthropic | OpenAI (Codex) | Google (Gemini) | OpenRouter |
 |---|---|---|---|---|---|
 | `fast` | rubric checklists (`seo`, `aeo`, `observability`, `types`, `i18n`, `docs`, `deps`), context summaries | `claude-haiku-4-5` | `gpt-5-mini` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-flash` |
-| `standard` | reasoning workers (`bugs`, `security`, `design`, `react`, `database`, `tests`, `api`, `infra`) | `claude-sonnet-4-6` | `gpt-5` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` |
+| `standard` | reasoning workers (`bugs`, `security`, `architecture`, `design`, `react`, `database`, `tests`, `api`, `infra`) | `claude-sonnet-4-6` | `gpt-5` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` |
 | `deep` | skeptical validator (highest-leverage filter) | `claude-opus-4-7` | `gpt-5` + `reasoning_effort: high` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` + `reasoning_effort: xhigh` |
 
 > **Provider notes:**
@@ -91,7 +91,7 @@ The prefetch step parses an optional `.woo-stack/config.json` in the consumer re
 
 ## Review Angles
 
-This action runs up to sixteen distinct review angles, auto-selected from the changed files. The set of enabled angles is listed in `/tmp/pr-review/angles.txt`. The per-angle prompt bodies live at `${ACTION_PATH}/prompts/angles/<angle>.md` and are loaded by the orchestrator.
+This action runs up to seventeen distinct review angles, auto-selected from the changed files. The set of enabled angles is listed in `/tmp/pr-review/angles.txt`. The per-angle prompt bodies live at `${ACTION_PATH}/prompts/angles/<angle>.md` and are loaded by the orchestrator.
 
 | Angle | Always-on | Tooling |
 |---|---|---|
@@ -111,6 +111,7 @@ This action runs up to sixteen distinct review angles, auto-selected from the ch
 | `i18n` | no | LLM only — gated on `locales/` / `messages/` / `i18n/` / `translations/` directory trees, `*.po` / `*.pot` files, or `i18n.t(` / `useTranslations(` / `<Trans` / `<FormattedMessage` / `$t(` / `t("…")` tokens in the diff body |
 | `docs` | no | LLM only — gated on docs paths (`README*`, `CHANGELOG*`, `docs/`, `.env.example`, `*.md`/`*.mdx`, `openapi.{yaml,yml,json}`, `swagger.{yaml,yml,json}`) in diff |
 | `deps` | no | LLM only — gated on dependency-manifest paths (`package.json`, lockfiles, `requirements.txt`, `go.mod`, `Cargo.toml`, …) in diff |
+| `architecture` | no | LLM only — gated on general-purpose source files in diff (`*.ts`/`*.js`/`*.py`/`*.go`/`*.rs`/`*.java`/`*.rb`/`*.php`/`*.cs`/…); structural-quality / code-judo pass; skips doc-only and config-only PRs |
 
 Each angle writes its findings to `/tmp/pr-review/findings.<angle>.json`. The orchestrator merges them into `/tmp/pr-review/findings.json` after the validator pass, then posts inline comments via a single batched GitHub Review. PR labels MUST NOT be mutated — blocking is signalled exclusively through the native `REQUEST_CHANGES` review event.
 
@@ -257,7 +258,7 @@ for f in findings:
     if severity in {"HIGH", "MEDIUM", "LOW"}:
         sev_tag = f"{severity} · BLOCKING" if blocking else severity
         footer_parts.append(f"<strong>{sev_tag}</strong>")
-    if angle in {"bugs","security","conventions","seo","aeo","design","react","database","tests","api","infra","observability","types","i18n","docs","deps"}:
+    if angle in {"bugs","security","conventions","seo","aeo","design","react","database","tests","api","infra","observability","types","i18n","docs","deps","architecture"}:
         footer_parts.append(f"flagged by the <code>{angle}</code> agent")
     if footer_parts:
         body += "\n\n<sub>— " + " · ".join(footer_parts) + "</sub>"
@@ -330,7 +331,7 @@ Every runner MUST write a final `findings.json` (for debugging + potential post-
 ]
 ```
 
-`angle` is one of `bugs | security | conventions | seo | aeo | design | react | database | tests | api | infra | observability | types | i18n | docs | deps`.
+`angle` is one of `bugs | security | conventions | seo | aeo | design | react | database | tests | api | infra | observability | types | i18n | docs | deps | architecture`.
 
 `line` MUST be the post-patch absolute file line — i.e. a line that exists on the RIGHT side of the diff (a `+` added line or a ` ` context line within a hunk for `file`). Lines that fall in a deletion-only region, or outside any hunk for the file, will be rejected by the GitHub API. Validate every line via `scripts/resolve-diff-line.sh` before writing the finding (see *Output Discipline* above); drop the finding when the helper returns `null`.
 

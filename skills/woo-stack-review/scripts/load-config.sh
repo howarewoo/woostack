@@ -61,7 +61,7 @@ import sys
 
 src, dst = sys.argv[1], sys.argv[2]
 
-VALID_ANGLES = {"bugs", "security", "conventions", "seo", "aeo", "design", "react", "database", "tests", "api", "infra", "observability", "types", "i18n", "docs", "deps"}
+VALID_ANGLES = {"bugs", "security", "conventions", "seo", "aeo", "design", "react", "database", "tests", "api", "infra", "observability", "types", "i18n", "docs", "deps", "architecture"}
 VALID_FLOORS = {"low", "medium", "high"}
 TOP_KEYS = {
     "angles", "severity_floor", "ignore", "project_rules",
