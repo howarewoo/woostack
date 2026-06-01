@@ -44,6 +44,6 @@ npx -y "react-doctor@${REACT_DOCTOR_VERSION}" --version > /dev/null \
 echo "🤖 Checking for dependent AI skills..."
 # Note: Since the skills CLI doesn't have a 'list' or 'check' command for specific skills yet,
 # we simply suggest the user ensures they are installed.
-echo "Tip: Ensure you have run 'npx skills add pbakaus/impeccable' and 'npx skills add coreyhaines31/seo-audit'."
+echo "Tip: Ensure you have run 'pnpx skills add pbakaus/impeccable' and 'pnpx skills add coreyhaines31/seo-audit'."
 
 echo "🎉 All dependencies are ready!"

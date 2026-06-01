@@ -10,7 +10,7 @@ tier: standard
 
 - Registry: <https://www.skills.sh/supabase/agent-skills/supabase-postgres-best-practices>
 - Source: <https://github.com/supabase/agent-skills/tree/main/skills/supabase-postgres-best-practices>
-- Install (optional, host-dependent): `npx skills add https://github.com/supabase/agent-skills --skill supabase-postgres-best-practices`
+- Install (optional, host-dependent): `pnpx skills add https://github.com/supabase/agent-skills --skill supabase-postgres-best-practices`
 
 Identify which rule families the diff touches, then load the matching reference files. If the skill is installed, read them from the installed `references/` directory. Otherwise fetch on demand:
 

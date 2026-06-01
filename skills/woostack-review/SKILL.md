@@ -1,7 +1,7 @@
 ---
 name: woostack-review
 description: Managed agentic PR reviews with parallel matrix execution and skeptical validation.
-install: npx skills add howarewoo/woostack
+install: pnpx skills add howarewoo/woostack
 requires:
   bins: [gh, jq, node]
 recommends:
@@ -487,6 +487,15 @@ on:
 
 jobs:
   review:
+    # Authorization gate. issue_comment fires in the base-repo context where
+    # secrets are live, for ANY commenter — so restrict comment-triggered runs
+    # to trusted actors. Without this, a fork contributor's comment can spend
+    # your token (the GitHub "pwn-requests" pattern).
+    if: >-
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.pull_request != null &&
+       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association))
     uses: howarewoo/woostack/.github/workflows/reusable-review.yml@main
     with:
       provider: anthropic
@@ -494,7 +503,7 @@ jobs:
       anthropic_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 ```
 
-Pin `@main` to a release tag once one is cut. Zero local setup required in the consumer repo — the action ships its own prompts and scripts (`skills/woostack-review/`) and installs the `react-doctor` / `impeccable` CLIs via `npx` at run time.
+The `if:` gate restricts comment-triggered runs to the repo owner / members / collaborators — the `issue_comment` trigger runs in the base-repo context with secrets available to *any* commenter, so dropping it lets a fork contributor's comment spend your token. Pin `@main` to a release tag once one is cut. Zero local setup required in the consumer repo — the action ships its own prompts and scripts (`skills/woostack-review/`) and installs the `react-doctor` / `impeccable` CLIs via `npx` at run time.
 
 ## Best Practices
 

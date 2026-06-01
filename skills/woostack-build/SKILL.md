@@ -23,7 +23,7 @@ This skill chains external skills. At the start, check that each is installed:
 - `grill-me`
 
 For any that are missing: name exactly what's missing and **offer to install it inline**
-(`npx skills add obra/superpowers`, `npx skills add mattpocock/skills` for grill-me) and
+(`pnpx skills add obra/superpowers`, `pnpx skills add mattpocock/skills` for grill-me) and
 continue. If the user declines, fall back to following the skill's principle manually and
 **say so explicitly** — the run is degraded, not equivalent.
 

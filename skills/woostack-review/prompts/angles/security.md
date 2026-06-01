@@ -10,7 +10,7 @@ tier: standard
 
 - Registry: <https://www.skills.sh/openai/skills/security-best-practices>
 - Source: <https://github.com/openai/skills/tree/main/skills/.curated/security-best-practices>
-- Install (optional, host-dependent): `npx skills add https://github.com/openai/skills --skill security-best-practices`
+- Install (optional, host-dependent): `pnpx skills add https://github.com/openai/skills --skill security-best-practices`
 
 Before scanning, identify the languages/frameworks touched by the diff (frontend + backend), then load the matching reference files. If the skill is installed, read them from the installed `references/` directory. Otherwise fetch on demand:
 

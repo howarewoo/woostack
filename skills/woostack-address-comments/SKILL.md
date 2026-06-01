@@ -21,7 +21,7 @@ This is a thin entry point. The engine is the `address` verb of the `woostack-re
 
 This skill delegates to `woostack-review` (its sibling in the woostack collection). If it
 is not installed, name it and **offer to install the collection inline**
-(`npx skills add howarewoo/woostack`), then continue. There is no manual fallback — the
+(`pnpx skills add howarewoo/woostack`), then continue. There is no manual fallback — the
 address engine lives in that skill.
 
 ## Procedure
