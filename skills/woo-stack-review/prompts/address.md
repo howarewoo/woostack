@@ -61,19 +61,15 @@ different verdict (any of FIX / ACCEPT / CLARIFY).
   (and the live `.woo-stack/memory.md`): if an existing entry already covers
   this learning — even phrased differently or more broadly — do NOT add a
   duplicate; widen the existing entry instead. Only when the learning is
-  genuinely new, record it as a **pattern, not an instance**:
-
-  ```bash
-  LEARNING="<general pattern>: <why it is accepted / what not to re-flag>" \
-    bash "$WOO_REVIEW_ACTION_PATH/scripts/memory-append.sh"
-  ```
-
-  Only a final ACCEPT (accept-by-design) writes memory. A "won't-fix because
-  transient / out-of-scope" is not a reusable rule — do not record it.
+  genuinely new, stage it (as a **pattern, not an instance**) for the memory
+  write — which runs in the after-phases step below, alongside the reply, so it
+  never lands ahead of a rejected push. Only a final ACCEPT (accept-by-design)
+  writes memory. A "won't-fix because transient / out-of-scope" is not a
+  reusable rule — do not record it.
 - **CLARIFY**: do not fix, do not write memory, do not resolve. Reply with a
   specific question (handled below with `RESOLVE=0`).
 
-## After the loop
+## After the phases
 
 1. If any FIX edits were made, make ONE descriptive commit referencing the
    threads addressed, then push to the PR head branch. Capture the new `<sha>`.
@@ -90,6 +86,14 @@ different verdict (any of FIX / ACCEPT / CLARIFY).
    # CLARIFY thread (reply only, leave open):
    THREAD_ID="<id>" REPLY_BODY="<your specific question>" RESOLVE=0 \
      bash "$WOO_REVIEW_ACTION_PATH/scripts/resolve-thread.sh"
+   ```
+
+   Then, for each ACCEPTED thread whose learning is genuinely new, write the
+   staged memory pattern (only now, after the push succeeded):
+
+   ```bash
+   LEARNING="<general pattern>: <why it is accepted / what not to re-flag>" \
+     bash "$WOO_REVIEW_ACTION_PATH/scripts/memory-append.sh"
    ```
 
 3. Print a summary table: thread → recommended → final → action → memory-written?
