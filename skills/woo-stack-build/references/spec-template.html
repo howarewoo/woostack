@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}} — Design Spec</title>
+<style>
+  :root { --bg:#0f1115; --panel:#171a21; --ink:#e6e9ef; --muted:#9aa4b2; --accent:#6ea8fe; --line:#2a2f3a;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55}
+  .wrap{max-width:920px;margin:0 auto;padding:48px 24px 96px}
+  h1{font-size:30px;letter-spacing:-.02em;margin:0 0 6px}
+  h2{font-size:21px;border-left:3px solid var(--accent);padding-left:10px;margin:40px 0 12px}
+  .meta{color:var(--muted);font-size:13px;border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:28px}
+  code{font-family:var(--mono);background:#20242d;padding:1px 6px;border-radius:5px;font-size:13px}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);text-transform:uppercase;font-size:12px;letter-spacing:.04em}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:14px 0}
+</style>
+</head>
+<body><div class="wrap">
+  <h1>{{TITLE}}</h1>
+  <div class="meta">Status: {{STATUS}} · Date: {{DATE}} · Branch: {{BRANCH}}</div>
+  <h2>1. Problem</h2><div class="panel">{{PROBLEM}}</div>
+  <h2>2. Goal</h2><div class="panel">{{GOAL}}</div>
+  <h2>3. Non-goals</h2><div class="panel">{{NON_GOALS}}</div>
+  <h2>4. Approach</h2><div class="panel">{{APPROACH}}</div>
+  <h2>5. Components &amp; data flow</h2><div class="panel">{{COMPONENTS}}</div>
+  <h2>6. Error handling</h2><div class="panel">{{ERRORS}}</div>
+  <h2>7. Testing</h2><div class="panel">{{TESTING}}</div>
+  <h2>8. Open questions</h2><div class="panel">{{OPEN_QUESTIONS}}</div>
+</div></body>
+</html>

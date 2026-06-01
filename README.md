@@ -1,6 +1,6 @@
 # woo-stack
 
-**An installable skill for bootstrapping AI-built web, mobile, and API projects.**
+**An installable collection of opinionated skills for building software — bootstrap, build, review, address review feedback.**
 
 Not a template. It's the rules an AI coding agent follows when scaffolding a fresh full-stack monorepo: frameworks, architecture, infrastructure, patterns — resolved at the latest versions every time.
 
@@ -14,30 +14,30 @@ Templates rot. Dependencies drift, breaking changes pile up, and every new proje
 npx skills add howarewoo/woo-stack
 ```
 
-This installs the `woo-stack` skill (`skills/woo-stack/SKILL.md` plus its `references/`) into your agent's skill directory and records it in `skills-lock.json`. Once installed, the agent loads it automatically when you ask to bootstrap a new project.
+This installs the woo-stack **collection** (skills: woo-stack-bootstrap, woo-stack-build, woo-stack-review, woo-stack-address-comments) into your agent's skill directory and records it in `skills-lock.json`.
 
-## Use
+## Commands
 
-Invoke the skill with `/woo-stack <goal>` — a plain-language description of what to build. It infers a recommended architecture from the goal, walks you through every decision (confirming defaults, resolving forks, asking about opt-in capabilities), then scaffolds.
+| Command | What it does |
+|---|---|
+| `/woo-stack-bootstrap <goal>` | Scaffold a new web/mobile/API monorepo at latest versions. |
+| `/woo-stack-build <goal>` | Feature loop: brainstorm → HTML spec → grill → plan → execute. |
+| `/woo-stack-review [PR#]` | Parallel review swarm + skeptical validation; posts a batched GitHub review. |
+| `/woo-stack-address-comments [PR#]` | Address unresolved review threads autonomously. No merge. |
 
-```
-/woo-stack create a new mobile app for cataloging recipes
-/woo-stack a SaaS dashboard with a marketing site and a billing API
-```
-
-The skill entry point is [`skills/woo-stack/SKILL.md`](skills/woo-stack/SKILL.md); the binding rules live in [`skills/woo-stack/references/`](skills/woo-stack/references/).
+Artifacts land under `.woo-stack/` (HTML specs, markdown plans, review config/memory).
 
 ## What it defines
 
 | Reference | What it defines |
 |---|---|
-| [decisions.md](skills/woo-stack/references/decisions.md) | Decision catalog the agent walks the user through before scaffolding |
-| [bootstrap.md](skills/woo-stack/references/bootstrap.md) | Step-by-step bootstrap procedure for AI agents |
-| [architecture.md](skills/woo-stack/references/architecture.md) | Monorepo layout, package tiers, import boundaries, naming |
-| [frameworks.md](skills/woo-stack/references/frameworks.md) | Recommended frameworks per layer, catalog protocol, known gotchas |
-| [infrastructure.md](skills/woo-stack/references/infrastructure.md) | Hosting, CI/CD, env, observability, auth, data layer |
-| [patterns.md](skills/woo-stack/references/patterns.md) | oRPC contracts, TanStack Query, RSC, navigation, TDD, feature exposure |
-| [development.md](skills/woo-stack/references/development.md) | Development workflow (brainstorm → merge) and branching model |
+| [decisions.md](skills/woo-stack-bootstrap/references/decisions.md) | Decision catalog the agent walks the user through before scaffolding |
+| [bootstrap.md](skills/woo-stack-bootstrap/references/bootstrap.md) | Step-by-step bootstrap procedure for AI agents |
+| [architecture.md](skills/woo-stack-bootstrap/references/architecture.md) | Monorepo layout, package tiers, import boundaries, naming |
+| [frameworks.md](skills/woo-stack-bootstrap/references/frameworks.md) | Recommended frameworks per layer, catalog protocol, known gotchas |
+| [infrastructure.md](skills/woo-stack-bootstrap/references/infrastructure.md) | Hosting, CI/CD, env, observability, auth, data layer |
+| [patterns.md](skills/woo-stack-bootstrap/references/patterns.md) | oRPC contracts, TanStack Query, RSC, navigation, TDD, feature exposure |
+| [development.md](skills/woo-stack-bootstrap/references/development.md) | Development workflow and branching model |
 
 ## Default stack
 
@@ -53,7 +53,9 @@ The skill entry point is [`skills/woo-stack/SKILL.md`](skills/woo-stack/SKILL.md
 | Testing | Vitest, Jest (RN), Playwright |
 | Hosting | Vercel (web + api) + Expo EAS (mobile) |
 
-Versions are resolved at bootstrap time. See [frameworks.md](skills/woo-stack/references/frameworks.md).
+Versions are resolved at bootstrap time. See [frameworks.md](skills/woo-stack-bootstrap/references/frameworks.md).
+
+**woo-review is now first-party here; the standalone `howarewoo/woo-review` repo is deprecated.**
 
 ## Contributing
 

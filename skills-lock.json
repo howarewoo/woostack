@@ -85,12 +85,6 @@
       "skillPath": "skills/verification-before-completion/SKILL.md",
       "computedHash": "9b446f0c7fe1cfb560b1d34439523b1a76d5f177290007b2c053a1c749a4a8ba"
     },
-    "woo-review": {
-      "source": "howarewoo/woo-review",
-      "sourceType": "github",
-      "skillPath": "skills/woo-review/SKILL.md",
-      "computedHash": "0659a4d7db8dfef450fcc576a06344a8c42c1c1e8828adf1e2665eb1f6741d62"
-    },
     "writing-plans": {
       "source": "obra/superpowers",
       "sourceType": "github",
