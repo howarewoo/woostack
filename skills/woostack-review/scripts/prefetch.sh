@@ -375,14 +375,127 @@ if [ -z "$INCREMENTAL_USED" ] && [ "$LOC_CHANGED" -lt 10 ]; then
   emit_skip "<10 LOC changed"
 fi
 
-# Cap diff at 300KB. Build the capped copy in one shot (truncated bytes + sentinel)
-# then atomically replace — so a failure mid-write cannot corrupt the original.
-if [ "$DIFF_BYTES" -gt 300000 ]; then
-  {
-    head -c 300000 "$OUTDIR/diff.txt"
-    printf '\n[DIFF TRUNCATED AT 300KB]\n'
-  } > "$OUTDIR/diff.txt.capped"
+# Cap the diff at DIFF_CAP_BYTES (default 300KB; override via WOO_REVIEW_DIFF_CAP_BYTES).
+#
+# The cap is section-aware, NOT a raw byte cut. A naive `head -c` is order-blind:
+# when a large low-value prefix (mass file deletions, lockfiles, generated trees)
+# sorts ahead of the substantive changes, the byte cut drops the real review
+# surface and the swarm reviews nothing while reporting clean (issue #150).
+#
+# Instead we split the diff into whole `diff --git` file sections, rank them by
+# review value, then greedily keep whole sections (never splitting one) until the
+# budget is hit. Lowest-value sections are dropped first:
+#   tier 0 — sections that add lines (real RIGHT-side content to anchor comments on)
+#   tier 1 — modified, no additions (renames, mode changes, context-only)
+#   tier 2 — pure file deletions + lockfiles/generated (deletions have no RIGHT
+#            side, so resolve-diff-line.sh returns null for them anyway)
+# Dropped paths are recorded to $OUTDIR/diff-dropped.txt and surfaced as a loud
+# ::warning:: so an under-review is never silent. Under the threshold the diff is
+# left byte-for-byte untouched.
+DIFF_CAP_BYTES="${WOO_REVIEW_DIFF_CAP_BYTES:-300000}"
+if [ "$DIFF_BYTES" -gt "$DIFF_CAP_BYTES" ]; then
+  python3 - "$OUTDIR/diff.txt" "$OUTDIR/diff.txt.capped" "$OUTDIR/diff-dropped.txt" "$DIFF_CAP_BYTES" <<'PY'
+import re, sys
+
+src, dst, dropped_path, cap = sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4])
+lines = open(src, encoding="utf-8", errors="replace").read().splitlines(keepends=True)
+
+# Split into a leading preamble (rare) + one block per `diff --git` header.
+HEADER = re.compile(r'^diff --git a/(.+?) b/(.+?)\s*$')
+LOWVALUE = re.compile(
+    r'(^|/)(package-lock\.json|pnpm-lock\.yaml|yarn\.lock|.+\.lock)$'
+    r'|\.(min\.(js|css)|map)$'
+    r'|(^|/)(dist|build|vendor|node_modules)/'
+    r'|\.generated\.'
+)
+
+preamble, sections = [], []
+cur = None
+for ln in lines:
+    m = HEADER.match(ln)
+    if m:
+        if cur is not None:
+            sections.append(cur)
+        cur = {"path": m.group(2), "lines": [ln]}
+    elif cur is None:
+        preamble.append(ln)
+    else:
+        cur["lines"].append(ln)
+if cur is not None:
+    sections.append(cur)
+
+def tier(sec):
+    body = sec["lines"]
+    has_add = any(l.startswith('+') and not l.startswith('+++') for l in body)
+    is_delete_file = any(l.startswith('deleted file mode') for l in body)
+    low = is_delete_file or bool(LOWVALUE.search(sec["path"]))
+    if has_add and not low:
+        return 0
+    if low or is_delete_file:
+        return 2
+    return 1
+
+for i, sec in enumerate(sections):
+    sec["tier"] = tier(sec)
+    sec["orig"] = i
+    sec["bytes"] = len("".join(sec["lines"]).encode("utf-8"))
+
+# Stable sort by tier, preserving original order within a tier.
+ranked = sorted(sections, key=lambda s: (s["tier"], s["orig"]))
+
+budget = cap - len("".join(preamble).encode("utf-8"))
+kept_idx, dropped = set(), []
+used = 0
+for sec in ranked:
+    # Always keep the single highest-value section even if it alone exceeds the
+    # budget — one oversized section beats reviewing nothing. Never split it.
+    forced = not kept_idx
+    if forced or used + sec["bytes"] <= budget:
+        kept_idx.add(sec["orig"])
+        # An oversized forced keep is an allowed one-time overflow: it must NOT
+        # consume the budget meant for the remaining sections, or every later
+        # section fails the `used + bytes <= budget` check and is dropped even
+        # when it would trivially fit (issue #150 follow-up). Only count bytes
+        # that actually fit the budget; the forced overflow is free.
+        if not forced or sec["bytes"] <= budget:
+            used += sec["bytes"]
+    else:
+        dropped.append(sec)
+
+# Re-emit kept sections in their ORIGINAL diff order (anchoring is per-file, but
+# original order keeps the diff readable and stable).
+out = list(preamble)
+for sec in sections:
+    if sec["orig"] in kept_idx:
+        out.extend(sec["lines"])
+
+if dropped:
+    drop_paths = sorted({s["path"] for s in dropped})
+    out.append(
+        "\n[DIFF TRUNCATED: %d of %d file section(s) dropped to fit the %d-byte "
+        "cap; lowest review-value first. Dropped paths in diff-dropped.txt.]\n"
+        % (len(dropped), len(sections), cap)
+    )
+    with open(dropped_path, "w", encoding="utf-8") as fh:
+        fh.write("\n".join(drop_paths) + "\n")
+    sys.stderr.write(
+        "::warning::woostack-review: diff exceeded %d bytes; dropped %d lower-value "
+        "file section(s) from review: %s%s\n"
+        % (
+            cap,
+            len(dropped),
+            ", ".join(drop_paths[:15]),
+            " ..." if len(drop_paths) > 15 else "",
+        )
+    )
+
+open(dst, "w", encoding="utf-8").write("".join(out))
+print("diff-cap: kept %d/%d section(s), dropped %d, ~%d bytes (cap %d)"
+      % (len(kept_idx), len(sections), len(dropped), used, cap))
+PY
+  # Atomic replace so a crash mid-write cannot corrupt the original.
   mv "$OUTDIR/diff.txt.capped" "$OUTDIR/diff.txt"
+  DIFF_BYTES=$(wc -c < "$OUTDIR/diff.txt")
 fi
 
 # Discover project-rule files.
