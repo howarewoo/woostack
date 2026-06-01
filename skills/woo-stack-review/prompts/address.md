@@ -5,25 +5,56 @@ are in `/tmp/pr-review/address-threads.json` (written by `fetch-threads.sh`),
 each: `{ threadId, file, line, diffHunk, comments: [ { author, body } ] }`. The
 team's accepted-design memory is in `/tmp/pr-review/memory.md` (may be absent).
 
-Run **fully autonomously**: decide, fix, push back, reply, resolve, write memory,
-then report. Do not ask the user between threads.
+By **default** you run an interactive walk-through: analyze every thread, then
+present a single batched table of *recommended* verdicts for the user to approve
+or override before anything is applied. If the run was invoked with `--auto`,
+skip the gate and act on your recommendations directly (the pre-walk-through
+autonomous flow).
 
-## Per-thread decision (do this for every thread)
+## Phase 1 — Analysis loop (no side effects)
+
+For **every** thread, decide a recommended verdict. Make **no** working-tree
+edits, **no** replies, **no** resolves, and **no** memory writes in this phase.
 
 1. **READ** the whole thread — the original finding and every reply.
 2. **UNDERSTAND** — restate the ask in one sentence.
 3. **VERIFY** against the actual codebase — open `file` near `line`; confirm the
    concern is real and still present.
-4. **EVALUATE** for this stack/context, then choose ONE:
+4. **EVALUATE** for this stack/context, then recommend ONE:
    - **FIX** — the suggestion is correct and improves the code.
    - **ACCEPT** — push back: the behavior is intentional / accepted-by-design
      (it breaks working behavior, violates YAGNI, conflicts with an
      architectural decision, or the reviewer lacks context).
    - **CLARIFY** — genuinely ambiguous; you cannot verify intent on your own.
-5. **Never** use performative language ("You're absolutely right!", "Great
-   point!"). Reply with the technical reasoning or the fix itself.
+5. Stage a record per thread:
+   `{ threadId, file, line, finding, recommended, reasoning, learning }`
+   — `finding` is the one-line restatement, `reasoning` is why you recommend
+   that verdict, `learning` is the reusable memory pattern to write **if** the
+   final verdict is ACCEPT (else leave empty).
+6. **Never** use performative language ("You're absolutely right!", "Great
+   point!"). Reasoning and replies are technical only.
 
-## Acting on the decision
+## Phase 2 — Verdict gate
+
+**If `--auto` was set:** skip this phase. The final verdict for each thread is
+your recommendation. Go to Phase 3.
+
+**Otherwise (default):** present all staged threads as ONE batched table —
+columns: thread, finding, recommended verdict, reasoning. Then ask the user to
+either **approve all** recommendations or **override** specific threads to a
+different verdict (any of FIX / ACCEPT / CLARIFY).
+
+- Host mechanics: a host with a structured question primitive (e.g. Claude
+  Code's `AskUserQuestion`) offers an "approve all" choice plus per-thread
+  overrides; a plain host prints the numbered table and asks for "approve all,
+  or list `thread#=verdict` overrides".
+- The **final verdict** per thread = the user's override where given, else your
+  recommendation. Only Phase 3 acts, and only on final verdicts.
+- **Non-interactive host, no `--auto`:** if you cannot obtain confirmation,
+  **abort** without acting — tell the user: "interactive verdict review needs a
+  user; re-run with `--auto` to address autonomously." Never act unapproved.
+
+## Phase 3 — Act on final verdicts
 
 - **FIX**: edit the working tree. Accumulate all fixes; do NOT commit per thread.
 - **ACCEPT**: this is the issue-#53 step. First check `/tmp/pr-review/memory.md`
@@ -37,8 +68,8 @@ then report. Do not ask the user between threads.
     bash "$WOO_REVIEW_ACTION_PATH/scripts/memory-append.sh"
   ```
 
-  Only ACCEPT (accept-by-design) writes memory. A "won't-fix because transient
-  / out-of-scope" is not a reusable rule — do not record it.
+  Only a final ACCEPT (accept-by-design) writes memory. A "won't-fix because
+  transient / out-of-scope" is not a reusable rule — do not record it.
 - **CLARIFY**: do not fix, do not write memory, do not resolve. Reply with a
   specific question (handled below with `RESOLVE=0`).
 
@@ -61,7 +92,7 @@ then report. Do not ask the user between threads.
      bash "$WOO_REVIEW_ACTION_PATH/scripts/resolve-thread.sh"
    ```
 
-3. Print a summary table: thread → decision → action → memory-written?
+3. Print a summary table: thread → recommended → final → action → memory-written?
 
 ## Guardrails
 
