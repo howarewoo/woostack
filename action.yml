@@ -1,0 +1,377 @@
+name: 'woo-stack-review (CI extension)'
+description: 'CI extension of the woo-stack-review skill. Runs the same swarm — detect → parallel angle workers → skeptical validator → batched GitHub Review — dispatched to the first-party action of the chosen provider (Anthropic, OpenAI, Google, OpenRouter via opencode).'
+author: 'woo-stack-review'
+
+branding:
+  icon: 'check-circle'
+  color: 'purple'
+
+outputs:
+  angles:
+    description: 'Comma-separated list of enabled review angles.'
+    value: ${{ steps.angles.outputs.angles }}
+  angles_json:
+    description: 'JSON array of enabled review angles.'
+    value: ${{ steps.angles.outputs.angles_json }}
+  chunks_json:
+    description: 'JSON array of chunk IDs when the diff exceeds chunking.max_loc (issue #14). When chunking does not activate the value is `[""]` — one empty-string chunk, so consumers can always use it as the second dimension of a strategy matrix.'
+    value: ${{ steps.angles.outputs.chunks_json }}
+
+inputs:
+  provider:
+    description: 'Explicit provider: anthropic | openai | google | openrouter. Leave empty to auto-detect from the first non-empty API key.'
+    required: false
+    default: ''
+  model:
+    description: 'Model identifier passed to the chosen runner. For openrouter, use the openrouter/<model> form.'
+    required: false
+    default: ''
+  openai_effort:
+    description: 'OpenAI Codex reasoning_effort passthrough (minimal | low | medium | high). Maps to the deep-tier validator role; leave empty for Codex default.'
+    required: false
+    default: ''
+  mode:
+    description: 'Execution mode: full (sequential) | detect | review | validate-prosecutor | validate. The adversarial validator runs as two passes: validate-prosecutor first (writes findings.prosecutor.json), then validate (writes findings.defender.json, runs intersect-findings.sh, and posts the review). The validate step sets WOO_REVIEW_SEQUENTIAL_VALIDATE=1 so validator.md runs its Step 3/4 orchestration; in the chat-host swarm (SKILL.md Stage 4b) that flag is unset and the defender is a pure worker that exits after findings.defender.json.'
+    required: false
+    default: 'full'
+  angle:
+    description: 'Specific angle to run (required if mode=review)'
+    required: false
+    default: ''
+  chunk:
+    description: 'Specific chunk id to run (e.g. `chunk-0`). Pairs with `angle` when mode=review to fan out angles × chunks for oversized diffs (issue #14). Empty string runs against the full diff (default).'
+    required: false
+    default: ''
+
+  # Credentials — only the one for the chosen provider is required.
+  anthropic_token:
+    description: 'Claude Code OAuth token (preferred for Anthropic).'
+    required: false
+    default: ''
+  anthropic_api_key:
+    description: 'Anthropic API key (alternative to anthropic_token).'
+    required: false
+    default: ''
+  openai_api_key:
+    description: 'OpenAI API key (used by openai/codex-action).'
+    required: false
+    default: ''
+  google_api_key:
+    description: 'Google API key for Gemini API (alias of gemini_api_key).'
+    required: false
+    default: ''
+  gemini_api_key:
+    description: 'Gemini API key (alternative to google_api_key).'
+    required: false
+    default: ''
+  openrouter_api_key:
+    description: 'OpenRouter API key (used by opencode).'
+    required: false
+    default: ''
+
+  # Review behavior.
+  trigger_phrase:
+    description: 'Phrase that triggers a review when posted in a PR comment.'
+    required: false
+    default: '@review'
+  max_turns:
+    description: 'Maximum agent turns (Anthropic; other runners use their own equivalent).'
+    required: false
+    default: '30'
+  skip_labels:
+    description: 'Comma-separated list of PR labels that force-skip the review.'
+    required: false
+    default: ''
+  prompt_override:
+    description: 'Optional path (relative to the consumer repo) to a custom prompt that replaces the bundled per-provider prompt. The shared _header.md contract is still prepended.'
+    required: false
+    default: ''
+  disable_angles:
+    description: 'Comma-separated list of review angles to skip (seo, aeo, design, react, database, tests, api, infra, observability, types, i18n, docs, deps). `bugs` and `security` are always on and cannot be disabled.'
+    required: false
+    default: ''
+  react_doctor_version:
+    description: 'npm version of react-doctor to invoke via npx (used by the react angle).'
+    required: false
+    default: 'latest'
+  impeccable_version:
+    description: 'npm version of impeccable CLI to invoke via npx (used by the design angle).'
+    required: false
+    default: 'latest'
+  incremental:
+    description: 'Review scope: `auto` re-uses the prior review SHA marker (if any) and diffs only new commits; `off` forces a full re-review of the PR diff. A PR-comment trigger containing `--full` overrides to off.'
+    required: false
+    default: 'auto'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Pin OUTDIR for CI
+      # CI matrix jobs run on isolated runners, so the per-project derivation in
+      # resolve-outdir.sh is unnecessary here. Pin the canonical path that this
+      # action's artifact steps, the chunk-swap logic, and the agent allowlist
+      # (Write(/tmp/pr-review/**)) all hardcode, keeping CI byte-identical.
+      shell: bash
+      run: echo "OUTDIR=/tmp/pr-review" >> "$GITHUB_ENV"
+
+    - name: Resolve provider
+      id: detect
+      shell: bash
+      env:
+        INPUT_PROVIDER: ${{ inputs.provider }}
+        INPUT_ANTHROPIC_TOKEN: ${{ inputs.anthropic_token }}
+        INPUT_ANTHROPIC_API_KEY: ${{ inputs.anthropic_api_key }}
+        INPUT_OPENAI_API_KEY: ${{ inputs.openai_api_key }}
+        INPUT_GOOGLE_API_KEY: ${{ inputs.google_api_key }}
+        INPUT_GEMINI_API_KEY: ${{ inputs.gemini_api_key }}
+        INPUT_OPENROUTER_API_KEY: ${{ inputs.openrouter_api_key }}
+      run: bash "${{ github.action_path }}/skills/woo-stack-review/scripts/detect-provider.sh"
+
+    - name: Resolve PR number
+      id: pr
+      shell: bash
+      env:
+        EVENT_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number || github.event.number }}
+      run: |
+        echo "number=$EVENT_NUMBER" >> "$GITHUB_OUTPUT"
+
+    - name: Prefetch diff, metadata, rules, config, memory
+      id: prefetch
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        PR_NUMBER: ${{ steps.pr.outputs.number }}
+        EVENT_NAME: ${{ github.event_name }}
+        EVENT_ACTION: ${{ github.event.action }}
+        INPUT_SKIP_LABELS: ${{ inputs.skip_labels }}
+        INPUT_INCREMENTAL: ${{ inputs.incremental }}
+        COMMENT_BODY: ${{ github.event.comment.body }}
+      run: bash "${{ github.action_path }}/skills/woo-stack-review/scripts/prefetch.sh"
+
+    - name: Detect review angles
+      id: angles
+      if: steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'full' || inputs.mode == 'detect' || inputs.mode == 'validate' || inputs.mode == 'validate-prosecutor')
+      shell: bash
+      env:
+        GITHUB_WORKSPACE: ${{ github.workspace }}
+        INPUT_DISABLE_ANGLES: ${{ inputs.disable_angles }}
+      run: |
+        if [ "${{ inputs.mode }}" = "validate" ] || [ "${{ inputs.mode }}" = "validate-prosecutor" ]; then
+          if [ -f "/tmp/pr-review/angles.txt" ]; then
+            CSV=$(paste -sd "," /tmp/pr-review/angles.txt)
+            echo "angles=$CSV" >> "$GITHUB_OUTPUT"
+            echo "Loaded angles from angles.txt: $CSV"
+          else
+            bash "${{ github.action_path }}/skills/woo-stack-review/scripts/detect-angles.sh"
+          fi
+        else
+          bash "${{ github.action_path }}/skills/woo-stack-review/scripts/detect-angles.sh"
+        fi
+
+    - name: Merge findings (validate modes)
+      if: steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'validate' || inputs.mode == 'validate-prosecutor')
+      shell: bash
+      run: bash "${{ github.action_path }}/skills/woo-stack-review/scripts/merge-findings.sh"
+
+    - name: Setup Node.js (for react-doctor + impeccable CLIs)
+      if: |
+        steps.prefetch.outputs.skip != 'true' && (
+          (inputs.mode == 'full' && (contains(steps.angles.outputs.angles, 'react') || contains(steps.angles.outputs.angles, 'design'))) ||
+          (inputs.mode == 'review' && (contains(inputs.angle, 'react') || contains(inputs.angle, 'design')))
+        )
+      uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      with:
+        node-version: '22'
+
+    - name: Swap chunked diff (issue #14)
+      id: chunk-swap
+      if: inputs.chunk != '' && steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'full' || inputs.mode == 'review')
+      shell: bash
+      env:
+        CHUNK: ${{ inputs.chunk }}
+      run: |
+        set -euo pipefail
+        SRC="/tmp/pr-review/diff.${CHUNK}.txt"
+        if [ ! -s "$SRC" ]; then
+          echo "::error::chunked diff $SRC missing or empty — chunk-diff.sh may not have run"
+          exit 1
+        fi
+        if [ -f /tmp/pr-review/diff.txt ] && [ ! -f /tmp/pr-review/diff.full.txt.bak ]; then
+          cp /tmp/pr-review/diff.txt /tmp/pr-review/diff.full.txt.bak
+        fi
+        cp "$SRC" /tmp/pr-review/diff.txt
+        echo "Chunk swap: diff.txt now points at $SRC ($(wc -l < /tmp/pr-review/diff.txt) lines)"
+
+    - name: Load prompt
+      id: load-prompt
+      if: steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'full' || inputs.mode == 'review' || inputs.mode == 'validate' || inputs.mode == 'validate-prosecutor')
+      shell: bash
+      env:
+        PROVIDER: ${{ steps.detect.outputs.provider }}
+        ACTION_PATH: ${{ github.action_path }}/skills/woo-stack-review
+        # The adversarial validator runs as two passes against the same `raw_findings.json`.
+        # `validate-prosecutor` mode loads validator-prosecutor.md (inclusive bias);
+        # `validate` mode loads validator.md (defender bias) which runs the intersect
+        # script + posts the final review. See issue #13.
+        INPUT_PROMPT_OVERRIDE: ${{ (inputs.mode == 'validate' && format('{0}/skills/woo-stack-review/prompts/validator.md', github.action_path)) || (inputs.mode == 'validate-prosecutor' && format('{0}/skills/woo-stack-review/prompts/validator-prosecutor.md', github.action_path)) || inputs.prompt_override }}
+        PR_NUMBER: ${{ steps.pr.outputs.number }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        EVENT_NAME: ${{ github.event_name }}
+        COMMENT_BODY: ${{ github.event.comment.body }}
+        ENABLED_ANGLES: ${{ (inputs.mode == 'review' && inputs.angle) || steps.angles.outputs.angles }}
+        MODE: ${{ inputs.mode }}
+        ANGLE: ${{ inputs.angle }}
+      run: bash "${{ github.action_path }}/skills/woo-stack-review/scripts/load-prompt.sh"
+
+    # --- Provider runners (mutually exclusive) ---
+
+    - name: Run review (Anthropic)
+      id: run-anthropic
+      if: steps.detect.outputs.provider == 'anthropic' && steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'full' || inputs.mode == 'review' || inputs.mode == 'validate' || inputs.mode == 'validate-prosecutor')
+      uses: anthropics/claude-code-action@537ffff2eff706bd7e3e1c3daf2d4b39067a9f85 # v1
+      with:
+        claude_code_oauth_token: ${{ inputs.anthropic_token }}
+        anthropic_api_key: ${{ inputs.anthropic_api_key }}
+        prompt: ${{ steps.load-prompt.outputs.prompt }}
+        claude_args: |
+          --model ${{ inputs.model || 'claude-sonnet-4-6' }}
+          --max-turns ${{ inputs.max_turns }}
+        show_full_output: true
+        # Constrained allow-list — the prompt is partially built from untrusted
+        # PR diff + comment content, so we restrict Bash to the specific tools
+        # the worker needs (gh, jq, npx, common file ops) instead of Bash(*).
+        # mcp__* and WebFetch are scoped to read-only domains.
+        settings: |
+          {
+            "permissions": {
+              "allow": [
+                "Bash(gh:*)",
+                "Bash(jq:*)",
+                "Bash(npx:*)",
+                "Bash(node:*)",
+                "Bash(cat:*)",
+                "Bash(ls:*)",
+                "Bash(grep:*)",
+                "Bash(sed:*)",
+                "Bash(head:*)",
+                "Bash(tail:*)",
+                "Bash(wc:*)",
+                "Bash(find:*)",
+                "Bash(mkdir:*)",
+                "Bash(mv:*)",
+                "Bash(cp:*)",
+                "Bash(test:*)",
+                "Bash(echo:*)",
+                "Bash(printf:*)",
+                "Bash(date:*)",
+                "Bash(env)",
+                "Bash(pwd)",
+                "Read",
+                "Write(/tmp/pr-review/**)",
+                "Edit(/tmp/pr-review/**)",
+                "Glob",
+                "Grep"
+              ],
+              "deny": [
+                "Bash(curl:*)",
+                "Bash(wget:*)",
+                "Bash(nc:*)",
+                "Bash(ssh:*)",
+                "Bash(scp:*)",
+                "Bash(rsync:*)",
+                "Bash(bash:*)",
+                "Bash(sh:*)",
+                "Bash(eval:*)",
+                "Bash(source:*)",
+                "Bash(.:*)",
+                "Bash(env:*)",
+                "Bash(printenv:*)",
+                "Bash(export:*)"
+              ]
+            }
+          }
+      env:
+        WOO_REVIEW_ACTION_PATH: ${{ github.action_path }}/skills/woo-stack-review
+        WOO_REVIEW_SEQUENTIAL_VALIDATE: ${{ inputs.mode == 'validate' && '1' || '' }}
+        ENABLED_ANGLES: ${{ (inputs.mode == 'review' && inputs.angle) || steps.angles.outputs.angles }}
+        IMPECCABLE_VERSION: ${{ inputs.impeccable_version }}
+        REACT_DOCTOR_VERSION: ${{ inputs.react_doctor_version }}
+
+    - name: Run review (OpenAI Codex)
+      id: run-openai
+      if: steps.detect.outputs.provider == 'openai' && steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'full' || inputs.mode == 'review' || inputs.mode == 'validate' || inputs.mode == 'validate-prosecutor')
+      uses: openai/codex-action@a26d2d4d8b78a694338b8e3715c3630254340b2c # v1 (== v1.8 as of 2026-04-29)
+      with:
+        openai-api-key: ${{ inputs.openai_api_key }}
+        model: ${{ inputs.model || 'gpt-5' }}
+        effort: ${{ inputs.openai_effort }}
+        prompt: ${{ steps.load-prompt.outputs.prompt }}
+        sandbox: workspace-write
+        safety-strategy: drop-sudo
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        WOO_REVIEW_ACTION_PATH: ${{ github.action_path }}/skills/woo-stack-review
+        WOO_REVIEW_SEQUENTIAL_VALIDATE: ${{ inputs.mode == 'validate' && '1' || '' }}
+        ENABLED_ANGLES: ${{ (inputs.mode == 'review' && inputs.angle) || steps.angles.outputs.angles }}
+        IMPECCABLE_VERSION: ${{ inputs.impeccable_version }}
+        REACT_DOCTOR_VERSION: ${{ inputs.react_doctor_version }}
+
+    - name: Run review (Google Gemini)
+      id: run-google
+      if: steps.detect.outputs.provider == 'google' && steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'full' || inputs.mode == 'review' || inputs.mode == 'validate' || inputs.mode == 'validate-prosecutor')
+      uses: google-github-actions/run-gemini-cli@f77273f4c914e4bf38440cf36a0369cb64a37489 # v0
+      with:
+        gemini_api_key: ${{ inputs.gemini_api_key }}
+        google_api_key: ${{ inputs.google_api_key }}
+        gemini_model: ${{ inputs.model || 'gemini-3-5-flash' }}
+        prompt: ${{ steps.load-prompt.outputs.prompt }}
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        WOO_REVIEW_ACTION_PATH: ${{ github.action_path }}/skills/woo-stack-review
+        WOO_REVIEW_SEQUENTIAL_VALIDATE: ${{ inputs.mode == 'validate' && '1' || '' }}
+        ENABLED_ANGLES: ${{ (inputs.mode == 'review' && inputs.angle) || steps.angles.outputs.angles }}
+        IMPECCABLE_VERSION: ${{ inputs.impeccable_version }}
+        REACT_DOCTOR_VERSION: ${{ inputs.react_doctor_version }}
+
+    - name: Run review (OpenRouter via opencode)
+      id: run-opencode
+      if: steps.detect.outputs.provider == 'openrouter' && steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'full' || inputs.mode == 'review' || inputs.mode == 'validate' || inputs.mode == 'validate-prosecutor')
+      # TODO: pin to commit SHA once sst/opencode publishes a verifiable github-v1.15.10 ref.
+      # The repo appears to have moved to anomalyco/opencode; verify upstream before pinning.
+      uses: sst/opencode/github@v1.15.10
+      with:
+        model: ${{ inputs.model || 'openrouter/deepseek/deepseek-v4-flash' }}
+        prompt: ${{ steps.load-prompt.outputs.prompt }}
+        share: 'false'
+      env:
+        OPENROUTER_API_KEY: ${{ inputs.openrouter_api_key }}
+        GH_TOKEN: ${{ github.token }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        WOO_REVIEW_ACTION_PATH: ${{ github.action_path }}/skills/woo-stack-review
+        WOO_REVIEW_SEQUENTIAL_VALIDATE: ${{ inputs.mode == 'validate' && '1' || '' }}
+        ENABLED_ANGLES: ${{ (inputs.mode == 'review' && inputs.angle) || steps.angles.outputs.angles }}
+        IMPECCABLE_VERSION: ${{ inputs.impeccable_version }}
+        REACT_DOCTOR_VERSION: ${{ inputs.react_doctor_version }}
+
+    - name: Rename chunked findings (issue #14)
+      if: always() && inputs.chunk != '' && steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'full' || inputs.mode == 'review')
+      shell: bash
+      env:
+        ANGLE: ${{ inputs.angle }}
+        CHUNK: ${{ inputs.chunk }}
+      run: |
+        set -euo pipefail
+        # Restore the unchunked diff so any follow-on step in the same job
+        # (e.g. log dumps) sees the original artifact, not the chunk.
+        if [ -f /tmp/pr-review/diff.full.txt.bak ]; then
+          mv /tmp/pr-review/diff.full.txt.bak /tmp/pr-review/diff.txt
+        fi
+        # Workers wrote findings.<angle>.json — rename so multiple chunk jobs
+        # for the same angle do not clobber each other on artifact merge.
+        if [ -n "${ANGLE:-}" ] && [ -f "/tmp/pr-review/findings.${ANGLE}.json" ]; then
+          mv "/tmp/pr-review/findings.${ANGLE}.json" "/tmp/pr-review/findings.${ANGLE}.${CHUNK}.json"
+          echo "Renamed findings.${ANGLE}.json -> findings.${ANGLE}.${CHUNK}.json"
+        fi

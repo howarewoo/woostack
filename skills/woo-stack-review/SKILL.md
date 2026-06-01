@@ -461,7 +461,7 @@ A high `raw` with a high `drop` rate is a noise candidate; a high `keep` rate is
 detect ─► fan-out (parallel sub-agents, one per angle) ─► merge ─► skeptical validator ─► post
 ```
 
-This mirrors the cloud GitHub Action exactly (`.github/workflows/reusable-review.yml`), just with sub-agents standing in for GHA matrix jobs.
+This mirrors the cloud GitHub Action exactly — the first-party composite action `action.yml` and the reusable workflow `.github/workflows/reusable-review.yml`, both shipped from this repo — just with sub-agents standing in for GHA matrix jobs.
 
 ## Companion GitHub Action
 
@@ -477,14 +477,14 @@ on:
 
 jobs:
   review:
-    uses: howarewoo/woo-review/.github/workflows/reusable-review.yml@v0.1.0
+    uses: howarewoo/woo-stack/.github/workflows/reusable-review.yml@main
     with:
       provider: anthropic
     secrets:
       anthropic_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 ```
 
-Zero local setup required in the consumer repo — the action ships its own prompts, scripts, and Node tools.
+Pin `@main` to a release tag once one is cut. Zero local setup required in the consumer repo — the action ships its own prompts and scripts (`skills/woo-stack-review/`) and installs the `react-doctor` / `impeccable` CLIs via `npx` at run time.
 
 ## Best Practices
 
