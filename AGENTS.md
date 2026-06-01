@@ -137,7 +137,6 @@ Feature branches are cut from `staging`, never `main`. PRs target `staging`. `st
 The dev skills this repo consumes to review and evolve itself are checked in so PRs can use the same tooling the collection recommends:
 
 - `obra/superpowers:*` — brainstorming, writing-plans, executing-plans, receiving-code-review, verification-before-completion, test-driven-development, etc.
-- `grill-me` — adversarial spec review
 
 Note: `woostack-review` is **first-party** in this repo (`skills/woostack-review/`), not a consumed external skill. The standalone `howarewoo/woo-review` repo is deprecated.
 
