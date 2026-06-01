@@ -1,7 +1,7 @@
 ---
 name: woostack-review
 description: Managed agentic PR reviews with parallel matrix execution and skeptical validation.
-install: npx skills add howarewoo/woostack
+install: pnpx skills add howarewoo/woostack
 requires:
   bins: [gh, jq, node]
 recommends:
