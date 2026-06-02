@@ -12,7 +12,7 @@ This pass is one half of an adversarial validation pipeline (issue #13). The Pro
 - **Diff**: /tmp/pr-review/diff.txt
 - **Raw Findings**: /tmp/pr-review/raw_findings.json (Concatenated array from all angles)
 - **Project rules** (optional): /tmp/pr-review/rules.md — concatenated `AGENTS.md` / `CLAUDE.md` / `.cursorrules` / `.windsurfrules` / `GEMINI.md` discovered by prefetch. Absent when no rule files exist in the repo.
-- **Cross-PR memory** (optional): /tmp/pr-review/memory.md — team-curated markdown of gotchas and previously-accepted issues. Absent when the repo has no `.woostack/memory.md`.
+- **Cross-PR memory** (optional): /tmp/pr-review/memory.md — team-curated markdown of gotchas and previously-accepted issues, composed from `.woostack/memory/` and/or `.woostack/memory.md`. Absent when the repo has no woostack memory store.
 - **Per-repo config** (always present): /tmp/pr-review/config.json — parsed `.woostack/config.json` (defaults to `{"severity_floor":"high"}`). The validator only reads `.severity_floor` from this file; other keys are consumed upstream.
 
 ## Your Task
