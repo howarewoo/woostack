@@ -2,6 +2,7 @@
 set -uo pipefail
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$DIR/tests/assert.sh"
+source "$DIR/lib.sh"
 RECALL="$DIR/recall.sh"
 
 # Build a fixture .woostack with flat file + scoped notes.
@@ -64,4 +65,36 @@ narrow_line="$(printf '%s\n' "$out" | grep -n 'NARROW note' | cut -d: -f1)"
   || { FAIL=$((FAIL+1)); echo "  FAIL: ordering — wide(line $wide_line) should precede narrow(line $narrow_line)"; }
 
 rm -rf "$woo" "$woo2" "$woo3" "$woo4" "$paths2"
+
+# --- telemetry stamping ---
+woo5="$(mktemp -d)"; md5="$woo5/memory"; mkdir -p "$md5"
+mk_note "$md5" a.md $'name: a\ntype: pattern\nscope: pkg/**'      'A body [[b]]'
+mk_note "$md5" b.md $'name: b\ntype: pattern\nscope: zzz/**'      'B linked body'
+mk_note "$md5" g.md $'name: g\ntype: convention\nscope: *'        'G global body'
+p5="$(mktemp)"; printf 'pkg/x.ts\n' > "$p5"
+
+WOOSTACK_NOW=2026-06-02 bash "$RECALL" "$woo5" "$p5" >/dev/null
+assert_eq "$(field "$md5/a.md" recall_count)"  "1"          "matched note stamped count=1"
+assert_eq "$(field "$md5/a.md" last_recalled)" "2026-06-02" "matched note last_recalled stamped"
+assert_eq "$(field "$md5/b.md" recall_count)"  "1"          "one-hop linked note stamped"
+assert_eq "$(field "$md5/g.md" recall_count)"  "1"          "global (scope:*) note stamped"
+
+# second run bumps the cumulative count and refreshes the date
+WOOSTACK_NOW=2026-06-03 bash "$RECALL" "$woo5" "$p5" >/dev/null
+assert_eq "$(field "$md5/a.md" recall_count)"  "2"          "second run bumps count to 2"
+assert_eq "$(field "$md5/a.md" last_recalled)" "2026-06-03" "second run refreshes last_recalled"
+
+# best-effort: a read-only memory dir makes stamping fail, but recall still
+# produces output and exits 0, logging the failure to stderr.
+chmod -R a-w "$md5" 2>/dev/null || true
+set +e
+out="$(WOOSTACK_NOW=2026-06-04 bash "$RECALL" "$woo5" "$p5" 2>/dev/null)"; code=$?
+err="$(WOOSTACK_NOW=2026-06-04 bash "$RECALL" "$woo5" "$p5" 2>&1 >/dev/null)"
+set -e
+chmod -R u+w "$md5" 2>/dev/null || true
+assert_exit 0 "$code"            "recall exits 0 even when stamping fails"
+assert_contains "$out" "A body"  "recall output intact when stamping fails"
+assert_contains "$err" "stamp failed" "stamp failure logged to stderr"
+rm -rf "$woo5" "$p5"
+
 finish
