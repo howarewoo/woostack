@@ -27,10 +27,13 @@ edits, **no** replies, **no** resolves, and **no** memory writes in this phase.
      architectural decision, or the reviewer lacks context).
    - **CLARIFY** — genuinely ambiguous; you cannot verify intent on your own.
 5. Stage a record per thread:
-   `{ threadId, file, line, finding, recommended, reasoning, learning }`
+   `{ threadId, file, line, finding, recommended, reasoning, learning, memory_scope }`
    — `finding` is the one-line restatement, `reasoning` is why you recommend
    that verdict, `learning` is the reusable memory pattern to write **if** the
-   final verdict is ACCEPT (else leave empty).
+   final verdict is ACCEPT (else leave empty), and `memory_scope` is the narrowest
+   glob that should suppress the same accepted finding in future reviews. Prefer
+   the reviewed file's package/feature path; use comma-separated globs when the
+   learning specifically covers multiple paths.
 6. **Never** use performative language ("You're absolutely right!", "Great
    point!"). Reasoning and replies are technical only.
 
@@ -57,17 +60,19 @@ different verdict (any of FIX / ACCEPT / CLARIFY).
 ## Phase 3 — Act on final verdicts
 
 - **FIX**: edit the working tree. Accumulate all fixes; do NOT commit per thread.
-- **ACCEPT**: this is the issue-#53 step. First check `/tmp/pr-review/memory.md`
-  (and the live `.woostack/memory.md`): if an existing entry already covers
-  this learning — even phrased differently or more broadly — do NOT add a
-  duplicate; widen the existing entry instead. Only when the learning is
-  genuinely new, stage it for the memory write — which runs in the after-phases
-  step below, alongside the reply, so it never lands ahead of a rejected push.
-  Phrase it as a **terse pattern, not an instance**: one line,
-  `<pattern>: <reason>`, ideally ≤100 chars. State the rule and stop — no
-  preamble, no narration, no instance line numbers, no restating the finding.
-  Only a final ACCEPT (accept-by-design) writes memory. A "won't-fix because
-  transient / out-of-scope" is not a reusable rule — do not record it.
+- **ACCEPT**: this is the issue-#53 step. First check `/tmp/pr-review/memory.md`,
+  the live `.woostack/memory.md`, and `.woostack/memory/MEMORY.md` when present:
+  if an existing entry already covers this learning — even phrased differently
+  or more broadly — do NOT add a duplicate; widen the existing scoped note or
+  flat entry instead. Only when the learning is genuinely new, stage it for the
+  memory write — which runs in the after-phases step below, alongside the reply,
+  so it never lands ahead of a rejected push. Phrase it as a **terse pattern, not
+  an instance**: one line, `<pattern>: <reason>`, ideally ≤100 chars. State the
+  rule and stop — no preamble, no narration, no instance line numbers, no
+  restating the finding. Also stage `memory_scope`: the narrowest glob covering
+  where the accepted rule applies. Only a final ACCEPT (accept-by-design) writes
+  memory. A "won't-fix because transient / out-of-scope" is not a reusable rule
+  — do not record it.
 - **CLARIFY**: do not fix, do not write memory, do not resolve. Reply with a
   specific question (handled below with `RESOLVE=0`).
 
@@ -91,12 +96,17 @@ different verdict (any of FIX / ACCEPT / CLARIFY).
    ```
 
    Then, for each ACCEPTED thread whose learning is genuinely new, write the
-   staged memory pattern (only now, after the push succeeded). Keep `LEARNING`
-   terse — one line, `<pattern>: <reason>`, ideally ≤100 chars, no filler:
+   staged memory pattern (only now, after the push succeeded). When a
+   `.woostack/memory/` scope-routed store exists, this writes an individual note
+   there and rebuilds `MEMORY.md`; otherwise it falls back to flat
+   `.woostack/memory.md`. Keep `LEARNING` terse — one line,
+   `<pattern>: <reason>`, ideally ≤100 chars, no filler. Set `MEMORY_SCOPE` to
+   the staged `memory_scope`:
 
    ```bash
    LEARNING="<general pattern>: <why it is accepted / what not to re-flag>" \
-     bash "$WOO_REVIEW_ACTION_PATH/scripts/memory-append.sh"
+   MEMORY_SCOPE="<narrow glob or comma-separated globs>" \
+     bash "$WOO_REVIEW_ACTION_PATH/scripts/memory-record.sh"
    ```
 
 3. Print a summary table: thread → recommended → final → action → memory-written?

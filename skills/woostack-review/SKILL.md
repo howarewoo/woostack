@@ -22,7 +22,7 @@ This skill is **host-agnostic**: it works in any AI coding agent that supports s
 - `woostack-review install` — Verify local deps (`gh`, `jq`, `node`) and pre-fetch `impeccable` + `react-doctor` (run once per repo).
 - `woostack-review status` — Show the current PR's review status.
 - `woostack-review address <PR#>` — Walk through the PR's unresolved review threads: the skill recommends a verdict per thread (fix / push back / clarify), then you approve the batch or override specific threads before anything is applied. Local hosts only. See *Addressing Reviews* below.
-- `woostack-review address <PR#> --auto` — Skip the confirmation gate and address autonomously (fix or push back, commit, reply, resolve, and record accept-by-design dismissals to `.woostack/memory.md`). This is the pre-walk-through behavior, for trusted/non-interactive runs.
+- `woostack-review address <PR#> --auto` — Skip the confirmation gate and address autonomously (fix or push back, commit, reply, resolve, and record accept-by-design dismissals to scoped `.woostack/memory/` notes when available, falling back to `.woostack/memory.md`). This is the pre-walk-through behavior, for trusted/non-interactive runs.
 
 ### PR-comment triggers (issue #19)
 
@@ -64,17 +64,17 @@ When the incremental diff has no new commits (i.e. `LAST_SHA == HEAD_SHA`, e.g. 
 
 Marker semantics are state-light: the marker IS the state. There is no DB or workflow artifact retention beyond what GitHub already keeps in review history.
 
-## Cross-PR Memory (`.woostack/memory.md`)
+## Cross-PR Memory (`.woostack/memory/` + `.woostack/memory.md`)
 
-Reviews stay useful across PRs through a single plain-markdown file in the consumer repo: **`.woostack/memory.md`**. It is the team's running list of gotchas, intentional design choices, and issues a prior review already surfaced and the team consciously accepted. There is no database, no sharded JSONL, no hooks — just a file you can read and edit by hand.
+Reviews stay useful across PRs through the consumer repo's woostack memory store. The preferred write target is the scope-routed **`.woostack/memory/`** directory: one Markdown note per reusable fact, with frontmatter declaring the scope where it applies. The flat **`.woostack/memory.md`** remains the global shard and fallback for repos that have not initialized the scoped store.
 
 When a `.woostack/memory/` scope-routed store exists, `prefetch.sh` composes the per-PR memory context via `recall.sh` ([memory contract](../woostack-init/references/memory.md)) — scope-matched notes, one-hop `[[linked]]` notes, and the global shard — instead of dumping the whole file; the flat `.woostack/memory.md` always serves as the global shard regardless.
 
 ### How it's used
 
 - **Read as context.** `prefetch.sh` writes the per-PR memory into `$OUTDIR/memory.md`. When `recall.sh` is available (the `woostack-init` skill is co-installed) it composes that file via recall — scope-matched notes + one-hop links + the global shard (see the paragraph above); otherwise it falls back to a flat copy of `.woostack/memory.md` (100KB cap). Either way, every angle worker and both validator passes treat the result as additional rubric and **drop any finding the memory already records as known/accepted/wontfix**. This is what keeps re-reviews quiet: an issue the team has consciously accepted is not re-flagged on the next PR.
-- **Written inline (local).** When you run `/woostack-review` locally and dismiss a finding (or note a gotcha worth remembering), the skill records the **learning** in `.woostack/memory.md` — first checking that no existing entry already covers it, so the file stays a small deduplicated set of reusable rules rather than a log of every dismissal. The local skill has direct write access — no post-session hook, no permission-isolated job. See Stage 6 below.
-- **Curated by humans.** The file is meant to be edited directly. Add a bullet, delete a stale one, group entries under headings — whatever keeps it readable.
+- **Written inline (local).** When you run `/woostack-review` locally and dismiss a finding (or note a gotcha worth remembering), the skill records the **learning** as a scoped note when `.woostack/memory/` exists, or as a flat `.woostack/memory.md` bullet otherwise. It first checks that no existing entry already covers the learning, so memory stays a small deduplicated set of reusable rules rather than a log of every dismissal. The local skill has direct write access — no post-session hook, no permission-isolated job. See Stage 6 below.
+- **Curated by humans.** The files are meant to be edited directly. Add or revise a scoped note, delete a stale one, or keep a global bullet in the flat shard when scope is genuinely global.
 
 ### Event-floor rule (prior threads)
 
@@ -202,7 +202,7 @@ export PR_NUMBER=<n>   # optional; prefetch.sh derives it from the branch when u
 bash "$WOO_REVIEW_ACTION_PATH/scripts/prefetch.sh"   # prints outdir=<path>; honors the exported OUTDIR
 ```
 
-When prefetch resolves a PR number AND finds an open PR, it produces the full artifact tree (`diff.txt`, `meta.json`, `last_sha.txt`, `prior-findings.json`, `rules.md` when applicable, `memory.md` when the consumer repo has `.woostack/memory.md`). When no PR resolves, it emits `skip=true` — the host then falls back to local-diff mode below.
+When prefetch resolves a PR number AND finds an open PR, it produces the full artifact tree (`diff.txt`, `meta.json`, `last_sha.txt`, `prior-findings.json`, `rules.md` when applicable, `memory.md` when the consumer repo has `.woostack/memory/` and/or `.woostack/memory.md`). When no PR resolves, it emits `skip=true` — the host then falls back to local-diff mode below.
 
 **Artifact reference.** All paths are under `$OUTDIR` (default per-project `/tmp/pr-review-<hash>/`):
 
@@ -213,7 +213,7 @@ When prefetch resolves a PR number AND finds an open PR, it produces the full ar
 | `last_sha.txt` | `prefetch.sh` | Stage 5 watermark | Present only when a prior watermark was found |
 | `prior-findings.json` | `prefetch.sh` | event-floor gate | Unresolved + resolved prior review threads |
 | `rules.md` | `prefetch.sh` | `conventions` angle, validator | Concatenated project rule files; triggers `conventions` angle when present |
-| `memory.md` | `prefetch.sh` | all angles, validator | Cross-PR memory (`.woostack/memory.md`); findings it records as known/accepted are dropped. Present only when the consumer repo has the file |
+| `memory.md` | `prefetch.sh` | all angles, validator | Cross-PR memory composed from `.woostack/memory/` and/or `.woostack/memory.md`; findings it records as known/accepted are dropped. Present only when the consumer repo has memory |
 | `angles.txt` | `detect-angles.sh` | Stage 3 orchestrator | One angle name per line |
 | `findings.<angle>.json` | angle workers | `merge-findings.sh` | Raw per-angle output |
 | `raw_findings.json` | `merge-findings.sh` | validator passes | Merged, chunk-collapsed findings |
@@ -395,17 +395,18 @@ After reporting, when the user **dismisses** a finding as a known/intentional/ac
 
 Before writing anything:
 
-1. **Read the existing `.woostack/memory.md`** (it was already loaded to `$OUTDIR/memory.md` in Stage 1; re-read the repo copy in case it changed).
+1. **Read the existing memory** (`$OUTDIR/memory.md`, live `.woostack/memory.md`, and `.woostack/memory/MEMORY.md` when present).
 2. **Check coverage.** If an existing entry already captures this learning — even phrased differently, or scoped more narrowly/broadly — do **NOT** append a duplicate. If the existing entry is close but the new dismissal generalizes it (e.g. the same pattern in a second file), edit that entry to widen its scope rather than adding a near-duplicate.
-3. **Only when the learning is genuinely new**, append one terse bullet phrased as a reusable rule — one line, `<pattern>: <reason>`, ideally ≤100 chars, no preamble or narration — then stop.
+3. **Only when the learning is genuinely new**, record one terse reusable rule — one line, `<pattern>: <reason>`, ideally ≤100 chars, no preamble or narration. Prefer a scoped `.woostack/memory/` note when the scoped store exists; fall back to a flat `.woostack/memory.md` bullet only when it does not.
 
 ```bash
-mkdir -p .woostack
-# Append ONLY after confirming no existing entry covers this learning.
-printf -- '- %s\n' "<general pattern>: <why it is accepted / what not to re-flag>" >> .woostack/memory.md
+# Record ONLY after confirming no existing entry covers this learning.
+LEARNING="<general pattern>: <why it is accepted / what not to re-flag>" \
+MEMORY_SCOPE="<narrow glob or comma-separated globs>" \
+  bash "$WOO_REVIEW_ACTION_PATH/scripts/memory-record.sh"
 ```
 
-Phrase entries as terse patterns, not instances — prefer "Generated `*.pb.go` files are intentional; do not flag their style" over "dismissed line 42 in user.pb.go". One line per entry, no narration. The local skill writes this file directly — no post-session hook, no permission-isolated job. Only record on an explicit dismissal or a stated gotcha — never auto-record every finding. Do NOT write memory in CI: the GitHub Action's validator job holds `contents: read` and posts the review only; memory is curated locally and by humans editing the file. Memory is read back as review context on the next run (Stage 1) and the validator drops findings it records.
+Phrase entries as terse patterns, not instances — prefer "Generated `*.pb.go` files are intentional; do not flag their style" over "dismissed line 42 in user.pb.go". One line per entry, no narration. The local skill writes this memory directly — no post-session hook, no permission-isolated job. Only record on an explicit dismissal or a stated gotcha — never auto-record every finding. Do NOT write memory in CI: the GitHub Action's validator job holds `contents: read` and posts the review only; memory is curated locally and by humans editing the files. Memory is read back as review context on the next run (Stage 1) and the validator drops findings it records.
 
 ## Addressing Reviews (`woostack-review address <PR#>`, local hosts)
 
@@ -427,14 +428,15 @@ which the GitHub Action's `contents: read` validator job can do.
 3. **Reception loop (analysis only)** — per thread, follow `prompts/address.md`: read → understand → verify → evaluate → **recommend** `FIX` / `ACCEPT` / `CLARIFY`. The loop makes **no** working-tree edits, **no** replies, **no** resolves, and **no** memory writes; it stages a recommended verdict + reasoning per thread.
 4. **Verdict gate** — default: the user approves the batch or overrides specific threads before anything is applied; `--auto` skips the gate; a non-interactive host with no `--auto` aborts rather than acting unapproved. The **final** verdict per thread is the override where given, else the recommendation. See `prompts/address.md` § Phase 2 for the gate mechanics (table shape, override syntax, host primitives).
 5. **Commit + push** — apply all final `FIX` edits to the working tree → one commit referencing the threads → push to the PR head → capture `<sha>` (before any reply, so "Fixed in `<sha>`" is real). Never force-push.
-6. **Reply + resolve + memory** — per handled thread, `scripts/resolve-thread.sh` posts the reply then resolves (CLARIFY threads use `RESOLVE=0`: reply only, left open). Only a **final** `ACCEPT` writes memory.
+6. **Reply + resolve + memory** — per handled thread, `scripts/resolve-thread.sh` posts the reply then resolves (CLARIFY threads use `RESOLVE=0`: reply only, left open). Only a **final** `ACCEPT` writes memory via `scripts/memory-record.sh`.
 7. **Report** — summary table: thread → recommended → final → action → memory-written?
 
 Only a **final ACCEPT** (accept-by-design — an ACCEPT the user kept in the
 default flow, or one the skill produced itself under `--auto`) writes memory,
-deduplicated and phrased as a reusable pattern — never a log of every fix.
-Memory is read back as context on the next review run (Stage 1), keeping
-re-reviews quiet.
+deduplicated and phrased as a reusable pattern — never a log of every fix. When
+`.woostack/memory/` exists, the write is a scoped note and `MEMORY.md` is
+rebuilt; otherwise the script appends to flat `.woostack/memory.md`. Memory is
+read back as context on the next review run (Stage 1), keeping re-reviews quiet.
 
 ### Stage 6.5 — Fold per-angle metrics (local hosts, opt-in)
 

@@ -6,7 +6,7 @@ This document is the canonical reference for the `.woostack/memory/` store. Ever
 
 ## 1. Purpose
 
-The scope-routed memory store is an additive layer on top of the flat `.woostack/memory.md` global shard. The flat file remains valid: it is always loaded in full, written by `memory-append.sh`, and its free-form bullet content is never touched by any tooling described here. The new `.woostack/memory/` directory adds **scoped per-fact notes** — individual Markdown files whose `scope:` field declares which parts of the codebase they govern. When a skill loads context for a working set of files it consults the derived index, matches notes whose scope overlaps the working set, and loads only those note bodies plus any directly linked notes. This makes recall sub-linear in the total number of accumulated notes: on a repo with 500 notes only the handful relevant to the changed files are loaded, not the full corpus. The flat file and the directory coexist; either alone is valid.
+The scope-routed memory store is an additive layer on top of the flat `.woostack/memory.md` global shard. The flat file remains valid: it is always loaded in full and remains the legacy/global fallback for repos without a scoped store. The new `.woostack/memory/` directory adds **scoped per-fact notes** — individual Markdown files whose `scope:` field declares which parts of the codebase they govern. When a skill loads context for a working set of files it consults the derived index, matches notes whose scope overlaps the working set, and loads only those note bodies plus any directly linked notes. This makes recall sub-linear in the total number of accumulated notes: on a repo with 500 notes only the handful relevant to the changed files are loaded, not the full corpus. The flat file and the directory coexist; either alone is valid.
 
 ---
 
@@ -136,9 +136,9 @@ The recall procedure is the algorithm a skill follows to load only the memory no
 
 ## 7. Distillation (write path)
 
-Beyond the manual / `memory-append.sh` flat-file writes, the primary way scoped notes are
-created is **distillation**: at the end of a `woostack-build` cycle, durable learnings from
-the spec/plan/implementation are written as `memory/` notes with:
+Scoped notes are created by two write paths: **distillation** and accept-by-design
+review memory. Distillation runs at the end of a `woostack-build` cycle; durable
+learnings from the spec/plan/implementation are written as `memory/` notes with:
 
 - `type` — `pattern | decision | gotcha | convention`.
 - `scope` — the narrowest glob covering the feature's touched files.
@@ -147,9 +147,14 @@ the spec/plan/implementation are written as `memory/` notes with:
 
 Distillation **dedupes against `MEMORY.md` first** (update an existing note rather than adding
 a duplicate) and runs `build-index.sh` + `doctor.sh` afterward. Only cross-feature knowledge
-is distilled — not feature-specific trivia. This is distinct from the accept-by-design write
-path (`memory-append.sh` → flat `memory.md`), which suppresses review noise; both coexist
-under the additive-superset model.
+is distilled — not feature-specific trivia.
+
+The accept-by-design review path uses `woostack-review/scripts/memory-record.sh`: when
+`.woostack/memory/` exists it writes a scoped `convention` note with `source: pr-<n>`
+and rebuilds `MEMORY.md`; when the scoped store is absent it falls back to the flat
+`memory.md` bullet append path. Address-comments should pass the narrowest `scope`
+covering the reviewed files so future reviews suppress the accepted issue only where
+that convention applies.
 
 ## 8. Scripts
 
