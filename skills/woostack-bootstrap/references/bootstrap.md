@@ -151,8 +151,14 @@ start — the same workspace the build/review/address skills use.
 
 ```bash
 git init
-# Scaffold the woostack workspace (memory/specs/plans/config) before the first commit.
-# (Invoke the /woostack-init skill; it is non-interactive on a fresh repo — no conflicts.)
+```
+
+Then **invoke the `/woostack-init` skill** to scaffold the `.woostack/` workspace
+(memory/specs/plans/config). It is a skill, not a shell command — run it as an explicit
+step here, not as a line inside the block above. It is non-interactive on a fresh repo, so
+there are no conflicts to resolve. Once it has written `.woostack/`, finish the commit:
+
+```bash
 git add .
 git commit -m "chore: initial bootstrap from spec"
 gh repo create <project> --private --source=. --push
