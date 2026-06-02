@@ -14,4 +14,35 @@ assert_eq "$(field "$d/a.md" hook)" "short hook" "field hook"
 assert_eq "$(first_body_line "$d/a.md")" "First body line." "first body line"
 assert_contains "$(note_body "$d/a.md")" "[[beta]]" "body contains wikilink"
 rm -rf "$d"
+
+# --- _woo_now / _woo_epoch ---
+assert_eq "$(WOOSTACK_NOW=2026-01-02 _woo_now)" "2026-01-02" "_woo_now honors WOOSTACK_NOW"
+e1="$(_woo_epoch 2026-01-01)"; e2="$(_woo_epoch 2026-01-02)"
+assert_eq "$(( e2 - e1 ))" "86400" "_woo_epoch: one day apart = 86400s (time-of-day zeroed)"
+set +e; _woo_epoch "not-a-date" >/dev/null 2>&1; rc=$?; set -e
+assert_exit 1 "$rc" "_woo_epoch returns non-zero on unparseable input"
+
+# --- set_field ---
+sfd="$(mktemp -d)"
+mk_note "$sfd" n.md $'name: x\ntype: pattern\nscope: a/**' 'body [[link]] here'
+# update existing key
+set_field "$sfd/n.md" type "gotcha"
+assert_eq "$(field "$sfd/n.md" type)" "gotcha" "set_field updates an existing key"
+assert_eq "$(field "$sfd/n.md" name)" "x" "set_field: other fields preserved on update"
+assert_contains "$(note_body "$sfd/n.md")" "body [[link]] here" "set_field: body preserved on update"
+# insert absent key
+set_field "$sfd/n.md" recall_count "1"
+assert_eq "$(field "$sfd/n.md" recall_count)" "1" "set_field inserts an absent key"
+assert_eq "$(field "$sfd/n.md" name)" "x" "set_field: fields intact after insert"
+assert_contains "$(note_body "$sfd/n.md")" "body [[link]] here" "set_field: body intact after insert"
+# date value round-trips
+set_field "$sfd/n.md" last_recalled "2026-06-02"
+assert_eq "$(field "$sfd/n.md" last_recalled)" "2026-06-02" "set_field: date value round-trips"
+# malformed note (no frontmatter) → non-zero, file unchanged
+printf 'no frontmatter\n' > "$sfd/bad.md"
+set +e; set_field "$sfd/bad.md" recall_count 1; rc=$?; set -e
+assert_exit 1 "$rc" "set_field fails on a note without frontmatter"
+assert_eq "$(cat "$sfd/bad.md")" "no frontmatter" "set_field leaves a malformed note unchanged"
+rm -rf "$sfd"
+
 finish

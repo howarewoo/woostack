@@ -103,6 +103,7 @@ Apply in both modes:
 - **No fabricated versions.** When the skill or a generated project needs a version, run `npm view <pkg> version` (or equivalent). Do not invent numbers.
 - **No hidden tools.** This repo has no CI that runs on its own events and no app test runner. Don't pretend they exist; don't add them without justification. (`action.yml` + `.github/workflows/reusable-review.yml` are consumer-facing shipped assets, not self-CI — see [What this repo is](#what-this-repo-is).)
 - **Respect branch protection.** `main` is protected and requires PRs. Push changes to a feature branch and open a PR; never force-push to `main`.
+- **Use Graphite for source control.** Prefer `gt` for branch, stack, commit-amend, sync, submit, and PR operations (`gt create`, `gt modify`, `gt sync`, `gt submit`, `gt track`, `gt log`). Use raw `git` for read-only inspection and low-level operations only when Graphite does not cover the task, and do not bypass the Graphite stack state casually.
 - **Cross-link, don't duplicate.** If a fact lives in `architecture.md`, link to it from `patterns.md`; don't restate.
 - **Reference frameworks by name, not version**, except in [references/frameworks.md](skills/woostack-bootstrap/references/frameworks.md), which may pin exact versions when an incompatibility forces it.
 - **Caveman mode is a personal hook**, not a repo convention — do not propagate compressed prose into the skill. Skill content is written in normal English.

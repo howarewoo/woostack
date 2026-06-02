@@ -53,5 +53,38 @@ err6="$(mktemp -d)/m"; mkdir -p "$err6"
 mk_note "$err6" nobody.md $'name: x\ntype: pattern' ''
 run_doctor "$err6"; assert_exit 1 "$CODE" "empty body errors"
 
+# --- dead-note check ---
+# old + never recalled → dead warning, exit 0
+dd1="$(mktemp -d)/m"; mkdir -p "$dd1"
+mk_note "$dd1" old.md $'name: old\ntype: pattern\nscope: *\nupdated: 2026-01-01' 'stale body'
+OUT="$(WOOSTACK_NOW=2026-06-02 bash "$DOC" "$dd1" 2>&1)"; CODE=$?
+assert_contains "$OUT" "dead note" "old + zero recalls flagged as dead"
+assert_exit 0 "$CODE" "dead note is a warning (exit 0)"
+
+# old but recalled → not flagged
+dd2="$(mktemp -d)/m"; mkdir -p "$dd2"
+mk_note "$dd2" old.md $'name: old\ntype: pattern\nscope: *\nupdated: 2026-01-01\nrecall_count: 3' 'body'
+OUT="$(WOOSTACK_NOW=2026-06-02 bash "$DOC" "$dd2" 2>&1)"
+assert_not_contains "$OUT" "dead note" "a recalled note is never flagged dead"
+
+# fresh updated → not flagged
+dd3="$(mktemp -d)/m"; mkdir -p "$dd3"
+mk_note "$dd3" fresh.md $'name: fresh\ntype: pattern\nscope: *\nupdated: 2026-05-30' 'body'
+OUT="$(WOOSTACK_NOW=2026-06-02 bash "$DOC" "$dd3" 2>&1)"
+assert_not_contains "$OUT" "dead note" "a fresh note is not flagged"
+
+# no updated: → not aged, not flagged
+dd4="$(mktemp -d)/m"; mkdir -p "$dd4"
+mk_note "$dd4" noupd.md $'name: noupd\ntype: pattern\nscope: *' 'body'
+OUT="$(WOOSTACK_NOW=2026-06-02 bash "$DOC" "$dd4" 2>&1)"
+assert_not_contains "$OUT" "dead note" "a note without updated: is not flagged"
+
+# WOOSTACK_DEAD_DAYS tightens the window
+dd5="$(mktemp -d)/m"; mkdir -p "$dd5"
+mk_note "$dd5" recent.md $'name: recent\ntype: pattern\nscope: *\nupdated: 2026-05-30' 'body'
+OUT="$(WOOSTACK_NOW=2026-06-02 WOOSTACK_DEAD_DAYS=1 bash "$DOC" "$dd5" 2>&1)"
+assert_contains "$OUT" "dead note" "DEAD_DAYS=1 flags a 3-day-old never-recalled note"
+rm -rf "$dd1" "$dd2" "$dd3" "$dd4" "$dd5"
+
 rm -rf "$repo"
 finish
