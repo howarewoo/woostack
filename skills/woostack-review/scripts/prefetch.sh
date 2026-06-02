@@ -676,23 +676,43 @@ printf '%s' "$THREADS_JSON" | jq '
 PRIOR_COUNT=$(jq 'length' "$OUTDIR/prior-findings.json" 2>/dev/null || echo 0)
 echo "Prior review threads (open + resolved): $PRIOR_COUNT"
 
-# Cross-PR memory — a plain-markdown file of gotchas / accepted issues the team
-# curates (and the local skill appends to). Surfaced to every angle + the
-# validator as additional context so already-known issues are not re-flagged.
-# Missing file => no memory context (normal for fresh repos).
-MEMORY_SRC="${GITHUB_WORKSPACE:-$(pwd)}/.woostack/memory.md"
+# Cross-PR memory — composed per-PR via recall.sh when a scope-routed store
+# (.woostack/memory/) exists: scope-matched notes + one-hop links + the
+# cap-protected global shard (flat memory.md). Falls back to a raw flat copy
+# when recall.sh is unavailable (e.g. single-skill install). Missing both => no
+# memory context (normal for fresh repos).
+WOOSTACK_DIR="${GITHUB_WORKSPACE:-$(pwd)}/.woostack"
+MEMORY_SRC="$WOOSTACK_DIR/memory.md"
 MEMORY_OUT="$OUTDIR/memory.md"
-if [ -f "$MEMORY_SRC" ]; then
-  MEM_SIZE=$(wc -c < "$MEMORY_SRC" 2>/dev/null || echo 0)
-  if [ "$MEM_SIZE" -gt 102400 ]; then
-    # 100KB cap (same as rules.md) — truncate rather than skip so recent
-    # entries still land. Memory is append-mostly; the head is the oldest.
-    tail -c 102400 "$MEMORY_SRC" > "$MEMORY_OUT"
-    echo "Memory file large (${MEM_SIZE}B); truncated to last 100KB."
+RECALL="$SCRIPT_DIR/../../woostack-init/scripts/recall.sh"
+# Working-set paths: prefer the ignore-filtered list, else derive from meta.json.
+PATHS_FILE="$OUTDIR/changed-paths.filtered.txt"
+if [ ! -f "$PATHS_FILE" ]; then
+  jq -r '.files[].path' "$OUTDIR/meta.json" 2>/dev/null > "$OUTDIR/changed-paths.txt" || true
+  PATHS_FILE="$OUTDIR/changed-paths.txt"
+fi
+
+copy_flat_memory() {  # the pre-recall fallback
+  if [ -f "$MEMORY_SRC" ]; then
+    local sz; sz=$(wc -c < "$MEMORY_SRC" 2>/dev/null || echo 0)
+    if [ "$sz" -gt 102400 ]; then tail -c 102400 "$MEMORY_SRC" > "$MEMORY_OUT";
+      echo "Memory file large (${sz}B); truncated to last 100KB.";
+    else cp "$MEMORY_SRC" "$MEMORY_OUT"; fi
+    echo "Loaded cross-PR memory: $MEMORY_SRC (${sz}B)"
+  else rm -f "$MEMORY_OUT"; fi
+}
+
+if [ -d "$WOOSTACK_DIR/memory" ] || [ -f "$MEMORY_SRC" ]; then
+  if [ -f "$RECALL" ]; then
+    if bash "$RECALL" "$WOOSTACK_DIR" "$PATHS_FILE" > "$MEMORY_OUT" 2> "$OUTDIR/recall.log"; then
+      [ -s "$MEMORY_OUT" ] || rm -f "$MEMORY_OUT"
+      echo "Composed cross-PR memory via recall.sh ($(wc -c < "$MEMORY_OUT" 2>/dev/null || echo 0)B; see recall.log)"
+    else
+      echo "::warning::recall.sh failed; falling back to flat memory copy"; copy_flat_memory
+    fi
   else
-    cp "$MEMORY_SRC" "$MEMORY_OUT"
+    echo "::warning::recall.sh not found at $RECALL; using flat memory copy"; copy_flat_memory
   fi
-  echo "Loaded cross-PR memory: $MEMORY_SRC (${MEM_SIZE}B)"
 else
   rm -f "$MEMORY_OUT"
 fi

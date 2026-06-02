@@ -68,9 +68,11 @@ Marker semantics are state-light: the marker IS the state. There is no DB or wor
 
 Reviews stay useful across PRs through a single plain-markdown file in the consumer repo: **`.woostack/memory.md`**. It is the team's running list of gotchas, intentional design choices, and issues a prior review already surfaced and the team consciously accepted. There is no database, no sharded JSONL, no hooks — just a file you can read and edit by hand.
 
+When a `.woostack/memory/` scope-routed store exists, `prefetch.sh` composes the per-PR memory context via `recall.sh` ([memory contract](../woostack-init/references/memory.md)) — scope-matched notes, one-hop `[[linked]]` notes, and the global shard — instead of dumping the whole file; the flat `.woostack/memory.md` always serves as the global shard regardless.
+
 ### How it's used
 
-- **Read as context.** `prefetch.sh` copies `.woostack/memory.md` (if present, 100KB cap) into `$OUTDIR/memory.md`. Every angle worker and both validator passes treat it as additional rubric and **drop any finding the memory already records as known/accepted/wontfix**. This is what keeps re-reviews quiet: an issue the team has consciously accepted is not re-flagged on the next PR.
+- **Read as context.** `prefetch.sh` writes the per-PR memory into `$OUTDIR/memory.md`. When `recall.sh` is available (the `woostack-init` skill is co-installed) it composes that file via recall — scope-matched notes + one-hop links + the global shard (see the paragraph above); otherwise it falls back to a flat copy of `.woostack/memory.md` (100KB cap). Either way, every angle worker and both validator passes treat the result as additional rubric and **drop any finding the memory already records as known/accepted/wontfix**. This is what keeps re-reviews quiet: an issue the team has consciously accepted is not re-flagged on the next PR.
 - **Written inline (local).** When you run `/woostack-review` locally and dismiss a finding (or note a gotcha worth remembering), the skill records the **learning** in `.woostack/memory.md` — first checking that no existing entry already covers it, so the file stays a small deduplicated set of reusable rules rather than a log of every dismissal. The local skill has direct write access — no post-session hook, no permission-isolated job. See Stage 6 below.
 - **Curated by humans.** The file is meant to be edited directly. Add a bullet, delete a stale one, group entries under headings — whatever keeps it readable.
 
