@@ -32,7 +32,8 @@ woostack/
 │   ├── woostack-build/
 │   │   ├── SKILL.md           Feature-loop skill (brainstorm → spec → grill → plan → execute)
 │   │   └── references/
-│   │       └── spec-template.html  HTML spec scaffold
+│   │       ├── spec-template.md    Markdown spec scaffold (authored source)
+│   │       └── spec-template.html  HTML render target (on-demand visualization)
 │   ├── woostack-review/
 │   │   ├── SKILL.md           Review skill (review + address verbs)
 │   │   ├── scripts/           Review engine scripts
@@ -70,7 +71,7 @@ The agent has the collection installed (or is pointed at this repo) and is asked
 | Command | What it does |
 |---|---|
 | `/woostack-bootstrap <goal>` | Scaffold a new web/mobile/API monorepo at latest versions. |
-| `/woostack-build <goal>` | Feature loop: brainstorm → HTML spec → grill → plan → execute. |
+| `/woostack-build <goal>` | Feature loop: brainstorm → markdown spec → grill → plan → execute. |
 | `/woostack-review [PR#]` | Parallel review swarm + skeptical validation; posts a batched GitHub review. |
 | `/woostack-address-comments [PR#]` | Address unresolved review threads autonomously. No merge. |
 
