@@ -32,3 +32,27 @@ _woo_epoch() {
     || return 1
   printf '%s\n' "$e"
 }
+
+# set_field <file> <key> <value> — set a frontmatter key (update if present, else
+# insert before the closing fence). Rewrites ONLY the first frontmatter block;
+# body and all other fields are preserved verbatim. Atomic: writes a temp file in
+# the note's own directory, then mv's it over the original. Returns non-zero
+# WITHOUT modifying the file if it lacks two '---' fences or the write fails.
+set_field() {
+  local file="$1" key="$2" val="$3" tmp dir
+  [ "$(grep -c '^---$' "$file" 2>/dev/null)" -ge 2 ] || return 1
+  dir="$(dirname "$file")"
+  tmp="$(mktemp "$dir/.woomem.XXXXXX")" || return 1
+  awk -v key="$key" -v val="$val" '
+    {
+      if ($0 == "---") {
+        fence++
+        if (fence == 1) { infm=1; print; next }
+        if (fence == 2) { if (infm && !seen) print key ": " val; infm=0; print; next }
+      }
+      if (infm && !seen && index($0, key ":") == 1) { print key ": " val; seen=1; next }
+      print
+    }
+  ' "$file" > "$tmp" || { rm -f "$tmp"; return 1; }
+  mv "$tmp" "$file" || { rm -f "$tmp"; return 1; }
+}
