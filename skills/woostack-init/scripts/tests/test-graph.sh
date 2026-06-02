@@ -45,5 +45,11 @@ assert_exit 1 "$code" "missing note --links exits 1"
 out="$(bash "$G" "$md" a --links)"
 assert_contains "$out" "b" "default uses grep path"
 
+# dot in note name must not wildcard-match via unescaped ERE
+mk_note "$md" 'a.b.md'   $'name: a.b\ntype: pattern'   'body'
+mk_note "$md" 'decoy.md' $'name: decoy\ntype: pattern' 'links [[aXb]]'
+out="$(bash "$G" "$md" 'a.b' --backlinks)"
+assert_not_contains "$out" "decoy" "dot in note name is escaped, no wildcard false-match"
+
 rm -rf "$md"
 finish

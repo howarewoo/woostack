@@ -8,9 +8,10 @@ set -euo pipefail
 MEM_DIR="${1:?memdir required}"; NOTE_ARG="${2:?note required}"; MODE="${3:---links}"
 NOTE="${NOTE_ARG%.md}"
 NOTE_FILE="$MEM_DIR/$NOTE.md"
+NOTE_ESC="$(printf '%s' "$NOTE" | sed 's/[].[\^$*+?{}|()/\\]/\\&/g')"
 
 grep_links() {
-  [ -f "$NOTE_FILE" ] || { echo "graph: note not found: $NOTE_FILE" >&2; exit 1; }
+  [ -r "$NOTE_FILE" ] || { echo "graph: note not found or unreadable: $NOTE_FILE" >&2; exit 1; }
   grep -oE '\[\[[^]]+\]\]' "$NOTE_FILE" 2>/dev/null | sed 's/\[\[//; s/\]\]//' | sort -u || true
 }
 
@@ -19,7 +20,7 @@ grep_backlinks() {
   for f in "$MEM_DIR"/*.md; do
     b="$(basename "$f" .md)"
     [ "$b" = "$NOTE" ] && continue
-    grep -qE "\[\[$NOTE\]\]" "$f" 2>/dev/null && echo "$b"
+    grep -qE "\[\[$NOTE_ESC\]\]" "$f" 2>/dev/null && echo "$b"
   done
   return 0
 }
