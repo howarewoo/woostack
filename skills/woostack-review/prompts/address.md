@@ -66,8 +66,8 @@ different verdict (any of FIX / ACCEPT / CLARIFY).
   Phrase it as a **terse pattern, not an instance**: one line,
   `<pattern>: <reason>`, ideally ≤100 chars. State the rule and stop — no
   preamble, no narration, no instance line numbers, no restating the finding.
-  Only a final ACCEPT (accept-by-design) writes memory. A "won't-fix because transient / out-of-scope" is not a
-  reusable rule — do not record it.
+  Only a final ACCEPT (accept-by-design) writes memory. A "won't-fix because
+  transient / out-of-scope" is not a reusable rule — do not record it.
 - **CLARIFY**: do not fix, do not write memory, do not resolve. Reply with a
   specific question (handled below with `RESOLVE=0`).
 
