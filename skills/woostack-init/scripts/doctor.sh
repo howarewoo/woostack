@@ -11,6 +11,7 @@ MEM_DIR="${1:-.woostack/memory}"
 VALID_TYPES=" decision pattern gotcha convention hotspot "
 errors=0; warnings=0
 seen="$(mktemp)"
+overlap_pairs="$(mktemp)"
 paths="$(git ls-files 2>/dev/null || true)"
 
 err()  { echo "::error:: $1" >&2; errors=$((errors+1)); }
@@ -42,8 +43,13 @@ for f in "$MEM_DIR"/*.md; do
 
   scope="$(field "$f" scope)"
   if [ -n "$scope" ] && [ "$scope" != "*" ] && [ -n "$paths" ]; then
-    if ! printf '%s\n' "$paths" | bash "$HERE/scope-match.sh" "$scope" >/dev/null 2>&1; then
+    matches="$(printf '%s\n' "$paths" | bash "$HERE/scope-match.sh" "$scope" 2>/dev/null)"
+    if [ -z "$matches" ]; then
       warn "$base: scope '$scope' matches no tracked files (stale)"
+    else
+      while IFS= read -r p; do
+        [ -n "$p" ] && printf '%s\t%s\n' "$p" "$base" >> "$overlap_pairs"
+      done <<< "$matches"
     fi
   fi
 
@@ -87,7 +93,36 @@ for f in "$MEM_DIR"/*.md; do
     warn "$base: missing updated: (cannot be aged — add updated:)"
   fi
 done
-rm -f "$seen"
+
+# Overlap clusters: non-global notes sharing >=1 tracked file. awk union-find,
+# canonical cluster id = lexicographically smallest member name (deterministic
+# output regardless of git ls-files / glob ordering). Warning-only.
+if [ -s "$overlap_pairs" ]; then
+  # union-find (awk owns the assoc arrays — bash 3.2 has no `declare -A`),
+  # then group by canonical id and keep clusters of >=2 members.
+  clusters="$(awk -F'\t' '
+    function find(x,   r,t){ r=x; while(parent[r]!=r) r=parent[r];
+      while(parent[x]!=x){ t=parent[x]; parent[x]=r; x=t } return r }
+    function union(a,b,   ra,rb){ ra=find(a); rb=find(b); if(ra!=rb) parent[rb]=ra }
+    { note=$2; if(!(note in parent)) parent[note]=note;
+      f=$1; if(f in first) union(first[f], note); else first[f]=note }
+    END{
+      for(n in parent){ r=find(n); if(!(r in mn) || n < mn[r]) mn[r]=n }
+      for(n in parent){ r=find(n); print mn[r] "\t" n }
+    }
+  ' "$overlap_pairs" | sort -u | awk -F'\t' '
+    { members[$1] = members[$1] (members[$1]==""?"":", ") $2; cnt[$1]++ }
+    END{ for(c in cnt) if(cnt[c] >= 2) print c "\t" members[c] }
+  ' | sort)"
+  # Loop in the main shell (here-string, not a pipeline) so warn's counter sticks.
+  if [ -n "$clusters" ]; then
+    while IFS="$(printf '\t')" read -r _cid _members; do
+      [ -n "$_members" ] && warn "overlap cluster: $_members — intersecting scope, review for contradiction"
+    done <<< "$clusters"
+  fi
+fi
+
+rm -f "$seen" "$overlap_pairs"
 
 echo "doctor: $errors error(s), $warnings warning(s)" >&2
 [ "$errors" -eq 0 ]

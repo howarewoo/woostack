@@ -126,7 +126,7 @@ The recall procedure is the algorithm a skill follows to load only the memory no
 
 1. **Always load** `memory/MEMORY.md` (one cheap line per note) and the flat `memory.md` global shard. Both are always present.
 2. **Compute the working set** of repo-relative paths for the current operation. This is skill-specific: for a review it is the changed files; for a build it is the planned/touched files; for address-comments it is the files touched by the PR.
-3. **Scope-match:** for each note listed in the index, evaluate the note's `scope` glob against the working-set paths using `scope-match.sh`. Load the full body of any note that matches.
+3. **Scope-match:** for each note listed in the index, evaluate the note's `scope` glob against the working-set paths using `scope-match.sh`. Load the full body of any note that matches. When two matched notes have the **same** match-count, the tie is broken by `updated:` recency — the newer note ranks first, and a note without `updated:` ranks last (so under cap pressure the older / undated note is dropped first). Match-count remains the primary key.
 4. **One-hop link expand:** for each note loaded in step 3, scan its body for `[[wikilinks]]`. Load the bodies of any directly linked notes that were not already loaded. Do not recurse further — expansion is bounded to exactly one hop.
 5. **Stop.** Notes not matched in steps 3–4 are never loaded.
 
@@ -187,6 +187,7 @@ The scripts live under `skills/woostack-init/scripts/` relative to the woostack 
 - **Missing provenance:** a note with no `source:` is flagged — the distillation gate (§7) requires provenance on every note.
 - **Non-glob scope:** a note whose `scope:` is non-global and contains no `*` glob (a single literal path, or an all-literal comma list) is flagged as possible trivia. Notes with global scope (`*` or absent) and review-recorded notes (`source:` of `pr-<n>` or `address-comments`, which deliberately scope narrowly) are exempt.
 - **Missing age basis:** a note with no `updated:` field is flagged — it cannot be aged by the dead-note check above, so it is no longer silently skipped. (Both write paths stamp `updated:`; a note without it is anomalous.)
+- **Overlap cluster:** non-global notes whose `scope:` globs match at least one common tracked file are grouped into a cluster and flagged for human review (`overlap cluster: a.md, b.md — intersecting scope, review for contradiction`). doctor cannot judge whether the advice actually contradicts — it surfaces the co-load so a human can. Global notes (`*`/absent) co-load with everything by design and are exempt; a note whose scope matches no tracked file is stale, not clustered. Overlap is measured by shared tracked files (via `scope-match.sh`), so it is skipped when there is no git repo.
 
 `doctor.sh` also warns on unresolved body `[[wikilinks]]`; those are graph integrity warnings rather than staleness signals.
 

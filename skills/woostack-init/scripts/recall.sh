@@ -33,7 +33,10 @@ if [ -d "$MEM_DIR" ]; then
     if is_global "$scope"; then printf '%s\n' "$f" >> "$globals"; add_set "$b"; continue; fi
     [ -z "$paths" ] && continue
     cnt="$(printf '%s\n' "$paths" | bash "$SCOPE_MATCH" "$scope" 2>/dev/null | grep -c . || true)"
-    [ "${cnt:-0}" -gt 0 ] && printf '%s\t%s\n' "$cnt" "$f" >> "$matched"
+    if [ "${cnt:-0}" -gt 0 ]; then
+      upd="$(field "$f" updated || true)"
+      printf '%s\t%s\t%s\n' "$cnt" "$upd" "$f" >> "$matched"
+    fi
   done
 fi
 
@@ -41,7 +44,7 @@ fi
 matched_files=()
 while IFS= read -r line; do
   [ -n "$line" ] && matched_files+=("$line")
-done < <(sort -t"$(printf '\t')" -k1,1nr "$matched" | cut -f2-)
+done < <(sort -t"$(printf '\t')" -k1,1nr -k2,2r "$matched" | cut -f3-)
 
 for f in "${matched_files[@]:-}"; do
   [ -n "${f:-}" ] && add_set "$(basename "$f")"
