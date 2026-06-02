@@ -23,8 +23,8 @@ glob_to_ere() {
 
 trimmed="$(printf '%s' "$SPEC" | tr -d '[:space:]')"
 if [ -z "$trimmed" ] || [ "$trimmed" = '*' ]; then
-  # global — echo all stdin, succeed if non-empty
-  if grep -E '.*'; then exit 0; else exit 1; fi
+  # global — echo all stdin, succeed if non-empty (needs >=1 char to skip blank/empty stdin)
+  if grep -E '.+'; then exit 0; else exit 1; fi
 fi
 
 ERE=""

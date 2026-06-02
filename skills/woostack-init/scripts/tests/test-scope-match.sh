@@ -41,4 +41,13 @@ printf '%s\n' "$paths" | bash "$SM" 'nope/**' >/dev/null; code=$?
 set -e
 assert_exit 1 "$code" "no match exits 1"
 
+# regression: global on empty stdin → exit 1, no output
+set +e; out="$(printf '' | bash "$SM" '*')"; code=$?; set -e
+assert_eq "$out" "" "global on empty stdin prints nothing"
+assert_exit 1 "$code" "global on empty stdin exits 1"
+
+# anchoring: bare segment must not match mid-path
+out="$(printf '%s\n' "$paths" | bash "$SM" 'api' || true)"
+assert_not_contains "$out" "packages/api/orpc/x.ts" "anchored, no substring match"
+
 finish
