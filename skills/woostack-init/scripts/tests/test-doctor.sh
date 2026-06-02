@@ -39,9 +39,12 @@ mk_note "$md" live-source-spec.md $'name: live-source-spec\ntype: pattern\nscope
 mk_note "$md" live-source-plan.md $'name: live-source-plan\ntype: pattern\nscope: packages/api/**\nsource: .woostack/plans/existing.md\nupdated: 2026-06-02' 'body'
 mk_note "$md" pr-source.md $'name: pr-source\ntype: convention\nscope: packages/api/**\nsource: pr-165\nupdated: 2026-06-02' 'body'
 pushd "$repo" >/dev/null; run_doctor ".woostack/memory"; popd >/dev/null
-assert_not_contains "$OUT" "live-source-spec" "existing spec source is not warned"
-assert_not_contains "$OUT" "live-source-plan" "existing plan source is not warned"
-assert_not_contains "$OUT" "pr-source" "PR source is not treated as a filesystem path"
+# Target the provenance warning specifically — these notes legitimately appear in
+# an overlap cluster (they share scope packages/api/** with other store notes),
+# so a bare-name check would false-fail. Intent: no stale-provenance warning.
+assert_not_contains "$OUT" "live-source-spec.md: source" "existing spec source is not warned"
+assert_not_contains "$OUT" "live-source-plan.md: source" "existing plan source is not warned"
+assert_not_contains "$OUT" "pr-source.md: source" "PR source is not treated as a filesystem path"
 
 # --- distillation-gate backstop warnings ---
 # missing source: → warn, exit 0
@@ -164,6 +167,50 @@ mk_note "$dd5" recent.md $'name: recent\ntype: pattern\nscope: *\nupdated: 2026-
 OUT="$(WOOSTACK_NOW=2026-06-02 WOOSTACK_DEAD_DAYS=1 bash "$DOC" "$dd5" 2>&1)"
 assert_contains "$OUT" "dead note" "DEAD_DAYS=1 flags a 3-day-old never-recalled note"
 rm -rf "$dd1" "$dd2" "$dd3" "$dd4" "$dd5"
+
+# --- overlap clusters (own git repo: needs tracked files) ---
+orepo="$(mktemp -d)"
+( cd "$orepo" && git -c user.email=t@t -c user.name=t init -q \
+    && mkdir -p packages/api apps/web && touch packages/api/x.ts apps/web/y.tsx \
+    && git add -A && git -c user.email=t@t -c user.name=t commit -qm init )
+omd="$orepo/.woostack/memory"; mkdir -p "$omd"
+
+# two notes matching the same tracked file → one cluster naming both (min-name order)
+mk_note "$omd" c1.md $'name: c1\ntype: pattern\nscope: packages/api/**\nupdated: 2026-06-02\nsource: pr-1' 'b'
+mk_note "$omd" c2.md $'name: c2\ntype: gotcha\nscope: packages/api/orpc/**, packages/api/x.ts\nupdated: 2026-06-02\nsource: pr-2' 'b'
+pushd "$orepo" >/dev/null; run_doctor ".woostack/memory"; popd >/dev/null
+assert_contains "$OUT" "overlap cluster: c1.md, c2.md" "two notes on a shared file form one cluster"
+assert_exit 0 "$CODE" "overlap cluster is a warning (exit 0)"
+
+# add a disjoint note (apps/web only) → not in the api cluster
+mk_note "$omd" web.md $'name: web\ntype: pattern\nscope: apps/web/**\nupdated: 2026-06-02\nsource: pr-3' 'b'
+pushd "$orepo" >/dev/null; run_doctor ".woostack/memory"; popd >/dev/null
+assert_not_contains "$OUT" "web.md" "a disjoint-scope note is not clustered"
+assert_contains "$OUT" "overlap cluster: c1.md, c2.md" "disjoint note does not disturb the api cluster"
+
+# add a global note → never clustered
+mk_note "$omd" g.md $'name: g\ntype: convention\nscope: *\nupdated: 2026-06-02\nsource: pr-4' 'b'
+pushd "$orepo" >/dev/null; run_doctor ".woostack/memory"; popd >/dev/null
+assert_not_contains "$OUT" "overlap cluster: c1.md, c2.md, g.md" "global note is exempt from clustering"
+
+# add a third api note → single cluster of three, sorted
+mk_note "$omd" c3.md $'name: c3\ntype: pattern\nscope: packages/api/**\nupdated: 2026-06-02\nsource: pr-5' 'b'
+pushd "$orepo" >/dev/null; run_doctor ".woostack/memory"; popd >/dev/null
+assert_contains "$OUT" "overlap cluster: c1.md, c2.md, c3.md" "three notes on a shared file form one sorted cluster"
+
+# a stale note (matches no tracked file) is never clustered, only stale-warned
+ostale="$(mktemp -d)"
+( cd "$ostale" && git -c user.email=t@t -c user.name=t init -q \
+    && mkdir -p packages/api && touch packages/api/x.ts \
+    && git add -A && git -c user.email=t@t -c user.name=t commit -qm init )
+osmd="$ostale/.woostack/memory"; mkdir -p "$osmd"
+mk_note "$osmd" real.md  $'name: real\ntype: pattern\nscope: packages/api/**\nupdated: 2026-06-02\nsource: pr-1' 'b'
+mk_note "$osmd" ghost.md $'name: ghost\ntype: pattern\nscope: zzz/**\nupdated: 2026-06-02\nsource: pr-2' 'b'
+pushd "$ostale" >/dev/null; run_doctor ".woostack/memory"; popd >/dev/null
+assert_not_contains "$OUT" "overlap cluster" "a lone real note + a stale note form no cluster"
+assert_contains "$OUT" "ghost.md: scope 'zzz/**' matches no tracked files (stale)" "stale note still stale-warned"
+
+rm -rf "$orepo" "$ostale"
 
 rm -rf "$repo"
 finish
