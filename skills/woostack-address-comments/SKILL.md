@@ -29,9 +29,12 @@ address engine lives in that skill.
 1. **Preflight** `woostack-review` as above.
 2. **Invoke** `woostack-review address <PR#>` (or the current branch's open PR when no number
    is given), passing `--auto` straight through when the user asked for an autonomous run. It
-   fetches unresolved threads into `/tmp/pr-review/address-threads.json`, reads
-   `.woostack/memory.md` if present, and processes every thread per its own rubric — the
-   interactive verdict gate by default, or autonomously under `--auto`.
+   fetches unresolved threads into `/tmp/pr-review/address-threads.json`, reads the team's
+   cross-PR memory, and processes every thread per its own rubric — the interactive verdict
+   gate by default, or autonomously under `--auto`. When the repo has a `.woostack/memory/`
+   store, that memory is **scope-routed** to the PR's changed files (composed by the review
+   engine's `recall.sh`), so address applies the same matched conventions and accepted-issue
+   dismissals as review — not the whole dump.
 3. **Offer re-review.** When all threads are handled and pushed, offer to run
    `woostack-review` again. Stop there — do not merge.
 

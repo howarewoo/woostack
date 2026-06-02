@@ -145,8 +145,14 @@ Fix every failure. A bootstrap that doesn't pass these isn't done.
 
 ### 10. Initialize repo
 
+Run `/woostack-init` after `git init` so the project ships with a `.woostack/` workspace
+(memory store + index, `specs/`, `plans/`, `config.json`, `.gitignore`) committed from the
+start — the same workspace the build/review/address skills use.
+
 ```bash
 git init
+# Scaffold the woostack workspace (memory/specs/plans/config) before the first commit.
+# (Invoke the /woostack-init skill; it is non-interactive on a fresh repo — no conflicts.)
 git add .
 git commit -m "chore: initial bootstrap from spec"
 gh repo create <project> --private --source=. --push
