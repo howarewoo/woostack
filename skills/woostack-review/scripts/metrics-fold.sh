@@ -20,7 +20,7 @@ PER_RUN="$OUTDIR/findings.metrics.json"
 ROOT="${GITHUB_WORKSPACE:-$(pwd)}"
 ROLLING="$ROOT/.woostack/metrics.json"
 GITIGNORE="$ROOT/.gitignore"
-SCHEMA_VERSION=1
+SCHEMA_VERSION=2
 
 # Gate: metrics opt-in (default off).
 metrics_enabled="false"
@@ -99,6 +99,8 @@ for angle, rec in (run.get("angles") or {}).items():
         "dropped_by_prosecutor_total": 0,
         "blocking_total": 0,
         "severity_total": {s: 0 for s in SEVS},
+        "overlap_total": 0,
+        "overlap_with": {},
     })
     slot["runs_present"] += 1
     slot["raw_total"]  += num(rec.get("raw_count"))
@@ -109,6 +111,13 @@ for angle, rec in (run.get("angles") or {}).items():
     sev = rec.get("severity") or {}
     for s in SEVS:
         slot["severity_total"][s] += num(sev.get(s))
+    # Guard for aggregates seeded before overlap existed (defensive; reseed on
+    # the version bump normally makes every slot use the new template).
+    slot.setdefault("overlap_total", 0)
+    slot.setdefault("overlap_with", {})
+    slot["overlap_total"] += num(rec.get("overlap_total"))
+    for b, n in (rec.get("overlap_with") or {}).items():
+        slot["overlap_with"][b] = num(slot["overlap_with"].get(b)) + num(n)
 
 # Atomic write: a mid-write crash leaves the prior aggregate intact rather
 # than a truncated file (the reseed path would recover either way, but this
