@@ -1,0 +1,1 @@
+- .woostack/specs and .woostack/plans are tracked skill artifacts; do not flag them as stray.
