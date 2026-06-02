@@ -36,10 +36,11 @@ Surface scope-overlap clusters for human review (doctor cannot judge semantics, 
 
 Measure overlap by the thing that actually co-loads: shared tracked files.
 
-- In the existing per-note loop, for each **non-global** note (`scope` present and not `*`), compute the *set* of tracked files its `scope` matches — the same `scope-match.sh` invocation the stale-scope check already makes against the `paths` (`git ls-files`) variable, keeping the matched paths instead of only the count. A note matching zero files still warns stale (existing) and contributes nothing to overlap.
+- In the existing per-note loop, for each **non-global** note (`scope` present and not `*`), compute the *set* of tracked files its `scope` matches. This **replaces** (does not double) the current stale-scope `scope-match.sh … >/dev/null` call: capture the command's output instead of discarding it, derive the stale-on-empty signal from whether the output is empty (existing behavior preserved), and keep the matched paths for overlap. One `scope-match.sh` invocation per note, as today.
 - Emit one `file<TAB>note` line per (matched file, note) pair to a temp file.
-- After the loop, feed the pairs to an **awk union-find**. awk has native associative arrays, so this is portable on bash 3.2 (macOS default) where `declare -A` is unavailable. Notes that share ≥1 file are unioned; each connected component of ≥2 notes is a cluster.
-- Emit one warning per cluster: `overlap cluster: <a.md>, <b.md>, … — intersecting scope, review for contradiction`. Warning-only (exit 0).
+- After the loop, feed the pairs to an **awk union-find**. awk has native associative arrays, so this is portable on bash 3.2 (macOS default, BSD awk) where `declare -A` is unavailable. Algorithm: (1) union every pair of notes that share a file; (2) resolve each note to its component root via `find` with path-compression; (3) for each component, the **canonical cluster id is the lexicographically smallest member name**; (4) emit `clusterId<TAB>member` per note.
+- bash side: `sort` those lines, group by `clusterId`, join members with `, `, and `warn` on any group with ≥2 members. The min-member canonical id makes both member order and cluster order **deterministic regardless of `git ls-files` or note-glob ordering** — so tests can assert the exact warning string. Verified by an empirical `sort -k1,1nr -k2,2r` test during design.
+- Warning text: `overlap cluster: <a.md>, <b.md>, … — intersecting scope, review for contradiction`. Warning-only (exit 0). All members listed, no truncation.
 
 Global (`*`/absent) notes never enter a cluster — they co-load with everything by design. When `git ls-files` is empty (no repo / no tracked files) the whole block is skipped, exactly as the stale-scope check already degrades.
 
@@ -48,7 +49,8 @@ Global (`*`/absent) notes never enter a cluster — they co-load with everything
 ### Part 2 — `recall.sh` recency tiebreak
 
 - The matched-note emission (line ~36) writes `cnt<TAB>path`; change it to `cnt<TAB>updated<TAB>path`, where `updated` is `field "$f" updated` (empty when absent).
-- The sort (line ~44) becomes `sort -t<TAB> -k1,1nr -k2,2r` followed by `cut -f3-`. ISO `YYYY-MM-DD` sorts lexically = chronologically; reverse (`-k2,2r`) puts the newest first and an empty `updated:` last, so an undated note loses the tie. Match-count (`-k1,1nr`) remains primary; the recency key only reorders genuine ties.
+- The sort (line ~44) becomes `sort -t<TAB> -k1,1nr -k2,2r` followed by `cut -f3-`. ISO `YYYY-MM-DD` sorts lexically = chronologically; reverse (`-k2,2r`) puts the newest first and an empty `updated:` last, so an undated note loses the tie. Match-count (`-k1,1nr`) remains primary; the recency key only reorders genuine ties. **Empirically verified on BSD sort during design:** `cnt=5` outranks all `cnt=3`; within `cnt=3`, order is `2026-06-02 → 2026-03-15 → 2026-01-01 → (undated)`. A full tie (equal count *and* date) falls through to a deterministic whole-line comparison.
+- Only the **matched** (scoped) note array is reordered; linked-note and global-shard ordering are unchanged (the issue scopes the tiebreak to match-count ties, which only the matched set has).
 
 ## 5. Components & data flow
 
@@ -72,6 +74,7 @@ Global (`*`/absent) notes never enter a cluster — they co-load with everything
 - **Tab safety:** memory note paths and basenames contain no tabs (glob of `*.md` under `MEM_DIR`); the `<TAB>` delimiter is unambiguous. `updated:` is an ISO date — no tabs.
 - **awk absence:** awk is POSIX and already used in `memory-record.sh` (`note_body_of`); no new dependency. If a cluster temp file is empty (no overlaps), awk prints nothing and no warning fires.
 - All overlap findings are warnings — `doctor.sh` still exits 0 on warnings, 1 only on the pre-existing error conditions.
+- **Warning stacking is intentional.** A note may emit overlap *and* a #161 non-glob/missing-`source:` warning *and* be part of a cluster simultaneously; doctor already stacks independent signals (e.g. stale + missing-source). No suppression — each warning is an orthogonal signal. (A stale note matches zero files, so it is never in a cluster — overlap and stale are mutually exclusive for a given note.)
 
 ## 7. Testing
 
