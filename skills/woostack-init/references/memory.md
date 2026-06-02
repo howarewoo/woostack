@@ -140,7 +140,7 @@ The scripts live under `skills/woostack-init/scripts/` relative to the woostack 
 | `build-index.sh` | `bash build-index.sh [<memdir>]` — regenerates `<memdir>/MEMORY.md` from note frontmatter; defaults to `.woostack/memory`. |
 | `doctor.sh` | `bash doctor.sh [<memdir>]` — lints the memory directory; warnings exit 0, errors exit 1. |
 
-All three scripts depend on `lib.sh` (frontmatter helpers `field()`, `note_body()`, `first_body_line()`) in the same directory. `doctor.sh` also calls `scope-match.sh`. Sourcing order: `lib.sh` first, then `scope-match.sh` if needed.
+`build-index.sh` and `doctor.sh` source `lib.sh` (frontmatter helpers `field()`, `note_body()`, `first_body_line()`) from the same directory. `doctor.sh` additionally invokes `scope-match.sh` as a subprocess for its stale-scope check. `scope-match.sh` is self-contained — it sources nothing.
 
 ---
 

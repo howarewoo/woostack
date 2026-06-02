@@ -597,7 +597,7 @@ updated: 2026-06-02
 source:
 ---
 This is an example scoped memory note. Replace or delete it.
-Notes link each other in the body with wikilinks like [[another-note]].
+Notes link each other in the body with wikilinks like [[example-note]].
 Recall loads this only when a working-set path matches `scope`.
 ```
 
@@ -610,7 +610,7 @@ cp skills/woostack-init/templates/example-note.md "$tmp/"
 bash skills/woostack-init/scripts/build-index.sh "$tmp" && cat "$tmp/MEMORY.md"
 bash skills/woostack-init/scripts/doctor.sh "$tmp"; echo "doctor exit=$?"
 ```
-Expected: index line `- [example-note](example-note.md) \`convention\` scope=\`*\` — Delete me — example of the memory note format`; doctor reports the `[[another-note]]` link as an **unresolved warning** but **exits 0** (warnings don't fail). Confirm `doctor exit=0`.
+Expected: index line `- [example-note](example-note.md) \`convention\` scope=\`*\` — Delete me — example of the memory note format`; doctor reports **no unresolved-link warning** (the example self-links `[[example-note]]`, which resolves) and **exits 0**. Confirm `doctor exit=0`.
 
 - [ ] **Step 3: Commit**
 
@@ -759,7 +759,7 @@ bash skills/woostack-init/scripts/doctor.sh .woostack/memory; echo "doctor exit=
 rm -f .woostack/memory/example-note.md .woostack/memory/MEMORY.md
 rmdir .woostack/memory 2>/dev/null || true
 ```
-Expected: index builds; doctor warns on the example's `[[another-note]]` but `doctor exit=0`.
+Expected: index builds; the example's `[[example-note]]` self-link resolves (no unresolved-link warning) and `doctor exit=0`.
 
 - [ ] **Step 3: shellcheck (if available)**
 
