@@ -42,10 +42,10 @@ Walks you through the [decision catalog](skills/woostack-bootstrap/references/de
 A fixed, gated chain that drives one feature from idea to implementation:
 
 ```
-brainstorm → HTML spec → grill → plan → execute (TDD) → offer PR
+brainstorm → markdown spec → grill → plan → execute (TDD) → offer PR
 ```
 
-It sequences proven sub-skills (superpowers brainstorming/writing-plans/executing-plans + grill-me) and inherits their approval gates rather than adding its own. Specs are written as self-contained HTML, plans as markdown, both under `.woostack/`. Work is steered toward reviewable PRs (soft target ≤500 LOC), one increment per cycle. It ends by *offering* a PR. It never merges. → [SKILL.md](skills/woostack-build/SKILL.md)
+It sequences proven sub-skills (superpowers brainstorming/writing-plans/executing-plans + grill-me) and inherits their approval gates rather than adding its own. Specs and plans are both written as markdown under `.woostack/`; an HTML render is available on demand for a richer view but is never the authored format. Work is steered toward reviewable PRs (soft target ≤500 LOC), one increment per cycle. It ends by *offering* a PR. It never merges. → [SKILL.md](skills/woostack-build/SKILL.md)
 
 ### `/woostack-review [PR#]`: parallel review swarm
 
@@ -88,9 +88,16 @@ Review and address-comments need the GitHub CLI (`gh`) authenticated for any ste
 
 ## Concepts
 
-**Artifacts live under `.woostack/`.** Each project the skills touch keeps its working artifacts there: HTML specs in `.woostack/specs/`, markdown plans in `.woostack/plans/`, and review config + memory in `.woostack/config.json` and `.woostack/memory.md`. `.woostack/metrics.json` is per-clone and gitignored. See [development.md](skills/woostack-bootstrap/references/development.md).
+**Artifacts live under `.woostack/`.** Each project the skills touch keeps its working artifacts there: markdown specs in `.woostack/specs/`, markdown plans in `.woostack/plans/`, and review config + memory in `.woostack/config.json` and `.woostack/memory.md`. `.woostack/metrics.json` is per-clone and gitignored. See [development.md](skills/woostack-bootstrap/references/development.md).
 
 **Branching model.** Bootstrapped projects use `main` (production) ← `staging` (integration) ← `feature/*` (one change, one PR). Feature branches cut from `staging` and PR back into it; `staging` merges to `main` on a release cadence. → [development.md](skills/woostack-bootstrap/references/development.md)
+
+**Memory: scope-routed notes that persist across runs.** The skills accumulate durable learnings — patterns, decisions, gotchas, conventions, hotspots — so later runs don't re-litigate or re-discover what an earlier run already settled. Memory is two coexisting layers, both checked into the repo:
+
+- **Flat shard** (`.woostack/memory.md`) — a free-form bullet list, always loaded in full. This is where accept-by-design dismissals land (so future reviews don't re-raise a finding you intentionally accepted).
+- **Scope-routed store** (`.woostack/memory/`) — one Markdown note per fact, each with a `scope:` glob declaring which files it governs (e.g. `packages/api/**`). A derived index (`MEMORY.md`) carries one cheap line per note. When a skill loads context for a working set of files, it matches only the notes whose scope overlaps those files, plus their direct `[[wikilinks]]` (one hop). Recall stays sub-linear: on a repo with 500 notes, only the handful touching the changed files load, not the whole corpus.
+
+Notes are written two ways: **distillation** at the end of a `woostack-build` cycle (durable cross-feature learnings, scoped to the touched files, with `source:` provenance back to the spec/plan), and the **accept-by-design** path from `woostack-address-comments` (review-noise suppression → flat shard). `/woostack-init` scaffolds the store; `build-index.sh` rebuilds the index; `doctor.sh` lints it. → [memory.md](skills/woostack-init/references/memory.md)
 
 **The review swarm + skeptical validation.** Review isn't a single agent reading a diff. It's `detect → fan-out (one sub-agent per angle) → merge → skeptical validator → post`. The validator runs as a prosecutor (find reasons each finding is real) and a defender (find reasons to drop it), and only findings that survive both get posted, which keeps the output low-noise. The chat-host swarm and the cloud GitHub Action run the *same* scripts and prompts. → [SKILL.md](skills/woostack-review/SKILL.md#architecture)
 
