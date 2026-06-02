@@ -45,5 +45,13 @@ err4="$(mktemp -d)/m"; mkdir -p "$err4"
 printf 'no frontmatter here\n' > "$err4/malformed.md"
 run_doctor "$err4"; assert_exit 1 "$CODE" "malformed frontmatter errors"
 
+err5="$(mktemp -d)/m"; mkdir -p "$err5"
+mk_note "$err5" notype.md $'name: x' 'b'
+run_doctor "$err5"; assert_exit 1 "$CODE" "missing type errors"
+
+err6="$(mktemp -d)/m"; mkdir -p "$err6"
+mk_note "$err6" nobody.md $'name: x\ntype: pattern' ''
+run_doctor "$err6"; assert_exit 1 "$CODE" "empty body errors"
+
 rm -rf "$repo"
 finish
