@@ -12,7 +12,7 @@ glue: it sequences proven sub-skills and **inherits their gates** — it adds no
 its own. The value is the order and the handoffs.
 
 ```
-brainstorming → write spec (markdown) → grill-me → writing-plans → executing-plans → ask: open PR?
+brainstorming → write spec (markdown) → grill-me → writing-plans → executing-plans → distill memory → ask: open PR?
 ```
 
 ## Dependency preflight
@@ -53,7 +53,16 @@ continue. If the user declines, fall back to following the skill's principle man
    the target.
 6. **Execute.** Invoke `superpowers:executing-plans` (or `superpowers:subagent-driven-development`)
    to work the plan with TDD and frequent commits.
-7. **Offer the PR.** When the increment lands on the branch, **ask** whether to open a PR. If
+7. **Distill memory.** When the increment lands, extract the **durable, reusable** learnings
+   from the spec/plan/implementation into scoped notes under `.woostack/memory/` — one fact
+   per file, `type` one of `pattern|decision|gotcha|convention`, `scope` the narrowest glob
+   covering the feature's touched files, `source` the spec or plan path. **Dedupe first**:
+   check `.woostack/memory/MEMORY.md` and update an existing note rather than adding a
+   duplicate. Then run `woostack-init`'s `build-index.sh` and `doctor.sh`; fix any error.
+   Distill only cross-feature knowledge — not feature-specific trivia. See the
+   [memory contract](../woostack-init/references/memory.md). When the store does not exist,
+   skip (or offer to run `/woostack-init` first). This is a work step, not an approval gate.
+8. **Offer the PR.** When the increment lands on the branch, **ask** whether to open a PR. If
    yes, open it (hands off to `woostack-review`). If no, stop on the branch.
 
 ## Hard constraints
@@ -63,3 +72,6 @@ continue. If the user declines, fall back to following the skill's principle man
   default location. HTML is a render-on-demand target only, not the authored format.
 - **Never merge.** build ends by offering a PR, nothing further.
 - **One increment per cycle.** Do not let a single build cycle balloon past a reviewable PR.
+- **Distill durable knowledge only.** The distill step writes scoped, deduplicated memory
+  notes — never feature-specific trivia, never a duplicate of an existing note. A small
+  curated store beats a large noisy one.

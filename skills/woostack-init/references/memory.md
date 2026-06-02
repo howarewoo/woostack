@@ -130,7 +130,24 @@ The recall procedure is the algorithm a skill follows to load only the memory no
 
 ---
 
-## 7. Scripts
+## 7. Distillation (write path)
+
+Beyond the manual / `memory-append.sh` flat-file writes, the primary way scoped notes are
+created is **distillation**: at the end of a `woostack-build` cycle, durable learnings from
+the spec/plan/implementation are written as `memory/` notes with:
+
+- `type` — `pattern | decision | gotcha | convention`.
+- `scope` — the narrowest glob covering the feature's touched files.
+- `source` — the spec or plan path the learning came from (provenance back to the full "why").
+- body — terse; `[[wikilinks]]` to related notes.
+
+Distillation **dedupes against `MEMORY.md` first** (update an existing note rather than adding
+a duplicate) and runs `build-index.sh` + `doctor.sh` afterward. Only cross-feature knowledge
+is distilled — not feature-specific trivia. This is distinct from the accept-by-design write
+path (`memory-append.sh` → flat `memory.md`), which suppresses review noise; both coexist
+under the additive-superset model.
+
+## 8. Scripts
 
 The scripts live under `skills/woostack-init/scripts/` relative to the woostack repo root. In a consumer repo they are invoked via the path resolved by the agent when the woostack-init skill is available.
 
@@ -144,7 +161,7 @@ The scripts live under `skills/woostack-init/scripts/` relative to the woostack 
 
 ---
 
-## 8. Degradation
+## 9. Degradation
 
 When a consuming skill is installed individually (not as part of the full woostack collection), the scripts under `skills/woostack-init/scripts/` may not be available. In that case the skill should:
 
