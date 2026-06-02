@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>woostack-init — Design Spec</title>
+<style>
+  :root { --bg:#0f1115; --panel:#171a21; --ink:#e6e9ef; --muted:#9aa4b2; --accent:#6ea8fe; --line:#2a2f3a;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55}
+  .wrap{max-width:920px;margin:0 auto;padding:48px 24px 96px}
+  h1{font-size:30px;letter-spacing:-.02em;margin:0 0 6px}
+  h2{font-size:21px;border-left:3px solid var(--accent);padding-left:10px;margin:40px 0 12px}
+  h3{font-size:16px;margin:22px 0 6px;color:var(--ink)}
+  .meta{color:var(--muted);font-size:13px;border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:28px}
+  code{font-family:var(--mono);background:#20242d;padding:1px 6px;border-radius:5px;font-size:13px}
+  pre{font-family:var(--mono);background:#20242d;border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;font-size:13px;line-height:1.45}
+  pre code{background:none;padding:0}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);text-transform:uppercase;font-size:12px;letter-spacing:.04em}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:14px 0}
+  ul{margin:8px 0;padding-left:22px} li{margin:4px 0}
+  .tag{display:inline-block;font-family:var(--mono);font-size:12px;background:#20242d;border:1px solid var(--line);border-radius:5px;padding:1px 6px;color:var(--accent)}
+</style>
+</head>
+<body><div class="wrap">
+  <h1>woostack-init</h1>
+  <div class="meta">Status: Draft · Date: 2026-06-02 · Branch: feat/woostack-init · Increment A of 4</div>
+
+  <h2>1. Problem</h2>
+  <div class="panel">
+    <p>woostack skills write into a per-repo <code>.woostack/</code> workspace, but nothing creates or owns it. It is born ad-hoc: <code>memory-append.sh</code> does <code>mkdir -p .woostack</code> on first write, woostack-build drops HTML specs and markdown plans into <code>.woostack/specs|plans</code>, and <code>.woostack/config.json</code> is hand-authored. There is no canonical setup step, no schema, and no validation.</p>
+    <p>The memory store is a single flat <code>.woostack/memory.md</code> bullet list that <code>prefetch.sh</code> copies whole (100&nbsp;KB cap) into every review worker. That dump-everything model does not scale: on a large codebase the team's accumulated gotchas/decisions become a wall of text fed to every angle regardless of which files a PR touches. There is no way to say "this rule governs <code>packages/api/**</code>" and load it only when that code is in play.</p>
+    <p>This increment lays the foundation: a skill that scaffolds and validates <code>.woostack/</code>, plus the contract for a scope-routed memory store that later increments migrate the skills onto.</p>
+  </div>
+
+  <h2>2. Goal</h2>
+  <div class="panel">
+    <p>Ship a new first-party skill <code>woostack-init</code> that scaffolds and repairs the <code>.woostack/</code> workspace in any repo (brownfield via <code>/woostack-init</code>; greenfield via woostack-bootstrap calling it), and that <strong>owns the canonical memory contract</strong> plus its tooling.</p>
+    <ul>
+      <li><strong>Scaffold the full workspace</strong>: <code>memory/</code> + derived index, flat <code>memory.md</code> global shard, <code>config.json</code> skeleton, <code>specs/</code> + <code>plans/</code> dirs, <code>.gitignore</code>.</li>
+      <li><strong>Define the scope-routed memory format</strong> in <code>references/memory.md</code>: line-oriented frontmatter, a derived <code>MEMORY.md</code> index, and the index-first → scope-match → one-hop-link recall procedure that makes recall scale to large codebases.</li>
+      <li><strong>Ship two pure-bash scripts</strong>: <code>build-index.sh</code> (regenerate the index) and <code>doctor.sh</code> (lint the store).</li>
+      <li><strong>Preserve the existing flat store</strong> as an additive superset: today's <code>.woostack/memory.md</code> stays valid and untouched as the always-loaded "global scope" shard.</li>
+    </ul>
+  </div>
+
+  <h2>3. Non-goals</h2>
+  <div class="panel">
+    <p>Strictly out of scope for increment A (reserved for later increments, must not be built here):</p>
+    <ul>
+      <li><strong>B — review migration.</strong> No changes to <code>prefetch.sh</code>, <code>memory-append.sh</code>, the review pipeline, or its SKILL.md. Review keeps reading the flat <code>memory.md</code> exactly as it does today. Scope-routing adoption in the review swarm is increment B.</li>
+      <li><strong>C — build/bootstrap/address wiring.</strong> No distill step in woostack-build, no bootstrap→init call, no memory-read in address-comments. (A may add the AGENTS.md skill table row + manual cross-links so the new skill is discoverable, but no behavioral wiring into the other skills.)</li>
+      <li><strong>D — Obsidian layer.</strong> No <code>.obsidian/</code> config scaffolding, no <code>obsidian eval</code> graph traversal. The <code>doctor</code> unresolved-link check is the portable stand-in.</li>
+      <li>No new runtime dependency. Scripts are bash + coreutils only — no node, python, or YAML library. (Matches the existing review scripts, which run in bare consumer CI.)</li>
+      <li>No migration of flat <code>memory.md</code> bullets into per-fact files. Coexistence, not conversion.</li>
+    </ul>
+  </div>
+
+  <h2>4. Approach</h2>
+  <div class="panel">
+    <h3>Additive superset, not replacement</h3>
+    <p>The flat <code>.woostack/memory.md</code> remains valid and is treated as the <strong>global-scope shard</strong>: always loaded, bullet format, written by the existing <code>memory-append.sh</code>. The new <code>.woostack/memory/</code> dir adds <strong>scoped per-fact notes</strong>. Any combination is valid — only-flat (today's repos), only-dir, or both. Nothing breaks; consumers adopt scoping lazily.</p>
+
+    <h3>Scope-routed recall is the scaling mechanism</h3>
+    <p>Each note declares a <code>scope:</code> glob list mapping it to the code it governs. Recall is <strong>agent behavior documented in the contract</strong>, not a script:</p>
+    <ol>
+      <li>Always load <code>memory/MEMORY.md</code> (one cheap line per note) + the flat <code>memory.md</code> global shard.</li>
+      <li>Compute the working-set of paths (skill-specific: review = changed files, build = planned files, address = touched files).</li>
+      <li><strong>Scope-match:</strong> load the body of any note whose <code>scope</code> glob hits any working-set path.</li>
+      <li><strong>One-hop link expand:</strong> load notes directly <code>[[linked]]</code> from step-3 notes. Bounded to one hop.</li>
+      <li>Stop. Unmatched notes are never loaded. (500 notes in a repo → ~8 loaded.)</li>
+    </ol>
+    <p>Routing needs only glob-matching — no graph engine, no Obsidian. A note with no <code>scope</code> (or <code>scope: *</code>) is global, which is exactly what the flat file's bullets implicitly are.</p>
+
+    <h3>The index is derived</h3>
+    <p><code>MEMORY.md</code> is regenerated from note frontmatter by <code>build-index.sh</code>, sorted deterministically. It is never hand-edited. Because it is derived rather than hand-appended, concurrent writers (e.g. a parallel review swarm) each drop their own note file and the index is rebuilt — removing the contended-append merge problem (the issue&nbsp;#53 failure class).</p>
+
+    <h3>Ownership by an init skill</h3>
+    <p>Rather than a loose shared directory, the contract and scripts live under the owning skill <code>skills/woostack-init/</code>. It is discoverable (<code>/woostack-init</code>), has a clear lifecycle verb, and is the single home other skills reference. woostack becomes a <strong>five-skill</strong> collection.</p>
+  </div>
+
+  <h2>5. Components &amp; data flow</h2>
+  <div class="panel">
+    <h3>5.1 Repo layout (shipped by this skill)</h3>
+<pre><code>skills/woostack-init/
+├── SKILL.md                  the /woostack-init verb
+├── references/
+│   └── memory.md             THE contract — schema + recall procedure (canonical)
+├── scripts/
+│   ├── build-index.sh        regenerate MEMORY.md from note frontmatter
+│   └── doctor.sh             lint the store
+└── templates/
+    ├── config.json           skeleton: { "review": {} }
+    ├── gitignore             tracked-vs-ignored rules for .woostack/
+    └── example-note.md       one worked scoped note</code></pre>
+
+    <h3>5.2 Runtime workspace (what /woostack-init scaffolds in a consumer repo)</h3>
+<pre><code>.woostack/
+├── memory.md        flat global shard — seeded empty if absent, NEVER clobbered
+├── memory/
+│   ├── MEMORY.md    derived index (build-index writes it)
+│   └── .gitkeep
+├── specs/           woostack-build HTML specs
+├── plans/           woostack-build markdown plans
+├── config.json      { "review": {} } skeleton; sibling tool namespaces documented
+└── .gitignore       ignores transient (e.g. metrics.json); keeps memory/specs/plans tracked</code></pre>
+
+    <h3>5.3 Note frontmatter (line-oriented, bash-parseable)</h3>
+<pre><code>---
+name: orpc-error-mapping
+type: pattern
+scope: packages/api/**, packages/api/orpc/**
+tags: orpc, errors
+links: tanstack-query-retries
+updated: 2026-06-02
+source:
+---
+oRPC ORPCError maps to TanStack retry policy: throw typed,
+let [[tanstack-query-retries]] decide. Terse body.</code></pre>
+    <ul>
+      <li>One <code>key: value</code> per line; lists are comma-separated (NOT YAML block lists) so <code>grep '^scope:' | cut</code> parses them in bash.</li>
+      <li><span class="tag">required</span> <code>name</code>, <code>type</code>, and a non-empty body. Everything else optional.</li>
+      <li><code>type</code> enum: <code>decision | pattern | gotcha | convention | hotspot</code>. (<code>spec | plan</code> are reserved for increment C and are excluded from recall routing.)</li>
+      <li><code>scope</code> omitted or <code>*</code> → global (always loaded). Otherwise a comma list of globs.</li>
+      <li><code>source</code> → provenance path (used by the increment-C distill step; empty in A).</li>
+      <li>Body links other notes with <code>[[name]]</code>.</li>
+    </ul>
+
+    <h3>5.4 Derived index line format</h3>
+<pre><code>- [orpc-error-mapping](orpc-error-mapping.md) `pattern` scope=`packages/api/**` — oRPC error → TanStack retry policy</code></pre>
+    <p>Sorted by <code>type</code> then <code>name</code> → stable diffs.</p>
+
+    <h3>5.5 <code>/woostack-init</code> control flow</h3>
+    <ol>
+      <li>Resolve target dir (arg or cwd). Detect existing <code>.woostack/</code> contents.</li>
+      <li>For each scaffold item: create if missing. If it <strong>exists</strong>, prompt <em>keep / overwrite</em> — unless <code>--force</code> (overwrite all) or <code>--no-clobber</code> (skip all existing silently). Greenfield has no existing files, so no prompts fire.</li>
+      <li>Run <code>build-index.sh</code> then <code>doctor.sh</code>.</li>
+      <li>Report: created vs skipped items, and any doctor warnings/errors.</li>
+    </ol>
+
+    <h3>5.6 <code>build-index.sh</code></h3>
+    <p>Walk <code>.woostack/memory/*.md</code> (skip <code>MEMORY.md</code>). For each: extract <code>name</code>, <code>type</code>, first <code>scope</code> glob, and a hook (first non-empty body line, truncated). Emit sorted index lines to <code>MEMORY.md</code>. Idempotent — same input, byte-identical output.</p>
+
+    <h3>5.7 <code>doctor.sh</code> (lint)</h3>
+    <table>
+      <tr><th>Check</th><th>Severity</th><th>Exit</th></tr>
+      <tr><td><code>scope</code> glob matches zero files in repo</td><td>warn (stale)</td><td>0</td></tr>
+      <tr><td><code>[[link]]</code> with no matching note file</td><td>warn (unresolved)</td><td>0</td></tr>
+      <tr><td>duplicate <code>name</code></td><td>error</td><td>1</td></tr>
+      <tr><td>missing required field (<code>name</code>/<code>type</code>/body)</td><td>error</td><td>1</td></tr>
+      <tr><td>unknown <code>type</code> value</td><td>error</td><td>1</td></tr>
+      <tr><td>malformed frontmatter (not line-oriented / no <code>---</code> fences)</td><td>error</td><td>1</td></tr>
+    </table>
+    <p>Warnings are informational (exit 0); errors fail the run (exit 1) so the check is gate-able in CI later.</p>
+  </div>
+
+  <h2>6. Error handling</h2>
+  <div class="panel">
+    <ul>
+      <li><strong>Never clobber memory.</strong> Existing <code>memory.md</code>, notes, and <code>config.json</code> are preserved unless the user explicitly answers overwrite (or passes <code>--force</code>). This is the cardinal rule — accumulated team knowledge must survive a re-run.</li>
+      <li><strong>Conflict prompt vs non-interactive.</strong> Default is interactive prompt-on-conflict. <code>--force</code> / <code>--no-clobber</code> give deterministic non-interactive behavior for bootstrap and CI. The skill states which mode it used in its report.</li>
+      <li><strong>Scripts use <code>set -euo pipefail</code></strong> and fail loudly. <code>build-index</code> writing a malformed line is prevented by validating each field before emit; on a parse failure it errors rather than writing a half-built index.</li>
+      <li><strong>doctor is advisory in A.</strong> It is not yet wired into any gate (that is B/CI). It reports; the user decides. No silent suppression — every stale scope and unresolved link is printed.</li>
+      <li><strong>Missing shared assets degrade gracefully.</strong> If a later skill cannot find <code>skills/woostack-init/scripts/*</code> (single-skill install), it falls back to the documented manual procedure and says so — it does not fail silently.</li>
+    </ul>
+  </div>
+
+  <h2>7. Testing</h2>
+  <div class="panel">
+    <p>This repo has no app test runner. Verification is script-level (bash) + manual skill walkthroughs, consistent with the existing review scripts.</p>
+    <h3>Script tests (bats-style or plain bash asserts, run locally)</h3>
+    <ul>
+      <li><code>build-index</code>: empty dir → empty index; N notes → N sorted lines; re-run → byte-identical output (idempotent); a note missing <code>scope</code> → indexed as global.</li>
+      <li><code>doctor</code>: clean store → exit 0, no warnings; stale scope → warn + exit 0; unresolved <code>[[link]]</code> → warn + exit 0; duplicate name / bad type / missing field / malformed frontmatter → error + exit 1.</li>
+      <li>Frontmatter parse: comma lists split correctly; values with spaces survive; CRLF tolerated.</li>
+    </ul>
+    <h3>Skill walkthrough (manual)</h3>
+    <ul>
+      <li>Greenfield: <code>/woostack-init</code> in an empty repo → full tree created, no prompts, doctor clean.</li>
+      <li>Brownfield: run in a repo that already has flat <code>memory.md</code> + <code>config.json</code> → existing files preserved (prompt shown), missing dirs added, index built.</li>
+      <li><code>--force</code> and <code>--no-clobber</code> behave as specified with no prompts.</li>
+    </ul>
+    <h3>Self-check</h3>
+    <ul>
+      <li>Every cross-link in <code>references/memory.md</code> and AGENTS.md resolves.</li>
+      <li>The shipped <code>example-note.md</code> passes <code>doctor</code> and indexes correctly.</li>
+    </ul>
+  </div>
+
+  <h2>8. Open questions</h2>
+  <div class="panel">
+    <ul>
+      <li><strong>Shared-dir name.</strong> Resolved: assets live under <code>skills/woostack-init/</code> (owning skill), not a bare <code>shared/</code> dir.</li>
+      <li><strong>Hook source for the index.</strong> First non-empty body line, truncated — or an explicit optional <code>hook:</code> frontmatter field? Leaning first-body-line to avoid another required-ish field; revisit if hooks read poorly.</li>
+      <li><strong><code>.gitignore</code> granularity.</strong> Confirm which <code>.woostack/</code> artifacts are transient (per-clone <code>metrics.json</code> is; memory/specs/plans are tracked). Finalize the template during planning.</li>
+      <li><strong>Single-skill install bundling.</strong> <code>shared</code>-style assets under one skill may not ship when only another skill is installed. Accepted for now (collection install is the supported path); documented as a degradation, not a blocker.</li>
+    </ul>
+  </div>
+</div></body>
+</html>
