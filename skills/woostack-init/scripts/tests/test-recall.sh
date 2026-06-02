@@ -97,4 +97,35 @@ assert_contains "$out" "A body"  "recall output intact when stamping fails"
 assert_contains "$err" "stamp failed" "stamp failure logged to stderr"
 rm -rf "$woo5" "$p5"
 
+# --- recency tiebreak: equal match-count, newer updated: ranks first ---
+woo6="$(mktemp -d)"; md6="$woo6/memory"; mkdir -p "$md6"
+mk_note "$md6" older.md $'name: older\ntype: pattern\nscope: packages/api/**\nupdated: 2026-01-01' 'OLDER body'
+mk_note "$md6" newer.md $'name: newer\ntype: pattern\nscope: packages/api/**\nupdated: 2026-06-02' 'NEWER body'
+p6="$(mktemp)"; printf 'packages/api/x.ts\n' > "$p6"
+out="$(bash "$RECALL" "$woo6" "$p6")"
+o_line="$(printf '%s\n' "$out" | grep -n 'OLDER body' | cut -d: -f1)"
+n_line="$(printf '%s\n' "$out" | grep -n 'NEWER body' | cut -d: -f1)"
+[ -n "$o_line" ] && [ -n "$n_line" ] && [ "$n_line" -lt "$o_line" ] \
+  && PASS=$((PASS+1)) \
+  || { FAIL=$((FAIL+1)); echo "  FAIL: recency tie — newer(line $n_line) should precede older(line $o_line)"; }
+
+# --- undated loses the tie to a dated note of equal count ---
+woo7="$(mktemp -d)"; md7="$woo7/memory"; mkdir -p "$md7"
+mk_note "$md7" undated.md $'name: undated\ntype: pattern\nscope: packages/api/**' 'STALE body'
+mk_note "$md7" dated.md   $'name: dated\ntype: pattern\nscope: packages/api/**\nupdated: 2026-06-02' 'FRESH body'
+p7="$(mktemp)"; printf 'packages/api/x.ts\n' > "$p7"
+out="$(bash "$RECALL" "$woo7" "$p7")"
+u_line="$(printf '%s\n' "$out" | grep -n 'STALE body' | cut -d: -f1)"
+d_line="$(printf '%s\n' "$out" | grep -n 'FRESH body' | cut -d: -f1)"
+[ -n "$u_line" ] && [ -n "$d_line" ] && [ "$d_line" -lt "$u_line" ] \
+  && PASS=$((PASS+1)) \
+  || { FAIL=$((FAIL+1)); echo "  FAIL: undated tie — dated(line $d_line) should precede undated(line $u_line)"; }
+
+# --- under a tight cap, the OLDER same-count note is the one dropped ---
+cap_out="$(RECALL_CAP=40 bash "$RECALL" "$woo6" "$p6" 2>/dev/null)"
+assert_contains "$cap_out" "NEWER body" "newer note survives the cap on a tie"
+assert_not_contains "$cap_out" "OLDER body" "older note dropped first under cap on a tie"
+
+rm -rf "$woo6" "$p6" "$woo7" "$p7"
+
 finish
