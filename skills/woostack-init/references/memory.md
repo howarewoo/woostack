@@ -164,13 +164,19 @@ The scripts live under `skills/woostack-init/scripts/` relative to the woostack 
 |---|---|
 | `scope-match.sh` | `printf '%s\n' <paths> \| bash scope-match.sh '<glob-spec>'` — prints matching paths from stdin; exits 0 if any matched, 1 if none. |
 | `build-index.sh` | `bash build-index.sh [<memdir>]` — regenerates `<memdir>/MEMORY.md` from note frontmatter; defaults to `.woostack/memory`. |
-| `doctor.sh` | `bash doctor.sh [<memdir>]` — lints the memory directory; warnings exit 0, errors exit 1. Also emits the dead-note warning described below. |
+| `doctor.sh` | `bash doctor.sh [<memdir>]` — lints the memory directory; warnings exit 0, errors exit 1. Also emits the staleness warnings described below. |
 | `recall.sh` | `bash recall.sh <woostack_dir> <paths_file>` — composes the per-PR memory context (see §6) and **stamps recall telemetry** on every selected note. |
 | `graph.sh` | `bash graph.sh <memdir> <note> [--links\|--backlinks]` — lists a note's outbound wikilinks (`--links`, default) or the notes that link to it (`--backlinks`). Grep-based by default; see §9 for the opt-in Obsidian path. |
 
 `build-index.sh`, `doctor.sh`, and `recall.sh` source `lib.sh` (frontmatter helpers `field()`, `note_body()`, `first_body_line()`; the atomic frontmatter mutator `set_field()`; and the date helpers `_woo_now()`/`_woo_epoch()`) from the same directory. `doctor.sh` additionally invokes `scope-match.sh` as a subprocess for its stale-scope check. `scope-match.sh` and `graph.sh` are self-contained — they source nothing.
 
-**Recall telemetry & the dead-note check.** `recall.sh` stamps `recall_count`/`last_recalled` (§3) on every selected note — matched + one-hop linked + global — as a best-effort side effect: a write failure (e.g. a read-only checkout) logs `recall: stamp failed <note>` to stderr but never changes recall's output or exit status. Ephemeral CI clones therefore simply do not accrue telemetry; persistent checkouts do. `doctor.sh` turns that signal into a **dead-note warning** (exit 0): a note whose `updated:` date is older than `WOOSTACK_DEAD_DAYS` (default 90) days **and** whose `recall_count` is absent or 0 is flagged as a prune candidate. Notes without an `updated:` field have no age basis and are skipped. `WOOSTACK_NOW` (default `date +%F`) overrides "today" for deterministic runs and tests.
+**Staleness warnings.** `doctor.sh` emits warning-only findings for cheap structural staleness signals:
+
+- **Orphaned scope:** a note with a non-global `scope:` whose globs match no tracked files in `git ls-files` is flagged as stale. This catches notes scoped to paths that were deleted or moved.
+- **Stale provenance:** a note whose `source:` starts with `.woostack/specs/` or `.woostack/plans/` is expected to point at an authored spec or plan in the current repo. If that file is missing, the note is flagged for review. Other provenance forms, such as `source: pr-165`, are not treated as filesystem paths.
+- **Dead note:** `recall.sh` stamps `recall_count`/`last_recalled` (§3) on every selected note — matched + one-hop linked + global — as a best-effort side effect: a write failure (e.g. a read-only checkout) logs `recall: stamp failed <note>` to stderr but never changes recall's output or exit status. Ephemeral CI clones therefore simply do not accrue telemetry; persistent checkouts do. `doctor.sh` turns that signal into a warning when a note's `updated:` date is older than `WOOSTACK_DEAD_DAYS` (default 90) days and its `recall_count` is absent or 0. Notes without an `updated:` field have no age basis and are skipped. `WOOSTACK_NOW` (default `date +%F`) overrides "today" for deterministic runs and tests.
+
+`doctor.sh` also warns on unresolved body `[[wikilinks]]`; those are graph integrity warnings rather than staleness signals.
 
 ---
 

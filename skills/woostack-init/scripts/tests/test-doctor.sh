@@ -22,6 +22,27 @@ pushd "$repo" >/dev/null; run_doctor ".woostack/memory"; popd >/dev/null
 assert_contains "$OUT" "stale" "stale scope warned"
 assert_exit 0 "$CODE" "warnings still exit 0"
 
+# missing .woostack source → warn, exit 0
+mk_note "$md" stale-source-spec.md $'name: stale-source-spec\ntype: pattern\nscope: packages/api/**\nsource: .woostack/specs/missing.md' 'body'
+pushd "$repo" >/dev/null; run_doctor ".woostack/memory"; popd >/dev/null
+assert_contains "$OUT" "source '.woostack/specs/missing.md' is missing" "missing spec source warned"
+assert_exit 0 "$CODE" "missing spec source is a warning"
+
+mk_note "$md" stale-source-plan.md $'name: stale-source-plan\ntype: pattern\nscope: packages/api/**\nsource: .woostack/plans/missing.md' 'body'
+pushd "$repo" >/dev/null; run_doctor ".woostack/memory"; popd >/dev/null
+assert_contains "$OUT" "source '.woostack/plans/missing.md' is missing" "missing plan source warned"
+assert_exit 0 "$CODE" "missing plan source is a warning"
+
+mkdir -p "$repo/.woostack/specs" "$repo/.woostack/plans"
+touch "$repo/.woostack/specs/existing.md" "$repo/.woostack/plans/existing.md"
+mk_note "$md" live-source-spec.md $'name: live-source-spec\ntype: pattern\nscope: packages/api/**\nsource: .woostack/specs/existing.md' 'body'
+mk_note "$md" live-source-plan.md $'name: live-source-plan\ntype: pattern\nscope: packages/api/**\nsource: .woostack/plans/existing.md' 'body'
+mk_note "$md" pr-source.md $'name: pr-source\ntype: convention\nscope: packages/api/**\nsource: pr-165' 'body'
+pushd "$repo" >/dev/null; run_doctor ".woostack/memory"; popd >/dev/null
+assert_not_contains "$OUT" "live-source-spec" "existing spec source is not warned"
+assert_not_contains "$OUT" "live-source-plan" "existing plan source is not warned"
+assert_not_contains "$OUT" "pr-source" "PR source is not treated as a filesystem path"
+
 # unresolved wikilink → warn
 mk_note "$md" link.md $'name: link\ntype: pattern\nscope: packages/api/**' 'see [[ghost]] note'
 pushd "$repo" >/dev/null; run_doctor ".woostack/memory"; popd >/dev/null
