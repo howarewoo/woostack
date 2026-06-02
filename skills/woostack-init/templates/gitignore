@@ -1,0 +1,3 @@
+# Transient, per-clone — not shared knowledge.
+metrics.json
+*.local.*
