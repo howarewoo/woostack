@@ -127,7 +127,7 @@ write_metrics() {
 emit_angle_metrics() {
   [ "$metrics_enabled" = "true" ] || return 0
   python3 - "$RAW" "$PROSECUTOR" "$DEFENDER" "$FINAL" "$ANGLE_METRICS" "$1" "$2" <<'PY'
-import json, sys
+import json, re, sys
 
 raw_p, pros_p, def_p, final_p, out_p, mode, degraded = sys.argv[1:8]
 
@@ -180,7 +180,38 @@ def sev_hist(items, a):
 def blocking_count(items, a):
     return sum(1 for f in items if angle_of(f) == a and bool(f.get("blocking", False)))
 
-out = {"schema_version": 1, "mode": mode, "degraded": degraded == "true", "angles": {}}
+# Cross-angle overlap (redundancy signal). Cluster RAW findings by identity
+# key (file, line, title_stem) — the merge-findings dedup key minus `angle` —
+# so the same logical issue raised by multiple angles lands in one cluster.
+# Unanchored findings (no file or no positive integer line) are EXCLUDED:
+# without a stable anchor they cannot credibly be "the same issue" as another,
+# and would otherwise form phantom clusters under a degenerate key.
+def _title_stem(s):
+    return re.sub(r"[^a-z0-9]+", "", (s or "").lower())[:40]
+
+clusters = {}
+for f in raw:
+    file = f.get("file")
+    try:
+        line = int(f.get("line"))
+    except (TypeError, ValueError):
+        continue
+    if not file or line <= 0:
+        continue
+    key = (file, line, _title_stem(f.get("title")))
+    clusters.setdefault(key, set()).add(angle_of(f))
+
+overlap_with = {a: {} for a in angles}
+for angle_set in clusters.values():
+    if len(angle_set) < 2:
+        continue
+    for a in angle_set:
+        bucket = overlap_with.setdefault(a, {})
+        for b in angle_set:
+            if a != b:
+                bucket[b] = bucket.get(b, 0) + 1
+
+out = {"schema_version": 2, "mode": mode, "degraded": degraded == "true", "angles": {}}
 
 for a in angles:
     kept = final_c.get(a, 0)
@@ -196,6 +227,9 @@ for a in angles:
         "nonblocking_count": kept - blk,
         "severity": sev_hist(final, a),
     }
+    ow = overlap_with.get(a, {})
+    rec["overlap_with"] = ow
+    rec["overlap_total"] = sum(ow.values())
     if has_pros:
         prok = pros_c.get(a, 0)
         rec["prosecutor_kept"] = prok
