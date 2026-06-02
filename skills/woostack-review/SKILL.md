@@ -162,7 +162,7 @@ Key reference (JSON has no comments, so the per-key semantics live here):
 - **`models`** — per-tier slug overrides; the action input `inputs.model` still wins.
 - **`fix_commands`** — reserved for `--loop` mode (issue #15).
 - **`disable_adversarial`** — cost-sensitive opt-out for the prosecutor+defender validator (issue #13). When `true`, only the defender pass runs and its output becomes `findings.json` directly.
-- **`metrics`**: opt in to per-angle signal/noise metrics (bool, default `false`) — emit `findings.metrics.json` per run and fold a rolling `.woostack/metrics.json` aggregate (local only). See Stage 6.5.
+- **`metrics`**: opt in to per-angle signal/noise metrics (bool, default `false`) — emit `findings.metrics.json` per run and fold a rolling `.woostack/metrics.json` aggregate (local only). Each angle also carries `overlap_total` + `overlap_with` (how often another angle raised the same issue, on the raw pre-validation set — a redundancy signal). Aggregate schema is v2; an older v1 aggregate is reseeded on first fold. See Stage 6.5.
 - **`chunking.max_loc`** — diff-chunking threshold (issue #14). When the post-ignore diff exceeds this many changed lines, prefetch splits it into chunks honoring workspace package roots > top-level dirs > file-LOC-balanced groups; each angle fans out as angles × chunks parallel sub-agents. `0` disables chunking; missing => 4000.
 
 **Precedence**: for the angle set, `angles.force` beats `angles.skip` when the same angle is listed in both. For model resolution, the action input `inputs.model` beats `models.<tier>` which beats the table default in `prompts/_header.md`. `ignore` is applied to both file paths and the per-file diff sections before angle gates evaluate.
@@ -219,7 +219,7 @@ When prefetch resolves a PR number AND finds an open PR, it produces the full ar
 | `raw_findings.json` | `merge-findings.sh` | validator passes | Merged, chunk-collapsed findings |
 | `findings.json` | `intersect-findings.sh` | Stage 5 posting | Final validated set |
 | `validator-metrics.json` | `intersect-findings.sh` | observability | `prosecutor_count`, `defender_count`, `kept_count`, `disagreement_count`, `mode`, `degraded` |
-| `findings.metrics.json` | `intersect-findings.sh` | metrics fold, telemetry | Per-angle signal/noise breakdown. Emitted **only when `review.metrics: true`** in config. Keyed by angle: `raw_count`, `prosecutor_kept`, `defender_kept`, `kept`, `dropped_by_defender`, `dropped_by_prosecutor`, `blocking_count`, `nonblocking_count`, `severity` |
+| `findings.metrics.json` | `intersect-findings.sh` | metrics fold, telemetry | Per-angle signal/noise breakdown. Emitted **only when `review.metrics: true`** in config. Keyed by angle: `raw_count`, `prosecutor_kept`, `defender_kept`, `kept`, `dropped_by_defender`, `dropped_by_prosecutor`, `blocking_count`, `nonblocking_count`, `severity`, `overlap_total`, `overlap_with` (per-other-angle co-occurrence counts on the raw set; schema v2) |
 
 **If no PR number resolved (local mode):**
 
