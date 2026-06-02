@@ -62,8 +62,12 @@ let [[tanstack-query-retries]] decide. Terse body.
 | `scope` | no | Comma-separated glob list; omitted or `*` means global (see §5). |
 | `hook` | no | One-line index summary. If absent, the index falls back to the first non-empty body line, truncated to ~80 characters. |
 | `tags` | no | Comma list; informational only in increment A. |
-| `updated` | no | ISO date; informational. |
+| `updated` | no | ISO date the note's content was last written. Informational, **and** the age basis for `doctor.sh`'s dead-note check (see §8) — a note without it cannot be aged. |
 | `source` | no | Provenance path (used by the increment-C distill step; empty in A). |
+| `recall_count` | no | **Tool-managed.** Cumulative count of recall runs that loaded this note, written by `recall.sh`. Never hand-edit. Absent ⇒ never recalled. |
+| `last_recalled` | no | **Tool-managed.** ISO date of the most recent recall load, written by `recall.sh`. Never hand-edit. |
+
+`recall_count` and `last_recalled` are **written by tooling, not by hand** — `recall.sh` stamps them (best-effort) on every note it loads. They are the recall-telemetry signal feeding `doctor.sh`'s dead-note check (see §8).
 
 **Caution:** hook or body text containing a backtick can render as ambiguous Markdown in the derived index line; keep hooks plain text.
 
@@ -155,10 +159,13 @@ The scripts live under `skills/woostack-init/scripts/` relative to the woostack 
 |---|---|
 | `scope-match.sh` | `printf '%s\n' <paths> \| bash scope-match.sh '<glob-spec>'` — prints matching paths from stdin; exits 0 if any matched, 1 if none. |
 | `build-index.sh` | `bash build-index.sh [<memdir>]` — regenerates `<memdir>/MEMORY.md` from note frontmatter; defaults to `.woostack/memory`. |
-| `doctor.sh` | `bash doctor.sh [<memdir>]` — lints the memory directory; warnings exit 0, errors exit 1. |
+| `doctor.sh` | `bash doctor.sh [<memdir>]` — lints the memory directory; warnings exit 0, errors exit 1. Also emits the dead-note warning described below. |
+| `recall.sh` | `bash recall.sh <woostack_dir> <paths_file>` — composes the per-PR memory context (see §6) and **stamps recall telemetry** on every selected note. |
 | `graph.sh` | `bash graph.sh <memdir> <note> [--links\|--backlinks]` — lists a note's outbound wikilinks (`--links`, default) or the notes that link to it (`--backlinks`). Grep-based by default; see §9 for the opt-in Obsidian path. |
 
-`build-index.sh` and `doctor.sh` source `lib.sh` (frontmatter helpers `field()`, `note_body()`, `first_body_line()`) from the same directory. `doctor.sh` additionally invokes `scope-match.sh` as a subprocess for its stale-scope check. `scope-match.sh` and `graph.sh` are self-contained — they source nothing.
+`build-index.sh`, `doctor.sh`, and `recall.sh` source `lib.sh` (frontmatter helpers `field()`, `note_body()`, `first_body_line()`; the atomic frontmatter mutator `set_field()`; and the date helpers `_woo_now()`/`_woo_epoch()`) from the same directory. `doctor.sh` additionally invokes `scope-match.sh` as a subprocess for its stale-scope check. `scope-match.sh` and `graph.sh` are self-contained — they source nothing.
+
+**Recall telemetry & the dead-note check.** `recall.sh` stamps `recall_count`/`last_recalled` (§3) on every selected note — matched + one-hop linked + global — as a best-effort side effect: a write failure (e.g. a read-only checkout) logs `recall: stamp failed <note>` to stderr but never changes recall's output or exit status. Ephemeral CI clones therefore simply do not accrue telemetry; persistent checkouts do. `doctor.sh` turns that signal into a **dead-note warning** (exit 0): a note whose `updated:` date is older than `WOOSTACK_DEAD_DAYS` (default 90) days **and** whose `recall_count` is absent or 0 is flagged as a prune candidate. Notes without an `updated:` field have no age basis and are skipped. `WOOSTACK_NOW` (default `date +%F`) overrides "today" for deterministic runs and tests.
 
 ---
 
