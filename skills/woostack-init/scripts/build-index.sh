@@ -9,6 +9,7 @@ MEM_DIR="${1:-.woostack/memory}"
 INDEX="$MEM_DIR/MEMORY.md"
 
 tmp="$(mktemp)"
+trap 'rm -f "$tmp"' EXIT
 shopt -s nullglob
 for f in "$MEM_DIR"/*.md; do
   base="$(basename "$f")"

@@ -18,7 +18,6 @@ assert_contains "$idx" "- [beta](beta.md) \`decision\` scope=\`a/**\`" "beta use
 assert_contains "$idx" "- [zeta](zeta.md) \`pattern\` scope=\`apps/web/**\` — zeta hook" "zeta uses hook field"
 
 # sorted: decisions (alpha, beta) before pattern (zeta); alpha before beta
-order="$(printf '%s\n' "$idx" | grep -n '\- \[' | tr '\n' ' ')"
 a=$(printf '%s\n' "$idx" | grep -n 'alpha' | cut -d: -f1)
 b=$(printf '%s\n' "$idx" | grep -n 'beta'  | cut -d: -f1)
 z=$(printf '%s\n' "$idx" | grep -n 'zeta'  | cut -d: -f1)
@@ -29,7 +28,10 @@ cp "$d/MEMORY.md" "$d/.first"
 bash "$BI" "$d"
 assert_eq "$(cat "$d/MEMORY.md")" "$(cat "$d/.first")" "idempotent rebuild"
 
-# never reads flat memory.md
-echo "- flat bullet" > "$d/../memory.md" 2>/dev/null || true
-rm -rf "$d"
+# flat memory.md is never touched by build-index
+flat="$d/../memory.md"
+echo "- flat bullet" > "$flat"
+bash "$BI" "$d"
+assert_not_contains "$(cat "$flat")" "alpha" "flat memory.md not touched"
+rm -rf "$d" "$flat"
 finish
