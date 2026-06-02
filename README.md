@@ -25,13 +25,13 @@ Templates rot. Dependencies drift, breaking changes pile up, and every new proje
 pnpx skills add howarewoo/woostack
 ```
 
-This installs the woostack **collection** (skills: woostack-bootstrap, woostack-build, woostack-review, woostack-address-comments) into your agent's skill directory and records it in `skills-lock.json`. Works in any agent that respects the `skills` convention: Claude Code, Cursor, Codex, Aider, and others.
+This installs the woostack **collection** (skills: woostack-init, woostack-bootstrap, woostack-build, woostack-review, woostack-address-comments) into your agent's skill directory and records it in `skills-lock.json`. Works in any agent that respects the `skills` convention: Claude Code, Cursor, Codex, Aider, and others.
 
 > **pnpm is the recommended package manager.** Commands in this repo use `pnpx` (and `pnpm`) over `npx` / `npm`. If you only have npm, `npx skills add howarewoo/woostack` works too, but woostack-bootstrapped projects use a pnpm catalog, so pnpm is the path of least friction.
 
 ## How it works
 
-Each command is a skill with its own gated procedure. Together they cover the life of a change: scaffold, build, review, iterate. Run a command by name in your agent (e.g. `/woostack-build add password reset`); the agent loads that skill's `SKILL.md` and follows it. Only `bootstrap` is greenfield-specific. `build`, `review`, and `address-comments` operate on any repo, whether woostack scaffolded it or not.
+Each command is a skill with its own gated procedure. Together they cover the life of a change: scaffold, build, review, iterate. Run a command by name in your agent (e.g. `/woostack-build add password reset`); the agent loads that skill's `SKILL.md` and follows it. **Codex syntax differs:** use `$woostack-build add password reset` or open `/skills` and select the skill. Only `bootstrap` is greenfield-specific. `build`, `review`, and `address-comments` operate on any repo, whether woostack scaffolded it or not.
 
 ### `/woostack-bootstrap <goal>`: scaffold a new monorepo
 
@@ -70,7 +70,7 @@ pnpx skills add howarewoo/woostack          # install the collection into your a
 
 /woostack-bootstrap a habit-tracker with web + mobile + API   # scaffolds a fresh repo; walks you through decisions first
 /woostack-build add streak tracking with a weekly reset       # build a feature in the new repo
-/woostack-review 42                                            # review the PR build opened
+/woostack-review 42                                           # review the PR build opened
 /woostack-address-comments 42                                 # iterate on the review's findings
 ```
 
@@ -80,8 +80,8 @@ pnpx skills add howarewoo/woostack          # install the collection into your a
 pnpx skills add howarewoo/woostack          # install once
 
 /woostack-build add CSV export to the reports page   # feature loop in your current repo
-/woostack-review 1337                                 # review the PR
-/woostack-address-comments 1337                       # iterate
+/woostack-review 1337                                # review the PR
+/woostack-address-comments 1337                      # iterate
 ```
 
 Review and address-comments need the GitHub CLI (`gh`) authenticated for any step that touches a PR.
