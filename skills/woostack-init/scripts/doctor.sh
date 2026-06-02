@@ -54,6 +54,16 @@ for f in "$MEM_DIR"/*.md; do
       ;;
   esac
 
+  # Distillation gate: every note needs provenance (§7).
+  [ -z "$source_path" ] && warn "$base: missing source: (provenance required)"
+
+  # Non-glob scope = trivia signal. Exempt global (*) and review-provenance notes
+  # (review records deliberately scope narrowly to suppress an accepted finding).
+  case "$source_path" in pr-*|address-comments) is_review=1 ;; *) is_review= ;; esac
+  if [ -n "$scope" ] && [ "$scope" != "*" ] && [ -z "$is_review" ] && [ "${scope#*\*}" = "$scope" ]; then
+    warn "$base: non-glob scope '$scope' (possible trivia — prefer a glob)"
+  fi
+
   while IFS= read -r link; do
     [ -z "$link" ] && continue
     [ -f "$MEM_DIR/$link.md" ] || warn "$base: unresolved [[$link]]"
@@ -73,6 +83,8 @@ for f in "$MEM_DIR"/*.md; do
         warn "$base: dead note — written ${age}d ago, never recalled (prune candidate)"
       fi
     fi
+  else
+    warn "$base: missing updated: (cannot be aged — add updated:)"
   fi
 done
 rm -f "$seen"

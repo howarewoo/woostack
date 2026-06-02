@@ -145,6 +145,15 @@ learnings from the spec/plan/implementation are written as `memory/` notes with:
 - `source` — the spec or plan path the learning came from (provenance back to the full "why").
 - body — terse; `[[wikilinks]]` to related notes.
 
+**Reject-by-default gate.** Before writing any note, it must pass every check — fewer, denser notes beat many thin ones:
+
+1. **Cross-feature test** — if `scope:` is a single literal file/path (no glob), reject as trivia. Scope must be a glob that could plausibly fire on a *different* feature's files.
+2. **Provenance required** — no `source:`, no note. Every durable learning traces back to a spec or plan.
+3. **Dedupe (strengthened)** — exact-name match against `MEMORY.md` **plus** a fuzzy compare of the candidate `hook:` against existing hooks to catch near-duplicates phrased differently; update the existing note rather than adding. (This compare is agent judgment; store-level collision surfacing is tracked separately in conflict detection.)
+4. **Stamp `updated:`** — every created or updated note gets today's ISO date, so the dead-note check (§8) can age it.
+
+`doctor.sh` backstops items 1, 2, and 4 with warning-only checks (§8) — they catch escapes but never hard-block.
+
 Distillation **dedupes against `MEMORY.md` first** (update an existing note rather than adding
 a duplicate) and runs `build-index.sh` + `doctor.sh` afterward. Only cross-feature knowledge
 is distilled — not feature-specific trivia.
@@ -174,7 +183,10 @@ The scripts live under `skills/woostack-init/scripts/` relative to the woostack 
 
 - **Orphaned scope:** a note with a non-global `scope:` whose globs match no tracked files in `git ls-files` is flagged as stale. This catches notes scoped to paths that were deleted or moved.
 - **Stale provenance:** a note whose `source:` starts with `.woostack/specs/` or `.woostack/plans/` is expected to point at an authored spec or plan in the current repo. If that file is missing, the note is flagged for review. Other provenance forms, such as `source: pr-165`, are not treated as filesystem paths.
-- **Dead note:** `recall.sh` stamps `recall_count`/`last_recalled` (§3) on every selected note — matched + one-hop linked + global — as a best-effort side effect: a write failure (e.g. a read-only checkout) logs `recall: stamp failed <note>` to stderr but never changes recall's output or exit status. Ephemeral CI clones therefore simply do not accrue telemetry; persistent checkouts do. `doctor.sh` turns that signal into a warning when a note's `updated:` date is older than `WOOSTACK_DEAD_DAYS` (default 90) days and its `recall_count` is absent or 0. Notes without an `updated:` field have no age basis and are skipped. `WOOSTACK_NOW` (default `date +%F`) overrides "today" for deterministic runs and tests.
+- **Dead note:** `recall.sh` stamps `recall_count`/`last_recalled` (§3) on every selected note — matched + one-hop linked + global — as a best-effort side effect: a write failure (e.g. a read-only checkout) logs `recall: stamp failed <note>` to stderr but never changes recall's output or exit status. Ephemeral CI clones therefore simply do not accrue telemetry; persistent checkouts do. `doctor.sh` turns that signal into a warning when a note's `updated:` date is older than `WOOSTACK_DEAD_DAYS` (default 90) days and its `recall_count` is absent or 0. `WOOSTACK_NOW` (default `date +%F`) overrides "today" for deterministic runs and tests.
+- **Missing provenance:** a note with no `source:` is flagged — the distillation gate (§7) requires provenance on every note.
+- **Non-glob scope:** a note whose `scope:` is non-global and contains no `*` glob (a single literal path, or an all-literal comma list) is flagged as possible trivia. Notes with global scope (`*` or absent) and review-recorded notes (`source:` of `pr-<n>` or `address-comments`, which deliberately scope narrowly) are exempt.
+- **Missing age basis:** a note with no `updated:` field is flagged — it cannot be aged by the dead-note check above, so it is no longer silently skipped. (Both write paths stamp `updated:`; a note without it is anomalous.)
 
 `doctor.sh` also warns on unresolved body `[[wikilinks]]`; those are graph integrity warnings rather than staleness signals.
 

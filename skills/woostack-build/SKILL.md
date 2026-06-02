@@ -58,7 +58,11 @@ continue. If the user declines, fall back to following the skill's principle man
    per file, `type` one of `pattern|decision|gotcha|convention`, `scope` the narrowest glob
    covering the feature's touched files, `source` the spec or plan path. **Dedupe first**:
    check `.woostack/memory/MEMORY.md` and update an existing note rather than adding a
-   duplicate. Then run `woostack-init`'s `build-index.sh` and `doctor.sh`; fix any error.
+   duplicate. Apply the **reject-by-default distillation gate** (see the
+   [memory contract](../woostack-init/references/memory.md#7-distillation-write-path) §7) — it
+   rejects trivia, source-less, and near-duplicate notes, and requires stamping `updated:` on
+   every note you write. Then run `woostack-init`'s `build-index.sh` and `doctor.sh`; fix any
+   error.
    Distill only cross-feature knowledge — not feature-specific trivia. See the
    [memory contract](../woostack-init/references/memory.md). When the store does not exist,
    skip (or offer to run `/woostack-init` first). This is a work step, not an approval gate.

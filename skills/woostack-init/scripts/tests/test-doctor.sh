@@ -35,13 +35,70 @@ assert_exit 0 "$CODE" "missing plan source is a warning"
 
 mkdir -p "$repo/.woostack/specs" "$repo/.woostack/plans"
 touch "$repo/.woostack/specs/existing.md" "$repo/.woostack/plans/existing.md"
-mk_note "$md" live-source-spec.md $'name: live-source-spec\ntype: pattern\nscope: packages/api/**\nsource: .woostack/specs/existing.md' 'body'
-mk_note "$md" live-source-plan.md $'name: live-source-plan\ntype: pattern\nscope: packages/api/**\nsource: .woostack/plans/existing.md' 'body'
-mk_note "$md" pr-source.md $'name: pr-source\ntype: convention\nscope: packages/api/**\nsource: pr-165' 'body'
+mk_note "$md" live-source-spec.md $'name: live-source-spec\ntype: pattern\nscope: packages/api/**\nsource: .woostack/specs/existing.md\nupdated: 2026-06-02' 'body'
+mk_note "$md" live-source-plan.md $'name: live-source-plan\ntype: pattern\nscope: packages/api/**\nsource: .woostack/plans/existing.md\nupdated: 2026-06-02' 'body'
+mk_note "$md" pr-source.md $'name: pr-source\ntype: convention\nscope: packages/api/**\nsource: pr-165\nupdated: 2026-06-02' 'body'
 pushd "$repo" >/dev/null; run_doctor ".woostack/memory"; popd >/dev/null
 assert_not_contains "$OUT" "live-source-spec" "existing spec source is not warned"
 assert_not_contains "$OUT" "live-source-plan" "existing plan source is not warned"
 assert_not_contains "$OUT" "pr-source" "PR source is not treated as a filesystem path"
+
+# --- distillation-gate backstop warnings ---
+# missing source: → warn, exit 0
+mk_note "$md" no-source.md $'name: no-source\ntype: pattern\nscope: packages/api/**\nupdated: 2026-06-02' 'body'
+pushd "$repo" >/dev/null; run_doctor ".woostack/memory"; popd >/dev/null
+assert_contains "$OUT" "no-source.md: missing source:" "note without source: is warned"
+assert_exit 0 "$CODE" "missing source: is a warning"
+
+# non-glob scope (single literal path), distill-origin → warn
+mk_note "$md" nonglob.md $'name: nonglob\ntype: pattern\nscope: packages/api/handler.ts\nupdated: 2026-06-02\nsource: .woostack/specs/existing.md' 'body'
+pushd "$repo" >/dev/null; run_doctor ".woostack/memory"; popd >/dev/null
+assert_contains "$OUT" "nonglob.md: non-glob scope" "single literal scope warned as possible trivia"
+assert_exit 0 "$CODE" "non-glob scope is a warning"
+
+# all-literal multi-scope (no * anywhere) → warn
+mk_note "$md" multilit.md $'name: multilit\ntype: pattern\nscope: a/b.ts, c/d.ts\nupdated: 2026-06-02\nsource: .woostack/specs/existing.md' 'body'
+pushd "$repo" >/dev/null; run_doctor ".woostack/memory"; popd >/dev/null
+assert_contains "$OUT" "multilit.md: non-glob scope" "all-literal multi-scope warned"
+
+# globbed scope → no warning
+mk_note "$md" globbed.md $'name: globbed\ntype: pattern\nscope: packages/api/**\nupdated: 2026-06-02\nsource: .woostack/specs/existing.md' 'body'
+pushd "$repo" >/dev/null; run_doctor ".woostack/memory"; popd >/dev/null
+assert_not_contains "$OUT" "globbed.md: non-glob scope" "a globbed scope is not flagged"
+
+# global scope (*) → no warning
+mk_note "$md" globalscope.md $'name: globalscope\ntype: pattern\nscope: *\nupdated: 2026-06-02\nsource: .woostack/specs/existing.md' 'body'
+pushd "$repo" >/dev/null; run_doctor ".woostack/memory"; popd >/dev/null
+assert_not_contains "$OUT" "globalscope.md: non-glob scope" "global scope is exempt"
+
+# multi-glob scope (contains *) → no warning
+mk_note "$md" multiglob.md $'name: multiglob\ntype: pattern\nscope: packages/api/**, apps/*/x.ts\nupdated: 2026-06-02\nsource: .woostack/specs/existing.md' 'body'
+pushd "$repo" >/dev/null; run_doctor ".woostack/memory"; popd >/dev/null
+assert_not_contains "$OUT" "multiglob.md: non-glob scope" "a multi-glob scope (contains *) is not flagged"
+
+# absent scope field → exempt (global)
+mk_note "$md" noscope.md $'name: noscope\ntype: pattern\nupdated: 2026-06-02\nsource: .woostack/specs/existing.md' 'body'
+pushd "$repo" >/dev/null; run_doctor ".woostack/memory"; popd >/dev/null
+assert_not_contains "$OUT" "noscope.md: non-glob scope" "absent scope is exempt from non-glob warning"
+
+# review-provenance (pr-*) with literal scope → exempt
+mk_note "$md" review-pr.md $'name: review-pr\ntype: convention\nscope: packages/api/handler.ts\nupdated: 2026-06-02\nsource: pr-42' 'body'
+pushd "$repo" >/dev/null; run_doctor ".woostack/memory"; popd >/dev/null
+assert_not_contains "$OUT" "review-pr.md: non-glob scope" "review-provenance note is exempt from non-glob warning"
+
+# review-provenance (address-comments) with literal scope → exempt
+mk_note "$md" review-ac.md $'name: review-ac\ntype: convention\nscope: packages/api/handler.ts\nupdated: 2026-06-02\nsource: address-comments' 'body'
+pushd "$repo" >/dev/null; run_doctor ".woostack/memory"; popd >/dev/null
+assert_not_contains "$OUT" "review-ac.md: non-glob scope" "address-comments note is exempt"
+
+# missing updated: → warn (cannot be aged), exit 0
+mu="$(mktemp -d)/m"; mkdir -p "$mu"
+mk_note "$mu" noupd2.md $'name: noupd2\ntype: pattern\nscope: *\nsource: pr-1' 'body'
+OUT="$(bash "$DOC" "$mu" 2>&1)"; CODE=$?
+assert_contains "$OUT" "noupd2.md: missing updated:" "note without updated: is warned"
+assert_exit 0 "$CODE" "missing updated: is a warning"
+assert_not_contains "$OUT" "dead note" "missing updated: does not also emit a dead-note signal"
+rm -rf "$mu"
 
 # unresolved wikilink → warn
 mk_note "$md" link.md $'name: link\ntype: pattern\nscope: packages/api/**' 'see [[ghost]] note'
@@ -94,11 +151,12 @@ mk_note "$dd3" fresh.md $'name: fresh\ntype: pattern\nscope: *\nupdated: 2026-05
 OUT="$(WOOSTACK_NOW=2026-06-02 bash "$DOC" "$dd3" 2>&1)"
 assert_not_contains "$OUT" "dead note" "a fresh note is not flagged"
 
-# no updated: → not aged, not flagged
+# no updated: → not aged by the dead-note check, but does warn "missing updated:"
 dd4="$(mktemp -d)/m"; mkdir -p "$dd4"
 mk_note "$dd4" noupd.md $'name: noupd\ntype: pattern\nscope: *' 'body'
 OUT="$(WOOSTACK_NOW=2026-06-02 bash "$DOC" "$dd4" 2>&1)"
-assert_not_contains "$OUT" "dead note" "a note without updated: is not flagged"
+assert_not_contains "$OUT" "dead note" "a note without updated: gets no dead-note signal"
+assert_contains "$OUT" "noupd.md: missing updated:" "a note without updated: is warned (cannot be aged)"
 
 # WOOSTACK_DEAD_DAYS tightens the window
 dd5="$(mktemp -d)/m"; mkdir -p "$dd5"
