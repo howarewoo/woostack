@@ -1,6 +1,6 @@
 ---
 name: woostack-build
-description: Use when building a feature with the full woostack development loop — brainstorm a design, harden it, plan it, and implement it. Chains superpowers (brainstorming, writing-plans, executing-plans) and grill-me in a fixed, gated order; writes HTML specs and markdown plans under .woostack/.
+description: Use when building a feature with the full woostack development loop — brainstorm a design, harden it, plan it, and implement it. Chains superpowers (brainstorming, writing-plans, executing-plans) and grill-me in a fixed, gated order; writes markdown specs and plans under .woostack/.
 ---
 
 # woostack-build
@@ -12,7 +12,7 @@ glue: it sequences proven sub-skills and **inherits their gates** — it adds no
 its own. The value is the order and the handoffs.
 
 ```
-brainstorming → write spec (HTML) → grill-me → writing-plans → executing-plans → ask: open PR?
+brainstorming → write spec (markdown) → grill-me → writing-plans → executing-plans → ask: open PR?
 ```
 
 ## Dependency preflight
@@ -31,12 +31,16 @@ continue. If the user declines, fall back to following the skill's principle man
 
 1. **Brainstorm.** Invoke `superpowers:brainstorming` to explore the problem and converge
    on a design. Let it run its own approval gate.
-2. **Write the spec as HTML.** When the design is approved, do **not** write the default
-   markdown to `docs/superpowers/specs/`. Instead author a self-contained HTML spec to
-   `.woostack/specs/YYYY-MM-DD-<slug>.html`, populating
-   [references/spec-template.html](references/spec-template.html). HTML is for
-   visualization — richer than markdown.
-3. **Harden it.** Invoke `grill-me` against the HTML spec. Amend the spec in place until
+2. **Write the spec as markdown.** When the design is approved, do **not** write to the
+   superpowers default `docs/superpowers/specs/`. Instead author a markdown spec to
+   `.woostack/specs/YYYY-MM-DD-<slug>.md`, populating
+   [references/spec-template.md](references/spec-template.md). Markdown specs are the source
+   of truth: they carry `type: spec` frontmatter, are Obsidian vault nodes that can `[[link]]`
+   memory notes, and are excluded from memory recall routing by type. **Visualize on demand** —
+   if a rich view is wanted, render the markdown through
+   [references/spec-template.html](references/spec-template.html); the HTML is a presentation
+   target only, never the authored source.
+3. **Harden it.** Invoke `grill-me` against the spec. Amend the spec in place until
    grilling stops producing new questions.
 4. **Plan.** Invoke `superpowers:writing-plans`, saving the plan as **markdown** to
    `.woostack/plans/YYYY-MM-DD-<slug>.md` (plans are working checklists, not visualization
@@ -55,7 +59,7 @@ continue. If the user declines, fall back to following the skill's principle man
 ## Hard constraints
 
 - **Inherit gates, add none.** Do not insert extra approval stops between phases.
-- **HTML specs, markdown plans, under `.woostack/`.** Never write specs to the superpowers
-  default location or format.
+- **Markdown specs and plans, under `.woostack/`.** Never write specs to the superpowers
+  default location. HTML is a render-on-demand target only, not the authored format.
 - **Never merge.** build ends by offering a PR, nothing further.
 - **One increment per cycle.** Do not let a single build cycle balloon past a reviewable PR.
