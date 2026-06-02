@@ -51,7 +51,17 @@ Two callers:
    skip all existing files silently without prompting. After the run, state
    which mode was used (interactive / force / no-clobber) in the summary.
 
-4. **Run the scripts.**
+4. **Obsidian vault config (optional).** If `--obsidian` was passed, or if
+   `--no-obsidian` was not passed and the user accepts the prompt ("Set up
+   Obsidian vault config? [y/N]", default no), copy
+   `templates/obsidian/` into `.woostack/.obsidian/`. Never clobber an
+   existing `.woostack/.obsidian/` directory — skip silently if it is
+   already present. This makes `.woostack/` an Obsidian vault so
+   `memory/`, `specs/`, and `plans/` appear as a `[[wikilink]]` graph in the
+   desktop app. Obsidian is **optional** — all memory tooling (`recall`,
+   `doctor`, `build-index`) works without it.
+
+5. **Run the scripts.**
 
    ```
    bash scripts/build-index.sh .woostack/memory
@@ -61,7 +71,7 @@ Two callers:
    Run `build-index.sh` first so the index is current before `doctor.sh` checks
    for wikilink targets.
 
-5. **Report.** Print a summary listing each file as `created` or `skipped`,
+6. **Report.** Print a summary listing each file as `created` or `skipped`,
    then echo the doctor output (warnings and error count). If doctor exits
    non-zero, surface the errors prominently so the user can act on them before
    committing.
@@ -74,6 +84,10 @@ Two callers:
 - `--no-clobber` — skip every existing file silently, no prompts. Useful in
   automated contexts (CI, bootstrap) where the workspace may already be
   partially initialized.
+- `--obsidian` — force-enable the optional Obsidian vault config scaffold
+  (step 4) without prompting.
+- `--no-obsidian` — force-skip the optional Obsidian vault config scaffold
+  (step 4) without prompting.
 
 ## Hard constraints
 
@@ -89,6 +103,11 @@ Two callers:
 - **Pure bash, no new runtime dependencies.** The scripts (`build-index.sh`,
   `doctor.sh`, `scope-match.sh`) use only bash and coreutils. Do not introduce
   node, python, or any other runtime to fulfill this verb.
+- **Obsidian is never required.** The `.obsidian/` scaffold is opt-in (step 4).
+  All memory tooling (`recall`, `doctor`, `build-index`) works headlessly
+  without Obsidian. See
+  [references/memory.md](references/memory.md#9-obsidian-optional) for the
+  full Obsidian integration contract.
 
 ## Reference
 

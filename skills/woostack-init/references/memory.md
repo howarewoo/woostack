@@ -156,12 +156,47 @@ The scripts live under `skills/woostack-init/scripts/` relative to the woostack 
 | `scope-match.sh` | `printf '%s\n' <paths> \| bash scope-match.sh '<glob-spec>'` — prints matching paths from stdin; exits 0 if any matched, 1 if none. |
 | `build-index.sh` | `bash build-index.sh [<memdir>]` — regenerates `<memdir>/MEMORY.md` from note frontmatter; defaults to `.woostack/memory`. |
 | `doctor.sh` | `bash doctor.sh [<memdir>]` — lints the memory directory; warnings exit 0, errors exit 1. |
+| `graph.sh` | `bash graph.sh <memdir> <note> [--links\|--backlinks]` — lists a note's outbound wikilinks (`--links`, default) or the notes that link to it (`--backlinks`). Grep-based by default; see §9 for the opt-in Obsidian path. |
 
 `build-index.sh` and `doctor.sh` source `lib.sh` (frontmatter helpers `field()`, `note_body()`, `first_body_line()`) from the same directory. `doctor.sh` additionally invokes `scope-match.sh` as a subprocess for its stale-scope check. `scope-match.sh` is self-contained — it sources nothing.
 
 ---
 
-## 9. Degradation
+## 9. Obsidian (optional)
+
+The `.woostack/` vault is already Obsidian-compatible: every memory note,
+spec, and plan is a Markdown file and all links are `[[wikilinks]]` that
+Obsidian resolves natively. No extra setup is needed to open the vault — but
+the `.obsidian/` config directory must be present for Obsidian to recognise
+the folder as a vault.
+
+**Scaffolding.** `/woostack-init --obsidian` (or accepting the interactive
+prompt) copies `templates/obsidian/` into `.woostack/.obsidian/`. The
+template ships a minimal stock config (`app.json`, `graph.json`) that keeps
+link format shortest and shows orphan nodes. An existing `.woostack/.obsidian/`
+directory is never clobbered. The `.woostack/.gitignore` keeps per-user UI
+state (`.obsidian/workspace*`, `.obsidian/cache`) out of git while tracking
+the shared config.
+
+**Graph queries.** `graph.sh <memdir> <note> --links|--backlinks` queries the
+link graph:
+
+- **Default (grep, always-works):** `--links` scans the note body for
+  `[[target]]` wikilinks; `--backlinks` greps `<memdir>/*.md` for references
+  to the named note. Pure bash, no app required.
+- **Obsidian branch (opt-in, best-effort):** when `WOOSTACK_OBSIDIAN=1` and
+  `command -v obsidian` succeeds, the script attempts `obsidian eval` against
+  `app.metadataCache` for richer alias-aware resolution. On any failure it
+  falls back to grep and emits a warning on stderr. This branch is never fatal.
+
+**All core tooling works without Obsidian.** `recall.sh`, `doctor.sh`, and
+`build-index.sh` use only grep-based wikilink parsing and are unaffected by
+whether Obsidian is installed or the `.obsidian/` directory exists. Headless
+CI always takes the grep path.
+
+---
+
+## 10. Degradation
 
 When a consuming skill is installed individually (not as part of the full woostack collection), the scripts under `skills/woostack-init/scripts/` may not be available. In that case the skill should:
 
