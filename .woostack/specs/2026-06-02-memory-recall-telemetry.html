@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memory recall telemetry — Design Spec</title>
+<style>
+  :root { --bg:#0f1115; --panel:#171a21; --ink:#e6e9ef; --muted:#9aa4b2; --accent:#6ea8fe; --line:#2a2f3a;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55}
+  .wrap{max-width:920px;margin:0 auto;padding:48px 24px 96px}
+  h1{font-size:30px;letter-spacing:-.02em;margin:0 0 6px}
+  h2{font-size:21px;border-left:3px solid var(--accent);padding-left:10px;margin:40px 0 12px}
+  h3{font-size:16px;margin:20px 0 6px;color:var(--accent)}
+  .meta{color:var(--muted);font-size:13px;border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:28px}
+  code{font-family:var(--mono);background:#20242d;padding:1px 6px;border-radius:5px;font-size:13px}
+  pre{font-family:var(--mono);background:#20242d;padding:14px 16px;border-radius:8px;font-size:13px;overflow-x:auto;border:1px solid var(--line)}
+  pre code{background:none;padding:0}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);text-transform:uppercase;font-size:12px;letter-spacing:.04em}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:14px 0}
+  ul,ol{margin:8px 0;padding-left:22px} li{margin:4px 0}
+  .tag{display:inline-block;background:#20242d;border:1px solid var(--line);border-radius:5px;padding:1px 8px;font-size:12px;color:var(--muted);margin-right:4px}
+</style>
+</head>
+<body><div class="wrap">
+  <h1>Memory recall telemetry — close the feedback loop</h1>
+  <div class="meta">Status: Approved · Date: 2026-06-02 · Branch: feat/memory-recall-telemetry · Issue: <a href="https://github.com/howarewoo/woostack/issues/159" style="color:var(--accent)">#159</a></div>
+
+  <h2>1. Problem</h2>
+  <div class="panel">
+    The <code>.woostack/memory/</code> store writes confidently but never measures. There is no signal on whether a note ever <em>helped</em>: distillation writes blind and never learns which notes earn their keep. This is the root cause of <strong>curation rot</strong> — the store cannot tell live notes from dead weight, so it grows monotonically and recall quality decays.
+    <p><code>recall.sh</code> already computes, every run, exactly the signal that would fix this: a per-note scope-match count (the <code>matched</code> tmpfile, sorted <code>-k1,1nr</code>). Today that signal is used to order output and then discarded. Nothing is persisted, so the store stays write-only.</p>
+  </div>
+
+  <h2>2. Goal</h2>
+  <div class="panel">
+    Convert the memory store from write-only to <strong>self-correcting</strong> by persisting recall usage back onto each note, then surfacing a prune signal.
+    <ul>
+      <li>Stamp two tool-managed frontmatter fields on every note the recall algorithm loads: <code>recall_count</code> (cumulative count of recall runs that loaded it) and <code>last_recalled</code> (ISO date of the most recent load).</li>
+      <li>Teach <code>doctor.sh</code> to derive a <strong>dead-note</strong> warning from those fields: old + never recalled = prune candidate.</li>
+      <li>Document the new fields and the doctor behavior in the memory contract.</li>
+    </ul>
+    Nearly free: the data is already in hand. This is the foundation later staleness/ranking work builds on.
+  </div>
+
+  <h2>3. Non-goals</h2>
+  <div class="panel">
+    <ul>
+      <li><strong>No "recalled-but-never-acted-on" detection.</strong> The issue floats it but flags it as needing a downstream <em>act</em> signal that does not exist yet. Out of scope; <code>recall_count</code> alone ships here.</li>
+      <li><strong>No automatic pruning.</strong> doctor <em>warns</em>; a human prunes. No note is ever deleted by tooling.</li>
+      <li><strong>No ranking / cap-eviction changes.</strong> Recall ordering and the <code>RECALL_CAP</code> budget logic are untouched. Telemetry is a side channel.</li>
+      <li><strong>No change to the flat <code>memory.md</code> shard.</strong> It remains free-form and untracked by this tooling.</li>
+      <li><strong>No config schema.</strong> Thresholds are env knobs, not <code>config.json</code> keys.</li>
+    </ul>
+  </div>
+
+  <h2>4. Approach</h2>
+  <div class="panel">
+    <p>Three decisions, locked during brainstorming:</p>
+    <table>
+      <tr><th>Decision</th><th>Choice</th><th>Why</th></tr>
+      <tr><td><code>recall_count</code> semantics</td><td>Cumulative recall <em>events</em> (+1 per run that loads the note)</td><td>The "zero recalls → dead" signal only works if the count measures times-loaded. Stamps matched, linked, and global notes uniformly — linked/global have no match-count of their own.</td></tr>
+      <tr><td>Write-back behavior</td><td>Unconditional, best-effort</td><td>Always stamp in place; never fail recall if the write fails. Ephemeral CI clones simply don't contribute; local/persistent checkouts accrue the signal.</td></tr>
+      <tr><td>Stamp on selection vs emission</td><td>All <em>selected</em> notes</td><td>Selection = relevance. The <code>RECALL_CAP</code> drop is a display budget, not a relevance verdict, so a cap-dropped note still counts as recalled.</td></tr>
+      <tr><td>Dead threshold</td><td>90 days (<code>WOOSTACK_DEAD_DAYS</code>)</td><td>A full quarter written but never loaded = strong prune signal; tolerant of rarely-touched subsystems.</td></tr>
+    </table>
+
+    <h3>In-place frontmatter mutation</h3>
+    <p>The risky primitive. Chosen mechanism: an <strong>awk rewrite of the frontmatter block</strong>, written to a temp file and <code>mv</code>'d over the original (atomic). It replaces the key's line if present, else inserts before the closing <code>---</code> fence, preserving the body and all other fields verbatim.</p>
+    <p>Rejected: <code>sed -i</code> per key (cannot cleanly insert-when-absent; <code>-i</code> syntax differs BSD vs GNU); full reserialize via <code>field()</code>/<code>note_body()</code> (lossy — normalizes/reorders frontmatter).</p>
+  </div>
+
+  <h2>5. Components &amp; data flow</h2>
+  <div class="panel">
+    <h3>lib.sh — new shared helpers</h3>
+    <table>
+      <tr><th>Helper</th><th>Contract</th></tr>
+      <tr><td><code>set_field &lt;file&gt; &lt;key&gt; &lt;value&gt;</code></td><td>awk-rewrite the frontmatter block: update <code>key:</code> line if present, else insert before the closing fence. Atomic temp+<code>mv</code>. Preserves body and other fields. Returns non-zero on write failure without clobbering the original.</td></tr>
+      <tr><td><code>_woo_now</code></td><td>Echo <code>${WOOSTACK_NOW:-$(date +%F)}</code> — today's ISO date, overridable for deterministic tests.</td></tr>
+      <tr><td><code>_woo_epoch &lt;YYYY-MM-DD&gt;</code></td><td>ISO date → Unix epoch seconds, <strong>time-of-day zeroed</strong> for determinism. Tries GNU <code>date -d "$d 00:00:00"</code>, falls back to BSD <code>date -j -f "%Y-%m-%d %H:%M:%S" "$d 00:00:00"</code>. Empty/non-zero on unparseable input. <em>Zeroing is mandatory:</em> BSD <code>date -j -f "%Y-%m-%d"</code> on a bare date injects the current time-of-day (verified: differs run-to-run), which would make age math and tests nondeterministic.</td></tr>
+    </table>
+    <p><strong><code>set_field</code> on malformed notes:</strong> recall selects a note with no/empty frontmatter as "global" (empty scope ⇒ <code>is_global</code>) and will attempt to stamp it. If <code>set_field</code> cannot find two <code>---</code> fences it returns non-zero <strong>without writing</strong> — recall then logs <code>stamp failed</code> and moves on. The temp file is created in the <em>note's own directory</em> so the <code>mv</code> is same-filesystem and atomic, and a read-only note dir makes <code>set_field</code> fail cleanly (this is what the best-effort test exercises).</p>
+
+    <h3>recall.sh — stamping</h3>
+    <p>After the selection phase produces the three note sets (matched scoped, one-hop linked, global) and before/independent of CAP rendering, stamp each <strong>unique selected note exactly once</strong> (the existing <code>inc_set</code> dedup already enumerates them):</p>
+    <pre><code>cur="$(field "$f" recall_count)"; cur="${cur:-0}"
+case "$cur" in (*[!0-9]*) cur=0 ;; esac      # tolerate garbage
+next=$(( cur + 1 ))
+{ set_field "$f" recall_count "$next" \
+    && set_field "$f" last_recalled "$(_woo_now)" ; } \
+  || echo "recall: stamp failed $(basename "$f")" >&2</code></pre>
+    <p>Stamping never changes stdout and never affects exit status — recall still exits 0. Output sections (Scoped / Linked / Global) are unchanged.</p>
+    <p><span class="tag">concurrency</span> <code>prefetch.sh:707</code> calls <code>recall.sh</code> exactly once per review, before any angle fan-out — so there is no parallel-stamp race within a review. Sequential reviews on the same checkout simply accumulate counts.</p>
+
+    <h3>doctor.sh — dead-note check</h3>
+    <p>Per note, after the existing field/scope/link checks:</p>
+    <pre><code>upd="$(field "$f" updated)"
+[ -z "$upd" ] && continue                    # no age basis → skip, no flag
+rc="$(field "$f" recall_count)"; rc="${rc:-0}"
+case "$rc" in (*[!0-9]*) rc=0 ;; esac
+upd_e="$(_woo_epoch "$upd")" || continue     # unparseable date → skip
+now_e="$(_woo_epoch "$(_woo_now)")"
+age_days=$(( (now_e - upd_e) / 86400 ))
+if [ "$age_days" -gt "${WOOSTACK_DEAD_DAYS:-90}" ] && [ "$rc" -eq 0 ]; then
+  warn "$base: dead note — written ${age_days}d ago, never recalled (prune candidate)"
+fi</code></pre>
+    <p>Warning only (exit 0). A note with no <code>updated:</code>, or any <code>recall_count &gt; 0</code>, or age within threshold is not flagged.</p>
+    <p><strong>Known coverage limit (documented, not fixed here):</strong> the dead check requires <code>updated:</code>, which is optional. Notes without it are silently uncovered. The clean fix is for distillation (§7) to stamp <code>updated:</code> on every note it writes — tracked as a follow-up, not in this increment. doctor takes on no git/<code>stat</code> dependency. Also out of scope: flagging notes recalled long-ago-but-now-quiet (<code>recall_count &gt; 0</code>, stale <code>last_recalled</code>) — that staleness/ranking work is seeded by <code>last_recalled</code> and deferred.</p>
+
+    <h3>Resulting note shape</h3>
+    <pre><code>---
+name: orpc-error-mapping
+type: pattern
+scope: packages/api/**
+updated: 2026-03-01
+recall_count: 7          &lt;- tool-managed, never hand-edited
+last_recalled: 2026-06-02 &lt;- tool-managed
+---
+oRPC ORPCError maps to TanStack retry policy ...</code></pre>
+
+    <h3>memory.md (contract)</h3>
+    <ul>
+      <li>§3 fields table: add <code>recall_count</code> and <code>last_recalled</code> as optional, <strong>tool-managed</strong> fields (written by <code>recall.sh</code>; never hand-edited).</li>
+      <li>§5 / §8: document the dead-note warning and the <code>WOOSTACK_DEAD_DAYS</code> (default 90) and <code>WOOSTACK_NOW</code> knobs.</li>
+    </ul>
+  </div>
+
+  <h2>6. Error handling</h2>
+  <div class="panel">
+    <ul>
+      <li><strong>Stamp write fails</strong> (read-only FS, permission): <code>set_field</code> returns non-zero without overwriting the original; recall logs <code>recall: stamp failed &lt;note&gt;</code> to stderr and continues. Telemetry is best-effort; recall output and exit 0 are never compromised.</li>
+      <li><strong>Garbage <code>recall_count</code></strong> (hand-edited to non-numeric): treated as 0 in both recall (resets to 1) and doctor (treated as never-recalled). No crash under <code>set -e</code>.</li>
+      <li><strong>Unparseable <code>updated:</code> date</strong> in doctor: <code>_woo_epoch</code> fails → that note is skipped for the dead check (no false flag, no error).</li>
+      <li><strong>Missing <code>updated:</code></strong>: skipped — there is no age basis, so no dead verdict.</li>
+      <li><strong>Atomicity</strong>: temp+<code>mv</code> means a note is never left half-written even if the process dies mid-stamp.</li>
+    </ul>
+  </div>
+
+  <h2>7. Testing</h2>
+  <div class="panel">
+    All tests use the existing bash harness (<code>assert.sh</code>, <code>mk_note</code>) and inject <code>WOOSTACK_NOW</code> for determinism.
+    <h3>test-lib.sh — set_field</h3>
+    <ul>
+      <li>Update existing key leaves value changed, body + other fields intact.</li>
+      <li>Insert absent key adds it before the closing fence, body intact.</li>
+      <li>Value with spaces / a date round-trips through <code>field()</code>.</li>
+      <li><code>_woo_now</code> honors <code>WOOSTACK_NOW</code>; <code>_woo_epoch</code> parses an ISO date and is monotonic (later date → larger epoch).</li>
+    </ul>
+    <h3>test-recall.sh — stamping</h3>
+    <ul>
+      <li>After one run, a matched note has <code>recall_count: 1</code> and <code>last_recalled</code> = injected date.</li>
+      <li>A second run bumps to <code>recall_count: 2</code>.</li>
+      <li>Linked (one-hop) and global (<code>scope:*</code>) notes are stamped too.</li>
+      <li>Existing recall output assertions (scoped/linked/global/cap/ordering) still pass — stamping does not alter stdout.</li>
+      <li>Best-effort: a read-only note dir makes recall log <code>stamp failed</code> to stderr yet still exit 0 with full output.</li>
+    </ul>
+    <h3>test-doctor.sh — dead note</h3>
+    <ul>
+      <li>Note with old <code>updated:</code> + no recall_count → warns "dead note", exit 0.</li>
+      <li>Same note with <code>recall_count: 1</code> → not flagged.</li>
+      <li>Fresh <code>updated:</code> (within 90d) + recall_count 0 → not flagged.</li>
+      <li>No <code>updated:</code> field → not flagged.</li>
+      <li><code>WOOSTACK_DEAD_DAYS</code> override changes the boundary.</li>
+    </ul>
+  </div>
+
+  <h2>8. Open questions</h2>
+  <div class="panel">
+    None blocking. Resolved during brainstorming + grilling: count semantics (cumulative events), write-back (unconditional best-effort), stamp scope (all selected), dead threshold (90d, env-overridable), <code>_woo_epoch</code> determinism (zero time-of-day), <code>set_field</code> safety on malformed notes, no concurrency race (single recall call per review).
+    <p>Deferred by design, to be filed as follow-up issues at PR time:</p>
+    <ul>
+      <li>Optional churn-guard for stamping during local reviews of unrelated branches — revisit only if real-world churn proves painful.</li>
+      <li>Distillation stamping <code>updated:</code> on every written note, so dead-note coverage is complete.</li>
+      <li>The "recalled-but-never-acted-on" signal (needs a downstream <em>act</em> signal that does not exist yet).</li>
+    </ul>
+  </div>
+</div></body>
+</html>
