@@ -27,7 +27,7 @@ woostack/
 │   │   │   ├── build-index.sh     Rebuild MEMORY.md from individual notes
 │   │   │   ├── scope-match.sh     Surface notes relevant to current task
 │   │   │   └── doctor.sh          Validate workspace + memory-store health
-│   │   └── templates/         Starter templates for new workspaces
+│   │   └── templates/         Starter templates for new workspaces (includes obsidian/ — Obsidian vault config)
 │   ├── woostack-bootstrap/
 │   │   ├── SKILL.md           Bootstrap skill entry point
 │   │   └── references/        Binding rules, loaded on demand
