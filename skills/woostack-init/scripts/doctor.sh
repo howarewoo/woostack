@@ -47,6 +47,13 @@ for f in "$MEM_DIR"/*.md; do
     fi
   fi
 
+  source_path="$(field "$f" source)"
+  case "$source_path" in
+    .woostack/specs/*|.woostack/plans/*)
+      [ -f "$source_path" ] || warn "$base: source '$source_path' is missing (stale provenance)"
+      ;;
+  esac
+
   while IFS= read -r link; do
     [ -z "$link" ] && continue
     [ -f "$MEM_DIR/$link.md" ] || warn "$base: unresolved [[$link]]"
