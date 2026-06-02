@@ -158,7 +158,7 @@ The scripts live under `skills/woostack-init/scripts/` relative to the woostack 
 | `doctor.sh` | `bash doctor.sh [<memdir>]` — lints the memory directory; warnings exit 0, errors exit 1. |
 | `graph.sh` | `bash graph.sh <memdir> <note> [--links\|--backlinks]` — lists a note's outbound wikilinks (`--links`, default) or the notes that link to it (`--backlinks`). Grep-based by default; see §9 for the opt-in Obsidian path. |
 
-`build-index.sh` and `doctor.sh` source `lib.sh` (frontmatter helpers `field()`, `note_body()`, `first_body_line()`) from the same directory. `doctor.sh` additionally invokes `scope-match.sh` as a subprocess for its stale-scope check. `scope-match.sh` is self-contained — it sources nothing.
+`build-index.sh` and `doctor.sh` source `lib.sh` (frontmatter helpers `field()`, `note_body()`, `first_body_line()`) from the same directory. `doctor.sh` additionally invokes `scope-match.sh` as a subprocess for its stale-scope check. `scope-match.sh` and `graph.sh` are self-contained — they source nothing.
 
 ---
 

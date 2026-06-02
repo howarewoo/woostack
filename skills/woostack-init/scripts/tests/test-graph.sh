@@ -51,5 +51,9 @@ mk_note "$md" 'decoy.md' $'name: decoy\ntype: pattern' 'links [[aXb]]'
 out="$(bash "$G" "$md" 'a.b' --backlinks)"
 assert_not_contains "$out" "decoy" "dot in note name is escaped, no wildcard false-match"
 
+# unknown mode (neither --links nor --backlinks) -> exit 2
+set +e; bash "$G" "$md" a --bad-mode >/dev/null 2>&1; code=$?; set -e
+assert_exit 2 "$code" "unknown mode exits 2"
+
 rm -rf "$md"
 finish
