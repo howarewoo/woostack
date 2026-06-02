@@ -71,6 +71,16 @@ mk_note "$md" globalscope.md $'name: globalscope\ntype: pattern\nscope: *\nupdat
 pushd "$repo" >/dev/null; run_doctor ".woostack/memory"; popd >/dev/null
 assert_not_contains "$OUT" "globalscope.md: non-glob scope" "global scope is exempt"
 
+# multi-glob scope (contains *) → no warning
+mk_note "$md" multiglob.md $'name: multiglob\ntype: pattern\nscope: packages/api/**, apps/*/x.ts\nupdated: 2026-06-02\nsource: .woostack/specs/existing.md' 'body'
+pushd "$repo" >/dev/null; run_doctor ".woostack/memory"; popd >/dev/null
+assert_not_contains "$OUT" "multiglob.md: non-glob scope" "a multi-glob scope (contains *) is not flagged"
+
+# absent scope field → exempt (global)
+mk_note "$md" noscope.md $'name: noscope\ntype: pattern\nupdated: 2026-06-02\nsource: .woostack/specs/existing.md' 'body'
+pushd "$repo" >/dev/null; run_doctor ".woostack/memory"; popd >/dev/null
+assert_not_contains "$OUT" "noscope.md: non-glob scope" "absent scope is exempt from non-glob warning"
+
 # review-provenance (pr-*) with literal scope → exempt
 mk_note "$md" review-pr.md $'name: review-pr\ntype: convention\nscope: packages/api/handler.ts\nupdated: 2026-06-02\nsource: pr-42' 'body'
 pushd "$repo" >/dev/null; run_doctor ".woostack/memory"; popd >/dev/null
@@ -141,11 +151,12 @@ mk_note "$dd3" fresh.md $'name: fresh\ntype: pattern\nscope: *\nupdated: 2026-05
 OUT="$(WOOSTACK_NOW=2026-06-02 bash "$DOC" "$dd3" 2>&1)"
 assert_not_contains "$OUT" "dead note" "a fresh note is not flagged"
 
-# no updated: → not aged, not flagged
+# no updated: → not aged by the dead-note check, but does warn "missing updated:"
 dd4="$(mktemp -d)/m"; mkdir -p "$dd4"
 mk_note "$dd4" noupd.md $'name: noupd\ntype: pattern\nscope: *' 'body'
 OUT="$(WOOSTACK_NOW=2026-06-02 bash "$DOC" "$dd4" 2>&1)"
-assert_not_contains "$OUT" "dead note" "a note without updated: is not flagged"
+assert_not_contains "$OUT" "dead note" "a note without updated: gets no dead-note signal"
+assert_contains "$OUT" "noupd.md: missing updated:" "a note without updated: is warned (cannot be aged)"
 
 # WOOSTACK_DEAD_DAYS tightens the window
 dd5="$(mktemp -d)/m"; mkdir -p "$dd5"
