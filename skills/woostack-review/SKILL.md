@@ -395,7 +395,7 @@ Before writing anything:
 
 1. **Read the existing `.woostack/memory.md`** (it was already loaded to `$OUTDIR/memory.md` in Stage 1; re-read the repo copy in case it changed).
 2. **Check coverage.** If an existing entry already captures this learning — even phrased differently, or scoped more narrowly/broadly — do **NOT** append a duplicate. If the existing entry is close but the new dismissal generalizes it (e.g. the same pattern in a second file), edit that entry to widen its scope rather than adding a near-duplicate.
-3. **Only when the learning is genuinely new**, append one short bullet phrased as a reusable rule, then stop.
+3. **Only when the learning is genuinely new**, append one terse bullet phrased as a reusable rule — one line, `<pattern>: <reason>`, ideally ≤100 chars, no preamble or narration — then stop.
 
 ```bash
 mkdir -p .woostack
@@ -403,7 +403,7 @@ mkdir -p .woostack
 printf -- '- %s\n' "<general pattern>: <why it is accepted / what not to re-flag>" >> .woostack/memory.md
 ```
 
-Phrase entries as patterns, not instances — prefer "Generated `*.pb.go` files are intentional; do not flag their style" over "dismissed line 42 in user.pb.go". The local skill writes this file directly — no post-session hook, no permission-isolated job. Only record on an explicit dismissal or a stated gotcha — never auto-record every finding. Do NOT write memory in CI: the GitHub Action's validator job holds `contents: read` and posts the review only; memory is curated locally and by humans editing the file. Memory is read back as review context on the next run (Stage 1) and the validator drops findings it records.
+Phrase entries as terse patterns, not instances — prefer "Generated `*.pb.go` files are intentional; do not flag their style" over "dismissed line 42 in user.pb.go". One line per entry, no narration. The local skill writes this file directly — no post-session hook, no permission-isolated job. Only record on an explicit dismissal or a stated gotcha — never auto-record every finding. Do NOT write memory in CI: the GitHub Action's validator job holds `contents: read` and posts the review only; memory is curated locally and by humans editing the file. Memory is read back as review context on the next run (Stage 1) and the validator drops findings it records.
 
 ## Addressing Reviews (`woostack-review address <PR#>`, local hosts)
 

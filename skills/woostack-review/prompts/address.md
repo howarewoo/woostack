@@ -61,11 +61,13 @@ different verdict (any of FIX / ACCEPT / CLARIFY).
   (and the live `.woostack/memory.md`): if an existing entry already covers
   this learning — even phrased differently or more broadly — do NOT add a
   duplicate; widen the existing entry instead. Only when the learning is
-  genuinely new, stage it (as a **pattern, not an instance**) for the memory
-  write — which runs in the after-phases step below, alongside the reply, so it
-  never lands ahead of a rejected push. Only a final ACCEPT (accept-by-design)
-  writes memory. A "won't-fix because transient / out-of-scope" is not a
-  reusable rule — do not record it.
+  genuinely new, stage it for the memory write — which runs in the after-phases
+  step below, alongside the reply, so it never lands ahead of a rejected push.
+  Phrase it as a **terse pattern, not an instance**: one line,
+  `<pattern>: <reason>`, ideally ≤100 chars. State the rule and stop — no
+  preamble, no narration, no instance line numbers, no restating the finding.
+  Only a final ACCEPT (accept-by-design) writes memory. A "won't-fix because
+  transient / out-of-scope" is not a reusable rule — do not record it.
 - **CLARIFY**: do not fix, do not write memory, do not resolve. Reply with a
   specific question (handled below with `RESOLVE=0`).
 
@@ -89,7 +91,8 @@ different verdict (any of FIX / ACCEPT / CLARIFY).
    ```
 
    Then, for each ACCEPTED thread whose learning is genuinely new, write the
-   staged memory pattern (only now, after the push succeeded):
+   staged memory pattern (only now, after the push succeeded). Keep `LEARNING`
+   terse — one line, `<pattern>: <reason>`, ideally ≤100 chars, no filler:
 
    ```bash
    LEARNING="<general pattern>: <why it is accepted / what not to re-flag>" \
