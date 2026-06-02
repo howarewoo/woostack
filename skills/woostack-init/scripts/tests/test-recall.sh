@@ -41,10 +41,27 @@ set +e; out="$(bash "$RECALL" "$woo3" "$paths")"; code=$?; set -e
 assert_eq "$out" "" "no memory -> empty output"
 assert_exit 0 "$code" "no memory -> exit 0"
 
-# cap protects global: tiny cap still keeps flat shard, drops scoped
+# cap protects global: cap=70 sits between global_out(~54B) and global+api_chunk(~87B)
+# so global survives intact while the scoped note is dropped — NOT the tail-cap branch.
 printf 'packages/api/x.ts\n' > "$paths"
-out="$(RECALL_CAP=40 bash "$RECALL" "$woo" "$paths" 2>/dev/null)"
-assert_contains "$out" "do not flag X" "global protected under tiny cap"
+out="$(RECALL_CAP=70 bash "$RECALL" "$woo" "$paths" 2>/dev/null)"
+assert_contains "$out" "do not flag X" "global protected under cap"
+assert_not_contains "$out" "API note" "scoped note dropped under cap"
+err="$(RECALL_CAP=70 bash "$RECALL" "$woo" "$paths" 2>&1 >/dev/null)"
+assert_contains "$err" "dropped" "drop logged to stderr"
 
-rm -rf "$woo" "$woo2" "$woo3"
+# ordering: higher match-count note appears before lower in output
+woo4="$(mktemp -d)"; md4="$woo4/memory"; mkdir -p "$md4"
+mk_note "$md4" wide.md   $'name: wide\ntype: pattern\nscope: packages/**'     'WIDE note body'
+mk_note "$md4" narrow.md $'name: narrow\ntype: pattern\nscope: packages/api/**' 'NARROW note body'
+paths2="$(mktemp)"; printf 'packages/api/x.ts\npackages/lib/y.ts\n' > "$paths2"
+out="$(bash "$RECALL" "$woo4" "$paths2")"
+wide_line="$(printf '%s\n' "$out" | grep -n 'WIDE note' | cut -d: -f1)"
+narrow_line="$(printf '%s\n' "$out" | grep -n 'NARROW note' | cut -d: -f1)"
+# wide matches 2 paths, narrow matches 1 — wide must sort first
+[ -n "$wide_line" ] && [ -n "$narrow_line" ] && [ "$wide_line" -lt "$narrow_line" ] \
+  && PASS=$((PASS+1)) \
+  || { FAIL=$((FAIL+1)); echo "  FAIL: ordering — wide(line $wide_line) should precede narrow(line $narrow_line)"; }
+
+rm -rf "$woo" "$woo2" "$woo3" "$woo4" "$paths2"
 finish
