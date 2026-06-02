@@ -11,6 +11,7 @@ Not a template. It's the decisions and workflow an agent follows. For greenfield
 - [How it works](#how-it-works): what each command does
 - [Quickstart](#quickstart): greenfield and brownfield entry points
 - [Concepts](#concepts): artifacts, branching, the review swarm
+- [Configuration](#configuration)
 - [Default stack](#default-stack)
 - [What it defines](#what-it-defines)
 - [Cloud / CI review](#cloud--ci-review)
@@ -102,6 +103,30 @@ Notes are written two ways: **distillation** at the end of a `woostack-build` cy
 **The review swarm + skeptical validation.** Review isn't a single agent reading a diff. It's `detect → fan-out (one sub-agent per angle) → merge → skeptical validator → post`. The validator runs as a prosecutor (find reasons each finding is real) and a defender (find reasons to drop it), and only findings that survive both get posted, which keeps the output low-noise. The chat-host swarm and the cloud GitHub Action run the *same* scripts and prompts. → [SKILL.md](skills/woostack-review/SKILL.md#architecture)
 
 **woostack-review is first-party here.** It lives at `skills/woostack-review/`; the standalone `howarewoo/woo-review` repo is deprecated.
+
+## Configuration
+
+Consumer repos can add `.woostack/config.json` to tune woostack behavior without forking the skill collection. Run `/woostack-init` once to scaffold the `.woostack/` workspace, or create the file directly when you only need a small override.
+
+Review settings live under a top-level `review` object so the same config file can grow sibling namespaces later without collisions. All keys are optional; missing config keeps the built-in defaults. The review defaults are intentionally quiet: `severity_floor` is `high`, bot-authored dependency/update PRs are skipped, and release-rollup PR titles are skipped unless you override those rules.
+
+Minimal example:
+
+```json
+{
+  "review": {
+    "severity_floor": "medium",
+    "angles": {
+      "skip": ["seo"],
+      "force": ["database"]
+    },
+    "ignore": ["**/*.generated.ts"],
+    "project_rules": ["docs/standards/*.md"]
+  }
+}
+```
+
+Use config for repository-specific review policy: widen or narrow the severity floor, force or skip optional angles, ignore generated files, add rule documents, customize bot/release auto-skips, opt into local metrics, or adjust diff chunking for large PRs. `bugs` and `security` always run and cannot be skipped. Invalid JSON or unknown keys inside `review` fail loudly so configuration mistakes do not silently change review behavior. → [Per-repo Configuration](skills/woostack-review/SKILL.md#per-repo-configuration-woostackconfigjson)
 
 ## Default stack
 
