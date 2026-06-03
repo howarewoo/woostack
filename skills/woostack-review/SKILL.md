@@ -18,6 +18,8 @@ This skill is **host-agnostic**: it works in any AI coding agent that supports s
 
 - `/woostack-review` — Auto-detect: if the current branch has an open PR (via `gh pr view --json number`), behave as `/woostack-review <PR#>`. Otherwise review the local diff (no GitHub posting).
 - `/woostack-review <PR#>` — Fetch the PR via `gh`, run the swarm, and post a native batched GitHub Review.
+- `/woostack-review --fast`, `/woostack-review fast` — One-run fast-tier override for the whole review (`FORCE_TIER = fast`).
+- `/woostack-review --deep`, `/woostack-review deep` — One-run deep-tier override for the whole review (`FORCE_TIER = deep`).
 - `/woostack-review --full` (or `@review --full` in a PR comment) — Force a complete re-review even when a prior SHA marker exists. Skips the incremental path described below.
 - `woostack-review install` — Verify local deps (`gh`, `jq`, `node`) and pre-fetch `impeccable` + `react-doctor` (run once per repo).
 - `woostack-review status` — Show the current PR's review status.
@@ -31,6 +33,8 @@ When the companion GitHub Action is installed, the following comment commands re
 | `/woostack-review` | Full re-review (sets `incremental=off`). Equivalent to `@review --full`. |
 | `/woostack-review recheck` | Incremental review of new commits since the last marker. Same path as a `synchronize` event. |
 | `/woostack-review force` | Bypass auto-skip (see *Auto-skip* below). Combinable: `/woostack-review force recheck`. |
+| `/woostack-review --fast` / `/woostack-review fast` | Force a one-run fast-tier execution for this run. |
+| `/woostack-review --deep` / `/woostack-review deep` | Force a one-run deep-tier execution for this run. |
 
 The legacy `@review` trigger phrase still works; `/woostack-review` is an alias the example workflow's `issue_comment` `if:` recognizes.
 
@@ -151,6 +155,7 @@ Full schema (every key shown; all optional):
         "deep": "claude-opus-4-7"
       }
     },
+    "force_tier": "deep",
     "fix_commands": ["pnpm lint:fix", "pnpm format"],
     "disable_adversarial": false,
     "chunking": {
@@ -167,13 +172,14 @@ Key reference (JSON has no comments, so the per-key semantics live here):
 - **`project_rules`** — fnmatch globs appended to auto-discovered `rules.md`.
 - **`authors_skip`** — PR author logins that short-circuit the entire review. Defaults: `dependabot[bot]`, `renovate[bot]`, `github-actions[bot]`. Set to `[]` to opt out.
 - **`release_rollup_pattern`** — Python regex on the PR title (default shown above; note `\\(` to escape the paren in JSON). Empty string opts out.
+- **`force_tier`** — `fast` or `deep`. Single-run override from config. Valid values are the same as `/woostack-review --fast` / `--deep`.
 - **`models`** — per-tier slug overrides. Use flat `models.fast` / `.standard` / `.deep` as provider-agnostic fallbacks, or provider-scoped maps such as `models.openai.deep`, `models.anthropic.standard`, `models.google.standard`, and `models.openrouter.fast` when the same repo is reviewed by multiple coding agents. The action input `inputs.model` still wins.
 - **`fix_commands`** — reserved for `--loop` mode (issue #15).
 - **`disable_adversarial`** — cost-sensitive opt-out for the prosecutor+defender validator (issue #13). When `true`, only the defender pass runs and its output becomes `findings.json` directly.
 - **`metrics`**: opt in to per-angle signal/noise metrics (bool, default `false`) — emit `findings.metrics.json` per run and fold a rolling `.woostack/metrics.json` aggregate (local only). Each angle also carries `overlap_total` + `overlap_with` (how often another angle raised the same issue, on the raw pre-validation set — a redundancy signal). Aggregate schema is v2; an older v1 aggregate is reseeded on first fold. See Stage 6.5.
 - **`chunking.max_loc`** — diff-chunking threshold (issue #14). When the post-ignore diff exceeds this many changed lines, prefetch splits it into chunks honoring workspace package roots > top-level dirs > file-LOC-balanced groups; each angle fans out as angles × chunks parallel sub-agents. `0` disables chunking; missing => 4000.
 
-**Precedence**: for the angle set, `angles.force` beats `angles.skip` when the same angle is listed in both. For model resolution, the action input `inputs.model` beats `models.<provider>.<tier>`, which beats flat `models.<tier>`, which beats the table default in `prompts/_header.md`. `ignore` is applied to both file paths and the per-file diff sections before angle gates evaluate.
+**Precedence**: for the angle set, `angles.force` beats `angles.skip` when the same angle is listed in both. For model resolution, precedence is: explicit comment override (`--fast` / `--deep`) → action input `inputs.force_tier` → `review.force_tier` in config → action input `inputs.model` → `models.<provider>.<tier>` → flat `models.<tier>` → table default in `prompts/_header.md`. `ignore` is applied to both file paths and the per-file diff sections before angle gates evaluate.
 
 ## `/woostack-review` Workflow
 
@@ -325,7 +331,7 @@ Per-provider resolution (full table in `_header.md`):
 **Host capability:**
 
 - **Per-call routing** (Claude Code `Task`, opencode `@subagent`): honor each prompt's `tier:` verbatim. Maximum savings.
-- **Single model per session** (Codex Action, Gemini CLI): pin the run to the `standard` tier — covers every angle safely. `tier:` becomes informational. Split into multiple jobs if you want fast-tier savings on rubric angles or deep-tier validation.
+- **Single model per session** (Codex Action, Gemini CLI): pin the run to a resolved run-tier (`fast` or `deep` via `FORCE_TIER`, otherwise `standard`). `tier:` becomes informational once the run tier resolves. Split into multiple jobs if you want per-angle fast/deep split behavior.
 
 ### Stage 4 — Merge + Adversarial Validation
 

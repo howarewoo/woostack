@@ -8,7 +8,7 @@ The shared header above lists prefetched artifacts, the findings schema, the blo
 
 ## Model selection
 
-Gemini CLI runs one model per session by default (set via `inputs.model`, default `gemini-3-5-flash`). The `@generalist` subagent inherits this model from the main session, so the `tier:` frontmatter on each angle prompt is **effectively informational** unless you override per-subagent in `~/.gemini/settings.json`:
+Gemini CLI runs one model per session by default. The `@generalist` subagent inherits this model from the main session, so the `tier:` frontmatter on each angle prompt is **effectively informational** unless you override per-subagent in `~/.gemini/settings.json`:
 
 ```json
 {
@@ -22,9 +22,15 @@ Gemini CLI runs one model per session by default (set via `inputs.model`, defaul
 }
 ```
 
-Google's 3.5 line currently ships only `gemini-3-5-flash`, so tier routing is a no-op until a larger 3.5-line model appears. Default every angle subagent to the session's model. Revisit when Pro/Ultra slugs land.
+Google's 3.5 line currently ships only `gemini-3-5-flash`, so tier routing is a no-op until a larger 3.5-line model appears. Default every angle subagent to the session's model.
 
-**Per-repo override:** if `$OUTDIR/config.json` has `models.google.standard` set, treat it as the effective slug for this run; otherwise fall back to flat `models.standard` (precedence: `inputs.model` > `models.google.standard` > `models.standard` > default `gemini-3-5-flash`). Read with `jq -r '.models.google.standard // .models.standard // empty' $OUTDIR/config.json`.
+**Per-repo override / FORCE_TIER:** run-model resolution is driven by `load-prompt.sh` before this phase. Honor the following precedence:
+- `FORCE_TIER` from Review Context (`fast`/`deep`) if present
+- `inputs.model` (explicit)
+- `models.google.<run_tier>` and flat `models.<run_tier>` in `$OUTDIR/config.json`
+- default `gemini-3-5-flash`
+
+Revisit subagent routing when larger Google models ship; until then, this is still a single-session host.
 
 ---
 

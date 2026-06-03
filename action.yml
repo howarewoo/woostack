@@ -26,6 +26,10 @@ inputs:
     description: 'Model identifier passed to the chosen runner. For openrouter, use the openrouter/<model> form.'
     required: false
     default: ''
+  force_tier:
+    description: 'Optional one-run tier override: `fast` or `deep`. Overrides explicit config and forces single-model hosts to the selected tier.'
+    required: false
+    default: ''
   openai_effort:
     description: 'OpenAI Codex reasoning_effort passthrough (minimal | low | medium | high | xhigh, model-dependent). Maps to the deep-tier validator role; leave empty for Codex default.'
     required: false
@@ -146,6 +150,7 @@ runs:
         EVENT_ACTION: ${{ github.event.action }}
         INPUT_SKIP_LABELS: ${{ inputs.skip_labels }}
         INPUT_INCREMENTAL: ${{ inputs.incremental }}
+        INPUT_FORCE_TIER: ${{ inputs.force_tier }}
         COMMENT_BODY: ${{ github.event.comment.body }}
       run: bash "${{ github.action_path }}/skills/woostack-review/scripts/prefetch.sh"
 
@@ -219,9 +224,11 @@ runs:
         GITHUB_REPOSITORY: ${{ github.repository }}
         EVENT_NAME: ${{ github.event_name }}
         COMMENT_BODY: ${{ github.event.comment.body }}
+        INPUT_FORCE_TIER: ${{ steps.prefetch.outputs.force_tier }}
         ENABLED_ANGLES: ${{ (inputs.mode == 'review' && inputs.angle) || steps.angles.outputs.angles }}
         MODE: ${{ inputs.mode }}
         ANGLE: ${{ inputs.angle }}
+        INPUT_MODEL: ${{ inputs.model }}
       run: bash "${{ github.action_path }}/skills/woostack-review/scripts/load-prompt.sh"
 
     # --- Provider runners (mutually exclusive) ---
@@ -235,7 +242,7 @@ runs:
         anthropic_api_key: ${{ inputs.anthropic_api_key }}
         prompt: ${{ steps.load-prompt.outputs.prompt }}
         claude_args: |
-          --model ${{ inputs.model || 'claude-sonnet-4-6' }}
+          --model ${{ steps.load-prompt.outputs.run_model }}
           --max-turns ${{ inputs.max_turns }}
         show_full_output: true
         # Constrained allow-list — the prompt is partially built from untrusted
@@ -304,7 +311,7 @@ runs:
       uses: openai/codex-action@a26d2d4d8b78a694338b8e3715c3630254340b2c # v1 (== v1.8 as of 2026-04-29)
       with:
         openai-api-key: ${{ inputs.openai_api_key }}
-        model: ${{ inputs.model || 'gpt-5.5' }}
+        model: ${{ steps.load-prompt.outputs.run_model }}
         effort: ${{ inputs.openai_effort }}
         prompt: ${{ steps.load-prompt.outputs.prompt }}
         sandbox: workspace-write
@@ -325,7 +332,7 @@ runs:
       with:
         gemini_api_key: ${{ inputs.gemini_api_key }}
         google_api_key: ${{ inputs.google_api_key }}
-        gemini_model: ${{ inputs.model || 'gemini-3-5-flash' }}
+        gemini_model: ${{ steps.load-prompt.outputs.run_model }}
         prompt: ${{ steps.load-prompt.outputs.prompt }}
       env:
         GH_TOKEN: ${{ github.token }}
@@ -343,7 +350,7 @@ runs:
       # The repo appears to have moved to anomalyco/opencode; verify upstream before pinning.
       uses: sst/opencode/github@v1.15.10
       with:
-        model: ${{ inputs.model || 'openrouter/deepseek/deepseek-v4-flash' }}
+        model: ${{ steps.load-prompt.outputs.run_model }}
         prompt: ${{ steps.load-prompt.outputs.prompt }}
         share: 'false'
       env:

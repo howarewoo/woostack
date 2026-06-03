@@ -10,15 +10,19 @@ The shared header above lists prefetched artifacts, findings schema, blocking cr
 
 ## Model selection
 
-OpenCode + OpenRouter can route per-subagent if the OpenCode runtime supports it. When spawning each angle / validator subagent, read its `tier:` frontmatter and resolve via the **Model Tiers** table in `_header.md`:
+OpenCode + OpenRouter can route per-subagent if the OpenCode runtime supports it. When spawning each angle / validator subagent, resolve an effective tier in order:
+1. `FORCE_TIER` in Review Context (`fast`/`deep`) when present.
+2. Otherwise the angle/validator `tier:` frontmatter.
+
+Then resolve that effective tier via the **Model Tiers** table in `_header.md`:
 
 - `fast` → `openrouter/deepseek/deepseek-v4-flash`
 - `standard` → `openrouter/deepseek/deepseek-v4-pro`
 - `deep` → `openrouter/deepseek/deepseek-v4-pro` with `reasoning_effort: xhigh` (use `high` for a lower-cost reasoning pass)
 
-OpenRouter exposes only two DeepSeek slugs — reasoning is a `reasoning_effort` parameter on the same `v4-pro` slug, not a separate model ID. DeepSeek V4 supersedes R1 — do not route to `deepseek-r1`. If the OpenCode build cannot route per-subagent or cannot pass `reasoning_effort`, fall back to a single model for the whole job and pin it to `openrouter/deepseek/deepseek-v4-pro`. `inputs.model` (action.yml) always overrides tier resolution.
+OpenRouter exposes only two DeepSeek slugs — reasoning is a `reasoning_effort` parameter on the same `v4-pro` slug, not a separate model ID. DeepSeek V4 supersedes R1 — do not route to `deepseek-r1`. If the OpenCode build cannot route per-subagent or cannot pass `reasoning_effort`, fall back to a single model for the whole job and pin it to the resolved `run_model` from `load-prompt.sh`. `inputs.model` (action.yml) overrides the default tier but is itself overridden when `FORCE_TIER` is set.
 
-**Per-repo override:** before applying any tier slug above, check `$OUTDIR/config.json` for `models.openrouter.<tier>` and then flat `models.<tier>` (`jq -r '.models.openrouter.fast // .models.fast // empty' $OUTDIR/config.json`, etc.). Precedence: `inputs.model` > `models.openrouter.<tier>` > `models.<tier>` > table default.
+**Per-repo override:** before applying the final model slug above, check `$OUTDIR/config.json` for `models.openrouter.<effective_tier>` and then flat `models.<effective_tier>` (`jq -r '.models.openrouter.deep // .models.deep // empty' $OUTDIR/config.json`, etc.). Precedence: `FORCE_TIER` (if set) first, then `inputs.model`, then `models.openrouter.<effective_tier>` > `models.<effective_tier>` > table default.
 
 ---
 

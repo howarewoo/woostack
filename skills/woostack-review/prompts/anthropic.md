@@ -38,7 +38,12 @@ Perform all steps (1 through 4) as the main orchestrator.
 
 ## Model routing (token optimization)
 
-Claude Code's `Task` tool supports per-subagent model routing. Read each angle prompt's `tier:` frontmatter and resolve via the **Model Tiers** table in `_header.md`:
+Claude Code's `Task` tool supports per-subagent model routing. Resolve each spawned subagent model from:
+1. `FORCE_TIER` in Review Context (`fast`/`deep`) when present.
+2. Otherwise the angle prompt `tier:` frontmatter.
+3. Then per-repo overrides and table defaults in `_header.md`.
+
+Then resolve via the **Model Tiers** table in `_header.md`:
 
 | Tier | Anthropic model | Used for |
 |---|---|---|
@@ -60,9 +65,9 @@ Task({
 ```
 
 Resolution rule per spawn:
-1. Read the angle file's frontmatter `tier:` value.
+1. Determine effective tier.
 2. Look up the Anthropic column in the tier table above.
-3. **Per-repo override**: check `$OUTDIR/config.json` for `models.anthropic.<tier>`, then flat `models.<tier>` (e.g. `jq -r '.models.anthropic.standard // .models.standard // empty' $OUTDIR/config.json`). If non-empty, use that slug instead of the table value.
+3. **Per-repo override**: check `$OUTDIR/config.json` for `models.anthropic.<effective_tier>`, then flat `models.<effective_tier>` (e.g. when `run_tier=deep`: `jq -r '.models.anthropic.deep // .models.deep // empty' $OUTDIR/config.json`). If non-empty, use that slug instead of the table value.
 4. Pass the resolved slug as `model:` on the Task call.
 
 Do not default the validator to Sonnet — pass `model: "claude-opus-4-7"` explicitly. Opus's stricter false-positive filter pays for itself in review quality.

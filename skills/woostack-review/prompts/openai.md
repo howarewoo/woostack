@@ -8,9 +8,18 @@ The shared header above lists prefetched artifacts, findings schema, blocking cr
 
 ## Model selection
 
-Codex Action runs one model for the full job (set via `inputs.model`, default `gpt-5.5`). Per-call routing is not possible, so the `tier:` frontmatter on each angle prompt is **informational only** under this provider. Default to `gpt-5.5` for maximum review quality; use `gpt-5.4` when you want the everyday coding-review balance, and `gpt-5.3-codex-spark` for simpler/cost-sensitive review jobs and ultra-fast real-time coding checks where speed matters more than validator depth. Use `gpt-5.4-mini` only as the non-Spark cost-sensitive fallback when Spark is unavailable. GPT-5-family reasoning is a `reasoning_effort` parameter, not a slug suffix; there is no `gpt-5-pro`. Pass it via `inputs.openai_effort` on this action (wired through to codex-action's `effort` input, available since codex-action v1.1). To trade some quality on `bugs`/`security`/`architecture`/`design`/`react`/`tests`/`api`/`infra` for cost on `seo`/`aeo`/`observability`/`types`/`i18n`/`docs`/`deps` runs, split the workflow into two jobs (e.g. one `gpt-5.3-codex-spark` job for the fast-tier rubric angles, then one `gpt-5.5` job with `openai_effort: xhigh` for the remaining angles + validator).
+Codex Action runs one model for the full job. Per-call routing is not possible, so the `tier:` frontmatter on each angle prompt is **informational only** under this provider.
 
-**Per-repo override:** if `$OUTDIR/config.json` has `models.openai.standard` set, treat it as the effective slug for this run; otherwise fall back to flat `models.standard` (precedence: `inputs.model` > `models.openai.standard` > `models.standard` > default `gpt-5.5`). Read with `jq -r '.models.openai.standard // .models.standard // empty' $OUTDIR/config.json`.
+The action resolves one session model in `load-prompt.sh` using this precedence:
+1. `FORCE_TIER` from Review Context (from `/woostack-review --fast` or `--deep`, or `review.force_tier` in config): fast→`gpt-5.3-codex-spark`, deep→`gpt-5.5`. Only `fast` and `deep` are valid `FORCE_TIER` values; the `standard` tier (`gpt-5.4`) is the implicit default when `FORCE_TIER` is unset — see step 3.
+2. `inputs.model` when explicitly set.
+3. Provider defaults (`gpt-5.4` standard).
+
+Per-repo override remains in effect during run-model resolution: if `$OUTDIR/config.json` has `models.openai.<run_tier>` set (or flat `models.<run_tier>`), use that value before falling back to the default.
+
+For quality/cost splits, GPT-5-family reasoning is a `reasoning_effort` parameter, not a slug suffix (`high`, `xhigh` etc.); there is no `gpt-5-pro`. Pass effort via `inputs.openai_effort` (wired through to codex-action `effort`). Use `gpt-5.4-mini` only as the non-spark fallback when Spark is unavailable.
+
+**Per-repo override:** resolve using the active run tier: if `$OUTDIR/config.json` has `models.openai.<run_tier>` set, use it; otherwise fall back to flat `models.<run_tier>` (precedence: `FORCE_TIER` > `inputs.model` > `models.openai.<run_tier>` > `models.<run_tier>` > default `gpt-5.4`). Read with run-tier-aware lookup, e.g. when `run_tier=deep`: `jq -r '.models.openai.deep // .models.deep // empty' $OUTDIR/config.json`.
 
 ---
 

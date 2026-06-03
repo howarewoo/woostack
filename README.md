@@ -208,7 +208,7 @@ jobs:
       anthropic_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 ```
 
-The `if:` gate matters: the `issue_comment` trigger runs in the base-repo context with secrets available to *any* commenter, so it's restricted to the repo owner, members, and collaborators. Drop it and a fork contributor's comment could trigger a run on your token. Past that, there's zero local setup in the consumer repo: the action ships its own prompts and scripts and installs the `react-doctor` / `impeccable` CLIs via `npx` at run time. The provider is pluggable (Anthropic, OpenAI, Google, OpenRouter); pin `@main` to a release tag once one is cut. PR comments like `/woostack-review`, `/woostack-review recheck`, and `/woostack-review force` re-trigger it without leaving the PR. → [SKILL.md](skills/woostack-review/SKILL.md#companion-github-action)
+The `if:` gate matters: the `issue_comment` trigger runs in the base-repo context with secrets available to *any* commenter, so it's restricted to the repo owner, members, and collaborators. Drop it and a fork contributor's comment could trigger a run on your token. Past that, there's zero local setup in the consumer repo: the action ships its own prompts and scripts and installs the `react-doctor` / `impeccable` CLIs via `npx` at run time. The provider is pluggable (Anthropic, OpenAI, Google, OpenRouter); pin `@main` to a release tag once one is cut. PR comments like `/woostack-review`, `/woostack-review recheck`, `/woostack-review --fast` (or `--deep`), and `/woostack-review force` re-trigger it without leaving the PR. → [SKILL.md](skills/woostack-review/SKILL.md#companion-github-action)
 
 ## Contributing
 

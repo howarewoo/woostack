@@ -42,6 +42,8 @@
 #   models.<provider>.<tier>
 #                       str (provider-specific override; provider is one of
 #                            anthropic/openai/google/openrouter)
+#   force_tier          str (provider-agnostic "fast" | "deep" override for this
+#                            run; empty/absent means standard-tier model)
 #   fix_commands        list[str]  (consumed by issue #15 --loop mode)
 #   disable_adversarial bool       (cost-sensitive opt-out for issue #13's
 #                                   prosecutor+defender pipeline; default false)
@@ -78,11 +80,12 @@ src, dst = sys.argv[1], sys.argv[2]
 
 VALID_ANGLES = {"bugs", "security", "conventions", "seo", "aeo", "design", "react", "database", "tests", "api", "infra", "observability", "types", "i18n", "docs", "deps", "architecture"}
 VALID_FLOORS = {"low", "medium", "high"}
+FORCE_TIERS = {"fast", "deep"}
 # Keys recognized inside the `review` block (and the legacy top-level form).
 REVIEW_KEYS = {
     "angles", "severity_floor", "ignore", "project_rules",
     "authors_skip", "release_rollup_pattern", "models", "fix_commands",
-    "disable_adversarial", "metrics", "chunking",
+    "disable_adversarial", "metrics", "chunking", "force_tier",
 }
 MODEL_TIERS = {"fast", "standard", "deep"}
 MODEL_PROVIDERS = {"anthropic", "openai", "google", "openrouter"}
@@ -178,6 +181,16 @@ if "severity_floor" in raw:
     if sf_lc not in VALID_FLOORS:
         loud("`severity_floor` must be one of: {} (got '{}')".format(", ".join(sorted(VALID_FLOORS)), sf))
     out["severity_floor"] = sf_lc
+
+if "force_tier" in raw:
+    ft = raw["force_tier"]
+    if not isinstance(ft, str):
+        loud("`force_tier` must be a string, got {}".format(type(ft).__name__))
+    ft_lc = ft.strip().lower()
+    if ft_lc and ft_lc not in FORCE_TIERS:
+        loud("`force_tier` must be one of: {} (got '{}')".format(", ".join(sorted(FORCE_TIERS)), ft))
+    if ft_lc:
+        out["force_tier"] = ft_lc
 
 for key in ("ignore", "project_rules", "authors_skip", "fix_commands"):
     if key in raw:
