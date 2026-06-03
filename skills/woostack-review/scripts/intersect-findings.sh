@@ -15,7 +15,7 @@
 #                               mode: "adversarial" | "defender-only",
 #                               degraded: bool}
 #
-# Intersection key: three-pass match. Pass 1 is exact `(file, line, title_stem)`
+# Intersection key: four-pass match. Pass 1 is exact `(file, line, title_stem)`
 # where `title_stem` is lowercase alphanumeric truncated to 40 chars — same
 # key used by prior-thread dedupe in _header.md so the two stay consistent.
 # Pass 2 is a fuzzy fallback for the unmatched remainder: same `file`, line
@@ -26,12 +26,19 @@
 # cross-angle dedupe in merge-findings.sh can leave the same issue with
 # different titles in the two validator inputs, so the title-gated passes drop a
 # finding both passes actually agreed on (the bug behind disagreement_count
-# inflation). Dropping agreed findings is a worse failure than an occasional
-# over-merge, and the merge is conservative (lower severity, AND of blocking),
-# so a wrong pairing can never escalate a finding. Together these stop genuine
-# agreement from being dropped when the two validators anchor the same finding
-# at slightly different lines (e.g. 33 vs 39 for the same REVOKE block) or
-# reword the headline past the prefix-20 cutoff.
+# inflation). Pass 4 is a title-similarity fallback with NO line window: passes
+# 1-3 ALL gate on |line delta| <= 10, so a finding both validators kept but
+# anchored far apart in the same file (one at the buggy line, the other at a
+# contrast line — e.g. action.yml:231 vs :314 for the same Anthropic-runner
+# issue) is still dropped. Pass 4 pairs the remaining unmatched defender
+# findings to a same-file prosecutor finding by distinctive title-token overlap
+# alone, requiring >= 2 shared significant tokens AND an unambiguous winner.
+# Dropping agreed findings is a worse failure than an occasional over-merge, and
+# the merge is conservative (lower severity, AND of blocking), so a wrong
+# pairing can never escalate a finding. Together these stop genuine agreement
+# from being dropped when the two validators anchor the same finding at
+# slightly different lines (e.g. 33 vs 39 for the same REVOKE block), reword the
+# headline past the prefix-20 cutoff, or anchor it at unrelated lines entirely.
 #
 # When `disable_adversarial: true` is set in config.json, OR
 # findings.prosecutor.json is missing/empty, intersection is skipped and
@@ -289,6 +296,28 @@ def title_stem_prefix(s, n=20):
     return title_stem(s)[:n]
 
 
+# Generic review filler that carries no identifying signal. Excluded from the
+# significant-token set so two unrelated findings can't pair on shared filler.
+_TITLE_STOPWORDS = {
+    "always", "never", "value", "values", "when", "that", "this", "with",
+    "from", "into", "your", "will", "does", "only", "also", "more", "less",
+    "than", "then", "here", "there", "where", "which", "what", "while",
+    "each", "both", "same", "other", "uses", "used", "should", "could",
+    "would", "must", "missing", "incorrect", "wrong", "issue",
+}
+
+
+def significant_tokens(s):
+    """Distinctive title tokens: alphanumeric words >=4 chars, lowercased,
+    minus generic filler. Used by pass 4 to pair the same finding when the two
+    validators reword the headline AND anchor it far apart (so the line-gated
+    passes 1-3 all miss). Returns a set for overlap counting."""
+    return {
+        t for t in re.split(r"[^a-z0-9]+", (s or "").lower())
+        if len(t) >= 4 and t not in _TITLE_STOPWORDS
+    }
+
+
 def safe_line(v):
     try:
         return int(v)
@@ -391,7 +420,7 @@ for df in unmatched_def[:]:
 # conservative (lower severity, AND of blocking), so a wrong pairing cannot
 # escalate a finding — at worst it keeps one that should have been kept anyway.
 location_matches = 0
-for df in unmatched_def:
+for df in unmatched_def[:]:
     df_file = df.get("file") or ""
     df_line = safe_line(df.get("line"))
     if not df_file:
@@ -416,11 +445,57 @@ for df in unmatched_def:
     if best is None or tie:
         continue
     matched_pros_ids.add(id(best))
+    unmatched_def.remove(df)
     merged = dict(df)
     merged["severity"] = sev_label(min(sev_rank(df.get("severity")), sev_rank(best.get("severity"))))
     merged["blocking"] = bool(df.get("blocking", False)) and bool(best.get("blocking", False))
     kept.append(merged)
     location_matches += 1
+
+# Pass 4: same-file title-similarity fallback, with NO line window. Passes 1-3
+# all gate on |line delta| <= 10, so they drop a finding both validators kept
+# when the two anchor it far apart — e.g. one validator anchors the buggy line
+# and the other a contrast line in the same file (action.yml:231 vs :314 for
+# the same "Anthropic runner ignores force_tier" issue). Here we pair the
+# remaining unmatched defender findings to an unmatched prosecutor finding in
+# the SAME file by distinctive title-token overlap alone. Guards against
+# over-merging two genuinely different same-file findings: require >= 2 shared
+# significant tokens AND an unambiguous winner (strictly more overlap than the
+# runner-up). Merge stays conservative (lower severity, AND of blocking), so a
+# wrong pairing can never escalate a finding.
+MIN_SHARED_TOKENS = 2
+title_matches = 0
+for df in unmatched_def[:]:
+    df_file = df.get("file") or ""
+    if not df_file:
+        continue
+    df_tokens = significant_tokens(df.get("title"))
+    if len(df_tokens) < MIN_SHARED_TOKENS:
+        continue
+    best = None
+    best_overlap = 0
+    runner_up = 0
+    for pf in prosecutor:
+        if id(pf) in matched_pros_ids:
+            continue
+        if (pf.get("file") or "") != df_file:
+            continue
+        overlap = len(df_tokens & significant_tokens(pf.get("title")))
+        if overlap > best_overlap:
+            runner_up = best_overlap
+            best = pf
+            best_overlap = overlap
+        elif overlap > runner_up:
+            runner_up = overlap
+    if best is None or best_overlap < MIN_SHARED_TOKENS or best_overlap == runner_up:
+        continue
+    matched_pros_ids.add(id(best))
+    unmatched_def.remove(df)
+    merged = dict(df)
+    merged["severity"] = sev_label(min(sev_rank(df.get("severity")), sev_rank(best.get("severity"))))
+    merged["blocking"] = bool(df.get("blocking", False)) and bool(best.get("blocking", False))
+    kept.append(merged)
+    title_matches += 1
 
 with open(final_path, "w") as fh:
     json.dump(kept, fh, indent=2)
@@ -428,7 +503,8 @@ with open(final_path, "w") as fh:
 
 sys.stderr.write(
     f"intersect-findings: fuzzy-matched {fuzzy_matches} finding(s) on second pass, "
-    f"{location_matches} on location-only third pass\n"
+    f"{location_matches} on location-only third pass, "
+    f"{title_matches} on title-similarity fourth pass\n"
 )
 PY
 

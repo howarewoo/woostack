@@ -73,7 +73,7 @@ if [ "$TEST_MODE" = "1" ] && [ "${GITHUB_ACTIONS:-}" = "true" ]; then
 fi
 # Trigger-comment parsing (issue #19 + existing --full override).
 normalize_token() {
-  printf '%s' "${1,,}" | tr -cd '[:alnum:]-/'
+  printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | tr -cd '[:alnum:]-/'
 }
 
 parse_review_comment() {
@@ -125,7 +125,7 @@ parse_review_comment() {
 
 FORCE_BYPASS=""
 INPUT_FORCE_TIER="${INPUT_FORCE_TIER:-}"
-FORCE_TIER="${INPUT_FORCE_TIER,,}"
+FORCE_TIER="$(printf '%s' "$INPUT_FORCE_TIER" | tr '[:upper:]' '[:lower:]')"
 FORCE_TIER_EXPLICIT=""
 
 if [ -n "$FORCE_TIER" ] && [ "$FORCE_TIER" != "fast" ] && [ "$FORCE_TIER" != "deep" ]; then

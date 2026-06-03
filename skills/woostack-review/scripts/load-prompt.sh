@@ -105,7 +105,7 @@ provider_tier_model() {
   default_model_for "$provider" "$tier"
 }
 
-RUN_TIER="${INPUT_FORCE_TIER,,}"
+RUN_TIER="$(printf '%s' "${INPUT_FORCE_TIER:-}" | tr '[:upper:]' '[:lower:]')"
 if [ -n "$RUN_TIER" ] && [ "$RUN_TIER" != "fast" ] && [ "$RUN_TIER" != "deep" ]; then
   echo "::error::INPUT_FORCE_TIER must be 'fast' or 'deep' if set (got '$RUN_TIER')"
   exit 1
