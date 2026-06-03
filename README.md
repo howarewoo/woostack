@@ -2,7 +2,7 @@
 
 **An installable collection of opinionated skills that encode my software-development process (bootstrap, build, review, iterate) for both new and existing codebases.**
 
-This is a public representation of how I build software, packaged so any AI coding agent can follow the same loop. It covers the life of a change end to end: scaffold a project (greenfield), drive a feature, review it, and address the feedback (brownfield, since those work in any existing repo, not just one woostack created). The scope grows over time toward the rest of the loop. A commit utility for good messages and other day-to-day tools are on the way.
+This is a public representation of how I build software, packaged so any AI coding agent can follow the same loop. It covers the life of a change end to end: load project rules, scaffold a project (greenfield), drive a feature, review it, and address the feedback (brownfield, since those work in any existing repo, not just one woostack created). The scope grows over time toward the rest of the loop. A commit utility for good messages and other day-to-day tools are on the way.
 
 Not a template. It's the decisions and workflow an agent follows. For greenfield, that's the frameworks, architecture, infrastructure, and patterns to scaffold, resolved at the latest versions every time. For brownfield, it's the gated build → review → iterate loop applied to whatever repo you're in.
 
@@ -26,13 +26,17 @@ Templates rot. Dependencies drift, breaking changes pile up, and every new proje
 pnpx skills add howarewoo/woostack
 ```
 
-This installs the woostack **collection** (skills: woostack-init, woostack-bootstrap, woostack-build, woostack-review, woostack-address-comments) into your agent's skill directory and records it in `skills-lock.json`. Works in any agent that respects the `skills` convention: Claude Code, Cursor, Codex, Aider, and others.
+This installs the woostack **collection** (skills: using-woostack, woostack-init, woostack-bootstrap, woostack-build, woostack-review, woostack-address-comments) into your agent's skill directory and records it in `skills-lock.json`. Works in any agent that respects the `skills` convention: Claude Code, Cursor, Codex, Aider, and others.
 
 > **pnpm is the recommended package manager.** Commands in this repo use `pnpx` (and `pnpm`) over `npx` / `npm`. If you only have npm, `npx skills add howarewoo/woostack` works too, but woostack-bootstrapped projects use a pnpm catalog, so pnpm is the path of least friction.
 
 ## How it works
 
-Each command is a skill with its own gated procedure. Together they cover the life of a change: scaffold, build, review, iterate. Run a command by name in your agent (e.g. `/woostack-build add password reset`); the agent loads that skill's `SKILL.md` and follows it. **Codex syntax differs:** use `$woostack-build add password reset` or open `/skills` and select the skill. Only `bootstrap` is greenfield-specific. `build`, `review`, and `address-comments` operate on any repo, whether woostack scaffolded it or not.
+Each command is a skill with its own gated procedure. Together they cover the life of a change: load project rules, scaffold, build, review, iterate. Run a command by name in your agent (e.g. `/woostack-build add password reset`); the agent loads that skill's `SKILL.md` and follows it. **Codex syntax differs:** use `$woostack-build add password reset` or open `/skills` and select the skill. Only `bootstrap` is greenfield-specific. `build`, `review`, and `address-comments` operate on any repo, whether woostack scaffolded it or not.
+
+### `using-woostack`: project adoption and command routing
+
+An adoption skill for consumer repositories. Reference it from a project's root `AGENTS.md` when you want agents to load project-local woostack rules before acting, then route `/woostack-*` requests to the matching command skill. It does not initialize `.woostack/`, scaffold code, or mutate the project by itself. → [SKILL.md](skills/using-woostack/SKILL.md)
 
 ### `/woostack-bootstrap <goal>`: scaffold a new monorepo
 
