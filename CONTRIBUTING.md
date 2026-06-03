@@ -1,6 +1,6 @@
 # Contributing
 
-This repo is a **published collection of skills**, not a codebase. Contributions are edits to the skills — the Markdown under `skills/` plus the support files a skill ships (HTML templates, the review engine's shell scripts and prompts, JSON config). The four skills are `woostack-bootstrap`, `woostack-build`, `woostack-review`, and `woostack-address-comments`.
+This repo is a **published collection of skills**, not a codebase. Contributions are edits to the skills — the Markdown under `skills/` plus the support files a skill ships (HTML templates, the review engine's shell scripts and prompts, JSON config). The six skills are `using-woostack`, `woostack-init`, `woostack-bootstrap`, `woostack-build`, `woostack-review`, and `woostack-address-comments`.
 
 See [AGENTS.md](AGENTS.md) for the full repo contract; this file is the short contributor's version.
 
@@ -8,6 +8,7 @@ See [AGENTS.md](AGENTS.md) for the full repo contract; this file is the short co
 
 | You want to... | Edit |
 |---|---|
+| Change project adoption / command routing guidance | `skills/using-woostack/SKILL.md` |
 | Add/revise a bootstrap decision or its default | `skills/woostack-bootstrap/references/decisions.md` |
 | Swap a default framework | `skills/woostack-bootstrap/references/frameworks.md` |
 | Document a new gotcha | `skills/woostack-bootstrap/references/frameworks.md` (Known gotchas section) |
