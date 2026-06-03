@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Prefetches PR diff, metadata, and rules for the agentic review.
 # Inputs (env): GH_TOKEN, GITHUB_REPOSITORY, INPUT_SKIP_LABELS, INPUT_INCREMENTAL,
-#               PR_NUMBER, EVENT_NAME, EVENT_ACTION, COMMENT_BODY.
+#               INPUT_FORCE_TIER, PR_NUMBER, EVENT_NAME, EVENT_ACTION, COMMENT_BODY.
 # Outputs: skip=true|false and outdir=<path> to $GITHUB_OUTPUT (outdir also to stdout).
 # Side effects: writes /tmp/pr-review/{diff.txt,meta.json,last_sha.txt,prior-findings.json},
 #               and rules.md when project-rule files (AGENTS.md / CLAUDE.md / .cursorrules /
@@ -71,32 +71,77 @@ if [ "$TEST_MODE" = "1" ] && [ "${GITHUB_ACTIONS:-}" = "true" ]; then
   echo "::error::WOO_REVIEW_TEST_MODE is refused inside GitHub Actions. Test hooks are local-only." >&2
   exit 1
 fi
-# Trigger-comment parsing (issue #19 + existing --full override). Two channels:
-#   1. `--full` substring → INCREMENTAL=off (legacy `@review --full` syntax).
-#   2. `/woostack-review [force|recheck]` slash command:
-#        force   → bypass authors_skip + release_rollup_pattern (FORCE_BYPASS=1)
-#        recheck → INCREMENTAL=auto (default; explicit override of --full)
-#        (none)  → INCREMENTAL=off (full re-review)
-#      `force` and `recheck` may co-occur.
-# Fixed-string match avoids regex injection from user-controlled comment body.
+# Trigger-comment parsing (issue #19 + existing --full override).
+normalize_token() {
+  printf '%s' "${1,,}" | tr -cd '[:alnum:]-/'
+}
+
+parse_review_comment() {
+  local body token next
+  local -a words
+  local i j
+  local cmd_found=0
+  local force_tier_explicit=""
+
+  HAS_FORCE=0
+  HAS_RECHECK=0
+
+  read -r -a words <<<"$(printf '%s' "$body" | tr '\n' ' ')"
+  for ((i = 0; i < ${#words[@]}; i++)); do
+    token=$(normalize_token "${words[i]}")
+    if [ "$token" != "/woostack-review" ]; then
+      continue
+    fi
+    cmd_found=1
+
+    for ((j = i + 1; j < ${#words[@]}; j++)); do
+      next=$(normalize_token "${words[j]}")
+      case "$next" in
+        --full)
+          INCREMENTAL="off"
+          ;;
+        force)
+          HAS_FORCE=1
+          ;;
+        recheck)
+          HAS_RECHECK=1
+          ;;
+        --fast|fast)
+          force_tier_explicit="fast"
+          ;;
+        --deep|deep)
+          force_tier_explicit="deep"
+          ;;
+      esac
+    done
+  done
+
+  if [ "$cmd_found" = "1" ]; then
+    FORCE_TIER_EXPLICIT="$force_tier_explicit"
+  fi
+}
+
 FORCE_BYPASS=""
+INPUT_FORCE_TIER="${INPUT_FORCE_TIER:-}"
+FORCE_TIER="${INPUT_FORCE_TIER,,}"
+FORCE_TIER_EXPLICIT=""
+
+if [ -n "$FORCE_TIER" ] && [ "$FORCE_TIER" != "fast" ] && [ "$FORCE_TIER" != "deep" ]; then
+  echo "::error::INPUT_FORCE_TIER must be 'fast' or 'deep' if set (got '$FORCE_TIER')"
+  exit 1
+fi
+
 if [ "$EVENT_NAME" = "issue_comment" ]; then
+  parse_review_comment "${COMMENT_BODY:-}"
+  if [ -n "$FORCE_TIER_EXPLICIT" ]; then
+    FORCE_TIER="$FORCE_TIER_EXPLICIT"
+  fi
+
   if printf '%s' "${COMMENT_BODY:-}" | grep -qF -- '--full'; then
     INCREMENTAL="off"
     echo "Incremental: forced to 'off' by --full in trigger comment"
   fi
   if printf '%s' "${COMMENT_BODY:-}" | grep -qE '(^|[[:space:]])/woostack-review([[:space:]]|$)'; then
-    HAS_FORCE=0; HAS_RECHECK=0
-    if printf '%s' "${COMMENT_BODY:-}" | grep -qE '(^|[[:space:]])/woostack-review[[:space:]]+(force|recheck[[:space:]]+force)([[:space:]]|$)'; then
-      HAS_FORCE=1
-    elif printf '%s' "${COMMENT_BODY:-}" | grep -qE '(^|[[:space:]])/woostack-review[[:space:]]+force([[:space:]]|$)'; then
-      HAS_FORCE=1
-    fi
-    if printf '%s' "${COMMENT_BODY:-}" | grep -qE '(^|[[:space:]])/woostack-review[[:space:]]+(recheck|force[[:space:]]+recheck)([[:space:]]|$)'; then
-      HAS_RECHECK=1
-    elif printf '%s' "${COMMENT_BODY:-}" | grep -qE '(^|[[:space:]])/woostack-review[[:space:]]+recheck([[:space:]]|$)'; then
-      HAS_RECHECK=1
-    fi
     if [ "$HAS_FORCE" = "1" ]; then
       FORCE_BYPASS=1
       echo "Auto-skip bypass: '/woostack-review force' detected in trigger comment"
@@ -113,6 +158,9 @@ if [ "$EVENT_NAME" = "issue_comment" ]; then
 fi
 
 emit_skip() {
+  if [ -n "${GITHUB_OUTPUT:-}" ]; then
+    echo "force_tier=${FORCE_TIER:-}" >> "$GITHUB_OUTPUT"
+  fi
   if [ -n "${GITHUB_OUTPUT:-}" ]; then
     echo "skip=true" >> "$GITHUB_OUTPUT"
   fi
@@ -250,6 +298,23 @@ HEAD_SHA=$(jq -r '.headRefOid' "$OUTDIR/meta.json")
 # skip checks can read user overrides BEFORE we pay for the diff fetch.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 bash "$SCRIPT_DIR/load-config.sh"
+
+# Force-tier precedence:
+# 1) explicit command/runner override
+# 2) workflow input (`inputs.force_tier` via INPUT_FORCE_TIER)
+# 3) review.force_tier in .woostack/config.json
+# 4) unset/blank => standard-tier fallback (resolved later by load-prompt)
+if [ -z "$FORCE_TIER" ] && [ -f "$OUTDIR/config.json" ]; then
+  CONFIG_TIER="$(jq -r '.force_tier // empty' "$OUTDIR/config.json" 2>/dev/null || true)"
+  if [ "$CONFIG_TIER" = "fast" ] || [ "$CONFIG_TIER" = "deep" ]; then
+    FORCE_TIER="$CONFIG_TIER"
+  fi
+fi
+if [ -n "$FORCE_TIER" ]; then
+  echo "Resolved force_tier=$FORCE_TIER"
+else
+  echo "Resolved force_tier=unset (default standard run)"
+fi
 
 # Issue #19: auto-skip mechanical bot PRs (renovate / dependabot / etc.) and
 # release-rollup PRs. Effective lists fall back to defaults when the user did
@@ -723,6 +788,7 @@ fi
 bash "$SCRIPT_DIR/chunk-diff.sh"
 
 if [ -n "${GITHUB_OUTPUT:-}" ]; then
+  echo "force_tier=${FORCE_TIER:-}" >> "$GITHUB_OUTPUT"
   echo "skip=false" >> "$GITHUB_OUTPUT"
 fi
 echo "skip=false"

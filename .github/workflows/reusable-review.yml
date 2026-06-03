@@ -10,6 +10,10 @@ on:
         description: 'Model identifier passed to the chosen runner.'
         type: string
         required: false
+      force_tier:
+        description: 'Optional one-run tier override: fast | deep.'
+        type: string
+        required: false
       trigger_phrase:
         description: 'Phrase that triggers a review when posted in a PR comment.'
         type: string
@@ -85,6 +89,7 @@ jobs:
           mode: detect
           disable_angles: ${{ inputs.disable_angles }}
           incremental: ${{ inputs.incremental }}
+          force_tier: ${{ inputs.force_tier }}
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: review-artifacts
@@ -122,6 +127,7 @@ jobs:
           chunk: ${{ matrix.chunk }}
           provider: ${{ inputs.provider }}
           model: ${{ inputs.model }}
+          force_tier: ${{ inputs.force_tier }}
           anthropic_token: ${{ secrets.anthropic_token }}
           anthropic_api_key: ${{ secrets.anthropic_api_key }}
           openai_api_key: ${{ secrets.openai_api_key }}
@@ -201,6 +207,7 @@ jobs:
           disable_angles: ${{ inputs.disable_angles }}
           provider: ${{ inputs.provider }}
           model: ${{ inputs.model }}
+          force_tier: ${{ inputs.force_tier }}
           anthropic_token: ${{ secrets.anthropic_token }}
           anthropic_api_key: ${{ secrets.anthropic_api_key }}
           openai_api_key: ${{ secrets.openai_api_key }}
@@ -218,6 +225,7 @@ jobs:
           disable_angles: ${{ inputs.disable_angles }}
           provider: ${{ inputs.provider }}
           model: ${{ inputs.model }}
+          force_tier: ${{ inputs.force_tier }}
           anthropic_token: ${{ secrets.anthropic_token }}
           anthropic_api_key: ${{ secrets.anthropic_api_key }}
           openai_api_key: ${{ secrets.openai_api_key }}

@@ -67,11 +67,12 @@ Each angle prompt and the validator declare a `tier:` in frontmatter — `fast`,
 
 **Routing rules by host capability:**
 
-- **Per-call routing supported** (Claude Code `Task`, opencode `@subagent`): honor each prompt's `tier:` verbatim — spawn fast workers on the fast model, deep validator on the deep model. Maximum savings.
-- **Single model per session** (Codex Action, Gemini CLI): pin the whole run to the `standard` tier model. You lose `fast`-tier savings on rubric angles, but `standard` is the safe default that handles every angle. If `inputs.model` is set explicitly, honor that and ignore tiers.
-- **Override**: `inputs.model` (action.yml) or a runner-specific override always wins over the tier resolution.
+- **Per-call routing supported** (Claude Code `Task`, opencode `@subagent`): if `FORCE_TIER` is set in Review Context (`fast` or `deep`), use that as the effective tier for all routed calls first; otherwise use each prompt's own tier. Then apply provider overrides and table defaults.
+- **Single model per session** (Codex Action, Gemini CLI): resolve one run model from `run_model` in Load Prompt (which already applies precedence below). You lose per-angle tier behavior; all calls in the session run that one model.
+- **Override**: explicit `FORCE_TIER` and `run_model` win before per-repo/per-tier overrides. `run_model` already incorporates action input `model` when no `FORCE_TIER` override applies.
 
-**Per-repo tier overrides (`.woostack/config.json`):** before resolving any `tier:` to a model slug, read `/tmp/pr-review/config.json`. Prefer provider-specific overrides first, then flat tier fallbacks: `models.<provider>.<tier>` > `models.<tier>` > table default. Example for OpenAI deep: `jq -r '.models.openai.deep // .models.deep // empty' /tmp/pr-review/config.json` — empty means use the table default. `inputs.model` (action.yml) still wins over the per-repo override.
+**Per-repo tier overrides (`.woostack/config.json`):** for per-call hosts, resolve effective tier as `FORCE_TIER` if set, else prompt `tier`. Then apply provider overrides from `/tmp/pr-review/config.json`: prefer provider-specific keys first, then flat tier fallbacks: `models.<provider>.<tier>` > `models.<tier>` > table default. Example for OpenAI deep: `jq -r '.models.openai.deep // .models.deep // empty' /tmp/pr-review/config.json` — empty means use the table default.
+`inputs.model` (action.yml) and `run_model` (resolved in load-prompt) still win over per-repo and table defaults.
 
 ## Per-repo Config (`/tmp/pr-review/config.json`)
 
