@@ -158,7 +158,8 @@ Distillation **dedupes against `MEMORY.md` first** (update an existing note rath
 a duplicate) and runs `build-index.sh` + `doctor.sh` afterward. Only cross-feature knowledge
 is distilled — not feature-specific trivia.
 
-The accept-by-design review path uses `woostack-review/scripts/memory-record.sh`: when
+The accept-by-design address-comments path uses
+`woostack-address-comments/scripts/memory-record.sh`: when
 `.woostack/memory/` exists it writes a scoped `convention` note with `source: pr-<n>`
 and rebuilds `MEMORY.md`; when the scoped store is absent it falls back to the flat
 `memory.md` bullet append path. Address-comments should pass the narrowest `scope`

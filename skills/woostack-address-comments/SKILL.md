@@ -1,6 +1,6 @@
 ---
 name: woostack-address-comments
-description: Use when addressing the unresolved review threads on a pull request — fix or push back on each finding, reply, resolve, and push. Delegates to the woostack-review address verb; never merges.
+description: Use when addressing the unresolved review threads on a pull request — fix or push back on each finding, reply, resolve, and push. Never merges.
 ---
 
 # woostack-address-comments
@@ -15,35 +15,56 @@ autonomously. After the approved verdicts are applied it replies without perform
 language, resolves, records accept-by-design learnings as scoped memory notes when
 available, pushes, and offers a re-review. **Never merges.**
 
-This is a thin entry point. The engine is the `address` verb of the `woostack-review` skill
-— there is no separate implementation here.
+## Workflow
 
-## Dependency preflight
+When the user invokes `/woostack-address-comments [PR#]`, address the unresolved review
+threads on that PR. If no PR number is given, use the current branch's open PR.
 
-This skill delegates to `woostack-review` (its sibling in the woostack collection). If it
-is not installed, name it and **offer to install the collection inline**
-(`pnpx skills add howarewoo/woostack`), then continue. There is no manual fallback — the
-address engine lives in that skill.
+This flow is **local only** — it commits, pushes, resolves GitHub threads, and may write
+memory. It never merges.
 
-## Procedure
+**Lifecycle (A0→A7):**
 
-1. **Preflight** `woostack-review` as above.
-2. **Invoke** `woostack-review address <PR#>` (or the current branch's open PR when no number
-   is given), passing `--auto` straight through when the user asked for an autonomous run. It
-   fetches unresolved threads into `/tmp/pr-review/address-threads.json`, reads the team's
-   cross-PR memory, and processes every thread per its own rubric — the interactive verdict
-   gate by default, or autonomously under `--auto`. When the repo has a `.woostack/memory/`
-   store, that memory is **scope-routed** to the PR's changed files (composed by the review
-   engine's `recall.sh`), so address applies the same matched conventions and accepted-issue
-   dismissals as review — not the whole dump. Final **ACCEPT** verdicts write back
-   through the same memory system: an individual scoped note under `.woostack/memory/`
-   when that store exists, or a flat `.woostack/memory.md` bullet as the legacy fallback.
-3. **Offer re-review.** When all threads are handled and pushed, offer to run
-   `woostack-review` again. Stop there — do not merge.
+0. **Resolve skill path** — set `WOO_ADDRESS_ACTION_PATH` to the directory containing this
+   `SKILL.md`. All address-comments prompts and scripts live inside this skill directory.
+1. **Prefetch** — resolve the PR# (explicit arg, else the current branch's open PR), then
+   `bash "$WOO_ADDRESS_ACTION_PATH/scripts/prefetch.sh"` writes every unresolved thread
+   (any author) to `$OUTDIR/address-threads.json`, writes changed paths to
+   `$OUTDIR/address-changed-paths.txt`, and composes `$OUTDIR/memory.md`. When the repo has
+   a `.woostack/memory/` store, memory is scope-routed to the PR's changed files via
+   `recall.sh`; otherwise flat `.woostack/memory.md` is used when present.
+2. **Precondition** — the working tree must be clean **and** the current branch must be the
+   PR head. Otherwise abort before any edit; tell the user to checkout the PR head on a
+   clean tree.
+3. **Reception loop (analysis only)** — per thread, follow `prompts/address.md`: read →
+   understand → verify → evaluate → **recommend** `FIX` / `ACCEPT` / `CLARIFY`. The loop
+   makes **no** working-tree edits, **no** replies, **no** resolves, and **no** memory writes;
+   it stages a recommended verdict + reasoning per thread. Hosts with subagent support may
+   fan out independent threads or file groups to fast workers, but workers only return
+   recommendation records and reply/fix drafts. The parent orchestrator validates worker
+   output, fills gaps itself or escalates complex threads, and remains the only actor that
+   owns the verdict gate, edits, commit, push, replies, resolution, and memory writes.
+4. **Verdict gate** — default: the user approves the batch or overrides specific threads
+   before anything is applied; `--auto` skips the gate; a non-interactive host with no
+   `--auto` aborts rather than acting unapproved. The **final** verdict per thread is the
+   override where given, else the recommendation. See `prompts/address.md` § Phase 2 for
+   the gate mechanics.
+5. **Commit + push** — apply all final `FIX` edits to the working tree → one commit
+   referencing the threads → push to the PR head → capture `<sha>` before any reply, so
+   "Fixed in `<sha>`" is real. Never force-push.
+6. **Reply + resolve + memory** — per handled thread, `scripts/resolve-thread.sh` posts the
+   reply then resolves. CLARIFY threads use `RESOLVE=0`: reply only, left open. Only a
+   **final** `ACCEPT` writes memory via `scripts/memory-record.sh`.
+7. **Report** — summary table: thread → recommended → final → action → memory-written?
+
+Only a **final ACCEPT** (accept-by-design — an ACCEPT the user kept in the default flow, or
+one the skill produced itself under `--auto`) writes memory, deduplicated and phrased as a
+reusable pattern — never a log of every fix. When `.woostack/memory/` exists, the write is a
+scoped note and `MEMORY.md` is rebuilt; otherwise the script appends to flat
+`.woostack/memory.md`. Memory is read back as context on the next review run, keeping
+re-reviews quiet.
 
 ## Hard constraints
 
 - **No merge.** Branch protection and the merge decision stay with the user.
-- **No duplicate engine.** All thread-handling logic lives in `woostack-review`; this skill
-  only routes to it.
 - **No performative replies.** Reply with the technical reasoning or the fix itself.

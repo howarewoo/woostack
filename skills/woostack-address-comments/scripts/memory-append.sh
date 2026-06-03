@@ -2,7 +2,7 @@
 # Appends one accept-by-design learning to ./.woostack/memory.md as a bullet,
 # unless a whitespace-normalized identical bullet is already present. Creates
 # the file (and dir) on first write. This is the deterministic safety net under
-# the caller's semantic dedup prompt.
+# the LLM's semantic dedup in the address-comments prompt.
 #
 # Inputs (env):
 #   LEARNING   the pattern-phrased rule (required, non-empty)

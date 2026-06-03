@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Posts a reply to a PR review thread, then (unless RESOLVE=0) resolves it.
-# Used by `woostack-review address` after a thread is FIXED or ACCEPTed. CLARIFY
+# Used by `woostack-address-comments` after a thread is FIXED or ACCEPTed. CLARIFY
 # threads call with RESOLVE=0 (reply only, leave open).
 #
 # Inputs (env):
@@ -22,7 +22,7 @@ RESOLVE="${RESOLVE:-1}"
 TEST_MODE="${WOO_REVIEW_TEST_MODE:-}"
 
 # Refuse fake/dry-run hooks inside GitHub Actions — same guard as the sibling
-# scripts. The address verb is local-only; never let CI silently no-op.
+# scripts. Address-comments is local-only; never let CI silently no-op.
 if [ "$TEST_MODE" = "1" ] && [ "${GITHUB_ACTIONS:-}" = "true" ]; then
   echo "::error::WOO_REVIEW_TEST_MODE refused in GitHub Actions" >&2
   exit 1
