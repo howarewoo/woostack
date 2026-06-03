@@ -27,7 +27,7 @@ inputs:
     required: false
     default: ''
   openai_effort:
-    description: 'OpenAI Codex reasoning_effort passthrough (minimal | low | medium | high). Maps to the deep-tier validator role; leave empty for Codex default.'
+    description: 'OpenAI Codex reasoning_effort passthrough (minimal | low | medium | high | xhigh, model-dependent). Maps to the deep-tier validator role; leave empty for Codex default.'
     required: false
     default: ''
   mode:
@@ -304,7 +304,7 @@ runs:
       uses: openai/codex-action@a26d2d4d8b78a694338b8e3715c3630254340b2c # v1 (== v1.8 as of 2026-04-29)
       with:
         openai-api-key: ${{ inputs.openai_api_key }}
-        model: ${{ inputs.model || 'gpt-5' }}
+        model: ${{ inputs.model || 'gpt-5.5' }}
         effort: ${{ inputs.openai_effort }}
         prompt: ${{ steps.load-prompt.outputs.prompt }}
         sandbox: workspace-write

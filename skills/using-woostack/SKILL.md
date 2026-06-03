@@ -59,6 +59,7 @@ of an approved workflow.
 | `/woostack-init [path]`, initialize or repair the `.woostack/` workspace | `woostack-init` |
 | `/woostack-bootstrap <goal>`, scaffold a new web/mobile/API project | `woostack-bootstrap` |
 | `/woostack-build <goal>`, build a feature through the woostack loop | `woostack-build` |
+| `/woostack-commit`, commit session-relevant changes and update PR fields | `woostack-commit` |
 | `/woostack-review [PR#]`, review a PR or local diff | `woostack-review` |
 | `/woostack-address-comments [PR#]`, address unresolved review threads | `woostack-address-comments` |
 
