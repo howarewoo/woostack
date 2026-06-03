@@ -8,7 +8,7 @@ SKILL="$ROOT/skills/woostack-address-comments/SKILL.md"
 assert_contains() {
   local file="$1"
   local pattern="$2"
-  if ! rg -q "$pattern" "$file"; then
+  if ! rg -F -q "$pattern" "$file"; then
     echo "missing pattern in ${file#$ROOT/}: $pattern" >&2
     exit 1
   fi
@@ -17,11 +17,17 @@ assert_contains() {
 assert_contains "$PROMPT" "worker"
 assert_contains "$PROMPT" "reply"
 assert_contains "$PROMPT" "fix_plan"
+assert_contains "$PROMPT" "\$OUTDIR/address-threads.json"
+assert_contains "$PROMPT" "\$OUTDIR/memory.md"
 assert_contains "$PROMPT" "must not edit files"
 assert_contains "$PROMPT" "must not commit"
 assert_contains "$PROMPT" "must not push"
 assert_contains "$PROMPT" "must not reply"
 assert_contains "$PROMPT" "must not resolve"
 assert_contains "$PROMPT" "must not write memory"
+if rg -q "/tmp/pr-review/(address-threads|memory)\\.md|/tmp/pr-review/address-threads\\.json" "$PROMPT"; then
+  echo "address prompt must use \$OUTDIR for prefetched address artifacts" >&2
+  exit 1
+fi
 assert_contains "$SKILL" "fast workers"
 assert_contains "$SKILL" "parent orchestrator"

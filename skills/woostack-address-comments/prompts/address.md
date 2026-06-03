@@ -1,9 +1,9 @@
 # Addressing review threads (the `address` verb)
 
 You are addressing the unresolved review threads on a pull request. The threads
-are in `/tmp/pr-review/address-threads.json` (written by `fetch-threads.sh`),
+are in `$OUTDIR/address-threads.json` (written by `fetch-threads.sh`),
 each: `{ threadId, file, line, diffHunk, comments: [ { author, body } ] }`. The
-team's accepted-design memory is in `/tmp/pr-review/memory.md` (may be absent).
+team's accepted-design memory is in `$OUTDIR/memory.md` (may be absent).
 
 By **default** you run an interactive walk-through: analyze every thread, then
 present a single batched table of *recommended* verdicts for the user to approve
@@ -79,7 +79,7 @@ different verdict (any of FIX / ACCEPT / CLARIFY).
 ## Phase 3 — Act on final verdicts
 
 - **FIX**: edit the working tree. Accumulate all fixes; do NOT commit per thread.
-- **ACCEPT**: this is the issue-#53 step. First check `/tmp/pr-review/memory.md`,
+- **ACCEPT**: this is the issue-#53 step. First check `$OUTDIR/memory.md`,
   the live `.woostack/memory.md`, and `.woostack/memory/MEMORY.md` when present:
   if an existing entry already covers this learning — even phrased differently
   or more broadly — do NOT add a duplicate; widen the existing scoped note or
