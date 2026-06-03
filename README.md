@@ -30,6 +30,15 @@ This installs the woostack **collection** (skills: using-woostack, woostack-init
 
 > **pnpm is the recommended package manager.** Commands in this repo use `pnpx` (and `pnpm`) over `npx` / `npm`. If you only have npm, `npx skills add howarewoo/woostack` works too, but woostack-bootstrapped projects use a pnpm catalog, so pnpm is the path of least friction.
 
+To make a repo consistently use woostack, add `using-woostack` to the repo's agent instructions file (`AGENTS.md` for Codex and other agents, or `CLAUDE.md` for Claude Code). This gives agents an entry point for loading repo-local rules and routing `/woostack-*` requests to the matching skill.
+
+Minimal `AGENTS.md` / `CLAUDE.md` snippet:
+
+```markdown
+This project follows woostack. At the start of work, use `using-woostack` to load the
+project rules and route `/woostack-*` requests to the matching woostack skill.
+```
+
 ## How it works
 
 Each command is a skill with its own gated procedure. Together they cover the life of a change: load project rules, scaffold, build, review, iterate. Run a command by name in your agent (e.g. `/woostack-build add password reset`); the agent loads that skill's `SKILL.md` and follows it. **Codex syntax differs:** use `$woostack-build add password reset` or open `/skills` and select the skill. Only `bootstrap` is greenfield-specific. `build`, `review`, and `address-comments` operate on any repo, whether woostack scaffolded it or not.
@@ -87,6 +96,7 @@ pnpx skills add howarewoo/woostack          # install the collection into your a
 
 ```bash
 pnpx skills add howarewoo/woostack          # install once
+# add `using-woostack` to AGENTS.md or CLAUDE.md so agents load repo rules
 
 /woostack-build add CSV export to the reports page   # feature loop in your current repo
 /woostack-review 1337                                # review the PR
