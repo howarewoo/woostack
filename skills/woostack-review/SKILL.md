@@ -302,7 +302,7 @@ bash "$WOO_REVIEW_ACTION_PATH/scripts/run-bounded-swarm.sh" \
   -- <worker command...>
 ```
 
-The helper exports `WOO_REVIEW_ANGLE` for each worker and preserves the caller's existing environment, including `OUTDIR`, `WOO_REVIEW_ACTION_PATH`, `FORCE_TIER`, provider/model variables, and review config/input variables. The worker command must write `$OUTDIR/findings.$WOO_REVIEW_ANGLE.json`.
+The helper exports `WOO_REVIEW_ANGLE` and, when chunking is active, `WOO_REVIEW_CHUNK` for each worker. It preserves the caller's existing environment, including `OUTDIR`, `WOO_REVIEW_ACTION_PATH`, `FORCE_TIER`, provider/model variables, and review config/input variables. The worker command must write `$OUTDIR/findings.$WOO_REVIEW_ANGLE.json` when unchunked, or `$OUTDIR/findings.$WOO_REVIEW_ANGLE.$WOO_REVIEW_CHUNK.json` when chunked.
 
 When a host cannot express sub-agent work as a shell command, implement the same bounded queue natively with the host's task/sub-agent API.
 

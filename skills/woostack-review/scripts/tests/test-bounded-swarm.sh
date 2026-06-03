@@ -107,4 +107,26 @@ OUTDIR="$work2/out" WOO_REVIEW_MAX_CONCURRENCY=1 bash "$SCRIPT" -- "$work2/worke
 assert_eq "$(jq -r '.max_concurrency' "$work2/out/swarm-metrics.json")" "1" "env concurrency override used"
 rm -rf "$work2"
 
+work3="$(mktemp -d)"
+mkdir -p "$work3/out"
+printf '%s\n' bugs security > "$work3/out/angles.txt"
+printf '%s\n' chunk-0 chunk-1 > "$work3/out/chunks.txt"
+cat > "$work3/worker.sh" <<'WORKER'
+#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\n' "$WOO_REVIEW_CHUNK" >> "$OUTDIR/chunks-seen.txt"
+printf '[]\n' > "$OUTDIR/findings.$WOO_REVIEW_ANGLE.$WOO_REVIEW_CHUNK.json"
+WORKER
+chmod +x "$work3/worker.sh"
+OUTDIR="$work3/out" bash "$SCRIPT" --max-concurrency 3 -- "$work3/worker.sh"
+assert_eq "$(jq -r '.angles_total' "$work3/out/swarm-metrics.json")" "2" "chunked metrics record angle count"
+assert_eq "$(jq -r '.chunks_total' "$work3/out/swarm-metrics.json")" "2" "chunked metrics record chunk count"
+assert_eq "$(jq -r '.work_items_total' "$work3/out/swarm-metrics.json")" "4" "chunked metrics record work item count"
+assert_eq "$(test -f "$work3/out/findings.bugs.chunk-0.json" && echo yes || echo no)" "yes" "chunked bugs chunk-0 artifact written"
+assert_eq "$(test -f "$work3/out/findings.bugs.chunk-1.json" && echo yes || echo no)" "yes" "chunked bugs chunk-1 artifact written"
+assert_eq "$(test -f "$work3/out/findings.security.chunk-0.json" && echo yes || echo no)" "yes" "chunked security chunk-0 artifact written"
+assert_eq "$(test -f "$work3/out/findings.security.chunk-1.json" && echo yes || echo no)" "yes" "chunked security chunk-1 artifact written"
+assert_eq "$(sort -u "$work3/out/chunks-seen.txt" | paste -sd ',' -)" "chunk-0,chunk-1" "WOO_REVIEW_CHUNK propagated"
+rm -rf "$work3"
+
 finish

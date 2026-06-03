@@ -5,10 +5,12 @@ usage() {
   cat <<'USAGE'
 Usage: run-bounded-swarm.sh [--max-concurrency N] -- <worker command...>
 
-Runs detected woostack-review angles from $OUTDIR/angles.txt with bounded
-concurrency. For each worker, exports WOO_REVIEW_ANGLE plus the caller's
-existing OUTDIR, WOO_REVIEW_ACTION_PATH, FORCE_TIER, provider/model env, and
-other review env. The worker must write $OUTDIR/findings.$WOO_REVIEW_ANGLE.json.
+Runs detected woostack-review work items from $OUTDIR/angles.txt and, when
+present, $OUTDIR/chunks.txt with bounded concurrency. For each worker, exports
+WOO_REVIEW_ANGLE and WOO_REVIEW_CHUNK plus the caller's existing OUTDIR,
+WOO_REVIEW_ACTION_PATH, FORCE_TIER, provider/model env, and other review env.
+The worker must write $OUTDIR/findings.$WOO_REVIEW_ANGLE.json when unchunked,
+or $OUTDIR/findings.$WOO_REVIEW_ANGLE.$WOO_REVIEW_CHUNK.json when chunked.
 
 Max concurrency precedence: --max-concurrency, WOO_REVIEW_MAX_CONCURRENCY, 6.
 USAGE
@@ -79,23 +81,71 @@ if [ "${#angles[@]}" -eq 0 ]; then
   exit 2
 fi
 
+chunks=("")
+chunks_file="$OUTDIR/chunks.txt"
+if [ -s "$chunks_file" ]; then
+  chunks=()
+  while IFS= read -r chunk; do
+    if [ -n "$chunk" ]; then
+      chunks+=("$chunk")
+    fi
+  done < "$chunks_file"
+  if [ "${#chunks[@]}" -eq 0 ]; then
+    chunks=("")
+  fi
+fi
+
+work_items=()
+for angle in "${angles[@]}"; do
+  for chunk in "${chunks[@]}"; do
+    work_items+=("$angle|$chunk")
+  done
+done
+
 worker_cmd=("$@")
 mkdir -p "$OUTDIR"
 
-for angle in "${angles[@]}"; do
-  printf '[]\n' > "$OUTDIR/findings.$angle.json"
+artifact_path() {
+  local angle="$1"
+  local chunk="$2"
+  if [ -n "$chunk" ]; then
+    printf '%s/findings.%s.%s.json' "$OUTDIR" "$angle" "$chunk"
+  else
+    printf '%s/findings.%s.json' "$OUTDIR" "$angle"
+  fi
+}
+
+item_label() {
+  local angle="$1"
+  local chunk="$2"
+  if [ -n "$chunk" ]; then
+    printf '%s.%s' "$angle" "$chunk"
+  else
+    printf '%s' "$angle"
+  fi
+}
+
+for item in "${work_items[@]}"; do
+  angle="${item%%|*}"
+  chunk="${item#*|}"
+  printf '[]\n' > "$(artifact_path "$angle" "$chunk")"
 done
 
 is_array_artifact() {
   local angle="$1"
-  local file="$OUTDIR/findings.$angle.json"
+  local chunk="$2"
+  local file
+  file="$(artifact_path "$angle" "$chunk")"
   [ -s "$file" ] && jq -e 'type == "array"' "$file" >/dev/null 2>&1
 }
 
 run_worker() {
-  local angle="$1"
+  local item="$1"
+  local angle="${item%%|*}"
+  local chunk="${item#*|}"
   (
     export WOO_REVIEW_ANGLE="$angle"
+    export WOO_REVIEW_CHUNK="$chunk"
     "${worker_cmd[@]}"
   )
 }
@@ -107,8 +157,8 @@ run_queue() {
   local pid
   local angle
 
-  for angle in "${queue[@]}"; do
-    run_worker "$angle" &
+  for item in "${queue[@]}"; do
+    run_worker "$item" &
     pid=$!
     pids+=("$pid")
     active=$((active + 1))
@@ -135,12 +185,14 @@ run_queue() {
   fi
 }
 
-run_queue "${angles[@]}"
+run_queue "${work_items[@]}"
 
 first_pass_failed=()
-for angle in "${angles[@]}"; do
-  if ! is_array_artifact "$angle"; then
-    first_pass_failed+=("$angle")
+for item in "${work_items[@]}"; do
+  angle="${item%%|*}"
+  chunk="${item#*|}"
+  if ! is_array_artifact "$angle" "$chunk"; then
+    first_pass_failed+=("$item")
   fi
 done
 
@@ -149,17 +201,21 @@ if [ "${#first_pass_failed[@]}" -gt 0 ]; then
   retry_angles=("${first_pass_failed[@]}")
 fi
 if [ "${#retry_angles[@]}" -gt 0 ]; then
-  for angle in "${retry_angles[@]}"; do
-    printf '[]\n' > "$OUTDIR/findings.$angle.json"
+  for item in "${retry_angles[@]}"; do
+    angle="${item%%|*}"
+    chunk="${item#*|}"
+    printf '[]\n' > "$(artifact_path "$angle" "$chunk")"
   done
   run_queue "${retry_angles[@]}"
 fi
 
 still_invalid=()
-for angle in "${angles[@]}"; do
-  if ! is_array_artifact "$angle"; then
-    still_invalid+=("$angle")
-    printf '[]\n' > "$OUTDIR/findings.$angle.json"
+for item in "${work_items[@]}"; do
+  angle="${item%%|*}"
+  chunk="${item#*|}"
+  if ! is_array_artifact "$angle" "$chunk"; then
+    still_invalid+=("$item")
+    printf '[]\n' > "$(artifact_path "$angle" "$chunk")"
   fi
 done
 
@@ -168,7 +224,28 @@ json_array() {
     printf '[]'
     return
   fi
-  printf '%s\n' "$@" | jq -R . | jq -s .
+  for item in "$@"; do
+    angle="${item%%|*}"
+    chunk="${item#*|}"
+    item_label "$angle" "$chunk"
+    printf '\n'
+  done | jq -R . | jq -s .
+}
+
+label_list() {
+  if [ "$#" -eq 0 ]; then
+    return
+  fi
+  local labels=()
+  local item
+  local angle
+  local chunk
+  for item in "$@"; do
+    angle="${item%%|*}"
+    chunk="${item#*|}"
+    labels+=("$(item_label "$angle" "$chunk")")
+  done
+  printf '%s' "${labels[*]}"
 }
 
 first_pass_json="[]"
@@ -190,7 +267,9 @@ fi
 
 jq -n \
   --argjson max "$max_concurrency" \
-  --argjson total "${#angles[@]}" \
+  --argjson angles_total "${#angles[@]}" \
+  --argjson chunks_total "${#chunks[@]}" \
+  --argjson work_items_total "${#work_items[@]}" \
   --argjson first "$first_pass_json" \
   --argjson retry "$retry_json" \
   --argjson invalid "$still_invalid_json" \
@@ -199,7 +278,9 @@ jq -n \
     schema_version: 1,
     mode: "bounded",
     max_concurrency: $max,
-    angles_total: $total,
+    angles_total: $angles_total,
+    chunks_total: $chunks_total,
+    work_items_total: $work_items_total,
     first_pass_failed: $first,
     retry_angles: $retry,
     still_invalid: $invalid,
@@ -207,5 +288,5 @@ jq -n \
   }' > "$OUTDIR/swarm-metrics.json"
 
 if [ "$degraded" = true ]; then
-  echo "::warning::bounded swarm degraded; invalid angle artifacts after retry: ${still_invalid[*]}" >&2
+  echo "::warning::bounded swarm degraded; invalid angle artifacts after retry: $(label_list "${still_invalid[@]}")" >&2
 fi
