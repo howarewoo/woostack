@@ -16,6 +16,25 @@ autonomous flow).
 For **every** thread, decide a recommended verdict. Make **no** working-tree
 edits, **no** replies, **no** resolves, and **no** memory writes in this phase.
 
+**Optional worker fan-out.** On hosts with subagent support, the parent
+orchestrator may delegate this phase to fast workers, grouped by independent
+thread or by file when several threads touch the same code. Workers are
+recommendation drafters only. They receive the thread data plus relevant code,
+rules, memory, and `$OUTDIR` context; they return structured records to the
+parent and exit.
+
+Each worker returns one record per assigned thread:
+`{ threadId, file, line, finding, recommended, reasoning, learning, memory_scope, reply, fix_plan }`.
+`reply` is the technical reply draft for an ACCEPT or CLARIFY verdict, or an
+empty string for FIX. `fix_plan` is a short description of the needed code edit
+for FIX, or an empty string otherwise. A worker must not edit files, must not commit, must not push, must not reply, must not resolve, must not write memory, and must not spawn more agents.
+
+After workers finish, the parent orchestrator validates that every unresolved
+thread has exactly one recommendation. If a worker fails, returns malformed
+output, or marks a thread as too complex, the parent analyzes that thread itself
+or escalates it to a standard/deep model before the verdict gate. Worker output
+never skips Phase 2 unless the whole run was invoked with `--auto`.
+
 1. **READ** the whole thread — the original finding and every reply.
 2. **UNDERSTAND** — restate the ask in one sentence.
 3. **VERIFY** against the actual codebase — open `file` near `line`; confirm the
@@ -86,13 +105,13 @@ different verdict (any of FIX / ACCEPT / CLARIFY).
    ```bash
    # FIXED thread:
    THREAD_ID="<id>" REPLY_BODY="Fixed in <sha>." \
-     bash "$WOO_REVIEW_ACTION_PATH/scripts/resolve-thread.sh"
+     bash "$WOO_ADDRESS_ACTION_PATH/scripts/resolve-thread.sh"
    # ACCEPTED thread:
    THREAD_ID="<id>" REPLY_BODY="<technical reasoning for accepting as-is>" \
-     bash "$WOO_REVIEW_ACTION_PATH/scripts/resolve-thread.sh"
+     bash "$WOO_ADDRESS_ACTION_PATH/scripts/resolve-thread.sh"
    # CLARIFY thread (reply only, leave open):
    THREAD_ID="<id>" REPLY_BODY="<your specific question>" RESOLVE=0 \
-     bash "$WOO_REVIEW_ACTION_PATH/scripts/resolve-thread.sh"
+     bash "$WOO_ADDRESS_ACTION_PATH/scripts/resolve-thread.sh"
    ```
 
    Then, for each ACCEPTED thread whose learning is genuinely new, write the
@@ -106,7 +125,7 @@ different verdict (any of FIX / ACCEPT / CLARIFY).
    ```bash
    LEARNING="<general pattern>: <why it is accepted / what not to re-flag>" \
    MEMORY_SCOPE="<narrow glob or comma-separated globs>" \
-     bash "$WOO_REVIEW_ACTION_PATH/scripts/memory-record.sh"
+     bash "$WOO_ADDRESS_ACTION_PATH/scripts/memory-record.sh"
    ```
 
 3. Print a summary table: thread → recommended → final → action → memory-written?

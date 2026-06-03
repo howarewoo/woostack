@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Fetches every UNRESOLVED review thread on a PR (any author) with full comment
 # bodies, the thread GraphQL node-id (for reply + resolve), and the diff hunk.
-# Used by the `woostack-review address <PR#>` verb (local hosts only).
+# Used by `woostack-address-comments` (local hosts only).
 #
 # Inputs (env): GITHUB_REPOSITORY, PR_NUMBER, OUTDIR (default /tmp/pr-review).
 # Output: $OUTDIR/address-threads.json — an array of:
@@ -14,7 +14,7 @@
 # truncation is logged below, never silent.
 set -euo pipefail
 
-# shellcheck source=skills/woostack-review/scripts/resolve-outdir.sh
+# shellcheck source=skills/woostack-address-comments/scripts/resolve-outdir.sh
 source "$(dirname "${BASH_SOURCE[0]}")/resolve-outdir.sh"
 mkdir -p "$OUTDIR"
 PR_NUMBER="${PR_NUMBER:?PR_NUMBER env var required}"
