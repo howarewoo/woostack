@@ -36,6 +36,30 @@ Rules:
 - If it modifies files, include those changes only when they are relevant to the session change; otherwise stop and ask.
 - Report the command and result in the PR test plan.
 
+## Fast-subagent drafting
+
+Use a fast-tier subagent to draft commit and PR text when the host supports subagents with
+model routing. This is a cost optimization for the mechanical writing portion only; the
+main agent remains responsible for all git, Graphite, GitHub, staging, relevance, and final
+verification decisions.
+
+Rules:
+
+- Delegate only text drafting: commit subject/body candidate, PR title candidate, Summary
+  bullets, and Test plan bullets.
+- Pass a bounded prompt containing the staged diff, changed-file list, commands run and
+  results, relevant user intent, and any existing PR title/body that should be preserved.
+- Use the host's fast model when it can be selected explicitly. Follow the `fast` tier in
+  [`../woostack-review/prompts/_header.md`](../woostack-review/prompts/_header.md) for
+  provider-specific defaults, such as `claude-haiku-4-5` for Anthropic,
+  `gpt-5.3-codex-spark` for OpenAI Codex, `gemini-3-5-flash` for Gemini, or
+  `openrouter/deepseek/deepseek-v4-flash` for OpenRouter. If the host cannot route a
+  subagent to a fast model, draft inline in the main session.
+- The subagent must return only proposed text. It must not run commands, stage files,
+  commit, push, edit PRs, or decide whether dirty files are relevant.
+- Before using any draft, compare it against the staged diff and command results. Rewrite or
+  discard anything stale, overstated, vague, or unsupported.
+
 ## Workflow
 
 ### 1. Inspect state
@@ -108,6 +132,9 @@ Do not stage generated files, secrets, `.env*`, unrelated dirty files, or user w
 
 ### 5. Commit
 
+If a fast-subagent draft is available, use it only after validating that the proposed
+subject describes the staged diff accurately and follows the rules below.
+
 Prefer Graphite:
 
 ```bash
@@ -141,6 +168,10 @@ Do not merge. Do not force-push.
 ### 7. Update PR fields
 
 Update the PR after the commit/push so the PR reflects the latest branch state.
+
+Use a validated fast-subagent draft for the PR title/body when available. The main agent
+must still preserve accurate existing context, remove stale generated content, and ensure
+the Summary and Test plan mention only committed changes and real verification.
 
 Resolve the PR:
 
