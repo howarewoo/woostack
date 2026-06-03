@@ -51,3 +51,4 @@ pnpm-debug.log*
 .woostack/metrics.json
 # Claude Code scheduling runtime lock (generated, not source)
 .claude/scheduled_tasks.lock
+.woostack/memory/
