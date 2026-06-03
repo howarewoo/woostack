@@ -18,7 +18,7 @@ OpenCode + OpenRouter can route per-subagent if the OpenCode runtime supports it
 
 OpenRouter exposes only two DeepSeek slugs — reasoning is a `reasoning_effort` parameter on the same `v4-pro` slug, not a separate model ID. DeepSeek V4 supersedes R1 — do not route to `deepseek-r1`. If the OpenCode build cannot route per-subagent or cannot pass `reasoning_effort`, fall back to a single model for the whole job and pin it to `openrouter/deepseek/deepseek-v4-pro`. `inputs.model` (action.yml) always overrides tier resolution.
 
-**Per-repo override:** before applying any tier slug above, check `$OUTDIR/config.json` for `models.<tier>` and use that slug instead when present (`jq -r '.models.fast // empty' $OUTDIR/config.json`, etc.). Precedence: `inputs.model` > `models.<tier>` > table default.
+**Per-repo override:** before applying any tier slug above, check `$OUTDIR/config.json` for `models.openrouter.<tier>` and then flat `models.<tier>` (`jq -r '.models.openrouter.fast // .models.fast // empty' $OUTDIR/config.json`, etc.). Precedence: `inputs.model` > `models.openrouter.<tier>` > `models.<tier>` > table default.
 
 ---
 

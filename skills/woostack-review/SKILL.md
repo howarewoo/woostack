@@ -140,8 +140,18 @@ Full schema (every key shown; all optional):
     "release_rollup_pattern": "^(staging|release|chore\\(release\\))",
     "models": {
       "fast": "anthropic/claude-haiku-4-5",
-      "standard": "openai/gpt-5",
-      "deep": "anthropic/claude-opus-4-7"
+      "standard": "openai/gpt-5.4",
+      "deep": "anthropic/claude-opus-4-7",
+      "openai": {
+        "fast": "gpt-5.3-codex-spark",
+        "standard": "gpt-5.4",
+        "deep": "gpt-5.5"
+      },
+      "anthropic": {
+        "fast": "claude-haiku-4-5",
+        "standard": "claude-sonnet-4-6",
+        "deep": "claude-opus-4-7"
+      }
     },
     "fix_commands": ["pnpm lint:fix", "pnpm format"],
     "disable_adversarial": false,
@@ -159,13 +169,13 @@ Key reference (JSON has no comments, so the per-key semantics live here):
 - **`project_rules`** — fnmatch globs appended to auto-discovered `rules.md`.
 - **`authors_skip`** — PR author logins that short-circuit the entire review. Defaults: `dependabot[bot]`, `renovate[bot]`, `github-actions[bot]`. Set to `[]` to opt out.
 - **`release_rollup_pattern`** — Python regex on the PR title (default shown above; note `\\(` to escape the paren in JSON). Empty string opts out.
-- **`models`** — per-tier slug overrides; the action input `inputs.model` still wins.
+- **`models`** — per-tier slug overrides. Use flat `models.fast` / `.standard` / `.deep` as provider-agnostic fallbacks, or provider-scoped maps such as `models.openai.deep`, `models.anthropic.standard`, `models.google.standard`, and `models.openrouter.fast` when the same repo is reviewed by multiple coding agents. The action input `inputs.model` still wins.
 - **`fix_commands`** — reserved for `--loop` mode (issue #15).
 - **`disable_adversarial`** — cost-sensitive opt-out for the prosecutor+defender validator (issue #13). When `true`, only the defender pass runs and its output becomes `findings.json` directly.
 - **`metrics`**: opt in to per-angle signal/noise metrics (bool, default `false`) — emit `findings.metrics.json` per run and fold a rolling `.woostack/metrics.json` aggregate (local only). Each angle also carries `overlap_total` + `overlap_with` (how often another angle raised the same issue, on the raw pre-validation set — a redundancy signal). Aggregate schema is v2; an older v1 aggregate is reseeded on first fold. See Stage 6.5.
 - **`chunking.max_loc`** — diff-chunking threshold (issue #14). When the post-ignore diff exceeds this many changed lines, prefetch splits it into chunks honoring workspace package roots > top-level dirs > file-LOC-balanced groups; each angle fans out as angles × chunks parallel sub-agents. `0` disables chunking; missing => 4000.
 
-**Precedence**: for the angle set, `angles.force` beats `angles.skip` when the same angle is listed in both. For model resolution, the action input `inputs.model` beats `models.<tier>` which beats the table default in `prompts/_header.md`. `ignore` is applied to both file paths and the per-file diff sections before angle gates evaluate.
+**Precedence**: for the angle set, `angles.force` beats `angles.skip` when the same angle is listed in both. For model resolution, the action input `inputs.model` beats `models.<provider>.<tier>`, which beats flat `models.<tier>`, which beats the table default in `prompts/_header.md`. `ignore` is applied to both file paths and the per-file diff sections before angle gates evaluate.
 
 ## `/woostack-review` Workflow
 
@@ -306,12 +316,12 @@ Per-provider resolution (full table in `_header.md`):
 
 | Tier | Anthropic | OpenAI | Google | OpenRouter |
 |---|---|---|---|---|
-| `fast` | `claude-haiku-4-5` | `gpt-5-mini` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-flash` |
-| `standard` | `claude-sonnet-4-6` | `gpt-5` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` |
-| `deep` | `claude-opus-4-7` | `gpt-5` + `reasoning_effort: high` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` + `reasoning_effort: xhigh` |
+| `fast` | `claude-haiku-4-5` | `gpt-5.3-codex-spark` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-flash` |
+| `standard` | `claude-sonnet-4-6` | `gpt-5.4` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` |
+| `deep` | `claude-opus-4-7` | `gpt-5.5` + `reasoning_effort: xhigh` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` + `reasoning_effort: xhigh` |
 
 - **Google** currently exposes only `gemini-3-5-flash` — tier routing is a no-op on Gemini until a larger 3.5 model ships.
-- **OpenAI** GPT-5 reasoning is a `reasoning_effort` parameter (`minimal`/`low`/`medium`/`high`), not a slug suffix. There is no `gpt-5-pro`. Newer `gpt-5.5` family exists; upgrade once the Codex Action supports it.
+- **OpenAI** GPT-5-family reasoning is a `reasoning_effort` parameter, not a slug suffix. Use `gpt-5.5` for the skeptical validator and complex review passes, `gpt-5.4` for everyday review work, and `gpt-5.3-codex-spark` for fast rubric workers and ultra-fast real-time coding checks. Use `gpt-5.4-mini` only as the non-Spark cost-sensitive fallback when Spark is unavailable. There is no `gpt-5-pro`.
 - **OpenRouter** exposes only `deepseek/deepseek-v4-flash` and `deepseek/deepseek-v4-pro`; reasoning is the `reasoning_effort` parameter (`high`/`xhigh`). Do not route to `deepseek-r1` — V4 supersedes it.
 
 **Host capability:**
@@ -513,7 +523,7 @@ The `if:` gate restricts comment-triggered runs to the repo owner / members / co
 
 - Always parallelize Stage 3 when the host supports it; the validator pass is calibrated for ~5 angles' worth of input.
 - Trust the Skeptical Validator. Disabling it produces noisy reviews.
-- Honor angle-prompt tiers (`fast`/`standard`/`deep`) when the host supports per-call model routing. Hosts that run one model per session should pin the `standard` tier model (table above) — this matches the May 2026 flagship recommendation.
+- Honor angle-prompt tiers (`fast`/`standard`/`deep`) when the host supports per-call model routing. Hosts that run one model per session should pin `gpt-5.5` for maximum validator quality, or `gpt-5.4` when cost matters more than deep validation.
 - Pass `disable_angles` to skip optional angles when scope is narrow (e.g. backend-only PR → `disable_angles: "seo,aeo,design,react,i18n"`).
 
 ## Troubleshooting

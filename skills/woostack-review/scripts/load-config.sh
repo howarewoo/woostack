@@ -36,9 +36,12 @@
 #                                  `^(staging|release|chore\(release\))`
 #                                  applied at use-site. Empty string opts
 #                                  out entirely.)
-#   models.fast         str
-#   models.standard     str
-#   models.deep         str
+#   models.fast         str (provider-agnostic fallback)
+#   models.standard     str (provider-agnostic fallback)
+#   models.deep         str (provider-agnostic fallback)
+#   models.<provider>.<tier>
+#                       str (provider-specific override; provider is one of
+#                            anthropic/openai/google/openrouter)
 #   fix_commands        list[str]  (consumed by issue #15 --loop mode)
 #   disable_adversarial bool       (cost-sensitive opt-out for issue #13's
 #                                   prosecutor+defender pipeline; default false)
@@ -82,6 +85,7 @@ REVIEW_KEYS = {
     "disable_adversarial", "metrics", "chunking",
 }
 MODEL_TIERS = {"fast", "standard", "deep"}
+MODEL_PROVIDERS = {"anthropic", "openai", "google", "openrouter"}
 
 
 def loud(msg, line=None, col=None):
@@ -223,14 +227,41 @@ if "chunking" in raw:
 if "models" in raw:
     models = raw["models"]
     if not isinstance(models, dict):
-        loud("`models` must be an object with fast/standard/deep keys")
-    bad = sorted(set(models.keys()) - MODEL_TIERS)
+        loud("`models` must be an object with fast/standard/deep keys and/or provider objects")
+    valid_model_keys = MODEL_TIERS | MODEL_PROVIDERS
+    bad = sorted(set(models.keys()) - valid_model_keys)
     if bad:
-        loud("unknown models tier(s): {} (valid: {})".format(", ".join(bad), ", ".join(sorted(MODEL_TIERS))))
-    for tier, slug in models.items():
-        if not isinstance(slug, str) or not slug.strip():
-            loud("models.{} must be a non-empty string".format(tier))
-    out["models"] = {k: v.strip() for k, v in models.items()}
+        loud("unknown models key(s): {} (valid tiers: {}; valid providers: {})".format(
+            ", ".join(bad),
+            ", ".join(sorted(MODEL_TIERS)),
+            ", ".join(sorted(MODEL_PROVIDERS)),
+        ))
+
+    cleaned_models = {}
+    for key, val in models.items():
+        if key in MODEL_TIERS:
+            if not isinstance(val, str) or not val.strip():
+                loud("models.{} must be a non-empty string".format(key))
+            cleaned_models[key] = val.strip()
+            continue
+
+        if not isinstance(val, dict):
+            loud("models.{} must be an object with fast/standard/deep keys".format(key))
+        bad_tiers = sorted(set(val.keys()) - MODEL_TIERS)
+        if bad_tiers:
+            loud("unknown models.{} tier(s): {} (valid: {})".format(
+                key,
+                ", ".join(bad_tiers),
+                ", ".join(sorted(MODEL_TIERS)),
+            ))
+        cleaned_provider = {}
+        for tier, slug in val.items():
+            if not isinstance(slug, str) or not slug.strip():
+                loud("models.{}.{} must be a non-empty string".format(key, tier))
+            cleaned_provider[tier] = slug.strip()
+        cleaned_models[key] = cleaned_provider
+
+    out["models"] = cleaned_models
 
 # Noise control default: only high-priority findings surface unless the
 # consumer explicitly widens the floor in config.json.

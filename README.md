@@ -26,7 +26,7 @@ Templates rot. Dependencies drift, breaking changes pile up, and every new proje
 pnpx skills add howarewoo/woostack
 ```
 
-This installs the woostack **collection** (skills: using-woostack, woostack-init, woostack-bootstrap, woostack-build, woostack-review, woostack-address-comments) into your agent's skill directory and records it in `skills-lock.json`. Works in any agent that respects the `skills` convention: Claude Code, Cursor, Codex, Aider, and others.
+This installs the woostack **collection** (skills: using-woostack, woostack-init, woostack-bootstrap, woostack-build, woostack-commit, woostack-review, woostack-address-comments) into your agent's skill directory and records it in `skills-lock.json`. Works in any agent that respects the `skills` convention: Claude Code, Cursor, Codex, Aider, and others.
 
 > **pnpm is the recommended package manager.** Commands in this repo use `pnpx` (and `pnpm`) over `npx` / `npm`. If you only have npm, `npx skills add howarewoo/woostack` works too, but woostack-bootstrapped projects use a pnpm catalog, so pnpm is the path of least friction.
 
@@ -55,6 +55,10 @@ It sequences proven sub-skills (superpowers brainstorming/writing-plans/executin
 ### `/woostack-review [PR#]`: parallel review swarm
 
 Detects relevant review angles for the diff (bugs and security always on; SEO, design, react, database, tests, api, types, i18n, docs and more conditionally), fans out one sub-agent per angle in parallel, then runs an adversarial **Skeptical Validator** (a prosecutor pass and a defender pass) to cut false positives before anything is posted. With a PR number it posts a single batched native GitHub review; with no PR it reviews the local diff and prints findings. Host-agnostic: it falls back to a sequential loop on agents without parallel sub-agents. → [SKILL.md](skills/woostack-review/SKILL.md)
+
+### `/woostack-commit`: commit and update the PR
+
+Commits only the changes relevant to the current session, creates a `feature/*` branch first when the agent is on `staging` or `main`, then pushes/submits and updates the PR title/body with a concise bulleted summary and test plan. It prefers Graphite, never force-pushes, and stops before staging ambiguous unrelated work. → [SKILL.md](skills/woostack-commit/SKILL.md)
 
 ### `/woostack-address-comments [PR#]`: work the review threads
 

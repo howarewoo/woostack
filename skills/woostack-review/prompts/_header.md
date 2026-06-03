@@ -56,13 +56,13 @@ Each angle prompt and the validator declare a `tier:` in frontmatter — `fast`,
 
 | Tier | Use for | Anthropic | OpenAI (Codex) | Google (Gemini) | OpenRouter |
 |---|---|---|---|---|---|
-| `fast` | rubric checklists (`seo`, `aeo`, `observability`, `types`, `i18n`, `docs`, `deps`), context summaries | `claude-haiku-4-5` | `gpt-5-mini` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-flash` |
-| `standard` | reasoning workers (`bugs`, `security`, `architecture`, `design`, `react`, `database`, `tests`, `api`, `infra`) | `claude-sonnet-4-6` | `gpt-5` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` |
-| `deep` | skeptical validator (highest-leverage filter) | `claude-opus-4-7` | `gpt-5` + `reasoning_effort: high` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` + `reasoning_effort: xhigh` |
+| `fast` | rubric checklists (`seo`, `aeo`, `observability`, `types`, `i18n`, `docs`, `deps`), context summaries | `claude-haiku-4-5` | `gpt-5.3-codex-spark` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-flash` |
+| `standard` | reasoning workers (`bugs`, `security`, `architecture`, `design`, `react`, `database`, `tests`, `api`, `infra`) | `claude-sonnet-4-6` | `gpt-5.4` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` |
+| `deep` | skeptical validator (highest-leverage filter) | `claude-opus-4-7` | `gpt-5.5` + `reasoning_effort: xhigh` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` + `reasoning_effort: xhigh` |
 
 > **Provider notes:**
 > - **Google** currently ships only `gemini-3-5-flash` in the 3.5 line; no Pro/Ultra/Thinking variant exists yet, so all tiers collapse onto flash (tier routing is effectively a no-op until Google releases a larger model).
-> - **OpenAI** GPT-5 reasoning is a parameter on the same slug, not a slug suffix. The valid `reasoning_effort` values are `minimal` / `low` / `medium` / `high` (`high` is max for `gpt-5`). There is no `gpt-5-pro`. A newer flagship family (`gpt-5.5`) exists and accepts `xhigh`; upgrade `inputs.model` to `gpt-5.5` when the Codex Action supports it.
+> - **OpenAI** GPT-5-family reasoning is a parameter on the same slug, not a slug suffix. Use `gpt-5.5` for complex review and the skeptical validator, `gpt-5.4` for everyday coding review, and `gpt-5.3-codex-spark` for simple/cost-sensitive rubric workers and latency-first real-time coding checks. Use `gpt-5.4-mini` only as the non-Spark cost-sensitive fallback when Spark is unavailable. There is no `gpt-5-pro`.
 > - **OpenRouter** DeepSeek exposes exactly two slugs — `deepseek/deepseek-v4-flash` and `deepseek/deepseek-v4-pro`. Reasoning is a `reasoning_effort` parameter (`high` / `xhigh`, where `xhigh` maps to max). Use plain `v4-pro` for standard and `v4-pro` with `reasoning_effort: xhigh` for deep. Do not route to `deepseek-r1` — V4 supersedes it.
 
 **Routing rules by host capability:**
@@ -71,7 +71,7 @@ Each angle prompt and the validator declare a `tier:` in frontmatter — `fast`,
 - **Single model per session** (Codex Action, Gemini CLI): pin the whole run to the `standard` tier model. You lose `fast`-tier savings on rubric angles, but `standard` is the safe default that handles every angle. If `inputs.model` is set explicitly, honor that and ignore tiers.
 - **Override**: `inputs.model` (action.yml) or a runner-specific override always wins over the tier resolution.
 
-**Per-repo tier overrides (`.woostack/config.json`):** before resolving any `tier:` to a model slug, read `/tmp/pr-review/config.json`. If `models.<tier>` is set, use that slug INSTEAD of the table entry above. Example: `jq -r '.models.deep // empty' /tmp/pr-review/config.json` — empty means use the table default. `inputs.model` (action.yml) still wins over the per-repo override.
+**Per-repo tier overrides (`.woostack/config.json`):** before resolving any `tier:` to a model slug, read `/tmp/pr-review/config.json`. Prefer provider-specific overrides first, then flat tier fallbacks: `models.<provider>.<tier>` > `models.<tier>` > table default. Example for OpenAI deep: `jq -r '.models.openai.deep // .models.deep // empty' /tmp/pr-review/config.json` — empty means use the table default. `inputs.model` (action.yml) still wins over the per-repo override.
 
 ## Per-repo Config (`/tmp/pr-review/config.json`)
 
@@ -85,7 +85,7 @@ The prefetch step parses an optional `.woostack/config.json` in the consumer rep
 | `authors_skip` | `prefetch.sh` (skips + posts one-line comment; default list applied when absent — issue #19) | Stage 1 |
 | `release_rollup_pattern` | `prefetch.sh` (skips + posts one-line comment when PR title matches; default `^(staging\|release\|chore\(release\))` applied when absent — issue #19) | Stage 1 |
 | `severity_floor` | validator | Stage 3 — **defaults to `high`** (only high-priority findings surface); set `low`/`medium` to widen |
-| `models.fast` / `.standard` / `.deep` | orchestrator prompts (tier resolution) | Stage 2 |
+| `models.fast` / `.standard` / `.deep`; `models.<provider>.<tier>` | orchestrator prompts (tier resolution) | Stage 2 |
 | `fix_commands` | persisted only; consumed by `--loop` mode (#15) | n/a |
 | `chunking.max_loc` | `chunk-diff.sh` (split oversized diff into chunks; default 4000) | Stage 1 |
 
@@ -307,7 +307,7 @@ Field-by-field:
 
 - **`<host>`** — canonical slug for the host agent invoking this skill. Use one of: `claude-code`, `cursor`, `gemini-cli`, `codex`, `opencode`, or another stable identifier the host advertises. When a sub-agent profile or persona is identifiable (e.g. opencode running the `mimo-v2.5` agent), append it in parentheses: `opencode (mimo-v2.5)`. Detection hints: `CLAUDECODE=1` → `claude-code`; `OPENCODE*` env vars → `opencode`; `GEMINI_*` → `gemini-cli`; `CODEX_HOME` → `codex`; `CURSOR*` → `cursor`. Each orchestrator prompt declares a default host identifier near the top — prefer that only after the precedence above is exhausted.
 - **`<provider>`** — `anthropic` / `openai` / `google` / `openrouter` / `bedrock` / `vertex` / etc. Whatever the host is *actually* routing through. `opencode.md` is loaded for any OpenRouter-style orchestration shape, but OpenCode can route to any provider — do NOT assume `openrouter` just because this file was selected.
-- **`<model>`** — the actual validator model slug as the host sees it (e.g. `claude-opus-4-7`, `claude-sonnet-4-6`, `gpt-5.1-codex`, `gemini-3-pro`, `openrouter/deepseek/deepseek-v4-pro`). When `inputs.model` or `models.<tier>` in `config.json` overrode the default, report the override value, not the table default.
+- **`<model>`** — the actual validator model slug as the host sees it (e.g. `claude-opus-4-7`, `claude-sonnet-4-6`, `gpt-5.5`, `gpt-5.3-codex-spark`, `gemini-3-pro`, `openrouter/deepseek/deepseek-v4-pro`). When `inputs.model`, `models.<provider>.<tier>`, or flat `models.<tier>` in `config.json` overrode the default, report the override value, not the table default.
 
 ## Findings Schema (`/tmp/pr-review/findings.json`)
 

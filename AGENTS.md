@@ -4,7 +4,7 @@ Instructions for AI coding agents working in this repository. Compatible with Cl
 
 ## What this repo is
 
-A **published collection of skills**, not a codebase. It packages the decisions for building new web + mobile + API projects so any agent can install it (`npx skills add howarewoo/woostack`) and bootstrap fresh projects at the latest framework versions. The six skills are: `using-woostack` (teaches agents to load project woostack rules and route commands), `woostack-init` (sets up the `.woostack/` workspace and memory store the other skills rely on), `woostack-bootstrap`, `woostack-build`, `woostack-review`, and `woostack-address-comments`.
+A **published collection of skills**, not a codebase. It packages the decisions for building new web + mobile + API projects so any agent can install it (`npx skills add howarewoo/woostack`) and bootstrap fresh projects at the latest framework versions. The seven skills are: `using-woostack` (teaches agents to load project woostack rules and route commands), `woostack-init` (sets up the `.woostack/` workspace and memory store the other skills rely on), `woostack-bootstrap`, `woostack-build`, `woostack-commit`, `woostack-review`, and `woostack-address-comments`.
 
 There is no application source code, no app lockfile, no build, and no CI that runs on this repo's own events, by design. (`skills-lock.json` is the manifest for any *dev* skills this repo bundles for its own use — see [Skills](#skills) — it is not an app lockfile. It is currently empty: the repo bundles no external dev skills and relies on the agent's global install.)
 
@@ -45,6 +45,8 @@ woostack/
 │   │   └── references/
 │   │       ├── spec-template.md    Markdown spec scaffold (authored source)
 │   │       └── spec-template.html  HTML render target (on-demand visualization)
+│   ├── woostack-commit/
+│   │   └── SKILL.md           Commit session changes + update PR title/body
 │   ├── woostack-review/
 │   │   ├── SKILL.md           Review skill (review + address verbs)
 │   │   ├── scripts/           Review engine scripts
@@ -77,13 +79,14 @@ Rules:
 
 ### Mode B — running a collection command
 
-The agent has the collection installed (or is pointed at this repo) and is asked to run one of the five commands. The five commands are:
+The agent has the collection installed (or is pointed at this repo) and is asked to run one of the six commands. The six commands are:
 
 | Command | What it does |
 |---|---|
 | `/woostack-init [path]` | Scaffold/repair the `.woostack/` workspace + memory store. |
 | `/woostack-bootstrap <goal>` | Scaffold a new web/mobile/API monorepo at latest versions. |
 | `/woostack-build <goal>` | Feature loop: brainstorm → markdown spec → grill → plan → execute. |
+| `/woostack-commit` | Commit session-relevant changes and update the PR title/body summary + test plan. |
 | `/woostack-review [PR#]` | Parallel review swarm + skeptical validation; posts a batched GitHub review. |
 | `/woostack-address-comments [PR#]` | Address unresolved review threads autonomously. No merge. |
 
@@ -145,7 +148,7 @@ Feature branches are cut from `staging`, never `main`. PRs target `staging`. `st
 - Do not regenerate `apps/`, `packages/`, `pnpm-workspace.yaml`, or root build configs in this repo. They were removed deliberately.
 - Do not add a CI workflow that runs on this repo's own push/PR events — woostack has nothing to test. (The shipped `reusable-review.yml` is `workflow_call`-only and `action.yml` is a composite action consumers reference; neither triggers on this repo. Leave them in place.)
 - Do not rename files under `skills/woostack-bootstrap/references/` without updating every cross-link and the SKILL.md table.
-- Do not move or rename any of the six SKILL.md files (`skills/using-woostack/SKILL.md`, `skills/woostack-init/SKILL.md`, `skills/woostack-bootstrap/SKILL.md`, `skills/woostack-build/SKILL.md`, `skills/woostack-review/SKILL.md`, `skills/woostack-address-comments/SKILL.md`) — `npx skills add` resolves skills by those paths.
+- Do not move or rename any of the seven SKILL.md files (`skills/using-woostack/SKILL.md`, `skills/woostack-init/SKILL.md`, `skills/woostack-bootstrap/SKILL.md`, `skills/woostack-build/SKILL.md`, `skills/woostack-commit/SKILL.md`, `skills/woostack-review/SKILL.md`, `skills/woostack-address-comments/SKILL.md`) — `npx skills add` resolves skills by those paths.
 - Do not commit `.env*`, secrets, or generated files.
 
 ### Skills
@@ -171,6 +174,7 @@ To bundle a dev skill again, use the `skills` CLI (`pnpx skills add <source>`) r
 | Refine the bootstrap procedure | [references/bootstrap.md](skills/woostack-bootstrap/references/bootstrap.md) |
 | Change the bootstrap skill entry / description | [SKILL.md](skills/woostack-bootstrap/SKILL.md) |
 | Change the build skill (brainstorm→spec→execute) | [SKILL.md](skills/woostack-build/SKILL.md) |
+| Change the commit / PR update skill | [SKILL.md](skills/woostack-commit/SKILL.md) |
 | Change the review skill (review engine) | [SKILL.md](skills/woostack-review/SKILL.md) |
 | Change the address-comments skill | [SKILL.md](skills/woostack-address-comments/SKILL.md) |
 | Initialize the .woostack workspace | [SKILL.md](skills/woostack-init/SKILL.md) |
