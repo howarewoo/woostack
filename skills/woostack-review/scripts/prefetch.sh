@@ -83,6 +83,8 @@ parse_review_comment() {
   local cmd_found=0
   local force_tier_explicit=""
 
+  body="$1"
+
   HAS_FORCE=0
   HAS_RECHECK=0
 
