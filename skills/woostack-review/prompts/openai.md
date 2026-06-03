@@ -11,7 +11,7 @@ The shared header above lists prefetched artifacts, findings schema, blocking cr
 Codex Action runs one model for the full job. Per-call routing is not possible, so the `tier:` frontmatter on each angle prompt is **informational only** under this provider.
 
 The action resolves one session model in `load-prompt.sh` using this precedence:
-1. `FORCE_TIER` from Review Context (from `/woostack-review --fast` or `--deep`, or `review.force_tier` in config): fast→`gpt-5.3-codex-spark`, standard→`gpt-5.4`, deep→`gpt-5.5`.
+1. `FORCE_TIER` from Review Context (from `/woostack-review --fast` or `--deep`, or `review.force_tier` in config): fast→`gpt-5.3-codex-spark`, deep→`gpt-5.5`. Only `fast` and `deep` are valid `FORCE_TIER` values; the `standard` tier (`gpt-5.4`) is the implicit default when `FORCE_TIER` is unset — see step 3.
 2. `inputs.model` when explicitly set.
 3. Provider defaults (`gpt-5.4` standard).
 
