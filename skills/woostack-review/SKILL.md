@@ -271,14 +271,40 @@ Prefetch also produces optional chunking artifacts when the post-ignore diff exc
 
 Boundary precedence: workspace packages (`packages/<name>/`, `apps/<name>/`, `services/<name>/`, `libs/<name>/`) → top-level directories → file-LOC-balanced split. When `chunks.txt` is absent the diff is under threshold and chunking is a no-op.
 
-### Stage 3 — Spawn Parallel Sub-Agents (one per angle, × chunk if chunked)
+### Stage 3 — Run Bounded Review Swarm (one per angle, × chunk if chunked)
 
-**This is the swarm step.** For each detected angle, spawn a sub-agent in parallel using your host's primitive:
+**This is the local swarm step.** Local hosts MUST use bounded execution by default whenever more than one angle or `(angle, chunk)` pair is detected. The default concurrency limit is `6`, because several local hosts can spawn parallel sub-agents but cap active workers below the detected angle count. Set max concurrency to `1` for the sequential fallback.
 
-- Claude Code: `Task` tool, one call per angle in a single message.
-- Cursor / Composer: parallel subagent dispatch.
-- Gemini CLI: built-in `@generalist` subagent, one `@generalist` per angle in the same response (see `prompts/google.md`). Parallel-vs-sequential dispatch of multiple `@<agent>` calls in a single turn is not formally documented today; treat as best-effort parallel — the isolation pattern still buys token economy even if Gemini serializes internally.
-- opencode: parallel subagent dispatch via the OpenCode runtime's primitive (see `prompts/opencode.md`); falls back to a sequential loop when the build does not support it.
+Bounded execution means:
+
+1. read the expected work items from `$OUTDIR/angles.txt` and, when chunking is active, `$OUTDIR/chunks.txt`;
+2. initialize every expected findings artifact to `[]` before workers start;
+3. run at most `N` workers at once;
+4. drain the full first-pass queue;
+5. retry missing, empty, invalid-JSON, or non-array artifacts once after the queue drains;
+6. reset still-invalid artifacts to `[]`;
+7. write `$OUTDIR/swarm-metrics.json` so the summary can disclose bounded mode and degraded coverage.
+
+For unchunked reviews, the expected artifact is `$OUTDIR/findings.<angle>.json`. For chunked reviews, the expected artifact is `$OUTDIR/findings.<angle>.<chunk_id>.json`.
+
+Use your host's primitive behind the bounded queue:
+
+- Claude Code: `Task` tool, dispatching at most `N` active angle tasks at once.
+- Cursor / Composer: parallel subagent dispatch, capped at `N` active workers.
+- Gemini CLI: built-in `@generalist` subagent, capped at `N` active workers (see `prompts/google.md`). Parallel-vs-sequential dispatch of multiple `@<agent>` calls in a single turn is not formally documented today; treat as best-effort parallel — the isolation pattern still buys token economy even if Gemini serializes internally.
+- opencode: subagent dispatch via the OpenCode runtime's primitive (see `prompts/opencode.md`), capped at `N`; use `N=1` when the build does not support parallelism.
+
+**Shell helper path.** Shell-capable local hosts can use the shipped bounded queue runner:
+
+```bash
+bash "$WOO_REVIEW_ACTION_PATH/scripts/run-bounded-swarm.sh" \
+  --max-concurrency "${WOO_REVIEW_MAX_CONCURRENCY:-6}" \
+  -- <worker command...>
+```
+
+The helper exports `WOO_REVIEW_ANGLE` for each worker and preserves the caller's existing environment, including `OUTDIR`, `WOO_REVIEW_ACTION_PATH`, `FORCE_TIER`, provider/model variables, and review config/input variables. The worker command must write `$OUTDIR/findings.$WOO_REVIEW_ANGLE.json`.
+
+When a host cannot express sub-agent work as a shell command, implement the same bounded queue natively with the host's task/sub-agent API.
 
 Each sub-agent receives the same brief:
 
@@ -332,6 +358,8 @@ Per-provider resolution (full table in `_header.md`):
 
 - **Per-call routing** (Claude Code `Task`, opencode `@subagent`): honor each prompt's `tier:` verbatim. Maximum savings.
 - **Single model per session** (Codex Action, Gemini CLI): pin the run to a resolved run-tier (`fast` or `deep` via `FORCE_TIER`, otherwise `standard`). `tier:` becomes informational once the run tier resolves. Split into multiple jobs if you want per-angle fast/deep split behavior.
+
+Bounded runners MUST preserve the resolved tier/model context for every queued worker. In single-model hosts, pass the resolved run-tier (`FORCE_TIER` when set, otherwise the host's standard tier) to every worker. In per-call-routing hosts, apply each angle prompt's `tier:` while still preserving any explicit `FORCE_TIER` override. Bounded scheduling must not cause later queued angles to fall back to default model settings.
 
 ### Stage 4 — Merge + Adversarial Validation
 
@@ -401,7 +429,7 @@ Produces `$OUTDIR/findings.json` — the final validated set — and `$OUTDIR/va
 - Submit one `gh api repos/<repo>/pulls/<PR>/reviews` POST containing all inline comments + the summary + status line. The review `event` (`APPROVE` / `COMMENT` / `REQUEST_CHANGES`) is the native gate — any blocking finding triggers `REQUEST_CHANGES`.
 - DO NOT modify the PR title or body. DO NOT mutate PR labels.
 
-**If invoked locally (no PR#)** — print the validated findings to the terminal grouped by severity, then stop. Do not touch any remote.
+**If invoked locally (no PR#)** — print the validated findings to the terminal grouped by severity, then stop. If `$OUTDIR/swarm-metrics.json` exists, include a one-line swarm summary. Mention bounded mode and `max_concurrency`. If `.degraded == true`, name the `still_invalid` angles or `(angle, chunk)` items and state that those artifacts contributed `[]` after one retry. Do not touch any remote.
 
 ### Stage 6 — Update cross-PR memory (local hosts)
 
@@ -513,6 +541,6 @@ The `if:` gate restricts comment-triggered runs to the repo owner / members / co
 - **Caller-side `PR_NUMBER="$(gh pr view ...)"` blocked by host sandbox** — some hosts (Gemini CLI, sandboxed runtimes) reject inline `$(...)` substitutions on tool calls. Skip the caller-side resolution: `bash $WOO_REVIEW_ACTION_PATH/scripts/prefetch.sh` derives the PR number itself from the current branch when `PR_NUMBER` is unset and `GITHUB_ACTIONS != "true"`.
 - **`prefetch.sh` skipped with "bot already commented and trigger is not explicit" on a local run** — fixed: that re-run guard now only applies inside GitHub Actions (`GITHUB_ACTIONS=true`). Local `/woostack-review` invocations are explicit by definition and no longer trip the gate.
 - **GitHub API rejects `REQUEST_CHANGES` / `APPROVE` on a self-authored PR** — fixed in `_header.md`: the payload-builder compares `gh api user --jq .login` against `meta.json .author.login` and downgrades the event to `COMMENT` when they match. The STATUS_LINE in the review body still carries the accurate verdict; a small note is appended explaining the downgrade.
-- **Sub-agent died mid-run and left no `findings.<angle>.json`** — orchestrator prompts now write `[]` to the findings path on entry (so a crash leaves an empty array, not a missing file) and re-launch any angle whose file is missing or non-array after the swarm completes (one retry per `(angle, chunk)` pair). If the retry also fails, that angle simply contributes no findings — the rest of the review still posts.
+- **Sub-agent died mid-run and left no findings artifact** — bounded Stage 3 initializes expected artifacts to `[]`, retries missing/non-array artifacts once after the first queue drains, then records remaining gaps in `$OUTDIR/swarm-metrics.json`. If `.degraded == true`, that angle contributed `[]` and the local summary must disclose it.
 - **`merge-findings.sh` failed on bad JSON escapes from a worker** — the recovery path now tries `json.loads(strict=False)` and a fallback that strips bare control bytes + invalid `\<char>` escapes inside strings. Workers that emit raw tabs/newlines or Windows paths inside `description` fields no longer sink the whole merge. The Output Discipline section of `_header.md` documents the escape rules workers should follow up-front.
 - **Large diff under-reviewed / a changed file never got findings** — `prefetch.sh` caps the diff at `WOO_REVIEW_DIFF_CAP_BYTES` (default 300KB). The cap is section-aware (issue #150): it keeps whole `diff --git` sections ranked by review value (sections that add lines first; pure file deletions, lockfiles, and generated files last) until the budget is hit, never splitting a section. When sections are dropped it emits a `::warning::` and lists the dropped paths in `$OUTDIR/diff-dropped.txt`. If a real file was dropped, raise the cap (`WOO_REVIEW_DIFF_CAP_BYTES=600000`) or narrow scope with `review.ignore` so low-value paths are excluded before the cap applies.
