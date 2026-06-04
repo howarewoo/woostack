@@ -1,6 +1,6 @@
 ---
 name: woostack-execute
-description: Use to execute an approved woostack plan as a sequence of PR-sized, stacked increments — implement each increment with TDD, tick the plan's checkboxes in place, commit via woostack-commit on its own Graphite branch, review it with woostack-review --fast, distill durable learnings, then continue. This is the execute phase of the woostack build loop (woostack-build step 8); also usable standalone via /woostack-execute <plan-path>. One plan per spec, multiple PRs per plan. Never merges.
+description: Use to execute an approved woostack plan as a sequence of PR-sized, stacked increments via an inline or subagent-driven driver (--inline/--subagent, smart default) — implement each increment with TDD, tick the plan's checkboxes in place, commit via woostack-commit on its own Graphite branch, review each increment (woostack-review --fast inline; per-task spec+quality subagent loops in subagent mode), distill durable learnings, then continue. This is the execute phase of the woostack build loop (woostack-build step 8); also usable standalone via /woostack-execute <plan-path> [--inline|--subagent]. One plan per spec, multiple PRs per plan. Never merges.
 ---
 
 # woostack-execute
@@ -14,10 +14,35 @@ reviewed, and distilled before the next. It never merges and owns no approval ga
 
 ## Commands
 
-- `/woostack-execute <plan-path>` — execute the named markdown plan under `.woostack/plans/`.
-  **The plan path is required.**
+- `/woostack-execute <plan-path> [--inline | --subagent]` — execute the named markdown plan
+  under `.woostack/plans/`. **The plan path is required.** The optional, mutually exclusive
+  mode flag selects the execution driver (see [Execution mode](#execution-mode)); omit it to
+  take the smart default.
 - `/woostack-execute` (no argument) — do **not** guess "the current plan." Ask which plan to
   execute (optionally list `.woostack/plans/` candidates) and stop until one is named.
+
+Passing both `--inline` and `--subagent` is an error: stop and ask which one to use.
+
+## Execution mode
+
+Each increment's **implement** step runs through one of two drivers. Everything else in the
+per-increment cadence (branch, tick, `woostack-commit`, distill) is the same; only the review
+step differs (see the cadence below).
+
+- **inline** ([references/inline-driver.md](references/inline-driver.md)) — the controller
+  implements the increment's tasks itself with TDD, in this session. The increment's automated
+  review is `woostack-review --fast`. Analog of superpowers `executing-plans`.
+- **subagent** ([references/subagent-driver.md](references/subagent-driver.md)) — a fresh
+  implementer subagent per task plus a spec→quality reviewer loop. Those per-task loops **are**
+  the automated review, so subagent mode does **not** run `woostack-review --fast`; each PR is
+  reviewed manually after execution. Analog of superpowers `subagent-driven-development`,
+  internalized — no runtime dependency on that skill.
+
+**Selecting the mode:** an explicit `--inline` or `--subagent` flag always wins. With no flag,
+take the **smart default**: subagent where the host can spawn subagents (an `Agent`/`Task` tool
+is available), otherwise inline. If `--subagent` is requested but the host cannot spawn
+subagents, say so and fall back to inline (degraded, not equivalent) or stop and ask — never
+pretend subagent mode ran.
 
 When `woostack-build` reaches step 8 it invokes this skill with the plan path it wrote in step 4.
 By then build has already committed the spec and plan as their own PR (build step 7); that
@@ -57,20 +82,29 @@ For each increment:
 1. **Start its branch before editing.** Verify the current branch is not protected, then create
    or checkout the fresh Graphite-stacked feature branch for this increment (`gt create`) so
    all implementation work lands on the branch that will become that increment's PR.
-2. **Implement** its tasks with TDD. Where the host supports subagents, prefer
-   `superpowers:subagent-driven-development`; otherwise `superpowers:test-driven-development`
-   (recommended enhancements, not hard dependencies — follow the principle if either is absent).
-   Follow each safe plan step exactly and run the verifications the plan specifies.
+2. **Implement** its tasks via the resolved driver (see [Execution mode](#execution-mode)):
+   [references/inline-driver.md](references/inline-driver.md) in inline mode, or
+   [references/subagent-driver.md](references/subagent-driver.md) in subagent mode. Both follow
+   TDD and run the verifications the plan specifies, exactly; the subagent driver adds a fresh
+   implementer subagent per task plus a spec→quality reviewer loop. Follow each safe plan step
+   exactly.
 3. **Tick the plan's checkboxes in place.** Edit the markdown plan, `[ ]` → `[x]`, as each step
    or task completes, so the plan file is the live progress record.
 4. **Commit** via [`woostack-commit`](../woostack-commit/SKILL.md) on the increment's
    Graphite-stacked feature branch — one branch + PR per increment. This is the "multiple PRs
    per plan" shape.
-5. **Review** the resulting PR with [`woostack-review`](../woostack-review/SKILL.md)` --fast`.
-6. **Gate on the review:** if it returns REQUEST_CHANGES (a blocking finding), **stop** and
-   surface the findings — the user decides (typically via
+5. **Review — mode-dependent:**
+   - **inline:** review the resulting PR with [`woostack-review`](../woostack-review/SKILL.md)`
+     --fast`.
+   - **subagent:** no PR-level automated review — the per-task spec + quality loops already
+     reviewed each task ([references/subagent-driver.md](references/subagent-driver.md)). The PR
+     is reviewed manually by the human after execution.
+6. **Gate (inline only):** if `woostack-review --fast` returns REQUEST_CHANGES (a blocking
+   finding), **stop** and surface the findings — the user decides (typically via
    [`woostack-address-comments`](../woostack-address-comments/SKILL.md)). If it is clean or
-   non-blocking, continue.
+   non-blocking, continue. In subagent mode the blocking-stop is instead an unresolved-review
+   **BLOCKED** escalation from the reviewer loop (see the subagent driver); there is no
+   `woostack-review --fast` gate.
 7. **Distill** the increment's durable, reusable learnings into `.woostack/memory/` per the
    [memory contract](../woostack-init/references/memory.md): one fact per file, `type` one of
    `pattern|decision|gotcha|convention`, the narrowest `scope` glob covering the touched files,
@@ -86,8 +120,10 @@ Then advance to the next increment.
 ## Terminal state: a reviewed stack
 
 Stop when every increment is implemented, checked off, committed, reviewed, and distilled —
-leaving a Graphite stack of reviewed PRs. Report the branches/PRs and their review verdicts.
-**Never merge.**
+leaving a Graphite stack of reviewed PRs. "Reviewed" is mode-dependent: by `woostack-review
+--fast` in inline mode, and by the per-task spec + quality subagent loops (plus the human's
+post-execution review) in subagent mode. Report the branches/PRs and their review verdicts or
+mode. **Never merge.**
 
 ## When to stop and ask
 
@@ -116,8 +152,9 @@ approval gate. The skill never merges and never auto-addresses review findings.
 - **Branch before editing.** Create or verify the increment's Graphite branch before changing
   implementation files.
 - **Tick checkboxes in place.** The plan file is the live progress record.
-- **Commit + review every increment.** `woostack-commit`, then `woostack-review --fast`; pause on
-  REQUEST_CHANGES.
+- **Commit + review every increment.** `woostack-commit` always; then the mode's review —
+  `woostack-review --fast` (inline; pause on REQUEST_CHANGES) or the per-task spec+quality
+  subagent loops (subagent; pause on a BLOCKED escalation).
 - **Distill durable knowledge only.** Reject-by-default; dedupe; never feature-specific trivia.
 - **Never merge, never force-push, never start on a protected branch.**
 - **Own no gate; never auto-address findings.**
