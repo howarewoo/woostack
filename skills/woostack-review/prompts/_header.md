@@ -125,9 +125,9 @@ The PR title and the PR description (issue body) MUST NOT be modified. The `STAT
 
 ### STATUS_LINE (exact format)
 
-Counts: `BLOCKING_COUNT` (blocking findings), `NONBLOCKING_COUNT` (non-nit, non-blocking findings), `NIT_COUNT` (findings with `nit: true`). The `H HIGH, M MEDIUM, L LOW` breakdown counts non-nit findings only. The ` + Q nit(s)` suffix appears only when `NIT_COUNT > 0`.
+Counts: `BLOCKING_COUNT` (blocking findings), `NONBLOCKING_COUNT` (non-nit, non-blocking findings), `NIT_COUNT` (findings with `nit: true`). The `H HIGH, M MEDIUM, L LOW` breakdown spans **all non-nit findings** (blocking + non-blocking combined), so `H + M + L = BLOCKING_COUNT + NONBLOCKING_COUNT` — it is **not** a blocking-only breakdown. The ` + Q nit(s)` suffix appears only when `NIT_COUNT > 0`. In the CHANGES REQUESTED line the parenthetical follows both counts so its scope is unambiguous.
 
-- `BLOCKING_COUNT >= 1` → `**Status: CHANGES REQUESTED** — N blocking finding(s) (H HIGH, M MEDIUM, L LOW) + K non-blocking[ + Q nit(s)]. See inline comments.`
+- `BLOCKING_COUNT >= 1` → `**Status: CHANGES REQUESTED** — N blocking + K non-blocking finding(s) (H HIGH, M MEDIUM, L LOW)[ + Q nit(s)]. See inline comments.`
 - `BLOCKING_COUNT == 0, NONBLOCKING_COUNT >= 1` → `**Status: APPROVED WITH SUGGESTIONS** — N non-blocking finding(s) (H HIGH, M MEDIUM, L LOW)[ + Q nit(s)]. See inline comments.`
 - `BLOCKING_COUNT == 0, NONBLOCKING_COUNT == 0, NIT_COUNT >= 1` → `**Status: APPROVED** — No blocking findings, Q nit(s). See inline comments.`
 - All zero → `**Status: APPROVED** — No validated findings.`

@@ -60,6 +60,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/resolve-outdir.sh"
 PROSECUTOR="$OUTDIR/findings.prosecutor.json"
 DEFENDER="$OUTDIR/findings.defender.json"
 FINAL="$OUTDIR/findings.json"
+PRECLASSIFY="$OUTDIR/findings.preclassify.json"
 METRICS="$OUTDIR/validator-metrics.json"
 CONFIG="$OUTDIR/config.json"
 
@@ -150,10 +151,10 @@ write_metrics() {
 # Args: mode degraded
 emit_angle_metrics() {
   [ "$metrics_enabled" = "true" ] || return 0
-  python3 - "$RAW" "$PROSECUTOR" "$DEFENDER" "$FINAL" "$ANGLE_METRICS" "$1" "$2" <<'PY'
+  python3 - "$RAW" "$PROSECUTOR" "$DEFENDER" "$FINAL" "$ANGLE_METRICS" "$1" "$2" "$PRECLASSIFY" <<'PY'
 import json, re, sys
 
-raw_p, pros_p, def_p, final_p, out_p, mode, degraded = sys.argv[1:8]
+raw_p, pros_p, def_p, final_p, out_p, mode, degraded, pre_p = sys.argv[1:9]
 
 def load(path):
     try:
@@ -188,6 +189,14 @@ def count_by_angle(items):
     return out
 
 raw_c, pros_c, def_c, final_c = (count_by_angle(x) for x in (raw, pros, defn, final))
+# Pre-floor intersection per angle: the cross-pass agreement BEFORE the floor
+# classifier dropped any below-floor non-blocking findings (nits:false). The
+# per-angle dropped_by_* disagreement counts are based on this, not the
+# post-floor `final`, so a floor-drop is never miscounted as cross-pass
+# disagreement (mirrors the top-level intersection_size accounting). Falls back
+# to final_c when no snapshot exists (nits:on => pre == final anyway).
+pre = load(pre_p)
+pre_c = count_by_angle(pre) if pre else final_c
 angles = sorted(set(raw_c) | set(pros_c) | set(def_c) | set(final_c))
 
 SEVS = ("HIGH", "MEDIUM", "LOW")
@@ -247,7 +256,7 @@ for a in angles:
         "raw_count": rawn,
         "defender_kept": defk,
         "kept": kept,
-        "dropped_by_prosecutor": max(0, defk - kept),
+        "dropped_by_prosecutor": max(0, defk - pre_c.get(a, 0)),
         "blocking_count": blk,
         "nit_count": nit,
         "nonblocking_count": kept - blk - nit,
@@ -259,7 +268,7 @@ for a in angles:
     if has_pros:
         prok = pros_c.get(a, 0)
         rec["prosecutor_kept"] = prok
-        rec["dropped_by_defender"] = max(0, prok - kept)
+        rec["dropped_by_defender"] = max(0, prok - pre_c.get(a, 0))
     else:
         rec["prosecutor_kept"] = None
         rec["dropped_by_defender"] = None
@@ -329,6 +338,7 @@ if [ "$disable_adversarial" = "true" ] || [ "$prosecutor_present" = "false" ]; t
     echo "::warning::intersect-findings: prosecutor findings absent — falling back to defender-only output (degraded)" >&2
   fi
   cp "$DEFENDER" "$FINAL"
+  cp "$FINAL" "$PRECLASSIFY"   # pre-floor snapshot for per-angle disagreement metrics
   classify_floor
   kept_count="$(jq 'length' "$FINAL")"
   nit_count="$(jq '[.[] | select(.nit == true)] | length' "$FINAL")"
@@ -583,6 +593,7 @@ PY
 # those as cross-pass disagreement would be a lie. kept_count is the
 # post-classification (shown) count. Under nits:on the two are equal.
 intersection_size="$(jq 'length' "$FINAL")"
+cp "$FINAL" "$PRECLASSIFY"   # pre-floor snapshot for per-angle disagreement metrics
 classify_floor
 kept_count="$(jq 'length' "$FINAL")"
 nit_count="$(jq '[.[] | select(.nit == true)] | length' "$FINAL")"
