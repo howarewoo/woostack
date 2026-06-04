@@ -36,8 +36,8 @@ The skill ends the moment the user approves the design. At that point:
 - **Hand back.** State that the design is approved and name the next step:
   - Inside `woostack-build`: its **step 2** captures this design as a markdown spec under
     `.woostack/specs/`. Return control there.
-  - Standalone: tell the user the design is ready to capture as a spec (offer
-    `/woostack-build` or writing one), and stop.
+  - Standalone: tell the user the design is ready to capture as a spec; offer to write the
+    spec directly or hand off to `woostack-build` starting at **step 2**, and stop.
 
 This boundary is the whole point of owning the phase: the caller owns the spec write and the
 plan, so this skill must not.
