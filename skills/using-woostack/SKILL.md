@@ -62,6 +62,7 @@ of an approved workflow.
 | `/woostack-commit`, commit session-relevant changes and update PR fields | `woostack-commit` |
 | `/woostack-review [PR#]`, review a PR or local diff | `woostack-review` |
 | `/woostack-address-comments [PR#]`, address unresolved review threads | `woostack-address-comments` |
+| `/woostack-visualize <source> [for <audience>]`, render a source as audience-tailored HTML | `woostack-visualize` |
 
 If the user asks for the behavior without using the exact command name, route by intent.
 For example, "use woostack to review this PR" means load `woostack-review`.

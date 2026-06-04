@@ -37,9 +37,10 @@ continue. If the user declines, fall back to following the skill's principle man
    [references/spec-template.md](references/spec-template.md). Markdown specs are the source
    of truth: they carry `type: spec` frontmatter, are Obsidian vault nodes that can `[[link]]`
    memory notes, and are excluded from memory recall routing by type. **Visualize on demand** —
-   if a rich view is wanted, render the markdown through
-   [references/spec-template.html](references/spec-template.html); the HTML is a presentation
-   target only, never the authored source.
+   if a rich view is wanted, hand the markdown to
+   [`woostack-visualize`](../woostack-visualize/SKILL.md) (audience `engineer` for specs; it
+   uses [references/spec-template.html](references/spec-template.html) as a starting point).
+   The HTML is a presentation target only, never the authored source.
 3. **Harden it.** Invoke `grill-me` against the spec. Amend the spec in place until
    grilling stops producing new questions.
 4. **Plan.** Invoke `superpowers:writing-plans`, saving the plan as **markdown** to
