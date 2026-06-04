@@ -13,7 +13,7 @@ This is a published collection of skills, not an application codebase. It packag
 decisions for building new web, mobile, and API projects so agents can install it with
 `npx skills add howarewoo/woostack`.
 
-The seven shipped skills are:
+The eight shipped skills are:
 
 - [`using-woostack`](skills/using-woostack/SKILL.md)
 - [`woostack-init`](skills/woostack-init/SKILL.md)
@@ -22,6 +22,7 @@ The seven shipped skills are:
 - [`woostack-commit`](skills/woostack-commit/SKILL.md)
 - [`woostack-review`](skills/woostack-review/SKILL.md)
 - [`woostack-address-comments`](skills/woostack-address-comments/SKILL.md)
+- [`woostack-visualize`](skills/woostack-visualize/SKILL.md)
 
 There is no application source code, app lockfile, build, or CI for this repo's own
 push/PR events. `skills-lock.json` is the dev-skill manifest and is currently empty.
@@ -40,8 +41,8 @@ docs, HTML templates, review scripts, prompts, or JSON config. Keep edits in ski
 do not add application code, app build configs, or app lockfiles.
 
 **Mode B: run a woostack command.** Use this when the user asks for `/woostack-init`,
-`/woostack-bootstrap`, `/woostack-build`, `/woostack-commit`, `/woostack-review`, or
-`/woostack-address-comments`, including intent-equivalent wording. Load the matching skill
+`/woostack-bootstrap`, `/woostack-build`, `/woostack-commit`, `/woostack-review`,
+`/woostack-address-comments`, or `/woostack-visualize`, including intent-equivalent wording. Load the matching skill
 before acting. For bootstrap work, the output belongs in a fresh repo in a different
 directory, not in this repo.
 
@@ -63,7 +64,7 @@ directory, not in this repo.
   incompatibility forces an exact version.
 - Keep `SKILL.md` descriptions accurate and concise. The description drives discovery; the
   workflow belongs in referenced docs.
-- Do not move or rename any of the seven `SKILL.md` files.
+- Do not move or rename any of the eight `SKILL.md` files.
 - Do not rename files under
   [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/) without
   updating every cross-link and the bootstrap skill table.
@@ -82,6 +83,8 @@ directory, not in this repo.
   [`skills/woostack-commit/SKILL.md`](skills/woostack-commit/SKILL.md)
 - Review engine:
   [`skills/woostack-review/`](skills/woostack-review/)
+- Visualization engine (audience-tailored HTML renders):
+  [`skills/woostack-visualize/SKILL.md`](skills/woostack-visualize/SKILL.md)
 - Address-comments delegator:
   [`skills/woostack-address-comments/SKILL.md`](skills/woostack-address-comments/SKILL.md)
 - Init workspace and memory contract:
