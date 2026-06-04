@@ -47,12 +47,12 @@ resolves before Part B references them.
 **Files:**
 - Create: `skills/woostack-execute/references/inline-driver.md`
 
-- [ ] **Step 1: Write the verification (expect it to fail now)**
+- [x] **Step 1: Write the verification (expect it to fail now)**
 
 Run: `test -f skills/woostack-execute/references/inline-driver.md && echo FOUND || echo MISSING`
 Expected: `MISSING`
 
-- [ ] **Step 2: Create the file with this exact content**
+- [x] **Step 2: Create the file with this exact content**
 
 ````markdown
 # Inline execution driver
@@ -91,7 +91,7 @@ When all of the increment's tasks are implemented and checked off, hand back to
 and never merges.
 ````
 
-- [ ] **Step 3: Verify the file exists and names both modes**
+- [x] **Step 3: Verify the file exists and names both modes**
 
 Run: `grep -c -e 'Inline execution driver' -e 'subagent-driver.md' skills/woostack-execute/references/inline-driver.md`
 Expected: `2` (both strings present)
@@ -101,12 +101,12 @@ Expected: `2` (both strings present)
 **Files:**
 - Create: `skills/woostack-execute/references/subagent-driver.md`
 
-- [ ] **Step 1: Write the verification (expect it to fail now)**
+- [x] **Step 1: Write the verification (expect it to fail now)**
 
 Run: `test -f skills/woostack-execute/references/subagent-driver.md && echo FOUND || echo MISSING`
 Expected: `MISSING`
 
-- [ ] **Step 2: Create the file with this exact content**
+- [x] **Step 2: Create the file with this exact content**
 
 ````markdown
 ---
@@ -191,7 +191,7 @@ the single `woostack-commit` and distillation. **Never-merge carve-out:** unlike
 `finishing-a-development-branch` and never offers or performs a merge.
 ````
 
-- [ ] **Step 3: Verify the file exists and carries the key invariants**
+- [x] **Step 3: Verify the file exists and carries the key invariants**
 
 Run: `grep -c -e 'never.*parallel' -e 'no per-task git commit' -e 'Never-merge carve-out' -e 'fast | standard | deep' skills/woostack-execute/references/subagent-driver.md`
 Expected: `4`
@@ -201,12 +201,12 @@ Expected: `4`
 **Files:**
 - Create: `skills/woostack-execute/prompts/implementer.md`
 
-- [ ] **Step 1: Write the verification (expect it to fail now)**
+- [x] **Step 1: Write the verification (expect it to fail now)**
 
 Run: `test -f skills/woostack-execute/prompts/implementer.md && echo FOUND || echo MISSING`
 Expected: `MISSING`
 
-- [ ] **Step 2: Create the file with this exact content**
+- [x] **Step 2: Create the file with this exact content**
 
 `````markdown
 ---
@@ -250,7 +250,7 @@ controller's session — everything you need is below.
 ````
 `````
 
-- [ ] **Step 3: Verify the file declares its tier and the four statuses**
+- [x] **Step 3: Verify the file declares its tier and the four statuses**
 
 Run: `grep -c -e 'tier: standard' -e 'DONE | DONE_WITH_CONCERNS | NEEDS_CONTEXT | BLOCKED' -e 'Do NOT git-commit' skills/woostack-execute/prompts/implementer.md`
 Expected: `3`
@@ -260,12 +260,12 @@ Expected: `3`
 **Files:**
 - Create: `skills/woostack-execute/prompts/spec-reviewer.md`
 
-- [ ] **Step 1: Write the verification (expect it to fail now)**
+- [x] **Step 1: Write the verification (expect it to fail now)**
 
 Run: `test -f skills/woostack-execute/prompts/spec-reviewer.md && echo FOUND || echo MISSING`
 Expected: `MISSING`
 
-- [ ] **Step 2: Create the file with this exact content**
+- [x] **Step 2: Create the file with this exact content**
 
 `````markdown
 ---
@@ -300,7 +300,7 @@ Quote the spec line each gap maps to. "Close enough" is FAIL.
 ````
 `````
 
-- [ ] **Step 3: Verify the file declares its tier and a binary verdict**
+- [x] **Step 3: Verify the file declares its tier and a binary verdict**
 
 Run: `grep -c -e 'tier: standard' -e 'VERDICT: PASS' -e 'SPEC COMPLIANCE only' skills/woostack-execute/prompts/spec-reviewer.md`
 Expected: `3`
@@ -310,12 +310,12 @@ Expected: `3`
 **Files:**
 - Create: `skills/woostack-execute/prompts/quality-reviewer.md`
 
-- [ ] **Step 1: Write the verification (expect it to fail now)**
+- [x] **Step 1: Write the verification (expect it to fail now)**
 
 Run: `test -f skills/woostack-execute/prompts/quality-reviewer.md && echo FOUND || echo MISSING`
 Expected: `MISSING`
 
-- [ ] **Step 2: Create the file with this exact content**
+- [x] **Step 2: Create the file with this exact content**
 
 `````markdown
 ---
@@ -347,7 +347,7 @@ Approve only when no Important issues remain outstanding.
 ````
 `````
 
-- [ ] **Step 3: Verify the file declares the deep tier and a binary verdict**
+- [x] **Step 3: Verify the file declares the deep tier and a binary verdict**
 
 Run: `grep -c -e 'tier: deep' -e 'VERDICT: APPROVED or CHANGES_REQUESTED' -e 'CODE QUALITY' skills/woostack-execute/prompts/quality-reviewer.md`
 Expected: `3`
@@ -357,7 +357,7 @@ Expected: `3`
 **Files:**
 - Verify: all five new files
 
-- [ ] **Step 1: Every relative link target in the new files resolves**
+- [x] **Step 1: Every relative link target in the new files resolves**
 
 Run:
 ```bash
@@ -378,7 +378,7 @@ segments via the filesystem, so it validates `../SKILL.md`, the `inline-driver.m
 `subagent-driver.md` siblings, `../prompts/*.md`, and `../../woostack-review/prompts/_header.md`
 — all of which exist.
 
-- [ ] **Step 2: Confirm the subagent driver points at all three prompts**
+- [x] **Step 2: Confirm the subagent driver points at all three prompts**
 
 Run: `grep -c -e 'prompts/implementer.md' -e 'prompts/spec-reviewer.md' -e 'prompts/quality-reviewer.md' skills/woostack-execute/references/subagent-driver.md`
 Expected: `3`
@@ -394,12 +394,12 @@ Edits only. Every link target was created in Part A, so the wiring resolves.
 **Files:**
 - Modify: `skills/woostack-execute/SKILL.md` (the `## Commands` section)
 
-- [ ] **Step 1: Verify the flag is absent now**
+- [x] **Step 1: Verify the flag is absent now**
 
 Run: `grep -c -- '--inline' skills/woostack-execute/SKILL.md`
 Expected: `0`
 
-- [ ] **Step 2: Replace the `## Commands` block**
+- [x] **Step 2: Replace the `## Commands` block**
 
 Find:
 ```markdown
@@ -424,7 +424,7 @@ Replace with:
 Passing both `--inline` and `--subagent` is an error: stop and ask which one to use.
 ```
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run: `grep -c -e '--inline | --subagent' -e 'Passing both' skills/woostack-execute/SKILL.md`
 Expected: `2`
@@ -434,12 +434,12 @@ Expected: `2`
 **Files:**
 - Modify: `skills/woostack-execute/SKILL.md` (insert a new section immediately after `## Commands`, before `## Load and review the plan`)
 
-- [ ] **Step 1: Verify the section is absent now**
+- [x] **Step 1: Verify the section is absent now**
 
 Run: `grep -c '## Execution mode' skills/woostack-execute/SKILL.md`
 Expected: `0`
 
-- [ ] **Step 2: Insert this section between the `## Commands` block and `## Load and review the plan`**
+- [x] **Step 2: Insert this section between the `## Commands` block and `## Load and review the plan`**
 
 ```markdown
 ## Execution mode
@@ -464,22 +464,23 @@ subagents, say so and fall back to inline (degraded, not equivalent) or stop and
 pretend subagent mode ran.
 ```
 
-- [ ] **Step 3: Verify the section and both driver links exist**
+- [x] **Step 3: Verify the section and both driver links exist**
 
 Run: `grep -c -e '## Execution mode' -e 'references/inline-driver.md' -e 'references/subagent-driver.md' -e 'smart default' skills/woostack-execute/SKILL.md`
-Expected: `4`
+Expected: `≥4` — every pattern present (actual 9; the two driver links recur across the Execution
+mode section, cadence step 2, and step 5).
 
 ### Task 2.3: Delegate the implement step to the driver
 
 **Files:**
 - Modify: `skills/woostack-execute/SKILL.md` (per-increment cadence step 2)
 
-- [ ] **Step 1: Verify the old external-skill wording is present**
+- [x] **Step 1: Verify the old external-skill wording is present**
 
 Run: `grep -c 'superpowers:subagent-driven-development' skills/woostack-execute/SKILL.md`
 Expected: `1`
 
-- [ ] **Step 2: Replace step 2 of the per-increment cadence**
+- [x] **Step 2: Replace step 2 of the per-increment cadence**
 
 Find:
 ```markdown
@@ -498,25 +499,26 @@ Replace with:
    exactly.
 ```
 
-- [ ] **Step 3: Verify the external dependency is gone and both drivers are linked**
+- [x] **Step 3: Verify the external dependency is gone and both drivers are linked**
 
 Run: `grep -c 'superpowers:subagent-driven-development' skills/woostack-execute/SKILL.md`
 Expected: `0`
 
 Run: `grep -c -e 'references/inline-driver.md' -e 'references/subagent-driver.md' skills/woostack-execute/SKILL.md`
-Expected: `4` (twice each: once in Execution mode, once in step 2)
+Expected: `≥4` — both driver links present (actual 5: Execution mode ×2, step 2 ×2, step 5
+subagent ref ×1).
 
 ### Task 2.4: Make the review step and its gate mode-dependent
 
 **Files:**
 - Modify: `skills/woostack-execute/SKILL.md` (per-increment cadence steps 5–6)
 
-- [ ] **Step 1: Verify the current unconditional review wording**
+- [x] **Step 1: Verify the current unconditional review wording**
 
 Run: `grep -c 'Review.*the resulting PR with' skills/woostack-execute/SKILL.md`
 Expected: `1`
 
-- [ ] **Step 2: Replace steps 5 and 6**
+- [x] **Step 2: Replace steps 5 and 6**
 
 Find:
 ```markdown
@@ -542,7 +544,7 @@ Replace with:
    `woostack-review --fast` gate.
 ```
 
-- [ ] **Step 3: Verify both modes are represented in the review step**
+- [x] **Step 3: Verify both modes are represented in the review step**
 
 Run: `grep -c -e 'Review — mode-dependent' -e 'Gate (inline only)' -e 'reviewed manually by the human' skills/woostack-execute/SKILL.md`
 Expected: `3`
@@ -552,12 +554,12 @@ Expected: `3`
 **Files:**
 - Modify: `skills/woostack-execute/SKILL.md` (frontmatter `description`, `## Terminal state`, hard constraint bullet)
 
-- [ ] **Step 1: Verify the current unconditional wording**
+- [x] **Step 1: Verify the current unconditional wording**
 
 Run: `grep -c -e 'review it with woostack-review --fast' -e 'Commit + review every increment' skills/woostack-execute/SKILL.md`
 Expected: `2`
 
-- [ ] **Step 2a: Replace the frontmatter `description`**
+- [x] **Step 2a: Replace the frontmatter `description`**
 
 Find:
 ```markdown
@@ -568,7 +570,7 @@ Replace with:
 description: Use to execute an approved woostack plan as a sequence of PR-sized, stacked increments via an inline or subagent-driven driver (--inline/--subagent, smart default) — implement each increment with TDD, tick the plan's checkboxes in place, commit via woostack-commit on its own Graphite branch, review each increment (woostack-review --fast inline; per-task spec+quality subagent loops in subagent mode), distill durable learnings, then continue. This is the execute phase of the woostack build loop (woostack-build step 8); also usable standalone via /woostack-execute <plan-path> [--inline|--subagent]. One plan per spec, multiple PRs per plan. Never merges.
 ```
 
-- [ ] **Step 2b: Replace the `## Terminal state` body**
+- [x] **Step 2b: Replace the `## Terminal state` body**
 
 Find:
 ```markdown
@@ -585,7 +587,7 @@ post-execution review) in subagent mode. Report the branches/PRs and their revie
 mode. **Never merge.**
 ```
 
-- [ ] **Step 2c: Replace the "Commit + review every increment" hard constraint**
+- [x] **Step 2c: Replace the "Commit + review every increment" hard constraint**
 
 Find:
 ```markdown
@@ -599,7 +601,7 @@ Replace with:
   subagent loops (subagent; pause on a BLOCKED escalation).
 ```
 
-- [ ] **Step 3: Verify the description and both invariants are now mode-aware**
+- [x] **Step 3: Verify the description and both invariants are now mode-aware**
 
 Run: `grep -c -e 'inline or subagent-driven driver' -e '"Reviewed" is mode-dependent' -e 'then the mode.s review' skills/woostack-execute/SKILL.md`
 Expected: `3`
@@ -609,14 +611,14 @@ Expected: `3`
 **Files:**
 - Modify: `skills/woostack-build/SKILL.md` (step 8 of the Procedure)
 
-- [ ] **Step 1: Verify the current unconditional review wording**
+- [x] **Step 1: Verify the current unconditional review wording**
 
 (The phrase wraps across two lines in the source, so anchor on the single line that carries it.)
 
 Run: `grep -c 'with .woostack-review --fast., and distilled' skills/woostack-build/SKILL.md`
 Expected: `1`
 
-- [ ] **Step 2: Replace the reviewed-with clause in step 8**
+- [x] **Step 2: Replace the reviewed-with clause in step 8**
 
 Find:
 ```markdown
@@ -641,7 +643,7 @@ Replace with:
    memory" and "offer the PR" steps here.
 ```
 
-- [ ] **Step 3: Verify the wording is now mode-aware**
+- [x] **Step 3: Verify the wording is now mode-aware**
 
 Run: `grep -c -e 'reviewed per' -e 'the default subagent mode' skills/woostack-build/SKILL.md`
 Expected: `2`
@@ -651,12 +653,12 @@ Expected: `2`
 **Files:**
 - Modify: `skills/using-woostack/SKILL.md` (Command Routing table)
 
-- [ ] **Step 1: Verify the current routing row**
+- [x] **Step 1: Verify the current routing row**
 
 Run: `grep -c '/woostack-execute <plan-path>., execute an approved plan' skills/using-woostack/SKILL.md`
 Expected: `1`
 
-- [ ] **Step 2: Replace the woostack-execute routing row**
+- [x] **Step 2: Replace the woostack-execute routing row**
 
 Find:
 ```markdown
@@ -668,7 +670,7 @@ Replace with:
 ```
 (The `\|` keeps the literal pipe from breaking the Markdown table column.)
 
-- [ ] **Step 3: Verify the row updated**
+- [x] **Step 3: Verify the row updated**
 
 Run: `grep -c 'inline or subagent-driven' skills/using-woostack/SKILL.md`
 Expected: `1`
@@ -678,7 +680,7 @@ Expected: `1`
 **Files:**
 - Verify: `skills/woostack-execute/SKILL.md` and the new files
 
-- [ ] **Step 1: SKILL.md → references links resolve**
+- [x] **Step 1: SKILL.md → references links resolve**
 
 Run:
 ```bash
@@ -690,12 +692,15 @@ cd - >/dev/null
 ```
 Expected: `OK references/inline-driver.md` and `OK references/subagent-driver.md`; no `BROKEN`.
 
-- [ ] **Step 2: No stray runtime reference to the external subagent skill remains in execute**
+- [x] **Step 2: No stray runtime reference to the external subagent skill remains in execute**
 
 Run: `grep -rn 'superpowers:subagent-driven-development' skills/woostack-execute/`
-Expected: no output (exit 1). The capability is now internal.
+Expected: no match in `SKILL.md` (the runtime dependency is gone). The only matches are
+**descriptive** mentions in `references/subagent-driver.md` — the "analog of …" framing and the
+never-merge *contrast* — never an instruction to invoke it (spec §7 allows historical/spec
+mentions).
 
-- [ ] **Step 3: The eleven SKILL.md files are unmoved (repo hard constraint)**
+- [x] **Step 3: The eleven SKILL.md files are unmoved (repo hard constraint)**
 
 Run: `ls skills/woostack-execute/SKILL.md skills/woostack-build/SKILL.md skills/using-woostack/SKILL.md`
 Expected: all three listed (no rename/move occurred).

@@ -90,11 +90,13 @@ equivalent.
    merged** by build. This is a work step, not an approval stop.
 8. **Execute.** Invoke [`woostack-execute`](../woostack-execute/SKILL.md) with the plan path to
    work the plan as PR-sized stacked increments on top of the spec+plan PR — each implemented
-   with TDD, the plan's checkboxes ticked in place, committed via `woostack-commit`, reviewed
-   with `woostack-review --fast`, and distilled into `.woostack/memory/` — pausing only on a
-   blocking review. `woostack-execute` owns the per-increment commit/review/distill cadence
-   (one plan per spec, multiple stacked PRs per plan), so it absorbs what used to be separate
-   "distill memory" and "offer the PR" steps here.
+   with TDD, the plan's checkboxes ticked in place, committed via `woostack-commit`, reviewed per
+   the execution mode `woostack-execute` selects (`woostack-review --fast` in inline mode, or the
+   per-task spec+quality subagent loops in the default subagent mode), and distilled into
+   `.woostack/memory/` — pausing only on a blocking stop. `woostack-execute` owns the
+   per-increment commit/review/distill cadence and the inline-vs-subagent mode choice (one plan
+   per spec, multiple stacked PRs per plan), so it absorbs what used to be separate "distill
+   memory" and "offer the PR" steps here.
 9. **End on the reviewed stack.** The terminal state is a Graphite stack with the spec+plan PR
    at the base and a reviewed increment PR above each step. Build does not separately ask to
    open a PR (step 7 and `woostack-execute` open them as work steps) and **never merges**.
