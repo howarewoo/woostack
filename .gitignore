@@ -49,6 +49,8 @@ pnpm-debug.log*
 
 # woostack: local-only review metrics (config.json and memory.md stay tracked)
 .woostack/metrics.json
+# woostack: disposable HTML renders (regenerated from source)
+.woostack/visuals/
 # Claude Code scheduling runtime lock (generated, not source)
 .claude/scheduled_tasks.lock
 .woostack/memory/
