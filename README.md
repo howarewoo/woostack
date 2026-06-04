@@ -75,7 +75,7 @@ Walks every unresolved review thread on a PR, recommends a verdict per thread (f
 
 ### `/woostack-visualize <source> [for <audience>]`: audience-tailored HTML render
 
-Reads any source — a markdown spec or plan, a file, a directory, or a described concept — and writes one self-contained HTML visualization tailored to who will read it: an engineer, a non-technical stakeholder, an investor, or any free-form audience you name. The markdown/code source stays the source of truth; the HTML is a disposable render under `.woostack/visuals/` (gitignored, regenerated on demand). It never fabricates data and renders offline with no external dependencies. `woostack-build` delegates its spec render to this skill. → [SKILL.md](skills/woostack-visualize/SKILL.md)
+A discovery command for rendering source material as an audience-tailored HTML view while keeping the source authoritative. → [SKILL.md](skills/woostack-visualize/SKILL.md)
 
 ### Growing scope
 
