@@ -1,7 +1,7 @@
 ---
 name: woostack-ideate-skill
 type: spec
-status: ready
+status: approved
 date: 2026-06-03
 branch: feature/woostack-ideate
 links:
