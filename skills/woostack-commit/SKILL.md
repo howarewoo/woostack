@@ -1,6 +1,6 @@
 ---
 name: woostack-commit
-description: Commit the current session-relevant changes, create a feature branch first when needed, push with Graphite, and update the current PR title/body with a concise summary and test plan. Use for /woostack-commit, "commit this", "commit the current changes", "update the PR", or when finishing a woostack change before review.
+description: Commit the current session-relevant changes, create a feature branch first when needed, push with Graphite, and update the current PR title/body with a goal, concise summary, and structured (automated + manual) test plan. Use for /woostack-commit, "commit this", "commit the current changes", "update the PR", or when finishing a woostack change before review.
 ---
 
 # woostack-commit
@@ -45,8 +45,8 @@ verification decisions.
 
 Rules:
 
-- Delegate only text drafting: commit subject/body candidate, PR title candidate, Summary
-  bullets, and Test plan bullets.
+- Delegate only text drafting: commit subject/body candidate, PR title candidate, Goal line,
+  Summary bullets, and Test plan bullets (Automated and Manual).
 - Pass a bounded prompt containing the staged diff, changed-file list, commands run and
   results, relevant user intent, and any existing PR title/body that should be preserved.
 - Use the host's fast model when it can be selected explicitly. Follow the `fast` tier in
@@ -171,7 +171,7 @@ Update the PR after the commit/push so the PR reflects the latest branch state.
 
 Use a validated fast-subagent draft for the PR title/body when available. The main agent
 must still preserve accurate existing context, remove stale generated content, and ensure
-the Summary and Test plan mention only committed changes and real verification.
+the Goal, Summary, and Test plan mention only committed changes and real verification.
 
 Resolve the PR:
 
@@ -188,6 +188,10 @@ gh pr create --base staging --head "$(git branch --show-current)" --title "<conc
 Set or update the body with this structure:
 
 ```markdown
+## Goal
+
+<1-2 sentences: why this PR exists / the problem it solves>
+
 ## Summary
 
 - <concise bullet describing a user-visible or reviewer-relevant change>
@@ -195,20 +199,30 @@ Set or update the body with this structure:
 
 ## Test plan
 
+### Automated
+
 - [ ] <command run and result, or "Not run (reason)">
-- [ ] <manual verification step, when a meaningful one exists>
+
+### Manual
+
+**Before merge**
+
+- [ ] <step a reviewer can inspect or exercise on the branch or preview>
+
+**After merge**
+
+- [ ] <step only verifiable post-merge — deploy / migration / env-gated>
 ```
 
 Rules:
 
-- Keep bullets concise and specific.
-- Include only changes in the committed diff.
-- Preserve important existing PR context when it is still accurate.
-- Replace stale generated summaries/test plans with the current ones.
+- State the **Goal** as intent or the problem solved in one or two sentences — not a change list. It is distinct from Summary, which lists *what* changed. Always present it.
+- Keep Summary bullets concise and specific. Include only changes in the committed diff.
+- Under **Automated**, list the commands/tests actually run, plus the configured `commit.pre_commit` command and result when it ran. Show this group whenever an automated check (test, lint, typecheck, `pre_commit`) could have run for the change: list results, or `Not run` with the reason when one was expected but skipped. Omit `### Automated` entirely when no automated check applies to the change (for example a doc-only edit in a repo with no test harness) rather than emitting a `Not run` placeholder.
+- Under **Manual**, group human verification into **Before merge** and **After merge**. Before-merge steps are what a reviewer can inspect or exercise now — read the diff, run the command locally, exercise the change on the branch or a preview, for example `Run /woostack-commit on a dirty feature branch and confirm the PR body shows Goal, Summary, and the Automated/Manual test plan`. After-merge steps are verification only possible once the PR lands — staging/prod deploy behavior, migrations, env-specific config. Include the After-merge group only when such steps exist; this is the "if applicable".
+- Omit any empty group — `### Automated`, `### Manual`, or either before/after block — rather than leaving placeholder bullets.
+- Preserve important existing PR context when it is still accurate. Replace stale generated summaries/test plans with the current ones.
 - Format test-plan items as unchecked Markdown checkboxes (`- [ ] ...`) so reviewers can mark verification complete.
-- Include the configured `commit.pre_commit` command and result when it ran.
-- Prefer concrete manual verification steps when automated tests are unavailable, not run, or insufficient. Manual steps should describe what a reviewer can inspect or exercise, for example `Review the updated skill routing table in README.md` or `Run /woostack-commit on a dirty feature branch and confirm the PR body includes Summary and Test plan sections`.
-- If tests were not run, say `Not run` and give the reason, then include manual verification steps when possible.
 
 Update with:
 
@@ -223,7 +237,8 @@ Return:
 - Branch name.
 - Commit subject/SHA if available.
 - PR URL.
+- Goal used.
 - Summary bullets used.
-- Test plan bullets used.
+- Test plan bullets used (Automated and Manual).
 
 Do not claim tests passed unless you ran them and saw passing output.
