@@ -1,6 +1,6 @@
 ---
 name: woostack-build
-description: Use when building a feature with the full woostack development loop — ideate a design, harden it, plan it, and implement it. Chains woostack-ideate, superpowers writing-plans/executing-plans, and grill-me in a fixed, gated order; writes markdown specs and plans under .woostack/.
+description: Use when building a feature with the full woostack development loop — ideate a design, harden it, plan it, and implement it. Chains woostack-ideate, woostack-harden, and superpowers writing-plans/executing-plans in a fixed, gated order; writes markdown specs and plans under .woostack/.
 ---
 
 # woostack-build
@@ -12,7 +12,7 @@ glue: it sequences proven sub-skills and **inherits their gates** — it adds no
 its own. The value is the order and the handoffs.
 
 ```
-ideate → write spec (markdown) → grill-me → approve spec → writing-plans → executing-plans → distill memory → ask: open PR?
+ideate → write spec (markdown) → harden → approve spec → writing-plans → executing-plans → distill memory → ask: open PR?
 ```
 
 Two of those gates are hard stops where the user must say yes before the chain advances:
@@ -23,17 +23,17 @@ its own step 2, the gate lives here now. Relocating an inherited gate is not add
 
 ## Dependency preflight
 
-The ideate phase uses [`woostack-ideate`](../woostack-ideate/SKILL.md), which
-ships in this collection — no install needed. The plan, execution, and hardening phases chain
-external skills. At the start, check that each is installed:
+The ideate and hardening phases use [`woostack-ideate`](../woostack-ideate/SKILL.md) and
+[`woostack-harden`](../woostack-harden/SKILL.md), which ship in this collection — no install
+needed. The plan and execution phases chain external skills. At the start, check that each is
+installed:
 
 - `superpowers:writing-plans`, `superpowers:executing-plans`
-- `grill-me`
 
 For any that are missing: name exactly what's missing and **offer to install it inline**
-(`pnpx skills add obra/superpowers`, `pnpx skills add mattpocock/skills` for grill-me) and
-continue. If the user declines, fall back to following the skill's principle manually and
-**say so explicitly** — the run is degraded, not equivalent.
+(`pnpx skills add obra/superpowers`) and continue. If the user declines, fall back to
+following the skill's principle manually and **say so explicitly** — the run is degraded, not
+equivalent.
 
 ## Procedure
 
@@ -51,8 +51,9 @@ continue. If the user declines, fall back to following the skill's principle man
    [`woostack-visualize`](../woostack-visualize/SKILL.md) (audience `engineer` for specs; it
    uses [references/spec-template.html](references/spec-template.html) as a starting point).
    The HTML is a presentation target only, never the authored source.
-3. **Harden it, then get spec approval.** Invoke `grill-me` against the spec. Amend the spec
-   in place until grilling stops producing new questions. Then **always present the written
+3. **Harden it, then get spec approval.** Invoke [`woostack-harden`](../woostack-harden/SKILL.md)
+   against the spec. Amend the spec
+   in place until hardening stops producing new questions. Then **always present the written
    spec to the user and get explicit approval before planning** — this is a hard gate. Point
    the user at the file path (offer a `woostack-visualize` render if it helps), wait for a
    clear yes, and make any requested changes before advancing. Do **not** proceed to step 4
