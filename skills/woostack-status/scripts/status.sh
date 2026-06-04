@@ -60,9 +60,25 @@ staleDays() {
 }
 
 plan_for() {
-  local base
+  local base found slug specname p pbase pslug
   base="$(basename "$1")"
-  grep -lE "^\*\*Source:\*\*[[:space:]].*specs/${base}([[:space:]]|$)" "$PLAN_DIR"/*.md 2>/dev/null || true
+  found="$(grep -lE "^\*\*Source:\*\*[[:space:]].*specs/${base}([[:space:]]|$)" "$PLAN_DIR"/*.md 2>/dev/null || true)"
+  if [ -n "$found" ]; then
+    printf '%s\n' "$found"
+    return
+  fi
+
+  slug="${base%.md}"
+  slug="${slug#????-??-??-}"
+  specname="$(field "$1" name)"
+  for p in "$PLAN_DIR"/*.md; do
+    [ -e "$p" ] || continue
+    pbase="$(basename "$p" .md)"
+    pslug="${pbase#????-??-??-}"
+    if [ "$pslug" = "$slug" ] || { [ -n "$specname" ] && [ "$pslug" = "$specname" ]; }; then
+      printf '%s\n' "$p"
+    fi
+  done
 }
 
 plan_progress() {
@@ -92,9 +108,9 @@ prs_for_branch() {
 }
 
 resolve_phase() {
-  local authored="$1" hasPlan="$2" frac="$3" open="$4" merged="$5" branchExists="$6" hasCommits="$7"
+  local authored="$1" hasPlan="$2" frac="$3" open="$4" merged="$5" prcount="$6" branchExists="$7" hasCommits="$8"
   if [ "$open" -gt 0 ]; then echo "in-review"; return; fi
-  if [ "$frac" = "100" ] && [ "$merged" -gt 0 ]; then echo "done"; return; fi
+  if [ "$frac" = "100" ] && [ "$merged" -gt 0 ] && [ "$merged" -eq "$prcount" ]; then echo "done"; return; fi
   case "$authored" in
     executing|in-review|done)
       if [ "$hasPlan" -eq 1 ] || [ "$branchExists" -eq 1 ] || [ "$hasCommits" -eq 1 ]; then
@@ -199,7 +215,7 @@ for f in "${specs[@]}"; do
 
   frac=0; [ "$total" -gt 0 ] && frac=$(( done * 100 / total ))
   hasPlan=0; [ -n "$planfile" ] && hasPlan=1
-  eff="$(resolve_phase "$phase" "$hasPlan" "$frac" "$open" "$merged" 0 0)"
+  eff="$(resolve_phase "$phase" "$hasPlan" "$frac" "$open" "$merged" "$prcount" 0 0)"
 
   if [ -z "$br" ] || [ "$br" = unknown ]; then
     case "$eff" in executing|in-review|done) flag "$name: branch is '${br:-empty}' - set branch:" ;; esac

@@ -67,6 +67,12 @@ mkspec "$p" delta planning feature/delta
 mkplan "$p" delta 2026-06-01-delta.md 3 7
 run_status "$p"
 assert_contains "$OUT" "3/10" "plan progress counted"
+legacy="$(mktemp -d)/.woostack"
+mkspec "$legacy" legacy planning feature/legacy
+mkdir -p "$legacy/plans"
+printf '# Legacy Plan\n\n- [x] done\n- [ ] todo\n' > "$legacy/plans/2026-06-01-legacy.md"
+run_status "$legacy"
+assert_contains "$OUT" "1/2" "legacy same-slug plan resolves without Source"
 mkspec "$p" echo planning feature/echo
 run_status "$p"
 assert_contains "$OUT" "echo" "echo row present"
@@ -146,6 +152,15 @@ assert_not_contains "$OUT" "oscar " "done hidden by default"
 assert_contains "$OUT" "1 done" "done counted in footer"
 PATH="$g/bin:$PATH" run_status "$o" --all
 assert_contains "$OUT" "oscar" "done shown with --all"
+unset FAKE_GH_JSON
+
+oc="$(mktemp -d)/.woostack"; mkspec "$oc" oscar executing feature/oscar
+mkplan "$oc" oscar 2026-06-01-oscar.md 5 0
+export FAKE_GH_JSON='[{"number":9,"state":"MERGED","headRefName":"feature/oscar","author":{"login":"a"},"updatedAt":"2026-06-02T00:00:00Z"},{"number":10,"state":"CLOSED","headRefName":"feature/oscar","author":{"login":"a"},"updatedAt":"2026-06-03T00:00:00Z"}]'
+PATH="$g/bin:$PATH" run_status "$oc"
+assert_contains "$OUT" "oscar" "closed-unmerged increment keeps row visible"
+assert_contains "$OUT" "executing" "closed-unmerged increment prevents done"
+assert_contains "$OUT" "0 done" "closed-unmerged increment not counted done"
 unset FAKE_GH_JSON
 
 mkspec "$o" papa abandoned feature/papa
