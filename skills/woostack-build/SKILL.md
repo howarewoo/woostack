@@ -8,25 +8,29 @@ description: Use when building a feature with the full woostack development loop
 ## Overview
 
 Drives one feature from idea to implementation through a fixed, gated chain. Thin
-glue: it sequences proven sub-skills and **inherits their gates** — it adds none of
-its own. The value is the order and the handoffs.
+glue: it sequences proven sub-skills, **inherits their two gates** (design, spec) **and
+adds exactly one of its own** — the execution handoff — because the plan→execute boundary
+belongs to no sub-skill. The value is the order and the handoffs.
 
 ```
 ideate → write spec (markdown) → harden spec → approve spec → writing-plans → decompose
-  → harden plan → commit spec+plan as their own PR → execute (per increment: implement →
-  commit → review → distill) → reviewed PR stack
+  → harden plan → commit spec+plan as their own PR → stop before execute (handoff gate)
+  → execute (per increment: implement → commit → review → distill) → reviewed PR stack
 ```
 
-Two of those gates are hard stops where the user must say yes before the chain advances:
-**design approval** (owned by `woostack-ideate`, step 1) and **spec approval** (step 3).
-The spec-approval gate is the "user reviews the written spec" step that
-`superpowers:brainstorming` used to own; because woostack-build relocated the spec write into
-its own step 2, the gate lives here now. Relocating an inherited gate is not adding one.
+Three of those gates are hard stops where the user must say yes before the chain advances:
+**design approval** (owned by `woostack-ideate`, step 1), **spec approval** (step 3), and the
+**execution handoff** (step 8). The spec-approval gate is the "user reviews the written spec"
+step that `superpowers:brainstorming` used to own; because woostack-build relocated the spec
+write into its own step 2, the gate lives here now — relocating an inherited gate is not adding
+one. The execution-handoff gate is build's own: no sub-skill owns the plan→execute boundary, so
+build adds it to let you stop after planning and execute later or elsewhere.
 
 Hardening runs **twice** — once on the spec (step 3) and once on the plan (step 6) — but only
-the spec harden feeds a gate. The plan harden amends the plan in place and hands straight back,
-and committing the spec+plan PR (step 7) is a work step, not an approval stop. Neither adds a
-gate: the chain still has exactly the two hard gates above.
+the spec harden feeds a gate (the spec-approval gate, step 3). The plan harden amends the plan
+in place and hands straight back, and committing the spec+plan PR (step 7) is a work step, not
+an approval stop. The execution-handoff gate (step 8) is build-owned, not harden-owned, and
+sits after that PR. So the chain has exactly the three hard gates above.
 
 ## Dependency preflight
 
@@ -81,14 +85,25 @@ equivalent.
    time against the plan and its increment breakdown — stress-test the sequencing, the
    increment boundaries, and the verifications until hardening stops producing new questions.
    Amend the plan markdown in place as answers land. This adds **no approval gate**: harden
-   owns none and hands straight back. The spec-approval gate (step 3) remains the chain's last
-   hard stop; do not invent a plan-approval gate here.
+   owns none and hands straight back. The chain's last hard stop is the **execution-handoff
+   gate (step 8)**, after the spec+plan PR — not a plan-*quality* gate here. Do not turn this
+   harden into a plan-approval gate.
 7. **Commit the spec and plan as their own PR.** Before any implementation, commit the
    `.woostack/` spec and plan via [`woostack-commit`](../woostack-commit/SKILL.md) on a fresh
    Graphite branch and open a PR. This docs-only PR is the **base of the stack** — execution
-   increments (step 8) stack on top of it via `gt create`. It carries no code and is **never
+   increments (step 9) stack on top of it via `gt create`. It carries no code and is **never
    merged** by build. This is a work step, not an approval stop.
-8. **Execute.** Invoke [`woostack-execute`](../woostack-execute/SKILL.md) with the plan path to
+8. **Stop before execute (execution-handoff gate).** After the spec+plan PR is open, **halt** —
+   this is a hard gate. Surface the handoff artifacts: the plan path (`.woostack/plans/…`), the
+   spec+plan PR URL, and — on request — a
+   [`woostack-visualize`](../woostack-visualize/SKILL.md) render of the plan (audience
+   `engineer`). Then ask the user to choose:
+   - **Go** → proceed to step 9 and run `woostack-execute` in this session.
+   - **Hand off** → stop here. The user takes the plan PR and executes later or elsewhere (e.g.
+     Codex, or a fresh session via `/woostack-execute <plan-path>`).
+   Ambiguous or no answer is **not** a "go": never auto-run execute without an explicit
+   go-ahead. This is the chain's last hard gate.
+9. **Execute.** Invoke [`woostack-execute`](../woostack-execute/SKILL.md) with the plan path to
    work the plan as PR-sized stacked increments on top of the spec+plan PR — each implemented
    with TDD, the plan's checkboxes ticked in place, committed via `woostack-commit`, reviewed per
    the execution mode `woostack-execute` selects (`woostack-review --fast` in inline mode, or the
@@ -97,17 +112,24 @@ equivalent.
    per-increment commit/review/distill cadence and the inline-vs-subagent mode choice (one plan
    per spec, multiple stacked PRs per plan), so it absorbs what used to be separate "distill
    memory" and "offer the PR" steps here.
-9. **End on the reviewed stack.** The terminal state is a Graphite stack with the spec+plan PR
-   at the base and a reviewed increment PR above each step. Build does not separately ask to
-   open a PR (step 7 and `woostack-execute` open them as work steps) and **never merges**.
+10. **End on the chosen terminal state.** Build ends in one of two shapes, never merging either:
+    - **Hand off** → only the spec+plan PR is open (no increment PRs), ready for external or
+      later execute.
+    - **Go** → a Graphite stack with the spec+plan PR at the base and a reviewed increment PR
+      above each step.
+    Build does not separately ask to open a PR (step 7 and `woostack-execute` open them as work
+    steps) and **never merges**.
 
 ## Hard constraints
 
-- **Inherit gates, add none.** Do not insert *extra* approval stops between phases. The two
-  inherited hard gates are non-negotiable: **design approval** (step 1) and **spec approval**
-  (step 3). The plan harden (step 6) and the spec+plan PR (step 7) are work steps, not gates.
-- **Harden twice, gate once.** Harden the spec (step 3, feeds the spec-approval gate) and the
-  plan (step 6, amends in place, no gate). Never add a plan-approval gate.
+- **Inherit two gates, add one.** Do not insert *extra* approval stops beyond the three hard
+  gates: **design approval** (step 1) and **spec approval** (step 3), both inherited, plus the
+  **execution handoff** (step 8), which build owns because the plan→execute boundary belongs to
+  no sub-skill. The plan harden (step 6) and the spec+plan PR (step 7) are work steps, not gates.
+- **Harden twice, neither harden gates.** Harden the spec (step 3, feeds the spec-approval gate)
+  and the plan (step 6, amends in place, no gate). The execution-handoff gate (step 8) is
+  separate and build-owned, not a plan-*quality* gate; never turn the plan harden into a
+  plan-approval gate.
 - **Always get explicit spec approval before planning.** After the spec harden, present the
   written spec and wait for the user's clear yes. Never advance to `writing-plans` on assumed
   or inferred approval.
@@ -115,7 +137,11 @@ equivalent.
   default location. HTML is a render-on-demand target only, not the authored format.
 - **Spec+plan ship as their own PR before execution.** Commit the spec and plan as a docs-only
   PR (step 7) — the base of the stack — before any implementation begins. Never merge it.
-- **Never merge.** build ends on the reviewed PR stack, nothing further.
+- **Stop before execute.** Never auto-run execute; always halt at the execution-handoff gate
+  (step 8) after the spec+plan PR. The plan PR is the artifact for executing here or in another
+  tool. Ambiguous or no answer is not a "go."
+- **Never merge.** build ends on the terminal state (handoff PR, or reviewed stack), nothing
+  further.
 - **One increment per cycle.** Do not let a single build cycle balloon past a reviewable PR.
 - **Distill durable knowledge only.** `woostack-execute` writes scoped, deduplicated memory
   notes per increment — never feature-specific trivia, never a duplicate of an existing note. A

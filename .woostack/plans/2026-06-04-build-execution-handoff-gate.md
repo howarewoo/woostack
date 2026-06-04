@@ -19,7 +19,7 @@
 **Files:**
 - Modify: `skills/woostack-build/SKILL.md` (Overview section, lines ~10–29)
 
-- [ ] **Step 1: Reword the "thin glue" intro — build now adds one gate**
+- [x] **Step 1: Reword the "thin glue" intro — build now adds one gate**
 
 Replace:
 
@@ -38,7 +38,7 @@ adds exactly one of its own** — the execution handoff — because the plan→e
 belongs to no sub-skill. The value is the order and the handoffs.
 ```
 
-- [ ] **Step 2: Insert the handoff stop into the ASCII chain**
+- [x] **Step 2: Insert the handoff stop into the ASCII chain**
 
 Replace:
 
@@ -56,7 +56,7 @@ ideate → write spec (markdown) → harden spec → approve spec → writing-pl
   → execute (per increment: implement → commit → review → distill) → reviewed PR stack
 ```
 
-- [ ] **Step 3: Update the "two gates" paragraph to three**
+- [x] **Step 3: Update the "two gates" paragraph to three**
 
 Replace:
 
@@ -80,7 +80,7 @@ one. The execution-handoff gate is build's own: no sub-skill owns the plan→exe
 build adds it to let you stop after planning and execute later or elsewhere.
 ```
 
-- [ ] **Step 4: Update the hardening paragraph (gate count → three)**
+- [x] **Step 4: Update the hardening paragraph (gate count → three)**
 
 Replace:
 
@@ -101,7 +101,7 @@ an approval stop. The execution-handoff gate (step 8) is build-owned, not harden
 sits after that PR. So the chain has exactly the three hard gates above.
 ```
 
-- [ ] **Step 5: Verify the Overview reads coherently**
+- [x] **Step 5: Verify the Overview reads coherently**
 
 Run: `sed -n '8,35p' skills/woostack-build/SKILL.md`
 Expected: intro says "adds exactly one"; chain shows "stop before execute (handoff gate)"; gate paragraph lists three gates; hardening paragraph says "three hard gates". No remaining "adds none of its own" or "exactly the two hard gates".
@@ -113,7 +113,7 @@ Expected: intro says "adds exactly one"; chain shows "stop before execute (hando
 **Files:**
 - Modify: `skills/woostack-build/SKILL.md` (step 6, lines ~80–85)
 
-- [ ] **Step 1: Replace the step 6 tail**
+- [x] **Step 1: Replace the step 6 tail**
 
 Replace:
 
@@ -132,7 +132,7 @@ With:
    harden into a plan-approval gate.
 ```
 
-- [ ] **Step 2: Verify step 6**
+- [x] **Step 2: Verify step 6**
 
 Run: `sed -n '80,86p' skills/woostack-build/SKILL.md`
 Expected: still says "adds **no approval gate**"; now points to step 8 as the last hard stop; no "spec-approval gate (step 3) remains the chain's last hard stop".
@@ -144,7 +144,7 @@ Expected: still says "adds **no approval gate**"; now points to step 8 as the la
 **Files:**
 - Modify: `skills/woostack-build/SKILL.md` (steps 8–9, lines ~86–100)
 
-- [ ] **Step 1: Insert the new step 8 immediately after step 7**
+- [x] **Step 1: Insert the new step 8 immediately after step 7**
 
 Find the end of step 7 (the line ending `merged** by build. This is a work step, not an approval stop.`) and the start of the current step 8. Replace the current step 8 header line:
 
@@ -171,7 +171,7 @@ With the new step 8, then the renumbered step 9 header:
 (The body of the old step 8 — "work the plan as PR-sized stacked increments …" through "… separate
 'distill memory' and 'offer the PR' steps here." — is unchanged; only its number becomes 9.)
 
-- [ ] **Step 2: Renumber and rewrite the terminal step (old 9 → 10, two terminal shapes)**
+- [x] **Step 2: Renumber and rewrite the terminal step (old 9 → 10, two terminal shapes)**
 
 Replace:
 
@@ -193,7 +193,7 @@ With:
     steps) and **never merges**.
 ```
 
-- [ ] **Step 3: Fix the in-prose step-number reference inside step 7**
+- [x] **Step 3: Fix the in-prose step-number reference inside step 7**
 
 Step 7's body points at the execute step by number ("execution increments (step 8)"); execute is now step 9, so this reference must follow. Replace:
 
@@ -209,7 +209,7 @@ increments (step 9) stack on top of it via `gt create`.
 
 (This is the **only** in-prose `step 8` reference in the file — verified by grep before planning; all other `step 8` mentions are introduced by Task 1/3/4 and correctly point at the new handoff gate.)
 
-- [ ] **Step 4: Verify the procedure numbering**
+- [x] **Step 4: Verify the procedure numbering**
 
 Run: `grep -nE '^[0-9]+\. \*\*' skills/woostack-build/SKILL.md`
 Expected: exactly ten numbered steps, 1–10, in order; step 8 is "Stop before execute (execution-handoff gate)", step 9 is "Execute", step 10 is "End on the chosen terminal state". No duplicate or skipped numbers.
@@ -224,7 +224,7 @@ Expected: every `step N` reference resolves to a real step 1–10; the lone `ste
 **Files:**
 - Modify: `skills/woostack-build/SKILL.md` (Hard constraints, lines ~104–117)
 
-- [ ] **Step 1: Replace the first two doctrine bullets**
+- [x] **Step 1: Replace the first two doctrine bullets**
 
 Replace:
 
@@ -249,7 +249,7 @@ With:
   plan-approval gate.
 ```
 
-- [ ] **Step 2: Add the "Stop before execute" bullet before the "Never merge" bullet**
+- [x] **Step 2: Add the "Stop before execute" bullet before the "Never merge" bullet**
 
 Replace:
 
@@ -267,7 +267,7 @@ With:
   further.
 ```
 
-- [ ] **Step 3: Verify the hard constraints**
+- [x] **Step 3: Verify the hard constraints**
 
 Run: `sed -n '/## Hard constraints/,$p' skills/woostack-build/SKILL.md`
 Expected: first bullet "Inherit two gates, add one"; second "Harden twice, neither harden gates"; a "Stop before execute" bullet present; "Never merge" mentions both terminal shapes. No "Inherit gates, add none" or "Harden twice, gate once".
@@ -279,17 +279,17 @@ Expected: first bullet "Inherit two gates, add one"; second "Harden twice, neith
 **Files:**
 - Read-only: `skills/woostack-build/SKILL.md`
 
-- [ ] **Step 1: Grep-sweep for stale doctrine**
+- [x] **Step 1: Grep-sweep for stale doctrine**
 
 Run: `grep -nE 'two hard gates|add none|adds none|gate once|exactly two' skills/woostack-build/SKILL.md`
 Expected: **no matches.** Any match is a stale assertion to fix.
 
-- [ ] **Step 2: Confirm surviving "plan-approval gate" / "three" usages are intentional**
+- [x] **Step 2: Confirm surviving "plan-approval gate" / "three" usages are intentional**
 
 Run: `grep -nE 'plan-approval gate|three hard gates|three of those gates|adds exactly one|add one' skills/woostack-build/SKILL.md`
 Expected: every "plan-approval gate" hit is in a *forbidding* sentence ("do not turn… into a plan-approval gate"); "three" hits describe the gate count; "adds exactly one / add one" hits are the doctrine reframe. No hit asserts a plan-approval gate exists.
 
-- [ ] **Step 3: Full read for coherence**
+- [x] **Step 3: Full read for coherence**
 
 Run: `cat skills/woostack-build/SKILL.md`
 Expected (manual check against spec §7 Testing):
@@ -300,7 +300,7 @@ Expected (manual check against spec §7 Testing):
 - Frontmatter `description:` unchanged and still true.
 - Step 4 untouched ("plans are working checklists, not visualization artifacts" still present).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 Executed by `woostack-execute` via [`woostack-commit`](../../skills/woostack-commit/SKILL.md) on this increment's Graphite branch (stacked on the spec+plan PR). Suggested message:
 
