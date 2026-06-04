@@ -18,7 +18,8 @@ See [AGENTS.md](AGENTS.md) for the full repo contract; this file is the short co
 | Update the branching model | `skills/woostack-bootstrap/references/development.md` |
 | Refine the bootstrap procedure | `skills/woostack-bootstrap/references/bootstrap.md` |
 | Change the bootstrap skill entry / discovery description | `skills/woostack-bootstrap/SKILL.md` |
-| Change the build loop (brainstorm→spec→grill→plan→execute) | `skills/woostack-build/SKILL.md` |
+| Change the build loop (ideate→spec→grill→approve spec→plan→execute) | `skills/woostack-build/SKILL.md` |
+| Change the ideate phase (the build loop's first step) | `skills/woostack-ideate/SKILL.md` |
 | Change the commit / PR update workflow | `skills/woostack-commit/SKILL.md` |
 | Change the review engine | `skills/woostack-review/SKILL.md`, `skills/woostack-review/scripts/`, `skills/woostack-review/prompts/` |
 | Change the address-comments delegator | `skills/woostack-address-comments/SKILL.md` |

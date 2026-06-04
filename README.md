@@ -56,10 +56,10 @@ Walks you through the [decision catalog](skills/woostack-bootstrap/references/de
 A fixed, gated chain that drives one feature from idea to implementation:
 
 ```
-brainstorm → markdown spec → grill → plan → execute (TDD) → offer PR
+ideate → markdown spec → grill → approve spec → plan → execute (TDD) → offer PR
 ```
 
-It sequences proven sub-skills (superpowers brainstorming/writing-plans/executing-plans + grill-me) and inherits their approval gates rather than adding its own. Specs and plans are both written as markdown under `.woostack/`; an HTML render is available on demand for a richer view but is never the authored format. Work is steered toward reviewable PRs (soft target ≤500 LOC), one increment per cycle. It ends by *offering* a PR. It never merges. → [SKILL.md](skills/woostack-build/SKILL.md)
+It sequences woostack's own ideate phase (`woostack-ideate`) with proven sub-skills (superpowers writing-plans/executing-plans + grill-me) and inherits their approval gates rather than adding its own. The written spec must be explicitly approved after grilling and before planning. Specs and plans are both written as markdown under `.woostack/`; an HTML render is available on demand for a richer view but is never the authored format. Work is steered toward reviewable PRs (soft target ≤500 LOC), one increment per cycle. It ends by *offering* a PR. It never merges. → [SKILL.md](skills/woostack-build/SKILL.md)
 
 ### `/woostack-review [PR#]`: parallel review swarm
 
