@@ -85,7 +85,8 @@ The prefetch step parses an optional `.woostack/config.json` in the consumer rep
 | `project_rules` | `prefetch.sh` (appends to `rules.md`) | Stage 1 |
 | `authors_skip` | `prefetch.sh` (skips + posts one-line comment; default list applied when absent — issue #19) | Stage 1 |
 | `release_rollup_pattern` | `prefetch.sh` (skips + posts one-line comment when PR title matches; default `^(staging\|release\|chore\(release\))` applied when absent — issue #19) | Stage 1 |
-| `severity_floor` | validator | Stage 3 — **defaults to `high`** (only high-priority findings surface); set `low`/`medium` to widen |
+| `severity_floor` | `intersect-findings.sh` (floor classifier) | Stage 4c — **defaults to `high`**; below-floor validated findings become non-blocking nits, not drops; set `low`/`medium` to treat more findings as normal |
+| `nits` | `intersect-findings.sh` (floor classifier) | Stage 4c — default `true`; `false` drops below-floor non-blocking findings (old behavior). Below-floor blocking findings always surface |
 | `models.fast` / `.standard` / `.deep`; `models.<provider>.<tier>` | orchestrator prompts (tier resolution) | Stage 2 |
 | `fix_commands` | persisted only; consumed by `--loop` mode (#15) | n/a |
 | `chunking.max_loc` | `chunk-diff.sh` (split oversized diff into chunks; default 4000) | Stage 1 |
@@ -118,15 +119,18 @@ Each angle writes its findings to `/tmp/pr-review/findings.<angle>.json`. The or
 
 ## Output Contract
 
-Every run MUST end with one batched GitHub Review submitted via `gh api repos/<repo>/pulls/<PR>/reviews` containing all inline comments, the summary, and the `STATUS_LINE` in the **review body**. The review `event` is the native blocking gate: `APPROVE` (0 findings), `COMMENT` (no blocking findings), or `REQUEST_CHANGES` (≥1 blocking finding). PR labels MUST NOT be added, removed, or otherwise mutated.
+Every run MUST end with one batched GitHub Review submitted via `gh api repos/<repo>/pulls/<PR>/reviews` containing all inline comments, the summary, and the `STATUS_LINE` in the **review body**. The review `event` is the native blocking gate: `REQUEST_CHANGES` (≥1 blocking finding or open prior thread), `COMMENT` (≥1 non-nit non-blocking finding), or `APPROVE` (no findings, or only nits — nits post inline but never withhold approval). PR labels MUST NOT be added, removed, or otherwise mutated.
 
 The PR title and the PR description (issue body) MUST NOT be modified. The `STATUS_LINE` lives inside the Review body — never in the PR body.
 
 ### STATUS_LINE (exact format)
 
-- `BLOCKING_COUNT >= 1` → `**Status: CHANGES REQUESTED** — N blocking finding(s) (H HIGH, M MEDIUM, L LOW) + K non-blocking. See inline comments.`
-- `BLOCKING_COUNT == 0, NONBLOCKING_COUNT >= 1` → `**Status: APPROVED WITH SUGGESTIONS** — N non-blocking finding(s) (H HIGH, M MEDIUM, L LOW). See inline comments.`
-- Both zero → `**Status: APPROVED** — No validated findings.`
+Counts: `BLOCKING_COUNT` (blocking findings), `NONBLOCKING_COUNT` (non-nit, non-blocking findings), `NIT_COUNT` (findings with `nit: true`). The `H HIGH, M MEDIUM, L LOW` breakdown counts non-nit findings only. The ` + Q nit(s)` suffix appears only when `NIT_COUNT > 0`.
+
+- `BLOCKING_COUNT >= 1` → `**Status: CHANGES REQUESTED** — N blocking finding(s) (H HIGH, M MEDIUM, L LOW) + K non-blocking[ + Q nit(s)]. See inline comments.`
+- `BLOCKING_COUNT == 0, NONBLOCKING_COUNT >= 1` → `**Status: APPROVED WITH SUGGESTIONS** — N non-blocking finding(s) (H HIGH, M MEDIUM, L LOW)[ + Q nit(s)]. See inline comments.`
+- `BLOCKING_COUNT == 0, NONBLOCKING_COUNT == 0, NIT_COUNT >= 1` → `**Status: APPROVED** — No blocking findings, Q nit(s). See inline comments.`
+- All zero → `**Status: APPROVED** — No validated findings.`
 
 ### Pull Request Review (Batch)
 
@@ -199,12 +203,16 @@ pr_body = open("/tmp/pr_review_body.txt").read()
 
 has_new_blocking = any(f.get("blocking", False) for f in findings)
 has_open_priors  = any(p.get("status") == "open" for p in priors)
-if not findings and not has_open_priors:
-    event = "APPROVE"
-elif has_new_blocking or has_open_priors:
+# Nits are event-neutral: a non-nit, non-blocking finding triggers COMMENT; a PR
+# whose only findings are nits (or none) APPROVEs. Nit comments still post inline
+# under APPROVE — they inform without withholding the green check.
+has_non_nit = any(not f.get("nit", False) for f in findings)
+if has_new_blocking or has_open_priors:
     event = "REQUEST_CHANGES"
-else:
+elif has_non_nit:
     event = "COMMENT"
+else:
+    event = "APPROVE"
 
 # Self-PR downgrade. GitHub rejects REQUEST_CHANGES + APPROVE when the
 # authenticated user is the PR author (HTTP 422 "Can not request changes on
@@ -226,7 +234,11 @@ for f in findings:
     # Inline comment format: bold title, issue description, recommended fix,
     # trailing attribution footer naming the severity + angle agent that
     # flagged the finding (plus a "blocking" tag when blocking == true).
+    nit = bool(f.get("nit", False))
     title = f["title"].strip()
+    # Guard against an angle that already phrased the title as "Nit: …".
+    if nit and not title.lower().startswith("nit:"):
+        title = f"Nit: {title}"
     description = f["description"].strip()
     fix = (f.get("fix") or "").strip()
     angle = (f.get("angle") or "").strip()
@@ -257,7 +269,12 @@ for f in findings:
     # cannot inject text into the rendered comment.
     footer_parts = []
     if severity in {"HIGH", "MEDIUM", "LOW"}:
-        sev_tag = f"{severity} · BLOCKING" if blocking else severity
+        if nit:
+            sev_tag = f"{severity} · NIT"
+        elif blocking:
+            sev_tag = f"{severity} · BLOCKING"
+        else:
+            sev_tag = severity
         footer_parts.append(f"<strong>{sev_tag}</strong>")
     if angle in {"bugs","security","conventions","seo","aeo","design","react","database","tests","api","infra","observability","types","i18n","docs","deps","architecture"}:
         footer_parts.append(f"flagged by the <code>{angle}</code> agent")
@@ -322,6 +339,7 @@ Every runner MUST write a final `findings.json` (for debugging + potential post-
     "line": 42,
     "severity": "HIGH",
     "blocking": true,
+    "nit": false,
     "title": "Short bold headline (≤60 chars, no trailing punctuation)",
     "description": "Issue description: what is wrong and why it matters. Do NOT include the fix here.",
     "fix_type": "suggestion",
@@ -366,9 +384,11 @@ Fix: <fix>
 - **Title** — bold one-liner, ≤60 characters, no trailing punctuation. Names the problem.
 - **Description** — the issue itself: what is broken, why it matters, with diff-anchored evidence. Do NOT prescribe the fix here.
 - **Fix** — recommended change, prefixed literally with `Fix: `. Required for every finding. The body builder appends a GitHub ```suggestion``` block after the `Fix:` line if and only if `fix_type == "suggestion"` AND `suggestion` is a non-empty string; `fix_type == "prose"` renders the recommendation in prose only.
-- **Attribution footer** — small-print line carrying the finding's `severity` (HIGH / MEDIUM / LOW; suffixed with `· BLOCKING` when `blocking == true`) and the angle agent that flagged it (e.g. `<sub>— <strong>HIGH · BLOCKING</strong> · flagged by the <code>bugs</code> agent</sub>`). The body builder appends this automatically from the finding's `severity` / `blocking` / `angle` fields. Both `severity` and `angle` are whitelisted against their known sets; unknown/missing values are dropped from the footer rather than injecting raw text. If both are missing, the footer is omitted entirely.
+- **Attribution footer** — small-print line carrying the finding's `severity` (HIGH / MEDIUM / LOW; suffixed with `· BLOCKING` when `blocking == true`, or `· NIT` when `nit == true`) and the angle agent that flagged it (e.g. `<sub>— <strong>HIGH · BLOCKING</strong> · flagged by the <code>bugs</code> agent</sub>`, or `<sub>— <strong>LOW · NIT</strong> · flagged by the <code>bugs</code> agent</sub>`). The body builder appends this automatically from the finding's `severity` / `blocking` / `nit` / `angle` fields. Both `severity` and `angle` are whitelisted against their known sets; unknown/missing values are dropped from the footer rather than injecting raw text. If both are missing, the footer is omitted entirely.
 
-The body builder in the posting step (see python snippet above) renders this format automatically from `title` / `description` / `fix` / `fix_type` / `suggestion` / `angle` / `severity` / `blocking`. Angle agents and the validator MUST populate `title`, `description`, `fix`, `fix_type`, `angle`, `severity`, and `blocking` for every finding.
+`nit` is a boolean set by `intersect-findings.sh` (the floor classifier), **not** by angle agents: `true` marks a validated below-floor non-blocking finding. The body builder renders a `nit: true` finding with a `Nit:` title prefix and a `· NIT` footer tag, and the event computation treats it as event-neutral (a PR whose only findings are nits still `APPROVE`s, with the nits posted inline). A nit is always non-blocking; a below-floor finding that is `blocking: true` stays a normal finding (`nit: false`).
+
+The body builder in the posting step (see python snippet above) renders this format automatically from `title` / `description` / `fix` / `fix_type` / `suggestion` / `angle` / `severity` / `blocking` / `nit`. Angle agents and the validator MUST populate `title`, `description`, `fix`, `fix_type`, `angle`, `severity`, and `blocking` for every finding; `nit` is added downstream by the classifier.
 
 ## Blocking Criteria
 

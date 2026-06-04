@@ -77,6 +77,21 @@ if [ -f "$CONFIG" ]; then
   v="$(jq -r '.metrics // false' "$CONFIG" 2>/dev/null || echo false)"
   case "$v" in true|false) metrics_enabled="$v" ;; *) metrics_enabled="false" ;; esac
 fi
+
+# Resolve nits opt-out from config.json (default true). NOTE: jq's `//` treats
+# `false` as empty, so `.nits // true` would coerce an explicit false back to
+# true — detect the opt-out explicitly instead.
+nits_enabled="true"
+if [ -f "$CONFIG" ]; then
+  v="$(jq -r '.nits' "$CONFIG" 2>/dev/null || echo null)"
+  [ "$v" = "false" ] && nits_enabled="false"
+fi
+
+# Resolve severity_floor (default high). Already shape-validated by
+# load-config.sh; re-default defensively here since this is the floor's home.
+severity_floor="$(jq -r '.severity_floor // "high"' "$CONFIG" 2>/dev/null | tr '[:upper:]' '[:lower:]')"
+case "$severity_floor" in low|medium|high) ;; *) severity_floor="high" ;; esac
+
 RAW="$OUTDIR/raw_findings.json"
 ANGLE_METRICS="$OUTDIR/findings.metrics.json"
 
@@ -113,6 +128,7 @@ write_metrics() {
     --argjson disagreement_count "$6" \
     --argjson dropped_by_defender "$7" \
     --argjson dropped_by_prosecutor "$8" \
+    --argjson nit_count "$9" \
     '{
       mode: $mode,
       degraded: $degraded,
@@ -121,7 +137,8 @@ write_metrics() {
       kept_count: $kept_count,
       disagreement_count: $disagreement_count,
       dropped_by_defender: $dropped_by_defender,
-      dropped_by_prosecutor: $dropped_by_prosecutor
+      dropped_by_prosecutor: $dropped_by_prosecutor,
+      nit_count: $nit_count
     }' > "$METRICS"
 }
 
@@ -218,20 +235,22 @@ for angle_set in clusters.values():
             if a != b:
                 bucket[b] = bucket.get(b, 0) + 1
 
-out = {"schema_version": 2, "mode": mode, "degraded": degraded == "true", "angles": {}}
+out = {"schema_version": 3, "mode": mode, "degraded": degraded == "true", "angles": {}}
 
 for a in angles:
     kept = final_c.get(a, 0)
     defk = def_c.get(a, 0)
     blk  = blocking_count(final, a)
     rawn = raw_c.get(a, 0) if raw_present else max(defk, kept, pros_c.get(a, 0))
+    nit = sum(1 for f in final if angle_of(f) == a and bool(f.get("nit")))
     rec = {
         "raw_count": rawn,
         "defender_kept": defk,
         "kept": kept,
         "dropped_by_prosecutor": max(0, defk - kept),
         "blocking_count": blk,
-        "nonblocking_count": kept - blk,
+        "nit_count": nit,
+        "nonblocking_count": kept - blk - nit,
         "severity": sev_hist(final, a),
     }
     ow = overlap_with.get(a, {})
@@ -252,6 +271,53 @@ with open(out_p, "w") as fh:
 PY
 }
 
+# Floor classifier — reframes severity_floor from a drop gate into a
+# blocking/visibility threshold. Rewrites $FINAL in place, setting an explicit
+# `nit` boolean on every surviving finding:
+#   at/above floor                         -> nit:false (normal, unchanged)
+#   below floor + blocking:true            -> nit:false (blocking overrides floor)
+#   below floor + non-blocking + nits on   -> nit:true, blocking:false (nit)
+#   below floor + non-blocking + nits off  -> dropped
+# Runs on the merged findings.json in BOTH validator modes so the floor has one
+# implementation across swarm, CI, and defender-only paths.
+classify_floor() {
+  python3 - "$FINAL" "$severity_floor" "$nits_enabled" <<'PY'
+import json, sys
+
+final_p, floor, nits = sys.argv[1], sys.argv[2], sys.argv[3]
+RANK = {"low": 0, "medium": 1, "high": 2}
+floor_rank = RANK.get(floor, 2)
+nits_on = nits != "false"
+
+try:
+    findings = json.load(open(final_p))
+    if not isinstance(findings, list):
+        findings = []
+except (OSError, ValueError):
+    findings = []
+
+out = []
+for f in findings:
+    # Unknown/missing severity -> MEDIUM (matches sev_rank() used in the merge).
+    rank = RANK.get((f.get("severity") or "").lower(), 1)
+    if rank >= floor_rank:
+        f["nit"] = False
+        out.append(f)
+    elif bool(f.get("blocking")):           # blocking overrides the floor
+        f["nit"] = False
+        out.append(f)
+    elif nits_on:
+        f["nit"] = True
+        f["blocking"] = False
+        out.append(f)
+    # else: below floor, non-blocking, nits off -> drop
+
+with open(final_p, "w") as fh:
+    json.dump(out, fh, indent=2)
+    fh.write("\n")
+PY
+}
+
 if [ "$disable_adversarial" = "true" ] || [ "$prosecutor_present" = "false" ]; then
   mode="defender-only"
   # degraded = the adversarial pass was EXPECTED but the prosecutor output is
@@ -263,8 +329,11 @@ if [ "$disable_adversarial" = "true" ] || [ "$prosecutor_present" = "false" ]; t
     echo "::warning::intersect-findings: prosecutor findings absent — falling back to defender-only output (degraded)" >&2
   fi
   cp "$DEFENDER" "$FINAL"
-  write_metrics "$mode" "$degraded" null "$defender_count" "$defender_count" 0 0 0
-  echo "intersect-findings: mode=$mode degraded=$degraded kept=$defender_count"
+  classify_floor
+  kept_count="$(jq 'length' "$FINAL")"
+  nit_count="$(jq '[.[] | select(.nit == true)] | length' "$FINAL")"
+  write_metrics "$mode" "$degraded" null "$defender_count" "$kept_count" 0 0 0 "$nit_count"
+  echo "intersect-findings: mode=$mode degraded=$degraded kept=$kept_count nits=$nit_count"
   emit_angle_metrics "$mode" "$degraded" || echo "::warning::emit_angle_metrics failed (non-fatal)" >&2
   exit 0
 fi
@@ -508,16 +577,22 @@ sys.stderr.write(
 )
 PY
 
+# Pre-floor intersection size — the true prosecutor∩defender agreement.
+# Disagreement MUST be measured BEFORE the floor classifier, because under
+# nits:false the classifier drops below-floor non-blocking agreements; counting
+# those as cross-pass disagreement would be a lie. kept_count is the
+# post-classification (shown) count. Under nits:on the two are equal.
+intersection_size="$(jq 'length' "$FINAL")"
+classify_floor
 kept_count="$(jq 'length' "$FINAL")"
-# Disagreement: findings either pass kept but the other dropped.
-# Equivalent to (defender_count - kept) + (prosecutor_count - kept).
-dropped_by_defender="$((prosecutor_count - kept_count))"
-dropped_by_prosecutor="$((defender_count - kept_count))"
+nit_count="$(jq '[.[] | select(.nit == true)] | length' "$FINAL")"
+dropped_by_defender="$((prosecutor_count - intersection_size))"
+dropped_by_prosecutor="$((defender_count - intersection_size))"
 if [ "$dropped_by_defender" -lt 0 ]; then dropped_by_defender=0; fi
 if [ "$dropped_by_prosecutor" -lt 0 ]; then dropped_by_prosecutor=0; fi
 disagreement_count="$((dropped_by_defender + dropped_by_prosecutor))"
 
-write_metrics adversarial false "$prosecutor_count" "$defender_count" "$kept_count" "$disagreement_count" "$dropped_by_defender" "$dropped_by_prosecutor"
+write_metrics adversarial false "$prosecutor_count" "$defender_count" "$kept_count" "$disagreement_count" "$dropped_by_defender" "$dropped_by_prosecutor" "$nit_count"
 
-echo "intersect-findings: mode=adversarial degraded=false prosecutor=$prosecutor_count defender=$defender_count kept=$kept_count disagreement=$disagreement_count"
+echo "intersect-findings: mode=adversarial degraded=false prosecutor=$prosecutor_count defender=$defender_count kept=$kept_count nits=$nit_count disagreement=$disagreement_count"
 emit_angle_metrics adversarial false || echo "::warning::emit_angle_metrics failed (non-fatal)" >&2

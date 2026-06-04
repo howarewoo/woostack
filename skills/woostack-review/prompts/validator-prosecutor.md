@@ -13,7 +13,7 @@ This pass is one half of an adversarial validation pipeline. Your output is inte
 - **Raw Findings**: /tmp/pr-review/raw_findings.json (Concatenated array from all angles)
 - **Project rules** (optional): /tmp/pr-review/rules.md
 - **Cross-PR memory** (optional): /tmp/pr-review/memory.md — team-curated known/accepted issues.
-- **Per-repo config** (always present): /tmp/pr-review/config.json — read `.severity_floor` only (defaults to `high`).
+- **Per-repo config** (always present): /tmp/pr-review/config.json — the prosecutor no longer reads any severity key; `severity_floor` / `nits` are consumed downstream by `intersect-findings.sh` (Stage 4c).
 
 ## Your Task
 
@@ -39,7 +39,7 @@ printf '[]\n' > "${OUTDIR:-/tmp/pr-review}/findings.prosecutor.json"
    - Use `grep -qF "$quote" /tmp/pr-review/rules.md`.
 4. **Memory Check**: If `/tmp/pr-review/memory.md` exists, DROP any finding it records as known/intentional/accepted/wontfix — even under prosecutor bias. Advisory context only.
 5. **Severity Check**: You MAY downgrade severity / blocking. You MAY NOT upgrade.
-6. **Severity Floor**: Read `jq -r '.severity_floor // "high"' /tmp/pr-review/config.json` (defaults to `high`). Drop findings strictly below it. Apply AFTER the severity check.
+6. **Severity Floor — applied downstream now (do NOT drop by severity here)**: The `severity_floor` filter has moved to `scripts/intersect-findings.sh` (Stage 4c), which turns below-floor validated findings into non-blocking nits (keeping below-floor blocking findings as normal findings, dropping below-floor non-blocking findings only under `review.nits: false`). Keep every validated finding (after any allowed *downgrade* in step 5) so the classifier can see it. Do not read or apply `severity_floor`.
 7. **Comment Shape Check**: Same as Defender — `title` (≤60 chars, no trailing punctuation), `description` (issue only), `fix` (recommended change in prose) all populated. Split overloaded `description` into the three fields when an angle collapsed them.
 8. **`fix_type` Enforcement**: Same size + scope cap as Defender. Downgrade `"suggestion"` → `"prose"` (clearing `suggestion`) when any of these hold:
    - `suggestion` null/empty/whitespace.

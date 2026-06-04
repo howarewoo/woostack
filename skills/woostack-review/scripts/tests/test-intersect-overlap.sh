@@ -51,8 +51,8 @@ assert_eq "$(jq -r '.angles.types.overlap_total' "$M")" "2" "types overlap_total
 assert_eq "$(jq -r '.angles.bugs.overlap_with | keys | length' "$M")" "2" "bugs overlap_with has 2 keys, no self"
 assert_eq "$(jq -r '.angles.bugs.overlap_with | has("bugs")' "$M")" "false" "bugs never overlaps itself"
 
-# schema_version of the per-run doc bumped to 2.
-assert_eq "$(jq -r '.schema_version' "$M")" "2" "per-run metrics schema_version == 2"
+# schema_version of the per-run doc bumped to 3 (nit_count addition).
+assert_eq "$(jq -r '.schema_version' "$M")" "3" "per-run metrics schema_version == 3"
 
 rm -rf "$work"
 finish

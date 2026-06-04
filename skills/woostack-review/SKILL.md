@@ -82,9 +82,13 @@ When a `.woostack/memory/` scope-routed store exists, `prefetch.sh` composes the
 
 `prior-findings.json` (unresolved + resolved threads on the *current* PR) is still produced for incremental mode, but it is used for one thing only: **open** prior threads are an event floor — a non-empty set keeps the new review at minimum `REQUEST_CHANGES`. Resolved threads do not gate the event; a clean incremental pass can `APPROVE`.
 
-### Noise control (`severity_floor`)
+### Noise control (`severity_floor` + nits)
 
-`severity_floor` **defaults to `high`** — by default only high-priority findings surface. Widen it per-repo in `.woostack/config.json` (`review.severity_floor` set to `"low"` or `"medium"`). The validator applies the floor after its own severity check.
+`severity_floor` **defaults to `high`** and is a **blocking/visibility threshold**, not a drop gate. Findings at/above the floor are normal findings; validated findings **below** the floor are surfaced as non-blocking **nits** (`Nit:` title prefix, `· NIT` footer) rather than dropped. A below-floor finding that is `blocking: true` is never demoted — it surfaces as a normal blocking finding (blocking overrides the floor). Nits are event-neutral: a PR whose only findings are nits still gets `APPROVE`, with the nits posted inline.
+
+The floor is applied in one place — `scripts/intersect-findings.sh` (Stage 4c) — after the adversarial intersection, so swarm, CI, and defender-only paths agree. Widen the floor per-repo with `review.severity_floor` (`"low"` / `"medium"`).
+
+Set **`review.nits: false`** to restore the old behavior: below-floor non-blocking findings are dropped entirely. (Below-floor *blocking* findings still surface — the override is a global safety rule independent of this knob.)
 
 ## Knowledge Aggregation
 
@@ -127,6 +131,7 @@ Full schema (every key shown; all optional):
       "skip": ["seo"]
     },
     "severity_floor": "high",
+    "nits": true,
     "ignore": [
       "**/*.generated.ts",
       "migrations/*.sql"
@@ -167,7 +172,8 @@ Full schema (every key shown; all optional):
 
 Key reference (JSON has no comments, so the per-key semantics live here):
 - **`angles.force`** — always run these, even if not auto-detected. **`angles.skip`** — never run these (`bugs`/`security` cannot be skipped).
-- **`severity_floor`** — one of `low` | `medium` | `high`; drops findings below the floor. **Default `high`** — only high-priority findings surface. Set `low`/`medium` for noisier reviews.
+- **`severity_floor`** — one of `low` | `medium` | `high`; a blocking/visibility threshold, **not** a drop gate. **Default `high`**. Findings below the floor surface as non-blocking nits (see `nits`); set `low`/`medium` to treat more findings as normal (at/above-floor). Applied once by `intersect-findings.sh` (Stage 4c).
+- **`nits`** — `true` | `false`; default **`true`**. When `true`, validated findings below `severity_floor` surface as non-blocking nits instead of being dropped. Set `false` to drop them (the pre-reframe behavior). Below-floor `blocking` findings always surface regardless of this knob.
 - **`ignore`** — fnmatch globs; ignored paths skip angle triggers + diff body.
 - **`project_rules`** — fnmatch globs appended to auto-discovered `rules.md`.
 - **`authors_skip`** — PR author logins that short-circuit the entire review. Defaults: `dependabot[bot]`, `renovate[bot]`, `github-actions[bot]`. Set to `[]` to opt out.
@@ -233,7 +239,7 @@ When prefetch resolves a PR number AND finds an open PR, it produces the full ar
 | `raw_findings.json` | `merge-findings.sh` | validator passes | Merged, chunk-collapsed findings |
 | `findings.json` | `intersect-findings.sh` | Stage 5 posting | Final validated set |
 | `validator-metrics.json` | `intersect-findings.sh` | observability | `prosecutor_count`, `defender_count`, `kept_count`, `disagreement_count`, `mode`, `degraded` |
-| `findings.metrics.json` | `intersect-findings.sh` | metrics fold, telemetry | Per-angle signal/noise breakdown. Emitted **only when `review.metrics: true`** in config. Keyed by angle: `raw_count`, `prosecutor_kept`, `defender_kept`, `kept`, `dropped_by_defender`, `dropped_by_prosecutor`, `blocking_count`, `nonblocking_count`, `severity`, `overlap_total`, `overlap_with` (per-other-angle co-occurrence counts on the raw set; schema v2) |
+| `findings.metrics.json` | `intersect-findings.sh` | metrics fold, telemetry | Per-angle signal/noise breakdown. Emitted **only when `review.metrics: true`** in config. Keyed by angle: `raw_count`, `prosecutor_kept`, `defender_kept`, `kept`, `dropped_by_defender`, `dropped_by_prosecutor`, `blocking_count`, `nit_count`, `nonblocking_count` (= `kept − blocking − nit`), `severity`, `overlap_total`, `overlap_with` (per-other-angle co-occurrence counts on the raw set; schema v3) |
 
 **If no PR number resolved (local mode):**
 
@@ -426,7 +432,7 @@ Produces `$OUTDIR/findings.json` — the final validated set — and `$OUTDIR/va
 **If invoked with a PR number** — post a single native batched GitHub Review per the procedure in `prompts/_header.md`:
 
 - Build the STATUS_LINE (`APPROVED` / `APPROVED WITH SUGGESTIONS` / `CHANGES REQUESTED`).
-- Submit one `gh api repos/<repo>/pulls/<PR>/reviews` POST containing all inline comments + the summary + status line. The review `event` (`APPROVE` / `COMMENT` / `REQUEST_CHANGES`) is the native gate — any blocking finding triggers `REQUEST_CHANGES`.
+- Submit one `gh api repos/<repo>/pulls/<PR>/reviews` POST containing all inline comments + the summary + status line. The review `event` (`APPROVE` / `COMMENT` / `REQUEST_CHANGES`) is the native gate: any blocking finding (or open prior thread) triggers `REQUEST_CHANGES`; a non-nit non-blocking finding triggers `COMMENT`; nits are event-neutral, so a PR whose only findings are nits gets `APPROVE` with the nits posted inline.
 - DO NOT modify the PR title or body. DO NOT mutate PR labels.
 
 **If invoked locally (no PR#)** — print the validated findings to the terminal grouped by severity, then stop. If `$OUTDIR/swarm-metrics.json` exists, include a one-line swarm summary. Mention bounded mode and `max_concurrency`. If `.degraded == true`, name the `still_invalid` angles or `(angle, chunk)` items and state that those artifacts contributed `[]` after one retry. Do not touch any remote.
