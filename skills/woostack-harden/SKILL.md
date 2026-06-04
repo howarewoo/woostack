@@ -1,15 +1,16 @@
 ---
 name: woostack-harden
-description: Use to harden a plan, spec, or design by relentless interview — walk every branch of the decision tree, resolve each open question one at a time with a recommended answer, and amend the artifact in place until no new questions remain. This is the harden phase of the woostack build loop (woostack-build step 3); also usable standalone to stress-test or "grill me" on a design before committing to it.
+description: Use to harden a plan, spec, or design by relentless interview — walk every branch of the decision tree, resolve each open question one at a time with a recommended answer, and amend the artifact in place until no new questions remain. This is the harden phase of the woostack build loop (woostack-build steps 3 and 6 — first the spec, then the plan); also usable standalone to stress-test or "grill me" on a design before committing to it.
 ---
 
 # woostack-harden
 
 Harden a plan, spec, or design by interviewing the user relentlessly until you reach shared
 understanding and the artifact stops producing new questions. This is woostack's own hardening
-phase — [`woostack-build`](../woostack-build/SKILL.md) step 3. It keeps the discipline that
-makes grilling worth doing, **amends the target artifact in place** as answers land, and
-**stops when no new questions remain**, handing back to its caller. It owns no approval gate.
+phase — [`woostack-build`](../woostack-build/SKILL.md) steps 3 (the spec) and 6 (the plan). It
+keeps the discipline that makes grilling worth doing, **amends the target artifact in place** as
+answers land, and **stops when no new questions remain**, handing back to its caller. It owns no
+approval gate.
 
 ## The grill loop
 
@@ -38,9 +39,12 @@ nothing.
 Stop when a full pass over the decision tree produces **no new questions** — the artifact is
 hardened. Then hand back to the caller and name the next step:
 
-- Inside `woostack-build`: hand back to its **step 3**, which owns the spec-approval HARD GATE
-  (present the written spec, wait for explicit user approval before planning). Do not run that
-  gate yourself.
+- Inside `woostack-build`, **spec harden (step 3)**: hand back to step 3, which owns the
+  spec-approval HARD GATE (present the written spec, wait for explicit user approval before
+  planning). Do not run that gate yourself.
+- Inside `woostack-build`, **plan harden (step 6)**: hand back to step 7 (commit the spec and
+  plan as their own PR). There is **no plan-approval gate** — hand straight back once the plan
+  stops producing questions.
 - Standalone: tell the user the artifact is hardened and ready to take to approval, and stop.
 
 ## Gate boundary

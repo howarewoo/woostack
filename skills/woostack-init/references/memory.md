@@ -137,8 +137,8 @@ The recall procedure is the algorithm a skill follows to load only the memory no
 ## 7. Distillation (write path)
 
 Scoped notes are created by two write paths: **distillation** and accept-by-design
-review memory. Distillation runs at the end of a `woostack-build` cycle; durable
-learnings from the spec/plan/implementation are written as `memory/` notes with:
+review memory. Distillation runs through `woostack-execute` after each implemented increment;
+durable learnings from the spec/plan/implementation are written as `memory/` notes with:
 
 - `type` — `pattern | decision | gotcha | convention`.
 - `scope` — the narrowest glob covering the feature's touched files.

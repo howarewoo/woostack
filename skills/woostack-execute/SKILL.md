@@ -1,13 +1,13 @@
 ---
 name: woostack-execute
-description: Use to execute an approved woostack plan as a sequence of PR-sized, stacked increments — implement each increment with TDD, tick the plan's checkboxes in place, commit via woostack-commit on its own Graphite branch, review it with woostack-review --fast, distill durable learnings, then continue. This is the execute phase of the woostack build loop (woostack-build step 6); also usable standalone via /woostack-execute <plan-path>. One plan per spec, multiple PRs per plan. Never merges.
+description: Use to execute an approved woostack plan as a sequence of PR-sized, stacked increments — implement each increment with TDD, tick the plan's checkboxes in place, commit via woostack-commit on its own Graphite branch, review it with woostack-review --fast, distill durable learnings, then continue. This is the execute phase of the woostack build loop (woostack-build step 8); also usable standalone via /woostack-execute <plan-path>. One plan per spec, multiple PRs per plan. Never merges.
 ---
 
 # woostack-execute
 
 Execute an approved plan by driving it to implementation as a sequence of PR-sized, stacked
 increments. This is woostack's own execution phase — [`woostack-build`](../woostack-build/SKILL.md)
-step 6. It keeps the discipline that makes plan execution reliable (load the plan, review it
+step 8. It keeps the discipline that makes plan execution reliable (load the plan, review it
 critically, follow steps exactly, run verifications, stop when blocked) and adds the woostack PR
 cadence: **one plan per spec, multiple stacked PRs per plan**, each increment committed,
 reviewed, and distilled before the next. It never merges and owns no approval gate.
@@ -19,7 +19,9 @@ reviewed, and distilled before the next. It never merges and owns no approval ga
 - `/woostack-execute` (no argument) — do **not** guess "the current plan." Ask which plan to
   execute (optionally list `.woostack/plans/` candidates) and stop until one is named.
 
-When `woostack-build` reaches step 6 it invokes this skill with the plan path it wrote in step 4.
+When `woostack-build` reaches step 8 it invokes this skill with the plan path it wrote in step 4.
+By then build has already committed the spec and plan as their own PR (build step 7); that
+docs-only PR is the base of the stack, and the increments below stack on top of it.
 
 ## Load and review the plan
 
@@ -29,8 +31,9 @@ When `woostack-build` reaches step 6 it invokes this skill with the plan path it
 3. If there are concerns: raise them with the user before starting.
 4. If none: proceed.
 
-Never start implementation on a protected branch (`main`/`staging`/`beta`/`alpha`);
-`woostack-commit` enforces this when it creates each increment's branch.
+Never start implementation on a protected branch (`main`/`staging`/`beta`/`alpha`). Before
+editing an increment, create or verify the fresh Graphite-stacked branch for that increment;
+do not rely on commit-time branch creation after work has already changed the tree.
 
 ## PR-sized increments
 
@@ -46,21 +49,24 @@ Run **one increment per cycle**, in order.
 
 For each increment:
 
-1. **Implement** its tasks with TDD. Where the host supports subagents, prefer
+1. **Start its branch before editing.** Verify the current branch is not protected, then create
+   or checkout the fresh Graphite-stacked feature branch for this increment (`gt create`) so
+   all implementation work lands on the branch that will become that increment's PR.
+2. **Implement** its tasks with TDD. Where the host supports subagents, prefer
    `superpowers:subagent-driven-development`; otherwise `superpowers:test-driven-development`
    (recommended enhancements, not hard dependencies — follow the principle if either is absent).
    Follow each plan step exactly and run the verifications the plan specifies.
-2. **Tick the plan's checkboxes in place.** Edit the markdown plan, `[ ]` → `[x]`, as each step
+3. **Tick the plan's checkboxes in place.** Edit the markdown plan, `[ ]` → `[x]`, as each step
    or task completes, so the plan file is the live progress record.
-3. **Commit** via [`woostack-commit`](../woostack-commit/SKILL.md) on a fresh Graphite-stacked
-   feature branch (`gt create`) — one branch + PR per increment. This is the "multiple PRs per
-   plan" shape.
-4. **Review** the resulting PR with [`woostack-review`](../woostack-review/SKILL.md)` --fast`.
-5. **Gate on the review:** if it returns REQUEST_CHANGES (a blocking finding), **stop** and
+4. **Commit** via [`woostack-commit`](../woostack-commit/SKILL.md) on the increment's
+   Graphite-stacked feature branch — one branch + PR per increment. This is the "multiple PRs
+   per plan" shape.
+5. **Review** the resulting PR with [`woostack-review`](../woostack-review/SKILL.md)` --fast`.
+6. **Gate on the review:** if it returns REQUEST_CHANGES (a blocking finding), **stop** and
    surface the findings — the user decides (typically via
    [`woostack-address-comments`](../woostack-address-comments/SKILL.md)). If it is clean or
    non-blocking, continue.
-6. **Distill** the increment's durable, reusable learnings into `.woostack/memory/` per the
+7. **Distill** the increment's durable, reusable learnings into `.woostack/memory/` per the
    [memory contract](../woostack-init/references/memory.md): one fact per file, `type` one of
    `pattern|decision|gotcha|convention`, the narrowest `scope` glob covering the touched files,
    `source` the spec/plan path. Apply the **reject-by-default distillation gate**
@@ -102,6 +108,8 @@ approval gate. The skill never merges and never auto-addresses review findings.
 - **One increment per cycle.** Don't let a cycle balloon past a reviewable PR.
 - **Multiple stacked PRs per plan.** Each increment is its own `gt`-stacked branch + PR via
   `woostack-commit`.
+- **Branch before editing.** Create or verify the increment's Graphite branch before changing
+  implementation files.
 - **Tick checkboxes in place.** The plan file is the live progress record.
 - **Commit + review every increment.** `woostack-commit`, then `woostack-review --fast`; pause on
   REQUEST_CHANGES.
