@@ -13,7 +13,7 @@ This is a published collection of skills, not an application codebase. It packag
 decisions for building new web, mobile, and API projects so agents can install it with
 `npx skills add howarewoo/woostack`.
 
-The eight shipped skills are:
+The public command/adoption surface has eight skills:
 
 - [`using-woostack`](skills/using-woostack/SKILL.md)
 - [`woostack-init`](skills/woostack-init/SKILL.md)
@@ -24,11 +24,11 @@ The eight shipped skills are:
 - [`woostack-address-comments`](skills/woostack-address-comments/SKILL.md)
 - [`woostack-visualize`](skills/woostack-visualize/SKILL.md)
 
-`woostack-build` delegates its ideate phase to a ninth, internal sub-skill,
-[`woostack-ideate`](skills/woostack-ideate/SKILL.md). It is a bundled building block,
-not a `/woostack-*` command: it has no routing row and is absent from the eight-skill command
-surface above. Like [`action.yml`](action.yml), it is a shipped asset — do not delete it as a
-stray.
+The collection also installs a ninth, internal sub-skill:
+[`woostack-ideate`](skills/woostack-ideate/SKILL.md). `woostack-build` delegates its ideate
+phase to it. It is a bundled building block, not a `/woostack-*` command: it has no routing row
+and is absent from the eight-skill command surface above. Like [`action.yml`](action.yml), it is
+a shipped asset — do not delete it as a stray.
 
 There is no application source code, app lockfile, build, or CI for this repo's own
 push/PR events. `skills-lock.json` is the dev-skill manifest and is currently empty.
@@ -70,8 +70,8 @@ directory, not in this repo.
   incompatibility forces an exact version.
 - Keep `SKILL.md` descriptions accurate and concise. The description drives discovery; the
   workflow belongs in referenced docs.
-- Do not move or rename any of the nine `SKILL.md` files (the eight shipped skills plus the
-  internal `woostack-ideate`).
+- Do not move or rename any of the nine `SKILL.md` files (the eight public command/adoption
+  skills plus the internal `woostack-ideate`).
 - Do not rename files under
   [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/) without
   updating every cross-link and the bootstrap skill table.

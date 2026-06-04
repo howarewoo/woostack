@@ -8,7 +8,7 @@
 
 **Tech Stack:** Markdown skill files only. No code, no app build, no CI for this repo.
 
-**Out of scope (explicit):** Do NOT touch `superpowers:writing-plans` / `superpowers:executing-plans` wiring. Do NOT add a `using-woostack` routing row or grow the "eight shipped skills" command surface. Do NOT port the superpowers browser companion. Do NOT move/rename any existing `SKILL.md`. Do NOT add app code, lockfiles, or CI.
+**Out of scope (explicit):** Do NOT touch `superpowers:writing-plans` / `superpowers:executing-plans` wiring. Do NOT add a `using-woostack` routing row or grow the eight-skill public command/adoption surface. Do NOT port the superpowers browser companion. Do NOT move/rename any existing `SKILL.md`. Do NOT add app code, lockfiles, or CI.
 
 ---
 
@@ -16,7 +16,7 @@
 
 - **Create** `skills/woostack-ideate/SKILL.md` — scoped discovery frontmatter, HARD GATE, process (explore → visualize-on-demand → clarify → approaches → present design), pure-design terminal state, hard constraints.
 - **Modify** `skills/woostack-build/SKILL.md` — frontmatter `description`, Overview, dependency preflight, step 1.
-- **Modify** `AGENTS.md` — internal-sub-skill note after the skills list; Quick file map entry; protect it from deletion (action.yml-style); keep "eight shipped skills".
+- **Modify** `AGENTS.md` — internal-sub-skill note after the public skill list; Quick file map entry; protect it from deletion (action.yml-style); keep the public command/adoption surface at eight skills.
 - **Modify** `README.md` — build-loop prose names `woostack-ideate` for the ideate phase (superpowers for plans/execution). Install command list stays eight.
 - **Modify** `CONTRIBUTING.md` — add a "where to edit the ideate phase" row.
 
@@ -46,7 +46,7 @@
 
 **Files:** Modify `AGENTS.md`
 
-- [ ] **Step 1: Sub-skill note.** After the eight-skill list, add a sentence: woostack-build delegates its ideate phase to the bundled internal `woostack-ideate` sub-skill — a building block, not a ninth `/woostack-*` command. Keep "eight shipped skills" as the command surface.
+- [ ] **Step 1: Sub-skill note.** After the eight-skill public surface list, add a sentence: woostack-build delegates its ideate phase to the bundled internal `woostack-ideate` sub-skill — a building block, not a ninth `/woostack-*` command. Keep the public command/adoption surface at eight skills.
 - [ ] **Step 2: Protect from deletion.** In the constraints/notes, treat `skills/woostack-ideate/SKILL.md` like `action.yml`: a shipped internal asset, not a stray to be deleted.
 - [ ] **Step 3: Quick file map.** Add an entry pointing to `skills/woostack-ideate/SKILL.md` (ideate phase engine for the build loop).
 
@@ -54,7 +54,7 @@
 
 **Files:** Modify `README.md`, `CONTRIBUTING.md`
 
-- [ ] **Step 1: README build-loop prose.** Change "sequences proven sub-skills (superpowers brainstorming/writing-plans/executing-plans + grill-me)" to credit `woostack-ideate` for the ideate phase and superpowers for writing-plans/executing-plans. Include `approve spec` between `grill` and `plan`. Leave the Install command list at eight.
+- [ ] **Step 1: README build-loop prose.** Change "sequences proven sub-skills (superpowers brainstorming/writing-plans/executing-plans + grill-me)" to credit `woostack-ideate` for the ideate phase and superpowers for writing-plans/executing-plans. Include `approve spec` between `grill` and `plan`. Make the Install section distinguish the eight public command/adoption skills from the installed internal sub-skill.
 - [ ] **Step 2: CONTRIBUTING row.** Add a table row: "Change the ideate phase → `skills/woostack-ideate/SKILL.md`" near the existing build-loop row.
 - [ ] **Step 3: Bootstrap development reference.** Update `skills/woostack-bootstrap/references/development.md` so the shipped loop summary says `ideate → markdown spec → grill → approve spec → plan → execute`.
 
@@ -63,5 +63,5 @@
 - [ ] **Step 1: Grep.** No `superpowers:brainstorming` / "superpowers brainstorming" reference remains in shipped docs (`AGENTS.md`, `README.md`, `CONTRIBUTING.md`, `skills/**/SKILL.md`). `.woostack/` history files left as-is.
 - [ ] **Step 2: Frontmatter + gate.** New `SKILL.md` has valid `name`/`description` and the HARD GATE block.
 - [ ] **Step 3: Cross-links.** woostack-build ↔ woostack-ideate links resolve; woostack-visualize pointer resolves; AGENTS file-map link resolves.
-- [ ] **Step 4: Count.** `AGENTS.md` still says "eight shipped skills" and the list has eight entries.
+- [ ] **Step 4: Count.** `AGENTS.md` still presents an eight-skill public command/adoption surface, and documents `woostack-ideate` as an installed internal sub-skill.
 - [ ] **Step 5: Build-flow summaries.** Shipped summaries (`README.md`, `CONTRIBUTING.md`, `skills/woostack-bootstrap/references/development.md`, and `skills/woostack-build/SKILL.md`) all include the required `approve spec` gate before planning.

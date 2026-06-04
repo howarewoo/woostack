@@ -26,7 +26,7 @@ Templates rot. Dependencies drift, breaking changes pile up, and every new proje
 pnpx skills add howarewoo/woostack
 ```
 
-This installs the woostack **collection** (skills: using-woostack, woostack-init, woostack-bootstrap, woostack-build, woostack-commit, woostack-review, woostack-address-comments, woostack-visualize) into your agent's skill directory and records it in `skills-lock.json`. Works in any agent that respects the `skills` convention: Claude Code, Cursor, Codex, Aider, and others.
+This installs the woostack **collection** into your agent's skill directory and records it in `skills-lock.json`. The public command/adoption surface is eight skills: using-woostack, woostack-init, woostack-bootstrap, woostack-build, woostack-commit, woostack-review, woostack-address-comments, and woostack-visualize. The collection also installs `woostack-ideate`, an internal sub-skill used by `woostack-build`; it is not a `/woostack-*` command. Works in any agent that respects the `skills` convention: Claude Code, Cursor, Codex, Aider, and others.
 
 > **pnpm is the recommended package manager.** Commands in this repo use `pnpx` (and `pnpm`) over `npx` / `npm`. If you only have npm, `npx skills add howarewoo/woostack` works too, but woostack-bootstrapped projects use a pnpm catalog, so pnpm is the path of least friction.
 
