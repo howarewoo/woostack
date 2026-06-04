@@ -20,7 +20,7 @@ PER_RUN="$OUTDIR/findings.metrics.json"
 ROOT="${GITHUB_WORKSPACE:-$(pwd)}"
 ROLLING="$ROOT/.woostack/metrics.json"
 GITIGNORE="$ROOT/.gitignore"
-SCHEMA_VERSION=2
+SCHEMA_VERSION=3
 
 # Gate: metrics opt-in (default off).
 metrics_enabled="false"
@@ -98,6 +98,7 @@ for angle, rec in (run.get("angles") or {}).items():
         "dropped_by_defender_total": 0,
         "dropped_by_prosecutor_total": 0,
         "blocking_total": 0,
+        "nit_total": 0,
         "severity_total": {s: 0 for s in SEVS},
         "overlap_total": 0,
         "overlap_with": {},
@@ -108,6 +109,8 @@ for angle, rec in (run.get("angles") or {}).items():
     slot["dropped_by_defender_total"]   += num(rec.get("dropped_by_defender"))
     slot["dropped_by_prosecutor_total"] += num(rec.get("dropped_by_prosecutor"))
     slot["blocking_total"] += num(rec.get("blocking_count"))
+    slot.setdefault("nit_total", 0)
+    slot["nit_total"] += num(rec.get("nit_count"))
     sev = rec.get("severity") or {}
     for s in SEVS:
         slot["severity_total"][s] += num(sev.get(s))

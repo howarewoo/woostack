@@ -45,7 +45,7 @@ Tests run individually: `bash skills/woostack-review/scripts/tests/<file>.sh` (n
 - Modify: `skills/woostack-review/scripts/load-config.sh:85-89` (whitelist), after `:223` (validation), `:49-52` (header doc)
 - Test: `skills/woostack-review/scripts/tests/test-load-config-nits.sh` (create)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `skills/woostack-review/scripts/tests/test-load-config-nits.sh`:
 
@@ -91,12 +91,12 @@ rm -rf "$work"
 finish
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bash skills/woostack-review/scripts/tests/test-load-config-nits.sh`
 Expected: FAIL — `nits:false emitted` assertion fails (loader currently errors on the unknown `nits` key, so `$OUTDIR/config.json` has no `.nits`), or the loud-error case fails because the key is unknown rather than type-checked.
 
-- [ ] **Step 3: Add `nits` to the review-key whitelist**
+- [x] **Step 3: Add `nits` to the review-key whitelist**
 
 In `skills/woostack-review/scripts/load-config.sh`, change the `REVIEW_KEYS` set (lines 85-89):
 
@@ -108,7 +108,7 @@ REVIEW_KEYS = {
 }
 ```
 
-- [ ] **Step 4: Add the boolean validation block**
+- [x] **Step 4: Add the boolean validation block**
 
 In the same file, immediately after the `metrics` validation block (after line 223, which ends `        out["metrics"] = val`), add:
 
@@ -120,7 +120,7 @@ if "nits" in raw:
     out["nits"] = val
 ```
 
-- [ ] **Step 5: Document the key in the header comment**
+- [x] **Step 5: Document the key in the header comment**
 
 In the same file, in the key-list comment block, add a line after the `metrics` entry (the block around lines 48-53):
 
@@ -131,12 +131,12 @@ In the same file, in the key-list comment block, add a line after the `metrics` 
 #                                   findings still surface regardless.)
 ```
 
-- [ ] **Step 6: Run test to verify it passes**
+- [x] **Step 6: Run test to verify it passes**
 
 Run: `bash skills/woostack-review/scripts/tests/test-load-config-nits.sh`
 Expected: PASS — `3 passed, 0 failed` (or more).
 
-- [ ] **Step 7: Stage**
+- [x] **Step 7: Stage**
 
 ```bash
 git add skills/woostack-review/scripts/load-config.sh skills/woostack-review/scripts/tests/test-load-config-nits.sh
@@ -150,7 +150,7 @@ git add skills/woostack-review/scripts/load-config.sh skills/woostack-review/scr
 - Modify: `skills/woostack-review/scripts/intersect-findings.sh` (config resolution ~`:79`, `write_metrics` `:106-126`, `emit_angle_metrics` python `:221-247`, new `classify_floor` fn, defender-only path `:265-267`, adversarial tail `:511-523`)
 - Test: `skills/woostack-review/scripts/tests/test-intersect-nits.sh` (create); `test-intersect-overlap.sh:55` (update)
 
-- [ ] **Step 1: Write the failing classifier test**
+- [x] **Step 1: Write the failing classifier test**
 
 Create `skills/woostack-review/scripts/tests/test-intersect-nits.sh`:
 
@@ -226,12 +226,12 @@ rm -rf "$work"
 finish
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bash skills/woostack-review/scripts/tests/test-intersect-nits.sh`
 Expected: FAIL — no `nit` field on findings, no `nit_count` in `validator-metrics.json`, `schema_version` is 2.
 
-- [ ] **Step 3: Resolve `nits` + `severity_floor` near the other config reads**
+- [x] **Step 3: Resolve `nits` + `severity_floor` near the other config reads**
 
 In `skills/woostack-review/scripts/intersect-findings.sh`, after the `metrics_enabled` resolution block (after line 79, before `RAW="$OUTDIR/raw_findings.json"` at line 80), add:
 
@@ -251,7 +251,7 @@ severity_floor="$(jq -r '.severity_floor // "high"' "$CONFIG" 2>/dev/null | tr '
 case "$severity_floor" in low|medium|high) ;; *) severity_floor="high" ;; esac
 ```
 
-- [ ] **Step 4: Add the `classify_floor` function**
+- [x] **Step 4: Add the `classify_floor` function**
 
 In the same file, immediately after the `emit_angle_metrics()` function definition closes (after line 253, the `}` before the `if [ "$disable_adversarial" ...` block), add:
 
@@ -304,7 +304,7 @@ PY
 }
 ```
 
-- [ ] **Step 5: Add `nit_count` to `write_metrics`**
+- [x] **Step 5: Add `nit_count` to `write_metrics`**
 
 In the same file, change the `write_metrics()` function (lines 106-126) to take a 9th arg and emit it:
 
@@ -334,7 +334,7 @@ write_metrics() {
 }
 ```
 
-- [ ] **Step 6: Classify in the defender-only / `disable_adversarial` path**
+- [x] **Step 6: Classify in the defender-only / `disable_adversarial` path**
 
 In the same file, change the defender-only block (lines 265-268). Replace:
 
@@ -357,7 +357,7 @@ with:
   emit_angle_metrics "$mode" "$degraded" || echo "::warning::emit_angle_metrics failed (non-fatal)" >&2
 ```
 
-- [ ] **Step 7: Classify in the adversarial path + pre-floor disagreement**
+- [x] **Step 7: Classify in the adversarial path + pre-floor disagreement**
 
 In the same file, change the adversarial tail (lines 511-523). Replace:
 
@@ -401,7 +401,7 @@ echo "intersect-findings: mode=adversarial degraded=false prosecutor=$prosecutor
 emit_angle_metrics adversarial false || echo "::warning::emit_angle_metrics failed (non-fatal)" >&2
 ```
 
-- [ ] **Step 8: Add `nit_count` + redefine `nonblocking_count` + bump per-run schema to 3**
+- [x] **Step 8: Add `nit_count` + redefine `nonblocking_count` + bump per-run schema to 3**
 
 In the same file, in the `emit_angle_metrics` Python heredoc: change the schema literal (line 221) from `2` to `3`:
 
@@ -425,12 +425,12 @@ Then change the per-angle `rec` (lines 228-236) to compute and include `nit_coun
     }
 ```
 
-- [ ] **Step 9: Run the new classifier test to verify it passes**
+- [x] **Step 9: Run the new classifier test to verify it passes**
 
 Run: `bash skills/woostack-review/scripts/tests/test-intersect-nits.sh`
 Expected: PASS — all assertions pass.
 
-- [ ] **Step 10: Update the overlap test's schema assertion**
+- [x] **Step 10: Update the overlap test's schema assertion**
 
 In `skills/woostack-review/scripts/tests/test-intersect-overlap.sh`, line 54-55, change the comment + value from `2` to `3`:
 
@@ -439,12 +439,12 @@ In `skills/woostack-review/scripts/tests/test-intersect-overlap.sh`, line 54-55,
 assert_eq "$(jq -r '.schema_version' "$M")" "3" "per-run metrics schema_version == 3"
 ```
 
-- [ ] **Step 11: Run the overlap test to verify it still passes**
+- [x] **Step 11: Run the overlap test to verify it still passes**
 
 Run: `bash skills/woostack-review/scripts/tests/test-intersect-overlap.sh`
 Expected: PASS — overlap metrics unaffected (computed from `raw_findings.json`); schema is now 3.
 
-- [ ] **Step 12: Stage**
+- [x] **Step 12: Stage**
 
 ```bash
 git add skills/woostack-review/scripts/intersect-findings.sh \
@@ -460,7 +460,7 @@ git add skills/woostack-review/scripts/intersect-findings.sh \
 - Modify: `skills/woostack-review/scripts/metrics-fold.sh:23` (version), slot template `:94-104`, fold body `:106-120`
 - Test: `skills/woostack-review/scripts/tests/test-metrics-fold-overlap.sh` (update)
 
-- [ ] **Step 1: Update the fold test to expect v3 + `nit_total`**
+- [x] **Step 1: Update the fold test to expect v3 + `nit_total`**
 
 In `skills/woostack-review/scripts/tests/test-metrics-fold-overlap.sh`:
 
@@ -523,12 +523,12 @@ Add a `nit_total` accumulation assertion to the second-run block (after line 53)
 assert_eq "$(jq -r '.angles.bugs.nit_total' "$ROLLING")" "2" "bugs nit_total summed across runs"
 ```
 
-- [ ] **Step 2: Run the fold test to verify it fails**
+- [x] **Step 2: Run the fold test to verify it fails**
 
 Run: `bash skills/woostack-review/scripts/tests/test-metrics-fold-overlap.sh`
 Expected: FAIL — aggregate reseeds at 2 (not 3); `nit_total` absent.
 
-- [ ] **Step 3: Bump the aggregate schema version**
+- [x] **Step 3: Bump the aggregate schema version**
 
 In `skills/woostack-review/scripts/metrics-fold.sh`, line 23:
 
@@ -536,7 +536,7 @@ In `skills/woostack-review/scripts/metrics-fold.sh`, line 23:
 SCHEMA_VERSION=3
 ```
 
-- [ ] **Step 4: Add `nit_total` to the slot template**
+- [x] **Step 4: Add `nit_total` to the slot template**
 
 In the same file, in the `slot = agg["angles"].setdefault(...)` template (lines 94-104), add `"nit_total": 0,` after `"blocking_total": 0,`:
 
@@ -555,7 +555,7 @@ In the same file, in the `slot = agg["angles"].setdefault(...)` template (lines 
     })
 ```
 
-- [ ] **Step 5: Fold `nit_count` into `nit_total`**
+- [x] **Step 5: Fold `nit_count` into `nit_total`**
 
 In the same file, after the `blocking_total` fold line (line 110, `slot["blocking_total"] += num(rec.get("blocking_count"))`), add a defensive default + fold:
 
@@ -564,12 +564,12 @@ In the same file, after the `blocking_total` fold line (line 110, `slot["blockin
     slot["nit_total"] += num(rec.get("nit_count"))
 ```
 
-- [ ] **Step 6: Run the fold test to verify it passes**
+- [x] **Step 6: Run the fold test to verify it passes**
 
 Run: `bash skills/woostack-review/scripts/tests/test-metrics-fold-overlap.sh`
 Expected: PASS.
 
-- [ ] **Step 7: Stage**
+- [x] **Step 7: Stage**
 
 ```bash
 git add skills/woostack-review/scripts/metrics-fold.sh \
@@ -585,7 +585,7 @@ git add skills/woostack-review/scripts/metrics-fold.sh \
 
 This file is a Markdown contract with an embedded Python payload builder; it is exercised live during posting, so verification is a manual fixture run (Step 8).
 
-- [ ] **Step 1: Add the `nits` row to the per-repo Config table**
+- [x] **Step 1: Add the `nits` row to the per-repo Config table**
 
 In the config-key table (lines 81-91), add a row after the `severity_floor` row, and correct the `severity_floor` row's stage (the floor is now consumed by the classifier at Stage 4c, not the validator):
 
@@ -594,7 +594,7 @@ In the config-key table (lines 81-91), add a row after the `severity_floor` row,
 | `nits` | `intersect-findings.sh` (floor classifier) | Stage 4c — default `true`; `false` drops below-floor non-blocking findings (old behavior) |
 ```
 
-- [ ] **Step 2: Make the Output Contract event line nit-aware**
+- [x] **Step 2: Make the Output Contract event line nit-aware**
 
 In the "Output Contract" section (line 121), replace:
 
@@ -608,7 +608,7 @@ with:
 Every run MUST end with one batched GitHub Review submitted via `gh api repos/<repo>/pulls/<PR>/reviews` containing all inline comments, the summary, and the `STATUS_LINE` in the **review body**. The review `event` is the native blocking gate: `REQUEST_CHANGES` (≥1 blocking finding or open prior thread), `COMMENT` (≥1 non-nit non-blocking finding), or `APPROVE` (no findings, or only nits — nits post inline but never withhold approval). PR labels MUST NOT be added, removed, or otherwise mutated.
 ```
 
-- [ ] **Step 3: Update the STATUS_LINE shapes**
+- [x] **Step 3: Update the STATUS_LINE shapes**
 
 In the "STATUS_LINE (exact format)" section (lines 125-129), replace the list with:
 
@@ -621,7 +621,7 @@ Counts: `BLOCKING_COUNT` (blocking findings), `NONBLOCKING_COUNT` (non-nit, non-
 - All zero → `**Status: APPROVED** — No validated findings.`
 ```
 
-- [ ] **Step 4: Make the event computation treat nits as event-neutral**
+- [x] **Step 4: Make the event computation treat nits as event-neutral**
 
 In the payload-builder Python, replace the event block (lines 200-207):
 
@@ -653,7 +653,7 @@ else:
     event = "APPROVE"
 ```
 
-- [ ] **Step 5: Render the `Nit:` prefix**
+- [x] **Step 5: Render the `Nit:` prefix**
 
 In the same Python, in the per-finding loop, after the field reads (after line 234, `blocking = bool(f.get("blocking", False))`), add the nit read + title prefix. Replace:
 
@@ -685,7 +685,7 @@ with:
     body = f"**{title}**\n\n{description}"
 ```
 
-- [ ] **Step 6: Render the `NIT` footer tag**
+- [x] **Step 6: Render the `NIT` footer tag**
 
 In the same Python, replace the footer severity segment (lines 259-261):
 
@@ -708,7 +708,7 @@ with:
         footer_parts.append(f"<strong>{sev_tag}</strong>")
 ```
 
-- [ ] **Step 7: Add `nit` to the Findings Schema + Inline Comment Format docs**
+- [x] **Step 7: Add `nit` to the Findings Schema + Inline Comment Format docs**
 
 In the Findings Schema JSON example (lines 318-332), add the `nit` field after `"blocking": true,`:
 
@@ -723,7 +723,7 @@ Then add a sentence to the schema prose (after the `fix_type` discriminator sect
 `nit` is a boolean set by `intersect-findings.sh` (the floor classifier), not by angle agents: `true` marks a validated below-floor non-blocking finding. The body builder renders a `nit: true` finding with a `Nit:` title prefix and a `· NIT` footer tag, and the event computation treats it as event-neutral (a PR whose only findings are nits still `APPROVE`s). A nit is always non-blocking; a below-floor finding that is `blocking: true` stays a normal finding (`nit: false`).
 ```
 
-- [ ] **Step 8: Manual verification of the payload builder**
+- [x] **Step 8: Manual verification of the payload builder**
 
 Extract the builder logic to a temp harness and confirm a nit renders correctly and yields `APPROVE`. Run:
 
@@ -770,7 +770,7 @@ title = Nit: Prefer const over let
 footer = LOW · NIT
 ```
 
-- [ ] **Step 9: Stage**
+- [x] **Step 9: Stage**
 
 ```bash
 git add skills/woostack-review/prompts/_header.md
@@ -784,7 +784,7 @@ git add skills/woostack-review/prompts/_header.md
 - Modify: `skills/woostack-review/prompts/validator.md` (input note `:16`, step 6 `:47`)
 - Modify: `skills/woostack-review/prompts/validator-prosecutor.md` (input note `:16`, step 6 `:42`)
 
-- [ ] **Step 1: Defender pass — replace the floor-drop step**
+- [x] **Step 1: Defender pass — replace the floor-drop step**
 
 In `skills/woostack-review/prompts/validator.md`, replace step 6 (line 47, the `**Severity Floor (...)**` item) with:
 
@@ -792,7 +792,7 @@ In `skills/woostack-review/prompts/validator.md`, replace step 6 (line 47, the `
 6. **Severity Floor — applied downstream now (do NOT drop by severity here)**: The `severity_floor` filter has moved to `scripts/intersect-findings.sh` (Stage 4c). It reframes the floor from a drop gate into a blocking/visibility threshold: below-floor validated findings become non-blocking **nits**, below-floor **blocking** findings still surface as normal findings, and below-floor non-blocking findings are dropped only when `review.nits: false`. Your job is to keep every validated finding (after any allowed *downgrade* in step 5) so the downstream classifier can see it. Do not read or apply `severity_floor`.
 ```
 
-- [ ] **Step 2: Defender pass — correct the config input note**
+- [x] **Step 2: Defender pass — correct the config input note**
 
 In the same file, change the config-input bullet (line 16). Replace:
 
@@ -806,7 +806,7 @@ with:
 - **Per-repo config** (always present): /tmp/pr-review/config.json — parsed `.woostack/config.json`. The validator no longer reads any severity key from it; `severity_floor` and `nits` are consumed downstream by `intersect-findings.sh` (Stage 4c). Other keys are consumed upstream.
 ```
 
-- [ ] **Step 3: Prosecutor pass — replace the floor-drop step**
+- [x] **Step 3: Prosecutor pass — replace the floor-drop step**
 
 In `skills/woostack-review/prompts/validator-prosecutor.md`, replace step 6 (line 42, `**Severity Floor**: Read ...`) with:
 
@@ -814,7 +814,7 @@ In `skills/woostack-review/prompts/validator-prosecutor.md`, replace step 6 (lin
 6. **Severity Floor — applied downstream now (do NOT drop by severity here)**: The `severity_floor` filter has moved to `scripts/intersect-findings.sh` (Stage 4c), which turns below-floor validated findings into non-blocking nits (keeping below-floor blocking findings as normal findings, dropping below-floor non-blocking findings only under `review.nits: false`). Keep every validated finding (after any allowed *downgrade* in step 5) so the classifier can see it. Do not read or apply `severity_floor`.
 ```
 
-- [ ] **Step 4: Prosecutor pass — correct the config input note**
+- [x] **Step 4: Prosecutor pass — correct the config input note**
 
 In the same file, change the config-input bullet (line 16). Replace:
 
@@ -828,12 +828,12 @@ with:
 - **Per-repo config** (always present): /tmp/pr-review/config.json — the prosecutor no longer reads any severity key; `severity_floor` / `nits` are consumed downstream by `intersect-findings.sh` (Stage 4c).
 ```
 
-- [ ] **Step 5: Verify no stray floor-drop instruction remains**
+- [x] **Step 5: Verify no stray floor-drop instruction remains**
 
 Run: `grep -nE "Drop findings strictly below|severity_floor // \"high\"" skills/woostack-review/prompts/validator.md skills/woostack-review/prompts/validator-prosecutor.md`
 Expected: no matches (the drop instructions are gone).
 
-- [ ] **Step 6: Stage**
+- [x] **Step 6: Stage**
 
 ```bash
 git add skills/woostack-review/prompts/validator.md skills/woostack-review/prompts/validator-prosecutor.md
@@ -848,7 +848,7 @@ git add skills/woostack-review/prompts/validator.md skills/woostack-review/promp
 
 Each prompt restates the event rule in one sentence. None embeds the payload builder — these are prose-accuracy edits only.
 
-- [ ] **Step 1: anthropic.md**
+- [x] **Step 1: anthropic.md**
 
 In `skills/woostack-review/prompts/anthropic.md` line 148, replace the substring:
 
@@ -864,11 +864,11 @@ with:
 
 Also change `Compute BLOCKING_COUNT, NONBLOCKING_COUNT, HIGH_COUNT, MEDIUM_COUNT, LOW_COUNT.` to `Compute BLOCKING_COUNT, NONBLOCKING_COUNT, NIT_COUNT, HIGH_COUNT, MEDIUM_COUNT, LOW_COUNT.`
 
-- [ ] **Step 2: openai.md**
+- [x] **Step 2: openai.md**
 
 In `skills/woostack-review/prompts/openai.md` line 101, apply the identical two replacements (the event sentence and the `Compute …_COUNT` list — add `NIT_COUNT` after `NONBLOCKING_COUNT`).
 
-- [ ] **Step 3: google.md**
+- [x] **Step 3: google.md**
 
 In `skills/woostack-review/prompts/google.md` line 144, replace:
 
@@ -884,16 +884,16 @@ with:
 
 (google.md says "Compute counts" generically — no `_COUNT` list to extend.)
 
-- [ ] **Step 4: opencode.md**
+- [x] **Step 4: opencode.md**
 
 In `skills/woostack-review/prompts/opencode.md` line 107, apply the same event-sentence replacement as google.md (it uses the identical "`COMMENT` when there are only non-blocking new findings and no unresolved priors, `APPROVE` only when both new findings and prior unresolved threads are empty." phrasing — replace with the anthropic.md Step 1 replacement text). "Compute counts" is generic — no list to extend.
 
-- [ ] **Step 5: Verify the stale phrasing is gone**
+- [x] **Step 5: Verify the stale phrasing is gone**
 
 Run: `grep -rn "only non-blocking new findings" skills/woostack-review/prompts/`
 Expected: no matches.
 
-- [ ] **Step 6: Stage**
+- [x] **Step 6: Stage**
 
 ```bash
 git add skills/woostack-review/prompts/anthropic.md skills/woostack-review/prompts/openai.md \
@@ -907,7 +907,7 @@ git add skills/woostack-review/prompts/anthropic.md skills/woostack-review/promp
 **Files:**
 - Modify: `skills/woostack-review/SKILL.md` — Noise control (`:85-87`), config schema block (`:122-166`), key reference (`:170`), findings.metrics row (`:236`), Stage 5 (`:426-432`)
 
-- [ ] **Step 1: Rewrite the "Noise control (`severity_floor`)" section**
+- [x] **Step 1: Rewrite the "Noise control (`severity_floor`)" section**
 
 In `skills/woostack-review/SKILL.md`, replace the section (lines 85-87):
 
@@ -929,7 +929,7 @@ The floor is applied in one place — `scripts/intersect-findings.sh` (Stage 4c)
 Set **`review.nits: false`** to restore the old behavior: below-floor non-blocking findings are dropped entirely. (Below-floor *blocking* findings still surface — the override is a global safety rule independent of this knob.)
 ```
 
-- [ ] **Step 2: Add `nits` to the config schema block**
+- [x] **Step 2: Add `nits` to the config schema block**
 
 In the full schema JSON (lines 122-166), add `"nits": true,` after the `"severity_floor": "high",` line (line 128):
 
@@ -938,7 +938,7 @@ In the full schema JSON (lines 122-166), add `"nits": true,` after the `"severit
     "nits": true,
 ```
 
-- [ ] **Step 3: Add `nits` to the key reference**
+- [x] **Step 3: Add `nits` to the key reference**
 
 In the "Key reference" list, after the `severity_floor` bullet (line 170), add:
 
@@ -948,7 +948,7 @@ In the "Key reference" list, after the `severity_floor` bullet (line 170), add:
 
 Also update the `severity_floor` bullet (line 170) to reflect the reframe — replace "drops findings below the floor" with "findings below the floor surface as non-blocking nits (see `nits`); set `low`/`medium` to treat more findings as normal."
 
-- [ ] **Step 4: Update the `findings.metrics.json` artifact row**
+- [x] **Step 4: Update the `findings.metrics.json` artifact row**
 
 In the artifact reference table (line 236), update the `findings.metrics.json` row's "Notes" to add `nit_count`, note the `nonblocking_count` redefinition, and bump to schema v3:
 
@@ -956,7 +956,7 @@ In the artifact reference table (line 236), update the `findings.metrics.json` r
 | `findings.metrics.json` | `intersect-findings.sh` | metrics fold, telemetry | Per-angle signal/noise breakdown. Emitted **only when `review.metrics: true`**. Keyed by angle: `raw_count`, `prosecutor_kept`, `defender_kept`, `kept`, `dropped_by_defender`, `dropped_by_prosecutor`, `blocking_count`, `nit_count`, `nonblocking_count` (= `kept − blocking − nit`), `severity`, `overlap_total`, `overlap_with` (schema v3) |
 ```
 
-- [ ] **Step 5: Update Stage 5 event determination**
+- [x] **Step 5: Update Stage 5 event determination**
 
 In Stage 5 "Report" (lines 426-432), update the event-build bullet. Replace the line:
 
@@ -970,12 +970,12 @@ with:
 - Submit one `gh api repos/<repo>/pulls/<PR>/reviews` POST containing all inline comments + the summary + status line. The review `event` (`APPROVE` / `COMMENT` / `REQUEST_CHANGES`) is the native gate: any blocking finding (or open prior thread) triggers `REQUEST_CHANGES`; a non-nit non-blocking finding triggers `COMMENT`; nits are event-neutral, so a PR whose only findings are nits gets `APPROVE` with the nits posted inline.
 ```
 
-- [ ] **Step 6: Verify the docs are internally consistent**
+- [x] **Step 6: Verify the docs are internally consistent**
 
 Run: `grep -nE "severity_floor|nits|nit_count" skills/woostack-review/SKILL.md`
 Expected: the noise-control section, config schema, key reference, metrics row, and Stage 5 all reference the reframe consistently; no remaining "drops findings below the floor" / "validator applies the floor" phrasing implying a drop gate.
 
-- [ ] **Step 7: Stage**
+- [x] **Step 7: Stage**
 
 ```bash
 git add skills/woostack-review/SKILL.md
@@ -985,7 +985,7 @@ git add skills/woostack-review/SKILL.md
 
 ## Task 8: Full verification + commit
 
-- [ ] **Step 1: Run the full review test suite**
+- [x] **Step 1: Run the full review test suite**
 
 Run:
 ```bash
@@ -995,7 +995,7 @@ done
 ```
 Expected: every test prints `N passed, 0 failed`; no `FAILED:` line.
 
-- [ ] **Step 2: Sanity-check the classifier end-to-end (adversarial path)**
+- [x] **Step 2: Sanity-check the classifier end-to-end (adversarial path)**
 
 Run:
 ```bash
@@ -1013,12 +1013,12 @@ rm -rf "$work"
 ```
 Expected: finding shows `{"severity":"MEDIUM","blocking":false,"nit":true}`; metrics show `nit_count:1`, `disagreement_count:0`.
 
-- [ ] **Step 3: Confirm the shipped CI assets were not touched**
+- [x] **Step 3: Confirm the shipped CI assets were not touched**
 
 Run: `git status --porcelain action.yml .github/workflows/reusable-review.yml`
 Expected: no output (these ride the shared `prompts/`+`scripts/` change; they must not appear in the diff).
 
-- [ ] **Step 4: Commit the increment**
+- [x] **Step 4: Commit the increment**
 
 ```bash
 git add skills/woostack-review/

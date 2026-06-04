@@ -50,6 +50,10 @@
 #   metrics             bool       (issue #41: opt-in per-angle signal/noise
 #                                   metrics emit + rolling aggregate; default
 #                                   false)
+#   nits                bool       (surface below-floor validated findings as
+#                                   non-blocking nits; default true. false
+#                                   restores the old below-floor drop. blocking
+#                                   findings still surface regardless.)
 #   chunking.max_loc    int >= 0   (issue #14: diff split threshold; 0 disables
 #                                   chunking entirely; absent => 4000 default
 #                                   applied by chunk-diff.sh)
@@ -85,7 +89,7 @@ FORCE_TIERS = {"fast", "deep"}
 REVIEW_KEYS = {
     "angles", "severity_floor", "ignore", "project_rules",
     "authors_skip", "release_rollup_pattern", "models", "fix_commands",
-    "disable_adversarial", "metrics", "chunking", "force_tier",
+    "disable_adversarial", "metrics", "chunking", "force_tier", "nits",
 }
 MODEL_TIERS = {"fast", "standard", "deep"}
 MODEL_PROVIDERS = {"anthropic", "openai", "google", "openrouter"}
@@ -221,6 +225,12 @@ if "metrics" in raw:
     if not isinstance(val, bool):
         loud("`metrics` must be a boolean (true/false), got {}".format(type(val).__name__))
     out["metrics"] = val
+
+if "nits" in raw:
+    val = raw["nits"]
+    if not isinstance(val, bool):
+        loud("`nits` must be a boolean (true/false), got {}".format(type(val).__name__))
+    out["nits"] = val
 
 if "chunking" in raw:
     chunking = raw["chunking"]
