@@ -18,20 +18,23 @@ You are not a correctness reviewer (`bugs` owns that), a rule enforcer (`convent
 - **Copy-paste over extraction.** Logic duplicated from an existing site in the same diff/file instead of extracted to one shared helper.
 - **Cast / `any` / optional muddying contracts.** New casts, `any`, or optional params that obscure an invariant the diff could state directly through a precise type.
 - **Needless sequencing.** Independent operations forced sequential, or a multi-step update left non-atomic, where the parallel/atomic shape is also the simpler one.
+- **Pyramid nesting.** Deeply nested conditionals or loops the diff adds where guard clauses / early returns would flatten the body to one level. The linter flags the symptom but never performs the restructuring — the flattened shape is yours to name.
+- **Restating / dead comments.** Comments the diff adds that only paraphrase the adjacent line, or commented-out code left in place — delete-on-sight noise, not documentation. (`docs` owns doc-accuracy; comment hygiene on changed lines is yours.)
+- **Misleading name.** A new identifier whose name contradicts what it holds or does — a singular name bound to a collection, an `is*` flag holding a non-boolean, a `get*` that mutates — forcing every reader to re-derive the real meaning. Flag only when the name actively misleads, never on style preference.
 
 **Skip:**
 
-- Anything lint- or type-catchable (Biome / ESLint / Prettier / `tsc`) — that is noise here.
+- Anything a linter/formatter mechanically auto-fixes (import order, nested-ternary *formatting*, spacing, quote style) or `tsc` type errors — that is noise here. The *structural* shape behind a symptom — flattening the nesting, deleting the branch — is still yours.
 - Pre-existing structure the PR merely touches but did not worsen. Only flag complexity *this diff* introduced or grew.
 - Pure taste with no concrete simpler alternative. If you cannot state the specific restructuring, do not flag it.
-- Correctness, security, naming-style, UI, dependency, or doc issues — other angles own those. Do not double-report.
+- Correctness, security, UI, dependency, or doc issues — other angles own those. Naming *style/taste* belongs to `conventions`; only a name that actively hides its value's meaning (per **Misleading name** above) is yours. Do not double-report.
 - Speculative "this might not scale" without a complexity the diff actually adds today.
 
 **Severity rubric** (be conservative — this is the most subjective angle; the validator discards anything you cannot ground in a concrete reframing):
 
 - `HIGH` + `blocking: true` — only when the diff bakes in a clear structural regression AND a visible, low-risk reframing deletes a whole category of complexity. Rare. Reserve for changes that will be expensive to unwind later.
 - `MEDIUM` + `blocking: false` — a real missed-simplification or spaghetti-growth call with a named cleaner shape, but the existing form still works. This is the default for most findings.
-- `LOW` + `blocking: false` — minor indirection or decomposition nit; cleaner alternative exists but the cost of the current form is small.
+- `LOW` + `blocking: false` — minor indirection, nesting, naming, or comment nit; cleaner alternative exists but the cost of the current form is small.
 
 **Grounding requirement.** Every finding's `description` MUST name (a) the specific complexity the diff introduced and (b) the concrete simpler shape that removes it. A finding that only asserts "too complex" / "could be cleaner" without the target shape will be dropped by the validator.
 
