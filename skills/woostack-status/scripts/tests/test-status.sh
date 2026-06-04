@@ -97,6 +97,18 @@ FAKE_GH_JSON='[]' PATH="$g/bin:$PATH" run_status "$b"
 assert_contains "$OUT" "golf" "golf present"
 assert_exit 0 "$CODE" "band compute exits 0"
 
+exec_repo="$(mktemp -d)"
+( cd "$exec_repo" && git -c user.email=t@t -c user.name=Tess init -q && git checkout -qb main )
+mkspec "$exec_repo/.woostack" sierra planning feature/sierra
+mkplan "$exec_repo/.woostack" sierra 2026-06-01-sierra.md 1 2
+( cd "$exec_repo" && git add -A && git -c user.email=t@t -c user.name=Tess commit -qm "add sierra plan" )
+( cd "$exec_repo" && git checkout -qb feature/sierra && printf 'work\n' > work.txt && git add work.txt && git -c user.email=t@t -c user.name=Tess commit -qm "start sierra" )
+( cd "$exec_repo" && FAKE_GH_JSON='[]' PATH="$g/bin:$PATH" WOO_DIR=.woostack bash "$ST" > /tmp/sierra.out 2>&1 )
+OUT="$(cat /tmp/sierra.out)"
+assert_contains "$OUT" "sierra" "commit-backed planning spec rendered"
+assert_contains "$OUT" "executing" "commit-backed planning spec derives executing"
+assert_not_contains "$OUT" "sierra                 planning" "commit-backed planning spec does not remain planning"
+
 h="$(mktemp -d)/.woostack"
 mkspec "$h" hotel executing feature/hotel
 mkplan "$h" hotel 2026-06-01-hotel.md 5 5

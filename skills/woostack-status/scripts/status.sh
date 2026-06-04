@@ -47,6 +47,33 @@ git_for() {
   "$GIT_BIN" "$@" 2>/dev/null
 }
 
+branch_ref() {
+  local br="$1"
+  [ -n "$br" ] || return 0
+  if git_for rev-parse --verify --quiet "refs/heads/$br" >/dev/null; then
+    printf '%s\n' "$br"
+    return
+  fi
+  if git_for rev-parse --verify --quiet "refs/remotes/origin/$br" >/dev/null; then
+    printf '%s\n' "origin/$br"
+  fi
+}
+
+branch_has_commits() {
+  local br="$1" ref base count
+  ref="$(branch_ref "$br")"
+  [ -n "$ref" ] || return 1
+  for base in origin/main main origin/master master; do
+    if git_for rev-parse --verify --quiet "$base" >/dev/null; then
+      count="$(git_for rev-list --count "$base..$ref")"
+      [ "${count:-0}" -gt 0 ]
+      return
+    fi
+  done
+  count="$(git_for rev-list --count "$ref")"
+  [ "${count:-0}" -gt 0 ]
+}
+
 staleDays() {
   local cfg="$WOO_DIR/config.json" v=""
   if [ -f "$cfg" ]; then
@@ -111,6 +138,10 @@ resolve_phase() {
   local authored="$1" hasPlan="$2" frac="$3" open="$4" merged="$5" prcount="$6" branchExists="$7" hasCommits="$8"
   if [ "$open" -gt 0 ]; then echo "in-review"; return; fi
   if [ "$frac" = "100" ] && [ "$merged" -gt 0 ] && [ "$merged" -eq "$prcount" ]; then echo "done"; return; fi
+  if [ "$hasPlan" -eq 1 ] && [ "$frac" -gt 0 ] && [ "$frac" -lt 100 ] && [ "$hasCommits" -eq 1 ]; then
+    echo "executing"
+    return
+  fi
   case "$authored" in
     executing|in-review|done)
       if [ "$hasPlan" -eq 1 ] || [ "$branchExists" -eq 1 ] || [ "$hasCommits" -eq 1 ]; then
@@ -215,7 +246,12 @@ for f in "${specs[@]}"; do
 
   frac=0; [ "$total" -gt 0 ] && frac=$(( done * 100 / total ))
   hasPlan=0; [ -n "$planfile" ] && hasPlan=1
-  eff="$(resolve_phase "$phase" "$hasPlan" "$frac" "$open" "$merged" "$prcount" 0 0)"
+  branchExists=0; hasCommits=0
+  if [ -n "$br" ] && [ "$br" != unknown ]; then
+    [ -n "$(branch_ref "$br")" ] && branchExists=1
+    branch_has_commits "$br" && hasCommits=1
+  fi
+  eff="$(resolve_phase "$phase" "$hasPlan" "$frac" "$open" "$merged" "$prcount" "$branchExists" "$hasCommits")"
 
   if [ -z "$br" ] || [ "$br" = unknown ]; then
     case "$eff" in executing|in-review|done) flag "$name: branch is '${br:-empty}' - set branch:" ;; esac
