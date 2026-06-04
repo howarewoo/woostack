@@ -9,7 +9,7 @@ for each phase:
 
 | Phase | Skill |
 |---|---|
-| Ideate → markdown spec → grill → approve spec → plan → execute | `woostack-build` |
+| Ideate → markdown spec → harden → approve spec → plan → execute | `woostack-build` |
 | Review | `woostack-review` |
 | Address review feedback | `woostack-address-comments` |
 

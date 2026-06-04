@@ -24,11 +24,13 @@ The public command/adoption surface has eight skills:
 - [`woostack-address-comments`](skills/woostack-address-comments/SKILL.md)
 - [`woostack-visualize`](skills/woostack-visualize/SKILL.md)
 
-The collection also installs a ninth, internal sub-skill:
-[`woostack-ideate`](skills/woostack-ideate/SKILL.md). `woostack-build` delegates its ideate
-phase to it. It is a bundled building block, not a `/woostack-*` command: it has no routing row
-and is absent from the eight-skill command surface above. Like [`action.yml`](action.yml), it is
-a shipped asset — do not delete it as a stray.
+The collection also installs two internal sub-skills:
+[`woostack-ideate`](skills/woostack-ideate/SKILL.md) and
+[`woostack-harden`](skills/woostack-harden/SKILL.md). `woostack-build` delegates its ideate
+phase to the former and its harden phase to the latter. Both are bundled building blocks, not
+`/woostack-*` commands: they have no routing row and are absent from the eight-skill command
+surface above. Like [`action.yml`](action.yml), they are shipped assets — do not delete them as
+strays.
 
 There is no application source code, app lockfile, build, or CI for this repo's own
 push/PR events. `skills-lock.json` is the dev-skill manifest and is currently empty.
@@ -70,8 +72,8 @@ directory, not in this repo.
   incompatibility forces an exact version.
 - Keep `SKILL.md` descriptions accurate and concise. The description drives discovery; the
   workflow belongs in referenced docs.
-- Do not move or rename any of the nine `SKILL.md` files (the eight public command/adoption
-  skills plus the internal `woostack-ideate`).
+- Do not move or rename any of the ten `SKILL.md` files (the eight public command/adoption
+  skills plus the internal `woostack-ideate` and `woostack-harden`).
 - Do not rename files under
   [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/) without
   updating every cross-link and the bootstrap skill table.
@@ -88,6 +90,8 @@ directory, not in this repo.
   [`skills/woostack-build/SKILL.md`](skills/woostack-build/SKILL.md)
 - Ideate phase engine for the build loop (internal sub-skill):
   [`skills/woostack-ideate/SKILL.md`](skills/woostack-ideate/SKILL.md)
+- Harden phase engine for the build loop (internal sub-skill):
+  [`skills/woostack-harden/SKILL.md`](skills/woostack-harden/SKILL.md)
 - Commit and PR update flow:
   [`skills/woostack-commit/SKILL.md`](skills/woostack-commit/SKILL.md)
 - Review engine:
