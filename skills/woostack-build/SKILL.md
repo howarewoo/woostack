@@ -1,6 +1,6 @@
 ---
 name: woostack-build
-description: Use when building a feature with the full woostack development loop — ideate a design, harden it, plan it, and implement it. Chains woostack-ideate, woostack-harden, and superpowers writing-plans/executing-plans in a fixed, gated order; writes markdown specs and plans under .woostack/.
+description: Use when building a feature with the full woostack development loop — ideate a design, harden it, plan it, and implement it. Chains woostack-ideate, woostack-harden, woostack-execute, and superpowers writing-plans in a fixed, gated order; writes markdown specs and plans under .woostack/.
 ---
 
 # woostack-build
@@ -12,7 +12,7 @@ glue: it sequences proven sub-skills and **inherits their gates** — it adds no
 its own. The value is the order and the handoffs.
 
 ```
-ideate → write spec (markdown) → harden → approve spec → writing-plans → executing-plans → distill memory → ask: open PR?
+ideate → write spec (markdown) → harden → approve spec → writing-plans → execute (per increment: implement → commit → review → distill) → reviewed PR stack
 ```
 
 Two of those gates are hard stops where the user must say yes before the chain advances:
@@ -23,14 +23,14 @@ its own step 2, the gate lives here now. Relocating an inherited gate is not add
 
 ## Dependency preflight
 
-The ideate and hardening phases use [`woostack-ideate`](../woostack-ideate/SKILL.md) and
-[`woostack-harden`](../woostack-harden/SKILL.md), which ship in this collection — no install
-needed. The plan and execution phases chain external skills. At the start, check that each is
-installed:
+The ideate, hardening, and execution phases use [`woostack-ideate`](../woostack-ideate/SKILL.md),
+[`woostack-harden`](../woostack-harden/SKILL.md), and
+[`woostack-execute`](../woostack-execute/SKILL.md), which ship in this collection — no install
+needed. Only the plan phase chains an external skill. At the start, check that it is installed:
 
-- `superpowers:writing-plans`, `superpowers:executing-plans`
+- `superpowers:writing-plans`
 
-For any that are missing: name exactly what's missing and **offer to install it inline**
+If it is missing: name exactly what's missing and **offer to install it inline**
 (`pnpx skills add obra/superpowers`) and continue. If the user declines, fall back to
 following the skill's principle manually and **say so explicitly** — the run is degraded, not
 equivalent.
@@ -68,23 +68,15 @@ equivalent.
    run **one increment per build cycle**. Flag any slice that can't reasonably stay under the
    target and propose a further split before executing. Genuinely atomic changes may exceed
    the target.
-6. **Execute.** Invoke `superpowers:executing-plans` (or `superpowers:subagent-driven-development`)
-   to work the plan with TDD and frequent commits.
-7. **Distill memory.** When the increment lands, extract the **durable, reusable** learnings
-   from the spec/plan/implementation into scoped notes under `.woostack/memory/` — one fact
-   per file, `type` one of `pattern|decision|gotcha|convention`, `scope` the narrowest glob
-   covering the feature's touched files, `source` the spec or plan path. **Dedupe first**:
-   check `.woostack/memory/MEMORY.md` and update an existing note rather than adding a
-   duplicate. Apply the **reject-by-default distillation gate** (see the
-   [memory contract](../woostack-init/references/memory.md#7-distillation-write-path) §7) — it
-   rejects trivia, source-less, and near-duplicate notes, and requires stamping `updated:` on
-   every note you write. Then run `woostack-init`'s `build-index.sh` and `doctor.sh`; fix any
-   error.
-   Distill only cross-feature knowledge — not feature-specific trivia. See the
-   [memory contract](../woostack-init/references/memory.md). When the store does not exist,
-   skip (or offer to run `/woostack-init` first). This is a work step, not an approval gate.
-8. **Offer the PR.** When the increment lands on the branch, **ask** whether to open a PR. If
-   yes, open it (hands off to `woostack-review`). If no, stop on the branch.
+6. **Execute.** Invoke [`woostack-execute`](../woostack-execute/SKILL.md) to work the plan as
+   PR-sized stacked increments — each implemented with TDD, the plan's checkboxes ticked in
+   place, committed via `woostack-commit`, reviewed with `woostack-review --fast`, and distilled
+   into `.woostack/memory/` — pausing only on a blocking review. `woostack-execute` owns the
+   per-increment commit/review/distill cadence (one plan per spec, multiple stacked PRs per
+   plan), so it absorbs what used to be separate "distill memory" and "offer the PR" steps here.
+7. **End on the reviewed stack.** `woostack-execute` opens a PR per increment via
+   `woostack-commit` as part of execution, so build does not separately ask to open a PR. Build
+   ends on the reviewed Graphite stack and **never merges**.
 
 ## Hard constraints
 
@@ -96,8 +88,8 @@ equivalent.
   inferred approval.
 - **Markdown specs and plans, under `.woostack/`.** Never write specs to the superpowers
   default location. HTML is a render-on-demand target only, not the authored format.
-- **Never merge.** build ends by offering a PR, nothing further.
+- **Never merge.** build ends on the reviewed PR stack, nothing further.
 - **One increment per cycle.** Do not let a single build cycle balloon past a reviewable PR.
-- **Distill durable knowledge only.** The distill step writes scoped, deduplicated memory
-  notes — never feature-specific trivia, never a duplicate of an existing note. A small
-  curated store beats a large noisy one.
+- **Distill durable knowledge only.** `woostack-execute` writes scoped, deduplicated memory
+  notes per increment — never feature-specific trivia, never a duplicate of an existing note. A
+  small curated store beats a large noisy one.
