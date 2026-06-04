@@ -26,7 +26,7 @@ Templates rot. Dependencies drift, breaking changes pile up, and every new proje
 pnpx skills add howarewoo/woostack
 ```
 
-This installs the woostack **collection** into your agent's skill directory and records it in `skills-lock.json`. The public command/adoption surface is eight skills: using-woostack, woostack-init, woostack-bootstrap, woostack-build, woostack-commit, woostack-review, woostack-address-comments, and woostack-visualize. The collection also installs `woostack-ideate`, an internal sub-skill used by `woostack-build`; it is not a `/woostack-*` command. Works in any agent that respects the `skills` convention: Claude Code, Cursor, Codex, Aider, and others.
+This installs the woostack **collection** into your agent's skill directory and records it in `skills-lock.json`. The public command/adoption surface is nine skills: using-woostack, woostack-init, woostack-bootstrap, woostack-build, woostack-execute, woostack-commit, woostack-review, woostack-address-comments, and woostack-visualize. The collection also installs two internal sub-skills used by `woostack-build` — `woostack-ideate` and `woostack-harden`; neither is a `/woostack-*` command. Works in any agent that respects the `skills` convention: Claude Code, Cursor, Codex, Aider, and others.
 
 > **pnpm is the recommended package manager.** Commands in this repo use `pnpx` (and `pnpm`) over `npx` / `npm`. If you only have npm, `npx skills add howarewoo/woostack` works too, but woostack-bootstrapped projects use a pnpm catalog, so pnpm is the path of least friction.
 
@@ -56,10 +56,14 @@ Walks you through the [decision catalog](skills/woostack-bootstrap/references/de
 A fixed, gated chain that drives one feature from idea to implementation:
 
 ```
-ideate → markdown spec → harden → approve spec → plan → execute (TDD) → offer PR
+ideate → markdown spec → harden → approve spec → plan → execute (TDD) → reviewed PR stack
 ```
 
-It sequences woostack's own ideate and harden phases (`woostack-ideate`, `woostack-harden`) with proven superpowers sub-skills (writing-plans/executing-plans), inheriting the ideate design gate and hosting the relocated spec-approval gate before planning. Specs and plans are both written as markdown under `.woostack/`; an HTML render is available on demand for a richer view but is never the authored format. Work is steered toward reviewable PRs (soft target ≤500 LOC), one increment per cycle. It ends by *offering* a PR. It never merges. → [SKILL.md](skills/woostack-build/SKILL.md)
+It sequences woostack's own ideate, harden, and execute phases (`woostack-ideate`, `woostack-harden`, `woostack-execute`) with the proven superpowers `writing-plans` sub-skill, inheriting the ideate design gate and hosting the relocated spec-approval gate before planning. Specs and plans are both written as markdown under `.woostack/`; an HTML render is available on demand for a richer view but is never the authored format. Work ships as PR-sized stacked increments (soft target ≤500 LOC) — one plan per spec, multiple PRs per plan — each committed, reviewed (`woostack-review --fast`), and distilled. It ends on the reviewed PR stack. It never merges. → [SKILL.md](skills/woostack-build/SKILL.md)
+
+### `/woostack-execute <plan-path>`: run a plan as stacked PRs
+
+Executes an approved markdown plan from `.woostack/plans/` as a sequence of PR-sized, stacked increments — implementing each with TDD, ticking the plan's checkboxes in place, committing via `woostack-commit` on its own Graphite branch, reviewing it with `woostack-review --fast`, and distilling durable learnings — pausing only on a blocking review. One plan per spec, multiple PRs per plan. It is the execute phase `woostack-build` step 6 delegates to, and is usable standalone. Never merges. → [SKILL.md](skills/woostack-execute/SKILL.md)
 
 ### `/woostack-review [PR#]`: parallel review swarm
 
@@ -120,7 +124,7 @@ Review and address-comments need the GitHub CLI (`gh`) authenticated for any ste
 - **Flat shard** (`.woostack/memory.md`) — a free-form bullet list, always loaded in full. This is where accept-by-design dismissals land (so future reviews don't re-raise a finding you intentionally accepted).
 - **Scope-routed store** (`.woostack/memory/`) — one Markdown note per fact, each with a `scope:` glob declaring which files it governs (e.g. `packages/api/**`). A derived index (`MEMORY.md`) carries one cheap line per note. When a skill loads context for a working set of files, it matches only the notes whose scope overlaps those files, plus their direct `[[wikilinks]]` (one hop). Recall stays sub-linear: on a repo with 500 notes, only the handful touching the changed files load, not the whole corpus.
 
-Notes are written two ways: **distillation** at the end of a `woostack-build` cycle (durable cross-feature learnings, scoped to the touched files, with `source:` provenance back to the spec/plan), and the **accept-by-design** path from `woostack-address-comments` (review-noise suppression → flat shard). `/woostack-init` scaffolds the store; `build-index.sh` rebuilds the index; `doctor.sh` lints it. → [memory.md](skills/woostack-init/references/memory.md)
+Notes are written two ways: **distillation** by `woostack-execute` after each implemented increment (durable cross-feature learnings, scoped to the touched files, with `source:` provenance back to the spec/plan), and the **accept-by-design** path from `woostack-address-comments` (review-noise suppression → flat shard). `/woostack-init` scaffolds the store; `build-index.sh` rebuilds the index; `doctor.sh` lints it. → [memory.md](skills/woostack-init/references/memory.md)
 
 **The review swarm + skeptical validation.** Review isn't a single agent reading a diff. It's `detect → fan-out (one sub-agent per angle) → merge → skeptical validator → post`. The validator runs as a prosecutor (find reasons each finding is real) and a defender (find reasons to drop it), and only findings that survive both get posted, which keeps the output low-noise. The chat-host swarm and the cloud GitHub Action run the *same* scripts and prompts. → [SKILL.md](skills/woostack-review/SKILL.md#architecture)
 

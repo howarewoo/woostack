@@ -1,6 +1,6 @@
 # Contributing
 
-This repo is a **published collection of skills**, not a codebase. Contributions are edits to the skills — the Markdown under `skills/` plus the support files a skill ships (HTML templates, the review engine's shell scripts and prompts, JSON config). The public command/adoption surface is `using-woostack`, `woostack-init`, `woostack-bootstrap`, `woostack-build`, `woostack-commit`, `woostack-review`, `woostack-address-comments`, and `woostack-visualize`. The collection also ships `woostack-ideate` as an internal sub-skill used by `woostack-build`.
+This repo is a **published collection of skills**, not a codebase. Contributions are edits to the skills — the Markdown under `skills/` plus the support files a skill ships (HTML templates, the review engine's shell scripts and prompts, JSON config). The public command/adoption surface is `using-woostack`, `woostack-init`, `woostack-bootstrap`, `woostack-build`, `woostack-execute`, `woostack-commit`, `woostack-review`, `woostack-address-comments`, and `woostack-visualize`. The collection also ships `woostack-ideate` and `woostack-harden` as internal sub-skills used by `woostack-build`.
 
 See [AGENTS.md](AGENTS.md) for the full repo contract; this file is the short contributor's version.
 
@@ -21,6 +21,7 @@ See [AGENTS.md](AGENTS.md) for the full repo contract; this file is the short co
 | Change the build loop (ideate→spec→harden→approve spec→plan→execute) | `skills/woostack-build/SKILL.md` |
 | Change the ideate phase (the build loop's first step) | `skills/woostack-ideate/SKILL.md` |
 | Change the harden phase (the build loop's stress-test step) | `skills/woostack-harden/SKILL.md` |
+| Change the execute phase (the build loop's implementation step) | `skills/woostack-execute/SKILL.md` |
 | Change the commit / PR update workflow | `skills/woostack-commit/SKILL.md` |
 | Change the review engine | `skills/woostack-review/SKILL.md`, `skills/woostack-review/scripts/`, `skills/woostack-review/prompts/` |
 | Change the address-comments delegator | `skills/woostack-address-comments/SKILL.md` |

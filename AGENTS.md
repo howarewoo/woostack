@@ -13,12 +13,13 @@ This is a published collection of skills, not an application codebase. It packag
 decisions for building new web, mobile, and API projects so agents can install it with
 `npx skills add howarewoo/woostack`.
 
-The public command/adoption surface has eight skills:
+The public command/adoption surface has nine skills:
 
 - [`using-woostack`](skills/using-woostack/SKILL.md)
 - [`woostack-init`](skills/woostack-init/SKILL.md)
 - [`woostack-bootstrap`](skills/woostack-bootstrap/SKILL.md)
 - [`woostack-build`](skills/woostack-build/SKILL.md)
+- [`woostack-execute`](skills/woostack-execute/SKILL.md)
 - [`woostack-commit`](skills/woostack-commit/SKILL.md)
 - [`woostack-review`](skills/woostack-review/SKILL.md)
 - [`woostack-address-comments`](skills/woostack-address-comments/SKILL.md)
@@ -28,7 +29,7 @@ The collection also installs two internal sub-skills:
 [`woostack-ideate`](skills/woostack-ideate/SKILL.md) and
 [`woostack-harden`](skills/woostack-harden/SKILL.md). `woostack-build` delegates its ideate
 phase to the former and its harden phase to the latter. Both are bundled building blocks, not
-`/woostack-*` commands: they have no routing row and are absent from the eight-skill command
+`/woostack-*` commands: they have no routing row and are absent from the nine-skill command
 surface above. Like [`action.yml`](action.yml), they are shipped assets — do not delete them as
 strays.
 
@@ -49,8 +50,9 @@ docs, HTML templates, review scripts, prompts, or JSON config. Keep edits in ski
 do not add application code, app build configs, or app lockfiles.
 
 **Mode B: run a woostack command.** Use this when the user asks for `/woostack-init`,
-`/woostack-bootstrap`, `/woostack-build`, `/woostack-commit`, `/woostack-review`,
-`/woostack-address-comments`, or `/woostack-visualize`, including intent-equivalent wording. Load the matching skill
+`/woostack-bootstrap`, `/woostack-build`, `/woostack-execute`, `/woostack-commit`,
+`/woostack-review`, `/woostack-address-comments`, or `/woostack-visualize`, including
+intent-equivalent wording. Load the matching skill
 before acting. For bootstrap work, the output belongs in a fresh repo in a different
 directory, not in this repo.
 
@@ -72,7 +74,7 @@ directory, not in this repo.
   incompatibility forces an exact version.
 - Keep `SKILL.md` descriptions accurate and concise. The description drives discovery; the
   workflow belongs in referenced docs.
-- Do not move or rename any of the ten `SKILL.md` files (the eight public command/adoption
+- Do not move or rename any of the eleven `SKILL.md` files (the nine public command/adoption
   skills plus the internal `woostack-ideate` and `woostack-harden`).
 - Do not rename files under
   [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/) without
@@ -88,6 +90,8 @@ directory, not in this repo.
   [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/)
 - Build loop:
   [`skills/woostack-build/SKILL.md`](skills/woostack-build/SKILL.md)
+- Plan-execution engine for the build loop (public command):
+  [`skills/woostack-execute/SKILL.md`](skills/woostack-execute/SKILL.md)
 - Ideate phase engine for the build loop (internal sub-skill):
   [`skills/woostack-ideate/SKILL.md`](skills/woostack-ideate/SKILL.md)
 - Harden phase engine for the build loop (internal sub-skill):
