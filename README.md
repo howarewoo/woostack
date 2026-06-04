@@ -26,7 +26,7 @@ Templates rot. Dependencies drift, breaking changes pile up, and every new proje
 pnpx skills add howarewoo/woostack
 ```
 
-This installs the woostack **collection** (skills: using-woostack, woostack-init, woostack-bootstrap, woostack-build, woostack-commit, woostack-review, woostack-address-comments, woostack-visualize) into your agent's skill directory and records it in `skills-lock.json`. Works in any agent that respects the `skills` convention: Claude Code, Cursor, Codex, Aider, and others.
+This installs the woostack **collection** into your agent's skill directory and records it in `skills-lock.json`. The public command/adoption surface is eight skills: using-woostack, woostack-init, woostack-bootstrap, woostack-build, woostack-commit, woostack-review, woostack-address-comments, and woostack-visualize. The collection also installs `woostack-ideate`, an internal sub-skill used by `woostack-build`; it is not a `/woostack-*` command. Works in any agent that respects the `skills` convention: Claude Code, Cursor, Codex, Aider, and others.
 
 > **pnpm is the recommended package manager.** Commands in this repo use `pnpx` (and `pnpm`) over `npx` / `npm`. If you only have npm, `npx skills add howarewoo/woostack` works too, but woostack-bootstrapped projects use a pnpm catalog, so pnpm is the path of least friction.
 
@@ -56,10 +56,10 @@ Walks you through the [decision catalog](skills/woostack-bootstrap/references/de
 A fixed, gated chain that drives one feature from idea to implementation:
 
 ```
-brainstorm → markdown spec → grill → plan → execute (TDD) → offer PR
+ideate → markdown spec → grill → approve spec → plan → execute (TDD) → offer PR
 ```
 
-It sequences proven sub-skills (superpowers brainstorming/writing-plans/executing-plans + grill-me) and inherits their approval gates rather than adding its own. Specs and plans are both written as markdown under `.woostack/`; an HTML render is available on demand for a richer view but is never the authored format. Work is steered toward reviewable PRs (soft target ≤500 LOC), one increment per cycle. It ends by *offering* a PR. It never merges. → [SKILL.md](skills/woostack-build/SKILL.md)
+It sequences woostack's own ideate phase (`woostack-ideate`) with proven sub-skills (superpowers writing-plans/executing-plans + grill-me), inheriting the ideate design gate and hosting the relocated spec-approval gate before planning. Specs and plans are both written as markdown under `.woostack/`; an HTML render is available on demand for a richer view but is never the authored format. Work is steered toward reviewable PRs (soft target ≤500 LOC), one increment per cycle. It ends by *offering* a PR. It never merges. → [SKILL.md](skills/woostack-build/SKILL.md)
 
 ### `/woostack-review [PR#]`: parallel review swarm
 

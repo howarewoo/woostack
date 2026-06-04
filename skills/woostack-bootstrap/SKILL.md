@@ -64,7 +64,7 @@ Defaults are overridable per project — record any deviation in the project's o
 | [references/frameworks.md](references/frameworks.md) | Recommended frameworks per layer, catalog protocol, **known gotchas** |
 | [references/infrastructure.md](references/infrastructure.md) | Hosting, CI/CD, env, observability, auth, data layer |
 | [references/patterns.md](references/patterns.md) | oRPC contracts, TanStack Query, RSC, navigation, TDD, feature exposure |
-| [references/development.md](references/development.md) | Dev loop (brainstorm → merge) and branching model |
+| [references/development.md](references/development.md) | Dev loop (ideate → approve spec → merge) and branching model |
 
 ## Hard constraints
 
