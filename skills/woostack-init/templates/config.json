@@ -1,3 +1,6 @@
 {
-  "review": {}
+  "review": {},
+  "status": {
+    "staleDays": 14
+  }
 }

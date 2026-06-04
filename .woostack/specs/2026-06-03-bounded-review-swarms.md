@@ -3,7 +3,7 @@ name: bounded-review-swarms
 type: spec
 status: draft
 date: 2026-06-03
-branch: unknown
+branch: bounded-review-swarms
 links:
   - https://github.com/howarewoo/woostack/issues/182
 ---
