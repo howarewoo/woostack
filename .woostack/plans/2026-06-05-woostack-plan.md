@@ -27,14 +27,14 @@
 **Files:**
 - Create: `skills/woostack-plan/references/plan-template.md`
 
-- [ ] **Step 1: Write the failing check**
+- [x] **Step 1: Write the failing check**
 
 The file must not exist yet, and once created must be frontmatter-free, open with the `**Source:**` line, and carry no `REQUIRED SUB-SKILL` banner.
 
 Run: `test ! -e skills/woostack-plan/references/plan-template.md && echo MISSING`
 Expected: `MISSING`
 
-- [ ] **Step 2: Create the file**
+- [x] **Step 2: Create the file**
 
 Create `skills/woostack-plan/references/plan-template.md` with exactly this content:
 
@@ -107,12 +107,12 @@ gt create -m "{{type}}: {{subject}}"
 > - In a target without a test runner, a "failing test" step is a concrete verification command (grep, `bash -n`, an existing test) with exact expected output.
 ````
 
-- [ ] **Step 3: Run the check, confirm it passes**
+- [x] **Step 3: Run the check, confirm it passes**
 
 Run: `head -1 skills/woostack-plan/references/plan-template.md; grep -c 'REQUIRED SUB-SKILL' skills/woostack-plan/references/plan-template.md`
 Expected: first line is `**Source:** .woostack/specs/{{SPEC_BASENAME}}.md`, and the grep count is `0`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt create -m "feat(woostack-plan): add plan-template skeleton"
@@ -123,12 +123,12 @@ gt create -m "feat(woostack-plan): add plan-template skeleton"
 **Files:**
 - Create: `skills/woostack-plan/SKILL.md`
 
-- [ ] **Step 1: Write the failing check**
+- [x] **Step 1: Write the failing check**
 
 Run: `test ! -e skills/woostack-plan/SKILL.md && echo MISSING`
 Expected: `MISSING`
 
-- [ ] **Step 2: Create the file**
+- [x] **Step 2: Create the file**
 
 Create `skills/woostack-plan/SKILL.md` with exactly this content:
 
@@ -291,17 +291,17 @@ execute, commit, or merge. It writes the plan and hands back — preserving `woo
 - **Own no gate; never execute, commit, or merge.** Write the plan and hand back.
 ````
 
-- [ ] **Step 3: Run the checks, confirm they pass**
+- [x] **Step 3: Run the checks, confirm they pass**
 
 Run: `head -2 skills/woostack-plan/SKILL.md | grep -c 'name: woostack-plan'; grep -c 'references/plan-template.md' skills/woostack-plan/SKILL.md`
 Expected: first count `1` (valid frontmatter `name`), second count `≥1` (cross-link to the template present).
 
-- [ ] **Step 4: Verify the cross-links resolve**
+- [x] **Step 4: Verify the cross-links resolve**
 
 Run: `test -e skills/woostack-plan/references/plan-template.md && test -e skills/woostack-build/SKILL.md && test -e skills/woostack-execute/SKILL.md && test -e skills/woostack-status/references/conventions.md && echo LINKS_OK`
 Expected: `LINKS_OK` (every relative link target in SKILL.md exists).
 
-- [ ] **Step 5: Commit (same Increment-1 branch)**
+- [x] **Step 5: Commit (same Increment-1 branch)**
 
 ```bash
 gt modify -c -m "feat(woostack-plan): add SKILL.md (plan phase, internalizes writing-plans)"
