@@ -4,8 +4,9 @@ tier: standard
 
 # Subagent execution driver
 
-The **subagent-driven** driver of [`woostack-execute`](../SKILL.md) — the analog of superpowers
-`subagent-driven-development`, internalized so woostack has no runtime dependency on it. Use it
+The **subagent-driven** driver of [`woostack-execute`](../SKILL.md) — the subagent-driven
+implementation pattern, internalized so woostack has no runtime dependency on any external skill.
+Use it
 when `--subagent` is passed, or when the smart default resolves to subagent (the host can spawn
 subagents, e.g. an `Agent`/`Task` tool is available). See [inline-driver.md](inline-driver.md)
 for the other mode.
@@ -75,6 +76,5 @@ reviewed **manually by the human** after execution, which covers whole-increment
 ## Hand back
 
 When every task in the increment is ✅ and checked off, hand back to [SKILL.md](../SKILL.md) for
-the single `woostack-commit` and distillation. **Never-merge carve-out:** unlike
-`superpowers:subagent-driven-development`, this driver does **not** call
-`finishing-a-development-branch` and never offers or performs a merge.
+the single `woostack-commit` and distillation. **Never-merge carve-out:** this driver does
+**not** call any branch-finishing or merge step and never offers or performs a merge.

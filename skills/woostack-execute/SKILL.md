@@ -31,12 +31,12 @@ step differs (see the cadence below).
 
 - **inline** ([references/inline-driver.md](references/inline-driver.md)) — the controller
   implements the increment's tasks itself with TDD, in this session. The increment's automated
-  review is `woostack-review --fast`. Analog of superpowers `executing-plans`.
+  review is `woostack-review --fast`.
 - **subagent** ([references/subagent-driver.md](references/subagent-driver.md)) — a fresh
   implementer subagent per task plus a spec→quality reviewer loop. Those per-task loops **are**
   the automated review, so subagent mode does **not** run `woostack-review --fast`; each PR is
-  reviewed manually after execution. Analog of superpowers `subagent-driven-development`,
-  internalized — no runtime dependency on that skill.
+  reviewed manually after execution. This driver internalizes the subagent-driven
+  implementation pattern — no runtime dependency on any external skill.
 
 **Selecting the mode:** an explicit `--inline` or `--subagent` flag always wins. With no flag,
 take the **smart default**: subagent where the host can spawn subagents (an `Agent`/`Task` tool

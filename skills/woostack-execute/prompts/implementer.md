@@ -22,8 +22,10 @@ controller's session — everything you need is below.
 
 ## How to work
 1. Follow test-driven development: write the failing test, watch it fail, write the minimal code,
-   watch it pass. If the change has no runnable test harness (e.g. a docs/skill edit), run the
-   concrete verification the task specifies instead (grep / link check / structural assertion).
+   watch it pass, then refactor with the tests green (clean up names, duplication, and structure;
+   re-run the tests to confirm they stay green). If the change has no runnable test harness (e.g.
+   a docs/skill edit), run the concrete verification the task specifies instead (grep / link
+   check / structural assertion).
 2. Implement exactly the task — no more (no extra flags, files, or features), no less.
 3. Self-review your diff before reporting. Fix what you find.
 4. Do NOT git-commit. Leave your changes in the working tree.
