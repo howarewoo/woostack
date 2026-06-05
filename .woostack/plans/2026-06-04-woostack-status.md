@@ -1033,7 +1033,7 @@ git commit -m "chore(status): migrate spec status vocabulary to the phase enum"
 
 **Files:** Modify `skills/woostack-build/SKILL.md`
 
-- [x] Annotate each step with the `status:` it authors: step 2 → `draft`; step 3 post-grill → `hardened`, gate cleared → `approved`; step 4 → `planning`; step 6 → `executing`; step 8 → `in-review`; post-merge → `done`. Add a one-line "the build loop owns `status:` transitions — see `woostack-status/references/conventions.md`."
+- [x] Annotate each step with the `status:` it authors: step 2 → `draft`; step 3 post-grill → `hardened`, gate cleared → `approved`; step 4 → `planning`; step 9 execute drives the `executing`/`in-review` band; post-merge → `done`. Add a one-line "the build loop owns `status:` transitions — see `woostack-status/references/conventions.md`."
 - [x] In step 4 (plan), require the plan to open with the `**Source:** .woostack/specs/<file>.md` line.
 - [x] In step 2/5, state the invariant explicitly: exactly one plan per spec; the plan owns the increments. Link `conventions.md`.
 - [x] Commit: `docs(build): author status: per step, require Source line, state 1:1 invariant`.
@@ -1059,9 +1059,9 @@ git commit -m "chore(status): migrate spec status vocabulary to the phase enum"
 
 **Files:** Modify `AGENTS.md` (and its symlink `.claude/CLAUDE.md` is the same file), `README.md`
 
-- [x] Update the public command surface from eight to nine: add the `woostack-status` bullet to the list, add it to the Quick file map, and update any "eight skills" wording (keep the internal `woostack-ideate` framing intact — it is not part of the count).
+- [x] Update the public command surface from nine to ten: add the `woostack-status` bullet to the list, add it to the Quick file map, and update any stale skill-count wording (keep the internal `woostack-ideate` framing intact — it is not part of the count).
 - [x] Update `README.md`'s skill list / how-it-works the same way; resolve any version/command counts.
-- [x] Commit: `docs: add woostack-status to the public command surface (8 → 9)`.
+- [x] Commit: `docs: add woostack-status to the public command surface (9 → 10)`.
 
 ### Increment 2 close-out
 

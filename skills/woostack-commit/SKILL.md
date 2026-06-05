@@ -132,9 +132,9 @@ Do not stage generated files, secrets, `.env*`, unrelated dirty files, or user w
 
 ### 4.5 Invariant check (advisory)
 
-When the staged changes touch `.woostack/specs/*.md` or `.woostack/plans/*.md`, run the cheap feature-state invariant checks on each touched spec so the `/woostack-status` board stays honest. These are **advisory**: print any violation as a single non-blocking line in the commit report and continue. Never abort, stage differently, or change the commit because of them.
+When the staged changes touch `.woostack/specs/*.md` or `.woostack/plans/*.md`, run the cheap feature-state invariant checks on every affected spec so the `/woostack-status` board stays honest. The affected set is every directly touched spec plus the spec named by each touched plan's `**Source:** .woostack/specs/<file>.md` line. These are **advisory**: print any violation as a single non-blocking line in the commit report and continue. Never abort, stage differently, or change the commit because of them.
 
-For each touched spec, check:
+For each affected spec, check:
 
 - **1:1 plan** — exactly one plan resolves to it: a plan whose first lines carry `**Source:** .woostack/specs/<file>.md` (legacy same-slug match is the fallback). Zero or two-or-more resolved plans is a violation.
 - **`branch:` present** — the frontmatter `branch:` is non-empty and not the literal `unknown`.
