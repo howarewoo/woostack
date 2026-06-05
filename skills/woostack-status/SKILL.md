@@ -31,16 +31,18 @@ restate them — that file is the canonical home for the phase vocabulary, the j
 
 ## Procedure
 
-1. **Run the deriver.** From the project root, run the skill's bundled script so it reads the
-   project's `./.woostack`:
+1. **Run the deriver.** From the project root, resolve the installed skill directory, then
+   run the bundled script from that directory so it reads the project's `./.woostack`:
 
    ```
-   bash scripts/status.sh [--all] [--fetch]
+   WOO_STATUS_ACTION_PATH="<directory containing this SKILL.md>"
+   bash "$WOO_STATUS_ACTION_PATH/scripts/status.sh" [--all] [--fetch]
    ```
 
-   `WOO_DIR` defaults to `./.woostack` (override only for tests). The script is read-only and
-   exits `0` even when it emits drift flags — operational failure is the only non-zero exit —
-   so it is safe to run anywhere, including CI.
+   Keep the current working directory at the consumer project root; only the script path comes
+   from the skill bundle. `WOO_DIR` defaults to `./.woostack` (override only for tests). The
+   script is read-only and exits `0` even when it emits drift flags — operational failure is
+   the only non-zero exit — so it is safe to run anywhere, including CI.
 
 2. **Narrate the board.** Present the table as printed, then for each in-flight feature call
    out its single **next action** (the `NEXT` column). Lead with whatever is actionable now.
