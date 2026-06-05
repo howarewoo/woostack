@@ -2,7 +2,7 @@
 
 **Source:** .woostack/specs/2026-06-05-execute-vary-subagent-model.md
 
-> **For agentic workers:** execute this plan with `/woostack-execute .woostack/plans/2026-06-05-execute-vary-subagent-model.md` — woostack-execute drives it as PR-sized stacked increments (one `woostack-commit` per increment, no per-task commit). Steps use checkbox (`- [ ]`) syntax for tracking. This is a skill-collection (Markdown + Bash) change with **no app test runner**: every "test" is a concrete `grep` / link-check / `load-prompt.sh` dry-run, substituted for TDD per the inline-driver rule.
+> **For agentic workers:** execute this plan with `/woostack-execute .woostack/plans/2026-06-05-execute-vary-subagent-model.md` — woostack-execute drives it as PR-sized stacked increments (one `woostack-commit` per increment, no per-task commit). Steps use checkbox (`- [x]`) syntax for tracking. This is a skill-collection (Markdown + Bash) change with **no app test runner**: every "test" is a concrete `grep` / link-check / `load-prompt.sh` dry-run, substituted for TDD per the inline-driver rule.
 
 **Goal:** Make subagent-mode `woostack-execute` vary the per-task model (quality/speed/cost) by operationalizing tier→model dispatch and adding a signal→tier heuristic, on one shared tier mapping that also de-duplicates the four copies in `woostack-review`.
 
@@ -34,7 +34,7 @@
 **Files:**
 - Test (scratch): `/tmp/woo-tiers-baseline.txt`
 
-- [ ] **Step 1: Capture today's composed prompt containing the table**
+- [x] **Step 1: Capture today's composed prompt containing the table**
 
 Run (from repo root):
 
@@ -63,7 +63,7 @@ check (no extraction needed). If `load-prompt.sh` needs more env, add the missin
 **Files:**
 - Create: `skills/using-woostack/references/model-tiers.md`
 
-- [ ] **Step 1: Write the canonical shared doc**
+- [x] **Step 1: Write the canonical shared doc**
 
 Create `skills/using-woostack/references/model-tiers.md` with exactly:
 
@@ -115,7 +115,7 @@ Each consumer binds these to its own surface. For example `woostack-review` bind
 keep it in sync with this table).
 ````
 
-- [ ] **Step 2: Verify the doc exists with all three tiers per provider**
+- [x] **Step 2: Verify the doc exists with all three tiers per provider**
 
 Run:
 
@@ -135,7 +135,7 @@ Expected: `OK`.
 **Files:**
 - Modify: `skills/woostack-review/prompts/_header.md:53-75`
 
-- [ ] **Step 1: Replace the whole `## Model Tiers (host-agnostic)` section**
+- [x] **Step 1: Replace the whole `## Model Tiers (host-agnostic)` section**
 
 Replace the block that currently starts at `## Model Tiers (host-agnostic)` (line 53) and runs
 through the per-repo-tier-overrides paragraph ending `…still win over per-repo and table defaults.`
@@ -162,7 +162,7 @@ bound to review's surface: `FORCE_TIER` (Review Context) → `inputs.model` (act
 > The review-pipeline `## Per-repo Config (/tmp/pr-review/config.json)` section that follows
 > (currently line 77+) is review plumbing, not tier vocab — **leave it unchanged.**
 
-- [ ] **Step 2: Verify `_header.md` links the shared doc, holds the marker, and no longer embeds the table**
+- [x] **Step 2: Verify `_header.md` links the shared doc, holds the marker, and no longer embeds the table**
 
 Run:
 
@@ -181,7 +181,7 @@ Expected: `OK` (links shared doc, has the marker, table rows gone from the sourc
 **Files:**
 - Modify: `skills/woostack-review/scripts/load-prompt.sh` (compose step ~163; `default_model_for()` ~56)
 
-- [ ] **Step 1: Add the inline step before the compose line**
+- [x] **Step 1: Add the inline step before the compose line**
 
 Find (line ~163):
 
@@ -216,7 +216,7 @@ PROMPT_CONTENT=$(printf '%s\n\n%s\n\n%s\n' "$CONTEXT_HEAD" "$HEADER_INLINED" "$(
 > expanded replacement are data, not delimiters. If a future host's bash chokes on a very large
 > replacement, the drop-in fallback is `awk -v tf="$TIERS_FILE" '/WOO_MODEL_TIERS_TABLE/{while((getline l<tf)>0)print l;next}1'` over `$HEADER_FILE`.
 
-- [ ] **Step 2: Add the sync comment above `default_model_for()`**
+- [x] **Step 2: Add the sync comment above `default_model_for()`**
 
 Find (line ~56):
 
@@ -232,7 +232,7 @@ Insert immediately above it:
 default_model_for() {
 ```
 
-- [ ] **Step 3: Verify the script still parses**
+- [x] **Step 3: Verify the script still parses**
 
 Run: `bash -n skills/woostack-review/scripts/load-prompt.sh && echo OK`
 Expected: `OK`.
@@ -244,7 +244,7 @@ Expected: `OK`.
 **Files:**
 - Modify: `skills/woostack-review/prompts/anthropic.md:46-71`
 
-- [ ] **Step 1: Replace the table + resolution prose, keep the MUST-pass discipline + example**
+- [x] **Step 1: Replace the table + resolution prose, keep the MUST-pass discipline + example**
 
 Replace lines 46–52 (the `Then resolve via the **Model Tiers** table in _header.md:` line through
 the embedded 3-row table ending `| deep | claude-opus-4-7 | skeptical validator |`) with:
@@ -256,7 +256,7 @@ and inlined into `_header.md` above (Anthropic column: `fast` → `claude-haiku-
 `standard` → `claude-sonnet-4-6`, `deep` → `claude-opus-4-7`).
 ```
 
-- [ ] **Step 2: Repoint the "tier table above" back-reference**
+- [x] **Step 2: Repoint the "tier table above" back-reference**
 
 In the `Resolution rule per spawn:` list (line ~69), change:
 
@@ -274,7 +274,7 @@ to:
 > concrete `Task({…model:…})` example), 70–71 (the per-repo override `jq` + pass-the-slug rule),
 > and 73 (validator-Opus rule) **unchanged** — they are the Anthropic runtime binding.
 
-- [ ] **Step 3: Verify anthropic.md no longer embeds the table and links the shared doc**
+- [x] **Step 3: Verify anthropic.md no longer embeds the table and links the shared doc**
 
 Run:
 
@@ -293,7 +293,7 @@ Expected: `OK` (links shared doc, embedded table row gone, MUST-pass discipline 
 **Files:**
 - Modify: `skills/woostack-review/prompts/opencode.md:17`
 
-- [ ] **Step 1: Repoint the "table in _header.md" reference**
+- [x] **Step 1: Repoint the "table in _header.md" reference**
 
 Change line 17:
 
@@ -312,7 +312,7 @@ inlined into `_header.md` above); the OpenRouter column is:
 > Leave lines 19–25 (the three `fast/standard/deep` → DeepSeek slugs, the `reasoning_effort`
 > note, and the per-repo override `jq` precedence) **unchanged** — that is the OpenRouter binding.
 
-- [ ] **Step 2: Verify opencode.md links the shared doc**
+- [x] **Step 2: Verify opencode.md links the shared doc**
 
 Run:
 
@@ -329,7 +329,7 @@ Expected: `OK` (links shared doc; keeps its OpenRouter binding slugs).
 
 **Files:** _(verification only)_
 
-- [ ] **Step 1: Re-compose the prompt and assert the table text survives inlining**
+- [x] **Step 1: Re-compose the prompt and assert the table text survives inlining**
 
 Run (same env as Task 1.0):
 
@@ -346,7 +346,7 @@ Expected: `exit=0` and slug count **≥ 3** in the **post-edit** composed prompt
 replaced with the inlined shared table). Compare to the Task 1.0 baseline (~16) — output
 neutrality holds. Grep the raw `$GITHUB_OUTPUT` file directly (no `sed` extraction).
 
-- [ ] **Step 2: Assert fail-loud when the shared doc is missing**
+- [x] **Step 2: Assert fail-loud when the shared doc is missing**
 
 Run:
 
@@ -361,7 +361,7 @@ mv /tmp/mt.bak skills/using-woostack/references/model-tiers.md
 
 Expected: prints an `::error::shared model-tiers doc not found` line and `exit=1` (non-zero).
 
-- [ ] **Step 3: Dedup grep — no review prompt embeds the table or claims it lives in `_header.md`**
+- [x] **Step 3: Dedup grep — no review prompt embeds the table or claims it lives in `_header.md`**
 
 Run:
 
@@ -372,7 +372,7 @@ Run:
 
 Expected: `OK` (no embedded tier table rows remain in review prompts; no stale "table in `_header.md`" locator).
 
-- [ ] **Step 4: Mirror-sync — `default_model_for()` Anthropic slugs equal the shared doc column**
+- [x] **Step 4: Mirror-sync — `default_model_for()` Anthropic slugs equal the shared doc column**
 
 Run:
 
@@ -386,7 +386,7 @@ done; echo done
 
 Expected: `done` with no `DRIFT` line.
 
-- [ ] **Step 5: Commit the increment**
+- [x] **Step 5: Commit the increment**
 
 Use [`woostack-commit`](../../skills/woostack-commit/SKILL.md) on this increment's Graphite-stacked
 branch (base = the spec+plan PR). PR title e.g. `refactor(review): promote tier→model table to shared model-tiers.md`. Body: the goal, the deep-dedup summary, and the output-neutral evidence from Steps 1–4 as the test plan.
