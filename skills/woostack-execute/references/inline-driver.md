@@ -1,7 +1,7 @@
 # Inline execution driver
 
 The **inline** driver of [`woostack-execute`](../SKILL.md). The controller implements each
-increment's tasks itself, in this session — the analog of superpowers `executing-plans`. Use it
+increment's tasks itself, in this session. Use it
 when `--inline` is passed, or when the smart default resolves to inline (the host cannot spawn
 subagents). See [subagent-driver.md](subagent-driver.md) for the other mode.
 
@@ -9,11 +9,12 @@ subagents). See [subagent-driver.md](subagent-driver.md) for the other mode.
 
 For each task in the increment, in order:
 
-1. **Follow `superpowers:test-driven-development`** — write the failing test first, watch it
-   fail, write the minimal code, watch it pass. This is a principle, not a hard dependency: if
-   the skill is absent, follow TDD by hand. For a change with no runnable test harness (e.g. a
-   docs/skill edit), substitute the concrete verification the plan specifies (a `grep`, a link
-   check, a structural assertion) for the test.
+1. **Follow test-driven development** — write the failing test first, watch it
+   fail, write the minimal code, watch it pass, then **refactor** with the tests green (clean up
+   names, duplication, and structure; re-run the tests to confirm they stay green). This is a
+   principle, not a hard dependency: if no TDD skill is loaded, follow TDD by hand. For a change
+   with no runnable test harness (e.g. a docs/skill edit), substitute the concrete verification
+   the plan specifies (a `grep`, a link check, a structural assertion) for the test.
 2. **Follow each safe plan step exactly** and run the verifications the plan names.
 3. **Tick the plan's checkboxes in place** (`[ ]` → `[x]`) as each step completes.
 

@@ -14,7 +14,7 @@ its spec, frontmatter-free, decomposed into independently shippable increments, 
 `status: planning` transition on the spec. It writes the plan and hands back; it owns no approval
 gate and never executes, commits, or merges.
 
-It internalizes `superpowers:writing-plans` — the same move
+It internalizes the plan-writing discipline as a native phase — the same move
 [`woostack-ideate`](../woostack-ideate/SKILL.md),
 [`woostack-harden`](../woostack-harden/SKILL.md), and
 [`woostack-execute`](../woostack-execute/SKILL.md) made on the phases around it. With this skill

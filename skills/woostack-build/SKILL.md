@@ -21,7 +21,7 @@ ideate → write spec (markdown) → harden spec → approve spec → plan → v
 Three of those gates are hard stops where the user must say yes before the chain advances:
 **design approval** (owned by `woostack-ideate`, step 1), **spec approval** (step 3), and the
 **execution handoff** (step 8). The spec-approval gate is the "user reviews the written spec"
-step that `superpowers:brainstorming` used to own; because woostack-build relocated the spec
+step that the ideate phase historically owned; because woostack-build relocated the spec
 write into its own step 2, the gate lives here now — relocating an inherited gate is not adding
 one. The execution-handoff gate is build's own: no sub-skill owns the plan→execute boundary, so
 build adds it to let you stop after planning and execute later or elsewhere.
@@ -38,8 +38,8 @@ sits after that PR. So the chain has exactly the three hard gates above.
    the problem and converge on a design. Let it run its own approval gate. It hands back an
    approved design and stops there — it writes no spec and chains no plan, so the next steps
    are yours to drive.
-2. **Write the spec as markdown.** When the design is approved, do **not** write to the
-   superpowers default `docs/superpowers/specs/`. Instead author a markdown spec to
+2. **Write the spec as markdown.** When the design is approved, do **not** write to a generic
+   `docs/specs/` location. Instead author a markdown spec to
    `.woostack/specs/YYYY-MM-DD-<slug>.md`, populating
    [references/spec-template.md](references/spec-template.md). Markdown specs are the source
    of truth: they carry `type: spec` frontmatter, are Obsidian vault nodes that can `[[link]]`
@@ -128,8 +128,8 @@ sits after that PR. So the chain has exactly the three hard gates above.
 - **Always get explicit spec approval before planning.** After the spec harden, present the
   written spec and wait for the user's clear yes. Never advance to `woostack-plan` on assumed
   or inferred approval.
-- **Markdown specs and plans, under `.woostack/`.** Never write specs to the superpowers
-  default location. HTML is a render-on-demand target only, not the authored format.
+- **Markdown specs and plans, under `.woostack/`.** Never write specs to a generic location
+  outside `.woostack/`. HTML is a render-on-demand target only, not the authored format.
 - **Spec+plan ship as their own PR before execution.** Commit the spec and plan as a docs-only
   PR (step 7) — the base of the stack — before any implementation begins. Never merge it.
 - **Stop before execute.** Never auto-run execute; always halt at the execution-handoff gate
