@@ -172,7 +172,7 @@ resolve_phase() {
 
 next_action() {
   case "$1" in
-    draft)      echo "run grill-me on the spec" ;;
+    draft)      echo "harden the spec (woostack-harden)" ;;
     hardened)   echo "get spec approval (hard gate)" ;;
     approved)   echo "write the plan (woostack-plan)" ;;
     planning)   echo "harden plan, then open spec+plan PR" ;;
