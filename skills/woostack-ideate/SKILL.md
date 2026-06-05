@@ -31,7 +31,7 @@ The skill ends the moment the user approves the design. At that point:
 
 - **Write nothing.** Do not create a spec file, a plan, or any artifact. The approved design
   lives in the conversation.
-- **Chain nothing.** Do not invoke `writing-plans`, `woostack-execute`, or any implementation
+- **Chain nothing.** Do not invoke `woostack-plan`, `woostack-execute`, or any implementation
   skill yourself.
 - **Hand back.** State that the design is approved and name the next step:
   - Inside `woostack-build`: its **step 2** captures this design as a markdown spec under

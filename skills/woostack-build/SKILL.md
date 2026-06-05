@@ -1,6 +1,6 @@
 ---
 name: woostack-build
-description: Use when building a feature with the full woostack development loop — ideate a design, harden it, plan it, harden the plan, ship the spec and plan as their own PR, then implement it. Chains woostack-ideate, woostack-harden, woostack-commit, woostack-execute, and superpowers writing-plans in a fixed, gated order; writes markdown specs and plans under .woostack/.
+description: Use when building a feature with the full woostack development loop — ideate a design, harden it, plan it, harden the plan, ship the spec and plan as their own PR, then implement it. Chains woostack-ideate, woostack-harden, woostack-plan, woostack-commit, and woostack-execute in a fixed, gated order; writes markdown specs and plans under .woostack/.
 ---
 
 # woostack-build
@@ -13,7 +13,7 @@ adds exactly one of its own** — the execution handoff — because the plan→e
 belongs to no sub-skill. The value is the order and the handoffs.
 
 ```
-ideate → write spec (markdown) → harden spec → approve spec → writing-plans → decompose
+ideate → write spec (markdown) → harden spec → approve spec → plan → verify decomposition
   → harden plan → commit spec+plan as their own PR → stop before execute (handoff gate)
   → execute (per increment: implement → commit → review → distill) → reviewed PR stack
 ```
@@ -31,22 +31,6 @@ the spec harden feeds a gate (the spec-approval gate, step 3). The plan harden a
 in place and hands straight back, and committing the spec+plan PR (step 7) is a work step, not
 an approval stop. The execution-handoff gate (step 8) is build-owned, not harden-owned, and
 sits after that PR. So the chain has exactly the three hard gates above.
-
-## Dependency preflight
-
-The ideate, hardening (spec and plan), spec+plan-commit, and execution phases use
-[`woostack-ideate`](../woostack-ideate/SKILL.md),
-[`woostack-harden`](../woostack-harden/SKILL.md),
-[`woostack-commit`](../woostack-commit/SKILL.md), and
-[`woostack-execute`](../woostack-execute/SKILL.md), which ship in this collection — no install
-needed. Only the plan phase chains an external skill. At the start, check that it is installed:
-
-- `superpowers:writing-plans`
-
-If it is missing: name exactly what's missing and **offer to install it inline**
-(`pnpx skills add obra/superpowers`) and continue. If the user declines, fall back to
-following the skill's principle manually and **say so explicitly** — the run is degraded, not
-equivalent.
 
 ## Procedure
 
@@ -76,19 +60,19 @@ equivalent.
    it helps), wait for a clear yes, and make any requested changes before advancing. When the
    gate clears, set `status: approved`. Do **not** proceed to step 4 on inferred or assumed
    approval; silence is not a yes.
-4. **Plan.** Once the spec is approved, invoke `superpowers:writing-plans`, saving the plan as
-   **markdown** to
-   `.woostack/plans/YYYY-MM-DD-<slug>.md` (plans are working checklists, not visualization
-   artifacts). The plan **must open with** a `**Source:** .woostack/specs/<file>.md` line in
-   its first ~5 lines so the board joins it 1:1 to the spec; keep plans frontmatter-free. Set
-   the spec's `status: planning`.
-5. **Decompose to PR-sized increments.** Steer work toward well-scoped PRs of **preferably
-   ≤500 lines of code** — a soft target, not a gate. When the spec implies more than one
-   reviewable PR, structure the plan as a sequence of independently shippable increments and
-   run **one increment per build cycle**. Flag any slice that can't reasonably stay under the
-   target and propose a further split before executing. Genuinely atomic changes may exceed
-   the target. The `spec : plan : PRs = 1 : 1 : N` invariant holds throughout: exactly one
-   plan per spec, and that one plan owns the N increment PRs.
+4. **Plan.** Once the spec is approved, invoke
+   [`woostack-plan`](../woostack-plan/SKILL.md) with the approved spec path. It writes the
+   plan to `.woostack/plans/<spec-basename>.md` (same basename as the spec), opens with the
+   `**Source:** .woostack/specs/<file>.md` line so the board joins it 1:1, stays
+   frontmatter-free, structures it as PR-sized increments, and sets the spec's
+   `status: planning`. It writes the plan and hands back, owning no gate. `woostack-plan`
+   ships in this collection, so the build loop has no external skill dependencies.
+5. **Verify the increment decomposition.** `woostack-plan` already structures the plan as
+   PR-sized increments; build confirms the increment boundaries are reviewable, independently
+   shippable, and feed cleanly into `woostack-execute`. Flag any slice that is not reviewable
+   or independently shippable and propose a further split before executing. The
+   `spec : plan : PRs = 1 : 1 : N` invariant holds throughout: exactly one plan per spec, and
+   that one plan owns the N increment PRs.
 6. **Harden the plan.** Invoke [`woostack-harden`](../woostack-harden/SKILL.md) again, this
    time against the plan and its increment breakdown — stress-test the sequencing, the
    increment boundaries, and the verifications until hardening stops producing new questions.
@@ -142,7 +126,7 @@ equivalent.
   separate and build-owned, not a plan-*quality* gate; never turn the plan harden into a
   plan-approval gate.
 - **Always get explicit spec approval before planning.** After the spec harden, present the
-  written spec and wait for the user's clear yes. Never advance to `writing-plans` on assumed
+  written spec and wait for the user's clear yes. Never advance to `woostack-plan` on assumed
   or inferred approval.
 - **Markdown specs and plans, under `.woostack/`.** Never write specs to the superpowers
   default location. HTML is a render-on-demand target only, not the authored format.
@@ -154,9 +138,9 @@ equivalent.
 - **Never merge.** build ends on the terminal state (handoff PR, or reviewed stack), nothing
   further.
 - **Author `status:` through the loop.** Set the spec's `status:` at each step — `draft` (step
-  2), `hardened` then `approved` (step 3), `planning` (step 4); the execute phase advances the
-  `executing`/`in-review` band, which the board also computes from artifacts. The phase enum
-  and the `spec : plan : PRs = 1 : 1 : N` join contracts are defined once in
+  2), `hardened` then `approved` (step 3), `planning` (step 4, authored by woostack-plan); the
+  execute phase advances the `executing`/`in-review` band, which the board also computes from
+  artifacts. The phase enum and the `spec : plan : PRs = 1 : 1 : N` join contracts are defined once in
   [`../woostack-status/references/conventions.md`](../woostack-status/references/conventions.md) —
   link it, never restate it.
 - **One increment per cycle.** Do not let a single build cycle balloon past a reviewable PR.

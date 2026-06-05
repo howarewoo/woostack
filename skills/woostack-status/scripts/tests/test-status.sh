@@ -59,7 +59,7 @@ assert_contains "$OUT" "alpha" "alpha row present"
 assert_contains "$OUT" "draft" "alpha phase shown"
 assert_contains "$OUT" "run grill-me" "draft next-action"
 assert_contains "$OUT" "get spec approval" "hardened next-action"
-assert_contains "$OUT" "writing-plans" "approved next-action"
+assert_contains "$OUT" "woostack-plan" "approved next-action"
 assert_not_contains "$OUT" "orphan-design" "html spec is ignored"
 
 p="$(mktemp -d)/.woostack"
@@ -67,6 +67,7 @@ mkspec "$p" delta planning feature/delta
 mkplan "$p" delta 2026-06-01-delta.md 3 7
 run_status "$p"
 assert_contains "$OUT" "3/10" "plan progress counted"
+assert_contains "$OUT" "harden plan, then open spec+plan PR" "planning next-action"
 legacy="$(mktemp -d)/.woostack"
 mkspec "$legacy" legacy planning feature/legacy
 mkdir -p "$legacy/plans"
