@@ -34,4 +34,13 @@ bash "$SCRIPT" >/dev/null 2>&1
 assert_contains "$(cat "$OUTDIR/angles.txt")" "docs" "README.md still enables docs"
 rm -rf "$work"
 
+# A mixed PR (SKILL.md + another .md) enables BOTH skills and docs — the
+# SKILL.md exclusion must not suppress docs for the sibling markdown file.
+setup "skills/foo/SKILL.md
+docs/guide.md"
+bash "$SCRIPT" >/dev/null 2>&1
+assert_contains "$(cat "$OUTDIR/angles.txt")" "skills" "mixed diff enables skills"
+assert_contains "$(cat "$OUTDIR/angles.txt")" "docs" "mixed diff still enables docs for the other .md"
+rm -rf "$work"
+
 finish
