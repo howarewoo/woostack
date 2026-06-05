@@ -116,12 +116,18 @@ plan_progress() {
 }
 
 prs_for_spec() {
-  local json
-  json="$(gh_json pr list --state all --search "Spec: $1" \
-          --json number,state,headRefName,author,updatedAt --limit 50)"
+  local base json
+  base="$(basename "$1")"
+  json="$(gh_json pr list --state all --search "$base" \
+          --json number,state,headRefName,author,updatedAt,body --limit 50)"
   [ -n "$json" ] || return 0
-  printf '%s' "$json" | jq -r \
-    '.[] | [.number, .state, .headRefName, (.author.login // ""), .updatedAt] | @tsv' 2>/dev/null
+  # gh --search is fuzzy (tokenizes the path), so it cross-matches look-alike PRs. Narrow
+  # with the search, then exact-match the Spec: trailer in each PR body. The needle
+  # `specs/<basename>` is WOO_DIR-independent and unique per spec (date-stamped name), so an
+  # untrailered or sibling PR can no longer attach to the wrong spec.
+  printf '%s' "$json" | jq -r --arg needle "specs/$base" \
+    '.[] | select((.body // "") | contains($needle))
+        | [.number, .state, .headRefName, (.author.login // ""), .updatedAt] | @tsv' 2>/dev/null
 }
 
 prs_for_branch() {
@@ -138,6 +144,11 @@ resolve_phase() {
   local authored="$1" hasPlan="$2" frac="$3" open="$4" merged="$5" prcount="$6" branchExists="$7" hasCommits="$8"
   if [ "$open" -gt 0 ]; then echo "in-review"; return; fi
   if [ "$frac" = "100" ] && [ "$merged" -gt 0 ] && [ "$merged" -eq "$prcount" ]; then echo "done"; return; fi
+  # Legacy/untrailered features have no discoverable merged PR, so the rule above can't
+  # confirm done. Trust an explicit authored `done` once the plan is 100% complete and no PR
+  # is open (open>0 already returned above) — an explicit terminal assertion plus a finished
+  # plan is credible, and the boundary checks still flag a head-state `done` lie.
+  if [ "$authored" = "done" ] && [ "$frac" = "100" ]; then echo "done"; return; fi
   if [ "$hasPlan" -eq 1 ] && [ "$frac" -gt 0 ] && [ "$frac" -lt 100 ] && [ "$hasCommits" -eq 1 ]; then
     echo "executing"
     return
