@@ -1,6 +1,6 @@
 ---
 name: woostack-status
-description: Use to show the derived woostack feature board — for every spec in .woostack/, its reconciled phase, plan progress, increment-PR state, owner, age, and the single next action, plus flags for any drift between the authored status: and the artifacts on disk. Read-only; never fetches, commits, or pushes. Use for /woostack-status, "what's in flight", or "what should I do next".
+description: Use to show the derived woostack feature board — for every spec in .woostack/, its reconciled phase, plan progress, increment-PR state, owner, age, and the single next action, plus flags for any drift between the authored status field and the artifacts on disk. Read-only; never fetches, commits, or pushes. Use for /woostack-status, "what's in flight", or "what should I do next".
 ---
 
 # woostack-status
