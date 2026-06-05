@@ -122,11 +122,11 @@ prs_for_spec() {
           --json number,state,headRefName,author,updatedAt,body --limit 50)"
   [ -n "$json" ] || return 0
   # gh --search is fuzzy (tokenizes the path), so it cross-matches look-alike PRs. Narrow
-  # with the search, then exact-match the Spec: trailer in each PR body. The needle
+  # with the search, then exact-match a Spec: trailer line in each PR body. The needle
   # `specs/<basename>` is WOO_DIR-independent and unique per spec (date-stamped name), so an
-  # untrailered or sibling PR can no longer attach to the wrong spec.
+  # untrailered, sibling, or prose-only mention can no longer attach to the wrong spec.
   printf '%s' "$json" | jq -r --arg needle "specs/$base" \
-    '.[] | select((.body // "") | contains($needle))
+    '.[] | select((.body // "") | split("\n") | any(test("^[[:space:]]*Spec:[[:space:]]") and contains($needle)))
         | [.number, .state, .headRefName, (.author.login // ""), .updatedAt] | @tsv' 2>/dev/null
 }
 

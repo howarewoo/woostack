@@ -205,7 +205,7 @@ mkspec "$xm" xalpha executing feature/xalpha
 mkplan "$xm" xalpha 2026-06-01-xalpha.md 1 9
 mkspec "$xm" xbeta executing feature/xbeta
 mkplan "$xm" xbeta 2026-06-01-xbeta.md 1 9
-export FAKE_GH_JSON='[{"number":300,"state":"OPEN","headRefName":"feature/xalpha","author":{"login":"z"},"updatedAt":"2026-06-03T00:00:00Z","body":"work done. Spec: .woostack/specs/2026-06-01-xalpha.md"}]'
+export FAKE_GH_JSON='[{"number":300,"state":"OPEN","headRefName":"feature/xalpha","author":{"login":"z"},"updatedAt":"2026-06-03T00:00:00Z","body":"work done.\nSpec: .woostack/specs/2026-06-01-xalpha.md"}]'
 # Real `gh pr list --head feature/xbeta` returns only xbeta-headed PRs (none here); the test
 # fake would otherwise echo FAKE_GH_JSON for any --head, so pin the head query empty to model
 # reality and isolate the prs_for_spec trailer match.
@@ -217,6 +217,18 @@ XBETA_ROW="$(printf '%s\n' "$OUT" | grep '^xbeta')"
 assert_contains "$XALPHA_ROW" "#300" "trailer PR attaches to its own spec (xalpha)"
 assert_not_contains "$XBETA_ROW" "#300" "trailer PR does NOT cross-match the sibling spec (xbeta)"
 assert_not_contains "$XBETA_ROW" "in-review" "sibling spec stays out of in-review on a look-alike PR"
+unset FAKE_GH_JSON FAKE_GH_HEAD_JSON
+
+# A prose mention of a sibling spec path is not a trailer and must not attach. This catches
+# regressions where the matcher accepts any body substring instead of a real `Spec:` line.
+export FAKE_GH_JSON='[{"number":301,"state":"OPEN","headRefName":"feature/xalpha","author":{"login":"z"},"updatedAt":"2026-06-03T00:00:00Z","body":"Supersedes .woostack/specs/2026-06-01-xbeta.md\nSpec: .woostack/specs/2026-06-01-xalpha.md"}]'
+export FAKE_GH_HEAD_JSON='[]'
+PATH="$g/bin:$PATH" run_status "$xm" --all
+XALPHA_ROW="$(printf '%s\n' "$OUT" | grep '^xalpha')"
+XBETA_ROW="$(printf '%s\n' "$OUT" | grep '^xbeta')"
+assert_contains "$XALPHA_ROW" "#301" "trailer PR still attaches to its own spec when body mentions sibling"
+assert_not_contains "$XBETA_ROW" "#301" "non-trailer body mention does NOT attach to sibling spec"
+assert_not_contains "$XBETA_ROW" "in-review" "sibling spec stays out of in-review on non-trailer mention"
 unset FAKE_GH_JSON FAKE_GH_HEAD_JSON
 
 # authored 'done' at plan 100% with no trailered PR (legacy, pre-trailer) renders done,
