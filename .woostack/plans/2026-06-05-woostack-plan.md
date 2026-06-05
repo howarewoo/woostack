@@ -318,12 +318,12 @@ gt modify -c -m "feat(woostack-plan): add SKILL.md (plan phase, internalizes wri
 **Files:**
 - Modify: `skills/woostack-build/SKILL.md`
 
-- [ ] **Step 1: Write the failing checks**
+- [x] **Step 1: Write the failing checks**
 
 Run: `grep -n 'Dependency preflight\|superpowers:writing-plans\|→ writing-plans →' skills/woostack-build/SKILL.md`
 Expected (before the change): matches on the `## Dependency preflight` heading, the `superpowers:writing-plans` bullet, and the overview-diagram `→ writing-plans →` — all of which must be gone after.
 
-- [ ] **Step 2: Update the frontmatter description**
+- [x] **Step 2: Update the frontmatter description**
 
 Replace (line 3):
 
@@ -337,7 +337,7 @@ with:
 description: Use when building a feature with the full woostack development loop — ideate a design, harden it, plan it, harden the plan, ship the spec and plan as their own PR, then implement it. Chains woostack-ideate, woostack-harden, woostack-plan, woostack-commit, and woostack-execute in a fixed, gated order; writes markdown specs and plans under .woostack/.
 ```
 
-- [ ] **Step 3: Update the overview diagram**
+- [x] **Step 3: Update the overview diagram**
 
 Replace (the first line of the ``` fenced diagram, line 16):
 
@@ -351,7 +351,7 @@ with:
 ideate → write spec (markdown) → harden spec → approve spec → plan → decompose
 ```
 
-- [ ] **Step 4: Remove the entire Dependency preflight section**
+- [x] **Step 4: Remove the entire Dependency preflight section**
 
 Delete this whole block (the `## Dependency preflight` heading through the degraded-run paragraph, lines 35–49, including the blank line after it):
 
@@ -376,7 +376,7 @@ equivalent.
 
 Result: `## Overview` (and its trailing prose) is immediately followed by `## Procedure`. The build loop now has no external dependencies and nothing to preflight.
 
-- [ ] **Step 5: Rewrite step 4 (Plan) to invoke woostack-plan**
+- [x] **Step 5: Rewrite step 4 (Plan) to invoke woostack-plan**
 
 Replace step 4 (lines 79–84):
 
@@ -400,7 +400,7 @@ with:
    ships in this collection (no install), so the build loop has no external skill dependencies.
 ```
 
-- [ ] **Step 6: Reword step 5 (Decompose) — plan now owns decomposition**
+- [x] **Step 6: Reword step 5 (Decompose) — plan now owns decomposition**
 
 Replace step 5 (lines 85–91):
 
@@ -426,7 +426,7 @@ with:
    PRs.
 ```
 
-- [ ] **Step 7: Update the two hard-constraint references**
+- [x] **Step 7: Update the two hard-constraint references**
 
 Replace (in the "Always get explicit spec approval before planning" constraint, line 145):
 
@@ -453,12 +453,12 @@ with:
   execute phase advances the
 ```
 
-- [ ] **Step 8: Confirm the checks pass**
+- [x] **Step 8: Confirm the checks pass**
 
 Run: `grep -c 'Dependency preflight\|superpowers:writing-plans\|→ writing-plans →' skills/woostack-build/SKILL.md; grep -c 'woostack-plan' skills/woostack-build/SKILL.md`
 Expected: first count `0` (all three removed), second count `≥4` (description, step 4 link, step 4 prose, hard-constraint, status-constraint).
 
-- [ ] **Step 9: Commit (first commit of Increment 2 — creates its branch, stacked on Increment 1)**
+- [x] **Step 9: Commit (first commit of Increment 2 — creates its branch, stacked on Increment 1)**
 
 ```bash
 gt create -m "refactor(woostack-build): use woostack-plan, drop dependency preflight"
@@ -469,12 +469,12 @@ gt create -m "refactor(woostack-build): use woostack-plan, drop dependency prefl
 **Files:**
 - Modify: `skills/using-woostack/SKILL.md`
 
-- [ ] **Step 1: Write the failing check**
+- [x] **Step 1: Write the failing check**
 
 Run: `grep -c 'woostack-plan' skills/using-woostack/SKILL.md`
 Expected: `0`.
 
-- [ ] **Step 2: Insert the routing row**
+- [x] **Step 2: Insert the routing row**
 
 In the Command Routing table, insert a new row immediately **after** the `/woostack-build` row and **before** the `/woostack-execute` row. Replace:
 
@@ -491,12 +491,12 @@ with:
 | `/woostack-execute <plan-path> [--inline\|--subagent]`, execute an approved plan as PR-sized stacked increments (inline or subagent-driven) | `woostack-execute` |
 ```
 
-- [ ] **Step 3: Confirm the check passes**
+- [x] **Step 3: Confirm the check passes**
 
 Run: `grep -c '`/woostack-plan <spec-path>`.*`woostack-plan`' skills/using-woostack/SKILL.md`
 Expected: `1`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt modify -c -m "docs(using-woostack): route /woostack-plan to woostack-plan"
@@ -507,12 +507,12 @@ gt modify -c -m "docs(using-woostack): route /woostack-plan to woostack-plan"
 **Files:**
 - Modify: `skills/woostack-ideate/SKILL.md:34`
 
-- [ ] **Step 1: Write the failing check**
+- [x] **Step 1: Write the failing check**
 
 Run: `grep -n 'Do not invoke `writing-plans`' skills/woostack-ideate/SKILL.md`
 Expected (before): matches line 34.
 
-- [ ] **Step 2: Update the example list**
+- [x] **Step 2: Update the example list**
 
 Replace (line 34):
 
@@ -526,12 +526,12 @@ with:
 - **Chain nothing.** Do not invoke `woostack-plan`, `woostack-execute`, or any implementation
 ```
 
-- [ ] **Step 3: Confirm the check passes**
+- [x] **Step 3: Confirm the check passes**
 
 Run: `grep -c 'Do not invoke `woostack-plan`, `woostack-execute`' skills/woostack-ideate/SKILL.md`
 Expected: `1`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt modify -c -m "docs(woostack-ideate): reference woostack-plan in chain-nothing example"
@@ -544,7 +544,7 @@ gt modify -c -m "docs(woostack-ideate): reference woostack-plan in chain-nothing
 - Modify: `skills/woostack-status/scripts/status.sh:177`
 - Modify: `skills/woostack-status/scripts/status.sh:227`
 
-- [ ] **Step 1: Update the test assertion FIRST (red)**
+- [x] **Step 1: Update the test assertion FIRST (red)**
 
 Replace (in `test-status.sh`, line 62):
 
@@ -558,12 +558,12 @@ with:
 assert_contains "$OUT" "woostack-plan" "approved next-action"
 ```
 
-- [ ] **Step 2: Run the test, confirm it now FAILS**
+- [x] **Step 2: Run the test, confirm it now FAILS**
 
 Run: `bash skills/woostack-status/scripts/tests/test-status.sh`
 Expected: FAIL on the `approved next-action` assertion — the harness still emits `write the plan (writing-plans)`, so `"woostack-plan"` is not found in `$OUT`.
 
-- [ ] **Step 3: Update status.sh next-action string (green)**
+- [x] **Step 3: Update status.sh next-action string (green)**
 
 Replace (line 177):
 
@@ -577,7 +577,7 @@ with:
     approved)   echo "write the plan (woostack-plan)" ;;
 ```
 
-- [ ] **Step 4: Update status.sh no-plan flag string**
+- [x] **Step 4: Update status.sh no-plan flag string**
 
 Replace (line 227):
 
@@ -591,12 +591,12 @@ with:
     case "$phase" in draft|hardened|approved|abandoned) : ;; *) flag "$name: no plan resolves to this spec (woostack-plan)" ;; esac
 ```
 
-- [ ] **Step 5: Run the test, confirm it PASSES; lint the script**
+- [x] **Step 5: Run the test, confirm it PASSES; lint the script**
 
 Run: `bash skills/woostack-status/scripts/tests/test-status.sh && bash -n skills/woostack-status/scripts/status.sh && echo OK`
 Expected: the test suite passes (including `approved next-action`) and `OK` prints (no syntax errors).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 gt modify -c -m "fix(woostack-status): point plan next-action at woostack-plan"
@@ -607,12 +607,12 @@ gt modify -c -m "fix(woostack-status): point plan next-action at woostack-plan"
 **Files:**
 - Modify: `AGENTS.md` (`.claude/CLAUDE.md` is a symlink — editing `AGENTS.md` updates both)
 
-- [ ] **Step 1: Write the failing check**
+- [x] **Step 1: Write the failing check**
 
 Run: `grep -n 'ten skills\|ten-skill command surface\|twelve `SKILL.md` files\|the ten public' AGENTS.md`
 Expected (before): matches the "ten skills" line, the "ten-skill command surface" line, and the "twelve `SKILL.md` files (the ten public …)" constraint.
 
-- [ ] **Step 2: Update the surface count and add woostack-plan to the list**
+- [x] **Step 2: Update the surface count and add woostack-plan to the list**
 
 Replace:
 
@@ -639,7 +639,7 @@ The public command/adoption surface has eleven skills:
 - [`woostack-execute`](skills/woostack-execute/SKILL.md)
 ```
 
-- [ ] **Step 3: Update the "ten-skill command surface" mention**
+- [x] **Step 3: Update the "ten-skill command surface" mention**
 
 Replace (in the internal-sub-skill paragraph):
 
@@ -657,7 +657,7 @@ surface above. Like [`action.yml`](action.yml), they are shipped assets — do n
 strays.
 ```
 
-- [ ] **Step 4: Add /woostack-plan to the Mode B command list**
+- [x] **Step 4: Add /woostack-plan to the Mode B command list**
 
 Replace (in the Mode B paragraph):
 
@@ -675,7 +675,7 @@ with:
 `/woostack-review`, `/woostack-address-comments`, `/woostack-status`, or `/woostack-visualize`,
 ```
 
-- [ ] **Step 5: Update the SKILL.md-count hard constraint**
+- [x] **Step 5: Update the SKILL.md-count hard constraint**
 
 Replace:
 
@@ -691,7 +691,7 @@ with:
   skills plus the internal `woostack-ideate` and `woostack-harden`).
 ```
 
-- [ ] **Step 6: Add the woostack-plan Quick file map entry**
+- [x] **Step 6: Add the woostack-plan Quick file map entry**
 
 Replace:
 
@@ -713,12 +713,12 @@ with:
   [`skills/woostack-execute/SKILL.md`](skills/woostack-execute/SKILL.md)
 ```
 
-- [ ] **Step 7: Confirm the checks pass**
+- [x] **Step 7: Confirm the checks pass**
 
 Run: `grep -c 'eleven skills\|eleven-skill command surface\|thirteen `SKILL.md` files\|skills/woostack-plan/SKILL.md\|`/woostack-plan`' AGENTS.md; grep -c 'ten skills\|ten-skill command surface\|twelve `SKILL.md`' AGENTS.md`
 Expected: first count `≥5` (all new mentions present), second count `0` (no stale ten/twelve counts remain).
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 gt modify -c -m "docs(agents): add woostack-plan to surface (eleven public, thirteen SKILL.md)"
@@ -731,12 +731,12 @@ gt modify -c -m "docs(agents): add woostack-plan to surface (eleven public, thir
 - Modify: `README.md:62`
 - Modify: `README.md` (How it works — add a woostack-plan subsection before woostack-execute)
 
-- [ ] **Step 1: Write the failing check**
+- [x] **Step 1: Write the failing check**
 
 Run: `grep -c 'surface is ten skills\|woostack-plan' README.md`
 Expected: a match on `surface is ten skills` and `0` matches on `woostack-plan`.
 
-- [ ] **Step 2: Update the Install-section surface count and list**
+- [x] **Step 2: Update the Install-section surface count and list**
 
 Replace (line 29):
 
@@ -750,7 +750,7 @@ with:
 This installs the woostack **collection** into your agent's skill directory and records it in `skills-lock.json`. The public command/adoption surface is eleven skills: using-woostack, woostack-init, woostack-bootstrap, woostack-build, woostack-plan, woostack-execute, woostack-commit, woostack-review, woostack-address-comments, woostack-status, and woostack-visualize. The collection also installs two internal sub-skills used by `woostack-build` — `woostack-ideate` and `woostack-harden`; neither is a `/woostack-*` command. Works in any agent that respects the `skills` convention: Claude Code, Cursor, Codex, Aider, and others.
 ```
 
-- [ ] **Step 3: Update the build-loop sequencing prose**
+- [x] **Step 3: Update the build-loop sequencing prose**
 
 Replace (line 62):
 
@@ -764,7 +764,7 @@ with:
 It sequences woostack's own ideate, harden, plan, and execute phases (`woostack-ideate`, `woostack-harden`, `woostack-plan`, `woostack-execute`), inheriting the ideate design gate and hosting the relocated spec-approval gate before planning — the build loop has no external skill dependencies. Specs and plans are both written as markdown under `.woostack/`; an HTML render is available on demand for a richer view but is never the authored format. Work ships as PR-sized stacked increments (soft target ≤500 LOC) — one plan per spec, multiple PRs per plan — each committed, reviewed (`woostack-review --fast`), and distilled. It ends on the reviewed PR stack. It never merges. → [SKILL.md](skills/woostack-build/SKILL.md)
 ```
 
-- [ ] **Step 4: Add a `/woostack-plan` command subsection**
+- [x] **Step 4: Add a `/woostack-plan` command subsection**
 
 Insert a new subsection immediately **before** the `### `/woostack-execute <plan-path>`: run a plan as stacked PRs` heading. Replace:
 
@@ -782,12 +782,12 @@ Writes a comprehensive implementation plan for an approved markdown spec from `.
 ### `/woostack-execute <plan-path>`: run a plan as stacked PRs
 ```
 
-- [ ] **Step 5: Confirm the checks pass**
+- [x] **Step 5: Confirm the checks pass**
 
 Run: `grep -c 'is eleven skills\|woostack-plan <spec-path>`: write a plan\|`woostack-plan`' README.md; grep -c 'is ten skills\|proven superpowers `writing-plans`' README.md`
 Expected: first count `≥3` (new count, new subsection, prose mention), second count `0` (stale count and the writing-plans dependency phrasing gone).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 gt modify -c -m "docs(readme): document woostack-plan; eleven public skills, no external deps"
@@ -799,12 +799,12 @@ gt modify -c -m "docs(readme): document woostack-plan; eleven public skills, no 
 - Modify: `CONTRIBUTING.md:3`
 - Modify: `CONTRIBUTING.md` (What to change table — add plan row)
 
-- [ ] **Step 1: Write the failing check**
+- [x] **Step 1: Write the failing check**
 
 Run: `grep -c 'woostack-plan' CONTRIBUTING.md`
 Expected: `0`.
 
-- [ ] **Step 2: Add woostack-plan to the surface sentence**
+- [x] **Step 2: Add woostack-plan to the surface sentence**
 
 Replace (line 3):
 
@@ -818,7 +818,7 @@ with:
 This repo is a **published collection of skills**, not a codebase. Contributions are edits to the skills — the Markdown under `skills/` plus the support files a skill ships (HTML templates, the review engine's shell scripts and prompts, JSON config). The public command/adoption surface is `using-woostack`, `woostack-init`, `woostack-bootstrap`, `woostack-build`, `woostack-plan`, `woostack-execute`, `woostack-commit`, `woostack-review`, `woostack-address-comments`, `woostack-status`, and `woostack-visualize`. The collection also ships `woostack-ideate` and `woostack-harden` as internal sub-skills used by `woostack-build`.
 ```
 
-- [ ] **Step 3: Add the "Change the plan phase" row**
+- [x] **Step 3: Add the "Change the plan phase" row**
 
 In the "What to change" table, insert a new row immediately **after** the harden-phase row and **before** the execute-phase row. Replace:
 
@@ -835,12 +835,12 @@ with:
 | Change the execute phase (the build loop's implementation step) | `skills/woostack-execute/SKILL.md` |
 ```
 
-- [ ] **Step 4: Confirm the check passes**
+- [x] **Step 4: Confirm the check passes**
 
 Run: `grep -c 'woostack-plan' CONTRIBUTING.md`
 Expected: `2` (the surface sentence and the new table row).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "docs(contributing): list woostack-plan and its change-here row"
@@ -851,22 +851,22 @@ gt modify -c -m "docs(contributing): list woostack-plan and its change-here row"
 **Files:**
 - Verify only (no new edits unless a stray is found).
 
-- [ ] **Step 1: Confirm no stale writing-plans wiring remains**
+- [x] **Step 1: Confirm no stale writing-plans wiring remains**
 
 Run: `grep -rn 'writing-plans\|superpowers:writing' skills/ AGENTS.md README.md CONTRIBUTING.md action.yml .github/ | grep -v '.woostack/'`
 Expected: the **only** remaining match is the single lineage-credit line inside `skills/woostack-plan/SKILL.md` ("It internalizes `superpowers:writing-plans` …"), exactly as `woostack-execute/SKILL.md` still credits `executing-plans`. No matches in `woostack-build`, `status.sh`, `test-status.sh`, `using-woostack`, `woostack-ideate`, README, CONTRIBUTING, or AGENTS.md. If anything else matches, fix it.
 
-- [ ] **Step 2: Confirm the surface counts agree everywhere**
+- [x] **Step 2: Confirm the surface counts agree everywhere**
 
 Run: `grep -rn 'eleven skills\|eleven-skill\|thirteen `SKILL.md`\|is eleven skills' AGENTS.md README.md; grep -rn 'ten skills\|ten-skill\|twelve `SKILL.md`' AGENTS.md README.md CONTRIBUTING.md`
 Expected: the first grep shows the eleven/thirteen counts present in AGENTS.md and README; the second grep returns nothing (no stale ten/twelve counts anywhere).
 
-- [ ] **Step 3: Re-run the status test and lint all touched scripts**
+- [x] **Step 3: Re-run the status test and lint all touched scripts**
 
 Run: `bash skills/woostack-status/scripts/tests/test-status.sh && bash -n skills/woostack-status/scripts/status.sh && echo ALL_GREEN`
 Expected: the suite passes and `ALL_GREEN` prints.
 
-- [ ] **Step 4: Commit (only if Step 1 surfaced a stray to fix; otherwise skip)**
+- [x] **Step 4: Commit (only if Step 1 surfaced a stray to fix; otherwise skip)**
 
 ```bash
 gt modify -c -m "docs: sweep stray writing-plans references"

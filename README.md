@@ -26,7 +26,7 @@ Templates rot. Dependencies drift, breaking changes pile up, and every new proje
 pnpx skills add howarewoo/woostack
 ```
 
-This installs the woostack **collection** into your agent's skill directory and records it in `skills-lock.json`. The public command/adoption surface is ten skills: using-woostack, woostack-init, woostack-bootstrap, woostack-build, woostack-execute, woostack-commit, woostack-review, woostack-address-comments, woostack-status, and woostack-visualize. The collection also installs two internal sub-skills used by `woostack-build` — `woostack-ideate` and `woostack-harden`; neither is a `/woostack-*` command. Works in any agent that respects the `skills` convention: Claude Code, Cursor, Codex, Aider, and others.
+This installs the woostack **collection** into your agent's skill directory and records it in `skills-lock.json`. The public command/adoption surface is eleven skills: using-woostack, woostack-init, woostack-bootstrap, woostack-build, woostack-plan, woostack-execute, woostack-commit, woostack-review, woostack-address-comments, woostack-status, and woostack-visualize. The collection also installs two internal sub-skills used by `woostack-build` — `woostack-ideate` and `woostack-harden`; neither is a `/woostack-*` command. Works in any agent that respects the `skills` convention: Claude Code, Cursor, Codex, Aider, and others.
 
 > **pnpm is the recommended package manager.** Commands in this repo use `pnpx` (and `pnpm`) over `npx` / `npm`. If you only have npm, `npx skills add howarewoo/woostack` works too, but woostack-bootstrapped projects use a pnpm catalog, so pnpm is the path of least friction.
 
@@ -59,11 +59,15 @@ A fixed, gated chain that drives one feature from idea to implementation:
 ideate → markdown spec → harden → approve spec → plan → execute (TDD) → reviewed PR stack
 ```
 
-It sequences woostack's own ideate, harden, and execute phases (`woostack-ideate`, `woostack-harden`, `woostack-execute`) with the proven superpowers `writing-plans` sub-skill, inheriting the ideate design gate and hosting the relocated spec-approval gate before planning. Specs and plans are both written as markdown under `.woostack/`; an HTML render is available on demand for a richer view but is never the authored format. Work ships as PR-sized stacked increments (soft target ≤500 LOC) — one plan per spec, multiple PRs per plan — each committed, reviewed (`woostack-review --fast`), and distilled. It ends on the reviewed PR stack. It never merges. → [SKILL.md](skills/woostack-build/SKILL.md)
+It sequences woostack's own ideate, harden, plan, and execute phases (`woostack-ideate`, `woostack-harden`, `woostack-plan`, `woostack-execute`), inheriting the ideate design gate and hosting the relocated spec-approval gate before planning — the build loop has no external skill dependencies. Specs and plans are both written as markdown under `.woostack/`; an HTML render is available on demand for a richer view but is never the authored format. Work ships as PR-sized stacked increments (soft target ≤500 LOC) — one plan per spec, multiple PRs per plan — each committed, reviewed (`woostack-review --fast`), and distilled. It ends on the reviewed PR stack. It never merges. → [SKILL.md](skills/woostack-build/SKILL.md)
+
+### `/woostack-plan <spec-path>`: write a plan from a spec
+
+Writes a comprehensive implementation plan for an approved markdown spec from `.woostack/specs/` — file-structure first, bite-sized TDD tasks with no placeholders, structured as PR-sized increments — saved frontmatter-free to `.woostack/plans/<spec-basename>.md` with an opening `**Source:**` line that joins it 1:1 to the spec, and sets the spec's `status: planning`. It is the plan phase `woostack-build` step 4 delegates to, and is usable standalone. Pairs with `woostack-execute` (produce-plan / consume-plan). Writes the plan and hands back; never executes or merges. → [SKILL.md](skills/woostack-plan/SKILL.md)
 
 ### `/woostack-execute <plan-path>`: run a plan as stacked PRs
 
-Executes an approved markdown plan from `.woostack/plans/` as a sequence of PR-sized, stacked increments — implementing each with TDD, ticking the plan's checkboxes in place, committing via `woostack-commit` on its own Graphite branch, reviewing it with `woostack-review --fast`, and distilling durable learnings — pausing only on a blocking review. One plan per spec, multiple PRs per plan. It is the execute phase `woostack-build` step 6 delegates to, and is usable standalone. Never merges. → [SKILL.md](skills/woostack-execute/SKILL.md)
+Executes an approved markdown plan from `.woostack/plans/` as a sequence of PR-sized, stacked increments — implementing each with TDD, ticking the plan's checkboxes in place, committing via `woostack-commit` on its own Graphite branch, reviewing it with `woostack-review --fast`, and distilling durable learnings — pausing only on a blocking review. One plan per spec, multiple PRs per plan. It is the execute phase `woostack-build` step 9 delegates to, and is usable standalone. Never merges. → [SKILL.md](skills/woostack-execute/SKILL.md)
 
 ### `/woostack-review [PR#]`: parallel review swarm
 

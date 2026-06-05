@@ -174,8 +174,8 @@ next_action() {
   case "$1" in
     draft)      echo "run grill-me on the spec" ;;
     hardened)   echo "get spec approval (hard gate)" ;;
-    approved)   echo "write the plan (writing-plans)" ;;
-    planning)   echo "decompose to increments, then execute" ;;
+    approved)   echo "write the plan (woostack-plan)" ;;
+    planning)   echo "harden plan, then open spec+plan PR" ;;
     executing)  if [ "${5:-0}" -gt 0 ]; then echo "finish plan ($2/$3); $4/$5 increments shipped";
                 else echo "finish plan ($2/$3) - open first increment PR"; fi ;;
     in-review)  echo "address comments / merge when green" ;;
@@ -224,7 +224,7 @@ for f in "${specs[@]}"; do
   while IFS= read -r ln; do [ -n "$ln" ] && plans+=("$ln"); done < <(plan_for "$f")
   plan_cell="-"; done=0; total=0; planfile=""
   if [ "${#plans[@]}" -eq 0 ]; then
-    case "$phase" in draft|hardened|approved|abandoned) : ;; *) flag "$name: no plan resolves to this spec (writing-plans)" ;; esac
+    case "$phase" in draft|hardened|approved|abandoned) : ;; *) flag "$name: no plan resolves to this spec (woostack-plan)" ;; esac
   elif [ "${#plans[@]}" -ge 2 ]; then
     flag "$name: ${#plans[@]} plans resolve to this spec - spec<->plan must be 1:1"
     planfile="${plans[0]}"
