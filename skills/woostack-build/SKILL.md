@@ -20,11 +20,10 @@ ideate → write spec (markdown) → harden spec → approve spec → plan → v
 
 Three of those gates are hard stops where the user must say yes before the chain advances:
 **design approval** (owned by `woostack-ideate`, step 1), **spec approval** (step 3), and the
-**execution handoff** (step 8). The spec-approval gate is the "user reviews the written spec"
-step that the ideate phase historically owned; because woostack-build relocated the spec
-write into its own step 2, the gate lives here now — relocating an inherited gate is not adding
-one. The execution-handoff gate is build's own: no sub-skill owns the plan→execute boundary, so
-build adds it to let you stop after planning and execute later or elsewhere.
+**execution handoff** (step 8). Because woostack-build writes the spec in step 2, it also owns
+the "user reviews the written spec" gate in step 3. The execution-handoff gate is build's own:
+no sub-skill owns the plan→execute boundary, so build adds it to let you stop after planning
+and execute later or elsewhere.
 
 Hardening runs **twice** — once on the spec (step 3) and once on the plan (step 6) — but only
 the spec harden feeds a gate (the spec-approval gate, step 3). The plan harden amends the plan
