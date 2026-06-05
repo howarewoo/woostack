@@ -40,7 +40,7 @@ For each task in the increment, in order:
      note observations and proceed.
    - **NEEDS_CONTEXT** → provide the missing context and re-dispatch.
    - **BLOCKED** → assess: context gap (re-dispatch with more context), needs more reasoning
-     (re-dispatch one tier higher per [Tier selection](#tier-selection) — a prior BLOCKED is itself
+     (re-dispatch per [Tier selection](#tier-selection) — a prior BLOCKED is itself
      a bump-UP signal), task too large (split it), or the plan is wrong (escalate to the user).
      **Never** silently retry the same model unchanged.
 3. **Dispatch a spec-compliance reviewer** with
