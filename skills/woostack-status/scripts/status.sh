@@ -149,11 +149,11 @@ resolve_phase() {
   if [ "$frac" = "100" ] && [ "$merged" -gt 0 ] && [ "$merged" -eq "$prcount" ]; then echo "done"; return; fi
   # Legacy/untrailered features have no discoverable PR, so the rule above can't confirm
   # done. Trust an explicit authored `done` only when the plan is 100% complete, no
-  # increment PR was found, and no active branch work is visible; discovered increments
+  # increment PR was found, and no active branch commits are visible; discovered increments
   # still have to satisfy the merged==prcount rule above, so a closed-unmerged PR keeps the
   # feature visible.
   if [ "$authored" = "done" ] && [ "$frac" = "100" ] && [ "$prcount" -eq 0 ] &&
-     [ "$branchExists" -eq 0 ] && [ "$hasCommits" -eq 0 ]; then echo "done"; return; fi
+     [ "$hasCommits" -eq 0 ]; then echo "done"; return; fi
   if [ "$hasPlan" -eq 1 ] && [ "$frac" -gt 0 ] && [ "$frac" -lt 100 ] && [ "$hasCommits" -eq 1 ]; then
     echo "executing"
     return

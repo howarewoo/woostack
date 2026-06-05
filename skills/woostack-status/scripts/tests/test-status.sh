@@ -271,4 +271,18 @@ OUT="$(cat /tmp/active-done.out)"
 assert_contains "$OUT" "activedone" "authored done with active branch work stays visible"
 assert_contains "$OUT" "executing" "active branch work overrides legacy authored done shortcut"
 
+# A merged-but-not-deleted branch is not active work. If it has no commits ahead of main,
+# authored done plus a complete plan can still be trusted for legacy/untrailered specs.
+merged_done_repo="$(mktemp -d)"
+( cd "$merged_done_repo" && git -c user.email=t@t -c user.name=Tess init -q && git checkout -qb main )
+mkspec "$merged_done_repo/.woostack" mergeddone done feature/mergeddone
+mkplan "$merged_done_repo/.woostack" mergeddone 2026-06-01-mergeddone.md 4 0
+( cd "$merged_done_repo" && git add -A && git -c user.email=t@t -c user.name=Tess commit -qm "add merged done plan" )
+( cd "$merged_done_repo" && git checkout -qb feature/mergeddone && printf 'work\n' > work.txt && git add work.txt && git -c user.email=t@t -c user.name=Tess commit -qm "merged work" )
+( cd "$merged_done_repo" && git checkout -q main && git merge --no-ff -q feature/mergeddone -m "merge work" )
+( cd "$merged_done_repo" && FAKE_GH_JSON='[]' PATH="$g/bin:$PATH" WOO_DIR=.woostack bash "$ST" > /tmp/merged-done.out 2>&1 )
+OUT="$(cat /tmp/merged-done.out)"
+assert_contains "$OUT" "1 done" "authored done + merged branch with no active commits counts as done"
+assert_not_contains "$OUT" "mergeddone " "merged legacy done hidden by default"
+
 finish
