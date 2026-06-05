@@ -57,7 +57,7 @@ Each angle prompt and the validator declare a `tier:` in frontmatter — `fast`,
 | Tier | Use for | Anthropic | OpenAI (Codex) | Google (Gemini) | OpenRouter |
 |---|---|---|---|---|---|
 | `fast` | rubric checklists (`seo`, `aeo`, `observability`, `types`, `i18n`, `docs`, `deps`), context summaries | `claude-haiku-4-5` | `gpt-5.3-codex-spark` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-flash` |
-| `standard` | reasoning workers (`bugs`, `security`, `architecture`, `design`, `react`, `database`, `tests`, `api`, `infra`) | `claude-sonnet-4-6` | `gpt-5.4` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` |
+| `standard` | reasoning workers (`bugs`, `security`, `architecture`, `design`, `react`, `database`, `tests`, `api`, `infra`, `skills`) | `claude-sonnet-4-6` | `gpt-5.4` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` |
 | `deep` | skeptical validator (highest-leverage filter) | `claude-opus-4-7` | `gpt-5.5` + `reasoning_effort: xhigh` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` + `reasoning_effort: xhigh` |
 
 > **Provider notes:**

@@ -22,7 +22,7 @@ All paths below are relative to the repo root; the review skill lives at `skills
 - Test: `skills/woostack-review/scripts/tests/test-detect-angles-skills.sh` (create)
 - Modify: `skills/woostack-review/scripts/detect-angles.sh` (add `has_skills_file()`, an `ANGLES+=("skills")` block, the `SKILL.md` exclusion in `has_docs_file()`, and header-catalog comments)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `skills/woostack-review/scripts/tests/test-detect-angles-skills.sh`:
 
@@ -66,12 +66,12 @@ rm -rf "$work"
 finish
 ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
 
 Run: `bash skills/woostack-review/scripts/tests/test-detect-angles-skills.sh`
 Expected: FAIL — first assertion errors, `SKILL.md enables skills angle` (the `skills` angle is not emitted yet; `angles.txt` for a SKILL.md-only diff currently contains `bugs security docs`).
 
-- [ ] **Step 3: Add `has_skills_file()` next to the other `has_*_file` helpers**
+- [x] **Step 3: Add `has_skills_file()` next to the other `has_*_file` helpers**
 
 In `skills/woostack-review/scripts/detect-angles.sh`, after the `has_deps_file()` function (ends at the `}` before `ANGLES=("bugs" "security")`), add:
 
@@ -82,7 +82,7 @@ has_skills_file() {
 }
 ```
 
-- [ ] **Step 4: Exclude `SKILL.md` from the `docs` gate**
+- [x] **Step 4: Exclude `SKILL.md` from the `docs` gate**
 
 In the same file, in `has_docs_file()`, add a `SKILL.md` exclusion to the trailing `*.md` filter pipe so a SKILL.md-only PR routes to `skills`, not `docs` (mirrors the existing rule-file exclusions). Change:
 
@@ -103,7 +103,7 @@ to:
     | grep -qE '\.(md|mdx)$' && return 0
 ```
 
-- [ ] **Step 5: Add the `skills` angle to the `ANGLES` assembly**
+- [x] **Step 5: Add the `skills` angle to the `ANGLES` assembly**
 
 In the same file, immediately after the `if has_docs_file; then ANGLES+=("docs") fi` block, add:
 
@@ -113,7 +113,7 @@ if has_skills_file; then
 fi
 ```
 
-- [ ] **Step 6: Update the header-comment catalog**
+- [x] **Step 6: Update the header-comment catalog**
 
 In the leading comment block of `detect-angles.sh`, (a) update the `docs` entry to note the new exclusion, and (b) add a `skills` entry. In the `docs —` comment, append `SKILL.md (owned by the skills angle)` to its existing exclusion parenthetical. After the `architecture —` catalog entry, add:
 
@@ -124,7 +124,7 @@ In the leading comment block of `detect-angles.sh`, (a) update the `docs` entry 
 #               PR routes here, not to docs.
 ```
 
-- [ ] **Step 7: Lint, then run the test, confirm it passes**
+- [x] **Step 7: Lint, then run the test, confirm it passes**
 
 Run: `bash -n skills/woostack-review/scripts/detect-angles.sh && bash skills/woostack-review/scripts/tests/test-detect-angles-skills.sh`
 Expected: PASS (no syntax error; all assertions pass; `finish` prints the success summary).
@@ -134,7 +134,7 @@ Expected: PASS (no syntax error; all assertions pass; `finish` prints the succes
 **Files:**
 - Modify: `skills/woostack-review/scripts/load-config.sh:85` (`VALID_ANGLES`)
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 Run (this is the "failing test" — config `force: ["skills"]` is rejected before the change):
 
@@ -147,7 +147,7 @@ bash skills/woostack-review/scripts/load-config.sh; echo "rc=$?"; rm -rf "$work"
 
 Expected: FAIL — non-zero exit with an annotation containing `angles.force contains unknown angle(s): skills`.
 
-- [ ] **Step 2: Add `"skills"` to `VALID_ANGLES`**
+- [x] **Step 2: Add `"skills"` to `VALID_ANGLES`**
 
 In `skills/woostack-review/scripts/load-config.sh`, change line 85 from:
 
@@ -161,7 +161,7 @@ to (append `, "skills"` before the closing brace):
 VALID_ANGLES = {"bugs", "security", "conventions", "seo", "aeo", "design", "react", "database", "tests", "api", "infra", "observability", "types", "i18n", "docs", "deps", "architecture", "skills"}
 ```
 
-- [ ] **Step 3: Re-run the verification, confirm it passes**
+- [x] **Step 3: Re-run the verification, confirm it passes**
 
 Run:
 
@@ -180,7 +180,7 @@ Expected: PASS — `rc=0` and the final line prints `skills`.
 **Files:**
 - Create: `skills/woostack-review/prompts/angles/skills.md`
 
-- [ ] **Step 1: Write the angle prompt**
+- [x] **Step 1: Write the angle prompt**
 
 Create `skills/woostack-review/prompts/angles/skills.md` with exactly:
 
@@ -241,7 +241,7 @@ tier: standard
 **Output.** Write findings as a JSON array to `/tmp/pr-review/findings.skills.json` using the schema in `_header.md`. Each finding gets `"angle": "skills"` and MUST populate `title` (bold headline ≤60 chars), `description` (the violation — name the file + the best-practice broken, no fix), `fix` (recommended change in prose), and `fix_type`. Anchor each finding's `line` to the most relevant diff-visible line — the frontmatter `name:` / `description:` line for frontmatter findings, the nearest changed line for structural ones — and validate it with `resolve-diff-line.sh`; DROP any finding whose line resolves to `null`. Set `fix_type: "suggestion"` only when a ≤10-line single-file drop-in replacement at `line` is safe — and populate `suggestion`. Otherwise set `fix_type: "prose"` with `suggestion: null`. See `_header.md` for the full rule.
 ```
 
-- [ ] **Step 2: Verify the prompt's shape and that it dogfoods its own rules**
+- [x] **Step 2: Verify the prompt's shape and that it dogfoods its own rules**
 
 Run:
 
@@ -262,11 +262,11 @@ Expected: line 2 is `tier: standard`; the section count prints `5` (the regex ac
 - Modify: `skills/woostack-review/prompts/_header.md` (Model Tiers `standard` row ~line 60)
 - Modify: `skills/woostack-review/prompts/anthropic.md` (tier table `standard` row ~line 51)
 
-- [ ] **Step 1: SKILL.md Stage 2 list — add `skills`**
+- [x] **Step 1: SKILL.md Stage 2 list — add `skills`**
 
 In `skills/woostack-review/SKILL.md`, in the Stage 2 paragraph that enumerates conditional angles, insert `skills` after `deps`. Change `…, \`docs\`, \`deps\`, \`architecture\` (when the diff touches general-purpose source files).` to `…, \`docs\`, \`deps\`, \`skills\` (when a \`SKILL.md\` is in the diff), \`architecture\` (when the diff touches general-purpose source files).`
 
-- [ ] **Step 2: SKILL.md Stage 3 tier table — add a `skills` row**
+- [x] **Step 2: SKILL.md Stage 3 tier table — add a `skills` row**
 
 In the Stage 3 "Tier assignments" table, after the `| \`tests\`, \`api\`, \`infra\` workers | \`standard\` | Coverage/contract/IaC reasoning. |` row, add:
 
@@ -274,15 +274,15 @@ In the Stage 3 "Tier assignments" table, after the `| \`tests\`, \`api\`, \`infr
 | `skills` worker | `standard` | Skill-authoring judgment against the best-practices guide. |
 ```
 
-- [ ] **Step 3: `_header.md` Model Tiers — add `skills` to the standard row**
+- [x] **Step 3: `_header.md` Model Tiers — add `skills` to the standard row**
 
 In `skills/woostack-review/prompts/_header.md`, in the `| \`standard\` |` Model Tiers row, append `, \`skills\`` to the parenthesized worker list so it reads `…\`tests\`, \`api\`, \`infra\`, \`skills\`)`.
 
-- [ ] **Step 4: `anthropic.md` tier table — add `skills` to the standard row**
+- [x] **Step 4: `anthropic.md` tier table — add `skills` to the standard row**
 
 In `skills/woostack-review/prompts/anthropic.md`, in the `| \`standard\` | \`claude-sonnet-4-6\` | …` row, append `, \`skills\`` to the angle list so it ends `…\`api\`, \`infra\`, \`skills\` |`.
 
-- [ ] **Step 5: Verify all four registrations**
+- [x] **Step 5: Verify all four registrations**
 
 Run:
 
@@ -297,7 +297,7 @@ Expected: each `grep` prints exactly one matching line (four matches total).
 
 ### Task 5: Full verification sweep + commit
 
-- [ ] **Step 1: Run the whole review-skill test suite**
+- [x] **Step 1: Run the whole review-skill test suite**
 
 Run:
 
@@ -307,12 +307,12 @@ for t in skills/woostack-review/scripts/tests/test-*.sh; do echo "== $t"; bash "
 
 Expected: every test prints its success summary and exits 0 — including the new `test-detect-angles-skills.sh`.
 
-- [ ] **Step 2: Lint every shell script touched**
+- [x] **Step 2: Lint every shell script touched**
 
 Run: `bash -n skills/woostack-review/scripts/detect-angles.sh && bash -n skills/woostack-review/scripts/load-config.sh && echo OK`
 Expected: prints `OK`.
 
-- [ ] **Step 3: Smoke-test the end-to-end gate against a real skill path**
+- [x] **Step 3: Smoke-test the end-to-end gate against a real skill path**
 
 Run:
 
@@ -326,7 +326,7 @@ cat "$OUTDIR/angles.txt"; rm -rf "$work"
 
 Expected: output contains `skills` and does **not** contain `docs`.
 
-- [ ] **Step 4: Commit the increment**
+- [x] **Step 4: Commit the increment**
 
 Commit via `woostack-commit` (it creates the Graphite branch, pushes, and writes the PR fields). This increment stacks on top of the spec+plan PR.
 
@@ -334,6 +334,6 @@ Commit via `woostack-commit` (it creates the Graphite branch, pushes, and writes
 
 ## Self-review (run before handing back)
 
-- [ ] **Spec coverage** — every spec requirement maps to a task: angle prompt (Task 3) ✓; gating + docs-gate exclusion (Task 1) ✓; `VALID_ANGLES` (Task 2) ✓; SKILL.md Stage 2 + Stage 3, `_header.md`, `anthropic.md` (Task 4) ✓; detect-angles test (Task 1) ✓; severity rubric embedded in the prompt (Task 3) ✓.
-- [ ] **No placeholders** — every step carries the actual code/commands and exact expected output; no TBD/TODO.
-- [ ] **Type consistency** — angle name is `skills` everywhere (artifact `findings.skills.json`, `"angle": "skills"`, `VALID_ANGLES`, all tier tables, gate function `has_skills_file`); tier is `standard` everywhere.
+- [x] **Spec coverage** — every spec requirement maps to a task: angle prompt (Task 3) ✓; gating + docs-gate exclusion (Task 1) ✓; `VALID_ANGLES` (Task 2) ✓; SKILL.md Stage 2 + Stage 3, `_header.md`, `anthropic.md` (Task 4) ✓; detect-angles test (Task 1) ✓; severity rubric embedded in the prompt (Task 3) ✓.
+- [x] **No placeholders** — every step carries the actual code/commands and exact expected output; no TBD/TODO.
+- [x] **Type consistency** — angle name is `skills` everywhere (artifact `findings.skills.json`, `"angle": "skills"`, `VALID_ANGLES`, all tier tables, gate function `has_skills_file`); tier is `standard` everywhere.

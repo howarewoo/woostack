@@ -48,7 +48,7 @@ Then resolve via the **Model Tiers** table in `_header.md`:
 | Tier | Anthropic model | Used for |
 |---|---|---|
 | `fast` | `claude-haiku-4-5` | context+summary, `seo`, `aeo`, `observability`, `types`, `i18n`, `docs`, `deps` |
-| `standard` | `claude-sonnet-4-6` | `bugs`, `security`, `architecture`, `design`, `react`, `database`, `tests`, `api`, `infra` |
+| `standard` | `claude-sonnet-4-6` | `bugs`, `security`, `architecture`, `design`, `react`, `database`, `tests`, `api`, `infra`, `skills` |
 | `deep` | `claude-opus-4-7` | skeptical validator |
 
 **Every Task/Agent spawn MUST pass `model:` explicitly.** Omitting it makes the subagent inherit the parent session's model — typically Opus — which silently defeats tier routing and burns ~5x the tokens on rubric angles. The `tier:` frontmatter is informational unless the spawning call passes the resolved slug.
