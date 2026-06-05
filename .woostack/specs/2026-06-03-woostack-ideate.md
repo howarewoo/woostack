@@ -1,7 +1,7 @@
 ---
 name: woostack-ideate
 type: spec
-status: approved
+status: done
 date: 2026-06-03
 branch: feature/woostack-ideate
 links:

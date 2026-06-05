@@ -39,7 +39,7 @@ Run the suite anytime with: `bash skills/woostack-init/scripts/tests/test-doctor
 - Modify: `skills/woostack-init/scripts/doctor.sh` (per-note loop, after the existing `source_path` / stale-provenance block)
 - Test: `skills/woostack-init/scripts/tests/test-doctor.sh`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add after the existing stale-provenance assertions (after the `pr-source` block, ~line 44), still inside the `$md`/`$repo` setup:
 
@@ -51,12 +51,12 @@ assert_contains "$OUT" "no-source: missing source:" "note without source: is war
 assert_exit 0 "$CODE" "missing source: is a warning"
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bash skills/woostack-init/scripts/tests/test-doctor.sh`
 Expected: FAIL — `[...] does not contain [no-source: missing source:]` (check not implemented yet).
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 In `doctor.sh`, the `source_path` variable is already computed for the stale-provenance check. Immediately after that `case` block (the one matching `.woostack/specs/*|.woostack/plans/*`), add:
 
@@ -64,12 +64,12 @@ In `doctor.sh`, the `source_path` variable is already computed for the stale-pro
   [ -z "$source_path" ] && warn "$base: missing source: (provenance required)"
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `bash skills/woostack-init/scripts/tests/test-doctor.sh`
 Expected: PASS — new assertions green. Existing assertions still green (source-less notes `ok`/`stale`/`link` are only checked via exit code or unrelated substrings).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add skills/woostack-init/scripts/doctor.sh skills/woostack-init/scripts/tests/test-doctor.sh
@@ -84,7 +84,7 @@ git commit -m "feat(doctor): warn on memory notes missing source: (#161)"
 - Modify: `skills/woostack-init/scripts/doctor.sh` (per-note loop)
 - Test: `skills/woostack-init/scripts/tests/test-doctor.sh`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add after the Task 1 block (inside the `$md`/`$repo` setup so notes have `source:`+`updated:` to isolate the non-glob signal):
 
@@ -123,12 +123,12 @@ assert_not_contains "$OUT" "review-ac: non-glob scope" "address-comments note is
 
 Note: `nonglob.md`/`multilit.md` use `scope` values that won't match tracked files, so the existing stale-scope warning also fires — that's fine and independent; we assert only on the `non-glob scope` substring.
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `bash skills/woostack-init/scripts/tests/test-doctor.sh`
 Expected: FAIL on the two `assert_contains "... non-glob scope"` (check not implemented).
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 In `doctor.sh`, after the missing-`source:` line from Task 1 (so `source_path` and `scope` are both in scope), add:
 
@@ -143,12 +143,12 @@ In `doctor.sh`, after the missing-`source:` line from Task 1 (so `source_path` a
 
 `${scope#*\*}` strips the shortest prefix ending in a literal `*`; it equals `$scope` only when `scope` contains no `*` at all.
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `bash skills/woostack-init/scripts/tests/test-doctor.sh`
 Expected: PASS — all Task 2 assertions green; existing assertions still green (no existing fixture has a non-glob, non-review scope).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add skills/woostack-init/scripts/doctor.sh skills/woostack-init/scripts/tests/test-doctor.sh
@@ -163,7 +163,7 @@ git commit -m "feat(doctor): warn on non-glob memory scope, exempt review notes 
 - Modify: `skills/woostack-init/scripts/doctor.sh` (dead-note block)
 - Modify: `skills/woostack-init/scripts/tests/test-doctor.sh` (3 existing fixtures + new tests)
 
-- [ ] **Step 1: Fix the 3 existing fixtures that the new check would flag**
+- [x] **Step 1: Fix the 3 existing fixtures that the new check would flag**
 
 In `test-doctor.sh`, add `\nupdated: 2026-06-02` to the frontmatter of these three `mk_note` calls so the missing-`updated:` warning does not trip their `assert_not_contains`:
 
@@ -173,7 +173,7 @@ mk_note "$md" live-source-plan.md $'name: live-source-plan\ntype: pattern\nscope
 mk_note "$md" pr-source.md $'name: pr-source\ntype: convention\nscope: packages/api/**\nsource: pr-165\nupdated: 2026-06-02' 'body'
 ```
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 Add a dedicated missing-`updated:` test (use its own temp dir to isolate, mirroring the dead-note block style):
 
@@ -188,12 +188,12 @@ assert_not_contains "$OUT" "dead note" "missing updated: does not also emit a de
 rm -rf "$mu"
 ```
 
-- [ ] **Step 3: Run test to verify it fails**
+- [x] **Step 3: Run test to verify it fails**
 
 Run: `bash skills/woostack-init/scripts/tests/test-doctor.sh`
 Expected: FAIL — `[...] does not contain [noupd2: missing updated:]`.
 
-- [ ] **Step 4: Write minimal implementation**
+- [x] **Step 4: Write minimal implementation**
 
 In `doctor.sh`, the dead-note block is `upd="$(field "$f" updated)"; if [ -n "$upd" ]; then ... fi`. Add an `else` branch so a note with no `updated:` is warned instead of silently skipped:
 
@@ -215,17 +215,17 @@ In `doctor.sh`, the dead-note block is `upd="$(field "$f" updated)"; if [ -n "$u
   fi
 ```
 
-- [ ] **Step 5: Run the full suite to verify pass + no regressions**
+- [x] **Step 5: Run the full suite to verify pass + no regressions**
 
 Run: `bash skills/woostack-init/scripts/tests/test-doctor.sh`
 Expected: PASS — new assertion green; the previously-fixed fixtures (Step 1) keep lines ~42-44 green; the existing `dd4 noupd` dead-note assertion still holds (it checks `assert_not_contains "dead note"`, and our new warning text differs).
 
-- [ ] **Step 6: Run the whole init test runner as a final guard**
+- [x] **Step 6: Run the whole init test runner as a final guard**
 
 Run: `bash skills/woostack-init/scripts/tests/run-tests.sh`
 Expected: every `test-*.sh` reports `0 failed`, runner exits 0.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add skills/woostack-init/scripts/doctor.sh skills/woostack-init/scripts/tests/test-doctor.sh
@@ -239,7 +239,7 @@ git commit -m "feat(doctor): warn on memory notes missing updated: (#167)"
 **Files:**
 - Modify: `skills/woostack-init/references/memory.md` (§7 Distillation, §8 Scripts staleness warnings)
 
-- [ ] **Step 1: Add the reject-by-default gate to §7**
+- [x] **Step 1: Add the reject-by-default gate to §7**
 
 In `## 7. Distillation (write path)`, after the existing bullet list (`type` / `scope` / `source` / body) and before the "Distillation **dedupes against `MEMORY.md` first**" paragraph, insert:
 
@@ -254,7 +254,7 @@ In `## 7. Distillation (write path)`, after the existing bullet list (`type` / `
 `doctor.sh` backstops items 1, 2, and 4 with warning-only checks (§8) — they catch escapes but never hard-block.
 ```
 
-- [ ] **Step 2: Document the 3 new warnings in §8**
+- [x] **Step 2: Document the 3 new warnings in §8**
 
 In `## 8. Scripts`, in the **Staleness warnings** list (after the **Dead note** bullet), add:
 
@@ -264,12 +264,12 @@ In `## 8. Scripts`, in the **Staleness warnings** list (after the **Dead note** 
 - **Missing age basis:** a note with no `updated:` field is flagged — it cannot be aged by the dead-note check above. (Both write paths stamp `updated:`; a note without it is anomalous.)
 ```
 
-- [ ] **Step 3: Verify cross-links + render**
+- [x] **Step 3: Verify cross-links + render**
 
 Run: `grep -n "Reject-by-default\|Non-glob scope\|Missing provenance\|Missing age basis" skills/woostack-init/references/memory.md`
 Expected: all four anchors present. Eyeball that §7 and §8 read cleanly and the §8 additions sit under the existing staleness list.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add skills/woostack-init/references/memory.md
@@ -283,7 +283,7 @@ git commit -m "docs(memory): document distillation gate + doctor backstop warnin
 **Files:**
 - Modify: `skills/woostack-build/SKILL.md` (Procedure step 7, "Distill memory")
 
-- [ ] **Step 1: Add the gate pointer to step 7**
+- [x] **Step 1: Add the gate pointer to step 7**
 
 In step 7, after the existing sentence describing dedupe-first and before "Then run `woostack-init`'s `build-index.sh` and `doctor.sh`", insert a terse pointer (do NOT restate the four criteria — `memory.md` §7 is canonical, per the cross-link-don't-duplicate rule):
 
@@ -291,12 +291,12 @@ In step 7, after the existing sentence describing dedupe-first and before "Then 
    Apply the **reject-by-default distillation gate** (see the [memory contract](../woostack-init/references/memory.md) §7): single-file scope, missing `source:`, or a near-duplicate `hook:` ⇒ do not write the note; and **stamp `updated:`** (today's ISO date) on every note you create or update.
 ```
 
-- [ ] **Step 2: Verify the cross-link resolves**
+- [x] **Step 2: Verify the cross-link resolves**
 
 Run: `ls skills/woostack-init/references/memory.md && grep -n "reject-by-default distillation gate" skills/woostack-build/SKILL.md`
 Expected: file exists; the new pointer line is present. Confirm the relative path `../woostack-init/references/memory.md` is correct from `skills/woostack-build/SKILL.md` (sibling `skills/` subdir).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add skills/woostack-build/SKILL.md

@@ -30,7 +30,7 @@
 - Create: `skills/woostack-init/scripts/recall.sh`
 - Test: `skills/woostack-init/scripts/tests/test-recall.sh`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `skills/woostack-init/scripts/tests/test-recall.sh`:
 
@@ -87,11 +87,11 @@ rm -rf "$woo" "$woo2" "$woo3"
 finish
 ```
 
-- [ ] **Step 2: Run, confirm FAIL** (recall.sh missing).
+- [x] **Step 2: Run, confirm FAIL** (recall.sh missing).
 
 Run: `bash skills/woostack-init/scripts/tests/test-recall.sh; echo exit=$?` → FAIL.
 
-- [ ] **Step 3: Write `recall.sh`**
+- [x] **Step 3: Write `recall.sh`**
 
 Create `skills/woostack-init/scripts/recall.sh`:
 
@@ -179,12 +179,12 @@ fi
 exit 0
 ```
 
-- [ ] **Step 4: Run, confirm all pass, full suite green.**
+- [x] **Step 4: Run, confirm all pass, full suite green.**
 
 Run: `bash skills/woostack-init/scripts/tests/test-recall.sh; echo exit=$?` then `bash skills/woostack-init/scripts/tests/run-tests.sh`.
 Expected: recall test all pass; whole suite exit 0. Run shellcheck; info-level OK.
 
-- [ ] **Step 5: Commit** — `feat(woostack-init): recall.sh — scope-routed memory composition + tests`
+- [x] **Step 5: Commit** — `feat(woostack-init): recall.sh — scope-routed memory composition + tests`
 
 ---
 
@@ -193,9 +193,9 @@ Expected: recall test all pass; whole suite exit 0. Run shellcheck; info-level O
 **Files:**
 - Modify: `skills/woostack-review/scripts/prefetch.sh` (memory block ~679-697)
 
-- [ ] **Step 1: Read the current block.** Read `skills/woostack-review/scripts/prefetch.sh` lines 679-700 (the `MEMORY_SRC`/`MEMORY_OUT` block). Note `SCRIPT_DIR` is defined at line 251 as `$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)`.
+- [x] **Step 1: Read the current block.** Read `skills/woostack-review/scripts/prefetch.sh` lines 679-700 (the `MEMORY_SRC`/`MEMORY_OUT` block). Note `SCRIPT_DIR` is defined at line 251 as `$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)`.
 
-- [ ] **Step 2: Replace the block** with recall-first, flat-copy fallback. New block:
+- [x] **Step 2: Replace the block** with recall-first, flat-copy fallback. New block:
 
 ```bash
 # Cross-PR memory — composed per-PR via recall.sh when a scope-routed store
@@ -240,7 +240,7 @@ else
 fi
 ```
 
-- [ ] **Step 3: Syntax check + targeted integration test.**
+- [x] **Step 3: Syntax check + targeted integration test.**
 
 Run:
 ```bash
@@ -260,9 +260,9 @@ rm -rf "$tmp"
 ```
 Expected: `syntax ok` and `INTEGRATION OK` (the API note is recalled, the WEB note is not, for an api-only change).
 
-- [ ] **Step 4: Confirm scope guard.** `git diff origin/main -- skills/woostack-review/scripts/prefetch.sh` shows ONLY the memory block changed (plus the added `changed-paths.txt` derivation). No other prefetch logic touched.
+- [x] **Step 4: Confirm scope guard.** `git diff origin/main -- skills/woostack-review/scripts/prefetch.sh` shows ONLY the memory block changed (plus the added `changed-paths.txt` derivation). No other prefetch logic touched.
 
-- [ ] **Step 5: Commit** — `feat(woostack-review): prefetch composes memory via recall.sh (scope-routed)`
+- [x] **Step 5: Commit** — `feat(woostack-review): prefetch composes memory via recall.sh (scope-routed)`
 
 ---
 
@@ -272,11 +272,11 @@ Expected: `syntax ok` and `INTEGRATION OK` (the API note is recalled, the WEB no
 - Modify: `skills/woostack-review/prompts/_header.md`
 - Modify: `skills/woostack-review/SKILL.md`
 
-- [ ] **Step 1: Update `_header.md`.** In the *Cross-PR memory* bullet (the one describing `/tmp/pr-review/memory.md`), add a sentence: when the repo has a `.woostack/memory/` store, this file is **scope-routed** — it contains the notes whose `scope` matches the PR's changed files, any one-hop linked notes, plus the always-included global shard. Still: do NOT re-flag an issue the memory records as known/accepted. Keep it brief; do not restate the contract.
+- [x] **Step 1: Update `_header.md`.** In the *Cross-PR memory* bullet (the one describing `/tmp/pr-review/memory.md`), add a sentence: when the repo has a `.woostack/memory/` store, this file is **scope-routed** — it contains the notes whose `scope` matches the PR's changed files, any one-hop linked notes, plus the always-included global shard. Still: do NOT re-flag an issue the memory records as known/accepted. Keep it brief; do not restate the contract.
 
-- [ ] **Step 2: Update review `SKILL.md`.** In the *Cross-PR Memory* section, add a short paragraph: when a scope-routed store exists, `prefetch.sh` composes the per-PR memory via `recall.sh` (link `../woostack-init/references/memory.md`) instead of dumping the whole file; the flat `memory.md` remains the always-loaded global shard. One or two sentences.
+- [x] **Step 2: Update review `SKILL.md`.** In the *Cross-PR Memory* section, add a short paragraph: when a scope-routed store exists, `prefetch.sh` composes the per-PR memory via `recall.sh` (link `../woostack-init/references/memory.md`) instead of dumping the whole file; the flat `memory.md` remains the always-loaded global shard. One or two sentences.
 
-- [ ] **Step 3: Verify cross-links + full suite.**
+- [x] **Step 3: Verify cross-links + full suite.**
 
 Run:
 ```bash
@@ -287,7 +287,7 @@ grep -oE '\]\(([^)]+)\)' skills/woostack-review/SKILL.md | sed -E 's/\]\(//; s/\
 ```
 Expected: suite exit 0; no BROKEN lines (the `../woostack-init/...` relative link resolves from `skills/woostack-review/`).
 
-- [ ] **Step 4: Commit** — `docs(woostack-review): document scope-routed memory recall`
+- [x] **Step 4: Commit** — `docs(woostack-review): document scope-routed memory recall`
 
 ---
 

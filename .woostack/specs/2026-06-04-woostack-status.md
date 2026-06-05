@@ -1,7 +1,7 @@
 ---
 name: woostack-status
 type: spec
-status: approved
+status: done
 date: 2026-06-04
 branch: feature/woostack-status
 links:

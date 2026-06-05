@@ -31,7 +31,7 @@
 - Create: `skills/woostack-visualize/references/audiences.md`
 - Modify: `.gitignore`
 
-- [ ] **Step 1: Write `skills/woostack-visualize/SKILL.md`**
+- [x] **Step 1: Write `skills/woostack-visualize/SKILL.md`**
 
 ```markdown
 ---
@@ -94,7 +94,7 @@ The Markdown/code source stays the source of truth; the HTML is a disposable ren
 - **No browser without consent.** Report the path; open only if the user agrees.
 ```
 
-- [ ] **Step 2: Write `skills/woostack-visualize/references/audiences.md`**
+- [x] **Step 2: Write `skills/woostack-visualize/references/audiences.md`**
 
 ```markdown
 # Audience profiles
@@ -148,7 +148,7 @@ vocabulary; a "designer" wants flows, states, and UI surface at moderate depth. 
 inferred framing briefly at the top of the visual so the reader knows the lens.
 ```
 
-- [ ] **Step 3: Add the visuals gitignore line**
+- [x] **Step 3: Add the visuals gitignore line**
 
 Modify `.gitignore`. Under the existing `# woostack:` block (after the `.woostack/metrics.json` line, near the `.woostack/memory/` line), add:
 
@@ -157,7 +157,7 @@ Modify `.gitignore`. Under the existing `# woostack:` block (after the `.woostac
 .woostack/visuals/
 ```
 
-- [ ] **Step 4: Verify structure**
+- [x] **Step 4: Verify structure**
 
 Run:
 ```bash
@@ -168,7 +168,7 @@ git ls-files skills/ | grep -c SKILL.md              # still 7 tracked SKILL.md 
 ```
 Expected: `files OK`; frontmatter shows `name: woostack-visualize`; gitignore line printed; existing SKILL.md count unchanged (no renames).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add skills/woostack-visualize/SKILL.md skills/woostack-visualize/references/audiences.md .gitignore
@@ -185,7 +185,7 @@ git commit -m "feat: add woostack-visualize skill bundle"
 - Modify: `AGENTS.md` (count + list + file map)
 - Modify: `README.md` (install list + How it works)
 
-- [ ] **Step 1: Delegate woostack-build's render-on-demand to the new skill**
+- [x] **Step 1: Delegate woostack-build's render-on-demand to the new skill**
 
 In `skills/woostack-build/SKILL.md`, in Procedure step 2 ("Write the spec as markdown"), the
 "Visualize on demand" sentence currently points directly at `references/spec-template.html`.
@@ -198,7 +198,7 @@ Old (the trailing sentence of step 2):
 New:
 > **Visualize on demand** — if a rich view is wanted, hand the markdown to [`woostack-visualize`](../woostack-visualize/SKILL.md) (audience `engineer` for specs; it uses [references/spec-template.html](references/spec-template.html) as a starting point). The HTML is a presentation target only, never the authored source.
 
-- [ ] **Step 2: Add the routing row in using-woostack**
+- [x] **Step 2: Add the routing row in using-woostack**
 
 In `skills/using-woostack/SKILL.md`, in the Command Routing table, add a row (keep table
 alignment with the existing rows):
@@ -207,7 +207,7 @@ alignment with the existing rows):
 | `/woostack-visualize <source> [for <audience>]`, render a source as audience-tailored HTML | `woostack-visualize` |
 ```
 
-- [ ] **Step 3: Update AGENTS.md count, list, and file map**
+- [x] **Step 3: Update AGENTS.md count, list, and file map**
 
 In `AGENTS.md`:
 - Change "The seven shipped skills are:" → "The eight shipped skills are:".
@@ -221,7 +221,7 @@ In `AGENTS.md`:
     [`skills/woostack-visualize/`](skills/woostack-visualize/SKILL.md)
   ```
 
-- [ ] **Step 4: Update README.md**
+- [x] **Step 4: Update README.md**
 
 In `README.md`:
 - In the Install section, the parenthetical skills list currently reads
@@ -239,7 +239,7 @@ In `README.md`:
   external dependencies. `woostack-build` delegates its spec render to this skill. → [SKILL.md](skills/woostack-visualize/SKILL.md)
   ```
 
-- [ ] **Step 5: Verify cross-links and count**
+- [x] **Step 5: Verify cross-links and count**
 
 Run:
 ```bash
@@ -249,7 +249,7 @@ grep -c "woostack-visualize" README.md          # >=2 (install list + how-it-wor
 ```
 Expected: AGENTS.md says "eight"; each file references `woostack-visualize`; README hit count ≥ 2. Manually confirm no broken relative paths (each links to an existing file).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add skills/woostack-build/SKILL.md skills/using-woostack/SKILL.md AGENTS.md README.md
@@ -263,7 +263,7 @@ git commit -m "docs: register woostack-visualize and delegate spec render to it"
 **Files:**
 - Output (gitignored, not committed): `.woostack/visuals/*.html`
 
-- [ ] **Step 1: Render this spec for all three presets**
+- [x] **Step 1: Render this spec for all three presets**
 
 Following `skills/woostack-visualize/SKILL.md`, render
 `.woostack/specs/2026-06-03-woostack-visualize.md` three times:
@@ -271,7 +271,7 @@ Following `skills/woostack-visualize/SKILL.md`, render
 - `for non-technical` → `...-non-technical.html`
 - `for investor` → `...-investor.html`
 
-- [ ] **Step 2: Verify self-contained + offline + differentiation**
+- [x] **Step 2: Verify self-contained + offline + differentiation**
 
 Run:
 ```bash
@@ -287,7 +287,7 @@ Then inspect each file:
 
 Expected: `offline OK`; three differentiated files; investor file fabricates nothing.
 
-- [ ] **Step 3: Confirm renders are gitignored**
+- [x] **Step 3: Confirm renders are gitignored**
 
 Run:
 ```bash
@@ -296,7 +296,7 @@ git check-ignore .woostack/visuals/2026-06-03-woostack-visualize-engineer.html  
 ```
 Expected: status shows nothing under `visuals/`; `check-ignore` prints the path.
 
-- [ ] **Step 4: No commit**
+- [x] **Step 4: No commit**
 
 Renders are disposable and gitignored — nothing to commit. Task 3 is verification only.
 

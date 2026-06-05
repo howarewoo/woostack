@@ -1,9 +1,9 @@
 ---
 name: bounded-review-swarms
 type: spec
-status: draft
+status: done
 date: 2026-06-03
-branch: bounded-review-swarms
+branch: feature/bounded-review-swarms
 links:
   - https://github.com/howarewoo/woostack/issues/182
 ---

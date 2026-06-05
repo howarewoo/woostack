@@ -33,7 +33,7 @@
 - Create: `skills/woostack-init/scripts/graph.sh`
 - Test: `skills/woostack-init/scripts/tests/test-graph.sh`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `skills/woostack-init/scripts/tests/test-graph.sh`:
 
@@ -89,9 +89,9 @@ rm -rf "$md"
 finish
 ```
 
-- [ ] **Step 2: Run, confirm FAIL** (graph.sh missing).
+- [x] **Step 2: Run, confirm FAIL** (graph.sh missing).
 
-- [ ] **Step 3: Write `graph.sh`**
+- [x] **Step 3: Write `graph.sh`**
 
 Create `skills/woostack-init/scripts/graph.sh`:
 
@@ -144,9 +144,9 @@ case "$MODE" in
 esac
 ```
 
-- [ ] **Step 4: Run test (all pass) + full suite + shellcheck.** `bash skills/woostack-init/scripts/tests/run-tests.sh` exit 0. shellcheck info-level OK.
+- [x] **Step 4: Run test (all pass) + full suite + shellcheck.** `bash skills/woostack-init/scripts/tests/run-tests.sh` exit 0. shellcheck info-level OK.
 
-- [ ] **Step 5: Commit** — `feat(woostack-init): graph.sh links/backlinks helper (grep + obsidian fallback) + tests`
+- [x] **Step 5: Commit** — `feat(woostack-init): graph.sh links/backlinks helper (grep + obsidian fallback) + tests`
 
 ---
 
@@ -156,7 +156,7 @@ esac
 - Create: `skills/woostack-init/templates/obsidian/app.json`, `graph.json`
 - Modify: `skills/woostack-init/templates/gitignore`, `skills/woostack-init/SKILL.md`, `skills/woostack-init/references/memory.md`, `AGENTS.md`
 
-- [ ] **Step 1: Obsidian config templates.**
+- [x] **Step 1: Obsidian config templates.**
 
 `skills/woostack-init/templates/obsidian/app.json`:
 ```json
@@ -177,23 +177,23 @@ esac
 }
 ```
 
-- [ ] **Step 2: gitignore template.** Append to `skills/woostack-init/templates/gitignore`:
+- [x] **Step 2: gitignore template.** Append to `skills/woostack-init/templates/gitignore`:
 ```
 # Obsidian per-user UI state (the shared .obsidian/*.json config IS tracked).
 .obsidian/workspace*
 .obsidian/cache
 ```
 
-- [ ] **Step 3: SKILL.md flags + scaffold step.** In `skills/woostack-init/SKILL.md`:
+- [x] **Step 3: SKILL.md flags + scaffold step.** In `skills/woostack-init/SKILL.md`:
 - Add `--obsidian` and `--no-obsidian` to the **Flags** section: force-enable / force-skip the optional Obsidian vault config; with neither, the skill **prompts** (default no).
 - In the Procedure, add a step (after the core scaffold, before build-index/doctor): "If `--obsidian` (or the user accepts the prompt), scaffold `.woostack/.obsidian/` from `templates/obsidian/` (never clobbering an existing `.obsidian/`). This makes `.woostack/` an Obsidian vault (memory + specs + plans as a `[[wikilink]]` graph). Obsidian is **optional** — all memory tooling works without it."
 - Add a hard-constraint/Reference note that Obsidian is never required.
 
-- [ ] **Step 4: Contract "Obsidian (optional)" section.** In `skills/woostack-init/references/memory.md`, add a new section (renumber Degradation last): the vault is already Obsidian-compatible (markdown + `[[wikilinks]]`); `/woostack-init --obsidian` scaffolds `.woostack/.obsidian/`; `graph.sh <memdir> <note> --links|--backlinks` queries the graph (grep by default, `obsidian eval` when `WOOSTACK_OBSIDIAN=1` + app present); **all core tooling (`recall`, `doctor`, `build-index`) works without Obsidian**.
+- [x] **Step 4: Contract "Obsidian (optional)" section.** In `skills/woostack-init/references/memory.md`, add a new section (renumber Degradation last): the vault is already Obsidian-compatible (markdown + `[[wikilinks]]`); `/woostack-init --obsidian` scaffolds `.woostack/.obsidian/`; `graph.sh <memdir> <note> --links|--backlinks` queries the graph (grep by default, `obsidian eval` when `WOOSTACK_OBSIDIAN=1` + app present); **all core tooling (`recall`, `doctor`, `build-index`) works without Obsidian**.
 
-- [ ] **Step 5: AGENTS.md.** In the woostack-init `templates/` layout entry, mention `obsidian/` (Obsidian vault config). Keep it a one-liner.
+- [x] **Step 5: AGENTS.md.** In the woostack-init `templates/` layout entry, mention `obsidian/` (Obsidian vault config). Keep it a one-liner.
 
-- [ ] **Step 6: Verify.**
+- [x] **Step 6: Verify.**
 ```bash
 # templates are valid JSON
 for j in skills/woostack-init/templates/obsidian/*.json; do python3 -m json.tool "$j" >/dev/null && echo "ok $j"; done
@@ -204,13 +204,13 @@ bash skills/woostack-init/scripts/tests/run-tests.sh >/dev/null 2>&1 && echo "su
 ```
 Expected: both JSONs ok, gitignore ok, suite green.
 
-- [ ] **Step 7: Commit** — `feat(woostack-init): opt-in Obsidian vault config + graph docs`
+- [x] **Step 7: Commit** — `feat(woostack-init): opt-in Obsidian vault config + graph docs`
 
 ---
 
 ## Task 3: Final verify + PR
 
-- [ ] **Step 1: Full suite + scope guard.**
+- [x] **Step 1: Full suite + scope guard.**
 ```bash
 bash skills/woostack-init/scripts/tests/run-tests.sh; echo "suite exit=$?"
 # D touches only woostack-init (graph.sh, templates, SKILL, contract) + AGENTS.md
@@ -218,9 +218,9 @@ git diff --stat feat/woostack-memory-distill..HEAD -- skills/woostack-review ski
 ```
 Expected: suite exit 0; other skills untouched.
 
-- [ ] **Step 2: Dogfood graph.sh** on the example note set (build a quick fixture; confirm `--links`/`--backlinks`).
+- [x] **Step 2: Dogfood graph.sh** on the example note set (build a quick fixture; confirm `--links`/`--backlinks`).
 
-- [ ] **Step 3: Push + open PR** (stacked on `feat/woostack-memory-distill`) — ask the user first per the build loop.
+- [x] **Step 3: Push + open PR** (stacked on `feat/woostack-memory-distill`) — ask the user first per the build loop.
 
 ---
 

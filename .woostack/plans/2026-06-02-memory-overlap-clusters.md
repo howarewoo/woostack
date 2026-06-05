@@ -38,7 +38,7 @@ Run suites with: `bash skills/woostack-init/scripts/tests/run-tests.sh`
 - Modify: `skills/woostack-init/scripts/recall.sh` (matched emission ~line 36; sort ~line 44)
 - Test: `skills/woostack-init/scripts/tests/test-recall.sh`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append before the final `finish` (after the telemetry block, line ~98). Each uses its own fixture so it is order-independent:
 
@@ -76,12 +76,12 @@ assert_not_contains "$cap_out" "OLDER body" "older note dropped first under cap 
 rm -rf "$woo6" "$p6" "$woo7" "$p7"
 ```
 
-- [ ] **Step 2: Run to verify the new tests fail**
+- [x] **Step 2: Run to verify the new tests fail**
 
 Run: `bash skills/woostack-init/scripts/tests/test-recall.sh`
 Expected: FAIL on `recency tie` and `older note dropped first` (current sort ignores `updated:`, so tie order is arbitrary/insertion — at least one assertion fails). The undated test MAY pass by luck; the recency + cap tests will not be reliably green until Step 3.
 
-- [ ] **Step 3: Implement the tiebreak**
+- [x] **Step 3: Implement the tiebreak**
 
 In `recall.sh`, the matched-note emission currently is (line ~36):
 
@@ -112,12 +112,12 @@ done < <(sort -t"$(printf '\t')" -k1,1nr -k2,2r "$matched" | cut -f3-)
 
 `-k1,1nr` keeps match-count primary (numeric, descending); `-k2,2r` orders the `updated:` column descending (ISO dates sort chronologically; an empty column sorts last under reverse, so undated loses the tie); `cut -f3-` recovers the path now that it is the third column.
 
-- [ ] **Step 4: Run to verify pass + no regressions**
+- [x] **Step 4: Run to verify pass + no regressions**
 
 Run: `bash skills/woostack-init/scripts/tests/test-recall.sh`
 Expected: PASS — all new assertions green. The existing match-count ordering test (wide/narrow, different counts) still passes because the primary key is unchanged.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add skills/woostack-init/scripts/recall.sh skills/woostack-init/scripts/tests/test-recall.sh
@@ -132,7 +132,7 @@ git commit -m "feat(recall): break match-count ties by updated: recency (#162)"
 - Modify: `skills/woostack-init/scripts/doctor.sh` (`seen` setup; the scope/stale block; after the per-note loop; cleanup)
 - Test: `skills/woostack-init/scripts/tests/test-doctor.sh`
 
-- [ ] **Step 1: Write the failing tests (isolated git fixture repo)**
+- [x] **Step 1: Write the failing tests (isolated git fixture repo)**
 
 The shared `$repo`/`$md` store already holds many `packages/api/**` notes that would all cluster; overlap tests MUST use their own git repo. Append after the dead-note block (before the `finish` at the end of `test-doctor.sh`):
 
@@ -184,12 +184,12 @@ rm -rf "$orepo" "$ostale"
 
 Note: the fixture notes carry `source:`/`updated:` so the #161 missing-source / missing-updated warnings don't add noise to `$OUT` that could confuse the `assert_not_contains` checks. `c2.md` uses a multi-glob scope including the literal `packages/api/x.ts`, guaranteeing it co-matches `c1.md` on that file.
 
-- [ ] **Step 2: Run to verify the new tests fail**
+- [x] **Step 2: Run to verify the new tests fail**
 
 Run: `bash skills/woostack-init/scripts/tests/test-doctor.sh`
 Expected: FAIL on every `overlap cluster: …` assertion (no clustering implemented yet).
 
-- [ ] **Step 3: Add the pairs temp file to setup**
+- [x] **Step 3: Add the pairs temp file to setup**
 
 In `doctor.sh`, the setup block has `seen="$(mktemp)"`. Add a sibling temp file right after it:
 
@@ -198,7 +198,7 @@ seen="$(mktemp)"
 overlap_pairs="$(mktemp)"
 ```
 
-- [ ] **Step 4: Capture matched files in the scope/stale block (replace, don't double, the scope-match call)**
+- [x] **Step 4: Capture matched files in the scope/stale block (replace, don't double, the scope-match call)**
 
 The current block is:
 
@@ -227,7 +227,7 @@ Replace it with a single scope-match call whose output is captured and reused fo
   fi
 ```
 
-- [ ] **Step 5: Emit cluster warnings after the per-note loop**
+- [x] **Step 5: Emit cluster warnings after the per-note loop**
 
 The loop ends with `done` then `rm -f "$seen"`. Insert the cluster block between them:
 
@@ -263,17 +263,17 @@ rm -f "$seen" "$overlap_pairs"
 
 How it works: the first awk unions notes that share a file and, for each component, emits `min-member<TAB>note` for every member; `sort -u` orders members within a component; the second awk groups by the canonical id and keeps only ≥2-member clusters; the final `sort` orders the cluster lines; the `while` loop turns each into a warning. A note that shares no file with any other never gets unioned → its component has one member → dropped by `cnt >= 2`.
 
-- [ ] **Step 6: Run to verify pass + no regressions**
+- [x] **Step 6: Run to verify pass + no regressions**
 
 Run: `bash skills/woostack-init/scripts/tests/test-doctor.sh`
 Expected: PASS — all overlap assertions green; the pre-existing stale-scope assertion still fires (the stale branch behavior is unchanged); every other assertion unaffected (the shared `$repo` store has tracked files but its notes are validated only via exit code / specific substrings — `overlap cluster` is a new substring not referenced by old assertions). If the shared store happens to emit an `overlap cluster` line, no existing `assert_not_contains` targets that string, so it is harmless.
 
-- [ ] **Step 7: Run the full init suite**
+- [x] **Step 7: Run the full init suite**
 
 Run: `bash skills/woostack-init/scripts/tests/run-tests.sh`
 Expected: every `test-*.sh` reports `0 failed`; runner exits 0.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add skills/woostack-init/scripts/doctor.sh skills/woostack-init/scripts/tests/test-doctor.sh
@@ -287,7 +287,7 @@ git commit -m "feat(doctor): warn on scope-overlap clusters of memory notes (#16
 **Files:**
 - Modify: `skills/woostack-init/references/memory.md` (§6 Recall Procedure, §8 Scripts staleness warnings)
 
-- [ ] **Step 1: Document the recency tiebreak in §6**
+- [x] **Step 1: Document the recency tiebreak in §6**
 
 In `## 6. Recall Procedure`, step 3 currently ends describing scope-match load. Append a sentence to step 3 (the scope-match step):
 
@@ -295,7 +295,7 @@ In `## 6. Recall Procedure`, step 3 currently ends describing scope-match load. 
    When two matched notes have the **same** match-count, the tie is broken by `updated:` recency — the newer note ranks first, and a note without `updated:` ranks last (so under cap pressure the older / undated note is dropped first). Match-count remains the primary key.
 ```
 
-- [ ] **Step 2: Document the overlap-cluster warning in §8**
+- [x] **Step 2: Document the overlap-cluster warning in §8**
 
 In `## 8. Scripts`, in the **Staleness warnings** list, add after the existing bullets:
 
@@ -303,7 +303,7 @@ In `## 8. Scripts`, in the **Staleness warnings** list, add after the existing b
 - **Overlap cluster:** non-global notes whose `scope:` globs match at least one common tracked file are grouped into a cluster and flagged for human review (`overlap cluster: a.md, b.md — intersecting scope, review for contradiction`). doctor cannot judge whether the advice actually contradicts — it surfaces the co-load so a human can. Global notes (`*`/absent) co-load with everything by design and are exempt; a note whose scope matches no tracked file is stale, not clustered. Overlap is measured by shared tracked files (via `scope-match.sh`), so it is skipped when there is no git repo.
 ```
 
-- [ ] **Step 3: Verify + commit**
+- [x] **Step 3: Verify + commit**
 
 Run: `grep -n "Overlap cluster\|broken by .updated. recency" skills/woostack-init/references/memory.md`
 Expected: both additions present.

@@ -1,7 +1,7 @@
 ---
 name: memory-overlap-clusters
 type: spec
-status: draft
+status: done
 date: 2026-06-02
 branch: feature/memory-overlap-clusters
 links:
