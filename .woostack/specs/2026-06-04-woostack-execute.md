@@ -1,12 +1,12 @@
 ---
-name: woostack-execute-skill
+name: woostack-execute
 type: spec
 status: done
 date: 2026-06-04
 branch: feature/woostack-execute
 links:
-  - "[[2026-06-03-woostack-ideate-skill]]"
-  - "[[2026-06-04-woostack-harden-skill]]"
+  - "[[2026-06-03-woostack-ideate]]"
+  - "[[2026-06-04-woostack-harden]]"
 ---
 
 # woostack-execute: a woostack-native plan-execution command — Design Spec

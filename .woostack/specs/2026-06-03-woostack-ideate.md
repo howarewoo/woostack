@@ -1,5 +1,5 @@
 ---
-name: woostack-ideate-skill
+name: woostack-ideate
 type: spec
 status: approved
 date: 2026-06-03

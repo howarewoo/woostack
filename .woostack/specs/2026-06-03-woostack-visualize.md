@@ -1,5 +1,5 @@
 ---
-name: woostack-visualize-skill
+name: woostack-visualize
 type: spec
 status: draft
 date: 2026-06-03
@@ -66,7 +66,7 @@ New files:
 
 Command surface:
 
-- `/woostack-visualize <source> [for <audience>]` — e.g. `/woostack-visualize .woostack/specs/2026-06-03-woostack-visualize-skill.md for an investor`. Source defaults to the most recent spec/plan only when context makes it unambiguous; otherwise the skill asks. Audience defaults to `engineer`.
+- `/woostack-visualize <source> [for <audience>]` — e.g. `/woostack-visualize .woostack/specs/2026-06-03-woostack-visualize.md for an investor`. Source defaults to the most recent spec/plan only when context makes it unambiguous; otherwise the skill asks. Audience defaults to `engineer`.
 
 Output location:
 

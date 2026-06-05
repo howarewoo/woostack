@@ -4,7 +4,7 @@
 
 **Goal:** Ship a `woostack-visualize` skill that reads any source and writes a self-contained, audience-tailored HTML visualization, and wire the existing docs to it.
 
-**Architecture:** A new self-contained skill bundle (`skills/woostack-visualize/`) holding `SKILL.md` (command + four-step procedure + hard constraints) and `references/audiences.md` (three audience presets + free-form rubric). Five existing docs are edited to register and delegate to it. No code, no app build, no CI for this repo — the deliverable is Markdown + agent behavior. Source: [.woostack/specs/2026-06-03-woostack-visualize-skill.md](../specs/2026-06-03-woostack-visualize-skill.md).
+**Architecture:** A new self-contained skill bundle (`skills/woostack-visualize/`) holding `SKILL.md` (command + four-step procedure + hard constraints) and `references/audiences.md` (three audience presets + free-form rubric). Five existing docs are edited to register and delegate to it. No code, no app build, no CI for this repo — the deliverable is Markdown + agent behavior. Source: [.woostack/specs/2026-06-03-woostack-visualize.md](../specs/2026-06-03-woostack-visualize.md).
 
 **Tech Stack:** Markdown skill files; generated output is self-contained HTML (inline CSS/SVG, offline-viewable). No new dependencies.
 
@@ -266,8 +266,8 @@ git commit -m "docs: register woostack-visualize and delegate spec render to it"
 - [ ] **Step 1: Render this spec for all three presets**
 
 Following `skills/woostack-visualize/SKILL.md`, render
-`.woostack/specs/2026-06-03-woostack-visualize-skill.md` three times:
-- `for engineer` → `.woostack/visuals/2026-06-03-woostack-visualize-skill-engineer.html`
+`.woostack/specs/2026-06-03-woostack-visualize.md` three times:
+- `for engineer` → `.woostack/visuals/2026-06-03-woostack-visualize-engineer.html`
 - `for non-technical` → `...-non-technical.html`
 - `for investor` → `...-investor.html`
 
@@ -292,7 +292,7 @@ Expected: `offline OK`; three differentiated files; investor file fabricates not
 Run:
 ```bash
 git status --porcelain .woostack/visuals/   # expect NO output (ignored)
-git check-ignore .woostack/visuals/2026-06-03-woostack-visualize-skill-engineer.html  # prints the path => ignored
+git check-ignore .woostack/visuals/2026-06-03-woostack-visualize-engineer.html  # prints the path => ignored
 ```
 Expected: status shows nothing under `visuals/`; `check-ignore` prints the path.
 
