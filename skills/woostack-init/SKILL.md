@@ -39,12 +39,15 @@ Two callers:
    | `.woostack/memory.md` | (create empty — **never clobber an existing file**) |
    | `.woostack/specs/` directory | (create empty) |
    | `.woostack/plans/` directory | (create empty) |
-   | `.woostack/config.json` | `templates/config.json` (`{ "review": {} }`) |
+   | `.woostack/config.json` | `templates/config.json` (`{ "review": {}, "status": { "staleDays": 14 } }`) |
    | `.woostack/.gitignore` | `templates/gitignore` |
 
-   `config.json` ships as `{ "review": {} }`. Each tool owns its own
-   namespace inside that object; for the `review` namespace see
-   [references/memory.md](references/memory.md).
+   `config.json` ships as `{ "review": {}, "status": { "staleDays": 14 } }`. Each tool owns
+   its own namespace inside that object: for the `review` namespace see
+   [references/memory.md](references/memory.md); the `status` namespace holds `staleDays`
+   (default 14 — the age in days past which an executing spec is flagged stale on the
+   `/woostack-status` board), defined in
+   [../woostack-status/references/conventions.md](../woostack-status/references/conventions.md).
 
 3. **Handle existing files.** For any file that already exists and `--force`
    is not active: prompt the user to keep or overwrite it. Under `--no-clobber`

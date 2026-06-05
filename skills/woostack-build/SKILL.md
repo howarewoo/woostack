@@ -63,24 +63,32 @@ equivalent.
    if a rich view is wanted, hand the markdown to
    [`woostack-visualize`](../woostack-visualize/SKILL.md) (audience `engineer` for specs; it
    uses [references/spec-template.html](references/spec-template.html) as a starting point).
-   The HTML is a presentation target only, never the authored source.
+   The HTML is a presentation target only, never the authored source. Set the spec's
+   `status: draft` in frontmatter — the build loop owns the `status:` enum and authors a
+   transition at each step so `/woostack-status` can read it (the enum and join contracts live
+   in [`../woostack-status/references/conventions.md`](../woostack-status/references/conventions.md);
+   link it, do not restate it).
 3. **Harden the spec, then get spec approval.** Invoke
    [`woostack-harden`](../woostack-harden/SKILL.md) against the spec. Amend the spec
-   in place until hardening stops producing new questions. Then **always present the written
-   spec to the user and get explicit approval before planning** — this is a hard gate. Point
-   the user at the file path (offer a `woostack-visualize` render if it helps), wait for a
-   clear yes, and make any requested changes before advancing. Do **not** proceed to step 4
-   on inferred or assumed approval; silence is not a yes.
+   in place until hardening stops producing new questions, then set `status: hardened`. Then
+   **always present the written spec to the user and get explicit approval before planning** —
+   this is a hard gate. Point the user at the file path (offer a `woostack-visualize` render if
+   it helps), wait for a clear yes, and make any requested changes before advancing. When the
+   gate clears, set `status: approved`. Do **not** proceed to step 4 on inferred or assumed
+   approval; silence is not a yes.
 4. **Plan.** Once the spec is approved, invoke `superpowers:writing-plans`, saving the plan as
    **markdown** to
    `.woostack/plans/YYYY-MM-DD-<slug>.md` (plans are working checklists, not visualization
-   artifacts).
+   artifacts). The plan **must open with** a `**Source:** .woostack/specs/<file>.md` line in
+   its first ~5 lines so the board joins it 1:1 to the spec; keep plans frontmatter-free. Set
+   the spec's `status: planning`.
 5. **Decompose to PR-sized increments.** Steer work toward well-scoped PRs of **preferably
    ≤500 lines of code** — a soft target, not a gate. When the spec implies more than one
    reviewable PR, structure the plan as a sequence of independently shippable increments and
    run **one increment per build cycle**. Flag any slice that can't reasonably stay under the
    target and propose a further split before executing. Genuinely atomic changes may exceed
-   the target.
+   the target. The `spec : plan : PRs = 1 : 1 : N` invariant holds throughout: exactly one
+   plan per spec, and that one plan owns the N increment PRs.
 6. **Harden the plan.** Invoke [`woostack-harden`](../woostack-harden/SKILL.md) again, this
    time against the plan and its increment breakdown — stress-test the sequencing, the
    increment boundaries, and the verifications until hardening stops producing new questions.
@@ -111,7 +119,10 @@ equivalent.
    `.woostack/memory/` — pausing only on a blocking stop. `woostack-execute` owns the
    per-increment commit/review/distill cadence and the inline-vs-subagent mode choice (one plan
    per spec, multiple stacked PRs per plan), so it absorbs what used to be separate "distill
-   memory" and "offer the PR" steps here.
+   memory" and "offer the PR" steps here. As branches, commits, and increment PRs appear the
+   spec advances into the `executing` → `in-review` band (and `done` post-merge); the board
+   **computes** that band from the artifacts via its truth table, so a lagging authored
+   `status:` is reconciled rather than trusted blindly.
 10. **End on the chosen terminal state.** Build ends in one of two shapes, never merging either:
     - **Hand off** → only the spec+plan PR is open (no increment PRs), ready for external or
       later execute.
@@ -142,6 +153,12 @@ equivalent.
   tool. Ambiguous or no answer is not a "go."
 - **Never merge.** build ends on the terminal state (handoff PR, or reviewed stack), nothing
   further.
+- **Author `status:` through the loop.** Set the spec's `status:` at each step — `draft` (step
+  2), `hardened` then `approved` (step 3), `planning` (step 4); the execute phase advances the
+  `executing`/`in-review` band, which the board also computes from artifacts. The phase enum
+  and the `spec : plan : PRs = 1 : 1 : N` join contracts are defined once in
+  [`../woostack-status/references/conventions.md`](../woostack-status/references/conventions.md) —
+  link it, never restate it.
 - **One increment per cycle.** Do not let a single build cycle balloon past a reviewable PR.
 - **Distill durable knowledge only.** `woostack-execute` writes scoped, deduplicated memory
   notes per increment — never feature-specific trivia, never a duplicate of an existing note. A

@@ -52,6 +52,13 @@ Do not run `/woostack-init`, create `.woostack/`, scaffold code, or add config u
 user explicitly asks for that behavior or the loaded task-specific skill requires it as part
 of an approved workflow.
 
+**Feature-state invariant:** in a woostack project, every spec has exactly one plan
+(`spec : plan : PRs = 1 : 1 : N`), and the spec's `status:`/`branch:` frontmatter is
+load-bearing for the `/woostack-status` board. The phase enum and the join contracts are
+defined once in
+[`../woostack-status/references/conventions.md`](../woostack-status/references/conventions.md);
+link it, never restate it.
+
 ## Command Routing
 
 | Request | Load |
@@ -63,6 +70,7 @@ of an approved workflow.
 | `/woostack-commit`, commit session-relevant changes and update PR fields | `woostack-commit` |
 | `/woostack-review [PR#]`, review a PR or local diff | `woostack-review` |
 | `/woostack-address-comments [PR#]`, address unresolved review threads | `woostack-address-comments` |
+| `/woostack-status [--all] [--fetch]`, show the derived feature board (what's in flight, what to do next) | `woostack-status` |
 | `/woostack-visualize <source> [for <audience>]`, render a source as audience-tailored HTML | `woostack-visualize` |
 
 If the user asks for the behavior without using the exact command name, route by intent.
@@ -79,6 +87,9 @@ These thoughts mean stop and load the relevant rules:
 | "I remember the workflow." | The installed skill may have changed. Load it. |
 | "I'll initialize `.woostack/` to be helpful." | This skill is adoption-only; mutate project state only when requested or required by the task skill. |
 | "This is only a review comment." | Review and address flows have posting, validation, and memory rules. |
+| "I'll write another plan for this spec." | Specs and plans are 1:1. A second plan breaks the board's join — amend the one existing plan instead. See [`conventions.md`](../woostack-status/references/conventions.md). |
+| "I'll just set `status:`/`branch:` by hand." | The build loop authors those fields and the `/woostack-status` board reads them; hand-editing or blanking them causes drift flags. |
+| "I'll rename or move this spec or plan." | Renames break the spec↔plan↔PR joins (the `**Source:**` line, `branch:`, the `Spec:` PR trailer). Avoid it, or update every join at once. |
 
 ## AGENTS.md Usage
 

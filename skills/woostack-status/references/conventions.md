@@ -28,8 +28,8 @@ band from artifacts (truth table below).
 | hardened | grilled, awaiting approval gate | 3 |
 | approved | gate cleared, no plan yet | 3 |
 | planning | plan exists, 0 boxes done | 4 |
-| executing | branch + commits, plan partial | 6 |
-| in-review | an increment PR is open | 8 |
+| executing | branch + commits, plan partial | 9 (execute) |
+| in-review | an increment PR is open | 9 (execute) |
 | done | plan 100% + all PRs merged | post-merge |
 | abandoned | shelved (terminal, hidden) | manual |
 
