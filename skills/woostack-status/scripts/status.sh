@@ -144,11 +144,11 @@ resolve_phase() {
   local authored="$1" hasPlan="$2" frac="$3" open="$4" merged="$5" prcount="$6" branchExists="$7" hasCommits="$8"
   if [ "$open" -gt 0 ]; then echo "in-review"; return; fi
   if [ "$frac" = "100" ] && [ "$merged" -gt 0 ] && [ "$merged" -eq "$prcount" ]; then echo "done"; return; fi
-  # Legacy/untrailered features have no discoverable merged PR, so the rule above can't
-  # confirm done. Trust an explicit authored `done` once the plan is 100% complete and no PR
-  # is open (open>0 already returned above) — an explicit terminal assertion plus a finished
-  # plan is credible, and the boundary checks still flag a head-state `done` lie.
-  if [ "$authored" = "done" ] && [ "$frac" = "100" ]; then echo "done"; return; fi
+  # Legacy/untrailered features have no discoverable PR, so the rule above can't confirm
+  # done. Trust an explicit authored `done` only when the plan is 100% complete and no
+  # increment PR was found; discovered increments still have to satisfy the merged==prcount
+  # rule above, so a closed-unmerged PR keeps the feature visible.
+  if [ "$authored" = "done" ] && [ "$frac" = "100" ] && [ "$prcount" -eq 0 ]; then echo "done"; return; fi
   if [ "$hasPlan" -eq 1 ] && [ "$frac" -gt 0 ] && [ "$frac" -lt 100 ] && [ "$hasCommits" -eq 1 ]; then
     echo "executing"
     return

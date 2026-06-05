@@ -41,8 +41,8 @@ band from artifacts (truth table below).
 - any increment PR open -> `in-review`
 - plan partial, no open PR, branch has commits -> `executing`
 - plan 100% + all increment PRs merged + >=1 merged -> `done`
-- authored `done` + plan 100% + no open PR -> `done` (trusts an explicit terminal
-  assertion for legacy/untrailered features whose merged PRs can't be discovered)
+- authored `done` + plan 100% + no discovered increment PR -> `done` (trusts an explicit
+  terminal assertion for legacy/untrailered features whose PRs can't be discovered)
 
 A disagreeing authored value in this band is a FLAG, not displayed truth.
 

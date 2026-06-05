@@ -175,6 +175,15 @@ assert_contains "$OUT" "executing" "closed-unmerged increment prevents done"
 assert_contains "$OUT" "0 done" "closed-unmerged increment not counted done"
 unset FAKE_GH_JSON
 
+ocd="$(mktemp -d)/.woostack"; mkspec "$ocd" oscardone done feature/oscardone
+mkplan "$ocd" oscardone 2026-06-01-oscardone.md 5 0
+export FAKE_GH_JSON='[{"number":11,"state":"MERGED","headRefName":"feature/oscardone","author":{"login":"a"},"updatedAt":"2026-06-02T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-oscardone.md"},{"number":12,"state":"CLOSED","headRefName":"feature/oscardone","author":{"login":"a"},"updatedAt":"2026-06-03T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-oscardone.md"}]'
+PATH="$g/bin:$PATH" run_status "$ocd"
+assert_contains "$OUT" "oscardone" "authored done with closed-unmerged increment stays visible"
+assert_contains "$OUT" "executing" "authored done does not override closed-unmerged increment"
+assert_contains "$OUT" "0 done" "authored done with closed-unmerged increment not counted done"
+unset FAKE_GH_JSON
+
 mkspec "$o" papa abandoned feature/papa
 run_status "$o"
 assert_contains "$OUT" "abandoned" "abandoned counted in footer"
