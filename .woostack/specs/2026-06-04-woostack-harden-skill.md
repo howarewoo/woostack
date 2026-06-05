@@ -1,7 +1,7 @@
 ---
 name: woostack-harden-skill
 type: spec
-status: ready
+status: done
 date: 2026-06-04
 branch: worktree-tender-exploring-swing
 links:

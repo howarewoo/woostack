@@ -1,7 +1,7 @@
 ---
 name: build-execution-handoff-gate
 type: spec
-status: ready
+status: done
 date: 2026-06-04
 branch: worktree-nested-wishing-hanrahan
 links:
