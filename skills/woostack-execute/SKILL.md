@@ -1,6 +1,6 @@
 ---
 name: woostack-execute
-description: Use to execute an approved woostack plan as a sequence of PR-sized, stacked increments via an inline or subagent-driven driver (--inline/--subagent, smart default) — implement each increment with TDD, tick the plan's checkboxes in place, commit via woostack-commit on its own Graphite branch, review each increment (woostack-review --fast inline; per-task spec+quality subagent loops in subagent mode), distill durable learnings, then continue. This is the execute phase of the woostack build loop (woostack-build step 8); also usable standalone via /woostack-execute <plan-path> [--inline|--subagent]. One plan per spec, multiple PRs per plan. Never merges.
+description: Use to execute an approved woostack plan as a sequence of PR-sized, stacked increments via an inline or subagent-driven driver (--inline/--subagent, smart default) — implement each increment with TDD, tick the plan's checkboxes in place, commit via woostack-commit on its own Graphite branch, review each increment (woostack-review --fast inline; per-task spec+quality subagent loops in subagent mode, each routed to a tier-appropriate model), distill durable learnings, then continue. This is the execute phase of the woostack build loop (woostack-build step 8); also usable standalone via /woostack-execute <plan-path> [--inline|--subagent]. One plan per spec, multiple PRs per plan. Never merges.
 ---
 
 # woostack-execute
@@ -36,7 +36,10 @@ step differs (see the cadence below).
   implementer subagent per task plus a spec→quality reviewer loop. Those per-task loops **are**
   the automated review, so subagent mode does **not** run `woostack-review --fast`; each PR is
   reviewed manually after execution. This driver internalizes the subagent-driven
-  implementation pattern — no runtime dependency on any external skill.
+  implementation pattern — no runtime dependency on any external skill. In subagent mode the
+  driver also **varies the model per task** — resolving a `fast | standard | deep` tier from task
+  complexity/risk and passing it on each dispatch (see
+  [references/subagent-driver.md](references/subagent-driver.md) → Tier selection / Dispatch model).
 
 **Selecting the mode:** an explicit `--inline` or `--subagent` flag always wins. With no flag,
 take the **smart default**: subagent where the host can spawn subagents (an `Agent`/`Task` tool

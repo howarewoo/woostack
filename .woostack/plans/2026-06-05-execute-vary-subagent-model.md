@@ -409,7 +409,7 @@ branch (base = the spec+plan PR). PR title e.g. `refactor(review): promote tier�
 **Files:**
 - Modify: `skills/woostack-execute/references/subagent-driver.md:60,65`
 
-- [ ] **Step 1: Replace both `_header.md` references in the `## Model tiers` section**
+- [x] **Step 1: Replace both `_header.md` references in the `## Model tiers` section**
 
 In the `## Model tiers` section (line 59 onward), replace:
 
@@ -428,7 +428,7 @@ Model Tiers table in
 Each prompt template declares its `tier:` in frontmatter as the role default:
 ```
 
-- [ ] **Step 2: Verify the repoint**
+- [x] **Step 2: Verify the repoint**
 
 Run:
 
@@ -446,7 +446,7 @@ Expected: `OK`.
 **Files:**
 - Modify: `skills/woostack-execute/references/subagent-driver.md` (end of `## Model tiers`, after the existing tier bullets ~line 66)
 
-- [ ] **Step 1: Replace the closing "Where the host cannot route…" line with the full contract**
+- [x] **Step 1: Replace the closing "Where the host cannot route…" line with the full contract**
 
 Replace:
 
@@ -475,7 +475,7 @@ states for its angle spawns. **When the host cannot route per call**, run at the
 **say so** (degraded, not equivalent) — never pretend a tier ran.
 ```
 
-- [ ] **Step 2: Verify the contract landed**
+- [x] **Step 2: Verify the contract landed**
 
 Run:
 
@@ -493,7 +493,7 @@ Expected: `OK`.
 **Files:**
 - Modify: `skills/woostack-execute/references/subagent-driver.md` (the three tier bullets at lines 63–66)
 
-- [ ] **Step 1: Replace the `fast/standard/deep` static bullets**
+- [x] **Step 1: Replace the `fast/standard/deep` static bullets**
 
 Replace:
 
@@ -522,7 +522,7 @@ from complexity and risk — this table is the single home for the choice:
 The resolved effective tier feeds [Dispatch model](#dispatch-model-resolve--map--pass) above.
 ```
 
-- [ ] **Step 2: Verify the heuristic landed and the old static bullets are gone**
+- [x] **Step 2: Verify the heuristic landed and the old static bullets are gone**
 
 Run:
 
@@ -541,7 +541,7 @@ Expected: `OK`.
 **Files:**
 - Modify: `skills/woostack-execute/references/subagent-driver.md` (per-task loop steps 1, 2, 3, 4 at lines 31–50)
 
-- [ ] **Step 1: Cite the contract in the implementer dispatch (step 1)**
+- [x] **Step 1: Cite the contract in the implementer dispatch (step 1)**
 
 In step 1 (`Dispatch an implementer subagent with …implementer.md`), append to the end of the
 sentence "…the subagent never inherits this session's history.":
@@ -551,7 +551,7 @@ sentence "…the subagent never inherits this session's history.":
    [Tier selection](#tier-selection).
 ```
 
-- [ ] **Step 2: Align the BLOCKED handling (step 2) with the heuristic**
+- [x] **Step 2: Align the BLOCKED handling (step 2) with the heuristic**
 
 In step 2's `BLOCKED` bullet, change `needs more reasoning (re-dispatch at a higher tier)` to:
 
@@ -560,7 +560,7 @@ needs more reasoning (re-dispatch one tier higher per [Tier selection](#tier-sel
 prior BLOCKED is itself a bump-UP signal)
 ```
 
-- [ ] **Step 3: Cite the contract in both reviewer dispatches (steps 3 and 4)**
+- [x] **Step 3: Cite the contract in both reviewer dispatches (steps 3 and 4)**
 
 In step 3 (spec-compliance reviewer) and step 4 (code-quality reviewer), append to each dispatch
 sentence:
@@ -570,7 +570,7 @@ Resolve and pass its model per [Dispatch model](#dispatch-model-resolve--map--pa
 [Tier selection](#tier-selection).
 ```
 
-- [ ] **Step 4: Verify all three dispatch steps reference the contract**
+- [x] **Step 4: Verify all three dispatch steps reference the contract**
 
 Run:
 
@@ -587,13 +587,13 @@ Expected: `OK` — at least the three dispatch-step citations (implementer step 
 **Files:**
 - Modify: `skills/woostack-execute/SKILL.md` (description frontmatter line 3; the subagent bullet in `## Execution mode` ~line 36)
 
-- [ ] **Step 1: Add a clause to the `description:`**
+- [x] **Step 1: Add a clause to the `description:`**
 
 In the `description:` frontmatter, change the subagent clause
 `per-task spec+quality subagent loops in subagent mode` to
 `per-task spec+quality subagent loops in subagent mode, each routed to a tier-appropriate model`.
 
-- [ ] **Step 2: Add a sentence to the subagent-mode bullet in `## Execution mode`**
+- [x] **Step 2: Add a sentence to the subagent-mode bullet in `## Execution mode`**
 
 At the end of the `- **subagent** (…subagent-driver.md…)` bullet, append:
 
@@ -603,7 +603,7 @@ At the end of the `- **subagent** (…subagent-driver.md…)` bullet, append:
   [references/subagent-driver.md](references/subagent-driver.md) → Tier selection / Dispatch model).
 ```
 
-- [ ] **Step 3: Verify the SKILL mentions model variation**
+- [x] **Step 3: Verify the SKILL mentions model variation**
 
 Run:
 
@@ -620,7 +620,7 @@ Expected: `OK`.
 
 **Files:** _(verification only)_
 
-- [ ] **Step 1: Confirm prompt `tier:` frontmatter is still the role-default source**
+- [x] **Step 1: Confirm prompt `tier:` frontmatter is still the role-default source**
 
 Run:
 
@@ -632,7 +632,7 @@ grep -q '^tier: deep' skills/woostack-execute/prompts/quality-reviewer.md && ech
 
 Expected: `OK` (unchanged — defaults match the Tier-selection table).
 
-- [ ] **Step 2: No dangling links; twelve SKILL.md files intact**
+- [x] **Step 2: No dangling links; twelve SKILL.md files intact**
 
 Run:
 
@@ -643,7 +643,7 @@ test "$(ls skills/*/SKILL.md | wc -l)" -eq 12 && echo OK
 
 Expected: `OK`.
 
-- [ ] **Step 3: Dry-run walkthrough (manual, recorded in the PR body)**
+- [x] **Step 3: Dry-run walkthrough (manual, recorded in the PR body)**
 
 Confirm by reading the driver that:
 - a trivial single-file task resolves `fast` → implementer dispatched at the fast model;
@@ -651,7 +651,7 @@ Confirm by reading the driver that:
 - quality-reviewer stays `deep` on a non-trivial diff, `standard` on a trivial one;
 - a host without per-call routing runs the session model and reports it as degraded.
 
-- [ ] **Step 4: Commit the increment**
+- [x] **Step 4: Commit the increment**
 
 Use [`woostack-commit`](../../skills/woostack-commit/SKILL.md) on this increment's Graphite branch
 (stacked on PR 1). PR title e.g. `feat(execute): vary subagent model per task (tier wiring + heuristic)`. Body: goal, the wire+adapt summary, and Steps 1–3 as the test plan.
