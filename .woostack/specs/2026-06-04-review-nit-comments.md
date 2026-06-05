@@ -1,9 +1,9 @@
 ---
 name: review-nit-comments
 type: spec
-status: draft
+status: done
 date: 2026-06-04
-branch: review-nit-comments
+branch: feature/review-nit-comments
 links:
 ---
 

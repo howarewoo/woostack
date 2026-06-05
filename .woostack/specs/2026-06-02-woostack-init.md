@@ -1,7 +1,7 @@
 ---
 name: woostack-init
 type: spec
-status: hardened
+status: done
 date: 2026-06-02
 branch: feat/woostack-init
 increment: A of 4

@@ -40,7 +40,7 @@
 - Create: `skills/woostack-init/scripts/tests/assert.sh`
 - Create: `skills/woostack-init/scripts/tests/run-tests.sh`
 
-- [ ] **Step 1: Write the assert helpers**
+- [x] **Step 1: Write the assert helpers**
 
 Create `skills/woostack-init/scripts/tests/assert.sh`:
 
@@ -75,7 +75,7 @@ mk_memdir() { mktemp -d; }
 mk_note() { printf -- '---\n%s\n---\n%s\n' "$3" "$4" > "$1/$2"; }
 ```
 
-- [ ] **Step 2: Write the runner**
+- [x] **Step 2: Write the runner**
 
 Create `skills/woostack-init/scripts/tests/run-tests.sh`:
 
@@ -92,7 +92,7 @@ done
 exit "$rc"
 ```
 
-- [ ] **Step 3: Make executable and verify the runner runs with no tests**
+- [x] **Step 3: Make executable and verify the runner runs with no tests**
 
 Run:
 ```bash
@@ -101,7 +101,7 @@ bash skills/woostack-init/scripts/tests/run-tests.sh; echo "exit=$?"
 ```
 Expected: no `test-*.sh` yet → prints nothing under a loop, `exit=0`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add skills/woostack-init/scripts/tests/assert.sh skills/woostack-init/scripts/tests/run-tests.sh
@@ -116,7 +116,7 @@ git commit -m "test(woostack-init): bash assert harness + runner"
 - Create: `skills/woostack-init/scripts/lib.sh`
 - Test: `skills/woostack-init/scripts/tests/test-lib.sh`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `skills/woostack-init/scripts/tests/test-lib.sh`:
 
@@ -140,12 +140,12 @@ rm -rf "$d"
 finish
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bash skills/woostack-init/scripts/tests/test-lib.sh; echo "exit=$?"`
 Expected: FAIL — `lib.sh` does not exist (source error), `exit` non-zero.
 
-- [ ] **Step 3: Write `lib.sh`**
+- [x] **Step 3: Write `lib.sh`**
 
 Create `skills/woostack-init/scripts/lib.sh`:
 
@@ -172,12 +172,12 @@ first_body_line() {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `bash skills/woostack-init/scripts/tests/test-lib.sh; echo "exit=$?"`
 Expected: `6 passed, 0 failed`, `exit=0`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add skills/woostack-init/scripts/lib.sh skills/woostack-init/scripts/tests/test-lib.sh
@@ -192,7 +192,7 @@ git commit -m "feat(woostack-init): frontmatter helper lib + tests"
 - Create: `skills/woostack-init/scripts/scope-match.sh`
 - Test: `skills/woostack-init/scripts/tests/test-scope-match.sh`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `skills/woostack-init/scripts/tests/test-scope-match.sh`:
 
@@ -243,12 +243,12 @@ assert_exit 1 "$code" "no match exits 1"
 finish
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bash skills/woostack-init/scripts/tests/test-scope-match.sh; echo "exit=$?"`
 Expected: FAIL — `scope-match.sh` missing.
 
-- [ ] **Step 3: Write `scope-match.sh`**
+- [x] **Step 3: Write `scope-match.sh`**
 
 Create `skills/woostack-init/scripts/scope-match.sh`:
 
@@ -295,12 +295,12 @@ done
 if grep -E "$ERE"; then exit 0; else exit 1; fi
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `bash skills/woostack-init/scripts/tests/test-scope-match.sh; echo "exit=$?"`
 Expected: all assertions pass, `exit=0`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add skills/woostack-init/scripts/scope-match.sh skills/woostack-init/scripts/tests/test-scope-match.sh
@@ -315,7 +315,7 @@ git commit -m "feat(woostack-init): scope-match glob primitive + tests"
 - Create: `skills/woostack-init/scripts/build-index.sh`
 - Test: `skills/woostack-init/scripts/tests/test-build-index.sh`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `skills/woostack-init/scripts/tests/test-build-index.sh`:
 
@@ -357,12 +357,12 @@ rm -rf "$d"
 finish
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bash skills/woostack-init/scripts/tests/test-build-index.sh; echo "exit=$?"`
 Expected: FAIL — `build-index.sh` missing.
 
-- [ ] **Step 3: Write `build-index.sh`**
+- [x] **Step 3: Write `build-index.sh`**
 
 Create `skills/woostack-init/scripts/build-index.sh`:
 
@@ -400,12 +400,12 @@ done
 rm -f "$tmp"
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `bash skills/woostack-init/scripts/tests/test-build-index.sh; echo "exit=$?"`
 Expected: all pass, `exit=0`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add skills/woostack-init/scripts/build-index.sh skills/woostack-init/scripts/tests/test-build-index.sh
@@ -420,7 +420,7 @@ git commit -m "feat(woostack-init): derived MEMORY.md index builder + tests"
 - Create: `skills/woostack-init/scripts/doctor.sh`
 - Test: `skills/woostack-init/scripts/tests/test-doctor.sh`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `skills/woostack-init/scripts/tests/test-doctor.sh`:
 
@@ -475,12 +475,12 @@ rm -rf "$repo"
 finish
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bash skills/woostack-init/scripts/tests/test-doctor.sh; echo "exit=$?"`
 Expected: FAIL — `doctor.sh` missing.
 
-- [ ] **Step 3: Write `doctor.sh`**
+- [x] **Step 3: Write `doctor.sh`**
 
 Create `skills/woostack-init/scripts/doctor.sh`:
 
@@ -543,17 +543,17 @@ echo "doctor: $errors error(s), $warnings warning(s)" >&2
 [ "$errors" -eq 0 ]
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `bash skills/woostack-init/scripts/tests/test-doctor.sh; echo "exit=$?"`
 Expected: all pass, `exit=0`.
 
-- [ ] **Step 5: Run the whole suite**
+- [x] **Step 5: Run the whole suite**
 
 Run: `bash skills/woostack-init/scripts/tests/run-tests.sh; echo "exit=$?"`
 Expected: every `test-*.sh` reports `0 failed`, `exit=0`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add skills/woostack-init/scripts/doctor.sh skills/woostack-init/scripts/tests/test-doctor.sh
@@ -569,7 +569,7 @@ git commit -m "feat(woostack-init): store linter (doctor) + tests"
 - Create: `skills/woostack-init/templates/gitignore`
 - Create: `skills/woostack-init/templates/example-note.md`
 
-- [ ] **Step 1: Write the templates**
+- [x] **Step 1: Write the templates**
 
 `skills/woostack-init/templates/config.json`:
 ```json
@@ -601,7 +601,7 @@ Notes link each other in the body with wikilinks like [[example-note]].
 Recall loads this only when a working-set path matches `scope`.
 ```
 
-- [ ] **Step 2: Verify the example note passes doctor and indexes**
+- [x] **Step 2: Verify the example note passes doctor and indexes**
 
 Run:
 ```bash
@@ -612,7 +612,7 @@ bash skills/woostack-init/scripts/doctor.sh "$tmp"; echo "doctor exit=$?"
 ```
 Expected: index line `- [example-note](example-note.md) \`convention\` scope=\`*\` — Delete me — example of the memory note format`; doctor reports **no unresolved-link warning** (the example self-links `[[example-note]]`, which resolves) and **exits 0**. Confirm `doctor exit=0`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add skills/woostack-init/templates/
@@ -626,7 +626,7 @@ git commit -m "feat(woostack-init): workspace templates (config, gitignore, exam
 **Files:**
 - Create: `skills/woostack-init/references/memory.md`
 
-- [ ] **Step 1: Write the contract doc**
+- [x] **Step 1: Write the contract doc**
 
 Create `skills/woostack-init/references/memory.md` with these sections (prose, normal English — NOT caveman):
 
@@ -641,7 +641,7 @@ Create `skills/woostack-init/references/memory.md` with these sections (prose, n
 
 Cross-link rule: link to `../../woostack-review/SKILL.md` for the `review` config namespace; do **not** restate it.
 
-- [ ] **Step 2: Verify cross-links resolve**
+- [x] **Step 2: Verify cross-links resolve**
 
 Run:
 ```bash
@@ -653,7 +653,7 @@ done; echo "link check done"
 ```
 Expected: `link check done` with no `BROKEN:` lines.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add skills/woostack-init/references/memory.md
@@ -667,7 +667,7 @@ git commit -m "docs(woostack-init): canonical scope-routed memory contract"
 **Files:**
 - Create: `skills/woostack-init/SKILL.md`
 
-- [ ] **Step 1: Write SKILL.md**
+- [x] **Step 1: Write SKILL.md**
 
 Create `skills/woostack-init/SKILL.md`. Frontmatter `description` must drive discovery (mention: initialize/scaffold/repair the `.woostack/` workspace, memory store, specs/plans, config). Body sections:
 
@@ -682,12 +682,12 @@ Create `skills/woostack-init/SKILL.md`. Frontmatter `description` must drive dis
 - **Hard constraints** — never clobber `memory.md`/notes/`config.json` without explicit overwrite; the flat `memory.md` and other skills' files are out of scope; pure-bash scripts, no new runtime dep.
 - **Reference** — link to `references/memory.md` for the store contract.
 
-- [ ] **Step 2: Lint-check the skill's own scripts still pass**
+- [x] **Step 2: Lint-check the skill's own scripts still pass**
 
 Run: `bash skills/woostack-init/scripts/tests/run-tests.sh; echo "exit=$?"`
 Expected: `exit=0` (unchanged by docs).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add skills/woostack-init/SKILL.md
@@ -701,7 +701,7 @@ git commit -m "feat(woostack-init): /woostack-init verb (scaffold + repair works
 **Files:**
 - Modify: `AGENTS.md`
 
-- [ ] **Step 1: Update the four→five references**
+- [x] **Step 1: Update the four→five references**
 
 Edit `AGENTS.md`:
 - "What this repo is": change "The four skills are: …" to list five, adding `woostack-init`.
@@ -710,7 +710,7 @@ Edit `AGENTS.md`:
 - "Quick reference" table: add a row `| Initialize the .woostack workspace | skills/woostack-init/SKILL.md |` and `| Change the memory contract | skills/woostack-init/references/memory.md |`.
 - Anywhere "four SKILL.md files" is enumerated as a do-not-move list: add the fifth path `skills/woostack-init/SKILL.md`.
 
-- [ ] **Step 2: Verify the count is consistent**
+- [x] **Step 2: Verify the count is consistent**
 
 Run:
 ```bash
@@ -719,7 +719,7 @@ grep -c "woostack-init" AGENTS.md
 ```
 Expected: `no stale 'four' references`; `woostack-init` count ≥ 4 (intro, layout, command table, quick-ref).
 
-- [ ] **Step 3: Verify all AGENTS.md cross-links resolve**
+- [x] **Step 3: Verify all AGENTS.md cross-links resolve**
 
 Run:
 ```bash
@@ -731,7 +731,7 @@ done; echo "agents link check done"
 ```
 Expected: `agents link check done`, no `BROKEN:` lines.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add AGENTS.md
@@ -742,12 +742,12 @@ git commit -m "docs: register woostack-init as the fifth skill"
 
 ## Task 10: Final verification + dogfood
 
-- [ ] **Step 1: Full test suite**
+- [x] **Step 1: Full test suite**
 
 Run: `bash skills/woostack-init/scripts/tests/run-tests.sh; echo "exit=$?"`
 Expected: every suite `0 failed`, `exit=0`.
 
-- [ ] **Step 2: Dogfood the scripts on this very repo's `.woostack/`**
+- [x] **Step 2: Dogfood the scripts on this very repo's `.woostack/`**
 
 Run:
 ```bash
@@ -761,17 +761,17 @@ rmdir .woostack/memory 2>/dev/null || true
 ```
 Expected: index builds; the example's `[[example-note]]` self-link resolves (no unresolved-link warning) and `doctor exit=0`.
 
-- [ ] **Step 3: shellcheck (if available)**
+- [x] **Step 3: shellcheck (if available)**
 
 Run: `command -v shellcheck >/dev/null && shellcheck skills/woostack-init/scripts/*.sh || echo "shellcheck not installed — skipped"`
 Expected: no errors, or the skip notice. Fix any error-level findings.
 
-- [ ] **Step 4: Confirm nothing outside scope was touched**
+- [x] **Step 4: Confirm nothing outside scope was touched**
 
 Run: `git diff --stat origin/main -- skills/woostack-review skills/woostack-build skills/woostack-bootstrap skills/woostack-address-comments .woostack/memory.md`
 Expected: **empty** — increment A touches none of the other skills, the review pipeline, or the flat `memory.md`.
 
-- [ ] **Step 5: Push + open PR (build skill step 7 — ask first)**
+- [x] **Step 5: Push + open PR (build skill step 7 — ask first)**
 
 Per woostack-build, ask the user before opening the PR. On yes:
 ```bash

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Bash + embedded Python 3 + `jq`; bash test harness under `skills/woostack-review/scripts/tests/` sourcing `skills/woostack-init/scripts/tests/assert.sh`.
 
-**Spec:** `.woostack/specs/2026-06-02-review-metrics-tokens-overlap.md` (Increment 1).
+**Source:** specs/2026-06-02-review-metrics-tokens-overlap.md (Increment 1; tokens deferred per spec §8).
 
 ---
 
@@ -28,7 +28,7 @@
 - Test: `skills/woostack-review/scripts/tests/test-intersect-overlap.sh` (create)
 - Modify: `skills/woostack-review/scripts/intersect-findings.sh` (the `emit_angle_metrics` Python heredoc)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `skills/woostack-review/scripts/tests/test-intersect-overlap.sh`:
 
@@ -93,12 +93,12 @@ rm -rf "$work"
 finish
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bash skills/woostack-review/scripts/tests/test-intersect-overlap.sh`
 Expected: FAIL — `overlap_total` is `null` (jq prints `null`, not `2`), and `schema_version` is `1`. (The script still produces `findings.metrics.json`, so the first assert passes; the overlap asserts fail.)
 
-- [ ] **Step 3: Implement overlap in the `emit_angle_metrics` heredoc**
+- [x] **Step 3: Implement overlap in the `emit_angle_metrics` heredoc**
 
 In `skills/woostack-review/scripts/intersect-findings.sh`, find the Python heredoc inside `emit_angle_metrics()`. Make three edits.
 
@@ -165,12 +165,12 @@ Then, inside the `for a in angles:` loop, **after** the `rec = { ... }` literal 
     rec["overlap_total"] = sum(ow.values())
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `bash skills/woostack-review/scripts/tests/test-intersect-overlap.sh`
 Expected: PASS — `0 failed`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add skills/woostack-review/scripts/intersect-findings.sh skills/woostack-review/scripts/tests/test-intersect-overlap.sh
@@ -185,7 +185,7 @@ git commit -m "feat(review): per-angle cross-angle overlap in findings.metrics.j
 - Test: `skills/woostack-review/scripts/tests/test-metrics-fold-overlap.sh` (create)
 - Modify: `skills/woostack-review/scripts/metrics-fold.sh`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `skills/woostack-review/scripts/tests/test-metrics-fold-overlap.sh`:
 
@@ -248,12 +248,12 @@ rm -rf "$work"
 finish
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bash skills/woostack-review/scripts/tests/test-metrics-fold-overlap.sh`
 Expected: FAIL — with `SCHEMA_VERSION=1` the stale v1 file is treated as current (no `.bak`, `schema_version` stays 1), and `overlap_total` folds to `null`.
 
-- [ ] **Step 3: Bump the schema version**
+- [x] **Step 3: Bump the schema version**
 
 In `skills/woostack-review/scripts/metrics-fold.sh`, change:
 
@@ -265,7 +265,7 @@ to:
 SCHEMA_VERSION=2
 ```
 
-- [ ] **Step 4: Add overlap to the slot template and accumulation**
+- [x] **Step 4: Add overlap to the slot template and accumulation**
 
 In the Python heredoc of `metrics-fold.sh`, the per-angle slot is created with `agg["angles"].setdefault(angle, { ... })`. Add the two overlap keys to that template dict (alongside `"severity_total"`):
 
@@ -293,12 +293,12 @@ add immediately after it:
         slot["overlap_with"][b] = num(slot["overlap_with"].get(b)) + num(n)
 ```
 
-- [ ] **Step 5: Run test to verify it passes**
+- [x] **Step 5: Run test to verify it passes**
 
 Run: `bash skills/woostack-review/scripts/tests/test-metrics-fold-overlap.sh`
 Expected: PASS — `0 failed`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add skills/woostack-review/scripts/metrics-fold.sh skills/woostack-review/scripts/tests/test-metrics-fold-overlap.sh
@@ -312,7 +312,7 @@ git commit -m "feat(review): fold cross-angle overlap into rolling metrics, sche
 **Files:**
 - Modify: `skills/woostack-review/SKILL.md`
 
-- [ ] **Step 1: Update the `findings.metrics.json` artifact-table row**
+- [x] **Step 1: Update the `findings.metrics.json` artifact-table row**
 
 Find the table row (around line 222) beginning:
 
@@ -326,7 +326,7 @@ Append the two new keys to its key list so it ends:
 … `blocking_count`, `nonblocking_count`, `severity`, `overlap_total`, `overlap_with` (per-other-angle co-occurrence counts on the raw set; schema v2) |
 ```
 
-- [ ] **Step 2: Update the `metrics` config note**
+- [x] **Step 2: Update the `metrics` config note**
 
 Find the bullet (around line 165):
 
@@ -340,12 +340,12 @@ Replace it with:
 - **`metrics`**: opt in to per-angle signal/noise metrics (bool, default `false`) — emit `findings.metrics.json` per run and fold a rolling `.woostack/metrics.json` aggregate (local only). Each angle also carries `overlap_total` + `overlap_with` (how often another angle raised the same issue, on the raw pre-validation set — a redundancy signal). Aggregate schema is v2; an older v1 aggregate is reseeded on first fold. See Stage 6.5.
 ```
 
-- [ ] **Step 3: Verify no cross-links broke**
+- [x] **Step 3: Verify no cross-links broke**
 
 Run: `grep -n "findings.metrics.json\|review.metrics\|overlap" skills/woostack-review/SKILL.md`
 Expected: the updated row + bullet appear; no other reference contradicts the new keys.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add skills/woostack-review/SKILL.md
@@ -358,7 +358,7 @@ git commit -m "docs(review): document overlap metric + schema v2 in SKILL.md"
 
 **Files:** none (verification only)
 
-- [ ] **Step 1: Run both new tests**
+- [x] **Step 1: Run both new tests**
 
 Run:
 ```bash
@@ -367,7 +367,7 @@ bash skills/woostack-review/scripts/tests/test-metrics-fold-overlap.sh
 ```
 Expected: each prints `0 failed`.
 
-- [ ] **Step 2: Run the rest of the review/init test suite to catch regressions**
+- [x] **Step 2: Run the rest of the review/init test suite to catch regressions**
 
 Run:
 ```bash
@@ -377,12 +377,12 @@ done
 ```
 Expected: every test reports `0 failed`; no `FAILED:` line.
 
-- [ ] **Step 3: Lint the touched shell scripts**
+- [x] **Step 3: Lint the touched shell scripts**
 
 Run: `shellcheck skills/woostack-review/scripts/intersect-findings.sh skills/woostack-review/scripts/metrics-fold.sh`
 Expected: no new warnings introduced by these edits. (If `shellcheck` is unavailable, note it and skip — the embedded Python is not shellcheck-covered anyway.)
 
-- [ ] **Step 4: Sanity-check JSON shape end-to-end**
+- [x] **Step 4: Sanity-check JSON shape end-to-end**
 
 Run the Task 1 fixture once more and pretty-print:
 ```bash

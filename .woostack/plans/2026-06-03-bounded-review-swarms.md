@@ -24,7 +24,7 @@
 **Files:**
 - Create: `skills/woostack-review/scripts/run-bounded-swarm.sh`
 
-- [ ] **Step 1: Write the helper script**
+- [x] **Step 1: Write the helper script**
 
 Create `skills/woostack-review/scripts/run-bounded-swarm.sh` with this content:
 
@@ -219,7 +219,7 @@ if [ "$degraded" = true ]; then
 fi
 ```
 
-- [ ] **Step 2: Make the helper executable**
+- [x] **Step 2: Make the helper executable**
 
 Run:
 
@@ -234,7 +234,7 @@ Expected: command exits `0`.
 **Files:**
 - Create: `skills/woostack-review/scripts/tests/test-bounded-swarm.sh`
 
-- [ ] **Step 1: Write the test script**
+- [x] **Step 1: Write the test script**
 
 Create `skills/woostack-review/scripts/tests/test-bounded-swarm.sh` with this content:
 
@@ -346,7 +346,7 @@ rm -rf "$work2"
 finish
 ```
 
-- [ ] **Step 2: Make the test executable**
+- [x] **Step 2: Make the test executable**
 
 Run:
 
@@ -356,7 +356,7 @@ chmod +x skills/woostack-review/scripts/tests/test-bounded-swarm.sh
 
 Expected: command exits `0`.
 
-- [ ] **Step 3: Run the new test**
+- [x] **Step 3: Run the new test**
 
 Run:
 
@@ -371,7 +371,7 @@ Expected: PASS output from `finish`, with no failed assertions.
 **Files:**
 - Modify: `skills/woostack-review/SKILL.md`
 
-- [ ] **Step 1: Replace the Stage 3 opening with bounded local orchestration**
+- [x] **Step 1: Replace the Stage 3 opening with bounded local orchestration**
 
 In `skills/woostack-review/SKILL.md`, replace the Stage 3 title and opening guidance with text equivalent to:
 
@@ -395,7 +395,7 @@ For unchunked reviews, the expected artifact is `$OUTDIR/findings.<angle>.json`.
 
 Keep the existing host examples, but revise them so they describe host-native bounded queues instead of unrestricted one-call-per-angle parallelism.
 
-- [ ] **Step 2: Add helper usage guidance**
+- [x] **Step 2: Add helper usage guidance**
 
 Add a subsection near the Stage 3 brief:
 
@@ -415,7 +415,7 @@ When a host cannot express sub-agent work as a shell command, implement the same
 
 Do not claim the helper can directly spawn Codex/Claude/Gemini sub-agents unless the host provides a shell command for that.
 
-- [ ] **Step 3: Preserve tier/model routing guidance**
+- [x] **Step 3: Preserve tier/model routing guidance**
 
 In the Stage 3 model-routing section, add this invariant:
 
@@ -423,7 +423,7 @@ In the Stage 3 model-routing section, add this invariant:
 Bounded runners MUST preserve the resolved tier/model context for every queued worker. In single-model hosts, pass the resolved run-tier (`FORCE_TIER` when set, otherwise the host's standard tier) to every worker. In per-call-routing hosts, apply each angle prompt's `tier:` while still preserving any explicit `FORCE_TIER` override. Bounded scheduling must not cause later queued angles to fall back to default model settings.
 ```
 
-- [ ] **Step 4: Add summary disclosure guidance**
+- [x] **Step 4: Add summary disclosure guidance**
 
 In Stage 5 local reporting guidance, add:
 
@@ -431,7 +431,7 @@ In Stage 5 local reporting guidance, add:
 If `$OUTDIR/swarm-metrics.json` exists, include a one-line swarm summary. Mention bounded mode and `max_concurrency`. If `.degraded == true`, name the `still_invalid` angles or `(angle, chunk)` items and state that those artifacts contributed `[]` after one retry.
 ```
 
-- [ ] **Step 5: Update troubleshooting**
+- [x] **Step 5: Update troubleshooting**
 
 Update the existing troubleshooting entry for dead sub-agents to reference `swarm-metrics.json` and bounded retry behavior:
 
@@ -444,7 +444,7 @@ Update the existing troubleshooting entry for dead sub-agents to reference `swar
 **Files:**
 - Test: `skills/woostack-review/scripts/tests/test-bounded-swarm.sh`
 
-- [ ] **Step 1: Run the bounded swarm test**
+- [x] **Step 1: Run the bounded swarm test**
 
 Run:
 
@@ -454,7 +454,7 @@ bash skills/woostack-review/scripts/tests/test-bounded-swarm.sh
 
 Expected: PASS output from `finish`, with no failed assertions.
 
-- [ ] **Step 2: Run one existing adjacent script test**
+- [x] **Step 2: Run one existing adjacent script test**
 
 Run:
 
@@ -473,7 +473,7 @@ Expected: PASS output from `finish`, with no failed assertions.
 - `.woostack/specs/2026-06-03-bounded-review-swarms.md`
 - `.woostack/plans/2026-06-03-bounded-review-swarms.md`
 
-- [ ] **Step 1: Inspect the resulting diff manually**
+- [x] **Step 1: Inspect the resulting diff manually**
 
 Run:
 
@@ -483,6 +483,6 @@ git diff -- skills/woostack-review/scripts/run-bounded-swarm.sh skills/woostack-
 
 Expected: diff contains only the helper, tests, review-skill docs, spec, and plan.
 
-- [ ] **Step 2: Commit if requested by the user**
+- [x] **Step 2: Commit if requested by the user**
 
 Only if the user asks to commit, use the repo's Graphite-preferred flow from `AGENTS.md`. Do not merge.

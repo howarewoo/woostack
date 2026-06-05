@@ -1,7 +1,7 @@
 ---
 name: woostack-visualize
 type: spec
-status: draft
+status: done
 date: 2026-06-03
 branch: feature/woostack-visualize
 links:
