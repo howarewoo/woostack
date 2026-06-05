@@ -52,27 +52,19 @@ export HEAD_SHA
 
 ## Model Tiers (host-agnostic)
 
-Each angle prompt and the validator declare a `tier:` in frontmatter — `fast`, `standard`, or `deep`. The host/runner resolves the tier to a concrete model from the table below. The context+summary subagent (defined in each provider prompt) is implicitly `fast`.
+The canonical tier→model table, provider notes, and generic routing/precedence rules live in the
+shared reference [`../../using-woostack/references/model-tiers.md`](../../using-woostack/references/model-tiers.md)
+— one source, shared by woostack-review and woostack-execute. The loader **inlines** it here so
+single-prompt runners stay self-contained:
 
-| Tier | Use for | Anthropic | OpenAI (Codex) | Google (Gemini) | OpenRouter |
-|---|---|---|---|---|---|
-| `fast` | rubric checklists (`seo`, `aeo`, `observability`, `types`, `i18n`, `docs`, `deps`), context summaries | `claude-haiku-4-5` | `gpt-5.3-codex-spark` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-flash` |
-| `standard` | reasoning workers (`bugs`, `security`, `architecture`, `design`, `react`, `database`, `tests`, `api`, `infra`, `skills`) | `claude-sonnet-4-6` | `gpt-5.4` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` |
-| `deep` | skeptical validator (highest-leverage filter) | `claude-opus-4-7` | `gpt-5.5` + `reasoning_effort: xhigh` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` + `reasoning_effort: xhigh` |
+<!-- WOO_MODEL_TIERS_TABLE -->
 
-> **Provider notes:**
-> - **Google** currently ships only `gemini-3-5-flash` in the 3.5 line; no Pro/Ultra/Thinking variant exists yet, so all tiers collapse onto flash (tier routing is effectively a no-op until Google releases a larger model).
-> - **OpenAI** GPT-5-family reasoning is a parameter on the same slug, not a slug suffix. Use `gpt-5.5` for complex review and the skeptical validator, `gpt-5.4` for everyday coding review, and `gpt-5.3-codex-spark` for simple/cost-sensitive rubric workers and latency-first real-time coding checks. Use `gpt-5.4-mini` only as the non-Spark cost-sensitive fallback when Spark is unavailable. There is no `gpt-5-pro`.
-> - **OpenRouter** DeepSeek exposes exactly two slugs — `deepseek/deepseek-v4-flash` and `deepseek/deepseek-v4-pro`. Reasoning is a `reasoning_effort` parameter (`high` / `xhigh`, where `xhigh` maps to max). Use plain `v4-pro` for standard and `v4-pro` with `reasoning_effort: xhigh` for deep. Do not route to `deepseek-r1` — V4 supersedes it.
-
-**Routing rules by host capability:**
-
-- **Per-call routing supported** (Claude Code `Task`, opencode `@subagent`): if `FORCE_TIER` is set in Review Context (`fast` or `deep`), use that as the effective tier for all routed calls first; otherwise use each prompt's own tier. Then apply provider overrides and table defaults.
-- **Single model per session** (Codex Action, Gemini CLI): resolve one run model from `run_model` in Load Prompt (which already applies precedence below). You lose per-angle tier behavior; all calls in the session run that one model.
-- **Override**: explicit `FORCE_TIER` and `run_model` win before per-repo/per-tier overrides. `run_model` already incorporates action input `model` when no `FORCE_TIER` override applies.
-
-**Per-repo tier overrides (`.woostack/config.json`):** for per-call hosts, resolve effective tier as `FORCE_TIER` if set, else prompt `tier`. Then apply provider overrides from `/tmp/pr-review/config.json`: prefer provider-specific keys first, then flat tier fallbacks: `models.<provider>.<tier>` > `models.<tier>` > table default. Example for OpenAI deep: `jq -r '.models.openai.deep // .models.deep // empty' /tmp/pr-review/config.json` — empty means use the table default.
-`inputs.model` (action.yml) and `run_model` (resolved in load-prompt) still win over per-repo and table defaults.
+**Review's tier-resolution binding.** Resolve the effective tier per the shared doc's precedence,
+bound to review's surface: `FORCE_TIER` (Review Context) → `inputs.model` (action.yml) →
+`models.<provider>.<tier>` / `models.<tier>` in `/tmp/pr-review/config.json` → table default.
+`run_model` (resolved in `load-prompt.sh`) pins single-session hosts; explicit `FORCE_TIER` and
+`run_model` win before per-repo/per-tier overrides. The context+summary subagent is implicitly
+`fast`.
 
 ## Per-repo Config (`/tmp/pr-review/config.json`)
 

@@ -14,7 +14,9 @@ OpenCode + OpenRouter can route per-subagent if the OpenCode runtime supports it
 1. `FORCE_TIER` in Review Context (`fast`/`deep`) when present.
 2. Otherwise the angle/validator `tier:` frontmatter.
 
-Then resolve that effective tier via the **Model Tiers** table in `_header.md`:
+Then resolve that effective tier via the shared **Model Tiers** table (canonical at
+[`../../using-woostack/references/model-tiers.md`](../../using-woostack/references/model-tiers.md),
+inlined into `_header.md` above); the OpenRouter column is:
 
 - `fast` → `openrouter/deepseek/deepseek-v4-flash`
 - `standard` → `openrouter/deepseek/deepseek-v4-pro`

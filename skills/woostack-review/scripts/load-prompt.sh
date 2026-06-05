@@ -53,6 +53,8 @@ sanitize_untrusted() {
 
 safe_comment_body=$(sanitize_untrusted "${COMMENT_BODY:-}" 2000)
 
+# canonical source: skills/using-woostack/references/model-tiers.md — keep these slugs in sync
+# with that table (Bash cannot read the markdown table, so this is its executable mirror).
 default_model_for() {
   local provider="$1" tier="$2"
   case "$provider" in
@@ -160,7 +162,22 @@ ${safe_comment_body}
 CTX_EOF
 )
 
-PROMPT_CONTENT=$(printf '%s\n\n%s\n\n%s\n' "$CONTEXT_HEAD" "$(cat "$HEADER_FILE")" "$(cat "$BODY_FILE")")
+# Inline the shared tier→model table into the header so single-prompt runners (which follow no
+# markdown links) stay self-contained. Canonical source:
+# skills/using-woostack/references/model-tiers.md — kept in sync with default_model_for() above.
+TIERS_FILE="$ACTION_PATH/../using-woostack/references/model-tiers.md"
+if [ ! -f "$TIERS_FILE" ]; then
+  echo "::error::shared model-tiers doc not found: $TIERS_FILE"
+  exit 1
+fi
+HEADER_RAW="$(cat "$HEADER_FILE")"
+if ! printf '%s' "$HEADER_RAW" | grep -q 'WOO_MODEL_TIERS_TABLE'; then
+  echo "::error::_header.md is missing the <!-- WOO_MODEL_TIERS_TABLE --> inline marker"
+  exit 1
+fi
+# Literal single-occurrence replacement of the marker with the shared doc body.
+HEADER_INLINED="${HEADER_RAW/<!-- WOO_MODEL_TIERS_TABLE -->/$(cat "$TIERS_FILE")}"
+PROMPT_CONTENT=$(printf '%s\n\n%s\n\n%s\n' "$CONTEXT_HEAD" "$HEADER_INLINED" "$(cat "$BODY_FILE")")
 
 BYTES=$(printf '%s' "$PROMPT_CONTENT" | wc -c)
 echo "Loaded prompt size: $BYTES bytes"

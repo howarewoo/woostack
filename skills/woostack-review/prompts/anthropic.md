@@ -43,13 +43,10 @@ Claude Code's `Task` tool supports per-subagent model routing. Resolve each spaw
 2. Otherwise the angle prompt `tier:` frontmatter.
 3. Then per-repo overrides and table defaults in `_header.md`.
 
-Then resolve via the **Model Tiers** table in `_header.md`:
-
-| Tier | Anthropic model | Used for |
-|---|---|---|
-| `fast` | `claude-haiku-4-5` | context+summary, `seo`, `aeo`, `observability`, `types`, `i18n`, `docs`, `deps` |
-| `standard` | `claude-sonnet-4-6` | `bugs`, `security`, `architecture`, `design`, `react`, `database`, `tests`, `api`, `infra`, `skills` |
-| `deep` | `claude-opus-4-7` | skeptical validator |
+Then resolve via the shared **Model Tiers** table — canonical at
+[`../../using-woostack/references/model-tiers.md`](../../using-woostack/references/model-tiers.md)
+and inlined into `_header.md` above (Anthropic column: `fast` → `claude-haiku-4-5`,
+`standard` → `claude-sonnet-4-6`, `deep` → `claude-opus-4-7`).
 
 **Every Task/Agent spawn MUST pass `model:` explicitly.** Omitting it makes the subagent inherit the parent session's model — typically Opus — which silently defeats tier routing and burns ~5x the tokens on rubric angles. The `tier:` frontmatter is informational unless the spawning call passes the resolved slug.
 
@@ -66,7 +63,7 @@ Task({
 
 Resolution rule per spawn:
 1. Determine effective tier.
-2. Look up the Anthropic column in the tier table above.
+2. Look up the Anthropic column in the shared Model Tiers table (inlined in `_header.md` above).
 3. **Per-repo override**: check `$OUTDIR/config.json` for `models.anthropic.<effective_tier>`, then flat `models.<effective_tier>` (e.g. when `run_tier=deep`: `jq -r '.models.anthropic.deep // .models.deep // empty' $OUTDIR/config.json`). If non-empty, use that slug instead of the table value.
 4. Pass the resolved slug as `model:` on the Task call.
 
