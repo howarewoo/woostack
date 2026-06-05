@@ -122,11 +122,14 @@ prs_for_spec() {
           --json number,state,headRefName,author,updatedAt,body --limit 50)"
   [ -n "$json" ] || return 0
   # gh --search is fuzzy (tokenizes the path), so it cross-matches look-alike PRs. Narrow
-  # with the search, then exact-match a Spec: trailer line in each PR body. The needle
+  # with the search, then exact-match a Spec: trailer value in each PR body. The needle
   # `specs/<basename>` is WOO_DIR-independent and unique per spec (date-stamped name), so an
-  # untrailered, sibling, or prose-only mention can no longer attach to the wrong spec.
+  # untrailered, sibling, suffixed, or prose-only mention can no longer attach to the wrong spec.
   printf '%s' "$json" | jq -r --arg needle "specs/$base" \
-    '.[] | select((.body // "") | split("\n") | any(test("^[[:space:]]*Spec:[[:space:]]") and contains($needle)))
+    '.[] | select((.body // "") | split("\n") | any(
+            test("^[[:space:]]*Spec:[[:space:]]")
+            and (sub("^[[:space:]]*Spec:[[:space:]]*"; "") | gsub("[[:space:]]+$"; "") | endswith($needle))
+          ))
         | [.number, .state, .headRefName, (.author.login // ""), .updatedAt] | @tsv' 2>/dev/null
 }
 
@@ -145,10 +148,12 @@ resolve_phase() {
   if [ "$open" -gt 0 ]; then echo "in-review"; return; fi
   if [ "$frac" = "100" ] && [ "$merged" -gt 0 ] && [ "$merged" -eq "$prcount" ]; then echo "done"; return; fi
   # Legacy/untrailered features have no discoverable PR, so the rule above can't confirm
-  # done. Trust an explicit authored `done` only when the plan is 100% complete and no
-  # increment PR was found; discovered increments still have to satisfy the merged==prcount
-  # rule above, so a closed-unmerged PR keeps the feature visible.
-  if [ "$authored" = "done" ] && [ "$frac" = "100" ] && [ "$prcount" -eq 0 ]; then echo "done"; return; fi
+  # done. Trust an explicit authored `done` only when the plan is 100% complete, no
+  # increment PR was found, and no active branch work is visible; discovered increments
+  # still have to satisfy the merged==prcount rule above, so a closed-unmerged PR keeps the
+  # feature visible.
+  if [ "$authored" = "done" ] && [ "$frac" = "100" ] && [ "$prcount" -eq 0 ] &&
+     [ "$branchExists" -eq 0 ] && [ "$hasCommits" -eq 0 ]; then echo "done"; return; fi
   if [ "$hasPlan" -eq 1 ] && [ "$frac" -gt 0 ] && [ "$frac" -lt 100 ] && [ "$hasCommits" -eq 1 ]; then
     echo "executing"
     return

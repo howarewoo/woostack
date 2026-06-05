@@ -240,6 +240,16 @@ assert_not_contains "$XBETA_ROW" "#301" "non-trailer body mention does NOT attac
 assert_not_contains "$XBETA_ROW" "in-review" "sibling spec stays out of in-review on non-trailer mention"
 unset FAKE_GH_JSON FAKE_GH_HEAD_JSON
 
+# A Spec: trailer whose value only contains the spec path as a prefix is not an exact
+# trailer match. This guards against accepting backup/suffixed paths such as `.md.bak`.
+export FAKE_GH_JSON='[{"number":302,"state":"OPEN","headRefName":"feature/xalpha","author":{"login":"z"},"updatedAt":"2026-06-03T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-xbeta.md.bak"}]'
+export FAKE_GH_HEAD_JSON='[]'
+PATH="$g/bin:$PATH" run_status "$xm" --all
+XBETA_ROW="$(printf '%s\n' "$OUT" | grep '^xbeta')"
+assert_not_contains "$XBETA_ROW" "#302" "suffixed Spec trailer does NOT attach to target spec"
+assert_not_contains "$XBETA_ROW" "in-review" "suffixed Spec trailer does not move target spec to in-review"
+unset FAKE_GH_JSON FAKE_GH_HEAD_JSON
+
 # authored 'done' at plan 100% with no trailered PR (legacy, pre-trailer) renders done,
 # not executing — an explicit terminal assertion plus a complete plan is trusted.
 ld="$(mktemp -d)/.woostack"
@@ -248,5 +258,17 @@ mkplan "$ld" legdone 2026-06-01-legdone.md 4 0
 FAKE_GH_JSON='[]' PATH="$g/bin:$PATH" run_status "$ld"
 assert_contains "$OUT" "1 done" "authored done + 100% plan + no PR counts as done"
 assert_not_contains "$OUT" "legdone " "legacy done hidden by default"
+
+# Authored done is not trusted when the active branch still has commits ahead of main.
+active_done_repo="$(mktemp -d)"
+( cd "$active_done_repo" && git -c user.email=t@t -c user.name=Tess init -q && git checkout -qb main )
+mkspec "$active_done_repo/.woostack" activedone done feature/activedone
+mkplan "$active_done_repo/.woostack" activedone 2026-06-01-activedone.md 4 0
+( cd "$active_done_repo" && git add -A && git -c user.email=t@t -c user.name=Tess commit -qm "add active done plan" )
+( cd "$active_done_repo" && git checkout -qb feature/activedone && printf 'work\n' > work.txt && git add work.txt && git -c user.email=t@t -c user.name=Tess commit -qm "active work" )
+( cd "$active_done_repo" && FAKE_GH_JSON='[]' PATH="$g/bin:$PATH" WOO_DIR=.woostack bash "$ST" --all > /tmp/active-done.out 2>&1 )
+OUT="$(cat /tmp/active-done.out)"
+assert_contains "$OUT" "activedone" "authored done with active branch work stays visible"
+assert_contains "$OUT" "executing" "active branch work overrides legacy authored done shortcut"
 
 finish

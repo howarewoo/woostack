@@ -33,7 +33,7 @@ band from artifacts (truth table below).
 | planning | plan exists, 0 boxes done | 4 |
 | executing | branch + commits, plan partial | 9 (execute) |
 | in-review | an increment PR is open | 9 (execute) |
-| done | plan 100% + all PRs merged | post-merge |
+| done | plan 100% + all PRs merged, or trusted legacy authored `done` with no active branch/PR | post-merge |
 | abandoned | shelved (terminal, hidden) | manual |
 
 ## Truth table (execute -> review -> done band)
@@ -41,8 +41,9 @@ band from artifacts (truth table below).
 - any increment PR open -> `in-review`
 - plan partial, no open PR, branch has commits -> `executing`
 - plan 100% + all increment PRs merged + >=1 merged -> `done`
-- authored `done` + plan 100% + no discovered increment PR -> `done` (trusts an explicit
-  terminal assertion for legacy/untrailered features whose PRs can't be discovered)
+- authored `done` + plan 100% + no discovered increment PR + no active branch work -> `done`
+  (trusts an explicit terminal assertion for legacy/untrailered features whose PRs can't be
+  discovered)
 
 A disagreeing authored value in this band is a FLAG, not displayed truth.
 
