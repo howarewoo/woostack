@@ -1,7 +1,7 @@
 ---
 name: woostack-execute-skill
 type: spec
-status: ready
+status: done
 date: 2026-06-04
 branch: feature/woostack-execute
 links:

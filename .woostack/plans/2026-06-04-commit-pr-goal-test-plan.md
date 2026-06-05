@@ -19,7 +19,7 @@
 **Files:**
 - Modify: `skills/woostack-commit/SKILL.md` — the template block under step 7 (currently the fenced markdown at lines ~190–200, the `## Summary` + `## Test plan` block)
 
-- [ ] **Step 1: Replace the template block**
+- [x] **Step 1: Replace the template block**
 
 Replace the existing fenced block:
 
@@ -32,8 +32,8 @@ Replace the existing fenced block:
 
 ## Test plan
 
-- [ ] <command run and result, or "Not run (reason)">
-- [ ] <manual verification step, when a meaningful one exists>
+- [x] <command run and result, or "Not run (reason)">
+- [x] <manual verification step, when a meaningful one exists>
 ```
 ````
 
@@ -54,21 +54,21 @@ with:
 
 ### Automated
 
-- [ ] <command run and result, or "Not run (reason)">
+- [x] <command run and result, or "Not run (reason)">
 
 ### Manual
 
 **Before merge**
 
-- [ ] <step a reviewer can inspect or exercise on the branch or preview>
+- [x] <step a reviewer can inspect or exercise on the branch or preview>
 
 **After merge**
 
-- [ ] <step only verifiable post-merge — deploy / migration / env-gated>
+- [x] <step only verifiable post-merge — deploy / migration / env-gated>
 ```
 ````
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 Read the block back. Confirm `## Goal` precedes `## Summary`, and `## Test plan` contains `### Automated` then `### Manual` with bold `**Before merge**` / `**After merge**` groups. No stray old bullets remain.
 
@@ -79,7 +79,7 @@ Read the block back. Confirm `## Goal` precedes `## Summary`, and `## Test plan`
 **Files:**
 - Modify: `skills/woostack-commit/SKILL.md` — the `Rules:` bullet list under step 7 (currently lines ~202–211)
 
-- [ ] **Step 1: Replace the rules list**
+- [x] **Step 1: Replace the rules list**
 
 Replace the current bullet list (from `- Keep bullets concise and specific.` through `- If tests were not run, say `Not run`...`) with a list that:
 
@@ -105,7 +105,7 @@ Rules:
 - Format test-plan items as unchecked Markdown checkboxes (`- [ ] ...`) so reviewers can mark verification complete.
 ```
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 Read the rules list back. Confirm every section of the new template (Goal, Summary, Automated, Manual/before, Manual/after) has a governing rule, the omit-when-empty rule is uniform, and no rule still references a single flat test-plan list.
 
@@ -116,11 +116,11 @@ Read the rules list back. Confirm every section of the new template (Goal, Summa
 **Files:**
 - Modify: `skills/woostack-commit/SKILL.md` — the "Fast-subagent drafting" bullet listing draftable text (currently lines ~48–50: "PR title candidate, Summary bullets, and Test plan bullets.")
 
-- [ ] **Step 1: Add Goal to the list**
+- [x] **Step 1: Add Goal to the list**
 
 Change the delegated-text bullet so the draftable fields read: commit subject/body candidate, PR title candidate, **Goal line**, Summary bullets, and Test plan bullets (Automated and Manual).
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 Confirm the draftable list now names the Goal and reflects the Automated/Manual test-plan shape, and the "subagent returns only proposed text / main agent validates" boundary is unchanged.
 
@@ -131,15 +131,15 @@ Confirm the draftable list now names the Goal and reflects the Automated/Manual 
 **Files:**
 - Modify: `skills/woostack-commit/SKILL.md` — `description:` frontmatter (line 3) and the step-8 "Report" return list (lines ~219–227)
 
-- [ ] **Step 1: Update the description**
+- [x] **Step 1: Update the description**
 
 Reword the trailing clause of the `description:` so it reflects the new body shape, e.g. "...update the current PR title/body with a goal, concise summary, and structured (automated + manual) test plan." Keep the trigger phrases intact.
 
-- [ ] **Step 2: Update the step-8 report list**
+- [x] **Step 2: Update the step-8 report list**
 
 Add `Goal used` to the returned fields alongside Summary bullets and Test plan bullets, so the report mirrors the body sections.
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Confirm description still fits on sensible length, trigger phrases preserved, and the report list mentions Goal + the test-plan sections.
 
@@ -150,10 +150,10 @@ Confirm description still fits on sensible length, trigger phrases preserved, an
 **Files:**
 - Read: `skills/woostack-commit/SKILL.md` (entire file)
 
-- [ ] **Step 1: Full read-through**
+- [x] **Step 1: Full read-through**
 
 Read the whole file. Confirm: no remaining reference to a flat single-section test plan; the template, rules, fast-subagent list, description, and report all agree; the omit-when-empty and after-merge "if applicable" semantics are stated once and consistent; no placeholder text introduced.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Hand off to `woostack-commit` (build step 8 offers the PR). Until then, the change sits staged on the branch. Automated tests: `Not run` — this repo has no test harness for its own skill markdown (doc-only change).

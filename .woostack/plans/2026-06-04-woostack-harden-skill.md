@@ -27,7 +27,7 @@
 
 **Files:** Create `skills/woostack-harden/SKILL.md`
 
-- [ ] **Step 1: Write the full skill file.** Author the file with exactly this content:
+- [x] **Step 1: Write the full skill file.** Author the file with exactly this content:
 
 ```markdown
 ---
@@ -91,8 +91,8 @@ the caller is what preserves woostack-build's "inherit gates, add none."
 - **Own no gate.** Hand back at "no new questions"; never solicit final approval or merge.
 ```
 
-- [ ] **Step 2: Verify frontmatter parses.** Run: `head -4 skills/woostack-harden/SKILL.md` — expect a `---` / `name: woostack-harden` / `description: ...` / `---` block.
-- [ ] **Step 3: Commit.**
+- [x] **Step 2: Verify frontmatter parses.** Run: `head -4 skills/woostack-harden/SKILL.md` — expect a `---` / `name: woostack-harden` / `description: ...` / `---` block.
+- [x] **Step 3: Commit.**
 
 ```bash
 git add skills/woostack-harden/SKILL.md
@@ -103,13 +103,13 @@ git commit -m "feat: add woostack-harden skill"
 
 **Files:** Modify `skills/woostack-build/SKILL.md`
 
-- [ ] **Step 1: Frontmatter `description`.** Change `Chains woostack-ideate, superpowers writing-plans/executing-plans, and grill-me in a fixed, gated order;` to `Chains woostack-ideate, woostack-harden, and superpowers writing-plans/executing-plans in a fixed, gated order;`.
-- [ ] **Step 2: Overview chain diagram.** In the chain on line ~15, change `grill-me` to `harden`:
+- [x] **Step 1: Frontmatter `description`.** Change `Chains woostack-ideate, superpowers writing-plans/executing-plans, and grill-me in a fixed, gated order;` to `Chains woostack-ideate, woostack-harden, and superpowers writing-plans/executing-plans in a fixed, gated order;`.
+- [x] **Step 2: Overview chain diagram.** In the chain on line ~15, change `grill-me` to `harden`:
   `ideate → write spec (markdown) → harden → approve spec → writing-plans → executing-plans → distill memory → ask: open PR?`
-- [ ] **Step 3: Dependency preflight.** In the "Dependency preflight" section: (a) drop `- `grill-me`` from the bullet list of chained external skills, leaving `superpowers:writing-plans`, `superpowers:executing-plans`; (b) remove `grill-me` from the prose that names the hardening phase as an external chain — state that the harden phase uses the in-collection `woostack-harden` (no install needed), mirroring the existing `woostack-ideate` note; (c) in the "offer to install" line, remove `pnpx skills add mattpocock/skills for grill-me`, keeping `pnpx skills add obra/superpowers`.
-- [ ] **Step 4: Procedure step 3 ("Harden it…").** Change `Invoke `grill-me` against the spec.` to `Invoke [`woostack-harden`](../woostack-harden/SKILL.md) against the spec.` and `until grilling stops producing new questions` to `until hardening stops producing new questions`. Leave the spec-approval HARD GATE that follows ("always present the written spec to the user and get explicit approval before planning") unchanged.
-- [ ] **Step 5: Verify the gate text survives.** Run: `grep -n "explicit approval before planning\|hard gate" skills/woostack-build/SKILL.md` — expect the spec-approval gate language still present.
-- [ ] **Step 6: Commit.**
+- [x] **Step 3: Dependency preflight.** In the "Dependency preflight" section: (a) drop `- `grill-me`` from the bullet list of chained external skills, leaving `superpowers:writing-plans`, `superpowers:executing-plans`; (b) remove `grill-me` from the prose that names the hardening phase as an external chain — state that the harden phase uses the in-collection `woostack-harden` (no install needed), mirroring the existing `woostack-ideate` note; (c) in the "offer to install" line, remove `pnpx skills add mattpocock/skills for grill-me`, keeping `pnpx skills add obra/superpowers`.
+- [x] **Step 4: Procedure step 3 ("Harden it…").** Change `Invoke `grill-me` against the spec.` to `Invoke [`woostack-harden`](../woostack-harden/SKILL.md) against the spec.` and `until grilling stops producing new questions` to `until hardening stops producing new questions`. Leave the spec-approval HARD GATE that follows ("always present the written spec to the user and get explicit approval before planning") unchanged.
+- [x] **Step 5: Verify the gate text survives.** Run: `grep -n "explicit approval before planning\|hard gate" skills/woostack-build/SKILL.md` — expect the spec-approval gate language still present.
+- [x] **Step 6: Commit.**
 
 ```bash
 git add skills/woostack-build/SKILL.md
@@ -120,12 +120,12 @@ git commit -m "feat: rewire woostack-build harden phase to woostack-harden"
 
 **Files:** Modify `.claude/CLAUDE.md` (canonical; `.claude/CLAUDE.md` is the symlinked source-of-truth per the file's own note — edit the real file `AGENTS.md` content)
 
-- [ ] **Step 1: Sub-skill note.** Update the paragraph that begins "The collection also installs a ninth, internal sub-skill: `woostack-ideate`." to describe **two** internal sub-skills: `woostack-ideate` (build's ideate phase) and `woostack-harden` (build's harden phase). Keep the framing: building blocks, not `/woostack-*` commands; no routing row; absent from the eight-skill command surface; shipped assets like `action.yml`, not strays to delete.
-- [ ] **Step 2: Hard-constraint count.** Update the constraint "Do not move or rename any of the nine `SKILL.md` files (the eight public command/adoption skills plus the internal `woostack-ideate`)." to **ten** files — "the eight public command/adoption skills plus the internal `woostack-ideate` and `woostack-harden`".
-- [ ] **Step 3: Quick file map.** Add an entry under "Quick file map", parallel to the ideate entry:
+- [x] **Step 1: Sub-skill note.** Update the paragraph that begins "The collection also installs a ninth, internal sub-skill: `woostack-ideate`." to describe **two** internal sub-skills: `woostack-ideate` (build's ideate phase) and `woostack-harden` (build's harden phase). Keep the framing: building blocks, not `/woostack-*` commands; no routing row; absent from the eight-skill command surface; shipped assets like `action.yml`, not strays to delete.
+- [x] **Step 2: Hard-constraint count.** Update the constraint "Do not move or rename any of the nine `SKILL.md` files (the eight public command/adoption skills plus the internal `woostack-ideate`)." to **ten** files — "the eight public command/adoption skills plus the internal `woostack-ideate` and `woostack-harden`".
+- [x] **Step 3: Quick file map.** Add an entry under "Quick file map", parallel to the ideate entry:
   `- Hardening engine for the build loop (internal sub-skill): [`skills/woostack-harden/SKILL.md`](skills/woostack-harden/SKILL.md)`.
-- [ ] **Step 4: Verify.** Run: `grep -n "woostack-harden\|ten\|nine" .claude/CLAUDE.md` — expect the new sub-skill named, count updated to ten, no stray "nine".
-- [ ] **Step 5: Commit.**
+- [x] **Step 4: Verify.** Run: `grep -n "woostack-harden\|ten\|nine" .claude/CLAUDE.md` — expect the new sub-skill named, count updated to ten, no stray "nine".
+- [x] **Step 5: Commit.**
 
 ```bash
 git add .claude/CLAUDE.md AGENTS.md
@@ -136,12 +136,12 @@ git commit -m "docs: document woostack-harden as second internal sub-skill"
 
 **Files:** Modify `README.md`, `CONTRIBUTING.md`, `skills/woostack-bootstrap/references/development.md`
 
-- [ ] **Step 1: README chain diagram.** Change the build-loop code block `ideate → markdown spec → grill → approve spec → plan → execute (TDD) → offer PR` to `ideate → markdown spec → harden → approve spec → plan → execute (TDD) → offer PR`.
-- [ ] **Step 2: README prose.** Change `with proven sub-skills (superpowers writing-plans/executing-plans + grill-me)` to credit the in-collection harden phase, e.g. `with woostack's own harden phase (`woostack-harden`) and proven superpowers sub-skills (writing-plans/executing-plans)`. Keep the Install/command surface at eight; `woostack-harden` is internal, not advertised as a command.
-- [ ] **Step 3: CONTRIBUTING build-loop row.** Change the row `Change the build loop (ideate→spec→grill→approve spec→plan→execute)` to `(ideate→spec→harden→approve spec→plan→execute)`.
-- [ ] **Step 4: CONTRIBUTING harden pointer row.** Add a row immediately after the "Change the ideate phase" row: `| Change the harden phase (the build loop's stress-test step) | `skills/woostack-harden/SKILL.md` |`.
-- [ ] **Step 5: development.md loop row.** Change the table row `| Ideate → markdown spec → grill → approve spec → plan → execute | `woostack-build` |` to `| Ideate → markdown spec → harden → approve spec → plan → execute | `woostack-build` |`.
-- [ ] **Step 6: Commit.**
+- [x] **Step 1: README chain diagram.** Change the build-loop code block `ideate → markdown spec → grill → approve spec → plan → execute (TDD) → offer PR` to `ideate → markdown spec → harden → approve spec → plan → execute (TDD) → offer PR`.
+- [x] **Step 2: README prose.** Change `with proven sub-skills (superpowers writing-plans/executing-plans + grill-me)` to credit the in-collection harden phase, e.g. `with woostack's own harden phase (`woostack-harden`) and proven superpowers sub-skills (writing-plans/executing-plans)`. Keep the Install/command surface at eight; `woostack-harden` is internal, not advertised as a command.
+- [x] **Step 3: CONTRIBUTING build-loop row.** Change the row `Change the build loop (ideate→spec→grill→approve spec→plan→execute)` to `(ideate→spec→harden→approve spec→plan→execute)`.
+- [x] **Step 4: CONTRIBUTING harden pointer row.** Add a row immediately after the "Change the ideate phase" row: `| Change the harden phase (the build loop's stress-test step) | `skills/woostack-harden/SKILL.md` |`.
+- [x] **Step 5: development.md loop row.** Change the table row `| Ideate → markdown spec → grill → approve spec → plan → execute | `woostack-build` |` to `| Ideate → markdown spec → harden → approve spec → plan → execute | `woostack-build` |`.
+- [x] **Step 6: Commit.**
 
 ```bash
 git add README.md CONTRIBUTING.md skills/woostack-bootstrap/references/development.md
@@ -150,11 +150,11 @@ git commit -m "docs: update build-loop summaries for woostack-harden"
 
 ## Task 5: Verify
 
-- [ ] **Step 1: Grep for live grill-me.** Run: `grep -rn "grill-me\|grill me\|grilling" --include='*.md' --include='*.yml' --include='*.json' . | grep -v '.woostack/specs/' | grep -v '.woostack/plans/'` — expect **no** results outside historical `.woostack/specs|plans/` artifacts (the new harden spec/plan may reference grill-me descriptively; that is allowed).
-- [ ] **Step 2: Frontmatter + sections.** Run: `head -4 skills/woostack-harden/SKILL.md` (valid `name`/`description`) and `grep -n "Gate boundary\|Terminal state\|no new questions" skills/woostack-harden/SKILL.md` (terminal-state + gate-boundary statements present).
-- [ ] **Step 3: Cross-links.** Confirm `skills/woostack-build/SKILL.md` links `../woostack-harden/SKILL.md` and `.claude/CLAUDE.md` file-map links `skills/woostack-harden/SKILL.md`; both target files exist.
-- [ ] **Step 4: Counts.** Run: `ls skills/*/SKILL.md | wc -l` — expect 10. Confirm `AGENTS.md`/`README.md` still present an eight-skill public command/adoption surface and document two internal sub-skills.
-- [ ] **Step 5: Build-flow summaries.** Run: `grep -rn "harden" README.md CONTRIBUTING.md skills/woostack-bootstrap/references/development.md skills/woostack-build/SKILL.md` — expect every shipped loop summary now shows `harden` (and still `approve spec` before planning).
+- [x] **Step 1: Grep for live grill-me.** Run: `grep -rn "grill-me\|grill me\|grilling" --include='*.md' --include='*.yml' --include='*.json' . | grep -v '.woostack/specs/' | grep -v '.woostack/plans/'` — expect **no** results outside historical `.woostack/specs|plans/` artifacts (the new harden spec/plan may reference grill-me descriptively; that is allowed).
+- [x] **Step 2: Frontmatter + sections.** Run: `head -4 skills/woostack-harden/SKILL.md` (valid `name`/`description`) and `grep -n "Gate boundary\|Terminal state\|no new questions" skills/woostack-harden/SKILL.md` (terminal-state + gate-boundary statements present).
+- [x] **Step 3: Cross-links.** Confirm `skills/woostack-build/SKILL.md` links `../woostack-harden/SKILL.md` and `.claude/CLAUDE.md` file-map links `skills/woostack-harden/SKILL.md`; both target files exist.
+- [x] **Step 4: Counts.** Run: `ls skills/*/SKILL.md | wc -l` — expect 10. Confirm `AGENTS.md`/`README.md` still present an eight-skill public command/adoption surface and document two internal sub-skills.
+- [x] **Step 5: Build-flow summaries.** Run: `grep -rn "harden" README.md CONTRIBUTING.md skills/woostack-bootstrap/references/development.md skills/woostack-build/SKILL.md` — expect every shipped loop summary now shows `harden` (and still `approve spec` before planning).
 
 ---
 
