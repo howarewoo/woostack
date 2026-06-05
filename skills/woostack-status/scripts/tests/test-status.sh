@@ -86,7 +86,7 @@ g="$(mktemp -d)"; mk_fake_gh "$g"
 b="$(mktemp -d)/.woostack"
 mkspec "$b" foxtrot executing feature/foxtrot
 mkplan "$b" foxtrot 2026-06-01-foxtrot.md 4 6
-export FAKE_GH_JSON='[{"number":190,"state":"OPEN","headRefName":"feature/foxtrot","author":{"login":"dana"},"updatedAt":"2026-06-03T00:00:00Z"}]'
+export FAKE_GH_JSON='[{"number":190,"state":"OPEN","headRefName":"feature/foxtrot","author":{"login":"dana"},"updatedAt":"2026-06-03T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-foxtrot.md"}]'
 PATH="$g/bin:$PATH" run_status "$b"
 assert_contains "$OUT" "in-review" "open PR => in-review via truth table"
 unset FAKE_GH_JSON
@@ -112,7 +112,7 @@ assert_not_contains "$OUT" "sierra                 planning" "commit-backed plan
 h="$(mktemp -d)/.woostack"
 mkspec "$h" hotel executing feature/hotel
 mkplan "$h" hotel 2026-06-01-hotel.md 5 5
-export FAKE_GH_JSON='[{"number":181,"state":"MERGED","headRefName":"feature/hotel-1","author":{"login":"adam"},"updatedAt":"2026-06-02T00:00:00Z"},{"number":190,"state":"OPEN","headRefName":"feature/hotel-2","author":{"login":"adam"},"updatedAt":"2026-06-03T00:00:00Z"}]'
+export FAKE_GH_JSON='[{"number":181,"state":"MERGED","headRefName":"feature/hotel-1","author":{"login":"adam"},"updatedAt":"2026-06-02T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-hotel.md"},{"number":190,"state":"OPEN","headRefName":"feature/hotel-2","author":{"login":"adam"},"updatedAt":"2026-06-03T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-hotel.md"}]'
 PATH="$g/bin:$PATH" run_status "$h"
 assert_contains "$OUT" "#181" "merged increment listed"
 assert_contains "$OUT" "#190" "open increment listed"
@@ -151,14 +151,14 @@ assert_contains "$OUT" "unknown phase" "bogus phase flagged"
 assert_contains "$OUT" "mike" "sibling row survives bad row"
 
 n="$(mktemp -d)/.woostack"; mkspec "$n" november approved feature/november
-export FAKE_GH_JSON='[{"number":5,"state":"OPEN","headRefName":"feature/november","author":{"login":"x"},"updatedAt":"2026-06-03T00:00:00Z"}]'
+export FAKE_GH_JSON='[{"number":5,"state":"OPEN","headRefName":"feature/november","author":{"login":"x"},"updatedAt":"2026-06-03T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-november.md"}]'
 PATH="$g/bin:$PATH" run_status "$n"
 assert_contains "$OUT" "status lags" "PR-open-but-early-phase flagged"
 unset FAKE_GH_JSON
 
 o="$(mktemp -d)/.woostack"; mkspec "$o" oscar done feature/oscar
 mkplan "$o" oscar 2026-06-01-oscar.md 5 0
-export FAKE_GH_JSON='[{"number":9,"state":"MERGED","headRefName":"feature/oscar","author":{"login":"a"},"updatedAt":"2026-06-02T00:00:00Z"}]'
+export FAKE_GH_JSON='[{"number":9,"state":"MERGED","headRefName":"feature/oscar","author":{"login":"a"},"updatedAt":"2026-06-02T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-oscar.md"}]'
 PATH="$g/bin:$PATH" run_status "$o"
 assert_not_contains "$OUT" "oscar " "done hidden by default"
 assert_contains "$OUT" "1 done" "done counted in footer"
@@ -168,11 +168,20 @@ unset FAKE_GH_JSON
 
 oc="$(mktemp -d)/.woostack"; mkspec "$oc" oscar executing feature/oscar
 mkplan "$oc" oscar 2026-06-01-oscar.md 5 0
-export FAKE_GH_JSON='[{"number":9,"state":"MERGED","headRefName":"feature/oscar","author":{"login":"a"},"updatedAt":"2026-06-02T00:00:00Z"},{"number":10,"state":"CLOSED","headRefName":"feature/oscar","author":{"login":"a"},"updatedAt":"2026-06-03T00:00:00Z"}]'
+export FAKE_GH_JSON='[{"number":9,"state":"MERGED","headRefName":"feature/oscar","author":{"login":"a"},"updatedAt":"2026-06-02T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-oscar.md"},{"number":10,"state":"CLOSED","headRefName":"feature/oscar","author":{"login":"a"},"updatedAt":"2026-06-03T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-oscar.md"}]'
 PATH="$g/bin:$PATH" run_status "$oc"
 assert_contains "$OUT" "oscar" "closed-unmerged increment keeps row visible"
 assert_contains "$OUT" "executing" "closed-unmerged increment prevents done"
 assert_contains "$OUT" "0 done" "closed-unmerged increment not counted done"
+unset FAKE_GH_JSON
+
+ocd="$(mktemp -d)/.woostack"; mkspec "$ocd" oscardone done feature/oscardone
+mkplan "$ocd" oscardone 2026-06-01-oscardone.md 5 0
+export FAKE_GH_JSON='[{"number":11,"state":"MERGED","headRefName":"feature/oscardone","author":{"login":"a"},"updatedAt":"2026-06-02T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-oscardone.md"},{"number":12,"state":"CLOSED","headRefName":"feature/oscardone","author":{"login":"a"},"updatedAt":"2026-06-03T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-oscardone.md"}]'
+PATH="$g/bin:$PATH" run_status "$ocd"
+assert_contains "$OUT" "oscardone" "authored done with closed-unmerged increment stays visible"
+assert_contains "$OUT" "executing" "authored done does not override closed-unmerged increment"
+assert_contains "$OUT" "0 done" "authored done with closed-unmerged increment not counted done"
 unset FAKE_GH_JSON
 
 mkspec "$o" papa abandoned feature/papa
@@ -197,5 +206,83 @@ printf '# r\n\n**Source:** .woostack/specs/2026-06-01-romeo.md\n\n- [x] a\n- [ ]
   git -c user.email=t@t -c user.name=Tess commit -qm x )
 ( cd "$gr2" && WOOSTACK_NOW=2026-06-04 PATH="/usr/bin:/bin" WOO_DIR=.woostack bash "$ST" > /tmp/r.out 2>&1 )
 assert_contains "$(cat /tmp/r.out)" "stale" "staleDays:3 makes 5d spec stale"
+
+# trailer exact-match: a PR's Spec: trailer attaches only to its own spec; a look-alike
+# PR (same fuzzy tokens, different spec) must NOT cross-match a sibling.
+xm="$(mktemp -d)/.woostack"
+mkspec "$xm" xalpha executing feature/xalpha
+mkplan "$xm" xalpha 2026-06-01-xalpha.md 1 9
+mkspec "$xm" xbeta executing feature/xbeta
+mkplan "$xm" xbeta 2026-06-01-xbeta.md 1 9
+export FAKE_GH_JSON='[{"number":300,"state":"OPEN","headRefName":"feature/xalpha","author":{"login":"z"},"updatedAt":"2026-06-03T00:00:00Z","body":"work done.\nSpec: .woostack/specs/2026-06-01-xalpha.md"}]'
+# Real `gh pr list --head feature/xbeta` returns only xbeta-headed PRs (none here); the test
+# fake would otherwise echo FAKE_GH_JSON for any --head, so pin the head query empty to model
+# reality and isolate the prs_for_spec trailer match.
+export FAKE_GH_HEAD_JSON='[]'
+PATH="$g/bin:$PATH" run_status "$xm" --all
+assert_contains "$OUT" "#300" "trailer PR is listed for its own spec"
+XALPHA_ROW="$(printf '%s\n' "$OUT" | grep '^xalpha')"
+XBETA_ROW="$(printf '%s\n' "$OUT" | grep '^xbeta')"
+assert_contains "$XALPHA_ROW" "#300" "trailer PR attaches to its own spec (xalpha)"
+assert_not_contains "$XBETA_ROW" "#300" "trailer PR does NOT cross-match the sibling spec (xbeta)"
+assert_not_contains "$XBETA_ROW" "in-review" "sibling spec stays out of in-review on a look-alike PR"
+unset FAKE_GH_JSON FAKE_GH_HEAD_JSON
+
+# A prose mention of a sibling spec path is not a trailer and must not attach. This catches
+# regressions where the matcher accepts any body substring instead of a real `Spec:` line.
+export FAKE_GH_JSON='[{"number":301,"state":"OPEN","headRefName":"feature/xalpha","author":{"login":"z"},"updatedAt":"2026-06-03T00:00:00Z","body":"Supersedes .woostack/specs/2026-06-01-xbeta.md\nSpec: .woostack/specs/2026-06-01-xalpha.md"}]'
+export FAKE_GH_HEAD_JSON='[]'
+PATH="$g/bin:$PATH" run_status "$xm" --all
+XALPHA_ROW="$(printf '%s\n' "$OUT" | grep '^xalpha')"
+XBETA_ROW="$(printf '%s\n' "$OUT" | grep '^xbeta')"
+assert_contains "$XALPHA_ROW" "#301" "trailer PR still attaches to its own spec when body mentions sibling"
+assert_not_contains "$XBETA_ROW" "#301" "non-trailer body mention does NOT attach to sibling spec"
+assert_not_contains "$XBETA_ROW" "in-review" "sibling spec stays out of in-review on non-trailer mention"
+unset FAKE_GH_JSON FAKE_GH_HEAD_JSON
+
+# A Spec: trailer whose value only contains the spec path as a prefix is not an exact
+# trailer match. This guards against accepting backup/suffixed paths such as `.md.bak`.
+export FAKE_GH_JSON='[{"number":302,"state":"OPEN","headRefName":"feature/xalpha","author":{"login":"z"},"updatedAt":"2026-06-03T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-xbeta.md.bak"}]'
+export FAKE_GH_HEAD_JSON='[]'
+PATH="$g/bin:$PATH" run_status "$xm" --all
+XBETA_ROW="$(printf '%s\n' "$OUT" | grep '^xbeta')"
+assert_not_contains "$XBETA_ROW" "#302" "suffixed Spec trailer does NOT attach to target spec"
+assert_not_contains "$XBETA_ROW" "in-review" "suffixed Spec trailer does not move target spec to in-review"
+unset FAKE_GH_JSON FAKE_GH_HEAD_JSON
+
+# authored 'done' at plan 100% with no trailered PR (legacy, pre-trailer) renders done,
+# not executing — an explicit terminal assertion plus a complete plan is trusted.
+ld="$(mktemp -d)/.woostack"
+mkspec "$ld" legdone done feature/legdone
+mkplan "$ld" legdone 2026-06-01-legdone.md 4 0
+FAKE_GH_JSON='[]' PATH="$g/bin:$PATH" run_status "$ld"
+assert_contains "$OUT" "1 done" "authored done + 100% plan + no PR counts as done"
+assert_not_contains "$OUT" "legdone " "legacy done hidden by default"
+
+# Authored done is not trusted when the active branch still has commits ahead of main.
+active_done_repo="$(mktemp -d)"
+( cd "$active_done_repo" && git -c user.email=t@t -c user.name=Tess init -q && git checkout -qb main )
+mkspec "$active_done_repo/.woostack" activedone done feature/activedone
+mkplan "$active_done_repo/.woostack" activedone 2026-06-01-activedone.md 4 0
+( cd "$active_done_repo" && git add -A && git -c user.email=t@t -c user.name=Tess commit -qm "add active done plan" )
+( cd "$active_done_repo" && git checkout -qb feature/activedone && printf 'work\n' > work.txt && git add work.txt && git -c user.email=t@t -c user.name=Tess commit -qm "active work" )
+( cd "$active_done_repo" && FAKE_GH_JSON='[]' PATH="$g/bin:$PATH" WOO_DIR=.woostack bash "$ST" --all > /tmp/active-done.out 2>&1 )
+OUT="$(cat /tmp/active-done.out)"
+assert_contains "$OUT" "activedone" "authored done with active branch work stays visible"
+assert_contains "$OUT" "executing" "active branch work overrides legacy authored done shortcut"
+
+# A merged-but-not-deleted branch is not active work. If it has no commits ahead of main,
+# authored done plus a complete plan can still be trusted for legacy/untrailered specs.
+merged_done_repo="$(mktemp -d)"
+( cd "$merged_done_repo" && git -c user.email=t@t -c user.name=Tess init -q && git checkout -qb main )
+mkspec "$merged_done_repo/.woostack" mergeddone done feature/mergeddone
+mkplan "$merged_done_repo/.woostack" mergeddone 2026-06-01-mergeddone.md 4 0
+( cd "$merged_done_repo" && git add -A && git -c user.email=t@t -c user.name=Tess commit -qm "add merged done plan" )
+( cd "$merged_done_repo" && git checkout -qb feature/mergeddone && printf 'work\n' > work.txt && git add work.txt && git -c user.email=t@t -c user.name=Tess commit -qm "merged work" )
+( cd "$merged_done_repo" && git checkout -q main && git merge --no-ff -q feature/mergeddone -m "merge work" )
+( cd "$merged_done_repo" && FAKE_GH_JSON='[]' PATH="$g/bin:$PATH" WOO_DIR=.woostack bash "$ST" > /tmp/merged-done.out 2>&1 )
+OUT="$(cat /tmp/merged-done.out)"
+assert_contains "$OUT" "1 done" "authored done + merged branch with no active commits counts as done"
+assert_not_contains "$OUT" "mergeddone " "merged legacy done hidden by default"
 
 finish

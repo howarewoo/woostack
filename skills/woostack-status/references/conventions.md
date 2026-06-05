@@ -11,8 +11,11 @@ they do not restate these rules (cross-link, do not duplicate).
   form `**Source:** .woostack/specs/<file>.md`. Slug-match is the legacy fallback.
   Plans stay frontmatter-free.
 - plan -> PR join: every PR body carries a trailer line
-  `Spec: .woostack/specs/<file>.md` (written by woostack-commit). The board finds
-  increment PRs with `gh pr list --state all --search "Spec: <path>"`.
+  `Spec: .woostack/specs/<file>.md` (written by woostack-commit). The board narrows
+  candidates with `gh pr list --search`, then **exact-matches** the trailer against each PR
+  body (`specs/<basename>`) — `gh --search` is fuzzy and would otherwise cross-match
+  look-alike specs, so an untrailered or sibling PR never attaches to the wrong spec. When no
+  trailered PR resolves, it falls back to the active `spec.branch:` head PR (marked partial).
 - `spec.branch:` names the active increment's branch.
 
 ## Phase enum (spec frontmatter `status:`)
@@ -30,7 +33,7 @@ band from artifacts (truth table below).
 | planning | plan exists, 0 boxes done | 4 |
 | executing | branch + commits, plan partial | 9 (execute) |
 | in-review | an increment PR is open | 9 (execute) |
-| done | plan 100% + all PRs merged | post-merge |
+| done | plan 100% + all PRs merged, or trusted legacy authored `done` with no active branch commits/PR | post-merge |
 | abandoned | shelved (terminal, hidden) | manual |
 
 ## Truth table (execute -> review -> done band)
@@ -38,6 +41,9 @@ band from artifacts (truth table below).
 - any increment PR open -> `in-review`
 - plan partial, no open PR, branch has commits -> `executing`
 - plan 100% + all increment PRs merged + >=1 merged -> `done`
+- authored `done` + plan 100% + no discovered increment PR + no active branch commits -> `done`
+  (trusts an explicit terminal assertion for legacy/untrailered features whose PRs can't be
+  discovered)
 
 A disagreeing authored value in this band is a FLAG, not displayed truth.
 
