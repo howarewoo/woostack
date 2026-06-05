@@ -54,8 +54,8 @@
 #               `<Trans` / `FormattedMessage` tokens in the diff body.
 #   docs      — README*, CHANGELOG*, docs/, *.md / *.mdx (excluding the rule
 #               files consumed by the conventions angle: AGENTS.md, CLAUDE.md,
-#               GEMINI.md, .cursorrules, .windsurfrules), .env.example,
-#               openapi.{yaml,yml,json}.
+#               GEMINI.md, .cursorrules, .windsurfrules, and SKILL.md, which the
+#               skills angle owns), .env.example, openapi.{yaml,yml,json}.
 #   deps      — dependency manifests / lockfiles: package.json, package-lock.json,
 #               pnpm-lock.yaml, yarn.lock, bun.lockb, requirements.txt,
 #               pyproject.toml, poetry.lock, uv.lock, go.mod, go.sum,
@@ -64,6 +64,10 @@
 #               *.{ts,tsx,cts,mts,js,jsx,mjs,cjs,py,go,rs,java,kt,kts,swift,rb,
 #               php,cs,scala,c,h,cc,cpp,hpp,cxx,m,mm}. Structural-quality /
 #               code-judo pass; skips doc-only and config-only PRs.
+#   skills    — a file named SKILL.md anywhere in the diff (Agent Skill manifest).
+#               Audits the changed skill against Anthropic's skill best-practices
+#               guide. SKILL.md is excluded from the docs gate so a SKILL.md-only
+#               PR routes here, not to docs.
 
 set -euo pipefail
 
@@ -216,6 +220,7 @@ has_docs_file() {
   echo "$CHANGED_PATHS" \
     | grep -vE '(^|/)(AGENTS|CLAUDE|GEMINI)\.md$' \
     | grep -vE '(^|/)\.(cursorrules|windsurfrules)$' \
+    | grep -vE '(^|/)SKILL\.md$' \
     | grep -qE '\.(md|mdx)$' && return 0
   return 1
 }
@@ -228,6 +233,11 @@ has_deps_file() {
   echo "$CHANGED_PATHS" | grep -qE '(^|/)(Gemfile|Gemfile\.lock)$' && return 0
   echo "$CHANGED_PATHS" | grep -qE '(^|/)(composer\.(json|lock))$' && return 0
   return 1
+}
+
+has_skills_file() {
+  # Canonical Agent Skill manifest signal: a file named SKILL.md at any depth.
+  echo "$CHANGED_PATHS" | grep -qE '(^|/)SKILL\.md$'
 }
 
 ANGLES=("bugs" "security")
@@ -282,6 +292,10 @@ fi
 
 if has_docs_file; then
   ANGLES+=("docs")
+fi
+
+if has_skills_file; then
+  ANGLES+=("skills")
 fi
 
 if has_deps_file; then
