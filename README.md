@@ -26,7 +26,7 @@ Templates rot. Dependencies drift, breaking changes pile up, and every new proje
 pnpx skills add howarewoo/woostack
 ```
 
-This installs the woostack **collection** into your agent's skill directory and records it in `skills-lock.json`. The public command/adoption surface is nine skills: using-woostack, woostack-init, woostack-bootstrap, woostack-build, woostack-execute, woostack-commit, woostack-review, woostack-address-comments, and woostack-visualize. The collection also installs two internal sub-skills used by `woostack-build` — `woostack-ideate` and `woostack-harden`; neither is a `/woostack-*` command. Works in any agent that respects the `skills` convention: Claude Code, Cursor, Codex, Aider, and others.
+This installs the woostack **collection** into your agent's skill directory and records it in `skills-lock.json`. The public command/adoption surface is ten skills: using-woostack, woostack-init, woostack-bootstrap, woostack-build, woostack-execute, woostack-commit, woostack-review, woostack-address-comments, woostack-status, and woostack-visualize. The collection also installs two internal sub-skills used by `woostack-build` — `woostack-ideate` and `woostack-harden`; neither is a `/woostack-*` command. Works in any agent that respects the `skills` convention: Claude Code, Cursor, Codex, Aider, and others.
 
 > **pnpm is the recommended package manager.** Commands in this repo use `pnpx` (and `pnpm`) over `npx` / `npm`. If you only have npm, `npx skills add howarewoo/woostack` works too, but woostack-bootstrapped projects use a pnpm catalog, so pnpm is the path of least friction.
 
@@ -76,6 +76,10 @@ Commits only the changes relevant to the current session, creates a `feature/*` 
 ### `/woostack-address-comments [PR#]`: work the review threads
 
 Walks every unresolved review thread on a PR, recommends a verdict per thread (fix / push back / clarify), then, once you approve the batch, applies fixes, replies, resolves, and pushes. Accept-by-design dismissals are recorded to `.woostack/memory.md` so future reviews don't re-raise them. Never merges. A thin delegator to the review skill's `address` verb. → [SKILL.md](skills/woostack-address-comments/SKILL.md)
+
+### `/woostack-status [--all] [--fetch]`: derived feature board
+
+A read-only, on-demand board derived fresh from your `.woostack/` artifacts: for every spec it shows the reconciled phase, plan progress, increment-PR rollup, owner, age, and the single next action, and flags any drift between the authored `status:` and what's on disk. It never fetches (except the opt-in `--fetch`), commits, or pushes, and writes no `STATUS.md`. Backed by the `spec : plan : PRs = 1 : 1 : N` invariant and the phase enum defined once in [conventions.md](skills/woostack-status/references/conventions.md). → [SKILL.md](skills/woostack-status/SKILL.md)
 
 ### `/woostack-visualize <source> [for <audience>]`: audience-tailored HTML render
 

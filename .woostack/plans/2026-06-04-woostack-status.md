@@ -66,7 +66,7 @@
 - Create: `skills/woostack-status/scripts/tests/run-tests.sh`
 - Create: `skills/woostack-status/scripts/tests/test-status.sh`
 
-- [ ] **Step 1: Copy the test harness verbatim.** Copy `skills/woostack-init/scripts/tests/assert.sh` and `skills/woostack-init/scripts/tests/run-tests.sh` to `skills/woostack-status/scripts/tests/`. (They are generic; reuse, do not re-invent.)
+- [x] **Step 1: Copy the test harness verbatim.** Copy `skills/woostack-init/scripts/tests/assert.sh` and `skills/woostack-init/scripts/tests/run-tests.sh` to `skills/woostack-status/scripts/tests/`. (They are generic; reuse, do not re-invent.)
 
 ```bash
 mkdir -p skills/woostack-status/scripts/tests skills/woostack-status/references
@@ -74,7 +74,7 @@ cp skills/woostack-init/scripts/tests/assert.sh skills/woostack-status/scripts/t
 cp skills/woostack-init/scripts/tests/run-tests.sh skills/woostack-status/scripts/tests/run-tests.sh
 ```
 
-- [ ] **Step 2: Create the bundled `lib.sh`** with only the helpers status.sh needs (copied from `woostack-init/scripts/lib.sh`, trimmed to four functions).
+- [x] **Step 2: Create the bundled `lib.sh`** with only the helpers status.sh needs (copied from `woostack-init/scripts/lib.sh`, trimmed to four functions).
 
 ```bash
 #!/usr/bin/env bash
@@ -107,7 +107,7 @@ _woo_epoch() {
 }
 ```
 
-- [ ] **Step 3: Write the failing test** for empty state.
+- [x] **Step 3: Write the failing test** for empty state.
 
 ```bash
 # skills/woostack-status/scripts/tests/test-status.sh
@@ -130,14 +130,14 @@ assert_contains "$OUT" "no specs found" "empty state prints guidance"
 assert_exit 0 "$CODE" "empty state exits 0"
 ```
 
-- [ ] **Step 4: Run it, verify it fails** (status.sh does not exist yet).
+- [x] **Step 4: Run it, verify it fails** (status.sh does not exist yet).
 
 ```bash
 bash skills/woostack-status/scripts/tests/test-status.sh
 # Expected: FAIL — status.sh missing / OUT empty, assertion fails
 ```
 
-- [ ] **Step 5: Write the minimal `status.sh`** that handles empty state.
+- [x] **Step 5: Write the minimal `status.sh`** that handles empty state.
 
 ```bash
 #!/usr/bin/env bash
@@ -160,14 +160,14 @@ if [ "${#specs[@]}" -eq 0 ]; then
 fi
 ```
 
-- [ ] **Step 6: Run the test, verify it passes.**
+- [x] **Step 6: Run the test, verify it passes.**
 
 ```bash
 bash skills/woostack-status/scripts/tests/test-status.sh
 # Expected: "1 passed, 0 failed" for the empty-state assertions (others added later)
 ```
 
-- [ ] **Step 7: Commit.**
+- [x] **Step 7: Commit.**
 
 ```bash
 git add skills/woostack-status/scripts
@@ -180,7 +180,7 @@ git commit -m "feat(status): scaffold status.sh skeleton + empty-state, bundle l
 - Modify: `skills/woostack-status/scripts/status.sh`
 - Test: `skills/woostack-status/scripts/tests/test-status.sh`
 
-- [ ] **Step 1: Write the failing test** — three specs in head states render with phase + next action; the `.html` is ignored.
+- [x] **Step 1: Write the failing test** — three specs in head states render with phase + next action; the `.html` is ignored.
 
 ```bash
 # append to test-status.sh
@@ -203,14 +203,14 @@ assert_contains "$OUT" "writing-plans" "approved next-action"
 assert_not_contains "$OUT" "orphan-design" "html spec is ignored"
 ```
 
-- [ ] **Step 2: Run it, verify it fails** (no row rendering yet).
+- [x] **Step 2: Run it, verify it fails** (no row rendering yet).
 
 ```bash
 bash skills/woostack-status/scripts/tests/test-status.sh
 # Expected: FAIL — alpha/draft not found in OUT
 ```
 
-- [ ] **Step 3: Add the `next_action` lookup and a first render pass** to `status.sh` (after the empty-state guard).
+- [x] **Step 3: Add the `next_action` lookup and a first render pass** to `status.sh` (after the empty-state guard).
 
 ```bash
 next_action() { # phase done total mergedCount prCount
@@ -241,14 +241,14 @@ for f in "${specs[@]}"; do
 done
 ```
 
-- [ ] **Step 4: Run the test, verify it passes.**
+- [x] **Step 4: Run the test, verify it passes.**
 
 ```bash
 bash skills/woostack-status/scripts/tests/test-status.sh
 # Expected: head-state assertions pass; html ignored
 ```
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```bash
 git add skills/woostack-status/scripts
@@ -261,7 +261,7 @@ git commit -m "feat(status): render head-state rows with phase + next-action loo
 - Modify: `skills/woostack-status/scripts/status.sh`
 - Test: `skills/woostack-status/scripts/tests/test-status.sh`
 
-- [ ] **Step 1: Write the failing test** — a spec with one plan shows `N/M`; zero plans and two plans both FLAG.
+- [x] **Step 1: Write the failing test** — a spec with one plan shows `N/M`; zero plans and two plans both FLAG.
 
 ```bash
 mkplan() { # dir name specfile boxes_done boxes_todo
@@ -290,14 +290,14 @@ run_status "$p"
 assert_contains "$OUT" "2 plans" "duplicate-plan flagged"
 ```
 
-- [ ] **Step 2: Run it, verify it fails.**
+- [x] **Step 2: Run it, verify it fails.**
 
 ```bash
 bash skills/woostack-status/scripts/tests/test-status.sh
 # Expected: FAIL — 3/10 not present
 ```
 
-- [ ] **Step 3: Add `plan_for`, `plan_progress`, a FLAGS buffer, and wire PLAN cell.**
+- [x] **Step 3: Add `plan_for`, `plan_progress`, a FLAGS buffer, and wire PLAN cell.**
 
 ```bash
 # near the top, after counters
@@ -351,14 +351,14 @@ if [ -n "$FLAGS" ]; then printf '\n⚠ FLAGS\n%s' "$FLAGS"; fi
 > plans=(); while IFS= read -r ln; do [ -n "$ln" ] && plans+=("$ln"); done < <(plan_for "$f")
 > ```
 
-- [ ] **Step 4: Run the test, verify it passes.**
+- [x] **Step 4: Run the test, verify it passes.**
 
 ```bash
 bash skills/woostack-status/scripts/tests/test-status.sh
 # Expected: 3/10 present; 0-plan and 2-plan flags present
 ```
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```bash
 git add skills/woostack-status/scripts
@@ -371,7 +371,7 @@ git commit -m "feat(status): join single plan via Source line, count boxes, flag
 - Modify: `skills/woostack-status/scripts/status.sh`
 - Test: `skills/woostack-status/scripts/tests/test-status.sh`
 
-- [ ] **Step 1: Write the failing test** using a fake `gh` on `PATH` to feed PR state.
+- [x] **Step 1: Write the failing test** using a fake `gh` on `PATH` to feed PR state.
 
 ```bash
 # A fake gh: prints fixture JSON based on a file the test controls.
@@ -398,14 +398,14 @@ assert_contains "$OUT" "in-review" "open PR ⇒ in-review via truth table"
 unset FAKE_GH_JSON
 ```
 
-- [ ] **Step 2: Run it, verify it fails.**
+- [x] **Step 2: Run it, verify it fails.**
 
 ```bash
 bash skills/woostack-status/scripts/tests/test-status.sh
 # Expected: FAIL — phase still shows authored "executing"
 ```
 
-- [ ] **Step 3: Add `gh_json`, `prs_for_spec`, `resolve_phase`; apply the truth table.**
+- [x] **Step 3: Add `gh_json`, `prs_for_spec`, `resolve_phase`; apply the truth table.**
 
 ```bash
 GH_BIN="${WOOSTACK_GH:-gh}"
@@ -456,14 +456,14 @@ In the loop, after computing `done`/`total`, compute PR counts and the effective
 
 Render `$eff` (not the raw authored `$phase`) in the PHASE cell, and pass `$done $total $merged $prcount` into `next_action`.
 
-- [ ] **Step 4: Run the test, verify it passes.**
+- [x] **Step 4: Run the test, verify it passes.**
 
 ```bash
 bash skills/woostack-status/scripts/tests/test-status.sh
 # Expected: foxtrot shows in-review
 ```
 
-- [ ] **Step 5: Add band-coverage tests** (executing when partial + no open PR; done when 100% + merged) and re-run.
+- [x] **Step 5: Add band-coverage tests** (executing when partial + no open PR; done when 100% + merged) and re-run.
 
 ```bash
 # partial, no PRs ⇒ executing
@@ -475,7 +475,7 @@ assert_contains "$OUT" "golf" "golf present"
 assert_exit 0 "$CODE" "band compute exits 0"
 ```
 
-- [ ] **Step 6: Commit.**
+- [x] **Step 6: Commit.**
 
 ```bash
 git add skills/woostack-status/scripts
@@ -488,7 +488,7 @@ git commit -m "feat(status): stubbable gh access + truth-table for exec/review/d
 - Modify: `skills/woostack-status/scripts/status.sh`
 - Test: `skills/woostack-status/scripts/tests/test-status.sh`
 
-- [ ] **Step 1: Write the failing test** — two PRs (one merged, one open) render as a rollup.
+- [x] **Step 1: Write the failing test** — two PRs (one merged, one open) render as a rollup.
 
 ```bash
 h="$(mktemp -d)/.woostack"
@@ -501,14 +501,14 @@ assert_contains "$OUT" "#190" "open increment listed"
 unset FAKE_GH_JSON
 ```
 
-- [ ] **Step 2: Run it, verify it fails.**
+- [x] **Step 2: Run it, verify it fails.**
 
 ```bash
 bash skills/woostack-status/scripts/tests/test-status.sh
 # Expected: FAIL — INCREMENTS cell still "—"
 ```
 
-- [ ] **Step 3: Build the increments cell** while iterating PRs (extend the loop from Task 4).
+- [x] **Step 3: Build the increments cell** while iterating PRs (extend the loop from Task 4).
 
 ```bash
   inc_parts=""
@@ -522,7 +522,7 @@ bash skills/woostack-status/scripts/tests/test-status.sh
 
 (Merge this into the single PR loop from Task 4 — do not iterate twice. Keep counts and `inc_parts` in one pass.)
 
-- [ ] **Step 4: Add the missing-trailer fallback test + behavior.** When the trailer search returns nothing but `branch:` exists, query by head branch and mark "partial".
+- [x] **Step 4: Add the missing-trailer fallback test + behavior.** When the trailer search returns nothing but `branch:` exists, query by head branch and mark "partial".
 
 ```bash
 # behavior in status.sh: if prcount==0 and branch nonempty, try head query
@@ -547,14 +547,14 @@ mkplan "$i" india 2026-06-01-india.md 1 9
 assert_contains "$(next_action executing 1 10 0 0)" "first increment" "no-pr exec next-action"
 ```
 
-- [ ] **Step 5: Run the tests, verify they pass.**
+- [x] **Step 5: Run the tests, verify they pass.**
 
 ```bash
 bash skills/woostack-status/scripts/tests/test-status.sh
 # Expected: #181 / #190 present; rollup assertions pass
 ```
 
-- [ ] **Step 6: Commit.**
+- [x] **Step 6: Commit.**
 
 ```bash
 git add skills/woostack-status/scripts
@@ -567,7 +567,7 @@ git commit -m "feat(status): increment-PR rollup cell + missing-trailer head fal
 - Modify: `skills/woostack-status/scripts/status.sh`
 - Test: `skills/woostack-status/scripts/tests/test-status.sh`
 
-- [ ] **Step 1: Write the failing test** — a pre-PR spec gets owner/age from the spec file's git log; deterministic via `WOOSTACK_NOW`.
+- [x] **Step 1: Write the failing test** — a pre-PR spec gets owner/age from the spec file's git log; deterministic via `WOOSTACK_NOW`.
 
 ```bash
 # real git repo so spec git-log works
@@ -581,14 +581,14 @@ assert_contains "$OUT" "Tess" "pre-PR owner from spec git log"
 assert_contains "$OUT" "15d" "pre-PR age from spec git log (2026-05-20 → 2026-06-04)"
 ```
 
-- [ ] **Step 2: Run it, verify it fails.**
+- [x] **Step 2: Run it, verify it fails.**
 
 ```bash
 bash skills/woostack-status/scripts/tests/test-status.sh
 # Expected: FAIL — OWNER/AGE blank
 ```
 
-- [ ] **Step 3: Add owner/age resolution.** For PR phases use the latest PR's `author`/`updatedAt`; for pre-PR phases use `git log -1` on the spec file.
+- [x] **Step 3: Add owner/age resolution.** For PR phases use the latest PR's `author`/`updatedAt`; for pre-PR phases use `git log -1` on the spec file.
 
 ```bash
 GIT_BIN="${WOOSTACK_GIT:-git}"
@@ -620,7 +620,7 @@ In the loop, after the PR pass:
     last_author="$author"; last_upd_date="${upd:0:10}"
 ```
 
-- [ ] **Step 4: Add stale flag + collision check.**
+- [x] **Step 4: Add stale flag + collision check.**
 
 ```bash
   if [ -n "$agecell" ]; then
@@ -642,14 +642,14 @@ staleDays() { echo 14; }   # overridden in Task 9 to read config
 SEEN_BRANCHES=""
 ```
 
-- [ ] **Step 5: Run the tests, verify they pass.**
+- [x] **Step 5: Run the tests, verify they pass.**
 
 ```bash
 bash skills/woostack-status/scripts/tests/test-status.sh
 # Expected: Tess / 15d present
 ```
 
-- [ ] **Step 6: Commit.**
+- [x] **Step 6: Commit.**
 
 ```bash
 git add skills/woostack-status/scripts
@@ -662,7 +662,7 @@ git commit -m "feat(status): owner/age/stale + branch-collision (gh vs spec git-
 - Modify: `skills/woostack-status/scripts/status.sh`
 - Test: `skills/woostack-status/scripts/tests/test-status.sh`
 
-- [ ] **Step 1: Write the failing tests** for the boundary rules.
+- [x] **Step 1: Write the failing tests** for the boundary rules.
 
 ```bash
 # unknown branch ⇒ flag
@@ -687,14 +687,14 @@ assert_contains "$OUT" "status lags" "PR-open-but-early-phase flagged"
 unset FAKE_GH_JSON
 ```
 
-- [ ] **Step 2: Run them, verify they fail.**
+- [x] **Step 2: Run them, verify they fail.**
 
 ```bash
 bash skills/woostack-status/scripts/tests/test-status.sh
 # Expected: FAIL — no such flags yet
 ```
 
-- [ ] **Step 3: Add the boundary checks** in the loop (after `eff` and PR counts are known).
+- [x] **Step 3: Add the boundary checks** in the loop (after `eff` and PR counts are known).
 
 ```bash
   # phase enum sanity
@@ -714,14 +714,14 @@ bash skills/woostack-status/scripts/tests/test-status.sh
   esac
 ```
 
-- [ ] **Step 4: Run the tests, verify they pass.**
+- [x] **Step 4: Run the tests, verify they pass.**
 
 ```bash
 bash skills/woostack-status/scripts/tests/test-status.sh
 # Expected: all boundary flags present; sibling rows survive
 ```
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```bash
 git add skills/woostack-status/scripts
@@ -734,7 +734,7 @@ git commit -m "feat(status): reconcile boundary flags (branch sanity, enum, phas
 - Modify: `skills/woostack-status/scripts/status.sh`
 - Test: `skills/woostack-status/scripts/tests/test-status.sh`
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
 
 ```bash
 # done hidden by default, shown with --all, counted in footer
@@ -762,14 +762,14 @@ assert_exit 0 "$qc" "gh-absent still exits 0"
 assert_contains "$(cat /tmp/q.out)" "quebec" "renders without gh"
 ```
 
-- [ ] **Step 2: Run them, verify they fail.**
+- [x] **Step 2: Run them, verify they fail.**
 
 ```bash
 bash skills/woostack-status/scripts/tests/test-status.sh
 # Expected: FAIL — done not hidden, no footer counts, no notice
 ```
 
-- [ ] **Step 3: Add arg parsing, the hide/show partition, footer counters, gh-absent notice.**
+- [x] **Step 3: Add arg parsing, the hide/show partition, footer counters, gh-absent notice.**
 
 ```bash
 # arg parse (top, after WOO_DIR)
@@ -816,14 +816,14 @@ exit 0
 
 (Move the phase-enum sanity, flags, owner/age, and band computation so they all run before the row is built. The header `printf` from Task 2 inside the loop is removed — header now prints once after the loop.)
 
-- [ ] **Step 4: Run the tests, verify they pass.**
+- [x] **Step 4: Run the tests, verify they pass.**
 
 ```bash
 bash skills/woostack-status/scripts/tests/test-status.sh
 # Expected: done/abandoned hidden + counted; --all shows them; gh-absent renders + notice
 ```
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```bash
 git add skills/woostack-status/scripts
@@ -837,7 +837,7 @@ git commit -m "feat(status): default in-flight view, done/abandoned footer, --al
 - Modify: `skills/woostack-init/templates/config.json`
 - Test: `skills/woostack-status/scripts/tests/test-status.sh`
 
-- [ ] **Step 1: Write the failing test** — `staleDays: 3` makes a 5-day-old executing spec stale; default 14 does not.
+- [x] **Step 1: Write the failing test** — `staleDays: 3` makes a 5-day-old executing spec stale; default 14 does not.
 
 ```bash
 s="$(mktemp -d)/.woostack"; mkdir -p "$s"
@@ -852,14 +852,14 @@ printf '# r\n\n**Source:** .woostack/specs/2026-06-01-romeo.md\n\n- [x] a\n- [ ]
 assert_contains "$(cat /tmp/r.out)" "stale" "staleDays:3 makes 5d spec stale"
 ```
 
-- [ ] **Step 2: Run it, verify it fails** (default 14 ⇒ not stale).
+- [x] **Step 2: Run it, verify it fails** (default 14 ⇒ not stale).
 
 ```bash
 bash skills/woostack-status/scripts/tests/test-status.sh
 # Expected: FAIL — no stale flag at default 14
 ```
 
-- [ ] **Step 3: Replace the stub `staleDays()`** with a config reader (jq, with a no-jq fallback).
+- [x] **Step 3: Replace the stub `staleDays()`** with a config reader (jq, with a no-jq fallback).
 
 ```bash
 staleDays() {
@@ -875,27 +875,27 @@ staleDays() {
 }
 ```
 
-- [ ] **Step 4: Update the config template** so new workspaces ship the namespace. Edit `skills/woostack-init/templates/config.json`:
+- [x] **Step 4: Update the config template** so new workspaces ship the namespace. Edit `skills/woostack-init/templates/config.json`:
 
 ```json
 { "review": {}, "status": { "staleDays": 14 } }
 ```
 
-- [ ] **Step 5: Run the tests, verify they pass.**
+- [x] **Step 5: Run the tests, verify they pass.**
 
 ```bash
 bash skills/woostack-status/scripts/tests/test-status.sh
 # Expected: stale flag appears under staleDays:3
 ```
 
-- [ ] **Step 6: Run the FULL suite to confirm nothing regressed.**
+- [x] **Step 6: Run the FULL suite to confirm nothing regressed.**
 
 ```bash
 bash skills/woostack-status/scripts/tests/run-tests.sh
 # Expected: "test-status.sh" … "<N> passed, 0 failed"
 ```
 
-- [ ] **Step 7: Commit.**
+- [x] **Step 7: Commit.**
 
 ```bash
 git add skills/woostack-status/scripts skills/woostack-init/templates/config.json
@@ -907,7 +907,7 @@ git commit -m "feat(status): read status.staleDays from config; ship namespace i
 **Files:**
 - Create: `skills/woostack-status/references/conventions.md`
 
-- [ ] **Step 1: Write `conventions.md`** — the single source of truth. No test (doc), but it must state each contract exactly so producers can link it.
+- [x] **Step 1: Write `conventions.md`** — the single source of truth. No test (doc), but it must state each contract exactly so producers can link it.
 
 ````markdown
 # woostack feature-state conventions
@@ -961,7 +961,7 @@ spec older than `status.staleDays` (config, default 14) · two in-flight specs o
 the same branch.
 ````
 
-- [ ] **Step 2: Commit.**
+- [x] **Step 2: Commit.**
 
 ```bash
 git add skills/woostack-status/references/conventions.md
@@ -973,30 +973,30 @@ git commit -m "docs(status): canonical feature-state conventions"
 **Files:**
 - Modify: `.woostack/specs/*.md` (only those needing it)
 
-- [ ] **Step 1: Find specs to migrate.**
+- [x] **Step 1: Find specs to migrate.**
 
 ```bash
 grep -l '^status: ready' .woostack/specs/*.md
 grep -l '^branch: unknown' .woostack/specs/*.md
 ```
 
-- [ ] **Step 2: Migrate `ready → approved`** on each matching file (verify each is genuinely past the approval gate before changing). Use the `set_field` helper from `woostack-init/scripts/lib.sh` or a manual edit.
+- [x] **Step 2: Migrate `ready → approved`** on each matching file (verify each is genuinely past the approval gate before changing). Use the `set_field` helper from `woostack-init/scripts/lib.sh` or a manual edit.
 
 ```bash
 # example, per file:
 sed -i '' 's/^status: ready$/status: approved/' .woostack/specs/<file>.md   # macOS sed
 ```
 
-- [ ] **Step 3: Fix `branch: unknown`** — set the real branch where known (e.g. `bounded-review-swarms`), else leave and let the board flag it. Do not invent a branch.
+- [x] **Step 3: Fix `branch: unknown`** — set the real branch where known (e.g. `bounded-review-swarms`), else leave and let the board flag it. Do not invent a branch.
 
-- [ ] **Step 4: Run the board against the real repo** to confirm it parses and flags honestly.
+- [x] **Step 4: Run the board against the real repo** to confirm it parses and flags honestly.
 
 ```bash
 bash skills/woostack-status/scripts/status.sh
 # Expected: a table for the live specs; flags for any genuine 1:1 / branch gaps
 ```
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```bash
 git add .woostack/specs
@@ -1005,8 +1005,8 @@ git commit -m "chore(status): migrate spec status vocabulary to the phase enum"
 
 ### Increment 1 close-out
 
-- [ ] **Distill memory** (build step 7): extract durable conventions (the `**Source:**` join, the `Spec:` trailer contract, the truth table) into `.woostack/memory/` notes with `source: .woostack/plans/2026-06-04-woostack-status.md`; dedupe; run `build-index.sh` + `doctor.sh`.
-- [ ] **Offer a PR** for Increment 1 (engine) before starting Increment 2.
+- [x] **Distill memory** (build step 7): extract durable conventions (the `**Source:**` join, the `Spec:` trailer contract, the truth table) into `.woostack/memory/` notes with `source: .woostack/plans/2026-06-04-woostack-status.md`; dedupe; run `build-index.sh` + `doctor.sh`.
+- [x] **Offer a PR** for Increment 1 (engine) before starting Increment 2.
 
 ---
 
@@ -1018,56 +1018,56 @@ git commit -m "chore(status): migrate spec status vocabulary to the phase enum"
 
 **Files:** Create `skills/woostack-status/SKILL.md`
 
-- [ ] Write the SKILL with: frontmatter `name: woostack-status`, description scoped to "show the derived feature board / what's in flight / what to do next"; an Overview; a Procedure that runs `bash <skill>/scripts/status.sh` against the project's `.woostack`, then narrates the board and the single next action per in-flight feature; a flags section documenting `--all` and `--fetch`; a Hard-constraints block ("read-only; never fetches/commits/pushes; source of truth is the artifacts"); and a link to `references/conventions.md`. Do not restate the enum — link it.
-- [ ] Commit: `feat(status): add /woostack-status command skill`.
+- [x] Write the SKILL with: frontmatter `name: woostack-status`, description scoped to "show the derived feature board / what's in flight / what to do next"; an Overview; a Procedure that runs `bash <skill>/scripts/status.sh` against the project's `.woostack`, then narrates the board and the single next action per in-flight feature; a flags section documenting `--all` and `--fetch`; a Hard-constraints block ("read-only; never fetches/commits/pushes; source of truth is the artifacts"); and a link to `references/conventions.md`. Do not restate the enum — link it.
+- [x] Commit: `feat(status): add /woostack-status command skill`.
 
 ### Task 13: woostack-commit — `Spec:` trailer + advisory invariant check
 
 **Files:** Modify `skills/woostack-commit/SKILL.md`
 
-- [ ] In the PR-body section (step 7), add the trailer to the body template, after Test plan: a line `Spec: .woostack/specs/<file>.md` resolved from the session's spec (the spec whose `branch:` matches the current branch, or the spec under active work). Document that the board relies on it (link `conventions.md`).
-- [ ] Add a step 4.5 "Invariant check (advisory)": when staged files include `.woostack/specs/*` or `.woostack/plans/*`, run the cheap checks — each touched spec resolves to exactly one plan, `branch:` present, `status:` ∈ enum — and print any violation as a single non-blocking line in the commit report. Never abort. Link `conventions.md`.
-- [ ] Commit: `feat(commit): write Spec: PR trailer + advisory invariant check`.
+- [x] In the PR-body section (step 7), add the trailer to the body template, after Test plan: a line `Spec: .woostack/specs/<file>.md` resolved from the session's spec (the spec whose `branch:` matches the current branch, or the spec under active work). Document that the board relies on it (link `conventions.md`).
+- [x] Add a step 4.5 "Invariant check (advisory)": when staged files include `.woostack/specs/*` or `.woostack/plans/*`, run the cheap checks — each touched spec resolves to exactly one plan, `branch:` present, `status:` ∈ enum — and print any violation as a single non-blocking line in the commit report. Never abort. Link `conventions.md`.
+- [x] Commit: `feat(commit): write Spec: PR trailer + advisory invariant check`.
 
 ### Task 14: woostack-build — author `status:`, write `**Source:**`, state 1:1
 
 **Files:** Modify `skills/woostack-build/SKILL.md`
 
-- [ ] Annotate each step with the `status:` it authors: step 2 → `draft`; step 3 post-grill → `hardened`, gate cleared → `approved`; step 4 → `planning`; step 6 → `executing`; step 8 → `in-review`; post-merge → `done`. Add a one-line "the build loop owns `status:` transitions — see `woostack-status/references/conventions.md`."
-- [ ] In step 4 (plan), require the plan to open with the `**Source:** .woostack/specs/<file>.md` line.
-- [ ] In step 2/5, state the invariant explicitly: exactly one plan per spec; the plan owns the increments. Link `conventions.md`.
-- [ ] Commit: `docs(build): author status: per step, require Source line, state 1:1 invariant`.
+- [x] Annotate each step with the `status:` it authors: step 2 → `draft`; step 3 post-grill → `hardened`, gate cleared → `approved`; step 4 → `planning`; step 6 → `executing`; step 8 → `in-review`; post-merge → `done`. Add a one-line "the build loop owns `status:` transitions — see `woostack-status/references/conventions.md`."
+- [x] In step 4 (plan), require the plan to open with the `**Source:** .woostack/specs/<file>.md` line.
+- [x] In step 2/5, state the invariant explicitly: exactly one plan per spec; the plan owns the increments. Link `conventions.md`.
+- [x] Commit: `docs(build): author status: per step, require Source line, state 1:1 invariant`.
 
 ### Task 15: spec-template enum + init reference note
 
 **Files:** Modify `skills/woostack-build/references/spec-template.md`, the init config reference
 
-- [ ] In `spec-template.md`, annotate the `status:` field with the enum values and link `conventions.md`.
-- [ ] In the woostack-init reference that documents `config.json` namespaces, add the `status` namespace (`staleDays`, default 14) alongside `review`.
-- [ ] Commit: `docs(build): document status enum in spec template + status config namespace`.
+- [x] In `spec-template.md`, annotate the `status:` field with the enum values and link `conventions.md`.
+- [x] In the woostack-init reference that documents `config.json` namespaces, add the `status` namespace (`staleDays`, default 14) alongside `review`.
+- [x] Commit: `docs(build): document status enum in spec template + status config namespace`.
 
 ### Task 16: using-woostack — routing, pointer, red-flags
 
 **Files:** Modify `skills/using-woostack/SKILL.md`
 
-- [ ] Add a Command Routing row: ``| `/woostack-status`, show the derived feature board | `woostack-status` |``.
-- [ ] Add a one-line invariant pointer under the Project Entry Check linking `woostack-status/references/conventions.md` ("specs↔plans are 1:1; `status:`/`branch:` are load-bearing for the board").
-- [ ] Add three Red-Flags rows: writing a second plan for a spec; hand-setting/blanking `status:`/`branch:`; renaming/moving a spec or plan.
-- [ ] Commit: `docs(using-woostack): route /woostack-status, add invariant pointer + red-flags`.
+- [x] Add a Command Routing row: ``| `/woostack-status`, show the derived feature board | `woostack-status` |``.
+- [x] Add a one-line invariant pointer under the Project Entry Check linking `woostack-status/references/conventions.md` ("specs↔plans are 1:1; `status:`/`branch:` are load-bearing for the board").
+- [x] Add three Red-Flags rows: writing a second plan for a spec; hand-setting/blanking `status:`/`branch:`; renaming/moving a spec or plan.
+- [x] Commit: `docs(using-woostack): route /woostack-status, add invariant pointer + red-flags`.
 
 ### Task 17: Surface — AGENTS.md / README
 
 **Files:** Modify `AGENTS.md` (and its symlink `.claude/CLAUDE.md` is the same file), `README.md`
 
-- [ ] Update the public command surface from eight to nine: add the `woostack-status` bullet to the list, add it to the Quick file map, and update any "eight skills" wording (keep the internal `woostack-ideate` framing intact — it is not part of the count).
-- [ ] Update `README.md`'s skill list / how-it-works the same way; resolve any version/command counts.
-- [ ] Commit: `docs: add woostack-status to the public command surface (8 → 9)`.
+- [x] Update the public command surface from eight to nine: add the `woostack-status` bullet to the list, add it to the Quick file map, and update any "eight skills" wording (keep the internal `woostack-ideate` framing intact — it is not part of the count).
+- [x] Update `README.md`'s skill list / how-it-works the same way; resolve any version/command counts.
+- [x] Commit: `docs: add woostack-status to the public command surface (8 → 9)`.
 
 ### Increment 2 close-out
 
-- [ ] Run `bash skills/woostack-status/scripts/tests/run-tests.sh` — confirm the engine still passes after producer edits.
-- [ ] Distill any new durable conventions; run `build-index.sh` + `doctor.sh`.
-- [ ] Offer a PR for Increment 2.
+- [x] Run `bash skills/woostack-status/scripts/tests/run-tests.sh` — confirm the engine still passes after producer edits.
+- [x] Distill any new durable conventions; run `build-index.sh` + `doctor.sh`.
+- [x] Offer a PR for Increment 2.
 
 ---
 
