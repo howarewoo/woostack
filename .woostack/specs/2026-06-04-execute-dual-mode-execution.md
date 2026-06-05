@@ -5,7 +5,7 @@ status: approved
 date: 2026-06-04
 branch: feature/execute-dual-mode
 links:
-  - "[[2026-06-04-woostack-execute-skill]]"
+  - "[[2026-06-04-woostack-execute]]"
 ---
 
 # woostack-execute dual-mode execution (inline + subagent-driven) — Design Spec

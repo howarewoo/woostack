@@ -1,11 +1,11 @@
 ---
-name: woostack-harden-skill
+name: woostack-harden
 type: spec
 status: done
 date: 2026-06-04
 branch: worktree-tender-exploring-swing
 links:
-  - "[[2026-06-03-woostack-ideate-skill]]"
+  - "[[2026-06-03-woostack-ideate]]"
 ---
 
 # woostack-harden: a woostack-native hardening skill — Design Spec

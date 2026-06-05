@@ -5,8 +5,8 @@ status: done
 date: 2026-06-04
 branch: worktree-nested-wishing-hanrahan
 links:
-  - "[[2026-06-04-woostack-execute-skill]]"
-  - "[[2026-06-04-woostack-harden-skill]]"
+  - "[[2026-06-04-woostack-execute]]"
+  - "[[2026-06-04-woostack-harden]]"
 ---
 
 # woostack-build: execution-handoff gate — Design Spec

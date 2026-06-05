@@ -4,7 +4,7 @@
 
 **Goal:** Ship a woostack-native `woostack-ideate` skill that drives idea → approved design and stops there, then rewire `woostack-build` step 1 + preflight to use it instead of `superpowers:brainstorming`.
 
-**Architecture:** One new self-contained skill file (`skills/woostack-ideate/SKILL.md`) — no references dir needed. It keeps superpowers' load-bearing parts (HARD GATE, one-question-at-a-time, 2-3 approaches, design-for-isolation, scope decomposition) and truncates the tail: no spec write, no `writing-plans` chain. Visual treatment defers to `woostack-visualize` instead of a bespoke browser companion. Four existing docs are edited to rewire and document it as an internal building block (not a ninth command). Source: [.woostack/specs/2026-06-03-woostack-ideate-skill.md](../specs/2026-06-03-woostack-ideate-skill.md).
+**Architecture:** One new self-contained skill file (`skills/woostack-ideate/SKILL.md`) — no references dir needed. It keeps superpowers' load-bearing parts (HARD GATE, one-question-at-a-time, 2-3 approaches, design-for-isolation, scope decomposition) and truncates the tail: no spec write, no `writing-plans` chain. Visual treatment defers to `woostack-visualize` instead of a bespoke browser companion. Four existing docs are edited to rewire and document it as an internal building block (not a ninth command). Source: [.woostack/specs/2026-06-03-woostack-ideate.md](../specs/2026-06-03-woostack-ideate.md).
 
 **Tech Stack:** Markdown skill files only. No code, no app build, no CI for this repo.
 
