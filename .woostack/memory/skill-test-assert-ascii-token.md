@@ -6,7 +6,7 @@ tags: tests, grep, assertions, encoding, ascii, unicode
 hook: Grep-based skill tests should assert an ASCII token, not a unicode literal (e.g. a → arrow); keep the readable unicode in the prose and assert on an ASCII phrase that lives in the same text.
 updated: 2026-06-05
 source: .woostack/plans/2026-06-05-address-comments-fix-plan-gate.md
-recall_count: 8
+recall_count: 9
 last_recalled: 2026-06-06
 ---
 woostack skills are documentation; their `scripts/tests/*.sh` guards are `rg -F`/`grep`

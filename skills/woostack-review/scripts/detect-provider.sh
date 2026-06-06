@@ -22,7 +22,7 @@ fi
 case "$PROVIDER" in
   anthropic|openai|google|openrouter) ;;
   "")
-    echo "::error::No provider resolvable. Set 'provider' input or one of: anthropic_token, openai_api_key, google_api_key, openrouter_api_key."
+    echo "::error::woostack-review preflight: no model provider/runner resolvable, so no angle worker can execute. Configure a provider/model (set the 'provider' input), install auth (one of: anthropic_token, openai_api_key, google_api_key, openrouter_api_key), or set the correct runner override. Refusing to run a review that cannot analyze the diff."
     exit 1
     ;;
   *)
