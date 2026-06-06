@@ -134,7 +134,11 @@ Stop immediately and ask — never guess — when:
 
 - A blocker hits (missing dependency, failing verification, unclear instruction).
 - The plan has critical gaps preventing a start.
-- A verification fails repeatedly.
+- A verification fails repeatedly — route it to [`woostack-debug`](../woostack-debug/SKILL.md)
+  in autonomous mode (`woostack-debug <target> --auto`) to find and fix the root cause before
+  escalating; escalate to the user only if debug returns its 3-fixes architectural stop. Debug
+  does not commit — execute commits the returned fix in its normal per-increment cadence. This
+  applies to both the inline and subagent drivers.
 - A review returns REQUEST_CHANGES — handle the findings before continuing.
 
 Return to the plan-review step if the plan is updated or the approach needs rethinking.

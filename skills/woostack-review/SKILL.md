@@ -534,6 +534,7 @@ The `if:` gate restricts comment-triggered runs to the repo owner / members / co
 - Trust the Skeptical Validator. Disabling it produces noisy reviews.
 - Honor angle-prompt tiers (`fast`/`standard`/`deep`) when the host supports per-call model routing. Hosts that run one model per session should pin `gpt-5.5` for maximum validator quality, or `gpt-5.4` when cost matters more than deep validation.
 - Pass `disable_angles` to skip optional angles when scope is narrow (e.g. backend-only PR → `disable_angles: "seo,aeo,design,react,i18n"`).
+- For a confirmed bug (not a style nit) that the author wants to fix, suggest investigating it with [`woostack-debug`](../woostack-debug/SKILL.md): `/woostack-debug <target>` (gated — it finds the root cause before any fix). Review never dispatches `woostack-debug --auto`: it owns no fix behavior and never auto-addresses findings, so it only points the author at the gated command.
 
 ## Troubleshooting
 

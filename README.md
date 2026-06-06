@@ -26,7 +26,7 @@ Templates rot. Dependencies drift, breaking changes pile up, and every new proje
 pnpx skills add howarewoo/woostack
 ```
 
-This installs the woostack **collection** into your agent's skill directory and records it in `skills-lock.json`. The public command/adoption surface is eleven skills: using-woostack, woostack-init, woostack-bootstrap, woostack-build, woostack-plan, woostack-execute, woostack-commit, woostack-review, woostack-address-comments, woostack-status, and woostack-visualize. The collection also installs two internal sub-skills used by `woostack-build` — `woostack-ideate` and `woostack-harden`; neither is a `/woostack-*` command. Works in any agent that respects the `skills` convention: Claude Code, Cursor, Codex, Aider, and others.
+This installs the woostack **collection** into your agent's skill directory and records it in `skills-lock.json`. The public command/adoption surface is twelve skills: using-woostack, woostack-init, woostack-bootstrap, woostack-build, woostack-plan, woostack-execute, woostack-commit, woostack-review, woostack-address-comments, woostack-status, woostack-visualize, and woostack-debug. The collection also installs two internal sub-skills used by `woostack-build` — `woostack-ideate` and `woostack-harden`; neither is a `/woostack-*` command. Works in any agent that respects the `skills` convention: Claude Code, Cursor, Codex, Aider, and others.
 
 > **pnpm is the recommended package manager.** Commands in this repo use `pnpx` (and `pnpm`) over `npx` / `npm`. If you only have npm, `npx skills add howarewoo/woostack` works too, but woostack-bootstrapped projects use a pnpm catalog, so pnpm is the path of least friction.
 
@@ -88,6 +88,10 @@ A read-only, on-demand board derived fresh from your `.woostack/` artifacts: for
 ### `/woostack-visualize <source> [for <audience>]`: audience-tailored HTML render
 
 A discovery command for rendering source material as an audience-tailored HTML view while keeping the source authoritative. → [SKILL.md](skills/woostack-visualize/SKILL.md)
+
+### `/woostack-debug <target> [--auto]`: find the root cause before fixing
+
+Runs woostack's systematic-debugging method on a bug, test failure, or unexpected behavior: root-cause investigation → pattern analysis → hypothesis/test → a minimal fix with a failing test first, under the Iron Law (no fix without a root cause) and a 3-fixes-→-question-the-architecture escalation. It recalls known `gotcha`s from `.woostack/memory/` at the start and distills one at the end. Standalone it gates on the root cause before fixing (the gated form `woostack-review` points you at for a confirmed bug); `--auto` runs autonomously (how `woostack-execute` calls it on a stuck verification). Never commits or merges. → [SKILL.md](skills/woostack-debug/SKILL.md)
 
 ### Growing scope
 

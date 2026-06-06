@@ -179,7 +179,7 @@ gt create -m "feat(woostack-debug): add systematic-debugging skill"
 
 **Files:** Modify `skills/woostack-execute/SKILL.md`
 
-- [ ] **Step 1: Confirm the current text, confirm the wiring is absent**
+- [x] **Step 1: Confirm the current text, confirm the wiring is absent**
 
 Run:
 ```bash
@@ -188,7 +188,7 @@ grep -c 'woostack-debug' skills/woostack-execute/SKILL.md
 ```
 Expected: the first prints the line (~137); the second prints `0` (no wiring yet — this is the failing state).
 
-- [ ] **Step 2: Edit the "When to stop and ask" block**
+- [x] **Step 2: Edit the "When to stop and ask" block**
 
 In the `## When to stop and ask` list, change the `A verification fails repeatedly.` bullet so a repeatedly-failing verification first routes to `woostack-debug <target> --auto` (autonomous), escalating to the user only if debug returns its ≥3-fixes architectural stop. State that this applies to both inline and subagent drivers (the block is shared), and that debug does not commit — execute commits the returned fix in its existing per-increment cadence. Link `../woostack-debug/SKILL.md`. Example replacement bullet:
 
@@ -200,7 +200,7 @@ In the `## When to stop and ask` list, change the `A verification fails repeated
   (Applies to both the inline and subagent drivers.)
 ```
 
-- [ ] **Step 3: Run the verification, confirm it passes**
+- [x] **Step 3: Run the verification, confirm it passes**
 
 Run:
 ```bash
@@ -210,7 +210,7 @@ echo PASS || echo FAIL
 ```
 Expected: PASS.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt create -m "feat(woostack-execute): route stuck verifications to woostack-debug --auto"
@@ -220,7 +220,7 @@ gt create -m "feat(woostack-execute): route stuck verifications to woostack-debu
 
 **Files:** Modify `skills/woostack-review/SKILL.md`
 
-- [ ] **Step 1: Confirm wiring absent**
+- [x] **Step 1: Confirm wiring absent**
 
 Run:
 ```bash
@@ -228,7 +228,7 @@ grep -c 'woostack-debug' skills/woostack-review/SKILL.md
 ```
 Expected: `0`.
 
-- [ ] **Step 2: Add the suggestion pointer**
+- [x] **Step 2: Add the suggestion pointer**
 
 Add a short prose pointer (no verdict/threading change) in the place where review describes acting on confirmed findings: when a finding is a confirmed real bug (not a style nit), suggest the user run the gated `/woostack-debug <target>` to investigate it systematically. State explicitly that review never `--auto`-dispatches debug — review owns no fix behavior and never auto-addresses findings. Link `../woostack-debug/SKILL.md`. Example:
 
@@ -238,7 +238,7 @@ For a confirmed bug (not a style nit), suggest the user investigate it with
 never dispatches `--auto` — it owns no fix behavior and never auto-addresses findings.
 ```
 
-- [ ] **Step 3: Run the verification, confirm it passes**
+- [x] **Step 3: Run the verification, confirm it passes**
 
 Run:
 ```bash
@@ -249,7 +249,7 @@ echo PASS || echo FAIL
 ```
 Expected: PASS (mentions the gated command; never pairs `woostack-debug` with `--auto`).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt modify -c -m "feat(woostack-review): suggest woostack-debug for confirmed bugs"
@@ -259,12 +259,12 @@ gt modify -c -m "feat(woostack-review): suggest woostack-debug for confirmed bug
 
 **Files:** Modify `skills/using-woostack/SKILL.md`
 
-- [ ] **Step 1: Confirm absent**
+- [x] **Step 1: Confirm absent**
 
 Run: `grep -c 'woostack-debug' skills/using-woostack/SKILL.md`
 Expected: `0`.
 
-- [ ] **Step 2: Add the Command Routing row**
+- [x] **Step 2: Add the Command Routing row**
 
 In the `## Command Routing` table, add a row (keep the existing column shape):
 
@@ -272,7 +272,7 @@ In the `## Command Routing` table, add a row (keep the existing column shape):
 | `/woostack-debug <target> [--auto]`, find a bug's root cause before fixing (gated; `--auto` for autonomous) | `woostack-debug` |
 ```
 
-- [ ] **Step 3: Run the verification, confirm it passes**
+- [x] **Step 3: Run the verification, confirm it passes**
 
 Run:
 ```bash
@@ -281,7 +281,7 @@ grep -q '| `woostack-debug` |' skills/using-woostack/SKILL.md && echo PASS || ec
 ```
 Expected: PASS.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt modify -c -m "feat(using-woostack): add woostack-debug routing row"
@@ -291,7 +291,7 @@ gt modify -c -m "feat(using-woostack): add woostack-debug routing row"
 
 **Files:** Modify `AGENTS.md` (the `.claude/CLAUDE.md` symlink points here)
 
-- [ ] **Step 1: Confirm the current counts (failing state)**
+- [x] **Step 1: Confirm the current counts (failing state)**
 
 Run:
 ```bash
@@ -302,23 +302,23 @@ grep -c 'woostack-debug' AGENTS.md
 ```
 Expected: the three greps print their lines (~16, ~34, ~79); the count prints `0`.
 
-- [ ] **Step 2: Bump the public-surface count + list (line ~16)**
+- [x] **Step 2: Bump the public-surface count + list (line ~16)**
 
 Change `The public command/adoption surface has eleven skills:` → `twelve skills:` and add a bullet `- [`woostack-debug`](skills/woostack-debug/SKILL.md)` to the list (after `woostack-status`/`woostack-visualize`, keeping the existing order/style).
 
-- [ ] **Step 3: Fix the internal-sub-skill phrasing (line ~34)**
+- [x] **Step 3: Fix the internal-sub-skill phrasing (line ~34)**
 
 Change `absent from the eleven-skill command surface above` → `twelve-skill command surface above` so the cross-reference stays accurate.
 
-- [ ] **Step 4: Bump the rename-protection counts (line ~79)**
+- [x] **Step 4: Bump the rename-protection counts (line ~79)**
 
 Change `Do not move or rename any of the thirteen `SKILL.md` files (the eleven public command/adoption …` → `fourteen `SKILL.md` files (the twelve public command/adoption …` (twelve public + the two internal sub-skills = fourteen).
 
-- [ ] **Step 5: Add `/woostack-debug` to the Mode B command list**
+- [x] **Step 5: Add `/woostack-debug` to the Mode B command list**
 
 In the `## Modes` → Mode B sentence that enumerates the slash commands, add `/woostack-debug` to the list (keep the intent-equivalent-wording clause).
 
-- [ ] **Step 6: Add a Quick file map entry**
+- [x] **Step 6: Add a Quick file map entry**
 
 Under `## Quick file map`, add an entry:
 
@@ -327,7 +327,7 @@ Under `## Quick file map`, add an entry:
   [`skills/woostack-debug/SKILL.md`](skills/woostack-debug/SKILL.md)
 ```
 
-- [ ] **Step 7: Run the verification, confirm it passes**
+- [x] **Step 7: Run the verification, confirm it passes**
 
 Run:
 ```bash
@@ -344,7 +344,7 @@ grep -nE 'eleven skills|eleven-skill|thirteen `SKILL.md`' AGENTS.md && echo "STA
 ```
 Expected: `no-stale:OK`.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 gt modify -c -m "docs(agents): register woostack-debug (eleven→twelve, file map, modes)"
@@ -354,7 +354,7 @@ gt modify -c -m "docs(agents): register woostack-debug (eleven→twelve, file ma
 
 **Files:** Modify `README.md`
 
-- [ ] **Step 1: Confirm the failing state**
+- [x] **Step 1: Confirm the failing state**
 
 Run:
 ```bash
@@ -363,11 +363,11 @@ grep -c '/woostack-debug' README.md
 ```
 Expected: first prints line ~29; second prints `0`.
 
-- [ ] **Step 2: Bump the count + list (line ~29)**
+- [x] **Step 2: Bump the count + list (line ~29)**
 
 Change `The public command/adoption surface is eleven skills: …, and woostack-visualize.` → `twelve skills: …, woostack-visualize, and woostack-debug.` (keep the trailing internal-sub-skills sentence about `woostack-ideate`/`woostack-harden` unchanged).
 
-- [ ] **Step 3: Add a command-catalog entry**
+- [x] **Step 3: Add a command-catalog entry**
 
 In the per-command catalog section (the `### /woostack-X` blocks, ~lines 50–90), add a new entry consistent with the existing blurb style:
 
@@ -383,7 +383,7 @@ autonomously (how `woostack-execute` calls it on a stuck verification). Never co
 merges. → [SKILL.md](skills/woostack-debug/SKILL.md)
 ```
 
-- [ ] **Step 4: Confirm build-loop prose is untouched**
+- [x] **Step 4: Confirm build-loop prose is untouched**
 
 Run (content-based, not line-based — the build-loop sentence names the four build phases and must NOT gain `woostack-debug`):
 ```bash
@@ -392,7 +392,7 @@ grep -n "sequences woostack's own ideate, harden, plan, and execute" README.md |
 ```
 Expected: `build-prose-clean:OK` (the matched build-loop line contains no `woostack-debug`).
 
-- [ ] **Step 5: Run the verification, confirm it passes**
+- [x] **Step 5: Run the verification, confirm it passes**
 
 Run:
 ```bash
@@ -403,7 +403,7 @@ grep -nE 'surface is eleven skills' README.md && echo "STALE-FOUND" || echo "no-
 ```
 Expected: `PASS` and `no-stale:OK`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 gt modify -c -m "docs(readme): register woostack-debug command (count, list, catalog)"
@@ -413,25 +413,25 @@ gt modify -c -m "docs(readme): register woostack-debug command (count, list, cat
 
 **Files:** Modify `CONTRIBUTING.md`
 
-- [ ] **Step 1: Confirm absent**
+- [x] **Step 1: Confirm absent**
 
 Run: `grep -c 'woostack-debug' CONTRIBUTING.md`
 Expected: `0`.
 
-- [ ] **Step 2: Add to the command-surface list (line ~3)**
+- [x] **Step 2: Add to the command-surface list (line ~3)**
 
 Add `woostack-debug` to the inline command-surface enumeration, matching the existing comma-list style (after `woostack-visualize`).
 
-- [ ] **Step 3: Add an edit-map row (if a per-skill table exists)**
+- [x] **Step 3: Add an edit-map row (if a per-skill table exists)**
 
 If `CONTRIBUTING.md` has a "where to edit" table listing per-skill entries, add a row: change the debugging behavior → `skills/woostack-debug/SKILL.md`. (If there is no such table, skip this step — confirm by `grep -n 'where to edit' CONTRIBUTING.md` first.)
 
-- [ ] **Step 4: Run the verification, confirm it passes**
+- [x] **Step 4: Run the verification, confirm it passes**
 
 Run: `grep -q 'woostack-debug' CONTRIBUTING.md && echo PASS || echo FAIL`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "docs(contributing): add woostack-debug to the command surface"
@@ -441,7 +441,7 @@ gt modify -c -m "docs(contributing): add woostack-debug to the command surface"
 
 **Files:** none (verification only)
 
-- [ ] **Step 1: No stale counts anywhere in shipped docs**
+- [x] **Step 1: No stale counts anywhere in shipped docs**
 
 Run:
 ```bash
@@ -449,7 +449,7 @@ grep -rnE 'eleven skills|eleven-skill|thirteen `SKILL.md`' AGENTS.md README.md C
 ```
 Expected: `no-stale:OK`.
 
-- [ ] **Step 2: `woostack-debug` present in every enumeration site**
+- [x] **Step 2: `woostack-debug` present in every enumeration site**
 
 Run:
 ```bash
@@ -458,7 +458,7 @@ for f in AGENTS.md README.md CONTRIBUTING.md skills/using-woostack/SKILL.md skil
 ```
 Expected: every line starts with `OK`.
 
-- [ ] **Step 3: Cross-links resolve from the new skill and its referrers**
+- [x] **Step 3: Cross-links resolve from the new skill and its referrers**
 
 Run:
 ```bash
@@ -470,7 +470,7 @@ test -f skills/woostack-review/SKILL.md && echo "links:OK" || echo "links:FAIL"
 ```
 Expected: `links:OK`.
 
-- [ ] **Step 4: Final commit (if any verification fix was needed)**
+- [x] **Step 4: Final commit (if any verification fix was needed)**
 
 ```bash
 gt modify -c -m "docs: enumeration consistency for woostack-debug"
@@ -480,9 +480,9 @@ gt modify -c -m "docs: enumeration consistency for woostack-debug"
 
 ## Self-review (run before handing back)
 
-- [ ] **Spec coverage** — every spec section maps to a task: §2 goal → Task 1 (skill) + Tasks 2–7 (wiring/enum); §4.1 four phases → Task 1 Steps 4–5; §4.2 mode model → Task 1 Step 6; §4.3 memory → Task 1 Step 7; §4.4 call sites → Tasks 2–3; §5 edit set → Tasks 1–7; §6 failure modes → Task 1 Steps 6–7 + Step 11; §7 testing → the verification steps + Task 8.
-- [ ] **No placeholders** — every step has the actual content (frontmatter, Iron Law/escalation blocks verbatim, exact grep commands, expected output).
-- [ ] **Type consistency** — the flag is `--auto` everywhere; the note type is `gotcha` everywhere; the command is `/woostack-debug <target> [--auto]` everywhere; counts are twelve (public) / fourteen (SKILL.md files) consistently.
+- [x] **Spec coverage** — every spec section maps to a task: §2 goal → Task 1 (skill) + Tasks 2–7 (wiring/enum); §4.1 four phases → Task 1 Steps 4–5; §4.2 mode model → Task 1 Step 6; §4.3 memory → Task 1 Step 7; §4.4 call sites → Tasks 2–3; §5 edit set → Tasks 1–7; §6 failure modes → Task 1 Steps 6–7 + Step 11; §7 testing → the verification steps + Task 8.
+- [x] **No placeholders** — every step has the actual content (frontmatter, Iron Law/escalation blocks verbatim, exact grep commands, expected output).
+- [x] **Type consistency** — the flag is `--auto` everywhere; the note type is `gotcha` everywhere; the command is `/woostack-debug <target> [--auto]` everywhere; counts are twelve (public) / fourteen (SKILL.md files) consistently.
 
 > woostack plan conventions (kept):
 > - This file is **frontmatter-free** and **opens with** the `**Source:**` line.

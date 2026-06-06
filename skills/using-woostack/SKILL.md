@@ -73,6 +73,7 @@ link it, never restate it.
 | `/woostack-address-comments [PR#]`, address unresolved review threads | `woostack-address-comments` |
 | `/woostack-status [--all] [--fetch]`, show the derived feature board (what's in flight, what to do next) | `woostack-status` |
 | `/woostack-visualize <source> [for <audience>]`, render a source as audience-tailored HTML | `woostack-visualize` |
+| `/woostack-debug <target> [--auto]`, find a bug's root cause before fixing (gated; `--auto` for autonomous) | `woostack-debug` |
 
 If the user asks for the behavior without using the exact command name, route by intent.
 For example, "use woostack to review this PR" means load `woostack-review`.
