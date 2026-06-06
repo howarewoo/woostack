@@ -472,7 +472,7 @@ gt modify -c -m "docs(woostack-review): add receipt write to the Stage 3 sub-age
 **Files:**
 - Modify: `skills/woostack-review/scripts/run-bounded-swarm.sh` (retry computation ~lines 188-220; tail)
 
-- [ ] **Step 1: Write the failing test** (worker writes findings but no receipt → swarm hard-fails after retry)
+- [x] **Step 1: Write the failing test** (worker writes findings but no receipt → swarm hard-fails after retry)
 
 Create `skills/woostack-review/scripts/tests/test-bounded-swarm-receipts.sh`:
 
@@ -519,12 +519,12 @@ rm -rf "$work2"
 finish
 ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
 
 Run: `bash skills/woostack-review/scripts/tests/test-bounded-swarm-receipts.sh`
 Expected: FAIL — Case A still exits 0 today (no gate), so `assert_exit 1` fails: `FAIL: missing receipts → swarm exits non-zero (expected exit 1, got 0)`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 In `skills/woostack-review/scripts/run-bounded-swarm.sh`, replace the first-pass-failed computation block (currently):
 
@@ -579,17 +579,17 @@ bash "$SCRIPT_DIR/verify-receipts.sh"
 
 (`set -euo pipefail` at the top propagates `verify-receipts.sh`'s non-zero exit as the swarm's exit code.)
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
 
 Run: `bash skills/woostack-review/scripts/tests/test-bounded-swarm-receipts.sh`
 Expected: PASS — `  3 passed, 0 failed`
 
-- [ ] **Step 5: Syntax-check**
+- [x] **Step 5: Syntax-check**
 
 Run: `bash -n skills/woostack-review/scripts/run-bounded-swarm.sh && echo OK`
 Expected: `OK`
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 gt create -m "feat(woostack-review): hard-fail the bounded swarm on missing angle receipts"
@@ -600,12 +600,12 @@ gt create -m "feat(woostack-review): hard-fail the bounded swarm on missing angl
 **Files:**
 - Modify: `skills/woostack-review/scripts/tests/test-bounded-swarm.sh` (three inline worker heredocs)
 
-- [ ] **Step 1: Confirm the existing test now fails under the gate**
+- [x] **Step 1: Confirm the existing test now fails under the gate**
 
 Run: `bash skills/woostack-review/scripts/tests/test-bounded-swarm.sh`
 Expected: FAIL — the worker stubs write no receipts, so `run-bounded-swarm.sh` now exits non-zero at the first invocation (test line ~80), aborting under `set -e` before assertions (e.g. an error like `::error::woostack-review: … did not execute …` and a non-zero test exit).
 
-- [ ] **Step 2: Make the stubs write receipts**
+- [x] **Step 2: Make the stubs write receipts**
 
 In the FIRST worker heredoc (the `case "$WOO_REVIEW_ANGLE"` stub), add a receipt write for every angle. Replace the `case … esac` block:
 
@@ -691,12 +691,12 @@ printf '[]\n' > "$OUTDIR/findings.$WOO_REVIEW_ANGLE.$WOO_REVIEW_CHUNK.json"
 printf '{"angle":"%s","chunk":"%s","runner":"test","model":"test-model","tier":"standard","ts":"t"}\n' "$WOO_REVIEW_ANGLE" "$WOO_REVIEW_CHUNK" > "$OUTDIR/receipt.$WOO_REVIEW_ANGLE.$WOO_REVIEW_CHUNK.json"
 ```
 
-- [ ] **Step 3: Run the test, confirm it passes** (degraded/findings assertions intact; gate satisfied)
+- [x] **Step 3: Run the test, confirm it passes** (degraded/findings assertions intact; gate satisfied)
 
 Run: `bash skills/woostack-review/scripts/tests/test-bounded-swarm.sh`
 Expected: PASS — `  N passed, 0 failed` (all existing assertions, e.g. `degraded` is `true` for the `docs` findings case while the swarm still exits 0 because every angle wrote a receipt).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt modify -c -m "test(woostack-review): swarm stubs write receipts; degraded path intact"
@@ -707,12 +707,12 @@ gt modify -c -m "test(woostack-review): swarm stubs write receipts; degraded pat
 **Files:**
 - Modify: `skills/woostack-review/SKILL.md` (Stage 3 bounded contract ~lines 284-292; after-swarm orchestration; Stage 2→3 boundary)
 
-- [ ] **Step 1: Verification baseline**
+- [x] **Step 1: Verification baseline**
 
 Run: `grep -c "verify-receipts.sh" skills/woostack-review/SKILL.md`
 Expected: `0`
 
-- [ ] **Step 2: Add the orchestrator gate after the swarm**
+- [x] **Step 2: Add the orchestrator gate after the swarm**
 
 In `skills/woostack-review/SKILL.md`, at the END of the Stage 3 section (immediately before the `### Stage 4 — Merge + Adversarial Validation` heading), add:
 
@@ -733,7 +733,7 @@ means that angle never ran, so an empty `findings.json` would be a false clean P
 both PR and local-no-PR modes.
 ```
 
-- [ ] **Step 3: Update bounded-contract step 6 + add the Stage 2→3 preflight note**
+- [x] **Step 3: Update bounded-contract step 6 + add the Stage 2→3 preflight note**
 
 In the bounded-execution numbered list, replace the step:
 
@@ -756,7 +756,7 @@ actionable error — do not dispatch a swarm that will produce no receipts and t
 gate. In the GitHub Action, `detect-provider.sh` performs the equivalent provider/runner preflight.
 ```
 
-- [ ] **Step 4: Confirm all three edits landed**
+- [x] **Step 4: Confirm all three edits landed**
 
 Run:
 ```bash
@@ -766,7 +766,7 @@ grep -q 'Preflight (local)' skills/woostack-review/SKILL.md && echo OK3
 ```
 Expected: `OK1`, `OK2`, `OK3`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "docs(woostack-review): orchestrator receipt gate + local preflight in SKILL"
