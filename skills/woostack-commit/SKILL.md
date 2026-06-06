@@ -128,7 +128,23 @@ When a file contains unrelated hunks, use interactive patch staging:
 git add -p <file>
 ```
 
-Do not stage generated files, secrets, `.env*`, unrelated dirty files, or user work from outside this session.
+**Always stage `.woostack/memory/` changes.** Distilled memory notes are session work by
+definition in the woostack loop — never "unrelated dirty files." Stage every non-ignored
+change under `.woostack/memory/` (modifications, additions, and the note deletions distill's
+dedupe makes), folded into the same commit as the code, with no relevance check and no
+stop-and-ask:
+
+```bash
+[ -d .woostack/memory ] && git add .woostack/memory/
+```
+
+Plain `git add` (never `-f`) honors `.gitignore`, so ignored paths such as
+`.woostack/memory/metrics.json` and `*.local.*` are skipped automatically — "unless
+gitignored" needs no `git check-ignore` step. The `[ -d … ]` guard makes this a silent no-op
+outside a woostack repo, where a bare `git add` of an absent path would exit non-zero with
+`fatal: pathspec '.woostack/memory/' did not match any files`.
+
+Do not stage generated files, secrets, `.env*`, unrelated dirty files, or user work from outside this session — the `.woostack/memory/` rule above is the sole exception to "unrelated dirty files."
 
 ### 4.5 Invariant check (advisory)
 
