@@ -11,3 +11,4 @@
 - [review-config-bool-jq-default](review-config-bool-jq-default.md) `gotcha` scope=`skills/woostack-review/scripts/**` — jq `// default` silently coerces an explicit `false` to the default — wrong for 
 - [review-prompt-self-contained-blob](review-prompt-self-contained-blob.md) `gotcha` scope=`skills/woostack-review/**` — woostack-review prompts ship as ONE self-contained blob to CI runners that follo
 - [skill-description-colon-space](skill-description-colon-space.md) `gotcha` scope=`skills/*/SKILL.md` — A `word: ` colon-space in a SKILL.md description is a YAML mapping indicator; it
+- [fanout-empty-needs-receipt](fanout-empty-needs-receipt.md) `pattern` scope=`skills/woostack-review/**` — An empty aggregate from a fan-out of workers is ambiguous (clean vs never-ran) —
