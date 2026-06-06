@@ -106,7 +106,8 @@ sits after that PR. So the chain has exactly the three hard gates above.
    the execution mode the active driver selects (`woostack-execute`: `woostack-review --fast` in
    inline mode, or the per-task spec+quality subagent loops in the default subagent mode;
    `woostack-execute-overnight` drives its own autonomous review policy), and distilled into
-   `.woostack/memory/` — pausing only on a blocking stop. `woostack-execute` owns the
+   `.woostack/memory/` — `woostack-execute` pausing on a blocking stop, `woostack-execute-overnight`
+   instead logging the blocker and continuing per its halt policy. `woostack-execute` owns the
    per-increment commit/review/distill cadence and the inline-vs-subagent mode choice (one plan
    per spec, multiple stacked PRs per plan), so it absorbs what used to be separate "distill
    memory" and "offer the PR" steps here. As branches, commits, and increment PRs appear the

@@ -19,7 +19,7 @@ they do not restate these rules (cross-link, do not duplicate).
 - `spec.branch:` names the active increment's branch.
 - An overnight run ([`woostack-execute-overnight`](../../woostack-execute-overnight/SKILL.md)) may
   produce **tree-stacked** increment PRs — multiple `## Track:`s branched off the common base, so a
-  spec can have several concurrent increment branches rather than one linear chain. The
+  spec can have several independent increment branches rather than one linear chain. The
   `1 : 1 : N` count, the `**Source:**` join, and the `Spec:` PR trailer are unaffected, and this
   adds **no** new phase-enum value; a blocked/partial overnight run is visible via its
   `.woostack/overnight/` report.
