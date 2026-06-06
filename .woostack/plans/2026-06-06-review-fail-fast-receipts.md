@@ -384,12 +384,12 @@ gt modify -c -m "test(woostack-review): cover verify-receipts list-missing + chu
 **Files:**
 - Modify: `skills/woostack-review/prompts/_header.md` (Output Discipline list, around line 12)
 
-- [ ] **Step 1: Verification baseline (no receipt instruction yet)**
+- [x] **Step 1: Verification baseline (no receipt instruction yet)**
 
 Run: `grep -c "receipt." skills/woostack-review/prompts/_header.md`
 Expected: `0`
 
-- [ ] **Step 2: Add the instruction**
+- [x] **Step 2: Add the instruction**
 
 In `skills/woostack-review/prompts/_header.md`, immediately AFTER the existing bullet that begins `- **Write \`[]\` to your findings file as the FIRST action.**` (the one ending `…silently dropped out of the review."`), insert this new bullet:
 
@@ -397,7 +397,7 @@ In `skills/woostack-review/prompts/_header.md`, immediately AFTER the existing b
 - **Write your execution receipt as your LAST action.** After writing your real findings array, and just before EXIT, write `$OUTDIR/receipt.<angle>.json` (chunked runs: `$OUTDIR/receipt.<angle>.<chunk>.json`) — a JSON object that proves you actually ran: `{"angle":"<angle>","chunk":<chunk-id-or-null>,"runner":"<host or provider, e.g. claude-code>","model":"<your resolved model — the `Run model` line in the review context>","tier":"<fast|standard|deep — the `Force tier` line>","ts":"<ISO-8601 timestamp>"}`. `runner` and `model` MUST be non-empty. This receipt is how the orchestrator tells "ran and found nothing" (`[]` findings + receipt) apart from "never ran" (no receipt): a review where any angle has no valid receipt HARD-FAILS instead of silently reporting a clean pass. Do NOT pre-create the receipt — write it once, last, after the findings.
 ```
 
-- [ ] **Step 3: Confirm the instruction is present and well-formed**
+- [x] **Step 3: Confirm the instruction is present and well-formed**
 
 Run:
 ```bash
@@ -406,7 +406,7 @@ grep -q 'receipt.<angle>.json' skills/woostack-review/prompts/_header.md && echo
 ```
 Expected: `OK` then `OK2`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt create -m "feat(woostack-review): require angle workers to write an execution receipt"
@@ -417,12 +417,12 @@ gt create -m "feat(woostack-review): require angle workers to write an execution
 **Files:**
 - Modify: `skills/woostack-review/SKILL.md` (Stage 3 brief code block, ~lines 317-331)
 
-- [ ] **Step 1: Verification baseline**
+- [x] **Step 1: Verification baseline**
 
 Run: `grep -c "receipt" skills/woostack-review/SKILL.md`
 Expected: `0`
 
-- [ ] **Step 2: Edit the brief**
+- [x] **Step 2: Edit the brief**
 
 In `skills/woostack-review/SKILL.md`, inside the Stage-3 sub-agent brief fenced block, change the final findings sentence. Replace:
 
@@ -450,12 +450,12 @@ a JSON object {angle, chunk, runner, model, tier, ts} with non-empty runner
 and model, proving you executed (see _header.md). EXIT.
 ```
 
-- [ ] **Step 3: Confirm**
+- [x] **Step 3: Confirm**
 
 Run: `grep -q 'write your execution receipt to' skills/woostack-review/SKILL.md && echo OK`
 Expected: `OK`
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt modify -c -m "docs(woostack-review): add receipt write to the Stage 3 sub-agent brief"

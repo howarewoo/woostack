@@ -327,7 +327,11 @@ start with `[` and end with `]` — no preamble, no commentary, no markdown
 fences. Before writing each finding's `line` field, validate it via
 `bash $WOO_REVIEW_ACTION_PATH/scripts/resolve-diff-line.sh --file <path> --line <N>`
 and drop the finding when the helper prints `null` (the line is not anchorable
-on the diff's RIGHT side and the GitHub API will reject the comment). EXIT.
+on the diff's RIGHT side and the GitHub API will reject the comment). Then, as
+your LAST action, write your execution receipt to
+$OUTDIR/receipt.<angle>.json (chunked: $OUTDIR/receipt.<angle>.<chunk>.json) —
+a JSON object {angle, chunk, runner, model, tier, ts} with non-empty runner
+and model, proving you executed (see _header.md). EXIT.
 ```
 
 **Chunked fan-out.** When `$OUTDIR/chunks.txt` exists, spawn one sub-agent per `(angle, chunk_id)` instead of one per angle. Pass the chunk ID in the brief, and tell the sub-agent to read `$OUTDIR/diff.chunk-<id>.txt` and write `$OUTDIR/findings.<angle>.chunk-<id>.json`. The validator pass still runs **once globally** — `merge-findings.sh` collapses any within-angle duplicates across chunks before validation, and the validator handles cross-angle dedup as today.
