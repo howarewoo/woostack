@@ -46,13 +46,17 @@ never skips Phase 2 unless the whole run was invoked with `--auto`.
      architectural decision, or the reviewer lacks context).
    - **CLARIFY** — genuinely ambiguous; you cannot verify intent on your own.
 5. Stage a record per thread:
-   `{ threadId, file, line, finding, recommended, reasoning, learning, memory_scope }`
+   `{ threadId, file, line, finding, recommended, reasoning, learning, memory_scope, fix_plan }`
    — `finding` is the one-line restatement, `reasoning` is why you recommend
    that verdict, `learning` is the reusable memory pattern to write **if** the
-   final verdict is ACCEPT (else leave empty), and `memory_scope` is the narrowest
-   glob that should suppress the same accepted finding in future reviews. Prefer
+   final verdict is ACCEPT (else leave empty), `memory_scope` is the narrowest
+   glob that should suppress the same accepted finding in future reviews (prefer
    the reviewed file's package/feature path; use comma-separated globs when the
-   learning specifically covers multiple paths.
+   learning specifically covers multiple paths), and `fix_plan` is **as defined
+   for the worker record above** — a terse one-line description of the planned
+   edit for a FIX, an empty string otherwise. Staging `fix_plan` here, not only
+   in the worker fan-out, is what lets the verdict gate show *how* each FIX will
+   land.
 6. **Never** use performative language ("You're absolutely right!", "Great
    point!"). Reasoning and replies are technical only.
 
@@ -61,17 +65,31 @@ never skips Phase 2 unless the whole run was invoked with `--auto`.
 **If `--auto` was set:** skip this phase. The final verdict for each thread is
 your recommendation. Go to Phase 3.
 
-**Otherwise (default):** present all staged threads as ONE batched table —
-columns: thread, finding, recommended verdict, reasoning. Then ask the user to
+**Otherwise (default):** present all staged threads for approval, showing each
+thread's **recommended verdict, reasoning, and — for a FIX — its one-line
+`fix_plan`**, so the user approves knowing *how* each fix will land, not just
+that a fix is recommended. The fix plan is a **description only**: Phase 1 makes
+no edits; the edit happens in Phase 3 on the final verdict. Then ask the user to
 either **approve all** recommendations or **override** specific threads to a
 different verdict (any of FIX / ACCEPT / CLARIFY).
 
+Show the fix plan alongside the FIX verdict **wherever the gate renders it**:
+
 - Host mechanics: a host with a structured question primitive (e.g. Claude
   Code's `AskUserQuestion`) offers an "approve all" choice plus per-thread
-  overrides; a plain host prints the numbered table and asks for "approve all,
-  or list `thread#=verdict` overrides".
+  overrides — carry the fix plan inside each FIX thread's option text; a plain
+  host prints the numbered table — columns: thread, finding, recommended
+  verdict, reasoning, **fix plan** (the fix-plan cell is the one-line `fix_plan`
+  for a FIX, `—` for ACCEPT / CLARIFY) — and asks for "approve all, or list
+  `thread#=verdict` overrides".
 - The **final verdict** per thread = the user's override where given, else your
   recommendation. Only Phase 3 acts, and only on final verdicts.
+- **override→FIX follow-up:** if an override turns an ACCEPT/CLARIFY thread into
+  a FIX, no `fix_plan` was staged for it — derive its one-line plan and present
+  those override-created plans for **one bounded confirm** before Phase 3 acts,
+  so every applied FIX has had its plan shown. This completes the single verdict
+  gate; it is not a new chained gate and does not re-open cascading re-overrides
+  (the user confirms the derived plan or pulls that thread back off FIX).
 - **Non-interactive host, no `--auto`:** if you cannot obtain confirmation,
   **abort** without acting — tell the user: "interactive verdict review needs a
   user; re-run with `--auto` to address autonomously." Never act unapproved.
