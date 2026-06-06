@@ -6,6 +6,8 @@ tags: receipt, false-pass, empty-findings, swarm, fan-out, gate, verify-receipts
 hook: An empty aggregate from a fan-out of workers is ambiguous (clean vs never-ran) — require a per-worker execution receipt to disambiguate.
 updated: 2026-06-06
 source: .woostack/plans/2026-06-06-review-fail-fast-receipts.md
+recall_count: 1
+last_recalled: 2026-06-06
 ---
 
 When a flow fans work out to N workers and then aggregates their outputs, an
