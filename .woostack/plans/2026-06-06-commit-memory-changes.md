@@ -19,7 +19,7 @@
 **Files:**
 - Modify: `skills/woostack-commit/SKILL.md` (§4 "Stage only session-relevant changes", around lines 117-131)
 
-- [ ] **Step 1: Write the failing test (verification command)**
+- [x] **Step 1: Write the failing test (verification command)**
 
 The marker text the edit introduces does not yet exist. Capture that as the failing check:
 
@@ -27,12 +27,12 @@ The marker text the edit introduces does not yet exist. Capture that as the fail
 grep -c 'Always stage `.woostack/memory/` changes' skills/woostack-commit/SKILL.md
 ```
 
-- [ ] **Step 2: Run it, confirm it fails**
+- [x] **Step 2: Run it, confirm it fails**
 
 Run: `grep -c 'Always stage `.woostack/memory/` changes' skills/woostack-commit/SKILL.md`
 Expected: FAIL — prints `0` and exits non-zero (marker absent).
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 In `skills/woostack-commit/SKILL.md`, insert the carve-out into §4 immediately after the `git add -p <file>` fenced block and before the `Do not stage generated files…` line. Insert exactly:
 
@@ -66,21 +66,21 @@ with:
 Do not stage generated files, secrets, `.env*`, unrelated dirty files, or user work from outside this session — the `.woostack/memory/` rule above is the sole exception to "unrelated dirty files."
 ```
 
-- [ ] **Step 4: Run the verification, confirm it passes**
+- [x] **Step 4: Run the verification, confirm it passes**
 
 Run: `grep -c 'Always stage `.woostack/memory/` changes' skills/woostack-commit/SKILL.md`
 Expected: PASS — prints `1`.
 
-- [ ] **Step 5: Confirm the embedded command is syntactically valid and the exclusion carve-out landed**
+- [x] **Step 5: Confirm the embedded command is syntactically valid and the exclusion carve-out landed**
 
 Run:
 ```bash
 bash -nc '[ -d .woostack/memory ] && git add .woostack/memory/' && echo SYNTAX_OK
-grep -c 'sole exception to "unrelated dirty files"' skills/woostack-commit/SKILL.md
+grep -c 'sole exception to "unrelated dirty files' skills/woostack-commit/SKILL.md
 ```
-Expected: prints `SYNTAX_OK`, then `1`.
+Expected: prints `SYNTAX_OK`, then `1`. (The clause ends `files."` — period inside the closing quote — so the grep pattern omits the trailing `"`.)
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 # first commit in this increment:
