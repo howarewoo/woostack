@@ -517,9 +517,9 @@ gt create -m "feat(woostack-review): add comments angle for comment-accuracy rev
 
 ## Self-review (run before handing back)
 
-- [ ] **Spec coverage** — §4.A (observability +3 patterns + precise trigger + tier) → Increment 1; §4.B (types invariant depth + tier) → Increment 2; §4.C (new comments angle) → Increment 3. Non-goals (no numeric gate, no code-simplifier/pr-test-analyzer port, no schema-shape change) honored: nothing in this plan adds a confidence score, a simplifier, or a new schema field.
-- [ ] **No placeholders** — every edit step carries exact file, exact insertion text, and a runnable verification command with expected output.
-- [ ] **Type consistency** — angle name is `comments` everywhere (file `comments.md`, `findings.comments.json`, `"angle": "comments"`, whitelist, schema, table, tier row, prose list); tier strings are exactly `fast`/`standard`; the SKILL.md tier-table line is mutated in a defined sequence across Increments 1→2→3 (observability moves to standard in 1, types joins it in 2, comments joins the fast row in 3) — each increment's Step-3 text matches the prior increment's output state.
+- [x] **Spec coverage** — §4.A (observability +3 patterns + precise trigger + tier) → Increment 1; §4.B (types invariant depth + tier) → Increment 2; §4.C (new comments angle) → Increment 3. Non-goals (no numeric gate, no code-simplifier/pr-test-analyzer port, no schema-shape change) honored: nothing in this plan adds a confidence score, a simplifier, or a new schema field.
+- [x] **No placeholders** — every edit step carries exact file, exact insertion text, and a runnable verification command with expected output.
+- [x] **Type consistency** — angle name is `comments` everywhere (file `comments.md`, `findings.comments.json`, `"angle": "comments"`, whitelist, schema, table, tier row, prose list); tier strings are exactly `fast`/`standard`; the SKILL.md tier-table line is mutated in a defined sequence across Increments 1→2→3 (observability moves to standard in 1, types joins it in 2, comments joins the fast row in 3) — each increment's Step-3 text matches the prior increment's output state.
 
 > woostack plan conventions (kept):
 > - Frontmatter-free; opens with the `**Source:**` line.
