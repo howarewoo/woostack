@@ -6,8 +6,8 @@ tags: jq, config, boolean, defaults, intersect-findings, load-config
 hook: jq `// default` silently coerces an explicit `false` to the default — wrong for any default-TRUE config bool.
 updated: 2026-06-04
 source: .woostack/plans/2026-06-04-review-nit-comments.md
-recall_count: 4
-last_recalled: 2026-06-05
+recall_count: 6
+last_recalled: 2026-06-06
 ---
 jq's `//` is the *alternative* operator: it returns the right-hand side when the
 left is `null` **or** `false`. So `jq -r '.key // true'` returns `true` for an

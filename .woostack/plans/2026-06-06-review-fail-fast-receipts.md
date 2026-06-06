@@ -24,7 +24,7 @@
 - Create: `skills/woostack-review/scripts/verify-receipts.sh`
 - Test: `skills/woostack-review/scripts/tests/test-verify-receipts-pass.sh`
 
-- [ ] **Step 1: Write the failing test** (happy path: all receipts valid → exit 0, metrics recorded)
+- [x] **Step 1: Write the failing test** (happy path: all receipts valid → exit 0, metrics recorded)
 
 Create `skills/woostack-review/scripts/tests/test-verify-receipts-pass.sh`:
 
@@ -51,12 +51,12 @@ assert_eq "$(jq -r '.expected_total' "$OUTDIR/swarm-metrics.json")" "2" "metrics
 finish
 ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
 
 Run: `bash skills/woostack-review/scripts/tests/test-verify-receipts-pass.sh`
 Expected: FAIL — script missing, e.g. `bash: .../verify-receipts.sh: No such file or directory`, non-zero exit.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Create `skills/woostack-review/scripts/verify-receipts.sh`:
 
@@ -167,7 +167,7 @@ fi
 if [ "${#missing[@]}" -gt 0 ]; then
   miss_csv="$(IFS=', '; echo "${missing[*]}")"
   if [ "${#executed[@]}" -eq 0 ]; then
-    echo "::error::woostack-review: no angle analysis executed (0 of ${expected_total} angle workers produced a valid receipt). The review did NOT run. Configure a provider/model, install auth, or set the correct runner override, then re-run." >&2
+    echo "::error::woostack-review: no angle analysis executed (0 of ${expected_total} angle workers produced a valid receipt): ${miss_csv}. The review did NOT run. Configure a provider/model, install auth, or set the correct runner override, then re-run." >&2
   else
     echo "::error::woostack-review: ${#missing[@]} of ${expected_total} angle worker(s) did not execute (no valid receipt): ${miss_csv}. No angle analysis ran for these, so the review is NOT complete. Configure a provider/model, install auth, or set the correct runner override, then re-run." >&2
   fi
@@ -177,17 +177,17 @@ fi
 echo "verify-receipts: all ${expected_total} angle receipt(s) valid."
 ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
 
 Run: `bash skills/woostack-review/scripts/tests/test-verify-receipts-pass.sh`
 Expected: PASS — `  3 passed, 0 failed`
 
-- [ ] **Step 5: Syntax-check the script**
+- [x] **Step 5: Syntax-check the script**
 
 Run: `bash -n skills/woostack-review/scripts/verify-receipts.sh && echo OK`
 Expected: `OK`
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 # first commit in this increment:
@@ -201,7 +201,7 @@ gt create -m "feat(woostack-review): add verify-receipts.sh execution gate"
 - Test: `skills/woostack-review/scripts/tests/test-verify-receipts-none.sh`
 - Test: `skills/woostack-review/scripts/tests/test-verify-receipts-identity.sh`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `skills/woostack-review/scripts/tests/test-verify-receipts-missing.sh`:
 
@@ -280,7 +280,7 @@ assert_exit 1 "$rc" "empty runner → invalid receipt → exit 1"
 finish
 ```
 
-- [ ] **Step 2: Run the tests, confirm they pass** (script already exists from Task 1)
+- [x] **Step 2: Run the tests, confirm they pass** (script already exists from Task 1)
 
 Run:
 ```bash
@@ -290,7 +290,7 @@ bash skills/woostack-review/scripts/tests/test-verify-receipts-identity.sh
 ```
 Expected: each prints `  N passed, 0 failed` and exits 0 (`4 passed`, `2 passed`, `3 passed` respectively).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 gt modify -c -m "test(woostack-review): cover verify-receipts missing/none/identity paths"
@@ -302,7 +302,7 @@ gt modify -c -m "test(woostack-review): cover verify-receipts missing/none/ident
 - Test: `skills/woostack-review/scripts/tests/test-verify-receipts-list-missing.sh`
 - Test: `skills/woostack-review/scripts/tests/test-verify-receipts-chunked.sh`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `skills/woostack-review/scripts/tests/test-verify-receipts-list-missing.sh`:
 
@@ -358,7 +358,7 @@ assert_exit 0 "$rc" "all chunk receipts valid → exit 0"
 finish
 ```
 
-- [ ] **Step 2: Run the tests, confirm they pass**
+- [x] **Step 2: Run the tests, confirm they pass**
 
 Run:
 ```bash
@@ -367,7 +367,7 @@ bash skills/woostack-review/scripts/tests/test-verify-receipts-chunked.sh
 ```
 Expected: `  4 passed, 0 failed` and `  3 passed, 0 failed`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 gt modify -c -m "test(woostack-review): cover verify-receipts list-missing + chunked"
