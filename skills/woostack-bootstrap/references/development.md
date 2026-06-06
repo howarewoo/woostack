@@ -9,7 +9,7 @@ for each phase:
 
 | Phase | Skill |
 |---|---|
-| Ideate → markdown spec → harden → approve spec → plan → execute | `woostack-build` |
+| Build a feature, idea → implementation (gated chain — the skill owns the steps) | `woostack-build` |
 | Review | `woostack-review` |
 | Address review feedback | `woostack-address-comments` |
 
