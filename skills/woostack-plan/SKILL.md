@@ -64,14 +64,16 @@ under the target and propose a further split; genuinely atomic changes may excee
 decomposition is part of planning (it folds `woostack-build`'s old decompose step into the plan
 engine).
 
-## Optional: parallel tracks (for overnight runs)
+## Optional: independent tracks (for overnight runs)
 
 By default the increments form **one linear `gt` stack** — each stacks on the previous, the shape
 `woostack-execute` runs. A plan **may** instead group increments under top-level **`## Track:`
 headings**; each track is an independent linear stack branched off the common base (the spec+plan
 PR). This is **author-driven and optional**: write tracks only when increments are genuinely
-independent and you intend an unattended overnight run to parallelize them. Do **not**
-auto-partition — default to one implicit track (no headings = today's behavior).
+independent and you want an unattended overnight run to **isolate failures** across them — a
+blocker ends only its own track, not the whole run. Tracks run **sequentially** (one session, no
+concurrency); the benefit is fault isolation, not speed. Do **not** auto-partition — default to one
+implicit track (no headings = today's behavior).
 
 Only [`woostack-execute-overnight`](../woostack-execute-overnight/SKILL.md) consumes tracks (it
 runs each track off the base and, on a blocker, ends only that track and advances to the next).

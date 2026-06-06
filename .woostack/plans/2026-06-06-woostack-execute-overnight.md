@@ -636,7 +636,7 @@ as one linear stack.
 
 - [x] **Step 2: Verify the section exists and is author-driven (no auto-partition)**
 
-Run: `grep -c -E "^## Optional: parallel tracks" skills/woostack-plan/SKILL.md`
+Run: `grep -c -E "^## Optional: (parallel|independent) tracks" skills/woostack-plan/SKILL.md`
 Expected: `1`
 
 Run: `grep -c "author-driven and optional" skills/woostack-plan/SKILL.md`
