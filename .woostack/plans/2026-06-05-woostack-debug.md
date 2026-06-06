@@ -242,12 +242,11 @@ never dispatches `--auto` — it owns no fix behavior and never auto-addresses f
 
 Run:
 ```bash
-grep -q '/woostack-debug' skills/woostack-review/SKILL.md && \
-grep -q 'never' skills/woostack-review/SKILL.md && \
-! grep -q 'woostack-debug.*--auto' skills/woostack-review/SKILL.md && \
+grep -q '/woostack-debug <target>' skills/woostack-review/SKILL.md && \
+grep -q 'never dispatches `woostack-debug --auto`' skills/woostack-review/SKILL.md && \
 echo PASS || echo FAIL
 ```
-Expected: PASS (mentions the gated command; never pairs `woostack-debug` with `--auto`).
+Expected: PASS (mentions the gated command **and** explicitly states review never `--auto`-dispatches debug). The contract is that review never *instructs* `--auto`; the SKILL.md states this as an explicit negation, so the check looks for that negation rather than the mere absence of the two tokens on one line.
 
 - [x] **Step 4: Commit**
 
