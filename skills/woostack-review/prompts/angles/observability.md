@@ -1,5 +1,5 @@
 ---
-tier: fast
+tier: standard
 ---
 
 # Angle: Observability
@@ -16,13 +16,26 @@ tier: fast
   - `catch {}` with no log, no rethrow, no fallback (new in diff).
   - `.catch(() => null)` / `.catch(() => undefined)` on a non-trivial async call that silently hides failure.
   - Promise rejection ignored (`void asyncFn()` without `.catch`).
+  - `?.` optional chaining / `??` null-coalescing used to silently skip an operation that
+    *should* surface a failure — e.g. `user?.save()` where a missing `user` means the write
+    never happens and nobody is told, or `primary() ?? fallback()` that masks a failed primary
+    call. A legitimate optional *read* (`user?.name`) is fine — flag only when the skipped
+    operation has a side effect or a failure that should be observed.
+  - Broad, **non-empty** `catch (e) { log; continue }` that can swallow *unrelated* error
+    classes. In the finding's `description`, enumerate which unexpected error types this catch
+    could hide (e.g. a `TypeError` from a later refactor, an `AbortError`, an out-of-memory) —
+    not just the expected one.
+  - Mock / stub / fake fallback reached on a **production** code path (e.g. `return
+    mockClient()` / `new FakeRepo()` in a non-test file when the real dependency is
+    unavailable). This hides an outage behind synthetic data — flag as an architectural defect.
 - **Log-level abuse:**
   - `error` used for expected control flow (e.g. validation rejections, 404s).
   - `info` / `log` inside a hot loop with no rate limit or sampling.
   - `debug` left in a path that runs in production (no env gating).
 - **Missing signals on new paths:**
   - New endpoint / job / consumer with no log on entry, no log on failure, no metric / counter.
-  - New retry loop with no log on retry-exhaustion.
+  - New retry loop that exhausts its attempts with no log **and no user-facing signal** — the
+    caller silently proceeds as if the operation succeeded.
   - New external call (HTTP / DB / queue) with no timing / span / error-rate signal.
 - **Tracing hygiene:**
   - New async boundary without context propagation (lost `traceparent`, lost AsyncLocalStorage).

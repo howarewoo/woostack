@@ -19,16 +19,16 @@
 **Files:**
 - Modify: `skills/woostack-review/prompts/angles/observability.md`
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 Run: `grep -c 'null-coalescing\|mock / stub / fake\|unrelated.*error' skills/woostack-review/prompts/angles/observability.md`
 Expected: FAIL — prints `0` (none of the new patterns are present yet).
 
-- [ ] **Step 2: Confirm it fails**
+- [x] **Step 2: Confirm it fails**
 
 Run the command above. Expected output: `0`.
 
-- [ ] **Step 3: Add the three new bullets to the "Swallowed errors" block and tighten retry-exhaustion**
+- [x] **Step 3: Add the three new bullets to the "Swallowed errors" block and tighten retry-exhaustion**
 
 In `observability.md`, the **Swallowed errors** list currently ends at the `void asyncFn()` bullet. Append these three bullets immediately after it:
 
@@ -60,9 +60,9 @@ with:
     caller silently proceeds as if the operation succeeded.
 ```
 
-- [ ] **Step 4: Confirm it passes**
+- [x] **Step 4: Confirm it passes**
 
-Run: `grep -c 'null-coalescing\|mock / stub / fake\|unrelated' skills/woostack-review/prompts/angles/observability.md`
+Run: `grep -ic 'null-coalescing\|mock / stub / fake\|unrelated' skills/woostack-review/prompts/angles/observability.md`
 Expected: PASS — prints `3` or more.
 
 ### Task 2: Bump the observability angle tier `fast → standard`
@@ -70,20 +70,20 @@ Expected: PASS — prints `3` or more.
 **Files:**
 - Modify: `skills/woostack-review/prompts/angles/observability.md` (frontmatter)
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 Run: `sed -n '1,3p' skills/woostack-review/prompts/angles/observability.md`
 Expected: FAIL — shows `tier: fast`.
 
-- [ ] **Step 2: Confirm it fails**
+- [x] **Step 2: Confirm it fails**
 
 Run the command above. Expected: the frontmatter reads `tier: fast`.
 
-- [ ] **Step 3: Edit the frontmatter**
+- [x] **Step 3: Edit the frontmatter**
 
 Change line 2 of `observability.md` from `tier: fast` to `tier: standard`.
 
-- [ ] **Step 4: Confirm it passes**
+- [x] **Step 4: Confirm it passes**
 
 Run: `head -3 skills/woostack-review/prompts/angles/observability.md | grep -q 'tier: standard' && echo PASS`
 Expected: PASS.
@@ -97,7 +97,7 @@ Expected: PASS.
 >
 > Hardened note: the mock/stub/fake grep is deliberately coarse — it also matches a `Mock` constructed in a *test* file. The prompt scopes findings to **production** paths, so a test-only mock costs at most one extra `standard`-tier worker slot and yields no finding. This is the established coarse-trigger / precise-prompt split; the bounded false-fire cost is accepted.
 
-- [ ] **Step 1: Write the failing fixture test**
+- [x] **Step 1: Write the failing fixture test**
 
 ```bash
 export OUTDIR=/tmp/woo-detect-test-mock
@@ -112,11 +112,11 @@ bash skills/woostack-review/scripts/detect-angles.sh >/dev/null 2>&1
 grep -qx observability "$OUTDIR/angles.txt" && echo "OBSERVABILITY-FIRED" || echo "NOT-FIRED"
 ```
 
-- [ ] **Step 2: Confirm it fails**
+- [x] **Step 2: Confirm it fails**
 
 Run the block above. Expected: `NOT-FIRED` (the mock fallback token is not yet a trigger; the diff has no logging/catch token).
 
-- [ ] **Step 3: Add the mock/stub/fake grep to `has_observability_diff_token()`**
+- [x] **Step 3: Add the mock/stub/fake grep to `has_observability_diff_token()`**
 
 In `detect-angles.sh`, inside `has_observability_diff_token()` (currently two `grep … && return 0` lines then `return 1`), insert a third detection line **before** `return 1`:
 
@@ -130,7 +130,7 @@ In `detect-angles.sh`, inside `has_observability_diff_token()` (currently two `g
 
 Also update the angle-gating doc header (the `#   observability —` block near the top, lines ~47-50) to append: `, production Mock/Fake/Stub fallback construction`.
 
-- [ ] **Step 4: Confirm syntax + the fixture now fires**
+- [x] **Step 4: Confirm syntax + the fixture now fires**
 
 ```bash
 bash -n skills/woostack-review/scripts/detect-angles.sh && echo "SYNTAX-OK"
@@ -139,7 +139,7 @@ grep -qx observability "$OUTDIR/angles.txt" && echo "OBSERVABILITY-FIRED"
 ```
 Expected: `SYNTAX-OK` then `OBSERVABILITY-FIRED`.
 
-- [ ] **Step 5: Control test — confirm raw `?.`/`??` does NOT broaden the trigger**
+- [x] **Step 5: Control test — confirm raw `?.`/`??` does NOT broaden the trigger**
 
 ```bash
 export OUTDIR=/tmp/woo-detect-test-optchain
@@ -160,17 +160,17 @@ Expected: `CORRECTLY-SILENT` (proves we did not broaden on `?.`/`??`). Note: `ty
 **Files:**
 - Modify: `skills/woostack-review/SKILL.md` (Model-routing tier table, ~line 349)
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 Run: `grep -n '`observability`, `types`, `i18n`, `docs`, `deps` workers | `fast`' skills/woostack-review/SKILL.md`
 Expected: FAIL to be absent — the line is still present (observability/types not yet moved).
 
-- [ ] **Step 2: Confirm it fails**
+- [x] **Step 2: Confirm it fails**
 
 Run: `grep -q 'observability\`, \`types\`, \`i18n\`, \`docs\`, \`deps\` workers | \`fast\`' skills/woostack-review/SKILL.md && echo "STILL-FAST"`
 Expected: `STILL-FAST`.
 
-- [ ] **Step 3: Edit the tier table**
+- [x] **Step 3: Edit the tier table**
 
 In the tier table, change the `fast` row from:
 
@@ -185,12 +185,12 @@ to (drop `observability`, and add a new `standard` row above it — note `types`
 | `types`, `i18n`, `docs`, `deps` workers | `fast` | Pattern matching + diff-anchored hygiene checks. |
 ```
 
-- [ ] **Step 4: Confirm it passes**
+- [x] **Step 4: Confirm it passes**
 
 Run: `grep -q '`observability` worker | `standard`' skills/woostack-review/SKILL.md && echo PASS`
 Expected: PASS.
 
-- [ ] **Step 5: Commit increment 1**
+- [x] **Step 5: Commit increment 1**
 
 ```bash
 gt create -m "feat(woostack-review): add silent-failure depth to observability angle"
