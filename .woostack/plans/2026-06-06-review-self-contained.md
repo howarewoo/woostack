@@ -207,16 +207,16 @@ gt create -m "feat(woostack-review): add silent-failure depth to observability a
 **Files:**
 - Modify: `skills/woostack-review/prompts/angles/types.md`
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 Run: `grep -c 'Anemic domain model\|unrepresentable\|Mutable internals' skills/woostack-review/prompts/angles/types.md`
 Expected: FAIL — prints `0`.
 
-- [ ] **Step 2: Confirm it fails**
+- [x] **Step 2: Confirm it fails**
 
 Run the command above. Expected: `0`.
 
-- [ ] **Step 3: Insert the new section before the `**Skip:**` block**
+- [x] **Step 3: Insert the new section before the `**Skip:**` block**
 
 In `types.md`, immediately before the `**Skip:**` line, insert:
 
@@ -233,7 +233,7 @@ In `types.md`, immediately before the `**Skip:**` line, insert:
     `status: string` instead of `'active' | 'archived'`; a raw `string` id instead of `UserId`).
 ```
 
-- [ ] **Step 4: Confirm it passes**
+- [x] **Step 4: Confirm it passes**
 
 Run: `grep -c 'Anemic domain model\|unrepresentable\|Mutable internals' skills/woostack-review/prompts/angles/types.md`
 Expected: PASS — prints `3`.
@@ -244,16 +244,16 @@ Expected: PASS — prints `3`.
 - Modify: `skills/woostack-review/prompts/angles/types.md` (frontmatter)
 - Modify: `skills/woostack-review/SKILL.md` (tier table — the `fast` row left by Increment 1)
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 Run: `head -3 skills/woostack-review/prompts/angles/types.md | grep -q 'tier: fast' && echo "STILL-FAST"`
 Expected: FAIL-state present — prints `STILL-FAST`.
 
-- [ ] **Step 2: Confirm it fails**
+- [x] **Step 2: Confirm it fails**
 
 Run the command above. Expected: `STILL-FAST`.
 
-- [ ] **Step 3: Edit both files**
+- [x] **Step 3: Edit both files**
 
 (a) In `types.md`, change line 2 from `tier: fast` to `tier: standard`.
 
@@ -271,7 +271,7 @@ to:
 | `i18n`, `docs`, `deps` workers | `fast` | Pattern matching + diff-anchored hygiene checks. |
 ```
 
-- [ ] **Step 4: Confirm it passes**
+- [x] **Step 4: Confirm it passes**
 
 ```bash
 head -3 skills/woostack-review/prompts/angles/types.md | grep -q 'tier: standard' && echo "PROMPT-OK"
@@ -279,7 +279,7 @@ grep -q '`observability`, `types` workers | `standard`' skills/woostack-review/S
 ```
 Expected: `PROMPT-OK` then `SKILL-OK`.
 
-- [ ] **Step 5: Commit increment 2**
+- [x] **Step 5: Commit increment 2**
 
 ```bash
 gt create -m "feat(woostack-review): add type-design/invariant depth to types angle"

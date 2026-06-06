@@ -1,5 +1,5 @@
 ---
-tier: fast
+tier: standard
 ---
 
 # Angle: Types
@@ -31,6 +31,16 @@ tier: fast
   - `enum` numeric default values relied on by serialization.
 - **React-specific (only if the `react` angle is NOT enabled — otherwise defer):**
   - `props: any`, `useState<any>()`, event handler typed as `Function`.
+- **Type design & invariants:**
+  - Anemic domain model: a new type that is a bag of public, independently-settable primitives
+    whose invariants are enforced nowhere — or only in a prose comment (e.g.
+    `{ startDate: string; endDate: string }` with "endDate must be after startDate" written in a
+    comment instead of the type).
+  - Mutable internals leaking an invariant: a public mutable field / array / map callers can
+    mutate to violate the type's contract (no `readonly`, no encapsulation, an exposed setter).
+  - Invariant left to runtime/docs that the type system could enforce: `string` where a branded
+    type, template-literal type, or union would make the illegal state unrepresentable (e.g.
+    `status: string` instead of `'active' | 'archived'`; a raw `string` id instead of `UserId`).
 
 **Skip:**
 
