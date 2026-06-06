@@ -125,8 +125,19 @@ Then advance to the next increment.
 Stop when every increment is implemented, checked off, committed, reviewed, and distilled —
 leaving a Graphite stack of reviewed PRs. "Reviewed" is mode-dependent: by `woostack-review
 --fast` in inline mode, and by the per-task spec + quality subagent loops (plus the human's
-post-execution review) in subagent mode. Report the branches/PRs and their review verdicts or
-mode. **Never merge.**
+post-execution review) in subagent mode. Run the [memory sweep on handback](#memory-sweep-on-handback) first, then report the
+branches/PRs and their review verdicts or mode. **Never merge.**
+
+## Memory sweep on handback
+
+Before this skill yields control back **for any reason** — the reviewed-stack terminal state
+above, or any blocking stop in [When to stop and ask](#when-to-stop-and-ask) — sweep any
+distilled memory so it is never stranded. If `.woostack/memory/` has non-ignored uncommitted
+changes, run one final [`woostack-commit`](../woostack-commit/SKILL.md) on the current
+increment's branch; it stages `.woostack/memory/` for you. This is necessarily a memory-only
+commit when the increment's code is already committed and reviewed. Skip it when memory is
+clean — never create an empty commit. Intermediate increments need nothing extra: increment
+N's distilled memory is swept by increment N+1's commit.
 
 ## When to stop and ask
 
@@ -141,6 +152,9 @@ first and escalates to the user only on debug's 3-fixes architectural stop:
   architectural stop. Debug does not commit — execute commits the returned fix in its normal
   per-increment cadence. Applies to both the inline and subagent drivers.
 - A review returns REQUEST_CHANGES — handle the findings before continuing.
+
+On every stop above, run the [memory sweep on handback](#memory-sweep-on-handback) before
+surfacing the stop, so a mid-run distill (e.g. a `woostack-debug` detour) is never stranded.
 
 Return to the plan-review step if the plan is updated or the approach needs rethinking.
 

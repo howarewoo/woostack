@@ -98,18 +98,18 @@ gt create -m "fix(woostack-commit): always stage .woostack/memory/ unless gitign
 **Files:**
 - Modify: `skills/woostack-execute/SKILL.md` (new subsection after "Terminal state: a reviewed stack"; reference lines in that section and in "When to stop and ask")
 
-- [ ] **Step 1: Write the failing test (verification command)**
+- [x] **Step 1: Write the failing test (verification command)**
 
 ```bash
 grep -c '## Memory sweep on handback' skills/woostack-execute/SKILL.md
 ```
 
-- [ ] **Step 2: Run it, confirm it fails**
+- [x] **Step 2: Run it, confirm it fails**
 
 Run: `grep -c '## Memory sweep on handback' skills/woostack-execute/SKILL.md`
 Expected: FAIL — prints `0` and exits non-zero.
 
-- [ ] **Step 3: Minimal implementation — add the dedicated rule section**
+- [x] **Step 3: Minimal implementation — add the dedicated rule section**
 
 In `skills/woostack-execute/SKILL.md`, insert this new section immediately after the "Terminal state: a reviewed stack" paragraph (the one ending `**Never merge.**`) and before `## When to stop and ask`. Insert exactly:
 
@@ -126,7 +126,7 @@ clean — never create an empty commit. Intermediate increments need nothing ext
 N's distilled memory is swept by increment N+1's commit.
 ```
 
-- [ ] **Step 4: Run the verification, confirm it passes**
+- [x] **Step 4: Run the verification, confirm it passes**
 
 Run: `grep -c '## Memory sweep on handback' skills/woostack-execute/SKILL.md`
 Expected: PASS — prints `1`.
@@ -136,18 +136,18 @@ Expected: PASS — prints `1`.
 **Files:**
 - Modify: `skills/woostack-execute/SKILL.md` ("Terminal state: a reviewed stack" paragraph; "When to stop and ask" section)
 
-- [ ] **Step 1: Write the failing test (verification command)**
+- [x] **Step 1: Write the failing test (verification command)**
 
 ```bash
 grep -c '(#memory-sweep-on-handback)' skills/woostack-execute/SKILL.md
 ```
 
-- [ ] **Step 2: Run it, confirm it fails**
+- [x] **Step 2: Run it, confirm it fails**
 
 Run: `grep -c '(#memory-sweep-on-handback)' skills/woostack-execute/SKILL.md`
 Expected: FAIL — prints `0` (only the heading exists so far; no in-text links to its anchor).
 
-- [ ] **Step 3: Minimal implementation — add the two reference pointers**
+- [x] **Step 3: Minimal implementation — add the two reference pointers**
 
 In the "Terminal state: a reviewed stack" paragraph, replace (exact text, including the line break between `or` and `mode`):
 
@@ -178,12 +178,12 @@ surfacing the stop, so a mid-run distill (e.g. a `woostack-debug` detour) is nev
 Return to the plan-review step if the plan is updated or the approach needs rethinking.
 ```
 
-- [ ] **Step 4: Run the verification, confirm it passes**
+- [x] **Step 4: Run the verification, confirm it passes**
 
 Run: `grep -c '(#memory-sweep-on-handback)' skills/woostack-execute/SKILL.md`
 Expected: PASS — prints `2`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 # first commit in this increment (new branch stacked on Increment 1):
@@ -194,14 +194,14 @@ gt create -m "fix(woostack-execute): sweep .woostack/memory/ on every handback"
 
 ## Self-review (run before handing back)
 
-- [ ] **Spec coverage** — every spec requirement maps to a task above.
+- [x] **Spec coverage** — every spec requirement maps to a task above.
   - Fix 1 (commit carve-out, guarded `git add`, gitignore-free boundary, deletions staged, no-op when absent) → Increment 1, Task 1.
   - Fix 2 (sweep on any handback — terminal + blocking stops, single rule referenced twice, memory-only commit, no empty commit) → Increment 2, Tasks 1-2.
   - Non-goals (no distill change, no specs/plans staging change, no execute reorder) → not touched by any task. ✓
   - Resolved Open Q1 (no foreign guard) → Increment 1 Step 3 wording "no relevance check and no stop-and-ask". ✓
   - Resolved Open Q2 (any handback) → Increment 2 covers terminal + "When to stop and ask". ✓
-- [ ] **No placeholders** — every step has the exact edit text, exact command, and exact expected output. ✓
-- [ ] **Type consistency** — marker strings are consistent across find/replace and verification greps: ``Always stage `.woostack/memory/` changes`` (Inc 1), `## Memory sweep on handback` and `(#memory-sweep-on-handback)` (Inc 2). ✓
+- [x] **No placeholders** — every step has the exact edit text, exact command, and exact expected output. ✓
+- [x] **Type consistency** — marker strings are consistent across find/replace and verification greps: ``Always stage `.woostack/memory/` changes`` (Inc 1), `## Memory sweep on handback` and `(#memory-sweep-on-handback)` (Inc 2). ✓
 
 > woostack plan conventions (kept):
 > - This file is **frontmatter-free** and **opens with** the `**Source:**` line.
