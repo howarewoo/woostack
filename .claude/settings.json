@@ -1,16 +1,11 @@
 {
-  "env": {
-    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "70",
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
-  },
-  "enabledPlugins": {
-    "frontend-design@claude-plugins-official": true,
-    "typescript-lsp@claude-plugins-official": true,
-    "ralph-loop@claude-plugins-official": true,
-    "superpowers@claude-plugins-official": true,
-    "code-simplifier@claude-plugins-official": true,
-    "claude-md-management@claude-plugins-official": true,
-    "pr-review-toolkit@claude-plugins-official": true
-  },
-  "planDir": "./.claude/plans"
+	"env": {
+		"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "70",
+		"CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+	},
+	"enabledPlugins": {
+		"frontend-design@claude-plugins-official": true,
+		"typescript-lsp@claude-plugins-official": true
+	},
+	"planDir": "./.claude/plans"
 }
