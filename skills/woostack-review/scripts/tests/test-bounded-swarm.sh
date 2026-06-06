@@ -63,6 +63,8 @@ case "$WOO_REVIEW_ANGLE" in
     printf '[]\n' > "$OUTDIR/findings.%s.json" "$WOO_REVIEW_ANGLE"
     ;;
 esac
+printf '{"angle":"%s","chunk":null,"runner":"test","model":"test-model","tier":"%s","ts":"t"}\n' \
+  "$WOO_REVIEW_ANGLE" "${FORCE_TIER:-standard}" > "$OUTDIR/receipt.$WOO_REVIEW_ANGLE.json"
 
 while ! mkdir "$lock_dir" 2>/dev/null; do
   sleep 0.01
@@ -101,6 +103,7 @@ cat > "$work2/worker.sh" <<'WORKER'
 #!/usr/bin/env bash
 set -euo pipefail
 printf '[]\n' > "$OUTDIR/findings.$WOO_REVIEW_ANGLE.json"
+printf '{"angle":"%s","chunk":null,"runner":"test","model":"test-model","tier":"standard","ts":"t"}\n' "$WOO_REVIEW_ANGLE" > "$OUTDIR/receipt.$WOO_REVIEW_ANGLE.json"
 WORKER
 chmod +x "$work2/worker.sh"
 OUTDIR="$work2/out" WOO_REVIEW_MAX_CONCURRENCY=1 bash "$SCRIPT" -- "$work2/worker.sh"
@@ -116,6 +119,7 @@ cat > "$work3/worker.sh" <<'WORKER'
 set -euo pipefail
 printf '%s\n' "$WOO_REVIEW_CHUNK" >> "$OUTDIR/chunks-seen.txt"
 printf '[]\n' > "$OUTDIR/findings.$WOO_REVIEW_ANGLE.$WOO_REVIEW_CHUNK.json"
+printf '{"angle":"%s","chunk":"%s","runner":"test","model":"test-model","tier":"standard","ts":"t"}\n' "$WOO_REVIEW_ANGLE" "$WOO_REVIEW_CHUNK" > "$OUTDIR/receipt.$WOO_REVIEW_ANGLE.$WOO_REVIEW_CHUNK.json"
 WORKER
 chmod +x "$work3/worker.sh"
 OUTDIR="$work3/out" bash "$SCRIPT" --max-concurrency 3 -- "$work3/worker.sh"

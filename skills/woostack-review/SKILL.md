@@ -281,6 +281,8 @@ Boundary precedence: workspace packages (`packages/<name>/`, `apps/<name>/`, `se
 
 **This is the local swarm step.** Local hosts MUST use bounded execution by default whenever more than one angle or `(angle, chunk)` pair is detected. The default concurrency limit is `6`, because several local hosts can spawn parallel sub-agents but cap active workers below the detected angle count. Set max concurrency to `1` for the sequential fallback.
 
+**Preflight (local).** Before dispatching workers, confirm your host can actually run review sub-agents (its `Task`/sub-agent primitive is available). If it cannot, stop now with an actionable error — do not dispatch a swarm that will produce no receipts and then hard-fail the gate. In the GitHub Action, `detect-provider.sh` performs the equivalent provider/runner preflight.
+
 Bounded execution means:
 
 1. read the expected work items from `$OUTDIR/angles.txt` and, when chunking is active, `$OUTDIR/chunks.txt`;
@@ -288,7 +290,7 @@ Bounded execution means:
 3. run at most `N` workers at once;
 4. drain the full first-pass queue;
 5. retry missing, empty, invalid-JSON, or non-array artifacts once after the queue drains;
-6. reset still-invalid artifacts to `[]`;
+6. reset still-invalid *findings* artifacts to `[]`, but treat a missing/invalid *receipt* as a worker that did not execute — after one retry, a still-missing receipt aborts the run (receipts are never pre-initialized; their presence is the proof of execution);
 7. write `$OUTDIR/swarm-metrics.json` so the summary can disclose bounded mode and degraded coverage.
 
 For unchunked reviews, the expected artifact is `$OUTDIR/findings.<angle>.json`. For chunked reviews, the expected artifact is `$OUTDIR/findings.<angle>.<chunk_id>.json`.
@@ -372,6 +374,14 @@ Per-provider resolution (full table in `_header.md`):
 - **Single model per session** (Codex Action, Gemini CLI): pin the run to a resolved run-tier (`fast` or `deep` via `FORCE_TIER`, otherwise `standard`). `tier:` becomes informational once the run tier resolves. Split into multiple jobs if you want per-angle fast/deep split behavior.
 
 Bounded runners MUST preserve the resolved tier/model context for every queued worker. In single-model hosts, pass the resolved run-tier (`FORCE_TIER` when set, otherwise the host's standard tier) to every worker. In per-call-routing hosts, apply each angle prompt's `tier:` while still preserving any explicit `FORCE_TIER` override. Bounded scheduling must not cause later queued angles to fall back to default model settings.
+
+**Receipt gate (hard fail).** After the swarm finishes — and before `merge-findings.sh` — run:
+
+```bash
+bash "$WOO_REVIEW_ACTION_PATH/scripts/verify-receipts.sh"
+```
+
+This is the single authority on whether each expected angle actually executed: it hard-fails (non-zero) and prints an actionable `::error` if any angle in `angles.txt` (× `chunks.txt`) lacks a valid receipt (`receipt.<angle>[.<chunk>].json` — a JSON object with matching `angle`/`chunk` and non-empty `runner`+`model`). The shell helper `run-bounded-swarm.sh` already calls this as its final step; hosts that dispatch workers natively (no shell helper) MUST run it themselves. On non-zero, **abort the run and surface the error — do NOT proceed to merge/validate/post.** A missing receipt means that angle never ran, so an empty `findings.json` would be a false clean PASS. This applies in both PR and local-no-PR modes.
 
 ### Stage 4 — Merge + Adversarial Validation
 

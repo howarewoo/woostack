@@ -187,11 +187,25 @@ run_queue() {
 
 run_queue "${work_items[@]}"
 
+# Receipts still missing after pass 1 (verify-receipts.sh is the receipt authority).
+receipt_missing=()
+while IFS= read -r _lbl; do
+  [ -n "$_lbl" ] && receipt_missing+=("$_lbl")
+done < <(bash "$SCRIPT_DIR/verify-receipts.sh" --list-missing 2>/dev/null || true)
+
+in_list() { # needle list...
+  local needle="$1"; shift
+  local x
+  for x in "$@"; do [ "$x" = "$needle" ] && return 0; done
+  return 1
+}
+
 first_pass_failed=()
 for item in "${work_items[@]}"; do
   angle="${item%%|*}"
   chunk="${item#*|}"
-  if ! is_array_artifact "$angle" "$chunk"; then
+  lbl="$(item_label "$angle" "$chunk")"
+  if ! is_array_artifact "$angle" "$chunk" || in_list "$lbl" ${receipt_missing[@]+"${receipt_missing[@]}"}; then
     first_pass_failed+=("$item")
   fi
 done
@@ -290,3 +304,9 @@ jq -n \
 if [ "$degraded" = true ]; then
   echo "::warning::bounded swarm degraded; invalid angle artifacts after retry: $(label_list "${still_invalid[@]}")" >&2
 fi
+
+# Single-authority receipt gate. Findings degradation (above) is a soft warning;
+# a missing/invalid receipt means an angle never executed → hard-fail the swarm so
+# the orchestrator cannot proceed to merge a false-clean review. verify-receipts.sh
+# also folds executed_angles / expected_total / missing_receipts into swarm-metrics.json.
+bash "$SCRIPT_DIR/verify-receipts.sh"
