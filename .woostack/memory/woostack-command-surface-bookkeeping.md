@@ -28,6 +28,7 @@ every site in lockstep:
   are not loop phases, so this stays a no-op for them).
 
 Internal sub-skills (ideate, harden) count toward `SKILL.md` files but NOT the public
-surface. As of woostack-plan the surface is **eleven public commands + two internal
-sub-skills = thirteen `SKILL.md` files** (`woostack-plan` is a public command). See
+surface. As of woostack-debug the surface is **twelve public commands + two internal
+sub-skills = fourteen `SKILL.md` files** (`woostack-debug` is a public command; it is also an
+internal hook invoked by execute/review, but still counts once as a public command). See
 [[woostack-feature-state-invariant]].
