@@ -69,6 +69,9 @@
 #               Audits the changed skill against Anthropic's skill best-practices
 #               guide. SKILL.md is excluded from the docs gate so a SKILL.md-only
 #               PR routes here, not to docs.
+#   comments  — reuses the general-purpose source-file signal (any *.{ts,js,py,go,…}
+#               in the diff, same as architecture). Audits whether code comments still
+#               match the code the PR changed (comment rot). Always non-blocking.
 
 set -euo pipefail
 
@@ -310,6 +313,10 @@ fi
 
 if has_code_file; then
   ANGLES+=("architecture")
+fi
+
+if has_code_file; then
+  ANGLES+=("comments")
 fi
 
 # Merge config.angles.skip into the disable CSV. Config-driven and input-driven

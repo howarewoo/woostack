@@ -296,16 +296,16 @@ gt create -m "feat(woostack-review): add type-design/invariant depth to types an
 **Files:**
 - Create: `skills/woostack-review/prompts/angles/comments.md`
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 Run: `test -f skills/woostack-review/prompts/angles/comments.md && echo EXISTS || echo MISSING`
 Expected: FAIL — prints `MISSING`.
 
-- [ ] **Step 2: Confirm it fails**
+- [x] **Step 2: Confirm it fails**
 
 Run the command above. Expected: `MISSING`.
 
-- [ ] **Step 3: Create the file with this exact content**
+- [x] **Step 3: Create the file with this exact content**
 
 ```markdown
 ---
@@ -354,7 +354,7 @@ is safe — and populate `suggestion` accordingly. Otherwise set `fix_type: "pro
 `suggestion: null`. See `_header.md` for the full rule.
 ```
 
-- [ ] **Step 4: Confirm it passes**
+- [x] **Step 4: Confirm it passes**
 
 ```bash
 test -f skills/woostack-review/prompts/angles/comments.md && \
@@ -371,7 +371,7 @@ Expected: PASS.
 >
 > Hardened note (cost asymmetry): this fires on ~every code PR, which is acceptable precisely because `comments` is `fast`-tier and **always non-blocking** — the cheapest worker, never gating a merge. Contrast Increment 1, where observability is `standard`-tier and *can* block, so its trigger is kept narrow (no raw `?.`/`??`). Cheap+advisory tolerates a broad gate; expensive+blocking does not.
 
-- [ ] **Step 1: Write the failing fixture test**
+- [x] **Step 1: Write the failing fixture test**
 
 ```bash
 export OUTDIR=/tmp/woo-detect-test-comments
@@ -387,11 +387,11 @@ bash skills/woostack-review/scripts/detect-angles.sh >/dev/null 2>&1
 grep -qx comments "$OUTDIR/angles.txt" && echo "COMMENTS-FIRED" || echo "NOT-FIRED"
 ```
 
-- [ ] **Step 2: Confirm it fails**
+- [x] **Step 2: Confirm it fails**
 
 Run the block above. Expected: `NOT-FIRED` (no `comments` angle exists yet).
 
-- [ ] **Step 3: Add the doc-header entry and the gating block**
+- [x] **Step 3: Add the doc-header entry and the gating block**
 
 (a) In the angle-gating doc header, after the `#   skills —` block (~line 70), add:
 
@@ -409,7 +409,7 @@ if has_code_file; then
 fi
 ```
 
-- [ ] **Step 4: Confirm syntax + the fixture now fires**
+- [x] **Step 4: Confirm syntax + the fixture now fires**
 
 ```bash
 bash -n skills/woostack-review/scripts/detect-angles.sh && echo "SYNTAX-OK"
@@ -423,7 +423,7 @@ Expected: `SYNTAX-OK` then `COMMENTS-FIRED`.
 **Files:**
 - Modify: `skills/woostack-review/prompts/_header.md`
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 ```bash
 grep -q 'nineteen distinct review angles' skills/woostack-review/prompts/_header.md && echo C1
@@ -433,11 +433,11 @@ grep -q 'docs | deps | architecture | comments\|architecture | comments' skills/
 ```
 Expected: FAIL — prints nothing (no `C1`..`C4`).
 
-- [ ] **Step 2: Confirm it fails**
+- [x] **Step 2: Confirm it fails**
 
 Run the block above. Expected: empty output.
 
-- [ ] **Step 3: Make the four edits**
+- [x] **Step 3: Make the four edits**
 
 (a) **Count** (line ~88): change `up to eighteen distinct review angles` to `up to nineteen distinct review angles`.
 
@@ -455,7 +455,7 @@ Run the block above. Expected: empty output.
 
 (d) **Findings-schema discriminator** (line ~346): change the `angle` enumeration to end with `… | docs | deps | architecture | comments`.
 
-- [ ] **Step 4: Confirm it passes**
+- [x] **Step 4: Confirm it passes**
 
 ```bash
 grep -q 'nineteen distinct review angles' skills/woostack-review/prompts/_header.md && echo C1
@@ -470,18 +470,18 @@ Expected: PASS — prints `C1` `C2` `C3` `C4`.
 **Files:**
 - Modify: `skills/woostack-review/SKILL.md`
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 ```bash
 grep -q '`comments`' skills/woostack-review/SKILL.md && echo "FOUND" || echo "ABSENT"
 ```
 Expected: FAIL-state — prints `ABSENT`.
 
-- [ ] **Step 2: Confirm it fails**
+- [x] **Step 2: Confirm it fails**
 
 Run the command above. Expected: `ABSENT`.
 
-- [ ] **Step 3: Make the two edits**
+- [x] **Step 3: Make the two edits**
 
 (a) **Prose conditional-angle list** (line ~270): in the conditional list, append `, `comments` (when the diff touches general-purpose source files)` after the `architecture` clause.
 
@@ -491,7 +491,7 @@ Run the command above. Expected: `ABSENT`.
 | `i18n`, `docs`, `deps`, `comments` workers | `fast` | Pattern matching + diff-anchored hygiene checks. |
 ```
 
-- [ ] **Step 4: Confirm it passes**
+- [x] **Step 4: Confirm it passes**
 
 ```bash
 grep -c '`comments`' skills/woostack-review/SKILL.md
@@ -500,14 +500,14 @@ Expected: PASS — prints `2` (prose list + tier table).
 
 ### Task 5: End-to-end angle-count sanity check
 
-- [ ] **Step 1: Verify the angle prompt count matches the registered set**
+- [x] **Step 1: Verify the angle prompt count matches the registered set**
 
 ```bash
 ls skills/woostack-review/prompts/angles/*.md | wc -l
 ```
 Expected: the prior count **+1** (the new `comments.md`). There are now nineteen angle prompt files.
 
-- [ ] **Step 2: Commit increment 3**
+- [x] **Step 2: Commit increment 3**
 
 ```bash
 gt create -m "feat(woostack-review): add comments angle for comment-accuracy review"
@@ -517,9 +517,9 @@ gt create -m "feat(woostack-review): add comments angle for comment-accuracy rev
 
 ## Self-review (run before handing back)
 
-- [ ] **Spec coverage** — §4.A (observability +3 patterns + precise trigger + tier) → Increment 1; §4.B (types invariant depth + tier) → Increment 2; §4.C (new comments angle) → Increment 3. Non-goals (no numeric gate, no code-simplifier/pr-test-analyzer port, no schema-shape change) honored: nothing in this plan adds a confidence score, a simplifier, or a new schema field.
-- [ ] **No placeholders** — every edit step carries exact file, exact insertion text, and a runnable verification command with expected output.
-- [ ] **Type consistency** — angle name is `comments` everywhere (file `comments.md`, `findings.comments.json`, `"angle": "comments"`, whitelist, schema, table, tier row, prose list); tier strings are exactly `fast`/`standard`; the SKILL.md tier-table line is mutated in a defined sequence across Increments 1→2→3 (observability moves to standard in 1, types joins it in 2, comments joins the fast row in 3) — each increment's Step-3 text matches the prior increment's output state.
+- [x] **Spec coverage** — §4.A (observability +3 patterns + precise trigger + tier) → Increment 1; §4.B (types invariant depth + tier) → Increment 2; §4.C (new comments angle) → Increment 3. Non-goals (no numeric gate, no code-simplifier/pr-test-analyzer port, no schema-shape change) honored: nothing in this plan adds a confidence score, a simplifier, or a new schema field.
+- [x] **No placeholders** — every edit step carries exact file, exact insertion text, and a runnable verification command with expected output.
+- [x] **Type consistency** — angle name is `comments` everywhere (file `comments.md`, `findings.comments.json`, `"angle": "comments"`, whitelist, schema, table, tier row, prose list); tier strings are exactly `fast`/`standard`; the SKILL.md tier-table line is mutated in a defined sequence across Increments 1→2→3 (observability moves to standard in 1, types joins it in 2, comments joins the fast row in 3) — each increment's Step-3 text matches the prior increment's output state.
 
 > woostack plan conventions (kept):
 > - Frontmatter-free; opens with the `**Source:**` line.

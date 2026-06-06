@@ -267,7 +267,7 @@ bash "$WOO_REVIEW_ACTION_PATH/scripts/load-config.sh"   # parses .woostack/confi
 bash "$WOO_REVIEW_ACTION_PATH/scripts/detect-angles.sh"
 ```
 
-Read the result from `$OUTDIR/angles.txt` (one angle per line). Always-on angles: `bugs`, `security`. Conditional (auto-detected from changed paths + diff body): `conventions` (when `rules.md` is present), `seo`, `aeo`, `design`, `react`, `database`, `tests`, `api`, `infra`, `observability`, `types`, `i18n`, `docs`, `deps`, `skills` (when a `SKILL.md` is in the diff), `architecture` (when the diff touches general-purpose source files). See `scripts/detect-angles.sh` for per-angle gating heuristics.
+Read the result from `$OUTDIR/angles.txt` (one angle per line). Always-on angles: `bugs`, `security`. Conditional (auto-detected from changed paths + diff body): `conventions` (when `rules.md` is present), `seo`, `aeo`, `design`, `react`, `database`, `tests`, `api`, `infra`, `observability`, `types`, `i18n`, `docs`, `deps`, `skills` (when a `SKILL.md` is in the diff), `architecture` and `comments` (when the diff touches general-purpose source files). See `scripts/detect-angles.sh` for per-angle gating heuristics.
 
 Prefetch also produces optional chunking artifacts when the post-ignore diff exceeds `chunking.max_loc` (default 4000 LOC). When present, the host MUST fan out one sub-agent per `(angle, chunk)` pair in Stage 3:
 
@@ -347,7 +347,7 @@ Sub-agents MUST NOT post comments, edit the PR, touch other angles' files, run `
 | `skills` worker | `standard` | Skill-authoring judgment against the best-practices guide. |
 | `seo`, `aeo` workers | `fast` | Rubric checklists; no novel reasoning. |
 | `observability`, `types` workers | `standard` | Silent-failure depth + type-design/invariant reasoning. |
-| `i18n`, `docs`, `deps` workers | `fast` | Pattern matching + diff-anchored hygiene checks. |
+| `i18n`, `docs`, `deps`, `comments` workers | `fast` | Pattern matching + diff-anchored hygiene checks. |
 | Skeptical Validator | `deep` | Highest-leverage step — strictest false-positive filter pays for itself. |
 
 Per-provider resolution (full table in `_header.md`):
