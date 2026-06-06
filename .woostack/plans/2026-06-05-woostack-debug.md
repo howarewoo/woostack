@@ -34,7 +34,7 @@
 - Create: `skills/woostack-debug/SKILL.md`
 - Test: verification commands below (no test runner in this repo)
 
-- [ ] **Step 1: Write the failing verification, confirm it fails**
+- [x] **Step 1: Write the failing verification, confirm it fails**
 
 Run:
 ```bash
@@ -42,7 +42,7 @@ test -f skills/woostack-debug/SKILL.md && echo EXISTS || echo MISSING
 ```
 Expected: FAIL — prints `MISSING` (file not created yet).
 
-- [ ] **Step 2: Author the frontmatter**
+- [x] **Step 2: Author the frontmatter**
 
 Write the opening frontmatter. Keep `description` scoped so it is recognized as woostack's systematic-debugging phase / the `/woostack-debug` command and is invocable by `woostack-execute`/`woostack-review`, but does NOT over-trigger on every error mention:
 
@@ -61,7 +61,7 @@ confirmed bug instead of falling back to guess-and-check. It owns no approval ga
 standalone look-before-fix mode, never commits, and never merges — it hands the fix back.
 ```
 
-- [ ] **Step 3: Author the Iron Law block**
+- [x] **Step 3: Author the Iron Law block**
 
 Write it as a prominent block so it survives summarization (same treatment as the ideate HARD GATE):
 
@@ -76,7 +76,7 @@ and ESPECIALLY under time pressure — systematic debugging is faster than thras
 </IRON-LAW>
 ```
 
-- [ ] **Step 4: Author the four phases**
+- [x] **Step 4: Author the four phases**
 
 Write a `## The four phases` section. Each phase must complete before the next. Content:
 
@@ -87,7 +87,7 @@ Write a `## The four phases` section. Each phase must complete before the next. 
 
 Include a one-line inline mention of the three techniques (root-cause tracing in Phase 1, defense-in-depth in Phase 4, condition-based waiting for timeout/flaky issues) — NOT separate reference files.
 
-- [ ] **Step 5: Author the ≥3-fixes escalation block**
+- [x] **Step 5: Author the ≥3-fixes escalation block**
 
 Write it as an explicit block (load-bearing, must survive summarization):
 
@@ -101,7 +101,7 @@ with `--auto`, this stop is the handback signal to the caller.
 </ESCALATION>
 ```
 
-- [ ] **Step 6: Author the mode model (`--auto`)**
+- [x] **Step 6: Author the mode model (`--auto`)**
 
 Write a `## Mode: --auto vs standalone` section:
 
@@ -111,22 +111,22 @@ Write a `## Mode: --auto vs standalone` section:
 - **Fail-safe:** absence/unrecognized flag ⇒ gated. An unrequested fix is never silently applied.
 - **No-arg invocation:** `/woostack-debug` with no target → ask what's broken; do not guess (mirror `woostack-execute`).
 
-- [ ] **Step 7: Author the memory contract**
+- [x] **Step 7: Author the memory contract**
 
 Write a `## Memory` section that LINKS the contract rather than restating it ([memory.md](../woostack-init/references/memory.md)):
 
 - **Recall (start):** compute the working set (the target's files — the failing test file and the code under suspicion) and run the recall procedure — `recall.sh` when the `woostack-init` scripts are present, the manual §6 procedure otherwise. Surface matching `gotcha`/`hotspot`/`pattern` notes before investigating; a matching note may already name the root cause. State whether recall was script-assisted or manual (degradation contract).
 - **Distill (end, on a confirmed fix):** write **one** `gotcha` note through the reject-by-default gate — narrow glob `scope:` (single-literal-path scope is trivia, rejected), `source:` = owning spec/plan or `pr-N`, terse body with `[[wikilinks]]`, `updated:` today. Dedupe against `MEMORY.md` first (update over add). Then run `build-index.sh` + `doctor.sh`. The note records the **root cause and its fix**, not the symptom.
 
-- [ ] **Step 8: Author Red Flags + Rationalizations digest**
+- [x] **Step 8: Author Red Flags + Rationalizations digest**
 
 Write a condensed `## Red flags — stop and return to Phase 1` list (from superpowers): "quick fix for now", "just try changing X", "add multiple changes, run tests", "skip the test", "it's probably X", "one more fix attempt" (after 2+), proposing fixes before tracing data flow, "each fix reveals a new problem". And a short rationalizations table ("issue is simple" → simple issues have root causes too; "emergency, no time" → systematic is faster than thrashing; "I see the problem" → seeing symptoms ≠ understanding root cause).
 
-- [ ] **Step 9: Author the out-of-scope / handback contract**
+- [x] **Step 9: Author the out-of-scope / handback contract**
 
 Write a `## Hard constraints` section: owns no spec/plan/status authoring (the `spec : plan : PRs = 1 : 1 : N` invariant is untouched); never commits or merges (hands the fix back — standalone names `woostack-commit`, `--auto` lets the caller commit in its cadence); no `references/`; Iron Law and ≥3-fixes escalation are load-bearing blocks; fail-safe to gated when `--auto` is absent.
 
-- [ ] **Step 10: Run the structure verification, confirm it passes**
+- [x] **Step 10: Run the structure verification, confirm it passes**
 
 Run:
 ```bash
@@ -142,7 +142,7 @@ echo PASS || echo FAIL
 ```
 Expected: PASS.
 
-- [ ] **Step 11: Confirm the out-of-scope contract holds (negative checks)**
+- [x] **Step 11: Confirm the out-of-scope contract holds (negative checks)**
 
 Run:
 ```bash
@@ -152,7 +152,7 @@ grep -qiE 'gt (create|modify|submit)|git commit|git merge' "$f" && echo "commit-
 ```
 Expected: `no-references:OK` and `commit-leak:OK`.
 
-- [ ] **Step 12: Link check**
+- [x] **Step 12: Link check**
 
 Run (verify every relative link target in the new skill exists):
 ```bash
@@ -162,7 +162,7 @@ grep -oE '\]\(([^)]+\.md)' SKILL.md | sed 's/](//' | while read p; do
 ```
 Expected: every line starts with `OK` (resolves `../woostack-init/references/memory.md`, `../woostack-status/references/conventions.md`, `../woostack-execute/SKILL.md`, `../woostack-review/SKILL.md`). No `DANGLING`.
 
-- [ ] **Step 13: Commit**
+- [x] **Step 13: Commit**
 
 ```bash
 # first commit in this increment:
