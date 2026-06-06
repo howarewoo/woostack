@@ -9,9 +9,10 @@ description: Use when addressing the unresolved review threads on a pull request
 
 Addresses the unresolved review threads on a PR. For each thread it verifies the concern
 against the code and recommends **FIX** / **ACCEPT** (push back, with reasoning) /
-**CLARIFY**. By **default** it presents the batched recommendations for your approval (or
-per-thread override) before applying anything; with `--auto` it skips the gate and acts
-autonomously. After the approved verdicts are applied it replies without performative
+**CLARIFY**. By **default** it presents the batched recommendations — including the
+one-line fix plan for each FIX, so you see *how* it will fix before approving — for your
+approval (or per-thread override) before applying anything; with `--auto` it skips the
+gate and acts autonomously. After the approved verdicts are applied it replies without performative
 language, resolves, records accept-by-design learnings as scoped memory notes when
 available, pushes, and offers a re-review. **Never merges.**
 
@@ -39,16 +40,18 @@ memory. It never merges.
 3. **Reception loop (analysis only)** — per thread, follow `prompts/address.md`: read →
    understand → verify → evaluate → **recommend** `FIX` / `ACCEPT` / `CLARIFY`. The loop
    makes **no** working-tree edits, **no** replies, **no** resolves, and **no** memory writes;
-   it stages a recommended verdict + reasoning per thread. Hosts with subagent support may
+   it stages a recommended verdict + reasoning + (for a FIX) a one-line fix plan per thread.
+   Hosts with subagent support may
    fan out independent threads or file groups to fast workers, but workers only return
    recommendation records and reply/fix drafts. The parent orchestrator validates worker
    output, fills gaps itself or escalates complex threads, and remains the only actor that
    owns the verdict gate, edits, commit, push, replies, resolution, and memory writes.
-4. **Verdict gate** — default: the user approves the batch or overrides specific threads
-   before anything is applied; `--auto` skips the gate; a non-interactive host with no
-   `--auto` aborts rather than acting unapproved. The **final** verdict per thread is the
-   override where given, else the recommendation. See `prompts/address.md` § Phase 2 for
-   the gate mechanics.
+4. **Verdict gate** — default: the user approves the batch — seeing the planned fix for
+   each FIX — or overrides specific threads before anything is applied; `--auto` skips the
+   gate; a non-interactive host with no `--auto` aborts rather than acting unapproved. The
+   **final** verdict per thread is the override where given, else the recommendation. See
+   `prompts/address.md` § Phase 2 for the gate mechanics, including the override→FIX plan
+   confirm.
 5. **Commit + push** — apply all final `FIX` edits to the working tree → one commit
    referencing the threads → push to the PR head → capture `<sha>` before any reply, so
    "Fixed in `<sha>`" is real. Never force-push.

@@ -17,6 +17,11 @@ assert_contains() {
 assert_contains "$PROMPT" "worker"
 assert_contains "$PROMPT" "reply"
 assert_contains "$PROMPT" "fix_plan"
+# the verdict gate must surface the fix plan to the user, not just the verdict
+assert_contains "$PROMPT" "fix plan"
+# an override that creates a FIX must derive + confirm its plan before applying
+# (ASCII token from the override→FIX follow-up prose — robust to arrow encoding)
+assert_contains "$PROMPT" "bounded confirm"
 assert_contains "$PROMPT" "\$OUTDIR/address-threads.json"
 assert_contains "$PROMPT" "\$OUTDIR/memory.md"
 assert_contains "$PROMPT" "must not edit files"

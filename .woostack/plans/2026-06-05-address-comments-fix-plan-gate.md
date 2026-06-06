@@ -20,7 +20,7 @@
 - Modify: `skills/woostack-address-comments/prompts/address.md` (Phase 2, lines ~59–77)
 - Test: `skills/woostack-address-comments/scripts/tests/test-address-worker-contract.sh` (add assertions after line 19)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add these two assertions to `test-address-worker-contract.sh`, immediately after the existing `assert_contains "$PROMPT" "fix_plan"` line (line 19):
 
@@ -32,12 +32,12 @@ assert_contains "$PROMPT" "fix plan"
 assert_contains "$PROMPT" "bounded confirm"
 ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
 
 Run: `bash skills/woostack-address-comments/scripts/tests/test-address-worker-contract.sh`
 Expected: FAIL — `missing pattern in skills/woostack-address-comments/prompts/address.md: fix plan` (the prompt has `fix_plan` but not the literal `fix plan`, and no `override→FIX` text yet).
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Replace the Phase 2 body in `prompts/address.md` (from the `**Otherwise (default):**` paragraph through the host-mechanics / final-verdict bullets, lines ~64–77) with:
 
@@ -74,12 +74,12 @@ Show the fix plan alongside the FIX verdict **wherever the gate renders it**:
 
 (Leave the `**If --auto was set:**` paragraph above and the `## Phase 3` heading below unchanged.)
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
 
 Run: `bash skills/woostack-address-comments/scripts/tests/test-address-worker-contract.sh`
 Expected: PASS (no output, exit 0) — `fix plan` and `override→FIX` are now both present.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 # first commit in this increment:
@@ -91,12 +91,12 @@ gt create -m "feat(woostack-address-comments): show fix plan at the verdict gate
 **Files:**
 - Modify: `skills/woostack-address-comments/prompts/address.md` (Phase 1, step 5, lines ~48–55)
 
-- [ ] **Step 1: Write the failing check**
+- [x] **Step 1: Write the failing check**
 
 Run: `rg -F -q "memory_scope, fix_plan" skills/woostack-address-comments/prompts/address.md; echo $?`
 Expected: FAIL — prints `1` (the step-5 record ends `…, memory_scope }`; only the worker record on line 30 mentions `fix_plan`, never the sequence `memory_scope, fix_plan`).
 
-- [ ] **Step 2: Minimal implementation**
+- [x] **Step 2: Minimal implementation**
 
 Replace step 5 in `prompts/address.md` with (add `fix_plan` to the record tuple and define it by cross-reference, not restatement):
 
@@ -115,14 +115,14 @@ Replace step 5 in `prompts/address.md` with (add `fix_plan` to the record tuple 
    land.
 ```
 
-- [ ] **Step 3: Run the check + full test, confirm they pass**
+- [x] **Step 3: Run the check + full test, confirm they pass**
 
 Run: `rg -F -q "memory_scope, fix_plan" skills/woostack-address-comments/prompts/address.md && echo OK`
 Expected: prints `OK`.
 Run: `bash skills/woostack-address-comments/scripts/tests/test-address-worker-contract.sh && bash skills/woostack-address-comments/scripts/tests/test-address-comments-ownership.sh`
 Expected: PASS (no output, exit 0 from both) — existing `fix_plan` presence assertions still hold.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 # later commit in the same increment:
@@ -134,12 +134,12 @@ gt modify -c -m "feat(woostack-address-comments): stage fix_plan in the parent r
 **Files:**
 - Modify: `skills/woostack-address-comments/SKILL.md` (Overview lines ~10–16; step 3 lines ~39–46; step 4 lines ~47–51)
 
-- [ ] **Step 1: Write the failing check**
+- [x] **Step 1: Write the failing check**
 
 Run: `rg -F -c "fix plan" skills/woostack-address-comments/SKILL.md; echo $?`
 Expected: FAIL — prints `0` then `1` (no occurrence of `fix plan` in `SKILL.md` yet).
 
-- [ ] **Step 2: Minimal implementation**
+- [x] **Step 2: Minimal implementation**
 
 Three edits in `SKILL.md`, keeping the file high-level (the override→FIX and host-rendering detail stay in the prompt, which the verdict-gate bullet already delegates to):
 
@@ -195,14 +195,14 @@ Three edits in `SKILL.md`, keeping the file high-level (the override→FIX and h
 
    (The description frontmatter line 3 already stays accurate — "fix or push back on each finding" still holds — so it needs no change.)
 
-- [ ] **Step 3: Run the check + full address-comments test suite, confirm they pass**
+- [x] **Step 3: Run the check + full address-comments test suite, confirm they pass**
 
 Run: `rg -F -c "fix plan" skills/woostack-address-comments/SKILL.md`
 Expected: prints `2` (Overview + step 3).
 Run: `for t in skills/woostack-address-comments/scripts/tests/*.sh; do bash "$t" || { echo "FAIL: $t"; break; }; done; echo done`
 Expected: prints `done` with no `FAIL:` line — all three address-comments tests green.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 # later commit in the same increment:
@@ -213,7 +213,7 @@ gt modify -c -m "docs(woostack-address-comments): align SKILL prose with fix-pla
 
 ## Self-review (run before handing back)
 
-- [ ] **Spec coverage** — every spec requirement maps to a task above.
+- [x] **Spec coverage** — every spec requirement maps to a task above.
   - Terse one-line plan, FIX-only, `—` for ACCEPT/CLARIFY → Task 1 (gate prose) + Task 2 (`fix_plan` definition).
   - Host-agnostic (table column on plain host, option text on structured host) → Task 1.
   - `fix_plan` on both Phase 1 paths; step 5 cross-references line 30 → Task 2.
@@ -221,8 +221,8 @@ gt modify -c -m "docs(woostack-address-comments): align SKILL prose with fix-pla
   - Phase 1 stays side-effect-free; `--auto` unchanged → Task 1 (left the `--auto` and Phase 3 text untouched; "description only" restatement added).
   - SKILL.md high-level alignment → Task 3.
   - Two grep assertions (gate names fix plan; override→FIX follow-up) → Task 1.
-- [ ] **No placeholders** — every step has the exact prose to write, the exact command, and expected output. No TBD/TODO.
-- [ ] **Type consistency** — the field is named `fix_plan` everywhere (worker record line 30, parent step-5 record, gate); the user-facing column/label is "fix plan"; the override case heading is "override→FIX follow-up" in the prompt prose, and the durable assertion greps the ASCII phrase "bounded confirm" present in that same prose (not the unicode arrow). Names match across tasks.
+- [x] **No placeholders** — every step has the exact prose to write, the exact command, and expected output. No TBD/TODO.
+- [x] **Type consistency** — the field is named `fix_plan` everywhere (worker record line 30, parent step-5 record, gate); the user-facing column/label is "fix plan"; the override case heading is "override→FIX follow-up" in the prompt prose, and the durable assertion greps the ASCII phrase "bounded confirm" present in that same prose (not the unicode arrow). Names match across tasks.
 
 > woostack plan conventions (kept):
 > - This file is **frontmatter-free** and **opens with** the `**Source:**` line.
