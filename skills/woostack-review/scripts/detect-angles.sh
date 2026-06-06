@@ -47,7 +47,8 @@
 #   observability — logging / error-handling tokens in diff body:
 #               console.log/error, logger./log., print(, fmt.Println, Sentry.,
 #               OpenTelemetry / span. / metrics., bare `catch {}` swallow,
-#               `.catch(() => null|undefined)`.
+#               `.catch(() => null|undefined)`, production Mock/Fake/Stub fallback
+#               construction.
 #   types     — *.ts / *.tsx / *.cts / *.mts in diff. TypeScript-only.
 #   i18n      — locales/, messages/, i18n/, translations/ directory trees,
 #               *.po / *.pot files, or `i18n.t(` / `useTranslations(` /
@@ -186,6 +187,11 @@ has_observability_diff_token() {
   # doesn't fire the angle.
   grep -qE "^\+.*\b(console\.(log|warn|error|info|debug)|logger\.|log\.(info|warn|error|debug|trace)|fmt\.(Println|Printf|Fprintln)|Sentry\.|OpenTelemetry|otel\.|opentelemetry|tracer\.startSpan|span\.(end|recordException)|metrics\.(counter|histogram|gauge)|\.catch\([[:space:]]*\([^)]*\)[[:space:]]*=>[[:space:]]*(null|undefined))" "$DIFF" && return 0
   grep -qE "^\+[[:space:]]*}[[:space:]]*catch[[:space:]]*(\([^)]*\))?[[:space:]]*\{[[:space:]]*\}" "$DIFF" && return 0
+  # Production mock/stub/fake fallback that hides an outage behind synthetic data.
+  # NOT raw ?./?? (too common — would fire on nearly every TS PR; that suppressor
+  # check rides on the prompt when the angle already fires). Broad non-empty catch
+  # blocks that log already fire via the logger./console. tokens above.
+  grep -qE "^\+[^/]*\b(return|=>|:?=)[[:space:]]*(new[[:space:]]+)?(Mock|Fake|Stub)[A-Za-z0-9_]*\(" "$DIFF" && return 0
   return 1
 }
 

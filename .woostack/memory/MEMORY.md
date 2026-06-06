@@ -4,6 +4,7 @@
 - [woostack-command-surface-bookkeeping](woostack-command-surface-bookkeeping.md) `convention` scope=`AGENTS.md` — Adding/removing a public command means updating the count + lists in five places
 - [woostack-feature-state-invariant](woostack-feature-state-invariant.md) `convention` scope=`.woostack/specs/**` — Specs, plans, and increment PRs are joined by Source and Spec trailers.
 - [gh-search-fuzzy-trailer-match](gh-search-fuzzy-trailer-match.md) `gotcha` scope=`skills/woostack-status/scripts/**` — `gh pr list --search` tokenizes paths and cross-matches; exact-match the trailer
+- [review-angle-trigger-precision](review-angle-trigger-precision.md) `gotcha` scope=`skills/woostack-review/**` — Enriching a diff-gated angle's prompt is dead unless detect-angles.sh also match
 - [review-config-bool-jq-default](review-config-bool-jq-default.md) `gotcha` scope=`skills/woostack-review/scripts/**` — jq `// default` silently coerces an explicit `false` to the default — wrong for 
 - [review-prompt-self-contained-blob](review-prompt-self-contained-blob.md) `gotcha` scope=`skills/woostack-review/**` — woostack-review prompts ship as ONE self-contained blob to CI runners that follo
 - [skill-description-colon-space](skill-description-colon-space.md) `gotcha` scope=`skills/*/SKILL.md` — A `word: ` colon-space in a SKILL.md description is a YAML mapping indicator; it
