@@ -90,28 +90,39 @@ sits after that PR. So the chain has exactly the three hard gates above.
    [`woostack-visualize`](../woostack-visualize/SKILL.md) render of the plan (audience
    `engineer`). Then ask the user to choose:
    - **Go** → proceed to step 9 and run `woostack-execute` in this session.
+   - **Run overnight** → proceed to step 9 but run
+     [`woostack-execute-overnight`](../woostack-execute-overnight/SKILL.md) instead: it drives the
+     whole plan **unattended** (autonomous, no further input) and leaves a morning report under
+     `.woostack/overnight/` for you to test. Use this to let a well-made plan run overnight.
    - **Hand off** → stop here. The user takes the plan PR and executes later or elsewhere (e.g.
      Codex, or a fresh session via `/woostack-execute <plan-path>`).
-   Ambiguous or no answer is **not** a "go": never auto-run execute without an explicit
-   go-ahead. This is the chain's last hard gate.
-9. **Execute.** Invoke [`woostack-execute`](../woostack-execute/SKILL.md) with the plan path to
+   Ambiguous or no answer is **not** a "go": never auto-run execute (supervised or overnight)
+   without an explicit go-ahead. This is the chain's last hard gate.
+9. **Execute.** Invoke [`woostack-execute`](../woostack-execute/SKILL.md) — or, if the user chose
+   **Run overnight** at step 8, [`woostack-execute-overnight`](../woostack-execute-overnight/SKILL.md)
+   (unattended) — with the plan path to
    work the plan as PR-sized stacked increments on top of the spec+plan PR — each implemented
    with TDD, the plan's checkboxes ticked in place, committed via `woostack-commit`, reviewed per
-   the execution mode `woostack-execute` selects (`woostack-review --fast` in inline mode, or the
-   per-task spec+quality subagent loops in the default subagent mode), and distilled into
-   `.woostack/memory/` — pausing only on a blocking stop. `woostack-execute` owns the
+   the execution mode the active driver selects (`woostack-execute`: `woostack-review --fast` in
+   inline mode, or the per-task spec+quality subagent loops in the default subagent mode;
+   `woostack-execute-overnight` drives its own autonomous review policy), and distilled into
+   `.woostack/memory/` — `woostack-execute` pausing on a blocking stop, `woostack-execute-overnight`
+   instead logging the blocker and continuing per its halt policy. `woostack-execute` owns the
    per-increment commit/review/distill cadence and the inline-vs-subagent mode choice (one plan
    per spec, multiple stacked PRs per plan), so it absorbs what used to be separate "distill
    memory" and "offer the PR" steps here. As branches, commits, and increment PRs appear the
    spec advances into the `executing` → `in-review` band (and `done` post-merge); the board
    **computes** that band from the artifacts via its truth table, so a lagging authored
    `status:` is reconciled rather than trusted blindly.
-10. **End on the chosen terminal state.** Build ends in one of two shapes, never merging either:
+10. **End on the chosen terminal state.** Build ends in one of three shapes, never merging any:
     - **Hand off** → only the spec+plan PR is open (no increment PRs), ready for external or
       later execute.
     - **Go** → a Graphite stack with the spec+plan PR at the base and a reviewed increment PR
       above each step.
-    Build does not separately ask to open a PR (step 7 and `woostack-execute` open them as work
+    - **Run overnight** → an autonomous `woostack-execute-overnight` run: a reviewed (or partially
+      reviewed, blockers logged) stack — linear or tree-stacked across `## Track:`s — plus a
+      morning report under `.woostack/overnight/`.
+    Build does not separately ask to open a PR (step 7 and the execute phase open them as work
     steps) and **never merges**.
 
 ## Hard constraints
@@ -131,9 +142,10 @@ sits after that PR. So the chain has exactly the three hard gates above.
   outside `.woostack/`. HTML is a render-on-demand target only, not the authored format.
 - **Spec+plan ship as their own PR before execution.** Commit the spec and plan as a docs-only
   PR (step 7) — the base of the stack — before any implementation begins. Never merge it.
-- **Stop before execute.** Never auto-run execute; always halt at the execution-handoff gate
-  (step 8) after the spec+plan PR. The plan PR is the artifact for executing here or in another
-  tool. Ambiguous or no answer is not a "go."
+- **Stop before execute.** Never auto-run execute — supervised `woostack-execute` or unattended
+  `woostack-execute-overnight`; always halt at the execution-handoff gate (step 8) after the
+  spec+plan PR and let the user choose Go / Run overnight / Hand off. The plan PR is the artifact
+  for executing here or in another tool. Ambiguous or no answer is not a "go."
 - **Never merge.** build ends on the terminal state (handoff PR, or reviewed stack), nothing
   further.
 - **Author `status:` through the loop.** Set the spec's `status:` at each step — `draft` (step

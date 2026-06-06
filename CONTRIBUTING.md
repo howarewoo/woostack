@@ -1,6 +1,6 @@
 # Contributing
 
-This repo is a **published collection of skills**, not a codebase. Contributions are edits to the skills — the Markdown under `skills/` plus the support files a skill ships (HTML templates, the review engine's shell scripts and prompts, JSON config). The public command/adoption surface is `using-woostack`, `woostack-init`, `woostack-bootstrap`, `woostack-build`, `woostack-plan`, `woostack-execute`, `woostack-commit`, `woostack-review`, `woostack-address-comments`, `woostack-status`, `woostack-visualize`, and `woostack-debug`. The collection also ships `woostack-ideate` and `woostack-harden` as internal sub-skills used by `woostack-build`.
+This repo is a **published collection of skills**, not a codebase. Contributions are edits to the skills — the Markdown under `skills/` plus the support files a skill ships (HTML templates, the review engine's shell scripts and prompts, JSON config). The public command/adoption surface is `using-woostack`, `woostack-init`, `woostack-bootstrap`, `woostack-build`, `woostack-plan`, `woostack-execute`, `woostack-execute-overnight`, `woostack-commit`, `woostack-review`, `woostack-address-comments`, `woostack-status`, `woostack-visualize`, and `woostack-debug`. The collection also ships `woostack-ideate` and `woostack-harden` as internal sub-skills used by `woostack-build`.
 
 See [AGENTS.md](AGENTS.md) for the full repo contract; this file is the short contributor's version.
 
@@ -23,6 +23,7 @@ See [AGENTS.md](AGENTS.md) for the full repo contract; this file is the short co
 | Change the harden phase (the build loop's stress-test step) | `skills/woostack-harden/SKILL.md` |
 | Change the plan phase (the build loop's planning step) | `skills/woostack-plan/SKILL.md` |
 | Change the execute phase (the build loop's implementation step) | `skills/woostack-execute/SKILL.md` |
+| Change the overnight execute phase (unattended autonomous run, morning report) | `skills/woostack-execute-overnight/SKILL.md` |
 | Change the commit / PR update workflow | `skills/woostack-commit/SKILL.md` |
 | Change the review engine | `skills/woostack-review/SKILL.md`, `skills/woostack-review/scripts/`, `skills/woostack-review/prompts/` |
 | Change the systematic-debugging behavior (`/woostack-debug`) | `skills/woostack-debug/SKILL.md` |

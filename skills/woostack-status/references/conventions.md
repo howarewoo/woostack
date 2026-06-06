@@ -17,6 +17,12 @@ they do not restate these rules (cross-link, do not duplicate).
   look-alike specs, so an untrailered or sibling PR never attaches to the wrong spec. When no
   trailered PR resolves, it falls back to the active `spec.branch:` head PR (marked partial).
 - `spec.branch:` names the active increment's branch.
+- An overnight run ([`woostack-execute-overnight`](../../woostack-execute-overnight/SKILL.md)) may
+  produce **tree-stacked** increment PRs — multiple `## Track:`s branched off the common base, so a
+  spec can have several independent increment branches rather than one linear chain. The
+  `1 : 1 : N` count, the `**Source:**` join, and the `Spec:` PR trailer are unaffected, and this
+  adds **no** new phase-enum value; a blocked/partial overnight run is visible via its
+  `.woostack/overnight/` report.
 
 ## Phase enum (spec frontmatter `status:`)
 

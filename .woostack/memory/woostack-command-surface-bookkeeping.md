@@ -4,9 +4,9 @@ type: convention
 scope: AGENTS.md, README.md, CONTRIBUTING.md, skills/using-woostack/**
 tags: skills, docs, counts, surface
 hook: Adding/removing a public command means updating the count + lists in five places, which drift independently.
-updated: 2026-06-05
+updated: 2026-06-06
 source: .woostack/plans/2026-06-05-woostack-plan.md
-recall_count: 17
+recall_count: 21
 last_recalled: 2026-06-06
 ---
 The public-command count and skill lists are duplicated across several files and
@@ -28,7 +28,9 @@ every site in lockstep:
   are not loop phases, so this stays a no-op for them).
 
 Internal sub-skills (ideate, harden) count toward `SKILL.md` files but NOT the public
-surface. As of woostack-debug the surface is **twelve public commands + two internal
-sub-skills = fourteen `SKILL.md` files** (`woostack-debug` is a public command; it is also an
-internal hook invoked by execute/review, but still counts once as a public command). See
-[[woostack-feature-state-invariant]].
+surface. As of woostack-execute-overnight the surface is **thirteen public commands + two
+internal sub-skills = fifteen `SKILL.md` files** (`woostack-debug` counts once as a public
+command despite also being an internal hook; `woostack-execute-overnight` is the 13th public
+command). Note the count appears **twice** in the AGENTS.md rename constraint — "N `SKILL.md`
+files (M public + 2 internal)" — both must move together. See
+[[woostack-feature-state-invariant]] and [[grep-c-counts-lines-not-occurrences]].

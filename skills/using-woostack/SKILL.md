@@ -68,6 +68,7 @@ link it, never restate it.
 | `/woostack-build <goal>`, build a feature through the woostack loop | `woostack-build` |
 | `/woostack-plan <spec-path>`, write the implementation plan for an approved spec as PR-sized increments | `woostack-plan` |
 | `/woostack-execute <plan-path> [--inline\|--subagent]`, execute an approved plan as PR-sized stacked increments (inline or subagent-driven) | `woostack-execute` |
+| `/woostack-execute-overnight <plan-path> [--inline\|--subagent]`, execute an approved plan unattended overnight (autonomous, morning report) | `woostack-execute-overnight` |
 | `/woostack-commit`, commit session-relevant changes and update PR fields | `woostack-commit` |
 | `/woostack-review [PR#]`, review a PR or local diff | `woostack-review` |
 | `/woostack-address-comments [PR#]`, address unresolved review threads | `woostack-address-comments` |
