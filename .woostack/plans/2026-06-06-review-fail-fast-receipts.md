@@ -784,7 +784,7 @@ gt modify -c -m "docs(woostack-review): orchestrator receipt gate + local prefli
 - Modify: `skills/woostack-review/scripts/detect-provider.sh:24-26`
 - Test: `skills/woostack-review/scripts/tests/test-detect-provider-preflight.sh`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `skills/woostack-review/scripts/tests/test-detect-provider-preflight.sh`:
 
@@ -808,12 +808,12 @@ assert_contains "$err" "install auth" "message names the auth remedy"
 finish
 ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
 
 Run: `bash skills/woostack-review/scripts/tests/test-detect-provider-preflight.sh`
 Expected: FAIL — current message lacks the new phrasing: `FAIL: actionable preflight message`.
 
-- [ ] **Step 3: Update the message**
+- [x] **Step 3: Update the message**
 
 In `skills/woostack-review/scripts/detect-provider.sh`, replace the empty-provider error line:
 
@@ -833,12 +833,12 @@ with:
     ;;
 ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
 
 Run: `bash skills/woostack-review/scripts/tests/test-detect-provider-preflight.sh`
 Expected: PASS — `  3 passed, 0 failed`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt create -m "feat(woostack-review): actionable provider/runner preflight error"
@@ -849,12 +849,12 @@ gt create -m "feat(woostack-review): actionable provider/runner preflight error"
 **Files:**
 - Modify: `action.yml` (insert a step before `Merge findings (validate modes)`, ~line 177)
 
-- [ ] **Step 1: Verification baseline**
+- [x] **Step 1: Verification baseline**
 
 Run: `grep -c "verify-receipts.sh" action.yml`
 Expected: `0`
 
-- [ ] **Step 2: Insert the gate step**
+- [x] **Step 2: Insert the gate step**
 
 In `action.yml`, immediately BEFORE the existing step:
 
@@ -878,7 +878,7 @@ insert:
       run: bash "${{ github.action_path }}/skills/woostack-review/scripts/verify-receipts.sh"
 ```
 
-- [ ] **Step 3: Confirm placement + YAML validity**
+- [x] **Step 3: Confirm placement + YAML validity**
 
 Run:
 ```bash
@@ -887,7 +887,7 @@ python3 -c "import yaml; yaml.safe_load(open('action.yml')); print('YAML-OK')"
 ```
 Expected: `OK` then `YAML-OK`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt modify -c -m "feat(woostack-review): CI receipt gate before validate merge"
@@ -898,12 +898,12 @@ gt modify -c -m "feat(woostack-review): CI receipt gate before validate merge"
 **Files:**
 - Modify: `.github/workflows/reusable-review.yml` (review job: action step ~123-142, upload step ~146-151)
 
-- [ ] **Step 1: Verification baseline**
+- [x] **Step 1: Verification baseline**
 
 Run: `grep -c "receipt" .github/workflows/reusable-review.yml`
 Expected: `0`
 
-- [ ] **Step 2: Add the receipt glob to the upload step**
+- [x] **Step 2: Add the receipt glob to the upload step**
 
 In `.github/workflows/reusable-review.yml`, change the per-angle upload step's `path:`. Replace:
 
@@ -932,7 +932,7 @@ with:
           if-no-files-found: ignore
 ```
 
-- [ ] **Step 3: Add the one-retry wrapper to the review action step**
+- [x] **Step 3: Add the one-retry wrapper to the review action step**
 
 Replace the review job's single action invocation:
 
@@ -1009,7 +1009,7 @@ with two steps — a first attempt that tolerates failure, then a single retry t
           impeccable_version: ${{ inputs.impeccable_version }}
 ```
 
-- [ ] **Step 4: Confirm edits + YAML validity**
+- [x] **Step 4: Confirm edits + YAML validity**
 
 Run:
 ```bash
@@ -1019,7 +1019,7 @@ python3 -c "import yaml; yaml.safe_load(open('.github/workflows/reusable-review.
 ```
 Expected: `OK1`, `OK2`, `YAML-OK`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "feat(woostack-review): CI uploads receipts + one-retry per angle job"
@@ -1029,7 +1029,7 @@ gt modify -c -m "feat(woostack-review): CI uploads receipts + one-retry per angl
 
 **Files:** (none — verification only)
 
-- [ ] **Step 1: Run every woostack-review shell test**
+- [x] **Step 1: Run every woostack-review shell test**
 
 Run:
 ```bash
@@ -1040,7 +1040,7 @@ echo ALL-GREEN
 ```
 Expected: each test prints `  N passed, 0 failed`; final line `ALL-GREEN`.
 
-- [ ] **Step 2: Commit (only if the sweep surfaced a fixable nit)**
+- [x] **Step 2: Commit (only if the sweep surfaced a fixable nit)**
 
 ```bash
 gt modify -c -m "test(woostack-review): green full receipt + swarm test sweep"
@@ -1050,8 +1050,8 @@ gt modify -c -m "test(woostack-review): green full receipt + swarm test sweep"
 
 ## Self-review (run before handing back)
 
-- [ ] **Spec coverage** — receipt mechanism (Inc 1 contract + Inc 2 write), `verify-receipts.sh` single authority + `--list-missing` (Inc 1), strictness/every-angle + swarm hard-fail + retry-trigger extension + receipts-never-pre-initialized (Inc 3 Task 1), preflight light/local + GHA message (Inc 3 Task 3, Inc 4 Task 1), CI gate + receipt upload + one-retry + line-156 reversal (Inc 4 Tasks 2-3), all tests incl. updated `test-bounded-swarm.sh` (Inc 1-4). Non-goals respected: findings schema unchanged, validator-`degraded` axis untouched, no live API probe, merge/intersect unchanged.
-- [ ] **No placeholders** — every step has complete code/edit text + exact command + expected output.
-- [ ] **Type/contract consistency** — receipt object shape `{angle, chunk, runner, model, tier, ts}` identical across `_header.md`, the SKILL brief, every test stub, and `verify-receipts.sh`'s `is_valid_receipt` (matching `angle`/`chunk`, non-empty `runner`+`model`). Artifact paths `receipt.<angle>.json` / `receipt.<angle>.<chunk>.json` consistent everywhere. `verify-receipts.sh` invoked via `$SCRIPT_DIR/verify-receipts.sh` (swarm) and `${{ github.action_path }}/skills/woostack-review/scripts/verify-receipts.sh` (Action). Portable bash (no `mapfile`; `set -u`-safe array expansions).
+- [x] **Spec coverage** — receipt mechanism (Inc 1 contract + Inc 2 write), `verify-receipts.sh` single authority + `--list-missing` (Inc 1), strictness/every-angle + swarm hard-fail + retry-trigger extension + receipts-never-pre-initialized (Inc 3 Task 1), preflight light/local + GHA message (Inc 3 Task 3, Inc 4 Task 1), CI gate + receipt upload + one-retry + line-156 reversal (Inc 4 Tasks 2-3), all tests incl. updated `test-bounded-swarm.sh` (Inc 1-4). Non-goals respected: findings schema unchanged, validator-`degraded` axis untouched, no live API probe, merge/intersect unchanged.
+- [x] **No placeholders** — every step has complete code/edit text + exact command + expected output.
+- [x] **Type/contract consistency** — receipt object shape `{angle, chunk, runner, model, tier, ts}` identical across `_header.md`, the SKILL brief, every test stub, and `verify-receipts.sh`'s `is_valid_receipt` (matching `angle`/`chunk`, non-empty `runner`+`model`). Artifact paths `receipt.<angle>.json` / `receipt.<angle>.<chunk>.json` consistent everywhere. `verify-receipts.sh` invoked via `$SCRIPT_DIR/verify-receipts.sh` (swarm) and `${{ github.action_path }}/skills/woostack-review/scripts/verify-receipts.sh` (Action). Portable bash (no `mapfile`; `set -u`-safe array expansions).
 
 > woostack plan conventions: frontmatter-free; opens with the `**Source:**` line; filename mirrors the spec basename (`2026-06-06-review-fail-fast-receipts.md`); no required-sub-skill banner; in this skills repo a "failing test" is a shell test or a `grep`/`bash -n`/`python3 -c yaml` verification with exact expected output. Execution is `woostack-execute`'s job (woostack-build step 9, or `/woostack-execute <plan>`).

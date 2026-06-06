@@ -120,7 +120,35 @@ jobs:
         with:
           name: review-artifacts
           path: /tmp/pr-review/
-      - uses: howarewoo/woostack@main
+      # One-retry wrapper: a transient angle failure (model timeout, rate limit) gets
+      # one re-run before the receipt gate fails the review, mirroring the local swarm's
+      # single retry. Dependency-free — a duplicated action step, no third-party retry action.
+      - name: Run angle review (attempt 1)
+        id: review1
+        continue-on-error: true
+        uses: howarewoo/woostack@main
+        with:
+          mode: review
+          angle: ${{ matrix.angle }}
+          chunk: ${{ matrix.chunk }}
+          provider: ${{ inputs.provider }}
+          model: ${{ inputs.model }}
+          force_tier: ${{ inputs.force_tier }}
+          anthropic_token: ${{ secrets.anthropic_token }}
+          anthropic_api_key: ${{ secrets.anthropic_api_key }}
+          openai_api_key: ${{ secrets.openai_api_key }}
+          google_api_key: ${{ secrets.google_api_key }}
+          gemini_api_key: ${{ secrets.gemini_api_key }}
+          openrouter_api_key: ${{ secrets.openrouter_api_key }}
+          trigger_phrase: ${{ inputs.trigger_phrase }}
+          max_turns: ${{ inputs.max_turns }}
+          skip_labels: ${{ inputs.skip_labels }}
+          prompt_override: ${{ inputs.prompt_override }}
+          react_doctor_version: ${{ inputs.react_doctor_version }}
+          impeccable_version: ${{ inputs.impeccable_version }}
+      - name: Run angle review (retry once)
+        if: steps.review1.outcome == 'failure'
+        uses: howarewoo/woostack@main
         with:
           mode: review
           angle: ${{ matrix.angle }}
@@ -146,7 +174,12 @@ jobs:
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: findings-${{ matrix.angle }}-${{ matrix.chunk || 'all' }}
-          path: /tmp/pr-review/findings.${{ matrix.angle }}*.json
+          # Receipts ride alongside findings in the same artifact so the validate
+          # job's `pattern: findings-*` + merge-multiple download picks them up,
+          # and verify-receipts.sh can prove each angle actually executed.
+          path: |
+            /tmp/pr-review/findings.${{ matrix.angle }}*.json
+            /tmp/pr-review/receipt.${{ matrix.angle }}*.json
           retention-days: 1
           if-no-files-found: ignore
 
