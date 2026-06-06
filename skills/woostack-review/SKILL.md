@@ -346,8 +346,8 @@ Sub-agents MUST NOT post comments, edit the PR, touch other angles' files, run `
 | `tests`, `api`, `infra` workers | `standard` | Coverage/contract/IaC reasoning. |
 | `skills` worker | `standard` | Skill-authoring judgment against the best-practices guide. |
 | `seo`, `aeo` workers | `fast` | Rubric checklists; no novel reasoning. |
-| `observability` worker | `standard` | Silent-failure depth: error-suppression + swallow-path reasoning. |
-| `types`, `i18n`, `docs`, `deps` workers | `fast` | Pattern matching + diff-anchored hygiene checks. |
+| `observability`, `types` workers | `standard` | Silent-failure depth + type-design/invariant reasoning. |
+| `i18n`, `docs`, `deps` workers | `fast` | Pattern matching + diff-anchored hygiene checks. |
 | Skeptical Validator | `deep` | Highest-leverage step — strictest false-positive filter pays for itself. |
 
 Per-provider resolution (full table in `_header.md`):
