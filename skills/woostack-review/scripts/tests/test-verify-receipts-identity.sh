@@ -16,8 +16,11 @@ rc=0; err="$(bash "$SCRIPT" 2>&1 1>/dev/null)" || rc=$?
 assert_exit 1 "$rc" "empty model → invalid receipt → exit 1"
 assert_contains "$err" "bugs" "names the angle whose identity is incomplete"
 
-# Empty runner is likewise invalid.
+# Empty runner is likewise invalid. Capture stderr and assert the error names the
+# angle, mirroring the empty-model sub-case — a silent or mis-named error path
+# would otherwise pass this check.
 printf '{"angle":"bugs","chunk":null,"runner":"","model":"m","tier":"standard","ts":"t"}\n' > "$OUTDIR/receipt.bugs.json"
-rc=0; bash "$SCRIPT" >/dev/null 2>&1 || rc=$?
+rc=0; err="$(bash "$SCRIPT" 2>&1 1>/dev/null)" || rc=$?
 assert_exit 1 "$rc" "empty runner → invalid receipt → exit 1"
+assert_contains "$err" "bugs" "names the angle whose identity is incomplete"
 finish

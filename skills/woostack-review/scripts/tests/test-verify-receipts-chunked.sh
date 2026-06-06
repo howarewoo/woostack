@@ -21,4 +21,9 @@ assert_contains "$err" "bugs.chunk-1" "names the missing angle.chunk"
 printf '{"angle":"bugs","chunk":"chunk-1","runner":"r","model":"m"}\n' > "$OUTDIR/receipt.bugs.chunk-1.json"
 rc=0; bash "$SCRIPT" >/dev/null 2>&1 || rc=$?
 assert_exit 0 "$rc" "all chunk receipts valid → exit 0"
+# Verify the chunked arithmetic: expected_total = 1 angle x 2 chunks, and both
+# (angle,chunk) pairs are recorded as executed. This is the only multiplication
+# path in the script and the only place the dotted label set is counted.
+assert_eq "$(jq -r '.expected_total' "$OUTDIR/swarm-metrics.json")" "2" "expected_total = 1 angle x 2 chunks"
+assert_eq "$(jq -r '.executed_angles | length' "$OUTDIR/swarm-metrics.json")" "2" "both (angle,chunk) pairs recorded as executed"
 finish

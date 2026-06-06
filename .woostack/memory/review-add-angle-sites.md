@@ -6,7 +6,7 @@ tags: angle, detect-angles, _header, load-config, anthropic, enumeration, add-an
 hook: Adding a woostack-review angle touches 11 sites — the easy-to-miss four are load-config VALID_ANGLES, the anthropic.md tier list, the _header footer whitelist, and the committed gating test.
 updated: 2026-06-06
 source: .woostack/plans/2026-06-06-review-self-contained.md
-recall_count: 2
+recall_count: 3
 last_recalled: 2026-06-06
 ---
 Registering an angle so it is **fully** wired (runs, is config-addressable, renders its
