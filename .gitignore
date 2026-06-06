@@ -52,5 +52,7 @@ pnpm-debug.log*
 .woostack/metrics.json
 # woostack: disposable HTML renders (regenerated from source)
 .woostack/visuals/
+# woostack: per-run overnight execution reports (regenerated each run)
+.woostack/overnight/
 # Claude Code scheduling runtime lock (generated, not source)
 .claude/scheduled_tasks.lock

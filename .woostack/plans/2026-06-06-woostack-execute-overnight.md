@@ -23,7 +23,7 @@
 **Files:**
 - Create: `skills/woostack-execute-overnight/SKILL.md`
 
-- [ ] **Step 1: Write the skill file (complete content)**
+- [x] **Step 1: Write the skill file (complete content)**
 
 ````markdown
 ---
@@ -179,17 +179,17 @@ an inference. It never merges and never relaxes safety for autonomy.
 - **Never merge, never force-push, never start on a protected branch. Own no gate.**
 ````
 
-- [ ] **Step 2: Verify the file exists with valid frontmatter and required sections**
+- [x] **Step 2: Verify the file exists with valid frontmatter and required sections**
 
 Run: `test -f skills/woostack-execute-overnight/SKILL.md && grep -c -E "^name: woostack-execute-overnight$|^## Commands$|^## Pre-flight|^## Autonomy overrides$|^## Tracks|^## Morning report$|^## Gate boundary$|^## Hard constraints$" skills/woostack-execute-overnight/SKILL.md`
 Expected: `8`
 
-- [ ] **Step 3: Verify it cross-links execute (does not restate it)**
+- [x] **Step 3: Verify it cross-links execute (does not restate it)**
 
 Run: `grep -c -E "woostack-execute/SKILL.md|inline-driver.md|subagent-driver.md" skills/woostack-execute-overnight/SKILL.md`
 Expected: a count `>= 3` (references to execute + both drivers).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt create -m "feat(woostack-execute-overnight): add unattended overnight execute skill"
@@ -200,7 +200,7 @@ gt create -m "feat(woostack-execute-overnight): add unattended overnight execute
 **Files:**
 - Create: `skills/woostack-execute-overnight/references/report-template.md`
 
-- [ ] **Step 1: Write the morning-report skeleton (complete content)**
+- [x] **Step 1: Write the morning-report skeleton (complete content)**
 
 ````markdown
 <!-- woostack-execute-overnight morning report. Per-run artifact, gitignored. Written incrementally. -->
@@ -238,12 +238,12 @@ gt create -m "feat(woostack-execute-overnight): add unattended overnight execute
 - {{stamp}} — {{decision (debug fix / auto-address round / BLOCKED / blocker recorded / track ended / increment not-attempted) + rationale}}
 ````
 
-- [ ] **Step 2: Verify the template has the four sections**
+- [x] **Step 2: Verify the template has the four sections**
 
 Run: `grep -c -E "^## ⚠ Needs you$|^## Run summary$|^## Per-increment$|^## Decision log$" skills/woostack-execute-overnight/references/report-template.md`
 Expected: `4`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 gt modify -c -m "feat(woostack-execute-overnight): add morning-report template"
@@ -254,7 +254,7 @@ gt modify -c -m "feat(woostack-execute-overnight): add morning-report template"
 **Files:**
 - Modify: `.gitignore` (root, after the `.woostack/visuals/` block near line 54)
 
-- [ ] **Step 1: Add the overnight ignore (Edit)**
+- [x] **Step 1: Add the overnight ignore (Edit)**
 
 Find:
 ```
@@ -269,12 +269,12 @@ Replace with:
 .woostack/overnight/
 ```
 
-- [ ] **Step 2: Verify it is ignored**
+- [x] **Step 2: Verify it is ignored**
 
 Run: `git check-ignore .woostack/overnight/x.md`
 Expected: `.woostack/overnight/x.md`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 gt modify -c -m "chore(gitignore): ignore .woostack/overnight per-run reports"
@@ -285,7 +285,7 @@ gt modify -c -m "chore(gitignore): ignore .woostack/overnight per-run reports"
 **Files:**
 - Modify: `skills/woostack-build/SKILL.md` (step 8, step 9 opener, step 10, the "Stop before execute" constraint)
 
-- [ ] **Step 1: Add "Run overnight" to step 8 (Edit)**
+- [x] **Step 1: Add "Run overnight" to step 8 (Edit)**
 
 Find:
 ```
@@ -308,7 +308,7 @@ Replace with:
    without an explicit go-ahead. This is the chain's last hard gate.
 ```
 
-- [ ] **Step 2: Note the overnight driver in step 9 (Edit)**
+- [x] **Step 2: Note the overnight driver in step 9 (Edit)**
 
 Find:
 ```
@@ -323,7 +323,7 @@ Replace with:
    work the plan as PR-sized stacked increments on top of the spec+plan PR — each implemented
 ```
 
-- [ ] **Step 3: Add the overnight terminal shape to step 10 (Edit)**
+- [x] **Step 3: Add the overnight terminal shape to step 10 (Edit)**
 
 Find:
 ```
@@ -349,7 +349,7 @@ Replace with:
     steps) and **never merges**.
 ```
 
-- [ ] **Step 4: Reword the "Stop before execute" hard constraint (Edit)**
+- [x] **Step 4: Reword the "Stop before execute" hard constraint (Edit)**
 
 Find:
 ```
@@ -365,15 +365,15 @@ Replace with:
   for executing here or in another tool. Ambiguous or no answer is not a "go."
 ```
 
-- [ ] **Step 5: Verify build now offers three options and references overnight**
+- [x] **Step 5: Verify build now offers three options and references overnight**
 
 Run: `grep -c "woostack-execute-overnight" skills/woostack-build/SKILL.md`
 Expected: `4` (step 8, step 9, step 10, constraint).
 
 Run: `grep -c -E "Run overnight" skills/woostack-build/SKILL.md`
-Expected: `3` (step 8 bullet, step 10 bullet, constraint).
+Expected: `4` (step 8 bullet, step 9 mention, step 10 bullet, constraint).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 gt modify -c -m "feat(woostack-build): offer Run overnight at the execution-handoff gate"
@@ -384,7 +384,7 @@ gt modify -c -m "feat(woostack-build): offer Run overnight at the execution-hand
 **Files:**
 - Modify: `skills/using-woostack/SKILL.md` (Command Routing table, after the `woostack-execute` row)
 
-- [ ] **Step 1: Insert the routing row (Edit)**
+- [x] **Step 1: Insert the routing row (Edit)**
 
 Find:
 ```
@@ -396,12 +396,12 @@ Replace with:
 | `/woostack-execute-overnight <plan-path> [--inline\|--subagent]`, execute an approved plan unattended overnight (autonomous, morning report) | `woostack-execute-overnight` |
 ```
 
-- [ ] **Step 2: Verify the row exists**
+- [x] **Step 2: Verify the row exists**
 
 Run: `grep -c "woostack-execute-overnight" skills/using-woostack/SKILL.md`
 Expected: `1`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 gt modify -c -m "docs(using-woostack): route /woostack-execute-overnight"
@@ -412,7 +412,7 @@ gt modify -c -m "docs(using-woostack): route /woostack-execute-overnight"
 **Files:**
 - Modify: `AGENTS.md` (`.claude/CLAUDE.md` is a symlink; edit `AGENTS.md`)
 
-- [ ] **Step 1: Bump the public-surface count and list (Edit)**
+- [x] **Step 1: Bump the public-surface count and list (Edit)**
 
 Find:
 ```
@@ -423,7 +423,7 @@ Replace with:
 The public command/adoption surface has thirteen skills:
 ```
 
-- [ ] **Step 2: Add the list entry (Edit)**
+- [x] **Step 2: Add the list entry (Edit)**
 
 Find:
 ```
@@ -437,7 +437,7 @@ Replace with:
 - [`woostack-commit`](skills/woostack-commit/SKILL.md)
 ```
 
-- [ ] **Step 3: Fix the "twelve-skill command surface" mention (Edit)**
+- [x] **Step 3: Fix the "twelve-skill command surface" mention (Edit)**
 
 Find:
 ```
@@ -448,7 +448,7 @@ Replace with:
 `/woostack-*` commands: they have no routing row and are absent from the thirteen-skill command
 ```
 
-- [ ] **Step 4: Add the command to the Mode B list (Edit)**
+- [x] **Step 4: Add the command to the Mode B list (Edit)**
 
 Find:
 ```
@@ -461,7 +461,7 @@ Replace with:
 `/woostack-bootstrap`, `/woostack-build`, `/woostack-plan`, `/woostack-execute`, `/woostack-execute-overnight`, `/woostack-commit`,
 ```
 
-- [ ] **Step 5: Bump the rename hard constraint (fourteen → fifteen) (Edit)**
+- [x] **Step 5: Bump the rename hard constraint (fourteen → fifteen) (Edit)**
 
 Find:
 ```
@@ -474,7 +474,7 @@ Replace with:
   skills plus the internal `woostack-ideate` and `woostack-harden`).
 ```
 
-- [ ] **Step 6: Add the Quick file map entry (Edit)**
+- [x] **Step 6: Add the Quick file map entry (Edit)**
 
 Find:
 ```
@@ -489,15 +489,15 @@ Replace with:
   [`skills/woostack-execute-overnight/SKILL.md`](skills/woostack-execute-overnight/SKILL.md)
 ```
 
-- [ ] **Step 7: Verify counts and entries are consistent**
+- [x] **Step 7: Verify counts and entries are consistent**
 
-Run: `grep -c -E "thirteen skills|thirteen-skill command surface|fifteen \`SKILL.md\`|thirteen public command/adoption" AGENTS.md`
-Expected: `3` (three matching lines: the count line, the "thirteen-skill command surface" line, and the rename-constraint line that carries both "fifteen `SKILL.md`" and "thirteen public command/adoption").
+Run: `grep -c -E "thirteen skills|thirteen-skill command|fifteen \`SKILL.md\`|thirteen public command/adoption" AGENTS.md`
+Expected: `3` (three matching lines: the count line, the "thirteen-skill command" line — match the unwrapped phrase, since "command" / "surface" wrap across a newline — and the rename-constraint line that carries both "fifteen `SKILL.md`" and "thirteen public command/adoption").
 
 Run: `grep -c "woostack-execute-overnight" AGENTS.md`
 Expected: `3` (three matching lines: the list entry, the Mode B list, and the Quick file map link line).
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 gt modify -c -m "docs(agents): register woostack-execute-overnight as the 13th command"
@@ -508,7 +508,7 @@ gt modify -c -m "docs(agents): register woostack-execute-overnight as the 13th c
 **Files:**
 - Modify: `README.md` (install count/list ~line 29, build-loop prose ~line 62, new subsection after the execute subsection ~line 70)
 
-- [ ] **Step 1: Bump the install count and list (Edit)**
+- [x] **Step 1: Bump the install count and list (Edit)**
 
 Find:
 ```
@@ -519,7 +519,7 @@ Replace with:
 The public command/adoption surface is thirteen skills: using-woostack, woostack-init, woostack-bootstrap, woostack-build, woostack-plan, woostack-execute, woostack-execute-overnight, woostack-commit, woostack-review, woostack-address-comments, woostack-status, woostack-visualize, and woostack-debug.
 ```
 
-- [ ] **Step 2: Mention the overnight option in the build-loop prose (Edit)**
+- [x] **Step 2: Mention the overnight option in the build-loop prose (Edit)**
 
 Find:
 ```
@@ -530,7 +530,7 @@ Replace with:
 Work ships as PR-sized stacked increments (soft target ≤500 LOC) — one plan per spec, multiple PRs per plan — each committed, reviewed (`woostack-review --fast`), and distilled. The execution-handoff gate lets you Go (execute now), Hand off (execute later/elsewhere), or Run overnight (`woostack-execute-overnight`, unattended). It ends on the reviewed PR stack. It never merges. → [SKILL.md](skills/woostack-build/SKILL.md)
 ```
 
-- [ ] **Step 3: Add the skill subsection after the execute one (Edit)**
+- [x] **Step 3: Add the skill subsection after the execute one (Edit)**
 
 Find:
 ```
@@ -545,7 +545,7 @@ Executes an approved markdown plan from `.woostack/plans/` as a sequence of PR-s
 Executes an approved plan the way `woostack-execute` does, but **unattended** — one autonomous run with no input after launch. It reuses execute's per-increment cadence and drivers and overrides only the stop-points: a stuck verification routes to `woostack-debug --auto`, a blocking review is auto-addressed (`woostack-address-comments --auto`, bounded) or escalated, and anything unsafe or ambiguous becomes a logged blocker — safety is never relaxed for autonomy. A blocker ends its track (plans may group increments under optional `## Track:` headings; default is one linear stack) and the run continues. It writes a **morning report** to `.woostack/overnight/` for a human to test in the morning. It is the third choice at `woostack-build`'s execution-handoff gate (Go / Hand off / Run overnight), and is usable standalone. Never merges. → [SKILL.md](skills/woostack-execute-overnight/SKILL.md)
 ```
 
-- [ ] **Step 4: Verify README is consistent**
+- [x] **Step 4: Verify README is consistent**
 
 Run: `grep -c "thirteen skills" README.md`
 Expected: `1`
@@ -553,7 +553,7 @@ Expected: `1`
 Run: `grep -c "woostack-execute-overnight" README.md`
 Expected: `4` (install list, build prose, subsection heading, subsection-body SKILL.md link).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "docs(readme): document woostack-execute-overnight (13th command)"
@@ -564,7 +564,7 @@ gt modify -c -m "docs(readme): document woostack-execute-overnight (13th command
 **Files:**
 - Modify: `CONTRIBUTING.md` (surface list ~line 3, pointer-row table after the execute row ~line 25)
 
-- [ ] **Step 1: Add to the surface list (Edit)**
+- [x] **Step 1: Add to the surface list (Edit)**
 
 Find:
 ```
@@ -575,7 +575,7 @@ Replace with:
 The public command/adoption surface is `using-woostack`, `woostack-init`, `woostack-bootstrap`, `woostack-build`, `woostack-plan`, `woostack-execute`, `woostack-execute-overnight`, `woostack-commit`, `woostack-review`, `woostack-address-comments`, `woostack-status`, `woostack-visualize`, and `woostack-debug`.
 ```
 
-- [ ] **Step 2: Add the pointer row (Edit)**
+- [x] **Step 2: Add the pointer row (Edit)**
 
 Find:
 ```
@@ -587,12 +587,12 @@ Replace with:
 | Change the overnight execute phase (unattended autonomous run, morning report) | `skills/woostack-execute-overnight/SKILL.md` |
 ```
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run: `grep -c "woostack-execute-overnight" CONTRIBUTING.md`
 Expected: `2` (surface list, pointer row).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt modify -c -m "docs(contributing): point at the overnight execute phase"
@@ -603,7 +603,7 @@ gt modify -c -m "docs(contributing): point at the overnight execute phase"
 **Files:**
 - Modify: `skills/woostack-plan/SKILL.md` (new section after "## PR-sized increments", before "## Bite-sized tasks (TDD)")
 
-- [ ] **Step 1: Insert the track-convention section (Edit)**
+- [x] **Step 1: Insert the track-convention section (Edit)**
 
 Find:
 ```
@@ -634,7 +634,7 @@ as one linear stack.
 ## Bite-sized tasks (TDD)
 ```
 
-- [ ] **Step 2: Verify the section exists and is author-driven (no auto-partition)**
+- [x] **Step 2: Verify the section exists and is author-driven (no auto-partition)**
 
 Run: `grep -c -E "^## Optional: parallel tracks" skills/woostack-plan/SKILL.md`
 Expected: `1`
@@ -642,7 +642,7 @@ Expected: `1`
 Run: `grep -c "author-driven and optional" skills/woostack-plan/SKILL.md`
 Expected: `1`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 gt modify -c -m "docs(woostack-plan): document the optional ## Track: grouping"
@@ -653,7 +653,7 @@ gt modify -c -m "docs(woostack-plan): document the optional ## Track: grouping"
 **Files:**
 - Modify: `skills/woostack-status/references/conventions.md` (Invariant section, after the `spec.branch:` bullet)
 
-- [ ] **Step 1: Append the tree-stacked note to the invariant (Edit)**
+- [x] **Step 1: Append the tree-stacked note to the invariant (Edit)**
 
 Find:
 ```
@@ -670,7 +670,7 @@ Replace with:
   `.woostack/overnight/` report.
 ```
 
-- [ ] **Step 2: Verify the note exists and adds no enum value**
+- [x] **Step 2: Verify the note exists and adds no enum value**
 
 Run: `grep -c "tree-stacked" skills/woostack-status/references/conventions.md`
 Expected: `1`
@@ -678,7 +678,7 @@ Expected: `1`
 Run: `grep -c -E "draft -> hardened -> approved -> planning -> executing -> in-review -> done" skills/woostack-status/references/conventions.md`
 Expected: `1` (the phase enum is unchanged — no new value added).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 gt modify -c -m "docs(conventions): note tree-stacked PRs from overnight track runs"
@@ -688,32 +688,32 @@ gt modify -c -m "docs(conventions): note tree-stacked PRs from overnight track r
 
 **Files:** none (read-only checks)
 
-- [ ] **Step 1: Both new files exist**
+- [x] **Step 1: Both new files exist**
 
 Run: `test -f skills/woostack-execute-overnight/SKILL.md && test -f skills/woostack-execute-overnight/references/report-template.md && echo OK`
 Expected: `OK`
 
-- [ ] **Step 2: No stale counts remain anywhere**
+- [x] **Step 2: No stale counts remain anywhere**
 
 Run: `grep -rn "twelve skills\|twelve-skill command surface\|fourteen \`SKILL.md\`" AGENTS.md README.md CONTRIBUTING.md`
 Expected: no output (exit 1) — every count was bumped.
 
-- [ ] **Step 3: The skill is registered in every surface**
+- [x] **Step 3: The skill is registered in every surface**
 
 Run: `for f in AGENTS.md README.md CONTRIBUTING.md skills/using-woostack/SKILL.md skills/woostack-build/SKILL.md; do printf '%s ' "$f"; grep -c "woostack-execute-overnight" "$f"; done`
 Expected: `AGENTS.md 3`, `README.md 4`, `CONTRIBUTING.md 2`, `skills/using-woostack/SKILL.md 1`, `skills/woostack-build/SKILL.md 4`.
 
-- [ ] **Step 4: Cross-links in the new skill resolve to real paths**
+- [x] **Step 4: Cross-links in the new skill resolve to real paths**
 
 Run: `for p in skills/woostack-execute skills/woostack-commit skills/woostack-debug skills/woostack-address-comments skills/woostack-review skills/woostack-init skills/woostack-plan; do test -f "$p/SKILL.md" || echo "MISSING $p"; done; test -f skills/woostack-execute/references/inline-driver.md && test -f skills/woostack-execute/references/subagent-driver.md || echo "MISSING driver ref"`
 Expected: no output — every cross-linked target exists.
 
-- [ ] **Step 5: Report dir is gitignored**
+- [x] **Step 5: Report dir is gitignored**
 
 Run: `git check-ignore .woostack/overnight/probe.md`
 Expected: `.woostack/overnight/probe.md`
 
-- [ ] **Step 6: Track convention — documented in the producer, consumed only by overnight**
+- [x] **Step 6: Track convention — documented in the producer, consumed only by overnight**
 
 Run: `grep -c "## Track:" skills/woostack-plan/SKILL.md skills/woostack-execute-overnight/SKILL.md`
 Expected: both files print `>= 1` (producer doc + consumer behavior).
@@ -721,25 +721,25 @@ Expected: both files print `>= 1` (producer doc + consumer behavior).
 Run: `grep -c "## Track:" skills/woostack-execute/SKILL.md`
 Expected: `0` (execute is unchanged — does not consume tracks).
 
-- [ ] **Step 7: Status conventions note present and resolves**
+- [x] **Step 7: Status conventions note present and resolves**
 
 Run: `test -f skills/woostack-execute-overnight/SKILL.md && grep -q "tree-stacked" skills/woostack-status/references/conventions.md && echo OK`
 Expected: `OK`
 
-- [ ] **Step 8:** No separate commit — this task is read-only verification; the plan's checkboxes are ticked in place by `woostack-execute` as the live record.
+- [x] **Step 8:** No separate commit — this task is read-only verification; the plan's checkboxes are ticked in place by `woostack-execute` as the live record.
 
 ---
 
 ## Self-review (run before handing back)
 
-- [ ] **Spec coverage** — every spec section maps to a task:
+- [x] **Spec coverage** — every spec section maps to a task:
   - §4 Command & invocation, Pre-flight, Autonomy overrides (incl. driver-specific review split), Tracks & halt, Morning report, Report git handling → **Task 1** (SKILL.md) + **Task 2** (template) + **Task 3** (gitignore).
   - §4 Wiring `woostack-build` (step 8 three-way, step 9, step 10, constraint) → **Task 4**.
   - §4 Wiring the track convention (`woostack-plan` doc, status note) → **Tasks 9–10**.
   - §5 edit set (using-woostack, AGENTS, README, CONTRIBUTING) → **Tasks 5–8**; (woostack-plan, status conventions, root .gitignore) → **Tasks 9, 10, 3**.
   - §7 Testing (counts consistent, cross-links resolve, driver split documented, track doc, gitignore) → **Task 11**.
-- [ ] **No placeholders** — Tasks 1 & 2 carry the complete file content; every doc edit gives exact find/replace strings; every verification has an exact command and expected output. The `{{…}}` tokens inside the Task-2 code block are the *report template's own* fill-in slots (the artifact this skill ships), not plan placeholders.
-- [ ] **Type consistency** — skill name `woostack-execute-overnight`, command `/woostack-execute-overnight <plan-path> [--inline|--subagent]`, link path `../woostack-execute-overnight/SKILL.md` (and `../../` from `woostack-status/references/`), report path `.woostack/overnight/YYYY-MM-DD-<plan-basename>.md`, the four report sections, and the increment-status vocabulary (`done` / `done-with-findings` / `blocked` / `not-attempted`) are used identically across the skill, the template, the build wiring, and the docs.
+- [x] **No placeholders** — Tasks 1 & 2 carry the complete file content; every doc edit gives exact find/replace strings; every verification has an exact command and expected output. The `{{…}}` tokens inside the Task-2 code block are the *report template's own* fill-in slots (the artifact this skill ships), not plan placeholders.
+- [x] **Type consistency** — skill name `woostack-execute-overnight`, command `/woostack-execute-overnight <plan-path> [--inline|--subagent]`, link path `../woostack-execute-overnight/SKILL.md` (and `../../` from `woostack-status/references/`), report path `.woostack/overnight/YYYY-MM-DD-<plan-basename>.md`, the four report sections, and the increment-status vocabulary (`done` / `done-with-findings` / `blocked` / `not-attempted`) are used identically across the skill, the template, the build wiring, and the docs.
 
 > woostack plan conventions (kept):
 > - Frontmatter-free; opens with the `**Source:**` line.

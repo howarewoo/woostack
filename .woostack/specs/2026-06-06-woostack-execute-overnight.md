@@ -1,9 +1,9 @@
 ---
 name: woostack-execute-overnight
 type: spec
-status: planning
+status: in-review
 date: 2026-06-06
-branch: feature/woostack-execute-overnight
+branch: feature/woostack-execute-overnight-skill
 links:
   - "[[2026-06-04-woostack-execute]]"
   - "[[2026-06-04-build-execution-handoff-gate]]"
