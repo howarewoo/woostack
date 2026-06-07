@@ -13,7 +13,7 @@ This is a published collection of skills, not an application codebase. It packag
 decisions for building new web, mobile, and API projects so agents can install it with
 `npx skills add howarewoo/woostack`.
 
-The public command/adoption surface has thirteen skills:
+The public command/adoption surface has fourteen skills:
 
 - [`using-woostack`](skills/using-woostack/SKILL.md)
 - [`woostack-init`](skills/woostack-init/SKILL.md)
@@ -28,13 +28,13 @@ The public command/adoption surface has thirteen skills:
 - [`woostack-status`](skills/woostack-status/SKILL.md)
 - [`woostack-visualize`](skills/woostack-visualize/SKILL.md)
 - [`woostack-debug`](skills/woostack-debug/SKILL.md)
+- [`woostack-tdd`](skills/woostack-tdd/SKILL.md)
 
 The collection also installs two internal sub-skills:
 [`woostack-ideate`](skills/woostack-ideate/SKILL.md) and
 [`woostack-harden`](skills/woostack-harden/SKILL.md). `woostack-build` delegates its ideate
 phase to the former and its harden phase to the latter. Both are bundled building blocks, not
-`/woostack-*` commands: they have no routing row and are absent from the thirteen-skill command
-surface above. Like [`action.yml`](action.yml), they are shipped assets — do not delete them as
+`/woostack-*` commands: they have no routing row and are absent from the fourteen-skill command surface above. Like [`action.yml`](action.yml), they are shipped assets — do not delete them as
 strays.
 
 There is no application source code, app lockfile, build, or CI for this repo's own
@@ -55,8 +55,8 @@ do not add application code, app build configs, or app lockfiles.
 
 **Mode B: run a woostack command.** Use this when the user asks for `/woostack-init`,
 `/woostack-bootstrap`, `/woostack-build`, `/woostack-plan`, `/woostack-execute`, `/woostack-execute-overnight`, `/woostack-commit`,
-`/woostack-review`, `/woostack-address-comments`, `/woostack-status`, `/woostack-visualize`, or
-`/woostack-debug`, including intent-equivalent wording. Load the matching skill
+`/woostack-review`, `/woostack-address-comments`, `/woostack-status`, `/woostack-visualize`, `/woostack-debug`, or
+`/woostack-tdd`, including intent-equivalent wording. Load the matching skill
 before acting. For bootstrap work, the output belongs in a fresh repo in a different
 directory, not in this repo.
 
@@ -78,7 +78,7 @@ directory, not in this repo.
   incompatibility forces an exact version.
 - Keep `SKILL.md` descriptions accurate and concise. The description drives discovery; the
   workflow belongs in referenced docs.
-- Do not move or rename any of the fifteen `SKILL.md` files (the thirteen public command/adoption
+- Do not move or rename any of the sixteen `SKILL.md` files (the fourteen public command/adoption
   skills plus the internal `woostack-ideate` and `woostack-harden`).
 - Do not rename files under
   [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/) without
@@ -112,6 +112,8 @@ directory, not in this repo.
   [`skills/woostack-debug/SKILL.md`](skills/woostack-debug/SKILL.md)
 - Visualization engine (audience-tailored HTML renders):
   [`skills/woostack-visualize/SKILL.md`](skills/woostack-visualize/SKILL.md)
+- TDD doctrine home and add-tests command (public command):
+  [`skills/woostack-tdd/SKILL.md`](skills/woostack-tdd/SKILL.md)
 - Address-comments delegator:
   [`skills/woostack-address-comments/SKILL.md`](skills/woostack-address-comments/SKILL.md)
 - Derived feature board (status command) and its canonical feature-state conventions:
