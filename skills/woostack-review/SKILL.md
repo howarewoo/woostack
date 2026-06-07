@@ -448,6 +448,7 @@ Produces `$OUTDIR/findings.json` — the final validated set — and `$OUTDIR/va
 **If invoked with a PR number** — post a single native batched GitHub Review per the procedure in `prompts/_header.md`:
 
 - Build the STATUS_LINE (`APPROVED` / `APPROVED WITH SUGGESTIONS` / `CHANGES REQUESTED`).
+- Preflight for a leftover **pending review** owned by the authenticated user (GitHub allows only one per user per PR, else the create 422s `User can only have one pending review per pull request`). An empty woostack-owned draft is discarded and the post retried once; any other draft (carrying comments, or not woostack-owned) stops the run with an actionable error instead of being silently mutated. A run thus always ends in a submitted review or a clearly reported failure — never a silent un-posted state.
 - Submit one `gh api repos/<repo>/pulls/<PR>/reviews` POST containing all inline comments + the summary + status line. The review `event` (`APPROVE` / `COMMENT` / `REQUEST_CHANGES`) is the native gate: any blocking finding (or open prior thread) triggers `REQUEST_CHANGES`; a non-nit non-blocking finding triggers `COMMENT`; nits are event-neutral, so a PR whose only findings are nits gets `APPROVE` with the nits posted inline.
 - DO NOT modify the PR title or body. DO NOT mutate PR labels.
 
