@@ -176,7 +176,7 @@ gt create -m "feat(woostack-build): add §7 Acceptance criteria to the spec temp
 - Modify: `skills/woostack-plan/SKILL.md:131` (extend self-review step 1 with AC coverage + N/A sanity check)
 - Test: shell `grep`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```bash
 test_plan_skill() {
@@ -189,12 +189,12 @@ test_plan_skill() {
 test_plan_skill
 ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
 
 Run: paste and run the Step 1 block.
 Expected: FAIL — none of the AC-coverage / N/A / §7 cross-ref strings exist yet; prints `FAIL`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 (a) Replace line 104 in `skills/woostack-plan/SKILL.md`:
 
@@ -223,7 +223,7 @@ with:
    `N/A`, confirm the spec body has no behavioral requirement (else flag the `N/A` as suspect).
 ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
 
 Run: re-run the Step 1 block (after the edits).
 Expected: PASS — all three strings present; prints `PASS`.
@@ -234,7 +234,7 @@ Expected: PASS — all three strings present; prints `PASS`.
 - Modify: `skills/woostack-plan/references/plan-template.md:61` (self-review checklist)
 - Test: shell `grep`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```bash
 test_plan_template() {
@@ -246,34 +246,34 @@ test_plan_template() {
 test_plan_template
 ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
 
 Run: paste and run the Step 1 block.
 Expected: FAIL — no `AC coverage` checklist item yet; prints `FAIL`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 In `skills/woostack-plan/references/plan-template.md`, insert one checklist item after the **Spec coverage** line. Replace:
 
 ```markdown
-- [ ] **Spec coverage** — every spec requirement maps to a task above.
-- [ ] **No placeholders** — no TBD/TODO; complete code, exact commands, and expected output in every step.
+- [x] **Spec coverage** — every spec requirement maps to a task above.
+- [x] **No placeholders** — no TBD/TODO; complete code, exact commands, and expected output in every step.
 ```
 
 with:
 
 ```markdown
-- [ ] **Spec coverage** — every spec requirement maps to a task above.
-- [ ] **AC coverage** — each spec §7 acceptance criterion (and its filled happy/error/edge cases) maps to a test; a whole-section `N/A` is sanity-checked against the spec body.
-- [ ] **No placeholders** — no TBD/TODO; complete code, exact commands, and expected output in every step.
+- [x] **Spec coverage** — every spec requirement maps to a task above.
+- [x] **AC coverage** — each spec §7 acceptance criterion (and its filled happy/error/edge cases) maps to a test; a whole-section `N/A` is sanity-checked against the spec body.
+- [x] **No placeholders** — no TBD/TODO; complete code, exact commands, and expected output in every step.
 ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
 
 Run: re-run the Step 1 block (after the edit).
 Expected: PASS — the `AC coverage` checklist item is present; prints `PASS`.
 
-- [ ] **Step 5: Commit the increment**
+- [x] **Step 5: Commit the increment**
 
 Single `woostack-commit` for Increment 2 (stacked on Increment 1):
 
@@ -286,15 +286,15 @@ gt create -m "feat(woostack-plan): gate §7 acceptance-criteria breadth in self-
 
 ## Self-review (run before handing back)
 
-- [ ] **Spec coverage** — every spec requirement maps to a task above.
+- [x] **Spec coverage** — every spec requirement maps to a task above.
   - AC1 (template exposes §7 scaffold) → Task 1.
   - AC2 (md/html 1:1) → Task 2 (incl. the `diff` parity check).
   - AC3 (plan self-review gates breadth) → Tasks 3 + 4.
   - AC4 (existing plan rules coherent) → Task 3 part (a), the `:104` cross-ref.
-- [ ] **AC coverage** — each spec §7 acceptance criterion (and its filled happy/error/edge cases) maps to a test; a whole-section `N/A` is sanity-checked against the spec body.
+- [x] **AC coverage** — each spec §7 acceptance criterion (and its filled happy/error/edge cases) maps to a test; a whole-section `N/A` is sanity-checked against the spec body.
   - happy cases → the `grep`-PASS assertions in each task; edge (N/A handling, md/html parity) → the parity `diff` and the negated `! grep` renumber checks; error cases for AC1/AC4 are spec-marked N/A (static docs), so no test owed.
-- [ ] **No placeholders** — no TBD/TODO; every step has exact paths, complete before/after blocks, and exact expected output.
-- [ ] **Type consistency** — the token `{{ACCEPTANCE_CRITERIA}}` (html) and the section names §7/§8/§9 are used identically across both template files and both plan files.
+- [x] **No placeholders** — no TBD/TODO; every step has exact paths, complete before/after blocks, and exact expected output.
+- [x] **Type consistency** — the token `{{ACCEPTANCE_CRITERIA}}` (html) and the section names §7/§8/§9 are used identically across both template files and both plan files.
 
 > woostack plan conventions (keep them):
 > - This file is **frontmatter-free** and **opens with** the `**Source:**` line.
