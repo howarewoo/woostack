@@ -101,7 +101,7 @@ Every step carries the actual content an engineer needs. These are plan failures
 them:
 
 - "TBD", "TODO", "implement later", "fill in details"
-- "Add error handling" / "add validation" / "handle edge cases" — write the actual test instead; error and edge cases belong in the spec's §7 Acceptance criteria, enumerated there as happy/error/edge
+- "Add error handling" / "add validation" / "handle edge cases" — write the actual test instead; error and edge cases belong in the spec's §7 Acceptance criteria, enumerated there as happy/error/edge cases
 - "Write tests for the above" without the actual test
 - "Similar to Task N" — repeat the code; tasks may be read out of order
 - A step that says *what* without showing *how* (code/command blocks required)
