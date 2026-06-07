@@ -116,6 +116,8 @@ Each angle writes its findings to `/tmp/pr-review/findings.<angle>.json`. The or
 
 Every run MUST end with one batched GitHub Review submitted via `gh api repos/<repo>/pulls/<PR>/reviews` containing all inline comments, the summary, and the `STATUS_LINE` in the **review body**. The review `event` is the native blocking gate: `REQUEST_CHANGES` (≥1 blocking finding or open prior thread), `COMMENT` (≥1 non-nit non-blocking finding), or `APPROVE` (no findings, or only nits — nits post inline but never withhold approval). PR labels MUST NOT be added, removed, or otherwise mutated.
 
+A run MUST end in either a **submitted** review or a **clearly reported failure** — never a silent un-posted state. GitHub allows only one pending (unsubmitted) review per user per PR, so the posting step preflights for a leftover pending review (step 2.5 below) before the create POST: it discards an empty woostack-owned draft and retries, but stops with an actionable error when a draft holds comments or is not woostack-owned, rather than blindly submitting (which would publish unrelated draft comments) or deleting (which would discard human work).
+
 The PR title and the PR description (issue body) MUST NOT be modified. The `STATUS_LINE` lives inside the Review body — never in the PR body.
 
 ### STATUS_LINE (exact format)
@@ -291,6 +293,48 @@ payload = {
 }
 print(json.dumps(payload))
 ' > /tmp/pr_review_payload.json
+
+# 2.5. Pending-review preflight (issue #190). GitHub allows only ONE pending
+# (unsubmitted) review per user per PR. A leftover draft — from a prior post
+# that failed mid-flight, or a human's in-progress draft — makes the create
+# below 422 with "User can only have one pending review per pull request",
+# silently leaving the PR un-reviewed while the run looks complete. Detect any
+# pending review owned by the authenticated user BEFORE posting and resolve it
+# intentionally: discard an empty woostack-owned draft, otherwise stop and ask.
+if [ -n "$AUTH_LOGIN" ]; then
+  AUTH_LC=$(printf '%s' "$AUTH_LOGIN" | tr '[:upper:]' '[:lower:]')
+  # `..|objects` walks every page/array shape `--slurp` may return, so the match
+  # is robust to gh-version differences. A pending review is the user's own and
+  # is returned last, so we MUST paginate to reach it on busy PRs.
+  PENDING=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/$PR_NUMBER/reviews" --paginate --slurp \
+    --jq "[.. | objects | select((.state? // \"\")==\"PENDING\" and ((.user?.login // \"\") | ascii_downcase)==\"$AUTH_LC\")] | .[0] // empty" \
+    2>/dev/null || echo "")
+  if [ -n "$PENDING" ]; then
+    PENDING_ID=$(printf '%s' "$PENDING" | jq -r '.id')
+    PENDING_BODY=$(printf '%s' "$PENDING" | jq -r '.body // ""')
+    # Count the draft comments on the pending review. An empty woostack draft is
+    # safe to discard; a draft carrying comments may hold unpublished human work.
+    PENDING_COMMENTS=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/$PR_NUMBER/reviews/$PENDING_ID/comments" \
+      --jq 'length' 2>/dev/null || echo "0")
+    # woostack-owned <=> our hidden body marker is present (see review body, step 1).
+    if printf '%s' "$PENDING_BODY" | grep -q 'woostack-review:' && [ "$PENDING_COMMENTS" = "0" ]; then
+      # Empty, woostack-owned stale draft: discard it, then post fresh (retry once).
+      echo "woostack-review: discarding empty stale pending review $PENDING_ID before posting." >&2
+      gh api --method DELETE "repos/${GITHUB_REPOSITORY}/pulls/$PR_NUMBER/reviews/$PENDING_ID"
+    else
+      # Non-empty, or not woostack-owned: do NOT mutate it — submitting could
+      # publish unrelated draft comments, deleting could discard human work.
+      # Stop with an actionable message naming the draft so a human resolves it.
+      echo "ERROR: a pending review already exists for ${AUTH_LOGIN} on ${GITHUB_REPOSITORY}#$PR_NUMBER (review id $PENDING_ID, $PENDING_COMMENTS draft comment(s))." >&2
+      echo "GitHub permits only one pending review per user per PR, so this review cannot be posted until that draft is resolved. woostack-review will not touch it: it is not a recognized empty woostack draft." >&2
+      echo "Inspect, then submit or discard the draft, and re-run the review:" >&2
+      echo "  gh api repos/${GITHUB_REPOSITORY}/pulls/$PR_NUMBER/reviews/$PENDING_ID/comments                                   # see its draft comments" >&2
+      echo "  gh api --method PUT repos/${GITHUB_REPOSITORY}/pulls/$PR_NUMBER/reviews/$PENDING_ID/events -f event=COMMENT       # submit it, or" >&2
+      echo "  gh api --method DELETE repos/${GITHUB_REPOSITORY}/pulls/$PR_NUMBER/reviews/$PENDING_ID                            # discard it" >&2
+      exit 1
+    fi
+  fi
+fi
 
 # 3. Submit the review
 gh api "repos/${GITHUB_REPOSITORY}/pulls/$PR_NUMBER/reviews" \
