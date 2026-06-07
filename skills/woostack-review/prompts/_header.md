@@ -306,16 +306,28 @@ if [ -n "$AUTH_LOGIN" ]; then
   # `..|objects` walks every page/array shape `--slurp` may return, so the match
   # is robust to gh-version differences. A pending review is the user's own and
   # is returned last, so we MUST paginate to reach it on busy PRs.
-  PENDING=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/$PR_NUMBER/reviews" --paginate --slurp \
-    --jq "[.. | objects | select((.state? // \"\")==\"PENDING\" and ((.user?.login // \"\") | ascii_downcase)==\"$AUTH_LC\")] | .[0] // empty" \
-    2>/dev/null || echo "")
+  # NOTE: `gh api` rejects `--slurp` together with `--jq`/`--template` ("the
+  # --slurp option is not supported with --jq or --template") and exits non-zero,
+  # so the filter MUST run as an external `jq` on the slurped array — never as
+  # `--slurp --jq`, which would error and (under `2>/dev/null`) silently no-op
+  # the whole preflight.
+  PENDING=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/$PR_NUMBER/reviews" --paginate --slurp 2>/dev/null \
+    | jq -r "[.. | objects | select((.state? // \"\")==\"PENDING\" and ((.user?.login // \"\") | ascii_downcase)==\"$AUTH_LC\")] | .[0] // empty" \
+    || echo "")
   if [ -n "$PENDING" ]; then
     PENDING_ID=$(printf '%s' "$PENDING" | jq -r '.id')
     PENDING_BODY=$(printf '%s' "$PENDING" | jq -r '.body // ""')
     # Count the draft comments on the pending review. An empty woostack draft is
     # safe to discard; a draft carrying comments may hold unpublished human work.
+    # Fail SAFE on an unknown count: a transient error must not default to "0"
+    # (which would select the DELETE path and could discard a draft that actually
+    # holds comments). Use a non-numeric sentinel and abort rather than guess.
     PENDING_COMMENTS=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/$PR_NUMBER/reviews/$PENDING_ID/comments" \
-      --jq 'length' 2>/dev/null || echo "0")
+      --jq 'length' 2>/dev/null || echo "ERR")
+    if [ "$PENDING_COMMENTS" = "ERR" ]; then
+      echo "ERROR: could not determine the draft-comment count for pending review $PENDING_ID on ${GITHUB_REPOSITORY}#$PR_NUMBER — aborting to avoid discarding unpublished work. Resolve the draft manually and re-run." >&2
+      exit 1
+    fi
     # woostack-owned <=> our hidden body marker is present (see review body, step 1).
     if printf '%s' "$PENDING_BODY" | grep -q 'woostack-review:' && [ "$PENDING_COMMENTS" = "0" ]; then
       # Empty, woostack-owned stale draft: discard it, then post fresh (retry once).
