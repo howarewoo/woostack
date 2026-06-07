@@ -101,7 +101,7 @@ Every step carries the actual content an engineer needs. These are plan failures
 them:
 
 - "TBD", "TODO", "implement later", "fill in details"
-- "Add error handling" / "add validation" / "handle edge cases"
+- "Add error handling" / "add validation" / "handle edge cases" — write the actual test instead; error and edge cases belong in the spec's §7 Acceptance criteria, enumerated there as happy/error/edge cases
 - "Write tests for the above" without the actual test
 - "Similar to Task N" — repeat the code; tasks may be read out of order
 - A step that says *what* without showing *how* (code/command blocks required)
@@ -129,6 +129,9 @@ After writing the plan, check it against the spec with fresh eyes — a checklis
 not a subagent dispatch:
 
 1. **Spec coverage** — every section/requirement maps to a task. List and fill any gap.
+   **AC coverage:** when the spec's §7 Acceptance criteria lists ACs, every AC — and each
+   filled (non-N/A) happy/error/edge case — maps to a task/test; when §7 is whole-section
+   `N/A`, confirm the spec body has no behavioral requirement (else flag the `N/A` as suspect).
 2. **Placeholder scan** — search for the red flags above; fix them.
 3. **Type consistency** — types, signatures, and property names match across tasks (a method
    called one name in Task 3 and another in Task 7 is a bug).

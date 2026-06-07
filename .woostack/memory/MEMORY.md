@@ -10,5 +10,7 @@
 - [review-angle-trigger-precision](review-angle-trigger-precision.md) `gotcha` scope=`skills/woostack-review/**` — Enriching a diff-gated angle's prompt is dead unless detect-angles.sh also match
 - [review-config-bool-jq-default](review-config-bool-jq-default.md) `gotcha` scope=`skills/woostack-review/scripts/**` — jq `// default` silently coerces an explicit `false` to the default — wrong for 
 - [review-prompt-self-contained-blob](review-prompt-self-contained-blob.md) `gotcha` scope=`skills/woostack-review/**` — woostack-review prompts ship as ONE self-contained blob to CI runners that follo
+- [review-skip-markdown-only-pr](review-skip-markdown-only-pr.md) `gotcha` scope=`skills/woostack-review/scripts/**` — prefetch.sh emits skip=true "no code files changed" on a markdown-only PR — a fa
 - [skill-description-colon-space](skill-description-colon-space.md) `gotcha` scope=`skills/*/SKILL.md` — A `word: ` colon-space in a SKILL.md description is a YAML mapping indicator; it
+- [spec-template-md-html-mirror](spec-template-md-html-mirror.md) `gotcha` scope=`skills/woostack-build/references/**` — spec-template.html's {{tokens}} are illustrative, not a substitution engine — wo
 - [fanout-empty-needs-receipt](fanout-empty-needs-receipt.md) `pattern` scope=`skills/woostack-review/**` — An empty aggregate from a fan-out of workers is ambiguous (clean vs never-ran) —

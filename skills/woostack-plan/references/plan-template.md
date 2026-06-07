@@ -59,6 +59,7 @@ gt modify -c -m "{{type}}: {{subject}}"
 ## Self-review (run before handing back)
 
 - [ ] **Spec coverage** — every spec requirement maps to a task above.
+- [ ] **AC coverage** — each spec §7 acceptance criterion (and its filled happy/error/edge cases) maps to a test; a whole-section `N/A` is sanity-checked against the spec body.
 - [ ] **No placeholders** — no TBD/TODO; complete code, exact commands, and expected output in every step.
 - [ ] **Type consistency** — types, signatures, and names match across tasks.
 
