@@ -37,10 +37,25 @@ links:
 
 {{ERRORS}}
 
-## 7. Testing
+## 7. Acceptance criteria
+
+Each AC is a testable behavior → ≥1 plan task. Fill every class or mark `N/A — <reason>`; mark the whole section `N/A — <why no testable behavior>` only when the spec has no testable behavior.
+
+- **AC1 — {{behavior}}**
+  - happy: {{expected}}
+  - error: {{expected}}
+  - edge: {{expected}}
+- **AC2 — {{behavior}}**
+  - happy: {{expected}}
+  - error: {{expected}}
+  - edge: {{expected}}
+
+## 8. Testing
+
+> Strategy only — harness, test levels, fixtures, CI. Per-behavior cases live in §7.
 
 {{TESTING}}
 
-## 8. Open questions
+## 9. Open questions
 
 {{OPEN_QUESTIONS}}

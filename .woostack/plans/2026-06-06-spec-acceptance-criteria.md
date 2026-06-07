@@ -20,7 +20,7 @@
 - Modify: `skills/woostack-build/references/spec-template.md:36-47`
 - Test: shell `grep` (no runner in this repo)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```bash
 # Asserts §7 AC exists with all three slots, the instruction line, and that
@@ -41,12 +41,12 @@ test_md() {
 test_md
 ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
 
 Run: paste and run the Step 1 block (it defines the check and calls it on the last line).
 Expected: FAIL — current file still has `## 7. Testing` / `## 8. Open questions` and no `## 7. Acceptance criteria`, so the block prints `FAIL`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Replace the current sections 6–8 of `skills/woostack-build/references/spec-template.md`:
 
@@ -95,7 +95,7 @@ Each AC is a testable behavior → ≥1 plan task. Fill every class or mark `N/A
 {{OPEN_QUESTIONS}}
 ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
 
 Run: re-run the Step 1 block (after the edit).
 Expected: PASS — prints `PASS`.
@@ -106,7 +106,7 @@ Expected: PASS — prints `PASS`.
 - Modify: `skills/woostack-build/references/spec-template.html:31-33`
 - Test: shell `grep` + a structural parity check against the markdown
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```bash
 # (a) HTML carries the §7 AC panel + renumbered §8/§9; (b) the ordered section
@@ -125,12 +125,12 @@ test_html() {
 test_html
 ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
 
 Run: paste and run the Step 1 block.
 Expected: FAIL — HTML still has `<h2>7. Testing</h2>`, no AC panel, and its heading list differs from the (already-updated) markdown; prints `FAIL`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Replace these three lines in `skills/woostack-build/references/spec-template.html`:
 
@@ -149,12 +149,12 @@ with:
   <h2>9. Open questions</h2><div class="panel">{{OPEN_QUESTIONS}}</div>
 ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
 
 Run: re-run the Step 1 block (after the edit).
 Expected: PASS — the AC panel is present, §8/§9 renumbered, and the md/html heading lists are identical (empty `diff`); prints `PASS`.
 
-- [ ] **Step 5: Commit the increment**
+- [x] **Step 5: Commit the increment**
 
 Single `woostack-commit` for Increment 1 (its own Graphite branch on the spec+plan base):
 
