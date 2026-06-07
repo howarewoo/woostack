@@ -268,7 +268,7 @@ gt modify -c -m "feat(woostack-tdd): list woostack-tdd in AGENTS.md surface, cou
 **Files:**
 - Modify: `skills/woostack-bootstrap/references/patterns.md:129-148` (§7)
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 ```bash
 grep -q 'woostack-tdd' skills/woostack-bootstrap/references/patterns.md \
@@ -277,12 +277,12 @@ grep -q 'woostack-tdd' skills/woostack-bootstrap/references/patterns.md \
   && echo PATTERNS_OK
 ```
 
-- [ ] **Step 2: Run it, confirm it fails**
+- [x] **Step 2: Run it, confirm it fails**
 
 Run: the command above.
 Expected: FAIL — no output (kernel workflow prose still present; no `woostack-tdd` link).
 
-- [ ] **Step 3: Replace the §7 body**
+- [x] **Step 3: Replace the §7 body**
 
 Replace lines 129-148 (the whole `## 7. Test-Driven Development` section through "A feature is **not complete** until all tests pass.") with:
 
@@ -300,7 +300,7 @@ E2E. Test files colocated with source as `*.test.ts(x)` or in `__tests__/`.
 A feature is **not complete** until all tests pass.
 ```
 
-- [ ] **Step 4: Run the verification, confirm it passes**
+- [x] **Step 4: Run the verification, confirm it passes**
 
 Run: the Step 1 command.
 Expected: PASS — prints `PATTERNS_OK` (kernel linked; restated "minimum code to make it pass" workflow gone; project framework standard kept).
@@ -314,7 +314,7 @@ gt create -m "refactor(woostack-tdd): patterns.md §7 links the TDD kernel"
 **Files:**
 - Modify: `skills/woostack-plan/SKILL.md:85-93`
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 ```bash
 grep -q 'woostack-tdd' skills/woostack-plan/SKILL.md \
@@ -323,12 +323,12 @@ grep -q 'woostack-tdd' skills/woostack-plan/SKILL.md \
   && echo PLAN_OK
 ```
 
-- [ ] **Step 2: Run it, confirm it fails**
+- [x] **Step 2: Run it, confirm it fails**
 
 Run: the command above.
 Expected: FAIL — no output (standalone no-runner paragraph still present; no kernel link).
 
-- [ ] **Step 3: Replace the second paragraph**
+- [x] **Step 3: Replace the second paragraph**
 
 Keep the first paragraph (lines 85-89, the step-decomposition / checkbox mechanics) unchanged.
 Replace the second paragraph (lines 91-93, currently:
@@ -343,7 +343,7 @@ no-runner→concrete-verification substitution — is the canonical kernel in
 
 > Note: `references/plan-template.md` is the literal task scaffold (mechanics) and keeps its own terse no-runner note — it is NOT edited here.
 
-- [ ] **Step 4: Run the verification, confirm it passes**
+- [x] **Step 4: Run the verification, confirm it passes**
 
 Run: the Step 1 command.
 Expected: PASS — prints `PLAN_OK` (kernel linked; the duplicated no-runner doctrine paragraph removed; step-shape sentence kept).
@@ -358,7 +358,7 @@ gt modify -c -m "refactor(woostack-tdd): woostack-plan links the TDD kernel"
 - Modify: `skills/woostack-execute/references/inline-driver.md:12-17`
 - Modify: `skills/woostack-execute/prompts/implementer.md:24-28`
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 ```bash
 grep -q 'woostack-tdd' skills/woostack-execute/references/inline-driver.md \
@@ -367,12 +367,12 @@ grep -q 'woostack-tdd' skills/woostack-execute/references/inline-driver.md \
   && echo EXEC_OK
 ```
 
-- [ ] **Step 2: Run it, confirm it fails**
+- [x] **Step 2: Run it, confirm it fails**
 
 Run: the command above.
 Expected: FAIL — no output (full red-green-refactor restatement still in inline-driver; no kernel links).
 
-- [ ] **Step 3a: Replace inline-driver.md step 1**
+- [x] **Step 3a: Replace inline-driver.md step 1**
 
 Replace step 1 (lines 12-17) with:
 
@@ -383,7 +383,7 @@ Replace step 1 (lines 12-17) with:
    This is a principle, not a hard dependency: if the kernel isn't loaded, follow TDD by hand.
 ```
 
-- [ ] **Step 3b: Update implementer.md instruction 1 (keep self-contained)**
+- [x] **Step 3b: Update implementer.md instruction 1 (keep self-contained)**
 
 implementer.md is a prompt injected into a **fresh, context-free subagent**, so it keeps a
 **self-contained** inline TDD rule (it is not reduced to a bare link — same rationale that leaves
@@ -403,7 +403,7 @@ that also names the canonical source:
 > stays — a context-free subagent must not depend on following a link). Full phrase-removal
 > applies only to `inline-driver.md`, which the link-following main agent reads.
 
-- [ ] **Step 4: Run the verification, confirm it passes**
+- [x] **Step 4: Run the verification, confirm it passes**
 
 Run: the Step 1 command.
 Expected: PASS — prints `EXEC_OK` (both drivers link the kernel; the verbose red-green-refactor restatement removed; impl-loop framing kept).
@@ -417,7 +417,7 @@ gt modify -c -m "refactor(woostack-tdd): execute drivers link the TDD kernel"
 **Files:**
 - Modify: `skills/woostack-debug/SKILL.md:77-81` (Phase 4, step 1)
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 ```bash
 grep -q 'woostack-tdd' skills/woostack-debug/SKILL.md \
@@ -426,12 +426,12 @@ grep -q 'woostack-tdd' skills/woostack-debug/SKILL.md \
   && echo DEBUG_OK
 ```
 
-- [ ] **Step 2: Run it, confirm it fails**
+- [x] **Step 2: Run it, confirm it fails**
 
 Run: the command above.
 Expected: FAIL — no output (step still says "reusing the TDD discipline embodied in woostack-execute"; no woostack-tdd link).
 
-- [ ] **Step 3: Replace Phase 4 step 1**
+- [x] **Step 3: Replace Phase 4 step 1**
 
 Replace step 1 (lines 77-81) with:
 
@@ -443,7 +443,7 @@ Replace step 1 (lines 77-81) with:
    before fixing.
 ```
 
-- [ ] **Step 4: Run the verification, confirm it passes**
+- [x] **Step 4: Run the verification, confirm it passes**
 
 Run: the Step 1 command.
 Expected: PASS — prints `DEBUG_OK` (kernel linked; the "embodied in woostack-execute" restatement gone; failing-test-first-before-a-fix kept).
@@ -457,29 +457,29 @@ gt modify -c -m "refactor(woostack-tdd): debug Phase 4 links the TDD kernel"
 **Files:**
 - Modify: `skills/woostack-build/SKILL.md` (the step-9 line: "each implemented with TDD, …")
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 ```bash
 grep -q 'with TDD (the \[woostack-tdd kernel\](../woostack-tdd/SKILL.md))' skills/woostack-build/SKILL.md && echo BUILD_OK
 ```
 
-- [ ] **Step 2: Run it, confirm it fails**
+- [x] **Step 2: Run it, confirm it fails**
 
 Run: the command above.
 Expected: FAIL — no output (mention is by-reference only, unlinked).
 
-- [ ] **Step 3: Add the kernel link**
+- [x] **Step 3: Add the kernel link**
 
 The phrase wraps: line 104 ends with `each implemented`; line 105 begins `with TDD,`. On
 **line 105**, change `with TDD,` → `with TDD (the [woostack-tdd kernel](../woostack-tdd/SKILL.md)),`.
 Edit only the line-105 fragment; leave `each implemented` on line 104.
 
-- [ ] **Step 4: Run the verification, confirm it passes**
+- [x] **Step 4: Run the verification, confirm it passes**
 
 Run: the Step 1 command.
 Expected: PASS — prints `BUILD_OK`.
 
-- [ ] **Step 5: Final de-dup link check**
+- [x] **Step 5: Final de-dup link check**
 
 ```bash
 # Every new kernel back-link resolves from its own file's directory.

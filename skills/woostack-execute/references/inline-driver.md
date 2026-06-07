@@ -9,12 +9,10 @@ subagents). See [subagent-driver.md](subagent-driver.md) for the other mode.
 
 For each task in the increment, in order:
 
-1. **Follow test-driven development** — write the failing test first, watch it
-   fail, write the minimal code, watch it pass, then **refactor** with the tests green (clean up
-   names, duplication, and structure; re-run the tests to confirm they stay green). This is a
-   principle, not a hard dependency: if no TDD skill is loaded, follow TDD by hand. For a change
-   with no runnable test harness (e.g. a docs/skill edit), substitute the concrete verification
-   the plan specifies (a `grep`, a link check, a structural assertion) for the test.
+1. **Follow test-driven development** per the [woostack-tdd kernel](../../woostack-tdd/SKILL.md)
+   — red-first for new code, characterization for code that already exists; refactor with the
+   tests green; in a no-runner target substitute the concrete verification the plan specifies.
+   This is a principle, not a hard dependency: if the kernel isn't loaded, follow TDD by hand.
 2. **Follow each safe plan step exactly** and run the verifications the plan names.
 3. **Tick the plan's checkboxes in place** (`[ ]` → `[x]`) as each step completes.
 

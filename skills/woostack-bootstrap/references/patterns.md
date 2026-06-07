@@ -128,20 +128,10 @@ import { findUserById } from "@features/users/src/procedures/findUserById";
 
 ## 7. Test-Driven Development
 
-Red → Green → Refactor. Tests are written **before** implementation. Non-negotiable.
-
-**Workflow:**
-1. **Red** — write a failing test that describes expected behavior.
-2. **Green** — minimum code to make it pass.
-3. **Refactor** — clean up, keep tests green.
-
-**Coverage required:**
-- All user scenarios.
-- Edge cases + boundary conditions.
-- All error conditions.
-- Success and failure paths both.
-
-**Clarify before writing tests** when requirements are unclear — don't guess inputs, outputs, error contracts, or integration points.
+Red → Green → Refactor, test-first, non-negotiable. The canonical TDD kernel — the workflow,
+coverage classes, and no-runner substitution — lives once in
+[woostack-tdd](../../woostack-tdd/SKILL.md); follow it. This section records only the
+**project-specific** standard layered on top:
 
 **Frameworks:** Vitest everywhere except React Native (uses Jest via `jest-expo`). Playwright for E2E. Test files colocated with source as `*.test.ts(x)` or in `__tests__/`.
 

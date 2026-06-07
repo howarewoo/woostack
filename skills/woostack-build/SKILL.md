@@ -102,7 +102,8 @@ sits after that PR. So the chain has exactly the three hard gates above.
    **Run overnight** at step 8, [`woostack-execute-overnight`](../woostack-execute-overnight/SKILL.md)
    (unattended) — with the plan path to
    work the plan as PR-sized stacked increments on top of the spec+plan PR — each implemented
-   with TDD, the plan's checkboxes ticked in place, committed via `woostack-commit`, reviewed per
+   with TDD (the [woostack-tdd kernel](../woostack-tdd/SKILL.md)), the plan's checkboxes
+   ticked in place, committed via `woostack-commit`, reviewed per
    the execution mode the active driver selects (`woostack-execute`: `woostack-review --fast` in
    inline mode, or the per-task spec+quality subagent loops in the default subagent mode;
    `woostack-execute-overnight` drives its own autonomous review policy), and distilled into
