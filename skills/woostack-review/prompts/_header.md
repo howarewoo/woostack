@@ -331,8 +331,13 @@ if [ -n "$AUTH_LOGIN" ]; then
     # woostack-owned <=> our hidden body marker is present (see review body, step 1).
     if printf '%s' "$PENDING_BODY" | grep -q 'woostack-review:' && [ "$PENDING_COMMENTS" = "0" ]; then
       # Empty, woostack-owned stale draft: discard it, then post fresh (retry once).
+      # Guard the DELETE: an unchecked failure (network, 403, draft submitted
+      # between detection and delete) would fall through to step 3's POST, which
+      # then 422s with the same opaque "one pending review" error this preflight
+      # exists to prevent. Fail with the actionable message instead.
       echo "woostack-review: discarding empty stale pending review $PENDING_ID before posting." >&2
-      gh api --method DELETE "repos/${GITHUB_REPOSITORY}/pulls/$PR_NUMBER/reviews/$PENDING_ID"
+      gh api --method DELETE "repos/${GITHUB_REPOSITORY}/pulls/$PR_NUMBER/reviews/$PENDING_ID" \
+        || { echo "ERROR: failed to delete pending review $PENDING_ID on ${GITHUB_REPOSITORY}#$PR_NUMBER — resolve the draft manually and re-run." >&2; exit 1; }
     else
       # Non-empty, or not woostack-owned: do NOT mutate it — submitting could
       # publish unrelated draft comments, deleting could discard human work.
