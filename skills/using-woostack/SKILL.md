@@ -75,6 +75,7 @@ link it, never restate it.
 | `/woostack-status [--all] [--fetch]`, show the derived feature board (what's in flight, what to do next) | `woostack-status` |
 | `/woostack-visualize <source> [for <audience>]`, render a source as audience-tailored HTML | `woostack-visualize` |
 | `/woostack-debug <target> [--auto]`, find a bug's root cause before fixing (gated; `--auto` for autonomous) | `woostack-debug` |
+| `/woostack-tdd <target>`, add appropriate tests to a code block, PR, spec, or plan (gate-light; TDD doctrine home) | `woostack-tdd` |
 
 If the user asks for the behavior without using the exact command name, route by intent.
 For example, "use woostack to review this PR" means load `woostack-review`.

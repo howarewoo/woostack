@@ -19,7 +19,7 @@
 **Files:**
 - Create: `skills/woostack-tdd/SKILL.md`
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 ```bash
 # From repo root. Asserts the file exists with its load-bearing markers.
@@ -32,12 +32,12 @@ test -f skills/woostack-tdd/SKILL.md \
   && echo TDD_SKILL_OK
 ```
 
-- [ ] **Step 2: Run it, confirm it fails**
+- [x] **Step 2: Run it, confirm it fails**
 
 Run: the command above.
 Expected: FAIL — no output / `No such file or directory` (file absent).
 
-- [ ] **Step 3: Create the file with this exact content**
+- [x] **Step 3: Create the file with this exact content**
 
 ````markdown
 ---
@@ -138,12 +138,12 @@ schema, recall procedure, and distill gate are defined once in
   feature-specific trivia.
 ````
 
-- [ ] **Step 4: Run the verification, confirm it passes**
+- [x] **Step 4: Run the verification, confirm it passes**
 
 Run: the Step 1 command.
 Expected: PASS — prints `TDD_SKILL_OK`.
 
-- [ ] **Step 5: Verify every cross-link resolves**
+- [x] **Step 5: Verify every cross-link resolves**
 
 ```bash
 # Each linked path, resolved relative to skills/woostack-tdd/, must exist.
@@ -165,18 +165,18 @@ gt create -m "feat(woostack-tdd): canonical TDD kernel + /woostack-tdd add-tests
 **Files:**
 - Modify: `skills/using-woostack/SKILL.md` (Command Routing table, after the `woostack-debug` row)
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 ```bash
 grep -q '`/woostack-tdd <target>`.*`woostack-tdd`' skills/using-woostack/SKILL.md && echo ROUTE_OK
 ```
 
-- [ ] **Step 2: Run it, confirm it fails**
+- [x] **Step 2: Run it, confirm it fails**
 
 Run: the command above.
 Expected: FAIL — no output (no routing row yet).
 
-- [ ] **Step 3: Insert the routing row**
+- [x] **Step 3: Insert the routing row**
 
 After the existing line:
 
@@ -190,7 +190,7 @@ add:
 | `/woostack-tdd <target>`, add appropriate tests to a code block, PR, spec, or plan (gate-light; TDD doctrine home) | `woostack-tdd` |
 ```
 
-- [ ] **Step 4: Run the verification, confirm it passes**
+- [x] **Step 4: Run the verification, confirm it passes**
 
 Run: the Step 1 command.
 Expected: PASS — prints `ROUTE_OK`. Then commit:
@@ -206,7 +206,7 @@ gt modify -c -m "feat(woostack-tdd): route /woostack-tdd in using-woostack"
 
 > Read the real strings first — the counts ("thirteen", "fifteen") and list are authoritative in the file, not in any cached copy. Apply each substitution exactly.
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 ```bash
 grep -q 'fourteen skills' AGENTS.md \
@@ -218,12 +218,12 @@ grep -q 'fourteen skills' AGENTS.md \
   && echo AGENTS_OK
 ```
 
-- [ ] **Step 2: Run it, confirm it fails**
+- [x] **Step 2: Run it, confirm it fails**
 
 Run: the command above.
 Expected: FAIL — no output (counts still say thirteen/fifteen; no `woostack-tdd`).
 
-- [ ] **Step 3: Apply the five edits**
+- [x] **Step 3: Apply the five edits**
 
 1. `The public command/adoption surface has thirteen skills:` → `... has fourteen skills:`
 2. In that bullet list, after the `woostack-debug` bullet add:
@@ -240,12 +240,12 @@ Expected: FAIL — no output (counts still say thirteen/fifteen; no `woostack-td
      [`skills/woostack-tdd/SKILL.md`](skills/woostack-tdd/SKILL.md)
    ```
 
-- [ ] **Step 4: Run the verification, confirm it passes**
+- [x] **Step 4: Run the verification, confirm it passes**
 
 Run: the Step 1 command.
 Expected: PASS — prints `AGENTS_OK`.
 
-- [ ] **Step 5: Confirm the symlink reflects the change**
+- [x] **Step 5: Confirm the symlink reflects the change**
 
 ```bash
 grep -q 'fourteen skills' .claude/CLAUDE.md && echo SYMLINK_OK
