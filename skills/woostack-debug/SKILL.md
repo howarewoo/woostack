@@ -75,11 +75,10 @@ Complete each phase before the next.
 ### Phase 4 — Implementation
 
 1. **Write a failing test first.** The simplest reproduction of the bug, automated if a test
-   harness exists — reusing the TDD discipline embodied in
-   [`woostack-execute`](../woostack-execute/SKILL.md). In a target with no test runner, the
-   "failing test" is a concrete verification command (a `grep`, a `bash -n`, a link check)
-   with exact expected output — never a vague "verify it works". You must have this before
-   fixing.
+   harness exists — per the [woostack-tdd kernel](../woostack-tdd/SKILL.md). In a target with no
+   test runner, the "failing test" is a concrete verification command (a `grep`, a `bash -n`, a
+   link check) with exact expected output — never a vague "verify it works". You must have this
+   before fixing.
 2. **Implement one minimal fix** at the root cause identified — one change, no "while I'm here"
    improvements, no bundled refactoring.
 3. **Verify the fix.** The test passes now, no other test broke, the issue is actually

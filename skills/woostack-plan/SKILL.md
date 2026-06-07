@@ -88,9 +88,9 @@ it, confirm it passes → commit. Use checkbox (`- [ ]`) syntax for every step s
 `woostack-execute` ticks them in place as the live progress record. DRY, YAGNI, TDD, frequent
 commits throughout.
 
-In a target without a test runner (e.g. a docs/skills repo), "the failing test" becomes a
-concrete **verification command** — a `grep`, a `bash -n`, a link check, or an existing script's
-test — with exact expected output. Never a vague "verify it works."
+The TDD discipline these steps embody — red→green→refactor, the coverage classes, and the
+no-runner→concrete-verification substitution — is the canonical kernel in
+[woostack-tdd](../woostack-tdd/SKILL.md); this section applies it to plan-task shape.
 
 The output shape (header, `**Source:**` line, task/step structure) is captured in
 [references/plan-template.md](references/plan-template.md) — populate it; don't reinvent it.
