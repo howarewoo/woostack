@@ -148,7 +148,7 @@ Full schema (every key shown; all optional):
     "models": {
       "fast": "anthropic/claude-haiku-4-5",
       "standard": "openai/gpt-5.4",
-      "deep": "anthropic/claude-opus-4-7",
+        "deep": "anthropic/claude-opus-4-8",
       "openai": {
         "fast": "gpt-5.3-codex-spark",
         "standard": "gpt-5.4",
@@ -157,7 +157,7 @@ Full schema (every key shown; all optional):
       "anthropic": {
         "fast": "claude-haiku-4-5",
         "standard": "claude-sonnet-4-6",
-        "deep": "claude-opus-4-7"
+        "deep": "claude-opus-4-8"
       }
     },
     "force_tier": "deep",
@@ -362,7 +362,7 @@ Per-provider resolution (full table in `_header.md`):
 |---|---|---|---|---|
 | `fast` | `claude-haiku-4-5` | `gpt-5.3-codex-spark` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-flash` |
 | `standard` | `claude-sonnet-4-6` | `gpt-5.4` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` |
-| `deep` | `claude-opus-4-7` | `gpt-5.5` + `reasoning_effort: xhigh` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` + `reasoning_effort: xhigh` |
+| `deep` | `claude-opus-4-8` | `gpt-5.5` + `reasoning_effort: xhigh` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` + `reasoning_effort: xhigh` |
 
 - **Google** currently exposes only `gemini-3-5-flash` — tier routing is a no-op on Gemini until a larger 3.5 model ships.
 - **OpenAI** GPT-5-family reasoning is a `reasoning_effort` parameter, not a slug suffix. Use `gpt-5.5` for the skeptical validator and complex review passes, `gpt-5.4` for everyday review work, and `gpt-5.3-codex-spark` for fast rubric workers and ultra-fast real-time coding checks. Use `gpt-5.4-mini` only as the non-Spark cost-sensitive fallback when Spark is unavailable. There is no `gpt-5-pro`.

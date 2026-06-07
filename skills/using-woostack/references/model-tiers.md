@@ -13,7 +13,7 @@ implicitly `fast`.
 |---|---|---|---|---|---|
 | `fast` | rubric checklists, mechanical fully-specified 1–2-file tasks, context summaries | `claude-haiku-4-5` | `gpt-5.3-codex-spark` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-flash` |
 | `standard` | reasoning workers, multi-file integration | `claude-sonnet-4-6` | `gpt-5.4` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` |
-| `deep` | skeptical validation, design/architecture judgment, code-quality review | `claude-opus-4-7` | `gpt-5.5` + `reasoning_effort: xhigh` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` + `reasoning_effort: xhigh` |
+| `deep` | skeptical validation, design/architecture judgment, code-quality review | `claude-opus-4-8` | `gpt-5.5` + `reasoning_effort: xhigh` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` + `reasoning_effort: xhigh` |
 
 > **Provider notes:**
 > - **Google** currently ships only `gemini-3-5-flash` in the 3.5 line; no Pro/Ultra/Thinking variant exists yet, so all tiers collapse onto flash (tier routing is effectively a no-op until Google releases a larger model).

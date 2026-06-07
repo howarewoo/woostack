@@ -46,7 +46,7 @@ Claude Code's `Task` tool supports per-subagent model routing. Resolve each spaw
 Then resolve via the shared **Model Tiers** table — canonical at
 [`../../using-woostack/references/model-tiers.md`](../../using-woostack/references/model-tiers.md)
 and inlined into `_header.md` above (Anthropic column: `fast` → `claude-haiku-4-5`,
-`standard` → `claude-sonnet-4-6`, `deep` → `claude-opus-4-7`).
+`standard` → `claude-sonnet-4-6`, `deep` → `claude-opus-4-8`).
 
 **Every Task/Agent spawn MUST pass `model:` explicitly.** Omitting it makes the subagent inherit the parent session's model — typically Opus — which silently defeats tier routing and burns ~5x the tokens on rubric angles. The `tier:` frontmatter is informational unless the spawning call passes the resolved slug.
 
@@ -67,7 +67,7 @@ Resolution rule per spawn:
 3. **Per-repo override**: check `$OUTDIR/config.json` for `models.anthropic.<effective_tier>`, then flat `models.<effective_tier>` (e.g. when `run_tier=deep`: `jq -r '.models.anthropic.deep // .models.deep // empty' $OUTDIR/config.json`). If non-empty, use that slug instead of the table value.
 4. Pass the resolved slug as `model:` on the Task call.
 
-Do not default the validator to Sonnet — pass `model: "claude-opus-4-7"` explicitly. Opus's stricter false-positive filter pays for itself in review quality.
+Do not default the validator to Sonnet — pass `model: "claude-opus-4-8"` explicitly. Opus's stricter false-positive filter pays for itself in review quality.
 
 **OUTDIR handoff.** `$OUTDIR` defaults to a per-project `/tmp/pr-review-<hash>` (derived from the repo's git toplevel by `scripts/resolve-outdir.sh`) so concurrent reviews of different repos on one machine never share a tree. Resolve it ONCE in the orchestrator — `source "$WOO_REVIEW_ACTION_PATH/scripts/resolve-outdir.sh"` sets and exports `OUTDIR` — then export `OUTDIR` to **every** sub-agent you spawn. Sub-agents prefer the inherited `$OUTDIR`; if it is unset they re-derive via the same helper. Never fall back to a bare `/tmp/pr-review`.
 
@@ -108,11 +108,11 @@ For any path that (a) does not exist, OR (b) does not parse as a JSON array (`jq
 
 After recovery, run `bash $WOO_REVIEW_ACTION_PATH/scripts/merge-findings.sh` — it concatenates every `findings.<angle>*.json` into `raw_findings.json` and applies within-angle dedup so duplicates across chunks collapse to a single entry before validation.
 
-## Step 3 — Adversarial Validation (Opus 4.7, prosecutor + defender)
+## Step 3 — Adversarial Validation (Opus 4.8, prosecutor + defender)
 
 Skip if every per-angle file is empty / missing; status is `APPROVED`.
 
-Otherwise this step runs **two** sequential `claude-opus-4-7` validator subagents with opposing biases, then a deterministic intersection (issue #13). The intersection is the high-confidence set of findings the author sees.
+Otherwise this step runs **two** sequential `claude-opus-4-8` validator subagents with opposing biases, then a deterministic intersection (issue #13). The intersection is the high-confidence set of findings the author sees.
 
 Read `disable_adversarial` from `$OUTDIR/config.json`:
 
@@ -122,11 +122,11 @@ DISABLE_ADV="$(jq -r '.disable_adversarial // false' $OUTDIR/config.json 2>/dev/
 
 ### Step 3a — Prosecutor pass (skip if `DISABLE_ADV == true`)
 
-Launch one `claude-opus-4-7` subagent with `$WOO_REVIEW_ACTION_PATH/prompts/validator-prosecutor.md` as its prompt. It assumes each finding is real and only drops the clearly-wrong ones. It writes `$OUTDIR/findings.prosecutor.json` and EXITS — it MUST NOT post a review.
+Launch one `claude-opus-4-8` subagent with `$WOO_REVIEW_ACTION_PATH/prompts/validator-prosecutor.md` as its prompt. It assumes each finding is real and only drops the clearly-wrong ones. It writes `$OUTDIR/findings.prosecutor.json` and EXITS — it MUST NOT post a review.
 
 ### Step 3b — Defender pass
 
-Launch one `claude-opus-4-7` subagent with `$WOO_REVIEW_ACTION_PATH/prompts/validator.md` as its prompt. It applies the strict "defense attorney" filter — drops pedantic / lint-catchable / maybe-issues / placeholder-suggestion findings — and writes `$OUTDIR/findings.defender.json`. It writes `$OUTDIR/findings.defender.json` and EXITs — it does NOT run the intersect script or post (the orchestrator does that next). Apply only `validator.md`'s validation/filter rules (its Steps 1–2) to produce `findings.defender.json`; IGNORE validator.md's Step 3/3b/4 and its STOP-GATE — the orchestrator runs the intersect itself in the next step.
+Launch one `claude-opus-4-8` subagent with `$WOO_REVIEW_ACTION_PATH/prompts/validator.md` as its prompt. It applies the strict "defense attorney" filter — drops pedantic / lint-catchable / maybe-issues / placeholder-suggestion findings — and writes `$OUTDIR/findings.defender.json`. It writes `$OUTDIR/findings.defender.json` and EXITs — it does NOT run the intersect script or post (the orchestrator does that next). Apply only `validator.md`'s validation/filter rules (its Steps 1–2) to produce `findings.defender.json`; IGNORE validator.md's Step 3/3b/4 and its STOP-GATE — the orchestrator runs the intersect itself in the next step.
 
 The two passes MUST be sequential — the prosecutor's file must already exist before the defender runs when adversarial mode is on.
 

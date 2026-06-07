@@ -62,7 +62,7 @@ default_model_for() {
       case "$tier" in
         fast) echo "claude-haiku-4-5" ;;
         standard) echo "claude-sonnet-4-6" ;;
-        deep) echo "claude-opus-4-7" ;;
+        deep) echo "claude-opus-4-8" ;;
       esac
       ;;
     openai)
