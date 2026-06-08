@@ -107,6 +107,10 @@ A discovery command for rendering source material as an audience-tailored HTML v
 
 Runs woostack's systematic-debugging method on a bug, test failure, or unexpected behavior: root-cause investigation → pattern analysis → hypothesis/test → handback, under the Iron Law (no fix without a root cause). It recalls known `gotcha`s from `.woostack/memory/` at the start. Running it performs the analysis autonomously and hands back the root cause, a proposed minimal fix, and the TDD context — it is investigative only and never writes code (the caller implements the fix: `woostack-fix`, or `woostack-execute` on a stuck verification). `woostack-review` points you at it for a confirmed bug. Never commits or merges. → [SKILL.md](skills/woostack-debug/SKILL.md)
 
+### `/woostack-tdd <target>`: test-driven development engine
+
+Applies the TDD kernel (Red → Green → Refactor) to add appropriate tests to an existing code block, PR, spec, or plan. New code requires tests first, while existing code characterization tests pin current behavior. → [SKILL.md](skills/woostack-tdd/SKILL.md)
+
 ### Growing scope
 
 The collection tracks more of my day-to-day loop as it matures. Planned next: a commit utility that writes well-documented, conventional commit messages, plus other small tools that smooth the edges between the steps above.
