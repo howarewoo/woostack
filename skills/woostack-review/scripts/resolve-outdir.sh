@@ -15,7 +15,13 @@
 if [ -z "${OUTDIR:-}" ]; then
   _wr_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
   _wr_hash="$(printf '%s' "$_wr_root" | { sha1sum 2>/dev/null || shasum; } | cut -c1-12)"
-  OUTDIR="/tmp/pr-review-${_wr_hash}"
+  # Place inside the workspace's .woostack/tmp/ directory to leverage pre-approved
+  # workspace permissions and avoid sandbox permission prompt loops locally.
+  if [ -d "${_wr_root}/.woostack" ]; then
+    OUTDIR="${_wr_root}/.woostack/tmp/pr-review-${_wr_hash}"
+  else
+    OUTDIR="/tmp/pr-review-${_wr_hash}"
+  fi
   unset _wr_root _wr_hash
 fi
 export OUTDIR
