@@ -432,7 +432,8 @@ if [ -n "$INCREMENTAL_USED" ] && [ "$DIFF_BYTES" -lt 50 ]; then
   emit_skip "no new commits since last review ($INCREMENTAL_USED)"
 fi
 
-if [ "$CODE_FILES" -eq 0 ]; then
+HAS_SKILL_OR_DOC=$(jq -r '.files[].path' "$OUTDIR/meta.json" 2>/dev/null | grep -E '\.md$' | wc -l || echo 0)
+if [ "$CODE_FILES" -eq 0 ] && [ "$HAS_SKILL_OR_DOC" -eq 0 ]; then
   emit_skip "no code files changed"
 fi
 
