@@ -111,7 +111,7 @@
 
   Run the command from Step 1 and verify all tests exit successfully.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
   ```bash
   gt modify -c -m "test: verify all address-comments tests pass"
