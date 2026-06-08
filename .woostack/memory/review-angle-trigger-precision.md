@@ -6,8 +6,8 @@ tags: detect-angles, angle, trigger, diff-gated, enrichment, tier, observability
 hook: Enriching a diff-gated angle's prompt is dead unless detect-angles.sh also matches the new pattern — and never broaden a trigger on a common token.
 updated: 2026-06-06
 source: .woostack/plans/2026-06-06-review-self-contained.md
-recall_count: 5
-last_recalled: 2026-06-06
+recall_count: 6
+last_recalled: 2026-06-08
 ---
 Most review angles are **diff-gated**: `detect-angles.sh` decides whether the angle
 runs at all by grepping the diff for trigger tokens (`has_<angle>_diff_token()` /

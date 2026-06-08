@@ -26,7 +26,7 @@ Templates rot. Dependencies drift, breaking changes pile up, and every new proje
 pnpx skills add howarewoo/woostack
 ```
 
-This installs the woostack **collection** into your agent's skill directory and records it in `skills-lock.json`. The public command/adoption surface is thirteen skills: using-woostack, woostack-init, woostack-bootstrap, woostack-build, woostack-plan, woostack-execute, woostack-execute-overnight, woostack-commit, woostack-review, woostack-address-comments, woostack-status, woostack-visualize, and woostack-debug. The collection also installs two internal sub-skills used by `woostack-build` — `woostack-ideate` and `woostack-harden`; neither is a `/woostack-*` command. Works in any agent that respects the `skills` convention: Claude Code, Cursor, Codex, Aider, and others.
+This installs the woostack **collection** into your agent's skill directory and records it in `skills-lock.json`. The public command/adoption surface is fifteen skills: using-woostack, woostack-init, woostack-bootstrap, woostack-build, woostack-fix, woostack-plan, woostack-execute, woostack-execute-overnight, woostack-commit, woostack-review, woostack-address-comments, woostack-status, woostack-visualize, woostack-debug, and woostack-tdd. The collection also installs two internal sub-skills used by `woostack-build` — `woostack-ideate` and `woostack-harden`; neither is a `/woostack-*` command. Works in any agent that respects the `skills` convention: Claude Code, Cursor, Codex, Aider, and others.
 
 > **pnpm is the recommended package manager.** Commands in this repo use `pnpx` (and `pnpm`) over `npx` / `npm`. If you only have npm, `npx skills add howarewoo/woostack` works too, but woostack-bootstrapped projects use a pnpm catalog, so pnpm is the path of least friction.
 
@@ -61,6 +61,16 @@ ideate → markdown spec → harden → approve spec → plan → execute (TDD) 
 
 It sequences woostack's own ideate, harden, plan, and execute phases (`woostack-ideate`, `woostack-harden`, `woostack-plan`, `woostack-execute`), inheriting the ideate design gate and hosting the relocated spec-approval gate before planning — the build loop has no external skill dependencies. Specs and plans are both written as markdown under `.woostack/`; an HTML render is available on demand for a richer view but is never the authored format. Work ships as PR-sized stacked increments (soft target ≤500 LOC) — one plan per spec, multiple PRs per plan — each committed, reviewed (`woostack-review --fast`), and distilled. The execution-handoff gate lets you Go (execute now), Hand off (execute later/elsewhere), or Run overnight (`woostack-execute-overnight`, unattended). Go ends on the reviewed PR stack; Run overnight ends on a reviewed (or partially reviewed, blockers logged) stack plus a morning report; Hand off stops at the spec+plan PR. It never merges. → [SKILL.md](skills/woostack-build/SKILL.md)
 
+### `/woostack-fix <target> [description]`: small-change fix loop
+
+The lightweight counterpart to `/woostack-build` for bugs, hotfixes, and small refactors:
+
+```
+diagnose root cause (woostack-debug) → fix plan (.woostack/fixes/ markdown) → harden → approve (GATE) → execute (TDD) → commit
+```
+
+Because a fix is smaller than a feature, the spec and the plan collapse into one markdown file under `.woostack/fixes/`, and the loop has exactly **one** hard gate — fix-plan approval — before any code changes. It diagnoses with `woostack-debug` (no guess-and-check), drives every change with a failing test first, and commits via `woostack-commit`. Never merges. → [SKILL.md](skills/woostack-fix/SKILL.md)
+
 ### `/woostack-plan <spec-path>`: write a plan from a spec
 
 Writes a comprehensive implementation plan for an approved markdown spec from `.woostack/specs/` — file-structure first, bite-sized TDD tasks with no placeholders, structured as PR-sized increments — saved frontmatter-free to `.woostack/plans/<spec-basename>.md` with an opening `**Source:**` line that joins it 1:1 to the spec, and sets the spec's `status: planning`. It is the plan phase `woostack-build` step 4 delegates to, and is usable standalone. Pairs with `woostack-execute` (produce-plan / consume-plan). Writes the plan and hands back; never executes or merges. → [SKILL.md](skills/woostack-plan/SKILL.md)
@@ -71,7 +81,7 @@ Executes an approved markdown plan from `.woostack/plans/` as a sequence of PR-s
 
 ### `/woostack-execute-overnight <plan-path>`: run a plan unattended overnight
 
-Executes an approved plan the way `woostack-execute` does, but **unattended** — one autonomous run with no input after launch. It reuses execute's per-increment cadence and drivers and overrides only the stop-points: a stuck verification routes to `woostack-debug --auto`, a blocking review is auto-addressed (`woostack-address-comments --auto`, bounded) or escalated, and anything unsafe or ambiguous becomes a logged blocker — safety is never relaxed for autonomy. A blocker ends its track (plans may group increments under optional `## Track:` headings; default is one linear stack) and the run continues. It writes a **morning report** to `.woostack/overnight/` for a human to test in the morning. It is the third choice at `woostack-build`'s execution-handoff gate (Go / Hand off / Run overnight), and is usable standalone. Never merges. → [SKILL.md](skills/woostack-execute-overnight/SKILL.md)
+Executes an approved plan the way `woostack-execute` does, but **unattended** — one autonomous run with no input after launch. It reuses execute's per-increment cadence and drivers and overrides only the stop-points: a stuck verification routes to `woostack-debug` (which root-causes autonomously), a blocking review is auto-addressed (`woostack-address-comments --auto`, bounded) or escalated, and anything unsafe or ambiguous becomes a logged blocker — safety is never relaxed for autonomy. A blocker ends its track (plans may group increments under optional `## Track:` headings; default is one linear stack) and the run continues. It writes a **morning report** to `.woostack/overnight/` for a human to test in the morning. It is the third choice at `woostack-build`'s execution-handoff gate (Go / Hand off / Run overnight), and is usable standalone. Never merges. → [SKILL.md](skills/woostack-execute-overnight/SKILL.md)
 
 ### `/woostack-review [PR#]`: parallel review swarm
 
@@ -93,9 +103,9 @@ A read-only, on-demand board derived fresh from your `.woostack/` artifacts: for
 
 A discovery command for rendering source material as an audience-tailored HTML view while keeping the source authoritative. → [SKILL.md](skills/woostack-visualize/SKILL.md)
 
-### `/woostack-debug <target> [--auto]`: find the root cause before fixing
+### `/woostack-debug <target>`: find the root cause before fixing
 
-Runs woostack's systematic-debugging method on a bug, test failure, or unexpected behavior: root-cause investigation → pattern analysis → hypothesis/test → a minimal fix with a failing test first, under the Iron Law (no fix without a root cause) and a 3-fixes-→-question-the-architecture escalation. It recalls known `gotcha`s from `.woostack/memory/` at the start and distills one at the end. Standalone it gates on the root cause before fixing (the gated form `woostack-review` points you at for a confirmed bug); `--auto` runs autonomously (how `woostack-execute` calls it on a stuck verification). Never commits or merges. → [SKILL.md](skills/woostack-debug/SKILL.md)
+Runs woostack's systematic-debugging method on a bug, test failure, or unexpected behavior: root-cause investigation → pattern analysis → hypothesis/test → handback, under the Iron Law (no fix without a root cause). It recalls known `gotcha`s from `.woostack/memory/` at the start. Running it performs the analysis autonomously and hands back the root cause, a proposed minimal fix, and the TDD context — it is investigative only and never writes code (the caller implements the fix: `woostack-fix`, or `woostack-execute` on a stuck verification). `woostack-review` points you at it for a confirmed bug. Never commits or merges. → [SKILL.md](skills/woostack-debug/SKILL.md)
 
 ### Growing scope
 

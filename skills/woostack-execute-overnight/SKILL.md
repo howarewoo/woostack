@@ -1,6 +1,6 @@
 ---
 name: woostack-execute-overnight
-description: Use to execute an approved woostack plan UNATTENDED overnight — one autonomous run with no user input after launch that drives every increment to a reviewed stack, swapping woostack-execute's stop-and-ask gates for resolve-or-log-and-continue (woostack-debug --auto on stuck verifications; bounded auto-address on a blocking review; halt-the-track on anything unsafe or ambiguous), honoring optional `## Track:` grouping in the plan (independent, fault-isolated tracks run sequentially), and writing a morning report under .woostack/overnight/ for a human to test in the morning. It is the third choice at woostack-build's execution-handoff gate (Go / Hand off / Run overnight); also usable standalone via /woostack-execute-overnight <plan-path> [--inline|--subagent]. One plan per spec, multiple PRs per plan. Never merges; never relaxes safety for autonomy.
+description: Use to execute an approved woostack plan UNATTENDED overnight — one autonomous run with no user input after launch that drives every increment to a reviewed stack, swapping woostack-execute's stop-and-ask gates for resolve-or-log-and-continue (woostack-debug on stuck verifications; bounded auto-address on a blocking review; halt-the-track on anything unsafe or ambiguous), honoring optional `## Track:` grouping in the plan (independent, fault-isolated tracks run sequentially), and writing a morning report under .woostack/overnight/ for a human to test in the morning. It is the third choice at woostack-build's execution-handoff gate (Go / Hand off / Run overnight); also usable standalone via /woostack-execute-overnight <plan-path> [--inline|--subagent]. One plan per spec, multiple PRs per plan. Never merges; never relaxes safety for autonomy.
 ---
 
 # woostack-execute-overnight
@@ -69,9 +69,10 @@ stop. Each becomes an autonomous policy, and **every decision is appended to the
 log as it happens**.
 
 1. **Verification fails repeatedly** → route to
-   [`woostack-debug --auto`](../woostack-debug/SKILL.md) (execute already does this
-   autonomously). If debug returns its **3-fixes architectural stop**, there is no present user to
-   escalate to → record a **blocker** and apply the halt policy.
+   [`/woostack-debug <target>`](../woostack-debug/SKILL.md), which runs its root-cause analysis
+   autonomously and hands back a proposed minimal fix (execute already does this); execute
+   implements and commits the fix. If debug **cannot establish a root cause**, there is no
+   present user to escalate to → record a **blocker** and apply the halt policy.
 2. **Blocking review** — driver-specific:
    - **inline**: `woostack-review --fast` posts a batched GitHub Review on the increment PR. On
      REQUEST_CHANGES, run
@@ -140,7 +141,7 @@ an inference. It never merges and never relaxes safety for autonomy.
   running, solicit nothing.
 - **Refuse a doomed run.** A plan with critical gaps → refuse at pre-flight with a report; don't
   start.
-- **Resolve-or-log-and-continue, never relax safety.** debug --auto / bounded auto-address /
+- **Resolve-or-log-and-continue, never relax safety.** debug / bounded auto-address /
   blocker-and-halt as above; destructive/secret/auth/network/ambiguous steps are never
   auto-approved.
 - **Tracks: author-driven, overnight-only.** Honor `## Track:` headings (default one implicit

@@ -143,14 +143,15 @@ N's distilled memory is swept by increment N+1's commit.
 
 Stop — never guess — when one of these hits. Most surface to the user immediately; a
 repeatedly-failing verification instead routes to [`woostack-debug`](../woostack-debug/SKILL.md)
-first and escalates to the user only on debug's 3-fixes architectural stop:
+and escalates to the user only when debug cannot establish a root cause:
 
 - A blocker hits (missing dependency, failing verification, unclear instruction).
 - The plan has critical gaps preventing a start.
-- A verification fails repeatedly — route it to `woostack-debug <target> --auto` (autonomous)
-  to find and fix the root cause; escalate to the user only if debug returns its 3-fixes
-  architectural stop. Debug does not commit — execute commits the returned fix in its normal
-  per-increment cadence. Applies to both the inline and subagent drivers.
+- A verification fails repeatedly — route it to `/woostack-debug <target>`, which runs its
+  root-cause analysis autonomously and hands back the root cause and a proposed minimal fix.
+  `woostack-debug` is investigative only and never commits — execute implements and commits the
+  returned fix in its normal per-increment cadence. Escalate to the user only when debug cannot
+  establish a root cause. Applies to both the inline and subagent drivers.
 - A review returns REQUEST_CHANGES — handle the findings before continuing.
 
 On every stop above, run the [memory sweep on handback](#memory-sweep-on-handback) before

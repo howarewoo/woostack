@@ -1,28 +1,29 @@
 ---
 name: woostack-debug
-description: "Use as woostack's systematic-debugging phase — find the root cause of a bug, test failure, or unexpected behavior before any fix, then fix it minimally with a failing test first. Retells the four-phase method (root-cause investigation → pattern analysis → hypothesis/test → implementation) with the Iron Law (no fix without root cause) and the 3-fixes-→-question-architecture escalation, wired to the .woostack/memory store (recall known gotchas at start, distill one gotcha at end). Invoke via /woostack-debug <target> for a look-before-fix gate, or with --auto for autonomous operation (woostack-execute dispatches --auto on a repeatedly-failing verification; woostack-review suggests the gated command for a confirmed bug). Owns no spec/plan/status, never commits or merges."
+description: "Use as woostack's systematic-debugging phase — find the root cause of a bug, test failure, or unexpected behavior before any fix. Retells the four-phase method (root-cause investigation → pattern analysis → hypothesis/test → handback) with the Iron Law (no fix without root cause), wired to the .woostack/memory store (recall known gotchas at start). Invoke via /woostack-debug <target>; it runs the four-phase root-cause analysis automatically and hands the findings back. Investigative only — autonomous is its sole mode (no flag), and it never writes code, commits, or merges."
 ---
 
 # woostack-debug
 
 Find the root cause of any bug, test failure, or unexpected behavior **before** attempting a
-fix, then fix the root cause minimally with a failing test first. This is woostack's own
-systematic-debugging phase: a place every woostack skill can route a stuck verification or a
-confirmed bug instead of falling back to guess-and-check. It owns no approval gate beyond its
-standalone look-before-fix mode, never commits, and never merges — it hands the fix back.
+fix. This is woostack's own systematic-debugging phase: a place every woostack skill can route
+a stuck verification or a confirmed bug instead of falling back to guess-and-check. It owns no
+approval gate, never writes code, never commits, and never merges — it hands the diagnosed root cause back.
 
-It is both the 12th public command (`/woostack-debug <target> [--auto]`) and an internal hook:
-[`woostack-execute`](../woostack-execute/SKILL.md) dispatches it autonomously when a
-verification fails repeatedly, and [`woostack-review`](../woostack-review/SKILL.md) suggests it
-for a confirmed bug.
+It is a public command — `/woostack-debug <target>` — and an internal hook:
+[`woostack-execute`](../woostack-execute/SKILL.md) and
+[`woostack-execute-overnight`](../woostack-execute-overnight/SKILL.md) dispatch it on a
+repeatedly-failing verification, and [`woostack-review`](../woostack-review/SKILL.md) points the
+author at it for a confirmed bug. It always runs autonomously — there is no interactive mode and
+no flag; running it performs a full root-cause analysis and hands the findings back.
 
 <IRON-LAW>
 NO FIX WITHOUT ROOT CAUSE INVESTIGATION FIRST.
 
 A symptom fix is a failure. If you have not completed Phase 1 (root-cause investigation), you
 may not propose or apply a fix. This holds for EVERY issue regardless of perceived simplicity
-and ESPECIALLY under time pressure — systematic debugging is faster than thrashing. Even in
-`--auto` mode the root cause is narrated before any fix, so the "why" is always visible.
+and ESPECIALLY under time pressure — systematic debugging is faster than thrashing. The root
+cause is always narrated before any fix is proposed, so the "why" is always visible.
 </IRON-LAW>
 
 ## When to use
@@ -66,55 +67,31 @@ Complete each phase before the next.
 ### Phase 3 — Hypothesis and test
 
 1. **Form one hypothesis.** State it: "X is the root cause because Y." Be specific.
-2. **Test minimally.** Make the smallest possible change to test it; change one variable at a
-   time; don't fix several things at once.
+2. **Test minimally.** Probe the hypothesis with the smallest non-destructive check — read the
+   relevant source, trace the call path, or run an existing test/command; isolate one variable at
+   a time. Make no persistent code change (revert any temporary probe before handback).
 3. **Verify before continuing.** Worked → Phase 4. Didn't work → form a **new** hypothesis;
    don't stack more fixes on top.
 4. **When you don't know,** say "I don't understand X" and research or ask — don't pretend.
 
-### Phase 4 — Implementation
+### Phase 4 — Handback
 
-1. **Write a failing test first.** The simplest reproduction of the bug, automated if a test
-   harness exists — per the [woostack-tdd kernel](../woostack-tdd/SKILL.md). In a target with no
-   test runner, the "failing test" is a concrete verification command (a `grep`, a `bash -n`, a
-   link check) with exact expected output — never a vague "verify it works". You must have this
-   before fixing.
-2. **Implement one minimal fix** at the root cause identified — one change, no "while I'm here"
-   improvements, no bundled refactoring.
-3. **Verify the fix.** The test passes now, no other test broke, the issue is actually
-   resolved. Optionally add **defense-in-depth** validation at the relevant layer boundaries so
-   the same class of bad value is caught earlier next time.
-4. **If the fix doesn't work,** count attempts: `< 3` → return to Phase 1 with the new
-   evidence; `≥ 3` → STOP (see the escalation block).
+1. **Summarize findings**: Clearly list the root cause, files/lines affected, and evidence gathered.
+2. **Propose minimal fix**: Detail the exact logic change required. Do not apply it.
+3. **TDD context**: Name the test file and exact test cases needed to reproduce the issue (the failing test description) so the caller or fix flow can implement it.
 
-For timing-dependent or flaky failures, replace arbitrary timeouts with **condition-based
+For timing-dependent or flaky failures, recommend replacing arbitrary timeouts with **condition-based
 waiting** (poll for the condition) rather than sleeping a fixed interval.
 
-<ESCALATION>
-If 3+ fixes have failed, STOP. This is not a failed hypothesis — it is a wrong-architecture
-signal: each fix reveals new coupling or shared state somewhere else, fixes start needing
-"massive refactoring", and each fix creates new symptoms. Question the fundamentals with the
-user: is this pattern sound, or are we continuing through inertia? Do NOT attempt fix #4 before
-that discussion. When invoked with `--auto`, this stop is the handback signal to the caller.
-</ESCALATION>
+## Operation
 
-## Mode: `--auto` vs standalone
+woostack-debug always runs autonomously. Running `/woostack-debug <target>` works through
+Phases 1–4 end to end — no per-hypothesis approval gate — and hands back the Phase 4 result: the
+root-cause summary, the proposed minimal fix, and the TDD context. There is no interactive mode
+and no `--auto` flag; autonomous is the only mode. The Iron Law still forces narrating the root
+cause before any fix is proposed, so the "why" is always visible. It is investigative only — it
+hands the findings back and never applies the fix itself.
 
-Mode is selected by an explicit `--auto` flag — mirroring
-[`woostack-execute`](../woostack-execute/SKILL.md)'s explicit `--inline/--subagent` precedent —
-never by context-sniffing.
-
-- **`--auto` (autonomous).** Run Phases 1–4 end to end. No per-fix approval gate (consistent
-  with `woostack-execute` / `woostack-harden` owning none). The Iron Law still forces narrating
-  the root cause before any fix. The only hard stop is the ≥3-fixes escalation, which doubles
-  as the handback to the caller. `woostack-execute` dispatches this mode on a repeatedly-failing
-  verification.
-- **No `--auto` (standalone — the default).** After Phases 1–3 (root cause found, hypothesis
-  confirmed), **stop and present the root cause plus the proposed minimal fix, and wait for an
-  explicit go-ahead** before Phase 4. When the fix is applied, name
-  [`woostack-commit`](../woostack-commit/SKILL.md) as the next step — debug does not commit.
-- **Fail-safe.** Absence or an unrecognized flag ⇒ the gated standalone mode. An unrequested
-  fix is never silently applied.
 - **No target given.** `/woostack-debug` with no argument → ask what's broken; do not guess
   (mirror `woostack-execute`'s no-argument behavior).
 
@@ -131,13 +108,7 @@ debugging uses them.
   match, one-hop link expand) otherwise. Surface matching `gotcha`/`hotspot`/`pattern` notes
   before investigating — a matching note may already name the root cause. State whether recall
   was script-assisted or manual; never fail silently.
-- **Distill (end, on a confirmed fix).** Write **one** `gotcha` note through the reject-by-
-  default gate: a narrow glob `scope:` covering the touched files (a single-literal-path scope
-  is trivia and is rejected), `source:` set to the owning spec/plan or `pr-N`, a terse body
-  with `[[wikilinks]]` to related notes, and `updated:` stamped today. Dedupe against
-  `MEMORY.md` first — update an existing note rather than adding a near-duplicate. Then run
-  `build-index.sh` and `doctor.sh`. The note records the **root cause and its fix**, not the
-  symptom.
+- **Distill (end).** `woostack-debug` does not write code, so it does not distill gotcha notes directly. Memory note distillation is owned by the caller (such as `woostack-fix` or `woostack-execute`) once the minimal fix has been implemented and verified.
 
 ## Red flags — stop and return to Phase 1
 
@@ -145,14 +116,10 @@ If you catch yourself thinking any of these, stop and restart at Phase 1:
 
 - "Quick fix for now, investigate later."
 - "Just try changing X and see if it works."
-- "Add multiple changes, run the tests."
-- "Skip the test, I'll manually verify."
-- "It's probably X, let me fix that."
+- "Proposing fixes before tracing data flow."
+- "Skip the test/reproduction, I'll manually verify."
+- "It's probably X, let me write code for that."
 - "I don't fully understand but this might work."
-- Proposing fixes before tracing data flow.
-- "One more fix attempt" (when you have already tried 2+).
-- Each fix reveals a new problem in a different place. → That is the ≥3-fixes architectural
-  signal: question the architecture, don't fix again.
 
 ## Common rationalizations
 
@@ -160,29 +127,16 @@ If you catch yourself thinking any of these, stop and restart at Phase 1:
 |---|---|
 | "Issue is simple, no process needed." | Simple issues have root causes too; the process is fast for them. |
 | "Emergency, no time for process." | Systematic debugging is faster than guess-and-check thrashing. |
-| "I'll write the test after the fix works." | Untested fixes don't stick. The failing test first proves the fix. |
-| "Multiple fixes at once saves time." | You can't isolate what worked, and it causes new bugs. |
-| "I see the problem, let me fix it." | Seeing symptoms is not understanding the root cause. |
+| "I see the symptom, let me fix it." | Seeing symptoms is not understanding the root cause. |
 
 ## When investigation reveals no root cause
 
 If a genuine investigation shows the issue is truly environmental, timing-dependent, or
-external: document what you investigated, implement appropriate handling (retry, timeout,
-condition-based wait, a clear error message) plus logging for future investigation, and say so.
-But treat this as rare — most "no root cause" outcomes are incomplete investigation.
+external: document what you investigated and log findings for future investigation. But treat this as rare — most "no root cause" outcomes are incomplete investigation.
 
 ## Hard constraints
 
-- **Iron Law.** No fix proposed or applied before Phase 1 is complete. It and the ≥3-fixes
-  ESCALATION are load-bearing blocks — keep them prominent so they survive summarization.
-- **Owns no spec/plan/status.** Never writes a `.woostack/specs/` or `.woostack/plans/` file
-  and never touches a spec's `status:`/`branch:`. The `spec : plan : PRs = 1 : 1 : N` invariant
-  is untouched. The phase enum and join contracts live in
-  [conventions.md](../woostack-status/references/conventions.md) — link, never restate.
-- **Never commits or merges.** Hands the fix back: standalone names `woostack-commit`; `--auto`
-  lets the caller commit in its own cadence.
-- **Mode is explicit.** `--auto` ⇒ autonomous; its absence ⇒ the look-before-fix gate. Fail-
-  safe to gated; never apply an unrequested fix.
-- **One minimal fix at a time.** No bundled refactoring, no "while I'm here" changes.
-- **Distill durable knowledge only.** Reject-by-default; dedupe; one `gotcha` per confirmed
-  fix; never feature-specific trivia.
+- **Iron Law.** No fix proposed or applied before Phase 1 is complete. Keep this prominent so it survives summarization.
+- **Owns no spec/plan/status.** Never writes a `.woostack/specs/`, `.woostack/plans/`, or `.woostack/fixes/` file. The phase enum and join contracts live in [conventions.md](../woostack-status/references/conventions.md) — link, never restate.
+- **Never writes code, commits, or merges.** Hands the findings back; does not touch repository code files.
+- **Always autonomous.** Runs the four phases end to end without a user gate and hands back; owns no `--auto` flag (autonomous is the only mode) and never runs interactively. Investigative only — it never applies the fix.
