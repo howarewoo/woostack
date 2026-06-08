@@ -39,6 +39,8 @@ Two callers:
    | `.woostack/memory.md` | (create empty — **never clobber an existing file**) |
    | `.woostack/specs/` directory | (create empty) |
    | `.woostack/plans/` directory | (create empty) |
+   | `.woostack/fixes/` directory | (create empty) |
+   | `.woostack/fixes/.gitkeep` | `templates/fixes/.gitkeep` |
    | `.woostack/config.json` | `templates/config.json` (`{ "review": {}, "status": { "staleDays": 14 } }`) |
    | `.woostack/.gitignore` | `templates/gitignore` |
 
