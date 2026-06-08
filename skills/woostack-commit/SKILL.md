@@ -13,6 +13,7 @@ This skill is local-only. It mutates git state and PR metadata, but it never mer
 
 - `/woostack-commit` — Commit the session-relevant changes and update the current PR.
 - `/woostack-commit <message>` — Use `<message>` as the commit subject if it accurately describes the staged change.
+- `/woostack-commit --no-pr-update [<message>]` — Commit the session-relevant changes and push/submit without updating the pull request's title or body description.
 
 ## Optional config
 
@@ -196,6 +197,8 @@ Do not merge. Do not force-push.
 ### 7. Update PR fields
 
 Update the PR after the commit/push so the PR reflects the latest branch state.
+
+If the `--no-pr-update` flag is specified (or if a context signal like `WOOSTACK_COMMIT_NO_PR_UPDATE=1` is set in the environment), skip updating the PR title and body description (do not run `gh pr edit`), but still ensure the PR is created if it does not exist.
 
 Use a validated fast-subagent draft for the PR title/body when available. The main agent
 must still preserve accurate existing context, remove stale generated content, and ensure

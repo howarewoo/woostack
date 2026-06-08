@@ -6,8 +6,8 @@ tags: skill-description, frontmatter, review, skills-angle, false-positive, plac
 hook: Angle-bracket placeholders like `<plan-path>` in a SKILL.md `description:` are an accepted, shipped convention here — not an XML/HTML defect; the review `skills` angle must not flag them.
 updated: 2026-06-06
 source: pr-232
-recall_count: 4
-last_recalled: 2026-06-07
+recall_count: 5
+last_recalled: 2026-06-08
 ---
 Angle-bracket usage placeholders in a `SKILL.md` `description:` field — e.g.
 `/woostack-execute-overnight <plan-path> [--inline|--subagent]` — are an
