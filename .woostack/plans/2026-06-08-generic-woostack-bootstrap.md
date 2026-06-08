@@ -20,29 +20,29 @@
 - Modify: `skills/woostack-bootstrap/SKILL.md`:1-83
 - Test: Verify the file exists and contains the updated dynamic procedure.
 
-- [ ] **Step 1: Write the verification command**
+- [x] **Step 1: Write the verification command**
 
 Run: `grep -q "dynamic stack selection" skills/woostack-bootstrap/SKILL.md`
 Expected: exit status 1 (since the term is not yet present)
 
-- [ ] **Step 2: Run the verification, confirm it fails**
+- [x] **Step 2: Run the verification, confirm it fails**
 
 Run: `grep -q "dynamic stack selection" skills/woostack-bootstrap/SKILL.md`
 Expected: FAIL (exit status 1)
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Edit `skills/woostack-bootstrap/SKILL.md` to:
 1. Update the description to reflect a generic, requirements-driven bootstrap.
 2. Remove the hardcoded "Default stack" section.
 3. Update the "Procedure" section to outline the dynamic stack selection and requirements questionnaire steps.
 
-- [ ] **Step 4: Run the verification, confirm it passes**
+- [x] **Step 4: Run the verification, confirm it passes**
 
 Run: `grep -q "dynamic stack selection" skills/woostack-bootstrap/SKILL.md`
 Expected: PASS (exit status 0)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt create -m "docs: make woostack-bootstrap skill definition dynamic"
@@ -56,29 +56,29 @@ gt create -m "docs: make woostack-bootstrap skill definition dynamic"
 - Modify: `skills/woostack-bootstrap/references/decisions.md`:1-98
 - Test: Verify the file exists and contains the dynamic requirements questions.
 
-- [ ] **Step 1: Write the verification command**
+- [x] **Step 1: Write the verification command**
 
 Run: `grep -q "Requirements gathering questionnaire" skills/woostack-bootstrap/references/decisions.md`
 Expected: exit status 1
 
-- [ ] **Step 2: Run the verification, confirm it fails**
+- [x] **Step 2: Run the verification, confirm it fails**
 
 Run: `grep -q "Requirements gathering questionnaire" skills/woostack-bootstrap/references/decisions.md`
 Expected: FAIL (exit status 1)
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Edit `skills/woostack-bootstrap/references/decisions.md` to:
 1. Remove all hardcoded defaults (Supabase, Vercel, Stripe, Axiom, etc.).
 2. Define the requirements-gathering questionnaire (scale, database, hosting, compliance, budget, integrations).
 3. Outline the protocol for presenting 2-3 stack options with detailed pros/cons.
 
-- [ ] **Step 4: Run the verification, confirm it passes**
+- [x] **Step 4: Run the verification, confirm it passes**
 
 Run: `grep -q "Requirements gathering questionnaire" skills/woostack-bootstrap/references/decisions.md`
 Expected: PASS (exit status 0)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "docs: rewrite decisions reference to use dynamic questionnaire"

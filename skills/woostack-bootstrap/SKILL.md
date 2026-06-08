@@ -1,15 +1,15 @@
 ---
 name: woostack-bootstrap
-description: Use when bootstrapping a new web, mobile, or API project from scratch — scaffolding a fresh monorepo, choosing which frameworks/hosting/data layer to use, or setting up architecture, CI, and conventions for a new full-stack app at current framework versions.
+description: Use when bootstrapping a new web, mobile, or API project from scratch — scaffolding a fresh monorepo, gathering requirements, dynamically researching industry-standard frameworks/services and their latest versions, and setting up the app/feature/infrastructure package slice architecture.
 ---
 
 # woostack-bootstrap
 
 ## Overview
 
-A spec — not a template — for bootstrapping AI-built web + mobile + API projects. It holds the *decisions* (frameworks, architecture, infrastructure, patterns) so an agent scaffolds a fresh repo at the latest framework versions without re-litigating choices every time. Templates rot; decisions don't.
+A spec — not a template — for bootstrapping AI-built full-stack projects. Instead of prescribing a hardcoded stack, this skill guides the agent to dynamically gather the project's requirements, look up the latest industry-standard solutions and versions, compare 2-3 options with pros/cons, and then bootstrap the chosen services using the app, feature, and infrastructure package slice architecture.
 
-**Core principle:** resolve versions live at bootstrap, never from memory.
+**Core principle:** resolve technologies and versions live based on project requirements, never from memory.
 
 ## Invocation
 
@@ -20,63 +20,53 @@ Invoke with `/woostack-bootstrap <goal>`, where the goal is a plain-language des
 /woostack-bootstrap a SaaS dashboard with a marketing site and a billing API
 ```
 
-From the goal, infer a *recommended* shape — surfaces, features, and provider choices — then walk the user through it (see Procedure). The goal seeds the recommendations; the user confirms or overrides every one.
+The goal seeds the initial requirements-gathering and recommendation phase.
 
 ## When to use
 
-- Standing up a new full-stack project (any subset of web / landing / mobile / api).
-- Deciding the stack: frameworks, hosting, data layer, CI, lint/test tooling.
-- Laying out a monorepo with shared packages and import boundaries.
+- Standing up a new full-stack project (any combination of web / mobile / desktop / api / daemon).
+- Determining the stack: cloud hosting, data layer, auth, libraries, CI/CD, linting, and testing tooling.
+- Laying out a monorepo with custom packages and import boundaries.
 
 **Not for:** adding features to an already-bootstrapped project (use that project's own conventions), or single-surface throwaway scripts.
 
-## Default stack
-
-| Layer | Default |
-|---|---|
-| Web / Landing | Next.js (App Router) + React Compiler + shadcn/ui |
-| Mobile | Expo + React Native + react-native-reusables + UniWind |
-| API | Hono + oRPC |
-| Data | TanStack Query + Zod + Supabase (Postgres, Auth, Storage) |
-| Styling | Tailwind CSS (CSS-first) + shared theme |
-| Build | Turborepo + pnpm catalog |
-| Lint/format | Biome |
-| Testing | Vitest, Jest (RN), Playwright |
-| Hosting | Vercel (web + api) + Expo EAS (mobile) |
-
-Defaults are overridable per project — record any deviation in the project's own README.
-
 ## Procedure
 
-1. **Interpret the goal** — from the plain-language goal, infer a recommended shape: a project name, the surfaces it implies, candidate features, and which capabilities it likely needs. (E.g. "mobile app for cataloging recipes" → `mobile` surface, probably an `api` for sync, a `recipes` feature, Supabase Postgres + Storage for images + Auth for accounts; no billing unless monetized.) These are *recommendations*, not decisions — they seed step 2.
-2. **Walk the user through every decision** — work through [references/decisions.md](references/decisions.md) before touching the filesystem. Present each relevant choice as a goal-aware recommendation with its default and alternatives, get an explicit answer (silence is not consent), resolve the genuine forks (e.g. API host), and treat capabilities (billing, email, flags, observability, …) as opt-in. **Do not scaffold any decision the user has not confirmed.**
-3. **Read the references in order** (below) — they are binding rules, not suggestions.
-4. **Follow [references/bootstrap.md](references/bootstrap.md) step by step** — it is the authoritative procedure.
-5. **Verify** before declaring done: `pnpm install && pnpm typecheck && pnpm build && pnpm test && pnpm dev` — every surface boots on its expected port.
+1. **Gather requirements** — Upon invocation, ask the user targeted questions about their goals to capture technical and business constraints (e.g. expected scale, deployment/cloud provider restrictions, compliance/security, external API integrations, budget).
+2. **Perform live industry research** — Use web search and registry lookup commands (e.g. `npm view`) to identify current industry-standard frameworks, libraries, databases, and services that satisfy the requirements, ensuring you ground your choices in the latest stable versions.
+3. **Present stack options** — Compile and present 2-3 cohesive stack options (e.g., Option A: Serverless Edge, Option B: Containerized VPS, Option C: Managed PaaS/BaaS) with a clear Pros/Cons breakdown, production-readiness evaluation, and cost implications for each. Get an explicit choice from the user before proceeding.
+4. **Walk through reference files** — Study and follow the generalized reference documents before writing code:
+   - [references/decisions.md](references/decisions.md)
+   - [references/bootstrap.md](references/bootstrap.md)
+   - [references/architecture.md](references/architecture.md)
+   - [references/frameworks.md](references/frameworks.md)
+   - [references/infrastructure.md](references/infrastructure.md)
+5. **Scaffold skeleton & run CLIs** — Create the monorepo structure. Run the appropriate CLI scaffolding tools for the chosen frameworks and clean up their generated boilerplates.
+6. **Verify** — Run the build, test, lint, and format pipelines defined for the stack to ensure every surface compiles and boots correctly.
 
 ## References (load on demand)
 
 | File | What it defines |
 |---|---|
-| [references/decisions.md](references/decisions.md) | Decision catalog + confirmation protocol — the pre-scaffold gate |
+| [references/decisions.md](references/decisions.md) | Questionnaire guide + confirmation protocol — the pre-scaffold gate |
 | [references/bootstrap.md](references/bootstrap.md) | Step-by-step bootstrap procedure — the spine |
 | [references/architecture.md](references/architecture.md) | Monorepo layout, package tiers, import boundaries, naming |
-| [references/frameworks.md](references/frameworks.md) | Recommended frameworks per layer, catalog protocol, **known gotchas** |
-| [references/infrastructure.md](references/infrastructure.md) | Hosting, CI/CD, env, observability, auth, data layer |
-| [references/patterns.md](references/patterns.md) | oRPC contracts, TanStack Query, RSC, navigation, TDD, feature exposure |
+| [references/frameworks.md](references/frameworks.md) | Version-resolution rules, workspace catalogs, and Gotchas |
+| [references/infrastructure.md](references/infrastructure.md) | Production-readiness patterns: hosting, CI/CD, env vars, migrations, observability |
+| [references/patterns.md](references/patterns.md) | Standard implementation and TDD guidelines |
 | [references/development.md](references/development.md) | Dev loop (ideate → approve spec → merge) and branching model |
 
 ## Hard constraints
 
 These are non-negotiable. Violating them produces a broken or drift-prone project.
 
-- **Confirm before scaffolding.** Walk the user through [references/decisions.md](references/decisions.md) and get explicit sign-off on every relevant decision first. Never scaffold a choice the user hasn't confirmed; never silently apply a default.
-- **Always resolve the latest versions before building.** Your training memory is stale — treat every version you "remember" as wrong. For every dependency, query the registry at bootstrap time (`npm view <pkg> version`, or `npm view <pkg> dist-tags` for channels) and write the resolved value. Never hard-code a version from memory.
-- **Cross-check the gotchas.** Reconcile every resolved version against [references/frameworks.md](references/frameworks.md#known-gotchas-to-respect-at-bootstrap) before writing it — some peers (notably `react` for RN) must match a pinned version.
-- **Match the layout exactly.** Follow [references/architecture.md](references/architecture.md); omit only folders for surfaces not requested.
-- **Don't ship unverified.** A bootstrap that fails `install / typecheck / build / test / dev` is not done. Fix every failure.
-- **Project docs reference, don't duplicate.** The generated project's README points back at this spec; record deviations explicitly.
+- **Confirm stack before scaffolding.** Present the pros/cons of the options and get explicit sign-off from the user before touching the filesystem. Never silently choose or scaffold a stack.
+- **Always resolve latest versions live.** Never use hardcoded versions from memory. Query the registry live (`npm view <pkg> version` or equivalent commands) during the research phase.
+- **Maintain package slice architecture.** Strictly follow [references/architecture.md](references/architecture.md) for package layering (`Apps -> Features -> Infrastructure`), regardless of the chosen technology stack.
+- **Don't ship unverified.** Running build, lint, and test scripts must succeed before declaring the bootstrap complete.
+- **Record decisions.** Write the finalized stack choices, versions, and rationale into the project's root `README.md` at hand-off.
 
 ## SPEC_VERSION
 
-`2.0.0` — first spec-only release. Bump on breaking changes so downstream projects can detect drift.
+`3.0.0` — Major breaking release moving to dynamic stack selection and dynamic lookup.
+

@@ -12,7 +12,6 @@ Not a template. It's the decisions and workflow an agent follows. For greenfield
 - [Quickstart](#quickstart): greenfield and brownfield entry points
 - [Concepts](#concepts): artifacts, branching, the review swarm
 - [Configuration](#configuration)
-- [Default stack](#default-stack)
 - [What it defines](#what-it-defines)
 - [Cloud / CI review](#cloud--ci-review)
 
@@ -49,7 +48,7 @@ An adoption skill for consumer repositories. Reference it from a project's root 
 
 ### `/woostack-bootstrap <goal>`: scaffold a new monorepo
 
-Walks you through the [decision catalog](skills/woostack-bootstrap/references/decisions.md) and gets explicit sign-off on every relevant choice, then scaffolds a web/mobile/API monorepo. Versions are resolved **live** at scaffold time (`npm view <pkg> version`), never hard-coded, and cross-checked against a known-gotchas list. After scaffolding it verifies the project boots: `pnpm install && typecheck && build && test && dev`. → [SKILL.md](skills/woostack-bootstrap/SKILL.md)
+Walks you through a [questionnaire and options protocol](skills/woostack-bootstrap/references/decisions.md) to dynamically select the best technology stack, gets explicit sign-off on the chosen stack, and then scaffolds a web/mobile/API monorepo. Versions are resolved **live** at scaffold time (`npm view <pkg> version`), never hard-coded, and cross-checked against a known-gotchas list. After scaffolding it verifies the project boots: `pnpm install && typecheck && build && test && dev`. → [SKILL.md](skills/woostack-bootstrap/SKILL.md)
 
 ### `/woostack-build <goal>`: feature loop, idea to PR
 
@@ -184,29 +183,13 @@ Minimal example:
 
 Use config for repository-specific review policy: widen or narrow the severity floor, force or skip optional angles, ignore generated files, add rule documents, customize bot/release auto-skips, opt into local metrics, or adjust diff chunking for large PRs. `bugs` and `security` always run and cannot be skipped. Invalid JSON or unknown keys inside `review` fail loudly so configuration mistakes do not silently change review behavior. → [Per-repo Configuration](skills/woostack-review/SKILL.md#per-repo-configuration-woostackconfigjson)
 
-## Default stack
-
-| Layer | Default |
-|---|---|
-| Web / Landing | Next.js (App Router) + React Compiler + shadcn/ui |
-| Mobile | Expo + React Native + react-native-reusables + UniWind |
-| API | Hono + oRPC |
-| Data | TanStack Query + Zod + Supabase (Postgres, Auth, Storage) |
-| Styling | Tailwind CSS (CSS-first) with a shared theme |
-| Build | Turborepo + pnpm catalog |
-| Lint/format | Biome |
-| Testing | Vitest, Jest (RN), Playwright |
-| Hosting | Vercel (web + api) + Expo EAS (mobile) |
-
-Defaults, not mandates. Bootstrap confirms each with you. Versions are resolved at bootstrap time. See [frameworks.md](skills/woostack-bootstrap/references/frameworks.md).
-
 ## What it defines
 
 The bootstrap skill's decisions live in reference files, loaded on demand:
 
 | Reference | What it defines |
 |---|---|
-| [decisions.md](skills/woostack-bootstrap/references/decisions.md) | Decision catalog the agent walks the user through before scaffolding |
+| [decisions.md](skills/woostack-bootstrap/references/decisions.md) | Questionnaire guide + confirmation protocol — the pre-scaffold gate |
 | [bootstrap.md](skills/woostack-bootstrap/references/bootstrap.md) | Step-by-step bootstrap procedure for AI agents |
 | [architecture.md](skills/woostack-bootstrap/references/architecture.md) | Monorepo layout, package tiers, import boundaries, naming |
 | [frameworks.md](skills/woostack-bootstrap/references/frameworks.md) | Recommended frameworks per layer, catalog protocol, known gotchas |
