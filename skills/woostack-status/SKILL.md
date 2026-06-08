@@ -1,6 +1,6 @@
 ---
 name: woostack-status
-description: Use to show the derived woostack feature board — for every spec in .woostack/, its reconciled phase, plan progress, increment-PR state, owner, age, and the single next action, plus flags for any drift between the authored status field and the artifacts on disk. Read-only; never fetches, commits, or pushes. Use for /woostack-status, "what's in flight", or "what should I do next".
+description: Use to show the derived woostack feature board — for every spec in .woostack/specs/ and fix in .woostack/fixes/, its reconciled phase, plan progress, increment-PR state, owner, age, and the single next action, plus flags for any drift between the authored status field and the artifacts on disk. Read-only; never fetches, commits, or pushes. Use for /woostack-status, "what's in flight", or "what should I do next".
 ---
 
 # woostack-status
@@ -8,18 +8,17 @@ description: Use to show the derived woostack feature board — for every spec i
 ## Overview
 
 Prints an on-demand, read-only **feature board** derived from the real `.woostack/`
-artifacts. For every spec it shows the reconciled phase, plan progress (`N/M` boxes), the
-increment-PR rollup, owner, age, and the single concrete **next action** — and flags any
-drift between the authored `status:` and what the artifacts actually say.
+artifacts. For every spec (in `.woostack/specs/`) and fix (in `.woostack/fixes/`) it shows
+the reconciled phase, plan progress (`N/M` boxes), the increment-PR rollup, owner, age,
+and the single concrete **next action** — and flags any drift.
 
-The board is computed fresh each run and printed to the terminal; it is **never** written to
-a tracked file (no `STATUS.md`, no snapshot — that would churn and merge-conflict every time
-anyone advances a feature). It never fetches, commits, or pushes.
+The board is computed fresh each run and printed to the terminal. It never fetches, commits, or pushes.
 
-The board is backed by the `spec : plan : PRs = 1 : 1 : N` invariant and the phase enum, both
-defined once in [references/conventions.md](references/conventions.md). This skill does not
-restate them — that file is the canonical home for the phase vocabulary, the join contracts
-(`**Source:**` plan line, `Spec:` PR trailer, `branch:`), and the reconcile rules.
+The board is backed by the `spec : plan : PRs = 1 : 1 : N` invariant (for specs) and the phase
+enum, both defined once in [references/conventions.md](references/conventions.md). Fixes
+under `.woostack/fixes/` bypass the spec-to-plan join because they are self-contained: the file
+acts as both the spec and the plan. This skill does not restate these definitions — that file is
+the canonical home.
 
 ## Commands
 

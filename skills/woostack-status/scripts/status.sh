@@ -24,9 +24,9 @@ for a in "$@"; do
 done
 
 shopt -s nullglob
-specs=( "$SPEC_DIR"/*.md )
+specs=( "$SPEC_DIR"/*.md "$WOO_DIR"/fixes/*.md )
 if [ "${#specs[@]}" -eq 0 ]; then
-  echo "woostack-status: no specs found in $SPEC_DIR - run /woostack-init or /woostack-build."
+  echo "woostack-status: no specs or fixes found in $SPEC_DIR or $WOO_DIR/fixes - run /woostack-init, /woostack-build, or /woostack-fix."
   exit 0
 fi
 
@@ -116,16 +116,21 @@ plan_progress() {
 }
 
 prs_for_spec() {
-  local base json
+  local base suffix json
   base="$(basename "$1")"
+  if [[ "$1" == *"/fixes/"* ]]; then
+    suffix="fixes/$base"
+  else
+    suffix="specs/$base"
+  fi
   json="$(gh_json pr list --state all --search "$base" \
           --json number,state,headRefName,author,updatedAt,body --limit 50)"
   [ -n "$json" ] || return 0
   # gh --search is fuzzy (tokenizes the path), so it cross-matches look-alike PRs. Narrow
   # with the search, then exact-match a Spec: trailer value in each PR body. The needle
-  # `specs/<basename>` is WOO_DIR-independent and unique per spec (date-stamped name), so an
+  # `specs/<basename>` or `fixes/<basename>` is WOO_DIR-independent and unique per spec, so an
   # untrailered, sibling, suffixed, or prose-only mention can no longer attach to the wrong spec.
-  printf '%s' "$json" | jq -r --arg needle "specs/$base" \
+  printf '%s' "$json" | jq -r --arg needle "$suffix" \
     '.[] | select((.body // "") | split("\n") | any(
             test("^[[:space:]]*Spec:[[:space:]]")
             and (sub("^[[:space:]]*Spec:[[:space:]]*"; "") | gsub("[[:space:]]+$"; "") | endswith($needle))
@@ -171,13 +176,28 @@ resolve_phase() {
 }
 
 next_action() {
-  case "$1" in
+  local phase="$1" done="${2:-0}" total="${3:-0}" merged="${4:-0}" prcount="${5:-0}" file="${6:-}"
+  if [[ "$file" == *"/fixes/"* ]]; then
+    case "$phase" in
+      draft)      echo "harden the fix plan (woostack-harden)" ;;
+      hardened)   echo "get fix plan approval (hard gate)" ;;
+      approved)   echo "execute the fix (woostack-fix)" ;;
+      executing)  if [ "$prcount" -gt 0 ]; then echo "finish fix ($done/$total); $merged/$prcount increments shipped";
+                  else echo "finish fix ($done/$total) - open the fix PR"; fi ;;
+      in-review)  echo "address comments / merge when green" ;;
+      done)       echo "-" ;;
+      abandoned)  echo "-" ;;
+      *)          echo "set status: (unknown phase)" ;;
+    esac
+    return
+  fi
+  case "$phase" in
     draft)      echo "harden the spec (woostack-harden)" ;;
     hardened)   echo "get spec approval (hard gate)" ;;
     approved)   echo "write the plan (woostack-plan)" ;;
     planning)   echo "harden plan, then open spec+plan PR" ;;
-    executing)  if [ "${5:-0}" -gt 0 ]; then echo "finish plan ($2/$3); $4/$5 increments shipped";
-                else echo "finish plan ($2/$3) - open first increment PR"; fi ;;
+    executing)  if [ "$prcount" -gt 0 ]; then echo "finish plan ($done/$total); $merged/$prcount increments shipped";
+                else echo "finish plan ($done/$total) - open first increment PR"; fi ;;
     in-review)  echo "address comments / merge when green" ;;
     done)       echo "-" ;;
     abandoned)  echo "-" ;;
@@ -211,32 +231,39 @@ abandoned_count=0
 rows=""
 
 for f in "${specs[@]}"; do
-  name="$(field "$f" name)"; [ -n "$name" ] || name="$(basename "$f" .md)"
   phase="$(field "$f" status)"; [ -n "$phase" ] || phase="unknown"
   raw_phase="$phase"
+
+  plan_cell="-"; done=0; total=0; planfile=""
+  if [[ "$f" == *"/fixes/"* ]]; then
+    planfile="$f"
+    name="[FIX] $(field "$f" name)"; [ "$name" != "[FIX] " ] || name="[FIX] $(basename "$f" .md)"
+    specpath="$WOO_DIR/fixes/$(basename "$f")"
+  else
+    name="$(field "$f" name)"; [ -n "$name" ] || name="$(basename "$f" .md)"
+    specpath="$WOO_DIR/specs/$(basename "$f")"
+    
+    plans=()
+    while IFS= read -r ln; do [ -n "$ln" ] && plans+=("$ln"); done < <(plan_for "$f")
+    if [ "${#plans[@]}" -eq 0 ]; then
+      case "$phase" in draft|hardened|approved|abandoned) : ;; *) flag "$name: no plan resolves to this spec (woostack-plan)" ;; esac
+    elif [ "${#plans[@]}" -ge 2 ]; then
+      flag "$name: ${#plans[@]} plans resolve to this spec - spec<->plan must be 1:1"
+      planfile="${plans[0]}"
+    else
+      planfile="${plans[0]}"
+    fi
+  fi
 
   if [ "${VALID_PHASES/ $phase /}" = "$VALID_PHASES" ]; then
     flag "$name: '$phase' is not a known phase - unknown phase, set a valid status:"
     phase="unknown"
   fi
 
-  plans=()
-  while IFS= read -r ln; do [ -n "$ln" ] && plans+=("$ln"); done < <(plan_for "$f")
-  plan_cell="-"; done=0; total=0; planfile=""
-  if [ "${#plans[@]}" -eq 0 ]; then
-    case "$phase" in draft|hardened|approved|abandoned) : ;; *) flag "$name: no plan resolves to this spec (woostack-plan)" ;; esac
-  elif [ "${#plans[@]}" -ge 2 ]; then
-    flag "$name: ${#plans[@]} plans resolve to this spec - spec<->plan must be 1:1"
-    planfile="${plans[0]}"
-  else
-    planfile="${plans[0]}"
-  fi
   if [ -n "$planfile" ]; then
     read -r done total < <(plan_progress "$planfile")
     [ "$total" -gt 0 ] && plan_cell="$done/$total"
   fi
-
-  specpath="$WOO_DIR/specs/$(basename "$f")"
   br="$(field "$f" branch)"
   open=0; merged=0; prcount=0; inc_cell="-"; inc_parts=""
   last_author=""; last_upd_date=""
@@ -304,7 +331,7 @@ for f in "${specs[@]}"; do
 
   row="$(printf '%-22s %-10s %-7s %-20s %-7s %-5s %s' \
     "$name" "$eff" "$plan_cell" "$inc_cell" "$owner" "$agecell" \
-    "$(next_action "$eff" "$done" "$total" "$merged" "$prcount")")"
+    "$(next_action "$eff" "$done" "$total" "$merged" "$prcount" "$f")")"
   case "$eff" in
     done) done_count=$((done_count+1)) ;;
     abandoned) abandoned_count=$((abandoned_count+1)) ;;
