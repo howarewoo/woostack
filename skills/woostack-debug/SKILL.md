@@ -67,8 +67,9 @@ Complete each phase before the next.
 ### Phase 3 — Hypothesis and test
 
 1. **Form one hypothesis.** State it: "X is the root cause because Y." Be specific.
-2. **Test minimally.** Make the smallest possible change to test it; change one variable at a
-   time; don't fix several things at once.
+2. **Test minimally.** Probe the hypothesis with the smallest non-destructive check — read the
+   relevant source, trace the call path, or run an existing test/command; isolate one variable at
+   a time. Make no persistent code change (revert any temporary probe before handback).
 3. **Verify before continuing.** Worked → Phase 4. Didn't work → form a **new** hypothesis;
    don't stack more fixes on top.
 4. **When you don't know,** say "I don't understand X" and research or ask — don't pretend.
