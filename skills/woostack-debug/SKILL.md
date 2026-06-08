@@ -1,6 +1,6 @@
 ---
 name: woostack-debug
-description: "Use as woostack's systematic-debugging phase — find the root cause of a bug, test failure, or unexpected behavior before any fix. Retells the four-phase method (root-cause investigation → pattern analysis → hypothesis/test → handback) with the Iron Law (no fix without root cause), wired to the .woostack/memory store (recall known gotchas at start). Invoke via /woostack-debug <target> for interactive root cause analysis, or with --auto for autonomous operation. Owns no spec/plan/status, never writes code, never commits, and never merges — it hands the root cause findings back."
+description: "Use as woostack's systematic-debugging phase — find the root cause of a bug, test failure, or unexpected behavior before any fix. Retells the four-phase method (root-cause investigation → pattern analysis → hypothesis/test → handback) with the Iron Law (no fix without root cause), wired to the .woostack/memory store (recall known gotchas at start). Invoke via /woostack-debug <target>; it runs the four-phase root-cause analysis automatically and hands the findings back. Investigative only — autonomous is its sole mode (no flag), and it never writes code, commits, or merges."
 ---
 
 # woostack-debug
@@ -10,18 +10,20 @@ fix. This is woostack's own systematic-debugging phase: a place every woostack s
 a stuck verification or a confirmed bug instead of falling back to guess-and-check. It owns no
 approval gate, never writes code, never commits, and never merges — it hands the diagnosed root cause back.
 
-It is both the 12th public command (`/woostack-debug <target> [--auto]`) and an internal hook:
-[`woostack-execute`](../woostack-execute/SKILL.md) dispatches it autonomously when a
-verification fails repeatedly to diagnose the root cause, and [`woostack-review`](../woostack-review/SKILL.md) suggests it
-for a confirmed bug.
+It is a public command — `/woostack-debug <target>` — and an internal hook:
+[`woostack-execute`](../woostack-execute/SKILL.md) and
+[`woostack-execute-overnight`](../woostack-execute-overnight/SKILL.md) dispatch it on a
+repeatedly-failing verification, and [`woostack-review`](../woostack-review/SKILL.md) points the
+author at it for a confirmed bug. It always runs autonomously — there is no interactive mode and
+no flag; running it performs a full root-cause analysis and hands the findings back.
 
 <IRON-LAW>
 NO FIX WITHOUT ROOT CAUSE INVESTIGATION FIRST.
 
 A symptom fix is a failure. If you have not completed Phase 1 (root-cause investigation), you
 may not propose or apply a fix. This holds for EVERY issue regardless of perceived simplicity
-and ESPECIALLY under time pressure — systematic debugging is faster than thrashing. Even in
-`--auto` mode the root cause is narrated before any fix, so the "why" is always visible.
+and ESPECIALLY under time pressure — systematic debugging is faster than thrashing. The root
+cause is always narrated before any fix is proposed, so the "why" is always visible.
 </IRON-LAW>
 
 ## When to use
@@ -80,15 +82,15 @@ Complete each phase before the next.
 For timing-dependent or flaky failures, recommend replacing arbitrary timeouts with **condition-based
 waiting** (poll for the condition) rather than sleeping a fixed interval.
 
-## Mode: `--auto` vs standalone
+## Operation
 
-Mode is selected by an explicit `--auto` flag — mirroring
-[`woostack-execute`](../woostack-execute/SKILL.md)'s explicit `--inline/--subagent` precedent —
-never by context-sniffing.
+woostack-debug always runs autonomously. Running `/woostack-debug <target>` works through
+Phases 1–4 end to end — no per-hypothesis approval gate — and hands back the Phase 4 result: the
+root-cause summary, the proposed minimal fix, and the TDD context. There is no interactive mode
+and no `--auto` flag; autonomous is the only mode. The Iron Law still forces narrating the root
+cause before any fix is proposed, so the "why" is always visible. It is investigative only — it
+hands the findings back and never applies the fix itself.
 
-- **`--auto` (autonomous).** Run Phases 1–4 end to end autonomously to identify the root cause and hand it back. No per-hypothesis approval gate. The Iron Law still forces narrating the root cause findings. At the end, output the Phase 4 handback — the summary, recommended minimal fix, and verification steps — then stop. `woostack-execute` dispatches this mode on a repeatedly-failing verification.
-- **No `--auto` (standalone — the default).** Work through Phases 1–4 interactively with the user. Present findings, verify hypotheses, align on the proposed fix plan, and hand back.
-- **Fail-safe.** Absence or an unrecognized flag ⇒ the standalone mode.
 - **No target given.** `/woostack-debug` with no argument → ask what's broken; do not guess
   (mirror `woostack-execute`'s no-argument behavior).
 
@@ -136,4 +138,4 @@ external: document what you investigated and log findings for future investigati
 - **Iron Law.** No fix proposed or applied before Phase 1 is complete. Keep this prominent so it survives summarization.
 - **Owns no spec/plan/status.** Never writes a `.woostack/specs/`, `.woostack/plans/`, or `.woostack/fixes/` file. The phase enum and join contracts live in [conventions.md](../woostack-status/references/conventions.md) — link, never restate.
 - **Never writes code, commits, or merges.** Hands the findings back; does not touch repository code files.
-- **Mode is explicit.** `--auto` ⇒ autonomous; its absence ⇒ interactive standalone mode.
+- **Always autonomous.** Runs the four phases end to end without a user gate and hands back; owns no `--auto` flag (autonomous is the only mode) and never runs interactively. Investigative only — it never applies the fix.

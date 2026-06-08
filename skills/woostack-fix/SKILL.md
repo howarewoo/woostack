@@ -22,9 +22,9 @@ The skill has exactly **one** hard gate: **fix plan approval**. Because the plan
 1. **Diagnose the root cause.**
    Run the systematic-debugging skill to find the root cause before proposing any code edits.
    ```
-   /woostack-debug <target> --auto
+   /woostack-debug <target>
    ```
-   Let it run its autonomous Phase 1-3. It will investigate the symptoms, trace data flow backward, and output a clear root-cause hypothesis and the necessary test case description. If it cannot find a root cause, do not guess: stop and ask the user for hints.
+   It runs its four-phase root-cause analysis automatically — investigating the symptoms, tracing data flow backward, identifying the root cause — and hands back the Phase 4 result: the root-cause summary, the proposed minimal fix, and the TDD context (the failing-test description). Carry the proposed fix forward into the fix plan's Proposed Fix section below. If it cannot find a root cause, do not guess: stop and ask the user for hints.
 
 2. **Write the fix plan as markdown.**
    Create a markdown file under `.woostack/fixes/YYYY-MM-DD-<slug>.md`, using the current date and a short slug based on the target (e.g. `.woostack/fixes/2026-06-08-status-parsing.md`).

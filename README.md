@@ -81,7 +81,7 @@ Executes an approved markdown plan from `.woostack/plans/` as a sequence of PR-s
 
 ### `/woostack-execute-overnight <plan-path>`: run a plan unattended overnight
 
-Executes an approved plan the way `woostack-execute` does, but **unattended** — one autonomous run with no input after launch. It reuses execute's per-increment cadence and drivers and overrides only the stop-points: a stuck verification routes to `woostack-debug --auto`, a blocking review is auto-addressed (`woostack-address-comments --auto`, bounded) or escalated, and anything unsafe or ambiguous becomes a logged blocker — safety is never relaxed for autonomy. A blocker ends its track (plans may group increments under optional `## Track:` headings; default is one linear stack) and the run continues. It writes a **morning report** to `.woostack/overnight/` for a human to test in the morning. It is the third choice at `woostack-build`'s execution-handoff gate (Go / Hand off / Run overnight), and is usable standalone. Never merges. → [SKILL.md](skills/woostack-execute-overnight/SKILL.md)
+Executes an approved plan the way `woostack-execute` does, but **unattended** — one autonomous run with no input after launch. It reuses execute's per-increment cadence and drivers and overrides only the stop-points: a stuck verification routes to `woostack-debug` (which root-causes autonomously), a blocking review is auto-addressed (`woostack-address-comments --auto`, bounded) or escalated, and anything unsafe or ambiguous becomes a logged blocker — safety is never relaxed for autonomy. A blocker ends its track (plans may group increments under optional `## Track:` headings; default is one linear stack) and the run continues. It writes a **morning report** to `.woostack/overnight/` for a human to test in the morning. It is the third choice at `woostack-build`'s execution-handoff gate (Go / Hand off / Run overnight), and is usable standalone. Never merges. → [SKILL.md](skills/woostack-execute-overnight/SKILL.md)
 
 ### `/woostack-review [PR#]`: parallel review swarm
 
@@ -103,9 +103,9 @@ A read-only, on-demand board derived fresh from your `.woostack/` artifacts: for
 
 A discovery command for rendering source material as an audience-tailored HTML view while keeping the source authoritative. → [SKILL.md](skills/woostack-visualize/SKILL.md)
 
-### `/woostack-debug <target> [--auto]`: find the root cause before fixing
+### `/woostack-debug <target>`: find the root cause before fixing
 
-Runs woostack's systematic-debugging method on a bug, test failure, or unexpected behavior: root-cause investigation → pattern analysis → hypothesis/test → a minimal fix with a failing test first, under the Iron Law (no fix without a root cause) and a 3-fixes-→-question-the-architecture escalation. It recalls known `gotcha`s from `.woostack/memory/` at the start and distills one at the end. Standalone it gates on the root cause before fixing (the gated form `woostack-review` points you at for a confirmed bug); `--auto` runs autonomously (how `woostack-execute` calls it on a stuck verification). Never commits or merges. → [SKILL.md](skills/woostack-debug/SKILL.md)
+Runs woostack's systematic-debugging method on a bug, test failure, or unexpected behavior: root-cause investigation → pattern analysis → hypothesis/test → handback, under the Iron Law (no fix without a root cause). It recalls known `gotcha`s from `.woostack/memory/` at the start. Running it performs the analysis autonomously and hands back the root cause, a proposed minimal fix, and the TDD context — it is investigative only and never writes code (the caller implements the fix: `woostack-fix`, or `woostack-execute` on a stuck verification). `woostack-review` points you at it for a confirmed bug. Never commits or merges. → [SKILL.md](skills/woostack-debug/SKILL.md)
 
 ### Growing scope
 
