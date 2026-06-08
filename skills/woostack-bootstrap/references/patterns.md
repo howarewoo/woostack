@@ -8,20 +8,19 @@ Recommended patterns for projects bootstrapped from this spec. Each pattern is *
 
 **Structure:**
 - Contracts: `packages/features/<feature>/src/contracts/{feature}Contract.ts` — Zod schemas
-- Routers: `packages/features/<feature>/src/routers/{feature}ORPCRouter.ts` — oRPC router
-- Procedures: `packages/features/<feature>/src/procedures/` — business logic
-- Composition: `apps/api/src/router.ts` — imports feature routers, exports `Router` type
+- Services: `packages/features/<feature>/src/services/` — business logic and API handlers
+- Composition: `apps/api/src/router.ts` — imports feature services/handlers, exports `Router` type
 - Client utils: `@infrastructure/api-client` — `createApiClient`, `createOrpcUtils`
 
 **Example:**
 
 ```typescript
-// contracts/usersContract.ts
+// src/contracts/usersContract.ts
 import { z } from "zod";
 export const UserSchema = z.object({ id: z.string(), name: z.string() });
 export const CreateUserSchema = z.object({ name: z.string().min(1) });
 
-// routers/usersORPCRouter.ts
+// src/services/usersRouter.ts
 import { os } from "@orpc/server";
 import { UserSchema, CreateUserSchema } from "../contracts/usersContract";
 
@@ -36,7 +35,7 @@ export const usersRouter = {
 };
 
 // apps/api/src/router.ts
-import { usersRouter } from "@features/users/src/routers/usersORPCRouter";
+import { usersRouter } from "@features/users/src/services/usersRouter";
 export const router = { users: usersRouter };
 export type Router = typeof router;
 ```
@@ -106,24 +105,24 @@ Both consume the same theme from `@infrastructure/ui` (design tokens, `cn()` hel
 
 **Theme changes:** edit `@infrastructure/ui` (web tokens) and `apps/mobile/global.css` (mobile mirror). Keep both in sync — UniWind can't resolve `var()` indirection in `@theme`.
 
-## 6. Surface + Layout export pattern
+## 6. Component + Layout export pattern
 
 Features expose a public API through two folders only:
 
-- `surfaces/` — `*Surface.tsx` components (UI entry points)
-- `layouts/` — `*Layout.tsx` components (layout shells)
+- components/ — UI components (UI entry points)
+- layouts/ — Layout components (layout shells)
 
-Apps consume only these. Other folders (`components/`, `procedures/`, `schemas/`) are package-internal.
+Apps consume only these. Other folders (services/, schemas/) are package-internal.
 
-**Exemption:** `apps/api` may import a feature's `contracts/` and `routers/` for router composition.
+Exemption: apps/api may import a feature's contracts/ for router composition.
 
 ```typescript
 // apps/web/app/users/page.tsx
-import { UserListSurface } from "@features/users/src/surfaces/UserListSurface";
+import { UserList } from "@features/users/src/components/UserList";
 // ✓ allowed
 
-import { findUserById } from "@features/users/src/procedures/findUserById";
-// ✗ forbidden — procedures are internal
+import { findUserById } from "@features/users/src/services/findUserById";
+// ✗ forbidden — services are internal
 ```
 
 ## 7. Test-Driven Development

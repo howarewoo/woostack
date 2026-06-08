@@ -6,7 +6,7 @@ tags: status, specs, plans, prs
 hook: Specs, plans, and increment PRs are joined by Source and Spec trailers.
 updated: 2026-06-04
 source: .woostack/plans/2026-06-04-woostack-status.md
-recall_count: 62
+recall_count: 63
 last_recalled: 2026-06-08
 ---
 Feature state is derived from artifacts, not a committed status file: each spec

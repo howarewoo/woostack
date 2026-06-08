@@ -16,7 +16,8 @@ Regardless of the chosen programming languages or frameworks, the project must f
 │   │       │   ├── contracts/     Clean API contracts (Zod, Protobuf, OpenAPISchema)
 │   │       │   ├── services/      Business logic procedures and handlers
 │   │       │   ├── components/    Feature-specific internal UI components
-│   │       │   └── layouts/       Feature-specific layouts
+│   │       │   ├── layouts/       Feature-specific layouts
+│   │       │   └── schemas/       Domain-specific internal validation schemas
 │   │       ├── package.json
 │   │       └── tsconfig.json
 │   └── infrastructure/        Shared libraries and SDK wrappers

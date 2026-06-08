@@ -67,7 +67,7 @@ Determine the exact CLI bootstrap commands for the chosen stack (e.g., `npx crea
 
 ### 7. Scaffold features (if any)
 For each initial feature in the inputs, create a directory under `packages/features/<feature>/`. 
-Organize code into clean sub-layers representing contracts, procedures/services, schemas, layouts, and components. Wire feature entry points into the main routing/API app.
+Organize code into clean sub-layers representing contracts, services, schemas, layouts, and components. Wire feature entry points into the main routing/API app.
 
 ### 8. Configure CI/CD
 Write a generalized GitHub Actions configuration `.github/workflows/ci.yml` that triggers on pull requests targeting the integration branches. The workflow should checkout the code, install dependencies, run lints/formatters, run tests, and verify the build pipeline.
