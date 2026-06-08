@@ -52,9 +52,7 @@ memory. It never merges.
    **final** verdict per thread is the override where given, else the recommendation. See
    `prompts/address.md` § Phase 2 for the gate mechanics, including the override→FIX plan
    confirm.
-5. **Commit + push** — apply all final `FIX` edits to the working tree → one commit
-   referencing the threads → push to the PR head → capture `<sha>` before any reply, so
-   "Fixed in `<sha>`" is real. Never force-push.
+5. **Commit + push** — apply all final `FIX` edits to the working tree → stage the changes → invoke [`woostack-commit`](../woostack-commit/SKILL.md) with a message referencing the threads addressed (e.g. `/woostack-commit "fix: address review threads <ids>"`) to commit, run checks, push, and update the PR metadata → capture the commit `<sha>` (e.g., via `git rev-parse HEAD`) before any reply, so "Fixed in `<sha>`" is real. Never force-push.
 6. **Reply + resolve + memory** — per handled thread, `scripts/resolve-thread.sh` posts the
    reply then resolves. CLARIFY threads use `RESOLVE=0`: reply only, left open. Only a
    **final** `ACCEPT` writes memory via `scripts/memory-record.sh`.

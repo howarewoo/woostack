@@ -19,19 +19,19 @@
 **Files:**
 - Modify: `skills/woostack-address-comments/SKILL.md`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
   Write a verification command that checks if the commit skill `woostack-commit` is referenced in the commit/push step of `SKILL.md`.
   
   Run: `grep -q "woostack-commit" skills/woostack-address-comments/SKILL.md`
   Expected: FAIL (exit status 1)
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
 
   Run: `grep -q "woostack-commit" skills/woostack-address-comments/SKILL.md`
   Expected: FAIL (exit code 1)
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
   Modify step 5 in `skills/woostack-address-comments/SKILL.md` to stage changes, run `/woostack-commit`, and capture the SHA:
   
@@ -39,12 +39,12 @@
   5. **Commit + push** — apply all final `FIX` edits to the working tree → stage the changes → invoke [`woostack-commit`](../woostack-commit/SKILL.md) with a message referencing the threads addressed (e.g. `/woostack-commit "fix: address review threads <ids>"`) to commit, run checks, push, and update the PR metadata → capture the commit `<sha>` (e.g., via `git rev-parse HEAD`) before any reply, so "Fixed in `<sha>`" is real. Never force-push.
   ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
 
   Run: `grep -q "woostack-commit" skills/woostack-address-comments/SKILL.md`
   Expected: PASS (exit code 0)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
   ```bash
   gt create -m "docs: use commit skill in address-comments workflow"
@@ -55,19 +55,19 @@
 **Files:**
 - Modify: `skills/woostack-address-comments/prompts/address.md`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
   Write a verification command that checks if the `/woostack-commit` command is referenced in `prompts/address.md`.
   
   Run: `grep -q "/woostack-commit" skills/woostack-address-comments/prompts/address.md`
   Expected: FAIL (exit status 1)
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
 
   Run: `grep -q "/woostack-commit" skills/woostack-address-comments/prompts/address.md`
-  Expected: FAIL (exit code 1)
+  Expected: FAIL (exit status 1)
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
   Modify the instructions under "After the phases" Step 1 in `skills/woostack-address-comments/prompts/address.md` to use `/woostack-commit`:
   
@@ -79,12 +79,12 @@
      Then capture the commit `<sha>` (e.g., `git rev-parse HEAD`) before posting any replies. Never force-push.
   ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
 
   Run: `grep -q "/woostack-commit" skills/woostack-address-comments/prompts/address.md`
   Expected: PASS (exit code 0)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
   ```bash
   gt modify -c -m "docs: instruct agent to invoke commit skill in address-comments prompt"
@@ -95,7 +95,7 @@
 **Files:**
 - None (verify scripts)
 
-- [ ] **Step 1: Write the verification command**
+- [x] **Step 1: Write the verification command**
 
   Run all tests in the `skills/woostack-address-comments/scripts/tests/` directory to ensure they all pass.
   
@@ -107,7 +107,7 @@
   ```
   Expected: PASS
 
-- [ ] **Step 2: Run the test, confirm it passes**
+- [x] **Step 2: Run the test, confirm it passes**
 
   Run the command from Step 1 and verify all tests exit successfully.
 

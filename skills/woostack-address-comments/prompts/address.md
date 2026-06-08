@@ -115,9 +115,11 @@ Show the fix plan alongside the FIX verdict **wherever the gate renders it**:
 
 ## After the phases
 
-1. If any FIX edits were made, make ONE descriptive commit referencing the
-   threads addressed, then push to the PR head branch. Capture the new `<sha>`.
-   Never force-push.
+1. If any FIX edits were made, stage the changes and invoke the [`woostack-commit`](../woostack-commit/SKILL.md) skill to commit, push, and update the PR metadata:
+   ```bash
+   /woostack-commit "fix: address review threads <ids>"
+   ```
+   Then capture the commit `<sha>` (e.g., `git rev-parse HEAD`) before posting any replies. Never force-push.
 2. For each handled thread, reply and resolve:
 
    ```bash
