@@ -1,7 +1,7 @@
 ---
 name: generic-woostack-bootstrap
 type: spec
-status: planning
+status: in-review
 date: 2026-06-08
 branch: feature/generic-woostack-bootstrap
 links:

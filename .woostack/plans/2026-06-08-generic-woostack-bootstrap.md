@@ -172,29 +172,29 @@ gt modify -c -m "docs: update architecture reference for dynamic package slicing
 - Modify: `skills/woostack-bootstrap/references/frameworks.md`:1-119
 - Test: Verify that the frameworks list is generalized and specific versions/gotchas are removed.
 
-- [ ] **Step 1: Write the verification command**
+- [x] **Step 1: Write the verification command**
 
 Run: `grep -q "Registry-based version lookup" skills/woostack-bootstrap/references/frameworks.md`
 Expected: exit status 1
 
-- [ ] **Step 2: Run the verification, confirm it fails**
+- [x] **Step 2: Run the verification, confirm it fails**
 
 Run: `grep -q "Registry-based version lookup" skills/woostack-bootstrap/references/frameworks.md`
 Expected: FAIL (exit status 1)
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Edit `skills/woostack-bootstrap/references/frameworks.md` to:
 1. Focus on the live lookup protocol using `npm view` or registry CLIs.
 2. Remove the static package list and all framework-specific gotchas.
 3. Provide general guidelines on peer dependencies and monorepo catalogs.
 
-- [ ] **Step 4: Run the verification, confirm it passes**
+- [x] **Step 4: Run the verification, confirm it passes**
 
 Run: `grep -q "Registry-based version lookup" skills/woostack-bootstrap/references/frameworks.md`
 Expected: PASS (exit status 0)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt create -m "docs: update frameworks reference to remove static list and gotchas"
@@ -208,17 +208,17 @@ gt create -m "docs: update frameworks reference to remove static list and gotcha
 - Modify: `skills/woostack-bootstrap/references/infrastructure.md`:1-183
 - Test: Verify the file contains generalized guidelines.
 
-- [ ] **Step 1: Write the verification command**
+- [x] **Step 1: Write the verification command**
 
 Run: `grep -q "Stack-agnostic database migrations" skills/woostack-bootstrap/references/infrastructure.md`
 Expected: exit status 1
 
-- [ ] **Step 2: Run the verification, confirm it fails**
+- [x] **Step 2: Run the verification, confirm it fails**
 
 Run: `grep -q "Stack-agnostic database migrations" skills/woostack-bootstrap/references/infrastructure.md`
 Expected: FAIL (exit status 1)
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Edit `skills/woostack-bootstrap/references/infrastructure.md` to:
 1. Provide general guidance on environment variable management and validation.
@@ -226,12 +226,12 @@ Edit `skills/woostack-bootstrap/references/infrastructure.md` to:
 3. Detail how to wrap auth/observability/database libraries in `@infrastructure/` modules.
 4. Remove the hardcoded Supabase, Vercel, Stripe, Axiom setup steps.
 
-- [ ] **Step 4: Run the verification, confirm it passes**
+- [x] **Step 4: Run the verification, confirm it passes**
 
 Run: `grep -q "Stack-agnostic database migrations" skills/woostack-bootstrap/references/infrastructure.md`
 Expected: PASS (exit status 0)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "docs: generalize infrastructure and production readiness"

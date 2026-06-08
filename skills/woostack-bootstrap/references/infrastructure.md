@@ -1,182 +1,75 @@
-# Infrastructure & Hosting
+# Infrastructure & Production Readiness
 
-Recommended deployment targets, CI/CD, env management, and managed services. Defaults assume small-to-mid scale; swap providers when scale or org policy requires it.
+Guidelines for deployment targets, environment management, migrations, CI/CD, and observability. Swap and configure providers based on project scale and requirements.
 
-## Hosting
+---
 
-| Surface | Default | Notes |
-|---|---|---|
-| Web app (`apps/web`) | **Vercel** | Native Next.js support; Edge runtime + ISR + Image Optimization out of the box. |
-| Landing page (`apps/landing`) | **Vercel** | Same project preferred or separate Vercel project for marketing-team autonomy. |
-| API (`apps/api`) | **Vercel Functions** (Fluid Compute) or **Cloudflare Workers** | Hono runs on both. Choose Vercel when colocated with web for shared env + preview URLs; Workers for global edge + lower cold-start cost. |
-| Mobile (`apps/mobile`) | **Expo EAS Build + Submit** | OTA updates via EAS Update; app store submission via EAS Submit. |
-| Mobile web build | Same Vercel project as `web` (subpath) or its own | Optional — only if mobile web is a shipping surface. |
+## Hosting & Cloud Deployment
 
-## Data layer
+Choose hosting targets based on the selected application architectures (serverless, containerized, or traditional VPS):
 
-**Supabase** is the default backend-as-a-service for new projects. It bundles Postgres, auth, storage, realtime, and edge functions behind one provider — fewer integrations to wire and a single dashboard for ops.
+- **Web Frontends**: Deploy to managed hosting providers (Vercel, Netlify, Cloudflare Pages) that support edge rendering, route-based caching, and automatic preview deployments out of the box.
+- **APIs & Backend Services**: 
+  - Deploy to serverless edge platforms (Vercel Functions, Cloudflare Workers, AWS Lambda) for auto-scaling and zero-maintenance global distribution.
+  - Deploy to container platforms (Fly.io, AWS ECS, GCP Cloud Run, Render) for long-running processes, websocket connections, and heavy computing needs.
+- **Mobile Apps**: Compile and submit through cloud build pipelines (e.g. Expo EAS for React Native, App Center) to handle certificates, profiles, and App Store/Play Store submissions.
 
-| Need | Default | Alternative |
-|---|---|---|
-| Relational DB | **Supabase Postgres** | Neon, RDS |
-| Auth | **Supabase Auth** | Auth0, custom |
-| Object storage | **Supabase Storage** | S3, R2, Vercel Blob |
-| Realtime | **Supabase Realtime** | Pusher, Ably |
-| Edge functions | **Supabase Edge Functions** (Deno) | Vercel Functions, Cloudflare Workers |
-| Key-value / cache | **Upstash Redis** (via Vercel Marketplace) | Vercel KV |
-| Edge config (static) | **Vercel Edge Config** | — |
-| Feature flags / experiments | **Vercel Flags SDK** (`flags` + `@flags-sdk/*` adapters) | LaunchDarkly, GrowthBook, Statsig |
-| Runtime cache | **Vercel Runtime Cache API** | App-level memoization |
+---
 
-**Provision:**
-- Create a Supabase project per environment (`dev`, `staging`, `prod`) or use Supabase branching for preview environments tied to PRs.
-- Pull connection strings + anon/service keys into Vercel env vars (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `DATABASE_URL`).
-- Use `@supabase/supabase-js` on web + mobile clients; on `apps/api` use the service role key for server-only operations.
-- Run schema migrations with the Supabase CLI (`supabase db push`) committed to the repo under `supabase/migrations/`.
+## Data Layer & Migrations
 
-## Auth
+Regardless of the chosen database provider (SQL or NoSQL), enforce the following production-readiness practices:
 
-**Supabase Auth** handles sign-up, sign-in, OAuth, magic links, MFA, and row-level security policies tied to the same Postgres instance. Use it unless a constraint forces otherwise.
+- **Stack-agnostic database migrations**: All schema mutations must be written as discrete, version-controlled migration files committed to the repository (e.g. under `supabase/migrations/`, `prisma/migrations/`, `db/migrate/`).
+- **Migration Execution**: Never run migrations from the local developer machine directly to production. CI/CD pipelines or deployment hooks must run migrations automatically during deployment.
+- **Connection Management**: Serverless API execution environments have connection limits. For relational databases, ensure connection pooling is configured (e.g. Supabase connection pooler, PgBouncer, AWS RDS Proxy) to prevent database exhaustion.
 
-| Default | When to use |
-|---|---|
-| **Supabase Auth** | Default. Covers email/password, OAuth (Google, Apple, GitHub, etc.), magic link, OTP, MFA. RLS policies enforce access in Postgres. |
-| **Auth0** | Enterprise SSO, strict compliance, existing IdP integration. |
-| **Custom (Hono + JWT + Postgres)** | Only when no managed provider fits. |
+---
 
-**Integration:**
-- Web (`apps/web`): `@supabase/ssr` for App Router cookie-based sessions.
-- Mobile (`apps/mobile`): `@supabase/supabase-js` + `expo-secure-store` for session persistence.
-- API (`apps/api`): validate JWTs via Supabase's JWKS endpoint or by using the service role for trusted server actions.
-- Row-level security: enable on every table; write policies that scope rows to `auth.uid()`.
+## Environment Variables
 
-## Feature flags
+- **Source of Truth**: Managed service dashboards (e.g., Vercel Project Settings, Fly.io Secrets, Github Secrets, AWS SSM Parameter Store).
+- **Local Development**: Use local `.env` files for local dev. **Never commit raw secrets to the repository.** Include a `.env.example` template in the root of the project with empty values.
+- **Ignored Files**: The root `.gitignore` must strictly cover `.env`, `.env.local`, `.env.*.local` files.
+- **Runtime Validation**: Use Zod, clean schemas, or framework validations to check for the presence of required environment variables at application startup, failing fast with descriptive errors if any are missing.
 
-**Vercel Flags SDK** is the default for runtime feature gating, A/B tests, and gradual rollouts across web + mobile + API. It abstracts the provider behind a typed `flag(...)` definition so the backing store (Edge Config, Statsig, LaunchDarkly, GrowthBook) can swap without touching call sites.
+---
 
-| Surface | Adapter |
-|---|---|
-| `apps/web`, `apps/landing` | `flags/next` for server + client components, route handlers, Middleware/Proxy |
-| `apps/api` (Hono) | `flags` core + `@flags-sdk/edge-config` (or chosen provider adapter) |
-| `apps/mobile` | `flags` core with a Resend-style server endpoint that returns evaluated flag values; cache in React Query |
+## Database Client Wrapper
 
-**Integration:**
-- Default backing store: **Vercel Edge Config** via `@flags-sdk/edge-config`. Swap to `@flags-sdk/statsig`, `@flags-sdk/launchdarkly`, or `@flags-sdk/growthbook` when experimentation or targeting needs outgrow Edge Config.
-- Define every flag in a single `packages/infrastructure/flags/` module: `export const myFlag = flag({ key, defaultValue, decide, adapter })`. Co-locate Zod schemas for flag values.
-- Identify users with a stable `identify()` function that reads the Supabase session — never trust client-passed identifiers for gating server-side behavior.
-- Server-side reads only inside Server Components, Route Handlers, or oRPC procedures. Client reads through `useFlag()` are fine but treat results as cosmetic — enforce gates on the server.
-- Precompute flags for Middleware/Proxy with `precompute([...])` to keep rewrites + redirects cacheable.
-- Env: `FLAGS_SECRET` (required, used to sign flag-overrides cookies + `.well-known/vercel/flags` endpoint), plus the chosen adapter's keys (`EDGE_CONFIG`, `STATSIG_SERVER_KEY`, etc.).
-- Expose the discovery endpoint (`/.well-known/vercel/flags`) on `apps/web` so the Vercel Toolbar can surface flags in preview deployments.
+Encapsulate database access within a shared `@infrastructure/db-client` package:
 
-## Email / messaging
+- **Vendor Abstraction**: Wrap database clients (e.g. Prisma, Drizzle, Supabase JS) in clean interface modules to keep the core application domain independent of the database vendor.
+- **Connection Isolation**: Limit direct connection instantiation to `@infrastructure/db-client`, exposing only high-level query interfaces or a single pooled client.
 
-| Need | Default |
-|---|---|
-| Transactional email | **Resend** |
-| Webhook delivery | **Inngest** or native Hono routes |
-| Chat / bot platforms | **Vercel Chat SDK** (Slack/Discord/Teams/etc.) |
+---
 
-**Resend integration:**
-- SDK: `resend` package consumed from `apps/api` (server-only — never expose `RESEND_API_KEY` to client bundles).
-- Templates: author with `@react-email/components`, render server-side, send via Resend.
-- Env: `RESEND_API_KEY` on Vercel; per-environment sending domains verified in the Resend dashboard.
+## Authentication & Identity
 
-## Billing
+Encapsulate authentication and session management within a shared `@infrastructure/auth` package:
 
-| Need | Default |
-|---|---|
-| Payments + subscriptions | **Stripe** |
-| Hosted checkout | **Stripe Checkout** |
-| Self-service subscription management | **Stripe Customer Portal** |
-| Webhook handling | Hono route on `apps/api` validating `Stripe-Signature` |
+- **SDK Isolation**: Wrap third-party auth SDKs (e.g. Supabase Auth, Clerk, Auth0) inside a unified interface so that downstream features do not directly import vendor libraries.
+- **Server-Side Verification**: Provide trusted helper methods for token verification and session retrieval that run in server-only contexts (e.g. middleware, API context handlers).
 
-**Stripe integration:**
-- SDK: `stripe` (server) consumed only from `apps/api`. Client surfaces use `@stripe/stripe-js` + `@stripe/react-stripe-js` when embedding Elements; otherwise redirect to Stripe-hosted Checkout / Portal.
-- Env: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` (server); `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` / `EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY` (client).
-- Webhook route: verify signature with raw request body — do not parse JSON first. Idempotently upsert subscription / invoice state into Supabase.
-- Test mode keys for `development` + `preview` Vercel environments; live keys only on `production`.
-- Place billing logic in `packages/features/billing/` per [architecture.md](architecture.md). oRPC procedures wrap Stripe SDK calls so web + mobile share contracts.
+---
 
-## Observability
+## Observability & Logging
 
-| Need | Default |
-|---|---|
-| Error tracking | **Axiom** (web + RN + API) |
-| Structured logs | **Axiom** (Vercel + Hono + RN SDKs) |
-| Metrics / vitals | **Axiom** dashboards on ingested events |
-| AI agent code review | **Vercel Agent** |
+Encapsulate logging, metrics, and error tracking within a shared `@infrastructure/observability` package:
 
-**Axiom integration:**
-- Vercel projects: install the **Axiom Vercel integration** to ship runtime logs + Web Vitals to a dataset automatically.
-- API (`apps/api`): use `@axiomhq/js` or `@axiomhq/winston` to emit structured logs and capture exceptions; tag every event with `service`, `env`, `release`.
-- Web (`apps/web`, `apps/landing`): `@axiomhq/nextjs` for client + server logging and unhandled-error capture.
-- Mobile (`apps/mobile`): `@axiomhq/react-native` or hand-rolled ingest client; flush on background.
-- Env: `AXIOM_TOKEN`, `AXIOM_DATASET`, `AXIOM_ORG_ID` on Vercel + EAS Secrets.
-- Alerts + dashboards configured in Axiom (latency, error rate, web vitals percentiles). One dataset per environment.
+- **Structured Logging**: Emit logs as structured JSON (containing keys like `timestamp`, `level`, `message`, `service`, `env`) so they are easily queryable in logging platforms.
+- **Error Capturing**: Catch unhandled exceptions and ship them to an error tracking service (e.g. Sentry, Axiom, Datadog).
+- **Secrets Redaction**: Redact sensitive headers, API keys, and authorization tokens at the logger level before transmitting events to telemetry backends.
 
-## CI/CD
+---
 
-GitHub Actions only. Single workflow per project — keep it small.
+## CI/CD Pipelines
 
-```
-.github/workflows/ci.yml
-```
+Implement a single root CI pipeline (typically using GitHub Actions) to run checks on every pull request targeting integration branches.
 
-Minimum jobs on every PR:
-
-1. **Lint + format check** — `biome ci`
-2. **Build** — `pnpm turbo build`
-3. **Test changed packages** — `pnpm test:changed`
-
-Notes:
-- **Do not** run `pnpm typecheck` in CI by default. It's slow and redundant if `build` succeeds. Run locally before pushing, or add a separate optional check.
-- Run on Node 22 LTS or the latest LTS at bootstrap time. Pin via `actions/setup-node` `node-version`.
-- Pin `pnpm` to the `packageManager` field via `pnpm/action-setup`.
-- Cache `~/.pnpm-store` and Turborepo remote cache (`TURBO_TOKEN` + `TURBO_TEAM`).
-
-### Branch + PR flow
-
-- Branch tool: **Graphite** (`gt create`, `gt modify`, `gt submit`).
-- Trunk: `main`. Optional `staging` for non-critical merges (e.g. Dependabot).
-- Dependabot weekly scan targeting `staging` (or `main` if no staging branch).
-
-### Deployment pipeline
-
-- Vercel auto-deploys every PR to a preview URL.
-- Production deploy on merge to `main`.
-- EAS Update channel mapping: `main` → `production`, feature branches → `preview`.
-- Use Vercel rollback button or `vercel rollback` for fast revert; never force-push to `main`.
-
-## Environment variables
-
-- Source of truth: Vercel (web/api) + EAS Secrets (mobile).
-- Local dev: `vercel env pull .env.local`.
-- Never commit `.env*` files. `.gitignore` must cover `.env`, `.env.local`, `.env.*.local`.
-- Per-environment values: `development`, `preview`, `production` on Vercel.
-- For client-exposed values on web: `NEXT_PUBLIC_*`. On mobile: `EXPO_PUBLIC_*`.
-
-## Domain + DNS
-
-- Domains managed in Vercel where possible (auto SSL).
-- Production: apex (`example.com`) + `www` redirect.
-- Preview deploys get autogenerated `*.vercel.app` subdomains.
-
-## Security baselines
-
-- HTTPS everywhere (Vercel enforces).
-- Strict CSP on web (`next.config.ts` headers).
-- Vercel Firewall: enable managed rulesets + bot management.
-- API: validate all inputs through Zod (oRPC contracts).
-- Secrets: never log them. Redact at the logger before shipping to Axiom (deny-list `STRIPE_SECRET_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `AXIOM_TOKEN`, auth headers).
-- Stripe webhook endpoints: reject any request whose `Stripe-Signature` fails verification — do not log raw payloads on failure.
-
-## When to deviate
-
-The defaults assume: a small team, web + mobile + API, ship-fast bias. Swap providers when:
-
-- **Cost** dominates at scale → consider self-hosted or hyperscaler primitives (S3, RDS, ECS).
-- **Compliance** requires a specific region/provider (HIPAA, FedRAMP).
-- **Existing org infra** already owns one of these layers — reuse it.
-
-Document any deviation in the project's own `README.md` so future contributors know why the spec was bent.
+- **PR Validation Checks**:
+  1. **Linting & Formatting**: Verify code style constraints (e.g. `biome ci` or `eslint`).
+  2. **Type Checking**: Verify type safety across the monorepo.
+  3. **Build Pipeline**: Compile all applications in the workspace (e.g. `pnpm turbo build`).
+  4. **Testing**: Run unit and integration tests (e.g. `pnpm test`).
+- **Deployment Pipelines**: Set up automated deployments. Merges to the primary branch (`main`) trigger production builds and deployments; PR branches trigger preview/staging deployments automatically.
