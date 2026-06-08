@@ -27,6 +27,6 @@ To prevent dependency drift across multiple apps and packages in the monorepo, u
 
 When composing a dependency stack dynamically:
 
-- **Peer Dependency Alignment**: Check for peer dependency warnings during install. If framework A depends on React v18, do not install React v19 at the root catalog. Run registry checks on B's peer constraints before locking in A.
+- **Peer Dependency Alignment**: Check for peer dependency warnings during install. If framework A depends on React v18, do not install React v19 at the root catalog. Run registry checks on A's peer constraints before locking in React's version.
 - **Monorepo Workspace Mappings**: Verify that local monorepo packages (e.g., `@infrastructure/db-client`) are resolved from the workspace rather than trying to fetch them from external registries.
 - **Native Module Constraints**: Mobile, desktop, or edge-compute platforms may restrict native binary dependencies. Ensure any chosen packages do not violate target runtime limitations.

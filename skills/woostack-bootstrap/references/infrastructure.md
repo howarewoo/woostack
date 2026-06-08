@@ -22,7 +22,7 @@ Regardless of the chosen database provider (SQL or NoSQL), enforce the following
 
 - **Stack-agnostic database migrations**: All schema mutations must be written as discrete, version-controlled migration files committed to the repository (e.g. under `supabase/migrations/`, `prisma/migrations/`, `db/migrate/`).
 - **Migration Execution**: Never run migrations from the local developer machine directly to production. CI/CD pipelines or deployment hooks must run migrations automatically during deployment.
-- **Connection Management**: Serverless API execution environments have connection limits. Ensure connection pooling is configured (e.g. Supabase connection pooler, PgBouncer, AWS RDS Proxy) to prevent database exhaustion.
+- **Connection Management**: Serverless API execution environments have connection limits. For relational databases, ensure connection pooling is configured (e.g. Supabase connection pooler, PgBouncer, AWS RDS Proxy) to prevent database exhaustion.
 
 ---
 
@@ -32,6 +32,24 @@ Regardless of the chosen database provider (SQL or NoSQL), enforce the following
 - **Local Development**: Use local `.env` files for local dev. **Never commit raw secrets to the repository.** Include a `.env.example` template in the root of the project with empty values.
 - **Ignored Files**: The root `.gitignore` must strictly cover `.env`, `.env.local`, `.env.*.local` files.
 - **Runtime Validation**: Use Zod, clean schemas, or framework validations to check for the presence of required environment variables at application startup, failing fast with descriptive errors if any are missing.
+
+---
+
+## Database Client Wrapper
+
+Encapsulate database access within a shared `@infrastructure/db-client` package:
+
+- **Vendor Abstraction**: Wrap database clients (e.g. Prisma, Drizzle, Supabase JS) in clean interface modules to keep the core application domain independent of the database vendor.
+- **Connection Isolation**: Limit direct connection instantiation to `@infrastructure/db-client`, exposing only high-level query interfaces or a single pooled client.
+
+---
+
+## Authentication & Identity
+
+Encapsulate authentication and session management within a shared `@infrastructure/auth` package:
+
+- **SDK Isolation**: Wrap third-party auth SDKs (e.g. Supabase Auth, Clerk, Auth0) inside a unified interface so that downstream features do not directly import vendor libraries.
+- **Server-Side Verification**: Provide trusted helper methods for token verification and session retrieval that run in server-only contexts (e.g. middleware, API context handlers).
 
 ---
 
