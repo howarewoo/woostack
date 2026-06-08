@@ -96,29 +96,29 @@ gt modify -c -m "docs: rewrite decisions reference to use dynamic questionnaire"
 - Modify: `skills/woostack-bootstrap/references/bootstrap.md`:1-187
 - Test: Verify the file contains instructions for custom CLI generation.
 
-- [ ] **Step 1: Write the verification command**
+- [x] **Step 1: Write the verification command**
 
 Run: `grep -q "CLI bootstrap commands for the chosen stack" skills/woostack-bootstrap/references/bootstrap.md`
 Expected: exit status 1
 
-- [ ] **Step 2: Run the verification, confirm it fails**
+- [x] **Step 2: Run the verification, confirm it fails**
 
 Run: `grep -q "CLI bootstrap commands for the chosen stack" skills/woostack-bootstrap/references/bootstrap.md`
 Expected: FAIL (exit status 1)
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Edit `skills/woostack-bootstrap/references/bootstrap.md` to:
 1. Generalize inputs to include the chosen stack's specific services.
 2. Outline how to run arbitrary CLIs (Next.js, FastAPI, etc.) and clean their boilerplates.
 3. Detail how to initialize workspace files dynamically.
 
-- [ ] **Step 4: Run the verification, confirm it passes**
+- [x] **Step 4: Run the verification, confirm it passes**
 
 Run: `grep -q "CLI bootstrap commands for the chosen stack" skills/woostack-bootstrap/references/bootstrap.md`
 Expected: PASS (exit status 0)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt create -m "docs: generalize bootstrap procedure for arbitrary CLIs"
@@ -132,29 +132,29 @@ gt create -m "docs: generalize bootstrap procedure for arbitrary CLIs"
 - Modify: `skills/woostack-bootstrap/references/architecture.md`:1-103
 - Test: Verify the file details multi-language workspace boundaries.
 
-- [ ] **Step 1: Write the verification command**
+- [x] **Step 1: Write the verification command**
 
 Run: `grep -q "guidance for multi-language monorepos" skills/woostack-bootstrap/references/architecture.md`
 Expected: exit status 1
 
-- [ ] **Step 2: Run the verification, confirm it fails**
+- [x] **Step 2: Run the verification, confirm it fails**
 
 Run: `grep -q "guidance for multi-language monorepos" skills/woostack-bootstrap/references/architecture.md`
 Expected: FAIL (exit status 1)
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Edit `skills/woostack-bootstrap/references/architecture.md` to:
 1. Adapt the package tiers to generalize how non-JS/TS services (Python, Rust, etc.) reside in the structure.
 2. Explain how to manage dependencies natively (e.g. `cargo`, `uv`) and orchestrate build pipelines with Turborepo.
 3. Generalize `@infrastructure/` wrapper packages to be database/auth provider agnostic.
 
-- [ ] **Step 4: Run the verification, confirm it passes**
+- [x] **Step 4: Run the verification, confirm it passes**
 
 Run: `grep -q "guidance for multi-language monorepos" skills/woostack-bootstrap/references/architecture.md`
 Expected: PASS (exit status 0)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "docs: update architecture reference for dynamic package slicing"
