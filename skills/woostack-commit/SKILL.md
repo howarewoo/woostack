@@ -149,11 +149,11 @@ Do not stage generated files, secrets, `.env*`, unrelated dirty files, or user w
 
 ### 4.5 Invariant check (advisory)
 
-When the staged changes touch `.woostack/specs/*.md` or `.woostack/plans/*.md`, run the cheap feature-state invariant checks on every affected spec so the `/woostack-status` board stays honest. The affected set is every directly touched spec plus the spec named by each touched plan's `**Source:** .woostack/specs/<file>.md` line. These are **advisory**: print any violation as a single non-blocking line in the commit report and continue. Never abort, stage differently, or change the commit because of them.
+When the staged changes touch `.woostack/specs/*.md`, `.woostack/plans/*.md`, or `.woostack/fixes/*.md`, run the cheap feature-state invariant checks on every affected spec/fix so the `/woostack-status` board stays honest. The affected set is every directly touched spec/fix plus the spec named by each touched plan's `**Source:** .woostack/specs/<file>.md` line. These are **advisory**: print any violation as a single non-blocking line in the commit report and continue. Never abort, stage differently, or change the commit because of them.
 
-For each affected spec, check:
+For each affected spec/fix, check:
 
-- **1:1 plan** — exactly one plan resolves to it: a plan whose first lines carry `**Source:** .woostack/specs/<file>.md` (legacy same-slug match is the fallback). Zero or two-or-more resolved plans is a violation.
+- **1:1 plan** — exactly one plan resolves to it (for specs). (For fixes under `fixes/`, they are self-contained plans and this check is skipped).
 - **`branch:` present** — the frontmatter `branch:` is non-empty and not the literal `unknown`.
 - **`status:` in the enum** — the frontmatter `status:` is one of `draft｜hardened｜approved｜planning｜executing｜in-review｜done｜abandoned`.
 
@@ -244,12 +244,12 @@ Set or update the body with this structure:
 
 - [ ] <step only verifiable post-merge — deploy / migration / env-gated>
 
-Spec: .woostack/specs/<file>.md
+Spec: .woostack/specs/<file>.md  (OR .woostack/fixes/<file>.md for fixes)
 ```
 
 Rules:
 
-- End the body with a `Spec: .woostack/specs/<file>.md` **trailer line** naming the spec this PR's increments trace to — the spec whose `branch:` matches the current branch, or the spec under active work. The `/woostack-status` board enumerates a spec's increment PRs by searching this exact trailer (`gh pr list --search "Spec: <path>"`); the contract is defined in [`../woostack-status/references/conventions.md`](../woostack-status/references/conventions.md). Omit the trailer only when the change traces to no spec (for example a repo-meta or tooling edit).
+- End the body with a `Spec: .woostack/specs/<file>.md` or `Spec: .woostack/fixes/<file>.md` **trailer line** naming the spec/fix this PR's increments trace to — the spec/fix whose `branch:` matches the current branch, or the spec/fix under active work. The `/woostack-status` board enumerates a spec/fix's increment PRs by searching this exact trailer (`gh pr list --search "Spec: <path>"`); the contract is defined in [`../woostack-status/references/conventions.md`](../woostack-status/references/conventions.md). Omit the trailer only when the change traces to no spec/fix (for example a repo-meta or tooling edit).
 - State the **Goal** as intent or the problem solved in one or two sentences — not a change list. It is distinct from Summary, which lists *what* changed. Always present it.
 - Keep Summary bullets concise and specific. Include only changes in the committed diff.
 - Under **Automated**, list the commands/tests actually run, plus the configured `commit.pre_commit` command and result when it ran. Show this group whenever an automated check (test, lint, typecheck, `pre_commit`) could have run for the change: list results, or `Not run` with the reason when one was expected but skipped. Omit `### Automated` entirely when no automated check applies to the change (for example a doc-only edit in a repo with no test harness) rather than emitting a `Not run` placeholder.
