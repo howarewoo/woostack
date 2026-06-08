@@ -19,9 +19,10 @@ they do not restate these rules (cross-link, do not duplicate).
 - fix PRs (from [`woostack-fix`](../../woostack-fix/SKILL.md)) carry a parallel
   `Spec: .woostack/fixes/<file>.md` trailer (also written by woostack-commit), but a fix is
   **not** a spec increment: that trailer attaches the PR to its fix file, and a fix's lifecycle
-  is tracked by the fix file's own frontmatter `status:`, not by attaching to a spec. The board
-  globs `.woostack/fixes/*.md` directly rather than resolving fixes through the spec trailer
-  search above, so the `specs/<basename>` exact-match never cross-matches a fix.
+  is tracked by the fix file's own frontmatter `status:`, not by attaching to a spec. Because the
+  spec trailer search exact-matches `specs/<basename>`, a `fixes/` trailer never cross-matches a
+  spec; surfacing fixes on the board from their `.woostack/fixes/*.md` files is owned by the
+  status board's fix integration, separate from this spec-trailer join.
 - `spec.branch:` names the active increment's branch.
 - An overnight run ([`woostack-execute-overnight`](../../woostack-execute-overnight/SKILL.md)) may
   produce **tree-stacked** increment PRs — multiple `## Track:`s branched off the common base, so a

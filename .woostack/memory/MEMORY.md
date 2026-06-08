@@ -4,6 +4,7 @@
 - [skill-description-angle-bracket-placeholders](skill-description-angle-bracket-placeholders.md) `convention` scope=`skills/**/SKILL.md` — Angle-bracket placeholders like `<plan-path>` in a SKILL.md `description:` are a
 - [skill-test-assert-ascii-token](skill-test-assert-ascii-token.md) `convention` scope=`skills/**/scripts/tests/*.sh` — Grep-based skill tests should assert an ASCII token, not a unicode literal (e.g.
 - [woostack-command-surface-bookkeeping](woostack-command-surface-bookkeeping.md) `convention` scope=`AGENTS.md` — Adding/removing a public command means updating the count + lists in five places
+- [woostack-commit-template-fence-trailer](woostack-commit-template-fence-trailer.md) `convention` scope=`skills/woostack-commit/SKILL.md` — woostack-commit PR-body template must keep ONLY the clean Spec: .woostack/specs/
 - [woostack-feature-state-invariant](woostack-feature-state-invariant.md) `convention` scope=`.woostack/specs/**` — Specs, plans, and increment PRs are joined by Source and Spec trailers.
 - [gh-search-fuzzy-trailer-match](gh-search-fuzzy-trailer-match.md) `gotcha` scope=`skills/woostack-status/scripts/**` — `gh pr list --search` tokenizes paths and cross-matches; exact-match the trailer
 - [grep-c-counts-lines-not-occurrences](grep-c-counts-lines-not-occurrences.md) `gotcha` scope=`.woostack/plans/**` — A plan's `grep -c` verification counts matching LINES, not occurrences — a phras

@@ -6,7 +6,7 @@ tags: skills, docs, counts, surface
 hook: Adding/removing a public command means updating the count + lists in five places, which drift independently.
 updated: 2026-06-06
 source: .woostack/plans/2026-06-05-woostack-plan.md
-recall_count: 37
+recall_count: 39
 last_recalled: 2026-06-08
 ---
 The public-command count and skill lists are duplicated across several files and
