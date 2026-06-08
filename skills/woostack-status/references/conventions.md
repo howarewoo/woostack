@@ -16,6 +16,12 @@ they do not restate these rules (cross-link, do not duplicate).
   body (`specs/<basename>`) — `gh --search` is fuzzy and would otherwise cross-match
   look-alike specs, so an untrailered or sibling PR never attaches to the wrong spec. When no
   trailered PR resolves, it falls back to the active `spec.branch:` head PR (marked partial).
+- fix PRs (from [`woostack-fix`](../../woostack-fix/SKILL.md)) carry a parallel
+  `Spec: .woostack/fixes/<file>.md` trailer (also written by woostack-commit), but a fix is
+  **not** a spec increment: that trailer attaches the PR to its fix file, and a fix's lifecycle
+  is tracked by the fix file's own frontmatter `status:`, not by attaching to a spec. The board
+  globs `.woostack/fixes/*.md` directly rather than resolving fixes through the spec trailer
+  search above, so the `specs/<basename>` exact-match never cross-matches a fix.
 - `spec.branch:` names the active increment's branch.
 - An overnight run ([`woostack-execute-overnight`](../../woostack-execute-overnight/SKILL.md)) may
   produce **tree-stacked** increment PRs — multiple `## Track:`s branched off the common base, so a

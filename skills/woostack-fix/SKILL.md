@@ -74,7 +74,7 @@ The skill has exactly **one** hard gate: **fix plan approval**. Because the plan
    ```
    /woostack-commit
    ```
-   Once the PR is open, update the fix plan's frontmatter to `status: in-review` (once merged, `status: done`). The fix file's frontmatter `status:` is the source of truth for the fix lifecycle — fixes are tracked by their `.woostack/fixes/` file, not the spec-centric `/woostack-status` board, which enumerates increment PRs only via the `Spec: .woostack/specs/<file>.md` trailer that [`woostack-commit`](../woostack-commit/SKILL.md) writes (it never emits a `fixes/` trailer).
+   Once the PR is open, update the fix plan's frontmatter to `status: in-review` (once merged, `status: done`). The fix file's frontmatter `status:` is the source of truth for the fix lifecycle — fixes are tracked by their `.woostack/fixes/` file, not the spec-centric `/woostack-status` board. [`woostack-commit`](../woostack-commit/SKILL.md) still writes a `Spec: .woostack/fixes/<file>.md` trailer on the fix PR (mirroring the `Spec: .woostack/specs/<file>.md` trailer it writes for spec increments), but that trailer attaches the PR to the fix file rather than to a spec — the fix file's frontmatter remains the lifecycle source of truth.
 
 7. **Distill Memory gotchas.**
    At the end of a successful execution, write **one** `gotcha` note to the `.woostack/memory/` store describing the root cause and the fix patterns learned. Dedupe, update `MEMORY.md`, and rebuild the index using `build-index.sh` and `doctor.sh` as required by the [memory contract](../woostack-init/references/memory.md).

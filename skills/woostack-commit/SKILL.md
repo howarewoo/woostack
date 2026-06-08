@@ -244,7 +244,7 @@ Set or update the body with this structure:
 
 - [ ] <step only verifiable post-merge — deploy / migration / env-gated>
 
-Spec: .woostack/specs/<file>.md  (OR .woostack/fixes/<file>.md for fixes)
+Spec: .woostack/specs/<file>.md
 ```
 
 Rules:
