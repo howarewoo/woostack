@@ -10,6 +10,7 @@ for each phase:
 | Phase | Skill |
 |---|---|
 | Build a feature, idea → implementation (gated chain — the skill owns the steps) | `woostack-build` |
+| Fix a small issue, diagnosis → implementation (gated fix loop) | `woostack-fix` |
 | Review | `woostack-review` |
 | Address review feedback | `woostack-address-comments` |
 

@@ -26,7 +26,7 @@ Templates rot. Dependencies drift, breaking changes pile up, and every new proje
 pnpx skills add howarewoo/woostack
 ```
 
-This installs the woostack **collection** into your agent's skill directory and records it in `skills-lock.json`. The public command/adoption surface is thirteen skills: using-woostack, woostack-init, woostack-bootstrap, woostack-build, woostack-plan, woostack-execute, woostack-execute-overnight, woostack-commit, woostack-review, woostack-address-comments, woostack-status, woostack-visualize, and woostack-debug. The collection also installs two internal sub-skills used by `woostack-build` — `woostack-ideate` and `woostack-harden`; neither is a `/woostack-*` command. Works in any agent that respects the `skills` convention: Claude Code, Cursor, Codex, Aider, and others.
+This installs the woostack **collection** into your agent's skill directory and records it in `skills-lock.json`. The public command/adoption surface is fifteen skills: using-woostack, woostack-init, woostack-bootstrap, woostack-build, woostack-fix, woostack-plan, woostack-execute, woostack-execute-overnight, woostack-commit, woostack-review, woostack-address-comments, woostack-status, woostack-visualize, woostack-debug, and woostack-tdd. The collection also installs two internal sub-skills used by `woostack-build` — `woostack-ideate` and `woostack-harden`; neither is a `/woostack-*` command. Works in any agent that respects the `skills` convention: Claude Code, Cursor, Codex, Aider, and others.
 
 > **pnpm is the recommended package manager.** Commands in this repo use `pnpx` (and `pnpm`) over `npx` / `npm`. If you only have npm, `npx skills add howarewoo/woostack` works too, but woostack-bootstrapped projects use a pnpm catalog, so pnpm is the path of least friction.
 
@@ -60,6 +60,16 @@ ideate → markdown spec → harden → approve spec → plan → execute (TDD) 
 ```
 
 It sequences woostack's own ideate, harden, plan, and execute phases (`woostack-ideate`, `woostack-harden`, `woostack-plan`, `woostack-execute`), inheriting the ideate design gate and hosting the relocated spec-approval gate before planning — the build loop has no external skill dependencies. Specs and plans are both written as markdown under `.woostack/`; an HTML render is available on demand for a richer view but is never the authored format. Work ships as PR-sized stacked increments (soft target ≤500 LOC) — one plan per spec, multiple PRs per plan — each committed, reviewed (`woostack-review --fast`), and distilled. The execution-handoff gate lets you Go (execute now), Hand off (execute later/elsewhere), or Run overnight (`woostack-execute-overnight`, unattended). Go ends on the reviewed PR stack; Run overnight ends on a reviewed (or partially reviewed, blockers logged) stack plus a morning report; Hand off stops at the spec+plan PR. It never merges. → [SKILL.md](skills/woostack-build/SKILL.md)
+
+### `/woostack-fix <target> [description]`: small-change fix loop
+
+The lightweight counterpart to `/woostack-build` for bugs, hotfixes, and small refactors:
+
+```
+diagnose root cause (woostack-debug) → fix plan (.woostack/fixes/ markdown) → harden → approve (GATE) → execute (TDD) → commit
+```
+
+Because a fix is smaller than a feature, the spec and the plan collapse into one markdown file under `.woostack/fixes/`, and the loop has exactly **one** hard gate — fix-plan approval — before any code changes. It diagnoses with `woostack-debug` (no guess-and-check), drives every change with a failing test first, and commits via `woostack-commit`. Never merges. → [SKILL.md](skills/woostack-fix/SKILL.md)
 
 ### `/woostack-plan <spec-path>`: write a plan from a spec
 
