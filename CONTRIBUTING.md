@@ -45,7 +45,7 @@ See [AGENTS.md](AGENTS.md) for the full repo contract; this file is the short co
 
 - **Skill assets only.** Markdown, plus the support files a skill ships (HTML templates and specs, the review engine's shell scripts and prompts, JSON config). No *application* code, app build configs, or app lockfiles belong in this repo.
 - **No fabricated versions.** When a skill needs a version, the procedure resolves it live (`npm view <pkg> version`). Reference frameworks by name, not by version, except in `skills/woostack-bootstrap/references/frameworks.md`, which may pin exact versions when a known incompatibility forces it.
-- **Consumer state lives under `.woostack/`** in the *target* repo a skill runs against — `specs/`, `plans/`, `config.json`, `memory.md` (tracked), and `metrics.json` (gitignored). Don't reintroduce the old `.woo-review/` paths.
+- **Consumer state lives under `.woostack/`** in the *target* repo a skill runs against — `specs/`, `plans/`, and `config.json` (tracked), plus local-only `memory.md` / `memory/` and `metrics.json` (gitignored). Don't reintroduce the old `.woo-review/` paths.
 - Prefer tables for option matrices, bulleted lists for stepwise procedures.
 - Keep examples short. The skill describes intent; project-local docs cover the specifics.
 - **Cross-link rather than duplicate.** If a fact lives in `architecture.md`, link to it from `patterns.md`; don't restate.

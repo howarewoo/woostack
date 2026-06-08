@@ -48,8 +48,10 @@ pnpm-debug.log*
 *.tsbuildinfo
 .vercel
 
-# woostack: local-only review metrics (config.json and memory.md stay tracked)
+# woostack: local-only review metrics (config.json stays tracked)
 .woostack/metrics.json
+.woostack/memory.md
+.woostack/memory/
 # woostack: disposable HTML renders (regenerated from source)
 .woostack/visuals/
 # woostack: per-run overnight execution reports (regenerated each run)
