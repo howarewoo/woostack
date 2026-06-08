@@ -182,7 +182,8 @@ next_action() {
       draft)      echo "harden the fix plan (woostack-harden)" ;;
       hardened)   echo "get fix plan approval (hard gate)" ;;
       approved)   echo "execute the fix (woostack-fix)" ;;
-      executing)  echo "finish fix ($done/$total); $merged/$prcount increments shipped" ;;
+      executing)  if [ "$prcount" -gt 0 ]; then echo "finish fix ($done/$total); $merged/$prcount increments shipped";
+                  else echo "finish fix ($done/$total) - open the fix PR"; fi ;;
       in-review)  echo "address comments / merge when green" ;;
       done)       echo "-" ;;
       abandoned)  echo "-" ;;
