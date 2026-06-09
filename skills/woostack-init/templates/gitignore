@@ -3,6 +3,8 @@ metrics.json
 *.local.*
 visuals/
 overnight/
+memory.md
+memory/
 
 # Obsidian per-user UI state (the shared .obsidian/*.json config IS tracked).
 .obsidian/workspace*

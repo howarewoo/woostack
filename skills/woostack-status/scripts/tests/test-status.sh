@@ -46,7 +46,7 @@ EOF
 
 empty="$(mktemp -d)"
 run_status "$empty/.woostack"
-assert_contains "$OUT" "no specs found" "empty state prints guidance"
+assert_contains "$OUT" "no specs or fixes found" "empty state prints guidance"
 assert_exit 0 "$CODE" "empty state exits 0"
 
 r="$(mktemp -d)/.woostack"

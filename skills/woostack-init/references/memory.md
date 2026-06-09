@@ -23,12 +23,12 @@ The `/woostack-init` scaffold verb creates this tree in a consumer repo:
 ├── specs/           woostack-build markdown specs (type: spec)
 ├── plans/           woostack-build markdown plans
 ├── config.json      { "review": {} } skeleton
-└── .gitignore       ignores metrics.json + *.local.* ; tracks memory/specs/plans/config
+└── .gitignore       ignores metrics.json, *.local.*, memory.md, and memory/ ; tracks specs/plans/config
 ```
 
 The `config.json` file uses a top-level namespace-per-tool convention: `"review"` is the key for woostack-review settings (see [../../woostack-review/SKILL.md](../../woostack-review/SKILL.md) for the schema of that namespace). The memory store needs no config in increment A. Future tools add sibling keys (`"memory"`, etc.) as needed; init scaffolds only the `{ "review": {} }` skeleton and documents the convention — it does not own the per-tool schemas.
 
-The `.gitignore` ignores `metrics.json` (the review engine's per-clone rolling aggregate) and `*.local.*` (reserved for per-developer overrides such as `config.local.json`). Everything else — `memory.md`, `memory/`, `specs/`, `plans/`, `config.json` — is shared team knowledge and is tracked.
+The `.gitignore` ignores `metrics.json` (the review engine's per-clone rolling aggregate), `*.local.*` (reserved for per-developer overrides such as `config.local.json`), `memory.md` (the flat global shard), and the `memory/` directory (the scoped per-fact notes). This ensures that memory remains local-only to each clone and is not committed. Everything else — `specs/`, `plans/`, `fixes/`, `config.json` — is shared team knowledge and is tracked.
 
 ---
 

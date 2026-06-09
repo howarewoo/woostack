@@ -125,19 +125,16 @@ Then advance to the next increment.
 Stop when every increment is implemented, checked off, committed, reviewed, and distilled —
 leaving a Graphite stack of reviewed PRs. "Reviewed" is mode-dependent: by `woostack-review
 --fast` in inline mode, and by the per-task spec + quality subagent loops (plus the human's
-post-execution review) in subagent mode. Run the [memory sweep on handback](#memory-sweep-on-handback) first, then report the
-branches/PRs and their review verdicts or mode. **Never merge.**
+post-execution review) in subagent mode. Report the branches/PRs and their review verdicts or
+mode. **Never merge.**
 
-## Memory sweep on handback
+## Memory is local-only
 
-Before this skill yields control back **for any reason** — the reviewed-stack terminal state
-above, or any blocking stop in [When to stop and ask](#when-to-stop-and-ask) — sweep any
-distilled memory so it is never stranded. If `.woostack/memory/` has non-ignored uncommitted
-changes, run one final [`woostack-commit`](../woostack-commit/SKILL.md) on the current
-increment's branch; it stages `.woostack/memory/` for you. This is necessarily a memory-only
-commit when the increment's code is already committed and reviewed. Skip it when memory is
-clean — never create an empty commit. Intermediate increments need nothing extra: increment
-N's distilled memory is swept by increment N+1's commit.
+Distilled memory notes (step 7) are written to `.woostack/memory/`, which is **local-only and
+gitignored** ([memory contract](../woostack-init/references/memory.md)). They persist on disk the
+moment they are written, so there is nothing to commit and nothing to strand across increments or
+handback. Do **not** force-stage (`git add -f`) or commit memory —
+[`woostack-commit`](../woostack-commit/SKILL.md) refuses it by design.
 
 ## When to stop and ask
 
@@ -154,8 +151,8 @@ and escalates to the user only when debug cannot establish a root cause:
   establish a root cause. Applies to both the inline and subagent drivers.
 - A review returns REQUEST_CHANGES — handle the findings before continuing.
 
-On every stop above, run the [memory sweep on handback](#memory-sweep-on-handback) before
-surfacing the stop, so a mid-run distill (e.g. a `woostack-debug` detour) is never stranded.
+A mid-run distill (e.g. a `woostack-debug` detour) is never stranded: memory is local-only and
+persists on disk the moment it is written (see [Memory is local-only](#memory-is-local-only)).
 
 Return to the plan-review step if the plan is updated or the approach needs rethinking.
 

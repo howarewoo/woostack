@@ -1,6 +1,8 @@
 # Transient, per-clone — not shared knowledge.
 metrics.json
 *.local.*
+memory.md
+memory/
 
 # Obsidian per-user UI state (the shared .obsidian/*.json config IS tracked).
 .obsidian/workspace*

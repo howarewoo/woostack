@@ -1,2 +1,0 @@
-- .woostack/specs and .woostack/plans are tracked skill artifacts; do not flag them as stray.
-- woostack-review --fast skips PRs with 0 code files (markdown/skill-docs only, prefetch "no code files changed"); inline-mode woostack-execute increments in this repo get no automated swarm review — review them manually.

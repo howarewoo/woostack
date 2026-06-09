@@ -144,11 +144,11 @@ Review and address-comments need the GitHub CLI (`gh`) authenticated for any ste
 
 ## Concepts
 
-**Artifacts live under `.woostack/`.** Each project the skills touch keeps its working artifacts there: markdown specs in `.woostack/specs/`, markdown plans in `.woostack/plans/`, and review config + memory in `.woostack/config.json` and `.woostack/memory.md`. `.woostack/metrics.json` is per-clone and gitignored. See [development.md](skills/woostack-bootstrap/references/development.md).
+**Artifacts live under `.woostack/`.** Each project the skills touch keeps its working artifacts there: markdown specs in `.woostack/specs/`, markdown plans in `.woostack/plans/`, and review config in `.woostack/config.json`. `.woostack/metrics.json`, plus the local-only memory (`.woostack/memory.md` and `.woostack/memory/`), are per-clone and gitignored. See [development.md](skills/woostack-bootstrap/references/development.md).
 
 **Branching model.** Bootstrapped projects use `main` (production) ← `staging` (integration) ← `feature/*` (one change, one PR). Feature branches cut from `staging` and PR back into it; `staging` merges to `main` on a release cadence. → [development.md](skills/woostack-bootstrap/references/development.md)
 
-**Memory: scope-routed notes that persist across runs.** The skills accumulate durable learnings — patterns, decisions, gotchas, conventions, hotspots — so later runs don't re-litigate or re-discover what an earlier run already settled. Memory is two coexisting layers, both checked into the repo:
+**Memory: scope-routed notes that persist across runs.** The skills accumulate durable learnings — patterns, decisions, gotchas, conventions, hotspots — so later runs don't re-litigate or re-discover what an earlier run already settled. Memory is two coexisting layers, both local-only and gitignored:
 
 - **Flat shard** (`.woostack/memory.md`) — a free-form bullet list, always loaded in full. This is where accept-by-design dismissals land (so future reviews don't re-raise a finding you intentionally accepted).
 - **Scope-routed store** (`.woostack/memory/`) — one Markdown note per fact, each with a `scope:` glob declaring which files it governs (e.g. `packages/api/**`). A derived index (`MEMORY.md`) carries one cheap line per note. When a skill loads context for a working set of files, it matches only the notes whose scope overlaps those files, plus their direct `[[wikilinks]]` (one hop). Recall stays sub-linear: on a repo with 500 notes, only the handful touching the changed files load, not the whole corpus.
