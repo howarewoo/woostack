@@ -38,7 +38,7 @@ Present the complete changeset in the conversation transcript as a before-and-af
 - Explicitly flag any un-adjudicable conflicts for the user to resolve.
 - Show a diff for each recommended documentation edit, citing its backing note.
 
-At this gate, nothing has mutated. The tool requires explicit, unambiguous user approval before proceeding; silence or ambiguous confirmation does not constitute approval, honoring the project's overall approval-gate discipline. For large changesets, the tool can offer a [`woostack-visualize`](../woostack-visualize/SKILL.md) render tailored to an `engineer` audience as a reading aid, but the actual changeset remains in the conversation for approval rather than being moved to a separate artifact.
+At this gate, no changes from the current synthesis pass have been applied yet. The tool requires explicit, unambiguous user approval before proceeding; silence or ambiguous confirmation does not constitute approval, honoring the project's overall approval-gate discipline. For large changesets, the tool can offer a [`woostack-visualize`](../woostack-visualize/SKILL.md) render tailored to an `engineer` audience as a reading aid, but the actual changeset remains in the conversation for approval rather than being moved to a separate artifact.
 
 ### Phase 4 — Apply (on approval)
 
@@ -48,7 +48,7 @@ Upon receiving explicit user approval, perform the following actions:
 
 ### Phase 5 — Summarize & iterate
 
-Report a clear summary of what changed (including notes merged, replaced, dropped, or added, conflicts resolved, and documentation edits applied). Invite the user to suggest change requests or adjustments. If a change request is received, return to Phase 3/4 to present the updated changeset and re-summarize. When complete, the memory changes remain local-only (uncommitted). For the working-tree documentation edits, offer to hand off the changes to [`woostack-commit`](../woostack-commit/SKILL.md). Do not commit, push, or merge these changes during this command.
+Report a clear summary of what changed (including notes merged, replaced, dropped, or added, conflicts resolved, and documentation edits applied). Invite the user to suggest change requests or adjustments. If a change request is received, return to Phase 2 to re-synthesize from the current store state, then proceed through Phases 3 and 4 to present the updated changeset and re-summarize. When complete, the memory changes remain local-only (uncommitted). For the working-tree documentation edits, offer to hand off the changes to [`woostack-commit`](../woostack-commit/SKILL.md). Do not commit, push, or merge these changes during this command.
 
 ## Degradation
 
