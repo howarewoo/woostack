@@ -11,7 +11,7 @@ is a symlink to this file, so this is the single source of truth.
 
 This is a published collection of skills, not an application codebase. It packages
 decisions for building new web, mobile, and API projects so agents can install it with
-`npx skills add howarewoo/woostack`.
+`pnpx skills add howarewoo/woostack`.
 
 The public command/adoption surface has sixteen skills:
 
