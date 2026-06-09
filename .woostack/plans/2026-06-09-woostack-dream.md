@@ -21,12 +21,12 @@
 **Files:**
 - Create: `skills/woostack-dream/SKILL.md`
 
-- [ ] **Step 1: Red — assert the skill file is absent**
+- [x] **Step 1: Red — assert the skill file is absent**
 
 Run: `test -f skills/woostack-dream/SKILL.md && echo EXISTS || echo MISSING`
 Expected: `MISSING`
 
-- [ ] **Step 2: Write `skills/woostack-dream/SKILL.md`**
+- [x] **Step 2: Write `skills/woostack-dream/SKILL.md`**
 
 Author the file with this exact frontmatter:
 
@@ -56,12 +56,12 @@ Then the body — write each section with complete prose (no placeholders):
 
 Keep cross-links relative and correct: `../woostack-init/scripts/{doctor,build-index,graph,recall,scope-match}.sh`, `../woostack-init/references/memory.md`, `../woostack-visualize/SKILL.md`, `../woostack-commit/SKILL.md`.
 
-- [ ] **Step 3: Green — assert the file exists with valid frontmatter**
+- [x] **Step 3: Green — assert the file exists with valid frontmatter**
 
 Run: `test -f skills/woostack-dream/SKILL.md && head -3 skills/woostack-dream/SKILL.md | grep -c '^name: woostack-dream$'`
 Expected: `1`
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt create -m "feat: add woostack-dream skill"
@@ -72,12 +72,12 @@ gt create -m "feat: add woostack-dream skill"
 **Files:**
 - Verify: `skills/woostack-dream/SKILL.md`
 
-- [ ] **Step 1: Assert the five phases are present** (covers AC1)
+- [x] **Step 1: Assert the five phases are present** (covers AC1)
 
 Run: `grep -cE '^### Phase [1-5] ' skills/woostack-dream/SKILL.md`
 Expected: `5`
 
-- [ ] **Step 2: Assert gate / non-destructive / no-commit / degradation / instructions language** (covers AC2, AC5, AC6, AC1-edge)
+- [x] **Step 2: Assert gate / non-destructive / no-commit / degradation / instructions language** (covers AC2, AC5, AC6, AC1-edge)
 
 Run:
 ```bash
@@ -87,7 +87,7 @@ done
 ```
 Expected: every line prints `OK: …` (no `MISSING:`).
 
-- [ ] **Step 3: Assert all relative cross-links resolve** (covers AC9 link-integrity intent — no dangling links)
+- [x] **Step 3: Assert all relative cross-links resolve** (covers AC9 link-integrity intent — no dangling links)
 
 Run:
 ```bash
@@ -99,7 +99,7 @@ done
 ```
 Expected: every referenced path prints `OK:` (no `BROKEN:`).
 
-- [ ] **Step 4: Commit any fixes**
+- [x] **Step 4: Commit any fixes**
 
 ```bash
 # only if Steps 1-3 surfaced a fix; otherwise skip
