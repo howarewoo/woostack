@@ -25,7 +25,7 @@ Templates rot. Dependencies drift, breaking changes pile up, and every new proje
 pnpx skills add howarewoo/woostack
 ```
 
-This installs the woostack **collection** into your agent's skill directory and records it in `skills-lock.json`. The public command/adoption surface is fifteen skills: using-woostack, woostack-init, woostack-bootstrap, woostack-build, woostack-fix, woostack-plan, woostack-execute, woostack-execute-overnight, woostack-commit, woostack-review, woostack-address-comments, woostack-status, woostack-visualize, woostack-debug, and woostack-tdd. The collection also installs two internal sub-skills used by `woostack-build` — `woostack-ideate` and `woostack-harden`; neither is a `/woostack-*` command. Works in any agent that respects the `skills` convention: Claude Code, Cursor, Codex, Aider, and others.
+This installs the woostack **collection** into your agent's skill directory and records it in `skills-lock.json`. The public command/adoption surface is sixteen skills: using-woostack, woostack-init, woostack-bootstrap, woostack-build, woostack-fix, woostack-plan, woostack-execute, woostack-execute-overnight, woostack-commit, woostack-review, woostack-address-comments, woostack-status, woostack-visualize, woostack-debug, woostack-tdd, and woostack-dream. The collection also installs two internal sub-skills used by `woostack-build` — `woostack-ideate` and `woostack-harden`; neither is a `/woostack-*` command. Works in any agent that respects the `skills` convention: Claude Code, Cursor, Codex, Aider, and others.
 
 > **pnpm is the recommended package manager.** Commands in this repo use `pnpx` (and `pnpm`) over `npx` / `npm`. If you only have npm, `npx skills add howarewoo/woostack` works too, but woostack-bootstrapped projects use a pnpm catalog, so pnpm is the path of least friction.
 
@@ -109,6 +109,10 @@ Runs woostack's systematic-debugging method on a bug, test failure, or unexpecte
 ### `/woostack-tdd <target>`: test-driven development engine
 
 Applies the TDD kernel (Red → Green → Refactor) to add appropriate tests to an existing code block, PR, spec, or plan. New code requires tests first, while existing code characterization tests pin current behavior. → [SKILL.md](skills/woostack-tdd/SKILL.md)
+
+### `/woostack-dream [instructions]`: curate memory & recommend doc updates
+
+The agent-agnostic version of managed "dreams": a reflection pass over your `.woostack/` knowledge store. It reads the memory store and docs (static — no session mining), then proposes a single gated changeset that merges duplicate notes, replaces stale or contradicted ones, drops dead/orphaned notes, resolves conflicts `doctor.sh` only flags, surfaces consolidated insights, and recommends **evidence-guarded** edits to your docs (promoting recurring conventions, fixing claims memory now contradicts). Nothing changes before you approve; it ends on a summary and lets you request changes. Memory edits are local-only; doc edits land in the working tree (offer to `woostack-commit`). Never commits or merges. → [SKILL.md](skills/woostack-dream/SKILL.md)
 
 ### Growing scope
 
