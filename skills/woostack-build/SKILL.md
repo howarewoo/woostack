@@ -104,9 +104,10 @@ sits after that PR. So the chain has exactly the three hard gates above.
    work the plan as PR-sized stacked increments on top of the spec+plan PR — each implemented
    with TDD (the [woostack-tdd kernel](../woostack-tdd/SKILL.md)), the plan's checkboxes
    ticked in place, committed via `woostack-commit`, reviewed per
-   the execution mode the active driver selects (`woostack-execute`: `woostack-review --fast` in
-   inline mode, or the per-task spec+quality subagent loops in the default subagent mode;
-   `woostack-execute-overnight` drives its own autonomous review policy), and distilled into
+   the execution mode the active driver selects (`woostack-execute`: shared task-level
+   spec-compliance and code-quality checks, performed inline by the controller or by reviewer
+   subagents depending on mode; `woostack-execute-overnight` drives its own autonomous review
+   policy), and distilled into
    `.woostack/memory/` — `woostack-execute` pausing on a blocking stop, `woostack-execute-overnight`
    instead logging the blocker and continuing per its halt policy. `woostack-execute` owns the
    per-increment commit/review/distill cadence and the inline-vs-subagent mode choice (one plan
