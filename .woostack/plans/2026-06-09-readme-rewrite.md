@@ -20,7 +20,7 @@
 - Modify: `README.md`
 - Modify: `AGENTS.md`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 We write a grep command checking that the deprecated `memory.md` file is NOT mentioned in `README.md`, which currently fails because it is referenced in multiple places in the existing file. We also verify that `AGENTS.md` does not use the deprecated `npx skills add` installation command.
 
@@ -32,27 +32,27 @@ grep -i "memory.md" README.md
 grep -F "npx skills add" AGENTS.md
 ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
 
 Run: `grep -i "memory.md" README.md; grep -F "npx skills add" AGENTS.md`
 Expected: Exits 0 (finds matches for both, indicating they are still in the legacy state).
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Write the new contents of `README.md` containing the updated sections, and edit line 14 of `AGENTS.md` to change `npx skills add` to `pnpx skills add`.
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
 
-Run: `grep -i "memory.md" README.md`
-Expected: Exits 1 (no matches found, indicating "memory.md" is completely gone).
+Run: `grep -E '(\.woostack/memory\.md|`memory\.md`)' README.md`
+Expected: Exits 1 (no flat shard file references found).
 
-Run: `grep -F "npx skills add" AGENTS.md`
-Expected: Exits 1 (no matches found).
+Run: `grep -E '\bnpx skills add' AGENTS.md`
+Expected: Exits 1 (no legacy installation command prefix found).
 
 Run: `grep -F "pnpx skills add" AGENTS.md && grep -F "pnpx skills add" README.md`
-Expected: Exits 0 (both files correctly use the new command).
+Expected: Exits 0 (both files correctly use the new `pnpx` command).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt create -m "docs: rewrite repo readme and update agents.md install command"
