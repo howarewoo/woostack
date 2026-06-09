@@ -117,23 +117,23 @@ gt modify -c -m "test: verify woostack-dream skill structure"
 **Files:**
 - Modify: `skills/using-woostack/SKILL.md` (Command Routing table)
 
-- [ ] **Step 1: Red — assert no dream row yet**
+- [x] **Step 1: Red — assert no dream row yet**
 
 Run: `grep -c 'woostack-dream' skills/using-woostack/SKILL.md`
 Expected: `0`
 
-- [ ] **Step 2: Add the routing row** after the `/woostack-tdd` row in the Command Routing table:
+- [x] **Step 2: Add the routing row** after the `/woostack-tdd` row in the Command Routing table:
 
 ```markdown
 | `/woostack-dream [instructions]`, curate the memory store and recommend doc updates (gated) | `woostack-dream` |
 ```
 
-- [ ] **Step 3: Green — assert the row exists**
+- [x] **Step 3: Green — assert the row exists**
 
 Run: ``grep -c '| `/woostack-dream' skills/using-woostack/SKILL.md``
 Expected: `1`
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt create -m "docs: route woostack-dream in using-woostack"
@@ -146,28 +146,28 @@ gt create -m "docs: route woostack-dream in using-woostack"
 
 > Line numbers below are hints from the pre-edit file; match by the quoted content (inserts shift later lines). Edit `AGENTS.md` directly — the symlink follows.
 
-- [ ] **Step 1: Add the public-command bullet** after the `woostack-tdd` bullet (currently line 32):
+- [x] **Step 1: Add the public-command bullet** after the `woostack-tdd` bullet (currently line 32):
 
 ```markdown
 - [`woostack-dream`](skills/woostack-dream/SKILL.md)
 ```
 
-- [ ] **Step 2: Bump the surface count** — line 16, `has fifteen skills:` → `has sixteen skills:`.
+- [x] **Step 2: Bump the surface count** — line 16, `has fifteen skills:` → `has sixteen skills:`.
 
-- [ ] **Step 3: Bump the in-prose surface count** — line 38, `absent from the fifteen-skill command surface above` → `absent from the sixteen-skill command surface above`.
+- [x] **Step 3: Bump the in-prose surface count** — line 38, `absent from the fifteen-skill command surface above` → `absent from the sixteen-skill command surface above`.
 
-- [ ] **Step 4: Bump the SKILL.md-file count** — line 82, `any of the seventeen `SKILL.md` files (the fifteen public command/adoption` → `any of the eighteen `SKILL.md` files (the sixteen public command/adoption`.
+- [x] **Step 4: Bump the SKILL.md-file count** — line 82, `any of the seventeen `SKILL.md` files (the fifteen public command/adoption` → `any of the eighteen `SKILL.md` files (the sixteen public command/adoption`.
 
-- [ ] **Step 5: Add to the Mode B enumeration** — in the Mode B paragraph (lines 57-60), insert `` `/woostack-dream`, `` into the command list (after `/woostack-debug`).
+- [x] **Step 5: Add to the Mode B enumeration** — in the Mode B paragraph (lines 57-60), insert `` `/woostack-dream`, `` into the command list (after `/woostack-debug`).
 
-- [ ] **Step 6: Add a Quick file map entry** — after the visualize entry (lines 116-117):
+- [x] **Step 6: Add a Quick file map entry** — after the visualize entry (lines 116-117):
 
 ```markdown
 - Memory & docs curation engine (public command; agent-agnostic "dreams"):
   [`skills/woostack-dream/SKILL.md`](skills/woostack-dream/SKILL.md)
 ```
 
-- [ ] **Step 7: Green — counts consistent, no stale count remains**
+- [x] **Step 7: Green — counts consistent, no stale count remains**
 
 Run:
 ```bash
@@ -177,7 +177,7 @@ echo "stale seventeen: $(grep -ciE 'seventeen' AGENTS.md)"
 ```
 Expected: `dream refs:` ≥ `3`; `stale fifteen: 0`; `stale seventeen: 0`.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 gt modify -c -m "docs: register woostack-dream in AGENTS.md"
@@ -188,9 +188,9 @@ gt modify -c -m "docs: register woostack-dream in AGENTS.md"
 **Files:**
 - Modify: `README.md`
 
-- [ ] **Step 1: Update the surface sentence (line 28)** — `surface is fifteen skills:` → `surface is sixteen skills:`, and append `woostack-dream` to the comma list after `woostack-tdd` (e.g. `…woostack-debug, woostack-tdd, and woostack-dream.`).
+- [x] **Step 1: Update the surface sentence (line 28)** — `surface is fifteen skills:` → `surface is sixteen skills:`, and append `woostack-dream` to the comma list after `woostack-tdd` (e.g. `…woostack-debug, woostack-tdd, and woostack-dream.`).
 
-- [ ] **Step 2: Add a command section** after the `/woostack-tdd` section (around line 111):
+- [x] **Step 2: Add a command section** after the `/woostack-tdd` section (around line 111):
 
 ```markdown
 ### `/woostack-dream [instructions]`: curate memory & recommend doc updates
@@ -198,7 +198,7 @@ gt modify -c -m "docs: register woostack-dream in AGENTS.md"
 The agent-agnostic version of managed "dreams": a reflection pass over your `.woostack/` knowledge store. It reads the memory store and docs (static — no session mining), then proposes a single gated changeset that merges duplicate notes, replaces stale or contradicted ones, drops dead/orphaned notes, resolves conflicts `doctor.sh` only flags, surfaces consolidated insights, and recommends **evidence-guarded** edits to your docs (promoting recurring conventions, fixing claims memory now contradicts). Nothing changes before you approve; it ends on a summary and lets you request changes. Memory edits are local-only; doc edits land in the working tree (offer to `woostack-commit`). Never commits or merges. → [SKILL.md](skills/woostack-dream/SKILL.md)
 ```
 
-- [ ] **Step 3: Green — README lists and documents the command**
+- [x] **Step 3: Green — README lists and documents the command**
 
 Run:
 ```bash
@@ -208,7 +208,7 @@ echo "stale: $(grep -c 'fifteen skills' README.md)"
 ```
 Expected: `sentence: 1`; `section: 1`; `stale: 0`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt modify -c -m "docs: document woostack-dream in README"
@@ -219,7 +219,7 @@ gt modify -c -m "docs: document woostack-dream in README"
 **Files:**
 - Verify: `skills/using-woostack/SKILL.md`, `AGENTS.md`, `README.md`, `skills/woostack-dream/SKILL.md`
 
-- [ ] **Step 1: Assert the command is registered in every surface** (covers AC7)
+- [x] **Step 1: Assert the command is registered in every surface** (covers AC7)
 
 Run:
 ```bash
@@ -229,12 +229,12 @@ done
 ```
 Expected: four `OK:` lines, no `MISSING:`.
 
-- [ ] **Step 2: Assert no stale fifteen/seventeen count survives the wired surface**
+- [x] **Step 2: Assert no stale fifteen/seventeen count survives the wired surface**
 
 Run: `grep -rilE 'fifteen|seventeen' AGENTS.md README.md skills/using-woostack/SKILL.md | wc -l | tr -d ' '`
 Expected: `0`
 
-- [ ] **Step 3: Commit any fixes**
+- [x] **Step 3: Commit any fixes**
 
 ```bash
 # only if Steps 1-2 surfaced a fix; otherwise skip
