@@ -66,6 +66,14 @@ When the incremental diff has no new commits (i.e. `LAST_SHA == HEAD_SHA`, e.g. 
 
 Marker semantics are state-light: the marker IS the state. There is no DB or workflow artifact retention beyond what GitHub already keeps in review history.
 
+## Stack-aware review (`review.stack_aware`, issue #224)
+
+woostack encourages PR-sized **stacked** increments, so an early PR in a stack often *intentionally* defers integration to a later PR. Reviewing the isolated diff would flag that deferred work as "missing" — noise that trains authors to ignore the review gate.
+
+When `review.stack_aware` is `true` (the default), `prefetch.sh` calls `detect-stack.sh`: it lists open PRs once and base-branch-chains from this PR's head branch (recursively, depth-capped, cycle-guarded) to find **descendant** PRs — host-agnostic, no Graphite runtime dependency. Their numbers, titles, bodies, changed files, and diffs are composed into `stack.md` (section-capped at 100KB; metadata never dropped).
+
+The **defender validator** reads `stack.md` and, for a finding that asserts something is *missing / not-yet-wired / presented-before-it-lands*, checks whether a descendant's **diff** actually adds it. If so it sets `stack_deferred: "#N"`; `intersect-findings.sh` then forces the finding to a non-blocking **`Deferred to #N` nit** (visible, auditable, event-neutral → `APPROVE`), independent of `severity_floor`. Guards: `security` findings are never deferred; a finding about wrong code *present in this PR* is never deferred; when a descendant diff can't be fetched the finding stays a normal (low-confidence) finding rather than being blindly suppressed. Set `review.stack_aware: false` to turn the whole feature off.
+
 ## Cross-PR Memory (`.woostack/memory/` + `.woostack/memory.md`)
 
 Reviews stay useful across PRs through the consumer repo's woostack memory store. The preferred write target is the scope-routed **`.woostack/memory/`** directory: one Markdown note per reusable fact, with frontmatter declaring the scope where it applies. The flat **`.woostack/memory.md`** remains the global shard and fallback for repos that have not initialized the scoped store.
@@ -132,6 +140,7 @@ Full schema (every key shown; all optional):
     },
     "severity_floor": "high",
     "nits": true,
+    "stack_aware": true,
     "ignore": [
       "**/*.generated.ts",
       "migrations/*.sql"
@@ -174,6 +183,7 @@ Key reference (JSON has no comments, so the per-key semantics live here):
 - **`angles.force`** — always run these, even if not auto-detected. **`angles.skip`** — never run these (`bugs`/`security` cannot be skipped).
 - **`severity_floor`** — one of `low` | `medium` | `high`; a blocking/visibility threshold, **not** a drop gate. **Default `high`**. Findings below the floor surface as non-blocking nits (see `nits`); set `low`/`medium` to treat more findings as normal (at/above-floor). Applied once by `intersect-findings.sh` (Stage 4c).
 - **`nits`** — `true` | `false`; default **`true`**. When `true`, validated findings below `severity_floor` surface as non-blocking nits instead of being dropped. Set `false` to drop them (the pre-reframe behavior). Below-floor `blocking` findings always surface regardless of this knob.
+- **`stack_aware`** — `true` | `false`; default **`true`**. When `true`, `prefetch.sh` runs `detect-stack.sh` to find later PRs in the same Graphite stack and compose `stack.md`; the defender validator then demotes a finding a descendant PR verifiably fixes to a non-blocking `Deferred to #N` nit (issue #224). Set `false` to disable stack detection entirely (no `gh pr list`, no `stack.md`). Never defers `security` findings; degrades to a low-confidence finding when a descendant diff can't be fetched.
 - **`ignore`** — fnmatch globs; ignored paths skip angle triggers + diff body.
 - **`project_rules`** — fnmatch globs appended to auto-discovered `rules.md`.
 - **`authors_skip`** — PR author logins that short-circuit the entire review. Defaults: `dependabot[bot]`, `renovate[bot]`, `github-actions[bot]`. Set to `[]` to opt out.
@@ -234,6 +244,7 @@ When prefetch resolves a PR number AND finds an open PR, it produces the full ar
 | `prior-findings.json` | `prefetch.sh` | event-floor gate | Unresolved + resolved prior review threads |
 | `rules.md` | `prefetch.sh` | `conventions` angle, validator | Concatenated project rule files; triggers `conventions` angle when present |
 | `memory.md` | `prefetch.sh` | all angles, validator | Cross-PR memory composed from `.woostack/memory/` and/or `.woostack/memory.md`; findings it records as known/accepted are dropped. Present only when the consumer repo has memory |
+| `stack.md` | `prefetch.sh` → `detect-stack.sh` | all angles, validator | Later stack PRs' diffs; present only when this PR has open descendants and `stack_aware` ≠ false. Drives `stack_deferred` demotion |
 | `angles.txt` | `detect-angles.sh` | Stage 3 orchestrator | One angle name per line |
 | `findings.<angle>.json` | angle workers | `merge-findings.sh` | Raw per-angle output |
 | `raw_findings.json` | `merge-findings.sh` | validator passes | Merged, chunk-collapsed findings |

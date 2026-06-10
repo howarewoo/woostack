@@ -737,17 +737,17 @@ gt modify -c -m "docs(review): document stack.md artifact, stack_deferred field,
 **Files:**
 - Modify: `skills/woostack-review/SKILL.md` — config schema block (~line 128), key reference (~line 174), artifact table (~line 236), and a new "Stack-aware review" section (after "Incremental Mode", ~line 68)
 
-- [ ] **Step 1: Write the failing test (concrete verification)**
+- [x] **Step 1: Write the failing test (concrete verification)**
 
 Run: `grep -c 'stack_aware' skills/woostack-review/SKILL.md; grep -c 'stack.md' skills/woostack-review/SKILL.md`
 Expected (current): `0`, `0`.
 
-- [ ] **Step 2: Confirm the gap**
+- [x] **Step 2: Confirm the gap**
 
 Run: `grep -n 'Incremental Mode' skills/woostack-review/SKILL.md | head -1`
 Expected: prints the section header the new "Stack-aware review" section follows.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Add the config-schema key inside the `review` object (~line 165, near `nits`):
 
@@ -780,12 +780,12 @@ When `review.stack_aware` is `true` (the default), `prefetch.sh` calls `detect-s
 The **defender validator** reads `stack.md` and, for a finding that asserts something is *missing / not-yet-wired / presented-before-it-lands*, checks whether a descendant's **diff** actually adds it. If so it sets `stack_deferred: "#N"`; `intersect-findings.sh` then forces the finding to a non-blocking **`Deferred to #N` nit** (visible, auditable, event-neutral → `APPROVE`), independent of `severity_floor`. Guards: `security` findings are never deferred; a finding about wrong code *present in this PR* is never deferred; when a descendant diff can't be fetched the finding stays a normal (low-confidence) finding rather than being blindly suppressed. Set `review.stack_aware: false` to turn the whole feature off.
 ```
 
-- [ ] **Step 4: Run the verification, confirm it passes**
+- [x] **Step 4: Run the verification, confirm it passes**
 
 Run: `grep -c 'stack_aware' skills/woostack-review/SKILL.md; grep -c 'stack.md' skills/woostack-review/SKILL.md`
 Expected: `≥4`, `≥3`. Spot-check the section renders: `grep -n 'Stack-aware review' skills/woostack-review/SKILL.md` prints the new header.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "docs(review): document stack-aware review in SKILL.md"
@@ -795,15 +795,15 @@ gt modify -c -m "docs(review): document stack-aware review in SKILL.md"
 
 ## Self-review (run before handing back)
 
-- [ ] **Spec coverage** — every spec requirement maps to a task above:
+- [x] **Spec coverage** — every spec requirement maps to a task above:
   - §4.1 detect (base-chaining, recursive, depth cap, cycle guard, off-switch, CI perms) → Task 2 + Task 1 + Task 3
   - §4.2 compose `stack.md` (full capped diff, metadata-survives) → Task 2
   - §4.3 defender judgment (`stack_deferred`, security excluded, body-cue-hint, degraded→low-confidence) → Task 5
   - §4.4 classifier demotion (floor-independent, `stack_deferred_count`) → Task 4
   - §4.5 render `Deferred to #N` → Task 6
   - config + docs surface (load-config, _header config table, SKILL schema/key/section/artifact) → Tasks 1, 6, 7
-- [ ] **AC coverage** — AC1 (detection happy/error/edge) → test-detect-stack: child+grandchild (happy), empty `gh pr list` → no stack.md graceful (error), cycle guard + depth cap at 10 (edge); AC2 (off-switch happy/error/edge) → test-load-config-stack-aware (accept/reject) + test-detect-stack off-switch (no stack.md); AC3 (`stack.md` happy/error/edge) → test-detect-stack diff-included (happy) + degraded-placeholder for an unfetchable descendant diff (error); the 100KB cap is parameterized via `WOO_REVIEW_STACK_CAP_BYTES` for an executor-added cap test if desired (edge — small, deterministic); AC4 (deferral happy/error/edge) → validator.md directive carries the security/in-PR-code/degraded guards, exercised end-to-end by the classifier (Task 4) + render (Task 6); AC5 (classifier floor-independent + metric) → test-intersect-stack-deferred (floor high AND low + `stack_deferred_count`).
-- [ ] **No placeholders** — every step carries real code, exact commands, expected output.
-- [ ] **Type consistency** — `stack_deferred` is a string `"#N"` or null everywhere (validator sets, intersect reads `(.stack_deferred // "") != ""`, body builder reads `(f.get("stack_deferred") or "").strip()`); `stack_aware` is a bool everywhere; `WOO_REVIEW_FAKE_STACK_PRS_JSON` / `_DIFFS_JSON` names match between detect-stack.sh and its test.
+- [x] **AC coverage** — AC1 (detection happy/error/edge) → test-detect-stack: child+grandchild (happy), empty `gh pr list` → no stack.md graceful (error), cycle guard + depth cap at 10 (edge); AC2 (off-switch happy/error/edge) → test-load-config-stack-aware (accept/reject) + test-detect-stack off-switch (no stack.md); AC3 (`stack.md` happy/error/edge) → test-detect-stack diff-included (happy) + degraded-placeholder for an unfetchable descendant diff (error); the 100KB cap is parameterized via `WOO_REVIEW_STACK_CAP_BYTES` for an executor-added cap test if desired (edge — small, deterministic); AC4 (deferral happy/error/edge) → validator.md directive carries the security/in-PR-code/degraded guards, exercised end-to-end by the classifier (Task 4) + render (Task 6); AC5 (classifier floor-independent + metric) → test-intersect-stack-deferred (floor high AND low + `stack_deferred_count`).
+- [x] **No placeholders** — every step carries real code, exact commands, expected output.
+- [x] **Type consistency** — `stack_deferred` is a string `"#N"` or null everywhere (validator sets, intersect reads `(.stack_deferred // "") != ""`, body builder reads `(f.get("stack_deferred") or "").strip()`); `stack_aware` is a bool everywhere; `WOO_REVIEW_FAKE_STACK_PRS_JSON` / `_DIFFS_JSON` names match between detect-stack.sh and its test.
 
 > woostack plan conventions: frontmatter-free; opens with `**Source:**`; basename mirrors the spec (`2026-06-09-review-stack-aware`); no sub-skill banner; prompt/doc edits use concrete grep/`bash -n` verifications in place of a runner.
