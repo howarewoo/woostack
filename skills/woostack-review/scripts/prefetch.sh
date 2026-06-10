@@ -295,7 +295,7 @@ if [ "${GITHUB_ACTIONS:-}" = "true" ] && \
 fi
 
 # Fetch metadata first — HEAD_SHA is needed for the compare-API incremental path.
-gh pr view "$PR_NUMBER" --json headRefOid,baseRefName,title,body,files,author > "$OUTDIR/meta.json"
+gh pr view "$PR_NUMBER" --json headRefOid,headRefName,baseRefName,title,body,files,author > "$OUTDIR/meta.json"
 HEAD_SHA=$(jq -r '.headRefOid' "$OUTDIR/meta.json")
 
 # Load per-repo config early (issue #19) so the bot-author / release-rollup
@@ -786,6 +786,12 @@ if [ -d "$WOOSTACK_DIR/memory" ] || [ -f "$MEMORY_SRC" ]; then
 else
   rm -f "$MEMORY_OUT"
 fi
+
+# Issue #224: detect later PRs in the same stack and compose stack.md (descendant
+# diffs as additional rubric). Self-gates on review.stack_aware (default true);
+# a no-op when off or when there are no descendants. Runs before chunking so a
+# capped stack.md is ready for the swarm alongside rules.md / memory.md.
+bash "$SCRIPT_DIR/detect-stack.sh" || echo "::warning::detect-stack.sh failed (non-fatal); continuing without stack.md"
 
 # Issue #14: split oversized diffs into chunks. Runs LAST so it sees the final
 # post-ignore diff (diff.filtered.txt when present). Under the threshold this

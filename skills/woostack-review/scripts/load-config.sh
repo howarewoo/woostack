@@ -54,6 +54,10 @@
 #                                   non-blocking nits; default true. false
 #                                   restores the old below-floor drop. blocking
 #                                   findings still surface regardless.)
+#   stack_aware         bool       (issue #224: detect later PRs in the same
+#                                   stack and demote findings a descendant PR
+#                                   already fixes to non-blocking nits;
+#                                   default true. false disables detection.)
 #   chunking.max_loc    int >= 0   (issue #14: diff split threshold; 0 disables
 #                                   chunking entirely; absent => 4000 default
 #                                   applied by chunk-diff.sh)
@@ -92,6 +96,7 @@ REVIEW_KEYS = {
     "angles", "severity_floor", "ignore", "project_rules",
     "authors_skip", "release_rollup_pattern", "models", "fix_commands",
     "disable_adversarial", "metrics", "chunking", "force_tier", "nits",
+    "stack_aware",
 }
 MODEL_TIERS = {"fast", "standard", "deep"}
 MODEL_PROVIDERS = {"anthropic", "openai", "google", "openrouter"}
@@ -233,6 +238,12 @@ if "nits" in raw:
     if not isinstance(val, bool):
         loud("`nits` must be a boolean (true/false), got {}".format(type(val).__name__))
     out["nits"] = val
+
+if "stack_aware" in raw:
+    val = raw["stack_aware"]
+    if not isinstance(val, bool):
+        loud("`stack_aware` must be a boolean (true/false), got {}".format(type(val).__name__))
+    out["stack_aware"] = val
 
 if "chunking" in raw:
     chunking = raw["chunking"]

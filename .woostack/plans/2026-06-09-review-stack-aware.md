@@ -20,7 +20,7 @@
 - Modify: `skills/woostack-review/scripts/load-config.sh:89` (REVIEW_KEYS) and `:229` (validation block region)
 - Test: `skills/woostack-review/scripts/tests/test-load-config-stack-aware.sh`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```bash
 # skills/woostack-review/scripts/tests/test-load-config-stack-aware.sh
@@ -65,12 +65,12 @@ rm -rf "$work"
 finish
 ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
 
 Run: `bash skills/woostack-review/scripts/tests/test-load-config-stack-aware.sh`
 Expected: FAIL — the first assertion errors because `stack_aware` is an unknown `review` key today, so `load-config.sh` exits non-zero with `unknown review key(s): stack_aware` and `$OUTDIR/config.json` is never written (`jq` returns empty, not `false`).
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Add `stack_aware` to the recognized keys set (`load-config.sh:89-93`):
 
@@ -102,12 +102,12 @@ Add the doc line to the schema comment block (after the `nits` comment, ~line 56
 #                                   default true. false disables detection.)
 ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
 
 Run: `bash skills/woostack-review/scripts/tests/test-load-config-stack-aware.sh`
 Expected: PASS — `3 passed, 0 failed`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt create -m "feat(review): accept review.stack_aware config key"
@@ -119,7 +119,7 @@ gt create -m "feat(review): accept review.stack_aware config key"
 - Create: `skills/woostack-review/scripts/detect-stack.sh`
 - Test: `skills/woostack-review/scripts/tests/test-detect-stack.sh`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```bash
 # skills/woostack-review/scripts/tests/test-detect-stack.sh
@@ -216,12 +216,12 @@ rm -rf "$work"
 finish
 ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
 
 Run: `bash skills/woostack-review/scripts/tests/test-detect-stack.sh`
 Expected: FAIL — `bash: .../detect-stack.sh: No such file or directory` (script does not exist yet).
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 ```bash
 # skills/woostack-review/scripts/detect-stack.sh
@@ -410,12 +410,12 @@ PY
 rm -f "$OUTDIR/.stack-prs.json" "$DESC_JSON" "$OUTDIR"/.stack-diff-*.txt
 ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
 
 Run: `bash skills/woostack-review/scripts/tests/test-detect-stack.sh`
 Expected: PASS — `11 passed, 0 failed`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "feat(review): add detect-stack.sh for descendant-PR context"
@@ -426,19 +426,19 @@ gt modify -c -m "feat(review): add detect-stack.sh for descendant-PR context"
 **Files:**
 - Modify: `skills/woostack-review/scripts/prefetch.sh:296` (meta fetch) and `:791` (before the chunk-diff call)
 
-- [ ] **Step 1: Write the failing test (concrete verification)**
+- [x] **Step 1: Write the failing test (concrete verification)**
 
 This is integration wiring; verify with static checks rather than a new harness.
 
 Run: `grep -n 'headRefName' skills/woostack-review/scripts/prefetch.sh; grep -n 'detect-stack.sh' skills/woostack-review/scripts/prefetch.sh`
 Expected (current): both print nothing — neither the field nor the call is wired yet.
 
-- [ ] **Step 2: Confirm the gap**
+- [x] **Step 2: Confirm the gap**
 
 Run: `bash -n skills/woostack-review/scripts/prefetch.sh && echo "syntax-ok"`
 Expected: `syntax-ok` (baseline parses; the wiring is simply absent).
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Add `headRefName` to the meta fetch (`prefetch.sh:296`):
 
@@ -456,12 +456,12 @@ Call detect-stack.sh just before the chunk-diff call (`prefetch.sh:791`, after m
 bash "$SCRIPT_DIR/detect-stack.sh" || echo "::warning::detect-stack.sh failed (non-fatal); continuing without stack.md"
 ```
 
-- [ ] **Step 4: Run the verification, confirm it passes**
+- [x] **Step 4: Run the verification, confirm it passes**
 
 Run: `grep -c 'headRefName' skills/woostack-review/scripts/prefetch.sh; grep -c 'detect-stack.sh' skills/woostack-review/scripts/prefetch.sh; bash -n skills/woostack-review/scripts/prefetch.sh && echo ok`
 Expected: `1` (headRefName in the meta fetch), `1` (the call), `ok`. Then re-run the Task 2 suite to confirm no regression: `bash skills/woostack-review/scripts/tests/test-detect-stack.sh` → `10 passed, 0 failed`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "feat(review): fetch headRefName and compose stack.md in prefetch"
