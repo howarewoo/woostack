@@ -31,6 +31,7 @@ Every artifact you write under `$OUTDIR/findings.*.json` (default `/tmp/pr-revie
 - **Incremental base SHA** (always present, may be empty): `/tmp/pr-review/last_sha.txt` — non-empty means `diff.txt` covers only the new commits since the last woostack-review pass. Treat findings as scoped to those commits.
 - **Prior unresolved review threads** (always present, may be `[]`): `/tmp/pr-review/prior-findings.json` — array of `{file, line, title, author}` for any unresolved thread on the PR. Consumed by the posting stage for the event-floor gate; angle workers MUST ignore this file. No per-entry `blocking` flag — any non-empty list floors the review event to `REQUEST_CHANGES` (conservative "do not APPROVE while threads open" rule).
 - **Cross-PR memory** (optional, present when the consumer repo has `.woostack/memory/` and/or `.woostack/memory.md`): `/tmp/pr-review/memory.md` — a plain-markdown composition of gotchas and previously-accepted issues the team curates. When the repo has a `.woostack/memory/` scope-routed store, this file is composed per-PR: it contains the notes whose `scope` matches the PR's changed files, any one-hop `[[linked]]` notes, plus the always-included global shard (the flat `memory.md`, when present). Treat it as additional rubric: do NOT re-flag an issue the memory file already records as known/accepted. See *Cross-PR memory* below.
+- **Stack context** (optional, present only when this PR has open descendant PRs in its Graphite stack and `review.stack_aware` is not false): `/tmp/pr-review/stack.md` — the later stack PRs' numbers, titles, bodies, changed files, and diffs. Treat it as verification context: a finding that something is *missing/not-yet-wired* may be intentionally completed by a descendant. The defender validator (`validator.md`) sets `stack_deferred: "#N"` on such a finding; it is demoted to a non-blocking `Deferred to #N` nit downstream. Angle workers may read it but MUST NOT defer — deferral is the validator's job.
 - **Chunk manifest** (optional, present only when the diff exceeds `chunking.max_loc`): `/tmp/pr-review/chunks.txt` (one chunk id per line) and `/tmp/pr-review/chunks.json` (manifest: `[{id, files, loc, diff_path, boundary}]`). Each chunk also has its own diff at `/tmp/pr-review/diff.chunk-<id>.txt`. When a worker is dispatched with a chunk id (env `CHUNK` non-empty), it MUST read the chunk-specific diff and write findings to `/tmp/pr-review/findings.<angle>.<chunk>.json`. In the GitHub Action this swap happens transparently — `diff.txt` is replaced with the chunk's diff before the worker runs, and the worker's output is renamed afterwards. When `chunks.txt` is absent, chunking did not activate and the diff fits a single worker (no overhead).
 
 If `/tmp/pr-review/rules.md` exists, treat it as an additional rubric on top of the per-angle scope. Each section is prefixed by a `## SOURCE: <path>` header identifying its origin file (`AGENTS.md`, `CLAUDE.md`, `.cursorrules`, `.windsurfrules`, or `GEMINI.md`). Any finding that claims a project-rule violation MUST populate `rule_quote` with a verbatim substring of `rules.md` (the rule text itself, not the source header). The validator discards rule-cited findings whose `rule_quote` is missing or not literally present in `rules.md`.
@@ -83,6 +84,7 @@ The prefetch step parses an optional `.woostack/config.json` in the consumer rep
 | `models.fast` / `.standard` / `.deep`; `models.<provider>.<tier>` | orchestrator prompts (tier resolution) | Stage 2 |
 | `fix_commands` | persisted only; consumed by `--loop` mode (#15) | n/a |
 | `chunking.max_loc` | `chunk-diff.sh` (split oversized diff into chunks; default 4000) | Stage 1 |
+| `stack_aware` | `prefetch.sh` → `detect-stack.sh` (compose `stack.md`) | Stage 1 — default `true`; `false` disables stack detection |
 
 ## Review Angles
 
@@ -243,6 +245,9 @@ for f in findings:
     blocking = bool(f.get("blocking", False))
 
     body = f"**{title}**\n\n{description}"
+    sd = (f.get("stack_deferred") or "").strip()
+    if sd:
+        body += f"\n\n_Deferred to {sd} — a later PR in this stack adds this; non-blocking._"
     if fix:
         body += f"\n\nFix: {fix}"
     # Render ```suggestion``` block only when validator-approved as fix_type=suggestion.
@@ -401,7 +406,8 @@ Every runner MUST write a final `findings.json` (for debugging + potential post-
     "fix_type": "suggestion",
     "fix": "Recommended change in prose (e.g. 'use `<=` instead of `<` so the boundary value is included').",
     "suggestion": "verbatim replacement code for the GitHub ```suggestion``` block — REQUIRED when fix_type == \"suggestion\", MUST be null when fix_type == \"prose\"",
-    "rule_quote": "exact quoted rule text if rule-based, else null"
+    "rule_quote": "exact quoted rule text if rule-based, else null",
+    "stack_deferred": "later-stack PR number (e.g. \"#225\") this finding is deferred to, set by the defender when a descendant diff adds the missing thing; else null"
   }
 ]
 ```
@@ -443,6 +449,8 @@ Fix: <fix>
 - **Attribution footer** — small-print line carrying the finding's `severity` (HIGH / MEDIUM / LOW; suffixed with `· BLOCKING` when `blocking == true`, or `· NIT` when `nit == true`) and the angle agent that flagged it (e.g. `<sub>— <strong>HIGH · BLOCKING</strong> · flagged by the <code>bugs</code> agent</sub>`, or `<sub>— <strong>LOW · NIT</strong> · flagged by the <code>bugs</code> agent</sub>`). The body builder appends this automatically from the finding's `severity` / `blocking` / `nit` / `angle` fields. Both `severity` and `angle` are whitelisted against their known sets; unknown/missing values are dropped from the footer rather than injecting raw text. If both are missing, the footer is omitted entirely.
 
 `nit` is a boolean set by `intersect-findings.sh` (the floor classifier), **not** by angle agents: `true` marks a validated below-floor non-blocking finding. The body builder renders a `nit: true` finding with a `Nit:` title prefix and a `· NIT` footer tag, and the event computation treats it as event-neutral (a PR whose only findings are nits still `APPROVE`s, with the nits posted inline). A nit is always non-blocking; a below-floor finding that is `blocking: true` stays a normal finding (`nit: false`).
+
+`stack_deferred` is a string (`"#N"`) or null, set by the defender validator (`validator.md`) when a later PR in the same stack verifiably implements the work a finding flags as missing. `intersect-findings.sh` forces any finding carrying a non-empty `stack_deferred` to `nit: true, blocking: false` (independent of `severity_floor`), and the body builder appends a `Deferred to #N` line. Never set on `security` findings.
 
 The body builder in the posting step (see python snippet above) renders this format automatically from `title` / `description` / `fix` / `fix_type` / `suggestion` / `angle` / `severity` / `blocking` / `nit`. Angle agents and the validator MUST populate `title`, `description`, `fix`, `fix_type`, `angle`, `severity`, and `blocking` for every finding; `nit` is added downstream by the classifier.
 

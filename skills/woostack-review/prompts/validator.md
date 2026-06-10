@@ -13,6 +13,7 @@ This pass is one half of an adversarial validation pipeline (issue #13). The Pro
 - **Raw Findings**: /tmp/pr-review/raw_findings.json (Concatenated array from all angles)
 - **Project rules** (optional): /tmp/pr-review/rules.md — concatenated `AGENTS.md` / `CLAUDE.md` / `.cursorrules` / `.windsurfrules` / `GEMINI.md` discovered by prefetch. Absent when no rule files exist in the repo.
 - **Cross-PR memory** (optional): /tmp/pr-review/memory.md — team-curated markdown of gotchas and previously-accepted issues, composed from `.woostack/memory/` and/or `.woostack/memory.md`. Absent when the repo has no woostack memory store.
+- **Stack context** (optional): /tmp/pr-review/stack.md — when this PR is part of a Graphite stack, the LATER PRs' numbers, titles, bodies, files, and diffs. Absent when there are no descendants or `review.stack_aware` is false. See the Stack-deferral Check below.
 - **Per-repo config** (always present): /tmp/pr-review/config.json — parsed `.woostack/config.json`. The validator no longer reads any severity key from it; `severity_floor` and `nits` are consumed downstream by `intersect-findings.sh` (Stage 4c). Other keys are consumed upstream.
 
 ## Your Task
@@ -43,6 +44,12 @@ Launch one Haiku subagent. Task:
    - If `rule_quote` is not a verbatim substring of `rules.md` (exact match, not paraphrased), DISCARD the finding.
    - Use `grep -qF "$quote" /tmp/pr-review/rules.md` or equivalent literal-string check — not regex.
 4. **Memory Check**: If `/tmp/pr-review/memory.md` exists, read it. DROP any finding the team has already recorded there as known, intentional, accepted, or wontfix. Memory is advisory context only — never a basis for keeping or upgrading a finding.
+4b. **Stack-deferral Check** (issue #224): If `/tmp/pr-review/stack.md` exists, read it. For each finding that asserts something is **missing, not yet wired, or presented before it lands** (e.g. "X is referenced before it is defined", "command not yet routed", "integration absent"), check whether one of the descendant PR DIFFS in `stack.md` actually ADDS that exact thing.
+   - If a descendant diff verifiably adds it: set the finding's `stack_deferred` field to that PR's number string (e.g. `"#225"`) and set `blocking: false`. Do NOT drop it — it is demoted downstream to a non-blocking `Deferred to #N` nit, staying visible and auditable.
+   - **Never** set `stack_deferred` on a `security`-angle finding, or on a finding about WRONG code that is present in THIS PR (deferral is only for *missing/deferred* work that a later PR completes).
+   - PR-body phrases like "Increment N" / "lands in N+1" are a hint to LOOK, never proof — the descendant diff is the proof.
+   - If `stack.md` marks a descendant's diff as `[diff unavailable — degraded]`, do NOT defer against it; keep the finding as-is (the review stays honest rather than blind-suppressing).
+   - Findings with no `stack.md`, or no matching descendant, are unchanged (leave `stack_deferred` unset/null).
 5. **Severity Check**: You can downgrade severity (HIGH -> MEDIUM) or unset blocking: true -> false. You may NOT upgrade.
 6. **Severity Floor — applied downstream now (do NOT drop by severity here)**: The `severity_floor` filter has moved to `scripts/intersect-findings.sh` (Stage 4c). It reframes the floor from a drop gate into a blocking/visibility threshold: below-floor validated findings become non-blocking **nits**, below-floor **blocking** findings still surface as normal findings, and below-floor non-blocking findings are dropped only when `review.nits: false`. Your job is to keep every validated finding (after any allowed *downgrade* in step 5) so the downstream classifier can see it. Do not read or apply `severity_floor`.
 7. **Comment Shape Check**: For every surviving finding, ensure `title` (bold headline ≤60 chars, no trailing punctuation), `description` (issue only, no fix prescribed), and `fix` (recommended change in prose) are all populated. Rewrite minimally if an angle agent collapsed everything into `description` — split it into the three fields.

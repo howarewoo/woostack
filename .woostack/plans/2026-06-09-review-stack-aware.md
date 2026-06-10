@@ -479,7 +479,7 @@ gt modify -c -m "feat(review): fetch headRefName and compose stack.md in prefetc
 - Modify: `skills/woostack-review/scripts/intersect-findings.sh` — `classify_floor()` loop (~line 309), `write_metrics()` (~line 122), and both `write_metrics` call sites (~line 345, ~line 606)
 - Test: `skills/woostack-review/scripts/tests/test-intersect-stack-deferred.sh`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```bash
 # skills/woostack-review/scripts/tests/test-intersect-stack-deferred.sh
@@ -529,12 +529,12 @@ rm -rf "$work"
 finish
 ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
 
 Run: `bash skills/woostack-review/scripts/tests/test-intersect-stack-deferred.sh`
 Expected: FAIL — under `floor=high` the HIGH blocking finding stays `nit:false, blocking:true` (no override yet), and `.stack_deferred_count` is `null` in `validator-metrics.json` (key absent).
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 In `classify_floor()`, add the override as the first branch of the per-finding loop (before the `rank >= floor_rank` check, ~line 309):
 
@@ -602,12 +602,12 @@ stack_deferred_count="$(jq '[.[] | select((.stack_deferred // "") != "")] | leng
 write_metrics adversarial false "$prosecutor_count" "$defender_count" "$kept_count" "$disagreement_count" "$dropped_by_defender" "$dropped_by_prosecutor" "$nit_count" "$stack_deferred_count"
 ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
 
 Run: `bash skills/woostack-review/scripts/tests/test-intersect-stack-deferred.sh`
 Expected: PASS — `5 passed, 0 failed`. Then regression: `bash skills/woostack-review/scripts/tests/test-intersect-nits.sh` → still passes.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt create -m "feat(review): demote stack_deferred findings to nits in classifier"
@@ -618,19 +618,19 @@ gt create -m "feat(review): demote stack_deferred findings to nits in classifier
 **Files:**
 - Modify: `skills/woostack-review/prompts/validator.md` — Input Artifacts (~line 16) and Step 2 (~line 45, a new sub-step between Memory Check and Severity Check)
 
-- [ ] **Step 1: Write the failing test (concrete verification)**
+- [x] **Step 1: Write the failing test (concrete verification)**
 
 Prompt text — verify by presence of the directive the runtime reads.
 
 Run: `grep -c 'stack_deferred' skills/woostack-review/prompts/validator.md`
 Expected (current): `0`.
 
-- [ ] **Step 2: Confirm the gap**
+- [x] **Step 2: Confirm the gap**
 
 Run: `grep -n 'Memory Check' skills/woostack-review/prompts/validator.md`
 Expected: prints the Memory Check line (the anchor the new sub-step follows); no `stack_deferred` directive exists yet.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Add the input artifact (after the memory.md bullet, ~line 15):
 
@@ -651,12 +651,12 @@ Insert a new numbered sub-step in Step 2 immediately after "4. **Memory Check**"
 
 Note the schema field in the same file is documented centrally in `_header.md` (Task 6); the validator only needs to know to *set* it.
 
-- [ ] **Step 4: Run the verification, confirm it passes**
+- [x] **Step 4: Run the verification, confirm it passes**
 
 Run: `grep -c 'stack_deferred' skills/woostack-review/prompts/validator.md`
 Expected: `≥3` (artifact mention + the set-directive + the security guard). Confirm the security exclusion is present: `grep -n 'Never.*security' skills/woostack-review/prompts/validator.md` prints the guard line.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "feat(review): defender annotates stack_deferred from stack.md"
@@ -667,17 +667,17 @@ gt modify -c -m "feat(review): defender annotates stack_deferred from stack.md"
 **Files:**
 - Modify: `skills/woostack-review/prompts/_header.md` — Prefetched Artifacts list (~line 33), Findings Schema (~line 404), config table (~line 85), and the body-builder python (~line 245)
 
-- [ ] **Step 1: Write the failing test (concrete verification)**
+- [x] **Step 1: Write the failing test (concrete verification)**
 
 Run: `grep -c 'stack.md' skills/woostack-review/prompts/_header.md; grep -c 'stack_deferred' skills/woostack-review/prompts/_header.md; grep -c 'Deferred to' skills/woostack-review/prompts/_header.md`
 Expected (current): `0`, `0`, `0`.
 
-- [ ] **Step 2: Confirm the gap**
+- [x] **Step 2: Confirm the gap**
 
 Run: `grep -n 'Cross-PR memory' skills/woostack-review/prompts/_header.md | head -1`
 Expected: prints the memory artifact line (the anchor the stack.md artifact bullet follows).
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Add the artifact bullet (after the Cross-PR memory bullet, ~line 33):
 
@@ -715,12 +715,12 @@ Render the deferral note in the body builder (~line 245, right after the `descri
         body += f"\n\nFix: {fix}"
 ```
 
-- [ ] **Step 4: Run the verification, confirm it passes**
+- [x] **Step 4: Run the verification, confirm it passes**
 
 Run: `grep -c 'stack.md' skills/woostack-review/prompts/_header.md; grep -c 'stack_deferred' skills/woostack-review/prompts/_header.md; grep -c 'Deferred to' skills/woostack-review/prompts/_header.md`
 Expected: `≥2`, `≥3`, `≥2`. Sanity-check the body-builder python still parses by extracting and `python3 -c`-importing is overkill; instead confirm the edit sits inside the snippet: `grep -n 'Deferred to' skills/woostack-review/prompts/_header.md` shows the line within the `body = ` builder block.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "docs(review): document stack.md artifact, stack_deferred field, render note"

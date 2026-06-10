@@ -130,6 +130,7 @@ write_metrics() {
     --argjson dropped_by_defender "$7" \
     --argjson dropped_by_prosecutor "$8" \
     --argjson nit_count "$9" \
+    --argjson stack_deferred_count "${10}" \
     '{
       mode: $mode,
       degraded: $degraded,
@@ -139,7 +140,8 @@ write_metrics() {
       disagreement_count: $disagreement_count,
       dropped_by_defender: $dropped_by_defender,
       dropped_by_prosecutor: $dropped_by_prosecutor,
-      nit_count: $nit_count
+      nit_count: $nit_count,
+      stack_deferred_count: $stack_deferred_count
     }' > "$METRICS"
 }
 
@@ -307,6 +309,14 @@ except (OSError, ValueError):
 
 out = []
 for f in findings:
+    # Stack-aware deferral (issue #224): a finding the defender confirmed a later
+    # stack PR fixes is forced to a non-blocking nit, INDEPENDENT of the floor.
+    sd = f.get("stack_deferred")
+    if isinstance(sd, str) and sd.strip():
+        f["nit"] = True
+        f["blocking"] = False
+        out.append(f)
+        continue
     # Unknown/missing severity -> MEDIUM (matches sev_rank() used in the merge).
     rank = RANK.get((f.get("severity") or "").lower(), 1)
     if rank >= floor_rank:
@@ -342,7 +352,8 @@ if [ "$disable_adversarial" = "true" ] || [ "$prosecutor_present" = "false" ]; t
   classify_floor
   kept_count="$(jq 'length' "$FINAL")"
   nit_count="$(jq '[.[] | select(.nit == true)] | length' "$FINAL")"
-  write_metrics "$mode" "$degraded" null "$defender_count" "$kept_count" 0 0 0 "$nit_count"
+  stack_deferred_count="$(jq '[.[] | select((.stack_deferred // "") != "")] | length' "$FINAL")"
+  write_metrics "$mode" "$degraded" null "$defender_count" "$kept_count" 0 0 0 "$nit_count" "$stack_deferred_count"
   echo "intersect-findings: mode=$mode degraded=$degraded kept=$kept_count nits=$nit_count"
   emit_angle_metrics "$mode" "$degraded" || echo "::warning::emit_angle_metrics failed (non-fatal)" >&2
   exit 0
@@ -597,13 +608,14 @@ cp "$FINAL" "$PRECLASSIFY"   # pre-floor snapshot for per-angle disagreement met
 classify_floor
 kept_count="$(jq 'length' "$FINAL")"
 nit_count="$(jq '[.[] | select(.nit == true)] | length' "$FINAL")"
+stack_deferred_count="$(jq '[.[] | select((.stack_deferred // "") != "")] | length' "$FINAL")"
 dropped_by_defender="$((prosecutor_count - intersection_size))"
 dropped_by_prosecutor="$((defender_count - intersection_size))"
 if [ "$dropped_by_defender" -lt 0 ]; then dropped_by_defender=0; fi
 if [ "$dropped_by_prosecutor" -lt 0 ]; then dropped_by_prosecutor=0; fi
 disagreement_count="$((dropped_by_defender + dropped_by_prosecutor))"
 
-write_metrics adversarial false "$prosecutor_count" "$defender_count" "$kept_count" "$disagreement_count" "$dropped_by_defender" "$dropped_by_prosecutor" "$nit_count"
+write_metrics adversarial false "$prosecutor_count" "$defender_count" "$kept_count" "$disagreement_count" "$dropped_by_defender" "$dropped_by_prosecutor" "$nit_count" "$stack_deferred_count"
 
 echo "intersect-findings: mode=adversarial degraded=false prosecutor=$prosecutor_count defender=$defender_count kept=$kept_count nits=$nit_count disagreement=$disagreement_count"
 emit_angle_metrics adversarial false || echo "::warning::emit_angle_metrics failed (non-fatal)" >&2
