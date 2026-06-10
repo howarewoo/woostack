@@ -36,7 +36,7 @@ markdown plans in `.woostack/plans/`, and review config in `.woostack/config.jso
 - Never PR directly into `main` except for emergency hotfixes (and even then, cherry-pick into `staging` immediately after).
 - Never force-push to `main` or `staging`.
 
-Use Graphite (`gt create`, `gt modify`, `gt submit`) to manage stacks. `gt create --base staging` for the initial branch.
+Use Graphite (`gt create`, `gt modify`, `gt submit`) to manage stacks. The integration/trunk branch is **per-repo configurable** — resolve it with [`resolve-base.sh`](../../woostack-init/scripts/resolve-base.sh) (`.woostack/config.json` → `base_branch`, else the remote default, else `main`) and pass it as the base of the stack: `gt create --base "$(bash <wi>/resolve-base.sh)"`. The example table above uses `staging` to illustrate the integration role, not as a hardcoded requirement.
 
 ## When to deviate
 
