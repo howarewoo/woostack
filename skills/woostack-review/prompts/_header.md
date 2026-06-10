@@ -247,6 +247,11 @@ for f in findings:
 
     body = f"**{title}**\n\n{description}"
     dt = (f.get("deferred_to") or "").strip()
+    # Defense-in-depth: deferred_to is the only body field taken verbatim from the
+    # untrusted diff (the woostack-defer marker <ref>). Strip Markdown control
+    # chars so a crafted <ref> cannot break out of the italic note into links/code
+    # spans. Valid refs ("increment 3", "#225") are unaffected.
+    dt = re.sub(r"[`_*\[\]<>]", "", dt)
     if dt:
         body += f"\n\n_Deferred to {dt} — a later increment completes this; non-blocking._"
     if fix:

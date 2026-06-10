@@ -81,7 +81,7 @@ When an increment leaves a gap a later increment fills, author **two paired step
    work, so the marker exists exactly while the gap is open.
 
 The marker is the single signal `woostack-review` reads to demote a "missing X" finding to a
-non-blocking `Deferred to N` nit (see [`woostack-review`](../woostack-review/SKILL.md) for the
+non-blocking `Deferred to <ref>` nit (see [`woostack-review`](../woostack-review/SKILL.md) for the
 canonical token; `review.defer_markers` gates it, default on). Never plan a marker over a
 `security` gap or over wrong code — deferral is only for *missing* work a later increment adds.
 

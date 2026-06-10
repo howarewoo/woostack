@@ -48,4 +48,45 @@ assert_eq "$(jq -r '.[0].blocking' "$OUTDIR/findings.json")" "true" "defer off -
 assert_eq "$(jq -r '.deferred_count' "$OUTDIR/validator-metrics.json")" "0" "defer off -> deferred_count 0"
 rm -rf "$work"
 
+# Empty/whitespace deferred_to must NOT demote: the classifier guards on dt.strip()
+# (intersect-findings.sh:326). A blank ref means "no deferral" -> HIGH stays blocking.
+work="$(mktemp -d)"
+export OUTDIR="$work"
+printf '{"disable_adversarial":true,"severity_floor":"high","defer_markers":true}\n' > "$OUTDIR/config.json"
+cat > "$OUTDIR/findings.defender.json" <<'JSON'
+[
+  {"angle":"bugs","file":"x.ts","line":3,"severity":"HIGH","blocking":true,
+   "title":"Missing call-site wiring","description":"d","fix":"f","fix_type":"prose",
+   "suggestion":null,"rule_quote":null,"deferred_to":"   "}
+]
+JSON
+printf '[]\n' > "$OUTDIR/raw_findings.json"
+bash "$SCRIPT" >/tmp/intersect-deferred.out 2>&1
+assert_eq "$(jq -r '.[0].nit' "$OUTDIR/findings.json")" "false" "blank deferred_to -> not demoted"
+assert_eq "$(jq -r '.[0].blocking' "$OUTDIR/findings.json")" "true" "blank deferred_to -> stays blocking"
+assert_eq "$(jq -r '.deferred_count' "$OUTDIR/validator-metrics.json")" "0" "blank deferred_to -> deferred_count 0"
+rm -rf "$work"
+
+# Adversarial path: with BOTH validator passes present and disable_adversarial unset,
+# intersect runs prosecutor INTERSECT defender, then classify_floor demotes the
+# deferred finding and the adversarial write_metrics records deferred_count
+# (intersect-findings.sh:623/630) — a path the defender-only cases above never hit.
+work="$(mktemp -d)"
+export OUTDIR="$work"
+printf '{"severity_floor":"high","defer_markers":true}\n' > "$OUTDIR/config.json"
+cat > "$OUTDIR/findings.defender.json" <<'JSON'
+[
+  {"angle":"bugs","file":"x.ts","line":3,"severity":"HIGH","blocking":true,
+   "title":"Missing call-site wiring","description":"d","fix":"f","fix_type":"prose",
+   "suggestion":null,"rule_quote":null,"deferred_to":"increment 3"}
+]
+JSON
+cp "$OUTDIR/findings.defender.json" "$OUTDIR/findings.prosecutor.json"
+printf '[]\n' > "$OUTDIR/raw_findings.json"
+bash "$SCRIPT" >/tmp/intersect-deferred.out 2>&1
+assert_eq "$(jq -r '.mode' "$OUTDIR/validator-metrics.json")" "adversarial" "adversarial mode engaged"
+assert_eq "$(jq -r '.[0].nit' "$OUTDIR/findings.json")" "true" "adversarial: deferred_to -> nit"
+assert_eq "$(jq -r '.deferred_count' "$OUTDIR/validator-metrics.json")" "1" "adversarial: deferred_count counted"
+rm -rf "$work"
+
 finish

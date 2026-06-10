@@ -105,7 +105,7 @@ Add the doc line to the schema comment block (after the `nits` comment, ~line 54
 - [x] **Step 4: Run the test, confirm it passes**
 
 Run: `bash skills/woostack-review/scripts/tests/test-load-config-defer-markers.sh`
-Expected: PASS — `3 passed, 0 failed`. Regression: the existing load-config suite still passes.
+Expected: PASS — `5 passed, 0 failed`. Regression: the existing load-config suite still passes.
 
 - [x] **Step 5: Commit**
 
@@ -135,8 +135,7 @@ SCRIPT="$DIR/intersect-findings.sh"
 # severity_floor. Defender-only (disable_adversarial) isolates the floor classifier.
 setup() { # $1 = severity_floor ; $2 = defer_markers ("true"/"false")
   work="$(mktemp -d)"
-  export OUTDIR="$work/out"
-  mkdir -p "$OUTDIR"
+  export OUTDIR="$work"
   printf '{"disable_adversarial":true,"severity_floor":"%s","defer_markers":%s}\n' "$1" "$2" > "$OUTDIR/config.json"
   cat > "$OUTDIR/findings.defender.json" <<'JSON'
 [
@@ -266,7 +265,7 @@ write_metrics adversarial false "$prosecutor_count" "$defender_count" "$kept_cou
 - [x] **Step 4: Run the test, confirm it passes**
 
 Run: `bash skills/woostack-review/scripts/tests/test-intersect-deferred.sh`
-Expected: PASS — `8 passed, 0 failed`. Then regression: `bash skills/woostack-review/scripts/tests/test-intersect-nits.sh` → still passes.
+Expected: PASS — `14 passed, 0 failed`. Then regression: `bash skills/woostack-review/scripts/tests/test-intersect-nits.sh` → still passes.
 
 - [x] **Step 5: Commit**
 

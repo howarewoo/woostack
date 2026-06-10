@@ -36,4 +36,12 @@ assert_eq "$([ "$rc" -ne 0 ] && echo nonzero || echo zero)" "nonzero" "non-boole
 assert_contains "$(cat /tmp/load-config-defer.out)" "defer_markers" "error names the defer_markers key"
 rm -rf "$work"
 
+# defer_markers absent from config -> loader must NOT write the key; the consumer
+# (intersect-findings.sh) re-defaults to true on its own. A spurious default here
+# could shadow that logic.
+setup '{"review":{}}'
+bash "$SCRIPT" >/tmp/load-config-defer.out 2>&1
+assert_eq "$(jq -r '.defer_markers' "$OUTDIR/config.json")" "null" "absent defer_markers -> key not written"
+rm -rf "$work"
+
 finish
