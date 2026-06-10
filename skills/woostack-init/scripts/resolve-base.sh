@@ -29,8 +29,13 @@ export WOOSTACK_ROOT
 if [ -z "${WOOSTACK_BASE_BRANCH:-}" ]; then
   _wb_cfg="$WOOSTACK_ROOT/.woostack/config.json"
   _wb_base=""
-  if [ -f "$_wb_cfg" ] && command -v jq >/dev/null 2>&1; then
-    _wb_base="$(jq -r '.base_branch // empty' "$_wb_cfg" 2>/dev/null || true)"
+  if [ -f "$_wb_cfg" ]; then
+    if command -v jq >/dev/null 2>&1; then
+      _wb_base="$(jq -r '.base_branch // empty' "$_wb_cfg" 2>/dev/null || true)"
+    else
+      printf 'woostack: %s exists but jq is unavailable; cannot read base_branch\n' "$_wb_cfg" >&2
+      return 1 2>/dev/null || exit 1
+    fi
   fi
   if [ -z "$_wb_base" ]; then
     _wb_base="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || true)"

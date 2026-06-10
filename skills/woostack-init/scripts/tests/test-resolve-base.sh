@@ -35,4 +35,14 @@ assert_eq "$out4" "pinned" "explicit override wins over config"
 out5="$( cd "$repo1" && env -u WOOSTACK_BASE_BRANCH WOOSTACK_ROOT="$repo1" bash "$resolver" )"
 assert_eq "$out5" "trunk" "executed mode prints resolved branch"
 
+# 6. config present + jq unavailable -> fail loudly instead of falling back
+bin6="$(mktemp -d)"; ln -s "$(command -v git)" "$bin6/git"
+if out6="$( cd "$repo1" && env -u WOOSTACK_BASE_BRANCH WOOSTACK_ROOT="$repo1" PATH="$bin6" bash "$resolver" 2>&1 )"; then
+  fail "config without jq fails"
+fi
+case "$out6" in
+  *"jq is unavailable"*) pass "config without jq fails loudly" ;;
+  *) fail "config without jq explains jq requirement" ;;
+esac
+
 finish

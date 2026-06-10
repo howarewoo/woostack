@@ -22,7 +22,7 @@
 - Create: `skills/woostack-init/scripts/resolve-base.sh`
 - Test: `skills/woostack-init/scripts/tests/test-resolve-base.sh`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `skills/woostack-init/scripts/tests/test-resolve-base.sh`:
 
@@ -67,12 +67,12 @@ assert_eq "$out5" "trunk" "executed mode prints resolved branch"
 finish
 ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
 
 Run: `bash skills/woostack-init/scripts/tests/test-resolve-base.sh`
 Expected: FAIL — the resolver does not exist yet, so `. "$resolver"` errors (`No such file or directory`) and the run exits non-zero.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 Create `skills/woostack-init/scripts/resolve-base.sh`:
 
@@ -127,17 +127,17 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
 fi
 ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
 
 Run: `bash skills/woostack-init/scripts/tests/test-resolve-base.sh`
 Expected: PASS — `5 passed, 0 failed`.
 
-- [ ] **Step 5: Shellcheck the new script**
+- [x] **Step 5: Shellcheck the new script**
 
 Run: `shellcheck -x skills/woostack-init/scripts/resolve-base.sh`
 Expected: clean (exit 0, no output).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 gt create -m "feat(init): add resolve-base.sh base-branch resolver + test"
@@ -149,7 +149,7 @@ gt create -m "feat(init): add resolve-base.sh base-branch resolver + test"
 - Modify: `skills/woostack-init/templates/gitignore`
 - Test: `skills/woostack-init/scripts/tests/test-gitignore-template.sh`
 
-- [ ] **Step 1: Write the failing test (extend the existing one)**
+- [x] **Step 1: Write the failing test (extend the existing one)**
 
 In `skills/woostack-init/scripts/tests/test-gitignore-template.sh`, add this line immediately after the `memory/` assertion (before `finish`):
 
@@ -157,12 +157,12 @@ In `skills/woostack-init/scripts/tests/test-gitignore-template.sh`, add this lin
 assert_contains "$body" "worktrees/" "gitignore template ignores per-PR worktrees"
 ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
 
 Run: `bash skills/woostack-init/scripts/tests/test-gitignore-template.sh`
 Expected: FAIL — `gitignore template ignores per-PR worktrees` (`worktrees/` not yet in the template).
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 In `skills/woostack-init/templates/gitignore`, add `worktrees/` to the transient block so it reads:
 
@@ -177,12 +177,12 @@ memory.md
 memory/
 ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
 
 Run: `bash skills/woostack-init/scripts/tests/test-gitignore-template.sh`
 Expected: PASS — all assertions green including the new one.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "feat(init): gitignore per-PR worktrees/ dir"
@@ -193,12 +193,12 @@ gt modify -c -m "feat(init): gitignore per-PR worktrees/ dir"
 **Files:**
 - Create: `skills/woostack-init/references/worktrees.md`
 
-- [ ] **Step 1: Confirm it is absent (RED)**
+- [x] **Step 1: Confirm it is absent (RED)**
 
 Run: `test ! -f skills/woostack-init/references/worktrees.md && echo MISSING`
 Expected: prints `MISSING`.
 
-- [ ] **Step 2: Create the contract**
+- [x] **Step 2: Create the contract**
 
 Create `skills/woostack-init/references/worktrees.md` with this exact content:
 
@@ -337,12 +337,12 @@ A pre-existing dir at a slug usually means a stale worktree from a crashed run �
 before retrying; never silently reuse or overwrite it.
 ```
 
-- [ ] **Step 3: Verify the contract exists with its key anchors**
+- [x] **Step 3: Verify the contract exists with its key anchors**
 
 Run: `grep -c "git worktree add -b\|WOOSTACK_BASE_BRANCH\|base_ref\|git-common-dir" skills/woostack-init/references/worktrees.md`
 Expected: a count ≥ 4.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt modify -c -m "docs(init): add canonical worktree-lifecycle + base-branch contract"
@@ -353,12 +353,12 @@ gt modify -c -m "docs(init): add canonical worktree-lifecycle + base-branch cont
 **Files:**
 - Modify: `skills/woostack-init/SKILL.md`
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 Run: `grep -c "worktrees.md\|base_branch" skills/woostack-init/SKILL.md`
 Expected: FAIL — prints `0`.
 
-- [ ] **Step 2: Edit the SKILL**
+- [x] **Step 2: Edit the SKILL**
 
 In `skills/woostack-init/SKILL.md`, in the step-2 templates table, add a row after the `.woostack/.gitignore` row:
 
@@ -375,12 +375,12 @@ Resolution lives in [`scripts/resolve-base.sh`](scripts/resolve-base.sh); the pe
 lifecycle that consumes it is the [worktree contract](references/worktrees.md).
 ```
 
-- [ ] **Step 3: Confirm the verification passes**
+- [x] **Step 3: Confirm the verification passes**
 
 Run: `grep -c "worktrees.md\|base_branch" skills/woostack-init/SKILL.md`
 Expected: PASS — prints `≥ 2`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt modify -c -m "docs(init): document base_branch + worktrees scaffold and link the contract"
