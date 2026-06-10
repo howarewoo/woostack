@@ -15,9 +15,11 @@ set -euo pipefail
 
 # shellcheck source=skills/woostack-review/scripts/resolve-outdir.sh
 source "$(dirname "${BASH_SOURCE[0]}")/resolve-outdir.sh"
+# shellcheck source=skills/woostack-review/scripts/resolve-root.sh
+source "$(dirname "${BASH_SOURCE[0]}")/resolve-root.sh"
 CONFIG="$OUTDIR/config.json"
 PER_RUN="$OUTDIR/findings.metrics.json"
-ROOT="${GITHUB_WORKSPACE:-$(pwd)}"
+ROOT="$WOOSTACK_ROOT"
 ROLLING="$ROOT/.woostack/metrics.json"
 GITIGNORE="$ROOT/.gitignore"
 SCHEMA_VERSION=3

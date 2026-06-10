@@ -6,11 +6,14 @@
 #
 # Inputs (env):
 #   LEARNING   the pattern-phrased rule (required, non-empty)
-#   MEMORY_FILE  path (default ./.woostack/memory.md)
+#   MEMORY_FILE  path (default <repo-root>/.woostack/memory.md)
 set -euo pipefail
 
+# shellcheck source=skills/woostack-review/scripts/resolve-root.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/resolve-root.sh"
+
 LEARNING="${LEARNING:?LEARNING env var required}"
-MEMORY_FILE="${MEMORY_FILE:-.woostack/memory.md}"
+MEMORY_FILE="${MEMORY_FILE:-$WOOSTACK_ROOT/.woostack/memory.md}"
 
 # Normalize: collapse runs of whitespace, trim ends — for the dup comparison.
 norm() { printf '%s' "$1" | tr -s '[:space:]' ' ' | sed 's/^ *//; s/ *$//'; }

@@ -62,9 +62,11 @@ set -euo pipefail
 
 # shellcheck source=skills/woostack-review/scripts/resolve-outdir.sh
 source "$(dirname "${BASH_SOURCE[0]}")/resolve-outdir.sh"
+# shellcheck source=skills/woostack-review/scripts/resolve-root.sh
+source "$(dirname "${BASH_SOURCE[0]}")/resolve-root.sh"
 mkdir -p "$OUTDIR"
 
-ROOT="${GITHUB_WORKSPACE:-$(pwd)}"
+ROOT="$WOOSTACK_ROOT"
 CFG_PATH="$ROOT/.woostack/config.json"
 
 if [ ! -f "$CFG_PATH" ]; then

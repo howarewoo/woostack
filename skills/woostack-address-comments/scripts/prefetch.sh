@@ -7,6 +7,9 @@ ROOT="$(cd "$HERE/../../.." && pwd)"
 
 # shellcheck source=skills/woostack-address-comments/scripts/resolve-outdir.sh
 source "$HERE/resolve-outdir.sh"
+# shellcheck source=skills/woostack-address-comments/scripts/resolve-root.sh
+source "$HERE/resolve-root.sh"
+WOOSTACK_DIR="$WOOSTACK_ROOT/.woostack"
 mkdir -p "$OUTDIR"
 
 PR_NUMBER="${PR_NUMBER:-$(gh pr view --json number --jq .number 2>/dev/null || echo)}"
@@ -27,10 +30,10 @@ fi
 
 MEMORY_OUT="$OUTDIR/memory.md"
 rm -f "$MEMORY_OUT"
-if [ -d ".woostack/memory" ] && [ -x "$ROOT/skills/woostack-init/scripts/recall.sh" ]; then
-  bash "$ROOT/skills/woostack-init/scripts/recall.sh" ".woostack" "$PATHS_FILE" > "$MEMORY_OUT" 2>"$OUTDIR/recall.log" || : > "$MEMORY_OUT"
-elif [ -f ".woostack/memory.md" ]; then
-  head -c 102400 ".woostack/memory.md" > "$MEMORY_OUT"
+if [ -d "$WOOSTACK_DIR/memory" ] && [ -x "$ROOT/skills/woostack-init/scripts/recall.sh" ]; then
+  bash "$ROOT/skills/woostack-init/scripts/recall.sh" "$WOOSTACK_DIR" "$PATHS_FILE" > "$MEMORY_OUT" 2>"$OUTDIR/recall.log" || : > "$MEMORY_OUT"
+elif [ -f "$WOOSTACK_DIR/memory.md" ]; then
+  head -c 102400 "$WOOSTACK_DIR/memory.md" > "$MEMORY_OUT"
 fi
 
 if [ -f "$MEMORY_OUT" ]; then
