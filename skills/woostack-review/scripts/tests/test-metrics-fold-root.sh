@@ -31,7 +31,7 @@ cat > "$out/findings.metrics.json" <<'JSON'
 JSON
 
 # Run from the package subdir, GITHUB_WORKSPACE unset, OUTDIR pinned.
-( cd "$sub" && env -u GITHUB_WORKSPACE OUTDIR="$out" bash "$SCRIPT" ) >/tmp/metrics-fold-root.out 2>&1
+( cd "$sub" && env -u GITHUB_WORKSPACE OUTDIR="$out" bash "$SCRIPT" ) >"$out/metrics-fold-root.out" 2>&1
 
 assert_eq "$(test -f "$toplevel/.woostack/metrics.json" && echo yes || echo no)" "yes" \
   "rolling metrics.json written at the git toplevel"

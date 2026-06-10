@@ -21,7 +21,7 @@ printf '%s\n' '{"review":{"severity_floor":"low"}}' > "$toplevel/.woostack/confi
 out="$(mktemp -d)/out"
 mkdir -p "$out"
 
-( cd "$sub" && env -u GITHUB_WORKSPACE OUTDIR="$out" bash "$SCRIPT" ) >/tmp/load-config-root.out 2>&1
+( cd "$sub" && env -u GITHUB_WORKSPACE OUTDIR="$out" bash "$SCRIPT" ) >"$out/load-config-root.out" 2>&1
 
 assert_eq "$(jq -r '.severity_floor' "$out/config.json")" "low" \
   "root .woostack/config.json honored from a subdir (not silent defaults)"

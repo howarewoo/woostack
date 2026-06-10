@@ -23,7 +23,7 @@ before="$(note_count)"
     WOOSTACK_NOW=2026-06-09 \
     LEARNING='Issue #272 root anchoring: woostack paths resolve to the git toplevel.' \
     MEMORY_SCOPE='skills/**' \
-    bash "$SCRIPT" ) >/tmp/memory-record-root.out 2>&1
+    bash "$SCRIPT" ) >"$repo/memory-record-root.out" 2>&1
 
 after="$(note_count)"
 assert_eq "$([ "$after" -gt "$before" ] && echo grew || echo same)" "grew" \
