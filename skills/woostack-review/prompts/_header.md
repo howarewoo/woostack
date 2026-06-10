@@ -251,7 +251,7 @@ for f in findings:
     # untrusted diff (the woostack-defer marker <ref>). Strip Markdown control
     # chars so a crafted <ref> cannot break out of the italic note into links/code
     # spans. Valid refs ("increment 3", "#225") are unaffected.
-    dt = re.sub(r"[`_*\[\]<>]", "", dt)
+    dt = re.sub(r"[`_*\[\]<>\n\r]", "", dt)
     if dt:
         body += f"\n\n_Deferred to {dt} — a later increment completes this; non-blocking._"
     if fix:
