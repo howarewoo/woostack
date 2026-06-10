@@ -5,7 +5,7 @@ This repository follows woostack. At the start of work, use
 `/woostack-*` requests to the matching skill.
 
 Follow this file first when it conflicts with generic agent defaults. `.claude/CLAUDE.md`
-is a symlink to this file, so this is the single source of truth.
+and `.gemini/GEMINI.md` are symlinks to this file, so this is the single source of truth.
 
 ## What this repo is
 
