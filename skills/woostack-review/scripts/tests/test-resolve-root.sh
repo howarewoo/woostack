@@ -26,6 +26,8 @@ toplevel="$(cd "$repo" && git rev-parse --show-toplevel)"
 sub="$toplevel/packages/pkg"
 mkdir -p "$sub"
 ws="$(mktemp -d)"
+# A throwaway dir that is NOT inside any git repo, for the pwd-fallback branch.
+nogit="$(mktemp -d)"
 
 for resolver in "$DIR/resolve-root.sh" "$ROOT/skills/woostack-address-comments/scripts/resolve-root.sh"; do
   tag="$(basename "$(dirname "$(dirname "$resolver")")")"  # skill dir name
@@ -42,7 +44,11 @@ for resolver in "$DIR/resolve-root.sh" "$ROOT/skills/woostack-address-comments/s
   got="$( cd "$sub" && env -u GITHUB_WORKSPACE WOOSTACK_ROOT=/custom/root \
             bash -c 'source "$0"; printf "%s" "$WOOSTACK_ROOT"' "$resolver" )"
   assert_eq "$got" "/custom/root" "[$tag] explicit WOOSTACK_ROOT override honored"
+
+  # (d) Outside any git repo, no overrides -> pwd fallback (safe degradation).
+  got="$(resolve "$resolver" "$nogit" -u GITHUB_WORKSPACE)"
+  assert_eq "$got" "$nogit" "[$tag] pwd fallback used outside any git repo"
 done
 
-rm -rf "$repo" "$ws"
+rm -rf "$repo" "$ws" "$nogit"
 finish
