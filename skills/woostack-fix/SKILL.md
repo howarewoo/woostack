@@ -27,6 +27,7 @@ The skill has exactly **one** hard gate: **fix plan approval**. Because the plan
    It runs its four-phase root-cause analysis automatically — investigating the symptoms, tracing data flow backward, identifying the root cause — and hands back the Phase 4 result: the root-cause summary, the proposed minimal fix, and the TDD context (the failing-test description). Carry the proposed fix forward into the fix plan's Proposed Fix section below. If it cannot find a root cause, do not guess: stop and ask the user for hints.
 
 2. **Write the fix plan as markdown.**
+   **First create the fix worktree** (the first write of this run, per the [worktree contract](../woostack-init/references/worktrees.md)): with the chosen `fix/<slug>` branch, `git worktree add -b fix/<slug> "$WOOSTACK_ROOT/.woostack/worktrees/fix-<slug>" "$(bash <wi>/resolve-base.sh)"` and run **steps 2–6 with cwd = that worktree** — the fix markdown, the harden edits, and (via `woostack-execute` in step 5) the TDD code all author into it, never the primary tree. (On abandon at the approval gate, `git worktree remove --force` it and delete the branch.)
    Create a markdown file under `.woostack/fixes/YYYY-MM-DD-<slug>.md`, using the current date and a short slug based on the target (e.g. `.woostack/fixes/2026-06-08-status-parsing.md`).
    
    The file must follow this structure:
@@ -69,8 +70,9 @@ The skill has exactly **one** hard gate: **fix plan approval**. Because the plan
    /woostack-execute .woostack/fixes/YYYY-MM-DD-<slug>.md --inline
    ```
    `woostack-execute` owns the execution cadence so the fix inherits the same discipline as a
-   build increment: create the increment's Graphite branch (named in the fix frontmatter) before
-   editing, implement each task TDD-first (failing test → minimal fix → verify) per the
+   build increment: the increment's Graphite branch + its worktree already exist (created in
+   step 2), so execute **verifies and reuses** that worktree rather than re-creating it, then
+   implements each task TDD-first (failing test → minimal fix → verify) per the
    [woostack-tdd kernel](../woostack-tdd/SKILL.md), tick the fix file's checkboxes in place,
    commit via [`woostack-commit`](../woostack-commit/SKILL.md), run the task-scoped
    spec-compliance and code-quality review, and distill durable learnings into `.woostack/memory/`.
@@ -92,6 +94,12 @@ The skill has exactly **one** hard gate: **fix plan approval**. Because the plan
    (mirroring the `Spec: .woostack/specs/<file>.md` trailer it writes for spec increments), but
    that trailer attaches the PR to the fix file rather than to a spec — the fix file's frontmatter
    remains the lifecycle source of truth.
+
+   After the PR is open and the frontmatter is set, **teardown** the fix worktree
+   (`git worktree remove "$WOOSTACK_ROOT/.woostack/worktrees/fix-<slug>"`); the branch/commits/PR
+   persist. **Leave it on failure** and report its path. The memory distill (run by `woostack-execute`
+   in step 5) targets the primary tree via the `WOOSTACK_ROOT` export of the [worktree
+   contract](../woostack-init/references/worktrees.md) §5, so it survives teardown.
 
 ## Hard constraints
 
