@@ -33,6 +33,8 @@ set -euo pipefail
 # wipe (the only legitimate caller is a genuinely fresh run).
 # shellcheck source=skills/woostack-review/scripts/resolve-outdir.sh
 source "$(dirname "${BASH_SOURCE[0]}")/resolve-outdir.sh"
+# shellcheck source=skills/woostack-review/scripts/resolve-root.sh
+source "$(dirname "${BASH_SOURCE[0]}")/resolve-root.sh"
 if [ "${WOO_REVIEW_FRESH:-}" != "1" ] && compgen -G "$OUTDIR/findings.*" >/dev/null 2>&1; then
   echo "::warning::prefetch: $OUTDIR holds in-flight findings.* — refusing rm -rf (set WOO_REVIEW_FRESH=1 to force a fresh wipe)" >&2
 else
@@ -749,7 +751,7 @@ echo "Prior review threads (open + resolved): $PRIOR_COUNT"
 # cap-protected global shard (flat memory.md). Falls back to a raw flat copy
 # when recall.sh is unavailable (e.g. single-skill install). Missing both => no
 # memory context (normal for fresh repos).
-WOOSTACK_DIR="${GITHUB_WORKSPACE:-$(pwd)}/.woostack"
+WOOSTACK_DIR="$WOOSTACK_ROOT/.woostack"
 MEMORY_SRC="$WOOSTACK_DIR/memory.md"
 MEMORY_OUT="$OUTDIR/memory.md"
 RECALL="$SCRIPT_DIR/../../woostack-init/scripts/recall.sh"

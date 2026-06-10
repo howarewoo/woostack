@@ -6,10 +6,12 @@ set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INIT_SCRIPTS="$(cd "$HERE/../../woostack-init/scripts" 2>/dev/null && pwd || true)"
+# shellcheck source=skills/woostack-review/scripts/resolve-root.sh
+source "$HERE/resolve-root.sh"
 
 LEARNING="${LEARNING:?LEARNING env var required}"
-MEMORY_DIR="${MEMORY_DIR:-.woostack/memory}"
-MEMORY_FILE="${MEMORY_FILE:-.woostack/memory.md}"
+MEMORY_DIR="${MEMORY_DIR:-$WOOSTACK_ROOT/.woostack/memory}"
+MEMORY_FILE="${MEMORY_FILE:-$WOOSTACK_ROOT/.woostack/memory.md}"
 MEMORY_SCOPE="${MEMORY_SCOPE:-*}"
 MEMORY_TYPE="${MEMORY_TYPE:-convention}"
 MEMORY_SOURCE="${MEMORY_SOURCE:-${PR_NUMBER:+pr-$PR_NUMBER}}"
