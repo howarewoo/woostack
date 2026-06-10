@@ -43,6 +43,7 @@ Two callers:
    | `.woostack/fixes/.gitkeep` | `templates/fixes/.gitkeep` |
    | `.woostack/config.json` | `templates/config.json` (`{ "review": {}, "status": { "staleDays": 14 } }`) |
    | `.woostack/.gitignore` | `templates/gitignore` |
+   | `.woostack/worktrees/` directory | (create empty — per-PR git worktrees, gitignored) |
 
    `config.json` ships as `{ "review": {}, "status": { "staleDays": 14 } }`. Each tool owns
    its own namespace inside that object: for the `review` namespace see
@@ -50,6 +51,11 @@ Two callers:
    (default 14 — the age in days past which an executing spec is flagged stale on the
    `/woostack-status` board), defined in
    [../woostack-status/references/conventions.md](../woostack-status/references/conventions.md).
+
+   The optional top-level `base_branch` key sets the integration/trunk branch that base branches
+   are cut from and PRs target; unset, it auto-detects the remote default (`origin/HEAD`, else
+   `main`). Resolution lives in [`scripts/resolve-base.sh`](scripts/resolve-base.sh); the per-PR
+   worktree lifecycle that consumes it is the [worktree contract](references/worktrees.md).
 
 3. **Handle existing files.** For any file that already exists and `--force`
    is not active: prompt the user to keep or overwrite it. Under `--no-clobber`
