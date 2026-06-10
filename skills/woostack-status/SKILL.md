@@ -52,7 +52,17 @@ the canonical home.
    stale executing spec, or a same-branch collision. Flags are advisory, never a blocking
    stop.
 
-4. **Note degradation.** If `gh` is absent or unauthenticated the board still renders,
+4. **List open deferrals (read-only).** Scan the working tree for deferral markers —
+   `grep -rn 'woostack-defer(' . | grep -v '/.git/'` (or a ripgrep equivalent) — and print each as
+   an open deferral: `<file>:<line> — deferred to <ref>`. These are the `woostack-defer(<ref>)`
+   markers `woostack-execute` writes for work a later increment completes (issue #224); a marker
+   still present after its increment landed is a **stale deferral** worth resolving. This is
+   read-only **surfacing** — never edit or remove a marker. Omit the section entirely when the scan
+   finds none. (A consumer repo carries the token only at real deferral sites. The woostack repo
+   itself also has illustrative `woostack-defer(...)` in `skills/**` / `.woostack/` docs; exclude
+   those doc paths if the example noise distracts.)
+
+5. **Note degradation.** If `gh` is absent or unauthenticated the board still renders,
    omitting PR / increment / owner data for PR-phase rows; relay the script's notice rather
    than hiding it. The footer also notes when PR-less branch data may be stale (pass
    `--fetch`).

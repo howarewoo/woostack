@@ -35,6 +35,8 @@ Every artifact you write under `$OUTDIR/findings.*.json` (default `/tmp/pr-revie
 
 If `/tmp/pr-review/rules.md` exists, treat it as an additional rubric on top of the per-angle scope. Each section is prefixed by a `## SOURCE: <path>` header identifying its origin file (`AGENTS.md`, `CLAUDE.md`, `.cursorrules`, `.windsurfrules`, or `GEMINI.md`). Any finding that claims a project-rule violation MUST populate `rule_quote` with a verbatim substring of `rules.md` (the rule text itself, not the source header). The validator discards rule-cited findings whose `rule_quote` is missing or not literally present in `rules.md`.
 
+`woostack-defer(<ref>): <reason>` is an **intentional deferral signal** (issue #224), not a stray `TODO`. Do NOT raise a finding to flag or remove it. Only the defender validator acts on it — it demotes the *separate* missing/not-yet-wired finding the marker covers (see `validator.md`). Treat the marker line itself as inert.
+
 If `/tmp/pr-review/memory.md` exists, read it before reporting. It is the team's cross-PR memory — gotchas, intentional design choices, and issues a prior review already surfaced and the team consciously accepted. If a finding you would report is already described there as known/accepted/wontfix, DROP it. Memory is advisory context, not a rule source: do not cite it in `rule_quote`.
 
 Set `PR_NUMBER` and `HEAD_SHA` as shell variables before posting anything:
@@ -80,6 +82,7 @@ The prefetch step parses an optional `.woostack/config.json` in the consumer rep
 | `release_rollup_pattern` | `prefetch.sh` (skips + posts one-line comment when PR title matches; default `^(staging\|release\|chore\(release\))` applied when absent — issue #19) | Stage 1 |
 | `severity_floor` | `intersect-findings.sh` (floor classifier) | Stage 4c — **defaults to `high`**; below-floor validated findings become non-blocking nits, not drops; set `low`/`medium` to treat more findings as normal |
 | `nits` | `intersect-findings.sh` (floor classifier) | Stage 4c — default `true`; `false` drops below-floor non-blocking findings (old behavior). Below-floor blocking findings always surface |
+| `defer_markers` | `intersect-findings.sh` (floor classifier) + `validator.md` (defender) | Stage 4c — default `true`; honors inline `woostack-defer(<ref>)` markers, demoting a covered finding to a `Deferred to <ref>` nit. `false` ignores markers |
 | `models.fast` / `.standard` / `.deep`; `models.<provider>.<tier>` | orchestrator prompts (tier resolution) | Stage 2 |
 | `fix_commands` | persisted only; consumed by `--loop` mode (#15) | n/a |
 | `chunking.max_loc` | `chunk-diff.sh` (split oversized diff into chunks; default 4000) | Stage 1 |
@@ -243,6 +246,9 @@ for f in findings:
     blocking = bool(f.get("blocking", False))
 
     body = f"**{title}**\n\n{description}"
+    dt = (f.get("deferred_to") or "").strip()
+    if dt:
+        body += f"\n\n_Deferred to {dt} — a later increment completes this; non-blocking._"
     if fix:
         body += f"\n\nFix: {fix}"
     # Render ```suggestion``` block only when validator-approved as fix_type=suggestion.
@@ -401,7 +407,8 @@ Every runner MUST write a final `findings.json` (for debugging + potential post-
     "fix_type": "suggestion",
     "fix": "Recommended change in prose (e.g. 'use `<=` instead of `<` so the boundary value is included').",
     "suggestion": "verbatim replacement code for the GitHub ```suggestion``` block — REQUIRED when fix_type == \"suggestion\", MUST be null when fix_type == \"prose\"",
-    "rule_quote": "exact quoted rule text if rule-based, else null"
+    "rule_quote": "exact quoted rule text if rule-based, else null",
+    "deferred_to": "the <ref> of a woostack-defer marker (e.g. \"increment 3\") this finding is deferred to, set by the defender when a marker covers the missing work; else null"
   }
 ]
 ```
@@ -443,6 +450,8 @@ Fix: <fix>
 - **Attribution footer** — small-print line carrying the finding's `severity` (HIGH / MEDIUM / LOW; suffixed with `· BLOCKING` when `blocking == true`, or `· NIT` when `nit == true`) and the angle agent that flagged it (e.g. `<sub>— <strong>HIGH · BLOCKING</strong> · flagged by the <code>bugs</code> agent</sub>`, or `<sub>— <strong>LOW · NIT</strong> · flagged by the <code>bugs</code> agent</sub>`). The body builder appends this automatically from the finding's `severity` / `blocking` / `nit` / `angle` fields. Both `severity` and `angle` are whitelisted against their known sets; unknown/missing values are dropped from the footer rather than injecting raw text. If both are missing, the footer is omitted entirely.
 
 `nit` is a boolean set by `intersect-findings.sh` (the floor classifier), **not** by angle agents: `true` marks a validated below-floor non-blocking finding. The body builder renders a `nit: true` finding with a `Nit:` title prefix and a `· NIT` footer tag, and the event computation treats it as event-neutral (a PR whose only findings are nits still `APPROVE`s, with the nits posted inline). A nit is always non-blocking; a below-floor finding that is `blocking: true` stays a normal finding (`nit: false`).
+
+`deferred_to` is a string (the marker `<ref>`, e.g. `"increment 3"`) or null, set by the defender validator (`validator.md`) when an inline `woostack-defer(<ref>)` marker in the diff covers the gap a finding flags as missing. `intersect-findings.sh` forces any finding carrying a non-empty `deferred_to` to `nit: true, blocking: false` (independent of `severity_floor`, gated by `review.defer_markers`), and the body builder appends a `Deferred to <ref>` line. Never set on `security` findings or on wrong code present in this PR.
 
 The body builder in the posting step (see python snippet above) renders this format automatically from `title` / `description` / `fix` / `fix_type` / `suggestion` / `angle` / `severity` / `blocking` / `nit`. Angle agents and the validator MUST populate `title`, `description`, `fix`, `fix_type`, `angle`, `severity`, and `blocking` for every finding; `nit` is added downstream by the classifier.
 

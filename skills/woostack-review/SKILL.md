@@ -66,6 +66,28 @@ When the incremental diff has no new commits (i.e. `LAST_SHA == HEAD_SHA`, e.g. 
 
 Marker semantics are state-light: the marker IS the state. There is no DB or workflow artifact retention beyond what GitHub already keeps in review history.
 
+## Stack-aware review (`review.defer_markers`, issue #224)
+
+woostack encourages PR-sized **stacked** increments, so an early increment often *intentionally*
+defers integration to a later one. Reviewing the isolated diff would flag that deferred work as
+"missing" — noise that trains authors to ignore the review gate.
+
+Rather than fetch the other PRs in the stack to verify the deferral, woostack declares it inline.
+When `woostack-execute` runs an increment that defers work, it writes a **deferral marker** at the named site in the file's comment syntax —
+`woostack-defer(increment N): <reason>` — and the later increment removes it when it
+wires the work (both steps are authored by [`woostack-plan`](../woostack-plan/SKILL.md)). The marker
+lives in the PR's own diff.
+
+When `review.defer_markers` is `true` (the default), the **defender validator** scans the diff for
+these markers; for a finding that asserts something is *missing / not-yet-wired / presented-before-
+it-lands*, it checks whether a marker covers that gap. If so it sets `deferred_to: "<ref>"`;
+`intersect-findings.sh` then forces the finding to a non-blocking **`Deferred to <ref>` nit**
+(visible, auditable, event-neutral → `APPROVE`), independent of `severity_floor`. Guards: `security`
+findings are never deferred; a finding about wrong code *present in this PR* is never deferred; a
+bare `TODO` is never honored (only the `woostack-defer` token). Set `review.defer_markers: false`
+to turn the feature off. Because the signal is in the diff already, the review fetches **no other
+PRs** — the cost of declaring intent is paid once, upstream, at plan/execute time.
+
 ## Cross-PR Memory (`.woostack/memory/` + `.woostack/memory.md`)
 
 Reviews stay useful across PRs through the consumer repo's woostack memory store. The preferred write target is the scope-routed **`.woostack/memory/`** directory: one Markdown note per reusable fact, with frontmatter declaring the scope where it applies. The flat **`.woostack/memory.md`** remains the global shard and fallback for repos that have not initialized the scoped store.
@@ -132,6 +154,7 @@ Full schema (every key shown; all optional):
     },
     "severity_floor": "high",
     "nits": true,
+    "defer_markers": true,
     "ignore": [
       "**/*.generated.ts",
       "migrations/*.sql"
@@ -174,6 +197,7 @@ Key reference (JSON has no comments, so the per-key semantics live here):
 - **`angles.force`** — always run these, even if not auto-detected. **`angles.skip`** — never run these (`bugs`/`security` cannot be skipped).
 - **`severity_floor`** — one of `low` | `medium` | `high`; a blocking/visibility threshold, **not** a drop gate. **Default `high`**. Findings below the floor surface as non-blocking nits (see `nits`); set `low`/`medium` to treat more findings as normal (at/above-floor). Applied once by `intersect-findings.sh` (Stage 4c).
 - **`nits`** — `true` | `false`; default **`true`**. When `true`, validated findings below `severity_floor` surface as non-blocking nits instead of being dropped. Set `false` to drop them (the pre-reframe behavior). Below-floor `blocking` findings always surface regardless of this knob.
+- **`defer_markers`** — `true` | `false`; default **`true`**. When `true`, the defender validator honors inline `woostack-defer(<ref>)` markers (authored by `woostack-execute` under an approved plan): a finding that flags work a later increment intentionally completes is demoted to a non-blocking `Deferred to <ref>` nit instead of a normal finding (issue #224). Set `false` to ignore the markers. Never defers `security` findings or wrong code present in this PR; reads the marker from the PR's own diff, so it fetches no other PRs.
 - **`ignore`** — fnmatch globs; ignored paths skip angle triggers + diff body.
 - **`project_rules`** — fnmatch globs appended to auto-discovered `rules.md`.
 - **`authors_skip`** — PR author logins that short-circuit the entire review. Defaults: `dependabot[bot]`, `renovate[bot]`, `github-actions[bot]`. Set to `[]` to opt out.

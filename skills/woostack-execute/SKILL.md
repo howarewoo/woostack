@@ -119,6 +119,22 @@ For each increment:
 
 Then advance to the next increment.
 
+## Deferral markers
+
+When a plan step says to **drop** a deferral marker (an increment that defers integration to a
+later one), write it verbatim at the named site in the file's comment syntax —
+`woostack-defer(increment N): <reason>` (literal token `woostack-defer`; see
+[`woostack-plan`](../woostack-plan/SKILL.md) and [`woostack-review`](../woostack-review/SKILL.md)
+for the canonical form).
+
+When you implement the increment a marker names, **remove** it: delete the plan-named line as part
+of wiring the work, then grep the tree for any remaining `woostack-defer(increment N)` matching the
+increment you are completing and remove every occurrence (belt-and-suspenders, so a forgotten site
+cannot strand a marker). Markers exist only while the gap is open. `woostack-review` reads the
+marker to demote the matching "missing X" finding to a non-blocking `Deferred to N` nit — the text
+must match the token exactly; `woostack-status` lists any marker still in the tree as an open
+deferral.
+
 ## Terminal state: a reviewed stack
 
 Stop when every increment is implemented, checked off, committed, reviewed, and distilled —
