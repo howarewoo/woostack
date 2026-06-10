@@ -96,7 +96,7 @@ directory, not in this repo.
   [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/)
 - Build loop:
   [`skills/woostack-build/SKILL.md`](skills/woostack-build/SKILL.md)
-- Small-change fix loop (public command; diagnose → fix plan → approve → TDD → commit):
+- Small-change fix loop (public command; diagnose → fix plan → approve → delegate execution to woostack-execute):
   [`skills/woostack-fix/SKILL.md`](skills/woostack-fix/SKILL.md)
 - Plan-writing engine for the build loop (public command):
   [`skills/woostack-plan/SKILL.md`](skills/woostack-plan/SKILL.md)
