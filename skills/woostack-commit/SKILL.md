@@ -84,29 +84,30 @@ If relevance is ambiguous, stop and ask the user before staging.
 
 ### 2. Enforce branch shape before committing
 
-Never commit directly to protected integration branches: `main`, `staging`, `beta`, or `alpha`. These branch names do not need to exist in every repo, but when the current branch is one of them, create a `feature/*` branch before staging or committing.
-
-- If current branch matches `feature/*`, continue.
-- If current branch is `main`, `staging`, `beta`, or `alpha`, create a new feature branch from the current branch before staging:
+Resolve the integration branch before checking the current branch (`<wi>` = the installed `woostack-init` scripts dir):
 
 ```bash
+base="$(bash <wi>/resolve-base.sh)"
+```
+
+Never commit directly to protected integration branches: the resolved `$base`, plus conventional protected names `main`, `staging`, `beta`, or `alpha`. These branch names do not need to exist in every repo, but when the current branch is one of them, create a `feature/*` branch before staging or committing.
+
+- If current branch matches `feature/*` or `fix/*`, continue.
+- If current branch is `$base`, `main`, `staging`, `beta`, or `alpha`, create a new feature branch from the resolved integration branch before staging:
+
+```bash
+git switch "$base"
 gt create feature/<short-slug>
+gt track feature/<short-slug> --parent "$base"
 ```
 
 - If current branch is anything else, stop and ask whether to continue on the current branch or create a new `feature/*` branch.
 
-Use a short slug based on the change, such as `feature/review-model-defaults` or `feature/add-commit-skill`. Prefer Graphite (`gt`) for branch creation. Fall back to raw `git switch -c feature/<short-slug>` only when Graphite is unavailable or clearly not initialized.
-
-Resolve the integration/trunk branch with the shared helper rather than assuming `staging` (`<wi>` = the installed `woostack-init` scripts dir):
-
-```bash
-base="$(bash <wi>/resolve-base.sh)"
-gt create feature/<short-slug> --base "$base"
-```
+Use a short slug based on the change, such as `feature/review-model-defaults` or `feature/add-commit-skill`. Prefer Graphite for branch creation and tracking: switch to the resolved base, run `gt create feature/<short-slug>`, then ensure the parent is registered with `gt track feature/<short-slug> --parent "$base"`. If Graphite is unavailable or clearly not initialized, fall back to raw git only: `git switch -c feature/<short-slug> "$base"`.
 
 **Running inside a worktree:** when a driving skill (build / execute / fix) has already created a per-PR worktree on a `feature/*` or `fix/*` branch (see the [worktree contract](../woostack-init/references/worktrees.md)), this step finds a non-protected branch and continues — `woostack-commit` commits whatever tree it is invoked in and creates no second branch.
 
-Never force-push. Never commit directly to `main`, `staging`, `beta`, or `alpha`.
+Never force-push. Never commit directly to `$base`, `main`, `staging`, `beta`, or `alpha`.
 
 ### 3. Run configured pre-commit command
 
@@ -205,7 +206,7 @@ Resolve the PR:
 gh pr view --json number,title,body,headRefName,baseRefName,url
 ```
 
-If no PR exists after submit/push, create one targeting the resolved base branch:
+If no PR exists after submit/push, create one targeting the resolved base branch (`<wi>` = the installed `woostack-init` scripts dir, as in step 2):
 
 ```bash
 base="$(bash <wi>/resolve-base.sh)"
