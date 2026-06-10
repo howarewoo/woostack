@@ -459,7 +459,7 @@ bash "$SCRIPT_DIR/detect-stack.sh" || echo "::warning::detect-stack.sh failed (n
 - [x] **Step 4: Run the verification, confirm it passes**
 
 Run: `grep -c 'headRefName' skills/woostack-review/scripts/prefetch.sh; grep -c 'detect-stack.sh' skills/woostack-review/scripts/prefetch.sh; bash -n skills/woostack-review/scripts/prefetch.sh && echo ok`
-Expected: `1` (headRefName in the meta fetch), `1` (the call), `ok`. Then re-run the Task 2 suite to confirm no regression: `bash skills/woostack-review/scripts/tests/test-detect-stack.sh` → `10 passed, 0 failed`.
+Expected: `1` (headRefName in the meta fetch), `1` (the call), `ok`. Then re-run the Task 2 suite to confirm no regression: `bash skills/woostack-review/scripts/tests/test-detect-stack.sh` → `11 passed, 0 failed`.
 
 - [x] **Step 5: Commit**
 

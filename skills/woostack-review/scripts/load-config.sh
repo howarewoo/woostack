@@ -55,9 +55,10 @@
 #                                   restores the old below-floor drop. blocking
 #                                   findings still surface regardless.)
 #   stack_aware         bool       (issue #224: detect later PRs in the same
-#                                   stack and demote findings a descendant PR
-#                                   already fixes to non-blocking nits;
-#                                   default true. false disables detection.)
+#                                   stack and compose stack.md as additional
+#                                   context; default true. false disables
+#                                   detection. Finding demotion is a later
+#                                   increment.
 #   chunking.max_loc    int >= 0   (issue #14: diff split threshold; 0 disables
 #                                   chunking entirely; absent => 4000 default
 #                                   applied by chunk-diff.sh)

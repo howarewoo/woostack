@@ -32,6 +32,27 @@ assert_not_contains "$(cat "$OUTDIR/stack.md")" "#999" "unrelated PR absent"
 assert_contains "$(cat "$OUTDIR/stack.md")" "+wire()" "child diff included"
 rm -rf "$work"; unset WOO_REVIEW_FAKE_STACK_PRS_JSON WOO_REVIEW_FAKE_STACK_DIFFS_JSON
 
+# Byte cap: keep metadata for all descendants and omit diff bodies when capped.
+setup "feat-1" "true"
+export WOO_REVIEW_FAKE_STACK_PRS_JSON='[
+  {"number":227,"baseRefName":"feat-1","headRefName":"feat-2","title":"Increment 2","body":"wires call sites","files":[{"path":"x.ts"}]},
+  {"number":228,"baseRefName":"feat-2","headRefName":"feat-3","title":"Increment 3","body":"adds enum","files":[{"path":"y.ts"}]}
+]'
+export WOO_REVIEW_FAKE_STACK_DIFFS_JSON="$(python3 - <<'PY'
+import json
+small = "diff --git a/x.ts b/x.ts\n+wire()\n"
+big = "diff --git a/y.ts b/y.ts\n" + "\n".join([f"+line{idx}" for idx in range(2500)])
+print(json.dumps({"227": small, "228": big}))
+PY
+)"
+export WOO_REVIEW_STACK_CAP_BYTES=700
+bash "$SCRIPT" >/tmp/detect-stack.out 2>&1
+assert_contains "$(cat "$OUTDIR/stack.md")" "#227" "byte cap keeps first descendant metadata"
+assert_contains "$(cat "$OUTDIR/stack.md")" "#228" "byte cap keeps second descendant metadata"
+assert_contains "$(cat "$OUTDIR/stack.md")" "+wire()" "byte cap keeps first descendant diff"
+assert_contains "$(cat "$OUTDIR/stack.md")" "Diff: [omitted — stack.md byte cap reached]" "byte cap omits at least one diff body"
+rm -rf "$work"; unset WOO_REVIEW_FAKE_STACK_PRS_JSON WOO_REVIEW_FAKE_STACK_DIFFS_JSON WOO_REVIEW_STACK_CAP_BYTES
+
 # Degraded diff: a matched descendant absent from the diffs map gets the degraded
 # placeholder (AC3 error / AC4 error — never deferred against an unverified diff).
 setup "feat-1" "true"
@@ -55,6 +76,16 @@ export WOO_REVIEW_FAKE_STACK_DIFFS_JSON='{}'
 bash "$SCRIPT" >/tmp/detect-stack.out 2>&1
 assert_eq "$([ -f "$OUTDIR/stack.md" ] && echo yes || echo no)" "no" "no descendants -> no stack.md"
 rm -rf "$work"; unset WOO_REVIEW_FAKE_STACK_PRS_JSON WOO_REVIEW_FAKE_STACK_DIFFS_JSON
+
+# Empty headRefName: safe no-op, no stack.md, exit 0.
+setup "" "true"
+set +e
+bash "$SCRIPT" >/tmp/detect-stack.out 2>&1
+rc=$?
+set -e
+assert_eq "$rc" "0" "empty headRefName exits cleanly"
+assert_eq "$([ -f "$OUTDIR/stack.md" ] && echo yes || echo no)" "no" "empty headRefName produces no stack.md"
+rm -rf "$work"
 
 # Cycle guard: feat-1 -> feat-2 -> feat-1 (malformed) terminates without hanging.
 setup "feat-1" "true"

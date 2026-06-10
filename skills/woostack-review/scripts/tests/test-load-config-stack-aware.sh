@@ -36,4 +36,10 @@ assert_eq "$([ "$rc" -ne 0 ] && echo nonzero || echo zero)" "nonzero" "non-boole
 assert_contains "$(cat /tmp/load-config-stack.out)" "stack_aware" "error names the stack_aware key"
 rm -rf "$work"
 
+# stack_aware omitted: key stays unset in emitted config.
+setup '{"review":{}}'
+bash "$SCRIPT" >/tmp/load-config-stack.out 2>&1
+assert_eq "$(jq -r '.stack_aware' "$OUTDIR/config.json")" "null" "missing stack_aware key is omitted"
+rm -rf "$work"
+
 finish
