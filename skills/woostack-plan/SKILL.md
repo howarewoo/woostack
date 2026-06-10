@@ -64,6 +64,27 @@ under the target and propose a further split; genuinely atomic changes may excee
 decomposition is part of planning (it folds `woostack-build`'s old decompose step into the plan
 engine).
 
+## Deferral markers (stacked increments)
+
+A PR-sized increment often *intentionally* defers integration to a later increment — Increment 1
+ships a skill file, Increment 2 wires its call sites. Reviewing the isolated diff would flag that
+deferred work as "missing." To keep the review gate quiet **without** pulling the other PRs in the
+stack, the plan declares the deferral inline:
+
+When an increment leaves a gap a later increment fills, author **two paired steps**:
+
+1. In the **deferring** increment, a step that drops a deferral marker at the gap site —
+   `woostack-defer(increment N): <reason>` — in the file's comment syntax (e.g.
+   `// woostack-defer(increment 3): call sites wired in increment 3`). The literal token is
+   `woostack-defer`; `<ref>` is the increment that completes the work.
+2. In the **implementing** increment (N), a step that **removes** that marker as part of wiring the
+   work, so the marker exists exactly while the gap is open.
+
+The marker is the single signal `woostack-review` reads to demote a "missing X" finding to a
+non-blocking `Deferred to <ref>` nit (see [`woostack-review`](../woostack-review/SKILL.md) for the
+canonical token; `review.defer_markers` gates it, default on). Never plan a marker over a
+`security` gap or over wrong code — deferral is only for *missing* work a later increment adds.
+
 ## Optional: independent tracks (for overnight runs)
 
 By default the increments form **one linear `gt` stack** — each stacks on the previous, the shape

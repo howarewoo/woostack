@@ -54,6 +54,11 @@
 #                                   non-blocking nits; default true. false
 #                                   restores the old below-floor drop. blocking
 #                                   findings still surface regardless.)
+#   defer_markers       bool       (issue #224: honor inline woostack-defer(<ref>)
+#                                   markers — demote a finding deferred to a later
+#                                   increment to a non-blocking nit in the
+#                                   downstream floor classifier; default true.
+#                                   false ignores markers.)
 #   chunking.max_loc    int >= 0   (issue #14: diff split threshold; 0 disables
 #                                   chunking entirely; absent => 4000 default
 #                                   applied by chunk-diff.sh)
@@ -92,6 +97,7 @@ REVIEW_KEYS = {
     "angles", "severity_floor", "ignore", "project_rules",
     "authors_skip", "release_rollup_pattern", "models", "fix_commands",
     "disable_adversarial", "metrics", "chunking", "force_tier", "nits",
+    "defer_markers",
 }
 MODEL_TIERS = {"fast", "standard", "deep"}
 MODEL_PROVIDERS = {"anthropic", "openai", "google", "openrouter"}
@@ -233,6 +239,12 @@ if "nits" in raw:
     if not isinstance(val, bool):
         loud("`nits` must be a boolean (true/false), got {}".format(type(val).__name__))
     out["nits"] = val
+
+if "defer_markers" in raw:
+    val = raw["defer_markers"]
+    if not isinstance(val, bool):
+        loud("`defer_markers` must be a boolean (true/false), got {}".format(type(val).__name__))
+    out["defer_markers"] = val
 
 if "chunking" in raw:
     chunking = raw["chunking"]

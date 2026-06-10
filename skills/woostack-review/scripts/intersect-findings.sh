@@ -12,7 +12,7 @@
 #   validator-metrics.json     {prosecutor_count, defender_count,
 #                               kept_count, disagreement_count,
 #                               dropped_by_defender, dropped_by_prosecutor,
-#                               mode: "adversarial" | "defender-only",
+#                               deferred_count, mode: "adversarial" | "defender-only",
 #                               degraded: bool}
 #
 # Intersection key: four-pass match. Pass 1 is exact `(file, line, title_stem)`
@@ -88,6 +88,14 @@ if [ -f "$CONFIG" ]; then
   [ "$v" = "false" ] && nits_enabled="false"
 fi
 
+# Resolve defer_markers opt-out from config.json (default true). false => never
+# honor woostack-defer markers; the floor classifier ignores deferred_to.
+defer_markers_enabled="true"
+if [ -f "$CONFIG" ]; then
+  v="$(jq -r '.defer_markers' "$CONFIG" 2>/dev/null || echo null)"
+  [ "$v" = "false" ] && defer_markers_enabled="false"
+fi
+
 # Resolve severity_floor (default high). Already shape-validated by
 # load-config.sh; re-default defensively here since this is the floor's home.
 severity_floor="$(jq -r '.severity_floor // "high"' "$CONFIG" 2>/dev/null | tr '[:upper:]' '[:lower:]')"
@@ -130,6 +138,7 @@ write_metrics() {
     --argjson dropped_by_defender "$7" \
     --argjson dropped_by_prosecutor "$8" \
     --argjson nit_count "$9" \
+    --argjson deferred_count "${10}" \
     '{
       mode: $mode,
       degraded: $degraded,
@@ -139,7 +148,8 @@ write_metrics() {
       disagreement_count: $disagreement_count,
       dropped_by_defender: $dropped_by_defender,
       dropped_by_prosecutor: $dropped_by_prosecutor,
-      nit_count: $nit_count
+      nit_count: $nit_count,
+      deferred_count: $deferred_count
     }' > "$METRICS"
 }
 
@@ -290,13 +300,14 @@ PY
 # Runs on the merged findings.json in BOTH validator modes so the floor has one
 # implementation across swarm, CI, and defender-only paths.
 classify_floor() {
-  python3 - "$FINAL" "$severity_floor" "$nits_enabled" <<'PY'
+  python3 - "$FINAL" "$severity_floor" "$nits_enabled" "$defer_markers_enabled" <<'PY'
 import json, sys
 
-final_p, floor, nits = sys.argv[1], sys.argv[2], sys.argv[3]
+final_p, floor, nits, defer_markers = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
 RANK = {"low": 0, "medium": 1, "high": 2}
 floor_rank = RANK.get(floor, 2)
 nits_on = nits != "false"
+defer_on = defer_markers != "false"
 
 try:
     findings = json.load(open(final_p))
@@ -307,6 +318,17 @@ except (OSError, ValueError):
 
 out = []
 for f in findings:
+    # Stack-aware deferral (issue #224): a finding the defender confirmed a later
+    # increment fills (via a woostack-defer marker) is forced to a non-blocking
+    # nit, INDEPENDENT of the floor. Hard off-switch: defer_markers=false
+    # ignores it.
+    dt = f.get("deferred_to")
+    if defer_on and isinstance(dt, str) and dt.strip():
+        f["nit"] = True
+        f["blocking"] = False
+        out.append(f)
+        continue
+
     # Unknown/missing severity -> MEDIUM (matches sev_rank() used in the merge).
     rank = RANK.get((f.get("severity") or "").lower(), 1)
     if rank >= floor_rank:
@@ -342,7 +364,8 @@ if [ "$disable_adversarial" = "true" ] || [ "$prosecutor_present" = "false" ]; t
   classify_floor
   kept_count="$(jq 'length' "$FINAL")"
   nit_count="$(jq '[.[] | select(.nit == true)] | length' "$FINAL")"
-  write_metrics "$mode" "$degraded" null "$defender_count" "$kept_count" 0 0 0 "$nit_count"
+  deferred_count="$(jq '[.[] | select((.deferred_to // "") != "" and .nit == true)] | length' "$FINAL")"
+  write_metrics "$mode" "$degraded" null "$defender_count" "$kept_count" 0 0 0 "$nit_count" "$deferred_count"
   echo "intersect-findings: mode=$mode degraded=$degraded kept=$kept_count nits=$nit_count"
   emit_angle_metrics "$mode" "$degraded" || echo "::warning::emit_angle_metrics failed (non-fatal)" >&2
   exit 0
@@ -597,13 +620,14 @@ cp "$FINAL" "$PRECLASSIFY"   # pre-floor snapshot for per-angle disagreement met
 classify_floor
 kept_count="$(jq 'length' "$FINAL")"
 nit_count="$(jq '[.[] | select(.nit == true)] | length' "$FINAL")"
+deferred_count="$(jq '[.[] | select((.deferred_to // "") != "" and .nit == true)] | length' "$FINAL")"
 dropped_by_defender="$((prosecutor_count - intersection_size))"
 dropped_by_prosecutor="$((defender_count - intersection_size))"
 if [ "$dropped_by_defender" -lt 0 ]; then dropped_by_defender=0; fi
 if [ "$dropped_by_prosecutor" -lt 0 ]; then dropped_by_prosecutor=0; fi
 disagreement_count="$((dropped_by_defender + dropped_by_prosecutor))"
 
-write_metrics adversarial false "$prosecutor_count" "$defender_count" "$kept_count" "$disagreement_count" "$dropped_by_defender" "$dropped_by_prosecutor" "$nit_count"
+write_metrics adversarial false "$prosecutor_count" "$defender_count" "$kept_count" "$disagreement_count" "$dropped_by_defender" "$dropped_by_prosecutor" "$nit_count" "$deferred_count"
 
 echo "intersect-findings: mode=adversarial degraded=false prosecutor=$prosecutor_count defender=$defender_count kept=$kept_count nits=$nit_count disagreement=$disagreement_count"
 emit_angle_metrics adversarial false || echo "::warning::emit_angle_metrics failed (non-fatal)" >&2
