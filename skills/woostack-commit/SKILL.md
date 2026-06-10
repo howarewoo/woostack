@@ -97,6 +97,15 @@ gt create feature/<short-slug>
 
 Use a short slug based on the change, such as `feature/review-model-defaults` or `feature/add-commit-skill`. Prefer Graphite (`gt`) for branch creation. Fall back to raw `git switch -c feature/<short-slug>` only when Graphite is unavailable or clearly not initialized.
 
+Resolve the integration/trunk branch with the shared helper rather than assuming `staging` (`<wi>` = the installed `woostack-init` scripts dir):
+
+```bash
+base="$(bash <wi>/resolve-base.sh)"
+gt create feature/<short-slug> --base "$base"
+```
+
+**Running inside a worktree:** when a driving skill (build / execute / fix) has already created a per-PR worktree on a `feature/*` or `fix/*` branch (see the [worktree contract](../woostack-init/references/worktrees.md)), this step finds a non-protected branch and continues — `woostack-commit` commits whatever tree it is invoked in and creates no second branch.
+
 Never force-push. Never commit directly to `main`, `staging`, `beta`, or `alpha`.
 
 ### 3. Run configured pre-commit command
@@ -196,11 +205,14 @@ Resolve the PR:
 gh pr view --json number,title,body,headRefName,baseRefName,url
 ```
 
-If no PR exists after submit/push, create one targeting `staging`:
+If no PR exists after submit/push, create one targeting the resolved base branch:
 
 ```bash
-gh pr create --base staging --head "$(git branch --show-current)" --title "<concise title>" --body-file <tmp-body-file>
+base="$(bash <wi>/resolve-base.sh)"
+gh pr create --base "$base" --head "$(git branch --show-current)" --title "<concise title>" --body-file <tmp-body-file>
 ```
+
+For a **stacked** increment PR the base is the **parent branch**, not `$base` (see the [worktree contract](../woostack-init/references/worktrees.md) §4); Graphite sets it automatically via `gt submit` when the branch was `gt track --parent`ed.
 
 Set or update the body with this structure:
 
