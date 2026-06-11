@@ -55,59 +55,14 @@ sanitize_untrusted() {
 
 safe_comment_body=$(sanitize_untrusted "${COMMENT_BODY:-}" 2000)
 
-# canonical source: skills/using-woostack/references/model-tiers.md — keep these slugs in sync
-# with that table (Bash cannot read the markdown table, so this is its executable mirror).
-default_model_for() {
-  local provider="$1" tier="$2"
-  case "$provider" in
-    anthropic)
-      case "$tier" in
-        fast) echo "claude-haiku-4-5" ;;
-        standard) echo "claude-sonnet-4-6" ;;
-        deep) echo "claude-opus-4-8" ;;
-      esac
-      ;;
-    openai)
-      case "$tier" in
-        fast) echo "gpt-5.3-codex-spark" ;;
-        standard) echo "gpt-5.4-mini" ;;
-        deep) echo "gpt-5.5" ;;
-      esac
-      ;;
-    google)
-      echo "gemini-3-5-flash"
-      ;;
-    openrouter)
-      case "$tier" in
-        fast) echo "openrouter/deepseek/deepseek-v4-flash" ;;
-        standard) echo "openrouter/deepseek/deepseek-v4-pro" ;;
-        deep) echo "openrouter/deepseek/deepseek-v4-pro" ;;
-      esac
-      ;;
-    *)
-      echo "::error::Unknown provider '$provider' while resolving run model"
-      exit 1
-      ;;
-  esac
-}
-
-provider_tier_model() {
-  local provider="$1" tier="$2"
-  local override
-  if [ -f "$CONFIG_PATH" ]; then
-    override="$(jq -r --arg p "$provider" --arg t "$tier" '.models[$p][$t] // empty' "$CONFIG_PATH" 2>/dev/null || true)"
-    if [ -n "$override" ] && [ "$override" != "null" ]; then
-      echo "$override"
-      return 0
-    fi
-    override="$(jq -r --arg t "$tier" '.models[$t] // empty' "$CONFIG_PATH" 2>/dev/null || true)"
-    if [ -n "$override" ] && [ "$override" != "null" ]; then
-      echo "$override"
-      return 0
-    fi
-  fi
-  default_model_for "$provider" "$tier"
-}
+# Model resolution (config override → default table) is shared with the local
+# Stage-3 per-call dispatch path. Source the single source of truth so the CI
+# (single-session) path here and the local (per-call) path cannot diverge —
+# resolve-model.sh defines default_model_for + provider_tier_model and reads
+# $CONFIG_PATH (set above). Its dual-mode guard means sourcing only pulls in the
+# functions; main does not run (issue #295).
+# shellcheck source=skills/woostack-review/scripts/resolve-model.sh
+source "$(dirname "${BASH_SOURCE[0]}")/resolve-model.sh"
 
 default_openai_effort_for() {
   local tier="$1"
