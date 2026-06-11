@@ -41,7 +41,8 @@ sits after that PR. So the chain has exactly the three hard gates above.
    `docs/specs/` location. **First create the spec+plan worktree** (the first write of this run,
    per the [worktree contract](../woostack-init/references/worktrees.md)): pick the branch
    `feature/<slug>`, then `git worktree add -b feature/<slug>
-   "$WOOSTACK_ROOT/.woostack/worktrees/feature-<slug>" "$(bash <wi>/resolve-base.sh)"` and run
+   "$WOOSTACK_ROOT/.woostack/worktrees/feature-<slug>" "$(bash <wi>/resolve-base.sh)"`, run
+   `gt track --parent "$(bash <wi>/resolve-base.sh)"` from inside that worktree, and run
    **steps 2–7 with cwd = that worktree** — the spec, the `woostack-plan` plan, and both hardens
    author into it, never the primary tree. (On abandon at the spec gate, `git worktree remove
    --force` it and delete the branch.) Instead author a markdown spec to
