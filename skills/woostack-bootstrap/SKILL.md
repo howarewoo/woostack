@@ -65,6 +65,7 @@ These are non-negotiable. Violating them produces a broken or drift-prone projec
 - **Maintain package slice architecture.** Strictly follow [references/architecture.md](references/architecture.md) for package layering (`Apps -> Features -> Infrastructure`), regardless of the chosen technology stack.
 - **Don't ship unverified.** Running build, lint, and test scripts must succeed before declaring the bootstrap complete.
 - **Record decisions.** Write the finalized stack choices, versions, and rationale into the project's root `README.md` at hand-off.
+- **Initial scaffold is the one worktree exemption.** A fresh repo has no base branch to `git worktree` from, so the initial scaffold + first commit land in the primary tree. All *subsequent* feature/fix work goes through `woostack-build` / `woostack-fix`, which author each PR inside its own worktree per the [worktree contract](../woostack-init/references/worktrees.md). Bootstrap itself adds no worktree create/teardown step.
 
 ## SPEC_VERSION
 

@@ -38,7 +38,14 @@ sits after that PR. So the chain has exactly the three hard gates above.
    approved design and stops there — it writes no spec and chains no plan, so the next steps
    are yours to drive.
 2. **Write the spec as markdown.** When the design is approved, do **not** write to a generic
-   `docs/specs/` location. Instead author a markdown spec to
+   `docs/specs/` location. **First create the spec+plan worktree** (the first write of this run,
+   per the [worktree contract](../woostack-init/references/worktrees.md)): pick the branch
+   `feature/<slug>`, then `git worktree add -b feature/<slug>
+   "$WOOSTACK_ROOT/.woostack/worktrees/feature-<slug>" "$(bash <wi>/resolve-base.sh)"`, run
+   `gt track --parent "$(bash <wi>/resolve-base.sh)"` from inside that worktree, and run
+   **steps 2–7 with cwd = that worktree** — the spec, the `woostack-plan` plan, and both hardens
+   author into it, never the primary tree. (On abandon at the spec gate, `git worktree remove
+   --force` it and delete the branch.) Instead author a markdown spec to
    `.woostack/specs/YYYY-MM-DD-<slug>.md`, populating
    [references/spec-template.md](references/spec-template.md). Markdown specs are the source
    of truth: they carry `type: spec` frontmatter, are Obsidian vault nodes that can `[[link]]`
@@ -83,7 +90,11 @@ sits after that PR. So the chain has exactly the three hard gates above.
    `.woostack/` spec and plan via [`woostack-commit`](../woostack-commit/SKILL.md) on a fresh
    Graphite branch and open a PR. This docs-only PR is the **base of the stack** — execution
    increments (step 9) stack on top of it via `gt create`. It carries no code and is **never
-   merged** by build. This is a work step, not an approval stop.
+   merged** by build. This is a work step, not an approval stop. The commit happens inside the
+   spec+plan worktree via `woostack-commit`; after the PR is open, **teardown** the worktree
+   (`git worktree remove "$WOOSTACK_ROOT/.woostack/worktrees/feature-<slug>"`) — the branch/commits/PR
+   persist as the stack base. Leave the worktree on failure and report its path
+   ([worktree contract](../woostack-init/references/worktrees.md)).
 8. **Stop before execute (execution-handoff gate).** After the spec+plan PR is open, **halt** —
    this is a hard gate. Surface the handoff artifacts: the plan path (`.woostack/plans/…`), the
    spec+plan PR URL, and — on request — a

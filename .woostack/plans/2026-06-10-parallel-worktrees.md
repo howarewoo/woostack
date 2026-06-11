@@ -500,12 +500,12 @@ gt modify -c -m "docs(bootstrap): make branching-model base branch configurable,
 **Files:**
 - Modify: `skills/woostack-build/SKILL.md`
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 Run: `grep -c "worktree" skills/woostack-build/SKILL.md`
 Expected: FAIL — prints `0`.
 
-- [ ] **Step 2: Edit step 2 (Write the spec) to create + enter the worktree**
+- [x] **Step 2: Edit step 2 (Write the spec) to create + enter the worktree**
 
 In `skills/woostack-build/SKILL.md` procedure step 2, before "author a markdown spec to `.woostack/specs/…`", insert:
 
@@ -518,7 +518,7 @@ In `skills/woostack-build/SKILL.md` procedure step 2, before "author a markdown 
    spec gate, `git worktree remove --force` it and delete the branch.)
 ```
 
-- [ ] **Step 3: Edit step 7 (Commit the spec+plan PR) to teardown after**
+- [x] **Step 3: Edit step 7 (Commit the spec+plan PR) to teardown after**
 
 In step 7, after "open a PR", append:
 
@@ -529,12 +529,12 @@ In step 7, after "open a PR", append:
    worktree on failure and report its path.
 ```
 
-- [ ] **Step 4: Confirm the verification passes**
+- [x] **Step 4: Confirm the verification passes**
 
 Run: `grep -c "worktree" skills/woostack-build/SKILL.md`
 Expected: PASS — prints `≥ 2` and references the contract.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt create -m "feat(build): author the spec+plan in a per-PR worktree (step 2), teardown after step 7"
@@ -545,12 +545,12 @@ gt create -m "feat(build): author the spec+plan in a per-PR worktree (step 2), t
 **Files:**
 - Modify: `skills/woostack-fix/SKILL.md`
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 Run: `grep -c "worktree" skills/woostack-fix/SKILL.md`
 Expected: FAIL — prints `0`.
 
-- [ ] **Step 2: Edit step 2 (Write the fix plan) to create + enter the worktree**
+- [x] **Step 2: Edit step 2 (Write the fix plan) to create + enter the worktree**
 
 In `skills/woostack-fix/SKILL.md` procedure step 2, before "Create a markdown file under `.woostack/fixes/…`", insert:
 
@@ -563,7 +563,7 @@ In `skills/woostack-fix/SKILL.md` procedure step 2, before "Create a markdown fi
    approval gate, `git worktree remove --force` it and delete the branch.)
 ```
 
-- [ ] **Step 3: Edit step 6 (Commit and PR) to teardown after commit**
+- [x] **Step 3: Edit step 6 (Commit and PR) to teardown after commit**
 
 In step 6, after the `/woostack-commit` invocation + PR-open sentence, append:
 
@@ -575,12 +575,12 @@ In step 6, after the `/woostack-commit` invocation + PR-open sentence, append:
    writing — per the [worktree contract](../woostack-init/references/worktrees.md) §5.
 ```
 
-- [ ] **Step 4: Confirm the verification passes**
+- [x] **Step 4: Confirm the verification passes**
 
 Run: `grep -c "worktree" skills/woostack-fix/SKILL.md`
 Expected: PASS — prints `≥ 2`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "feat(fix): author the fix + TDD in a per-PR worktree, teardown after commit"
@@ -591,12 +591,12 @@ gt modify -c -m "feat(fix): author the fix + TDD in a per-PR worktree, teardown 
 **Files:**
 - Modify: `skills/woostack-bootstrap/SKILL.md`
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 Run: `grep -c "worktree" skills/woostack-bootstrap/SKILL.md`
 Expected: FAIL — prints `0`.
 
-- [ ] **Step 2: Add a delegate-only note to the hard constraints**
+- [x] **Step 2: Add a delegate-only note to the hard constraints**
 
 In `skills/woostack-bootstrap/SKILL.md` §"Hard constraints", add a bullet:
 
@@ -608,12 +608,12 @@ In `skills/woostack-bootstrap/SKILL.md` §"Hard constraints", add a bullet:
   Bootstrap itself adds no worktree create/teardown step.
 ```
 
-- [ ] **Step 3: Confirm the verification passes**
+- [x] **Step 3: Confirm the verification passes**
 
 Run: `grep -c "worktree" skills/woostack-bootstrap/SKILL.md`
 Expected: PASS — prints `≥ 1`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt modify -c -m "docs(bootstrap): note the initial-scaffold worktree exemption + delegate to build/fix"
