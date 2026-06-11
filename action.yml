@@ -31,7 +31,7 @@ inputs:
     required: false
     default: ''
   openai_effort:
-    description: 'OpenAI Codex reasoning_effort passthrough (minimal | low | medium | high | xhigh, model-dependent). Maps to the deep-tier validator role; leave empty for Codex default.'
+    description: 'Optional OpenAI Codex reasoning_effort override (minimal | low | medium | high | xhigh). Empty uses the tier default: xhigh for fast/standard, medium for deep.'
     required: false
     default: ''
   mode:
@@ -238,6 +238,7 @@ runs:
         MODE: ${{ inputs.mode }}
         ANGLE: ${{ inputs.angle }}
         INPUT_MODEL: ${{ inputs.model }}
+        INPUT_OPENAI_EFFORT: ${{ inputs.openai_effort }}
       run: bash "${{ github.action_path }}/skills/woostack-review/scripts/load-prompt.sh"
 
     # --- Provider runners (mutually exclusive) ---
@@ -321,7 +322,7 @@ runs:
       with:
         openai-api-key: ${{ inputs.openai_api_key }}
         model: ${{ steps.load-prompt.outputs.run_model }}
-        effort: ${{ inputs.openai_effort }}
+        effort: ${{ steps.load-prompt.outputs.run_effort }}
         prompt: ${{ steps.load-prompt.outputs.prompt }}
         sandbox: workspace-write
         safety-strategy: drop-sudo

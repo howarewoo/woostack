@@ -9,7 +9,7 @@ SCRIPT="$DIR/run-bounded-swarm.sh"
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 mkdir -p "$work/out"
-printf '%s\n' bugs security types architecture docs > "$work/out/angles.txt"
+printf '%s\n' bugs security types architecture docs skills > "$work/out/angles.txt"
 
 cat > "$work/worker.sh" <<'WORKER'
 #!/usr/bin/env bash
@@ -59,6 +59,9 @@ case "$WOO_REVIEW_ANGLE" in
   docs)
     printf '{"not":"array"}\n' > "$OUTDIR/findings.docs.json"
     ;;
+  skills)
+    printf '{"angle":"skills","file":"skills/example/SKILL.md","line":1,"title":"Split large skill","description":"d","fix":"f","severity":"MEDIUM","blocking":false,"fix_type":"prose","suggestion":null}\n' > "$OUTDIR/findings.skills.json"
+    ;;
   *)
     printf '[]\n' > "$OUTDIR/findings.%s.json" "$WOO_REVIEW_ANGLE"
     ;;
@@ -85,14 +88,17 @@ assert_eq "$(cat "$work/out/state/max")" "2" "max concurrency respected"
 assert_eq "$(cat "$work/out/state/types-count")" "2" "missing artifact retried once after drain"
 assert_eq "$(jq -r '.mode' "$work/out/swarm-metrics.json")" "bounded" "metrics mode is bounded"
 assert_eq "$(jq -r '.max_concurrency' "$work/out/swarm-metrics.json")" "2" "metrics record concurrency"
-assert_eq "$(jq -r '.angles_total' "$work/out/swarm-metrics.json")" "5" "metrics record angle count"
+assert_eq "$(jq -r '.angles_total' "$work/out/swarm-metrics.json")" "6" "metrics record angle count"
 assert_eq "$(jq -r '.retry_angles | index("types") != null' "$work/out/swarm-metrics.json")" "true" "metrics record retried missing angle"
 assert_eq "$(jq -r '.retry_angles | index("docs") != null' "$work/out/swarm-metrics.json")" "true" "metrics record retried non-array angle"
+assert_eq "$(jq -r '.retry_angles | index("skills") == null' "$work/out/swarm-metrics.json")" "true" "single finding object normalized without retry"
 assert_eq "$(jq -r '.still_invalid | index("docs") != null' "$work/out/swarm-metrics.json")" "true" "metrics record still-invalid angle"
 assert_eq "$(jq -r '.degraded' "$work/out/swarm-metrics.json")" "true" "metrics record degradation"
 assert_eq "$(jq -r 'type' "$work/out/findings.docs.json")" "array" "still-invalid artifact reset to array"
+assert_eq "$(jq -r 'type' "$work/out/findings.skills.json")" "array" "single finding object converted to array"
+assert_eq "$(jq -r 'length' "$work/out/findings.skills.json")" "1" "single finding object preserved"
 
-for angle in bugs security types architecture docs; do
+for angle in bugs security types architecture docs skills; do
   assert_eq "$(cat "$work/out/state/tier.$angle")" "deep" "FORCE_TIER propagated to $angle"
 done
 

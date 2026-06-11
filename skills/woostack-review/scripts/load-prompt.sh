@@ -5,7 +5,8 @@
 # Inputs (env): PROVIDER, ACTION_PATH, INPUT_PROMPT_OVERRIDE, INPUT_MODEL,
 # INPUT_FORCE_TIER, PR_NUMBER, GITHUB_REPOSITORY, EVENT_NAME, COMMENT_BODY,
 # MODE, ANGLE, ENABLED_ANGLES.
-# Writes multi-line `prompt` output plus `force_tier` and `run_model`.
+# Writes multi-line `prompt` output plus `force_tier`, `run_model`, and
+# provider-specific runner knobs such as OpenAI `run_effort`.
 
 set -euo pipefail
 
@@ -14,6 +15,7 @@ ACTION_PATH="${ACTION_PATH:?ACTION_PATH env var required}"
 OVERRIDE="${INPUT_PROMPT_OVERRIDE:-}"
 INPUT_MODEL="${INPUT_MODEL:-}"
 INPUT_FORCE_TIER="${INPUT_FORCE_TIER:-}"
+INPUT_OPENAI_EFFORT="${INPUT_OPENAI_EFFORT:-}"
 
 # Resolve OUTDIR for local runs (same path convention as prefetch).
 if [ -n "${OUTDIR:-}" ]; then
@@ -68,7 +70,7 @@ default_model_for() {
     openai)
       case "$tier" in
         fast) echo "gpt-5.3-codex-spark" ;;
-        standard) echo "gpt-5.4" ;;
+        standard) echo "gpt-5.4-mini" ;;
         deep) echo "gpt-5.5" ;;
       esac
       ;;
@@ -107,6 +109,27 @@ provider_tier_model() {
   default_model_for "$provider" "$tier"
 }
 
+default_openai_effort_for() {
+  local tier="$1"
+  case "$tier" in
+    fast|standard) echo "xhigh" ;;
+    deep) echo "medium" ;;
+    *)
+      echo "::error::Unknown OpenAI effort tier '$tier'"
+      exit 1
+      ;;
+  esac
+}
+
+default_openai_effort_for_model() {
+  local model="$1"
+  case "$model" in
+    gpt-5.3-codex-spark|gpt-5.4-mini) echo "xhigh" ;;
+    gpt-5.5) echo "medium" ;;
+    *) echo "" ;;
+  esac
+}
+
 RUN_TIER="$(printf '%s' "${INPUT_FORCE_TIER:-}" | tr '[:upper:]' '[:lower:]')"
 if [ -n "$RUN_TIER" ] && [ "$RUN_TIER" != "fast" ] && [ "$RUN_TIER" != "deep" ]; then
   echo "::error::INPUT_FORCE_TIER must be 'fast' or 'deep' if set (got '$RUN_TIER')"
@@ -118,20 +141,42 @@ if [ -n "$RUN_TIER" ]; then
 elif [ -n "$INPUT_MODEL" ]; then
   RUN_MODEL="$INPUT_MODEL"
   RUN_TIER="standard"
+  RUN_MODEL_EXPLICIT=true
 else
   RUN_TIER="standard"
   RUN_MODEL="$(provider_tier_model "$PROVIDER" "standard")"
+  RUN_MODEL_EXPLICIT=false
 fi
+RUN_MODEL_EXPLICIT="${RUN_MODEL_EXPLICIT:-false}"
 
 if [ -z "$RUN_MODEL" ]; then
   echo "::error::run_model resolution failed for provider '$PROVIDER' and tier '$RUN_TIER'"
   exit 1
 fi
 
+RUN_EFFORT=""
+if [ "$PROVIDER" = "openai" ]; then
+  RUN_EFFORT="$(printf '%s' "$INPUT_OPENAI_EFFORT" | tr '[:upper:]' '[:lower:]')"
+  if [ -z "$RUN_EFFORT" ]; then
+    RUN_EFFORT="$(default_openai_effort_for_model "$RUN_MODEL")"
+    if [ -z "$RUN_EFFORT" ]; then
+      RUN_EFFORT="$(default_openai_effort_for "$RUN_TIER")"
+    fi
+  fi
+  case "$RUN_EFFORT" in
+    minimal|low|medium|high|xhigh) ;;
+    *)
+      echo "::error::INPUT_OPENAI_EFFORT must be one of: minimal, low, medium, high, xhigh (got '$RUN_EFFORT')"
+      exit 1
+      ;;
+  esac
+fi
+
 # Emit resolved tier/model so action steps can pin single-session hosts.
 if [ -n "${GITHUB_OUTPUT:-}" ]; then
   echo "force_tier=$RUN_TIER" >> "$GITHUB_OUTPUT"
   echo "run_model=$RUN_MODEL" >> "$GITHUB_OUTPUT"
+  echo "run_effort=$RUN_EFFORT" >> "$GITHUB_OUTPUT"
 fi
 
 CONTEXT_HEAD=$(cat <<CTX_EOF
@@ -145,6 +190,7 @@ CONTEXT_HEAD=$(cat <<CTX_EOF
 - Enabled review angles: ${ENABLED_ANGLES:-bugs,security}
 - Force tier: ${RUN_TIER:-<unset>}
 - Run model (single-session hosts): ${RUN_MODEL}
+- Run effort (provider-specific): ${RUN_EFFORT:-<unset>}
 - Bundled action path (per-angle prompts live at \$WOO_REVIEW_ACTION_PATH/prompts/angles/<angle>.md): \$WOO_REVIEW_ACTION_PATH
 
 ## Untrusted PR comment body

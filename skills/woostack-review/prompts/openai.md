@@ -11,15 +11,15 @@ The shared header above lists prefetched artifacts, findings schema, blocking cr
 Codex Action runs one model for the full job. Per-call routing is not possible, so the `tier:` frontmatter on each angle prompt is **informational only** under this provider.
 
 The action resolves one session model in `load-prompt.sh` using this precedence:
-1. `FORCE_TIER` from Review Context (from `/woostack-review --fast` or `--deep`, or `review.force_tier` in config): fast→`gpt-5.3-codex-spark`, deep→`gpt-5.5`. Only `fast` and `deep` are valid `FORCE_TIER` values; the `standard` tier (`gpt-5.4`) is the implicit default when `FORCE_TIER` is unset — see step 3.
+1. `FORCE_TIER` from Review Context (from `/woostack-review --fast` or `--deep`, or `review.force_tier` in config): fast→`gpt-5.3-codex-spark`, deep→`gpt-5.5`. Only `fast` and `deep` are valid `FORCE_TIER` values; the `standard` tier (`gpt-5.4-mini`) is the implicit default when `FORCE_TIER` is unset — see step 3.
 2. `inputs.model` when explicitly set.
-3. Provider defaults (`gpt-5.4` standard).
+3. Provider defaults (`gpt-5.4-mini` standard).
 
 Per-repo override remains in effect during run-model resolution: if `$OUTDIR/config.json` has `models.openai.<run_tier>` set (or flat `models.<run_tier>`), use that value before falling back to the default.
 
-For quality/cost splits, GPT-5-family reasoning is a `reasoning_effort` parameter, not a slug suffix (`high`, `xhigh` etc.); there is no `gpt-5-pro`. Pass effort via `inputs.openai_effort` (wired through to codex-action `effort`). Use `gpt-5.4-mini` only as the non-spark fallback when Spark is unavailable.
+For quality/cost splits, GPT-5-family reasoning is a `reasoning_effort` parameter, not a slug suffix (`high`, `xhigh` etc.); there is no `gpt-5-pro`. Pass effort via `inputs.openai_effort` (wired through to codex-action `effort`). Defaults are `medium` for deep, `xhigh` for standard, and `xhigh` for fast.
 
-**Per-repo override:** resolve using the active run tier: if `$OUTDIR/config.json` has `models.openai.<run_tier>` set, use it; otherwise fall back to flat `models.<run_tier>` (precedence: `FORCE_TIER` > `inputs.model` > `models.openai.<run_tier>` > `models.<run_tier>` > default `gpt-5.4`). Read with run-tier-aware lookup, e.g. when `run_tier=deep`: `jq -r '.models.openai.deep // .models.deep // empty' $OUTDIR/config.json`.
+**Per-repo override:** resolve using the active run tier: if `$OUTDIR/config.json` has `models.openai.<run_tier>` set, use it; otherwise fall back to flat `models.<run_tier>` (precedence: `FORCE_TIER` > `inputs.model` > `models.openai.<run_tier>` > `models.<run_tier>` > default `gpt-5.4-mini`). Read with run-tier-aware lookup, e.g. when `run_tier=deep`: `jq -r '.models.openai.deep // .models.deep // empty' $OUTDIR/config.json`.
 
 ---
 
