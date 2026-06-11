@@ -39,13 +39,14 @@ phase to the former and its harden phase to the latter. Both are bundled buildin
 `/woostack-*` commands: they have no routing row and are absent from the sixteen-skill command surface above. Like [`action.yml`](action.yml), they are shipped assets — do not delete them as
 strays.
 
-There is no application source code, app lockfile, build, or CI for this repo's own
+There is no application source code, app lockfile, build, or test CI for this repo's own
 push/PR events. `skills-lock.json` is the dev-skill manifest and is currently empty.
 
-The exception is consumer-facing review delivery: [`action.yml`](action.yml) and
+The exceptions are review delivery assets: [`action.yml`](action.yml) and
 [`.github/workflows/reusable-review.yml`](.github/workflows/reusable-review.yml) ship from
-this repo so consumers can run `woostack-review` in their own CI. They are shipped assets,
-not self-CI, and should not be deleted as stray workflows.
+this repo so consumers can run `woostack-review` in their own CI, and
+[`.github/workflows/ai-review.yml`](.github/workflows/ai-review.yml) enables that review
+action for this repo's own PRs. They should not be deleted as stray workflows.
 
 ## Modes
 

@@ -1,0 +1,32 @@
+name: AI PR Review
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+jobs:
+  review:
+    # issue_comment runs in the base-repo context with secrets available, so
+    # require both a trusted actor and an explicit review phrase. pull_request
+    # events are limited to same-repo branches because fork PRs do not receive
+    # provider secrets; maintainers can trigger those with a trusted comment.
+    if: >-
+      (github.event_name == 'pull_request' &&
+       github.event.pull_request.head.repo.full_name == github.repository) ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.pull_request != null &&
+       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) &&
+       (contains(github.event.comment.body, '@review') ||
+        contains(github.event.comment.body, '/woostack-review')))
+    uses: ./.github/workflows/reusable-review.yml
+    with:
+      provider: openai
+    secrets:
+      openai_access_token: ${{ secrets.OPENAI_ACCESS_TOKEN }}

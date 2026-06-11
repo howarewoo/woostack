@@ -171,7 +171,7 @@ if [ ! -f "$TIERS_FILE" ]; then
   exit 1
 fi
 HEADER_RAW="$(cat "$HEADER_FILE")"
-if ! printf '%s' "$HEADER_RAW" | grep -qF '<!-- WOO_MODEL_TIERS_TABLE -->'; then
+if [[ "$HEADER_RAW" != *"<!-- WOO_MODEL_TIERS_TABLE -->"* ]]; then
   echo "::error::_header.md is missing the <!-- WOO_MODEL_TIERS_TABLE --> inline marker"
   exit 1
 fi

@@ -60,6 +60,10 @@ inputs:
     description: 'OpenAI API key (used by openai/codex-action).'
     required: false
     default: ''
+  openai_access_token:
+    description: 'Codex access token for ChatGPT/Codex subscription-backed automation (exported as CODEX_ACCESS_TOKEN).'
+    required: false
+    default: ''
   google_api_key:
     description: 'Google API key for Gemini API (alias of gemini_api_key).'
     required: false
@@ -126,6 +130,7 @@ runs:
         INPUT_ANTHROPIC_TOKEN: ${{ inputs.anthropic_token }}
         INPUT_ANTHROPIC_API_KEY: ${{ inputs.anthropic_api_key }}
         INPUT_OPENAI_API_KEY: ${{ inputs.openai_api_key }}
+        INPUT_OPENAI_ACCESS_TOKEN: ${{ inputs.openai_access_token }}
         INPUT_GOOGLE_API_KEY: ${{ inputs.google_api_key }}
         INPUT_GEMINI_API_KEY: ${{ inputs.gemini_api_key }}
         INPUT_OPENROUTER_API_KEY: ${{ inputs.openrouter_api_key }}
@@ -314,6 +319,16 @@ runs:
         IMPECCABLE_VERSION: ${{ inputs.impeccable_version }}
         REACT_DOCTOR_VERSION: ${{ inputs.react_doctor_version }}
 
+    - name: Prepare unprivileged Codex user
+      if: steps.detect.outputs.provider == 'openai' && inputs.openai_access_token != '' && inputs.openai_api_key == '' && steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'full' || inputs.mode == 'review' || inputs.mode == 'validate' || inputs.mode == 'validate-prosecutor')
+      shell: bash
+      run: |
+        if ! id codex >/dev/null 2>&1; then
+          sudo useradd --create-home --shell /bin/bash codex
+        fi
+        sudo chown -R codex:codex "$GITHUB_WORKSPACE" "$OUTDIR"
+        sudo chmod -R u+rwX "$GITHUB_WORKSPACE" "$OUTDIR"
+
     - name: Run review (OpenAI Codex)
       id: run-openai
       if: steps.detect.outputs.provider == 'openai' && steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'full' || inputs.mode == 'review' || inputs.mode == 'validate' || inputs.mode == 'validate-prosecutor')
@@ -324,12 +339,15 @@ runs:
         effort: ${{ inputs.openai_effort }}
         prompt: ${{ steps.load-prompt.outputs.prompt }}
         sandbox: workspace-write
-        safety-strategy: drop-sudo
+        codex-args: '["--add-dir", "/tmp/pr-review"]'
+        safety-strategy: ${{ inputs.openai_access_token != '' && inputs.openai_api_key == '' && 'unprivileged-user' || 'drop-sudo' }}
+        codex-user: ${{ inputs.openai_access_token != '' && inputs.openai_api_key == '' && 'codex' || '' }}
       env:
         GH_TOKEN: ${{ github.token }}
         GITHUB_REPOSITORY: ${{ github.repository }}
         WOO_REVIEW_ACTION_PATH: ${{ github.action_path }}/skills/woostack-review
         WOO_REVIEW_SEQUENTIAL_VALIDATE: ${{ inputs.mode == 'validate' && '1' || '' }}
+        CODEX_ACCESS_TOKEN: ${{ inputs.openai_access_token }}
         ENABLED_ANGLES: ${{ (inputs.mode == 'review' && inputs.angle) || steps.angles.outputs.angles }}
         IMPECCABLE_VERSION: ${{ inputs.impeccable_version }}
         REACT_DOCTOR_VERSION: ${{ inputs.react_doctor_version }}
