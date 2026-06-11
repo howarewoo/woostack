@@ -3,6 +3,7 @@ metrics.json
 *.local.*
 visuals/
 overnight/
+worktrees/
 memory.md
 memory/
 

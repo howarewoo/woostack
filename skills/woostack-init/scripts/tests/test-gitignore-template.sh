@@ -12,5 +12,6 @@ assert_contains "$body" "visuals/" "gitignore template ignores rendered visuals"
 assert_contains "$body" "overnight/" "gitignore template ignores overnight reports"
 assert_contains "$body" "memory.md" "gitignore template ignores flat local memory"
 assert_contains "$body" "memory/" "gitignore template ignores scoped local memory"
+assert_contains "$body" "worktrees/" "gitignore template ignores per-PR worktrees"
 
 finish
