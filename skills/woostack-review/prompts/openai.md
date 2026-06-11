@@ -73,7 +73,7 @@ Read `$OUTDIR/diff.txt`, `$OUTDIR/meta.json`, `$OUTDIR/angles.txt`. Draft a 1–
 
 If `$OUTDIR/chunks.txt` exists (issue #14), the outer loop iterates `(angle, chunk_id)` pairs instead of plain angles. For each pair, read the chunk-specific diff at `$OUTDIR/diff.chunk-<id>.txt` and write findings to `$OUTDIR/findings.<angle>.<chunk_id>.json`. When `chunks.txt` is absent, the inner steps use `diff.txt` and `findings.<angle>.json` as before.
 
-When the local Codex host exposes subagents with model overrides, dispatch one worker per angle (× each chunk when chunked), capped by the host's bounded-concurrency limit. Each spawn MUST set `model` to the OpenAI model resolved for that worker's effective tier (`fast` / `standard`, unless `FORCE_TIER` overrides). The worker receipt's `model` field must match the explicit spawn model.
+When the local Codex host exposes subagents with model overrides, dispatch one worker per angle (× each chunk when chunked), capped by the host's bounded-concurrency limit. Each spawn MUST set `model` to the OpenAI model resolved for that worker's effective tier (`fast` / `standard`, unless `FORCE_TIER` overrides). The worker receipt's `model` field must match the explicit spawn model, and its `tier` field must be set to the worker's effective tier (`fast`, `standard`, or `deep`); `verify-receipts.sh` validates both.
 
 When no such subagent primitive exists, run each angle listed in `$OUTDIR/angles.txt`, in order (× each chunk when chunked):
 
