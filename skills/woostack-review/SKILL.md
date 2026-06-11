@@ -364,7 +364,7 @@ and model, proving you executed (see _header.md). EXIT.
 
 Sub-agents MUST NOT post comments, edit the PR, touch other angles' files, run `prefetch.sh`, or delete/recreate `$OUTDIR`. `prefetch.sh` is a Stage-1-only operation; re-running it mid-swarm wipes `meta.json` / `prior-findings.json` and corrupts the posting stage (issue #48).
 
-**Model routing (token optimization, host-agnostic).** Each angle prompt and the validator declare a `tier:` in frontmatter — `fast`, `standard`, or `deep`. The host resolves the tier to a concrete model via the table in `prompts/_header.md`. Tier assignments:
+**Model routing (token optimization, host-agnostic).** Each angle prompt and the validator declare a `tier:` in frontmatter — `fast`, `standard`, or `deep`. The host resolves the tier to a concrete model with `scripts/resolve-model.sh` — it consults `$OUTDIR/config.json`'s `models.<provider>.<tier>` and flat `models.<tier>` overrides first and falls back to the default table in `prompts/_header.md`, so a per-repo model override in `.woostack/config.json` is honored on the next run. Reading the `_header.md` table directly skips the config step and is a routing bug (issue #295). Tier assignments:
 
 | Stage | Tier | Why |
 |---|---|---|
@@ -394,10 +394,10 @@ Per-provider resolution (full table in `_header.md`):
 
 **Host capability:**
 
-- **Per-call routing** (Claude Code `Task`, Codex local subagents with a `model` override, opencode `@subagent`): honor each prompt's `tier:` verbatim and pass the resolved model explicitly on every spawn. Maximum savings.
+- **Per-call routing** (Claude Code `Task`, Codex local subagents with a `model` override, opencode `@subagent`): honor each prompt's `tier:` verbatim and resolve every spawn's model with `bash $WOO_REVIEW_ACTION_PATH/scripts/resolve-model.sh --provider <provider> --tier <tier>` (which honors `$OUTDIR/config.json` overrides), passing that slug explicitly on the spawn. Maximum savings.
 - **Single model per session** (Codex Action without subagent model overrides, Gemini CLI): pin the run to a resolved run-tier (`fast` or `deep` via `FORCE_TIER`, otherwise `standard`). `tier:` becomes informational once the run tier resolves. Split into multiple jobs if you want per-angle fast/deep split behavior.
 
-Bounded runners MUST preserve the resolved tier/model context for every queued worker. In single-model hosts, pass the resolved run-tier (`FORCE_TIER` when set, otherwise the host's standard tier) to every worker. In per-call-routing hosts, apply each angle prompt's `tier:` while still preserving any explicit `FORCE_TIER` override, and set the spawn call's model field to the resolved slug. Omitting the spawn model field is a routing bug because the worker inherits the parent session's model and defeats the tier mapping. Bounded scheduling must not cause later queued angles to fall back to default model settings.
+Bounded runners MUST preserve the resolved tier/model context for every queued worker. In single-model hosts, pass the resolved run-tier (`FORCE_TIER` when set, otherwise the host's standard tier) to every worker. In per-call-routing hosts, apply each angle prompt's `tier:` while still preserving any explicit `FORCE_TIER` override, and set the spawn call's model field to the slug from `resolve-model.sh` (config-aware — never the static `_header.md` table directly). Write that same resolved model into the worker's receipt (`model`) so receipts reflect the configured model, not the default. Omitting the spawn model field is a routing bug because the worker inherits the parent session's model and defeats the tier mapping. Bounded scheduling must not cause later queued angles to fall back to default model settings.
 
 **Receipt gate (hard fail).** After the swarm finishes — and before `merge-findings.sh` — run:
 
