@@ -25,18 +25,18 @@ markdown plans in `.woostack/plans/`, and review config in `.woostack/config.jso
 
 | Branch | Role | Parent | Direction |
 |---|---|---|---|
-| `main` | Production. What's running for users. | — | Receives from `staging` only |
-| `staging` | Integration. Pre-prod testing. | `main` | Receives from feature branches |
-| `feature/<name>` | One change. One PR. | `staging` | Merged into `staging` via PR |
+| `main` | Production. What's running for users. | — | Receives from the integration branch |
+| `staging` | Example integration branch. Pre-prod testing. | `main` | Receives from feature branches |
+| `feature/<name>` | One change. One PR. | resolved integration branch | Merged into the integration branch via PR |
 
 **Rules:**
-- Every feature branch is cut from `staging`, not `main`.
-- Every PR targets `staging`.
-- `staging` is merged into `main` on a regular cadence (weekly, or per release) after manual/automated testing on the staging environment.
-- Never PR directly into `main` except for emergency hotfixes (and even then, cherry-pick into `staging` immediately after).
-- Never force-push to `main` or `staging`.
+- Every feature branch is cut from the resolved integration branch, not `main`.
+- Every PR targets the resolved integration branch.
+- The integration branch is merged into `main` on a regular cadence (weekly, or per release) after manual/automated testing on the integration environment.
+- Never PR directly into `main` except for emergency hotfixes (and even then, cherry-pick into the integration branch immediately after).
+- Never force-push to `main` or the integration branch.
 
-Use Graphite (`gt create`, `gt modify`, `gt submit`) to manage stacks. `gt create --base staging` for the initial branch.
+Use Graphite (`gt create`, `gt modify`, `gt submit`) to manage stacks. The integration/trunk branch is **per-repo configurable**; resolve it through the [worktree/base-branch contract](../../woostack-init/references/worktrees.md) and use that value as the base of the stack. The example table above uses `staging` to illustrate the integration role, not as a hardcoded requirement.
 
 ## When to deviate
 

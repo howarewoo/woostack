@@ -399,12 +399,12 @@ gt modify -c -m "docs(init): document base_branch + worktrees scaffold and link 
 
 > `resolve-base.sh` ships clean in Increment 1 (no deferral marker); this increment is its first consumer. No `woostack-defer` marker is used in this plan — the slices are doc/script additions where an isolated diff draws no "missing call site" finding.
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 Run: `grep -c "resolve-base.sh\|WOOSTACK_BASE_BRANCH" skills/woostack-commit/SKILL.md`
 Expected: FAIL — prints `0`.
 
-- [ ] **Step 2: Edit step 2 (branch shape) to use the resolved base + worktree-agnostic note**
+- [x] **Step 2: Edit step 2 (branch shape) to use the resolved base + worktree-agnostic note**
 
 In `skills/woostack-commit/SKILL.md` §"2. Enforce branch shape before committing", after the `gt create feature/<short-slug>` block, add:
 
@@ -423,7 +423,7 @@ contract](../woostack-init/references/worktrees.md)), this step finds a non-prot
 continues — `woostack-commit` commits whatever tree it is invoked in and creates no second branch.
 ```
 
-- [ ] **Step 3: Edit step 7 (PR create) to target the resolved base**
+- [x] **Step 3: Edit step 7 (PR create) to target the resolved base**
 
 In §"7. Update PR fields", replace the `gh pr create --base staging …` block with:
 
@@ -438,12 +438,12 @@ contract](../woostack-init/references/worktrees.md) §4); Graphite sets it autom
 `gt submit` when the branch was `gt track --parent`ed.
 ```
 
-- [ ] **Step 4: Confirm the verification passes**
+- [x] **Step 4: Confirm the verification passes**
 
 Run: `grep -c "resolve-base.sh\|worktree" skills/woostack-commit/SKILL.md`
 Expected: PASS — prints `≥ 2`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt create -m "feat(commit): resolve base branch via resolve-base.sh; worktree-agnostic note"
@@ -454,12 +454,12 @@ gt create -m "feat(commit): resolve base branch via resolve-base.sh; worktree-ag
 **Files:**
 - Modify: `skills/woostack-bootstrap/references/development.md`
 
-- [ ] **Step 1: Find the offending references**
+- [x] **Step 1: Find the offending references**
 
 Run: `grep -rn "\-\-base staging" skills/`
 Expected: a hit in `skills/woostack-bootstrap/references/development.md` (the `gt create --base staging` line).
 
-- [ ] **Step 2: Rewrite the branching model to reference the configurable base**
+- [x] **Step 2: Rewrite the branching model to reference the configurable base**
 
 In `skills/woostack-bootstrap/references/development.md` §"Branching model", replace the final line:
 
@@ -478,12 +478,12 @@ is **per-repo configurable** — resolve it with
 illustrate the integration role, not as a hardcoded requirement.
 ```
 
-- [ ] **Step 3: Confirm no hardcoded PR-base `staging` command remains**
+- [x] **Step 3: Confirm no hardcoded PR-base `staging` command remains**
 
 Run: `grep -rn "\-\-base staging" skills/`
 Expected: no output.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt modify -c -m "docs(bootstrap): make branching-model base branch configurable, drop hardcoded staging"
