@@ -1,5 +1,10 @@
 {
   "review": {
-    "metrics": true
+    "metrics": true,
+    "models": {
+      "openai": {
+        "standard": "gpt-5.3-codex-spark"
+      }
+    }
   }
 }
