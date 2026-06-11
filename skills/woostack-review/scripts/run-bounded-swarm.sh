@@ -139,6 +139,31 @@ is_array_artifact() {
   [ -s "$file" ] && jq -e 'type == "array"' "$file" >/dev/null 2>&1
 }
 
+normalize_artifact() {
+  local angle="$1"
+  local chunk="$2"
+  local file
+  local tmp
+  file="$(artifact_path "$angle" "$chunk")"
+  if [ ! -s "$file" ]; then
+    return 1
+  fi
+  if jq -e 'type == "array"' "$file" >/dev/null 2>&1; then
+    return 0
+  fi
+  # Common LLM mistake: emit one finding object instead of a one-element array.
+  # Recover only objects that look like real findings; arbitrary objects remain
+  # invalid and go through the retry/degrade path.
+  if jq -e 'type == "object" and has("file") and has("line") and has("title") and has("description") and has("fix")' "$file" >/dev/null 2>&1; then
+    tmp="$(mktemp)"
+    jq '[.]' "$file" > "$tmp"
+    mv "$tmp" "$file"
+    echo "::warning::bounded swarm recovered single finding object as array: $(item_label "$angle" "$chunk")" >&2
+    return 0
+  fi
+  return 1
+}
+
 run_worker() {
   local item="$1"
   local angle="${item%%|*}"
@@ -205,7 +230,7 @@ for item in "${work_items[@]}"; do
   angle="${item%%|*}"
   chunk="${item#*|}"
   lbl="$(item_label "$angle" "$chunk")"
-  if ! is_array_artifact "$angle" "$chunk" || in_list "$lbl" ${receipt_missing[@]+"${receipt_missing[@]}"}; then
+  if ! normalize_artifact "$angle" "$chunk" || in_list "$lbl" ${receipt_missing[@]+"${receipt_missing[@]}"}; then
     first_pass_failed+=("$item")
   fi
 done
@@ -227,7 +252,7 @@ still_invalid=()
 for item in "${work_items[@]}"; do
   angle="${item%%|*}"
   chunk="${item#*|}"
-  if ! is_array_artifact "$angle" "$chunk"; then
+  if ! normalize_artifact "$angle" "$chunk"; then
     still_invalid+=("$item")
     printf '[]\n' > "$(artifact_path "$angle" "$chunk")"
   fi

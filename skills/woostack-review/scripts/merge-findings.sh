@@ -48,6 +48,14 @@ for f in "${FILES[@]}"; do
     merged_count=$((merged_count + 1))
     continue
   fi
+  if jq -e 'type == "object" and has("file") and has("line") and has("title") and has("description") and has("fix")' "$f" >/dev/null 2>&1; then
+    jq '[.]' "$f" >> "$TMP"
+    printf '\n' >> "$TMP"
+    merged_count=$((merged_count + 1))
+    recovered_count=$((recovered_count + 1))
+    echo "::warning::Recovered single finding object as array from $f"
+    continue
+  fi
   # Prose-preamble + bad-escape recovery. Sub-agents occasionally emit text
   # like "I have completed the review..." before the JSON array, and inside
   # strings they sometimes write invalid JSON escapes (\x, \!, bare control
@@ -150,6 +158,9 @@ for attempt in (candidate, sanitize(candidate)):
         break
     except json.JSONDecodeError:
         continue
+
+if isinstance(data, dict) and all(k in data for k in ("file", "line", "title", "description", "fix")):
+    data = [data]
 
 if data is None or not isinstance(data, list):
     sys.exit(1)
