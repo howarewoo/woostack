@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Postflight gate: assert every expected angle (from angles.txt × chunks.txt) wrote
 # a VALID execution receipt. A valid receipt is a JSON object whose `angle` (and
-# `chunk`, when chunking is active) matches and whose `runner` and `model` are both
-# non-empty. This is the single authority on "did the angle worker actually execute":
+# `chunk`, when chunking is active) matches and whose `runner`, `model`, and `tier`
+# are non-empty. For Codex/OpenAI workers, the model must also match the tier mapping.
+# This is the single authority on "did the angle worker actually execute":
 # empty findings are an honest clean review ONLY when the receipt proves the worker ran.
 #
 # Modes:
@@ -51,10 +52,54 @@ label() { # angle chunk
   if [ -n "$2" ]; then printf '%s.%s' "$1" "$2"; else printf '%s' "$1"; fi
 }
 
+default_openai_model_for_tier() {
+  case "$1" in
+    fast) echo "gpt-5.3-codex-spark" ;;
+    standard) echo "gpt-5.4-mini" ;;
+    deep) echo "gpt-5.5" ;;
+    *) return 1 ;;
+  esac
+}
+
+config_model_for_tier() {
+  local provider="$1" tier="$2" config="$OUTDIR/config.json" override=""
+  if [ -s "$config" ]; then
+    override="$(jq -r --arg p "$provider" --arg t "$tier" '.models[$p][$t] // empty' "$config" 2>/dev/null || true)"
+    if [ -n "$override" ]; then
+      echo "$override"
+      return 0
+    fi
+    override="$(jq -r --arg t "$tier" '.models[$t] // empty' "$config" 2>/dev/null || true)"
+    if [ -n "$override" ]; then
+      echo "$override"
+      return 0
+    fi
+  fi
+  return 1
+}
+
+expected_openai_model_for_tier() {
+  local tier="$1"
+  if [ -z "${FORCE_TIER:-}" ] && [ -n "${INPUT_MODEL:-}" ]; then
+    echo "$INPUT_MODEL"
+    return 0
+  fi
+  config_model_for_tier "openai" "$tier" || default_openai_model_for_tier "$tier"
+}
+
+receipt_needs_openai_model_check() { # file
+  local f="$1" runner host provider
+  runner="$(jq -r '.runner // ""' "$f" 2>/dev/null | tr '[:upper:]' '[:lower:]' || true)"
+  host="$(printf '%s' "${WOO_REVIEW_HOST:-}" | tr '[:upper:]' '[:lower:]')"
+  provider="$(printf '%s' "${WOO_REVIEW_PROVIDER:-}" | tr '[:upper:]' '[:lower:]')"
+  [ "$provider" = "openai" ] || [ "$host" = "codex" ] || [[ "$runner" == *codex* ]]
+}
+
 # Valid iff: JSON object; .angle == angle; (.chunk matches, or both empty/null);
-# .runner and .model are non-empty.
+# .runner, .model, and .tier are non-empty; and Codex/OpenAI receipts report the
+# model mapped from their effective tier.
 is_valid_receipt() { # angle chunk file
-  local angle="$1" chunk="$2" f="$3"
+  local angle="$1" chunk="$2" f="$3" tier model expected
   [ -s "$f" ] || return 1
   jq -e --arg a "$angle" --arg c "$chunk" '
     (type == "object")
@@ -62,7 +107,15 @@ is_valid_receipt() { # angle chunk file
     and ( (($c == "") and ((.chunk == null) or (.chunk == ""))) or (.chunk == $c) )
     and (((.runner // "") | tostring | length) > 0)
     and (((.model  // "") | tostring | length) > 0)
-  ' "$f" >/dev/null 2>&1
+    and (((.tier   // "") | tostring | length) > 0)
+  ' "$f" >/dev/null 2>&1 || return 1
+
+  if receipt_needs_openai_model_check "$f"; then
+    tier="$(jq -r '.tier' "$f")"
+    model="$(jq -r '.model' "$f")"
+    expected="$(expected_openai_model_for_tier "$tier" 2>/dev/null || true)"
+    [ -n "$expected" ] && [ "$model" = "$expected" ] || return 1
+  fi
 }
 
 missing=()
