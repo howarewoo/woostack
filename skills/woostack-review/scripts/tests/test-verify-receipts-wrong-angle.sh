@@ -13,7 +13,7 @@ printf '%s\n' bugs > "$OUTDIR/angles.txt"
 # says "security" while it occupies the bugs slot. The is_valid_receipt
 # `.angle == $a` guard must reject it (a worker writing the wrong angle label is
 # a realistic failure mode and exercises a distinct jq branch).
-printf '{"angle":"security","chunk":null,"runner":"r","model":"m"}\n' > "$OUTDIR/receipt.bugs.json"
+printf '{"angle":"security","chunk":null,"runner":"r","model":"m","tier":"standard"}\n' > "$OUTDIR/receipt.bugs.json"
 
 rc=0; err="$(bash "$SCRIPT" 2>&1 1>/dev/null)" || rc=$?
 assert_exit 1 "$rc" "mismatched .angle field → invalid receipt → exit 1"

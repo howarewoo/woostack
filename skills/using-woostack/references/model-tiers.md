@@ -22,11 +22,13 @@ implicitly `fast`.
 
 ## Routing by host capability (generic)
 
-- **Per-call routing** (Claude Code `Task`, opencode `@subagent`): resolve the effective tier =
-  a forced tier if the host sets one, else the prompt's own `tier:` frontmatter; map it to the
-  column for the active provider; **pass that model on every spawn.**
-- **Single model per session** (Codex Action, Gemini CLI): resolve one run model up front;
-  per-tier behavior collapses onto that one model for the whole job.
+- **Per-call routing** (Claude Code `Task`, Codex local subagents with a `model` override,
+  opencode `@subagent`): resolve the effective tier = a forced tier if the host sets one, else
+  the prompt's own `tier:` frontmatter; map it to the column for the active provider; **pass that
+  model on every spawn.** Never rely on inherited parent-session model selection when a spawn API
+  accepts an explicit model.
+- **Single model per session** (Codex Action without subagent model overrides, Gemini CLI): resolve
+  one run model up front; per-tier behavior collapses onto that one model for the whole job.
 
 ## Override precedence (generic)
 

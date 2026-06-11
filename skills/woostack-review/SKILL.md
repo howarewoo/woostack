@@ -394,10 +394,10 @@ Per-provider resolution (full table in `_header.md`):
 
 **Host capability:**
 
-- **Per-call routing** (Claude Code `Task`, opencode `@subagent`): honor each prompt's `tier:` verbatim. Maximum savings.
-- **Single model per session** (Codex Action, Gemini CLI): pin the run to a resolved run-tier (`fast` or `deep` via `FORCE_TIER`, otherwise `standard`). `tier:` becomes informational once the run tier resolves. Split into multiple jobs if you want per-angle fast/deep split behavior.
+- **Per-call routing** (Claude Code `Task`, Codex local subagents with a `model` override, opencode `@subagent`): honor each prompt's `tier:` verbatim and pass the resolved model explicitly on every spawn. Maximum savings.
+- **Single model per session** (Codex Action without subagent model overrides, Gemini CLI): pin the run to a resolved run-tier (`fast` or `deep` via `FORCE_TIER`, otherwise `standard`). `tier:` becomes informational once the run tier resolves. Split into multiple jobs if you want per-angle fast/deep split behavior.
 
-Bounded runners MUST preserve the resolved tier/model context for every queued worker. In single-model hosts, pass the resolved run-tier (`FORCE_TIER` when set, otherwise the host's standard tier) to every worker. In per-call-routing hosts, apply each angle prompt's `tier:` while still preserving any explicit `FORCE_TIER` override. Bounded scheduling must not cause later queued angles to fall back to default model settings.
+Bounded runners MUST preserve the resolved tier/model context for every queued worker. In single-model hosts, pass the resolved run-tier (`FORCE_TIER` when set, otherwise the host's standard tier) to every worker. In per-call-routing hosts, apply each angle prompt's `tier:` while still preserving any explicit `FORCE_TIER` override, and set the spawn call's model field to the resolved slug. Omitting the spawn model field is a routing bug because the worker inherits the parent session's model and defeats the tier mapping. Bounded scheduling must not cause later queued angles to fall back to default model settings.
 
 **Receipt gate (hard fail).** After the swarm finishes — and before `merge-findings.sh` — run:
 

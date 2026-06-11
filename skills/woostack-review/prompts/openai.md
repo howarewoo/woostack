@@ -1,6 +1,6 @@
-# OpenAI (Codex) — Sequential Multi-Angle Review
+# OpenAI (Codex) — Multi-Angle Review
 
-Codex Action does not expose a subagent primitive. Run the review as a single agentic loop with explicit phases. Use `bash` + `gh` for all GitHub interactions.
+Codex Action does not expose a subagent primitive. Run the review as a single agentic loop with explicit phases there. Local Codex hosts may expose subagents with per-spawn model overrides; when they do, use bounded parallel subagents and pass the resolved model explicitly on every spawn.
 
 The shared header above lists prefetched artifacts, findings schema, blocking criteria, and the do-NOT-flag list. **Apply them verbatim.** Per-angle prompt bodies live at `$WOO_REVIEW_ACTION_PATH/prompts/angles/<angle>.md` in the bundled action repo.
 
@@ -8,9 +8,12 @@ The shared header above lists prefetched artifacts, findings schema, blocking cr
 
 ## Model selection
 
-Codex Action runs one model for the full job. Per-call routing is not possible, so the `tier:` frontmatter on each angle prompt is **informational only** under this provider.
+Codex has two execution shapes:
 
-The action resolves one session model in `load-prompt.sh` using this precedence:
+- **Local Codex subagents with a `model` override:** per-call routing is available. Resolve the effective tier for each spawned angle/validator, then pass the mapped OpenAI model in the spawn call's `model` field. Do not omit the field; otherwise the subagent inherits the parent session model and silently defeats the tier mapping.
+- **Codex Action / no per-spawn model override:** one model runs the full job. The `tier:` frontmatter is informational only, and the action resolves one session model in `load-prompt.sh`.
+
+The single-session action path resolves one session model in `load-prompt.sh` using this precedence:
 1. `FORCE_TIER` from Review Context (from `/woostack-review --fast` or `--deep`, or `review.force_tier` in config): fast→`gpt-5.3-codex-spark`, deep→`gpt-5.5`. Only `fast` and `deep` are valid `FORCE_TIER` values; the `standard` tier (`gpt-5.4-mini`) is the implicit default when `FORCE_TIER` is unset — see step 3.
 2. `inputs.model` when explicitly set.
 3. Provider defaults (`gpt-5.4-mini` standard).
@@ -20,6 +23,16 @@ Per-repo override remains in effect during run-model resolution: if `$OUTDIR/con
 For quality/cost splits, GPT-5-family reasoning is a `reasoning_effort` parameter, not a slug suffix (`high`, `xhigh` etc.); there is no `gpt-5-pro`. Pass effort via `inputs.openai_effort` (wired through to codex-action `effort`). Defaults are `medium` for deep, `xhigh` for standard, and `xhigh` for fast.
 
 **Per-repo override:** resolve using the active run tier: if `$OUTDIR/config.json` has `models.openai.<run_tier>` set, use it; otherwise fall back to flat `models.<run_tier>` (precedence: `FORCE_TIER` > `inputs.model` > `models.openai.<run_tier>` > `models.<run_tier>` > default `gpt-5.4-mini`). Read with run-tier-aware lookup, e.g. when `run_tier=deep`: `jq -r '.models.openai.deep // .models.deep // empty' $OUTDIR/config.json`.
+
+For per-call local subagents, resolve each spawn with the same precedence, but use the target prompt's tier unless a forced tier is set:
+
+| Target | Effective tier when no `FORCE_TIER` | Default OpenAI model |
+|---|---|---|
+| `seo`, `aeo`, `i18n`, `docs`, `deps`, `comments`, context summary | `fast` | `gpt-5.3-codex-spark` |
+| all other angle workers | `standard` | `gpt-5.4-mini` |
+| prosecutor and defender validators | `deep` | `gpt-5.5` |
+
+If the spawn API accepts a reasoning-effort override, pass the mapped effort too (`xhigh` for fast/standard, `medium` for deep). If it only accepts `model`, still pass `model`; do not fall back to parent-model inheritance.
 
 ---
 
@@ -56,11 +69,13 @@ Perform all phases (1 through 4) sequentially.
 
 Read `$OUTDIR/diff.txt`, `$OUTDIR/meta.json`, `$OUTDIR/angles.txt`. Draft a 1–2 sentence summary, change bullets, files-by-category, optional manual test plan — all destined for the **Review body** in Phase 4. Do NOT call `gh pr edit`; the PR title and description must remain untouched.
 
-## Phase 2 — Per-Angle Audit (sequential loop, chunk-aware)
+## Phase 2 — Per-Angle Audit (bounded parallel when available, chunk-aware)
 
 If `$OUTDIR/chunks.txt` exists (issue #14), the outer loop iterates `(angle, chunk_id)` pairs instead of plain angles. For each pair, read the chunk-specific diff at `$OUTDIR/diff.chunk-<id>.txt` and write findings to `$OUTDIR/findings.<angle>.<chunk_id>.json`. When `chunks.txt` is absent, the inner steps use `diff.txt` and `findings.<angle>.json` as before.
 
-For each angle listed in `$OUTDIR/angles.txt`, in order (× each chunk when chunked):
+When the local Codex host exposes subagents with model overrides, dispatch one worker per angle (× each chunk when chunked), capped by the host's bounded-concurrency limit. Each spawn MUST set `model` to the OpenAI model resolved for that worker's effective tier (`fast` / `standard`, unless `FORCE_TIER` overrides). The worker receipt's `model` field must match the explicit spawn model, and its `tier` field must be set to the worker's effective tier (`fast`, `standard`, or `deep`); `verify-receipts.sh` validates both.
+
+When no such subagent primitive exists, run each angle listed in `$OUTDIR/angles.txt`, in order (× each chunk when chunked):
 
 1. Read `$WOO_REVIEW_ACTION_PATH/prompts/angles/<angle>.md`.
 2. Execute the angle prompt against the angle's diff (full or chunk-specific). For `react` run `npx -y react-doctor@$REACT_DOCTOR_VERSION --diff $BASE_REF --offline`.
@@ -70,11 +85,11 @@ Stay within each angle's scope; do not let `bugs` flag a design issue or vice ve
 
 **Retry-once recovery.** Angle iterations can be cut short by tool-stream errors or turn-limit interrupts and leave no findings file. After the loop finishes, scan `$OUTDIR/angles.txt` (× `chunks.txt` when chunked) and check that each expected `findings.<angle>.json` (or `findings.<angle>.<chunk_id>.json`) exists and parses as a JSON array via `jq -e 'type == "array"'`. For any path that fails the check, re-run THAT angle iteration ONCE. Cap is one retry per `(angle, chunk)` pair; if the retry also fails, leave the file as-is and proceed to Phase 3 — the merge step recovers malformed JSON, and missing files just mean the angle produced no findings.
 
-## Phase 3 — Adversarial Validation (prosecutor + defender, sequential)
+## Phase 3 — Adversarial Validation (prosecutor + defender)
 
 Merge all `findings.<angle>.json` arrays into `$OUTDIR/raw_findings.json` (use `$WOO_REVIEW_ACTION_PATH/scripts/merge-findings.sh`).
 
-Then run TWO opposing-bias validation passes followed by a deterministic intersection (issue #13). Codex Action has no subagent primitive, so this is sequenced inside the single agentic loop using `bash` to invoke the intersect script. Read `disable_adversarial` first:
+Then run TWO opposing-bias validation passes followed by a deterministic intersection (issue #13). In local Codex with model-routed subagents, spawn both validator passes with the resolved `deep` model (`gpt-5.5` by default). In Codex Action / single-session mode, sequence them inside the single agentic loop using `bash` to invoke the intersect script. Read `disable_adversarial` first:
 
 ```bash
 DISABLE_ADV="$(jq -r '.disable_adversarial // false' $OUTDIR/config.json 2>/dev/null || echo false)"
