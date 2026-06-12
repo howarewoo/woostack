@@ -600,20 +600,20 @@ gt modify -c -m "docs(memory): §2 notes/index tracked + shared; ripple note in 
 **Files:**
 - Modify: `skills/woostack-dream/SKILL.md` frontmatter `description`, Phase 1 (§"Gather")
 
-- [ ] **Step 1: Widen the `description`**
+- [x] **Step 1: Widen the `description`**
 
 Change "Reflects over the static memory store + docs (no session mining)" → "Reflects over the static memory store, the specs/plans/fixes decision corpus, and docs (no session mining)". Keep the rest.
 
-- [ ] **Step 2: Add the corpus-as-input step to Phase 1**
+- [x] **Step 2: Add the corpus-as-input step to Phase 1**
 
 After the existing follow-`source:`-for-staleness sentence, add: *enumerate and read the full `.woostack/{specs,plans,fixes}/*.md` corpus as design-trend input to the `surface` op (incrementally — see Phase 2)*. Explicitly distinguish this from the staleness read, and **keep** the existing sentence excluding `.woostack/{specs,plans,fixes}/*.md` from the doc-promotion **target** set (inputs, not promotion targets).
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run: `grep -nE 'decision corpus|specs,plans,fixes|design-trend|promotion-target' skills/woostack-dream/SKILL.md`
 Expected: description names the corpus; Phase 1 has the corpus-as-input line AND retains the promotion-target exclusion.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt create -m "feat(dream): read the specs/plans/fixes corpus as design-trend input"
@@ -624,16 +624,16 @@ gt create -m "feat(dream): read the specs/plans/fixes corpus as design-trend inp
 **Files:**
 - Modify: `skills/woostack-dream/SKILL.md` Phase 2 `surface` bullet
 
-- [ ] **Step 1: Extend the `surface` definition**
+- [x] **Step 1: Extend the `surface` definition**
 
 Add to the `surface` bullet: a recurring pattern may be a **design decision recurring across the specs/plans/fixes corpus**, consolidated into one tracked note. `source:` = the most-specific contributing artifact path (never fabricated). The note passes the §7 reject-by-default gate (cross-feature glob scope, provenance, dedupe, `updated:` stamp) and uses a recall-eligible type (`decision`/`pattern`/`convention`), never `spec`/`plan`. Dedupe is **store-wide** (against `MEMORY.md` + fuzzy hooks): a corroborated trend **strengthens/rescopes the existing note** rather than re-adding — the token-efficiency mechanism. Superseded raw scratch is pruned via the existing `drop` op (full-body gate).
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 Run: `grep -nE 'across the specs/plans/fixes|store-wide|strengthen|recall-eligible|never .*spec.*plan' skills/woostack-dream/SKILL.md`
 Expected: the surface bullet carries the cross-artifact + store-wide-dedupe + recall-eligible-type language.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 gt modify -c -m "feat(dream): surface consolidates cross-artifact design trends (store-wide dedupe)"
@@ -644,20 +644,20 @@ gt modify -c -m "feat(dream): surface consolidates cross-artifact design trends 
 **Files:**
 - Modify: `skills/woostack-dream/SKILL.md` Phase 1 (watermark), Phase 4/5 (commit), Hard constraints (drop local-only)
 
-- [ ] **Step 1: Document the incremental read**
+- [x] **Step 1: Document the incremental read**
 
 In Phase 1/2, add: the corpus trigger set is artifacts new/changed since the gitignored `.woostack/memory/.dream-watermark` (which stores a **git ref**): `git log <ref>..HEAD --name-only -- .woostack/specs .woostack/plans .woostack/fixes`. Matching is against the always-read note index as the **history proxy** (a new artifact corroborating a decision already captured as a note strengthens it; new-vs-new is a fresh trend). **First run (no/absent/corrupt watermark, or non-git checkout) = full-corpus baseline.** `instructions: "full corpus"` forces a re-baseline. The watermark advances to `HEAD` **only after a successful, approved run**.
 
-- [ ] **Step 2: Flip the commit stance**
+- [x] **Step 2: Flip the commit stance**
 
 Phase 4/5 + Hard constraints: remove "Local-only memory … never staged or committed". New stance: memory notes are tracked, so on approval `woostack-dream` hands **both** curated memory changes and doc edits to `woostack-commit`; it still **never self-commits and never merges**. Restate idempotence as **"a re-run with no new artifacts since the watermark is a no-op"** (replace the pure-static wording).
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run: `grep -nE 'dream-watermark|git log .*--name-only|full-corpus baseline|woostack-commit|no-op' skills/woostack-dream/SKILL.md; grep -nE 'local-only|never .*commit' skills/woostack-dream/SKILL.md`
 Expected: watermark/baseline/commit-handoff/no-op language present; no remaining "local-only memory / never commit" hard constraint (only "never self-commit / never merge").
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt modify -c -m "feat(dream): incremental watermark + first-run baseline; commit via woostack-commit"
@@ -668,11 +668,11 @@ gt modify -c -m "feat(dream): incremental watermark + first-run baseline; commit
 **Files:**
 - Modify: `skills/woostack-dream/SKILL.md` Degradation, Hard constraints
 
-- [ ] **Step 1: Edit degradation/errors**
+- [x] **Step 1: Edit degradation/errors**
 
 Add: an absent/empty `{specs,plans,fixes}/` corpus makes trend mining a no-op (the rest of the pass proceeds); a missing/corrupt watermark falls back to a full-corpus baseline (never errors); a detected trend that duplicates an existing note routes to an update, not a duplicate add.
 
-- [ ] **Step 2: Live dry-run (acceptance smoke)**
+- [x] **Step 2: Live dry-run (acceptance smoke)**
 
 Run, against this repo's populated store/corpus:
 
@@ -685,7 +685,7 @@ bash skills/woostack-init/scripts/doctor.sh .woostack/memory; echo "doctor exit=
 Then invoke `/woostack-dream` and confirm by observation: Phase 1 reads the corpus, `surface` proposes ≥1 cross-artifact trend note (or correctly reports none / all-already-distilled) each with a real contributing-artifact `source:`, the HARD gate halts before any write, and (on a test approval) the watermark advances and a second run with no new artifacts is a no-op.
 Expected: `doctor exit=0` (warnings ok); dream halts at the gate with a labeled changeset; no write before approval.
 
-- [ ] **Step 3: Cross-link integrity sweep (whole change)**
+- [x] **Step 3: Cross-link integrity sweep (whole change)**
 
 Relative `*.md` links in every changed markdown file resolve:
 
@@ -709,7 +709,7 @@ grep -rnE 'flat memory|global shard|\.woostack/memory\.md' skills | grep -v '/sp
 
 Expected: `clean: no flat-shard claims remain`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt modify -c -m "docs(dream): corpus/watermark degradation + error handling; dry-run verified"
@@ -719,7 +719,7 @@ gt modify -c -m "docs(dream): corpus/watermark degradation + error handling; dry
 
 ## Self-review (run before handing back)
 
-- [ ] **Spec coverage** — AC-A1/A2/A3 → Inc A tasks A1-A5; AC-B1 → B1-B4; AC-C1 → C1, AC-C2 → C2, C3; AC-D1 → D1-D2, AC-D2 → D3, AC-D3 → D1; AC-X (cross-link/count) → A4/A5 grep gates + D4 sweep. Every AC maps to a task/verification.
-- [ ] **AC coverage** — each filled happy/error/edge case has a bash test (scripts) or a grep/dry-run check (prose): sidecar upsert+join (B1-B3), no-flat assertions (A1-A3), gitignore tracks-store/ignores-sidecar (C1), record skip-with-notice (A2), watermark baseline + no-op idempotence (D3-D4).
-- [ ] **No placeholders** — every step has real code, exact commands, expected output. No TBD/TODO.
-- [ ] **Type consistency** — helper names match across tasks: `tel_get`/`tel_bump`/`_tel_file`/`del_field` (lib.sh, used identically in recall.sh B2 and doctor.sh B3); sidecar path `.woostack/memory/.telemetry.tsv` and watermark `.woostack/memory/.dream-watermark` consistent in B, C, D.
+- [x] **Spec coverage** — AC-A1/A2/A3 → Inc A tasks A1-A5; AC-B1 → B1-B4; AC-C1 → C1, AC-C2 → C2, C3; AC-D1 → D1-D2, AC-D2 → D3, AC-D3 → D1; AC-X (cross-link/count) → A4/A5 grep gates + D4 sweep. Every AC maps to a task/verification.
+- [x] **AC coverage** — each filled happy/error/edge case has a bash test (scripts) or a grep/dry-run check (prose): sidecar upsert+join (B1-B3), no-flat assertions (A1-A3), gitignore tracks-store/ignores-sidecar (C1), record skip-with-notice (A2), watermark baseline + no-op idempotence (D3-D4).
+- [x] **No placeholders** — every step has real code, exact commands, expected output. No TBD/TODO.
+- [x] **Type consistency** — helper names match across tasks: `tel_get`/`tel_bump`/`_tel_file`/`del_field` (lib.sh, used identically in recall.sh B2 and doctor.sh B3); sidecar path `.woostack/memory/.telemetry.tsv` and watermark `.woostack/memory/.dream-watermark` consistent in B, C, D.
