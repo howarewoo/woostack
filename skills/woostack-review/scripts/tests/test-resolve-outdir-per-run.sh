@@ -87,6 +87,8 @@ assert_exit 0 "$([ -e "$seed_b/findings.bugs.json" ]; echo $?)" \
   "CI preserve keeps the downloaded findings.* in place"
 assert_not_contains "$(cat "$err_b")" "contaminated" \
   "CI path uses a warning, not the local hard-stop error"
+assert_contains "$(cat "$err_b")" "preserving" \
+  "CI guard emits the preserve warning message"
 
 # --- 4c. WOO_REVIEW_FRESH=1 forces a wipe (no hard-stop) ----------------------
 work_c="$(mktemp -d)"

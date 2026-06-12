@@ -240,9 +240,11 @@ Build the same `$OUTDIR/` artifact tree the GitHub Action builds.
 # Resolve OUTDIR once and export it so prefetch.sh and every sub-agent share one
 # tree. Local default: a per-RUN pr-review-<hash>-<ts>-<pid> dir
 # (scripts/resolve-outdir.sh), so two reviews of the same repo never collide. An
-# explicit OUTDIR (e.g. a sandbox temp dir) is respected as-is. Because the
-# per-run value is non-deterministic, capture prefetch's printed outdir=<path>
-# and re-export OUTDIR from it before fanning out sub-agents (no recompute drift).
+# explicit OUTDIR (e.g. a sandbox temp dir) is respected as-is. The `source`
+# below sets and exports OUTDIR in this shell, so prefetch.sh and any sub-agent
+# fanned out from here inherit the per-run value verbatim — no recompute drift.
+# Only when prefetch runs in a separate process whose env you can't inherit,
+# capture its printed outdir=<path> and re-export OUTDIR from that instead.
 source "$WOO_REVIEW_ACTION_PATH/scripts/resolve-outdir.sh"   # sets + exports OUTDIR
 export PR_NUMBER=<n>   # optional; prefetch.sh derives it from the branch when unset
 bash "$WOO_REVIEW_ACTION_PATH/scripts/prefetch.sh"   # prints outdir=<path>; honors the exported OUTDIR
