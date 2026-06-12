@@ -1,6 +1,6 @@
 ---
 name: woostack-execute-overnight
-description: Use to execute an approved woostack plan unattended overnight, with autonomous blocker handling, optional tracks, a post-implementation review sweep that drives each increment PR to a clean review, and a morning report. Never merges.
+description: Use to execute an approved woostack plan unattended overnight, with autonomous blocker handling, optional tracks, a post-implementation review sweep that clears blocking findings or records approved-with-nits outcomes, and a morning report. Never merges.
 ---
 
 # woostack-execute-overnight
@@ -162,29 +162,44 @@ blocker worktree, reuse it; otherwise set
    collides with any parallel run in flight). A restack/rebase conflict is a **blocker**.
 5. **Re-review** → back to step 1.
 
-Strictly bottom-up: a PR is driven to clean before the sweep moves up, and a fix only restacks the
-PRs **above** it — never a cleared lower PR — so each PR is reviewed exactly once on the way up.
+Strictly bottom-up: a PR is driven to clean — or, at the `max_rounds` cap, to approved-with-only-nits
+(see [Termination backstop](#termination-backstop)) — before the sweep moves up, and a fix only
+restacks the PRs **above** it — never a cleared lower PR — so each PR is reviewed exactly once on the
+way up.
 
 ### Termination backstop
 
 The per-PR loop is bounded — **whichever trips first**:
 
 - **Max rounds** — at most `max_rounds` review→address rounds per PR (default **3**; see Config).
-- **No-progress guard** — stop early when a round resolves **no** thread, **or** a re-review returns
-  the **same** blocking findings as the prior round, **or** an `address-comments` `CLARIFY` leaves a
-  thread open (an open thread fails the clean check and can never go clean by churning).
+- **No-progress guard (blocking only)** — stop early **only while blocking findings remain** with no
+  headway: a re-review returns the **same** blocking findings as the prior round, **or** a round
+  resolves **no blocking** thread, **or** an `address-comments` `CLARIFY` leaves a **blocking** thread
+  open. **Nits never trip this guard** — while only non-blocking nits remain, keep
+  reviewing/addressing them until the `max_rounds` cap (don't early-stop on a stalled nit).
 
-Either, without a clean PR, is a **blocker → halt** (below). The reason is written to the decision
-log.
+At either terminus **without a clean PR**, branch on the verdict (read `STATUS_LINE`, not the
+self-downgraded event):
+
+- **Blocking findings remain** (request-changes) → **blocker → halt** (below).
+- **Only nits remain** (`APPROVED` / `APPROVED WITH SUGGESTIONS`, open non-blocking threads) —
+  reachable only at the `max_rounds` cap, since the guard above never stops on nits → **not a
+  blocker**: mark the PR `done-with-findings`, record the open nits for the morning report, and
+  **move on to the next PR** (the sweep continues upward; the track is not halted).
+
+The reason for any halt is written to the decision log.
 
 ### Halt (reuses Tracks & halt policy)
 
-A sweep blocker — cap-without-clean, no-progress, a `woostack-review` error/hang, a restack
-conflict, or an `address-comments` step that would touch the never-auto-approve set (destructive /
-secret / auth / network / ambiguous) — **ends that track's remaining sweep** (the blocked PR is
-recorded `blocked`, and every PR above it becomes `not-attempted-review`) and the run **advances to
-the next track**, exactly the existing [Tracks & halt policy](#tracks--halt-policy). Safety is never
-relaxed for autonomy; the blocked PR's worktree is **left in place** for morning inspection.
+A sweep blocker — **the cap or no-progress guard reached with blocking findings still present**, a
+`woostack-review` error/hang, a restack conflict, or an `address-comments` step that would touch the
+never-auto-approve set (destructive / secret / auth / network / ambiguous) — **ends that track's
+remaining sweep** (the blocked PR is recorded `blocked`, and every PR above it becomes
+`not-attempted-review`) and the run **advances to the next track**, exactly the existing
+[Tracks & halt policy](#tracks--halt-policy). Reaching the `max_rounds` cap with **only nits** (no
+blocking findings) is **not** a sweep blocker — that PR is `done-with-findings` and the sweep moves
+on. Safety is never relaxed for autonomy; the blocked PR's worktree is **left in place** for morning
+inspection.
 
 ### Config
 
@@ -204,21 +219,24 @@ e.g. `2026-06-12-memory-vault.md`, not `2026-06-12-2026-06-12-memory-vault.md`) 
 artifact, like `.woostack/visuals/`), so it never rides into an increment PR and never dirties the
 tree for the review / address-comments clean-tree preconditions. Sections:
 
-- **Needs you** (top): blockers, and a morning **test checklist** (what to verify, the HEAD branch
-  per track).
-- **Run summary**: plan, driver, start/end, outcome (`clean` / `partial+blockers` /
-  `refused-to-start`).
+- **Needs you** (top): blockers, any **outstanding nits** on `done-with-findings` PRs
+  (approved-with-nits that hit the `max_rounds` cap — to address in the morning, distinct from
+  blockers), and a morning **test checklist** (what to verify, the HEAD branch per track).
+- **Run summary**: plan, driver, start/end, outcome (`clean` / `done-with-findings` /
+  `partial+blockers` / `refused-to-start`).
 - **Per-increment table**: status (`done` / `done-with-findings` / `blocked` / `not-attempted`),
   branch + PR URL, review verdict, auto-address rounds used, and sweep verdict.
-- **Review sweep**: per-PR rounds used, final sweep verdict, no-progress flag, and blocker reason.
+- **Review sweep**: per-PR rounds used, final sweep verdict (`clean` / `done-with-findings` /
+  `blocked`), no-progress flag, and blocker reason.
 - **Decision log**: every autonomous decision with its rationale.
 
 ## Terminal state
 
-Stop when every track has either completed (increments implemented **and** swept to a clean review)
-or halted at a blocker. The result is a Graphite stack (linear, or tree-stacked across tracks) of
-increment PRs each driven to a clean review — or partially, with blockers logged — plus a complete
-morning report. Report the path. "Clean" is review-clean, never a merge. **Never merge.**
+Stop when every track has either completed (increments implemented, then swept until every PR is
+**clean or approved-with-only-nits at the cap** — no blocking findings remain anywhere) or halted at
+a blocking blocker. The result is a Graphite stack (linear, or tree-stacked across tracks) of
+increment PRs each driven to a clean review — or, at the cap, approved with only nits logged for the
+morning — or partially, with blockers logged — plus a complete morning report. Report the path. "Clean" is review-clean, never a merge. **Never merge.**
 
 ## Gate boundary
 
@@ -244,7 +262,9 @@ an inference. It never merges and never relaxes safety for autonomy.
   **this stack only** (`gt restack`/`gt submit --stack`, never `gt sync`) → re-review — to a clean
   verdict (no blocking findings, read from `STATUS_LINE` not the self-downgraded event) + zero
   unresolved threads. Bounded by `overnight.review_sweep.max_rounds` (default 3) + a no-progress
-  guard; a blocker halts only that track. Both drivers. Never merge.
+  guard scoped to **blocking** findings (nits keep looping until the cap, never an early stop); at the
+  cap, **only blocking findings halt** the track — a PR left with **only nits** is `done-with-findings`
+  and the sweep moves on. A blocker halts only that track. Both drivers. Never merge.
 - **Morning report every run**, incremental and gitignored under `.woostack/overnight/`.
 - **Reuse execute; don't restate it.** Cross-link the cadence, drivers, safety, and memory
   contract.

@@ -2,11 +2,11 @@
 
 # Overnight run — {{PLAN_BASENAME}}
 
-> Outcome: {{clean / partial+blockers / refused-to-start}} · Driver: {{inline / subagent}} · Started: {{START}} · Ended: {{END}}
+> Outcome: {{clean / done-with-findings / partial+blockers / refused-to-start}} · Driver: {{inline / subagent}} · Started: {{START}} · Ended: {{END}}
 
 ## ⚠ Needs you
 
-{{Blockers requiring a human, most important first. For a blocked sweep PR, include the branch and PR URL here. "None — clean stack." if there are none.}}
+{{Blockers requiring a human, plus outstanding nits from done-with-findings PRs. For a blocked sweep PR, include the branch and PR URL here. Use "None — clean stack." only when there are no blockers or outstanding nits.}}
 
 ### Morning test checklist
 
@@ -24,7 +24,7 @@
 
 | Track | Increment | Status | Branch / PR | Review | Auto-address rounds | Sweep |
 |---|---|---|---|---|---|---|
-| {{A}} | {{1}} | {{done / done-with-findings / blocked / not-attempted}} | {{branch / PR URL}} | {{verdict}} | {{0–2}} | {{clean / blocked / not-attempted-review}} |
+| {{A}} | {{1}} | {{done / done-with-findings / blocked / not-attempted}} | {{branch / PR URL}} | {{verdict}} | {{0–2}} | {{clean / done-with-findings / blocked / not-attempted-review}} |
 
 ## Review sweep
 
@@ -34,10 +34,10 @@
 
 | Track | PR | Rounds (of {{max_rounds}}) | Final verdict | No-progress? | Blocker |
 |---|---|---|---|---|---|
-| {{A}} | {{#}} | {{r}} | {{clean / blocked}} | {{yes / no}} | {{— / cap / no-progress / review-error / restack-conflict / unsafe}} |
+| {{A}} | {{#}} | {{r}} | {{clean / done-with-findings / blocked}} | {{yes / no}} | {{— / nits-at-cap / cap-blocking / no-progress / review-error / restack-conflict / unsafe}} |
 
 ## Decision log
 
 <!-- Appended live, one line per autonomous decision. -->
 
-- {{stamp}} — {{decision (debug fix / auto-address round / sweep review round / sweep PR clean / sweep blocked: cap | no-progress | review-error | restack-conflict | unsafe / BLOCKED / blocker recorded / track ended / increment not-attempted) + rationale}}
+- {{stamp}} — {{decision (debug fix / auto-address round / sweep review round / sweep PR clean / sweep PR done-with-findings: nits-at-cap / sweep blocked: cap-blocking | no-progress | review-error | restack-conflict | unsafe / BLOCKED / blocker recorded / track ended / increment not-attempted) + rationale}}
