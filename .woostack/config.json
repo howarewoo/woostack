@@ -3,7 +3,7 @@
 		"metrics": true,
 		"models": {
 			"openai": {
-				"standard": "gpt-5.4"
+				"standard": "gpt-5.4-mini"
 			}
 		}
 	}
