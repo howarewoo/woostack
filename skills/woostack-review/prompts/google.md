@@ -1,28 +1,16 @@
-# Google (Gemini CLI) — Multi-Angle Orchestration
+# Google (Antigravity CLI) — Multi-Angle Orchestration
 
-You are reviewing a pull request using Gemini CLI's built-in `@generalist` subagent. The generalist subagent inherits the main session's tool access and model, executes in an isolated context, and returns only final results — the same pattern Claude Code's `Task` tool uses. Fan out one `@generalist` per angle in a single response to maximize parallelism.
+You are reviewing a pull request using Antigravity CLI (`agy`). Antigravity orchestrates subagents **dynamically**: the orchestrator instantiates one subagent per task on demand, each with its own isolated context window, runs them in parallel, and collects only their final results — the same pattern Claude Code's `Task` tool uses. There is no static `@generalist` definition to register; describe each subagent's brief inline when you dispatch it. Dispatch one subagent per angle in a single turn to maximize parallelism.
 
 The shared header above lists prefetched artifacts, the findings schema, the blocking criteria, and the do-NOT-flag list. **Apply them verbatim.** Per-angle prompt bodies live at `$WOO_REVIEW_ACTION_PATH/prompts/angles/<angle>.md`.
 
-**Host identifier:** default `gemini-cli` (substitute into the credits line `<host>` placeholder per `_header.md`). If invoked from another Google host, use that host's canonical slug instead.
+**Host identifier:** default `antigravity-cli` (substitute into the credits line `<host>` placeholder per `_header.md`). If invoked from another Google host, use that host's canonical slug instead.
 
 ## Model selection
 
-Gemini CLI runs one model per session by default. The `@generalist` subagent inherits this model from the main session, so the `tier:` frontmatter on each angle prompt is **effectively informational** unless you override per-subagent in `~/.gemini/settings.json`:
+Antigravity CLI runs Gemini models — by default `gemini-3-5-flash` (Antigravity's own default). Dynamically spawned subagents inherit the orchestrator session's model, so the `tier:` frontmatter on each angle prompt is **effectively informational**: there is no documented static per-subagent model override. The legacy `~/.gemini/settings.json` `agents.overrides` path is gone — under Antigravity subagents are orchestrated on demand, not pre-configured, and per-run config lives under `.agents/`. Default every angle subagent to the session's model.
 
-```json
-{
-  "agents": {
-    "overrides": {
-      "generalist": {
-        "modelConfig": { "model": "<deep-tier slug>" }
-      }
-    }
-  }
-}
-```
-
-Google's 3.5 line currently ships only `gemini-3-5-flash`, so tier routing is a no-op until a larger 3.5-line model appears. Default every angle subagent to the session's model.
+Google's 3.5 line currently ships only `gemini-3-5-flash`, so tier routing is a no-op until a larger 3.5-line model appears.
 
 **Per-repo override / FORCE_TIER:** run-model resolution is driven by `load-prompt.sh` before this phase. Honor the following precedence:
 - `FORCE_TIER` from Review Context (`fast`/`deep`) if present
@@ -30,7 +18,7 @@ Google's 3.5 line currently ships only `gemini-3-5-flash`, so tier routing is a 
 - `models.google.<run_tier>` and flat `models.<run_tier>` in `$OUTDIR/config.json`
 - default `gemini-3-5-flash`
 
-Revisit subagent routing when larger Google models ship; until then, this is still a single-session host.
+Revisit subagent routing when larger Google models ship or Antigravity exposes per-subagent model selection; until then, treat this as a single-session host.
 
 ---
 
@@ -64,9 +52,9 @@ Perform all phases (1 through 4) as the main orchestrator.
 
 **OUTDIR handoff.** `$OUTDIR` defaults to a per-project `/tmp/pr-review-<hash>` (derived from the repo's git toplevel by `scripts/resolve-outdir.sh`) so concurrent reviews of different repos on one machine never share a tree. Resolve it ONCE in the orchestrator — `source "$WOO_REVIEW_ACTION_PATH/scripts/resolve-outdir.sh"` sets and exports `OUTDIR` — then export `OUTDIR` to **every** sub-agent you spawn. Sub-agents prefer the inherited `$OUTDIR`; if it is unset they re-derive via the same helper. Never fall back to a bare `/tmp/pr-review`.
 
-## Phase 1 — Context + summary (single `@generalist` subagent; full mode only)
+## Phase 1 — Context + summary (single subagent; full mode only)
 
-Spawn one `@generalist` with this brief:
+Spawn one subagent with this brief:
 
 - Read `$OUTDIR/diff.txt`, `$OUTDIR/meta.json`, and `$OUTDIR/angles.txt`.
 - Produce a 1–2 sentence summary, a bullet list of changes, files grouped by category, optional manual test plan. All destined for the **Review body** in Phase 4 — never written to PR title or description.
@@ -74,14 +62,14 @@ Spawn one `@generalist` with this brief:
 
 Do NOT call `gh pr edit`. The PR title and description are immutable for this action.
 
-## Phase 2 — Parallel angle audits (one `@generalist` per enabled angle, × chunk if chunked)
+## Phase 2 — Parallel angle audits (one subagent per enabled angle, × chunk if chunked)
 
 Read `$OUTDIR/angles.txt`. Check `$OUTDIR/chunks.txt`:
 
-- **Unchunked** (file absent): invoke **one `@generalist` per enabled angle in the same response** so Gemini CLI can dispatch them concurrently. The parallelism behavior of multiple `@<agent>` invocations in one turn is not formally documented today, but the tool-call shape matches Claude Code's `Task` fan-out — treat it as best-effort parallel and rely on isolation for token economy.
-- **Chunked** (file present, issue #14): invoke **one `@generalist` per `(angle, chunk_id)` pair**, again in the same response. Pass the chunk id explicitly in the subagent brief and tell it to read `$OUTDIR/diff.chunk-<id>.txt` and write `$OUTDIR/findings.<angle>.chunk-<id>.json`.
+- **Unchunked** (file absent): dispatch **one subagent per enabled angle in the same turn** so Antigravity orchestrates them in parallel. Each subagent gets its own isolated context window — the same tool-call shape as Claude Code's `Task` fan-out — so rely on the isolation for token economy.
+- **Chunked** (file present, issue #14): dispatch **one subagent per `(angle, chunk_id)` pair**, again in the same turn. Pass the chunk id explicitly in the subagent brief and tell it to read `$OUTDIR/diff.chunk-<id>.txt` and write `$OUTDIR/findings.<angle>.chunk-<id>.json`.
 
-Each `@generalist` subagent receives this brief:
+Each subagent receives this brief:
 
 ```
 You are the <angle> reviewer for this PR. Read:
@@ -107,13 +95,13 @@ EXIT when done. Do NOT post comments, edit the PR, or touch other angles.
 
 After every subagent has finished, run `bash $WOO_REVIEW_ACTION_PATH/scripts/merge-findings.sh` — it concatenates every `findings.<angle>*.json` into `raw_findings.json` and applies within-angle dedup so duplicates across chunks collapse to a single entry before validation.
 
-**Retry-once recovery.** `@generalist` calls can die mid-run (model stream errors, turn-limit interrupts) and leave no findings file. Before invoking `merge-findings.sh`, scan `$OUTDIR/angles.txt` (× `chunks.txt` when chunked) and check that each expected `findings.<angle>.json` (or `findings.<angle>.<chunk_id>.json`) exists and parses as a JSON array via `jq -e 'type == "array"'`. For any path that fails the check, re-spawn THAT `(angle, chunk)` subagent ONCE with the same brief. Cap is one retry per pair — if the retry also fails, leave the file as-is and proceed. The merge step recovers malformed JSON; missing files just mean the angle produced no findings.
+**Retry-once recovery.** Subagent calls can die mid-run (model stream errors, turn-limit interrupts) and leave no findings file. Before invoking `merge-findings.sh`, scan `$OUTDIR/angles.txt` (× `chunks.txt` when chunked) and check that each expected `findings.<angle>.json` (or `findings.<angle>.<chunk_id>.json`) exists and parses as a JSON array via `jq -e 'type == "array"'`. For any path that fails the check, re-dispatch THAT `(angle, chunk)` subagent ONCE with the same brief. Cap is one retry per pair — if the retry also fails, leave the file as-is and proceed. The merge step recovers malformed JSON; missing files just mean the angle produced no findings.
 
-## Phase 3 — Adversarial validation (sequential `@generalist` × 2)
+## Phase 3 — Adversarial validation (sequential subagent × 2)
 
 Skip if every per-angle file is empty / missing; status is `APPROVED`.
 
-Otherwise run TWO sequential `@generalist` subagents with opposing biases, then a deterministic intersection (issue #13). Read `disable_adversarial` first:
+Otherwise run TWO sequential subagents with opposing biases, then a deterministic intersection (issue #13). Read `disable_adversarial` first:
 
 ```bash
 DISABLE_ADV="$(jq -r '.disable_adversarial // false' $OUTDIR/config.json 2>/dev/null || echo false)"
@@ -121,11 +109,11 @@ DISABLE_ADV="$(jq -r '.disable_adversarial // false' $OUTDIR/config.json 2>/dev/
 
 ### Phase 3a — Prosecutor pass (skip if `DISABLE_ADV == true`)
 
-Spawn one `@generalist` with `$WOO_REVIEW_ACTION_PATH/prompts/validator-prosecutor.md` as its brief. It assumes each finding is real and drops only the clearly-wrong ones. It writes `$OUTDIR/findings.prosecutor.json` and EXITS — it MUST NOT post a review.
+Spawn one subagent with `$WOO_REVIEW_ACTION_PATH/prompts/validator-prosecutor.md` as its brief. It assumes each finding is real and drops only the clearly-wrong ones. It writes `$OUTDIR/findings.prosecutor.json` and EXITS — it MUST NOT post a review.
 
 ### Phase 3b — Defender pass
 
-Spawn one `@generalist` with `$WOO_REVIEW_ACTION_PATH/prompts/validator.md` as its brief. It applies the strict "defense attorney" filter — drops pedantic / lint-catchable / maybe-issues / placeholder-suggestion findings — and writes `$OUTDIR/findings.defender.json`. It writes `$OUTDIR/findings.defender.json` and EXITs — it does NOT run the intersect script or post (the orchestrator does that next). Apply only `validator.md`'s validation/filter rules (its Steps 1–2) to produce `findings.defender.json`; IGNORE validator.md's Step 3/3b/4 and its STOP-GATE — the orchestrator runs the intersect itself in the next phase.
+Spawn one subagent with `$WOO_REVIEW_ACTION_PATH/prompts/validator.md` as its brief. It applies the strict "defense attorney" filter — drops pedantic / lint-catchable / maybe-issues / placeholder-suggestion findings — and writes `$OUTDIR/findings.defender.json`. It writes `$OUTDIR/findings.defender.json` and EXITs — it does NOT run the intersect script or post (the orchestrator does that next). Apply only `validator.md`'s validation/filter rules (its Steps 1–2) to produce `findings.defender.json`; IGNORE validator.md's Step 3/3b/4 and its STOP-GATE — the orchestrator runs the intersect itself in the next phase.
 
 The two passes MUST be sequential — the prosecutor's file must already exist before the defender runs when adversarial mode is on.
 

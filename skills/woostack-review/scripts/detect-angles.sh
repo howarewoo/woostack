@@ -368,7 +368,7 @@ CSV=$(IFS=,; echo "${ANGLES[*]}")
 JSON_ARRAY=$(printf '%s\n' "${ANGLES[@]}" | jq -R . | jq -s -c .)
 
 printf '%s\n' "${ANGLES[@]}" > "$OUTDIR/angles.txt"
-# JSON fallback artifact for non-GHA hosts (Gemini CLI, opencode, local skill
+# JSON fallback artifact for non-GHA hosts (Antigravity CLI, opencode, local skill
 # invocation) that have no $GITHUB_OUTPUT to read.
 printf '%s\n' "$JSON_ARRAY" > "$OUTDIR/angles.json"
 
