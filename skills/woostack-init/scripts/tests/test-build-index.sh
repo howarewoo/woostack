@@ -28,11 +28,11 @@ cp "$d/MEMORY.md" "$d/.first"
 bash "$BI" "$d"
 assert_eq "$(cat "$d/MEMORY.md")" "$(cat "$d/.first")" "idempotent rebuild"
 
-# flat memory.md is never touched by build-index
+# unrelated legacy file is never touched by build-index
 flat="$d/../memory.md"
 echo "- flat bullet" > "$flat"
 bash "$BI" "$d"
-assert_not_contains "$(cat "$flat")" "alpha" "flat memory.md not touched"
+assert_not_contains "$(cat "$flat")" "alpha" "legacy file not touched"
 rm -rf "$d" "$flat"
 
 # empty dir -> header-only index, zero note lines

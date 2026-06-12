@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # recall.sh <woostack_dir> <paths_file> — compose per-PR memory context.
 # stdout: ## Scoped memory + ## Linked notes + ## Global memory.
-# The global shard (flat memory.md + no-scope/`*` notes) is ALWAYS included and
-# never dropped by RECALL_CAP (bytes, default 102400). Scoped/linked notes fill
-# the remaining budget; lowest match-count dropped first (logged to stderr).
+# Global no-scope/`*` notes are ALWAYS included and never dropped by RECALL_CAP
+# (bytes, default 102400). Scoped/linked notes fill the remaining budget; lowest
+# match-count dropped first (logged to stderr).
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$HERE/lib.sh"
@@ -11,7 +11,7 @@ SCOPE_MATCH="$HERE/scope-match.sh"
 
 WOO="${1:?woostack_dir required}"; PATHS_FILE="${2:?paths_file required}"
 CAP="${RECALL_CAP:-102400}"
-MEM_DIR="$WOO/memory"; FLAT="$WOO/memory.md"
+MEM_DIR="$WOO/memory"
 paths="$(cat "$PATHS_FILE" 2>/dev/null || true)"
 
 is_global() { local s; s="$(printf '%s' "$1" | tr -d '[:space:]')"; [ -z "$s" ] || [ "$s" = '*' ]; }
@@ -82,7 +82,6 @@ for f in "${linked_files[@]:-}"; do [ -n "${f:-}" ] && stamp_note "$f"; done
 while IFS= read -r f; do [ -n "$f" ] && stamp_note "$f"; done < "$globals"
 
 global_out=""
-[ -f "$FLAT" ] && global_out="$(cat "$FLAT")"
 while IFS= read -r f; do
   [ -n "$f" ] || continue
   if [ -n "$global_out" ]; then global_out+=$'\n\n'; fi
@@ -94,7 +93,7 @@ gbytes=${#global_out}
 budget=$(( CAP - gbytes ))
 if [ "$budget" -le 0 ] && [ -n "$global_out" ]; then
   global_out="$(printf '%s' "$global_out" | tail -c "$CAP")"
-  echo "recall: global shard exceeds cap; tail-capped, scoped notes dropped" >&2
+  echo "recall: global notes exceed cap; tail-capped, scoped notes dropped" >&2
 else
   for f in "${matched_files[@]:-}"; do
     [ -n "${f:-}" ] || continue

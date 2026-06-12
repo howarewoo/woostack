@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # Records one accept-by-design learning.
 # If .woostack/memory/ exists, writes a scoped memory note and rebuilds MEMORY.md.
-# Otherwise falls back to the flat .woostack/memory.md append path.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -11,7 +10,6 @@ source "$HERE/resolve-root.sh"
 
 LEARNING="${LEARNING:?LEARNING env var required}"
 MEMORY_DIR="${MEMORY_DIR:-$WOOSTACK_ROOT/.woostack/memory}"
-MEMORY_FILE="${MEMORY_FILE:-$WOOSTACK_ROOT/.woostack/memory.md}"
 MEMORY_SCOPE="${MEMORY_SCOPE:-*}"
 MEMORY_TYPE="${MEMORY_TYPE:-convention}"
 MEMORY_SOURCE="${MEMORY_SOURCE:-${PR_NUMBER:+pr-$PR_NUMBER}}"
@@ -26,7 +24,7 @@ if [ -z "$NEW_NORM" ]; then
 fi
 
 if [ ! -d "$MEMORY_DIR" ]; then
-  MEMORY_FILE="$MEMORY_FILE" LEARNING="$NEW_NORM" bash "$HERE/memory-append.sh"
+  echo "memory-record: no scoped store at $MEMORY_DIR; skipping (run /woostack-init)" >&2
   exit 0
 fi
 

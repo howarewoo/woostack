@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)"
 source "$ROOT/skills/woostack-init/scripts/tests/assert.sh"
 SCRIPTS="$ROOT/skills/woostack-address-comments/scripts"
 
-for script in prefetch.sh fetch-threads.sh resolve-thread.sh memory-record.sh memory-append.sh resolve-outdir.sh; do
+for script in prefetch.sh fetch-threads.sh resolve-thread.sh memory-record.sh resolve-outdir.sh; do
   bash -n "$SCRIPTS/$script"
 done
 
@@ -46,10 +46,10 @@ assert_contains "$(cat /tmp/address-prefetch.out)" "Address prefetch complete" "
 assert_contains "$(cat "$work/prefetch-out/address-changed-paths.txt")" "src/a.ts" "prefetch writes changed paths"
 assert_contains "$(cat "$work/prefetch-out/memory.md")" "Address-comments scoped memory" "prefetch composes scoped memory"
 
-MEMORY_FILE="$work/memory.md" \
-LEARNING="Accepted address-comments pattern: do not re-flag." \
-  bash "$SCRIPTS/memory-append.sh" >/tmp/address-memory-append.out
-assert_contains "$(cat "$work/memory.md")" "Accepted address-comments pattern" "memory append writes learning"
+woo="$(mktemp -d)"
+out="$(MEMORY_DIR="$woo/memory" LEARNING="Accepted address-comments pattern: do not re-flag." bash "$SCRIPTS/memory-record.sh" 2>&1)"
+assert_contains "$out" "no scoped store" "memory-record skips when .woostack/memory/ absent"
+assert_exit 1 "$([ -e "$woo/memory.md" ]; echo $?)" "memory-record writes no legacy shard"
 
-rm -rf "$work"
+rm -rf "$work" "$woo"
 finish

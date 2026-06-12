@@ -19,7 +19,7 @@ Each command is discrete and ends by offering the next step. Merge stays with th
 Artifacts live under `.woostack/` in the project: markdown specs in `.woostack/specs/`,
 markdown plans in `.woostack/plans/`, and review config in `.woostack/config.json`
 (review metrics `.woostack/metrics.json` and [local-only memory](../../woostack-init/references/memory.md)
-`.woostack/memory.md` / `.woostack/memory/` are gitignored).
+`.woostack/memory/` are gitignored).
 
 ## Branching model
 

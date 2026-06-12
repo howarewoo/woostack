@@ -32,8 +32,6 @@ MEMORY_OUT="$OUTDIR/memory.md"
 rm -f "$MEMORY_OUT"
 if [ -d "$WOOSTACK_DIR/memory" ] && [ -x "$ROOT/skills/woostack-init/scripts/recall.sh" ]; then
   bash "$ROOT/skills/woostack-init/scripts/recall.sh" "$WOOSTACK_DIR" "$PATHS_FILE" > "$MEMORY_OUT" 2>"$OUTDIR/recall.log" || : > "$MEMORY_OUT"
-elif [ -f "$WOOSTACK_DIR/memory.md" ]; then
-  head -c 102400 "$WOOSTACK_DIR/memory.md" > "$MEMORY_OUT"
 fi
 
 if [ -f "$MEMORY_OUT" ]; then

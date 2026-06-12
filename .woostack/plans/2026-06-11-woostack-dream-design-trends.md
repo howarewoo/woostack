@@ -23,7 +23,7 @@
 - Modify (comment cleanup): `skills/woostack-init/scripts/build-index.sh:3`, `skills/woostack-init/scripts/doctor.sh:3`
 - Test: `skills/woostack-init/scripts/tests/test-recall.sh:10,35` (+ flat-only case)
 
-- [ ] **Step 1: Update the test red-first — remove flat-shard expectations**
+- [x] **Step 1: Update the test red-first — remove flat-shard expectations**
 
 In `test-recall.sh`, the "Global memory" section currently includes flat `memory.md` content. Change the global-memory fixture to assert global-*scoped notes* only, and delete the flat-only sub-case. Replace the block around line 10:
 
@@ -42,12 +42,12 @@ bash "$DIR/../build-index.sh" "$woo/memory" >/dev/null
 
 Delete the `woo2` flat-only case (lines ~35): `woo2="$(mktemp -d)"; printf -- '- only flat here\n' > "$woo2/memory.md"` and its assertions.
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
 
 Run: `bash skills/woostack-init/scripts/tests/test-recall.sh`
 Expected: FAIL — recall still emits the (now-absent) flat path; assertion on "do not flag X" coming from a global note fails because recall reads `$FLAT`.
 
-- [ ] **Step 3: Remove flat handling from `recall.sh`**
+- [x] **Step 3: Remove flat handling from `recall.sh`**
 
 Delete the flat var and its read. Change line 14 from:
 
@@ -76,12 +76,12 @@ global_out=""
 
 Update the header comment (lines 4-6) to drop "flat memory.md +": the global shard is now "no-scope/`*` notes", always included, never dropped by `RECALL_CAP`. Also clean the now-inaccurate flat-file mentions in `build-index.sh:3` ("never reads/writes the flat memory.md" → "Indexes the dir only. Idempotent.") and `doctor.sh:3` ("the flat memory.md is free-form and never read" → drop the sentence).
 
-- [ ] **Step 4: Run the test + lint the comment-only edits**
+- [x] **Step 4: Run the test + lint the comment-only edits**
 
 Run: `bash skills/woostack-init/scripts/tests/test-recall.sh && bash -n skills/woostack-init/scripts/build-index.sh && bash -n skills/woostack-init/scripts/doctor.sh`
 Expected: PASS — `finish` reports 0 failed; both `bash -n` exit 0.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt create -m "refactor(memory): recall.sh drops flat memory.md; global shard = global-scoped notes"
@@ -94,7 +94,7 @@ gt create -m "refactor(memory): recall.sh drops flat memory.md; global shard = g
 - Delete: `skills/woostack-address-comments/scripts/memory-append.sh`, `skills/woostack-review/scripts/memory-append.sh`
 - Test: `skills/woostack-address-comments/scripts/tests/test-address-helper-scripts.sh`, `skills/woostack-review/scripts/tests/test-memory-record.sh`, `skills/woostack-address-comments/scripts/tests/test-address-worker-contract.sh`
 
-- [ ] **Step 1: Update tests red-first — flat fallback becomes skip-with-notice**
+- [x] **Step 1: Update tests red-first — flat fallback becomes skip-with-notice**
 
 In `test-memory-record.sh` and `test-address-helper-scripts.sh`, replace any "store absent ⇒ appends to flat memory.md" case with a skip-with-notice expectation:
 
@@ -108,12 +108,12 @@ assert_exit 1 "$([ -e "$woo/memory.md" ]; echo $?)" "memory-record writes no fla
 
 Remove any `source ... memory-append.sh` references and the worker-contract assertion that `memory-append.sh` exists.
 
-- [ ] **Step 2: Run the tests, confirm they fail**
+- [x] **Step 2: Run the tests, confirm they fail**
 
 Run: `bash skills/woostack-review/scripts/tests/test-memory-record.sh`
 Expected: FAIL — current script falls back to `memory-append.sh` (writes a flat file) instead of skipping.
 
-- [ ] **Step 3: Rewrite the fallback branch in both `memory-record.sh` copies**
+- [x] **Step 3: Rewrite the fallback branch in both `memory-record.sh` copies**
 
 Replace lines 28-31:
 
@@ -139,12 +139,12 @@ Delete the `MEMORY_FILE=` line (14) and the header line (4) mentioning the flat 
 git rm skills/woostack-address-comments/scripts/memory-append.sh skills/woostack-review/scripts/memory-append.sh
 ```
 
-- [ ] **Step 4: Run the tests, confirm they pass**
+- [x] **Step 4: Run the tests, confirm they pass**
 
 Run: `bash skills/woostack-review/scripts/tests/test-memory-record.sh && bash skills/woostack-address-comments/scripts/tests/test-address-helper-scripts.sh && bash skills/woostack-address-comments/scripts/tests/test-address-worker-contract.sh`
 Expected: PASS — all three `finish` clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "refactor(memory): record helpers scoped-only; remove flat memory-append.sh"
@@ -155,7 +155,7 @@ gt modify -c -m "refactor(memory): record helpers scoped-only; remove flat memor
 **Files:**
 - Modify: `skills/woostack-init/templates/gitignore:7`, `skills/woostack-init/scripts/tests/test-gitignore-template.sh:13`, `skills/woostack-init/SKILL.md` (flat-seed step)
 
-- [ ] **Step 1: Update the template test red-first**
+- [x] **Step 1: Update the template test red-first**
 
 In `test-gitignore-template.sh`, delete line 13 (`assert_contains "$body" "memory.md" ...`) and add:
 
@@ -169,21 +169,21 @@ Use a literal, line-anchored check (the `.` in `memory.md` is a regex metachar, 
 assert_exit 1 "$(grep -qxF 'memory.md' "$template"; echo $?)" "no bare 'memory.md' line in gitignore template"
 ```
 
-- [ ] **Step 2: Run, confirm fail**
+- [x] **Step 2: Run, confirm fail**
 
 Run: `bash skills/woostack-init/scripts/tests/test-gitignore-template.sh`
 Expected: FAIL — template still has the `memory.md` line.
 
-- [ ] **Step 3: Remove the line from the template + scaffold prose**
+- [x] **Step 3: Remove the line from the template + scaffold prose**
 
 Delete line 7 (`memory.md`) from `skills/woostack-init/templates/gitignore`. In `skills/woostack-init/SKILL.md`, remove the step that seeds an empty flat `.woostack/memory.md` (the scoped store is the only memory surface).
 
-- [ ] **Step 4: Run, confirm pass**
+- [x] **Step 4: Run, confirm pass**
 
 Run: `bash skills/woostack-init/scripts/tests/test-gitignore-template.sh`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "refactor(init): drop flat memory.md from gitignore template + scaffold"
@@ -194,7 +194,7 @@ gt modify -c -m "refactor(init): drop flat memory.md from gitignore template + s
 **Files:**
 - Modify: `skills/woostack-init/references/memory.md` §1, §2, §6, §7, §10
 
-- [ ] **Step 1: Edit the contract sections**
+- [x] **Step 1: Edit the contract sections**
 
 - §1: delete the "additive layer on top of the flat `.woostack/memory.md` global shard … The flat file remains valid …" framing; state the scoped `.woostack/memory/` store is the single memory surface.
 - §2 layout: remove the `memory.md  flat global shard …` line and its `.gitignore` mention.
@@ -202,14 +202,14 @@ gt modify -c -m "refactor(init): drop flat memory.md from gitignore template + s
 - §7: remove the address-comments "falls back to the flat `memory.md` bullet append path" sentence; state that when `.woostack/memory/` is absent the record is skipped (defer to `/woostack-init`).
 - §10 degradation: drop "load … the flat `memory.md`"; with no scoped store, recall yields an empty set and record skips.
 
-- [ ] **Step 2: Verify no flat-shard claims remain in the contract**
+- [x] **Step 2: Verify no flat-shard claims remain in the contract**
 
 Target the flat *shard* (path + phrases), NOT the bare token `memory.md` — the contract is itself named `memory.md` and is cross-linked by that filename elsewhere.
 
 Run: `grep -nE 'flat memory|global shard|\.woostack/memory\.md|flat \.woostack' skills/woostack-init/references/memory.md`
 Expected: zero matches — no line presents a flat shard as a loaded/fallback surface.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 gt modify -c -m "docs(memory): contract drops the flat memory.md shard (§1/2/6/7/10)"
@@ -219,28 +219,28 @@ gt modify -c -m "docs(memory): contract drops the flat memory.md shard (§1/2/6/
 
 **Files (modify):** `skills/woostack-dream/SKILL.md`, `skills/woostack-execute/SKILL.md`, `skills/woostack-execute-overnight/SKILL.md`, `skills/woostack-debug/SKILL.md`, `skills/woostack-tdd/SKILL.md`, `skills/woostack-commit/SKILL.md`, `skills/woostack-address-comments/SKILL.md` + `prompts/address.md` + `scripts/prefetch.sh`, `skills/woostack-review/SKILL.md` + `prompts/_header.md` + `prompts/validator.md` + `prompts/validator-prosecutor.md` + `scripts/prefetch.sh`, `skills/woostack-init/SKILL.md`, `skills/woostack-bootstrap/references/development.md`
 
-- [ ] **Step 1: Find every flat-shard mention**
+- [x] **Step 1: Find every flat-shard mention**
 
 Target the flat shard specifically — `\.woostack/memory\.md` (the flat path) and the phrases — never the bare token `memory.md`, which also matches every `references/memory.md` cross-link.
 
 Run: `grep -rnE 'flat memory|global shard|\.woostack/memory\.md' skills | grep -v '/specs/\|/plans/\|/fixes/'`
 Expected: the list of sites to edit (the files above).
 
-- [ ] **Step 2: Edit each site**
+- [x] **Step 2: Edit each site**
 
 Remove "falls back to the flat `memory.md`" / "always-loaded flat shard" / "flat global shard" language. Where a skill described recall or memory-record degradation via the flat file, replace with: the scoped store is the only surface; absent store ⇒ recall empty / record skipped. Keep each skill's cross-link to the memory contract intact (link, don't restate).
 
-- [ ] **Step 3: Verify the purge**
+- [x] **Step 3: Verify the purge**
 
 Run: `grep -rnE 'flat memory|global shard|\.woostack/memory\.md' skills | grep -v '/specs/\|/plans/\|/fixes/'`
 Expected: zero matches (every flat-shard reference removed). Cross-links to the contract file `references/memory.md` are untouched and excluded by this pattern.
 
-- [ ] **Step 4: Lint the touched scripts**
+- [x] **Step 4: Lint the touched scripts**
 
 Run: `for s in skills/woostack-address-comments/scripts/prefetch.sh skills/woostack-review/scripts/prefetch.sh; do bash -n "$s" && echo "ok $s"; done`
 Expected: `ok …` for each (no syntax breakage from prose/comment edits).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "docs(skills): remove flat memory.md fallback prose across the collection"

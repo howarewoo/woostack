@@ -139,7 +139,7 @@ When a file contains unrelated hunks, use interactive patch staging:
 git add -p <file>
 ```
 
-**Memory files are local-only and must never be staged.** Both `.woostack/memory.md` and `.woostack/memory/` are ignored in `.gitignore` by design ([memory contract](../woostack-init/references/memory.md)). Do not force-stage (`git add -f`) or commit them.
+**Memory files are local-only and must never be staged.** `.woostack/memory/` is ignored in `.gitignore` by design ([memory contract](../woostack-init/references/memory.md)). Do not force-stage (`git add -f`) or commit it.
 
 Do not stage generated files, secrets, `.env*`, unrelated dirty files, or user work from outside this session.
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # doctor.sh — lint the memory/ dir. Warnings exit 0; errors exit 1.
-# Lints the dir only; the flat memory.md is free-form and never read.
 # -e intentionally omitted: a linter must continue past per-note failures
 # to report every error in one run, not abort on the first.
 set -uo pipefail

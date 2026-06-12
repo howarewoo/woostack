@@ -42,7 +42,7 @@ memory. It never merges.
    (any author) to `$OUTDIR/address-threads.json`, writes changed paths to
    `$OUTDIR/address-changed-paths.txt`, and composes `$OUTDIR/memory.md`. When the repo has
    a `.woostack/memory/` store, memory is scope-routed to the PR's changed files via
-   `recall.sh`; otherwise flat `.woostack/memory.md` is used when present.
+   `recall.sh`; otherwise memory context is absent.
 2. **Precondition** — the working tree must be clean **and** the current branch must be the
    PR head. Otherwise abort before any edit; tell the user to checkout the PR head on a
    clean tree.
@@ -70,8 +70,8 @@ memory. It never merges.
 Only a **final ACCEPT** (accept-by-design — an ACCEPT the user kept in the default flow, or
 one the skill produced itself under `--auto`) writes memory, deduplicated and phrased as a
 reusable pattern — never a log of every fix. When `.woostack/memory/` exists, the write is a
-scoped note and `MEMORY.md` is rebuilt; otherwise the script appends to flat
-`.woostack/memory.md`. Memory is read back as context on the next review run, keeping
+scoped note and `MEMORY.md` is rebuilt; otherwise the record is skipped and the user should
+run `/woostack-init`. Memory is read back as context on the next review run, keeping
 re-reviews quiet.
 
 ## Hard constraints

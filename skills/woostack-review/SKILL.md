@@ -88,17 +88,17 @@ bare `TODO` is never honored (only the `woostack-defer` token). Set `review.defe
 to turn the feature off. Because the signal is in the diff already, the review fetches **no other
 PRs** — the cost of declaring intent is paid once, upstream, at plan/execute time.
 
-## Cross-PR Memory (`.woostack/memory/` + `.woostack/memory.md`)
+## Cross-PR Memory (`.woostack/memory/`)
 
-Reviews stay useful across PRs through the consumer repo's woostack memory store. The preferred write target is the scope-routed **`.woostack/memory/`** directory: one Markdown note per reusable fact, with frontmatter declaring the scope where it applies. The flat **`.woostack/memory.md`** remains the global shard and fallback for repos that have not initialized the scoped store.
+Reviews stay useful across PRs through the consumer repo's woostack memory store: the scope-routed **`.woostack/memory/`** directory, one Markdown note per reusable fact, with frontmatter declaring the scope where it applies.
 
-When a `.woostack/memory/` scope-routed store exists, `prefetch.sh` composes the per-PR memory context via `recall.sh` ([memory contract](../woostack-init/references/memory.md)) — scope-matched notes, one-hop `[[linked]]` notes, and the global shard — instead of dumping the whole file; the flat `.woostack/memory.md` always serves as the global shard regardless.
+When a `.woostack/memory/` scope-routed store exists, `prefetch.sh` composes the per-PR memory context via `recall.sh` ([memory contract](../woostack-init/references/memory.md)) — scope-matched notes, one-hop `[[linked]]` notes, and global-scoped notes — instead of dumping the whole store.
 
 ### How it's used
 
-- **Read as context.** `prefetch.sh` writes the per-PR memory into `$OUTDIR/memory.md`. When `recall.sh` is available (the `woostack-init` skill is co-installed) it composes that file via recall — scope-matched notes + one-hop links + the global shard (see the paragraph above); otherwise it falls back to a flat copy of `.woostack/memory.md` (100KB cap). Either way, every angle worker and both validator passes treat the result as additional rubric and **drop any finding the memory already records as known/accepted/wontfix**. This is what keeps re-reviews quiet: an issue the team has consciously accepted is not re-flagged on the next PR.
-- **Written inline (local).** When you run `/woostack-review` locally and dismiss a finding (or note a gotcha worth remembering), the skill records the **learning** as a scoped note when `.woostack/memory/` exists, or as a flat `.woostack/memory.md` bullet otherwise. It first checks that no existing entry already covers the learning, so memory stays a small deduplicated set of reusable rules rather than a log of every dismissal. The local skill has direct write access — no post-session hook, no permission-isolated job. See Stage 6 below.
-- **Curated by humans.** The files are meant to be edited directly. Add or revise a scoped note, delete a stale one, or keep a global bullet in the flat shard when scope is genuinely global.
+- **Read as context.** `prefetch.sh` writes the per-PR memory into `$OUTDIR/memory.md` when `recall.sh` is available (the `woostack-init` skill is co-installed) and a scoped store exists. Every angle worker and both validator passes treat the result as additional rubric and **drop any finding the memory already records as known/accepted/wontfix**. This is what keeps re-reviews quiet: an issue the team has consciously accepted is not re-flagged on the next PR.
+- **Written inline (local).** When you run `/woostack-review` locally and dismiss a finding (or note a gotcha worth remembering), the skill records the **learning** as a scoped note when `.woostack/memory/` exists; without that store it skips and defers to `/woostack-init`. It first checks that no existing entry already covers the learning, so memory stays a small deduplicated set of reusable rules rather than a log of every dismissal. The local skill has direct write access — no post-session hook, no permission-isolated job. See Stage 6 below.
+- **Curated by humans.** The files are meant to be edited directly. Add or revise a scoped note, delete a stale one, or use `scope: *` for genuinely global guidance.
 
 ### Event-floor rule (prior threads)
 
@@ -246,7 +246,7 @@ export PR_NUMBER=<n>   # optional; prefetch.sh derives it from the branch when u
 bash "$WOO_REVIEW_ACTION_PATH/scripts/prefetch.sh"   # prints outdir=<path>; honors the exported OUTDIR
 ```
 
-When prefetch resolves a PR number AND finds an open PR, it produces the full artifact tree (`diff.txt`, `meta.json`, `last_sha.txt`, `prior-findings.json`, `rules.md` when applicable, `memory.md` when the consumer repo has `.woostack/memory/` and/or `.woostack/memory.md`). When no PR resolves, it emits `skip=true` — the host then falls back to local-diff mode below.
+When prefetch resolves a PR number AND finds an open PR, it produces the full artifact tree (`diff.txt`, `meta.json`, `last_sha.txt`, `prior-findings.json`, `rules.md` when applicable, `memory.md` when the consumer repo has `.woostack/memory/`). When no PR resolves, it emits `skip=true` — the host then falls back to local-diff mode below.
 
 **Artifact reference.** All paths are under `$OUTDIR` (default per-project `/tmp/pr-review-<hash>/`):
 
@@ -257,7 +257,7 @@ When prefetch resolves a PR number AND finds an open PR, it produces the full ar
 | `last_sha.txt` | `prefetch.sh` | Stage 5 watermark | Present only when a prior watermark was found |
 | `prior-findings.json` | `prefetch.sh` | event-floor gate | Unresolved + resolved prior review threads |
 | `rules.md` | `prefetch.sh` | `conventions` angle, validator | Concatenated project rule files; triggers `conventions` angle when present |
-| `memory.md` | `prefetch.sh` | all angles, validator | Cross-PR memory composed from `.woostack/memory/` and/or `.woostack/memory.md`; findings it records as known/accepted are dropped. Present only when the consumer repo has memory |
+| `memory.md` | `prefetch.sh` | all angles, validator | Cross-PR memory composed from `.woostack/memory/`; findings it records as known/accepted are dropped. Present only when the consumer repo has memory |
 | `angles.txt` | `detect-angles.sh` | Stage 3 orchestrator | One angle name per line |
 | `findings.<angle>.json` | angle workers | `merge-findings.sh` | Raw per-angle output |
 | `raw_findings.json` | `merge-findings.sh` | validator passes | Merged, chunk-collapsed findings |
@@ -484,9 +484,9 @@ After reporting, when the user **dismisses** a finding as a known/intentional/ac
 
 Before writing anything:
 
-1. **Read the existing memory** (`$OUTDIR/memory.md`, live `.woostack/memory.md`, and `.woostack/memory/MEMORY.md` when present).
+1. **Read the existing memory** (`$OUTDIR/memory.md` and `.woostack/memory/MEMORY.md` when present).
 2. **Check coverage.** If an existing entry already captures this learning — even phrased differently, or scoped more narrowly/broadly — do **NOT** append a duplicate. If the existing entry is close but the new dismissal generalizes it (e.g. the same pattern in a second file), edit that entry to widen its scope rather than adding a near-duplicate.
-3. **Only when the learning is genuinely new**, record one terse reusable rule — one line, `<pattern>: <reason>`, ideally ≤100 chars, no preamble or narration. Prefer a scoped `.woostack/memory/` note when the scoped store exists; fall back to a flat `.woostack/memory.md` bullet only when it does not.
+3. **Only when the learning is genuinely new**, record one terse reusable rule — one line, `<pattern>: <reason>`, ideally ≤100 chars, no preamble or narration. Write a scoped `.woostack/memory/` note when the scoped store exists; otherwise skip and defer to `/woostack-init`.
 
 ```bash
 # Record ONLY after confirming no existing entry covers this learning.

@@ -36,7 +36,6 @@ Two callers:
    |---|---|
    | `.woostack/memory/` directory | (create empty) |
    | `.woostack/memory/.gitkeep` | (touch) |
-   | `.woostack/memory.md` | (create empty — **never clobber an existing file**) |
    | `.woostack/specs/` directory | (create empty) |
    | `.woostack/plans/` directory | (create empty) |
    | `.woostack/fixes/` directory | (create empty) |
@@ -105,9 +104,8 @@ Two callers:
 - **Never clobber `memory.md`, notes, or `config.json`** without an explicit
   overwrite instruction (user confirmation or `--force`). These files contain
   project-specific knowledge that cannot be regenerated.
-- **The flat `.woostack/memory.md` is out of scope.** That global shard is
-  owned by individual skills and the user; `/woostack-init` creates it empty
-  if absent and never rewrites it.
+- **Legacy memory files are out of scope.** `/woostack-init` creates and repairs
+  only the scoped `.woostack/memory/` store.
 - **Other skills' files are out of scope.** Do not touch anything under
   `skills/`, `action.yml`, or any path outside `.woostack/` in the target
   project.

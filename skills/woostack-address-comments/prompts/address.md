@@ -102,11 +102,11 @@ Show the fix plan alongside the FIX verdict **wherever the gate renders it**:
 ## Phase 3 — Act on final verdicts
 
 - **FIX**: edit the working tree. Accumulate all fixes; do NOT commit per thread.
-- **ACCEPT**: this is the issue-#53 step. First check `$OUTDIR/memory.md`,
-  the live `.woostack/memory.md`, and `.woostack/memory/MEMORY.md` when present:
+- **ACCEPT**: this is the issue-#53 step. First check `$OUTDIR/memory.md`
+  and `.woostack/memory/MEMORY.md` when present:
   if an existing entry already covers this learning — even phrased differently
-  or more broadly — do NOT add a duplicate; widen the existing scoped note or
-  flat entry instead. Only when the learning is genuinely new, stage it for the
+  or more broadly — do NOT add a duplicate; widen the existing scoped note
+  instead. Only when the learning is genuinely new, stage it for the
   memory write — which runs in the after-phases step below, alongside the reply,
   so it never lands ahead of a rejected push. Phrase it as a **terse pattern, not
   an instance**: one line, `<pattern>: <reason>`, ideally ≤100 chars. State the
@@ -142,8 +142,8 @@ Show the fix plan alongside the FIX verdict **wherever the gate renders it**:
    Then, for each ACCEPTED thread whose learning is genuinely new, write the
    staged memory pattern (only now, after the push succeeded). When a
    `.woostack/memory/` scope-routed store exists, this writes an individual note
-   there and rebuilds `MEMORY.md`; otherwise it falls back to flat
-   `.woostack/memory.md`. Keep `LEARNING` terse — one line,
+   there and rebuilds `MEMORY.md`; otherwise it skips with a notice to run
+   `/woostack-init`. Keep `LEARNING` terse — one line,
    `<pattern>: <reason>`, ideally ≤100 chars, no filler. Set `MEMORY_SCOPE` to
    the staged `memory_scope`:
 

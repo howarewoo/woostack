@@ -5,9 +5,11 @@ source "$DIR/tests/assert.sh"
 source "$DIR/lib.sh"
 RECALL="$DIR/recall.sh"
 
-# Build a fixture .woostack with flat file + scoped notes.
+# Build a fixture .woostack with scoped notes.
 woo="$(mktemp -d)"; md="$woo/memory"; mkdir -p "$md"
-printf -- '- accepted: do not flag X\n' > "$woo/memory.md"
+# Global memory now = global-scoped notes only.
+mk_note "$md" gx.md       $'name: gx\ntype: convention\nscope: *\nupdated: 2026-06-02' '- accepted: do not flag X'
+bash "$DIR/build-index.sh" "$md" >/dev/null
 mk_note "$md" api.md      $'name: api\ntype: pattern\nscope: packages/api/**' 'API note body'
 mk_note "$md" web.md      $'name: web\ntype: pattern\nscope: apps/web/**' 'WEB note [[api]] body'
 mk_note "$md" glob.md     $'name: glob\ntype: convention\nscope: *' 'GLOBAL note body'
@@ -17,7 +19,7 @@ out="$(bash "$RECALL" "$woo" "$paths")"
 assert_contains "$out" "API note body" "matched scoped note included"
 assert_not_contains "$out" "WEB note" "unmatched note excluded"
 assert_contains "$out" "GLOBAL note body" "global (scope:*) note always included"
-assert_contains "$out" "do not flag X" "flat global shard always included"
+assert_contains "$out" "do not flag X" "global-scoped note always included"
 
 # one-hop: changing apps/web pulls web.md, which links [[api]] -> api.md too
 printf 'apps/web/y.tsx\n' > "$paths"
@@ -31,22 +33,23 @@ mk_note "$md" api.md  $'name: api\ntype: pattern\nscope: packages/api/**' 'API n
 out="$(bash "$RECALL" "$woo" "$paths")"
 assert_not_contains "$out" "DEEP note body" "two-hop not chained"
 
-# only-flat-file repo degrades to flat content
-woo2="$(mktemp -d)"; printf -- '- only flat here\n' > "$woo2/memory.md"
-out="$(bash "$RECALL" "$woo2" "$paths")"
-assert_contains "$out" "only flat here" "only-flat repo: flat content emitted"
-
 # neither source -> empty, exit 0
 woo3="$(mktemp -d)"
 set +e; out="$(bash "$RECALL" "$woo3" "$paths")"; code=$?; set -e
 assert_eq "$out" "" "no memory -> empty output"
 assert_exit 0 "$code" "no memory -> exit 0"
 
+# only-flat-file repo also degrades to empty; flat memory.md is no longer read.
+woo2="$(mktemp -d)"; printf -- '- only flat here\n' > "$woo2/memory.md"
+set +e; out="$(bash "$RECALL" "$woo2" "$paths")"; code=$?; set -e
+assert_eq "$out" "" "only-flat repo -> empty output"
+assert_exit 0 "$code" "only-flat repo -> exit 0"
+
 # cap protects global: cap=70 sits between global_out(~54B) and global+api_chunk(~87B)
 # so global survives intact while the scoped note is dropped — NOT the tail-cap branch.
 printf 'packages/api/x.ts\n' > "$paths"
 out="$(RECALL_CAP=70 bash "$RECALL" "$woo" "$paths" 2>/dev/null)"
-assert_contains "$out" "do not flag X" "global protected under cap"
+assert_contains "$out" "do not flag X" "global-scoped note protected under cap"
 assert_not_contains "$out" "API note" "scoped note dropped under cap"
 err="$(RECALL_CAP=70 bash "$RECALL" "$woo" "$paths" 2>&1 >/dev/null)"
 assert_contains "$err" "dropped" "drop logged to stderr"

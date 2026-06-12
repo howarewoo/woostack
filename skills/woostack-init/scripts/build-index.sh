@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # build-index.sh — regenerate <memdir>/MEMORY.md from note frontmatter.
-# Indexes the dir only; never reads/writes the flat memory.md. Idempotent.
+# Indexes the dir only. Idempotent.
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$HERE/lib.sh"

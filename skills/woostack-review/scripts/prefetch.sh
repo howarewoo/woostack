@@ -12,8 +12,10 @@
 # <last_sha>...HEAD via the GitHub compare API instead of the full PR diff. A
 # `--full` substring in COMMENT_BODY (issue_comment trigger) overrides to off.
 # Test hooks (env, only active when WOO_REVIEW_TEST_MODE=1):
-#   WOO_REVIEW_FAKE_PR_REVIEWS_JSON, WOO_REVIEW_FAKE_INCREMENTAL_DIFF,
-#   WOO_REVIEW_FAKE_PRIOR_THREADS_JSON. The mode flag is intentionally not
+#   WOO_REVIEW_FAKE_PR_REVIEWS_JSON, WOO_REVIEW_FAKE_META_JSON,
+#   WOO_REVIEW_FAKE_FULL_DIFF, WOO_REVIEW_FAKE_INCREMENTAL_DIFF,
+#   WOO_REVIEW_FAKE_PRIOR_THREADS_JSON, WOO_REVIEW_FAKE_BOT_COMMENTS.
+#   The mode flag is intentionally not
 #   exposed in action.yml — a calling workflow cannot opt itself into the
 #   fake-data hooks without first setting an undocumented env var.
 # WOO_REVIEW_FRESH=1 forces the OUTDIR wipe even when in-flight findings.* are
@@ -270,10 +272,15 @@ LAST_SHA=$(printf '%s' "$REVIEWS_JSON" \
 # is the intended re-run signal for incremental mode. Pattern is anchored to
 # match the marker filter — keeps "bot" classification consistent across both
 # trust gates.
-ISSUE_COMMENTS=$(gh pr view "$PR_NUMBER" --json comments \
-  --jq "[.comments[] | select(.author.login | test(\"^($BOT_NAME_PATTERN)\"; \"i\"))] | length")
-REVIEW_COMMENTS=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/$PR_NUMBER/comments" \
-  --jq "[.[] | select(.user.login | test(\"^($BOT_NAME_PATTERN)\"; \"i\"))] | length")
+if [ "$TEST_MODE" = "1" ] && [ -n "${WOO_REVIEW_FAKE_BOT_COMMENTS:-}" ]; then
+  ISSUE_COMMENTS="$WOO_REVIEW_FAKE_BOT_COMMENTS"
+  REVIEW_COMMENTS=0
+else
+  ISSUE_COMMENTS=$(gh pr view "$PR_NUMBER" --json comments \
+    --jq "[.comments[] | select(.author.login | test(\"^($BOT_NAME_PATTERN)\"; \"i\"))] | length")
+  REVIEW_COMMENTS=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/$PR_NUMBER/comments" \
+    --jq "[.[] | select(.user.login | test(\"^($BOT_NAME_PATTERN)\"; \"i\"))] | length")
+fi
 TOTAL_BOT_COMMENTS=$((ISSUE_COMMENTS + REVIEW_COMMENTS))
 
 echo "Event: $EVENT_NAME, Action: $EVENT_ACTION, Prior bot comments: $TOTAL_BOT_COMMENTS, Marker: ${LAST_SHA:-none}, Incremental: $INCREMENTAL"
@@ -296,7 +303,11 @@ if [ "${GITHUB_ACTIONS:-}" = "true" ] && \
 fi
 
 # Fetch metadata first — HEAD_SHA is needed for the compare-API incremental path.
-gh pr view "$PR_NUMBER" --json headRefOid,baseRefName,title,body,files,author > "$OUTDIR/meta.json"
+if [ "$TEST_MODE" = "1" ] && [ -n "${WOO_REVIEW_FAKE_META_JSON:-}" ]; then
+  printf '%s' "$WOO_REVIEW_FAKE_META_JSON" > "$OUTDIR/meta.json"
+else
+  gh pr view "$PR_NUMBER" --json headRefOid,baseRefName,title,body,files,author > "$OUTDIR/meta.json"
+fi
 HEAD_SHA=$(jq -r '.headRefOid' "$OUTDIR/meta.json")
 
 # Load per-repo config early (issue #19) so the bot-author / release-rollup
@@ -409,7 +420,11 @@ PY
 fi
 
 if [ -z "$INCREMENTAL_USED" ]; then
-  gh pr diff "$PR_NUMBER" > "$OUTDIR/diff.txt"
+  if [ "$TEST_MODE" = "1" ] && [ -n "${WOO_REVIEW_FAKE_FULL_DIFF:-}" ]; then
+    printf '%s' "$WOO_REVIEW_FAKE_FULL_DIFF" > "$OUTDIR/diff.txt"
+  else
+    gh pr diff "$PR_NUMBER" > "$OUTDIR/diff.txt"
+  fi
 fi
 printf '%s' "$INCREMENTAL_USED" > "$OUTDIR/last_sha.txt"
 
@@ -748,12 +763,10 @@ PRIOR_COUNT=$(jq 'length' "$OUTDIR/prior-findings.json" 2>/dev/null || echo 0)
 echo "Prior review threads (open + resolved): $PRIOR_COUNT"
 
 # Cross-PR memory — composed per-PR via recall.sh when a scope-routed store
-# (.woostack/memory/) exists: scope-matched notes + one-hop links + the
-# cap-protected global shard (flat memory.md). Falls back to a raw flat copy
-# when recall.sh is unavailable (e.g. single-skill install). Missing both => no
-# memory context (normal for fresh repos).
+# (.woostack/memory/) exists: scope-matched notes, one-hop links, and
+# global-scoped notes. Missing store or recall.sh => no memory context
+# (normal for fresh repos or individual manual installs).
 WOOSTACK_DIR="$WOOSTACK_ROOT/.woostack"
-MEMORY_SRC="$WOOSTACK_DIR/memory.md"
 MEMORY_OUT="$OUTDIR/memory.md"
 RECALL="$SCRIPT_DIR/../../woostack-init/scripts/recall.sh"
 # Working-set paths: prefer the ignore-filtered list, else derive from meta.json.
@@ -763,26 +776,18 @@ if [ ! -f "$PATHS_FILE" ]; then
   PATHS_FILE="$OUTDIR/changed-paths.txt"
 fi
 
-copy_flat_memory() {  # the pre-recall fallback
-  if [ -f "$MEMORY_SRC" ]; then
-    local sz; sz=$(wc -c < "$MEMORY_SRC" 2>/dev/null || echo 0)
-    if [ "$sz" -gt 102400 ]; then tail -c 102400 "$MEMORY_SRC" > "$MEMORY_OUT";
-      echo "Memory file large (${sz}B); truncated to last 100KB.";
-    else cp "$MEMORY_SRC" "$MEMORY_OUT"; fi
-    echo "Loaded cross-PR memory: $MEMORY_SRC (${sz}B)"
-  else rm -f "$MEMORY_OUT"; fi
-}
-
-if [ -d "$WOOSTACK_DIR/memory" ] || [ -f "$MEMORY_SRC" ]; then
+if [ -d "$WOOSTACK_DIR/memory" ]; then
   if [ -f "$RECALL" ]; then
     if bash "$RECALL" "$WOOSTACK_DIR" "$PATHS_FILE" > "$MEMORY_OUT" 2> "$OUTDIR/recall.log"; then
       [ -s "$MEMORY_OUT" ] || rm -f "$MEMORY_OUT"
       echo "Composed cross-PR memory via recall.sh ($(wc -c < "$MEMORY_OUT" 2>/dev/null || echo 0)B; see recall.log)"
     else
-      echo "::warning::recall.sh failed; falling back to flat memory copy"; copy_flat_memory
+      echo "::warning::recall.sh failed; omitting cross-PR memory"
+      rm -f "$MEMORY_OUT"
     fi
   else
-    echo "::warning::recall.sh not found at $RECALL; using flat memory copy"; copy_flat_memory
+    echo "::warning::recall.sh not found at $RECALL; omitting cross-PR memory"
+    rm -f "$MEMORY_OUT"
   fi
 else
   rm -f "$MEMORY_OUT"

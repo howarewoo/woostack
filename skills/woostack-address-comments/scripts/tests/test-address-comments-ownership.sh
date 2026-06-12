@@ -39,7 +39,7 @@ assert_contains "$ADDRESS_SKILL" "<HARD-GATE>"
 assert_contains "$ADDRESS_SKILL" "Silence is not a yes"
 assert_contains "$ADDRESS_PROMPT" "do not act until approved"
 
-for script in prefetch.sh fetch-threads.sh resolve-thread.sh memory-record.sh memory-append.sh resolve-outdir.sh; do
+for script in prefetch.sh fetch-threads.sh resolve-thread.sh memory-record.sh resolve-outdir.sh; do
   if [ ! -f "$ADDRESS_SCRIPTS/$script" ]; then
     echo "missing address-comments script: $script" >&2
     exit 1
