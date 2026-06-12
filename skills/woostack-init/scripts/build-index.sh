@@ -17,11 +17,10 @@ for f in "$MEM_DIR"/*.md; do
   name="$(field "$f" name)"; type="$(field "$f" type)"
   scope="$(field "$f" scope || true)"; hook="$(field "$f" hook || true)"
   [ -z "$hook" ] && hook="$(first_body_line "$f")"
-  first_scope="$(printf '%s' "$scope" | cut -d',' -f1 | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
-  [ -z "$first_scope" ] && first_scope='*'
-  hook="$(printf '%s' "$hook" | cut -c1-80)"
+  scope="$(printf '%s' "$scope" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//; s/[[:space:]]*,[[:space:]]*/,/g')"
+  [ -z "$scope" ] && scope='*'
   printf '%s\t%s\t- [%s](%s) `%s` scope=`%s` — %s\n' \
-    "$type" "$name" "$name" "$base" "$type" "$first_scope" "$hook" >> "$tmp"
+    "$type" "$name" "$name" "$base" "$type" "$scope" "$hook" >> "$tmp"
 done
 
 {

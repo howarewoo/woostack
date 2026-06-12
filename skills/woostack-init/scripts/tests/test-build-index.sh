@@ -9,12 +9,18 @@ d="$(mk_memdir)"
 mk_note "$d" zeta.md $'name: zeta\ntype: pattern\nscope: apps/web/**\nhook: zeta hook' 'body z'
 mk_note "$d" alpha.md $'name: alpha\ntype: decision' $'First real line of alpha.\nmore'
 mk_note "$d" beta.md $'name: beta\ntype: decision\nscope: a/**, b/**' 'body b'
+long_hook="this hook deliberately stays longer than eighty characters so the generated index remains accurate"
+mk_note "$d" gamma.md "name: gamma
+type: decision
+scope: c/**, d/**
+hook: $long_hook" 'body g'
 
 bash "$BI" "$d"
 idx="$(cat "$d/MEMORY.md")"
 
 assert_contains "$idx" "- [alpha](alpha.md) \`decision\` scope=\`*\` — First real line of alpha." "alpha line w/ body-line hook + global scope"
-assert_contains "$idx" "- [beta](beta.md) \`decision\` scope=\`a/**\`" "beta uses first scope glob"
+assert_contains "$idx" "- [beta](beta.md) \`decision\` scope=\`a/**,b/**\`" "beta keeps all scope globs"
+assert_contains "$idx" "- [gamma](gamma.md) \`decision\` scope=\`c/**,d/**\` — $long_hook" "gamma keeps full hook text"
 assert_contains "$idx" "- [zeta](zeta.md) \`pattern\` scope=\`apps/web/**\` — zeta hook" "zeta uses hook field"
 
 # sorted: decisions (alpha, beta) before pattern (zeta); alpha before beta

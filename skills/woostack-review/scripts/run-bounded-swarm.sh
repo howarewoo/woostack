@@ -16,7 +16,7 @@ Max concurrency precedence: --max-concurrency, WOO_REVIEW_MAX_CONCURRENCY, 6.
 USAGE
 }
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 # shellcheck source=skills/woostack-review/scripts/resolve-outdir.sh
 source "$SCRIPT_DIR/resolve-outdir.sh"
 

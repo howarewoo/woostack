@@ -34,9 +34,9 @@ set -euo pipefail
 # stage. prefetch is a Stage-1-only operation; set WOO_REVIEW_FRESH=1 to force a
 # wipe (the only legitimate caller is a genuinely fresh run).
 # shellcheck source=skills/woostack-review/scripts/resolve-outdir.sh
-source "$(dirname "${BASH_SOURCE[0]}")/resolve-outdir.sh"
+source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-outdir.sh"
 # shellcheck source=skills/woostack-review/scripts/resolve-root.sh
-source "$(dirname "${BASH_SOURCE[0]}")/resolve-root.sh"
+source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-root.sh"
 if [ "${WOO_REVIEW_FRESH:-}" != "1" ] && compgen -G "$OUTDIR/findings.*" >/dev/null 2>&1; then
   echo "::warning::prefetch: $OUTDIR holds in-flight findings.* — refusing rm -rf (set WOO_REVIEW_FRESH=1 to force a fresh wipe)" >&2
 else
@@ -264,7 +264,7 @@ if [ "${GITHUB_ACTIONS:-}" != "true" ]; then
   AUTH_LOGIN=$(gh api user --jq '.login' 2>/dev/null | tr '[:upper:]' '[:lower:]' || true)
 fi
 LAST_SHA=$(printf '%s' "$REVIEWS_JSON" \
-  | bash "$(dirname "${BASH_SOURCE[0]}")/resolve-marker.sh" "$BOT_NAME_PATTERN" "$AUTH_LOGIN" "$LOCAL_RUN")
+  | bash "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-marker.sh" "$BOT_NAME_PATTERN" "$AUTH_LOGIN" "$LOCAL_RUN")
 
 # Re-run guard: if a prior AI bot has already commented and the current trigger is
 # not an explicit user request, skip. Skipped when a marker is present — the marker
@@ -312,7 +312,7 @@ HEAD_SHA=$(jq -r '.headRefOid' "$OUTDIR/meta.json")
 
 # Load per-repo config early (issue #19) so the bot-author / release-rollup
 # skip checks can read user overrides BEFORE we pay for the diff fetch.
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 bash "$SCRIPT_DIR/load-config.sh"
 
 # Force-tier precedence:

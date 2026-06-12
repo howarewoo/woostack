@@ -23,7 +23,7 @@
 set -euo pipefail
 
 # shellcheck source=skills/woostack-review/scripts/resolve-outdir.sh
-source "$(dirname "${BASH_SOURCE[0]}")/resolve-outdir.sh"
+source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-outdir.sh"
 # Prefer the ignore-filtered diff when prefetch.sh produced one — the same
 # preference detect-angles.sh uses, so chunks reflect the post-ignore worker view.
 if [ -s "$OUTDIR/diff.filtered.txt" ]; then

@@ -2,9 +2,9 @@
 set -euo pipefail
 
 # shellcheck source=skills/woostack-review/scripts/resolve-outdir.sh
-source "$(dirname "${BASH_SOURCE[0]}")/resolve-outdir.sh"
+source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-outdir.sh"
 MERGED_FILE="$OUTDIR/raw_findings.json"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 
 echo "[]" > "$MERGED_FILE"
 

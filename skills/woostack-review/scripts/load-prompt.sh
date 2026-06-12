@@ -22,7 +22,7 @@ if [ -n "${OUTDIR:-}" ]; then
   export OUTDIR
 else
   # shellcheck source=skills/woostack-review/scripts/resolve-outdir.sh
-  source "$(dirname "${BASH_SOURCE[0]}")/resolve-outdir.sh"
+  source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-outdir.sh"
 fi
 CONFIG_PATH="${OUTDIR}/config.json"
 
@@ -62,7 +62,7 @@ safe_comment_body=$(sanitize_untrusted "${COMMENT_BODY:-}" 2000)
 # $CONFIG_PATH (set above). Its dual-mode guard means sourcing only pulls in the
 # functions; main does not run (issue #295).
 # shellcheck source=skills/woostack-review/scripts/resolve-model.sh
-source "$(dirname "${BASH_SOURCE[0]}")/resolve-model.sh"
+source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-model.sh"
 
 default_openai_effort_for() {
   local tier="$1"
