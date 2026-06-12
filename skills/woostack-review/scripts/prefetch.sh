@@ -33,12 +33,28 @@ set -euo pipefail
 # would otherwise destroy meta.json / prior-findings.json and break the posting
 # stage. prefetch is a Stage-1-only operation; set WOO_REVIEW_FRESH=1 to force a
 # wipe (the only legitimate caller is a genuinely fresh run).
+#
+# The refusal is context-split (issue #321):
+#   - Local (GITHUB_ACTIONS != true): with per-run OUTDIRs a fresh review never
+#     lands on a dir that already holds findings.*, so their presence means a
+#     contaminated/active tree. HARD-STOP — do not proceed to merge/validation/
+#     posting with stale artifacts.
+#   - CI (GITHUB_ACTIONS = true): the validate / validate-prosecutor job
+#     legitimately downloads findings.<angle>.json / receipt.<angle>.json into
+#     $OUTDIR BEFORE re-invoking the action (reusable-review.yml), so prefetch
+#     must PRESERVE them and continue — wiping or aborting would destroy the
+#     matrix output the validator must read.
 # shellcheck source=skills/woostack-review/scripts/resolve-outdir.sh
 source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-outdir.sh"
 # shellcheck source=skills/woostack-review/scripts/resolve-root.sh
 source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-root.sh"
 if [ "${WOO_REVIEW_FRESH:-}" != "1" ] && compgen -G "$OUTDIR/findings.*" >/dev/null 2>&1; then
-  echo "::warning::prefetch: $OUTDIR holds in-flight findings.* — refusing rm -rf (set WOO_REVIEW_FRESH=1 to force a fresh wipe)" >&2
+  if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+    echo "::warning::prefetch: $OUTDIR holds in-flight findings.* — preserving (CI validate path); not wiping (set WOO_REVIEW_FRESH=1 to force a fresh wipe)" >&2
+  else
+    echo "::error::prefetch: $OUTDIR already holds in-flight findings.* — refusing to reuse a contaminated review directory; aborting instead of proceeding with stale artifacts. Re-run with a clean per-run OUTDIR, or set WOO_REVIEW_FRESH=1 to force a fresh wipe." >&2
+    exit 1
+  fi
 else
   rm -rf "$OUTDIR"
 fi
