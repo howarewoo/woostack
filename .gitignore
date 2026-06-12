@@ -48,10 +48,10 @@ pnpm-debug.log*
 *.tsbuildinfo
 .vercel
 
-# woostack: local-only review metrics (config.json stays tracked)
+# woostack: local-only metrics and memory sidecars (config.json and memory notes stay tracked)
 .woostack/metrics.json
-.woostack/memory.md
-.woostack/memory/
+.woostack/memory/.telemetry.tsv
+.woostack/memory/.dream-watermark
 # woostack: disposable HTML renders (regenerated from source)
 .woostack/visuals/
 # woostack: per-run overnight execution reports (regenerated each run)
@@ -62,4 +62,3 @@ pnpm-debug.log*
 .woostack/worktrees/
 # Claude Code scheduling runtime lock (generated, not source)
 .claude/scheduled_tasks.lock
-

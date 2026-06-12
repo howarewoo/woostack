@@ -4,8 +4,8 @@ metrics.json
 visuals/
 overnight/
 worktrees/
-memory.md
-memory/
+memory/.telemetry.tsv
+memory/.dream-watermark
 
 # Obsidian per-user UI state (the shared .obsidian/*.json config IS tracked).
 .obsidian/workspace*

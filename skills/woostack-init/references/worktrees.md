@@ -66,8 +66,10 @@ A run does all its writes in its own worktree; the primary checkout stays on the
 as the stable point all runs branch from. This is what makes parallel safe — two runs never touch
 the primary tree.
 
-- **Local-only exception:** `.woostack/memory/` and `.woostack/metrics.json` are gitignored and
-  primary-tree-only; they are written via the `WOOSTACK_ROOT` export of §5 so they survive teardown.
+- **Local-only exception:** `.woostack/metrics.json`, `.woostack/memory/.telemetry.tsv`, and
+  `.woostack/memory/.dream-watermark` are gitignored and primary-tree-only; they are written via
+  the `WOOSTACK_ROOT` export of §5 so they survive teardown. Tracked memory notes are written in
+  the worktree and ride the increment's commit.
 - **Workflow exception:** `woostack-bootstrap`'s one-time initial repo creation + first commit (no
   base branch exists yet, pre any parallelism).
 
@@ -94,11 +96,12 @@ GitHub renders the stack. **`gt submit` scope:** submit only the current branch'
 stack — never `gt sync` / restack-all while a parallel run is in flight. Raw-git fallback (no `gt`):
 identical branch ancestry; `gh pr create --base <parent-branch>`.
 
-## 5. Memory / metrics resolve to the primary tree
+## 5. Metrics / telemetry resolve to the primary tree
 
-`.woostack/memory/` and `.woostack/metrics.json` are gitignored and local-only — they exist **only
+`.woostack/metrics.json`, `.woostack/memory/.telemetry.tsv`, and
+`.woostack/memory/.dream-watermark` are gitignored and local-only — they exist **only
 in the primary checkout**. Because the cadence runs inside a worktree, export the primary root before
-any distill/metrics write so it lands in the primary store, not the ephemeral worktree:
+any metrics/telemetry/watermark write so it lands in the primary store, not the ephemeral worktree:
 
 ```bash
 export WOOSTACK_ROOT="$(cd "$(git rev-parse --git-common-dir)/.." && pwd)"   # primary root, from anywhere
@@ -106,17 +109,18 @@ export WOOSTACK_ROOT="$(cd "$(git rev-parse --git-common-dir)/.." && pwd)"   # p
 
 `git rev-parse --git-common-dir` resolves to the **primary** `.git` from inside any worktree, so its
 parent is the primary root. `resolve-root.sh` honors that `WOOSTACK_ROOT` override as its
-highest-precedence source, so distill and metrics anchor to the primary `.woostack/`. No script
-change needed.
+highest-precedence source, so metrics, telemetry, and watermark writes anchor to the primary
+`.woostack/`. Memory notes and `MEMORY.md` are tracked, so they are written in the worktree and
+committed with the increment.
 
 ## 6. Parallel-safety caveats (best-effort, documented)
 
 - **Shared `.git` / Graphite metadata** serializes via git's index/ref locks (brief contention, no
   corruption). Each run submits only its own stack; never run a repo-wide `gt sync`/restack while a
   parallel run is in flight.
-- **`.woostack/memory/` index rebuild + `.woostack/metrics.json`** are last-writer-wins. Different
-  runs write different note files; only the index/`MEMORY.md` rebuild and the metrics file are racy,
-  and both are local/rebuildable. No locking (YAGNI).
+- **Tracked `.woostack/memory/` writes** are isolated by each increment worktree and committed
+  through normal git review. `.woostack/metrics.json`, telemetry, and watermark sidecars are
+  last-writer-wins local state. No locking (YAGNI).
 
 ## 7. Orphan worktrees
 

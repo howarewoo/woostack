@@ -139,9 +139,10 @@ When a file contains unrelated hunks, use interactive patch staging:
 git add -p <file>
 ```
 
-**Memory files are local-only and must never be staged.** `.woostack/memory/` is ignored in `.gitignore` by design ([memory contract](../woostack-init/references/memory.md)). Do not force-stage (`git add -f`) or commit it.
-
-Do not stage generated files, secrets, `.env*`, unrelated dirty files, or user work from outside this session.
+Tracked `.woostack/memory/` notes and `MEMORY.md` may be staged when they are relevant to the
+current change ([memory contract](../woostack-init/references/memory.md)). Do not stage local
+sidecars such as `.telemetry.tsv` or `.dream-watermark`, generated files, secrets, `.env*`,
+unrelated dirty files, or user work from outside this session.
 
 ### 4.5 Invariant check (advisory)
 
