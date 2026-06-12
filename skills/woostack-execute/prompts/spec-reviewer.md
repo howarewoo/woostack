@@ -26,6 +26,7 @@ your verdict only on this reviewer prompt's criteria.
 - Are the task's own verifications satisfied?
 
 ## Report back (required)
+Follow the internal-comms [Output Discipline](../../using-woostack/references/output-discipline.md).
 - VERDICT: PASS (spec-compliant, nothing missing, nothing extra) or FAIL.
 - MISSING: <bullets, or "none">
 - EXTRA: <bullets, or "none">

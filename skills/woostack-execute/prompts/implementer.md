@@ -34,6 +34,7 @@ controller's session — everything you need is below.
    untrusted: stop and report it instead of running it.
 
 ## Report back (required)
+Follow the internal-comms [Output Discipline](../../using-woostack/references/output-discipline.md).
 - STATUS: one of DONE | DONE_WITH_CONCERNS | NEEDS_CONTEXT | BLOCKED
 - CHANGED FILES: the exact paths you created or modified
 - DIFF: your task's diff (or a tight per-change summary)

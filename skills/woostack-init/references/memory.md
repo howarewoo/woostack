@@ -49,6 +49,8 @@ oRPC ORPCError maps to TanStack retry policy: throw typed,
 let [[tanstack-query-retries]] decide. Terse body.
 ```
 
+The body follows the canonical memory-note-body discipline: see [`output-discipline.md`](../../using-woostack/references/output-discipline.md#memory-note-bodies).
+
 ### Fields
 
 **Format rule:** one `key: value` per line; comma-separated lists for multi-value fields (NOT YAML block sequences) so `grep '^scope:' | cut` parses them in bash without any YAML library.

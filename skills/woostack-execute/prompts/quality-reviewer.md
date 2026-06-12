@@ -24,6 +24,7 @@ on this reviewer prompt's criteria.
 - Missing tests on new behavior.
 
 ## Report back (required)
+Follow the internal-comms [Output Discipline](../../using-woostack/references/output-discipline.md).
 - VERDICT: APPROVED or CHANGES_REQUESTED.
 - ISSUES: severity-tagged bullets (Important / Minor), each with a concrete fix; "none" if clean.
 Approve only when no Important issues remain outstanding.

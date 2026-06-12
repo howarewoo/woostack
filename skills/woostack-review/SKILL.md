@@ -486,7 +486,7 @@ Before writing anything:
 
 1. **Read the existing memory** (`$OUTDIR/memory.md` and `.woostack/memory/MEMORY.md` when present).
 2. **Check coverage.** If an existing entry already captures this learning — even phrased differently, or scoped more narrowly/broadly — do **NOT** append a duplicate. If the existing entry is close but the new dismissal generalizes it (e.g. the same pattern in a second file), edit that entry to widen its scope rather than adding a near-duplicate.
-3. **Only when the learning is genuinely new**, record one terse reusable rule — one line, `<pattern>: <reason>`, ideally ≤100 chars, no preamble or narration. Write a scoped `.woostack/memory/` note when the scoped store exists; otherwise skip and defer to `/woostack-init`.
+3. **Only when the learning is genuinely new**, record one terse reusable rule — one line, `<pattern>: <reason>`, per the canonical memory-note-body discipline ([`output-discipline.md`](../using-woostack/references/output-discipline.md#memory-note-bodies)). Write a scoped `.woostack/memory/` note when the scoped store exists; otherwise skip and defer to `/woostack-init`.
 
 ```bash
 # Record ONLY after confirming no existing entry covers this learning.
