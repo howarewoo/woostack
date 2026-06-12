@@ -16,6 +16,15 @@ gate and acts autonomously. After the approved verdicts are applied it replies w
 language, resolves, records accept-by-design learnings as scoped memory notes when
 available, pushes, and offers a re-review. **Never merges.**
 
+<HARD-GATE>
+In the **default** flow you MUST present the verdict gate and obtain explicit user approval
+**before** any working-tree edit, commit, push, reply, resolve, or memory write. This applies to
+EVERY run regardless of perceived simplicity, host, or model speed. Only an explicit `--auto`
+skips the gate; a non-interactive host with no `--auto` aborts rather than acting. Silence is not
+a yes — do not act until approved. The gate is the parent orchestrator's alone; it is never
+delegated to or skipped by fan-out workers.
+</HARD-GATE>
+
 ## Workflow
 
 When the user invokes `/woostack-address-comments [PR#]`, address the unresolved review
@@ -67,5 +76,9 @@ re-reviews quiet.
 
 ## Hard constraints
 
+- **Wait for explicit approval.** In the default flow, never apply a fix, commit, push, reply,
+  resolve a thread, or write memory on inferred or assumed approval. Present the verdict gate and
+  wait for a clear yes; only `--auto` skips it, and a non-interactive host with no `--auto`
+  aborts. Silence is not a yes.
 - **No merge.** Branch protection and the merge decision stay with the user.
 - **No performative replies.** Reply with the technical reasoning or the fix itself.
