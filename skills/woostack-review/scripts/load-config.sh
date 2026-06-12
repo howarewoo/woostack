@@ -66,9 +66,9 @@
 set -euo pipefail
 
 # shellcheck source=skills/woostack-review/scripts/resolve-outdir.sh
-source "$(dirname "${BASH_SOURCE[0]}")/resolve-outdir.sh"
+source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-outdir.sh"
 # shellcheck source=skills/woostack-review/scripts/resolve-root.sh
-source "$(dirname "${BASH_SOURCE[0]}")/resolve-root.sh"
+source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-root.sh"
 mkdir -p "$OUTDIR"
 
 ROOT="$WOOSTACK_ROOT"

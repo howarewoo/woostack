@@ -104,11 +104,11 @@ Example: `scope: packages/api/**, apps/*/utils.ts` compiles to `^packages/api/.*
 
 Each line has the form (using `→` to denote field substitution):
 
-    - [name → linked to name.md] `type` scope=`first-scope-glob` — hook-or-first-body-line
+    - [name → linked to name.md] `type` scope=`scope-globs` — hook-or-first-body-line
 
-For the `orpc-error-mapping` example note: name=`orpc-error-mapping`, type=`pattern`, first scope=`packages/api/**`, hook=`oRPC error → TanStack retry policy`.
+For the `orpc-error-mapping` example note: name=`orpc-error-mapping`, type=`pattern`, scope=`packages/api/**, packages/api/orpc/**`, hook=`oRPC error → TanStack retry policy`.
 
-Lines are sorted by `type` then `name` for stable diffs. When a note has multiple `scope` globs, the first glob is shown in the index line (the full list lives in the note frontmatter). The trailing summary uses the `hook:` field when present; otherwise it is the first non-empty body line, truncated.
+Lines are sorted by `type` then `name` for stable diffs. When a note has multiple `scope` globs, the full comma-separated list is shown in the index line. The trailing summary uses the `hook:` field when present; otherwise it is the first non-empty body line.
 
 The file also carries a generated-file header comment so tooling can detect it:
 

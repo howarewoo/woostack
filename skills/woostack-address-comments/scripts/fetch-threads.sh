@@ -15,7 +15,7 @@
 set -euo pipefail
 
 # shellcheck source=skills/woostack-address-comments/scripts/resolve-outdir.sh
-source "$(dirname "${BASH_SOURCE[0]}")/resolve-outdir.sh"
+source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-outdir.sh"
 mkdir -p "$OUTDIR"
 PR_NUMBER="${PR_NUMBER:?PR_NUMBER env var required}"
 [[ "$PR_NUMBER" =~ ^[0-9]+$ ]] || { echo "fetch-threads: PR_NUMBER must be numeric, got '$PR_NUMBER'" >&2; exit 1; }

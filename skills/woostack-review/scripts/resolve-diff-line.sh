@@ -29,7 +29,7 @@
 set -euo pipefail
 
 # shellcheck source=skills/woostack-review/scripts/resolve-outdir.sh
-source "$(dirname "${BASH_SOURCE[0]}")/resolve-outdir.sh"
+source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-outdir.sh"
 FILE=""
 LINE=""
 DIFF=""

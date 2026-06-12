@@ -14,7 +14,7 @@
 # share one dir (rare; accepted). For full per-run isolation, set OUTDIR yourself.
 if [ -z "${OUTDIR:-}" ]; then
   # shellcheck source=skills/woostack-address-comments/scripts/resolve-root.sh
-  source "$(dirname "${BASH_SOURCE[0]}")/resolve-root.sh"
+  source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-root.sh"
   _wr_hash="$(printf '%s' "$WOOSTACK_ROOT" | { sha1sum 2>/dev/null || shasum; } | cut -c1-12)"
   OUTDIR="/tmp/pr-review-${_wr_hash}"
   unset _wr_hash

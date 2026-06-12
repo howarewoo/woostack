@@ -3,7 +3,7 @@
 # If .woostack/memory/ exists, writes a scoped memory note and rebuilds MEMORY.md.
 set -euo pipefail
 
-HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 INIT_SCRIPTS="$(cd "$HERE/../../woostack-init/scripts" 2>/dev/null && pwd || true)"
 # shellcheck source=skills/woostack-review/scripts/resolve-root.sh
 source "$HERE/resolve-root.sh"

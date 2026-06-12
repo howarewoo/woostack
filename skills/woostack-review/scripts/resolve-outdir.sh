@@ -14,7 +14,7 @@
 # share one dir (rare; accepted). For full per-run isolation, set OUTDIR yourself.
 if [ -z "${OUTDIR:-}" ]; then
   # shellcheck source=skills/woostack-review/scripts/resolve-root.sh
-  source "$(dirname "${BASH_SOURCE[0]}")/resolve-root.sh"
+  source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-root.sh"
   _wr_hash="$(printf '%s' "$WOOSTACK_ROOT" | { sha1sum 2>/dev/null || shasum; } | cut -c1-12)"
   # Place inside the workspace's .woostack/tmp/ directory to leverage pre-approved
   # workspace permissions and avoid sandbox permission prompt loops locally.

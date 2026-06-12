@@ -89,7 +89,7 @@ main() {
         [ "$#" -ge 2 ] || { echo "::error::--tier requires a value" >&2; exit 1; }
         tier="$2"; shift 2 ;;
       -h|--help)
-        grep -E '^# (Usage|Reads)' "${BASH_SOURCE[0]}" | sed 's/^# //'
+        grep -E '^# (Usage|Reads)' "${BASH_SOURCE[0]:-$0}" | sed 's/^# //'
         exit 0 ;;
       *)
         echo "::error::unknown argument: $1" >&2
@@ -114,7 +114,7 @@ main() {
   # Resolve OUTDIR for local runs (same path convention as the rest of the swarm).
   if [ -z "${OUTDIR:-}" ]; then
     # shellcheck source=skills/woostack-review/scripts/resolve-outdir.sh
-    source "$(dirname "${BASH_SOURCE[0]}")/resolve-outdir.sh"
+    source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-outdir.sh"
   fi
   : "${CONFIG_PATH:=${OUTDIR}/config.json}"
 

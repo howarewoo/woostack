@@ -2,7 +2,7 @@
 # Address-comments prefetch: unresolved threads + changed paths + memory context.
 set -euo pipefail
 
-HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 ROOT="$(cd "$HERE/../../.." && pwd)"
 
 # shellcheck source=skills/woostack-address-comments/scripts/resolve-outdir.sh
