@@ -6,7 +6,7 @@
 
 ## ⚠ Needs you
 
-{{Blockers requiring a human, most important first. "None — clean stack." if there are none.}}
+{{Blockers requiring a human, most important first. For a blocked sweep PR, include the branch and PR URL here. "None — clean stack." if there are none.}}
 
 ### Morning test checklist
 
@@ -22,12 +22,22 @@
 
 ## Per-increment
 
-| Track | Increment | Status | Branch / PR | Review | Auto-address rounds |
+| Track | Increment | Status | Branch / PR | Review | Auto-address rounds | Sweep |
+|---|---|---|---|---|---|---|
+| {{A}} | {{1}} | {{done / done-with-findings / blocked / not-attempted}} | {{branch / PR URL}} | {{verdict}} | {{0–2}} | {{clean / blocked / not-attempted-review}} |
+
+## Review sweep
+
+> Post-implementation drive-to-clean over each track's stack, bottom-up. One row per swept
+> increment PR. "Clean" = no blocking findings (`STATUS_LINE`) + zero unresolved threads; never a
+> merge.
+
+| Track | PR | Rounds (of {{max_rounds}}) | Final verdict | No-progress? | Blocker |
 |---|---|---|---|---|---|
-| {{A}} | {{1}} | {{done / done-with-findings / blocked / not-attempted}} | {{branch / PR URL}} | {{verdict}} | {{0–2}} |
+| {{A}} | {{#}} | {{r}} | {{clean / blocked}} | {{yes / no}} | {{— / cap / no-progress / review-error / restack-conflict / unsafe}} |
 
 ## Decision log
 
 <!-- Appended live, one line per autonomous decision. -->
 
-- {{stamp}} — {{decision (debug fix / auto-address round / BLOCKED / blocker recorded / track ended / increment not-attempted) + rationale}}
+- {{stamp}} — {{decision (debug fix / auto-address round / sweep review round / sweep PR clean / sweep blocked: cap | no-progress | review-error | restack-conflict | unsafe / BLOCKED / blocker recorded / track ended / increment not-attempted) + rationale}}
