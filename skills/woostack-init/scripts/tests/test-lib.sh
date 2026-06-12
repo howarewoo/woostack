@@ -45,4 +45,25 @@ assert_exit 1 "$rc" "set_field fails on a note without frontmatter"
 assert_eq "$(cat "$sfd/bad.md")" "no frontmatter" "set_field leaves a malformed note unchanged"
 rm -rf "$sfd"
 
+# --- telemetry sidecar ---
+tmd="$(mktemp -d)"
+tel_bump "$tmd" "alpha" "2026-06-11"
+assert_eq "$(tel_get "$tmd" alpha recall_count)"  "1"          "tel_bump creates row count=1"
+assert_eq "$(tel_get "$tmd" alpha last_recalled)" "2026-06-11" "tel_bump sets date"
+tel_bump "$tmd" "alpha" "2026-06-12"
+assert_eq "$(tel_get "$tmd" alpha recall_count)"  "2"          "tel_bump increments existing row"
+assert_eq "$(tel_get "$tmd" alpha last_recalled)" "2026-06-12" "tel_bump refreshes date"
+assert_eq "$(tel_get "$tmd" missing recall_count)" ""          "tel_get of unknown note is empty"
+rm -rf "$tmd"
+
+# --- del_field ---
+dfd="$(mktemp -d)"; mk_note "$dfd" n.md $'name: x\ntype: pattern\nrecall_count: 3\nlast_recalled: 2026-01-01' 'body'
+del_field "$dfd/n.md" recall_count
+del_field "$dfd/n.md" last_recalled
+assert_eq "$(field "$dfd/n.md" recall_count)"  "" "del_field removes recall_count"
+assert_eq "$(field "$dfd/n.md" last_recalled)" "" "del_field removes last_recalled"
+assert_eq "$(field "$dfd/n.md" name)" "x" "del_field preserves other fields"
+assert_contains "$(note_body "$dfd/n.md")" "body" "del_field preserves body"
+rm -rf "$dfd"
+
 finish

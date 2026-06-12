@@ -56,3 +56,41 @@ set_field() {
   ' "$file" > "$tmp" || { rm -f "$tmp"; return 1; }
   mv "$tmp" "$file" || { rm -f "$tmp"; return 1; }
 }
+
+# --- telemetry sidecar: per-clone, gitignored, line-based TSV ---
+# <memdir>/.telemetry.tsv rows: name<TAB>recall_count<TAB>last_recalled
+_tel_file() { printf '%s\n' "$1/.telemetry.tsv"; }
+
+# tel_get <memdir> <name> <recall_count|last_recalled> -> value, empty if absent.
+tel_get() {
+  local f col; f="$(_tel_file "$1")"; [ -f "$f" ] || return 0
+  case "$3" in recall_count) col=2 ;; last_recalled) col=3 ;; *) return 0 ;; esac
+  awk -F'\t' -v n="$2" -v c="$col" '$1==n{print $c; exit}' "$f"
+}
+
+# tel_bump <memdir> <name> <iso-date> — upsert: increment count, set date.
+# Atomic (temp + mv). Returns non-zero without changing the file on write failure.
+tel_bump() {
+  local memdir="$1" name="$2" date="$3" f tmp cur=0
+  f="$(_tel_file "$memdir")"
+  [ -d "$memdir" ] || return 1
+  if [ -f "$f" ]; then
+    cur="$(awk -F'\t' -v n="$name" '$1==n{print $2; exit}' "$f")"; cur="${cur:-0}"
+    case "$cur" in (*[!0-9]*) cur=0 ;; esac
+  fi
+  tmp="$(mktemp "$memdir/.tel.XXXXXX")" || return 1
+  { [ -f "$f" ] && awk -F'\t' -v n="$name" '$1!=n' "$f"
+    printf '%s\t%s\t%s\n' "$name" "$(( cur + 1 ))" "$date"; } > "$tmp" || { rm -f "$tmp"; return 1; }
+  mv "$tmp" "$f" || { rm -f "$tmp"; return 1; }
+}
+
+# del_field <file> <key> — remove a frontmatter key (atomic). No-op if absent.
+del_field() {
+  local file="$1" key="$2" tmp dir
+  dir="$(dirname "$file")"; tmp="$(mktemp "$dir/.woomem.XXXXXX")" || return 1
+  awk -v key="$key" '
+    /^---$/{fence++; if(fence<=2){print; next}}
+    { if(fence==1 && index($0, key ":")==1) next; print }
+  ' "$file" > "$tmp" || { rm -f "$tmp"; return 1; }
+  mv "$tmp" "$file" || { rm -f "$tmp"; return 1; }
+}

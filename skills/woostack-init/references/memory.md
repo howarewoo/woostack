@@ -63,10 +63,7 @@ let [[tanstack-query-retries]] decide. Terse body.
 | `tags` | no | Comma list; informational only in increment A. |
 | `updated` | no | ISO date the note's content was last written. Informational, **and** the age basis for `doctor.sh`'s dead-note check (see §8) — a note without it cannot be aged. |
 | `source` | no | Provenance path (used by the increment-C distill step; empty in A). |
-| `recall_count` | no | **Tool-managed.** Cumulative count of recall runs that loaded this note, written by `recall.sh`. Never hand-edit. Absent ⇒ never recalled. |
-| `last_recalled` | no | **Tool-managed.** ISO date of the most recent recall load, written by `recall.sh`. Never hand-edit. |
-
-`recall_count` and `last_recalled` are **written by tooling, not by hand** — `recall.sh` stamps them (best-effort) on every note it loads. They are the recall-telemetry signal feeding `doctor.sh`'s dead-note check (see §8).
+Recall telemetry lives in a tool-managed, gitignored `.woostack/memory/.telemetry.tsv` sidecar with rows `name<TAB>recall_count<TAB>last_recalled`. `recall.sh` writes it, and `doctor.sh` reads it for the dead-note check (see §8). Stray `recall_count` or `last_recalled` copies in note frontmatter are inert and should be removed.
 
 **Caution:** hook or body text containing a backtick can render as ambiguous Markdown in the derived index line; keep hooks plain text.
 
@@ -183,7 +180,7 @@ The scripts live under `skills/woostack-init/scripts/` relative to the woostack 
 
 - **Orphaned scope:** a note with a non-global `scope:` whose globs match no tracked files in `git ls-files` is flagged as stale. This catches notes scoped to paths that were deleted or moved.
 - **Stale provenance:** a note whose `source:` starts with `.woostack/specs/` or `.woostack/plans/` is expected to point at an authored spec or plan in the current repo. If that file is missing, the note is flagged for review. Other provenance forms, such as `source: pr-165`, are not treated as filesystem paths.
-- **Dead note:** `recall.sh` stamps `recall_count`/`last_recalled` (§3) on every selected note — matched + one-hop linked + global — as a best-effort side effect: a write failure (e.g. a read-only checkout) logs `recall: stamp failed <note>` to stderr but never changes recall's output or exit status. Ephemeral CI clones therefore simply do not accrue telemetry; persistent checkouts do. `doctor.sh` turns that signal into a warning when a note's `updated:` date is older than `WOOSTACK_DEAD_DAYS` (default 90) days and its `recall_count` is absent or 0. `WOOSTACK_NOW` (default `date +%F`) overrides "today" for deterministic runs and tests.
+- **Dead note:** `recall.sh` stamps the sidecar (§3) for every selected note — matched + one-hop linked + global — as a best-effort side effect: a write failure (e.g. a read-only checkout) logs `recall: stamp failed <note>` to stderr but never changes recall's output or exit status. Ephemeral CI clones therefore simply do not accrue telemetry; persistent checkouts do. `doctor.sh` joins the sidecar by note `name` and turns that signal into a warning when a note's `updated:` date is older than `WOOSTACK_DEAD_DAYS` (default 90) days and its sidecar `recall_count` is absent or 0. `WOOSTACK_NOW` (default `date +%F`) overrides "today" for deterministic runs and tests.
 - **Missing provenance:** a note with no `source:` is flagged — the distillation gate (§7) requires provenance on every note.
 - **Non-glob scope:** a note whose `scope:` is non-global and contains no `*` glob (a single literal path, or an all-literal comma list) is flagged as possible trivia. Notes with global scope (`*` or absent) and review-recorded notes (`source:` of `pr-<n>` or `address-comments`, which deliberately scope narrowly) are exempt.
 - **Missing age basis:** a note with no `updated:` field is flagged — it cannot be aged by the dead-note check above, so it is no longer silently skipped. (Both write paths stamp `updated:`; a note without it is anomalous.)
