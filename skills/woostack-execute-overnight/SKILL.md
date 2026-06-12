@@ -60,7 +60,9 @@ rather than burn the night on a doomed run:
    build, the spec+plan PR base is present (standalone: tracks branch off the current
    non-protected branch HEAD).
 3. **Open the report**: create `.woostack/overnight/` if missing and open
-   `.woostack/overnight/YYYY-MM-DD-<plan-basename>.md` from
+   `.woostack/overnight/<run-date>-<plan-slug>.md` — the run date (`YYYY-MM-DD`, today) plus the
+   plan basename with any leading `YYYY-MM-DD-` stripped (see
+   [Morning report](#morning-report)) — from
    [references/report-template.md](references/report-template.md). Write it **incrementally** so a
    crash still leaves a partial record.
 
@@ -112,7 +114,11 @@ increments in order. On a **blocker**:
 
 ## Morning report
 
-Written incrementally to `.woostack/overnight/YYYY-MM-DD-<plan-basename>.md` from
+Written incrementally to `.woostack/overnight/<run-date>-<plan-slug>.md` — the run date
+(`YYYY-MM-DD`, today) joined to the plan basename **with any leading `YYYY-MM-DD-` stripped** (the
+plan basename already begins with the spec's date, since `woostack-plan` reuses it, so stripping it
+before prefixing the run date keeps the filename a single, run-keyed date instead of doubling it,
+e.g. `2026-06-12-memory-vault.md`, not `2026-06-12-2026-06-12-memory-vault.md`) — from
 [references/report-template.md](references/report-template.md). It is **gitignored** (a per-run
 artifact, like `.woostack/visuals/`), so it never rides into an increment PR and never dirties the
 tree for the review / address-comments clean-tree preconditions. Sections:
