@@ -1,0 +1,38 @@
+---
+title: Getting started
+description: Install woostack, initialize the workspace, and wire it into your agent.
+---
+
+<Callout type="info">
+  The repository [README](https://github.com/howarewoo/woostack#getting-started) is the
+  canonical install reference. This page is a concise, web-native version.
+</Callout>
+
+## 1. Install
+
+```bash
+pnpx skills add howarewoo/woostack
+```
+
+`pnpm` (and `pnpx`) is the recommended package manager.
+
+## 2. Initialize
+
+```bash
+/woostack-init
+```
+
+Run this **before any other woostack skill** — it sets up the `.woostack/` workspace, default
+config, and gitignores.
+
+## 3. Integrate
+
+Add the `using-woostack` routing block to your repository's agent instructions
+(`AGENTS.md` or `CLAUDE.md`) so agents pick up the pipeline automatically.
+
+## 4. Build something
+
+- Run [woostack-build](/docs/skills/woostack-build) to drive a feature from idea to a reviewed
+  PR stack.
+- Run [woostack-fix](/docs/skills/woostack-fix) for a small, focused change.
+- Run [woostack-status](/docs/skills/woostack-status) any time to see what's in flight.

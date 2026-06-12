@@ -556,7 +556,7 @@ gt modify -c -m "build(site): wire gen-skills into pre(dev|build), gitignore out
   `site/app/(home)/page.tsx` if the scaffolder used a `(home)` route group. Locate it first
   (`find site/app -name 'page.tsx' -maxdepth 2`) and replace whichever renders `/`.
 
-- [ ] **Step 1: Replace the scaffold landing with a minimal woostack landing**
+- [x] **Step 1: Replace the scaffold landing with a minimal woostack landing**
 
 ```tsx
 // site/app/page.tsx
@@ -582,12 +582,12 @@ export default function HomePage() {
 }
 ```
 
-- [ ] **Step 2: Verify the landing renders (not the scaffold default) and links to /docs**
+- [x] **Step 2: Verify the landing renders (not the scaffold default) and links to /docs**
 
 Run: `cd site && pnpm build && grep -rq 'pnpx skills add howarewoo/woostack' .next/server/app/index*.html 2>/dev/null || echo CHECK_DEV`
 Expected: PASS — build exits 0. (If the static HTML grep is environment-dependent, fall back to `pnpm dev` and confirm `/` shows the woostack landing with a working "Read the docs" link to `/docs`.)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 gt create -m "feat(site): woostack landing page"
@@ -598,7 +598,7 @@ gt create -m "feat(site): woostack landing page"
 **Files:**
 - Modify/Create: `site/content/docs/index.mdx` (replace the scaffold sample)
 
-- [ ] **Step 1: Author the docs index**
+- [x] **Step 1: Author the docs index**
 
 ```mdx
 ---
@@ -624,12 +624,12 @@ Start with [Getting started](/docs/getting-started), then skim [Core concepts](/
 and the per-skill reference under **Skills**.
 ```
 
-- [ ] **Step 2: Verify it builds**
+- [x] **Step 2: Verify it builds**
 
 Run: `cd site && pnpm build`
 Expected: PASS — `/docs` renders the authored index.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 gt modify -c -m "docs(site): authored docs index"
@@ -640,7 +640,7 @@ gt modify -c -m "docs(site): authored docs index"
 **Files:**
 - Create: `site/content/docs/getting-started.mdx`
 
-- [ ] **Step 1: Author getting-started (README stays canonical; link back)**
+- [x] **Step 1: Author getting-started (README stays canonical; link back)**
 
 ```mdx
 ---
@@ -679,12 +679,12 @@ Run [`/woostack-build`](/docs/skills/woostack-build) to drive a feature from ide
 reviewed PR stack, or [`/woostack-fix`](/docs/skills/woostack-fix) for a small change.
 ```
 
-- [ ] **Step 2: Verify it builds**
+- [x] **Step 2: Verify it builds**
 
 Run: `cd site && pnpm build`
 Expected: PASS.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 gt modify -c -m "docs(site): authored getting-started"
@@ -695,7 +695,7 @@ gt modify -c -m "docs(site): authored getting-started"
 **Files:**
 - Create: `site/content/docs/concepts.mdx`
 
-- [ ] **Step 1: Author core-concepts**
+- [x] **Step 1: Author core-concepts**
 
 ```mdx
 ---
@@ -731,12 +731,12 @@ deduplicated learnings; [`woostack-dream`](/docs/skills/woostack-dream) curates 
 time. A small curated store beats a large noisy one.
 ```
 
-- [ ] **Step 2: Verify it builds**
+- [x] **Step 2: Verify it builds**
 
 Run: `cd site && pnpm build`
 Expected: PASS.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 gt modify -c -m "docs(site): authored core-concepts"
@@ -748,7 +748,7 @@ gt modify -c -m "docs(site): authored core-concepts"
 - Create/Modify: `site/content/docs/meta.json` (root order)
 - Create: `site/content/docs/skills/meta.json` — **gitignored** with the generated pages, so emit it from the generator instead (see Step 2)
 
-- [ ] **Step 1: Root nav order**
+- [x] **Step 1: Root nav order**
 
 ```json
 {
@@ -757,7 +757,7 @@ gt modify -c -m "docs(site): authored core-concepts"
 }
 ```
 
-- [ ] **Step 2: Emit `skills/meta.json` from the generator (the folder is gitignored)**
+- [x] **Step 2: Emit `skills/meta.json` from the generator (the folder is gitignored)**
 
 In `site/scripts/gen-skills.mjs` `main()`, after the write loop, add an ordered group meta so
 public commands lead and the internal sub-skills trail:
@@ -776,17 +776,17 @@ await writeFile(path.join(OUT_DIR, 'meta.json'), JSON.stringify({ title: 'Skills
 (The two internal sub-skills `woostack-ideate`/`woostack-harden` are absent from `ORDER`, so
 they sort last — matching the spec.)
 
-- [ ] **Step 3: Verify nav order**
+- [x] **Step 3: Verify nav order**
 
 Run: `cd site && node scripts/gen-skills.mjs && node -e "const m=require('./content/docs/skills/meta.json'); console.log(m.pages.slice(0,1)[0], m.pages.slice(-2).join(','))"`
 Expected: PASS — prints `using-woostack woostack-ideate,woostack-harden` (public lead, internals last).
 
-- [ ] **Step 4: Full build smoke**
+- [x] **Step 4: Full build smoke**
 
 Run: `cd site && rm -rf content/docs/skills && pnpm build`
 Expected: PASS — landing + 3 framing pages + 18 skill pages all compile; nav shows framing pages then the Skills group.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "feat(site): nav order (framing pages, then skills; internals last)"
@@ -797,7 +797,7 @@ gt modify -c -m "feat(site): nav order (framing pages, then skills; internals la
 **Files:**
 - Create: `site/README.md`
 
-- [ ] **Step 1: Author the deploy note**
+- [x] **Step 1: Author the deploy note**
 
 ```markdown
 # woostack docs site
@@ -822,12 +822,12 @@ pnpm dev      # predev regenerates skill pages, then next dev
   `prebuild`). No server runtime needed (SSG) — fits the Hobby tier.
 ```
 
-- [ ] **Step 2: Verify the critical setting is documented**
+- [x] **Step 2: Verify the critical setting is documented**
 
 Run: `grep -q 'Include files outside the root directory' site/README.md && echo OK`
 Expected: PASS — `OK`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 gt modify -c -m "docs(site): deploy note (Vercel root dir + include-files setting)"

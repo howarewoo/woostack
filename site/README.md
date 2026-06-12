@@ -1,45 +1,34 @@
-# site
+# woostack docs site
 
-This is a Next.js application generated with
-[Create Fumadocs](https://github.com/fuma-nama/fumadocs).
+Fumadocs (Next.js) documentation site for the woostack skills. Per-skill reference pages are
+**generated** from `../skills/*/SKILL.md` at build time (`prebuild`) and are gitignored; only
+the app shell and the authored framing pages (`content/docs/index.mdx`, `getting-started.mdx`,
+`concepts.mdx`) and the landing page are committed.
 
-Run development server:
+## Local development
 
 ```bash
-npm run dev
-# or
-pnpm dev
-# or
-yarn dev
+pnpm install
+pnpm dev      # predev regenerates the skill pages, then next dev
 ```
 
-Open http://localhost:3000 with your browser to see the result.
+`pnpm test` runs the generator's unit suite (`node --test`).
 
-## Explore
+## Deploy (Vercel free / Hobby tier)
 
-In the project, you can see:
+- **Root Directory:** `site/`
+- **Include files outside the root directory in the Build Step: ON** — required. The
+  `prebuild` step reads `../skills/*/SKILL.md`, which lives outside the `site/` root
+  directory. Without this setting Vercel restricts the build to `site/`, the generator finds
+  no `../skills`, and the deploy fails fast with a clear message.
+- **Framework preset:** Next.js (auto-detected). **Build command:** default (`pnpm build`,
+  which runs `prebuild`). No server runtime is required (static generation), so it fits the
+  free tier.
 
-- `lib/source.ts`: Code for content source adapter, [`loader()`](https://fumadocs.dev/docs/headless/source-api) provides the interface to access your content.
-- `lib/layout.shared.tsx`: Shared options for layouts, optional but preferred to keep.
+## How content is generated
 
-| Route                     | Description                                            |
-| ------------------------- | ------------------------------------------------------ |
-| `app/(home)`              | The route group for your landing page and other pages. |
-| `app/docs`                | The documentation layout and pages.                    |
-| `app/api/search/route.ts` | The Route Handler for search.                          |
-
-### Fumadocs MDX
-
-A `source.config.ts` config file has been included, you can customise different options like frontmatter schema.
-
-Read the [Introduction](https://fumadocs.dev/docs/mdx) for further details.
-
-## Learn More
-
-To learn more about Next.js and Fumadocs, take a look at the following
-resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js
-  features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-- [Fumadocs](https://fumadocs.dev) - learn about Fumadocs
+`scripts/gen-skills.mjs` reads each `SKILL.md`, maps its frontmatter to a Fumadocs page,
+neutralizes agent-only pseudo-tags (`<HARD-GATE>` etc.) into callouts, rewrites cross-links
+(skill → site route, other repo paths → GitHub source), adds a "View source on GitHub"
+backlink, and writes `content/docs/skills/<name>.mdx` plus its `meta.json`. The `skills/`
+directory is the single source of truth — never edit the generated MDX by hand.
