@@ -238,30 +238,31 @@ if [ "$TEST_MODE" = "1" ] && [ -n "${WOO_REVIEW_FAKE_PR_REVIEWS_JSON:-}" ]; then
 else
   REVIEWS_JSON=$(gh pr view "$PR_NUMBER" --json reviews 2>/dev/null || echo '{"reviews":[]}')
 fi
-# Marker trust: only honor reviews authored by woostack-review bots. Without this
-# filter any PR collaborator could submit a fake review with a forged marker
-# pointing past their own malicious commits, narrowing the next incremental
-# window to exclude them. The login pattern is anchored to the start of the
-# string so logins like `myclaudebot` are rejected; a residual risk remains
-# for logins that START with a bot prefix (e.g. `claude-evil`), which would
-# require an attacker to register such a login AND obtain PR-collaborator
-# access — defense-in-depth, not a hard guarantee.
-# Read side accepts the legacy `woo-stack-review:sha=` watermark too (woo-?stack), so a
-# PR last reviewed before the woostack rename still resolves incrementally. Writes use the new brand.
-LAST_SHA=$(printf '%s' "$REVIEWS_JSON" | jq -r --arg bots "$BOT_NAME_PATTERN" '
-  [ .reviews[]?
-    | { body: (.body // ""),
-        submittedAt: (.submittedAt // ""),
-        login: (.author.login // "") }
-    | select(.login | test("^(" + $bots + ")"; "i"))
-    | select(.body | test("<!-- woo-?stack-review:sha=[a-f0-9]+ -->"))
-  ]
-  | sort_by(.submittedAt)
-  | last
-  | if . == null then empty
-    else (.body | capture("<!-- woo-?stack-review:sha=(?<sha>[a-f0-9]+) -->") | .sha)
-    end
-' 2>/dev/null || true)
+# Marker trust: honor a marker authored by a woostack-review bot, OR — on a local
+# (not-in-CI) run only — one authored by the gh user running this review. Without
+# the bot gate any PR collaborator could submit a fake review with a forged marker
+# pointing past their own malicious commits, narrowing the next incremental window
+# to exclude them. The bot login pattern is anchored to the start of the string so
+# logins like `myclaudebot` are rejected; a residual risk remains for logins that
+# START with a bot prefix (e.g. `claude-evil`), which would require an attacker to
+# register such a login AND obtain PR-collaborator access — defense-in-depth, not a
+# hard guarantee. The local self-trust clause is gated on NOT running in CI so the
+# same forge threat does not apply: locally the user reviews as themselves with
+# their own token (a local re-review can then trust the marker it wrote last run);
+# a different local reviewer or any CI third-party still falls back to a full pass.
+# resolve-marker.sh owns the trust filter (single authority) and the legacy
+# `woo-stack-review:sha=` read alias (woo-?stack), so a PR last reviewed before the
+# woostack rename still resolves incrementally. Writes use the new brand.
+LOCAL_RUN=0
+AUTH_LOGIN=""
+if [ "${GITHUB_ACTIONS:-}" != "true" ]; then
+  LOCAL_RUN=1
+  # Authenticated gh login of whoever is running this local review (lowercased);
+  # empty on auth failure → self-trust disabled → safe fall back to full diff.
+  AUTH_LOGIN=$(gh api user --jq '.login' 2>/dev/null | tr '[:upper:]' '[:lower:]' || true)
+fi
+LAST_SHA=$(printf '%s' "$REVIEWS_JSON" \
+  | bash "$(dirname "${BASH_SOURCE[0]}")/resolve-marker.sh" "$BOT_NAME_PATTERN" "$AUTH_LOGIN" "$LOCAL_RUN")
 
 # Re-run guard: if a prior AI bot has already commented and the current trigger is
 # not an explicit user request, skip. Skipped when a marker is present — the marker

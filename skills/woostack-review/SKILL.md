@@ -55,14 +55,14 @@ By default (`incremental: auto` on the GitHub Action), every posted review carri
 <!-- woostack-review:sha=<headRefOid> -->
 ```
 
-On the next run, `prefetch.sh` scans **bot-authored** prior review bodies (the same `BOT_NAME_PATTERN` used elsewhere) for the marker — non-bot reviewers cannot forge a marker to narrow the window. If found, prefetch diffs `<last_sha>...HEAD` via the GitHub compare API instead of the full PR diff — only the new commits since the last pass are reviewed. Unresolved prior review threads (any author) are dumped to `$OUTDIR/prior-findings.json` and consumed by the posting stage as an **event floor**: any non-empty priors list keeps the new review at minimum `REQUEST_CHANGES`, a conservative gate so a stale open thread is never auto-resolved by a clean incremental pass.
+On the next run, `prefetch.sh` (via `resolve-marker.sh`) scans **bot-authored** prior review bodies (the same `BOT_NAME_PATTERN` used elsewhere) for the marker — and, **on a local (not-in-CI) run, also a marker authored by the gh user running the review** (`gh api user`, matched case-insensitively). A CI collaborator cannot forge a marker (the self-trust clause is dead in CI, so only bots are honored), and a *different* local reviewer or any CI third-party still falls back to a full pass. This lets a local re-review trust the marker it wrote on the previous run instead of always re-reviewing in full. If a trusted marker is found, prefetch diffs `<last_sha>...HEAD` via the GitHub compare API instead of the full PR diff — only the new commits since the last pass are reviewed. Unresolved prior review threads (any author) are dumped to `$OUTDIR/prior-findings.json` and consumed by the posting stage as an **event floor**: any non-empty priors list keeps the new review at minimum `REQUEST_CHANGES`, a conservative gate so a stale open thread is never auto-resolved by a clean incremental pass.
 
 Override paths:
 - Action input `incremental: off` (workflow-level opt-out).
 - A trigger comment containing `--full` (e.g. `@review --full`) — fixed-string match, regex-injection safe.
 - Force-push that drops `<last_sha>` from the branch history — the compare API returns 404; prefetch emits a `::warning::` and falls back to the full diff for that run.
 
-When the incremental diff has no new commits (i.e. `LAST_SHA == HEAD_SHA`, e.g. someone re-triggers without pushing), prefetch emits `skip=true` with reason `no new commits since last review (<last_sha>)`. To force a re-review of the same SHA, pass `--full` (or set `incremental: off`).
+When the incremental diff has no new commits (i.e. `LAST_SHA == HEAD_SHA`, e.g. someone re-triggers without pushing), prefetch emits `skip=true` with reason `no new commits since last review (<last_sha>)`. Because a local run now trusts its own marker, this skip also fires on a **local** re-review with no new pushes (previously a local re-run always reviewed in full). To force a re-review of the same SHA, pass `--full` (or set `incremental: off`).
 
 Marker semantics are state-light: the marker IS the state. There is no DB or workflow artifact retention beyond what GitHub already keeps in review history.
 
