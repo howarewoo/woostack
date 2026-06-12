@@ -207,7 +207,7 @@ emit_skip_with_comment() {
 # supplied, try to derive one from the current branch. Subshell is internal to
 # this script (script-local subshells are not blocked by host sandboxes the way
 # caller-side `PR_NUMBER="$(gh pr view ...)"` is — that pattern is what forced
-# manual PR# resolution under Gemini CLI's tool gating).
+# manual PR# resolution under a sandboxed host's tool gating).
 if [ -z "$PR_NUMBER" ] && [ "${GITHUB_ACTIONS:-}" != "true" ]; then
   PR_NUMBER=$(gh pr view --json number --jq .number 2>/dev/null || true)
   if [ -n "$PR_NUMBER" ]; then
@@ -287,7 +287,7 @@ echo "Event: $EVENT_NAME, Action: $EVENT_ACTION, Prior bot comments: $TOTAL_BOT_
 
 # Re-run guard scope: this check only applies inside GitHub Actions, where the
 # review is auto-triggered by GitHub events and "explicit" is a meaningful
-# concept. When invoked from a local host (Claude Code, Gemini CLI, opencode
+# concept. When invoked from a local host (Claude Code, Antigravity CLI, opencode
 # /woostack-review skill), the user typed the command — by definition explicit —
 # so EVENT_NAME is empty and the gate would otherwise misclassify the run as
 # implicit and skip it whenever any prior bot comment exists on the PR.

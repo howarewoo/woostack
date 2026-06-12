@@ -27,7 +27,7 @@ implicitly `fast`.
   the prompt's own `tier:` frontmatter; map it to the column for the active provider; **pass that
   model on every spawn.** Never rely on inherited parent-session model selection when a spawn API
   accepts an explicit model.
-- **Single model per session** (Codex Action without subagent model overrides, Gemini CLI): resolve
+- **Single model per session** (Codex Action without subagent model overrides, Antigravity CLI): resolve
   one run model up front; per-tier behavior collapses onto that one model for the whole job.
 
 ## Override precedence (generic)

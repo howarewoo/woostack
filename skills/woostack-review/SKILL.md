@@ -12,7 +12,7 @@ recommends:
 
 Spawn a parallel swarm of review sub-agents against a pull request (or the local diff), validate their findings with a Skeptical Validator, and — when a PR is targeted — post a single batched GitHub Review.
 
-This skill is **host-agnostic**: it works in any AI coding agent that supports sub-agent / task spawning (Claude Code, Cursor, Gemini CLI, opencode, etc.). Hosts without parallel sub-agents fall back to a sequential loop.
+This skill is **host-agnostic**: it works in any AI coding agent that supports sub-agent / task spawning (Claude Code, Cursor, Antigravity CLI, opencode, etc.). Hosts without parallel sub-agents fall back to a sequential loop.
 
 ## Commands
 
@@ -234,7 +234,7 @@ Build the same `$OUTDIR/` artifact tree the GitHub Action builds.
 >
 > **Default is per-project.** When `OUTDIR` is unset, scripts derive `/tmp/pr-review-<hash>` from the repo's git toplevel (via `scripts/resolve-outdir.sh`), so different repos on one machine isolate automatically. The orchestrator resolves it once and exports it to every sub-agent; `prefetch.sh` also prints `outdir=<path>`. Two concurrent runs of the *same* repo still share one dir — set `OUTDIR` explicitly to isolate those.
 
-**If a PR number was supplied** — export it and invoke `prefetch.sh` directly. The script handles diff fetch, meta fetch, project-rule discovery, auto-skip checks, and prior-findings extraction. Hosts whose tool gating blocks caller-side `$(...)` substitution (notably Gemini CLI) MUST use this path — `prefetch.sh` self-resolves the PR number from the current branch when none is exported and `GITHUB_ACTIONS != "true"`, so callers never need their own subshell.
+**If a PR number was supplied** — export it and invoke `prefetch.sh` directly. The script handles diff fetch, meta fetch, project-rule discovery, auto-skip checks, and prior-findings extraction. Hosts whose tool gating blocks caller-side `$(...)` substitution (notably sandboxed runtimes) MUST use this path — `prefetch.sh` self-resolves the PR number from the current branch when none is exported and `GITHUB_ACTIONS != "true"`, so callers never need their own subshell.
 
 ```bash
 # Resolve the per-project OUTDIR once and export it so prefetch.sh and every
@@ -323,7 +323,7 @@ Use your host's primitive behind the bounded queue:
 
 - Claude Code: `Task` tool, dispatching at most `N` active angle tasks at once.
 - Cursor / Composer: parallel subagent dispatch, capped at `N` active workers.
-- Gemini CLI: built-in `@generalist` subagent, capped at `N` active workers (see `prompts/google.md`). Parallel-vs-sequential dispatch of multiple `@<agent>` calls in a single turn is not formally documented today; treat as best-effort parallel — the isolation pattern still buys token economy even if Gemini serializes internally.
+- Antigravity CLI (`agy`): dynamically orchestrated subagents — the orchestrator instantiates one isolated-context subagent per angle on demand, capped at `N` active workers (see `prompts/google.md`). Dispatch the independent angle tasks in a single turn to run them in parallel; rely on the isolation pattern for token economy.
 - opencode: subagent dispatch via the OpenCode runtime's primitive (see `prompts/opencode.md`), capped at `N`; use `N=1` when the build does not support parallelism.
 
 **Shell helper path.** Shell-capable local hosts can use the shipped bounded queue runner:
@@ -395,7 +395,7 @@ Per-provider resolution (full table in `_header.md`):
 **Host capability:**
 
 - **Per-call routing** (Claude Code `Task`, Codex local subagents with a `model` override, opencode `@subagent`): honor each prompt's `tier:` verbatim and resolve every spawn's model with `bash $WOO_REVIEW_ACTION_PATH/scripts/resolve-model.sh --provider <provider> --tier <tier>` (which honors `$OUTDIR/config.json` overrides), passing that slug explicitly on the spawn. Maximum savings.
-- **Single model per session** (Codex Action without subagent model overrides, Gemini CLI): pin the run to a resolved run-tier (`fast` or `deep` via `FORCE_TIER`, otherwise `standard`). `tier:` becomes informational once the run tier resolves. Split into multiple jobs if you want per-angle fast/deep split behavior.
+- **Single model per session** (Codex Action without subagent model overrides, Antigravity CLI): pin the run to a resolved run-tier (`fast` or `deep` via `FORCE_TIER`, otherwise `standard`). `tier:` becomes informational once the run tier resolves. Split into multiple jobs if you want per-angle fast/deep split behavior.
 
 Bounded runners MUST preserve the resolved tier/model context for every queued worker. In single-model hosts, pass the resolved run-tier (`FORCE_TIER` when set, otherwise the host's standard tier) to every worker. In per-call-routing hosts, apply each angle prompt's `tier:` while still preserving any explicit `FORCE_TIER` override, and set the spawn call's model field to the slug from `resolve-model.sh` (config-aware — never the static `_header.md` table directly). Write that same resolved model into the worker's receipt (`model`) so receipts reflect the configured model, not the default. Omitting the spawn model field is a routing bug because the worker inherits the parent session's model and defeats the tier mapping. Bounded scheduling must not cause later queued angles to fall back to default model settings.
 
@@ -586,7 +586,7 @@ The `if:` gate restricts comment-triggered runs to the repo owner / members / co
 - **`detect-angles.sh` crashes outside GitHub Actions** — fixed: the script now emits `angles=` / `chunks_json=` lines to stdout and writes `$OUTDIR/angles.json` + `$OUTDIR/chunks-matrix.json` when `$GITHUB_OUTPUT` is unset. Inspect those files when running locally.
 - **Sub-agent writes findings to the wrong path** — caused by host workspace drift (the sub-agent's CWD differs from the orchestrator's). Export `OUTDIR` to every sub-agent — see Stage 1.
 - **Adversarial validators dropped a finding both passes agreed on** — the intersection applies a fuzzy second pass (`±10` lines, prefix-20 title-stem match) and a location-only third pass (`±10` lines, no title constraint, ambiguous ties skipped). The third pass covers the case where cross-angle dedupe in `merge-findings.sh` left the same issue under different titles in the two validator inputs. Check `$OUTDIR/validator-metrics.json` for `disagreement_count` and the `intersect-findings:` stderr line for the second-/third-pass match counts.
-- **Caller-side `PR_NUMBER="$(gh pr view ...)"` blocked by host sandbox** — some hosts (Gemini CLI, sandboxed runtimes) reject inline `$(...)` substitutions on tool calls. Skip the caller-side resolution: `bash $WOO_REVIEW_ACTION_PATH/scripts/prefetch.sh` derives the PR number itself from the current branch when `PR_NUMBER` is unset and `GITHUB_ACTIONS != "true"`.
+- **Caller-side `PR_NUMBER="$(gh pr view ...)"` blocked by host sandbox** — some sandboxed host runtimes reject inline `$(...)` substitutions on tool calls. Skip the caller-side resolution: `bash $WOO_REVIEW_ACTION_PATH/scripts/prefetch.sh` derives the PR number itself from the current branch when `PR_NUMBER` is unset and `GITHUB_ACTIONS != "true"`.
 - **`prefetch.sh` skipped with "bot already commented and trigger is not explicit" on a local run** — fixed: that re-run guard now only applies inside GitHub Actions (`GITHUB_ACTIONS=true`). Local `/woostack-review` invocations are explicit by definition and no longer trip the gate.
 - **GitHub API rejects `REQUEST_CHANGES` / `APPROVE` on a self-authored PR** — fixed in `_header.md`: the payload-builder compares `gh api user --jq .login` against `meta.json .author.login` and downgrades the event to `COMMENT` when they match. The STATUS_LINE in the review body still carries the accurate verdict; a small note is appended explaining the downgrade.
 - **Sub-agent died mid-run and left no findings artifact** — bounded Stage 3 initializes expected artifacts to `[]`, retries missing/non-array artifacts once after the first queue drains, then records remaining gaps in `$OUTDIR/swarm-metrics.json`. If `.degraded == true`, that angle contributed `[]` and the local summary must disclose it.

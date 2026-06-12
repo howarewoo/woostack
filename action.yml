@@ -338,6 +338,13 @@ runs:
     - name: Run review (Google Gemini)
       id: run-google
       if: steps.detect.outputs.provider == 'google' && steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'full' || inputs.mode == 'review' || inputs.mode == 'validate' || inputs.mode == 'validate-prosecutor')
+      # Residual gemini-CLI dependency. Antigravity CLI (`agy`) is gemini CLI's successor, but it
+      # has no first-party GitHub Action and authenticates via the system keyring / Google Sign-In
+      # with no documented non-interactive API-key path — so it cannot run headlessly in an
+      # ephemeral CI runner. This step therefore stays on run-gemini-cli (which still executes the
+      # Gemini-model review) until a non-interactive Antigravity runner exists. The skill-doc and
+      # prompt host narrative migrated to Antigravity separately; this is the one host reference
+      # that must remain on gemini CLI for now.
       uses: google-github-actions/run-gemini-cli@f77273f4c914e4bf38440cf36a0369cb64a37489 # v0
       with:
         gemini_api_key: ${{ inputs.gemini_api_key }}
