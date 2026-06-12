@@ -12,8 +12,10 @@
 # <last_sha>...HEAD via the GitHub compare API instead of the full PR diff. A
 # `--full` substring in COMMENT_BODY (issue_comment trigger) overrides to off.
 # Test hooks (env, only active when WOO_REVIEW_TEST_MODE=1):
-#   WOO_REVIEW_FAKE_PR_REVIEWS_JSON, WOO_REVIEW_FAKE_INCREMENTAL_DIFF,
-#   WOO_REVIEW_FAKE_PRIOR_THREADS_JSON. The mode flag is intentionally not
+#   WOO_REVIEW_FAKE_PR_REVIEWS_JSON, WOO_REVIEW_FAKE_META_JSON,
+#   WOO_REVIEW_FAKE_FULL_DIFF, WOO_REVIEW_FAKE_INCREMENTAL_DIFF,
+#   WOO_REVIEW_FAKE_PRIOR_THREADS_JSON, WOO_REVIEW_FAKE_BOT_COMMENTS.
+#   The mode flag is intentionally not
 #   exposed in action.yml — a calling workflow cannot opt itself into the
 #   fake-data hooks without first setting an undocumented env var.
 # WOO_REVIEW_FRESH=1 forces the OUTDIR wipe even when in-flight findings.* are
@@ -270,10 +272,15 @@ LAST_SHA=$(printf '%s' "$REVIEWS_JSON" \
 # is the intended re-run signal for incremental mode. Pattern is anchored to
 # match the marker filter — keeps "bot" classification consistent across both
 # trust gates.
-ISSUE_COMMENTS=$(gh pr view "$PR_NUMBER" --json comments \
-  --jq "[.comments[] | select(.author.login | test(\"^($BOT_NAME_PATTERN)\"; \"i\"))] | length")
-REVIEW_COMMENTS=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/$PR_NUMBER/comments" \
-  --jq "[.[] | select(.user.login | test(\"^($BOT_NAME_PATTERN)\"; \"i\"))] | length")
+if [ "$TEST_MODE" = "1" ] && [ -n "${WOO_REVIEW_FAKE_BOT_COMMENTS:-}" ]; then
+  ISSUE_COMMENTS="$WOO_REVIEW_FAKE_BOT_COMMENTS"
+  REVIEW_COMMENTS=0
+else
+  ISSUE_COMMENTS=$(gh pr view "$PR_NUMBER" --json comments \
+    --jq "[.comments[] | select(.author.login | test(\"^($BOT_NAME_PATTERN)\"; \"i\"))] | length")
+  REVIEW_COMMENTS=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/$PR_NUMBER/comments" \
+    --jq "[.[] | select(.user.login | test(\"^($BOT_NAME_PATTERN)\"; \"i\"))] | length")
+fi
 TOTAL_BOT_COMMENTS=$((ISSUE_COMMENTS + REVIEW_COMMENTS))
 
 echo "Event: $EVENT_NAME, Action: $EVENT_ACTION, Prior bot comments: $TOTAL_BOT_COMMENTS, Marker: ${LAST_SHA:-none}, Incremental: $INCREMENTAL"
@@ -296,7 +303,11 @@ if [ "${GITHUB_ACTIONS:-}" = "true" ] && \
 fi
 
 # Fetch metadata first — HEAD_SHA is needed for the compare-API incremental path.
-gh pr view "$PR_NUMBER" --json headRefOid,baseRefName,title,body,files,author > "$OUTDIR/meta.json"
+if [ "$TEST_MODE" = "1" ] && [ -n "${WOO_REVIEW_FAKE_META_JSON:-}" ]; then
+  printf '%s' "$WOO_REVIEW_FAKE_META_JSON" > "$OUTDIR/meta.json"
+else
+  gh pr view "$PR_NUMBER" --json headRefOid,baseRefName,title,body,files,author > "$OUTDIR/meta.json"
+fi
 HEAD_SHA=$(jq -r '.headRefOid' "$OUTDIR/meta.json")
 
 # Load per-repo config early (issue #19) so the bot-author / release-rollup
@@ -409,7 +420,11 @@ PY
 fi
 
 if [ -z "$INCREMENTAL_USED" ]; then
-  gh pr diff "$PR_NUMBER" > "$OUTDIR/diff.txt"
+  if [ "$TEST_MODE" = "1" ] && [ -n "${WOO_REVIEW_FAKE_FULL_DIFF:-}" ]; then
+    printf '%s' "$WOO_REVIEW_FAKE_FULL_DIFF" > "$OUTDIR/diff.txt"
+  else
+    gh pr diff "$PR_NUMBER" > "$OUTDIR/diff.txt"
+  fi
 fi
 printf '%s' "$INCREMENTAL_USED" > "$OUTDIR/last_sha.txt"
 

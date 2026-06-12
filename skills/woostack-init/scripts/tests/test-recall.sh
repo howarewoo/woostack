@@ -39,6 +39,12 @@ set +e; out="$(bash "$RECALL" "$woo3" "$paths")"; code=$?; set -e
 assert_eq "$out" "" "no memory -> empty output"
 assert_exit 0 "$code" "no memory -> exit 0"
 
+# only-flat-file repo also degrades to empty; flat memory.md is no longer read.
+woo2="$(mktemp -d)"; printf -- '- only flat here\n' > "$woo2/memory.md"
+set +e; out="$(bash "$RECALL" "$woo2" "$paths")"; code=$?; set -e
+assert_eq "$out" "" "only-flat repo -> empty output"
+assert_exit 0 "$code" "only-flat repo -> exit 0"
+
 # cap protects global: cap=70 sits between global_out(~54B) and global+api_chunk(~87B)
 # so global survives intact while the scoped note is dropped — NOT the tail-cap branch.
 printf 'packages/api/x.ts\n' > "$paths"
@@ -61,7 +67,7 @@ narrow_line="$(printf '%s\n' "$out" | grep -n 'NARROW note' | cut -d: -f1)"
   && PASS=$((PASS+1)) \
   || { FAIL=$((FAIL+1)); echo "  FAIL: ordering — wide(line $wide_line) should precede narrow(line $narrow_line)"; }
 
-rm -rf "$woo" "$woo3" "$woo4" "$paths2"
+rm -rf "$woo" "$woo2" "$woo3" "$woo4" "$paths2"
 
 # --- telemetry stamping ---
 woo5="$(mktemp -d)"; md5="$woo5/memory"; mkdir -p "$md5"
