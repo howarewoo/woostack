@@ -5,9 +5,11 @@ source "$DIR/tests/assert.sh"
 source "$DIR/lib.sh"
 RECALL="$DIR/recall.sh"
 
-# Build a fixture .woostack with flat file + scoped notes.
+# Build a fixture .woostack with scoped notes.
 woo="$(mktemp -d)"; md="$woo/memory"; mkdir -p "$md"
-printf -- '- accepted: do not flag X\n' > "$woo/memory.md"
+# Global memory now = global-scoped notes only.
+mk_note "$md" gx.md       $'name: gx\ntype: convention\nscope: *\nupdated: 2026-06-02' '- accepted: do not flag X'
+bash "$DIR/build-index.sh" "$md" >/dev/null
 mk_note "$md" api.md      $'name: api\ntype: pattern\nscope: packages/api/**' 'API note body'
 mk_note "$md" web.md      $'name: web\ntype: pattern\nscope: apps/web/**' 'WEB note [[api]] body'
 mk_note "$md" glob.md     $'name: glob\ntype: convention\nscope: *' 'GLOBAL note body'
@@ -17,7 +19,7 @@ out="$(bash "$RECALL" "$woo" "$paths")"
 assert_contains "$out" "API note body" "matched scoped note included"
 assert_not_contains "$out" "WEB note" "unmatched note excluded"
 assert_contains "$out" "GLOBAL note body" "global (scope:*) note always included"
-assert_contains "$out" "do not flag X" "flat global shard always included"
+assert_contains "$out" "do not flag X" "global-scoped note always included"
 
 # one-hop: changing apps/web pulls web.md, which links [[api]] -> api.md too
 printf 'apps/web/y.tsx\n' > "$paths"
@@ -31,11 +33,6 @@ mk_note "$md" api.md  $'name: api\ntype: pattern\nscope: packages/api/**' 'API n
 out="$(bash "$RECALL" "$woo" "$paths")"
 assert_not_contains "$out" "DEEP note body" "two-hop not chained"
 
-# only-flat-file repo degrades to flat content
-woo2="$(mktemp -d)"; printf -- '- only flat here\n' > "$woo2/memory.md"
-out="$(bash "$RECALL" "$woo2" "$paths")"
-assert_contains "$out" "only flat here" "only-flat repo: flat content emitted"
-
 # neither source -> empty, exit 0
 woo3="$(mktemp -d)"
 set +e; out="$(bash "$RECALL" "$woo3" "$paths")"; code=$?; set -e
@@ -46,7 +43,7 @@ assert_exit 0 "$code" "no memory -> exit 0"
 # so global survives intact while the scoped note is dropped — NOT the tail-cap branch.
 printf 'packages/api/x.ts\n' > "$paths"
 out="$(RECALL_CAP=70 bash "$RECALL" "$woo" "$paths" 2>/dev/null)"
-assert_contains "$out" "do not flag X" "global protected under cap"
+assert_contains "$out" "do not flag X" "global-scoped note protected under cap"
 assert_not_contains "$out" "API note" "scoped note dropped under cap"
 err="$(RECALL_CAP=70 bash "$RECALL" "$woo" "$paths" 2>&1 >/dev/null)"
 assert_contains "$err" "dropped" "drop logged to stderr"
@@ -64,7 +61,7 @@ narrow_line="$(printf '%s\n' "$out" | grep -n 'NARROW note' | cut -d: -f1)"
   && PASS=$((PASS+1)) \
   || { FAIL=$((FAIL+1)); echo "  FAIL: ordering — wide(line $wide_line) should precede narrow(line $narrow_line)"; }
 
-rm -rf "$woo" "$woo2" "$woo3" "$woo4" "$paths2"
+rm -rf "$woo" "$woo3" "$woo4" "$paths2"
 
 # --- telemetry stamping ---
 woo5="$(mktemp -d)"; md5="$woo5/memory"; mkdir -p "$md5"

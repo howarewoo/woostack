@@ -748,12 +748,10 @@ PRIOR_COUNT=$(jq 'length' "$OUTDIR/prior-findings.json" 2>/dev/null || echo 0)
 echo "Prior review threads (open + resolved): $PRIOR_COUNT"
 
 # Cross-PR memory — composed per-PR via recall.sh when a scope-routed store
-# (.woostack/memory/) exists: scope-matched notes + one-hop links + the
-# cap-protected global shard (flat memory.md). Falls back to a raw flat copy
-# when recall.sh is unavailable (e.g. single-skill install). Missing both => no
-# memory context (normal for fresh repos).
+# (.woostack/memory/) exists: scope-matched notes, one-hop links, and
+# global-scoped notes. Missing store or recall.sh => no memory context
+# (normal for fresh repos or individual manual installs).
 WOOSTACK_DIR="$WOOSTACK_ROOT/.woostack"
-MEMORY_SRC="$WOOSTACK_DIR/memory.md"
 MEMORY_OUT="$OUTDIR/memory.md"
 RECALL="$SCRIPT_DIR/../../woostack-init/scripts/recall.sh"
 # Working-set paths: prefer the ignore-filtered list, else derive from meta.json.
@@ -763,26 +761,18 @@ if [ ! -f "$PATHS_FILE" ]; then
   PATHS_FILE="$OUTDIR/changed-paths.txt"
 fi
 
-copy_flat_memory() {  # the pre-recall fallback
-  if [ -f "$MEMORY_SRC" ]; then
-    local sz; sz=$(wc -c < "$MEMORY_SRC" 2>/dev/null || echo 0)
-    if [ "$sz" -gt 102400 ]; then tail -c 102400 "$MEMORY_SRC" > "$MEMORY_OUT";
-      echo "Memory file large (${sz}B); truncated to last 100KB.";
-    else cp "$MEMORY_SRC" "$MEMORY_OUT"; fi
-    echo "Loaded cross-PR memory: $MEMORY_SRC (${sz}B)"
-  else rm -f "$MEMORY_OUT"; fi
-}
-
-if [ -d "$WOOSTACK_DIR/memory" ] || [ -f "$MEMORY_SRC" ]; then
+if [ -d "$WOOSTACK_DIR/memory" ]; then
   if [ -f "$RECALL" ]; then
     if bash "$RECALL" "$WOOSTACK_DIR" "$PATHS_FILE" > "$MEMORY_OUT" 2> "$OUTDIR/recall.log"; then
       [ -s "$MEMORY_OUT" ] || rm -f "$MEMORY_OUT"
       echo "Composed cross-PR memory via recall.sh ($(wc -c < "$MEMORY_OUT" 2>/dev/null || echo 0)B; see recall.log)"
     else
-      echo "::warning::recall.sh failed; falling back to flat memory copy"; copy_flat_memory
+      echo "::warning::recall.sh failed; omitting cross-PR memory"
+      rm -f "$MEMORY_OUT"
     fi
   else
-    echo "::warning::recall.sh not found at $RECALL; using flat memory copy"; copy_flat_memory
+    echo "::warning::recall.sh not found at $RECALL; omitting cross-PR memory"
+    rm -f "$MEMORY_OUT"
   fi
 else
   rm -f "$MEMORY_OUT"

@@ -6,7 +6,7 @@ This document is the canonical reference for the `.woostack/memory/` store. Ever
 
 ## 1. Purpose
 
-The scope-routed memory store is an additive layer on top of the flat `.woostack/memory.md` global shard. The flat file remains valid: it is always loaded in full and remains the legacy/global fallback for repos without a scoped store. The new `.woostack/memory/` directory adds **scoped per-fact notes** — individual Markdown files whose `scope:` field declares which parts of the codebase they govern. When a skill loads context for a working set of files it consults the derived index, matches notes whose scope overlaps the working set, and loads only those note bodies plus any directly linked notes. This makes recall sub-linear in the total number of accumulated notes: on a repo with 500 notes only the handful relevant to the changed files are loaded, not the full corpus. The flat file and the directory coexist; either alone is valid.
+The `.woostack/memory/` directory is the single memory surface. It contains **scoped per-fact notes** — individual Markdown files whose `scope:` field declares which parts of the codebase they govern. When a skill loads context for a working set of files it consults the derived index, matches notes whose scope overlaps the working set, and loads only those note bodies plus any directly linked notes. This makes recall sub-linear in the total number of accumulated notes: on a repo with 500 notes only the handful relevant to the changed files are loaded, not the full corpus.
 
 ---
 
@@ -16,19 +16,18 @@ The `/woostack-init` scaffold verb creates this tree in a consumer repo:
 
 ```
 .woostack/
-├── memory.md        flat global shard — seeded empty if absent, NEVER clobbered
 ├── memory/
 │   ├── MEMORY.md    derived index (build-index writes it)
 │   └── .gitkeep
 ├── specs/           woostack-build markdown specs (type: spec)
 ├── plans/           woostack-build markdown plans
 ├── config.json      { "review": {} } skeleton
-└── .gitignore       ignores metrics.json, *.local.*, memory.md, and memory/ ; tracks specs/plans/config
+└── .gitignore       ignores metrics.json, *.local.*, and memory/ ; tracks specs/plans/config
 ```
 
 The `config.json` file uses a top-level namespace-per-tool convention: `"review"` is the key for woostack-review settings (see [../../woostack-review/SKILL.md](../../woostack-review/SKILL.md) for the schema of that namespace). The memory store needs no config in increment A. Future tools add sibling keys (`"memory"`, etc.) as needed; init scaffolds only the `{ "review": {} }` skeleton and documents the convention — it does not own the per-tool schemas.
 
-The `.gitignore` ignores `metrics.json` (the review engine's per-clone rolling aggregate), `*.local.*` (reserved for per-developer overrides such as `config.local.json`), `memory.md` (the flat global shard), and the `memory/` directory (the scoped per-fact notes). This ensures that memory remains local-only to each clone and is not committed. Everything else — `specs/`, `plans/`, `fixes/`, `config.json` — is shared team knowledge and is tracked.
+The `.gitignore` ignores `metrics.json` (the review engine's per-clone rolling aggregate), `*.local.*` (reserved for per-developer overrides such as `config.local.json`), and the `memory/` directory (the scoped per-fact notes). This ensures that memory remains local-only to each clone and is not committed. Everything else — `specs/`, `plans/`, `fixes/`, `config.json` — is shared team knowledge and is tracked.
 
 ---
 
@@ -124,7 +123,7 @@ The file also carries a generated-file header comment so tooling can detect it:
 
 The recall procedure is the algorithm a skill follows to load only the memory notes relevant to a given working set of paths. The full procedure is:
 
-1. **Always load** `memory/MEMORY.md` (one cheap line per note) and the flat `memory.md` global shard. Both are always present.
+1. **Always load** `memory/MEMORY.md` (one cheap line per note).
 2. **Compute the working set** of repo-relative paths for the current operation. This is skill-specific: for a review it is the changed files; for a build it is the planned/touched files; for address-comments it is the files touched by the PR.
 3. **Scope-match:** for each note listed in the index, evaluate the note's `scope` glob against the working-set paths using `scope-match.sh`. Load the full body of any note that matches. When two matched notes have the **same** match-count, the tie is broken by `updated:` recency — the newer note ranks first, and a note without `updated:` ranks last (so under cap pressure the older / undated note is dropped first). Match-count remains the primary key.
 4. **One-hop link expand:** for each note loaded in step 3, scan its body for `[[wikilinks]]`. Load the bodies of any directly linked notes that were not already loaded. Do not recurse further — expansion is bounded to exactly one hop.
@@ -161,8 +160,8 @@ is distilled — not feature-specific trivia.
 The accept-by-design address-comments path uses
 `woostack-address-comments/scripts/memory-record.sh`: when
 `.woostack/memory/` exists it writes a scoped `convention` note with `source: pr-<n>`
-and rebuilds `MEMORY.md`; when the scoped store is absent it falls back to the flat
-`memory.md` bullet append path. Address-comments should pass the narrowest `scope`
+and rebuilds `MEMORY.md`; when the scoped store is absent it skips the record and
+defers to `/woostack-init`. Address-comments should pass the narrowest `scope`
 covering the reviewed files so future reviews suppress the accepted issue only where
 that convention applies.
 
@@ -233,7 +232,7 @@ CI always takes the grep path.
 When a consuming skill is installed individually (not as part of the full woostack collection), the scripts under `skills/woostack-init/scripts/` may not be available. In that case the skill should:
 
 1. State explicitly in its output that the woostack-init scripts were not found and it is falling back to the manual procedure.
-2. Follow the recall procedure in §6 manually: load the index and flat `memory.md`, then for each note whose `scope` overlaps the working-set paths (using substring or glob matching available in the agent's environment), load that note body and perform a single link-expand pass.
+2. Follow the recall procedure in §6 manually: load the index, then for each note whose `scope` overlaps the working-set paths (using substring or glob matching available in the agent's environment), load that note body and perform a single link-expand pass. With no scoped store, recall yields an empty set and records are skipped.
 3. Do not fail silently — always indicate whether recall was script-assisted or manual.
 
 The full-collection install (via `npx skills add howarewoo/woostack`) is the supported path and will always provide these scripts.

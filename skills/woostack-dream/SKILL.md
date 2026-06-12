@@ -17,7 +17,7 @@ description: Use to curate the .woostack/ knowledge store. Reflects over the sta
 
 ### Phase 1 — Gather (read-only)
 
-If the `.woostack/memory/` directory exists, run [`doctor.sh`](../woostack-init/scripts/doctor.sh) and capture its warnings (overlap clusters, stale provenance, orphaned scope, dead notes, missing provenance, and non-glob trivia). Next, read `.woostack/memory/MEMORY.md` and the body of every note. Regardless of the store structure, always read the flat `.woostack/memory.md` file if present. Enumerate the documentation surface by executing `git ls-files '*.md'` to gather only tracked markdown files, excluding gitignored memory and any `node_modules` directories. Exclude any files under `.woostack/{specs,plans,fixes}/*.md` from the promotion-target set, as they are provenance inputs rather than targets for documentation updates. Read the recent `git log` and the specification, plan, or fix that a note's `source:` field points to, using this context to ground judgments of whether a note is stale or current. Honor any optional `instructions` steering argument provided. For further details on the store structure, cross-link the memory contract in [`../woostack-init/references/memory.md`](../woostack-init/references/memory.md).
+If the `.woostack/memory/` directory exists, run [`doctor.sh`](../woostack-init/scripts/doctor.sh) and capture its warnings (overlap clusters, stale provenance, orphaned scope, dead notes, missing provenance, and non-glob trivia). Next, read `.woostack/memory/MEMORY.md` and the body of every note. Enumerate the documentation surface by executing `git ls-files '*.md'` to gather only tracked markdown files, excluding gitignored memory and any `node_modules` directories. Exclude any files under `.woostack/{specs,plans,fixes}/*.md` from the promotion-target set, as they are provenance inputs rather than targets for documentation updates. Read the recent `git log` and the specification, plan, or fix that a note's `source:` field points to, using this context to ground judgments of whether a note is stale or current. Honor any optional `instructions` steering argument provided. For further details on the store structure, cross-link the memory contract in [`../woostack-init/references/memory.md`](../woostack-init/references/memory.md).
 
 ### Phase 2 — Synthesize the "dream" (read-only)
 
@@ -54,7 +54,7 @@ Report a clear summary of what changed (including notes merged, replaced, droppe
 
 The tool degrades gracefully depending on the environment:
 - If the repository uses a scoped memory store, utilize the designated memory scripts.
-- If only a flat `.woostack/memory.md` file exists, fall back to curating the flat file using bullet-level deduplication, replacement, and dropping, skipping the scope, indexing, and `doctor.sh` machinery.
+- If the scoped store is absent, report that there is no memory store to curate and defer to `/woostack-init`.
 - If no `.woostack/` directory exists, stop immediately; there is nothing to curate, and the tool must not scaffold a new store (defer to `/woostack-init`).
 - If individual memory scripts are missing (such as in an individual manual install), announce a manual fallback per section 10 of the memory contract [`../woostack-init/references/memory.md`](../woostack-init/references/memory.md). Perform recall and lint checks by hand, and never fail silently.
 

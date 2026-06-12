@@ -38,16 +38,18 @@ assert_contains "$(cat /tmp/memory-record-2.out)" "already present" "duplicate s
 popd >/dev/null
 rm -rf "$work"
 
-# No scoped store: fall back to the flat memory.md append path.
-flat_work="$(mktemp -d)"
-pushd "$flat_work" >/dev/null
+# No scoped store: skip with a notice and write no flat shard.
+woo="$(mktemp -d)"
+pushd "$woo" >/dev/null
 WOOSTACK_NOW=2026-06-02 PR_NUMBER=166 \
-  LEARNING='Flat fallback learning: accepted without scoped store.' \
+  LEARNING='No scoped store learning: accepted without scoped store.' \
   MEMORY_SCOPE='*' \
-  bash "$SCRIPT" >/tmp/memory-record-flat.out
-assert_contains "$(cat .woostack/memory.md)" "Flat fallback learning" "flat fallback writes memory.md"
-assert_not_contains "$(find .woostack -maxdepth 2 -type f | sort)" ".woostack/memory/MEMORY.md" "flat fallback does not create scoped index"
+  MEMORY_DIR="$woo/.woostack/memory" \
+  bash "$SCRIPT" >/tmp/memory-record-skip.out 2>&1
+assert_contains "$(cat /tmp/memory-record-skip.out)" "no scoped store" "memory-record skips when .woostack/memory/ absent"
+legacy_file=".woostack/memory"".md"
+assert_exit 1 "$([ -e "$legacy_file" ]; echo $?)" "memory-record writes no legacy shard"
 popd >/dev/null
-rm -rf "$flat_work"
+rm -rf "$woo"
 
 finish
