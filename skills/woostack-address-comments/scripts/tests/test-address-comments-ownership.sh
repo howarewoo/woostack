@@ -31,6 +31,14 @@ assert_contains "$ADDRESS_SKILL" "WOO_ADDRESS_ACTION_PATH"
 assert_contains "$ADDRESS_PROMPT" "Optional worker fan-out"
 assert_contains "$ADDRESS_PROMPT" "fix_plan"
 
+# issue #282: the verdict gate must be a prominent, summary/skim-resistant STOP barrier and be
+# restated in Hard constraints — not soft body prose a low-effort model collapses past. Pin the
+# barrier tag, the hard-constraint restatement, and the Phase 2 STOP cue (ASCII tokens per the
+# skill-test-assert-ascii-token convention).
+assert_contains "$ADDRESS_SKILL" "<HARD-GATE>"
+assert_contains "$ADDRESS_SKILL" "Silence is not a yes"
+assert_contains "$ADDRESS_PROMPT" "do not act until approved"
+
 for script in prefetch.sh fetch-threads.sh resolve-thread.sh memory-record.sh memory-append.sh resolve-outdir.sh; do
   if [ ! -f "$ADDRESS_SCRIPTS/$script" ]; then
     echo "missing address-comments script: $script" >&2

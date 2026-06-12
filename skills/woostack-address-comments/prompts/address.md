@@ -62,6 +62,11 @@ never skips Phase 2 unless the whole run was invoked with `--auto`.
 
 ## Phase 2 — Verdict gate
 
+**STOP here.** This phase is a hard gate, not a narrative beat: do not act until approved.
+Phase 1 produced recommendations only; no working-tree edit, commit, push, reply, resolve, or
+memory write may happen until the user has approved the batch (or `--auto` was set). Do not let
+the analysis flow straight into Phase 3.
+
 **If `--auto` was set:** skip this phase. The final verdict for each thread is
 your recommendation. Go to Phase 3.
 
