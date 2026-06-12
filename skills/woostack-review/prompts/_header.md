@@ -386,7 +386,7 @@ The orchestrator agent fills `<host>`, `<provider>`, and `<model>` literally int
 Resolution order (highest precedence first):
 
 1. **Env-var override.** If `WOO_REVIEW_HOST`, `WOO_REVIEW_PROVIDER`, or `WOO_REVIEW_MODEL` is set, use that value verbatim. Hosts that already know their identity should set these before invoking the skill — it is the only fully reliable channel.
-2. **Runtime introspection.** Ask the host runtime for the active model / provider of the **validator step** (the deep-tier pass; if adversarial mode is on, the defender). Examples: OpenCode exposes the active model via its config/SDK; Claude Code's `Task` call uses the explicit `model:` arg you just passed; Antigravity CLI prints the active model in `agy --version`.
+2. **Runtime introspection.** Ask the host runtime for the active model / provider of the **validator step** (the deep-tier pass; if adversarial mode is on, the defender). Examples: OpenCode exposes the active model via its config/SDK; Claude Code's `Task` call uses the explicit `model:` arg you just passed; Antigravity CLI prints the active model in `agy models`.
 3. **Orchestrator default.** Fall back to the validator slug declared in this orchestrator prompt (the `deep` row of the Model Tiers table).
 4. **`unknown`.** If none of the above resolves, write `unknown` rather than leaving the placeholder literal.
 
