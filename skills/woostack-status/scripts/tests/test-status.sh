@@ -67,7 +67,7 @@ mkspec "$p" delta planning feature/delta
 mkplan "$p" delta 2026-06-01-delta.md 3 7
 run_status "$p"
 assert_contains "$OUT" "3/10" "plan progress counted"
-assert_contains "$OUT" "harden plan, then open spec+plan PR" "planning next-action"
+assert_contains "$OUT" "harden the plan" "planning next-action"
 legacy="$(mktemp -d)/.woostack"
 mkspec "$legacy" legacy planning feature/legacy
 mkdir -p "$legacy/plans"
@@ -78,6 +78,27 @@ mkspec "$p" echo planning feature/echo
 run_status "$p"
 assert_contains "$OUT" "echo" "echo row present"
 assert_contains "$OUT" "no plan" "0-plan flagged"
+
+# `ready` = plan hardened, 0 boxes done, ready for execution (build step 6).
+rdy="$(mktemp -d)/.woostack"
+mkspec "$rdy" mike ready feature/mike
+mkplan "$rdy" mike 2026-06-01-mike.md 0 5
+run_status "$rdy"
+assert_contains "$OUT" "ready" "ready phase rendered"
+assert_contains "$OUT" "open spec+plan PR, then execute" "ready next-action"
+assert_not_contains "$OUT" "not a known phase" "ready is a valid phase"
+ready_no_plan="$(mktemp -d)/.woostack"
+mkspec "$ready_no_plan" november ready feature/november
+run_status "$ready_no_plan"
+assert_contains "$OUT" "no plan" "ready without plan flagged"
+ready_pr="$(mktemp -d)/.woostack"
+mkspec "$ready_pr" oscar ready feature/oscar
+mkplan "$ready_pr" oscar 2026-06-01-oscar.md 0 5
+ready_gh="$(mktemp -d)"; mk_fake_gh "$ready_gh"
+export FAKE_GH_JSON='[{"number":310,"state":"OPEN","headRefName":"feature/oscar","author":{"login":"olivia"},"updatedAt":"2026-06-03T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-oscar.md"}]'
+PATH="$ready_gh/bin:$PATH" run_status "$ready_pr"
+assert_contains "$OUT" "status lags" "ready with open PR flagged"
+unset FAKE_GH_JSON
 mkplan "$p" echo 2026-06-01-echo.md 1 1
 cp "$p/plans/2026-06-01-echo.md" "$p/plans/2026-06-02-echo-dup.md"
 run_status "$p"
