@@ -58,5 +58,8 @@ pnpm-debug.log*
 .woostack/overnight/
 # woostack: temporary review artifacts
 .woostack/tmp/
+# woostack: transient per-clone worktrees (managed by worktree lifecycle)
+.woostack/worktrees/
 # Claude Code scheduling runtime lock (generated, not source)
 .claude/scheduled_tasks.lock
+

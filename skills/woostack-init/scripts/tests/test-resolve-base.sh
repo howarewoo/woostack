@@ -36,7 +36,7 @@ out5="$( cd "$repo1" && env -u WOOSTACK_BASE_BRANCH WOOSTACK_ROOT="$repo1" bash 
 assert_eq "$out5" "trunk" "executed mode prints resolved branch"
 
 # 6. config present + jq unavailable -> fail loudly instead of falling back
-bin6="$(mktemp -d)"; ln -s "$(command -v git)" "$bin6/git"
+bin6="$(mktemp -d)"; ln -s "$(command -v git)" "$bin6/git"; ln -s "$(command -v bash)" "$bin6/bash"
 if out6="$( cd "$repo1" && env -u WOOSTACK_BASE_BRANCH WOOSTACK_ROOT="$repo1" PATH="$bin6" bash "$resolver" 2>&1 )"; then
   fail "config without jq fails"
 fi

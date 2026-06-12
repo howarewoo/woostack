@@ -1,6 +1,9 @@
 # Transient, per-clone — not shared knowledge.
 metrics.json
 *.local.*
+visuals/
+overnight/
+worktrees/
 memory.md
 memory/
 
