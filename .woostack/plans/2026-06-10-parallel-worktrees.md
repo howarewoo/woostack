@@ -630,12 +630,12 @@ gt modify -c -m "docs(bootstrap): note the initial-scaffold worktree exemption +
 **Files:**
 - Modify: `skills/woostack-execute/SKILL.md`
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 Run: `grep -c "worktree" skills/woostack-execute/SKILL.md`
 Expected: FAIL — prints `0`.
 
-- [ ] **Step 2: Edit per-increment cadence step 1 (Start its branch before editing)**
+- [x] **Step 2: Edit per-increment cadence step 1 (Start its branch before editing)**
 
 In `skills/woostack-execute/SKILL.md` §"Per-increment cadence" step 1, replace its body with:
 
@@ -655,7 +655,7 @@ In `skills/woostack-execute/SKILL.md` §"Per-increment cadence" step 1, replace 
    (dispatched with **cwd = the worktree**) — happens inside it.
 ```
 
-- [ ] **Step 3: Edit the distill step (step 7) to anchor memory to the primary tree**
+- [x] **Step 3: Edit the distill step (step 7) to anchor memory to the primary tree**
 
 In step 7 of the cadence, after "distill the increment's durable, reusable learnings into `.woostack/memory/`", insert:
 
@@ -669,7 +669,7 @@ In step 7 of the cadence, after "distill the increment's durable, reusable learn
    ```
 ```
 
-- [ ] **Step 4: Add the teardown after the cycle (after distill)**
+- [x] **Step 4: Add the teardown after the cycle (after distill)**
 
 At the end of the cadence (after step 7, before "Then advance to the next increment."), insert:
 
@@ -681,12 +681,12 @@ At the end of the cadence (after step 7, before "Then advance to the next increm
    branch tip.
 ```
 
-- [ ] **Step 5: Confirm the verification passes**
+- [x] **Step 5: Confirm the verification passes**
 
 Run: `grep -c "worktree" skills/woostack-execute/SKILL.md`
 Expected: PASS — prints `≥ 3` and references the contract.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 gt create -m "feat(execute): per-increment worktree cadence (parent base-ref, memory->primary, teardown)"
@@ -697,12 +697,12 @@ gt create -m "feat(execute): per-increment worktree cadence (parent base-ref, me
 **Files:**
 - Modify: `skills/woostack-execute-overnight/SKILL.md`
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 Run: `grep -c "worktree" skills/woostack-execute-overnight/SKILL.md`
 Expected: FAIL — prints `0`.
 
-- [ ] **Step 2: Edit the per-increment cadence bullet to inherit worktrees**
+- [x] **Step 2: Edit the per-increment cadence bullet to inherit worktrees**
 
 In `skills/woostack-execute-overnight/SKILL.md`, change the "Per-increment cadence" bullet (currently `branch → implement (driver) → tick … → woostack-commit → review → distill`) to:
 
@@ -715,12 +715,12 @@ In `skills/woostack-execute-overnight/SKILL.md`, change the "Per-increment caden
   track's last worktree is **left in place** for morning inspection, not torn down.
 ```
 
-- [ ] **Step 3: Confirm the verification passes**
+- [x] **Step 3: Confirm the verification passes**
 
 Run: `grep -c "worktree" skills/woostack-execute-overnight/SKILL.md`
 Expected: PASS — prints `≥ 2`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt modify -c -m "docs(overnight): inherit the per-PR worktree cadence; leave blocked-track worktree for AM"

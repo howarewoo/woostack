@@ -84,9 +84,20 @@ Run **one increment per cycle**, in order.
 
 For each increment:
 
-1. **Start its branch before editing.** Verify the current branch is not protected, then create
-   or checkout the fresh Graphite-stacked feature branch for this increment (`gt create`) so
-   all implementation work lands on the branch that will become that increment's PR.
+1. **Start its branch before editing — in a per-PR worktree.** Verify the current branch is not
+   protected, then create (or, when a caller like `woostack-fix` already made it, verify) the
+   increment's fresh Graphite-stacked branch **in its own worktree** off the **parent branch tip**,
+   per the [worktree contract](../woostack-init/references/worktrees.md):
+
+   ```bash
+   git worktree add -b <inc-branch> "$WOOSTACK_ROOT/.woostack/worktrees/<inc-slug>" "$parent_branch"
+   ( cd "$WOOSTACK_ROOT/.woostack/worktrees/<inc-slug>" && gt track --parent "$parent_branch" )
+   ```
+
+   `$parent_branch` is the spec+plan branch for increment 1, else the previous increment's branch
+   (the stack base uses the resolved base branch; stacked increments use their parent). All work —
+   the TDD code, the plan checkbox ticks (step 3), and, in subagent mode, the implementer subagents
+   (dispatched with **cwd = the worktree**) — happens inside it.
 2. **Implement** its tasks via the resolved driver (see [Execution mode](#execution-mode)):
    [references/inline-driver.md](references/inline-driver.md) in inline mode, or
    [references/subagent-driver.md](references/subagent-driver.md) in subagent mode. Both follow
@@ -116,6 +127,16 @@ For each increment:
    near-duplicate notes, and stamp `updated:` on every note you write. Then run `woostack-init`'s
    `build-index.sh` and `doctor.sh`; fix any error. When the store does not exist, skip (or offer
    `/woostack-init` first). Distill only cross-feature knowledge, never feature-specific trivia.
+   The cadence runs inside the per-PR worktree, but `.woostack/memory/` is local-only to the
+   **primary** tree, so export the primary root before distilling so the write lands in the primary
+   store (per the [worktree contract](../woostack-init/references/worktrees.md) §5):
+   `export WOOSTACK_ROOT="$(cd "$(git rev-parse --git-common-dir)/.." && pwd)"`.
+
+8. **Teardown the worktree.** After the increment is committed, reviewed, and distilled, remove its
+   worktree (`git worktree remove "$WOOSTACK_ROOT/.woostack/worktrees/<inc-slug>"`); the
+   branch/commits/PR persist as the stack base for the next increment. **Leave it on a
+   blocker/failure** and report its path. The next increment's worktree is cut off this increment's
+   branch tip.
 
 Then advance to the next increment.
 
