@@ -4,6 +4,15 @@ set -euo pipefail
 
 PASS=0; FAIL=0
 
+fail() {
+  FAIL=$((FAIL+1))
+  echo "  FAIL: $1"
+}
+
+pass() {
+  PASS=$((PASS+1))
+}
+
 assert_eq() { # actual expected msg
   if [ "$1" = "$2" ]; then PASS=$((PASS+1)); else
     FAIL=$((FAIL+1)); echo "  FAIL: $3"; echo "    expected: [$2]"; echo "    actual:   [$1]"; fi
