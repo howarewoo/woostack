@@ -228,19 +228,23 @@ export WOO_REVIEW_ACTION_PATH="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)
 
 Build the same `$OUTDIR/` artifact tree the GitHub Action builds.
 
-> **Atomic state.** `prefetch.sh` wipes `$OUTDIR` (defaults to a per-project `/tmp/pr-review-<hash>` via `scripts/resolve-outdir.sh`) before recreating it. Hosts that invoke individual stages directly (skipping `prefetch.sh`) MUST do the same — stale `findings.<angle>.json` from a prior run will otherwise re-enter the merge step and contaminate the review.
+> **Atomic state.** `prefetch.sh` wipes `$OUTDIR` (a per-run `pr-review-<hash>-<ts>-<pid>` dir locally via `scripts/resolve-outdir.sh`) before recreating it. Hosts that invoke individual stages directly (skipping `prefetch.sh`) MUST do the same — stale `findings.<angle>.json` from a prior run will otherwise re-enter the merge step and contaminate the review. If `prefetch.sh` finds a dir that already holds in-flight `findings.*`, it **hard-stops locally** (`::error::` + exit 1) rather than reuse a contaminated tree; set `WOO_REVIEW_FRESH=1` to force a wipe. (In CI the validate job legitimately pre-populates `$OUTDIR` with downloaded `findings.*`, so there prefetch preserves them and continues.)
 >
-> **OUTDIR override.** All scripts (`prefetch.sh`, `load-config.sh`, `detect-angles.sh`, `merge-findings.sh`, `intersect-findings.sh`, `chunk-diff.sh`, `resolve-diff-line.sh`) honor the `OUTDIR` environment variable. Hosts that cannot use `$OUTDIR/` (e.g. sandboxed runtimes with workspace-scoped temp dirs) MUST export `OUTDIR=<their_dir>` to **every** sub-agent. Without that, sub-agents will write findings to a different directory than the merge step reads, silently dropping them.
+> **OUTDIR override.** All scripts (`prefetch.sh`, `load-config.sh`, `detect-angles.sh`, `merge-findings.sh`, `intersect-findings.sh`, `chunk-diff.sh`, `resolve-diff-line.sh`) honor the `OUTDIR` environment variable. Because the local default is now non-deterministic (per-run), the orchestrator MUST capture `prefetch.sh`'s printed `outdir=<path>` and export `OUTDIR=<that path>` to **every** sub-agent and downstream stage. Without that, sub-agents will write findings to a different directory than the merge step reads, silently dropping them.
 >
-> **Default is per-project.** When `OUTDIR` is unset, scripts derive `/tmp/pr-review-<hash>` from the repo's git toplevel (via `scripts/resolve-outdir.sh`), so different repos on one machine isolate automatically. The orchestrator resolves it once and exports it to every sub-agent; `prefetch.sh` also prints `outdir=<path>`. Two concurrent runs of the *same* repo still share one dir — set `OUTDIR` explicitly to isolate those.
+> **Default is per-run (local) / per-project (CI).** When `OUTDIR` is unset on a local run, `scripts/resolve-outdir.sh` derives a per-**run** `pr-review-<hash>-<ts>-<pid>` dir (the `<hash>` of the git toplevel isolates repos; the `<ts>-<pid>` suffix isolates runs), so two reviews of the *same* repo never share — and contaminate — one findings/receipt tree (issue #321). The orchestrator resolves it once (or captures prefetch's `outdir=<path>`) and exports it verbatim to every sub-agent. Under `GITHUB_ACTIONS=true` the stable per-project `pr-review-<hash>` form is used instead (and `action.yml` pins `OUTDIR=/tmp/pr-review` anyway, keeping CI deterministic). Set `OUTDIR` explicitly to pin a specific tree.
 
 **If a PR number was supplied** — export it and invoke `prefetch.sh` directly. The script handles diff fetch, meta fetch, project-rule discovery, auto-skip checks, and prior-findings extraction. Hosts whose tool gating blocks caller-side `$(...)` substitution (notably sandboxed runtimes) MUST use this path — `prefetch.sh` self-resolves the PR number from the current branch when none is exported and `GITHUB_ACTIONS != "true"`, so callers never need their own subshell.
 
 ```bash
-# Resolve the per-project OUTDIR once and export it so prefetch.sh and every
-# sub-agent share one tree. Default: /tmp/pr-review-<hash> derived from the git
-# toplevel (scripts/resolve-outdir.sh), so different repos on one machine never
-# collide. An explicit OUTDIR (e.g. a sandbox temp dir) is respected as-is.
+# Resolve OUTDIR once and export it so prefetch.sh and every sub-agent share one
+# tree. Local default: a per-RUN pr-review-<hash>-<ts>-<pid> dir
+# (scripts/resolve-outdir.sh), so two reviews of the same repo never collide. An
+# explicit OUTDIR (e.g. a sandbox temp dir) is respected as-is. The `source`
+# below sets and exports OUTDIR in this shell, so prefetch.sh and any sub-agent
+# fanned out from here inherit the per-run value verbatim — no recompute drift.
+# Only when prefetch runs in a separate process whose env you can't inherit,
+# capture its printed outdir=<path> and re-export OUTDIR from that instead.
 source "$WOO_REVIEW_ACTION_PATH/scripts/resolve-outdir.sh"   # sets + exports OUTDIR
 export PR_NUMBER=<n>   # optional; prefetch.sh derives it from the branch when unset
 bash "$WOO_REVIEW_ACTION_PATH/scripts/prefetch.sh"   # prints outdir=<path>; honors the exported OUTDIR
@@ -248,7 +252,7 @@ bash "$WOO_REVIEW_ACTION_PATH/scripts/prefetch.sh"   # prints outdir=<path>; hon
 
 When prefetch resolves a PR number AND finds an open PR, it produces the full artifact tree (`diff.txt`, `meta.json`, `last_sha.txt`, `prior-findings.json`, `rules.md` when applicable, `memory.md` when the consumer repo has `.woostack/memory/`). When no PR resolves, it emits `skip=true` — the host then falls back to local-diff mode below.
 
-**Artifact reference.** All paths are under `$OUTDIR` (default per-project `/tmp/pr-review-<hash>/`):
+**Artifact reference.** All paths are under `$OUTDIR` (local default: a per-run `pr-review-<hash>-<ts>-<pid>/`):
 
 | Artifact | Written by | Consumed by | Notes |
 |---|---|---|---|
@@ -268,8 +272,8 @@ When prefetch resolves a PR number AND finds an open PR, it produces the full ar
 **If no PR number resolved (local mode):**
 
 ```bash
-source "$WOO_REVIEW_ACTION_PATH/scripts/resolve-outdir.sh"   # per-project default OUTDIR (or honors an explicit override)
-rm -rf "$OUTDIR"
+source "$WOO_REVIEW_ACTION_PATH/scripts/resolve-outdir.sh"   # per-run default OUTDIR (or honors an explicit override)
+rm -rf "$OUTDIR"   # harmless: a fresh per-run dir, so this just guarantees a clean tree
 mkdir -p "$OUTDIR"
 BASE="$(git merge-base HEAD origin/main 2>/dev/null || git merge-base HEAD main)"
 git diff "$BASE"...HEAD > "$OUTDIR/diff.txt"

@@ -2,16 +2,24 @@
 # Single source of truth for the default OUTDIR.
 #
 # Sourced (not executed) by every woostack-review script. Respect an explicit
-# OUTDIR override (host sandbox dirs, the GitHub Action's pin, tests); otherwise
-# derive a per-project path so concurrent reviews of different repos on one
-# machine do not share — and clobber — the same /tmp/pr-review tree.
+# OUTDIR override (host sandbox dirs, the GitHub Action's pin, tests) verbatim;
+# otherwise derive a default keyed on the woostack root hash (the git toplevel,
+# via resolve-root.sh — stable across subdirs of one repo) so reviews of
+# different repos on one machine never share — and clobber — one tree.
 #
-# Derivation: hash the woostack root (the git toplevel, via resolve-root.sh —
-# stable across subdirs of one repo); two distinct repo roots hash to two
-# distinct dirs; the same repo always resolves to the same dir.
+# Local (NOT GitHub Actions): mint a per-RUN dir, pr-review-<hash>-<ts>-<pid>.
+# The <hash> isolates repos; the <ts>-<pid> suffix isolates runs, so two reviews
+# of the SAME repo never share a findings/receipt tree (issue #321 — stale
+# artifacts from a prior run were leaking into merge/validation/posting). The
+# suffix is non-deterministic by design: it is minted ONCE per run and the
+# orchestrator captures prefetch.sh's printed `outdir=<path>` and exports OUTDIR
+# verbatim to every sub-agent and downstream stage (no recompute drift — see
+# SKILL.md Stage 1). Set OUTDIR yourself to pin a specific tree.
 #
-# NOTE: per-project granularity only. Two concurrent runs of the SAME repo still
-# share one dir (rare; accepted). For full per-run isolation, set OUTDIR yourself.
+# CI (GITHUB_ACTIONS=true): keep the stable per-project pr-review-<hash> form.
+# This branch is effectively dead — action.yml pins OUTDIR=/tmp/pr-review via
+# GITHUB_ENV before any script runs — but keeping it deterministic preserves
+# CI's hardcoded /tmp/pr-review-* assumptions as defense-in-depth.
 if [ -z "${OUTDIR:-}" ]; then
   # shellcheck source=skills/woostack-review/scripts/resolve-root.sh
   source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-root.sh"
@@ -19,10 +27,15 @@ if [ -z "${OUTDIR:-}" ]; then
   # Place inside the workspace's .woostack/tmp/ directory to leverage pre-approved
   # workspace permissions and avoid sandbox permission prompt loops locally.
   if [ -d "${WOOSTACK_ROOT}/.woostack" ]; then
-    OUTDIR="${WOOSTACK_ROOT}/.woostack/tmp/pr-review-${_wr_hash}"
+    _wr_base="${WOOSTACK_ROOT}/.woostack/tmp"
   else
-    OUTDIR="/tmp/pr-review-${_wr_hash}"
+    _wr_base="/tmp"
   fi
-  unset _wr_hash
+  if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+    OUTDIR="${_wr_base}/pr-review-${_wr_hash}"
+  else
+    OUTDIR="${_wr_base}/pr-review-${_wr_hash}-$(date +%Y%m%d%H%M%S)-$$"
+  fi
+  unset _wr_hash _wr_base
 fi
 export OUTDIR

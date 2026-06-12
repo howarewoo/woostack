@@ -43,8 +43,10 @@ else
 
     # Source under zsh from inside the repo, WOOSTACK_ROOT/OUTDIR unset so
     # resolve-outdir.sh must locate and run resolve-root.sh to populate them.
+    # GITHUB_ACTIONS is also unset so the review copy takes its LOCAL (per-run)
+    # branch — the path the #314 zsh-sourcing bug actually exercised.
     err="$(mktemp)"
-    out="$( cd "$toplevel" && env -u WOOSTACK_ROOT -u OUTDIR zsh -c \
+    out="$( cd "$toplevel" && env -u WOOSTACK_ROOT -u OUTDIR -u GITHUB_ACTIONS zsh -c \
               'source "$0"; printf "%s|%s" "$WOOSTACK_ROOT" "$OUTDIR"' \
               "$resolver" 2>"$err" )" || true
     got_root="${out%%|*}"
@@ -55,8 +57,17 @@ else
       "[$tag] resolve-root.sh sourced under zsh -> WOOSTACK_ROOT == git toplevel"
     assert_not_contains "$got_outdir" "$EMPTY_HASH" \
       "[$tag] OUTDIR not derived from sha1 of empty string under zsh"
-    assert_eq "$got_outdir" "/tmp/pr-review-$want_hash" \
-      "[$tag] OUTDIR derives from the real root hash under zsh"
+    # The two copies intentionally diverge on shape (issue #321): the review copy
+    # mints a per-RUN dir locally (pr-review-<hash>-<ts>-<pid>), while the
+    # address-comments copy stays per-project (pr-review-<hash>). Both still
+    # derive from the real root hash — the #314 regression this test pins.
+    if [ "$tag" = "woostack-review" ]; then
+      assert_contains "$got_outdir" "/tmp/pr-review-$want_hash-" \
+        "[$tag] OUTDIR derives from the real root hash + per-run suffix under zsh"
+    else
+      assert_eq "$got_outdir" "/tmp/pr-review-$want_hash" \
+        "[$tag] OUTDIR derives from the real root hash under zsh"
+    fi
     assert_not_contains "$stderr" "resolve-root.sh" \
       "[$tag] no missing-file error when sourcing resolve-root.sh under zsh"
   done
