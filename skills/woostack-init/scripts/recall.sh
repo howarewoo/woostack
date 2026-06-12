@@ -64,18 +64,13 @@ while IFS= read -r line; do
   [ -n "$line" ] && linked_files+=("$line")
 done < "$linked"
 
-# --- Stamp recall telemetry on every selected note (best-effort). ---
-# Cumulative recall_count + last_recalled. Failures never break recall: they
-# log to stderr and recall still exits 0. Stamps matched + one-hop linked +
-# global notes (each appears in exactly one set, so no double-counting).
+# --- Stamp recall telemetry into the gitignored sidecar (best-effort). ---
+# Cumulative recall_count + last_recalled per note name. Failures never break
+# recall: they log to stderr and recall still exits 0.
 _now="$(_woo_now)"
 stamp_note() {
-  local f="$1" cur next
-  cur="$(field "$f" recall_count || true)"; cur="${cur:-0}"
-  case "$cur" in (*[!0-9]*) cur=0 ;; esac
-  next=$(( cur + 1 ))
-  { set_field "$f" recall_count "$next" && set_field "$f" last_recalled "$_now"; } \
-    || echo "recall: stamp failed $(basename "$f")" >&2
+  tel_bump "$MEM_DIR" "$(field "$1" name || basename "$1" .md)" "$_now" \
+    || echo "recall: stamp failed $(basename "$1")" >&2
 }
 for f in "${matched_files[@]:-}"; do [ -n "${f:-}" ] && stamp_note "$f"; done
 for f in "${linked_files[@]:-}"; do [ -n "${f:-}" ] && stamp_note "$f"; done

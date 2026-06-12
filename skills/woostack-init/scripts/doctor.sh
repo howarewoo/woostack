@@ -81,7 +81,7 @@ for f in "$MEM_DIR"/*.md; do
     upd_e="$(_woo_epoch "$upd" || true)"
     if [ -n "$upd_e" ]; then
       now_e="$(_woo_epoch "$(_woo_now)")"
-      rc="$(field "$f" recall_count)"; rc="${rc:-0}"
+      rc="$(tel_get "$MEM_DIR" "$name" recall_count)"; rc="${rc:-0}"
       case "$rc" in (*[!0-9]*) rc=0 ;; esac
       age=$(( ( now_e - upd_e ) / 86400 ))
       if [ "$age" -gt "${WOOSTACK_DEAD_DAYS:-90}" ] && [ "$rc" -eq 0 ]; then

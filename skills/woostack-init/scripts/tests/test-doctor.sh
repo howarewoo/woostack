@@ -144,9 +144,10 @@ assert_exit 0 "$CODE" "dead note is a warning (exit 0)"
 
 # old but recalled → not flagged
 dd2="$(mktemp -d)/m"; mkdir -p "$dd2"
-mk_note "$dd2" old.md $'name: old\ntype: pattern\nscope: *\nupdated: 2026-01-01\nrecall_count: 3' 'body'
+mk_note "$dd2" old.md $'name: old\ntype: pattern\nscope: *\nupdated: 2026-01-01' 'body'
+printf 'old\t3\t2026-05-01\n' > "$dd2/.telemetry.tsv"
 OUT="$(WOOSTACK_NOW=2026-06-02 bash "$DOC" "$dd2" 2>&1)"
-assert_not_contains "$OUT" "dead note" "a recalled note is never flagged dead"
+assert_not_contains "$OUT" "dead note" "a note recalled per the sidecar is never flagged dead"
 
 # fresh updated → not flagged
 dd3="$(mktemp -d)/m"; mkdir -p "$dd3"

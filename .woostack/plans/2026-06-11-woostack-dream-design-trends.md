@@ -258,7 +258,7 @@ gt modify -c -m "docs(skills): remove flat memory.md fallback prose across the c
 - Modify: `skills/woostack-init/scripts/lib.sh` (append helpers)
 - Test: `skills/woostack-init/scripts/tests/test-lib.sh`
 
-- [ ] **Step 1: Write failing tests for the new helpers**
+- [x] **Step 1: Write failing tests for the new helpers**
 
 Append to `test-lib.sh` before `finish`:
 
@@ -283,12 +283,12 @@ assert_eq "$(field "$dfd/n.md" name)" "x" "del_field preserves other fields"
 assert_contains "$(note_body "$dfd/n.md")" "body" "del_field preserves body"
 ```
 
-- [ ] **Step 2: Run, confirm fail**
+- [x] **Step 2: Run, confirm fail**
 
 Run: `bash skills/woostack-init/scripts/tests/test-lib.sh`
 Expected: FAIL — `tel_bump: command not found` / `del_field: command not found`.
 
-- [ ] **Step 3: Implement the helpers in `lib.sh`**
+- [x] **Step 3: Implement the helpers in `lib.sh`**
 
 Append:
 
@@ -332,12 +332,12 @@ del_field() {
 }
 ```
 
-- [ ] **Step 4: Run, confirm pass**
+- [x] **Step 4: Run, confirm pass**
 
 Run: `bash skills/woostack-init/scripts/tests/test-lib.sh`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt create -m "feat(memory): lib.sh telemetry-sidecar (tel_get/tel_bump) + del_field helpers"
@@ -349,7 +349,7 @@ gt create -m "feat(memory): lib.sh telemetry-sidecar (tel_get/tel_bump) + del_fi
 - Modify: `skills/woostack-init/scripts/recall.sh:67-82`
 - Test: `skills/woostack-init/scripts/tests/test-recall.sh:69-97`
 
-- [ ] **Step 1: Rewrite the telemetry assertions (red)**
+- [x] **Step 1: Rewrite the telemetry assertions (red)**
 
 Replace the stamping assertions (lines 77-85) to read the sidecar via `tel_get` instead of `field … recall_count`:
 
@@ -369,12 +369,12 @@ assert_eq "$(tel_get "$md5" a recall_count)"  "2"          "second run bumps cou
 assert_eq "$(tel_get "$md5" a last_recalled)" "2026-06-03" "second run refreshes last_recalled"
 ```
 
-- [ ] **Step 2: Run, confirm fail**
+- [x] **Step 2: Run, confirm fail**
 
 Run: `bash skills/woostack-init/scripts/tests/test-recall.sh`
 Expected: FAIL — recall still writes `recall_count` into the note via `set_field`; `tel_get` finds no sidecar.
 
-- [ ] **Step 3: Rewrite `stamp_note` to use `tel_bump`**
+- [x] **Step 3: Rewrite `stamp_note` to use `tel_bump`**
 
 Replace lines 67-82 (the `stamp_note` block and its three loops). New `stamp_note`:
 
@@ -394,12 +394,12 @@ while IFS= read -r f; do [ -n "$f" ] && stamp_note "$f"; done < "$globals"
 
 (The read-only-dir best-effort case still holds: `tel_bump` returns non-zero when it can't write the temp file, so the existing "stamp failed" stderr + exit-0 test at lines 87-97 passes unchanged — verify the fixture makes `$MEM_DIR` read-only, not just the note.)
 
-- [ ] **Step 4: Run, confirm pass**
+- [x] **Step 4: Run, confirm pass**
 
 Run: `bash skills/woostack-init/scripts/tests/test-recall.sh`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "feat(memory): recall.sh stamps telemetry to the sidecar, not note frontmatter"
@@ -411,7 +411,7 @@ gt modify -c -m "feat(memory): recall.sh stamps telemetry to the sidecar, not no
 - Modify: `skills/woostack-init/scripts/doctor.sh:85`
 - Test: `skills/woostack-init/scripts/tests/test-doctor.sh:147`
 
-- [ ] **Step 1: Update the "recalled note never dead" fixture (red)**
+- [x] **Step 1: Update the "recalled note never dead" fixture (red)**
 
 In `test-doctor.sh`, the case at line 147 encodes recall via frontmatter (`recall_count: 3`). Move that signal to the sidecar:
 
@@ -422,12 +422,12 @@ OUT="$(WOOSTACK_NOW=2026-06-01 bash "$DIR/../doctor.sh" "$dd2" 2>&1 || true)"
 assert_not_contains "$OUT" "dead note" "a note recalled per the sidecar is never flagged dead"
 ```
 
-- [ ] **Step 2: Run, confirm fail**
+- [x] **Step 2: Run, confirm fail**
 
 Run: `bash skills/woostack-init/scripts/tests/test-doctor.sh`
 Expected: FAIL — doctor reads `recall_count` from frontmatter (now absent) → treats the note as never-recalled → emits "dead note".
 
-- [ ] **Step 3: Read the count from the sidecar in `doctor.sh`**
+- [x] **Step 3: Read the count from the sidecar in `doctor.sh`**
 
 Replace line 85:
 
@@ -441,12 +441,12 @@ with:
 rc="$(tel_get "$MEM_DIR" "$name" recall_count)"; rc="${rc:-0}"
 ```
 
-- [ ] **Step 4: Run, confirm pass**
+- [x] **Step 4: Run, confirm pass**
 
 Run: `bash skills/woostack-init/scripts/tests/test-doctor.sh`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "feat(memory): doctor.sh dead-note check joins recall_count from the sidecar"
@@ -458,11 +458,11 @@ gt modify -c -m "feat(memory): doctor.sh dead-note check joins recall_count from
 - Modify: `skills/woostack-init/references/memory.md` §3 (field table), §8 (dead-note source)
 - One-time data fix: this repo's `.woostack/memory/*.md`
 
-- [ ] **Step 1: Edit the contract**
+- [x] **Step 1: Edit the contract**
 
 §3: remove the `recall_count` and `last_recalled` rows from the note-frontmatter field table; add a short paragraph: telemetry lives in a tool-managed, gitignored `.woostack/memory/.telemetry.tsv` sidecar (`name⇥recall_count⇥last_recalled`), written by `recall.sh`, read by `doctor.sh`; stray copies in note frontmatter are inert. §8: change "reads `recall_count`/`last_recalled` (§3) … stamps … on every selected note" to "stamps the sidecar"; the dead-note check joins the sidecar by name.
 
-- [ ] **Step 2: One-time strip of telemetry frontmatter from this repo's notes**
+- [x] **Step 2: One-time strip of telemetry frontmatter from this repo's notes**
 
 Run (in the primary tree, before Inc C tracks them):
 
@@ -474,12 +474,12 @@ Run (in the primary tree, before Inc C tracks them):
   done )
 ```
 
-- [ ] **Step 3: Verify the strip + contract**
+- [x] **Step 3: Verify the strip + contract**
 
 Run: `grep -lE '^recall_count:|^last_recalled:' .woostack/memory/*.md; grep -nE 'recall_count|last_recalled' skills/woostack-init/references/memory.md`
 Expected: no note files listed (telemetry stripped); the contract mentions the fields only as "sidecar / inert", not as live frontmatter rows.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt modify -c -m "docs(memory): contract §3/§8 telemetry → sidecar; strip stale frontmatter"

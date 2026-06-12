@@ -71,21 +71,22 @@ rm -rf "$woo" "$woo2" "$woo3" "$woo4" "$paths2"
 
 # --- telemetry stamping ---
 woo5="$(mktemp -d)"; md5="$woo5/memory"; mkdir -p "$md5"
-mk_note "$md5" a.md $'name: a\ntype: pattern\nscope: pkg/**'      'A body [[b]]'
+mk_note "$md5" alpha.md $'name: a\ntype: pattern\nscope: pkg/**'  'A body [[b]]'
 mk_note "$md5" b.md $'name: b\ntype: pattern\nscope: zzz/**'      'B linked body'
 mk_note "$md5" g.md $'name: g\ntype: convention\nscope: *'        'G global body'
 p5="$(mktemp)"; printf 'pkg/x.ts\n' > "$p5"
 
 WOOSTACK_NOW=2026-06-02 bash "$RECALL" "$woo5" "$p5" >/dev/null
-assert_eq "$(field "$md5/a.md" recall_count)"  "1"          "matched note stamped count=1"
-assert_eq "$(field "$md5/a.md" last_recalled)" "2026-06-02" "matched note last_recalled stamped"
-assert_eq "$(field "$md5/b.md" recall_count)"  "1"          "one-hop linked note stamped"
-assert_eq "$(field "$md5/g.md" recall_count)"  "1"          "global (scope:*) note stamped"
+assert_eq "$(tel_get "$md5" a recall_count)"  "1"          "matched note stamped count=1"
+assert_eq "$(tel_get "$md5" a last_recalled)" "2026-06-02" "matched note last_recalled stamped"
+assert_eq "$(tel_get "$md5" b recall_count)"  "1"          "one-hop linked note stamped"
+assert_eq "$(tel_get "$md5" g recall_count)"  "1"          "global note stamped"
+assert_eq "$(field "$md5/alpha.md" recall_count)" "" "recall does not write telemetry into note frontmatter"
 
 # second run bumps the cumulative count and refreshes the date
 WOOSTACK_NOW=2026-06-03 bash "$RECALL" "$woo5" "$p5" >/dev/null
-assert_eq "$(field "$md5/a.md" recall_count)"  "2"          "second run bumps count to 2"
-assert_eq "$(field "$md5/a.md" last_recalled)" "2026-06-03" "second run refreshes last_recalled"
+assert_eq "$(tel_get "$md5" a recall_count)"  "2"          "second run bumps count to 2"
+assert_eq "$(tel_get "$md5" a last_recalled)" "2026-06-03" "second run refreshes last_recalled"
 
 # best-effort: a read-only memory dir makes stamping fail, but recall still
 # produces output and exits 0, logging the failure to stderr.
