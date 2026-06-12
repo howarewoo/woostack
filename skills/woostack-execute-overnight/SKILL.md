@@ -1,6 +1,6 @@
 ---
 name: woostack-execute-overnight
-description: Use to execute an approved woostack plan UNATTENDED overnight — one autonomous run with no user input after launch that drives every increment to a reviewed stack, swapping woostack-execute's stop-and-ask gates for resolve-or-log-and-continue (woostack-debug on stuck verifications; bounded auto-address on a blocking review; halt-the-track on anything unsafe or ambiguous), honoring optional `## Track:` grouping in the plan (independent, fault-isolated tracks run sequentially), and writing a morning report under .woostack/overnight/ for a human to test in the morning. It is the third choice at woostack-build's execution-handoff gate (Go / Hand off / Run overnight); also usable standalone via /woostack-execute-overnight <plan-path> [--inline|--subagent]. One plan per spec, multiple PRs per plan. Never merges; never relaxes safety for autonomy.
+description: Use to execute an approved woostack plan unattended overnight, with autonomous blocker handling, optional tracks, a post-implementation review sweep that drives each increment PR to a clean review, and a morning report. Never merges.
 ---
 
 # woostack-execute-overnight
@@ -89,6 +89,9 @@ log as it happens**.
    - **subagent**: there is no PR-level review; the per-task spec→quality reviewer loops are the
      bounded review and their **`BLOCKED`** escalation is the terminal outcome → treat it directly
      as a **blocker** → halt policy (the loop already was the retry; no separate auto-address).
+
+   Override #2 is the **per-increment early check** during the build. The stack-wide
+   **drive-to-clean** happens after implementation — see [Post-implementation review sweep](#post-implementation-review-sweep), which is additive and leaves this override unchanged.
 3. **Unsafe or ambiguous plan step** → **safety is never relaxed for autonomy.** A
    destructive / secret-touching / auth-mutating / network step, or a genuinely ambiguous
    instruction, is **never auto-approved** → **blocker** → halt policy.
@@ -112,6 +115,84 @@ increments in order. On a **blocker**:
 - A single-track (default) plan therefore halts the remainder at the blocker — expected and
   reported, not an error.
 
+## Post-implementation review sweep
+
+After a track's increments are all implemented and committed — and **before advancing to the
+next track** — drive that track's stack to a clean review. This is **additive**: the
+per-increment override #2 (the `--fast` blocking-review check during the build) is unchanged;
+the sweep is a separate, thorough pass over the finished stack. It runs for **both drivers**
+(inline and subagent), giving a subagent-built stack its first PR-level review. It **never
+merges**.
+
+A plan with no `## Track:` headings has one implicit track, so the default is exactly: implement
+the whole stack, then sweep it. The sweep covers **increment PRs only** — never the
+docs-only spec+plan base PR. If a track halted mid-implementation, the sweep covers the
+increments that reached a committed PR, bottom-up.
+
+### The per-PR loop (bottom-up, drive-to-clean)
+
+For each increment PR in the track, from the **base of the stack upward**, work in a **per-PR
+worktree** on the existing increment branch. If that branch is already checked out in a preserved
+blocker worktree, reuse it; otherwise set
+`wt="$WOOSTACK_ROOT/.woostack/worktrees/<inc-slug>-sweep"` and run
+`git worktree add "$wt" <inc-branch>` — **no** `-b`. The **primary tree is never edited**, per the
+[worktree contract](../woostack-init/references/worktrees.md) §3. Export
+`WOOSTACK_ROOT="$(cd "$(git rev-parse --git-common-dir)/.." && pwd)"` first (contract §5) so any
+`address-comments` memory write lands in the primary store. Then loop, up to `max_rounds` rounds
+(see Config):
+
+1. **Review** — `woostack-review <PR#> --full`. **Every** round is `--full` (a complete re-review
+   of the whole PR), so a fix that breaks something *outside* its own diff is still caught, and
+   inline-mode override #2's per-increment SHA watermark can never silently narrow the pass to an
+   incremental one.
+2. **Clean?** Clean = woostack-review's computed verdict has **no blocking findings** (`STATUS_LINE`
+   `APPROVED` / `APPROVED WITH SUGGESTIONS`) **and zero unresolved threads** (checked via `gh`).
+   Read the **verdict, not the GitHub event**: overnight increment PRs are self-authored, so
+   woostack-review downgrades the posted event `APPROVE`→`COMMENT` (you cannot approve your own
+   PR). Clean ⇒ teardown the worktree, advance to the next PR. "Clean" is **review-clean, not a
+   human merge-approval** — the run still never merges.
+3. **Address** — otherwise run
+   [`woostack-address-comments --auto`](../woostack-address-comments/SKILL.md) from inside the
+   worktree (its clean-tree + branch=PR-head precondition holds there): it fixes / pushes back /
+   replies / resolves / pushes (via `woostack-commit --no-pr-update`). Never force-push a protected
+   base; never merge.
+4. **Restack this track's own stack** — `gt restack` then `gt submit --stack` scoped to the
+   current stack, so the PRs above rebase onto the new tip and their rebased branches are pushed.
+   **Never `gt sync` or a repo-wide restack** (worktree contract §4/§6: a repo-wide restack
+   collides with any parallel run in flight). A restack/rebase conflict is a **blocker**.
+5. **Re-review** → back to step 1.
+
+Strictly bottom-up: a PR is driven to clean before the sweep moves up, and a fix only restacks the
+PRs **above** it — never a cleared lower PR — so each PR is reviewed exactly once on the way up.
+
+### Termination backstop
+
+The per-PR loop is bounded — **whichever trips first**:
+
+- **Max rounds** — at most `max_rounds` review→address rounds per PR (default **3**; see Config).
+- **No-progress guard** — stop early when a round resolves **no** thread, **or** a re-review returns
+  the **same** blocking findings as the prior round, **or** an `address-comments` `CLARIFY` leaves a
+  thread open (an open thread fails the clean check and can never go clean by churning).
+
+Either, without a clean PR, is a **blocker → halt** (below). The reason is written to the decision
+log.
+
+### Halt (reuses Tracks & halt policy)
+
+A sweep blocker — cap-without-clean, no-progress, a `woostack-review` error/hang, a restack
+conflict, or an `address-comments` step that would touch the never-auto-approve set (destructive /
+secret / auth / network / ambiguous) — **ends that track's remaining sweep** (the blocked PR is
+recorded `blocked`, and every PR above it becomes `not-attempted-review`) and the run **advances to
+the next track**, exactly the existing [Tracks & halt policy](#tracks--halt-policy). Safety is never
+relaxed for autonomy; the blocked PR's worktree is **left in place** for morning inspection.
+
+### Config
+
+`overnight.review_sweep.max_rounds` in `.woostack/config.json` (positive integer, default **3**)
+caps the per-PR rounds. Validated at **pre-flight**: a non-positive / non-integer value warns, falls
+back to 3, and is recorded in the report — never a refuse-to-start (a sweep-cap typo is not a doomed
+plan).
+
 ## Morning report
 
 Written incrementally to `.woostack/overnight/<run-date>-<plan-slug>.md` — the run date
@@ -128,14 +209,16 @@ tree for the review / address-comments clean-tree preconditions. Sections:
 - **Run summary**: plan, driver, start/end, outcome (`clean` / `partial+blockers` /
   `refused-to-start`).
 - **Per-increment table**: status (`done` / `done-with-findings` / `blocked` / `not-attempted`),
-  branch + PR URL, review verdict, auto-address rounds used.
+  branch + PR URL, review verdict, auto-address rounds used, and sweep verdict.
+- **Review sweep**: per-PR rounds used, final sweep verdict, no-progress flag, and blocker reason.
 - **Decision log**: every autonomous decision with its rationale.
 
 ## Terminal state
 
-Stop when every track has either completed or halted at a blocker. The result is a Graphite stack
-(linear, or tree-stacked across tracks) of reviewed / partially-reviewed increment PRs, plus a
-complete morning report. Report the path. **Never merge.**
+Stop when every track has either completed (increments implemented **and** swept to a clean review)
+or halted at a blocker. The result is a Graphite stack (linear, or tree-stacked across tracks) of
+increment PRs each driven to a clean review — or partially, with blockers logged — plus a complete
+morning report. Report the path. "Clean" is review-clean, never a merge. **Never merge.**
 
 ## Gate boundary
 
@@ -156,6 +239,12 @@ an inference. It never merges and never relaxes safety for autonomy.
   auto-approved.
 - **Tracks: author-driven, overnight-only.** Honor `## Track:` headings (default one implicit
   track); a blocker ends only its track. Never force-build on broken work.
+- **Drive the stack to clean review.** After a track's increments are committed, sweep its
+  increment PRs bottom-up — `woostack-review --full` → `woostack-address-comments --auto` → restack
+  **this stack only** (`gt restack`/`gt submit --stack`, never `gt sync`) → re-review — to a clean
+  verdict (no blocking findings, read from `STATUS_LINE` not the self-downgraded event) + zero
+  unresolved threads. Bounded by `overnight.review_sweep.max_rounds` (default 3) + a no-progress
+  guard; a blocker halts only that track. Both drivers. Never merge.
 - **Morning report every run**, incremental and gitignored under `.woostack/overnight/`.
 - **Reuse execute; don't restate it.** Cross-link the cadence, drivers, safety, and memory
   contract.

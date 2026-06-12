@@ -24,12 +24,12 @@ Conventions for this increment:
 **Files:**
 - Modify: `skills/woostack-execute-overnight/SKILL.md` (insert a new section between `## Tracks & halt policy` and `## Morning report`)
 
-- [ ] **Step 1: Write the failing check**
+- [x] **Step 1: Write the failing check**
 
 Run: `grep -c "Post-implementation review sweep" skills/woostack-execute-overnight/SKILL.md`
 Expected: FAIL — prints `0` (section absent).
 
-- [ ] **Step 2: Insert the section**
+- [x] **Step 2: Insert the section**
 
 Insert the following block immediately **before** the `## Morning report` line in `skills/woostack-execute-overnight/SKILL.md`:
 
@@ -111,7 +111,7 @@ back to 3, and is recorded in the report — never a refuse-to-start (a sweep-ca
 plan).
 ```
 
-- [ ] **Step 3: Run the checks, confirm they pass**
+- [x] **Step 3: Run the checks, confirm they pass**
 
 Run:
 ```bash
@@ -125,7 +125,7 @@ grep -q "per-PR worktree" skills/woostack-execute-overnight/SKILL.md && echo "wo
 ```
 Expected: `1`, then `bottom-up: ok`, `full: ok`, `no-gt-sync: ok`, `config-key: ok`, `verdict-not-event: ok`, `worktree: ok`.
 
-- [ ] **Step 4: Confirm placement (between Tracks & halt and Morning report)**
+- [x] **Step 4: Confirm placement (between Tracks & halt and Morning report)**
 
 Run: `grep -n "^## \(Tracks & halt policy\|Post-implementation review sweep\|Morning report\)" skills/woostack-execute-overnight/SKILL.md`
 Expected: the three headings appear in that order (Tracks & halt policy < Post-implementation review sweep < Morning report).
@@ -141,7 +141,7 @@ gt create -m "feat(execute-overnight): post-implementation review sweep section"
 **Files:**
 - Modify: `skills/woostack-execute-overnight/SKILL.md` (override #2 cross-ref, terminal-state, hard-constraints, frontmatter `description`)
 
-- [ ] **Step 1: Write the failing checks**
+- [x] **Step 1: Write the failing checks**
 
 Run:
 ```bash
@@ -150,7 +150,7 @@ grep -c "Drive the stack to clean review" skills/woostack-execute-overnight/SKIL
 ```
 Expected: FAIL — both print `0`.
 
-- [ ] **Step 2a: Cross-ref from override #2**
+- [x] **Step 2a: Cross-ref from override #2**
 
 In the `## Autonomy overrides` item **2. Blocking review**, append a final sentence to the
 **subagent** sub-bullet (the last line of item 2), so the per-increment override points at the new
@@ -171,7 +171,7 @@ to:
    leaves this override unchanged.
 ```
 
-- [ ] **Step 2b: Update Terminal state**
+- [x] **Step 2b: Update Terminal state**
 
 In `## Terminal state`, replace:
 
@@ -190,7 +190,7 @@ increment PRs each driven to a clean review — or partially, with blockers logg
 morning report. Report the path. "Clean" is review-clean, never a merge. **Never merge.**
 ```
 
-- [ ] **Step 2c: Add a Hard-constraints bullet**
+- [x] **Step 2c: Add a Hard-constraints bullet**
 
 In `## Hard constraints`, immediately after the `**Tracks: author-driven, overnight-only.**`
 bullet, insert:
@@ -204,13 +204,13 @@ bullet, insert:
   blocker halts only that track. Both drivers. Never merge.
 ```
 
-- [ ] **Step 2d: Update the frontmatter `description`**
+- [x] **Step 2d: Update the frontmatter `description`**
 
 In the YAML frontmatter `description:` string, find the **exact** clause `drives every increment to a reviewed stack` (verified present on the `description:` line) and insert immediately after it — before the following `, swapping` — this text:
 ` then runs a post-implementation review sweep that drives each increment PR to a clean review (full woostack-review → auto-address → restack → re-review, bounded)`
 so the line reads `...drives every increment to a reviewed stack then runs a post-implementation review sweep that drives each increment PR to a clean review (full woostack-review → auto-address → restack → re-review, bounded), swapping woostack-execute's stop-and-ask gates...` (rest of the string unchanged).
 
-- [ ] **Step 3: Run the checks, confirm they pass**
+- [x] **Step 3: Run the checks, confirm they pass**
 
 Run:
 ```bash
@@ -221,7 +221,7 @@ grep -q "post-implementation review sweep that drives each increment PR to a cle
 ```
 Expected: `override2-xref: ok`, `hard-constraint: ok`, `terminal-state: ok`, `description: ok`.
 
-- [ ] **Step 4: Regression — override #2's `--fast` per-increment text is unchanged**
+- [x] **Step 4: Regression — override #2's `--fast` per-increment text is unchanged**
 
 Run: `grep -q "woostack-review --fast" skills/woostack-execute-overnight/SKILL.md && echo "override2-fast: still present"`
 Expected: `override2-fast: still present` (the augment invariant — sweep did not remove or alter override #2).
@@ -237,12 +237,12 @@ gt modify -c -m "feat(execute-overnight): wire sweep into override #2, terminal 
 **Files:**
 - Modify: `skills/woostack-execute-overnight/references/report-template.md` (per-increment table column + new Review-sweep section + decision-log examples)
 
-- [ ] **Step 1: Write the failing check**
+- [x] **Step 1: Write the failing check**
 
 Run: `grep -c "## Review sweep" skills/woostack-execute-overnight/references/report-template.md`
 Expected: FAIL — prints `0`.
 
-- [ ] **Step 2a: Add a Sweep column to the per-increment table**
+- [x] **Step 2a: Add a Sweep column to the per-increment table**
 
 Replace the per-increment table header + row:
 
@@ -260,7 +260,7 @@ with:
 | {{A}} | {{1}} | {{done / done-with-findings / blocked / not-attempted}} | {{branch / PR URL}} | {{verdict}} | {{0–2}} | {{clean / blocked / not-attempted-review}} |
 ```
 
-- [ ] **Step 2b: Add the Review sweep section**
+- [x] **Step 2b: Add the Review sweep section**
 
 Immediately **after** the per-increment table block and **before** `## Decision log`, insert:
 
@@ -276,7 +276,7 @@ Immediately **after** the per-increment table block and **before** `## Decision 
 | {{A}} | {{#}} | {{r}} | {{clean / blocked / not-attempted-review}} | {{yes / no}} | {{— / cap / no-progress / restack-conflict / unsafe}} |
 ```
 
-- [ ] **Step 2c: Extend the decision-log examples**
+- [x] **Step 2c: Extend the decision-log examples**
 
 In `## Decision log`, replace the example line:
 
@@ -290,7 +290,7 @@ with:
 - {{stamp}} — {{decision (debug fix / auto-address round / sweep review round / sweep PR clean / sweep blocked: cap | no-progress | restack-conflict | unsafe / BLOCKED / blocker recorded / track ended / increment not-attempted) + rationale}}
 ```
 
-- [ ] **Step 3: Run the checks, confirm they pass**
+- [x] **Step 3: Run the checks, confirm they pass**
 
 Run:
 ```bash
@@ -300,7 +300,7 @@ grep -q "sweep review round" skills/woostack-execute-overnight/references/report
 ```
 Expected: `sweep-section: ok`, `sweep-column: ok`, `decision-log: ok`.
 
-- [ ] **Step 4: Confirm Review-sweep sits between Per-increment and Decision log**
+- [x] **Step 4: Confirm Review-sweep sits between Per-increment and Decision log**
 
 Run: `grep -n "^## \(Per-increment\|Review sweep\|Decision log\)" skills/woostack-execute-overnight/references/report-template.md`
 Expected: the three headings in that order (Per-increment < Review sweep < Decision log).
@@ -315,7 +315,7 @@ gt modify -c -m "feat(execute-overnight): report-template Review sweep section +
 
 **Files:** none (verification only)
 
-- [ ] **Step 1: Run the full AC presence-check suite**
+- [x] **Step 1: Run the full AC presence-check suite**
 
 Run:
 ```bash
@@ -336,22 +336,22 @@ grep -q "## Review sweep" "$R" && grep -q "Sweep |" "$R" && grep -q "post-implem
 ```
 Expected: `AC1 ok`, `AC2 ok`, `AC3 ok`, `AC4 ok`, `AC5 ok`, `AC6 ok` (each line prints only if its conjuncts all match).
 
-- [ ] **Step 2: Consistency — config key spelled identically everywhere**
+- [x] **Step 2: Consistency — config key spelled identically everywhere**
 
 Run: `grep -rho "overnight.review_sweep.max_rounds" skills/woostack-execute-overnight/ | sort -u`
 Expected: a single line `overnight.review_sweep.max_rounds` (no spelling drift across the SKILL).
 
-- [ ] **Step 3: Consistency — halt policy referenced by link, not duplicated**
+- [x] **Step 3: Consistency — halt policy referenced by link, not duplicated**
 
 Run: `grep -c "End the current track" skills/woostack-execute-overnight/SKILL.md`
 Expected: `1` — the halt policy is defined once (in `## Tracks & halt policy`); the sweep links to it (`#tracks--halt-policy`) rather than restating it.
 
-- [ ] **Step 4: No broken intra-doc anchors introduced**
+- [x] **Step 4: No broken intra-doc anchors introduced**
 
 Run: `grep -n "#post-implementation-review-sweep\|#tracks--halt-policy" skills/woostack-execute-overnight/SKILL.md`
 Expected: both anchor references resolve to real `## Post-implementation review sweep` / `## Tracks & halt policy` headings (eyeball the heading lines from Task 1 Step 4 / above).
 
-- [ ] **Step 5: Commit (if any verification surfaced a fix; else no-op)**
+- [x] **Step 5: Commit (if any verification surfaced a fix; else no-op)**
 
 ```bash
 # Only if Steps 1–4 revealed a gap you had to patch:
@@ -362,9 +362,9 @@ gt modify -c -m "fix(execute-overnight): close sweep verification gap"
 
 ## Self-review (run before handing back)
 
-- [ ] **Spec coverage** — every §1–§6 design point maps to a task: sweep phase/placement (Task 1), per-PR loop incl. worktree/full-review/restack-scope/clean-def (Task 1), backstop + config (Task 1), halt reuse (Task 1), override-#2 augment + terminal/constraints/description (Task 2), report template (Task 3).
-- [ ] **AC coverage** — spec §7 AC1–AC6 each map to a presence check in Task 4 Step 1 (plus per-task checks in Tasks 1–3); AC's happy/error/edge conjuncts are encoded in the grep conjunctions.
-- [ ] **No placeholders** — every edit step carries the exact final markdown block and every verify step an exact command + expected output; the only `{{...}}` are inside report-**template** literal content (intended).
-- [ ] **Type consistency** — the config key `overnight.review_sweep.max_rounds`, the anchor `#post-implementation-review-sweep`, the verdict tokens (`clean` / `blocked` / `not-attempted-review`), and `STATUS_LINE` are spelled identically across SKILL, plan, and report-template.
+- [x] **Spec coverage** — every §1–§6 design point maps to a task: sweep phase/placement (Task 1), per-PR loop incl. worktree/full-review/restack-scope/clean-def (Task 1), backstop + config (Task 1), halt reuse (Task 1), override-#2 augment + terminal/constraints/description (Task 2), report template (Task 3).
+- [x] **AC coverage** — spec §7 AC1–AC6 each map to a presence check in Task 4 Step 1 (plus per-task checks in Tasks 1–3); AC's happy/error/edge conjuncts are encoded in the grep conjunctions.
+- [x] **No placeholders** — every edit step carries the exact final markdown block and every verify step an exact command + expected output; the only `{{...}}` are inside report-**template** literal content (intended).
+- [x] **Type consistency** — the config key `overnight.review_sweep.max_rounds`, the anchor `#post-implementation-review-sweep`, the verdict tokens (`clean` / `blocked` / `not-attempted-review`), and `STATUS_LINE` are spelled identically across SKILL, plan, and report-template.
 
 > woostack plan conventions (kept): frontmatter-free; opens with the `**Source:**` line; filename mirrors the spec basename (`2026-06-11-overnight-review-sweep.md`, the spec's date); no required-sub-skill banner; no-runner "failing test" = a concrete `grep`/`bash -n` with exact expected output.
