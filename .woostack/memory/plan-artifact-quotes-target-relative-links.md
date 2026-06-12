@@ -8,8 +8,8 @@ updated: 2026-06-10
 source: pr-284
 ---
 A `.woostack/fixes/` or `.woostack/plans/` artifact often quotes the relative Markdown link that
-belongs in *another* file (e.g. the `[woostack-execute](../woostack-execute/SKILL.md)` link
-destined for `skills/woostack-fix/SKILL.md`). That link resolves correctly from the **target**
+belongs in *another* file (e.g. label `woostack-execute` with target
+`../woostack-execute/SKILL.md`, destined for `skills/woostack-fix/SKILL.md`). That link resolves correctly from the **target**
 file's directory but renders as a broken link from the **artifact's** own directory.
 
 Do not flag it as a broken link. The quote's accuracy for its target file beats the artifact's
