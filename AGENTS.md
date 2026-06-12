@@ -48,13 +48,23 @@ The exception is consumer-facing review delivery: [`action.yml`](action.yml) and
 this repo so consumers can run `woostack-review` in their own CI. They are shipped assets,
 not self-CI, and should not be deleted as stray workflows.
 
+The second exception is the user-facing documentation site: [`site/`](site/) is a shipped
+Fumadocs (Next.js) application subtree — the docs site for these skills. Like
+[`action.yml`](action.yml), it is a shipped asset, not stray app code. Its `package.json`,
+`pnpm-lock.yaml`, and build config are the one sanctioned exception to the "no application
+source code / no app lockfile" rule above. Its per-skill reference pages are **generated**
+from `skills/*/SKILL.md` at build time and are gitignored; only the app shell and authored
+framing pages are committed. Deploy notes live in [`site/README.md`](site/README.md).
+
 ## Modes
 
 Identify the mode before acting.
 
 **Mode A: edit this skill collection.** Use this when updating skill Markdown, reference
 docs, HTML templates, review scripts, prompts, or JSON config. Keep edits in skill assets;
-do not add application code, app build configs, or app lockfiles.
+do not add application code, app build configs, or app lockfiles **outside the sanctioned
+[`site/`](site/) docs-app subtree** (see the documentation-site exception above). Editing
+`site/` is also Mode A.
 
 **Mode B: run a woostack command.** Use this when the user asks for `/woostack-init`,
 `/woostack-bootstrap`, `/woostack-build`, `/woostack-fix`, `/woostack-plan`, `/woostack-execute`, `/woostack-execute-overnight`, `/woostack-commit`,
