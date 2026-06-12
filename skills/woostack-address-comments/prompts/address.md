@@ -109,9 +109,10 @@ Show the fix plan alongside the FIX verdict **wherever the gate renders it**:
   instead. Only when the learning is genuinely new, stage it for the
   memory write — which runs in the after-phases step below, alongside the reply,
   so it never lands ahead of a rejected push. Phrase it as a **terse pattern, not
-  an instance**: one line, `<pattern>: <reason>`, ideally ≤100 chars. State the
-  rule and stop — no preamble, no narration, no instance line numbers, no
-  restating the finding. Also stage `memory_scope`: the narrowest glob covering
+  an instance**: one line, `<pattern>: <reason>`, per the canonical
+  memory-note-body discipline
+  ([`output-discipline.md`](../../using-woostack/references/output-discipline.md#memory-note-bodies)).
+  Also stage `memory_scope`: the narrowest glob covering
   where the accepted rule applies. Only a final ACCEPT (accept-by-design) writes
   memory. A "won't-fix because transient / out-of-scope" is not a reusable rule
   — do not record it.
@@ -143,9 +144,9 @@ Show the fix plan alongside the FIX verdict **wherever the gate renders it**:
    staged memory pattern (only now, after the push succeeded). When a
    `.woostack/memory/` scope-routed store exists, this writes an individual note
    there and rebuilds `MEMORY.md`; otherwise it skips with a notice to run
-   `/woostack-init`. Keep `LEARNING` terse — one line,
-   `<pattern>: <reason>`, ideally ≤100 chars, no filler. Set `MEMORY_SCOPE` to
-   the staged `memory_scope`:
+   `/woostack-init`. Keep `LEARNING` terse per the canonical memory-note-body
+   discipline ([`output-discipline.md`](../../using-woostack/references/output-discipline.md#memory-note-bodies)).
+   Set `MEMORY_SCOPE` to the staged `memory_scope`:
 
    ```bash
    LEARNING="<general pattern>: <why it is accepted / what not to re-flag>" \

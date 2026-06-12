@@ -24,6 +24,7 @@ on this reviewer prompt's criteria.
 - Missing tests on new behavior.
 
 ## Report back (required)
+Follow the internal-comms Output Discipline (`skills/using-woostack/references/output-discipline.md`): terse envelope. Keep the `VERDICT` token **verbatim**; write each `ISSUES` item in full clear English (auto-clarity carve-out).
 - VERDICT: APPROVED or CHANGES_REQUESTED.
 - ISSUES: severity-tagged bullets (Important / Minor), each with a concrete fix; "none" if clean.
 Approve only when no Important issues remain outstanding.

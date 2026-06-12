@@ -124,7 +124,7 @@ For each increment:
    `source` the spec/plan path. Apply the **reject-by-default distillation gate**
    ([memory contract §7](../woostack-init/references/memory.md#7-distillation-write-path)) —
    dedupe against `.woostack/memory/MEMORY.md` first, reject trivia / source-less /
-   near-duplicate notes, and stamp `updated:` on every note you write. Then run `woostack-init`'s
+   near-duplicate notes, and stamp `updated:` on every note you write. Write each note body per the canonical memory-note-body discipline ([`output-discipline.md`](../using-woostack/references/output-discipline.md#memory-note-bodies)). Then run `woostack-init`'s
    `build-index.sh` and `doctor.sh`; fix any error. When the store does not exist, skip (or offer
    `/woostack-init` first). Distill only cross-feature knowledge, never feature-specific trivia.
    The cadence runs inside the per-PR worktree, and tracked memory notes are written there:

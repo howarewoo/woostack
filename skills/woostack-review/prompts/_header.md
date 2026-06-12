@@ -4,6 +4,8 @@ This contract is identical across every provider runner. The orchestration secti
 
 ## Output Discipline (READ FIRST)
 
+> This section governs the **review JSON artifacts** below. For **prose handbacks** elsewhere in woostack (subagent reports, memory bodies), see the separate [internal-comms Output Discipline](../../using-woostack/references/output-discipline.md) — a different channel with different rules.
+
 Every artifact you write under `$OUTDIR/findings.*.json` (default `/tmp/pr-review/findings.<angle>.json`) MUST be a valid JSON array — and **only** a JSON array.
 
 - The file MUST start with `[` and end with `]`.

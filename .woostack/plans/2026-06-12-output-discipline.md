@@ -19,16 +19,16 @@
 **Files:**
 - Create: `skills/using-woostack/references/output-discipline.md`
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 Run: `test -f skills/using-woostack/references/output-discipline.md && echo FOUND || echo MISSING`
 Expected: FAIL — prints `MISSING` (file not created yet).
 
-- [ ] **Step 2: Confirm it fails**
+- [x] **Step 2: Confirm it fails**
 
 Run the command above; confirm output is `MISSING`.
 
-- [ ] **Step 3: Create the file with this exact content**
+- [x] **Step 3: Create the file with this exact content**
 
 ```markdown
 # Output Discipline (internal comms)
@@ -84,7 +84,7 @@ The envelope around these still goes terse (drop the preamble, keep the field la
 A distilled memory note body is one terse reusable rule: **one line, `<pattern>: <reason>`, ideally ≤100 chars, no preamble or narration.** State the rule and stop — no instance line numbers, no restating the finding. This is the single canonical definition of the rule; the memory contract and the review / address-comments record steps link here instead of restating it.
 ```
 
-- [ ] **Step 4: Confirm all five sections + the principle line are present**
+- [x] **Step 4: Confirm all five sections + the principle line are present**
 
 Run:
 ```bash
@@ -94,7 +94,7 @@ grep -q 'strip the envelope, never the reasoning' "$f" && echo PRINCIPLE_OK
 ```
 Expected: PASS — first command prints `5`; second prints `PRINCIPLE_OK`.
 
-- [ ] **Step 5: Confirm the carve-out anchor + key tokens resolve as specced**
+- [x] **Step 5: Confirm the carve-out anchor + key tokens resolve as specced**
 
 Run:
 ```bash
@@ -105,7 +105,7 @@ grep -q 'CONCERNS' "$f" && grep -q 'ISSUES' "$f" && echo FINDINGS_OK
 ```
 Expected: PASS — prints `ANCHOR_OK`, `CONTRACT_OK`, `FINDINGS_OK`. (Covers AC1 edge: contract rule names STATUS/VERDICT; carve-out names findings.)
 
-- [ ] **Step 6: Commit (first commit of the increment)**
+- [x] **Step 6: Commit (first commit of the increment)**
 
 ```bash
 gt create -m "docs(using-woostack): add canonical Output Discipline reference for internal comms"
@@ -116,16 +116,16 @@ gt create -m "docs(using-woostack): add canonical Output Discipline reference fo
 **Files:**
 - Modify: `skills/woostack-review/SKILL.md:489`
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 Run: `grep -n 'output-discipline.md' skills/woostack-review/SKILL.md || echo NO_LINK`
 Expected: FAIL — prints `NO_LINK` (no cross-link yet).
 
-- [ ] **Step 2: Confirm it fails**
+- [x] **Step 2: Confirm it fails**
 
 Run the command above; confirm output is `NO_LINK`.
 
-- [ ] **Step 3: Replace the spelled-out rule at line 489 with a cross-link**
+- [x] **Step 3: Replace the spelled-out rule at line 489 with a cross-link**
 
 Replace this line:
 ```
@@ -136,7 +136,7 @@ with:
 3. **Only when the learning is genuinely new**, record one terse reusable rule — one line, `<pattern>: <reason>`, per the canonical memory-note-body discipline ([`output-discipline.md`](../using-woostack/references/output-discipline.md#memory-note-bodies)). Write a scoped `.woostack/memory/` note when the scoped store exists; otherwise skip and defer to `/woostack-init`.
 ```
 
-- [ ] **Step 4: Confirm the cross-link is present and the spelled-out budget is gone from this line**
+- [x] **Step 4: Confirm the cross-link is present and the spelled-out budget is gone from this line**
 
 Run:
 ```bash
@@ -145,7 +145,7 @@ sed -n '489p' skills/woostack-review/SKILL.md | grep -q '≤100 chars' && echo S
 ```
 Expected: PASS — prints `LINK_OK` then `DEDUP_OK`. (The `≤100 chars` budget no longer appears on this line.)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "docs(review): cross-link canonical memory-body rule, drop duplicate ≤100-char copy"
@@ -156,16 +156,16 @@ gt modify -c -m "docs(review): cross-link canonical memory-body rule, drop dupli
 **Files:**
 - Modify: `skills/woostack-address-comments/prompts/address.md` (Phase 3 ACCEPT, lines 112–114; After-the-phases, lines 146–148)
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 Run: `grep -c 'output-discipline.md' skills/woostack-address-comments/prompts/address.md`
 Expected: FAIL — prints `0`.
 
-- [ ] **Step 2: Confirm it fails**
+- [x] **Step 2: Confirm it fails**
 
 Run the command above; confirm output is `0`.
 
-- [ ] **Step 3a: Replace the Phase 3 ACCEPT copy (lines 112–114)**
+- [x] **Step 3a: Replace the Phase 3 ACCEPT copy (lines 112–114)**
 
 Replace this passage:
 ```
@@ -181,7 +181,7 @@ an instance**: one line, `<pattern>: <reason>`, per the canonical
   Also stage `memory_scope`: the narrowest glob covering
 ```
 
-- [ ] **Step 3b: Replace the After-the-phases copy (lines 146–148)**
+- [x] **Step 3b: Replace the After-the-phases copy (lines 146–148)**
 
 Replace this passage:
 ```
@@ -196,7 +196,7 @@ with:
    Set `MEMORY_SCOPE` to the staged `memory_scope`:
 ```
 
-- [ ] **Step 4: Confirm both copies now cross-link and neither spells out the budget**
+- [x] **Step 4: Confirm both copies now cross-link and neither spells out the budget**
 
 Run:
 ```bash
@@ -206,7 +206,7 @@ grep -q '≤100 chars' "$f" && echo STILL_SPELLED || echo DEDUP_OK
 ```
 Expected: PASS — prints `LINKS_OK` then `DEDUP_OK`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "docs(address-comments): cross-link canonical memory-body rule, drop duplicate copies"
@@ -217,16 +217,16 @@ gt modify -c -m "docs(address-comments): cross-link canonical memory-body rule, 
 **Files:**
 - Modify: `skills/woostack-review/prompts/_header.md:5` (the `## Output Discipline (READ FIRST)` section)
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 Run: `grep -n 'output-discipline.md' skills/woostack-review/prompts/_header.md || echo NO_POINTER`
 Expected: FAIL — prints `NO_POINTER`.
 
-- [ ] **Step 2: Confirm it fails**
+- [x] **Step 2: Confirm it fails**
 
 Run the command above; confirm output is `NO_POINTER`.
 
-- [ ] **Step 3: Insert a one-line pointer right under the section heading**
+- [x] **Step 3: Insert a one-line pointer right under the section heading**
 
 After this line:
 ```
@@ -237,7 +237,7 @@ insert a blank line and then:
 > This section governs the **review JSON artifacts** below. For **prose handbacks** elsewhere in woostack (subagent reports, memory bodies), see the separate [internal-comms Output Discipline](../../using-woostack/references/output-discipline.md) — a different channel with different rules.
 ```
 
-- [ ] **Step 4: Confirm the pointer is present and the JSON rules are unchanged**
+- [x] **Step 4: Confirm the pointer is present and the JSON rules are unchanged**
 
 Run:
 ```bash
@@ -247,7 +247,7 @@ grep -q 'MUST be a valid JSON array' "$f" && echo JSON_RULES_INTACT
 ```
 Expected: PASS — prints `POINTER_OK` then `JSON_RULES_INTACT`. (AC4 edge: pointer disambiguates without altering JSON rules.)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "docs(review): point _header Output Discipline to the prose internal-comms doc"
@@ -258,16 +258,16 @@ gt modify -c -m "docs(review): point _header Output Discipline to the prose inte
 **Files:**
 - Modify: `skills/woostack-execute/prompts/implementer.md:36-41` (the `## Report back (required)` block)
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 Run: `grep -q 'output-discipline.md' skills/woostack-execute/prompts/implementer.md && echo HAS_LINK || echo NO_LINK`
 Expected: FAIL — prints `NO_LINK`.
 
-- [ ] **Step 2: Confirm it fails**
+- [x] **Step 2: Confirm it fails**
 
 Run the command above; confirm output is `NO_LINK`.
 
-- [ ] **Step 3: Add a discipline line to the Report-back block**
+- [x] **Step 3: Add a discipline line to the Report-back block**
 
 Replace this block:
 ```
@@ -289,7 +289,7 @@ Follow the internal-comms Output Discipline (`skills/using-woostack/references/o
 - CONCERNS / BLOCKER / MISSING CONTEXT: whenever STATUS is not plain DONE
 ```
 
-- [ ] **Step 4: Confirm the pointer is present AND the STATUS contract survives verbatim (AC7)**
+- [x] **Step 4: Confirm the pointer is present AND the STATUS contract survives verbatim (AC7)**
 
 Run:
 ```bash
@@ -299,7 +299,7 @@ grep -q 'STATUS: one of DONE | DONE_WITH_CONCERNS | NEEDS_CONTEXT | BLOCKED' "$f
 ```
 Expected: PASS — prints `LINK_OK` then `STATUS_VERBATIM`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "docs(execute): wire implementer report-back to Output Discipline"
@@ -311,7 +311,7 @@ gt modify -c -m "docs(execute): wire implementer report-back to Output Disciplin
 - Modify: `skills/woostack-execute/prompts/spec-reviewer.md:28-32`
 - Modify: `skills/woostack-execute/prompts/quality-reviewer.md:26-29`
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 Run:
 ```bash
@@ -319,11 +319,11 @@ grep -lq 'output-discipline.md' skills/woostack-execute/prompts/spec-reviewer.md
 ```
 Expected: FAIL — prints `NONE`.
 
-- [ ] **Step 2: Confirm it fails**
+- [x] **Step 2: Confirm it fails**
 
 Run the command above; confirm output is `NONE`.
 
-- [ ] **Step 3a: Add the discipline line to `spec-reviewer.md`**
+- [x] **Step 3a: Add the discipline line to `spec-reviewer.md`**
 
 Replace this block:
 ```
@@ -343,7 +343,7 @@ Follow the internal-comms Output Discipline (`skills/using-woostack/references/o
 Quote the spec line each gap maps to. "Close enough" is FAIL.
 ```
 
-- [ ] **Step 3b: Add the discipline line to `quality-reviewer.md`**
+- [x] **Step 3b: Add the discipline line to `quality-reviewer.md`**
 
 Replace this block:
 ```
@@ -361,7 +361,7 @@ Follow the internal-comms Output Discipline (`skills/using-woostack/references/o
 Approve only when no Important issues remain outstanding.
 ```
 
-- [ ] **Step 4: Confirm both pointers present AND both VERDICT contracts survive verbatim (AC7)**
+- [x] **Step 4: Confirm both pointers present AND both VERDICT contracts survive verbatim (AC7)**
 
 Run:
 ```bash
@@ -372,7 +372,7 @@ grep -q 'VERDICT: APPROVED or CHANGES_REQUESTED' skills/woostack-execute/prompts
 ```
 Expected: PASS — prints `LINKS_OK` then `VERDICTS_VERBATIM`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "docs(execute): wire reviewer verdict blocks to Output Discipline"
@@ -383,28 +383,28 @@ gt modify -c -m "docs(execute): wire reviewer verdict blocks to Output Disciplin
 **Files:**
 - Modify: `skills/woostack-execute/SKILL.md:121-129` (distill step 7)
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 Run: `grep -q 'output-discipline.md' skills/woostack-execute/SKILL.md && echo HAS || echo NO_LINK`
 Expected: FAIL — prints `NO_LINK`.
 
-- [ ] **Step 2: Confirm it fails**
+- [x] **Step 2: Confirm it fails**
 
 Run the command above; confirm output is `NO_LINK`.
 
-- [ ] **Step 3: Append a pointer to the distill step's note-body guidance**
+- [x] **Step 3: Append a pointer to the distill step's note-body guidance**
 
 In step 7, immediately after the clause `…stamp `updated:` on every note you write.` add this sentence (same paragraph):
 ```
  Write each note body per the canonical memory-note-body discipline ([`output-discipline.md`](../using-woostack/references/output-discipline.md#memory-note-bodies)).
 ```
 
-- [ ] **Step 4: Confirm the pointer is present**
+- [x] **Step 4: Confirm the pointer is present**
 
 Run: `grep -q 'output-discipline.md#memory-note-bodies' skills/woostack-execute/SKILL.md && echo LINK_OK`
 Expected: PASS — prints `LINK_OK`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "docs(execute): point distill note bodies at Output Discipline"
@@ -415,28 +415,28 @@ gt modify -c -m "docs(execute): point distill note bodies at Output Discipline"
 **Files:**
 - Modify: `skills/woostack-init/references/memory.md` (§3 note-format example region, the fence at ~line 50)
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 Run: `grep -q 'output-discipline.md' skills/woostack-init/references/memory.md && echo HAS || echo NO_LINK`
 Expected: FAIL — prints `NO_LINK`.
 
-- [ ] **Step 2: Confirm it fails**
+- [x] **Step 2: Confirm it fails**
 
 Run the command above; confirm output is `NO_LINK`.
 
-- [ ] **Step 3: Add a one-line pointer under the §3 note-format example**
+- [x] **Step 3: Add a one-line pointer under the §3 note-format example**
 
 Immediately after the closing ``` ``` `` fence of the note-format code block (the block ending with `let [[tanstack-query-retries]] decide. Terse body.`) and before the `### Fields` heading, insert (a pure pointer — do **not** restate the ≤100-char budget here, or AC2's single-definition check fails):
 ```
 The body follows the canonical memory-note-body discipline: see [`output-discipline.md`](../../using-woostack/references/output-discipline.md#memory-note-bodies).
 ```
 
-- [ ] **Step 4: Confirm the pointer is present**
+- [x] **Step 4: Confirm the pointer is present**
 
 Run: `grep -q 'output-discipline.md#memory-note-bodies' skills/woostack-init/references/memory.md && echo LINK_OK`
 Expected: PASS — prints `LINK_OK`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "docs(memory): point note-body format at canonical Output Discipline"
@@ -446,7 +446,7 @@ gt modify -c -m "docs(memory): point note-body format at canonical Output Discip
 
 **Files:** none (read-only assertions over the full change).
 
-- [ ] **Step 1: Single-definition — the ≤100-char budget is spelled out in exactly one file (AC2)**
+- [x] **Step 1: Single-definition — the ≤100-char budget is spelled out in exactly one file (AC2)**
 
 Run:
 ```bash
@@ -454,7 +454,7 @@ grep -rl '≤100 chars' skills/ | sort
 ```
 Expected: exactly one line — `skills/using-woostack/references/output-discipline.md`. (Any second path = dedup miss → FAIL.)
 
-- [ ] **Step 2: Core channels are all wired (AC3), no tail channel touched**
+- [x] **Step 2: Core channels are all wired (AC3), no tail channel touched**
 
 Run:
 ```bash
@@ -474,7 +474,7 @@ done
 ```
 Expected: five `OK` lines, zero `MISS`; three `clean` lines, zero `CREEP`. (Address-comments is allowed a link — it's the dedup site, not a tail wiring.)
 
-- [ ] **Step 3: Every cross-link target resolves (AC6)**
+- [x] **Step 3: Every cross-link target resolves (AC6)**
 
 Run:
 ```bash
@@ -488,7 +488,7 @@ done
 ```
 Expected: only `RESOLVES …` lines, zero `DANGLING`.
 
-- [ ] **Step 4: Contract tokens intact post-wiring (AC7)**
+- [x] **Step 4: Contract tokens intact post-wiring (AC7)**
 
 Run:
 ```bash
@@ -498,7 +498,7 @@ grep -q 'VERDICT: APPROVED or CHANGES_REQUESTED' skills/woostack-execute/prompts
 ```
 Expected: PASS — prints `STATUS_OK`, `SPEC_VERDICT_OK`, `QUALITY_VERDICT_OK`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "test(output-discipline): assert dedup, wiring, link resolution, contract integrity"
@@ -508,9 +508,9 @@ gt modify -c -m "test(output-discipline): assert dedup, wiring, link resolution,
 
 ## Self-review (run before handing back)
 
-- [ ] **Spec coverage** — §4 canonical doc → Task 1; §4 dedup → Tasks 2–3; §4 collision pointer → Task 4; §4 core-channel wiring → Tasks 5–8; §4 deferred tail channels → asserted untouched in Task 9 Step 2.
-- [ ] **AC coverage** — AC1 → Task 1 Steps 4–5; AC2 → Tasks 2–3 + Task 9 Step 1; AC3 → Tasks 5–8 + Task 9 Step 2; AC4 → Task 4 Step 4 (JSON rules intact) + non-goal (no user-facing edits anywhere); AC5 → satisfied once Tasks 2–3 cross-link the doc (not orphaned) and re-confirmed by Task 9 Step 2; AC6 → Task 9 Step 3; AC7 → Task 5/6 Step 4 + Task 9 Step 4.
-- [ ] **No placeholders** — every step has the exact file, the exact before/after text, and exact verification commands with expected output.
-- [ ] **Type consistency** — the anchor `#memory-note-bodies` and section heading `## Memory-note bodies` match across the doc and all consumer links; `## Auto-clarity carve-out` → `#auto-clarity-carve-out` matches the spec.
+- [x] **Spec coverage** — §4 canonical doc → Task 1; §4 dedup → Tasks 2–3; §4 collision pointer → Task 4; §4 core-channel wiring → Tasks 5–8; §4 deferred tail channels → asserted untouched in Task 9 Step 2.
+- [x] **AC coverage** — AC1 → Task 1 Steps 4–5; AC2 → Tasks 2–3 + Task 9 Step 1; AC3 → Tasks 5–8 + Task 9 Step 2; AC4 → Task 4 Step 4 (JSON rules intact) + non-goal (no user-facing edits anywhere); AC5 → satisfied once Tasks 2–3 cross-link the doc (not orphaned) and re-confirmed by Task 9 Step 2; AC6 → Task 9 Step 3; AC7 → Task 5/6 Step 4 + Task 9 Step 4.
+- [x] **No placeholders** — every step has the exact file, the exact before/after text, and exact verification commands with expected output.
+- [x] **Type consistency** — the anchor `#memory-note-bodies` and section heading `## Memory-note bodies` match across the doc and all consumer links; `## Auto-clarity carve-out` → `#auto-clarity-carve-out` matches the spec.
 
 > woostack plan conventions: frontmatter-free; opens with the `**Source:**` line; basename mirrors the spec (`2026-06-12-output-discipline`); no required-sub-skill banner; in this runner-less target each "failing test" is a concrete `grep`/`test` verification with exact expected output. One increment (the user collapsed the original two), so the only `gt create` is Task 1; every later task commits with `gt modify -c`.
