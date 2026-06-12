@@ -36,7 +36,7 @@ Everything except the stop-points. Do **not** restate these — follow
   checkboxes in place → [`woostack-commit`](../woostack-commit/SKILL.md) → review → distill →
   teardown worktree. Identical to [`woostack-execute`](../woostack-execute/SKILL.md)'s cadence,
   including the per-PR [worktree contract](../woostack-init/references/worktrees.md) (parent-aware
-  `base_ref`, `WOOSTACK_ROOT`-anchored distill, leave-on-failure). On a track blocker the blocked
+  `base_ref`, in-worktree tracked-memory distill with primary-root metrics/telemetry, leave-on-failure). On a track blocker the blocked
   track's last worktree is **left in place** for morning inspection, not torn down.
 - **Drivers**: [inline](../woostack-execute/references/inline-driver.md) /
   [subagent](../woostack-execute/references/subagent-driver.md), and the **smart default**

@@ -127,10 +127,10 @@ For each increment:
    near-duplicate notes, and stamp `updated:` on every note you write. Then run `woostack-init`'s
    `build-index.sh` and `doctor.sh`; fix any error. When the store does not exist, skip (or offer
    `/woostack-init` first). Distill only cross-feature knowledge, never feature-specific trivia.
-   The cadence runs inside the per-PR worktree, but `.woostack/memory/` is local-only to the
-   **primary** tree, so export the primary root before distilling so the write lands in the primary
-   store (per the [worktree contract](../woostack-init/references/worktrees.md) §5):
-   `export WOOSTACK_ROOT="$(cd "$(git rev-parse --git-common-dir)/.." && pwd)"`.
+   The cadence runs inside the per-PR worktree, and tracked memory notes are written there:
+   rebuild `MEMORY.md` in the worktree and let the note plus index ride the increment's
+   `woostack-commit`. Metrics, telemetry, and watermark sidecars remain primary-root local state
+   per the [worktree contract](../woostack-init/references/worktrees.md) §5.
 
 8. **Teardown the worktree.** After the increment is committed, reviewed, and distilled, remove its
    worktree (`git worktree remove "$WOOSTACK_ROOT/.woostack/worktrees/<inc-slug>"`); the
@@ -164,13 +164,12 @@ spec-compliance and code-quality checks, either inline in the controller session
 subagent reviewer loop, plus the human's post-execution review of each PR. Report the branches/PRs
 and their review mode. **Never merge.**
 
-## Memory is local-only
+## Memory Is Shared
 
-Distilled memory notes (step 7) are written to `.woostack/memory/`, which is **local-only and
-gitignored** ([memory contract](../woostack-init/references/memory.md)). They persist on disk the
-moment they are written, so there is nothing to commit and nothing to strand across increments or
-handback. Do **not** force-stage (`git add -f`) or commit memory —
-[`woostack-commit`](../woostack-commit/SKILL.md) refuses it by design.
+Distilled memory notes (step 7) are written to tracked `.woostack/memory/` notes and the derived
+`MEMORY.md` index ([memory contract](../woostack-init/references/memory.md)). They are shared team
+knowledge and ride the same increment commit as the implementation; metrics, recall telemetry, and
+the dream watermark remain local sidecars.
 
 ## When to stop and ask
 
@@ -187,8 +186,8 @@ and escalates to the user only when debug cannot establish a root cause:
   establish a root cause. Applies to both the inline and subagent drivers.
 - A task review finds unresolved spec or quality issues — handle the findings before continuing.
 
-A mid-run distill (e.g. a `woostack-debug` detour) is never stranded: memory is local-only and
-persists on disk the moment it is written (see [Memory is local-only](#memory-is-local-only)).
+A mid-run distill (e.g. a `woostack-debug` detour) is never stranded: tracked memory notes ride the
+increment commit, while metrics and telemetry remain local sidecars (see [Memory Is Shared](#memory-is-shared)).
 
 Return to the plan-review step if the plan is updated or the approach needs rethinking.
 

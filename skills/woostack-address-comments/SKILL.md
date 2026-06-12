@@ -70,7 +70,7 @@ memory. It never merges.
 Only a **final ACCEPT** (accept-by-design — an ACCEPT the user kept in the default flow, or
 one the skill produced itself under `--auto`) writes memory, deduplicated and phrased as a
 reusable pattern — never a log of every fix. When `.woostack/memory/` exists, the write is a
-scoped note and `MEMORY.md` is rebuilt; otherwise the record is skipped and the user should
+tracked/shared scoped note and `MEMORY.md` is rebuilt; otherwise the record is skipped and the user should
 run `/woostack-init`. Memory is read back as context on the next review run, keeping
 re-reviews quiet.
 

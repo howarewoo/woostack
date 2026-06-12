@@ -498,7 +498,7 @@ gt modify -c -m "docs(memory): contract §3/§8 telemetry → sidecar; strip sta
 **Files:**
 - Modify: `.woostack/.gitignore`, `skills/woostack-init/templates/gitignore`, `skills/woostack-init/scripts/tests/test-gitignore-template.sh`
 
-- [ ] **Step 1: Update the template test (red)**
+- [x] **Step 1: Update the template test (red)**
 
 In `test-gitignore-template.sh`, replace the `memory/` assertion (line 14) with sidecar/watermark-only ignores:
 
@@ -508,12 +508,12 @@ assert_contains "$body" "memory/.telemetry.tsv"  "template ignores the telemetry
 assert_contains "$body" "memory/.dream-watermark" "template ignores the dream watermark"
 ```
 
-- [ ] **Step 2: Run, confirm fail**
+- [x] **Step 2: Run, confirm fail**
 
 Run: `bash skills/woostack-init/scripts/tests/test-gitignore-template.sh`
 Expected: FAIL — template still has the bare `memory/` line, lacks the sidecar/watermark lines.
 
-- [ ] **Step 3: Edit both gitignores**
+- [x] **Step 3: Edit both gitignores**
 
 In `skills/woostack-init/templates/gitignore`, replace the `memory/` line with:
 
@@ -524,12 +524,12 @@ memory/.dream-watermark
 
 Apply the identical change to `.woostack/.gitignore` (remove `memory/`, add the two ignore lines; `memory.md` already gone in Inc A). `metrics.json`, `*.local.*`, `visuals/`, `overnight/`, `worktrees/`, and `.obsidian/workspace*`/`cache` stay.
 
-- [ ] **Step 4: Run, confirm pass; confirm notes are now tracked**
+- [x] **Step 4: Run, confirm pass; confirm notes are now tracked**
 
 Run: `bash skills/woostack-init/scripts/tests/test-gitignore-template.sh && git check-ignore -v .woostack/memory/MEMORY.md; echo "exit=$?"`
 Expected: test PASS; `git check-ignore` prints nothing and `exit=1` (MEMORY.md is no longer ignored). `git check-ignore .woostack/memory/.telemetry.tsv` still matches.
 
-- [ ] **Step 5: Stage the now-tracked store + commit**
+- [x] **Step 5: Stage the now-tracked store + commit**
 
 ```bash
 git add .woostack/memory/ .woostack/.gitignore skills/woostack-init/templates/gitignore skills/woostack-init/scripts/tests/test-gitignore-template.sh
@@ -542,24 +542,24 @@ gt create -m "feat(memory): track the scoped store; ignore only telemetry/waterm
 - Modify: `skills/woostack-init/references/worktrees.md` §3, §5
 - Modify: `skills/woostack-execute/SKILL.md:121-136,169,190`, `skills/woostack-execute-overnight/SKILL.md` (the `WOOSTACK_ROOT`-anchored-distill line ~39)
 
-- [ ] **Step 1: Edit `worktrees.md`**
+- [x] **Step 1: Edit `worktrees.md`**
 
 §3 local-only exception: remove `.woostack/memory/` from the list — keep only `.woostack/metrics.json`, the telemetry sidecar, and the dream watermark as gitignored/primary-only. Add a sentence: tracked memory notes are written **in the worktree** and ride the increment's commit. §5: scope the `WOOSTACK_ROOT` redirect to metrics/telemetry/watermark only; memory notes + `MEMORY.md` are committed on the increment branch, so they need no primary redirect.
 
-- [ ] **Step 2: Edit `woostack-execute` step 7 (distill)**
+- [x] **Step 2: Edit `woostack-execute` step 7 (distill)**
 
 Replace the redirect instruction (lines 130-133) — drop the `export WOOSTACK_ROOT=…` for memory and the "local-only to the primary tree" rationale. New text: distill into `.woostack/memory/` **in the worktree**, rebuild `MEMORY.md` there with `build-index.sh`, and let the note + index ride the increment's `woostack-commit` (step alongside the code). Update the "Distilled memory notes … are local-only and gitignored" lines (169, 190): memory is now tracked and ships with the increment PR; only metrics/telemetry stay local. Keep the §7 reject-by-default gate wording intact.
 
-- [ ] **Step 3: Edit `woostack-execute-overnight`**
+- [x] **Step 3: Edit `woostack-execute-overnight`**
 
 Update the per-increment cadence line (~39) `WOOSTACK_ROOT-anchored distill` → distill in-worktree, committed with the increment; metrics/telemetry remain `WOOSTACK_ROOT`-anchored.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run: `grep -nE 'local-only|WOOSTACK_ROOT' skills/woostack-execute/SKILL.md skills/woostack-execute-overnight/SKILL.md skills/woostack-init/references/worktrees.md | grep -i memory`
 Expected: no line claims memory is local-only/primary-redirected; remaining `WOOSTACK_ROOT` references are scoped to metrics/telemetry/watermark.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "docs(worktrees): tracked memory rides in-worktree distill commit (execute/-overnight)"
@@ -570,20 +570,20 @@ gt modify -c -m "docs(worktrees): tracked memory rides in-worktree distill commi
 **Files:**
 - Modify: `skills/woostack-init/references/memory.md` §2; `skills/woostack-execute/SKILL.md`, `skills/woostack-address-comments/SKILL.md`, `skills/woostack-review/SKILL.md` (one line each)
 
-- [ ] **Step 1: Edit §2 layout**
+- [x] **Step 1: Edit §2 layout**
 
 Update the `.gitignore` description: tracks `specs/`, `plans/`, `fixes/`, `config.json`, **and now `memory/` notes + `MEMORY.md`**; ignores `metrics.json`, `*.local.*`, the telemetry sidecar, and the dream watermark. Note that memory is now shared team knowledge.
 
-- [ ] **Step 2: One-line ripple notes**
+- [x] **Step 2: One-line ripple notes**
 
 In each of `execute`/`address-comments`/`review` SKILL.md, where they describe distilled/recorded memory, add that the note is now **tracked/shared** and rides the existing commit (no new commit logic).
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run: `grep -nE 'tracked|shared' skills/woostack-init/references/memory.md | grep -i 'memory/'; grep -rn 'shared' skills/woostack-execute/SKILL.md skills/woostack-address-comments/SKILL.md skills/woostack-review/SKILL.md | grep -i memory`
 Expected: §2 states notes/index are tracked; each skill notes shared memory.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt modify -c -m "docs(memory): §2 notes/index tracked + shared; ripple note in execute/address/review"
