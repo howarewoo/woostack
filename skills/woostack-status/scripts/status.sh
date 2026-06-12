@@ -32,7 +32,7 @@ fi
 
 FLAGS=""
 SEEN_BRANCHES=""
-VALID_PHASES=" draft hardened approved planning executing in-review done abandoned "
+VALID_PHASES=" draft hardened approved planning ready executing in-review done abandoned "
 
 flag() { FLAGS="${FLAGS}  ! $1"$'\n'; }
 
@@ -195,7 +195,8 @@ next_action() {
     draft)      echo "harden the spec (woostack-harden)" ;;
     hardened)   echo "get spec approval (hard gate)" ;;
     approved)   echo "write the plan (woostack-plan)" ;;
-    planning)   echo "harden plan, then open spec+plan PR" ;;
+    planning)   echo "harden the plan (woostack-harden)" ;;
+    ready)      echo "open spec+plan PR, then execute (woostack-execute)" ;;
     executing)  if [ "$prcount" -gt 0 ]; then echo "finish plan ($done/$total); $merged/$prcount increments shipped";
                 else echo "finish plan ($done/$total) - open first increment PR"; fi ;;
     in-review)  echo "address comments / merge when green" ;;
@@ -302,7 +303,7 @@ for f in "${specs[@]}"; do
   fi
 
   case "$phase" in
-    draft|hardened|approved|planning)
+    draft|hardened|approved|planning|ready)
       [ "$prcount" -gt 0 ] && flag "$name: status lags - phase '$phase' but a PR already exists" ;;
   esac
 

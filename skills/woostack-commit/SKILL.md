@@ -151,7 +151,7 @@ For each affected spec/fix, check:
 
 - **1:1 plan** — exactly one plan resolves to it (for specs). (For fixes under `fixes/`, they are self-contained plans and this check is skipped).
 - **`branch:` present** — the frontmatter `branch:` is non-empty and not the literal `unknown`.
-- **`status:` in the enum** — the frontmatter `status:` is one of `draft｜hardened｜approved｜planning｜executing｜in-review｜done｜abandoned`.
+- **`status:` in the enum** — the frontmatter `status:` is one of `draft｜hardened｜approved｜planning｜ready｜executing｜in-review｜done｜abandoned`.
 
 The phase enum and the join contracts are defined once in [`../woostack-status/references/conventions.md`](../woostack-status/references/conventions.md) — do not restate them here. If the `woostack-status` skill is not installed, skip this check silently.
 

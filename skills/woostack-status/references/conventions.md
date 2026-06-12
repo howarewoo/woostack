@@ -33,7 +33,7 @@ they do not restate these rules (cross-link, do not duplicate).
 
 ## Phase enum (spec frontmatter `status:`)
 
-`draft -> hardened -> approved -> planning -> executing -> in-review -> done`,
+`draft -> hardened -> approved -> planning -> ready -> executing -> in-review -> done`,
 plus the terminal `abandoned`. The build loop authors every transition; the board
 displays the authored value for head states and computes the execute/review/done
 band from artifacts (truth table below).
@@ -43,7 +43,8 @@ band from artifacts (truth table below).
 | draft | spec written, not hardened | 2 |
 | hardened | grilled, awaiting approval gate | 3 |
 | approved | gate cleared, no plan yet | 3 |
-| planning | plan exists, 0 boxes done | 4 |
+| planning | plan written, not yet hardened, 0 boxes done | 4 |
+| ready | plan hardened, 0 boxes done, ready for execution | 6 |
 | executing | branch + commits, plan partial | 9 (execute) |
 | in-review | an increment PR is open | 9 (execute) |
 | done | plan 100% + all PRs merged, or trusted legacy authored `done` with no active branch commits/PR | post-merge |

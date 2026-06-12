@@ -85,7 +85,11 @@ sits after that PR. So the chain has exactly the three hard gates above.
    Amend the plan markdown in place as answers land. This adds **no approval gate**: harden
    owns none and hands straight back. The chain's last hard stop is the **execution-handoff
    gate (step 8)**, after the spec+plan PR — not a plan-*quality* gate here. Do not turn this
-   harden into a plan-approval gate.
+   harden into a plan-approval gate. When hardening stops producing new questions, set the
+   spec's `status: ready` — the [conventions.md](../woostack-status/references/conventions.md)
+   value for "plan hardened, ready for execution" (mirroring step 3's `hardened`, but for the
+   plan). Plans stay frontmatter-free, so this transition is authored on the **spec**, not the
+   plan. This is a status write, not a gate.
 7. **Commit the spec and plan as their own PR.** Before any implementation, commit the
    `.woostack/` spec and plan via [`woostack-commit`](../woostack-commit/SKILL.md) on a fresh
    Graphite branch and open a PR. This docs-only PR is the **base of the stack** — execution
@@ -162,9 +166,10 @@ sits after that PR. So the chain has exactly the three hard gates above.
 - **Never merge.** build ends on the terminal state (handoff PR, or reviewed stack), nothing
   further.
 - **Author `status:` through the loop.** Set the spec's `status:` at each step — `draft` (step
-  2), `hardened` then `approved` (step 3), `planning` (step 4, authored by woostack-plan); the
-  execute phase advances the `executing`/`in-review` band, which the board also computes from
-  artifacts. The phase enum and the `spec : plan : PRs = 1 : 1 : N` join contracts are defined once in
+  2), `hardened` then `approved` (step 3), `planning` (step 4, authored by woostack-plan),
+  `ready` (step 6, after the plan harden stops); the execute phase advances the
+  `executing`/`in-review` band, which the board also computes from artifacts. The phase enum
+  and the `spec : plan : PRs = 1 : 1 : N` join contracts are defined once in
   [`../woostack-status/references/conventions.md`](../woostack-status/references/conventions.md) —
   link it, never restate it.
 - **One increment per cycle.** Do not let a single build cycle balloon past a reviewable PR.
