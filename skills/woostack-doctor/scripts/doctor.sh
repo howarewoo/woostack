@@ -4,7 +4,7 @@
 # to report every error in one run, not abort on the first.
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$HERE/lib.sh"
+source "$HERE/../../woostack-init/scripts/lib.sh"
 
 MEM_DIR="${1:-.woostack/memory}"
 VALID_TYPES=" decision pattern gotcha convention hotspot "
@@ -42,7 +42,7 @@ for f in "$MEM_DIR"/*.md; do
 
   scope="$(field "$f" scope)"
   if [ -n "$scope" ] && [ "$scope" != "*" ] && [ -n "$paths" ]; then
-    matches="$(printf '%s\n' "$paths" | bash "$HERE/scope-match.sh" "$scope" 2>/dev/null)"
+    matches="$(printf '%s\n' "$paths" | bash "$HERE/../../woostack-init/scripts/scope-match.sh" "$scope" 2>/dev/null)"
     if [ -z "$matches" ]; then
       warn "$base: scope '$scope' matches no tracked files (stale)"
     else

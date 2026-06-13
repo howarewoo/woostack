@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-source "$DIR/tests/assert.sh"
+source "$DIR/../../woostack-init/scripts/tests/assert.sh"
 DOC="$DIR/doctor.sh"
 
 OUT=""; CODE=0
