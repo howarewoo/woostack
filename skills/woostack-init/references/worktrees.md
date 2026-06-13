@@ -46,8 +46,14 @@ branch sets) never collide.
 From the first write onward the run operates with **cwd = `$wt`**. **All** writes happen there — the
 `.woostack/` spec/plan/fix markdown *and* the implementation code — and any sub-skill the run calls
 (`woostack-plan`, `woostack-harden`, `woostack-commit`) inherits that cwd so it authors into the
-worktree, not the primary tree. In subagent mode the controller dispatches implementers with cwd =
-`$wt`.
+worktree, not the primary tree. In subagent mode the controller places each implementer in `$wt`
+with a two-layer guard so it holds even on a host whose spawn API has **no per-call cwd**: it
+sets the spawn call's cwd to `$wt` where the host exposes one, and **always** pins via the dispatch
+prompt — the implementer's first action is `cd "$wt"` then a path-normalized
+`git rev-parse --show-toplevel` self-assertion that aborts before any write if it isn't in `$wt`.
+`isolation:"worktree"`-style host flags are **not** a substitute (they make a fresh throwaway
+worktree, not the tracked per-PR branch `$wt`); see
+[`subagent-driver.md` → Worktree placement](../../woostack-execute/references/subagent-driver.md#worktree-placement).
 
 ### Teardown (after a SUCCESSFUL commit + push + PR)
 

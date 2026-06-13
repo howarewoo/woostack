@@ -12,6 +12,22 @@ owns coordination.
 You are implementing ONE task from an approved woostack plan. You have no prior context from the
 controller's session — everything you need is below.
 
+## Worktree pin (do this FIRST — before any write)
+This task's writes MUST land in the per-PR worktree, never the primary checkout. As your very
+first action, enter the worktree and hard-assert you are in it; abort before writing anything if
+you are not. The compare is path-normalized (`pwd -P`) so a symlinked path
+(e.g. macOS `/var`→`/private/var`) cannot spuriously abort a correct run.
+
+```bash
+cd "<worktree absolute path — $wt>" || exit 1
+want="$(pwd -P)"                          # resolved cwd (the worktree root you just entered)
+have="$(git rev-parse --show-toplevel)"   # resolved git toplevel
+[ "$have" = "$want" ] || { echo "ABORT: git toplevel $have != worktree $want"; exit 1; }
+```
+
+If the assertion fails, STOP and report BLOCKED with both paths — do not create, edit, or test any
+file. Run every later step (tests, edits, verification) from this worktree.
+
 ## Task
 <full task text, verbatim from the plan — every step and code block>
 

@@ -25,13 +25,43 @@ There is **no per-task git commit.** Each implementer leaves its work uncommitte
 tree and reports the files it changed plus its task diff. The single `woostack-commit` happens
 once per increment (see [SKILL.md](../SKILL.md)), after every task in the increment reaches ✅.
 
+## Worktree placement
+
+Every implementer must do its writes in the increment's per-PR worktree `$wt`, never the primary
+checkout (the [worktree contract](../../woostack-init/references/worktrees.md) §3: the primary tree
+is never edited). The contract's `cwd = $wt` is satisfied in two layers, and the driver **always**
+applies both where available:
+
+- **Dispatch-prompt pin (always).** Fill the implementer prompt's `<worktree absolute path — $wt>`
+  placeholder with `$wt`. The prompt's "Worktree pin (do this FIRST)" block makes the implementer
+  `cd "$wt"` and hard-assert `git rev-parse --show-toplevel` equals `$wt` **before any write**,
+  aborting (BLOCKED) otherwise. This is the **portable** mechanism — it works on a host whose spawn
+  API has **no per-call cwd**, because the implementer self-pins.
+- **Per-call cwd (when the host supports it).** If the host's spawn primitive accepts a per-call
+  cwd, set it to `$wt` too — belt-and-suspenders; the prompt guard then merely double-checks a
+  correctly-placed agent and costs nothing.
+
+**Capability cases:**
+
+| Host spawn API | Placement |
+|---|---|
+| Has per-call cwd | Set cwd = `$wt` **and** fill the prompt pin (guard double-checks). |
+| No per-call cwd (e.g. Claude Code's `Agent` tool) | Fill the prompt pin; the implementer self-pins and aborts if not in `$wt`. Safe. |
+| Can't run the self-pin shell guard at all | It also can't run the plan's TDD/verification — same class as "no test harness". Fall back to **inline** (say so; degraded, never pretend subagent ran). |
+
+`isolation: "worktree"`-style host flags are **not** a substitute: they create a *fresh throwaway*
+worktree, not the controller's tracked per-PR branch `$wt` (created + `gt track --parent <base>`),
+so commits would land off the PR branch. Do not use them to satisfy this contract.
+
 ## Per-task loop
 
 For each task in the increment, in order:
 
 1. **Dispatch an implementer subagent** with [../prompts/implementer.md](../prompts/implementer.md).
    Pass the full task text and exactly the context it needs — the subagent never inherits this
-   session's history. Resolve and pass its model per
+   session's history. **Place it in the increment's worktree per [Worktree placement](#worktree-placement)
+   above:** fill the prompt's `<worktree absolute path — $wt>` pin with `$wt`, and additionally set
+   the spawn call's cwd to `$wt` where the host's API exposes one. Resolve and pass its model per
    [Dispatch model](#dispatch-model-resolve--map--pass) and [Tier selection](#tier-selection). It
    follows TDD, self-reviews, and **reports its changed files + diff; it does not commit.**
 2. **Handle its status** — one of:
