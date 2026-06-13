@@ -34,6 +34,10 @@ step 2/3.
 
 ## Read and check the spec
 
+0. **Load wisdom.** Read every `.woostack/wisdom/*.md` file (wholesale) before planning, and respect
+   those generalized findings when shaping increments and tasks. See the wisdom contract
+   [`../woostack-init/references/wisdom.md`](../woostack-init/references/wisdom.md). Empty/absent
+   `wisdom/` is a no-op.
 1. Read the spec file end to end — it is the source of truth for *what* to build; the plan is
    *how*.
 2. **Scope check.** If the spec covers multiple independent subsystems, suggest splitting into

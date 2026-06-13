@@ -639,12 +639,12 @@ gt modify -c -m "docs(dream): update description, degradation, constraints for w
 - Modify: `skills/woostack-ideate/SKILL.md` (Process step 1 "Explore project context")
 - Modify: `skills/woostack-build/SKILL.md` (step 1 Ideate)
 
-- [ ] **Step 1: Confirm neither loads wisdom today (red)**
+- [x] **Step 1: Confirm neither loads wisdom today (red)**
 
 Run: `grep -c 'wisdom' skills/woostack-ideate/SKILL.md skills/woostack-build/SKILL.md || true`
 Expected: `0` for both files.
 
-- [ ] **Step 2: Add a wisdom-load instruction to ideate's context exploration**
+- [x] **Step 2: Add a wisdom-load instruction to ideate's context exploration**
 
 In `skills/woostack-ideate/SKILL.md`, Process step 1 ("Explore project context"), append:
 
@@ -655,7 +655,7 @@ In `skills/woostack-ideate/SKILL.md`, Process step 1 ("Explore project context")
    An empty or absent `wisdom/` is a no-op.
 ```
 
-- [ ] **Step 3: Note the wisdom load in `woostack-build` step 1**
+- [x] **Step 3: Note the wisdom load in `woostack-build` step 1**
 
 In `skills/woostack-build/SKILL.md`, step 1 (Ideate), append a sentence:
 
@@ -665,7 +665,7 @@ context exploration); see the wisdom contract
 [`../woostack-init/references/wisdom.md`](../woostack-init/references/wisdom.md).
 ```
 
-- [ ] **Step 4: Verify (green)**
+- [x] **Step 4: Verify (green)**
 
 Run:
 ```bash
@@ -686,12 +686,12 @@ gt create -m "feat(build): load wisdom wholesale in the design phase"
 **Files:**
 - Modify: `skills/woostack-plan/SKILL.md` ("Read and check the spec" section)
 
-- [ ] **Step 1: Confirm plan does not load wisdom today (red)**
+- [x] **Step 1: Confirm plan does not load wisdom today (red)**
 
 Run: `grep -c 'wisdom' skills/woostack-plan/SKILL.md || true`
 Expected: `0`
 
-- [ ] **Step 2: Add a wisdom-load step**
+- [x] **Step 2: Add a wisdom-load step**
 
 In `skills/woostack-plan/SKILL.md`, in the "Read and check the spec" section, add as a new first
 sub-step:
@@ -703,7 +703,7 @@ sub-step:
    `wisdom/` is a no-op.
 ```
 
-- [ ] **Step 3: Verify (green)**
+- [x] **Step 3: Verify (green)**
 
 Run: `grep -q 'Load wisdom' skills/woostack-plan/SKILL.md && grep -q 'references/wisdom.md' skills/woostack-plan/SKILL.md && echo OK`
 Expected: `OK`
