@@ -99,7 +99,7 @@ gt modify -c -m "docs(agents): carve site/ docs-app out of no-app-code rule"
 - Create: `site/scripts/gen-skills.mjs`
 - Test: `site/scripts/gen-skills.test.mjs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 // site/scripts/gen-skills.test.mjs
@@ -126,12 +126,12 @@ test('parseFrontmatter strips surrounding YAML quotes (some SKILL.md description
 });
 ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
 
 Run: `node --test site/scripts/gen-skills.test.mjs`
 Expected: FAIL — `Cannot find module './gen-skills.mjs'` (or export missing).
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 ```js
 // site/scripts/gen-skills.mjs
@@ -166,12 +166,12 @@ export function parseFrontmatter(raw, file = '<input>') {
 }
 ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
 
 Run: `node --test site/scripts/gen-skills.test.mjs`
 Expected: PASS — 2 tests.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt create -m "feat(site): gen-skills parseFrontmatter"
@@ -183,7 +183,7 @@ gt create -m "feat(site): gen-skills parseFrontmatter"
 - Modify: `site/scripts/gen-skills.mjs`
 - Test: `site/scripts/gen-skills.test.mjs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 import { stripTitleHeading } from './gen-skills.mjs';
@@ -196,12 +196,12 @@ test('stripTitleHeading removes the first "# <name>" H1 only', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
 
 Run: `node --test site/scripts/gen-skills.test.mjs`
 Expected: FAIL — `stripTitleHeading is not a function`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 ```js
 export function stripTitleHeading(body, name) {
@@ -212,12 +212,12 @@ export function stripTitleHeading(body, name) {
 }
 ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
 
 Run: `node --test site/scripts/gen-skills.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "feat(site): gen-skills stripTitleHeading"
@@ -229,7 +229,7 @@ gt modify -c -m "feat(site): gen-skills stripTitleHeading"
 - Modify: `site/scripts/gen-skills.mjs`
 - Test: `site/scripts/gen-skills.test.mjs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 import { rewriteLinks } from './gen-skills.mjs';
@@ -251,12 +251,12 @@ test('rewriteLinks maps skill links to routes, refs to GitHub, leaves absolute/a
 });
 ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
 
 Run: `node --test site/scripts/gen-skills.test.mjs`
 Expected: FAIL — `rewriteLinks is not a function`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 ```js
 export function rewriteLinks(body, name) {
@@ -273,12 +273,12 @@ export function rewriteLinks(body, name) {
 }
 ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
 
 Run: `node --test site/scripts/gen-skills.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "feat(site): gen-skills rewriteLinks"
@@ -290,7 +290,7 @@ gt modify -c -m "feat(site): gen-skills rewriteLinks"
 - Modify: `site/scripts/gen-skills.mjs`
 - Test: `site/scripts/gen-skills.test.mjs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 import { neutralizeTags } from './gen-skills.mjs';
@@ -315,12 +315,12 @@ test('neutralizeTags: block tag -> Callout, prose tag escaped, code-span tag pre
 });
 ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
 
 Run: `node --test site/scripts/gen-skills.test.mjs`
 Expected: FAIL — `neutralizeTags is not a function`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 ```js
 function humanizeTag(t) {
@@ -351,12 +351,12 @@ export function neutralizeTags(body) {
 }
 ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
 
 Run: `node --test site/scripts/gen-skills.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "feat(site): gen-skills code-aware neutralizeTags"
@@ -368,7 +368,7 @@ gt modify -c -m "feat(site): gen-skills code-aware neutralizeTags"
 - Modify: `site/scripts/gen-skills.mjs`
 - Test: `site/scripts/gen-skills.test.mjs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 import { renderPage } from './gen-skills.mjs';
@@ -386,12 +386,12 @@ test('renderPage emits title/description, source link, and an internal note for 
 });
 ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
 
 Run: `node --test site/scripts/gen-skills.test.mjs`
 Expected: FAIL — `renderPage is not a function`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
 ```js
 export function renderPage(name, fm, body) {
@@ -404,12 +404,12 @@ export function renderPage(name, fm, body) {
 }
 ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
 
 Run: `node --test site/scripts/gen-skills.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "feat(site): gen-skills renderPage"
@@ -420,7 +420,7 @@ gt modify -c -m "feat(site): gen-skills renderPage"
 **Files:**
 - Modify: `site/scripts/gen-skills.mjs`
 
-- [ ] **Step 1: Add the `main()` walk + direct-invocation guard (so tests can import without running it)**
+- [x] **Step 1: Add the `main()` walk + direct-invocation guard (so tests can import without running it)**
 
 ```js
 async function main() {
@@ -457,22 +457,22 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 }
 ```
 
-- [ ] **Step 2: Run the generator against the real skills tree, confirm 18 pages**
+- [x] **Step 2: Run the generator against the real skills tree, confirm 18 pages**
 
 Run: `cd site && node scripts/gen-skills.mjs && ls content/docs/skills | wc -l`
 Expected: PASS — `gen-skills: wrote 18 pages …` and `ls | wc -l` prints `18`.
 
-- [ ] **Step 3: Confirm no JSX-interpretable pseudo-tag survives outside code**
+- [x] **Step 3: Confirm no JSX-interpretable pseudo-tag survives outside code**
 
 Run: `cd site && node scripts/gen-skills.mjs >/dev/null && ! grep -rnE '^<[A-Z][A-Z-]+>' content/docs/skills`
 Expected: PASS — exit 0 (no standalone-line uppercase tag remains; block tags are now `<Callout>`).
 
-- [ ] **Step 4: Confirm idempotence**
+- [x] **Step 4: Confirm idempotence**
 
 Run: `cd site && node scripts/gen-skills.mjs && cp -r content/docs/skills /tmp/g1 && node scripts/gen-skills.mjs && diff -r /tmp/g1 content/docs/skills && echo IDEMPOTENT`
 Expected: PASS — `IDEMPOTENT` (no diff).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "feat(site): gen-skills file walk over skills/*/SKILL.md"
@@ -485,7 +485,7 @@ gt modify -c -m "feat(site): gen-skills file walk over skills/*/SKILL.md"
 - Modify: `site/.gitignore`
 - Modify: `site/mdx-components.tsx` (ensure `Callout` is in scope for generated MDX)
 
-- [ ] **Step 1: Add `predev`/`prebuild`/`test` scripts**
+- [x] **Step 1: Add `predev`/`prebuild`/`test` scripts**
 
 In `site/package.json` `"scripts"`, add (keep the scaffolded `dev`/`build`):
 
@@ -499,7 +499,7 @@ In `site/package.json` `"scripts"`, add (keep the scaffolded `dev`/`build`):
 }
 ```
 
-- [ ] **Step 2: Gitignore the generated output**
+- [x] **Step 2: Gitignore the generated output**
 
 Append to `site/.gitignore`:
 
@@ -508,7 +508,7 @@ Append to `site/.gitignore`:
 /content/docs/skills/
 ```
 
-- [ ] **Step 3: Ensure `Callout` is registered for MDX**
+- [x] **Step 3: Ensure `Callout` is registered for MDX**
 
 Confirm `site/mdx-components.tsx` spreads Fumadocs defaults (which include `Callout`). If it does not, add it:
 
@@ -524,17 +524,17 @@ export function getMDXComponents(components) {
 Run: `cd site && grep -q Callout mdx-components.tsx && echo OK`
 Expected: PASS — `OK`.
 
-- [ ] **Step 4: Build smoke — generation + compile of all 18 generated pages**
+- [x] **Step 4: Build smoke — generation + compile of all 18 generated pages**
 
 Run: `cd site && rm -rf content/docs/skills && pnpm build`
 Expected: PASS — `prebuild` regenerates 18 pages, `next build` exits 0 and compiles every generated `skills/*.mdx` (proves the neutralization is load-bearing).
 
-- [ ] **Step 5: Confirm generated output is untracked/ignored**
+- [x] **Step 5: Confirm generated output is untracked/ignored**
 
 Run: `git status --porcelain site/content/docs/skills | wc -l`
 Expected: PASS — `0` (gitignored; not staged).
 
-- [ ] **Step 6: Run the unit suite once more, then commit**
+- [x] **Step 6: Run the unit suite once more, then commit**
 
 Run: `cd site && pnpm test`
 Expected: PASS — all `node --test` assertions green.

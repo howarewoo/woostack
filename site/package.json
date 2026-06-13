@@ -3,9 +3,12 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "next build",
+    "predev": "node scripts/gen-skills.mjs",
     "dev": "next dev",
+    "prebuild": "node scripts/gen-skills.mjs",
+    "build": "next build",
     "start": "next start",
+    "test": "node --test scripts/*.test.mjs",
     "types:check": "fumadocs-mdx && next typegen && tsc --noEmit",
     "postinstall": "fumadocs-mdx"
   },

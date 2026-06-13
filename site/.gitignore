@@ -3,7 +3,8 @@
 
 # generated content
 .source
-/content/docs/skills
+# skill reference pages generated from ../skills/*/SKILL.md at build time (source of truth = skills/)
+/content/docs/skills/
 
 # test & build
 /coverage
