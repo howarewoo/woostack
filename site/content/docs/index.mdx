@@ -1,13 +1,27 @@
 ---
-title: Hello World
-description: Your first document
+title: What is woostack?
+description: A model-agnostic collection of gated software-development skills.
 ---
 
-Welcome to the docs! You can start writing documents in `/content/docs`.
+woostack packages opinionated, gated workflows into installable skills that any AI coding
+agent can follow — from greenfield bootstrapping to feature building, debugging, automated
+code review, and feedback iteration. It ships a local, token-efficient memory system so later
+agent sessions don't repeat earlier mistakes.
 
-## What is Next?
+```bash
+pnpx skills add howarewoo/woostack
+```
+
+- **Agent- & model-agnostic** — works across Claude Code, Cursor, Codex, Aider, and other
+  agents that respect the `skills` convention.
+- **Local memory** — learnings retained and routed per clone.
+- **Team-ready** — built for small-to-medium collaborative codebases.
+
+## Where to go next
 
 <Cards>
-  <Card title="Learn more about Next.js" href="https://nextjs.org/docs" />
-  <Card title="Learn more about Fumadocs" href="https://fumadocs.dev" />
+  <Card title="Getting started" href="/docs/getting-started" description="Install, initialize, and wire woostack into your agent." />
+  <Card title="Core concepts" href="/docs/concepts" description="The build loop, its gates, and the memory store." />
+  <Card title="woostack-build" href="/docs/skills/woostack-build" description="Drive a feature from idea to a reviewed PR stack." />
+  <Card title="All skills" href="/docs/skills/using-woostack" description="Per-skill reference, generated from each SKILL.md." />
 </Cards>

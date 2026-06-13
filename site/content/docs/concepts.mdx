@@ -1,0 +1,33 @@
+---
+title: Core concepts
+description: The build loop, its three hard gates, and the local memory store.
+---
+
+## The build loop
+
+[woostack-build](/docs/skills/woostack-build) chains the phases in a fixed, gated order:
+
+> ideate → write spec → harden spec → **approve spec** → plan → harden plan → ship spec+plan PR
+> → **execution handoff** → execute (per increment: implement → commit → review → distill)
+
+Each phase is its own skill; build is the glue that sequences them and owns the handoffs.
+
+## Three hard gates
+
+The chain advances past these only on an explicit "yes":
+
+1. **Design approval** — owned by [woostack-ideate](/docs/skills/woostack-ideate).
+2. **Spec approval** — the written spec is presented before any planning begins.
+3. **Execution handoff** — after the spec+plan PR, you choose Go / Run overnight / Hand off.
+
+## One spec, one plan, N PRs
+
+Every feature holds the `spec : plan : PRs = 1 : 1 : N` invariant — exactly one plan per spec,
+and that plan owns the N stacked increment PRs. [woostack-status](/docs/skills/woostack-status)
+derives the feature board from these artifacts.
+
+## Local memory
+
+woostack keeps a per-clone `.woostack/memory/` store. Each increment distills durable,
+deduplicated learnings; [woostack-dream](/docs/skills/woostack-dream) curates the store over
+time. A small curated store beats a large noisy one.
