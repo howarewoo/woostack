@@ -97,7 +97,9 @@ For each increment:
    `$parent_branch` is the spec+plan branch for increment 1, else the previous increment's branch
    (the stack base uses the resolved base branch; stacked increments use their parent). All work —
    the TDD code, the plan checkbox ticks (step 3), and, in subagent mode, the implementer subagents
-   (dispatched with **cwd = the worktree**) — happens inside it.
+   (**pinned to the worktree** — cwd = `$wt` where the host's spawn API exposes a per-call cwd, else
+   self-pinned by the dispatch-prompt guard, per the
+   [worktree contract](../woostack-init/references/worktrees.md)) — happens inside it.
 2. **Implement** its tasks via the resolved driver (see [Execution mode](#execution-mode)):
    [references/inline-driver.md](references/inline-driver.md) in inline mode, or
    [references/subagent-driver.md](references/subagent-driver.md) in subagent mode. Both follow
