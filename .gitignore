@@ -44,6 +44,9 @@ pnpm-debug.log*
 # Playwright MCP
 .playwright-mcp/
 
+# Serena MCP (local project cache + config sidecar)
+.serena/
+
 # Misc
 *.tsbuildinfo
 .vercel
