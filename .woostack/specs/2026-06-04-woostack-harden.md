@@ -10,6 +10,8 @@ links:
 
 # woostack-harden: a woostack-native hardening skill — Design Spec
 
+> **Plan:** [[plans/2026-06-04-woostack-harden]]
+
 > Visualize on demand: render this file with [spec-template.html](../../skills/woostack-build/references/spec-template.html) for a rich view, or hand it to `woostack-visualize` (audience `engineer`). Markdown is the source of truth; the HTML is a presentation target only.
 
 ## 1. Problem

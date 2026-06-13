@@ -12,6 +12,8 @@ links:
 
 # woostack-plan: a woostack-native plan-writing command — Design Spec
 
+> **Plan:** [[plans/2026-06-05-woostack-plan]]
+
 > Visualize on demand: render this file with [spec-template.html](../../skills/woostack-build/references/spec-template.html) for a rich view, or hand it to `woostack-visualize` (audience `engineer`). Markdown is the source of truth; the HTML is a presentation target only.
 
 > `status:` is the build-loop phase enum: `draft → hardened → approved → planning → executing → in-review → done` (plus the terminal `abandoned`). The build loop authors each transition and `/woostack-status` reads it; the enum and join contracts are defined once in [conventions.md](../../skills/woostack-status/references/conventions.md).

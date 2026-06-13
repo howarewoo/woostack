@@ -9,6 +9,8 @@ increment: C of 4
 
 # Memory distill + skill wiring — Design Spec
 
+> **Plan:** [[plans/2026-06-02-memory-distill]]
+
 > Increment C of 4. Stacks on B ([[memory-recall]]). Wires the remaining three skills to the memory system. **Docs-only** — no new scripts; reuses A's `build-index`/`doctor` and B's `recall.sh`. Runs a lighter loop (no TDD) because it ships no code.
 
 ## 1. Problem

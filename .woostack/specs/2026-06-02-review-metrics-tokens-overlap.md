@@ -9,6 +9,8 @@ links:
 
 # Review metrics: cross-angle overlap (+ deferred token cost) — Design Spec
 
+> **Plan:** [[plans/2026-06-02-review-metrics-overlap]]
+
 > Visualize on demand: render this file with [spec-template.html](spec-template.html) for a rich view. Markdown is the source of truth; the HTML is a presentation target only.
 
 ## 1. Problem
