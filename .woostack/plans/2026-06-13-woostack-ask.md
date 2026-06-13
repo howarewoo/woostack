@@ -19,12 +19,12 @@
 **Files:**
 - Create: `skills/woostack-ask/SKILL.md`
 
-- [ ] **Step 1: Confirm the file does not yet exist (red)**
+- [x] **Step 1: Confirm the file does not yet exist (red)**
 
 Run: `test -f skills/woostack-ask/SKILL.md && echo EXISTS || echo ABSENT`
 Expected: `ABSENT`
 
-- [ ] **Step 2: Create the skill file with this exact content**
+- [x] **Step 2: Create the skill file with this exact content**
 
 ```markdown
 ---
@@ -151,7 +151,7 @@ schema, recall procedure, and degradation contract are defined once in
   [conventions.md](../woostack-status/references/conventions.md) — link, never restate.
 ```
 
-- [ ] **Step 3: Verify the file exists and the frontmatter is installer-safe (green)**
+- [x] **Step 3: Verify the file exists and the frontmatter is installer-safe (green)**
 
 Run:
 ```bash
@@ -170,7 +170,7 @@ DESC_QUOTED
 NAME_OK
 ```
 
-- [ ] **Step 4: Verify the core invariants are present (green)**
+- [x] **Step 4: Verify the core invariants are present (green)**
 
 Run:
 ```bash
@@ -182,7 +182,7 @@ grep -q 'no flag' skills/woostack-ask/SKILL.md && echo AUTONOMOUS_OK
 ```
 Expected: a count `>= 2`, then `WISDOM_OK`, `RECALL_OK`, `ENUM_OK`, `AUTONOMOUS_OK`.
 
-- [ ] **Step 5: Confirm no stray writes, then commit**
+- [x] **Step 5: Confirm no stray writes, then commit**
 
 Run: `git status --porcelain` → Expected: only `?? skills/woostack-ask/SKILL.md` (plus the already-committed `.woostack/` spec+plan on the base branch; nothing else).
 ```bash
