@@ -19,7 +19,7 @@
 **Files:**
 - Create: `site/**` (scaffolder output: `package.json`, `app/`, `content/docs/`, `source.config.ts`, `mdx-components.tsx`, `tsconfig.json`, `.gitignore`, `pnpm-lock.yaml`, …)
 
-- [ ] **Step 1: Run the scaffolder (pnpm)**
+- [x] **Step 1: Run the scaffolder (pnpm)**
 
 From the repo root (worktree cwd):
 
@@ -29,17 +29,17 @@ pnpm create fumadocs-app@latest site
 
 Answer the prompts: project type **Next.js**, content source **Fumadocs MDX**, **Tailwind CSS** yes, package manager **pnpm**, install deps **yes**. (Scaffolder UX changes between versions — match these intents to whatever it asks; do not pin versions.)
 
-- [ ] **Step 2: Confirm the scaffold layout, adapt if names differ**
+- [x] **Step 2: Confirm the scaffold layout, adapt if names differ**
 
 Run: `ls site && cat site/package.json | sed -n '1,40p'`
 Expected: a `site/` containing `app/`, `content/docs/`, `source.config.ts` (or `app/source.ts` / `lib/source.ts` in newer scaffolds), `mdx-components.tsx`, `package.json` with `dev`/`build` scripts, and `pnpm-lock.yaml`. Note the actual scripts/paths — later tasks reference `site/content/docs/` and `site/mdx-components.tsx`; adapt to the real names the scaffolder emitted.
 
-- [ ] **Step 3: Verify the default scaffold builds**
+- [x] **Step 3: Verify the default scaffold builds**
 
 Run: `pnpm --dir site build`
 Expected: PASS — `next build` exits 0, emits the default docs routes.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 # first commit in this increment (stacks on the spec+plan base branch):
@@ -51,12 +51,12 @@ gt create -m "feat(site): scaffold fumadocs docs app"
 **Files:**
 - Modify: `AGENTS.md` (the "What this repo is" / "Hard constraints" area; `CLAUDE.md` and `GEMINI.md` are symlinks, so this one edit covers all three)
 
-- [ ] **Step 1: Write the failing check (the clause is absent)**
+- [x] **Step 1: Write the failing check (the clause is absent)**
 
 Run: `grep -c 'site/' AGENTS.md`
 Expected: FAIL — `0` (no mention of the `site/` subtree yet).
 
-- [ ] **Step 2: Add the carve-out clause**
+- [x] **Step 2: Add the carve-out clause**
 
 In `AGENTS.md`, under the "There is no application source code…" paragraph, add:
 
@@ -76,12 +76,12 @@ Also extend the Mode A constraint note so it does not read as forbidding `site/`
 app lockfiles **outside the sanctioned `site/` docs-app subtree**.
 ```
 
-- [ ] **Step 3: Confirm the clause is present and symlinks still resolve**
+- [x] **Step 3: Confirm the clause is present and symlinks still resolve**
 
 Run: `grep -c 'site/' AGENTS.md && readlink CLAUDE.md GEMINI.md`
 Expected: PASS — a non-zero count, and both symlinks print `AGENTS.md`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt modify -c -m "docs(agents): carve site/ docs-app out of no-app-code rule"
