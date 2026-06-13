@@ -21,6 +21,7 @@ The `/woostack-init` scaffold verb creates this tree in a consumer repo:
 │   └── .gitkeep
 ├── specs/           woostack-build markdown specs (type: spec)
 ├── plans/           woostack-build markdown plans
+├── wisdom/          generalized findings, wholesale-loaded — see wisdom.md (sibling store)
 ├── config.json      { "review": {} } skeleton
 └── .gitignore       ignores metrics.json, *.local.*, memory/.telemetry.tsv, and memory/.dream-watermark ; tracks specs/plans/fixes/config/memory notes
 ```
@@ -74,6 +75,10 @@ Recall telemetry lives in a tool-managed, gitignored `.woostack/memory/.telemetr
 Valid values: `decision`, `pattern`, `gotcha`, `convention`, `hotspot`.
 
 `spec` and `plan` are reserved for specs and plans authored under `.woostack/specs/` and `.woostack/plans/` respectively. They are **excluded from recall routing** — the recall procedure never loads note bodies whose type is `spec` or `plan`.
+
+`wisdom` is likewise **reserved and recall-excluded**: wisdom files live in the sibling
+`.woostack/wisdom/` store (not `.woostack/memory/`), so they are never indexed or scope-recalled.
+The wisdom store has its own contract — see [`wisdom.md`](wisdom.md).
 
 ### Links
 
