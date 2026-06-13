@@ -200,14 +200,14 @@ gt create -m "feat(ask): woostack-ask read-only codebase Q&A skill"
 **Files:**
 - Modify: `AGENTS.md`
 
-- [ ] **Step 1: Bump the surface count**
+- [x] **Step 1: Bump the surface count**
 
 Replace:
 `The public command/adoption surface has sixteen skills:`
 With:
 `The public command/adoption surface has seventeen skills:`
 
-- [ ] **Step 2: Add the public-list bullet (after the woostack-debug bullet)**
+- [x] **Step 2: Add the public-list bullet (after the woostack-debug bullet)**
 
 Replace:
 ```
@@ -221,28 +221,28 @@ With:
 - [`woostack-tdd`](skills/woostack-tdd/SKILL.md)
 ```
 
-- [ ] **Step 3: Update the "N-skill command surface" phrase**
+- [x] **Step 3: Update the "N-skill command surface" phrase**
 
 Replace:
 `they have no routing row and are absent from the sixteen-skill command surface above.`
 With:
 `they have no routing row and are absent from the seventeen-skill command surface above.`
 
-- [ ] **Step 4: Add `/woostack-ask` to the Mode B trigger list**
+- [x] **Step 4: Add `/woostack-ask` to the Mode B trigger list**
 
 Replace:
 `` `/woostack-review`, `/woostack-address-comments`, `/woostack-status`, `/woostack-visualize`, `/woostack-debug`, `/woostack-dream`, or ``
 With:
 `` `/woostack-review`, `/woostack-address-comments`, `/woostack-status`, `/woostack-visualize`, `/woostack-debug`, `/woostack-ask`, `/woostack-dream`, or ``
 
-- [ ] **Step 5: Update the rename-constraint count (appears once, two numbers)**
+- [x] **Step 5: Update the rename-constraint count (appears once, two numbers)**
 
 Replace:
 `- Do not move or rename any of the eighteen `SKILL.md` files (the sixteen public command/adoption`
 With:
 `- Do not move or rename any of the nineteen `SKILL.md` files (the seventeen public command/adoption`
 
-- [ ] **Step 6: Add the Quick file map entry (after the systematic-debugging entry)**
+- [x] **Step 6: Add the Quick file map entry (after the systematic-debugging entry)**
 
 Replace:
 ```
@@ -257,7 +257,7 @@ With:
   [`skills/woostack-ask/SKILL.md`](skills/woostack-ask/SKILL.md)
 ```
 
-- [ ] **Step 7: Verify AGENTS.md is consistent (green)**
+- [x] **Step 7: Verify AGENTS.md is consistent (green)**
 
 Run:
 ```bash
@@ -273,7 +273,7 @@ Expected: `3`, `1`, `0`, `3`.
 **Files:**
 - Modify: `skills/using-woostack/SKILL.md`
 
-- [ ] **Step 1: Insert the routing row (after the woostack-debug row)**
+- [x] **Step 1: Insert the routing row (after the woostack-debug row)**
 
 Replace:
 `` | `/woostack-debug <target>`, run an autonomous root-cause analysis before fixing (investigative only — hands back the root cause and a proposed fix) | `woostack-debug` | ``
@@ -283,7 +283,7 @@ With:
 | `/woostack-ask <question>`, answer a read-only question about the codebase grounded in the .woostack knowledge surface (investigative only — never writes) | `woostack-ask` |
 ```
 
-- [ ] **Step 2: Verify (green)**
+- [x] **Step 2: Verify (green)**
 
 Run: `grep -c 'woostack-ask' skills/using-woostack/SKILL.md`
 Expected: `1`
@@ -293,14 +293,14 @@ Expected: `1`
 **Files:**
 - Modify: `CONTRIBUTING.md`
 
-- [ ] **Step 1: Add to the intro public-surface list (after woostack-debug)**
+- [x] **Step 1: Add to the intro public-surface list (after woostack-debug)**
 
 Replace:
 `` `woostack-status`, `woostack-visualize`, `woostack-debug`, `woostack-tdd`, and `woostack-dream`. ``
 With:
 `` `woostack-status`, `woostack-visualize`, `woostack-debug`, `woostack-ask`, `woostack-tdd`, and `woostack-dream`. ``
 
-- [ ] **Step 2: Add the "What to change" pointer row (after the woostack-debug row)**
+- [x] **Step 2: Add the "What to change" pointer row (after the woostack-debug row)**
 
 Replace:
 `` | Change the systematic-debugging behavior (`/woostack-debug`) | `skills/woostack-debug/SKILL.md` | ``
@@ -310,26 +310,26 @@ With:
 | Change the read-only codebase Q&A command (`/woostack-ask`) | `skills/woostack-ask/SKILL.md` |
 ```
 
-- [ ] **Step 3: Verify (green)**
+- [x] **Step 3: Verify (green)**
 
 Run: `grep -c 'woostack-ask' CONTRIBUTING.md`
 Expected: `2`
 
 ### Task 4: Verify README.md and development.md need no change (no-op confirmation)
 
-- [ ] **Step 1: Confirm README's command list is exemplary, not an exhaustive count**
+- [x] **Step 1: Confirm README's command list is exemplary, not an exhaustive count**
 
 Run: `grep -n 'registers the public skills' README.md`
 Expected: a line containing `(e.g. ... etc.)` — exemplary, no count and no per-command sections for inspection commands (status/debug/dream are likewise absent). No change required.
 
-- [ ] **Step 2: Confirm development.md has no per-command loop row to update**
+- [x] **Step 2: Confirm development.md has no per-command loop row to update**
 
 Run: `grep -nc 'woostack-debug\|woostack-status\|woostack-ask' skills/woostack-bootstrap/references/development.md`
 Expected: `0` — the loop summary is generic; inspection commands are not loop phases, so this stays a no-op (consistent with [[woostack-command-surface-bookkeeping]]).
 
 ### Task 5: Final surface consistency + commit
 
-- [ ] **Step 1: Cross-file consistency check (green)**
+- [x] **Step 1: Cross-file consistency check (green)**
 
 Run:
 ```bash
@@ -342,7 +342,7 @@ test -f skills/woostack-ask/SKILL.md && echo SKILL_PRESENT
 ```
 Expected: `AGENTS.md: 3`, `CONTRIBUTING.md: 2`, `skills/using-woostack/SKILL.md: 1`, `SKILL_PRESENT`.
 
-- [ ] **Step 2: Confirm clean tree apart from the wiring edits, then commit**
+- [x] **Step 2: Confirm clean tree apart from the wiring edits, then commit**
 
 Run: `git status --porcelain` → Expected: only `M AGENTS.md`, `M CONTRIBUTING.md`, `M skills/using-woostack/SKILL.md` (AGENTS.md edit also covers the `.claude/CLAUDE.md` symlink).
 ```bash
@@ -353,9 +353,9 @@ gt create -m "docs(ask): register woostack-ask on the command surface"
 
 ## Self-review (run before handing back)
 
-- [ ] **Spec coverage** — §2 goal (skill + full knowledge surface + zero writes + 17th command) → Inc 1 Task 1 + Inc 2 Tasks 1-5. §5 knowledge-surface table → SKILL.md "Knowledge surface" table. §6 error handling → SKILL.md "Degradation".
-- [ ] **AC coverage** — AC1 write-block → WRITE-BLOCK block + Inc1 Step 5 / Inc2 Step (clean `git status`); AC2 recall → "Memory" + Phase 1; AC3 full `.woostack/` reach → "Knowledge surface" (direct read + dynamic enumeration + wisdom skip); AC4 external refs → Phase 3 integration-benefit flow + surface table; AC5 surface registered → Inc 2 Tasks 1-3 verified, gating-test clause N/A (no test exists), description-format edge → Inc1 Step 3 `DESC_QUOTED`.
-- [ ] **No placeholders** — full SKILL.md embedded; every wiring edit is an exact replace with expected grep counts.
-- [ ] **Type consistency** — command name `woostack-ask` / `/woostack-ask <question>` and link paths (`../woostack-*/SKILL.md`, `../woostack-init/references/memory.md`, `../woostack-status/references/conventions.md`) consistent across SKILL.md, routing row, and surface edits.
+- [x] **Spec coverage** — §2 goal (skill + full knowledge surface + zero writes + 17th command) → Inc 1 Task 1 + Inc 2 Tasks 1-5. §5 knowledge-surface table → SKILL.md "Knowledge surface" table. §6 error handling → SKILL.md "Degradation".
+- [x] **AC coverage** — AC1 write-block → WRITE-BLOCK block + Inc1 Step 5 / Inc2 Step (clean `git status`); AC2 recall → "Memory" + Phase 1; AC3 full `.woostack/` reach → "Knowledge surface" (direct read + dynamic enumeration + wisdom skip); AC4 external refs → Phase 3 integration-benefit flow + surface table; AC5 surface registered → Inc 2 Tasks 1-3 verified, gating-test clause N/A (no test exists), description-format edge → Inc1 Step 3 `DESC_QUOTED`.
+- [x] **No placeholders** — full SKILL.md embedded; every wiring edit is an exact replace with expected grep counts.
+- [x] **Type consistency** — command name `woostack-ask` / `/woostack-ask <question>` and link paths (`../woostack-*/SKILL.md`, `../woostack-init/references/memory.md`, `../woostack-status/references/conventions.md`) consistent across SKILL.md, routing row, and surface edits.
 
 > woostack plan conventions: frontmatter-free; opens with `**Source:**`; basename mirrors the spec (`2026-06-13-woostack-ask`); no sub-skill banner; in a runner-less target each "failing test" is a concrete grep/parse verification with exact expected output.
