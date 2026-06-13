@@ -76,6 +76,7 @@ link it, never restate it.
 | `/woostack-status [--all] [--fetch]`, show the derived feature board (what's in flight, what to do next) | `woostack-status` |
 | `/woostack-visualize <source> [for <audience>]`, render a source as audience-tailored HTML | `woostack-visualize` |
 | `/woostack-debug <target>`, run an autonomous root-cause analysis before fixing (investigative only — hands back the root cause and a proposed fix) | `woostack-debug` |
+| `/woostack-ask <question>`, answer a read-only question about the codebase grounded in the .woostack knowledge surface (investigative only — never writes) | `woostack-ask` |
 | `/woostack-tdd <target>`, add appropriate tests to a code block, PR, spec, or plan (gate-light; TDD doctrine home) | `woostack-tdd` |
 | `/woostack-dream [instructions]`, curate the memory store and recommend doc updates (gated) | `woostack-dream` |
 
