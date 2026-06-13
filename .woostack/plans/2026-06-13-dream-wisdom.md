@@ -420,12 +420,12 @@ gt modify -c -m "test(init): assert sibling wisdom store never leaks into MEMORY
 **Files:**
 - Modify: `skills/woostack-dream/SKILL.md` (Phase 1 Gather; Phase 3 drop-visibility rationale)
 
-- [ ] **Step 1: Confirm dream does not scan overnight today (red)**
+- [x] **Step 1: Confirm dream does not scan overnight today (red)**
 
 Run: `grep -c 'overnight' skills/woostack-dream/SKILL.md || true`
 Expected: `0`
 
-- [ ] **Step 2: Broaden the Phase 1 corpus read to include `overnight/`**
+- [x] **Step 2: Broaden the Phase 1 corpus read to include `overnight/`**
 
 In `skills/woostack-dream/SKILL.md`, Phase 1 currently enumerates the design-trend corpus as
 `.woostack/{specs,plans,fixes}/*.md`. Change that enumeration to
@@ -438,7 +438,7 @@ track them — they are full-scanned every run; the prune step (Phase 2/4) bound
 fully-absorbed reports so the scan does not grow unbounded.
 ```
 
-- [ ] **Step 3: Correct the "gitignored memory is unrecoverable" claim**
+- [x] **Step 3: Correct the "gitignored memory is unrecoverable" claim**
 
 Search the file for the recoverability claim and rewrite it to name overnight as the unrecoverable
 surface. The two occurrences (Phase 2 `drop` op and Phase 3 full-body rule) currently assert memory
@@ -449,7 +449,7 @@ memory notes are git-tracked (recoverable), but `.woostack/overnight/` reports a
 **unrecoverable once deleted** — so the gate shows their full body before any prune
 ```
 
-- [ ] **Step 4: Verify the scan + correction (green)**
+- [x] **Step 4: Verify the scan + correction (green)**
 
 Run:
 ```bash
@@ -460,7 +460,7 @@ grep -q 'overnight' skills/woostack-dream/SKILL.md \
 ```
 Expected: `OK`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt create -m "feat(dream): scan overnight reports; fix recoverability claim"
@@ -471,12 +471,12 @@ gt create -m "feat(dream): scan overnight reports; fix recoverability claim"
 **Files:**
 - Modify: `skills/woostack-dream/SKILL.md` (Phase 2 operations list; Phase 4 apply)
 
-- [ ] **Step 1: Confirm the surface op still targets memory (red)**
+- [x] **Step 1: Confirm the surface op still targets memory (red)**
 
 Run: `grep -n 'surface' skills/woostack-dream/SKILL.md`
 Expected: matches showing the `surface` op consolidating into the memory store (≥1 line).
 
-- [ ] **Step 2: Rewrite the `surface` bullet as `consolidate`**
+- [x] **Step 2: Rewrite the `surface` bullet as `consolidate`**
 
 In Phase 2, replace the entire `- **surface**: …` bullet with:
 
@@ -493,7 +493,7 @@ In Phase 2, replace the entire `- **surface**: …` bullet with:
   distillation); it consolidates, hygienes, and prunes them.
 ```
 
-- [ ] **Step 3: Verify the retarget (green)**
+- [x] **Step 3: Verify the retarget (green)**
 
 Run:
 ```bash
@@ -504,7 +504,7 @@ grep -q '\*\*consolidate\*\*' skills/woostack-dream/SKILL.md \
 ```
 Expected: `OK`
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt modify -c -m "feat(dream): retarget surface→consolidate into wisdom store"
@@ -515,12 +515,12 @@ gt modify -c -m "feat(dream): retarget surface→consolidate into wisdom store"
 **Files:**
 - Modify: `skills/woostack-dream/SKILL.md` (Phase 2 ops; Phase 3 gate; Phase 4 apply)
 
-- [ ] **Step 1: Confirm there is no prune op today (red)**
+- [x] **Step 1: Confirm there is no prune op today (red)**
 
 Run: `grep -c 'prune' skills/woostack-dream/SKILL.md || true`
 Expected: `0`
 
-- [ ] **Step 2: Add the `prune` bullet to Phase 2 (after `consolidate`)**
+- [x] **Step 2: Add the `prune` bullet to Phase 2 (after `consolidate`)**
 
 ```
 - **prune**: Delete the **fully-absorbed** scratch inputs of a wisdom file — only memory notes and
@@ -531,7 +531,7 @@ Expected: `0`
   [`../woostack-init/references/wisdom.md`](../woostack-init/references/wisdom.md).
 ```
 
-- [ ] **Step 3: Extend the Phase 3 review gate for the prune list**
+- [x] **Step 3: Extend the Phase 3 review gate for the prune list**
 
 In Phase 3, add a bullet to the gate's presentation rules:
 
@@ -541,7 +541,7 @@ In Phase 3, add a bullet to the gate's presentation rules:
   (gitignored → unrecoverable). `fixes/specs/plans` never appear on a prune list.
 ```
 
-- [ ] **Step 4: Extend the Phase 4 apply step for prune execution**
+- [x] **Step 4: Extend the Phase 4 apply step for prune execution**
 
 In Phase 4, add to the **Memory** apply step (after the rewrite/delete + build-index sentence):
 
@@ -551,7 +551,7 @@ and overnight report (`.woostack/overnight/<file>.md`). Pruning memory notes is 
 re-run `build-index.sh` then `doctor.sh`; deleting overnight reports touches no index.
 ```
 
-- [ ] **Step 5: Verify prune is wired across phases (green)**
+- [x] **Step 5: Verify prune is wired across phases (green)**
 
 Run:
 ```bash
@@ -562,7 +562,7 @@ grep -q '\*\*prune\*\*' skills/woostack-dream/SKILL.md \
 ```
 Expected: `OK`
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 gt modify -c -m "feat(dream): add gated default-keep prune of absorbed scratch"
@@ -573,7 +573,7 @@ gt modify -c -m "feat(dream): add gated default-keep prune of absorbed scratch"
 **Files:**
 - Modify: `skills/woostack-dream/SKILL.md` (frontmatter `description`; Degradation; Hard constraints)
 
-- [ ] **Step 1: Update the frontmatter `description`**
+- [x] **Step 1: Update the frontmatter `description`**
 
 The `description:` currently says dream surfaces insights into memory. Update it to mention the
 wisdom store, overnight scan, and gated prune — keep it one concise sentence (discovery-driving).
@@ -585,7 +585,7 @@ recurring trends from memory + overnight + the specs/plans/fixes corpus into the
 store, and prunes the fully-absorbed scratch (memory notes + overnight reports) it merged…
 ```
 
-- [ ] **Step 2: Add degradation rules for wisdom + overnight**
+- [x] **Step 2: Add degradation rules for wisdom + overnight**
 
 In `## Degradation`, add:
 
@@ -596,7 +596,7 @@ In `## Degradation`, add:
   proceeds.
 ```
 
-- [ ] **Step 3: Update the legacy "no new scripts / don't modify the memory contract" constraint**
+- [x] **Step 3: Update the legacy "no new scripts / don't modify the memory contract" constraint**
 
 The `## Hard constraints` section has a `**Reuse existing scripts**` bullet forbidding new scripts
 and contract edits. Reword it so it bounds dream's **runtime** behavior (a dream *run* adds no
@@ -610,7 +610,7 @@ scripts and mutates no contract), not feature work, and add `wisdom/` as a write
   wisdom and prunes absorbed scratch, but never deletes `fixes/specs/plans`.
 ```
 
-- [ ] **Step 4: Verify description + degradation + constraints (green)**
+- [x] **Step 4: Verify description + degradation + constraints (green)**
 
 Run:
 ```bash
@@ -621,7 +621,7 @@ grep -q 'wisdom' skills/woostack-dream/SKILL.md \
 ```
 Expected: `OK`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "docs(dream): update description, degradation, constraints for wisdom"
