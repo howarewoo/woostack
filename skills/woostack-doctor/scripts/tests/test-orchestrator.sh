@@ -24,6 +24,8 @@ bash "$DOC" "$errws" >/dev/null 2>&1; assert_exit 1 "$?" "error finding exits 1"
 dump="$(bash "$DOC" --check "$warnws" 2>/dev/null)"
 assert_eq "$dump" "" "--check suppresses machine dump on stdout"
 
+bash "$DOC" --check "$errws" >/dev/null 2>&1; assert_exit 1 "$?" "--check with errors still exits 1"
+
 dump2="$(bash "$DOC" "$warnws" 2>/dev/null)"
 assert_contains "$dump2" "memory-unresolved-link" "default mode dumps machine findings on stdout"
 
