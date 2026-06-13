@@ -49,6 +49,10 @@ Work the steps in order. Ask **one question per message** so you never overwhelm
 1. **Explore project context.** Read the relevant files, docs, and recent commits before
    asking anything. In an existing codebase, learn the current structure and follow its
    patterns rather than proposing greenfield shapes.
+   Also read every `.woostack/wisdom/*.md` file (wholesale — they are generalized, cross-cutting
+   guidance, not scope-routed) and treat them as house-rules the design should respect. See the
+   wisdom contract [`../woostack-init/references/wisdom.md`](../woostack-init/references/wisdom.md).
+   An empty or absent `wisdom/` is a no-op.
 2. **Check scope first.** If the request bundles multiple independent subsystems ("a platform
    with chat, billing, and analytics"), flag it immediately. Don't refine details of
    something that needs decomposing first — help split it into independent pieces, note how

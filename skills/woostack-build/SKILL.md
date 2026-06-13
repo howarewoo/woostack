@@ -37,6 +37,9 @@ sits after that PR. So the chain has exactly the three hard gates above.
    the problem and converge on a design. Let it run its own approval gate. It hands back an
    approved design and stops there — it writes no spec and chains no plan, so the next steps
    are yours to drive.
+   The design phase loads `.woostack/wisdom/*.md` wholesale as guidance (via `woostack-ideate`'s
+   context exploration); see the wisdom contract
+   [`../woostack-init/references/wisdom.md`](../woostack-init/references/wisdom.md).
 2. **Write the spec as markdown.** When the design is approved, do **not** write to a generic
    `docs/specs/` location. **First create the spec+plan worktree** (the first write of this run,
    per the [worktree contract](../woostack-init/references/worktrees.md)): pick the branch
