@@ -1,3 +1,10 @@
+---
+type: plan
+source: .woostack/specs/2026-06-02-memory-distill.md
+status: done
+branch: feat/woostack-memory-distill
+---
+
 # Memory distill + skill wiring (Increment C) — Implementation Plan
 
 > **For agentic workers:** Steps use checkbox (`- [ ]`) syntax. Docs-only increment — no new scripts; reuses A's `build-index`/`doctor` and B's `recall.sh`.

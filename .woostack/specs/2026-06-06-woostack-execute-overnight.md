@@ -1,7 +1,7 @@
 ---
 name: woostack-execute-overnight
 type: spec
-status: in-review
+status: approved
 date: 2026-06-06
 branch: feature/woostack-execute-overnight-skill
 links:

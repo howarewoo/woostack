@@ -1,3 +1,10 @@
+---
+type: plan
+source: .woostack/specs/2026-06-05-execute-vary-subagent-model.md
+status: done
+branch: feature/execute-vary-subagent-model
+---
+
 # Vary subagent model in woostack-execute — Implementation Plan
 
 **Source:** .woostack/specs/2026-06-05-execute-vary-subagent-model.md

@@ -4,7 +4,12 @@ type: plan
 date: 2026-06-02
 branch: feature/memory-overlap-clusters
 spec: .woostack/specs/2026-06-02-memory-overlap-clusters.md
+source: .woostack/specs/2026-06-02-memory-overlap-clusters.md
+status: done
 ---
+
+**Source:** .woostack/specs/2026-06-02-memory-overlap-clusters.md
+
 
 # Memory Scope-Overlap Clusters + Recall Recency Tiebreak — Implementation Plan
 

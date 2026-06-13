@@ -1,3 +1,10 @@
+---
+type: plan
+source: .woostack/specs/2026-06-13-woostack-doctor.md
+status: in-review
+branch: feature/woostack-doctor
+---
+
 **Source:** .woostack/specs/2026-06-13-woostack-doctor.md
 
 # /woostack-doctor — workspace health: diagnose + gated repair — Implementation Plan

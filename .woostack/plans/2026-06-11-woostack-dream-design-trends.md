@@ -1,3 +1,10 @@
+---
+type: plan
+source: .woostack/specs/2026-06-11-woostack-dream-design-trends.md
+status: done
+branch: feature/woostack-dream-design-trends
+---
+
 **Source:** .woostack/specs/2026-06-11-woostack-dream-design-trends.md
 
 # Shared Curated Memory + Design-Trend Consolidation Implementation Plan

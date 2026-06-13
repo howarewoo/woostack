@@ -1,7 +1,7 @@
 ---
 name: readme-rewrite
 type: spec
-status: planning
+status: approved
 date: 2026-06-09
 branch: feature/readme-rewrite
 links:

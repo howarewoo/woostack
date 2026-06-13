@@ -1,6 +1,6 @@
 ---
 name: woostack-plan
-description: "Use to write the implementation plan for an approved woostack spec — a comprehensive, bite-sized TDD plan structured as PR-sized increments, saved frontmatter-free to .woostack/plans/<spec-basename>.md, opening with a `**Source:**` line that joins it 1:1 to the spec, and setting the spec's status: planning. This is the plan phase of the woostack build loop (woostack-build step 4); also usable standalone via /woostack-plan <spec-path>. One plan per spec. Writes the plan and hands back — never executes, commits, or merges."
+description: "Use to write the implementation plan for an approved woostack spec -- a comprehensive, bite-sized TDD plan structured as PR-sized increments, saved with Obsidian YAML frontmatter to .woostack/plans/<spec-basename>.md, preserving the `**Source:**` line that joins it 1:1 to the spec, and setting the plan status: planning. This is the plan phase of the woostack build loop (woostack-build step 4); also usable standalone via /woostack-plan <spec-path>. One plan per spec. Writes the plan and hands back -- never executes, commits, or merges."
 ---
 
 # woostack-plan
@@ -10,7 +10,7 @@ increments. This is woostack's own planning phase — [`woostack-build`](../woos
 step 4. It keeps the discipline that makes plans worth executing (file-structure first,
 bite-sized TDD tasks, no placeholders, a self-review pass) and adds the woostack conventions:
 markdown plans under `.woostack/plans/`, an opening `**Source:**` line that joins the plan 1:1 to
-its spec, frontmatter-free, decomposed into independently shippable increments, and a
+its spec, backed by YAML frontmatter, decomposed into independently shippable increments, and a
 `status: planning` transition on the spec. It writes the plan and hands back; it owns no approval
 gate and never executes, commits, or merges.
 
@@ -134,12 +134,12 @@ them:
 
 Exact file paths always. Complete code in every code step. Exact commands with expected output.
 
-## Board join: Source line, frontmatter-free, filename
+## Board join: YAML frontmatter, Source line, filename
 
 - **Filename:** save to `.woostack/plans/<spec-basename>.md` — the **same** `YYYY-MM-DD-<slug>`
   basename as the spec (reuse the spec's date; **not** today's). The shared basename is the
   slug-match fallback join.
-- **Opening line:** the plan's first line is `**Source:** .woostack/specs/<file>.md` — the
+- **Frontmatter:** the plan starts with YAML properties: `type: plan`, `source: .woostack/specs/<file>.md`, `status: planning`, and `branch: <feature branch>`.
   primary spec→plan join the `/woostack-status` board reads.
 - **Frontmatter-free:** plans carry no YAML frontmatter and no `REQUIRED SUB-SKILL` banner. The
   header is the `**Source:**` line plus Goal / Architecture / Tech Stack.
@@ -165,7 +165,7 @@ Fix issues inline; no re-review needed.
 
 ## Status: planning
 
-When the plan file exists, set the spec's `status: planning` (the conventions.md value for "plan
+When the plan file exists, set the plan's `status: planning` (the conventions.md value for "plan
 exists, 0 boxes done"). Doing it here means a standalone `/woostack-plan` also advances the board.
 Do not tick any plan checkbox yet — execution owns checkbox progress.
 
@@ -197,5 +197,5 @@ execute, commit, or merge. It writes the plan and hands back — preserving `woo
   flag and split oversized ones.
 - **Bite-sized TDD tasks, no placeholders.** One action per step; complete code, exact commands,
   expected output.
-- **Set `status: planning`; tick no checkbox.** Execution owns checkbox progress.
+- **Set plan `status: planning`; tick no checkbox.** Execution owns checkbox progress.
 - **Own no gate; never execute, commit, or merge.** Write the plan and hand back.

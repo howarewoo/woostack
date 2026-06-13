@@ -1,7 +1,7 @@
 ---
 name: address-comments-fix-plan-gate
 type: spec
-status: planning
+status: approved
 date: 2026-06-05
 branch: address-comments-fix-plan-gate
 links:

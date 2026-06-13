@@ -1,3 +1,10 @@
+---
+type: plan
+source: .woostack/specs/2026-06-05-woostack-plan.md
+status: executing
+branch: feature/woostack-plan
+---
+
 **Source:** .woostack/specs/2026-06-05-woostack-plan.md
 
 # woostack-plan Implementation Plan

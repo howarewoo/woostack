@@ -1,7 +1,7 @@
 ---
 name: memory-distill
 type: spec
-status: done
+status: approved
 date: 2026-06-02
 branch: feat/woostack-memory-distill
 increment: C of 4

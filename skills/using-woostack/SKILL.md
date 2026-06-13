@@ -53,8 +53,8 @@ user explicitly asks for that behavior or the loaded task-specific skill require
 of an approved workflow.
 
 **Feature-state invariant:** in a woostack project, every spec has exactly one plan
-(`spec : plan : PRs = 1 : 1 : N`), and the spec's `status:`/`branch:` frontmatter is
-load-bearing for the `/woostack-status` board. The phase enum and the join contracts are
+(`spec : plan : PRs = 1 : 1 : N`), and the spec design `status:` plus plan implementation
+`status:`/`branch:` frontmatter is load-bearing for `/woostack-status` board.
 defined once in
 [`../woostack-status/references/conventions.md`](../woostack-status/references/conventions.md);
 link it, never restate it.
@@ -96,7 +96,7 @@ These thoughts mean stop and load the relevant rules:
 | "I'll initialize `.woostack/` to be helpful." | This skill is adoption-only; mutate project state only when requested or required by the task skill. |
 | "This is only a review comment." | Review and address flows have posting, validation, and memory rules. |
 | "I'll write another plan for this spec." | Specs and plans are 1:1. A second plan breaks the board's join — amend the one existing plan instead. See [`conventions.md`](../woostack-status/references/conventions.md). |
-| "I'll just set `status:`/`branch:` by hand." | The build loop authors those fields and the `/woostack-status` board reads them; hand-editing or blanking them causes drift flags. |
+| "I'll just set `status:`/`branch:` by hand." | The build loop authors spec design status and plan implementation status/branch, and the `/woostack-status` board reads them; hand-editing or blanking them causes drift flags. |
 | "I'll rename or move this spec or plan." | Renames break the spec↔plan↔PR joins (the `**Source:**` line, `branch:`, the `Spec:` PR trailer). Avoid it, or update every join at once. |
 
 ## AGENTS.md Usage

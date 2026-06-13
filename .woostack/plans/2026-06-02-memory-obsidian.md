@@ -1,3 +1,13 @@
+---
+type: plan
+source: .woostack/specs/2026-06-02-memory-obsidian.md
+status: done
+branch: feat/woostack-memory-obsidian
+---
+
+**Source:** .woostack/specs/2026-06-02-memory-obsidian.md
+
+
 # Obsidian layer (Increment D) Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: superpowers:subagent-driven-development. Checkbox steps.

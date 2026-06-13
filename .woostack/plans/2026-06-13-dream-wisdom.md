@@ -1,3 +1,10 @@
+---
+type: plan
+source: .woostack/specs/2026-06-13-dream-wisdom.md
+status: executing
+branch: feature/dream-wisdom
+---
+
 **Source:** .woostack/specs/2026-06-13-dream-wisdom.md
 
 # woostack-dream → wisdom consolidation Implementation Plan

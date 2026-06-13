@@ -1,7 +1,7 @@
 ---
 name: woostack-execute
 type: spec
-status: done
+status: approved
 date: 2026-06-04
 branch: feature/woostack-execute
 links:

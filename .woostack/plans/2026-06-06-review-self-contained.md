@@ -1,3 +1,10 @@
+---
+type: plan
+source: .woostack/specs/2026-06-06-review-self-contained.md
+status: done
+branch: review-self-contained
+---
+
 **Source:** .woostack/specs/2026-06-06-review-self-contained.md
 
 # Make woostack-review self-contained (retire pr-review-toolkit) Implementation Plan

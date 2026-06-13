@@ -1,3 +1,10 @@
+---
+type: plan
+source: .woostack/specs/2026-06-05-woostack-debug.md
+status: done
+branch: feature/woostack-debug
+---
+
 **Source:** .woostack/specs/2026-06-05-woostack-debug.md
 
 # woostack-debug Skill Implementation Plan

@@ -1,3 +1,13 @@
+---
+type: plan
+source: .woostack/specs/2026-06-04-execute-dual-mode-execution.md
+status: done
+branch: feature/execute-dual-mode
+---
+
+**Source:** .woostack/specs/2026-06-04-execute-dual-mode-execution.md
+
+
 # woostack-execute Dual-Mode Execution Implementation Plan
 
 > **For agentic workers:** REQUIRED: execute this plan with `woostack-execute` (woostack-build

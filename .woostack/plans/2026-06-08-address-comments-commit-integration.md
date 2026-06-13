@@ -1,3 +1,10 @@
+---
+type: plan
+source: .woostack/specs/2026-06-08-address-comments-commit-integration.md
+status: done
+branch: feature/address-comments-commit-integration
+---
+
 **Source:** .woostack/specs/2026-06-08-address-comments-commit-integration.md
 
 # woostack-address-comments: integrate the commit skill — Implementation Plan

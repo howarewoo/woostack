@@ -1,3 +1,10 @@
+---
+type: plan
+source: .woostack/specs/2026-06-07-woostack-tdd.md
+status: done
+branch: woostack-tdd
+---
+
 **Source:** .woostack/specs/2026-06-07-woostack-tdd.md
 
 # woostack-tdd Implementation Plan

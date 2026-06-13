@@ -1,3 +1,10 @@
+---
+type: plan
+source: .woostack/specs/2026-06-09-readme-rewrite.md
+status: done
+branch: feature/readme-rewrite
+---
+
 **Source:** .woostack/specs/2026-06-09-readme-rewrite.md
 
 # README Rewrite Implementation Plan

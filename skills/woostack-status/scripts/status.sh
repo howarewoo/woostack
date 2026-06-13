@@ -232,7 +232,8 @@ abandoned_count=0
 rows=""
 
 for f in "${specs[@]}"; do
-  phase="$(field "$f" status)"; [ -n "$phase" ] || phase="unknown"
+  spec_phase="$(field "$f" status)"; [ -n "$spec_phase" ] || spec_phase="unknown"
+  phase="$spec_phase"
   raw_phase="$phase"
 
   plan_cell="-"; done=0; total=0; planfile=""
@@ -254,6 +255,11 @@ for f in "${specs[@]}"; do
     else
       planfile="${plans[0]}"
     fi
+
+    if [ -n "$planfile" ]; then
+      phase="$(field "$planfile" status)"; [ -n "$phase" ] || phase="unknown"
+      raw_phase="$phase"
+    fi
   fi
 
   if [ "${VALID_PHASES/ $phase /}" = "$VALID_PHASES" ]; then
@@ -265,7 +271,11 @@ for f in "${specs[@]}"; do
     read -r done total < <(plan_progress "$planfile")
     [ "$total" -gt 0 ] && plan_cell="$done/$total"
   fi
-  br="$(field "$f" branch)"
+  if [[ "$f" == *"/fixes/"* ]] || [ -z "$planfile" ]; then
+    br="$(field "$f" branch)"
+  else
+    br="$(field "$planfile" branch)"
+  fi
   open=0; merged=0; prcount=0; inc_cell="-"; inc_parts=""
   last_author=""; last_upd_date=""
   while IFS=$'\t' read -r num state head author upd; do

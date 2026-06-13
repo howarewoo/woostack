@@ -1,7 +1,7 @@
 ---
 name: commit-pr-goal-test-plan
 type: spec
-status: done
+status: approved
 date: 2026-06-04
 branch: worktree-delightful-pondering-thimble
 links:

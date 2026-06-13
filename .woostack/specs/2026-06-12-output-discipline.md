@@ -1,7 +1,7 @@
 ---
 name: output-discipline
 type: spec
-status: ready
+status: approved
 date: 2026-06-12
 branch: feature/output-discipline
 links:

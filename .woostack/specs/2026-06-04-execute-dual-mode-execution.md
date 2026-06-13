@@ -1,7 +1,7 @@
 ---
 name: execute-dual-mode-execution
 type: spec
-status: done
+status: approved
 date: 2026-06-04
 branch: feature/execute-dual-mode
 links:

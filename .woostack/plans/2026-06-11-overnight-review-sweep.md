@@ -1,3 +1,10 @@
+---
+type: plan
+source: .woostack/specs/2026-06-11-overnight-review-sweep.md
+status: executing
+branch: feature/overnight-review-sweep
+---
+
 **Source:** .woostack/specs/2026-06-11-overnight-review-sweep.md
 
 # Overnight review sweep Implementation Plan

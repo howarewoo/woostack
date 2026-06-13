@@ -1,3 +1,10 @@
+---
+type: plan
+source: .woostack/specs/2026-06-09-review-stack-aware.md
+status: executing
+branch: review-stack-aware-markers
+---
+
 **Source:** .woostack/specs/2026-06-09-review-stack-aware.md
 
 # Stack-aware review (deferral markers) Implementation Plan

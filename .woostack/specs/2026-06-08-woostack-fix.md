@@ -1,7 +1,7 @@
 ---
 name: woostack-fix
 type: spec
-status: in-review
+status: approved
 date: 2026-06-08
 branch: feature/woostack-fix
 links:

@@ -1,7 +1,7 @@
 ---
 name: 2026-06-10-parallel-worktrees
 type: spec
-status: planning
+status: approved
 date: 2026-06-10
 branch: feature/parallel-worktrees
 links:

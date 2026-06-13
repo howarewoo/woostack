@@ -1,3 +1,10 @@
+---
+type: plan
+source: .woostack/specs/2026-06-10-parallel-worktrees.md
+status: done
+branch: feature/parallel-worktrees
+---
+
 **Source:** .woostack/specs/2026-06-10-parallel-worktrees.md
 
 # Parallel worktree isolation + configurable base branch Implementation Plan
