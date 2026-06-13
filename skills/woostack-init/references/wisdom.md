@@ -122,7 +122,6 @@ planning, or review context is gathered:
 - **`woostack-review`** — `prefetch.sh` composes a `$OUTDIR/wisdom.md` artifact via
   [`compose-wisdom.sh`](../../woostack-review/scripts/compose-wisdom.sh) (the wisdom analogue of
   `recall.sh`/`memory.md`); reviewers treat it as an additional rubric of learned house-rules.
-  <!-- woostack-defer(increment 4): compose-wisdom.sh and the $OUTDIR/wisdom.md prefetch wiring land in increment 4; this contract reference is intentionally ahead of its implementation in the stack -->
 
 - **`woostack-build` / `woostack-ideate`** — the design phase reads all `wisdom/*.md` before
   proposing a design.

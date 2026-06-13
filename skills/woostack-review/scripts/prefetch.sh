@@ -809,6 +809,22 @@ else
   rm -f "$MEMORY_OUT"
 fi
 
+# Wholesale wisdom guidance — every .woostack/wisdom/*.md body (generalized,
+# cross-cutting house-rules), composed via compose-wisdom.sh (the wisdom analogue
+# of recall.sh/memory.md). Always-load, no scope routing. No-op when the store is
+# absent/empty, so $OUTDIR/wisdom.md is present only when there is wisdom to read.
+WISDOM_OUT="$OUTDIR/wisdom.md"
+COMPOSE_WISDOM="$SCRIPT_DIR/compose-wisdom.sh"
+if [ -f "$COMPOSE_WISDOM" ]; then
+  if bash "$COMPOSE_WISDOM" "$WOOSTACK_ROOT" > "$WISDOM_OUT" 2>"$OUTDIR/compose-wisdom.log"; then
+    [ -s "$WISDOM_OUT" ] || rm -f "$WISDOM_OUT"
+    [ -f "$WISDOM_OUT" ] && echo "Composed wisdom guidance ($(wc -c < "$WISDOM_OUT")B)"
+  else
+    echo "::warning::compose-wisdom.sh failed; omitting wisdom guidance (see compose-wisdom.log)" >&2
+    rm -f "$WISDOM_OUT"
+  fi
+fi
+
 # Issue #14: split oversized diffs into chunks. Runs LAST so it sees the final
 # post-ignore diff (diff.filtered.txt when present). Under the threshold this
 # is a no-op (no chunks.txt produced, downstream behaves exactly as before).

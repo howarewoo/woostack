@@ -726,7 +726,7 @@ gt modify -c -m "feat(plan): load wisdom wholesale before planning"
 - Create: `skills/woostack-review/scripts/compose-wisdom.sh`
 - Create: `skills/woostack-review/scripts/tests/test-compose-wisdom.sh`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `skills/woostack-review/scripts/tests/test-compose-wisdom.sh`:
 
@@ -764,12 +764,12 @@ check "empty store (.gitkeep only) is empty" "$out" ""
 [ "$fail" = 0 ] && echo "PASS" || { echo "FAILED"; exit 1; }
 ```
 
-- [ ] **Step 2: Run it, confirm it fails (helper missing)**
+- [x] **Step 2: Run it, confirm it fails (helper missing)**
 
 Run: `bash skills/woostack-review/scripts/tests/test-compose-wisdom.sh; echo "exit=$?"`
 Expected: FAIL — errors that `compose-wisdom.sh` cannot be found / non-empty output assertions fail; `exit=1`.
 
-- [ ] **Step 3: Write `compose-wisdom.sh`**
+- [x] **Step 3: Write `compose-wisdom.sh`**
 
 Create `skills/woostack-review/scripts/compose-wisdom.sh`:
 
@@ -795,12 +795,12 @@ done
 exit 0
 ```
 
-- [ ] **Step 4: Run the test, confirm it passes (green)**
+- [x] **Step 4: Run the test, confirm it passes (green)**
 
 Run: `bash skills/woostack-review/scripts/tests/test-compose-wisdom.sh`
 Expected: PASS (every `ok -` line, final `PASS`, exit 0).
 
-- [ ] **Step 5: Remove the deferral marker (the forward reference now resolves)**
+- [x] **Step 5: Remove the deferral marker (the forward reference now resolves)**
 
 `compose-wisdom.sh` now exists, so the Increment-1 `woostack-defer(increment 4)` marker in
 `wisdom.md` §6 has done its job. Delete that single comment line:
@@ -823,12 +823,12 @@ gt create -m "feat(review): add compose-wisdom.sh wholesale wisdom loader"
 **Files:**
 - Modify: `skills/woostack-review/scripts/prefetch.sh` (after the cross-PR memory composition block)
 
-- [ ] **Step 1: Confirm prefetch does not compose wisdom today (red)**
+- [x] **Step 1: Confirm prefetch does not compose wisdom today (red)**
 
 Run: `grep -c 'wisdom' skills/woostack-review/scripts/prefetch.sh || true`
 Expected: `0`
 
-- [ ] **Step 2: Add the wisdom composition after the memory block**
+- [x] **Step 2: Add the wisdom composition after the memory block**
 
 In `skills/woostack-review/scripts/prefetch.sh`, immediately after the cross-PR memory `if [ -d "$WOOSTACK_DIR/memory" ]; then … fi` block (the block that writes `$OUTDIR/memory.md` via `recall.sh`), insert:
 
@@ -849,7 +849,7 @@ if [ -f "$COMPOSE_WISDOM" ]; then
 fi
 ```
 
-- [ ] **Step 3: Syntax-check prefetch.sh + confirm the artifact is produced (green)**
+- [x] **Step 3: Syntax-check prefetch.sh + confirm the artifact is produced (green)**
 
 Run:
 ```bash
@@ -876,12 +876,12 @@ gt modify -c -m "feat(review): compose \$OUTDIR/wisdom.md guidance in prefetch"
 **Files:**
 - Modify: `skills/woostack-review/prompts/_header.md` (Prefetched Artifacts list; a Wisdom guidance paragraph)
 
-- [ ] **Step 1: Confirm the contract does not mention wisdom today (red)**
+- [x] **Step 1: Confirm the contract does not mention wisdom today (red)**
 
 Run: `grep -c 'wisdom' skills/woostack-review/prompts/_header.md || true`
 Expected: `0`
 
-- [ ] **Step 2: Add a Prefetched-Artifacts bullet (after the Cross-PR memory bullet)**
+- [x] **Step 2: Add a Prefetched-Artifacts bullet (after the Cross-PR memory bullet)**
 
 In `skills/woostack-review/prompts/_header.md`, in the "Prefetched Artifacts (do NOT re-fetch)"
 list, after the `**Cross-PR memory**` bullet, add:
@@ -890,7 +890,7 @@ list, after the `**Cross-PR memory**` bullet, add:
 - **Wisdom guidance** (optional, present when the consumer repo has a non-empty `.woostack/wisdom/`): `/tmp/pr-review/wisdom.md` — every wisdom file body, loaded **wholesale** (generalized, cross-cutting house-rules the team distilled via `woostack-dream`). Each section is prefixed `## SOURCE: <file>.md`. Treat it as an additional rubric: do NOT re-flag an issue wisdom already records as a known/accepted convention. Advisory context, not a `rule_quote` source.
 ```
 
-- [ ] **Step 3: Add a short "Wisdom guidance" usage paragraph (after the Cross-PR memory paragraph)**
+- [x] **Step 3: Add a short "Wisdom guidance" usage paragraph (after the Cross-PR memory paragraph)**
 
 After the existing `If /tmp/pr-review/memory.md exists, read it before reporting. …` paragraph, add:
 
@@ -901,7 +901,7 @@ described there as a known/accepted convention, DROP it. Like memory, wisdom is 
 do not cite it in `rule_quote`.
 ```
 
-- [ ] **Step 4: Verify (green)**
+- [x] **Step 4: Verify (green)**
 
 Run:
 ```bash
