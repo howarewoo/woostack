@@ -10,6 +10,9 @@ if [ "${1:-}" = "--fix" ]; then FIX=1; WOO_ROOT="${2:-.}"; key="${3:-}"; else FI
 CFG="$WOO_ROOT/.woostack/config.json"
 
 if [ "$FIX" -eq 1 ]; then
+  # An empty key arg would make jq write a bogus "" entry into config.json
+  # (silent corruption). Require a real key; the orchestrator always passes one.
+  [ -n "$key" ] || { echo "config-keys.sh: --fix requires a key argument" >&2; exit 2; }
   [ -f "$CFG" ] || echo '{}' > "$CFG"
   val="$(jq -c --arg k "$key" '.[$k]' "$TEMPLATE")"
   tmp="$(mktemp)"; jq --arg k "$key" --argjson v "$val" '.[$k]=$v' "$CFG" > "$tmp" && mv "$tmp" "$CFG"

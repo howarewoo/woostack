@@ -17,7 +17,9 @@ registered="$(cd "$WOO_ROOT" && git worktree list --porcelain 2>/dev/null | awk 
 shopt -s nullglob
 for d in "$wt_dir"/*/; do
   d="${d%/}"; abs="$(cd "$d" 2>/dev/null && pwd)" || continue
-  case "$registered" in *"$abs"*) continue ;; esac
+  # Exact full-line match — a substring `case` would treat .../worktrees/app as
+  # registered whenever .../worktrees/app2 is, silently skipping a real orphan.
+  printf '%s\n' "$registered" | grep -qxF "$abs" && continue
   emit warn orphan-worktree report "${d#$WOO_ROOT/}" "unregistered worktree dir (manual review/remove — may hold work)"
 done
 while IFS= read -r p; do

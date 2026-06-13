@@ -21,6 +21,11 @@ if command -v jq >/dev/null 2>&1; then
     bash "$C/config-keys.sh" --fix "$r2" "$k"
   done
   assert_eq "$(bash "$C/config-keys.sh" "$r2")" "" "after fixing all keys, clean"
+
+  # --fix with no key arg must refuse, not write a bogus "" entry into config.
+  r2b="$(mktemp -d)"; mkdir -p "$r2b/.woostack"; echo '{}' > "$r2b/.woostack/config.json"
+  bash "$C/config-keys.sh" --fix "$r2b" >/dev/null 2>&1; assert_exit 2 "$?" "config-keys --fix without a key arg refuses"
+  assert_eq "$(cat "$r2b/.woostack/config.json")" "{}" "config-keys --fix without a key leaves config untouched"
 fi
 
 # orphan-worktree
@@ -28,4 +33,10 @@ r3="$(mktemp -d)"; ( cd "$r3" && git -c user.email=t@t -c user.name=t init -q &&
 mkdir -p "$r3/.woostack/worktrees/ghost"
 assert_contains "$(bash "$C/orphan-worktree.sh" "$r3")" "orphan-worktree" "unregistered worktree dir flagged"
 assert_contains "$(bash "$C/orphan-worktree.sh" "$r3")" "report" "present unregistered dir is report (never auto-pruned)"
+
+# Prefix-collision regression: a registered worktree (app2) whose path contains an
+# orphan dir's path (app) as a prefix must NOT make the orphan look registered.
+git -C "$r3" worktree add -q "$r3/.woostack/worktrees/app2" -b wt-app2
+mkdir -p "$r3/.woostack/worktrees/app"
+assert_contains "$(bash "$C/orphan-worktree.sh" "$r3")" "worktrees/app	" "orphan 'app' flagged despite registered prefix-sibling 'app2'"
 finish
