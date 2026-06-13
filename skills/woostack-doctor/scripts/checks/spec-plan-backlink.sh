@@ -9,12 +9,21 @@ emit() { printf '%s\t%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" "$5"; }
 
 if [ "${1:-}" = "--fix" ]; then
   # --fix <root> <spec> <plan-basename> : insert the callout after the first H1 (idempotent).
-  spec="$3"; pbase="$4"
+  root="$2"; spec="$3"; pbase="$4"
   grep -qF "[[plans/$pbase]]" "$spec" 2>/dev/null && exit 0
   awk -v line="> **Plan:** [[plans/$pbase]]" '
     {print} d==0 && /^# /{print ""; print line; d=1}' "$spec" > "$spec.t" \
     && mv "$spec.t" "$spec"
-  exit $?
+  # The awk anchors the callout to the first H1; a spec with no H1 heading leaves
+  # the file unchanged, so the backlink is never inserted. Confirm it actually
+  # landed instead of reporting a phantom-successful repair (the orchestrator
+  # reads exit 0 as "fixed" and would otherwise re-warn on the next diagnose).
+  if ! grep -qF "[[plans/$pbase]]" "$spec"; then
+    emit error spec-plan-backlink manual "${spec#"$root"/}" \
+      "no H1 heading to anchor backlink [[plans/$pbase]]; add it to the spec manually"
+    exit 1
+  fi
+  exit 0
 fi
 WOO_ROOT="${1:-.}"
 

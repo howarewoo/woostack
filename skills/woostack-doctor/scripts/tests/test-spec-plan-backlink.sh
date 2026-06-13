@@ -29,4 +29,12 @@ assert_contains "$(bash "$CHK" "$r2")" "y-long.md" "slug-mismatch resolves via S
 r3="$(mktemp -d)"; mkdir -p "$r3/.woostack/specs" "$r3/.woostack/plans"
 printf -- '**Source:** .woostack/specs/missing.md\n\n# Z Plan\n' > "$r3/.woostack/plans/2026-06-13-z.md"
 assert_eq "$(bash "$CHK" "$r3")" "" "spec-less plan is not flagged"
+
+# --fix on a spec with no H1 cannot anchor the callout; it must fail loudly
+# (exit non-zero + error finding) rather than report a phantom-successful repair.
+r4="$(mktemp -d)"; mkdir -p "$r4/.woostack/specs"
+printf -- '---\nname: w\ntype: spec\n---\n\nBody only, no H1 heading.\n' > "$r4/.woostack/specs/2026-06-13-w.md"
+out4="$(bash "$CHK" --fix "$r4" "$r4/.woostack/specs/2026-06-13-w.md" "2026-06-13-w")"; rc4=$?
+assert_exit 1 "$rc4" "--fix on a no-H1 spec exits non-zero"
+assert_contains "$out4" "no H1 heading to anchor" "--fix on a no-H1 spec emits an error finding"
 finish
