@@ -40,6 +40,8 @@ Two callers:
    | `.woostack/plans/` directory | (create empty) |
    | `.woostack/fixes/` directory | (create empty) |
    | `.woostack/fixes/.gitkeep` | `templates/fixes/.gitkeep` |
+   | `.woostack/wisdom/` directory | (create empty) |
+   | `.woostack/wisdom/.gitkeep` | `templates/wisdom/.gitkeep` |
    | `.woostack/config.json` | `templates/config.json` (`{ "review": {}, "status": { "staleDays": 14 } }`) |
    | `.woostack/.gitignore` | `templates/gitignore` |
    | `.woostack/worktrees/` directory | (create empty — per-PR git worktrees, gitignored) |
@@ -123,3 +125,6 @@ Two callers:
 The full memory store contract — note frontmatter schema, glob semantics,
 derived index format, recall procedure, and script usage — is in
 [references/memory.md](references/memory.md).
+
+The sibling `.woostack/wisdom/` store (generalized findings, wholesale-loaded) has its own
+contract in [references/wisdom.md](references/wisdom.md).

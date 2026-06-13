@@ -19,12 +19,12 @@
 **Files:**
 - Create: `skills/woostack-init/references/wisdom.md`
 
-- [ ] **Step 1: Verify the file is absent (red)**
+- [x] **Step 1: Verify the file is absent (red)**
 
 Run: `test ! -e skills/woostack-init/references/wisdom.md && echo MISSING`
 Expected: `MISSING`
 
-- [ ] **Step 2: Write the contract**
+- [x] **Step 2: Write the contract**
 
 Create `skills/woostack-init/references/wisdom.md` with exactly:
 
@@ -189,7 +189,7 @@ retargeted to `wisdom/`); memory notes are created only by `woostack-execute` di
   (mirrors `memory.md` §10).
 ```
 
-- [ ] **Step 3: Verify the contract exists with the required sections (green)**
+- [x] **Step 3: Verify the contract exists with the required sections (green)**
 
 Run:
 ```bash
@@ -202,7 +202,7 @@ test -f skills/woostack-init/references/wisdom.md \
 ```
 Expected: `OK`
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt create -m "feat(wisdom): add wisdom-store contract reference"
@@ -213,12 +213,12 @@ gt create -m "feat(wisdom): add wisdom-store contract reference"
 **Files:**
 - Modify: `skills/woostack-init/references/memory.md` (§2 Layout block; §3 `type` enum)
 
-- [ ] **Step 1: Confirm memory.md does not yet mention wisdom (red)**
+- [x] **Step 1: Confirm memory.md does not yet mention wisdom (red)**
 
 Run: `grep -c 'wisdom' skills/woostack-init/references/memory.md || true`
 Expected: `0`
 
-- [ ] **Step 2: Add a sibling-store line to the §2 layout tree**
+- [x] **Step 2: Add a sibling-store line to the §2 layout tree**
 
 In `skills/woostack-init/references/memory.md`, inside the §2 Layout fenced tree, add a `wisdom/`
 sibling line after the `plans/` line. The tree currently contains lines like:
@@ -234,7 +234,7 @@ Insert after the `plans/` line:
 ├── wisdom/          generalized findings, wholesale-loaded — see wisdom.md (sibling store)
 ```
 
-- [ ] **Step 3: Add the reserved `type: wisdom` entry to the §3 `type` enum**
+- [x] **Step 3: Add the reserved `type: wisdom` entry to the §3 `type` enum**
 
 In §3, the `type` enum paragraph currently reads:
 
@@ -250,7 +250,7 @@ Append after it (new paragraph):
 The wisdom store has its own contract — see [`wisdom.md`](wisdom.md).
 ```
 
-- [ ] **Step 4: Verify both edits landed and the cross-link resolves (green)**
+- [x] **Step 4: Verify both edits landed and the cross-link resolves (green)**
 
 Run:
 ```bash
@@ -261,7 +261,7 @@ grep -q 'wisdom/' skills/woostack-init/references/memory.md \
 ```
 Expected: `OK`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "docs(memory): note wisdom sibling store + reserved type"
@@ -273,19 +273,19 @@ gt modify -c -m "docs(memory): note wisdom sibling store + reserved type"
 - Create: `skills/woostack-init/templates/wisdom/.gitkeep`
 - Modify: `skills/woostack-init/SKILL.md` (step 2 scaffold table; Reference section)
 
-- [ ] **Step 1: Confirm the template is absent (red)**
+- [x] **Step 1: Confirm the template is absent (red)**
 
 Run: `test ! -e skills/woostack-init/templates/wisdom/.gitkeep && echo MISSING`
 Expected: `MISSING`
 
-- [ ] **Step 2: Create the `.gitkeep` template**
+- [x] **Step 2: Create the `.gitkeep` template**
 
 ```bash
 mkdir -p skills/woostack-init/templates/wisdom
 : > skills/woostack-init/templates/wisdom/.gitkeep
 ```
 
-- [ ] **Step 3: Add `wisdom/` rows to the init scaffold table**
+- [x] **Step 3: Add `wisdom/` rows to the init scaffold table**
 
 In `skills/woostack-init/SKILL.md`, step 2's scaffold table currently has these rows:
 
@@ -301,7 +301,7 @@ Insert after the `fixes/.gitkeep` row:
    | `.woostack/wisdom/.gitkeep` | `templates/wisdom/.gitkeep` |
 ```
 
-- [ ] **Step 4: Cross-link the wisdom contract from the Reference section**
+- [x] **Step 4: Cross-link the wisdom contract from the Reference section**
 
 In `skills/woostack-init/SKILL.md`, the final `## Reference` section currently points only to
 `references/memory.md`. Append a sentence:
@@ -311,7 +311,7 @@ The sibling `.woostack/wisdom/` store (generalized findings, wholesale-loaded) h
 contract in [references/wisdom.md](references/wisdom.md).
 ```
 
-- [ ] **Step 5: Verify the scaffold row + template + cross-link (green)**
+- [x] **Step 5: Verify the scaffold row + template + cross-link (green)**
 
 Run:
 ```bash
@@ -322,7 +322,7 @@ test -f skills/woostack-init/templates/wisdom/.gitkeep \
 ```
 Expected: `OK`
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 gt modify -c -m "feat(init): scaffold .woostack/wisdom/ (tracked store)"
@@ -333,7 +333,7 @@ gt modify -c -m "feat(init): scaffold .woostack/wisdom/ (tracked store)"
 **Files:**
 - Modify: `skills/woostack-init/scripts/tests/test-gitignore-template.sh`
 
-- [ ] **Step 1: Add the wisdom/overnight assertions (write the failing check)**
+- [x] **Step 1: Add the wisdom/overnight assertions (write the failing check)**
 
 In `skills/woostack-init/scripts/tests/test-gitignore-template.sh`, before the `finish` line, add:
 
@@ -345,7 +345,7 @@ assert_not_contains "$body" "$(printf 'wisdom/')" "gitignore template keeps wisd
 assert_contains "$body" "overnight/" "gitignore template still ignores overnight reports"
 ```
 
-- [ ] **Step 2: Run the test, confirm it passes against the unchanged template (green)**
+- [x] **Step 2: Run the test, confirm it passes against the unchanged template (green)**
 
 The `templates/gitignore` already omits any `wisdom/` line and contains `overnight/`, so the new
 assertions pass without touching the template — that is the intended invariant (wisdom tracked by
@@ -354,7 +354,7 @@ default).
 Run: `bash skills/woostack-init/scripts/tests/test-gitignore-template.sh`
 Expected: PASS — all assertions pass, ending with the `finish` summary (exit 0).
 
-- [ ] **Step 3: Prove the guard bites (confirm the assertion is real)**
+- [x] **Step 3: Prove the guard bites (confirm the assertion is real)**
 
 Run (temporary, do not commit the edit):
 ```bash
@@ -366,7 +366,7 @@ cp /tmp/gi.bak skills/woostack-init/templates/gitignore
 Expected: a FAIL line for "template does not ignore the wisdom store" and `exit=1`, then the
 template is restored.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt modify -c -m "test(init): assert wisdom tracked + overnight ignored in gitignore template"
@@ -377,7 +377,7 @@ gt modify -c -m "test(init): assert wisdom tracked + overnight ignored in gitign
 **Files:**
 - Modify: `skills/woostack-init/scripts/tests/test-build-index.sh`
 
-- [ ] **Step 1: Add the no-leak case (write the failing-by-construction check)**
+- [x] **Step 1: Add the no-leak case (write the failing-by-construction check)**
 
 In `skills/woostack-init/scripts/tests/test-build-index.sh`, before the `finish` line, add:
 
@@ -395,7 +395,7 @@ assert_not_contains "$(cat "$wd/MEMORY.md")" "wis-leak" "sibling wisdom/ never l
 rm -rf "$wd" "$wd/../wisdom"
 ```
 
-- [ ] **Step 2: Run the test, confirm it passes (green)**
+- [x] **Step 2: Run the test, confirm it passes (green)**
 
 build-index globs only `$MEM_DIR/*.md`, so `wis-leak` cannot appear in the index — the assertion
 passes by construction (that IS the structural guarantee AC3 asserts).
@@ -403,7 +403,7 @@ passes by construction (that IS the structural guarantee AC3 asserts).
 Run: `bash skills/woostack-init/scripts/tests/test-build-index.sh`
 Expected: PASS — ends with the `finish` summary, exit 0.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 gt modify -c -m "test(init): assert sibling wisdom store never leaks into MEMORY.md"

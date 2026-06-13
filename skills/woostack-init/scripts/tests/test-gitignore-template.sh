@@ -17,4 +17,10 @@ assert_contains "$body" "memory/.telemetry.tsv"  "template ignores the telemetry
 assert_contains "$body" "memory/.dream-watermark" "template ignores the dream watermark"
 assert_contains "$body" "worktrees/" "gitignore template ignores per-PR worktrees"
 
+# Wisdom is a TRACKED store — the template must NOT ignore it (contrast overnight/).
+assert_exit 1 "$(grep -qx 'wisdom/' "$template"; echo $?)" "template does not ignore the wisdom store"
+assert_not_contains "$body" "$(printf 'wisdom/')" "gitignore template keeps wisdom/ tracked"
+# Regression guard: overnight/ stays ignored even as wisdom/ is added as a sibling.
+assert_contains "$body" "overnight/" "gitignore template still ignores overnight reports"
+
 finish
