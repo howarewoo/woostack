@@ -69,8 +69,8 @@ do not add application code, app build configs, or app lockfiles **outside the s
 
 **Mode B: run a woostack command.** Use this when the user asks for `/woostack-init`,
 `/woostack-bootstrap`, `/woostack-build`, `/woostack-fix`, `/woostack-plan`, `/woostack-execute`, `/woostack-execute-overnight`, `/woostack-commit`,
-`/woostack-review`, `/woostack-address-comments`, `/woostack-status`, `/woostack-visualize`, `/woostack-debug`, `/woostack-dream`, or
-`/woostack-tdd`, including intent-equivalent wording. Load the matching skill
+`/woostack-review`, `/woostack-address-comments`, `/woostack-status`, `/woostack-visualize`, `/woostack-debug`, `/woostack-dream`,
+`/woostack-tdd`, or `/woostack-doctor`, including intent-equivalent wording. Load the matching skill
 before acting. For bootstrap work, the output belongs in a fresh repo in a different
 directory, not in this repo.
 
