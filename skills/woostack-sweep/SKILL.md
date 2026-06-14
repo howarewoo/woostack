@@ -50,11 +50,25 @@ run `git worktree add "$wt" <inc-branch>` — **no** `-b`. The **primary tree is
 `address-comments` memory write lands in the primary store. Then loop, up to `max_rounds` rounds
 (see Config):
 
+> **Receipt before clean — never self-review.** A PR is marked `clean` **only** from a real
+> `woostack-review --full` run on its current HEAD, evidenced by a **review receipt**: the
+> woostack-review-posted verdict bearing its bot marker for the reviewed HEAD SHA — the same
+> `STATUS_LINE` + marker step 2 already reads, **not a new artifact**. **Never** synthesize a
+> `clean` from a structural, manual, or self-review, and **never** downgrade `woostack-review
+> --full` to a cheaper check to save cost. A PR with **no review receipt for its HEAD** (the
+> engine errored, hung, or was skipped) is **not clean → `blocked`** — distinct from a branch with
+> no open PR (skip + warn, un-reviewable). This holds on **every** round: per the
+> `fanout-empty-needs-receipt` disambiguation one level up, a clean aggregate with no execution
+> receipt is ambiguous (ran-clean vs never-ran), and the receipt is what makes `clean` provably
+> swarm-derived.
+
 1. **Review** — `woostack-review <PR#> --full`. **Every** round is `--full` (a complete re-review
    of the whole PR), so a fix that breaks something *outside* its own diff is still caught.
-2. **Clean?** — Clean = `woostack-review`'s computed verdict has **no blocking findings**
+2. **Clean?** — Clean requires a valid **review receipt** for this HEAD (the barrier above) **and**
+   that `woostack-review`-computed verdict has **no blocking findings**
    (`STATUS_LINE` `APPROVED` / `APPROVED WITH SUGGESTIONS`) **and** zero unresolved threads
-   (checked via `gh`). Read the **verdict, not the GitHub event**: self-authored stack PRs get the
+   (checked via `gh`). No receipt for HEAD ⇒ the review did not run ⇒ **`blocked`**, never `clean`.
+   Read the **verdict, not the GitHub event**: self-authored stack PRs get the
    posted event downgraded `APPROVE`→`COMMENT`, so trust `STATUS_LINE`. Clean ⇒ teardown the
    worktree, advance to the next PR up. "Clean" is **review-clean, not a merge-approval** — the
    run never merges.
@@ -102,9 +116,10 @@ table + "Needs you".
 ## Blocker & terminal state
 
 A **blocker** = the cap or no-progress guard reached with **blocking findings still present**, a
-`woostack-review` error/hang, a restack/rebase conflict, or an `address-comments` step that would
-touch the never-auto-approve set (destructive / secret / auth / network / ambiguous). Safety is
-never relaxed for autonomy.
+`woostack-review` error/hang **or any PR left without a review receipt for its HEAD (the review did
+not run — never substitute a self/structural review)**, a restack/rebase conflict, or an
+`address-comments` step that would touch the never-auto-approve set (destructive / secret / auth /
+network / ambiguous). Safety is never relaxed for autonomy.
 
 **Standalone:** on a blocker, **stop** at that PR, **leave its worktree** for inspection, and print
 a "Needs you" summary — the blocked PR + reason, plus any `done-with-findings` PRs with their open
@@ -141,6 +156,10 @@ but it never force-pushes a protected base, never merges, and never edits the pr
   approved-with-only-nits at the cap) before moving up; a fix restacks only the PRs above it.
 - **Read the verdict, not the event.** Clean = `STATUS_LINE` no-blocking + zero unresolved threads;
   self-authored PR events are downgraded.
+- **Receipt before clean.** A PR is `clean` only with a real `woostack-review --full` receipt for
+  its HEAD (the posted verdict + bot marker); never `clean` from a self/structural review, and
+  never downgrade the review to save cost. No receipt for HEAD ⇒ `blocked`, per
+  `fanout-empty-needs-receipt`.
 - **Restack this stack only.** `gt restack` / `gt submit --stack`; never `gt sync` / repo-wide
   restack.
 - **Bounded.** `review_sweep.max_rounds` (default 3) + no-progress guard scoped to **blocking**
