@@ -6,7 +6,9 @@ stdout, one per line, tab-delimited: `severity⇥code⇥fixable⇥path⇥message
 - **severity** — `error` (structural breakage; the orchestrator exits nonzero) or `warn`
   (hygiene/convention; exit stays 0). CI (`--check`) fails only on `error`.
 - **fixable** — `auto` (the check ships a `--fix` apply path) or `report` (judgment; surfaced for a
-  human, never auto-applied).
+  human, never auto-applied). An `auto` check's `--fix` path may additionally emit `manual` at
+  runtime for a single instance it cannot safely repair (e.g. a doc with no frontmatter fence):
+  surfaced for a human, never auto-applied.
 
 ## Calling convention
 
