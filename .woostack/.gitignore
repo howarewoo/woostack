@@ -10,3 +10,4 @@ memory/.dream-watermark
 # Obsidian per-user UI state (the shared .obsidian/*.json config IS tracked).
 .obsidian/workspace*
 .obsidian/cache
+.obsidian/graph.json
