@@ -37,4 +37,8 @@ assert_eq "$(printf '%s\n' "$res" | grep -c 'auto')" "0" "no auto findings remai
 assert_contains "$res" ".woostack/fixes/c.md" "fenceless report persists"
 # no git/gh invocation in the check source
 assert_eq "$(grep -nE '(^|[^[:alnum:]_])(git|gh)[[:space:]]' "$C/doc-type.sh")" "" "doc-type calls no git/gh"
+# --fix on a fenceless file: the error path emits + exits nonzero (never silently swallowed)
+out_fx="$(bash "$C/doc-type.sh" --fix "$r" "$r/.woostack/fixes/c.md")"; rc_fx=$?
+assert_exit 1 "$rc_fx" "--fix on fenceless file exits nonzero"
+assert_contains "$out_fx" "no frontmatter fence" "--fix on fenceless emits the error finding"
 finish
