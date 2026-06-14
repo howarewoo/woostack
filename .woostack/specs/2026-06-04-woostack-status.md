@@ -9,6 +9,8 @@ links:
 
 # woostack-status: a derived feature board — Design Spec
 
+> **Plan:** [[plans/2026-06-04-woostack-status]]
+
 > Visualize on demand: render this file with [spec-template.html](../../skills/woostack-build/references/spec-template.html) for a rich view, or hand it to `woostack-visualize` (audience `engineer`). Markdown is the source of truth; the HTML is a presentation target only.
 
 ## 1. Problem

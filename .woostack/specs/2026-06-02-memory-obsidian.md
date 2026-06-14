@@ -9,6 +9,8 @@ increment: D of 4
 
 # Obsidian layer — Design Spec
 
+> **Plan:** [[plans/2026-06-02-memory-obsidian]]
+
 > Increment D of 4 (final). Stacks on C ([[memory-distill]]). The optional Obsidian layer over the memory vault. Hard reality: `obsidian eval` needs the desktop app running, so it is **never a dependency** — the grep-wikilink path (already in `recall.sh`/`doctor.sh`) stays the headless workhorse. This increment adds opt-in vault config + an optional graph helper that falls back to grep.
 
 ## 1. Problem

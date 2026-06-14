@@ -9,6 +9,8 @@ increment: B of 4
 
 # Memory recall + review scope-routing — Design Spec
 
+> **Plan:** [[plans/2026-06-02-memory-recall]]
+
 > Increment B of 4. Stacks on increment A ([[woostack-init]]). Builds the read path: the `recall.sh` orchestration A deferred, wired into the review pipeline so workers get scope-matched notes instead of the whole flat dump.
 
 ## 1. Problem

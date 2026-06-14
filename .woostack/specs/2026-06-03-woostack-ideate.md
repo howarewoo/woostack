@@ -9,6 +9,8 @@ links:
 
 # woostack-ideate: a woostack-native ideation skill — Design Spec
 
+> **Plan:** [[plans/2026-06-03-woostack-ideate]]
+
 > Visualize on demand: render this file with [spec-template.html](../../skills/woostack-build/references/spec-template.html) for a rich view, or hand it to `woostack-visualize` (audience `engineer`). Markdown is the source of truth; the HTML is a presentation target only.
 
 ## 1. Problem

@@ -9,6 +9,8 @@ links:
 
 # woostack-visualize Skill — Design Spec
 
+> **Plan:** [[plans/2026-06-03-woostack-visualize]]
+
 > Visualize on demand: render this file with [spec-template.html](spec-template.html) for a rich view. Markdown is the source of truth; the HTML is a presentation target only.
 
 ## 1. Problem

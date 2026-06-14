@@ -13,6 +13,8 @@ links:
 
 > `status:` is the build-loop phase enum: `draft → hardened → approved → planning → ready → executing → in-review → done` (plus the terminal `abandoned`). The build loop authors each transition and `/woostack-status` reads it; the enum and join contracts are defined once in [conventions.md](../../woostack-status/references/conventions.md).
 
+> **Plan:** [[plans/{{DATE}}-{{SLUG}}]]
+
 ## 1. Problem
 
 {{PROBLEM}}

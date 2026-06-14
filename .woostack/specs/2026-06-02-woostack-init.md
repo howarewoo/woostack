@@ -9,6 +9,8 @@ increment: A of 4
 
 # woostack-init — Design Spec
 
+> **Plan:** [[plans/2026-06-02-woostack-init]]
+
 > Increment A of 4. Hardened via grill-me 2026-06-02. Visualize on demand: render this file with `spec-template.html` if a rich view is wanted.
 
 ## 1. Problem

@@ -9,6 +9,8 @@ links:
 
 # Memory: distillation gate + updated: coverage (#167 + #161) — Design Spec
 
+> **Plan:** [[plans/2026-06-02-memory-distill-gate]]
+
 > Visualize on demand: render this file with [spec-template.html](spec-template.html) for a rich view. Markdown is the source of truth; the HTML is a presentation target only.
 
 ## 1. Problem

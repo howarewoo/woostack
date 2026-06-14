@@ -9,6 +9,8 @@ links:
 
 # Memory: scope-overlap clusters + recall recency tiebreak (#162) — Design Spec
 
+> **Plan:** [[plans/2026-06-02-memory-overlap-clusters]]
+
 > Visualize on demand: render this file with [spec-template.html](spec-template.html) for a rich view. Markdown is the source of truth; the HTML is a presentation target only.
 
 ## 1. Problem
