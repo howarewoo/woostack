@@ -31,9 +31,14 @@ WOO_ROOT="${1:-.}"
 spec_for() {
   local plan="$1" pbase src
   pbase="$(basename "$plan")"
-  src="$(grep -m1 -E '^\*\*Source:\*\*' "$plan" 2>/dev/null | grep -oE 'specs/[^])[:space:]]+\.md' | head -1)"
-  if [ -n "$src" ] && [ -f "$WOO_ROOT/.woostack/$src" ]; then
-    printf '%s\n' "$WOO_ROOT/.woostack/$src"; return
+  # The **Source:** line may be a bare path (`.woostack/specs/<base>.md`) or an Obsidian
+  # wikilink (`[[specs/<base>]]`, no `.md`). The char class already stops at `]`/`)`/space, so
+  # it extracts `specs/<base>` from either form; normalize to exactly one `.md` before the
+  # existence test.
+  src="$(grep -m1 -E '^\*\*Source:\*\*' "$plan" 2>/dev/null | grep -oE 'specs/[^])[:space:]]+' | head -1)"
+  if [ -n "$src" ]; then
+    src="${src%.md}.md"
+    [ -f "$WOO_ROOT/.woostack/$src" ] && { printf '%s\n' "$WOO_ROOT/.woostack/$src"; return; }
   fi
   [ -f "$WOO_ROOT/.woostack/specs/$pbase" ] && printf '%s\n' "$WOO_ROOT/.woostack/specs/$pbase"
 }

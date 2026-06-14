@@ -30,6 +30,14 @@ r3="$(mktemp -d)"; mkdir -p "$r3/.woostack/specs" "$r3/.woostack/plans"
 printf -- '**Source:** .woostack/specs/missing.md\n\n# Z Plan\n' > "$r3/.woostack/plans/2026-06-13-z.md"
 assert_eq "$(bash "$CHK" "$r3")" "" "spec-less plan is not flagged"
 
+# Source line as an Obsidian wikilink ([[specs/<basename>]], no .md) resolves the spec, same
+# as a bare path. Plan basename differs from the spec basename so resolution can only come
+# from the wikilink Source line, not the same-basename fallback.
+r5="$(mktemp -d)"; mkdir -p "$r5/.woostack/specs" "$r5/.woostack/plans"
+printf -- '---\nname: wt\ntype: spec\n---\n\n# WT\n' > "$r5/.woostack/specs/2026-06-13-wikitarget.md"
+printf -- '**Source:** [[specs/2026-06-13-wikitarget]]\n\n# WT Plan\n' > "$r5/.woostack/plans/2026-06-13-wikiplan.md"
+assert_contains "$(bash "$CHK" "$r5")" "wikitarget.md" "wikilink Source line resolves the spec"
+
 # --fix on a spec with no H1 cannot anchor the callout; it must fail loudly
 # (exit non-zero + error finding) rather than report a phantom-successful repair.
 r4="$(mktemp -d)"; mkdir -p "$r4/.woostack/specs"

@@ -146,7 +146,7 @@ unrelated dirty files, or user work from outside this session.
 
 ### 4.5 Invariant check (advisory)
 
-When the staged changes touch `.woostack/specs/*.md`, `.woostack/plans/*.md`, or `.woostack/fixes/*.md`, run the cheap feature-state invariant checks on every affected spec/fix so the `/woostack-status` board stays honest. The affected set is every directly touched spec/fix plus the spec named by each touched plan's `source:` frontmatter or `**Source:** .woostack/specs/<file>.md` line. These are **advisory**: print any violation as a single non-blocking line in the commit report and continue. Never abort, stage differently, or change the commit because of them.
+When the staged changes touch `.woostack/specs/*.md`, `.woostack/plans/*.md`, or `.woostack/fixes/*.md`, run the cheap feature-state invariant checks on every affected spec/fix so the `/woostack-status` board stays honest. The affected set is every directly touched spec/fix plus the spec named by each touched plan's `source:` frontmatter or `**Source:**` line (a `[[specs/<basename>]]` wikilink, or the legacy `.woostack/specs/<file>.md` path). These are **advisory**: print any violation as a single non-blocking line in the commit report and continue. Never abort, stage differently, or change the commit because of them.
 
 For each affected spec/fix, check:
 
