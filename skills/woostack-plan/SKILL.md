@@ -11,7 +11,7 @@ step 4. It keeps the discipline that makes plans worth executing (file-structure
 bite-sized TDD tasks, no placeholders, a self-review pass) and adds the woostack conventions:
 markdown plans under `.woostack/plans/`, an opening `**Source:**` line that joins the plan 1:1 to
 its spec, backed by YAML frontmatter, decomposed into independently shippable increments, and a
-`status: planning` transition on the spec. It writes the plan and hands back; it owns no approval
+`status: planning` transition on the plan. It writes the plan and hands back; it owns no approval
 gate and never executes, commits, or merges.
 
 It internalizes the plan-writing discipline as a native phase — the same move
@@ -139,10 +139,8 @@ Exact file paths always. Complete code in every code step. Exact commands with e
 - **Filename:** save to `.woostack/plans/<spec-basename>.md` — the **same** `YYYY-MM-DD-<slug>`
   basename as the spec (reuse the spec's date; **not** today's). The shared basename is the
   slug-match fallback join.
-- **Frontmatter:** the plan starts with YAML properties: `type: plan`, `source: .woostack/specs/<file>.md`, `status: planning`, and `branch: <feature branch>`.
-  primary spec→plan join the `/woostack-status` board reads.
-- **Frontmatter-free:** plans carry no YAML frontmatter and no `REQUIRED SUB-SKILL` banner. The
-  header is the `**Source:**` line plus Goal / Architecture / Tech Stack.
+- **Frontmatter:** the plan starts with YAML properties: `type: plan`, `source: .woostack/specs/<file>.md`, `status: planning`, and `branch: <feature branch>`. The `source:` field is the primary spec→plan join the `/woostack-status` board reads.
+- **Header:** after the frontmatter, the body opens with the `**Source:**` line plus Goal / Architecture / Tech Stack — no `REQUIRED SUB-SKILL` banner.
 
 The phase enum and join contracts are defined once in
 [`../woostack-status/references/conventions.md`](../woostack-status/references/conventions.md) —
