@@ -1,1 +1,6 @@
-{}
+{
+  "userIgnoreFilters": [
+    "review-tmp/",
+    "tmp/"
+  ]
+}
