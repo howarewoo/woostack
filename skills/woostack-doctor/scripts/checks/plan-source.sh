@@ -33,14 +33,16 @@ if [ "${1:-}" = "--fix" ]; then
       grep -qE '^\*\*Source:\*\*' "$plan" && exit 0       # already present → no-op
       base="$(basename_of "$(field "$plan" source)")"
       [ -z "$base" ] && { emit warn plan-source report "${plan#"$root"/}" "no source: frontmatter to derive the **Source:** line"; exit 1; }
+      [ -f "$root/.woostack/specs/$base.md" ] || { emit warn plan-source report "${plan#"$root"/}" "source: names 'specs/$base' but no such spec exists; resolve manually"; exit 1; }
       awk -v line="**Source:** [[specs/$base]]" '
         {print}
-        f==0 && /^---$/{c++; if(c==2){print ""; print line; f=1}}' "$plan" > "$plan.t" && mv "$plan.t" "$plan"
+        f==0 && /^---$/{c++; if(c==2){print ""; print line; f=1}}' "$plan" > "$plan.t" && mv "$plan.t" "$plan" || { rm -f "$plan.t"; emit error plan-source manual "${plan#"$root"/}" "could not rewrite the plan to insert the **Source:** line"; exit 1; }
       grep -qE '^\*\*Source:\*\*' "$plan" || { emit error plan-source manual "${plan#"$root"/}" "no closing frontmatter fence to anchor the **Source:** line; add it manually"; exit 1; }
       exit 0 ;;
     source-sync)
       lb="$(line_base "$plan")"; [ -z "$lb" ] && exit 0
       set_field "$plan" source ".woostack/specs/$lb.md" || { emit error plan-source-sync manual "${plan#"$root"/}" "no frontmatter fence; set source: manually"; exit 1; }
+      [ "$(basename_of "$(field "$plan" source)")" = "$lb" ] || { emit error plan-source-sync manual "${plan#"$root"/}" "source: did not sync to '$lb'"; exit 1; }   # phantom-repair guard (spec §6)
       exit 0 ;;
     *) exit 2 ;;
   esac
@@ -63,5 +65,7 @@ for plan in "$WOO_ROOT/.woostack/plans"/*.md; do
   sbase="$(basename_of "$(field "$plan" source)")"
   if [ -n "$sbase" ] && [ "$sbase" != "$lb" ]; then
     emit warn plan-source-sync auto "$rp" "source: names '$sbase' but **Source:** line names '$lb'; sync source: to the canonical line"
+  elif [ -z "$sbase" ]; then
+    emit warn plan-source-sync auto "$rp" "**Source:** line names '$lb' but source: frontmatter is absent; sync source: from the line"
   fi
 done
