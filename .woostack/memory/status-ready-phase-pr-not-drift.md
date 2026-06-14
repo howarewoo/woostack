@@ -5,7 +5,7 @@ scope: skills/woostack-status/scripts/**
 tags: status, drift, ready, lag-flag, phase-enum
 hook: The lag-flag head-state list must EXCLUDE any phase where a PR is legitimately expected (ready opens the spec+plan PR) — and mkplan defaults the plan to `planning`, so a "ready" test that omits the status arg never tests ready.
 updated: 2026-06-14
-source: .woostack/fixes/2026-06-14-status-ready-pr-drift.md
+source: [[fixes/2026-06-14-status-ready-pr-drift]]
 ---
 `/woostack-status` raises a "status lags" drift when an authored head-state
 `phase` coexists with a discovered PR (`prcount > 0`). The head-state `case` in

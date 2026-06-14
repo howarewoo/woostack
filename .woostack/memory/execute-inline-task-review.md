@@ -5,7 +5,7 @@ scope: skills/woostack-execute/**
 tags: execute, inline, review, tokens, task-review
 hook: Inline execute should reuse bounded task spec and quality checks instead of falling back to a broader PR review loop.
 updated: 2026-06-09
-source: .woostack/fixes/2026-06-09-inline-execute-quality-checks.md
+source: [[fixes/2026-06-09-inline-execute-quality-checks]]
 ---
 `woostack-execute` has two drivers, but inline mode is not a reason to swap the bounded task
 review loop for a broad PR review. The token-efficient shape is shared criteria with different

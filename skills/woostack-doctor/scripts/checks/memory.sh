@@ -45,19 +45,36 @@ for f in "$MEM_DIR"/*.md; do
       while IFS= read -r p; do [ -n "$p" ] && printf '%s\t%s\n' "$p" "$base" >> "$overlap_pairs"; done <<< "$matches"
     fi
   fi
-  source_path="$(field "$f" source)"
+  source_raw="$(field "$f" source)"
+  # Normalize a provenance wikilink [[<dir>/<basename>]] for the three authored artifact dirs
+  # (specs|plans|fixes) to its .woostack path; an optional trailing .md is tolerated. A raw
+  # path or a pr-/address-comments review marker passes through unchanged.
+  source_path="$source_raw"
+  case "$source_raw" in
+    '[['*']]')
+      _wl="${source_raw#\[\[}"; _wl="${_wl%\]\]}"; _wl="${_wl%.md}"
+      case "$_wl" in specs/*|plans/*|fixes/*) source_path=".woostack/$_wl.md" ;; esac ;;
+  esac
   case "$source_path" in
-    .woostack/specs/*|.woostack/plans/*)
+    .woostack/specs/*|.woostack/plans/*|.woostack/fixes/*)
       [ -f "$WOO_ROOT/$source_path" ] || warn memory-provenance "$rp" "$base: source '$source_path' is missing (stale provenance)" ;;
   esac
-  [ -z "$source_path" ] && warn memory-provenance "$rp" "$base: missing source: (provenance required)"
-  case "$source_path" in pr-*|address-comments) is_review=1 ;; *) is_review= ;; esac
+  [ -z "$source_raw" ] && warn memory-provenance "$rp" "$base: missing source: (provenance required)"
+  case "$source_raw" in pr-*|address-comments) is_review=1 ;; *) is_review= ;; esac
   if [ -n "$scope" ] && [ "$scope" != "*" ] && [ -z "$is_review" ] && [ "${scope#*\*}" = "$scope" ]; then
     warn memory-scope-trivia "$rp" "$base: non-glob scope '$scope' (possible trivia — prefer a glob)"
   fi
   while IFS= read -r link; do
     [ -z "$link" ] && continue
-    [ -f "$MEM_DIR/$link.md" ] || warn memory-unresolved-link "$rp" "$base: unresolved [[$link]]"
+    # Artifact wikilinks ([[specs|plans|fixes/<basename>]], optional trailing .md) resolve
+    # against the vault root, not the memory dir — so a provenance source: wikilink is not a
+    # false unresolved-link. Plain note-to-note links resolve in the memory dir as before.
+    case "$link" in
+      specs/*|plans/*|fixes/*)
+        [ -f "$WOO_ROOT/.woostack/${link%.md}.md" ] || warn memory-unresolved-link "$rp" "$base: unresolved [[$link]]" ;;
+      *)
+        [ -f "$MEM_DIR/$link.md" ] || warn memory-unresolved-link "$rp" "$base: unresolved [[$link]]" ;;
+    esac
   done < <(grep -oE '\[\[[^]]+\]\]' "$f" 2>/dev/null | sed 's/\[\[//; s/\]\]//' | sort -u)
   upd="$(field "$f" updated)"
   if [ -n "$upd" ]; then

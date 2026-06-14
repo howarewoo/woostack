@@ -5,7 +5,7 @@ scope: skills/woostack-fix/**
 tags: fix, execute, delegation, dry, execution-engine
 hook: woostack-fix delegates execution to woostack-execute (the fix file IS the plan); never re-inline a TDD/commit/distill loop.
 updated: 2026-06-10
-source: .woostack/fixes/2026-06-10-fix-delegate-to-execute.md
+source: [[fixes/2026-06-10-fix-delegate-to-execute]]
 ---
 `woostack-execute` is the single execution engine for woostack. A skill that drives a plan to
 implementation should **delegate** to it, not re-implement the cadence. `woostack-fix` previously

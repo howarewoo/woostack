@@ -5,7 +5,7 @@ scope: skills/*/SKILL.md
 tags: yaml, frontmatter, installer, skill-description
 hook: A `word: ` colon-space in a SKILL.md description is a YAML mapping indicator; it throws a ScannerError and the installer silently skips the skill.
 updated: 2026-06-05
-source: .woostack/plans/2026-06-04-woostack-status.md
+source: [[plans/2026-06-04-woostack-status]]
 ---
 The SKILL.md frontmatter `description:` value is a YAML plain scalar. A plain scalar must not
 contain `": "` (colon followed by space) — YAML reads it as a nested mapping-value indicator

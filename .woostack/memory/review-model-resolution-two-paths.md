@@ -5,7 +5,7 @@ scope: skills/woostack-review/**
 tags: review, model, tier, config, resolve-model, load-prompt, dispatch
 hook: woostack-review resolves the tier→model on two paths (CI single-session and local per-call); a config-aware resolver wired into only one silently regresses the other.
 updated: 2026-06-11
-source: .woostack/fixes/2026-06-11-review-local-model-resolution.md
+source: [[fixes/2026-06-11-review-local-model-resolution]]
 ---
 woostack-review picks each worker's model on **two independent paths**, and both
 must apply the same config precedence (`models.<provider>.<tier>` → flat

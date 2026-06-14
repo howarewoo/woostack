@@ -5,7 +5,7 @@ scope: site/**, skills/woostack-bootstrap/**
 tags: scaffolding, clack, create-fumadocs-app, headless, tty
 hook: Drive an interactive clack `create-*` CLI headlessly by trickle-feeding CR (`\r`) into its stdin pipe with delays — not piped `\n`, not expect text-matching.
 updated: 2026-06-12
-source: .woostack/plans/2026-06-12-fumadocs-docs-site.md
+source: [[plans/2026-06-12-fumadocs-docs-site]]
 ---
 `create-fumadocs-app` (and other `@clack/prompts`-based `create-*` CLIs) resist headless
 runs. What fails and why:

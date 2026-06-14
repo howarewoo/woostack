@@ -5,7 +5,7 @@ scope: skills/woostack-status/scripts/**
 tags: gh, search, prs, matching
 hook: `gh pr list --search` tokenizes paths and cross-matches; exact-match the trailer in the PR body.
 updated: 2026-06-04
-source: .woostack/plans/2026-06-04-woostack-status.md
+source: [[plans/2026-06-04-woostack-status]]
 ---
 `gh pr list --search "Spec: <path>"` is fuzzy full-text search: it tokenizes the path (on
 `/`, `-`, `.`), so a query for one spec matches PRs trailered for look-alike specs that share

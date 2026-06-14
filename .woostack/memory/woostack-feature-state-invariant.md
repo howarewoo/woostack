@@ -5,7 +5,7 @@ scope: .woostack/specs/**, .woostack/plans/**, skills/woostack-status/**
 tags: status, specs, plans, prs
 hook: Specs, plans, and increment PRs are joined by Source and Spec trailers.
 updated: 2026-06-04
-source: .woostack/plans/2026-06-04-woostack-status.md
+source: [[plans/2026-06-04-woostack-status]]
 ---
 Feature state is derived from artifacts, not a committed status file: each spec
 has exactly one plan via `**Source:** .woostack/specs/<file>.md`, and each

@@ -5,7 +5,7 @@ scope: skills/woostack-build/references/**
 tags: spec-template, visualize, html-mirror, renumber, illustrative-tokens
 hook: spec-template.html's {{tokens}} are illustrative, not a substitution engine — woostack-visualize composes bespoke HTML; edit the .md and .html together and keep sections 1:1.
 updated: 2026-06-06
-source: .woostack/plans/2026-06-06-spec-acceptance-criteria.md
+source: [[plans/2026-06-06-spec-acceptance-criteria]]
 ---
 `woostack-build/references/spec-template.md` and `spec-template.html` are a
 **hand-maintained 1:1 pair** — same ordered section headings and numbers. There

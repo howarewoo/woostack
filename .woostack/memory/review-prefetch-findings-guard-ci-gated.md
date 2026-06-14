@@ -5,7 +5,7 @@ scope: skills/woostack-review/scripts/**
 tags: prefetch, outdir, findings, guard, validate, ci, local, per-run, contamination, skills-repo
 hook: prefetch.sh's in-flight-findings.* guard must stay GITHUB_ACTIONS-gated — CI's validate job pre-downloads findings.* then re-runs prefetch, so warn-and-PRESERVE is load-bearing there; only the local branch may HARD-STOP. And the local default OUTDIR must be per-RUN, not per-project.
 updated: 2026-06-12
-source: .woostack/fixes/2026-06-12-review-outdir-per-run.md
+source: [[fixes/2026-06-12-review-outdir-per-run]]
 ---
 Two coupled facts about `prefetch.sh` / `resolve-outdir.sh` (issue #321):
 
