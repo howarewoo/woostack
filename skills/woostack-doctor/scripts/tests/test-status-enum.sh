@@ -12,12 +12,16 @@ printf -- '---\ntype: spec\nstatus: approved\n---\n\n# ok\n'   > "$r/.woostack/s
 printf -- '---\ntype: spec\nstatus: aproved\n---\n\n# typo\n'  > "$r/.woostack/specs/typo.md" # alias → auto
 printf -- '---\ntype: plan\nstatus: in_review\n---\n\n# al\n'  > "$r/.woostack/plans/al.md"   # alias → auto
 printf -- '---\ntype: fix\nstatus: frobnicate\n---\n\n# unk\n' > "$r/.woostack/fixes/unk.md"  # unknown → report
+printf -- '# no fence\nbody only\n'                            > "$r/.woostack/specs/nofence.md"  # no frontmatter → skipped (doc-type owns the no-fence report)
+printf -- '---\ntype: plan\n---\n\n# nostatus\n'               > "$r/.woostack/plans/nostatus.md" # fenced but no status: key → skipped
 
 out="$(bash "$C/status-enum.sh" "$r")"
 assert_eq "$(printf '%s\n' "$out" | grep -c 'status-enum')" "3" "three status-enum findings"
 assert_contains "$out" "$(printf 'error\tstatus-enum\tauto\t.woostack/specs/typo.md')" "alias is error+auto"
 assert_contains "$out" "$(printf 'error\tstatus-enum\tauto\t.woostack/plans/al.md')" "in_review alias is auto"
 assert_contains "$out" "$(printf 'error\tstatus-enum\treport\t.woostack/fixes/unk.md')" "unknown is error+report"
+assert_not_contains "$out" "nofence.md" "no-fence file is skipped (status-enum defers to doc-type)"
+assert_not_contains "$out" "nostatus.md" "file with no status: key is skipped"
 
 # --- repair: alias auto-fixes ---
 bash "$C/status-enum.sh" --fix "$r" "$r/.woostack/specs/typo.md"
@@ -35,4 +39,26 @@ res="$(bash "$C/status-enum.sh" "$r")"
 assert_eq "$(printf '%s\n' "$res" | grep -c 'auto')" "0" "no auto findings remain"
 assert_contains "$res" ".woostack/fixes/unk.md" "report finding persists"
 assert_eq "$(grep -nE '(^|[^[:alnum:]_])(git|gh)[[:space:]]' "$C/status-enum.sh")" "" "status-enum calls no git/gh"
+# every alias in the table normalizes to its canonical phase via --fix
+while IFS='=' read -r a canon; do
+  [ -z "$a" ] && continue
+  af="$r/.woostack/specs/alias-$a.md"
+  printf -- '---\ntype: spec\nstatus: %s\n---\n\n# alias\n' "$a" > "$af"
+  bash "$C/status-enum.sh" --fix "$r" "$af"
+  assert_eq "$(field "$af" status)" "$canon" "alias $a → $canon"
+done <<'ALIASES'
+aproved=approved
+approve=approved
+hardend=hardened
+in_review=in-review
+inreview=in-review
+reviewing=in-review
+complete=done
+completed=done
+merged=done
+wip=executing
+planned=planning
+abandon=abandoned
+abandonded=abandoned
+ALIASES
 finish

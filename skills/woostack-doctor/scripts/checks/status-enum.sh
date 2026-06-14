@@ -31,6 +31,7 @@ if [ "${1:-}" = "--fix" ]; then
   [ "${VALID/ $s /}" != "$VALID" ] && exit 0        # already valid → no-op
   canon="$(alias_for "$s")" || exit 0               # unknown, no alias → never auto-applied
   set_field "$file" status "$canon" || { emit error status-enum manual "${file#"$root"/}" "no frontmatter fence; set 'status: $canon' manually"; exit 1; }
+  [ "$(field "$file" status)" = "$canon" ] || { emit error status-enum manual "${file#"$root"/}" "status: did not update to '$canon'"; exit 1; }   # phantom-repair guard (spec §6, mirrors doc-type.sh)
   exit 0
 fi
 WOO_ROOT="${1:-.}"
