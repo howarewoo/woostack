@@ -360,7 +360,7 @@ the enum-sites memory-note update (both enum-consuming checks now exist → no f
 
 ### Task 3.1: failing test for `status-band`
 
-- [ ] Create `scripts/tests/test-status-band.sh`:
+- [x] Create `scripts/tests/test-status-band.sh`:
 
 ```bash
 #!/usr/bin/env bash
@@ -390,11 +390,11 @@ assert_eq "$(grep -nE '(^|[^[:alnum:]_])(git|gh)[[:space:]]' "$C/status-band.sh"
 finish
 ```
 
-- [ ] Run, confirm red (`exit=1`).
+- [x] Run, confirm red (`exit=1`).
 
 ### Task 3.2: implement `status-band.sh`
 
-- [ ] Create `scripts/checks/status-band.sh`:
+- [x] Create `scripts/checks/status-band.sh`:
 
 ```bash
 #!/usr/bin/env bash
@@ -428,28 +428,28 @@ scan plans "$SPEC_BAND" "plan carries spec-band status; plans own planning..done
 # fixes/ intentionally not scanned.
 ```
 
-- [ ] Run the test, confirm green (`exit=0`).
+- [x] Run the test, confirm green (`exit=0`).
 
 ### Task 3.3: catalog row
 
-- [ ] Add to `references/checks.md`:
+- [x] Add to `references/checks.md`:
 
 ```
 | `status-band` | status value in the other artifact's band (spec↔plan); skips fixes/ | warn | report | — |
 ```
 
-- [ ] `bash scripts/tests/test-no-stale-paths.sh; echo "exit=$?"` → `exit=0`.
+- [x] `bash scripts/tests/test-no-stale-paths.sh; echo "exit=$?"` → `exit=0`.
 
 ### Task 3.4: update the enum-sites memory note (distill)
 
-- [ ] Update the user memory note `woostack-add-phase-enum-value.md`: add doctor's `status-enum.sh`
+- [x] Update the user memory note `woostack-add-phase-enum-value.md`: add doctor's `status-enum.sh`
   (`VALID`) and `status-band.sh` (`SPEC_BAND`/`PLAN_BAND`) as new sites that must change when the
   phase enum changes, bump `updated:`, and refresh the MEMORY.md hook line if it cites a site
   count. `woostack-execute` writes this during the increment.
 
 ### Task 3.5: commit increment 3
 
-- [ ] Hand to `woostack-commit`. Subject:
+- [x] Hand to `woostack-commit`. Subject:
   `feat(doctor): status-band check — report status authored on the wrong artifact`.
 
 ---
