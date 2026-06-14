@@ -6,7 +6,9 @@ stdout, one per line, tab-delimited: `severity⇥code⇥fixable⇥path⇥message
 - **severity** — `error` (structural breakage; the orchestrator exits nonzero) or `warn`
   (hygiene/convention; exit stays 0). CI (`--check`) fails only on `error`.
 - **fixable** — `auto` (the check ships a `--fix` apply path) or `report` (judgment; surfaced for a
-  human, never auto-applied).
+  human, never auto-applied). An `auto` check's `--fix` path may additionally emit `manual` at
+  runtime for a single instance it cannot safely repair (e.g. a doc with no frontmatter fence):
+  surfaced for a human, never auto-applied.
 
 ## Calling convention
 
@@ -32,6 +34,7 @@ overloaded):
 | `memory-dead` | old + never recalled (prune candidate) | warn | report | — |
 | `memory-overlap` | notes with intersecting scope (review for contradiction) | warn | report | — |
 | `spec-plan-backlink` | a plan's source spec lacks `[[plans/<plan-basename>]]` | warn | auto | `<root> <spec> <plan-basename>` |
+| `doc-type` | spec/plan/fix `type:` missing or not matching its dir (owns the no-fence report for these docs) | warn | auto | `<root> <file>` |
 | `orphan-worktree` (present) | unregistered dir under `.woostack/worktrees/` (may hold work) | warn | report | — |
 | `orphan-worktree` (stale) | registered worktree whose dir is gone | warn | auto | `<root>` (runs `git worktree prune`) |
 | `gitignore-drift` | a shipped-template managed line missing from `.woostack/.gitignore` | warn | auto | `<root>` (appends missing lines) |
