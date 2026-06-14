@@ -37,6 +37,11 @@ pushd "$repo" >/dev/null; run_doctor "."; popd >/dev/null
 assert_contains "$OUT" "source '.woostack/plans/missing.md' is missing" "missing plan source warned"
 assert_exit 0 "$CODE" "missing plan source is a warning"
 
+mk_note "$md" stale-source-fix.md $'name: stale-source-fix\ntype: pattern\nscope: packages/api/**\nsource: .woostack/fixes/missing.md' 'body'
+pushd "$repo" >/dev/null; run_doctor "."; popd >/dev/null
+assert_contains "$OUT" "source '.woostack/fixes/missing.md' is missing" "missing fix source warned (legacy path form)"
+assert_exit 0 "$CODE" "missing fix source is a warning"
+
 mkdir -p "$repo/.woostack/specs" "$repo/.woostack/plans"
 touch "$repo/.woostack/specs/existing.md" "$repo/.woostack/plans/existing.md"
 mk_note "$md" live-source-spec.md $'name: live-source-spec\ntype: pattern\nscope: packages/api/**\nsource: .woostack/specs/existing.md\nupdated: 2026-06-02' 'body'
@@ -72,9 +77,11 @@ assert_not_contains "$OUT" "unresolved [[plans/existing.md]]" "trailing-.md wiki
 # Distinct basenames (wl-missing*) so the assertion isolates the wikilink path and is not
 # satisfied by the earlier path-form stale-source notes.
 mk_note "$md" wl-spec-missing.md $'name: wl-spec-missing\ntype: pattern\nscope: packages/api/**\nsource: [[specs/wl-missing]]\nupdated: 2026-06-02' 'body'
+mk_note "$md" wl-plan-missing.md $'name: wl-plan-missing\ntype: pattern\nscope: packages/api/**\nsource: [[plans/wl-missing]]\nupdated: 2026-06-02' 'body'
 mk_note "$md" wl-fix-missing.md $'name: wl-fix-missing\ntype: pattern\nscope: packages/api/**\nsource: [[fixes/wl-missing]]\nupdated: 2026-06-02' 'body'
 pushd "$repo" >/dev/null; run_doctor "."; popd >/dev/null
 assert_contains "$OUT" "source '.woostack/specs/wl-missing.md' is missing" "missing spec wikilink source warned"
+assert_contains "$OUT" "source '.woostack/plans/wl-missing.md' is missing" "missing plan wikilink source warned"
 assert_contains "$OUT" "source '.woostack/fixes/wl-missing.md' is missing" "missing fix wikilink source warned (fixes/ now validated)"
 assert_exit 0 "$CODE" "wikilink provenance warnings still exit 0"
 
