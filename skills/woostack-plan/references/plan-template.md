@@ -5,7 +5,7 @@ status: planning
 branch: {{FEATURE_BRANCH}}
 ---
 
-**Source:** .woostack/specs/{{SPEC_BASENAME}}.md
+**Source:** [[specs/{{SPEC_BASENAME}}]]
 
 # {{FEATURE_NAME}} Implementation Plan
 
@@ -62,7 +62,10 @@ branch: {{FEATURE_BRANCH}}
 - **Type consistency** - types, signatures, and names match the current codebase.
 
 This file starts with YAML frontmatter for Obsidian properties, then preserves the `**Source:**`
-line as the canonical spec -> plan join used by `/woostack-status` and `woostack-doctor`.
+line — an Obsidian `[[specs/<basename>]]` wikilink, symmetric with the spec's
+`> **Plan:** [[plans/<basename>]]` callout — as the canonical spec -> plan join used by
+`/woostack-status` and `woostack-doctor`. (The legacy bare-path form
+`**Source:** .woostack/specs/<basename>.md` is still accepted by both readers.)
 
 > Filename mirrors spec basename: `.woostack/plans/<spec-basename>.md`.
 

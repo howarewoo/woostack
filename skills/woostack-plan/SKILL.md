@@ -139,7 +139,7 @@ Exact file paths always. Complete code in every code step. Exact commands with e
 - **Filename:** save to `.woostack/plans/<spec-basename>.md` — the **same** `YYYY-MM-DD-<slug>`
   basename as the spec (reuse the spec's date; **not** today's). The shared basename is the
   slug-match fallback join.
-- **Frontmatter:** the plan starts with YAML properties: `type: plan`, `source: .woostack/specs/<file>.md`, `status: planning`, and `branch: <feature branch>`. The `source:` property mirrors the spec path for Obsidian; the canonical spec→plan join the `/woostack-status` board reads is the `**Source:**` line below.
+- **Frontmatter:** the plan starts with YAML properties: `type: plan`, `source: .woostack/specs/<file>.md`, `status: planning`, and `branch: <feature branch>`. The `source:` property mirrors the spec path; the canonical spec→plan join the `/woostack-status` board reads is the `**Source:** [[specs/<basename>]]` wikilink line below — symmetric with the spec's `> **Plan:** [[plans/<basename>]]` callout, so the Obsidian graph links both ways. (Both readers still accept the legacy bare-path `**Source:** .woostack/specs/<file>.md`.)
 - **Header:** after the frontmatter, the body opens with the `**Source:**` line plus Goal / Architecture / Tech Stack — no `REQUIRED SUB-SKILL` banner.
 
 The phase enum and join contracts are defined once in

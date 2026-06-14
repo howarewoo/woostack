@@ -70,6 +70,17 @@ mkplan "$p" delta 2026-06-01-delta.md 3 7
 run_status "$p"
 assert_contains "$OUT" "3/10" "plan progress counted"
 assert_contains "$OUT" "harden the plan" "planning next-action"
+
+# Source line as an Obsidian wikilink ([[specs/<basename>]]) resolves the plan, same as a
+# bare path. The plan basename intentionally differs from the spec slug so resolution can
+# only come from the **Source:** line, not the slug fallback.
+wl="$(mktemp -d)/.woostack"
+mkspec "$wl" wikispec planning feature/wikispec
+mkdir -p "$wl/plans"
+printf '# w\n\n**Source:** [[specs/2026-06-01-wikispec]]\n\n- [x] a\n- [x] b\n- [ ] c\n' > "$wl/plans/2026-06-01-wikiplan.md"
+run_status "$wl"
+assert_contains "$OUT" "2/3" "wikilink Source line resolves the plan"
+
 legacy="$(mktemp -d)/.woostack"
 mkspec "$legacy" legacy planning feature/legacy
 mkdir -p "$legacy/plans"

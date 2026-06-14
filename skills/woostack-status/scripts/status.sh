@@ -87,9 +87,14 @@ staleDays() {
 }
 
 plan_for() {
-  local base found slug specname p pbase pslug
+  local base found slug specname p pbase pslug nomd
   base="$(basename "$1")"
-  found="$(grep -lE "^\*\*Source:\*\*[[:space:]].*specs/${base}([[:space:]]|$)" "$PLAN_DIR"/*.md 2>/dev/null || true)"
+  # The **Source:** line may be a bare path (`.woostack/specs/<base>.md`) or an Obsidian
+  # wikilink (`[[specs/<base>]]`, no `.md`). Match `specs/<slug>` with an optional `.md` and a
+  # `]`/space/EOL right boundary — the boundary preserves the exact-slug guarantee (`…-foo`
+  # never matches `…-foo-bar`).
+  nomd="${base%.md}"
+  found="$(grep -lE "^\*\*Source:\*\*[[:space:]].*specs/${nomd}(\.md)?(\]|[[:space:]]|$)" "$PLAN_DIR"/*.md 2>/dev/null || true)"
   if [ -n "$found" ]; then
     printf '%s\n' "$found"
     return

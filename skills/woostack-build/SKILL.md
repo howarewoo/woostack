@@ -72,7 +72,7 @@ sits after that PR. So the chain has exactly the three hard gates above.
 4. **Plan.** Once the spec is approved, invoke
    [`woostack-plan`](../woostack-plan/SKILL.md) with the approved spec path. It writes the
    plan to `.woostack/plans/<spec-basename>.md` with YAML frontmatter followed by the
-   `**Source:** .woostack/specs/<file>.md` line so status and doctor join it 1:1, structures
+   `**Source:** [[specs/<basename>]]` wikilink line so status and doctor join it 1:1, structures
    it as PR-sized increments, and sets the plan's `status: planning`. It writes the plan and
    ships in this collection, so the build loop has no external skill dependencies.
 5. **Verify the increment decomposition.** `woostack-plan` already structures the plan as
