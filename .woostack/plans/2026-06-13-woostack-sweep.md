@@ -327,7 +327,7 @@ gt create -m "docs(agents): register woostack-sweep on the public command surfac
 **Files:**
 - Modify: `skills/woostack-execute-overnight/SKILL.md` — the `## Post-implementation review sweep` section (the per-PR loop, Termination backstop, Halt, Config subsections, ~lines 118–209).
 
-- [ ] **Step 1: Write the de-duplication assertion (must currently fail)**
+- [x] **Step 1: Write the de-duplication assertion (must currently fail)**
 
 Run:
 ```bash
@@ -336,12 +336,12 @@ grep -c 'Restack this track.s own stack\|No-progress guard (blocking only)\|### 
 ```
 Expected: a non-zero count (e.g. `3`) — overnight still restates the loop mechanics inline.
 
-- [ ] **Step 2: Confirm the duplication is present**
+- [x] **Step 2: Confirm the duplication is present**
 
 Run: `grep -q '### The per-PR loop (bottom-up, drive-to-clean)' skills/woostack-execute-overnight/SKILL.md && echo DUP || echo CLEAN`
 Expected: `DUP`
 
-- [ ] **Step 3: Replace the whole section body**
+- [x] **Step 3: Replace the whole section body**
 
 Replace the entire `## Post-implementation review sweep` section — from its `## Post-implementation review sweep` heading through the end of the `### Config` subsection (i.e. up to but not including the next top-level heading `## Morning report`) — with the content between the markers below (copy strictly between them):
 
@@ -381,7 +381,7 @@ Replace the entire `## Post-implementation review sweep` section — from its `#
 
 `<<<END replacement>>>`
 
-- [ ] **Step 4: Confirm the loop mechanics are gone (delegation only)**
+- [x] **Step 4: Confirm the loop mechanics are gone (delegation only)**
 
 Run:
 ```bash
@@ -393,7 +393,7 @@ grep -q '../woostack-sweep/SKILL.md' "$f" && \
 ```
 Expected: `SECTION DELEGATED`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt create -m "refactor(overnight): delegate the review-sweep section to woostack-sweep; keep tracks/report/halt"
@@ -405,7 +405,7 @@ gt create -m "refactor(overnight): delegate the review-sweep section to woostack
 - Modify: `skills/woostack-execute-overnight/SKILL.md` — the `- **Drive the stack to clean review.** …` hard-constraint bullet (~lines 260–267), which still restates the loop **and** holds the last `overnight.review_sweep.max_rounds`.
 - Verify-only: `skills/woostack-init/templates/config.json` (carries no `review_sweep` key — no edit expected).
 
-- [ ] **Step 1: Find the stale key + bullet restatement (must currently match)**
+- [x] **Step 1: Find the stale key + bullet restatement (must currently match)**
 
 Run:
 ```bash
@@ -415,12 +415,12 @@ grep -q 'Drive the stack to clean review' "$f" && grep -q 'gt restack`/`gt submi
 ```
 Expected: one `overnight.review_sweep.max_rounds` hit (the bullet — Task 1 removed the `### Config` copy) and `BULLET RESTATES LOOP`.
 
-- [ ] **Step 2: Confirm the old key is still present**
+- [x] **Step 2: Confirm the old key is still present**
 
 Run: `grep -q 'overnight\.review_sweep\.max_rounds' skills/woostack-execute-overnight/SKILL.md && echo STALE || echo CLEAN`
 Expected: `STALE`
 
-- [ ] **Step 3: Replace the bullet with a delegation form**
+- [x] **Step 3: Replace the bullet with a delegation form**
 
 Replace the entire `- **Drive the stack to clean review.** …` bullet (the multi-line item ending `… A blocker halts only that track. Both drivers. Never merge.`) with:
 
@@ -433,7 +433,7 @@ Replace the entire `- **Drive the stack to clean review.** …` bullet (the mult
   Never merge.
 ```
 
-- [ ] **Step 4: Confirm dedup + the single-key invariant**
+- [x] **Step 4: Confirm dedup + the single-key invariant**
 
 Run:
 ```bash
@@ -447,7 +447,7 @@ grep -c 'review_sweep' skills/woostack-init/templates/config.json
 ```
 Expected: `DEDUP + SINGLE KEY`, then `0` — no `overnight.`-prefixed key anywhere, no `restack` restatement left in overnight, the promoted key present in both skills, and the config template untouched (the optional key isn't templated; default 3 applies when absent).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "refactor(overnight): collapse the sweep hard-constraint bullet; promote key to review_sweep.max_rounds"
