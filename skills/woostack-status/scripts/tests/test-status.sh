@@ -104,13 +104,27 @@ ready_no_plan="$(mktemp -d)/.woostack"
 mkspec "$ready_no_plan" november ready feature/november
 run_status "$ready_no_plan"
 assert_contains "$OUT" "no plan" "ready without plan flagged"
+# `ready` is the phase where the spec+plan handoff PR is opened (conventions: the spec+plan
+# PR opens before execution), so a PR existing at plan `status: ready` is expected, not
+# "status lags" drift. Plan must be authored at `ready` (not the mkplan default `planning`)
+# to exercise the real path.
 ready_pr="$(mktemp -d)/.woostack"
-mkspec "$ready_pr" oscar ready feature/oscar
-mkplan "$ready_pr" oscar 2026-06-01-oscar.md 0 5
+mkspec "$ready_pr" oscar approved feature/oscar
+mkplan "$ready_pr" oscar 2026-06-01-oscar.md 0 5 ready feature/oscar
 ready_gh="$(mktemp -d)"; mk_fake_gh "$ready_gh"
 export FAKE_GH_JSON='[{"number":310,"state":"OPEN","headRefName":"feature/oscar","author":{"login":"olivia"},"updatedAt":"2026-06-03T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-oscar.md"}]'
 PATH="$ready_gh/bin:$PATH" run_status "$ready_pr"
-assert_contains "$OUT" "status lags" "ready with open PR flagged"
+assert_not_contains "$OUT" "status lags" "ready with spec+plan PR not flagged (PR expected at ready)"
+unset FAKE_GH_JSON
+
+# A plan still at `planning` while a PR exists *is* drift — keep that nudge.
+planning_pr="$(mktemp -d)/.woostack"
+mkspec "$planning_pr" papa approved feature/papa
+mkplan "$planning_pr" papa 2026-06-01-papa.md 0 5 planning feature/papa
+planning_gh="$(mktemp -d)"; mk_fake_gh "$planning_gh"
+export FAKE_GH_JSON='[{"number":311,"state":"OPEN","headRefName":"feature/papa","author":{"login":"pat"},"updatedAt":"2026-06-03T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-papa.md"}]'
+PATH="$planning_gh/bin:$PATH" run_status "$planning_pr"
+assert_contains "$OUT" "status lags" "planning with open PR still flagged"
 unset FAKE_GH_JSON
 mkplan "$p" echo 2026-06-01-echo.md 1 1
 cp "$p/plans/2026-06-01-echo.md" "$p/plans/2026-06-02-echo-dup.md"

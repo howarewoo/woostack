@@ -47,6 +47,7 @@ These definitions are the source of truth for the `/woostack-status` board and t
 - unknown `status:` values;
 - missing, duplicate, or slug-fallback plans;
 - missing `branch:` for execution phases;
-- head-state phases while PRs already exist;
+- pre-PR head-state phases (`draft` / `hardened` / `approved` / `planning`) while PRs
+  already exist (`ready` is exempt — its spec+plan PR is expected before execution);
 - executing rows older than `status.staleDays` (config, default 14);
 - two in-flight rows on the same branch.

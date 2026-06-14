@@ -317,8 +317,11 @@ for f in "${specs[@]}"; do
     [ "$br" = unknown ] && flag "$name: branch is 'unknown' - set branch: in frontmatter"
   fi
 
+  # `ready` is intentionally absent: the spec+plan handoff PR is opened *at* `ready` (see
+  # conventions.md), so a PR existing there is expected, not drift. Flag only the genuinely
+  # pre-PR head states.
   case "$phase" in
-    draft|hardened|approved|planning|ready)
+    draft|hardened|approved|planning)
       [ "$prcount" -gt 0 ] && flag "$name: status lags - phase '$phase' but a PR already exists" ;;
   esac
 
