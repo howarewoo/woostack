@@ -48,9 +48,9 @@ job; doctor only surfaces the structural signals. The spec↔plan join reuses th
 
 ## Doc-template & status drift (static vs computed)
 
-The doc-template checks (`doc-type`, `status-enum`, and the `status-band` / `plan-source` /
-`plan-source-sync` checks added alongside them) repair specs/plans/fixes toward their templates and
-the conventions enum using **only file content** — no `git`, no PR, no network. They cover **static,
+The doc-template checks — `doc-type` and `status-enum` here, with `status-band`, `plan-source`, and
+`plan-source-sync` landing in later increments of this stack — repair specs/plans/fixes toward their
+templates and the conventions enum using **only file content** — no `git`, no PR, no network. They cover **static,
 authoring-time** drift; the **computed**, git/PR-derived execute→done band
 (`executing`/`in-review`/`done`) is never written here. That band stays
 [`woostack-status`](../../woostack-status/SKILL.md)'s **read-only computed truth** — doctor repairs
