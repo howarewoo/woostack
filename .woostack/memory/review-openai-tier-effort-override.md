@@ -5,7 +5,7 @@ scope: skills/woostack-review/**
 tags: load-prompt, openai, codex, reasoning_effort, inputs.openai_effort, model-tiers
 hook: OpenAI reasoning effort defaults (medium for deep, xhigh for standard/fast) must be configured in prompts, action.yml, and default_model_for.
 updated: 2026-06-11
-source: .woostack/fixes/2026-06-11-codex-model-effort.md
+source: [[fixes/2026-06-11-codex-model-effort]]
 ---
 OpenAI Codex/GPT-5 family reasoning is controlled via a `reasoning_effort` parameter on the API instead of separate model slugs. When updating OpenAI tier mappings, keep the models and effort levels in sync:
 

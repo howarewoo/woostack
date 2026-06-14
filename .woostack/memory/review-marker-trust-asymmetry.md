@@ -5,7 +5,7 @@ scope: skills/woostack-review/scripts/**
 tags: prefetch, incremental, marker, watermark, trust, forge, local, ci, skills-repo
 hook: the incremental SHA watermark is WRITTEN in CI and local runs alike, but its read-side trust gate was bot-author-only (CI-shaped) — so a local re-review never trusted the marker it wrote; widen to bot OR (local-run AND author==self), gated on not-in-CI to keep forge-safety.
 updated: 2026-06-11
-source: .woostack/fixes/2026-06-11-review-marker-self-trust.md
+source: [[fixes/2026-06-11-review-marker-self-trust]]
 ---
 `_header.md` embeds `<!-- woostack-review:sha=<HEAD_SHA> -->` in **every** posted
 review body — CI *and* local. But the read side in `prefetch.sh` trusted a marker

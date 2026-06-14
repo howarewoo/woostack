@@ -50,6 +50,34 @@ assert_not_contains "$OUT" "live-source-spec.md: source" "existing spec source i
 assert_not_contains "$OUT" "live-source-plan.md: source" "existing plan source is not warned"
 assert_not_contains "$OUT" "pr-source.md: source" "PR source is not treated as a filesystem path"
 
+# --- frontmatter source: as an Obsidian [[wikilink]] (specs/plans/fixes) ---
+# The provenance + unresolved-link checks must accept [[<dir>/<basename>]] for the three
+# authored artifact dirs, resolving against $WOO_ROOT/.woostack/, with no false unresolved-link.
+mkdir -p "$repo/.woostack/fixes"; touch "$repo/.woostack/fixes/existing.md"
+mk_note "$md" wl-spec-existing.md $'name: wl-spec-existing\ntype: pattern\nscope: packages/api/**\nsource: [[specs/existing]]\nupdated: 2026-06-02' 'body'
+mk_note "$md" wl-plan-existing.md $'name: wl-plan-existing\ntype: pattern\nscope: packages/api/**\nsource: [[plans/existing]]\nupdated: 2026-06-02' 'body'
+mk_note "$md" wl-fix-existing.md $'name: wl-fix-existing\ntype: pattern\nscope: packages/api/**\nsource: [[fixes/existing]]\nupdated: 2026-06-02' 'body'
+mk_note "$md" wl-md-suffix.md $'name: wl-md-suffix\ntype: pattern\nscope: packages/api/**\nsource: [[plans/existing.md]]\nupdated: 2026-06-02' 'body'
+pushd "$repo" >/dev/null; run_doctor "."; popd >/dev/null
+assert_not_contains "$OUT" "wl-spec-existing.md: source" "existing spec wikilink source not warned"
+assert_not_contains "$OUT" "wl-plan-existing.md: source" "existing plan wikilink source not warned"
+assert_not_contains "$OUT" "wl-fix-existing.md: source" "existing fix wikilink source not warned (fixes/ validated)"
+assert_not_contains "$OUT" "wl-md-suffix.md: source" "trailing .md in wikilink source tolerated"
+assert_not_contains "$OUT" "unresolved [[specs/existing]]" "spec wikilink source is not a false unresolved-link"
+assert_not_contains "$OUT" "unresolved [[plans/existing]]" "plan wikilink source is not a false unresolved-link"
+assert_not_contains "$OUT" "unresolved [[fixes/existing]]" "fix wikilink source is not a false unresolved-link"
+assert_not_contains "$OUT" "unresolved [[plans/existing.md]]" "trailing-.md wikilink is not a false unresolved-link"
+
+# missing-target wikilink source → provenance warning on the resolved .woostack path.
+# Distinct basenames (wl-missing*) so the assertion isolates the wikilink path and is not
+# satisfied by the earlier path-form stale-source notes.
+mk_note "$md" wl-spec-missing.md $'name: wl-spec-missing\ntype: pattern\nscope: packages/api/**\nsource: [[specs/wl-missing]]\nupdated: 2026-06-02' 'body'
+mk_note "$md" wl-fix-missing.md $'name: wl-fix-missing\ntype: pattern\nscope: packages/api/**\nsource: [[fixes/wl-missing]]\nupdated: 2026-06-02' 'body'
+pushd "$repo" >/dev/null; run_doctor "."; popd >/dev/null
+assert_contains "$OUT" "source '.woostack/specs/wl-missing.md' is missing" "missing spec wikilink source warned"
+assert_contains "$OUT" "source '.woostack/fixes/wl-missing.md' is missing" "missing fix wikilink source warned (fixes/ now validated)"
+assert_exit 0 "$CODE" "wikilink provenance warnings still exit 0"
+
 # --- distillation-gate backstop warnings ---
 # missing source: → warn, exit 0
 mk_note "$md" no-source.md $'name: no-source\ntype: pattern\nscope: packages/api/**\nupdated: 2026-06-02' 'body'

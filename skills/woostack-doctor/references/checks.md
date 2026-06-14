@@ -25,7 +25,7 @@ overloaded):
 | `memory-type` | memory note has an unknown `type:` | error | report | — |
 | `memory-dup` | duplicate memory note `name:` | error | report | — |
 | `memory-scope-stale` | `scope:` matches no tracked files | warn | report | — |
-| `memory-provenance` | missing `source:`, or `source:` points at a missing spec/plan | warn | report | — |
+| `memory-provenance` | missing `source:`, or `source:` points at a missing spec/plan/fix (accepts the `[[specs\|plans\|fixes/<basename>]]` wikilink form and the legacy `.woostack/…` path) | warn | report | — |
 | `memory-scope-trivia` | non-glob `scope:` (possible trivia) | warn | report | — |
 | `memory-unresolved-link` | unresolved `[[wikilink]]` in a memory note (kept `warn` to not break consumer CI) | warn | report | — |
 | `memory-no-updated` | memory note missing `updated:` (cannot be aged) | warn | report | — |

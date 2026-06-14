@@ -5,7 +5,7 @@ scope: skills/woostack-review/scripts/**,skills/woostack-address-comments/script
 tags: BASH_SOURCE, zsh, self-path, source, resolve-root, resolve-outdir, dirname, sourcing-shell
 hook: ${BASH_SOURCE[0]} is empty when a script is SOURCED from zsh — use ${BASH_SOURCE[0]:-$0} for self-path resolution.
 updated: 2026-06-12
-source: .woostack/fixes/2026-06-12-resolve-outdir-zsh.md
+source: [[fixes/2026-06-12-resolve-outdir-zsh]]
 ---
 `${BASH_SOURCE[0]}` is populated only by **bash**. When a host `source`s a script from a
 non-bash shell — zsh, which is Claude Code's default Bash-tool shell on macOS — it is empty,

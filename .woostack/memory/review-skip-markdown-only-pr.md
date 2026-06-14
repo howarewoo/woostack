@@ -5,7 +5,7 @@ scope: skills/woostack-review/scripts/**
 tags: prefetch, skip, code-files, markdown, skills-repo, fast
 hook: prefetch.sh emits skip=true "no code files changed" on a markdown-only PR — a false-negative in this all-markdown skills repo; force the swarm on docs/skills angles instead of trusting the skip.
 updated: 2026-06-06
-source: .woostack/plans/2026-06-06-spec-acceptance-criteria.md
+source: [[plans/2026-06-06-spec-acceptance-criteria]]
 ---
 `prefetch.sh` counts "code files" in the diff and emits `skip=true` with reason
 **`no code files changed`** when the diff is entirely `.md` (and other non-code).

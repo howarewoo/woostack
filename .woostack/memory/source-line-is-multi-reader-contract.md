@@ -5,7 +5,7 @@ scope: skills/woostack-status/scripts/**,skills/woostack-doctor/scripts/checks/s
 tags: Source, spec-plan-join, wikilink, conventions, status.sh, spec-plan-backlink, plan-template, back-compat
 hook: The plan **Source:** line is a multi-reader contract — change its format and you must touch both parser regexes plus every authoring/contract doc, and keep readers back-compatible with on-disk path-form plans.
 updated: 2026-06-14
-source: .woostack/fixes/2026-06-14-plan-source-wikilinks.md
+source: [[fixes/2026-06-14-plan-source-wikilinks]]
 ---
 
 The plan→spec join (`**Source:**` line) is read by **two scripts** and authored/described in

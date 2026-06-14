@@ -5,7 +5,7 @@ scope: skills/woostack-review/**
 tags: load-prompt, _header, ci-prompt, inline, cross-reference, model-tiers
 hook: woostack-review prompts ship as ONE self-contained blob to CI runners that follow no markdown links — shared content must be inlined, not just linked.
 updated: 2026-06-05
-source: .woostack/plans/2026-06-05-execute-vary-subagent-model.md
+source: [[plans/2026-06-05-execute-vary-subagent-model]]
 ---
 `load-prompt.sh` concatenates `_header.md` + the provider body into a single
 prompt string handed to external runners (`claude-code-action`, `codex-action`,

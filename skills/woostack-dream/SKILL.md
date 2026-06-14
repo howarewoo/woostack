@@ -23,7 +23,7 @@ Separately enumerate and read the `.woostack/{specs,plans,fixes,overnight}/*.md`
 
 `.woostack/overnight/*.md` (gitignored morning reports from woostack-execute-overnight) are also read as scratch trend-input. Because overnight reports are gitignored, the git-log watermark cannot track them — they are full-scanned every run; the prune step (Phase 2/4) bounds the set by deleting fully-absorbed reports so the scan does not grow unbounded.
 
-Read the recent `git log` and the specification, plan, or fix that a note's `source:` field points to, using this context to ground judgments of whether a note is stale or current. Honor any optional `instructions` steering argument provided. For further details on the store structure, cross-link the memory contract in [`../woostack-init/references/memory.md`](../woostack-init/references/memory.md).
+Read the recent `git log` and the specification, plan, or fix that a note's `source:` field points to — resolving its `[[specs|plans|fixes/<basename>]]` wikilink (or legacy `.woostack/…` path) to the artifact file — using this context to ground judgments of whether a note is stale or current. Honor any optional `instructions` steering argument provided. For further details on the store structure, cross-link the memory contract in [`../woostack-init/references/memory.md`](../woostack-init/references/memory.md).
 
 ### Phase 2 — Synthesize the "dream" (read-only)
 

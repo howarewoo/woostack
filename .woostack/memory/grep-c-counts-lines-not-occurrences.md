@@ -5,7 +5,7 @@ scope: .woostack/plans/**
 tags: plans, verification, grep, counts
 hook: A plan's `grep -c` verification counts matching LINES, not occurrences — a phrase that line-wraps or two patterns sharing a line undercount.
 updated: 2026-06-06
-source: .woostack/plans/2026-06-06-woostack-execute-overnight.md
+source: [[plans/2026-06-06-woostack-execute-overnight]]
 ---
 When a woostack plan asserts an exact count with `grep -c -E "..."`, remember it counts
 matching **lines**, not matches. Two traps that made plan expectations wrong (twice in one

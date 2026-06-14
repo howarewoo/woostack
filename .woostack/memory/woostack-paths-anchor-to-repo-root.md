@@ -5,7 +5,7 @@ scope: skills/woostack-review/scripts/**,skills/woostack-address-comments/script
 tags: woostack-root, cwd, monorepo, resolve-root, resolve-outdir, metrics-fold, load-config, memory-record, gitignore
 hook: Anchor every default `.woostack/` path to the git repo root via resolve-root.sh — never `$(pwd)` or a bare relative path.
 updated: 2026-06-12
-source: .woostack/fixes/2026-06-09-woostack-root-anchoring.md
+source: [[fixes/2026-06-09-woostack-root-anchoring]]
 ---
 A woostack script that defaults a `.woostack/` path to `${GITHUB_WORKSPACE:-$(pwd)}`
 or a bare relative path (`.woostack/memory`) silently anchors to the **current working

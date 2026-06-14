@@ -5,7 +5,7 @@ scope: skills/**/SKILL.md
 tags: gate, approval, barrier, HARD-GATE, low-effort-model, summarization, address-comments
 hook: A load-bearing approval gate written only as soft body prose gets skipped by low-effort/fast models; make it a prominent STOP barrier AND restate it in Hard constraints.
 updated: 2026-06-11
-source: .woostack/fixes/2026-06-11-address-comments-verdict-gate.md
+source: [[fixes/2026-06-11-address-comments-verdict-gate]]
 ---
 A skill's load-bearing approval gate must be **structurally** enforced, not just described in
 the workflow body. `woostack-address-comments` skipped its verdict gate under

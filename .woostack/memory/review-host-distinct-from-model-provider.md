@@ -5,7 +5,7 @@ scope: skills/woostack-review/**, action.yml
 tags: host, provider, gemini, antigravity, ci-runner, migration
 hook: woostack-review's CLI host and model provider are separate layers — google.md is named per provider but its body is host orchestration. Migrate one without touching the other.
 updated: 2026-06-12
-source: .woostack/fixes/2026-06-12-antigravity-cli-migration.md
+source: [[fixes/2026-06-12-antigravity-cli-migration]]
 ---
 woostack-review separates the **host** (the CLI agent that runs the review) from the
 **model provider** (the LLM that judges). The trap: `prompts/google.md` is named after the

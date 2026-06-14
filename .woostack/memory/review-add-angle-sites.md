@@ -5,7 +5,7 @@ scope: skills/woostack-review/**
 tags: angle, detect-angles, _header, load-config, anthropic, enumeration, add-angle, tier
 hook: Adding a woostack-review angle touches 11 sites — the easy-to-miss four are load-config VALID_ANGLES, the anthropic.md tier list, the _header footer whitelist, and the committed gating test.
 updated: 2026-06-06
-source: .woostack/plans/2026-06-06-review-self-contained.md
+source: [[plans/2026-06-06-review-self-contained]]
 ---
 Registering an angle so it is **fully** wired (runs, is config-addressable, renders its
 footer, routes to the right model, and is tested) touches **eleven** sites. Touch fewer and
