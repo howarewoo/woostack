@@ -19,7 +19,7 @@
 **Files:**
 - Create: `skills/woostack-sweep/SKILL.md`
 
-- [ ] **Step 1: Write the failing verification**
+- [x] **Step 1: Write the failing verification**
 
 The "test" is a presence + structure assertion that must fail before the file exists:
 
@@ -27,12 +27,12 @@ The "test" is a presence + structure assertion that must fail before the file ex
 test ! -e skills/woostack-sweep/SKILL.md && echo "ABSENT (expected pre-impl)" || echo "PRESENT"
 ```
 
-- [ ] **Step 2: Run it, confirm it fails (file absent)**
+- [x] **Step 2: Run it, confirm it fails (file absent)**
 
 Run: `test ! -e skills/woostack-sweep/SKILL.md && echo "ABSENT (expected pre-impl)" || echo PRESENT`
 Expected: `ABSENT (expected pre-impl)` — the skill does not yet exist.
 
-- [ ] **Step 3: Create the skill file**
+- [x] **Step 3: Create the skill file**
 
 Create `skills/woostack-sweep/SKILL.md` with the exact content below. (It contains no triple-backtick fences, so it is reproduced here between explicit `BEGIN`/`END` markers — copy everything strictly between them, not the markers.)
 
@@ -193,7 +193,7 @@ Create `skills/woostack-sweep/SKILL.md` with the exact content below. (It contai
 
 `<<<END skills/woostack-sweep/SKILL.md>>>`
 
-- [ ] **Step 4: Run the structure assertions, confirm they pass**
+- [x] **Step 4: Run the structure assertions, confirm they pass**
 
 Run:
 ```bash
@@ -211,12 +211,12 @@ grep -q 'Never merge' "$f" && echo "ALL PRESENT"
 ```
 Expected: `ALL PRESENT`
 
-- [ ] **Step 5: Lint the frontmatter / structure**
+- [x] **Step 5: Lint the frontmatter / structure**
 
 Run: `head -4 skills/woostack-sweep/SKILL.md`
 Expected: opens with `---`, `name: woostack-sweep`, a `description:` line, `---`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 # first commit in this increment:
