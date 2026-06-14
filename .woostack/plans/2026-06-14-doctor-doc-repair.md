@@ -44,7 +44,7 @@ its test + its `checks.md` row. Independently shippable: auto-discovered, self-d
 
 ### Task 1.1: failing test for `doc-type` diagnose
 
-- [ ] Create `scripts/tests/test-doc-type.sh` with the diagnose cases (red — script absent):
+- [x] Create `scripts/tests/test-doc-type.sh` with the diagnose cases (red — script absent):
 
 ```bash
 #!/usr/bin/env bash
@@ -73,7 +73,7 @@ assert_contains "$out" "$(printf 'report\t.woostack/fixes/c.md')" "fenceless doc
 finish
 ```
 
-- [ ] Run it, confirm it fails because the script does not exist yet:
+- [x] Run it, confirm it fails because the script does not exist yet:
 
 ```
 bash scripts/tests/test-doc-type.sh; echo "exit=$?"
@@ -84,7 +84,7 @@ assertions on empty output fail). This is the red state.
 
 ### Task 1.2: implement `doc-type.sh`
 
-- [ ] Create `scripts/checks/doc-type.sh`:
+- [x] Create `scripts/checks/doc-type.sh`:
 
 ```bash
 #!/usr/bin/env bash
@@ -132,7 +132,7 @@ for dir in specs plans fixes; do
 done
 ```
 
-- [ ] Run the test, confirm diagnose cases pass:
+- [x] Run the test, confirm diagnose cases pass:
 
 ```
 bash scripts/tests/test-doc-type.sh; echo "exit=$?"
@@ -142,7 +142,7 @@ Expected: `OK`/passed lines then `exit=0`.
 
 ### Task 1.3: failing test for `doc-type --fix` + idempotency
 
-- [ ] Append the repair cases to `scripts/tests/test-doc-type.sh` (before `finish`):
+- [x] Append the repair cases to `scripts/tests/test-doc-type.sh` (before `finish`):
 
 ```bash
 # --- repair ---
@@ -161,7 +161,7 @@ assert_contains "$res" ".woostack/fixes/c.md" "fenceless report persists"
 assert_eq "$(grep -nE '(^|[^[:alnum:]_])(git|gh)[[:space:]]' "$C/doc-type.sh")" "" "doc-type calls no git/gh"
 ```
 
-- [ ] Run it, confirm everything passes:
+- [x] Run it, confirm everything passes:
 
 ```
 bash scripts/tests/test-doc-type.sh; echo "exit=$?"
@@ -171,13 +171,13 @@ Expected: all passed, `exit=0`.
 
 ### Task 1.4: catalog row in `references/checks.md`
 
-- [ ] Add a row to the check table in `references/checks.md`:
+- [x] Add a row to the check table in `references/checks.md`:
 
 ```
 | `doc-type` | spec/plan/fix `type:` missing or not matching its dir | warn | auto | `<root> <file>` |
 ```
 
-- [ ] Confirm the path-integrity test stays green:
+- [x] Confirm the path-integrity test stays green:
 
 ```
 bash scripts/tests/test-no-stale-paths.sh; echo "exit=$?"
@@ -187,7 +187,7 @@ Expected: `exit=0`.
 
 ### Task 1.5: commit increment 1
 
-- [ ] Hand to `woostack-commit` (it cuts the Graphite branch + PR on top of the spec+plan PR).
+- [x] Hand to `woostack-commit` (it cuts the Graphite branch + PR on top of the spec+plan PR).
   Subject: `feat(doctor): doc-type check — repair spec/plan/fix type: to match dir`.
 
 ---

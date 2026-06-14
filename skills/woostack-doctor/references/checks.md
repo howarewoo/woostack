@@ -32,6 +32,7 @@ overloaded):
 | `memory-dead` | old + never recalled (prune candidate) | warn | report | — |
 | `memory-overlap` | notes with intersecting scope (review for contradiction) | warn | report | — |
 | `spec-plan-backlink` | a plan's source spec lacks `[[plans/<plan-basename>]]` | warn | auto | `<root> <spec> <plan-basename>` |
+| `doc-type` | spec/plan/fix `type:` missing or not matching its dir (owns the no-fence report for these docs) | warn | auto | `<root> <file>` |
 | `orphan-worktree` (present) | unregistered dir under `.woostack/worktrees/` (may hold work) | warn | report | — |
 | `orphan-worktree` (stale) | registered worktree whose dir is gone | warn | auto | `<root>` (runs `git worktree prune`) |
 | `gitignore-drift` | a shipped-template managed line missing from `.woostack/.gitignore` | warn | auto | `<root>` (appends missing lines) |
