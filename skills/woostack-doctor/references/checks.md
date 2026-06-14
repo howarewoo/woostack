@@ -63,9 +63,10 @@ no fuzzy match). The enum itself is canonical in
 [`../../woostack-status/references/conventions.md`](../../woostack-status/references/conventions.md)
 — linked, not restated.
 
-**Consumer-CI migration:** `status-enum` is the one new `error` — an unknown `status:` value newly
-fails `--check`. The other doc-template checks are `warn` (they surface and auto-fix on demand
-without failing CI).
+**Consumer-CI migration:** `status-enum` is the one new `error` — any non-canonical `status:` value
+newly fails `--check`, whether it's an alias (e.g. `wip`, `aproved`) or a genuinely unknown value.
+Aliases are auto-repaired by `--fix`; unknowns need manual correction. The other doc-template checks
+are `warn` (they surface and auto-fix on demand without failing CI).
 
 ## Adding a check
 
