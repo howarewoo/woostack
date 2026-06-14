@@ -234,17 +234,17 @@ gt create -m "feat(sweep): woostack-sweep skill — single home of the drive-sta
 **Files:**
 - Modify: `skills/using-woostack/SKILL.md` (routing table, after the `woostack-execute-overnight` row)
 
-- [ ] **Step 1: Write the failing assertion**
+- [x] **Step 1: Write the failing assertion**
 
 Run: `grep -c 'woostack-sweep' skills/using-woostack/SKILL.md`
 Expected: `0` (no row yet).
 
-- [ ] **Step 2: Confirm it fails**
+- [x] **Step 2: Confirm it fails**
 
 Run: `grep -q 'woostack-sweep' skills/using-woostack/SKILL.md && echo PRESENT || echo ABSENT`
 Expected: `ABSENT`
 
-- [ ] **Step 3: Insert the routing row immediately after the `woostack-execute-overnight` row**
+- [x] **Step 3: Insert the routing row immediately after the `woostack-execute-overnight` row**
 
 Add this line after the `/woostack-execute-overnight …` table row (match the exact column shape of the adjacent rows):
 
@@ -252,12 +252,12 @@ Add this line after the `/woostack-execute-overnight …` table row (match the e
 | `/woostack-sweep [PR#] [--base R] [--interactive]`, drive a stack of PRs to a clean review | `woostack-sweep` |
 ```
 
-- [ ] **Step 4: Confirm it passes**
+- [x] **Step 4: Confirm it passes**
 
 Run: ``grep -q '`/woostack-sweep' skills/using-woostack/SKILL.md && echo PRESENT``
 Expected: `PRESENT`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt create -m "docs(using-woostack): route /woostack-sweep to the woostack-sweep skill"
@@ -270,7 +270,7 @@ gt create -m "docs(using-woostack): route /woostack-sweep to the woostack-sweep 
 
 > `AGENTS.md` is the source of truth; `.claude/CLAUDE.md` is a symlink to it, so editing `AGENTS.md` updates both. The count bump is **relative** — increment whatever number the file currently states by one; do **not** also fold in `woostack-ask` / `woostack-doctor` (separate in-flight work that hasn't updated these counts on this branch). Assert *list length == spelled count*, not a hardcoded word.
 
-- [ ] **Step 1: Capture the current count + list length (the assertion baseline)**
+- [x] **Step 1: Capture the current count + list length (the assertion baseline)**
 
 Run:
 ```bash
@@ -279,12 +279,12 @@ grep -cE '^- \[`(using-)?woostack-[a-z-]+`\]\(skills/' AGENTS.md
 ```
 Expected: prints the current count word (e.g. `sixteen`) and the current bullet count (e.g. `16`). Record both; the list must equal the spelled count, and after the edit both rise by exactly 1.
 
-- [ ] **Step 2: Confirm woostack-sweep is absent from the list**
+- [x] **Step 2: Confirm woostack-sweep is absent from the list**
 
 Run: ``grep -q '^- \[`woostack-sweep`\]' AGENTS.md && echo PRESENT || echo ABSENT``
 Expected: `ABSENT`
 
-- [ ] **Step 3: Add the bullet, bump the counts, add the file-map entry**
+- [x] **Step 3: Add the bullet, bump the counts, add the file-map entry**
 
 1. After the `- [`woostack-dream`](skills/woostack-dream/SKILL.md)` bullet, add:
 ```
@@ -298,7 +298,7 @@ Expected: `ABSENT`
   [`skills/woostack-sweep/SKILL.md`](skills/woostack-sweep/SKILL.md)
 ```
 
-- [ ] **Step 4: Confirm list == count and the entry resolves**
+- [x] **Step 4: Confirm list == count and the entry resolves**
 
 Run:
 ```bash
@@ -310,7 +310,7 @@ echo "REGISTERED — list=$n spelled=$word (must match, and = baseline+1)"
 ```
 Expected: `REGISTERED`, with `list=` exactly one more than the Step-1 baseline and the spelled word naming that same number (e.g. `list=17 spelled=seventeen`).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt create -m "docs(agents): register woostack-sweep on the public command surface + file map"

@@ -1,6 +1,6 @@
 # Contributing
 
-This repo is a **published collection of skills**, not a codebase. Contributions are edits to the skills — the Markdown under `skills/` plus the support files a skill ships (HTML templates, the review engine's shell scripts and prompts, JSON config). The public command/adoption surface is `using-woostack`, `woostack-init`, `woostack-bootstrap`, `woostack-build`, `woostack-fix`, `woostack-plan`, `woostack-execute`, `woostack-execute-overnight`, `woostack-commit`, `woostack-review`, `woostack-address-comments`, `woostack-status`, `woostack-visualize`, `woostack-debug`, `woostack-tdd`, and `woostack-dream`. The collection also ships `woostack-ideate` and `woostack-harden` as internal sub-skills used by `woostack-build`.
+This repo is a **published collection of skills**, not a codebase. Contributions are edits to the skills — the Markdown under `skills/` plus the support files a skill ships (HTML templates, the review engine's shell scripts and prompts, JSON config). The public command/adoption surface is `using-woostack`, `woostack-init`, `woostack-bootstrap`, `woostack-build`, `woostack-fix`, `woostack-plan`, `woostack-execute`, `woostack-execute-overnight`, `woostack-commit`, `woostack-review`, `woostack-address-comments`, `woostack-status`, `woostack-visualize`, `woostack-debug`, `woostack-tdd`, `woostack-dream`, `woostack-doctor`, and `woostack-sweep`. The collection also ships `woostack-ideate` and `woostack-harden` as internal sub-skills used by `woostack-build`.
 
 See [AGENTS.md](AGENTS.md) for the full repo contract; this file is the short contributor's version.
 
@@ -25,6 +25,7 @@ See [AGENTS.md](AGENTS.md) for the full repo contract; this file is the short co
 | Change the plan phase (the build loop's planning step) | `skills/woostack-plan/SKILL.md` |
 | Change the execute phase (the build loop's implementation step) | `skills/woostack-execute/SKILL.md` |
 | Change the overnight execute phase (unattended autonomous run, morning report) | `skills/woostack-execute-overnight/SKILL.md` |
+| Change the stack review-sweep engine (`/woostack-sweep`) | `skills/woostack-sweep/SKILL.md` |
 | Change the commit / PR update workflow | `skills/woostack-commit/SKILL.md` |
 | Change the review engine | `skills/woostack-review/SKILL.md`, `skills/woostack-review/scripts/`, `skills/woostack-review/prompts/` |
 | Change the systematic-debugging behavior (`/woostack-debug`) | `skills/woostack-debug/SKILL.md` |
@@ -32,6 +33,7 @@ See [AGENTS.md](AGENTS.md) for the full repo contract; this file is the short co
 | Change the memory/docs curation engine (`/woostack-dream`) | `skills/woostack-dream/SKILL.md` |
 | Change the address-comments delegator | `skills/woostack-address-comments/SKILL.md` |
 | Change the status board / feature-state conventions | `skills/woostack-status/SKILL.md`, `skills/woostack-status/references/conventions.md`, `skills/woostack-status/scripts/` |
+| Change the workspace-health diagnose/repair (`/woostack-doctor`) | `skills/woostack-doctor/SKILL.md` |
 | Update agent instructions (Claude or any) | `AGENTS.md` (`.claude/CLAUDE.md` is a symlink to it) |
 
 ## Workflow
