@@ -201,7 +201,7 @@ itself. Skips fenceless docs (doc-type owns that) and empty `status:` (board con
 
 ### Task 2.1: failing test for `status-enum` diagnose
 
-- [ ] Create `scripts/tests/test-status-enum.sh`:
+- [x] Create `scripts/tests/test-status-enum.sh`:
 
 ```bash
 #!/usr/bin/env bash
@@ -226,11 +226,11 @@ assert_contains "$out" "$(printf 'error\tstatus-enum\treport\t.woostack/fixes/un
 finish
 ```
 
-- [ ] Run it, confirm red (`exit=1`).
+- [x] Run it, confirm red (`exit=1`).
 
 ### Task 2.2: implement `status-enum.sh`
 
-- [ ] Create `scripts/checks/status-enum.sh`:
+- [x] Create `scripts/checks/status-enum.sh`:
 
 ```bash
 #!/usr/bin/env bash
@@ -288,11 +288,11 @@ for dir in specs plans fixes; do
 done
 ```
 
-- [ ] Run the test, confirm diagnose passes (`exit=0`).
+- [x] Run the test, confirm diagnose passes (`exit=0`).
 
 ### Task 2.3: failing test for `--fix`, report-not-applied, idempotency
 
-- [ ] Append to `scripts/tests/test-status-enum.sh` (before `finish`):
+- [x] Append to `scripts/tests/test-status-enum.sh` (before `finish`):
 
 ```bash
 # --- repair: alias auto-fixes ---
@@ -313,24 +313,24 @@ assert_contains "$res" ".woostack/fixes/unk.md" "report finding persists"
 assert_eq "$(grep -nE '(^|[^[:alnum:]_])(git|gh)[[:space:]]' "$C/status-enum.sh")" "" "status-enum calls no git/gh"
 ```
 
-- [ ] Run, confirm green (`exit=0`).
+- [x] Run, confirm green (`exit=0`).
 
 ### Task 2.4: catalog row + boundary doctrine
 
-- [ ] Add the row to `references/checks.md`:
+- [x] Add the row to `references/checks.md`:
 
 ```
 | `status-enum` | `status:` value not in the conventions enum | error | auto (alias hit) / report | `<root> <file>` |
 ```
 
-- [ ] In `references/checks.md`, after the table add a short subsection documenting: (a) the
+- [x] In `references/checks.md`, after the table add a short subsection documenting: (a) the
   **static-vs-computed-drift boundary** — doctor repairs authoring-time status drift (enum/alias);
   `woostack-status` owns the git/PR-derived execute→done band and is never written here; (b) the
   curated **exact-match alias table** contents from `status-enum.sh`; (c) the **consumer-CI
   migration** note — the one new way `--check` can newly fail is an unknown `status:` value
   (`error`). Link `conventions.md` for the canonical enum; do not restate it.
 
-- [ ] In `skills/woostack-doctor/SKILL.md`, refine the **Never reconcile the board** hard
+- [x] In `skills/woostack-doctor/SKILL.md`, refine the **Never reconcile the board** hard
   constraint to draw the line, replacing its bullet body with:
 
 ```
@@ -341,14 +341,14 @@ assert_eq "$(grep -nE '(^|[^[:alnum:]_])(git|gh)[[:space:]]' "$C/status-enum.sh"
   the git/PR-derived execute→done band**; that stays `woostack-status`'s read-only computed truth.
 ```
 
-- [ ] Also extend the SKILL.md description's "store integrity and conventions" enumeration to
+- [x] Also extend the SKILL.md description's "store integrity and conventions" enumeration to
   mention doc-template + status-drift coverage (keep it concise).
 
-- [ ] Confirm `bash scripts/tests/test-no-stale-paths.sh; echo "exit=$?"` → `exit=0`.
+- [x] Confirm `bash scripts/tests/test-no-stale-paths.sh; echo "exit=$?"` → `exit=0`.
 
 ### Task 2.5: commit increment 2
 
-- [ ] Hand to `woostack-commit`. Subject:
+- [x] Hand to `woostack-commit`. Subject:
   `feat(doctor): status-enum check + board-boundary doctrine — normalize alias status, report unknowns`.
 
 ---

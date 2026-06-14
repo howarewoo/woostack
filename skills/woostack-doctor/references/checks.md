@@ -35,6 +35,7 @@ overloaded):
 | `memory-overlap` | notes with intersecting scope (review for contradiction) | warn | report | — |
 | `spec-plan-backlink` | a plan's source spec lacks `[[plans/<plan-basename>]]` | warn | auto | `<root> <spec> <plan-basename>` |
 | `doc-type` | spec/plan/fix `type:` missing or not matching its dir (owns the no-fence report for these docs) | warn | auto | `<root> <file>` |
+| `status-enum` | `status:` value not in the conventions enum | error | auto (exact alias hit) / report (unknown) | `<root> <file>` |
 | `orphan-worktree` (present) | unregistered dir under `.woostack/worktrees/` (may hold work) | warn | report | — |
 | `orphan-worktree` (stale) | registered worktree whose dir is gone | warn | auto | `<root>` (runs `git worktree prune`) |
 | `gitignore-drift` | a shipped-template managed line missing from `.woostack/.gitignore` | warn | auto | `<root>` (appends missing lines) |
@@ -44,6 +45,27 @@ Memory checks are all `report` — memory *content* repair is [`woostack-dream`]
 job; doctor only surfaces the structural signals. The spec↔plan join reuses the
 `**Source:**`-line contract defined in
 [`../../woostack-status/references/conventions.md`](../../woostack-status/references/conventions.md).
+
+## Doc-template & status drift (static vs computed)
+
+The doc-template checks (`doc-type`, `status-enum`, and the `status-band` / `plan-source` /
+`plan-source-sync` checks added alongside them) repair specs/plans/fixes toward their templates and
+the conventions enum using **only file content** — no `git`, no PR, no network. They cover **static,
+authoring-time** drift; the **computed**, git/PR-derived execute→done band
+(`executing`/`in-review`/`done`) is never written here. That band stays
+[`woostack-status`](../../woostack-status/SKILL.md)'s **read-only computed truth** — doctor repairs
+how a doc is *authored*, status derives what the artifacts *show*.
+
+`status-enum` normalizes only **exact-match** alias values against a curated table owned by the
+check (`aproved→approved`, `in_review→in-review`, `complete→done`, `wip→executing`, …); a value
+that matches neither the enum nor an alias is genuinely unknown and stays `report` (no intent-guess,
+no fuzzy match). The enum itself is canonical in
+[`../../woostack-status/references/conventions.md`](../../woostack-status/references/conventions.md)
+— linked, not restated.
+
+**Consumer-CI migration:** `status-enum` is the one new `error` — an unknown `status:` value newly
+fails `--check`. The other doc-template checks are `warn` (they surface and auto-fix on demand
+without failing CI).
 
 ## Adding a check
 

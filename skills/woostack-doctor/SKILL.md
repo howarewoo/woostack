@@ -1,6 +1,6 @@
 ---
 name: woostack-doctor
-description: Use to diagnose and (gated) repair a repo's .woostack/ workspace health — a run-anytime check of store integrity and conventions (memory wikilinks/provenance/dead notes, the spec↔plan Obsidian backlink, orphan worktrees, .gitignore drift, config.json keys), with a headless exit-coded diagnose mode for CI (--check) and an interactive propose→approve→apply→woostack-commit repair flow. Use for /woostack-doctor, "check my .woostack", "repair the workspace", or "is my woostack install healthy". Never scaffolds (that's woostack-init), never reconciles the board (woostack-status), never curates memory content (woostack-dream), and never merges.
+description: Use to diagnose and (gated) repair a repo's .woostack/ workspace health — a run-anytime check of store integrity and conventions (memory wikilinks/provenance/dead notes, spec/plan/fix templates + the status enum, the spec↔plan Obsidian backlink, orphan worktrees, .gitignore drift, config.json keys), with a headless exit-coded diagnose mode for CI (--check) and an interactive propose→approve→apply→woostack-commit repair flow. Use for /woostack-doctor, "check my .woostack", "repair the workspace", or "is my woostack install healthy". Never scaffolds (that's woostack-init), never reconciles the board (woostack-status), never curates memory content (woostack-dream), and never merges.
 ---
 
 # woostack-doctor
@@ -58,8 +58,11 @@ siblings, so this holds by construction.
 
 - **Never scaffold.** Absent `.woostack/` → point at `woostack-init`; never create the workspace.
 - **Never reconcile the board** (that is `woostack-status`) and **never curate memory content**
-  (that is `woostack-dream`). Doctor flags *structural* problems and **reports** judgment-only
-  signals (dead notes); it never auto-prunes knowledge.
+  (that is `woostack-dream`). Doctor repairs **static, authoring-time** doc drift — `type:`, the
+  `status:` enum (normalizing exact-match aliases), and the plan→spec `**Source:**` join — and
+  **reports** judgment-only signals (dead notes, wrong-band status); it never auto-prunes knowledge.
+  It **never computes or writes the git/PR-derived execute→done band**; that stays
+  `woostack-status`'s read-only computed truth.
 - **Gate every repair.** Nothing mutates before explicit approval; `report` findings are never
   auto-applied.
 - **Safety is never relaxed.** The only filesystem repair is `git worktree prune` (admin-only);
