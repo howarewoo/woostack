@@ -65,4 +65,9 @@ printf -- '---\ntype: plan\nsource: .woostack/specs/a.md\nstatus: planning\n# Un
 out_nc="$(bash "$C/plan-source.sh" --fix "$r" "$r/.woostack/plans/unclosed.md" source-line)"; rc_nc=$?
 assert_exit 1 "$rc_nc" "--fix source-line on a fenceless plan exits nonzero"
 assert_contains "$out_nc" "no closing frontmatter fence" "--fix source-line reports the missing closing fence"
+# --fix source-sync on a plan with a **Source:** line but no frontmatter fence to write source: into → manual + exit 1
+printf -- '---\ntype: plan\nstatus: planning\n\n**Source:** [[specs/a]]\n# Sync Unclosed\n' > "$r/.woostack/plans/sync-unclosed.md"
+out_su="$(bash "$C/plan-source.sh" --fix "$r" "$r/.woostack/plans/sync-unclosed.md" source-sync)"; rc_su=$?
+assert_exit 1 "$rc_su" "--fix source-sync on a fenceless plan exits nonzero"
+assert_contains "$out_su" "no frontmatter fence" "--fix source-sync reports the missing fence"
 finish
