@@ -77,7 +77,7 @@ Two callers:
 
    ```
    bash scripts/build-index.sh .woostack/memory
-   bash scripts/doctor.sh .woostack/memory
+   bash ../woostack-doctor/scripts/doctor.sh .woostack/memory
    ```
 
    Run `build-index.sh` first so the index is current before `doctor.sh` checks
