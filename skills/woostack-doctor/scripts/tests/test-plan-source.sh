@@ -18,10 +18,13 @@ printf -- '---\ntype: plan\nstatus: planning\n---\n\n# Orphan Plan\n' > "$r/.woo
 printf -- '---\ntype: plan\nsource: .woostack/specs/a.md\nstatus: planning\n---\n\n**Source:** [[specs/b]]\n\n# Mismatch\n' > "$r/.woostack/plans/sync.md"
 # (iv) line bare-path w/ trailing text, source: same base → in sync, no finding
 printf -- '---\ntype: plan\nsource: .woostack/specs/a.md\nstatus: planning\n---\n\n**Source:** specs/a.md (shipped #1)\n\n# OK\n' > "$r/.woostack/plans/ok.md"
+# (v) missing line, source: present but names a non-existent spec → report (not auto, since source: does not resolve)
+printf -- '---\ntype: plan\nsource: .woostack/specs/gone.md\nstatus: planning\n---\n\n# Gone\n' > "$r/.woostack/plans/gone.md"
 
 out="$(bash "$C/plan-source.sh" "$r")"
 assert_contains "$out" "$(printf 'warn\tplan-source\tauto\t.woostack/plans/miss-auto.md')" "missing line w/ resolvable source: is auto"
 assert_contains "$out" "$(printf 'warn\tplan-source\treport\t.woostack/plans/orphan.md')" "orphan plan is report"
+assert_contains "$out" "$(printf 'warn\tplan-source\treport\t.woostack/plans/gone.md')" "unresolvable source: is report, not auto"
 assert_contains "$out" "$(printf 'warn\tplan-source-sync\tauto\t.woostack/plans/sync.md')" "source/line basename mismatch"
 assert_not_contains "$out" ".woostack/plans/ok.md" "normalized in-sync plan has no finding"
 
