@@ -1,7 +1,7 @@
 ---
 name: woostack-tdd
 type: spec
-status: planning
+status: approved
 date: 2026-06-07
 branch: woostack-tdd
 links:

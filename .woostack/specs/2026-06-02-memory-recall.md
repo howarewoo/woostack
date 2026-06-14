@@ -1,7 +1,7 @@
 ---
 name: memory-recall
 type: spec
-status: done
+status: approved
 date: 2026-06-02
 branch: feat/woostack-memory-recall
 increment: B of 4

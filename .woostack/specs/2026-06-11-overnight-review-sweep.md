@@ -1,7 +1,7 @@
 ---
 name: overnight-review-sweep
 type: spec
-status: planning
+status: approved
 date: 2026-06-11
 branch: feature/overnight-review-sweep
 links:

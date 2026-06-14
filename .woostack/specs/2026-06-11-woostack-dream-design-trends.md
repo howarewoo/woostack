@@ -1,7 +1,7 @@
 ---
 name: woostack-dream-design-trends
 type: spec
-status: planning
+status: approved
 date: 2026-06-11
 branch: feature/woostack-dream-design-trends
 links:

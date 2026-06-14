@@ -1,7 +1,7 @@
 ---
 name: woostack-dream
 type: spec
-status: planning
+status: approved
 date: 2026-06-09
 branch: feature/woostack-dream
 links:

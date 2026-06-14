@@ -1,3 +1,10 @@
+---
+type: plan
+source: .woostack/specs/2026-06-09-woostack-dream.md
+status: executing
+branch: feature/woostack-dream
+---
+
 **Source:** .woostack/specs/2026-06-09-woostack-dream.md
 
 # woostack-dream Skill Implementation Plan

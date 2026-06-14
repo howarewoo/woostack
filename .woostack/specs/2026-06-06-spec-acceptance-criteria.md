@@ -1,7 +1,7 @@
 ---
 name: spec-acceptance-criteria
 type: spec
-status: planning
+status: approved
 date: 2026-06-06
 branch: spec-acceptance-criteria
 links:

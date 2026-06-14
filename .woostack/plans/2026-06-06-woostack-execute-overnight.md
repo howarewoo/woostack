@@ -1,3 +1,10 @@
+---
+type: plan
+source: .woostack/specs/2026-06-06-woostack-execute-overnight.md
+status: executing
+branch: feature/woostack-execute-overnight-skill
+---
+
 **Source:** .woostack/specs/2026-06-06-woostack-execute-overnight.md
 
 # woostack-execute-overnight Implementation Plan

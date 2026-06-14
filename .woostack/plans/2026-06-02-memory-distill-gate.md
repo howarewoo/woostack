@@ -4,7 +4,12 @@ type: plan
 date: 2026-06-02
 branch: feature/memory-distill-gate
 spec: .woostack/specs/2026-06-02-memory-distill-gate.md
+source: .woostack/specs/2026-06-02-memory-distill-gate.md
+status: done
 ---
+
+**Source:** .woostack/specs/2026-06-02-memory-distill-gate.md
+
 
 # Memory Distillation Gate + updated: Coverage — Implementation Plan
 

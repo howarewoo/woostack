@@ -1,3 +1,10 @@
+---
+type: plan
+source: .woostack/specs/2026-06-04-woostack-status.md
+status: done
+branch: feature/woostack-status
+---
+
 # woostack-status: Derived Feature Board — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

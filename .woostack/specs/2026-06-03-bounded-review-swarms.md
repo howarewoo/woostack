@@ -1,7 +1,7 @@
 ---
 name: bounded-review-swarms
 type: spec
-status: done
+status: approved
 date: 2026-06-03
 branch: feature/bounded-review-swarms
 links:

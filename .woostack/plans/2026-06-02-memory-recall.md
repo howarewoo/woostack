@@ -1,3 +1,13 @@
+---
+type: plan
+source: .woostack/specs/2026-06-02-memory-recall.md
+status: done
+branch: feat/woostack-memory-recall
+---
+
+**Source:** .woostack/specs/2026-06-02-memory-recall.md
+
+
 # Memory recall + review scope-routing (Increment B) Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development. Steps use checkbox (`- [ ]`) syntax.

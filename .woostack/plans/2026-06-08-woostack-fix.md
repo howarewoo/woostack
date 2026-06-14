@@ -1,3 +1,10 @@
+---
+type: plan
+source: .woostack/specs/2026-06-08-woostack-fix.md
+status: executing
+branch: feature/woostack-fix
+---
+
 **Source:** .woostack/specs/2026-06-08-woostack-fix.md
 
 # woostack-fix Skill and woostack-debug Refinement Implementation Plan

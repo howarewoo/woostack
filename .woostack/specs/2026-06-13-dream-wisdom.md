@@ -1,7 +1,7 @@
 ---
 name: dream-wisdom
 type: spec
-status: ready
+status: approved
 date: 2026-06-13
 branch: feature/dream-wisdom
 links:

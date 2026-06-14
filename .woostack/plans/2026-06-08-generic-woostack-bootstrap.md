@@ -1,3 +1,10 @@
+---
+type: plan
+source: .woostack/specs/2026-06-08-generic-woostack-bootstrap.md
+status: done
+branch: feature/generic-woostack-bootstrap
+---
+
 **Source:** .woostack/specs/2026-06-08-generic-woostack-bootstrap.md
 
 # Dynamic, Requirements-Driven `woostack-bootstrap` Implementation Plan

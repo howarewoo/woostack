@@ -1,3 +1,10 @@
+---
+type: plan
+source: .woostack/specs/2026-06-05-skills-review-angle.md
+status: done
+branch: feature/skills-review-angle
+---
+
 **Source:** .woostack/specs/2026-06-05-skills-review-angle.md
 
 # Skills Review Angle Implementation Plan

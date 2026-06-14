@@ -1,69 +1,51 @@
 # woostack feature-state conventions
 
-Canonical definitions for the `/woostack-status` board. Other skills link here;
-they do not restate these rules (cross-link, do not duplicate).
+These definitions are the source of truth for the `/woostack-status` board and the
+`woostack-doctor` spec-plan checks.
 
-## Invariant: spec : plan : PRs = 1 : 1 : N
+- `spec : plan : PRs = 1 : 1 : N`
+- Every spec has exactly one plan. The plan owns N independently shippable increment PRs.
+- Spec frontmatter owns design approval only: `draft -> hardened -> approved`, plus terminal
+  `abandoned`.
+- Plan frontmatter owns implementation lifecycle after spec approval:
+  `planning -> ready -> executing -> in-review -> done`, plus terminal `abandoned`.
+- Before a plan exists, `/woostack-status` displays the spec's `status:` and `branch:`.
+  Once a plan resolves to the spec, the board displays the plan's `status:` and `branch:`.
+- spec -> plan join: the plan carries YAML frontmatter followed by a `**Source:**` line of the
+  exact form `**Source:** .woostack/specs/<file>.md`. The `source:` frontmatter property must
+  match the same spec path for Obsidian, but the `**Source:**` line remains the canonical join
+  for `/woostack-status`, `woostack-doctor`, and legacy compatibility. Slug-match is the legacy
+  fallback.
+- plan -> PR join: every PR body carries a trailer line `Spec: .woostack/specs/<file>.md`.
+  The board narrows candidates with `gh pr list --search`, then **exact-matches** the trailer
+  value in each PR body to avoid fuzzy cross-matches.
+- Plan frontmatter shape:
+  ```yaml
+  ---
+  type: plan
+  source: .woostack/specs/<file>.md
+  status: planning
+  branch: feature/<slug>
+  ---
 
-- Every spec has exactly one plan. The plan owns N independently shippable
-  increment PRs.
-- spec -> plan join: the plan carries, in its first ~5 lines, a line of the exact
-  form `**Source:** .woostack/specs/<file>.md`. Slug-match is the legacy fallback.
-  Plans stay frontmatter-free.
-- plan -> PR join: every PR body carries a trailer line
-  `Spec: .woostack/specs/<file>.md` (written by woostack-commit). The board narrows
-  candidates with `gh pr list --search`, then **exact-matches** the trailer against each PR
-  body (`specs/<basename>`) — `gh --search` is fuzzy and would otherwise cross-match
-  look-alike specs, so an untrailered or sibling PR never attaches to the wrong spec. When no
-  trailered PR resolves, it falls back to the active `spec.branch:` head PR (marked partial).
-- fix PRs (from [`woostack-fix`](../../woostack-fix/SKILL.md)) carry a parallel
-  `Spec: .woostack/fixes/<file>.md` trailer (also written by woostack-commit), but a fix is
-  **not** a spec increment: that trailer attaches the PR to its fix file, and a fix's lifecycle
-  is tracked by the fix file's own frontmatter `status:`, not by attaching to a spec. Because the
-  spec trailer search exact-matches `specs/<basename>`, a `fixes/` trailer never cross-matches a
-  spec; surfacing fixes on the board from their `.woostack/fixes/*.md` files is owned by the
-  status board's fix integration, separate from this spec-trailer join.
-- `spec.branch:` names the active increment's branch.
-- An overnight run ([`woostack-execute-overnight`](../../woostack-execute-overnight/SKILL.md)) may
-  produce **tree-stacked** increment PRs — multiple `## Track:`s branched off the common base, so a
-  spec can have several independent increment branches rather than one linear chain. The
-  `1 : 1 : N` count, the `**Source:**` join, and the `Spec:` PR trailer are unaffected, and this
-  adds **no** new phase-enum value; a blocked/partial overnight run is visible via its
-  `.woostack/overnight/` report.
+  **Source:** .woostack/specs/<file>.md
+  ```
+- Feature states:
+  - `draft` — spec written, not hardened
+  - `hardened` — spec grilled, needs user approval
+  - `approved` — spec gate cleared, no plan yet
+  - `planning` — plan written, not yet hardened, 0 boxes done
+  - `ready` — plan hardened, 0 boxes done, spec+plan PR should be opened before execution
+  - `executing` — branch + commits, plan partial
+  - `in-review` — increment PR open
+  - `done` — 100% + all PRs merged
+  - `abandoned` — intentionally stopped
 
-## Phase enum (spec frontmatter `status:`)
+`/woostack-status` derives truth from artifacts and flags drift instead of rewriting it:
 
-`draft -> hardened -> approved -> planning -> ready -> executing -> in-review -> done`,
-plus the terminal `abandoned`. The build loop authors every transition; the board
-displays the authored value for head states and computes the execute/review/done
-band from artifacts (truth table below).
-
-| phase | meaning | authored at build step |
-|---|---|---|
-| draft | spec written, not hardened | 2 |
-| hardened | grilled, awaiting approval gate | 3 |
-| approved | gate cleared, no plan yet | 3 |
-| planning | plan written, not yet hardened, 0 boxes done | 4 |
-| ready | plan hardened, 0 boxes done, ready for execution | 6 |
-| executing | branch + commits, plan partial | 9 (execute) |
-| in-review | an increment PR is open | 9 (execute) |
-| done | plan 100% + all PRs merged, or trusted legacy authored `done` with no active branch commits/PR | post-merge |
-| abandoned | shelved (terminal, hidden) | manual |
-
-## Truth table (execute -> review -> done band)
-
-- any increment PR open -> `in-review`
-- plan partial, no open PR, branch has commits -> `executing`
-- plan 100% + all increment PRs merged + >=1 merged -> `done`
-- authored `done` + plan 100% + no discovered increment PR + no active branch commits -> `done`
-  (trusts an explicit terminal assertion for legacy/untrailered features whose PRs can't be
-  discovered)
-
-A disagreeing authored value in this band is a FLAG, not displayed truth.
-
-## Reconcile flags
-
-0 or >=2 plans for a spec; `branch:` empty/`unknown` at phase >= executing;
-unknown `status:` value; head-state phase while a PR already exists; executing
-spec older than `status.staleDays` (config, default 14); two in-flight specs on
-the same branch.
+- unknown `status:` values;
+- missing, duplicate, or slug-fallback plans;
+- missing `branch:` for execution phases;
+- head-state phases while PRs already exist;
+- executing rows older than `status.staleDays` (config, default 14);
+- two in-flight rows on the same branch.

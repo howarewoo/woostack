@@ -1,7 +1,7 @@
 ---
 name: memory-obsidian
 type: spec
-status: done
+status: approved
 date: 2026-06-02
 branch: feat/woostack-memory-obsidian
 increment: D of 4

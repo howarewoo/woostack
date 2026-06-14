@@ -146,13 +146,13 @@ unrelated dirty files, or user work from outside this session.
 
 ### 4.5 Invariant check (advisory)
 
-When the staged changes touch `.woostack/specs/*.md`, `.woostack/plans/*.md`, or `.woostack/fixes/*.md`, run the cheap feature-state invariant checks on every affected spec/fix so the `/woostack-status` board stays honest. The affected set is every directly touched spec/fix plus the spec named by each touched plan's `**Source:** .woostack/specs/<file>.md` line. These are **advisory**: print any violation as a single non-blocking line in the commit report and continue. Never abort, stage differently, or change the commit because of them.
+When the staged changes touch `.woostack/specs/*.md`, `.woostack/plans/*.md`, or `.woostack/fixes/*.md`, run the cheap feature-state invariant checks on every affected spec/fix so the `/woostack-status` board stays honest. The affected set is every directly touched spec/fix plus the spec named by each touched plan's `source:` frontmatter or `**Source:** .woostack/specs/<file>.md` line. These are **advisory**: print any violation as a single non-blocking line in the commit report and continue. Never abort, stage differently, or change the commit because of them.
 
 For each affected spec/fix, check:
 
 - **1:1 plan** — exactly one plan resolves to it (for specs). (For fixes under `fixes/`, they are self-contained plans and this check is skipped).
-- **`branch:` present** — the frontmatter `branch:` is non-empty and not the literal `unknown`.
-- **`status:` in the enum** — the frontmatter `status:` is one of `draft｜hardened｜approved｜planning｜ready｜executing｜in-review｜done｜abandoned`.
+- **`branch:` present** — the active lifecycle artifact frontmatter (`spec` before planning, `plan` after planning, `fix` for fixes) is non-empty and not the literal `unknown`.
+- **`status:` in the enum** — spec frontmatter uses `draft|hardened|approved|abandoned`; plan frontmatter uses `planning|ready|executing|in-review|done|abandoned`; fix frontmatter uses the full fix lifecycle.
 
 The phase enum and the join contracts are defined once in [`../woostack-status/references/conventions.md`](../woostack-status/references/conventions.md) — do not restate them here. If the `woostack-status` skill is not installed, skip this check silently.
 

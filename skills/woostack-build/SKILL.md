@@ -71,10 +71,9 @@ sits after that PR. So the chain has exactly the three hard gates above.
    approval; silence is not a yes.
 4. **Plan.** Once the spec is approved, invoke
    [`woostack-plan`](../woostack-plan/SKILL.md) with the approved spec path. It writes the
-   plan to `.woostack/plans/<spec-basename>.md` (same basename as the spec), opens with the
-   `**Source:** .woostack/specs/<file>.md` line so the board joins it 1:1, stays
-   frontmatter-free, structures it as PR-sized increments, and sets the spec's
-   `status: planning`. It writes the plan and hands back, owning no gate. `woostack-plan`
+   plan to `.woostack/plans/<spec-basename>.md` with YAML frontmatter followed by the
+   `**Source:** .woostack/specs/<file>.md` line so status and doctor join it 1:1, structures
+   it as PR-sized increments, and sets the plan's `status: planning`. It writes the plan and
    ships in this collection, so the build loop has no external skill dependencies.
 5. **Verify the increment decomposition.** `woostack-plan` already structures the plan as
    PR-sized increments; build confirms the increment boundaries are reviewable, independently
@@ -89,10 +88,9 @@ sits after that PR. So the chain has exactly the three hard gates above.
    owns none and hands straight back. The chain's last hard stop is the **execution-handoff
    gate (step 8)**, after the spec+plan PR — not a plan-*quality* gate here. Do not turn this
    harden into a plan-approval gate. When hardening stops producing new questions, set the
-   spec's `status: ready` — the [conventions.md](../woostack-status/references/conventions.md)
+   plan's `status: ready` — the [conventions.md](../woostack-status/references/conventions.md)
    value for "plan hardened, ready for execution" (mirroring step 3's `hardened`, but for the
-   plan). Plans stay frontmatter-free, so this transition is authored on the **spec**, not the
-   plan. This is a status write, not a gate.
+   plan). Plans own implementation lifecycle, so this transition is authored on the **plan**, not the spec.
 7. **Commit the spec and plan as their own PR.** Before any implementation, commit the
    `.woostack/` spec and plan via [`woostack-commit`](../woostack-commit/SKILL.md) on a fresh
    Graphite branch and open a PR. This docs-only PR is the **base of the stack** — execution

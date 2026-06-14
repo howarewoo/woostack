@@ -1,3 +1,10 @@
+---
+type: plan
+source: .woostack/specs/{{SPEC_BASENAME}}.md
+status: planning
+branch: {{FEATURE_BRANCH}}
+---
+
 **Source:** .woostack/specs/{{SPEC_BASENAME}}.md
 
 # {{FEATURE_NAME}} Implementation Plan
@@ -8,11 +15,9 @@
 
 **Tech Stack:** {{KEY_TECHNOLOGIES}}
 
----
-
 ## Increment 1: {{PR_SIZED_SLICE_NAME}}
 
-> One independently shippable PR (≤500 LOC soft target) — its own Graphite-stacked branch.
+> One independently shippable PR (<=500 LOC soft target) -- its own Graphite-stacked branch.
 
 ### Task 1: {{COMPONENT_NAME}}
 
@@ -22,49 +27,45 @@
 - Test: `{{exact/path/to/test.ext}}`
 
 - [ ] **Step 1: Write the failing test**
-
-```{{lang}}
-{{actual test code — never a placeholder}}
-```
+  ```{{lang}}
+  {{actual test code - never a placeholder}}
+  ```
 
 - [ ] **Step 2: Run the test, confirm it fails**
-
-Run: `{{exact command}}`
-Expected: FAIL — `{{exact expected failure}}`
+  Run: `{{exact command}}`
+  Expected: FAIL - `{{exact expected failure}}`
 
 - [ ] **Step 3: Minimal implementation**
-
-```{{lang}}
-{{actual implementation code}}
-```
+  ```{{lang}}
+  {{actual implementation code}}
+  ```
 
 - [ ] **Step 4: Run the test, confirm it passes**
-
-Run: `{{exact command}}`
-Expected: PASS
+  Run: `{{exact command}}`
+  Expected: PASS
 
 - [ ] **Step 5: Commit**
+  ```bash
+  # First commit in the increment:
+  gt create -m "{{type}}: {{subject}}"
 
-```bash
-# first commit in this increment:
-gt create -m "{{type}}: {{subject}}"
-# later commits in the same increment:
-gt modify -c -m "{{type}}: {{subject}}"
-```
+  # Later commits in the same increment:
+  gt modify -c -m "{{type}}: {{subject}}"
+  ```
 
-<!-- Repeat Task N for each unit in this increment. Add Increment 2, 3, … for each PR-sized slice. -->
+## Plan Checks
 
----
+- **Spec coverage** - every spec requirement maps to a task.
+- **AC coverage** - each spec section 7 acceptance criterion maps to a test; a `N/A` is
+  sanity-checked against the spec body.
+- **No placeholders** - no TBD/TODO; complete code, exact commands, and expected output.
+- **Type consistency** - types, signatures, and names match the current codebase.
 
-## Self-review (run before handing back)
+This file starts with YAML frontmatter for Obsidian properties, then preserves the `**Source:**`
+line as the canonical spec -> plan join used by `/woostack-status` and `woostack-doctor`.
 
-- [ ] **Spec coverage** — every spec requirement maps to a task above.
-- [ ] **AC coverage** — each spec §7 acceptance criterion (and its filled happy/error/edge cases) maps to a test; a whole-section `N/A` is sanity-checked against the spec body.
-- [ ] **No placeholders** — no TBD/TODO; complete code, exact commands, and expected output in every step.
-- [ ] **Type consistency** — types, signatures, and names match across tasks.
+> Filename mirrors spec basename: `.woostack/plans/<spec-basename>.md`.
 
-> woostack plan conventions (keep them):
-> - This file is **frontmatter-free** and **opens with** the `**Source:**` line.
-> - Filename mirrors the spec basename: `.woostack/plans/<spec-basename>.md` (the spec's date, not today's).
-> - **No** required sub-skill banner — execution is `woostack-execute`'s (woostack-build step 8, or `/woostack-execute <plan>`).
-> - In a target without a test runner, a "failing test" step is a concrete verification command (grep, `bash -n`, an existing test) with exact expected output.
+**No required-sub-skill banner.** Plans are executable by `woostack-execute` directly. In this
+skills repo, a "failing test" step can be a concrete verification command such as `grep`,
+`bash -n`, an existing test, or a `python3 -c` parser check with exact expected output.

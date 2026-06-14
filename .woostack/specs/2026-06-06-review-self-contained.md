@@ -1,7 +1,7 @@
 ---
 name: review-self-contained
 type: spec
-status: planning
+status: approved
 date: 2026-06-06
 branch: review-self-contained
 links:

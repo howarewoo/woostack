@@ -1,7 +1,7 @@
 ---
 name: memory-distill-gate
 type: spec
-status: done
+status: approved
 date: 2026-06-02
 branch: feature/memory-distill-gate
 links:

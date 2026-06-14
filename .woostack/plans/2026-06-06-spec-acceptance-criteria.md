@@ -1,3 +1,10 @@
+---
+type: plan
+source: .woostack/specs/2026-06-06-spec-acceptance-criteria.md
+status: done
+branch: spec-acceptance-criteria
+---
+
 **Source:** .woostack/specs/2026-06-06-spec-acceptance-criteria.md
 
 # Structured Acceptance Criteria in the spec template — Implementation Plan

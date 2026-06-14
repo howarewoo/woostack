@@ -1,3 +1,10 @@
+---
+type: plan
+source: .woostack/specs/2026-06-12-fumadocs-docs-site.md
+status: done
+branch: feature/fumadocs-docs-site
+---
+
 **Source:** .woostack/specs/2026-06-12-fumadocs-docs-site.md
 
 # Fumadocs docs site for the woostack skills — Implementation Plan

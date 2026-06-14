@@ -1,7 +1,7 @@
 ---
 name: woostack-debug
 type: spec
-status: planning
+status: approved
 date: 2026-06-05
 branch: feature/woostack-debug
 links:

@@ -1,3 +1,13 @@
+---
+type: plan
+source: .woostack/specs/2026-06-04-build-execution-handoff-gate.md
+status: done
+branch: worktree-nested-wishing-hanrahan
+---
+
+**Source:** .woostack/specs/2026-06-04-build-execution-handoff-gate.md
+
+
 # woostack-build Execution-Handoff Gate Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. In the woostack loop this plan is executed by [`woostack-execute`](../../skills/woostack-execute/SKILL.md).

@@ -6,5 +6,8 @@
 				"standard": "gpt-5.4-mini"
 			}
 		}
+	},
+	"status": {
+		"staleDays": 14
 	}
 }

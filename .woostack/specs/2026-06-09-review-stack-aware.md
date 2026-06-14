@@ -1,7 +1,7 @@
 ---
 name: review-stack-aware
 type: spec
-status: planning
+status: approved
 date: 2026-06-09
 branch: review-stack-aware-markers
 links:

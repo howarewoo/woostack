@@ -1,3 +1,13 @@
+---
+type: plan
+source: .woostack/specs/2026-06-03-bounded-review-swarms.md
+status: done
+branch: feature/bounded-review-swarms
+---
+
+**Source:** .woostack/specs/2026-06-03-bounded-review-swarms.md
+
+
 # Bounded Review Swarms Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

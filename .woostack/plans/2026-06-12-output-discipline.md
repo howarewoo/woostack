@@ -1,3 +1,10 @@
+---
+type: plan
+source: .woostack/specs/2026-06-12-output-discipline.md
+status: done
+branch: feature/output-discipline
+---
+
 **Source:** .woostack/specs/2026-06-12-output-discipline.md
 
 # Native Output Discipline for Internal Comms — Implementation Plan

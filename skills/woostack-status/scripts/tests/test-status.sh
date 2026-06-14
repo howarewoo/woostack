@@ -23,9 +23,11 @@ mkspec() {
 }
 
 mkplan() {
-  local n
+  local n status branch
+  status="${6:-planning}"
+  branch="${7:-feature/$2}"
   mkdir -p "$1/plans"
-  { printf '# %s Plan\n\n**Source:** .woostack/specs/%s\n\n' "$2" "$3"
+  { printf -- '---\ntype: plan\nsource: .woostack/specs/%s\nstatus: %s\nbranch: %s\n---\n\n**Source:** .woostack/specs/%s\n\n' "$3" "$status" "$branch" "$3"
     n=1; while [ "$n" -le "$4" ]; do echo "- [x] done $n"; n=$((n+1)); done
     n=1; while [ "$n" -le "$5" ]; do echo "- [ ] todo $n"; n=$((n+1)); done
   } > "$1/plans/2026-06-01-$2.md"
@@ -82,7 +84,7 @@ assert_contains "$OUT" "no plan" "0-plan flagged"
 # `ready` = plan hardened, 0 boxes done, ready for execution (build step 6).
 rdy="$(mktemp -d)/.woostack"
 mkspec "$rdy" mike ready feature/mike
-mkplan "$rdy" mike 2026-06-01-mike.md 0 5
+mkplan "$rdy" mike 2026-06-01-mike.md 0 5 ready feature/mike
 run_status "$rdy"
 assert_contains "$OUT" "ready" "ready phase rendered"
 assert_contains "$OUT" "open spec+plan PR, then execute" "ready next-action"
@@ -122,7 +124,7 @@ assert_exit 0 "$CODE" "band compute exits 0"
 exec_repo="$(mktemp -d)"
 ( cd "$exec_repo" && git -c user.email=t@t -c user.name=Tess init -q && git checkout -qb main )
 mkspec "$exec_repo/.woostack" sierra planning feature/sierra
-mkplan "$exec_repo/.woostack" sierra 2026-06-01-sierra.md 1 2
+mkplan "$exec_repo/.woostack" sierra 2026-06-01-sierra.md 1 2 executing feature/sierra
 ( cd "$exec_repo" && git add -A && git -c user.email=t@t -c user.name=Tess commit -qm "add sierra plan" )
 ( cd "$exec_repo" && git checkout -qb feature/sierra && printf 'work\n' > work.txt && git add work.txt && git -c user.email=t@t -c user.name=Tess commit -qm "start sierra" )
 ( cd "$exec_repo" && FAKE_GH_JSON='[]' PATH="$g/bin:$PATH" WOO_DIR=.woostack bash "$ST" > /tmp/sierra.out 2>&1 )
@@ -133,7 +135,7 @@ assert_not_contains "$OUT" "sierra                 planning" "commit-backed plan
 
 h="$(mktemp -d)/.woostack"
 mkspec "$h" hotel executing feature/hotel
-mkplan "$h" hotel 2026-06-01-hotel.md 5 5
+mkplan "$h" hotel 2026-06-01-hotel.md 5 5 executing feature/hotel
 export FAKE_GH_JSON='[{"number":181,"state":"MERGED","headRefName":"feature/hotel-1","author":{"login":"adam"},"updatedAt":"2026-06-02T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-hotel.md"},{"number":190,"state":"OPEN","headRefName":"feature/hotel-2","author":{"login":"adam"},"updatedAt":"2026-06-03T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-hotel.md"}]'
 PATH="$g/bin:$PATH" run_status "$h"
 assert_contains "$OUT" "#181" "merged increment listed"
@@ -161,7 +163,7 @@ assert_contains "$OUT" "Tess" "pre-PR owner from spec git log"
 assert_contains "$OUT" "15d" "pre-PR age from spec git log"
 
 k="$(mktemp -d)/.woostack"; mkspec "$k" kilo executing unknown
-mkplan "$k" kilo 2026-06-01-kilo.md 1 9
+mkplan "$k" kilo 2026-06-01-kilo.md 1 9 executing unknown
 FAKE_GH_JSON='[]' PATH="$g/bin:$PATH" run_status "$k"
 assert_contains "$OUT" "branch is 'unknown'" "unknown branch flagged"
 
@@ -189,7 +191,7 @@ assert_contains "$OUT" "oscar" "done shown with --all"
 unset FAKE_GH_JSON
 
 oc="$(mktemp -d)/.woostack"; mkspec "$oc" oscar executing feature/oscar
-mkplan "$oc" oscar 2026-06-01-oscar.md 5 0
+mkplan "$oc" oscar 2026-06-01-oscar.md 5 0 done feature/oscar
 export FAKE_GH_JSON='[{"number":9,"state":"MERGED","headRefName":"feature/oscar","author":{"login":"a"},"updatedAt":"2026-06-02T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-oscar.md"},{"number":10,"state":"CLOSED","headRefName":"feature/oscar","author":{"login":"a"},"updatedAt":"2026-06-03T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-oscar.md"}]'
 PATH="$g/bin:$PATH" run_status "$oc"
 assert_contains "$OUT" "oscar" "closed-unmerged increment keeps row visible"
@@ -198,7 +200,7 @@ assert_contains "$OUT" "0 done" "closed-unmerged increment not counted done"
 unset FAKE_GH_JSON
 
 ocd="$(mktemp -d)/.woostack"; mkspec "$ocd" oscardone done feature/oscardone
-mkplan "$ocd" oscardone 2026-06-01-oscardone.md 5 0
+mkplan "$ocd" oscardone 2026-06-01-oscardone.md 5 0 done feature/oscardone done feature/oscardone
 export FAKE_GH_JSON='[{"number":11,"state":"MERGED","headRefName":"feature/oscardone","author":{"login":"a"},"updatedAt":"2026-06-02T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-oscardone.md"},{"number":12,"state":"CLOSED","headRefName":"feature/oscardone","author":{"login":"a"},"updatedAt":"2026-06-03T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-oscardone.md"}]'
 PATH="$g/bin:$PATH" run_status "$ocd"
 assert_contains "$OUT" "oscardone" "authored done with closed-unmerged increment stays visible"
@@ -233,7 +235,7 @@ assert_contains "$(cat /tmp/r.out)" "stale" "staleDays:3 makes 5d spec stale"
 # PR (same fuzzy tokens, different spec) must NOT cross-match a sibling.
 xm="$(mktemp -d)/.woostack"
 mkspec "$xm" xalpha executing feature/xalpha
-mkplan "$xm" xalpha 2026-06-01-xalpha.md 1 9
+mkplan "$xm" xalpha 2026-06-01-xalpha.md 1 9 executing feature/xalpha
 mkspec "$xm" xbeta executing feature/xbeta
 mkplan "$xm" xbeta 2026-06-01-xbeta.md 1 9
 export FAKE_GH_JSON='[{"number":300,"state":"OPEN","headRefName":"feature/xalpha","author":{"login":"z"},"updatedAt":"2026-06-03T00:00:00Z","body":"work done.\nSpec: .woostack/specs/2026-06-01-xalpha.md"}]'
@@ -276,7 +278,7 @@ unset FAKE_GH_JSON FAKE_GH_HEAD_JSON
 # not executing — an explicit terminal assertion plus a complete plan is trusted.
 ld="$(mktemp -d)/.woostack"
 mkspec "$ld" legdone done feature/legdone
-mkplan "$ld" legdone 2026-06-01-legdone.md 4 0
+mkplan "$ld" legdone 2026-06-01-legdone.md 4 0 done feature/legdone
 FAKE_GH_JSON='[]' PATH="$g/bin:$PATH" run_status "$ld"
 assert_contains "$OUT" "1 done" "authored done + 100% plan + no PR counts as done"
 assert_not_contains "$OUT" "legdone " "legacy done hidden by default"
@@ -285,7 +287,7 @@ assert_not_contains "$OUT" "legdone " "legacy done hidden by default"
 active_done_repo="$(mktemp -d)"
 ( cd "$active_done_repo" && git -c user.email=t@t -c user.name=Tess init -q && git checkout -qb main )
 mkspec "$active_done_repo/.woostack" activedone done feature/activedone
-mkplan "$active_done_repo/.woostack" activedone 2026-06-01-activedone.md 4 0
+mkplan "$active_done_repo/.woostack" activedone 2026-06-01-activedone.md 4 0 done feature/activedone
 ( cd "$active_done_repo" && git add -A && git -c user.email=t@t -c user.name=Tess commit -qm "add active done plan" )
 ( cd "$active_done_repo" && git checkout -qb feature/activedone && printf 'work\n' > work.txt && git add work.txt && git -c user.email=t@t -c user.name=Tess commit -qm "active work" )
 ( cd "$active_done_repo" && FAKE_GH_JSON='[]' PATH="$g/bin:$PATH" WOO_DIR=.woostack bash "$ST" --all > /tmp/active-done.out 2>&1 )
@@ -298,7 +300,7 @@ assert_contains "$OUT" "executing" "active branch work overrides legacy authored
 merged_done_repo="$(mktemp -d)"
 ( cd "$merged_done_repo" && git -c user.email=t@t -c user.name=Tess init -q && git checkout -qb main )
 mkspec "$merged_done_repo/.woostack" mergeddone done feature/mergeddone
-mkplan "$merged_done_repo/.woostack" mergeddone 2026-06-01-mergeddone.md 4 0
+mkplan "$merged_done_repo/.woostack" mergeddone 2026-06-01-mergeddone.md 4 0 done feature/mergeddone
 ( cd "$merged_done_repo" && git add -A && git -c user.email=t@t -c user.name=Tess commit -qm "add merged done plan" )
 ( cd "$merged_done_repo" && git checkout -qb feature/mergeddone && printf 'work\n' > work.txt && git add work.txt && git -c user.email=t@t -c user.name=Tess commit -qm "merged work" )
 ( cd "$merged_done_repo" && git checkout -q main && git merge --no-ff -q feature/mergeddone -m "merge work" )

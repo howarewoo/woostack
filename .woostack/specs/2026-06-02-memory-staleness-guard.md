@@ -1,7 +1,7 @@
 ---
 name: memory-staleness-guard
 type: spec
-status: done
+status: approved
 date: 2026-06-02
 branch: memory-staleness-guard
 links:

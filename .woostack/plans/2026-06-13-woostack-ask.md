@@ -1,3 +1,10 @@
+---
+type: plan
+source: .woostack/specs/2026-06-13-woostack-ask.md
+status: executing
+branch: feature/woostack-ask
+---
+
 **Source:** .woostack/specs/2026-06-13-woostack-ask.md
 
 # woostack-ask — read-only codebase Q&A — Implementation Plan

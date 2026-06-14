@@ -1,7 +1,7 @@
 ---
 name: woostack-harden
 type: spec
-status: done
+status: approved
 date: 2026-06-04
 branch: worktree-tender-exploring-swing
 links:

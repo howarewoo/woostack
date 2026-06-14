@@ -1,7 +1,7 @@
 ---
 name: address-comments-commit-integration
 type: spec
-status: in-review
+status: approved
 date: 2026-06-08
 branch: feature/address-comments-commit-integration
 links:
