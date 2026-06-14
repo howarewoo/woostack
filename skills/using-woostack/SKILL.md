@@ -78,6 +78,7 @@ link it, never restate it.
 | `/woostack-debug <target>`, run an autonomous root-cause analysis before fixing (investigative only — hands back the root cause and a proposed fix) | `woostack-debug` |
 | `/woostack-tdd <target>`, add appropriate tests to a code block, PR, spec, or plan (gate-light; TDD doctrine home) | `woostack-tdd` |
 | `/woostack-dream [instructions]`, curate the memory store and recommend doc updates (gated) | `woostack-dream` |
+| `/woostack-doctor [path] [--check]`, diagnose + gated-repair `.woostack/` workspace health (store integrity + conventions; `--check` is CI-friendly exit-coded) | `woostack-doctor` |
 
 
 If the user asks for the behavior without using the exact command name, route by intent.

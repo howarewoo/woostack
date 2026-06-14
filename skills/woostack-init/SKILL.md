@@ -1,6 +1,6 @@
 ---
 name: woostack-init
-description: Use when initializing, scaffolding, or repairing the .woostack/ workspace — creates the memory store, specs and plans directories, config.json, and .gitignore from canonical templates, then runs the index builder and store linter. Invoke at project setup (brownfield) or from woostack-bootstrap (greenfield).
+description: Use when initializing, scaffolding, or repairing the .woostack/ workspace — creates the memory store, specs and plans directories, config.json, and .gitignore from canonical templates, then runs the index builder and the `woostack-doctor` store linter. For ongoing workspace-health checks and convention repair, use [`woostack-doctor`](../woostack-doctor/SKILL.md). Invoke at project setup (brownfield) or from woostack-bootstrap (greenfield).
 ---
 
 # woostack-init
