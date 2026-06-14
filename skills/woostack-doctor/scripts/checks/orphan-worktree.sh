@@ -10,6 +10,11 @@ if [ "${1:-}" = "--fix" ]; then
   exit 0
 fi
 WOO_ROOT="${1:-.}"
+# Resolve to an absolute path: `git worktree list` emits absolute paths, so the
+# stale-registration `case` below never matches a relative wt_dir (e.g. the "."
+# default), silently skipping stale registrations. Keep the raw value if the dir
+# does not exist so the [ -d ] guard still exits cleanly.
+WOO_ROOT="$(cd "$WOO_ROOT" 2>/dev/null && pwd || printf '%s' "$WOO_ROOT")"
 wt_dir="$WOO_ROOT/.woostack/worktrees"
 [ -d "$wt_dir" ] || exit 0
 

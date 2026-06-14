@@ -29,7 +29,9 @@ if command -v jq >/dev/null 2>&1; then
 fi
 
 # orphan-worktree
-r3="$(mktemp -d)"; ( cd "$r3" && git -c user.email=t@t -c user.name=t init -q && git -c user.email=t@t -c user.name=t commit -q --allow-empty -m init )
+# Physical path (pwd -P): git canonicalizes worktree paths, so on macOS where
+# /var -> /private/var the registered list must match the resolved dir paths.
+r3="$(cd "$(mktemp -d)" && pwd -P)"; ( cd "$r3" && git -c user.email=t@t -c user.name=t init -q && git -c user.email=t@t -c user.name=t commit -q --allow-empty -m init )
 mkdir -p "$r3/.woostack/worktrees/ghost"
 assert_contains "$(bash "$C/orphan-worktree.sh" "$r3")" "orphan-worktree" "unregistered worktree dir flagged"
 assert_contains "$(bash "$C/orphan-worktree.sh" "$r3")" "report" "present unregistered dir is report (never auto-pruned)"
@@ -39,4 +41,11 @@ assert_contains "$(bash "$C/orphan-worktree.sh" "$r3")" "report" "present unregi
 git -C "$r3" worktree add -q "$r3/.woostack/worktrees/app2" -b wt-app2
 mkdir -p "$r3/.woostack/worktrees/app"
 assert_contains "$(bash "$C/orphan-worktree.sh" "$r3")" "worktrees/app	" "orphan 'app' flagged despite registered prefix-sibling 'app2'"
+
+# Stale registration (dir gone, git entry remains) must be detected even with a
+# RELATIVE WOO_ROOT — git emits absolute paths, so a relative wt_dir case-pattern
+# would never match (regression guard for the "." default).
+git -C "$r3" worktree add -q "$r3/.woostack/worktrees/stale" -b wt-stale
+rm -rf "$r3/.woostack/worktrees/stale"
+assert_contains "$( cd "$r3" && bash "$C/orphan-worktree.sh" . )" "stale worktree registration" "stale registration detected with a relative root"
 finish
