@@ -462,7 +462,7 @@ board's tolerant form-agnostic matcher and normalizes basenames before comparing
 
 ### Task 4.1: failing test for `plan-source` / `plan-source-sync` diagnose
 
-- [ ] Create `scripts/tests/test-plan-source.sh`:
+- [x] Create `scripts/tests/test-plan-source.sh`:
 
 ```bash
 #!/usr/bin/env bash
@@ -496,11 +496,11 @@ assert_not_contains "$out" ".woostack/plans/ok.md" "normalized in-sync plan has 
 finish
 ```
 
-- [ ] Run, confirm red (`exit=1`).
+- [x] Run, confirm red (`exit=1`).
 
 ### Task 4.2: implement `plan-source.sh`
 
-- [ ] Create `scripts/checks/plan-source.sh`:
+- [x] Create `scripts/checks/plan-source.sh`:
 
 ```bash
 #!/usr/bin/env bash
@@ -575,11 +575,11 @@ for plan in "$WOO_ROOT/.woostack/plans"/*.md; do
 done
 ```
 
-- [ ] Run the test, confirm diagnose passes (`exit=0`).
+- [x] Run the test, confirm diagnose passes (`exit=0`).
 
 ### Task 4.3: failing test for both `--fix` modes + idempotency
 
-- [ ] Append to `scripts/tests/test-plan-source.sh` (before `finish`):
+- [x] Append to `scripts/tests/test-plan-source.sh` (before `finish`):
 
 ```bash
 # --- repair: insert missing line ---
@@ -600,22 +600,22 @@ assert_contains "$res" ".woostack/plans/orphan.md" "orphan report persists"
 assert_eq "$(grep -nE '(^|[^[:alnum:]_])(git|gh)[[:space:]]' "$C/plan-source.sh")" "" "plan-source calls no git/gh"
 ```
 
-- [ ] Run, confirm green (`exit=0`).
+- [x] Run, confirm green (`exit=0`).
 
 ### Task 4.4: catalog rows
 
-- [ ] Add to `references/checks.md`:
+- [x] Add to `references/checks.md`:
 
 ```
 | `plan-source` | plan missing the `**Source:**` join line | warn | auto (source: resolves) / report | `<root> <plan> source-line` |
 | `plan-source-sync` | plan `source:` basename ≠ `**Source:**` line basename | warn | auto | `<root> <plan> source-sync` |
 ```
 
-- [ ] `bash scripts/tests/test-no-stale-paths.sh; echo "exit=$?"` → `exit=0`.
+- [x] `bash scripts/tests/test-no-stale-paths.sh; echo "exit=$?"` → `exit=0`.
 
 ### Task 4.5: whole-suite + auto-discovery smoke
 
-- [ ] Run the entire doctor suite green:
+- [x] Run the entire doctor suite green:
 
 ```
 bash skills/woostack-doctor/scripts/tests/run-tests.sh; echo "exit=$?"
@@ -623,7 +623,7 @@ bash skills/woostack-doctor/scripts/tests/run-tests.sh; echo "exit=$?"
 
 Expected: every `== test-*.sh ==` block passes, `exit=0`.
 
-- [ ] Smoke: seed a scratch workspace with one bad case per check and confirm `doctor.sh`
+- [x] Smoke: seed a scratch workspace with one bad case per check and confirm `doctor.sh`
   auto-discovers all four new codes, and `--check` exits nonzero **only** when an unknown `status:`
   is present:
 
@@ -642,7 +642,7 @@ Expected: codes listed; first `--check` exit `0`, second exit `1`.
 
 ### Task 4.6: commit increment 4
 
-- [ ] Hand to `woostack-commit`. Subject:
+- [x] Hand to `woostack-commit`. Subject:
   `feat(doctor): plan-source + plan-source-sync checks — repair the plan→spec join line`.
 
 ---

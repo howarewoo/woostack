@@ -37,6 +37,8 @@ overloaded):
 | `doc-type` | spec/plan/fix `type:` missing or not matching its dir (owns the no-fence report for these docs) | warn | auto | `<root> <file>` |
 | `status-enum` | `status:` value not in the conventions enum | error | auto (exact alias hit) / report (unknown) | `<root> <file>` |
 | `status-band` | status value in the other artifact's band (spec↔plan); skips `fixes/` | warn | report | — |
+| `plan-source` | plan missing the `**Source:**` join line | warn | auto (`source:` resolves) / report | `<root> <plan> source-line` |
+| `plan-source-sync` | plan `source:` basename ≠ `**Source:**` line basename, or `source:` absent while the line is present | warn | auto | `<root> <plan> source-sync` |
 | `orphan-worktree` (present) | unregistered dir under `.woostack/worktrees/` (may hold work) | warn | report | — |
 | `orphan-worktree` (stale) | registered worktree whose dir is gone | warn | auto | `<root>` (runs `git worktree prune`) |
 | `gitignore-drift` | a shipped-template managed line missing from `.woostack/.gitignore` | warn | auto | `<root>` (appends missing lines) |
