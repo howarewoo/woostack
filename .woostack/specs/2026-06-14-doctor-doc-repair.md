@@ -104,12 +104,12 @@ cross-link to `conventions.md`, are updated to draw this line explicitly.
 ## 5. Components & data flow
 
 - **`scripts/checks/doc-type.sh`** — walks `specs/ plans/ fixes/`; for each `.md`, reads `type:`;
-  emits `doc-type` when missing/mismatched. `--fix <root> <file> <expected-type>` rewrites/inserts
-  the `type:` key.
+  emits `doc-type` when missing/mismatched. `--fix <root> <file>` (the expected type is self-derived
+  from the file's parent dir) rewrites/inserts the `type:` key.
 - **`scripts/checks/status-enum.sh`** — reads `status:`; if not in the valid enum, looks it up in
   the curated alias table. Hit → `auto` (emit + `--fix` rewrites to canonical). Miss → `report`
-  with a "unknown status; did you mean …?" message only when an alias is *close* (still
-  exact-keyed, never applied). Owns the alias table.
+  with a "not a known phase; set a valid status: manually" message (never auto-applied). Owns the
+  alias table.
 - **`scripts/checks/status-band.sh`** — `report`-only; classifies the dir's expected band and emits
   when the authored value is in the opposite band.
 - **`scripts/checks/plan-source.sh`** — handles both `plan-source` (line presence; derive from
@@ -212,9 +212,10 @@ Each AC is a testable behavior → ≥1 plan task.
 Doctor's existing pure-bash harness: `scripts/tests/run-tests.sh` driving `test-*.sh`, with seeded
 fixture workspaces. Add per-check test files (or extend `test-health-checks.sh` /
 `test-repair-apply.sh`) covering, for each new check: diagnose-detects, `--fix`-repairs,
-reapply-idempotent, `report`-never-auto-applied, and the no-git assertion (AC7). Extend
-`test-orchestrator.sh` for registration (AC8) and keep `test-no-stale-paths.sh` green for the new
-cross-links. TDD red-first per increment (woostack-tdd kernel): each check's failing diagnose test
+reapply-idempotent, `report`-never-auto-applied, and the no-git assertion (AC7). Cover registration
+(AC8) with an auto-discovery + `--check` exit-code smoke (seed one bad case per check; assert
+`doctor.sh` surfaces the new codes with no orchestrator edit, and `--check` exits nonzero only on an
+unknown `status:`), and keep `test-no-stale-paths.sh` green for the new cross-links. TDD red-first per increment (woostack-tdd kernel): each check's failing diagnose test
 before the check script, each `--fix` test before the repair path.
 
 ## 9. Resolved decisions

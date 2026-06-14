@@ -266,6 +266,7 @@ if [ "${1:-}" = "--fix" ]; then
   [ "${VALID/ $s /}" != "$VALID" ] && exit 0        # already valid → no-op
   canon="$(alias_for "$s")" || exit 0               # unknown, no alias → never auto-applied
   set_field "$file" status "$canon" || { emit error status-enum manual "${file#"$root"/}" "no frontmatter fence; set 'status: $canon' manually"; exit 1; }
+  [ "$(field "$file" status)" = "$canon" ] || { emit error status-enum manual "${file#"$root"/}" "status: did not update to '$canon'"; exit 1; }   # phantom-repair guard (spec §6)
   exit 0
 fi
 WOO_ROOT="${1:-.}"
@@ -483,11 +484,14 @@ printf -- '---\ntype: plan\nstatus: planning\n---\n\n# Orphan Plan\n' > "$r/.woo
 printf -- '---\ntype: plan\nsource: .woostack/specs/a.md\nstatus: planning\n---\n\n**Source:** [[specs/b]]\n\n# Mismatch\n' > "$r/.woostack/plans/sync.md"
 # (iv) line bare-path w/ trailing text, source: same base → in sync, no finding
 printf -- '---\ntype: plan\nsource: .woostack/specs/a.md\nstatus: planning\n---\n\n**Source:** specs/a.md (shipped #1)\n\n# OK\n' > "$r/.woostack/plans/ok.md"
+# (v) line present, source: frontmatter absent → sync from line (auto)
+printf -- '---\ntype: plan\nstatus: planning\n---\n\n**Source:** [[specs/a]]\n\n# No Source Key\n' > "$r/.woostack/plans/line-no-key.md"
 
 out="$(bash "$C/plan-source.sh" "$r")"
 assert_contains "$out" "$(printf 'warn\tplan-source\tauto\t.woostack/plans/miss-auto.md')" "missing line w/ resolvable source: is auto"
 assert_contains "$out" "$(printf 'warn\tplan-source\treport\t.woostack/plans/orphan.md')" "orphan plan is report"
 assert_contains "$out" "$(printf 'warn\tplan-source-sync\tauto\t.woostack/plans/sync.md')" "source/line basename mismatch"
+assert_contains "$out" "$(printf 'warn\tplan-source-sync\tauto\t.woostack/plans/line-no-key.md')" "line present, source: absent is auto sync"
 assert_not_contains "$out" ".woostack/plans/ok.md" "normalized in-sync plan has no finding"
 finish
 ```
@@ -542,6 +546,7 @@ if [ "${1:-}" = "--fix" ]; then
     source-sync)
       lb="$(line_base "$plan")"; [ -z "$lb" ] && exit 0
       set_field "$plan" source ".woostack/specs/$lb.md" || { emit error plan-source-sync manual "${plan#"$root"/}" "no frontmatter fence; set source: manually"; exit 1; }
+      [ "$(basename_of "$(field "$plan" source)")" = "$lb" ] || { emit error plan-source-sync manual "${plan#"$root"/}" "source: did not sync to '$lb'"; exit 1; }   # phantom-repair guard (spec §6)
       exit 0 ;;
     *) exit 2 ;;
   esac
@@ -564,6 +569,8 @@ for plan in "$WOO_ROOT/.woostack/plans"/*.md; do
   sbase="$(basename_of "$(field "$plan" source)")"
   if [ -n "$sbase" ] && [ "$sbase" != "$lb" ]; then
     emit warn plan-source-sync auto "$rp" "source: names '$sbase' but **Source:** line names '$lb'; sync source: to the canonical line"
+  elif [ -z "$sbase" ]; then
+    emit warn plan-source-sync auto "$rp" "**Source:** line names '$lb' but source: frontmatter is absent; sync source: from the line"
   fi
 done
 ```
