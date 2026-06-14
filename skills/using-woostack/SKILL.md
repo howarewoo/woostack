@@ -54,8 +54,8 @@ of an approved workflow.
 
 **Feature-state invariant:** in a woostack project, every spec has exactly one plan
 (`spec : plan : PRs = 1 : 1 : N`), and the spec design `status:` plus plan implementation
-`status:`/`branch:` frontmatter is load-bearing for `/woostack-status` board.
-defined once in
+`status:`/`branch:` frontmatter is load-bearing for the `/woostack-status` board. The phase
+enum and the join contracts are defined once in
 [`../woostack-status/references/conventions.md`](../woostack-status/references/conventions.md);
 link it, never restate it.
 

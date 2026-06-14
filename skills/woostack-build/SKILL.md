@@ -88,7 +88,7 @@ sits after that PR. So the chain has exactly the three hard gates above.
    owns none and hands straight back. The chain's last hard stop is the **execution-handoff
    gate (step 8)**, after the spec+plan PR — not a plan-*quality* gate here. Do not turn this
    harden into a plan-approval gate. When hardening stops producing new questions, set the
-   spec's `status: ready` — the [conventions.md](../woostack-status/references/conventions.md)
+   plan's `status: ready` — the [conventions.md](../woostack-status/references/conventions.md)
    value for "plan hardened, ready for execution" (mirroring step 3's `hardened`, but for the
    plan). Plans own implementation lifecycle, so this transition is authored on the **plan**, not the spec.
 7. **Commit the spec and plan as their own PR.** Before any implementation, commit the
