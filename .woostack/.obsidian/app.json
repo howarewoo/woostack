@@ -1,6 +1,7 @@
 {
   "userIgnoreFilters": [
     "review-tmp/",
-    "tmp/"
+    "tmp/",
+    "overnight/"
   ]
 }
