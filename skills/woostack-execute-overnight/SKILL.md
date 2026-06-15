@@ -59,7 +59,17 @@ rather than burn the night on a doomed run:
 2. **Safety checks**: current branch is not protected; `.woostack/` exists; when invoked from
    build, the spec+plan PR base is present (standalone: tracks branch off the current
    non-protected branch HEAD).
-3. **Open the report**: create `.woostack/overnight/` if missing and open
+3. **Review feasibility**: confirm the contracted review swarm can actually run — the host can
+   spawn the `woostack-review` sub-agents **and** a review provider/model resolves (the same
+   capability signal the smart driver default probes). The post-implementation sweep delegates to
+   [`woostack-sweep`](../woostack-sweep/SKILL.md), which runs real `woostack-review --full` and
+   accepts **no** self/structural review. If review is **statically infeasible** here, that sweep
+   cannot run → **do not launch**: write a refusal report (outcome `refused-to-start`) naming the
+   missing capability, and stop. (A swarm that passes this check but fails **when invoked mid-run**
+   is the `sweep-unavailable` outcome, not a refusal — see
+   [Post-implementation review sweep](#post-implementation-review-sweep). Either way, **never**
+   silently downgrade to a self-review.)
+4. **Open the report**: create `.woostack/overnight/` if missing and open
    `.woostack/overnight/<run-date>-<plan-slug>.md` — the run date (`YYYY-MM-DD`, today) plus the
    plan basename with any leading `YYYY-MM-DD-` stripped (see
    [Morning report](#morning-report)) — from
@@ -95,6 +105,14 @@ log as it happens**.
 3. **Unsafe or ambiguous plan step** → **safety is never relaxed for autonomy.** A
    destructive / secret-touching / auth-mutating / network step, or a genuinely ambiguous
    instruction, is **never auto-approved** → **blocker** → halt policy.
+
+**Never downgrade a contracted review.** Resolve-or-log-and-continue means *log the blocker*, never
+*quietly substitute a cheaper review*. A driver may not **downgrade a contracted review** — e.g.
+swap the contracted `woostack-review --full` sweep for a structural / manual / self-review — on an
+unverified cost assumption. If the contracted review cannot run, **log the blocker and halt the
+track** (mid-run → `sweep-unavailable`) or refuse at pre-flight (static → `refused-to-start`); a
+`clean` in the morning report therefore **always** means swarm-derived. This is the same class of
+invariant as "safety is never relaxed for autonomy."
 
 ## Tracks & halt policy
 
@@ -142,6 +160,13 @@ Overnight owns the wrapping around each delegated sweep:
   PR above it (`not-attempted-review`), and **advance to the next track** per
   [Tracks & halt policy](#tracks--halt-policy). Reaching the `max_rounds` cap with **only nits**
   is **not** a blocker — that PR is `done-with-findings` and the sweep moves on.
+- **Sweep can't run → `sweep-unavailable`** — if the contracted `woostack-review --full` swarm
+  cannot run when invoked mid-run (the review engine is unavailable or a provider/model fails to
+  resolve), this is a **blocker for that track** — **never** silently fall back to a self/structural
+  review and **never** record a `clean` the swarm did not produce. Record the run-level outcome
+  `sweep-unavailable`, leave the track's worktree, mark its PRs `not-attempted-review`, and advance
+  to the next track per [Tracks & halt policy](#tracks--halt-policy). (Caught earlier as a static
+  gap, this is `refused-to-start` at pre-flight instead.)
 
 A plan with no `## Track:` headings has one implicit track, so the default is exactly: implement
 the whole stack, then delegate one `woostack-sweep` over it. The sweep covers **increment PRs
@@ -162,7 +187,9 @@ tree for the review / address-comments clean-tree preconditions. Sections:
   (approved-with-nits that hit the `max_rounds` cap — to address in the morning, distinct from
   blockers), and a morning **test checklist** (what to verify, the HEAD branch per track).
 - **Run summary**: plan, driver, start/end, outcome (`clean` / `done-with-findings` /
-  `partial+blockers` / `refused-to-start`).
+  `partial+blockers` / `sweep-unavailable` / `refused-to-start`). `clean` always means
+  swarm-derived (a real `woostack-review --full` receipt per swept PR); a sweep that could not run
+  is `sweep-unavailable`, never a downgraded `clean`.
 - **Per-increment table**: status (`done` / `done-with-findings` / `blocked` / `not-attempted`),
   branch + PR URL, review verdict, auto-address rounds used, and sweep verdict.
 - **Review sweep**: per-PR rounds used, final sweep verdict (`clean` / `done-with-findings` /
@@ -202,6 +229,10 @@ an inference. It never merges and never relaxes safety for autonomy.
   increment PRs to a clean review, bounded by `review_sweep.max_rounds` (default 3). A blocker
   halts only that track; overnight maps each per-PR outcome into the morning report. Both drivers.
   Never merge.
+- **Never downgrade a contracted review.** Pre-flight checks review feasibility (static infeasible
+  → `refused-to-start`); the post-implementation sweep runs the real `woostack-review --full` swarm
+  and a driver never downgrades it to a self/structural review to save cost. Can't run mid-run →
+  `sweep-unavailable` + halt that track. `clean` in the report is always swarm-derived.
 - **Morning report every run**, incremental and gitignored under `.woostack/overnight/`.
 - **Reuse execute; don't restate it.** Cross-link the cadence, drivers, safety, and memory
   contract.
