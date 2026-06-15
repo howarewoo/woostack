@@ -2,7 +2,7 @@
 name: lockstep-edit-sites
 type: wisdom
 category: process
-source: source-line-is-multi-reader-contract, memory-source-field-multi-reader, woostack-command-surface-bookkeeping, review-add-angle-sites, review-prompt-self-contained-blob, spec-template-md-html-mirror, plans/2026-06-04-woostack-status, plans/2026-06-06-review-self-contained
+source: source-line-is-multi-reader-contract, memory-source-field-multi-reader, woostack-command-surface-bookkeeping, review-add-angle-sites, review-prompt-self-contained-blob, spec-template-md-html-mirror, plans/2026-06-04-woostack-status, plans/2026-06-06-review-self-contained, pr-376
 updated: 2026-06-15
 ---
 
@@ -31,7 +31,14 @@ Known multi-site contracts:
   follow no relative links. ([[review-prompt-self-contained-blob]])
 - **spec-template `.md` / `.html`** — a hand-maintained 1:1 section pair, no generator.
   ([[spec-template-md-html-mirror]])
+- **Wisdom-consumer contract** — the set of skills that recall the wisdom store is enumerated in
+  N places: `wisdom.md` §6 (consumer list) + §7 (lifecycle diagram), each consuming skill's
+  `## Memory` recall section (review / ideate / plan / debug), **and the authored site page
+  `site/content/docs/concepts.mdx`** (the consumer table + wholesale-load flow diagram). The site
+  page is the easy-to-miss reader: per-skill `.mdx` is generated from `SKILL.md` and gitignored,
+  but `concepts.mdx` is hand-authored and tracked. (pr-376)
 
 How to apply: when a value is read/authored in more than one place, treat the **site-list
 itself** as the contract. Add a structural test that fails when the sites disagree, and review
-the easy-to-miss validators and whitelists last — they are where lockstep edits leak.
+the easy-to-miss validators and whitelists last — they are where lockstep edits leak — and remember
+authored site/docs pages mirror these contracts too.
