@@ -14,7 +14,7 @@ source: [[fixes/2026-06-14-status-ready-pr-drift]]
 [[woostack-feature-state-invariant]] / conventions.md, the spec+plan handoff PR
 is opened *at* `ready`, so a PR there is expected, not drift. Including `ready`
 contradicts its own `next_action` ("open spec+plan PR, then execute"). Rule when
-adding a plan phase (see [[woostack-add-phase-enum-value]] wiring sites): if the
+adding a plan phase (see the add-a-phase-enum-value wiring sites): if the
 phase legitimately has an open PR, keep it out of the lag `case`.
 
 Test pitfall that hid this: the status tests' `mkplan` helper defaults the plan

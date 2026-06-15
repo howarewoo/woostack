@@ -1,3 +1,10 @@
+---
+type: plan
+source: .woostack/specs/2026-06-02-memory-recall-telemetry.md
+status: done
+branch: feat/memory-recall-telemetry
+---
+
 # Memory Recall Telemetry Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
@@ -8,7 +15,7 @@
 
 **Tech Stack:** POSIX-ish bash (3.2 / macOS BSD compatible), awk, the existing `tests/assert.sh` harness. No new dependencies.
 
-Spec: [.woostack/specs/2026-06-02-memory-recall-telemetry.html](../specs/2026-06-02-memory-recall-telemetry.html) · Issue #159.
+**Source:** [[specs/2026-06-02-memory-recall-telemetry]] · Issue #159.
 
 **Conventions to respect:**
 - All scripts live in `skills/woostack-init/scripts/`. `lib.sh` is sourced by `recall.sh`, `doctor.sh`, `build-index.sh`.

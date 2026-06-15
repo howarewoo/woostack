@@ -5,7 +5,6 @@ scope: .github/workflows/**
 tags: github-actions, review, security
 hook: Review-trigger workflows must actor+phrase gate issue_comment and avoid automatic secret-dependent fork PR runs.
 updated: 2026-06-11
-source: [[fixes/2026-06-11-enable-repo-review-action]]
 ---
 
 When enabling woostack-review in GitHub Actions, `issue_comment` triggers run in the

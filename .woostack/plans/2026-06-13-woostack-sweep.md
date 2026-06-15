@@ -1,3 +1,10 @@
+---
+type: plan
+source: .woostack/specs/2026-06-13-woostack-sweep.md
+status: ready
+branch: feature/woostack-sweep
+---
+
 **Source:** [[specs/2026-06-13-woostack-sweep]]
 
 # woostack-sweep Implementation Plan

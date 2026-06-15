@@ -1,7 +1,7 @@
 ---
 name: review-metrics-tokens-overlap
 type: spec
-status: done
+status: approved
 date: 2026-06-02
 branch: feature/review-metrics-overlap
 links:
