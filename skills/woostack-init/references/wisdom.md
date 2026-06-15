@@ -117,7 +117,7 @@ note triggers `build-index.sh` regeneration; deleting an overnight report touche
 ## 6. Consumption (wholesale-load)
 
 Wisdom guides future work by being loaded **in full** (every `wisdom/*.md` body) wherever design,
-planning, or review context is gathered:
+planning, review, or root-cause investigation context is gathered:
 
 - **`woostack-review`** — `prefetch.sh` composes a `$OUTDIR/wisdom.md` artifact via
   [`compose-wisdom.sh`](../../woostack-review/scripts/compose-wisdom.sh) (the wisdom analogue of
@@ -126,6 +126,13 @@ planning, or review context is gathered:
 - **`woostack-build` / `woostack-ideate`** — the design phase reads all `wisdom/*.md` before
   proposing a design.
 - **`woostack-plan`** — reads all `wisdom/*.md` before writing the plan.
+- **`woostack-debug`** — recalls all `wisdom/*.md` at investigation start, alongside its scoped
+  `.woostack/memory/` recall, surfacing wisdom as recurring failure-*class* hints. Both tiers are
+  quarantined as **candidate hypotheses, never answers** — subject to the Iron Law and the Phase 3
+  test (see [`woostack-debug/SKILL.md`](../../woostack-debug/SKILL.md#memory)). Debug is the natural
+  first **selective** consumer should the store grow: it would load the diagnostic categories
+  (`testing`, `process`) and drop the prescriptive ones (`review`, `planning`) via the per-note
+  `category` hook (§3).
 
 An empty or absent `wisdom/` makes every load a no-op (no consumer error).
 
@@ -138,7 +145,7 @@ woostack-execute distills ──► memory/ note (scoped scratch)
 woostack-execute-overnight ──► overnight/ report (gitignored scratch)
 woostack-dream consolidates recurring trends across memory + overnight + fixes/specs/plans
         └──► wisdom/<slug>.md   (durable, generalized)   + gated prune of fully-absorbed scratch
-review / build / plan ──► wholesale-load wisdom/ as guidance
+review / build / plan / debug ──► wholesale-load wisdom/ as guidance
 ```
 
 `woostack-dream` no longer **creates** memory notes (its old `surface` op is now `consolidate`,

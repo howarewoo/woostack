@@ -97,17 +97,25 @@ hands the findings back and never applies the fix itself.
 
 ## Memory
 
-woostack-debug reads and writes the scoped `.woostack/memory/` store. The note schema, the
-recall procedure, the reject-by-default distillation gate, and the degradation contract are
-defined once in [memory.md](../woostack-init/references/memory.md) — this section says only how
-debugging uses them.
+woostack-debug reads and writes the scoped `.woostack/memory/` store and **reads** the
+wholesale-loaded `.woostack/wisdom/` store. The note schema, the recall procedure, the
+reject-by-default distillation gate, and the degradation contract are defined once in
+[memory.md](../woostack-init/references/memory.md) (the wisdom contract in
+[wisdom.md](../woostack-init/references/wisdom.md)) — this section says only how debugging uses
+them.
 
 - **Recall (start).** Compute the working set — the target's files: the failing test file and
   the code under suspicion. Run the recall procedure: `recall.sh` when the `woostack-init`
   scripts are present, the manual procedure (load `MEMORY.md` + the flat `memory.md`, scope-
-  match, one-hop link expand) otherwise. Surface matching `gotcha`/`hotspot`/`pattern` notes
-  before investigating — a matching note may already name the root cause. State whether recall
-  was script-assisted or manual; never fail silently.
+  match, one-hop link expand) otherwise. Also **wholesale-load every `.woostack/wisdom/*.md`**
+  when that store is present; skip silently when absent. Surface the matching scoped
+  `gotcha`/`hotspot`/`pattern` notes **and** the wisdom findings before investigating — a scoped
+  note names a *specific* trap, wisdom names a recurring failure *class*, and either may point at
+  the root cause. Treat both as **candidate hypotheses, never answers**: a recalled note seeds a
+  Phase 3 hypothesis that must still survive its test (the Iron Law holds), and you **verify any
+  file, line, or symbol the note names still exists** before trusting it — notes reflect what was
+  true when written and can be stale. State whether recall was script-assisted or manual; never
+  fail silently.
 - **Distill (end).** `woostack-debug` does not write code, so it does not distill gotcha notes directly. Memory note distillation is owned by the caller (such as `woostack-fix` or `woostack-execute`) once the minimal fix has been implemented and verified.
 
 ## Red flags — stop and return to Phase 1
@@ -137,6 +145,7 @@ external: document what you investigated and log findings for future investigati
 ## Hard constraints
 
 - **Iron Law.** No fix proposed or applied before Phase 1 is complete. Keep this prominent so it survives summarization.
+- **Recall primes, never concludes.** A recalled scoped note or wisdom finding enters as a candidate Phase 3 hypothesis that must survive its test — never as the root-cause verdict, and never trusted before verifying the file/line/symbol it names still exists. The Iron Law is not satisfied by a recalled note.
 - **Owns no spec/plan/status.** Never writes a `.woostack/specs/`, `.woostack/plans/`, or `.woostack/fixes/` file. The phase enum and join contracts live in [conventions.md](../woostack-status/references/conventions.md) — link, never restate.
 - **Never writes code, commits, or merges.** Hands the findings back; does not touch repository code files.
 - **Always autonomous.** Runs the four phases end to end without a user gate and hands back; owns no `--auto` flag (autonomous is the only mode) and never runs interactively. Investigative only — it never applies the fix.

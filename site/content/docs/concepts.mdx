@@ -52,8 +52,8 @@ woostack keeps two stores under `.woostack/`, and they load in opposite ways.
   matches the files in play, plus any notes those link to (one hop out). A change that touches a
   few files pulls in a few notes, not the whole store.
 - **`wisdom/`** holds a small set of generalized, cross-cutting findings. These load *wholesale*:
-  every wisdom file, every time a skill gathers design, planning, or review context, with no scope
-  matching at all.
+  every wisdom file, every time a skill gathers design, planning, review, or root-cause
+  investigation context, with no scope matching at all.
 
 <Callout type="info">
   Wisdom is never scope-matched. It loads in full or not at all. Memory is the opposite: only the
@@ -67,7 +67,7 @@ Different skills reach for different stores, at different moments:
 | --- | :---: | :---: | --- |
 | [woostack-ideate](/docs/skills/woostack-ideate) | — | ✓ | exploring context, before proposing a design |
 | [woostack-plan](/docs/skills/woostack-plan) | — | ✓ | before writing the plan |
-| [woostack-debug](/docs/skills/woostack-debug) | ✓ | — | at the start, to surface known gotchas |
+| [woostack-debug](/docs/skills/woostack-debug) | ✓ | ✓ | at the start — known gotchas (scoped) and failure-class hints (wisdom), surfaced as hypotheses to test, never answers |
 | [woostack-review](/docs/skills/woostack-review) | ✓ | ✓ | prefetch, before the angle subagents run |
 | [woostack-execute](/docs/skills/woostack-execute) | writes | — | distills a note after each increment |
 | [woostack-dream](/docs/skills/woostack-dream) | reads & curates | reads & writes | consolidating trends into wisdom |
@@ -81,8 +81,8 @@ wisdom, and it rolls recurring trends up from memory and the decision corpus:
 woostack-execute        ── distill ─────►  memory/   (scoped, per-feature)
 woostack-dream          ── consolidate ─►  wisdom/   (generalized, cross-cutting)
 
-ideate · plan · review  ── load wholesale ─►  wisdom/
-debug · review          ── scope-match ────►  memory/
+ideate · plan · review · debug  ── load wholesale ─►  wisdom/
+debug · review                  ── scope-match ────►  memory/
 ```
 
 ### Scripts compute, agents read
