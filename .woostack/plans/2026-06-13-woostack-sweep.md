@@ -223,6 +223,7 @@ Expected: opens with `---`, `name: woostack-sweep`, a `description:` line, `---`
 gt create -m "feat(sweep): woostack-sweep skill — single home of the drive-stack-to-clean review loop"
 ```
 
+source: .woostack/specs/2026-06-13-woostack-sweep.md
 ---
 
 ## Increment 2: Register `woostack-sweep` on the public command surface

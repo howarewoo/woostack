@@ -20,6 +20,7 @@
 - **Create** `skills/woostack-review/scripts/tests/test-intersect-overlap.sh` — drives `intersect-findings.sh` over fixtures, asserts overlap shape.
 - **Create** `skills/woostack-review/scripts/tests/test-metrics-fold-overlap.sh` — drives `metrics-fold.sh`, asserts accumulation + v1→v2 reseed.
 
+source: .woostack/specs/2026-06-02-review-metrics-tokens-overlap.md
 ---
 
 ## Task 1: Overlap computation in `emit_angle_metrics`
