@@ -209,7 +209,7 @@ branch: feature/fix-subagent-debug-and-plan-pr
 - Modify: `skills/woostack-fix/SKILL.md` Overview (the fenced flow diagram + the gate paragraph)
 - Test: grep assertions
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
   ```bash
   # .woostack/tmp/inc2_overview.sh — run from repo root
   set -e
@@ -221,11 +221,11 @@ branch: feature/fix-subagent-debug-and-plan-pr
   echo "PASS"
   ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
   Run: `bash .woostack/tmp/inc2_overview.sh; echo "exit=$?"`
   Expected: FAIL — `exit=1`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
   In `skills/woostack-fix/SKILL.md`, replace the Overview diagram block:
   ```
   diagnose root cause (woostack-debug) → write fix plan (fixes/ markdown) → harden fix plan 
@@ -249,11 +249,11 @@ branch: feature/fix-subagent-debug-and-plan-pr
   The skill has exactly **one** hard gate: **approve-to-execute**. The fix plan is first committed as a docs-only PR (the stack base) and *then* presented for approval — build-style (mirroring [`woostack-build`](../woostack-build/SKILL.md) steps 7-8), so the approved plan is a committed, reviewable artifact and the code increment stacks on top. The gate still protects the codebase: no implementation happens until it clears, and a fix is therefore **two PRs (docs base + code increment)**. Delegation adds no gate: `woostack-execute` owns no approval gate and never merges, so the fix's one gate stays upstream of execution.
   ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
   Run: `bash .woostack/tmp/inc2_overview.sh`
   Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt create -m "feat(fix): commit the fix plan as a docs PR before the execute gate"
   ```
@@ -264,7 +264,7 @@ branch: feature/fix-subagent-debug-and-plan-pr
 - Modify: `skills/woostack-fix/SKILL.md` procedure steps (the approval step, the execute step's worktree-reuse prose, the teardown step)
 - Test: grep + ordering assertion
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
   ```bash
   # .woostack/tmp/inc2_procedure.sh — run from repo root
   set -e
@@ -283,11 +283,11 @@ branch: feature/fix-subagent-debug-and-plan-pr
   echo "PASS (commit@$commit_ln < gate@$gate_ln)"
   ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
   Run: `bash .woostack/tmp/inc2_procedure.sh; echo "exit=$?"`
   Expected: FAIL — `exit=1`; `Commit the fix plan as a docs-only PR (stack base)` is absent.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
   Apply these edits to `skills/woostack-fix/SKILL.md`.
 
   > **Why one combined step, not a new numbered step:** inserting a new `5.` would force renumbering the existing execute (5) and track (6) steps and every `step 5`/`step 6` cross-reference in the file (e.g. "(run by `woostack-execute` in step 5)"). Folding commit + gate into step 4 (commit prose first, then the gate) keeps steps 5/6 and their references intact while still satisfying the commit-before-gate ordering assertion.
@@ -344,11 +344,11 @@ branch: feature/fix-subagent-debug-and-plan-pr
      so it survives teardown.
   ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
   Run: `bash .woostack/tmp/inc2_procedure.sh`
   Expected: PASS (prints `PASS (commit@N < gate@M)`).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt modify -c -m "feat(fix): reorder procedure to commit plan before the gate; worktree lifecycle"
   ```
@@ -359,7 +359,7 @@ branch: feature/fix-subagent-debug-and-plan-pr
 - Modify: `skills/woostack-fix/SKILL.md` `## Hard constraints`
 - Verify: `build-index.sh`, `woostack-doctor`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
   ```bash
   # .woostack/tmp/inc2_constraint.sh — run from repo root
   set -e
@@ -372,22 +372,22 @@ branch: feature/fix-subagent-debug-and-plan-pr
   echo "PASS"
   ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
   Run: `bash .woostack/tmp/inc2_constraint.sh; echo "exit=$?"`
   Expected: FAIL — `exit=1`; the two new bullets are absent (the `Delegate execution` / `Never merge` greps already pass, proving AC4 invariants are preserved).
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
   In `skills/woostack-fix/SKILL.md` `## Hard constraints`, insert these two bullets immediately **after** the `- **Wait for explicit approval.** ...` bullet:
   ```markdown
   - **Commit the plan before the gate.** The fix plan is committed as a docs-only PR (stack base) via `woostack-commit` **before** the approve-to-execute gate — build-style; a fix is two PRs (docs base + code increment).
   - **Worktree lives across the gate.** The fix worktree stays alive across the approve-to-execute gate (so revise/abandon are cheap) and is torn down only on **Go**; `woostack-execute` then cuts a fresh code-increment worktree off the `fix/<slug>` tip — it does not reuse the step-2 worktree.
   ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
   Run: `bash .woostack/tmp/inc2_constraint.sh`
   Expected: PASS
 
-- [ ] **Step 5: Verify the store is clean**
+- [x] **Step 5: Verify the store is clean**
   Run:
   ```bash
   bash skills/woostack-init/scripts/build-index.sh
@@ -395,7 +395,7 @@ branch: feature/fix-subagent-debug-and-plan-pr
   ```
   Expected: build-index exits 0; `doctor.sh --check` exits 0 (no error). The `.woostack/tmp/inc2_*.sh` scratch scripts live in the gitignored `.woostack/tmp/`, so they never ride the PR — no cleanup step needed.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
   ```bash
   gt modify -c -m "docs(fix): add commit-before-gate and worktree-lifecycle constraints"
   ```

@@ -10,12 +10,14 @@ description: Use to resolve small technical issues (bugs, hotfixes, refactors) t
 Drives a bug fix or a small technical change from diagnosis to implementation through a lightweight, unified loop. Fixes are smaller than features and combine the spec and the plan into a single markdown file under `.woostack/fixes/`. The fix loop owns diagnosis, the fix plan, hardening, and the approval gate, then **delegates the execution mechanics to [`woostack-execute`](../woostack-execute/SKILL.md)** — the same engine the build loop uses — passing the fix file as the plan. Fix does not re-inline a TDD/commit/distill loop of its own.
 
 ```
-diagnose root cause (woostack-debug) → write fix plan (fixes/ markdown) → harden fix plan 
-  → approve fix plan (GATE) → execute via woostack-execute
-  (branch → TDD per task → tick → commit via woostack-commit → task review → distill)
+diagnose root cause (woostack-debug) → write fix plan (fixes/ markdown) → harden fix plan
+  → commit fix plan as a docs-only PR (stack base, via woostack-commit)
+  → approve-to-execute (GATE) → execute via woostack-execute
+  (fresh code-increment worktree off fix/<slug> tip → TDD per task → tick
+   → commit via woostack-commit → task review → distill)
 ```
 
-The skill has exactly **one** hard gate: **fix plan approval**. Because the plan contains both the diagnosis (the spec part) and the steps (the plan part), a single approval stop protects the codebase from wrong fixes or poor plans before implementation begins. Delegation adds no gate: `woostack-execute` owns no approval gate and never merges, so the fix's one gate stays upstream of execution.
+The skill has exactly **one** hard gate: **approve-to-execute**. The fix plan is first committed as a docs-only PR (the stack base) and *then* presented for approval — build-style (mirroring [`woostack-build`](../woostack-build/SKILL.md) steps 7-8), so the approved plan is a committed, reviewable artifact and the code increment stacks on top. The gate still protects the codebase: no implementation happens until it clears, and a fix is therefore **two PRs (docs base + code increment)**. Delegation adds no gate: `woostack-execute` owns no approval gate and never merges, so the fix's one gate stays upstream of execution.
 
 ## Debug investigation mode
 
@@ -96,8 +98,20 @@ investigation.
 3. **Harden the fix plan.**
    Invoke [`woostack-harden`](../woostack-harden/SKILL.md) on the fix plan file. Resolve open questions one at a time and refine the implementation steps in place. Once hardening produces no new questions, set the frontmatter `status: hardened`.
 
-4. **Get explicit approval (GATE).**
-   **Always present the written fix plan to the user and get explicit approval before executing** — this is a hard gate. Point the user at the file path, wait for a clear yes, and make any requested changes. When approved, set the frontmatter `status: approved`.
+4. **Commit the fix plan as a docs-only PR (stack base), then approve to execute (GATE).**
+   First, **commit the fix plan**: with it hardened, commit via
+   [`woostack-commit`](../woostack-commit/SKILL.md) on the `fix/<slug>` branch from inside the
+   fix worktree — a **docs-only PR** carrying only the `.woostack/fixes/` markdown, no code; the
+   **stack base** (mirroring [`woostack-build`](../woostack-build/SKILL.md) step 7). Leave the
+   frontmatter at `status: hardened` — the lifecycle advances only at the gate.
+
+   Then the gate — **Approve to execute (GATE)**: **always present the committed fix-plan PR and
+   get explicit approval before executing** (the skill's single hard gate, build step-8 style).
+   Point the user at the PR and the fix-file path and wait for a clear yes:
+   - **Go** → set `status: approved`, then **commit that bump** on the `fix/<slug>` branch via [`woostack-commit`](../woostack-commit/SKILL.md) `--no-pr-update` so the `approved` state **persists to the `fix/<slug>` tip** (not lost with the worktree). The fix worktree **stays alive across the gate** and is **torn down only on Go** — once the bump is committed (leaving a clean tree), tear it down (`git worktree remove "$WOOSTACK_ROOT/.woostack/worktrees/fix-<slug>"`), then step 5's `woostack-execute` **cuts a fresh code-increment worktree** off the `fix/<slug>` tip, which now carries `status: approved`.
+   - **Revise** → amend the fix plan in the still-alive fix worktree, re-push the docs PR, and re-present at the gate.
+   - **Abandon** → close the docs PR, `git worktree remove --force` the fix worktree, and delete the `fix/<slug>` branch; no code was implemented.
+   Never execute on inferred or assumed approval; silence is not a yes.
 
 5. **Execute via [`woostack-execute`](../woostack-execute/SKILL.md).**
    Set the fix file's frontmatter `status: executing`, then hand the fix file to the execute
@@ -107,8 +121,9 @@ investigation.
    /woostack-execute .woostack/fixes/YYYY-MM-DD-<slug>.md --inline
    ```
    `woostack-execute` owns the execution cadence so the fix inherits the same discipline as a
-   build increment: the increment's Graphite branch + its worktree already exist (created in
-   step 2), so execute **verifies and reuses** that worktree rather than re-creating it, then
+   build increment: the fix worktree from step 2 holds only the committed plan as the docs-PR
+   stack base; the code increment runs in the fresh worktree execute cut off the `fix/<slug>` tip
+   at the Go transition (step 4), not the step-2 fix-plan worktree, and execute then
    implements each task TDD-first (failing test → minimal fix → verify) per the
    [woostack-tdd kernel](../woostack-tdd/SKILL.md), tick the fix file's checkboxes in place,
    commit via [`woostack-commit`](../woostack-commit/SKILL.md), run the task-scoped
@@ -132,9 +147,9 @@ investigation.
    that trailer attaches the PR to the fix file rather than to a spec — the fix file's frontmatter
    remains the lifecycle source of truth.
 
-   After the PR is open and the frontmatter is set, **teardown** the fix worktree
-   (`git worktree remove "$WOOSTACK_ROOT/.woostack/worktrees/fix-<slug>"`); the branch/commits/PR
-   persist. **Leave it on failure** and report its path. The memory distill (run by `woostack-execute`
+   The fix-plan worktree was already torn down at the **Go** transition (step 4); the
+   code-increment worktree `woostack-execute` cut is torn down by execute after the code PR is
+   open. The branches/commits/PRs persist. **Leave a worktree on failure** and report its path. The memory distill (run by `woostack-execute`
    in step 5) targets the primary tree via the `WOOSTACK_ROOT` export of the [worktree
    contract](../woostack-init/references/worktrees.md) §5, so it survives teardown.
 
@@ -144,6 +159,8 @@ investigation.
 - **Debug driver.** Step 1's investigation runs inline or via a read-only `general-purpose` subagent (`--inline`/`--subagent`, smart default = subagent where the host can spawn, else inline); the subagent returns only `woostack-debug`'s Phase 4 handback and needs no worktree. See [Debug investigation mode](#debug-investigation-mode).
 - **One combined markdown file under `.woostack/fixes/`.** Fixes are specified and planned in a single file under `.woostack/fixes/` (not `.woostack/specs/` or `.woostack/plans/`).
 - **Wait for explicit approval.** Never execute a fix plan on inferred or assumed approval. Silence is not a yes.
+- **Commit the plan before the gate.** The fix plan is committed as a docs-only PR (stack base) via `woostack-commit` **before** the approve-to-execute gate — build-style; a fix is two PRs (docs base + code increment).
+- **Worktree lives across the gate.** The fix worktree stays alive across the approve-to-execute gate (so revise/abandon are cheap) and is torn down only on **Go**; `woostack-execute` then cuts a fresh code-increment worktree off the `fix/<slug>` tip — it does not reuse the step-2 worktree.
 - **Delegate execution.** Step 5 hands the fix file to [`woostack-execute`](../woostack-execute/SKILL.md); never re-inline a TDD/commit/review/distill loop. Execute owns the branch, TDD per task, checkbox ticking, commit via `woostack-commit`, task review, and distill. This skill retains only diagnosis, the fix plan, hardening, the approval gate, and the frontmatter lifecycle.
 - **TDD Kernel.** Every fix is driven by a failing test first — enforced by `woostack-execute`'s per-task TDD loop.
 - **Never merge.** Execution (via `woostack-execute`) commits and opens/updates stacked PRs; this skill never merges.
