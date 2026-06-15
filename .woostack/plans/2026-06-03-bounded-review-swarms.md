@@ -5,7 +5,7 @@ status: done
 branch: feature/bounded-review-swarms
 ---
 
-**Source:** .woostack/specs/2026-06-03-bounded-review-swarms.md
+**Source:** [[specs/2026-06-03-bounded-review-swarms]]
 
 
 # Bounded Review Swarms Implementation Plan

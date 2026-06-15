@@ -7,7 +7,7 @@ branch: feature/execute-vary-subagent-model
 
 # Vary subagent model in woostack-execute — Implementation Plan
 
-**Source:** .woostack/specs/2026-06-05-execute-vary-subagent-model.md
+**Source:** [[specs/2026-06-05-execute-vary-subagent-model]]
 
 > **For agentic workers:** execute this plan with `/woostack-execute .woostack/plans/2026-06-05-execute-vary-subagent-model.md` — woostack-execute drives it as PR-sized stacked increments (one `woostack-commit` per increment, no per-task commit). Steps use checkbox (`- [x]`) syntax for tracking. This is a skill-collection (Markdown + Bash) change with **no app test runner**: every "test" is a concrete `grep` / link-check / `load-prompt.sh` dry-run, substituted for TDD per the inline-driver rule.
 

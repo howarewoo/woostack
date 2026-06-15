@@ -5,7 +5,7 @@ status: executing
 branch: feature/overnight-review-sweep
 ---
 
-**Source:** .woostack/specs/2026-06-11-overnight-review-sweep.md
+**Source:** [[specs/2026-06-11-overnight-review-sweep]]
 
 # Overnight review sweep Implementation Plan
 

@@ -5,7 +5,7 @@ status: done
 branch: memory-staleness-guard
 ---
 
-**Source:** .woostack/specs/2026-06-02-memory-staleness-guard.md
+**Source:** [[specs/2026-06-02-memory-staleness-guard]]
 
 
 # Memory Staleness Guard Implementation Plan

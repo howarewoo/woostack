@@ -5,7 +5,7 @@ status: done
 branch: worktree-nested-wishing-hanrahan
 ---
 
-**Source:** .woostack/specs/2026-06-04-build-execution-handoff-gate.md
+**Source:** [[specs/2026-06-04-build-execution-handoff-gate]]
 
 
 # woostack-build Execution-Handoff Gate Implementation Plan

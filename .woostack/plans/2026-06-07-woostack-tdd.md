@@ -5,7 +5,7 @@ status: done
 branch: woostack-tdd
 ---
 
-**Source:** .woostack/specs/2026-06-07-woostack-tdd.md
+**Source:** [[specs/2026-06-07-woostack-tdd]]
 
 # woostack-tdd Implementation Plan
 

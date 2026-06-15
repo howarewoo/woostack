@@ -5,7 +5,7 @@ status: executing
 branch: feature/woostack-execute-overnight-skill
 ---
 
-**Source:** .woostack/specs/2026-06-06-woostack-execute-overnight.md
+**Source:** [[specs/2026-06-06-woostack-execute-overnight]]
 
 # woostack-execute-overnight Implementation Plan
 

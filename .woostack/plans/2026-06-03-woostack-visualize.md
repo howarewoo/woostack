@@ -5,7 +5,7 @@ status: done
 branch: feature/woostack-visualize
 ---
 
-**Source:** .woostack/specs/2026-06-03-woostack-visualize.md
+**Source:** [[specs/2026-06-03-woostack-visualize]]
 
 
 # woostack-visualize Skill Implementation Plan

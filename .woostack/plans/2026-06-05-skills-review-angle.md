@@ -5,7 +5,7 @@ status: done
 branch: feature/skills-review-angle
 ---
 
-**Source:** .woostack/specs/2026-06-05-skills-review-angle.md
+**Source:** [[specs/2026-06-05-skills-review-angle]]
 
 # Skills Review Angle Implementation Plan
 

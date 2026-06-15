@@ -5,7 +5,7 @@ status: done
 branch: worktree-delightful-pondering-thimble
 ---
 
-**Source:** .woostack/specs/2026-06-04-commit-pr-goal-test-plan.md
+**Source:** [[specs/2026-06-04-commit-pr-goal-test-plan]]
 
 
 # woostack-commit PR body: Goal + structured test plan — Implementation Plan

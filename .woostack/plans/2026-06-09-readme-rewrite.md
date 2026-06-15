@@ -5,7 +5,7 @@ status: done
 branch: feature/readme-rewrite
 ---
 
-**Source:** .woostack/specs/2026-06-09-readme-rewrite.md
+**Source:** [[specs/2026-06-09-readme-rewrite]]
 
 # README Rewrite Implementation Plan
 

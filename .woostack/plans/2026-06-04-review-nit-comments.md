@@ -5,7 +5,7 @@ status: done
 branch: feature/review-nit-comments
 ---
 
-**Source:** .woostack/specs/2026-06-04-review-nit-comments.md
+**Source:** [[specs/2026-06-04-review-nit-comments]]
 
 
 # Review Nit Comments Implementation Plan

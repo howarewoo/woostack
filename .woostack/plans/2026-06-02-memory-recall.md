@@ -5,7 +5,7 @@ status: done
 branch: feat/woostack-memory-recall
 ---
 
-**Source:** .woostack/specs/2026-06-02-memory-recall.md
+**Source:** [[specs/2026-06-02-memory-recall]]
 
 
 # Memory recall + review scope-routing (Increment B) Implementation Plan

@@ -5,7 +5,7 @@ status: done
 branch: feature/woostack-ideate
 ---
 
-**Source:** .woostack/specs/2026-06-03-woostack-ideate.md
+**Source:** [[specs/2026-06-03-woostack-ideate]]
 
 
 # woostack-ideate Skill Implementation Plan

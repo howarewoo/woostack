@@ -5,7 +5,7 @@ status: done
 branch: feature/parallel-worktrees
 ---
 
-**Source:** .woostack/specs/2026-06-10-parallel-worktrees.md
+**Source:** [[specs/2026-06-10-parallel-worktrees]]
 
 # Parallel worktree isolation + configurable base branch Implementation Plan
 

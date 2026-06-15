@@ -5,7 +5,7 @@ status: executing
 branch: feature/dream-wisdom
 ---
 
-**Source:** .woostack/specs/2026-06-13-dream-wisdom.md
+**Source:** [[specs/2026-06-13-dream-wisdom]]
 
 # woostack-dream → wisdom consolidation Implementation Plan
 
