@@ -16,6 +16,12 @@ assert_contains "$body" "review receipt" \
 assert_contains "$body" "self-review" \
   "sweep SKILL.md forbids marking clean from a self/structural review"
 
+# Part A (cont.) — no receipt for HEAD must route to `blocked`, not `clean`. Pin the
+# behavioral consequence so removing the blocked routing fails even when the
+# "review receipt" prose survives.
+assert_contains "$body" "No receipt for HEAD" \
+  "sweep SKILL.md routes a no-receipt HEAD to the blocked outcome, not clean"
+
 # The receipt rule must also be restated in Hard constraints (survives summarization /
 # low-effort drivers), per gate-needs-hard-barrier. Scope the check to the Hard constraints
 # section.

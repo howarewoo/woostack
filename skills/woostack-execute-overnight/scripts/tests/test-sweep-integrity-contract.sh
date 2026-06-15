@@ -13,13 +13,18 @@ set +e
 SKILL="$HERE/../../SKILL.md"
 body="$(cat "$SKILL")"
 
-# B — pre-flight feasibility gate for the review swarm.
-assert_contains "$body" "review feasibility" \
-  "overnight pre-flight checks review-swarm feasibility before going autonomous"
+# B — pre-flight feasibility gate for the review swarm. Scope to the Pre-flight
+# section and pin a token unique to step 3, so deleting step 3 fails the test even
+# if Hard constraints keeps the lowercase "review feasibility" phrase.
+preflight="$(printf '%s' "$body" | awk '/^## Pre-flight/{f=1; next} /^## [A-Z]/{f=0} f')"
+assert_contains "$preflight" "spawn the \`woostack-review\` sub-agents" \
+  "overnight pre-flight step 3 checks review-swarm feasibility before going autonomous"
 
 # C — the morning-report outcome enum gains a first-class sweep-unavailable value.
-assert_contains "$body" "sweep-unavailable" \
-  "overnight has a first-class sweep-unavailable outcome for an un-runnable contracted sweep"
+# Pin the slash-joined enum listing so moving the token to prose or Hard constraints
+# (while dropping it from the Run summary enum) fails the test.
+assert_contains "$body" "\`partial+blockers\` / \`sweep-unavailable\`" \
+  "overnight Run summary enum lists sweep-unavailable as a first-class outcome"
 
 # D — the no-downgrade driver rule, and it is restated in Hard constraints.
 assert_contains "$body" "downgrade a contracted review" \
