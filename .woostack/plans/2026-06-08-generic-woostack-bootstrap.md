@@ -5,7 +5,7 @@ status: done
 branch: feature/generic-woostack-bootstrap
 ---
 
-**Source:** .woostack/specs/2026-06-08-generic-woostack-bootstrap.md
+**Source:** [[specs/2026-06-08-generic-woostack-bootstrap]]
 
 # Dynamic, Requirements-Driven `woostack-bootstrap` Implementation Plan
 

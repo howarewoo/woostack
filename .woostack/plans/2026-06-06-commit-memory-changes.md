@@ -5,7 +5,7 @@ status: done
 branch: feature/commit-memory-changes
 ---
 
-**Source:** .woostack/specs/2026-06-06-commit-memory-changes.md
+**Source:** [[specs/2026-06-06-commit-memory-changes]]
 
 # Commit memory changes unless gitignored — Implementation Plan
 

@@ -5,7 +5,7 @@ status: executing
 branch: feature/woostack-plan
 ---
 
-**Source:** .woostack/specs/2026-06-05-woostack-plan.md
+**Source:** [[specs/2026-06-05-woostack-plan]]
 
 # woostack-plan Implementation Plan
 

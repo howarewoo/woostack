@@ -8,7 +8,7 @@ source: .woostack/specs/2026-06-02-memory-overlap-clusters.md
 status: done
 ---
 
-**Source:** .woostack/specs/2026-06-02-memory-overlap-clusters.md
+**Source:** [[specs/2026-06-02-memory-overlap-clusters]]
 
 
 # Memory Scope-Overlap Clusters + Recall Recency Tiebreak — Implementation Plan

@@ -1,4 +1,4 @@
-**Source:** .woostack/specs/2026-06-13-woostack-sweep.md
+**Source:** [[specs/2026-06-13-woostack-sweep]]
 
 # woostack-sweep Implementation Plan
 

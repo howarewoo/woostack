@@ -5,7 +5,7 @@ status: done
 branch: address-comments-fix-plan-gate
 ---
 
-**Source:** .woostack/specs/2026-06-05-address-comments-fix-plan-gate.md
+**Source:** [[specs/2026-06-05-address-comments-fix-plan-gate]]
 
 # woostack-address-comments: show the fix plan before approval — Implementation Plan
 

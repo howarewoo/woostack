@@ -5,7 +5,7 @@ status: done
 branch: feature/woostack-execute
 ---
 
-**Source:** .woostack/specs/2026-06-04-woostack-execute.md
+**Source:** [[specs/2026-06-04-woostack-execute]]
 
 
 # woostack-execute Skill Implementation Plan

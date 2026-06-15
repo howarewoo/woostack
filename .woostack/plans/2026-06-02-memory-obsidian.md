@@ -5,7 +5,7 @@ status: done
 branch: feat/woostack-memory-obsidian
 ---
 
-**Source:** .woostack/specs/2026-06-02-memory-obsidian.md
+**Source:** [[specs/2026-06-02-memory-obsidian]]
 
 
 # Obsidian layer (Increment D) Implementation Plan

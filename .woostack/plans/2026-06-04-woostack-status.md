@@ -9,7 +9,7 @@ branch: feature/woostack-status
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Source:** .woostack/specs/2026-06-04-woostack-status.md
+**Source:** [[specs/2026-06-04-woostack-status]]
 
 **Goal:** Ship `/woostack-status` — an on-demand, read-only shell deriver that prints a per-feature board (phase, plan progress, increment PRs, owner, age, next action) plus drift flags, backed by an enforced `spec : plan : PRs = 1 : 1 : N` invariant.
 

@@ -5,7 +5,7 @@ status: executing
 branch: feature/woostack-fix
 ---
 
-**Source:** .woostack/specs/2026-06-08-woostack-fix.md
+**Source:** [[specs/2026-06-08-woostack-fix]]
 
 # woostack-fix Skill and woostack-debug Refinement Implementation Plan
 

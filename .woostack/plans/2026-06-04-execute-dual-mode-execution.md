@@ -5,7 +5,7 @@ status: done
 branch: feature/execute-dual-mode
 ---
 
-**Source:** .woostack/specs/2026-06-04-execute-dual-mode-execution.md
+**Source:** [[specs/2026-06-04-execute-dual-mode-execution]]
 
 
 # woostack-execute Dual-Mode Execution Implementation Plan

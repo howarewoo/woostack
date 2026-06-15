@@ -8,7 +8,7 @@
 
 **Tech Stack:** Bash + embedded Python 3 + `jq`; bash test harness under `skills/woostack-review/scripts/tests/` sourcing `skills/woostack-init/scripts/tests/assert.sh`.
 
-**Source:** specs/2026-06-02-review-metrics-tokens-overlap.md (Increment 1; tokens deferred per spec §8).
+**Source:** [[specs/2026-06-02-review-metrics-tokens-overlap]] (Increment 1; tokens deferred per spec §8).
 
 ---
 

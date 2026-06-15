@@ -13,7 +13,7 @@ branch: feat/woostack-memory-distill
 
 **Architecture:** Agent-behavior + doc edits only. The build loop gains a post-execute distill step; bootstrap invokes `/woostack-init`; the memory contract documents the distill write-path.
 
-**Source:** specs/2026-06-02-memory-distill.md (Increment C of 4; shipped in #156).
+**Source:** [[specs/2026-06-02-memory-distill]] (Increment C of 4; shipped in #156).
 
 > Reconstructed after the fact: this increment shipped docs-only in PR #156 before plan-checkbox tracking existed. Tasks below mirror the spec's delivered scope and are checked to reflect the merged work.
 

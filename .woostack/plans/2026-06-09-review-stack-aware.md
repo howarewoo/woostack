@@ -5,7 +5,7 @@ status: executing
 branch: review-stack-aware-markers
 ---
 
-**Source:** .woostack/specs/2026-06-09-review-stack-aware.md
+**Source:** [[specs/2026-06-09-review-stack-aware]]
 
 # Stack-aware review (deferral markers) Implementation Plan
 

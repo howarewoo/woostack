@@ -5,7 +5,7 @@ status: executing
 branch: feature/woostack-ask
 ---
 
-**Source:** .woostack/specs/2026-06-13-woostack-ask.md
+**Source:** [[specs/2026-06-13-woostack-ask]]
 
 # woostack-ask — read-only codebase Q&A — Implementation Plan
 

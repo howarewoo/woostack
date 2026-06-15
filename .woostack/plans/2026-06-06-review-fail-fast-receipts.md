@@ -5,7 +5,7 @@ status: done
 branch: review-fail-fast-receipts
 ---
 
-**Source:** .woostack/specs/2026-06-06-review-fail-fast-receipts.md
+**Source:** [[specs/2026-06-06-review-fail-fast-receipts]]
 
 # woostack-review fail-fast on non-executing angle workers — Implementation Plan
 

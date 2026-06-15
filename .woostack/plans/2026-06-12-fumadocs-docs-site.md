@@ -5,7 +5,7 @@ status: done
 branch: feature/fumadocs-docs-site
 ---
 
-**Source:** .woostack/specs/2026-06-12-fumadocs-docs-site.md
+**Source:** [[specs/2026-06-12-fumadocs-docs-site]]
 
 # Fumadocs docs site for the woostack skills — Implementation Plan
 

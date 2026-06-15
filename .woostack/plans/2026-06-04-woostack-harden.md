@@ -5,7 +5,7 @@ status: done
 branch: worktree-tender-exploring-swing
 ---
 
-**Source:** .woostack/specs/2026-06-04-woostack-harden.md
+**Source:** [[specs/2026-06-04-woostack-harden]]
 
 
 # woostack-harden Skill Implementation Plan

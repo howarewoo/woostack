@@ -5,7 +5,7 @@ status: executing
 branch: feature/woostack-dream
 ---
 
-**Source:** .woostack/specs/2026-06-09-woostack-dream.md
+**Source:** [[specs/2026-06-09-woostack-dream]]
 
 # woostack-dream Skill Implementation Plan
 

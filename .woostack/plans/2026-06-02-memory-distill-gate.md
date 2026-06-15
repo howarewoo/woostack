@@ -8,7 +8,7 @@ source: .woostack/specs/2026-06-02-memory-distill-gate.md
 status: done
 ---
 
-**Source:** .woostack/specs/2026-06-02-memory-distill-gate.md
+**Source:** [[specs/2026-06-02-memory-distill-gate]]
 
 
 # Memory Distillation Gate + updated: Coverage — Implementation Plan

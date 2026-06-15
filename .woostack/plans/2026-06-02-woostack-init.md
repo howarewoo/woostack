@@ -5,7 +5,7 @@ status: done
 branch: feat/woostack-init
 ---
 
-**Source:** .woostack/specs/2026-06-02-woostack-init.md
+**Source:** [[specs/2026-06-02-woostack-init]]
 
 
 # woostack-init (Increment A) Implementation Plan
