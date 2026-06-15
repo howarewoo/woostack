@@ -17,14 +17,51 @@ diagnose root cause (woostack-debug) → write fix plan (fixes/ markdown) → ha
 
 The skill has exactly **one** hard gate: **fix plan approval**. Because the plan contains both the diagnosis (the spec part) and the steps (the plan part), a single approval stop protects the codebase from wrong fixes or poor plans before implementation begins. Delegation adds no gate: `woostack-execute` owns no approval gate and never merges, so the fix's one gate stays upstream of execution.
 
+## Debug investigation mode
+
+Step 1's root-cause investigation runs through one of two drivers — the same `--inline` /
+`--subagent` selection [`woostack-execute`](../woostack-execute/SKILL.md#execution-mode) uses
+for its implement step; only *what* is delegated differs (here the read-only debug
+investigation, not implementation). Pass the flag on the fix invocation; the flags are mutually
+exclusive and an explicit flag always wins.
+
+- **inline** — the fix orchestrator runs `/woostack-debug` itself, in this session (today's
+  behavior).
+- **subagent** — dispatch a fresh `general-purpose` investigator subagent that runs the
+  `woostack-debug` four-phase analysis and returns **only** its Phase 4 handback (root-cause
+  summary + proposed minimal fix + TDD context). All the heavy investigation material — reading
+  errors, `git diff`, data-flow tracing — stays in the subagent, keeping the orchestrator
+  context small.
+
+**Smart default (no flag): subagent where the host can spawn** a subagent (an `Agent`/`Task`
+tool is available), else inline — the same rule `woostack-execute` uses. If `--subagent` is
+requested but the host cannot spawn, fall back to inline (degraded — say so) or stop and ask;
+never pretend subagent mode ran.
+
+Passing both `--inline` and `--subagent` is an error: stop and ask which one to use.
+
+**The debug subagent is read-only and needs no worktree and no cwd-pin.** `woostack-debug`
+never writes code, commits, or `.woostack/` artifacts, so the investigator — unlike
+`woostack-execute`'s implementer subagent, which must self-pin to its worktree (see the
+[worktree contract](../woostack-init/references/worktrees.md)) — pins to nothing. Step 1 also
+runs **before** the fix worktree is created (step 2), so there is nothing to pin to.
+
+**No root cause found.** In **inline** mode, `woostack-debug` stops and asks the user for hints,
+as today. In **subagent** mode the subagent cannot prompt mid-run, so it
+returns a **blocked status plus what it investigated**, and the orchestrator surfaces that to the
+user (mirroring `woostack-execute`'s BLOCKED escalation) — never guess a fix plan from a failed
+investigation.
+
 ## Procedure
 
 1. **Diagnose the root cause.**
-   Run the systematic-debugging skill to find the root cause before proposing any code edits.
+   Run the systematic-debugging skill to find the root cause before proposing any code edits,
+   through the selected driver — inline, or a read-only subagent (see
+   [Debug investigation mode](#debug-investigation-mode)).
    ```
-   /woostack-debug <target>
+   /woostack-debug <target>   # inline, or dispatched to a read-only investigator subagent
    ```
-   It runs its four-phase root-cause analysis automatically — investigating the symptoms, tracing data flow backward, identifying the root cause — and hands back the Phase 4 result: the root-cause summary, the proposed minimal fix, and the TDD context (the failing-test description). Carry the proposed fix forward into the fix plan's Proposed Fix section below. If it cannot find a root cause, do not guess: stop and ask the user for hints.
+   It runs its four-phase root-cause analysis automatically — investigating the symptoms, tracing data flow backward, identifying the root cause — and hands back the Phase 4 result: the root-cause summary, the proposed minimal fix, and the TDD context (the failing-test description). Carry the proposed fix forward into the fix plan's Proposed Fix section below. If it cannot find a root cause, do not guess: inline, stop and ask the user for hints; in subagent mode the investigator returns a blocked status plus what it investigated, which you surface to the user (see [Debug investigation mode](#debug-investigation-mode)).
 
 2. **Write the fix plan as markdown.**
    **First create the fix worktree** (the first write of this run, per the [worktree contract](../woostack-init/references/worktrees.md)): with the chosen `fix/<slug>` branch, `git worktree add -b fix/<slug> "$WOOSTACK_ROOT/.woostack/worktrees/fix-<slug>" "$(bash <wi>/resolve-base.sh)"`, run `gt track --parent "$(bash <wi>/resolve-base.sh)"` from inside that worktree, and run **steps 2–6 with cwd = that worktree** — the fix markdown, the harden edits, and (via `woostack-execute` in step 5) the TDD code all author into it, never the primary tree. (On abandon at the approval gate, `git worktree remove --force` it and delete the branch.)
@@ -104,6 +141,7 @@ The skill has exactly **one** hard gate: **fix plan approval**. Because the plan
 ## Hard constraints
 
 - **No guess-and-check.** Always run `woostack-debug` to trace the data flow and confirm the root cause before writing the fix plan.
+- **Debug driver.** Step 1's investigation runs inline or via a read-only `general-purpose` subagent (`--inline`/`--subagent`, smart default = subagent where the host can spawn, else inline); the subagent returns only `woostack-debug`'s Phase 4 handback and needs no worktree. See [Debug investigation mode](#debug-investigation-mode).
 - **One combined markdown file under `.woostack/fixes/`.** Fixes are specified and planned in a single file under `.woostack/fixes/` (not `.woostack/specs/` or `.woostack/plans/`).
 - **Wait for explicit approval.** Never execute a fix plan on inferred or assumed approval. Silence is not a yes.
 - **Delegate execution.** Step 5 hands the fix file to [`woostack-execute`](../woostack-execute/SKILL.md); never re-inline a TDD/commit/review/distill loop. Execute owns the branch, TDD per task, checkbox ticking, commit via `woostack-commit`, task review, and distill. This skill retains only diagnosis, the fix plan, hardening, the approval gate, and the frontmatter lifecycle.

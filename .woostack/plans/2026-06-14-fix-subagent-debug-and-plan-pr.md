@@ -31,7 +31,7 @@ branch: feature/fix-subagent-debug-and-plan-pr
 - Modify: `skills/woostack-fix/SKILL.md` (insert a new section between the Overview's gate paragraph and `## Procedure`)
 - Test: grep assertions over the same file
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
   ```bash
   # .woostack/tmp/inc1_section.sh — run from repo root
   set -e
@@ -45,11 +45,11 @@ branch: feature/fix-subagent-debug-and-plan-pr
   echo "PASS"
   ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
   Run: `bash .woostack/tmp/inc1_section.sh; echo "exit=$?"`
   Expected: FAIL — no `PASS` printed; `exit=1` (the `^## Debug investigation mode$` grep fails first).
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
   Edit `skills/woostack-fix/SKILL.md`. Insert the following section immediately **after** the Overview gate paragraph (the paragraph beginning `The skill has exactly **one** hard gate:`) and **before** `## Procedure`:
   ```markdown
   ## Debug investigation mode
@@ -86,11 +86,11 @@ branch: feature/fix-subagent-debug-and-plan-pr
   `woostack-execute`'s BLOCKED escalation) — never guess a fix plan from a failed investigation.
   ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
   Run: `bash .woostack/tmp/inc1_section.sh`
   Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   # First commit in the increment:
   gt create -m "feat(fix): add --inline/--subagent debug investigation mode"
@@ -102,7 +102,7 @@ branch: feature/fix-subagent-debug-and-plan-pr
 - Modify: `skills/woostack-fix/SKILL.md` step 1 (the `1. **Diagnose the root cause.**` block)
 - Test: grep assertions
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
   ```bash
   # .woostack/tmp/inc1_step1.sh — run from repo root
   set -e
@@ -112,11 +112,11 @@ branch: feature/fix-subagent-debug-and-plan-pr
   echo "PASS"
   ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
   Run: `bash .woostack/tmp/inc1_step1.sh; echo "exit=$?"`
   Expected: FAIL — `exit=1`; the phrase `through the selected driver` is absent.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
   In `skills/woostack-fix/SKILL.md`, replace this exact block (step 1's lead-in + the fenced command):
   ```markdown
   1. **Diagnose the root cause.**
@@ -146,11 +146,11 @@ branch: feature/fix-subagent-debug-and-plan-pr
   surface to the user (see [Debug investigation mode](#debug-investigation-mode)).
   ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
   Run: `bash .woostack/tmp/inc1_step1.sh`
   Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt modify -c -m "docs(fix): route step 1 diagnosis through the debug driver"
   ```
@@ -161,7 +161,7 @@ branch: feature/fix-subagent-debug-and-plan-pr
 - Modify: `skills/woostack-fix/SKILL.md` `## Hard constraints`
 - Verify: `skills/woostack-init/scripts/build-index.sh`, `woostack-doctor`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
   ```bash
   # .woostack/tmp/inc1_constraint.sh — run from repo root
   set -e
@@ -170,21 +170,21 @@ branch: feature/fix-subagent-debug-and-plan-pr
   echo "PASS"
   ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
   Run: `bash .woostack/tmp/inc1_constraint.sh; echo "exit=$?"`
   Expected: FAIL — `exit=1`.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
   In `skills/woostack-fix/SKILL.md`, insert this bullet into `## Hard constraints` immediately **after** the `- **No guess-and-check.** ...` bullet:
   ```markdown
   - **Debug driver.** Step 1's investigation runs inline or via a read-only `general-purpose` subagent (`--inline`/`--subagent`, smart default = subagent where the host can spawn, else inline); the subagent returns only `woostack-debug`'s Phase 4 handback and needs no worktree. See [Debug investigation mode](#debug-investigation-mode).
   ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
   Run: `bash .woostack/tmp/inc1_constraint.sh`
   Expected: PASS
 
-- [ ] **Step 5: Verify the store is clean**
+- [x] **Step 5: Verify the store is clean**
   Run:
   ```bash
   bash skills/woostack-init/scripts/build-index.sh
@@ -192,7 +192,7 @@ branch: feature/fix-subagent-debug-and-plan-pr
   ```
   Expected: build-index exits 0; `doctor.sh --check` exits 0 (no error). The `.woostack/tmp/inc1_*.sh` scratch scripts live in the gitignored `.woostack/tmp/` (root `.gitignore` line 63), so they never ride the PR — no cleanup step needed.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
   ```bash
   gt modify -c -m "docs(fix): add Debug driver hard constraint"
   ```
