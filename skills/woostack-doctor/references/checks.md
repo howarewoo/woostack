@@ -39,6 +39,7 @@ overloaded):
 | `status-band` | status value in the other artifact's band (spec↔plan); skips `fixes/` | warn | report | — |
 | `plan-source` | plan missing the `**Source:**` join line | warn | auto (`source:` resolves) / report | `<root> <plan> source-line` |
 | `plan-source-sync` | plan `source:` basename ≠ `**Source:**` line basename, or `source:` absent while the line is present | warn | auto | `<root> <plan> source-sync` |
+| `plan-source-link` | plan's `**Source:**` line is a legacy bare-path, not the canonical `[[specs/<basename>]]` wikilink | warn | auto | `<root> <plan> source-link` |
 | `orphan-worktree` (present) | unregistered dir under `.woostack/worktrees/` (may hold work) | warn | report | — |
 | `orphan-worktree` (stale) | registered worktree whose dir is gone | warn | auto | `<root>` (runs `git worktree prune`) |
 | `gitignore-drift` | a shipped-template managed line missing from `.woostack/.gitignore` | warn | auto | `<root>` (appends missing lines) |
@@ -51,8 +52,8 @@ job; doctor only surfaces the structural signals. The spec↔plan join reuses th
 
 ## Doc-template & status drift (static vs computed)
 
-The doc-template checks — `doc-type` and `status-enum` here, with `status-band`, `plan-source`, and
-`plan-source-sync` landing in later increments of this stack — repair specs/plans/fixes toward their
+The doc-template checks — `doc-type` and `status-enum` here, with `status-band`, `plan-source`,
+`plan-source-sync`, and `plan-source-link` landing in later increments of this stack — repair specs/plans/fixes toward their
 templates and the conventions enum using **only file content** — no `git`, no PR, no network. They cover **static,
 authoring-time** drift; the **computed**, git/PR-derived execute→done band
 (`executing`/`in-review`/`done`) is never written here. That band stays
