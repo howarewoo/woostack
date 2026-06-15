@@ -93,6 +93,13 @@ directory, not in this repo.
   incompatibility forces an exact version.
 - Keep `SKILL.md` descriptions accurate and concise. The description drives discovery; the
   workflow belongs in referenced docs.
+- Keep the docs site in sync. When a change alters what an **authored** [`site/`](site/) page
+  states — the skill surface or its count, the build loop and its gates, the core concepts, or
+  the getting-started flow — update the matching page under
+  [`site/content/docs/`](site/content/docs/) as part of the same change. The per-skill reference
+  pages need no manual edit: they regenerate from each `SKILL.md` at build time (see the
+  documentation-site exception above). When in doubt, run `pnpm -C site build` to confirm the
+  site still builds.
 - Do not move or rename any of the twenty `SKILL.md` files (the eighteen public command/adoption
   skills plus the internal `woostack-ideate` and `woostack-harden`).
 - Do not rename files under
@@ -144,3 +151,7 @@ directory, not in this repo.
   [`skills/woostack-status/references/conventions.md`](skills/woostack-status/references/conventions.md)
 - Init workspace and memory contract:
   [`skills/woostack-init/`](skills/woostack-init/)
+- Docs site — shipped Fumadocs app; authored framing pages plus the per-`SKILL.md` generator
+  (keep authored pages in sync with the skills, per Hard constraints):
+  [`site/`](site/), authored pages [`site/content/docs/`](site/content/docs/), deploy notes
+  [`site/README.md`](site/README.md)
