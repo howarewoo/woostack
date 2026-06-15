@@ -37,7 +37,8 @@ exclusive and an explicit flag always wins.
 tool is available), else inline — the same rule `woostack-execute` uses. If `--subagent` is
 requested but the host cannot spawn, fall back to inline (degraded — say so) or stop and ask;
 never pretend subagent mode ran.
-Passing both `--inline` and `--subagent` is an error: stop and ask which to use.
+
+Passing both `--inline` and `--subagent` is an error: stop and ask which one to use.
 
 **The debug subagent is read-only and needs no worktree and no cwd-pin.** `woostack-debug`
 never writes code, commits, or `.woostack/` artifacts, so the investigator — unlike
