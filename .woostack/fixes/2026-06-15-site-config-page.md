@@ -1,6 +1,6 @@
 ---
 type: fix
-status: approved
+status: in-review
 branch: fix/site-config-page
 ---
 
@@ -169,7 +169,7 @@ auto-repair a missing one; sub-keys are validated at review runtime by `load-con
 
 ## 3. Implementation Plan
 
-- [ ] **Step 1: Author `site/content/docs/configuration.mdx`**
+- [x] **Step 1: Author `site/content/docs/configuration.mdx`**
   - Two-key frontmatter (`title: Configuration`, one-sentence `description`).
   - Lead paragraph: where the file lives (`.woostack/config.json`), that all keys are
     optional, missing keys take defaults.
@@ -180,9 +180,9 @@ auto-repair a missing one; sub-keys are validated at review runtime by `load-con
   - Extras: full annotated example `config.json` (fenced block); `VALID_ANGLES` enum;
     model-resolution precedence; defaults-&-doctor `Callout`.
   - Cross-link out to skill pages rather than restating per-skill prose.
-- [ ] **Step 2: Wire navigation**
+- [x] **Step 2: Wire navigation**
   - Edit `site/content/docs/meta.json` `pages` → `["index","getting-started","concepts","configuration","skills"]`.
-- [ ] **Step 3: Verification**
+- [x] **Step 3: Verification**
   - Run `pnpm -C site build` (runs `gen-skills.mjs` then `next build`) — must pass.
   - Confirm the page renders and appears in the sidebar between Core concepts and Skills.
   - (No content test runner exists; successful build + render is the concrete verification per
