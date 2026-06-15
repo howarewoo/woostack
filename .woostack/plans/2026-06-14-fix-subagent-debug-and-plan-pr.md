@@ -40,7 +40,7 @@ branch: feature/fix-subagent-debug-and-plan-pr
     && grep -q 'Smart default (no flag): subagent where the host can spawn' "$f" \
     && grep -q 'Passing both `--inline` and `--subagent` is an error' "$f" \
     && grep -q 'no worktree and no cwd-pin' "$f" \
-    && grep -q 'returns a \*\*blocked status' "$f" \
+    && grep -q 'it returns a \*\*blocked' "$f" \
     && grep -q 'general-purpose' "$f"
   echo "PASS"
   ```
@@ -330,13 +330,18 @@ branch: feature/fix-subagent-debug-and-plan-pr
   ```markdown
      After the PR is open and the frontmatter is set, **teardown** the fix worktree
      (`git worktree remove "$WOOSTACK_ROOT/.woostack/worktrees/fix-<slug>"`); the branch/commits/PR
-     persist. **Leave it on failure** and report its path.
+     persist. **Leave it on failure** and report its path. The memory distill (run by `woostack-execute`
+     in step 5) targets the primary tree via the `WOOSTACK_ROOT` export of the [worktree
+     contract](../woostack-init/references/worktrees.md) §5, so it survives teardown.
   ```
   with:
   ```markdown
      The fix-plan worktree was already torn down at the **Go** transition (step 4); the
      code-increment worktree `woostack-execute` cut is torn down by execute after the code PR is
-     open. The branches/commits/PRs persist. **Leave a worktree on failure** and report its path.
+     open. The branches/commits/PRs persist. **Leave a worktree on failure** and report its path. The
+     memory distill (run by `woostack-execute` in step 5) targets the primary tree via the
+     `WOOSTACK_ROOT` export of the [worktree contract](../woostack-init/references/worktrees.md) §5,
+     so it survives teardown.
   ```
 
 - [ ] **Step 4: Run the test, confirm it passes**
