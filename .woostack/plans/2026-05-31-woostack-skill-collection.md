@@ -1,3 +1,9 @@
+---
+type: plan
+source: .woostack/specs/2026-05-31-woostack-skill-collection-design.md
+status: done
+---
+
 # woostack Skill Collection Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
@@ -8,7 +14,7 @@
 
 **Tech Stack:** Bash scripts (ported woo-review), Markdown SKILL.md files, a self-contained HTML spec template. Verification is by static checks (`bash -n`, `jq`, link resolution, `grep`), not unit tests.
 
-**Source spec:** [`.woostack/specs/2026-05-31-woostack-skill-collection-design.html`](../specs/2026-05-31-woostack-skill-collection-design.html)
+**Source:** [[specs/2026-05-31-woostack-skill-collection-design]]
 
 **PR slicing (honors the ≤500 LOC ethos):** Tasks are grouped into five independently shippable PRs — A: rename bootstrap; B: port woo-review; C: add build; D: add address-comments; E: docs reframe. Commit at the end of each task; open a PR at each group boundary.
 
