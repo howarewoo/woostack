@@ -108,7 +108,7 @@ investigation.
    Then the gate — **Approve to execute (GATE)**: **always present the committed fix-plan PR and
    get explicit approval before executing** (the skill's single hard gate, build step-8 style).
    Point the user at the PR and the fix-file path and wait for a clear yes:
-   - **Go** → set `status: approved` and proceed to step 5. The fix worktree **stays alive across the gate** and is **torn down only on Go** — on Go, tear it down (`git worktree remove "$WOOSTACK_ROOT/.woostack/worktrees/fix-<slug>"`), then step 5's `woostack-execute` **cuts a fresh code-increment worktree** off the `fix/<slug>` tip.
+   - **Go** → set `status: approved`, then **commit that bump** on the `fix/<slug>` branch via [`woostack-commit`](../woostack-commit/SKILL.md) `--no-pr-update` so the `approved` state **persists to the `fix/<slug>` tip** (not lost with the worktree). The fix worktree **stays alive across the gate** and is **torn down only on Go** — once the bump is committed (leaving a clean tree), tear it down (`git worktree remove "$WOOSTACK_ROOT/.woostack/worktrees/fix-<slug>"`), then step 5's `woostack-execute` **cuts a fresh code-increment worktree** off the `fix/<slug>` tip, which now carries `status: approved`.
    - **Revise** → amend the fix plan in the still-alive fix worktree, re-push the docs PR, and re-present at the gate.
    - **Abandon** → close the docs PR, `git worktree remove --force` the fix worktree, and delete the `fix/<slug>` branch; no code was implemented.
    Never execute on inferred or assumed approval; silence is not a yes.
