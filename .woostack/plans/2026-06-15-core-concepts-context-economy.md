@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-06-15-core-concepts-context-economy.md
-status: ready
+status: executing
 branch: feature/core-concepts-context-economy
 ---
 
@@ -38,17 +38,17 @@ the characterization baseline. Final task runs the prose through the `humanizer`
 - Read: `site/tsconfig.json`, `site/app/global*.css` (or wherever fumadocs tokens are defined),
   `site/components/mdx.tsx`
 
-- [ ] **Step 1: Baseline build is green**
+- [x] **Step 1: Baseline build is green**
   Run: `pnpm -C site build`
   Expected: PASS (exit 0). Records the pre-change baseline; if it already fails, stop and report
   — do not layer changes on a red build.
 
-- [ ] **Step 2: Confirm the `@/` path alias resolves**
+- [x] **Step 2: Confirm the `@/` path alias resolves**
   Run: `grep -n '"@/\*"\|"paths"' site/tsconfig.json`
   Expected: a `paths` mapping `@/*` → project root (e.g. `./*` or `./src/*`). Note the real
   prefix for the import line in Task 2.
 
-- [ ] **Step 3: Confirm fumadocs renders an imported component inside `.mdx`, and capture token names**
+- [x] **Step 3: Confirm fumadocs renders an imported component inside `.mdx`, and capture token names**
   Action: confirm fumadocs-mdx supports ESM `import` in content `.mdx` (it does — MDX is ESM).
   Run: `grep -rhoE '\-\-color-fd-[a-z-]+' site/app site/node_modules/fumadocs-ui/dist/*.css 2>/dev/null | sort -u | head -40`
   Expected: the real `--color-fd-*` token list (e.g. `--color-fd-foreground`,
@@ -61,7 +61,7 @@ the characterization baseline. Final task runs the prose through the `humanizer`
 **Files:**
 - Create: `site/components/concepts/context-economy.tsx`
 
-- [ ] **Step 1: Author the component**
+- [x] **Step 1: Author the component**
   A default-exported (and named-exported) React component, no props, returning an inline `<svg>`
   with `role="img"` and an `aria-label`. Renders the **context-economy triad**: three labeled
   nodes — *Scoped recall*, *Scripts compute*, *Subagents isolate* — arrowing into one central
@@ -71,7 +71,7 @@ the characterization baseline. Final task runs the prose through the `humanizer`
   `viewBox` set; width 100%, height auto; wrapped in a `<figure>` with a `<figcaption>`. React
   attribute casing throughout (`strokeWidth`, `textAnchor`, `strokeLinecap`).
 
-- [ ] **Step 2: Verify it type-checks and builds**
+- [x] **Step 2: Verify it type-checks and builds**
   Run: `pnpm -C site build`
   Expected: PASS. A malformed component or bad token reference must not break the build. (The
   component is imported by the page in Task 2; a standalone build here just proves it compiles.)
@@ -81,7 +81,7 @@ the characterization baseline. Final task runs the prose through the `humanizer`
 **Files:**
 - Modify: `site/content/docs/concepts.mdx` (full rewrite, keep `title`/`description` frontmatter)
 
-- [ ] **Step 1: Author the four sections**
+- [x] **Step 1: Author the four sections**
   Preserve the frontmatter. Body, in order:
   1. One-line framing of what the page covers.
   2. **The build loop** — keep the existing ASCII build-loop diagram + the three hard gates
@@ -111,14 +111,14 @@ the characterization baseline. Final task runs the prose through the `humanizer`
   Use `<Callout>` for one or two key invariants (e.g. "wisdom is never scope-matched — it loads
   in full or not at all"). Every mechanics claim must trace to a cited contract.
 
-- [ ] **Step 2: Build + content verification**
+- [x] **Step 2: Build + content verification**
   Run: `pnpm -C site build`
   Expected: PASS.
   Run: `grep -ciE 'scoped|wholesale|build-index|recall\.sh|status\.sh|prefetch|inline|subagent|fast/standard/deep|tier' site/content/docs/concepts.mdx`
   Expected: non-zero across the required terms (memory/wisdom recall, script names, subagent +
   tier coverage present).
 
-- [ ] **Step 3: Factual cross-check**
+- [x] **Step 3: Factual cross-check**
   Re-read each mechanics claim against `skills/woostack-init/references/memory.md`,
   `skills/woostack-init/references/wisdom.md`,
   `skills/using-woostack/references/model-tiers.md`,
@@ -130,13 +130,13 @@ the characterization baseline. Final task runs the prose through the `humanizer`
 **Files:**
 - Modify: `site/content/docs/concepts.mdx` (prose only)
 
-- [ ] **Step 1: Run the humanizer**
+- [x] **Step 1: Run the humanizer**
   Invoke the `humanizer` skill on the page's prose. Apply its fixes: remove AI-tell patterns
   (inflated symbolism, rule-of-three padding, vague attributions, em-dash overuse beyond house
   style, filler). **Preserve verbatim:** code fences, script names, component/skill names, table
   cells, links, and frontmatter.
 
-- [ ] **Step 2: Final build + visual check**
+- [x] **Step 2: Final build + visual check**
   Run: `pnpm -C site build`
   Expected: PASS.
   Action: `pnpm -C site dev`, open `/docs/concepts`, confirm the hero SVG and both tables are
