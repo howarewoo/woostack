@@ -29,7 +29,12 @@ assert_contains "$out" "$(printf 'warn\tplan-source\treport\t.woostack/plans/orp
 assert_contains "$out" "$(printf 'warn\tplan-source\treport\t.woostack/plans/gone.md')" "unresolvable source: is report, not auto"
 assert_contains "$out" "$(printf 'warn\tplan-source-sync\tauto\t.woostack/plans/sync.md')" "source/line basename mismatch"
 assert_contains "$out" "$(printf 'warn\tplan-source-sync\tauto\t.woostack/plans/line-no-key.md')" "line present, source: absent is auto sync"
-assert_not_contains "$out" ".woostack/plans/ok.md" "normalized in-sync plan has no finding"
+# ok.md is in sync (no plan-source-sync), but its **Source:** line is a legacy bare-path → plan-source-link
+assert_contains "$out" "$(printf 'warn\tplan-source-link\tauto\t.woostack/plans/ok.md')" "bare-path Source line flagged for wikilink canonicalization"
+assert_not_contains "$out" "$(printf 'plan-source-sync\tauto\t.woostack/plans/ok.md')" "in-sync bare-path plan is not a sync finding"
+# wikilink-form **Source:** lines are already canonical → never plan-source-link flagged
+assert_not_contains "$out" "$(printf 'plan-source-link\tauto\t.woostack/plans/line-no-key.md')" "wikilink Source line is not link-flagged"
+assert_not_contains "$out" "$(printf 'plan-source-link\tauto\t.woostack/plans/sync.md')" "wikilink Source line (sync mismatch) is not link-flagged"
 
 # --- repair: insert missing line ---
 bash "$C/plan-source.sh" --fix "$r" "$r/.woostack/plans/miss-auto.md" source-line
@@ -45,6 +50,13 @@ assert_eq "$(field "$r/.woostack/plans/sync.md" source)" ".woostack/specs/b.md" 
 # repair: sync source: ← line when source: frontmatter was absent
 bash "$C/plan-source.sh" --fix "$r" "$r/.woostack/plans/line-no-key.md" source-sync
 assert_eq "$(field "$r/.woostack/plans/line-no-key.md" source)" ".woostack/specs/a.md" "source: synced from the line when frontmatter absent"
+# --- repair: canonicalize a legacy bare-path **Source:** line to the [[specs/x]] wikilink ---
+bash "$C/plan-source.sh" --fix "$r" "$r/.woostack/plans/ok.md" source-link
+assert_eq "$(grep -m1 -E '^\*\*Source:\*\*' "$r/.woostack/plans/ok.md")" "**Source:** [[specs/a]] (shipped #1)" "bare-path line canonicalized, trailing text preserved"
+# idempotent
+bash "$C/plan-source.sh" --fix "$r" "$r/.woostack/plans/ok.md" source-link
+assert_eq "$(grep -cE '^\*\*Source:\*\*' "$r/.woostack/plans/ok.md")" "1" "re-canonicalize is a no-op"
+assert_eq "$(grep -m1 -E '^\*\*Source:\*\*' "$r/.woostack/plans/ok.md")" "**Source:** [[specs/a]] (shipped #1)" "idempotent canonicalization preserves trailing text"
 # clean diagnose after repairs (orphan report remains)
 res="$(bash "$C/plan-source.sh" "$r")"
 assert_eq "$(printf '%s\n' "$res" | grep -c 'auto')" "0" "no auto findings remain"
