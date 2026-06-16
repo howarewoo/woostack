@@ -230,16 +230,16 @@ branch: feature/impeccable-integration
 **Files:**
 - Modify: `skills/woostack-ideate/SKILL.md` step 1 "Explore project context" (currently lines 49-54)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
   ```bash
   grep -q "DESIGN.md" skills/woostack-ideate/SKILL.md && echo FOUND || echo ABSENT
   ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
   Run: `grep -q "DESIGN.md" skills/woostack-ideate/SKILL.md && echo FOUND || echo ABSENT`
   Expected: `ABSENT`
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
   Insert after the wisdom sentence (`An empty or absent \`wisdom/\` is a no-op.`) inside step 1:
   ```markdown
    For front-end work, also read impeccable's `DESIGN.md` if present (at the repo root, where
@@ -249,7 +249,7 @@ branch: feature/impeccable-integration
    An absent `DESIGN.md` is a no-op.
   ```
 
-- [ ] **Step 4: Run the tests, confirm they pass**
+- [x] **Step 4: Run the tests, confirm they pass**
   Run:
   ```bash
   grep -q "DESIGN.md" skills/woostack-ideate/SKILL.md && \
@@ -258,7 +258,7 @@ branch: feature/impeccable-integration
   ```
   Expected: `PASS`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt create -m "feat(ideate): load impeccable DESIGN.md as design house-rules"
   ```
@@ -270,11 +270,11 @@ branch: feature/impeccable-integration
 
 > No file change. These are assertions, not edits — the only write is ticking these checkboxes, which rides Increment 3 Task 1's commit. If either guard FAILs, **stop**: an increment violated a non-goal (made impeccable required, or touched the shipped design angle).
 
-- [ ] **Step 1: Guard AC4-edge — no-dep property still true**
+- [x] **Step 1: Guard AC4-edge — no-dep property still true**
   Run: `grep -q "no external skill dependencies" skills/woostack-build/SKILL.md && echo PASS || echo FAIL`
   Expected: `PASS` (no increment converted impeccable into a required dependency; the sentence survives)
 
-- [ ] **Step 2: Guard AC5 — B (design angle) untouched and still wired to impeccable**
+- [x] **Step 2: Guard AC5 — B (design angle) untouched and still wired to impeccable**
   Run: `grep -q "impeccable" skills/woostack-review/prompts/angles/design.md && echo PASS || echo FAIL`
   Expected: `PASS` (the already-shipped detector wiring is intact; these increments did not touch it)
 
