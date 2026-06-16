@@ -114,10 +114,29 @@ plan_for() {
 }
 
 plan_progress() {
-  local d t
-  d="$(grep -cE '^[[:space:]]*- \[[xX]\]' "$1" 2>/dev/null || true)"
-  t="$(grep -cE '^[[:space:]]*- \[[ xX]\]' "$1" 2>/dev/null || true)"
-  echo "${d:-0} ${t:-0}"
+  # Count task checkboxes, but NOT example boxes inside fenced code blocks
+  # (a plan that embeds a template/SKILL.md literal carries `- [ ]` lines that
+  # are content, not tasks). Fence rule (CommonMark): an opening fence is a run
+  # of >=3 backticks; the close must be a run >= the opening length, so the
+  # inner ``` of an embedded block never closes its enclosing ```` fence.
+  awk '
+    BEGIN { d=0; t=0; infence=0; flen=0 }
+    {
+      s=$0; sub(/^[[:space:]]+/,"",s)
+      if (substr(s,1,3)=="```") {
+        run=0; while (substr(s,run+1,1)=="`") run++
+        if (infence==0) { infence=1; flen=run }
+        else if (run>=flen) { infence=0; flen=0 }
+        next
+      }
+      if (infence) next
+      if ($0 ~ /^[[:space:]]*- \[[ xX]\]/) {
+        t++
+        if ($0 ~ /^[[:space:]]*- \[[xX]\]/) d++
+      }
+    }
+    END { printf "%d %d\n", d, t }
+  ' "$1" 2>/dev/null || echo "0 0"
 }
 
 prs_for_spec() {
