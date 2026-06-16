@@ -340,7 +340,7 @@ dependencies (spec §3).
 - Modify: `site/content/docs/concepts/meta.json` (add `"worktrees"`)
 - Modify: `site/content/docs/concepts/index.mdx` (add a worktrees Card)
 
-- [ ] **Step 1: Write `worktrees.mdx`** (every claim traces to
+- [x] **Step 1: Write `worktrees.mdx`** (every claim traces to
   `skills/woostack-init/references/worktrees.md` — spec §4 grounding)
   ```mdx
   ---
@@ -404,7 +404,7 @@ dependencies (spec §3).
   isolation, not intra-plan concurrency.
   ```
 
-- [ ] **Step 2: Add `"worktrees"` to `concepts/meta.json`** (append after `"context-management"`)
+- [x] **Step 2: Add `"worktrees"` to `concepts/meta.json`** (append after `"context-management"`)
   ```json
   {
     "title": "Core concepts",
@@ -418,18 +418,18 @@ dependencies (spec §3).
   }
   ```
 
-- [ ] **Step 3: Add the worktrees Card to the hub** (`concepts/index.mdx`, inside `<Cards>`)
+- [x] **Step 3: Add the worktrees Card to the hub** (`concepts/index.mdx`, inside `<Cards>`)
   ```mdx
     <Card title="Parallelism with worktrees" href="/docs/concepts/worktrees" description="Run many builds and fixes at once, each isolated in its own git worktree." />
   ```
 
-- [ ] **Step 4: Build green and links resolve**
+- [x] **Step 4: Build green and links resolve**
   Run: `pnpm -C site build`
   Expected: exits 0; route list includes `/docs/concepts/worktrees`.
   Run: `grep -F "resolve-base.sh" site/content/docs/concepts/worktrees.mdx && grep -F ".woostack/worktrees/" site/content/docs/concepts/worktrees.mdx`
   Expected: both print (the key contract facts are present).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt create -m "docs(site): add worktrees parallelism concept page"
   ```

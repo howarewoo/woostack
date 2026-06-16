@@ -4,6 +4,7 @@
     "index",
     "building-rules",
     "memory",
-    "context-management"
+    "context-management",
+    "worktrees"
   ]
 }
