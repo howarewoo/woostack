@@ -32,28 +32,28 @@ This is the invariant that makes parallel runs safe:
 
 <Callout type="info">
   A run does all its writes in its own worktree. The primary checkout stays on the base branch,
-  clean — the stable point every run branches from. Two runs never touch the primary tree, so
+  clean. It is the stable point every run branches from. Two runs never touch the primary tree, so
   runs with disjoint branch sets never collide.
 </Callout>
 
 Stacked increments build on each other rather than on the primary tree: increment _k_ branches
-off increment _k–1_'s tip (increment 1 off the spec+plan branch). The shared `.git` and Graphite
-metadata serialize through git's index and ref locks — brief contention, never corruption.
+off increment _k-1_'s tip (increment 1 off the spec+plan branch). The shared `.git` and Graphite
+metadata serialize through git's index and ref locks: brief contention, never corruption.
 
 ## Teardown, and what survives
 
-- **Success** — once the commit, push, and PR exist, the run removes the worktree directory
+- **Success:** once the commit, push, and PR exist, the run removes the worktree directory
   (`git worktree remove`). The branch, commits, and PR persist; only the working directory is
   deleted.
-- **Failure** — on a commit/push error or an unresolved review blocker, the run **leaves the
+- **Failure:** on a commit/push error or an unresolved review blocker, the run **leaves the
   worktree in place** and reports its path, so you can inspect it.
-- **Abandon** — a run dropped before any PR exists force-removes the worktree and deletes its
+- **Abandon:** a run dropped before any PR exists force-removes the worktree and deletes its
   dangling branch.
 
 A stale directory left by a crashed run is inert (the `worktrees/` path is gitignored).
 [woostack-doctor](/docs/skills/woostack-doctor) detects an orphaned worktree and prunes it; you
 can also reclaim one by hand with `git worktree prune` / `git worktree remove`.
 
-Parallelism here is **across independent runs** — several `woostack-build` or `woostack-fix`
+Parallelism here is **across independent runs**, several `woostack-build` or `woostack-fix`
 plans in flight at once. Increments within a single plan run sequentially; the worktree's job is
 isolation, not intra-plan concurrency.
