@@ -1,0 +1,62 @@
+---
+title: Review angles
+description: The lenses woostack-review fans out across a diff: what each angle audits, when it auto-fires, and the model tier it runs at.
+---
+
+woostack-review reviews a pull request through a set of **angles**. Each angle is one lens (correctness, security, SQL, accessibility, and so on), and the review fans out one subagent per active angle in parallel, then validates their findings. This page is the catalog of every angle. To turn angles on or off, see [Choosing angles](/docs/configuration#choosing-angles) in the configuration reference.
+
+## How angles get chosen
+
+Three rules decide which angles run on a given pull request:
+
+1. **`bugs` and `security` always run.** They are on for every review and can never be skipped.
+2. **The other angles auto-detect from the diff.** Each one looks at the files the PR touches and the content of the diff, and turns itself on when it sees something relevant. A `.sql` file pulls in `database`; a `.tsx` file pulls in `react`.
+3. **You can override detection.** `review.angles.force` runs an angle whatever the diff looks like, and `review.angles.skip` keeps one off. `force` wins a tie, and `bugs` / `security` ignore `skip`. See [Choosing angles](/docs/configuration#choosing-angles).
+
+## The catalog
+
+Every angle, what it reviews, a plain-language summary of when it auto-fires, and its model tier.
+
+| Angle | Audits | Fires when | Tier |
+| --- | --- | --- | --- |
+| `aeo` | Answer-engine optimization: AI-crawler access and structured data for answer engines | `robots.txt`, `llms.txt`, Markdown or HTML content, or AI-crawler / JSON-LD tokens in the diff | fast |
+| `api` | API contracts: routes, OpenAPI / GraphQL / proto schemas, HTTP handlers | OpenAPI / GraphQL / proto files, route trees, or HTTP-verb route bindings in the diff | standard |
+| `architecture` | Structural quality of source: boundaries, coupling, code health | any general-purpose source file changes (skips doc-only and config-only PRs) | standard |
+| `bugs` | Correctness: logic errors and broken behavior | always (cannot be skipped) | standard |
+| `comments` | Comment rot: whether code comments still match the code the PR changed | any general-purpose source file changes. Always non-blocking | fast |
+| `conventions` | Project rules: adherence to the repo's own AGENTS.md / CLAUDE.md and similar | the repo carries a rule file (AGENTS.md, CLAUDE.md, .cursorrules, .windsurfrules, GEMINI.md) along the changed paths | standard |
+| `database` | SQL correctness, row-level security, indexes, query plans | `.sql`, migration trees, ORM schema files, or SQL DDL / RLS / raw-SQL tokens in the diff | standard |
+| `deps` | Dependency hygiene: manifests and lockfiles | a dependency manifest or lockfile changes (package.json, pnpm-lock.yaml, go.mod, Cargo.toml, and the like) | fast |
+| `design` | Visual and UX heuristics for front-end changes | a styling or markup file changes (`.tsx`, `.jsx`, `.vue`, `.svelte`, `.css`, and similar) | standard |
+| `docs` | Documentation hygiene: READMEs, changelogs, Markdown | README, CHANGELOG, `docs/`, or `.md` / `.mdx` files change (a SKILL.md routes to `skills`) | fast |
+| `i18n` | Internationalization: translation catalogs and message usage | `locales/`, `messages/`, `i18n/`, `.po` files, or translation tokens in the diff | fast |
+| `infra` | Infrastructure: CI, containers, IaC, Kubernetes | workflow files, Dockerfiles, Terraform / Pulumi / CDK, k8s or helm trees, or IaC tokens in the diff | standard |
+| `observability` | Logging and error handling: silent failures and swallowed errors | logging or error-handling tokens in the diff (console / logger / Sentry / OpenTelemetry, swallowed catches, production mock fallbacks) | standard |
+| `react` | React correctness: Rules of Hooks and render behavior | a `.tsx` or `.jsx` file changes | standard |
+| `security` | Threat model: injection, auth, secrets, unsafe patterns | always (cannot be skipped) | standard |
+| `seo` | Search-engine optimization: meta tags, sitemaps, canonical URLs | HTML, head / layout files, `robots.txt`, `sitemap`, `next.config`, or SEO tokens in the diff | fast |
+| `skills` | Agent Skill authoring: a changed SKILL.md against the best-practices guide | a `SKILL.md` file changes anywhere in the diff | standard |
+| `tests` | Test coverage and quality | a test file changes (`.test.*`, `.spec.*`, `_test.*`, or `tests/` / `__tests__/` / `spec/` trees) | standard |
+| `types` | Type design: TypeScript invariants and signatures | a `.ts` / `.tsx` / `.cts` / `.mts` file changes | standard |
+
+The exact gating heuristics (file globs and diff-token patterns) live in [`detect-angles.sh`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-review/scripts/detect-angles.sh), the source of truth. This table summarizes them in plain language.
+
+<Callout type="info">
+  `bugs` and `security` run on every review and can never be skipped. Listing either under `review.angles.skip` is silently ignored.
+</Callout>
+
+<Callout type="info">
+  Two angles behave specially. `comments` is always non-blocking: it posts nits, never a blocking finding. `conventions` only runs when the repo carries a rule file (AGENTS.md, CLAUDE.md, .cursorrules, .windsurfrules, or GEMINI.md) along the changed paths.
+</Callout>
+
+## Tiers
+
+Each angle runs at a model tier matched to its work: `fast` for rubric and pattern checks, `standard` for reasoning-heavy passes. The skeptical validator that filters every finding runs at `deep`. The tier-to-model mapping per provider lives in [Core concepts](/docs/concepts#subagents-isolate-work), and you can override any tier in [Configuration](/docs/configuration#model-selection).
+
+## Where to go next
+
+<Cards>
+  <Card title="woostack-review" href="/docs/skills/woostack-review" description="The review engine that runs these angles." />
+  <Card title="Configuration" href="/docs/configuration#choosing-angles" description="Force, skip, and tune angles in .woostack/config.json." />
+  <Card title="Core concepts" href="/docs/concepts" description="The build loop, context economy, and model tiers." />
+</Cards>
