@@ -1,6 +1,6 @@
 ---
 type: fix
-status: approved
+status: in-review
 branch: fix/least-code-ladder
 ---
 
@@ -67,17 +67,17 @@ Add one bullet immediately after the existing `**YAGNI ruthlessly.**` line:
 
 ## 3. Implementation Plan
 
-- [ ] **Step 1: Pin the assertion (red).** Confirm the target phrases are currently ABSENT, so the
+- [x] **Step 1: Pin the assertion (red).** Confirm the target phrases are currently ABSENT, so the
       edit has a verifiable before/after (docs edit → structural assertion in place of a failing
       test, per `implementer.md` step 1):
   - `grep -c "least code that already exists" skills/woostack-execute/prompts/implementer.md` → `0`
   - `grep -c "Least code wins" skills/woostack-ideate/SKILL.md` → `0`
-- [ ] **Step 2: Apply Change A.** Edit `skills/woostack-execute/prompts/implementer.md` — expand
+- [x] **Step 2: Apply Change A.** Edit `skills/woostack-execute/prompts/implementer.md` — expand
       `## How to work` step 2 to the ladder text in §2 above, **inside** the fenced blob. Preserve
       the `tier: standard` frontmatter and the surrounding numbered list.
-- [ ] **Step 3: Apply Change B.** Edit `skills/woostack-ideate/SKILL.md` — add the `Least code wins.`
+- [x] **Step 3: Apply Change B.** Edit `skills/woostack-ideate/SKILL.md` — add the `Least code wins.`
       bullet under `## Key principles`, directly after `**YAGNI ruthlessly.**`.
-- [ ] **Step 4: Verify (green).** Assert the additions landed correctly and stayed in scope:
+- [x] **Step 4: Verify (green).** Assert the additions landed correctly and stayed in scope:
   - `grep -c "least code that already exists" skills/woostack-execute/prompts/implementer.md` → `1`
   - `grep -c "Least code wins" skills/woostack-ideate/SKILL.md` → `1`
   - Ladder is inside the fenced blob: the `least code that already exists` line falls between the

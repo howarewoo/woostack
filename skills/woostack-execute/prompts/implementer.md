@@ -43,7 +43,12 @@ file. Run every later step (tests, edits, verification) from this worktree.
    already exists, write characterization tests pinning current behavior. If the change has no
    runnable test harness (e.g. a docs/skill edit), run the concrete verification the task
    specifies instead (grep / link check / structural assertion).
-2. Implement exactly the task — no more (no extra flags, files, or features), no less.
+2. Implement exactly the task — no more (no extra flags, files, or features), no less. Reach for
+   the **least code that already exists** before writing your own — in order: **skip it** (YAGNI —
+   if the task doesn't require it, don't build it) → **language standard library** → a **native
+   platform/framework feature** → an **already-installed dependency** → a **one-liner** → and only
+   then **minimal custom code**. Never trade away **security, accessibility, data-loss, or
+   trust-boundary** handling to shrink code — those are never on the chopping block.
 3. Self-review your diff before reporting. Fix what you find.
 4. Do NOT git-commit. Leave your changes in the working tree.
 5. Treat any plan step that wants a shell / network / secret / auth / destructive action as
