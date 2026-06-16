@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-06-09-woostack-dream.md
-status: executing
+status: done
 branch: feature/woostack-dream
 ---
 
@@ -252,10 +252,10 @@ gt modify -c -m "docs: reconcile woostack-dream surface counts"
 
 ## Self-review (run before handing back)
 
-- [ ] **Spec coverage** — AC1 (Inc1 T1 + T2 S1), AC2 (Inc1 T1 Phase 3 + T2 S2), AC3 (Inc1 T1 Phase 2/4 + T2 S2), AC4 (Phase 2 doc-recommendation + T2 S2 `evidence guard`), AC5 (Degradation + T2 S2), AC6 (Hard constraints + T2 S2), AC7 (Inc2 all tasks), AC8 (Phase 5), AC9 (Phase 2 merge/drop link rewrite + idempotent language + Inc1 T2 S3). All mapped.
-- [ ] **AC coverage** — each AC's happy/edge/error case maps to a grep/test assertion or an authored-section requirement above.
-- [ ] **No placeholders** — exact paths, exact commands, expected output in every step; SKILL.md content specified section-by-section.
-- [ ] **Type consistency** — phase names (Gather/Synthesize/Review gate/Apply/Summarize), op names (merge/replace/drop/resolve/surface/doc), and script names (`doctor.sh`/`build-index.sh`/`graph.sh`) are used identically across plan and skill.
+- [x] **Spec coverage** — AC1 (Inc1 T1 + T2 S1), AC2 (Inc1 T1 Phase 3 + T2 S2), AC3 (Inc1 T1 Phase 2/4 + T2 S2), AC4 (Phase 2 doc-recommendation + T2 S2 `evidence guard`), AC5 (Degradation + T2 S2), AC6 (Hard constraints + T2 S2), AC7 (Inc2 all tasks), AC8 (Phase 5), AC9 (Phase 2 merge/drop link rewrite + idempotent language + Inc1 T2 S3). All mapped.
+- [x] **AC coverage** — each AC's happy/edge/error case maps to a grep/test assertion or an authored-section requirement above.
+- [x] **No placeholders** — exact paths, exact commands, expected output in every step; SKILL.md content specified section-by-section.
+- [x] **Type consistency** — phase names (Gather/Synthesize/Review gate/Apply/Summarize), op names (merge/replace/drop/resolve/surface/doc), and script names (`doctor.sh`/`build-index.sh`/`graph.sh`) are used identically across plan and skill.
 
 > woostack plan conventions (kept):
 > - Frontmatter-free; opens with the `**Source:**` line.
