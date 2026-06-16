@@ -5,9 +5,9 @@ export default function HomePage() {
     <main className="flex flex-1 flex-col items-center justify-center gap-6 px-4 py-24 text-center">
       <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">woostack</h1>
       <p className="max-w-2xl text-lg text-fd-muted-foreground">
-        A model-agnostic collection of software-development skills covering every phase of the
-        engineering process — bootstrap, build, plan, debug, review, and iterate — with a local,
-        token-efficient memory system.
+        A model-agnostic collection of software-development skills for every phase of the
+        engineering process: bootstrap, build, plan, debug, review, and iterate. It runs on a
+        local, token-efficient memory system.
       </p>
       <code className="rounded-lg bg-fd-muted px-4 py-2 text-sm font-medium">
         pnpx skills add howarewoo/woostack
