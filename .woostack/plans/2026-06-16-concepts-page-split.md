@@ -51,7 +51,7 @@ dependencies (spec §3).
 - Modify: `site/content/docs/index.mdx` (tighten the Core-concepts Card description)
 - (component unchanged: `site/components/concepts/context-economy.tsx`)
 
-- [ ] **Step 1: Write `concepts/meta.json` (the four pages that exist after this increment)**
+- [x] **Step 1: Write `concepts/meta.json` (the four pages that exist after this increment)**
   Listing `"index"` as the first page is the established working pattern — the root
   `content/docs/meta.json` lists `"index"` first for the `/docs` folder root, and it builds.
   ```json
@@ -66,7 +66,7 @@ dependencies (spec §3).
   }
   ```
 
-- [ ] **Step 2: Write the hub `concepts/index.mdx` (context-economy spine + hero + Cards)**
+- [x] **Step 2: Write the hub `concepts/index.mdx` (context-economy spine + hero + Cards)**
   Lift the framing + spine prose from the old `concepts.mdx` (lines 8–11 and 42–45) and keep the
   hero import. Cards point only to pages that exist after this increment; increments 2–4 add their
   own cards.
@@ -99,14 +99,14 @@ dependencies (spec §3).
   </Cards>
   ```
 
-- [ ] **Step 3: Tighten the inbound Card in `site/content/docs/index.mdx`**
+- [x] **Step 3: Tighten the inbound Card in `site/content/docs/index.mdx`**
   The Card already points to `/docs/concepts` (still the hub — no href change). Update only the
   stale description.
   ```mdx
   <Card title="Core concepts" href="/docs/concepts" description="The build loop, context economy, worktrees, and status tracking." />
   ```
 
-- [ ] **Step 4: Verify the folder hub resolves and the file/folder don't collide yet**
+- [x] **Step 4: Verify the folder hub resolves and the file/folder don't collide yet**
   (The old `concepts.mdx` still exists at this point — it is deleted in Task 4. Do not build until
   Task 4 removes it, or the route collides. This step only confirms the files were written.)
   Run: `ls site/content/docs/concepts/ && test -f site/content/docs/concepts/index.mdx && echo OK`
@@ -117,7 +117,7 @@ dependencies (spec §3).
 **Files:**
 - Create: `site/content/docs/concepts/building-rules.mdx`
 
-- [ ] **Step 1: Author `building-rules.mdx` from the old page's build-loop sections**
+- [x] **Step 1: Author `building-rules.mdx` from the old page's build-loop sections**
   Move the content verbatim from `concepts.mdx` lines 13–36 (## The build loop, ## Three hard
   gates, ## One spec, one plan, N PRs) under new frontmatter. No semantic change (spec §3).
   ```mdx
@@ -156,7 +156,7 @@ dependencies (spec §3).
   hand-maintained.
   ```
 
-- [ ] **Step 2: Confirm gate count and invariant are intact (no drift)**
+- [x] **Step 2: Confirm gate count and invariant are intact (no drift)**
   Run: `grep -c "Design approval\|Spec approval\|Execution handoff" site/content/docs/concepts/building-rules.mdx`
   Expected: `3`
   Run: `grep -F "1 : 1 : N" site/content/docs/concepts/building-rules.mdx`
@@ -167,7 +167,7 @@ dependencies (spec §3).
 **Files:**
 - Create: `site/content/docs/concepts/memory.mdx`
 
-- [ ] **Step 1: Author `memory.mdx` from the old page's "Two knowledge stores" section**
+- [x] **Step 1: Author `memory.mdx` from the old page's "Two knowledge stores" section**
   Move verbatim from `concepts.mdx` lines 47–86 (### Two knowledge stores, the Callout, the
   consumer table, the lifecycle ASCII fence) under new frontmatter, promoting the `###` headings
   to `##`. This page carries the `lockstep-edit-sites` wisdom-consumer contract content — keep the
@@ -226,7 +226,7 @@ dependencies (spec §3).
   [Context management](/docs/concepts/context-management) for why that matters.
   ```
 
-- [ ] **Step 2: Confirm the consumer table and lifecycle diagram survived the lift**
+- [x] **Step 2: Confirm the consumer table and lifecycle diagram survived the lift**
   Run: `grep -c "woostack-ideate\|woostack-plan\|woostack-execute\|woostack-dream\|woostack-status" site/content/docs/concepts/memory.mdx`
   Expected: ≥ 7 (table rows + prose mentions).
   Run: `grep -F "scope-match ────►  memory/" site/content/docs/concepts/memory.mdx`
@@ -240,7 +240,7 @@ dependencies (spec §3).
 - Modify: `site/content/docs/review-angles.mdx` (repoint the `#subagents-isolate-work` anchor; the
   page itself moves in Increment 4)
 
-- [ ] **Step 1: Author `context-management.mdx` from the old page's scripts + subagents sections**
+- [x] **Step 1: Author `context-management.mdx` from the old page's scripts + subagents sections**
   Move verbatim from `concepts.mdx` lines 88–128 (### Scripts compute, agents read; ### Subagents
   isolate work; the tier table), promoting `###` → `##`. **Keep the exact heading text
   `## Subagents isolate work`** so Fumadocs regenerates the slug `subagents-isolate-work` that
@@ -298,7 +298,7 @@ dependencies (spec §3).
   | `deep` | code-quality review, design and architecture judgment, skeptical validation | `claude-opus-4-8` |
   ```
 
-- [ ] **Step 2: Repoint the anchor link inside the (still top-level) review-angles page**
+- [x] **Step 2: Repoint the anchor link inside the (still top-level) review-angles page**
   In `site/content/docs/review-angles.mdx`, the tier deep link currently targets
   `/docs/concepts#subagents-isolate-work`. The anchor now lives on the context-management subpage.
   Edit line ~54: change `[Core concepts](/docs/concepts#subagents-isolate-work)` to
@@ -307,22 +307,22 @@ dependencies (spec §3).
   ... The tier-to-model mapping per provider lives in [Core concepts](/docs/concepts/context-management#subagents-isolate-work), and you can override any tier in [Configuration](/docs/configuration#model-selection).
   ```
 
-- [ ] **Step 3: Delete the old monolithic page**
+- [x] **Step 3: Delete the old monolithic page**
   Run: `git rm site/content/docs/concepts.mdx`
   Expected: `rm 'site/content/docs/concepts.mdx'`.
 
-- [ ] **Step 4: Build green — folder hub serves /docs/concepts, no route collision**
+- [x] **Step 4: Build green — folder hub serves /docs/concepts, no route collision**
   Run: `pnpm -C site build`
   Expected: exits 0; route list includes `/docs/concepts`, `/docs/concepts/building-rules`,
   `/docs/concepts/memory`, `/docs/concepts/context-management`; no collision error for `concepts`.
 
-- [ ] **Step 5: Confirm the deep-link anchor heading exists on its new page and is unique**
+- [x] **Step 5: Confirm the deep-link anchor heading exists on its new page and is unique**
   Run: `grep -rn "## Subagents isolate work" site/content/docs/concepts/context-management.mdx`
   Expected: one match.
   Run: `grep -rn "/docs/concepts#subagents-isolate-work" site/content/`
   Expected: no matches (the un-subpaged anchor is fully repointed).
 
-- [ ] **Step 6: Commit the increment**
+- [x] **Step 6: Commit the increment**
   ```bash
   gt create -m "docs(site): scaffold concepts/ section, lift build-loop/memory/context-management"
   ```
