@@ -92,6 +92,48 @@ run_status "$fence"
 assert_contains "$OUT" "3/6" "fenced example checkboxes excluded from progress"
 assert_not_contains "$OUT" "3/11" "fenced boxes not over-counted"
 
+# A plain triple-backtick fence (the everyday variant) must also exclude its
+# example boxes. Outside the fence: 2 done + 1 todo = 3. The 2 boxes inside the
+# ``` block are ignored. Guards the flen=3 / `run>=flen` close path directly, so
+# a regression to `run==flen` (which still passes the 4-backtick test above)
+# fails here.
+tick3="$(mktemp -d)/.woostack"
+mkspec "$tick3" tick3 planning feature/tick3
+mkdir -p "$tick3/plans"
+{
+  printf -- '---\ntype: plan\nsource: .woostack/specs/2026-06-01-tick3.md\nstatus: planning\nbranch: feature/tick3\n---\n\n'
+  printf -- '**Source:** .woostack/specs/2026-06-01-tick3.md\n\n'
+  printf -- '- [x] real done 1\n- [x] real done 2\n- [ ] real todo 1\n\n'
+  printf -- '```markdown\n'
+  printf -- '- [ ] example a\n- [ ] example b\n'
+  printf -- '```\n'
+} > "$tick3/plans/2026-06-01-tick3.md"
+run_status "$tick3"
+assert_contains "$OUT" "2/3" "plain 3-backtick fence excludes example checkboxes"
+assert_not_contains "$OUT" "2/5" "3-backtick fenced boxes not over-counted"
+
+# Unclosed fence (a plausible state for a mid-write or agent-authored plan):
+# the opening ``` never closes, so `infence` stays 1 to EOF and every checkbox
+# after it is excluded. This pins CURRENT behavior — 1 done + 1 todo before the
+# fence count (1/2); the 2 real todos after the unclosed fence are swallowed.
+# Footgun: a malformed plan reads MORE complete than it is (denominator shrinks).
+# We characterize rather than fix it: counting post-unclosed-fence boxes would
+# need EOF-buffering of every pending-fence line, not worth it for malformed
+# input. If the awk ever changes, this assert makes the behavior shift visible.
+nofence="$(mktemp -d)/.woostack"
+mkspec "$nofence" nofence planning feature/nofence
+mkdir -p "$nofence/plans"
+{
+  printf -- '---\ntype: plan\nsource: .woostack/specs/2026-06-01-nofence.md\nstatus: planning\nbranch: feature/nofence\n---\n\n'
+  printf -- '**Source:** .woostack/specs/2026-06-01-nofence.md\n\n'
+  printf -- '- [x] real done 1\n- [ ] real todo 1\n\n'
+  printf -- '```markdown\n'
+  printf -- '- [ ] swallowed todo a\n- [ ] swallowed todo b\n'
+} > "$nofence/plans/2026-06-01-nofence.md"
+run_status "$nofence"
+assert_contains "$OUT" "1/2" "unclosed fence swallows trailing checkboxes (characterized)"
+assert_not_contains "$OUT" "1/4" "post-unclosed-fence boxes are not counted"
+
 # Source line as an Obsidian wikilink ([[specs/<basename>]]) resolves the plan, same as a
 # bare path. The plan basename intentionally differs from the spec slug so resolution can
 # only come from the **Source:** line, not the slug fallback.
