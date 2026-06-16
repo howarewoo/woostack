@@ -43,8 +43,9 @@ For phases before a plan exists, the board shows the spec's authored `status:`. 
 starts, it shows the **computed** phase derived from branches, commits, and PR state, and a
 disagreement between the authored value and the computed one is surfaced as a flag, not displayed
 as truth. The board also flags drift it can prove from the artifacts: an unknown `status:`, a
-missing or duplicate plan, a missing branch for an executing feature, head-state phases while PRs
-already exist, two in-flight rows on one branch, and executing rows older than
+missing or duplicate plan, a missing branch for an executing feature, head-state phases (other
+than `ready`, whose spec+plan PR is expected) while PRs already exist, two in-flight rows on one
+branch, and executing rows older than
 `status.staleDays` (a [config](/docs/configuration) key, default 14).
 
 Because `status.sh` only reads (it exits 0 even when it prints drift flags), the board is safe
