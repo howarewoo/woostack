@@ -22,7 +22,7 @@ pnpx skills add howarewoo/woostack
 
 I built woostack after getting frustrated with the spec-driven and agent-workflow tools that
 already existed. Each one solved a slice of the problem and left the rest to me. woostack is the
-version that holds five goals at the same time:
+version that holds six goals at the same time:
 
 - **Easy install:** one `pnpx skills add` command. No scaffolding step, no config file to
   hand-edit before the first run.
@@ -34,6 +34,9 @@ version that holds five goals at the same time:
   and Aider, and route each step to a model tier rather than hard-coding one provider.
 - **Whole-lifecycle coverage:** bootstrapping, building, debugging, review, and feedback iteration
   in one collection, not the planning step alone.
+- **Parallel by default:** the build and execute skills create and tear down git worktrees on
+  their own, so several plans run at once with no setup and no manual worktree juggling. I keep
+  more than a dozen concurrent sessions going through nothing but woostack skill calls.
 
 These are all strong projects, and woostack borrows ideas from several of them. They just were not
 the fit I wanted personally:
