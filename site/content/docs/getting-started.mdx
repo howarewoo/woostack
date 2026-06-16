@@ -47,3 +47,28 @@ Add the `using-woostack` routing block to your repository's agent instructions
   PR stack.
 - Run [woostack-fix](/docs/skills/woostack-fix) for a small, focused change.
 - Run [woostack-status](/docs/skills/woostack-status) any time to see what's in flight.
+
+## Recommended third-party tools
+
+These independent tools aren't part of woostack, but they pair well with it. All are optional.
+
+- **[Graphite](https://graphite.com)**: stacked-PR management and code review for Git. woostack
+  drives source control through its `gt` CLI, with stacked branches and one PR per increment, so
+  Graphite lets the PR-stack workflow run end to end. It also adds a stack-aware merge queue and
+  AI review. See the [Graphite docs](https://graphite.com).
+
+- **[Headroom](https://headroom-docs.vercel.app/docs)**: token compression for LLM agents. It
+  shrinks tool outputs, file reads, and search results before they reach the model, so long
+  woostack sessions spend fewer tokens and hold more in context. Compression is reversible, so the
+  agent can fetch the full original when it needs it. Install it as an MCP server; see the
+  [Headroom docs](https://headroom-docs.vercel.app/docs).
+
+- **[humanizer](https://github.com/blader/humanizer)**: copy humanization. It rewrites text to
+  strip the tells of AI authorship, handy for polishing spec prose, READMEs, and PR descriptions
+  before they ship.
+
+  ```bash
+  pnpx skills add blader/humanizer
+  ```
+
+For front-end design, see the [impeccable](#1-install) companion in step 1.
