@@ -1,0 +1,51 @@
+---
+title: Collaboration with status tracking
+description: "How woostack gives a team a shared feature board that is computed from artifacts in git, never a hand-maintained file."
+---
+
+woostack never commits a `STATUS.md`. Instead [woostack-status](/docs/skills/woostack-status)
+**computes** a feature board on demand from artifacts that already live in git — the specs, the
+plans, and the open PRs — and prints it to the terminal. Because the board is derived, it can
+never drift from reality the way a hand-edited status file does, and any teammate gets the same
+board from the same clone.
+
+## The phase enum
+
+Every feature moves through a fixed set of phases. The spec frontmatter owns the design-approval
+phases; once the spec is approved, the plan frontmatter owns the implementation lifecycle:
+
+> **spec:** `draft → hardened → approved`  ·  **plan:** `planning → ready → executing → in-review → done`
+> (plus the terminal `abandoned`)
+
+The build loop authors each transition as it advances, and the board reads it. The full enum and
+its join rules are defined once in the
+[status conventions](https://github.com/howarewoo/woostack/blob/main/skills/woostack-status/references/conventions.md).
+
+## One spec, one plan, N PRs — joined by artifacts
+
+The board relies on the `spec : plan : PRs = 1 : 1 : N` invariant. It walks two joins:
+
+- **spec → plan**: the plan carries a `**Source:** [[specs/<basename>]]` line back to its spec.
+- **plan → PR**: every PR body carries a `Spec: .woostack/specs/<file>.md` trailer.
+
+Following those joins, the board pairs each spec with its one plan and that plan's N increment
+PRs.
+
+## Computed, not authored
+
+<Callout type="info">
+  The board is computed fresh each run and printed to the terminal. It never fetches, commits, or
+  pushes, and there is no committed status file. A lagging authored `status:` is reconciled
+  against the artifacts, not trusted blindly.
+</Callout>
+
+For phases before a plan exists, the board shows the spec's authored `status:`. Once execution
+starts, it shows the **computed** phase derived from branches, commits, and PR state — and a
+disagreement between the authored value and the computed one is surfaced as a flag, not displayed
+as truth. The board also flags drift it can prove from the artifacts: an unknown `status:`, a
+missing or duplicate plan, a missing branch for an executing feature, head-state phases while PRs
+already exist, two in-flight rows on one branch, and executing rows older than
+`status.staleDays` (a [config](/docs/configuration) key, default 14).
+
+Because `status.sh` only reads — it exits 0 even when it prints drift flags — the board is safe
+to run anywhere, including CI, without mutating anything.

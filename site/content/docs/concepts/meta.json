@@ -5,6 +5,7 @@
     "building-rules",
     "memory",
     "context-management",
-    "worktrees"
+    "worktrees",
+    "status-tracking"
   ]
 }
