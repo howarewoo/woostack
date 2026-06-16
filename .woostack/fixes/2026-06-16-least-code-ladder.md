@@ -1,6 +1,6 @@
 ---
 type: fix
-status: hardened
+status: approved
 branch: fix/least-code-ladder
 ---
 
