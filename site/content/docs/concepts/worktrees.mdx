@@ -1,0 +1,59 @@
+---
+title: Parallelism with worktrees
+description: How woostack runs many builds, fixes, and executions at once by isolating each in its own git worktree.
+---
+
+woostack runs several plans at the same time on one machine without collision. The mechanism is
+the **git worktree**: every build, fix, and execution does all of its writes in a private working
+tree, while the primary checkout stays clean on the base branch. Two runs never touch the same
+files, so they never collide.
+
+## A worktree per run
+
+When a run starts, it creates a worktree under `.woostack/worktrees/<slug>`, where `<slug>` is the
+branch name with `/` replaced by `-` (branch `feature/foo` → directory `feature-foo`). The branch
+it creates follows the run:
+
+| Run | Branch | Worktree directory |
+| --- | --- | --- |
+| [woostack-build](/docs/skills/woostack-build) spec+plan | `feature/<slug>` | `.woostack/worktrees/feature-<slug>` |
+| [woostack-fix](/docs/skills/woostack-fix) | `fix/<slug>` | `.woostack/worktrees/fix-<slug>` |
+| [woostack-execute](/docs/skills/woostack-execute) increment | the plan's increment branch | one per increment |
+
+The base branch is never hard-coded. A small script, `resolve-base.sh`, resolves it in order: an
+explicit `WOOSTACK_BASE_BRANCH` override, then `base_branch` in
+[`.woostack/config.json`](/docs/configuration), then the remote's default branch, then `main`.
+After the worktree is added, the run registers the Graphite parent from inside it with
+`gt track --parent <base>`, so `gt submit` opens the PR against the right base.
+
+## The primary tree stays clean
+
+This is the invariant that makes parallel runs safe:
+
+<Callout type="info">
+  A run does all its writes in its own worktree. The primary checkout stays on the base branch,
+  clean — the stable point every run branches from. Two runs never touch the primary tree, so
+  runs with disjoint branch sets never collide.
+</Callout>
+
+Stacked increments build on each other rather than on the primary tree: increment _k_ branches
+off increment _k–1_'s tip (increment 1 off the spec+plan branch). The shared `.git` and Graphite
+metadata serialize through git's index and ref locks — brief contention, never corruption.
+
+## Teardown, and what survives
+
+- **Success** — once the commit, push, and PR exist, the run removes the worktree directory
+  (`git worktree remove`). The branch, commits, and PR persist; only the working directory is
+  deleted.
+- **Failure** — on a commit/push error or an unresolved review blocker, the run **leaves the
+  worktree in place** and reports its path, so you can inspect it.
+- **Abandon** — a run dropped before any PR exists force-removes the worktree and deletes its
+  dangling branch.
+
+A stale directory left by a crashed run is inert (the `worktrees/` path is gitignored).
+[woostack-doctor](/docs/skills/woostack-doctor) detects an orphaned worktree and prunes it; you
+can also reclaim one by hand with `git worktree prune` / `git worktree remove`.
+
+Parallelism here is **across independent runs** — several `woostack-build` or `woostack-fix`
+plans in flight at once. Increments within a single plan run sequentially; the worktree's job is
+isolation, not intra-plan concurrency.
