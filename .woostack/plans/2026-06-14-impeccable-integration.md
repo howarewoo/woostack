@@ -24,16 +24,16 @@ branch: feature/impeccable-integration
 **Files:**
 - Modify: `README.md` (after the §1 Installation block, before `### 2. Initialization` — currently line 45→47)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
   ```bash
   grep -q "pnpx skills add pbakaus/impeccable" README.md && echo FOUND || echo ABSENT
   ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
   Run: `grep -q "pnpx skills add pbakaus/impeccable" README.md && echo FOUND || echo ABSENT`
   Expected: `ABSENT`
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
   Insert immediately after the line `This command registers the public skills ...` (end of §1 Installation), before the `### 2. Initialization` heading:
   ```markdown
 
@@ -46,7 +46,7 @@ branch: feature/impeccable-integration
   > Claude Code users can alternatively run `/plugin marketplace add pbakaus/impeccable`.
   ```
 
-- [ ] **Step 4: Run the tests, confirm they pass**
+- [x] **Step 4: Run the tests, confirm they pass**
   Run:
   ```bash
   grep -q "pnpx skills add pbakaus/impeccable" README.md && \
@@ -56,7 +56,7 @@ branch: feature/impeccable-integration
   ```
   Expected: `PASS`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt create -m "docs(readme): recommend impeccable as a companion skill"
   ```
@@ -66,16 +66,16 @@ branch: feature/impeccable-integration
 **Files:**
 - Modify: `site/content/docs/getting-started.mdx` (after the §1 Install block — currently line 17 — before `## 2. Initialize` on line 19)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
   ```bash
   grep -q "pnpx skills add pbakaus/impeccable" site/content/docs/getting-started.mdx && echo FOUND || echo ABSENT
   ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
   Run: `grep -q "pnpx skills add pbakaus/impeccable" site/content/docs/getting-started.mdx && echo FOUND || echo ABSENT`
   Expected: `ABSENT`
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
   Insert after the line ``` `pnpm` (and `pnpx`) is the recommended package manager.``` and before `## 2. Initialize`:
   ```mdx
 
@@ -93,7 +93,7 @@ branch: feature/impeccable-integration
   ```
   (`<Callout>` is already used in this file — no new import needed.)
 
-- [ ] **Step 4: Run the tests, confirm they pass**
+- [x] **Step 4: Run the tests, confirm they pass**
   Run:
   ```bash
   grep -q "pnpx skills add pbakaus/impeccable" site/content/docs/getting-started.mdx && \
@@ -102,7 +102,7 @@ branch: feature/impeccable-integration
   ```
   Expected: `PASS`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt modify -c -m "docs(site): recommend impeccable in getting-started"
   ```
@@ -112,22 +112,22 @@ branch: feature/impeccable-integration
 **Files:**
 - Modify: `site/content/docs/index.mdx` (after the bullet list — currently the `**Team-ready**` bullet on line 18)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
   ```bash
   grep -q "pnpx skills add pbakaus/impeccable" site/content/docs/index.mdx && echo FOUND || echo ABSENT
   ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
   Run: `grep -q "pnpx skills add pbakaus/impeccable" site/content/docs/index.mdx && echo FOUND || echo ABSENT`
   Expected: `ABSENT`
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
   Append one bullet to the existing bullet list, after the `**Team-ready**` bullet (terse — inline code only, no second ```bash block):
   ```mdx
   - **Pairs with [impeccable](https://github.com/pbakaus/impeccable)** — woostack's recommended front-end design skill. Install alongside: `pnpx skills add pbakaus/impeccable`.
   ```
 
-- [ ] **Step 4: Run the tests, confirm they pass**
+- [x] **Step 4: Run the tests, confirm they pass**
   Run:
   ```bash
   grep -q "pnpx skills add pbakaus/impeccable" site/content/docs/index.mdx && \
@@ -135,7 +135,7 @@ branch: feature/impeccable-integration
   ```
   Expected: `PASS` (the mention is one inline-code line; the file still has exactly one ```bash block — the original woostack install)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt modify -c -m "docs(site): mention impeccable on the landing page"
   ```
