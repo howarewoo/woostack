@@ -444,6 +444,63 @@ if [ -z "$INCREMENTAL_USED" ]; then
 fi
 printf '%s' "$INCREMENTAL_USED" > "$OUTDIR/last_sha.txt"
 
+# PR-scope intersection (issue #374): a rebased branch makes the incremental
+# marker a non-ancestor of HEAD, so the three-dot compare returns HTTP 200 with
+# the commits the branch was rebased OVER — files that are not in this PR. The
+# 404-only fallback above never catches that (reachable != ancestor). Restrict the
+# incremental diff to the authoritative PR file set (meta.json .files[].path) so
+# off-PR sections never reach the angle workers or the posting stage, which 422s
+# on paths outside the PR diff. Runs before the byte/cap/ignore stages so they all
+# see PR-scoped input. The full-diff path is already PR-scoped (gh pr diff), so
+# this is gated on an incremental diff actually being used. Missing/unparseable
+# meta, or a meta with no file list, is a no-op (never narrower than today).
+if [ -n "$INCREMENTAL_USED" ] && [ -f "$OUTDIR/meta.json" ]; then
+  python3 - "$OUTDIR/diff.txt" "$OUTDIR/meta.json" <<'PY'
+import json, re, sys
+
+diff_path, meta_path = sys.argv[1], sys.argv[2]
+try:
+    meta = json.load(open(meta_path, encoding="utf-8"))
+    pr_paths = {f.get("path", "") for f in meta.get("files", []) if f.get("path")}
+except (OSError, ValueError):
+    pr_paths = set()
+# Empty/absent PR file set -> cannot determine scope -> keep everything (safe
+# degradation; never drop the whole diff on a meta we could not read).
+if not pr_paths:
+    sys.exit(0)
+
+lines = open(diff_path, encoding="utf-8", errors="replace").read().splitlines(keepends=True)
+# Same section split as the diff-cap ranker: one block per `diff --git` header,
+# keyed on the b/ (new) path so renames intersect on their PR-reported name.
+HEADER = re.compile(r'^diff --git a/(.+?) b/(.+?)\s*$')
+preamble, sections, cur = [], [], None
+for ln in lines:
+    m = HEADER.match(ln)
+    if m:
+        if cur is not None:
+            sections.append(cur)
+        cur = {"path": m.group(2), "lines": [ln]}
+    elif cur is None:
+        preamble.append(ln)
+    else:
+        cur["lines"].append(ln)
+if cur is not None:
+    sections.append(cur)
+
+dropped = [s["path"] for s in sections if s["path"] not in pr_paths]
+if not dropped:
+    sys.exit(0)
+
+out = list(preamble)
+for sec in sections:
+    if sec["path"] in pr_paths:
+        out.extend(sec["lines"])
+open(diff_path, "w", encoding="utf-8").write("".join(out))
+print("prefetch: dropped %d off-PR diff section(s) not in PR file set (rebased marker?): %s"
+      % (len(dropped), ", ".join(sorted(dropped)[:15]) + (" ..." if len(dropped) > 15 else "")))
+PY
+fi
+
 DIFF_BYTES=$(wc -c < "$OUTDIR/diff.txt")
 if [ -n "$INCREMENTAL_USED" ]; then
   # Derive CODE_FILES / LOC_CHANGED from the incremental diff itself (meta.json

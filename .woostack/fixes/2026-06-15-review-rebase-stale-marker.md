@@ -1,6 +1,6 @@
 ---
 type: fix
-status: approved
+status: in-review
 branch: fix/review-rebase-stale-marker
 ---
 
@@ -105,7 +105,7 @@ construction (`gh pr diff`).
 
 ## 3. Implementation Plan
 
-- [ ] **Step 1: Reproduce with a failing test.**
+- [x] **Step 1: Reproduce with a failing test.**
   - Add `skills/woostack-review/scripts/tests/test-prefetch-incremental-rebase.sh`
     (standalone `set -euo pipefail`, mirroring `test-prefetch-flat-memory.sh`:
     `git init` a tmp repo, `source` the `assert.sh` helper, run `prefetch.sh`
@@ -125,7 +125,7 @@ construction (`gh pr diff`).
     (`prefetch.sh:400-403`) writes the injected diff verbatim with no PR-scope
     filter — and passes after Step 2.
 
-- [ ] **Step 2: Apply the PR-file-set intersection.**
+- [x] **Step 2: Apply the PR-file-set intersection.**
   - Insert the gated `python3` diff filter after `prefetch.sh:445`
     (`last_sha.txt` write) and before `:447` (`DIFF_BYTES`), guarded by
     `[ -n "$INCREMENTAL_USED" ]`.
@@ -136,7 +136,7 @@ construction (`gh pr diff`).
   - Emit the drop-count log line (mirror `:595`) when `N > 0`.
   - Run Step 1's test → green.
 
-- [ ] **Step 3: Verification.**
+- [x] **Step 3: Verification.**
   - Run the new test directly:
     `bash skills/woostack-review/scripts/tests/test-prefetch-incremental-rebase.sh`.
   - Re-run the existing prefetch/marker tests for no regression:
