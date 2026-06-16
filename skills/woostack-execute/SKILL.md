@@ -104,7 +104,7 @@ For each increment:
    [references/inline-driver.md](references/inline-driver.md) in inline mode, or
    [references/subagent-driver.md](references/subagent-driver.md) in subagent mode. Both follow
    TDD, run the verifications the plan specifies exactly, and check each task for spec compliance
-   and code quality before it is marked complete. Follow each safe plan step exactly.
+   and code quality before it is marked complete. Follow each safe plan step exactly. During a UI-touching increment, the implementer may optionally invoke [impeccable](https://github.com/pbakaus/impeccable) for front-end design craft (host-dependent; proceed normally if it is not installed) — the same optional-detour shape as the `woostack-debug` routing in "When to stop and ask".
 3. **Tick the plan's checkboxes in place.** Edit the markdown plan, `[ ]` → `[x]`, as each step
    or task completes, so the plan file is the live progress record.
 4. **Commit** via [`woostack-commit`](../woostack-commit/SKILL.md) on the increment's

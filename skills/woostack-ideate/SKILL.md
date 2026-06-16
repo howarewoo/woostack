@@ -96,6 +96,14 @@ seeing than reading — offer to render it with
 continue. Keep conceptual and requirements questions in the terminal; a UI topic is not
 automatically a visual question.
 
+For genuine front-end **craft** — typography, color, spacing, motion, component polish — rather
+than a view to *show*, defer to [impeccable](https://github.com/pbakaus/impeccable) when it is
+installed (its discipline commands, e.g. `/typeset`, `/colorize`, `/animate`). The split:
+`woostack-visualize` renders a view **to show the user**; impeccable **crafts the UI itself**.
+This is optional and host-dependent — if impeccable is not installed, proceed with built-in
+judgment. Its browser-based Live Mode stays out of this phase; the no-browser-companion rule
+above is unchanged.
+
 ## Key principles
 
 - **One question at a time.** Don't stack questions in a single message.
