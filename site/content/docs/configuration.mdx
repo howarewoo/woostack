@@ -6,14 +6,14 @@ description: Every key in the .woostack/config.json file, what it tunes, its typ
 woostack reads optional settings from `.woostack/config.json` at the repository root.
 [woostack-init](/docs/skills/woostack-init) creates the file, and every key is optional: when a
 key is absent, the skill that reads it falls back to a built-in default. The init template ships
-only two top-level namespaces — an empty `review` and a `status` block — and
+only two top-level namespaces (an empty `review` and a `status` block), and
 [woostack-doctor](/docs/skills/woostack-doctor) checks that those two are present.
 
 There are five top-level namespaces:
 
 | Namespace | Read by | Tunes |
 | --- | --- | --- |
-| `review` | [woostack-review](/docs/skills/woostack-review) | the PR review engine — angles, noise, models, validation |
+| `review` | [woostack-review](/docs/skills/woostack-review) | the PR review engine: angles, noise, models, validation |
 | `review_sweep` | [woostack-sweep](/docs/skills/woostack-sweep) | how many review rounds a stack sweep runs |
 | `commit` | [woostack-commit](/docs/skills/woostack-commit) | a pre-commit hook command |
 | `status` | [woostack-status](/docs/skills/woostack-status) | when the board flags a spec as stale |
@@ -72,7 +72,7 @@ finding explicitly marked blocking always surfaces regardless of the floor.
 
 Angles are auto-detected from the diff. Force an angle to run it regardless of detection; skip one
 to keep it off. `force` wins when an angle appears in both. The `bugs` and `security` angles can
-never be skipped — they are silently kept even if listed.
+never be skipped. They are silently kept even if listed.
 
 | Key | Type | Default | Meaning |
 | --- | --- | --- | --- |
@@ -93,7 +93,7 @@ The valid angles are: `aeo`, `api`, `architecture`, `bugs`, `comments`, `convent
 ### Skipping PRs automatically
 
 Some PRs should short-circuit the whole review with a skip comment. By default, three bot authors
-are skipped — `dependabot[bot]`, `renovate[bot]`, and `github-actions[bot]` — and PR titles
+are skipped (`dependabot[bot]`, `renovate[bot]`, and `github-actions[bot]`), and PR titles
 matching the release-rollup pattern `^(staging\|release\|chore\(release\))` are skipped. Set either
 to opt out: an empty array for `authors_skip`, or an empty string for the pattern.
 
@@ -104,7 +104,7 @@ to opt out: an empty array for `authors_skip`, or an empty string for the patter
 
 ### Model selection
 
-Each review subagent runs at a tier — `fast`, `standard`, or `deep` — and each tier maps to a
+Each review subagent runs at a tier (`fast`, `standard`, or `deep`), and each tier maps to a
 concrete model per provider. Override a single tier for one provider with
 `review.models.<provider>.<tier>`, or set a provider-agnostic fallback with the flat
 `review.models.<tier>`. `review.force_tier` pins every subagent to one tier, the config-file
@@ -134,7 +134,7 @@ PR → the action's `force_tier` input → `review.force_tier` → the action's 
 | Key | Type | Default | Meaning |
 | --- | --- | --- | --- |
 | `review.chunking.max_loc` | integer ≥ 0 | `4000` | Changed-line threshold; a larger diff is split into chunks and each angle fans out across them. `0` disables chunking. |
-| `review.disable_adversarial` | boolean | `false` | `true` skips the skeptical prosecutor pass and uses the defender pass alone — a cost opt-out. |
+| `review.disable_adversarial` | boolean | `false` | `true` skips the skeptical prosecutor pass and uses the defender pass alone, a cost opt-out. |
 | `review.defer_markers` | boolean | `true` | `true` honors inline `woostack-defer(<ref>)` markers, demoting a matching finding to a non-blocking nit. `security` findings are never deferred. |
 | `review.metrics` | boolean | `false` | `true` writes a per-angle signal/noise breakdown and folds a rolling local `.woostack/metrics.json`. |
 | `review.fix_commands` | array of string | `[]` | Reserved for a future loop mode; parsed but not yet consumed. |
@@ -150,7 +150,7 @@ review → address-comments per PR.
 
 ## Commit hook
 
-[woostack-commit](/docs/skills/woostack-commit) can run a command before it stages anything — a
+[woostack-commit](/docs/skills/woostack-commit) can run a command before it stages anything: a
 formatter, linter, or test runner.
 
 | Key | Type | Default | Meaning |
@@ -180,7 +180,7 @@ worktrees are cut from.
 <Callout type="info">
   Every key is optional. The init template ships only `review` and `status`; everything else takes
   its built-in default when absent. [woostack-doctor](/docs/skills/woostack-doctor) validates that
-  the two template top-level keys are present and can repair a missing one — the remaining keys are
+  the two template top-level keys are present and can repair a missing one. The remaining keys are
   validated at review time by woostack-review.
 </Callout>
 
