@@ -149,16 +149,16 @@ branch: feature/impeccable-integration
 **Files:**
 - Modify: `skills/woostack-ideate/SKILL.md` §"Visual treatment, on demand" (currently lines 90-97)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
   ```bash
   grep -q "impeccable" skills/woostack-ideate/SKILL.md && echo FOUND || echo ABSENT
   ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
   Run: `grep -q "impeccable" skills/woostack-ideate/SKILL.md && echo FOUND || echo ABSENT`
   Expected: `ABSENT`
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
   Append a paragraph to the end of the "## Visual treatment, on demand" section (after the sentence ending `...a UI topic is not automatically a visual question.`):
   ```markdown
 
@@ -171,7 +171,7 @@ branch: feature/impeccable-integration
   above is unchanged.
   ```
 
-- [ ] **Step 4: Run the tests, confirm they pass**
+- [x] **Step 4: Run the tests, confirm they pass**
   Run:
   ```bash
   grep -q "impeccable" skills/woostack-ideate/SKILL.md && \
@@ -182,7 +182,7 @@ branch: feature/impeccable-integration
   ```
   Expected: `PASS` (the last grep is the AC2-edge guard: the original no-browser-companion text is preserved)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt create -m "feat(ideate): delegate front-end craft to impeccable (optional)"
   ```
@@ -192,23 +192,23 @@ branch: feature/impeccable-integration
 **Files:**
 - Modify: `skills/woostack-execute/SKILL.md` §"Per-increment cadence", step 2 "Implement" (currently ends line 107)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
   ```bash
   grep -q "impeccable" skills/woostack-execute/SKILL.md && echo FOUND || echo ABSENT
   ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
   Run: `grep -q "impeccable" skills/woostack-execute/SKILL.md && echo FOUND || echo ABSENT`
   Expected: `ABSENT`
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
   In step 2 ("**Implement** ... Follow each safe plan step exactly."), append the following as a new sentence on the same line, immediately after `Follow each safe plan step exactly.` — keep it inside step-2's list item (no blank line, so list numbering is preserved):
   ```text
    During a UI-touching increment, the implementer may optionally invoke [impeccable](https://github.com/pbakaus/impeccable) for front-end design craft (host-dependent; proceed normally if it is not installed) — the same optional-detour shape as the `woostack-debug` routing in "When to stop and ask".
   ```
   (The leading space is intentional: it separates the new sentence from the existing one on the same line.)
 
-- [ ] **Step 4: Run the tests, confirm they pass**
+- [x] **Step 4: Run the tests, confirm they pass**
   Run:
   ```bash
   grep -q "impeccable" skills/woostack-execute/SKILL.md && \
@@ -216,7 +216,7 @@ branch: feature/impeccable-integration
   ```
   Expected: `PASS`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt modify -c -m "feat(execute): note optional impeccable craft on UI increments"
   ```
