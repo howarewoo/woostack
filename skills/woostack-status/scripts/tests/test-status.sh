@@ -71,6 +71,27 @@ run_status "$p"
 assert_contains "$OUT" "3/10" "plan progress counted"
 assert_contains "$OUT" "harden the plan" "planning next-action"
 
+# Fenced example checkboxes (embedded template / SKILL.md literals) must NOT count
+# as tasks. Real: 3 done + 3 todo = 6. The 5 boxes inside the ```` fence (including
+# a nested ``` block, which must not close the enclosing fence) are ignored.
+fence="$(mktemp -d)/.woostack"
+mkspec "$fence" echo planning feature/echo
+mkdir -p "$fence/plans"
+{
+  printf -- '---\ntype: plan\nsource: .woostack/specs/2026-06-01-echo.md\nstatus: planning\nbranch: feature/echo\n---\n\n'
+  printf -- '**Source:** .woostack/specs/2026-06-01-echo.md\n\n'
+  printf -- '- [x] real done 1\n- [x] real done 2\n- [x] real done 3\n- [ ] real todo 1\n- [ ] real todo 2\n\n'
+  printf -- '````markdown\n'
+  printf -- '- [ ] embedded example a\n- [ ] embedded example b\n'
+  printf -- '```bash\n- [ ] nested fenced c\n```\n'
+  printf -- '- [ ] embedded example d\n- [ ] embedded example e\n'
+  printf -- '````\n\n'
+  printf -- '- [ ] real todo 3 after fence\n'
+} > "$fence/plans/2026-06-01-echo.md"
+run_status "$fence"
+assert_contains "$OUT" "3/6" "fenced example checkboxes excluded from progress"
+assert_not_contains "$OUT" "3/11" "fenced boxes not over-counted"
+
 # Source line as an Obsidian wikilink ([[specs/<basename>]]) resolves the plan, same as a
 # bare path. The plan basename intentionally differs from the spec slug so resolution can
 # only come from the **Source:** line, not the slug fallback.
