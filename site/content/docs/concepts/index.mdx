@@ -1,23 +1,13 @@
 ---
-title: Core concepts
-description: "woostack's two big ideas: the gated build loop and context economy, plus the operational surfaces around them."
+title: Overview
+description: "woostack's core concepts: the gated build loop, context management, and the operational surfaces around them."
 ---
 
-import { ContextEconomy } from '@/components/concepts/context-economy';
-
 woostack rests on two ideas. A feature moves through a **gated build loop** so quality is
-enforced by structure, not vigilance. And every step practices **context economy**: the agent's
-working context holds only what the step needs, so it reasons better and runs longer. The pages
-below take each concept on its own.
-
-## Context economy
-
-<ContextEconomy />
-
-The working context is the scarce resource. A window stuffed with files the current step doesn't
-need is a window that reasons worse and runs out sooner. woostack spends it through three
-mechanisms: recall by scope, compute in the shell, and isolate in subagents. Two operational
-surfaces, worktrees and the status board, keep parallel work and collaboration cheap on top.
+enforced by structure, not vigilance. Every step also practices **context management**: the agent's
+working context holds only what the step needs, so it reasons better and runs longer. Worktrees and
+the status board keep parallel work and collaboration cheap on top. The pages below take each
+concept on its own.
 
 <Cards>
   <Card title="Building rules" href="/docs/concepts/building-rules" description="The gated build loop, its three hard gates, and the one-spec-one-plan-N-PRs invariant." />

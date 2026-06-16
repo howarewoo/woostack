@@ -1,5 +1,5 @@
 /**
- * Context-economy hero for the Core concepts page.
+ * Context-economy hero for the Context management page.
  *
  * Three mechanisms feed one scarce resource: the agent's working context.
  * Scoped recall, shell scripts, and subagents each keep heavy work out of the
