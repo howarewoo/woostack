@@ -3,7 +3,7 @@ title: Review angles
 description: "The lenses woostack-review fans out across a diff: what each angle audits, when it auto-fires, and the model tier it runs at."
 ---
 
-woostack-review reviews a pull request through a set of **angles**. Each angle is one lens (correctness, security, SQL, accessibility, and so on), and the review fans out one subagent per active angle in parallel, then validates their findings. This page is the catalog of every angle. To turn angles on or off, see [Choosing angles](/docs/configuration#choosing-angles) in the configuration reference.
+woostack-review reviews a pull request through a set of **angles**. Each angle is one lens, such as correctness, security, SQL, or accessibility, and the review fans out one subagent per active angle in parallel, then validates their findings. This page is the catalog of every angle. To turn angles on or off, see [Choosing angles](/docs/configuration#choosing-angles) in the configuration reference.
 
 ## How angles get chosen
 
@@ -26,7 +26,7 @@ Every angle, what it reviews, a plain-language summary of when it auto-fires, an
 | `comments` | Comment rot: whether code comments still match the code the PR changed | any general-purpose source file changes. Always non-blocking | fast |
 | `conventions` | Project rules: adherence to the repo's own AGENTS.md / CLAUDE.md and similar | the repo carries a rule file (AGENTS.md, CLAUDE.md, .cursorrules, .windsurfrules, GEMINI.md) along the changed paths | standard |
 | `database` | SQL correctness, row-level security, indexes, query plans | `.sql`, migration trees, ORM schema files, or SQL DDL / RLS / raw-SQL tokens in the diff | standard |
-| `deps` | Dependency hygiene: manifests and lockfiles | a dependency manifest or lockfile changes (package.json, pnpm-lock.yaml, go.mod, Cargo.toml, and the like) | fast |
+| `deps` | Dependency hygiene: manifests and lockfiles | a dependency manifest or lockfile changes (package.json, pnpm-lock.yaml, go.mod, Cargo.toml) | fast |
 | `design` | Visual and UX heuristics for front-end changes | a styling or markup file changes (`.tsx`, `.jsx`, `.vue`, `.svelte`, `.css`, and similar) | standard |
 | `docs` | Documentation hygiene: READMEs, changelogs, Markdown | README, CHANGELOG, `docs/`, or `.md` / `.mdx` files change (a SKILL.md routes to `skills`) | fast |
 | `i18n` | Internationalization: translation catalogs and message usage | `locales/`, `messages/`, `i18n/`, `.po` files, or translation tokens in the diff | fast |
