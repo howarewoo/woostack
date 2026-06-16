@@ -18,6 +18,41 @@ pnpx skills add howarewoo/woostack
 - **Team-ready:** built for small-to-medium collaborative codebases.
 - **Pairs with [impeccable](https://github.com/pbakaus/impeccable):** woostack's recommended front-end design skill. Install alongside: `pnpx skills add pbakaus/impeccable`.
 
+## Why woostack?
+
+I built woostack after getting frustrated with the spec-driven and agent-workflow tools that
+already existed. Each one solved a slice of the problem and left the rest to me. woostack is the
+version that holds five goals at the same time:
+
+- **Easy install:** one `pnpx skills add` command. No scaffolding step, no config file to
+  hand-edit before the first run.
+- **Minimal dependencies:** the build loop internalizes its own phases (ideate, harden, plan,
+  execute) instead of chaining external skills that drift out of sync.
+- **Universal memory:** a local memory and wisdom store every clone reads and writes, so sessions
+  stop repeating old mistakes.
+- **Universal harness and model support:** the same skills run under Claude Code, Cursor, Codex,
+  and Aider, and route each step to a model tier rather than hard-coding one provider.
+- **Whole-lifecycle coverage:** bootstrapping, building, debugging, review, and feedback iteration
+  in one collection, not the planning step alone.
+
+These are all strong projects, and woostack borrows ideas from several of them. They just were not
+the fit I wanted personally:
+
+- **Superpowers** ([obra/superpowers](https://github.com/obra/superpowers)) is the most complete of
+  the four, but it installs as a Claude Code plugin and works best wired deep into Claude Code. I
+  wanted skills that travel across agents through the plain `skills` convention.
+- **grill-me** does one thing well: it interviews you about a plan until the gaps are gone. For me
+  that is a single phase of the loop, the discipline `woostack-harden` is built on, rather than the
+  whole lifecycle.
+- **Spec Kit** ([github/spec-kit](https://github.com/github/spec-kit)) needs a Python toolchain
+  (`uv` or `pipx`) and an interactive `init`, and it stays inside spec-driven development. I wanted
+  a one-command install and coverage past the spec.
+- **GSD** is powerful, but it was the most work to configure and keep updated, for little gain over
+  what woostack already gives me.
+
+The bet is that one installable collection, opinionated about the whole loop, beats stitching
+several narrow tools together.
+
 ## Where to go next
 
 <Cards>
