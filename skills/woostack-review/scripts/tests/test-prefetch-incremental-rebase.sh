@@ -59,4 +59,39 @@ assert_not_contains "$diff_txt" "src/leaked.sh" "off-PR (rebase-leaked) file sec
 popd >/dev/null
 rm -rf "$work"
 
+# No-op safety invariant (issue #374): meta.json present but with an EMPTY files[]
+# list means PR scope is undeterminable, so the filter MUST keep the whole diff —
+# never drop everything on a meta it cannot scope. Same incremental diff + marker,
+# only the meta differs.
+work2="$(mktemp -d)"
+out2="$work2/out"
+pushd "$work2" >/dev/null
+git init -q
+git config user.email test@example.com
+git config user.name "Test User"
+mkdir -p src
+printf 'one\n' > src/app.sh
+git add .
+git commit -q -m init
+
+meta_empty='{"headRefOid":"abc1234","baseRefName":"main","title":"feature work","body":"","author":{"login":"human"},"files":[]}'
+
+OUTDIR="$out2" \
+PR_NUMBER=1 \
+GITHUB_REPOSITORY=owner/repo \
+WOO_REVIEW_TEST_MODE=1 \
+WOO_REVIEW_FAKE_PR_REVIEWS_JSON="$reviews" \
+WOO_REVIEW_FAKE_BOT_COMMENTS=0 \
+WOO_REVIEW_FAKE_META_JSON="$meta_empty" \
+WOO_REVIEW_FAKE_INCREMENTAL_DIFF="$incr" \
+WOO_REVIEW_FAKE_PRIOR_THREADS_JSON='{"data":{"repository":{"pullRequest":{"reviewThreads":{"nodes":[]}}}}}' \
+  bash "$DIR/prefetch.sh" >/tmp/review-prefetch-incremental-rebase-noop.out
+
+diff_txt2="$(cat "$out2/diff.txt")"
+assert_contains "$diff_txt2" "b/src/app.sh" "empty-files meta is a no-op: in-PR section kept"
+assert_contains "$diff_txt2" "src/leaked.sh" "empty-files meta is a no-op: nothing dropped, whole diff preserved"
+
+popd >/dev/null
+rm -rf "$work2"
+
 finish
