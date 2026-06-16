@@ -204,6 +204,14 @@ a blocking blocker. The result is a Graphite stack (linear, or tree-stacked acro
 increment PRs each driven to a clean review — or, at the cap, approved with only nits logged for the
 morning — or partially, with blockers logged — plus a complete morning report. Report the path. "Clean" is review-clean, never a merge. **Never merge.**
 
+When the whole plan reaches 100% — every track's increments implemented and every plan checkbox
+`[x]` — author the plan's terminal `status: done` **once** (never per-track) and commit the bump via
+[`woostack-commit`](../woostack-commit/SKILL.md) `--no-pr-update` before writing the morning report,
+mirroring [`woostack-execute`](../woostack-execute/SKILL.md) step 8. If any track halted on a
+blocker (the plan is not 100%), leave the authored `status:` untouched — `done` is reserved for a
+fully completed plan. This applies to plan files only; a `.woostack/fixes/` file's frontmatter stays
+owned by [`woostack-fix`](../woostack-fix/SKILL.md).
+
 ## Gate boundary
 
 This skill owns **no approval gate** — there is no human at runtime to gate. The pre-flight

@@ -129,9 +129,11 @@ sits after that PR. So the chain has exactly the three hard gates above.
    per-increment commit/review/distill cadence and the inline-vs-subagent mode choice (one plan
    per spec, multiple stacked PRs per plan), so it absorbs what used to be separate "distill
    memory" and "offer the PR" steps here. As branches, commits, and increment PRs appear the
-   spec advances into the `executing` → `in-review` band (and `done` post-merge); the board
-   **computes** that band from the artifacts via its truth table, so a lagging authored
-   `status:` is reconciled rather than trusted blindly.
+   spec advances into the `executing` → `in-review` band; `woostack-execute` authors the plan's
+   terminal `status: done` at the final increment (so the authored value no longer lags), while the
+   board still **computes** that band from the artifacts via its truth table — showing `in-review`
+   until the final PR merges, then `done` — so any still-lagging authored `status:` is reconciled
+   rather than trusted blindly.
 10. **End on the chosen terminal state.** Build ends in one of three shapes, never merging any:
     - **Hand off** → only the spec+plan PR is open (no increment PRs), ready for external or
       later execute.
@@ -168,8 +170,9 @@ sits after that PR. So the chain has exactly the three hard gates above.
   further.
 - **Author `status:` through the loop.** Set the spec's `status:` at each step — `draft` (step
   2), `hardened` then `approved` (step 3), `planning` (step 4, authored by woostack-plan),
-  `ready` (step 6, after the plan harden stops); the execute phase advances the
-  `executing`/`in-review` band, which the board also computes from artifacts. The phase enum
+  `ready` (step 6, after the plan harden stops); the execute phase advances into the
+  `executing`/`in-review` band and authors the plan's terminal `status: done` at the final
+  increment, all of which the board also computes from artifacts. The phase enum
   and the `spec : plan : PRs = 1 : 1 : N` join contracts are defined once in
   [`../woostack-status/references/conventions.md`](../woostack-status/references/conventions.md) —
   link it, never restate it.

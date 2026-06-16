@@ -1,6 +1,6 @@
 ---
 type: fix
-status: approved
+status: in-review
 branch: fix/plan-status-done-on-final-increment
 ---
 
@@ -73,14 +73,14 @@ user accepted authoring `done` there (file leads, board reconciles to `in-review
 
 ## 3. Implementation Plan
 
-- [ ] **Step 1: Reproduce / pin current behavior (TDD)**
+- [x] **Step 1: Reproduce / pin current behavior (TDD)**
   - No code runner covers SKILL.md prose, so this is the no-runner carve-out
     ([woostack-tdd](../../skills/woostack-tdd/SKILL.md)): the verification is a grep-assertion
     that the terminal-done step is **absent** today, then present after the edit.
   - Confirm `status.sh` tests stay green as a regression guard (this fix makes **no** board
     change, per Q1): `bash skills/woostack-status/scripts/tests/run-tests.sh`.
 
-- [ ] **Step 2: Author the terminal-done step in `woostack-execute`**
+- [x] **Step 2: Author the terminal-done step in `woostack-execute`**
   - `skills/woostack-execute/SKILL.md`: in **Terminal state** (`:161-167`) add the step —
     "after the final increment is committed and every plan checkbox is `[x]`, author
     `status: done` on the **plan** frontmatter and commit the bump via
@@ -91,35 +91,35 @@ user accepted authoring `done` there (file leads, board reconciles to `in-review
   - Reconcile the existing "Tick checkboxes in place / does not touch frontmatter" wording so
     the carve-out is not self-contradictory.
 
-- [ ] **Step 3: Propagate the carve-out to every site asserting "execute never touches frontmatter"**
+- [x] **Step 3: Propagate the carve-out to every site asserting "execute never touches frontmatter"**
   - Audit + update the cross-cutting claims (the ~multi-site wiring pattern). Candidate sites:
     `woostack-execute` description front-matter line, `woostack-build` step 8/9 prose
     (`:132-134`, `:169-172`), `woostack-fix:143-145` (verify it stays true — fix-file scoped),
     `conventions.md`, and the `using-woostack` routing notes if they restate the boundary.
   - `grep -rn "does not touch.*frontmatter\|ticks.*checkboxes\|never touch" skills/` to find all.
 
-- [ ] **Step 4: Update `woostack-build` prose**
+- [x] **Step 4: Update `woostack-build` prose**
   - `skills/woostack-build/SKILL.md:132-134,169-172`: the plan reaches `done` because execute
     **authors** it at the final increment; keep the "board also derives/reconciles from
     artifacts (shows in-review while the final PR is open)" note.
 
-- [ ] **Step 5: Update `woostack-execute-overnight`**
+- [x] **Step 5: Update `woostack-execute-overnight`**
   - `skills/woostack-execute-overnight/SKILL.md`: same terminal obligation — when a track's
     final increment completes and all plan checkboxes are `[x]`, author `status: done` and
     commit the bump before the morning report. (See Q2 for multi-track semantics.)
 
-- [ ] **Step 6: Refine the `done` definition in conventions**
+- [x] **Step 6: Refine the `done` definition in conventions**
   - `skills/woostack-status/references/conventions.md` (the `done` line): "authored by
     `woostack-execute` after the final increment (all checkboxes `[x]`); the board still
     derives/confirms via merged PRs and shows `in-review` while the final PR is open."
 
-- [ ] **Step 7: Docs-site sync (AGENTS.md hard constraint)**
+- [x] **Step 7: Docs-site sync (AGENTS.md hard constraint)**
   - `grep -rn "frontmatter\|in-review\|lifecycle\|status:" site/content/docs/` for any
     **authored** page restating the plan lifecycle / the execute boundary; update if found.
     Per-skill reference pages regenerate from `SKILL.md` — no manual edit.
   - Verify: `pnpm -C site build`.
 
-- [ ] **Step 8: Verification**
+- [x] **Step 8: Verification**
   - `bash skills/woostack-status/scripts/tests/run-tests.sh` green.
   - Grep-assert the terminal-done step + Hard constraint are present in `woostack-execute`.
   - `woostack-doctor --check` clean (no new convention violations).

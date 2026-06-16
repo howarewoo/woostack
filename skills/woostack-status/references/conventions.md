@@ -39,7 +39,9 @@ These definitions are the source of truth for the `/woostack-status` board and t
   - `ready` — plan hardened, 0 boxes done, spec+plan PR should be opened before execution
   - `executing` — branch + commits, plan partial
   - `in-review` — increment PR open
-  - `done` — 100% + all PRs merged
+  - `done` — authored by `woostack-execute` at the final increment (all boxes `[x]`, plan files);
+    the board also derives/confirms it from artifacts (100% + all PRs merged) and shows `in-review`
+    while the final PR is still open
   - `abandoned` — intentionally stopped
 
 `/woostack-status` derives truth from artifacts and flags drift instead of rewriting it:
