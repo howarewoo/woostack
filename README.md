@@ -44,7 +44,7 @@ pnpx skills add howarewoo/woostack
 
 This command registers the public skills (e.g. `using-woostack`, `woostack-init`, `woostack-bootstrap`, `woostack-build`, `woostack-fix`, `woostack-review`, `woostack-address-comments`, etc.) and internal helper skills in `skills-lock.json`.
 
-> **Recommended companion — [impeccable](https://github.com/pbakaus/impeccable).** woostack's front-end design skill of choice. It powers the `design` review angle (`woostack-review` runs impeccable's detector) and front-end design craft inside the build loop. Optional but recommended:
+> **Recommended companion — [impeccable](https://github.com/pbakaus/impeccable).** woostack's front-end design skill of choice. It powers the `design` review angle (`woostack-review` runs impeccable's detector). Optional but recommended:
 >
 > ```bash
 > pnpx skills add pbakaus/impeccable
