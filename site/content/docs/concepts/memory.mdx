@@ -1,0 +1,51 @@
+---
+title: Memory
+description: "The memory and wisdom stores, and how woostack recalls each: scoped for memory, wholesale for wisdom."
+---
+
+woostack keeps two knowledge stores under `.woostack/`, and they load in opposite ways. Memory is
+recalled narrowly, by scope; wisdom is loaded wholesale. Both are local to the clone, so later
+sessions stop repeating earlier mistakes.
+
+## Two knowledge stores
+
+- **`memory/`** holds scoped, per-fact notes. Recall loads only the notes whose `scope` glob
+  matches the files in play, plus any notes those link to (one hop out). A change that touches a
+  few files pulls in a few notes, not the whole store.
+- **`wisdom/`** holds a small set of generalized, cross-cutting findings. These load *wholesale*:
+  every wisdom file, every time a skill gathers design, planning, review, or root-cause
+  investigation context, with no scope matching at all.
+
+<Callout type="info">
+  Wisdom is never scope-matched. It loads in full or not at all. Memory is the opposite: only the
+  notes whose scope matches the current files are read. An empty or absent store is a no-op either
+  way.
+</Callout>
+
+Different skills reach for different stores, at different moments:
+
+| Skill | Reads memory (scoped) | Reads wisdom (wholesale) | Moment |
+| --- | :---: | :---: | --- |
+| [woostack-ideate](/docs/skills/woostack-ideate) | — | ✓ | exploring context, before proposing a design |
+| [woostack-plan](/docs/skills/woostack-plan) | — | ✓ | before writing the plan |
+| [woostack-debug](/docs/skills/woostack-debug) | ✓ | ✓ | at the start: known gotchas (scoped) and failure-class hints (wisdom), surfaced as hypotheses to test rather than answers |
+| [woostack-review](/docs/skills/woostack-review) | ✓ | ✓ | prefetch, before the angle subagents run |
+| [woostack-execute](/docs/skills/woostack-execute) | writes | — | distills a note after each increment |
+| [woostack-dream](/docs/skills/woostack-dream) | reads & curates | reads & writes | consolidating trends into wisdom |
+| [woostack-status](/docs/skills/woostack-status) | — | — | derives the board from artifacts only |
+
+Two skills feed the stores. [woostack-execute](/docs/skills/woostack-execute) distills a scoped
+note after each increment. [woostack-dream](/docs/skills/woostack-dream) is the only writer of
+wisdom, and it rolls recurring trends up from memory and the decision corpus:
+
+```
+woostack-execute        ── distill ─────► memory/   (scoped, per-feature)
+woostack-dream          ── consolidate ─► wisdom/   (generalized, cross-cutting)
+
+ideate · plan · review · debug  ── load wholesale ─► wisdom/
+debug · review                  ── scope-match ────► memory/
+```
+
+Recall is run in the shell, not the prompt: `recall.sh` does the scope match and one-hop
+expansion, and `build-index.sh` keeps `MEMORY.md` as a one-line-per-note index. See
+[Context management](/docs/concepts/context-management) for why that matters.

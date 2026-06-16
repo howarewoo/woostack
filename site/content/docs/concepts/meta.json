@@ -1,0 +1,9 @@
+{
+  "title": "Core concepts",
+  "pages": [
+    "index",
+    "building-rules",
+    "memory",
+    "context-management"
+  ]
+}

@@ -1,0 +1,50 @@
+---
+title: Context management
+description: "How woostack keeps the working context small: scripts compute in the shell, subagents isolate heavy work, and model tiers route each task."
+---
+
+Context economy has three mechanisms. One of them, recall by scope, is the [Memory](/docs/concepts/memory)
+store. The other two live here: shell scripts that compute and return a compact result, and
+subagents that carry heavy work off the main thread. Each returns something small, so the bulk
+never reaches the main context.
+
+## Scripts compute, agents read
+
+woostack ships small shell scripts that do the filesystem, git, and GitHub work and print a compact
+result. The agent reads the result, not the inputs that produced it.
+
+- `build-index.sh` compresses every memory note down to one index line in `MEMORY.md`, so a skill
+  reads the index instead of every note body.
+- `recall.sh` runs the scope match and the one-hop expansion, then emits only the notes that
+  matched.
+- `status.sh` reads the specs, plans, and PR state and prints the feature board, so the agent never
+  loads all those artifacts itself.
+- `prefetch.sh` gathers a PR's diff, metadata, rules, memory, and wisdom once, and the review
+  subagents read those files rather than each re-fetching from GitHub.
+
+This is what makes recall scale: on a repo with 500 notes, recall loads only the handful that match
+the changed files, not the full corpus. Because the work happens in the shell, the results are
+deterministic and the scripts are idempotent, so they are safe to run anytime, including in CI.
+
+## Subagents isolate work
+
+Some steps hand work to subagents. Each subagent runs in its own context window and returns only a
+compact result, so the heavy reading and reasoning never land in the main thread.
+
+- [woostack-execute](/docs/skills/woostack-execute) runs inline or with subagents. The smart
+  default is subagents where the host can spawn them, inline otherwise. In subagent mode a fresh
+  implementer writes each task, then a spec-compliance reviewer and a code-quality reviewer check
+  the diff. Each is a separate agent that sees only what it needs.
+- [woostack-review](/docs/skills/woostack-review) fans out one subagent per review angle in
+  parallel, then runs two opposing validator passes (one assumes each finding is real, one tries to
+  refute it) and keeps only the findings both agree on.
+
+Each subagent runs at a tier matched to the work, so cheap tasks don't burn an expensive model. The
+tiers map to a concrete model per provider in
+[model-tiers.md](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/model-tiers.md):
+
+| Tier | Use for | Anthropic model |
+| --- | --- | --- |
+| `fast` | rubric checks, mechanical one-or-two-file tasks, context summaries | `claude-haiku-4-5` |
+| `standard` | reasoning workers, multi-file integration | `claude-sonnet-4-6` |
+| `deep` | code-quality review, design and architecture judgment, skeptical validation | `claude-opus-4-8` |

@@ -1,0 +1,33 @@
+---
+title: Building rules
+description: The gated build loop, its three hard gates, and the one-spec-one-plan-N-PRs invariant.
+---
+
+woostack drives a feature through a fixed, gated chain. The rules below are what make the loop
+trustworthy: a defined order, three places the chain stops for a human, and one invariant that
+keeps every feature's artifacts joined.
+
+## The build loop
+
+[woostack-build](/docs/skills/woostack-build) chains the phases in a fixed, gated order:
+
+> ideate → write spec → harden spec → **approve spec** → plan → harden plan → ship spec+plan PR
+> → **execution handoff** → execute (per increment: implement → commit → review → distill)
+
+Each phase is its own skill. Build is the glue that sequences them and owns the handoffs between
+them.
+
+## Three hard gates
+
+The chain only advances past these on an explicit "yes":
+
+1. **Design approval** is owned by [woostack-ideate](/docs/skills/woostack-ideate).
+2. **Spec approval** happens when the written spec is presented, before any planning begins.
+3. **Execution handoff** is where you choose Go, Run overnight, or Hand off, after the spec+plan PR.
+
+## One spec, one plan, N PRs
+
+Every feature holds the `spec : plan : PRs = 1 : 1 : N` invariant: exactly one plan per spec, and
+that plan owns the N stacked increment PRs. [woostack-status](/docs/skills/woostack-status)
+derives the feature board from these artifacts, so the board is always computed rather than
+hand-maintained.
