@@ -6,6 +6,7 @@
     "memory",
     "context-management",
     "worktrees",
-    "status-tracking"
+    "status-tracking",
+    "review-angles"
   ]
 }

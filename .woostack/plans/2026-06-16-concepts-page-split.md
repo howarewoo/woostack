@@ -550,11 +550,11 @@ dependencies (spec §3).
 - Modify: `site/content/docs/meta.json` (drop top-level `"review-angles"`)
 - Modify: `site/content/docs/configuration.mdx` (repoint the `/docs/review-angles` link)
 
-- [ ] **Step 1: Move the file with git (preserves history)**
+- [x] **Step 1: Move the file with git (preserves history)**
   Run: `git mv site/content/docs/review-angles.mdx site/content/docs/concepts/review-angles.mdx`
   Expected: no output (success).
 
-- [ ] **Step 2: Add `"review-angles"` to `concepts/meta.json`** (append last)
+- [x] **Step 2: Add `"review-angles"` to `concepts/meta.json`** (append last)
   ```json
   {
     "title": "Core concepts",
@@ -570,24 +570,24 @@ dependencies (spec §3).
   }
   ```
 
-- [ ] **Step 3: Remove `"review-angles"` from the root nav** (`site/content/docs/meta.json`)
+- [x] **Step 3: Remove `"review-angles"` from the root nav** (`site/content/docs/meta.json`)
   ```json
   {"title":"Docs","pages":["index","getting-started","concepts","configuration","skills"]}
   ```
 
-- [ ] **Step 4: Repoint the inbound link in `configuration.mdx`**
+- [x] **Step 4: Repoint the inbound link in `configuration.mdx`**
   Line ~82: change `[Review angles](/docs/review-angles)` to
   `[Review angles](/docs/concepts/review-angles)`.
   ```mdx
   See [Review angles](/docs/concepts/review-angles) for the full catalog of all 19 angles: what each one
   ```
 
-- [ ] **Step 5: Add the review-angles Card to the hub** (`concepts/index.mdx`, inside `<Cards>`)
+- [x] **Step 5: Add the review-angles Card to the hub** (`concepts/index.mdx`, inside `<Cards>`)
   ```mdx
     <Card title="Review angles" href="/docs/concepts/review-angles" description="The catalog of angles woostack-review runs on a PR, and when each one fires." />
   ```
 
-- [ ] **Step 6: Build green and no stale `/docs/review-angles` target remains**
+- [x] **Step 6: Build green and no stale `/docs/review-angles` target remains**
   Run: `pnpm -C site build`
   Expected: exits 0; route list includes `/docs/concepts/review-angles`; no `/docs/review-angles`.
   Run: `grep -rn "/docs/review-angles" site/content`
@@ -595,7 +595,7 @@ dependencies (spec §3).
   Run: `grep -rn '"review-angles"' site/content/docs/meta.json`
   Expected: no matches (it was removed from the root; the concepts/meta.json match is a different file).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
   ```bash
   gt create -m "docs(site): move review-angles under concepts section, repoint links"
   ```
