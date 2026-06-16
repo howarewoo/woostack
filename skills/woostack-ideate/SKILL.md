@@ -52,6 +52,11 @@ Work the steps in order. Ask **one question per message** so you never overwhelm
    Also read every `.woostack/wisdom/*.md` file (wholesale — they are generalized, cross-cutting
    guidance, not scope-routed) and treat them as house-rules the design should respect. See the
    wisdom contract [`../woostack-init/references/wisdom.md`](../woostack-init/references/wisdom.md).
+   For front-end work, also read impeccable's `DESIGN.md` if present (at the repo root, where
+   `/impeccable init` writes it) and treat it as design house-rules. Single home: `DESIGN.md` is
+   the design-system source of truth, `@infrastructure/ui` tokens are its implementation, and
+   `.woostack/wisdom/` holds general house-rules — read `DESIGN.md`, never copy it into `wisdom/`.
+   An absent `DESIGN.md` is a no-op.
    An empty or absent `wisdom/` is a no-op.
 2. **Check scope first.** If the request bundles multiple independent subsystems ("a platform
    with chat, billing, and analytics"), flag it immediately. Don't refine details of
