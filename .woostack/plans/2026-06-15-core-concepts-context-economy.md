@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-06-15-core-concepts-context-economy.md
-status: executing
+status: done
 branch: feature/core-concepts-context-economy
 ---
 

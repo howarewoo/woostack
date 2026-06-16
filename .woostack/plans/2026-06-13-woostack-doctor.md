@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-06-13-woostack-doctor.md
-status: in-review
+status: done
 branch: feature/woostack-doctor
 ---
 
@@ -46,14 +46,14 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
 - Move: `skills/woostack-init/scripts/tests/test-doctor.sh` → `skills/woostack-doctor/scripts/tests/test-doctor.sh`
 - Create: `skills/woostack-doctor/scripts/tests/run-tests.sh`
 
-- [ ] Create the new dirs and move with git (preserves history):
+- [x] Create the new dirs and move with git (preserves history):
   ```bash
   cd "$(git rev-parse --show-toplevel)"
   mkdir -p skills/woostack-doctor/scripts/checks skills/woostack-doctor/scripts/tests skills/woostack-doctor/references
   git mv skills/woostack-init/scripts/doctor.sh skills/woostack-doctor/scripts/doctor.sh
   git mv skills/woostack-init/scripts/tests/test-doctor.sh skills/woostack-doctor/scripts/tests/test-doctor.sh
   ```
-- [ ] Fix the two cross-skill source/call lines in `skills/woostack-doctor/scripts/doctor.sh`
+- [x] Fix the two cross-skill source/call lines in `skills/woostack-doctor/scripts/doctor.sh`
   (was `"$HERE/lib.sh"` / `"$HERE/scope-match.sh"`, now in `woostack-init`):
   ```bash
   # line 7:
@@ -61,7 +61,7 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
   # line 45 (inside the loop):
   matches="$(printf '%s\n' "$paths" | bash "$HERE/../../woostack-init/scripts/scope-match.sh" "$scope" 2>/dev/null)"
   ```
-- [ ] Point the moved test at the cross-skill `assert.sh`. The test header is
+- [x] Point the moved test at the cross-skill `assert.sh`. The test header is
   `DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"` (= `scripts/`), then
   `source "$DIR/tests/assert.sh"` and `DOC="$DIR/doctor.sh"`. `DOC` already resolves after the
   move; `assert.sh` stays in `woostack-init`, so only line 4's source path changes:
@@ -71,7 +71,7 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
   The rest of the body (`run_doctor`, `mk_note`, the assertions) is unchanged in this increment —
   Inc 1's `doctor.sh` is still the verbatim memory linter (takes the memdir as `$1`, emits the old
   `::warning::`/`::error::` format), so every existing assertion passes.
-- [ ] Create `skills/woostack-doctor/scripts/tests/run-tests.sh` (mirror of init's runner):
+- [x] Create `skills/woostack-doctor/scripts/tests/run-tests.sh` (mirror of init's runner):
   ```bash
   #!/usr/bin/env bash
   set -euo pipefail
@@ -84,12 +84,12 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
   done
   exit "$rc"
   ```
-- [ ] Verify the moved suite is green from its new home:
+- [x] Verify the moved suite is green from its new home:
   ```bash
   bash skills/woostack-doctor/scripts/tests/run-tests.sh
   ```
   Expected: ends `0 failed` (all existing memory-linter assertions pass unchanged).
-- [ ] Verify the init suite still passes with `test-doctor.sh` gone from it:
+- [x] Verify the init suite still passes with `test-doctor.sh` gone from it:
   ```bash
   bash skills/woostack-init/scripts/tests/run-tests.sh
   ```
@@ -100,7 +100,7 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
 **Files:**
 - Modify: `skills/woostack-init/SKILL.md` (lines ~13–14, 80, 83, 87, 115, 118)
 
-- [ ] In `skills/woostack-init/SKILL.md`, change the invocation from
+- [x] In `skills/woostack-init/SKILL.md`, change the invocation from
   `bash scripts/doctor.sh .woostack/memory` to the new path and note the cross-skill dependency:
   ```
   bash ../woostack-doctor/scripts/doctor.sh .woostack/memory
@@ -108,7 +108,7 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
   Update the surrounding prose (lines 13–14, 83, 87) so "runs `doctor.sh`" reads "runs
   `woostack-doctor`'s `doctor.sh` engine"; in the headless-tooling list (115, 118) keep `doctor`
   but point to its new home.
-- [ ] Confirm no stale path remains in init:
+- [x] Confirm no stale path remains in init:
   ```bash
   grep -rn "woostack-init/scripts/doctor" skills/woostack-init/ ; echo "exit=$?"
   ```
@@ -119,11 +119,11 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
 **Files:**
 - Modify: `skills/woostack-dream/SKILL.md` (lines 8, 20, 69)
 
-- [ ] Replace all `../woostack-init/scripts/doctor.sh` with `../woostack-doctor/scripts/doctor.sh`:
+- [x] Replace all `../woostack-init/scripts/doctor.sh` with `../woostack-doctor/scripts/doctor.sh`:
   ```bash
   sed -i.bak 's#\.\./woostack-init/scripts/doctor\.sh#../woostack-doctor/scripts/doctor.sh#g' skills/woostack-dream/SKILL.md && rm -f skills/woostack-dream/SKILL.md.bak
   ```
-- [ ] Confirm the move left no dangling reference anywhere in the repo:
+- [x] Confirm the move left no dangling reference anywhere in the repo:
   ```bash
   grep -rn "woostack-init/scripts/doctor" skills/ .github/ action.yml 2>/dev/null ; echo "exit=$?"
   ```
@@ -135,7 +135,7 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
 **Files:**
 - Create: `skills/woostack-doctor/scripts/tests/test-no-stale-paths.sh`
 
-- [ ] Write the failing test first:
+- [x] Write the failing test first:
   ```bash
   #!/usr/bin/env bash
   set -euo pipefail
@@ -146,7 +146,7 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
   assert_eq "$hits" "" "no skill references the old woostack-init/scripts/doctor.sh path"
   finish
   ```
-- [ ] Run it; expect green (Tasks 1.2–1.3 already removed the references):
+- [x] Run it; expect green (Tasks 1.2–1.3 already removed the references):
   ```bash
   bash skills/woostack-doctor/scripts/tests/test-no-stale-paths.sh
   ```
@@ -164,7 +164,7 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
 **Files:**
 - Create: `skills/woostack-doctor/scripts/checks/memory.sh`
 
-- [ ] Create `checks/memory.sh` by moving the per-note loop + overlap-cluster block from the old
+- [x] Create `checks/memory.sh` by moving the per-note loop + overlap-cluster block from the old
   `doctor.sh` **verbatim**, with two mechanical substitutions: (a) source libs cross-skill; (b)
   replace `err`/`warn` with a finding emitter. Header + helpers:
   ```bash
@@ -183,7 +183,7 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
   err()  { emit error "$1" report "$2" "$3"; }
   warn() { emit warn  "$1" report "$2" "$3"; }
   ```
-- [ ] Move the body of the old `for f in "$MEM_DIR"/*.md` loop and the overlap-cluster `awk`
+- [x] Move the body of the old `for f in "$MEM_DIR"/*.md` loop and the overlap-cluster `awk`
   block **verbatim**, rewriting each `err "<msg>"` / `warn "<msg>"` call to the 3-arg
   `err <code> <path> <msg>` / `warn <code> <path> <msg>` form, using these codes (path = `$base`,
   or `MEM_DIR` for the cluster line):
@@ -209,7 +209,7 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
 **Files:**
 - Modify: `skills/woostack-doctor/scripts/doctor.sh` (replace contents — it is now the orchestrator)
 
-- [ ] Replace `doctor.sh` with the orchestrator:
+- [x] Replace `doctor.sh` with the orchestrator:
   ```bash
   #!/usr/bin/env bash
   # doctor.sh — woostack workspace health orchestrator. Runs checks/*.sh, groups
@@ -263,12 +263,12 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
 - Modify: `skills/woostack-doctor/scripts/tests/test-doctor.sh`
 - Create: `skills/woostack-doctor/scripts/tests/test-orchestrator.sh`
 
-- [ ] In `test-doctor.sh`, the memory-lint assertions still hold but the annotation lines now carry
+- [x] In `test-doctor.sh`, the memory-lint assertions still hold but the annotation lines now carry
   a `[code]` prefix. Where a test asserted `::warning::` + a message substring, it still passes
   (substring match). Add `WOO=` fixture wrapping: the engine now takes a repo root, so build
   fixtures as `$WOO/.woostack/memory/...` and call `bash "$DOCTOR" "$WOO"`. Update the harness
   helper calls accordingly (memory dir → `"$WOO/.woostack/memory"`).
-- [ ] Write `test-orchestrator.sh` (red first — orchestrator behaviors):
+- [x] Write `test-orchestrator.sh` (red first — orchestrator behaviors):
   ```bash
   #!/usr/bin/env bash
   set -uo pipefail
@@ -299,7 +299,7 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
   assert_eq "$dump" "" "--check suppresses machine dump on stdout"
   finish
   ```
-- [ ] Run the suite; iterate `memory.sh`/orchestrator until green:
+- [x] Run the suite; iterate `memory.sh`/orchestrator until green:
   ```bash
   bash skills/woostack-doctor/scripts/tests/run-tests.sh
   ```
@@ -316,7 +316,7 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
 **Files:**
 - Create: `skills/woostack-doctor/scripts/checks/spec-plan-backlink.sh`
 
-- [ ] Write the check (diagnose default; `--fix <spec> <plan-basename>` apply path). It reuses the
+- [x] Write the check (diagnose default; `--fix <spec> <plan-basename>` apply path). It reuses the
   `status.sh` join (Source line → spec; else same-basename fallback) and requires the spec to carry
   a folder-qualified `[[plans/<plan-basename>]]`:
   ```bash
@@ -367,7 +367,7 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
 **Files:**
 - Create: `skills/woostack-doctor/scripts/tests/test-spec-plan-backlink.sh`
 
-- [ ] Write the test (red first):
+- [x] Write the test (red first):
   ```bash
   #!/usr/bin/env bash
   set -uo pipefail
@@ -408,7 +408,7 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
   assert_eq "$(bash "$CHK" "$r3")" "" "spec-less plan is not flagged by this check"
   finish
   ```
-- [ ] Run; iterate until green:
+- [x] Run; iterate until green:
   ```bash
   bash skills/woostack-doctor/scripts/tests/test-spec-plan-backlink.sh
   ```
@@ -425,7 +425,7 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
 **Files:**
 - Create: `skills/woostack-doctor/scripts/checks/orphan-worktree.sh`
 
-- [ ] Write it — flag dirs under `.woostack/worktrees/` not registered with git; `auto` only when
+- [x] Write it — flag dirs under `.woostack/worktrees/` not registered with git; `auto` only when
   prunable (clean), else `report`:
   ```bash
   #!/usr/bin/env bash
@@ -464,7 +464,7 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
 **Files:**
 - Create: `skills/woostack-doctor/scripts/checks/gitignore-drift.sh`
 
-- [ ] Write it — each shipped-template line absent from the consumer `.woostack/.gitignore` is a
+- [x] Write it — each shipped-template line absent from the consumer `.woostack/.gitignore` is a
   finding; `--fix` appends only the missing lines (per-line presence, no reorder):
   ```bash
   #!/usr/bin/env bash
@@ -502,7 +502,7 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
 **Files:**
 - Create: `skills/woostack-doctor/scripts/checks/config-keys.sh`
 
-- [ ] Write it — required keys = the keys in the shipped init `config.json` template; missing →
+- [x] Write it — required keys = the keys in the shipped init `config.json` template; missing →
   finding; `--fix` adds the missing top-level key with its template default (jq when present, else a
   reported manual edit):
   ```bash
@@ -538,7 +538,7 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
 **Files:**
 - Create: `skills/woostack-doctor/scripts/tests/test-health-checks.sh`
 
-- [ ] Write the test (red first) covering each check's fire + clean + idempotent fix:
+- [x] Write the test (red first) covering each check's fire + clean + idempotent fix:
   ```bash
   #!/usr/bin/env bash
   set -uo pipefail
@@ -569,7 +569,7 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
   assert_contains "$(bash "$C/orphan-worktree.sh" "$r3")" "orphan-worktree" "unregistered worktree dir flagged"
   finish
   ```
-- [ ] Run; iterate until green:
+- [x] Run; iterate until green:
   ```bash
   bash skills/woostack-doctor/scripts/tests/test-health-checks.sh
   ```
@@ -588,7 +588,7 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
 - Create: `skills/woostack-doctor/SKILL.md`
 - Create: `skills/woostack-doctor/references/checks.md`
 
-- [ ] Write `SKILL.md` with: a concise `description:` (run-anytime diagnose + gated repair of
+- [x] Write `SKILL.md` with: a concise `description:` (run-anytime diagnose + gated repair of
   `.woostack/`; the 17th command; never merges); the command forms `/woostack-doctor [path]`
   (default = diagnose then offer repair) and `/woostack-doctor [path] --check` (CI: diagnose-only,
   exit-coded); the procedure:
@@ -606,7 +606,7 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
   reconcile the board (that is `woostack-status`); never curate memory content (that is
   `woostack-dream`); never auto-apply; never merge. Cross-link `conventions.md` for the spec↔plan
   join; do not restate it.
-- [ ] Write `references/checks.md`: a table of every check — `code`, what it flags, severity,
+- [x] Write `references/checks.md`: a table of every check — `code`, what it flags, severity,
   `fixable` (auto/report), and the `--fix` contract. Link it from `SKILL.md`.
 
 ### Task 5.2: Repair-composition integration test
@@ -614,7 +614,7 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
 **Files:**
 - Create: `skills/woostack-doctor/scripts/tests/test-repair-apply.sh`
 
-- [ ] Test that the diagnose→apply round-trip clears findings across all auto checks at once (the
+- [x] Test that the diagnose→apply round-trip clears findings across all auto checks at once (the
   agent's apply loop, exercised mechanically — the `woostack-commit` handoff is asserted at the
   boundary, not by opening a real PR):
   ```bash
@@ -643,7 +643,7 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
   assert_eq "$residue" "" "after applying auto fixes, those findings clear"
   finish
   ```
-- [ ] Run the full doctor suite green:
+- [x] Run the full doctor suite green:
   ```bash
   bash skills/woostack-doctor/scripts/tests/run-tests.sh
   ```
@@ -661,12 +661,12 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
 **Files:**
 - Modify: `skills/woostack-build/references/spec-template.md`
 
-- [ ] Add the callout below the existing `> status:` callout (use `{{DATE}}-{{SLUG}}`, the plan
+- [x] Add the callout below the existing `> status:` callout (use `{{DATE}}-{{SLUG}}`, the plan
   basename — **not** `{{SLUG}}` alone):
   ```
   > **Plan:** [[plans/{{DATE}}-{{SLUG}}]]
   ```
-- [ ] Verify the placeholder reconstructs the basename (the spec file is `{{DATE}}-{{SLUG}}.md`):
+- [x] Verify the placeholder reconstructs the basename (the spec file is `{{DATE}}-{{SLUG}}.md`):
   ```bash
   grep -n "Plan:.*\[\[plans/{{DATE}}-{{SLUG}}\]\]" skills/woostack-build/references/spec-template.md
   ```
@@ -677,7 +677,7 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
 **Files:**
 - Modify: all `.woostack/specs/*.md` with a plan (40 same-basename + 3 slug-mismatch via Source)
 
-- [ ] Run the backfill (reuses the check's join + idempotent `--fix`):
+- [x] Run the backfill (reuses the check's join + idempotent `--fix`):
   ```bash
   cd "$(git rev-parse --show-toplevel)"
   CHK=skills/woostack-doctor/scripts/checks/spec-plan-backlink.sh
@@ -689,12 +689,12 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
     bash "$CHK" --fix . "$spec" "$pbase"   # --fix <root> <spec> <pbase>; root=. (repo cwd)
   done
   ```
-- [ ] Confirm the engine reports no `spec-plan-backlink` finding on the real store:
+- [x] Confirm the engine reports no `spec-plan-backlink` finding on the real store:
   ```bash
   bash skills/woostack-doctor/scripts/doctor.sh . 2>&1 | grep spec-plan-backlink ; echo "exit=$?"
   ```
   Expected: no matches (`exit=1`).
-- [ ] Spot-check one previously-isolated spec now carries the callout:
+- [x] Spot-check one previously-isolated spec now carries the callout:
   ```bash
   grep -n "Plan:.*\[\[plans/2026-06-12-output-discipline\]\]" .woostack/specs/2026-06-12-output-discipline.md
   ```
@@ -711,14 +711,14 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
 **Files:**
 - Modify: `AGENTS.md` (the "sixteen skills" surface, file map, Modes B list)
 
-- [ ] Change "sixteen skills" → "seventeen skills" and add the
+- [x] Change "sixteen skills" → "seventeen skills" and add the
   [`woostack-doctor`](skills/woostack-doctor/SKILL.md) bullet to the command-surface list.
-- [ ] Add a Quick file map entry:
+- [x] Add a Quick file map entry:
   ```
   - Workspace health (diagnose + gated repair) engine:
     [`skills/woostack-doctor/SKILL.md`](skills/woostack-doctor/SKILL.md)
   ```
-- [ ] Add `/woostack-doctor` to the Modes B command list. Note the engine move: the line about
+- [x] Add `/woostack-doctor` to the Modes B command list. Note the engine move: the line about
   init "runs the index builder and store linter" now points at `woostack-doctor`'s engine.
 
 ### Task 7.2: using-woostack routing + init trim
@@ -727,9 +727,9 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
 - Modify: `skills/using-woostack/SKILL.md` (routing table)
 - Modify: `skills/woostack-init/SKILL.md` (description + repair claim)
 
-- [ ] Add a `/woostack-doctor` row to the using-woostack routing table (intent: "check/repair my
+- [x] Add a `/woostack-doctor` row to the using-woostack routing table (intent: "check/repair my
   .woostack workspace health").
-- [ ] Trim `woostack-init`'s description/SKILL so its "repair" reads **scaffold-only** (create
+- [x] Trim `woostack-init`'s description/SKILL so its "repair" reads **scaffold-only** (create
   missing structure) and points to `woostack-doctor` for lint/repair of existing content.
 
 ### Task 7.3: Docs site nav + framing
@@ -737,13 +737,13 @@ contract → checks → repair → dogfood → surface). No `## Track:` headings
 **Files:**
 - Modify: `site/` nav config + framing page listing the skills (locate with the grep below)
 
-- [ ] Find where the site enumerates skills and add `woostack-doctor`:
+- [x] Find where the site enumerates skills and add `woostack-doctor`:
   ```bash
   grep -rln "woostack-dream\|woostack-tdd\|sixteen" site/ --include=*.ts --include=*.tsx --include=*.mdx --include=*.json
   ```
   Add the doctor entry to each match (nav + any authored framing list). Per-skill reference pages
   are generated from `SKILL.md`, so no page authoring is needed.
-- [ ] Confirm the surface count is consistent across the repo:
+- [x] Confirm the surface count is consistent across the repo:
   ```bash
   grep -rn "sixteen skills\|sixteen public" . --include=*.md ; echo "exit=$?"
   ```

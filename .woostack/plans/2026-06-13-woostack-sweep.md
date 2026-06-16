@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-06-13-woostack-sweep.md
-status: ready
+status: done
 branch: feature/woostack-sweep
 ---
 
@@ -465,14 +465,14 @@ gt modify -c -m "refactor(overnight): collapse the sweep hard-constraint bullet;
 
 ## Self-review (run before handing back)
 
-- [ ] **Spec coverage** — every spec section maps to a task:
+- [x] **Spec coverage** — every spec section maps to a task:
   - §4 new skill / engine / command surface / config / outcomes → Increment 1.
   - §4 delegation seam (overnight, **both** the section and the hard-constraint bullet) + config promotion → Increment 3.
   - §4 registration surface → Increment 2.
   - §6 error handling (no-PR skip, exit-0, protected-OK, raw-git, bad-config) → Increment 1 SKILL body.
-- [ ] **AC coverage** — AC1 (skill exists + engine) → Inc 1 Steps 4–5; AC2 (overnight delegates, no restate — section + bullet) → Inc 3 Task 1 Step 4 **and** Task 2 Step 4 (`! grep restack`); AC3 (single config key) → Inc 3 Task 2 Step 4; AC4 (standalone terminal incl. no-PR skip + exit 0) → Inc 1 SKILL body (Blocker & terminal state, Resolve the stack); AC5 (registered) → Inc 2 Step 4 of both tasks; AC6 (safety invariants) → Inc 1 Step 4 `Never merge` + Hard constraints.
-- [ ] **No placeholders** — every step has the exact file, the full SKILL.md / replacement content, exact grep/`gh`/`gt` commands, and expected output.
-- [ ] **Type consistency** — the per-PR outcome vocabulary (`clean` / `done-with-findings` / `blocked`), the key name `review_sweep.max_rounds`, the flag names (`--base`, `--interactive`), and the skill name `woostack-sweep` are spelled identically across the new SKILL, the overnight delegation (section + bullet), the routing row, and AGENTS.md.
+- [x] **AC coverage** — AC1 (skill exists + engine) → Inc 1 Steps 4–5; AC2 (overnight delegates, no restate — section + bullet) → Inc 3 Task 1 Step 4 **and** Task 2 Step 4 (`! grep restack`); AC3 (single config key) → Inc 3 Task 2 Step 4; AC4 (standalone terminal incl. no-PR skip + exit 0) → Inc 1 SKILL body (Blocker & terminal state, Resolve the stack); AC5 (registered) → Inc 2 Step 4 of both tasks; AC6 (safety invariants) → Inc 1 Step 4 `Never merge` + Hard constraints.
+- [x] **No placeholders** — every step has the exact file, the full SKILL.md / replacement content, exact grep/`gh`/`gt` commands, and expected output.
+- [x] **Type consistency** — the per-PR outcome vocabulary (`clean` / `done-with-findings` / `blocked`), the key name `review_sweep.max_rounds`, the flag names (`--base`, `--interactive`), and the skill name `woostack-sweep` are spelled identically across the new SKILL, the overnight delegation (section + bullet), the routing row, and AGENTS.md.
 
 > woostack plan conventions (keep them):
 > - This file is **frontmatter-free** and **opens with** the `**Source:**` line.

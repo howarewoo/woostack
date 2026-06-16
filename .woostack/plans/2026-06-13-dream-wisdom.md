@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-06-13-dream-wisdom.md
-status: executing
+status: done
 branch: feature/dream-wisdom
 ---
 
@@ -682,7 +682,7 @@ grep -q 'wisdom' skills/woostack-ideate/SKILL.md \
 ```
 Expected: `OK`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt create -m "feat(build): load wisdom wholesale in the design phase"
@@ -715,7 +715,7 @@ sub-step:
 Run: `grep -q 'Load wisdom' skills/woostack-plan/SKILL.md && grep -q 'references/wisdom.md' skills/woostack-plan/SKILL.md && echo OK`
 Expected: `OK`
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt modify -c -m "feat(plan): load wisdom wholesale before planning"
@@ -819,7 +819,7 @@ grep -q 'woostack-defer' skills/woostack-init/references/wisdom.md && echo "STIL
 ```
 Expected: `MARKER REMOVED`
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 gt create -m "feat(review): add compose-wisdom.sh wholesale wisdom loader"
@@ -872,7 +872,7 @@ rm -rf "$tmp"
 ```
 Expected: `SYNTAX_OK` then `ARTIFACT_OK`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 gt modify -c -m "feat(review): compose \$OUTDIR/wisdom.md guidance in prefetch"
@@ -918,7 +918,7 @@ grep -q 'Wisdom guidance' skills/woostack-review/prompts/_header.md \
 ```
 Expected: `OK`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "docs(review): document wisdom.md guidance artifact in shared contract"
@@ -928,7 +928,7 @@ gt modify -c -m "docs(review): document wisdom.md guidance artifact in shared co
 
 ## Self-review (run before handing back)
 
-- [ ] **Spec coverage** — every spec requirement maps to a task:
+- [x] **Spec coverage** — every spec requirement maps to a task:
   - AC1 (scaffold `wisdom/`) → Inc 1 Task 3.
   - AC2 (wisdom tracked, overnight ignored) → Inc 1 Task 4.
   - AC3 (structural recall exclusion) → Inc 1 Task 1 §4 + Task 2 §3 (doc) + **Task 5 build-index regression test** (concrete no-leak proof; no recall.sh change, per §9 Q1).
@@ -936,8 +936,8 @@ gt modify -c -m "docs(review): document wisdom.md guidance artifact in shared co
   - AC5 (dream procedure reshape + correction) → Inc 2 Tasks 1–4.
   - AC6 (consumers load wisdom wholesale) → Inc 3 Tasks 1–2 (build/ideate/plan) + Inc 4 Tasks 1–3 (review).
   - AC7 (gated default-keep prune; overnight full-body) → Inc 2 Task 3.
-- [ ] **AC coverage** — each happy/error/edge case maps to a verification step (greps, the gitignore guard's bite-test, the compose-wisdom absent/empty/populated cases, the prefetch artifact check).
-- [ ] **No placeholders** — every step has the actual file path, exact content/edit, exact command, and expected output; no TBD/TODO.
-- [ ] **Type consistency** — names match across tasks: `compose-wisdom.sh`, `$OUTDIR/wisdom.md`, `type: wisdom`, `.woostack/wisdom/<slug>.md`, `source:` ledger / prune list — used identically in the spec, `wisdom.md`, dream, and review wiring.
+- [x] **AC coverage** — each happy/error/edge case maps to a verification step (greps, the gitignore guard's bite-test, the compose-wisdom absent/empty/populated cases, the prefetch artifact check).
+- [x] **No placeholders** — every step has the actual file path, exact content/edit, exact command, and expected output; no TBD/TODO.
+- [x] **Type consistency** — names match across tasks: `compose-wisdom.sh`, `$OUTDIR/wisdom.md`, `type: wisdom`, `.woostack/wisdom/<slug>.md`, `source:` ledger / prune list — used identically in the spec, `wisdom.md`, dream, and review wiring.
 
 > woostack plan conventions (kept): frontmatter-free; opens with the `**Source:**` line; basename mirrors the spec (`2026-06-13-dream-wisdom`); no required-sub-skill banner; in this runner-less skill repo, each "failing test" is a concrete grep / `bash -n` / self-contained bash test with exact expected output.

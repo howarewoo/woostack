@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-06-11-overnight-review-sweep.md
-status: executing
+status: done
 branch: feature/overnight-review-sweep
 ---
 
@@ -137,7 +137,7 @@ Expected: `1`, then `bottom-up: ok`, `full: ok`, `no-gt-sync: ok`, `config-key: 
 Run: `grep -n "^## \(Tracks & halt policy\|Post-implementation review sweep\|Morning report\)" skills/woostack-execute-overnight/SKILL.md`
 Expected: the three headings appear in that order (Tracks & halt policy < Post-implementation review sweep < Morning report).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt create -m "feat(execute-overnight): post-implementation review sweep section"
@@ -233,7 +233,7 @@ Expected: `override2-xref: ok`, `hard-constraint: ok`, `terminal-state: ok`, `de
 Run: `grep -q "woostack-review --fast" skills/woostack-execute-overnight/SKILL.md && echo "override2-fast: still present"`
 Expected: `override2-fast: still present` (the augment invariant — sweep did not remove or alter override #2).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "feat(execute-overnight): wire sweep into override #2, terminal state, constraints, description"
@@ -312,7 +312,7 @@ Expected: `sweep-section: ok`, `sweep-column: ok`, `decision-log: ok`.
 Run: `grep -n "^## \(Per-increment\|Review sweep\|Decision log\)" skills/woostack-execute-overnight/references/report-template.md`
 Expected: the three headings in that order (Per-increment < Review sweep < Decision log).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 gt modify -c -m "feat(execute-overnight): report-template Review sweep section + sweep column"

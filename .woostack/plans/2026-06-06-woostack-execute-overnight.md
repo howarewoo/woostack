@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-06-06-woostack-execute-overnight.md
-status: executing
+status: done
 branch: feature/woostack-execute-overnight-skill
 ---
 
