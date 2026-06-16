@@ -1,6 +1,6 @@
 ---
 type: fix
-status: executing
+status: in-review
 branch: fix/plan-status-done-on-final-increment
 ---
 
