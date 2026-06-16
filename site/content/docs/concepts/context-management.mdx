@@ -1,9 +1,9 @@
 ---
 title: Context management
-description: How woostack keeps the working context small — scripts compute in the shell, subagents isolate heavy work, and model tiers route each task.
+description: "How woostack keeps the working context small: scripts compute in the shell, subagents isolate heavy work, and model tiers route each task."
 ---
 
-Context economy has three mechanisms. One — recall by scope — is the [Memory](/docs/concepts/memory)
+Context economy has three mechanisms. One of them, recall by scope, is the [Memory](/docs/concepts/memory)
 store. The other two live here: shell scripts that compute and return a compact result, and
 subagents that carry heavy work off the main thread. Each returns something small, so the bulk
 never reaches the main context.
