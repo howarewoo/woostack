@@ -16,7 +16,9 @@ the common AI tells:
 - No tailing negations, hollow superlatives, or rule-of-three filler. Say the thing plainly.
 
 This rule covers the **authored** pages only: `content/docs/index.mdx`, `getting-started.mdx`,
-`concepts.mdx`, `configuration.mdx`, `review-angles.mdx`, and the landing page. The per-skill reference pages under
+the `content/docs/concepts/` section pages (`index.mdx`, `building-rules.mdx`, `memory.mdx`,
+`context-management.mdx`, `worktrees.mdx`, `status-tracking.mdx`, `review-angles.mdx`),
+`configuration.mdx`, and the landing page. The per-skill reference pages under
 `content/docs/skills/` are generated from each `../skills/*/SKILL.md` at build time and are
 gitignored, so humanize the source `SKILL.md`, never the generated MDX.
 
