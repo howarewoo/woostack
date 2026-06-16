@@ -447,7 +447,7 @@ dependencies (spec §3).
 - Modify: `site/content/docs/concepts/meta.json` (add `"status-tracking"`)
 - Modify: `site/content/docs/concepts/index.mdx` (add a status Card)
 
-- [ ] **Step 1: Write `status-tracking.mdx`** (every claim traces to
+- [x] **Step 1: Write `status-tracking.mdx`** (every claim traces to
   `skills/woostack-status/SKILL.md` + `references/conventions.md` — spec §4 grounding)
   ```mdx
   ---
@@ -503,7 +503,7 @@ dependencies (spec §3).
   to run anywhere, including CI, without mutating anything.
   ```
 
-- [ ] **Step 2: Add `"status-tracking"` to `concepts/meta.json`** (append after `"worktrees"`)
+- [x] **Step 2: Add `"status-tracking"` to `concepts/meta.json`** (append after `"worktrees"`)
   ```json
   {
     "title": "Core concepts",
@@ -518,18 +518,18 @@ dependencies (spec §3).
   }
   ```
 
-- [ ] **Step 3: Add the status Card to the hub** (`concepts/index.mdx`, inside `<Cards>`)
+- [x] **Step 3: Add the status Card to the hub** (`concepts/index.mdx`, inside `<Cards>`)
   ```mdx
     <Card title="Collaboration with status tracking" href="/docs/concepts/status-tracking" description="A shared feature board computed from artifacts in git, never a hand-maintained file." />
   ```
 
-- [ ] **Step 4: Build green and facts present**
+- [x] **Step 4: Build green and facts present**
   Run: `pnpm -C site build`
   Expected: exits 0; route list includes `/docs/concepts/status-tracking`.
   Run: `grep -F "1 : 1 : N" site/content/docs/concepts/status-tracking.mdx && grep -F "staleDays" site/content/docs/concepts/status-tracking.mdx`
   Expected: both print.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt create -m "docs(site): add status-tracking collaboration concept page"
   ```
