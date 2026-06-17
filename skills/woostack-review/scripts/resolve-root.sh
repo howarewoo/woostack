@@ -17,9 +17,28 @@
 # unchanged; only the *default* base switches from CWD-relative to root-anchored.
 if [ -z "${WOOSTACK_ROOT:-}" ]; then
   if [ -n "${GITHUB_WORKSPACE:-}" ]; then
-    WOOSTACK_ROOT="$GITHUB_WORKSPACE"
+    WOOSTACK_ROOT="$(cd "$GITHUB_WORKSPACE" && pwd -P)"
   else
     WOOSTACK_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+    WOOSTACK_ROOT="$(cd "$WOOSTACK_ROOT" 2>/dev/null && pwd -P || printf '%s\n' "$WOOSTACK_ROOT")"
   fi
+else
+  WOOSTACK_ROOT="$(cd "$WOOSTACK_ROOT" 2>/dev/null && pwd -P || printf '%s\n' "$WOOSTACK_ROOT")"
 fi
 export WOOSTACK_ROOT
+
+if [ -z "${WOOSTACK_COMMON_ROOT:-}" ]; then
+  if [ -n "${GITHUB_WORKSPACE:-}" ]; then
+    WOOSTACK_COMMON_ROOT="$(cd "$GITHUB_WORKSPACE" && pwd -P)"
+  else
+    _woo_common_git_dir="$(git rev-parse --git-common-dir 2>/dev/null || true)"
+    if [ -n "$_woo_common_git_dir" ]; then
+      WOOSTACK_COMMON_ROOT="$(cd "$_woo_common_git_dir/.." 2>/dev/null && pwd -P || printf '%s\n' "$WOOSTACK_ROOT")"
+    else
+      WOOSTACK_COMMON_ROOT="$WOOSTACK_ROOT"
+    fi
+  fi
+else
+  WOOSTACK_COMMON_ROOT="$(cd "$WOOSTACK_COMMON_ROOT" 2>/dev/null && pwd -P || printf '%s\n' "$WOOSTACK_COMMON_ROOT")"
+fi
+export WOOSTACK_COMMON_ROOT

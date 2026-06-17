@@ -19,7 +19,7 @@ source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-outdir.sh"
 source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-root.sh"
 CONFIG="$OUTDIR/config.json"
 PER_RUN="$OUTDIR/findings.metrics.json"
-ROOT="$WOOSTACK_ROOT"
+ROOT="$WOOSTACK_COMMON_ROOT"
 ROLLING="$ROOT/.woostack/metrics.json"
 GITIGNORE="$ROOT/.gitignore"
 SCHEMA_VERSION=3

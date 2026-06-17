@@ -9,7 +9,7 @@ ROOT="$(cd "$HERE/../../.." && pwd)"
 source "$HERE/resolve-outdir.sh"
 # shellcheck source=skills/woostack-address-comments/scripts/resolve-root.sh
 source "$HERE/resolve-root.sh"
-WOOSTACK_DIR="$WOOSTACK_ROOT/.woostack"
+WOOSTACK_DIR="$WOOSTACK_COMMON_ROOT/.woostack"
 mkdir -p "$OUTDIR"
 
 PR_NUMBER="${PR_NUMBER:-$(gh pr view --json number --jq .number 2>/dev/null || echo)}"
