@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-06-17-visualize-quality-rubric.md
-status: ready
+status: done
 branch: feature/visualize-quality-rubric
 ---
 
