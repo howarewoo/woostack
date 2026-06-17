@@ -204,7 +204,7 @@ next_action() {
   if [[ "$file" == *"/fixes/"* ]]; then
     case "$phase" in
       draft)      echo "harden the fix plan (woostack-harden)" ;;
-      hardened)   echo "get fix plan approval (hard gate)" ;;
+      hardened)   echo "review committed fix plan and approve execution (hard gate)" ;;
       approved)   echo "execute the fix (woostack-fix)" ;;
       executing)  if [ "$prcount" -gt 0 ]; then echo "finish fix ($done/$total); $merged/$prcount increments shipped";
                   else echo "finish fix ($done/$total) - open the fix PR"; fi ;;
