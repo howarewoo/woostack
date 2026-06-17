@@ -1,6 +1,6 @@
 ---
 name: woostack-execute
-description: Use to execute an approved woostack plan as a sequence of PR-sized, stacked increments via an inline or subagent-driven driver (--inline/--subagent, smart default) — implement each increment with TDD, tick the plan's checkboxes in place, commit via woostack-commit on its own Graphite branch, review each task with spec+quality checks (inline by the controller, or via subagents with tier routing), distill durable learnings, then continue; at the final increment, author the plan's terminal status: done. This is the execute phase of the woostack build loop (woostack-build step 8); also usable standalone via /woostack-execute <plan-path> [--inline|--subagent]. One plan per spec, multiple PRs per plan. Never merges.
+description: Use to execute an approved woostack plan as PR-sized stacked increments, updating plan progress and status, committing each increment, reviewing the work, and continuing until done. Never merges.
 ---
 
 # woostack-execute
@@ -134,20 +134,20 @@ For each increment:
    `woostack-commit`. Metrics, telemetry, and watermark sidecars remain primary-root local state
    per the [worktree contract](../woostack-init/references/worktrees.md) §5.
 
-8. **Author the plan's terminal `status: done` — final increment, plan files only.** If this
-   increment was the last (every checkbox in the plan file is now `[x]`) **and** the artifact is a
-   plan (`type: plan`, under `.woostack/plans/`), author `status: done` on the plan's frontmatter
-   inside this increment's worktree and commit that one-line bump via
-   [`woostack-commit`](../woostack-commit/SKILL.md) `--no-pr-update`, so the terminal authored
-   state persists to the branch tip rather than dying with the worktree. This is the plan
-   lifecycle's terminal authored transition — symmetric with `planning`
+8. **Author the plan's execution status — plan files only.** If the artifact is a plan
+   (`type: plan`, under `.woostack/plans/`), author the plan's frontmatter status inside this
+   increment's worktree and commit that one-line bump via
+   [`woostack-commit`](../woostack-commit/SKILL.md) `--no-pr-update`, so the authored
+   state persists to the branch tip rather than dying with the worktree. Use `status: executing`
+   for every non-final increment, and use terminal `status: done` for the final increment. These
+   are execute's authored lifecycle transitions after `planning`
    ([`woostack-plan`](../woostack-plan/SKILL.md)) and `ready`
-   ([`woostack-build`](../woostack-build/SKILL.md) step 6) — and is execute's **only** frontmatter
-   write. **Skip it for a `.woostack/fixes/` file:** a fix file's frontmatter lifecycle stays owned
-   by [`woostack-fix`](../woostack-fix/SKILL.md). The board still derives the `executing` →
-   `in-review` → `done` band from artifacts and shows `in-review` while the final PR is open,
-   reconciling to `done` at merge — so authoring `done` here only stops the plan file from rotting,
-   it does not assert the stack is merged.
+   ([`woostack-build`](../woostack-build/SKILL.md) step 6). **Skip it for a `.woostack/fixes/`
+   file:** a fix file's frontmatter lifecycle stays owned by
+   [`woostack-fix`](../woostack-fix/SKILL.md). The board still derives the `in-review` band from
+   artifacts and shows `in-review` while an increment PR is open, reconciling to `done` at merge
+   after the final PR — authoring `done` only stops the plan file from rotting, it does not assert
+   the stack is merged.
 9. **Teardown the worktree.** After the increment is committed, reviewed, distilled, and (on the
    final increment) marked `done`, remove its
    worktree (`git worktree remove "$WOOSTACK_ROOT/.woostack/worktrees/<inc-slug>"`); the
@@ -179,9 +179,10 @@ Stop when every increment is implemented, checked off, committed, reviewed, and 
 leaving a Graphite stack of reviewed PRs. "Reviewed" means each task passed the shared
 spec-compliance and code-quality checks, either inline in the controller session or through the
 subagent reviewer loop, plus the human's post-execution review of each PR. Report the branches/PRs
-and their review mode. **Never merge.** For a **plan** file, the final increment also advanced the
-plan's frontmatter to `status: done` (step 8) — execute's only frontmatter write; a
-`.woostack/fixes/` file's lifecycle stays with [`woostack-fix`](../woostack-fix/SKILL.md).
+and their review mode. **Never merge.** For a **plan** file, non-final increments also advanced the plan's frontmatter to
+`status: executing`, and the final increment advanced it to `status: done` (step 8); these
+are execute's only frontmatter writes. A `.woostack/fixes/` file's lifecycle stays with
+[`woostack-fix`](../woostack-fix/SKILL.md).
 
 ## Memory Is Shared
 
@@ -227,10 +228,11 @@ not an approval gate. The skill never merges and never auto-addresses review fin
   implementation files.
 - **Tick checkboxes in place.** The plan file is the live progress record.
 - **Author the plan's terminal `status: done` — and only that.** At the final increment of a
-  plan file (every box `[x]`), author `status: done` and commit the bump via
-  `woostack-commit --no-pr-update` (step 8). That terminal transition is execute's **only**
-  frontmatter write — never author any other `status:`, and never touch a `.woostack/fixes/`
-  file's frontmatter (owned by [`woostack-fix`](../woostack-fix/SKILL.md)).
+  plan file (every box `[x]`), author `status: done`; otherwise author
+  `status: executing` for plan increments that are not final. Commit the bump via
+  `woostack-commit --no-pr-update` (step 8). These are execute's only frontmatter writes; never
+  touch a `.woostack/fixes/` file's frontmatter (owned by
+  [`woostack-fix`](../woostack-fix/SKILL.md)).
 - **Commit + review every increment.** `woostack-commit` always; each task must already have
   passed the shared spec-compliance plus code-quality checks before the increment is committed.
   Inline mode performs them in the controller session; subagent mode dispatches reviewer

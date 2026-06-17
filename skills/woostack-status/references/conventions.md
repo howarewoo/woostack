@@ -37,7 +37,8 @@ These definitions are the source of truth for the `/woostack-status` board and t
   - `approved` — spec gate cleared, no plan yet
   - `planning` — plan written, not yet hardened, 0 boxes done
   - `ready` — plan hardened, 0 boxes done, spec+plan PR should be opened before execution
-  - `executing` — branch + commits, plan partial
+  - `executing` — authored by `woostack-execute` for non-final increments; branch + commits,
+    plan partial
   - `in-review` — increment PR open
   - `done` — authored by `woostack-execute` at the final increment (all boxes `[x]`, plan files);
     the board also derives/confirms it from artifacts (100% + all PRs merged) and shows `in-review`
