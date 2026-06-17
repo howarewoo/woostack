@@ -41,9 +41,7 @@ version that holds six goals at the same time:
 These are all strong projects, and woostack borrows ideas from several of them. They just were not
 the fit I wanted personally:
 
-- **Superpowers** ([obra/superpowers](https://github.com/obra/superpowers)) is the most complete of
-  the four, but it installs as a Claude Code plugin and works best wired deep into Claude Code. I
-  wanted skills that travel across agents through the plain `skills` convention.
+- **Superpowers** ([obra/superpowers](https://github.com/obra/superpowers)) is the most complete option here, but it works best inside Claude Code as a dedicated plugin. I moved away from it because it lacked a cross-agent memory layer, and it needed an extra hardening step to get reliable plans. I also wanted skills that work with any agent using the plain `skills` convention.
 - **grill-me** does one thing well: it interviews you about a plan until the gaps are gone. For me
   that is a single phase of the loop, the discipline `woostack-harden` is built on, rather than the
   whole lifecycle.
