@@ -839,7 +839,7 @@ echo "Prior review threads (open + resolved): $PRIOR_COUNT"
 # (.woostack/memory/) exists: scope-matched notes, one-hop links, and
 # global-scoped notes. Missing store or recall.sh => no memory context
 # (normal for fresh repos or individual manual installs).
-WOOSTACK_DIR="$WOOSTACK_ROOT/.woostack"
+WOOSTACK_DIR="$WOOSTACK_COMMON_ROOT/.woostack"
 MEMORY_OUT="$OUTDIR/memory.md"
 RECALL="$SCRIPT_DIR/../../woostack-init/scripts/recall.sh"
 # Working-set paths: prefer the ignore-filtered list, else derive from meta.json.
@@ -873,7 +873,7 @@ fi
 WISDOM_OUT="$OUTDIR/wisdom.md"
 COMPOSE_WISDOM="$SCRIPT_DIR/compose-wisdom.sh"
 if [ -f "$COMPOSE_WISDOM" ]; then
-  if bash "$COMPOSE_WISDOM" "$WOOSTACK_ROOT" > "$WISDOM_OUT" 2>"$OUTDIR/compose-wisdom.log"; then
+  if bash "$COMPOSE_WISDOM" "$WOOSTACK_COMMON_ROOT" > "$WISDOM_OUT" 2>"$OUTDIR/compose-wisdom.log"; then
     [ -s "$WISDOM_OUT" ] || rm -f "$WISDOM_OUT"
     [ -f "$WISDOM_OUT" ] && echo "Composed wisdom guidance ($(wc -c < "$WISDOM_OUT")B)"
   else

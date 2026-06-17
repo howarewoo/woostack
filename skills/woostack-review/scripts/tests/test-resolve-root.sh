@@ -21,13 +21,16 @@ resolve() {
 
 # Build a throwaway git repo with a nested package subdir.
 repo="$(mktemp -d)"
+repo="$(cd "$repo" && pwd -P)"
 ( cd "$repo" && git init -q )
 toplevel="$(cd "$repo" && git rev-parse --show-toplevel)"
 sub="$toplevel/packages/pkg"
 mkdir -p "$sub"
 ws="$(mktemp -d)"
+ws="$(cd "$ws" && pwd -P)"
 # A throwaway dir that is NOT inside any git repo, for the pwd-fallback branch.
 nogit="$(mktemp -d)"
+nogit="$(cd "$nogit" && pwd -P)"
 
 for resolver in "$DIR/resolve-root.sh" "$ROOT/skills/woostack-address-comments/scripts/resolve-root.sh"; do
   tag="$(basename "$(dirname "$(dirname "$resolver")")")"  # skill dir name

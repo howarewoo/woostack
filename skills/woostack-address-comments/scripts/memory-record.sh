@@ -9,7 +9,7 @@ INIT_SCRIPTS="$(cd "$HERE/../../woostack-init/scripts" 2>/dev/null && pwd || tru
 source "$HERE/resolve-root.sh"
 
 LEARNING="${LEARNING:?LEARNING env var required}"
-MEMORY_DIR="${MEMORY_DIR:-$WOOSTACK_ROOT/.woostack/memory}"
+MEMORY_DIR="${MEMORY_DIR:-$WOOSTACK_COMMON_ROOT/.woostack/memory}"
 MEMORY_SCOPE="${MEMORY_SCOPE:-*}"
 MEMORY_TYPE="${MEMORY_TYPE:-convention}"
 MEMORY_SOURCE="${MEMORY_SOURCE:-${PR_NUMBER:+pr-$PR_NUMBER}}"
