@@ -51,12 +51,12 @@ The exact gating heuristics (file globs and diff-token patterns) live in [`detec
 
 ## Tiers
 
-Each angle runs at a model tier matched to its work: `fast` for rubric and pattern checks, `standard` for reasoning-heavy passes. The skeptical validator that filters every finding runs at `deep`. The tier-to-model mapping per provider lives in [Core concepts](/docs/concepts/context-management#subagents-isolate-work), and you can override any tier in [Configuration](/docs/configuration#model-selection).
+Each angle runs at a model tier matched to its work: `fast` for rubric and pattern checks, `standard` for reasoning-heavy passes. The skeptical validator that filters every finding runs at `deep`. The tier-to-model mapping per provider lives in [Context management](/docs/concepts/context-management#subagents-isolate-work), and you can override any tier in [Configuration](/docs/configuration#model-selection).
 
 ## Where to go next
 
 <Cards>
   <Card title="woostack-review" href="/docs/skills/woostack-review" description="The review engine that runs these angles." />
   <Card title="Configuration" href="/docs/configuration#choosing-angles" description="Force, skip, and tune angles in .woostack/config.json." />
-  <Card title="Core concepts" href="/docs/concepts" description="The build loop, context economy, and model tiers." />
+  <Card title="Context management" href="/docs/concepts/context-management" description="Context economy, scripts, subagents, and model tiers." />
 </Cards>

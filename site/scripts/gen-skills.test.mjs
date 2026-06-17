@@ -1,5 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 import {
   parseFrontmatter,
   stripTitleHeading,
@@ -87,4 +89,16 @@ test('navOrder puts public commands first, internal sub-skills last', () => {
   assert.deepEqual(order, ['using-woostack', 'woostack-build', 'woostack-harden', 'woostack-ideate']);
   assert.ok(order.indexOf('woostack-build') < order.indexOf('woostack-ideate'));
   assert.ok(order.indexOf('woostack-build') < order.indexOf('woostack-harden'));
+});
+
+test('concepts taxonomy keeps context economy under context management', async () => {
+  const docsDir = path.join(import.meta.dirname, '..', 'content', 'docs');
+  const meta = JSON.parse(await readFile(path.join(docsDir, 'concepts', 'meta.json'), 'utf8'));
+  const overview = await readFile(path.join(docsDir, 'concepts', 'index.mdx'), 'utf8');
+
+  assert.equal(meta.title, 'Core concepts');
+  assert.ok(meta.pages.includes('context-management'));
+  assert.match(overview, /^title:\s*Overview$/m);
+  assert.doesNotMatch(overview, /ContextEconomy/);
+  assert.doesNotMatch(overview, /^## Context economy$/m);
 });
