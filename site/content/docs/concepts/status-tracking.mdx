@@ -48,7 +48,7 @@ its join rules are defined once in the
 | Status | Meaning |
 | --- | --- |
 | `draft` | The fix plan exists but has not completed hardening. |
-| `hardened` | The fix plan has been refined but still needs user approval. |
+| `hardened` | The fix plan has been refined, committed for review, and still needs user approval. |
 | `approved` | The fix approval gate is cleared. |
 | `executing` | `woostack-fix` has delegated execution to `woostack-execute` on the fix worktree. |
 | `in-review` | The fix PR is open for review. |
@@ -66,8 +66,8 @@ Each workflow writes status only to the artifact it owns:
 | [woostack-build](/docs/skills/woostack-build), after plan hardening | `.woostack/plans/<spec-basename>.md` frontmatter | marks the plan `ready` after the plan is hardened and the spec+plan PR is opened |
 | [woostack-status](/docs/skills/woostack-status) during feature execution | no writes; it reads specs, plans, branches, commits, and PRs | computes the visible `executing` and `in-review` band from artifacts instead of trusting stale frontmatter |
 | [woostack-execute](/docs/skills/woostack-execute) on a feature plan | `.woostack/plans/<spec-basename>.md` checkboxes and frontmatter | ticks implementation tasks as increments land, writes `status: executing` for non-final increments, and writes terminal `status: done` after the final increment; the board still derives `in-review` from open PR artifacts |
-| [woostack-fix](/docs/skills/woostack-fix) | `.woostack/fixes/YYYY-MM-DD-<slug>.md` frontmatter | creates the fix file with `status: draft`, marks it `hardened`, waits at the approval gate, then sets `approved`, `executing`, `in-review`, and eventually `done` |
-| [woostack-execute](/docs/skills/woostack-execute) on a fix file | `.woostack/fixes/YYYY-MM-DD-<slug>.md` checkboxes only | reuses the fix worktree, runs TDD tasks, ticks the fix plan, and commits the fix markdown plus code into one PR; it does not change the fix file's frontmatter lifecycle |
+| [woostack-fix](/docs/skills/woostack-fix) | `.woostack/fixes/YYYY-MM-DD-<slug>.md` frontmatter | creates the fix file with `status: draft`, marks it `hardened`, commits the hardened plan for review, waits at the approval gate, then sets `approved`, `executing`, `in-review`, and eventually `done` |
+| [woostack-execute](/docs/skills/woostack-execute) on a fix file | `.woostack/fixes/YYYY-MM-DD-<slug>.md` checkboxes only | reuses the fix worktree, runs TDD tasks, ticks the fix plan, and commits code plus fix-file updates into one PR; it does not change the fix file's frontmatter lifecycle |
 
 That split is deliberate. Features are tracked by the spec/plan pair and shown on the
 `woostack-status` board. Fixes are tracked by their `.woostack/fixes/` file because a fix
