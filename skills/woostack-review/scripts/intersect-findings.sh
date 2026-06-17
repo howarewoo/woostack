@@ -349,6 +349,132 @@ with open(final_p, "w") as fh:
 PY
 }
 
+filter_final_anchors() {
+  local diff_path=""
+  if [ -s "$OUTDIR/diff.filtered.txt" ]; then
+    diff_path="$OUTDIR/diff.filtered.txt"
+  elif [ -s "$OUTDIR/diff.txt" ]; then
+    diff_path="$OUTDIR/diff.txt"
+  else
+    return 0
+  fi
+
+  local resolver
+  resolver="$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-diff-line.sh"
+  if [ ! -f "$resolver" ]; then
+    return 0
+  fi
+
+  local tmp
+  tmp="$(mktemp)"
+  python3 - "$FINAL" "$tmp" "$OUTDIR" "$resolver" <<'PY'
+import json
+import os
+import subprocess
+import sys
+
+final_path, out_path, outdir, resolver = sys.argv[1:5]
+
+with open(final_path, "r") as fh:
+    findings = json.load(fh)
+
+
+def load_pr_files():
+    paths = set()
+    meta_path = os.path.join(outdir, "meta.json")
+    if os.path.exists(meta_path):
+        try:
+            with open(meta_path, "r") as fh:
+                meta = json.load(fh)
+            for item in meta.get("files", []):
+                path = item.get("path")
+                if path:
+                    paths.add(str(path))
+        except (AttributeError, OSError, json.JSONDecodeError):
+            pass
+
+    if paths:
+        return paths
+
+    for name in ("changed-paths.filtered.txt", "changed-paths.txt"):
+        path_file = os.path.join(outdir, name)
+        if not os.path.exists(path_file):
+            continue
+        try:
+            with open(path_file, "r") as fh:
+                for line in fh:
+                    path = line.strip()
+                    if path:
+                        paths.add(path)
+        except OSError:
+            pass
+        if paths:
+            return paths
+
+    return paths
+
+
+pr_files = load_pr_files()
+kept = []
+dropped_file = 0
+dropped_line = 0
+rewritten = 0
+
+for finding in findings:
+    path = finding.get("file")
+    line = finding.get("line")
+    if not path or line is None:
+        kept.append(finding)
+        continue
+
+    path = str(path)
+    if pr_files and path not in pr_files:
+        dropped_file += 1
+        continue
+
+    try:
+        res = subprocess.run(
+            ["bash", resolver, "--file", path, "--line", str(line)],
+            env={"OUTDIR": outdir, "PATH": os.environ.get("PATH", "")},
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError:
+        kept.append(finding)
+        continue
+
+    resolved = res.stdout.strip()
+    if res.returncode != 0 or resolved == "null" or not resolved:
+        dropped_line += 1
+        continue
+
+    try:
+        canonical = int(resolved)
+    except ValueError:
+        dropped_line += 1
+        continue
+
+    if finding.get("line") != canonical:
+        finding = dict(finding)
+        finding["line"] = canonical
+        rewritten += 1
+    kept.append(finding)
+
+with open(out_path, "w") as fh:
+    json.dump(kept, fh, indent=2)
+    fh.write("\n")
+
+sys.stderr.write(
+    "intersect-findings: final anchor filter "
+    f"dropped {dropped_file} non-PR-file finding(s), "
+    f"{dropped_line} unresolvable finding(s), "
+    f"rewrote {rewritten} line(s)\n"
+)
+PY
+  mv "$tmp" "$FINAL"
+}
+
 if [ "$disable_adversarial" = "true" ] || [ "$prosecutor_present" = "false" ]; then
   mode="defender-only"
   # degraded = the adversarial pass was EXPECTED but the prosecutor output is
@@ -362,6 +488,7 @@ if [ "$disable_adversarial" = "true" ] || [ "$prosecutor_present" = "false" ]; t
   cp "$DEFENDER" "$FINAL"
   cp "$FINAL" "$PRECLASSIFY"   # pre-floor snapshot for per-angle disagreement metrics
   classify_floor
+  filter_final_anchors
   kept_count="$(jq 'length' "$FINAL")"
   nit_count="$(jq '[.[] | select(.nit == true)] | length' "$FINAL")"
   deferred_count="$(jq '[.[] | select((.deferred_to // "") != "" and .nit == true)] | length' "$FINAL")"
@@ -618,6 +745,7 @@ PY
 intersection_size="$(jq 'length' "$FINAL")"
 cp "$FINAL" "$PRECLASSIFY"   # pre-floor snapshot for per-angle disagreement metrics
 classify_floor
+filter_final_anchors
 kept_count="$(jq 'length' "$FINAL")"
 nit_count="$(jq '[.[] | select(.nit == true)] | length' "$FINAL")"
 deferred_count="$(jq '[.[] | select((.deferred_to // "") != "" and .nit == true)] | length' "$FINAL")"
