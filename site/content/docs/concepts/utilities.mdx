@@ -1,6 +1,6 @@
 ---
 title: Utilities
-description: "On-demand skills that complement the build and fix loops — investigate, render, and tend the workspace — without being a step in any flow."
+description: "On-demand skills that complement the build and fix loops: investigate, render, and tend the workspace, without being a step in any flow."
 ---
 
 Most woostack skills are steps in a flow: the [build loop](/docs/concepts/building-rules) chains
@@ -12,23 +12,23 @@ They split by one question: **does the skill change your `.woostack` workspace?*
 
 ## Investigate & present
 
-These point at the truth — your repo, the `.woostack/` artifacts, a spec — and either answer or
+These point at the truth (your repo, the `.woostack/` artifacts, a spec) and either answer or
 render it. They never mutate workspace or repo state, so they are safe to run anytime, including in
 CI.
 
 | Skill | What it does | Writes? | Invoke |
 | --- | --- | --- | --- |
 | [woostack-ask](/docs/skills/woostack-ask) | Answers a question grounded in the `.woostack/` knowledge surface and the code, citing its evidence. | no | `/woostack-ask <question>` |
-| [woostack-visualize](/docs/skills/woostack-visualize) | Renders any source — a spec, plan, file, or concept — to one self-contained HTML view for a chosen audience. | view only (HTML) | `/woostack-visualize <source>` |
+| [woostack-visualize](/docs/skills/woostack-visualize) | Renders any source (a spec, plan, file, or concept) to one self-contained HTML view for a chosen audience. | view only (HTML) | `/woostack-visualize <source>` |
 | [woostack-status](/docs/skills/woostack-status) | Computes the feature board from git artifacts and prints it. | no | `/woostack-status` |
-| [woostack-debug](/docs/skills/woostack-debug) | Runs a four-phase root-cause analysis and hands the findings back — it never writes the fix. | no | `/woostack-debug <target>` |
+| [woostack-debug](/docs/skills/woostack-debug) | Runs a four-phase root-cause analysis and hands the findings back; it never writes the fix. | no | `/woostack-debug <target>` |
 
 <Callout type="info">
-  `woostack-debug` is **dual-natured**: the standalone `/woostack-debug` command is the pure
-  on-demand utility listed here, but the same engine is also an internal hook that
-  [woostack-execute](/docs/skills/woostack-execute) and
-  [woostack-review](/docs/skills/woostack-review) fire from inside their flows. It earns its place
-  here because, run on its own, it only investigates.
+  `woostack-debug` is **dual-natured**. The standalone `/woostack-debug` command is the pure
+  on-demand utility listed here. The same root-cause engine also runs automatically inside
+  [woostack-execute](/docs/skills/woostack-execute) (and its overnight variant) when a verification
+  keeps failing. [woostack-review](/docs/skills/woostack-review) only points you at the command; it
+  never dispatches the fix itself. It belongs here because, run on its own, it just investigates.
 </Callout>
 
 ## Tend the workspace
