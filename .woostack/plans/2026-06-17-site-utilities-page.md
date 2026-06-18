@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-06-17-site-utilities-page.md
-status: executing
+status: done
 branch: feature/site-utilities-page
 ---
 
