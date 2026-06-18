@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-06-17-site-utilities-page.md
-status: ready
+status: done
 branch: feature/site-utilities-page
 ---
 
@@ -25,11 +25,11 @@ branch: feature/site-utilities-page
 - Create: `site/content/docs/concepts/utilities.mdx`
 - Test: concrete verification via `grep` (no docs test runner)
 
-- [ ] **Step 1: Write the failing check**
+- [x] **Step 1: Write the failing check**
   Run: `grep -c "title: Utilities" site/content/docs/concepts/utilities.mdx 2>/dev/null || echo "RED: file absent"`
   Expected: FAIL — prints `RED: file absent` (the page does not exist yet).
 
-- [ ] **Step 2: Create the page**
+- [x] **Step 2: Create the page**
   Create `site/content/docs/concepts/utilities.mdx` with exactly this content:
   ```mdx
   ---
@@ -84,7 +84,7 @@ branch: feature/site-utilities-page
   </Cards>
   ```
 
-- [ ] **Step 3: Confirm the page covers all six members in the right clusters**
+- [x] **Step 3: Confirm the page covers all six members in the right clusters**
   Run (from the worktree root):
   ```bash
   F=site/content/docs/concepts/utilities.mdx
@@ -102,11 +102,11 @@ branch: feature/site-utilities-page
 **Files:**
 - Modify: `site/content/docs/concepts/meta.json`
 
-- [ ] **Step 1: Write the failing check**
+- [x] **Step 1: Write the failing check**
   Run: `grep -q '"utilities"' site/content/docs/concepts/meta.json && echo PASS || echo "RED: not in pages"`
   Expected: FAIL — prints `RED: not in pages`.
 
-- [ ] **Step 2: Add `"utilities"` last in the `pages` array**
+- [x] **Step 2: Add `"utilities"` last in the `pages` array**
   Edit `site/content/docs/concepts/meta.json` — change:
   ```json
   {"title":"Core concepts","pages":["index","building-rules","memory","context-management","worktrees","status-tracking","review-angles"]}
@@ -116,7 +116,7 @@ branch: feature/site-utilities-page
   {"title":"Core concepts","pages":["index","building-rules","memory","context-management","worktrees","status-tracking","review-angles","utilities"]}
   ```
 
-- [ ] **Step 3: Confirm valid JSON with `utilities` present**
+- [x] **Step 3: Confirm valid JSON with `utilities` present**
   Run: `node -e "const p=require('./site/content/docs/concepts/meta.json'); if(!p.pages.includes('utilities')) throw new Error('missing'); console.log('PASS', p.pages.join(','))"`
   Expected: PASS — prints `PASS index,building-rules,memory,context-management,worktrees,status-tracking,review-angles,utilities`.
 
@@ -125,18 +125,18 @@ branch: feature/site-utilities-page
 **Files:**
 - Modify: `site/content/docs/concepts/index.mdx` (the served `/docs/concepts` landing; `<Cards>` grid at lines 12-19)
 
-- [ ] **Step 1: Write the failing check**
+- [x] **Step 1: Write the failing check**
   Run: `grep -q 'href="/docs/concepts/utilities"' site/content/docs/concepts/index.mdx && echo PASS || echo "RED: no card"`
   Expected: FAIL — prints `RED: no card`.
 
-- [ ] **Step 2: Add a 7th `<Card>` after the review-angles card**
+- [x] **Step 2: Add a 7th `<Card>` after the review-angles card**
   In `site/content/docs/concepts/index.mdx`, insert a new line immediately after the
   `<Card title="Review angles" ... />` line (line 18) and before `</Cards>`:
   ```mdx
     <Card title="Utilities" href="/docs/concepts/utilities" description="On-demand skills — ask, visualize, status, debug, doctor, dream — that complement the loops without being a step in one." />
   ```
 
-- [ ] **Step 3: Confirm the card is present**
+- [x] **Step 3: Confirm the card is present**
   Run: `grep -q 'title="Utilities" href="/docs/concepts/utilities"' site/content/docs/concepts/index.mdx && echo PASS || echo FAIL`
   Expected: PASS.
 
@@ -144,18 +144,18 @@ branch: feature/site-utilities-page
 
 **Files:** none (verification only)
 
-- [ ] **Step 1: Confirm the pre-split orphan is untouched**
+- [x] **Step 1: Confirm the pre-split orphan is untouched**
   Run: `git status --porcelain site/content/docs/concepts.mdx`
   Expected: empty output (no staged/unstaged change to `concepts.mdx`).
 
-- [ ] **Step 2: Confirm every linked skill page source exists**
+- [x] **Step 2: Confirm every linked skill page source exists**
   Run:
   ```bash
   for s in ask visualize status debug doctor dream; do test -f skills/woostack-$s/SKILL.md && echo "ok $s" || echo "MISSING SKILL $s"; done
   ```
   Expected: PASS — `ok` for all six (their `/docs/skills/woostack-<s>` pages regenerate from these `SKILL.md` files at build).
 
-- [ ] **Step 3: Build the site (authoritative MDX + route gate)**
+- [x] **Step 3: Build the site (authoritative MDX + route gate)**
   Run:
   ```bash
   pnpm -C site install
@@ -165,7 +165,7 @@ branch: feature/site-utilities-page
 
 ### Task 5: Commit the increment
 
-- [ ] **Step 1: Commit via Graphite (stacks on the spec+plan PR)**
+- [x] **Step 1: Commit via Graphite (stacks on the spec+plan PR)**
   Hand off to [woostack-commit](../../skills/woostack-commit/SKILL.md), which creates the branch, pushes with Graphite, and opens/updates the PR. Equivalent first commit:
   ```bash
   gt create -m "docs(site): add Utilities concept page"
