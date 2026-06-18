@@ -1,0 +1,50 @@
+---
+title: Utilities
+description: "On-demand skills that complement the build and fix loops — investigate, render, and tend the workspace — without being a step in any flow."
+---
+
+Most woostack skills are steps in a flow: the [build loop](/docs/concepts/building-rules) chains
+ideate → plan → execute, and the fix loop runs its own gated sequence. A second group of skills
+sits beside those flows. You reach for them on demand, whenever you need them, and each hands back
+a small result rather than advancing a pipeline. None of them merge, and none change your code.
+
+They split by one question: **does the skill change your `.woostack` workspace?**
+
+## Investigate & present
+
+These point at the truth — your repo, the `.woostack/` artifacts, a spec — and either answer or
+render it. They never mutate workspace or repo state, so they are safe to run anytime, including in
+CI.
+
+| Skill | What it does | Writes? | Invoke |
+| --- | --- | --- | --- |
+| [woostack-ask](/docs/skills/woostack-ask) | Answers a question grounded in the `.woostack/` knowledge surface and the code, citing its evidence. | no | `/woostack-ask <question>` |
+| [woostack-visualize](/docs/skills/woostack-visualize) | Renders any source — a spec, plan, file, or concept — to one self-contained HTML view for a chosen audience. | view only (HTML) | `/woostack-visualize <source>` |
+| [woostack-status](/docs/skills/woostack-status) | Computes the feature board from git artifacts and prints it. | no | `/woostack-status` |
+| [woostack-debug](/docs/skills/woostack-debug) | Runs a four-phase root-cause analysis and hands the findings back — it never writes the fix. | no | `/woostack-debug <target>` |
+
+<Callout type="info">
+  `woostack-debug` is **dual-natured**: the standalone `/woostack-debug` command is the pure
+  on-demand utility listed here, but the same engine is also an internal hook that
+  [woostack-execute](/docs/skills/woostack-execute) and
+  [woostack-review](/docs/skills/woostack-review) fire from inside their flows. It earns its place
+  here because, run on its own, it only investigates.
+</Callout>
+
+## Tend the workspace
+
+These maintain the `.woostack/` workspace itself. Both are **gated**: they propose a changeset and
+nothing is written until you approve it.
+
+| Skill | What it does | Writes? | Invoke |
+| --- | --- | --- | --- |
+| [woostack-doctor](/docs/skills/woostack-doctor) | Diagnoses `.woostack/` store integrity and conventions, then applies repairs you approve. | gated | `/woostack-doctor` |
+| [woostack-dream](/docs/skills/woostack-dream) | Curates the [memory and wisdom](/docs/concepts/memory) stores and docs via a gated changeset. | gated | `/woostack-dream [instructions]` |
+
+## Where to go next
+
+<Cards>
+  <Card title="Building rules" href="/docs/concepts/building-rules" description="The gated build loop these utilities complement." />
+  <Card title="Memory" href="/docs/concepts/memory" description="The stores woostack-dream curates and woostack-ask recalls." />
+  <Card title="All skills" href="/docs/skills/using-woostack" description="Per-skill reference, generated from each SKILL.md." />
+</Cards>
