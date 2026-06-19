@@ -60,6 +60,9 @@ branch: {{FEATURE_BRANCH}}
   sanity-checked against the spec body.
 - **No placeholders** - no TBD/TODO; complete code, exact commands, and expected output.
 - **Type consistency** - types, signatures, and names match the current codebase.
+- **Angle coverage** - the plan lens of `skills/woostack-harden/references/angle-preflight.md` is
+  walked: architecture, tests-per-AC, security/observability addressed by tasks (skip rule keeps
+  untouched angles silent).
 
 This file starts with YAML frontmatter for Obsidian properties, then preserves the `**Source:**`
 line — an Obsidian `[[specs/<basename>]]` wikilink, symmetric with the spec's

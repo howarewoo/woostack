@@ -24,6 +24,10 @@ decisions one by one.
   the codebase instead of asking the user.
 - **Resolve dependencies in order.** When one decision gates another, settle the upstream one
   first so downstream questions are well-posed.
+- **Angle pre-flight.** When hardening a spec or plan, walk the
+  [spec/plan angle pre-flight](references/angle-preflight.md) and raise a question for any angle
+  the artifact's surface implicates but leaves unaddressed — its skip rule keeps untouched angles
+  silent. This makes the interview angle-driven, not only decision-tree-driven.
 
 ## Amend the artifact in place
 
@@ -36,8 +40,10 @@ nothing.
 
 ## Terminal state: hardened, handed back
 
-Stop when a full pass over the decision tree produces **no new questions** — the artifact is
-hardened. Then hand back to the caller and name the next step:
+Stop when a full pass over the decision tree produces **no new questions** and — for a spec or
+plan — every angle the artifact implicates is addressed (the
+[angle pre-flight](references/angle-preflight.md) walks clean). The artifact is hardened. Then
+hand back to the caller and name the next step:
 
 - Inside `woostack-build`, **spec harden (step 3)**: hand back to step 3, which owns the
   spec-approval HARD GATE (present the written spec, wait for explicit user approval before
@@ -60,4 +66,7 @@ the caller is what preserves woostack-build's "inherit gates, add none."
 - **Explore the codebase** to answer a question before asking the user.
 - **Amend in place; write nothing new.** Strengthen the named artifact; do not create a new
   file, a spec, or a plan.
+- **Angle pre-flight (spec/plan).** Before declaring a spec or plan hardened, walk the
+  [angle pre-flight](references/angle-preflight.md); raise a question for each implicated-but-
+  unaddressed angle. No gate; amend in place.
 - **Own no gate.** Hand back at "no new questions"; never solicit final approval or merge.

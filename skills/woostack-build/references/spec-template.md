@@ -43,6 +43,8 @@ links:
 
 Each AC is a testable behavior → ≥1 plan task. Fill every class or mark `N/A — <reason>`; mark the whole section `N/A — <why no testable behavior>` only when the spec has no testable behavior.
 
+> **Angle pre-flight.** Before finalizing ACs, walk the spec lens of `skills/woostack-harden/references/angle-preflight.md`: capture each implicated angle — security, observability, api, database, edge/error — as a §6 error path or a §7 error/edge case.
+
 - **AC1 — {{behavior}}**
   - happy: {{expected}}
   - error: {{expected}}
