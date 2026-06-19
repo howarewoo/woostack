@@ -1,6 +1,6 @@
 ---
 type: fix
-status: hardened
+status: executing
 branch: fix/angle-preflight
 ---
 
@@ -44,7 +44,7 @@ a one-line cross-link noting the angles also pre-flight spec/plan authoring (Ste
 
 ## 3. Implementation Plan
 
-- [ ] **Step 1: Create the shared rubric (red → green)**
+- [x] **Step 1: Create the shared rubric (red → green)**
   - Verify absent: `test ! -f skills/woostack-harden/references/angle-preflight.md && echo RED-OK`
   - Create `skills/woostack-harden/references/angle-preflight.md` with this content:
     ```markdown
@@ -105,7 +105,7 @@ a one-line cross-link noting the angles also pre-flight spec/plan authoring (Ste
     ```
   - Verify present + lenses: `test -f skills/woostack-harden/references/angle-preflight.md && grep -q "Spec lens" skills/woostack-harden/references/angle-preflight.md && grep -q "Plan lens" skills/woostack-harden/references/angle-preflight.md && echo GREEN-OK`
 
-- [ ] **Step 2: Wire into `woostack-harden/SKILL.md`**
+- [x] **Step 2: Wire into `woostack-harden/SKILL.md`**
   - Verify absent: `grep -q angle-preflight skills/woostack-harden/SKILL.md || echo RED-OK`
   - Add an **Angle pre-flight** bullet to "The grill loop" (after the existing 4 bullets,
     ~line 27): a write-time walk of
@@ -117,7 +117,7 @@ a one-line cross-link noting the angles also pre-flight spec/plan authoring (Ste
     hardened; no gate; amend in place.
   - Verify: `grep -q "angle-preflight" skills/woostack-harden/SKILL.md && echo GREEN-OK`
 
-- [ ] **Step 3: Add check 4 to `woostack-plan/SKILL.md` §Self-review**
+- [x] **Step 3: Add check 4 to `woostack-plan/SKILL.md` §Self-review**
   - Verify absent: `grep -q angle-preflight skills/woostack-plan/SKILL.md || echo RED-OK`
   - After item 3 (Type consistency, ~line 161) add:
     ```markdown
@@ -127,7 +127,7 @@ a one-line cross-link noting the angles also pre-flight spec/plan authoring (Ste
     ```
   - Verify: `grep -q "angle-preflight" skills/woostack-plan/SKILL.md && echo GREEN-OK`
 
-- [ ] **Step 4: Add `Angle coverage` to `plan-template.md` `## Plan Checks`**
+- [x] **Step 4: Add `Angle coverage` to `plan-template.md` `## Plan Checks`**
   - Verify absent: `grep -q "Angle coverage" skills/woostack-plan/references/plan-template.md || echo RED-OK`
   - After the `Type consistency` bullet (line 62) add (bare path — template lands in consumer
     repos, no relative skill link):
@@ -137,7 +137,7 @@ a one-line cross-link noting the angles also pre-flight spec/plan authoring (Ste
     ```
   - Verify: `grep -q "Angle coverage" skills/woostack-plan/references/plan-template.md && echo GREEN-OK`
 
-- [ ] **Step 5: Add §7 angle pre-flight prompt to `spec-template.md`**
+- [x] **Step 5: Add §7 angle pre-flight prompt to `spec-template.md`**
   - Verify absent: `grep -q "Angle pre-flight" skills/woostack-build/references/spec-template.md || echo RED-OK`
   - After the "Each AC is a testable behavior" paragraph (line 44), before the AC rows, add (bare
     path):
@@ -148,7 +148,7 @@ a one-line cross-link noting the angles also pre-flight spec/plan authoring (Ste
     ```
   - Verify: `grep -q "Angle pre-flight" skills/woostack-build/references/spec-template.md && echo GREEN-OK`
 
-- [ ] **Step 6: Cross-link integrity + site build**
+- [x] **Step 6: Cross-link integrity + site build**
   - Resolve every new relative link target exists:
     - `test -f skills/woostack-harden/SKILL.md` (target `references/angle-preflight.md` resolves to `skills/woostack-harden/references/angle-preflight.md`)
     - `test -f skills/woostack-harden/references/angle-preflight.md` (plan link `../woostack-harden/references/angle-preflight.md`)

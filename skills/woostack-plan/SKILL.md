@@ -158,6 +158,10 @@ not a subagent dispatch:
 2. **Placeholder scan** — search for the red flags above; fix them.
 3. **Type consistency** — types, signatures, and property names match across tasks (a method
    called one name in Task 3 and another in Task 7 is a bug).
+4. **Angle coverage** — walk the plan lens of the
+   [spec/plan angle pre-flight](../woostack-harden/references/angle-preflight.md): architecture
+   boundaries, security/observability, and a failing-test step per AC are each addressed by a
+   task. The rubric's skip rule keeps untouched angles silent.
 
 Fix issues inline; no re-review needed.
 

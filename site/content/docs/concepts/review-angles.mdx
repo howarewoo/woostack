@@ -49,6 +49,10 @@ The exact gating heuristics (file globs and diff-token patterns) live in [`detec
   Two angles behave specially. `comments` is always non-blocking: it posts nits, never a blocking finding. `conventions` only runs when the repo carries a rule file (AGENTS.md, CLAUDE.md, .cursorrules, .windsurfrules, or GEMINI.md) along the changed paths.
 </Callout>
 
+## Angles also pre-flight authoring
+
+The same angle vocabulary runs **earlier**, too. When [`woostack-harden`](/docs/skills/woostack-harden) hardens a spec or plan — and when [`woostack-plan`](/docs/skills/woostack-plan) self-reviews — they walk a **spec/plan angle pre-flight** that translates each lens into "what to ask before writing," so gaps are caught at authoring instead of surfacing here on the diff. It adds no approval gate; the swarm review described on this page still runs on the code increment PRs.
+
 ## Tiers
 
 Each angle runs at a model tier matched to its work: `fast` for rubric and pattern checks, `standard` for reasoning-heavy passes. The skeptical validator that filters every finding runs at `deep`. The tier-to-model mapping per provider lives in [Context management](/docs/concepts/context-management#subagents-isolate-work), and you can override any tier in [Configuration](/docs/configuration#model-selection).
