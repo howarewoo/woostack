@@ -237,11 +237,11 @@ branch: feature/seo-angle-refine
 **Files:**
 - Modify: `skills/woostack-review/prompts/angles/seo.md`
 
-- [ ] **Step 1: Verify the new content is absent (red)**
+- [x] **Step 1: Verify the new content is absent (red)**
   Run: `grep -c "2.5s" skills/woostack-review/prompts/angles/seo.md || true`
   Expected: `0` (no CWV numeric target yet).
 
-- [ ] **Step 2: Add Core Web Vitals numeric targets**
+- [x] **Step 2: Add Core Web Vitals numeric targets**
   Replace:
   ```
   - **Core Web Vitals**: Detect potential LCP, INP, or CLS regressions in the diff (e.g., large unoptimized images, layout shifts).
@@ -251,7 +251,7 @@ branch: feature/seo-angle-refine
   - **Core Web Vitals**: Detect potential LCP (target < 2.5s), INP (< 200ms), or CLS (< 0.1) regressions in the diff (e.g., large unoptimized images, layout shifts, render-blocking resources).
   ```
 
-- [ ] **Step 3: Extend the canonical check to chains / self-ref / noindex conflict**
+- [x] **Step 3: Extend the canonical check to chains / self-ref / noindex conflict**
   Replace:
   ```
   - **Canonical & Hreflang**: Missing or wrong `<link rel="canonical">` or `hreflang` mismatches on i18n/new pages.
@@ -261,7 +261,7 @@ branch: feature/seo-angle-refine
   - **Canonical & Hreflang**: Missing, wrong, or broken canonical chains (`<link rel="canonical">` pointing through a redirect or to a non-200), non-self-referencing canonicals, a canonical that conflicts with a `noindex` on the same page, or `hreflang` mismatches on i18n/new pages.
   ```
 
-- [ ] **Step 4: Add SPA suppressor + falsifiability to the Skip list**
+- [x] **Step 4: Add SPA suppressor + falsifiability to the Skip list**
   Replace:
   ```
   ## Skip
@@ -279,7 +279,7 @@ branch: feature/seo-angle-refine
   - Speculative "could rank better?" suggestions without a concrete regression in the diff — every finding must cite the observable diff fact it is grounded in.
   ```
 
-- [ ] **Step 5: Verify present + output contract intact (green)**
+- [x] **Step 5: Verify present + output contract intact (green)**
   Run:
   ```bash
   grep -q "target < 2.5s" skills/woostack-review/prompts/angles/seo.md \
@@ -291,7 +291,7 @@ branch: feature/seo-angle-refine
   ```
   Expected: `OK` (all four additions present; the `findings.seo.json` output contract line is untouched).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
   ```bash
   gt modify -c -m "docs(review): sharpen seo rubric (CWV targets, canonical chains, SPA + falsifiability)"
   ```
@@ -301,7 +301,7 @@ branch: feature/seo-angle-refine
 **Files:**
 - Modify: `skills/woostack-review/prompts/angles/aeo.md`
 
-- [ ] **Step 1: Verify the reframe is absent (red), falsifiability already present**
+- [x] **Step 1: Verify the reframe is absent (red), falsifiability already present**
   Run:
   ```bash
   grep -c "AI/entity signals" skills/woostack-review/prompts/angles/aeo.md || true
@@ -309,7 +309,7 @@ branch: feature/seo-angle-refine
   ```
   Expected: first prints `0` (reframe not yet added); second prints `falsifiability-present` — AC4's falsifiability line already exists (Skip list), so this task only reframes schema.
 
-- [ ] **Step 2: Reframe `### 4. Structured data for AI`**
+- [x] **Step 2: Reframe `### 4. Structured data for AI`**
   Replace:
   ```
   ### 4. Structured data for AI (P2)
@@ -327,7 +327,7 @@ branch: feature/seo-angle-refine
   - Schema introduced that mis-describes the page (would mislead AI extraction).
   ```
 
-- [ ] **Step 3: Align the severity rubric with the reframe (lockstep)**
+- [x] **Step 3: Align the severity rubric with the reframe (lockstep)**
   The MEDIUM severity line still treats schema *removal* as a finding, contradicting the §4 reframe. Replace:
   ```
   - `MEDIUM` + `blocking: false` — Lost citations / statistics / author attribution; FAQ or HowTo schema removed or malformed; answer passages buried below filler; comparison tables converted to prose; missing `/pricing.md` companion for new pricing page.
@@ -337,7 +337,7 @@ branch: feature/seo-angle-refine
   - `MEDIUM` + `blocking: false` — Lost citations / statistics / author attribution; FAQ or HowTo schema malformed or mis-describing content (not its mere absence — see §4); answer passages buried below filler; comparison tables converted to prose; missing `/pricing.md` companion for new pricing page.
   ```
 
-- [ ] **Step 4: Verify present + double-report boundary intact (green)**
+- [x] **Step 4: Verify present + double-report boundary intact (green)**
   Run:
   ```bash
   grep -q "AI/entity signals" skills/woostack-review/prompts/angles/aeo.md \
@@ -348,7 +348,7 @@ branch: feature/seo-angle-refine
   ```
   Expected: `OK` (reframe + severity-line alignment present; the `seo`-boundary "do not double-report" Skip line is untouched).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt modify -c -m "docs(review): reframe aeo structured-data as AI/entity signals"
   ```

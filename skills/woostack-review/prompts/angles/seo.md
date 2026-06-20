@@ -16,7 +16,7 @@ tier: fast
 - **Architecture**: Ensure new important pages are logically structured and reachable.
 
 ### 2. Technical Foundations (P1)
-- **Core Web Vitals**: Detect potential LCP, INP, or CLS regressions in the diff (e.g., large unoptimized images, layout shifts).
+- **Core Web Vitals**: Detect potential LCP (target < 2.5s), INP (< 200ms), or CLS (< 0.1) regressions in the diff (e.g., large unoptimized images, layout shifts, render-blocking resources).
 - **Security**: Mixed content on new pages, HTTPS/SSL violations.
 - **Mobile-Friendliness**: Responsive design regressions, tap target size issues (< 44px), mobile-first indexing readiness.
 
@@ -25,7 +25,7 @@ tier: fast
 - **Heading Structure**: Proper H1 usage (exactly one per page) and logical hierarchy (H1 → H2 → H3).
 - **Image Optimization**: Missing Alt text, poor filenames, or non-modern formats (prefer WebP/AVIF).
 - **Social Metadata**: Missing or malformed Open Graph (`og:`) and Twitter card tags on shareable pages.
-- **Canonical & Hreflang**: Missing or wrong `<link rel="canonical">` or `hreflang` mismatches on i18n/new pages.
+- **Canonical & Hreflang**: Missing, wrong, or broken canonical chains (`<link rel="canonical">` pointing through a redirect or to a non-200), non-self-referencing canonicals, a canonical that conflicts with a `noindex` on the same page, or `hreflang` mismatches on i18n/new pages.
 
 ### 4. Content Quality & E-E-A-T (P3)
 - **Experience & Expertise**: Ensure content demonstrating first-hand knowledge includes author credentials or experience indicators.
@@ -36,6 +36,8 @@ tier: fast
 - Internal admin / authenticated pages (should not be indexable).
 - Style-only changes to existing SEO-correct pages.
 - Pre-existing missing metadata not touched by this PR.
+- Client-rendered routes with no SSR/metadata surface in the diff — a static diff cannot observe the rendered output, so do not flag content-depth or Core Web Vitals there (heavy client-side hydration produces noisy, unverifiable findings).
+- Speculative "could rank better?" suggestions without a concrete regression in the diff — every finding must cite the observable diff fact it is grounded in.
 
 ## Severity Rubric
 - `HIGH` + `blocking: true` — Robots disallow production; Broken sitemap; Production `noindex`; Broken canonicals; Severe WCAG/Accessibility fails affecting SEO.
