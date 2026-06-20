@@ -38,8 +38,10 @@ gh api repos/coreyhaines31/marketingskills/contents/skills/ai-seo/references/con
 - Author / E-E-A-T signals removed (credentials, byline, organisation).
 
 ### 4. Structured data for AI (P2)
-- Removed or broken `FAQPage`, `HowTo`, `Article`/`BlogPosting`, `Product`, `ItemList`, `Review`/`AggregateRating`, `Organization` schema on content where it applied.
-- New FAQ / comparison / how-to content shipped without matching schema.
+- Prefer **JSON-LD** (the format AI extractors and Google both favor) over inline microdata / RDFa.
+- Removed or broken `Article`/`BlogPosting`, `Product`, `ItemList`, `Review`/`AggregateRating`, `Organization` schema on content where it applied.
+- `HowTo` and `FAQPage` no longer produce Google rich results for most sites — treat them as **AI/entity signals**, not rich-result regressions: flag mis-describing or invalid markup, not the mere absence of a rich result.
+- New FAQ / comparison / how-to content shipped with no structured data at all, where JSON-LD would materially aid AI extraction — prefer `Article` / `ItemList` markup over none (a design signal, not a rich-result regression).
 - Schema introduced that mis-describes the page (would mislead AI extraction).
 
 ### 5. Machine-readable & agent surfaces (P2)
@@ -62,7 +64,7 @@ gh api repos/coreyhaines31/marketingskills/contents/skills/ai-seo/references/con
 
 ## Severity rubric
 - `HIGH` + `blocking: true` — `robots.txt` newly blocks a major AEO crawler (GPTBot / PerplexityBot / ClaudeBot / Google-Extended); critical structured data removed from a high-traffic content type; pricing/product data moved off public, parseable surface; key answer content rendered only via client-side JS with no SSR fallback.
-- `MEDIUM` + `blocking: false` — Lost citations / statistics / author attribution; FAQ or HowTo schema removed or malformed; answer passages buried below filler; comparison tables converted to prose; missing `/pricing.md` companion for new pricing page.
+- `MEDIUM` + `blocking: false` — Lost citations / statistics / author attribution; FAQ or HowTo schema malformed or mis-describing content (not its mere absence — see §4); answer passages buried below filler; comparison tables converted to prose; missing `/pricing.md` companion for new pricing page.
 - `LOW` + `blocking: false` — Heading wording drifted from query patterns; missing "Last updated" date; minor accessibility-tree regressions that hurt agentic experiences; opportunities to add machine-readable files.
 
 **Output.** Write findings as a JSON array to `/tmp/pr-review/findings.aeo.json` using the schema in `_header.md`. Each finding gets `"angle": "aeo"` and MUST populate `title` (bold headline ≤60 chars), `description` (the issue only — no fix), `fix` (recommended change in prose), and `fix_type`. Set `fix_type: "suggestion"` only when a ≤10-line single-file drop-in replacement at `line` is safe — and populate `suggestion` accordingly. Otherwise set `fix_type: "prose"` with `suggestion: null`. See `_header.md` for the full rule.
