@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-06-19-seo-angle-refine.md
-status: ready
+status: done
 branch: feature/seo-angle-refine
 ---
 
