@@ -53,37 +53,43 @@ bash "$SCRIPT" >/dev/null 2>&1
 assert_contains "$(cat "$OUTDIR/angles.txt")" "seo" "removed metadata export enables seo"
 rm -rf "$work"
 
-# 7. SOFT file, no token: *.html with no SEO tag does NOT enable seo.
+# 7. SOFT file + metadata co-signal (hreflang): an alternate-language link enables seo.
+setup_diff "app/layout.tsx" '+<link rel="alternate" hreflang="fr" href="/fr/">'
+bash "$SCRIPT" >/dev/null 2>&1
+assert_contains "$(cat "$OUTDIR/angles.txt")" "seo" "hreflang enables seo"
+rm -rf "$work"
+
+# 8. SOFT file, no token: *.html with no SEO tag does NOT enable seo.
 setup_diff "emails/welcome.html" '+  <div>Hello</div>'
 bash "$SCRIPT" >/dev/null 2>&1
 assert_eq "$(absent)" "0" "html with no SEO tag does not enable seo"
 rm -rf "$work"
 
-# 8. SOFT file + token: *.html with <meta> enables seo.
+# 9. SOFT file + token: *.html with <meta> enables seo.
 setup_diff "public/index.html" '+  <meta name="description" content="x">'
 bash "$SCRIPT" >/dev/null 2>&1
 assert_contains "$(cat "$OUTDIR/angles.txt")" "seo" "html with <meta> enables seo"
 rm -rf "$work"
 
-# 9. SOFT file, no token: next.config.ts alone does NOT enable seo.
+# 10. SOFT file, no token: next.config.ts alone does NOT enable seo.
 setup_diff "next.config.ts" '+  images: { remotePatterns: [] },'
 bash "$SCRIPT" >/dev/null 2>&1
 assert_eq "$(absent)" "0" "next.config.ts alone does not enable seo"
 rm -rf "$work"
 
-# 10. Excluded token: SVG <title> does NOT enable seo (collision guard).
+# 11. Excluded token: SVG <title> does NOT enable seo (collision guard).
 setup_diff "components/Icon.tsx" '+    <title>Close</title>'
 bash "$SCRIPT" >/dev/null 2>&1
 assert_eq "$(absent)" "0" "SVG <title> does not enable seo"
 rm -rf "$work"
 
-# 11. Excluded token: <link rel="stylesheet"> does NOT enable seo.
+# 12. Excluded token: <link rel="stylesheet"> does NOT enable seo.
 setup_diff "app/layout.tsx" '+  <link rel="stylesheet" href="/x.css">'
 bash "$SCRIPT" >/dev/null 2>&1
 assert_eq "$(absent)" "0" "link rel=stylesheet does not enable seo"
 rm -rf "$work"
 
-# 12. Anchoring: an UNCHANGED (context) metadata line does NOT enable seo.
+# 13. Anchoring: an UNCHANGED (context) metadata line does NOT enable seo.
 setup_diff "app/layout.tsx" "$(printf '+  <div className="x">\n   export const metadata = { title: "keep" }')"
 bash "$SCRIPT" >/dev/null 2>&1
 assert_eq "$(absent)" "0" "unchanged-context metadata does not enable seo"
