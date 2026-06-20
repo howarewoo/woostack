@@ -7,9 +7,13 @@
 # Angle gating:
 #   bugs      — always on
 #   security  — always on
-#   seo       — *.html, head.{ts,tsx}, layout.{ts,tsx}, robots.txt, sitemap.{xml,ts},
-#               next.config.{js,ts,mjs}, app/manifest.{ts,json}, OR diff body
-#               contains <meta / og: / twitter: / canonical / robots / sitemap
+#   seo       — HARD files (fire on path alone): robots.txt, sitemap.{xml,ts},
+#               app/manifest.{ts,json}. SOFT surfaces (*.html, head/layout.{ts,tsx,js,jsx},
+#               next.config.*) no longer gate on path — they fire only via a diff token:
+#               legacy <meta / og: / twitter: / rel=canonical / name=robots / <loc> /
+#               Sitemap:, OR a changed-line (^[+-]) metadata co-signal generateMetadata /
+#               export const metadata / hreflang (additions and removals). <title and
+#               <link rel= are excluded (SVG <title> / stylesheet-link collisions).
 #   aeo       — robots.txt, llms.txt, pricing.{md,txt}, *.{md,mdx,html}, OR diff
 #               body contains AI-crawler tokens (GPTBot / PerplexityBot /
 #               ClaudeBot / Google-Extended / anthropic-ai) or JSON-LD schema
@@ -98,18 +102,25 @@ else
 fi
 
 has_seo_file() {
-  echo "$CHANGED_PATHS" | grep -qE '(^|/)(robots\.txt|sitemap\.(xml|ts)|next\.config\.(js|ts|mjs))$' && return 0
-  echo "$CHANGED_PATHS" | grep -qE '\.html$' && return 0
-  echo "$CHANGED_PATHS" | grep -qE '(^|/)(head|layout)\.(ts|tsx|js|jsx)$' && return 0
+  # Hard SEO surfaces only — unambiguous, fire on path alone. Soft surfaces
+  # (*.html, head/layout.*, next.config.*) now gate on a diff token co-signal
+  # in has_seo_diff_token() to cut over-firing on non-SEO edits.
+  echo "$CHANGED_PATHS" | grep -qE '(^|/)(robots\.txt|sitemap\.(xml|ts))$' && return 0
   echo "$CHANGED_PATHS" | grep -qE '(^|/)app/manifest\.(ts|json)$' && return 0
   return 1
 }
 
 has_seo_diff_token() {
-  # Anchored to reduce false positives in docs/comments/JSON keys.
-  # Matches: meta tags, og:/twitter: prefixed props, rel=canonical, name=robots,
-  # <loc> sitemap entries, Sitemap: directive.
-  grep -qE "</?meta\b|\bog:[a-z_-]+|\btwitter:[a-z_-]+|rel=[\"']canonical|name=[\"']robots|<loc>|(^|[[:space:]])Sitemap:" "$DIFF"
+  # Legacy unanchored tokens: meta tags, og:/twitter: prefixed props, rel=canonical,
+  # name=robots, <loc> sitemap entries, Sitemap: directive.
+  grep -qE "</?meta\b|\bog:[a-z_-]+|\btwitter:[a-z_-]+|rel=[\"']canonical|name=[\"']robots|<loc>|(^|[[:space:]])Sitemap:" "$DIFF" && return 0
+  # Soft-surface co-signal: Next.js metadata edits in head/layout/*.html files.
+  # Anchored to CHANGED lines (^[+-]) so a styling-only edit near an unchanged
+  # metadata export does not fire, and a REMOVED export (an SEO regression) does.
+  # <title and <link rel= are intentionally excluded (SVG <title> / stylesheet-link
+  # collisions; rel=canonical + hreflang already cover SEO links).
+  grep -qE "^[+-].*(\bgenerateMetadata\b|export[[:space:]]+const[[:space:]]+metadata\b|\bhreflang\b)" "$DIFF" && return 0
+  return 1
 }
 
 has_aeo_file() {

@@ -29,7 +29,7 @@ branch: feature/seo-angle-refine
 - Create: `skills/woostack-review/scripts/tests/test-detect-angles-seo.sh`
 - Modify: `skills/woostack-review/scripts/detect-angles.sh` (`has_seo_file`, `has_seo_diff_token`, doc-comment block)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
   Create `skills/woostack-review/scripts/tests/test-detect-angles-seo.sh`:
   ```bash
   #!/usr/bin/env bash
@@ -126,7 +126,7 @@ branch: feature/seo-angle-refine
   finish
   ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
   Run: `bash skills/woostack-review/scripts/tests/test-detect-angles-seo.sh`
   Expected: FAIL — the current gate fires `seo` on every soft file, so cases 4, 7, 9, 10, 11, 12 fail, e.g.:
   ```
@@ -139,7 +139,7 @@ branch: feature/seo-angle-refine
   ```
   (exit 1 from `finish`)
 
-- [ ] **Step 3: Narrow `has_seo_file` to hard files only**
+- [x] **Step 3: Narrow `has_seo_file` to hard files only**
   In `skills/woostack-review/scripts/detect-angles.sh`, replace the `has_seo_file` function:
   ```bash
   has_seo_file() {
@@ -162,7 +162,7 @@ branch: feature/seo-angle-refine
   }
   ```
 
-- [ ] **Step 4: Add the changed-line-anchored metadata co-signal to `has_seo_diff_token`**
+- [x] **Step 4: Add the changed-line-anchored metadata co-signal to `has_seo_diff_token`**
   Replace the `has_seo_diff_token` function:
   ```bash
   has_seo_diff_token() {
@@ -188,7 +188,7 @@ branch: feature/seo-angle-refine
   }
   ```
 
-- [ ] **Step 5: Update the lockstep doc-comment catalog**
+- [x] **Step 5: Update the lockstep doc-comment catalog**
   In the same file, replace the `seo` lines in the top-of-file "Angle gating:" comment block:
   ```
   #   seo       — *.html, head.{ts,tsx}, layout.{ts,tsx}, robots.txt, sitemap.{xml,ts},
@@ -206,11 +206,11 @@ branch: feature/seo-angle-refine
   #               <link rel= are excluded (SVG <title> / stylesheet-link collisions).
   ```
 
-- [ ] **Step 6: Run the test, confirm it passes**
+- [x] **Step 6: Run the test, confirm it passes**
   Run: `bash skills/woostack-review/scripts/tests/test-detect-angles-seo.sh`
-  Expected: PASS — `  13 passed, 0 failed` (exit 0).
+  Expected: PASS — `  13 passed, 0 failed` (exit 0). ✓ Observed `13 passed, 0 failed`.
 
-- [ ] **Step 7: Regression — run the sibling detect-angles tests**
+- [x] **Step 7: Regression — run the sibling detect-angles tests**
   Run:
   ```bash
   for t in skills/woostack-review/scripts/tests/test-detect-angles-*.sh; do
@@ -219,7 +219,7 @@ branch: feature/seo-angle-refine
   ```
   Expected: every file ends `… 0 failed`; loop exits 0. Confirms the SEO narrowing did not regress `comments`, `skills`, or `observability` gates.
 
-- [ ] **Step 8: Syntax check + commit**
+- [x] **Step 8: Syntax check + commit**
   Run: `bash -n skills/woostack-review/scripts/detect-angles.sh && echo OK`
   Expected: `OK`
   ```bash
