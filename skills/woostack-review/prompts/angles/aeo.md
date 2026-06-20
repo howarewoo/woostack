@@ -41,7 +41,7 @@ gh api repos/coreyhaines31/marketingskills/contents/skills/ai-seo/references/con
 - Prefer **JSON-LD** (the format AI extractors and Google both favor) over inline microdata / RDFa.
 - Removed or broken `Article`/`BlogPosting`, `Product`, `ItemList`, `Review`/`AggregateRating`, `Organization` schema on content where it applied.
 - `HowTo` and `FAQPage` no longer produce Google rich results for most sites — treat them as **AI/entity signals**, not rich-result regressions: flag mis-describing or invalid markup, not the mere absence of a rich result.
-- New FAQ / comparison / how-to content shipped without matching schema.
+- New FAQ / comparison / how-to content shipped with no structured data at all, where JSON-LD would materially aid AI extraction — prefer `Article` / `ItemList` markup over none (a design signal, not a rich-result regression).
 - Schema introduced that mis-describes the page (would mislead AI extraction).
 
 ### 5. Machine-readable & agent surfaces (P2)
