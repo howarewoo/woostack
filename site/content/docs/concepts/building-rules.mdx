@@ -11,8 +11,8 @@ keeps every feature's artifacts joined.
 
 [woostack-build](/docs/skills/woostack-build) chains the phases in a fixed, gated order:
 
-> ideate → write spec → harden spec → **approve spec** → plan → harden plan → ship spec+plan PR
-> → **execution handoff** → execute (per increment: implement → commit → review → distill)
+> ideate → write spec → harden spec → commit spec PR → **approve spec** → plan → harden plan
+> → append plan to spec+plan PR → **execution handoff** → execute (per increment: implement → commit → review → distill)
 
 Each phase is its own skill. Build is the glue that sequences them and owns the handoffs between
 them.
@@ -22,7 +22,7 @@ them.
 The chain only advances past these on an explicit "yes":
 
 1. **Design approval** is owned by [woostack-ideate](/docs/skills/woostack-ideate).
-2. **Spec approval** happens when the written spec is presented, before any planning begins.
+2. **Spec approval** happens when the committed spec is presented in its PR, before any planning begins.
 3. **Execution handoff** is where you choose Go, Run overnight, or Hand off, after the spec+plan PR.
 
 ## One spec, one plan, N PRs

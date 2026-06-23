@@ -1,6 +1,6 @@
 ---
 type: fix
-status: hardened
+status: in-review
 branch: fix/build-commit-spec-before-approval
 ---
 
@@ -105,7 +105,7 @@ behavior change beyond the stated reorder):
   so step 1 **creates one self-contained** test file with an inline `assert_contains`, mirroring
   that house style. Assert pure-ASCII substrings (per [[skill-test-assert-ascii-token]]).
 
-- [ ] **Step 1: Reproduce with a failing test**
+- [x] **Step 1: Reproduce with a failing test**
   - No build SKILL content test exists today (`woostack-build` has only `references/`). Create a
     self-contained `skills/woostack-build/scripts/tests/test-build-spec-commit-ordering.sh` with an
     inline `assert_contains`, mirroring `test-address-comments-ownership.sh`.
@@ -116,7 +116,7 @@ behavior change beyond the stated reorder):
     - An Abandon substring like `close the` … `PR` (PR-close on abandon).
     - `building-rules.mdx` diagram shows the spec PR before `approve spec`.
   - Run it and confirm it **fails** (tokens absent in current docs).
-- [ ] **Step 2: Apply the minimal fix**
+- [x] **Step 2: Apply the minimal fix**
   - **`skills/woostack-build/SKILL.md`:**
     - Overview diagram (`:16-17`): reorder to `... → harden spec → commit spec PR → approve spec →
       plan → harden plan → append plan to spec+plan PR → execution handoff → execute`.
@@ -135,7 +135,7 @@ behavior change beyond the stated reorder):
       keep "Inherit two gates, add one" intact (still 3 gates).
   - **`site/content/docs/concepts/building-rules.mdx`:** update the line-14 loop diagram and the
     line-25 spec-approval sentence to reflect the spec PR opening at/before approve-spec.
-- [ ] **Step 3: Verification**
+- [x] **Step 3: Verification**
   - Re-run the content-assertion test → passes.
   - `pnpm -C site build` → site still builds (authored page in sync).
   - `bash skills/woostack-doctor/scripts/checks/*.sh` (or `/woostack-doctor --check`) → no new

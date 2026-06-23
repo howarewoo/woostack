@@ -13,23 +13,27 @@ adds exactly one of its own** — the execution handoff — because the plan→e
 belongs to no sub-skill. The value is the order and the handoffs.
 
 ```
-ideate → write spec (markdown) → harden spec → approve spec → plan → verify decomposition
-  → harden plan → commit spec+plan as their own PR → stop before execute (handoff gate)
+ideate → write spec (markdown) → harden spec → commit spec PR → approve spec → plan
+  → verify decomposition → harden plan → append plan to spec+plan PR → stop before execute (handoff gate)
   → execute (per increment: implement → commit → review → distill) → reviewed PR stack
 ```
 
 Three of those gates are hard stops where the user must say yes before the chain advances:
 **design approval** (owned by `woostack-ideate`, step 1), **spec approval** (step 3), and the
 **execution handoff** (step 8). Because woostack-build writes the spec in step 2, it also owns
-the "user reviews the written spec" gate in step 3. The execution-handoff gate is build's own:
+the "user reviews the written spec" gate in step 3 — and it **commits the spec and opens its PR
+before** that gate, so the review happens in the PR rather than against a raw worktree file
+(mirroring how [`woostack-fix`](../woostack-fix/SKILL.md) commits its plan before its one gate).
+The early spec commit is a work step, not a fourth gate. The execution-handoff gate is build's own:
 no sub-skill owns the plan→execute boundary, so build adds it to let you stop after planning
 and execute later or elsewhere.
 
 Hardening runs **twice** — once on the spec (step 3) and once on the plan (step 6) — but only
 the spec harden feeds a gate (the spec-approval gate, step 3). The plan harden amends the plan
-in place and hands straight back, and committing the spec+plan PR (step 7) is a work step, not
-an approval stop. The execution-handoff gate (step 8) is build-owned, not harden-owned, and
-sits after that PR. So the chain has exactly the three hard gates above.
+in place and hands straight back. Committing the spec before the step-3 gate, and appending the
+plan to that same PR (step 7), are both work steps, not approval stops. The execution-handoff
+gate (step 8) is build-owned, not harden-owned, and sits after the plan is appended. So the chain
+has exactly the three hard gates above.
 
 ## Procedure
 
@@ -61,14 +65,25 @@ sits after that PR. So the chain has exactly the three hard gates above.
    transition at each step so `/woostack-status` can read it (the enum and join contracts live
    in [`../woostack-status/references/conventions.md`](../woostack-status/references/conventions.md);
    link it, do not restate it).
-3. **Harden the spec, then get spec approval.** Invoke
+3. **Harden the spec, commit it for review, then get spec approval.** Invoke
    [`woostack-harden`](../woostack-harden/SKILL.md) against the spec. Amend the spec
-   in place until hardening stops producing new questions, then set `status: hardened`. Then
-   **always present the written spec to the user and get explicit approval before planning** —
-   this is a hard gate. Point the user at the file path (offer a `woostack-visualize` render if
-   it helps), wait for a clear yes, and make any requested changes before advancing. When the
-   gate clears, set `status: approved`. Do **not** proceed to step 4 on inferred or assumed
-   approval; silence is not a yes.
+   in place until hardening stops producing new questions, then set `status: hardened`. **Then
+   commit the spec before the gate** so the user reviews it in a PR, not as a raw worktree file:
+   from inside the `feature/<slug>` worktree, commit the `.woostack/specs/` markdown via
+   [`woostack-commit`](../woostack-commit/SKILL.md) on the existing `feature/<slug>` branch and
+   submit it — this opens the spec+plan base PR, **initially spec-only** (the plan is appended in
+   step 7; it is the same base PR, not a separate one). Then **always present the spec to the user
+   and get explicit approval before planning** — this is a hard gate. Point the user at the **PR
+   URL** (the committed spec; offer the file path or a `woostack-visualize` render if it helps),
+   wait for a clear yes, and make any requested changes before advancing.
+   - **Go** → set `status: approved` (the worktree stays alive; steps 4–7 plan into it and step 7
+     appends the plan to this same PR).
+   - **Revise** → amend the spec in the still-alive worktree, **commit the revision** on the same
+     `feature/<slug>` branch (so the PR reflects it), and re-present at the gate.
+   - **Abandon** → `git worktree remove --force` the worktree, delete the `feature/<slug>` branch,
+     and **close the now-open PR**.
+   Do **not** proceed to step 4 on inferred or assumed approval; silence is not a yes. Committing
+   the spec here is a work step; it adds no gate.
 4. **Plan.** Once the spec is approved, invoke
    [`woostack-plan`](../woostack-plan/SKILL.md) with the approved spec path. It writes the
    plan to `.woostack/plans/<spec-basename>.md` with YAML frontmatter followed by the
@@ -91,12 +106,15 @@ sits after that PR. So the chain has exactly the three hard gates above.
    plan's `status: ready` — the [conventions.md](../woostack-status/references/conventions.md)
    value for "plan hardened, ready for execution" (mirroring step 3's `hardened`, but for the
    plan). Plans own implementation lifecycle, so this transition is authored on the **plan**, not the spec.
-7. **Commit the spec and plan as their own PR.** Before any implementation, commit the
-   `.woostack/` spec and plan via [`woostack-commit`](../woostack-commit/SKILL.md) on a fresh
-   Graphite branch and open a PR. This docs-only PR is the **base of the stack** — execution
-   increments (step 9) stack on top of it via `gt create`. It carries no code and is **never
-   merged** by build. This is a work step, not an approval stop. The commit happens inside the
-   spec+plan worktree via `woostack-commit`; after the PR is open, **teardown** the worktree
+7. **Append the plan to the spec+plan PR.** The spec was already committed and its PR opened in
+   step 3, so this step **adds the plan to that same PR** — it does not open a second one. Before
+   any implementation, commit the `.woostack/` plan via
+   [`woostack-commit`](../woostack-commit/SKILL.md) onto the **same** `feature/<slug>` branch,
+   updating the existing PR so it now carries the spec **and** the plan. This docs-only PR is the
+   **base of the stack** — execution increments (step 9) stack on top of it via `gt create`. It
+   carries no code and is **never merged** by build. This is a work step, not an approval stop. The
+   commit happens inside the spec+plan worktree via `woostack-commit`; after the plan is committed,
+   **teardown** the worktree
    (`git worktree remove "$WOOSTACK_ROOT/.woostack/worktrees/feature-<slug>"`) — the branch/commits/PR
    persist as the stack base. Leave the worktree on failure and report its path
    ([worktree contract](../woostack-init/references/worktrees.md)).
@@ -150,7 +168,8 @@ sits after that PR. So the chain has exactly the three hard gates above.
 - **Inherit two gates, add one.** Do not insert *extra* approval stops beyond the three hard
   gates: **design approval** (step 1) and **spec approval** (step 3), both inherited, plus the
   **execution handoff** (step 8), which build owns because the plan→execute boundary belongs to
-  no sub-skill. The plan harden (step 6) and the spec+plan PR (step 7) are work steps, not gates.
+  no sub-skill. The spec commit (step 3), the plan harden (step 6), and appending the plan to the
+  spec+plan PR (step 7) are work steps, not gates.
 - **Harden twice, neither harden gates.** Harden the spec (step 3, feeds the spec-approval gate)
   and the plan (step 6, amends in place, no gate). The execution-handoff gate (step 8) is
   separate and build-owned, not a plan-*quality* gate; never turn the plan harden into a
@@ -160,8 +179,15 @@ sits after that PR. So the chain has exactly the three hard gates above.
   or inferred approval.
 - **Markdown specs and plans, under `.woostack/`.** Never write specs to a generic location
   outside `.woostack/`. HTML is a render-on-demand target only, not the authored format.
-- **Spec+plan ship as their own PR before execution.** Commit the spec and plan as a docs-only
-  PR (step 7) — the base of the stack — before any implementation begins. Never merge it.
+- **Commit the spec before its approval gate.** After the spec harden (step 3), commit the
+  `.woostack/specs/` markdown on the `feature/<slug>` branch and open the base PR **before** asking
+  for spec approval, so the user reviews the spec in the PR rather than a raw worktree file
+  (mirroring [`woostack-fix`](../woostack-fix/SKILL.md)). Revisions at the gate are committed
+  before re-presenting; Abandon closes the now-open PR. This is a work step — it adds no gate, so
+  the chain still has exactly the three hard gates.
+- **Spec+plan ship as their own PR before execution.** The spec is committed at the gate (step 3)
+  and the plan appended to the **same** docs-only PR (step 7) — the base of the stack — before any
+  implementation begins. One PR, not two; never merge it.
 - **Stop before execute.** Never auto-run execute — supervised `woostack-execute` or unattended
   `woostack-execute-overnight`; always halt at the execution-handoff gate (step 8) after the
   spec+plan PR and let the user choose Go / Run overnight / Hand off. The plan PR is the artifact
