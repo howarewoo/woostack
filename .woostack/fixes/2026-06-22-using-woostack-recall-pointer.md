@@ -1,6 +1,6 @@
 ---
 type: fix
-status: hardened
+status: executing
 branch: fix/using-woostack-recall-pointer
 ---
 
@@ -84,15 +84,15 @@ one place):
 
 ## 3. Implementation Plan
 
-- [ ] **Step 1: Reproduce the gap (red)**
+- [x] **Step 1: Reproduce the gap (red)**
   - Show the absence before editing:
     `grep -nE "recall|woostack-ask|\.woostack/memory" skills/using-woostack/SKILL.md`
     returns nothing in the Project Entry Check (the failing condition).
-- [ ] **Step 2: Apply Edit A and Edit B**
+- [x] **Step 2: Apply Edit A and Edit B**
   - Insert the entry-check step 5 and the Red Flags row exactly as in §2. Keep every asserted
     phrase on **one physical line** (no soft-wrap mid-phrase) per [[grep-assertion-single-physical-line]],
     so the Step 3 grep checks can't fail-green.
-- [ ] **Step 3: Verification (green) — concrete, no test runner**
+- [x] **Step 3: Verification (green) — concrete, no test runner**
   - `grep -q 'woostack-init/references/memory.md' skills/using-woostack/SKILL.md`
   - `grep -q '/woostack-ask' skills/using-woostack/SKILL.md`
   - `grep -q 'recall first' skills/using-woostack/SKILL.md`

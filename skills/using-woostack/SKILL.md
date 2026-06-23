@@ -47,6 +47,15 @@ At the start of work in a repository:
 3. Check whether the user's request maps to one of the woostack skills below.
 4. Load the mapped skill before asking clarifying questions, making edits, opening PRs, or
    posting review feedback.
+5. If the request maps to **no** woostack command but you will still answer or edit from the
+   project's accumulated knowledge, **recall first** (read-only). Load the scoped
+   `.woostack/memory/` notes for your working set via the procedure in
+   [`memory.md`](../woostack-init/references/memory.md) — script-assisted when the
+   `woostack-init` scripts are present, the manual fallback otherwise, skipped when
+   `.woostack/memory/` is absent. For a read-only question prefer
+   [`/woostack-ask`](../woostack-ask/SKILL.md), which owns this recall. Recall never writes —
+   distillation and curation stay owned by `woostack-execute`, `woostack-address-comments`,
+   and `woostack-dream`.
 
 Do not run `/woostack-init`, create `.woostack/`, scaffold code, or add config unless the
 user explicitly asks for that behavior or the loaded task-specific skill requires it as part
@@ -99,6 +108,7 @@ These thoughts mean stop and load the relevant rules:
 | "I'll write another plan for this spec." | Specs and plans are 1:1. A second plan breaks the board's join — amend the one existing plan instead. See [`conventions.md`](../woostack-status/references/conventions.md). |
 | "I'll just set `status:`/`branch:` by hand." | The build loop authors spec design status and plan implementation status/branch, and the `/woostack-status` board reads them; hand-editing or blanking them causes drift flags. |
 | "I'll rename or move this spec or plan." | Renames break the spec↔plan↔PR joins (the `**Source:**` line, `branch:`, the `Spec:` PR trailer). Avoid it, or update every join at once. |
+| "I'll answer straight from the `.woostack/` store." | Recall the scoped memory for your working set first (read-only) per [`memory.md`](../woostack-init/references/memory.md); for a read-only question use `/woostack-ask`. |
 
 ## AGENTS.md Usage
 
