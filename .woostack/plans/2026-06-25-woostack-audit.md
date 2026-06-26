@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-06-25-woostack-audit.md
-status: executing
+status: done
 branch: feature/woostack-audit
 ---
 
@@ -767,27 +767,27 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
   `skills/woostack-bootstrap/references/development.md`
 - Modify: `site/content/docs/` authored pages naming the skill surface/count
 
-- [ ] **Step 1: Update AGENTS.md count + lists**
+- [x] **Step 1: Update AGENTS.md count + lists**
   Change the "eighteen skills" phrasing to "nineteen", add `woostack-audit` to the public
   command list, the Quick file map, and the Mode B command list.
 
-- [ ] **Step 2: Add the routing row + README/CONTRIBUTING/development entries**
+- [x] **Step 2: Add the routing row + README/CONTRIBUTING/development entries**
   Add a `woostack-audit` routing row to `skills/using-woostack/SKILL.md` and matching mentions in
   `README.md`, `CONTRIBUTING.md`, and `skills/woostack-bootstrap/references/development.md`.
 
-- [ ] **Step 3: Update authored docs-site pages + verify build**
+- [x] **Step 3: Update authored docs-site pages + verify build**
   Update any authored `site/content/docs/` page that states the skill surface or its count, then:
   Run: `pnpm -C site build`
   Expected: build succeeds.
 
-- [ ] **Step 4: Verify the count is consistent across the surface**
+- [x] **Step 4: Verify the count is consistent across the surface**
   Run:
   ```bash
   grep -rl 'woostack-audit' AGENTS.md README.md CONTRIBUTING.md skills/using-woostack/SKILL.md skills/woostack-bootstrap/references/development.md | wc -l
   ```
   Expected: `5` (every surface doc names the skill).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt create -m "docs: register woostack-audit across the command surface (19th skill)"
   ```

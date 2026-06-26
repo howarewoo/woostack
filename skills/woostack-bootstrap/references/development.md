@@ -12,6 +12,7 @@ for each phase:
 | Build a feature, idea → implementation (gated chain — the skill owns the steps) | `woostack-build` |
 | Fix a small issue, diagnosis → implementation (gated fix loop) | `woostack-fix` |
 | Review | `woostack-review` |
+| Audit standing code (simplify + production-readiness) | `woostack-audit` |
 | Address review feedback | `woostack-address-comments` |
 
 Each command is discrete and ends by offering the next step. Merge stays with the human.
