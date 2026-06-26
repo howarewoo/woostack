@@ -362,29 +362,32 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
   source "$ROOT/skills/woostack-init/scripts/tests/assert.sh"
   SCRIPT="$DIR/load-audit-config.sh"
 
+  # Call run as a plain function (not via $(...)) so its OUTDIR export reaches the
+  # parent shell; it stashes the script's exit code in global `ec` (set -e-safe).
   run() { work="$(mktemp -d)"; export OUTDIR="$work/out"; mkdir -p "$OUTDIR"; \
-    printf '%s' "$1" > "$work/config.json"; AUDIT_CONFIG_FILE="$work/config.json" AUDIT_LENS="${2:-}" bash "$SCRIPT" >/dev/null 2>&1; echo "$?"; }
+    printf '%s' "$1" > "$work/config.json"; \
+    AUDIT_CONFIG_FILE="$work/config.json" AUDIT_LENS="${2:-}" bash "$SCRIPT" >/dev/null 2>&1 && ec=0 || ec=$?; }
 
   # No audit block → defaults: force simplify+production-readiness, skip architecture.
-  ec="$(run '{}')"; assert_eq "$ec" "0" "empty config ok"
+  run '{}'; assert_eq "$ec" "0" "empty config ok"
   cfg="$(cat "$OUTDIR/config.json")"
   assert_contains "$cfg" "simplify" "force includes simplify"
   assert_contains "$cfg" "production-readiness" "force includes production-readiness"
   assert_contains "$cfg" "architecture" "skip includes architecture"
 
   # Sibling review block is ignored, not an error.
-  ec="$(run '{"review":{"severity_floor":"low"},"audit":{"severity_floor":"medium"}}')"
+  run '{"review":{"severity_floor":"low"},"audit":{"severity_floor":"medium"}}'
   assert_eq "$ec" "0" "sibling review block ignored"
   assert_contains "$(cat "$OUTDIR/config.json")" "medium" "audit severity_floor applied"
 
   # Lens flag --simplify keeps bugs+security floor, drops production-readiness from force.
-  ec="$(run '{}' 'simplify')"; assert_eq "$ec" "0" "lens ok"
+  run '{}' 'simplify'; assert_eq "$ec" "0" "lens ok"
   cfg="$(cat "$OUTDIR/config.json")"
   assert_contains "$cfg" "simplify" "lens simplify forces simplify"
   assert_not_contains "$cfg" "production-readiness" "lens simplify drops prod-readiness"
 
   # Unknown audit key → loud non-zero.
-  ec="$(run '{"audit":{"bogus":1}}')"; assert_eq "$ec" "1" "unknown audit key rejected"
+  run '{"audit":{"bogus":1}}'; assert_eq "$ec" "1" "unknown audit key rejected"
   finish
   ```
 
@@ -419,6 +422,8 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
   bad = [k for k in audit if k not in valid_keys]
   if bad:
       sys.stderr.write(f"::error file={cfg_file}::unknown audit key(s): {', '.join(bad)}\n"); sys.exit(1)
+  # AUDIT_LENS is set by the SKILL CLI flags: --simplify -> "simplify",
+  # --prod-only -> "prod"; unset (the default) runs both lenses.
   force = ["simplify", "production-readiness"]
   if lens == "simplify": force = ["simplify"]
   elif lens == "prod": force = ["production-readiness"]
@@ -535,7 +540,7 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
   done
   # Synthesize meta.json (synthetic head = current HEAD when in a repo, else "audit").
   head_oid="$(git rev-parse HEAD 2>/dev/null || echo audit)"
-  printf '%s\n' "${files[@]:-}" | jq -R 'select(length>0)' | jq -s \
+  printf '%s\n' ${files[@]+"${files[@]}"} | jq -R 'select(length>0)' | jq -s \
     --arg oid "$head_oid" --arg t "$TARGET" \
     '{headRefOid:$oid, baseRefName:"audit", title:("(audit: "+$t+")"), body:"", files:[.[]|{path:.}]}' \
     > "$OUTDIR/meta.json"
