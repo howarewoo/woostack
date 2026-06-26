@@ -678,7 +678,7 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
 **Files:**
 - Create: `skills/woostack-audit/SKILL.md`
 
-- [ ] **Step 1: Write the SKILL**
+- [x] **Step 1: Write the SKILL**
   Author `skills/woostack-audit/SKILL.md` with: frontmatter (`name: woostack-audit`,
   `description:` per the discovery rubric, `requires: { bins: [jq, node, git] }`,
   `recommends: { bins: [rg] }`); the command (`/woostack-audit <target> [--fast|--deep]
@@ -690,7 +690,7 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
   boundaries (report-only, no GitHub, no auto-fix, no merge, explicit target). Cross-link
   `woostack-review`, `woostack-fix`, `woostack-build`; do not restate review's stage internals.
 
-- [ ] **Step 2: Verify the SKILL declares the contract (structural checks)**
+- [x] **Step 2: Verify the SKILL declares the contract (structural checks)**
   Run:
   ```bash
   grep -c 'WOO_REVIEW_ACTION_PATH' skills/woostack-audit/SKILL.md; \
@@ -705,7 +705,7 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
 **Files:**
 - Modify: `.woostack/.gitignore`
 
-- [ ] **Step 1: Assert audits/ is not ignored, add a guard comment if a pattern would catch it**
+- [x] **Step 1: Assert audits/ is not ignored, add a guard comment if a pattern would catch it**
   Run: `git check-ignore .woostack/audits/x.md || echo "not-ignored"`
   Expected: `not-ignored`. If it IS ignored, append `!audits/` to `.woostack/.gitignore` and re-run until `not-ignored`.
 
@@ -714,7 +714,7 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
 **Files:**
 - Test: `skills/woostack-audit/scripts/tests/test-audit-smoke.sh`
 
-- [ ] **Step 1: Write the smoke test (pipeline wiring, mocked swarm)**
+- [x] **Step 1: Write the smoke test (pipeline wiring, mocked swarm)**
   ```bash
   #!/usr/bin/env bash
   set -euo pipefail
@@ -742,11 +742,11 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
   finish
   ```
 
-- [ ] **Step 2: Run the smoke test, confirm pass**
+- [x] **Step 2: Run the smoke test, confirm pass**
   Run: `bash skills/woostack-audit/scripts/tests/test-audit-smoke.sh`
   Expected: `3 passed, 0 failed`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
   ```bash
   gt modify -c -m "feat(audit): add woostack-audit SKILL orchestration + smoke test"
   ```
