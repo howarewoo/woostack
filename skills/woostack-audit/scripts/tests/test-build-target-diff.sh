@@ -46,4 +46,22 @@ assert_eq "$([ -s "$OUTDIR/chunks.txt" ] && echo y || echo n)" "y" "chunk-diff e
 chunks_json_ok="$(jq -e 'type=="array" and length>0' "$OUTDIR/chunks.json" >/dev/null 2>&1 && echo y || echo n)"
 assert_eq "$chunks_json_ok" "y" "chunk-diff emitted a non-empty chunks.json manifest"
 rm -rf "$t" "$OUTDIR"
+
+# Git-repo enumeration branch (cross-repo): target lives inside its own repo, builder runs from a
+# DIFFERENT cwd. The enum must use the target's repo context (-C "$repo_root") and honor the
+# target's .gitignore — a gitignored file must NOT appear in the diff, a tracked file must. Guards
+# the cross-repo `git ls-files` path; before the -C fix this fell back to `find`, which re-included
+# the gitignored file. Exercises the L17-true branch that the other cases never reach.
+repo="$(mktemp -d)"
+( cd "$repo" && git init -q && git config user.email a@b.c && git config user.name t )
+mkdir -p "$repo/src"
+printf 'export const keep = 1\n' > "$repo/src/keep.ts"
+printf 'SECRET=xyz\n' > "$repo/src/secret.env"
+printf 'src/secret.env\n' > "$repo/.gitignore"
+export OUTDIR="$(mktemp -d)/out"; mkdir -p "$OUTDIR"
+( cd / && AUDIT_TARGET="$repo/src" bash "$SCRIPT" ) >/dev/null 2>&1 && ec=0 || ec=$?
+assert_eq "$ec" "0" "git-repo target exits 0 from a foreign cwd"
+assert_eq "$(grep -q 'keep\.ts' "$OUTDIR/diff.txt" && echo y || echo n)" "y" "tracked file included"
+assert_eq "$(grep -q 'secret\.env' "$OUTDIR/diff.txt" && echo y || echo n)" "n" "gitignored file excluded cross-repo (honors target .gitignore)"
+rm -rf "$repo" "$OUTDIR"
 finish

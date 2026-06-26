@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Builds an all-added synthetic diff for an explicit standing-code target so review's
 # diff-anchored swarm audits code at rest. AUDIT_TARGET is required (no default). Skips binary,
-# gitignored, lockfile, and generated files. Applies the same section-aware cap as prefetch.sh
-# (WOO_REVIEW_DIFF_CAP_BYTES) and chunk-diff.sh chunking. bash-3.2 safe (guards empty arrays).
+# gitignored, lockfile, and generated files. Warns when the synthetic diff exceeds the cap
+# (WOO_REVIEW_DIFF_CAP_BYTES) and delegates size handling to chunk-diff.sh chunking — it does not
+# truncate. bash-3.2 safe (guards empty arrays).
 set -euo pipefail
 RVW="$(dirname "${BASH_SOURCE[0]:-$0}")/../../woostack-review/scripts"
 source "$RVW/resolve-outdir.sh"
@@ -14,8 +15,17 @@ fi
 : > "$OUTDIR/diff.txt"
 
 # Enumerate candidate files: honor .gitignore when the target lives inside a repo, else find.
-if git -C "$(dirname "$TARGET")" rev-parse --show-toplevel >/dev/null 2>&1; then
-  enum() { git ls-files --cached --others --exclude-standard -- "$TARGET" 2>/dev/null || find "$TARGET" -type f; }
+# Run git in the *target's* repo (via -C "$repo_root"), not the script's CWD, so a cross-repo
+# audit still honors the target's .gitignore instead of silently falling back to `find` (which
+# does not). --full-name yields repo-root-relative paths; sed re-absolutizes them for the loop.
+target_dir="$TARGET"; [ -d "$target_dir" ] || target_dir="$(dirname "$TARGET")"
+repo_root="$(git -C "$target_dir" rev-parse --show-toplevel 2>/dev/null || true)"
+if [ -n "$repo_root" ]; then
+  enum() {
+    git -C "$repo_root" ls-files --cached --others --exclude-standard --full-name -- "$TARGET" 2>/dev/null \
+      | sed "s|^|$repo_root/|" \
+      || find "$TARGET" -type f
+  }
 else
   enum() { find "$TARGET" -type f; }
 fi
