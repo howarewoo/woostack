@@ -149,11 +149,11 @@ Full schema (every key shown; all optional):
 {
   "models": {
     "fast": "anthropic/claude-haiku-4-5",
-    "standard": "openai/gpt-5.4-mini",
+    "standard": { "model": "openai/gpt-5.4-mini", "effort": "xhigh" },
     "deep": "anthropic/claude-opus-4-8",
     "openai": {
-      "fast": "gpt-5.3-codex-spark",
-      "standard": "gpt-5.4-mini",
+      "fast": { "model": "gpt-5.3-codex-spark", "effort": "xhigh" },
+      "standard": { "model": "gpt-5.4-mini", "effort": "low" },
       "deep": { "model": "gpt-5.5", "effort": "medium" }
     },
     "anthropic": {
@@ -203,7 +203,7 @@ Key reference (JSON has no comments, so the per-key semantics live here):
 - **`authors_skip`** — PR author logins that short-circuit the entire review. Defaults: `dependabot[bot]`, `renovate[bot]`, `github-actions[bot]`. Set to `[]` to opt out.
 - **`release_rollup_pattern`** — Python regex on the PR title (default shown above; note `\\(` to escape the paren in JSON). Empty string opts out.
 - **`force_tier`** — `fast` or `deep`. Single-run override from config. Valid values are the same as `/woostack-review --fast` / `--deep`.
-- **`models`** — per-tier slug overrides. **A root-level sibling of `review`, not nested inside it** — a nested `review.models` is a hard error (the migration moved it to root). Use flat `models.fast` / `.standard` / `.deep` as provider-agnostic fallbacks, or provider-scoped maps such as `models.openai.deep`, `models.anthropic.standard`, `models.google.standard`, and `models.openrouter.fast` when the same repo is reviewed by multiple coding agents. Each leaf is either a slug string or an object `{ "model": "<slug>", "effort": "<low|medium|high|xhigh>" }` to pin per-tier reasoning effort. The action input `inputs.model` still wins.
+- **`models`** — **root-level** per-tier model overrides (moved out of `review.models`; a lingering `review.models` is now a hard loader error — `woostack-doctor` warns on it too). Each tier leaf is a model-slug string **or** an object `{ "model": "<slug>", "effort": "<level>" }`, where `effort` is one of `minimal | low | medium | high | xhigh` (empty = unset). Use flat `models.fast` / `.standard` / `.deep` as provider-agnostic fallbacks, or provider-scoped maps such as `models.openai.deep`, `models.anthropic.standard`, `models.google.standard`, and `models.openrouter.fast` when the same repo is reviewed by multiple coding agents. The action input `inputs.model` still wins. Effort is consumed by OpenAI/Codex (`load-prompt.sh`), config-first over the built-in tier default.
 - **`fix_commands`** — reserved for `--loop` mode (issue #15).
 - **`disable_adversarial`** — cost-sensitive opt-out for the prosecutor+defender validator (issue #13). When `true`, only the defender pass runs and its output becomes `findings.json` directly.
 - **`metrics`**: opt in to per-angle signal/noise metrics (bool, default `false`) — emit `findings.metrics.json` per run and fold a rolling `.woostack/metrics.json` aggregate (local only). Each angle also carries `overlap_total` + `overlap_with` (how often another angle raised the same issue, on the raw pre-validation set — a redundancy signal). Aggregate schema is v2; an older v1 aggregate is reseeded on first fold. See Stage 6.5.

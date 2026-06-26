@@ -20,9 +20,9 @@ The single-session action path resolves one session model in `load-prompt.sh` us
 
 Per-repo override remains in effect during run-model resolution: if `$OUTDIR/config.json` has `models.openai.<run_tier>` set (or flat `models.<run_tier>`), use that value before falling back to the default.
 
-For quality/cost splits, GPT-5-family reasoning is a `reasoning_effort` parameter, not a slug suffix (`high`, `xhigh` etc.); there is no `gpt-5-pro`. Pass effort via `inputs.openai_effort` (wired through to codex-action `effort`). Defaults are `medium` for deep, `xhigh` for standard, and `xhigh` for fast.
+For quality/cost splits, GPT-5-family reasoning is a `reasoning_effort` parameter, not a slug suffix (`high`, `xhigh` etc.); there is no `gpt-5-pro`. Pass effort via `inputs.openai_effort` (wired through to codex-action `effort`). Defaults are `medium` for deep, `xhigh` for standard, and `xhigh` for fast. A per-tier `effort` may also be set on the config leaf (`models.openai.<tier>.effort`); `load-prompt.sh` resolves it **config-first** (`inputs.openai_effort` → config `effort` → tier/model default).
 
-**Per-repo override:** resolve using the active run tier: if `$OUTDIR/config.json` has `models.openai.<run_tier>` set, use it; otherwise fall back to flat `models.<run_tier>` (precedence: `FORCE_TIER` > `inputs.model` > `models.openai.<run_tier>` > `models.<run_tier>` > default `gpt-5.4-mini`). Read with run-tier-aware lookup, e.g. when `run_tier=deep`: `jq -r '.models.openai.deep // .models.deep // empty' $OUTDIR/config.json`.
+**Per-repo override:** resolve using the active run tier: if `$OUTDIR/config.json` has `models.openai.<run_tier>` set, use it; otherwise fall back to flat `models.<run_tier>` (precedence: `FORCE_TIER` > `inputs.model` > `models.openai.<run_tier>` > `models.<run_tier>` > default `gpt-5.4-mini`). The loader normalizes each leaf to an object `{model, effort?}`, so read `.model` with a run-tier-aware lookup, e.g. when `run_tier=deep`: `jq -r '((.models.openai.deep // .models.deep) | if type=="object" then .model else . end) // empty' $OUTDIR/config.json`.
 
 For per-call local subagents, resolve each spawn with the same precedence, but use the target prompt's tier unless a forced tier is set:
 

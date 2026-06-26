@@ -107,17 +107,22 @@ to opt out: an empty array for `authors_skip`, or an empty string for the patter
 ### Model selection
 
 Each review subagent runs at a tier (`fast`, `standard`, or `deep`), and each tier maps to a
-concrete model per provider. Override a single tier for one provider with
-`models.<provider>.<tier>`, or set a provider-agnostic fallback with the flat
-`models.<tier>`. A model leaf can be a string (the model slug) or an object specifying `{ model, effort }`,
-where `effort` is one of `minimal`, `low`, `medium`, `high`, or `xhigh`.
-Note that `review.models` is deprecated and causes a hard validation error. `review.force_tier`
-pins every subagent to one tier, the config-file equivalent of running the review with `--fast` or `--deep`.
+concrete model per provider. Model tiers live at the **root** of `.woostack/config.json` (a
+top-level `models` field, not under `review`) so they can also drive non-review consumers.
+Override a single tier for one provider with `models.<provider>.<tier>`, or set a
+provider-agnostic fallback with the flat `models.<tier>`. Each tier leaf is a model-slug string
+**or** an object `{ "model": "<slug>", "effort": "<level>" }`, where `effort` is one of
+`minimal`, `low`, `medium`, `high`, or `xhigh` (consumed by OpenAI/Codex, resolved config-first
+over the built-in default). `review.force_tier` pins every subagent to one tier, the config-file
+equivalent of running the review with `--fast` or `--deep`.
+
+**Clean break:** `models` moved out of `review`. A `review.models` block is now a hard config
+error — move it to the top level. `woostack-doctor` warns on a lingering `review.models`.
 
 | Key | Type | Default | Meaning |
 | --- | --- | --- | --- |
-| `models.<tier>` | string \| object | provider table | Provider-agnostic model fallback for `fast` / `standard` / `deep`. Object format supports `{ model, effort }`. |
-| `models.<provider>.<tier>` | string \| object | provider table | Per-provider override; provider is `anthropic`, `openai`, `google`, or `openrouter`. Object format supports `{ model, effort }`. |
+| `models.<tier>` | string or `{model, effort}` | provider table | Provider-agnostic model for `fast` / `standard` / `deep`. |
+| `models.<provider>.<tier>` | string or `{model, effort}` | provider table | Per-provider override; provider is `anthropic`, `openai`, `google`, or `openrouter`. |
 | `review.force_tier` | string | absent (= standard) | Pin every subagent to `fast` or `deep`. Empty string = absent. |
 
 The default model per provider and tier:

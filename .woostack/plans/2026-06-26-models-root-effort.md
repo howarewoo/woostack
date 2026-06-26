@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-06-26-models-root-effort.md
-status: executing
+status: done
 branch: feature/models-root-effort
 ---
 
@@ -581,15 +581,15 @@ harness. No new dependencies.
 - Modify: `skills/woostack-review/SKILL.md:171-185` (schema example), `:206` (key reference),
   `:212` (precedence line)
 
-- [ ] **Step 1: Write the failing check** — confirm `models` is still nested under `review` in the
+- [x] **Step 1: Write the failing check** — confirm `models` is still nested under `review` in the
   schema example:
   Run: `awk 'NR>=149 && NR<=194' skills/woostack-review/SKILL.md | grep -n '"models"'`
   Expected: FAIL-state evidence — `"models"` appears indented inside the `"review": { ... }` block
   (line ~171).
 
-- [ ] **Step 2: Confirm the failure** (same command) — Expected: shows the nested `"models"` line.
+- [x] **Step 2: Confirm the failure** (same command) — Expected: shows the nested `"models"` line.
 
-- [ ] **Step 3: Edit the doc.**
+- [x] **Step 3: Edit the doc.**
   (a) In the JSON example, **remove** the `models` block (lines 171-185) from inside `"review"`,
   and add a sibling root `"models"` block before `"review"` (so the example shows the new home).
   The root block:
@@ -626,12 +626,12 @@ harness. No new dependencies.
   `… → action input `inputs.model` → root `models.<provider>.<tier>` → flat root `models.<tier>` →
   table default …`.
 
-- [ ] **Step 4: Run the check, confirm it passes**
+- [x] **Step 4: Run the check, confirm it passes**
   Run: `awk 'NR>=148 && NR<=200' skills/woostack-review/SKILL.md | grep -nE '"models"|effort'`
   Expected: PASS — `"models"` now appears as a top-level sibling (not inside `review`) and `effort`
   appears in the leaf objects.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt create -m "docs(review): document root models field + per-tier effort"
   ```
@@ -642,14 +642,14 @@ harness. No new dependencies.
 - Modify: `skills/woostack-review/prompts/_header.md:73-78` (binding paragraph), `:94` (config
   table row)
 
-- [ ] **Step 1: Write the failing check**
+- [x] **Step 1: Write the failing check**
   Run: `grep -n 'models.<provider>.<tier>` / `models.<tier>` in `/tmp/pr-review/config.json' skills/woostack-review/prompts/_header.md`
   Expected: FAIL-state evidence — line 75 still describes the override keys without noting they are
   root-level or that leaves may carry effort.
 
-- [ ] **Step 2: Confirm the failure** (same command) — Expected: shows line 75.
+- [x] **Step 2: Confirm the failure** (same command) — Expected: shows line 75.
 
-- [ ] **Step 3: Edit the doc.**
+- [x] **Step 3: Edit the doc.**
   (a) In the binding paragraph (line 75), change the override-key description to make clear the keys
   are **root** `models.<provider>.<tier>` / `models.<tier>` (no longer under `review`), and that a
   leaf is `"<slug>"` or `{ "model", "effort" }`.
@@ -658,12 +658,12 @@ harness. No new dependencies.
   | root `models.fast` / `.standard` / `.deep`; `models.<provider>.<tier>` (leaf: `"<slug>"` or `{model, effort}`) | orchestrator prompts (tier resolution) + `load-prompt.sh` (OpenAI effort) | Stage 2 |
   ```
 
-- [ ] **Step 4: Run the check, confirm it passes**
+- [x] **Step 4: Run the check, confirm it passes**
   Run: `grep -nE 'root `models|\{model, effort\}' skills/woostack-review/prompts/_header.md`
   Expected: PASS — the binding paragraph and table row now reference root `models` and the
   `{model, effort}` leaf.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt modify -c -m "docs(review): _header reflects root models + effort leaf"
   ```
@@ -674,15 +674,15 @@ harness. No new dependencies.
 - Modify: `skills/using-woostack/references/model-tiers.md` (Override precedence section + a note
   formalizing `effort` as a config field)
 
-- [ ] **Step 1: Write the failing check**
+- [x] **Step 1: Write the failing check**
   Run: `grep -n 'review' skills/using-woostack/references/model-tiers.md`
   Expected: FAIL-state evidence — the precedence section binds review to
   `models.<provider>.<tier>` in `/tmp/pr-review/config.json` but does not mention that the source
   consumer key is now **root** `models` nor that a leaf may carry `effort`.
 
-- [ ] **Step 2: Confirm the failure** (same command) — Expected: shows the binding paragraph.
+- [x] **Step 2: Confirm the failure** (same command) — Expected: shows the binding paragraph.
 
-- [ ] **Step 3: Edit the doc.** In the "Override precedence (generic)" section, update the
+- [x] **Step 3: Edit the doc.** In the "Override precedence (generic)" section, update the
   `woostack-review` binding sentence so the per-provider/per-tier and flat keys are described as
   **root** `models.*` keys in the consumer `.woostack/config.json` (canonicalized into
   `/tmp/pr-review/config.json`), and add one sentence: each tier leaf is a model-slug string or an
@@ -690,12 +690,12 @@ harness. No new dependencies.
   field — replacing the table's informational `reasoning_effort:` annotations as the source of
   truth for effort; the table annotations remain illustrative defaults.
 
-- [ ] **Step 4: Run the check, confirm it passes**
+- [x] **Step 4: Run the check, confirm it passes**
   Run: `grep -nE 'root `models|\{ model, effort \}|effort' skills/using-woostack/references/model-tiers.md`
   Expected: PASS — the precedence section now references root `models` and the `{model, effort}`
   leaf / config effort field.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt modify -c -m "docs(model-tiers): formalize effort as a config field"
   ```
@@ -706,15 +706,15 @@ harness. No new dependencies.
 - Modify: `skills/woostack-review/prompts/anthropic.md:67`, `skills/woostack-review/prompts/openai.md:21,25`,
   `skills/woostack-review/prompts/opencode.md:27`
 
-- [ ] **Step 1: Write the failing check**
+- [x] **Step 1: Write the failing check**
   Run: `grep -nE '\.models\.[a-z]+\.(deep|standard|fast) // \.models\.(deep|standard|fast) // empty' skills/woostack-review/prompts/anthropic.md skills/woostack-review/prompts/openai.md skills/woostack-review/prompts/opencode.md`
   Expected: FAIL-state evidence — the three prompts document the **string-leaf** jq
   (`.models.<p>.<tier> // .models.<tier> // empty`), which returns the whole object for an object
   leaf.
 
-- [ ] **Step 2: Confirm the failure** (same command) — Expected: lists the three jq lines.
+- [x] **Step 2: Confirm the failure** (same command) — Expected: lists the three jq lines.
 
-- [ ] **Step 3: Edit the prompts.** Update each documented override lookup to read the normalized
+- [x] **Step 3: Edit the prompts.** Update each documented override lookup to read the normalized
   object leaf's `.model`, e.g. `anthropic.md:67`:
   ```text
   3. **Per-repo override**: check `$OUTDIR/config.json` for `models.anthropic.<effective_tier>`,
@@ -728,11 +728,11 @@ harness. No new dependencies.
   the per-tier `effort` may now also come from the config leaf (`models.openai.<tier>.effort`),
   resolved config-first by `load-prompt.sh` before the built-in default.
 
-- [ ] **Step 4: Run the check, confirm it passes**
+- [x] **Step 4: Run the check, confirm it passes**
   Run: `grep -nE 'if type=="object" then .model else . end' skills/woostack-review/prompts/anthropic.md skills/woostack-review/prompts/openai.md skills/woostack-review/prompts/opencode.md`
   Expected: PASS — all three prompts now document the object-safe lookup.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt modify -c -m "docs(review): provider prompts read object {model} tier leaves"
   ```
