@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-06-25-woostack-audit.md
-status: ready
+status: executing
 branch: feature/woostack-audit
 ---
 
@@ -48,7 +48,7 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
 **Files:**
 - Create: `skills/woostack-review/prompts/angles/simplify.md`
 
-- [ ] **Step 1: Write the prompt file**
+- [x] **Step 1: Write the prompt file**
   ```markdown
   ---
   tier: standard
@@ -116,11 +116,11 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
   deletion/replacement at `line`; otherwise `fix_type: "prose"` with `suggestion: null`.
   ```
 
-- [ ] **Step 2: Confirm structural shape (verification)**
+- [x] **Step 2: Confirm structural shape (verification)**
   Run: `bash -n /dev/stdin < /dev/null; grep -c '^tier: standard' skills/woostack-review/prompts/angles/simplify.md && grep -c 'findings.simplify.json' skills/woostack-review/prompts/angles/simplify.md`
   Expected: prints `1` then `1` (frontmatter tier present; output path correct).
 
-- [ ] **Step 3: Confirm deferral marker present**
+- [x] **Step 3: Confirm deferral marker present**
   Run: `grep -c 'woostack-defer(increment 2)' skills/woostack-review/prompts/angles/simplify.md`
   Expected: `1`
 
@@ -129,7 +129,7 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
 **Files:**
 - Create: `skills/woostack-review/prompts/angles/production-readiness.md`
 
-- [ ] **Step 1: Write the prompt file**
+- [x] **Step 1: Write the prompt file**
   ```markdown
   ---
   tier: standard
@@ -195,11 +195,11 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
   drop-in at `line`; otherwise `fix_type: "prose"` with `suggestion: null`.
   ```
 
-- [ ] **Step 2: Confirm structural shape (verification)**
+- [x] **Step 2: Confirm structural shape (verification)**
   Run: `grep -c '^tier: standard' skills/woostack-review/prompts/angles/production-readiness.md && grep -c 'findings.production-readiness.json' skills/woostack-review/prompts/angles/production-readiness.md`
   Expected: prints `1` then `1`.
 
-- [ ] **Step 3: Commit the increment**
+- [x] **Step 3: Commit the increment**
   ```bash
   gt create -m "feat(review): add simplify + production-readiness angle prompts (unwired)"
   ```
