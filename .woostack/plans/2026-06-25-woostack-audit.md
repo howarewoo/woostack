@@ -463,7 +463,7 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
 - Create: `skills/woostack-audit/scripts/build-target-diff.sh`
 - Test: `skills/woostack-audit/scripts/tests/test-build-target-diff.sh`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
   ```bash
   #!/usr/bin/env bash
   set -euo pipefail
@@ -501,11 +501,11 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
   finish
   ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
   Run: `bash skills/woostack-audit/scripts/tests/test-build-target-diff.sh`
   Expected: FAIL — script not found.
 
-- [ ] **Step 3: Implement the builder**
+- [x] **Step 3: Implement the builder**
   ```bash
   #!/usr/bin/env bash
   # Builds an all-added synthetic diff for an explicit standing-code target so review's
@@ -552,11 +552,11 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
   bash "$RVW/chunk-diff.sh" >/dev/null 2>&1 || true
   ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
   Run: `bash skills/woostack-audit/scripts/tests/test-build-target-diff.sh`
   Expected: `… passed, 0 failed`
 
-- [ ] **Step 5: Verify a synthetic line is review-anchorable**
+- [x] **Step 5: Verify a synthetic line is review-anchorable**
   Run:
   ```bash
   t="$(mktemp -d)"; printf 'export const a = 1\n' > "$t/a.ts"; export OUTDIR="$(mktemp -d)/out"; mkdir -p "$OUTDIR"; \
@@ -565,7 +565,7 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
   ```
   Expected: a non-`null` value (the all-added line resolves on the RIGHT side). *(If `resolve-diff-line.sh` expects a repo-relative path, pass the path as it appears in `diff.txt`.)*
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
   ```bash
   gt modify -c -m "feat(audit): synthesize all-added target diff + meta (cap + chunk reuse)"
   ```
