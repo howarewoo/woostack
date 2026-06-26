@@ -39,6 +39,21 @@ assert_not_contains "$cfg" "simplify" "lens prod drops simplify"
 # angles:null is coerced to {} by the `or {}` guard, not treated as an error.
 run '{"audit":{"angles":null}}'; assert_eq "$EC" "0" "angles:null coerced, not an error"
 
+# User-supplied angles.force/skip merge onto the audit defaults (append, not replace).
+run '{"audit":{"angles":{"force":["bugs"],"skip":["docs"]}}}'; assert_eq "$EC" "0" "user angles merge ok"
+cfg="$(cat "$OUTDIR/config.json")"
+assert_contains "$cfg" "bugs" "user angles.force merged onto defaults"
+assert_contains "$cfg" "docs" "user angles.skip merged onto architecture"
+
+# Unknown lens flag falls back to running both audit angles, not an error.
+run '{}' 'bogus'; assert_eq "$EC" "0" "unknown lens falls back, no error"
+cfg="$(cat "$OUTDIR/config.json")"
+assert_contains "$cfg" "simplify" "unknown lens keeps simplify"
+assert_contains "$cfg" "production-readiness" "unknown lens keeps production-readiness"
+
+# Invalid JSON in the config file -> loud non-zero exit (JSONDecodeError path).
+run '{invalid'; assert_eq "$EC" "1" "invalid JSON rejected"
+
 # Unknown audit key -> loud non-zero.
 run '{"audit":{"bogus":1}}'; assert_eq "$EC" "1" "unknown audit key rejected"
 finish
