@@ -1,6 +1,6 @@
 # Contributing
 
-This repo is a **published collection of skills**, not a codebase. Contributions are edits to the skills — the Markdown under `skills/` plus the support files a skill ships (HTML templates, the review engine's shell scripts and prompts, JSON config). The public command/adoption surface is `using-woostack`, `woostack-init`, `woostack-bootstrap`, `woostack-build`, `woostack-fix`, `woostack-plan`, `woostack-execute`, `woostack-execute-overnight`, `woostack-commit`, `woostack-review`, `woostack-address-comments`, `woostack-status`, `woostack-visualize`, `woostack-debug`, `woostack-tdd`, `woostack-dream`, `woostack-doctor`, and `woostack-sweep`. The collection also ships `woostack-ideate` and `woostack-harden` as internal sub-skills used by `woostack-build`.
+This repo is a **published collection of skills**, not a codebase. Contributions are edits to the skills — the Markdown under `skills/` plus the support files a skill ships (HTML templates, the review engine's shell scripts and prompts, JSON config). The public command/adoption surface is `using-woostack`, `woostack-init`, `woostack-bootstrap`, `woostack-build`, `woostack-fix`, `woostack-plan`, `woostack-execute`, `woostack-execute-overnight`, `woostack-commit`, `woostack-review`, `woostack-address-comments`, `woostack-status`, `woostack-visualize`, `woostack-debug`, `woostack-tdd`, `woostack-dream`, `woostack-doctor`, `woostack-sweep`, and `woostack-audit`. The collection also ships `woostack-ideate` and `woostack-harden` as internal sub-skills used by `woostack-build`.
 
 See [AGENTS.md](AGENTS.md) for the full repo contract; this file is the short contributor's version.
 
@@ -28,6 +28,7 @@ See [AGENTS.md](AGENTS.md) for the full repo contract; this file is the short co
 | Change the stack review-sweep engine (`/woostack-sweep`) | `skills/woostack-sweep/SKILL.md` |
 | Change the commit / PR update workflow | `skills/woostack-commit/SKILL.md` |
 | Change the review engine | `skills/woostack-review/SKILL.md`, `skills/woostack-review/scripts/`, `skills/woostack-review/prompts/` |
+| Change the standing-code audit engine (`/woostack-audit`) | `skills/woostack-audit/SKILL.md`, `skills/woostack-audit/scripts/` |
 | Change the systematic-debugging behavior (`/woostack-debug`) | `skills/woostack-debug/SKILL.md` |
 | Change the test-adder / TDD doctrine home (`/woostack-tdd`) | `skills/woostack-tdd/SKILL.md` |
 | Change the memory/docs curation engine (`/woostack-dream`) | `skills/woostack-dream/SKILL.md` |

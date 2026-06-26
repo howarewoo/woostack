@@ -121,6 +121,8 @@ After writing code, use the verification and iteration loop:
   Fans out sub-agents in parallel to check distinct angles (bugs, security, observability, database, etc.), then runs an adversarial **Skeptical Validator** (prosecutor and defender checks) to eliminate false positives before posting reviews.
 - **Addressing Reviews** → [/woostack-address-comments](skills/woostack-address-comments/SKILL.md)
   Iteratively guides you through resolving, clarifying, or pushing back on PR review comments, applying changes, and pushing commits.
+- **Auditing Standing Code** → [/woostack-audit](skills/woostack-audit/SKILL.md)
+  Audits an explicit target (a file, directory, or whole repo at rest — not a diff) for code simplification and production readiness, repointing the review swarm at an all-added diff and writing a report-only findings doc under `.woostack/audits/`. Never gates, posts, or merges.
 
 ---
 
