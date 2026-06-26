@@ -353,7 +353,7 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
 - Create: `skills/woostack-audit/scripts/load-audit-config.sh`
 - Test: `skills/woostack-audit/scripts/tests/test-load-audit-config.sh`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
   ```bash
   #!/usr/bin/env bash
   set -euo pipefail
@@ -391,11 +391,11 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
   finish
   ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
   Run: `bash skills/woostack-audit/scripts/tests/test-load-audit-config.sh`
   Expected: FAIL — `load-audit-config.sh: No such file or directory`.
 
-- [ ] **Step 3: Implement the loader**
+- [x] **Step 3: Implement the loader**
   ```bash
   #!/usr/bin/env bash
   # Reads the sibling `audit` block from .woostack/config.json (or $AUDIT_CONFIG_FILE) and emits
@@ -441,11 +441,11 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
   PY
   ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
   Run: `bash skills/woostack-audit/scripts/tests/test-load-audit-config.sh`
   Expected: `… passed, 0 failed`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt modify -c -m "feat(audit): add audit config loader (sibling audit block + lens flags)"
   ```
