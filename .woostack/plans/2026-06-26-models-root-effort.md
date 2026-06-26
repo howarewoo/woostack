@@ -455,13 +455,13 @@ harness. No new dependencies.
 - Test: `skills/woostack-doctor/scripts/tests/test-health-checks.sh` (or `test-doctor.sh`) — verify
   config-keys requires the new key (see Step 1)
 
-- [ ] **Step 1: Write the failing check** — confirm the template lacks a root `models` key today:
+- [x] **Step 1: Write the failing check** — confirm the template lacks a root `models` key today:
   Run: `jq -e 'has("models")' skills/woostack-init/templates/config.json; echo "exit=$?"`
   Expected: FAIL — `exit=1` (key absent; `jq -e` false → exit 1).
 
-- [ ] **Step 2: Confirm the failure** (same command) — Expected: `false` / exit 1.
+- [x] **Step 2: Confirm the failure** (same command) — Expected: `false` / exit 1.
 
-- [ ] **Step 3: Add the key** — write `skills/woostack-init/templates/config.json`:
+- [x] **Step 3: Add the key** — write `skills/woostack-init/templates/config.json`:
   ```json
   {
     "models": {},
@@ -472,18 +472,18 @@ harness. No new dependencies.
   }
   ```
 
-- [ ] **Step 4: Run the check, confirm it passes**
+- [x] **Step 4: Run the check, confirm it passes**
   Run: `jq -e 'has("models")' skills/woostack-init/templates/config.json; echo "exit=$?"`
   Expected: PASS — `true` / `exit=0`. (The doctor `config-keys.sh` check reads template top-level
   keys and will now require root `models` in consumer configs; this repo's config already has it
   after Increment 1.)
 
-- [ ] **Step 5: Verify the doctor still passes on this repo**
+- [x] **Step 5: Verify the doctor still passes on this repo**
   Run: `bash skills/woostack-doctor/scripts/doctor.sh --check . ; echo "exit=$?"`
   Expected: PASS — `exit=0` (this repo's config has root `models` from Increment 1, so config-keys
   finds the now-required key).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
   ```bash
   gt create -m "feat(init): add root models key to config template"
   ```
@@ -494,7 +494,7 @@ harness. No new dependencies.
 - Create: `skills/woostack-doctor/scripts/checks/review-models-moved.sh`
 - Test: `skills/woostack-doctor/scripts/tests/test-review-models-moved.sh` (new)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
   ```bash
   cat > skills/woostack-doctor/scripts/tests/test-review-models-moved.sh <<'EOF'
   #!/usr/bin/env bash
@@ -527,11 +527,11 @@ harness. No new dependencies.
   chmod +x skills/woostack-doctor/scripts/tests/test-review-models-moved.sh
   ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
   Run: `bash skills/woostack-doctor/scripts/tests/test-review-models-moved.sh`
   Expected: FAIL — `review-models-moved.sh` does not exist yet.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
   ```bash
   cat > skills/woostack-doctor/scripts/checks/review-models-moved.sh <<'EOF'
   #!/usr/bin/env bash
@@ -553,16 +553,16 @@ harness. No new dependencies.
   chmod +x skills/woostack-doctor/scripts/checks/review-models-moved.sh
   ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
   Run: `bash skills/woostack-doctor/scripts/tests/test-review-models-moved.sh`
   Expected: PASS
 
-- [ ] **Step 5: Confirm the check is discovered by the orchestrator and this repo stays clean**
+- [x] **Step 5: Confirm the check is discovered by the orchestrator and this repo stays clean**
   Run: `bash skills/woostack-doctor/scripts/doctor.sh . >/dev/null; echo "exit=$?"`
   Expected: PASS — `exit=0`. This repo's config has root `models` (no `review.models`), so the new
   check is silent; `doctor.sh` auto-runs every `checks/*.sh`, so no registration step is needed.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
   ```bash
   gt modify -c -m "feat(doctor): warn on lingering review.models (migration aid)"
   ```
