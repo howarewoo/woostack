@@ -217,13 +217,13 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
 **Files:**
 - Modify: `skills/woostack-review/scripts/load-config.sh:92`
 
-- [ ] **Step 1: Add both angles to the set**
+- [x] **Step 1: Add both angles to the set**
   Edit line 92 — append `, "simplify", "production-readiness"` inside the `VALID_ANGLES` set so it reads:
   ```python
   VALID_ANGLES = {"bugs", "security", "conventions", "seo", "aeo", "design", "react", "database", "tests", "api", "infra", "observability", "types", "i18n", "docs", "deps", "architecture", "skills", "comments", "simplify", "production-readiness"}
   ```
 
-- [ ] **Step 2: Verify both angles are in the validated set (structural)**
+- [x] **Step 2: Verify both angles are in the validated set (structural)**
   Run:
   ```bash
   python3 -c "import re; s=open('skills/woostack-review/scripts/load-config.sh').read(); \
@@ -237,7 +237,7 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
 **Files:**
 - Modify: `skills/woostack-review/scripts/detect-angles.sh` (general-source block near `:326`, doc catalog near `:68`)
 
-- [ ] **Step 1: Push both angles where `architecture`/`comments` are pushed**
+- [x] **Step 1: Push both angles where `architecture`/`comments` are pushed**
   After the existing `ANGLES+=("architecture")` / `ANGLES+=("comments")` lines (inside the
   general-purpose-source `if`), add:
   ```bash
@@ -245,7 +245,7 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
   ANGLES+=("production-readiness")
   ```
 
-- [ ] **Step 2: Extend the top-of-file doc catalog**
+- [x] **Step 2: Extend the top-of-file doc catalog**
   In the angle-gating comment block, add two lines mirroring the `architecture`/`comments` entries:
   ```bash
   #   simplify  — general-purpose source files in the diff (same signal as architecture).
@@ -255,7 +255,7 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
   #               posture (timeouts, retries, idempotency, degradation, resource limits).
   ```
 
-- [ ] **Step 3: Write the gating test (red→green)**
+- [x] **Step 3: Write the gating test (red→green)**
   Create `skills/woostack-review/scripts/tests/test-detect-angles-audit-angles.sh`:
   ```bash
   #!/usr/bin/env bash
@@ -281,7 +281,7 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
   finish
   ```
 
-- [ ] **Step 4: Run the gating test, confirm pass**
+- [x] **Step 4: Run the gating test, confirm pass**
   Run: `bash skills/woostack-review/scripts/tests/test-detect-angles-audit-angles.sh`
   Expected: `4 passed, 0 failed`
 
@@ -290,21 +290,21 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
 **Files:**
 - Modify: `skills/woostack-review/prompts/_header.md` (count `:100`, table `:120`, footer whitelist `:295`, schema list `:429`)
 
-- [ ] **Step 1: Bump the angle count word**
+- [x] **Step 1: Bump the angle count word**
   Line ~100: change "runs up to **nineteen** distinct review angles" → "**twenty-one**".
 
-- [ ] **Step 2: Add two catalog table rows**
+- [x] **Step 2: Add two catalog table rows**
   After the `comments` row (~`:122`), add:
   ```markdown
   | `simplify` | no | LLM only — gated on general-purpose source files in diff (same signal as `architecture`); YAGNI / dead-code / duplication delete-list; defers structural-shape to `architecture` when both run |
   | `production-readiness` | no | LLM only — gated on general-purpose source files in diff; resilience/operability posture (timeouts, retries, idempotency, degradation, resource limits) |
   ```
 
-- [ ] **Step 3: Add both to the two angle whitelists**
+- [x] **Step 3: Add both to the two angle whitelists**
   Line ~295 (python footer whitelist set) and line ~429 (the `angle is one of …` schema list):
   append `"simplify","production-readiness"` to the set on 295, and ` | simplify | production-readiness` to the pipe list on 429.
 
-- [ ] **Step 4: Verify all whitelist sites carry both names**
+- [x] **Step 4: Verify all whitelist sites carry both names**
   Run:
   ```bash
   grep -c 'simplify' skills/woostack-review/prompts/_header.md; \
@@ -318,15 +318,15 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
 - Modify: `skills/woostack-review/prompts/anthropic.md`, `openai.md`, `google.md`, `opencode.md` (tier tables)
 - Modify: `skills/woostack-review/prompts/angles/simplify.md`, `production-readiness.md` (drop markers)
 
-- [ ] **Step 1: Add `standard`-tier rows for both angles in each provider table**
+- [x] **Step 1: Add `standard`-tier rows for both angles in each provider table**
   In each provider prompt's per-angle tier table, add `simplify` and `production-readiness` at
   `standard` (mirroring the existing `architecture` row's placement).
 
-- [ ] **Step 2: Remove the increment-1 deferral markers**
+- [x] **Step 2: Remove the increment-1 deferral markers**
   Delete the `<!-- woostack-defer(increment 2): … -->` line from both new angle prompts (the
   wiring they pointed at now exists in this increment).
 
-- [ ] **Step 3: Verify markers are gone and tiers are present**
+- [x] **Step 3: Verify markers are gone and tiers are present**
   Run:
   ```bash
   ! grep -rq 'woostack-defer(increment 2)' skills/woostack-review/prompts/angles/ && echo "markers-cleared"; \
@@ -334,7 +334,7 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
   ```
   Expected: prints `markers-cleared` then `4`.
 
-- [ ] **Step 4: Commit the increment**
+- [x] **Step 4: Commit the increment**
   ```bash
   gt modify -c -m "feat(review): wire simplify + production-readiness angles into the catalog"
   ```

@@ -97,7 +97,7 @@ The prefetch step parses an optional `.woostack/config.json` in the consumer rep
 
 ## Review Angles
 
-This action runs up to nineteen distinct review angles, auto-selected from the changed files. The set of enabled angles is listed in `/tmp/pr-review/angles.txt`. The per-angle prompt bodies live at `${ACTION_PATH}/prompts/angles/<angle>.md` and are loaded by the orchestrator.
+This action runs up to twenty-one distinct review angles, auto-selected from the changed files. The set of enabled angles is listed in `/tmp/pr-review/angles.txt`. The per-angle prompt bodies live at `${ACTION_PATH}/prompts/angles/<angle>.md` and are loaded by the orchestrator.
 
 | Angle | Always-on | Tooling |
 |---|---|---|
@@ -120,6 +120,8 @@ This action runs up to nineteen distinct review angles, auto-selected from the c
 | `architecture` | no | LLM only — gated on general-purpose source files in diff (`*.ts`/`*.js`/`*.py`/`*.go`/`*.rs`/`*.java`/`*.rb`/`*.php`/`*.cs`/…); structural-quality / code-judo pass; skips doc-only and config-only PRs |
 | `skills` | no | LLM only — gated on a `SKILL.md` in diff; audits the changed Agent Skill against Anthropic's skill best-practices guide (`SKILL.md` is excluded from the `docs` gate so a SKILL.md-only PR routes here) |
 | `comments` | no | LLM only — gated on general-purpose source files in diff (same signal as `architecture`); audits whether code comments still match the code the PR changed. Always non-blocking. |
+| `simplify` | no | LLM only — gated on general-purpose source files in diff (same signal as `architecture`); YAGNI / dead-code / duplication delete-list; defers structural-shape to `architecture` when both run |
+| `production-readiness` | no | LLM only — gated on general-purpose source files in diff; resilience/operability posture (timeouts, retries, idempotency, degradation, resource limits) |
 
 Each angle writes its findings to `/tmp/pr-review/findings.<angle>.json`. The orchestrator merges them into `/tmp/pr-review/findings.json` after the validator pass, then posts inline comments via a single batched GitHub Review. PR labels MUST NOT be mutated — blocking is signalled exclusively through the native `REQUEST_CHANGES` review event.
 
@@ -292,7 +294,7 @@ for f in findings:
         else:
             sev_tag = severity
         footer_parts.append(f"<strong>{sev_tag}</strong>")
-    if angle in {"bugs","security","conventions","seo","aeo","design","react","database","tests","api","infra","observability","types","i18n","docs","deps","architecture","skills","comments"}:
+    if angle in {"bugs","security","conventions","seo","aeo","design","react","database","tests","api","infra","observability","types","i18n","docs","deps","architecture","skills","comments","simplify","production-readiness"}:
         footer_parts.append(f"flagged by the <code>{angle}</code> agent")
     if footer_parts:
         body += "\n\n<sub>— " + " · ".join(footer_parts) + "</sub>"
@@ -426,7 +428,7 @@ Every runner MUST write a final `findings.json` (for debugging + potential post-
 ]
 ```
 
-`angle` is one of `bugs | security | conventions | seo | aeo | design | react | database | tests | api | infra | observability | types | i18n | docs | deps | architecture | comments`.
+`angle` is one of `bugs | security | conventions | seo | aeo | design | react | database | tests | api | infra | observability | types | i18n | docs | deps | architecture | comments | simplify | production-readiness`.
 
 `line` MUST be the post-patch absolute file line — i.e. a line that exists on the RIGHT side of the diff (a `+` added line or a ` ` context line within a hunk for `file`). Lines that fall in a deletion-only region, or outside any hunk for the file, will be rejected by the GitHub API. Validate every line via `scripts/resolve-diff-line.sh` before writing the finding (see *Output Discipline* above); drop the finding when the helper returns `null`.
 

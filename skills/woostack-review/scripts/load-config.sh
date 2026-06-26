@@ -89,7 +89,7 @@ import sys
 
 src, dst = sys.argv[1], sys.argv[2]
 
-VALID_ANGLES = {"bugs", "security", "conventions", "seo", "aeo", "design", "react", "database", "tests", "api", "infra", "observability", "types", "i18n", "docs", "deps", "architecture", "skills", "comments"}
+VALID_ANGLES = {"bugs", "security", "conventions", "seo", "aeo", "design", "react", "database", "tests", "api", "infra", "observability", "types", "i18n", "docs", "deps", "architecture", "skills", "comments", "simplify", "production-readiness"}
 VALID_FLOORS = {"low", "medium", "high"}
 FORCE_TIERS = {"fast", "deep"}
 # Keys recognized inside the `review` block (and the legacy top-level form).

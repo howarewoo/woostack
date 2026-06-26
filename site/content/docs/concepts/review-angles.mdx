@@ -32,9 +32,11 @@ Every angle, what it reviews, a plain-language summary of when it auto-fires, an
 | `i18n` | Internationalization: translation catalogs and message usage | `locales/`, `messages/`, `i18n/`, `.po` files, or translation tokens in the diff | fast |
 | `infra` | Infrastructure: CI, containers, IaC, Kubernetes | workflow files, Dockerfiles, Terraform / Pulumi / CDK, k8s or helm trees, or IaC tokens in the diff | standard |
 | `observability` | Logging and error handling: silent failures and swallowed errors | logging or error-handling tokens in the diff (console / logger / Sentry / OpenTelemetry, swallowed catches, production mock fallbacks) | standard |
+| `production-readiness` | Resilience and operability: failure handling, retries, timeouts, resource limits, operational readiness | any general-purpose source file changes (same signal as `architecture`) | standard |
 | `react` | React correctness: Rules of Hooks and render behavior | a `.tsx` or `.jsx` file changes | standard |
 | `security` | Threat model: injection, auth, secrets, unsafe patterns | always (cannot be skipped) | standard |
 | `seo` | Search-engine optimization: meta tags, sitemaps, canonical URLs | HTML, head / layout files, `robots.txt`, `sitemap`, `next.config`, or SEO tokens in the diff | fast |
+| `simplify` | Simplification: code that should be smaller or not exist (YAGNI, dead code, duplication, thin abstractions) | any general-purpose source file changes (same signal as `architecture`) | standard |
 | `skills` | Agent Skill authoring: a changed SKILL.md against the best-practices guide | a `SKILL.md` file changes anywhere in the diff | standard |
 | `tests` | Test coverage and quality | a test file changes (`.test.*`, `.spec.*`, `_test.*`, or `tests/` / `__tests__/` / `spec/` trees) | standard |
 | `types` | Type design: TypeScript invariants and signatures | a `.ts` / `.tsx` / `.cts` / `.mts` file changes | standard |
