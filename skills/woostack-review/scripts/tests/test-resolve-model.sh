@@ -100,4 +100,18 @@ set -e
 assert_exit 1 "$code" "missing --provider exits non-zero"
 rm -rf "$outdir"
 
+# --- object leaf {model,effort}: resolver returns .model ---
+outdir="$(mktemp -d)"
+printf '%s\n' '{"models":{"openai":{"standard":{"model":"obj-standard-x","effort":"low"}}}}' > "$outdir/config.json"
+assert_eq "$(run_resolve "$outdir" --provider openai --tier standard)" "obj-standard-x" \
+  "object leaf {model,effort}: resolver returns .model"
+rm -rf "$outdir"
+
+# --- flat object leaf: resolver returns .model ---
+outdir="$(mktemp -d)"
+printf '%s\n' '{"models":{"standard":{"model":"flat-obj-y"}}}' > "$outdir/config.json"
+assert_eq "$(run_resolve "$outdir" --provider openai --tier standard)" "flat-obj-y" \
+  "flat object leaf: resolver returns .model"
+rm -rf "$outdir"
+
 finish

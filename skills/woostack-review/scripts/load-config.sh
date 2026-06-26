@@ -95,12 +95,13 @@ FORCE_TIERS = {"fast", "deep"}
 # Keys recognized inside the `review` block (and the legacy top-level form).
 REVIEW_KEYS = {
     "angles", "severity_floor", "ignore", "project_rules",
-    "authors_skip", "release_rollup_pattern", "models", "fix_commands",
+    "authors_skip", "release_rollup_pattern", "fix_commands",
     "disable_adversarial", "metrics", "chunking", "force_tier", "nits",
     "defer_markers",
 }
 MODEL_TIERS = {"fast", "standard", "deep"}
 MODEL_PROVIDERS = {"anthropic", "openai", "google", "openrouter"}
+EFFORT_LEVELS = {"minimal", "low", "medium", "high", "xhigh"}
 
 
 def loud(msg, line=None, col=None):
@@ -140,21 +141,31 @@ except json.JSONDecodeError as exc:
 if not isinstance(raw, dict):
     loud("top-level JSON must be an object, got {}".format(type(raw).__name__))
 
+# Capture the true top-level object before the review-block reassignment below.
+# Root-level `models` is read from `top`, independent of the `review` block, so a
+# root `models` sibling next to a `review` block is parsed (not silently ignored).
+top = raw
+
 # Resolve the review config block. Canonical form nests it under `review`;
-# sibling top-level namespaces (e.g. build/bootstrap config) are left alone.
-# Legacy form puts review keys at the top level — accepted with a deprecation
-# notice during the transition.
+# sibling top-level namespaces (e.g. build/bootstrap config, and `models`) are
+# left alone. Legacy form puts review keys at the top level — accepted with a
+# deprecation notice during the transition.
 if "review" in raw:
     rc = raw["review"]
     if not isinstance(rc, dict):
         loud("`review` must be an object, got {}".format(type(rc).__name__))
+    if "models" in rc:
+        loud("`review.models` has moved to a top-level `models` field; "
+             "move it out of `review`, e.g. "
+             "{\"models\": {\"openai\": {\"standard\": "
+             "{\"model\": \"gpt-5.4-mini\", \"effort\": \"xhigh\"}}}}")
     unknown = sorted(set(rc.keys()) - REVIEW_KEYS)
     if unknown:
         loud("unknown `review` key(s): {}".format(", ".join(unknown)))
 else:
     rc = raw
     legacy_review = sorted(set(rc.keys()) & REVIEW_KEYS)
-    unknown = sorted(set(rc.keys()) - REVIEW_KEYS)
+    unknown = sorted(set(rc.keys()) - REVIEW_KEYS - {"models"})
     if unknown:
         loud("unknown top-level key(s): {} (review settings now nest under `review`)".format(", ".join(unknown)))
     if legacy_review:
@@ -261,8 +272,36 @@ if "chunking" in raw:
             loud("`chunking.max_loc` must be >= 0 (got {})".format(v))
         out["chunking"] = {"max_loc": v}
 
-if "models" in raw:
-    models = raw["models"]
+def parse_model_leaf(label, val):
+    # A tier leaf is a model-slug string OR an object {model, effort?}; normalize
+    # both to {model, [effort]}. Empty effort string = unset (mirrors force_tier).
+    if isinstance(val, str):
+        if not val.strip():
+            loud("{} must be a non-empty string".format(label))
+        return {"model": val.strip()}
+    if isinstance(val, dict):
+        bad_leaf = sorted(set(val.keys()) - {"model", "effort"})
+        if bad_leaf:
+            loud("{} has unknown key(s): {} (valid: model, effort)".format(label, ", ".join(bad_leaf)))
+        model = val.get("model")
+        if not isinstance(model, str) or not model.strip():
+            loud("{}.model must be a non-empty string".format(label))
+        leaf = {"model": model.strip()}
+        if "effort" in val:
+            eff = val["effort"]
+            if not isinstance(eff, str):
+                loud("{}.effort must be a string".format(label))
+            eff_lc = eff.strip().lower()
+            if eff_lc:
+                if eff_lc not in EFFORT_LEVELS:
+                    loud("{}.effort must be one of: {} (got '{}')".format(
+                        label, ", ".join(sorted(EFFORT_LEVELS)), eff))
+                leaf["effort"] = eff_lc
+        return leaf
+    loud("{} must be a string or an object with a `model` key".format(label))
+
+if "models" in top:
+    models = top["models"]
     if not isinstance(models, dict):
         loud("`models` must be an object with fast/standard/deep keys and/or provider objects")
     valid_model_keys = MODEL_TIERS | MODEL_PROVIDERS
@@ -277,9 +316,7 @@ if "models" in raw:
     cleaned_models = {}
     for key, val in models.items():
         if key in MODEL_TIERS:
-            if not isinstance(val, str) or not val.strip():
-                loud("models.{} must be a non-empty string".format(key))
-            cleaned_models[key] = val.strip()
+            cleaned_models[key] = parse_model_leaf("models.{}".format(key), val)
             continue
 
         if not isinstance(val, dict):
@@ -292,10 +329,8 @@ if "models" in raw:
                 ", ".join(sorted(MODEL_TIERS)),
             ))
         cleaned_provider = {}
-        for tier, slug in val.items():
-            if not isinstance(slug, str) or not slug.strip():
-                loud("models.{}.{} must be a non-empty string".format(key, tier))
-            cleaned_provider[tier] = slug.strip()
+        for tier, leaf in val.items():
+            cleaned_provider[tier] = parse_model_leaf("models.{}.{}".format(key, tier), leaf)
         cleaned_models[key] = cleaned_provider
 
     out["models"] = cleaned_models

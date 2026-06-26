@@ -152,4 +152,30 @@ assert_contains "$(cat "$outdir/stdout" "$outdir/stderr")" "INPUT_OPENAI_EFFORT 
 assert_eq "$(grep -c '^run_effort=bogus$' "$github_output" || true)" "0" "Invalid effort is not emitted"
 rm -rf "$outdir"
 
+# Config object-leaf effort wins over the model/tier default.
+outdir="$(mktemp -d)"; github_output="$outdir/github_output"; touch "$github_output"
+printf '%s\n' '{"models":{"openai":{"standard":{"model":"gpt-5.4-mini","effort":"low"}}}}' > "$outdir/config.json"
+run_load_prompt "$outdir" "$github_output"
+run_model="$(grep '^run_model=' "$github_output" | cut -d= -f2 || echo "")"
+run_effort="$(grep '^run_effort=' "$github_output" | cut -d= -f2 || echo "")"
+assert_eq "$run_model" "gpt-5.4-mini" "config object leaf model resolves"
+assert_eq "$run_effort" "low" "config .effort wins over tier/model default"
+rm -rf "$outdir"
+
+# INPUT_OPENAI_EFFORT still beats config .effort.
+outdir="$(mktemp -d)"; github_output="$outdir/github_output"; touch "$github_output"
+printf '%s\n' '{"models":{"openai":{"standard":{"model":"gpt-5.4-mini","effort":"low"}}}}' > "$outdir/config.json"
+run_load_prompt "$outdir" "$github_output" INPUT_OPENAI_EFFORT="high"
+run_effort="$(grep '^run_effort=' "$github_output" | cut -d= -f2 || echo "")"
+assert_eq "$run_effort" "high" "explicit INPUT_OPENAI_EFFORT beats config .effort"
+rm -rf "$outdir"
+
+# Object leaf without effort falls through to the model default (xhigh for gpt-5.4-mini).
+outdir="$(mktemp -d)"; github_output="$outdir/github_output"; touch "$github_output"
+printf '%s\n' '{"models":{"openai":{"standard":{"model":"gpt-5.4-mini"}}}}' > "$outdir/config.json"
+run_load_prompt "$outdir" "$github_output"
+run_effort="$(grep '^run_effort=' "$github_output" | cut -d= -f2 || echo "")"
+assert_eq "$run_effort" "xhigh" "object leaf without effort uses model/tier default"
+rm -rf "$outdir"
+
 finish
