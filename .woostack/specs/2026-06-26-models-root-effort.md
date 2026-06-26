@@ -1,7 +1,7 @@
 ---
 name: 2026-06-26-models-root-effort
 type: spec
-status: hardened
+status: approved
 date: 2026-06-26
 branch: feature/models-root-effort
 links:
