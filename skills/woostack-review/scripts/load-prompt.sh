@@ -136,7 +136,7 @@ if [ "$PROVIDER" = "openai" ]; then
   case "$RUN_EFFORT" in
     minimal|low|medium|high|xhigh) ;;
     *)
-      echo "::error::INPUT_OPENAI_EFFORT must be one of: minimal, low, medium, high, xhigh (got '$RUN_EFFORT')"
+      echo "::error::run_effort must be one of: minimal, low, medium, high, xhigh (got '$RUN_EFFORT'; from openai_effort input, models.*.effort config, or tier default)"
       exit 1
       ;;
   esac

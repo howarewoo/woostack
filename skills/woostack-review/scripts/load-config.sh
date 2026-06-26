@@ -6,9 +6,11 @@
 #
 # Config nesting: review settings live under a top-level `review` object so the
 # file can hold sibling namespaces for other woostack tools (build, bootstrap)
-# without collision. Sibling top-level keys are ignored by this loader. The
-# emitted canonical JSON is still FLAT (review keys hoisted to top level) so
-# downstream stages read `.severity_floor`, `.angles`, etc. unchanged.
+# without collision. Most sibling top-level keys are ignored by this loader; the
+# exception is the root `models` field (model tiers, parsed below — relocated out
+# of `review.models`, which is now a hard error). The emitted canonical JSON is
+# still FLAT (review keys hoisted to top level) so downstream stages read
+# `.severity_floor`, `.angles`, `.models`, etc. unchanged.
 #
 #   { "review": { "severity_floor": "medium", "angles": { "skip": ["seo"] } } }
 #
@@ -18,6 +20,15 @@
 #
 # Noise control: severity_floor defaults to "high" so only high-priority
 # findings surface unless the consumer widens it (low | medium) in config.json.
+#
+# Root-level schema (parsed independently of `review`; all keys optional):
+#   models.<tier>            str | {model: str, effort?: str}  (host-agnostic
+#                            fallback; tier is fast | standard | deep)
+#   models.<provider>.<tier> str | {model: str, effort?: str}  (provider is one
+#                            of anthropic/openai/google/openrouter)
+#                            effort in minimal|low|medium|high|xhigh (empty = unset);
+#                            the loader normalizes every leaf to {model,[effort]}.
+#                            A nested `review.models` is a hard error (relocated).
 #
 # Schema under `review` (all keys optional):
 #   angles.force        list[str] subset of angle enum
@@ -36,12 +47,6 @@
 #                                  `^(staging|release|chore\(release\))`
 #                                  applied at use-site. Empty string opts
 #                                  out entirely.)
-#   models.fast         str (provider-agnostic fallback)
-#   models.standard     str (provider-agnostic fallback)
-#   models.deep         str (provider-agnostic fallback)
-#   models.<provider>.<tier>
-#                       str (provider-specific override; provider is one of
-#                            anthropic/openai/google/openrouter)
 #   force_tier          str (provider-agnostic "fast" | "deep" override for this
 #                            run; empty/absent means standard-tier model)
 #   fix_commands        list[str]  (consumed by issue #15 --loop mode)

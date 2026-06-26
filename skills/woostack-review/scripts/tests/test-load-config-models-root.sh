@@ -7,14 +7,25 @@ ROOT="$(cd "$DIR/../../.." && pwd)"
 source "$ROOT/skills/woostack-init/scripts/tests/assert.sh"
 SCRIPT="$DIR/load-config.sh"
 
+CLEANUP_DIRS=()
+cleanup() {
+  for d in "${CLEANUP_DIRS[@]+"${CLEANUP_DIRS[@]}"}"; do
+    rm -rf "$d"
+  done
+}
+trap cleanup EXIT
+
 # run_loader <config-json> : sets OUT (flat config dir), ERRLOG, RC.
 run_loader() {
   local cfg="$1"
-  REPO="$(mktemp -d)"; ( cd "$REPO" && git init -q )
+  REPO="$(mktemp -d)"; CLEANUP_DIRS+=("$REPO")
+  ( cd "$REPO" && git init -q )
   local top; top="$(cd "$REPO" && git rev-parse --show-toplevel)"
   mkdir -p "$top/.woostack"
   printf '%s\n' "$cfg" > "$top/.woostack/config.json"
-  OUT="$(mktemp -d)/out"; mkdir -p "$OUT"; ERRLOG="$OUT/err"
+  local out_parent; out_parent="$(mktemp -d)"
+  CLEANUP_DIRS+=("$out_parent")
+  OUT="$out_parent/out"; mkdir -p "$OUT"; ERRLOG="$OUT/err"
   ( cd "$top" && env -u GITHUB_WORKSPACE OUTDIR="$OUT" bash "$SCRIPT" ) \
     >"$OUT/out.log" 2>"$ERRLOG" && RC=0 || RC=$?
 }

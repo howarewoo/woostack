@@ -9,11 +9,12 @@ key is absent, the skill that reads it falls back to a built-in default. The ini
 only two top-level namespaces (an empty `review` and a `status` block), and
 [woostack-doctor](/docs/skills/woostack-doctor) checks that those two are present.
 
-There are five top-level namespaces:
+There are six top-level namespaces:
 
 | Namespace | Read by | Tunes |
 | --- | --- | --- |
-| `review` | [woostack-review](/docs/skills/woostack-review) | the PR review engine: angles, noise, models, validation |
+| `review` | [woostack-review](/docs/skills/woostack-review) | the PR review engine: angles, noise, validation |
+| `models` | [woostack-review](/docs/skills/woostack-review) | model selection and tier parameters (e.g. reasoning effort) |
 | `review_sweep` | [woostack-sweep](/docs/skills/woostack-sweep) | how many review rounds a stack sweep runs |
 | `commit` | [woostack-commit](/docs/skills/woostack-commit) | a pre-commit hook command |
 | `status` | [woostack-status](/docs/skills/woostack-status) | when the board flags a spec as stale |
@@ -36,14 +37,16 @@ the sections below.
     "ignore": ["**/*.generated.ts", "pnpm-lock.yaml"],
     "project_rules": ["docs/engineering/rules.md"],
     "authors_skip": ["dependabot[bot]", "renovate[bot]"],
-    "models": {
-      "anthropic": { "deep": "claude-opus-4-8" }
-    },
     "force_tier": "",
     "chunking": { "max_loc": 4000 },
     "disable_adversarial": false,
     "defer_markers": true,
     "metrics": false
+  },
+  "models": {
+    "openai": {
+      "standard": { "model": "gpt-5.4-mini", "effort": "xhigh" }
+    }
   },
   "review_sweep": { "max_rounds": 3 },
   "commit": { "pre_commit": "pnpm format && pnpm test" },
@@ -105,14 +108,15 @@ to opt out: an empty array for `authors_skip`, or an empty string for the patter
 
 Each review subagent runs at a tier (`fast`, `standard`, or `deep`), and each tier maps to a
 concrete model per provider. Override a single tier for one provider with
-`review.models.<provider>.<tier>`, or set a provider-agnostic fallback with the flat
-`review.models.<tier>`. `review.force_tier` pins every subagent to one tier, the config-file
-equivalent of running the review with `--fast` or `--deep`.
+`models.<provider>.<tier>`, or set a provider-agnostic fallback with the flat
+`models.<tier>`. A model leaf can be a string (the model slug) or an object specifying `{ model, effort }`.
+Note that `review.models` is deprecated and causes a hard validation error. `review.force_tier`
+pins every subagent to one tier, the config-file equivalent of running the review with `--fast` or `--deep`.
 
 | Key | Type | Default | Meaning |
 | --- | --- | --- | --- |
-| `review.models.<tier>` | string | provider table | Provider-agnostic model slug for `fast` / `standard` / `deep`. |
-| `review.models.<provider>.<tier>` | string | provider table | Per-provider override; provider is `anthropic`, `openai`, `google`, or `openrouter`. |
+| `models.<tier>` | string \| object | provider table | Provider-agnostic model fallback for `fast` / `standard` / `deep`. Object format supports `{ model, effort }`. |
+| `models.<provider>.<tier>` | string \| object | provider table | Per-provider override; provider is `anthropic`, `openai`, `google`, or `openrouter`. Object format supports `{ model, effort }`. |
 | `review.force_tier` | string | absent (= standard) | Pin every subagent to `fast` or `deep`. Empty string = absent. |
 
 The default model per provider and tier:
@@ -126,7 +130,7 @@ The default model per provider and tier:
 
 The tier resolves by precedence, highest to lowest: an inline `--fast` / `--deep` comment on the
 PR → the action's `force_tier` input → `review.force_tier` → the action's `model` input →
-`review.models.<provider>.<tier>` → the flat `review.models.<tier>` → the provider table default.
+`models.<provider>.<tier>` → the flat `models.<tier>` → the provider table default.
 
 ### Chunking, validation, and metrics
 

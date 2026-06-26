@@ -148,7 +148,7 @@ touch "$github_output"
 
 run_load_prompt_expect_failure "$outdir" "$github_output" INPUT_OPENAI_EFFORT="bogus"
 
-assert_contains "$(cat "$outdir/stdout" "$outdir/stderr")" "INPUT_OPENAI_EFFORT must be one of" "Invalid effort emits validation error"
+assert_contains "$(cat "$outdir/stdout" "$outdir/stderr")" "run_effort must be one of" "Invalid effort emits validation error"
 assert_eq "$(grep -c '^run_effort=bogus$' "$github_output" || true)" "0" "Invalid effort is not emitted"
 rm -rf "$outdir"
 
