@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-06-26-models-root-effort.md
-status: ready
+status: executing
 branch: feature/models-root-effort
 ---
 
@@ -41,7 +41,7 @@ harness. No new dependencies.
   the loader so no intermediate commit leaves this repo's config invalid under the clean break)
 - Test: `skills/woostack-review/scripts/tests/test-load-config-models-root.sh` (new)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
   ```bash
   cat > skills/woostack-review/scripts/tests/test-load-config-models-root.sh <<'EOF'
   #!/usr/bin/env bash
@@ -119,13 +119,13 @@ harness. No new dependencies.
   chmod +x skills/woostack-review/scripts/tests/test-load-config-models-root.sh
   ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
   Run: `bash skills/woostack-review/scripts/tests/test-load-config-models-root.sh`
   Expected: FAIL — case 3 fails (`review.models` is currently accepted, loader exits 0), and the
   object-leaf cases fail (current loader requires string leaves: `models.openai.standard must be a
   non-empty string`).
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
   Edit `skills/woostack-review/scripts/load-config.sh`.
 
   (a) Key sets — remove `"models"` from `REVIEW_KEYS`, add `EFFORT_LEVELS` (lines 96-103):
@@ -241,15 +241,15 @@ harness. No new dependencies.
       out["models"] = cleaned_models
   ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
   Run: `bash skills/woostack-review/scripts/tests/test-load-config-models-root.sh`
   Expected: PASS
 
-- [ ] **Step 5: Confirm the existing loader test still passes (no regression on the review path)**
+- [x] **Step 5: Confirm the existing loader test still passes (no regression on the review path)**
   Run: `bash skills/woostack-review/scripts/tests/test-load-config-root.sh`
   Expected: PASS (the `{"review":{"severity_floor":"low"}}` path is untouched)
 
-- [ ] **Step 6: Migrate this repo's dogfood config in the same change**
+- [x] **Step 6: Migrate this repo's dogfood config in the same change**
   The clean break now rejects this repo's own pre-migration `.woostack/config.json` (it still has
   `review.models`). Confirm the rejection, then migrate. First confirm the failure:
   ```bash
@@ -261,14 +261,14 @@ harness. No new dependencies.
   {"models":{"openai":{"standard":{"model":"gpt-5.4-mini","effort":"xhigh"}}},"review":{"metrics":true},"status":{"staleDays":14}}
   ```
 
-- [ ] **Step 7: Confirm the migrated repo config parses**
+- [x] **Step 7: Confirm the migrated repo config parses**
   ```bash
   OUT="$(mktemp -d)"; OUTDIR="$OUT" bash skills/woostack-review/scripts/load-config.sh && \
     jq -c '.models.openai.standard' "$OUT/config.json"
   ```
   Expected: PASS — exit 0, prints `{"effort":"xhigh","model":"gpt-5.4-mini"}`.
 
-- [ ] **Step 8: Commit (loader + dogfood config together)**
+- [x] **Step 8: Commit (loader + dogfood config together)**
   ```bash
   gt create -m "feat(review): root models config field + per-tier effort (clean break)"
   ```
@@ -279,7 +279,7 @@ harness. No new dependencies.
 - Modify: `skills/woostack-review/scripts/resolve-model.sh:67,72`
 - Test: `skills/woostack-review/scripts/tests/test-resolve-model.sh` (extend)
 
-- [ ] **Step 1: Write the failing test** — append object-leaf cases before `finish` (line 103):
+- [x] **Step 1: Write the failing test** — append object-leaf cases before `finish` (line 103):
   ```bash
   # --- object leaf {model,effort}: resolver returns .model ---
   outdir="$(mktemp -d)"
@@ -296,12 +296,12 @@ harness. No new dependencies.
   rm -rf "$outdir"
   ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
   Run: `bash skills/woostack-review/scripts/tests/test-resolve-model.sh`
   Expected: FAIL — object leaf returns the JSON object string (e.g. `{"effort":"low","model":...}`),
   not `obj-standard-x`.
 
-- [ ] **Step 3: Minimal implementation** — make both jq lookups object-safe.
+- [x] **Step 3: Minimal implementation** — make both jq lookups object-safe.
   `resolve-model.sh:67`:
   ```bash
       override="$(jq -r --arg p "$provider" --arg t "$tier" '(.models[$p][$t] | if type=="object" then .model else . end) // empty' "$config" 2>/dev/null || true)"
@@ -311,11 +311,11 @@ harness. No new dependencies.
       override="$(jq -r --arg t "$tier" '(.models[$t] | if type=="object" then .model else . end) // empty' "$config" 2>/dev/null || true)"
   ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
   Run: `bash skills/woostack-review/scripts/tests/test-resolve-model.sh`
   Expected: PASS (string-leaf cases unchanged: `else .` returns the bare slug)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt modify -c -m "feat(review): resolve-model reads object {model} tier leaves"
   ```
@@ -326,7 +326,7 @@ harness. No new dependencies.
 - Modify: `skills/woostack-review/scripts/verify-receipts.sh:67,72`
 - Test: `skills/woostack-review/scripts/tests/test-verify-receipts-openai-models.sh` (extend)
 
-- [ ] **Step 1: Write the failing test** — insert an object-leaf case after line 33 (before the
+- [x] **Step 1: Write the failing test** — insert an object-leaf case after line 33 (before the
   `unset WOO_REVIEW_PROVIDER` at line 35, while provider is still openai):
   ```bash
   printf '{"models":{"openai":{"standard":{"model":"gpt-obj-standard","effort":"low"}}}}\n' > "$OUTDIR/config.json"
@@ -335,12 +335,12 @@ harness. No new dependencies.
   assert_exit 0 "$rc" "OpenAI object-leaf {model,effort} config override resolves to .model"
   ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
   Run: `bash skills/woostack-review/scripts/tests/test-verify-receipts-openai-models.sh`
   Expected: FAIL — expected model resolves to the object JSON string, so the matching receipt is
   judged a mismatch and the script exits 1.
 
-- [ ] **Step 3: Minimal implementation** — make both jq lookups object-safe.
+- [x] **Step 3: Minimal implementation** — make both jq lookups object-safe.
   `verify-receipts.sh:67`:
   ```bash
       override="$(jq -r --arg p "$provider" --arg t "$tier" '(.models[$p][$t] | if type=="object" then .model else . end) // empty' "$config" 2>/dev/null || true)"
@@ -350,11 +350,11 @@ harness. No new dependencies.
       override="$(jq -r --arg t "$tier" '(.models[$t] | if type=="object" then .model else . end) // empty' "$config" 2>/dev/null || true)"
   ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
   Run: `bash skills/woostack-review/scripts/tests/test-verify-receipts-openai-models.sh`
   Expected: PASS (string-leaf override cases at lines 25/30 unchanged)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt modify -c -m "feat(review): verify-receipts reads object {model} tier leaves"
   ```
@@ -366,7 +366,7 @@ harness. No new dependencies.
   openai effort block at lines 115-120)
 - Test: `skills/woostack-review/scripts/tests/test-load-prompt-models.sh` (extend)
 
-- [ ] **Step 1: Write the failing test** — append before `finish` (line 155):
+- [x] **Step 1: Write the failing test** — append before `finish` (line 155):
   ```bash
   # Config object-leaf effort wins over the model/tier default.
   outdir="$(mktemp -d)"; github_output="$outdir/github_output"; touch "$github_output"
@@ -395,12 +395,12 @@ harness. No new dependencies.
   rm -rf "$outdir"
   ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
   Run: `bash skills/woostack-review/scripts/tests/test-load-prompt-models.sh`
   Expected: FAIL — the first new case expects `run_effort=low` but, with `model=gpt-5.4-mini`,
   the current code derives `xhigh` from the model default (config `.effort` is never read).
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
   Add the helper after the `resolve-model.sh` source (after line 65), e.g. just below it:
   ```bash
   # config_effort_for <provider> <tier> → per-tier effort from $CONFIG_PATH, else empty.
@@ -431,12 +431,12 @@ harness. No new dependencies.
   existing `minimal|low|medium|high|xhigh` validation at lines 121-127 still runs, so a config
   effort is re-validated host-side too.)
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
   Run: `bash skills/woostack-review/scripts/tests/test-load-prompt-models.sh`
   Expected: PASS (existing string-leaf case at line 135 still yields `medium` — string leaf has no
   `.effort`, so it falls through to the gpt-5.5 model default)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt modify -c -m "feat(review): load-prompt resolves OpenAI effort config-first"
   ```

@@ -32,6 +32,11 @@ printf '{"angle":"bugs","chunk":null,"runner":"codex-subagent","model":"gpt-flat
 rc=0; bash "$SCRIPT" >/dev/null 2>&1 || rc=$?
 assert_exit 0 "$rc" "OpenAI flat config override is honored"
 
+printf '{"models":{"openai":{"standard":{"model":"gpt-obj-standard","effort":"low"}}}}\n' > "$OUTDIR/config.json"
+printf '{"angle":"bugs","chunk":null,"runner":"codex-subagent","model":"gpt-obj-standard","tier":"standard","ts":"t"}\n' > "$OUTDIR/receipt.bugs.json"
+rc=0; bash "$SCRIPT" >/dev/null 2>&1 || rc=$?
+assert_exit 0 "$rc" "OpenAI object-leaf {model,effort} config override resolves to .model"
+
 unset WOO_REVIEW_PROVIDER
 export WOO_REVIEW_HOST=codex
 rm -f "$OUTDIR/config.json"

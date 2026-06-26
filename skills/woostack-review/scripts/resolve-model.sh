@@ -64,12 +64,12 @@ provider_tier_model() {
   local config="${CONFIG_PATH:-${OUTDIR:-}/config.json}"
   local override
   if [ -n "$config" ] && [ -f "$config" ]; then
-    override="$(jq -r --arg p "$provider" --arg t "$tier" '.models[$p][$t] // empty' "$config" 2>/dev/null || true)"
+    override="$(jq -r --arg p "$provider" --arg t "$tier" '(.models[$p][$t] | if type=="object" then .model else . end) // empty' "$config" 2>/dev/null || true)"
     if [ -n "$override" ] && [ "$override" != "null" ]; then
       echo "$override"
       return 0
     fi
-    override="$(jq -r --arg t "$tier" '.models[$t] // empty' "$config" 2>/dev/null || true)"
+    override="$(jq -r --arg t "$tier" '(.models[$t] | if type=="object" then .model else . end) // empty' "$config" 2>/dev/null || true)"
     if [ -n "$override" ] && [ "$override" != "null" ]; then
       echo "$override"
       return 0

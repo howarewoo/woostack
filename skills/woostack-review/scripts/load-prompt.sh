@@ -64,6 +64,18 @@ safe_comment_body=$(sanitize_untrusted "${COMMENT_BODY:-}" 2000)
 # shellcheck source=skills/woostack-review/scripts/resolve-model.sh
 source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-model.sh"
 
+# config_effort_for <provider> <tier> → per-tier effort from $CONFIG_PATH, else empty.
+# The loader normalizes every tier leaf to an object {model,[effort]}; read .effort
+# provider-scoped first, then flat. Empty when unset → caller falls back to defaults.
+config_effort_for() {
+  local provider="$1" tier="$2" eff=""
+  if [ -n "${CONFIG_PATH:-}" ] && [ -f "$CONFIG_PATH" ]; then
+    eff="$(jq -r --arg p "$provider" --arg t "$tier" \
+      '(.models[$p][$t].effort? // .models[$t].effort?) // empty' "$CONFIG_PATH" 2>/dev/null || true)"
+  fi
+  printf '%s' "$eff"
+}
+
 default_openai_effort_for() {
   local tier="$1"
   case "$tier" in
@@ -113,6 +125,9 @@ RUN_EFFORT=""
 if [ "$PROVIDER" = "openai" ]; then
   RUN_EFFORT="$(printf '%s' "$INPUT_OPENAI_EFFORT" | tr '[:upper:]' '[:lower:]')"
   if [ -z "$RUN_EFFORT" ]; then
+    RUN_EFFORT="$(config_effort_for "$PROVIDER" "$RUN_TIER")"
+  fi
+  if [ -z "$RUN_EFFORT" ]; then
     RUN_EFFORT="$(default_openai_effort_for_model "$RUN_MODEL")"
     if [ -z "$RUN_EFFORT" ]; then
       RUN_EFFORT="$(default_openai_effort_for "$RUN_TIER")"
@@ -121,7 +136,7 @@ if [ "$PROVIDER" = "openai" ]; then
   case "$RUN_EFFORT" in
     minimal|low|medium|high|xhigh) ;;
     *)
-      echo "::error::INPUT_OPENAI_EFFORT must be one of: minimal, low, medium, high, xhigh (got '$RUN_EFFORT')"
+      echo "::error::run_effort must be one of: minimal, low, medium, high, xhigh (got '$RUN_EFFORT'; from openai_effort input, models.*.effort config, or tier default)"
       exit 1
       ;;
   esac
