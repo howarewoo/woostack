@@ -1,7 +1,7 @@
 ---
 name: woostack-audit
 type: spec
-status: hardened
+status: approved
 date: 2026-06-25
 branch: feature/woostack-audit
 links:
