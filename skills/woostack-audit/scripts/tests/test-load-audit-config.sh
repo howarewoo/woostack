@@ -30,6 +30,15 @@ cfg="$(cat "$OUTDIR/config.json")"
 assert_contains "$cfg" "simplify" "lens simplify forces simplify"
 assert_not_contains "$cfg" "production-readiness" "lens simplify drops prod-readiness"
 
+# Lens flag prod forces production-readiness only, drops simplify.
+run '{}' 'prod'; assert_eq "$EC" "0" "lens prod ok"
+cfg="$(cat "$OUTDIR/config.json")"
+assert_contains "$cfg" "production-readiness" "lens prod forces production-readiness"
+assert_not_contains "$cfg" "simplify" "lens prod drops simplify"
+
+# angles:null is coerced to {} by the `or {}` guard, not treated as an error.
+run '{"audit":{"angles":null}}'; assert_eq "$EC" "0" "angles:null coerced, not an error"
+
 # Unknown audit key -> loud non-zero.
 run '{"audit":{"bogus":1}}'; assert_eq "$EC" "1" "unknown audit key rejected"
 finish
