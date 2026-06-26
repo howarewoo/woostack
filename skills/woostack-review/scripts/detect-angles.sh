@@ -76,6 +76,11 @@
 #   comments  — reuses the general-purpose source-file signal (any *.{ts,js,py,go,…}
 #               in the diff, same as architecture). Audits whether code comments still
 #               match the code the PR changed (comment rot). Always non-blocking.
+#   simplify  — general-purpose source files in the diff (same signal as architecture).
+#               YAGNI / dead-code / duplication delete-list. Defers structural-shape to
+#               architecture when both are enabled.
+#   production-readiness — general-purpose source files in the diff. Resilience/operability
+#               posture (timeouts, retries, idempotency, degradation, resource limits).
 
 set -euo pipefail
 
@@ -328,6 +333,14 @@ fi
 
 if has_code_file; then
   ANGLES+=("comments")
+fi
+
+if has_code_file; then
+  ANGLES+=("simplify")
+fi
+
+if has_code_file; then
+  ANGLES+=("production-readiness")
 fi
 
 # Merge config.angles.skip into the disable CSV. Config-driven and input-driven

@@ -2,8 +2,6 @@
 tier: standard
 ---
 
-<!-- woostack-defer(increment 2): registered in VALID_ANGLES + detect-angles + _header in increment 2 -->
-
 # Angle: Simplify
 
 **Scope.** Find code that should be **smaller or not exist at all**. Read `$OUTDIR/diff.txt`
