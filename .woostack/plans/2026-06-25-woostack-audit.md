@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-06-25-woostack-audit.md
-status: ready
+status: executing
 branch: feature/woostack-audit
 ---
 
