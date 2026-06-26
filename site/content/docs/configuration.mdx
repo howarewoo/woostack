@@ -109,7 +109,8 @@ to opt out: an empty array for `authors_skip`, or an empty string for the patter
 Each review subagent runs at a tier (`fast`, `standard`, or `deep`), and each tier maps to a
 concrete model per provider. Override a single tier for one provider with
 `models.<provider>.<tier>`, or set a provider-agnostic fallback with the flat
-`models.<tier>`. A model leaf can be a string (the model slug) or an object specifying `{ model, effort }`.
+`models.<tier>`. A model leaf can be a string (the model slug) or an object specifying `{ model, effort }`,
+where `effort` is one of `minimal`, `low`, `medium`, `high`, or `xhigh`.
 Note that `review.models` is deprecated and causes a hard validation error. `review.force_tier`
 pins every subagent to one tier, the config-file equivalent of running the review with `--fast` or `--deep`.
 
