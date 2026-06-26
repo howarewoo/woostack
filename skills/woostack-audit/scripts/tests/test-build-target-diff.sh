@@ -31,4 +31,19 @@ AUDIT_TARGET="$t" bash "$SCRIPT" >/dev/null 2>&1 && ec=0 || ec=$?
 assert_eq "$ec" "0" "binary-only exits 0"
 assert_eq "$(wc -c < "$OUTDIR/diff.txt" | tr -d ' ')" "0" "binary-only yields empty diff"
 rm -rf "$t" "$OUTDIR"
+
+# Chunk integration end-to-end: with max_loc=1 the synthetic diff exceeds the threshold, so
+# chunk-diff.sh must emit a non-empty chunks.txt + a non-empty chunks.json manifest. The builder
+# calls chunk-diff.sh with `|| true`, so a broken integration would still exit 0 and pass every
+# assertion above; these assertions prove the chunking pipeline actually ran and produced usable
+# artifacts. (chunk-diff.sh only emits chunk files above threshold, hence the max_loc=1 config.)
+t="$(mktemp -d)"; mkdir -p "$t/src"; printf 'export const a = 1\nexport const b = 2\n' > "$t/src/a.ts"
+export OUTDIR="$(mktemp -d)/out"; mkdir -p "$OUTDIR"
+printf '%s\n' '{"chunking":{"max_loc":1}}' > "$OUTDIR/config.json"
+AUDIT_TARGET="$t/src" bash "$SCRIPT" >/dev/null 2>&1 && ec=0 || ec=$?
+assert_eq "$ec" "0" "builder exits 0 when chunking triggers"
+assert_eq "$([ -s "$OUTDIR/chunks.txt" ] && echo y || echo n)" "y" "chunk-diff emitted non-empty chunks.txt"
+chunks_json_ok="$(jq -e 'type=="array" and length>0' "$OUTDIR/chunks.json" >/dev/null 2>&1 && echo y || echo n)"
+assert_eq "$chunks_json_ok" "y" "chunk-diff emitted a non-empty chunks.json manifest"
+rm -rf "$t" "$OUTDIR"
 finish
