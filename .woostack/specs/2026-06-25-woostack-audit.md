@@ -135,8 +135,8 @@ and calling its scripts — an **intra-collection dependency** (both skills ship
 `woostack-execute` → `woostack-tdd`), not an external one.
 
 **New assets:** `skills/woostack-audit/SKILL.md`, `scripts/build-target-diff.sh`,
-`scripts/render-report.sh`, a thin `audit` config loader, and the 2 angle prompts (home TBD —
-§9 Q2).
+`scripts/render-report.sh`, a thin `audit` config loader, and the 2 angle prompts (home:
+`skills/woostack-review/prompts/angles/` — shared with review).
 
 **Bins:** audit `requires` `jq`, `node`, `git` — and **not `gh`** (it never touches GitHub), a
 genuine simplification over review's required-bins set. `rg` is a `recommends`, not a require

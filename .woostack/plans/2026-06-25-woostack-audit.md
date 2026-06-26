@@ -424,8 +424,8 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
   elif lens == "prod": force = ["production-readiness"]
   # bugs+security are always-on in detect-angles.sh (the safety floor); architecture is skipped.
   out_cfg = {
-      "angles": {"force": force + (audit.get("angles", {}).get("force", [])),
-                 "skip": ["architecture"] + (audit.get("angles", {}).get("skip", []))},
+      "angles": {"force": force + ((audit.get("angles") or {}).get("force", [])),
+                 "skip": ["architecture"] + ((audit.get("angles") or {}).get("skip", []))},
       "severity_floor": audit.get("severity_floor", "high"),
       "ignore": audit.get("ignore", []),
       "models": audit.get("models", {}),
@@ -528,7 +528,7 @@ structural test (grep/`bash -n`/`jq`/`python3 -c`), never bare prose.
       git ls-files --cached --others --exclude-standard -- "$TARGET" 2>/dev/null || find "$TARGET" -type f
     else find "$TARGET" -type f; fi
   )
-  for f in "${files[@]}"; do
+  for f in ${files[@]+"${files[@]}"}; do
     # `git diff --no-index /dev/null <f>` prints a new-file all-added section; exit 1 means
     # "differs" (always true vs /dev/null) and is expected — never a failure.
     git diff --no-index -- /dev/null "$f" >> "$OUTDIR/diff.txt" 2>/dev/null || true
