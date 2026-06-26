@@ -72,7 +72,8 @@ single-prompt runners stay self-contained:
 
 **Review's tier-resolution binding.** Resolve the effective tier per the shared doc's precedence,
 bound to review's surface: `FORCE_TIER` (Review Context) → `inputs.model` (action.yml) →
-`models.<provider>.<tier>` / `models.<tier>` in `/tmp/pr-review/config.json` → table default.
+root `models.<provider>.<tier>` / `models.<tier>` (leaf: `"<slug>"` or `{model, effort}`) in
+`/tmp/pr-review/config.json` → table default.
 `run_model` (resolved in `load-prompt.sh`) pins single-session hosts; explicit `FORCE_TIER` and
 `run_model` win before per-repo/per-tier overrides. The context+summary subagent is implicitly
 `fast`.
@@ -91,7 +92,7 @@ The prefetch step parses an optional `.woostack/config.json` in the consumer rep
 | `severity_floor` | `intersect-findings.sh` (floor classifier) | Stage 4c — **defaults to `high`**; below-floor validated findings become non-blocking nits, not drops; set `low`/`medium` to treat more findings as normal |
 | `nits` | `intersect-findings.sh` (floor classifier) | Stage 4c — default `true`; `false` drops below-floor non-blocking findings (old behavior). Below-floor blocking findings always surface |
 | `defer_markers` | `intersect-findings.sh` (floor classifier) + `validator.md` (defender) | Stage 4c — default `true`; honors inline `woostack-defer(<ref>)` markers, demoting a covered finding to a `Deferred to <ref>` nit. `false` ignores markers |
-| `models.fast` / `.standard` / `.deep`; `models.<provider>.<tier>` | orchestrator prompts (tier resolution) | Stage 2 |
+| root `models.fast` / `.standard` / `.deep`; `models.<provider>.<tier>` (leaf: `"<slug>"` or `{model, effort}`) | orchestrator prompts (tier resolution) + `load-prompt.sh` (OpenAI effort) | Stage 2 |
 | `fix_commands` | persisted only; consumed by `--loop` mode (#15) | n/a |
 | `chunking.max_loc` | `chunk-diff.sh` (split oversized diff into chunks; default 4000) | Stage 1 |
 

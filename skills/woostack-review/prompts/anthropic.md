@@ -64,7 +64,7 @@ Task({
 Resolution rule per spawn:
 1. Determine effective tier.
 2. Look up the Anthropic column in the shared Model Tiers table (inlined in `_header.md` above).
-3. **Per-repo override**: check `$OUTDIR/config.json` for `models.anthropic.<effective_tier>`, then flat `models.<effective_tier>` (e.g. when `run_tier=deep`: `jq -r '.models.anthropic.deep // .models.deep // empty' $OUTDIR/config.json`). If non-empty, use that slug instead of the table value.
+3. **Per-repo override**: check `$OUTDIR/config.json` for `models.anthropic.<effective_tier>`, then flat `models.<effective_tier>`. The loader normalizes each tier leaf to an object `{model, effort?}`, so read `.model` (e.g. when `run_tier=deep`: `jq -r '((.models.anthropic.deep // .models.deep) | if type=="object" then .model else . end) // empty' $OUTDIR/config.json`). If non-empty, use that slug instead of the table value.
 4. Pass the resolved slug as `model:` on the Task call.
 
 Do not default the validator to Sonnet — pass `model: "claude-opus-4-8"` explicitly. Opus's stricter false-positive filter pays for itself in review quality.

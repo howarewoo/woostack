@@ -41,7 +41,12 @@ When a host supports per-repo / per-run overrides, resolve highest-precedence fi
 5. **Table default** (above).
 
 Each consumer binds these to its own surface. For example `woostack-review` binds them to
-`FORCE_TIER` (Review Context) › `inputs.model` (action.yml) › `models.<provider>.<tier>` /
-`models.<tier>` in `/tmp/pr-review/config.json`, resolved by `scripts/load-prompt.sh`
-(`default_model_for()` is the Bash mirror of the Anthropic/OpenAI/Google/OpenRouter columns —
-keep it in sync with this table).
+`FORCE_TIER` (Review Context) › `inputs.model` (action.yml) › **root** `models.<provider>.<tier>` /
+`models.<tier>` in the consumer `.woostack/config.json` (canonicalized into
+`/tmp/pr-review/config.json`), resolved by `scripts/load-prompt.sh` (`default_model_for()` is the
+Bash mirror of the Anthropic/OpenAI/Google/OpenRouter columns — keep it in sync with this table).
+
+Each tier leaf is a model-slug string **or** an object `{ model, effort }`. `effort`
+(`minimal | low | medium | high | xhigh`) is a real config field: the `reasoning_effort:`
+annotations in the table above are illustrative defaults, and a config-set `effort` overrides them
+config-first in `load-prompt.sh` (precedence: action input → config `effort` → tier default).

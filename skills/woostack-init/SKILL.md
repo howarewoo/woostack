@@ -42,11 +42,11 @@ Two callers:
    | `.woostack/fixes/.gitkeep` | `templates/fixes/.gitkeep` |
    | `.woostack/wisdom/` directory | (create empty) |
    | `.woostack/wisdom/.gitkeep` | `templates/wisdom/.gitkeep` |
-   | `.woostack/config.json` | `templates/config.json` (`{ "review": {}, "status": { "staleDays": 14 } }`) |
+   | `.woostack/config.json` | `templates/config.json` (`{ "models": {}, "review": {}, "status": { "staleDays": 14 } }`) |
    | `.woostack/.gitignore` | `templates/gitignore` |
    | `.woostack/worktrees/` directory | (create empty — per-PR git worktrees, gitignored) |
 
-   `config.json` ships as `{ "review": {}, "status": { "staleDays": 14 } }`. Each tool owns
+   `config.json` ships as `{ "models": {}, "review": {}, "status": { "staleDays": 14 } }`. Each tool owns
    its own namespace inside that object: for the `review` namespace see
    [references/memory.md](references/memory.md); the `status` namespace holds `staleDays`
    (default 14 — the age in days past which an executing spec is flagged stale on the
