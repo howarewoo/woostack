@@ -163,7 +163,7 @@ if "review" in raw:
         loud("`review.models` has moved to a top-level `models` field; "
              "move it out of `review`, e.g. "
              "{\"models\": {\"openai\": {\"standard\": "
-             "{\"model\": \"gpt-5.4-mini\", \"effort\": \"xhigh\"}}}}")
+             "{\"model\": \"gpt-5.5\", \"effort\": \"medium\"}}}}")
     unknown = sorted(set(rc.keys()) - REVIEW_KEYS)
     if unknown:
         loud("unknown `review` key(s): {}".format(", ".join(unknown)))

@@ -31,7 +31,7 @@ inputs:
     required: false
     default: ''
   openai_effort:
-    description: 'Optional OpenAI Codex reasoning_effort override (minimal | low | medium | high | xhigh). Empty uses the tier default: xhigh for fast/standard, medium for deep.'
+    description: 'Optional OpenAI Codex reasoning_effort override (minimal | low | medium | high | xhigh). Empty uses the tier default: low for fast, medium for standard, high for deep.'
     required: false
     default: ''
   mode:

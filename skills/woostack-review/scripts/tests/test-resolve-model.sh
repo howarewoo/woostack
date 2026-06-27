@@ -24,15 +24,15 @@ run_resolve() {
 
 # --- issue #295: provider-scoped config override wins over the default table ---
 outdir="$(mktemp -d)"
-printf '%s\n' '{"models":{"openai":{"standard":"gpt-5.3-codex-spark"}}}' > "$outdir/config.json"
+printf '%s\n' '{"models":{"openai":{"standard":"gpt-5.5"}}}' > "$outdir/config.json"
 model="$(run_resolve "$outdir" --provider openai --tier standard)"
-assert_eq "$model" "gpt-5.3-codex-spark" \
-  "config models.openai.standard wins over default gpt-5.4-mini (issue #295)"
+assert_eq "$model" "gpt-5.5" \
+  "config models.openai.standard wins over default gpt-5.5 (issue #295)"
 rm -rf "$outdir"
 
 # --- provider-scoped override leaves other tiers on the default table ---
 outdir="$(mktemp -d)"
-printf '%s\n' '{"models":{"openai":{"standard":"gpt-5.3-codex-spark"}}}' > "$outdir/config.json"
+printf '%s\n' '{"models":{"openai":{"standard":"gpt-5.5"}}}' > "$outdir/config.json"
 model="$(run_resolve "$outdir" --provider openai --tier deep)"
 assert_eq "$model" "gpt-5.5" "untouched tier (deep) falls through to default table"
 rm -rf "$outdir"
@@ -53,10 +53,10 @@ rm -rf "$outdir"
 
 # --- no config: default table per provider/tier ---
 outdir="$(mktemp -d)"
-assert_eq "$(run_resolve "$outdir" --provider openai --tier standard)" "gpt-5.4-mini" \
-  "default openai/standard is gpt-5.4-mini"
-assert_eq "$(run_resolve "$outdir" --provider openai --tier fast)" "gpt-5.3-codex-spark" \
-  "default openai/fast is gpt-5.3-codex-spark"
+assert_eq "$(run_resolve "$outdir" --provider openai --tier standard)" "gpt-5.5" \
+  "default openai/standard is gpt-5.5"
+assert_eq "$(run_resolve "$outdir" --provider openai --tier fast)" "gpt-5.5" \
+  "default openai/fast is gpt-5.5"
 assert_eq "$(run_resolve "$outdir" --provider openai --tier deep)" "gpt-5.5" \
   "default openai/deep is gpt-5.5"
 assert_eq "$(run_resolve "$outdir" --provider anthropic --tier standard)" "claude-sonnet-4-6" \

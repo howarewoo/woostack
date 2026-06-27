@@ -35,8 +35,8 @@ default_model_for() {
       ;;
     openai)
       case "$tier" in
-        fast) echo "gpt-5.3-codex-spark" ;;
-        standard) echo "gpt-5.4-mini" ;;
+        fast) echo "gpt-5.5" ;;
+        standard) echo "gpt-5.5" ;;
         deep) echo "gpt-5.5" ;;
       esac
       ;;

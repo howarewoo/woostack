@@ -77,9 +77,9 @@ run_test() {
 }
 
 # Run tests for each tier
-run_test "fast" "gpt-5.3-codex-spark" "xhigh"
-run_test "" "gpt-5.4-mini" "xhigh"
-run_test "deep" "gpt-5.5" "medium"
+run_test "fast" "gpt-5.5" "low"
+run_test "" "gpt-5.5" "medium"
+run_test "deep" "gpt-5.5" "high"
 
 # If FORCE_TIER is unset, standard should be the default
 outdir="$(mktemp -d)"
@@ -90,8 +90,8 @@ run_load_prompt "$outdir" "$github_output"
 
 run_model="$(grep '^run_model=' "$github_output" | cut -d= -f2 || echo "")"
 run_effort="$(grep '^run_effort=' "$github_output" | cut -d= -f2 || echo "")"
-assert_eq "$run_model" "gpt-5.4-mini" "Default OpenAI/Codex routing (no FORCE_TIER) resolves to 'gpt-5.4-mini'"
-assert_eq "$run_effort" "xhigh" "Default OpenAI/Codex effort (no FORCE_TIER) resolves to 'xhigh'"
+assert_eq "$run_model" "gpt-5.5" "Default OpenAI/Codex routing (no FORCE_TIER) resolves to 'gpt-5.5'"
+assert_eq "$run_effort" "medium" "Default OpenAI/Codex effort (no FORCE_TIER) resolves to 'medium'"
 rm -rf "$outdir"
 
 # Explicit effort override should win over the tier default.
@@ -123,10 +123,10 @@ outdir="$(mktemp -d)"
 github_output="$outdir/github_output"
 touch "$github_output"
 
-run_load_prompt "$outdir" "$github_output" INPUT_MODEL="gpt-5.4-mini"
+run_load_prompt "$outdir" "$github_output" INPUT_MODEL="gpt-5.5"
 
 run_effort="$(grep '^run_effort=' "$github_output" | cut -d= -f2 || echo "")"
-assert_eq "$run_effort" "xhigh" "Explicit gpt-5.4-mini override resolves to xhigh effort"
+assert_eq "$run_effort" "medium" "Explicit gpt-5.5 override resolves to medium effort"
 rm -rf "$outdir"
 
 outdir="$(mktemp -d)"
@@ -154,28 +154,28 @@ rm -rf "$outdir"
 
 # Config object-leaf effort wins over the model/tier default.
 outdir="$(mktemp -d)"; github_output="$outdir/github_output"; touch "$github_output"
-printf '%s\n' '{"models":{"openai":{"standard":{"model":"gpt-5.4-mini","effort":"low"}}}}' > "$outdir/config.json"
+printf '%s\n' '{"models":{"openai":{"standard":{"model":"gpt-5.5","effort":"low"}}}}' > "$outdir/config.json"
 run_load_prompt "$outdir" "$github_output"
 run_model="$(grep '^run_model=' "$github_output" | cut -d= -f2 || echo "")"
 run_effort="$(grep '^run_effort=' "$github_output" | cut -d= -f2 || echo "")"
-assert_eq "$run_model" "gpt-5.4-mini" "config object leaf model resolves"
+assert_eq "$run_model" "gpt-5.5" "config object leaf model resolves"
 assert_eq "$run_effort" "low" "config .effort wins over tier/model default"
 rm -rf "$outdir"
 
 # INPUT_OPENAI_EFFORT still beats config .effort.
 outdir="$(mktemp -d)"; github_output="$outdir/github_output"; touch "$github_output"
-printf '%s\n' '{"models":{"openai":{"standard":{"model":"gpt-5.4-mini","effort":"low"}}}}' > "$outdir/config.json"
+printf '%s\n' '{"models":{"openai":{"standard":{"model":"gpt-5.5","effort":"low"}}}}' > "$outdir/config.json"
 run_load_prompt "$outdir" "$github_output" INPUT_OPENAI_EFFORT="high"
 run_effort="$(grep '^run_effort=' "$github_output" | cut -d= -f2 || echo "")"
 assert_eq "$run_effort" "high" "explicit INPUT_OPENAI_EFFORT beats config .effort"
 rm -rf "$outdir"
 
-# Object leaf without effort falls through to the model default (xhigh for gpt-5.4-mini).
+# Object leaf without effort falls through to the tier default (medium for standard).
 outdir="$(mktemp -d)"; github_output="$outdir/github_output"; touch "$github_output"
-printf '%s\n' '{"models":{"openai":{"standard":{"model":"gpt-5.4-mini"}}}}' > "$outdir/config.json"
+printf '%s\n' '{"models":{"openai":{"standard":{"model":"gpt-5.5"}}}}' > "$outdir/config.json"
 run_load_prompt "$outdir" "$github_output"
 run_effort="$(grep '^run_effort=' "$github_output" | cut -d= -f2 || echo "")"
-assert_eq "$run_effort" "xhigh" "object leaf without effort uses model/tier default"
+assert_eq "$run_effort" "medium" "object leaf without effort uses model/tier default"
 rm -rf "$outdir"
 
 finish

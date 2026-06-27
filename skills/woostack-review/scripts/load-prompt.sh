@@ -79,8 +79,9 @@ config_effort_for() {
 default_openai_effort_for() {
   local tier="$1"
   case "$tier" in
-    fast|standard) echo "xhigh" ;;
-    deep) echo "medium" ;;
+    fast) echo "low" ;;
+    standard) echo "medium" ;;
+    deep) echo "high" ;;
     *)
       echo "::error::Unknown OpenAI effort tier '$tier'"
       exit 1
@@ -91,7 +92,6 @@ default_openai_effort_for() {
 default_openai_effort_for_model() {
   local model="$1"
   case "$model" in
-    gpt-5.3-codex-spark|gpt-5.4-mini) echo "xhigh" ;;
     gpt-5.5) echo "medium" ;;
     *) echo "" ;;
   esac
@@ -128,10 +128,7 @@ if [ "$PROVIDER" = "openai" ]; then
     RUN_EFFORT="$(config_effort_for "$PROVIDER" "$RUN_TIER")"
   fi
   if [ -z "$RUN_EFFORT" ]; then
-    RUN_EFFORT="$(default_openai_effort_for_model "$RUN_MODEL")"
-    if [ -z "$RUN_EFFORT" ]; then
-      RUN_EFFORT="$(default_openai_effort_for "$RUN_TIER")"
-    fi
+    RUN_EFFORT="$(default_openai_effort_for "$RUN_TIER")"
   fi
   case "$RUN_EFFORT" in
     minimal|low|medium|high|xhigh) ;;

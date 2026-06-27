@@ -1,12 +1,4 @@
 {
-	"models": {
-		"openai": {
-			"standard": {
-				"model": "gpt-5.4-mini",
-				"effort": "xhigh"
-			}
-		}
-	},
 	"review": {
 		"metrics": true
 	},

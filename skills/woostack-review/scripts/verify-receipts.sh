@@ -54,8 +54,8 @@ label() { # angle chunk
 
 default_openai_model_for_tier() {
   case "$1" in
-    fast) echo "gpt-5.3-codex-spark" ;;
-    standard) echo "gpt-5.4-mini" ;;
+    fast) echo "gpt-5.5" ;;
+    standard) echo "gpt-5.5" ;;
     deep) echo "gpt-5.5" ;;
     *) return 1 ;;
   esac
