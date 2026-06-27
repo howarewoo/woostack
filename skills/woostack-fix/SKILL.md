@@ -166,6 +166,10 @@ investigation.
    (step 4) stays upstream.
 
 6. **Submit PR, Mark In Review, And Tear Down Worktree.**
+   This closeout commit is separate from the execution commit: `woostack-execute`
+   commits code, checklist, and execution lifecycle updates through
+   `woostack-commit`; after that succeeds, `woostack-fix` commits only the final
+   `status: in-review` lifecycle update to the same PR before teardown.
    Do not stop after implementation, tests, or the code commit. This closeout is part of the
    successful fix loop, not optional cleanup for a later user request.
    There is **no separate post-execution commit step** — step 3 already committed the hardened plan
@@ -202,5 +206,6 @@ investigation.
 - **One worktree across the whole run.** A single `fix/<slug>` worktree spans the run: created in step 2, kept alive across the approve-to-execute gate (so revise/abandon stay cheap — during the gate it is torn down only on **Abandon**, via `git worktree remove --force`), then **reused** by `woostack-execute` for the code increment — execute does not cut a fresh worktree or a child branch, and tears the worktree down on **Go** after the one PR is open.
 - **Delegate execution.** Step 5 hands the fix file to [`woostack-execute`](../woostack-execute/SKILL.md); never re-inline a TDD/commit/review/distill loop. Execute runs inside the step-2 fix worktree on `fix/<slug>` and owns the branch, TDD per task, checkbox ticking, commit via `woostack-commit` (code + plan updates into the one PR), task review, and distill. This skill retains only diagnosis, the fix plan, hardening, the pre-approval plan commit, the approval gate, and the frontmatter lifecycle.
 - **Closeout is mandatory.** After approved execution succeeds, do not final-answer until the single PR is submitted or updated, the fix frontmatter is `status: in-review`, the lifecycle update is committed and submitted, and the fix worktree is removed. If any closeout step fails, leave the worktree in place and report the blocker plus path.
+- **Closeout handback.** The final response must include the PR URL and verification summary. A failed closeout must report both the blocker and the fix worktree path.
 - **TDD Kernel.** Every fix is driven by a failing test first — enforced by `woostack-execute`'s per-task TDD loop.
 - **Never merge.** Execution (via `woostack-execute`) commits and opens or updates the single fix PR; this skill never merges.

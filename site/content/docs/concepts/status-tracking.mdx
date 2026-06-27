@@ -73,6 +73,10 @@ That split is deliberate. Features are tracked by the spec/plan pair and shown o
 `woostack-status` board. Fixes are tracked by their `.woostack/fixes/` file because a fix
 combines the spec and plan into one artifact and ships as one PR.
 
+During closeout, `woostack-execute` owns the code/checklist commit and `woostack-fix`
+owns the final `status: in-review` lifecycle commit, PR URL handback, verification
+summary, and worktree teardown on that same fix PR.
+
 ## One spec, one plan, N PRs, joined by artifacts
 
 The board relies on the `spec : plan : PRs = 1 : 1 : N` invariant. It walks two joins:
