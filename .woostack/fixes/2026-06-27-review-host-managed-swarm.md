@@ -1,6 +1,6 @@
 ---
 type: fix
-status: hardened
+status: executing
 branch: fix/review-host-managed-swarm
 ---
 
@@ -39,13 +39,13 @@ numeric cap.
 
 ## 3. Implementation Plan
 
-- [ ] **Step 1: Reproduce with a failing test**
+- [x] **Step 1: Reproduce with a failing test**
   - Update `skills/woostack-review/scripts/tests/test-bounded-swarm.sh` to cover the
     no-cap default and assert the observed active worker count reaches all queued
     work items, not `6`.
   - Assert `swarm-metrics.json` records `max_concurrency: null` for the default
     host-managed run.
-- [ ] **Step 2: Apply the minimal fix**
+- [x] **Step 2: Apply the minimal fix**
   - Change `run-bounded-swarm.sh` so `max_concurrency` is empty by default and only
     bounded when `--max-concurrency` or `WOO_REVIEW_MAX_CONCURRENCY` provides a
     positive integer.
@@ -58,6 +58,6 @@ numeric cap.
     explicit host opt-in.
   - Update local handback wording from always reporting bounded mode to reporting
     host-managed mode when no cap is configured.
-- [ ] **Step 3: Verification**
+- [x] **Step 3: Verification**
   - Run `bash skills/woostack-review/scripts/tests/test-bounded-swarm.sh`.
   - Run `bash skills/woostack-review/scripts/tests/test-bounded-swarm-receipts.sh`.

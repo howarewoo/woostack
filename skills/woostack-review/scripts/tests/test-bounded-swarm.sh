@@ -139,4 +139,52 @@ assert_eq "$(test -f "$work3/out/findings.security.chunk-1.json" && echo yes || 
 assert_eq "$(sort -u "$work3/out/chunks-seen.txt" | paste -sd ',' -)" "chunk-0,chunk-1" "WOO_REVIEW_CHUNK propagated"
 rm -rf "$work3"
 
+work4="$(mktemp -d)"
+mkdir -p "$work4/out"
+printf '%s\n' one two three four five six seven > "$work4/out/angles.txt"
+cat > "$work4/worker.sh" <<'WORKER'
+#!/usr/bin/env bash
+set -euo pipefail
+mkdir -p "$OUTDIR/state"
+active_file="$OUTDIR/state/active"
+max_file="$OUTDIR/state/max"
+lock_dir="$OUTDIR/state/lock"
+while ! mkdir "$lock_dir" 2>/dev/null; do
+  sleep 0.01
+done
+active=0
+if [ -f "$active_file" ]; then
+  active="$(cat "$active_file")"
+fi
+active=$((active + 1))
+printf '%s\n' "$active" > "$active_file"
+max=0
+if [ -f "$max_file" ]; then
+  max="$(cat "$max_file")"
+fi
+if [ "$active" -gt "$max" ]; then
+  printf '%s\n' "$active" > "$max_file"
+fi
+rmdir "$lock_dir"
+
+sleep 0.15
+printf '[]\n' > "$OUTDIR/findings.$WOO_REVIEW_ANGLE.json"
+printf '{"angle":"%s","chunk":null,"runner":"test","model":"test-model","tier":"standard","ts":"t"}\n' \
+  "$WOO_REVIEW_ANGLE" > "$OUTDIR/receipt.$WOO_REVIEW_ANGLE.json"
+
+while ! mkdir "$lock_dir" 2>/dev/null; do
+  sleep 0.01
+done
+active="$(cat "$active_file")"
+active=$((active - 1))
+printf '%s\n' "$active" > "$active_file"
+rmdir "$lock_dir"
+WORKER
+chmod +x "$work4/worker.sh"
+OUTDIR="$work4/out" "$SCRIPT" -- "$work4/worker.sh"
+assert_eq "$(cat "$work4/out/state/max")" "7" "default swarm lets host schedule all work items"
+assert_eq "$(jq -r '.mode' "$work4/out/swarm-metrics.json")" "host-managed" "default metrics record host-managed mode"
+assert_eq "$(jq -r '.max_concurrency == null' "$work4/out/swarm-metrics.json")" "true" "default metrics record no concurrency cap"
+rm -rf "$work4"
+
 finish
