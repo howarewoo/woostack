@@ -6,13 +6,15 @@ usage() {
 Usage: run-bounded-swarm.sh [--max-concurrency N] -- <worker command...>
 
 Runs detected woostack-review work items from $OUTDIR/angles.txt and, when
-present, $OUTDIR/chunks.txt with bounded concurrency. For each worker, exports
+present, $OUTDIR/chunks.txt. By default it starts every work item and lets the
+host manage scheduling pressure; pass a cap for explicit bounded concurrency.
+For each worker, exports
 WOO_REVIEW_ANGLE and WOO_REVIEW_CHUNK plus the caller's existing OUTDIR,
 WOO_REVIEW_ACTION_PATH, FORCE_TIER, provider/model env, and other review env.
 The worker must write $OUTDIR/findings.$WOO_REVIEW_ANGLE.json when unchunked,
 or $OUTDIR/findings.$WOO_REVIEW_ANGLE.$WOO_REVIEW_CHUNK.json when chunked.
 
-Max concurrency precedence: --max-concurrency, WOO_REVIEW_MAX_CONCURRENCY, 6.
+Max concurrency precedence: --max-concurrency, WOO_REVIEW_MAX_CONCURRENCY, unset.
 USAGE
 }
 
@@ -20,7 +22,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 # shellcheck source=skills/woostack-review/scripts/resolve-outdir.sh
 source "$SCRIPT_DIR/resolve-outdir.sh"
 
-max_concurrency="${WOO_REVIEW_MAX_CONCURRENCY:-6}"
+max_concurrency="${WOO_REVIEW_MAX_CONCURRENCY:-}"
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --max-concurrency)
@@ -54,14 +56,18 @@ if [ "$#" -eq 0 ]; then
 fi
 
 case "$max_concurrency" in
-  ''|*[!0-9]*)
+  '')
+    ;;
+  *[!0-9]*)
     echo "::error::max concurrency must be a positive integer, got: $max_concurrency" >&2
     exit 2
     ;;
 esac
-if [ "$max_concurrency" -lt 1 ]; then
-  echo "::error::max concurrency must be >= 1, got: $max_concurrency" >&2
-  exit 2
+if [ -n "$max_concurrency" ]; then
+  if [ "$max_concurrency" -lt 1 ]; then
+    echo "::error::max concurrency must be >= 1, got: $max_concurrency" >&2
+    exit 2
+  fi
 fi
 
 angles_file="$OUTDIR/angles.txt"
@@ -188,7 +194,7 @@ run_queue() {
     pids+=("$pid")
     active=$((active + 1))
 
-    if [ "$active" -ge "$max_concurrency" ]; then
+    if [ -n "$max_concurrency" ] && [ "$active" -ge "$max_concurrency" ]; then
       if ! wait "${pids[0]}"; then
         true
       fi
@@ -304,8 +310,17 @@ if [ "${#still_invalid[@]}" -gt 0 ]; then
   degraded=true
 fi
 
+if [ -n "$max_concurrency" ]; then
+  max_concurrency_json="$max_concurrency"
+  swarm_mode="bounded"
+else
+  max_concurrency_json="null"
+  swarm_mode="host-managed"
+fi
+
 jq -n \
-  --argjson max "$max_concurrency" \
+  --argjson max "$max_concurrency_json" \
+  --arg mode "$swarm_mode" \
   --argjson angles_total "${#angles[@]}" \
   --argjson chunks_total "${#chunks[@]}" \
   --argjson work_items_total "${#work_items[@]}" \
@@ -315,7 +330,7 @@ jq -n \
   --argjson degraded "$degraded" \
   '{
     schema_version: 1,
-    mode: "bounded",
+    mode: $mode,
     max_concurrency: $max,
     angles_total: $angles_total,
     chunks_total: $chunks_total,

@@ -305,30 +305,30 @@ Prefetch also produces optional chunking artifacts when the post-ignore diff exc
 
 Boundary precedence: workspace packages (`packages/<name>/`, `apps/<name>/`, `services/<name>/`, `libs/<name>/`) → top-level directories → file-LOC-balanced split. When `chunks.txt` is absent the diff is under threshold and chunking is a no-op.
 
-### Stage 3 — Run Bounded Review Swarm (one per angle, × chunk if chunked)
+### Stage 3 — Run Review Swarm (one per angle, × chunk if chunked)
 
-**This is the local swarm step.** Local hosts MUST use bounded execution by default whenever more than one angle or `(angle, chunk)` pair is detected. The default concurrency limit is `6`, because several local hosts can spawn parallel sub-agents but cap active workers below the detected angle count. Set max concurrency to `1` for the sequential fallback.
+**This is the local swarm step.** Local hosts MUST dispatch every detected angle or `(angle, chunk)` pair and let the host manage its own subagent queue by default. Do not impose a woostack hard cap: hosts with large subagent budgets can run every angle at once, while hosts with smaller limits can queue internally. Use an explicit cap only when the host or shell caller asks for bounded execution (for example `--max-concurrency`, `WOO_REVIEW_MAX_CONCURRENCY`, or `N=1` for a sequential fallback).
 
 **Preflight (local).** Before dispatching workers, confirm your host can actually run review sub-agents (its `Task`/sub-agent primitive is available). If it cannot, stop now with an actionable error — do not dispatch a swarm that will produce no receipts and then hard-fail the gate. In the GitHub Action, `detect-provider.sh` performs the equivalent provider/runner preflight.
 
-Bounded execution means:
+Review swarm execution means:
 
 1. read the expected work items from `$OUTDIR/angles.txt` and, when chunking is active, `$OUTDIR/chunks.txt`;
 2. initialize every expected findings artifact to `[]` before workers start;
-3. run at most `N` workers at once;
+3. spawn every expected worker unless an explicit bounded cap is configured;
 4. drain the full first-pass queue;
 5. retry missing, empty, invalid-JSON, or non-array artifacts once after the queue drains;
 6. reset still-invalid *findings* artifacts to `[]`, but treat a missing/invalid *receipt* as a worker that did not execute — after one retry, a still-missing receipt aborts the run (receipts are never pre-initialized; their presence is the proof of execution);
-7. write `$OUTDIR/swarm-metrics.json` so the summary can disclose bounded mode and degraded coverage.
+7. write `$OUTDIR/swarm-metrics.json` so the summary can disclose host-managed versus bounded mode and degraded coverage.
 
 For unchunked reviews, the expected artifact is `$OUTDIR/findings.<angle>.json`. For chunked reviews, the expected artifact is `$OUTDIR/findings.<angle>.<chunk_id>.json`.
 
-Use your host's primitive behind the bounded queue:
+Use your host's primitive for host-managed fan-out:
 
-- Claude Code: `Task` tool, dispatching at most `N` active angle tasks at once.
-- Cursor / Composer: parallel subagent dispatch, capped at `N` active workers.
-- Antigravity CLI (`agy`): dynamically orchestrated subagents — the orchestrator instantiates one isolated-context subagent per angle on demand, capped at `N` active workers (see `prompts/google.md`). Dispatch the independent angle tasks in a single turn to run them in parallel; rely on the isolation pattern for token economy.
-- opencode: subagent dispatch via the OpenCode runtime's primitive (see `prompts/opencode.md`), capped at `N`; use `N=1` when the build does not support parallelism.
+- Claude Code: `Task` tool, dispatching every active angle task and letting Claude Code handle concurrency.
+- Cursor / Composer: parallel subagent dispatch, letting the host schedule or queue workers.
+- Antigravity CLI (`agy`): dynamically orchestrated subagents — the orchestrator instantiates one isolated-context subagent per angle on demand (see `prompts/google.md`). Dispatch the independent angle tasks in a single turn to run them in parallel; rely on the isolation pattern for token economy.
+- opencode: subagent dispatch via the OpenCode runtime's primitive (see `prompts/opencode.md`), letting the runtime schedule workers; use an explicit cap such as `N=1` only when the build does not support parallelism.
 
 **Shell helper path.** Shell-capable local hosts can use the shipped bounded queue runner:
 
@@ -402,7 +402,7 @@ Per-provider resolution (full table in `_header.md`):
 - **Per-call routing** (Claude Code `Task`, Codex local subagents with a `model` override, opencode `@subagent`): honor each prompt's `tier:` verbatim and resolve every spawn's model with `bash $WOO_REVIEW_ACTION_PATH/scripts/resolve-model.sh --provider <provider> --tier <tier>` (which honors `$OUTDIR/config.json` overrides), passing that slug explicitly on the spawn. Maximum savings.
 - **Single model per session** (Codex Action without subagent model overrides, Antigravity CLI): pin the run to a resolved run-tier (`fast` or `deep` via `FORCE_TIER`, otherwise `standard`). `tier:` becomes informational once the run tier resolves. Split into multiple jobs if you want per-angle fast/deep split behavior.
 
-Bounded runners MUST preserve the resolved tier/model context for every queued worker. In single-model hosts, pass the resolved run-tier (`FORCE_TIER` when set, otherwise the host's standard tier) to every worker. In per-call-routing hosts, apply each angle prompt's `tier:` while still preserving any explicit `FORCE_TIER` override, and set the spawn call's model field to the slug from `resolve-model.sh` (config-aware — never the static `_header.md` table directly). Write that same resolved model into the worker's receipt (`model`) so receipts reflect the configured model, not the default. Omitting the spawn model field is a routing bug because the worker inherits the parent session's model and defeats the tier mapping. Bounded scheduling must not cause later queued angles to fall back to default model settings.
+Review runners MUST preserve the resolved tier/model context for every spawned worker. In single-model hosts, pass the resolved run-tier (`FORCE_TIER` when set, otherwise the host's standard tier) to every worker. In per-call-routing hosts, apply each angle prompt's `tier:` while preserving any explicit `FORCE_TIER` override, and set the spawn call's model field to the slug from `resolve-model.sh` (config-aware — never the static `_header.md` table directly). Write that same resolved model into the worker's receipt (`model`) so receipts reflect the configured model, not the default. Omitting the spawn model field is a routing bug because the worker inherits the parent session's model and defeats the tier mapping. Host-managed or explicitly bounded scheduling must not cause later-starting angles to fall back to default model settings.
 
 **Receipt gate (hard fail).** After the swarm finishes — and before `merge-findings.sh` — run:
 
@@ -481,7 +481,7 @@ Produces `$OUTDIR/findings.json` — the final validated set — and `$OUTDIR/va
 - Submit one `gh api repos/<repo>/pulls/<PR>/reviews` POST containing all inline comments + the summary + status line. The review `event` (`APPROVE` / `COMMENT` / `REQUEST_CHANGES`) is the native gate: any blocking finding (or open prior thread) triggers `REQUEST_CHANGES`; a non-nit non-blocking finding triggers `COMMENT`; nits are event-neutral, so a PR whose only findings are nits gets `APPROVE` with the nits posted inline.
 - DO NOT modify the PR title or body. DO NOT mutate PR labels.
 
-**If invoked locally (no PR#)** — print the validated findings to the terminal grouped by severity, then stop. If `$OUTDIR/swarm-metrics.json` exists, include a one-line swarm summary. Mention bounded mode and `max_concurrency`. If `.degraded == true`, name the `still_invalid` angles or `(angle, chunk)` items and state that those artifacts contributed `[]` after one retry. Do not touch any remote.
+**If invoked locally (no PR#)** — print the validated findings to the terminal grouped by severity, then stop. If `$OUTDIR/swarm-metrics.json` exists, include a one-line swarm summary. Mention host-managed mode when `max_concurrency` is `null`; otherwise mention bounded mode and the numeric `max_concurrency`. If `.degraded == true`, name the `still_invalid` angles or `(angle, chunk)` items and state that those artifacts contributed `[]` after one retry. Do not touch any remote.
 
 ### Stage 6 — Update cross-PR memory (local hosts)
 
