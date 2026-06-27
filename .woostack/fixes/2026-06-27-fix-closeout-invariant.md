@@ -1,6 +1,6 @@
 ---
 type: fix
-status: hardened
+status: executing
 branch: fix/fix-closeout-invariant
 ---
 
@@ -38,18 +38,18 @@ If the authored docs page mirrors this wording, update
 
 ## 3. Implementation Plan
 
-- [ ] **Step 1: Reproduce with a failing documentation check**
+- [x] **Step 1: Reproduce with a failing documentation check**
   - Add a lightweight shell test that asserts `skills/woostack-fix/SKILL.md`
     contains a “Completion invariant” section and the mandatory closeout terms:
     submit/update PR, `in-review`, commit/submit lifecycle update, and remove the
     worktree.
-- [ ] **Step 2: Apply the minimal fix**
+- [x] **Step 2: Apply the minimal fix**
   - Add the completion invariant near the top of `skills/woostack-fix/SKILL.md`
     so it is visible before the detailed procedure.
   - Rename or strengthen step 6 so closeout cannot be read as optional tracking.
   - State the failure exception explicitly: if closeout cannot commit, submit, or
     tear down, leave the worktree and report the blocker/path.
   - Mirror the authored docs page only where it is manually maintained and affected.
-- [ ] **Step 3: Verification**
+- [x] **Step 3: Verification**
   - Run the new documentation check.
   - Run `pnpm -C site build` if the authored docs page changes.
