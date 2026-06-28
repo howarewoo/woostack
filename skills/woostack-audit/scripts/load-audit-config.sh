@@ -30,10 +30,13 @@ if lens == "simplify":
     force = ["simplify"]
 elif lens == "prod":
     force = ["production-readiness"]
+if "simplify" not in force:
+    force.append("simplify")
 ang = audit.get("angles", {}) or {}
+skip = [a for a in (ang.get("skip", []) or []) if a != "simplify"]
 out_cfg = {
     "angles": {"force": force + (ang.get("force", []) or []),
-               "skip": ["architecture"] + (ang.get("skip", []) or [])},
+               "skip": ["architecture"] + skip},
     "severity_floor": audit.get("severity_floor", "high"),
     "ignore": audit.get("ignore", []),
     "models": audit.get("models", {}),

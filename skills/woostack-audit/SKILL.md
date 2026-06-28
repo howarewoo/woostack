@@ -27,17 +27,19 @@ and **never merges**. It points findings at [`woostack-fix`](../woostack-fix/SKI
   bare default — auditing a whole repo is opt-in, not accidental).
 - `/woostack-audit --all` — audit the repo root (the sanctioned whole-repo opt-in).
 - `/woostack-audit <target> --fast | --deep` — one-run tier override (review's `FORCE_TIER`).
-- `/woostack-audit <target> --simplify | --prod-only` — narrow to one lens; `bugs` + `security`
-  remain on as a safety floor.
+- `/woostack-audit <target> --simplify | --prod-only` — narrow audit emphasis; `--simplify`
+  keeps only simplification, `--prod-only` emphasizes production-readiness while keeping
+  simplification, and `bugs` + `security` remain on as a safety floor.
 
 ## Angles
 
-Audit runs on the synthetic diff with **`simplify`** and **`production-readiness`** always-on
-(plus the `bugs` + `security` safety floor), and auto-detects review's other angles
-(`observability`, `types`, `deps`, `tests`, `conventions`, …) on the target. The `architecture`
-angle is skipped — `simplify` owns the full simplification surface when it is absent (see
-[`prompts/angles/simplify.md`](../woostack-review/prompts/angles/simplify.md)). Both new angles are
-shared with `woostack-review`, which also runs them on source-touching diffs.
+Audit runs on the synthetic diff with **`simplify`** and **`production-readiness`** by default
+(plus the `bugs` + `security` safety floor). `--simplify` narrows the audit to simplification;
+`--prod-only` emphasizes production-readiness while keeping simplification. It also auto-detects
+review's other angles (`observability`, `types`, `deps`, `tests`, `conventions`, …) on the target.
+The `architecture` angle is skipped — `simplify` owns the full simplification surface when it is
+absent (see [`prompts/angles/simplify.md`](../woostack-review/prompts/angles/simplify.md)). Both
+new angles are shared with `woostack-review`, which also runs them on source-touching diffs.
 
 ## Per-repo configuration
 

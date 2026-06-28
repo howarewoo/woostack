@@ -7,6 +7,7 @@
 # Angle gating:
 #   bugs      — always on
 #   security  — always on
+#   simplify  — always on
 #   seo       — HARD files (fire on path alone): robots.txt, sitemap.{xml,ts},
 #               app/manifest.{ts,json}. SOFT surfaces (*.html, head/layout.{ts,tsx,js,jsx},
 #               next.config.*) no longer gate on path — they fire only via a diff token:
@@ -76,9 +77,8 @@
 #   comments  — reuses the general-purpose source-file signal (any *.{ts,js,py,go,…}
 #               in the diff, same as architecture). Audits whether code comments still
 #               match the code the PR changed (comment rot). Always non-blocking.
-#   simplify  — general-purpose source files in the diff (same signal as architecture).
-#               YAGNI / dead-code / duplication delete-list. Defers structural-shape to
-#               architecture when both are enabled.
+#   simplify  — every review. YAGNI / dead-code / duplication delete-list. Defers
+#               structural-shape to architecture when both are enabled.
 #   production-readiness — general-purpose source files in the diff. Resilience/operability
 #               posture (timeouts, retries, idempotency, degradation, resource limits).
 
@@ -265,7 +265,7 @@ has_skills_file() {
   echo "$CHANGED_PATHS" | grep -qE '(^|/)SKILL\.md$'
 }
 
-ANGLES=("bugs" "security")
+ANGLES=("bugs" "security" "simplify")
 
 if [ -f "$OUTDIR/rules.md" ]; then
   ANGLES+=("conventions")
@@ -336,10 +336,6 @@ if has_code_file; then
 fi
 
 if has_code_file; then
-  ANGLES+=("simplify")
-fi
-
-if has_code_file; then
   ANGLES+=("production-readiness")
 fi
 
@@ -357,7 +353,7 @@ if [ -f "$CFG" ] && jq -e '.angles.skip // empty' "$CFG" >/dev/null 2>&1; then
   fi
 fi
 
-# Apply disable list. bugs + security cannot be disabled.
+# Apply disable list. bugs + security + simplify cannot be disabled.
 if [ -n "$DISABLE" ]; then
   IFS=',' read -ra DIS_ARRAY <<< "$DISABLE"
   FILTERED=()
@@ -365,7 +361,7 @@ if [ -n "$DISABLE" ]; then
     keep=1
     for d in "${DIS_ARRAY[@]}"; do
       d_trim=$(echo "$d" | xargs)
-      if [ "$a" = "$d_trim" ] && [ "$a" != "bugs" ] && [ "$a" != "security" ]; then
+      if [ "$a" = "$d_trim" ] && [ "$a" != "bugs" ] && [ "$a" != "security" ] && [ "$a" != "simplify" ]; then
         keep=0
         break
       fi

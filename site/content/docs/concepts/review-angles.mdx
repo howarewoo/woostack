@@ -9,9 +9,9 @@ woostack-review reviews a pull request through a set of **angles**. Each angle i
 
 Three rules decide which angles run on a given pull request:
 
-1. **`bugs` and `security` always run.** They are on for every review and can never be skipped.
+1. **`bugs`, `security`, and `simplify` always run.** They are on for every review and can never be skipped.
 2. **The other angles auto-detect from the diff.** Each one looks at the files the PR touches and the content of the diff, and turns itself on when it sees something relevant. A `.sql` file pulls in `database`; a `.tsx` file pulls in `react`.
-3. **You can override detection.** `review.angles.force` runs an angle whatever the diff looks like, and `review.angles.skip` keeps one off. `force` wins a tie, and `bugs` / `security` ignore `skip`. See [Choosing angles](/docs/configuration#choosing-angles).
+3. **You can override detection.** `review.angles.force` runs an angle whatever the diff looks like, and `review.angles.skip` keeps one off. `force` wins a tie, and `bugs` / `security` / `simplify` ignore `skip`. See [Choosing angles](/docs/configuration#choosing-angles).
 
 ## The catalog
 
@@ -36,7 +36,7 @@ Every angle, what it reviews, a plain-language summary of when it auto-fires, an
 | `react` | React correctness: Rules of Hooks and render behavior | a `.tsx` or `.jsx` file changes | standard |
 | `security` | Threat model: injection, auth, secrets, unsafe patterns | always (cannot be skipped) | standard |
 | `seo` | Search-engine optimization: meta tags, sitemaps, canonical URLs | HTML, head / layout files, `robots.txt`, `sitemap`, `next.config`, or SEO tokens in the diff | fast |
-| `simplify` | Simplification: code that should be smaller or not exist (YAGNI, dead code, duplication, thin abstractions) | any general-purpose source file changes (same signal as `architecture`) | standard |
+| `simplify` | Simplification: code that should be smaller or not exist (YAGNI, dead code, duplication, thin abstractions) | every review | standard |
 | `skills` | Agent Skill authoring: a changed SKILL.md against the best-practices guide | a `SKILL.md` file changes anywhere in the diff | standard |
 | `tests` | Test coverage and quality | a test file changes (`.test.*`, `.spec.*`, `_test.*`, or `tests/` / `__tests__/` / `spec/` trees) | standard |
 | `types` | Type design: TypeScript invariants and signatures | a `.ts` / `.tsx` / `.cts` / `.mts` file changes | standard |
@@ -44,7 +44,7 @@ Every angle, what it reviews, a plain-language summary of when it auto-fires, an
 The exact gating heuristics (file globs and diff-token patterns) live in [`detect-angles.sh`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-review/scripts/detect-angles.sh), the source of truth. This table summarizes them in plain language.
 
 <Callout type="info">
-  `bugs` and `security` run on every review and can never be skipped. Listing either under `review.angles.skip` is silently ignored.
+  `bugs`, `security`, and `simplify` run on every review and can never be skipped. Listing any of them under `review.angles.skip` is silently ignored.
 </Callout>
 
 <Callout type="info">

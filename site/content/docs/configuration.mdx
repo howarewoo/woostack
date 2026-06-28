@@ -76,13 +76,13 @@ finding explicitly marked blocking always surfaces regardless of the floor.
 ### Choosing angles
 
 Angles are auto-detected from the diff. Force an angle to run it regardless of detection; skip one
-to keep it off. `force` wins when an angle appears in both. The `bugs` and `security` angles can
-never be skipped. They are silently kept even if listed.
+to keep it off. `force` wins when an angle appears in both. The `bugs`, `security`, and `simplify`
+angles can never be skipped. They are silently kept even if listed.
 
 | Key | Type | Default | Meaning |
 | --- | --- | --- | --- |
 | `review.angles.force` | array of string | `[]` | Angles always enabled. |
-| `review.angles.skip` | array of string | `[]` | Angles never enabled (except `bugs` / `security`). |
+| `review.angles.skip` | array of string | `[]` | Angles never enabled (except `bugs` / `security` / `simplify`). |
 
 See [Review angles](/docs/concepts/review-angles) for the full catalog of all 21 angles: what each one
 audits, when it auto-fires, and its model tier.

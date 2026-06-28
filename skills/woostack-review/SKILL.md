@@ -194,7 +194,7 @@ Full schema (every key shown; all optional):
 ```
 
 Key reference (JSON has no comments, so the per-key semantics live here):
-- **`angles.force`** — always run these, even if not auto-detected. **`angles.skip`** — never run these (`bugs`/`security` cannot be skipped).
+- **`angles.force`** — always run these, even if not auto-detected. **`angles.skip`** — never run these (`bugs`/`security`/`simplify` cannot be skipped).
 - **`severity_floor`** — one of `low` | `medium` | `high`; a blocking/visibility threshold, **not** a drop gate. **Default `high`**. Findings below the floor surface as non-blocking nits (see `nits`); set `low`/`medium` to treat more findings as normal (at/above-floor). Applied once by `intersect-findings.sh` (Stage 4c).
 - **`nits`** — `true` | `false`; default **`true`**. When `true`, validated findings below `severity_floor` surface as non-blocking nits instead of being dropped. Set `false` to drop them (the pre-reframe behavior). Below-floor `blocking` findings always surface regardless of this knob.
 - **`defer_markers`** — `true` | `false`; default **`true`**. When `true`, the defender validator honors inline `woostack-defer(<ref>)` markers (authored by `woostack-execute` under an approved plan): a finding that flags work a later increment intentionally completes is demoted to a non-blocking `Deferred to <ref>` nit instead of a normal finding (issue #224). Set `false` to ignore the markers. Never defers `security` findings or wrong code present in this PR; reads the marker from the PR's own diff, so it fetches no other PRs.
@@ -295,7 +295,7 @@ bash "$WOO_REVIEW_ACTION_PATH/scripts/load-config.sh"   # parses .woostack/confi
 bash "$WOO_REVIEW_ACTION_PATH/scripts/detect-angles.sh"
 ```
 
-Read the result from `$OUTDIR/angles.txt` (one angle per line). Always-on angles: `bugs`, `security`. Conditional (auto-detected from changed paths + diff body): `conventions` (when `rules.md` is present), `seo`, `aeo`, `design`, `react`, `database`, `tests`, `api`, `infra`, `observability`, `types`, `i18n`, `docs`, `deps`, `skills` (when a `SKILL.md` is in the diff), `architecture`, `comments`, `simplify`, and `production-readiness` (when the diff touches general-purpose source files). See `scripts/detect-angles.sh` for per-angle gating heuristics.
+Read the result from `$OUTDIR/angles.txt` (one angle per line). Always-on angles: `bugs`, `security`, `simplify`. Conditional (auto-detected from changed paths + diff body): `conventions` (when `rules.md` is present), `seo`, `aeo`, `design`, `react`, `database`, `tests`, `api`, `infra`, `observability`, `types`, `i18n`, `docs`, `deps`, `skills` (when a `SKILL.md` is in the diff), `architecture`, `comments`, and `production-readiness` (when the diff touches general-purpose source files). See `scripts/detect-angles.sh` for per-angle gating heuristics.
 
 Prefetch also produces optional chunking artifacts when the post-ignore diff exceeds `chunking.max_loc` (default 4000 LOC). When present, the host MUST fan out one sub-agent per `(angle, chunk)` pair in Stage 3:
 
