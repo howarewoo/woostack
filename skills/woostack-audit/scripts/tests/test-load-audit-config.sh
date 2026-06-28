@@ -30,11 +30,11 @@ cfg="$(cat "$OUTDIR/config.json")"
 assert_contains "$cfg" "simplify" "lens simplify forces simplify"
 assert_not_contains "$cfg" "production-readiness" "lens simplify drops prod-readiness"
 
-# Lens flag prod forces production-readiness only, drops simplify.
+# Lens flag prod narrows production-readiness but still keeps simplify.
 run '{}' 'prod'; assert_eq "$EC" "0" "lens prod ok"
 cfg="$(cat "$OUTDIR/config.json")"
 assert_contains "$cfg" "production-readiness" "lens prod forces production-readiness"
-assert_not_contains "$cfg" "simplify" "lens prod drops simplify"
+assert_contains "$cfg" "simplify" "lens prod keeps simplify"
 
 # angles:null is coerced to {} by the `or {}` guard, not treated as an error.
 run '{"audit":{"angles":null}}'; assert_eq "$EC" "0" "angles:null coerced, not an error"
@@ -44,6 +44,13 @@ run '{"audit":{"angles":{"force":["bugs"],"skip":["docs"]}}}'; assert_eq "$EC" "
 cfg="$(cat "$OUTDIR/config.json")"
 assert_contains "$cfg" "bugs" "user angles.force merged onto defaults"
 assert_contains "$cfg" "docs" "user angles.skip merged onto architecture"
+
+# simplify is invariant for audit and cannot be disabled through user skip config.
+run '{"audit":{"angles":{"skip":["simplify","docs"]}}}'; assert_eq "$EC" "0" "simplify skip ignored"
+cfg="$(cat "$OUTDIR/config.json")"
+assert_contains "$cfg" "simplify" "simplify remains forced"
+assert_eq "$(jq -r '.angles.skip | index("simplify") == null' "$OUTDIR/config.json")" "true" "simplify removed from skip"
+assert_contains "$cfg" "docs" "other user skips remain"
 
 # Unknown lens flag falls back to running both audit angles, not an error.
 run '{}' 'bogus'; assert_eq "$EC" "0" "unknown lens falls back, no error"
