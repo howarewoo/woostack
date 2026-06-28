@@ -149,12 +149,12 @@ Full schema (every key shown; all optional):
 {
   "models": {
     "fast": "anthropic/claude-haiku-4-5",
-    "standard": { "model": "openai/gpt-5.4-mini", "effort": "xhigh" },
+    "standard": { "model": "openai/gpt-5.5", "effort": "medium" },
     "deep": "anthropic/claude-opus-4-8",
     "openai": {
-      "fast": { "model": "gpt-5.3-codex-spark", "effort": "xhigh" },
-      "standard": { "model": "gpt-5.4-mini", "effort": "low" },
-      "deep": { "model": "gpt-5.5", "effort": "medium" }
+      "fast": { "model": "gpt-5.5", "effort": "low" },
+      "standard": { "model": "gpt-5.5", "effort": "medium" },
+      "deep": { "model": "gpt-5.5", "effort": "high" }
     },
     "anthropic": {
       "fast": "claude-haiku-4-5",
@@ -389,12 +389,12 @@ Per-provider resolution (full table in `_header.md`):
 
 | Tier | Anthropic | OpenAI | Google | OpenRouter |
 |---|---|---|---|---|
-| `fast` | `claude-haiku-4-5` | `gpt-5.3-codex-spark` + `reasoning_effort: xhigh` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-flash` |
-| `standard` | `claude-sonnet-4-6` | `gpt-5.4-mini` + `reasoning_effort: xhigh` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` |
-| `deep` | `claude-opus-4-8` | `gpt-5.5` + `reasoning_effort: medium` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` + `reasoning_effort: xhigh` |
+| `fast` | `claude-haiku-4-5` | `gpt-5.5` + `reasoning_effort: low` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-flash` |
+| `standard` | `claude-sonnet-4-6` | `gpt-5.5` + `reasoning_effort: medium` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` |
+| `deep` | `claude-opus-4-8` | `gpt-5.5` + `reasoning_effort: high` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` + `reasoning_effort: xhigh` |
 
 - **Google** currently exposes only `gemini-3-5-flash` — tier routing is a no-op on Gemini until a larger 3.5 model ships.
-- **OpenAI** GPT-5-family reasoning is a `reasoning_effort` parameter, not a slug suffix. Use `gpt-5.5` with `reasoning_effort: medium` for the skeptical validator and complex review passes, `gpt-5.4-mini` with `reasoning_effort: xhigh` for everyday review work, and `gpt-5.3-codex-spark` with `reasoning_effort: xhigh` for fast rubric workers and ultra-fast real-time coding checks. There is no `gpt-5-pro`.
+- **OpenAI** GPT-5-family reasoning is a `reasoning_effort` parameter, not a slug suffix. Use `gpt-5.5` for every tier, with `reasoning_effort: low` for fast, `medium` for standard, and `high` for deep. There is no `gpt-5-pro`.
 - **OpenRouter** exposes only `deepseek/deepseek-v4-flash` and `deepseek/deepseek-v4-pro`; reasoning is the `reasoning_effort` parameter (`high`/`xhigh`). Do not route to `deepseek-r1` — V4 supersedes it.
 
 **Host capability:**
@@ -577,7 +577,7 @@ The `if:` gate restricts comment-triggered runs to the repo owner / members / co
 
 - Always parallelize Stage 3 when the host supports it; the validator pass is calibrated for ~5 angles' worth of input.
 - Trust the Skeptical Validator. Disabling it produces noisy reviews.
-- Honor angle-prompt tiers (`fast`/`standard`/`deep`) when the host supports per-call model routing. Hosts that run one model per session should pin `gpt-5.5` for maximum validator quality, or `gpt-5.4-mini` when cost matters more than deep validation.
+- Honor angle-prompt tiers (`fast`/`standard`/`deep`) when the host supports per-call model routing. Hosts that run one model per session should pin `gpt-5.5`; use tier-specific reasoning effort when the host supports it.
 - Pass `disable_angles` to skip optional angles when scope is narrow (e.g. backend-only PR → `disable_angles: "seo,aeo,design,react,i18n"`).
 - For a confirmed bug (not a style nit) that the author wants to fix, suggest investigating it with [`woostack-debug`](../woostack-debug/SKILL.md): `/woostack-debug <target>` (it runs an autonomous root-cause analysis and hands back the root cause and a proposed fix). Review never dispatches `woostack-debug` itself: it owns no fix behavior and never auto-addresses findings, so it only points the author at the command.
 

@@ -11,13 +11,13 @@ implicitly `fast`.
 
 | Tier | Use for | Anthropic | OpenAI (Codex) | Google (Gemini) | OpenRouter |
 |---|---|---|---|---|---|
-| `fast` | rubric checklists, mechanical fully-specified 1–2-file tasks, context summaries | `claude-haiku-4-5` | `gpt-5.3-codex-spark` + `reasoning_effort: xhigh` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-flash` |
-| `standard` | reasoning workers, multi-file integration | `claude-sonnet-4-6` | `gpt-5.4-mini` + `reasoning_effort: xhigh` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` |
-| `deep` | skeptical validation, design/architecture judgment, code-quality review | `claude-opus-4-8` | `gpt-5.5` + `reasoning_effort: medium` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` + `reasoning_effort: xhigh` |
+| `fast` | rubric checklists, mechanical fully-specified 1–2-file tasks, context summaries | `claude-haiku-4-5` | `gpt-5.5` + `reasoning_effort: low` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-flash` |
+| `standard` | reasoning workers, multi-file integration | `claude-sonnet-4-6` | `gpt-5.5` + `reasoning_effort: medium` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` |
+| `deep` | skeptical validation, design/architecture judgment, code-quality review | `claude-opus-4-8` | `gpt-5.5` + `reasoning_effort: high` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` + `reasoning_effort: xhigh` |
 
 > **Provider notes:**
 > - **Google** currently ships only `gemini-3-5-flash` in the 3.5 line; no Pro/Ultra/Thinking variant exists yet, so all tiers collapse onto flash (tier routing is effectively a no-op until Google releases a larger model).
-> - **OpenAI** GPT-5-family reasoning is a parameter on the same slug, not a slug suffix. Use `gpt-5.5` with `reasoning_effort: medium` for complex review and the skeptical validator, `gpt-5.4-mini` with `reasoning_effort: xhigh` for everyday coding review, and `gpt-5.3-codex-spark` with `reasoning_effort: xhigh` for simple/cost-sensitive rubric workers and latency-first real-time coding checks. There is no `gpt-5-pro`.
+> - **OpenAI** GPT-5-family reasoning is a parameter on the same slug, not a slug suffix. Use `gpt-5.5` for every tier, with `reasoning_effort: low` for fast, `medium` for standard, and `high` for deep. There is no `gpt-5-pro`.
 > - **OpenRouter** DeepSeek exposes exactly two slugs — `deepseek/deepseek-v4-flash` and `deepseek/deepseek-v4-pro`. Reasoning is a `reasoning_effort` parameter (`high` / `xhigh`, where `xhigh` maps to max). Use plain `v4-pro` for standard and `v4-pro` with `reasoning_effort: xhigh` for deep. Do not route to `deepseek-r1` — V4 supersedes it.
 
 ## Routing by host capability (generic)

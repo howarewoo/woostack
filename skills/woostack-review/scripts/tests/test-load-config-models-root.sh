@@ -31,15 +31,15 @@ run_loader() {
 }
 
 # 1. object leaf normalized + preserved
-run_loader '{"models":{"openai":{"standard":{"model":"gpt-5.4-mini","effort":"low"}}}}'
+run_loader '{"models":{"openai":{"standard":{"model":"gpt-5.5","effort":"medium"}}}}'
 assert_exit 0 "$RC" "root models object leaf accepted"
 assert_eq "$(jq -c '.models.openai.standard' "$OUT/config.json")" \
-  '{"effort":"low","model":"gpt-5.4-mini"}' "object leaf preserved (sorted keys)"
+  '{"effort":"medium","model":"gpt-5.5"}' "object leaf preserved (sorted keys)"
 
 # 2. string leaf normalized to object
-run_loader '{"models":{"openai":{"standard":"gpt-5.4-mini"}}}'
+run_loader '{"models":{"openai":{"standard":"gpt-5.5"}}}'
 assert_eq "$(jq -c '.models.openai.standard' "$OUT/config.json")" \
-  '{"model":"gpt-5.4-mini"}' "string leaf normalized to {model}"
+  '{"model":"gpt-5.5"}' "string leaf normalized to {model}"
 
 # 3. review.models rejected (clean break, tailored message)
 run_loader '{"review":{"models":{"openai":{"standard":"x"}}}}'

@@ -14,25 +14,25 @@ Codex has two execution shapes:
 - **Codex Action / no per-spawn model override:** one model runs the full job. The `tier:` frontmatter is informational only, and the action resolves one session model in `load-prompt.sh`.
 
 The single-session action path resolves one session model in `load-prompt.sh` using this precedence:
-1. `FORCE_TIER` from Review Context (from `/woostack-review --fast` or `--deep`, or `review.force_tier` in config): fast→`gpt-5.3-codex-spark`, deep→`gpt-5.5`. Only `fast` and `deep` are valid `FORCE_TIER` values; the `standard` tier (`gpt-5.4-mini`) is the implicit default when `FORCE_TIER` is unset — see step 3.
+1. `FORCE_TIER` from Review Context (from `/woostack-review --fast` or `--deep`, or `review.force_tier` in config): fast→`gpt-5.5`, deep→`gpt-5.5`. Only `fast` and `deep` are valid `FORCE_TIER` values; the `standard` tier (`gpt-5.5`) is the implicit default when `FORCE_TIER` is unset — see step 3.
 2. `inputs.model` when explicitly set.
-3. Provider defaults (`gpt-5.4-mini` standard).
+3. Provider defaults (`gpt-5.5` standard).
 
 Per-repo override remains in effect during run-model resolution: if `$OUTDIR/config.json` has `models.openai.<run_tier>` set (or flat `models.<run_tier>`), use that value before falling back to the default.
 
-For quality/cost splits, GPT-5-family reasoning is a `reasoning_effort` parameter, not a slug suffix (`high`, `xhigh` etc.); there is no `gpt-5-pro`. Pass effort via `inputs.openai_effort` (wired through to codex-action `effort`). Defaults are `medium` for deep, `xhigh` for standard, and `xhigh` for fast. A per-tier `effort` may also be set on the config leaf (`models.openai.<tier>.effort`); `load-prompt.sh` resolves it **config-first** (`inputs.openai_effort` → config `effort` → tier/model default).
+For quality/cost splits, GPT-5-family reasoning is a `reasoning_effort` parameter, not a slug suffix; there is no `gpt-5-pro`. Pass effort via `inputs.openai_effort` (wired through to codex-action `effort`). Defaults are `high` for deep, `medium` for standard, and `low` for fast. A per-tier `effort` may also be set on the config leaf (`models.openai.<tier>.effort`); `load-prompt.sh` resolves it **config-first** (`inputs.openai_effort` → config `effort` → tier/model default).
 
-**Per-repo override:** resolve using the active run tier: if `$OUTDIR/config.json` has `models.openai.<run_tier>` set, use it; otherwise fall back to flat `models.<run_tier>` (precedence: `FORCE_TIER` > `inputs.model` > `models.openai.<run_tier>` > `models.<run_tier>` > default `gpt-5.4-mini`). The loader normalizes each leaf to an object `{model, effort?}`, so read `.model` with a run-tier-aware lookup, e.g. when `run_tier=deep`: `jq -r '((.models.openai.deep // .models.deep) | if type=="object" then .model else . end) // empty' $OUTDIR/config.json`.
+**Per-repo override:** resolve using the active run tier: if `$OUTDIR/config.json` has `models.openai.<run_tier>` set, use it; otherwise fall back to flat `models.<run_tier>` (precedence: `FORCE_TIER` > `inputs.model` > `models.openai.<run_tier>` > `models.<run_tier>` > default `gpt-5.5`). The loader normalizes each leaf to an object `{model, effort?}`, so read `.model` with a run-tier-aware lookup, e.g. when `run_tier=deep`: `jq -r '((.models.openai.deep // .models.deep) | if type=="object" then .model else . end) // empty' $OUTDIR/config.json`.
 
 For per-call local subagents, resolve each spawn with the same precedence, but use the target prompt's tier unless a forced tier is set:
 
 | Target | Effective tier when no `FORCE_TIER` | Default OpenAI model |
 |---|---|---|
-| `seo`, `aeo`, `i18n`, `docs`, `deps`, `comments`, context summary | `fast` | `gpt-5.3-codex-spark` |
-| all other angle workers | `standard` | `gpt-5.4-mini` |
+| `seo`, `aeo`, `i18n`, `docs`, `deps`, `comments`, context summary | `fast` | `gpt-5.5` |
+| all other angle workers | `standard` | `gpt-5.5` |
 | prosecutor and defender validators | `deep` | `gpt-5.5` |
 
-If the spawn API accepts a reasoning-effort override, pass the mapped effort too (`xhigh` for fast/standard, `medium` for deep). If it only accepts `model`, still pass `model`; do not fall back to parent-model inheritance.
+If the spawn API accepts a reasoning-effort override, pass the mapped effort too (`low` for fast, `medium` for standard, `high` for deep). If it only accepts `model`, still pass `model`; do not fall back to parent-model inheritance.
 
 ---
 

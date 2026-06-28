@@ -403,7 +403,7 @@ Field-by-field:
 
 - **`<host>`** — canonical slug for the host agent invoking this skill. Use one of: `claude-code`, `cursor`, `antigravity-cli`, `codex`, `opencode`, or another stable identifier the host advertises. When a sub-agent profile or persona is identifiable (e.g. opencode running the `mimo-v2.5` agent), append it in parentheses: `opencode (mimo-v2.5)`. Detection hints: `CLAUDECODE=1` → `claude-code`; `OPENCODE*` env vars → `opencode`; `AGY_*` / `ANTIGRAVITY_*` → `antigravity-cli`; `CODEX_HOME` → `codex`; `CURSOR*` → `cursor`. Each orchestrator prompt declares a default host identifier near the top — prefer that only after the precedence above is exhausted.
 - **`<provider>`** — `anthropic` / `openai` / `google` / `openrouter` / `bedrock` / `vertex` / etc. Whatever the host is *actually* routing through. `opencode.md` is loaded for any OpenRouter-style orchestration shape, but OpenCode can route to any provider — do NOT assume `openrouter` just because this file was selected.
-- **`<model>`** — the actual validator model slug as the host sees it (e.g. `claude-opus-4-8`, `claude-sonnet-4-6`, `gpt-5.5`, `gpt-5.3-codex-spark`, `gemini-3-pro`, `openrouter/deepseek/deepseek-v4-pro`). When `inputs.model`, `models.<provider>.<tier>`, or flat `models.<tier>` in `config.json` overrode the default, report the override value, not the table default.
+- **`<model>`** — the actual validator model slug as the host sees it (e.g. `claude-opus-4-8`, `claude-sonnet-4-6`, `gpt-5.5`, `gemini-3-pro`, `openrouter/deepseek/deepseek-v4-pro`). When `inputs.model`, `models.<provider>.<tier>`, or flat `models.<tier>` in `config.json` overrode the default, report the override value, not the table default.
 
 ## Findings Schema (`/tmp/pr-review/findings.json`)
 
