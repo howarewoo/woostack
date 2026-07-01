@@ -187,10 +187,14 @@ investigation.
 
    Tear down the **single** fix worktree after the one PR is open/updated and the `status:
    in-review` lifecycle update is committed and submitted; the branch/commits/PR persist. **Leave
-   the worktree in place on failure** and report its path. The memory
-   distill (run by `woostack-execute` in step 5) targets the primary tree via the `WOOSTACK_ROOT`
-   export of the [worktree contract](../woostack-init/references/worktrees.md) §5, so it survives
-   teardown.
+   the worktree in place on failure** and report its path. The memory distill (run by
+   `woostack-execute` in step 5) writes its note **and** the rebuilt `MEMORY.md` **inside the fix
+   worktree** and commits them onto `fix/<slug>` with the increment (per the
+   [worktree contract](../woostack-init/references/worktrees.md) §5 and
+   `tracked-memory-rides-increment-commit`) — so the distilled memory rides the one fix PR and
+   survives teardown **because it is committed**, not because it lives in the primary tree. Only the
+   metrics/telemetry/watermark sidecars resolve to the primary checkout via `WOOSTACK_ROOT`. Never
+   leave the distilled note uncommitted in the primary tree.
 
 ## Hard constraints
 
