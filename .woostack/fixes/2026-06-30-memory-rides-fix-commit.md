@@ -1,6 +1,6 @@
 ---
 type: fix
-status: hardened
+status: executing
 branch: fix/memory-rides-fix-commit
 ---
 
@@ -61,7 +61,7 @@ required.
 
 ## 3. Implementation Plan
 
-- [ ] **Step 1: Reproduce with a failing test**
+- [x] **Step 1: Reproduce with a failing test**
   - Add `skills/woostack-fix/scripts/tests/test-memory-in-worktree.sh` (mirroring
     `test-closeout-invariant.sh`: source `skills/woostack-init/scripts/tests/assert.sh`, read
     `skills/woostack-fix/SKILL.md` into `$body`). **Single-quote every needle** containing
@@ -76,13 +76,13 @@ required.
   - Run it against the current SKILL.md → RED (the file still contains the false sentence and none
     of the corrected phrases).
 
-- [ ] **Step 2: Apply the minimal fix**
+- [x] **Step 2: Apply the minimal fix**
   - In `skills/woostack-fix/SKILL.md` step 6, replace the "memory distill … targets the primary
     tree … so it survives teardown" sentence with the corrected two-part statement from §2
     (memory rides the fix commit; only the gitignored sidecars target the primary tree via
     `WOOSTACK_ROOT` and survive teardown).
 
-- [ ] **Step 3: Verification**
+- [x] **Step 3: Verification**
   - Run `bash skills/woostack-fix/scripts/tests/test-memory-in-worktree.sh` → GREEN.
   - Run `bash skills/woostack-fix/scripts/tests/test-closeout-invariant.sh` → still GREEN
     (closeout teardown wording untouched).
