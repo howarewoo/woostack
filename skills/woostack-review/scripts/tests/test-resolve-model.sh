@@ -59,8 +59,8 @@ assert_eq "$(run_resolve "$outdir" --provider openai --tier fast)" "gpt-5.5" \
   "default openai/fast is gpt-5.5"
 assert_eq "$(run_resolve "$outdir" --provider openai --tier deep)" "gpt-5.5" \
   "default openai/deep is gpt-5.5"
-assert_eq "$(run_resolve "$outdir" --provider anthropic --tier standard)" "claude-sonnet-4-6" \
-  "default anthropic/standard is claude-sonnet-4-6"
+assert_eq "$(run_resolve "$outdir" --provider anthropic --tier standard)" "claude-opus-4-8" \
+  "default anthropic/standard is claude-opus-4-8"
 assert_eq "$(run_resolve "$outdir" --provider anthropic --tier deep)" "claude-opus-4-8" \
   "default anthropic/deep is claude-opus-4-8"
 assert_eq "$(run_resolve "$outdir" --provider google --tier standard)" "gemini-3-5-flash" \
@@ -69,7 +69,7 @@ rm -rf "$outdir"
 
 # --- config.json absent entirely (OUTDIR has no config) → defaults still resolve ---
 outdir="$(mktemp -d)"
-assert_eq "$(run_resolve "$outdir" --provider anthropic --tier fast)" "claude-haiku-4-5" \
+assert_eq "$(run_resolve "$outdir" --provider anthropic --tier fast)" "claude-opus-4-8" \
   "missing config.json falls back to default table"
 rm -rf "$outdir"
 

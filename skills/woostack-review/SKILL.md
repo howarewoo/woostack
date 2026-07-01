@@ -157,9 +157,9 @@ Full schema (every key shown; all optional):
       "deep": { "model": "gpt-5.5", "effort": "high" }
     },
     "anthropic": {
-      "fast": "claude-haiku-4-5",
-      "standard": "claude-sonnet-4-6",
-      "deep": "claude-opus-4-8"
+      "fast": { "model": "claude-opus-4-8", "effort": "low" },
+      "standard": { "model": "claude-opus-4-8", "effort": "medium" },
+      "deep": { "model": "claude-opus-4-8", "effort": "xhigh" }
     }
   },
   "review": {
@@ -203,7 +203,7 @@ Key reference (JSON has no comments, so the per-key semantics live here):
 - **`authors_skip`** — PR author logins that short-circuit the entire review. Defaults: `dependabot[bot]`, `renovate[bot]`, `github-actions[bot]`. Set to `[]` to opt out.
 - **`release_rollup_pattern`** — Python regex on the PR title (default shown above; note `\\(` to escape the paren in JSON). Empty string opts out.
 - **`force_tier`** — `fast` or `deep`. Single-run override from config. Valid values are the same as `/woostack-review --fast` / `--deep`.
-- **`models`** — **root-level** per-tier model overrides (moved out of `review.models`; a lingering `review.models` is now a hard loader error — `woostack-doctor` warns on it too). Each tier leaf is a model-slug string **or** an object `{ "model": "<slug>", "effort": "<level>" }`, where `effort` is one of `minimal | low | medium | high | xhigh` (empty = unset). Use flat `models.fast` / `.standard` / `.deep` as provider-agnostic fallbacks, or provider-scoped maps such as `models.openai.deep`, `models.anthropic.standard`, `models.google.standard`, and `models.openrouter.fast` when the same repo is reviewed by multiple coding agents. The action input `inputs.model` still wins. Effort is consumed by OpenAI/Codex (`load-prompt.sh`), config-first over the built-in tier default.
+- **`models`** — **root-level** per-tier model overrides (moved out of `review.models`; a lingering `review.models` is now a hard loader error — `woostack-doctor` warns on it too). Each tier leaf is a model-slug string **or** an object `{ "model": "<slug>", "effort": "<level>" }`, where `effort` is one of `minimal | low | medium | high | xhigh` (empty = unset). Use flat `models.fast` / `.standard` / `.deep` as provider-agnostic fallbacks, or provider-scoped maps such as `models.openai.deep`, `models.anthropic.standard`, `models.google.standard`, and `models.openrouter.fast` when the same repo is reviewed by multiple coding agents. The action input `inputs.model` still wins. Effort is consumed by OpenAI/Codex (`load-prompt.sh`) and by Anthropic per-call spawns (`prompts/anthropic.md`, where it is the sole tier differentiator now that every Anthropic tier is `claude-opus-4-8`), config-first over the built-in tier default.
 - **`fix_commands`** — reserved for `--loop` mode (issue #15).
 - **`disable_adversarial`** — cost-sensitive opt-out for the prosecutor+defender validator (issue #13). When `true`, only the defender pass runs and its output becomes `findings.json` directly.
 - **`metrics`**: opt in to per-angle signal/noise metrics (bool, default `false`) — emit `findings.metrics.json` per run and fold a rolling `.woostack/metrics.json` aggregate (local only). Each angle also carries `overlap_total` + `overlap_with` (how often another angle raised the same issue, on the raw pre-validation set — a redundancy signal). Aggregate schema is v2; an older v1 aggregate is reseeded on first fold. See Stage 6.5.
@@ -389,10 +389,11 @@ Per-provider resolution (full table in `_header.md`):
 
 | Tier | Anthropic | OpenAI | Google | OpenRouter |
 |---|---|---|---|---|
-| `fast` | `claude-haiku-4-5` | `gpt-5.5` + `reasoning_effort: low` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-flash` |
-| `standard` | `claude-sonnet-4-6` | `gpt-5.5` + `reasoning_effort: medium` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` |
-| `deep` | `claude-opus-4-8` | `gpt-5.5` + `reasoning_effort: high` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` + `reasoning_effort: xhigh` |
+| `fast` | `claude-opus-4-8` + `effort: low` | `gpt-5.5` + `reasoning_effort: low` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-flash` |
+| `standard` | `claude-opus-4-8` + `effort: medium` | `gpt-5.5` + `reasoning_effort: medium` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` |
+| `deep` | `claude-opus-4-8` + `effort: xhigh` | `gpt-5.5` + `reasoning_effort: high` | `gemini-3-5-flash` | `openrouter/deepseek/deepseek-v4-pro` + `reasoning_effort: xhigh` |
 
+- **Anthropic** routes every tier to `claude-opus-4-8` — model routing is a no-op, so the tier is carried by reasoning `effort` (`low`/`medium`/`xhigh` for fast/standard/deep), applied per-call in `prompts/anthropic.md`. The CI single-session `claude-code-action` step passes only `--model`, so it cannot carry effort.
 - **Google** currently exposes only `gemini-3-5-flash` — tier routing is a no-op on Gemini until a larger 3.5 model ships.
 - **OpenAI** GPT-5-family reasoning is a `reasoning_effort` parameter, not a slug suffix. Use `gpt-5.5` for every tier, with `reasoning_effort: low` for fast, `medium` for standard, and `high` for deep. There is no `gpt-5-pro`.
 - **OpenRouter** exposes only `deepseek/deepseek-v4-flash` and `deepseek/deepseek-v4-pro`; reasoning is the `reasoning_effort` parameter (`high`/`xhigh`). Do not route to `deepseek-r1` — V4 supersedes it.

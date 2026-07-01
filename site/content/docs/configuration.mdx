@@ -131,10 +131,14 @@ The default model per provider and tier:
 
 | Provider | `fast` | `standard` | `deep` |
 | --- | --- | --- | --- |
-| anthropic | `claude-haiku-4-5` | `claude-sonnet-4-6` | `claude-opus-4-8` |
+| anthropic | `claude-opus-4-8` (effort `low`) | `claude-opus-4-8` (effort `medium`) | `claude-opus-4-8` (effort `xhigh`) |
 | openai | `gpt-5.5` | `gpt-5.5` | `gpt-5.5` |
 | google | `gemini-3-5-flash` | `gemini-3-5-flash` | `gemini-3-5-flash` |
 | openrouter | `openrouter/deepseek/deepseek-v4-flash` | `openrouter/deepseek/deepseek-v4-pro` | `openrouter/deepseek/deepseek-v4-pro` |
+
+Anthropic routes every tier to `claude-opus-4-8`, so the tier is carried by reasoning `effort`
+(`low`/`medium`/`xhigh`) rather than by the model. Effort applies on per-call hosts (Claude Code);
+the CI single-session `claude-code-action` step passes only the model.
 
 The tier resolves by precedence, highest to lowest: an inline `--fast` / `--deep` comment on the
 PR → the action's `force_tier` input → `review.force_tier` → the action's `model` input →

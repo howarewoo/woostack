@@ -27,9 +27,12 @@ default_model_for() {
   local provider="$1" tier="$2"
   case "$provider" in
     anthropic)
+      # Opus on every tier; tiers are differentiated by effort (fast=low,
+      # standard=medium, deep=xhigh), not by model. Effort is applied per-call in
+      # prompts/anthropic.md, not here (this emits the model slug only).
       case "$tier" in
-        fast) echo "claude-haiku-4-5" ;;
-        standard) echo "claude-sonnet-4-6" ;;
+        fast) echo "claude-opus-4-8" ;;
+        standard) echo "claude-opus-4-8" ;;
         deep) echo "claude-opus-4-8" ;;
       esac
       ;;
