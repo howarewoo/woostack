@@ -45,17 +45,19 @@ Claude Code's `Task` tool supports per-subagent model routing. Resolve each spaw
 
 Then resolve via the shared **Model Tiers** table — canonical at
 [`../../using-woostack/references/model-tiers.md`](../../using-woostack/references/model-tiers.md)
-and inlined into `_header.md` above (Anthropic column: `fast` → `claude-haiku-4-5`,
-`standard` → `claude-sonnet-4-6`, `deep` → `claude-opus-4-8`).
+and inlined into `_header.md` above. The Anthropic column routes **every** tier to
+`claude-opus-4-8`; the tier is expressed through reasoning **effort** instead
+(`fast` → `effort: low`, `standard` → `effort: medium`, `deep` → `effort: xhigh`).
 
-**Every Task/Agent spawn MUST pass `model:` explicitly.** Omitting it makes the subagent inherit the parent session's model — typically Opus — which silently defeats tier routing and burns ~5x the tokens on rubric angles. The `tier:` frontmatter is informational unless the spawning call passes the resolved slug.
+**Every Task/Agent spawn MUST pass `model:` explicitly** (always `claude-opus-4-8`), and MUST pass the tier's **`effort`** when the Task API accepts a reasoning-effort override. With Opus on every tier, the model is a no-op and **`effort` is the only tier differentiator** — omitting it runs rubric/`fast` angles at full effort and burns ~Nx the tokens. The `tier:` frontmatter is informational unless the spawning call passes both the resolved slug and the resolved effort.
 
 Concrete invocation (Claude Code `Task` / `Agent` tool):
 
 ```
 Task({
   subagent_type: "general-purpose",
-  model: "claude-sonnet-4-6",   // resolved from angle's `tier: standard`
+  model: "claude-opus-4-8",     // every tier → opus (model routing is a no-op)
+  effort: "medium",             // tier expressed via effort (standard → medium); pass ONLY if the Task API accepts a reasoning-effort override
   description: "bugs angle audit",
   prompt: "<angle prompt body + Review Context>"
 })
@@ -63,17 +65,18 @@ Task({
 
 Resolution rule per spawn:
 1. Determine effective tier.
-2. Look up the Anthropic column in the shared Model Tiers table (inlined in `_header.md` above).
+2. Look up the Anthropic column in the shared Model Tiers table (inlined in `_header.md` above) — every tier resolves to `claude-opus-4-8`, with a per-tier default `effort` (`fast` → `low`, `standard` → `medium`, `deep` → `xhigh`).
 3. **Per-repo override**: check `$OUTDIR/config.json` for `models.anthropic.<effective_tier>`, then flat `models.<effective_tier>`. The loader normalizes each tier leaf to an object `{model, effort?}`, so read `.model` (e.g. when `run_tier=deep`: `jq -r '((.models.anthropic.deep // .models.deep) | if type=="object" then .model else . end) // empty' $OUTDIR/config.json`). If non-empty, use that slug instead of the table value.
-4. Pass the resolved slug as `model:` on the Task call.
+4. Resolve **effort**: config `models.anthropic.<effective_tier>.effort` (then flat `models.<effective_tier>.effort`), object-safe (e.g. `jq -r '((.models.anthropic.deep // .models.deep) | if type=="object" then .effort else empty end) // empty' $OUTDIR/config.json`); fall back to the tier default from step 2 when unset.
+5. Pass the resolved slug as `model:` on the Task call, and the resolved effort as `effort:` **when the Task API accepts a reasoning-effort override** (if it accepts only `model`, still pass `model`; never fall back to parent-session inheritance).
 
-Do not default the validator to Sonnet — pass `model: "claude-opus-4-8"` explicitly. Opus's stricter false-positive filter pays for itself in review quality.
+The validators are `deep` tier — pass `model: "claude-opus-4-8"` with `effort: "xhigh"` explicitly (when the Task API accepts effort). Opus at high effort applies the stricter false-positive filter that pays for itself in review quality.
 
 **OUTDIR handoff.** `$OUTDIR` defaults to a per-project `/tmp/pr-review-<hash>` (derived from the repo's git toplevel by `scripts/resolve-outdir.sh`) so concurrent reviews of different repos on one machine never share a tree. Resolve it ONCE in the orchestrator — `source "$WOO_REVIEW_ACTION_PATH/scripts/resolve-outdir.sh"` sets and exports `OUTDIR` — then export `OUTDIR` to **every** sub-agent you spawn. Sub-agents prefer the inherited `$OUTDIR`; if it is unset they re-derive via the same helper. Never fall back to a bare `/tmp/pr-review`.
 
 ## Step 1 — Context + Summary (single `fast`-tier subagent; full mode only)
 
-Launch one `claude-haiku-4-5` (fast tier) subagent. Task:
+Launch one `claude-opus-4-8` subagent at `fast`-tier effort (`effort: low`, when the Task API accepts it). Task:
 
 - Read `$OUTDIR/diff.txt`, `$OUTDIR/meta.json`, and `$OUTDIR/angles.txt`.
 - Produce a 1–2 sentence summary, a bullet list of changes, and files grouped by category. These feed the **Review body** in Step 4 only — they are never written to the PR title or PR description.
@@ -92,7 +95,7 @@ Read `$OUTDIR/angles.txt`. Check `$OUTDIR/chunks.txt`:
 Each subagent:
 
 - Loads its angle prompt: `$WOO_REVIEW_ACTION_PATH/prompts/angles/<angle>.md`.
-- Runs on the Anthropic model resolved from that prompt's `tier:` frontmatter via the table above (Sonnet for `bugs`/`security`/`architecture`/`design`/`react`/`database`/`tests`/`api`/`infra`/`observability`/`types`/`simplify`/`production-readiness`, Haiku for `seo`/`aeo`/`i18n`/`docs`/`deps`/`comments`). The spawning Task call MUST pass `model:` explicitly — see Model Routing section above.
+- Runs on `claude-opus-4-8` (every tier → opus). The angle's `tier:` frontmatter now selects **effort**, not model: `standard` → `effort: medium` (`bugs`/`security`/`architecture`/`design`/`react`/`database`/`tests`/`api`/`infra`/`observability`/`types`/`simplify`/`production-readiness`), `fast` → `effort: low` (`seo`/`aeo`/`i18n`/`docs`/`deps`/`comments`). The spawning Task call MUST pass `model:` explicitly, plus `effort:` when the Task API accepts it — see Model Routing section above.
 - Reads its assigned diff (`$OUTDIR/diff.txt` for the unchunked case, `$OUTDIR/diff.chunk-<id>.txt` for chunked).
 - For `react`: runs `npx -y react-doctor@$REACT_DOCTOR_VERSION --diff $BASE_REF --offline`, parses output, then performs LLM review per the react prompt.
 - Returns its findings list AND writes them to `$OUTDIR/findings.<angle>.json` (unchunked) or `$OUTDIR/findings.<angle>.<chunk_id>.json` (chunked).

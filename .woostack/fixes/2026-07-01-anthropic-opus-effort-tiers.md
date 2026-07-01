@@ -1,6 +1,6 @@
 ---
 type: fix
-status: hardened
+status: executing
 branch: fix/anthropic-opus-effort-tiers
 ---
 
@@ -79,20 +79,20 @@ model). Generated + gitignored per-skill pages `site/content/docs/skills/woostac
 
 ## 3. Implementation Plan
 
-- [ ] **Step 1: Failing test — pin the new Anthropic defaults**
+- [x] **Step 1: Failing test — pin the new Anthropic defaults**
   - In `skills/woostack-review/scripts/tests/test-resolve-model.sh` update the three Anthropic
     default assertions (currently L62-72) to expect `claude-opus-4-8` for `fast`, `standard`, and
     `deep`. Run the test → it fails (Red) against the current `default_model_for`.
-- [ ] **Step 2: Executable mirror — `resolve-model.sh`**
+- [x] **Step 2: Executable mirror — `resolve-model.sh`**
   - Change `default_model_for()` Anthropic `fast`/`standard`/`deep` cases all to `claude-opus-4-8`.
     Update the "keep in sync with model-tiers.md" comment. Re-run Step-1 test → Green.
-- [ ] **Step 3: Canonical table — `model-tiers.md`**
+- [x] **Step 3: Canonical table — `model-tiers.md`**
   - Anthropic column (rows `fast`/`standard`/`deep`) → `claude-opus-4-8` with effort annotations
     `+ effort: low` / `+ effort: medium` / `+ effort: xhigh` (mirror the OpenAI `reasoning_effort:`
     annotation style). Rewrite the Anthropic **provider note**: all tiers collapse onto
     `claude-opus-4-8`; per-tier behavior is driven by `effort` (low/medium/xhigh), which is the sole
     tier differentiator. `effort` remains a real config field (`models.anthropic.<tier>.effort`).
-- [ ] **Step 4: Prompt — `prompts/anthropic.md` (make effort apply per-call)**
+- [x] **Step 4: Prompt — `prompts/anthropic.md` (make effort apply per-call)**
   - Inline tier mention (L49): `fast/standard/deep → claude-opus-4-8` with effort low/medium/xhigh.
   - Model-routing section + concrete `Task({...})` example: after resolving the model slug, resolve
     per-tier `effort` = config `models.anthropic.<tier>.effort` (jq, object-safe) → tier default
@@ -102,21 +102,21 @@ model). Generated + gitignored per-skill pages `site/content/docs/skills/woostac
     (fast tier, effort low)`.
   - Step 2 per-angle line (L95): replace the "Sonnet for bugs/…; Haiku for seo/…" model split with
     "`claude-opus-4-8` for every angle; effort follows the angle's tier (standard→medium, fast→low)".
-- [ ] **Step 5: `load-prompt.sh` — no change (decided)**
+- [x] **Step 5: `load-prompt.sh` — no change (decided)**
   - Intentionally untouched (see Resolved note above): Anthropic effort default lives in the
     canonical table + prompt, not in `load-prompt.sh`, because the CI Anthropic step has no effort
     input. Verify no Anthropic effort code is added here.
-- [ ] **Step 6: `woostack-review/SKILL.md`**
+- [x] **Step 6: `woostack-review/SKILL.md`**
   - Tier table (L392-394) Anthropic column → `claude-opus-4-8` + effort annotations (match
     `model-tiers.md`). Refresh the config-override *example* (L151-162) sample values so they don't
     contradict the new defaults.
-- [ ] **Step 7: Authored site pages (hard constraint — keep in sync)**
+- [x] **Step 7: Authored site pages (hard constraint — keep in sync)**
   - `site/content/docs/configuration.mdx:134` — Anthropic tier row → `claude-opus-4-8` ×3 (+ effort
     if the table carries an effort column).
   - `site/content/docs/concepts.mdx:128-130` — Anthropic column → `claude-opus-4-8` ×3.
   - `site/content/docs/concepts/context-management.mdx:48-50` — Anthropic column → `claude-opus-4-8` ×3.
   - Do NOT touch the generated `site/content/docs/skills/*.mdx` (regenerate from `SKILL.md`).
-- [ ] **Step 8: Verification**
+- [x] **Step 8: Verification**
   - `bash skills/woostack-review/scripts/tests/test-resolve-model.sh` (+ `test-load-prompt-models.sh`
     and `test-load-config-*` if the alternative load-prompt path was taken) → all Green.
   - `grep -rn 'claude-haiku-4-5\|claude-sonnet-4-6' skills/using-woostack/references/model-tiers.md
