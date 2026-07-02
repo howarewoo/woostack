@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-07-02-woostack-qa.md
-status: ready
+status: executing
 branch: feature/woostack-qa
 ---
 
