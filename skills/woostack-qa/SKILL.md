@@ -101,7 +101,7 @@ After each interaction, check all four signal classes:
 
 - **Console:** `agent-browser console` + `agent-browser errors` — unhandled exceptions,
   error-level logs.
-- **Network:** `agent-browser requests` — 4xx/5xx responses tied to the interaction.
+- **Network:** `agent-browser network requests` — 4xx/5xx responses tied to the interaction.
 - **Visual:** `agent-browser snapshot` (+ `screenshot` for evidence) — overflow, overlapping
   text, off-screen controls, unreadable contrast.
 - **Dead controls:** links/buttons that produce no navigation, no request, and no DOM
@@ -137,8 +137,10 @@ journey-blocking bugs — one severity language across review, audit, and qa.
 - **Zero findings** → an explicit coverage report ("N journeys walked, no findings") —
   never a silent empty. **Aborted run** (browser session died after one reconnect attempt)
   → a partial report labeled aborted, with findings-so-far and the abort point.
-- **Secrets stay local.** Values seen in the app (tokens, emails, keys) appear in the local
-  report/evidence only; the skill never sends them anywhere.
+- **Secrets are redacted.** Git-tracked reports must replace tokens, keys, passwords,
+  cookies, credentials, and personal data with stable placeholders such as
+  `[REDACTED_TOKEN]`. Keep raw sensitive values out of textual evidence; transient
+  screenshots under gitignored evidence paths may show them only when unavoidable.
 
 ## Hard constraints
 
