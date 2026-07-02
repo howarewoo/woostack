@@ -5,10 +5,11 @@ description: "On-demand skills that complement the build and fix loops: investig
 
 Most woostack skills are steps in a flow: the [build loop](/docs/concepts/building-rules) chains
 ideate → plan → execute, and the fix loop runs its own gated sequence. A second group of skills
-sits beside those flows. You reach for them on demand, whenever you need them, and each hands back
-a small result rather than advancing a pipeline. None of them merge, and none change your code.
+sits beside those flows for read-only investigation or report-only artifacts. You reach for them
+on demand, and each hands back a bounded result rather than advancing a pipeline. None of them
+merge, and none change your application code.
 
-They split by one question: **does the skill change your `.woostack` workspace?**
+They split by one question: **does the skill write `.woostack` workspace artifacts?**
 
 ## Investigate & present
 
@@ -22,6 +23,7 @@ CI.
 | [woostack-visualize](/docs/skills/woostack-visualize) | Renders any source (a spec, plan, file, or concept) to one self-contained HTML view for a chosen audience. | view only (HTML) | `/woostack-visualize <source>` |
 | [woostack-status](/docs/skills/woostack-status) | Computes the feature board from git artifacts and prints it. | no | `/woostack-status` |
 | [woostack-debug](/docs/skills/woostack-debug) | Runs a four-phase root-cause analysis and hands the findings back; it never writes the fix. | no | `/woostack-debug <target>` |
+| [woostack-qa](/docs/skills/woostack-qa) | Exploratory-QAs a running app in a real browser and writes a severity-ranked, report-only findings doc. | report file only | `/woostack-qa <url> [focus…]` |
 
 <Callout type="info">
   `woostack-debug` is **dual-natured**. The standalone `/woostack-debug` command is the pure

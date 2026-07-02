@@ -6,8 +6,6 @@ recommends:
   bins: [agent-browser]
 ---
 
-<!-- woostack-defer(increment 2): command-surface bookkeeping (AGENTS.md, README, routing) lands in increment 2 -->
-
 # woostack-qa
 
 Exploratory-QA a **running application** the way a user would. Where
