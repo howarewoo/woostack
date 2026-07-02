@@ -29,6 +29,7 @@ See [AGENTS.md](AGENTS.md) for the full repo contract; this file is the short co
 | Change the commit / PR update workflow | `skills/woostack-commit/SKILL.md` |
 | Change the review engine | `skills/woostack-review/SKILL.md`, `skills/woostack-review/scripts/`, `skills/woostack-review/prompts/` |
 | Change the standing-code audit engine (`/woostack-audit`) | `skills/woostack-audit/SKILL.md`, `skills/woostack-audit/scripts/` |
+| Change the exploratory browser QA engine (`/woostack-qa`) | `skills/woostack-qa/SKILL.md`, `skills/woostack-qa/references/` |
 | Change the systematic-debugging behavior (`/woostack-debug`) | `skills/woostack-debug/SKILL.md` |
 | Change the test-adder / TDD doctrine home (`/woostack-tdd`) | `skills/woostack-tdd/SKILL.md` |
 | Change the memory/docs curation engine (`/woostack-dream`) | `skills/woostack-dream/SKILL.md` |
