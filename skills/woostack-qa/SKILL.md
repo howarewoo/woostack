@@ -1,6 +1,6 @@
 ---
 name: woostack-qa
-description: Use to exploratory-QA a running web app in a real browser — walk the core user journeys, attack edge cases (invalid inputs, empty submits, malformed params), monitor an always-on assertion floor (console errors, 4xx/5xx responses, visual breakage, dead links/buttons), reproduce each bug before logging it, and write a severity-ranked, report-only findings doc under .woostack/qa/ that hands off per-finding to woostack-fix or woostack-build. Never fixes, commits, posts, or merges. Invoke via /woostack-qa <url> [focus…].
+description: Use to exploratory-QA a running web app in a real browser and write a severity-ranked, report-only findings doc under .woostack/qa/. Never fixes, commits, posts, or merges. Invoke via /woostack-qa <url> [focus…].
 install: pnpx skills add howarewoo/woostack
 recommends:
   bins: [agent-browser]
