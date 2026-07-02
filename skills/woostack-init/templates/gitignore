@@ -2,6 +2,7 @@
 metrics.json
 *.local.*
 visuals/
+qa/evidence/
 overnight/
 worktrees/
 memory/.telemetry.tsv

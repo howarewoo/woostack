@@ -49,7 +49,7 @@ site build), never bare prose.
 **Files:**
 - Create: `skills/woostack-qa/SKILL.md`
 
-- [ ] **Step 1: Write the skill file**
+- [x] **Step 1: Write the skill file**
   ```markdown
   ---
   name: woostack-qa
@@ -204,7 +204,7 @@ site build), never bare prose.
   - **Stay on origin; guard destructive actions; close the session.**
   ```
 
-- [ ] **Step 2: Verify frontmatter + structure**
+- [x] **Step 2: Verify frontmatter + structure**
   Run: `head -8 skills/woostack-qa/SKILL.md | grep -c "name: woostack-qa\|description: Use to\|install: pnpx"`
   Expected: `3`
   Run: `grep -c "^## " skills/woostack-qa/SKILL.md`
@@ -216,7 +216,7 @@ site build), never bare prose.
 **Files:**
 - Create: `skills/woostack-qa/references/report-template.md`
 
-- [ ] **Step 1: Write the template**
+- [x] **Step 1: Write the template**
   ```markdown
   ---
   name: {{DATE}}-{{SLUG}}
@@ -262,7 +262,7 @@ site build), never bare prose.
   - {{anomaly seen once, reproduction failed — exact signal and where}} — or `none`
   ```
 
-- [ ] **Step 2: Verify template placeholders**
+- [x] **Step 2: Verify template placeholders**
   Run: `grep -c "{{" skills/woostack-qa/references/report-template.md`
   Expected: a non-zero count (placeholders present); and
   `grep -c "type: qa-report\|## Coverage (receipt)\|## Unconfirmed observations" skills/woostack-qa/references/report-template.md` → `3`
@@ -272,18 +272,18 @@ site build), never bare prose.
 **Files:**
 - Modify: `skills/woostack-init/templates/gitignore` (transient block, after `visuals/`)
 
-- [ ] **Step 1: Add the line**
+- [x] **Step 1: Add the line**
   In the `# Transient, per-clone — not shared knowledge.` block, after `visuals/`:
   ```
   qa/evidence/
   ```
 
-- [ ] **Step 2: Verify the doctor drift check picks it up**
+- [x] **Step 2: Verify the doctor drift check picks it up**
   Run: `grep -n "qa/evidence/" skills/woostack-init/templates/gitignore`
   Expected: one hit inside the transient block. (`woostack-doctor`'s
   `gitignore-drift.sh` reads this template directly — no doctor edit needed.)
 
-- [ ] **Step 3: Commit increment 1**
+- [x] **Step 3: Commit increment 1**
   ```bash
   gt create -m "feat: add woostack-qa skill (exploratory browser QA engine)"
   gt submit
