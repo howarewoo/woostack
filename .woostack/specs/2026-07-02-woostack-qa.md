@@ -1,7 +1,7 @@
 ---
 name: woostack-qa
 type: spec
-status: hardened
+status: approved
 date: 2026-07-02
 branch: feature/woostack-qa
 links:
