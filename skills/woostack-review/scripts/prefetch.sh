@@ -660,11 +660,67 @@ fi
 # Discover project-rule files.
 # Root scan: AGENTS.md / CLAUDE.md / .cursorrules / .windsurfrules / GEMINI.md.
 # Per-changed-file walk: collect AGENTS.md / CLAUDE.md from every parent dir
-# between the changed file and repo root. Each path is collected at most once.
+# between the changed file and repo root. Config-listed project_rules are appended
+# to the same candidate stream. Each unique document is emitted once: first by
+# resolved real path (symlinks / alternate spellings), then by content hash (hard
+# links or copied aliases), then by relative path as a fallback.
 ROOT="$(git -C "${GITHUB_WORKSPACE:-.}" rev-parse --show-toplevel 2>/dev/null || true)"
 if [ -n "$ROOT" ]; then
   RULES_LIST="$(mktemp)"
   RULES_BUF="$(mktemp)"
+  RULES_INCLUDED="$(mktemp)"
+  RULES_SEEN_REL="$(mktemp)"
+  RULES_SEEN_REAL="$(mktemp)"
+  RULES_SEEN_HASH="$(mktemp)"
+
+  # One python3 spawn per candidate: prints the resolved real path on line 1
+  # and the sha256 content digest on line 2.
+  rule_identity() {
+    python3 - "$ROOT/$1" <<'PY'
+import hashlib
+import os
+import sys
+
+path = sys.argv[1]
+print(os.path.realpath(path))
+h = hashlib.sha256()
+with open(path, "rb") as fh:
+    for chunk in iter(lambda: fh.read(1024 * 1024), b""):
+        h.update(chunk)
+print(h.hexdigest())
+PY
+  }
+
+  include_rule_once() {
+    local rel="$1"
+    local identity real hash
+
+    [ -n "$rel" ] || return 0
+    [ -f "$ROOT/$rel" ] || return 0
+
+    identity="$(rule_identity "$rel")"
+    real="$(printf '%s\n' "$identity" | sed -n '1p')"
+    hash="$(printf '%s\n' "$identity" | sed -n '2p')"
+
+    if grep -qxF "$rel" "$RULES_SEEN_REL"; then
+      return 0
+    fi
+    if [ -n "$real" ] && grep -qxF "$real" "$RULES_SEEN_REAL"; then
+      return 0
+    fi
+    if [ -n "$hash" ] && grep -qxF "$hash" "$RULES_SEEN_HASH"; then
+      return 0
+    fi
+
+    printf '%s\n' "$rel" >> "$RULES_SEEN_REL"
+    [ -n "$real" ] && printf '%s\n' "$real" >> "$RULES_SEEN_REAL"
+    [ -n "$hash" ] && printf '%s\n' "$hash" >> "$RULES_SEEN_HASH"
+
+    printf '%s\n' "$rel" >> "$RULES_INCLUDED"
+    printf '## SOURCE: %s\n' "$rel" >> "$RULES_BUF"
+    cat "$ROOT/$rel" >> "$RULES_BUF"
+    printf '\n\n' >> "$RULES_BUF"
+  }
 
   for f in AGENTS.md CLAUDE.md .cursorrules .windsurfrules GEMINI.md; do
     [ -f "$ROOT/$f" ] && printf '%s\n' "$f" >> "$RULES_LIST"
@@ -681,15 +737,26 @@ if [ -n "$ROOT" ]; then
     done
   done < <(jq -r '.files[].path' "$OUTDIR/meta.json")
 
-  RULES_UNIQUE="$(awk 'NF && !seen[$0]++' "$RULES_LIST")"
+  # `load-config.sh` already ran near the top (issue #19 auto-skip needs it).
+  # Append config-listed project_rules to the same dedupe pass as auto-discovery.
+  if [ -s "$OUTDIR/config.json" ] && jq -e '.project_rules // empty' "$OUTDIR/config.json" >/dev/null 2>&1; then
+    while IFS= read -r pat; do
+      [ -n "$pat" ] || continue
+      while IFS= read -r match; do
+        [ -n "$match" ] && [ -f "$ROOT/$match" ] && printf '%s\n' "$match" >> "$RULES_LIST"
+      done < <(cd "$ROOT" && compgen -G "$pat" 2>/dev/null || true)
+    done < <(jq -r '.project_rules[]?' "$OUTDIR/config.json")
+  fi
 
-  if [ -n "$RULES_UNIQUE" ]; then
+  # include_rule_once dedupes by rel path / real path / content hash and skips
+  # blank lines itself, so the candidate list feeds it directly.
+  if [ -s "$RULES_LIST" ]; then
     while IFS= read -r rel; do
-      printf '## SOURCE: %s\n' "$rel" >> "$RULES_BUF"
-      cat "$ROOT/$rel" >> "$RULES_BUF"
-      printf '\n\n' >> "$RULES_BUF"
-    done <<< "$RULES_UNIQUE"
+      include_rule_once "$rel"
+    done < "$RULES_LIST"
+  fi
 
+  if [ -s "$RULES_INCLUDED" ]; then
     RULES_BYTES=$(wc -c < "$RULES_BUF")
     if [ "$RULES_BYTES" -gt 100000 ]; then
       {
@@ -700,40 +767,13 @@ if [ -n "$ROOT" ]; then
       mv "$RULES_BUF" "$OUTDIR/rules.md"
     fi
 
-    RULES_COUNT=$(printf '%s\n' "$RULES_UNIQUE" | wc -l | xargs)
+    RULES_COUNT=$(wc -l < "$RULES_INCLUDED" | xargs)
     FINAL_BYTES=$(wc -c < "$OUTDIR/rules.md")
-    echo "Discovered $RULES_COUNT rule file(s), $FINAL_BYTES bytes:"
-    printf '%s\n' "$RULES_UNIQUE" | sed 's/^/  /'
+    echo "Discovered $RULES_COUNT unique rule document(s), $FINAL_BYTES bytes:"
+    sed 's/^/  /' "$RULES_INCLUDED"
   fi
 
-  rm -f "$RULES_LIST" "$RULES_BUF"
-fi
-
-# `load-config.sh` already ran near the top (issue #19 auto-skip needs it).
-# Append config-listed project_rules to rules.md (augments auto-discovery).
-if [ -n "${ROOT:-}" ] && [ -s "$OUTDIR/config.json" ] && jq -e '.project_rules // empty' "$OUTDIR/config.json" >/dev/null 2>&1; then
-  EXTRA_LIST="$(mktemp)"
-  EXTRA_BUF="$(mktemp)"
-  # Expand each glob from inside the repo root so relative globs work as expected.
-  while IFS= read -r pat; do
-    [ -n "$pat" ] || continue
-    while IFS= read -r match; do
-      [ -n "$match" ] && [ -f "$ROOT/$match" ] && printf '%s\n' "$match" >> "$EXTRA_LIST"
-    done < <(cd "$ROOT" && compgen -G "$pat" 2>/dev/null || true)
-  done < <(jq -r '.project_rules[]?' "$OUTDIR/config.json")
-  EXTRA_UNIQUE="$(awk 'NF && !seen[$0]++' "$EXTRA_LIST")"
-  if [ -n "$EXTRA_UNIQUE" ]; then
-    while IFS= read -r rel; do
-      printf '## SOURCE: %s\n' "$rel" >> "$EXTRA_BUF"
-      cat "$ROOT/$rel" >> "$EXTRA_BUF"
-      printf '\n\n' >> "$EXTRA_BUF"
-    done <<< "$EXTRA_UNIQUE"
-    cat "$EXTRA_BUF" >> "$OUTDIR/rules.md"
-    EXTRA_COUNT=$(printf '%s\n' "$EXTRA_UNIQUE" | wc -l | xargs)
-    echo "Appended $EXTRA_COUNT config-listed rule file(s) to rules.md:"
-    printf '%s\n' "$EXTRA_UNIQUE" | sed 's/^/  /'
-  fi
-  rm -f "$EXTRA_LIST" "$EXTRA_BUF"
+  rm -f "$RULES_LIST" "$RULES_BUF" "$RULES_INCLUDED" "$RULES_SEEN_REL" "$RULES_SEEN_REAL" "$RULES_SEEN_HASH"
 fi
 
 # `authors_skip` + `release_rollup_pattern` already enforced above (issue #19),
