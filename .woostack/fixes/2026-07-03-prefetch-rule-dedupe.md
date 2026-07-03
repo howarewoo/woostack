@@ -1,6 +1,6 @@
 ---
 type: fix
-status: hardened
+status: executing
 branch: fix/prefetch-rule-dedupe
 ---
 
@@ -42,15 +42,15 @@ Use that shared path for both auto-discovery and `review.project_rules` candidat
 
 ## 3. Implementation Plan
 
-- [ ] **Step 1: Reproduce with failing prefetch tests**
+- [x] **Step 1: Reproduce with failing prefetch tests**
   - Add a shell regression test under `skills/woostack-review/scripts/tests/` that creates a temp git repo with `AGENTS.md`, root symlink aliases such as `GEMINI.md`, and nested walk-up aliases such as `src/AGENTS.md -> ../AGENTS.md`; drive a fake PR via `WOO_REVIEW_TEST_MODE=1` and assert `$OUTDIR/rules.md` contains one `## SOURCE:` section and the canonical rule body once.
   - In the same test, configure `.woostack/config.json` with `review.project_rules` matching an already auto-discovered rule, a symlinked alias such as `.claude/CLAUDE.md`, and a copied rule with identical content; assert all duplicates are still emitted only once by real path or content hash.
 
-- [ ] **Step 2: Apply the minimal prefetch dedupe fix**
+- [x] **Step 2: Apply the minimal prefetch dedupe fix**
   - Refactor the `prefetch.sh` rule-file assembly to collect auto-discovered and config-glob candidates through one deduping writer keyed by real path plus content hash, preserving first source order and first source label.
   - Ensure missing globs and absent rule files remain no-ops, and keep the existing `rules.md` 100KB cap and log lines.
 
-- [ ] **Step 3: Verification**
+- [x] **Step 3: Verification**
   - Run the new regression test script directly.
   - Run the existing prefetch-focused tests that exercise adjacent behavior: `test-prefetch-flat-memory.sh` and `test-prefetch-incremental-rebase.sh`.
   - Run `bash -n skills/woostack-review/scripts/prefetch.sh`.
