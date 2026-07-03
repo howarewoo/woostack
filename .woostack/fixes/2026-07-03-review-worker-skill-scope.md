@@ -1,6 +1,6 @@
 ---
 type: fix
-status: hardened
+status: executing
 branch: fix/review-worker-skill-scope
 ---
 
@@ -31,19 +31,19 @@ Make the skill-scope boundary explicit anywhere Stage 3 worker dispatch is speci
 
 ## 3. Implementation Plan
 
-- [ ] **Step 1: Reproduce with a failing test**
+- [x] **Step 1: Reproduce with a failing test**
   - Add a narrow regression test under `skills/woostack-review/scripts/tests/` using the existing `assert.sh` helpers.
   - Assert `SKILL.md` Stage 3 and each subagent-capable provider prompt (`anthropic.md`, `google.md`, `opencode.md`, `openai.md`) contain both a plain/general/default worker instruction and the `skill://woostack-review` no-skill-scope guard.
   - Assert the Anthropic prompt still contains `subagent_type: "general-purpose"`.
   - Keep or extend the existing review-mode prompt split assertions so `MODE=review` output does not contain orchestrator-only markers.
 
-- [ ] **Step 2: Apply the minimal fix**
+- [x] **Step 2: Apply the minimal fix**
   - Edit `skills/woostack-review/SKILL.md` Stage 3 worker-dispatch guidance and worker brief text to require plain/general-purpose/default workers and forbid `skill://woostack-review` / `SKILL.md` worker context.
   - Edit `skills/woostack-review/prompts/anthropic.md`, `google.md`, `opencode.md`, and `openai.md` to mirror the same no-skill-scope dispatch rule in provider-specific language.
   - Update `site/content/docs/concepts/context-management.mdx` and its duplicate section in `site/content/docs/concepts.mdx` only if their current review-subagent context-economy text needs the no-skill-scope clarification.
   - Avoid changing loader code or angle rubrics unless the failing test identifies a real prompt-generation regression.
 
-- [ ] **Step 3: Verification**
+- [x] **Step 3: Verification**
   - Run the new worker skill-scope regression test.
   - Run `bash skills/woostack-review/scripts/tests/test-load-prompt-models.sh` to preserve the existing worker/orchestrator split contract.
   - If authored docs are updated, run `pnpm -C site build`.

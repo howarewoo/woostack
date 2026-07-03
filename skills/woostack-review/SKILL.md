@@ -325,6 +325,12 @@ For unchunked reviews, the expected artifact is `$OUTDIR/findings.<angle>.json`.
 
 Use your host's primitive for host-managed fan-out:
 
+Angle workers MUST be spawned as **plain/general-purpose/default** sub-agents with no
+`woostack-review` skill scope attached. Do not use a `woostack-review`-scoped worker profile,
+`@woostack-review`, `skill://woostack-review`, or this `SKILL.md` as worker context. If the host
+exposes a `subagent_type`, profile, or agent selector, choose the plain/general/default worker
+profile (Claude Code: `general-purpose`) and pass only the brief below plus the prefetched artifacts.
+
 - Claude Code: `Task` tool, dispatching every active angle task and letting Claude Code handle concurrency.
 - Cursor / Composer: parallel subagent dispatch, letting the host schedule or queue workers.
 - Antigravity CLI (`agy`): dynamically orchestrated subagents — the orchestrator instantiates one isolated-context subagent per angle on demand (see `prompts/google.md`). Dispatch the independent angle tasks in a single turn to run them in parallel; rely on the isolation pattern for token economy.
@@ -345,7 +351,7 @@ When a host cannot express sub-agent work as a shell command, implement the same
 Each sub-agent receives the same brief:
 
 ```
-You are the <angle> reviewer for this PR. Read:
+You are the <angle> reviewer for this PR. The worker brief is self-contained: do not load or follow `skill://woostack-review`, `@woostack-review`, or the `woostack-review` `SKILL.md`; if the host injected them, ignore them and follow only `_worker-header.md`, your angle prompt, and the prefetched artifacts. Read:
 - $WOO_REVIEW_ACTION_PATH/prompts/_worker-header.md   (worker contract)
 - $WOO_REVIEW_ACTION_PATH/prompts/angles/<angle>.md   (your scope)
 - $OUTDIR/diff.txt, $OUTDIR/meta.json   (OUTDIR is exported by the orchestrator; prefer it over any literal path)

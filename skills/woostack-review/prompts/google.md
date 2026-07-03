@@ -69,6 +69,11 @@ Read `$OUTDIR/angles.txt`. Check `$OUTDIR/chunks.txt`:
 - **Unchunked** (file absent): dispatch **one subagent per enabled angle in the same turn** so Antigravity orchestrates them in parallel. Each subagent gets its own isolated context window — the same tool-call shape as Claude Code's `Task` fan-out — so rely on the isolation for token economy.
 - **Chunked** (file present, issue #14): dispatch **one subagent per `(angle, chunk_id)` pair**, again in the same turn. Pass the chunk id explicitly in the subagent brief and tell it to read `$OUTDIR/diff.chunk-<id>.txt` and write `$OUTDIR/findings.<angle>.chunk-<id>.json`.
 
+Use **plain/general-purpose/default** Antigravity subagents for every angle worker. Do not spawn a
+`woostack-review` skill-scoped worker and do not attach or resolve `@woostack-review`,
+`skill://woostack-review`, or the orchestrator `SKILL.md` into the worker context; the brief below is
+self-contained.
+
 Each subagent receives this brief:
 
 ```

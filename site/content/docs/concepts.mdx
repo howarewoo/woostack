@@ -115,9 +115,10 @@ compact result, so the heavy reading and reasoning never land in the main thread
   default is subagents where the host can spawn them, inline otherwise. In subagent mode a fresh
   implementer writes each task, then a spec-compliance reviewer and a code-quality reviewer check
   the diff. Each is a separate agent that sees only what it needs.
-- [woostack-review](/docs/skills/woostack-review) fans out one subagent per review angle in
-  parallel, then runs two opposing validator passes (one assumes each finding is real, one tries to
-  refute it) and keeps only the findings both agree on.
+- [woostack-review](/docs/skills/woostack-review) fans out one plain/default subagent per review
+  angle in parallel. Those workers receive the worker contract, angle prompt, and prefetched
+  artifacts directly — not the full review orchestrator skill — then two opposing validator passes
+  keep only the findings both agree on.
 
 Each subagent runs at a tier matched to the work, so cheap tasks don't burn an expensive model. The
 tiers map to a concrete model per provider in
