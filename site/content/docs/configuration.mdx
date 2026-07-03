@@ -151,7 +151,7 @@ PR → the action's `force_tier` input → `review.force_tier` → the action's 
 | `review.chunking.max_loc` | integer ≥ 0 | `4000` | Changed-line threshold; a larger diff is split into chunks and each angle fans out across them. `0` disables chunking. |
 | `review.disable_adversarial` | boolean | `false` | `true` skips the skeptical prosecutor pass and uses the defender pass alone, a cost opt-out. |
 | `review.defer_markers` | boolean | `true` | `true` honors inline `woostack-defer(<ref>)` markers, demoting a matching finding to a non-blocking nit. `security` findings are never deferred. |
-| `review.metrics` | boolean | `false` | `true` writes a per-angle signal/noise breakdown and folds a rolling local `.woostack/metrics.json`. |
+| `review.metrics` | boolean | `false` | `true` writes a per-angle signal/noise breakdown, folds a rolling local `.woostack/metrics.json`, and prints advisory `review.angles.skip` suggestions when an optional angle has at least 20 local runs with zero blockers and either zero kept findings or only nit findings. |
 | `review.fix_commands` | array of string | `[]` | Reserved for a future loop mode; parsed but not yet consumed. |
 
 ## Sweep rounds

@@ -85,6 +85,9 @@ except (ValueError, OSError):
     sys.stderr.write("metrics-fold: aggregate corrupt — backed up to .bak, reseeding\n")
 
 SEVS = ("HIGH", "MEDIUM", "LOW")
+ANGLE_SKIP_SUGGEST_MIN_RUNS = 20
+UNSKIPPABLE_ANGLES = {"bugs", "security", "simplify"}
+
 
 def num(v):
     return v if isinstance(v, int) else 0
@@ -134,4 +137,24 @@ with open(tmp_p, "w") as fh:
 os.replace(tmp_p, rolling_p)
 
 print("metrics-fold: folded run -> {} ({} runs total)".format(rolling_p, agg["runs"]))
+
+for angle in sorted(agg["angles"]):
+    if angle in UNSKIPPABLE_ANGLES:
+        continue
+    slot = agg["angles"].get(angle) or {}
+    runs = num(slot.get("runs_present"))
+    raw = num(slot.get("raw_total"))
+    kept = num(slot.get("kept_total"))
+    blocking = num(slot.get("blocking_total"))
+    nit = num(slot.get("nit_total"))
+    if runs < ANGLE_SKIP_SUGGEST_MIN_RUNS or blocking > 0:
+        continue
+    if raw == 0 or kept == 0:
+        print('metrics-fold: angle {}: {} runs, {} blocking, {} kept — consider review.angles.skip += ["{}"]'.format(
+            angle, runs, blocking, kept, angle
+        ))
+    elif nit == kept:
+        print('metrics-fold: angle {}: {} runs, {} blocking, nit-only kept findings ({}/{}) — consider review.angles.skip += ["{}"]'.format(
+            angle, runs, blocking, nit, kept, angle
+        ))
 PY

@@ -206,7 +206,7 @@ Key reference (JSON has no comments, so the per-key semantics live here):
 - **`models`** — **root-level** per-tier model overrides (moved out of `review.models`; a lingering `review.models` is now a hard loader error — `woostack-doctor` warns on it too). Each tier leaf is a model-slug string **or** an object `{ "model": "<slug>", "effort": "<level>" }`, where `effort` is one of `minimal | low | medium | high | xhigh` (empty = unset). Use flat `models.fast` / `.standard` / `.deep` as provider-agnostic fallbacks, or provider-scoped maps such as `models.openai.deep`, `models.anthropic.standard`, `models.google.standard`, and `models.openrouter.fast` when the same repo is reviewed by multiple coding agents. The action input `inputs.model` still wins. Effort is consumed by OpenAI/Codex (`load-prompt.sh`) and by Anthropic per-call spawns (`prompts/anthropic.md`, where it is the sole tier differentiator now that every Anthropic tier is `claude-opus-4-8`), config-first over the built-in tier default.
 - **`fix_commands`** — reserved for `--loop` mode (issue #15).
 - **`disable_adversarial`** — cost-sensitive opt-out for the prosecutor+defender validator (issue #13). When `true`, only the defender pass runs and its output becomes `findings.json` directly.
-- **`metrics`**: opt in to per-angle signal/noise metrics (bool, default `false`) — emit `findings.metrics.json` per run and fold a rolling `.woostack/metrics.json` aggregate (local only). Each angle also carries `overlap_total` + `overlap_with` (how often another angle raised the same issue, on the raw pre-validation set — a redundancy signal). Aggregate schema is v2; an older v1 aggregate is reseeded on first fold. See Stage 6.5.
+- **`metrics`**: opt in to per-angle signal/noise metrics (bool, default `false`) — emit `findings.metrics.json` per run and fold a rolling `.woostack/metrics.json` aggregate (local only). Each angle also carries `overlap_total` + `overlap_with` (how often another angle raised the same issue, on the raw pre-validation set — a redundancy signal). Aggregate schema is v3; an older aggregate is reseeded on first fold. See Stage 6.5.
 - **`chunking.max_loc`** — diff-chunking threshold (issue #14). When the post-ignore diff exceeds this many changed lines, prefetch splits it into chunks honoring workspace package roots > top-level dirs > file-LOC-balanced groups; each angle fans out as angles × chunks parallel sub-agents. `0` disables chunking; missing => 4000.
 
 **Precedence**: for the angle set, `angles.force` beats `angles.skip` when the same angle is listed in both. For model resolution, precedence is: explicit comment override (`--fast` / `--deep`) → action input `inputs.force_tier` → `review.force_tier` in config → action input `inputs.model` → `models.<provider>.<tier>` → flat `models.<tier>` → table default in `prompts/_orchestrator-header.md`. `ignore` is applied to both file paths and the per-file diff sections before angle gates evaluate.
@@ -525,7 +525,20 @@ This is a no-op when `metrics` is off or no per-run record exists. As with memor
 GitHub Action does **not** fold — its job is `contents: read` + post; metrics persistence
 is local only (the action uploads `findings.metrics.json` as a build artifact instead).
 
-**Reading the aggregate.** Rank angles by validator-drop rate (noise candidates first):
+**Reading the aggregate.** `metrics-fold.sh` prints advisory-only skip suggestions when a
+single clone has enough local evidence that an optional angle is not paying for itself. The
+default floor is 20 recorded runs for that angle. At or above that floor, an angle with zero
+blocking findings and either zero kept findings or only nit findings prints a line like:
+
+```text
+metrics-fold: angle aeo: 35 runs, 0 blocking, 0 kept — consider review.angles.skip += ["aeo"]
+```
+
+The script never edits `.woostack/config.json`; maintainers decide whether to add the suggested
+angle to `review.angles.skip`. It also never suggests the unskippable core angles: `bugs`,
+`security`, or `simplify`.
+
+For deeper diagnosis, rank angles by validator-drop rate (noise candidates first):
 
 ```bash
 jq -r '.angles | to_entries

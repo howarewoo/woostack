@@ -71,6 +71,41 @@ bash "$SCRIPT" >/dev/null 2>&1
 assert_contains "$(cat "$OUTDIR/angles.txt")" "seo" "html with <meta> enables seo"
 rm -rf "$work"
 
+# 10. Pages Router routes are indexable SEO surfaces.
+setup_diff "pages/about.tsx" '+export const metadata = { title: "About" }'
+bash "$SCRIPT" >/dev/null 2>&1
+assert_contains "$(cat "$OUTDIR/angles.txt")" "seo" "pages route metadata enables seo"
+rm -rf "$work"
+
+# 11. Pages API routes are not SEO surfaces.
+setup_diff "pages/api/users.ts" '+export const metadata = { internal: true }'
+bash "$SCRIPT" >/dev/null 2>&1
+assert_eq "$(absent)" "0" "pages api metadata-shaped code does not enable seo"
+rm -rf "$work"
+
+# 12. SEO soft file and unrelated backend token must not combine across files.
+work="$(mktemp -d)"
+export OUTDIR="$work/out"
+mkdir -p "$OUTDIR"
+cat > "$OUTDIR/meta.json" <<'JSON'
+{"files":[{"path":"site/content/docs/configuration.mdx"},{"path":"src/locale.ts"}]}
+JSON
+cat > "$OUTDIR/diff.txt" <<'DIFF'
+diff --git a/site/content/docs/configuration.mdx b/site/content/docs/configuration.mdx
+--- a/site/content/docs/configuration.mdx
++++ b/site/content/docs/configuration.mdx
+@@ -1 +1 @@
++Clarify configuration copy.
+diff --git a/src/locale.ts b/src/locale.ts
+--- a/src/locale.ts
++++ b/src/locale.ts
+@@ -1 +1 @@
++const hreflang = "en"
+DIFF
+bash "$SCRIPT" >/dev/null 2>&1
+assert_eq "$(absent)" "0" "soft docs file and backend token do not combine into seo"
+rm -rf "$work"
+
 # 10. SOFT file, no token: next.config.ts alone does NOT enable seo.
 setup_diff "next.config.ts" '+  images: { remotePatterns: [] },'
 bash "$SCRIPT" >/dev/null 2>&1
@@ -95,4 +130,16 @@ bash "$SCRIPT" >/dev/null 2>&1
 assert_eq "$(absent)" "0" "unchanged-context metadata does not enable seo"
 rm -rf "$work"
 
+
+# 14. Backend API metadata-shaped code is not an SEO surface.
+setup_diff "app/api/users/route.ts" '+export const metadata = { internal: true }'
+bash "$SCRIPT" >/dev/null 2>&1
+assert_eq "$(absent)" "0" "API route metadata-shaped code does not enable seo"
+rm -rf "$work"
+
+# 15. Source-local hreflang variable names are not SEO alternate-link edits.
+setup_diff "src/locale.ts" '+const hreflang = "en"'
+bash "$SCRIPT" >/dev/null 2>&1
+assert_eq "$(absent)" "0" "source hreflang variable does not enable seo"
+rm -rf "$work"
 finish

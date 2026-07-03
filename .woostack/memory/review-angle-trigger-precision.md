@@ -4,8 +4,8 @@ type: gotcha
 scope: skills/woostack-review/**
 tags: detect-angles, angle, trigger, diff-gated, enrichment, tier, observability
 hook: Enriching a diff-gated angle's prompt is dead unless detect-angles.sh also matches the new pattern — and never broaden a trigger on a common token.
-updated: 2026-06-06
-source: [[plans/2026-06-06-review-self-contained]]
+updated: 2026-07-03
+source: [[fixes/2026-07-03-issue-449-angle-gates]]
 ---
 Most review angles are **diff-gated**: `detect-angles.sh` decides whether the angle
 runs at all by grepping the diff for trigger tokens (`has_<angle>_diff_token()` /
@@ -23,6 +23,14 @@ only when the angle already fires for another reason. The `?.`/`??` suppressor c
 with the `catch` / `.catch` / logging changes that already trigger the angle, so the
 relevant PRs are in scope anyway; accept the rare miss (a lone common-token case with no
 other trigger) over universal firing.
+
+For expensive optional angles, a high-signal token is still too broad if it appears in
+normal backend/source files. Bind SEO/AEO-style tokens to a reviewable surface where
+possible: hard path-only files for unambiguous controls (`robots.txt`, `llms.txt`,
+`sitemap.*`), soft path-plus-token checks for public content/head surfaces, and token-only
+overrides only for rare answer-engine/schema markers. Metrics with 20+ runs and zero
+blocking findings are evidence the gate is too loose or the repo should set
+`review.angles.skip`.
 
 Tier follows reasoning load: when an angle gains design-judgment checks (silent-failure
 depth, invariant design), bump `fast → standard` in **both** the prompt frontmatter and
