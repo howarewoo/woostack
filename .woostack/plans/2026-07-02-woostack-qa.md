@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-07-02-woostack-qa.md
-status: executing
+status: done
 branch: feature/woostack-qa
 ---
 
@@ -300,7 +300,7 @@ site build), never bare prose.
 - Modify: `AGENTS.md:17` (count), `AGENTS.md:~40` (skill list), `AGENTS.md:43`
   (nineteen-skill phrasing), `AGENTS.md:104` (rename constraint), Quick file map, Mode B list
 
-- [ ] **Step 1: Update the surface count and list**
+- [x] **Step 1: Update the surface count and list**
   - Line 17: `nineteen skills` → `twenty skills`.
   - Add `- [\`woostack-qa\`](skills/woostack-qa/SKILL.md)` to the public list (after
     `woostack-sweep`, before `woostack-audit`, matching command-family grouping).
@@ -311,7 +311,7 @@ site build), never bare prose.
   - Quick file map: add
     `- Exploratory browser QA engine (report-only): [\`skills/woostack-qa/SKILL.md\`](skills/woostack-qa/SKILL.md)`.
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
   Run: `grep -c "woostack-qa" AGENTS.md`
   Expected: `≥ 4`; and `grep -c "nineteen" AGENTS.md` → `0`
 
@@ -323,24 +323,24 @@ site build), never bare prose.
 - Modify: `skills/using-woostack/SKILL.md` (routing table, after the audit row ~line 85)
 - Modify: `skills/woostack-bootstrap/references/development.md` (command table, ~line 15)
 
-- [ ] **Step 1: README** — add
+- [x] **Step 1: README** — add
   `- **Exploratory browser QA** → [/woostack-qa](skills/woostack-qa/SKILL.md)` beside the
   audit entry.
 
-- [ ] **Step 2: CONTRIBUTING** — add `woostack-qa` to the public-surface sentence (before
+- [x] **Step 2: CONTRIBUTING** — add `woostack-qa` to the public-surface sentence (before
   `woostack-audit`, mirroring AGENTS.md order).
 
-- [ ] **Step 3: using-woostack routing row** — after the audit row:
+- [x] **Step 3: using-woostack routing row** — after the audit row:
   ```markdown
   | `/woostack-qa <url> [focus…] [--stop-first]`, exploratory-QA a running app in a real browser, report-only findings under `.woostack/qa/` | `woostack-qa` |
   ```
 
-- [ ] **Step 4: development.md row** — in the command table:
+- [x] **Step 4: development.md row** — in the command table:
   ```markdown
   | Exploratory-QA a running app in the browser | `woostack-qa` |
   ```
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
   Run: `grep -l "woostack-qa" README.md CONTRIBUTING.md skills/using-woostack/SKILL.md skills/woostack-bootstrap/references/development.md | wc -l`
   Expected: `4`
 
@@ -349,24 +349,24 @@ site build), never bare prose.
 **Files:**
 - Modify: `site/content/docs/concepts/utilities.mdx` (read-only utilities table)
 
-- [ ] **Step 1: Add the row** to the read-only utilities table (with `woostack-ask`,
+- [x] **Step 1: Add the row** to the read-only utilities table (with `woostack-ask`,
   `woostack-visualize`, `woostack-status`, `woostack-debug`):
   ```markdown
   | [woostack-qa](/docs/skills/woostack-qa) | Exploratory-QAs a running app in a real browser and writes a severity-ranked, report-only findings doc. | report file only | `/woostack-qa <url> [focus…]` |
   ```
   (Mutation column: the report file under `.woostack/qa/` is the only write.)
 
-- [ ] **Step 2: Remove the deferral marker** from `skills/woostack-qa/SKILL.md` (the
+- [x] **Step 2: Remove the deferral marker** from `skills/woostack-qa/SKILL.md` (the
   `woostack-defer(increment 2)` comment) — the bookkeeping it deferred now exists.
   Run: `grep -c "woostack-defer" skills/woostack-qa/SKILL.md`
   Expected: `0`
 
-- [ ] **Step 3: Site build**
+- [x] **Step 3: Site build**
   Run: `pnpm -C site build`
   Expected: exit 0; the generated per-skill page `site/content/docs/skills/woostack-qa.mdx`
   appears (gitignored — do not commit it).
 
-- [ ] **Step 4: Commit increment 2**
+- [x] **Step 4: Commit increment 2**
   ```bash
   gt create -m "docs: register woostack-qa across the command surface"
   gt submit

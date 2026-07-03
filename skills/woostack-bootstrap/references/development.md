@@ -13,6 +13,7 @@ for each phase:
 | Fix a small issue, diagnosis → implementation (gated fix loop) | `woostack-fix` |
 | Review | `woostack-review` |
 | Audit standing code (simplify + production-readiness) | `woostack-audit` |
+| Exploratory-QA a running app in the browser | `woostack-qa` |
 | Address review feedback | `woostack-address-comments` |
 
 Each command is discrete and ends by offering the next step. Merge stays with the human.

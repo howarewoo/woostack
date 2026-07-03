@@ -123,6 +123,8 @@ After writing code, use the verification and iteration loop:
   Iteratively guides you through resolving, clarifying, or pushing back on PR review comments, applying changes, and pushing commits.
 - **Auditing Standing Code** → [/woostack-audit](skills/woostack-audit/SKILL.md)
   Audits an explicit target (a file, directory, or whole repo at rest — not a diff) for code simplification and production readiness, repointing the review swarm at an all-added diff and writing a report-only findings doc under `.woostack/audits/`. Never gates, posts, or merges.
+- **Exploratory Browser QA** → [/woostack-qa](skills/woostack-qa/SKILL.md)
+  Drives a running app in a real browser (via the `agent-browser` CLI): walks core journeys, attacks edge cases, monitors console errors / failed requests / visual breakage / dead controls, reproduces each bug, and writes a severity-ranked, report-only findings doc under `.woostack/qa/`. Never fixes, posts, or merges.
 
 ---
 
