@@ -68,6 +68,9 @@ If `$OUTDIR/chunks.txt` exists (issue #14), the unit of work is `(angle, chunk_i
 For each angle in `$OUTDIR/angles.txt` (× each chunk when chunked):
 
 - If the OpenCode runtime supports parallel subagents, spawn one subagent per `(angle, chunk_id)` (or per angle in the unchunked case) in parallel.
+- Use a **plain/general-purpose/default** OpenCode subagent profile. Do not use `@woostack-review`,
+  `skill://woostack-review`, or any `woostack-review` skill-scoped worker; the worker receives the
+  angle prompt and prefetched artifacts directly.
 - Otherwise run them sequentially in listed order.
 
 Each angle agent:

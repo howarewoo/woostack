@@ -75,6 +75,10 @@ If `$OUTDIR/chunks.txt` exists (issue #14), the outer loop iterates `(angle, chu
 
 When the local Codex host exposes subagents with model overrides, dispatch one worker per angle (× each chunk when chunked), capped by the host's bounded-concurrency limit. Each spawn MUST set `model` to the OpenAI model resolved for that worker's effective tier (`fast` / `standard`, unless `FORCE_TIER` overrides). The worker receipt's `model` field must match the explicit spawn model, and its `tier` field must be set to the worker's effective tier (`fast`, `standard`, or `deep`); `verify-receipts.sh` validates both.
 
+Those local Codex workers MUST use a **plain/general-purpose/default** subagent profile. Do not use
+`@woostack-review`, `skill://woostack-review`, or any `woostack-review` skill-scoped worker; the
+worker receives the angle prompt and prefetched artifacts directly.
+
 When no such subagent primitive exists, run each angle listed in `$OUTDIR/angles.txt`, in order (× each chunk when chunked):
 
 1. Read `$WOO_REVIEW_ACTION_PATH/prompts/angles/<angle>.md`.

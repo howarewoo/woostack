@@ -51,6 +51,11 @@ and inlined into `_orchestrator-header.md` above. The Anthropic column routes **
 
 **Every Task/Agent spawn MUST pass `model:` explicitly** (always `claude-opus-4-8`), and MUST pass the tier's **`effort`** when the Task API accepts a reasoning-effort override. With Opus on every tier, the model is a no-op and **`effort` is the only tier differentiator** — omitting it runs rubric/`fast` angles at full effort and burns ~Nx the tokens. The `tier:` frontmatter is informational unless the spawning call passes both the resolved slug and the resolved effort.
 
+Spawn review workers as **plain/general-purpose/default** subagents only. Do not use a
+`woostack-review` skill-scoped agent, `@woostack-review`, `skill://woostack-review`, or the
+orchestrator `SKILL.md` as worker context; the worker brief plus `_worker-header.md`, the angle
+prompt, and `$OUTDIR` artifacts are the complete worker contract.
+
 Concrete invocation (Claude Code `Task` / `Agent` tool):
 
 ```
