@@ -12,6 +12,18 @@ assert_file_contains() {
   assert_contains "$(cat "$file")" "$needle" "$message"
 }
 
+assert_file_matches() {
+  local file="$1" regex="$2" message="$3"
+  local content
+  content="$(tr '\n' ' ' < "$file")"
+  if printf '%s' "$content" | grep -Eq -- "$regex"; then
+    pass
+  else
+    fail "$message"
+    echo "    $(basename "$file") does not match [$regex]"
+  fi
+}
+
 REVIEW_SKILL="$ROOT/skills/woostack-review/SKILL.md"
 ANTHROPIC="$ROOT/skills/woostack-review/prompts/anthropic.md"
 GOOGLE="$ROOT/skills/woostack-review/prompts/google.md"
@@ -26,12 +38,13 @@ assert_file_contains "$REVIEW_SKILL" "skill://woostack-review" \
 assert_file_contains "$REVIEW_SKILL" "The worker brief is self-contained" \
   "worker brief tells auto-injected skill hosts to ignore the orchestrator"
 
-# Provider templates that dispatch local subagents must carry the same boundary.
+# Provider templates that dispatch local subagents must carry the same boundary
+# as an explicit prohibition, not merely mention the forbidden scope token.
 for prompt in "$ANTHROPIC" "$GOOGLE" "$OPENCODE" "$OPENAI"; do
-  assert_file_contains "$prompt" "skill://woostack-review" \
-    "$(basename "$prompt") names the forbidden skill-scope attachment"
   assert_file_contains "$prompt" "plain/general-purpose/default" \
     "$(basename "$prompt") requires plain/general/default workers"
+  assert_file_matches "$prompt" "(Do not|do not|never).*(skill://woostack-review|@woostack-review|woostack-review skill-scoped)" \
+    "$(basename "$prompt") forbids woostack-review skill-scoped workers"
 done
 
 assert_file_contains "$ANTHROPIC" 'subagent_type: "general-purpose"' \
