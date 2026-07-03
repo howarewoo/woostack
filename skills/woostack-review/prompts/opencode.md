@@ -4,9 +4,9 @@ OpenCode runs an agentic shell. Use its subagent system if available (`@subagent
 
 The shared header above lists prefetched artifacts, findings schema, blocking criteria, and the do-NOT-flag list. **Apply them verbatim.** Per-angle prompt bodies live at `$WOO_REVIEW_ACTION_PATH/prompts/angles/<angle>.md` in the bundled action repo.
 
-**Host identifier:** default `opencode` (substitute into the credits line `<host>` placeholder per `_header.md`). When an OpenCode agent persona / subagent profile is identifiable (e.g. `mimo-v2.5`), append it in parentheses: `opencode (mimo-v2.5)`. Read the active profile from the OpenCode runtime when available; otherwise use the bare `opencode` slug.
+**Host identifier:** default `opencode` (substitute into the credits line `<host>` placeholder per `_orchestrator-header.md`). When an OpenCode agent persona / subagent profile is identifiable (e.g. `mimo-v2.5`), append it in parentheses: `opencode (mimo-v2.5)`. Read the active profile from the OpenCode runtime when available; otherwise use the bare `opencode` slug.
 
-**Provider / model accuracy.** This file's model table assumes OpenRouter + DeepSeek, but OpenCode can route to *any* provider/model (Anthropic, OpenAI, Google, local, …). For the credits line, follow `_header.md`'s precedence (`WOO_REVIEW_PROVIDER` / `WOO_REVIEW_MODEL` env vars > OpenCode runtime introspection > this file's default > `unknown`) and report what the validator step actually ran on. Do NOT hard-code `openrouter` / `deepseek-v4-pro` into the credits line unless that is genuinely the active route — if mimo-v2.5 is wired to `anthropic` + `claude-sonnet-4-6`, those are the correct values.
+**Provider / model accuracy.** This file's model table assumes OpenRouter + DeepSeek, but OpenCode can route to *any* provider/model (Anthropic, OpenAI, Google, local, …). For the credits line, follow `_orchestrator-header.md`'s precedence (`WOO_REVIEW_PROVIDER` / `WOO_REVIEW_MODEL` env vars > OpenCode runtime introspection > this file's default > `unknown`) and report what the validator step actually ran on. Do NOT hard-code `openrouter` / `deepseek-v4-pro` into the credits line unless that is genuinely the active route — if mimo-v2.5 is wired to `anthropic` + `claude-sonnet-4-6`, those are the correct values.
 
 ## Model selection
 
@@ -16,7 +16,7 @@ OpenCode + OpenRouter can route per-subagent if the OpenCode runtime supports it
 
 Then resolve that effective tier via the shared **Model Tiers** table (canonical at
 [`../../using-woostack/references/model-tiers.md`](../../using-woostack/references/model-tiers.md),
-inlined into `_header.md` above); the OpenRouter column is:
+inlined into `_orchestrator-header.md` above); the OpenRouter column is:
 
 - `fast` → `openrouter/deepseek/deepseek-v4-flash`
 - `standard` → `openrouter/deepseek/deepseek-v4-pro`
@@ -40,7 +40,7 @@ You are running as a parallel worker for a specific angle.
 - Do NOT manage labels.
 - Run ONLY Phase 2 below for your target angle.
 - Write findings to `$OUTDIR/findings.<angle>.json` (default `$OUTDIR/findings.<angle>.json`) and then EXIT.
-- The findings file MUST be a JSON array only — starts with `[`, ends with `]`, no preamble, no markdown fences, no commentary. See *Output Discipline* in `_header.md`. Validate every `line` via `scripts/resolve-diff-line.sh` and drop findings the helper rejects.
+- The findings file MUST be a JSON array only — starts with `[`, ends with `]`, no preamble, no markdown fences, no commentary. See *Output Discipline* in `_worker-header.md`. Validate every `line` via `scripts/resolve-diff-line.sh` and drop findings the helper rejects.
 
 ### MODE: validate
 You are running as the final aggregator.
@@ -74,7 +74,7 @@ Each angle agent:
 
 1. Loads `$WOO_REVIEW_ACTION_PATH/prompts/angles/<angle>.md`.
 2. Executes the angle prompt against its assigned diff. For `react` run `npx -y react-doctor@$REACT_DOCTOR_VERSION --diff $BASE_REF --offline`.
-3. Writes findings to `$OUTDIR/findings.<angle>.json` (or `findings.<angle>.<chunk_id>.json` in chunked mode) — JSON array per the schema in `_header.md`.
+3. Writes findings to `$OUTDIR/findings.<angle>.json` (or `findings.<angle>.<chunk_id>.json` in chunked mode) — JSON array per the schema in `_worker-header.md`.
 
 Stay within each angle's scope; do not let one angle flag issues that belong to another. `merge-findings.sh` (Phase 3) handles within-angle dedup across chunks.
 
@@ -106,7 +106,7 @@ Produces `$OUTDIR/findings.json` (intersection by `(file, line, title-stem)`; se
 
 ## Phase 4 — Submit Native PR Review
 
-Compute counts. Build `STATUS_LINE`. Follow `_header.md` exactly: submit one batched `gh api repos/<repo>/pulls/<PR>/reviews` POST whose `body` carries the summary + `STATUS_LINE` and whose `comments[]` carries every finding as an inline comment. The review `event` is computed by the `_header.md` payload-builder (do not duplicate the logic here): `REQUEST_CHANGES` when any new finding is `blocking: true` OR when `$OUTDIR/prior-findings.json` is non-empty (unresolved review threads keep the PR at minimum `REQUEST_CHANGES`), `COMMENT` when a non-nit non-blocking new finding exists and no unresolved priors, `APPROVE` when the only new findings are nits (posted inline) or there are none, and prior unresolved threads are empty (nits are event-neutral).
+Compute counts. Build `STATUS_LINE`. Follow `_orchestrator-header.md` exactly: submit one batched `gh api repos/<repo>/pulls/<PR>/reviews` POST whose `body` carries the summary + `STATUS_LINE` and whose `comments[]` carries every finding as an inline comment. The review `event` is computed by the `_orchestrator-header.md` payload-builder (do not duplicate the logic here): `REQUEST_CHANGES` when any new finding is `blocking: true` OR when `$OUTDIR/prior-findings.json` is non-empty (unresolved review threads keep the PR at minimum `REQUEST_CHANGES`), `COMMENT` when a non-nit non-blocking new finding exists and no unresolved priors, `APPROVE` when the only new findings are nits (posted inline) or there are none, and prior unresolved threads are empty (nits are event-neutral).
 
 Do NOT call `gh pr edit`. Do NOT add, remove, or mutate PR labels. The PR title, PR description, and PR labels stay untouched.
 

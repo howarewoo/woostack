@@ -4,7 +4,7 @@ Codex Action does not expose a subagent primitive. Run the review as a single ag
 
 The shared header above lists prefetched artifacts, findings schema, blocking criteria, and the do-NOT-flag list. **Apply them verbatim.** Per-angle prompt bodies live at `$WOO_REVIEW_ACTION_PATH/prompts/angles/<angle>.md` in the bundled action repo.
 
-**Host identifier:** default `codex` (substitute into the credits line `<host>` placeholder per `_header.md`). If invoked from a different OpenAI host, use that host's canonical slug instead.
+**Host identifier:** default `codex` (substitute into the credits line `<host>` placeholder per `_orchestrator-header.md`). If invoked from a different OpenAI host, use that host's canonical slug instead.
 
 ## Model selection
 
@@ -48,7 +48,7 @@ You are running as a parallel worker for a specific angle.
 - Do NOT manage labels.
 - Run ONLY Phase 2 below for your target angle.
 - Write findings to `$OUTDIR/findings.<angle>.json` (default `$OUTDIR/findings.<angle>.json`) and then EXIT.
-- The findings file MUST be a JSON array only — starts with `[`, ends with `]`, no preamble, no markdown fences, no commentary. See *Output Discipline* in `_header.md`. Validate every `line` via `scripts/resolve-diff-line.sh` and drop findings the helper rejects.
+- The findings file MUST be a JSON array only — starts with `[`, ends with `]`, no preamble, no markdown fences, no commentary. See *Output Discipline* in `_worker-header.md`. Validate every `line` via `scripts/resolve-diff-line.sh` and drop findings the helper rejects.
 
 ### MODE: validate
 You are running as the final aggregator.
@@ -79,7 +79,7 @@ When no such subagent primitive exists, run each angle listed in `$OUTDIR/angles
 
 1. Read `$WOO_REVIEW_ACTION_PATH/prompts/angles/<angle>.md`.
 2. Execute the angle prompt against the angle's diff (full or chunk-specific). For `react` run `npx -y react-doctor@$REACT_DOCTOR_VERSION --diff $BASE_REF --offline`.
-3. Write the angle's findings to `$OUTDIR/findings.<angle>.json` (or `findings.<angle>.<chunk_id>.json` in chunked mode) — JSON array conforming to the schema in `_header.md`.
+3. Write the angle's findings to `$OUTDIR/findings.<angle>.json` (or `findings.<angle>.<chunk_id>.json` in chunked mode) — JSON array conforming to the schema in `_worker-header.md`.
 
 Stay within each angle's scope; do not let `bugs` flag a design issue or vice versa. `merge-findings.sh` (Phase 3) handles within-angle dedup across chunks.
 
@@ -113,7 +113,7 @@ This produces the final `$OUTDIR/findings.json` (intersection by `(file, line, t
 
 ## Phase 4 — Submit Native PR Review
 
-Compute `BLOCKING_COUNT`, `NONBLOCKING_COUNT`, `NIT_COUNT`, `HIGH_COUNT`, `MEDIUM_COUNT`, `LOW_COUNT`. Build `STATUS_LINE`. Follow `_header.md` exactly: submit one batched `gh api repos/<repo>/pulls/<PR>/reviews` POST whose `body` carries the summary + `STATUS_LINE` and whose `comments[]` carries every finding as an inline comment. The review `event` is computed by the `_header.md` payload-builder (do not duplicate the logic here): `REQUEST_CHANGES` when any new finding is `blocking: true` OR when `$OUTDIR/prior-findings.json` is non-empty (unresolved review threads keep the PR at minimum `REQUEST_CHANGES`), `COMMENT` when a non-nit non-blocking new finding exists and there are no unresolved priors, `APPROVE` when the only new findings are nits (posted inline) or there are none, and prior unresolved threads are empty. Nits are event-neutral — they never push the event past `APPROVE`.
+Compute `BLOCKING_COUNT`, `NONBLOCKING_COUNT`, `NIT_COUNT`, `HIGH_COUNT`, `MEDIUM_COUNT`, `LOW_COUNT`. Build `STATUS_LINE`. Follow `_orchestrator-header.md` exactly: submit one batched `gh api repos/<repo>/pulls/<PR>/reviews` POST whose `body` carries the summary + `STATUS_LINE` and whose `comments[]` carries every finding as an inline comment. The review `event` is computed by the `_orchestrator-header.md` payload-builder (do not duplicate the logic here): `REQUEST_CHANGES` when any new finding is `blocking: true` OR when `$OUTDIR/prior-findings.json` is non-empty (unresolved review threads keep the PR at minimum `REQUEST_CHANGES`), `COMMENT` when a non-nit non-blocking new finding exists and there are no unresolved priors, `APPROVE` when the only new findings are nits (posted inline) or there are none, and prior unresolved threads are empty. Nits are event-neutral — they never push the event past `APPROVE`.
 
 Do NOT call `gh pr edit`. Do NOT add, remove, or mutate PR labels. The PR title, PR description, and PR labels stay untouched.
 

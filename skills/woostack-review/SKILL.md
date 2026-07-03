@@ -209,7 +209,7 @@ Key reference (JSON has no comments, so the per-key semantics live here):
 - **`metrics`**: opt in to per-angle signal/noise metrics (bool, default `false`) — emit `findings.metrics.json` per run and fold a rolling `.woostack/metrics.json` aggregate (local only). Each angle also carries `overlap_total` + `overlap_with` (how often another angle raised the same issue, on the raw pre-validation set — a redundancy signal). Aggregate schema is v2; an older v1 aggregate is reseeded on first fold. See Stage 6.5.
 - **`chunking.max_loc`** — diff-chunking threshold (issue #14). When the post-ignore diff exceeds this many changed lines, prefetch splits it into chunks honoring workspace package roots > top-level dirs > file-LOC-balanced groups; each angle fans out as angles × chunks parallel sub-agents. `0` disables chunking; missing => 4000.
 
-**Precedence**: for the angle set, `angles.force` beats `angles.skip` when the same angle is listed in both. For model resolution, precedence is: explicit comment override (`--fast` / `--deep`) → action input `inputs.force_tier` → `review.force_tier` in config → action input `inputs.model` → `models.<provider>.<tier>` → flat `models.<tier>` → table default in `prompts/_header.md`. `ignore` is applied to both file paths and the per-file diff sections before angle gates evaluate.
+**Precedence**: for the angle set, `angles.force` beats `angles.skip` when the same angle is listed in both. For model resolution, precedence is: explicit comment override (`--fast` / `--deep`) → action input `inputs.force_tier` → `review.force_tier` in config → action input `inputs.model` → `models.<provider>.<tier>` → flat `models.<tier>` → table default in `prompts/_orchestrator-header.md`. `ignore` is applied to both file paths and the per-file diff sections before angle gates evaluate.
 
 ## `/woostack-review` Workflow
 
@@ -346,13 +346,13 @@ Each sub-agent receives the same brief:
 
 ```
 You are the <angle> reviewer for this PR. Read:
-- $WOO_REVIEW_ACTION_PATH/prompts/_header.md   (shared contract)
+- $WOO_REVIEW_ACTION_PATH/prompts/_worker-header.md   (worker contract)
 - $WOO_REVIEW_ACTION_PATH/prompts/angles/<angle>.md   (your scope)
 - $OUTDIR/diff.txt, $OUTDIR/meta.json   (OUTDIR is exported by the orchestrator; prefer it over any literal path)
 
 Execute any shell commands the angle prompt specifies (e.g. impeccable detect,
 react-doctor). Write your findings as a JSON array to
-$OUTDIR/findings.<angle>.json per the schema in _header.md. The file MUST
+$OUTDIR/findings.<angle>.json per the schema in _worker-header.md. The file MUST
 start with `[` and end with `]` — no preamble, no commentary, no markdown
 fences. Before writing each finding's `line` field, validate it via
 `bash $WOO_REVIEW_ACTION_PATH/scripts/resolve-diff-line.sh --file <path> --line <N>`
@@ -361,14 +361,14 @@ on the diff's RIGHT side and the GitHub API will reject the comment). Then, as
 your LAST action, write your execution receipt to
 $OUTDIR/receipt.<angle>.json (chunked: $OUTDIR/receipt.<angle>.<chunk>.json) —
 a JSON object {angle, chunk, runner, model, tier, ts} with non-empty runner
-and model, proving you executed (see _header.md). EXIT.
+and model, proving you executed (see _worker-header.md). EXIT.
 ```
 
 **Chunked fan-out.** When `$OUTDIR/chunks.txt` exists, spawn one sub-agent per `(angle, chunk_id)` instead of one per angle. Pass the chunk ID in the brief, and tell the sub-agent to read `$OUTDIR/diff.chunk-<id>.txt` and write `$OUTDIR/findings.<angle>.chunk-<id>.json`. The validator pass still runs **once globally** — `merge-findings.sh` collapses any within-angle duplicates across chunks before validation, and the validator handles cross-angle dedup as today.
 
 Sub-agents MUST NOT post comments, edit the PR, touch other angles' files, run `prefetch.sh`, or delete/recreate `$OUTDIR`. `prefetch.sh` is a Stage-1-only operation; re-running it mid-swarm wipes `meta.json` / `prior-findings.json` and corrupts the posting stage (issue #48).
 
-**Model routing (token optimization, host-agnostic).** Each angle prompt and the validator declare a `tier:` in frontmatter — `fast`, `standard`, or `deep`. The host resolves the tier to a concrete model with `scripts/resolve-model.sh` — it consults `$OUTDIR/config.json`'s `models.<provider>.<tier>` and flat `models.<tier>` overrides first and falls back to the default table in `prompts/_header.md`, so a per-repo model override in `.woostack/config.json` is honored on the next run. Reading the `_header.md` table directly skips the config step and is a routing bug (issue #295). Tier assignments:
+**Model routing (token optimization, host-agnostic).** Each angle prompt and the validator declare a `tier:` in frontmatter — `fast`, `standard`, or `deep`. The host resolves the tier to a concrete model with `scripts/resolve-model.sh` — it consults `$OUTDIR/config.json`'s `models.<provider>.<tier>` and flat `models.<tier>` overrides first and falls back to the default table in `prompts/_orchestrator-header.md`, so a per-repo model override in `.woostack/config.json` is honored on the next run. Reading a static header table directly skips the config step and is a routing bug (issue #295). Tier assignments:
 
 | Stage | Tier | Why |
 |---|---|---|
@@ -385,7 +385,7 @@ Sub-agents MUST NOT post comments, edit the PR, touch other angles' files, run `
 | `i18n`, `docs`, `deps`, `comments` workers | `fast` | Pattern matching + diff-anchored hygiene checks. |
 | Skeptical Validator | `deep` | Highest-leverage step — strictest false-positive filter pays for itself. |
 
-Per-provider resolution (full table in `_header.md`):
+Per-provider resolution (canonical table in `../using-woostack/references/model-tiers.md`, inlined into `_orchestrator-header.md`):
 
 | Tier | Anthropic | OpenAI | Google | OpenRouter |
 |---|---|---|---|---|
@@ -403,7 +403,7 @@ Per-provider resolution (full table in `_header.md`):
 - **Per-call routing** (Claude Code `Task`, Codex local subagents with a `model` override, opencode `@subagent`): honor each prompt's `tier:` verbatim and resolve every spawn's model with `bash $WOO_REVIEW_ACTION_PATH/scripts/resolve-model.sh --provider <provider> --tier <tier>` (which honors `$OUTDIR/config.json` overrides), passing that slug explicitly on the spawn. Maximum savings.
 - **Single model per session** (Codex Action without subagent model overrides, Antigravity CLI): pin the run to a resolved run-tier (`fast` or `deep` via `FORCE_TIER`, otherwise `standard`). `tier:` becomes informational once the run tier resolves. Split into multiple jobs if you want per-angle fast/deep split behavior.
 
-Review runners MUST preserve the resolved tier/model context for every spawned worker. In single-model hosts, pass the resolved run-tier (`FORCE_TIER` when set, otherwise the host's standard tier) to every worker. In per-call-routing hosts, apply each angle prompt's `tier:` while preserving any explicit `FORCE_TIER` override, and set the spawn call's model field to the slug from `resolve-model.sh` (config-aware — never the static `_header.md` table directly). Write that same resolved model into the worker's receipt (`model`) so receipts reflect the configured model, not the default. Omitting the spawn model field is a routing bug because the worker inherits the parent session's model and defeats the tier mapping. Host-managed or explicitly bounded scheduling must not cause later-starting angles to fall back to default model settings.
+Review runners MUST preserve the resolved tier/model context for every spawned worker. In single-model hosts, pass the resolved run-tier (`FORCE_TIER` when set, otherwise the host's standard tier) to every worker. In per-call-routing hosts, apply each angle prompt's `tier:` while preserving any explicit `FORCE_TIER` override, and set the spawn call's model field to the slug from `resolve-model.sh` (config-aware — never the static header table directly). Write that same resolved model into the worker's receipt (`model`) so receipts reflect the configured model, not the default. Omitting the spawn model field is a routing bug because the worker inherits the parent session's model and defeats the tier mapping. Host-managed or explicitly bounded scheduling must not cause later-starting angles to fall back to default model settings.
 
 **Receipt gate (hard fail).** After the swarm finishes — and before `merge-findings.sh` — run:
 
@@ -469,13 +469,13 @@ Re-launch a missing pass exactly **once** (prosecutor → `validator-prosecutor.
 jq -r '.degraded // false' $OUTDIR/validator-metrics.json
 ```
 
-If `true`, tell the user in your orchestrator summary that the review is defender-only / lower-confidence — the posting stage also appends a ⚠️ line to the review body (`_header.md`). A `disable_adversarial: true` opt-out reports `degraded: false` and needs no warning.
+If `true`, tell the user in your orchestrator summary that the review is defender-only / lower-confidence — the posting stage also appends a ⚠️ line to the review body (`_orchestrator-header.md`). A `disable_adversarial: true` opt-out reports `degraded: false` and needs no warning.
 
 Produces `$OUTDIR/findings.json` — the final validated set — and `$OUTDIR/validator-metrics.json` with `prosecutor_count`, `defender_count`, `kept_count`, `disagreement_count`. Intersection is a three-pass match: exact `(file, line, title-stem)`, then a fuzzy pass (`±10` lines, prefix-20 title-stem), then a location-only pass (`±10` lines, no title constraint, ambiguous ties skipped) so the same issue under different titles in the two inputs still intersects. When `disable_adversarial: true` is set or `findings.prosecutor.json` is absent, the script copies defender output verbatim and tags metrics `mode: defender-only`. Severity = `min(prosecutor, defender)`, blocking = `prosecutor.blocking AND defender.blocking`, other fields take the defender's copy.
 
 ### Stage 5 — Report
 
-**If invoked with a PR number** — post a single native batched GitHub Review per the procedure in `prompts/_header.md`:
+**If invoked with a PR number** — post a single native batched GitHub Review per the procedure in `prompts/_orchestrator-header.md`:
 
 - Build the STATUS_LINE (`APPROVED` / `APPROVED WITH SUGGESTIONS` / `CHANGES REQUESTED`).
 - Preflight for a leftover **pending review** owned by the authenticated user (GitHub allows only one per user per PR, else the create 422s `User can only have one pending review per pull request`). An empty woostack-owned draft is discarded and the post retried once; any other draft (carrying comments, or not woostack-owned) stops the run with an actionable error instead of being silently mutated. A run thus always ends in a submitted review or a clearly reported failure — never a silent un-posted state.
@@ -594,7 +594,7 @@ The `if:` gate restricts comment-triggered runs to the repo owner / members / co
 - **Adversarial validators dropped a finding both passes agreed on** — the intersection applies a fuzzy second pass (`±10` lines, prefix-20 title-stem match) and a location-only third pass (`±10` lines, no title constraint, ambiguous ties skipped). The third pass covers the case where cross-angle dedupe in `merge-findings.sh` left the same issue under different titles in the two validator inputs. Check `$OUTDIR/validator-metrics.json` for `disagreement_count` and the `intersect-findings:` stderr line for the second-/third-pass match counts.
 - **Caller-side `PR_NUMBER="$(gh pr view ...)"` blocked by host sandbox** — some sandboxed host runtimes reject inline `$(...)` substitutions on tool calls. Skip the caller-side resolution: `bash $WOO_REVIEW_ACTION_PATH/scripts/prefetch.sh` derives the PR number itself from the current branch when `PR_NUMBER` is unset and `GITHUB_ACTIONS != "true"`.
 - **`prefetch.sh` skipped with "bot already commented and trigger is not explicit" on a local run** — fixed: that re-run guard now only applies inside GitHub Actions (`GITHUB_ACTIONS=true`). Local `/woostack-review` invocations are explicit by definition and no longer trip the gate.
-- **GitHub API rejects `REQUEST_CHANGES` / `APPROVE` on a self-authored PR** — fixed in `_header.md`: the payload-builder compares `gh api user --jq .login` against `meta.json .author.login` and downgrades the event to `COMMENT` when they match. The STATUS_LINE in the review body still carries the accurate verdict; a small note is appended explaining the downgrade.
+- **GitHub API rejects `REQUEST_CHANGES` / `APPROVE` on a self-authored PR** — fixed in `_orchestrator-header.md`: the payload-builder compares `gh api user --jq .login` against `meta.json .author.login` and downgrades the event to `COMMENT` when they match. The STATUS_LINE in the review body still carries the accurate verdict; a small note is appended explaining the downgrade.
 - **Sub-agent died mid-run and left no findings artifact** — bounded Stage 3 initializes expected artifacts to `[]`, retries missing/non-array artifacts once after the first queue drains, then records remaining gaps in `$OUTDIR/swarm-metrics.json`. If `.degraded == true`, that angle contributed `[]` and the local summary must disclose it.
-- **`merge-findings.sh` failed on bad JSON escapes from a worker** — the recovery path now tries `json.loads(strict=False)` and a fallback that strips bare control bytes + invalid `\<char>` escapes inside strings. Workers that emit raw tabs/newlines or Windows paths inside `description` fields no longer sink the whole merge. The Output Discipline section of `_header.md` documents the escape rules workers should follow up-front.
+- **`merge-findings.sh` failed on bad JSON escapes from a worker** — the recovery path now tries `json.loads(strict=False)` and a fallback that strips bare control bytes + invalid `\<char>` escapes inside strings. Workers that emit raw tabs/newlines or Windows paths inside `description` fields no longer sink the whole merge. The Output Discipline section of `_worker-header.md` documents the escape rules workers should follow up-front.
 - **Large diff under-reviewed / a changed file never got findings** — `prefetch.sh` caps the diff at `WOO_REVIEW_DIFF_CAP_BYTES` (default 300KB). The cap is section-aware (issue #150): it keeps whole `diff --git` sections ranked by review value (sections that add lines first; pure file deletions, lockfiles, and generated files last) until the budget is hit, never splitting a section. When sections are dropped it emits a `::warning::` and lists the dropped paths in `$OUTDIR/diff-dropped.txt`. If a real file was dropped, raise the cap (`WOO_REVIEW_DIFF_CAP_BYTES=600000`) or narrow scope with `review.ignore` so low-value paths are excluded before the cap applies.

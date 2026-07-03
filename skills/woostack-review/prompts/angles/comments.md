@@ -36,9 +36,9 @@ lag** the code — never on prose style. Advisory only: this angle is **always n
   the `bugs` angle's finding, not this one.
 
 **Output.** Write findings as a JSON array to `/tmp/pr-review/findings.comments.json` using the
-schema in `_header.md`. Each finding gets `"angle": "comments"`, `"blocking": false`, and MUST
+schema in `_worker-header.md`. Each finding gets `"angle": "comments"`, `"blocking": false`, and MUST
 populate `title` (bold headline ≤60 chars), `description` (the mismatch: what the comment claims
 vs. what the code now does — no fix), `fix` (the comment edit in prose), and `fix_type`. Set
 `fix_type: "suggestion"` only when a ≤10-line single-file drop-in comment replacement at `line`
 is safe — and populate `suggestion` accordingly. Otherwise set `fix_type: "prose"` with
-`suggestion: null`. See `_header.md` for the full rule.
+`suggestion: null`. See `_worker-header.md` for the full rule.

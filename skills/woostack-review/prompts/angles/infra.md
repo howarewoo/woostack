@@ -43,5 +43,5 @@ tier: standard
 - `MEDIUM` + `blocking: false` — unpinned third-party action, missing resource limits, missing `permissions:` block.
 - `LOW` + `blocking: false` — base-image tagging hygiene, cleanup steps, doc hygiene.
 
-**Output.** Write findings as a JSON array to `/tmp/pr-review/findings.infra.json` using the schema in `_header.md`. Each finding gets `"angle": "infra"` and MUST populate `title` (bold headline ≤60 chars), `description` (the risk + concrete exposure, no fix), `fix` (hardening step in prose), and `fix_type`. Set `fix_type: "suggestion"` only when a ≤10-line single-file drop-in replacement at `line` is safe — and populate `suggestion` accordingly. Otherwise set `fix_type: "prose"` with `suggestion: null`. See `_header.md` for the full rule.
+**Output.** Write findings as a JSON array to `/tmp/pr-review/findings.infra.json` using the schema in `_worker-header.md`. Each finding gets `"angle": "infra"` and MUST populate `title` (bold headline ≤60 chars), `description` (the risk + concrete exposure, no fix), `fix` (hardening step in prose), and `fix_type`. Set `fix_type: "suggestion"` only when a ≤10-line single-file drop-in replacement at `line` is safe — and populate `suggestion` accordingly. Otherwise set `fix_type: "prose"` with `suggestion: null`. See `_worker-header.md` for the full rule.
 

@@ -56,7 +56,7 @@ and (b) the concrete smaller shape (and, for an unused-export claim, the zero-re
 finding that only says "could be simpler" is dropped by the validator.
 
 **Output.** Write findings as a JSON array to `$OUTDIR/findings.simplify.json` per the schema in
-`_header.md`. Each finding gets `"angle": "simplify"` and MUST populate `title` (≤60 chars),
+`_worker-header.md`. Each finding gets `"angle": "simplify"` and MUST populate `title` (≤60 chars),
 `description` (what to delete + the smaller shape, no fix steps), `fix` (the deletion/replacement
 in prose), and `fix_type`. Set `fix_type: "suggestion"` only for a ≤10-line single-file drop-in
 deletion/replacement at `line`; otherwise `fix_type: "prose"` with `suggestion: null`.
