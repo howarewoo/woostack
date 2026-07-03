@@ -4,7 +4,7 @@ You are reviewing a pull request using Claude Code's `Task` tool. Every tool cal
 
 The shared header above lists prefetched artifacts, the findings schema, the blocking criteria, and the do-NOT-flag list. **Apply them verbatim.** Per-angle prompt bodies live at `$WOO_REVIEW_ACTION_PATH/prompts/angles/<angle>.md`.
 
-**Host identifier:** default `claude-code` (substitute into the credits line `<host>` placeholder per `_header.md`). If this orchestrator was selected from a different Anthropic host (e.g. Cursor, Zed), use that host's canonical slug instead.
+**Host identifier:** default `claude-code` (substitute into the credits line `<host>` placeholder per `_orchestrator-header.md`). If this orchestrator was selected from a different Anthropic host (e.g. Cursor, Zed), use that host's canonical slug instead.
 
 ---
 
@@ -21,7 +21,7 @@ You are running as a parallel worker for a specific angle.
 - Do NOT launch subagents for other angles.
 - Run ONLY the logic for your target angle (loading its prompt from `$WOO_REVIEW_ACTION_PATH/prompts/angles/<angle>.md`).
 - Write your findings to `$OUTDIR/findings.<angle>.json` (default `$OUTDIR/findings.<angle>.json`) and then EXIT.
-- The findings file MUST be a JSON array only — starts with `[`, ends with `]`, no preamble, no markdown fences, no commentary. See *Output Discipline* in `_header.md`. Validate every `line` via `scripts/resolve-diff-line.sh` and drop findings the helper rejects.
+- The findings file MUST be a JSON array only — starts with `[`, ends with `]`, no preamble, no markdown fences, no commentary. See *Output Discipline* in `_worker-header.md`. Validate every `line` via `scripts/resolve-diff-line.sh` and drop findings the helper rejects.
 
 ### MODE: validate
 You are running as the final aggregator.
@@ -41,11 +41,11 @@ Perform all steps (1 through 4) as the main orchestrator.
 Claude Code's `Task` tool supports per-subagent model routing. Resolve each spawned subagent model from:
 1. `FORCE_TIER` in Review Context (`fast`/`deep`) when present.
 2. Otherwise the angle prompt `tier:` frontmatter.
-3. Then per-repo overrides and table defaults in `_header.md`.
+3. Then per-repo overrides and table defaults in `_orchestrator-header.md`.
 
 Then resolve via the shared **Model Tiers** table — canonical at
 [`../../using-woostack/references/model-tiers.md`](../../using-woostack/references/model-tiers.md)
-and inlined into `_header.md` above. The Anthropic column routes **every** tier to
+and inlined into `_orchestrator-header.md` above. The Anthropic column routes **every** tier to
 `claude-opus-4-8`; the tier is expressed through reasoning **effort** instead
 (`fast` → `effort: low`, `standard` → `effort: medium`, `deep` → `effort: xhigh`).
 
@@ -65,7 +65,7 @@ Task({
 
 Resolution rule per spawn:
 1. Determine effective tier.
-2. Look up the Anthropic column in the shared Model Tiers table (inlined in `_header.md` above) — every tier resolves to `claude-opus-4-8`, with a per-tier default `effort` (`fast` → `low`, `standard` → `medium`, `deep` → `xhigh`).
+2. Look up the Anthropic column in the shared Model Tiers table (inlined in `_orchestrator-header.md` above) — every tier resolves to `claude-opus-4-8`, with a per-tier default `effort` (`fast` → `low`, `standard` → `medium`, `deep` → `xhigh`).
 3. **Per-repo override**: check `$OUTDIR/config.json` for `models.anthropic.<effective_tier>`, then flat `models.<effective_tier>`. The loader normalizes each tier leaf to an object `{model, effort?}`, so read `.model` (e.g. when `run_tier=deep`: `jq -r '((.models.anthropic.deep // .models.deep) | if type=="object" then .model else . end) // empty' $OUTDIR/config.json`). If non-empty, use that slug instead of the table value.
 4. Resolve **effort**: config `models.anthropic.<effective_tier>.effort` (then flat `models.<effective_tier>.effort`), object-safe (e.g. `jq -r '((.models.anthropic.deep // .models.deep) | if type=="object" then .effort else empty end) // empty' $OUTDIR/config.json`); fall back to the tier default from step 2 when unset.
 5. Pass the resolved slug as `model:` on the Task call, and the resolved effort as `effort:` **when the Task API accepts a reasoning-effort override** (if it accepts only `model`, still pass `model`; never fall back to parent-session inheritance).
@@ -145,7 +145,7 @@ This produces the final `$OUTDIR/findings.json` (intersection of prosecutor + de
 
 ## Step 4 — Submit Native PR Review
 
-Follow `_header.md` exactly. Compute `BLOCKING_COUNT`, `NONBLOCKING_COUNT`, `NIT_COUNT`, `HIGH_COUNT`, `MEDIUM_COUNT`, `LOW_COUNT`. Build `STATUS_LINE`. Submit a single batched `gh api repos/<repo>/pulls/<PR>/reviews` POST containing all inline comments + the summary + the `STATUS_LINE` in the review body. The review `event` is computed by the `_header.md` payload-builder (do not duplicate the logic here): `REQUEST_CHANGES` when any new finding is `blocking: true` OR when `$OUTDIR/prior-findings.json` is non-empty (unresolved review threads keep the PR at minimum `REQUEST_CHANGES`), `COMMENT` when a non-nit non-blocking new finding exists and there are no unresolved priors, `APPROVE` when the only new findings are nits (posted inline) or there are none, and prior unresolved threads are empty. Nits are event-neutral — they never push the event past `APPROVE`.
+Follow `_orchestrator-header.md` exactly. Compute `BLOCKING_COUNT`, `NONBLOCKING_COUNT`, `NIT_COUNT`, `HIGH_COUNT`, `MEDIUM_COUNT`, `LOW_COUNT`. Build `STATUS_LINE`. Submit a single batched `gh api repos/<repo>/pulls/<PR>/reviews` POST containing all inline comments + the summary + the `STATUS_LINE` in the review body. The review `event` is computed by the `_orchestrator-header.md` payload-builder (do not duplicate the logic here): `REQUEST_CHANGES` when any new finding is `blocking: true` OR when `$OUTDIR/prior-findings.json` is non-empty (unresolved review threads keep the PR at minimum `REQUEST_CHANGES`), `COMMENT` when a non-nit non-blocking new finding exists and there are no unresolved priors, `APPROVE` when the only new findings are nits (posted inline) or there are none, and prior unresolved threads are empty. Nits are event-neutral — they never push the event past `APPROVE`.
 
 Do NOT call `gh pr edit`. Do NOT add, remove, or mutate PR labels. The PR title, PR description, and PR labels must remain untouched.
 

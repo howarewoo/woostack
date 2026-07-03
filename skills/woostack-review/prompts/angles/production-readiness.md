@@ -54,7 +54,7 @@ happens when the call hangs / the retry fires / the input is large) — not a ge
 timeout". A finding without a named failure mode is dropped by the validator.
 
 **Output.** Write findings as a JSON array to `$OUTDIR/findings.production-readiness.json` per
-the schema in `_header.md`. Each finding gets `"angle": "production-readiness"` and MUST
+the schema in `_worker-header.md`. Each finding gets `"angle": "production-readiness"` and MUST
 populate `title` (≤60 chars), `description` (the failure mode, no fix), `fix` (the resilience
 change in prose), and `fix_type`. `fix_type: "suggestion"` only for a ≤10-line single-file
 drop-in at `line`; otherwise `fix_type: "prose"` with `suggestion: null`.

@@ -4,7 +4,7 @@ You are reviewing a pull request using Antigravity CLI (`agy`). Antigravity orch
 
 The shared header above lists prefetched artifacts, the findings schema, the blocking criteria, and the do-NOT-flag list. **Apply them verbatim.** Per-angle prompt bodies live at `$WOO_REVIEW_ACTION_PATH/prompts/angles/<angle>.md`.
 
-**Host identifier:** default `antigravity-cli` (substitute into the credits line `<host>` placeholder per `_header.md`). If invoked from another Google host, use that host's canonical slug instead.
+**Host identifier:** default `antigravity-cli` (substitute into the credits line `<host>` placeholder per `_orchestrator-header.md`). If invoked from another Google host, use that host's canonical slug instead.
 
 ## Model selection
 
@@ -35,7 +35,7 @@ You are running as a parallel worker for a specific angle.
 - Do NOT spawn further subagents for other angles.
 - Run ONLY Phase 2 below for your target angle.
 - Write findings to `$OUTDIR/findings.<angle>.json` (default `$OUTDIR/findings.<angle>.json`) and then EXIT.
-- The findings file MUST be a JSON array only — starts with `[`, ends with `]`, no preamble, no markdown fences, no commentary. See *Output Discipline* in `_header.md`. Validate every `line` via `scripts/resolve-diff-line.sh` and drop findings the helper rejects.
+- The findings file MUST be a JSON array only — starts with `[`, ends with `]`, no preamble, no markdown fences, no commentary. See *Output Discipline* in `_worker-header.md`. Validate every `line` via `scripts/resolve-diff-line.sh` and drop findings the helper rejects.
 
 ### MODE: validate
 You are running as the final aggregator.
@@ -73,7 +73,7 @@ Each subagent receives this brief:
 
 ```
 You are the <angle> reviewer for this PR. Read:
-  - $WOO_REVIEW_ACTION_PATH/prompts/_header.md   (shared contract)
+  - $WOO_REVIEW_ACTION_PATH/prompts/_worker-header.md   (worker contract)
   - $WOO_REVIEW_ACTION_PATH/prompts/angles/<angle>.md   (your scope)
   - $OUTDIR/diff.txt (or diff.chunk-<id>.txt when chunked)
   - $OUTDIR/meta.json
@@ -81,7 +81,7 @@ You are the <angle> reviewer for this PR. Read:
 For `react` first run `npx -y react-doctor@$REACT_DOCTOR_VERSION --diff $BASE_REF --offline`.
 
 Write findings as a JSON array to $OUTDIR/findings.<angle>.json
-(or .<angle>.<chunk_id>.json when chunked) per the schema in _header.md.
+(or .<angle>.<chunk_id>.json when chunked) per the schema in _worker-header.md.
 The file MUST start with `[` and end with `]` — no preamble, no commentary,
 no markdown fences. Before writing each finding's `line` field, validate it
 via `bash $WOO_REVIEW_ACTION_PATH/scripts/resolve-diff-line.sh --file <p>
@@ -129,7 +129,7 @@ This produces the final `$OUTDIR/findings.json` (intersection of prosecutor + de
 
 ## Phase 4 — Submit native PR Review
 
-Compute counts. Build `STATUS_LINE`. Follow `_header.md` exactly: submit one batched `gh api repos/<repo>/pulls/<PR>/reviews` POST whose `body` carries the summary + `STATUS_LINE` and whose `comments[]` carries every finding as an inline comment. The review `event` is computed by the `_header.md` payload-builder (do not duplicate the logic here): `REQUEST_CHANGES` when any new finding is `blocking: true` OR when `$OUTDIR/prior-findings.json` is non-empty, `COMMENT` when a non-nit non-blocking new finding exists and no unresolved priors, `APPROVE` when the only new findings are nits (posted inline) or there are none, and prior unresolved threads are empty (nits are event-neutral). The payload-builder also handles the self-PR API restriction — when reviewer login matches PR author login, REQUEST_CHANGES/APPROVE downgrade to COMMENT.
+Compute counts. Build `STATUS_LINE`. Follow `_orchestrator-header.md` exactly: submit one batched `gh api repos/<repo>/pulls/<PR>/reviews` POST whose `body` carries the summary + `STATUS_LINE` and whose `comments[]` carries every finding as an inline comment. The review `event` is computed by the `_orchestrator-header.md` payload-builder (do not duplicate the logic here): `REQUEST_CHANGES` when any new finding is `blocking: true` OR when `$OUTDIR/prior-findings.json` is non-empty, `COMMENT` when a non-nit non-blocking new finding exists and no unresolved priors, `APPROVE` when the only new findings are nits (posted inline) or there are none, and prior unresolved threads are empty (nits are event-neutral). The payload-builder also handles the self-PR API restriction — when reviewer login matches PR author login, REQUEST_CHANGES/APPROVE downgrade to COMMENT.
 
 Do NOT call `gh pr edit`. Do NOT add, remove, or mutate PR labels. The PR title, PR description, and PR labels stay untouched.
 

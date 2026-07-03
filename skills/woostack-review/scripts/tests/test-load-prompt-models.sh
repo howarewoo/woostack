@@ -178,4 +178,29 @@ run_effort="$(grep '^run_effort=' "$github_output" | cut -d= -f2 || echo "")"
 assert_eq "$run_effort" "medium" "object leaf without effort uses model/tier default"
 rm -rf "$outdir"
 
+# Split contract regression: review mode gets the worker header and does not inline the model table.
+outdir="$(mktemp -d)"; github_output="$outdir/github_output"; touch "$github_output"
+run_load_prompt "$outdir" "$github_output" MODE="review"
+prompt_payload="$(cat "$github_output")"
+assert_contains "$prompt_payload" "# Worker Review Contract" "review mode loads worker header"
+assert_contains "$prompt_payload" "## Findings Schema" "worker header carries finding schema"
+assert_not_contains "$prompt_payload" "# Orchestrator Review Contract" "review mode omits orchestrator header"
+assert_not_contains "$prompt_payload" "## Model Tiers (host-agnostic)" "review mode does not inline model tiers"
+assert_not_contains "$prompt_payload" "<!-- WOO_MODEL_TIERS_TABLE -->" "review mode has no model marker"
+rm -rf "$outdir"
+
+# Split contract regression: full mode gets the orchestrator header and inlines the model table.
+outdir="$(mktemp -d)"; github_output="$outdir/github_output"; touch "$github_output"
+run_load_prompt "$outdir" "$github_output" MODE="full"
+prompt_payload="$(cat "$github_output")"
+assert_contains "$prompt_payload" "# Orchestrator Review Contract" "full mode loads orchestrator header"
+assert_contains "$prompt_payload" "## Model Tiers (host-agnostic)" "full mode includes model tiers section"
+assert_contains "$prompt_payload" "## Pull Request Review (Batch)" "full mode carries posting contract"
+assert_not_contains "$prompt_payload" "<!-- WOO_MODEL_TIERS_TABLE -->" "full mode replaces model marker"
+rm -rf "$outdir"
+
+# Reference regression: workers must not be sent back to the compatibility shim for schema/contract.
+worker_ref_hits="$(grep -R --line-number --exclude='_header.md' --exclude='_orchestrator-header.md' '_header.md' "$ROOT/skills/woostack-review/prompts/angles" "$ROOT/skills/woostack-review/SKILL.md" || true)"
+assert_eq "$worker_ref_hits" "" "worker-facing prompts and Stage 3 brief no longer reference _header.md"
+
 finish

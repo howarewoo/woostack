@@ -94,7 +94,7 @@ Notes:
 - After this step, `findings.json` is the intersected set that Step 4 posts. Do not re-read `findings.defender.json` for posting.
 
 ### Step 4 — Post Native PR Review *(SEQUENTIAL / CI ONLY — swarm workers already EXITed above)*
-Follow _header.md exactly. Compute BLOCKING_COUNT, NONBLOCKING_COUNT, HIGH_COUNT, MEDIUM_COUNT, LOW_COUNT. Build STATUS_LINE.
+Follow _orchestrator-header.md exactly. Compute BLOCKING_COUNT, NONBLOCKING_COUNT, HIGH_COUNT, MEDIUM_COUNT, LOW_COUNT. Build STATUS_LINE.
 - Use the findings from `/tmp/pr-review/findings.json` (the intersected set, not your defender output).
 - Submit a single native GitHub PR Review (Batch) including all inline comments and the summary/status line.
 - Determine review event: APPROVE (0 findings), REQUEST_CHANGES (blocking > 0), or COMMENT (non-blocking > 0). The REQUEST_CHANGES event is the only blocking signal — do not apply or remove labels.

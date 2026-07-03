@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Loads the prompt for the resolved provider.
 # Source order: INPUT_PROMPT_OVERRIDE (consumer-repo path) → ACTION_PATH/prompts/<provider>.md.
-# Always prepends ACTION_PATH/prompts/_header.md for output-contract parity.
+# Prepends a role-specific split header: worker for MODE=review, orchestrator otherwise.
 # Inputs (env): PROVIDER, ACTION_PATH, INPUT_PROMPT_OVERRIDE, INPUT_MODEL,
 # INPUT_FORCE_TIER, PR_NUMBER, GITHUB_REPOSITORY, EVENT_NAME, COMMENT_BODY,
 # MODE, ANGLE, ENABLED_ANGLES.
@@ -26,7 +26,11 @@ else
 fi
 CONFIG_PATH="${OUTDIR}/config.json"
 
-HEADER_FILE="$ACTION_PATH/prompts/_header.md"
+MODE_VALUE="${MODE:-full}"
+case "$MODE_VALUE" in
+  review) HEADER_FILE="$ACTION_PATH/prompts/_worker-header.md" ;;
+  full|detect|validate|*) HEADER_FILE="$ACTION_PATH/prompts/_orchestrator-header.md" ;;
+esac
 if [ -n "$OVERRIDE" ] && [ -f "$OVERRIDE" ]; then
   BODY_FILE="$OVERRIDE"
   echo "Loading custom prompt from $OVERRIDE"
@@ -175,21 +179,22 @@ ${safe_comment_body}
 CTX_EOF
 )
 
-# Inline the shared tier→model table into the header so single-prompt runners (which follow no
-# markdown links) stay self-contained. Canonical source:
-# skills/using-woostack/references/model-tiers.md — kept in sync with default_model_for() above.
-TIERS_FILE="$ACTION_PATH/../using-woostack/references/model-tiers.md"
-if [ ! -f "$TIERS_FILE" ]; then
-  echo "::error::shared model-tiers doc not found: $TIERS_FILE"
-  exit 1
-fi
 HEADER_RAW="$(cat "$HEADER_FILE")"
-if ! printf '%s' "$HEADER_RAW" | grep -qF '<!-- WOO_MODEL_TIERS_TABLE -->'; then
-  echo "::error::_header.md is missing the <!-- WOO_MODEL_TIERS_TABLE --> inline marker"
+HEADER_INLINED="$HEADER_RAW"
+# Inline the shared tier→model table only for orchestrator prompts. Worker prompts do not need
+# the model matrix, and inlining it there is the token regression this split prevents.
+if printf '%s' "$HEADER_RAW" | grep -qF '<!-- WOO_MODEL_TIERS_TABLE -->'; then
+  TIERS_FILE="$ACTION_PATH/../using-woostack/references/model-tiers.md"
+  if [ ! -f "$TIERS_FILE" ]; then
+    echo "::error::shared model-tiers doc not found: $TIERS_FILE"
+    exit 1
+  fi
+  # Literal single-occurrence replacement of the marker with the shared doc body.
+  HEADER_INLINED="${HEADER_RAW/<!-- WOO_MODEL_TIERS_TABLE -->/$(cat "$TIERS_FILE")}"
+elif [ "$MODE_VALUE" != "review" ]; then
+  echo "::error::_orchestrator-header.md is missing the <!-- WOO_MODEL_TIERS_TABLE --> inline marker"
   exit 1
 fi
-# Literal single-occurrence replacement of the marker with the shared doc body.
-HEADER_INLINED="${HEADER_RAW/<!-- WOO_MODEL_TIERS_TABLE -->/$(cat "$TIERS_FILE")}"
 PROMPT_CONTENT=$(printf '%s\n\n%s\n\n%s\n' "$CONTEXT_HEAD" "$HEADER_INLINED" "$(cat "$BODY_FILE")")
 
 BYTES=$(printf '%s' "$PROMPT_CONTENT" | wc -c)
