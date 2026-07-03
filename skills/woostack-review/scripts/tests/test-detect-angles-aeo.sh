@@ -47,6 +47,12 @@ bash "$SCRIPT" >/dev/null 2>&1
 assert_contains "$(cat "$OUTDIR/angles.txt")" "aeo" "pricing content page enables aeo"
 rm -rf "$work"
 
+
+# Public pricing/product route implementations are also answer-engine citation surfaces.
+setup_diff "app/pricing/page.tsx" "+Compare plan limits and enterprise pricing."
+bash "$SCRIPT" >/dev/null 2>&1
+assert_contains "$(cat "$OUTDIR/angles.txt")" "aeo" "pricing route implementation enables aeo"
+rm -rf "$work"
 # Internal docs are not AEO unless the changed text carries an answer-engine token.
 setup_diff "docs/internal/runbook.md" "+Rotate the staging database password after a drill."
 bash "$SCRIPT" >/dev/null 2>&1
