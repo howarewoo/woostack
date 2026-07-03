@@ -1,6 +1,6 @@
 ---
 type: fix
-status: hardened
+status: executing
 branch: fix/issue-449-angle-gates
 ---
 
@@ -27,7 +27,7 @@ Make the review angle gates match the prompts and add advisory-only metrics feed
 
 ## 3. Implementation Plan
 
-- [ ] **Step 1: Reproduce with failing detection tests**
+- [x] **Step 1: Reproduce with failing detection tests**
   - Add `skills/woostack-review/scripts/tests/test-detect-angles-aeo.sh` covering:
     - `README.md` prose-only diff does not enable `aeo` and still enables `docs`.
     - `skills/example/SKILL.md` prose-only diff does not enable `aeo` and still enables `skills`.
@@ -38,7 +38,7 @@ Make the review angle gates match the prompts and add advisory-only metrics feed
   - Extend `skills/woostack-review/scripts/tests/test-detect-angles-seo.sh` so `app/api/users/route.ts` with `+export const metadata = { internal: true }` and a non-SEO source file with `+const hreflang = "en"` do not enable `seo`.
   - Run the new/changed detection tests before implementation and confirm the new cases fail for the current gate behavior.
 
-- [ ] **Step 2: Reproduce with failing metrics-fold tests**
+- [x] **Step 2: Reproduce with failing metrics-fold tests**
   - Add `skills/woostack-review/scripts/tests/test-metrics-fold-suggestions.sh` covering:
     - An angle at the sample-size threshold with `raw_total=0`, `kept_total=0`, and `blocking_total=0` prints a `consider review.angles.skip` advisory.
     - An angle at the threshold with `kept_total == nit_total` and `blocking_total == 0` prints a nit-only advisory.
@@ -47,25 +47,25 @@ Make the review angle gates match the prompts and add advisory-only metrics feed
     - The advisory is output-only and does not modify `.woostack/config.json`.
   - Run the new metrics test before implementation and confirm it fails for missing advisory output.
 
-- [ ] **Step 3: Tighten AEO and SEO detection**
+- [x] **Step 3: Tighten AEO and SEO detection**
   - Update `detect-angles.sh` comments and helper functions to distinguish hard path-only surfaces from soft path-plus-token surfaces.
   - Replace the generic AEO `\.(md|mdx|html)$` path trigger with explicit hard surfaces plus a narrow public-content/pricing predicate.
   - Add a SEO soft-file predicate and change the SEO append condition to hard-path OR soft-path-plus-token.
   - Preserve always-on `bugs`, `security`, and `simplify`, and preserve existing unrelated angle behavior.
 
-- [ ] **Step 4: Add metrics-driven skip advisories**
+- [x] **Step 4: Add metrics-driven skip advisories**
   - Update `metrics-fold.sh` after the aggregate write to compute advisory-only recommendations from the folded aggregate.
   - Use a conservative constant `ANGLE_SKIP_SUGGEST_MIN_RUNS=20` so small-sample angles like four-run `react` do not get noisy suggestions.
   - Exclude unskippable core angles (`bugs`, `security`, `simplify`) from suggestions.
   - Print concise advisory lines such as `metrics-fold: angle aeo: 35 runs, 0 blocking, 0 kept — consider review.angles.skip += ["aeo"]`.
   - Do not auto-edit config; this is guidance for maintainers.
 
-- [ ] **Step 5: Update review docs**
+- [x] **Step 5: Update review docs**
   - Update `skills/woostack-review/SKILL.md` metrics configuration text to say aggregate schema v3.
   - Update Stage 6.5 to document zero-signal and nit-only advisory output, including the `review.angles.skip` destination and the sample-size caveat.
   - Update authored docs-site pages that state the changed behavior: `site/content/docs/configuration.mdx` for metrics/skip guidance and `site/content/docs/concepts/review-angles.mdx` for the tightened AEO summary.
 
-- [ ] **Step 6: Verification**
+- [x] **Step 6: Verification**
   - Run `bash skills/woostack-review/scripts/tests/test-detect-angles-seo.sh`.
   - Run `bash skills/woostack-review/scripts/tests/test-detect-angles-aeo.sh`.
   - Run `bash skills/woostack-review/scripts/tests/test-metrics-fold-suggestions.sh`.

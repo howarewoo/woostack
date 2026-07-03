@@ -95,4 +95,16 @@ bash "$SCRIPT" >/dev/null 2>&1
 assert_eq "$(absent)" "0" "unchanged-context metadata does not enable seo"
 rm -rf "$work"
 
+
+# 14. Backend API metadata-shaped code is not an SEO surface.
+setup_diff "app/api/users/route.ts" '+export const metadata = { internal: true }'
+bash "$SCRIPT" >/dev/null 2>&1
+assert_eq "$(absent)" "0" "API route metadata-shaped code does not enable seo"
+rm -rf "$work"
+
+# 15. Source-local hreflang variable names are not SEO alternate-link edits.
+setup_diff "src/locale.ts" '+const hreflang = "en"'
+bash "$SCRIPT" >/dev/null 2>&1
+assert_eq "$(absent)" "0" "source hreflang variable does not enable seo"
+rm -rf "$work"
 finish

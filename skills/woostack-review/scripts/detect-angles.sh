@@ -9,16 +9,19 @@
 #   security  — always on
 #   simplify  — always on
 #   seo       — HARD files (fire on path alone): robots.txt, sitemap.{xml,ts},
-#               app/manifest.{ts,json}. SOFT surfaces (*.html, head/layout.{ts,tsx,js,jsx},
-#               next.config.*) no longer gate on path — they fire only via a diff token:
-#               legacy <meta / og: / twitter: / rel=canonical / name=robots / <loc> /
-#               Sitemap:, OR a changed-line (^[+-]) metadata co-signal generateMetadata /
-#               export const metadata / hreflang (additions and removals). <title and
-#               <link rel= are excluded (SVG <title> / stylesheet-link collisions).
-#   aeo       — robots.txt, llms.txt, pricing.{md,txt}, *.{md,mdx,html}, OR diff
-#               body contains AI-crawler tokens (GPTBot / PerplexityBot /
+#               app/manifest.{ts,json}. SOFT surfaces (*.html, head/layout/page
+#               files, next.config.*) fire only via a diff token: legacy <meta /
+#               og: / twitter: / rel=canonical / name=robots / <loc> / Sitemap:,
+#               OR a changed-line (^[+-]) metadata co-signal generateMetadata /
+#               export const metadata / hreflang (additions and removals). <title
+#               and <link rel= are excluded (SVG <title> / stylesheet-link
+#               collisions).
+#   aeo       — HARD files (fire on path alone): robots.txt, llms.txt,
+#               pricing.{md,txt}. Public content surfaces such as app/pages
+#               pricing/product/blog/docs/marketing MDX/HTML also fire on path.
+#               Otherwise only AI-crawler tokens (GPTBot / PerplexityBot /
 #               ClaudeBot / Google-Extended / anthropic-ai) or JSON-LD schema
-#               types (FAQPage / HowTo / Article / Product / ItemList)
+#               types (FAQPage / HowTo / Article / Product / ItemList) fire it.
 #   design    — *.{tsx,jsx,vue,svelte,html,css,scss,sass,less,styl,astro}
 #   react     — *.{tsx,jsx} in the diff. The angle handles non-React .tsx
 #               (e.g. Solid, Preact-only) gracefully, so a package.json check is
@@ -115,6 +118,13 @@ has_seo_file() {
   return 1
 }
 
+has_seo_soft_file() {
+  echo "$CHANGED_PATHS" | grep -qE '\.html$' && return 0
+  echo "$CHANGED_PATHS" | grep -qE '(^|/)(app|pages)/([^/]+/)*(head|layout|page)\.(ts|tsx|js|jsx|mdx)$' && return 0
+  echo "$CHANGED_PATHS" | grep -qE '(^|/)next\.config\.(ts|js|mjs|cjs)$' && return 0
+  return 1
+}
+
 has_seo_diff_token() {
   # Legacy unanchored tokens: meta tags, og:/twitter: prefixed props, rel=canonical,
   # name=robots, <loc> sitemap entries, Sitemap: directive.
@@ -129,8 +139,12 @@ has_seo_diff_token() {
 }
 
 has_aeo_file() {
+  # Hard AEO surfaces only — unambiguous crawler/answer-engine controls.
   echo "$CHANGED_PATHS" | grep -qE '(^|/)(robots\.txt|llms\.txt|pricing\.(md|txt))$' && return 0
-  echo "$CHANGED_PATHS" | grep -qE '\.(md|mdx|html)$' && return 0
+  # Public content surfaces where answer engines may quote product/pricing/docs
+  # copy. Generic README/SKILL/internal docs stay on docs/skills unless an AEO
+  # diff token is present.
+  echo "$CHANGED_PATHS" | grep -qE '(^|/)((app|pages)/(pricing|products?|blog|content|docs|marketing|landing)(/|$)|site/content/docs/|content/(blog|docs|guides|marketing|pricing|products?)/|marketing/|public/(pricing|docs|blog)/).*\.(md|mdx|html)$' && return 0
   return 1
 }
 
@@ -271,7 +285,7 @@ if [ -f "$OUTDIR/rules.md" ]; then
   ANGLES+=("conventions")
 fi
 
-if has_seo_file || has_seo_diff_token; then
+if has_seo_file || { has_seo_soft_file && has_seo_diff_token; }; then
   ANGLES+=("seo")
 fi
 
