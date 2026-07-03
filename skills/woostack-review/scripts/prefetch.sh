@@ -673,22 +673,18 @@ if [ -n "$ROOT" ]; then
   RULES_SEEN_REAL="$(mktemp)"
   RULES_SEEN_HASH="$(mktemp)"
 
-  rule_realpath() {
+  # One python3 spawn per candidate: prints the resolved real path on line 1
+  # and the sha256 content digest on line 2.
+  rule_identity() {
     python3 - "$ROOT/$1" <<'PY'
+import hashlib
 import os
 import sys
 
-print(os.path.realpath(sys.argv[1]))
-PY
-  }
-
-  rule_hash() {
-    python3 - "$ROOT/$1" <<'PY'
-import hashlib
-import sys
-
+path = sys.argv[1]
+print(os.path.realpath(path))
 h = hashlib.sha256()
-with open(sys.argv[1], "rb") as fh:
+with open(path, "rb") as fh:
     for chunk in iter(lambda: fh.read(1024 * 1024), b""):
         h.update(chunk)
 print(h.hexdigest())
@@ -697,13 +693,14 @@ PY
 
   include_rule_once() {
     local rel="$1"
-    local real hash
+    local identity real hash
 
     [ -n "$rel" ] || return 0
     [ -f "$ROOT/$rel" ] || return 0
 
-    real="$(rule_realpath "$rel")"
-    hash="$(rule_hash "$rel")"
+    identity="$(rule_identity "$rel")"
+    real="$(printf '%s\n' "$identity" | sed -n '1p')"
+    hash="$(printf '%s\n' "$identity" | sed -n '2p')"
 
     if grep -qxF "$rel" "$RULES_SEEN_REL"; then
       return 0
@@ -751,11 +748,12 @@ PY
     done < <(jq -r '.project_rules[]?' "$OUTDIR/config.json")
   fi
 
-  RULES_UNIQUE="$(awk 'NF && !seen[$0]++' "$RULES_LIST")"
-  if [ -n "$RULES_UNIQUE" ]; then
+  # include_rule_once dedupes by rel path / real path / content hash and skips
+  # blank lines itself, so the candidate list feeds it directly.
+  if [ -s "$RULES_LIST" ]; then
     while IFS= read -r rel; do
       include_rule_once "$rel"
-    done <<< "$RULES_UNIQUE"
+    done < "$RULES_LIST"
   fi
 
   if [ -s "$RULES_INCLUDED" ]; then

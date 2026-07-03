@@ -20,13 +20,15 @@ ln -s AGENTS.md GEMINI.md
 ln -s ../AGENTS.md .claude/CLAUDE.md
 ln -s ../AGENTS.md src/AGENTS.md
 cp AGENTS.md docs/copied-rules.md
+printf 'distinct docs-only rule\n' > docs/unique-rules.md
 cat > .woostack/config.json <<'JSON'
 {
   "review": {
     "project_rules": [
       "AGENTS.md",
       ".claude/CLAUDE.md",
-      "docs/copied-rules.md"
+      "docs/copied-rules.md",
+      "docs/unique-rules.md"
     ]
   }
 }
@@ -53,11 +55,15 @@ rules="$(cat "$out/rules.md")"
 stdout="$(cat /tmp/review-prefetch-rule-dedupe.out)"
 
 assert_contains "$stdout" "Prefetch complete" "prefetch completes"
-assert_eq "$(printf '%s\n' "$rules" | grep -c '^## SOURCE:')" "1" \
-  "symlinked/copied project rules are emitted once"
+assert_eq "$(printf '%s\n' "$rules" | grep -c '^## SOURCE:')" "2" \
+  "aliases collapse to one entry while distinct-content rules stay separate"
 assert_eq "$(printf '%s\n' "$rules" | grep -c '^canonical review rule$')" "1" \
   "canonical rule body appears once"
 assert_contains "$rules" "## SOURCE: AGENTS.md" "first discovered source label is preserved"
+assert_contains "$rules" "## SOURCE: docs/unique-rules.md" \
+  "distinct-content rule file keeps its own source section"
+assert_eq "$(printf '%s\n' "$rules" | grep -c '^distinct docs-only rule$')" "1" \
+  "distinct rule body is emitted"
 
 popd >/dev/null
 rm -rf "$work"
