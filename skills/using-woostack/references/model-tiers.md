@@ -25,9 +25,10 @@ implicitly `fast`.
 
 - **Per-call routing** (Claude Code `Task`, Codex local subagents with a `model` override,
   opencode `@subagent`): resolve the effective tier = a forced tier if the host sets one, else
-  the prompt's own `tier:` frontmatter; map it to the column for the active provider; **pass that
-  model on every spawn.** Never rely on inherited parent-session model selection when a spawn API
-  accepts an explicit model.
+  the prompt's own `tier:` frontmatter; resolve it through the active provider's column plus the
+  override precedence below; **pass everything the resolved tier specifies on every spawn.**
+  Never rely on inherited parent-session settings when a spawn API accepts them explicitly, and
+  never substitute a mapping that is not configured here.
 - **Single model per session** (Codex Action without subagent model overrides, Antigravity CLI): resolve
   one run model up front; per-tier behavior collapses onto that one model for the whole job.
 
