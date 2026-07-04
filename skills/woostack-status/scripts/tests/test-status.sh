@@ -11,7 +11,7 @@ CODE=0
 run_status() {
   local wd="$1"; shift
   set +e
-  OUT="$(WOO_DIR="$wd" bash "$ST" "$@" 2>&1)"
+  OUT="$(WOO_DIR="$wd" WOO_STATUS_NO_OPEN=1 bash "$ST" "$@" 2>&1)"
   CODE=$?
   set -e
 }

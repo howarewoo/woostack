@@ -156,4 +156,6 @@ HTML="$(cat "$r/visuals/status-board.html")"
 assert_contains "$HTML" "gh not found" "AC5: gh notice in HTML footer"
 assert_contains "$HTML" "pass --fetch to refresh" "AC5: fetch note in HTML footer"
 
+assert_contains "$(cat "$DIR/tests/run-tests.sh")" "WOO_STATUS_NO_OPEN" "test runner suppresses the opener globally"
+
 finish
