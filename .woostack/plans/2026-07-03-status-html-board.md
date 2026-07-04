@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-07-03-status-html-board.md
-status: ready
+status: done
 branch: feature/status-html-board
 ---
 
@@ -25,7 +25,7 @@ branch: feature/status-html-board
 - Create: `skills/woostack-status/scripts/board-template.html`
 - Test: `skills/woostack-status/scripts/tests/test-html-board.sh` (first assertions; file grows in Task 2)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
   Create `skills/woostack-status/scripts/tests/test-html-board.sh`:
 
@@ -51,11 +51,11 @@ branch: feature/status-html-board
   finish
   ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
   Run: `bash skills/woostack-status/scripts/tests/test-html-board.sh`
   Expected: FAIL — `board-template.html exists` (template not yet written).
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
   Create `skills/woostack-status/scripts/board-template.html`. Each `WOO_*` marker sits on its own line (the renderer replaces whole marker lines):
 
@@ -140,11 +140,11 @@ branch: feature/status-html-board
   </html>
   ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
   Run: `bash skills/woostack-status/scripts/tests/test-html-board.sh`
   Expected: PASS — `7 passed, 0 failed` (template assertions only).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   # First commit in the increment (from the increment worktree):
   gt create -m "feat: add woostack-status board HTML template"
@@ -156,7 +156,7 @@ branch: feature/status-html-board
 - Modify: `skills/woostack-status/scripts/status.sh` (arg parse ~line 15-24; per-spec loop ~line 303-380; footer ~line 383-391)
 - Test: `skills/woostack-status/scripts/tests/test-html-board.sh` (extend)
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
   Append to `skills/woostack-status/scripts/tests/test-html-board.sh` **above** the `finish` line (helpers mirror `test-status.sh`):
 
@@ -279,11 +279,11 @@ branch: feature/status-html-board
   assert_contains "$HTML" "pass --fetch to refresh" "AC5: fetch note in HTML footer"
   ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
   Run: `bash skills/woostack-status/scripts/tests/test-html-board.sh`
   Expected: FAIL — `AC1: status-board.html written` and subsequent assertions (script writes no HTML yet).
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
 
   Modify `skills/woostack-status/scripts/status.sh`:
 
@@ -383,15 +383,15 @@ branch: feature/status-html-board
 
   (`render_html`'s non-zero return only skips the opener; the script still reaches `exit 0`.)
 
-- [ ] **Step 4: Run the tests, confirm they pass**
+- [x] **Step 4: Run the tests, confirm they pass**
   Run: `bash skills/woostack-status/scripts/tests/test-html-board.sh && bash skills/woostack-status/scripts/tests/run-tests.sh`
   Expected: PASS on the new file **and** every pre-existing `test-status.sh` assertion (AC2), `0 failed` overall.
 
-- [ ] **Step 5: Syntax check on bash 3.2 shape**
+- [x] **Step 5: Syntax check on bash 3.2 shape**
   Run: `bash -n skills/woostack-status/scripts/status.sh && /bin/bash --version | head -1`
   Expected: no output from `-n`; version line confirms the system bash 3.2 used by the tests.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
   ```bash
   gt modify -c -m "feat: render woostack-status board to HTML and open it"
   ```
@@ -402,11 +402,11 @@ branch: feature/status-html-board
 - Modify: `skills/woostack-status/SKILL.md` (Commands ~line 25-29; Procedure step 1 ~line 33-44; Hard constraints ~line 72-75)
 - Modify: `site/content/docs/concepts.mdx:97`
 
-- [ ] **Step 1: Write the failing check**
+- [x] **Step 1: Write the failing check**
   Run: `grep -c 'no-open' skills/woostack-status/SKILL.md; grep -c 'HTML' site/content/docs/concepts.mdx`
   Expected: FAIL — both greps print `0` (docs not yet updated).
 
-- [ ] **Step 2: Update SKILL.md**
+- [x] **Step 2: Update SKILL.md**
 
   In `## Commands`, add:
 
@@ -432,7 +432,7 @@ branch: feature/status-html-board
     sanctioned exception — it is a presentation target, never a source of truth.
   ```
 
-- [ ] **Step 3: Update site/content/docs/concepts.mdx line 97**
+- [x] **Step 3: Update site/content/docs/concepts.mdx line 97**
 
   Change:
 
@@ -449,11 +449,11 @@ branch: feature/status-html-board
 
   (preserve the sentence's continuation on the following line unchanged).
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
   Run: `grep -c 'no-open' skills/woostack-status/SKILL.md; grep -c 'HTML render' site/content/docs/concepts.mdx; pnpm -C site build >/dev/null && echo SITE_OK`
   Expected: both greps ≥ 1; `SITE_OK`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt modify -c -m "docs: document woostack-status HTML board and --no-open"
   ```

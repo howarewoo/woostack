@@ -90,9 +90,10 @@ PRs.
 ## Computed, not authored
 
 <Callout type="info">
-  The board is computed fresh each run and printed to the terminal. It never fetches, commits, or
-  pushes, and there is no committed status file. A lagging authored `status:` is reconciled
-  against the artifacts, not trusted blindly.
+  The board is computed fresh each run, printed to the terminal, and mirrored to a gitignored
+  HTML render under `.woostack/visuals/status-board.html`. It never fetches, commits, pushes, or
+  writes a tracked status file. A lagging authored `status:` is reconciled against the artifacts,
+  not trusted blindly.
 </Callout>
 
 For phases before a plan exists, the board shows the spec's authored `status:`. Once execution
@@ -104,5 +105,5 @@ than `ready`, whose spec+plan PR is expected) while PRs already exist, two in-fl
 branch, and executing rows older than
 `status.staleDays` (a [config](/docs/configuration) key, default 14).
 
-Because `status.sh` only reads (it exits 0 even when it prints drift flags), the board is safe
-to run anywhere, including CI, without mutating anything.
+Because `status.sh` exits 0 even when it prints drift flags and only writes the gitignored HTML
+render, the board is safe to run anywhere, including CI, without mutating tracked state.

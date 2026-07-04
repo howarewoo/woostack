@@ -20,6 +20,14 @@ assert_exit() { # expected_code actual_code msg
   if [ "$1" = "$2" ]; then PASS=$((PASS+1)); else
     FAIL=$((FAIL+1)); echo "  FAIL: $3 (expected exit $1, got $2)"; fi
 }
+assert_file_exists() { # path msg
+  if [ -s "$1" ]; then PASS=$((PASS+1)); else
+    FAIL=$((FAIL+1)); echo "  FAIL: $2"; echo "    file missing or empty: [$1]"; fi
+}
+assert_file_absent() { # path msg
+  if [ ! -e "$1" ]; then PASS=$((PASS+1)); else
+    FAIL=$((FAIL+1)); echo "  FAIL: $2"; echo "    file exists: [$1]"; fi
+}
 finish() { echo "  $PASS passed, $FAIL failed"; [ "$FAIL" -eq 0 ]; }
 
 # Build a throwaway memory dir; echoes its path.
