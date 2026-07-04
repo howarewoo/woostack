@@ -296,6 +296,51 @@ assert_contains "$OUT" "executing" "authored done does not override closed-unmer
 assert_contains "$OUT" "0 done" "authored done with closed-unmerged increment not counted done"
 unset FAKE_GH_JSON
 
+# Zero-checkbox plans carry no progress signal (issue #456): trust an explicit
+# authored done when all discovered increment PRs are merged...
+zd="$(mktemp -d)/.woostack"; mkspec "$zd" zuludone done feature/zuludone
+mkplan "$zd" zuludone 2026-06-01-zuludone.md 0 0 done feature/zuludone
+export FAKE_GH_JSON='[{"number":21,"state":"MERGED","headRefName":"feature/zuludone-1","author":{"login":"a"},"updatedAt":"2026-06-02T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-zuludone.md"},{"number":22,"state":"MERGED","headRefName":"feature/zuludone-2","author":{"login":"a"},"updatedAt":"2026-06-03T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-zuludone.md"}]'
+PATH="$g/bin:$PATH" run_status "$zd"
+assert_contains "$OUT" "1 done" "zero-checkbox authored done + all merged counts as done"
+assert_not_contains "$OUT" "zuludone " "zero-checkbox done hidden by default"
+unset FAKE_GH_JSON
+
+# ...but a closed-unmerged increment still blocks done, exactly like checkbox plans.
+zc="$(mktemp -d)/.woostack"; mkspec "$zc" zuluclosed done feature/zuluclosed
+mkplan "$zc" zuluclosed 2026-06-01-zuluclosed.md 0 0 done feature/zuluclosed
+export FAKE_GH_JSON='[{"number":23,"state":"MERGED","headRefName":"feature/zuluclosed-1","author":{"login":"a"},"updatedAt":"2026-06-02T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-zuluclosed.md"},{"number":24,"state":"CLOSED","headRefName":"feature/zuluclosed-2","author":{"login":"a"},"updatedAt":"2026-06-03T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-zuluclosed.md"}]'
+PATH="$g/bin:$PATH" run_status "$zc"
+assert_contains "$OUT" "zuluclosed" "zero-checkbox done with closed-unmerged increment stays visible"
+assert_contains "$OUT" "executing" "zero-checkbox done does not override closed-unmerged increment"
+assert_contains "$OUT" "0 done" "zero-checkbox done with closed-unmerged increment not counted done"
+unset FAKE_GH_JSON
+
+# ...and the legacy no-PR no-commits case mirrors the 100%-plan legacy rule.
+zl="$(mktemp -d)/.woostack"; mkspec "$zl" zululeg done feature/zululeg
+mkplan "$zl" zululeg 2026-06-01-zululeg.md 0 0 done feature/zululeg
+FAKE_GH_JSON='[]' PATH="$g/bin:$PATH" run_status "$zl"
+assert_contains "$OUT" "1 done" "zero-checkbox authored done + no PRs + no commits counts as done"
+assert_not_contains "$OUT" "zululeg " "zero-checkbox legacy done hidden by default"
+
+# Authored executing with zero checkboxes must NOT flip to done on merged PRs —
+# only an explicit authored done is trusted for a plan with no progress signal.
+ze="$(mktemp -d)/.woostack"; mkspec "$ze" zuluexec executing feature/zuluexec
+mkplan "$ze" zuluexec 2026-06-01-zuluexec.md 0 0 executing feature/zuluexec
+export FAKE_GH_JSON='[{"number":25,"state":"MERGED","headRefName":"feature/zuluexec-1","author":{"login":"a"},"updatedAt":"2026-06-02T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-zuluexec.md"}]'
+PATH="$g/bin:$PATH" run_status "$ze"
+assert_contains "$OUT" "executing" "zero-checkbox authored executing stays executing on merged PRs"
+assert_contains "$OUT" "0 done" "zero-checkbox authored executing not counted done"
+unset FAKE_GH_JSON
+
+# An open increment PR still wins: in-review is derived before any done rule.
+zo="$(mktemp -d)/.woostack"; mkspec "$zo" zuluopen done feature/zuluopen
+mkplan "$zo" zuluopen 2026-06-01-zuluopen.md 0 0 done feature/zuluopen
+export FAKE_GH_JSON='[{"number":26,"state":"OPEN","headRefName":"feature/zuluopen-1","author":{"login":"a"},"updatedAt":"2026-06-03T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-zuluopen.md"}]'
+PATH="$g/bin:$PATH" run_status "$zo"
+assert_contains "$OUT" "in-review" "zero-checkbox done with open PR derives in-review"
+unset FAKE_GH_JSON
+
 mkspec "$o" papa abandoned feature/papa
 run_status "$o"
 assert_contains "$OUT" "abandoned" "abandoned counted in footer"

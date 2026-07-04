@@ -175,9 +175,17 @@ prs_for_branch() {
 }
 
 resolve_phase() {
-  local authored="$1" hasPlan="$2" frac="$3" open="$4" merged="$5" prcount="$6" branchExists="$7" hasCommits="$8"
+  local authored="$1" hasPlan="$2" frac="$3" open="$4" merged="$5" prcount="$6" branchExists="$7" hasCommits="$8" total="${9:-0}"
   if [ "$open" -gt 0 ]; then echo "in-review"; return; fi
   if [ "$frac" = "100" ] && [ "$merged" -gt 0 ] && [ "$merged" -eq "$prcount" ]; then echo "done"; return; fi
+  # A zero-checkbox plan carries no progress signal (frac stays 0, so the rules
+  # above and below can never confirm done). Trust an explicit authored done when
+  # every discovered increment PR is merged (a closed-unmerged PR keeps the feature
+  # visible), or — mirroring the legacy rule below — when nothing was discovered.
+  if [ "$authored" = "done" ] && [ "$total" -eq 0 ]; then
+    if [ "$merged" -gt 0 ] && [ "$merged" -eq "$prcount" ]; then echo "done"; return; fi
+    if [ "$prcount" -eq 0 ] && [ "$hasCommits" -eq 0 ]; then echo "done"; return; fi
+  fi
   # Legacy/untrailered features have no discoverable PR, so the rule above can't confirm
   # done. Trust an explicit authored `done` only when the plan is 100% complete, no
   # increment PR was found, and no active branch commits are visible; discovered increments
@@ -378,7 +386,7 @@ for f in "${specs[@]}"; do
     [ -n "$(branch_ref "$br")" ] && branchExists=1
     branch_has_commits "$br" && hasCommits=1
   fi
-  eff="$(resolve_phase "$phase" "$hasPlan" "$frac" "$open" "$merged" "$prcount" "$branchExists" "$hasCommits")"
+  eff="$(resolve_phase "$phase" "$hasPlan" "$frac" "$open" "$merged" "$prcount" "$branchExists" "$hasCommits" "$total")"
 
   if [ -z "$br" ] || [ "$br" = unknown ]; then
     case "$eff" in executing|in-review|done) flag "$name: branch is '${br:-empty}' - set branch:" ;; esac
