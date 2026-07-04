@@ -146,6 +146,37 @@ for supp in "--no-open" "ENV" "CI" "GHA"; do
     || { FAIL=$((FAIL+1)); echo "  FAIL: AC4: HTML still written ($supp)"; }
 done
 
+# --- AC1 edge: all rows done/abandoned -> visible table carries a placeholder row ---
+r6="$(mktemp -d)/.woostack"
+mkspec "$r6" omega done feature/omega
+run_status "$r6"
+HTML6="$(cat "$r6/visuals/status-board.html")"
+assert_contains "$HTML6" "All specs are done or abandoned" "AC1 edge: empty visible table gets placeholder"
+assert_contains "$HTML6" "omega" "AC1 edge: done row still in hidden section"
+
+# --- AC1: multi-PR increment chips accumulate (one chip per PR, mixed states) ---
+r5="$(mktemp -d)/.woostack"
+mkspec "$r5" multi in-review feature/multi
+ghstub="$(mktemp -d)"
+cat > "$ghstub/gh" <<'GHEOF'
+#!/usr/bin/env bash
+if [ "${1:-}" = "pr" ] && [ "${2:-}" = "list" ]; then
+  cat <<'JSON'
+[{"number":11,"state":"OPEN","headRefName":"feature/multi-2","author":{"login":"a"},"updatedAt":"2026-06-02T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-multi.md"},
+ {"number":10,"state":"MERGED","headRefName":"feature/multi-1","author":{"login":"a"},"updatedAt":"2026-06-01T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-multi.md"}]
+JSON
+else
+  echo "[]"
+fi
+GHEOF
+chmod +x "$ghstub/gh"
+set +e
+WOO_DIR="$r5" WOO_STATUS_NO_OPEN=1 WOOSTACK_GH="$ghstub/gh" bash "$ST" >/dev/null 2>&1
+set -e
+HTML5="$(cat "$r5/visuals/status-board.html")"
+assert_contains "$HTML5" '<span class="chip c-open">#11 open</span>' "AC1: open PR chip rendered"
+assert_contains "$HTML5" '<span class="chip c-merged">#10 merged</span>' "AC1: merged PR chip rendered"
+
 # --- AC5: gh degradation mirrored in HTML footer ---
 r="$(mktemp -d)/.woostack"
 mkspec "$r" alpha draft feature/alpha

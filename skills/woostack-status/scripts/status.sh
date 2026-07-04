@@ -279,9 +279,7 @@ render_html() {
 
 maybe_open() {
   local f="$1"
-  [ "$NO_OPEN" -eq 1 ] && return 0
-  [ "${WOO_STATUS_NO_OPEN:-}" = "1" ] && return 0
-  if [ -n "${CI:-}" ] || [ -n "${GITHUB_ACTIONS:-}" ]; then return 0; fi
+  if [ "$NO_OPEN" -eq 1 ] || [ "${WOO_STATUS_NO_OPEN:-}" = "1" ] || [ -n "${CI:-}" ] || [ -n "${GITHUB_ACTIONS:-}" ]; then return 0; fi
   if command -v open >/dev/null 2>&1 && open "$f" 2>/dev/null; then return 0; fi
   if command -v xdg-open >/dev/null 2>&1 && xdg-open "$f" >/dev/null 2>&1; then return 0; fi
   printf '\nnote: no opener found - open %s manually' "$f"
@@ -448,17 +446,23 @@ if [ -n "$FLAGS" ]; then
   done <<< "$FLAGS"
   html_flags="${html_flags}</ul></div>"
 fi
+if [ -z "$html_rows" ] && [ -n "$html_hidden_rows" ]; then
+  html_rows="<tr><td colspan=\"7\" class=\"empty\">All specs are done or abandoned - see the collapsed section below</td></tr>"$'\n'
+fi
+
+gh_note="note: gh not found - PR/increment/owner data omitted for PR-phase rows"
+fetch_note="note: PR-less branch data may be stale; pass --fetch to refresh"
 html_footer="$done_count done · $abandoned_count abandoned"
-[ "$gh_missing" -eq 1 ] && html_footer="$html_footer"$'\n'"note: gh not found - PR/increment/owner data omitted for PR-phase rows"
-[ "$DO_FETCH" -eq 0 ] && html_footer="$html_footer"$'\n'"note: PR-less branch data may be stale; pass --fetch to refresh"
+[ "$gh_missing" -eq 1 ] && html_footer="$html_footer"$'\n'"$gh_note"
+[ "$DO_FETCH" -eq 0 ] && html_footer="$html_footer"$'\n'"$fetch_note"
 
 printf '%-22s %-10s %-7s %-20s %-7s %-5s %s\n' SPEC PHASE PLAN INCREMENTS OWNER AGE NEXT
 printf '%s' "$rows"
 [ -n "$FLAGS" ] && printf '\n! FLAGS\n%s' "$FLAGS"
 printf '\n%d done . %d abandoned' "$done_count" "$abandoned_count"
 [ "$SHOW_ALL" -eq 0 ] && printf '   (--all to expand)'
-[ "$gh_missing" -eq 1 ] && printf '\nnote: gh not found - PR/increment/owner data omitted for PR-phase rows'
-[ "$DO_FETCH" -eq 0 ] && printf '\nnote: PR-less branch data may be stale; pass --fetch to refresh'
+[ "$gh_missing" -eq 1 ] && printf '\n%s' "$gh_note"
+[ "$DO_FETCH" -eq 0 ] && printf '\n%s' "$fetch_note"
 if render_html; then
   maybe_open "$WOO_DIR/visuals/status-board.html"
 fi
