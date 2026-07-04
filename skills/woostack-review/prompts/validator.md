@@ -24,7 +24,7 @@ printf '[]\n' > "${OUTDIR:-/tmp/pr-review}/findings.defender.json"
 ```
 
 ### Step 1 — Review Summary
-Launch one Haiku subagent. Task:
+Launch one `fast`-tier subagent (resolve the tier per the shared Model Tiers table — this is the implicitly-`fast` context/summary helper). Task:
 - Read /tmp/pr-review/diff.txt, /tmp/pr-review/meta.json, /tmp/pr-review/angles.txt, and /tmp/pr-review/rules.md if it exists.
 - Produce a 1–2 sentence summary of the changes and the review focus.
 - **DO NOT** edit the PR title or body. The summary will be used in the native Review payload.

@@ -50,12 +50,11 @@ Rules:
   Summary bullets, and Test plan bullets (Automated and Manual).
 - Pass a bounded prompt containing the staged diff, changed-file list, commands run and
   results, relevant user intent, and any existing PR title/body that should be preserved.
-- Use the host's fast model when it can be selected explicitly. Follow the `fast` tier in
-  [`../woostack-review/prompts/_header.md`](../woostack-review/prompts/_header.md) for
-  provider-specific defaults, such as `claude-haiku-4-5` for Anthropic,
-  `gpt-5.3-codex-spark` for OpenAI Codex, `gemini-3-5-flash` for Gemini, or
-  `openrouter/deepseek/deepseek-v4-flash` for OpenRouter. If the host cannot route a
-  subagent to a fast model, draft inline in the main session.
+- Route the subagent at the `fast` tier when the host can select it explicitly: resolve the
+  tier through the shared
+  [Model Tiers table](../using-woostack/references/model-tiers.md) and pass what it resolves
+  to on the spawn. If the host cannot route a subagent per call, draft inline in the main
+  session.
 - The subagent must return only proposed text. It must not run commands, stage files,
   commit, push, edit PRs, or decide whether dirty files are relevant.
 - Before using any draft, compare it against the staged diff and command results. Rewrite or

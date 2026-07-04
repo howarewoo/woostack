@@ -33,11 +33,11 @@ VA_LINE="$(grep 'VALID_ANGLES' "$DIR/load-config.sh")"
 assert_contains "$VA_LINE" "simplify" "VALID_ANGLES includes simplify"
 assert_contains "$VA_LINE" "production-readiness" "VALID_ANGLES includes production-readiness"
 
-# Site 10 (anthropic.md Sonnet-tier list): both angles must appear so the
+# Site 10 (anthropic.md standard-tier angle list): both angles must appear so the
 # per-provider tier table doesn't silently drop them (memory: review-add-angle-sites,
 # the site historically missed for the comments angle).
-ANTHRO_LINE="$(grep 'Sonnet for' "$DIR/../prompts/anthropic.md")"
-assert_contains "$ANTHRO_LINE" "simplify" "anthropic Sonnet tier lists simplify"
-assert_contains "$ANTHRO_LINE" "production-readiness" "anthropic Sonnet tier lists production-readiness"
+ANTHRO_LINE="$(grep 'effort: medium.*(' "$DIR/../prompts/anthropic.md")"
+assert_contains "$ANTHRO_LINE" "simplify" "anthropic standard tier lists simplify"
+assert_contains "$ANTHRO_LINE" "production-readiness" "anthropic standard tier lists production-readiness"
 
 finish

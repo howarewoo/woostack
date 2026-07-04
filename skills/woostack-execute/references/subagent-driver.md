@@ -112,16 +112,16 @@ from complexity and risk — this table is the single home for the choice:
 ### Dispatch model (resolve → map → pass)
 
 Before each subagent dispatch, resolve the task's **effective tier** (role default, adjusted per
-[Tier selection](#tier-selection) above), map it to the host's model via the shared
-[model-tiers.md](../../using-woostack/references/model-tiers.md) (use the column for the host's
-provider — usually the session's), and **pass that model on the dispatch** (the `model:` arg of
-the `Agent`/`Task` call). Pass whatever value the host's subagent API accepts — a concrete slug
-where it takes slugs, or the tier's model **family** (`haiku`/`sonnet`/`opus`) where it takes
-families.
+[Tier selection](#tier-selection) above) and resolve it through the shared
+[model-tiers.md](../../using-woostack/references/model-tiers.md) (the host provider's column plus
+any configured overrides, per that file's precedence rules). **Pass exactly what the resolved
+tier specifies** on the dispatch, in whatever form the host's spawn API accepts. The configured
+tiers are the single source of what a tier resolves to — never invent a mapping that is not
+configured there.
 
-**When the host supports per-call routing, every dispatch MUST pass the resolved model.** Omitting
-it makes the subagent inherit the parent session's model (typically Opus), silently defeating tier
-routing and burning multiples of the tokens on cheap work — the same rationale
+**When the host supports per-call routing, every dispatch MUST pass the tier's resolved
+values.** Omitting them makes the subagent inherit the parent session's settings, silently
+defeating tier routing and burning multiples of the tokens on cheap work — the same rationale
 `woostack-review`'s [`prompts/anthropic.md`](../../woostack-review/prompts/anthropic.md) already
 states for its angle spawns. **When the host cannot route per call**, run at the session model and
 **say so** (degraded, not equivalent) — never pretend a tier ran.
