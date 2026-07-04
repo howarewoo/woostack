@@ -45,9 +45,9 @@ For each increment PR in range, from the **base of the stack upward**, work in a
 worktree** on the existing increment branch. If that branch is already checked out in a preserved
 worktree, reuse it; otherwise set `wt="$WOOSTACK_ROOT/.woostack/worktrees/<inc-slug>-sweep"` and
 run `git worktree add "$wt" <inc-branch>` — **no** `-b`. The **primary tree is never edited**
-([worktree contract](../woostack-init/references/worktrees.md) §3). Export
-`WOOSTACK_ROOT="$(cd "$(git rev-parse --git-common-dir)/.." && pwd)"` first (contract §5) so any
-`address-comments` memory write lands in the primary store. Then loop, up to `max_rounds` rounds
+([worktree contract](../woostack-init/references/worktrees.md) §3). Export the primary root only
+for metrics/telemetry sidecars (contract §5); tracked `address-comments` memory writes stay in the
+per-PR worktree so they ride that branch's commit. Then loop, up to `max_rounds` rounds
 (see Config):
 
 > **Receipt before clean — never self-review.** A PR is marked `clean` **only** from a real

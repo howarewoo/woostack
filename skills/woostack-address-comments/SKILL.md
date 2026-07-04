@@ -12,9 +12,10 @@ against the code and recommends **FIX** / **ACCEPT** (push back, with reasoning)
 **CLARIFY**. By **default** it presents the batched recommendations — including the
 one-line fix plan for each FIX, so you see *how* it will fix before approving — for your
 approval (or per-thread override) before applying anything; with `--auto` it skips the
-gate and acts autonomously. After the approved verdicts are applied it replies without performative
-language, resolves, records accept-by-design learnings as scoped memory notes when
-available, pushes, and offers a re-review. **Never merges.**
+gate and acts autonomously. After the approved verdicts are applied it writes genuinely new
+accept-by-design learnings as scoped memory notes when available, commits and pushes via
+`woostack-commit --no-pr-update`, captures the commit SHA, replies without performative language,
+resolves handled threads, and offers a re-review. **Never merges.**
 
 <HARD-GATE>
 In the **default** flow you MUST present the verdict gate and obtain explicit user approval
@@ -61,10 +62,16 @@ memory. It never merges.
    **final** verdict per thread is the override where given, else the recommendation. See
    `prompts/address.md` § Phase 2 for the gate mechanics, including the override→FIX plan
    confirm.
-5. **Commit + push** — apply all final `FIX` edits to the working tree → stage the changes → invoke [`woostack-commit`](../woostack-commit/SKILL.md) with `--no-pr-update` and a message referencing the threads addressed (e.g. `/woostack-commit --no-pr-update "fix: address review threads <ids>"`) to commit and push/submit without overwriting PR metadata → capture the commit `<sha>` (e.g., via `git rev-parse HEAD`) before any reply, so "Fixed in `<sha>`" is real. Never force-push.
-6. **Reply + resolve + memory** — per handled thread, `scripts/resolve-thread.sh` posts the
-   reply then resolves. CLARIFY threads use `RESOLVE=0`: reply only, left open. Only a
-   **final** `ACCEPT` writes memory via `scripts/memory-record.sh`.
+5. **Memory + commit + push** — apply all final `FIX` edits to the working tree, then write
+   genuinely new **final `ACCEPT`** learnings with `scripts/memory-record.sh` so tracked memory
+   notes and `MEMORY.md` are staged with the addressed-thread change. Invoke
+   [`woostack-commit`](../woostack-commit/SKILL.md) with `--no-pr-update` and a message referencing
+   the threads addressed (e.g., `/woostack-commit --no-pr-update "fix: address review threads
+   <ids>"`) to commit and push/submit without overwriting PR metadata → capture the commit `<sha>`
+   (e.g., via `git rev-parse HEAD`) before any reply, so "Fixed in `<sha>`" is real. Never
+   force-push.
+6. **Reply + resolve** — per handled thread, `scripts/resolve-thread.sh` posts the reply then
+   resolves. CLARIFY threads use `RESOLVE=0`: reply only, left open.
 7. **Report** — summary table: thread → recommended → final → action → memory-written?
 
 Only a **final ACCEPT** (accept-by-design — an ACCEPT the user kept in the default flow, or

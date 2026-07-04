@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Regression for issue #279: address-comments memory writes use the primary
-# checkout's local memory store when running from a secondary git worktree.
+# Regression for sweep memory commits: address-comments memory notes created
+# from a secondary git worktree ride that worktree's PR commit.
 set -euo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -34,6 +34,8 @@ MD
 git -C "$repo" worktree add -q -b address-run "$wt" HEAD
 wt="$(cd "$wt" && pwd -P)"
 
+mkdir -p "$wt/.woostack/memory"
+
 resolved="$out/roots.env"
 (
   cd "$wt"
@@ -43,19 +45,21 @@ resolved="$out/roots.env"
 assert_eq "$(grep '^root=' "$resolved" | cut -d= -f2-)" "$wt" "WOOSTACK_ROOT stays on the active worktree"
 assert_eq "$(grep '^common=' "$resolved" | cut -d= -f2-)" "$repo" "WOOSTACK_COMMON_ROOT resolves to primary checkout"
 
-before="$(find "$repo/.woostack/memory" -maxdepth 1 -type f -name '*.md' ! -name MEMORY.md | wc -l | tr -d ' ')"
+primary_before="$(find "$repo/.woostack/memory" -maxdepth 1 -type f -name '*.md' ! -name MEMORY.md | wc -l | tr -d ' ')"
+worktree_before="$(find "$wt/.woostack/memory" -maxdepth 1 -type f -name '*.md' ! -name MEMORY.md | wc -l | tr -d ' ')"
 (
   cd "$wt"
   env -u GITHUB_WORKSPACE \
     WOOSTACK_NOW=2026-06-17 \
-    LEARNING='Worktree address-comments helpers use primary local memory.' \
+    LEARNING='Worktree address-comments helpers write tracked memory to the active worktree.' \
     MEMORY_SCOPE='skills/**' \
     bash "$MEMORY_RECORD" > "$out/memory-record.out"
 )
-after="$(find "$repo/.woostack/memory" -maxdepth 1 -type f -name '*.md' ! -name MEMORY.md | wc -l | tr -d ' ')"
+primary_after="$(find "$repo/.woostack/memory" -maxdepth 1 -type f -name '*.md' ! -name MEMORY.md | wc -l | tr -d ' ')"
+worktree_after="$(find "$wt/.woostack/memory" -maxdepth 1 -type f -name '*.md' ! -name MEMORY.md | wc -l | tr -d ' ')"
 
-assert_eq "$after" "$((before + 1))" "address memory-record writes scoped note to primary memory store"
-assert_exit 1 "$([ -d "$wt/.woostack/memory" ]; echo $?)" "address memory-record does not create secondary worktree memory store"
+assert_eq "$primary_after" "$primary_before" "address memory-record leaves primary memory notes unchanged"
+assert_eq "$worktree_after" "$((worktree_before + 1))" "address memory-record writes scoped note to active worktree memory store"
 
 rm -rf "$repo" "$wt" "$out"
 finish
