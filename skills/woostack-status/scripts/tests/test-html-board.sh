@@ -99,8 +99,7 @@ CODE3=$?
 set -e
 assert_exit 0 "$CODE3" "AC1 error: exits 0 when board template missing"
 assert_contains "$OUT3" "board template missing" "AC1 error: template-missing notice printed"
-[ ! -e "$r3/visuals/status-board.html" ] && PASS=$((PASS+1)) \
-  || { FAIL=$((FAIL+1)); echo "  FAIL: AC1 error: no HTML written when template missing"; }
+assert_file_absent "$r3/visuals/status-board.html" "AC1 error: no HTML written when template missing"
 
 # --- AC1 error: visuals/ uncreatable -> notice, exit 0, no crash ---
 r="$(mktemp -d)/.woostack"
@@ -115,8 +114,7 @@ assert_contains "$OUT" "SPEC" "AC1 error: terminal board still printed"
 empty="$(mktemp -d)"
 run_status "$empty/.woostack"
 assert_contains "$OUT" "no specs or fixes found" "AC1 edge: empty guidance unchanged"
-[ ! -e "$empty/.woostack/visuals/status-board.html" ] \
-  && PASS=$((PASS+1)) || { FAIL=$((FAIL+1)); echo "  FAIL: AC1 edge: no HTML for empty workspace"; }
+assert_file_absent "$empty/.woostack/visuals/status-board.html" "AC1 edge: no HTML for empty workspace"
 
 # --- AC4: opener invoked once by default; suppressed by flag/env/CI ---
 stub="$(mktemp -d)"
@@ -142,8 +140,7 @@ for supp in "--no-open" "ENV" "CI" "GHA"; do
   esac
   set -e
   assert_eq "$(wc -l < "$LOG" | tr -d ' ')" "0" "AC4: opener suppressed ($supp)"
-  [ -s "$r/visuals/status-board.html" ] && PASS=$((PASS+1)) \
-    || { FAIL=$((FAIL+1)); echo "  FAIL: AC4: HTML still written ($supp)"; }
+  assert_file_exists "$r/visuals/status-board.html" "AC4: HTML still written ($supp)"
 done
 
 # --- AC1 edge: all rows done/abandoned -> visible table carries a placeholder row ---
@@ -163,7 +160,8 @@ cat > "$ghstub/gh" <<'GHEOF'
 if [ "${1:-}" = "pr" ] && [ "${2:-}" = "list" ]; then
   cat <<'JSON'
 [{"number":11,"state":"OPEN","headRefName":"feature/multi-2","author":{"login":"a"},"updatedAt":"2026-06-02T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-multi.md"},
- {"number":10,"state":"MERGED","headRefName":"feature/multi-1","author":{"login":"a"},"updatedAt":"2026-06-01T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-multi.md"}]
+ {"number":10,"state":"MERGED","headRefName":"feature/multi-1","author":{"login":"a"},"updatedAt":"2026-06-01T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-multi.md"},
+ {"number":9,"state":"CLOSED","headRefName":"feature/multi-0","author":{"login":"a"},"updatedAt":"2026-05-30T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-multi.md"}]
 JSON
 else
   echo "[]"
@@ -176,6 +174,48 @@ set -e
 HTML5="$(cat "$r5/visuals/status-board.html")"
 assert_contains "$HTML5" '<span class="chip c-open">#11 open</span>' "AC1: open PR chip rendered"
 assert_contains "$HTML5" '<span class="chip c-merged">#10 merged</span>' "AC1: merged PR chip rendered"
+assert_contains "$HTML5" '<span class="chip c-closed">#9 closed</span>' "AC1: closed PR chip rendered"
+
+# --- AC1: branch-only PR lookup renders the partial chip in HTML ---
+r8="$(mktemp -d)/.woostack"
+mkspec "$r8" fallback ready feature/fallback
+mkplan "$r8" fallback 2026-06-01-fallback.md 0 5 ready feature/fallback
+ghstub2="$(mktemp -d)"
+cat > "$ghstub2/gh" <<'GHEOF'
+#!/usr/bin/env bash
+if [ "${1:-}" = "pr" ] && [ "${2:-}" = "list" ]; then
+  case "$*" in
+    *"--head feature/fallback"*)
+      cat <<'JSON'
+[{"number":77,"state":"OPEN","headRefName":"feature/fallback","author":{"login":"a"},"updatedAt":"2026-06-03T00:00:00Z","body":"no spec trailer"}]
+JSON
+      ;;
+    *) echo "[]" ;;
+  esac
+else
+  echo "[]"
+fi
+GHEOF
+chmod +x "$ghstub2/gh"
+set +e
+WOO_DIR="$r8" WOO_STATUS_NO_OPEN=1 WOOSTACK_GH="$ghstub2/gh" bash "$ST" >/dev/null 2>&1
+set -e
+HTML8="$(cat "$r8/visuals/status-board.html")"
+assert_contains "$HTML8" '<span class="chip c-partial">#77 (partial)</span>' "AC1: partial PR chip rendered"
+
+# --- AC4 edge: openers present but failing -> "no opener found" note, HTML still written ---
+r7="$(mktemp -d)/.woostack"
+mkspec "$r7" alpha draft feature/alpha
+failstub="$(mktemp -d)"
+printf '#!/usr/bin/env bash\nexit 1\n' > "$failstub/open"
+chmod +x "$failstub/open"; cp "$failstub/open" "$failstub/xdg-open"
+set +e
+OUT7="$(WOO_DIR="$r7" PATH="$failstub:$PATH" CI= GITHUB_ACTIONS= WOO_STATUS_NO_OPEN= bash "$ST" 2>&1)"
+CODE7=$?
+set -e
+assert_exit 0 "$CODE7" "AC4 edge: exits 0 when no opener works"
+assert_contains "$OUT7" "no opener found" "AC4 edge: fallback note printed"
+assert_file_exists "$r7/visuals/status-board.html" "AC4 edge: HTML still written when opener fails"
 
 # --- AC5: gh degradation mirrored in HTML footer ---
 r="$(mktemp -d)/.woostack"

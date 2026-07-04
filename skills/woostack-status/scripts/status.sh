@@ -252,6 +252,8 @@ html_escape() {
   printf '%s' "$s"
 }
 
+chip() { printf '<span class="chip c-%s">#%s %s</span>' "$1" "$2" "$3"; }
+
 render_html() {
   local tpl="$HERE/board-template.html" out="$WOO_DIR/visuals/status-board.html"
   if [ ! -f "$tpl" ]; then
@@ -353,7 +355,7 @@ for f in "${specs[@]}"; do
     case "$state" in OPEN) open=$((open+1)) ;; MERGED) merged=$((merged+1)) ;; esac
     mark="."; case "$state" in MERGED) mark="merged" ;; OPEN) mark="open" ;; CLOSED) mark="closed" ;; esac
     inc_parts="${inc_parts:+$inc_parts . }#$num $mark"
-    inc_html="${inc_html}<span class=\"chip c-$mark\">#$num $mark</span>"
+    inc_html="${inc_html}$(chip "$mark" "$num" "$mark")"
     last_author="$author"; last_upd_date="${upd:0:10}"
   done < <(prs_for_spec "$specpath")
 
@@ -363,7 +365,7 @@ for f in "${specs[@]}"; do
       prcount=$((prcount+1))
       case "$state" in OPEN) open=$((open+1)) ;; MERGED) merged=$((merged+1)) ;; esac
       inc_cell="#$num (partial)"
-      inc_html="<span class=\"chip c-partial\">#$num (partial)</span>"
+      inc_html="$(chip partial "$num" "(partial)")"
       last_author="$author"; last_upd_date="${upd:0:10}"
     done < <(prs_for_branch "$br")
   fi
