@@ -12,7 +12,8 @@ artifacts. For every spec (in `.woostack/specs/`) and fix (in `.woostack/fixes/`
 the reconciled phase, plan progress (`N/M` boxes), the increment-PR rollup, owner, age,
 and the single concrete **next action** — and flags any drift.
 
-The board is computed fresh each run and printed to the terminal. It never fetches, commits, or pushes.
+The board is computed fresh each run, printed to the terminal, and rendered to a local HTML
+board. It never fetches, commits, or pushes.
 
 The board is backed by the `spec : plan : PRs = 1 : 1 : N` invariant (for specs) and the phase
 enum, both defined once in [references/conventions.md](references/conventions.md). Fixes
@@ -27,6 +28,8 @@ the canonical home.
   default, surfaced as a footer count).
 - `/woostack-status --fetch` — opt in to a `git fetch` first so PR-less branch data is fresh.
   This is the only network access the board ever does; it still never commits or pushes.
+- `/woostack-status --no-open` — write the HTML board but do not open a browser (also
+  suppressed by `WOO_STATUS_NO_OPEN=1` or a `CI`/`GITHUB_ACTIONS` environment).
 
 ## Procedure
 
@@ -35,13 +38,17 @@ the canonical home.
 
    ```
    WOO_STATUS_ACTION_PATH="<directory containing this SKILL.md>"
-   bash "$WOO_STATUS_ACTION_PATH/scripts/status.sh" [--all] [--fetch]
+   bash "$WOO_STATUS_ACTION_PATH/scripts/status.sh" [--all] [--fetch] [--no-open]
    ```
 
    Keep the current working directory at the consumer project root; only the script path comes
    from the skill bundle. `WOO_DIR` defaults to `./.woostack` (override only for tests). The
    script is read-only and exits `0` even when it emits drift flags — operational failure is
    the only non-zero exit — so it is safe to run anywhere, including CI.
+   Alongside the terminal table the script writes a self-contained HTML render of the same
+   board to the gitignored `.woostack/visuals/status-board.html` and opens it in the default
+   browser (suppressed in CI or via `--no-open`); the terminal output remains the canonical
+   narration surface.
 
 2. **Narrate the board.** Present the table as printed, then for each in-flight feature call
    out its single **next action** (the `NEXT` column). Lead with whatever is actionable now.
@@ -71,8 +78,9 @@ the canonical home.
 
 - **Read-only.** Never fetches (except the explicit `--fetch`), commits, pushes, or mutates
   any spec, plan, or git state. The board only reads.
-- **No committed status file.** Print to the terminal; never write `STATUS.md` or any tracked
-  snapshot.
+- **No committed status file.** Print to the terminal; never write `STATUS.md` or any
+  *tracked* snapshot. The gitignored `.woostack/visuals/status-board.html` render is the
+  sanctioned exception — it is a presentation target, never a source of truth.
 - **The artifacts are the source of truth.** Display the authored `status:` for head states
   but the *computed* phase for the execute → review → done band; a disagreement is a flag, not
   displayed truth. The contracts live in

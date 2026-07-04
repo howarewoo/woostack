@@ -14,12 +14,14 @@ GH_BIN="${WOOSTACK_GH:-gh}"
 GIT_BIN="${WOOSTACK_GIT:-git}"
 SHOW_ALL=0
 DO_FETCH=0
+NO_OPEN=0
 
 for a in "$@"; do
   case "$a" in
     --all) SHOW_ALL=1 ;;
     --fetch) DO_FETCH=1 ;;
-    -h|--help) echo "usage: status.sh [--all] [--fetch]"; exit 0 ;;
+    --no-open) NO_OPEN=1 ;;
+    -h|--help) echo "usage: status.sh [--all] [--fetch] [--no-open]"; exit 0 ;;
   esac
 done
 
@@ -244,6 +246,47 @@ row_has() {
   case "$1" in ''|*[!0-9]*) return 1 ;; *) return 0 ;; esac
 }
 
+html_escape() {
+  local s="$1"
+  s="${s//&/&amp;}"; s="${s//</&lt;}"; s="${s//>/&gt;}"; s="${s//\"/&quot;}"
+  printf '%s' "$s"
+}
+
+render_html() {
+  local tpl="$HERE/board-template.html" out="$WOO_DIR/visuals/status-board.html"
+  if [ ! -f "$tpl" ]; then
+    printf '\nnote: board template missing (%s) - HTML board skipped' "$tpl"; return 1
+  fi
+  if ! mkdir -p "$WOO_DIR/visuals" 2>/dev/null; then
+    printf '\nnote: cannot create %s/visuals - HTML board skipped' "$WOO_DIR"; return 1
+  fi
+  WOO_HTML_ROWS="$html_rows" WOO_HTML_HIDDEN="$html_hidden_rows" \
+  WOO_HTML_FLAGS="$html_flags" WOO_HTML_FOOTER="$(html_escape "$html_footer")" \
+  WOO_HTML_GENERATED="$(html_escape "generated $(date '+%Y-%m-%d %H:%M') · $(pwd)")" \
+  awk '
+    index($0, "<!--WOO_ROWS-->")        { printf "%s", ENVIRON["WOO_HTML_ROWS"]; next }
+    index($0, "<!--WOO_HIDDEN_ROWS-->") { printf "%s", ENVIRON["WOO_HTML_HIDDEN"]; next }
+    index($0, "<!--WOO_FLAGS-->")       { printf "%s", ENVIRON["WOO_HTML_FLAGS"]; next }
+    index($0, "<!--WOO_FOOTER-->")      { printf "%s", ENVIRON["WOO_HTML_FOOTER"]; next }
+    index($0, "<!--WOO_GENERATED-->")   { printf "%s", ENVIRON["WOO_HTML_GENERATED"]; next }
+    { print }
+  ' "$tpl" > "$out" 2>/dev/null || {
+    printf '\nnote: cannot write %s - HTML board skipped' "$out"; return 1
+  }
+  printf '\nboard: %s' "$out"
+  return 0
+}
+
+maybe_open() {
+  local f="$1"
+  [ "$NO_OPEN" -eq 1 ] && return 0
+  [ "${WOO_STATUS_NO_OPEN:-}" = "1" ] && return 0
+  if [ -n "${CI:-}" ] || [ -n "${GITHUB_ACTIONS:-}" ]; then return 0; fi
+  if command -v open >/dev/null 2>&1 && open "$f" 2>/dev/null; then return 0; fi
+  if command -v xdg-open >/dev/null 2>&1 && xdg-open "$f" >/dev/null 2>&1; then return 0; fi
+  printf '\nnote: no opener found - open %s manually' "$f"
+}
+
 gh_missing=0
 have_gh || gh_missing=1
 if [ "$DO_FETCH" -eq 1 ]; then
@@ -254,6 +297,10 @@ fi
 done_count=0
 abandoned_count=0
 rows=""
+html_rows=""
+html_hidden_rows=""
+html_flags=""
+html_footer=""
 
 for f in "${specs[@]}"; do
   spec_phase="$(field "$f" status)"; [ -n "$spec_phase" ] || spec_phase="unknown"
@@ -300,7 +347,7 @@ for f in "${specs[@]}"; do
   else
     br="$(field "$planfile" branch)"
   fi
-  open=0; merged=0; prcount=0; inc_cell="-"; inc_parts=""
+  open=0; merged=0; prcount=0; inc_cell="-"; inc_parts=""; inc_html=""
   last_author=""; last_upd_date=""
   while IFS=$'\t' read -r num state head author upd; do
     [ -z "$num" ] && continue
@@ -308,6 +355,7 @@ for f in "${specs[@]}"; do
     case "$state" in OPEN) open=$((open+1)) ;; MERGED) merged=$((merged+1)) ;; esac
     mark="."; case "$state" in MERGED) mark="merged" ;; OPEN) mark="open" ;; CLOSED) mark="closed" ;; esac
     inc_parts="${inc_parts:+$inc_parts . }#$num $mark"
+    inc_html="${inc_html}<span class=\"chip c-$mark\">#$num $mark</span>"
     last_author="$author"; last_upd_date="${upd:0:10}"
   done < <(prs_for_spec "$specpath")
 
@@ -317,6 +365,7 @@ for f in "${specs[@]}"; do
       prcount=$((prcount+1))
       case "$state" in OPEN) open=$((open+1)) ;; MERGED) merged=$((merged+1)) ;; esac
       inc_cell="#$num (partial)"
+      inc_html="<span class=\"chip c-partial\">#$num (partial)</span>"
       last_author="$author"; last_upd_date="${upd:0:10}"
     done < <(prs_for_branch "$br")
   fi
@@ -367,18 +416,41 @@ for f in "${specs[@]}"; do
       && flag "$name: stale - ${dnum}d since last activity"
   fi
 
+  next="$(next_action "$eff" "$done" "$total" "$merged" "$prcount" "$f")"
   row="$(printf '%-22s %-10s %-7s %-20s %-7s %-5s %s' \
     "$name" "$eff" "$plan_cell" "$inc_cell" "$owner" "$agecell" \
-    "$(next_action "$eff" "$done" "$total" "$merged" "$prcount" "$f")")"
+    "$next")"
+  bar=""
+  if [ "$total" -gt 0 ]; then
+    bar="<div class=\"bar\"><div style=\"width:${frac}%\"></div></div>"
+  fi
+  [ -n "$inc_html" ] || inc_html="$(html_escape "$inc_cell")"
+  hrow="<tr><td>$(html_escape "$name")</td><td><span class=\"badge p-$eff\">$(html_escape "$eff")</span></td><td>$(html_escape "$plan_cell")$bar</td><td>$inc_html</td><td>$(html_escape "$owner")</td><td>$(html_escape "$agecell")</td><td>$(html_escape "$next")</td></tr>"$'\n'
   case "$eff" in
     done) done_count=$((done_count+1)) ;;
     abandoned) abandoned_count=$((abandoned_count+1)) ;;
     *) rows="${rows}${row}"$'\n' ;;
   esac
+  case "$eff" in
+    done|abandoned) html_hidden_rows="${html_hidden_rows}${hrow}" ;;
+    *) html_rows="${html_rows}${hrow}" ;;
+  esac
   if [ "$SHOW_ALL" -eq 1 ]; then
     case "$eff" in done|abandoned) rows="${rows}${row}"$'\n' ;; esac
   fi
 done
+
+if [ -n "$FLAGS" ]; then
+  html_flags="<div class=\"flags\"><h2>! FLAGS</h2><ul>"
+  while IFS= read -r ln; do
+    [ -n "$ln" ] || continue
+    html_flags="${html_flags}<li>$(html_escape "${ln#  ! }")</li>"
+  done <<< "$FLAGS"
+  html_flags="${html_flags}</ul></div>"
+fi
+html_footer="$done_count done · $abandoned_count abandoned"
+[ "$gh_missing" -eq 1 ] && html_footer="$html_footer"$'\n'"note: gh not found - PR/increment/owner data omitted for PR-phase rows"
+[ "$DO_FETCH" -eq 0 ] && html_footer="$html_footer"$'\n'"note: PR-less branch data may be stale; pass --fetch to refresh"
 
 printf '%-22s %-10s %-7s %-20s %-7s %-5s %s\n' SPEC PHASE PLAN INCREMENTS OWNER AGE NEXT
 printf '%s' "$rows"
@@ -387,5 +459,8 @@ printf '\n%d done . %d abandoned' "$done_count" "$abandoned_count"
 [ "$SHOW_ALL" -eq 0 ] && printf '   (--all to expand)'
 [ "$gh_missing" -eq 1 ] && printf '\nnote: gh not found - PR/increment/owner data omitted for PR-phase rows'
 [ "$DO_FETCH" -eq 0 ] && printf '\nnote: PR-less branch data may be stale; pass --fetch to refresh'
+if render_html; then
+  maybe_open "$WOO_DIR/visuals/status-board.html"
+fi
 printf '\n'
 exit 0

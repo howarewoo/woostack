@@ -94,11 +94,11 @@ result. The agent reads the result, not the inputs that produced it.
   reads the index instead of every note body.
 - `recall.sh` runs the scope match and the one-hop expansion, then emits only the notes that
   matched.
-- `status.sh` reads the specs, plans, and PR state and prints the feature board, so the agent never
-  loads all those artifacts itself. When execution finishes the final increment,
-  `woostack-execute` and `woostack-execute-overnight` author the plan's terminal
-  `status: done`; the board still derives visible state from artifacts and can show `in-review`
-  while the final PR is open.
+- `status.sh` reads the specs, plans, and PR state, prints the feature board, and writes a
+  gitignored HTML render of it, so the agent never loads all those artifacts itself. When
+  execution finishes the final increment, `woostack-execute` and `woostack-execute-overnight`
+  author the plan's terminal `status: done`; the board still derives visible state from
+  artifacts and can show `in-review` while the final PR is open.
 - `prefetch.sh` gathers a PR's diff, metadata, rules, memory, and wisdom once, and the review
   subagents read those files rather than each re-fetching from GitHub.
 
