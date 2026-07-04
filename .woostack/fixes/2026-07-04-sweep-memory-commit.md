@@ -1,6 +1,6 @@
 ---
 type: fix
-status: hardened
+status: executing
 branch: fix/sweep-memory-commit
 ---
 
@@ -30,18 +30,18 @@ Make tracked memory writes use the active worktree by default, while leaving met
 
 ## 3. Implementation Plan
 
-- [ ] **Step 1: Reproduce with failing tests**
+- [x] **Step 1: Reproduce with failing tests**
   - In `skills/woostack-address-comments/scripts/tests/test-worktree-common-root.sh`, change the assertions to expect `memory-record.sh` to write one scoped note under `$wt/.woostack/memory` and leave the primary checkout's memory note count unchanged.
   - In `skills/woostack-review/scripts/tests/test-worktree-common-root.sh`, change the memory assertions the same way while keeping the metrics assertions anchored to the primary checkout.
   - Run both tests and confirm they fail because the current scripts write memory under `$WOOSTACK_COMMON_ROOT`.
 
-- [ ] **Step 2: Apply the minimal fix**
+- [x] **Step 2: Apply the minimal fix**
   - Change `MEMORY_DIR` defaults in both `skills/woostack-address-comments/scripts/memory-record.sh` and `skills/woostack-review/scripts/memory-record.sh` from `$WOOSTACK_COMMON_ROOT/.woostack/memory` to `$WOOSTACK_ROOT/.woostack/memory`.
   - Adjust the comments in each `resolve-root.sh` only if needed to clarify that `WOOSTACK_COMMON_ROOT` remains for primary-only sidecars, not tracked memory.
   - Update `skills/woostack-sweep/SKILL.md` lines 48-50 so sweep documents primary-root export for metrics/telemetry only and explicitly keeps tracked memory writes in the per-PR worktree.
   - Update `skills/woostack-address-comments/SKILL.md` and `skills/woostack-address-comments/prompts/address.md` so ACCEPT memory writes are staged before invoking `woostack-commit --no-pr-update`, with replies/resolution after the successful commit SHA is captured.
 
-- [ ] **Step 3: Verification**
+- [x] **Step 3: Verification**
   - Run `bash skills/woostack-address-comments/scripts/tests/test-worktree-common-root.sh`.
   - Run `bash skills/woostack-review/scripts/tests/test-worktree-common-root.sh`.
   - Run `grep`/file inspection only as needed to verify sweep/address docs no longer instruct primary-checkout tracked-memory writes.

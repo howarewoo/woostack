@@ -107,8 +107,9 @@ Show the fix plan alongside the FIX verdict **wherever the gate renders it**:
   if an existing entry already covers this learning — even phrased differently
   or more broadly — do NOT add a duplicate; widen the existing scoped note
   instead. Only when the learning is genuinely new, stage it for the
-  memory write — which runs in the after-phases step below, alongside the reply,
-  so it never lands ahead of a rejected push. Phrase it as a **terse pattern, not
+  after-phases memory write. The after-phases step writes tracked memory before
+  invoking `woostack-commit`, so the scoped note and `MEMORY.md` ride the same PR
+  commit. Phrase it as a **terse pattern, not
   an instance**: one line, `<pattern>: <reason>`, per the canonical
   memory-note-body discipline
   ([`output-discipline.md`](../../using-woostack/references/output-discipline.md#memory-note-bodies)).
@@ -121,12 +122,29 @@ Show the fix plan alongside the FIX verdict **wherever the gate renders it**:
 
 ## After the phases
 
-1. If any FIX edits were made, stage the changes and invoke the [`woostack-commit`](../../woostack-commit/SKILL.md) skill with `--no-pr-update` to commit and push/submit without overwriting the PR metadata:
+1. For each ACCEPTED thread whose learning is genuinely new, write the staged
+   memory pattern before committing. When a `.woostack/memory/` scope-routed store
+   exists, this writes an individual tracked note in the active worktree and
+   rebuilds `MEMORY.md`; otherwise it skips with a notice to run `/woostack-init`.
+   Keep `LEARNING` terse per the canonical memory-note-body discipline
+   ([`output-discipline.md`](../../using-woostack/references/output-discipline.md#memory-note-bodies)).
+   Set `MEMORY_SCOPE` to the staged `memory_scope`:
+
+   ```bash
+   LEARNING="<staged learning>" \
+   MEMORY_SCOPE="<staged memory_scope>" \
+     bash "$WOO_ADDRESS_ACTION_PATH/scripts/memory-record.sh"
+   ```
+
+2. Stage any FIX edits plus any tracked memory notes/index updates, then invoke the
+   [`woostack-commit`](../../woostack-commit/SKILL.md) skill with `--no-pr-update`
+   to commit and push/submit without overwriting the PR metadata:
    ```
    /woostack-commit --no-pr-update "fix: address review threads <ids>"
    ```
-   Then capture the commit `<sha>` (e.g., `git rev-parse HEAD`) before posting any replies. Never force-push.
-2. For each handled thread, reply and resolve:
+   Then capture the commit `<sha>` (e.g., `git rev-parse HEAD`) before posting any
+   replies. Never force-push.
+3. For each handled thread, reply and resolve:
 
    ```bash
    # FIXED thread:
@@ -140,21 +158,7 @@ Show the fix plan alongside the FIX verdict **wherever the gate renders it**:
      bash "$WOO_ADDRESS_ACTION_PATH/scripts/resolve-thread.sh"
    ```
 
-   Then, for each ACCEPTED thread whose learning is genuinely new, write the
-   staged memory pattern (only now, after the push succeeded). When a
-   `.woostack/memory/` scope-routed store exists, this writes an individual note
-   there and rebuilds `MEMORY.md`; otherwise it skips with a notice to run
-   `/woostack-init`. Keep `LEARNING` terse per the canonical memory-note-body
-   discipline ([`output-discipline.md`](../../using-woostack/references/output-discipline.md#memory-note-bodies)).
-   Set `MEMORY_SCOPE` to the staged `memory_scope`:
-
-   ```bash
-   LEARNING="<general pattern>: <why it is accepted / what not to re-flag>" \
-   MEMORY_SCOPE="<narrow glob or comma-separated globs>" \
-     bash "$WOO_ADDRESS_ACTION_PATH/scripts/memory-record.sh"
-   ```
-
-3. Print a summary table: thread → recommended → final → action → memory-written?
+4. Print a summary table: thread → recommended → final → action → memory-written?
 
 ## Guardrails
 
