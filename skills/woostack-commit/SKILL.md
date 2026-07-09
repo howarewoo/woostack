@@ -51,10 +51,11 @@ Rules:
 - Pass a bounded prompt containing the staged diff, changed-file list, commands run and
   results, relevant user intent, and any existing PR title/body that should be preserved.
 - Route the subagent at the `fast` tier when the host can select it explicitly: resolve the
-  tier through the shared
-  [Model Tiers table](../using-woostack/references/model-tiers.md) and pass what it resolves
-  to on the spawn. If the host cannot route a subagent per call, draft inline in the main
-  session.
+  tier through the shared [Model Tiers table](../using-woostack/references/model-tiers.md) and pass
+  what it resolves to on the spawn. Under omp (Oh My Pi), since `task` has no per-call model knob,
+  select `agent: woostack-fast` for the drafting spawn (ensuring defs exist first via the generator
+  `skills/woostack-init/scripts/gen-omp-agents.sh`). If the host cannot route a subagent per call
+  and does not support agent-by-tier selection, draft inline in the main session.
 - The subagent must return only proposed text. It must not run commands, stage files,
   commit, push, edit PRs, or decide whether dirty files are relevant.
 - Before using any draft, compare it against the staged diff and command results. Rewrite or

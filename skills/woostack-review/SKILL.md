@@ -335,6 +335,7 @@ profile (Claude Code: `general-purpose`) and pass only the brief below plus the 
 - Cursor / Composer: parallel subagent dispatch, letting the host schedule or queue workers.
 - Antigravity CLI (`agy`): dynamically orchestrated subagents — the orchestrator instantiates one isolated-context subagent per angle on demand (see `prompts/google.md`). Dispatch the independent angle tasks in a single turn to run them in parallel; rely on the isolation pattern for token economy.
 - opencode: subagent dispatch via the OpenCode runtime's primitive (see `prompts/opencode.md`), letting the runtime schedule workers; use an explicit cap such as `N=1` only when the build does not support parallelism.
+- omp (Oh My Pi): dispatch each angle worker as `agent: woostack-<tier>` (the omp general-purpose worker profile, tier-pinned by the generated def) and the deep validator as `agent: woostack-deep`; ensure defs first via `skills/woostack-init/scripts/gen-omp-agents.sh`. **Local only** — the CI single-session `load-prompt.sh` / `resolve-model.sh` path is unchanged.
 
 **Shell helper path.** Shell-capable local hosts can use the shipped bounded queue runner:
 

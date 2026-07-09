@@ -134,6 +134,8 @@ defeating tier routing and burning multiples of the tokens on cheap work — the
 states for its angle spawns. **When the host cannot route per call**, run at the session model and
 **say so** (degraded, not equivalent) — never pretend a tier ran.
 
+**Under omp (agent-by-tier).** omp's `task` tool has no per-call `model`/`tier`/`effort` arg, so instead of passing resolved values on the spawn, select `agent: woostack-<effective-tier>` — the generated tier def carries `model` + `thinkingLevel`. **Ensure-then-select:** before dispatch, ensure the defs exist and are current by running `skills/woostack-init/scripts/gen-omp-agents.sh` (idempotent); then select the per-task effective tier's agent. This is the omp branch of "when the host cannot route per call" — it is **not** degraded: the tier's model/effort are applied via the def, so do not "run at session model + say so" under omp.
+
 ## Review
 
 Subagent mode's automated review **is** the per-task spec + quality loops above — it does **not**
