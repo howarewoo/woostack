@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-07-09-omp-model-tiers.md
-status: executing
+status: done
 date: 2026-07-09
 branch: feature/omp-model-tiers
 links:
@@ -552,7 +552,7 @@ Delete the `# woostack-defer(increment 4): ...` line from `gen-omp-agents.sh`.
 **Spec coverage:** AC9 (docs-site sync), AC8 (structural lockstep enumerating the omp-host
 site-list).
 
-### Step 5.1 (RED) - write the lockstep test first
+- [x] **Step 5.1 (RED) - write the lockstep test first**
 
 Create `skills/woostack-init/scripts/tests/test-omp-lockstep.sh`:
 
@@ -590,7 +590,7 @@ resolution is already covered by the existing
 `skills/woostack-review/scripts/tests/test-load-prompt-models.sh`**, which this increment
 re-runs to confirm the append did not break the CI inline.
 
-### Step 5.2 (GREEN) - docs-site sync
+- [x] **Step 5.2 (GREEN) - docs-site sync**
 
 - `site/content/docs/configuration.mdx` (the `models.<tier>` / `models.<provider>.<tier>`
   section, ~line 111+): add a short note that **under omp**, the flat `models.<tier>`
@@ -603,7 +603,7 @@ re-runs to confirm the append did not break the CI inline.
 Per-skill reference pages regenerate from `SKILL.md` at build time (gitignored) - no manual
 edit.
 
-### Step 5.3 (GREEN) - verify
+- [x] **Step 5.3 (GREEN) - verify**
 
 - `bash skills/woostack-init/scripts/tests/test-omp-lockstep.sh` -> `N passed, 0 failed`.
 - `pnpm -C site build` -> succeeds (authored pages compile).
