@@ -21,6 +21,17 @@ assert_contains "$body" "verification summary" "invariant requires verification 
 assert_contains "$body" "fix worktree is removed" "invariant requires worktree teardown"
 assert_contains "$body" "leave the worktree in place" "invariant preserves failure recovery"
 assert_contains "$body" "blocker and the fix worktree path" "invariant reports blocker and worktree path on failure"
+assert_contains "$body" "Hand off" "approval gate offers a handoff option"
+assert_contains "$body" "status: approved" "handoff records the approved lifecycle state"
+assert_contains "$body" "--resume" "handoff returns a resume command"
+assert_contains "$body" 'Go → execute via woostack-execute' "overview shows Go continues to execution"
+assert_contains "$body" 'Hand off → commit approved plan, remove worktree, and stop before implementation' "overview shows Hand off stops before execution"
+assert_contains "$body" 'INIT_SCRIPTS' "resume mode defines concrete resolver helper path"
+assert_contains "$body" 'status: approved` → recreate or verify' "resume approved state continues execution"
+assert_contains "$body" 'status: hardened` → recreate or verify' "resume hardened state returns to approval gate"
+assert_contains "$body" 'status: executing`, `in-review`, or `done` → do not restart execution blindly' "resume active and terminal states do not restart blindly"
+assert_contains "$body" 'Any missing branch, missing fix file, dirty resurrected worktree, or conflicting worktree' "resume blocker states leave recovery context intact"
+assert_contains "$body" "Handoff does not satisfy the closeout invariant" "handoff is distinct from completed execution"
 assert_contains "$body" "Submit PR, Mark In Review, And Tear Down Worktree" "step 6 heading is operational"
 
 finish
