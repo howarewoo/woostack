@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-07-09-omp-model-tiers.md
-status: planning
+status: executing
 date: 2026-07-09
 branch: feature/omp-model-tiers
 links:
@@ -89,7 +89,7 @@ respects init's constraint), and this repo gets a root-`.gitignore` dogfood entr
 component's GOAL (generated defs never committed) is met; the no-op template edit is
 intentionally skipped.
 
-### Step 1.1 (RED) - write the generator test first
+- [x] **Step 1.1 (RED) - write the generator test first**
 
 Create `skills/woostack-init/scripts/tests/test-gen-omp-agents.sh`:
 
@@ -192,7 +192,7 @@ Run: `bash skills/woostack-init/scripts/tests/test-gen-omp-agents.sh`
 Expected (RED): fails because `gen-omp-agents.sh` does not exist yet (non-zero exit,
 `No such file`).
 
-### Step 1.2 (GREEN) - implement the generator
+- [x] **Step 1.2 (GREEN) - implement the generator**
 
 Create `skills/woostack-init/scripts/gen-omp-agents.sh`:
 
@@ -296,7 +296,7 @@ for tier in fast standard deep; do render_tier "$tier"; done
 Run: `bash skills/woostack-init/scripts/tests/test-gen-omp-agents.sh`
 Expected (GREEN): `N passed, 0 failed`, exit 0.
 
-### Step 1.3 - repo-root gitignore dogfood entry
+- [x] **Step 1.3 - repo-root gitignore dogfood entry**
 
 Edit repo-root `.gitignore`: append
 ```
@@ -306,7 +306,7 @@ Edit repo-root `.gitignore`: append
 Verify (after generator runs in this repo): `git check-ignore .omp/agents/woostack-fast.md`
 prints the path (exit 0); `git check-ignore .omp/agents/custom.md` exits 1.
 
-### Step 1.4 (V1, execution-time probe - non-blocking) - confirm the agent-def shape loads under omp
+- [x] **Step 1.4 (V1, execution-time probe - non-blocking) - confirm the agent-def shape loads under omp**
 
 The def puts the worker instructions in the **body** (systemPrompt) with `name`/`model`/
 `thinkingLevel` in frontmatter - matching omp's bundled `task`/`sonic` ("body plus injected
