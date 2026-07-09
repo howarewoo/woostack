@@ -81,10 +81,14 @@ test harness.
   - Add `skills/woostack-execute/scripts/tests/test-subagent-brief-skill-scope.sh` (source the
     shared `skills/woostack-init/scripts/tests/assert.sh`, mirror
     `woostack-review/scripts/tests/test-worker-brief-skill-scope.sh`). For each of
-    `implementer.md`, `spec-reviewer.md`, `quality-reviewer.md`, assert the file (a) contains
-    `self-contained` and (b) matches `skill://woostack-review` preceded by a negation, matched
-    case-insensitively (`grep -Eiq '(do not|never).*skill://woostack-review'`) so the guard's
-    emphatic `Do NOT` still passes. Also assert `subagent-driver.md` records the boundary.
+    `implementer.md`, `spec-reviewer.md`, `quality-reviewer.md`, extract the dispatched
+    four-backtick fenced brief and assert it (a) contains `self-contained`, (b) binds a
+    case-insensitive negation to the token
+    (`grep -Eiq '(do not|never)[^.]*skill://woostack-review'` — bounded `[^.]*`, not a greedy
+    `.*`, so a stray negation elsewhere cannot satisfy a guard whose own negation was dropped),
+    and (c) asserts the guard's backtick-wrapped `using-woostack` clause is present (distinct from
+    the `../../using-woostack/` doc link that also contains the bare word). Assert the same guard
+    on `subagent-driver.md`, read whole (it has no dispatched fence).
   - Add `skills/woostack-execute/scripts/tests/run-tests.sh` (copy the canonical runner used by
     `woostack-doctor`/`woostack-init`).
   - Run it; it MUST fail now (guard text absent) — the red state.
@@ -98,5 +102,5 @@ test harness.
   - `bash skills/woostack-execute/scripts/tests/run-tests.sh` → green.
   - `bash skills/woostack-review/scripts/tests/run-tests.sh` → still green (no cross-skill
     regression; the #447 test is untouched).
-  - Grep the three prompts to confirm the guard is inside the fenced brief block, not the prose
-    preamble.
+  - The fenced-brief assertion above enforces this automatically: a guard placed in the prose
+    preamble, outside the four-backtick fence, fails the test.
