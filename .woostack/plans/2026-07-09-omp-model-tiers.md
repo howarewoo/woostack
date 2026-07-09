@@ -332,12 +332,12 @@ scalar (`systemPrompt: |`) instead; re-run the probe. Record the outcome in the 
 
 **Spec coverage:** AC8 (bucket present; provider table columns unchanged), §4.1/§4.4.
 
-### Step 2.1 (RED) - assert the bucket & column-stability before writing
+- [x] **Step 2.1 (RED) - assert the bucket & column-stability before writing**
 
 Command: `grep -c 'agent-by-tier' skills/using-woostack/references/model-tiers.md`
 Expected (RED): `0`.
 
-### Step 2.2 (GREEN) - add the omp host bucket to `model-tiers.md`
+- [x] **Step 2.2 (GREEN) - add the omp host bucket to model-tiers.md**
 
 Below the four-provider table (leave the table's column header **byte-unchanged**:
 `| Tier | Use for | Anthropic | OpenAI (Codex) | Google (Gemini) | OpenRouter |`), add a new
@@ -360,7 +360,7 @@ subsection. Use the exact token `agent-by-tier` (pinned by the Increment 5 locks
 > and `resolve-model.sh` are untouched; the omp bucket is informational only. A consumer
 > can still set provider-specific columnar models for those hosts.
 
-### Step 2.3 (GREEN) - `woostack-init` scaffold caller
+- [x] **Step 2.3 (GREEN) - woostack-init scaffold caller**
 
 Edit `skills/woostack-init/SKILL.md`: in the scaffolding steps, add that when running under
 omp (host applies its own capability knowledge), init runs

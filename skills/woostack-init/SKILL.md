@@ -58,6 +58,10 @@ Two callers:
    `main`). Resolution lives in [`scripts/resolve-base.sh`](scripts/resolve-base.sh); the per-PR
    worktree lifecycle that consumes it is the [worktree contract](references/worktrees.md).
 
+   **Under omp (Oh My Pi):** after writing `config.json` (or if it is already present), `woostack-init`
+   runs `skills/woostack-init/scripts/gen-omp-agents.sh` to generate the `.omp/agents/woostack-{fast,standard,deep}.md`
+   tier definitions. These generated definitions are gitignored via `.omp/agents/.gitignore` (written by the generator).
+
 3. **Handle existing files.** For any file that already exists and `--force`
    is not active: prompt the user to keep or overwrite it. Under `--no-clobber`
    skip all existing files silently without prompting. After the run, state
