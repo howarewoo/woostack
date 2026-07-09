@@ -1,6 +1,6 @@
 ---
 type: fix
-status: hardened
+status: executing
 branch: fix/execute-subagent-brief-skill-scope
 ---
 
@@ -77,7 +77,7 @@ test harness.
 
 ## 3. Implementation Plan
 
-- [ ] **Step 1: Reproduce with a failing test.**
+- [x] **Step 1: Reproduce with a failing test.**
   - Add `skills/woostack-execute/scripts/tests/test-subagent-brief-skill-scope.sh` (source the
     shared `skills/woostack-init/scripts/tests/assert.sh`, mirror
     `woostack-review/scripts/tests/test-worker-brief-skill-scope.sh`). For each of
@@ -89,12 +89,12 @@ test harness.
     `woostack-doctor`/`woostack-init`).
   - Run it; it MUST fail now (guard text absent) — the red state.
 
-- [ ] **Step 2: Apply the minimal fix.**
+- [x] **Step 2: Apply the minimal fix.**
   - Insert the guard sentence into the fenced brief of `spec-reviewer.md`, `quality-reviewer.md`,
     and `implementer.md`.
   - Add the reinforcing self-contained-brief line to `subagent-driver.md`.
 
-- [ ] **Step 3: Verification.**
+- [x] **Step 3: Verification.**
   - `bash skills/woostack-execute/scripts/tests/run-tests.sh` → green.
   - `bash skills/woostack-review/scripts/tests/run-tests.sh` → still green (no cross-skill
     regression; the #447 test is untouched).

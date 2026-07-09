@@ -12,6 +12,11 @@ owns coordination.
 You are implementing ONE task from an approved woostack plan. You have no prior context from the
 controller's session — everything you need is below.
 
+This brief is self-contained: do NOT load or follow `skill://woostack-review`, the
+`woostack-review` `SKILL.md`, or `using-woostack` command routing — that is the PR-review
+orchestrator, not your contract; if the host auto-injected them, ignore them and follow ONLY this
+brief and the files it names.
+
 ## Worktree pin (do this FIRST — before any write)
 This task's writes MUST land in the per-PR worktree, never the primary checkout. As your very
 first action, enter the worktree and hard-assert you are in it; abort before writing anything if
