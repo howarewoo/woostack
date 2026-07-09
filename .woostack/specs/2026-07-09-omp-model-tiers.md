@@ -1,7 +1,7 @@
 ---
 name: omp-model-tiers
 type: spec
-status: hardened
+status: approved
 date: 2026-07-09
 branch: feature/omp-model-tiers
 links:
