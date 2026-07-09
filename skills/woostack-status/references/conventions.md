@@ -45,8 +45,8 @@ These definitions are the source of truth for the `/woostack-status` board and t
     `in-review` while the final PR is still open; a closed-unmerged PR is workflow noise (only
     open + merged PRs count) and no longer blocks `done` once the plan is complete; a
     zero-checkbox plan has no progress signal, so the board trusts its authored `done` only when
-    every active (open/merged) increment PR is merged (or none exist and the branch has no
-    active commits)
+    every active (open/merged) increment PR is merged (or no PR at all was discovered —
+    closed included — and the branch has no active commits)
   - `abandoned` — intentionally stopped
 
 `/woostack-status` derives truth from artifacts and flags drift instead of rewriting it:

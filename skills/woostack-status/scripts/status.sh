@@ -178,7 +178,10 @@ resolve_phase() {
   local authored="$1" hasPlan="$2" frac="$3" open="$4" merged="$5" prcount="$6" branchExists="$7" hasCommits="$8" total="${9:-0}"
   # A CLOSED (unmerged) PR is workflow noise: judge completeness against active PRs only
   # (open + merged) so a closed increment neither blocks done nor inflates the tally. The
-  # prcount==0 legacy paths below intentionally stay keyed on prcount.
+  # prcount==0 legacy paths below intentionally stay keyed on prcount. The
+  # merged==active_prcount checks below are deliberately kept even though the open>0 early
+  # return makes them always-true today: they are the executable statement of the
+  # "all active PRs merged" invariant, robust to a future reordering of that return.
   local active_prcount=$((open + merged))
   if [ "$open" -gt 0 ]; then echo "in-review"; return; fi
   if [ "$frac" = "100" ] && [ "$merged" -gt 0 ] && [ "$merged" -eq "$active_prcount" ]; then echo "done"; return; fi
