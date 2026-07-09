@@ -176,21 +176,25 @@ prs_for_branch() {
 
 resolve_phase() {
   local authored="$1" hasPlan="$2" frac="$3" open="$4" merged="$5" prcount="$6" branchExists="$7" hasCommits="$8" total="${9:-0}"
+  # A CLOSED (unmerged) PR is workflow noise: judge completeness against active PRs only
+  # (open + merged) so a closed increment neither blocks done nor inflates the tally. The
+  # prcount==0 legacy paths below intentionally stay keyed on prcount.
+  local active_prcount=$((open + merged))
   if [ "$open" -gt 0 ]; then echo "in-review"; return; fi
-  if [ "$frac" = "100" ] && [ "$merged" -gt 0 ] && [ "$merged" -eq "$prcount" ]; then echo "done"; return; fi
+  if [ "$frac" = "100" ] && [ "$merged" -gt 0 ] && [ "$merged" -eq "$active_prcount" ]; then echo "done"; return; fi
   # A zero-checkbox plan carries no progress signal (frac stays 0, so the rules
   # above and below can never confirm done). Trust an explicit authored done when
-  # every discovered increment PR is merged (a closed-unmerged PR keeps the feature
-  # visible), or — mirroring the legacy rule below — when nothing was discovered.
+  # at least one active increment PR is merged (a closed-unmerged PR is noise and does not
+  # block done), or — mirroring the legacy rule below — when nothing was discovered.
   if [ "$authored" = "done" ] && [ "$total" -eq 0 ]; then
-    if [ "$merged" -gt 0 ] && [ "$merged" -eq "$prcount" ]; then echo "done"; return; fi
+    if [ "$merged" -gt 0 ] && [ "$merged" -eq "$active_prcount" ]; then echo "done"; return; fi
     if [ "$prcount" -eq 0 ] && [ "$hasCommits" -eq 0 ]; then echo "done"; return; fi
   fi
   # Legacy/untrailered features have no discoverable PR, so the rule above can't confirm
   # done. Trust an explicit authored `done` only when the plan is 100% complete, no
   # increment PR was found, and no active branch commits are visible; discovered increments
-  # still have to satisfy the merged==prcount rule above, so a closed-unmerged PR keeps the
-  # feature visible.
+  # are judged by the merged==active_prcount rule above, where a closed-unmerged PR is
+  # noise rather than a blocker.
   if [ "$authored" = "done" ] && [ "$frac" = "100" ] && [ "$prcount" -eq 0 ] &&
      [ "$hasCommits" -eq 0 ]; then echo "done"; return; fi
   if [ "$hasPlan" -eq 1 ] && [ "$frac" -gt 0 ] && [ "$frac" -lt 100 ] && [ "$hasCommits" -eq 1 ]; then
@@ -401,7 +405,9 @@ for f in "${specs[@]}"; do
       [ "$prcount" -gt 0 ] && flag "$name: status lags - phase '$phase' but a PR already exists" ;;
   esac
 
-  if [ -n "$br" ] && [ "$br" != unknown ]; then
+  # Branch collision is an in-flight concern only: a done/abandoned branch is not in-flight,
+  # so terminal rows neither flag a collision nor get recorded (conventions.md: two in-flight rows).
+  if [ -n "$br" ] && [ "$br" != unknown ] && [ "$eff" != done ] && [ "$eff" != abandoned ]; then
     if printf '%s' "$SEEN_BRANCHES" | grep -qx "$br"; then
       flag "$name: branch '$br' also claimed by another spec (collision)"
     fi

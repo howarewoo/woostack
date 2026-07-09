@@ -282,18 +282,20 @@ oc="$(mktemp -d)/.woostack"; mkspec "$oc" oscar executing feature/oscar
 mkplan "$oc" oscar 2026-06-01-oscar.md 5 0 done feature/oscar
 export FAKE_GH_JSON='[{"number":9,"state":"MERGED","headRefName":"feature/oscar","author":{"login":"a"},"updatedAt":"2026-06-02T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-oscar.md"},{"number":10,"state":"CLOSED","headRefName":"feature/oscar","author":{"login":"a"},"updatedAt":"2026-06-03T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-oscar.md"}]'
 PATH="$g/bin:$PATH" run_status "$oc"
-assert_contains "$OUT" "oscar" "closed-unmerged increment keeps row visible"
-assert_contains "$OUT" "executing" "closed-unmerged increment prevents done"
-assert_contains "$OUT" "0 done" "closed-unmerged increment not counted done"
+assert_not_contains "$OUT" "oscar " "completed plan with closed-unmerged increment resolves done (hidden by default)"
+assert_contains "$OUT" "1 done" "closed-unmerged increment no longer blocks done (counted in footer)"
+PATH="$g/bin:$PATH" run_status "$oc" --all
+assert_contains "$OUT" "oscar" "done row shown with --all"
 unset FAKE_GH_JSON
 
 ocd="$(mktemp -d)/.woostack"; mkspec "$ocd" oscardone done feature/oscardone
 mkplan "$ocd" oscardone 2026-06-01-oscardone.md 5 0 done feature/oscardone done feature/oscardone
 export FAKE_GH_JSON='[{"number":11,"state":"MERGED","headRefName":"feature/oscardone","author":{"login":"a"},"updatedAt":"2026-06-02T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-oscardone.md"},{"number":12,"state":"CLOSED","headRefName":"feature/oscardone","author":{"login":"a"},"updatedAt":"2026-06-03T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-oscardone.md"}]'
 PATH="$g/bin:$PATH" run_status "$ocd"
-assert_contains "$OUT" "oscardone" "authored done with closed-unmerged increment stays visible"
-assert_contains "$OUT" "executing" "authored done does not override closed-unmerged increment"
-assert_contains "$OUT" "0 done" "authored done with closed-unmerged increment not counted done"
+assert_not_contains "$OUT" "oscardone " "authored-done completed plan with closed-unmerged increment resolves done (hidden by default)"
+assert_contains "$OUT" "1 done" "closed-unmerged increment no longer blocks authored done (counted in footer)"
+PATH="$g/bin:$PATH" run_status "$ocd" --all
+assert_contains "$OUT" "oscardone" "authored-done row shown with --all"
 unset FAKE_GH_JSON
 
 # Zero-checkbox plans carry no progress signal (issue #456): trust an explicit
@@ -306,14 +308,17 @@ assert_contains "$OUT" "1 done" "zero-checkbox authored done + all merged counts
 assert_not_contains "$OUT" "zuludone " "zero-checkbox done hidden by default"
 unset FAKE_GH_JSON
 
-# ...but a closed-unmerged increment still blocks done, exactly like checkbox plans.
+# ...and, like checkbox plans, a closed-unmerged increment no longer blocks done for a
+# completed/authored-done plan: a merged+closed PR pair resolves done (the closed PR is
+# workflow noise, not active work).
 zc="$(mktemp -d)/.woostack"; mkspec "$zc" zuluclosed done feature/zuluclosed
 mkplan "$zc" zuluclosed 2026-06-01-zuluclosed.md 0 0 done feature/zuluclosed
 export FAKE_GH_JSON='[{"number":23,"state":"MERGED","headRefName":"feature/zuluclosed-1","author":{"login":"a"},"updatedAt":"2026-06-02T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-zuluclosed.md"},{"number":24,"state":"CLOSED","headRefName":"feature/zuluclosed-2","author":{"login":"a"},"updatedAt":"2026-06-03T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-zuluclosed.md"}]'
 PATH="$g/bin:$PATH" run_status "$zc"
-assert_contains "$OUT" "zuluclosed" "zero-checkbox done with closed-unmerged increment stays visible"
-assert_contains "$OUT" "executing" "zero-checkbox done does not override closed-unmerged increment"
-assert_contains "$OUT" "0 done" "zero-checkbox done with closed-unmerged increment not counted done"
+assert_not_contains "$OUT" "zuluclosed " "zero-checkbox authored done with closed-unmerged increment resolves done (hidden by default)"
+assert_contains "$OUT" "1 done" "zero-checkbox closed-unmerged increment no longer blocks done (counted in footer)"
+PATH="$g/bin:$PATH" run_status "$zc" --all
+assert_contains "$OUT" "zuluclosed" "zero-checkbox done row shown with --all"
 unset FAKE_GH_JSON
 
 # ...and the legacy no-PR no-commits case mirrors the 100%-plan legacy rule.
@@ -441,5 +446,23 @@ mkplan "$merged_done_repo/.woostack" mergeddone 2026-06-01-mergeddone.md 4 0 don
 OUT="$(cat /tmp/merged-done.out)"
 assert_contains "$OUT" "1 done" "authored done + merged branch with no active commits counts as done"
 assert_not_contains "$OUT" "mergeddone " "merged legacy done hidden by default"
+
+# RC2: branch-collision is scoped to in-flight rows. Two COMPLETED features that share a
+# branch must NOT flag a collision (done rows are not active work); two IN-FLIGHT features
+# that share one still must. Both derive from the legacy authored path (FAKE_GH_JSON='[]').
+dcol="$(mktemp -d)/.woostack"; mkspec "$dcol" collalpha done feature/dup
+mkplan "$dcol" collalpha 2026-06-01-collalpha.md 3 0 done feature/dup
+mkspec "$dcol" collbeta done feature/dup
+mkplan "$dcol" collbeta 2026-06-01-collbeta.md 3 0 done feature/dup
+FAKE_GH_JSON='[]' PATH="$g/bin:$PATH" run_status "$dcol"
+assert_contains "$OUT" "2 done" "both completed features sharing a branch resolve done"
+assert_not_contains "$OUT" "collision" "two done rows sharing a branch do not collide"
+
+xcol="$(mktemp -d)/.woostack"; mkspec "$xcol" execalpha executing feature/dup2
+mkplan "$xcol" execalpha 2026-06-01-execalpha.md 1 9 executing feature/dup2
+mkspec "$xcol" execbeta executing feature/dup2
+mkplan "$xcol" execbeta 2026-06-01-execbeta.md 1 9 executing feature/dup2
+FAKE_GH_JSON='[]' PATH="$g/bin:$PATH" run_status "$xcol"
+assert_contains "$OUT" "collision" "two in-flight rows sharing a branch still collide"
 
 finish

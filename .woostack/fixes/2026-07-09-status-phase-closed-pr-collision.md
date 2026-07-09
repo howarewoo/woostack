@@ -1,6 +1,6 @@
 ---
 type: fix
-status: hardened
+status: executing
 branch: fix/status-phase-closed-pr-collision
 ---
 
@@ -128,7 +128,7 @@ and `SEEN_BRANCHES`, so only two *in-flight* rows sharing a branch flag — matc
 
 ## 3. Implementation Plan
 
-- [ ] **Step 1: Reproduce with failing tests**
+- [x] **Step 1: Reproduce with failing tests**
   - In `skills/woostack-status/scripts/tests/test-status.sh`, rewrite the `oc`/`ocd`/`zc`
     assertions to the new `done` behavior (merged+closed ⇒ done / hidden-by-default / counted
     done), keeping each fixture's setup otherwise intact.
@@ -136,14 +136,14 @@ and `SEEN_BRANCHES`, so only two *in-flight* rows sharing a branch flag — matc
     executing-pair sharing a branch ⇒ collision **still** flagged.
   - Run `bash skills/woostack-status/scripts/tests/run-tests.sh`; confirm the rewritten
     `oc`/`ocd`/`zc` and the done-pair collision test FAIL against current code.
-- [ ] **Step 2: Apply the minimal fix**
+- [x] **Step 2: Apply the minimal fix**
   - `status.sh`: add `active_prcount=$(( open + merged ))` in `resolve_phase`; use it at the
     L180 and L186 `done` checks; update the L181-195 comments.
   - `status.sh`: add `&& [ "$eff" != done ] && [ "$eff" != abandoned ]` to the collision guard
     (L404).
   - `skills/woostack-status/references/conventions.md`: update the `done` bullet (L46-47) for
     the active-PR wording.
-- [ ] **Step 3: Verification**
+- [x] **Step 3: Verification**
   - Run `bash skills/woostack-status/scripts/tests/run-tests.sh` — all `test-status.sh` and
     `test-html-board.sh` tests pass, including the untouched all-merged / open-PR / executing
     guards.
