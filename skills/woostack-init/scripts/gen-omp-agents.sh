@@ -31,14 +31,25 @@ mkdir -p "$OUT_DIR"
 # gitignore generated defs (scoped: woostack-*.md only; a consumer's own custom.md stays tracked)
 ignore="$OUT_DIR/.gitignore"
 if ! [ -f "$ignore" ] || ! grep -qxF 'woostack-*.md' "$ignore" 2>/dev/null; then
+  # if the file exists without a trailing newline, add one first so the pattern
+  # can't glue onto a consumer's unterminated last entry (custom-entrywoostack-*.md)
+  if [ -s "$ignore" ] && [ -n "$(tail -c1 "$ignore")" ]; then printf '\n' >> "$ignore"; fi
   printf '%s\n' 'woostack-*.md' >> "$ignore"
 fi
 
 # omp thinkingLevel enum (verified: omp models.md). woostack effort maps 1:1 (+ off).
 valid_effort() { case "$1" in off|minimal|low|medium|high|xhigh) return 0 ;; *) return 1 ;; esac; }
 default_effort() { case "$1" in fast) echo low ;; standard) echo medium ;; deep) echo xhigh ;; esac; }
-# model slug charset guard -> no YAML metachars/newlines -> no frontmatter injection
-safe_slug() { printf '%s' "$1" | grep -qE '^[A-Za-z0-9][A-Za-z0-9._/:+-]*$'; }
+# model slug charset guard -> no YAML metachars/newlines -> no frontmatter injection.
+# Whole-string case match (bash globs span newlines) so a multi-line value can't
+# slip a clean first line past a per-line grep and inject frontmatter/body.
+safe_slug() {
+  case "$1" in
+    ''|*[!A-Za-z0-9._/:+-]*) return 1 ;;
+    [A-Za-z0-9]*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
 
 render_tier() {
   local tier="$1" leaf ltype model effort tl f

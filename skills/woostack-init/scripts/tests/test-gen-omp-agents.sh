@@ -59,10 +59,13 @@ assert_exit 0 "$rc" "AC1 malformed leaf: exit 0 (best-effort)"
 assert_not_contains "$(cat "$r/.omp/agents/woostack-fast.md")" 'model:' "AC1 malformed: tier unset"
 
 # --- AC1 error: injection attempt in slug -> rejected, tier unset ---
+# Clean first line + injected second line: this is what a per-line grep guard
+# would wrongly pass, so it pins the whole-string safe_slug guard.
 r="$(mktemp -d)"; ( cd "$r" && git init -q )
-mkcfg "$r" '{ "fast": "x/y\"\nmalicious: true" }'
+mkcfg "$r" '{ "fast": "good/slug\nmalicious: injected" }'
 WOOSTACK_ROOT="$r" bash "$GEN" 2>/dev/null
-assert_not_contains "$(cat "$r/.omp/agents/woostack-fast.md")" 'malicious' "AC1 injection: rejected"
+assert_not_contains "$(cat "$r/.omp/agents/woostack-fast.md")" 'malicious' "AC1 injection: multi-line slug rejected"
+assert_not_contains "$(cat "$r/.omp/agents/woostack-fast.md")" 'model:' "AC1 injection: unsafe slug -> tier unset"
 
 # --- AC2 idempotency: two runs byte-identical ---
 r="$(mktemp -d)"; ( cd "$r" && git init -q )
@@ -75,9 +78,9 @@ assert_eq "$a" "$b" "AC2 idempotent: identical output"
 r="$(mktemp -d)"; ( cd "$r" && git init -q && git commit -q --allow-empty -m init )
 mkcfg "$r" '{ "fast": "p/q" }'
 wt="$(mktemp -d)"; ( cd "$r" && git worktree add -q "$wt" -b wt-branch )
-( cd "$wt" && bash "$GEN" )
+( cd "$wt" && env -u WOOSTACK_ROOT bash "$GEN" )
 assert_eq "$([ -f "$r/.omp/agents/woostack-fast.md" ] && echo y)" "y" "AC2 worktree: def at primary root"
-assert_eq "$([ -f "$wt/.omp/agents/woostack-fast.md" ] && echo n || echo n)" "n" "AC2 worktree: not in worktree tree"
+assert_eq "$([ -f "$wt/.omp/agents/woostack-fast.md" ] && echo y || echo n)" "n" "AC2 worktree: not in worktree tree"
 
 # --- AC4 gitignore: generated def ignored, custom def tracked ---
 r="$(mktemp -d)"; ( cd "$r" && git init -q )
@@ -88,5 +91,17 @@ ig="$(cd "$r" && git check-ignore .omp/agents/woostack-fast.md; echo $?)"
 assert_contains "$ig" ".omp/agents/woostack-fast.md" "AC4: generated def ignored"
 cst=$(cd "$r" && git check-ignore .omp/agents/custom.md >/dev/null 2>&1; echo $?)
 assert_eq "$cst" "1" "AC4: custom.md NOT ignored"
+
+# --- AC4b gitignore: append exactly once + preserve a consumer's existing entry ---
+# Seed a consumer .gitignore with NO trailing newline to pin the glue-guard.
+r="$(mktemp -d)"; ( cd "$r" && git init -q )
+mkcfg "$r" '{ "fast": "p/q" }'
+mkdir -p "$r/.omp/agents"
+printf 'custom-entry.md' > "$r/.omp/agents/.gitignore"   # deliberately unterminated
+WOOSTACK_ROOT="$r" bash "$GEN"
+WOOSTACK_ROOT="$r" bash "$GEN"   # second run must not duplicate the pattern
+ig="$r/.omp/agents/.gitignore"
+assert_eq "$(grep -c '^woostack-\*\.md$' "$ig")" "1" "AC4b: pattern appended exactly once"
+assert_eq "$(grep -c '^custom-entry\.md$' "$ig")" "1" "AC4b: consumer entry preserved, not glued"
 
 finish
