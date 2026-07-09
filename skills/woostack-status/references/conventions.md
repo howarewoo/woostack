@@ -41,11 +41,14 @@ These definitions are the source of truth for the `/woostack-status` board and t
     plan partial
   - `in-review` — increment PR open
   - `done` — authored by `woostack-execute` at the final increment (all boxes `[x]`, plan files);
-    the board also derives/confirms it from artifacts (100% + all PRs merged) and shows `in-review`
-    while the final PR is still open; a zero-checkbox plan has no progress signal, so the board
-    trusts its authored `done` only when every discovered increment PR is merged (or none exist
-    and the branch has no active commits)
-  - `abandoned` — intentionally stopped
+    the board also derives/confirms it from artifacts (100% + all active PRs merged) and shows
+    `in-review` while the final PR is still open; a closed-unmerged PR is workflow noise (only
+    open + merged PRs count) and no longer blocks `done` once the plan is complete; a
+    zero-checkbox plan has no progress signal, so the board trusts its authored `done` only when
+    every active (open/merged) increment PR is merged (or no PR at all was discovered —
+    closed included — and the branch has no active commits)
+  - `abandoned` — intentionally stopped; a terminal human decision, never overridden by
+    artifact-derived `done` (unlike stale `executing`/`in-review`/`done` fields)
 
 `/woostack-status` derives truth from artifacts and flags drift instead of rewriting it:
 
