@@ -15,6 +15,14 @@ for the other mode.
 spec compliance first, then code quality — each looping until it passes. The controller
 coordinates; it does not implement.
 
+**Self-contained briefs.** Every dispatched brief (implementer, spec-reviewer, quality-reviewer)
+is **self-contained**, and the workers run on a plain/general-purpose profile: they must **never**
+load `skill://woostack-review` or route via `using-woostack` into the PR-review orchestrator. A
+fresh subagent boots inside the consumer repo and inherits its `AGENTS.md`, so a bare "review this
+task" brief otherwise routes "review" intent into the full `woostack-review` skill — the wrong
+contract for a task-scoped reviewer, and ~14.7K tokens of the wrong instructions. This mirrors
+`woostack-review`'s own worker-brief guard (issue #447).
+
 ## Sequencing (read first)
 
 Tasks within an increment run **sequentially**. They share the controller's one working tree, so
