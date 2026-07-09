@@ -367,6 +367,25 @@ PATH="$g/bin:$PATH" run_status "$zo"
 assert_contains "$OUT" "in-review" "zero-checkbox done with open PR derives in-review"
 unset FAKE_GH_JSON
 
+# The done rule's authored-abandoned guard: abandoned is a terminal human decision. A
+# complete plan (frac=100) plus a MERGED+CLOSED pair (merged==active — the exact shape
+# that flips other rows to done) must NOT resurrect the row as done: it stays abandoned,
+# counted in the footer and hidden by default.
+# Mirrors: resolve_phase abandoned 1 100 0 1 2 0 0 5.
+ab="$(mktemp -d)/.woostack"; mkspec "$ab" abnfinal abandoned feature/abnfinal
+mkplan "$ab" abnfinal 2026-06-01-abnfinal.md 5 0 abandoned feature/abnfinal
+export FAKE_GH_JSON='[{"number":28,"state":"MERGED","headRefName":"feature/abnfinal-1","author":{"login":"a"},"updatedAt":"2026-06-02T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-abnfinal.md"},{"number":29,"state":"CLOSED","headRefName":"feature/abnfinal-2","author":{"login":"a"},"updatedAt":"2026-06-03T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-abnfinal.md"}]'
+PATH="$g/bin:$PATH" run_status "$ab"
+assert_contains "$OUT" "1 abandoned" "authored abandoned with complete plan + merged pair stays abandoned"
+assert_contains "$OUT" "0 done" "abandoned row is not counted done by the merged==active rule"
+assert_not_contains "$OUT" "abnfinal " "abandoned row hidden by default (terminal)"
+PATH="$g/bin:$PATH" run_status "$ab" --all
+ABN_ROW="$(printf '%s\n' "$OUT" | grep '^abnfinal')"
+assert_contains "$ABN_ROW" "abandoned" "abandoned row phase renders abandoned with --all"
+# " done " (space-delimited cell) — "abandoned" itself contains the bare substring "done".
+assert_not_contains "$ABN_ROW" " done " "abandoned row phase cell is not done with --all"
+unset FAKE_GH_JSON
+
 mkspec "$o" papa abandoned feature/papa
 run_status "$o"
 assert_contains "$OUT" "abandoned" "abandoned counted in footer"

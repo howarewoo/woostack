@@ -47,7 +47,8 @@ These definitions are the source of truth for the `/woostack-status` board and t
     zero-checkbox plan has no progress signal, so the board trusts its authored `done` only when
     every active (open/merged) increment PR is merged (or no PR at all was discovered —
     closed included — and the branch has no active commits)
-  - `abandoned` — intentionally stopped
+  - `abandoned` — intentionally stopped; a terminal human decision, never overridden by
+    artifact-derived `done` (unlike stale `executing`/`in-review`/`done` fields)
 
 `/woostack-status` derives truth from artifacts and flags drift instead of rewriting it:
 

@@ -184,7 +184,9 @@ resolve_phase() {
   # "all active PRs merged" invariant, robust to a future reordering of that return.
   local active_prcount=$((open + merged))
   if [ "$open" -gt 0 ]; then echo "in-review"; return; fi
-  if [ "$frac" = "100" ] && [ "$merged" -gt 0 ] && [ "$merged" -eq "$active_prcount" ]; then echo "done"; return; fi
+  # An authored `abandoned` is a terminal human decision: never override it with
+  # artifact-derived done (stale executing/in-review/done fields are still advanced).
+  if [ "$authored" != "abandoned" ] && [ "$frac" = "100" ] && [ "$merged" -gt 0 ] && [ "$merged" -eq "$active_prcount" ]; then echo "done"; return; fi
   # A zero-checkbox plan carries no progress signal (frac stays 0, so the rules
   # above and below can never confirm done). Trust an explicit authored done when
   # at least one active increment PR is merged (a closed-unmerged PR is noise and does not
