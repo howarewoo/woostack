@@ -55,6 +55,20 @@ render_tier() {
   local tier="$1" leaf ltype model effort tl f
   leaf="$(jq -c --arg t "$tier" '(.models // {})[$t] // null' "$CFG" 2>/dev/null || echo null)"
   ltype="$(printf '%s' "$leaf" | jq -r 'type' 2>/dev/null || echo null)"
+  # Array leaf = ordered fallback list; entry 0 is the primary and renders here.
+  # Entries 1..n feed host-level fallback (spec 2026-07-10-tier-fallback-list).
+  if [ "$ltype" = "array" ]; then
+    if [ "$(printf '%s' "$leaf" | jq 'length' 2>/dev/null || echo 0)" -eq 0 ]; then
+      echo "gen-omp-agents.sh: $tier: empty array leaf; tier unset" >&2
+      leaf=null; ltype=null
+    else
+      leaf="$(printf '%s' "$leaf" | jq -c '.[0]')"
+      ltype="$(printf '%s' "$leaf" | jq -r 'type' 2>/dev/null || echo null)"
+      if [ "$ltype" = "null" ]; then
+        echo "gen-omp-agents.sh: $tier: array entry 0 is null; tier unset" >&2
+      fi
+    fi
+  fi
   model=""; effort=""
   case "$ltype" in
     string)

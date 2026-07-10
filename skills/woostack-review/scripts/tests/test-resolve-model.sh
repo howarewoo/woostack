@@ -114,4 +114,25 @@ assert_eq "$(run_resolve "$outdir" --provider openai --tier standard)" "flat-obj
   "flat object leaf: resolver returns .model"
 rm -rf "$outdir"
 
+# --- array leaf: resolver returns entry 0 (flat) ---
+outdir="$(mktemp -d)"
+printf '%s\n' '{"models":{"standard":[{"model":"arr-primary","effort":"low"},{"model":"arr-fallback"}]}}' > "$outdir/config.json"
+assert_eq "$(run_resolve "$outdir" --provider openai --tier standard)" "arr-primary" \
+  "flat array leaf: resolver returns entry-0 .model"
+rm -rf "$outdir"
+
+# --- array leaf: resolver returns entry 0 (provider-scoped, string entries) ---
+outdir="$(mktemp -d)"
+printf '%s\n' '{"models":{"openai":{"deep":["arr-scoped-primary","arr-scoped-fallback"]}}}' > "$outdir/config.json"
+assert_eq "$(run_resolve "$outdir" --provider openai --tier deep)" "arr-scoped-primary" \
+  "provider-scoped string-array leaf: resolver returns entry 0"
+rm -rf "$outdir"
+
+# --- empty-array leaf: falls through to default table (no crash, no empty output) ---
+outdir="$(mktemp -d)"
+printf '%s\n' '{"models":{"standard":[]}}' > "$outdir/config.json"
+assert_eq "$(run_resolve "$outdir" --provider openai --tier standard)" "gpt-5.5" \
+  "empty-array leaf: falls through to default table"
+rm -rf "$outdir"
+
 finish
