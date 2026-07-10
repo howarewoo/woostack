@@ -36,6 +36,8 @@ implicitly `fast`.
 
   **Cross-consumer coexistence.** On CI/single-session hosts the flat provider table above and `resolve-model.sh` are untouched; the omp bucket is informational only. A consumer can still set provider-specific columnar models for those hosts.
 
+  **Host-level fallback (omp).** Tier routing above is static; usage-limit failover is host-owned. On provider exhaustion omp rotates sibling credentials, then applies its own `retry.fallbackChains` as a temporary, self-announcing model switch that reverts on cooldown expiry — beneath, not instead of, the tier's configured model. woostack documents this layer but never reads or writes omp host config (`~/.omp/`).
+
 ## Override precedence (generic)
 
 When a host supports per-repo / per-run overrides, resolve highest-precedence first:

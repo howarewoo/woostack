@@ -69,6 +69,10 @@ rather than burn the night on a doomed run:
    is the `sweep-unavailable` outcome, not a refusal — see
    [Post-implementation review sweep](#post-implementation-review-sweep). Either way, **never**
    silently downgrade to a self-review.)
+   *Advisory (omp):* also check usage-exhaustion resilience — a second credential for the same provider or omp
+   `retry.fallbackChains` covering the tier models — before an unattended run. Without it,
+   mid-run provider exhaustion halts the track through the normal blocker path; this is a
+   recommendation, not a refusal condition.
 4. **Open the report**: create `.woostack/overnight/` if missing and open
    `.woostack/overnight/<run-date>-<plan-slug>.md` — the run date (`YYYY-MM-DD`, today) plus the
    plan basename with any leading `YYYY-MM-DD-` stripped (see
