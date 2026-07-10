@@ -1,6 +1,6 @@
 ---
 type: spec
-status: hardened
+status: approved
 date: 2026-07-10
 branch: feature/tier-fallback
 links:
