@@ -118,6 +118,8 @@ provider-agnostic fallback with the flat `models.<tier>`. Each tier leaf is a mo
 over the built-in default). `review.force_tier` pins every subagent to one tier, the config-file
 equivalent of running the review with `--fast` or `--deep`.
 
+**Under omp (Oh My Pi)**, where the host exposes no per-call model overrides, the flat `models.<tier>` (using a fully-qualified `provider/slug` model leaf) drives per-tier cross-provider routing via generated agent-definition files (`.omp/agents/woostack-<tier>.md`). No new config key is required.
+
 **Clean break:** `models` moved out of `review`. A `review.models` block is now a hard config
 error. Move it to the top level. `woostack-doctor` warns on a lingering `review.models`.
 
