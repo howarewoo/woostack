@@ -11,10 +11,11 @@ fi
 ROOT="${1:-.}"
 CFG="$ROOT/.woostack/config.json"
 
-if [ -x "$LOADER" ] || [ -f "$LOADER" ]; then
+if { [ -x "$LOADER" ] || [ -f "$LOADER" ]; } && command -v python3 >/dev/null 2>&1; then
   err="$(mktemp)"
   if ! bash "$LOADER" "$CFG" >/dev/null 2>"$err"; then
     message="$(cat "$err")"
+    message="${message#*::}"
     case "$message" in
       *credential*|*token*|*api_key*|*password*|*cookie*|*authorization*|*secret*|*mutation_authority*)
         emit warn respond-credentials report ".woostack/config.json" "$message" ;;
@@ -30,7 +31,10 @@ now="${WOOSTACK_NOW_EPOCH:-$(date +%s)}"
 case "$now" in *[!0-9]*|'') now="$(date +%s)" ;; esac
 for run in "$evidence"/*; do
   [ -d "$run" ] || continue
-  mtime="$(stat -f %m "$run" 2>/dev/null || stat -c %Y "$run" 2>/dev/null || echo "$now")"
+  mtime="${WOOSTACK_MTIME_EPOCH:-}"
+  case "$mtime" in
+    *[!0-9]*|'') mtime="$(stat -c %Y "$run" 2>/dev/null || stat -f %m "$run" 2>/dev/null || echo "$now")" ;;
+  esac
   age=$((now - mtime))
   if [ "$age" -gt 86400 ]; then
     name="${run##*/}"

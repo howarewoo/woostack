@@ -49,6 +49,22 @@ if command -v jq >/dev/null 2>&1; then
   assert_eq "$(jq -c '.respond' "$r/.woostack/config.json")" '{}' "repair restores empty respond namespace"
   assert_eq "$(jq -c 'del(.respond)' "$r/.woostack/config.json")" "$before" "repair preserves sibling namespaces"
 fi
+no_python_root="$(mktemp -d)"
+mkdir -p "$no_python_root/.woostack"
+printf '%s\n' '{"respond":{"window":"4m"}}' > "$no_python_root/.woostack/config.json"
+fakebin="$(mktemp -d)"
+ln -s "$(command -v dirname)" "$fakebin/dirname"
+assert_eq "$(PATH="$fakebin" "$(command -v bash)" "$CHECK" "$no_python_root")" "" "missing python skips response config validation"
+rm -rf "$fakebin" "$no_python_root"
+
+injected_root="$(mkroot)"
+mkdir -p "$injected_root/.woostack/respond/evidence/old-run"
+injected_out="$(WOOSTACK_NOW_EPOCH=200000 WOOSTACK_MTIME_EPOCH=100000 bash "$CHECK" "$injected_root")"
+assert_contains "$injected_out" 'respond-stale-evidence' "injected timestamps prove age comparison"
+invalid_now_out="$(WOOSTACK_NOW_EPOCH=invalid WOOSTACK_MTIME_EPOCH=0 bash "$CHECK" "$injected_root")"
+assert_contains "$invalid_now_out" 'respond-stale-evidence' "invalid current-time override falls back safely"
+rm -rf "$injected_root"
+
 
 mkdir -p "$r/.woostack/respond/evidence/old-run" "$r/.woostack/respond/evidence/fresh-run"
 printf '%s\n' 'PAYLOAD_MUST_NOT_BE_READ' > "$r/.woostack/respond/evidence/old-run/provider.json"
