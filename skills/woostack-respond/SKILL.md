@@ -11,10 +11,6 @@ fix preparation. This skill ships no provider client. Provider and production ac
 repository implementation remains owned by [`woostack-fix`](../woostack-fix/SKILL.md) and its
 existing approval gates.
 
-<!-- woostack-defer(increment 3): public routing, docs, and dream corpus integration land in increment 3 -->
-
-These markers defer adoption work only. Built-in defaults, evidence-path proof, receipts,
-sanitization, and read-only authority are active requirements now.
 
 ## Command
 

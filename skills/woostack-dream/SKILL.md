@@ -5,7 +5,7 @@ description: Use to curate the .woostack/ knowledge store. Reflects over the sta
 
 # woostack-dream
 
-`woostack-dream` reflects over the static memory store, the specs/plans/fixes decision corpus, the overnight run reports, and documentation (deterministic and repeatable) to clean and align knowledge, and it never reflects over session transcripts or the live conversation. It is a standalone maintenance command and is not part of the `woostack-build` phase. Instead, it serves as the agentic synthesis and apply layer on top of the mechanical lint checks provided by [`doctor.sh`](../woostack-doctor/scripts/doctor.sh).
+`woostack-dream` reflects over static memory, the tracked specs/plans/fixes/respond decision corpus, overnight reports, and documentation. It excludes raw `.woostack/respond/evidence/`, session transcripts, and the live conversation. It is the synthesis layer above [`doctor.sh`](../woostack-doctor/scripts/doctor.sh).
 
 ## Command
 
@@ -25,6 +25,13 @@ Separately enumerate and read the `.woostack/{specs,plans,fixes,overnight}/*.md`
 
 Read the recent `git log` and the specification, plan, or fix that a note's `source:` field points to — resolving its `[[specs|plans|fixes/<basename>]]` wikilink (or legacy `.woostack/…` path) to the artifact file — using this context to ground judgments of whether a note is stale or current. Honor any optional `instructions` steering argument provided. For further details on the store structure, cross-link the memory contract in [`../woostack-init/references/memory.md`](../woostack-init/references/memory.md).
 
+Tracked `.woostack/respond/*.md` reports are decision-corpus provenance, not documentation
+promotion targets. Enumerate them incrementally with the specs, plans, and fixes:
+`git log <ref>..HEAD --name-only -- .woostack/specs .woostack/plans .woostack/fixes
+.woostack/respond`. Follow response paths named by `source:` for provenance and staleness.
+Always exclude `.woostack/respond/evidence/`. A single incident report cannot establish
+generalized wisdom; it must corroborate a recurring pattern.
+
 ### Phase 2 — Synthesize the "dream" (read-only)
 
 Produce a changeset of discrete, labeled operations. The changeset must explicitly enumerate the following operations:
@@ -32,18 +39,17 @@ Produce a changeset of discrete, labeled operations. The changeset must explicit
 - **replace**: Rewrite contradicted or stale notes to reflect the latest values, while preserving the original `source:` provenance information.
 - **drop**: Remove dead notes and notes with orphaned scope. Rewrite or remove inbound links pointing to dropped notes. (Overnight reports are unrecoverable — the Phase 3 gate shows their full body before any prune.)
 - **resolve**: Adjudicate each overlap cluster identified by `doctor.sh`. When a confident decision cannot be made, flag the conflict for the user instead of guessing.
-- **consolidate**: Roll a recurring pattern (a trend across the memory + overnight +
-  specs/plans/fixes corpora) into a single tracked **wisdom file** at `.woostack/wisdom/<slug>.md`,
-  per the wisdom contract [`../woostack-init/references/wisdom.md`](../woostack-init/references/wisdom.md).
+- **consolidate**: Roll a corroborated recurring pattern across memory, overnight,
+  specs/plans/fixes/respond corpora into one tracked wisdom file, per the
+  [wisdom contract](../woostack-init/references/wisdom.md). One incident report alone never establishes wisdom.
   The wisdom file's `source:` records **all** contributing inputs (note names +
   artifact paths) as permanent provenance. New wisdom must clear the wisdom contract's bar
   (generalized, cross-cutting, high-value); dedupe store-wide against existing wisdom — a
   corroborated trend strengthens or rescopes the existing wisdom file rather than adding a duplicate.
   `woostack-dream` therefore no longer creates memory notes (those are written by woostack-execute
   distillation); it consolidates, hygienes, and prunes them.
-- **prune**: Delete the **fully-absorbed** scratch inputs of a wisdom file — only memory notes and
-  overnight reports, never `fixes/specs/plans`. Compute a **prune list** = the subset of a wisdom
-  file's `source:` ledger whose value is *fully* captured by the finding (per-input agent judgment).
+- **prune**: Delete the fully absorbed scratch inputs named by a wisdom file—only memory notes and
+  overnight reports. Tracked `fixes/specs/plans/respond` artifacts are provenance-only and never appear on a prune list.
   Inputs retaining independent value (e.g. a scope-specific memory note) are **partial** → kept or
   rescoped, never pruned. **Any doubt → keep.** See the wisdom contract §5
   [`../woostack-init/references/wisdom.md`](../woostack-init/references/wisdom.md).
@@ -57,7 +63,7 @@ Present the complete changeset in the conversation transcript as a before-and-af
 - Show the full body of each note scheduled to be dropped, as memory notes are git-tracked (recoverable), but `.woostack/overnight/` reports are gitignored and **unrecoverable once deleted** — so the gate shows their full body before any prune.
 - Show the **prune list**: each fully-absorbed input, its absorbing wisdom file, and a one-line
   "why absorbed". Show the **full body** of every `.woostack/overnight/` report on the prune list
-  (gitignored → unrecoverable). `fixes/specs/plans` never appear on a prune list.
+  (gitignored → unrecoverable). `fixes/specs/plans/respond` never appear on a prune list.
 - Explicitly flag any un-adjudicable conflicts for the user to resolve.
 - Show a diff for each recommended documentation edit, citing its backing note.
 
@@ -102,5 +108,5 @@ The tool degrades gracefully depending on the environment:
   `skills/woostack-init/scripts/`, adds no new scripts, and does not edit the memory/wisdom contracts.
   (Evolving those contracts or tooling is feature work, not a dream run.)
 - **Two stores, one writer**: dream is the only writer of `.woostack/wisdom/`. It consolidates into
-  wisdom and prunes absorbed scratch, but never deletes `fixes/specs/plans`.
+  wisdom and prunes absorbed scratch, but never deletes `fixes/specs/plans/respond` artifacts.
 - **Standalone**: This command is not part of the gated build chain.

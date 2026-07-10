@@ -14,7 +14,7 @@ This is a published collection of skills, not an application codebase. It packag
 decisions for building new web, mobile, and API projects so agents can install it with
 `pnpx skills add howarewoo/woostack`.
 
-The public command/adoption surface has twenty skills:
+The public command/adoption surface has twenty-one skills:
 
 - [`using-woostack`](skills/using-woostack/SKILL.md)
 - [`woostack-init`](skills/woostack-init/SKILL.md)
@@ -36,13 +36,14 @@ The public command/adoption surface has twenty skills:
 - [`woostack-sweep`](skills/woostack-sweep/SKILL.md)
 - [`woostack-qa`](skills/woostack-qa/SKILL.md)
 - [`woostack-audit`](skills/woostack-audit/SKILL.md)
+- [`woostack-respond`](skills/woostack-respond/SKILL.md)
 
 The collection also installs two internal sub-skills:
 [`woostack-ideate`](skills/woostack-ideate/SKILL.md) and
 [`woostack-harden`](skills/woostack-harden/SKILL.md). `woostack-build` delegates its ideate
 phase to the former and its harden phase to the latter. Both are bundled building blocks, not
-`/woostack-*` commands: they have no routing row and are absent from the twenty-skill command surface above. Like [`action.yml`](action.yml), they are shipped assets — do not delete them as
-strays.
+`/woostack-*` commands: they have no routing row and are absent from the twenty-one-skill command surface above. The collection also ships the pre-existing `woostack-ask` skill as an unregistered,
+read-only investigation utility outside that public command/adoption count. Like [`action.yml`](action.yml), these are shipped assets — do not delete them as strays.
 
 There is no application source code, app lockfile, build, or CI for this repo's own
 push/PR events. `skills-lock.json` is the dev-skill manifest and is currently empty.
@@ -73,7 +74,7 @@ do not add application code, app build configs, or app lockfiles **outside the s
 **Mode B: run a woostack command.** Use this when the user asks for `/woostack-init`,
 `/woostack-bootstrap`, `/woostack-build`, `/woostack-fix`, `/woostack-plan`, `/woostack-execute`, `/woostack-execute-overnight`, `/woostack-commit`,
 `/woostack-review`, `/woostack-address-comments`, `/woostack-status`, `/woostack-visualize`, `/woostack-debug`, `/woostack-dream`,
-`/woostack-tdd`, `/woostack-doctor`, `/woostack-sweep`, `/woostack-qa`, or `/woostack-audit`, including intent-equivalent wording. Load the matching skill
+`/woostack-tdd`, `/woostack-doctor`, `/woostack-sweep`, `/woostack-qa`, `/woostack-audit`, or `/woostack-respond`, including intent-equivalent wording. Load the matching skill
 before acting. For bootstrap work, the output belongs in a fresh repo in a different
 directory, not in this repo.
 
@@ -102,8 +103,8 @@ directory, not in this repo.
   pages need no manual edit: they regenerate from each `SKILL.md` at build time (see the
   documentation-site exception above). When in doubt, run `pnpm -C site build` to confirm the
   site still builds.
-- Do not move or rename any of the twenty-two `SKILL.md` files (the twenty public command/adoption
-  skills plus the internal `woostack-ideate` and `woostack-harden`).
+- Do not move or rename any of the twenty-four `SKILL.md` files (the twenty-one public command/adoption
+  skills, the internal `woostack-ideate` and `woostack-harden`, plus unregistered `woostack-ask`).
 - Do not rename files under
   [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/) without
   updating every cross-link and the bootstrap skill table.
@@ -133,6 +134,8 @@ directory, not in this repo.
   [`skills/woostack-qa/SKILL.md`](skills/woostack-qa/SKILL.md)
 - Standing-code audit engine (public command; repoints the review swarm at an all-added diff of a
   target, report-only): [`skills/woostack-audit/SKILL.md`](skills/woostack-audit/SKILL.md)
+- Production-error response engine (public command; reads bounded telemetry, writes a sanitized
+  report, and gates any fix handoff): [`skills/woostack-respond/SKILL.md`](skills/woostack-respond/SKILL.md)
 - Ideate phase engine for the build loop (internal sub-skill):
   [`skills/woostack-ideate/SKILL.md`](skills/woostack-ideate/SKILL.md)
 - Harden phase engine for the build loop (internal sub-skill):
