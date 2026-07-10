@@ -58,9 +58,9 @@ Two callers:
    `main`). Resolution lives in [`scripts/resolve-base.sh`](scripts/resolve-base.sh); the per-PR
    worktree lifecycle that consumes it is the [worktree contract](references/worktrees.md).
 
-   **Under omp (Oh My Pi):** after writing `config.json` (or if it is already present), `woostack-init`
-   runs `skills/woostack-init/scripts/gen-omp-agents.sh` to generate the `.omp/agents/woostack-{fast,standard,deep}.md`
-   tier definitions. These generated definitions are gitignored via `.omp/agents/.gitignore` (written by the generator).
+   **Host-specific scaffold:** after writing `config.json` (or if it is already present), run any
+   scaffold step the current host's reference file names. **Host mechanics:** before any host-dependent step (subagent dispatch, scaffold, draft), load `skills/using-woostack/references/hosts/<current-host>.md`; no matching file -> treat the host as having no per-call routing and say so (degraded).
+   (Under omp: run the generator to produce the gitignored tier defs — mechanics in `hosts/omp.md`.)
 
 3. **Handle existing files.** For any file that already exists and `--force`
    is not active: prompt the user to keep or overwrite it. Under `--no-clobber`

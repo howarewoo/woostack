@@ -24,19 +24,16 @@ implicitly `fast`.
 
 ## Routing by host capability (generic)
 
-- **Per-call routing** (Claude Code `Task`, Codex local subagents with a `model` override,
-  opencode `@subagent`): resolve the effective tier = a forced tier if the host sets one, else
-  the prompt's own `tier:` frontmatter; resolve it through the active provider's column plus the
-  override precedence below; **pass everything the resolved tier specifies on every spawn.**
-  Never rely on inherited parent-session settings when a spawn API accepts them explicitly, and
-  never substitute a mapping that is not configured here.
-- **Single model per session** (Codex Action without subagent model overrides, Antigravity CLI): resolve
-  one run model up front; per-tier behavior collapses onto that one model for the whole job.
-- **Per-call routing via agent-by-tier (omp / Oh My Pi)** — omp's `task` tool has **no per-call `model`/`tier`/`effort` argument**, so per-spawn tier routing is not available. Instead, omp resolves a subagent's model from the **agent definition** (`model` + `thinkingLevel`). woostack ships three generated defs `.omp/agents/woostack-{fast,standard,deep}.md` (from `.woostack/config.json` via `skills/woostack-init/scripts/gen-omp-agents.sh`) and the driver selects `agent: woostack-<effective-tier>` per spawn - **agent-by-tier** routing. This is a routing pattern over the existing flat `models.<tier>` config, **not a fifth provider column** and **not a new config key**. An unset tier -> `thinkingLevel`-only def (fast->low, standard->medium, deep->xhigh) inheriting the session model. woostack effort (`minimal|low|medium|high|xhigh`) maps 1:1 to omp `thinkingLevel` (which also allows `off`).
+Three capability classes: **per-call routing** (the spawn accepts an explicit model/effort —
+resolve the effective tier and pass everything it specifies), **single model per session**
+(resolve one run model up front; per-tier behavior collapses onto it), and **per-call routing
+via agent-by-tier** (no per-call knob; the host selects a tier-pinned agent definition per
+spawn). Which class a host falls in, its spawn mechanics, its per-skill notes, and its
+host-level fallback behavior live in one file per host under [`hosts/`](hosts/README.md).
+On CI/single-session hosts the flat provider table above and `resolve-model.sh` are
+untouched; a consumer can still set provider-specific columnar models for those hosts.
 
-  **Cross-consumer coexistence.** On CI/single-session hosts the flat provider table above and `resolve-model.sh` are untouched; the omp bucket is informational only. A consumer can still set provider-specific columnar models for those hosts.
-
-  **Host-level fallback (omp).** Tier routing above is static; usage-limit failover is host-owned. On provider exhaustion omp rotates sibling credentials, then applies its own `retry.fallbackChains` as a temporary, self-announcing model switch that reverts on cooldown expiry — beneath, not instead of, the tier's configured model. woostack documents this layer but never reads or writes omp host config (`~/.omp/`).
+**Host mechanics:** before any host-dependent step (subagent dispatch, scaffold, draft), load `skills/using-woostack/references/hosts/<current-host>.md`; no matching file -> treat the host as having no per-call routing and say so (degraded).
 
 ## Override precedence (generic)
 

@@ -1,5 +1,3 @@
-<!-- woostack-defer(increment-2): donor sites still carry this text until the extraction increment -->
-
 # opencode
 
 ## Detection
