@@ -531,14 +531,14 @@ provider or CI-only host capability.
 - Modify: `skills/woostack-init/scripts/tests/test-gitignore-template.sh`
 - Create: `skills/woostack-init/scripts/tests/test-respond-template.sh`
 
-- [ ] **Step 1: Write failing template assertions**
+- [x] **Step 1: Write failing template assertions**
 
   Assert the canonical JSON parses, contains top-level `"respond": {}`, preserves `models`,
   `review`, and `status`, and contains no credential-like respond keys. Assert the exact ignore
   line `respond/evidence/`, assert `respond/` itself is not ignored, and assert the `.gitkeep`
   exists. Extend the existing gitignore test with the response evidence line.
 
-- [ ] **Step 2: Run template tests and confirm red**
+- [x] **Step 2: Run template tests and confirm red**
 
   Run: `bash skills/woostack-init/scripts/tests/test-respond-template.sh`
 
@@ -548,20 +548,20 @@ provider or CI-only host capability.
 
   Expected: non-zero; response evidence ignore assertion fails.
 
-- [ ] **Step 3: Update templates**
+- [x] **Step 3: Update templates**
 
   Add `"respond": {}` as a top-level sibling without reformatting existing namespaces; append
   `respond/evidence/` under the transient evidence group; add the empty `.gitkeep` template. Do not
   add provider credentials, fixed provider adapters, raw evidence content, or a top-level
   application lockfile.
 
-- [ ] **Step 4: Run template tests and confirm green**
+- [x] **Step 4: Run template tests and confirm green**
 
   Run both tests above.
 
   Expected: `PASS: respond workspace template` and the existing gitignore test final PASS line.
 
-- [ ] **Step 5: Commit template integration**
+- [x] **Step 5: Commit template integration**
 
   Run: `gt create -m "feat: scaffold response workspace settings"`.
 
@@ -573,7 +573,7 @@ provider or CI-only host capability.
 - Create: `skills/woostack-init/scripts/tests/test-respond-setup-contract.sh`
 - Modify: `skills/woostack-respond/SKILL.md`
 
-- [ ] **Step 1: Write the failing init contract test**
+- [x] **Step 1: Write the failing init contract test**
 
   Assert the skill documents `--respond`, `--no-respond`, mutual exclusion, default-no prompt,
   repository-instrumentation and host-capability discovery, provider/environment/window/max groups/
@@ -583,13 +583,13 @@ provider or CI-only host capability.
   `.woostack/respond/.gitkeep`. Assert the memory layout includes `respond/` reports and the ignored
   `respond/evidence/` child.
 
-- [ ] **Step 2: Run the init contract test and confirm red**
+- [x] **Step 2: Run the init contract test and confirm red**
 
   Run: `bash skills/woostack-init/scripts/tests/test-respond-setup-contract.sh`
 
   Expected: non-zero; init has no response setup contract.
 
-- [ ] **Step 3: Amend init behavior**
+- [x] **Step 3: Amend init behavior**
 
   Add flags to Commands and argument conflict handling. After creating/preserving config, prompt
   `Set up production error response? [y/N]`; `--respond` skips that opt-in and `--no-respond`
@@ -600,12 +600,12 @@ provider or CI-only host capability.
   survive; existing respond values can be kept; reconfigure changes only respond; no-clobber
   requires explicit `--respond`; both flags hard-fail.
 
-- [ ] **Step 4: Update workspace layout documentation and remove the Increment 2 marker**
+- [x] **Step 4: Update workspace layout documentation and remove the Increment 2 marker**
 
   Add `respond/.gitkeep`, tracked reports, and ignored evidence to `memory.md`'s init layout. Remove
   only `woostack-defer(increment 2)` from `woostack-respond/SKILL.md`; keep Increment 3's marker.
 
-- [ ] **Step 5: Run init-focused tests**
+- [x] **Step 5: Run init-focused tests**
 
   Run: `bash skills/woostack-init/scripts/tests/test-respond-setup-contract.sh`
 
@@ -615,7 +615,7 @@ provider or CI-only host capability.
 
   Expected: exit 0 with all existing init tests passing.
 
-- [ ] **Step 6: Commit guided setup**
+- [x] **Step 6: Commit guided setup**
 
   Run: `gt modify -c -m "feat: guide response setup during init"`.
 
@@ -626,7 +626,7 @@ provider or CI-only host capability.
 - Create: `skills/woostack-doctor/scripts/tests/test-respond.sh`
 - Modify: `skills/woostack-doctor/references/checks.md`
 
-- [ ] **Step 1: Write failing doctor fixtures**
+- [x] **Step 1: Write failing doctor fixtures**
 
   Create temporary workspace fixtures and call `checks/respond.sh <root>`. Assert no finding for
   absent valid optional values; `respond-config` warnings for non-object namespace, unknown keys,
@@ -640,13 +640,13 @@ provider or CI-only host capability.
   only `respond`: assert `missing required config key: respond`, then run doctor repair and assert
   it restores `respond: {}` from the canonical template without changing sibling namespaces.
 
-- [ ] **Step 2: Run the doctor test and confirm red**
+- [x] **Step 2: Run the doctor test and confirm red**
 
   Run: `bash skills/woostack-doctor/scripts/tests/test-respond.sh`
 
   Expected: non-zero; respond check is missing.
 
-- [ ] **Step 3: Implement the metadata-only check**
+- [x] **Step 3: Implement the metadata-only check**
 
   Follow existing `checks/*.sh` output shape. Reuse the response loader for namespace validation
   without provider preflight, map loader errors to doctor findings, detect credential-like keys
@@ -655,14 +655,14 @@ provider or CI-only host capability.
   manual deletion recommendation; never open evidence files, print directory contents, prompt
   login, or call a provider.
 
-- [ ] **Step 4: Document findings and prove automatic orchestration**
+- [x] **Step 4: Document findings and prove automatic orchestration**
 
   Add `respond-config`, `respond-credentials`, and `respond-stale-evidence` to `checks.md` with
   severity, repairability, and manual cleanup. The existing `doctor.sh` wildcard
   `checks/*.sh` loop requires no dispatch edit; add an assertion in `test-respond.sh` that invoking
   `doctor.sh` surfaces the new check.
 
-- [ ] **Step 5: Run doctor tests**
+- [x] **Step 5: Run doctor tests**
 
   Run: `bash skills/woostack-doctor/scripts/tests/test-respond.sh`
 
@@ -672,7 +672,7 @@ provider or CI-only host capability.
 
   Expected: exit 0 with all existing doctor tests passing.
 
-- [ ] **Step 6: Commit doctor integration**
+- [x] **Step 6: Commit doctor integration**
 
   Run: `gt modify -c -m "feat: diagnose response workspace health"`.
 
