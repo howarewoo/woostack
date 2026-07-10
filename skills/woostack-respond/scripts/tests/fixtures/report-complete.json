@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "signal": "HTTP 500 / Checkout",
+  "scope": "Acme API Production",
+  "environment": "production",
+  "window": {
+    "start": "2026-07-09T18:00:00Z",
+    "end": "2026-07-10T18:00:00Z"
+  },
+  "generated_at": "2026-07-10T18:30:00Z",
+  "outcome": "complete",
+  "coverage": [
+    {
+      "provider": "vercel",
+      "role": "deployment",
+      "state": "executed",
+      "receipt": "evidence/vercel-receipt.json",
+      "records_returned": 2
+    },
+    {
+      "provider": "sentry",
+      "role": "error-tracking",
+      "state": "executed",
+      "receipt": "evidence/sentry-receipt.json",
+      "records_returned": 6
+    }
+  ],
+  "ranked_groups": [
+    {
+      "id": "g6",
+      "summary": "Worker timeout",
+      "impact": 3,
+      "frequency": 2,
+      "recency": "2026-07-10T10:00:00Z",
+      "investigation": "deferred"
+    },
+    {
+      "id": "g1",
+      "summary": "Checkout 500 A",
+      "impact": 10,
+      "frequency": 20,
+      "recency": "2026-07-10T17:00:00Z",
+      "investigation": "verified"
+    },
+    {
+      "id": "g2",
+      "summary": "Checkout 500 B",
+      "impact": 9,
+      "frequency": 15,
+      "recency": "2026-07-10T16:00:00Z",
+      "investigation": "verified"
+    },
+    {
+      "id": "g3",
+      "summary": "Webhook retry",
+      "impact": 8,
+      "frequency": 8,
+      "recency": "2026-07-10T15:00:00Z",
+      "investigation": "rejected"
+    },
+    {
+      "id": "g4",
+      "summary": "Cache miss",
+      "impact": 7,
+      "frequency": 7,
+      "recency": "2026-07-10T14:00:00Z",
+      "investigation": "blocked"
+    },
+    {
+      "id": "g5",
+      "summary": "Provider outage",
+      "impact": 6,
+      "frequency": 5,
+      "recency": "2026-07-10T13:00:00Z",
+      "investigation": "verified"
+    }
+  ],
+  "impact_summary": [
+    "20 failed checkouts"
+  ],
+  "timeline": [
+    "2026-07-10T16:00:00Z signal increased",
+    "2026-07-10T17:00:00Z query executed"
+  ],
+  "investigations": [
+    {
+      "id": "rc-checkout",
+      "status": "verified",
+      "hypothesis": "Nil cart currency",
+      "evidence": [
+        "trace t-safe"
+      ]
+    },
+    {
+      "id": "rc-provider",
+      "status": "verified",
+      "hypothesis": "External payment outage",
+      "evidence": [
+        "provider incident INC-7"
+      ]
+    },
+    {
+      "id": "hyp-webhook",
+      "status": "rejected",
+      "hypothesis": "Webhook parser",
+      "evidence": [
+        "parser test passed"
+      ]
+    },
+    {
+      "id": "hyp-cache",
+      "status": "blocked",
+      "hypothesis": "Unknown",
+      "evidence": []
+    }
+  ],
+  "verified_root_causes": [
+    {
+      "id": "rc-checkout",
+      "summary": "Nil cart currency",
+      "evidence": [
+        "trace t-safe"
+      ]
+    }
+  ],
+  "external_incidents": [
+    {
+      "id": "rc-provider",
+      "summary": "External payment outage",
+      "evidence": [
+        "provider incident INC-7"
+      ]
+    }
+  ],
+  "observability_gaps": [
+    "Add cache hit-rate instrumentation"
+  ],
+  "remediation": [
+    "rc-checkout: Validate currency",
+    "rc-checkout fix plan: .woostack/fixes/checkout.md",
+    "rc-checkout branch: fix/checkout",
+    "rc-checkout PR: https://example.test/pr/1",
+    "rc-provider: No repository change",
+    "rc-provider fix plan: .woostack/fixes/provider-observability.md",
+    "rc-provider branch: fix/provider-observability",
+    "rc-provider PR: https://example.test/pr/2",
+    "hyp-webhook: None",
+    "hyp-cache: Acquire cache metrics"
+  ],
+  "blocked_evidence": []
+}
