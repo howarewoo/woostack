@@ -491,14 +491,14 @@ Removes the Increment 1 deferral marker (generator now has its execute caller).
 **Spec coverage:** AC6 (execute agent-by-tier + ensure-then-select), AC7 (commit fast-draft ->
 `woostack-fast`; review-local angle workers -> `woostack-<tier>`, validator -> `woostack-deep`).
 
-### Step 4.1 (RED) - assert the omp dispatch tokens are absent
+- [x] **Step 4.1 (RED) - assert the omp dispatch tokens are absent**
 
 Commands (all expected `0` at RED):
 - `grep -c 'woostack-<effective-tier>' skills/woostack-execute/references/subagent-driver.md`
 - `grep -c 'woostack-fast' skills/woostack-commit/SKILL.md`
 - `grep -c 'woostack-<tier>' skills/woostack-review/SKILL.md`
 
-### Step 4.2 (GREEN) - `subagent-driver.md` "Dispatch model"
+- [x] **Step 4.2 (GREEN) - subagent-driver.md "Dispatch model"**
 
 Append a paragraph to the **Dispatch model** section (after line 135, the "say so"
 degraded line), using the exact token `woostack-<effective-tier>`:
@@ -512,13 +512,13 @@ degraded line), using the exact token `woostack-<effective-tier>`:
 > cannot route per call" - it is **not** degraded: the tier's model/effort are applied via
 > the def, so do not "run at session model + say so" under omp.
 
-### Step 4.3 (GREEN) - `commit/SKILL.md` fast-draft
+- [x] **Step 4.3 (GREEN) - commit/SKILL.md fast-draft**
 
 Extend the fast-tier routing bullet (lines 53-57): under omp, since `task` has no per-call
 model knob, select `agent: woostack-fast` for the drafting spawn (ensure defs first via the
 generator). Use the exact token `woostack-fast`.
 
-### Step 4.4 (GREEN) - `review/SKILL.md` Stage 3 local swarm
+- [x] **Step 4.4 (GREEN) - review/SKILL.md Stage 3 local swarm**
 
 Add an omp bullet to the per-host primitive list (after line 337, the opencode bullet),
 consistent with the "plain/general-purpose/default worker" mandate (lines 328-332). Use the
@@ -530,7 +530,7 @@ exact token `woostack-<tier>`:
 >   `skills/woostack-init/scripts/gen-omp-agents.sh`. **Local only** - the CI single-session
 >   `load-prompt.sh` / `resolve-model.sh` path is unchanged.
 
-### Step 4.5 - remove deferral marker
+- [x] **Step 4.5 - remove deferral marker**
 
 Delete the `# woostack-defer(increment 4): ...` line from `gen-omp-agents.sh`.
 
