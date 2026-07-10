@@ -1,7 +1,8 @@
 # Model Tiers (shared, host-agnostic)
 
-Canonical tier→model mapping for the woostack collection. Both `woostack-review` (angle workers +
-validator) and `woostack-execute` (subagent driver) resolve tiers through this file. Each consumer
+Canonical tier→model mapping for the woostack collection. `woostack-review` (angle workers +
+validator), `woostack-audit` (audit workers), and `woostack-execute` (subagent driver) resolve
+tiers through this file. Each consumer
 keeps only its own **runtime bindings** (env vars, config paths, dispatch calls) and points at the
 precedence rules below — there is no second copy of this table.
 

@@ -9,6 +9,10 @@ dist/
 .turbo/
 out/
 
+# Python bytecode
+__pycache__/
+*.pyc
+
 # Testing
 coverage/
 playwright-report/

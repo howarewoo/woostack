@@ -43,16 +43,20 @@ new angles are shared with `woostack-review`, which also runs them on source-tou
 
 ## Per-repo configuration
 
-Drop an optional sibling **`audit`** block in `.woostack/config.json` (review's loader ignores
-non-`review` keys, so the two namespaces never collide):
+Drop an optional sibling **`audit`** block in `.woostack/config.json`:
 
 ```json
 { "audit": { "severity_floor": "high", "angles": { "skip": ["deps"] }, "ignore": ["**/*.generated.ts"] } }
 ```
 
-Keys mirror review: `angles.force` / `angles.skip`, `severity_floor`, `ignore`, `models`,
-`chunking.max_loc`, `report_dir`. Parsed by `scripts/load-audit-config.sh`; an unknown key
-hard-fails.
+Audit-local keys are `angles.force` / `angles.skip`, `severity_floor`, `ignore`,
+`chunking.max_loc`, and `report_dir`. `scripts/load-audit-config.sh` hard-fails on an unknown
+key.
+
+Model selection uses the shared root `models` object, not `audit.models`. Use
+`models.<tier>` or `models.<provider>.<tier>` as described in the canonical
+[Model Tiers reference](../using-woostack/references/model-tiers.md). A nested `audit.models`
+block is a hard error.
 
 ## Workflow
 
