@@ -10,7 +10,7 @@ if [ "$FIX" -eq 1 ]; then
   WOOSTACK_ROOT="$WOO_ROOT" bash "$GEN" >/dev/null 2>&1 || true
   exit 0
 fi
-tmp="$(mktemp -d)"
+tmp="$(mktemp -d)" || exit 0            # mktemp failed -> stay read-only, never fall through to live .omp/agents
 WOOSTACK_ROOT="$WOO_ROOT" WOO_OMP_AGENTS_DIR="$tmp" bash "$GEN" >/dev/null 2>&1 || true
 for want in "$tmp"/woostack-*.md; do
   [ -e "$want" ] || continue
