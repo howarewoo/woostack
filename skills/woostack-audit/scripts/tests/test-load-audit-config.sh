@@ -6,7 +6,7 @@ source "$ROOT/skills/woostack-init/scripts/tests/assert.sh"
 SCRIPT="$DIR/load-audit-config.sh"
 
 EC=0
-run() { # $1=config json, $2=lens (optional). Sets OUTDIR (parent-visible) + EC.
+run() { # $1=config json, $2=lens (optional). Sets OUTDIR + ERR (parent-visible) + EC.
   work="$(mktemp -d)"; export OUTDIR="$work/out"; mkdir -p "$OUTDIR"
   printf '%s' "$1" > "$work/config.json"
   ERR="$work/stderr"
@@ -65,10 +65,23 @@ assert_eq "$EC" "0" "root provider model accepted"
 assert_eq "$(jq -c '.models.openai.standard' "$OUTDIR/config.json")" '{"model":"gpt-5.5","effort":"medium"}' "root provider model forwarded"
 assert_eq "$(jq -r '.severity_floor' "$OUTDIR/config.json")" "medium" "audit settings coexist with root models"
 
-# Flat provider-agnostic tiers are forwarded unchanged.
+# Flat provider-agnostic tiers are normalized to the shared canonical leaf shape.
 run '{"models":{"standard":"provider/model"}}'
 assert_eq "$EC" "0" "flat root model accepted"
-assert_eq "$(jq -r '.models.standard' "$OUTDIR/config.json")" "provider/model" "flat root model forwarded"
+assert_eq "$(jq -c '.models.standard' "$OUTDIR/config.json")" '{"model":"provider/model"}' "flat root model normalized"
+
+# Invalid root model configuration fails before audit work starts.
+run '{"models":"gpt-5.5"}'
+assert_eq "$EC" "1" "non-object root models rejected"
+assert_contains "$(cat "$ERR")" "must be an object with fast/standard/deep keys" "non-object error names models contract"
+
+run '{"models":{"standrd":"gpt-5.5"}}'
+assert_eq "$EC" "1" "unknown root model tier rejected"
+assert_contains "$(cat "$ERR")" "unknown models key" "unknown tier error names valid model keys"
+
+run '{"models":{"openai":{"standard":{"model":"gpt-5.5","effort":"turbo"}}}}'
+assert_eq "$EC" "1" "invalid root model effort rejected"
+assert_contains "$(cat "$ERR")" "effort must be one of" "invalid effort error names allowed values"
 
 # models is shared root config, not an audit-local key.
 run '{"audit":{"models":{"standard":"legacy/model"}}}'

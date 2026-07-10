@@ -12,12 +12,19 @@ CFG_FILE="${AUDIT_CONFIG_FILE:-$WOOSTACK_ROOT/.woostack/config.json}"
 LENS="${AUDIT_LENS:-}"
 VALID_KEYS='angles severity_floor ignore chunking report_dir'
 
-python3 - "$CFG_FILE" "$LENS" "$OUTDIR/config.json" "$VALID_KEYS" <<'PY'
+PYTHONDONTWRITEBYTECODE=1 python3 - "$CFG_FILE" "$LENS" "$OUTDIR/config.json" "$VALID_KEYS" "$RVW" <<'PY'
 import json, sys, os
+
+sys.path.insert(0, sys.argv[5])
+from model_config import normalize_models
+
 cfg_file, lens, out, valid_keys = sys.argv[1], sys.argv[2], sys.argv[3], set(sys.argv[4].split())
-root = {}
 audit = {}
 models = {}
+def _fail(path, message):
+    sys.stderr.write("::error file=%s::%s\n" % (path, message))
+    sys.exit(1)
+
 if os.path.exists(cfg_file):
     with open(cfg_file) as f:
         try:
@@ -25,7 +32,7 @@ if os.path.exists(cfg_file):
         except json.JSONDecodeError as e:
             sys.stderr.write("::error file=%s::invalid JSON: %s\n" % (cfg_file, e)); sys.exit(1)
     audit = root.get("audit", {}) or {}
-    models = root.get("models", {}) or {}
+    models = normalize_models(root.get("models", {}), lambda message: _fail(cfg_file, message))
 if "models" in audit:
     sys.stderr.write("::error file=%s::audit.models moved; use root models instead\n" % cfg_file); sys.exit(1)
 bad = [k for k in audit if k not in valid_keys]
