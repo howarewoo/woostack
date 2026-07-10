@@ -42,13 +42,16 @@ Two callers:
    | `.woostack/fixes/.gitkeep` | `templates/fixes/.gitkeep` |
    | `.woostack/wisdom/` directory | (create empty) |
    | `.woostack/wisdom/.gitkeep` | `templates/wisdom/.gitkeep` |
-   | `.woostack/config.json` | `templates/config.json` (`{ "models": {}, "review": {}, "status": { "staleDays": 14 } }`) |
+   | `.woostack/respond/` directory | (create empty — tracked sanitized response reports) |
+   | `.woostack/respond/.gitkeep` | `templates/respond/.gitkeep` |
+   | `.woostack/config.json` | `templates/config.json` (`{ "models": {}, "review": {}, "respond": {}, "status": { "staleDays": 14 } }`) |
    | `.woostack/.gitignore` | `templates/gitignore` |
    | `.woostack/worktrees/` directory | (create empty — per-PR git worktrees, gitignored) |
 
-   `config.json` ships as `{ "models": {}, "review": {}, "status": { "staleDays": 14 } }`. Each tool owns
-   its own namespace inside that object: for the `review` namespace see
-   [references/memory.md](references/memory.md); the `status` namespace holds `staleDays`
+   `config.json` ships as `{ "models": {}, "review": {}, "respond": {}, "status": { "staleDays": 14 } }`.
+   Each tool owns its namespace. The optional `respond` namespace accepts only non-secret workflow
+   defaults: `provider`, `environment`, `window`, `max_groups`, and `remediation`; provider
+   credentials remain in provider-native stores. The `status` namespace holds `staleDays`
    (default 14 — the age in days past which an executing spec is flagged stale on the
    `/woostack-status` board), defined in
    [../woostack-status/references/conventions.md](../woostack-status/references/conventions.md).
@@ -67,7 +70,24 @@ Two callers:
    skip all existing files silently without prompting. After the run, state
    which mode was used (interactive / force / no-clobber) in the summary.
 
-4. **Obsidian vault config (optional).** If `--obsidian` was passed, or if
+4. **Production-error response setup (optional).** If `--respond` was passed, or if
+   `--no-respond` was not passed and the user accepts `Set up production error response? [y/N]`,
+   inspect repository dependencies, configuration filenames, instrumentation imports,
+   configured exporters, and environment-variable **names**, then inventory available host
+   CLI/MCP/skill capabilities. Never read or print credential values. Present detected providers,
+   coverage gaps, and any provider-native authentication prerequisite; missing authentication is a warning
+   and next action, not an init failure.
+
+   Ask sequentially for provider, environment, window, maximum groups, and remediation, showing
+   existing values as defaults. Semantically merge only accepted values into `respond`; preserve every sibling and unknown top-level namespace
+   byte-for-byte semantically. Existing respond
+   values may be kept or explicitly reconfigured. Under `--no-clobber`, an existing config is
+   modified only when `--respond` was explicit. Under `--force`, the normal template replacement
+   still applies before response setup. `--respond` and `--no-respond` together are a hard error.
+   This setup never authenticates a provider, stores a token/DSN/password/cookie/API key, or
+   queries production telemetry.
+
+5. **Obsidian vault config (optional).** If `--obsidian` was passed, or if
    `--no-obsidian` was not passed and the user accepts the prompt ("Set up
    Obsidian vault config? [y/N]", default no), copy
    `templates/obsidian/` into `.woostack/.obsidian/`. Never clobber an
@@ -77,7 +97,7 @@ Two callers:
    desktop app. Obsidian is **optional** — all memory tooling (`recall`,
    `doctor`, `build-index`) works without it.
 
-5. **Run the scripts.**
+6. **Run the scripts.**
 
    ```
    bash scripts/build-index.sh .woostack/memory
@@ -87,7 +107,7 @@ Two callers:
    Run `build-index.sh` first so the index is current before `doctor.sh` checks
    for wikilink targets.
 
-6. **Report.** Print a summary listing each file as `created` or `skipped`,
+7. **Report.** Print a summary listing each file as `created` or `skipped`,
    then echo the doctor output (warnings and error count). If doctor exits
    non-zero, surface the errors prominently so the user can act on them before
    committing.
@@ -101,9 +121,13 @@ Two callers:
   automated contexts (CI, bootstrap) where the workspace may already be
   partially initialized.
 - `--obsidian` — force-enable the optional Obsidian vault config scaffold
-  (step 4) without prompting.
+  (step 5) without prompting.
 - `--no-obsidian` — force-skip the optional Obsidian vault config scaffold
-  (step 4) without prompting.
+  (step 5) without prompting.
+- `--respond` — opt into guided non-secret production-error response configuration without the
+  initial prompt.
+- `--no-respond` — suppress production-error response discovery and configuration. Mutually
+  exclusive with `--respond`.
 
 ## Hard constraints
 
@@ -118,6 +142,8 @@ Two callers:
 - **Pure bash, no new runtime dependencies.** The scripts (`build-index.sh`,
   `doctor.sh`, `scope-match.sh`) use only bash and coreutils. Do not introduce
   node, python, or any other runtime to fulfill this verb.
+- **Response setup is non-secret and non-operational.** It may detect instrumentation and host
+  capabilities, but never reads credential values, authenticates, or queries production.
 - **Obsidian is never required.** The `.obsidian/` scaffold is opt-in (step 4).
   All memory tooling (`recall`, `doctor`, `build-index`) works headlessly
   without Obsidian. See
