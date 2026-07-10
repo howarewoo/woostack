@@ -31,6 +31,9 @@ implicitly `fast`.
   never substitute a mapping that is not configured here.
 - **Single model per session** (Codex Action without subagent model overrides, Antigravity CLI): resolve
   one run model up front; per-tier behavior collapses onto that one model for the whole job.
+- **Per-call routing via agent-by-tier (omp / Oh My Pi)** — omp's `task` tool has **no per-call `model`/`tier`/`effort` argument**, so per-spawn tier routing is not available. Instead, omp resolves a subagent's model from the **agent definition** (`model` + `thinkingLevel`). woostack ships three generated defs `.omp/agents/woostack-{fast,standard,deep}.md` (from `.woostack/config.json` via `skills/woostack-init/scripts/gen-omp-agents.sh`) and the driver selects `agent: woostack-<effective-tier>` per spawn - **agent-by-tier** routing. This is a routing pattern over the existing flat `models.<tier>` config, **not a fifth provider column** and **not a new config key**. An unset tier -> `thinkingLevel`-only def (fast->low, standard->medium, deep->xhigh) inheriting the session model. woostack effort (`minimal|low|medium|high|xhigh`) maps 1:1 to omp `thinkingLevel` (which also allows `off`).
+
+  **Cross-consumer coexistence.** On CI/single-session hosts the flat provider table above and `resolve-model.sh` are untouched; the omp bucket is informational only. A consumer can still set provider-specific columnar models for those hosts.
 
 ## Override precedence (generic)
 
