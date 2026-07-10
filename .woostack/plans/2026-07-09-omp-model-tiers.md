@@ -385,7 +385,7 @@ init SKILL references `gen-omp-agents.sh`.
 **Spec coverage:** AC5 (diagnose warns on missing/drift; `--fix` regenerates; gated on
 `.omp/` existing - silent otherwise).
 
-### Step 3.1 (RED) - write the check test first
+- [x] **Step 3.1 (RED) - write the check test first**
 
 Create `skills/woostack-doctor/scripts/tests/test-omp-agents.sh` (mirrors
 `test-review-models-moved.sh`: sources init `assert.sh`, drives the check as diagnose &
@@ -427,7 +427,7 @@ finish
 Run: `bash skills/woostack-doctor/scripts/tests/test-omp-agents.sh`
 Expected (RED): fails - `omp-agents.sh` missing.
 
-### Step 3.2 (GREEN) - implement the check
+- [x] **Step 3.2 (GREEN) - implement the check**
 
 Create `skills/woostack-doctor/scripts/checks/omp-agents.sh` (arg/`emit` contract copied
 from `config-keys.sh`; auto-discovered by `doctor.sh`'s `checks/*.sh` loop - no `doctor.sh`
@@ -460,7 +460,7 @@ done
 rm -rf "$tmp"
 ```
 
-### Step 3.3 (GREEN) - catalog row
+- [x] **Step 3.3 (GREEN) - catalog row**
 
 Edit `skills/woostack-doctor/references/checks.md`: add a catalog row for `omp-agents.sh` -
 severity `warn`, fixable `auto`, codes `omp-agents-missing` / `omp-agents-drift`, repair args
