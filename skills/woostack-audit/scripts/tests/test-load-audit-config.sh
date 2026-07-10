@@ -9,7 +9,8 @@ EC=0
 run() { # $1=config json, $2=lens (optional). Sets OUTDIR (parent-visible) + EC.
   work="$(mktemp -d)"; export OUTDIR="$work/out"; mkdir -p "$OUTDIR"
   printf '%s' "$1" > "$work/config.json"
-  AUDIT_CONFIG_FILE="$work/config.json" AUDIT_LENS="${2:-}" bash "$SCRIPT" >/dev/null 2>&1 && EC=0 || EC=$?
+  ERR="$work/stderr"
+  AUDIT_CONFIG_FILE="$work/config.json" AUDIT_LENS="${2:-}" bash "$SCRIPT" >/dev/null 2>"$ERR" && EC=0 || EC=$?
 }
 
 # No audit block -> defaults: force simplify+production-readiness, skip architecture.
@@ -57,6 +58,22 @@ run '{}' 'bogus'; assert_eq "$EC" "0" "unknown lens falls back, no error"
 cfg="$(cat "$OUTDIR/config.json")"
 assert_contains "$cfg" "simplify" "unknown lens keeps simplify"
 assert_contains "$cfg" "production-readiness" "unknown lens keeps production-readiness"
+
+# Root provider tiers are shared config and survive beside audit settings.
+run '{"models":{"openai":{"standard":{"model":"gpt-5.5","effort":"medium"}}},"audit":{"severity_floor":"medium"}}'
+assert_eq "$EC" "0" "root provider model accepted"
+assert_eq "$(jq -c '.models.openai.standard' "$OUTDIR/config.json")" '{"model":"gpt-5.5","effort":"medium"}' "root provider model forwarded"
+assert_eq "$(jq -r '.severity_floor' "$OUTDIR/config.json")" "medium" "audit settings coexist with root models"
+
+# Flat provider-agnostic tiers are forwarded unchanged.
+run '{"models":{"standard":"provider/model"}}'
+assert_eq "$EC" "0" "flat root model accepted"
+assert_eq "$(jq -r '.models.standard' "$OUTDIR/config.json")" "provider/model" "flat root model forwarded"
+
+# models is shared root config, not an audit-local key.
+run '{"audit":{"models":{"standard":"legacy/model"}}}'
+assert_eq "$EC" "1" "nested audit.models rejected"
+assert_contains "$(cat "$ERR")" "root models" "nested model error names valid root location"
 
 # Invalid JSON in the config file -> loud non-zero exit (JSONDecodeError path).
 run '{invalid'; assert_eq "$EC" "1" "invalid JSON rejected"

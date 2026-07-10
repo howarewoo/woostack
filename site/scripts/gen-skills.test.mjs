@@ -102,3 +102,52 @@ test('concepts taxonomy keeps context economy under context management', async (
   assert.doesNotMatch(overview, /ContextEconomy/);
   assert.doesNotMatch(overview, /^## Context economy$/m);
 });
+
+test('model configuration docs follow the root models contract', async () => {
+  const repoRoot = path.resolve(import.meta.dirname, '..', '..');
+  const [templateRaw, configuration, auditRaw, memory] = await Promise.all([
+    readFile(path.join(repoRoot, 'skills', 'woostack-init', 'templates', 'config.json'), 'utf8'),
+    readFile(path.join(repoRoot, 'site', 'content', 'docs', 'configuration.mdx'), 'utf8'),
+    readFile(path.join(repoRoot, 'skills', 'woostack-audit', 'SKILL.md'), 'utf8'),
+    readFile(path.join(repoRoot, 'skills', 'woostack-init', 'references', 'memory.md'), 'utf8'),
+  ]);
+  const template = JSON.parse(templateRaw);
+  assert.deepEqual(Object.keys(template), ['models', 'review', 'status']);
+
+  const exampleMatch = /## A complete example[\s\S]*?```json\n([\s\S]*?)\n```/.exec(configuration);
+  assert.ok(exampleMatch, 'configuration page exposes a complete JSON example');
+  const example = JSON.parse(exampleMatch[1]);
+  assert.deepEqual(
+    Object.keys(example).sort(),
+    ['audit', 'base_branch', 'commit', 'models', 'review', 'review_sweep', 'status']
+  );
+  assert.ok(example.models);
+  assert.equal(example.audit.models, undefined);
+
+  assert.match(configuration, /ships three top-level keys: `models`, `review`, and `status`/);
+  assert.match(configuration, /There are seven top-level settings:/);
+  assert.match(configuration, /\| `audit` \|/);
+  assert.match(configuration, /^## Audit engine$/m);
+  assert.match(configuration, /`audit\.severity_floor`/);
+  assert.match(configuration, /Root model tiers also drive \[woostack-audit\]/);
+  assert.match(configuration, /validates the three scaffolded keys/);
+
+  const { fm, body } = parseFrontmatter(auditRaw, 'woostack-audit');
+  const renderedBody = rewriteLinks(
+    neutralizeTags(stripTitleHeading(body, fm.name)),
+    'woostack-audit'
+  );
+  const renderedAudit = renderPage('woostack-audit', fm, renderedBody);
+  assert.match(renderedAudit, /shared root `models`/);
+  assert.match(
+    renderedAudit,
+    /skills\/using-woostack\/references\/model-tiers\.md/
+  );
+  assert.doesNotMatch(renderedAudit, /`ignore`, `models`, `chunking/);
+
+  const normalizedMemory = memory.replace(/\s+/g, ' ');
+  assert.match(
+    normalizedMemory,
+    /\{ "models": \{\}, "review": \{\}, "status": \{ "staleDays": 14 \} \}/
+  );
+});

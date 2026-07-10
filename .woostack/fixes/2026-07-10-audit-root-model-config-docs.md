@@ -1,6 +1,6 @@
 ---
 type: fix
-status: hardened
+status: executing
 branch: fix/audit-root-model-config-docs
 ---
 
@@ -43,24 +43,24 @@ This is a clean cutover. The fix must not move `models` under `review`, preserve
 
 ## 3. Implementation Plan
 
-- [ ] **Step 1: Reproduce the audit and documentation drift with failing tests**
+- [x] **Step 1: Reproduce the audit and documentation drift with failing tests**
   - Extend `skills/woostack-audit/scripts/tests/test-load-audit-config.sh` with cases proving that root provider and flat tiers survive audit config generation, root models coexist with audit settings, and nested `audit.models` fails with relocation guidance.
   - Add `model configuration docs follow the root models contract` to `site/scripts/gen-skills.test.mjs`. Read the real init template, parse the complete JSON example from `configuration.mdx`, render the audit skill through `parseFrontmatter` and `renderPage`, and assert that the public configuration page, rendered audit page, and memory reference agree on root `models`, the separate `audit` namespace, and all three scaffolded keys.
   - Run `bash skills/woostack-audit/scripts/tests/test-load-audit-config.sh` and `node --test site/scripts/gen-skills.test.mjs`; record the expected pre-fix failures.
 
-- [ ] **Step 2: Apply the minimal audit loader fix**
+- [x] **Step 2: Apply the minimal audit loader fix**
   - Preserve the full parsed root config in `skills/woostack-audit/scripts/load-audit-config.sh`.
   - Continue validating audit-specific settings from root `audit`, but source emitted model tiers from root `models`.
   - Remove `models` from audit-local valid keys and reject nested `audit.models` with an error that names the valid root location.
   - Re-run the audit loader test and confirm all new and existing cases pass.
 
-- [ ] **Step 3: Correct every current authored documentation source**
+- [x] **Step 3: Correct every current authored documentation source**
   - Update `skills/woostack-audit/SKILL.md` to list only audit-local settings under `audit` and link shared model overrides to `skills/using-woostack/references/model-tiers.md`.
   - Update `site/content/docs/configuration.mdx` to include the `audit` namespace and settings, show root `models` beside `audit`, name audit as a root-model consumer, match the real three-key scaffolded template, and describe validation by each owning skill.
   - Update `skills/woostack-init/references/memory.md` so its skeleton matches the init template, including `status.staleDays: 14`.
   - Do not edit generated per-skill MDX or historical `.woostack` records.
 
-- [ ] **Step 4: Verify runtime and documentation contracts**
+- [x] **Step 4: Verify runtime and documentation contracts**
   - Run `bash skills/woostack-audit/scripts/tests/test-load-audit-config.sh`.
   - Run `node --test site/scripts/gen-skills.test.mjs`.
   - Run `bash skills/woostack-review/scripts/tests/test-load-config-models-root.sh`, `bash skills/woostack-init/scripts/tests/test-gen-omp-agents.sh`, `bash skills/woostack-doctor/scripts/tests/test-review-models-moved.sh`, and `bash skills/woostack-init/scripts/tests/test-omp-lockstep.sh`.

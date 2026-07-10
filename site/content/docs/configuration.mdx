@@ -5,16 +5,17 @@ description: Every key in the .woostack/config.json file, what it tunes, its typ
 
 woostack reads optional settings from `.woostack/config.json` at the repository root.
 [woostack-init](/docs/skills/woostack-init) creates the file, and every key is optional: when a
-key is absent, the skill that reads it falls back to a built-in default. The init template ships
-only two top-level namespaces (an empty `review` and a `status` block), and
-[woostack-doctor](/docs/skills/woostack-doctor) checks that those two are present.
+key is absent, the skill that reads it falls back to a built-in default. The init template
+ships three top-level keys: `models`, `review`, and `status`.
+[woostack-doctor](/docs/skills/woostack-doctor) checks that all three are present.
 
-There are six top-level namespaces:
+There are seven top-level settings:
 
-| Namespace | Read by | Tunes |
+| Setting | Read by | Tunes |
 | --- | --- | --- |
 | `review` | [woostack-review](/docs/skills/woostack-review) | the PR review engine: angles, noise, validation |
-| `models` | [woostack-review](/docs/skills/woostack-review) | model selection and tier parameters (e.g. reasoning effort) |
+| `models` | [woostack-review](/docs/skills/woostack-review), [woostack-audit](/docs/skills/woostack-audit), and local subagent drivers | shared model selection and tier parameters |
+| `audit` | [woostack-audit](/docs/skills/woostack-audit) | standing-code audit angles, filtering, chunking, and output |
 | `review_sweep` | [woostack-sweep](/docs/skills/woostack-sweep) | how many review rounds a stack sweep runs |
 | `commit` | [woostack-commit](/docs/skills/woostack-commit) | a pre-commit hook command |
 | `status` | [woostack-status](/docs/skills/woostack-status) | when the board flags a spec as stale |
@@ -22,8 +23,8 @@ There are six top-level namespaces:
 
 ## A complete example
 
-Every namespace populated, as a starting point. JSON has no comments, so each key is explained in
-the sections below.
+Every top-level setting is populated as a starting point. JSON has no comments, so each key is
+explained in the sections below.
 
 ```json
 {
@@ -49,6 +50,16 @@ the sections below.
       "standard": { "model": "gpt-5.5", "effort": "medium" },
       "deep": { "model": "gpt-5.5", "effort": "high" }
     }
+  },
+  "audit": {
+    "severity_floor": "high",
+    "angles": {
+      "force": [],
+      "skip": ["deps"]
+    },
+    "ignore": ["**/*.generated.ts"],
+    "chunking": { "max_loc": 4000 },
+    "report_dir": ".woostack/audits"
   },
   "review_sweep": { "max_rounds": 3 },
   "commit": { "pre_commit": "pnpm format && pnpm test" },
@@ -156,6 +167,25 @@ PR → the action's `force_tier` input → `review.force_tier` → the action's 
 | `review.metrics` | boolean | `false` | `true` writes a per-angle signal/noise breakdown, folds a rolling local `.woostack/metrics.json`, and prints advisory `review.angles.skip` suggestions when an optional angle has at least 20 local runs with zero blockers and either zero kept findings or only nit findings. |
 | `review.fix_commands` | array of string | `[]` | Reserved for a future loop mode; parsed but not yet consumed. |
 
+## Audit engine
+
+Audit settings nest under `audit`. [woostack-audit](/docs/skills/woostack-audit) validates this
+object when it runs and hard-fails on unknown audit-local keys. The audit always runs
+`simplify` and `production-readiness`, skips `architecture`, and keeps the `bugs` and `security`
+safety floor from the review engine. Configured force and skip lists add to those defaults.
+
+| Key | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `audit.angles.force` | array of string | `[]` | Additional review angles to run. |
+| `audit.angles.skip` | array of string | `[]` | Additional angles to skip. `simplify` cannot be skipped. |
+| `audit.severity_floor` | string | `"high"` | Finding threshold: `low`, `medium`, or `high`. |
+| `audit.ignore` | array of string | `[]` | Globs excluded from the synthetic audit diff. |
+| `audit.chunking.max_loc` | integer ≥ 0 | `4000` | Changed-line threshold for splitting the synthetic diff into chunks. |
+| `audit.report_dir` | string | `".woostack/audits"` | Repository-relative directory for audit reports. |
+
+Root model tiers also drive [woostack-audit](/docs/skills/woostack-audit). Put overrides under
+`models.<tier>` or `models.<provider>.<tier>`. A nested `audit.models` block is a hard error.
+
 ## Sweep rounds
 
 [woostack-sweep](/docs/skills/woostack-sweep) drives a stack of PRs to a clean review, looping
@@ -195,10 +225,10 @@ worktrees are cut from.
 ## Defaults and doctor
 
 <Callout type="info">
-  Every key is optional. The init template ships only `review` and `status`; everything else takes
-  its built-in default when absent. [woostack-doctor](/docs/skills/woostack-doctor) validates that
-  the two template top-level keys are present and can repair a missing one. The remaining keys are
-  validated at review time by woostack-review.
+  Every key is optional. The init template ships `models`, `review`, and `status`; everything else
+  takes its built-in default when absent. [woostack-doctor](/docs/skills/woostack-doctor)
+  validates the three scaffolded keys and can repair a missing one. Each owning skill validates
+  its settings when it runs.
 </Callout>
 
 ## Where to go next
