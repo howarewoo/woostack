@@ -144,7 +144,7 @@ Two callers:
   node, python, or any other runtime to fulfill this verb.
 - **Response setup is non-secret and non-operational.** It may detect instrumentation and host
   capabilities, but never reads credential values, authenticates, or queries production.
-- **Obsidian is never required.** The `.obsidian/` scaffold is opt-in (step 4).
+- **Obsidian is never required.** The `.obsidian/` scaffold is opt-in (step 5).
   All memory tooling (`recall`, `doctor`, `build-index`) works headlessly
   without Obsidian. See
   [references/memory.md](references/memory.md#9-obsidian-optional) for the
