@@ -38,16 +38,44 @@ assert_eq "$([ -f "$f" ] && echo y)" "y" "AC1 unset: standard def still written"
 assert_not_contains "$(cat "$f")" 'model:' "AC1 unset: no model line"
 assert_contains "$(cat "$f")" 'thinkingLevel: medium' "AC1 unset: standard default=medium"
 
+# --- AC1 missing config -> same unset-tier fallback ---
+r="$(mktemp -d)"; ( cd "$r" && git init -q )
+WOOSTACK_ROOT="$r" bash "$GEN"
+f="$r/.omp/agents/woostack-standard.md"
+assert_eq "$([ -f "$f" ] && echo y)" "y" "AC1 missing config: standard def still written"
+assert_not_contains "$(cat "$f")" 'model:' "AC1 missing config: no model line"
+assert_contains "$(cat "$f")" 'thinkingLevel: medium' "AC1 missing config: standard default=medium"
+
+# --- AC1 error: empty-string leaf -> tier unset, def still written (default thinkingLevel) ---
+r="$(mktemp -d)"; ( cd "$r" && git init -q )
+mkcfg "$r" '{ "fast": "" }'
+WOOSTACK_ROOT="$r" bash "$GEN" 2>/dev/null
+f="$r/.omp/agents/woostack-fast.md"
+assert_eq "$([ -f "$f" ] && echo y)" "y" "AC1 empty leaf: def still written"
+assert_not_contains "$(cat "$f")" 'model:' "AC1 empty leaf: no model line"
+assert_contains "$(cat "$f")" 'thinkingLevel: low' "AC1 empty leaf: tier default thinkingLevel"
+
+# --- AC1 error: object leaf missing .model -> tier unset, def still written ---
+r="$(mktemp -d)"; ( cd "$r" && git init -q )
+mkcfg "$r" '{ "deep": { "effort": "high" } }'
+WOOSTACK_ROOT="$r" bash "$GEN" 2>/dev/null
+f="$r/.omp/agents/woostack-deep.md"
+assert_eq "$([ -f "$f" ] && echo y)" "y" "AC1 missing .model: def still written"
+assert_not_contains "$(cat "$f")" 'model:' "AC1 missing .model: no model line"
+assert_contains "$(cat "$f")" 'thinkingLevel: high' "AC1 missing .model: configured effort still applied"
+
 # --- AC3 empty effort string -> tier default (not empty) ---
 r="$(mktemp -d)"; ( cd "$r" && git init -q )
 mkcfg "$r" '{ "fast": { "model": "x/y", "effort": "" } }'
 WOOSTACK_ROOT="$r" bash "$GEN"
 assert_contains "$(cat "$r/.omp/agents/woostack-fast.md")" 'thinkingLevel: low' "AC3 empty effort -> default"
 
-# --- AC3 error: garbage effort -> tier default ---
+# --- AC3 error: untrusted garbage effort -> safe warning + tier default ---
 r="$(mktemp -d)"; ( cd "$r" && git init -q )
-mkcfg "$r" '{ "deep": { "model": "x/y", "effort": "turbo" } }'
-WOOSTACK_ROOT="$r" bash "$GEN" 2>/dev/null
+mkcfg "$r" '{ "deep": { "model": "x/y", "effort": "turbo\nforged-log" } }'
+warn="$(WOOSTACK_ROOT="$r" bash "$GEN" 2>&1 >/dev/null)"
+assert_contains "$warn" 'effort not in enum; using tier default' "AC3 garbage effort: generic warning"
+assert_not_contains "$warn" 'forged-log' "AC3 garbage effort: raw value not echoed"
 assert_contains "$(cat "$r/.omp/agents/woostack-deep.md")" 'thinkingLevel: xhigh' "AC3 garbage effort -> default"
 
 # --- AC1 error: malformed leaf (number) -> tier unset, no crash ---
@@ -66,6 +94,12 @@ mkcfg "$r" '{ "fast": "good/slug\nmalicious: injected" }'
 WOOSTACK_ROOT="$r" bash "$GEN" 2>/dev/null
 assert_not_contains "$(cat "$r/.omp/agents/woostack-fast.md")" 'malicious' "AC1 injection: multi-line slug rejected"
 assert_not_contains "$(cat "$r/.omp/agents/woostack-fast.md")" 'model:' "AC1 injection: unsafe slug -> tier unset"
+
+# --- AC1 error: charset-valid leading punctuation -> rejected, tier unset ---
+r="$(mktemp -d)"; ( cd "$r" && git init -q )
+mkcfg "$r" '{ "fast": "-oProxyCommand" }'
+WOOSTACK_ROOT="$r" bash "$GEN" 2>/dev/null
+assert_not_contains "$(cat "$r/.omp/agents/woostack-fast.md")" 'model:' "AC1 leading punctuation: unsafe slug -> tier unset"
 
 # --- AC2 idempotency: two runs byte-identical ---
 r="$(mktemp -d)"; ( cd "$r" && git init -q )

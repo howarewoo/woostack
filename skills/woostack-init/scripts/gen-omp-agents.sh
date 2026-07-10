@@ -53,11 +53,7 @@ safe_slug() {
 
 render_tier() {
   local tier="$1" leaf ltype model effort tl f
-  if [ -f "$CFG" ]; then
-    leaf="$(jq -c --arg t "$tier" '(.models // {})[$t] // null' "$CFG" 2>/dev/null || echo null)"
-  else
-    leaf="null"
-  fi
+  leaf="$(jq -c --arg t "$tier" '(.models // {})[$t] // null' "$CFG" 2>/dev/null || echo null)"
   ltype="$(printf '%s' "$leaf" | jq -r 'type' 2>/dev/null || echo null)"
   model=""; effort=""
   case "$ltype" in
@@ -82,7 +78,7 @@ render_tier() {
   if [ -n "$effort" ] && valid_effort "$effort"; then
     tl="$effort"
   else
-    [ -n "$effort" ] && echo "gen-omp-agents.sh: $tier: effort '$effort' not in enum; using tier default" >&2
+    [ -n "$effort" ] && echo "gen-omp-agents.sh: $tier: effort not in enum; using tier default" >&2
     tl="$(default_effort "$tier")"
   fi
 
