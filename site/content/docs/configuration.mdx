@@ -166,10 +166,32 @@ usage-limit fallback, lives in the per-host reference files under
 `skills/using-woostack/references/hosts/`. For omp, `retry.fallbackChains` is configured in
 omp's own settings outside `.woostack/config.json`.
 
-Each tier leaf can be a model-slug string or an object
-`{ "model": "<slug>", "effort": "<level>" }`. Supported effort levels are `minimal`, `low`,
-`medium`, `high`, and `xhigh`. `review.force_tier` pins every subagent to one tier, like running
-the review with `--fast` or `--deep`.
+Each tier leaf can be a model-slug string, an object
+`{ "model": "<slug>", "effort": "<level>" }`, or an **ordered array** of those forms — a
+fallback list. Supported effort levels are `minimal`, `low`, `medium`, `high`, and `xhigh`.
+`review.force_tier` pins every subagent to one tier, like running the review with `--fast` or
+`--deep`.
+
+In an array leaf, entry 0 is the primary and carries the exact semantics of the bare value —
+every resolver reads entry 0, and a one-element array equals the bare form. Entries 1..n
+declare a static preference order; runtime enactment is per-host. omp enacts the list
+natively: the generator renders it as a comma-separated selector pattern on the generated
+agent's `model:` line, so at spawn the first auth-usable entry becomes the session model and
+the rest install as that spawn's own retry chain. Per-call hosts (Claude Code, Codex, and
+friends) treat entries 1..n as a documented preference order for manual switching. An empty
+array is a hard config error.
+
+```json
+{
+  "models": {
+    "deep": [
+      { "model": "openai-codex/gpt-5.6-sol", "effort": "xhigh" },
+      { "model": "openai-codex/gpt-5.6-sol", "effort": "high" },
+      "google/gemini-3-5-flash"
+    ]
+  }
+}
+```
 
 The [complete example](#a-complete-example) uses flat tiers to assign each tier to a different
 provider.
@@ -179,8 +201,8 @@ Move it to the top level. `woostack-doctor` warns on a lingering `review.models`
 
 | Key | Type | Default | Meaning |
 | --- | --- | --- | --- |
-| `models.<tier>` | string or `{model, effort}` | provider table | Provider-agnostic model for `fast` / `standard` / `deep`. |
-| `models.<provider>.<tier>` | string or `{model, effort}` | provider table | Per-provider override; provider is `anthropic`, `openai`, `google`, or `openrouter`. |
+| `models.<tier>` | string, `{model, effort}`, or array of those (fallback list) | provider table | Provider-agnostic model for `fast` / `standard` / `deep`. |
+| `models.<provider>.<tier>` | string, `{model, effort}`, or array of those (fallback list) | provider table | Per-provider override; provider is `anthropic`, `openai`, `google`, or `openrouter`. |
 | `review.force_tier` | string | absent (= standard) | Pin every subagent to `fast` or `deep`. Empty string = absent. |
 
 The default model per provider and tier:

@@ -25,6 +25,8 @@ skill).
 
 None documented — provider exhaustion surfaces as errors; recovery is account-level, outside
 woostack's scope.
+`models.<tier>` fallback lists (entries 1..n) are a documented preference order only on this
+host — no spawn-time auth probe exists; switch manually by promoting an entry to entry 0.
 
 ## Per-skill notes
 

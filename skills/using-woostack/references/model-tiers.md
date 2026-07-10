@@ -51,7 +51,16 @@ Each consumer binds these to its own surface. For example `woostack-review` bind
 `/tmp/pr-review/config.json`), resolved by `scripts/load-prompt.sh` (`default_model_for()` is the
 Bash mirror of the Anthropic/OpenAI/Google/OpenRouter columns — keep it in sync with this table).
 
-Each tier leaf is a model-slug string **or** an object `{ model, effort }`. `effort`
+Each tier leaf is a model-slug string, an object `{ model, effort }`, **or an ordered array**
+of those forms (a fallback list). `effort`
 (`minimal | low | medium | high | xhigh`) is a real config field: the `reasoning_effort:`
 annotations in the table above are illustrative defaults, and a config-set `effort` overrides them
 config-first in `load-prompt.sh` (precedence: action input → config `effort` → tier default).
+
+**Array leaves (fallback lists):** entry 0 is the primary and carries the exact semantics of
+the bare value — every resolver (`load-prompt.sh`, `resolve-model.sh`, and each host's
+tier-def generator) reads entry 0; a one-element array equals the bare form. Entries 1..n
+declare a static preference order owned by woostack; **runtime enactment is per-host** —
+each host file's "Host-level fallback" section under [`hosts/`](hosts/README.md) states
+what its host does with them (omp enacts them as a real per-spawn retry chain; per-call
+hosts document the order for manual switching). An empty array is a hard config error.

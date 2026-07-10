@@ -48,6 +48,15 @@ store-level, so a sibling spawn of the same tier agent falls over at spawn time 
 mid-task; the temporary model switch itself is per-session. woostack documents this layer but
 never reads or writes omp host config (`~/.omp/`).
 
+**Fallback lists (`models.<tier>` arrays):** enacted natively. The generator renders entries
+1..n as a comma-separated selector list on the def's `model:` line
+(`model: "primary,fb:low,fb2"`); at spawn omp takes the first auth-usable entry as the
+session model and installs the rest as that spawn's own `retry.fallbackChains` chain (a
+synthetic `subagent:<id>` role — per-tier, self-reverting, with a fallback entry's `effort`
+riding its selector as `:level`). Still zero host-config writes: the chain lives inside the
+already generated, gitignored defs. Note omp's config-level `retry.fallbackChains` is keyed
+by model **role**, never model slug — do not hand-write slug-keyed chains.
+
 ## Per-skill notes
 
 - **woostack-init (scaffold):** after writing `.woostack/config.json` (or when it already
