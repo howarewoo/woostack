@@ -15,7 +15,7 @@ if { [ -x "$LOADER" ] || [ -f "$LOADER" ]; } && command -v python3 >/dev/null 2>
   err="$(mktemp)"
   if ! bash "$LOADER" "$CFG" >/dev/null 2>"$err"; then
     message="$(cat "$err")"
-    message="${message#*::}"
+    message="${message##*::}"
     case "$message" in
       *credential*|*token*|*api_key*|*password*|*cookie*|*authorization*|*secret*|*mutation_authority*)
         emit warn respond-credentials report ".woostack/config.json" "$message" ;;
