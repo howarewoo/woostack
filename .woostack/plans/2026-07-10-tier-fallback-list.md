@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-07-10-tier-fallback-list.md
-status: executing
+status: done
 date: 2026-07-10
 branch: feature/tier-fallback
 links:
@@ -112,7 +112,7 @@ machinery of the original Steps 2-4 is dead weight and is dropped; the component
 - [x] **Step 3 (green):** `test-host-references.sh` green (no contract change); provider
       table + `WOO_MODEL_TIERS_TABLE` marker byte-stable; real install +
       `pnpm -C site build` green.
-- [ ] **Step 4:** commit; final task-scoped review; distill durable memory; set plan
+- [x] **Step 4:** commit; final task-scoped review; distill durable memory; set plan
       `status: done` (terminal transition authored by execute, conventions.md).
 
 ## Verification map (AC → proof)
