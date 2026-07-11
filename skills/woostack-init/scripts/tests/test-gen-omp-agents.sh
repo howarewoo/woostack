@@ -210,6 +210,13 @@ assert_contains "$err" "unsafe" "AC4: unsafe fallback slug warned"
 assert_not_contains "$(cat "$r/.omp/agents/woostack-deep.md")" 'bad' "AC4: unsafe slug never written"
 assert_contains "$(cat "$r/.omp/agents/woostack-deep.md")" 'model: "p/x,ok/fb"' "AC4: safe sibling entry survives"
 
+# --- AC4 empty/modelless fallback entry -> dropped loudly, safe siblings survive ---
+r="$(mktemp -d)"; ( cd "$r" && git init -q )
+mkcfg "$r" '{ "deep": [ "p/x", { "effort": "high" }, "ok/fb" ] }'
+err="$(WOOSTACK_ROOT="$r" bash "$GEN" 2>&1 >/dev/null)"
+assert_contains "$err" "unsafe or empty model slug" "AC4 empty fallback: modelless object warned"
+assert_contains "$(cat "$r/.omp/agents/woostack-deep.md")" 'model: "p/x,ok/fb"' "AC4 empty fallback: empty entry skipped, safe sibling survives"
+
 # --- AC4 malformed fallback entry (number) -> dropped loudly, primary intact ---
 r="$(mktemp -d)"; ( cd "$r" && git init -q )
 mkcfg "$r" '{ "deep": [ "p/x", 42 ] }'

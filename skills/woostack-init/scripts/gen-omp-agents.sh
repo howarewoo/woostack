@@ -63,12 +63,12 @@ render_tier() {
   # (spec 2026-07-10-tier-fallback-list; probe: omp 16.4.1).
   # woostack-defer(increment 3): configuration.mdx/model-tiers.md array-leaf docs sync.
   if [ "$ltype" = "array" ]; then
-    if [ "$(printf '%s' "$leaf" | jq 'length' 2>/dev/null || echo 0)" -eq 0 ]; then
+    arr_len="$(printf '%s' "$leaf" | jq 'length' 2>/dev/null || echo 0)"
+    if [ "$arr_len" -eq 0 ]; then
       echo "gen-omp-agents.sh: $tier: empty array leaf; tier unset" >&2
       leaf=null; ltype=null
     else
       arr="$leaf"
-      arr_len="$(printf '%s' "$arr" | jq 'length')"
       leaf="$(printf '%s' "$leaf" | jq -c '.[0]')"
       ltype="$(printf '%s' "$leaf" | jq -r 'type' 2>/dev/null || echo null)"
       if [ "$ltype" = "null" ]; then
