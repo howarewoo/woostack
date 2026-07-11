@@ -2,11 +2,6 @@
 	"review": {
 		"metrics": true
 	},
-	"models": {
-		"fast": { "model": "openai-codex/gpt-5.6-sol", "effort": "low" },
-		"standard": { "model": "openai-codex/gpt-5.6-sol", "effort": "medium" },
-		"deep": { "model": "openai-codex/gpt-5.6-sol", "effort": "high" }
-	},
 	"status": {
 		"staleDays": 14
 	}
