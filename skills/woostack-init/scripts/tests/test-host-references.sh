@@ -55,6 +55,34 @@ assert_not_contains "$(cat "$S/woostack-execute-overnight/SKILL.md")" "retry.fal
 assert_contains "$(cat "$S/woostack-init/SKILL.md")" "run the generator" "retained: init one-line generator step"
 assert_not_contains "$(cat "$S/woostack-init/SKILL.md")" "gen-omp-agents.sh" "dedup: generator mechanics not duplicated in init SKILL.md"
 
+# (e) authored docs mirror the supported-host contract
+ROOT="$(cd "$S/.." && pwd)"
+DOCS="$ROOT/site/content/docs"
+HARNESS_DOCS="$DOCS/harnesses"
+assert_contains "$(cat "$DOCS/meta.json")" '"harnesses"' "docs: root navigation registers harnesses"
+assert_eq "$([ -f "$HARNESS_DOCS/index.mdx" ] && echo y)" "y" "docs: harness overview present"
+assert_eq "$([ -f "$HARNESS_DOCS/meta.json" ] && echo y)" "y" "docs: harness navigation present"
+if [ -f "$HARNESS_DOCS/index.mdx" ] && [ -f "$HARNESS_DOCS/meta.json" ]; then
+  overview="$(cat "$HARNESS_DOCS/index.mdx")"
+  harness_nav="$(cat "$HARNESS_DOCS/meta.json")"
+  assert_contains "$overview" "skill logic should work in any harness" "docs: portability contract"
+  assert_contains "$overview" "native capabilities" "docs: unsupported-host capability caveat"
+  assert_contains "$overview" "model selection" "docs: model-selection caveat"
+  for f in "$H"/*.md; do
+    slug="$(basename "$f" .md)"
+    [ "$slug" = "README" ] && continue
+    assert_contains "$harness_nav" "\"$slug\"" "docs: harness nav registers $slug"
+    assert_contains "$overview" "/docs/harnesses/$slug" "docs: overview links $slug"
+    assert_eq "$([ -f "$HARNESS_DOCS/$slug.mdx" ] && echo y)" "y" "docs: $slug page present"
+    if [ -f "$HARNESS_DOCS/$slug.mdx" ]; then
+      assert_contains "$(cat "$HARNESS_DOCS/$slug.mdx")" "references/hosts/$slug.md" "docs: $slug links canonical reference"
+    fi
+  done
+fi
+landing="$(cat "$DOCS/index.mdx")"
+assert_not_contains "$landing" "Aider" "docs: Aider is not explicitly supported"
+assert_contains "$landing" "/docs/harnesses" "docs: landing links harnesses"
+
 # still-required infrastructure (inherited from test-omp-lockstep.sh)
 assert_eq "$([ -f "$S/woostack-init/scripts/gen-omp-agents.sh" ] && echo y)" "y" "site: generator present"
 assert_eq "$([ -f "$S/woostack-doctor/scripts/checks/omp-agents.sh" ] && echo y)" "y" "site: doctor check present"

@@ -1,0 +1,16 @@
+---
+title: Codex
+description: Local per-call routing and Codex Action's single-session mode.
+---
+
+Codex has two documented execution shapes. Local subagent dispatch accepts a model override and,
+for GPT-5-family reasoning models, a separate `reasoning_effort` value. woostack resolves and
+passes both values for each task. A Codex Action job is single-session instead: woostack resolves
+one run model up front, and every tier uses that model for the job.
+
+The local spawn receives a working directory when the host exposes one; the prompt-level worktree
+pin is always present. Provider exhaustion surfaces as an error. Configured fallback entries are
+a manual preference order on this host, not an automatically probed spawn-time chain.
+
+For detection, the local-versus-Action boundary, per-skill instructions, and degradation rules,
+read the [canonical Codex reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/codex.md).

@@ -12,8 +12,9 @@ agent sessions don't repeat earlier mistakes.
 pnpx skills add howarewoo/woostack
 ```
 
-- **Agent- & model-agnostic:** works across Claude Code, Cursor, Codex, Aider, and other
-  agents that respect the `skills` convention.
+- **Agent- & model-agnostic:** explicitly supports [omp, opencode, Claude Code, Codex,
+  Cursor / Composer, and Antigravity CLI](/docs/harnesses), while the skill logic remains portable
+  to other harnesses.
 - **Local memory:** learnings retained and routed per clone.
 - **Team-ready:** built for small-to-medium collaborative codebases.
 - **Pairs with [impeccable](https://github.com/pbakaus/impeccable):** woostack's recommended front-end design skill. Install alongside: `pnpx skills add pbakaus/impeccable`.
@@ -30,8 +31,9 @@ version that holds six goals at the same time:
   execute) instead of chaining external skills that drift out of sync.
 - **Universal memory:** a local memory and wisdom store every clone reads and writes, so sessions
   stop repeating old mistakes.
-- **Universal harness and model support:** the same skills run under Claude Code, Cursor, Codex,
-  and Aider, and route each step to a model tier rather than hard-coding one provider.
+- **Universal harness and model support:** the same skill logic should work in any harness.
+  [Six harnesses are explicitly supported](/docs/harnesses); unsupported harnesses may lack native
+  capabilities such as reliable per-call model selection.
 - **Whole-lifecycle coverage:** bootstrapping, building, debugging, review, and feedback iteration
   in one collection, not the planning step alone.
 - **Parallel by default:** the build and execute skills create and tear down git worktrees on
@@ -59,6 +61,7 @@ several narrow tools together.
 <Cards>
   <Card title="Getting started" href="/docs/getting-started" description="Install, initialize, and wire woostack into your agent." />
   <Card title="Core concepts" href="/docs/concepts" description="The build loop, context management, worktrees, and status tracking." />
+  <Card title="Harnesses" href="/docs/harnesses" description="Explicitly supported harnesses, native capability differences, and behavior on unsupported hosts." />
   <Card title="woostack-build" href="/docs/skills/woostack-build" description="Drive a feature from idea to a reviewed PR stack." />
   <Card title="All skills" href="/docs/skills/using-woostack" description="Per-skill reference, generated from each SKILL.md." />
 </Cards>
