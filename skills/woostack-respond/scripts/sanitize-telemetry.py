@@ -21,7 +21,9 @@ BODY = "[REDACTED_BODY]"
 HOME = "[REDACTED_HOME]"
 PHONE = "[REDACTED_PHONE]"
 CARD = "[REDACTED_CARD]"
-PLACEHOLDERS = {TOKEN, EMAIL, IP, USER, BODY, HOME, PHONE, CARD}
+NAME = "[REDACTED_NAME]"
+ADDRESS = "[REDACTED_ADDRESS]"
+PLACEHOLDERS = {TOKEN, EMAIL, IP, USER, BODY, HOME, PHONE, CARD, NAME, ADDRESS}
 
 
 def normalized_key(key: str) -> str:
@@ -38,6 +40,27 @@ EMAIL_KEYS = {"email", "emailaddress"}
 IP_KEYS = {"ip", "clientip", "remoteip", "peerip", "ipaddress"}
 KEY_MATERIAL_SUBSTRINGS = ("privatekey", "signingkey", "secretkey", "encryptionkey", "keymaterial")
 KEY_MATERIAL_TOKENS = {"pem", "pkcs8", "pkcs1"}
+NAME_KEYS = {
+    "name", "fullname", "firstname", "lastname", "middlename", "givenname", "forename",
+    "surname", "familyname", "maidenname", "displayname", "legalname", "personname",
+    "customername", "clientname", "contactname", "recipientname", "patientname",
+    "cardholder", "cardholdername", "accountholder", "accountholdername",
+    "billingname", "shippingname",
+}
+NAME_KEY_SUFFIXES = (
+    "fullname", "firstname", "lastname", "givenname", "surname", "familyname",
+    "customername", "contactname", "recipientname", "personname", "holdername",
+    "billingname", "shippingname", "displayname", "legalname",
+)
+ADDRESS_KEYS = {
+    "address", "streetaddress", "shippingaddress", "billingaddress", "mailingaddress",
+    "homeaddress", "postaladdress", "deliveryaddress", "street", "addressline",
+    "addressline1", "addressline2", "postalcode", "postcode", "zipcode",
+}
+ADDRESS_KEY_SUFFIXES = (
+    "streetaddress", "shippingaddress", "billingaddress", "mailingaddress",
+    "homeaddress", "postaladdress", "deliveryaddress", "postalcode", "zipcode",
+)
 
 EMAIL_RE = re.compile(r"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b")
 IPV4_RE = re.compile(r"(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?![\w.])")
@@ -59,11 +82,16 @@ RESIDUAL_ONLY_RES = (
     re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
 )
 MARKDOWN_KEY_RE = re.compile(
-    r"(?im)^\s*(?:[-*]\s*)?(?:[`\"']?)(authorization|authentication|credential|password|passwd|secret|token|api[ _-]?key|cookie|session(?:[ _-]?id)?|database[ _-]?url|connection[ _-]?string|request[ _-]?body|response[ _-]?body|user(?:[ _-]?id)?|private[ _-]?key|signing[ _-]?key|pem)(?:[`\"']?)\s*[:=]"
+    r"(?im)^\s*(?:[-*]\s*)?(?:[`\"']?)(authorization|authentication|credential|password|passwd|secret|token|api[ _-]?key|cookie|session(?:[ _-]?id)?|database[ _-]?url|connection[ _-]?string|request[ _-]?body|response[ _-]?body|user(?:[ _-]?id)?|private[ _-]?key|signing[ _-]?key|pem|full[ _-]?name|first[ _-]?name|last[ _-]?name|customer[ _-]?name|street[ _-]?address|shipping[ _-]?address|billing[ _-]?address|postal[ _-]?code|zip[ _-]?code)(?:[`\"']?)\s*[:=]"
 )
 
 CARD_CANDIDATE_RE = re.compile(r"(?<![\w])(?:\d[ -]?){12,18}\d(?![\w])")
 PHONE_CANDIDATE_RE = re.compile(r"(?<![\w])\+?\d[\d ().-]{7,}\d(?![\w])")
+QUERY_CRED_RE = re.compile(
+    r"(?i)([?&#](?:access[_-]?token|refresh[_-]?token|id[_-]?token|client[_-]?secret|"
+    r"api[_-]?key|apikey|authorization|auth[_-]?token|password|passwd|pwd|secret|token|"
+    r"sig|signature|session(?:[_-]?id)?|credential|code)=)(?!\[REDACTED_)[^&\s#]+"
+)
 
 
 def luhn_ok(digits: str) -> bool:
@@ -118,6 +146,10 @@ def key_class(key: str) -> str | None:
         return "email"
     if norm in IP_KEYS or _last_token(key) == "ip":
         return "ip"
+    if norm in NAME_KEYS or any(norm.endswith(suffix) for suffix in NAME_KEY_SUFFIXES):
+        return "name"
+    if norm in ADDRESS_KEYS or any(norm.endswith(suffix) for suffix in ADDRESS_KEY_SUFFIXES):
+        return "address"
     return None
 
 
@@ -145,6 +177,7 @@ def redact_string(value: str) -> str:
     result = value
     for pattern in SECRET_VALUE_RES:
         result = pattern.sub(TOKEN, result)
+    result = QUERY_CRED_RE.sub(lambda match: match.group(1) + TOKEN, result)
     for pattern in HOME_RES:
         result = pattern.sub(HOME, result)
     result = EMAIL_RE.sub(EMAIL, result)
@@ -170,6 +203,10 @@ def sanitize(value: Any) -> Any:
                 result[key] = EMAIL
             elif category == "ip":
                 result[key] = IP
+            elif category == "name":
+                result[key] = NAME
+            elif category == "address":
+                result[key] = ADDRESS
             else:
                 result[key] = sanitize(child)
         return result
@@ -192,6 +229,8 @@ def forbidden_string(value: str) -> str | None:
     for pattern in SECRET_VALUE_RES:
         if pattern.search(value):
             return "secret-shaped value"
+    if QUERY_CRED_RE.search(value):
+        return "credential in URL query"
     for pattern in RESIDUAL_ONLY_RES:
         if pattern.search(value):
             return "private-key material"
@@ -225,7 +264,7 @@ def validate_json(value: Any, location: str = "$") -> None:
     if isinstance(value, dict):
         for key, child in value.items():
             category = key_class(key)
-            expected = {"body": BODY, "user": USER, "token": TOKEN, "email": EMAIL, "ip": IP}.get(category)
+            expected = {"body": BODY, "user": USER, "token": TOKEN, "email": EMAIL, "ip": IP, "name": NAME, "address": ADDRESS}.get(category)
             if category and child != expected:
                 raise ValueError(f"forbidden key at {location}.{key}")
             validate_json(child, f"{location}.{key}")

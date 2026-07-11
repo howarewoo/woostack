@@ -103,6 +103,54 @@ for kept in 1234567890123456 1704106800; do
 done
 python3 "$SCRIPT" --check "$work/benign-output.json"
 
+# Personal-name and postal-address fields are PII: values are redacted under common
+# normalized variants, raw name/address fields are rejected by --check, and technical
+# *name fields (filename, hostname, service_name) must survive unredacted.
+printf '%s\n' '{"customer_name":"Jane Doe","full_name":"Bob Roe","shipping_address":"123 Main Street","billing_address":"9 Oak Ave","postal_code":"94107","filename":"report.csv","hostname":"api-7","service_name":"checkout"}' >"$work/pii-fields.json"
+python3 "$SCRIPT" --input "$work/pii-fields.json" --output "$work/pii-fields-out.json"
+for leaked in 'Jane Doe' 'Bob Roe' '123 Main Street' '9 Oak Ave' 94107; do
+  if grep -Fq "$leaked" "$work/pii-fields-out.json"; then fail "personal name/address survived sanitization: $leaked"; fi
+done
+for placeholder in REDACTED_NAME REDACTED_ADDRESS; do
+  grep -Fq "[$placeholder]" "$work/pii-fields-out.json" || fail "missing placeholder after PII field redaction: $placeholder"
+done
+for kept in report.csv api-7 checkout; do
+  grep -Fq "$kept" "$work/pii-fields-out.json" || fail "technical name/address-like field was over-redacted: $kept"
+done
+python3 "$SCRIPT" --check "$work/pii-fields-out.json"
+for residual in \
+  '{"customer_name":"Jane Doe"}' \
+  '{"shipping_address":"123 Main Street"}' \
+  '{"full_name":"Bob Roe"}'; do
+  printf '%s\n' "$residual" >"$work/pii-residual.json"
+  expect_fail python3 "$SCRIPT" --check "$work/pii-residual.json"
+done
+# Qualified PII labels in tracked Markdown are rejected; benign technical labels survive.
+printf '%s\n' '# Report' 'Shipping Address: 123 Main Street' >"$work/pii-report.md"
+expect_fail python3 "$SCRIPT" --check "$work/pii-report.md"
+printf '%s\n' '# Report' 'Filename: report.csv' 'Hostname: api-7' >"$work/benign-report.md"
+python3 "$SCRIPT" --check "$work/benign-report.md"
+
+# Credentials carried in URL query/fragment parameters are redacted inside arbitrary
+# strings and rejected by --check, while non-credential query keys and text survive.
+printf '%s\n' '{"url":"https://example.invalid/cb?token=concrete-secret-value-123456789&code=abc123def456&page=2","note":"error_code=500 build 1704106800"}' >"$work/urlcred.json"
+python3 "$SCRIPT" --input "$work/urlcred.json" --output "$work/urlcred-out.json"
+for leaked in concrete-secret-value-123456789 abc123def456; do
+  if grep -Fq "$leaked" "$work/urlcred-out.json"; then fail "URL query credential survived sanitization: $leaked"; fi
+done
+grep -Fq "[REDACTED_TOKEN]" "$work/urlcred-out.json" || fail "missing placeholder after URL credential redaction"
+for kept in 'page=2' 'error_code=500' 1704106800; do
+  grep -Fq "$kept" "$work/urlcred-out.json" || fail "non-credential query/text was over-redacted: $kept"
+done
+python3 "$SCRIPT" --check "$work/urlcred-out.json"
+for residual in \
+  '{"url":"https://h/x?token=concrete-secret-value-123456789"}' \
+  '{"callback":"https://h/cb#access_token=concrete-secret-value-123456789"}' \
+  '{"link":"https://h/x?api_key=concrete-secret-value-123456789"}'; do
+  printf '%s\n' "$residual" >"$work/urlcred-residual.json"
+  expect_fail python3 "$SCRIPT" --check "$work/urlcred-residual.json"
+done
+
 cat >"$work/report.md" <<'EOF'
 ---
 type: response
