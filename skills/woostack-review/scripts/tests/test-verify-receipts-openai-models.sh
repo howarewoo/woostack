@@ -37,6 +37,21 @@ printf '{"angle":"bugs","chunk":null,"runner":"codex-subagent","model":"gpt-obj-
 rc=0; bash "$SCRIPT" >/dev/null 2>&1 || rc=$?
 assert_exit 0 "$rc" "OpenAI object-leaf {model,effort} config override resolves to .model"
 
+printf '{"models":{"openai":{"standard":["gpt-provider-primary",{"model":"gpt-provider-fallback","effort":"high"}]}}}\n' > "$OUTDIR/config.json"
+printf '{"angle":"bugs","chunk":null,"runner":"codex-subagent","model":"gpt-provider-primary","tier":"standard","ts":"t"}\n' > "$OUTDIR/receipt.bugs.json"
+rc=0; bash "$SCRIPT" >/dev/null 2>&1 || rc=$?
+assert_exit 0 "$rc" "provider-scoped fallback array validates against entry 0"
+
+printf '{"models":{"standard":[{"model":"gpt-flat-primary","effort":"medium"},"gpt-flat-fallback"]}}\n' > "$OUTDIR/config.json"
+printf '{"angle":"bugs","chunk":null,"runner":"codex-subagent","model":"gpt-flat-primary","tier":"standard","ts":"t"}\n' > "$OUTDIR/receipt.bugs.json"
+rc=0; bash "$SCRIPT" >/dev/null 2>&1 || rc=$?
+assert_exit 0 "$rc" "flat fallback array validates against entry 0"
+
+printf '{"angle":"bugs","chunk":null,"runner":"codex-subagent","model":"gpt-flat-fallback","tier":"standard","ts":"t"}\n' > "$OUTDIR/receipt.bugs.json"
+rc=0; err="$(bash "$SCRIPT" 2>&1 1>/dev/null)" || rc=$?
+assert_exit 1 "$rc" "fallback receipt model cannot substitute for configured primary"
+assert_contains "$err" "bugs" "fallback-model mismatch names the worker"
+
 unset WOO_REVIEW_PROVIDER
 export WOO_REVIEW_HOST=codex
 rm -f "$OUTDIR/config.json"

@@ -161,10 +161,10 @@ Codex ignores them because `models.openai` is present. omp uses the flat entries
 tier is absent, the generated omp agent omits `model`, inherits the active session model, and
 sets only the tier's default thinking level.
 
-How each host consumes this config, including spawn primitives, per-call routing knobs, and host-level
-usage-limit fallback, lives in the per-host reference files under
-`skills/using-woostack/references/hosts/`. For omp, `retry.fallbackChains` is configured in
-omp's own settings outside `.woostack/config.json`.
+How each host consumes this config, including spawn primitives, per-call routing knobs, and
+host-level fallback, lives in the per-host reference files under
+`skills/using-woostack/references/hosts/`. omp enacts tier arrays from `.woostack/config.json`
+through its generated agent definitions; unrelated global retry chains remain omp settings.
 
 Each tier leaf can be a model-slug string, an object
 `{ "model": "<slug>", "effort": "<level>" }`, or an **ordered array** of those forms, a
