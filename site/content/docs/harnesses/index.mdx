@@ -1,0 +1,35 @@
+---
+title: Harnesses
+description: Explicitly supported coding harnesses, their native capabilities, and their documented differences.
+---
+
+woostack's skill logic should work in any harness that can load and follow skills. The harnesses
+in this section are the ones woostack explicitly supports and documents. An unsupported harness
+can still run the workflows, but native capabilities such as subagent spawning, parallel dispatch,
+working-directory placement, model selection, and effort selection may be unavailable or may not
+function reliably. woostack degrades visibly when a harness cannot provide a capability; it does
+not pretend that the native integration succeeded.
+
+## Supported harnesses
+
+| Harness | Model and effort routing | Working directory | Host behavior |
+| --- | --- | --- | --- |
+| [omp (Oh My Pi)](/docs/harnesses/omp) | Agent-by-tier definitions; no per-call model knob | Passed when exposed; prompt pin always | Native per-spawn fallback chains and credential rotation |
+| [opencode](/docs/harnesses/opencode) | Per-call model routing | Passed when exposed; prompt pin always | Provider exhaustion surfaces as an error |
+| [Claude Code](/docs/harnesses/claude-code) | Per-call model and supported effort routing | No per-call cwd; subagent self-pins | Provider exhaustion surfaces as an error |
+| [Codex](/docs/harnesses/codex) | Per-call locally; one model per Codex Action job | Passed when exposed; prompt pin always | Local and CI routing differ |
+| [Cursor / Composer](/docs/harnesses/cursor) | Session model; no per-call routing | No per-call cwd; subagent self-pins | Requested tiers collapse to the session model |
+| [Antigravity CLI](/docs/harnesses/antigravity) | One model per session | No per-call cwd; subagent self-pins | Cannot run headless in ephemeral CI |
+
+The [model-tier reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/model-tiers.md)
+defines the shared `fast`, `standard`, and `deep` policy. Each page below links to its canonical
+host reference for the exact mechanics.
+
+<Cards>
+  <Card title="omp (Oh My Pi)" href="/docs/harnesses/omp" description="Agent-by-tier routing and host-native fallback." />
+  <Card title="opencode" href="/docs/harnesses/opencode" description="Per-call routing through the runtime subagent primitive." />
+  <Card title="Claude Code" href="/docs/harnesses/claude-code" description="Task-based dispatch with per-call models and prompt-pinned worktrees." />
+  <Card title="Codex" href="/docs/harnesses/codex" description="Local per-call routing and Codex Action's single-session mode." />
+  <Card title="Cursor / Composer" href="/docs/harnesses/cursor" description="Parallel dispatch with session-model tier collapse." />
+  <Card title="Antigravity CLI" href="/docs/harnesses/antigravity" description="Dynamic subagents, single-session routing, and interactive authentication." />
+</Cards>

@@ -1,0 +1,16 @@
+---
+title: opencode
+description: Per-call model routing through opencode's subagent primitive.
+---
+
+opencode dispatches subagents through its runtime primitive and accepts explicit model selection
+per spawn. woostack resolves each task's effective `fast`, `standard`, or `deep` tier, then passes
+the corresponding model on that spawn. Independent tasks are submitted together; concurrency is
+capped only when the installed runtime cannot run them in parallel.
+
+woostack passes the worktree path when the spawn supports it and always includes the prompt-level
+worktree pin. No host-owned usage-limit fallback is documented. If a spawn cannot carry the
+resolved model, the worker inherits the session model and woostack reports the degradation.
+
+For detection, exact dispatch mechanics, per-skill instructions, and degradation rules, read the
+[canonical opencode reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/opencode.md).

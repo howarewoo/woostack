@@ -1,0 +1,19 @@
+---
+title: omp (Oh My Pi)
+description: Agent-by-tier routing and host-native fallback in Oh My Pi.
+---
+
+omp exposes a `task` primitive with an agent selector, but no per-call model, tier, or effort
+argument. woostack generates `woostack-fast`, `woostack-standard`, and `woostack-deep` agent
+definitions from project configuration, then selects the matching definition for each task. This
+is full tier routing through agent definitions, not a degraded session-model fallback.
+
+When the spawn API exposes a working-directory argument, woostack passes it. The dispatch prompt
+always pins and verifies the worktree as a second guard.
+
+omp is the only supported harness with documented host-native usage-limit recovery. A spawned
+agent can rotate sibling credentials and apply its temporary fallback chain. woostack generates
+the agent definitions but never reads or changes omp's user-level host configuration.
+
+For detection, generator behavior, per-skill instructions, and degradation rules, read the
+[canonical omp reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md).
