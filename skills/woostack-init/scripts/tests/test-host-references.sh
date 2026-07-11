@@ -52,6 +52,8 @@ assert_not_contains "$(cat "$S/woostack-execute/references/subagent-driver.md")"
 assert_not_contains "$(cat "$S/woostack-review/SKILL.md")" "gen-omp-agents.sh" "dedup: generator invocation gone from review SKILL.md"
 assert_not_contains "$(cat "$S/woostack-commit/SKILL.md")" "gen-omp-agents.sh" "dedup: generator invocation gone from commit SKILL.md"
 assert_not_contains "$(cat "$S/woostack-execute-overnight/SKILL.md")" "retry.fallbackChains" "dedup: omp mechanics gone from overnight SKILL.md"
+assert_contains "$(cat "$S/woostack-init/SKILL.md")" "run the generator" "retained: init one-line generator step"
+assert_not_contains "$(cat "$S/woostack-init/SKILL.md")" "gen-omp-agents.sh" "dedup: generator mechanics not duplicated in init SKILL.md"
 
 # still-required infrastructure (inherited from test-omp-lockstep.sh)
 assert_eq "$([ -f "$S/woostack-init/scripts/gen-omp-agents.sh" ] && echo y)" "y" "site: generator present"

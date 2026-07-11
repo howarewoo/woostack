@@ -26,4 +26,4 @@ Two rules this pins:
 
 Layer kinship: [[review-host-distinct-from-model-provider]] (host vs provider surfaces).
 Lockstep: the omp bucket in `model-tiers.md` is inlined whole into review's CI orchestrator
-prompt and pinned by `test-omp-lockstep.sh` — keep additions terse, never add a table column.
+prompt and pinned by `test-host-references.sh` — keep additions terse, never add a table column.
