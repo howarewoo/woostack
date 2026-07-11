@@ -72,6 +72,7 @@ if [ -f "$HARNESS_DOCS/index.mdx" ] && [ -f "$HARNESS_DOCS/meta.json" ]; then
     slug="$(basename "$f" .md)"
     [ "$slug" = "README" ] && continue
     assert_contains "$harness_nav" "\"$slug\"" "docs: harness nav registers $slug"
+    assert_contains "$overview" "/docs/harnesses/$slug" "docs: overview links $slug"
     assert_eq "$([ -f "$HARNESS_DOCS/$slug.mdx" ] && echo y)" "y" "docs: $slug page present"
     if [ -f "$HARNESS_DOCS/$slug.mdx" ]; then
       assert_contains "$(cat "$HARNESS_DOCS/$slug.mdx")" "references/hosts/$slug.md" "docs: $slug links canonical reference"
