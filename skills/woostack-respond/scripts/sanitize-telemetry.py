@@ -36,6 +36,8 @@ TOKEN_KEY_PARTS = (
 )
 EMAIL_KEYS = {"email", "emailaddress"}
 IP_KEYS = {"ip", "clientip", "remoteip", "peerip", "ipaddress"}
+KEY_MATERIAL_SUBSTRINGS = ("privatekey", "signingkey", "secretkey", "encryptionkey", "keymaterial")
+KEY_MATERIAL_TOKENS = {"pem", "pkcs8", "pkcs1"}
 
 EMAIL_RE = re.compile(r"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b")
 IPV4_RE = re.compile(r"(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?![\w.])")
@@ -51,12 +53,13 @@ SECRET_VALUE_RES = (
     re.compile(r"\b(?:AKIA|ASIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASCA)[0-9A-Z]{16}\b"),
     re.compile(r"\bAIza[0-9A-Za-z_-]{35}\b"),
     re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]*"),
+    re.compile(r"\bMII[A-Za-z0-9+/]+IBADANBgkqhkiG[A-Za-z0-9+/=]*"),
 )
 RESIDUAL_ONLY_RES = (
     re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
 )
 MARKDOWN_KEY_RE = re.compile(
-    r"(?im)^\s*(?:[-*]\s*)?(?:[`\"']?)(authorization|authentication|credential|password|passwd|secret|token|api[ _-]?key|cookie|session(?:[ _-]?id)?|database[ _-]?url|connection[ _-]?string|request[ _-]?body|response[ _-]?body|user(?:[ _-]?id)?)(?:[`\"']?)\s*[:=]"
+    r"(?im)^\s*(?:[-*]\s*)?(?:[`\"']?)(authorization|authentication|credential|password|passwd|secret|token|api[ _-]?key|cookie|session(?:[ _-]?id)?|database[ _-]?url|connection[ _-]?string|request[ _-]?body|response[ _-]?body|user(?:[ _-]?id)?|private[ _-]?key|signing[ _-]?key|pem)(?:[`\"']?)\s*[:=]"
 )
 
 CARD_CANDIDATE_RE = re.compile(r"(?<![\w])(?:\d[ -]?){12,18}\d(?![\w])")
@@ -108,6 +111,8 @@ def key_class(key: str) -> str | None:
     if norm in USER_KEYS or norm.endswith("userid"):
         return "user"
     if any(part in norm for part in TOKEN_KEY_PARTS):
+        return "token"
+    if any(part in norm for part in KEY_MATERIAL_SUBSTRINGS) or _last_token(key) in KEY_MATERIAL_TOKENS or norm in KEY_MATERIAL_TOKENS:
         return "token"
     if norm in EMAIL_KEYS or norm.endswith("email"):
         return "email"

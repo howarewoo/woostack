@@ -64,6 +64,37 @@ for residual in \
   printf '%s\n' "$residual" >"$work/residual-pii.json"
   expect_fail python3 "$SCRIPT" --check "$work/residual-pii.json"
 done
+
+# Private/signing/PEM key-material field names must be classified token-sensitive: their
+# values are redacted wholesale, and headerless PKCS#8/base64 material is rejected by --check
+# under both snake_case and camelCase keys and in free text. Bare `key`-family words must not
+# over-redact.
+pkcs8='MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQ'
+for keyed in \
+  "{\"private_key\":\"$pkcs8\"}" \
+  "{\"privateKey\":\"$pkcs8\"}" \
+  "{\"signing_key\":\"$pkcs8\"}" \
+  "{\"pem\":\"$pkcs8\"}" \
+  "{\"provider\":{\"signingKey\":\"$pkcs8\"}}"; do
+  printf '%s\n' "$keyed" >"$work/keymat.json"
+  python3 "$SCRIPT" --input "$work/keymat.json" --output "$work/keymat-out.json"
+  if grep -Fq "$pkcs8" "$work/keymat-out.json"; then fail "private-key material survived sanitization: $keyed"; fi
+  grep -Fq "[REDACTED_TOKEN]" "$work/keymat-out.json" || fail "missing token placeholder for key material: $keyed"
+  python3 "$SCRIPT" --check "$work/keymat-out.json"
+  expect_fail python3 "$SCRIPT" --check "$work/keymat.json"
+done
+# Free-text headerless PKCS#8 key material is rejected and redacted.
+printf '%s\n' "{\"note\":\"leaked $pkcs8 in logs\"}" >"$work/keymat-text.json"
+expect_fail python3 "$SCRIPT" --check "$work/keymat-text.json"
+python3 "$SCRIPT" --input "$work/keymat-text.json" --output "$work/keymat-text-out.json"
+if grep -Fq "$pkcs8" "$work/keymat-text-out.json"; then fail "free-text key material survived sanitization"; fi
+# Bare key-family words are not key material and must survive untouched.
+printf '%s\n' '{"key":"kbd-1","keyboard":"mechanical","pemdas":"mnemonic","turnkey":"solution"}' >"$work/keybenign.json"
+python3 "$SCRIPT" --input "$work/keybenign.json" --output "$work/keybenign-out.json"
+for kept in kbd-1 mechanical mnemonic solution; do
+  grep -Fq "$kept" "$work/keybenign-out.json" || fail "benign key-family field was redacted: $kept"
+done
+python3 "$SCRIPT" --check "$work/keybenign-out.json"
 # A Luhn-invalid digit run and a bare numeric id are not payment/phone data and must survive.
 printf '%s\n' '{"note":"order 1234567890123456 and build 1704106800"}' >"$work/benign-digits.json"
 python3 "$SCRIPT" --input "$work/benign-digits.json" --output "$work/benign-output.json"
