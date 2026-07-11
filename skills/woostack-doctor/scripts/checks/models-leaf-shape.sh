@@ -31,7 +31,7 @@ problems="$(jq -r '
       else "type \($t)"
       end;
   def clean: gsub("[\t\n]"; " ");
-  if (.models // {}) | type != "object" then "models\tmust be an object (got \(.models | type))"
+  if (.models != null) and ((.models | type) != "object") then "models\tmust be an object (got \(.models | type))"
   else
     (.models // {}) | to_entries[]
     | if (.key | is_tier)

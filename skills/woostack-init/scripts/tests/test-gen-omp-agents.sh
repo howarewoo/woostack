@@ -168,7 +168,7 @@ assert_not_contains "$(cat "$r/.omp/agents/woostack-fast.md")" 'model:' "AC5 emp
 r="$(mktemp -d)"; ( cd "$r" && git init -q )
 mkcfg "$r" '{ "fast": [ null, "a/b" ] }'
 err="$(WOOSTACK_ROOT="$r" bash "$GEN" 2>&1 >/dev/null)"
-assert_contains "$err" "fast" "AC5 null entry 0: loud stderr warn"
+assert_contains "$err" "entry 0 is null" "AC5 null entry 0: loud stderr warn"
 assert_not_contains "$(cat "$r/.omp/agents/woostack-fast.md")" 'model:' "AC5 null entry 0: tier unset"
 
 finish

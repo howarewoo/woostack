@@ -80,11 +80,16 @@ degraded branch. AC4.
 **Deliverable:** taxonomy documented; site builds; plan closes. AC5, AC7.
 
 - [ ] **Step 1 (red):** grep — array-form absent from `model-tiers.md` leaf paragraph,
-      `hosts/*.md` fallback sections, `configuration.mdx`.
+      `hosts/*.md` fallback sections, `configuration.mdx`,
+      `woostack-review/SKILL.md` (`models` key reference), and the review prompt
+      leaf mentions (`_orchestrator-header.md`, `anthropic.md`, `openai.md`,
+      `opencode.md` jq override examples).
 - [ ] **Step 2:** `model-tiers.md` leaf-shape paragraph (array form + entry-0 law +
       per-host enactment pointer); one entries-1..n sentence in each of the six
       `hosts/*.md` "Host-level fallback" sections; `configuration.mdx` array example
-      (MDX escaping per memory `authored-mdx-escapes-jsx-and-table-pipes`).
+      (MDX escaping per memory `authored-mdx-escapes-jsx-and-table-pipes`);
+      `woostack-review/SKILL.md` leaf line + prompt jq examples gain the array
+      branch (per review-tier-doc-sync fanout set).
 - [ ] **Step 3 (green):** `test-host-references.sh` green (no contract change); provider
       table + `WOO_MODEL_TIERS_TABLE` marker byte-stable; real install +
       `pnpm -C site build` green.

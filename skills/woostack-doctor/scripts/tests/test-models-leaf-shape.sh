@@ -34,10 +34,20 @@ printf '%s\n' '{"models":{"openai":{"standard":[]}}}' > "$r/.woostack/config.jso
 out="$(bash "$C/models-leaf-shape.sh" "$r")"
 assert_contains "$out" "openai.standard" "provider-scoped path named"
 
+# non-tier key whose value is not an object/null -> error
+printf '%s\n' '{"models":{"openai":"gpt"}}' > "$r/.woostack/config.json"
+out="$(bash "$C/models-leaf-shape.sh" "$r")"
+assert_contains "$out" "provider value is not an object" "non-object provider value -> error"
+
 # non-object .models -> loud error, never a silent no-op
 printf '%s\n' '{"models":"oops"}' > "$r/.woostack/config.json"
 out="$(bash "$C/models-leaf-shape.sh" "$r")"
 assert_contains "$out" "$(printf 'error\tmodels-leaf-shape')" "non-object models -> error"
+
+# boolean .models -> loud error (jq's // treats false like null; guard must not coalesce)
+printf '%s\n' '{"models":false}' > "$r/.woostack/config.json"
+out="$(bash "$C/models-leaf-shape.sh" "$r")"
+assert_contains "$out" "$(printf 'error\tmodels-leaf-shape')" "models: false -> error"
 
 # explicit null leaf = valid unset (tools accept it) -> silent
 printf '%s\n' '{"models":{"fast":null,"standard":"a/b"}}' > "$r/.woostack/config.json"
@@ -48,6 +58,12 @@ printf '%s\n' '{}' > "$r/.woostack/config.json"
 assert_eq "$(bash "$C/models-leaf-shape.sh" "$r")" "" "no models block -> silent"
 rm -f "$r/.woostack/config.json"
 assert_eq "$(bash "$C/models-leaf-shape.sh" "$r")" "" "no config -> silent"
+
+# invalid JSON -> loud error via the jq-failure branch, never a silent pass
+printf '%s\n' '{"models":' > "$r/.woostack/config.json"
+out="$(bash "$C/models-leaf-shape.sh" "$r")"
+assert_contains "$out" "not valid JSON" "invalid JSON config -> loud error"
+rm -f "$r/.woostack/config.json"
 
 assert_eq "$(grep -nE '(^|[^[:alnum:]_])(git|gh)[[:space:]]' "$C/models-leaf-shape.sh")" "" \
   "shape check calls no git/gh"

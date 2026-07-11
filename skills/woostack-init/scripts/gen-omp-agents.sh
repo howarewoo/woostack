@@ -57,6 +57,7 @@ render_tier() {
   ltype="$(printf '%s' "$leaf" | jq -r 'type' 2>/dev/null || echo null)"
   # Array leaf = ordered fallback list; entry 0 is the primary and renders here.
   # Entries 1..n feed host-level fallback (spec 2026-07-10-tier-fallback-list).
+  # woostack-defer(increment 3): configuration.mdx/model-tiers.md array-leaf docs sync.
   if [ "$ltype" = "array" ]; then
     if [ "$(printf '%s' "$leaf" | jq 'length' 2>/dev/null || echo 0)" -eq 0 ]; then
       echo "gen-omp-agents.sh: $tier: empty array leaf; tier unset" >&2
