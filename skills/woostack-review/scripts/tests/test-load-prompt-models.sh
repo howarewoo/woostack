@@ -196,6 +196,17 @@ run_effort="$(grep '^run_effort=' "$github_output" | cut -d= -f2 || echo "")"
 assert_eq "$run_effort" "high" "flat array leaf: entry-0 effort resolves"
 rm -rf "$outdir"
 
+# Array leaf with a string entry 0: model resolves; effort falls back to the tier default
+# (the `.effort?` suppression yields empty for a plain-string entry).
+outdir="$(mktemp -d)"; github_output="$outdir/github_output"; touch "$github_output"
+printf '%s\n' '{"models":{"standard":["gpt-5.5","gpt-5.5-fallback"]}}' > "$outdir/config.json"
+run_load_prompt "$outdir" "$github_output"
+run_model="$(grep '^run_model=' "$github_output" | cut -d= -f2 || echo "")"
+run_effort="$(grep '^run_effort=' "$github_output" | cut -d= -f2 || echo "")"
+assert_eq "$run_model" "gpt-5.5" "string-entry array leaf: entry-0 model resolves"
+assert_eq "$run_effort" "medium" "string-entry array leaf: effort falls back to tier default"
+rm -rf "$outdir"
+
 # Split contract regression: review mode gets the worker header and does not inline the model table.
 outdir="$(mktemp -d)"; github_output="$outdir/github_output"; touch "$github_output"
 run_load_prompt "$outdir" "$github_output" MODE="review"
