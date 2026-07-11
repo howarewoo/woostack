@@ -50,6 +50,7 @@ SECRET_VALUE_RES = (
     re.compile(r"(?i)\b(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?|redis)://[^\s]+"),
     re.compile(r"\b(?:AKIA|ASIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASCA)[0-9A-Z]{16}\b"),
     re.compile(r"\bAIza[0-9A-Za-z_-]{35}\b"),
+    re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]*"),
 )
 RESIDUAL_ONLY_RES = (
     re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
@@ -94,9 +95,15 @@ def redact_phones(value: str) -> str:
     return PHONE_CANDIDATE_RE.sub(lambda match: PHONE if phone_span(match.group(0)) else match.group(0), value)
 
 
+def _last_token(key: str) -> str:
+    spaced = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", "_", key)
+    parts = [part for part in re.split(r"[^A-Za-z0-9]+", spaced) if part]
+    return parts[-1].lower() if parts else ""
+
+
 def key_class(key: str) -> str | None:
     norm = normalized_key(key)
-    if norm in BODY_KEYS or norm.endswith("body"):
+    if norm in BODY_KEYS or _last_token(key) == "body":
         return "body"
     if norm in USER_KEYS or norm.endswith("userid"):
         return "user"
@@ -104,7 +111,7 @@ def key_class(key: str) -> str | None:
         return "token"
     if norm in EMAIL_KEYS or norm.endswith("email"):
         return "email"
-    if norm in IP_KEYS or norm.endswith("ip"):
+    if norm in IP_KEYS or _last_token(key) == "ip":
         return "ip"
     return None
 
@@ -119,6 +126,16 @@ def replace_ipv6(text: str) -> str:
     return IPV6_CANDIDATE_RE.sub(redact, text)
 
 
+def replace_ipv4(text: str) -> str:
+    def redact(match: re.Match[str]) -> str:
+        candidate = match.group(0)
+        try:
+            return IP if ipaddress.ip_address(candidate).version == 4 else candidate
+        except ValueError:
+            return candidate
+    return IPV4_RE.sub(redact, text)
+
+
 def redact_string(value: str) -> str:
     result = value
     for pattern in SECRET_VALUE_RES:
@@ -126,7 +143,7 @@ def redact_string(value: str) -> str:
     for pattern in HOME_RES:
         result = pattern.sub(HOME, result)
     result = EMAIL_RE.sub(EMAIL, result)
-    result = IPV4_RE.sub(IP, result)
+    result = replace_ipv4(result)
     result = replace_ipv6(result)
     result = redact_cards(result)
     result = redact_phones(result)
@@ -155,6 +172,12 @@ def sanitize(value: Any) -> Any:
         return [sanitize(item) for item in value]
     if isinstance(value, str):
         return redact_string(value)
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        rendered = json.dumps(value)
+        redacted = redact_string(rendered)
+        return redacted if redacted != rendered else value
     return value
 
 
@@ -206,6 +229,10 @@ def validate_json(value: Any, location: str = "$") -> None:
             validate_json(child, f"{location}[{index}]")
     elif isinstance(value, str):
         reason = forbidden_string(value)
+        if reason:
+            raise ValueError(f"{reason} at {location}")
+    elif isinstance(value, (int, float)) and not isinstance(value, bool):
+        reason = forbidden_string(json.dumps(value))
         if reason:
             raise ValueError(f"{reason} at {location}")
 

@@ -81,6 +81,12 @@ partial = json.loads((source.parent / "report-partial.json").read_text())
 partial["window"]["start"] = "2026-07-09T18:00:00-04:00"  # 22:00Z, before the next-day 18:00Z end
 partial["window"]["end"] = "2026-07-10T18:00:00Z"
 (out / "offset-window.json").write_text(json.dumps(partial))
+data = json.loads(source.read_text())
+data["outcome"] = "partial"  # complete fixture is all-executed: partial needs a blocked role
+(out / "partial-no-blocked.json").write_text(json.dumps(data))
+data = json.loads(source.read_text())
+data["outcome"] = "blocked"  # complete fixture has executed roles: blocked needs all blocked
+(out / "blocked-with-executed.json").write_text(json.dumps(data))
 PY
 
 before=$(find "$reports" -type f | wc -l | tr -d ' ')
@@ -90,6 +96,8 @@ if render "$tmp/token.json" >/dev/null 2>&1; then fail "bearer token accepted"; 
 if render "$tmp/bound-high.json" >/dev/null 2>&1; then fail "investigation_bound above five accepted"; fi
 if render "$tmp/bound-low.json" >/dev/null 2>&1; then fail "investigated groups exceeding bound accepted"; fi
 if render "$tmp/reversed-offset.json" >/dev/null 2>&1; then fail "offset-reversed window accepted"; fi
+if render "$tmp/partial-no-blocked.json" >/dev/null 2>&1; then fail "partial outcome without blocked coverage accepted"; fi
+if render "$tmp/blocked-with-executed.json" >/dev/null 2>&1; then fail "blocked outcome with executed coverage accepted"; fi
 after=$(find "$reports" -type f | wc -l | tr -d ' ')
 [ "$before" = "$after" ] || fail "rejected render created report"
 grep -q '^- Deep-investigation bound: 5$' "$complete" || fail "complete report bound not rendered"

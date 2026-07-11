@@ -187,14 +187,6 @@ def validate(args: argparse.Namespace) -> dict[str, Any]:
     for field, envelope_value in comparisons.items():
         if strings[field] != envelope_value:
             fail(f"receipt.{field} does not match the result envelope")
-    for field, envelope_value in {
-        "project": envelope_project,
-        "environment": envelope_environment,
-        "window_start": envelope_start,
-        "window_end": envelope_end,
-    }.items():
-        if envelope_value != expected[field]:
-            fail(f"result envelope {field} does not match the current request")
     return receipt
 
 

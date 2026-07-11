@@ -59,6 +59,12 @@ mkdir -p "$WORK/default-path/.woostack"
 if (cd "$WORK/default-path" && bash "$SCRIPT") >"$STDOUT" 2>"$STDERR"; then STATUS=0; else STATUS=$?; fi
 assert_eq "$STATUS" "0" "zero arguments uses default path"
 assert_eq "$(cat "$STDOUT")" "$DEFAULT" "default missing path uses defaults"
+mkdir -p "$WORK/anchor-root/.woostack" "$WORK/anchor-cwd/.woostack"
+printf '%s' '{"respond":{"provider":"anchored-root"}}' >"$WORK/anchor-root/.woostack/config.json"
+printf '%s' '{"respond":{"provider":"cwd-decoy"}}' >"$WORK/anchor-cwd/.woostack/config.json"
+if (cd "$WORK/anchor-cwd" && WOOSTACK_ROOT="$WORK/anchor-root" bash "$SCRIPT") >"$STDOUT" 2>"$STDERR"; then STATUS=0; else STATUS=$?; fi
+assert_eq "$STATUS" "0" "default path with WOOSTACK_ROOT succeeds"
+assert_eq "$(cat "$STDOUT")" '{"provider":"anchored-root","environment":"production","window":"24h","max_groups":5,"remediation":"prepare-fix"}' "default path anchors to WOOSTACK_ROOT not CWD"
 
 assert_valid overrides '{"respond":{"provider":"honeycomb-eu","environment":"staging","window":"5m","max_groups":1,"remediation":"report-only"}}' '{"provider":"honeycomb-eu","environment":"staging","window":"5m","max_groups":1,"remediation":"report-only"}'
 assert_valid arbitrary-provider '{"respond":{"provider":"custom-observability-2"}}' '{"provider":"custom-observability-2","environment":"production","window":"24h","max_groups":5,"remediation":"prepare-fix"}'
