@@ -6,7 +6,7 @@ EFFORT_LEVELS = {"minimal", "low", "medium", "high", "xhigh"}
 
 
 def normalize_models(models, fail):
-    """Validate root models and return canonical ``{model, effort?}`` leaves."""
+    """Validate root models and return canonical scalar or ordered array leaves."""
     if not isinstance(models, dict):
         fail("`models` must be an object with fast/standard/deep keys and/or provider objects")
 
@@ -43,6 +43,18 @@ def normalize_models(models, fail):
 
 
 def _parse_model_leaf(label, value, fail):
+    if isinstance(value, list):
+        if not value:
+            fail("{} must be a non-empty array".format(label))
+        return [
+            _parse_scalar_model_leaf("{}[{}]".format(label, index), entry, fail)
+            for index, entry in enumerate(value)
+        ]
+
+    return _parse_scalar_model_leaf(label, value, fail)
+
+
+def _parse_scalar_model_leaf(label, value, fail):
     if isinstance(value, str):
         if not value.strip():
             fail("{} must be a non-empty string".format(label))

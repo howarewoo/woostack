@@ -22,12 +22,15 @@
 # findings surface unless the consumer widens it (low | medium) in config.json.
 #
 # Root-level schema (parsed independently of `review`; all keys optional):
-#   models.<tier>            str | {model: str, effort?: str}  (host-agnostic
-#                            fallback; tier is fast | standard | deep)
-#   models.<provider>.<tier> str | {model: str, effort?: str}  (provider is one
-#                            of anthropic/openai/google/openrouter)
-#                            effort in minimal|low|medium|high|xhigh (empty = unset);
-#                            the loader normalizes every leaf to {model,[effort]}.
+#   models.<tier>            leaf  (host-agnostic fallback; tier is
+#                            fast | standard | deep)
+#   models.<provider>.<tier> leaf  (provider is one of
+#                            anthropic/openai/google/openrouter)
+#   leaf = str | {model: str, effort?: str} | non-empty array[leaf-scalar]
+#                            arrays preserve order; entry 0 is primary;
+#                            effort is minimal|low|medium|high|xhigh (empty = unset);
+#                            the loader normalizes scalar leaves to {model,[effort]}
+#                            and array leaves to ordered arrays of those objects.
 #                            A nested `review.models` is a hard error (relocated).
 #
 # Schema under `review` (all keys optional):

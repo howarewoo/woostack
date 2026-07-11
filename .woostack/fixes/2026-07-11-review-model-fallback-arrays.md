@@ -1,6 +1,6 @@
 ---
 type: fix
-status: hardened
+status: executing
 branch: fix/review-model-fallback-arrays
 ---
 
@@ -31,26 +31,26 @@ Bring review-facing schema text, prompt examples, and authored configuration doc
 
 ## 3. Implementation Plan
 
-- [ ] **Step 1: Reproduce parser and receipt failures with focused tests**
+- [x] **Step 1: Reproduce parser and receipt failures with focused tests**
   - Extend `skills/woostack-review/scripts/tests/test-load-config-models-root.sh` with flat arrays for `fast`, `standard`, and `deep`; a provider-scoped array; canonical normalization and order preservation; empty arrays; invalid scalar, null, nested-array, and malformed-object entries; and exact indexed error paths.
   - Extend `skills/woostack-audit/scripts/tests/test-load-audit-config.sh` to prove the shared loader accepts a valid fallback array and rejects a malformed one before audit execution.
   - Extend `skills/woostack-review/scripts/tests/test-verify-receipts-openai-models.sh` to prove provider-scoped and flat arrays validate against entry 0, while a receipt naming entry 1 is rejected.
   - Run the three focused scripts and confirm the new valid-array and primary-selection cases fail for the diagnosed reasons before changing production code.
-- [ ] **Step 2: Accept and normalize ordered fallback arrays**
+- [x] **Step 2: Accept and normalize ordered fallback arrays**
   - Refactor `skills/woostack-review/scripts/model_config.py` so scalar leaf parsing remains the single source for string/object validation and an outer tier parser handles non-empty arrays without permitting nested arrays.
   - Preserve array order and canonical entry shape; retain existing effort normalization and string/single-object compatibility.
   - Emit precise tier paths for empty arrays and indexed paths for invalid entries.
   - Run the review and audit loader tests until all new and existing cases pass.
-- [ ] **Step 3: Resolve receipt models to the configured primary**
+- [x] **Step 3: Resolve receipt models to the configured primary**
   - Update `skills/woostack-review/scripts/verify-receipts.sh::config_model_for_tier` to normalize both provider-scoped and flat array leaves to entry 0 before existing object/string extraction.
   - Keep fallback entries invalid as receipt-model substitutes.
   - Run `test-verify-receipts-openai-models.sh` until the new and existing cases pass.
-- [ ] **Step 4: Synchronize review schema and documentation**
+- [x] **Step 4: Synchronize review schema and documentation**
   - Update the root-model schema descriptions in `skills/woostack-review/scripts/load-config.sh`, `skills/woostack-review/SKILL.md`, and `skills/woostack-review/prompts/_orchestrator-header.md`.
   - Make array-unsafe model lookup examples in `skills/woostack-review/prompts/anthropic.md`, `openai.md`, and `opencode.md` explicitly select entry 0 before extracting the model.
   - Clarify `site/content/docs/configuration.mdx` so its host-routing guidance does not contradict its documented `.woostack/config.json` fallback arrays.
   - Extend the existing host/reference documentation-sync test to guard the review schema and entry-0 semantics.
-- [ ] **Step 5: Verify compatibility and the complete affected surface**
+- [x] **Step 5: Verify compatibility and the complete affected surface**
   - Run `bash skills/woostack-review/scripts/tests/test-load-config-models-root.sh`.
   - Run `bash skills/woostack-audit/scripts/tests/test-load-audit-config.sh`.
   - Run `bash skills/woostack-review/scripts/tests/test-resolve-model.sh`.

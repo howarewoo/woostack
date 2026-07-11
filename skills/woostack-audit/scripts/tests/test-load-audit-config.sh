@@ -70,6 +70,18 @@ run '{"models":{"standard":"provider/model"}}'
 assert_eq "$EC" "0" "flat root model accepted"
 assert_eq "$(jq -c '.models.standard' "$OUTDIR/config.json")" '{"model":"provider/model"}' "flat root model normalized"
 
+# Shared fallback arrays are normalized and forwarded without losing order.
+run '{"models":{"standard":["provider/primary",{"model":"provider/fallback","effort":"high"}]}}'
+assert_eq "$EC" "0" "shared fallback array accepted by audit loader"
+assert_eq "$(jq -c '.models.standard' "$OUTDIR/config.json")" \
+  '[{"model":"provider/primary"},{"model":"provider/fallback","effort":"high"}]' \
+  "shared fallback array forwarded canonically"
+
+# Malformed shared fallback arrays fail before audit work starts.
+run '{"models":{"standard":["provider/primary",null]}}'
+assert_eq "$EC" "1" "malformed shared fallback array rejected"
+assert_contains "$(cat "$ERR")" "models.standard[1]" "malformed shared array names indexed path"
+
 # Invalid root model configuration fails before audit work starts.
 run '{"models":"gpt-5.5"}'
 assert_eq "$EC" "1" "non-object root models rejected"

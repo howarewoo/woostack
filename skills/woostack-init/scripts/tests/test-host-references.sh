@@ -58,4 +58,16 @@ assert_not_contains "$(cat "$S/woostack-init/SKILL.md")" "gen-omp-agents.sh" "de
 # still-required infrastructure (inherited from test-omp-lockstep.sh)
 assert_eq "$([ -f "$S/woostack-init/scripts/gen-omp-agents.sh" ] && echo y)" "y" "site: generator present"
 assert_eq "$([ -f "$S/woostack-doctor/scripts/checks/omp-agents.sh" ] && echo y)" "y" "site: doctor check present"
+# (e) review schema and host routing stay aligned on ordered fallback leaves.
+review_skill="$(cat "$S/woostack-review/SKILL.md")"
+review_header="$(cat "$S/woostack-review/prompts/_orchestrator-header.md")"
+assert_contains "$review_skill" "non-empty ordered array" "fallback schema: review skill accepts arrays"
+assert_contains "$review_skill" "entry 0 is the primary" "fallback schema: review skill defines primary"
+assert_contains "$review_header" "non-empty ordered array" "fallback schema: orchestrator accepts arrays"
+assert_contains "$review_header" "entry 0 is primary" "fallback schema: orchestrator defines primary"
+for prompt in anthropic openai opencode; do
+  assert_contains "$(cat "$S/woostack-review/prompts/$prompt.md")" 'if type=="array" then .[0]' \
+    "fallback routing: $prompt selects entry 0"
+done
+
 finish
