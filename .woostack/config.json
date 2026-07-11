@@ -2,31 +2,31 @@
 	"models": {
 		"deep": [
 			{
-				"model": "anthropic/claude-opus-4-8",
+				"model": "openai-codex/gpt-5.6-sol",
 				"effort": "high"
 			},
 			{
-				"model": "openai-codex/gpt-5.6-sol",
+				"model": "anthropic/claude-opus-4-8",
 				"effort": "high"
 			}
 		],
 		"standard": [
 			{
-				"model": "anthropic/claude-opus-4-8",
+				"model": "openai-codex/gpt-5.6-sol",
 				"effort": "medium"
 			},
 			{
-				"model": "openai-codex/gpt-5.6-sol",
+				"model": "anthropic/claude-opus-4-8",
 				"effort": "medium"
 			}
 		],
 		"fast": [
 			{
-				"model": "anthropic/claude-opus-4-8",
+				"model": "openai-codex/gpt-5.6-sol",
 				"effort": "low"
 			},
 			{
-				"model": "openai-codex/gpt-5.6-sol",
+				"model": "anthropic/claude-opus-4-8",
 				"effort": "low"
 			}
 		]
