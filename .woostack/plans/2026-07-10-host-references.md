@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-07-10-host-references.md
-status: ready
+status: executing
 date: 2026-07-10
 branch: feature/host-references
 links:
@@ -71,13 +71,13 @@ Shell tests use `skills/woostack-init/scripts/tests/assert.sh` idioms; grep toke
 sections (spec §2). Content authored by **moving text semantically** from the seven donor
 sites (spec §1) - sources edited in Increment 2.
 
-- [ ] **Step 1 (red):** `ls skills/using-woostack/references/hosts/ 2>&1` -> no such
+- [x] **Step 1 (red):** `ls skills/using-woostack/references/hosts/ 2>&1` -> no such
       directory; `bash skills/woostack-init/scripts/tests/test-omp-lockstep.sh` -> passes
       (baseline stays green through this increment).
-- [ ] **Step 2:** write `hosts/README.md` - the six-section contract, one paragraph on the
+- [x] **Step 2:** write `hosts/README.md` - the six-section contract, one paragraph on the
       load directive + degradation default, and the rule that host files hold *mechanics*
       while consuming skills hold *law*.
-- [ ] **Step 3:** write the six host files from donor content:
+- [x] **Step 3:** write the six host files from donor content:
       - `omp.md` - agent-by-tier dispatch (`agent: woostack-<effective-tier>`), generated defs
         + `gen-omp-agents.sh` ensure-then-select (from `subagent-driver.md:136-137`,
         `model-tiers.md:35`), host-level fallback + woostack boundary (from
@@ -106,11 +106,11 @@ sites (spec §1) - sources edited in Increment 2.
       - `opencode.md` - `@subagent` per-call routing + `N=1` cap note
         (`model-tiers.md:27-32`, `woostack-review/SKILL.md:337`).
       Each file: `<!-- woostack-defer(increment-2): donor sites still carry this text until the extraction increment -->`.
-- [ ] **Step 4 (green):** `for f in skills/using-woostack/references/hosts/*.md; do ...` grep
+- [x] **Step 4 (green):** `for f in skills/using-woostack/references/hosts/*.md; do ...` grep
       each non-README file for the six headers `## Detection`, `## Subagent spawn`,
       `## Tier routing`, `## Host-level fallback`, `## Per-skill notes`, `## Degradation` ->
       6 files x 6 headers, zero misses; lockstep test still green.
-- [ ] **Step 5:** commit via woostack-commit conventions; PR body Spec trailer ->
+- [x] **Step 5:** commit via woostack-commit conventions; PR body Spec trailer ->
       `.woostack/specs/2026-07-10-host-references.md`. Task-scoped quality review (inline
       bounded); distill memory only if a durable non-obvious rule emerged.
 
