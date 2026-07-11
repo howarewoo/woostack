@@ -27,6 +27,8 @@ Codex CLI locally (subagent spawns accept a `model` override); Codex Action in C
 
 None documented at the subagent layer — usage-limit exhaustion surfaces as provider errors.
 Account-level recovery (a second login, plan quota) is outside woostack's scope.
+`models.<tier>` fallback lists (entries 1..n) are a documented preference order only on this
+host — no spawn-time auth probe exists; switch manually by promoting an entry to entry 0.
 
 ## Per-skill notes
 

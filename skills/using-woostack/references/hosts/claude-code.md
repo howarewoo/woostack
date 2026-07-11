@@ -29,6 +29,9 @@ dispatching skill).
 None documented — Claude Code applies no host-owned usage-limit failover to spawned
 subagents; provider exhaustion surfaces as errors on the spawn. Recovery is account-level
 (plan limits), outside woostack's scope.
+`models.<tier>` fallback lists (entries 1..n) are a documented preference order only on this
+host — no spawn-time auth probe exists, so the consumer switches manually (promote an entry
+to entry 0, or re-run after editing config).
 
 ## Per-skill notes
 
