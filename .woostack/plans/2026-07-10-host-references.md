@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-07-10-host-references.md
-status: executing
+status: done
 date: 2026-07-10
 branch: feature/host-references
 links:
@@ -169,29 +169,15 @@ updated in the same change. AC2-AC6.
 
 **Deliverable:** authored docs mirror the new taxonomy; site builds; plan closes. AC6.
 
-- [ ] **Step 1 (red):** `grep -c "hosts/" site/content/docs/configuration.mdx` -> 0.
-- [ ] **Step 2:** update `configuration.mdx` - the omp example section (~155-172) keeps the
+- [x] **Step 1 (red):** `grep -c "hosts/" site/content/docs/configuration.mdx` -> 0.
+- [x] **Step 2:** update `configuration.mdx` - the omp example section (~155-172) keeps the
       config semantics but points host mechanics at the `hosts/` contract; MDX escaping per
       memory `authored-mdx-escapes-jsx-and-table-pipes`. `concepts.mdx` untouched (spec §9 Q1).
-- [ ] **Step 10 (green):** `bash skills/woostack-init/scripts/tests/test-host-references.sh`
-      -> PASS; real `pnpm -C site install --frozen-lockfile --prefer-offline` in the worktree then `pnpm -C site build` -> green
-      (memory `site-build-in-worktree-needs-real-node-modules`); `git diff --stat` shows no
-      `woostack-review/scripts/` or `woostack-review/prompts/` changes; walkthrough
-      narrative: unknown host resolves to no-per-call-routing + say-so from inline text
-      alone (AC3 edge).
-- [ ] **Step 11:** commit (same PR-body conventions); task-scoped quality review; distill.
-
-## Increment 3 - integrated closeout (PR 3)
-
-**Deliverable:** verify the already-synchronized taxonomy in the integrated stack and close
-the plan. This increment must not repair authored-site drift left by Increment 2.
-
-- [ ] **Step 1:** verify `configuration.mdx` already points host mechanics at the `hosts/`
-      contract and `concepts.mdx` remains untouched.
-- [ ] **Step 2:** re-run `test-host-references.sh` and `pnpm -C site build` against the
-      integrated stack; both remain green.
-- [ ] **Step 3:** commit the closeout; final task-scoped review; distill durable memory; set
-      plan `status: done` (terminal transition authored by execute, conventions.md).
+- [x] **Step 3 (green):** real `pnpm -C site install --frozen-lockfile --prefer-offline` in the
+      worktree then `pnpm -C site build` -> green (memory
+      `site-build-in-worktree-needs-real-node-modules`); `test-host-references.sh` still green.
+- [x] **Step 4:** commit; final task-scoped review; distill durable memory; set plan
+      `status: done` (terminal transition authored by execute, conventions.md).
 
 ## Verification map (AC -> proof)
 

@@ -161,10 +161,10 @@ Codex ignores them because `models.openai` is present. omp uses the flat entries
 tier is absent, the generated omp agent omits `model`, inherits the active session model, and
 sets only the tier's default thinking level.
 
-omp additionally provides host-level usage-limit fallback beneath these tiers. Credential
-rotation uses the provider logins already available to the host, while `retry.fallbackChains`
-is configured in omp's own settings outside `.woostack/config.json`. A temporary host fallback
-does not change the tier's configured model.
+How each host consumes this config, including spawn primitives, per-call routing knobs, and host-level
+usage-limit fallback, lives in the per-host reference files under
+`skills/using-woostack/references/hosts/`. For omp, `retry.fallbackChains` is configured in
+omp's own settings outside `.woostack/config.json`.
 
 Each tier leaf can be a model-slug string or an object
 `{ "model": "<slug>", "effort": "<level>" }`. Supported effort levels are `minimal`, `low`,
