@@ -19,6 +19,9 @@ for f in "$H"/*.md; do
     assert_contains "$body" "$hdr" "hosts: $(basename "$f") has '$hdr'"
   done
 done
+for h in antigravity claude-code codex cursor omp opencode; do
+  assert_eq "$([ -f "$H/$h.md" ] && echo y)" "y" "hosts: $h.md present"
+done
 assert_eq "$([ "$n" -ge 6 ] && echo y)" "y" "hosts: at least six host files (found $n)"
 
 # (b) canonical load directive in every consumer (one physical line, ASCII)
@@ -46,6 +49,8 @@ assert_contains "$omp" "usage-exhaustion" "moved: overnight advisory mechanics i
 assert_not_contains "$mt" "agent-by-tier (omp / Oh My Pi)" "dedup: omp bucket gone from model-tiers.md"
 assert_not_contains "$mt" "gen-omp-agents.sh" "dedup: generator invocation gone from model-tiers.md"
 assert_not_contains "$(cat "$S/woostack-execute/references/subagent-driver.md")" "gen-omp-agents.sh" "dedup: generator invocation gone from subagent-driver.md"
+assert_not_contains "$(cat "$S/woostack-review/SKILL.md")" "gen-omp-agents.sh" "dedup: generator invocation gone from review SKILL.md"
+assert_not_contains "$(cat "$S/woostack-commit/SKILL.md")" "gen-omp-agents.sh" "dedup: generator invocation gone from commit SKILL.md"
 assert_not_contains "$(cat "$S/woostack-execute-overnight/SKILL.md")" "retry.fallbackChains" "dedup: omp mechanics gone from overnight SKILL.md"
 
 # still-required infrastructure (inherited from test-omp-lockstep.sh)
