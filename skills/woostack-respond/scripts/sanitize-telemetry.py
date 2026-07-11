@@ -19,7 +19,9 @@ IP = "[REDACTED_IP]"
 USER = "[REDACTED_USER]"
 BODY = "[REDACTED_BODY]"
 HOME = "[REDACTED_HOME]"
-PLACEHOLDERS = {TOKEN, EMAIL, IP, USER, BODY, HOME}
+PHONE = "[REDACTED_PHONE]"
+CARD = "[REDACTED_CARD]"
+PLACEHOLDERS = {TOKEN, EMAIL, IP, USER, BODY, HOME, PHONE, CARD}
 
 
 def normalized_key(key: str) -> str:
@@ -30,7 +32,7 @@ BODY_KEYS = {"body", "requestbody", "responsebody", "payload", "rawpayload"}
 USER_KEYS = {"user", "userid", "username", "phone", "phonenumber", "customer", "accountuser"}
 TOKEN_KEY_PARTS = (
     "authorization", "authentication", "credential", "password", "passwd", "secret",
-    "token", "apikey", "cookie", "session", "databaseurl", "connectionstring",
+    "token", "apikey", "accesskey", "cookie", "session", "databaseurl", "connectionstring",
 )
 EMAIL_KEYS = {"email", "emailaddress"}
 IP_KEYS = {"ip", "clientip", "remoteip", "peerip", "ipaddress"}
@@ -46,6 +48,8 @@ SECRET_VALUE_RES = (
     re.compile(r"(?i)\b(?:bearer|basic)\s+[A-Za-z0-9._~+/=-]{8,}"),
     re.compile(r"\b(?:ghp|github_pat|sk_(?:live|test)|sess|api)_[A-Za-z0-9_-]{12,}\b", re.I),
     re.compile(r"(?i)\b(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?|redis)://[^\s]+"),
+    re.compile(r"\b(?:AKIA|ASIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASCA)[0-9A-Z]{16}\b"),
+    re.compile(r"\bAIza[0-9A-Za-z_-]{35}\b"),
 )
 RESIDUAL_ONLY_RES = (
     re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
@@ -53,6 +57,41 @@ RESIDUAL_ONLY_RES = (
 MARKDOWN_KEY_RE = re.compile(
     r"(?im)^\s*(?:[-*]\s*)?(?:[`\"']?)(authorization|authentication|credential|password|passwd|secret|token|api[ _-]?key|cookie|session(?:[ _-]?id)?|database[ _-]?url|connection[ _-]?string|request[ _-]?body|response[ _-]?body|user(?:[ _-]?id)?)(?:[`\"']?)\s*[:=]"
 )
+
+CARD_CANDIDATE_RE = re.compile(r"(?<![\w])(?:\d[ -]?){12,18}\d(?![\w])")
+PHONE_CANDIDATE_RE = re.compile(r"(?<![\w])\+?\d[\d ().-]{7,}\d(?![\w])")
+
+
+def luhn_ok(digits: str) -> bool:
+    total = 0
+    parity = len(digits) % 2
+    for index, char in enumerate(digits):
+        digit = ord(char) - 48
+        if index % 2 == parity:
+            digit *= 2
+            if digit > 9:
+                digit -= 9
+        total += digit
+    return total % 10 == 0
+
+
+def card_span(candidate: str) -> bool:
+    digits = re.sub(r"\D", "", candidate)
+    return 13 <= len(digits) <= 19 and luhn_ok(digits)
+
+
+def phone_span(candidate: str) -> bool:
+    if "+" not in candidate and not any(separator in candidate for separator in " ().-"):
+        return False
+    return 10 <= len(re.sub(r"\D", "", candidate)) <= 15
+
+
+def redact_cards(value: str) -> str:
+    return CARD_CANDIDATE_RE.sub(lambda match: CARD if card_span(match.group(0)) else match.group(0), value)
+
+
+def redact_phones(value: str) -> str:
+    return PHONE_CANDIDATE_RE.sub(lambda match: PHONE if phone_span(match.group(0)) else match.group(0), value)
 
 
 def key_class(key: str) -> str | None:
@@ -89,6 +128,8 @@ def redact_string(value: str) -> str:
     result = EMAIL_RE.sub(EMAIL, result)
     result = IPV4_RE.sub(IP, result)
     result = replace_ipv6(result)
+    result = redact_cards(result)
+    result = redact_phones(result)
     return result
 
 
@@ -126,6 +167,12 @@ def forbidden_string(value: str) -> str | None:
     for pattern in RESIDUAL_ONLY_RES:
         if pattern.search(value):
             return "private-key material"
+    for match in CARD_CANDIDATE_RE.finditer(value):
+        if card_span(match.group(0)):
+            return "payment card number"
+    for match in PHONE_CANDIDATE_RE.finditer(value):
+        if phone_span(match.group(0)):
+            return "phone number"
     if EMAIL_RE.search(value):
         return "email address"
     for match in IPV4_RE.finditer(value):

@@ -1,5 +1,6 @@
 {
   "schema_version": 1,
+  "investigation_bound": 5,
   "signal": "Unknown Production Error",
   "scope": "Acme API",
   "environment": "production",

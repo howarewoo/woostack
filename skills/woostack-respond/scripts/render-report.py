@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import argparse
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 import os
 from pathlib import Path
@@ -13,7 +13,7 @@ import sys
 import tempfile
 import unicodedata
 
-TOP_FIELDS = {"schema_version", "signal", "scope", "environment", "window", "generated_at", "outcome", "coverage", "ranked_groups", "impact_summary", "timeline", "investigations", "verified_root_causes", "external_incidents", "observability_gaps", "remediation", "blocked_evidence"}
+TOP_FIELDS = {"schema_version", "signal", "scope", "environment", "window", "generated_at", "outcome", "investigation_bound", "coverage", "ranked_groups", "impact_summary", "timeline", "investigations", "verified_root_causes", "external_incidents", "observability_gaps", "remediation", "blocked_evidence"}
 SECTIONS = ("Response & Scope", "Query Coverage", "Ranked Error Queue", "Impact Summary", "Incident Timeline", "Investigated Groups", "Verified Root Causes", "External or Non-Code Incidents", "Observability Gaps", "Remediation", "Uncovered and Blocked Evidence")
 
 class InputError(ValueError): pass
@@ -35,13 +35,15 @@ def exact_object(value, required, optional, field):
 
 def timestamp(value, field):
     value = text(value, field)
-    try: datetime.fromisoformat(value.replace("Z", "+00:00"))
+    try: parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError as error: raise InputError(f"{field} must be an ISO-8601 timestamp") from error
-    return value
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
 
 def validate(data):
     exact_object(data, TOP_FIELDS, set(), "input")
     if data["schema_version"] != 1 or isinstance(data["schema_version"], bool): raise InputError("schema_version must be 1")
+    bound = data["investigation_bound"]
+    if isinstance(bound, bool) or not isinstance(bound, int) or bound < 1 or bound > 5: raise InputError("investigation_bound must be an integer from 1 to 5")
     for field in ("signal", "scope", "environment"): text(data[field], field)
     timestamp(data["generated_at"], "generated_at")
     exact_object(data["window"], {"start", "end"}, set(), "window")
@@ -79,7 +81,7 @@ def validate(data):
             if not isinstance(group[field],int) or isinstance(group[field],bool) or group[field] < 0: raise InputError(f"group.{field} must be non-negative integer")
         if group["investigation"] not in {"verified","rejected","blocked","deferred"}: raise InputError("group investigation is invalid")
         investigated += group["investigation"] != "deferred"
-    if investigated > 5: raise InputError("at most five groups may be investigated")
+    if investigated > bound: raise InputError(f"at most {bound} group(s) may be investigated")
     if not isinstance(data["investigations"], list): raise InputError("investigations must be a list")
     for n,item in enumerate(data["investigations"]):
         exact_object(item,{"id","status","hypothesis","evidence"},set(),f"investigations[{n}]"); text(item["id"],"investigation.id"); text(item["hypothesis"],"investigation.hypothesis"); strings(item["evidence"],"investigation.evidence")
@@ -110,7 +112,7 @@ def render(data,date):
     coverage=sorted(data["coverage"],key=lambda x:(x["provider"],x["role"]))
     groups=sorted(data["ranked_groups"],key=lambda x:(-x["impact"],-x["frequency"],x["recency"],x["id"]))
     sections={
-      "Response & Scope":[f'- Signal: {data["signal"]}',f'- Scope: {data["scope"]}',f'- Environment: {data["environment"]}',f'- UTC window: {data["window"]["start"]} through {data["window"]["end"]}',f'- Outcome: {data["outcome"]}',"- Deep-investigation bound: 5"],
+      "Response & Scope":[f'- Signal: {data["signal"]}',f'- Scope: {data["scope"]}',f'- Environment: {data["environment"]}',f'- UTC window: {data["window"]["start"]} through {data["window"]["end"]}',f'- Outcome: {data["outcome"]}',f'- Deep-investigation bound: {data["investigation_bound"]}'],
       "Query Coverage":[f'- {x["provider"]} / {x["role"]}: {x["state"]} — '+(f'{x["records_returned"]} records; receipt `{x["receipt"]}`' if x["state"]=="executed" else x["reason"]) for x in coverage],
       "Ranked Error Queue":[f'{n}. {x["id"]} — {x["summary"]} (impact {x["impact"]}, frequency {x["frequency"]}; {"Deferred" if x["investigation"]=="deferred" else x["investigation"]})' for n,x in enumerate(groups,1)] or ["No error groups matched the executed queries."],
       "Impact Summary":bullets(data["impact_summary"]), "Incident Timeline":bullets(data["timeline"]),

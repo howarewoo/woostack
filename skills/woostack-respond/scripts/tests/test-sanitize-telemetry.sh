@@ -45,6 +45,33 @@ expect_fail python3 "$SCRIPT" --check "$work/forbidden-key.json"
 printf '%s\n' '{"message":"token ghp_abcdefghijklmnopqrstuvwxyz0123456789"}' >"$work/forbidden-value.json"
 expect_fail python3 "$SCRIPT" --check "$work/forbidden-value.json"
 
+# Free-text phone, payment card, and AWS access-key material must be redacted inside
+# arbitrary nested strings and rejected by --check when unsanitized.
+printf '%s\n' '{"note":"Call +1 (415) 555-0199 about card 4111111111111111","meta":{"aws_note":"key AKIAIOSFODNN7EXAMPLE rotated"}}' >"$work/pii-input.json"
+python3 "$SCRIPT" --input "$work/pii-input.json" --output "$work/pii-output.json"
+for leaked in 555-0199 4111111111111111 AKIAIOSFODNN7EXAMPLE; do
+  if grep -Fq "$leaked" "$work/pii-output.json"; then fail "free-text PII survived sanitization: $leaked"; fi
+done
+for placeholder in REDACTED_PHONE REDACTED_CARD REDACTED_TOKEN; do
+  grep -Fq "[$placeholder]" "$work/pii-output.json" || fail "missing placeholder after PII redaction: $placeholder"
+done
+python3 "$SCRIPT" --check "$work/pii-output.json"
+for residual in \
+  '{"note":"card 4111111111111111"}' \
+  '{"note":"reach me at +1 (415) 555-0199"}' \
+  '{"note":"AKIAIOSFODNN7EXAMPLE"}' \
+  '{"aws_access_key_id":"AKIAIOSFODNN7EXAMPLE"}'; do
+  printf '%s\n' "$residual" >"$work/residual-pii.json"
+  expect_fail python3 "$SCRIPT" --check "$work/residual-pii.json"
+done
+# A Luhn-invalid digit run and a bare numeric id are not payment/phone data and must survive.
+printf '%s\n' '{"note":"order 1234567890123456 and build 1704106800"}' >"$work/benign-digits.json"
+python3 "$SCRIPT" --input "$work/benign-digits.json" --output "$work/benign-output.json"
+for kept in 1234567890123456 1704106800; do
+  grep -Fq "$kept" "$work/benign-output.json" || fail "benign digit run was redacted: $kept"
+done
+python3 "$SCRIPT" --check "$work/benign-output.json"
+
 cat >"$work/report.md" <<'EOF'
 ---
 type: response

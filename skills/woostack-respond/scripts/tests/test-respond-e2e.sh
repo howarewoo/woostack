@@ -174,6 +174,7 @@ remediation = (
 )
 report = {
     "schema_version": 1,
+    "investigation_bound": max_groups,
     "signal": "Recent production errors",
     "scope": "acme api production",
     "environment": source["target"]["environment"],

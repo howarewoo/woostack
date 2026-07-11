@@ -98,8 +98,29 @@ for case_name in valid zero; do
   if ! invoke "$case_name" >"$tmp/stdout" 2>"$tmp/stderr"; then
     echo "FAIL: $case_name should validate: $(cat "$tmp/stderr")" >&2; exit 1
   fi
-  python3 -m json.tool "$tmp/stdout" >/dev/null
   [ ! -s "$tmp/stderr" ] || { echo "FAIL: $case_name emitted stderr" >&2; exit 1; }
+  python3 - "$tmp/stdout" "$run_case/$case_name/receipt.json" "$case_name" <<'PY'
+import json, sys
+stdout_path, receipt_path, name = sys.argv[1], sys.argv[2], sys.argv[3]
+raw = open(stdout_path, encoding="utf-8").read()
+expected = json.dumps(json.loads(open(receipt_path, encoding="utf-8").read()), sort_keys=True, separators=(",", ":")) + "\n"
+if raw != expected:
+    sys.exit(f"{name}: stdout is not the deterministic normalized receipt")
+got = json.loads(raw)
+required = {"provider", "role", "integration", "project", "environment", "window_start", "window_end", "query_summary", "status", "records_returned", "output_path", "output_sha256"}
+missing = required - got.keys()
+if missing:
+    sys.exit(f"{name}: normalized receipt missing fields {sorted(missing)}")
+if got["status"] != "executed":
+    sys.exit(f"{name}: expected executed status")
+if isinstance(got["records_returned"], bool) or not isinstance(got["records_returned"], int):
+    sys.exit(f"{name}: records_returned must be an integer")
+PY
+  if [ "$case_name" = "zero" ]; then
+    grep -q '"records_returned":0' "$tmp/stdout" || { echo "FAIL: zero-record receipt lost its zero boundary" >&2; exit 1; }
+  else
+    grep -q '"records_returned":1' "$tmp/stdout" || { echo "FAIL: valid receipt lost its record count" >&2; exit 1; }
+  fi
 done
 
 for case_name in empty missing-field non-executed blocked-role negative-count fractional-count malformed-time unordered-window missing-output outside-output direct-symlink intermediate-symlink digest-mismatch count-mismatch mismatch-provider mismatch-role mismatch-query_summary mismatch-project mismatch-environment mismatch-window stale-scope bad-envelope-schema bad-envelope-records; do

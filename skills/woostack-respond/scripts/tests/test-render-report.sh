@@ -64,13 +64,38 @@ data["coverage"][0] = {"provider": data["coverage"][0]["provider"], "role": data
 data = json.loads(source.read_text())
 data["verified_root_causes"][0]["evidence"] = ["Authorization: Bearer synthetic-secret-token"]
 (out / "token.json").write_text(json.dumps(data))
+data = json.loads(source.read_text())
+data["investigation_bound"] = 6
+(out / "bound-high.json").write_text(json.dumps(data))
+data = json.loads(source.read_text())
+data["investigation_bound"] = 2  # the complete fixture investigates five groups
+(out / "bound-low.json").write_text(json.dumps(data))
+data = json.loads(source.read_text())
+data["window"]["start"] = "2026-07-10T05:00:00-10:00"  # 15:00Z, after the 14:00Z end
+data["window"]["end"] = "2026-07-10T14:00:00Z"
+(out / "reversed-offset.json").write_text(json.dumps(data))
+partial = json.loads((source.parent / "report-partial.json").read_text())
+partial["investigation_bound"] = 3
+(out / "bound-three.json").write_text(json.dumps(partial))
+partial = json.loads((source.parent / "report-partial.json").read_text())
+partial["window"]["start"] = "2026-07-09T18:00:00-04:00"  # 22:00Z, before the next-day 18:00Z end
+partial["window"]["end"] = "2026-07-10T18:00:00Z"
+(out / "offset-window.json").write_text(json.dumps(partial))
 PY
 
 before=$(find "$reports" -type f | wc -l | tr -d ' ')
 if render "$tmp/unknown.json" >/dev/null 2>&1; then fail "unknown top-level field accepted"; fi
 if render "$tmp/false-complete.json" >/dev/null 2>&1; then fail "false complete accepted"; fi
 if render "$tmp/token.json" >/dev/null 2>&1; then fail "bearer token accepted"; fi
+if render "$tmp/bound-high.json" >/dev/null 2>&1; then fail "investigation_bound above five accepted"; fi
+if render "$tmp/bound-low.json" >/dev/null 2>&1; then fail "investigated groups exceeding bound accepted"; fi
+if render "$tmp/reversed-offset.json" >/dev/null 2>&1; then fail "offset-reversed window accepted"; fi
 after=$(find "$reports" -type f | wc -l | tr -d ' ')
 [ "$before" = "$after" ] || fail "rejected render created report"
+grep -q '^- Deep-investigation bound: 5$' "$complete" || fail "complete report bound not rendered"
+bound_three=$(render "$tmp/bound-three.json")
+grep -q '^- Deep-investigation bound: 3$' "$bound_three" || fail "configured bound not rendered"
+offset_ok=$(render "$tmp/offset-window.json")
+grep -q '^outcome: partial$' "$offset_ok" || fail "valid offset window rejected"
 
 printf 'PASS: response report renderer\n'

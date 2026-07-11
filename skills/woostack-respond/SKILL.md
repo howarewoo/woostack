@@ -226,11 +226,12 @@ mapped into that contract remain transient.
 1. Run `scripts/sanitize-telemetry.py --input <normalized.json> --output <sanitized.json>`.
 2. Run `scripts/sanitize-telemetry.py --check <sanitized.json>` before it can feed any tracked or
    remote artifact.
-3. Construct the strict renderer input with complete, partial, or blocked coverage. A complete
-   outcome means this bounded contract executed honestly; it does not mean every production error
-   is fixed.
-4. Render exactly one report with `scripts/render-report.py` using
-   [`references/report-template.md`](references/report-template.md). The renderer allocates
+3. Construct the strict renderer input with complete, partial, or blocked coverage, carrying the
+   resolved `respond.max_groups` as the input's `investigation_bound`. A complete outcome means
+   this bounded contract executed honestly; it does not mean every production error is fixed.
+4. Render exactly one report with `scripts/render-report.py`. The renderer is the canonical
+   producer of the report; [`references/report-template.md`](references/report-template.md)
+   documents the exact shape it emits and is not consumed as a template. The renderer allocates
    `.woostack/respond/YYYY-MM-DD-<signal-scope-slug>.md`, adding `-2`, `-3`, and so on without
    overwrite.
 5. Run `scripts/sanitize-telemetry.py --check <rendered-report.md>` again. The renderer also checks

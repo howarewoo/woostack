@@ -1,84 +1,83 @@
 ---
 type: response
-outcome: {{OUTCOME}}
-provider: {{PROVIDER}}
-environment: {{ENVIRONMENT}}
-window_start: {{WINDOW_START}}
-window_end: {{WINDOW_END}}
-date: {{DATE}}
+outcome: <complete|partial|blocked>
+provider: <single provider slug, or "multiple" when coverage spans providers>
+environment: <environment>
+window_start: <ISO-8601 UTC start>
+window_end: <ISO-8601 UTC end>
+date: <YYYY-MM-DD>
 ---
 
-# Production Error Response — {{SIGNAL}}
+# Production Error Response — <signal>
+
+<!-- Canonical shape reference. `scripts/render-report.py` is the sole producer of this
+report and enforces this structure from the sanitized normalized report input (see
+`evidence-contract.md`). This file documents the exact Markdown the renderer emits; the
+renderer does not consume it as a template. Keep the two in sync — if the renderer output
+changes, update this file in the same change. -->
 
 ## Response & Scope
 
-- **Signal:** {{SIGNAL}}
-- **Scope:** {{SCOPE}}
-- **Environment:** {{ENVIRONMENT}}
-- **UTC window:** {{WINDOW_START}} through {{WINDOW_END}}
-- **Outcome:** {{OUTCOME}}
-- **Deep-investigation bound:** {{MAX_GROUPS}}
-
-{{SCOPE_SUMMARY}}
+- Signal: <signal>
+- Scope: <scope>
+- Environment: <environment>
+- UTC window: <window_start> through <window_end>
+- Outcome: <outcome>
+- Deep-investigation bound: <investigation_bound — the resolved `respond.max_groups`, an integer from 1 to 5>
 
 ## Query Coverage
 
-| Provider | Role | Target | Integration | Query | Receipt | Records | Coverage |
-| --- | --- | --- | --- | --- | --- | ---: | --- |
-{{QUERY_COVERAGE_ROWS}}
+- <provider> / <role>: executed — <records> records; receipt `<receipt path>`
+- <provider> / <role>: blocked — <non-secret reason>
 
-A clean query is reported only when zero records are bound to a validated executed receipt. Blocked sources have no receipt and appear under Uncovered and Blocked Evidence.
+A clean query is reported only when zero records are bound to a validated executed receipt. Blocked sources have no receipt and also appear under Uncovered and Blocked Evidence.
 
 ## Ranked Error Queue
 
-| Rank | Stable group ID | Summary | Impact | Recency/frequency | Release correlation | Investigation result |
-| ---: | --- | --- | --- | --- | --- | --- |
-{{RANKED_ERROR_ROWS}}
+1. <group id> — <summary> (impact <n>, frequency <n>; <verified|rejected|blocked|Deferred>)
+
+Every ranked group appears here in impact, then frequency, then recency, then id order. When no group matched the executed queries, this section reads `No error groups matched the executed queries.`
 
 ## Impact Summary
 
-{{IMPACT_SUMMARY}}
+- <impact statement>
 
 ## Incident Timeline
 
-| UTC time | Stable source reference | Event | Evidence or uncertainty |
-| --- | --- | --- | --- |
-{{TIMELINE_ROWS}}
+- <UTC time: event, with evidence or uncertainty>
 
 ## Investigated Groups
 
-{{INVESTIGATED_GROUPS}}
+- <group id>: <verified|rejected|blocked> — <hypothesis>; evidence: <evidence; …>
 
-For each group, record its stable provider reference, `verified`, `rejected`, or `blocked` investigation result, evidence, rejected hypotheses, affected symbols, and remaining uncertainty.
+At most `investigation_bound` groups are investigated; the remainder are marked `Deferred` in the Ranked Error Queue and listed under Uncovered and Blocked Evidence.
 
 ## Verified Root Causes
 
-{{VERIFIED_ROOT_CAUSES}}
+### <cause id> — <summary>
 
-Only minimally tested repository root causes belong here. If there is no verified root cause, state “None” and create no fix candidate.
+- <evidence>
+
+Only minimally tested repository root causes belong here. If there is no verified root cause, this section reads `None.` and no fix candidate is created.
 
 ## External or Non-Code Incidents
 
-{{EXTERNAL_INCIDENTS}}
+### <incident id> — <summary>
 
-Record third-party outages, configuration conditions, operational events, and other verified incidents that are not local repository defects. Do not convert them into speculative code fixes.
+- <evidence>
+
+Third-party outages, configuration conditions, operational events, and other verified incidents that are not local repository defects. They are never converted into speculative code fixes.
 
 ## Observability Gaps
 
-{{OBSERVABILITY_GAPS}}
-
-Record material missing signals and the exact `/woostack-build` recommendation when an architectural observability capability is required. Do not start a nested build flow.
+- <material missing signal, with the exact `/woostack-build` recommendation when an architectural observability capability is required>
 
 ## Remediation
 
-{{REMEDIATION}}
-
-List report-only recommendations and any separately gated `woostack-fix` preparation for verified repository defects. Do not imply that provider, production, code, or infrastructure mutation occurred.
+- <report-only recommendation, or separately gated `woostack-fix` preparation for a verified repository defect>
 
 ## Uncovered and Blocked Evidence
 
-| Provider | Role | Target/window dependency | Blocker | Conclusions constrained | Next safe action |
-| --- | --- | --- | --- | --- | --- |
-{{BLOCKED_EVIDENCE_ROWS}}
+- <blocked source, or a group deferred below the deep-investigation bound, and the conclusions it constrains>
 
-Explicitly state “None” only when every selected source role has a valid output-bound executed receipt. Never include raw provider payloads, request or response bodies, headers, cookies, user profiles, arbitrary tags, or full breadcrumb histories in this report.
+Reads `None.` only when every selected source role has a valid output-bound executed receipt and no group was deferred. Never include raw provider payloads, request or response bodies, headers, cookies, user profiles, arbitrary tags, or full breadcrumb histories in this report.

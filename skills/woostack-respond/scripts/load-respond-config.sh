@@ -7,7 +7,12 @@ if [ "$#" -gt 1 ]; then
   exit 1
 fi
 
-config_path="${1:-.woostack/config.json}"
+if [ "$#" -eq 1 ]; then
+  config_path="$1"
+else
+  repo_root="${WOOSTACK_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || true)}"
+  config_path="${repo_root:+$repo_root/}.woostack/config.json"
+fi
 PYTHONDONTWRITEBYTECODE=1 python3 - "$config_path" <<'PY'
 import json
 import os

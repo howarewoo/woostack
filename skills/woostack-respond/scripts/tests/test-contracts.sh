@@ -31,8 +31,8 @@ assert_contains "$evidence" 'regular, non-symlink file inside the current run di
   'receipt path is contained'
 assert_contains "$evidence" 'SHA-256' 'receipt binds output bytes'
 assert_contains "$evidence" 'records_returned' 'receipt binds record count'
-assert_contains "$template" 'outcome: {{OUTCOME}}' 'report uses outcome field'
-assert_not_contains "$template" 'status: {{' 'report does not borrow lifecycle status'
+assert_contains "$template" 'outcome: <complete|partial|blocked>' 'report frontmatter uses the outcome field'
+assert_not_contains "$template" 'status:' 'report does not borrow lifecycle status'
 assert_contains "$template" '## Query Coverage' 'report carries receipts'
 assert_contains "$template" '## Uncovered and Blocked Evidence' 'partial coverage is explicit'
 

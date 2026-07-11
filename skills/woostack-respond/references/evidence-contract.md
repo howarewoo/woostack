@@ -152,6 +152,7 @@ The renderer consumes a sanitized object, never provider-native payloads:
   "window": {"start": "2026-07-09T18:00:00Z", "end": "2026-07-10T18:00:00Z"},
   "generated_at": "2026-07-10T18:30:00Z",
   "outcome": "partial",
+  "investigation_bound": 5,
   "coverage": [
     {"provider": "sentry", "role": "error-tracking", "state": "executed", "receipt": "receipts/error-tracking.json", "records_returned": 31},
     {"provider": "datadog", "role": "logs", "state": "blocked", "reason": "authentication unavailable"}
@@ -169,5 +170,7 @@ The renderer consumes a sanitized object, never provider-native payloads:
 ```
 
 `outcome` accepts `complete`, `partial`, or `blocked`. Coverage has one entry per selected provider-role source. Executed entries bind to a validated receipt; blocked entries contain a non-secret reason and no receipt. `complete` means all selected roles have valid receipts, `partial` means at least one selected role executed and at least one is blocked, and `blocked` means no selected role has a valid receipt.
+
+`investigation_bound` is the resolved deep-investigation cap carried from `respond.max_groups` (an integer from 1 to 5, default 5). The renderer enforces it — an input claiming more than `investigation_bound` investigated groups is rejected — and prints it as the report's declared bound, so the report always states the bound actually applied instead of a fixed literal.
 
 Before persistence, sanitize every string and recursively reject excluded keys or sensitive patterns. Tracked output retains stable technical identifiers needed to reproduce findings, while credentials, personal identifiers, raw telemetry, local home-directory prefixes, and provider-specific unmapped fields remain excluded.
