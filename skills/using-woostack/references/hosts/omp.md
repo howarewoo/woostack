@@ -1,5 +1,3 @@
-<!-- woostack-defer(increment-2): donor sites still carry this text until the extraction increment -->
-
 # omp (Oh My Pi)
 
 ## Detection
@@ -24,12 +22,14 @@ argument**; generated agent definitions live under `.omp/agents/`; host config l
 `models.<tier>` by `skills/woostack-init/scripts/gen-omp-agents.sh` — and the dispatching
 skill selects `agent: woostack-<effective-tier>` per spawn. **Ensure-then-select:** before
 dispatch, run the generator (idempotent) so the defs exist and are current, then select the
-per-task effective tier's agent. This is a routing pattern over the existing flat
-`models.<tier>` config — **not a fifth provider column** and **not a new config key**. An
-unset tier resolves to a `thinkingLevel`-only def (fast→low, standard→medium, deep→xhigh)
-inheriting the session model. This is the "host cannot route per call" branch done right —
-it is **not** degraded: the tier's model/effort apply via the def, so never "run at session
-model + say so" under omp. Tier→model values and override precedence:
+per-task effective tier's agent — **agent-by-tier** routing. This is a routing pattern
+over the existing flat `models.<tier>` config — **not a fifth provider column** and **not
+a new config key**. An unset tier resolves to a `thinkingLevel`-only def (fast→low,
+standard→medium, deep→xhigh) inheriting the session model. woostack effort
+(`minimal|low|medium|high|xhigh`) maps 1:1 to omp `thinkingLevel` (which also allows
+`off`). This is the "host cannot route per call" branch done right — it is **not**
+degraded: the tier's model/effort apply via the def, so never "run at session model + say
+so" under omp. Tier→model values and override precedence:
 [`../model-tiers.md`](../model-tiers.md).
 
 **Cross-consumer coexistence.** On CI/single-session hosts the flat provider table and

@@ -323,7 +323,7 @@ Review swarm execution means:
 
 For unchunked reviews, the expected artifact is `$OUTDIR/findings.<angle>.json`. For chunked reviews, the expected artifact is `$OUTDIR/findings.<angle>.<chunk_id>.json`.
 
-Use your host's primitive for host-managed fan-out:
+Use your host's primitive for host-managed fan-out — the current host's reference file names it.
 
 Angle workers MUST be spawned as **plain/general-purpose/default** sub-agents with no
 `woostack-review` skill scope attached. Do not use a `woostack-review`-scoped worker profile,
@@ -331,11 +331,7 @@ Angle workers MUST be spawned as **plain/general-purpose/default** sub-agents wi
 exposes a `subagent_type`, profile, or agent selector, choose the plain/general/default worker
 profile (Claude Code: `general-purpose`) and pass only the brief below plus the prefetched artifacts.
 
-- Claude Code: `Task` tool, dispatching every active angle task and letting Claude Code handle concurrency.
-- Cursor / Composer: parallel subagent dispatch, letting the host schedule or queue workers.
-- Antigravity CLI (`agy`): dynamically orchestrated subagents — the orchestrator instantiates one isolated-context subagent per angle on demand (see `prompts/google.md`). Dispatch the independent angle tasks in a single turn to run them in parallel; rely on the isolation pattern for token economy.
-- opencode: subagent dispatch via the OpenCode runtime's primitive (see `prompts/opencode.md`), letting the runtime schedule workers; use an explicit cap such as `N=1` only when the build does not support parallelism.
-- omp (Oh My Pi): dispatch each angle worker as `agent: woostack-<tier>` (the omp general-purpose worker profile, tier-pinned by the generated def) and the deep validator as `agent: woostack-deep`; ensure defs first via `skills/woostack-init/scripts/gen-omp-agents.sh`. **Local only** — the CI single-session `load-prompt.sh` / `resolve-model.sh` path is unchanged.
+**Host mechanics:** before any host-dependent step (subagent dispatch, scaffold, draft), load `skills/using-woostack/references/hosts/<current-host>.md`; no matching file -> treat the host as having no per-call routing and say so (degraded). Each host file's "Per-skill notes" section carries this skill's local dispatch row. **Local only** — the CI single-session `load-prompt.sh` / `resolve-model.sh` path is unchanged and follows no links.
 
 **Shell helper path.** Shell-capable local hosts can use the shipped bounded queue runner:
 
@@ -407,8 +403,8 @@ Per-provider resolution (canonical table in `../using-woostack/references/model-
 
 **Host capability:**
 
-- **Per-call routing** (Claude Code `Task`, Codex local subagents with a `model` override, opencode `@subagent`): honor each prompt's `tier:` verbatim and resolve every spawn's model with `bash $WOO_REVIEW_ACTION_PATH/scripts/resolve-model.sh --provider <provider> --tier <tier>` (which honors `$OUTDIR/config.json` overrides), passing that slug explicitly on the spawn. Maximum savings.
-- **Single model per session** (Codex Action without subagent model overrides, Antigravity CLI): pin the run to a resolved run-tier (`fast` or `deep` via `FORCE_TIER`, otherwise `standard`). `tier:` becomes informational once the run tier resolves. Split into multiple jobs if you want per-angle fast/deep split behavior.
+- The host's capability class (per-call / single-session / agent-by-tier) and spawn mechanics live in `skills/using-woostack/references/hosts/<current-host>.md` (local runs only; CI is self-contained).
+- Whatever the class, resolve models with `bash $WOO_REVIEW_ACTION_PATH/scripts/resolve-model.sh --provider <provider> --tier <tier>` (honors `$OUTDIR/config.json` overrides): per-call hosts pass the resolved slug explicitly on every spawn; single-session hosts pin the run to a resolved run-tier (`fast` or `deep` via `FORCE_TIER`, otherwise `standard`) — `tier:` becomes informational once the run tier resolves; split into multiple jobs for per-angle fast/deep behavior.
 
 Review runners MUST preserve the resolved tier/model context for every spawned worker. In single-model hosts, pass the resolved run-tier (`FORCE_TIER` when set, otherwise the host's standard tier) to every worker. In per-call-routing hosts, apply each angle prompt's `tier:` while preserving any explicit `FORCE_TIER` override, and set the spawn call's model field to the slug from `resolve-model.sh` (config-aware — never the static header table directly). Write that same resolved model into the worker's receipt (`model`) so receipts reflect the configured model, not the default. Omitting the spawn model field is a routing bug because the worker inherits the parent session's model and defeats the tier mapping. Host-managed or explicitly bounded scheduling must not cause later-starting angles to fall back to default model settings.
 

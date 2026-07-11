@@ -120,30 +120,30 @@ sites (spec §1) - sources edited in Increment 2.
 in `hosts/`; structural test renamed and extended; memory scope and authored site taxonomy
 updated in the same change. AC2-AC6.
 
-- [ ] **Step 1 (red):** canonical-directive grep across the six consumers -> 0 matches;
+- [x] **Step 1 (red):** canonical-directive grep across the six consumers -> 0 matches;
       `grep -c "agent-by-tier" skills/using-woostack/references/model-tiers.md` -> >=1
       (mechanics still in donor).
-- [ ] **Step 2:** `model-tiers.md` - replace the three host buckets + omp fallback note
+- [x] **Step 2:** `model-tiers.md` - replace the three host buckets + omp fallback note
       (lines ~25-39) with one capability-class definition paragraph (per-call /
       single-session / agent-by-tier) + the canonical directive + pointer line. Provider
       table, provider notes, effort semantics, override precedence untouched (AC4;
       CI-inline blob keeps the table byte-stable).
-- [ ] **Step 3:** `subagent-driver.md` - capability cases and dispatch law stay; omp
+- [x] **Step 3:** `subagent-driver.md` - capability cases and dispatch law stay; omp
       paragraph (136-137) + host-fallback clause (139-140) -> canonical directive + one line
       per capability question. Inline say-so/degradation law untouched (AC3).
-- [ ] **Step 4:** `woostack-review/SKILL.md` Stage 3 - five host rows (334-338) -> worker-
+- [x] **Step 4:** `woostack-review/SKILL.md` Stage 3 - five host rows (334-338) -> worker-
       profile law (328-332 stays) + canonical directive for local hosts. Host-capability
       buckets (410-411) -> directive + retained CI/single-session sentence (the
       `FORCE_TIER`/run-tier law at 411-413 is CI-load-bearing - keep the text that the CI
       blob needs; only local per-host rows leave). `prompts/*.md`, `load-prompt.sh`,
       `resolve-model.sh` diff-clean (AC5).
-- [ ] **Step 5:** `woostack-commit/SKILL.md` (54-58) - keep fast-draft tier law + directive;
+- [x] **Step 5:** `woostack-commit/SKILL.md` (54-58) - keep fast-draft tier law + directive;
       omp agent mechanics leave. `woostack-init/SKILL.md` (61-63) - keep one-line "under omp,
       run the generator" step + pointer. `woostack-execute-overnight/SKILL.md` (72-75) -
       advisory becomes host-generic ("check the current host's fallback posture -
       `hosts/<host>.md` §Host-level fallback"); omp specifics already in `hosts/omp.md` §5.
       Remove the `woostack-defer(increment-2)` markers from `hosts/*.md`.
-- [ ] **Step 6:** replace `skills/woostack-init/scripts/tests/test-omp-lockstep.sh` with
+- [x] **Step 6:** replace `skills/woostack-init/scripts/tests/test-omp-lockstep.sh` with
       `test-host-references.sh`: (a) assert the exact six required host filenames exist,
       then loop `hosts/*.md` (exclude README) -> six section headers each; (b) canonical
       directive present in the five consumer files + `model-tiers.md`; (c) provider-table
@@ -155,12 +155,22 @@ updated in the same change. AC2-AC6.
       `woostack-commit/SKILL.md`, and `woostack-execute-overnight/SKILL.md`; assert
       `woostack-init/SKILL.md` retains only its intentional one-line generator step
       (anti-duplication, AC2).
-- [ ] **Step 7:** memory riders - `omp-host-fallback-is-host-owned.md` scope gains
+- [x] **Step 7:** memory riders - `omp-host-fallback-is-host-owned.md` scope gains
       `skills/using-woostack/references/hosts/**`; verify
       `review-host-distinct-from-model-provider` scope paths still exist; rebuild `MEMORY.md`
       (`build-index.sh`).
-- [ ] **Step 8 (red):** `grep -c "hosts/" site/content/docs/configuration.mdx` -> 0.
-- [ ] **Step 9:** update `configuration.mdx` - the omp example section (~155-172) keeps the
+- [x] **Step 8 (green):** `bash skills/woostack-init/scripts/tests/test-host-references.sh`
+      -> PASS; `git diff --stat` shows no `woostack-review/scripts/` or
+      `woostack-review/prompts/` changes; walkthrough narrative: unknown host resolves to
+      no-per-call-routing + say-so from inline text alone (AC3 edge).
+- [x] **Step 9:** commit (same PR-body conventions); task-scoped quality review; distill.
+
+## Increment 3 - site sync + closeout (PR 3)
+
+**Deliverable:** authored docs mirror the new taxonomy; site builds; plan closes. AC6.
+
+- [ ] **Step 1 (red):** `grep -c "hosts/" site/content/docs/configuration.mdx` -> 0.
+- [ ] **Step 2:** update `configuration.mdx` - the omp example section (~155-172) keeps the
       config semantics but points host mechanics at the `hosts/` contract; MDX escaping per
       memory `authored-mdx-escapes-jsx-and-table-pipes`. `concepts.mdx` untouched (spec §9 Q1).
 - [ ] **Step 10 (green):** `bash skills/woostack-init/scripts/tests/test-host-references.sh`

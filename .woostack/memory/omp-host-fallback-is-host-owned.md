@@ -1,7 +1,7 @@
 ---
 name: omp-host-fallback-is-host-owned
 type: convention
-scope: skills/using-woostack/references/model-tiers.md, skills/woostack-execute/references/subagent-driver.md, skills/woostack-execute-overnight/**
+scope: skills/using-woostack/references/hosts/**, skills/using-woostack/references/model-tiers.md, skills/woostack-execute/references/subagent-driver.md, skills/woostack-execute-overnight/**
 tags: omp, fallback, usage-limit, model-tiers, overnight, host-provider
 hook: omp runs a temporary usage-limit model fallback beneath woostack's static tier routing — host-owned and self-announcing, never a "silent tier claim"; woostack documents it but never manages omp host config.
 updated: 2026-07-10
@@ -26,4 +26,4 @@ Two rules this pins:
 
 Layer kinship: [[review-host-distinct-from-model-provider]] (host vs provider surfaces).
 Lockstep: the omp bucket in `model-tiers.md` is inlined whole into review's CI orchestrator
-prompt and pinned by `test-omp-lockstep.sh` — keep additions terse, never add a table column.
+prompt and pinned by `test-host-references.sh` — keep additions terse, never add a table column.
