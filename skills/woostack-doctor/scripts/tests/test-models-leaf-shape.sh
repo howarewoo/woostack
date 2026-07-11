@@ -29,6 +29,12 @@ printf '%s\n' '{"models":{"deep":["a/b",{}]}}' > "$r/.woostack/config.json"
 out="$(bash "$C/models-leaf-shape.sh" "$r")"
 assert_contains "$out" "$(printf 'error\tmodels-leaf-shape')" "object entry missing .model -> error"
 
+# direct object leaf (not an array entry) missing .model -> error via the
+# direct-object leaf_problem branch, distinct from the array entry_ok path above
+printf '%s\n' '{"models":{"standard":{"effort":"high"}}}' > "$r/.woostack/config.json"
+out="$(bash "$C/models-leaf-shape.sh" "$r")"
+assert_contains "$out" "object missing .model" "direct object leaf missing .model -> error"
+
 # provider-scoped empty array -> error, path includes provider
 printf '%s\n' '{"models":{"openai":{"standard":[]}}}' > "$r/.woostack/config.json"
 out="$(bash "$C/models-leaf-shape.sh" "$r")"
