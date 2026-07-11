@@ -53,16 +53,22 @@ safe_slug() {
 
 render_tier() {
   local tier="$1" leaf ltype model effort tl f
+  local arr="" arr_len=0 fb="" i entry etype eslug eeff sel
   leaf="$(jq -c --arg t "$tier" '(.models // {})[$t] // null' "$CFG" 2>/dev/null || echo null)"
   ltype="$(printf '%s' "$leaf" | jq -r 'type' 2>/dev/null || echo null)"
   # Array leaf = ordered fallback list; entry 0 is the primary and renders here.
-  # Entries 1..n feed host-level fallback (spec 2026-07-10-tier-fallback-list).
+  # Entries 1..n become a comma-joined selector suffix on the def's `model:` line —
+  # omp's agent-def model pattern: first auth-usable entry is the session model, the
+  # rest auto-install as that spawn's retry fallback chain
+  # (spec 2026-07-10-tier-fallback-list; probe: omp 16.4.1).
   # woostack-defer(increment 3): configuration.mdx/model-tiers.md array-leaf docs sync.
   if [ "$ltype" = "array" ]; then
-    if [ "$(printf '%s' "$leaf" | jq 'length' 2>/dev/null || echo 0)" -eq 0 ]; then
+    arr_len="$(printf '%s' "$leaf" | jq 'length' 2>/dev/null || echo 0)"
+    if [ "$arr_len" -eq 0 ]; then
       echo "gen-omp-agents.sh: $tier: empty array leaf; tier unset" >&2
       leaf=null; ltype=null
     else
+      arr="$leaf"
       leaf="$(printf '%s' "$leaf" | jq -c '.[0]')"
       ltype="$(printf '%s' "$leaf" | jq -r 'type' 2>/dev/null || echo null)"
       if [ "$ltype" = "null" ]; then
@@ -90,6 +96,40 @@ render_tier() {
     model=""
   fi
 
+  # Fallback selectors from entries 1..n (only when the primary itself rendered):
+  # object entry with valid effort -> slug:effort, otherwise bare slug; unsafe or
+  # malformed entries are dropped loudly and safe siblings survive.
+  if [ -n "$model" ] && [ "$arr_len" -gt 1 ]; then
+    for (( i=1; i<arr_len; i++ )); do
+      entry="$(printf '%s' "$arr" | jq -c ".[$i]")"
+      etype="$(printf '%s' "$entry" | jq -r 'type' 2>/dev/null || echo null)"
+      case "$etype" in
+        string) eslug="$(printf '%s' "$entry" | jq -r '.')"; eeff="" ;;
+        object)
+          eslug="$(printf '%s' "$entry" | jq -r '.model // ""')"
+          eeff="$(printf '%s' "$entry" | jq -r '.effort // ""')"
+          ;;
+        *)
+          echo "gen-omp-agents.sh: $tier: fallback entry $i malformed ($etype); dropped" >&2
+          continue
+          ;;
+      esac
+      if [ -z "$eslug" ] || ! safe_slug "$eslug"; then
+        echo "gen-omp-agents.sh: $tier: fallback entry $i has an unsafe or empty model slug; dropped" >&2
+        continue
+      fi
+      sel="$eslug"
+      if [ -n "$eeff" ]; then
+        if valid_effort "$eeff"; then
+          sel="$eslug:$eeff"
+        else
+          echo "gen-omp-agents.sh: $tier: fallback entry $i effort not in enum; bare slug" >&2
+        fi
+      fi
+      fb="$fb,$sel"
+    done
+  fi
+
   if [ -n "$effort" ] && valid_effort "$effort"; then
     tl="$effort"
   else
@@ -102,7 +142,7 @@ render_tier() {
     printf -- '---\n'
     printf 'name: woostack-%s\n' "$tier"
     printf 'description: woostack %s-tier general-purpose worker (generated from .woostack/config.json; edits are overwritten).\n' "$tier"
-    [ -n "$model" ] && printf 'model: "%s"\n' "$model"
+    [ -n "$model" ] && printf 'model: "%s%s"\n' "$model" "$fb"
     printf 'thinkingLevel: %s\n' "$tl"
     printf -- '---\n\n'
     printf 'You are a general-purpose woostack worker running at the %s tier. The task you receive on\n' "$tier"

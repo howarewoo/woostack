@@ -138,21 +138,20 @@ ig="$r/.omp/agents/.gitignore"
 assert_eq "$(grep -c '^woostack-\*\.md$' "$ig")" "1" "AC4b: pattern appended exactly once"
 assert_eq "$(grep -c '^custom-entry\.md$' "$ig")" "1" "AC4b: consumer entry preserved, not glued"
 
-# --- AC5 array leaf -> entry 0 object rendered (model + its effort) ---
+# --- AC5 array leaf -> entry 0 primary + entries 1..n as pattern selectors ---
 r="$(mktemp -d)"; ( cd "$r" && git init -q )
 mkcfg "$r" '{ "deep": [ { "model": "openai/gpt-5.3-codex", "effort": "high" }, { "model": "anthropic/claude-opus-4-8", "effort": "xhigh" } ] }'
 WOOSTACK_ROOT="$r" bash "$GEN"
 f="$r/.omp/agents/woostack-deep.md"
-assert_contains "$(cat "$f")" 'model: "openai/gpt-5.3-codex"' "AC5 array: entry-0 model line"
+assert_contains "$(cat "$f")" 'model: "openai/gpt-5.3-codex,anthropic/claude-opus-4-8:xhigh"' "AC5 array: entry-0 primary + fallback selector"
 assert_contains "$(cat "$f")" 'thinkingLevel: high' "AC5 array: entry-0 effort"
-assert_not_contains "$(cat "$f")" 'claude-opus' "AC5 array: entry 1 not rendered into def"
 
 # --- AC5 array of strings -> entry 0 string rendered, tier-default effort ---
 r="$(mktemp -d)"; ( cd "$r" && git init -q )
 mkcfg "$r" '{ "standard": [ "openai/gpt-5.5", "google/gemini-3-5-flash" ] }'
 WOOSTACK_ROOT="$r" bash "$GEN"
 f="$r/.omp/agents/woostack-standard.md"
-assert_contains "$(cat "$f")" 'model: "openai/gpt-5.5"' "AC5 string-array: entry-0 model"
+assert_contains "$(cat "$f")" 'model: "openai/gpt-5.5,google/gemini-3-5-flash"' "AC5 string-array: entry-0 primary + bare fallback slug"
 assert_contains "$(cat "$f")" 'thinkingLevel: medium' "AC5 string-array: tier default effort"
 
 # --- AC5 error: empty array -> tier unset + warn, def still written, exit 0 ---
@@ -170,5 +169,73 @@ mkcfg "$r" '{ "fast": [ null, "a/b" ] }'
 err="$(WOOSTACK_ROOT="$r" bash "$GEN" 2>&1 >/dev/null)"
 assert_contains "$err" "entry 0 is null" "AC5 null entry 0: loud stderr warn"
 assert_not_contains "$(cat "$r/.omp/agents/woostack-fast.md")" 'model:' "AC5 null entry 0: tier unset"
+
+# --- AC4 chain enactment: multi-entry tier -> comma-joined model pattern in the def ---
+# omp agent-def `model:` accepts a comma-separated selector list; entry 0 is the session
+# model, entries 1..n auto-install as the per-spawn retry fallback chain (omp 16.4.1).
+r="$(mktemp -d)"; ( cd "$r" && git init -q )
+mkcfg "$r" '{ "deep": [ { "model": "a/prime", "effort": "high" }, { "model": "b/fb", "effort": "low" }, "c/fb2" ] }'
+WOOSTACK_ROOT="$r" bash "$GEN"
+f="$r/.omp/agents/woostack-deep.md"
+assert_contains "$(cat "$f")" 'model: "a/prime,b/fb:low,c/fb2"' "AC4: comma-joined pattern (object entry -> slug:effort, string entry -> bare slug)"
+assert_contains "$(cat "$f")" 'thinkingLevel: high' "AC4: entry-0 effort still drives thinkingLevel"
+assert_eq "$([ -f "$r/.omp/config.yml" ] || echo absent)" "absent" "AC4: no .omp/config.yml is ever written"
+
+# --- AC4 single-entry array -> bare model line, no comma ---
+r="$(mktemp -d)"; ( cd "$r" && git init -q )
+mkcfg "$r" '{ "deep": [ { "model": "solo/x" } ] }'
+WOOSTACK_ROOT="$r" bash "$GEN"
+assert_contains "$(cat "$r/.omp/agents/woostack-deep.md")" 'model: "solo/x"' "AC4 single entry: bare model line"
+assert_not_contains "$(cat "$r/.omp/agents/woostack-deep.md")" ',' "AC4 single entry: no comma in def"
+
+# --- AC4 fallback object entry without effort -> bare slug selector ---
+r="$(mktemp -d)"; ( cd "$r" && git init -q )
+mkcfg "$r" '{ "deep": [ "p/x", { "model": "f/y" } ] }'
+WOOSTACK_ROOT="$r" bash "$GEN"
+assert_contains "$(cat "$r/.omp/agents/woostack-deep.md")" 'model: "p/x,f/y"' "AC4: effortless object fallback -> bare slug"
+
+# --- AC4 fallback entry with invalid effort -> warn, bare slug (never a bad selector) ---
+r="$(mktemp -d)"; ( cd "$r" && git init -q )
+mkcfg "$r" '{ "deep": [ "p/x", { "model": "f/y", "effort": "turbo" } ] }'
+err="$(WOOSTACK_ROOT="$r" bash "$GEN" 2>&1 >/dev/null)"; rc=$?
+assert_exit 0 "$rc" "AC4 bad fallback effort: exit 0 (best-effort law)"
+assert_contains "$err" "effort" "AC4 bad fallback effort: loud stderr warn"
+assert_contains "$(cat "$r/.omp/agents/woostack-deep.md")" 'model: "p/x,f/y"' "AC4 bad fallback effort: bare slug selector"
+
+# --- AC4 unsafe fallback slug -> entry dropped loudly, safe siblings survive ---
+r="$(mktemp -d)"; ( cd "$r" && git init -q )
+mkcfg "$r" '{ "deep": [ "p/x", "bad`slug", "ok/fb" ] }'
+err="$(WOOSTACK_ROOT="$r" bash "$GEN" 2>&1 >/dev/null)"
+assert_contains "$err" "unsafe" "AC4: unsafe fallback slug warned"
+assert_not_contains "$(cat "$r/.omp/agents/woostack-deep.md")" 'bad' "AC4: unsafe slug never written"
+assert_contains "$(cat "$r/.omp/agents/woostack-deep.md")" 'model: "p/x,ok/fb"' "AC4: safe sibling entry survives"
+
+# --- AC4 empty/modelless fallback entry -> dropped loudly, safe siblings survive ---
+r="$(mktemp -d)"; ( cd "$r" && git init -q )
+mkcfg "$r" '{ "deep": [ "p/x", { "effort": "high" }, "ok/fb" ] }'
+err="$(WOOSTACK_ROOT="$r" bash "$GEN" 2>&1 >/dev/null)"
+assert_contains "$err" "unsafe or empty model slug" "AC4 empty fallback: modelless object warned"
+assert_contains "$(cat "$r/.omp/agents/woostack-deep.md")" 'model: "p/x,ok/fb"' "AC4 empty fallback: empty entry skipped, safe sibling survives"
+
+# --- AC4 malformed fallback entry (number) -> dropped loudly, primary intact ---
+r="$(mktemp -d)"; ( cd "$r" && git init -q )
+mkcfg "$r" '{ "deep": [ "p/x", 42 ] }'
+err="$(WOOSTACK_ROOT="$r" bash "$GEN" 2>&1 >/dev/null)"
+assert_contains "$err" "deep" "AC4 malformed fallback: loud stderr warn"
+assert_contains "$(cat "$r/.omp/agents/woostack-deep.md")" 'model: "p/x"' "AC4 malformed fallback: primary alone"
+
+# --- AC4 entry 0 invalid -> whole tier unset; fallbacks are never promoted ---
+r="$(mktemp -d)"; ( cd "$r" && git init -q )
+mkcfg "$r" '{ "deep": [ 42, "ok/fb" ] }'
+err="$(WOOSTACK_ROOT="$r" bash "$GEN" 2>&1 >/dev/null)"
+assert_contains "$err" "deep" "AC4 invalid entry 0: loud stderr warn"
+assert_not_contains "$(cat "$r/.omp/agents/woostack-deep.md")" 'model:' "AC4 invalid entry 0: tier unset, no promotion"
+
+# --- AC4 idempotency: multi-entry def byte-identical across runs ---
+r="$(mktemp -d)"; ( cd "$r" && git init -q )
+mkcfg "$r" '{ "deep": [ "p/x", "f/y" ] }'
+WOOSTACK_ROOT="$r" bash "$GEN"; one="$(cat "$r/.omp/agents/woostack-deep.md")"
+WOOSTACK_ROOT="$r" bash "$GEN"
+assert_eq "$(cat "$r/.omp/agents/woostack-deep.md")" "$one" "AC4 idempotent: second run no-diff"
 
 finish

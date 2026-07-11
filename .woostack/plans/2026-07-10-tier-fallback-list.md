@@ -54,26 +54,46 @@ AC1, AC2, AC3, AC6.
 
 ## Increment 2 — omp chain enactment (PR 2)
 
-**Deliverable:** entries 1..n become project-scoped omp fallback chains, or the loud
-degraded branch. AC4.
+**Deliverable:** entries 1..n become a real omp runtime fallback chain. AC4.
 
-- [ ] **Step 1 (V1 probe):** verify `retry.fallbackChains` record merge semantics at the
-      project layer + live pickup (omp docs / `omp config get` in a scratch dir).
-      Negative → skip Steps 2-4, document informational-only in `hosts/omp.md`, jump to
-      Step 5 with the §7-unsupported wording.
-- [ ] **Step 2 (red):** generator tests — multi-entry tier emits chain keyed by primary;
-      dedupe identical primaries; conflicting orders for one primary → loud error;
-      pre-existing user `.omp/config.yml` content preserved (merge test); parse-failure
-      file → refusal + printed block, no write.
-- [ ] **Step 3:** chain-emission stage in `gen-omp-agents.sh` (jq/python-free YAML
-      handling decided at implementation; refusal branch on anything unparseable);
-      slug quote-or-reject reused from def rendering.
-- [ ] **Step 4:** gitignore: only a generator-created `.omp/config.yml` is added to
-      `.omp/.gitignore` (defs precedent); doctor warns when a fallback list exists but
-      the host cannot enact it.
-- [ ] **Step 5 (green):** suite green; idempotency proof (run generator twice, second run
-      no-diff).
-- [ ] **Step 6:** commit; task-scoped review; distill.
+**Deviation from spec §7 / §10.3 (chain artifact) — flag:** the V1 probe (Step 1) came back
+**negative for the approved artifact and positive for a native mechanism**. omp's
+`retry.fallbackChains` is keyed by **model role**, not model slug (settings schema:
+"JSON object mapping model roles to ordered fallback model selectors"; the binary's config
+validation: "retry.fallbackChains must be a mapping of role names to selector arrays") — a
+slug-keyed record in `<repo>/.omp/config.yml` would never be consulted (dead config). But
+omp's subagent launcher natively enacts ordered model lists: an agent-def `model:` accepts a
+**comma-separated selector list** (binary: `ae0(q ?? j.model)` splits comma-string/array);
+the first auth-usable entry becomes the session model and the remainder is installed
+in-memory as `retry.fallbackChains["subagent:<id>"]` (`se0`/`re0` via
+`modelPatternFallbackRole`) — per-tier, project-scoped, self-reverting, and selectors carry
+`slug:thinkingLevel` so per-entry effort rides along (upgrades spec §4.2's "chain swaps
+model only"). Enactment therefore lands **inside the already gitignored tier defs**:
+`model: "primary,fb1:low,fb2"`. The config.yml merge/refusal/dedupe/conflict/gitignore
+machinery of the original Steps 2-4 is dead weight and is dropped; the component's GOAL
+(entries 1..n = real runtime fallback, never a broken write) is met with zero new artifacts.
+
+- [x] **Step 1 (V1 probe):** done 2026-07-10 — result recorded in the deviation flag above
+      (evidence: `omp config get retry.fallbackChains --json` schema description;
+      `omp://settings.md`; omp 16.4.1 binary — chain validation is role-keyed, subagent
+      `model` pattern list installs the per-spawn chain).
+- [x] **Step 2 (red):** generator tests — multi-entry tier renders a comma-joined `model:`
+      pattern (object entries with valid effort → `slug:effort` selector, without → bare
+      slug); invalid fallback effort → warn + bare slug; unsafe/malformed fallback entry
+      dropped loudly while safe siblings survive; entry-0-invalid still unsets the whole
+      tier (fallbacks are never promoted); multi-entry idempotency; no `.omp/config.yml`
+      is ever written.
+- [x] **Step 3:** `gen-omp-agents.sh` `render_tier`: build the fallback selector suffix
+      from entries 1..n (reuse `safe_slug`/`valid_effort`); emit
+      `model: "<primary>[,<selector>...]"`; primary rendering byte-identical for
+      string/object/single-entry leaves.
+- [x] **Step 4:** doctor: no new check — `omp-agents.sh` drift regenerates via the same
+      authority so chain edits surface as `omp-agents-drift`; `models-leaf-shape.sh`
+      (Inc 1) already validates entry shapes. Non-omp enactment posture is Inc 3 docs.
+- [x] **Step 5 (green):** suite green (gen-omp-agents 60/0; init runner 9 suites 0 failed;
+      resolver suites 19/0 + 33/0); string/object/unset/single-entry-array fixtures
+      byte-identical vs the HEAD generator (no-op proof for non-fallback configs).
+- [x] **Step 6:** commit; task-scoped review; distill.
 
 ## Increment 3 — docs + site sync + closeout (PR 3)
 
@@ -103,7 +123,7 @@ degraded branch. AC4.
 | AC1 | fixture defs byte-diff clean pre/post (Inc 1 Step 5) |
 | AC2 | entry-0 tests in generator + resolver suites (Inc 1 Steps 1/5) |
 | AC3 | empty-array tests: generator warn + doctor error (Inc 1 Steps 1/4) |
-| AC4 | chain tests + idempotency no-diff, or documented degraded branch (Inc 2) |
+| AC4 | def `model:` pattern tests + multi-entry idempotency + no-config.yml-write assertion (Inc 2) |
 | AC5 | hosts/*.md sentences + `test-host-references.sh` green (Inc 3) |
 | AC6 | prompts/ diff-clean + marker assertion (Inc 1 Step 5, Inc 3 Step 3) |
 | AC7 | site build green (Inc 3 Step 3) |
@@ -111,8 +131,9 @@ degraded branch. AC4.
 ## Rollback
 
 Graphite stack on `feature/tier-fallback` (parented on the host-references stack);
-revert = drop the PR. Increment 1 is behavior-preserving normalization; Increment 2 is
-the only host-config writer and carries its own refusal branch; Increment 3 is docs-only.
+revert = drop the PR. Increment 1 is behavior-preserving normalization; Increment 2 only
+rewrites the already gitignored generated defs (no host-config file is written); Increment 3
+is docs-only.
 
 ---
 
