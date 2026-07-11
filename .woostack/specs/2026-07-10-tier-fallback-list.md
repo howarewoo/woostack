@@ -82,7 +82,8 @@ project-scoped artifacts, same boundary as the existing gitignored tier defs
 ## 5. Validation & doctor
 
 - Schema: leaf = `string | {model, effort} | array(1..) of (string | {model, effort})`.
-  Empty array → hard config error (same class as `review.models`).
+  Empty array → generator warns loudly and leaves the tier unset (exit-0 install law
+  preserved, same malformed-leaf posture as other bad shapes); doctor errors.
 - `woostack-doctor` warns when a fallback list is declared but the current host cannot
   enact entries 1..n (informational-only posture), and errors on malformed entries.
 
@@ -103,11 +104,14 @@ project-scoped artifacts, same boundary as the existing gitignored tier defs
 
 ## 7. V1 probe (verify in plan, non-blocking)
 
-**Does omp honor project-scoped retry fallback config** (e.g. `<project>/.omp/config.yml`
-`retry.fallbackChains`), and what are the exact key path + file location? Grounding so far:
-omp docs describe `retry.fallbackChains` in omp settings and project-level config overlays
-(`omp://settings.md`, `omp://providers.md`), but the project-scope behavior of the retry
-block is unverified.
+**Does omp honor project-scoped retry fallback config?** Doc evidence so far
+(`omp://settings.md`): project `.omp/config.yml` is a real settings layer (precedence:
+defaults < global < project < overlays < runtime), mappings merge per-key (worked
+example), and `retry.fallbackChains` is a settings-schema record key — the chain artifact
+home and merge posture in §10.3 build on this. Remaining plan-time verification
+(non-blocking): (a) record-value merge semantics for `retry.fallbackChains` specifically
+(per-key merge vs whole-record replace), (b) a live session picks up the project layer
+for retry settings. Negative on either → the unsupported branch below.
 
 - **Supported** → generator emits the chain file idempotently (gitignored, like the defs),
   keyed primary-model → fallback models from entries 1..n.
@@ -129,7 +133,8 @@ block is unverified.
   existing fixtures).
 - AC2: array leaf resolves to entry 0 in `load-prompt.sh`, `resolve-model.sh`, and
   `gen-omp-agents.sh` (test-pinned in each).
-- AC3: empty array → loud config error in generator + doctor; no silent fallback.
+- AC3: empty array → generator warns loudly and leaves the tier unset; doctor errors;
+  never a silent fallback to another entry.
 - AC4: with the probe positive, omp fallback chain artifact generated idempotently and
   project-scoped; with it negative, zero host-config writes.
 - AC5: six host files document the entries-1..n posture; `test-host-references.sh` still
@@ -150,9 +155,9 @@ All resolved during harden (2026-07-10):
    across tiers dedupe naturally. Two tiers declaring the *same primary with different
    fallback orders* → loud generator error (no silent choice; law from
    `autonomy-needs-structural-proof`).
-3. **Chain artifact home** — the probe (§7) resolved to `<repo>/.omp/config.yml`
-   (omp's documented project settings layer, merged over global; `omp://settings.md`
-   §Where-settings-live, §Project-local-config). Because that file is user-editable, the
+3. **Chain artifact home** — `<repo>/.omp/config.yml` (see §7; omp's documented project
+   settings layer, merged over global; `omp://settings.md` §Where-settings-live,
+   §Project-local-config). Because that file is user-editable, the
    generator performs a **non-clobbering merge**: it owns only the
    `retry.fallbackChains.<primary>` keys it derives, preserves everything else, and on any
    parse failure refuses loudly and prints the block for manual addition (degraded, never
@@ -162,16 +167,6 @@ All resolved during harden (2026-07-10):
 4. **Slug injection** (security angle) — YAML/JSON metachars in a configured slug follow
    the same quote-or-reject rule the def generator already enforces
    (spec `2026-07-09-omp-model-tiers` §140).
-
-### V1 probe — narrowed by doc evidence
-
-`omp://settings.md` confirms: project `.omp/config.yml` is a real settings layer
-(precedence: defaults < global < project < overlays < runtime), mappings merge per-key
-(worked example), and `retry.fallbackChains` is a settings-schema record key. Remaining
-plan-time verification (non-blocking): (a) record-value merge semantics for
-`retry.fallbackChains` specifically (per-key merge vs whole-record replace), (b) a live
-session picks up the project layer for retry settings. Negative on either → the §7
-unsupported branch (informational list, zero writes).
 
 ---
 
