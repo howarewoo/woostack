@@ -138,4 +138,37 @@ ig="$r/.omp/agents/.gitignore"
 assert_eq "$(grep -c '^woostack-\*\.md$' "$ig")" "1" "AC4b: pattern appended exactly once"
 assert_eq "$(grep -c '^custom-entry\.md$' "$ig")" "1" "AC4b: consumer entry preserved, not glued"
 
+# --- AC5 array leaf -> entry 0 object rendered (model + its effort) ---
+r="$(mktemp -d)"; ( cd "$r" && git init -q )
+mkcfg "$r" '{ "deep": [ { "model": "openai/gpt-5.3-codex", "effort": "high" }, { "model": "anthropic/claude-opus-4-8", "effort": "xhigh" } ] }'
+WOOSTACK_ROOT="$r" bash "$GEN"
+f="$r/.omp/agents/woostack-deep.md"
+assert_contains "$(cat "$f")" 'model: "openai/gpt-5.3-codex"' "AC5 array: entry-0 model line"
+assert_contains "$(cat "$f")" 'thinkingLevel: high' "AC5 array: entry-0 effort"
+assert_not_contains "$(cat "$f")" 'claude-opus' "AC5 array: entry 1 not rendered into def"
+
+# --- AC5 array of strings -> entry 0 string rendered, tier-default effort ---
+r="$(mktemp -d)"; ( cd "$r" && git init -q )
+mkcfg "$r" '{ "standard": [ "openai/gpt-5.5", "google/gemini-3-5-flash" ] }'
+WOOSTACK_ROOT="$r" bash "$GEN"
+f="$r/.omp/agents/woostack-standard.md"
+assert_contains "$(cat "$f")" 'model: "openai/gpt-5.5"' "AC5 string-array: entry-0 model"
+assert_contains "$(cat "$f")" 'thinkingLevel: medium' "AC5 string-array: tier default effort"
+
+# --- AC5 error: empty array -> tier unset + warn, def still written, exit 0 ---
+r="$(mktemp -d)"; ( cd "$r" && git init -q )
+mkcfg "$r" '{ "fast": [] }'
+err="$(WOOSTACK_ROOT="$r" bash "$GEN" 2>&1 >/dev/null)"
+rc=$?
+assert_exit 0 "$rc" "AC5 empty array: exit 0 (best-effort)"
+assert_contains "$err" "empty array" "AC5 empty array: loud stderr warn"
+assert_not_contains "$(cat "$r/.omp/agents/woostack-fast.md")" 'model:' "AC5 empty array: tier unset"
+
+# --- AC5 error: array entry 0 = null -> loud warn, tier unset (never silent) ---
+r="$(mktemp -d)"; ( cd "$r" && git init -q )
+mkcfg "$r" '{ "fast": [ null, "a/b" ] }'
+err="$(WOOSTACK_ROOT="$r" bash "$GEN" 2>&1 >/dev/null)"
+assert_contains "$err" "entry 0 is null" "AC5 null entry 0: loud stderr warn"
+assert_not_contains "$(cat "$r/.omp/agents/woostack-fast.md")" 'model:' "AC5 null entry 0: tier unset"
+
 finish

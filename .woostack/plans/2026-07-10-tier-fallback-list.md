@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-07-10-tier-fallback-list.md
-status: ready
+status: executing
 date: 2026-07-10
 branch: feature/tier-fallback
 links:
@@ -37,20 +37,20 @@ today's semantics everywhere; the omp generator enacts entries 1..n as project-s
 **Deliverable:** array leaves parse everywhere; behavior byte-identical for entry 0.
 AC1, AC2, AC3, AC6.
 
-- [ ] **Step 1 (red):** add failing tests — `test-gen-omp-agents.sh`: array leaf renders
+- [x] **Step 1 (red):** add failing tests — `test-gen-omp-agents.sh`: array leaf renders
       entry-0 model+effort; empty-array leaf → tier unset + stderr warn; review script
       test (existing suite home): `resolve-model.sh` returns entry-0 for array flat and
       provider-scoped leaves.
-- [ ] **Step 2:** `gen-omp-agents.sh`: normalize array→first in `render_tier` (guard:
+- [x] **Step 2:** `gen-omp-agents.sh`: normalize array→first in `render_tier` (guard:
       empty array = malformed leaf branch, loud, exit 0 law unchanged).
-- [ ] **Step 3:** `resolve-model.sh:70,75` + `load-prompt.sh:78`: prepend array
+- [x] **Step 3:** `resolve-model.sh:70,75` + `load-prompt.sh:78`: prepend array
       normalization in the jq filters (both provider-scoped and flat reads).
-- [ ] **Step 4:** doctor config check: leaf schema `string|object|array(1..)`; empty
+- [x] **Step 4:** doctor config check: leaf schema `string|object|array(1..)`; empty
       array or non-(string|object) entry → error.
-- [ ] **Step 5 (green):** new tests pass; full init suite + review script tests green;
+- [x] **Step 5 (green):** new tests pass; full init suite + review script tests green;
       `git diff` on `prompts/` clean; existing fixtures byte-identical (AC1 proof: run
       generator on an object-leaf fixture before/after, diff defs).
-- [ ] **Step 6:** commit; task-scoped spec+quality review; distill if durable.
+- [x] **Step 6:** commit; task-scoped spec+quality review; distill if durable.
 
 ## Increment 2 — omp chain enactment (PR 2)
 
@@ -80,11 +80,16 @@ degraded branch. AC4.
 **Deliverable:** taxonomy documented; site builds; plan closes. AC5, AC7.
 
 - [ ] **Step 1 (red):** grep — array-form absent from `model-tiers.md` leaf paragraph,
-      `hosts/*.md` fallback sections, `configuration.mdx`.
+      `hosts/*.md` fallback sections, `configuration.mdx`,
+      `woostack-review/SKILL.md` (`models` key reference), and the review prompt
+      leaf mentions (`_orchestrator-header.md`, `anthropic.md`, `openai.md`,
+      `opencode.md` jq override examples).
 - [ ] **Step 2:** `model-tiers.md` leaf-shape paragraph (array form + entry-0 law +
       per-host enactment pointer); one entries-1..n sentence in each of the six
       `hosts/*.md` "Host-level fallback" sections; `configuration.mdx` array example
-      (MDX escaping per memory `authored-mdx-escapes-jsx-and-table-pipes`).
+      (MDX escaping per memory `authored-mdx-escapes-jsx-and-table-pipes`);
+      `woostack-review/SKILL.md` leaf line + prompt jq examples gain the array
+      branch (per review-tier-doc-sync fanout set).
 - [ ] **Step 3 (green):** `test-host-references.sh` green (no contract change); provider
       table + `WOO_MODEL_TIERS_TABLE` marker byte-stable; real install +
       `pnpm -C site build` green.

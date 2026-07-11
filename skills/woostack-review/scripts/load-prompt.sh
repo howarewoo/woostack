@@ -69,13 +69,14 @@ safe_comment_body=$(sanitize_untrusted "${COMMENT_BODY:-}" 2000)
 source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-model.sh"
 
 # config_effort_for <provider> <tier> → per-tier effort from $CONFIG_PATH, else empty.
-# The loader normalizes every tier leaf to an object {model,[effort]}; read .effort
-# provider-scoped first, then flat. Empty when unset → caller falls back to defaults.
+# A leaf may be a string, an object {model,[effort]}, or an array whose entry 0 is
+# the primary; read entry-0 .effort provider-scoped first, then flat. Empty when
+# unset → caller falls back to defaults.
 config_effort_for() {
   local provider="$1" tier="$2" eff=""
   if [ -n "${CONFIG_PATH:-}" ] && [ -f "$CONFIG_PATH" ]; then
     eff="$(jq -r --arg p "$provider" --arg t "$tier" \
-      '(.models[$p][$t].effort? // .models[$t].effort?) // empty' "$CONFIG_PATH" 2>/dev/null || true)"
+      '((.models[$p][$t] | if type=="array" then .[0] else . end | .effort?) // (.models[$t] | if type=="array" then .[0] else . end | .effort?)) // empty' "$CONFIG_PATH" 2>/dev/null || true)"
   fi
   printf '%s' "$eff"
 }
