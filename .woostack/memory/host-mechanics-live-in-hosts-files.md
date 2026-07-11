@@ -19,4 +19,4 @@ six sites, provider-table header + `WOO_MODEL_TIERS_TABLE` marker, and anti-dupl
 greps (omp phrases absent from donors). Review's CI path (`prompts/`, `load-prompt.sh`,
 `resolve-model.sh`) follows no links and never reads hosts/ — keep it diff-clean. Adding a
 host = new `hosts/<host>.md` + review SKILL per-skill row; the test loop picks it up
-automatically ([[lockstep-edit-sites]]).
+automatically (see the `lockstep-edit-sites` wisdom).
