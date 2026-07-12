@@ -32,14 +32,30 @@ def normalized_key(key: str) -> str:
 
 BODY_KEYS = {"body", "requestbody", "responsebody", "payload", "rawpayload"}
 USER_KEYS = {"user", "userid", "username", "phone", "phonenumber", "customer", "accountuser"}
-TOKEN_KEY_PARTS = (
-    "authorization", "authentication", "credential", "password", "passwd", "secret",
-    "token", "apikey", "accesskey", "cookie", "session", "databaseurl", "connectionstring",
+CREDENTIAL_KEYS = {
+    "authorization", "authentication", "credential", "credentials",
+    "password", "passwd", "pwd", "secret", "token", "apikey", "accesskey",
+    "cookie", "session", "sessionid", "databaseurl", "connectionstring",
+    "privatekey", "signingkey", "secretkey", "encryptionkey", "keymaterial",
+    "xamzsignature", "xgoogsignature", "pem", "pkcs8", "pkcs1",
+}
+CREDENTIAL_KEY_SUFFIXES = (
+    "authorization", "authentication", "credential", "credentials", "password",
+    "passwd", "secret", "token", "apikey", "accesskey", "secretkey", "signingkey",
+    "privatekey", "encryptionkey", "keymaterial", "cookie", "sessionid",
+    "databaseurl", "connectionstring",
 )
+KEY_MATERIAL_TAILS = {"pem", "pkcs8", "pkcs1"}
+# Aggregate/metric key tails whose values are counts or dimensions, never secrets.
+METRIC_KEY_TOKENS = {
+    "count", "total", "sum", "duration", "latency", "elapsed", "ms", "millis",
+    "milliseconds", "seconds", "secs", "nanos", "failures", "failure", "errors",
+    "error", "successes", "attempts", "retries", "hits", "misses", "size", "bytes",
+    "length", "rate", "ratio", "percent", "pct", "avg", "average", "mean", "median",
+    "min", "max", "p50", "p90", "p95", "p99", "quantile", "score",
+}
 EMAIL_KEYS = {"email", "emailaddress"}
 IP_KEYS = {"ip", "clientip", "remoteip", "peerip", "ipaddress"}
-KEY_MATERIAL_SUBSTRINGS = ("privatekey", "signingkey", "secretkey", "encryptionkey", "keymaterial")
-KEY_MATERIAL_TOKENS = {"pem", "pkcs8", "pkcs1"}
 NAME_KEYS = {
     "name", "fullname", "firstname", "lastname", "middlename", "givenname", "forename",
     "surname", "familyname", "maidenname", "displayname", "legalname", "personname",
@@ -50,7 +66,7 @@ NAME_KEYS = {
 NAME_KEY_SUFFIXES = (
     "fullname", "firstname", "lastname", "givenname", "surname", "familyname",
     "customername", "contactname", "recipientname", "personname", "holdername",
-    "billingname", "shippingname", "displayname", "legalname",
+    "billingname", "shippingname", "legalname",
 )
 ADDRESS_KEYS = {
     "address", "streetaddress", "shippingaddress", "billingaddress", "mailingaddress",
@@ -59,7 +75,12 @@ ADDRESS_KEYS = {
 }
 ADDRESS_KEY_SUFFIXES = (
     "streetaddress", "shippingaddress", "billingaddress", "mailingaddress",
-    "homeaddress", "postaladdress", "deliveryaddress", "postalcode", "zipcode",
+    "homeaddress", "postaladdress", "deliveryaddress", "recipientaddress",
+    "senderaddress", "postalcode", "zipcode",
+)
+ADDRESS_LINE_QUALIFIERS = (
+    "shipping", "billing", "mailing", "home", "postal", "delivery",
+    "recipient", "sender", "contact",
 )
 
 EMAIL_RE = re.compile(r"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b")
@@ -72,6 +93,7 @@ HOME_RES = (
 SECRET_VALUE_RES = (
     re.compile(r"(?i)\b(?:bearer|basic)\s+[A-Za-z0-9._~+/=-]{8,}"),
     re.compile(r"\b(?:ghp|github_pat|sk_(?:live|test)|sess|api)_[A-Za-z0-9_-]{12,}\b", re.I),
+    re.compile(r"\bxox(?:a|b|p|r)-[A-Za-z0-9-]{10,}\b", re.I),
     re.compile(r"(?i)\b(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?|redis)://[^\s]+"),
     re.compile(r"\b(?:AKIA|ASIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASCA)[0-9A-Z]{16}\b"),
     re.compile(r"\bAIza[0-9A-Za-z_-]{35}\b"),
@@ -90,7 +112,13 @@ PHONE_CANDIDATE_RE = re.compile(r"(?<![\w])\+?\d[\d ().-]{7,}\d(?![\w])")
 QUERY_CRED_RE = re.compile(
     r"(?i)([?&#](?:access[_-]?token|refresh[_-]?token|id[_-]?token|client[_-]?secret|"
     r"api[_-]?key|apikey|authorization|auth[_-]?token|password|passwd|pwd|secret|token|"
-    r"sig|signature|session(?:[_-]?id)?|credential|code)=)(?!\[REDACTED_)[^&\s#]+"
+    r"sig|signature|session(?:[_-]?id)?|credential|code|"
+    r"x[_-]?amz[_-]?signature|x[_-]?amz[_-]?credential|x[_-]?amz[_-]?security[_-]?token|"
+    r"x[_-]?goog[_-]?signature|x[_-]?goog[_-]?credential)=)(?!\[REDACTED_)[^&\s#]+"
+)
+INLINE_CREDENTIAL_RE = re.compile(
+    r"(?i)(\b(?:authorization|authentication|credential|password|passwd|pwd|secret|token|"
+    r"api[_ -]?key|cookie|session(?:[_ -]?id)?)\s*[:=]\s*)(?!\[REDACTED_)[^\s,;\"'&#]+"
 )
 
 
@@ -132,23 +160,43 @@ def _last_token(key: str) -> str:
     return parts[-1].lower() if parts else ""
 
 
+def _is_credential_key(key: str, norm: str, last: str) -> bool:
+    if norm in CREDENTIAL_KEYS:
+        return True
+    if last in KEY_MATERIAL_TAILS:
+        return True
+    return any(norm.endswith(suffix) for suffix in CREDENTIAL_KEY_SUFFIXES)
+
+
+def _is_address_key(norm: str) -> bool:
+    stem = norm.rstrip("0123456789")
+    for candidate in (norm, stem):
+        if candidate in ADDRESS_KEYS:
+            return True
+        if any(candidate.endswith(suffix) for suffix in ADDRESS_KEY_SUFFIXES):
+            return True
+    if not stem.endswith("addressline"):
+        return False
+    qualifier = stem[:-len("addressline")]
+    return qualifier.endswith(ADDRESS_LINE_QUALIFIERS)
+
+
 def key_class(key: str) -> str | None:
     norm = normalized_key(key)
-    if norm in BODY_KEYS or _last_token(key) == "body":
+    last = _last_token(key)
+    if norm in BODY_KEYS or last == "body":
         return "body"
     if norm in USER_KEYS or norm.endswith("userid"):
         return "user"
-    if any(part in norm for part in TOKEN_KEY_PARTS):
-        return "token"
-    if any(part in norm for part in KEY_MATERIAL_SUBSTRINGS) or _last_token(key) in KEY_MATERIAL_TOKENS or norm in KEY_MATERIAL_TOKENS:
+    if last not in METRIC_KEY_TOKENS and _is_credential_key(key, norm, last):
         return "token"
     if norm in EMAIL_KEYS or norm.endswith("email"):
         return "email"
-    if norm in IP_KEYS or _last_token(key) == "ip":
+    if norm in IP_KEYS or last == "ip":
         return "ip"
     if norm in NAME_KEYS or any(norm.endswith(suffix) for suffix in NAME_KEY_SUFFIXES):
         return "name"
-    if norm in ADDRESS_KEYS or any(norm.endswith(suffix) for suffix in ADDRESS_KEY_SUFFIXES):
+    if _is_address_key(norm):
         return "address"
     return None
 
@@ -177,6 +225,7 @@ def redact_string(value: str) -> str:
     result = value
     for pattern in SECRET_VALUE_RES:
         result = pattern.sub(TOKEN, result)
+    result = INLINE_CREDENTIAL_RE.sub(lambda match: match.group(1) + TOKEN, result)
     result = QUERY_CRED_RE.sub(lambda match: match.group(1) + TOKEN, result)
     for pattern in HOME_RES:
         result = pattern.sub(HOME, result)
@@ -192,23 +241,26 @@ def sanitize(value: Any) -> Any:
     if isinstance(value, dict):
         result: dict[str, Any] = {}
         for key, child in value.items():
+            safe_key = redact_string(key)
+            if safe_key in result:
+                raise ValueError(f"sensitive key redaction collision: {safe_key}")
             category = key_class(key)
             if category == "body":
-                result[key] = BODY
+                result[safe_key] = BODY
             elif category == "user":
-                result[key] = USER
+                result[safe_key] = USER
             elif category == "token":
-                result[key] = TOKEN
+                result[safe_key] = TOKEN
             elif category == "email":
-                result[key] = EMAIL
+                result[safe_key] = EMAIL
             elif category == "ip":
-                result[key] = IP
+                result[safe_key] = IP
             elif category == "name":
-                result[key] = NAME
+                result[safe_key] = NAME
             elif category == "address":
-                result[key] = ADDRESS
+                result[safe_key] = ADDRESS
             else:
-                result[key] = sanitize(child)
+                result[safe_key] = sanitize(child)
         return result
     if isinstance(value, list):
         return [sanitize(item) for item in value]
@@ -231,6 +283,8 @@ def forbidden_string(value: str) -> str | None:
             return "secret-shaped value"
     if QUERY_CRED_RE.search(value):
         return "credential in URL query"
+    if INLINE_CREDENTIAL_RE.search(value):
+        return "inline credential assignment"
     for pattern in RESIDUAL_ONLY_RES:
         if pattern.search(value):
             return "private-key material"
@@ -263,7 +317,10 @@ def forbidden_string(value: str) -> str | None:
 def validate_json(value: Any, location: str = "$") -> None:
     if isinstance(value, dict):
         for key, child in value.items():
-            category = key_class(key)
+            reason = forbidden_string(key)
+            if reason:
+                raise ValueError(f"{reason} in key at {location}")
+            category = None if key in PLACEHOLDERS else key_class(key)
             expected = {"body": BODY, "user": USER, "token": TOKEN, "email": EMAIL, "ip": IP, "name": NAME, "address": ADDRESS}.get(category)
             if category and child != expected:
                 raise ValueError(f"forbidden key at {location}.{key}")

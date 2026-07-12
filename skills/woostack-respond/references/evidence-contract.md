@@ -124,7 +124,7 @@ Each selected independent group produces one result:
 ```json
 {
   "provider_ref": "sentry:acme/api:API-142",
-  "result": "verified",
+  "status": "verified",
   "root_cause": "authorization timeout is not translated to a retryable result",
   "trigger": "upstream authorization latency exceeded two seconds",
   "contributing_factors": ["release reduced the timeout"],
@@ -137,7 +137,7 @@ Each selected independent group produces one result:
 }
 ```
 
-`result` accepts exactly `verified`, `rejected`, or `blocked`. A `verified` result requires a minimally tested repository root cause. Provider-generated explanations and correlations remain hypotheses. Duplicate groups sharing one verified root cause are reconciled into one finding and one fix candidate.
+`status` accepts exactly `verified`, `rejected`, or `blocked`. A `verified` result requires a minimally tested repository root cause. Provider-generated explanations and correlations remain hypotheses. Duplicate groups sharing one verified root cause are reconciled into one finding and one fix candidate.
 
 ## Normalized report input
 

@@ -287,10 +287,11 @@ All production operations are forbidden: no deploy, rollback, restart, scaling, 
 feature-flag change, infrastructure mutation, or production data write. State that the requested
 mutation was **not executed** and continue only with a safely separable read-only scope.
 
-Repository inspection and investigation are read-only in this skill. The tracked sanitized report
-is the sole direct repository write. Repository implementation is delegated through the gated fix
-flow above. No explicit request, provider capability, config key, plugin, or hidden flag expands
-this authority.
+Repository inspection and investigation are read-only in this skill. The sanitized report is the
+only write into a tracked, committable repository path; the transient evidence workspace of Phase 2
+(`.woostack/respond/evidence/<run-id>/`, gitignored or an OS-temp fallback) is never committed and
+never mined. Repository implementation is delegated through the gated fix flow above. No explicit
+request, provider capability, config key, plugin, or hidden flag expands this authority.
 
 ## Failure matrix
 

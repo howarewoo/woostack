@@ -71,6 +71,16 @@ data = json.loads(source.read_text())
 data["investigation_bound"] = 2  # the complete fixture investigates five groups
 (out / "bound-low.json").write_text(json.dumps(data))
 data = json.loads(source.read_text())
+data["investigations"].append(dict(data["investigations"][0]))
+(out / "duplicate-investigation.json").write_text(json.dumps(data))
+data = json.loads(source.read_text())
+data["investigations"][0]["status"] = "unknown"
+(out / "invalid-investigation-status.json").write_text(json.dumps(data))
+data = json.loads(source.read_text())
+data["investigation_bound"] = 3
+for group in data["ranked_groups"]: group["investigation"] = "deferred"
+(out / "too-many-investigations.json").write_text(json.dumps(data))
+data = json.loads(source.read_text())
 data["window"]["start"] = "2026-07-10T05:00:00-10:00"  # 15:00Z, after the 14:00Z end
 data["window"]["end"] = "2026-07-10T14:00:00Z"
 (out / "reversed-offset.json").write_text(json.dumps(data))
@@ -87,6 +97,13 @@ data["outcome"] = "partial"  # complete fixture is all-executed: partial needs a
 data = json.loads(source.read_text())
 data["outcome"] = "blocked"  # complete fixture has executed roles: blocked needs all blocked
 (out / "blocked-with-executed.json").write_text(json.dumps(data))
+data = json.loads(source.read_text())
+data["ranked_groups"] = [
+    {"id": "older-same-zone", "summary": "Older same-zone group", "impact": 10, "frequency": 5, "recency": "2026-07-10T10:00:00Z", "investigation": "deferred"},
+    {"id": "newest-offset", "summary": "Newest offset group", "impact": 10, "frequency": 5, "recency": "2026-07-10T19:00:00+01:00", "investigation": "deferred"},
+    {"id": "middle-offset", "summary": "Middle offset group", "impact": 10, "frequency": 5, "recency": "2026-07-10T18:00:00+02:00", "investigation": "deferred"},
+]
+(out / "recency-rank.json").write_text(json.dumps(data))
 PY
 
 before=$(find "$reports" -type f | wc -l | tr -d ' ')
@@ -95,6 +112,9 @@ if render "$tmp/false-complete.json" >/dev/null 2>&1; then fail "false complete 
 if render "$tmp/token.json" >/dev/null 2>&1; then fail "bearer token accepted"; fi
 if render "$tmp/bound-high.json" >/dev/null 2>&1; then fail "investigation_bound above five accepted"; fi
 if render "$tmp/bound-low.json" >/dev/null 2>&1; then fail "investigated groups exceeding bound accepted"; fi
+if render "$tmp/duplicate-investigation.json" >/dev/null 2>&1; then fail "duplicate investigation id accepted"; fi
+if render "$tmp/invalid-investigation-status.json" >/dev/null 2>&1; then fail "invalid investigation status accepted"; fi
+if render "$tmp/too-many-investigations.json" >/dev/null 2>&1; then fail "investigation entries exceeding bound accepted"; fi
 if render "$tmp/reversed-offset.json" >/dev/null 2>&1; then fail "offset-reversed window accepted"; fi
 if render "$tmp/partial-no-blocked.json" >/dev/null 2>&1; then fail "partial outcome without blocked coverage accepted"; fi
 if render "$tmp/blocked-with-executed.json" >/dev/null 2>&1; then fail "blocked outcome with executed coverage accepted"; fi
@@ -105,5 +125,11 @@ bound_three=$(render "$tmp/bound-three.json")
 grep -q '^- Deep-investigation bound: 3$' "$bound_three" || fail "configured bound not rendered"
 offset_ok=$(render "$tmp/offset-window.json")
 grep -q '^outcome: partial$' "$offset_ok" || fail "valid offset window rejected"
+recency_rank=$(render "$tmp/recency-rank.json")
+python3 - "$recency_rank" <<'PY'
+import pathlib, sys
+text = pathlib.Path(sys.argv[1]).read_text()
+assert text.index("newest-offset") < text.index("middle-offset") < text.index("older-same-zone")
+PY
 
 printf 'PASS: response report renderer\n'

@@ -15,6 +15,7 @@ import unicodedata
 
 TOP_FIELDS = {"schema_version", "signal", "scope", "environment", "window", "generated_at", "outcome", "investigation_bound", "coverage", "ranked_groups", "impact_summary", "timeline", "investigations", "verified_root_causes", "external_incidents", "observability_gaps", "remediation", "blocked_evidence"}
 SECTIONS = ("Response & Scope", "Query Coverage", "Ranked Error Queue", "Impact Summary", "Incident Timeline", "Investigated Groups", "Verified Root Causes", "External or Non-Code Incidents", "Observability Gaps", "Remediation", "Uncovered and Blocked Evidence")
+LATEST_INSTANT = datetime.max.replace(tzinfo=timezone.utc)
 
 class InputError(ValueError): pass
 
@@ -38,6 +39,9 @@ def timestamp(value, field):
     try: parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError as error: raise InputError(f"{field} must be an ISO-8601 timestamp") from error
     return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+
+def newest_first(value, field):
+    return LATEST_INSTANT - timestamp(value, field).astimezone(timezone.utc)
 
 def validate(data):
     exact_object(data, TOP_FIELDS, set(), "input")
@@ -79,13 +83,18 @@ def validate(data):
         group_ids.add(gid)
         for field in ("impact","frequency"):
             if not isinstance(group[field],int) or isinstance(group[field],bool) or group[field] < 0: raise InputError(f"group.{field} must be non-negative integer")
-        if group["investigation"] not in {"verified","rejected","blocked","deferred"}: raise InputError("group investigation is invalid")
-        investigated += group["investigation"] != "deferred"
+        status = group["investigation"]
+        if status not in {"verified","rejected","blocked","deferred"}: raise InputError("group investigation is invalid")
+        investigated += status != "deferred"
     if investigated > bound: raise InputError(f"at most {bound} group(s) may be investigated")
     if not isinstance(data["investigations"], list): raise InputError("investigations must be a list")
+    investigation_ids = set()
     for n,item in enumerate(data["investigations"]):
-        exact_object(item,{"id","status","hypothesis","evidence"},set(),f"investigations[{n}]"); text(item["id"],"investigation.id"); text(item["hypothesis"],"investigation.hypothesis"); strings(item["evidence"],"investigation.evidence")
+        exact_object(item,{"id","status","hypothesis","evidence"},set(),f"investigations[{n}]"); iid=text(item["id"],"investigation.id"); text(item["hypothesis"],"investigation.hypothesis"); strings(item["evidence"],"investigation.evidence")
         if item["status"] not in {"verified","rejected","blocked"}: raise InputError("investigation status is invalid")
+        if iid in investigation_ids: raise InputError("investigation ids must be unique")
+        investigation_ids.add(iid)
+    if len(investigation_ids) > bound: raise InputError(f"at most {bound} investigation entries are allowed")
     for field in ("verified_root_causes","external_incidents"):
         if not isinstance(data[field],list): raise InputError(f"{field} must be a list")
         seen=set()
@@ -110,7 +119,7 @@ def render(data,date):
     providers=sorted({item["provider"] for item in data["coverage"]}); provider=providers[0] if len(providers)==1 else "multiple"
     lines=["---","type: response",f'outcome: {data["outcome"]}',f"provider: {provider}",f'environment: {data["environment"]}',f'window_start: {data["window"]["start"]}',f'window_end: {data["window"]["end"]}',f"date: {date}","---","",f'# Production Error Response — {data["signal"]}',""]
     coverage=sorted(data["coverage"],key=lambda x:(x["provider"],x["role"]))
-    groups=sorted(data["ranked_groups"],key=lambda x:(-x["impact"],-x["frequency"],x["recency"],x["id"]))
+    groups=sorted(data["ranked_groups"],key=lambda x:(-x["impact"],-x["frequency"],newest_first(x["recency"],"group.recency"),x["id"]))
     sections={
       "Response & Scope":[f'- Signal: {data["signal"]}',f'- Scope: {data["scope"]}',f'- Environment: {data["environment"]}',f'- UTC window: {data["window"]["start"]} through {data["window"]["end"]}',f'- Outcome: {data["outcome"]}',f'- Deep-investigation bound: {data["investigation_bound"]}'],
       "Query Coverage":[f'- {x["provider"]} / {x["role"]}: {x["state"]} — '+(f'{x["records_returned"]} records; receipt `{x["receipt"]}`' if x["state"]=="executed" else x["reason"]) for x in coverage],

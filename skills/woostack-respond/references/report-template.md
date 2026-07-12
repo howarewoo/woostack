@@ -10,11 +10,10 @@ date: <YYYY-MM-DD>
 
 # Production Error Response — <signal>
 
-<!-- Canonical shape reference. `scripts/render-report.py` is the sole producer of this
-report and enforces this structure from the sanitized normalized report input (see
-`evidence-contract.md`). This file documents the exact Markdown the renderer emits; the
-renderer does not consume it as a template. Keep the two in sync — if the renderer output
-changes, update this file in the same change. -->
+<!-- Canonical section and field-order reference. `scripts/render-report.py` is the sole
+producer of reports from sanitized normalized input (see `evidence-contract.md`). Placeholder
+list items below show emitted Markdown; explanatory paragraphs are reference annotations and
+are not emitted. The renderer does not consume this file as a template. Keep both in sync. -->
 
 ## Response & Scope
 
