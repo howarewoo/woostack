@@ -45,20 +45,20 @@ branch: feature/linear-artifact-backend
 - Modify: `skills/woostack-init/templates/config.json`
 - Modify: `skills/woostack-init/scripts/tests/run-tests.sh`
 
-- [ ] **Step 1: Add failing selector tests**
+- [x] **Step 1: Add failing selector tests**
   Add cases to `test-artifact-backends.sh` that invoke `resolve-backend.sh` against temporary repositories and assert exact JSON output for: missing selector → `markdown`; explicit `markdown`; complete `linear`; unsupported selector; missing `linear.workspace`, `linear.team`, lifecycle mappings, or repository override when no GitHub remote; and rejection of credential-shaped config keys such as `apiKey`, `token`, or `credentialFile`.
 
-- [ ] **Step 2: Run the selector suite and confirm red**
+- [x] **Step 2: Run the selector suite and confirm red**
   Run: `bash skills/woostack-init/scripts/tests/test-artifact-backends.sh`
   Expected: FAIL because `scripts/artifacts/resolve-backend.sh` does not exist.
 
-- [ ] **Step 3: Implement the resolver**
+- [x] **Step 3: Implement the resolver**
   Implement `resolve-backend.sh <repo-root>` with `set -euo pipefail`. Read `.woostack/config.json` with `jq`; emit one canonical JSON object with keys `backend`, `repository`, and `linear` (the last is `null` for Markdown). Resolve repository identity from an explicit `linear.repository` override, otherwise from the canonical GitHub `owner/repo` remote. Validate `artifacts.specPlan` against `markdown|linear`, require every configured semantic project/issue state in Linear mode, and reject secret-bearing Linear config keys. Diagnostics name only non-secret config paths.
 
-- [ ] **Step 4: Update the config template**
+- [x] **Step 4: Update the config template**
   Add `"artifacts": { "specPlan": "markdown" }` to `skills/woostack-init/templates/config.json`. Do not add a populated `linear` block or secret placeholder to the default template; document the conditional Linear object in the relevant reference increment.
 
-- [ ] **Step 5: Run selector tests green**
+- [x] **Step 5: Run selector tests green**
   Run: `bash skills/woostack-init/scripts/tests/test-artifact-backends.sh`
   Expected: PASS for default compatibility, complete Linear config, repository identity, invalid shape, and secret-key rejection.
 
@@ -68,21 +68,21 @@ branch: feature/linear-artifact-backend
 - Create: `skills/woostack-init/scripts/artifacts/markdown.sh`
 - Modify: `skills/woostack-init/scripts/tests/test-artifact-backends.sh`
 
-- [ ] **Step 1: Add failing Markdown normalization tests**
+- [x] **Step 1: Add failing Markdown normalization tests**
   Create temporary canonical spec/plan pairs and assert `markdown.sh feature <spec-path>` emits the normalized fields `backend`, `feature`, `spec`, and ordered `increments`. Cover the wikilink and legacy source-line forms, statuses, branch, checkbox progress, missing/duplicate plans, and filenames containing valid slug punctuation.
 
-- [ ] **Step 2: Run and confirm the missing adapter fails**
+- [x] **Step 2: Run and confirm the missing adapter fails**
   Run: `bash skills/woostack-init/scripts/tests/test-artifact-backends.sh`
   Expected: FAIL at the first Markdown normalization case because `markdown.sh` does not exist.
 
-- [ ] **Step 3: Implement Markdown normalization without changing semantics**
+- [x] **Step 3: Implement Markdown normalization without changing semantics**
   Implement `markdown.sh` as a read-only adapter over existing frontmatter and source-line contracts. Preserve current basename/source resolution and emit canonical JSON; fail on ambiguous 1:1 joins. Do not rewrite files. Add `# woostack-defer(increment 5): workflow skills begin consuming the backend adapter in increment 5` beside the adapter entry point.
 
-- [ ] **Step 4: Run focused and existing init tests**
+- [x] **Step 4: Run focused and existing init tests**
   Run: `bash skills/woostack-init/scripts/tests/test-artifact-backends.sh && bash skills/woostack-init/scripts/tests/run-tests.sh`
   Expected: PASS; existing Markdown init behavior remains unchanged.
 
-- [ ] **Step 5: Commit Increment 1**
+- [x] **Step 5: Commit Increment 1**
   Run: `gt create -m "feat(artifacts): add backend resolver and Markdown adapter"`
   Expected: one reviewable PR containing only config selection and Markdown normalization.
 

@@ -1,4 +1,7 @@
 {
+  "artifacts": {
+    "specPlan": "markdown"
+  },
   "models": {},
   "review": {},
   "respond": {},
