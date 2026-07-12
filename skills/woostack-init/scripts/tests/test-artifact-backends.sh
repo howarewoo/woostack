@@ -67,6 +67,10 @@ run_failure() {
   RUN_FAILURE_OUTPUT="$output"
 }
 
+repo="$(make_repo missing-config)"
+actual="$(bash "$SCRIPT" "$repo")"
+assert_eq "$actual" '{"backend":"markdown","repository":null,"linear":null}' "absent config defaults to Markdown"
+
 repo="$(make_repo default-markdown)"
 write_config "$repo" '{}'
 actual="$(bash "$SCRIPT" "$repo")"
@@ -76,6 +80,13 @@ repo="$(make_repo explicit-markdown)"
 write_config "$repo" '{"artifacts":{"specPlan":"markdown"}}'
 actual="$(bash "$SCRIPT" "$repo")"
 assert_eq "$actual" '{"backend":"markdown","repository":null,"linear":null}' "explicit Markdown resolves without Linear config"
+
+repo="$(make_repo markdown-secret)"
+secret_value='DO-NOT-LEAK-MARKDOWN'
+write_config "$repo" "$(jq -cn --arg value "$secret_value" '{artifacts:{specPlan:"markdown"},linear:{nested:{apiKey:$value}}}')"
+run_failure "$repo"
+assert_contains "$RUN_FAILURE_OUTPUT" 'linear.nested.apiKey' "Markdown mode still rejects Linear credential keys"
+assert_not_contains "$RUN_FAILURE_OUTPUT" "$secret_value" "Markdown credential diagnostic does not leak its value"
 
 repo="$(make_repo linear-override)"
 git -C "$repo" remote add origin https://github.com/ignored/by-override.git
@@ -194,6 +205,15 @@ for invalid_repository in '123' '{}' '[]' '""' '"   "' '"../repo"' '"acme/.."' '
   assert_not_contains "$RUN_FAILURE_OUTPUT" 'must-not-be-used' "repository diagnostic does not expose or select fallback remote"
 done
 
+repo="$(make_repo unknown-linear-key)"
+config="$(complete_linear_config acme/widgets)"
+unknown_value='DO-NOT-LEAK-UNKNOWN'
+config="$(jq -c --arg value "$unknown_value" '.linear.auth = $value' <<<"$config")"
+write_config "$repo" "$config"
+run_failure "$repo"
+assert_contains "$RUN_FAILURE_OUTPUT" 'linear.auth' "unknown Linear keys are rejected by path"
+assert_not_contains "$RUN_FAILURE_OUTPUT" "$unknown_value" "unknown-key diagnostic does not leak its value"
+
 secret_keys=(
   apiKey
   API_KEY
@@ -202,6 +222,8 @@ secret_keys=(
   access-token
   personal-token
   Personal_Access_Token
+  privateKey
+  accessKey
   credentialFile
   credentials_path
   Authorization
@@ -225,7 +247,7 @@ for secret_key in "${secret_keys[@]}"; do
 done
 
 assert_eq "$(jq -c '.artifacts' "$TEMPLATE")" '{"specPlan":"markdown"}' "config template selects Markdown by default"
-assert_eq "$(jq -r '[paths(scalars) as $p | ($p[-1] | tostring) | select(test("apiKey|token|credentialFile"; "i"))] | length' "$TEMPLATE")" '0' "config template contains no credential placeholders"
+assert_eq "$(jq -r '[paths(scalars) as $p | ($p[-1] | tostring | ascii_downcase | gsub("[^a-z0-9]"; "")) | select(test("(apikey|token|credentials?(file|path)|authorization|password|secret|privatekey|accesskey)"))] | length' "$TEMPLATE")" '0' "config template contains no credential placeholders"
 
 write_feature_pair() {
   local repo="$1"
@@ -253,9 +275,9 @@ status: executing
 branch: feature/${basename#????-??-??-}
 ---
 
-$source_line
-
 # Adapter plan
+
+$source_line
 
 ## Increment 2 - Second
 
@@ -274,6 +296,11 @@ $source_line
 - [ ] nested fenced checkbox
 \`\`\`
 \`\`\`\`
+
+~~~markdown
+## Increment 98: tilde-fenced heading
+- [ ] tilde-fenced checkbox
+~~~~
 
 ## Increment 3: Third
 
@@ -309,14 +336,33 @@ assert_eq "$(jq -c '.backend' <<<"$actual")" '"markdown"' "Markdown model identi
 assert_eq "$(jq -c '.feature | {id,url,title,status,branch}' <<<"$actual")" \
   "$(jq -cn --arg id ".woostack/specs/$basename.md" --arg title 'feature.v2+api_core' --arg branch 'feature/feature.v2+api_core' '{id:$id,url:null,title:$title,status:"executing",branch:$branch}')" \
   "canonical wikilink preserves feature identity, lifecycle status, and branch"
-assert_eq "$(jq -c '.spec | {id,url,content:(.content | contains("Spec body.")),revisionLength:(.revision | length)}' <<<"$actual")" \
-  "$(jq -cn --arg id ".woostack/specs/$basename.md" '{id:$id,url:null,content:true,revisionLength:64}')" \
-  "spec content and deterministic revision are normalized"
-assert_eq "$(jq -c '[.increments[] | {ordinal,status,dependencies,branch,pullRequest}]' <<<"$actual")" \
-  '[{"ordinal":1,"status":"done","dependencies":[],"branch":null,"pullRequest":null},{"ordinal":2,"status":"executing","dependencies":[],"branch":null,"pullRequest":null},{"ordinal":3,"status":"planned","dependencies":[],"branch":null,"pullRequest":null},{"ordinal":4,"status":"planned","dependencies":[],"branch":null,"pullRequest":null}]' \
-  "out-of-order plan sections are sorted by ordinal with matching checkbox-derived statuses"
+assert_eq "$(jq -c '.spec | {id,url,content:(.content | contains("Spec body."))}' <<<"$actual")" \
+  "$(jq -cn --arg id ".woostack/specs/$basename.md" '{id:$id,url:null,content:true}')" \
+  "spec content is normalized"
+assert_eq "$(jq -r '.spec.revision' <<<"$actual")" "$spec_before" "spec revision is the deterministic content digest"
+assert_eq "$(jq -c '[.increments[] | keys]' <<<"$actual")" \
+  '[["branch","content","dependencies","id","identifier","ordinal","pullRequest","status"],["branch","content","dependencies","id","identifier","ordinal","pullRequest","status"],["branch","content","dependencies","id","identifier","ordinal","pullRequest","status"],["branch","content","dependencies","id","identifier","ordinal","pullRequest","status"]]' \
+  "every increment exposes the complete normalized contract"
+assert_eq "$(jq -c '[.increments[] | {id,identifier,ordinal,status,dependencies,branch,pullRequest}]' <<<"$actual")" \
+  "$(jq -cn --arg plan ".woostack/plans/$basename.md" '[
+    {id:($plan + "#increment-1"),identifier:null,ordinal:1,status:"done",dependencies:[],branch:null,pullRequest:null},
+    {id:($plan + "#increment-2"),identifier:null,ordinal:2,status:"executing",dependencies:[],branch:null,pullRequest:null},
+    {id:($plan + "#increment-3"),identifier:null,ordinal:3,status:"planned",dependencies:[],branch:null,pullRequest:null},
+    {id:($plan + "#increment-4"),identifier:null,ordinal:4,status:"planned",dependencies:[],branch:null,pullRequest:null}
+  ]')" \
+  "out-of-order plan sections have deterministic IDs and checkbox-derived statuses"
+assert_eq "$(jq -c '[
+  (.increments[0].content | contains("completed follow-up") and contains("tilde-fenced heading") and (contains("Second") | not)),
+  (.increments[1].content | contains("completed task") and (contains("First") | not)),
+  (.increments[2].content | contains("pending task") and (contains("Partial plan") | not)),
+  (.increments[3].content == "Work remains to be decomposed.")
+]' <<<"$actual")" '[true,true,true,true]' "increment content preserves each section boundary"
 assert_eq "$(shasum -a 256 "$spec_path" | cut -d ' ' -f 1)" "$spec_before" "adapter does not rewrite the spec"
 assert_eq "$(shasum -a 256 "$repo/.woostack/plans/$basename.md" | cut -d ' ' -f 1)" "$plan_before" "adapter does not rewrite the plan"
+printf '\nChanged spec body.\n' >> "$spec_path"
+changed_spec_revision="$(shasum -a 256 "$spec_path" | cut -d ' ' -f 1)"
+changed_actual="$(bash "$MARKDOWN" feature "$spec_path")"
+assert_eq "$(jq -r '.spec.revision' <<<"$changed_actual")" "$changed_spec_revision" "spec revision changes with content"
 
 repo="$(make_repo markdown-legacy)"
 basename='2026-07-12-legacy.feature-test'
@@ -337,10 +383,44 @@ branch: feature/unrelated
 \`\`\`
 \`\`\`\`
 EOF
+
 actual="$(bash "$MARKDOWN" feature "$repo/.woostack/specs/$basename.md")"
 assert_eq "$(jq -r '.feature.id' <<<"$actual")" ".woostack/specs/$basename.md" "legacy source line resolves the plan"
 assert_eq "$(jq -r '.increments | length' <<<"$actual")" '4' "legacy plan emits every increment including a partial final section"
 assert_eq "$(jq -r '.increments | map(.ordinal) | join(",")' <<<"$actual")" '1,2,3,4' "fenced example headings are ignored"
+
+repo="$(make_repo markdown-annotated-source)"
+basename='2026-07-12-annotated-source'
+write_feature_pair "$repo" "$basename" "**Source:** [[specs/$basename]] (stacked feature)"
+mv "$repo/.woostack/plans/$basename.md" "$repo/.woostack/plans/different-plan-name.md"
+actual="$(bash "$MARKDOWN" feature "$repo/.woostack/specs/$basename.md")"
+assert_eq "$(jq -r '.feature.id' <<<"$actual")" ".woostack/specs/$basename.md" "annotated canonical source resolves a differently named plan"
+
+repo="$(make_repo markdown-canonical-md)"
+basename='2026-07-12-canonical-md'
+write_feature_pair "$repo" "$basename" "**Source:** [[specs/$basename.md]]"
+mv "$repo/.woostack/plans/$basename.md" "$repo/.woostack/plans/different-md-plan-name.md"
+actual="$(bash "$MARKDOWN" feature "$repo/.woostack/specs/$basename.md")"
+assert_eq "$(jq -r '.feature.id' <<<"$actual")" ".woostack/specs/$basename.md" "optional .md wikilink resolves a differently named plan"
+
+repo="$(make_repo markdown-basename-fallback)"
+basename='2026-07-12-basename-fallback'
+write_feature_pair "$repo" "$basename" ""
+actual="$(bash "$MARKDOWN" feature "$repo/.woostack/specs/$basename.md")"
+assert_eq "$(jq -r '.feature.id' <<<"$actual")" ".woostack/specs/$basename.md" "same-basename plan resolves without a Source line"
+
+repo="$(make_repo markdown-slug-fallback)"
+basename='2026-07-12-slug-fallback'
+write_feature_pair "$repo" "$basename" ""
+mv "$repo/.woostack/plans/$basename.md" "$repo/.woostack/plans/2026-07-13-slug-fallback.md"
+actual="$(bash "$MARKDOWN" feature "$repo/.woostack/specs/$basename.md")"
+assert_eq "$(jq -r '.feature.id' <<<"$actual")" ".woostack/specs/$basename.md" "date-stripped slug fallback preserves legacy joins"
+
+repo="$(make_repo markdown-slug-fallback-owned)"
+write_feature_pair "$repo" '2026-07-13-owned-slug' '**Source:** [[specs/2026-07-13-owned-slug]]'
+cp "$repo/.woostack/specs/2026-07-13-owned-slug.md" "$repo/.woostack/specs/2026-07-12-owned-slug.md"
+run_markdown_failure "$repo/.woostack/specs/2026-07-12-owned-slug.md"
+assert_contains "$MARKDOWN_FAILURE_OUTPUT" 'matching plan not found' "slug fallback excludes plans explicitly owned by another spec"
 
 repo="$(make_repo markdown-large-plan)"
 basename='2026-07-12-large-plan'
@@ -396,12 +476,26 @@ EOF
 run_markdown_failure "$repo/.woostack/specs/2026-07-12-duplicate-ordinal.md"
 assert_contains "$MARKDOWN_FAILURE_OUTPUT" 'increments' "duplicate increment ordinals fail normalization"
 
-repo="$(make_repo markdown-zero-increments)"
-write_feature_pair "$repo" '2026-07-12-zero-increments' '**Source:** [[specs/2026-07-12-zero-increments]]'
-awk '/^## Increment / { exit } { print }' "$repo/.woostack/plans/2026-07-12-zero-increments.md" > "$repo/.woostack/plans/zero.tmp"
-mv "$repo/.woostack/plans/zero.tmp" "$repo/.woostack/plans/2026-07-12-zero-increments.md"
-run_markdown_failure "$repo/.woostack/specs/2026-07-12-zero-increments.md"
-assert_contains "$MARKDOWN_FAILURE_OUTPUT" 'increments' "plans with zero increments fail closed"
+repo="$(make_repo markdown-headingless)"
+basename='2026-07-12-headingless'
+write_feature_pair "$repo" "$basename" "**Source:** [[specs/$basename]]"
+cat > "$repo/.woostack/plans/$basename.md" <<EOF
+---
+type: plan
+status: executing
+branch: feature/headingless
+---
+
+# Legacy plan
+
+**Source:** [[specs/$basename]]
+
+- [x] completed legacy task
+- [ ] pending legacy task
+EOF
+actual="$(bash "$MARKDOWN" feature "$repo/.woostack/specs/$basename.md")"
+assert_eq "$(jq -c '.increments | map({ordinal,status,content:(.content | contains("Legacy plan") and contains("pending legacy task"))})' <<<"$actual")" \
+  '[{"ordinal":1,"status":"executing","content":true}]' "headingless legacy plan becomes one checkbox-derived increment"
 
 repo="$(make_repo markdown-spec-symlink)"
 mkdir -p "$repo/.woostack/specs" "$repo/.woostack/plans" "$repo/outside"
@@ -409,6 +503,22 @@ printf '%s\n' '---' 'name: escaped' 'type: spec' 'status: approved' '---' '# esc
 ln -s "$repo/outside/escaped.md" "$repo/.woostack/specs/2026-07-12-escaped.md"
 run_markdown_failure "$repo/.woostack/specs/2026-07-12-escaped.md"
 assert_contains "$MARKDOWN_FAILURE_OUTPUT" 'symlink' "spec symlink escapes are rejected"
+
+repo="$(make_repo markdown-directory-symlink)"
+outside_repo="$(make_repo markdown-directory-target)"
+write_feature_pair "$outside_repo" '2026-07-12-directory-link' '**Source:** [[specs/2026-07-12-directory-link]]'
+ln -s "$outside_repo/.woostack/specs" "$repo/.woostack/specs"
+run_markdown_failure "$repo/.woostack/specs/2026-07-12-directory-link.md"
+assert_contains "$MARKDOWN_FAILURE_OUTPUT" 'symlink' "spec directory symlink escapes are rejected"
+
+repo="$(make_repo markdown-plan-directory-symlink)"
+outside_repo="$(make_repo markdown-plan-directory-target)"
+write_feature_pair "$repo" '2026-07-12-plan-directory-link' '**Source:** [[specs/2026-07-12-plan-directory-link]]'
+write_feature_pair "$outside_repo" '2026-07-12-plan-directory-link' '**Source:** [[specs/2026-07-12-plan-directory-link]]'
+rm -rf "$repo/.woostack/plans"
+ln -s "$outside_repo/.woostack/plans" "$repo/.woostack/plans"
+run_markdown_failure "$repo/.woostack/specs/2026-07-12-plan-directory-link.md"
+assert_contains "$MARKDOWN_FAILURE_OUTPUT" 'symlink' "plan directory symlink escapes are rejected"
 
 repo="$(make_repo markdown-plan-symlink)"
 write_feature_pair "$repo" '2026-07-12-plan-link' '**Source:** [[specs/2026-07-12-plan-link]]'

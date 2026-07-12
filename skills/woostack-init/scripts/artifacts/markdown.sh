@@ -35,49 +35,141 @@ read_field() {
 
 # woostack-defer(increment 5): workflow skills begin consuming the backend adapter in increment 5
 feature() {
-  local requested="$1" spec_dir spec_path woo_root basename stem plan_dir plan_path
-  spec_dir="$(cd "$(dirname "$requested")" 2>/dev/null && pwd -P)" || fail "spec directory not found"
+  local requested="$1" requested_dir repo_hint repo_root spec_dir spec_path woo_root
+  local basename stem plan_dir plan_path spec_slug spec_name
+  requested_dir="$(dirname "$requested")"
+  [[ "$(basename "$requested_dir")" == 'specs' && "$(basename "$(dirname "$requested_dir")")" == '.woostack' ]] \
+    || fail "spec path must be under .woostack/specs"
+  repo_hint="$(dirname "$(dirname "$requested_dir")")"
+  [[ ! -L "$repo_hint/.woostack" && ! -L "$repo_hint/.woostack/specs" ]] \
+    || fail "spec directory symlinks are not allowed"
+  repo_root="$(git -C "$repo_hint" rev-parse --show-toplevel 2>/dev/null)" \
+    || fail "repository root not found"
+  repo_root="$(cd "$repo_root" && pwd -P)"
+  spec_dir="$(cd "$requested_dir" 2>/dev/null && pwd -P)" || fail "spec directory not found"
+  [[ "$spec_dir" == "$repo_root/.woostack/specs" ]] || fail "spec path must be under repository .woostack/specs"
   spec_path="$spec_dir/$(basename "$requested")"
   [[ ! -L "$requested" && ! -L "$spec_path" ]] || fail "spec symlinks are not allowed"
   validate_frontmatter "$spec_path"
   [[ "$(read_field "$spec_path" type)" == 'spec' ]] || fail "artifact is not a spec"
 
-  [[ "$(basename "$spec_dir")" == 'specs' && "$(basename "$(dirname "$spec_dir")")" == '.woostack' ]] \
-    || fail "spec path must be under .woostack/specs"
-  woo_root="$(dirname "$spec_dir")"
+  woo_root="$repo_root/.woostack"
   basename="$(basename "$spec_path")"
   stem="${basename%.md}"
+  spec_slug="${stem#????-??-??-}"
+  spec_name="$(read_field "$spec_path" name)"
   plan_dir="$woo_root/plans"
   [[ -d "$plan_dir" ]] || fail "matching plan not found"
   [[ ! -L "$plan_dir" ]] || fail "plan symlink escapes are not allowed"
 
   local -a matches=()
-  local candidate line canonical legacy
+  local candidate candidate_base candidate_slug candidate_source canonical canonical_md legacy
   canonical="**Source:** [[specs/$stem]]"
+  canonical_md="**Source:** [[specs/$basename]]"
   legacy="**Source:** .woostack/specs/$basename"
   shopt -s nullglob
   for candidate in "$plan_dir"/*.md; do
     [[ ! -L "$candidate" ]] || fail "plan symlinks are not allowed"
-    line="$(awk '
-      $0 == "---" { fences++; next }
-      fences >= 2 && $0 !~ /^[[:space:]]*$/ {
-        value=$0
+    if awk -v canonical="$canonical" -v canonical_md="$canonical_md" -v legacy="$legacy" '
+      function trim(value) {
         sub(/^[[:space:]]*/, "", value)
         sub(/[[:space:]]*$/, "", value)
-        print value
-        exit
+        return value
       }
-    ' "$candidate")"
-    if [[ "$line" == "$canonical" || "$line" == "$legacy" ]]; then
+      function matches_token(value, token) {
+        return index(value, token) == 1 &&
+          (length(value) == length(token) || substr(value, length(token) + 1, 1) ~ /[[:space:]]/)
+      }
+      function run_length(value, marker, count) {
+        marker=substr(value, 1, 1)
+        if (marker != "`" && marker != "~") return 0
+        count=1
+        while (substr(value, count + 1, 1) == marker) count++
+        return count
+      }
+      $0 == "---" && frontmatter_fences < 2 { frontmatter_fences++; next }
+      frontmatter_fences < 2 { next }
+      {
+        value=$0
+        sub(/^[[:space:]]*/, "", value)
+        run=run_length(value)
+        marker=substr(value, 1, 1)
+        rest=substr(value, run + 1)
+        if (in_fence) {
+          if (marker == fence_marker && run >= fence_length && rest ~ /^[[:space:]]*$/) {
+            in_fence=0
+          }
+          next
+        }
+        if (run >= 3) {
+          in_fence=1
+          fence_marker=marker
+          fence_length=run
+          next
+        }
+        value=trim($0)
+        if (matches_token(value, canonical) ||
+            matches_token(value, canonical_md) ||
+            matches_token(value, legacy)) found=1
+      }
+      END { exit !found }
+    ' "$candidate"; then
       matches+=("$candidate")
     fi
   done
-  shopt -u nullglob
 
   if (( ${#matches[@]} == 0 )); then
-    candidate="$plan_dir/$basename"
-    [[ -f "$candidate" ]] && matches+=("$candidate")
+    for candidate in "$plan_dir"/*.md; do
+      candidate_base="$(basename "$candidate" .md)"
+      candidate_slug="${candidate_base#????-??-??-}"
+      candidate_source="$(read_field "$candidate" source)"
+      if [[ -n "$candidate_source" && "$candidate_source" != ".woostack/specs/$basename" ]]; then
+        continue
+      fi
+      if awk '
+        function trim(value) {
+          sub(/^[[:space:]]*/, "", value)
+          sub(/[[:space:]]*$/, "", value)
+          return value
+        }
+        function run_length(value, marker, count) {
+          marker=substr(value, 1, 1)
+          if (marker != "`" && marker != "~") return 0
+          count=1
+          while (substr(value, count + 1, 1) == marker) count++
+          return count
+        }
+        $0 == "---" && frontmatter_fences < 2 { frontmatter_fences++; next }
+        frontmatter_fences < 2 { next }
+        {
+          value=$0
+          sub(/^[[:space:]]*/, "", value)
+          run=run_length(value)
+          marker=substr(value, 1, 1)
+          rest=substr(value, run + 1)
+          if (in_fence) {
+            if (marker == fence_marker && run >= fence_length && rest ~ /^[[:space:]]*$/) in_fence=0
+            next
+          }
+          if (run >= 3) {
+            in_fence=1
+            fence_marker=marker
+            fence_length=run
+            next
+          }
+          if (trim($0) ~ /^\*\*Source:\*\*/) found=1
+        }
+        END { exit !found }
+      ' "$candidate"; then
+        continue
+      fi
+      if [[ "$candidate_slug" == "$spec_slug" || ( -n "$spec_name" && "$candidate_slug" == "$spec_name" ) ]]; then
+        matches+=("$candidate")
+      fi
+    done
   fi
+  shopt -u nullglob
+
   (( ${#matches[@]} > 0 )) || fail "matching plan not found"
   (( ${#matches[@]} == 1 )) || fail "multiple plans join to spec"
   plan_path="${matches[0]}"
@@ -106,23 +198,67 @@ with open(plan_path, encoding="utf-8") as handle:
 
 heading = re.compile(r"^## Increment ([0-9]+)(?::| [-—] | \([^)\r\n]+\):)")
 checkbox = re.compile(r"^[ \t]*-[ \t]+\[([ xX])\]")
+
+frontmatter_fences = 0
+body_start = None
+for index, line in enumerate(lines):
+    if line.rstrip("\r\n") == "---":
+        frontmatter_fences += 1
+        if frontmatter_fences == 2:
+            body_start = index + 1
+            break
+body_lines = lines[body_start:]
+
+def fence_marker(line):
+    stripped = line.lstrip()
+    if not stripped or stripped[0] not in (chr(96), "~"):
+        return None
+    marker = stripped[0]
+    run = len(stripped) - len(stripped.lstrip(marker))
+    if run < 3:
+        return None
+    return marker, run, stripped[run:].rstrip("\r\n")
+
+def checkbox_values(section_lines):
+    values = []
+    active_marker = None
+    active_length = 0
+    for line in section_lines:
+        fence = fence_marker(line)
+        if fence is not None:
+            marker, run, remainder = fence
+            if active_marker is None:
+                active_marker = marker
+                active_length = run
+            elif marker == active_marker and run >= active_length and not remainder.strip():
+                active_marker = None
+                active_length = 0
+            continue
+        if active_marker is None and (match := checkbox.match(line)):
+            values.append(match.group(1))
+    return values
+
 sections = []
 current = None
-in_fence = False
-fence_length = 0
+active_marker = None
+active_length = 0
 
-for line in lines:
-    stripped = line.lstrip()
-    tick_run = len(stripped) - len(stripped.lstrip(chr(96)))
-    if tick_run >= 3:
-        if not in_fence:
-            in_fence = True
-            fence_length = tick_run
-        elif tick_run >= fence_length:
-            in_fence = False
-            fence_length = 0
+for line in body_lines:
+    fence = fence_marker(line)
+    if fence is not None:
+        marker, run, remainder = fence
+        if active_marker is None:
+            active_marker = marker
+            active_length = run
+        elif marker == active_marker and run >= active_length and not remainder.strip():
+            active_marker = None
+            active_length = 0
+        if current is not None:
+            current["lines"].append(line)
         continue
-    if in_fence:
+    if active_marker is not None:
+        if current is not None:
+            current["lines"].append(line)
         continue
     match = heading.match(line.rstrip("\r\n"))
     if match:
@@ -134,15 +270,16 @@ for line in lines:
 if current is not None:
     sections.append(current)
 
+if not sections:
+    sections = [{"ordinal": 1, "lines": body_lines}]
+
 ordinals = [section["ordinal"] for section in sections]
-if not ordinals:
-    raise SystemExit("plan has no increments")
 if len(ordinals) != len(set(ordinals)):
     raise SystemExit("plan has duplicate increment ordinals")
 
 increments = []
 for section in sorted(sections, key=lambda item: item["ordinal"]):
-    boxes = [match.group(1) for line in section["lines"] if (match := checkbox.match(line))]
+    boxes = checkbox_values(section["lines"])
     done = sum(value.lower() == "x" for value in boxes)
     total = len(boxes)
     status = "done" if total and done == total else "executing" if done else "planned"

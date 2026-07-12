@@ -44,17 +44,24 @@ Two callers:
    | `.woostack/wisdom/.gitkeep` | `templates/wisdom/.gitkeep` |
    | `.woostack/respond/` directory | (create empty — tracked sanitized response reports) |
    | `.woostack/respond/.gitkeep` | `templates/respond/.gitkeep` |
-   | `.woostack/config.json` | `templates/config.json` (`{ "models": {}, "review": {}, "respond": {}, "status": { "staleDays": 14 } }`) |
+   | `.woostack/config.json` | `templates/config.json` (`{ "artifacts": { "specPlan": "markdown" }, "models": {}, "review": {}, "respond": {}, "status": { "staleDays": 14 } }`) |
    | `.woostack/.gitignore` | `templates/gitignore` |
    | `.woostack/worktrees/` directory | (create empty — per-PR git worktrees, gitignored) |
 
-   `config.json` ships as `{ "models": {}, "review": {}, "respond": {}, "status": { "staleDays": 14 } }`.
-   Each tool owns its namespace. The optional `respond` namespace accepts only non-secret workflow
-   defaults: `provider`, `environment`, `window`, `max_groups`, and `remediation`; provider
-   credentials remain in provider-native stores. The `status` namespace holds `staleDays`
-   (default 14 — the age in days past which an executing spec is flagged stale on the
-   `/woostack-status` board), defined in
-   [../woostack-status/references/conventions.md](../woostack-status/references/conventions.md).
+   `config.json` ships as `{ "artifacts": { "specPlan": "markdown" }, "models": {}, "review": {},
+   "respond": {}, "status": { "staleDays": 14 } }`. Each tool owns its namespace.
+   `artifacts.specPlan` selects the spec/plan backend: `markdown` keeps tracked `.woostack`
+   artifacts; the reserved `linear` selector currently validates secret-free configuration only.
+   Later stacked increments add Linear project and issue persistence before workflows consume it.
+   The accepted keys and lifecycle mappings are defined in the
+   [artifact backend configuration reference](references/artifact-backends.md). Provider
+   credentials never belong in this file.
+
+   The optional `respond` namespace accepts only non-secret workflow defaults: `provider`,
+   `environment`, `window`, `max_groups`, and `remediation`; provider credentials remain in
+   provider-native stores. The `status` namespace holds `staleDays` (default 14 — the age in
+   days past which an executing spec is flagged stale on the `/woostack-status` board), defined
+   in [../woostack-status/references/conventions.md](../woostack-status/references/conventions.md).
 
    The optional top-level `base_branch` key sets the integration/trunk branch that base branches
    are cut from and PRs target; unset, it auto-detects the remote default (`origin/HEAD`, else

@@ -6,13 +6,16 @@ description: Every key in the .woostack/config.json file, what it tunes, its typ
 woostack reads optional settings from `.woostack/config.json` at the repository root.
 [woostack-init](/docs/skills/woostack-init) creates the file, and every key is optional: when a
 key is absent, the skill that reads it falls back to a built-in default. The init template
-ships four top-level keys: `models`, `review`, `respond`, and `status`.
-[woostack-doctor](/docs/skills/woostack-doctor) checks that all four are present and validates response metadata without querying a provider.
+ships five top-level keys: `artifacts`, `models`, `review`, `respond`, and `status`.
+[woostack-doctor](/docs/skills/woostack-doctor) checks the scaffolded namespaces and validates
+response metadata without querying a provider.
 
-There are eight top-level settings:
+There are ten top-level settings:
 
 | Setting | Read by | Tunes |
 | --- | --- | --- |
+| `artifacts` | spec/plan workflows | selects the Markdown or Linear artifact backend |
+| `linear` | spec/plan workflows when `artifacts.specPlan` is `linear` | secret-free Linear workspace, repository, and lifecycle mappings |
 | `review` | [woostack-review](/docs/skills/woostack-review) | the PR review engine: angles, noise, validation |
 | `models` | [woostack-review](/docs/skills/woostack-review), [woostack-audit](/docs/skills/woostack-audit), and local subagent drivers | shared model selection and tier parameters |
 | `audit` | [woostack-audit](/docs/skills/woostack-audit) | standing-code audit angles, filtering, chunking, and output |
@@ -29,6 +32,30 @@ explained in the sections below.
 
 ```json
 {
+  "artifacts": { "specPlan": "markdown" },
+  "linear": {
+    "workspace": "acme",
+    "team": "ENG",
+    "repository": "acme/widgets",
+    "projectStatuses": {
+      "draft": "Draft",
+      "hardened": "Hardened",
+      "approved": "Approved",
+      "planning": "Planning",
+      "ready": "Ready",
+      "executing": "In Progress",
+      "inReview": "In Review",
+      "done": "Completed",
+      "abandoned": "Canceled"
+    },
+    "issueStates": {
+      "planned": "Backlog",
+      "executing": "In Progress",
+      "inReview": "In Review",
+      "done": "Done",
+      "blocked": "Blocked"
+    }
+  },
   "review": {
     "severity_floor": "high",
     "nits": true,
@@ -67,6 +94,38 @@ explained in the sections below.
   "base_branch": "main"
 }
 ```
+
+## Artifact backend
+
+`artifacts.specPlan` accepts `markdown` (the default) or the reserved `linear` selector. Markdown
+reads tracked `.woostack/specs/*.md` and `.woostack/plans/*.md` files. This increment validates
+the complete, secret-free `linear` namespace shown above; later stacked increments add Linear
+project and issue persistence before the selector becomes operational.
+
+| Key | Required for `linear` | Meaning |
+| --- | --- | --- |
+| `linear.workspace` | yes | Linear workspace slug or identifier. |
+| `linear.team` | yes | Team key or identifier used for increment issues. |
+| `linear.repository` | when no GitHub `origin` can be resolved | Canonical `owner/repository` identity. An explicit value takes precedence over Git remote discovery. |
+| `linear.projectStatuses.draft` | yes | Project status for draft specs. |
+| `linear.projectStatuses.hardened` | yes | Project status for hardened specs. |
+| `linear.projectStatuses.approved` | yes | Project status for approved specs. |
+| `linear.projectStatuses.planning` | yes | Project status while a plan is being written. |
+| `linear.projectStatuses.ready` | yes | Project status for an approved plan awaiting execution. |
+| `linear.projectStatuses.executing` | yes | Project status while increments are being implemented. |
+| `linear.projectStatuses.inReview` | yes | Project status while increment PRs are under review. |
+| `linear.projectStatuses.done` | yes | Project status after every increment is complete. |
+| `linear.projectStatuses.abandoned` | yes | Project status for abandoned work. |
+| `linear.issueStates.planned` | yes | Issue state for planned increments. |
+| `linear.issueStates.executing` | yes | Issue state for active increments. |
+| `linear.issueStates.inReview` | yes | Issue state for increments under review. |
+| `linear.issueStates.done` | yes | Issue state for completed increments. |
+| `linear.issueStates.blocked` | yes | Issue state for blocked increments. |
+
+Only the keys listed above are accepted; unknown keys fail closed. The namespace must not contain
+credentials at any depth. Keep API keys, tokens, authorization headers, passwords, private or
+access keys, client secrets, credential files, and provider authentication in the host's native
+secret store.
 
 ## Response
 
