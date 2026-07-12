@@ -22,13 +22,20 @@ The `/woostack-init` scaffold verb creates this tree in a consumer repo:
 ├── specs/           woostack-build markdown specs (type: spec)
 ├── plans/           woostack-build markdown plans
 ├── wisdom/          generalized findings, wholesale-loaded — see wisdom.md (sibling store)
-├── config.json      { "models": {}, "review": {}, "status": { "staleDays": 14 } } skeleton
-└── .gitignore       ignores metrics.json, *.local.*, memory/.telemetry.tsv, and memory/.dream-watermark ; tracks specs/plans/fixes/config/memory notes
+├── respond/
+│   ├── .gitkeep     tracked sanitized response reports live beside it
+│   └── evidence/    ignored transient provider evidence; created per run
+├── config.json      { "models": {}, "review": {}, "respond": {}, "status": { "staleDays": 14 } } skeleton
+└── .gitignore       ignores transient response evidence and local sidecars; tracks specs/plans/fixes/respond/config/memory notes
 ```
 
-The `config.json` file uses a top-level namespace-per-tool convention: `"review"` is the key for woostack-review settings (see [../../woostack-review/SKILL.md](../../woostack-review/SKILL.md) for the schema of that namespace). `"models"` is a root model-tier field shared across tools (relocated out of `review.models`). The memory store needs no config in increment A. Future tools add sibling keys (`"memory"`, etc.) as needed; init scaffolds only the `{ "models": {}, "review": {}, "status": { "staleDays": 14 } }` skeleton and documents the convention. It does not own the per-tool schemas.
+The `config.json` file uses a top-level namespace-per-tool convention: `"review"` is the key for
+woostack-review settings; `"respond"` holds non-secret production-response workflow defaults;
+`"models"` is shared across tools. Provider credentials never belong in this file.
 
-The `.gitignore` ignores `metrics.json` (the review engine's per-clone rolling aggregate), `*.local.*` (reserved for per-developer overrides such as `config.local.json`), `.woostack/memory/.telemetry.tsv`, and `.woostack/memory/.dream-watermark`. Memory notes and `MEMORY.md` are tracked shared team knowledge, alongside `specs/`, `plans/`, `fixes/`, and `config.json`.
+The `.gitignore` ignores `metrics.json`, `*.local.*`, `respond/evidence/`, memory telemetry, and
+the dream watermark. Sanitized response reports remain tracked shared decision evidence alongside
+memory notes, `MEMORY.md`, `specs/`, `plans/`, `fixes/`, and `config.json`.
 
 ---
 

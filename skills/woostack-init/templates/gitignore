@@ -3,6 +3,7 @@ metrics.json
 *.local.*
 visuals/
 qa/evidence/
+respond/evidence/
 overnight/
 worktrees/
 memory/.telemetry.tsv
