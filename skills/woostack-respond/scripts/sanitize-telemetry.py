@@ -25,6 +25,11 @@ NAME = "[REDACTED_NAME]"
 ADDRESS = "[REDACTED_ADDRESS]"
 PLACEHOLDERS = {TOKEN, EMAIL, IP, USER, BODY, HOME, PHONE, CARD, NAME, ADDRESS}
 
+CATEGORY_PLACEHOLDER = {
+    "body": BODY, "user": USER, "token": TOKEN, "email": EMAIL,
+    "ip": IP, "name": NAME, "address": ADDRESS,
+}
+
 
 def normalized_key(key: str) -> str:
     return re.sub(r"[^a-z0-9]", "", key.lower())
@@ -160,12 +165,26 @@ def _last_token(key: str) -> str:
     return parts[-1].lower() if parts else ""
 
 
-def _is_credential_key(key: str, norm: str, last: str) -> bool:
+def _is_numeric(value: Any) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def _is_credential_key(norm: str, last: str) -> bool:
     if norm in CREDENTIAL_KEYS:
         return True
     if last in KEY_MATERIAL_TAILS:
         return True
     return any(norm.endswith(suffix) for suffix in CREDENTIAL_KEY_SUFFIXES)
+
+
+def _metric_stripped(key: str) -> str:
+    """Key with trailing metric tokens dropped, so a credential stem like
+    `api_key_count` reduces to `api_key` for credential classification."""
+    spaced = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", "_", key)
+    parts = [part for part in re.split(r"[^A-Za-z0-9]+", spaced) if part]
+    while len(parts) > 1 and parts[-1].lower() in METRIC_KEY_TOKENS:
+        parts.pop()
+    return "".join(parts)
 
 
 def _is_address_key(norm: str) -> bool:
@@ -181,15 +200,19 @@ def _is_address_key(norm: str) -> bool:
     return qualifier.endswith(ADDRESS_LINE_QUALIFIERS)
 
 
-def key_class(key: str) -> str | None:
+def key_class(key: str, value: Any = None) -> str | None:
     norm = normalized_key(key)
     last = _last_token(key)
     if norm in BODY_KEYS or last == "body":
         return "body"
     if norm in USER_KEYS or norm.endswith("userid"):
         return "user"
-    if last not in METRIC_KEY_TOKENS and _is_credential_key(key, norm, last):
+    if _is_credential_key(norm, last):
         return "token"
+    if last in METRIC_KEY_TOKENS and not _is_numeric(value):
+        stem = _metric_stripped(key)
+        if _is_credential_key(normalized_key(stem), _last_token(stem)):
+            return "token"
     if norm in EMAIL_KEYS or norm.endswith("email"):
         return "email"
     if norm in IP_KEYS or last == "ip":
@@ -201,24 +224,14 @@ def key_class(key: str) -> str | None:
     return None
 
 
-def replace_ipv6(text: str) -> str:
+def _replace_ip(text: str, pattern: re.Pattern[str], version: int) -> str:
     def redact(match: re.Match[str]) -> str:
         candidate = match.group(0)
         try:
-            return IP if ipaddress.ip_address(candidate).version == 6 else candidate
+            return IP if ipaddress.ip_address(candidate).version == version else candidate
         except ValueError:
             return candidate
-    return IPV6_CANDIDATE_RE.sub(redact, text)
-
-
-def replace_ipv4(text: str) -> str:
-    def redact(match: re.Match[str]) -> str:
-        candidate = match.group(0)
-        try:
-            return IP if ipaddress.ip_address(candidate).version == 4 else candidate
-        except ValueError:
-            return candidate
-    return IPV4_RE.sub(redact, text)
+    return pattern.sub(redact, text)
 
 
 def redact_string(value: str) -> str:
@@ -230,8 +243,8 @@ def redact_string(value: str) -> str:
     for pattern in HOME_RES:
         result = pattern.sub(HOME, result)
     result = EMAIL_RE.sub(EMAIL, result)
-    result = replace_ipv4(result)
-    result = replace_ipv6(result)
+    result = _replace_ip(result, IPV4_RE, 4)
+    result = _replace_ip(result, IPV6_CANDIDATE_RE, 6)
     result = redact_cards(result)
     result = redact_phones(result)
     return result
@@ -244,21 +257,10 @@ def sanitize(value: Any) -> Any:
             safe_key = redact_string(key)
             if safe_key in result:
                 raise ValueError(f"sensitive key redaction collision: {safe_key}")
-            category = key_class(key)
-            if category == "body":
-                result[safe_key] = BODY
-            elif category == "user":
-                result[safe_key] = USER
-            elif category == "token":
-                result[safe_key] = TOKEN
-            elif category == "email":
-                result[safe_key] = EMAIL
-            elif category == "ip":
-                result[safe_key] = IP
-            elif category == "name":
-                result[safe_key] = NAME
-            elif category == "address":
-                result[safe_key] = ADDRESS
+            category = key_class(key, child)
+            placeholder = CATEGORY_PLACEHOLDER.get(category)
+            if placeholder is not None:
+                result[safe_key] = placeholder
             else:
                 result[safe_key] = sanitize(child)
         return result
@@ -320,8 +322,8 @@ def validate_json(value: Any, location: str = "$") -> None:
             reason = forbidden_string(key)
             if reason:
                 raise ValueError(f"{reason} in key at {location}")
-            category = None if key in PLACEHOLDERS else key_class(key)
-            expected = {"body": BODY, "user": USER, "token": TOKEN, "email": EMAIL, "ip": IP, "name": NAME, "address": ADDRESS}.get(category)
+            category = None if key in PLACEHOLDERS else key_class(key, child)
+            expected = CATEGORY_PLACEHOLDER.get(category)
             if category and child != expected:
                 raise ValueError(f"forbidden key at {location}.{key}")
             validate_json(child, f"{location}.{key}")
@@ -395,7 +397,7 @@ def main() -> int:
             validate_candidate(args.check.read_text(encoding="utf-8"))
         else:
             transform(args.input, args.output)
-    except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as error:
+    except (OSError, UnicodeError, json.JSONDecodeError, ValueError, RecursionError) as error:
         print(f"sanitize-telemetry: {error}", file=sys.stderr)
         return 1
     return 0

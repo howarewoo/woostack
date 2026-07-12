@@ -102,6 +102,15 @@ for kept in 1234567890123456 1704106800; do
   grep -Fq "$kept" "$work/benign-output.json" || fail "benign digit run was redacted: $kept"
 done
 python3 "$SCRIPT" --check "$work/benign-output.json"
+# A bare JSON numeric secret under an unclassified key exercises the int/float
+# redaction branch: a Luhn-valid card number written as a JSON number is redacted,
+# and --check rejects the same unsanitized numeric value.
+printf '%s\n' '{"card":4111111111111111}' >"$work/numeric-secret.json"
+python3 "$SCRIPT" --input "$work/numeric-secret.json" --output "$work/numeric-secret-out.json"
+if grep -Fq 4111111111111111 "$work/numeric-secret-out.json"; then fail "bare numeric card survived sanitization"; fi
+grep -Fq "[REDACTED_CARD]" "$work/numeric-secret-out.json" || fail "missing placeholder after numeric card redaction"
+python3 "$SCRIPT" --check "$work/numeric-secret-out.json"
+expect_fail python3 "$SCRIPT" --check "$work/numeric-secret.json"
 
 # Personal-name and postal-address fields are PII: values are redacted under common
 # normalized variants, raw name/address fields are rejected by --check, and technical

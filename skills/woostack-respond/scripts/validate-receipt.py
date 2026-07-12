@@ -149,7 +149,7 @@ def validate(args: argparse.Namespace) -> dict[str, Any]:
             fail(f"receipt.{field} does not match the current request")
 
     output = contained_output(strings["output_path"], args.run_dir)
-    expected_digest = strings["output_sha256"].lower()
+    expected_digest = strings["output_sha256"]
     if len(expected_digest) != 64 or any(char not in "0123456789abcdef" for char in expected_digest):
         fail("receipt.output_sha256 must be a 64-character SHA-256 hex digest")
     if sha256_file(output) != expected_digest:
