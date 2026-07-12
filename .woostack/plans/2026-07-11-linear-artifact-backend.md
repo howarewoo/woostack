@@ -160,27 +160,27 @@ branch: feature/linear-artifact-backend
 - Create: `skills/woostack-init/scripts/tests/fixtures/linear/project-*.json`
 - Create: `skills/woostack-init/scripts/tests/fixtures/linear/document-*.json`
 
-- [ ] **Step 1: Add failing feature discovery tests**
+- [x] **Step 1: Add failing feature discovery tests**
   Test explicit UUID, Linear URL, and repository/status discovery. Exactly one eligible managed project succeeds; zero returns not-found; multiple returns a deterministic candidate list containing UUID/title/status/URL; same titles and foreign repository markers never resolve implicitly.
 
-- [ ] **Step 2: Add failing create/resume tests**
+- [x] **Step 2: Add failing create/resume tests**
   Simulate project create, unknown mutation outcome, discovery of the created project, spec document create, document read-back, duplicate managed resources, and retry after partial completion. Assert no duplicate create mutation occurs and each successful mutation emits a receipt with observed, attempted, returned, verified, and pending fields.
 
-- [ ] **Step 3: Run resource tests red**
+- [x] **Step 3: Run resource tests red**
   Run: `bash skills/woostack-init/scripts/tests/test-linear-resources.sh`
   Expected: FAIL because `linear.sh` and operation documents do not exist.
 
-- [ ] **Step 4: Implement project/spec commands**
+- [x] **Step 4: Implement project/spec commands**
   Implement `linear.sh preflight`, `feature-resolve`, `feature-create`, `feature-transition`, `spec-read`, and `spec-write`. Call only `linear-request.sh`; use discovery-before-create; verify repository/schema markers; compare revisions before update; use canonical metadata replacement; and read back every mutation. Never accept title-only adoption.
 
-- [ ] **Step 5: Implement required lifecycle enforcement**
+- [x] **Step 5: Implement required lifecycle enforcement**
   Resolve every semantic project status uniquely and require `abandoned`. `feature-transition` permits only workflow-valid forward transitions plus explicit abandon, rejects archive/delete behavior, and includes current/target status in its receipt.
 
-- [ ] **Step 6: Run resource and transport suites**
+- [x] **Step 6: Run resource and transport suites**
   Run: `bash skills/woostack-init/scripts/tests/test-linear-resources.sh && bash skills/woostack-init/scripts/tests/test-linear-transport.sh && bash skills/woostack-init/scripts/tests/test-linear-metadata.sh`
   Expected: PASS.
 
-- [ ] **Step 7: Commit Increment 3**
+- [x] **Step 7: Commit Increment 3**
   Run: `gt create -m "feat(linear): manage feature projects and specs"`
   Expected: one PR that can preflight, create, resume, harden, approve, and abandon a Linear feature/spec without plan issues.
 

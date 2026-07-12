@@ -1,0 +1,11 @@
+{
+  "data": {
+    "documents": {
+      "nodes": [],
+      "pageInfo": {
+        "hasNextPage": true,
+        "endCursor": null
+      }
+    }
+  }
+}

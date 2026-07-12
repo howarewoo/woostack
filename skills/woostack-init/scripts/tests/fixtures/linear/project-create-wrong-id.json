@@ -1,0 +1,19 @@
+{
+  "data": {
+    "projectCreate": {
+      "success": true,
+      "project": {
+        "id": "ffffffff-ffff-4fff-8fff-ffffffffffff",
+        "name": "Feature Alpha",
+        "url": "https://linear.app/acme/project/feature-alpha-abc123",
+        "description": "+++ Woostack project metadata \u2014 managed, do not edit\n{\"repository\":\"acme/widgets\",\"schema\":1}\n+++",
+        "status": {
+          "id": "10000000-0000-4000-8000-000000000001",
+          "name": "Draft"
+        },
+        "archivedAt": null,
+        "updatedAt": "2026-07-12T10:00:00.000Z"
+      }
+    }
+  }
+}
