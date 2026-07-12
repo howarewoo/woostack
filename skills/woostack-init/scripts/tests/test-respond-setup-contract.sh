@@ -12,6 +12,5 @@ done
 assert_contains "$skill" '| `.woostack/respond/.gitkeep` | `templates/respond/.gitkeep` |' "init maps response scaffold"
 assert_contains "$memory" 'respond/evidence/' "memory layout names ignored evidence"
 assert_contains "$memory" 'Sanitized response reports remain tracked' "memory layout keeps reports tracked"
-assert_not_contains "$respond" 'woostack-defer(increment 2)' "increment 2 marker is removed"
-assert_contains "$respond" 'woostack-defer(increment 3)' "increment 3 marker remains"
+assert_not_contains "$respond" 'woostack-defer(' "all response increment markers are removed"
 finish

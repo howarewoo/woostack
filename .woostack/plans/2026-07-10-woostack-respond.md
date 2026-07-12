@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-07-10-woostack-respond.md
-status: executing
+status: in-review
 branch: feature/woostack-respond
 ---
 
@@ -693,7 +693,7 @@ provider or CI-only host capability.
 - Modify: `site/content/docs/concepts/memory.mdx`
 - Create: `skills/woostack-respond/scripts/tests/test-knowledge-contract.sh`
 
-- [ ] **Step 1: Write the failing knowledge-contract test**
+- [x] **Step 1: Write the failing knowledge-contract test**
 
   Assert dream's description, overview, gather phase, consolidate input, source-ledger prose,
   prune constraints, degradation behavior, and hard constraints all include tracked
@@ -702,13 +702,13 @@ provider or CI-only host capability.
   wisdom `source:`; and build-index still scans only `.woostack/memory/`. Assert the authored
   memory page distinguishes response decision evidence from scoped memory and raw telemetry.
 
-- [ ] **Step 2: Run the knowledge test and confirm red**
+- [x] **Step 2: Run the knowledge test and confirm red**
 
   Run: `bash skills/woostack-respond/scripts/tests/test-knowledge-contract.sh`
 
   Expected: non-zero; dream and wisdom do not know response reports.
 
-- [ ] **Step 3: Update dream without creating a second corpus convention**
+- [x] **Step 3: Update dream without creating a second corpus convention**
 
   Extend the existing tracked decision corpus from `specs/plans/fixes` to
   `specs/plans/fixes/respond`; include response paths in incremental git-log enumeration and
@@ -717,14 +717,14 @@ provider or CI-only host capability.
   provenance-only, never prune candidates. Preserve the existing gate, watermark, and memory-note
   writer ownership.
 
-- [ ] **Step 4: Update the canonical wisdom ledger and authored memory page**
+- [x] **Step 4: Update the canonical wisdom ledger and authored memory page**
 
   Add `.woostack/respond/<file>.md` to valid ledger path forms, layout, decision-corpus prose,
   non-prunable list, and lifecycle diagram. State that a single incident never establishes
   generalized wisdom and that response reports never enter `MEMORY.md`. Mirror the reader-facing
   distinction in `site/content/docs/concepts/memory.mdx` without duplicating the schema.
 
-- [ ] **Step 5: Run knowledge and recall tests**
+- [x] **Step 5: Run knowledge and recall tests**
 
   Run: `bash skills/woostack-respond/scripts/tests/test-knowledge-contract.sh`
 
@@ -734,7 +734,7 @@ provider or CI-only host capability.
 
   Expected: exit 0; response/wisdom siblings remain outside scoped memory.
 
-- [ ] **Step 6: Commit knowledge integration**
+- [x] **Step 6: Commit knowledge integration**
 
   Run: `gt create -m "feat: include response reports in dream corpus"`.
 
@@ -750,7 +750,7 @@ provider or CI-only host capability.
 - Modify: `skills/woostack-respond/SKILL.md`
 - Create: `skills/woostack-respond/scripts/tests/test-command-surface.sh`
 
-- [ ] **Step 1: Write the failing command-surface lockstep test**
+- [x] **Step 1: Write the failing command-surface lockstep test**
 
   Assert:
 
@@ -770,13 +770,13 @@ provider or CI-only host capability.
   Count lines and normalized lists, not substring occurrences, following
   `[[grep-c-counts-lines-not-occurrences]]`.
 
-- [ ] **Step 2: Run the lockstep test and confirm red**
+- [x] **Step 2: Run the lockstep test and confirm red**
 
   Run: `bash skills/woostack-respond/scripts/tests/test-command-surface.sh`
 
   Expected: non-zero; the new skill is not registered.
 
-- [ ] **Step 3: Update root and routing surfaces**
+- [x] **Step 3: Update root and routing surfaces**
 
   In `AGENTS.md`, move the registered public/adoption count twenty→twenty-one, reconcile the stale
   physical SKILL-file count twenty-two→twenty-four, list `woostack-respond`, and explicitly note
@@ -787,13 +787,13 @@ provider or CI-only host capability.
   row in `using-woostack`. Add the production-error response row to bootstrap development
   guidance. Do not rename or alias any existing command.
 
-- [ ] **Step 4: Update authored utilities and remove the final marker**
+- [x] **Step 4: Update authored utilities and remove the final marker**
 
   Add `woostack-respond` to the Investigate & present table with tracked report and gated-fix
   behavior. Remove only `woostack-defer(increment 3)` from the response skill. Do not edit the
   generated per-skill reference page.
 
-- [ ] **Step 5: Run command-surface checks**
+- [x] **Step 5: Run command-surface checks**
 
   Run: `bash skills/woostack-respond/scripts/tests/test-command-surface.sh`
 
@@ -803,7 +803,7 @@ provider or CI-only host capability.
 
   Expected: exit 0; adding a skill does not desynchronize omp host definitions.
 
-- [ ] **Step 6: Commit command registration**
+- [x] **Step 6: Commit command registration**
 
   Run: `gt modify -c -m "feat: register woostack-respond command"`.
 
@@ -814,7 +814,7 @@ provider or CI-only host capability.
 - Modify: `site/content/docs/getting-started.mdx`
 - Create: `skills/woostack-respond/scripts/tests/test-authored-docs.sh`
 
-- [ ] **Step 1: Write failing authored-doc assertions**
+- [x] **Step 1: Write failing authored-doc assertions**
 
   Assert configuration says the init template ships four top-level keys and doctor checks all
   four; the top-level settings count includes respond; complete JSON has `"respond": {}`; a
@@ -823,13 +823,13 @@ provider or CI-only host capability.
   default-no setup, `--respond`, `--no-respond`, provider-native auth, tracked reports, and ignored
   transient evidence.
 
-- [ ] **Step 2: Run docs assertions and confirm red**
+- [x] **Step 2: Run docs assertions and confirm red**
 
   Run: `bash skills/woostack-respond/scripts/tests/test-authored-docs.sh`
 
   Expected: non-zero; authored pages still describe the pre-response surface.
 
-- [ ] **Step 3: Update authored pages**
+- [x] **Step 3: Update authored pages**
 
   Add the respond namespace to the existing configuration table and complete example; document
   strict keys, 5m–30d, 1–5, provider slug behavior, prepare-fix/report-only, invocation precedence,
@@ -837,13 +837,13 @@ provider or CI-only host capability.
   getting-started. Cross-link the generated response skill reference; do not duplicate its full
   workflow.
 
-- [ ] **Step 4: Run authored-doc assertions**
+- [x] **Step 4: Run authored-doc assertions**
 
   Run: `bash skills/woostack-respond/scripts/tests/test-authored-docs.sh`
 
   Expected: `PASS: response authored docs`.
 
-- [ ] **Step 5: Commit authored documentation**
+- [x] **Step 5: Commit authored documentation**
 
   Run: `gt modify -c -m "docs: document response configuration"`.
 
@@ -853,7 +853,7 @@ provider or CI-only host capability.
 - Modify only if a failing generator contract proves necessary:
   `site/scripts/gen-skills.test.mjs`
 
-- [ ] **Step 1: Run the site generator tests**
+- [x] **Step 1: Run the site generator tests**
 
   Run: `pnpm -C site test`
 
@@ -862,14 +862,14 @@ provider or CI-only host capability.
   `gen-skills.test.mjs`, then make the smallest generator fix; never commit generated
   `site/content/docs/skills/*.mdx` output.
 
-- [ ] **Step 2: Build the authored and generated site**
+- [x] **Step 2: Build the authored and generated site**
 
   Run: `pnpm -C site build`
 
   Expected: exit 0; the generated `/docs/skills/woostack-respond` page, configuration links,
   utilities link, and MDX all resolve.
 
-- [ ] **Step 3: Smoke-install the collection into a temporary consumer**
+- [x] **Step 3: Smoke-install the collection into a temporary consumer**
 
   Run from a temporary directory outside the repository:
 
@@ -883,7 +883,7 @@ provider or CI-only host capability.
   ignored; all reference links resolve; and no application dependency/lockfile is created outside
   `site/`. Provider integrations remain optional recommendations, not install dependencies.
 
-- [ ] **Step 4: Run the complete focused response suite**
+- [x] **Step 4: Run the complete focused response suite**
 
   Run: `bash skills/woostack-respond/scripts/tests/run-tests.sh`
 
@@ -897,7 +897,7 @@ provider or CI-only host capability.
 
   Expected: all doctor tests pass.
 
-- [ ] **Step 5: Commit any test-only generator correction, if required**
+- [x] **Step 5: Commit any test-only generator correction, if required**
 
   If Step 1 required a real generator fix, run:
   `gt modify -c -m "fix: generate response skill reference"`.

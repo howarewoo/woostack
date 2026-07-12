@@ -6,10 +6,10 @@ description: Every key in the .woostack/config.json file, what it tunes, its typ
 woostack reads optional settings from `.woostack/config.json` at the repository root.
 [woostack-init](/docs/skills/woostack-init) creates the file, and every key is optional: when a
 key is absent, the skill that reads it falls back to a built-in default. The init template
-ships three top-level keys: `models`, `review`, and `status`.
-[woostack-doctor](/docs/skills/woostack-doctor) checks that all three are present.
+ships four top-level keys: `models`, `review`, `respond`, and `status`.
+[woostack-doctor](/docs/skills/woostack-doctor) checks that all four are present and validates response metadata without querying a provider.
 
-There are seven top-level settings:
+There are eight top-level settings:
 
 | Setting | Read by | Tunes |
 | --- | --- | --- |
@@ -18,6 +18,7 @@ There are seven top-level settings:
 | `audit` | [woostack-audit](/docs/skills/woostack-audit) | standing-code audit angles, filtering, chunking, and output |
 | `review_sweep` | [woostack-sweep](/docs/skills/woostack-sweep) | how many review rounds a stack sweep runs |
 | `commit` | [woostack-commit](/docs/skills/woostack-commit) | a pre-commit hook command |
+| `respond` | [woostack-respond](/docs/skills/woostack-respond) | bounded production-error discovery and remediation defaults |
 | `status` | [woostack-status](/docs/skills/woostack-status) | when the board flags a spec as stale |
 | `base_branch` | [woostack-init](/docs/skills/woostack-init) | the trunk branch for PRs and worktrees |
 
@@ -61,10 +62,31 @@ explained in the sections below.
   },
   "review_sweep": { "max_rounds": 3 },
   "commit": { "pre_commit": "pnpm format && pnpm test" },
+  "respond": {},
   "status": { "staleDays": 14 },
   "base_branch": "main"
 }
 ```
+
+## Response
+
+All response defaults nest under `respond`. The namespace is strict: unknown keys and invalid
+types fail preflight. An absent namespace or key uses the built-in default.
+
+| Key | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `respond.provider` | string provider slug | `"auto"` | Prefer an explicit host-provided integration; `auto` discovers repository evidence and available host capabilities. It is not a fixed allowlist. |
+| `respond.environment` | string | `"production"` | Provider environment to query unless the command overrides it. |
+| `respond.window` | duration | `"24h"` | Bounded lookback from 5 minutes through 30 days. |
+| `respond.max_groups` | integer | `5` | Independent high-impact groups to investigate, from 1 through 5. |
+| `respond.remediation` | enum | `"prepare-fix"` | `prepare-fix` may create separate gated fix plans for verified repository defects; `report-only` suppresses every fix handoff. |
+
+Explicit command arguments take precedence over `.woostack/config.json`, which takes precedence
+over repository/provider discovery, then built-in defaults. `--read-only` and
+`--stop-after report` override remediation to `report-only`. Provider credentials, DSNs, tokens,
+cookies, and API keys never belong in this file; authentication remains in the provider-native
+integration. A configured provider is only a preference—[woostack-respond](/docs/skills/woostack-respond)
+still requires an available authenticated host integration and a valid acquisition receipt.
 
 ## Review engine
 
@@ -288,10 +310,10 @@ worktrees are cut from.
 ## Defaults and doctor
 
 <Callout type="info">
-  Every key is optional. The init template ships `models`, `review`, and `status`; everything else
-  takes its built-in default when absent. [woostack-doctor](/docs/skills/woostack-doctor)
-  validates the three scaffolded keys and can repair a missing one. Each owning skill validates
-  its settings when it runs.
+  Every key is optional. The init template ships `models`, `review`, `respond`, and `status`;
+  everything else takes its built-in default when absent.
+  [woostack-doctor](/docs/skills/woostack-doctor) validates the four scaffolded keys and can repair
+  a missing one. Each owning skill validates its settings when it runs.
 </Callout>
 
 ## Where to go next

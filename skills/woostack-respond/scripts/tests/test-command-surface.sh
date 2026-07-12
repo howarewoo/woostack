@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$HERE/assert.sh"
+ROOT="$(cd "$HERE/../../../.." && pwd)"
+agents="$(cat "$ROOT/AGENTS.md")"; readme="$(cat "$ROOT/README.md")"; contributing="$(cat "$ROOT/CONTRIBUTING.md")"; routing="$(cat "$ROOT/skills/using-woostack/SKILL.md")"; dev="$(cat "$ROOT/skills/woostack-bootstrap/references/development.md")"; utilities="$(cat "$ROOT/site/content/docs/concepts/utilities.mdx")"; respond="$(cat "$ROOT/skills/woostack-respond/SKILL.md")"
+assert_contains "$agents" 'twenty-one skills' "registered count updated"
+assert_contains "$agents" 'twenty-four `SKILL.md` files' "physical count updated"
+assert_contains "$agents" 'unregistered `woostack-ask`' "ask exception documented"
+assert_contains "$agents" '[`woostack-respond`](skills/woostack-respond/SKILL.md)' "public list registers response"
+assert_contains "$agents" '`/woostack-respond`' "mode trigger registers response"
+assert_contains "$agents" 'Production-error response engine' "quick map registers response"
+assert_contains "$readme" '[/woostack-respond](skills/woostack-respond/SKILL.md)' "README links response"
+assert_contains "$contributing" 'Change production-error response' "contributor pointer added"
+assert_contains "$contributing" '`woostack-audit`, and `woostack-respond`' "contributor public list registers response"
+assert_eq "$(grep -c '^| `/woostack-respond ' "$ROOT/skills/using-woostack/SKILL.md")" "1" "one routing row"
+assert_contains "$dev" 'bounded production errors' "bootstrap development registers response"
+assert_contains "$utilities" '/docs/skills/woostack-respond' "utilities links response"
+assert_contains "$utilities" 'explicitly authorized operational context' "utilities do not imply response is CI-safe"
+assert_eq "$(for f in "$ROOT"/skills/*/SKILL.md; do [ -f "$f" ] && echo x; done | wc -l | tr -d ' ')" "24" "physical skill count"
+assert_not_contains "$respond" 'woostack-defer(increment 3)' "final marker removed"
+finish

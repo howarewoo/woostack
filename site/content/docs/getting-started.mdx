@@ -36,6 +36,18 @@ pnpx skills add howarewoo/woostack
 Run this **before any other woostack skill**. It sets up the `.woostack/` workspace, default
 config, and gitignores.
 
+### Optional production-error response setup
+
+Interactive init offers `Set up production error response? [y/N]` and defaults to no.
+Use `/woostack-init --respond` to run the non-secret discovery directly, or
+`/woostack-init --no-respond` to suppress it. Discovery can identify instrumentation and
+host-provided integrations, but authentication stays in the provider-native CLI, MCP server, or
+skill; init never requests credentials or queries production.
+
+When configured, [woostack-respond](/docs/skills/woostack-respond) writes reviewed, sanitized
+reports under `.woostack/respond/`. Raw provider evidence is transient and ignored under
+`.woostack/respond/evidence/`.
+
 ## 3. Integrate
 
 Add the `using-woostack` routing block to your repository's agent instructions
