@@ -15,8 +15,13 @@
 # OpenAI `reasoning_effort` is a single-session-host knob owned by load-prompt.sh.
 #
 # Usage: resolve-model.sh --provider <anthropic|openai|google|openrouter> \
-#                         --tier <fast|standard|deep>
+#                         --tier <fast|standard|deep> [--index <n>]
 # Reads $OUTDIR/config.json when present (CONFIG_PATH overrides the path).
+# --index N resolves the Nth entry of the winning models.<tier> fallback list
+#   (N=0 = the primary, unchanged). No entry at N (out of range, or a scalar/
+#   object leaf with no fallback beyond 0) exits 3 with no output, so the review
+#   orchestrator can walk the configured chain on a usage/rate-limit re-dispatch
+#   and tell "chain exhausted" (exit 3) from a usage error (exit 1) (issue #494).
 # Safe to `source` for its functions — main only runs on direct execution.
 
 set -euo pipefail
@@ -82,8 +87,31 @@ provider_tier_model() {
   default_model_for "$provider" "$tier"
 }
 
+# fallback_model_at <provider> <tier> <index> → model at the Nth entry of the
+# *winning* models.<tier> leaf (the same provider-scoped-then-flat leaf that
+# provider_tier_model resolves entry 0 from), for orchestrator re-dispatch onto
+# a configured fallback (issue #494). Emits nothing when that leaf has no entry
+# at <index> (out of range, or a scalar/object leaf with no fallback beyond 0);
+# the caller treats empty output as "chain exhausted". Reads CONFIG_PATH,
+# defaulting to $OUTDIR/config.json.
+fallback_model_at() {
+  local provider="$1" tier="$2" index="$3"
+  local config="${CONFIG_PATH:-${OUTDIR:-}/config.json}"
+  [ -n "$config" ] && [ -f "$config" ] || return 0
+  # Pick the winning leaf by entry 0 (provider-scoped preferred, then flat), then
+  # index into *that* leaf so fallback entries never mix across leaves.
+  jq -r --arg p "$provider" --arg t "$tier" --argjson i "$index" '
+    def prim(v): (v | if type=="array" then .[0]  else .                       end | if type=="object" then .model else . end);
+    def at(v):   (v | if type=="array" then .[$i] else (if $i==0 then . else null end) end | if type=="object" then .model else . end);
+    (.models[$p][$t]) as $ps
+    | (.models[$t]) as $fl
+    | (if (prim($ps)) != null then $ps elif (prim($fl)) != null then $fl else null end) as $w
+    | if $w == null then empty else (at($w) // empty) end
+  ' "$config" 2>/dev/null || true
+}
+
 main() {
-  local provider="" tier=""
+  local provider="" tier="" index="0"
   while [ "$#" -gt 0 ]; do
     case "$1" in
       --provider)
@@ -92,8 +120,11 @@ main() {
       --tier)
         [ "$#" -ge 2 ] || { echo "::error::--tier requires a value" >&2; exit 1; }
         tier="$2"; shift 2 ;;
+      --index)
+        [ "$#" -ge 2 ] || { echo "::error::--index requires a value" >&2; exit 1; }
+        index="$2"; shift 2 ;;
       -h|--help)
-        grep -E '^# (Usage|Reads)' "${BASH_SOURCE[0]:-$0}" | sed 's/^# //'
+        grep -E '^# (Usage|Reads|--index)' "${BASH_SOURCE[0]:-$0}" | sed 's/^# //'
         exit 0 ;;
       *)
         echo "::error::unknown argument: $1" >&2
@@ -115,6 +146,13 @@ main() {
       exit 1 ;;
   esac
 
+  # --index must be a non-negative integer; 0 is the primary, N≥1 walks the chain.
+  case "$index" in
+    ''|*[!0-9]*)
+      echo "::error::--index must be a non-negative integer (got '$index')" >&2
+      exit 1 ;;
+  esac
+
   # Resolve OUTDIR for local runs (same path convention as the rest of the swarm).
   if [ -z "${OUTDIR:-}" ]; then
     # shellcheck source=skills/woostack-review/scripts/resolve-outdir.sh
@@ -122,7 +160,18 @@ main() {
   fi
   : "${CONFIG_PATH:=${OUTDIR}/config.json}"
 
-  provider_tier_model "$provider" "$tier"
+  if [ "$index" -eq 0 ]; then
+    provider_tier_model "$provider" "$tier"
+  else
+    local fb
+    fb="$(fallback_model_at "$provider" "$tier" "$index")"
+    if [ -n "$fb" ]; then
+      echo "$fb"
+    else
+      echo "::notice::no configured fallback at --index $index for $provider/$tier; chain exhausted" >&2
+      exit 3
+    fi
+  fi
 }
 
 # Dual-mode: run main only on direct execution; a `source` (e.g. load-prompt.sh)

@@ -98,4 +98,15 @@ for prompt in anthropic openai opencode; do
     "fallback routing: $prompt selects entry 0"
 done
 
+# (f) issue #494: omp documents the concurrent-spawn-burst limitation + orchestrator recovery,
+# and review/sweep carry the fallback re-dispatch contract.
+assert_contains "$omp" "Concurrent-spawn burst" "reconcile: omp documents native-enactment burst limitation"
+assert_contains "$omp" "re-dispatches each usage/rate-limited worker" "reconcile: omp documents orchestrator re-dispatch recovery"
+assert_contains "$omp" "resolve-model.sh --index" "reconcile: omp names the fallback resolver"
+assert_contains "$review_skill" "concurrent-spawn burst" "re-dispatch: review names the burst condition"
+assert_contains "$review_skill" "resolve-model.sh --provider <p> --tier <t> --index N" "re-dispatch: review pins the next configured entry via resolver"
+assert_contains "$review_skill" "walking the configured fallback chain" "re-dispatch: review walks the chain before the receipt gate"
+sweep_skill="$(cat "$S/woostack-sweep/SKILL.md")"
+assert_contains "$sweep_skill" "usage-limit swarm failure is" "re-dispatch: sweep clarifies usage-limit is not an immediate blocker"
+
 finish
