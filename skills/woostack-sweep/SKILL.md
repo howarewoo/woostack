@@ -121,6 +121,13 @@ not run — never substitute a self/structural review)**, a restack/rebase confl
 `address-comments` step that would touch the never-auto-approve set (destructive / secret / auth /
 network / ambiguous). Safety is never relaxed for autonomy.
 
+A usage-limit swarm failure is **not** an immediate blocker: `woostack-review`'s Stage 3
+re-dispatches each `usage_limit_reached` / `rate_limit_error` worker onto the next configured
+`models.<tier>` entry and walks that chain before its receipt gate fails. A missing HEAD
+receipt therefore blocks a PR only once the configured fallback chain is **exhausted** — not
+merely because the primary tier hit its usage limit. (Sweep delegates the loop to review; this
+is review's mechanism, surfaced here.)
+
 **Standalone:** on a blocker, **stop** at that PR, **leave its worktree** for inspection, and print
 a "Needs you" summary — the blocked PR + reason, plus any `done-with-findings` PRs with their open
 nits, and any no-PR branches skipped. PRs swept clean below it stay clean (no rollback). **No

@@ -57,6 +57,18 @@ riding its selector as `:level`). Still zero host-config writes: the chain lives
 already generated, gitignored defs. Note omp's config-level `retry.fallbackChains` is keyed
 by model **role**, never model slug — do not hand-write slug-keyed chains.
 
+**Concurrent-spawn burst (native enactment can fail to engage).** When review fans out its
+angle workers at once and every sibling hits the Codex primary's usage limit simultaneously,
+omp's store-level credential cooldown can collapse the whole `models.<tier>` chain before any
+worker rotates onto a fallback entry — so all siblings exit `usage_limit_reached` with no
+receipt even though a usable fallback is configured. This is an omp-side limitation this repo
+cannot fix. The resilient recovery is host-agnostic and lives in the review orchestrator: it
+re-dispatches each usage/rate-limited worker pinned to the next configured `models.<tier>`
+entry (resolved with `resolve-model.sh --index`, via the eval `agent(model=<slug>)` pin) and
+walks the chain before its receipt gate fails (see `skills/woostack-review/SKILL.md` Stage 3).
+A cross-provider fallback receipt (e.g. Anthropic under a Codex primary) validates cleanly
+because the receipt's codex model-check fires only for codex-runner receipts.
+
 ## Per-skill notes
 
 - **woostack-init (scaffold):** after writing `.woostack/config.json` (or when it already
@@ -70,12 +82,18 @@ by model **role**, never model slug — do not hand-write slug-keyed chains.
   `load-prompt.sh` / `resolve-model.sh` path is unchanged. If a worker hits a usage limit,
   omp recovers inside the worker (rotation/fallback) and the worker finishes on the fallback
   model — receipt `model` stays the configured slug while the transcript records the concrete
-  model. An unrecovered worker writes no execution receipt, so review's receipt gate
-  hard-fails the run — no silently thinner review.
-- **woostack-execute-overnight (preflight advisory):** check usage-exhaustion resilience — a
-  second provider login or `retry.fallbackChains` covering the tier models — before an
-  unattended run; without it, mid-run exhaustion halts the track through the normal blocker
-  path (recommendation, not a refusal condition).
+  model. If native recovery fails to engage — e.g. a concurrent-spawn burst collapses the
+  chain (see Host-level fallback above) — the review orchestrator re-dispatches the worker on
+  the next configured `models.<tier>` entry before its receipt gate runs; only a worker still
+  without a receipt after the configured fallback chain is exhausted hard-fails the run — no
+  silently thinner review.
+- **woostack-execute-overnight (preflight advisory):** an unattended run now relies on a
+  configured cross-provider `models.<tier>` fallback so the review swarm can auto-recover from
+  primary usage-exhaustion (a concurrent-spawn burst can defeat omp's native chain); strongly
+  check that resilience — a second provider login or `retry.fallbackChains` covering the tier
+  models, and at least one configured cross-provider fallback entry — before an unattended run.
+  Without it, a burst that exhausts the primary tier halts the track through the normal blocker
+  path. This remains a strong recommendation, not a refusal condition.
 
 ## Degradation
 
