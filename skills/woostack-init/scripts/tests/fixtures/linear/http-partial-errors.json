@@ -1,0 +1,6 @@
+{
+  "data": {"viewer": {"id": "viewer-1"}},
+  "errors": [
+    {"message": "team lookup failed"}
+  ]
+}
