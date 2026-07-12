@@ -93,7 +93,7 @@ assert_invalid invalid-remediation '{"respond":{"remediation":"fix-now"}}' remed
 assert_invalid wrong-remediation-type '{"respond":{"remediation":false}}' remediation
 assert_invalid malformed-json '{"respond":' respond
 
-for key in token api_key password cookie authorization mutation_authority; do
+for key in token api_key password cookie authorization mutation_authority credential secret; do
   assert_invalid "credential-$key" "{\"respond\":{\"$key\":\"secret\",\"provider\":7}}" "$key"
 done
 

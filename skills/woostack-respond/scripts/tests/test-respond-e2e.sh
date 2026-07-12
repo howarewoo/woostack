@@ -316,8 +316,10 @@ PY
 [ -f "$skill" ] || fail "woostack-respond skill exists"
 skill_text=$(cat "$skill")
 assert_contains "$skill_text" '/woostack-respond <signal> [scope]' 'command contract is explicit'
-assert_contains "$skill_text" 'NO VALID OUTPUT-BOUND RECEIPT → NO CLEAN RESULT' 'false-clean gate is load-bearing'
-assert_contains "$skill_text" 'NO VERIFIED ROOT CAUSE        → NO FIX PLAN' 'verification gates remediation'
+assert_contains "$skill_text" 'NO VALID OUTPUT-BOUND RECEIPT' 'false-clean gate names the receipt precondition'
+assert_contains "$skill_text" 'NO CLEAN RESULT' 'false-clean gate names the blocked outcome'
+assert_contains "$skill_text" 'NO VERIFIED ROOT CAUSE' 'remediation gate names the root-cause precondition'
+assert_contains "$skill_text" 'NO FIX PLAN' 'remediation gate names the blocked outcome'
 assert_contains "$skill_text" 'NO PROVIDER OR PRODUCTION MUTATION' 'provider and production remain read-only'
 assert_contains "$skill_text" 'NO RAW TELEMETRY IN TRACKED OR REMOTE WRITES' 'tracked and remote writes share privacy boundary'
 assert_contains "$skill_text" 'woostack-debug' 'existing debugger doctrine is delegated'

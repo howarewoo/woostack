@@ -159,9 +159,13 @@ def redact_phones(value: str) -> str:
     return PHONE_CANDIDATE_RE.sub(lambda match: PHONE if phone_span(match.group(0)) else match.group(0), value)
 
 
-def _last_token(key: str) -> str:
+def _tokens(key: str) -> list[str]:
     spaced = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", "_", key)
-    parts = [part for part in re.split(r"[^A-Za-z0-9]+", spaced) if part]
+    return [part for part in re.split(r"[^A-Za-z0-9]+", spaced) if part]
+
+
+def _last_token(key: str) -> str:
+    parts = _tokens(key)
     return parts[-1].lower() if parts else ""
 
 
@@ -179,9 +183,8 @@ def _is_credential_key(norm: str, last: str) -> bool:
 
 def _metric_stripped(key: str) -> str:
     """Key with trailing metric tokens dropped, so a credential stem like
-    `api_key_count` reduces to `api_key` for credential classification."""
-    spaced = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", "_", key)
-    parts = [part for part in re.split(r"[^A-Za-z0-9]+", spaced) if part]
+    `api_key_count` reduces to `apikey` for credential classification."""
+    parts = _tokens(key)
     while len(parts) > 1 and parts[-1].lower() in METRIC_KEY_TOKENS:
         parts.pop()
     return "".join(parts)

@@ -65,6 +65,10 @@ data = json.loads(source.read_text())
 data["verified_root_causes"][0]["evidence"] = ["Authorization: Bearer synthetic-secret-token"]
 (out / "token.json").write_text(json.dumps(data))
 data = json.loads(source.read_text())
+data["signal"] = "東京"
+data["scope"] = "!!!"
+(out / "empty-slug.json").write_text(json.dumps(data))
+data = json.loads(source.read_text())
 data["investigation_bound"] = 6
 (out / "bound-high.json").write_text(json.dumps(data))
 data = json.loads(source.read_text())
@@ -110,6 +114,7 @@ before=$(find "$reports" -type f | wc -l | tr -d ' ')
 if render "$tmp/unknown.json" >/dev/null 2>&1; then fail "unknown top-level field accepted"; fi
 if render "$tmp/false-complete.json" >/dev/null 2>&1; then fail "false complete accepted"; fi
 if render "$tmp/token.json" >/dev/null 2>&1; then fail "bearer token accepted"; fi
+if render "$tmp/empty-slug.json" >/dev/null 2>&1; then fail "empty report slug accepted"; fi
 if render "$tmp/bound-high.json" >/dev/null 2>&1; then fail "investigation_bound above five accepted"; fi
 if render "$tmp/bound-low.json" >/dev/null 2>&1; then fail "investigated groups exceeding bound accepted"; fi
 if render "$tmp/duplicate-investigation.json" >/dev/null 2>&1; then fail "duplicate investigation id accepted"; fi
