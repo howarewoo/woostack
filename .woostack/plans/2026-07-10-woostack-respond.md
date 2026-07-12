@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-07-10-woostack-respond.md
-status: ready
+status: executing
 branch: feature/woostack-respond
 ---
 
@@ -54,7 +54,7 @@ provider or CI-only host capability.
 - Create: `skills/woostack-respond/scripts/tests/assert.sh`
 - Create: `skills/woostack-respond/scripts/tests/test-contracts.sh`
 
-- [ ] **Step 1: Write the failing structural contract test**
+- [x] **Step 1: Write the failing structural contract test**
 
   Create `test-contracts.sh` using the existing `woostack-init/scripts/tests/assert.sh` pattern.
   It must assert exact invariant markers rather than loose word presence:
@@ -76,13 +76,13 @@ provider or CI-only host capability.
   assert_contains "$template" '## Uncovered and Blocked Evidence' 'partial coverage is explicit'
   ```
 
-- [ ] **Step 2: Run the test and confirm red**
+- [x] **Step 2: Run the test and confirm red**
 
   Run: `bash skills/woostack-respond/scripts/tests/test-contracts.sh`
 
   Expected: non-zero; the three reference files do not exist.
 
-- [ ] **Step 3: Author `provider-discovery.md`**
+- [x] **Step 3: Author `provider-discovery.md`**
 
   Define one ordered resolver:
 
@@ -98,7 +98,7 @@ provider or CI-only host capability.
   and the prohibition on provider web-dashboard automation. Include examples for Sentry, Datadog,
   Axiom, Honeycomb, OpenTelemetry, and deployment metadata without treating the list as exhaustive.
 
-- [ ] **Step 4: Author `evidence-contract.md`**
+- [x] **Step 4: Author `evidence-contract.md`**
 
   Define the provider-neutral JSON envelopes used by all scripts:
 
@@ -124,7 +124,7 @@ provider or CI-only host capability.
   no verified root cause                             = no fix candidate
   ```
 
-- [ ] **Step 5: Author `report-template.md`**
+- [x] **Step 5: Author `report-template.md`**
 
   Provide `type: response`, `outcome: complete|partial|blocked`, provider/environment/window/date,
   then fixed sections for Response & Scope, Query Coverage, Ranked Error Queue, Impact Summary,
@@ -132,13 +132,13 @@ provider or CI-only host capability.
   Observability Gaps, Remediation, and Uncovered and Blocked Evidence. Include no raw-payload
   section and no lifecycle `status:` key.
 
-- [ ] **Step 6: Run the contract test and confirm green**
+- [x] **Step 6: Run the contract test and confirm green**
 
   Run: `bash skills/woostack-respond/scripts/tests/test-contracts.sh`
 
   Expected: `PASS: response contracts`
 
-- [ ] **Step 7: Commit the contract task**
+- [x] **Step 7: Commit the contract task**
 
   Run: `gt create -m "feat: define response evidence contracts"` for the increment's first commit.
 
@@ -148,7 +148,7 @@ provider or CI-only host capability.
 - Create: `skills/woostack-respond/scripts/load-respond-config.sh`
 - Create: `skills/woostack-respond/scripts/tests/test-load-respond-config.sh`
 
-- [ ] **Step 1: Write failing config fixtures**
+- [x] **Step 1: Write failing config fixtures**
 
   The shell test creates temporary `.woostack/config.json` fixtures and invokes:
 
@@ -168,13 +168,13 @@ provider or CI-only host capability.
   keys including `token`, `api_key`, `password`, `cookie`, `authorization`, and
   `mutation_authority`. Invalid fixtures must exit non-zero and name the exact offending key.
 
-- [ ] **Step 2: Run the config test and confirm red**
+- [x] **Step 2: Run the config test and confirm red**
 
   Run: `bash skills/woostack-respond/scripts/tests/test-load-respond-config.sh`
 
   Expected: non-zero; `load-respond-config.sh` is missing.
 
-- [ ] **Step 3: Implement the loader with Bash plus Python standard library**
+- [x] **Step 3: Implement the loader with Bash plus Python standard library**
 
   The public shell interface accepts zero or one config path (default `.woostack/config.json`),
   runs an inline `python3` validator, treats a missing file/respond block as `{}`, rejects booleans
@@ -188,7 +188,7 @@ provider or CI-only host capability.
 
   No provider authentication or network request occurs here.
 
-- [ ] **Step 4: Run config tests and syntax checks**
+- [x] **Step 4: Run config tests and syntax checks**
 
   Run: `bash skills/woostack-respond/scripts/tests/test-load-respond-config.sh`
 
@@ -198,7 +198,7 @@ provider or CI-only host capability.
 
   Expected: exit 0.
 
-- [ ] **Step 5: Commit the config task**
+- [x] **Step 5: Commit the config task**
 
   Run: `gt modify -c -m "feat: validate response configuration"`.
 
@@ -208,7 +208,7 @@ provider or CI-only host capability.
 - Create: `skills/woostack-respond/scripts/validate-receipt.py`
 - Create: `skills/woostack-respond/scripts/tests/test-validate-receipt.sh`
 
-- [ ] **Step 1: Write failing receipt fixtures**
+- [x] **Step 1: Write failing receipt fixtures**
 
   Invoke:
 
@@ -230,13 +230,13 @@ provider or CI-only host capability.
   stale receipt whose scope differs from the expected current request, and a blocked role
   represented as an executed receipt.
 
-- [ ] **Step 2: Run receipt tests and confirm red**
+- [x] **Step 2: Run receipt tests and confirm red**
 
   Run: `bash skills/woostack-respond/scripts/tests/test-validate-receipt.sh`
 
   Expected: non-zero; validator is missing.
 
-- [ ] **Step 3: Implement the standard-library validator**
+- [x] **Step 3: Implement the standard-library validator**
 
   Use `argparse`, `json`, `hashlib`, `pathlib`, and `datetime`. Resolve the run directory and every
   output-path component; reject a symlink anywhere below the run directory, require the fully
@@ -247,7 +247,7 @@ provider or CI-only host capability.
   on success. Every failure exits non-zero with one actionable stderr line and no normalized
   receipt on stdout.
 
-- [ ] **Step 4: Run receipt tests and Python compilation**
+- [x] **Step 4: Run receipt tests and Python compilation**
 
   Run: `bash skills/woostack-respond/scripts/tests/test-validate-receipt.sh`
 
@@ -257,7 +257,7 @@ provider or CI-only host capability.
 
   Expected: exit 0.
 
-- [ ] **Step 5: Commit the receipt task**
+- [x] **Step 5: Commit the receipt task**
 
   Run: `gt modify -c -m "feat: bind response receipts to evidence"`.
 
@@ -269,7 +269,7 @@ provider or CI-only host capability.
 - Create: `skills/woostack-respond/scripts/tests/fixtures/sensitive-input.json`
 - Create: `skills/woostack-respond/scripts/tests/fixtures/sanitized-expected.json`
 
-- [ ] **Step 1: Write the failing sanitizer test and synthetic fixture**
+- [x] **Step 1: Write the failing sanitizer test and synthetic fixture**
 
   Invoke:
 
@@ -288,13 +288,13 @@ provider or CI-only host capability.
   Add residual-validation fixtures for credential-like keys and secret-shaped values the first
   pass intentionally cannot classify; they must fail without replacing an existing output.
 
-- [ ] **Step 2: Run sanitizer tests and confirm red**
+- [x] **Step 2: Run sanitizer tests and confirm red**
 
   Run: `bash skills/woostack-respond/scripts/tests/test-sanitize-telemetry.sh`
 
   Expected: non-zero; sanitizer is missing.
 
-- [ ] **Step 3: Implement recursive redaction and atomic validation**
+- [x] **Step 3: Implement recursive redaction and atomic validation**
 
   Use Python standard-library JSON traversal. Redact by normalized key classes before value
   patterns; redact body/user objects wholesale; replace home prefixes without erasing source
@@ -303,7 +303,7 @@ provider or CI-only host capability.
   structure, then `os.replace` only on success. On failure, remove the temporary file and leave the
   destination unchanged.
 
-- [ ] **Step 4: Prove report and fix-handoff boundaries**
+- [x] **Step 4: Prove report and fix-handoff boundaries**
 
   Add a second invocation mode:
 
@@ -317,7 +317,7 @@ provider or CI-only host capability.
   rendered report Markdown, and synthetic `woostack-fix` handoff packets, proving tracked and
   remote paths share the same boundary.
 
-- [ ] **Step 5: Run sanitizer tests and Python compilation**
+- [x] **Step 5: Run sanitizer tests and Python compilation**
 
   Run: `bash skills/woostack-respond/scripts/tests/test-sanitize-telemetry.sh`
 
@@ -327,7 +327,7 @@ provider or CI-only host capability.
 
   Expected: exit 0.
 
-- [ ] **Step 6: Commit the sanitizer task**
+- [x] **Step 6: Commit the sanitizer task**
 
   Run: `gt modify -c -m "feat: sanitize response telemetry"`.
 
@@ -340,7 +340,7 @@ provider or CI-only host capability.
 - Create: `skills/woostack-respond/scripts/tests/fixtures/report-partial.json`
 - Create: `skills/woostack-respond/scripts/tests/fixtures/report-blocked.json`
 
-- [ ] **Step 1: Write failing renderer fixtures**
+- [x] **Step 1: Write failing renderer fixtures**
 
   Invoke:
 
@@ -357,13 +357,13 @@ provider or CI-only host capability.
   collision suffixes `-2`, `-3` without overwrite. Add an unsanitized fixture containing a
   synthetic bearer token; rendering must exit non-zero and create no report.
 
-- [ ] **Step 2: Run renderer tests and confirm red**
+- [x] **Step 2: Run renderer tests and confirm red**
 
   Run: `bash skills/woostack-respond/scripts/tests/test-render-report.sh`
 
   Expected: non-zero; renderer is missing.
 
-- [ ] **Step 3: Implement strict rendering**
+- [x] **Step 3: Implement strict rendering**
 
   Validate `outcome` against `complete|partial|blocked`, require query coverage appropriate to the
   outcome, refuse `complete` when any expected provider role is blocked, sort provider receipts
@@ -374,7 +374,7 @@ provider or CI-only host capability.
   file and leaves the destination absent or unchanged. Reject unknown top-level fields that could
   bypass named sections. Print only the resulting report path on stdout.
 
-- [ ] **Step 4: Run renderer tests and Python compilation**
+- [x] **Step 4: Run renderer tests and Python compilation**
 
   Run: `bash skills/woostack-respond/scripts/tests/test-render-report.sh`
 
@@ -384,7 +384,7 @@ provider or CI-only host capability.
 
   Expected: exit 0.
 
-- [ ] **Step 5: Commit the renderer task**
+- [x] **Step 5: Commit the renderer task**
 
   Run: `gt modify -c -m "feat: render response reports"`.
 
@@ -396,7 +396,7 @@ provider or CI-only host capability.
 - Create: `skills/woostack-respond/scripts/tests/fixtures/e2e-provider-output.json`
 - Create: `skills/woostack-respond/scripts/tests/run-tests.sh`
 
-- [ ] **Step 1: Write the failing end-to-end contract test**
+- [x] **Step 1: Write the failing end-to-end contract test**
 
   The fixture represents a fake host integration with one successful receipt and six candidate
   groups: two duplicate manifestations, one external provider outage, two verified independent
@@ -423,13 +423,13 @@ provider or CI-only host capability.
   and production mutation requests, sanitizes both report and fix handoff, and stops fix flows at
   their existing approval gates.
 
-- [ ] **Step 2: Run the aggregate tests and confirm red**
+- [x] **Step 2: Run the aggregate tests and confirm red**
 
   Run: `bash skills/woostack-respond/scripts/tests/run-tests.sh`
 
   Expected: non-zero; `SKILL.md` and the e2e test contract are incomplete.
 
-- [ ] **Step 3: Author `SKILL.md` command and scope resolution**
+- [x] **Step 3: Author `SKILL.md` command and scope resolution**
 
   Frontmatter:
 
@@ -445,7 +445,7 @@ provider or CI-only host capability.
   config → detection → built-ins; exact scope/window preflight announcement; candidate count after
   metadata acquisition; and the 5m–30d/1–5 bounds.
 
-- [ ] **Step 4: Author provider/evidence phases and hard gates**
+- [x] **Step 4: Author provider/evidence phases and hard gates**
 
   Link the provider and evidence references. Require provider role/target/window resolution,
   authentication/read preflight, ignored evidence-path proof via the repository ignore engine,
@@ -460,7 +460,7 @@ provider or CI-only host capability.
   NO RAW TELEMETRY IN TRACKED OR REMOTE WRITES
   ```
 
-- [ ] **Step 5: Author ranking, investigation, report, and remediation phases**
+- [x] **Step 5: Author ranking, investigation, report, and remediation phases**
 
   Rank by production/data-integrity impact, affected users/requests, severity,
   frequency/acceleration, regression/release evidence, recurrence, and local-code confidence.
@@ -471,7 +471,7 @@ provider or CI-only host capability.
   `woostack-fix` flows. Report-only controls do not dispatch. Overlap consolidates/serializes.
   Material observability gaps become exact `/woostack-build` recommendations only.
 
-- [ ] **Step 6: Author failure, cleanup, and terminal handback behavior**
+- [x] **Step 6: Author failure, cleanup, and terminal handback behavior**
 
   Cover absent workspace (conversation-only; no directories), no provider, unavailable
   integration, missing auth, target mismatch, partial provider failure, zero groups, >5 groups,
@@ -481,7 +481,7 @@ provider or CI-only host capability.
   Terminal output names coverage, outcome, report path, fix PRs/gates, observability
   recommendations, and blocked/deferred groups.
 
-- [ ] **Step 7: Add deferral markers**
+- [x] **Step 7: Add deferral markers**
 
   Place two literal markers after the overview:
 
@@ -493,7 +493,7 @@ provider or CI-only host capability.
   Neither marker defers a safety property: built-in defaults, evidence-path proof, sanitizer,
   receipts, and read-only authority are already complete in this increment.
 
-- [ ] **Step 8: Run all focused core tests**
+- [x] **Step 8: Run all focused core tests**
 
   `run-tests.sh` follows the repository's existing `for t in test-*.sh` discovery convention, so
   tests added by later increments run automatically without editing the runner.
@@ -510,7 +510,7 @@ provider or CI-only host capability.
 
   Expected: exit 0.
 
-- [ ] **Step 9: Commit the orchestration task**
+- [x] **Step 9: Commit the orchestration task**
 
   Run: `gt modify -c -m "feat: add production error response skill"`.
 
