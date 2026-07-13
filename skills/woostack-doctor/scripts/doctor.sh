@@ -33,21 +33,28 @@ export WOOSTACK_DOCTOR_LIVE_CONTEXT="$live_context"
 
 # Authenticate exactly once, before checks. The receipt contains normalized, non-secret
 # backend/preflight data for every live-aware check; checks never repeat preflight.
-if [ "$LIVE" -eq 1 ] && backend="$(bash "$RESOLVER" "$WOO_ROOT" 2>/dev/null)" &&
-  [ "$(jq -r '.backend' <<<"$backend")" = linear ]; then
-  if [ ! -f "$LINEAR" ] || [ ! -r "$LINEAR" ]; then
+if [ "$LIVE" -eq 1 ]; then
+  if ! command -v jq >/dev/null 2>&1; then
     printf '%s\t%s\t%s\t%s\t%s\n' error linear-live report ".woostack/config.json" \
-      "normalized Linear adapter is unavailable" >>"$findings"
-  elif live_config="$(bash "$LINEAR" preflight \
-    --workspace "$(jq -r '.linear.workspace' <<<"$backend")" \
-    --team "$(jq -r '.linear.team' <<<"$backend")" \
-    --project-statuses "$(jq -c '.linear.projectStatuses' <<<"$backend")" \
-    --issue-states "$(jq -c '.linear.issueStates' <<<"$backend")" 2>/dev/null)"; then
-    jq -cn --argjson backend "$backend" --argjson preflight "$live_config" \
-      '{ready:true,backend:$backend,preflight:$preflight}' >"$live_context"
-  else
+      "jq is required to resolve the artifact backend for live validation" >>"$findings"
+  elif ! backend="$(bash "$RESOLVER" "$WOO_ROOT" 2>/dev/null)"; then
     printf '%s\t%s\t%s\t%s\t%s\n' error linear-live report ".woostack/config.json" \
-      "authenticated Linear preflight failed (identity/active access, schema, workspace/team visibility, mappings, or required capabilities)" >>"$findings"
+      "artifact backend resolution failed before live validation" >>"$findings"
+  elif [ "$(jq -r '.backend' <<<"$backend")" = linear ]; then
+    if [ ! -f "$LINEAR" ] || [ ! -r "$LINEAR" ]; then
+      printf '%s\t%s\t%s\t%s\t%s\n' error linear-live report ".woostack/config.json" \
+        "normalized Linear adapter is unavailable" >>"$findings"
+    elif live_config="$(bash "$LINEAR" preflight \
+      --workspace "$(jq -r '.linear.workspace' <<<"$backend")" \
+      --team "$(jq -r '.linear.team' <<<"$backend")" \
+      --project-statuses "$(jq -c '.linear.projectStatuses' <<<"$backend")" \
+      --issue-states "$(jq -c '.linear.issueStates' <<<"$backend")" 2>/dev/null)"; then
+      jq -cn --argjson backend "$backend" --argjson preflight "$live_config" \
+        '{ready:true,backend:$backend,preflight:$preflight}' >"$live_context"
+    else
+      printf '%s\t%s\t%s\t%s\t%s\n' error linear-live report ".woostack/config.json" \
+        "authenticated Linear preflight failed (identity/active access, schema, workspace/team visibility, mappings, or required capabilities)" >>"$findings"
+    fi
   fi
 fi
 shopt -s nullglob

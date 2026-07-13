@@ -9,10 +9,8 @@ emit() { printf '%s\t%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" "$5"; }
 RESOLVER="${WOOSTACK_BACKEND_RESOLVER:-$HERE/../../../woostack-init/scripts/artifacts/resolve-backend.sh}"
 [ "${1:-}" = "--fix" ] && exit 0          # report-only: --fix is a no-op
 WOO_ROOT="${1:-.}"
-if resolved="$(bash "$RESOLVER" "$WOO_ROOT" 2>/dev/null)" &&
-  [ "$(jq -r '.backend' <<<"$resolved")" = linear ]; then
-  exit 0
-fi
+resolved="$(bash "$RESOLVER" "$WOO_ROOT" 2>/dev/null)" || exit 0
+[ "$(jq -r '.backend' <<<"$resolved")" = markdown ] || exit 0
 
 SPEC_BAND=" draft hardened approved "
 PLAN_BAND=" planning ready executing in-review done "

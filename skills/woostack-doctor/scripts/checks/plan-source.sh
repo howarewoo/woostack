@@ -14,10 +14,10 @@ source "$HERE/../../../woostack-init/scripts/lib.sh"
 emit() { printf '%s\t%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" "$5"; }
 RESOLVER="${WOOSTACK_BACKEND_RESOLVER:-$HERE/../../../woostack-init/scripts/artifacts/resolve-backend.sh}"
 
-uses_linear() {
+uses_markdown() {
   local root="$1" resolved
   resolved="$(bash "$RESOLVER" "$root" 2>/dev/null)" || return 1
-  [ "$(jq -r '.backend' <<<"$resolved")" = linear ]
+  [ "$(jq -r '.backend' <<<"$resolved")" = markdown ]
 }
 
 # basename_of <ref> — reduce any Source reference form to bare <basename>:
@@ -37,7 +37,7 @@ line_base() {
 
 if [ "${1:-}" = "--fix" ]; then
   root="$2"; plan="$3"; mode="$4"
-  uses_linear "$root" && exit 0
+  uses_markdown "$root" || exit 0
   case "$mode" in
     source-line)
       grep -qE '^\*\*Source:\*\*' "$plan" && exit 0       # already present → no-op
@@ -67,7 +67,7 @@ if [ "${1:-}" = "--fix" ]; then
   esac
 fi
 WOO_ROOT="${1:-.}"
-uses_linear "$WOO_ROOT" && exit 0
+uses_markdown "$WOO_ROOT" || exit 0
 
 shopt -s nullglob
 for plan in "$WOO_ROOT/.woostack/plans"/*.md; do

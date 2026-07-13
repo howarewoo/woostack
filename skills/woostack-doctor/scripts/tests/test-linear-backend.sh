@@ -102,6 +102,49 @@ assert_contains "$OUTPUT" "artifact-config" "invalid selector is a backend confi
 assert_contains "$OUTPUT" "artifacts.specPlan" "invalid selector finding names the safe config path"
 assert_not_contains "$OUTPUT" "LINEAR_API_KEY" "static config diagnostics do not ask for credentials"
 
+# Resolver failures must not reinterpret inactive spec/plan files as Markdown or repair them.
+broken="$(make_repo incomplete-linear)"
+jq 'del(.linear.team)' "$broken/.woostack/config.json" >"$broken/.woostack/config.json.tmp"
+mv "$broken/.woostack/config.json.tmp" "$broken/.woostack/config.json"
+cat >"$broken/.woostack/specs/legacy.md" <<'EOF'
+---
+type: wrong
+status: wip
+---
+# Inactive legacy spec
+EOF
+run_doctor "$broken"
+assert_exit 1 "$RC" "incomplete Linear config fails static doctor"
+assert_contains "$OUTPUT" "artifact-config" "incomplete Linear config is reported by its owning check"
+assert_not_contains "$OUTPUT" "[doc-type] .woostack/specs/legacy.md" "resolver failure does not enable Markdown type checks"
+assert_not_contains "$OUTPUT" "[status-enum] .woostack/specs/legacy.md" "resolver failure does not enable Markdown status checks"
+bash "$CHECKS/doc-type.sh" --fix "$broken" "$broken/.woostack/specs/legacy.md" >/dev/null 2>&1 || true
+assert_eq "$(grep -m1 '^type:' "$broken/.woostack/specs/legacy.md")" "type: wrong" "resolver failure prevents local spec repair"
+
+# Missing jq must not suppress jq-independent Markdown diagnostics.
+no_jq_repo="$(make_repo no-jq-markdown)"
+jq '.artifacts.specPlan="markdown" | del(.linear)' "$no_jq_repo/.woostack/config.json" \
+  >"$no_jq_repo/.woostack/config.json.tmp"
+mv "$no_jq_repo/.woostack/config.json.tmp" "$no_jq_repo/.woostack/config.json"
+no_jq="$TMP/no-jq"
+mkdir -p "$no_jq"
+for tool in bash dirname mktemp rm cat grep; do
+  ln -s "$(command -v "$tool")" "$no_jq/$tool"
+done
+set +e
+OUTPUT="$(PATH="$no_jq" "$no_jq/bash" "$DOCTOR" "$no_jq_repo" 2>&1)"
+RC=$?
+set -e
+assert_exit 0 "$RC" "Markdown doctor keeps jq-independent diagnostics when jq is unavailable"
+assert_contains "$OUTPUT" "gitignore-drift" "missing jq does not suppress jq-independent checks"
+assert_not_contains "$OUTPUT" "jq is required" "Markdown doctor has no global jq prerequisite"
+set +e
+OUTPUT="$(PATH="$no_jq" "$no_jq/bash" "$DOCTOR" "$repo" --live 2>&1)"
+RC=$?
+set -e
+assert_exit 1 "$RC" "live doctor fails closed when jq cannot resolve a Linear backend"
+assert_contains "$OUTPUT" "linear-live" "missing jq is an explicit live validation error"
+
 # The adapter owns strict, stable Linear provenance URI parsing without authentication.
 project_uri='linear://project/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 document_uri='linear://document/dddddddd-dddd-4ddd-8ddd-dddddddddddd'
@@ -175,6 +218,27 @@ chmod +x "$FAKE"
 export WOOSTACK_LINEAR_ADAPTER="$FAKE"
 export FAKE_LINEAR_LOG="$TMP/fake-linear.log"
 : >"$FAKE_LINEAR_LOG"
+
+# A live request must distinguish resolver failure from a non-Linear backend.
+: >"$FAKE_LINEAR_LOG"
+run_doctor "$broken" --live
+assert_exit 1 "$RC" "live doctor fails closed when backend resolution fails"
+assert_contains "$OUTPUT" "artifact backend resolution failed" "live resolver failure is explicit"
+assert_eq "$(cat "$FAKE_LINEAR_LOG")" "" "live resolver failure blocks adapter preflight"
+
+# --live is a no-op for Markdown: no credentials, adapter calls, or diagnostic drift.
+markdown="$(make_repo markdown-live)"
+jq '.artifacts.specPlan="markdown" | del(.linear)' "$markdown/.woostack/config.json" \
+  >"$markdown/.woostack/config.json.tmp"
+mv "$markdown/.woostack/config.json.tmp" "$markdown/.woostack/config.json"
+run_doctor "$markdown"
+markdown_static_output="$OUTPUT"
+markdown_static_rc="$RC"
+: >"$FAKE_LINEAR_LOG"
+run_doctor "$markdown" --live
+assert_exit "$markdown_static_rc" "$RC" "Markdown live mode preserves static exit behavior"
+assert_eq "$OUTPUT" "$markdown_static_output" "Markdown live mode preserves static diagnostics"
+assert_eq "$(cat "$FAKE_LINEAR_LOG")" "" "Markdown live mode never invokes the Linear adapter"
 
 unset LINEAR_API_KEY
 run_doctor "$prov" --live

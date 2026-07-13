@@ -10,10 +10,10 @@ source "$HERE/../../../woostack-init/scripts/lib.sh"
 emit() { printf '%s\t%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" "$5"; }
 RESOLVER="${WOOSTACK_BACKEND_RESOLVER:-$HERE/../../../woostack-init/scripts/artifacts/resolve-backend.sh}"
 
-uses_linear() {
+uses_markdown() {
   local root="$1" resolved
   resolved="$(bash "$RESOLVER" "$root" 2>/dev/null)" || return 1
-  [ "$(jq -r '.backend' <<<"$resolved")" = linear ]
+  [ "$(jq -r '.backend' <<<"$resolved")" = markdown ]
 }
 
 VALID=" draft hardened approved planning ready executing in-review done abandoned "
@@ -36,7 +36,7 @@ if [ "${1:-}" = "--fix" ]; then
   root="$2"; file="$3"
   case "$file" in
     "$root"/.woostack/specs/*|"$root"/.woostack/plans/*|.woostack/specs/*|.woostack/plans/*|./.woostack/specs/*|./.woostack/plans/*)
-      uses_linear "$root" && exit 0 ;;
+      uses_markdown "$root" || exit 0 ;;
   esac
   s="$(field "$file" status)"
   [ "${VALID/ $s /}" != "$VALID" ] && exit 0        # already valid → no-op
@@ -48,8 +48,8 @@ fi
 WOO_ROOT="${1:-.}"
 
 shopt -s nullglob
-dirs=(specs plans fixes)
-uses_linear "$WOO_ROOT" && dirs=(fixes)
+dirs=(fixes)
+uses_markdown "$WOO_ROOT" && dirs=(specs plans fixes)
 for dir in "${dirs[@]}"; do
   for f in "$WOO_ROOT/.woostack/$dir"/*.md; do
     [ "$(head -1 "$f")" != "---" ] && continue       # no fence → doc-type owns that report

@@ -356,6 +356,33 @@ run_capture provenance-resolve --reference "$issue_uri" --repository acme/widget
 assert_exit 0 "$RC" "issue provenance resolves through normalized managed increments"
 assert_eq "$(jq -r '.resource.id' <<<"$OUTPUT")" 'cccccccc-0001-4000-8000-000000000001' "issue provenance preserves stable UUID"
 
+# Successful lookup is insufficient when the resource is absent from the normalized feature.
+unmanaged_document_id='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee'
+reset_fake
+queue provenance-document provenance-document.json 1
+jq --arg id "$unmanaged_document_id" '.data.document.id=$id' \
+  "$work/responses/provenance-document.1.json" >"$work/unmanaged-document.json"
+mv "$work/unmanaged-document.json" "$work/responses/provenance-document.1.json"
+queue project-list project-list-one.json 1
+cp "$work/frozen-document-list.json" "$work/responses/document-list.1.json"
+queue issue-list issue-list-none.json 1
+run_capture provenance-resolve --reference "linear://document/$unmanaged_document_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map"
+assert_exit 1 "$RC" "document provenance rejects a valid lookup outside the managed spec"
+assert_contains "$OUTPUT" "provenance document is not the managed spec" "document membership failure names the violated boundary"
+
+unmanaged_issue_id='eeeeeeee-0001-4000-8000-000000000001'
+reset_fake
+queue provenance-issue provenance-issue.json 1
+jq --arg id "$unmanaged_issue_id" '.data.issue.id=$id' \
+  "$work/responses/provenance-issue.1.json" >"$work/unmanaged-issue.json"
+mv "$work/unmanaged-issue.json" "$work/responses/provenance-issue.1.json"
+queue project-list project-list-one.json 1
+cp "$work/frozen-document-list.json" "$work/responses/document-list.1.json"
+queue issue-list issue-list-valid.json 1
+run_capture provenance-resolve --reference "linear://issue/$unmanaged_issue_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map"
+assert_exit 1 "$RC" "issue provenance rejects a valid lookup outside the managed increments"
+assert_contains "$OUTPUT" "provenance issue is not a managed increment" "issue membership failure names the violated boundary"
+
 reset_fake
 queue provenance-issue provenance-issue.json 1
 queue project-list project-list-one.json 1
@@ -364,19 +391,39 @@ queue issue-list issue-list-relation-drift.json 1
 run_capture provenance-resolve --reference "$issue_uri" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map"
 assert_exit 1 "$RC" "issue provenance fails closed on relation or metadata drift"
 
+second_project_id='ffffffff-ffff-4fff-8fff-ffffffffffff'
 reset_fake
-queue project-list project-list-one.json 1
-queue project-list project-list-one.json 2
+jq --arg id "$second_project_id" '
+  .data.projects.nodes += [(.data.projects.nodes[0] |
+    .id=$id | .name="Feature Beta" |
+    .url="https://linear.app/acme/project/feature-beta-def456")]
+' "$FIXTURES/project-list-one.json" >"$work/responses/project-list.1.json"
 cp "$work/frozen-document-list.json" "$work/responses/document-list.1.json"
-queue issue-list issue-list-valid.json 1
+jq --arg old "$project_id" --arg new "$second_project_id" '
+  walk(if type=="string" then gsub($old;$new) else . end) |
+  .data.documents.nodes[0].id="ffffffff-dddd-4ddd-8ddd-dddddddddddd" |
+  .data.documents.nodes[0].title="Feature Beta — Spec" |
+  .data.documents.nodes[0].url="https://linear.app/acme/document/feature-beta-spec-ffffffff"
+' "$work/frozen-document-list.json" >"$work/responses/document-list.2.json"
+queue issue-list issue-list-none.json 1
+queue issue-list issue-list-none.json 2
 run_capture doctor-read --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map"
 assert_exit 0 "$RC" "live doctor read validates every managed feature through normalized models"
-assert_eq "$(jq -r '.features | length' <<<"$OUTPUT")" 1 "doctor read returns every managed repository feature"
+assert_eq "$(jq -c '[.features[].feature.id]' <<<"$OUTPUT")" \
+  "[\"$project_id\",\"$second_project_id\"]" "doctor read returns every managed repository feature after one discovery pass"
 
 reset_fake
 queue project-list project-list-none.json 1
 run_capture doctor-read --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map"
 assert_exit 1 "$RC" "live doctor read fails closed when no managed repository feature exists"
+
+reset_fake
+jq '.data.projects.nodes += [(.data.projects.nodes[0] |
+  .id=(.id|ascii_upcase) | .archivedAt="2026-07-13T00:00:00.000Z")]' \
+  "$FIXTURES/project-list-one.json" >"$work/responses/project-list.1.json"
+run_capture doctor-read --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map"
+assert_exit 1 "$RC" "live doctor read fails closed on duplicate managed project identity"
+assert_contains "$OUTPUT" "doctor managed project identity is ambiguous" "duplicate project failure names the ambiguous snapshot"
 
 reset_fake
 jq '.data.projects.nodes[0].description |= sub("\"schema\":1"; "\"schema\":2")' \
@@ -392,7 +439,6 @@ assert_exit 1 "$RC" "live doctor read fails closed on unmapped project status"
 
 reset_fake
 queue project-list project-list-one.json 1
-queue project-list project-list-one.json 2
 cp "$work/frozen-document-list.json" "$work/responses/document-list.1.json"
 queue issue-list issue-list-relation-drift.json 1
 run_capture doctor-read --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map"

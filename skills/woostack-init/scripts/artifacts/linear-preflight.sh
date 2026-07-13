@@ -62,6 +62,8 @@ fi
 if ! jq -e '
   type == "object" and
   ((.errors? // []) | length == 0) and
+  (.data.viewer.id | type == "string" and length > 0) and
+  (.data.viewer.active | type == "boolean") and
   (.data.viewer.organization | type == "object") and
   (.data.teams.nodes | type == "array") and
   (.data.teams.pageInfo.hasNextPage | type == "boolean") and
@@ -78,6 +80,10 @@ for connection in teams projectStatuses workflowStates; do
     fail_preflight incomplete_preflight_response "data.$connection.pageInfo.hasNextPage"
   fi
 done
+
+[ "$(jq -r '.data.viewer.active' "$response")" = true ] ||
+  fail_preflight access_denied data.viewer.active
+viewer_id="$(jq -r '.data.viewer.id' "$response")"
 
 workspace_count="$(jq -r --arg wanted "$workspace" '[.data.viewer.organization | select(.name == $wanted or .urlKey == $wanted)] | length' "$response")"
 case "$workspace_count" in
@@ -132,8 +138,9 @@ for capability in projectCreate projectUpdate documentCreate documentUpdate issu
 done
 
 jq -cnS \
+  --arg viewer_id "$viewer_id" \
   --arg workspace_id "$workspace_id" \
   --arg team_id "$team_id" \
   --argjson project_statuses "$resolved_project_statuses" \
   --argjson issue_states "$resolved_issue_states" \
-  '{workspace: {id: $workspace_id}, team: {id: $team_id}, projectStatuses: $project_statuses, issueStates: $issue_states}'
+  '{viewer: {id: $viewer_id}, workspace: {id: $workspace_id}, team: {id: $team_id}, projectStatuses: $project_statuses, issueStates: $issue_states}'
