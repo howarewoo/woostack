@@ -201,27 +201,27 @@ branch: feature/linear-artifact-backend
 - Modify: `skills/woostack-init/scripts/tests/test-linear-resources.sh`
 - Create: `skills/woostack-init/scripts/tests/fixtures/linear/issue-*.json`
 
-- [ ] **Step 1: Add failing issue normalization tests**
+- [x] **Step 1: Add failing issue normalization tests**
   Assert stable integer ordinals, unique managed issue IDs, native `blocked by` relations, mirrored dependency UUIDs, same-project ownership, DAG acyclicity, one Git parent per issue, and representable multi-dependency ancestry. Include independent roots/tracks and deterministic presentation order.
 
-- [ ] **Step 2: Add failing reconciliation tests**
+- [x] **Step 2: Add failing reconciliation tests**
   Cover retained issue update, new issue creation, safe reorder, relation rewiring, removed issue without evidence, and refusal to remove/cancel any issue with branch or PR evidence. Unknown mutation outcomes must discover before retry.
 
-- [ ] **Step 3: Run resource tests red**
+- [x] **Step 3: Run resource tests red**
   Run: `bash skills/woostack-init/scripts/tests/test-linear-resources.sh`
   Expected: FAIL at issue/relationship cases.
 
-- [ ] **Step 4: Implement plan commands**
+- [x] **Step 4: Implement plan commands**
   Add `plan-read`, `plan-reconcile`, `issue-transition`, and `feature-read` to `linear.sh`. `feature-read` emits the normalized feature JSON model. Reconciliation preserves stable issue UUIDs, applies issue changes before relation changes, verifies the final DAG, and emits a compound receipt with completed/pending operations.
 
-- [ ] **Step 5: Implement PR attribution and terminal reconciliation inputs**
+- [x] **Step 5: Implement PR attribution and terminal reconciliation inputs**
   Store `branch` and `pullRequest` only in the issue's managed metadata. Validate `Linear-Project` UUID and `Linear-Issue` identifier pairs. Add read-only computation that marks an issue eligible for `done` only when its unique attributed PR is merged, and a status-reconcile mutation that moves only eligible `inReview → done` states and then the all-done project.
 
-- [ ] **Step 6: Run all artifact suites**
+- [x] **Step 6: Run all artifact suites**
   Run: `bash skills/woostack-init/scripts/tests/test-artifact-backends.sh && bash skills/woostack-init/scripts/tests/test-linear-transport.sh && bash skills/woostack-init/scripts/tests/test-linear-metadata.sh && bash skills/woostack-init/scripts/tests/test-linear-resources.sh`
   Expected: PASS.
 
-- [ ] **Step 7: Commit Increment 4**
+- [x] **Step 7: Commit Increment 4**
   Run: `gt create -m "feat(linear): manage executable increment issues"`
   Expected: one PR delivering the complete Linear project/spec/plan data model.
 

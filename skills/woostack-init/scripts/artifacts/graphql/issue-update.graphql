@@ -1,0 +1,17 @@
+mutation WoostackIssueUpdate($id: String!, $input: IssueUpdateInput!) {
+  issueUpdate(id: $id, input: $input) {
+    success
+    issue {
+      id
+      identifier
+      title
+      description
+      url
+      updatedAt
+      canceledAt
+      archivedAt
+      project { id }
+      state { id }
+    }
+  }
+}

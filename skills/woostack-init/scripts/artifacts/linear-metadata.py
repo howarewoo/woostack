@@ -17,6 +17,11 @@ HEADER_RE = re.compile(rf"^{re.escape(HEADER)}(?:\r?\n|$)", re.MULTILINE)
 CLOSER_RE = re.compile(r"^\+\+\+(?:\r?\n|$)", re.MULTILINE)
 SCHEMA = 1
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+UUID_RE = re.compile(
+    r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-"
+    r"[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+)
+ISSUE_IDENTIFIER_RE = re.compile(r"^[A-Z][A-Z0-9]*-[1-9][0-9]*$")
 FEATURE_STATUSES = {
     "draft",
     "hardened",
@@ -143,7 +148,12 @@ def validate_metadata(value: Any) -> dict[str, Any]:
             or len(dependencies) != len(set(dependencies))
         ):
             raise MetadataError("increment metadata is invalid")
-        require_nonempty_string(value.get("gitParent"), "increment metadata is invalid")
+        git_parent = require_nonempty_string(
+            value.get("gitParent"), "increment metadata is invalid"
+        )
+        for key in ("branch", "pullRequest"):
+            if key in value and not optional_string(value[key]):
+                raise MetadataError("increment metadata is invalid")
     return value
 
 
@@ -216,6 +226,26 @@ def command_parse(args: argparse.Namespace) -> None:
     _, _, _, value = managed_section(text)
     check_ownership(value, args.repository, args.project_id)
     print(canonical_json(value))
+
+
+def command_body(args: argparse.Namespace) -> None:
+    _, text = read_stdin()
+    headers = list(HEADER_RE.finditer(text))
+    if len(headers) != 1:
+        raise MetadataError("managed metadata block is absent or duplicated")
+    header = headers[0]
+    closer = CLOSER_RE.search(text, header.end())
+    if closer is None:
+        raise MetadataError("managed metadata block is unterminated")
+    value = validate_metadata(
+        load_json(text[header.end() : closer.start()], "managed metadata JSON is malformed")
+    )
+    check_ownership(value, args.repository, args.project_id)
+    before = text[: header.start()]
+    after = text[closer.end() :]
+    if before.endswith(("\r\n", "\n")) and after.startswith(("\r\n", "\n")):
+        after = after[2:] if after.startswith("\r\n") else after[1:]
+    sys.stdout.write(before + after)
 
 
 def read_replacement(args: argparse.Namespace) -> dict[str, Any]:
@@ -294,13 +324,14 @@ def validate_feature(value: Any, expected_project_id: str | None) -> None:
     feature_id = require_nonempty_string(feature["id"], "normalized feature is invalid")
     require_nonempty_string(feature["url"], "normalized feature is invalid")
     require_nonempty_string(feature["title"], "normalized feature is invalid")
+    strict_ids = UUID_RE.fullmatch(feature_id) is not None
     if (
         not isinstance(feature["status"], str)
         or feature["status"] not in FEATURE_STATUSES
         or not optional_string(feature["branch"])
     ):
         raise MetadataError("normalized feature is invalid")
-    if expected_project_id is not None and feature_id != expected_project_id:
+    if expected_project_id is not None and feature_id.lower() != expected_project_id.lower():
         raise MetadataError("normalized feature ownership mismatch")
 
     spec = value["spec"]
@@ -309,7 +340,7 @@ def validate_feature(value: Any, expected_project_id: str | None) -> None:
     require_keys(spec, {"id", "url", "content", "revision"}, "normalized spec is invalid")
     for key in ("id", "url", "revision"):
         require_nonempty_string(spec[key], "normalized spec is invalid")
-    if not isinstance(spec["content"], str):
+    if (strict_ids and not UUID_RE.fullmatch(spec["id"])) or not isinstance(spec["content"], str):
         raise MetadataError("normalized spec is invalid")
 
     increments = value["increments"]
@@ -319,7 +350,7 @@ def validate_feature(value: Any, expected_project_id: str | None) -> None:
     identifiers: set[str] = set()
     ordinals: set[int] = set()
     dependencies_by_id: dict[str, list[str]] = {}
-    ordinals_by_id: dict[str, int] = {}
+    parents_by_id: dict[str, str] = {}
     previous_ordinal = 0
     for increment in increments:
         if not isinstance(increment, dict):
@@ -342,8 +373,17 @@ def validate_feature(value: Any, expected_project_id: str | None) -> None:
         identifier = require_nonempty_string(increment["identifier"], "normalized increment is invalid")
         ordinal = increment["ordinal"]
         dependencies = increment["dependencies"]
+        git_parent_value = increment.get("gitParent")
+        git_parent = (
+            require_nonempty_string(git_parent_value, "normalized increment is invalid")
+            if strict_ids
+            else (git_parent_value if isinstance(git_parent_value, str) and git_parent_value else
+                  (dependencies[-1] if dependencies else "legacy-base"))
+        )
         if (
-            increment_id in ids
+            (strict_ids and not UUID_RE.fullmatch(increment_id))
+            or not ISSUE_IDENTIFIER_RE.fullmatch(identifier)
+            or increment_id in ids
             or identifier in identifiers
             or type(ordinal) is not int
             or ordinal < 1
@@ -352,7 +392,7 @@ def validate_feature(value: Any, expected_project_id: str | None) -> None:
             or not isinstance(increment["status"], str)
             or increment["status"] not in INCREMENT_STATUSES
             or not isinstance(dependencies, list)
-            or any(not isinstance(item, str) or not item for item in dependencies)
+            or any(not isinstance(item, str) or not item or (strict_ids and not UUID_RE.fullmatch(item)) for item in dependencies)
             or len(dependencies) != len(set(dependencies))
             or not optional_string(increment["branch"])
             or not optional_string(increment["pullRequest"])
@@ -364,16 +404,60 @@ def validate_feature(value: Any, expected_project_id: str | None) -> None:
         ordinals.add(ordinal)
         previous_ordinal = ordinal
         dependencies_by_id[increment_id] = dependencies
-        ordinals_by_id[increment_id] = ordinal
+        parents_by_id[increment_id] = git_parent
 
-    for increment_id, dependencies in dependencies_by_id.items():
+    ordinals_by_id = {
+        increment["id"]: increment["ordinal"] for increment in increments
+    }
+    dependents: dict[str, list[str]] = {issue_id: [] for issue_id in ids}
+    remaining_dependencies: dict[str, int] = {}
+    for issue_id, dependencies in dependencies_by_id.items():
         for dependency in dependencies:
-            if (
-                dependency not in ids
-                or dependency == increment_id
-                or ordinals_by_id[dependency] >= ordinals_by_id[increment_id]
-            ):
+            if dependency not in ids or dependency == issue_id:
                 raise MetadataError("normalized increment dependencies are invalid")
+            if not strict_ids and ordinals_by_id[dependency] >= ordinals_by_id[issue_id]:
+                raise MetadataError("normalized increment dependencies are invalid")
+            dependents[dependency].append(issue_id)
+        remaining_dependencies[issue_id] = len(dependencies)
+    ready = [
+        issue_id
+        for issue_id, count in remaining_dependencies.items()
+        if count == 0
+    ]
+    visited_count = 0
+    while ready:
+        issue_id = ready.pop()
+        visited_count += 1
+        for dependent in dependents[issue_id]:
+            remaining_dependencies[dependent] -= 1
+            if remaining_dependencies[dependent] == 0:
+                ready.append(dependent)
+    if visited_count != len(ids):
+        raise MetadataError("normalized increment dependency graph is cyclic")
+
+    def reaches(start: str, wanted: str) -> bool:
+        pending = [start]
+        seen: set[str] = set()
+        while pending:
+            current = pending.pop()
+            if current == wanted:
+                return True
+            if current not in seen:
+                seen.add(current)
+                pending.extend(dependencies_by_id[current])
+        return False
+
+    if strict_ids:
+        for issue_id, dependencies in dependencies_by_id.items():
+            parent = parents_by_id[issue_id]
+            if not dependencies:
+                if UUID_RE.fullmatch(parent):
+                    raise MetadataError("root increment Git parent must be the frozen base")
+                continue
+            if parent not in dependencies:
+                raise MetadataError("increment Git parent must be one dependency")
+            if any(not reaches(parent, dependency) for dependency in dependencies):
+                raise MetadataError("multi-dependency ancestry is not representable")
 
 
 def command_validate_feature(args: argparse.Namespace) -> None:
@@ -390,6 +474,11 @@ def build_parser() -> argparse.ArgumentParser:
     parse_parser.add_argument("--repository")
     parse_parser.add_argument("--project-id")
     parse_parser.set_defaults(handler=command_parse)
+
+    body_parser = subparsers.add_parser("body")
+    body_parser.add_argument("--repository")
+    body_parser.add_argument("--project-id")
+    body_parser.set_defaults(handler=command_body)
 
     replace_parser = subparsers.add_parser("replace")
     replacement = replace_parser.add_mutually_exclusive_group(required=True)

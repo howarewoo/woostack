@@ -1,0 +1,11 @@
+mutation WoostackRelationCreate($input: IssueRelationCreateInput!) {
+  issueRelationCreate(input: $input) {
+    success
+    issueRelation {
+      id
+      type
+      issue { id project { id } }
+      relatedIssue { id project { id } }
+    }
+  }
+}
