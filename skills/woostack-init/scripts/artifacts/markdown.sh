@@ -33,6 +33,52 @@ read_field() {
   ' "$file"
 }
 
+emit_spec_only() {
+  local spec_path="$1" basename="$2" stem="$3"
+  local feature_name feature_status feature_branch spec_id revision
+  feature_name="$(read_field "$spec_path" name)"
+  [[ -n "$feature_name" ]] || feature_name="${stem#????-??-??-}"
+  feature_status="$(read_field "$spec_path" status)"
+  feature_branch="$(read_field "$spec_path" branch)"
+  [[ -n "$feature_status" ]] || fail "spec status is missing"
+  spec_id=".woostack/specs/$basename"
+  revision="$(python3 - "$spec_path" <<'PY'
+import hashlib
+import sys
+
+with open(sys.argv[1], "rb") as handle:
+    print(hashlib.sha256(handle.read()).hexdigest())
+PY
+  )" || fail "spec revision could not be computed"
+  jq -cn \
+    --arg feature_id "$spec_id" \
+    --arg title "$feature_name" \
+    --arg status "$feature_status" \
+    --arg branch "$feature_branch" \
+    --arg spec_id "$spec_id" \
+    --rawfile content "$spec_path" \
+    --arg revision "$revision" '
+      {
+        backend: "markdown",
+        feature: {
+          id: $feature_id,
+          url: null,
+          title: $title,
+          status: $status,
+          branch: (if $branch == "" then null else $branch end)
+        },
+        spec: {
+          id: $spec_id,
+          url: null,
+          content: $content,
+          revision: $revision
+        },
+        plan: null,
+        increments: []
+      }
+    '
+}
+
 feature() {
   local requested="$1" requested_dir repo_hint repo_root spec_dir spec_path woo_root
   local basename stem plan_dir plan_path spec_slug spec_name
@@ -58,8 +104,12 @@ feature() {
   spec_slug="${stem#????-??-??-}"
   spec_name="$(read_field "$spec_path" name)"
   plan_dir="$woo_root/plans"
-  [[ -d "$plan_dir" ]] || fail "matching plan not found"
   [[ ! -L "$plan_dir" ]] || fail "plan symlink escapes are not allowed"
+  if [[ ! -e "$plan_dir" ]]; then
+    emit_spec_only "$spec_path" "$basename" "$stem"
+    return
+  fi
+  [[ -d "$plan_dir" ]] || fail "plan path is not a directory"
 
   local -a matches=()
   local candidate candidate_base candidate_slug candidate_source canonical canonical_md legacy
@@ -169,7 +219,10 @@ feature() {
   fi
   shopt -u nullglob
 
-  (( ${#matches[@]} > 0 )) || fail "matching plan not found"
+  if (( ${#matches[@]} == 0 )); then
+    emit_spec_only "$spec_path" "$basename" "$stem"
+    return
+  fi
   (( ${#matches[@]} == 1 )) || fail "multiple plans join to spec"
   plan_path="${matches[0]}"
   validate_frontmatter "$plan_path"
@@ -316,6 +369,8 @@ PY
     --arg branch "$feature_branch" \
     --arg spec_id "$spec_id" \
     --rawfile content "$spec_path" \
+    --arg plan_id "$plan_id" \
+    --rawfile plan_content "$plan_path" \
     --arg revision "$revision" \
     --argjson increments "$increments" \
     --argjson progress "$progress" '
@@ -335,6 +390,11 @@ PY
           revision: $revision
         },
         progress: $progress,
+        plan: {
+          id: $plan_id,
+          url: null,
+          content: $plan_content
+        },
         increments: $increments
       }
     '

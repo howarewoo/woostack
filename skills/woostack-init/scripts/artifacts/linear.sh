@@ -16,6 +16,7 @@ usage: linear.sh <command> [options]
 commands:
   preflight --workspace NAME --team KEY --project-statuses JSON --issue-states JSON
   feature-resolve --repository OWNER/REPO --status-map JSON --eligible-statuses JSON [--reference UUID|LINEAR_URL]
+  identity-resolve --source UUID|LINEAR_URL|linear://project|document|issue/UUID --repository OWNER/REPO --status-map JSON --issue-state-map JSON
   feature-create --repository OWNER/REPO --title TITLE --team-id UUID --status-map JSON --spec-file PATH
   feature-transition --project UUID --repository OWNER/REPO --status-map JSON --target STATUS [--replan --issue-state-map JSON --expected-revision JSON]
   spec-read --project UUID --repository OWNER/REPO
@@ -444,6 +445,147 @@ command_provenance_parse() {
   canonical="linear://$kind/$id"
   jq -cn --arg uri "$canonical" --arg kind "$kind" --arg id "$id" '{uri:$uri,kind:$kind,id:$id}'
 }
+
+identity_connection_candidates() {
+  local kind="$1" document="$2" root="$3" variable="$4" value="$5" response
+  response="$(request_query "$GRAPHQL/$document.graphql" \
+    "$(jq -cn --arg key "$variable" --arg value "$value" '{($key):$value}')")" ||
+    fail "identity $kind lookup failed"
+  jq -ce --arg root "$root" --arg kind "$kind" '
+    .data[$root].nodes as $nodes |
+    if ($nodes|type)!="array" or any($nodes[]; (.id|type)!="string")
+    then error("invalid identity response")
+    elif $kind=="project" then
+      [$nodes[] | {
+        kind:$kind,
+        id:(.id|ascii_downcase),
+        uri:("linear://"+$kind+"/"+(.id|ascii_downcase)),
+        projectId:(.id|ascii_downcase),
+        url
+      }]
+    else
+      if any($nodes[]; (.project.id|type)!="string")
+      then error("invalid identity owner")
+      else [$nodes[] |
+        select($kind!="issue" or
+          ((.archivedAt // null)==null and (.canceledAt // null)==null)) |
+        {
+          kind:$kind,
+          id:(.id|ascii_downcase),
+          uri:("linear://"+$kind+"/"+(.id|ascii_downcase)),
+          projectId:(.project.id|ascii_downcase),
+          url
+        }]
+      end
+    end
+  ' <<<"$response" || fail "identity $kind response is invalid"
+}
+
+identity_issue_key_candidate() {
+  local key="$1" response
+  response="$(request_query "$GRAPHQL/identity-issue-key.graphql" \
+    "$(jq -cn --arg id "$key" '{id:$id}')")" || fail "identity issue lookup failed"
+  jq -ce '
+    if .data.issue==null then []
+    elif (.data.issue.id|type)!="string" or (.data.issue.project.id|type)!="string"
+    then error("invalid identity response")
+    elif ((.data.issue.archivedAt // null)!=null or
+      (.data.issue.canceledAt // null)!=null) then []
+    else [.data.issue | {
+      kind:"issue",
+      id:(.id|ascii_downcase),
+      uri:("linear://issue/"+(.id|ascii_downcase)),
+      projectId:(.project.id|ascii_downcase),
+      url
+    }]
+    end
+  ' <<<"$response" || fail "identity issue response is invalid"
+}
+
+discover_identity_reference() {
+  local source="$1" repository="$2" status_map="$3"
+  local kind='' mode='' wanted='' lookup='' canonical_source='' candidates='[]' matches count
+
+  if [[ "$source" == linear://* ]]; then
+    command_provenance_parse --reference "$source"
+    return
+  elif [[ "$source" =~ $UUID_RE ]]; then
+    mode='uuid'
+    wanted="$(printf '%s' "$source" | tr '[:upper:]' '[:lower:]')"
+  elif [[ "$source" =~ ^https://linear\.app/([^/?#]+)/(project|document|issue)/([^/?#]+)(/[^/?#]+)*/?$ ]]; then
+    mode='url'
+    kind="${BASH_REMATCH[2]}"
+    lookup="${BASH_REMATCH[3]}"
+    canonical_source="https://linear.app/${BASH_REMATCH[1]}/$kind/$lookup"
+  else
+    fail "identity source must be a UUID, Linear project/document/issue URL, or canonical linear:// reference"
+  fi
+
+  if [[ "$mode" == uuid ]]; then
+    matches="$(identity_connection_candidates project identity-project projects id "$wanted")"
+    candidates="$(jq -cn --argjson left "$candidates" --argjson right "$matches" '$left+$right')"
+    matches="$(identity_connection_candidates document identity-document documents id "$wanted")"
+    candidates="$(jq -cn --argjson left "$candidates" --argjson right "$matches" '$left+$right')"
+    matches="$(identity_connection_candidates issue identity-issue issues id "$wanted")"
+    candidates="$(jq -cn --argjson left "$candidates" --argjson right "$matches" '$left+$right')"
+  else
+    case "$kind" in
+      project)
+        if [[ "$lookup" =~ $UUID_RE ]]; then
+          matches="$(identity_connection_candidates project identity-project projects id "$lookup")"
+        else
+          matches="$(identity_connection_candidates project identity-project-slug projects slugId "$lookup")"
+        fi
+        ;;
+      document)
+        if [[ "$lookup" =~ $UUID_RE ]]; then
+          matches="$(identity_connection_candidates document identity-document documents id "$lookup")"
+        else
+          matches="$(identity_connection_candidates document identity-document-slug documents slugId "$lookup")"
+        fi
+        ;;
+      issue) matches="$(identity_issue_key_candidate "$lookup")" ;;
+    esac
+    candidates="$(jq -c --arg source "$canonical_source" '[.[] | select(.url==$source)]' <<<"$matches")"
+  fi
+
+  count="$(jq 'length' <<<"$candidates")"
+  case "$count" in
+    0)
+      printf 'linear resources: identity not found\n' >&2
+      return 3
+      ;;
+    1)
+      jq -cS '.[0] | del(.url)' <<<"$candidates"
+      ;;
+    *)
+      printf 'linear resources: identity is ambiguous across managed resource kinds\n' >&2
+      jq -r 'sort_by(.kind,.id)[] | "candidate kind=\(.kind) id=\(.id) url=\(.url)"' <<<"$candidates" >&2
+      return 4
+      ;;
+  esac
+}
+
+command_identity_resolve() {
+  local source='' repository='' status_map='' issue_map='' parsed
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --source) source="$2"; shift 2 ;;
+      --repository) repository="$2"; shift 2 ;;
+      --status-map) status_map="$2"; shift 2 ;;
+      --issue-state-map) issue_map="$2"; shift 2 ;;
+      *) usage ;;
+    esac
+  done
+  [[ -n "$source" ]] || usage
+  require_repository "$repository"
+  validate_status_map "$status_map"
+  validate_issue_state_map "$issue_map"
+  parsed="$(discover_identity_reference "$source" "$repository" "$status_map")"
+  command_provenance_resolve --reference "$(jq -r '.uri' <<<"$parsed")" \
+    --repository "$repository" --status-map "$status_map" --issue-state-map "$issue_map"
+}
+
 
 
 command_doctor_read() {
@@ -1384,6 +1526,7 @@ command="$1"; shift
 case "$command" in
   preflight) command_preflight "$@";;
   feature-resolve) command_feature_resolve "$@";;
+  identity-resolve) command_identity_resolve "$@";;
   feature-create) command_feature_create "$@";;
   feature-transition) command_feature_transition "$@";;
   spec-read) command_spec_read "$@";;

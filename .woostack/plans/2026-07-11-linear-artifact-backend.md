@@ -423,6 +423,8 @@ branch: feature/linear-artifact-backend
 ### Task 1: Route remaining consumers
 
 **Files:**
+- Modify: `.github/workflows/reusable-review.yml`
+- Modify: `action.yml`
 - Modify: `skills/woostack-review/SKILL.md`
 - Modify: `skills/woostack-address-comments/SKILL.md`
 - Modify: `skills/woostack-ask/SKILL.md`
@@ -430,23 +432,34 @@ branch: feature/linear-artifact-backend
 - Modify: `skills/woostack-debug/SKILL.md`
 - Modify: `skills/woostack-audit/SKILL.md`
 - Modify: `skills/woostack-dream/SKILL.md`
+- Modify: `skills/woostack-review/scripts/resolve-artifact-context.sh`
+- Modify: `skills/woostack-review/scripts/tests/test-action-artifact-context.sh`
+- Modify: `skills/woostack-review/scripts/tests/test-resolve-artifact-context.sh`
+- Modify: `skills/woostack-init/scripts/artifacts/linear.sh`
+- Create: `skills/woostack-init/scripts/artifacts/graphql/identity-project.graphql`
+- Create: `skills/woostack-init/scripts/artifacts/graphql/identity-project-slug.graphql`
+- Create: `skills/woostack-init/scripts/artifacts/graphql/identity-document.graphql`
+- Create: `skills/woostack-init/scripts/artifacts/graphql/identity-document-slug.graphql`
+- Create: `skills/woostack-init/scripts/artifacts/graphql/identity-issue.graphql`
+- Create: `skills/woostack-init/scripts/artifacts/graphql/identity-issue-key.graphql`
+- Modify: `skills/woostack-init/scripts/tests/test-linear-resources.sh`
 - Create: `skills/using-woostack/tests/test-artifact-reader-contract.sh`
 
-- [ ] **Step 1: Add a failing multi-reader structural test**
+- [x] **Step 1: Add a failing multi-reader structural test**
   Enumerate approved backend adapters and explicit Markdown compatibility sites. Fail when a spec/plan consumer directly scans `.woostack/specs/` or `.woostack/plans/` without first resolving the backend. Assert read-only consumers never issue Linear mutations.
 
-- [ ] **Step 2: Run the structural test red**
+- [x] **Step 2: Run the structural test red**
   Run: `bash skills/using-woostack/tests/test-artifact-reader-contract.sh`
   Expected: FAIL with the current direct-reader site list.
 
-- [ ] **Step 3: Update reader contracts**
+- [x] **Step 3: Update reader contracts**
   Resolve PR context from backend-specific trailers; let ask/debug/audit/review fetch normalized feature/spec/issue content; let visualize accept Linear URLs/UUIDs; preserve each command's existing read-only or mutation boundary. Update dream only where it enumerates the artifact corpus; it must not curate Linear specs/plans as memory.
 
-- [ ] **Step 4: Run reader and subsystem suites**
+- [x] **Step 4: Run reader and subsystem suites**
   Run: `bash skills/using-woostack/tests/test-artifact-reader-contract.sh && bash skills/woostack-status/scripts/tests/run-tests.sh && bash skills/woostack-doctor/scripts/tests/run-tests.sh`
   Expected: PASS with no unapproved direct readers.
 
-- [ ] **Step 5: Commit Increment 9**
+- [x] **Step 5: Commit Increment 9**
   Run: `gt create -m "feat(artifacts): route remaining feature readers"`
   Expected: one PR completing backend-aware review, ask, visualize, debug, audit, and dream reads.
 

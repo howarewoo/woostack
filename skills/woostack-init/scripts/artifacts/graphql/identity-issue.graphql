@@ -1,0 +1,11 @@
+query WoostackIdentityIssue($id: ID!) {
+  issues(filter: { id: { eq: $id } }) {
+    nodes {
+      id
+      url
+      archivedAt
+      canceledAt
+      project { id }
+    }
+  }
+}

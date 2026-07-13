@@ -72,6 +72,10 @@ inputs:
     description: 'OpenRouter API key (used by opencode).'
     required: false
     default: ''
+  linear-api-key:
+    description: 'Optional Linear API key used only by the read-only artifact-context step when an exactly attributed Linear PR is reviewed. It is exposed to the Linear adapter as LINEAR_API_KEY for feature-read only.'
+    required: false
+    default: ''
 
   # Review behavior.
   trigger_phrase:
@@ -152,7 +156,18 @@ runs:
         INPUT_INCREMENTAL: ${{ inputs.incremental }}
         INPUT_FORCE_TIER: ${{ inputs.force_tier }}
         COMMENT_BODY: ${{ github.event.comment.body }}
+        WOO_REVIEW_MODE: ${{ inputs.mode }}
       run: bash "${{ github.action_path }}/skills/woostack-review/scripts/prefetch.sh"
+
+    - name: Resolve read-only artifact context
+      id: artifact-context
+      if: steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'full' || inputs.mode == 'detect')
+      shell: bash
+      env:
+        PR_NUMBER: ${{ steps.pr.outputs.number }}
+        GITHUB_WORKSPACE: ${{ github.workspace }}
+        INPUT_LINEAR_API_KEY: ${{ inputs['linear-api-key'] }}
+      run: bash "${{ github.action_path }}/skills/woostack-review/scripts/resolve-artifact-context.sh"
 
     - name: Detect review angles
       id: angles

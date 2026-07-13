@@ -44,12 +44,14 @@ git add .
 git commit -q -m init
 
 run_prefetch() {
-  local out="$1" meta="$2"
+  local out="$1" meta="$2" github_actions="${3:-false}" mode="${4:-}"
   local diff=$'diff --git a/src/app.sh b/src/app.sh\n--- a/src/app.sh\n+++ b/src/app.sh\n@@ -1 +1,13 @@\n one\n+two\n+three\n+four\n+five\n+six\n+seven\n+eight\n+nine\n+ten\n+eleven\n+twelve\n+thirteen\n'
   OUTDIR="$out" \
   PR_NUMBER=1 \
   GITHUB_REPOSITORY=owner/repo \
   WOO_REVIEW_TEST_MODE=1 \
+  GITHUB_ACTIONS="$github_actions" \
+  WOO_REVIEW_MODE="$mode" \
   WOO_REVIEW_FAKE_PR_REVIEWS_JSON='{"reviews":[]}' \
   WOO_REVIEW_FAKE_BOT_COMMENTS=0 \
   WOO_REVIEW_FAKE_META_JSON="$meta" \
@@ -74,6 +76,27 @@ assert_contains "$stdout" "Prefetch complete" "no-intent prefetch remains succes
 [ ! -e "$work/no-intent-out/intent.md" ] && pass || fail "unresolved prefetch produces no intent"
 [ -s "$work/no-intent-out/meta.json" ] && pass || fail "no-intent prefetch preserves metadata"
 [ -s "$work/no-intent-out/diff.txt" ] && pass || fail "no-intent prefetch preserves diff"
+
+mkdir -p "$work/review-worker-out"
+printf '%s\n' '{"feature":{"id":"preserved"}}' >"$work/review-worker-out/artifact-context.json"
+set +e
+run_prefetch "$work/review-worker-out" "$meta" true review >/dev/null 2>&1
+ci_review_rc=$?
+set -e
+assert_exit 1 "$ci_review_rc" "GitHub Actions still refuses local test hooks after preserving context"
+assert_eq "$(jq -r '.feature.id' "$work/review-worker-out/artifact-context.json")" preserved \
+  "CI review prefetch preserves artifact context before later validation"
+
+mkdir -p "$work/local-review-out"
+printf '%s\n' '{"feature":{"id":"stale"}}' >"$work/local-review-out/artifact-context.json"
+printf '%s\n' '[]' >"$work/local-review-out/findings.bugs.json"
+set +e
+run_prefetch "$work/local-review-out" "$meta" false review >/dev/null 2>&1
+local_review_rc=$?
+set -e
+assert_exit 1 "$local_review_rc" "local review worker refuses stale findings despite artifact context"
+assert_eq "$(jq -r '.feature.id' "$work/local-review-out/artifact-context.json")" stale \
+  "local stale-findings refusal preserves evidence for inspection"
 
 popd >/dev/null
 rm -rf "$work"
