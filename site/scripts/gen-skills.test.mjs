@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import {
+  INTERNAL_ORDER,
+  PUBLIC_ORDER,
+  SUPPORTING_ORDER,
   parseFrontmatter,
   stripTitleHeading,
   rewriteLinks,
@@ -99,12 +102,41 @@ test('renderPage emits title/description, source link, internal note for sub-ski
   assert.match(ideate, /Internal sub-skill/);
 });
 
-test('navOrder puts public commands first, internal sub-skills last', () => {
-  const names = ['woostack-harden', 'woostack-build', 'woostack-ideate', 'using-woostack'];
-  const order = navOrder(names);
-  assert.deepEqual(order, ['using-woostack', 'woostack-build', 'woostack-harden', 'woostack-ideate']);
-  assert.ok(order.indexOf('woostack-build') < order.indexOf('woostack-ideate'));
-  assert.ok(order.indexOf('woostack-build') < order.indexOf('woostack-harden'));
+test('navOrder preserves the exact 21-public and 3-supporting/internal skill order', () => {
+  const expectedPublic = [
+    'using-woostack',
+    'woostack-init',
+    'woostack-bootstrap',
+    'woostack-build',
+    'woostack-fix',
+    'woostack-plan',
+    'woostack-execute',
+    'woostack-execute-overnight',
+    'woostack-commit',
+    'woostack-review',
+    'woostack-address-comments',
+    'woostack-status',
+    'woostack-visualize',
+    'woostack-debug',
+    'woostack-tdd',
+    'woostack-dream',
+    'woostack-doctor',
+    'woostack-sweep',
+    'woostack-qa',
+    'woostack-audit',
+    'woostack-respond',
+  ];
+  const expectedSupporting = ['woostack-ask'];
+  const expectedInternal = ['woostack-harden', 'woostack-ideate'];
+  const expected = [...expectedPublic, ...expectedSupporting, ...expectedInternal];
+
+  assert.equal(PUBLIC_ORDER.length, 21);
+  assert.deepEqual(PUBLIC_ORDER, expectedPublic);
+  assert.deepEqual(SUPPORTING_ORDER, expectedSupporting);
+  assert.deepEqual(INTERNAL_ORDER, expectedInternal);
+  assert.equal(expected.length, 24);
+  assert.equal(new Set(expected).size, 24);
+  assert.deepEqual(navOrder([...expected].reverse()), expected);
 });
 
 test('concepts taxonomy keeps context economy under context management', async () => {
@@ -119,7 +151,7 @@ test('concepts taxonomy keeps context economy under context management', async (
   assert.doesNotMatch(overview, /^## Context economy$/m);
 });
 
-test('model configuration docs follow the root models contract', async () => {
+test('configuration docs follow the scaffold and backend contract', async () => {
   const repoRoot = path.resolve(import.meta.dirname, '..', '..');
   const [templateRaw, configuration, auditRaw, memory] = await Promise.all([
     readFile(path.join(repoRoot, 'skills', 'woostack-init', 'templates', 'config.json'), 'utf8'),
@@ -130,23 +162,27 @@ test('model configuration docs follow the root models contract', async () => {
   const template = JSON.parse(templateRaw);
   assert.deepEqual(Object.keys(template), ['artifacts', 'models', 'review', 'respond', 'status']);
 
-  const exampleMatch = /## A complete example[\s\S]*?```json\n([\s\S]*?)\n```/.exec(configuration);
-  assert.ok(exampleMatch, 'configuration page exposes a complete JSON example');
+  const exampleMatch = /## A complete Markdown example[\s\S]*?```json\n([\s\S]*?)\n```/.exec(configuration);
+  assert.ok(exampleMatch, 'configuration page exposes a complete Markdown JSON example');
   const example = JSON.parse(exampleMatch[1]);
   assert.deepEqual(
     Object.keys(example).sort(),
-    ['artifacts', 'audit', 'base_branch', 'commit', 'linear', 'models', 'respond', 'review', 'review_sweep', 'status']
+    ['artifacts', 'audit', 'base_branch', 'commit', 'models', 'respond', 'review', 'review_sweep', 'status']
   );
   assert.ok(example.models);
+  assert.deepEqual(example.artifacts, { specPlan: 'markdown' });
+  assert.equal(example.linear, undefined);
   assert.equal(example.audit.models, undefined);
 
-  assert.match(configuration, /ships five top-level keys: `artifacts`, `models`, `review`, `respond`, and `status`/);
+  assert.match(configuration, /ships five\s+top-level keys: `artifacts`, `models`, `review`, `respond`, and `status`/);
   assert.match(configuration, /There are ten top-level settings:/);
+  assert.match(configuration, /\| `artifacts` \|/);
+  assert.match(configuration, /\| `linear` \|/);
   assert.match(configuration, /\| `audit` \|/);
   assert.match(configuration, /^## Audit engine$/m);
   assert.match(configuration, /`audit\.severity_floor`/);
   assert.match(configuration, /Root model tiers also drive \[woostack-audit\]/);
-  assert.match(configuration, /validates the five scaffolded keys/);
+  assert.match(configuration, /validates all five scaffolded keys/);
 
   const { fm, body } = parseFrontmatter(auditRaw, 'woostack-audit');
   const renderedBody = rewriteLinks(
@@ -166,4 +202,7 @@ test('model configuration docs follow the root models contract', async () => {
     normalizedMemory,
     /\{ "artifacts": \{ "specPlan": "markdown" \}, "models": \{\}, "review": \{\}, "respond": \{\}, "status": \{ "staleDays": 14 \} \}/
   );
+  assert.match(normalizedMemory, /spec\/plan backend and defaults to Markdown/);
+  assert.match(normalizedMemory, /specs\/.*inactive when Linear is selected/);
+  assert.match(normalizedMemory, /plans\/.*inactive when Linear is selected/);
 });

@@ -6,34 +6,47 @@ description: The build loop, its gates, and how woostack keeps the agent's worki
 import { ContextEconomy } from '@/components/concepts/context-economy';
 
 woostack is a build loop wrapped around one idea: an agent does its best work when its context
-window holds only what the current step needs. This page covers the loop and its gates, then the
-three mechanics that keep the context small: how memory and wisdom are recalled, how shell scripts
-do the heavy lifting, and how subagents carry work off the main thread.
+window holds only what the current step needs. Specs and plans also stay behind one configured
+artifact contract: compatible local Markdown by default, or native Linear resources. This page
+covers that shared loop, then the mechanics that keep context small.
 
 ## The build loop
 
 [woostack-build](/docs/skills/woostack-build) chains the phases in a fixed, gated order:
 
-> ideate → write spec → harden spec → **approve spec** → plan → harden plan → ship spec+plan PR
+> ideate → capture spec → harden spec → **approve spec** → plan → harden plan
 > → **execution handoff** → execute (per increment: implement → commit → review → distill)
 
 Each phase is its own skill. Build is the glue that sequences them and owns the handoffs between
 them.
+
+Artifact persistence around those phases differs by backend. See
+[Building rules](/docs/concepts/building-rules) for the side-by-side handoff.
 
 ## Three hard gates
 
 The chain only advances past these on an explicit "yes":
 
 1. **Design approval** is owned by [woostack-ideate](/docs/skills/woostack-ideate).
-2. **Spec approval** happens when the written spec is presented, before any planning begins.
-3. **Execution handoff** is where you choose Go, Run overnight, or Hand off, after the spec+plan PR.
+2. **Spec approval** happens when the selected backend's written spec is presented, before planning.
+3. **Execution handoff** is where you choose Go, Run overnight, or Hand off after the plan is ready.
 
 ## One spec, one plan, N PRs
 
-Every feature holds the `spec : plan : PRs = 1 : 1 : N` invariant: exactly one plan per spec, and
-that plan owns the N stacked increment PRs. [woostack-status](/docs/skills/woostack-status)
-derives the feature board from these artifacts, so the board is always computed rather than
-hand-maintained.
+Every feature holds the `spec : plan : PRs = 1 : 1 : N` invariant: one spec, one plan, and one
+implementation PR per independently shippable increment. Markdown represents that with joined
+spec and plan files; Linear represents it with one project, one managed spec document, and an
+ordered issue set. [woostack-status](/docs/skills/woostack-status) consumes either normalized
+model rather than maintaining a separate status file.
+
+## One contract, two artifact models
+
+Backend selection changes storage, not the workflow's three gates. Markdown remains the compatible
+default and ships its local spec and plan as a docs-only base PR before execution. Linear makes its
+project, spec document, increment issues, native states, and dependency relations canonical and
+creates no docs-only base PR. Linear lifecycle changes stay on those managed resources; they are
+not mirrored into local spec or plan files. Selection, authentication, and migration are covered
+once in [Configuration](/docs/configuration#artifact-backend).
 
 ## Context economy
 
@@ -94,17 +107,18 @@ result. The agent reads the result, not the inputs that produced it.
   reads the index instead of every note body.
 - `recall.sh` runs the scope match and the one-hop expansion, then emits only the notes that
   matched.
-- `status.sh` reads the specs, plans, and PR state, prints the feature board, and writes a
-  gitignored HTML render of it, so the agent never loads all those artifacts itself. When
-  execution finishes the final increment, `woostack-execute` and `woostack-execute-overnight`
-  author the plan's terminal `status: done`; the board still derives visible state from
-  artifacts and can show `in-review` while the final PR is open.
+- `status.sh` resolves the configured backend and renders its normalized feature model. Markdown
+  stays read-only and derives progress from local artifacts and GitHub state. Linear authenticates,
+  verifies issue-to-PR attribution, and reconciles only eligible merge-backed terminal states
+  before rendering.
 - `prefetch.sh` gathers a PR's diff, metadata, rules, memory, and wisdom once, and the review
   subagents read those files rather than each re-fetching from GitHub.
 
 This is what makes recall scale: on a repo with 500 notes, recall loads only the handful that match
-the changed files, not the full corpus. Because the work happens in the shell, the results are
-deterministic and the scripts are idempotent, so they are safe to run anytime, including in CI.
+the changed files, not the full corpus. The memory and review helpers remain deterministic and
+idempotent. Status has an intentional backend boundary: Markdown is read-only, while Linear may
+perform its narrowly scoped terminal reconciliation described in
+[Status tracking](/docs/concepts/status-tracking).
 
 ### Subagents isolate work
 
@@ -134,6 +148,8 @@ tiers map to a concrete model per provider in
 
 <Cards>
   <Card title="Getting started" href="/docs/getting-started" description="Install, initialize, and wire woostack into your agent." />
+  <Card title="Building rules" href="/docs/concepts/building-rules" description="Compare the Markdown and Linear artifact handoffs around the same three gates." />
+  <Card title="Status tracking" href="/docs/concepts/status-tracking" description="See how the board derives or reconciles backend state." />
   <Card title="woostack-build" href="/docs/skills/woostack-build" description="Drive a feature from idea to a reviewed PR stack." />
   <Card title="woostack-dream" href="/docs/skills/woostack-dream" description="Curate the memory and wisdom stores over time." />
   <Card title="All skills" href="/docs/skills/using-woostack" description="Per-skill reference, generated from each SKILL.md." />

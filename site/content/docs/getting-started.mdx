@@ -36,6 +36,21 @@ pnpx skills add howarewoo/woostack
 Run this **before any other woostack skill**. It sets up the `.woostack/` workspace, default
 config, and gitignores.
 
+### Choose an artifact backend
+
+Markdown is the default and needs no extra setup. To use Linear, set
+`artifacts.specPlan` to `linear`, add the workspace, team, repository, project-status, and
+issue-state mappings described in [Configuration](/docs/configuration#artifact-backend), and
+provide `LINEAR_API_KEY` through the process environment or your secret manager. The key never
+belongs in `.woostack/config.json`, a committed `.env` file, or documentation.
+
+The selector is a clean boundary, not a fallback order. In Linear mode, native projects,
+documents, issues, states, and dependency relations are canonical; existing
+`.woostack/specs/` and `.woostack/plans/` files remain untouched but inactive. Migrate
+deliberately rather than asking woostack to merge or synchronize both stores. The
+[artifact-backend reference](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/development.md#artifact-backend)
+owns the full adoption contract.
+
 ### Optional production-error response setup
 
 Interactive init offers `Set up production error response? [y/N]` and defaults to no.

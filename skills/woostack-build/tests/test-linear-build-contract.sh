@@ -173,6 +173,7 @@ ordered(linear_branch, (
     "designState: ready",
     "linear.sh feature-read",
     'name="execution-handoff"',
+
 ), "Linear freeze/handoff")
 for token in (
     "pair is provisional",
@@ -213,6 +214,8 @@ for token in (
     "root increment branches start from the frozen SHA",
 ):
     must(linear_branch, token, "Linear execution handoff")
+for token in ("after execution is", "explicitly approved"):
+    must(texts["building_rules"], token, "served build-loop docs")
 
 # Planning propagates preflight UUID context and standalone stops before harden/ready/freeze/handoff.
 for token in (

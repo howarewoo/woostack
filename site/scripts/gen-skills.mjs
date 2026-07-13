@@ -8,14 +8,34 @@ const REPO_ROOT = path.resolve(__dirname, '..', '..'); // site/scripts -> repo r
 const SKILLS_DIR = path.join(REPO_ROOT, 'skills');
 const OUT_DIR = path.resolve(__dirname, '..', 'content', 'docs', 'skills');
 const GH_BASE = 'https://github.com/howarewoo/woostack/blob/main';
-const INTERNAL = new Set(['woostack-ideate', 'woostack-harden']);
-
-const ORDER = [
-  'using-woostack', 'woostack-init', 'woostack-bootstrap', 'woostack-build', 'woostack-fix',
-  'woostack-plan', 'woostack-execute', 'woostack-execute-overnight', 'woostack-commit',
-  'woostack-review', 'woostack-address-comments', 'woostack-status', 'woostack-visualize',
-  'woostack-debug', 'woostack-tdd', 'woostack-dream',
+export const PUBLIC_ORDER = [
+  'using-woostack',
+  'woostack-init',
+  'woostack-bootstrap',
+  'woostack-build',
+  'woostack-fix',
+  'woostack-plan',
+  'woostack-execute',
+  'woostack-execute-overnight',
+  'woostack-commit',
+  'woostack-review',
+  'woostack-address-comments',
+  'woostack-status',
+  'woostack-visualize',
+  'woostack-debug',
+  'woostack-tdd',
+  'woostack-dream',
+  'woostack-doctor',
+  'woostack-sweep',
+  'woostack-qa',
+  'woostack-audit',
+  'woostack-respond',
 ];
+export const SUPPORTING_ORDER = ['woostack-ask'];
+export const INTERNAL_ORDER = ['woostack-harden', 'woostack-ideate'];
+
+const ORDER = [...PUBLIC_ORDER, ...SUPPORTING_ORDER, ...INTERNAL_ORDER];
+const INTERNAL = new Set(INTERNAL_ORDER);
 
 export function parseFrontmatter(raw, file = '<input>') {
   const m = /^---\n([\s\S]*?)\n---\n?/.exec(raw);

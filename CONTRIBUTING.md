@@ -11,6 +11,7 @@ See [AGENTS.md](AGENTS.md) for the full repo contract; this file is the short co
 | You want to... | Edit |
 |---|---|
 | Change project adoption / command routing guidance | `skills/using-woostack/SKILL.md` |
+| Change artifact-backend adoption guidance | `skills/woostack-bootstrap/references/development.md` and its consumers |
 | Add/revise a bootstrap decision or its default | `skills/woostack-bootstrap/references/decisions.md` |
 | Swap a default framework | `skills/woostack-bootstrap/references/frameworks.md` |
 | Document a new gotcha | `skills/woostack-bootstrap/references/frameworks.md` (Known gotchas section) |
@@ -46,17 +47,28 @@ See [AGENTS.md](AGENTS.md) for the full repo contract; this file is the short co
 1. Branch from `main` (`main` is protected — PRs only, never push directly).
 2. Edit the relevant skill files. One concern per PR where possible.
 3. Verify every cross-link still resolves (`[label](path.md#anchor)`).
-4. For shell/JSON skill assets, run the static checks the asset expects (`bash -n`, `jq`) — this repo has no app test runner or CI by design.
+4. For shell/JSON skill assets, run the static checks the asset expects (`bash -n`, `jq`). For
+   artifact adoption docs, run
+   `bash skills/using-woostack/tests/test-artifact-reader-contract.sh`. This repo has no universal
+   app test runner or self-CI by design.
 5. Open a PR — fill out the template.
 
 ## Editing conventions
 
 - **Skill assets only.** Markdown, plus the support files a skill ships (HTML templates and specs, the review engine's shell scripts and prompts, JSON config). No *application* code, app build configs, or app lockfiles belong in this repo.
 - **No fabricated versions.** When a skill needs a version, the procedure resolves it live (`npm view <pkg> version`). Reference frameworks by name, not by version, except in `skills/woostack-bootstrap/references/frameworks.md`, which may pin exact versions when a known incompatibility forces it.
-- **Consumer state lives under `.woostack/`** in the *target* repo a skill runs against — `specs/`, `plans/`, and `config.json` (tracked), plus local-only `memory.md` / `memory/` and `metrics.json` (gitignored). Don't reintroduce the old `.woo-review/` paths.
+- **Consumer feature artifacts are backend-selected.** Markdown remains the default, not a
+  universal requirement; Linear keeps its project, spec document, and increment issues natively.
+  Keep non-design consumer state under `.woostack/`, and follow the
+  [artifact-backend adoption contract](skills/woostack-bootstrap/references/development.md#artifact-backend)
+  rather than restating adapter or lifecycle details. Don't reintroduce the old `.woo-review/`
+  paths.
 - Prefer tables for option matrices, bulleted lists for stepwise procedures.
 - Keep examples short. The skill describes intent; project-local docs cover the specifics.
 - **Cross-link rather than duplicate.** If a fact lives in `architecture.md`, link to it from `patterns.md`; don't restate.
+- **Preserve the public surface.** Artifact backends do not create skills or command-routing rows.
+  Keep the twenty-one public command/adoption skills and all twenty-four fixed `SKILL.md` files
+  named in [AGENTS.md](AGENTS.md).
 - Keep each `SKILL.md` in sync with its references. Its `description` must state *when* to use the skill, not summarize the workflow — a workflow summary causes agents to skip the references.
 
 ## Reviewing

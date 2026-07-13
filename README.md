@@ -15,6 +15,7 @@
   - [2. Initialization](#2-initialization)
   - [3. Project Integration](#3-project-integration)
   - [4. Repository Configuration](#4-repository-configuration)
+  - [5. Artifact Backend](#5-artifact-backend)
 - [The Core Development & Review Loop](#the-core-development--review-loop)
   - [Writing and Modifying Code](#writing-and-modifying-code)
   - [Review and Iterate Flow](#review-and-iterate-flow)
@@ -42,7 +43,11 @@ pnpx skills add howarewoo/woostack
 
 *Note: `pnpm` (and `pnpx`) is the recommended package manager for woostack, as bootstrapped projects default to a pnpm workspace catalog.*
 
-This command registers the public skills (e.g. `using-woostack`, `woostack-init`, `woostack-bootstrap`, `woostack-build`, `woostack-fix`, `woostack-review`, `woostack-address-comments`, etc.) and internal helper skills in `skills-lock.json`.
+This command registers twenty-one public command/adoption skills and three bundled supporting
+skills at twenty-four fixed `SKILL.md` locations. Backend selection does not add another command;
+the collection still includes `using-woostack`, `woostack-init`, `woostack-bootstrap`,
+`woostack-build`, `woostack-fix`, `woostack-review`, and `woostack-address-comments`, among the
+rest, plus its internal and unregistered helpers.
 
 > **Recommended companion — [impeccable](https://github.com/pbakaus/impeccable).** woostack's front-end design skill of choice. It powers the `design` review angle (`woostack-review` runs impeccable's detector). Optional but recommended:
 >
@@ -92,6 +97,25 @@ Example `.woostack/config.json`:
 - **`review.ignore`**: Exclude generated or external code files from PR reviews.
 
 For detailed configurations, see [woostack-review config options](skills/woostack-review/SKILL.md#per-repo-configuration-woostackconfigjson).
+
+### 5. Artifact Backend
+
+Feature specs and plans use a selected artifact backend. Markdown is the default when
+`artifacts.specPlan` is absent and remains available explicitly; it is not the only supported
+storage model. Linear mode uses one repository-owned project for the feature, one managed spec
+document, and ordered increment issues. Native project statuses and team issue states carry
+lifecycle state.
+
+Linear authentication is environment only: provide `LINEAR_API_KEY` to the process running the
+skill. Never put the key in `.woostack/config.json`, a checked-in env file, documentation, or a
+command example. The build loop retains exactly three hard gates under either backend. Markdown
+ships its spec and plan in a docs-only base PR; Linear writes those artifacts natively and has no
+docs-only base PR before implementation. Every Linear `/woostack-status` run verifies evidence and
+reconciles eligible terminal states before rendering; Markdown status remains read-only.
+
+See the [artifact-backend adoption contract](skills/woostack-bootstrap/references/development.md#artifact-backend)
+for selection and migration boundaries. It links the canonical build lifecycle, worktree, and
+status contracts; those references own the details.
 
 ---
 

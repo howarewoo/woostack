@@ -61,6 +61,14 @@ Do not run `/woostack-init`, create `.woostack/`, scaffold code, or add config u
 user explicitly asks for that behavior or the loaded task-specific skill requires it as part
 of an approved workflow.
 
+**Artifact-backend invariant:** Markdown is the default feature spec/plan backend, not a
+universal filesystem requirement. A loaded workflow skill resolves `artifacts.specPlan` and uses
+only the selected backend; routing never infers storage from folders or the presence of
+`LINEAR_API_KEY`. Linear authentication is supplied only through the process environment. The
+[artifact-backend adoption contract](../woostack-bootstrap/references/development.md#artifact-backend)
+defines the model and links the canonical build, worktree, and status authorities; do not
+duplicate their lifecycle or adapter details here.
+
 **Feature-state invariant:** in a woostack project, every spec has exactly one plan
 (`spec : plan : PRs = 1 : 1 : N`), and the spec design `status:` plus plan implementation
 `status:`/`branch:` frontmatter is load-bearing for the `/woostack-status` board. The phase

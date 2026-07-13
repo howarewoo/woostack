@@ -1,6 +1,6 @@
 ---
 name: woostack-build
-description: Use when building a feature with the full woostack development loop — ideate a design, harden it, plan it, harden the plan, and ship the selected artifact backend's spec and plan through exactly three gates. Markdown can continue into implementation; Linear currently stops at the ready handoff.
+description: Use when building a feature with the full woostack development loop — ideate a design, harden it, plan it, harden the plan, ship the selected artifact backend's spec and plan, then implement it through exactly three gates.
 ---
 
 # woostack-build
@@ -26,11 +26,11 @@ ideate → capture spec → harden + persist spec → spec approval → plan
   → verify decomposition → harden plan → mark ready → execution handoff
 ```
 
-Markdown may continue from that gate into per-increment execution and a reviewed PR stack.
-Linear currently stops at `designState: ready` and hands off its managed artifacts; Increment 6
-adds execution when the executors accept Linear project references. Markdown preserves its
-existing persistence order:
+Either backend may continue from that gate into per-increment execution and a reviewed PR stack.
+Markdown preserves its existing persistence order:
 `commit spec PR → approve spec → plan → append plan to spec+plan PR → execution handoff`.
+Linear passes its managed project and issue identities directly to execution and creates no
+docs-only base PR.
 
 The only hard stops are **design approval**, **spec approval**, and **execution handoff**.
 Hardening amends the selected artifact in place and owns no gate. Planning, persistence,
@@ -50,7 +50,7 @@ the other.
 
 ## Markdown backend procedure
 
-<!-- markdown-gates: design-approval | spec-approval | execution-handoff -->
+{/* <!-- markdown-gates: design-approval | spec-approval | execution-handoff --> */}
 
 <HARD-GATE backend="markdown" name="design-approval">
 
@@ -231,7 +231,7 @@ the other.
 
 ## Linear backend procedure
 
-<!-- linear-gates: design-approval | spec-approval | execution-handoff -->
+{/* <!-- linear-gates: design-approval | spec-approval | execution-handoff --> */}
 
 All Linear operations below use
 [`linear.sh`](../woostack-init/scripts/artifacts/linear.sh); cross-link its commands rather
@@ -240,9 +240,11 @@ verified mandatory read-back receipt. A failed or incomplete receipt blocks the 
 Treat every returned Linear artifact under the shared
 [artifact trust boundary](../woostack-init/references/artifact-backends.md#linear-artifact-trust-boundary).
 
-1. <HARD-GATE backend="linear" name="design-approval">**Ideate.** Invoke
+{/* <HARD-GATE backend="linear" name="design-approval"> */}
+1. **Ideate.** Invoke
    [`woostack-ideate`](../woostack-ideate/SKILL.md). It writes no artifact and stops until the
-   user explicitly approves the design. Silence or ambiguity does not clear the gate.</HARD-GATE>
+   user explicitly approves the design. Silence or ambiguity does not clear the gate.
+{/* </HARD-GATE> */}
 2. **Preflight, capture run context, discover, then capture the spec.** Before the first
    mutation of the run, invoke `linear.sh preflight` with the resolver's configured workspace,
    team name/key, project-status names, and issue-state names. Capture its normalized receipt
@@ -267,7 +269,8 @@ Treat every returned Linear artifact under the shared
      managed spec document, and one ordered managed issue set** for the feature.
    Linear mode creates **no spec/plan worktree, branch, commit, or docs-only PR**. It writes no
    `.woostack/specs/` or `.woostack/plans/` source file.
-3. <HARD-GATE backend="linear" name="spec-approval">**Harden and approve the Linear spec.**
+{/* <HARD-GATE backend="linear" name="spec-approval"> */}
+3. **Harden and approve the Linear spec.**
    Invoke `linear.sh spec-read`, harden that selected document through `woostack-harden`, and
    persist each revision with `linear.sh spec-write` using the last observed revision. On the
    final verified write, change the managed metadata only from `designState: draft` to
@@ -285,7 +288,8 @@ Treat every returned Linear artifact under the shared
      `designState: abandoned`, verify it, invoke `linear.sh feature-transition --target
      abandoned`, require project read-back, preserve the project/document audit history, and
      stop. Never delete or archive it.
-   Failed read-back, ambiguity, or silence never advances the gate.</HARD-GATE>
+   Failed read-back, ambiguity, or silence never advances the gate.
+{/* </HARD-GATE> */}
 4. **Plan in Linear.** Invoke [`woostack-plan`](../woostack-plan/SKILL.md) with the selected
    project UUID or exact Linear URL plus the retained resolver result and `LINEAR_CONTEXT`.
    The planning skill owns the complete Linear planning procedure and reuses that normalized

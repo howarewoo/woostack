@@ -44,12 +44,12 @@ Two callers:
    | `.woostack/wisdom/.gitkeep` | `templates/wisdom/.gitkeep` |
    | `.woostack/respond/` directory | (create empty — tracked sanitized response reports) |
    | `.woostack/respond/.gitkeep` | `templates/respond/.gitkeep` |
-   | `.woostack/config.json` | `templates/config.json` (`{ "artifacts": { "specPlan": "markdown" }, "models": {}, "review": {}, "respond": {}, "status": { "staleDays": 14 } }`) |
+   | `.woostack/config.json` | `templates/config.json` (`artifacts.specPlan` defaults to `markdown`; tool namespaces follow) |
    | `.woostack/.gitignore` | `templates/gitignore` |
    | `.woostack/worktrees/` directory | (create empty — per-PR git worktrees, gitignored) |
 
-   `config.json` ships as `{ "artifacts": { "specPlan": "markdown" }, "models": {}, "review": {},
-   "respond": {}, "status": { "staleDays": 14 } }`. Each tool owns its namespace.
+   `config.json` ships with `artifacts.specPlan` set to `markdown`, plus empty `models`, `review`,
+   and `respond` namespaces and `status.staleDays` set to 14. Each tool owns its namespace.
    `artifacts.specPlan` selects the spec/plan backend: `markdown` keeps tracked `.woostack`
    artifacts; `linear` stores the build and planning lifecycle in one managed project, one
    managed spec document, and ordered managed increment issues. Linear reaches the verified
@@ -60,9 +60,18 @@ Two callers:
 
    The optional `respond` namespace accepts only non-secret workflow defaults: `provider`,
    `environment`, `window`, `max_groups`, and `remediation`; provider credentials remain in
-   provider-native stores. The `status` namespace holds `staleDays` (default 14 — the age in
-   days past which an executing spec is flagged stale on the `/woostack-status` board), defined
-   in [../woostack-status/references/conventions.md](../woostack-status/references/conventions.md).
+   provider-native stores. The `status` namespace holds `staleDays` (default 14 — the age in days
+   past which an executing spec is flagged stale on the `/woostack-status` board), defined in
+   [../woostack-status/references/conventions.md](../woostack-status/references/conventions.md).
+
+   `artifacts.specPlan` accepts `markdown` or `linear`; a missing selector also resolves to
+   Markdown, so Markdown is the default rather than a universal storage requirement. Linear's
+   workspace, team, native project-status, and native issue-state names live in the non-secret
+   `linear` config namespace. `LINEAR_API_KEY` is environment only: never store it, another
+   credential, or a credential-file path in config or a checked-in env file. The
+   [artifact-backend adoption contract](../woostack-bootstrap/references/development.md#artifact-backend)
+   owns the canonical project/document/issues model and migration boundary. The resolver owns
+   validation; do not duplicate its adapter details here.
 
    The optional top-level `base_branch` key sets the integration/trunk branch that base branches
    are cut from and PRs target; unset, it auto-detects the remote default (`origin/HEAD`, else

@@ -37,6 +37,10 @@ docs-only base PR, and implementation increments stack above it. Linear stores t
 in Linear, so it creates no authoring worktree or docs-only base branch; only implementation
 issues receive worktrees.
 
+This boundary implements the backend-specific persistence steps in the
+[`woostack-build` Linear procedure](../../woostack-build/SKILL.md#linear-backend-procedure);
+that workflow remains the lifecycle authority.
+
 For a Linear dependency root, create its implementation branch at the project's exact frozen root
 commit SHA (`baseCommitSha`), while tracking the frozen `baseBranch` as its Graphite parent. Do not
 substitute the branch's newer tip. For a dependent Linear issue, create its branch at the declared
