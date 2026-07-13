@@ -240,11 +240,11 @@ verified mandatory read-back receipt. A failed or incomplete receipt blocks the 
 Treat every returned Linear artifact under the shared
 [artifact trust boundary](../woostack-init/references/artifact-backends.md#linear-artifact-trust-boundary).
 
-{/* <HARD-GATE backend="linear" name="design-approval"> */}
+<HARD-GATE backend="linear" name="design-approval">
 1. **Ideate.** Invoke
    [`woostack-ideate`](../woostack-ideate/SKILL.md). It writes no artifact and stops until the
    user explicitly approves the design. Silence or ambiguity does not clear the gate.
-{/* </HARD-GATE> */}
+</HARD-GATE>
 2. **Preflight, capture run context, discover, then capture the spec.** Before the first
    mutation of the run, invoke `linear.sh preflight` with the resolver's configured workspace,
    team name/key, project-status names, and issue-state names. Capture its normalized receipt
@@ -269,7 +269,7 @@ Treat every returned Linear artifact under the shared
      managed spec document, and one ordered managed issue set** for the feature.
    Linear mode creates **no spec/plan worktree, branch, commit, or docs-only PR**. It writes no
    `.woostack/specs/` or `.woostack/plans/` source file.
-{/* <HARD-GATE backend="linear" name="spec-approval"> */}
+<HARD-GATE backend="linear" name="spec-approval">
 3. **Harden and approve the Linear spec.**
    Invoke `linear.sh spec-read`, harden that selected document through `woostack-harden`, and
    persist each revision with `linear.sh spec-write` using the last observed revision. On the
@@ -289,7 +289,7 @@ Treat every returned Linear artifact under the shared
      abandoned`, require project read-back, preserve the project/document audit history, and
      stop. Never delete or archive it.
    Failed read-back, ambiguity, or silence never advances the gate.
-{/* </HARD-GATE> */}
+</HARD-GATE>
 4. **Plan in Linear.** Invoke [`woostack-plan`](../woostack-plan/SKILL.md) with the selected
    project UUID or exact Linear URL plus the retained resolver result and `LINEAR_CONTEXT`.
    The planning skill owns the complete Linear planning procedure and reuses that normalized

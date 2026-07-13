@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-07-11-linear-artifact-backend.md
-status: executing
+status: done
 branch: feature/linear-artifact-backend
 ---
 

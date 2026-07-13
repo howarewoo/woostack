@@ -13,12 +13,13 @@ TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/woostack-reader-contract.XXXXXX")" || exi
 trap 'rm -rf -- "$TMP_ROOT"' EXIT HUP INT TERM
 
 analyze_root() {
-  python3 - "$1" <<'PY'
+  python3 - "$1" "${2:-repository}" <<'PY'
 import re
 import sys
 from pathlib import Path
 
 root = Path(sys.argv[1])
+validation_mode = sys.argv[2]
 skills_root = root / "skills"
 
 # Every artifact-reading SKILL discovered below must be classified here. This is wider than
@@ -298,7 +299,7 @@ expected_routes = [
 if routes != expected_routes:
     failure("skill-surface", "public command routing rows must remain exactly the ordered 20-command surface")
 
-if (root / "AGENTS.md").is_file():
+if validation_mode == "repository":
     doc_paths = {
         "AGENTS.md": root / "AGENTS.md",
         "README.md": root / "README.md",
@@ -401,7 +402,7 @@ PY
 
 record_analysis() {
   local root="$1" label="$2" output
-  if output="$(analyze_root "$root" 2>&1)"; then
+  if output="$(analyze_root "$root" repository 2>&1)"; then
     pass
   else
     fail "$label: $output"
@@ -409,8 +410,8 @@ record_analysis() {
 }
 
 expect_fixture_failure() {
-  local root="$1" expected="$2" label="$3" output
-  if output="$(analyze_root "$root" 2>&1)"; then
+  local root="$1" expected="$2" label="$3" mode="${4:-fixture}" output
+  if output="$(analyze_root "$root" "$mode" 2>&1)"; then
     fail "$label: injected violation unexpectedly passed"
   elif [[ "$output" == *"$expected"* ]]; then
     pass
@@ -463,6 +464,11 @@ lines[routes[0]], lines[routes[1]] = lines[routes[1]], lines[routes[0]]
 path.write_text("\n".join(lines) + "\n")
 PY
 expect_fixture_failure "$fixture" "ordered 20-command surface" "routing-row order rejection"
+
+fixture="$TMP_ROOT/missing-adoption-contract"
+make_fixture "$fixture"
+expect_fixture_failure "$fixture" "required adoption document is missing" \
+  "missing repository adoption contract" repository
 
 fixture="$TMP_ROOT/new-reader"
 make_fixture "$fixture"
