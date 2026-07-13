@@ -1,6 +1,6 @@
 ---
 name: woostack-tdd
-description: "woostack's canonical test-driven-development home and on-demand test-adder. The single source for the TDD kernel — Red→Green→Refactor, test-first, cover happy/error/edge/success+failure, framework-aware, no-runner→concrete verification — that woostack-plan, woostack-execute, woostack-debug, and bootstrap patterns.md §7 should link to instead of restating. Also the 14th public command: /woostack-tdd <target> adds appropriate tests to an existing code block, PR, spec, or plan — one verb, target-routed (code→colocated *.test files, PR→tests for the gh pr diff surface, spec→strengthen §7 acceptance criteria, plan→fill failing-test steps) — with a characterization carve-out for existing code (new code is red-first; existing code pins current behavior). Writes tests to the working tree and hands to woostack-commit; never commits, merges, or authors status:/branch:; owns no approval gate."
+description: "Canonical Red→Green→Refactor guidance and `/woostack-tdd <target>` test addition for code, PRs, Markdown specs/plans, and read-only Linear issue inputs. Writes local tests or Markdown acceptance content, never commits, merges, mutates Linear artifacts, or authors lifecycle state."
 ---
 
 # woostack-tdd
@@ -10,9 +10,10 @@ once here and *linked*, never restated, by [woostack-plan](../woostack-plan/SKIL
 [woostack-execute](../woostack-execute/SKILL.md), [woostack-debug](../woostack-debug/SKILL.md),
 and [bootstrap patterns.md §7](../woostack-bootstrap/references/patterns.md), honoring the repo's
 "cross-link, do not duplicate" rule. **(2) The 14th public command** — `/woostack-tdd <target>`
-adds the appropriate tests to an existing block of code, a PR, a spec, or a plan. It writes tests
-to the working tree and hands to [woostack-commit](../woostack-commit/SKILL.md); it never commits,
-merges, or touches a spec's `status:`/`branch:`, and owns no approval gate.
+adds the appropriate tests to an existing block of code, a PR, a spec, a Markdown plan, or a
+Linear issue. It writes tests to the local code worktree (or enriches Markdown spec/plan content)
+and hands implementation work to [woostack-commit](../woostack-commit/SKILL.md); it never commits,
+merges, mutates Linear issue content, or touches artifact lifecycle state, and owns no approval gate.
 
 ## The TDD kernel
 
@@ -61,11 +62,27 @@ Auto-detect the target by argument shape:
 | **PR** | a PR number or URL | tests covering the **diff surface only** — read it with `gh pr diff <n>` (read-only inspection; `git diff <base>...HEAD` for a local branch) |
 | **spec** | a path under `.woostack/specs/` | strengthen the testable **§7 Acceptance criteria** in place (happy/error/edge per behavior) |
 | **plan** | a path under `.woostack/plans/` | fill each task's **failing-test-first step** with the actual test and exact expected output |
+| **Linear issue** | a Linear project UUID or URL plus a Linear issue UUID, URL, or unambiguous managed issue reference | use the issue as immutable execution input and add the specified tests to the local code worktree |
 | **(none)** | no argument | **ask** what to test; never guess (mirrors [woostack-debug](../woostack-debug/SKILL.md)) |
 
-Apply the kernel to whichever target: real tests for code/PR, the artifact's test-equivalent for
-spec/plan. In a no-runner target, substitute the concrete verification command per the kernel. If
-the argument is ambiguous, **ask** — don't guess the target type.
+Apply the kernel to whichever target: real tests for code/PR/Linear issue and the artifact's
+test-equivalent for a Markdown spec/plan. In a no-runner target, substitute the concrete
+verification command per the kernel. If the argument is ambiguous, **ask** — don't guess.
+
+For a Linear issue, require both project and issue references and run backend preflight. Resolve
+the supplied project UUID or exact Linear URL with
+`linear.sh feature-resolve --eligible-statuses '["executing"]'`, the captured project-status UUID
+map, and the repository marker; require exactly one repository-owned result. Then invoke
+`linear.sh plan-read` with its `.id`, the repository marker, and the captured issue-state UUID map,
+and resolve exactly one issue from that normalized increment set. An issue-only reference is
+insufficient because the adapter deliberately does not scan projects.
+Its title, content, acceptance criteria, dependencies, and verification steps are immutable
+execution input. Use them to locate the implementation working set and write
+tests only to the local code worktree; the command does not mutate issue content, metadata, or
+native state. If the issue lacks enough testable detail, report a planning defect and route it
+through explicit replanning rather than patching Linear during execution. Safe issue-content
+editing would require adapter-supported optimistic revision/CAS, which is outside this command's
+current contract.
 
 ## Memory
 
@@ -82,11 +99,13 @@ schema, recall procedure, and distill gate are defined once in
   [woostack-commit](../woostack-commit/SKILL.md).
 - **Gate-light.** Owns no approval gate (like `woostack-execute`/`woostack-harden`). For a
   spec/plan edit, show the before/after diff; do not block.
-- **Authors no `status:`/`branch:`.** Spec/plan enrichment is content-only; never author a phase
-  transition or fork a second plan. The `spec : plan : PRs = 1 : 1 : N` invariant — defined in
-  [conventions.md](../woostack-status/references/conventions.md) — is untouched. When the target's
-  `status:` is ≥ `planning` (a plan already exists), surface that the plan may need re-derivation;
-  still edit content only.
+- **Authors no lifecycle or Linear content.** Markdown spec/plan enrichment is content-only; never
+  author a phase transition or fork a second plan. A Linear issue is read-only execution input:
+  write only local code tests, never issue content/metadata/state. The
+  `spec : plan : PRs = 1 : 1 : N` invariant — defined in
+  [conventions.md](../woostack-status/references/conventions.md) — is untouched. When a Markdown
+  target's `status:` is ≥ `planning` (a plan already exists), surface that planning may need
+  re-derivation; still edit content only.
 - **No runtime delegation.** `woostack-execute` and `woostack-debug` write their tests inline and
   link this kernel for the "how"; they do not invoke this skill at runtime.
 - **Characterization for existing code only.** New code stays red-first; the carve-out is not a

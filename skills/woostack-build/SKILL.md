@@ -335,20 +335,33 @@ Treat every returned Linear artifact under the shared
 8. <HARD-GATE backend="linear" name="execution-handoff">**Stop before execute.** Present the
    project URL, spec document URL, ordered issue URLs and dependency/Git-parent shape, and frozen
    base branch+SHA. Up to this point there is **no implementation branch, worktree, commit, or
-   PR**. Ask the user to confirm **Hand off**, then stop with the Linear artifacts at
-   `designState: ready` for later or external execution. This increment does not offer Go or Run
-   overnight, record `executionApproved`, or invoke an executor; Increment 6 adds those choices
-   when the execution skills accept Linear project references. Ambiguity or silence does not
-   clear the gate.</HARD-GATE>
+   PR**. Ask the user to choose:
+   - **Go** → record execution approval as described below, then run `woostack-execute` in this
+     session.
+   - **Run overnight** → record execution approval as described below, then run
+     `woostack-execute-overnight` unattended.
+   - **Hand off** → stop with the Linear artifacts ready for later or external execution; the
+     base remains provisional until that executor records approval.
+   For **Go** or **Run overnight**, before creating any implementation Git artifact, call
+   `linear.sh plan-read` and require null branch/PR evidence, call `linear.sh spec-read`, then
+   call `linear.sh spec-write --issue-state-map "$LINEAR_ISSUE_STATES"` with the observed
+   revision to change only `designState: ready` to `designState: executionApproved`. Verify it
+   with `linear.sh feature-read`. This work step is not another gate; it is the point where the
+   base pair becomes immutable. Ambiguous or no answer is not Go. Create no implementation Git
+   artifact until the user explicitly chooses **Go** or **Run overnight** and that verified
+   approval marker exists.
+</HARD-GATE>
+9. **Execute.** Invoke the selected execution skill with the Linear project UUID/URL. Linear
+   mode has no docs-only base PR: root increment branches start from the frozen SHA and
+   dependent increments use their declared Git parent. Execution owns issue/PR evidence and
+   lifecycle updates; build never merges.
 
 ## Shared terminal states
 
 - **Hand off** → the selected spec/plan artifacts are ready and no implementation PR exists.
-  This is the only Linear terminal state currently supported by build.
-- **Go** → Markdown only: a reviewed Graphite stack with the spec+plan PR at its base and one
-  implementation PR per increment.
-- **Run overnight** → Markdown only: an autonomous reviewed or truthfully blocked stack plus its
-  morning report.
+- **Go** → a reviewed Graphite stack with one implementation PR per increment; Markdown keeps
+  its spec+plan PR at the base, while Linear starts root increments from the frozen SHA.
+- **Run overnight** → an autonomous reviewed or truthfully blocked stack plus its morning report.
 
 Build never separately asks to open a PR and never merges.
 
@@ -371,16 +384,16 @@ Build never separately asks to open a PR and never merges.
   file, branch, commit, or docs-only PR for Linear artifacts.
 - **Verified mutations only.** Every Linear write or lifecycle transition must be followed by
   adapter discovery/read-back; unknown or partial outcomes stop.
-- **Linear design lifecycle is closed.** This build increment authors only
-  `draft → hardened → approved → planning → ready`. The adapter validates the later
-  `executionApproved → executing → inReview → done` states for the next increment, but build
-  does not author or act on them yet; same-state writes are idempotent, explicit evidence-free
-  replan alone permits `ready → planning`, active states may explicitly become `abandoned`, and
+- **Linear design lifecycle is closed.** Build authors
+  `draft → hardened → approved → planning → ready → executionApproved`; execution owns
+  `executing → inReview → done`; same-state writes are idempotent, explicit evidence-free replan
+  alone permits `ready → planning`, active states may explicitly become `abandoned`, and
   `done`/`abandoned` are terminal. Every other jump or backtrack fails closed.
-- **One feature join.** Markdown remains `spec : plan : PRs = 1 : 1 : N`; Linear planning is
-  `project : spec document : increment issues = 1 : 1 : N` until execution support adds PRs.
-- **Stop before execute.** Markdown halts for explicit **Go**, **Run overnight**, or **Hand off**.
-  Linear supports **Hand off** only in this increment and creates no implementation Git artifact.
+- **One feature join.** Markdown remains `spec : plan : PRs = 1 : 1 : N`; Linear remains
+  `project : spec document : increment issues : implementation PRs = 1 : 1 : N : N`.
+- **Stop before execute.** Both backends halt for explicit **Go**, **Run overnight**, or
+  **Hand off** and create no implementation Git artifact before Go/Run plus any required verified
+  execution-approval write.
 - **Never merge.** Build ends at the selected terminal state.
 - **Distill durable knowledge only.** Execution writes scoped, deduplicated memory notes, not
   feature-specific trivia.

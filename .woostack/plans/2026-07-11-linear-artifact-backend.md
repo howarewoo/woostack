@@ -286,23 +286,23 @@ branch: feature/linear-artifact-backend
 - Modify: `skills/woostack-tdd/SKILL.md`
 - Create: `skills/woostack-execute/tests/test-linear-execute-contract.sh`
 
-- [ ] **Step 1: Add failing execution-state tests**
+- [x] **Step 1: Add failing execution-state tests**
   Assert: execution input resolves ordered ready issues; issue moves to `executing` before code; root worktrees start at frozen SHA; dependent worktrees start at declared parent branches; overnight processes one ready independent track at a time under the existing sequential fault-isolation policy; blocked/test/submit/API failures never advance to `inReview`; successful `gt submit` plus read-back writes branch/PR metadata and then `inReview`; build never sets `done`.
 
-- [ ] **Step 2: Run execution contract red**
+- [x] **Step 2: Run execution contract red**
   Run: `bash skills/woostack-execute/tests/test-linear-execute-contract.sh`
   Expected: FAIL because execution accepts only Markdown plan paths.
 
-- [ ] **Step 3: Update supervised execution**
+- [x] **Step 3: Update supervised execution**
   Add backend resolution at entry. Preserve Markdown checkbox/status behavior. In Linear mode, use issue content as the live task record, update only the managed progress representation owned by woostack, enforce native dependency/Git-parent readiness, and require verified API receipts around state transitions.
 
-- [ ] **Step 4: Update overnight tracks**
+- [x] **Step 4: Update overnight tracks**
   Make Linear native dependency roots/tracks drive fault isolation while preserving the current sequential policy: select one ready track deterministically, complete or block it, then advance to the next. A blocker ends only the affected track and writes the issue `blocked` state plus morning-report evidence. Never infer track order from Linear UI sort, and do not introduce Linear-only concurrency.
 
-- [ ] **Step 5: Update TDD and worktree contracts**
+- [x] **Step 5: Update TDD and worktree contracts**
   Allow Linear issue targets wherever a plan increment is accepted. Document that spec/plan authoring worktrees and docs-only base branches are Markdown-only; Linear implementation worktrees use the frozen root SHA or declared issue parent branch.
 
-- [ ] **Step 6: Run execution tests**
+- [x] **Step 6: Run execution tests**
   Run: `bash skills/woostack-execute/tests/test-linear-execute-contract.sh && bash skills/woostack-execute/tests/run-tests.sh && bash skills/woostack-execute-overnight/tests/run-tests.sh`
   Expected: PASS for Markdown and Linear execution paths.
 
@@ -313,21 +313,21 @@ branch: feature/linear-artifact-backend
 - Modify: `skills/woostack-status/references/conventions.md`
 - Create: `skills/woostack-commit/tests/test-linear-attribution.sh`
 
-- [ ] **Step 1: Add failing attribution tests**
+- [x] **Step 1: Add failing attribution tests**
   Assert Markdown PRs retain the exact `Spec:` trailer. Linear PRs require exactly one `Linear-Project: <uuid>` and one `Linear-Issue: <TEAM-NUMBER>` trailer; mismatches, duplicates, foreign project issues, and missing API verification block submission/update.
 
-- [ ] **Step 2: Run attribution tests red**
+- [x] **Step 2: Run attribution tests red**
   Run: `bash skills/woostack-commit/tests/test-linear-attribution.sh`
   Expected: FAIL because commit supports only file trailers.
 
-- [ ] **Step 3: Implement backend-specific PR bodies**
+- [x] **Step 3: Implement backend-specific PR bodies**
   Resolve backend before invariant checks and PR drafting. Preserve Markdown logic. For Linear, fetch the issue/project relationship, include both trailers, and record the submitted branch/PR URL back to the issue only after `gt submit` success and read-back.
 
-- [ ] **Step 4: Run attribution and execution suites**
+- [x] **Step 4: Run attribution and execution suites**
   Run: `bash skills/woostack-commit/tests/test-linear-attribution.sh && bash skills/woostack-execute/tests/test-linear-execute-contract.sh`
   Expected: PASS.
 
-- [ ] **Step 5: Commit Increment 6**
+- [x] **Step 5: Commit Increment 6**
   Run: `gt create -m "feat(execute): run Linear increment issues"`
   Expected: one PR enabling end-to-end implementation and PR attribution without merge behavior.
 
