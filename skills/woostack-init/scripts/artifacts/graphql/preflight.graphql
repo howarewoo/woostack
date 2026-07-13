@@ -1,6 +1,7 @@
 query WoostackPreflight {
   viewer {
     id
+    active
     name
     organization {
       id

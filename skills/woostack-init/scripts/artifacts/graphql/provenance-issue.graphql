@@ -1,0 +1,6 @@
+query WoostackProvenanceIssue($id: String!) {
+  issue(id: $id) {
+    id
+    project { id }
+  }
+}

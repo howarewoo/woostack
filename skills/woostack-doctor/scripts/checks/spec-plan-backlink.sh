@@ -6,10 +6,19 @@
 # $1 is overloaded (root or "--fix"), so resolve mode BEFORE deriving any path.
 set -uo pipefail
 emit() { printf '%s\t%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" "$5"; }
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+RESOLVER="${WOOSTACK_BACKEND_RESOLVER:-$HERE/../../../woostack-init/scripts/artifacts/resolve-backend.sh}"
+
+uses_linear() {
+  local root="$1" resolved
+  resolved="$(bash "$RESOLVER" "$root" 2>/dev/null)" || return 1
+  [ "$(jq -r '.backend' <<<"$resolved")" = linear ]
+}
 
 if [ "${1:-}" = "--fix" ]; then
   # --fix <root> <spec> <plan-basename> : insert the callout after the first H1 (idempotent).
   root="$2"; spec="$3"; pbase="$4"
+  uses_linear "$root" && exit 0
   grep -qF "[[plans/$pbase]]" "$spec" 2>/dev/null && exit 0
   awk -v line="> **Plan:** [[plans/$pbase]]" '
     {print} d==0 && /^# /{print ""; print line; d=1}' "$spec" > "$spec.t" \
@@ -26,6 +35,7 @@ if [ "${1:-}" = "--fix" ]; then
   exit 0
 fi
 WOO_ROOT="${1:-.}"
+uses_linear "$WOO_ROOT" && exit 0
 
 # spec_for <plan-file> → absolute spec path (Source line, else same-basename), empty if none.
 spec_for() {
