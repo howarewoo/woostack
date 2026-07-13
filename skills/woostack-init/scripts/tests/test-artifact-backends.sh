@@ -331,7 +331,7 @@ spec_path="$repo/.woostack/specs/$basename.md"
 spec_before="$(shasum -a 256 "$spec_path" | cut -d ' ' -f 1)"
 plan_before="$(shasum -a 256 "$repo/.woostack/plans/$basename.md" | cut -d ' ' -f 1)"
 actual="$(bash "$MARKDOWN" feature "$spec_path")"
-assert_eq "$(jq -c 'keys' <<<"$actual")" '["backend","feature","increments","spec"]' "Markdown model has deterministic top-level fields"
+assert_eq "$(jq -c 'keys' <<<"$actual")" '["backend","feature","increments","progress","spec"]' "Markdown model has deterministic top-level fields"
 assert_eq "$(jq -c '.backend' <<<"$actual")" '"markdown"' "Markdown model identifies its backend"
 assert_eq "$(jq -c '.feature | {id,url,title,status,branch}' <<<"$actual")" \
   "$(jq -cn --arg id ".woostack/specs/$basename.md" --arg title 'feature.v2+api_core' --arg branch 'feature/feature.v2+api_core' '{id:$id,url:null,title:$title,status:"executing",branch:$branch}')" \
@@ -340,6 +340,7 @@ assert_eq "$(jq -c '.spec | {id,url,content:(.content | contains("Spec body."))}
   "$(jq -cn --arg id ".woostack/specs/$basename.md" '{id:$id,url:null,content:true}')" \
   "spec content is normalized"
 assert_eq "$(jq -r '.spec.revision' <<<"$actual")" "$spec_before" "spec revision is the deterministic content digest"
+assert_eq "$(jq -c '.progress' <<<"$actual")" '{"completed":3,"total":5}' "Markdown model preserves checkbox-level progress"
 assert_eq "$(jq -c '[.increments[] | keys]' <<<"$actual")" \
   '[["branch","content","dependencies","id","identifier","ordinal","pullRequest","status"],["branch","content","dependencies","id","identifier","ordinal","pullRequest","status"],["branch","content","dependencies","id","identifier","ordinal","pullRequest","status"],["branch","content","dependencies","id","identifier","ordinal","pullRequest","status"]]' \
   "every increment exposes the complete normalized contract"

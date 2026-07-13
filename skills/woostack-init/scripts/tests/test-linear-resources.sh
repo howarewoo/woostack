@@ -807,10 +807,28 @@ if [ -f "$work/calls" ]; then fail "direct done refusal must occur before API ac
 cat >"$work/merged-prs.json" <<EOF
 [{"projectId":"$project_id","issueIdentifier":"ENG-11","url":"https://github.com/acme/widgets/pull/11","merged":true}]
 EOF
+review_snapshot='{"projectStatus":"inReview","issues":[{"id":"cccccccc-0001-4000-8000-000000000001","status":"inReview"}]}'
+review_eligible='["cccccccc-0001-4000-8000-000000000001"]'
+done_snapshot='{"projectStatus":"done","issues":[{"id":"cccccccc-0001-4000-8000-000000000001","status":"done"}]}'
+review_done_snapshot='{"projectStatus":"inReview","issues":[{"id":"cccccccc-0001-4000-8000-000000000001","status":"done"}]}'
+executing_snapshot='{"projectStatus":"inReview","issues":[{"id":"cccccccc-0001-4000-8000-000000000001","status":"executing"}]}'
+review_expect=(--expected-eligible "$review_eligible" --expected-project-transition true --expected-snapshot "$review_snapshot")
+done_expect=(--expected-eligible '[]' --expected-project-transition false --expected-snapshot "$done_snapshot")
+executing_expect=(--expected-eligible '[]' --expected-project-transition false --expected-snapshot "$executing_snapshot")
+reset_fake
+queue project-list project-list-in-review.json 1
+queue issue-list issue-list-evidence.json 1
+queue issue-update issue-update-success.json 1
+queue issue-list issue-list-evidence-done.json 2
+queue project-list project-list-in-review.json 2
+queue project-update project-update-done.json 1
+queue project-list project-list-done.json 3
+run_capture status-reconcile --project "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map" --pull-requests-file "$work/merged-prs.json" "${review_expect[@]}"
+assert_exit 0 "$RC" "status reconciliation accepts an exact caller preview snapshot"
 reset_fake
 queue project-list project-list-done.json 1
 queue issue-list issue-list-evidence-done.json 1
-run_capture status-reconcile --project "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map" --pull-requests-file "$work/merged-prs.json"
+run_capture status-reconcile --project "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map" --pull-requests-file "$work/merged-prs.json" "${done_expect[@]}"
 assert_exit 0 "$RC" "done project is idempotently verified"
 assert_eq "$(jq -r '.eligibleIssues | length' <<<"$OUTPUT")" "0" "done project has no eligible mutations"
 assert_not_contains "$(cat "$work/calls")" $'mutation\t' "done project performs no mutation"
@@ -822,10 +840,10 @@ queue project-list project-list-in-review.json 1
 queue issue-list issue-list-evidence.json 1
 queue issue-update issue-update-success.json 1
 queue issue-list issue-list-evidence-done.json 2
-queue project-list project-list-one.json 2
+queue project-list project-list-in-review.json 2
 queue project-update project-update-done.json 1
 queue project-list project-list-done.json 3
-run_capture status-reconcile --project "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map" --pull-requests-file "$work/merged-prs.json"
+run_capture status-reconcile --project "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map" --pull-requests-file "$work/merged-prs.json" "${review_expect[@]}"
 assert_exit 0 "$RC" "all-done issue readback advances and verifies a non-done project"
 assert_eq "$(cut -f2 "$work/calls" | tr '\n' ',')" "project-list,issue-list,issue-update,issue-list,project-list,project-update,project-list," "project transition occurs only after ownership and issue done readback"
 assert_eq "$(jq -r '.completed | join(",")' <<<"$OUTPUT")" "issueUpdate,projectUpdate" "terminal receipt records both verified mutations"
@@ -833,10 +851,57 @@ assert_eq "$(jq -r '.projectDone' <<<"$OUTPUT")" "true" "terminal receipt verifi
 assert_eq "$(jq -r '.pending | length' <<<"$OUTPUT")" "0" "terminal receipt has no remaining verification"
 assert_eq "$(jq -r '.verified' <<<"$OUTPUT")" "true" "compound terminal receipt is verified"
 
+reset_fake
+queue project-list project-list-in-review.json 1
+queue issue-list issue-list-evidence.json 1
+queue issue-update issue-update-success.json 1
+queue issue-list issue-list-evidence-done.json 2
+queue project-list project-list-done.json 2
+run_capture status-reconcile --project "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map" --pull-requests-file "$work/merged-prs.json" "${review_expect[@]}"
+assert_exit 1 "$RC" "project status drift after issue read-back fails closed"
+assert_contains "$OUTPUT" "project status drifted before terminal mutation" "project drift diagnostic names the stale terminal preview"
+assert_not_contains "$(cat "$work/calls")" $'mutation\tproject-update' "project status drift blocks the project mutation"
+
+reset_fake
+queue project-list project-list-in-review.json 1
+queue issue-list issue-list-evidence.json 1
+printf '%s\n' '{"errors":[{"message":"simulated issue mutation failure"}]}' >"$work/responses/issue-update.1.json"
+queue issue-list issue-list-evidence-done.json 2
+run_capture status-reconcile --project "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map" --pull-requests-file "$work/merged-prs.json" "${review_expect[@]}"
+assert_exit 1 "$RC" "unknown issue mutation response fails closed even when read-back is done"
+assert_contains "$(jq -r '.pending|join(",")' <<<"$OUTPUT")" "issue-update-failed" "unknown mutation outcome remains explicit in the receipt"
+assert_not_contains "$(cat "$work/calls")" $'mutation\tproject-update' "unknown issue mutation outcome blocks project mutation"
+
+reset_fake
+queue project-list project-list-in-review.json 1
+queue issue-list issue-list-evidence-done.json 1
+queue issue-list issue-list-evidence-done.json 2
+queue project-list project-list-in-review.json 2
+queue project-update project-update-done.json 1
+queue project-list project-list-done.json 3
+run_capture status-reconcile --project "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map" --pull-requests-file "$work/merged-prs.json" \
+  --expected-eligible '[]' --expected-project-transition true --expected-snapshot "$review_done_snapshot"
+assert_exit 0 "$RC" "retry resumes with a project-only terminal transition"
+assert_not_contains "$(cat "$work/calls")" $'mutation\tissue-update' "resumable project-only retry does not repeat issue mutation"
+assert_eq "$(jq -r '.completed|join(",")' <<<"$OUTPUT")" "projectUpdate" "project-only retry verifies exactly the project write"
+
+reset_fake
+queue project-list project-list-in-review.json 1
+queue issue-list issue-list-evidence.json 1
+queue issue-update issue-update-success.json 1
+queue issue-list issue-list-evidence-done.json 2
+queue project-list project-list-in-review.json 2
+queue project-update project-update-partial.json 1
+queue project-list project-list-done.json 3
+run_capture status-reconcile --project "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map" --pull-requests-file "$work/merged-prs.json" "${review_expect[@]}"
+assert_exit 1 "$RC" "project mutation API failure cannot pass despite matching read-back"
+assert_contains "$(jq -r '.pending|join(",")' <<<"$OUTPUT")" "project-update-failed" "project API failure remains explicit in the receipt"
+assert_eq "$(jq -r '.verified' <<<"$OUTPUT")" "false" "API-failed project receipt is never verified"
+
 
 printf '%s\n' '[{"projectId":"not-a-uuid","issueIdentifier":"ENG-11","url":"https://github.com/acme/widgets/pull/11","merged":true}]' >"$work/bad-prs.json"
 reset_fake
-run_capture status-reconcile --project "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map" --pull-requests-file "$work/bad-prs.json"
+run_capture status-reconcile --project "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map" --pull-requests-file "$work/bad-prs.json" "${review_expect[@]}"
 assert_exit 1 "$RC" "malformed Linear-Project attribution is rejected"
 if [ -f "$work/calls" ]; then fail "invalid attribution must fail before API access"; else pass; fi
 
@@ -852,11 +917,70 @@ EOF
 printf '%s\n' '[]' >"$work/missing-prs.json"
 for pair_case in wrong-project unknown-issue duplicate missing; do
   reset_fake; queue project-list project-list-in-review.json 1; queue issue-list issue-list-evidence.json 1
-  run_capture status-reconcile --project "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map" --pull-requests-file "$work/$pair_case-prs.json"
+  run_capture status-reconcile --project "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map" --pull-requests-file "$work/$pair_case-prs.json" "${review_expect[@]}"
   assert_exit 1 "$RC" "$pair_case Linear attribution pair is rejected"
   assert_contains "$OUTPUT" "missing, duplicate, or foreign" "$pair_case attribution has a safe join diagnostic"
   assert_not_contains "$(cat "$work/calls")" $'mutation\t' "$pair_case attribution performs no mutation"
 done
+
+printf '%s\n' "[{\"projectId\":\"$project_id\",\"issueIdentifier\":\"ENG-11\",\"url\":\"https://github.com/acme/widgets/pull/11\",\"merged\":false}]" >"$work/unmerged-prs.json"
+reset_fake; queue project-list project-list-done.json 1; queue issue-list issue-list-evidence-done.json 1
+run_capture status-reconcile --project "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map" --pull-requests-file "$work/unmerged-prs.json" "${done_expect[@]}"
+assert_exit 1 "$RC" "pre-existing done issue requires merged PR evidence"
+assert_not_contains "$(cat "$work/calls")" $'mutation\t' "unmerged done evidence performs zero mutation"
+
+done_executing_snapshot='{"projectStatus":"done","issues":[{"id":"cccccccc-0001-4000-8000-000000000001","status":"executing"}]}'
+reset_fake; queue project-list project-list-done.json 1; queue issue-list issue-list-executing.json 1
+run_capture status-reconcile --project "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map" --pull-requests-file "$work/missing-prs.json" \
+  --expected-eligible '[]' --expected-project-transition false --expected-snapshot "$done_executing_snapshot"
+assert_exit 1 "$RC" "done project with non-done issue is inconsistent"
+assert_contains "$OUTPUT" "terminal states are inconsistent" "done/non-done inconsistency is explicit"
+assert_not_contains "$(cat "$work/calls")" $'mutation\t' "done/non-done inconsistency performs zero mutation"
+
+
+wrong_eligible='["dddddddd-0001-4000-8000-000000000001"]'
+reset_fake; queue project-list project-list-in-review.json 1; queue issue-list issue-list-evidence.json 1
+run_capture status-reconcile --project "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map" --pull-requests-file "$work/merged-prs.json" \
+  --expected-eligible "$wrong_eligible" --expected-project-transition true --expected-snapshot "$review_snapshot"
+assert_exit 1 "$RC" "same-count wrong eligible issue identity fails closed"
+assert_contains "$OUTPUT" "eligible issue set drifted" "wrong eligible identity reports preview drift"
+assert_not_contains "$(cat "$work/calls")" $'mutation\t' "wrong eligible identity performs zero mutation"
+
+reset_fake; queue project-list project-list-in-review.json 1; queue issue-list issue-list-executing.json 1
+run_capture status-reconcile --project "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map" --pull-requests-file "$work/missing-prs.json" "${review_expect[@]}"
+assert_exit 1 "$RC" "concurrent issue state drift fails before mutation"
+assert_contains "$OUTPUT" "snapshot drifted" "concurrent drift reports snapshot mismatch"
+assert_not_contains "$(cat "$work/calls")" $'mutation\t' "concurrent snapshot drift performs zero mutation"
+
+jq --arg executing "$(jq -r '.executing' <<<"$issue_state_map")" '
+  .data.issues.nodes += [(.data.issues.nodes[0] |
+    .id="cccccccc-0002-4000-8000-000000000002" |
+    .identifier="ENG-12" |
+    .url="https://linear.app/acme/issue/ENG-12" |
+    .state.id=$executing |
+    .description |= (
+      gsub("feature/eng-11";"feature/eng-12") |
+      gsub("track-a";"track-b") |
+      gsub("\"ordinal\":1";"\"ordinal\":2") |
+      gsub("/pull/11";"/pull/12")
+    )
+  )]
+' "$FIXTURES/issue-list-evidence.json" >"$work/status-two-before.json"
+jq --arg done "$(jq -r '.done' <<<"$issue_state_map")" --arg blocked "$(jq -r '.blocked' <<<"$issue_state_map")" '
+  .data.issues.nodes[0].state.id=$done |
+  .data.issues.nodes[1].state.id=$blocked
+' "$work/status-two-before.json" >"$work/status-two-after-drift.json"
+two_snapshot='{"projectStatus":"inReview","issues":[{"id":"cccccccc-0001-4000-8000-000000000001","status":"inReview"},{"id":"cccccccc-0002-4000-8000-000000000002","status":"executing"}]}'
+reset_fake
+queue project-list project-list-in-review.json 1
+cp "$work/status-two-before.json" "$work/responses/issue-list.1.json"
+queue issue-update issue-update-success.json 1
+cp "$work/status-two-after-drift.json" "$work/responses/issue-list.2.json"
+run_capture status-reconcile --project "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map" --pull-requests-file "$work/merged-prs.json" \
+  --expected-eligible "$review_eligible" --expected-project-transition false --expected-snapshot "$two_snapshot"
+assert_exit 1 "$RC" "non-target issue status drift fails read-back"
+assert_contains "$(jq -r '.pending|join(",")' <<<"$OUTPUT")" "non-target-status-verification" "non-target drift remains pending"
+assert_not_contains "$(cat "$work/calls")" $'mutation\tproject-update' "non-target drift blocks project mutation"
 
 # Nested relation connections are paginated per issue before normalization.
 jq '.data.issues.nodes[2].inverseRelations.pageInfo={hasNextPage:true,endCursor:"more"}' "$FIXTURES/issue-list-valid.json" >"$work/issue-list-nested-partial.json"
@@ -964,7 +1088,7 @@ run_capture issue-transition --project "$project_id" --repository acme/widgets -
 assert_exit 1 "$RC" "foreign parent blocks issue transition"
 assert_not_contains "$(cat "$work/calls")" $'mutation\t' "foreign parent issue transition performs zero mutation"
 reset_fake; queue project-list project-list-foreign.json 1
-run_capture status-reconcile --project "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map" --pull-requests-file "$work/merged-prs.json"
+run_capture status-reconcile --project "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map" --pull-requests-file "$work/merged-prs.json" "${review_expect[@]}"
 assert_exit 1 "$RC" "foreign parent blocks status reconciliation"
 assert_not_contains "$(cat "$work/calls")" $'mutation\t' "foreign parent status performs zero mutation"
 
@@ -978,7 +1102,7 @@ for bad_pr in 'https://github.com/other/widgets/pull/11' 'https://github.com/acm
 done
 printf '%s\n' '[{"projectId":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","issueIdentifier":"ENG-11","url":"https://github.com/other/widgets/pull/11","merged":true}]' >"$work/foreign-url-prs.json"
 reset_fake
-run_capture status-reconcile --project "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map" --pull-requests-file "$work/foreign-url-prs.json"
+run_capture status-reconcile --project "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map" --pull-requests-file "$work/foreign-url-prs.json" "${review_expect[@]}"
 assert_exit 1 "$RC" "foreign PR URL is rejected before status API access"
 if [ -f "$work/calls" ]; then fail "foreign status PR URL must fail before API access"; else pass; fi
 
@@ -986,7 +1110,7 @@ if [ -f "$work/calls" ]; then fail "foreign status PR URL must fail before API a
 reset_fake; queue project-list project-list-in-review.json 1
 queue issue-list issue-list-executing.json 1
 queue issue-list issue-list-executing.json 2
-run_capture status-reconcile --project "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map" --pull-requests-file "$work/missing-prs.json"
+run_capture status-reconcile --project "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map" --pull-requests-file "$work/missing-prs.json" "${executing_expect[@]}"
 assert_exit 0 "$RC" "executing issue remains ineligible for done"
 assert_not_contains "$(cat "$work/calls")" $'mutation\t' "only inReview issues can transition to done"
 assert_eq "$(jq -r '.eligibleIssues|length' <<<"$OUTPUT")" "0" "terminal receipt reports no eligible issue"
@@ -995,7 +1119,7 @@ assert_eq "$(jq -r '.eligibleIssues|length' <<<"$OUTPUT")" "0" "terminal receipt
 # are premature; both stop after the ownership read and perform no mutation.
 for project_case in abandoned one; do
   reset_fake; queue project-list "project-list-$project_case.json" 1
-  run_capture status-reconcile --project "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map" --pull-requests-file "$work/merged-prs.json"
+  run_capture status-reconcile --project "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map" --pull-requests-file "$work/merged-prs.json" "${review_expect[@]}"
   assert_exit 1 "$RC" "$project_case project is not terminal-reconcile eligible"
   assert_not_contains "$(cat "$work/calls")" $'mutation\t' "$project_case project performs zero mutation"
 done

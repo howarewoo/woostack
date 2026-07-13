@@ -536,4 +536,289 @@ FAKE_GH_JSON='[]' PATH="$g/bin:$PATH" run_status "$acol"
 assert_contains "$OUT" "1 abandoned" "abandoned row counted in footer"
 assert_not_contains "$OUT" "collision" "abandoned row does not poison the later in-flight row"
 
+
+# Backend adapter routing and Linear terminal reconciliation.
+backend_stub="$(mktemp -d)"
+cat > "$backend_stub/resolve-backend" <<'EOF'
+#!/usr/bin/env bash
+if [ "${FAKE_BACKEND:-markdown}" = linear ]; then
+  printf '%s\n' '{"backend":"linear","repository":"acme/widgets","linear":{"workspace":"Acme","team":"ENG","projectStatuses":{"draft":"ps-draft","hardened":"ps-hardened","approved":"ps-approved","planning":"ps-planning","ready":"ps-ready","executing":"ps-executing","inReview":"ps-review","done":"ps-done","abandoned":"ps-abandoned"},"issueStates":{"planned":"is-planned","executing":"is-executing","inReview":"is-review","done":"is-done","blocked":"is-blocked"}}}'
+else
+  printf '%s\n' '{"backend":"markdown","repository":null,"linear":null}'
+fi
+EOF
+cat > "$backend_stub/markdown" <<'EOF'
+#!/usr/bin/env bash
+if [ "${FAKE_MARKDOWN_FAIL:-0}" = 1 ]; then exit 1; fi
+printf 'markdown %s\n' "$*" >> "$ADAPTER_LOG"
+printf '%s\n' '{"backend":"markdown","feature":{"id":".woostack/specs/2026-06-01-routed.md","url":null,"title":"Adapter Routed","status":"planning","branch":"feature/routed"},"spec":{"id":".woostack/specs/2026-06-01-routed.md","url":null,"content":"spec","revision":"rev"},"progress":{"completed":1,"total":1},"increments":[{"id":"increment-1","identifier":null,"ordinal":1,"status":"done","dependencies":[],"branch":null,"pullRequest":null,"content":"adapter input"}]}'
+EOF
+cat > "$backend_stub/linear" <<'EOF'
+#!/usr/bin/env bash
+printf 'linear %s\n' "$*" >> "$ADAPTER_LOG"
+if [ "$1" = feature-read ] && [ "${FAKE_LINEAR_MODE:-success}" = multi-discovery ]; then
+  project_id="$3"
+  case "$project_id" in
+    11111111-1111-4111-8111-111111111111) project_title="Multi One" ;;
+    44444444-4444-4444-8444-444444444444) project_title="Multi Two" ;;
+    *) exit 2 ;;
+  esac
+  jq -cn --arg id "$project_id" --arg title "$project_title" '{
+    backend:"linear",
+    feature:{id:$id,url:"https://linear.app/acme/project/multi",title:$title,status:"planning",baseBranch:"main",baseCommitSha:"abc"},
+    spec:{id:"22222222-2222-4222-8222-222222222222",url:"https://linear.app/acme/document/spec",content:"# spec",revision:"rev"},
+    increments:[]
+  }'
+  exit 0
+fi
+case "$1" in
+  preflight)
+    if [ "${FAKE_LINEAR_MODE:-success}" = preflight-fail ]; then
+      printf '%s\n' 'simulated preflight failure' >&2
+      exit 1
+    fi
+    printf '%s\n' '{"verified":true}'
+    ;;
+  feature-resolve)
+    if [ "${FAKE_LINEAR_MODE:-success}" = invalid-discovery ]; then
+      printf '%s\n' '{"id":"not-a-uuid"}'
+    elif [ "${FAKE_LINEAR_MODE:-success}" = multi-discovery ]; then
+      printf '%s\n' 'candidate id=11111111-1111-4111-8111-111111111111 name=One' >&2
+      printf '%s\n' 'candidate id=44444444-4444-4444-8444-444444444444 name=Two' >&2
+      exit 4
+    else
+      printf '%s\n' '{"id":"11111111-1111-4111-8111-111111111111","name":"Linear <Launch>","url":"https://linear.app/acme/project/launch","status":"inReview","statusId":"ps-review","updatedAt":"2026-06-03T00:00:00Z"}'
+    fi
+    ;;
+  feature-read)
+    feature_branch=feature/eng-7
+    feature_pr=https://github.com/acme/widgets/pull/42
+    feature_title="Linear <Launch>"
+    [ "${FAKE_LINEAR_MODE:-success}" = control-title ] && feature_title=$'Linear \033]52;c;Zm9v\aLaunch'
+    if [ "${FAKE_LINEAR_MODE:-success}" = resume-project ]; then
+      if [ -f "$LINEAR_STATE" ]; then
+        feature_status=done; issue_status=done
+      else
+        feature_status=inReview; issue_status=done
+      fi
+    elif [ "${FAKE_LINEAR_MODE:-success}" = executing ]; then
+      feature_status=executing; issue_status=executing
+    elif [ "${FAKE_LINEAR_MODE:-success}" = already-done ]; then
+      feature_status=done; issue_status=done
+    elif [ -f "$LINEAR_STATE" ]; then
+      feature_status=done; issue_status=done
+    else
+      feature_status=inReview; issue_status=inReview
+    fi
+    [ "${FAKE_LINEAR_MODE:-success}" = missing-branch ] && feature_branch=
+    [ "${FAKE_LINEAR_MODE:-success}" = missing-pr ] && feature_pr=
+    jq -cn --arg fs "$feature_status" --arg is "$issue_status" --arg title "$feature_title" \
+      --arg branch "$feature_branch" --arg pr "$feature_pr" '{
+      backend:"linear",
+      feature:{id:"11111111-1111-4111-8111-111111111111",url:"https://linear.app/acme/project/launch",title:$title,status:$fs,baseBranch:"main",baseCommitSha:"abc"},
+      spec:{id:"22222222-2222-4222-8222-222222222222",url:"https://linear.app/acme/document/spec",content:"# spec",revision:"rev"},
+      increments:[{id:"33333333-3333-4333-8333-333333333333",identifier:"ENG-7",ordinal:1,status:$is,dependencies:[],branch:(if $branch=="" then null else $branch end),pullRequest:(if $pr=="" then null else $pr end),content:"Ship it"}]
+    }'
+    ;;
+  status-reconcile)
+    case "${FAKE_LINEAR_MODE:-success}" in
+      api-fail) printf '%s\n' 'simulated API failure' >&2; exit 1 ;;
+      already-done) printf '%s\n' '{"eligibleIssues":[],"attempted":[],"completed":[],"pending":[],"projectDone":true,"verified":true}' ;;
+      resume-project)
+        : > "$LINEAR_STATE"
+        printf '%s\n' '{"eligibleIssues":[],"attempted":["projectUpdate"],"completed":["projectUpdate"],"pending":[],"projectDone":true,"verified":true}'
+        ;;
+      mismatch) printf '%s\n' '{"eligibleIssues":["33333333-3333-4333-8333-333333333333"],"attempted":["issueUpdate"],"completed":[],"pending":["issue-done-verification"],"projectDone":false,"verified":false}' ;;
+      wrong-id)
+        : > "$LINEAR_STATE"
+        printf '%s\n' '{"eligibleIssues":["44444444-4444-4444-8444-444444444444"],"attempted":["issueUpdate","projectUpdate"],"completed":["issueUpdate","projectUpdate"],"pending":[],"projectDone":true,"verified":true}'
+        ;;
+      *)
+        : > "$LINEAR_STATE"
+        printf '%s\n' '{"eligibleIssues":["33333333-3333-4333-8333-333333333333"],"attempted":["issueUpdate","projectUpdate"],"completed":["issueUpdate","projectUpdate"],"pending":[],"projectDone":true,"verified":true}'
+        ;;
+    esac
+    ;;
+  *) exit 2 ;;
+esac
+EOF
+cat > "$backend_stub/gh" <<'EOF'
+#!/usr/bin/env bash
+if [ "${FAKE_GH_FAIL:-0}" = 1 ]; then exit 1; fi
+printf 'gh %s\n' "$*" >> "$ADAPTER_LOG"
+printf '%s' "${FAKE_LINEAR_GH_JSON:-[]}"
+EOF
+chmod +x "$backend_stub/"*
+
+adapter_md="$(mktemp -d)/.woostack"
+mkspec "$adapter_md" routed draft feature/routed
+mkplan "$adapter_md" routed 2026-06-01-routed.md 0 1 planning feature/routed
+printf '\n## Increment 1: routed\n- [ ] adapter input\n' >> "$adapter_md/plans/2026-06-01-routed.md"
+ADAPTER_LOG="$(mktemp)"
+export ADAPTER_LOG
+WOOSTACK_BACKEND_RESOLVER="$backend_stub/resolve-backend" \
+WOOSTACK_MARKDOWN_ADAPTER="$backend_stub/markdown" run_status "$adapter_md"
+assert_contains "$(cat "$ADAPTER_LOG")" "markdown feature" "Markdown rows route through the Markdown adapter"
+assert_contains "$OUT" "Adapter Routed" "Markdown board consumes the normalized adapter model"
+assert_not_contains "$(cat "$ADAPTER_LOG")" "linear " "Markdown status never invokes the Linear adapter"
+assert_contains "$OUT" "1/1" "Markdown board derives progress from the normalized adapter model"
+export FAKE_MARKDOWN_FAIL=1
+WOOSTACK_BACKEND_RESOLVER="$backend_stub/resolve-backend" \
+WOOSTACK_MARKDOWN_ADAPTER="$backend_stub/markdown" run_status "$adapter_md"
+assert_contains "$OUT" "normalized Markdown adapter failed" "canonical Markdown adapter failure is explicit"
+assert_not_contains "$OUT" "Adapter Routed" "canonical Markdown row does not bypass a failed adapter"
+unset FAKE_MARKDOWN_FAIL
+
+linear_root="$(mktemp -d)/.woostack"
+mkdir -p "$linear_root"
+ADAPTER_LOG="$(mktemp)"; LINEAR_STATE="$(mktemp)"; rm -f "$LINEAR_STATE"
+export ADAPTER_LOG LINEAR_STATE FAKE_BACKEND=linear LINEAR_API_KEY=test-key
+LINEAR_TRAILERS=$'Linear-Project: 11111111-1111-4111-8111-111111111111\nLinear-Issue: ENG-7'
+export FAKE_LINEAR_GH_JSON="$(jq -cn --arg body "$LINEAR_TRAILERS" '[
+  [range(1;101) | {number:.,state:"closed",html_url:("https://github.com/acme/widgets/pull/"+(.|tostring)),merged_at:null,updated_at:"2026-06-01T00:00:00Z",user:{login:"bot"},body:""}],
+  [{number:42,state:"closed",html_url:"https://github.com/acme/widgets/pull/42",merged_at:"2026-06-03T00:00:00Z",updated_at:"2026-06-03T00:00:00Z",user:{login:"lee"},body:$body}]
+]')"
+WOOSTACK_BACKEND_RESOLVER="$backend_stub/resolve-backend" \
+WOOSTACK_LINEAR_ADAPTER="$backend_stub/linear" WOOSTACK_GH="$backend_stub/gh" run_status "$linear_root" --all
+assert_exit 0 "$CODE" "Linear merge reconciliation exits 0"
+assert_contains "$OUT" "preview: Linear issue ENG-7 inReview -> done via https://github.com/acme/widgets/pull/42" "Linear reconciliation previews the exact issue write"
+assert_contains "$OUT" "preview: Linear project 11111111-1111-4111-8111-111111111111 inReview -> done (all managed issues done)" "Linear reconciliation previews the project write"
+assert_contains "$OUT" "Linear <Launch>" "Linear feature renders after verified read-back"
+assert_contains "$OUT" "done" "Linear feature renders terminal state"
+LINEAR_HTML="$(cat "$linear_root/visuals/status-board.html")"
+assert_contains "$LINEAR_HTML" 'data-backend="linear"' "Linear HTML row records its backend"
+assert_contains "$LINEAR_HTML" 'Linear &lt;Launch&gt;' "Linear HTML escapes project titles"
+assert_contains "$LINEAR_HTML" 'class="source-linear">Linear</span>' "Linear HTML identifies its source"
+LINEAR_LOG="$(cat "$ADAPTER_LOG")"
+assert_contains "$LINEAR_LOG" "linear preflight" "every Linear status run authenticates before reads"
+assert_contains "$LINEAR_LOG" "linear status-reconcile" "eligible Linear project is reconciled"
+assert_contains "$LINEAR_LOG" "linear feature-read" "Linear reconciliation performs read-back"
+assert_contains "$LINEAR_LOG" "gh api --paginate --slurp" "GitHub evidence follows every PR pagination page"
+assert_contains "$LINEAR_LOG" '--expected-eligible ["33333333-3333-4333-8333-333333333333"]' "status sends the exact previewed issue identity set"
+assert_contains "$LINEAR_LOG" '--expected-project-transition true' "status sends the exact previewed project decision"
+assert_contains "$LINEAR_LOG" '--expected-snapshot {"projectStatus":"inReview","issues":[{"id":"33333333-3333-4333-8333-333333333333","status":"inReview"}]}' "status pins the pre-write project/issue snapshot"
+: > "$ADAPTER_LOG"; export FAKE_GH_FAIL=1
+WOOSTACK_BACKEND_RESOLVER="$backend_stub/resolve-backend" \
+WOOSTACK_LINEAR_ADAPTER="$backend_stub/linear" WOOSTACK_GH="$backend_stub/gh" run_status "$linear_root"
+assert_exit 1 "$CODE" "GitHub pagination failure fails Linear status closed"
+assert_not_contains "$(cat "$ADAPTER_LOG")" "status-reconcile" "pagination failure performs no status mutation"
+unset FAKE_GH_FAIL
+
+
+rm -f "$LINEAR_STATE"; : > "$ADAPTER_LOG"
+unset LINEAR_API_KEY
+WOOSTACK_BACKEND_RESOLVER="$backend_stub/resolve-backend" \
+WOOSTACK_LINEAR_ADAPTER="$backend_stub/linear" WOOSTACK_GH="$backend_stub/gh" run_status "$linear_root"
+assert_exit 1 "$CODE" "missing Linear credentials fail closed"
+assert_contains "$OUT" "LINEAR_API_KEY" "missing-credential diagnostic names the environment contract"
+assert_eq "$(cat "$ADAPTER_LOG")" "" "missing credentials block API calls"
+export LINEAR_API_KEY=test-key
+: > "$ADAPTER_LOG"; export FAKE_LINEAR_MODE=preflight-fail
+WOOSTACK_BACKEND_RESOLVER="$backend_stub/resolve-backend" \
+WOOSTACK_LINEAR_ADAPTER="$backend_stub/linear" WOOSTACK_GH="$backend_stub/gh" run_status "$linear_root"
+assert_exit 1 "$CODE" "failed Linear preflight exits 1"
+assert_contains "$OUT" "Linear authentication or schema preflight failed" "failed Linear preflight has a safe diagnostic"
+PREFLIGHT_LOG="$(cat "$ADAPTER_LOG")"
+assert_contains "$PREFLIGHT_LOG" "linear preflight" "failed Linear preflight invokes only the authentication boundary"
+assert_not_contains "$PREFLIGHT_LOG" "feature-resolve" "failed Linear preflight blocks discovery"
+assert_not_contains "$PREFLIGHT_LOG" "feature-read" "failed Linear preflight blocks reads"
+assert_not_contains "$PREFLIGHT_LOG" "status-reconcile" "failed Linear preflight blocks mutations"
+unset FAKE_LINEAR_MODE
+
+for missing_metadata in missing-branch missing-pr; do
+  : > "$ADAPTER_LOG"; export FAKE_LINEAR_MODE="$missing_metadata" FAKE_LINEAR_GH_JSON='[]'
+  WOOSTACK_BACKEND_RESOLVER="$backend_stub/resolve-backend" \
+  WOOSTACK_LINEAR_ADAPTER="$backend_stub/linear" WOOSTACK_GH="$backend_stub/gh" run_status "$linear_root"
+  assert_exit 1 "$CODE" "inReview issue with $missing_metadata fails closed"
+  assert_contains "$OUT" "missing its branch or pull request" "missing inReview metadata has a safe diagnostic"
+  assert_not_contains "$(cat "$ADAPTER_LOG")" "status-reconcile" "missing inReview metadata performs zero mutation"
+  assert_not_contains "$(cat "$ADAPTER_LOG")" "gh api" "missing inReview metadata fails before PR evidence lookup"
+done
+unset FAKE_LINEAR_MODE
+
+export FAKE_LINEAR_GH_JSON='[{"number":42,"state":"MERGED","url":"https://github.com/acme/widgets/pull/42","mergedAt":"2026-06-03T00:00:00Z","updatedAt":"2026-06-03T00:00:00Z","author":{"login":"lee"},"body":"Linear-Project: 11111111-1111-4111-8111-111111111111\nLinear-Issue: ENG-7\nLinear-Issue: ENG-8"}]'
+WOOSTACK_BACKEND_RESOLVER="$backend_stub/resolve-backend" \
+WOOSTACK_LINEAR_ADAPTER="$backend_stub/linear" WOOSTACK_GH="$backend_stub/gh" run_status "$linear_root"
+assert_exit 1 "$CODE" "ambiguous Linear trailers fail closed"
+assert_contains "$OUT" "ambiguous" "ambiguous trailer diagnostic is explicit"
+rm -f "$LINEAR_STATE"; : > "$ADAPTER_LOG"
+export FAKE_LINEAR_GH_JSON='[{"number":42,"state":"MERGED","url":"https://github.com/acme/widgets/pull/42","mergedAt":"2026-06-03T00:00:00Z","updatedAt":"2026-06-03T00:00:00Z","author":{"login":"lee"},"body":"Linear-Project: 11111111-1111-4111-8111-111111111111\nLinear-Issue: ENG-7"},{"number":99,"state":"MERGED","url":"https://github.com/acme/widgets/pull/99","mergedAt":"2026-06-03T00:00:00Z","updatedAt":"2026-06-03T00:00:00Z","author":{"login":"fork"},"body":"Linear-Project: malformed\nLinear-Project: duplicate\nLinear-Issue: BAD"}]'
+WOOSTACK_BACKEND_RESOLVER="$backend_stub/resolve-backend" \
+WOOSTACK_LINEAR_ADAPTER="$backend_stub/linear" WOOSTACK_GH="$backend_stub/gh" run_status "$linear_root" --all
+assert_exit 0 "$CODE" "unreferenced malformed Linear trailers are ignored"
+assert_contains "$OUT" "Linear <Launch>" "referenced valid PR still reconciles beside unrelated malformed history"
+
+rm -f "$LINEAR_STATE"; : > "$ADAPTER_LOG"; export FAKE_LINEAR_MODE=resume-project
+export FAKE_LINEAR_GH_JSON='[{"number":42,"state":"MERGED","url":"https://github.com/acme/widgets/pull/42","mergedAt":"2026-06-03T00:00:00Z","updatedAt":"2026-06-03T00:00:00Z","author":{"login":"lee"},"body":"Linear-Project: 11111111-1111-4111-8111-111111111111\nLinear-Issue: ENG-7"}]'
+WOOSTACK_BACKEND_RESOLVER="$backend_stub/resolve-backend" \
+WOOSTACK_LINEAR_ADAPTER="$backend_stub/linear" WOOSTACK_GH="$backend_stub/gh" run_status "$linear_root" --all
+assert_exit 0 "$CODE" "status resumes an all-issues-done inReview project"
+assert_contains "$OUT" "preview: Linear project 11111111-1111-4111-8111-111111111111 inReview -> done" "resumable status previews the project-only write"
+assert_not_contains "$OUT" "preview: Linear issue" "resumable project-only status does not preview a repeated issue write"
+unset FAKE_LINEAR_MODE
+
+: > "$ADAPTER_LOG"; export FAKE_LINEAR_MODE=invalid-discovery
+export FAKE_LINEAR_GH_JSON='[]'
+WOOSTACK_BACKEND_RESOLVER="$backend_stub/resolve-backend" \
+WOOSTACK_LINEAR_ADAPTER="$backend_stub/linear" WOOSTACK_GH="$backend_stub/gh" run_status "$linear_root"
+assert_exit 1 "$CODE" "invalid normalized project discovery fails closed"
+assert_contains "$OUT" "invalid candidate" "invalid discovery has a safe diagnostic"
+assert_not_contains "$(cat "$ADAPTER_LOG")" "feature-read" "invalid discovery fails before feature reads"
+unset FAKE_LINEAR_MODE
+
+: > "$ADAPTER_LOG"; export FAKE_LINEAR_MODE=multi-discovery FAKE_LINEAR_GH_JSON='[]'
+WOOSTACK_BACKEND_RESOLVER="$backend_stub/resolve-backend" \
+WOOSTACK_LINEAR_ADAPTER="$backend_stub/linear" WOOSTACK_GH="$backend_stub/gh" run_status "$linear_root"
+assert_exit 0 "$CODE" "multiple managed Linear projects are discovered"
+assert_contains "$OUT" "Multi One" "first discovered Linear project renders"
+assert_contains "$OUT" "Multi Two" "second discovered Linear project renders"
+assert_contains "$(cat "$ADAPTER_LOG")" "feature-read --project 11111111-1111-4111-8111-111111111111" "first discovered project is read"
+assert_contains "$(cat "$ADAPTER_LOG")" "feature-read --project 44444444-4444-4444-8444-444444444444" "second discovered project is read"
+unset FAKE_LINEAR_MODE
+
+export FAKE_LINEAR_GH_JSON='[{"number":42,"state":"MERGED","url":"https://github.com/acme/widgets/pull/42","mergedAt":"2026-06-03T00:00:00Z","updatedAt":"2026-06-03T00:00:00Z","author":{"login":"lee"},"body":"Linear-Project: 11111111-1111-4111-8111-111111111111\nLinear-Issue: ENG-7"}]'
+for failure in api-fail mismatch wrong-id; do
+  rm -f "$LINEAR_STATE"; export FAKE_LINEAR_MODE="$failure"
+  WOOSTACK_BACKEND_RESOLVER="$backend_stub/resolve-backend" \
+  WOOSTACK_LINEAR_ADAPTER="$backend_stub/linear" WOOSTACK_GH="$backend_stub/gh" run_status "$linear_root"
+  assert_exit 1 "$CODE" "Linear $failure fails closed"
+done
+unset FAKE_LINEAR_MODE
+
+rm -f "$LINEAR_STATE"; : > "$ADAPTER_LOG"; export FAKE_LINEAR_MODE=already-done
+export FAKE_LINEAR_GH_JSON='[{"number":42,"state":"MERGED","url":"https://github.com/acme/widgets/pull/42","mergedAt":"2026-06-03T00:00:00Z","updatedAt":"2026-06-03T00:00:00Z","author":{"login":"lee"},"body":"Linear-Project: 11111111-1111-4111-8111-111111111111\nLinear-Issue: ENG-7"}]'
+WOOSTACK_BACKEND_RESOLVER="$backend_stub/resolve-backend" \
+WOOSTACK_LINEAR_ADAPTER="$backend_stub/linear" WOOSTACK_GH="$backend_stub/gh" run_status "$linear_root" --all
+assert_exit 0 "$CODE" "already-done Linear project is invariant-checked"
+assert_contains "$(cat "$ADAPTER_LOG")" "status-reconcile" "done project still validates through the reconciliation adapter"
+
+: > "$ADAPTER_LOG"
+export FAKE_LINEAR_GH_JSON='[{"number":42,"state":"CLOSED","url":"https://github.com/acme/widgets/pull/42","mergedAt":null,"updatedAt":"2026-06-03T00:00:00Z","author":{"login":"lee"},"body":"Linear-Project: 11111111-1111-4111-8111-111111111111\nLinear-Issue: ENG-7"}]'
+WOOSTACK_BACKEND_RESOLVER="$backend_stub/resolve-backend" \
+WOOSTACK_LINEAR_ADAPTER="$backend_stub/linear" WOOSTACK_GH="$backend_stub/gh" run_status "$linear_root" --all
+assert_exit 1 "$CODE" "done Linear issue without merged evidence fails closed"
+assert_not_contains "$(cat "$ADAPTER_LOG")" "status-reconcile" "unverified done issue fails before mutation adapter call"
+
+rm -f "$LINEAR_STATE"; : > "$ADAPTER_LOG"; export FAKE_LINEAR_MODE=executing
+export FAKE_LINEAR_GH_JSON='[{"number":42,"state":"open","html_url":"https://github.com/acme/widgets/pull/42","merged_at":null,"updated_at":"2026-06-03T00:00:00Z","user":{"login":"lee"},"body":"Linear-Project: 11111111-1111-4111-8111-111111111111\nLinear-Issue: ENG-7"}]'
+WOOSTACK_BACKEND_RESOLVER="$backend_stub/resolve-backend" \
+WOOSTACK_LINEAR_ADAPTER="$backend_stub/linear" WOOSTACK_GH="$backend_stub/gh" run_status "$linear_root" --all
+assert_exit 0 "$CODE" "attributed non-terminal Linear state renders without mutation"
+assert_not_contains "$(cat "$ADAPTER_LOG")" "status-reconcile" "status never writes non-terminal Linear states"
+assert_contains "$OUT" "executing" "non-terminal Linear state is preserved"
+
+export FAKE_LINEAR_GH_JSON='[{"number":42,"state":"open","html_url":"https://github.com/acme/widgets/pull/42","merged_at":null,"updated_at":"2026-06-03T00:00:00Z","user":{"login":"lee"},"body":""}]'
+WOOSTACK_BACKEND_RESOLVER="$backend_stub/resolve-backend" \
+WOOSTACK_LINEAR_ADAPTER="$backend_stub/linear" WOOSTACK_GH="$backend_stub/gh" run_status "$linear_root" --all
+assert_exit 1 "$CODE" "non-terminal Linear PR without attribution fails closed"
+assert_contains "$OUT" "attribution is missing" "non-terminal attribution failure is explicit"
+
+export FAKE_LINEAR_MODE=control-title
+export FAKE_LINEAR_GH_JSON='[{"number":42,"state":"closed","html_url":"https://github.com/acme/widgets/pull/42","merged_at":"2026-06-03T00:00:00Z","updated_at":"2026-06-03T00:00:00Z","user":{"login":"lee"},"body":"Linear-Project: 11111111-1111-4111-8111-111111111111\nLinear-Issue: ENG-7"}]'
+WOOSTACK_BACKEND_RESOLVER="$backend_stub/resolve-backend" \
+WOOSTACK_LINEAR_ADAPTER="$backend_stub/linear" WOOSTACK_GH="$backend_stub/gh" run_status "$linear_root" --all
+assert_exit 0 "$CODE" "Linear title controls are sanitized"
+assert_not_contains "$OUT" $'\033' "terminal output strips Linear title controls"
+assert_not_contains "$(cat "$linear_root/visuals/status-board.html")" $'\033' "HTML output strips Linear title controls before escaping"
+unset FAKE_LINEAR_MODE FAKE_BACKEND FAKE_LINEAR_GH_JSON LINEAR_API_KEY
 finish
