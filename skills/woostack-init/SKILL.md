@@ -51,9 +51,10 @@ Two callers:
    `config.json` ships as `{ "artifacts": { "specPlan": "markdown" }, "models": {}, "review": {},
    "respond": {}, "status": { "staleDays": 14 } }`. Each tool owns its namespace.
    `artifacts.specPlan` selects the spec/plan backend: `markdown` keeps tracked `.woostack`
-   artifacts; the reserved `linear` selector currently validates secret-free configuration only.
-   Later stacked increments add Linear project and issue persistence before workflows consume it.
-   The accepted keys and lifecycle mappings are defined in the
+   artifacts; `linear` stores the build and planning lifecycle in one managed project, one
+   managed spec document, and ordered managed increment issues. Linear reaches the verified
+   pre-execution handoff without local spec/plan Git artifacts. The accepted keys, lifecycle
+   mappings, and current boundary are defined in the
    [artifact backend configuration reference](references/artifact-backends.md). Provider
    credentials never belong in this file.
 

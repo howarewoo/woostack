@@ -66,6 +66,262 @@ assert_exit 1 "$RUN_RC" "foreign project metadata is rejected"
 assert_not_contains "$RUN_STDERR" "foreign-project" "ownership error does not echo expected project"
 assert_not_contains "$RUN_STDERR" "project-123" "ownership error does not echo observed project"
 
+# Frozen execution base metadata is an all-or-nothing canonical immutable pair.
+cat >"$TMP/frozen.md" <<'EOF'
++++ Woostack metadata — managed, do not edit
+{"artifactType":"spec","baseBranch":"main","baseCommitSha":"0123456789abcdef0123456789abcdef01234567","designState":"ready","projectId":"project-123","repository":"acme/widgets","schema":1}
++++
+EOF
+run_metadata "$TMP/frozen.md" parse
+assert_exit 0 "$RUN_RC" "canonical frozen base metadata parses"
+cat >"$TMP/incomplete-frozen.md" <<'EOF'
++++ Woostack metadata — managed, do not edit
+{"artifactType":"spec","baseBranch":"main","projectId":"project-123","repository":"acme/widgets","schema":1}
++++
+EOF
+run_metadata "$TMP/incomplete-frozen.md" parse
+assert_exit 1 "$RUN_RC" "frozen base metadata requires branch and SHA together"
+cat >"$TMP/invalid-frozen.md" <<'EOF'
++++ Woostack metadata — managed, do not edit
+{"artifactType":"spec","baseBranch":"main","baseCommitSha":"not-a-git-sha","projectId":"project-123","repository":"acme/widgets","schema":1}
++++
+EOF
+run_metadata "$TMP/invalid-frozen.md" parse
+assert_exit 1 "$RUN_RC" "frozen base commit requires a canonical 40-character SHA"
+python3 - "$TMP" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+invalid = [
+    "feature/a..b",
+    "-topic",
+    "feature/has space",
+    "feature/~tilde",
+    "feature/caret^",
+    "feature/colon:",
+    "feature/question?",
+    "feature/star*",
+    "feature/[x",
+    "feature/back\\slash",
+    "feature/trailing.",
+    "feature/trailing/",
+    "feature//empty",
+    "feature/topic.lock",
+    "feature/@{bad",
+    "feature/./dot",
+    ".hidden/topic",
+    "@",
+    "HEAD",
+    "feature/control\u0001",
+]
+for index, branch in enumerate(invalid):
+    metadata = {
+        "artifactType": "spec",
+        "baseBranch": branch,
+        "baseCommitSha": "0123456789abcdef0123456789abcdef01234567",
+        "designState": "ready",
+        "projectId": "project-123",
+        "repository": "acme/widgets",
+        "schema": 1,
+    }
+    body = json.dumps(metadata, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    (root / f"invalid-branch-{index}.md").write_text(
+        f"+++ Woostack metadata — managed, do not edit\n{body}\n+++\n",
+        encoding="utf-8",
+    )
+valid = {
+    "artifactType": "spec",
+    "baseBranch": "feature/release-1.2_topic",
+    "baseCommitSha": "0123456789abcdef0123456789abcdef01234567",
+    "designState": "ready",
+    "projectId": "project-123",
+    "repository": "acme/widgets",
+    "schema": 1,
+}
+(root / "valid-branch.md").write_text(
+    "+++ Woostack metadata — managed, do not edit\n"
+    + json.dumps(valid, sort_keys=True, separators=(",", ":"))
+    + "\n+++\n",
+    encoding="utf-8",
+)
+PY
+for branch_fixture in "$TMP"/invalid-branch-*.md; do
+  run_metadata "$branch_fixture" parse
+  assert_exit 1 "$RUN_RC" "non-canonical frozen base branch is rejected"
+done
+run_metadata "$TMP/valid-branch.md" parse
+assert_exit 0 "$RUN_RC" "canonical slash-separated Git branch is accepted"
+python3 - "$TMP" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+for state in ("draft", "hardened", "approved", "planning", "ready"):
+    current = {
+        "artifactType": "spec",
+        "designState": state,
+        "projectId": "project-123",
+        "repository": "acme/widgets",
+        "schema": 1,
+    }
+    replacement = {
+        **current,
+        "baseBranch": "main",
+        "baseCommitSha": "0123456789abcdef0123456789abcdef01234567",
+    }
+    body = json.dumps(current, sort_keys=True, separators=(",", ":"))
+    (root / f"unfrozen-{state}.md").write_text(
+        f"+++ Woostack metadata — managed, do not edit\n{body}\n+++\n",
+        encoding="utf-8",
+    )
+    (root / f"freeze-{state}.json").write_text(
+        json.dumps(replacement, sort_keys=True, separators=(",", ":")) + "\n",
+        encoding="utf-8",
+    )
+PY
+for pre_ready_state in draft hardened approved planning; do
+  run_metadata "$TMP/unfrozen-$pre_ready_state.md" replace \
+    --metadata-file "$TMP/freeze-$pre_ready_state.json" --increment-evidence '[]'
+  assert_exit 1 "$RUN_RC" "execution base cannot be inserted while designState is $pre_ready_state"
+done
+run_metadata "$TMP/unfrozen-ready.md" replace --metadata-file "$TMP/freeze-ready.json"
+assert_exit 1 "$RUN_RC" "initial ready-state base freeze requires live evidence validation"
+run_metadata "$TMP/unfrozen-ready.md" replace --metadata-file "$TMP/freeze-ready.json" \
+  --increment-evidence '[{"branch":null,"pullRequest":null}]'
+assert_exit 0 "$RUN_RC" "evidence-free ready-state base freeze is accepted"
+run_metadata "$TMP/unfrozen-ready.md" replace --metadata-file "$TMP/freeze-ready.json" \
+  --increment-evidence '[{"branch":"feature/increment","pullRequest":null}]'
+assert_exit 1 "$RUN_RC" "implementation evidence blocks the initial ready-state base freeze"
+cat >"$TMP/changed-frozen.json" <<'EOF'
+{"artifactType":"spec","baseBranch":"main","baseCommitSha":"1123456789abcdef0123456789abcdef01234567","designState":"ready","projectId":"project-123","repository":"acme/widgets","schema":1}
+EOF
+run_metadata "$TMP/frozen.md" replace --metadata-file "$TMP/changed-frozen.json"
+assert_exit 1 "$RUN_RC" "an accidental ready-to-ready base change is rejected"
+cat >"$TMP/replanned-frozen.json" <<'EOF'
+{"artifactType":"spec","baseBranch":"release/next","baseCommitSha":"2123456789abcdef0123456789abcdef01234567","designState":"planning","projectId":"project-123","repository":"acme/widgets","schema":1}
+EOF
+run_metadata "$TMP/frozen.md" replace --metadata-file "$TMP/replanned-frozen.json" \
+  --increment-evidence '[{"branch":null,"pullRequest":null}]'
+assert_exit 0 "$RUN_RC" "explicit ready-to-planning replan may change base before implementation evidence"
+run_metadata "$TMP/frozen.md" replace --metadata-file "$TMP/replanned-frozen.json" \
+  --increment-evidence '[{"branch":"feature/increment","pullRequest":null}]'
+assert_exit 1 "$RUN_RC" "increment branch evidence makes the frozen base immutable"
+run_metadata "$TMP/frozen.md" replace --metadata-file "$TMP/replanned-frozen.json" \
+  --increment-evidence '[{"branch":"feature/increment","pullRequest":"https://github.com/acme/widgets/pull/1"}]'
+assert_exit 1 "$RUN_RC" "increment pull-request evidence makes the frozen base immutable"
+cat >"$TMP/approve-execution.json" <<'EOF'
+{"artifactType":"spec","baseBranch":"main","baseCommitSha":"0123456789abcdef0123456789abcdef01234567","designState":"executionApproved","projectId":"project-123","repository":"acme/widgets","schema":1}
+EOF
+run_metadata "$TMP/frozen.md" replace --metadata-file "$TMP/approve-execution.json"
+assert_exit 1 "$RUN_RC" "execution approval requires live increment evidence"
+run_metadata "$TMP/frozen.md" replace --metadata-file "$TMP/approve-execution.json" \
+  --increment-evidence '[]'
+assert_exit 0 "$RUN_RC" "execution approval succeeds before implementation evidence"
+run_metadata "$TMP/frozen.md" replace --metadata-file "$TMP/approve-execution.json" \
+  --increment-evidence '[{"branch":"feature/increment","pullRequest":null}]'
+assert_exit 1 "$RUN_RC" "execution approval fails after implementation branch evidence"
+cat >"$TMP/execution-approved.md" <<'EOF'
++++ Woostack metadata — managed, do not edit
+{"artifactType":"spec","baseBranch":"main","baseCommitSha":"0123456789abcdef0123456789abcdef01234567","designState":"executionApproved","projectId":"project-123","repository":"acme/widgets","schema":1}
++++
+EOF
+run_metadata "$TMP/execution-approved.md" replace --metadata-file "$TMP/replanned-frozen.json" \
+  --increment-evidence '[]'
+assert_exit 1 "$RUN_RC" "execution approval makes the frozen base immutable without Git evidence"
+# Canonical design lifecycle permits only adjacent forward moves, explicit replan, and abandon.
+python3 - "$TMP" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+states = {
+    "draft",
+    "hardened",
+    "approved",
+    "planning",
+    "ready",
+    "executionApproved",
+    "executing",
+    "inReview",
+    "done",
+    "abandoned",
+}
+for state in states:
+    metadata = {
+        "artifactType": "spec",
+        "designState": state,
+        "projectId": "project-123",
+        "repository": "acme/widgets",
+        "schema": 1,
+    }
+    body = json.dumps(metadata, sort_keys=True, separators=(",", ":"))
+    (root / f"lifecycle-{state}.md").write_text(
+        f"+++ Woostack metadata — managed, do not edit\n{body}\n+++\n",
+        encoding="utf-8",
+    )
+    (root / f"lifecycle-{state}.json").write_text(body + "\n", encoding="utf-8")
+PY
+cat >"$TMP/lifecycle-ready-frozen.md" <<'EOF'
++++ Woostack metadata — managed, do not edit
+{"artifactType":"spec","baseBranch":"main","baseCommitSha":"0123456789abcdef0123456789abcdef01234567","designState":"ready","projectId":"project-123","repository":"acme/widgets","schema":1}
++++
+EOF
+cat >"$TMP/lifecycle-executionApproved-frozen.json" <<'EOF'
+{"artifactType":"spec","baseBranch":"main","baseCommitSha":"0123456789abcdef0123456789abcdef01234567","designState":"executionApproved","projectId":"project-123","repository":"acme/widgets","schema":1}
+EOF
+cat >"$TMP/lifecycle-legacy.md" <<'EOF'
++++ Woostack metadata — managed, do not edit
+{"artifactType":"spec","projectId":"project-123","repository":"acme/widgets","schema":1}
++++
+EOF
+run_metadata "$TMP/lifecycle-legacy.md" replace \
+  --metadata-file "$TMP/lifecycle-draft.json"
+assert_exit 0 "$RUN_RC" "legacy lifecycle initializes at draft"
+for invalid_initial_state in hardened approved planning ready executionApproved executing inReview "done" abandoned; do
+  run_metadata "$TMP/lifecycle-legacy.md" replace \
+    --metadata-file "$TMP/lifecycle-$invalid_initial_state.json"
+  assert_exit 1 "$RUN_RC" "legacy lifecycle cannot initialize at $invalid_initial_state"
+done
+for transition in \
+  draft:hardened hardened:approved approved:planning planning:ready \
+  executionApproved:executing executing:inReview inReview:done; do
+  current_state="${transition%%:*}"
+  replacement_state="${transition#*:}"
+  run_metadata "$TMP/lifecycle-$current_state.md" replace \
+    --metadata-file "$TMP/lifecycle-$replacement_state.json"
+  assert_exit 0 "$RUN_RC" "adjacent canonical design lifecycle transition succeeds"
+done
+run_metadata "$TMP/lifecycle-ready.md" replace \
+  --metadata-file "$TMP/lifecycle-ready.json"
+assert_exit 0 "$RUN_RC" "same-state design lifecycle replacement is idempotent"
+run_metadata "$TMP/lifecycle-ready.md" replace \
+  --metadata-file "$TMP/lifecycle-executionApproved.json" --increment-evidence '[]'
+assert_exit 1 "$RUN_RC" "execution approval requires the frozen base pair"
+run_metadata "$TMP/lifecycle-ready-frozen.md" replace \
+  --metadata-file "$TMP/lifecycle-executionApproved-frozen.json" --increment-evidence '[]'
+assert_exit 0 "$RUN_RC" "evidence-free execution approval with a frozen base is a canonical forward transition"
+run_metadata "$TMP/lifecycle-ready.md" replace \
+  --metadata-file "$TMP/lifecycle-planning.json" --increment-evidence '[]'
+assert_exit 0 "$RUN_RC" "evidence-free ready-to-planning replan is explicitly allowed"
+for abandon_source in draft hardened approved planning ready executionApproved executing inReview; do
+  run_metadata "$TMP/lifecycle-$abandon_source.md" replace \
+    --metadata-file "$TMP/lifecycle-abandoned.json"
+  assert_exit 0 "$RUN_RC" "active design lifecycle may explicitly abandon"
+done
+for transition in \
+  ready:draft planning:approved draft:ready hardened:planning approved:ready \
+  executing:ready inReview:executing done:abandoned abandoned:draft; do
+  current_state="${transition%%:*}"
+  replacement_state="${transition#*:}"
+  run_metadata "$TMP/lifecycle-$current_state.md" replace \
+    --metadata-file "$TMP/lifecycle-$replacement_state.json" --increment-evidence '[]'
+  assert_exit 1 "$RUN_RC" "non-canonical design lifecycle jump is rejected"
+done
+
 cat >"$TMP/replacement.json" <<'EOF'
 {"state":"hardened","schema":1,"repository":"acme/widgets","projectId":"project-123","artifactType":"spec","label":"Crème 東京"}
 EOF
@@ -105,11 +361,14 @@ assert_contains "$RUN_STDERR" "optimistic revision mismatch" "changed content ha
 assert_not_contains "$RUN_STDERR" "Concurrent edit" "revision error does not leak content"
 
 cat >"$TMP/feature.json" <<'EOF'
-{"backend":"linear","feature":{"branch":null,"id":"project-123","status":"ready","title":"Unicode 東京","url":"https://linear.app/acme/project/example"},"increments":[{"branch":null,"content":"One","dependencies":[],"id":"issue-1","identifier":"ENG-1","ordinal":1,"pullRequest":null,"status":"planned"},{"branch":"feature/two","content":"Two","dependencies":["issue-1"],"id":"issue-2","identifier":"ENG-2","ordinal":2,"pullRequest":null,"status":"executing"}],"spec":{"content":"Spec","id":"document-1","revision":"abc123","url":"https://linear.app/acme/document/example"}}
+{"backend":"linear","feature":{"baseBranch":"main","baseCommitSha":"0123456789abcdef0123456789abcdef01234567","id":"project-123","status":"ready","title":"Unicode 東京","url":"https://linear.app/acme/project/example"},"increments":[{"branch":null,"content":"One","dependencies":[],"id":"issue-1","identifier":"ENG-1","ordinal":1,"pullRequest":null,"status":"planned"},{"branch":"feature/two","content":"Two","dependencies":["issue-1"],"id":"issue-2","identifier":"ENG-2","ordinal":2,"pullRequest":null,"status":"executing"}],"spec":{"content":"Spec","id":"document-1","revision":{"contentHash":"0000000000000000000000000000000000000000000000000000000000000000","updatedAt":"2026-07-12T12:00:00.000Z"},"url":"https://linear.app/acme/document/example"}}
 EOF
 run_metadata "$TMP/feature.json" validate-feature --project-id project-123
 assert_exit 0 "$RUN_RC" "valid normalized Linear feature passes validation"
 assert_eq "$RUN_STDOUT" "" "feature validation emits no data"
+jq '.feature.baseBranch="HEAD"' "$TMP/feature.json" >"$TMP/invalid-feature-branch.json"
+run_metadata "$TMP/invalid-feature-branch.json" validate-feature --project-id project-123
+assert_exit 1 "$RUN_RC" "normalized feature rejects Git's reserved HEAD branch"
 
 python3 - "$TMP/feature.json" "$TMP/bad-feature.json" <<'PY'
 from pathlib import Path

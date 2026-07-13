@@ -1,41 +1,58 @@
 ---
 name: woostack-build
-description: Use when building a feature with the full woostack development loop — ideate a design, harden it, plan it, harden the plan, ship the spec and plan as their own PR, then implement it. Chains woostack-ideate, woostack-harden, woostack-plan, woostack-commit, and woostack-execute in a fixed, gated order; writes markdown specs and plans under .woostack/.
+description: Use when building a feature with the full woostack development loop — ideate a design, harden it, plan it, harden the plan, and ship the selected artifact backend's spec and plan through exactly three gates. Markdown can continue into implementation; Linear currently stops at the ready handoff.
 ---
 
 # woostack-build
 
 ## Overview
 
-Drives one feature from idea to implementation through a fixed, gated chain. Thin
-glue: it sequences proven sub-skills, **inherits their two gates** (design, spec) **and
-adds exactly one of its own** — the execution handoff — because the plan→execute boundary
-belongs to no sub-skill. The value is the order and the handoffs.
+Drives one feature from idea to the selected backend's supported terminal state through a fixed,
+gated chain. Thin glue: it sequences proven sub-skills and routes spec/plan reads and writes
+through the configured artifact backend. It **inherits two gates** (design and written-spec
+approval) and **adds exactly one** (the execution handoff). Storage changes neither their order
+nor their meaning.
+
+At the start of the run, execute
+`skills/woostack-init/scripts/artifacts/resolve-backend.sh <repo-root>` exactly once and
+retain its normalized JSON result. Branch on its `backend` value; never infer the backend
+from folders, arguments, or available credentials, and never fall back from Linear to
+Markdown.
+
+Both branches implement the same pre-execution chain:
 
 ```
-ideate → write spec (markdown) → harden spec → commit spec PR → approve spec → plan
-  → verify decomposition → harden plan → append plan to spec+plan PR → stop before execute (handoff gate)
-  → execute (per increment: implement → commit → review → distill) → reviewed PR stack
+ideate → capture spec → harden + persist spec → spec approval → plan
+  → verify decomposition → harden plan → mark ready → execution handoff
 ```
 
-Three of those gates are hard stops where the user must say yes before the chain advances:
-**design approval** (owned by `woostack-ideate`, step 1), **spec approval** (step 3), and the
-**execution handoff** (step 8). Because woostack-build writes the spec in step 2, it also owns
-the "user reviews the written spec" gate in step 3 — and it **commits the spec and opens its PR
-before** that gate, so the review happens in the PR rather than against a raw worktree file
-(mirroring how [`woostack-fix`](../woostack-fix/SKILL.md) commits its plan before its one gate).
-The early spec commit is a work step, not a fourth gate. The execution-handoff gate is build's own:
-no sub-skill owns the plan→execute boundary, so build adds it to let you stop after planning
-and execute later or elsewhere.
+Markdown may continue from that gate into per-increment execution and a reviewed PR stack.
+Linear currently stops at `designState: ready` and hands off its managed artifacts; Increment 6
+adds execution when the executors accept Linear project references. Markdown preserves its
+existing persistence order:
+`commit spec PR → approve spec → plan → append plan to spec+plan PR → execution handoff`.
 
-Hardening runs **twice** — once on the spec (step 3) and once on the plan (step 6) — but only
-the spec harden feeds a gate (the spec-approval gate, step 3). The plan harden amends the plan
-in place and hands straight back. Committing the spec before the step-3 gate, and appending the
-plan to that same PR (step 7), are both work steps, not approval stops. The execution-handoff
-gate (step 8) is build-owned, not harden-owned, and sits after the plan is appended. So the chain
-has exactly the three hard gates above.
+The only hard stops are **design approval**, **spec approval**, and **execution handoff**.
+Hardening amends the selected artifact in place and owns no gate. Planning, persistence,
+read-back, lifecycle transitions, and Markdown's spec/plan PR are work steps, not approval
+stops.
+
+Lifecycle spelling is backend-specific: Markdown plan frontmatter uses `in-review`; the
+normalized Linear project/issue status is `inReview`. Never translate one storage token into
+the other.
 
 ## Procedure
+
+1. Resolve the selected artifact backend with
+   [`resolve-backend.sh`](../woostack-init/scripts/artifacts/resolve-backend.sh). Keep the
+   returned repository identity and resolved Linear configuration for adapter calls. Then
+   follow exactly one procedure below.
+
+## Markdown backend procedure
+
+<!-- markdown-gates: design-approval | spec-approval | execution-handoff -->
+
+<HARD-GATE backend="markdown" name="design-approval">
 
 1. **Ideate.** Invoke [`woostack-ideate`](../woostack-ideate/SKILL.md) to explore
    the problem and converge on a design. Let it run its own approval gate. It hands back an
@@ -44,6 +61,7 @@ has exactly the three hard gates above.
    The design phase loads `.woostack/wisdom/*.md` wholesale as guidance (via `woostack-ideate`'s
    context exploration); see the wisdom contract
    [`../woostack-init/references/wisdom.md`](../woostack-init/references/wisdom.md).
+</HARD-GATE>
 2. **Write the spec as markdown.** When the design is approved, do **not** write to a generic
    `docs/specs/` location. **First create the spec+plan worktree** (the first write of this run,
    per the [worktree contract](../woostack-init/references/worktrees.md)): pick the branch
@@ -65,6 +83,8 @@ has exactly the three hard gates above.
    transition at each step so `/woostack-status` can read it (the enum and join contracts live
    in [`../woostack-status/references/conventions.md`](../woostack-status/references/conventions.md);
    link it, do not restate it).
+<HARD-GATE backend="markdown" name="spec-approval">
+
 3. **Harden the spec, commit it for review, then get spec approval.** Invoke
    [`woostack-harden`](../woostack-harden/SKILL.md) against the spec. Amend the spec
    in place until hardening stops producing new questions, then set `status: hardened`. **Then
@@ -84,6 +104,7 @@ has exactly the three hard gates above.
      and **close the now-open PR**.
    Do **not** proceed to step 4 on inferred or assumed approval; silence is not a yes. Committing
    the spec here is a work step; it adds no gate.
+</HARD-GATE>
 4. **Plan.** Once the spec is approved, invoke
    [`woostack-plan`](../woostack-plan/SKILL.md) with the approved spec path. It writes the
    plan to `.woostack/plans/<spec-basename>.md` with YAML frontmatter followed by the
@@ -118,6 +139,8 @@ has exactly the three hard gates above.
    (`git worktree remove "$WOOSTACK_ROOT/.woostack/worktrees/feature-<slug>"`) — the branch/commits/PR
    persist as the stack base. Leave the worktree on failure and report its path
    ([worktree contract](../woostack-init/references/worktrees.md)).
+<HARD-GATE backend="markdown" name="execution-handoff">
+
 8. **Stop before execute (execution-handoff gate).** After the spec+plan PR is open, **halt** —
    this is a hard gate. Surface the handoff artifacts: the plan path (`.woostack/plans/…`), the
    spec+plan PR URL, and — on request — a
@@ -132,6 +155,7 @@ has exactly the three hard gates above.
      Codex, or a fresh session via `/woostack-execute <plan-path>`).
    Ambiguous or no answer is **not** a "go": never auto-run execute (supervised or overnight)
    without an explicit go-ahead. This is the chain's last hard gate.
+</HARD-GATE>
 9. **Execute.** Invoke [`woostack-execute`](../woostack-execute/SKILL.md) — or, if the user chose
    **Run overnight** at step 8, [`woostack-execute-overnight`](../woostack-execute-overnight/SKILL.md)
    (unattended) — with the plan path to
@@ -147,7 +171,7 @@ has exactly the three hard gates above.
    per-increment commit/review/distill cadence and the inline-vs-subagent mode choice (one plan
    per spec, multiple stacked PRs per plan), so it absorbs what used to be separate "distill
    memory" and "offer the PR" steps here. As branches, commits, and increment PRs appear the
-   spec advances into the `executing` → `in-review` band; `woostack-execute` authors the plan's
+   plan advances into the `executing` → `in-review` band; `woostack-execute` authors the plan's
    terminal `status: done` at the final increment (so the authored value no longer lags), while the
    board still **computes** that band from the artifacts via its truth table — showing `in-review`
    until the final PR merges, then `done` — so any still-lagging authored `status:` is reconciled
@@ -163,7 +187,7 @@ has exactly the three hard gates above.
     Build does not separately ask to open a PR (step 7 and the execute phase open them as work
     steps) and **never merges**.
 
-## Hard constraints
+### Markdown hard constraints (preserved)
 
 - **Inherit two gates, add one.** Do not insert *extra* approval stops beyond the three hard
   gates: **design approval** (step 1) and **spec approval** (step 3), both inherited, plus the
@@ -194,15 +218,169 @@ has exactly the three hard gates above.
   for executing here or in another tool. Ambiguous or no answer is not a "go."
 - **Never merge.** build ends on the terminal state (handoff PR, or reviewed stack), nothing
   further.
-- **Author `status:` through the loop.** Set the spec's `status:` at each step — `draft` (step
-  2), `hardened` then `approved` (step 3), `planning` (step 4, authored by woostack-plan),
-  `ready` (step 6, after the plan harden stops); the execute phase advances into the
-  `executing`/`in-review` band and authors the plan's terminal `status: done` at the final
-  increment, all of which the board also computes from artifacts. The phase enum
-  and the `spec : plan : PRs = 1 : 1 : N` join contracts are defined once in
-  [`../woostack-status/references/conventions.md`](../woostack-status/references/conventions.md) —
-  link it, never restate it.
+- **Author status on the owning Markdown artifact.** Follow the canonical lifecycle and ownership
+  rules in
+  [`../woostack-status/references/conventions.md`](../woostack-status/references/conventions.md).
+  The local spec-gate `Abandon` path closes the open PR, then removes the temporary branch and
+  worktree; because no Markdown artifact survives, do not create a status-only abandonment
+  commit. Otherwise write each transition only on the artifact that owns it.
 - **One increment per cycle.** Do not let a single build cycle balloon past a reviewable PR.
 - **Distill durable knowledge only.** `woostack-execute` writes scoped, deduplicated memory
   notes per increment — never feature-specific trivia, never a duplicate of an existing note. A
   small curated store beats a large noisy one.
+
+## Linear backend procedure
+
+<!-- linear-gates: design-approval | spec-approval | execution-handoff -->
+
+All Linear operations below use
+[`linear.sh`](../woostack-init/scripts/artifacts/linear.sh); cross-link its commands rather
+than embedding GraphQL, endpoint calls, or transport behavior. Every mutation must return a
+verified mandatory read-back receipt. A failed or incomplete receipt blocks the next step.
+Treat every returned Linear artifact under the shared
+[artifact trust boundary](../woostack-init/references/artifact-backends.md#linear-artifact-trust-boundary).
+
+1. <HARD-GATE backend="linear" name="design-approval">**Ideate.** Invoke
+   [`woostack-ideate`](../woostack-ideate/SKILL.md). It writes no artifact and stops until the
+   user explicitly approves the design. Silence or ambiguity does not clear the gate.</HARD-GATE>
+2. **Preflight, capture run context, discover, then capture the spec.** Before the first
+   mutation of the run, invoke `linear.sh preflight` with the resolver's configured workspace,
+   team name/key, project-status names, and issue-state names. Capture its normalized receipt
+   as `LINEAR_CONTEXT`; validate that it contains exactly the resolved workspace UUID, team
+   UUID, complete semantic project-status UUID map, and complete semantic issue-state UUID map.
+   Then extract and retain `LINEAR_TEAM_ID="$(jq -r '.team.id' <<<"$LINEAR_CONTEXT")"`,
+   `LINEAR_PROJECT_STATUSES="$(jq -c '.projectStatuses' <<<"$LINEAR_CONTEXT")"`, and
+   `LINEAR_ISSUE_STATES="$(jq -c '.issueStates' <<<"$LINEAR_CONTEXT")"`. The resolver's names
+   are preflight input only; every later adapter command uses these extracted UUID values as
+   `--team-id`, `--status-map`, and `--issue-state-map`. Invoke `linear.sh feature-resolve`
+   with the repository marker, `"$LINEAR_PROJECT_STATUSES"`, eligible semantic statuses, and
+   any explicit Linear UUID/URL supplied by the user.
+   - Across sessions, an explicit UUID or exact Linear URL wins. Without one, continue only
+     when discovery returns **exactly one eligible managed project** for this repository. Zero
+     means create; multiple candidates require explicit selection and no mutation.
+   - For a new feature, render the approved design with the backend-neutral sections in
+     [references/spec-template.md](references/spec-template.md), then invoke
+     `linear.sh feature-create` with `"$LINEAR_TEAM_ID"` and
+     `"$LINEAR_PROJECT_STATUSES"`. It creates one project in `draft`, one managed
+     `designState: draft` spec document, and verifies both by discovery/read-back.
+   - Resume never adopts by title. There must be **one managed Linear project, exactly one
+     managed spec document, and one ordered managed issue set** for the feature.
+   Linear mode creates **no spec/plan worktree, branch, commit, or docs-only PR**. It writes no
+   `.woostack/specs/` or `.woostack/plans/` source file.
+3. <HARD-GATE backend="linear" name="spec-approval">**Harden and approve the Linear spec.**
+   Invoke `linear.sh spec-read`, harden that selected document through `woostack-harden`, and
+   persist each revision with `linear.sh spec-write` using the last observed revision. On the
+   final verified write, change the managed metadata only from `designState: draft` to
+   `designState: hardened`; then invoke `linear.sh feature-transition` from `draft` to
+   `hardened` and require its mandatory read-back receipt. Present the managed spec document
+   URL and wait:
+   - **Go** → read again, use evidence-aware `linear.sh spec-write` to change only
+     `designState: hardened` to `designState: approved`, verify it, invoke
+     `linear.sh feature-transition` from `hardened` to `approved`, verify the project read-back,
+     then plan.
+   - **Revise** → read again with `linear.sh spec-read`, amend the same document, write with
+     `linear.sh spec-write` and its optimistic revision without changing `designState:
+     hardened`, require read-back, and re-present. The project remains `hardened`.
+   - **Abandon** → read again, use `linear.sh spec-write` to change the managed lifecycle to
+     `designState: abandoned`, verify it, invoke `linear.sh feature-transition --target
+     abandoned`, require project read-back, preserve the project/document audit history, and
+     stop. Never delete or archive it.
+   Failed read-back, ambiguity, or silence never advances the gate.</HARD-GATE>
+4. **Plan in Linear.** Invoke [`woostack-plan`](../woostack-plan/SKILL.md) with the selected
+   project UUID or exact Linear URL plus the retained resolver result and `LINEAR_CONTEXT`.
+   The planning skill owns the complete Linear planning procedure and reuses that normalized
+   caller context without resolving or preflighting again. Continue only after it hands back the
+   same owned project and spec in `planning` with the managed increment issues reconciled and
+   verified.
+5. **Verify and read back the plan.** Invoke `linear.sh plan-read` with
+   `"$LINEAR_ISSUE_STATES"` and reject missing or duplicate ordinals, cycles, cross-project
+   dependencies, native/metadata relation drift, unreviewable slices, uncovered ACs, or Git
+   ancestry that Graphite cannot represent. Replanning must preserve stable issue identities
+   and implementation evidence, may safely add/reorder/rewire, and must **refuse to remove an
+   issue with branch or pull-request evidence**.
+6. **Harden the plan in place.** Invoke `woostack-harden` against the selected ordered issue
+   set. Reconcile changes with `linear.sh plan-reconcile` using `"$LINEAR_TEAM_ID"` and
+   `"$LINEAR_ISSUE_STATES"`, then verify with `linear.sh plan-read`. This adds no approval gate.
+   Only a clean read-back permits another `linear.sh spec-read` plus evidence-aware
+   `linear.sh spec-write` to author `designState: planning → ready`, followed by the project
+   `planning → ready` through `linear.sh feature-transition` using
+   `"$LINEAR_PROJECT_STATUSES"` and another mandatory read-back receipt.
+7. **Freeze the execution base.** **Immediately before the execution-handoff gate**, resolve
+   the base branch with
+   [`resolve-base.sh`](../woostack-init/scripts/resolve-base.sh) and resolve its exact commit
+   SHA. Read the spec with `linear.sh spec-read`, write exactly the canonical `baseBranch`,
+   `baseCommitSha`, and `designState: ready` fields into its owned metadata with
+   `linear.sh spec-write --issue-state-map "$LINEAR_ISSUE_STATES"` using the observed revision,
+   then call `linear.sh feature-read` with both extracted UUID maps and require those exact
+   values in its normalized read-back. No lifecycle or artifact mutation may intervene
+   between this verified freeze and the gate. The pair is provisional while `designState` is
+   `ready`: an accidental `ready → ready` pair change fails closed, but explicit pre-execution
+   replanning may replace it only while every managed increment has null `branch` and
+   `pullRequest`.
+   - **Explicit replan sequence:** call `linear.sh plan-read` and verify that live evidence is
+     empty, then call `linear.sh spec-read` and retain its `.revision`. Call
+     `linear.sh feature-transition --target planning --replan --expected-revision
+     '<revision-json>'` with `"$LINEAR_PROJECT_STATUSES"` and `"$LINEAR_ISSUE_STATES"`. The
+     adapter resolves the repository-owned spec, requires the
+     project and managed spec lifecycle to match, rechecks null branch/PR evidence, and
+     optimistically claims the revisioned spec as
+     `planning` before it attempts the project transition. A concurrent execution approval loses
+     or wins that spec-revision race before the project can be mutated. If the project transition
+     then fails, stop on the verified, resumable `planning` spec receipt; only a later explicit
+     resume after fresh reads may complete the idempotent project transition. After a verified
+     return, the spec is already `planning`: reconcile and harden the new increment plan, return
+     `planning → ready`, resolve the new base immediately before handoff, and repeat this step's
+     verified freeze. Any branch or pull-request evidence, project/spec lifecycle mismatch, or
+     execution-approved/later `designState` rejects the change.
+8. <HARD-GATE backend="linear" name="execution-handoff">**Stop before execute.** Present the
+   project URL, spec document URL, ordered issue URLs and dependency/Git-parent shape, and frozen
+   base branch+SHA. Up to this point there is **no implementation branch, worktree, commit, or
+   PR**. Ask the user to confirm **Hand off**, then stop with the Linear artifacts at
+   `designState: ready` for later or external execution. This increment does not offer Go or Run
+   overnight, record `executionApproved`, or invoke an executor; Increment 6 adds those choices
+   when the execution skills accept Linear project references. Ambiguity or silence does not
+   clear the gate.</HARD-GATE>
+
+## Shared terminal states
+
+- **Hand off** → the selected spec/plan artifacts are ready and no implementation PR exists.
+  This is the only Linear terminal state currently supported by build.
+- **Go** → Markdown only: a reviewed Graphite stack with the spec+plan PR at its base and one
+  implementation PR per increment.
+- **Run overnight** → Markdown only: an autonomous reviewed or truthfully blocked stack plus its
+  morning report.
+
+Build never separately asks to open a PR and never merges.
+
+## Hard constraints
+
+- **Resolve once; never mix backends.** All spec/plan operations use the selected backend and
+  its adapter. Linear failure never falls back to local Markdown.
+- **Exactly three hard gates per backend.** Design approval, written-spec approval, and
+  execution handoff are the only hard stops. Storage writes, read-backs, transitions,
+  decomposition, hardening, and Markdown commits are work steps.
+- **Harden twice, neither harden gates.** Amend the selected spec and plan artifacts in place;
+  hand directly back when no new questions remain.
+- **Always get explicit spec approval before planning.** Never advance on inferred approval.
+- **Markdown compatibility is exact.** Preserve `.woostack/specs/` and `.woostack/plans/`
+  paths, YAML frontmatter, reciprocal Obsidian source joins, the feature worktree, and the
+  single docs-only spec+plan base PR.
+- **Commit the spec before its approval gate (Markdown).** The same PR begins spec-only;
+  revisions update it, the plan is appended later, and no fourth gate or second PR appears.
+- **Linear has no Git spec/plan artifacts.** Never create a feature worktree, local spec/plan
+  file, branch, commit, or docs-only PR for Linear artifacts.
+- **Verified mutations only.** Every Linear write or lifecycle transition must be followed by
+  adapter discovery/read-back; unknown or partial outcomes stop.
+- **Linear design lifecycle is closed.** This build increment authors only
+  `draft → hardened → approved → planning → ready`. The adapter validates the later
+  `executionApproved → executing → inReview → done` states for the next increment, but build
+  does not author or act on them yet; same-state writes are idempotent, explicit evidence-free
+  replan alone permits `ready → planning`, active states may explicitly become `abandoned`, and
+  `done`/`abandoned` are terminal. Every other jump or backtrack fails closed.
+- **One feature join.** Markdown remains `spec : plan : PRs = 1 : 1 : N`; Linear planning is
+  `project : spec document : increment issues = 1 : 1 : N` until execution support adds PRs.
+- **Stop before execute.** Markdown halts for explicit **Go**, **Run overnight**, or **Hand off**.
+  Linear supports **Hand off** only in this increment and creates no implementation Git artifact.
+- **Never merge.** Build ends at the selected terminal state.
+- **Distill durable knowledge only.** Execution writes scoped, deduplicated memory notes, not
+  feature-specific trivia.

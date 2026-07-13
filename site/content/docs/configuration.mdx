@@ -97,10 +97,11 @@ explained in the sections below.
 
 ## Artifact backend
 
-`artifacts.specPlan` accepts `markdown` (the default) or the reserved `linear` selector. Markdown
-reads tracked `.woostack/specs/*.md` and `.woostack/plans/*.md` files. This increment validates
-the complete, secret-free `linear` namespace shown above; later stacked increments add Linear
-project and issue persistence before the selector becomes operational.
+`artifacts.specPlan` accepts `markdown` (the default) or `linear`. Markdown reads and writes
+tracked `.woostack/specs/*.md` and `.woostack/plans/*.md` files. Linear is operational for the
+spec/plan build loop: it stores one repository-owned project, one managed spec document, and one
+managed issue per increment, with verified read-backs after every mutation. Linear mode writes no
+local spec/plan source and opens no docs-only spec+plan PR.
 
 | Key | Required for `linear` | Meaning |
 | --- | --- | --- |
@@ -369,9 +370,9 @@ worktrees are cut from.
 ## Defaults and doctor
 
 <Callout type="info">
-  Every key is optional. The init template ships `models`, `review`, `respond`, and `status`;
-  everything else takes its built-in default when absent.
-  [woostack-doctor](/docs/skills/woostack-doctor) validates the four scaffolded keys and can repair
+  Every key is optional. The init template ships `artifacts`, `models`, `review`, `respond`, and
+  `status`; everything else takes its built-in default when absent.
+  [woostack-doctor](/docs/skills/woostack-doctor) validates the five scaffolded keys and can repair
   a missing one. Each owning skill validates its settings when it runs.
 </Callout>
 

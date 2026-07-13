@@ -224,7 +224,7 @@ reset_fake; queue document-list document-list-one.json 1
 run_capture spec-read --project "$project_id" --repository acme/widgets
 assert_exit 0 "$RC" "spec read succeeds"
 revision="$(jq -c '.revision' <<<"$OUTPUT")"
-printf '# Feature Alpha\n\nRevised body.\n\n+++ Woostack metadata — managed, do not edit\n{"artifactType":"spec","projectId":"%s","repository":"acme/widgets","schema":1}\n+++\n' "$project_id" >"$work/revised.md"
+printf '# Feature Alpha\n\nRevised body.\n\n+++ Woostack metadata — managed, do not edit\n{"artifactType":"spec","designState":"draft","projectId":"%s","repository":"acme/widgets","schema":1}\n+++\n' "$project_id" >"$work/revised.md"
 reset_fake; queue document-list document-list-one.json 1; queue document-update document-update-success.json 1; queue document-list document-list-updated.json 2
 run_capture spec-write --project "$project_id" --repository acme/widgets --content-file "$work/revised.md" --expected-revision "$revision"
 assert_exit 0 "$RC" "spec update with matching revision succeeds"
@@ -252,6 +252,231 @@ reset_fake; queue document-list document-list-updated.json 1
 run_capture spec-write --project "$project_id" --repository acme/widgets --content-file "$work/revised.md" --expected-revision "$revision"
 assert_exit 1 "$RC" "stale spec revision blocks before mutation"
 assert_not_contains "$(cat "$work/calls")" $'mutation\tdocument-update' "stale write does not mutate"
+
+# Rejected issue validation and discovery leave no temporary spec copies behind.
+spec_tmp="$work/spec-temp"
+mkdir -p "$spec_tmp"
+reset_fake; queue document-list document-list-one.json 1
+TMPDIR="$spec_tmp" run_capture spec-write --project "$project_id" --repository acme/widgets \
+  --content-file "$work/revised.md" --expected-revision "$revision" --issue-state-map '{}'
+assert_exit 1 "$RC" "invalid issue-state map blocks spec write"
+if compgen -G "$spec_tmp/*" >/dev/null; then
+  fail "issue-map validation must not leak temporary spec files"
+else
+  pass
+fi
+reset_fake; queue document-list document-list-one.json 1
+queue issue-list issue-list-none.json 1; touch "$work/responses/issue-list.1.fail"
+TMPDIR="$spec_tmp" run_capture spec-write --project "$project_id" --repository acme/widgets \
+  --content-file "$work/revised.md" --expected-revision "$revision" \
+  --issue-state-map "$issue_state_map"
+assert_exit 1 "$RC" "failed increment discovery blocks spec write"
+if compgen -G "$spec_tmp/*" >/dev/null; then
+  fail "increment discovery failure must clean temporary spec files"
+else
+  pass
+fi
+# Evidence-aware spec writes carry discovered implementation evidence through the adapter.
+printf '# Feature Alpha\n\nReady.\n\n+++ Woostack metadata — managed, do not edit\n{"artifactType":"spec","designState":"ready","projectId":"%s","repository":"acme/widgets","schema":1}\n+++\n' "$project_id" >"$work/ready-unfrozen.md"
+printf '# Feature Alpha\n\nReady.\n\n+++ Woostack metadata — managed, do not edit\n{"artifactType":"spec","baseBranch":"main","baseCommitSha":"0123456789abcdef0123456789abcdef01234567","designState":"ready","projectId":"%s","repository":"acme/widgets","schema":1}\n+++\n' "$project_id" >"$work/ready-frozen.md"
+make_document_list "$work/ready-unfrozen-list.json" "$work/ready-unfrozen.md" '2026-07-12T10:09:00.000Z'
+make_document_list "$work/ready-frozen-list.json" "$work/ready-frozen.md" '2026-07-12T10:10:00.000Z'
+freeze_revision="$(python3 "$ARTIFACTS/linear-metadata.py" revision \
+  --updated-at '2026-07-12T10:09:00.000Z' <"$work/ready-unfrozen.md")"
+reset_fake
+cp "$work/ready-unfrozen-list.json" "$work/responses/document-list.1.json"
+queue issue-list issue-list-none.json 1
+queue document-update document-update-success.json 1
+cp "$work/ready-frozen-list.json" "$work/responses/document-list.2.json"
+run_capture spec-write --project "$project_id" --repository acme/widgets \
+  --content-file "$work/ready-frozen.md" --expected-revision "$freeze_revision" \
+  --issue-state-map "$issue_state_map"
+assert_exit 0 "$RC" "evidence-free ready-state freeze succeeds through the adapter"
+assert_eq "$(grep -c $'mutation\tdocument-update' "$work/calls")" "1" "evidence-free freeze mutates once"
+reset_fake
+cp "$work/ready-unfrozen-list.json" "$work/responses/document-list.1.json"
+queue issue-list issue-list-evidence.json 1
+run_capture spec-write --project "$project_id" --repository acme/widgets \
+  --content-file "$work/ready-frozen.md" --expected-revision "$freeze_revision" \
+  --issue-state-map "$issue_state_map"
+assert_exit 1 "$RC" "discovered implementation evidence blocks the ready-state freeze"
+assert_not_contains "$(cat "$work/calls")" $'mutation\tdocument-update' "evidenced freeze performs no mutation"
+
+# Feature read emits the canonical frozen branch/SHA pair from spec metadata.
+printf '# Feature Alpha\n\nFrozen.\n\n+++ Woostack metadata — managed, do not edit\n{"artifactType":"spec","baseBranch":"main","baseCommitSha":"0123456789abcdef0123456789abcdef01234567","designState":"ready","projectId":"%s","repository":"acme/widgets","schema":1}\n+++\n' "$project_id" >"$work/frozen-spec.md"
+make_document_list "$work/frozen-document-list.json" "$work/frozen-spec.md" '2026-07-12T10:08:00.000Z'
+reset_fake; queue project-list project-list-one.json 1; cp "$work/frozen-document-list.json" "$work/responses/document-list.1.json"; queue issue-list issue-list-none.json 1
+run_capture feature-read --project "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map"
+assert_exit 0 "$RC" "feature read emits frozen execution base"
+assert_eq "$(jq -r '.feature.baseBranch' <<<"$OUTPUT")" "main" "feature read emits canonical baseBranch"
+assert_eq "$(jq -r '.feature.baseCommitSha' <<<"$OUTPUT")" "0123456789abcdef0123456789abcdef01234567" "feature read emits canonical baseCommitSha"
+assert_eq "$(jq -r '.feature | has("branch")' <<<"$OUTPUT")" "false" "legacy ambiguous feature branch field is absent"
+
+# Explicit replan may change the frozen pair only after live increment evidence is clean.
+printf '# Feature Alpha\n\nReplanned.\n\n+++ Woostack metadata — managed, do not edit\n{"artifactType":"spec","baseBranch":"release/next","baseCommitSha":"2123456789abcdef0123456789abcdef01234567","designState":"planning","projectId":"%s","repository":"acme/widgets","schema":1}\n+++\n' "$project_id" >"$work/replanned-spec.md"
+make_document_list "$work/replanned-document-list.json" "$work/replanned-spec.md" '2026-07-12T10:09:00.000Z'
+frozen_revision="$("$ARTIFACTS/linear-metadata.py" revision --updated-at '2026-07-12T10:08:00.000Z' <"$work/frozen-spec.md")"
+reset_fake
+cp "$work/frozen-document-list.json" "$work/responses/document-list.1.json"
+queue issue-list issue-list-none.json 1
+queue document-update document-update-success.json 1
+cp "$work/replanned-document-list.json" "$work/responses/document-list.2.json"
+run_capture spec-write --project "$project_id" --repository acme/widgets \
+  --content-file "$work/replanned-spec.md" --expected-revision "$frozen_revision" \
+  --issue-state-map "$issue_state_map"
+assert_exit 0 "$RC" "explicit pre-artifact replan changes the frozen base"
+assert_eq "$(jq -r '.verified' <<<"$OUTPUT")" "true" "replan spec write is read-back verified"
+reset_fake
+cp "$work/frozen-document-list.json" "$work/responses/document-list.1.json"
+queue issue-list issue-list-evidence.json 1
+run_capture spec-write --project "$project_id" --repository acme/widgets \
+  --content-file "$work/replanned-spec.md" --expected-revision "$frozen_revision" \
+  --issue-state-map "$issue_state_map"
+assert_exit 1 "$RC" "implementation evidence blocks frozen-base replan"
+assert_not_contains "$(cat "$work/calls")" $'mutation\tdocument-update' "evidenced replan blocks before mutation"
+
+# Ready-to-planning first claims the revisioned managed spec, then changes the project.
+jq --arg status "$(jq -r '.ready' <<<"$status_map")" '.data.projects.nodes[0].status.id=$status' \
+  "$FIXTURES/project-list-one.json" >"$work/project-list-ready.json"
+jq --arg status "$(jq -r '.planning' <<<"$status_map")" '.data.projects.nodes[0].status.id=$status' \
+  "$FIXTURES/project-list-one.json" >"$work/project-list-planning.json"
+jq --arg status "$(jq -r '.planning' <<<"$status_map")" '.data.projectUpdate.project.status.id=$status' \
+  "$FIXTURES/project-update-hardened.json" >"$work/project-update-planning.json"
+printf '# Feature Alpha\n\nFrozen.\n\n+++ Woostack metadata — managed, do not edit\n{"artifactType":"spec","baseBranch":"main","baseCommitSha":"0123456789abcdef0123456789abcdef01234567","designState":"planning","projectId":"%s","repository":"acme/widgets","schema":1}\n+++\n' "$project_id" >"$work/claimed-spec.md"
+make_document_list "$work/claimed-document-list.json" "$work/claimed-spec.md" '2026-07-12T10:09:00.000Z'
+claimed_revision="$("$ARTIFACTS/linear-metadata.py" revision --updated-at '2026-07-12T10:09:00.000Z' <"$work/claimed-spec.md")"
+reset_fake
+cp "$work/project-list-ready.json" "$work/responses/project-list.1.json"
+cp "$work/frozen-document-list.json" "$work/responses/document-list.1.json"
+queue issue-list issue-list-none.json 1
+cp "$work/frozen-document-list.json" "$work/responses/document-list.2.json"
+queue issue-list issue-list-none.json 2
+queue document-update document-update-success.json 1
+cp "$work/claimed-document-list.json" "$work/responses/document-list.3.json"
+cp "$work/claimed-document-list.json" "$work/responses/document-list.4.json"
+cp "$work/project-update-planning.json" "$work/responses/project-update.1.json"
+cp "$work/project-list-planning.json" "$work/responses/project-list.2.json"
+run_capture feature-transition --project "$project_id" --repository acme/widgets \
+  --status-map "$status_map" --target planning --replan --issue-state-map "$issue_state_map" \
+  --expected-revision "$frozen_revision"
+assert_exit 0 "$RC" "explicit evidence-free ready-to-planning replan succeeds"
+assert_eq "$(jq -r '.verified' <<<"$OUTPUT")" "true" "replan lifecycle transition is read-back verified"
+assert_eq "$(cut -f2 "$work/calls" | tr '\n' ',')" \
+  "project-list,document-list,issue-list,document-list,issue-list,document-update,document-list,document-list,project-update,project-list," \
+  "valid replan claims and verifies the spec before project mutation"
+
+# A ready project plus the revision-matched planning claim resumes only the project transition.
+reset_fake
+cp "$work/project-list-ready.json" "$work/responses/project-list.1.json"
+cp "$work/claimed-document-list.json" "$work/responses/document-list.1.json"
+queue issue-list issue-list-none.json 1
+cp "$work/project-update-planning.json" "$work/responses/project-update.1.json"
+cp "$work/project-list-planning.json" "$work/responses/project-list.2.json"
+run_capture feature-transition --project "$project_id" --repository acme/widgets \
+  --status-map "$status_map" --target planning --replan --issue-state-map "$issue_state_map" \
+  --expected-revision "$claimed_revision"
+assert_exit 0 "$RC" "ready project with planning spec resumes the project transition"
+assert_eq "$(jq -c '.attempted' <<<"$OUTPUT")" '["projectUpdate"]' \
+  "split-lifecycle recovery reports only the retried project mutation"
+assert_not_contains "$(cat "$work/calls")" $'mutation\tdocument-update' \
+  "split-lifecycle recovery does not repeat the spec claim"
+
+# The inverse split is never a recoverable replan state.
+reset_fake
+cp "$work/project-list-planning.json" "$work/responses/project-list.1.json"
+cp "$work/frozen-document-list.json" "$work/responses/document-list.1.json"
+run_capture feature-transition --project "$project_id" --repository acme/widgets \
+  --status-map "$status_map" --target planning --replan --issue-state-map "$issue_state_map" \
+  --expected-revision "$frozen_revision"
+assert_exit 1 "$RC" "planning project with ready spec blocks replan"
+assert_not_contains "$(cat "$work/calls")" $'mutation\t' "planning-ready split blocks before mutation"
+
+reset_fake
+cp "$work/project-list-ready.json" "$work/responses/project-list.1.json"
+cp "$work/frozen-document-list.json" "$work/responses/document-list.1.json"
+queue issue-list issue-list-evidence.json 1
+run_capture feature-transition --project "$project_id" --repository acme/widgets \
+  --status-map "$status_map" --target planning --replan --issue-state-map "$issue_state_map" \
+  --expected-revision "$frozen_revision"
+assert_exit 1 "$RC" "implementation evidence blocks ready-to-planning transition"
+assert_not_contains "$(cat "$work/calls")" $'mutation\t' "evidenced replan blocks before either mutation"
+
+# Losing the optimistic spec claim to execution approval leaves the project untouched.
+printf '# Feature Alpha\n\nApproved for execution.\n\n+++ Woostack metadata — managed, do not edit\n{"artifactType":"spec","baseBranch":"main","baseCommitSha":"0123456789abcdef0123456789abcdef01234567","designState":"executionApproved","projectId":"%s","repository":"acme/widgets","schema":1}\n+++\n' "$project_id" >"$work/execution-approved-spec.md"
+make_document_list "$work/execution-approved-document-list.json" \
+  "$work/execution-approved-spec.md" '2026-07-12T10:10:00.000Z'
+reset_fake
+cp "$work/project-list-ready.json" "$work/responses/project-list.1.json"
+cp "$work/frozen-document-list.json" "$work/responses/document-list.1.json"
+queue issue-list issue-list-none.json 1
+cp "$work/frozen-document-list.json" "$work/responses/document-list.2.json"
+queue issue-list issue-list-none.json 2
+queue document-update document-update-success.json 1
+cp "$work/execution-approved-document-list.json" "$work/responses/document-list.3.json"
+run_capture feature-transition --project "$project_id" --repository acme/widgets \
+  --status-map "$status_map" --target planning --replan --issue-state-map "$issue_state_map" \
+  --expected-revision "$frozen_revision"
+assert_exit 1 "$RC" "execution approval winning the spec claim race blocks project replan"
+assert_not_contains "$(cat "$work/calls")" $'mutation\tproject-update' \
+  "lost optimistic spec claim prevents project mutation"
+
+# A failed project transition leaves the claimed planning spec verified for safe recovery.
+reset_fake
+cp "$work/project-list-ready.json" "$work/responses/project-list.1.json"
+cp "$work/frozen-document-list.json" "$work/responses/document-list.1.json"
+queue issue-list issue-list-none.json 1
+cp "$work/frozen-document-list.json" "$work/responses/document-list.2.json"
+queue issue-list issue-list-none.json 2
+queue document-update document-update-success.json 1
+cp "$work/claimed-document-list.json" "$work/responses/document-list.3.json"
+cp "$work/claimed-document-list.json" "$work/responses/document-list.4.json"
+queue project-update project-update-hardened.json 1
+touch "$work/responses/project-update.1.fail"
+cp "$work/project-list-ready.json" "$work/responses/project-list.2.json"
+cp "$work/claimed-document-list.json" "$work/responses/document-list.5.json"
+run_capture feature-transition --project "$project_id" --repository acme/widgets \
+  --status-map "$status_map" --target planning --replan --issue-state-map "$issue_state_map" \
+  --expected-revision "$frozen_revision"
+assert_exit 1 "$RC" "failed project transition remains unverified"
+assert_eq "$(jq -c '.pending' <<<"$OUTPUT")" '["project-status-verification"]' \
+  "failed project transition reports only project recovery"
+assert_eq "$(cut -f2 "$work/calls" | tr '\n' ',')" \
+  "project-list,document-list,issue-list,document-list,issue-list,document-update,document-list,document-list,project-update,project-list,document-list," \
+  "failed project transition verifies the preserved planning spec"
+
+# A project read-back outage preserves the claimed spec and reports exact recovery state.
+reset_fake
+cp "$work/project-list-ready.json" "$work/responses/project-list.1.json"
+cp "$work/frozen-document-list.json" "$work/responses/document-list.1.json"
+queue issue-list issue-list-none.json 1
+cp "$work/frozen-document-list.json" "$work/responses/document-list.2.json"
+queue issue-list issue-list-none.json 2
+queue document-update document-update-success.json 1
+cp "$work/claimed-document-list.json" "$work/responses/document-list.3.json"
+cp "$work/claimed-document-list.json" "$work/responses/document-list.4.json"
+cp "$work/project-update-planning.json" "$work/responses/project-update.1.json"
+cp "$work/project-list-ready.json" "$work/responses/project-list.2.json"
+touch "$work/responses/project-list.2.fail"
+cp "$work/claimed-document-list.json" "$work/responses/document-list.5.json"
+run_capture feature-transition --project "$project_id" --repository acme/widgets \
+  --status-map "$status_map" --target planning --replan --issue-state-map "$issue_state_map" \
+  --expected-revision "$frozen_revision"
+assert_exit 1 "$RC" "replan project read-back outage remains unverified"
+assert_eq "$(jq -c '.pending' <<<"$OUTPUT")" '["project-read-back"]' \
+  "replan outage reports only project read-back recovery"
+assert_eq "$(grep -c $'mutation\tdocument-update' "$work/calls")" "1" \
+  "replan outage never retries the verified spec claim"
+assert_eq "$(grep -c $'mutation\tproject-update' "$work/calls")" "1" \
+  "replan outage never retries the project transition"
+reset_fake
+cp "$work/project-list-planning.json" "$work/responses/project-list.1.json"
+cp "$work/claimed-document-list.json" "$work/responses/document-list.1.json"
+queue issue-list issue-list-none.json 1
+run_capture feature-transition --project "$project_id" --repository acme/widgets \
+  --status-map "$status_map" --target planning --replan --issue-state-map "$issue_state_map" \
+  --expected-revision "$claimed_revision"
+assert_exit 0 "$RC" "verified planning pair safely resumes without another mutation"
+assert_not_contains "$(cat "$work/calls")" $'mutation\t' "safe resume does not repeat either mutation"
 
 # Forward lifecycle and explicit abandon are permitted; downgrade/archive/delete are rejected.
 reset_fake; queue project-list project-list-one.json 1; queue project-update project-update-hardened.json 1; queue project-list project-list-hardened.json 2
@@ -353,7 +578,7 @@ assert_contains "$OUTPUT" "document-content-verification" "spec mismatch remains
 assert_not_contains "$OUTPUT" "TOP-SECRET-SPEC-TEXT" "failure receipt excludes spec text"
 
 # Exact comparisons distinguish zero, one, and multiple terminal newlines.
-printf '# Feature Alpha\n\nZero newline.\n\n+++ Woostack metadata — managed, do not edit\n{\"artifactType\":\"spec\",\"projectId\":\"%s\",\"repository\":\"acme/widgets\",\"schema\":1}\n+++' "$project_id" >"$work/zero-newline.md"
+printf '# Feature Alpha\n\nZero newline.\n\n+++ Woostack metadata — managed, do not edit\n{\"artifactType\":\"spec\",\"designState\":\"draft\",\"projectId\":\"%s\",\"repository\":\"acme/widgets\",\"schema\":1}\n+++' "$project_id" >"$work/zero-newline.md"
 make_document_list "$work/zero-list.json" "$work/zero-newline.md" '2026-07-12T10:06:00.000Z'
 reset_fake; queue document-list document-list-one.json 1; queue document-update document-update-partial.json 1; cp "$work/zero-list.json" "$work/responses/document-list.2.json"
 run_capture spec-write --project "$project_id" --repository acme/widgets --content-file "$work/zero-newline.md" --expected-revision "$revision"

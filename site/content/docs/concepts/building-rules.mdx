@@ -11,23 +11,28 @@ keeps every feature's artifacts joined.
 
 [woostack-build](/docs/skills/woostack-build) chains the phases in a fixed, gated order:
 
-> ideate → write spec → harden spec → commit spec PR → **approve spec** → plan → harden plan
-> → append plan to spec+plan PR → **execution handoff** → execute (per increment: implement → commit → review → distill)
+> ideate → write selected spec → harden spec → **approve spec** → plan → harden plan
+> → publish selected artifacts → **execution handoff**
 
 Each phase is its own skill. Build is the glue that sequences them and owns the handoffs between
-them.
+them. Markdown commits the spec before approval, later appends the plan to the same docs-only PR,
+and may continue from the handoff into per-increment execution. Linear writes the managed project,
+spec document, and increment issues directly, creates no spec/plan Git artifact, and currently
+stops at the verified `ready` handoff.
 
 ## Three hard gates
 
 The chain only advances past these on an explicit "yes":
 
 1. **Design approval** is owned by [woostack-ideate](/docs/skills/woostack-ideate).
-2. **Spec approval** happens when the committed spec is presented in its PR, before any planning begins.
-3. **Execution handoff** is where you choose Go, Run overnight, or Hand off, after the spec+plan PR.
+2. **Spec approval** happens when the persisted spec is presented, before any planning begins.
+3. **Execution handoff** is where Markdown offers Go, Run overnight, or Hand off. Linear currently
+   supports Hand off only; later execution support adds the other choices.
 
 ## One spec, one plan, N PRs
 
-Every feature holds the `spec : plan : PRs = 1 : 1 : N` invariant: exactly one plan per spec, and
-that plan owns the N stacked increment PRs. [woostack-status](/docs/skills/woostack-status)
-derives the feature board from these artifacts, so the board is always computed rather than
-hand-maintained.
+Every feature keeps one spec and one plan decomposition. Markdown represents execution as
+`spec : plan : PRs = 1 : 1 : N`; Linear planning represents the same decomposition as
+`project : spec document : increment issues = 1 : 1 : N` until execution support adds
+implementation PRs. [woostack-status](/docs/skills/woostack-status) derives the feature board
+from those selected backend artifacts instead of a hand-maintained file.

@@ -1,203 +1,219 @@
 ---
 name: woostack-plan
-description: "Use to write the implementation plan for an approved woostack spec -- a comprehensive, bite-sized TDD plan structured as PR-sized increments, saved with Obsidian YAML frontmatter to .woostack/plans/<spec-basename>.md, preserving the `**Source:**` line that joins it 1:1 to the spec, and setting the plan status: planning. This is the plan phase of the woostack build loop (woostack-build step 4); also usable standalone via /woostack-plan <spec-path>. One plan per spec. Writes the plan and hands back -- never executes, commits, or merges."
+description: "Use to write the implementation plan for an approved woostack spec -- resolve the configured artifact backend, accept a required Markdown spec path or Linear project UUID/URL, and produce comprehensive PR-sized TDD increments as either the joined Markdown plan or managed Linear issues. One plan per spec; writes and hands back with no approval gate, execution, commit, or merge."
 ---
 
 # woostack-plan
 
 Write a comprehensive implementation plan from one approved spec, structured as PR-sized
 increments. This is woostack's own planning phase — [`woostack-build`](../woostack-build/SKILL.md)
-step 4. It keeps the discipline that makes plans worth executing (file-structure first,
-bite-sized TDD tasks, no placeholders, a self-review pass) and adds the woostack conventions:
-markdown plans under `.woostack/plans/`, an opening `**Source:**` line that joins the plan 1:1 to
-its spec, backed by YAML frontmatter, decomposed into independently shippable increments, and a
-`status: planning` transition on the plan. It writes the plan and hands back; it owns no approval
-gate and never executes, commits, or merges.
+step 4. It preserves one normalized planning contract across storage backends: file-structure
+first, bite-sized TDD tasks, no placeholders, explicit dependency/Git-parent shape, acceptance
+coverage, and a self-review pass.
 
-It internalizes the plan-writing discipline as a native phase — the same move
-[`woostack-ideate`](../woostack-ideate/SKILL.md),
-[`woostack-harden`](../woostack-harden/SKILL.md), and
-[`woostack-execute`](../woostack-execute/SKILL.md) made on the phases around it. With this skill
-the build loop has **no external skill dependencies**. It pairs with `woostack-execute` as
-produce-plan / consume-plan: `/woostack-plan <spec>` writes the plan, `/woostack-execute <plan>`
-runs it.
+When `woostack-build` supplies its retained resolver result and, for Linear, the normalized
+`LINEAR_CONTEXT`, reuse that internal caller context without resolving or preflighting again.
+Standalone planning resolves the backend with
+[`resolve-backend.sh`](../woostack-init/scripts/artifacts/resolve-backend.sh) and performs any
+required Linear preflight itself. Markdown writes the existing joined plan under
+`.woostack/plans/`. Linear reconciles an ordered managed issue set through
+[`linear.sh`](../woostack-init/scripts/artifacts/linear.sh) and writes no local spec/plan source.
+It writes the selected artifact and hands back; it owns **no approval gate** and never executes,
+commits, or merges.
 
 ## Commands
 
-- `/woostack-plan <spec-path>` — write the plan for the named markdown spec under
-  `.woostack/specs/`. **The spec path is required.**
-- `/woostack-plan` (no argument) — do **not** guess "the current spec." Ask which spec to plan
-  (optionally list `.woostack/specs/` candidates) and stop until one is named.
+- `/woostack-plan <spec-reference>` — the reference is required and its accepted form depends
+  on `resolve-backend.sh`: a Markdown spec path under `.woostack/specs/`, or an explicit Linear
+  project UUID/exact Linear URL. In short: **Markdown spec path or Linear project UUID/URL**.
+- `/woostack-plan` — do not guess a current spec. Resolve the backend, list only non-secret
+  candidates from that backend when useful, ask the user to choose, and stop until one valid
+  reference is named.
 
-When `woostack-build` reaches step 4 it invokes this skill with the approved spec path from
-step 2/3.
+Never accept a Markdown path in Linear mode or a Linear UUID/URL in Markdown mode. Never infer
+the backend from the argument.
 
-## Read and check the spec
+## Resolve, read, and check the spec
 
-0. **Load wisdom.** Read every `.woostack/wisdom/*.md` file (wholesale) before planning, and respect
-   those generalized findings when shaping increments and tasks. See the wisdom contract
-   [`../woostack-init/references/wisdom.md`](../woostack-init/references/wisdom.md). Empty/absent
-   `wisdom/` is a no-op.
-1. Read the spec file end to end — it is the source of truth for *what* to build; the plan is
-   *how*.
-2. **Scope check.** If the spec covers multiple independent subsystems, suggest splitting into
-   separate specs first — one per subsystem, each producing working, testable software on its own
-   — then write one plan per resulting spec. Don't write a monolithic plan over a
-   multi-subsystem spec.
-3. **One plan per spec.** If a plan already resolves to this spec (a `.woostack/plans/` file with
-   a matching `**Source:**` line or the same basename), **amend that plan in place** — never write
-   a second (`spec : plan : PRs = 1 : 1 : N`; a second plan breaks the board join). Say you are
-   amending.
+0. **Load wisdom.** Read every `.woostack/wisdom/*.md` file wholesale. Empty/absent `wisdom/`
+   is a no-op; see the [wisdom contract](../woostack-init/references/wisdom.md).
+1. **Reuse or resolve the selected backend.** An internal `woostack-build` call supplies the
+   retained normalized resolver result and, in Linear mode, its validated `LINEAR_CONTEXT`.
+   Validate that caller context against the named spec reference, then reuse it; never run
+   `resolve-backend.sh` or Linear preflight a second time in the same build run. A standalone
+   invocation has no caller context, so run `resolve-backend.sh` before reading a spec.
+   - **Markdown:** validate the required path and read that spec end to end. Use the Markdown
+     adapter's normalized feature operation when a joined plan exists; a not-found plan before
+     initial planning is expected. Do not weaken its path, symlink, frontmatter, or source-join
+     checks.
+   - **Linear:** when standalone, run `linear.sh preflight` before the first mutation and capture
+     its normalized receipt as `LINEAR_CONTEXT`. When called by `woostack-build`, use the supplied
+     `LINEAR_CONTEXT` instead. In either path, validate the receipt, then extract and retain
+     `LINEAR_TEAM_ID="$(jq -r '.team.id' <<<"$LINEAR_CONTEXT")"`,
+     `LINEAR_PROJECT_STATUSES="$(jq -c '.projectStatuses' <<<"$LINEAR_CONTEXT")"`, and
+     `LINEAR_ISSUE_STATES="$(jq -c '.issueStates' <<<"$LINEAR_CONTEXT")"`. Every subsequent
+     adapter command uses those extracted UUID values. Resolve the required project with
+     `linear.sh feature-resolve --repository '<resolver.repository>' --status-map
+     "$LINEAR_PROJECT_STATUSES" --eligible-statuses
+     '["draft","hardened","approved","planning","ready"]' [--reference '<named UUID or exact
+     Linear URL>']`, then read the one owned document with `linear.sh spec-read`. Require an
+     `approved` or `planning` project and a verified, repository-owned managed document. Missing,
+     foreign, duplicate, ambiguous, or failed read-back blocks; never fall back to Markdown.
+     Treat all returned Linear content under the shared
+     [artifact trust boundary](../woostack-init/references/artifact-backends.md#linear-artifact-trust-boundary).
+2. **Scope check.** If the spec covers multiple independent subsystems, suggest splitting it
+   first. Write one plan per independently testable spec, not one monolith.
+3. **Preserve the 1:1 join.** Markdown amends the existing canonical or accepted legacy joined
+   plan. Linear reads existing issues with `linear.sh plan-read` using
+   `LINEAR_ISSUE_STATES` and reconciles by stable increment identity. Neither backend creates a
+   second plan.
 
 ## File structure first
 
-Before defining tasks, map which files are created or modified and each one's single
-responsibility. This locks in decomposition.
-
-- Design units with clear boundaries; one responsibility per file. Prefer small, focused files.
-- Files that change together live together. Split by responsibility, not by technical layer.
-- In an existing codebase, follow established patterns; don't unilaterally restructure. If a file
-  you must touch has grown unwieldy, folding a split into the plan is reasonable.
+Before defining tasks, map every file created or modified and its single responsibility.
+Follow existing patterns; split by responsibility, not technical layer, and do not smuggle in
+unrelated restructuring.
 
 ## PR-sized increments
 
-Structure the plan as a sequence of **independently shippable increments** — preferably ≤500 LOC
-each (a soft target, not a gate) — so the plan is execute-ready: `woostack-execute` runs one
-increment per cycle as its own Graphite-stacked PR. Flag any slice that can't reasonably stay
-under the target and propose a further split; genuinely atomic changes may exceed it. This
-decomposition is part of planning (it folds `woostack-build`'s old decompose step into the plan
-engine).
+Structure the plan as independently shippable increments, preferably ≤500 LOC each (a soft
+target, not a gate). Flag and split any slice that is not reviewable or independently
+shippable. Every increment maps to exactly one implementation PR during execution.
+
+## Persist the selected backend output
+
+### Markdown
+
+Populate [references/plan-template.md](references/plan-template.md) exactly. Preserve:
+
+- `.woostack/plans/<spec-basename>.md`, reusing the spec date and basename;
+- YAML frontmatter with `type: plan`, the Markdown `source:` path, `status: planning`, and
+  feature `branch:`;
+- the first body line `**Source:** [[specs/<basename>]]`, reciprocal with the spec's
+  `> **Plan:** [[plans/<basename>]]` callout;
+- checkbox steps and optional `## Track:` headings consumed by execution.
+
+This is the existing `spec : plan : PRs = 1 : 1 : N` contract. Never reinterpret or weaken it
+through normalization.
+
+### Linear
+
+Read the managed spec again and compare its `designState` with the project lifecycle. When both
+report `approved`, invoke evidence-aware `linear.sh spec-write --issue-state-map
+"$LINEAR_ISSUE_STATES"` with the observed revision to author the single canonical
+`designState: approved → planning` transition, require verified spec read-back, then transition
+the owned project `approved → planning` with `linear.sh feature-transition --status-map
+"$LINEAR_PROJECT_STATUSES"` and require verified project read-back. If the verified spec is
+already `planning` while the project remains `approved`, require matching ownership, the latest
+spec revision, and null branch/pull-request evidence on every managed increment, then perform only
+the remaining project transition. When both artifacts report `planning`, verify ownership and
+lifecycle agreement and resume without repeating either transition. Reject the inverse split,
+later states, or ambiguity. Build a temporary normalized reconciliation
+input and invoke `linear.sh plan-reconcile` using `LINEAR_TEAM_ID` and
+`LINEAR_ISSUE_STATES`; the temporary file is transport input, not an artifact. Each array
+entry represents exactly **one issue per increment** and supplies:
+
+- a stable `incrementId`, title, and explicit unique positive integer ordinal;
+- exact issue content: objective, files, complete TDD steps, acceptance coverage, automated
+  verification, and manual verification;
+- dependency stable IDs. The adapter materializes native `blocked by` relations and mirrors
+  their issue UUIDs in owned metadata;
+- exactly one Git parent: the eventual frozen base reference for a root, or one dependency
+  stable ID for a stacked issue.
+
+Ordinals are presentation order, not implicit dependencies. A dependency DAG may represent
+independent overnight tracks, but each issue's Git parent must make its Graphite ancestry
+representable: all non-parent dependencies must already be merged or reachable from the
+declared parent. Reject cycles, unknown or cross-project dependencies, duplicate identities or
+ordinals, relation/metadata drift, and unrepresentable ancestry.
+
+Reconcile by stable identity and immediately call `linear.sh plan-read` with the captured
+issue-state UUID map. Replanning may safely
+add, reorder, update, and rewire issues while preserving UUIDs and execution evidence. It must
+refuse to remove an issue with branch or pull-request evidence. Mutation receipts and final
+read-back must agree before returning success.
 
 ## Deferral markers (stacked increments)
 
-A PR-sized increment often *intentionally* defers integration to a later increment — Increment 1
-ships a skill file, Increment 2 wires its call sites. Reviewing the isolated diff would flag that
-deferred work as "missing." To keep the review gate quiet **without** pulling the other PRs in the
-stack, the plan declares the deferral inline:
+When an increment intentionally leaves a missing integration for a later increment, author the
+paired `woostack-defer(increment N): <reason>` marker step and its removal step in increment N.
+Never defer wrong code or a security gap. The marker exists only while the missing work is
+open.
 
-When an increment leaves a gap a later increment fills, author **two paired steps**:
+## Optional independent tracks
 
-1. In the **deferring** increment, a step that drops a deferral marker at the gap site —
-   `woostack-defer(increment N): <reason>` — in the file's comment syntax (e.g.
-   `// woostack-defer(increment 3): call sites wired in increment 3`). The literal token is
-   `woostack-defer`; `<ref>` is the increment that completes the work.
-2. In the **implementing** increment (N), a step that **removes** that marker as part of wiring the
-   work, so the marker exists exactly while the gap is open.
-
-The marker is the single signal `woostack-review` reads to demote a "missing X" finding to a
-non-blocking `Deferred to <ref>` nit (see [`woostack-review`](../woostack-review/SKILL.md) for the
-canonical token; `review.defer_markers` gates it, default on). Never plan a marker over a
-`security` gap or over wrong code — deferral is only for *missing* work a later increment adds.
-
-## Optional: independent tracks (for overnight runs)
-
-By default the increments form **one linear `gt` stack** — each stacks on the previous, the shape
-`woostack-execute` runs. A plan **may** instead group increments under top-level **`## Track:`
-headings**; each track is an independent linear stack branched off the common base (the spec+plan
-PR). This is **author-driven and optional**: write tracks only when increments are genuinely
-independent and you want an unattended overnight run to **isolate failures** across them — a
-blocker ends only its own track, not the whole run. Tracks run **sequentially** (one session, no
-concurrency); the benefit is fault isolation, not speed. Do **not** auto-partition — default to one
-implicit track (no headings = today's behavior).
-
-Only [`woostack-execute-overnight`](../woostack-execute-overnight/SKILL.md) consumes tracks (it
-runs each track off the base and, on a blocker, ends only that track and advances to the next).
-[`woostack-execute`](../woostack-execute/SKILL.md) ignores the headings and runs every increment
-as one linear stack.
+By default increments form one linear Graphite stack. A plan may instead express independent
+tracks: Markdown uses top-level `## Track:` headings, while Linear uses dependency roots and
+native relations. Each track starts from the selected backend's common base (the Markdown
+spec+plan PR or Linear's later-frozen Git base). Tracks remain author-driven, optional, and
+sequential; they isolate overnight failures rather than adding concurrency. Do not
+auto-partition.
 
 ## Bite-sized tasks (TDD)
 
-Within each increment, decompose into bite-sized tasks; each **step** is one action
-(~2-5 minutes): write the failing test → run it, confirm it fails → minimal implementation → run
-it, confirm it passes → commit. Use checkbox (`- [ ]`) syntax for every step so
-`woostack-execute` ticks them in place as the live progress record. DRY, YAGNI, TDD, frequent
-commits throughout.
+Within every increment, decompose into checkbox steps, one action each: write the failing test,
+run and confirm red, implement minimally, run and confirm green, refactor if useful, and verify.
+Use the canonical [woostack-tdd](../woostack-tdd/SKILL.md) kernel. Give exact paths, complete
+code, commands, and expected output. Never use TBD/TODO, “similar to,” generic error-handling
+steps, missing definitions, or tests without concrete cases.
 
-The TDD discipline these steps embody — red→green→refactor, the coverage classes, and the
-no-runner→concrete-verification substitution — is the canonical kernel in
-[woostack-tdd](../woostack-tdd/SKILL.md); this section applies it to plan-task shape.
-
-The output shape (header, `**Source:**` line, task/step structure) is captured in
-[references/plan-template.md](references/plan-template.md) — populate it; don't reinvent it.
-
-## No placeholders
-
-Every step carries the actual content an engineer needs. These are plan failures — never write
-them:
-
-- "TBD", "TODO", "implement later", "fill in details"
-- "Add error handling" / "add validation" / "handle edge cases" — write the actual test instead; error and edge cases belong in the spec's §7 Acceptance criteria, enumerated there as happy/error/edge cases
-- "Write tests for the above" without the actual test
-- "Similar to Task N" — repeat the code; tasks may be read out of order
-- A step that says *what* without showing *how* (code/command blocks required)
-- References to types/functions/methods defined in no task
-
-Exact file paths always. Complete code in every code step. Exact commands with expected output.
-
-## Board join: YAML frontmatter, Source line, filename
-
-- **Filename:** save to `.woostack/plans/<spec-basename>.md` — the **same** `YYYY-MM-DD-<slug>`
-  basename as the spec (reuse the spec's date; **not** today's). The shared basename is the
-  slug-match fallback join.
-- **Frontmatter:** the plan starts with YAML properties: `type: plan`, `source: .woostack/specs/<file>.md`, `status: planning`, and `branch: <feature branch>`. The `source:` property mirrors the spec path; the canonical spec→plan join the `/woostack-status` board reads is the `**Source:** [[specs/<basename>]]` wikilink line below — symmetric with the spec's `> **Plan:** [[plans/<basename>]]` callout, so the Obsidian graph links both ways. (Both readers still accept the legacy bare-path `**Source:** .woostack/specs/<file>.md`.)
-- **Header:** after the frontmatter, the body opens with the `**Source:**` line plus Goal / Architecture / Tech Stack — no `REQUIRED SUB-SKILL` banner.
-
-The phase enum and join contracts are defined once in
-[`../woostack-status/references/conventions.md`](../woostack-status/references/conventions.md) —
-link, never restate.
+The Markdown shape and normalized backend input contract are captured in
+[references/plan-template.md](references/plan-template.md).
 
 ## Self-review
 
-After writing the plan, check it against the spec with fresh eyes — a checklist you run yourself,
-not a subagent dispatch:
+Before handing back, check with fresh eyes:
 
-1. **Spec coverage** — every section/requirement maps to a task. List and fill any gap.
-   **AC coverage:** when the spec's §7 Acceptance criteria lists ACs, every AC — and each
-   filled (non-N/A) happy/error/edge case — maps to a task/test; when §7 is whole-section
-   `N/A`, confirm the spec body has no behavioral requirement (else flag the `N/A` as suspect).
-2. **Placeholder scan** — search for the red flags above; fix them.
-3. **Type consistency** — types, signatures, and property names match across tasks (a method
-   called one name in Task 3 and another in Task 7 is a bug).
-4. **Angle coverage** — walk the plan lens of the
-   [spec/plan angle pre-flight](../woostack-harden/references/angle-preflight.md): architecture
-   boundaries, security/observability, and a failing-test step per AC are each addressed by a
-   task. The rubric's skip rule keeps untouched angles silent.
+1. **Spec and AC coverage:** every requirement, every acceptance criterion, and each filled
+   happy/error/edge case maps to an increment task/test. Whole-section `N/A` is valid only when
+   the spec truly has no behavioral requirement.
+2. **Placeholder and consistency scan:** no placeholders; types, signatures, and names agree.
+3. **Angle coverage:** walk the plan lens in
+   [angle-preflight.md](../woostack-harden/references/angle-preflight.md); address each implicated
+   architecture, security, observability, API, database, and error angle.
+4. **Graph validity:** increments are reviewable; ordinals are unique; dependencies are acyclic;
+   Git ancestry is representable; all reconciliation read-backs are clean.
 
-Fix issues inline; no re-review needed.
+Fix issues inline; no extra review or approval gate is needed.
 
-## Status: planning
+## Lifecycle: planning, then ready
 
-When the plan file exists, set the plan's `status: planning` (the conventions.md value for "plan
-exists, 0 boxes done"). Doing it here means a standalone `/woostack-plan` also advances the board.
-Do not tick any plan checkbox yet — execution owns checkbox progress.
+Planning persists `planning` without starting implementation. Markdown authors
+`status: planning` in plan frontmatter and leaves every checkbox unticked. Linear first writes
+the canonical managed-spec `designState: planning`, then transitions the project to `planning`
+before issue reconciliation; both writes require read-back.
 
-## Terminal state: plan written, handed back
+The later plan harden owns no gate. After it amends the selected plan artifact in place, the
+caller verifies the complete output. Markdown then sets plan `status: ready`; Linear performs a
+final `linear.sh plan-reconcile` plus `linear.sh plan-read`, then reads the spec and uses
+evidence-aware `linear.sh spec-write` to author the adjacent
+`designState: planning → ready` transition before performing the project
+`planning → ready` through `linear.sh feature-transition`. Every mutation requires read-back.
 
-Stop when the plan is written, self-reviewed, and the spec is `planning`. Then hand back and name
-the next step:
+## Terminal state and gate boundary
 
-- Inside `woostack-build`: return to **step 6** (harden the plan).
-- Standalone: tell the user the plan is ready and offer `/woostack-execute <plan-path>`. Stop.
+Stop when the plan is written or reconciled, self-reviewed, and in `planning`. Hand back the
+Markdown plan path or Linear project UUID/URL. Inside `woostack-build`, return to plan hardening.
+Standalone, state explicitly that the artifact is **not execute-ready** and stop: the caller
+must still invoke harden, verify the selected artifact, author `ready`, freeze the Linear base
+when applicable, and pass the execution-handoff gate. Do not offer `/woostack-execute`.
 
-Chain nothing yourself.
-
-## Gate boundary
-
-This skill owns **no approval gate**. The spec-approval gate (`woostack-build` step 3) is
-upstream; the execution-handoff gate (step 8) is downstream. It does not present-for-approval,
-execute, commit, or merge. It writes the plan and hands back — preserving `woostack-build`'s
-"inherit gates, add none."
+This skill owns **no approval gate**. It does not present for approval, execute, commit, merge,
+mark a standalone result ready, freeze a base, or chain the next phase.
 
 ## Hard constraints
 
-- **Spec path required.** Never guess "the current spec"; ask when no argument is given.
-- **One plan per spec.** A plan already resolves to the spec → amend it; never write a second
-  (breaks the 1:1 board join).
-- **Markdown plan under `.woostack/plans/`, basename = spec basename.** Frontmatter-free, opening
-  `**Source:**` line.
-- **PR-sized increments.** Decompose into independently shippable slices (≤500 LOC soft target);
-  flag and split oversized ones.
-- **Bite-sized TDD tasks, no placeholders.** One action per step; complete code, exact commands,
-  expected output.
-- **Set plan `status: planning`; tick no checkbox.** Execution owns checkbox progress.
-- **Own no gate; never execute, commit, or merge.** Write the plan and hand back.
+- **Backend-specific reference required.** Accept only the selected backend's Markdown path or
+  Linear UUID/URL; never guess.
+- **One plan per spec.** Amend the joined Markdown plan or reconcile the one Linear issue set.
+- **Preserve Markdown exactly.** Keep its basename, YAML frontmatter, reciprocal source join,
+  checkboxes, and docs-only workflow.
+- **Linear issue integrity.** One issue per increment, unique ordinal, native relations,
+  mirrored dependencies, representable Git parent, full steps, AC coverage, and verified
+  reconciliation are required.
+- **Safe replanning.** Stable identities and evidence survive; unsafe removal or ambiguous
+  read-back fails closed.
+- **Lifecycle is `planning → ready`.** Hardening adds no gate; only verified output becomes ready.
+- **Own no gate; never execute, commit, or merge.** Write or reconcile and hand back.
+- **Standalone stops at planning.** It is not execute-ready and never offers execution; the
+  caller owns harden, verification, ready, base freeze, and handoff.
