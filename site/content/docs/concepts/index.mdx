@@ -1,16 +1,18 @@
 ---
 title: Overview
-description: "woostack's core concepts: the gated build loop, context management, and the operational surfaces around them."
+description: "woostack's core concepts: the least-code tenet, gated build loop, context management, and operational surfaces around them."
 ---
 
-woostack rests on two ideas. A feature moves through a **gated build loop** so quality is
-enforced by structure, not vigilance. Every step also practices **context management**: the agent's
-working context holds only what the step needs, so it reasons better and runs longer. Worktrees and
-the status board keep parallel work and collaboration cheap on top. The pages below take each
-concept on its own.
+woostack rests on two operational ideas. A feature moves through a **gated build loop** so quality
+is enforced by structure, not vigilance. Every step also practices **context management**: the
+agent's working context holds only what the step needs, so it reasons better and runs longer.
+Across both sits a cross-cutting engineering tenet: write the least code that safely works.
+Worktrees and the status board keep parallel work and collaboration cheap on top. The pages below
+take each concept on its own.
 
 <Cards>
   <Card title="Building rules" href="/docs/concepts/building-rules" description="The gated build loop, its three hard gates, and the one-spec-one-plan-N-PRs invariant." />
+  <Card title="Least code, still safe" href="/docs/concepts/least-code" description="woostack's core engineering tenet: write as little code as necessary, without cutting edge cases or risks." />
   <Card title="Memory" href="/docs/concepts/memory" description="The memory and wisdom stores, and how each is recalled." />
   <Card title="Context management" href="/docs/concepts/context-management" description="Scripts compute, subagents isolate, and model tiers route work." />
   <Card title="Parallelism with worktrees" href="/docs/concepts/worktrees" description="How woostack isolates each run in its own git worktree so multiple builds never collide." />

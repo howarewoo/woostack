@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-07-14-least-code-tenet.md
-status: executing
+status: done
 branch: feature/least-code-tenet
 ---
 
@@ -246,11 +246,11 @@ expected output (per the `woostack-tdd` no-runner substitution).
 **Files:**
 - Create: `site/content/docs/concepts/least-code.mdx`
 
-- [ ] **Step 1: Write the failing check**
+- [x] **Step 1: Write the failing check**
   Run: `test -f site/content/docs/concepts/least-code.mdx && echo EXISTS || echo MISSING`
   Expected: FAIL — `MISSING`.
 
-- [ ] **Step 2: Author the page**
+- [x] **Step 2: Author the page**
   ```mdx
   ---
   title: Least code, still safe
@@ -293,18 +293,19 @@ expected output (per the `woostack-tdd` no-runner substitution).
 
   The tenet is enforced across the loop, not just stated:
 
-  - The full generated-code standard lives in the bootstrap [development patterns](/docs/skills/woostack-bootstrap).
+  - The full generated-code standard is
+    [`patterns.md §10`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/patterns.md#10-least-code--comments).
   - Authoring skills carry it: [woostack-execute](/docs/skills/woostack-execute),
     [woostack-ideate](/docs/skills/woostack-ideate), and [woostack-fix](/docs/skills/woostack-fix).
-  - The [review angles](/docs/concepts/review-angles) `simplify` and `comments` grade every change
-    against it.
+  - The always-on [`simplify` review angle](/docs/concepts/review-angles) enforces the ladder; the
+    source-triggered `comments` angle catches comment drift when source changes.
   ```
 
-- [ ] **Step 3: Confirm the page exists with frontmatter**
+- [x] **Step 3: Confirm the page exists with frontmatter**
   Run: `test -f site/content/docs/concepts/least-code.mdx && grep -c "^title: Least code, still safe" site/content/docs/concepts/least-code.mdx`
   Expected: PASS — `1`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
   ```bash
   gt create -m "docs(site): add Least code concepts page"
   ```
@@ -315,11 +316,11 @@ expected output (per the `woostack-tdd` no-runner substitution).
 - Modify: `site/content/docs/concepts/meta.json` (`pages` array)
 - Modify: `site/content/docs/concepts/index.mdx` (`<Cards>` block)
 
-- [ ] **Step 1: Write the failing check**
+- [x] **Step 1: Write the failing check**
   Run: `grep -c '"least-code"' site/content/docs/concepts/meta.json && grep -c "/docs/concepts/least-code" site/content/docs/concepts/index.mdx`
   Expected: FAIL — `0` and `0` (unwired).
 
-- [ ] **Step 2: Add to the nav order**
+- [x] **Step 2: Add to the nav order**
   In `site/content/docs/concepts/meta.json`, insert `"least-code",` into `pages` immediately after `"building-rules",`:
   ```json
   {
@@ -338,17 +339,17 @@ expected output (per the `woostack-tdd` no-runner substitution).
   }
   ```
 
-- [ ] **Step 3: Add the index card**
+- [x] **Step 3: Add the index card**
   In `site/content/docs/concepts/index.mdx`, insert this `<Card>` immediately after the "Building rules" card, inside `<Cards>`:
   ```mdx
     <Card title="Least code, still safe" href="/docs/concepts/least-code" description="woostack's core engineering tenet: write as little code as necessary, without cutting edge cases or risks." />
   ```
 
-- [ ] **Step 4: Confirm both nav surfaces reference the page (lockstep)**
+- [x] **Step 4: Confirm both nav surfaces reference the page (lockstep)**
   Run: `grep -c '"least-code"' site/content/docs/concepts/meta.json && grep -c "/docs/concepts/least-code" site/content/docs/concepts/index.mdx`
   Expected: PASS — `1` and `1`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt modify -c -m "docs(site): wire least-code page into concepts nav"
   ```
@@ -357,12 +358,12 @@ expected output (per the `woostack-tdd` no-runner substitution).
 
 **Files:** none (verification only).
 
-- [ ] **Step 1: Build the docs site (AC7)**
+- [x] **Step 1: Build the docs site (AC7)**
   Run: `pnpm -C site install --frozen-lockfile && pnpm -C site build`
   Expected: PASS — build completes, exit code `0` (the new page compiles and is nav-wired). Run the
   `install` first only if `site/node_modules` is absent; a warm tree can `pnpm -C site build` directly.
 
-- [ ] **Step 2: Confirm no already-aligned skill was touched (AC4)**
+- [x] **Step 2: Confirm no already-aligned skill was touched (AC4)**
   Run: `git diff --name-only main -- skills site AGENTS.md .claude | sort`
   Expected: PASS — every path is in the allowed set and none is a `woostack-tdd`, review-angle, or `woostack-audit` file:
   ```
@@ -378,17 +379,17 @@ expected output (per the `woostack-tdd` no-runner substitution).
   (`.claude/CLAUDE.md` does **not** list — it is a symlink whose link blob is unchanged; editing the
   AGENTS.md target does not re-write the link itself.)
 
-- [ ] **Step 3: Confirm no whole-paragraph duplication feature-wide (AC5)**
+- [x] **Step 3: Confirm no whole-paragraph duplication feature-wide (AC5)**
   Run: `grep -rl "boring over clever" --include="*.md" AGENTS.md skills site | sort`
   Expected: PASS — exactly `AGENTS.md` and `skills/woostack-bootstrap/references/patterns.md`. The
   `.mdx` docs page is excluded by `--include="*.md"` by design: it paraphrases the tenet in its own
   words rather than copying the paragraph, so it is not a duplication site.
 
-- [ ] **Step 4: Confirm the docs page uses `/docs/…` routes, not repo-relative paths (AC6 edge)**
+- [x] **Step 4: Confirm the docs page uses `/docs/…` routes, not repo-relative paths (AC6 edge)**
   Run: `grep -c "](/docs/" site/content/docs/concepts/least-code.mdx && grep -c "](../" site/content/docs/concepts/least-code.mdx`
   Expected: PASS — first `≥1`, second `0`.
 
-- [ ] **Step 5: No commit**
+- [x] **Step 5: No commit**
   Verification-only task — no files change. The checkbox ticks are committed with this increment's
   page/nav tasks (Tasks 1–2). This is the final increment: on all boxes `[x]`, `woostack-execute`
   authors the plan's terminal `status: done`.
