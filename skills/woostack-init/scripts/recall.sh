@@ -83,7 +83,8 @@ if [ -s "$qtags" ] && [ -d "$MEM_DIR" ]; then
     shared="$(note_tags "$f" | LC_ALL=C sort -u | LC_ALL=C comm -12 - "$qtags" | grep -c . || true)"
     if [ "${shared:-0}" -gt 0 ]; then
       upd="$(field "$f" updated || true)"
-      printf '%s\t%s\t%s\n' "$shared" "$upd" "$f" >> "$tag_scored"
+      nm="$(field "$f" name || true)"; nm="${nm:-$(basename "$f" .md)}"
+      printf '%s\t%s\t%s\t%s\n' "$shared" "$upd" "$nm" "$f" >> "$tag_scored"
       add_set "$b"
     fi
   done
@@ -93,7 +94,7 @@ fi
 tag_linked_files=()
 while IFS= read -r line; do
   [ -n "$line" ] && tag_linked_files+=("$line")
-done < <(sort -t"$(printf '\t')" -k1,1nr -k2,2r -k3,3 "$tag_scored" | cut -f3-)
+done < <(LC_ALL=C sort -t"$(printf '\t')" -k1,1nr -k2,2r -k3,3 "$tag_scored" | cut -f4-)
 
 # Read linked files into array (bash 3.2 compatible).
 linked_files=()

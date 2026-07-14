@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-07-14-memory-tag-recall.md
-status: ready
+status: done
 branch: feature/memory-tag-recall
 ---
 
@@ -27,7 +27,7 @@ branch: feature/memory-tag-recall
 
 The failing test is authored first (AC1–AC7), confirmed red, then `recall.sh` is implemented to green. All test code appends to the existing `test-recall.sh` **before** its final `finish` call (line 135 today: `finish`). Insert the new blocks immediately before that `finish` line.
 
-- [ ] **Step 1: Write the failing tests (AC1–AC7)**
+- [x] **Step 1: Write the failing tests (AC1–AC7)**
   Insert these blocks in `tests/test-recall.sh` immediately before the final `finish` line. They reuse the existing helpers (`mk_note`, `assert_contains`, `assert_not_contains`, `assert_eq`, `tel_get`, and the `PASS`/`FAIL` counters).
 
   ```bash
@@ -140,11 +140,11 @@ The failing test is authored first (AC1–AC7), confirmed red, then `recall.sh` 
   rm -rf "$wooT5" "$pT5"
   ```
 
-- [ ] **Step 2: Run the tests, confirm they fail**
+- [x] **Step 2: Run the tests, confirm they fail**
   Run: `bash skills/woostack-init/scripts/tests/test-recall.sh`
   Expected: FAIL — multiple lines, e.g. `FAIL: tag-related section rendered` / `[...] does not contain [## Tag-related notes]` (the section does not exist yet), plus the ordering/cap failures.
 
-- [ ] **Step 3: Implement tag-hop expansion in `recall.sh`**
+- [x] **Step 3: Implement tag-hop expansion in `recall.sh`**
   Apply these edits to `skills/woostack-init/scripts/recall.sh` (anchors are current line numbers/content; re-read the file first).
 
   (a) **Header comment** — line 3, add the new section to the stdout summary:
@@ -227,16 +227,16 @@ The failing test is authored first (AC1–AC7), confirmed red, then `recall.sh` 
   [ -n "$tag_out" ] && printf '## Tag-related notes\n\n%s' "$tag_out"
   ```
 
-- [ ] **Step 4: Run the tests, confirm they pass**
+- [x] **Step 4: Run the tests, confirm they pass**
   Run: `bash skills/woostack-init/scripts/tests/test-recall.sh`
   Expected: PASS — final line `  N passed, 0 failed` (N = prior count + the new assertions). Also confirm the pre-existing recall cases still pass (no regression).
   Also run the full script suite: `bash skills/woostack-init/scripts/tests/run-tests.sh` — Expected: every `test-*.sh` reports `0 failed`; overall exit 0.
 
-- [ ] **Step 5: Lint the script**
+- [x] **Step 5: Lint the script**
   Run: `bash -n skills/woostack-init/scripts/recall.sh`
   Expected: no output, exit 0 (syntactically valid). If `shellcheck` is available: `shellcheck -S error skills/woostack-init/scripts/recall.sh` — Expected: no error-level findings.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
   ```bash
   # First commit in the increment (creates the stacked branch on top of the spec+plan base):
   gt create -m "feat(memory): one-hop tag expansion in recall.sh"
@@ -247,7 +247,7 @@ The failing test is authored first (AC1–AC7), confirmed red, then `recall.sh` 
 **Files:**
 - Modify: `skills/woostack-init/references/memory.md` (§3 field table row `tags`, current line 73; §6 recall procedure, current lines 133–143)
 
-- [ ] **Step 1: Write the failing checks (concrete grep verifications)**
+- [x] **Step 1: Write the failing checks (concrete grep verifications)**
   Run these before editing to confirm the current (pre-edit) state — they are the red state:
   ```bash
   grep -n 'informational only in increment A' skills/woostack-init/references/memory.md   # tags row still says "informational only"
@@ -255,10 +255,10 @@ The failing test is authored first (AC1–AC7), confirmed red, then `recall.sh` 
   ```
   Expected (red): the first prints the current `tags` row; the second prints `0`.
 
-- [ ] **Step 2: Confirm the checks reflect the gap**
+- [x] **Step 2: Confirm the checks reflect the gap**
   Expected: FAIL to find the target post-edit strings — `grep -c 'One-hop tag expand'` returns `0`, proving §6 has no tag step yet.
 
-- [ ] **Step 3: Edit the contract**
+- [x] **Step 3: Edit the contract**
   (a) Replace the `tags` row (current line 73):
   ```markdown
   | `tags` | no | Comma list; a **load-bearing recall axis** — a one-hop tag expansion loads notes sharing ≥1 tag (trimmed, case-insensitive) with the scope-matched set (see §6). Format unchanged. |
@@ -270,7 +270,7 @@ The failing test is authored first (AC1–AC7), confirmed red, then `recall.sh` 
   ```
   (c) Update the orchestration sentence (current line 143): change `which orchestrates steps 2–4` to `which orchestrates steps 2–5`.
 
-- [ ] **Step 4: Confirm the checks pass**
+- [x] **Step 4: Confirm the checks pass**
   ```bash
   grep -c 'load-bearing recall axis' skills/woostack-init/references/memory.md   # -> 1
   grep -c 'One-hop tag expand' skills/woostack-init/references/memory.md         # -> 1
@@ -279,7 +279,7 @@ The failing test is authored first (AC1–AC7), confirmed red, then `recall.sh` 
   ```
   Expected: `1`, `1`, `1`, `0` respectively.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt modify -c -m "docs(memory): tags is a recall axis in the memory contract"
   ```
@@ -291,17 +291,17 @@ The failing test is authored first (AC1–AC7), confirmed red, then `recall.sh` 
 
 > Lockstep rationale (`lockstep-edit-sites`): three authored pages restate the recall mechanic. `concepts/memory.mdx` is the memory-system page and must name the new tag axis. The two overview lines — `concepts.mdx` ("scope match and the one-hop expansion") and `concepts/context-management.mdx` (identical) — stay accurate (tag-hop *is* a one-hop expansion) and are **not** changed unless the enriched phrasing reads cleanly; do not force them. Per-skill `.mdx` under `site/content/docs/skills/` is generated + gitignored and is not touched.
 
-- [ ] **Step 1: Confirm current (red) state**
+- [x] **Step 1: Confirm current (red) state**
   ```bash
   grep -n 'scope match and one-hop' site/content/docs/concepts/memory.mdx   # current sentence, no tag mention
   grep -c 'tags:. hop' site/content/docs/concepts/memory.mdx                # -> 0
   ```
   Expected: the sentence prints; the count is `0`.
 
-- [ ] **Step 2: Confirm the gap**
+- [x] **Step 2: Confirm the gap**
   Expected: FAIL — `concepts/memory.mdx` does not yet mention the tag hop.
 
-- [ ] **Step 3: Edit the memory page**
+- [x] **Step 3: Edit the memory page**
   Replace the recall sentence (current lines 55–56) with:
   ```mdx
   Recall is run in the shell, not the prompt: `recall.sh` does the scope match plus two one-hop
@@ -310,13 +310,13 @@ The failing test is authored first (AC1–AC7), confirmed red, then `recall.sh` 
   [Context management](/docs/concepts/context-management) for why that matters.
   ```
 
-- [ ] **Step 4: Confirm the check passes**
+- [x] **Step 4: Confirm the check passes**
   ```bash
   grep -c 'tags:. hop' site/content/docs/concepts/memory.mdx   # -> 1
   ```
   Expected: `1`. Optional full confirmation (heavier): `pnpm -C site build` — Expected: build succeeds (the authored page is valid MDX).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt modify -c -m "docs(site): name the tags recall axis on the memory concepts page"
   ```
