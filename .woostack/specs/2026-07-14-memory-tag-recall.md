@@ -1,7 +1,7 @@
 ---
 name: memory-tag-recall
 type: spec
-status: hardened
+status: approved
 date: 2026-07-14
 branch: feature/memory-tag-recall
 links:
