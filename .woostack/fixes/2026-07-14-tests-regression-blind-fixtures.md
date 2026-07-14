@@ -1,10 +1,10 @@
 ---
 type: fix
-status: hardened
+status: in-review
 branch: fix/tests-regression-blind-fixtures
 ---
 
-# Fix: Tests angle misses regression-blind assertions (fixtures neutral to the change under test)
+# Fix: Add an explicit `tests`-angle rubric item for regression-blind assertions (fixtures neutral to the change under test)
 
 ## 1. Root Cause
 
@@ -21,14 +21,18 @@ apply; the "origin" of the gap is the prompt content itself. The evidence:
   defend**, because its fixture value is invariant under that transformation. The test can
   fail; it just can't fail on the regression it is supposed to guard.
 
-Net: the rubric has no fixture-exercises-the-behavior (mutation-sensitivity) heuristic, so a
-regression-blind assertion sails through the `tests` angle.
+Net: the rubric has no *explicit* fixture-exercises-the-behavior (mutation-sensitivity)
+heuristic. A worker still surfaces such a fixture — but only incidentally, via the generic
+"Missing edge cases on new branches" bullet (`tests.md:16`), and frames it as a *coverage gap*
+("add more cases") rather than as a regression-blind assertion. There is no named category for
+"the assertion that is present does not defend the behavior," so the finding's title, framing,
+and severity drift by model tier.
 
-Real-world miss (dogfooded on `fix/status-board-github-links`): new tests asserted an
+Real-world origin (dogfooded on `fix/status-board-github-links`): new tests asserted an
 anchor's `href` output, but every fixture URL was HTML-escape-neutral (no `&`, `"`, `<`), so a
-regression that dropped `html_escape` from the href would leave every assertion green. The one
-contract behavior the tests existed to defend was untested — and the current `tests` rubric
-gives a worker no basis to flag it.
+regression that dropped `html_escape` from the href would leave every assertion green — the one
+contract behavior the tests existed to defend was regression-blind, yet surfaced only as a
+generic "missing edge cases" note.
 
 ## 2. Proposed Fix
 
@@ -58,19 +62,23 @@ runner); no change to any other angle prompt; no schema/`_worker-header.md` chan
 
 ## 3. Implementation Plan
 
-- [ ] **Step 1: Establish the concrete behavioral check (no-runner → concrete verification)**
-  - Prompt-content changes have no unit-test runner, so use the woostack-tdd
-    no-runner carve-out: construct the minimal escape-neutral-fixture diff (the `html_escape`
-    case above) as the fixture, and record the **baseline** — a `tests`-angle worker given the
-    *current* `tests.md` rubric plus that diff has no rubric basis to flag the regression-blind
-    assertion. This baseline is the "red" state the edit must turn green.
-- [ ] **Step 2: Apply the prompt edit**
-  - Add the "Regression-blind assertions" bullet after `tests.md:13`, and extend the `MEDIUM`
-    severity-rubric line (`tests.md:29`) as shown in §2. No other edits.
-- [ ] **Step 3: Verification**
-  - Re-run the behavioral check: a `tests`-angle worker given the *updated* rubric plus the
-    same neutral-fixture diff now surfaces a `MEDIUM`, non-blocking finding that names the
-    regression-blind fixture and recommends an exercising one (e.g. a URL containing `&`/`"`).
-  - Confirm the change is additive and breaks nothing mechanical: run
-    `bash skills/woostack-review/scripts/tests/run-tests.sh` (it tests scripts, not prompt
-    content, so it must stay green) — evidence the edit touched no code path.
+- [x] **Step 1: Establish the concrete behavioral baseline (no-runner → concrete verification)**
+  - Prompt-content changes have no unit-test runner, so use the woostack-tdd no-runner
+    carve-out: construct the minimal escape-neutral-fixture diff (the `html_escape` case above)
+    and record the **baseline** against the *current* rubric via `completion()`. Measured (fix
+    session): a fast-tier (`smol`) `tests` worker flagged the neutral fixture 3/3 but titled it
+    "Missing edge cases on new branches" (a coverage gap), never "regression-blind"; the strong
+    (`default`) tier surfaced it too. So the "red" baseline is not *silence* but *mis-framing* —
+    no named regression-blind category and no pinned severity.
+- [x] **Step 2: Apply the prompt edit**
+  - Added the "Regression-blind assertions" bullet after `tests.md:13` (now `tests.md:14`), and
+    extended the `MEDIUM` severity-rubric line (now `tests.md:30`) as shown in §2. No other edits.
+- [x] **Step 3: Verification**
+  - Re-ran the behavioral check against the *updated* rubric with the same neutral-fixture diff.
+    Measured (fix session): the fast-tier worker now titles the finding "Regression-blind
+    assertions (fixture neutral to the transformation under test)" 3/3, states it "would stay
+    green if the transformation were removed," and recommends an exercising fixture — the precise
+    frame + `MEDIUM` severity the new bullet defines (vs. the "missing edge cases" framing before).
+  - Confirmed the change is additive and breaks nothing mechanical: ran the full
+    `skills/woostack-review/scripts/tests/test-*.sh` suite (45 scripts) — 45/45 pass. The scripts
+    exercise shell code, not prompt content, so a green suite is evidence the edit touched no code path.

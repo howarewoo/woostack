@@ -11,6 +11,7 @@ tier: standard
 - New business logic in production files with no accompanying test (HIGH if the function is exported or routed; MEDIUM if internal).
 - Tests that assert implementation details instead of observable behavior (snapshot of internal state, mock-call counts as the sole assertion, asserting log strings).
 - Tests that cannot fail: missing `expect`, only `console.log`, conditional skips, `expect(true).toBe(true)`, awaiting then discarding rejection without `rejects` matcher.
+- Regression-blind assertions: a test whose fixture is neutral to the transformation under test — it asserts a real value and would fail on many bugs, but would stay green if the specific transformation it exists to defend were removed (e.g. asserting an HTML-escaper's output on input with no escapable characters, or a formatter on already-formatted input). Recommend a fixture that actually exercises the transformation.
 - Mocks that drift from real contract: stubbed return shapes that no longer match the production type, stubbed network/DB calls when an integration harness exists in the repo (cite `rules.md` if it mandates real-DB tests).
 - Flaky patterns: time-based `setTimeout` in assertions, ordering reliance on `Object.keys`, `Math.random` / `Date.now()` without seeding, network calls without a fake.
 - Missing edge cases on new branches: error paths, empty input, boundary values, auth-denied paths for new endpoints.
@@ -26,7 +27,7 @@ tier: standard
 **Severity rubric:**
 
 - `HIGH` + `blocking: true` — new public endpoint / exported function with no test at all, or a test that asserts nothing.
-- `MEDIUM` + `blocking: false` — flaky pattern, drifting mock, missing critical edge case.
+- `MEDIUM` + `blocking: false` — flaky pattern, drifting mock, missing critical edge case, regression-blind assertion (fixture neutral to the change under test).
 - `LOW` + `blocking: false` — additional case worth adding, isolation improvement.
 
 **Output.** Write findings as a JSON array to `/tmp/pr-review/findings.tests.json` using the schema in `_worker-header.md`. Each finding gets `"angle": "tests"` and MUST populate `title` (bold headline ≤60 chars), `description` (the gap or flaw only — no fix), `fix` (recommended test or change in prose), and `fix_type`. Set `fix_type: "suggestion"` only when a ≤10-line single-file drop-in replacement at `line` is safe — and populate `suggestion` accordingly. Otherwise set `fix_type: "prose"` with `suggestion: null`. See `_worker-header.md` for the full rule.
