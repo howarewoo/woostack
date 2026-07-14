@@ -1,0 +1,15 @@
+mutation WoostackIssueCreate($input: IssueCreateInput!) {
+  issueCreate(input: $input) {
+    success
+    issue {
+      id
+      identifier
+      title
+      description
+      url
+      updatedAt
+      project { id }
+      state { id }
+    }
+  }
+}

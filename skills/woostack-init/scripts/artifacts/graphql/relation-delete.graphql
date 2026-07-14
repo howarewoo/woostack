@@ -1,0 +1,5 @@
+mutation WoostackRelationDelete($id: String!) {
+  issueRelationDelete(id: $id) {
+    success
+  }
+}
