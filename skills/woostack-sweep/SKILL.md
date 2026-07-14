@@ -68,8 +68,11 @@ no-blocking verdict resolves in a single pass (step 2):
    re-caught on the next round. The nits-only path is the deliberate exception: it takes a single
    address pass with **no** re-review (step 2), so the sweep does not re-catch an out-of-diff
    regression from a nit fix — the accepted nits-only tradeoff.
-2. **Verdict?** — Read the **verdict, not the GitHub event**: self-authored stack PRs get the
-   posted event downgraded `APPROVE`→`COMMENT`, so trust `STATUS_LINE`. Branch on it:
+2. **Verdict?** — On every round, including the final allowed round, first validate the review
+   receipt for the current HEAD, then classify the fresh `STATUS_LINE` before evaluating
+   `max_rounds` or the no-progress guard. No valid receipt ⇒ **`blocked`**. Read the **verdict,
+   not the GitHub event**: self-authored stack PRs get the posted event downgraded
+   `APPROVE`→`COMMENT`, so trust `STATUS_LINE`. Branch on it:
    - **No blocking findings + zero unresolved threads** — a valid **review receipt** for this
      HEAD (the barrier above), `STATUS_LINE` `APPROVED` / `APPROVED WITH SUGGESTIONS`, and zero
      unresolved threads (checked via `gh`) ⇒ **clean** ⇒ teardown the worktree, advance to the
@@ -103,7 +106,9 @@ way up.
 
 ## Termination backstop
 
-The per-PR loop is bounded — **whichever trips first**:
+The cap and no-progress guard may terminate a PR only while the latest receipt-backed verdict still
+has blocking findings. After the verdict-first transition in step 2, the remaining blocking path
+is bounded — **whichever trips first**:
 
 - **Max rounds** — at most `max_rounds` review→address rounds per PR **while blocking findings
   remain** (default **3**; see Config).
@@ -187,6 +192,9 @@ but it never force-pushes a protected base, never merges, and never edits the pr
   its HEAD (the posted verdict + bot marker); never `clean` from a self/structural review, and
   never downgrade the review to save cost. No receipt for HEAD ⇒ `blocked`, per
   `fanout-empty-needs-receipt`.
+- **Verdict before backstop.** On every round, including the final allowed round, validate the
+  current-HEAD receipt and classify its fresh `STATUS_LINE` before applying `max_rounds` or the
+  no-progress guard; a no-blocking verdict advances, and only a still-blocking verdict may stop.
 - **Restack this stack only.** `gt restack` / `gt submit --stack`; never `gt sync` / repo-wide
   restack.
 - **Bounded.** `review_sweep.max_rounds` (default 3) + no-progress guard scoped to **blocking**

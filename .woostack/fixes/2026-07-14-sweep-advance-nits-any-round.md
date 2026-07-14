@@ -1,6 +1,6 @@
 ---
 type: fix
-status: hardened
+status: executing
 branch: fix/sweep-advance-nits-any-round
 ---
 
@@ -59,7 +59,7 @@ the existing one-pass tradeoff for non-blocking findings.
 
 ## 3. Implementation Plan
 
-- [ ] **Step 1: Reproduce with a failing contract test**
+- [x] **Step 1: Reproduce with a failing contract test**
   - Add `skills/woostack-sweep/scripts/tests/test-round-verdict-contract.sh` using the existing
     fixed-string assertion helpers.
   - Pin the observable state-machine contract: every fresh receipt-backed verdict, including one
@@ -71,7 +71,7 @@ the existing one-pass tradeoff for non-blocking findings.
   - Run `bash skills/woostack-sweep/scripts/tests/run-tests.sh` and confirm the new assertions fail
     against the current skill text.
 
-- [ ] **Step 2: Apply the minimal ordering fix**
+- [x] **Step 2: Apply the minimal ordering fix**
   - Update `skills/woostack-sweep/SKILL.md` at the shared verdict boundary to require receipt
     validation and fresh-verdict classification before any cap/no-progress evaluation on every
     round, explicitly including the final allowed round.
@@ -80,7 +80,7 @@ the existing one-pass tradeoff for non-blocking findings.
   - Restate the precedence tersely in `## Hard constraints` so future edits cannot reintroduce
     round-dependent behavior.
 
-- [ ] **Step 3: Verification**
+- [x] **Step 3: Verification**
   - Re-run `bash skills/woostack-sweep/scripts/tests/run-tests.sh`; all receipt and round-ordering
     contract assertions must pass.
   - Search `skills/woostack-sweep/SKILL.md` for the ordered transition and confirm no clause permits
