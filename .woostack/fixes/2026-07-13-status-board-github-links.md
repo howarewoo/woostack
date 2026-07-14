@@ -1,6 +1,6 @@
 ---
 type: fix
-status: hardened
+status: executing
 branch: fix/status-board-github-links
 ---
 
@@ -55,7 +55,7 @@ Non-goals: no links in the terminal table; no linking of the spec/fix name colum
 
 ## 3. Implementation Plan
 
-- [ ] **Step 1: Reproduce with a failing test**
+- [x] **Step 1: Reproduce with a failing test**
   - In `skills/woostack-status/scripts/tests/test-html-board.sh`, extend the
     multi-PR `gh` stub (the `#11/#10/#9` case) to emit a `url` field per PR, and
     change the three chip assertions to expect the anchor form, e.g.
@@ -67,13 +67,13 @@ Non-goals: no links in the terminal table; no linking of the spec/fix name colum
     still renders the plain `<span class="chip ...">` (no `<a`), so the degradation
     path is pinned.
   - Confirm these fail against the current `chip()` (`<span>` only).
-- [ ] **Step 2: Apply the minimal fix**
+- [x] **Step 2: Apply the minimal fix**
   - `status.sh`: add `url` to both `gh pr list --json` field lists; append
     `(.url // "")` to both jq `@tsv` outputs; read the trailing `url` in both
     loops; give `chip()` the 4th `url` arg with the anchor (new-tab) / span branch and
     an `html_escape`d href.
   - `board-template.html`: add the `a.chip` / `a.chip:hover` CSS rules.
-- [ ] **Step 3: Verification**
+- [x] **Step 3: Verification**
   - Run `bash skills/woostack-status/scripts/tests/run-tests.sh` — both
     `test-html-board.sh` and `test-status.sh` green (terminal assertions unchanged,
     HTML chip assertions now expect links).

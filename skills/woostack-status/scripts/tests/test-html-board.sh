@@ -159,9 +159,9 @@ cat > "$ghstub/gh" <<'GHEOF'
 #!/usr/bin/env bash
 if [ "${1:-}" = "pr" ] && [ "${2:-}" = "list" ]; then
   cat <<'JSON'
-[{"number":11,"state":"OPEN","headRefName":"feature/multi-2","author":{"login":"a"},"updatedAt":"2026-06-02T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-multi.md"},
- {"number":10,"state":"MERGED","headRefName":"feature/multi-1","author":{"login":"a"},"updatedAt":"2026-06-01T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-multi.md"},
- {"number":9,"state":"CLOSED","headRefName":"feature/multi-0","author":{"login":"a"},"updatedAt":"2026-05-30T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-multi.md"}]
+[{"number":11,"state":"OPEN","headRefName":"feature/multi-2","author":{"login":"a"},"updatedAt":"2026-06-02T00:00:00Z","url":"https://github.com/o/r/pull/11","body":"Spec: .woostack/specs/2026-06-01-multi.md"},
+ {"number":10,"state":"MERGED","headRefName":"feature/multi-1","author":{"login":"a"},"updatedAt":"2026-06-01T00:00:00Z","url":"https://github.com/o/r/pull/10","body":"Spec: .woostack/specs/2026-06-01-multi.md"},
+ {"number":9,"state":"CLOSED","headRefName":"feature/multi-0","author":{"login":"a"},"updatedAt":"2026-05-30T00:00:00Z","url":"https://github.com/o/r/pull/9","body":"Spec: .woostack/specs/2026-06-01-multi.md"}]
 JSON
 else
   echo "[]"
@@ -172,9 +172,9 @@ set +e
 WOO_DIR="$r5" WOO_STATUS_NO_OPEN=1 WOOSTACK_GH="$ghstub/gh" bash "$ST" >/dev/null 2>&1
 set -e
 HTML5="$(cat "$r5/visuals/status-board.html")"
-assert_contains "$HTML5" '<span class="chip c-open">#11 open</span>' "AC1: open PR chip rendered"
-assert_contains "$HTML5" '<span class="chip c-merged">#10 merged</span>' "AC1: merged PR chip rendered"
-assert_contains "$HTML5" '<span class="chip c-closed">#9 closed</span>' "AC1: closed PR chip rendered"
+assert_contains "$HTML5" '<a class="chip c-open" href="https://github.com/o/r/pull/11" target="_blank" rel="noopener noreferrer">#11 open</a>' "AC1: open PR chip is a GitHub link"
+assert_contains "$HTML5" '<a class="chip c-merged" href="https://github.com/o/r/pull/10" target="_blank" rel="noopener noreferrer">#10 merged</a>' "AC1: merged PR chip is a GitHub link"
+assert_contains "$HTML5" '<a class="chip c-closed" href="https://github.com/o/r/pull/9" target="_blank" rel="noopener noreferrer">#9 closed</a>' "AC1: closed PR chip is a GitHub link"
 
 # --- AC1: branch-only PR lookup renders the partial chip in HTML ---
 r8="$(mktemp -d)/.woostack"
@@ -187,7 +187,7 @@ if [ "${1:-}" = "pr" ] && [ "${2:-}" = "list" ]; then
   case "$*" in
     *"--head feature/fallback"*)
       cat <<'JSON'
-[{"number":77,"state":"OPEN","headRefName":"feature/fallback","author":{"login":"a"},"updatedAt":"2026-06-03T00:00:00Z","body":"no spec trailer"}]
+[{"number":77,"state":"OPEN","headRefName":"feature/fallback","author":{"login":"a"},"updatedAt":"2026-06-03T00:00:00Z","url":"https://github.com/o/r/pull/77","body":"no spec trailer"}]
 JSON
       ;;
     *) echo "[]" ;;
@@ -201,7 +201,29 @@ set +e
 WOO_DIR="$r8" WOO_STATUS_NO_OPEN=1 WOOSTACK_GH="$ghstub2/gh" bash "$ST" >/dev/null 2>&1
 set -e
 HTML8="$(cat "$r8/visuals/status-board.html")"
-assert_contains "$HTML8" '<span class="chip c-partial">#77 (partial)</span>' "AC1: partial PR chip rendered"
+assert_contains "$HTML8" '<a class="chip c-partial" href="https://github.com/o/r/pull/77" target="_blank" rel="noopener noreferrer">#77 (partial)</a>' "AC1: partial PR chip is a GitHub link"
+
+# --- AC1: a PR with no url degrades to a plain (unlinked) chip ---
+r9="$(mktemp -d)/.woostack"
+mkspec "$r9" nourl in-review feature/nourl
+ghstub3="$(mktemp -d)"
+cat > "$ghstub3/gh" <<'GHEOF'
+#!/usr/bin/env bash
+if [ "${1:-}" = "pr" ] && [ "${2:-}" = "list" ]; then
+  cat <<'JSON'
+[{"number":42,"state":"OPEN","headRefName":"feature/nourl","author":{"login":"a"},"updatedAt":"2026-06-02T00:00:00Z","body":"Spec: .woostack/specs/2026-06-01-nourl.md"}]
+JSON
+else
+  echo "[]"
+fi
+GHEOF
+chmod +x "$ghstub3/gh"
+set +e
+WOO_DIR="$r9" WOO_STATUS_NO_OPEN=1 WOOSTACK_GH="$ghstub3/gh" bash "$ST" >/dev/null 2>&1
+set -e
+HTML9="$(cat "$r9/visuals/status-board.html")"
+assert_contains "$HTML9" '<span class="chip c-open">#42 open</span>' "AC1: url-less PR falls back to an unlinked chip"
+assert_not_contains "$HTML9" '<a class="chip' "AC1: no anchor chip when url absent"
 
 # --- AC4 edge: openers present but failing -> "no opener found" note, HTML still written ---
 r7="$(mktemp -d)/.woostack"
