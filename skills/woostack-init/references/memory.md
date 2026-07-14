@@ -70,7 +70,7 @@ The body follows the canonical memory-note-body discipline: see [`output-discipl
 | body | yes | Non-empty content after the closing `---` fence. |
 | `scope` | no | Comma-separated glob list; omitted or `*` means global (see §5). |
 | `hook` | no | One-line index summary. If absent, the index falls back to the first non-empty body line, truncated to ~80 characters. |
-| `tags` | no | Comma list; informational only in increment A. |
+| `tags` | no | Comma list; a **load-bearing recall axis** — a one-hop tag expansion loads notes sharing ≥1 tag (trimmed, case-insensitive) with the scope-matched set (see §6). Format unchanged. |
 | `updated` | no | ISO date the note's content was last written. Informational, **and** the age basis for `doctor.sh`'s dead-note check (see §8) — a note without it cannot be aged. |
 | `source` | no | Provenance as a folder-qualified Obsidian wikilink — `[[specs/<basename>]]`, `[[plans/<basename>]]`, or `[[fixes/<basename>]]` — to the artifact this note distilled from; review-recorded notes use a raw `pr-<n>` / `address-comments` marker. Legacy bare-path form (`.woostack/specs/<file>.md`) still accepted. Used by the distill step; empty in A. |
 Recall telemetry lives in a tool-managed, gitignored `.woostack/memory/.telemetry.tsv` sidecar with rows `name<TAB>recall_count<TAB>last_recalled`. `recall.sh` writes it, and `doctor.sh` reads it for the dead-note check (see §8). Stray `recall_count` or `last_recalled` copies in note frontmatter are inert and should be removed.
@@ -138,9 +138,10 @@ The recall procedure is the algorithm a skill follows to load only the memory no
 2. **Compute the working set** of repo-relative paths for the current operation. This is skill-specific: for a review it is the changed files; for a build it is the planned/touched files; for address-comments it is the files touched by the PR.
 3. **Scope-match:** for each note listed in the index, evaluate the note's `scope` glob against the working-set paths using `scope-match.sh`. Load the full body of any note that matches. When two matched notes have the **same** match-count, the tie is broken by `updated:` recency — the newer note ranks first, and a note without `updated:` ranks last (so under cap pressure the older / undated note is dropped first). Match-count remains the primary key.
 4. **One-hop link expand:** for each note loaded in step 3, scan its body for `[[wikilinks]]`. Load the bodies of any directly linked notes that were not already loaded. Do not recurse further — expansion is bounded to exactly one hop.
-5. **Stop.** Notes not matched in steps 3–4 are never loaded.
+5. **One-hop tag expand:** build the query tag-set as the union of `tags:` across the notes loaded in step 3 (scope-matched only — not globals, not the wikilinked notes from step 4). For each not-yet-loaded, non-global note whose `tags:` share ≥1 token (whitespace-trimmed, case-insensitive) with that set, load its body. This is a second one-hop expansion edge beside step 4; tag-loaded notes are never themselves an expansion source. They rank **below** wikilinked notes and are **dropped first** under `RECALL_CAP` (a broad tag can never evict a scoped, linked, or global note). Recall renders them in a dedicated `## Tag-related notes` section, after `## Linked notes` and before `## Global memory`.
+6. **Stop.** Notes not matched in steps 3–5 are never loaded.
 
-`recall.sh` — which orchestrates steps 2–4 — is the increment-B deliverable. It ships alongside its first consumer (the woostack-review migration) in increment B. **Increment A ships only the `scope-match.sh` primitive** (step 3's core) plus this documented procedure. Any consuming skill that wants to implement recall before increment B lands should follow this procedure manually, using `scope-match.sh` for step 3.
+`recall.sh` — which orchestrates steps 2–5 — is the increment-B deliverable. It ships alongside its first consumer (the woostack-review migration) in increment B. **Increment A ships only the `scope-match.sh` primitive** (step 3's core) plus this documented procedure. Any consuming skill that wants to implement recall before increment B lands should follow this procedure manually, using `scope-match.sh` for step 3.
 
 ---
 
