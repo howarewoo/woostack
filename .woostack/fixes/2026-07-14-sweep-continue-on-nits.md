@@ -1,6 +1,6 @@
 ---
 type: fix
-status: hardened
+status: executing
 branch: fix/sweep-continue-on-nits
 ---
 
@@ -87,7 +87,7 @@ directly after the single address pass, per the request.
 
 ## 3. Implementation Plan
 
-- [ ] **Step 1: Define the concrete verification (no test runner for Markdown)**
+- [x] **Step 1: Define the concrete verification (no test runner for Markdown)**
   - This is a documentation-behavior change in a skills collection; per the woostack-tdd kernel's
     "no-runner → concrete verification," pin the intended behavior as grep assertions that fail
     against the current text and pass after the edit:
@@ -99,7 +99,7 @@ directly after the single address pass, per the request.
       coupling in `woostack-execute-overnight` or the site config page.
   - Run the grep assertions and confirm they currently fail (the phrases still present).
 
-- [ ] **Step 2: Apply the fix to `skills/woostack-sweep/SKILL.md`**
+- [x] **Step 2: Apply the fix to `skills/woostack-sweep/SKILL.md`**
   - Per-PR loop / "Clean?" step: make explicit that a no-blocking verdict with open nit threads
     takes a single `address-comments` pass + restack, then advances (no re-review).
   - "Strictly bottom-up" paragraph (L86-88): drop "at the `max_rounds` cap" from the nits path.
@@ -111,7 +111,7 @@ directly after the single address pass, per the request.
     parentheticals so `done-with-findings` / nits are no longer defined as "at the cap"; state the
     cap bounds only the blocking loop.
 
-- [ ] **Step 3: Reconcile the callers and docs**
+- [x] **Step 3: Reconcile the callers and docs**
   - `skills/woostack-execute-overnight/SKILL.md` L166-167, L191-193, L207-209 — cap-independent
     `done-with-findings` wording.
   - `skills/woostack-execute-overnight/references/report-template.md` L37, L43 — `nits-at-cap` →
@@ -119,7 +119,7 @@ directly after the single address pass, per the request.
   - `site/content/docs/configuration.mdx` L281 — `max_rounds` bounds the loop before a PR is
     declared `blocked`.
 
-- [ ] **Step 4: Verification**
+- [x] **Step 4: Verification**
   - Re-run the Step 1 grep assertions; confirm they now pass.
   - `grep` the collection for any surviving "nits-at-cap" / "loop to the cap" / "only nits" cap
     coupling and confirm none remain (outside legitimate blocking-at-cap references).

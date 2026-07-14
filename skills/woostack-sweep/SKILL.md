@@ -47,8 +47,9 @@ worktree, reuse it; otherwise set `wt="$WOOSTACK_ROOT/.woostack/worktrees/<inc-s
 run `git worktree add "$wt" <inc-branch>` — **no** `-b`. The **primary tree is never edited**
 ([worktree contract](../woostack-init/references/worktrees.md) §3). Export the primary root only
 for metrics/telemetry sidecars (contract §5); tracked `address-comments` memory writes stay in the
-per-PR worktree so they ride that branch's commit. Then loop, up to `max_rounds` rounds
-(see Config):
+per-PR worktree so they ride that branch's commit. Then loop the review→address→re-review
+steps below, up to `max_rounds` rounds **while blocking findings remain** (see Config); a
+no-blocking verdict resolves in a single pass (step 2):
 
 > **Receipt before clean — never self-review.** A PR is marked `clean` **only** from a real
 > `woostack-review --full` run on its current HEAD, evidenced by a **review receipt**: the
@@ -64,14 +65,19 @@ per-PR worktree so they ride that branch's commit. Then loop, up to `max_rounds`
 
 1. **Review** — `woostack-review <PR#> --full`. **Every** round is `--full` (a complete re-review
    of the whole PR), so a fix that breaks something *outside* its own diff is still caught.
-2. **Clean?** — Clean requires a valid **review receipt** for this HEAD (the barrier above) **and**
-   that `woostack-review`-computed verdict has **no blocking findings**
-   (`STATUS_LINE` `APPROVED` / `APPROVED WITH SUGGESTIONS`) **and** zero unresolved threads
-   (checked via `gh`). No receipt for HEAD ⇒ the review did not run ⇒ **`blocked`**, never `clean`.
-   Read the **verdict, not the GitHub event**: self-authored stack PRs get the
-   posted event downgraded `APPROVE`→`COMMENT`, so trust `STATUS_LINE`. Clean ⇒ teardown the
-   worktree, advance to the next PR up. "Clean" is **review-clean, not a merge-approval** — the
-   run never merges.
+2. **Verdict?** — Read the **verdict, not the GitHub event**: self-authored stack PRs get the
+   posted event downgraded `APPROVE`→`COMMENT`, so trust `STATUS_LINE`. Branch on it:
+   - **No blocking findings + zero unresolved threads** — a valid **review receipt** for this
+     HEAD (the barrier above), `STATUS_LINE` `APPROVED` / `APPROVED WITH SUGGESTIONS`, and zero
+     unresolved threads (checked via `gh`) ⇒ **clean** ⇒ teardown the worktree, advance to the
+     next PR up. No receipt for HEAD ⇒ the review did not run ⇒ **`blocked`**, never `clean`.
+     "Clean" is **review-clean, not a merge-approval** — the run never merges.
+   - **No blocking findings + open nit threads** ⇒ **address the nits once** (step 3), restack
+     (step 4), then **advance** to the next PR up as `done-with-findings` (record the nits
+     addressed and any left open). Do **not** re-review (step 5): nits get a single address pass,
+     never a loop.
+   - **Blocking findings** (request-changes) ⇒ address (step 3), restack (step 4), and re-review
+     (step 5), looping up to `max_rounds` (see Termination backstop).
 3. **Address** — otherwise run
    [`woostack-address-comments --auto`](../woostack-address-comments/SKILL.md) (or interactive,
    under `--interactive`) from inside the worktree: it fixes / pushes back / replies / resolves /
@@ -81,34 +87,41 @@ per-PR worktree so they ride that branch's commit. Then loop, up to `max_rounds`
    `gt sync` or a repo-wide restack** ([worktree contract](../woostack-init/references/worktrees.md)
    §4/§6: a repo-wide restack collides with any parallel run in flight). A restack/rebase conflict
    is a **blocker**.
-5. **Re-review** → back to step 1.
+5. **Re-review (blocking path only)** → back to step 1. The nits-only path never reaches here —
+   it advanced in step 2 after a single address pass.
 
-Strictly bottom-up: a PR is driven to clean — or, at the `max_rounds` cap, to
-approved-with-only-nits — before the sweep moves up, and a fix only restacks the PRs **above** it,
-never a cleared lower PR, so each PR is reviewed exactly once on the way up.
+Strictly bottom-up: a PR is driven to clean — or, once its verdict has no blocking findings, to
+approved-with-only-nits after a single address pass — before the sweep moves up, and a fix only
+restacks the PRs **above** it, never a cleared lower PR, so each PR is handled exactly once on the
+way up.
 
 ## Termination backstop
 
 The per-PR loop is bounded — **whichever trips first**:
 
-- **Max rounds** — at most `max_rounds` review→address rounds per PR (default **3**; see Config).
+- **Max rounds** — at most `max_rounds` review→address rounds per PR **while blocking findings
+  remain** (default **3**; see Config).
 - **No-progress guard (blocking only)** — stop early **only while blocking findings remain** with
   no headway: a re-review returns the **same** blocking findings, **or** a round resolves **no
   blocking** thread, **or** an `address-comments` `CLARIFY` leaves a **blocking** thread open.
-  **Nits never trip this guard** — while only non-blocking nits remain, keep reviewing/addressing
-  them until the `max_rounds` cap.
+  **Nits never enter this loop** — a no-blocking verdict with open nit threads gets a single
+  `address-comments` pass and the sweep advances (see the per-PR loop), so nits neither trip the
+  guard nor consume rounds.
 
-At either terminus **without a clean PR**, branch on the verdict (read `STATUS_LINE`, not the
-self-downgraded event):
+At either terminus the loop still had **blocking findings** — the guard and the cap are both
+blocking-only — so read `STATUS_LINE` (not the self-downgraded event):
 
 - **Blocking findings remain** (request-changes) → **blocker** (see Blocker & terminal state).
-- **Only nits remain** (`APPROVED` / `APPROVED WITH SUGGESTIONS`, open non-blocking threads) —
-  reachable only at the `max_rounds` cap, since the guard never stops on nits → **not a blocker**:
-  mark the PR `done-with-findings`, record the open nits, and **move to the next PR up**.
+
+A **no-blocking verdict never reaches a terminus**: the moment a `woostack-review --full` returns
+`APPROVED` / `APPROVED WITH SUGGESTIONS`, the PR is either clean (zero threads) or takes a single
+`address-comments` pass on its open nit threads and then advances as `done-with-findings` (open
+nits recorded) — **not a blocker**, and never looped to the cap.
 
 ## Per-PR outcome vocabulary
 
-Each PR ends `clean` / `done-with-findings` (approved-with-only-nits at the cap) / `blocked`. The
+Each PR ends `clean` / `done-with-findings` (a no-blocking verdict whose nits took a single
+address pass) / `blocked`. The
 engine returns these; a caller maps them — a standalone run into the terminal summary,
 [`woostack-execute-overnight`](../woostack-execute-overnight/SKILL.md) into its morning-report
 table + "Needs you".
@@ -159,8 +172,9 @@ but it never force-pushes a protected base, never merges, and never edits the pr
 
 - **Single home of the sweep loop.** This is the one definition of the bottom-up drive-to-clean
   loop; callers (overnight) delegate here and never restate it.
-- **Bottom-up, each PR reviewed once on the way up.** Drive a PR to clean (or
-  approved-with-only-nits at the cap) before moving up; a fix restacks only the PRs above it.
+- **Bottom-up, each PR handled once on the way up.** Drive a PR to clean (or, on a no-blocking
+  verdict, approved-with-only-nits after a single address pass) before moving up; a fix restacks
+  only the PRs above it.
 - **Read the verdict, not the event.** Clean = `STATUS_LINE` no-blocking + zero unresolved threads;
   self-authored PR events are downgraded.
 - **Receipt before clean.** A PR is `clean` only with a real `woostack-review --full` receipt for
@@ -170,7 +184,8 @@ but it never force-pushes a protected base, never merges, and never edits the pr
 - **Restack this stack only.** `gt restack` / `gt submit --stack`; never `gt sync` / repo-wide
   restack.
 - **Bounded.** `review_sweep.max_rounds` (default 3) + no-progress guard scoped to **blocking**
-  findings; nits loop to the cap; only blocking findings at the cap are a blocker.
+  findings; a no-blocking verdict resolves nits in a single address pass and advances (never loops
+  to the cap); only blocking findings at the cap are a blocker.
 - **No-PR branch → skip + warn.** Never auto-submit, never halt the whole sweep for one
   un-submitted branch.
 - **Autonomous, stop on blocker.** Default `--auto`; on a blocker stop, leave the worktree, print
