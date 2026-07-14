@@ -1,6 +1,6 @@
 ---
 type: fix
-status: executing
+status: in-review
 branch: fix/status-board-github-links
 ---
 
