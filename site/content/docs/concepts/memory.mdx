@@ -52,6 +52,7 @@ ideate · plan · review · debug  ── load wholesale ─► wisdom/
 debug · review                  ── scope-match ────► memory/
 ```
 
-Recall is run in the shell, not the prompt: `recall.sh` does the scope match and one-hop
-expansion, and `build-index.sh` keeps `MEMORY.md` as a one-line-per-note index. See
+Recall is run in the shell, not the prompt: `recall.sh` does the scope match plus two one-hop
+expansions — a `[[wikilink]]` hop and a `tags:` hop that pulls notes sharing a tag with the
+matched set — and `build-index.sh` keeps `MEMORY.md` as a one-line-per-note index. See
 [Context management](/docs/concepts/context-management) for why that matters.

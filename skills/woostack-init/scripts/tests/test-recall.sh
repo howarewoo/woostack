@@ -132,4 +132,179 @@ assert_not_contains "$cap_out" "OLDER body" "older note dropped first under cap 
 
 rm -rf "$woo6" "$p6" "$woo7" "$p7"
 
+# ===== tag-hop recall axis =====
+
+# --- AC1/AC2/AC4/AC6: general tag expansion, one-hop bound, global-not-source, dedup ---
+wooT1="$(mktemp -d)"; mdT1="$wooT1/memory"; mkdir -p "$mdT1"
+mk_note "$mdT1" hit.md     $'name: hit\ntype: pattern\nscope: packages/api/**\ntags: orpc, Errors' 'HIT scoped body'
+mk_note "$mdT1" rel.md     $'name: rel\ntype: pattern\nscope: apps/web/**\ntags: errors, onlyrel' 'REL tagged body'
+mk_note "$mdT1" second.md  $'name: second\ntype: pattern\nscope: yyy/**\ntags: onlyrel' 'SECOND body'
+mk_note "$mdT1" nomatch.md $'name: nomatch\ntype: pattern\nscope: zzz/**\ntags: unrelated' 'NOMATCH body'
+mk_note "$mdT1" gseed.md   $'name: gseed\ntype: convention\nscope: *\ntags: errors' 'GSEED global body'
+mk_note "$mdT1" gsrc.md    $'name: gsrc\ntype: convention\nscope: *\ntags: globonly' 'GSRC global body'
+mk_note "$mdT1" gtarget.md $'name: gtarget\ntype: pattern\nscope: qqq/**\ntags: globonly' 'GTARGET body'
+pT1="$(mktemp)"; printf 'packages/api/x.ts\n' > "$pT1"
+out="$(bash "$RECALL" "$wooT1" "$pT1")"
+assert_contains "$out" "## Tag-related notes"  "tag-related section rendered"
+assert_contains "$out" "REL tagged body"       "AC1 happy: shared-tag note surfaced (case-insensitive Errors/errors)"
+assert_not_contains "$out" "NOMATCH body"      "AC1 edge: no-shared-tag note not pulled"
+assert_not_contains "$out" "SECOND body"       "AC2 edge: one-hop only — tag shared with a tag-linked note not pulled"
+assert_not_contains "$out" "GTARGET body"      "AC4 happy: global tags do not seed expansion"
+cnt_gseed="$(printf '%s\n' "$out" | grep -c 'GSEED global body' || true)"
+assert_eq "$cnt_gseed" "1"                     "AC4 edge: global candidate skipped, not duplicated into tag-related"
+cnt_hit="$(printf '%s\n' "$out" | grep -c 'HIT scoped body' || true)"
+assert_eq "$cnt_hit" "1"                       "AC6 edge: scoped note not duplicated into tag-related"
+# section order: Scoped < Tag-related < Global (spec §4)
+sc="$(printf '%s\n' "$out" | grep -n '## Scoped memory'   | cut -d: -f1 || true)"
+tg="$(printf '%s\n' "$out" | grep -n '## Tag-related notes'| cut -d: -f1 || true)"
+gl="$(printf '%s\n' "$out" | grep -n '## Global memory'    | cut -d: -f1 || true)"
+[ -n "$sc" ] && [ -n "$tg" ] && [ -n "$gl" ] && [ "$sc" -lt "$tg" ] && [ "$tg" -lt "$gl" ] \
+  && PASS=$((PASS+1)) \
+  || { FAIL=$((FAIL+1)); echo "  FAIL: section order — Scoped($sc) < Tag-related($tg) < Global($gl)"; }
+
+# AC6 happy: a tag-linked note is stamped in telemetry (fresh run for a clean count)
+WOOSTACK_NOW=2026-06-02 bash "$RECALL" "$wooT1" "$pT1" >/dev/null 2>&1 || true
+# (rel was stamped on the first `out` run above; assert cumulative count >=1)
+rel_count="$(tel_get "$mdT1" rel recall_count)"
+[ -n "$rel_count" ] && [ "$rel_count" -ge 1 ] \
+  && PASS=$((PASS+1)) \
+  || { FAIL=$((FAIL+1)); echo "  FAIL: AC6 telemetry — tag-linked note stamped (count=$rel_count)"; }
+rm -rf "$wooT1" "$pT1"
+
+# --- AC3: tag-related is lowest cap precedence (dropped first; scoped kept) ---
+wooT2="$(mktemp -d)"; mdT2="$wooT2/memory"; mkdir -p "$mdT2"
+mk_note "$mdT2" anchor.md $'name: anchor\ntype: pattern\nscope: packages/api/**\ntags: errors' 'ANCHOR body'
+mk_note "$mdT2" big.md    $'name: big\ntype: pattern\nscope: apps/web/**\ntags: errors' 'BIG tag body PADPADPADPADPADPADPADPADPADPADPADPADPADPADPADPAD'
+pT2="$(mktemp)"; printf 'packages/api/x.ts\n' > "$pT2"
+capout="$(RECALL_CAP=40 bash "$RECALL" "$wooT2" "$pT2" 2>/dev/null)"
+assert_contains "$capout" "ANCHOR body"      "AC3 edge: scoped note kept under cap"
+assert_not_contains "$capout" "BIG tag body" "AC3 happy: tag-related note dropped under cap"
+caperr="$(RECALL_CAP=40 bash "$RECALL" "$wooT2" "$pT2" 2>&1 >/dev/null)"
+assert_contains "$caperr" "dropped tag-related" "AC3: tag-related drop logged to stderr"
+rm -rf "$wooT2" "$pT2"
+
+# --- AC3 extra (spec §6 global tail-cap): globals over cap suppress tag-related too ---
+wooT2b="$(mktemp -d)"; mdT2b="$wooT2b/memory"; mkdir -p "$mdT2b"
+mk_note "$mdT2b" a2.md  $'name: a2\ntype: pattern\nscope: packages/api/**\ntags: errors' 'A2 body'
+mk_note "$mdT2b" r2.md  $'name: r2\ntype: pattern\nscope: apps/web/**\ntags: errors' 'R2 tag body'
+mk_note "$mdT2b" bg.md  $'name: bg\ntype: convention\nscope: *' 'BIG GLOBAL body PADPADPADPADPADPADPADPADPADPADPADPAD'
+pT2b="$(mktemp)"; printf 'packages/api/x.ts\n' > "$pT2b"
+tail_out="$(RECALL_CAP=20 bash "$RECALL" "$wooT2b" "$pT2b" 2>/dev/null)"
+tail_err="$(RECALL_CAP=20 bash "$RECALL" "$wooT2b" "$pT2b" 2>&1 >/dev/null)"
+assert_not_contains "$tail_out" "## Tag-related notes" "global tail-cap: tag-related suppressed with scoped/linked"
+assert_not_contains "$tail_out" "R2 tag body"          "global tail-cap: tag-related note not emitted"
+assert_contains "$tail_err" "exceed cap"               "global tail-cap branch logged"
+rm -rf "$wooT2b" "$pT2b"
+
+# --- AC5: no tags anywhere -> no tag-related section (regression / no-op) ---
+wooT3="$(mktemp -d)"; mdT3="$wooT3/memory"; mkdir -p "$mdT3"
+mk_note "$mdT3" p1.md $'name: p1\ntype: pattern\nscope: packages/api/**' 'P1 body'
+mk_note "$mdT3" p2.md $'name: p2\ntype: pattern\nscope: apps/web/**\ntags:   ,  ' 'P2 empty-tags body'
+mk_note "$mdT3" g1.md $'name: g1\ntype: convention\nscope: *' 'G1 global body'
+pT3="$(mktemp)"; printf 'packages/api/x.ts\n' > "$pT3"
+out3="$(bash "$RECALL" "$wooT3" "$pT3")"
+assert_not_contains "$out3" "## Tag-related notes" "AC5: no/empty tags -> no tag-related section"
+assert_contains "$out3" "P1 body"       "AC5: scoped output unchanged when no tags"
+assert_contains "$out3" "G1 global body" "AC5: global output unchanged when no tags"
+expected3=$'## Scoped memory (matched this PR)\n\n### p1\nP1 body\n\n## Global memory\n\n### g1\nG1 global body'
+assert_eq "$out3" "$expected3" "AC5: no-tags output byte-identical to pre-tag baseline (Scoped+Global only, no reorder/format drift)"
+rm -rf "$wooT3" "$pT3"
+
+# --- AC7: ordering under cap (shared-count desc; recency then name tiebreak) ---
+wooT4="$(mktemp -d)"; mdT4="$wooT4/memory"; mkdir -p "$mdT4"
+mk_note "$mdT4" anc.md $'name: anc\ntype: pattern\nscope: packages/api/**\ntags: a, b' 'ANC body'
+mk_note "$mdT4" two.md $'name: two\ntype: pattern\nscope: xxx/**\ntags: a, b' 'TWO body PADPADPADPADPADPAD'
+mk_note "$mdT4" one.md $'name: one\ntype: pattern\nscope: yyy/**\ntags: a'    'ONE body PADPADPADPADPADPAD'
+pT4="$(mktemp)"; printf 'packages/api/x.ts\n' > "$pT4"
+out4="$(bash "$RECALL" "$wooT4" "$pT4")"
+two_line="$(printf '%s\n' "$out4" | grep -n 'TWO body' | cut -d: -f1 || true)"
+one_line="$(printf '%s\n' "$out4" | grep -n 'ONE body' | cut -d: -f1 || true)"
+[ -n "$two_line" ] && [ -n "$one_line" ] && [ "$two_line" -lt "$one_line" ] \
+  && PASS=$((PASS+1)) \
+  || { FAIL=$((FAIL+1)); echo "  FAIL: AC7 order — two(line $two_line) should precede one(line $one_line)"; }
+# under a cap that fits only one tag-related note, the higher-shared-count note survives
+cap4="$(RECALL_CAP=60 bash "$RECALL" "$wooT4" "$pT4" 2>/dev/null)"
+assert_contains "$cap4" "TWO body"     "AC7 happy: higher shared-tag-count note kept under cap"
+assert_not_contains "$cap4" "ONE body" "AC7 happy: lower shared-tag-count note dropped under cap"
+rm -rf "$wooT4" "$pT4"
+
+# --- AC7 edge: equal shared-count -> newer updated ranks first ---
+wooT5="$(mktemp -d)"; mdT5="$wooT5/memory"; mkdir -p "$mdT5"
+mk_note "$mdT5" anc2.md $'name: anc2\ntype: pattern\nscope: packages/api/**\ntags: a' 'ANC2 body'
+mk_note "$mdT5" tnew.md $'name: tnew\ntype: pattern\nscope: xxx/**\ntags: a\nupdated: 2026-06-02' 'TNEW body'
+mk_note "$mdT5" told.md $'name: told\ntype: pattern\nscope: yyy/**\ntags: a\nupdated: 2026-01-01' 'TOLD body'
+pT5="$(mktemp)"; printf 'packages/api/x.ts\n' > "$pT5"
+out5="$(bash "$RECALL" "$wooT5" "$pT5")"
+tnew_line="$(printf '%s\n' "$out5" | grep -n 'TNEW body' | cut -d: -f1 || true)"
+told_line="$(printf '%s\n' "$out5" | grep -n 'TOLD body' | cut -d: -f1 || true)"
+[ -n "$tnew_line" ] && [ -n "$told_line" ] && [ "$tnew_line" -lt "$told_line" ] \
+  && PASS=$((PASS+1)) \
+  || { FAIL=$((FAIL+1)); echo "  FAIL: AC7 recency — tnew(line $tnew_line) should precede told(line $told_line)"; }
+rm -rf "$wooT5" "$pT5"
+
+# --- AC7 edge: equal shared-count AND equal recency -> name ascending (not filename) ---
+# Filenames are deliberately inverted vs names: z-name.md holds name:alpha, a-name.md holds
+# name:zeta. A filename tie-break ranks zeta first; AC7 requires name-ascending (alpha first).
+wooT6="$(mktemp -d)"; mdT6="$wooT6/memory"; mkdir -p "$mdT6"
+mk_note "$mdT6" ancn.md   $'name: ancn\ntype: pattern\nscope: packages/api/**\ntags: a' 'ANCN body'
+mk_note "$mdT6" z-name.md $'name: alpha\ntype: pattern\nscope: xxx/**\ntags: a\nupdated: 2026-06-02' 'ALPHA body'
+mk_note "$mdT6" a-name.md $'name: zeta\ntype: pattern\nscope: yyy/**\ntags: a\nupdated: 2026-06-02' 'ZETA body'
+pT6="$(mktemp)"; printf 'packages/api/x.ts\n' > "$pT6"
+out6="$(bash "$RECALL" "$wooT6" "$pT6")"
+alpha_line="$(printf '%s\n' "$out6" | grep -n 'ALPHA body' | cut -d: -f1 || true)"
+zeta_line="$(printf '%s\n' "$out6" | grep -n 'ZETA body' | cut -d: -f1 || true)"
+[ -n "$alpha_line" ] && [ -n "$zeta_line" ] && [ "$alpha_line" -lt "$zeta_line" ] \
+  && PASS=$((PASS+1)) \
+  || { FAIL=$((FAIL+1)); echo "  FAIL: AC7 name tie — alpha(line $alpha_line) should precede zeta(line $zeta_line) by name, not filename"; }
+rm -rf "$wooT6" "$pT6"
+
+# --- tag-hop x wikilink interaction: cross-edge boundaries the fixtures above omit ---
+# s.md (scoped) wikilinks [[wl]] and shares tag `shared`. Boundaries exercised:
+#  (a) wl.md is pulled via the wikilink edge and, though it also shares `shared`, is NOT
+#      duplicated into Tag-related (dedup against already-loaded linked notes);
+#  (b) viatag.md shares `shared` with the scoped note -> pulled via the tag edge;
+#  (c) linkonly.md shares a tag ONLY with the wikilinked note (never the scoped set) -> NOT
+#      pulled, proving wikilinked notes are not themselves a tag-expansion source (one hop).
+wooTX="$(mktemp -d)"; mdTX="$wooTX/memory"; mkdir -p "$mdTX"
+mk_note "$mdTX" s.md        $'name: s\ntype: pattern\nscope: packages/api/**\ntags: shared' 'S scoped body [[wl]]'
+mk_note "$mdTX" wl.md       $'name: wl\ntype: pattern\nscope: zzz/**\ntags: shared, fromlink' 'WL linked body'
+mk_note "$mdTX" viatag.md   $'name: viatag\ntype: pattern\nscope: yyy/**\ntags: shared' 'VIATAG body'
+mk_note "$mdTX" linkonly.md $'name: linkonly\ntype: pattern\nscope: qqq/**\ntags: fromlink' 'LINKONLY body'
+pTX="$(mktemp)"; printf 'packages/api/x.ts\n' > "$pTX"
+outx="$(bash "$RECALL" "$wooTX" "$pTX")"
+assert_contains "$outx" "WL linked body"    "interaction: wikilinked note pulled via [[wl]] edge"
+assert_contains "$outx" "VIATAG body"       "interaction: tag edge pulls shared-tag note alongside wikilink"
+assert_not_contains "$outx" "LINKONLY body" "interaction: tag shared only with a wikilinked note is not pulled (one hop from scoped)"
+cnt_wl="$(printf '%s\n' "$outx" | grep -c 'WL linked body' || true)"
+assert_eq "$cnt_wl" "1"                     "interaction: wikilinked note not duplicated into Tag-related despite shared tag"
+wl_ln="$(printf '%s\n' "$outx" | grep -n 'WL linked body' | cut -d: -f1 || true)"
+tg_ln="$(printf '%s\n' "$outx" | grep -n '## Tag-related notes' | cut -d: -f1 || true)"
+[ -n "$wl_ln" ] && [ -n "$tg_ln" ] && [ "$wl_ln" -lt "$tg_ln" ] \
+  && PASS=$((PASS+1)) \
+  || { FAIL=$((FAIL+1)); echo "  FAIL: interaction — wikilinked note (line $wl_ln) should render in Linked, before Tag-related (line $tg_ln)"; }
+rm -rf "$wooTX" "$pTX"
+
+# --- multi-source union: tags from every scoped match seed expansion ---
+wooTM="$(mktemp -d)"; mdTM="$wooTM/memory"; mkdir -p "$mdTM"
+mk_note "$mdTM" s1.md $'name: s1\ntype: pattern\nscope: packages/**\ntags: first' 'S1 scoped body'
+mk_note "$mdTM" s2.md $'name: s2\ntype: pattern\nscope: packages/api/**\ntags: second' 'S2 scoped body'
+mk_note "$mdTM" c1.md $'name: c1\ntype: pattern\nscope: xxx/**\ntags: first' 'C1 via first source'
+mk_note "$mdTM" c2.md $'name: c2\ntype: pattern\nscope: yyy/**\ntags: second' 'C2 via second source'
+pTM="$(mktemp)"; printf 'packages/api/x.ts\n' > "$pTM"
+outm="$(bash "$RECALL" "$wooTM" "$pTM")"
+assert_contains "$outm" "C1 via first source"  "multi-source: first scoped note contributes query tags"
+assert_contains "$outm" "C2 via second source" "multi-source: later scoped note contributes disjoint query tags"
+rm -rf "$wooTM" "$pTM"
+
+# --- cap precedence: linked survives when linked and tag-related compete ---
+wooTP="$(mktemp -d)"; mdTP="$wooTP/memory"; mkdir -p "$mdTP"
+mk_note "$mdTP" s.md $'name: s\ntype: pattern\nscope: packages/api/**\ntags: shared' 'SCOPE [[l]]'
+mk_note "$mdTP" l.md $'name: l\ntype: pattern\nscope: zzz/**' 'LINKED body'
+mk_note "$mdTP" t.md $'name: t\ntype: pattern\nscope: yyy/**\ntags: shared' 'TAG body'
+pTP="$(mktemp)"; printf 'packages/api/x.ts\n' > "$pTP"
+outp="$(RECALL_CAP=40 bash "$RECALL" "$wooTP" "$pTP" 2>/dev/null)"
+assert_contains "$outp" "LINKED body" "cap precedence: linked note survives before tag-related"
+assert_not_contains "$outp" "TAG body" "cap precedence: competing tag-related note is dropped first"
+rm -rf "$wooTP" "$pTP"
+
 finish

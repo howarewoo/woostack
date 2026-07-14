@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # recall.sh <woostack_dir> <paths_file> — compose per-PR memory context.
-# stdout: ## Scoped memory + ## Linked notes + ## Global memory.
+# stdout: ## Scoped memory + ## Linked notes + ## Tag-related notes + ## Global memory.
 # Global no-scope/`*` notes are ALWAYS included and never dropped by RECALL_CAP
 # (bytes, default 102400). Scoped/linked notes fill the remaining budget; lowest
 # match-count dropped first (logged to stderr).
@@ -17,10 +17,19 @@ paths="$(cat "$PATHS_FILE" 2>/dev/null || true)"
 is_global() { local s; s="$(printf '%s' "$1" | tr -d '[:space:]')"; [ -z "$s" ] || [ "$s" = '*' ]; }
 render() { local nm; nm="$(field "$1" name)"; printf '### %s\n%s\n' "${nm:-$(basename "$1" .md)}" "$(note_body "$1")"; }
 
+# note_tags <file> -> normalized tag tokens, one per line (lowercased, trimmed,
+# non-empty). Absent/empty/whitespace-only `tags:` yields no output.
+note_tags() {
+  local raw; raw="$(field "$1" tags 2>/dev/null || true)"
+  printf '%s' "$raw" | tr ',' '\n' | tr '[:upper:]' '[:lower:]' \
+    | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -v '^[[:space:]]*$' || true
+}
+
 # inc_set: temp file storing one basename per line for dedup.
 inc_set="$(mktemp)"
 matched="$(mktemp)"; linked="$(mktemp)"; globals="$(mktemp)"
-trap 'rm -f "$matched" "$linked" "$globals" "$inc_set"' EXIT
+tag_scored="$(mktemp)"; qtags="$(mktemp)"
+trap 'rm -f "$matched" "$linked" "$globals" "$inc_set" "$tag_scored" "$qtags"' EXIT
 
 in_set() { grep -qxF -- "$1" "$inc_set" 2>/dev/null; }
 add_set() { printf '%s\n' "$1" >> "$inc_set"; }
@@ -58,6 +67,35 @@ for f in "${matched_files[@]:-}"; do
   done < <(grep -oE '\[\[[^]]+\]\]' "$f" 2>/dev/null | sed 's/\[\[//;s/\]\]//' | sort -u)
 done
 
+# --- One-hop tag expansion (matched-only source, exactly one hop). Pull any
+# not-yet-loaded, non-global note sharing >=1 tag with the scope-matched set.
+# tag_linked notes are never themselves an expansion source. ---
+for f in "${matched_files[@]:-}"; do
+  [ -n "${f:-}" ] || continue
+  note_tags "$f"
+done | LC_ALL=C sort -u > "$qtags"
+
+if [ -s "$qtags" ] && [ -d "$MEM_DIR" ]; then
+  shopt -s nullglob
+  for f in "$MEM_DIR"/*.md; do
+    b="$(basename "$f")"; [ "$b" = "MEMORY.md" ] && continue
+    in_set "$b" && continue          # already scoped / linked / global
+    shared="$(note_tags "$f" | LC_ALL=C sort -u | LC_ALL=C comm -12 - "$qtags" | grep -c . || true)"
+    if [ "${shared:-0}" -gt 0 ]; then
+      upd="$(field "$f" updated || true)"
+      nm="$(field "$f" name || true)"; nm="${nm:-$(basename "$f" .md)}"
+      printf '%s\t%s\t%s\t%s\n' "$shared" "$upd" "$nm" "$f" >> "$tag_scored"
+      add_set "$b"
+    fi
+  done
+fi
+
+# Order: shared-tag count desc, then updated recency desc, then name asc.
+tag_linked_files=()
+while IFS= read -r line; do
+  [ -n "$line" ] && tag_linked_files+=("$line")
+done < <(LC_ALL=C sort -t"$(printf '\t')" -k1,1nr -k2,2r -k3,3 "$tag_scored" | cut -f4-)
+
 # Read linked files into array (bash 3.2 compatible).
 linked_files=()
 while IFS= read -r line; do
@@ -75,6 +113,7 @@ stamp_note() {
 for f in "${matched_files[@]:-}"; do [ -n "${f:-}" ] && stamp_note "$f"; done
 for f in "${linked_files[@]:-}"; do [ -n "${f:-}" ] && stamp_note "$f"; done
 while IFS= read -r f; do [ -n "$f" ] && stamp_note "$f"; done < "$globals"
+for f in "${tag_linked_files[@]:-}"; do [ -n "${f:-}" ] && stamp_note "$f"; done
 
 global_out=""
 while IFS= read -r f; do
@@ -83,7 +122,7 @@ while IFS= read -r f; do
   global_out+="$(render "$f")"
 done < "$globals"
 
-scoped_out=""; linked_out=""
+scoped_out=""; linked_out=""; tag_out=""
 gbytes=${#global_out}
 budget=$(( CAP - gbytes ))
 if [ "$budget" -le 0 ] && [ -n "$global_out" ]; then
@@ -103,9 +142,17 @@ else
     if [ $(( ${#linked_out} + ${#chunk} )) -le "$rem" ]; then linked_out+="$chunk"
     else echo "recall: dropped linked $(basename "$f") (cap)" >&2; fi
   done
+  rem2=$(( rem - ${#linked_out} ))
+  for f in "${tag_linked_files[@]:-}"; do
+    [ -n "${f:-}" ] || continue
+    chunk="$(render "$f")"$'\n\n'
+    if [ $(( ${#tag_out} + ${#chunk} )) -le "$rem2" ]; then tag_out+="$chunk"
+    else echo "recall: dropped tag-related $(basename "$f") (cap)" >&2; fi
+  done
 fi
 
 [ -n "$scoped_out" ] && printf '## Scoped memory (matched this PR)\n\n%s' "$scoped_out"
 [ -n "$linked_out" ] && printf '## Linked notes\n\n%s' "$linked_out"
+[ -n "$tag_out" ] && printf '## Tag-related notes\n\n%s' "$tag_out"
 [ -n "$global_out" ] && printf '## Global memory\n\n%s\n' "$global_out"
 exit 0
