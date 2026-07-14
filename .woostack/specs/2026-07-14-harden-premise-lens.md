@@ -1,7 +1,7 @@
 ---
 name: harden-premise-lens
 type: spec
-status: hardened
+status: approved
 date: 2026-07-14
 branch: feature/harden-premise-lens
 links:
