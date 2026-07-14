@@ -1,0 +1,47 @@
+---
+title: Least code, still safe
+description: woostack's core engineering tenet — write as little code as necessary, without cutting edge cases or risks.
+---
+
+woostack's skills — and the code they generate — write as little code as necessary. Less code is
+less to read, test, and break. But "least code" is a discipline, not a golf score: it never comes
+at the cost of correctness or safety.
+
+## Understand first, then take the first rung that holds
+
+Laziness is about the *solution*, never about *reading*. Read the code a change touches and trace
+the real flow end to end before writing anything — the smallest change in the wrong place is a
+second bug. Then take the first rung that already solves the problem:
+
+1. **YAGNI** — is it needed at all?
+2. **In-tree reuse** — a helper, util, or pattern that already exists here.
+3. **The standard library.**
+4. **A native platform feature.**
+5. **An already-installed dependency.**
+6. **One line.**
+7. Only then, the minimum new code that works.
+
+## Never shrink code by cutting safety
+
+Deletion over addition, boring over clever — code is small because it's necessary, not golfed.
+What never gets cut to shrink a diff: validation, error handling, security, accessibility, and
+data-loss handling. Deliberate multi-layer safety redundancy stays (it is not DRY-removable). At
+equal size, pick the edge-case-correct option, and a behavior-changing simplification keeps its
+regression test. A knowingly-cut corner leaves a `why` comment naming its ceiling and upgrade
+path.
+
+## Comments explain why, not what
+
+Comments are minimal and explain *why* — a hidden constraint, a workaround, a surprising
+invariant. The code already says *what*.
+
+## Where it lives
+
+The tenet is enforced across the loop, not just stated:
+
+- The full generated-code standard is
+  [`patterns.md §10`](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/patterns.md#10-least-code--comments).
+- Authoring skills carry it: [woostack-execute](/docs/skills/woostack-execute),
+  [woostack-ideate](/docs/skills/woostack-ideate), and [woostack-fix](/docs/skills/woostack-fix).
+- The always-on [`simplify` review angle](/docs/concepts/review-angles) enforces the ladder; the
+  source-triggered `comments` angle catches comment drift when source changes.
