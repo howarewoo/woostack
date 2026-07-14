@@ -1,6 +1,6 @@
 ---
 type: fix
-status: hardened
+status: executing
 branch: fix/sweep-auto-resolve-restack-conflicts
 ---
 
@@ -28,18 +28,18 @@ The occurrence of a conflict is no longer a blocker. Block only when the conflic
 
 ## 3. Implementation Plan
 
-- [ ] **Step 1: Reproduce with a failing contract test**
+- [x] **Step 1: Reproduce with a failing contract test**
   - Add `skills/woostack-sweep/scripts/tests/test-restack-conflict-contract.sh`.
   - Assert that restack conflicts enumerate unmerged paths and stages, inspect the replayed commit, resolve semantically, run focused verification, stage by explicit path, and resume with `gt continue` before `gt submit --stack`.
   - Assert that repeated descendant conflicts re-enter the same recovery loop, while only ambiguous, unsafe, unverifiable, verification-failing, continuation-failing, or otherwise unresolved conflicts block and preserve the worktree.
   - Assert that blanket side selection and blanket staging are forbidden, the old unconditional blocker sentence is absent, and the autonomous-resolution and stop-on-uncertainty boundaries survive in `## Hard constraints`.
   - Run `bash skills/woostack-sweep/scripts/tests/test-restack-conflict-contract.sh` and confirm it fails against the current contract.
-- [ ] **Step 2: Apply the minimal fix**
+- [x] **Step 2: Apply the minimal fix**
   - Replace the blanket restack-conflict blocker in `skills/woostack-sweep/SKILL.md` with the enumerate stages → inspect replayed intent → reconcile both sides → focused verification → path-scoped stage → `gt continue` loop.
   - Require repeated continuation until the stack-scoped restack completes, then submit the stack and continue the normal sweep; forbid blanket side selection and blanket staging.
   - Narrow the blocker definition and terminal behavior to conflicts the autonomous loop cannot resolve or verify safely, with exact failed-command reporting and preserved worktree/rebase state.
   - Restate the autonomous conflict-recovery boundary in `## Hard constraints` without duplicating the sweep loop in `woostack-execute-overnight`.
-- [ ] **Step 3: Verification**
+- [x] **Step 3: Verification**
   - Run `bash skills/woostack-sweep/scripts/tests/test-restack-conflict-contract.sh` and confirm it passes.
   - Run `bash skills/woostack-sweep/scripts/tests/run-tests.sh` and confirm all sweep contract tests pass.
   - Read the final restack step in sequence and confirm `gt submit --stack` occurs only after successful conflict continuation, while unresolved failures preserve the worktree.
