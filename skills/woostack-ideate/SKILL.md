@@ -115,7 +115,10 @@ above is unchanged.
 - **Multiple choice preferred.** Easier to answer than open-ended when the options are clear.
 - **YAGNI ruthlessly.** Cut unnecessary features from every design.
 - **Least code wins.** Prefer the smallest solution that already exists — stdlib, a native
-  feature, an installed dependency — before proposing a new abstraction or dependency.
+  feature, an installed dependency — before proposing a new abstraction or dependency. Understand
+  the problem before choosing the smallest shape; YAGNI cuts speculative features, never
+  validation, error handling, security, accessibility, or safety redundancy. Apply the full
+  standard in [`patterns.md §10`](../woostack-bootstrap/references/patterns.md).
 - **Explore alternatives.** Always weigh 2-3 approaches before settling.
 - **Incremental validation.** Present, get approval, then move on.
 - **Be flexible.** Go back and clarify whenever something stops making sense.
