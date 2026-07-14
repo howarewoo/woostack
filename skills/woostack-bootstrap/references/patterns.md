@@ -155,8 +155,30 @@ oRPC contracts encode this: changing a `z.object` field is a code-level signal o
 - Generics over duplication.
 - Introduce shared helper types in `@infrastructure/utils` when you need them in more than one place.
 
-## 10. Code size & comments
+## 10. Least code & comments
 
+Write as little code as necessary — but never at the cost of correctness or safety. Understand the
+problem first, then take the first rung that holds.
+
+- **The ladder.** Before adding code, walk the rungs and stop at the first that works: (1) YAGNI —
+  is it needed at all? (2) in-tree reuse — a helper/util/pattern that already exists here; (3)
+  stdlib; (4) a native platform feature; (5) an already-installed dependency; (6) one line; (7)
+  only then the minimum new code that works. The review
+  [`simplify` angle](../../woostack-review/prompts/angles/simplify.md) enforces this ladder.
+- **Read first (delta A).** The ladder runs *after* you understand the problem: read the code the
+  change touches and trace the real flow end to end before picking a rung. Lazy about the
+  solution, never about reading — the smallest change in the wrong place is a second bug.
+- **Equal-size tie-breaker (delta B).** When two approaches are the same size, pick the
+  edge-case-correct one. Lazy means less code, not the flimsier algorithm.
+- **Never-cut list (delta C).** Never shrink code by dropping validation, error handling,
+  security, accessibility, or data-loss handling. Keep deliberate multi-layer safety redundancy
+  (it is not DRY-removable); prefer scoped parsing over a greedy regex; a behavior-changing
+  simplification keeps its regression test.
+- **Boring over clever (delta D).** Deletion over addition; boring over clever. Code is small
+  because it's necessary, not because it's golfed.
+- **Deliberate-corner marker (delta E).** A knowingly-cut corner with a known ceiling (global
+  lock, O(n²) scan, naive heuristic) leaves a `why` comment naming the ceiling and the upgrade
+  path, and is distilled as a memory `gotcha`.
 - Non-test source files: ≤ 500 lines.
 - User-facing components + procedures: JSDoc with purpose, inputs, outputs.
 - Comments explain **why** when non-obvious (hidden constraint, workaround, surprising invariant). Skip the **what** — code names that.
