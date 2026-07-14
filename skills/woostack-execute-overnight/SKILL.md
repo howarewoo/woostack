@@ -163,8 +163,9 @@ Overnight owns the wrapping around each delegated sweep:
 - **Blocker → halt the track** — when `woostack-sweep` ends a track's sweep on a **blocker**,
   leave its worktree in place for morning inspection, record the blocked PR (`blocked`) and every
   PR above it (`not-attempted-review`), and **advance to the next track** per
-  [Tracks & halt policy](#tracks--halt-policy). Reaching the `max_rounds` cap with **only nits**
-  is **not** a blocker — that PR is `done-with-findings` and the sweep moves on.
+  [Tracks & halt policy](#tracks--halt-policy). A PR whose verdict has **only nits** is **not** a
+  blocker — `woostack-sweep` addresses the nits in a single pass and moves on, recording it
+  `done-with-findings`.
 - **Sweep can't run → `sweep-unavailable`** — if the contracted `woostack-review --full` swarm
   cannot run when invoked mid-run (the review engine is unavailable or a provider/model fails to
   resolve), this is a **blocker for that track** — **never** silently fall back to a self/structural
@@ -189,8 +190,9 @@ artifact, like `.woostack/visuals/`), so it never rides into an increment PR and
 tree for the review / address-comments clean-tree preconditions. Sections:
 
 - **Needs you** (top): blockers, any **outstanding nits** on `done-with-findings` PRs
-  (approved-with-nits that hit the `max_rounds` cap — to address in the morning, distinct from
-  blockers), and a morning **test checklist** (what to verify, the HEAD branch per track).
+  (approved-with-nits the sweep left open after its single address pass — to review in the
+  morning, distinct from blockers), and a morning **test checklist** (what to verify, the HEAD
+  branch per track).
 - **Run summary**: plan, driver, start/end, outcome (`clean` / `done-with-findings` /
   `partial+blockers` / `sweep-unavailable` / `refused-to-start`). `clean` always means
   swarm-derived (a real `woostack-review --full` receipt per swept PR); a sweep that could not run
@@ -204,10 +206,11 @@ tree for the review / address-comments clean-tree preconditions. Sections:
 ## Terminal state
 
 Stop when every track has either completed (increments implemented, then swept until every PR is
-**clean or approved-with-only-nits at the cap** — no blocking findings remain anywhere) or halted at
+**clean or approved-with-only-nits** — no blocking findings remain anywhere) or halted at
 a blocking blocker. The result is a Graphite stack (linear, or tree-stacked across tracks) of
-increment PRs each driven to a clean review — or, at the cap, approved with only nits logged for the
-morning — or partially, with blockers logged — plus a complete morning report. Report the path. "Clean" is review-clean, never a merge. **Never merge.**
+increment PRs each driven to a clean review — or approved with only nits, addressed in a single
+pass and any left open logged for the morning — or partially, with blockers logged — plus a
+complete morning report. Report the path. "Clean" is review-clean, never a merge. **Never merge.**
 
 When the whole plan reaches 100% — every track's increments implemented and every plan checkbox
 `[x]` — author the plan's terminal `status: done` **once** (never per-track) and commit the bump via

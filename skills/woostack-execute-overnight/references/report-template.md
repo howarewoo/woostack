@@ -34,10 +34,10 @@
 
 | Track | PR | Rounds (of {{max_rounds}}) | Final verdict | No-progress? | Blocker |
 |---|---|---|---|---|---|
-| {{A}} | {{#}} | {{r}} | {{clean / done-with-findings / blocked}} | {{yes / no}} | {{— / nits-at-cap / cap-blocking / no-progress / review-error / restack-conflict / unsafe}} |
+| {{A}} | {{#}} | {{r}} | {{clean / done-with-findings / blocked}} | {{yes / no}} | {{— / nits-addressed / cap-blocking / no-progress / review-error / restack-conflict / unsafe}} |
 
 ## Decision log
 
 <!-- Appended live, one line per autonomous decision. -->
 
-- {{stamp}} — {{decision (debug fix / auto-address round / sweep review round / sweep PR clean / sweep PR done-with-findings: nits-at-cap / sweep blocked: cap-blocking | no-progress | review-error | restack-conflict | unsafe / BLOCKED / blocker recorded / track ended / increment not-attempted) + rationale}}
+- {{stamp}} — {{decision (debug fix / auto-address round / sweep review round / sweep PR clean / sweep PR done-with-findings: nits-addressed / sweep blocked: cap-blocking | no-progress | review-error | restack-conflict | unsafe / BLOCKED / blocker recorded / track ended / increment not-attempted) + rationale}}
