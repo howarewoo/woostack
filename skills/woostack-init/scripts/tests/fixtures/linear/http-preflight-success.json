@@ -1,0 +1,26 @@
+{
+  "data": {
+    "viewer": {"id": "viewer-1", "name": "Ada", "organization": {"id": "org-1", "name": "Acme", "urlKey": "acme"}},
+    "teams": {"nodes": [{"id": "team-1", "key": "ENG", "name": "Engineering"}, {"id": "team-2", "key": "OPS", "name": "Operations"}], "pageInfo": {"hasNextPage": false, "endCursor": null}},
+    "projectStatuses": {"nodes": [
+      {"id": "ps-draft", "name": "Draft", "type": "backlog"},
+      {"id": "ps-hardened", "name": "Hardened", "type": "started"},
+      {"id": "ps-approved", "name": "Approved", "type": "started"},
+      {"id": "ps-planning", "name": "Planning", "type": "started"},
+      {"id": "ps-ready", "name": "Ready", "type": "started"},
+      {"id": "ps-executing", "name": "In Progress", "type": "started"},
+      {"id": "ps-review", "name": "In Review", "type": "started"},
+      {"id": "ps-done", "name": "Completed", "type": "completed"},
+      {"id": "ps-abandoned", "name": "Canceled", "type": "canceled"}
+    ], "pageInfo": {"hasNextPage": false, "endCursor": null}},
+    "workflowStates": {"nodes": [
+      {"id": "ws-planned", "name": "Backlog", "type": "backlog", "team": {"id": "team-1", "key": "ENG"}},
+      {"id": "ws-executing", "name": "In Progress", "type": "started", "team": {"id": "team-1", "key": "ENG"}},
+      {"id": "ws-review", "name": "In Review", "type": "started", "team": {"id": "team-1", "key": "ENG"}},
+      {"id": "ws-done", "name": "Done", "type": "completed", "team": {"id": "team-1", "key": "ENG"}},
+      {"id": "ws-blocked", "name": "Blocked", "type": "canceled", "team": {"id": "team-1", "key": "ENG"}},
+      {"id": "ws-ops", "name": "Backlog", "type": "backlog", "team": {"id": "team-2", "key": "OPS"}}
+    ], "pageInfo": {"hasNextPage": false, "endCursor": null}},
+    "mutationCapabilities": {"fields": [{"name": "projectCreate"}, {"name": "projectUpdate"}, {"name": "documentCreate"}, {"name": "documentUpdate"}, {"name": "issueCreate"}, {"name": "issueUpdate"}, {"name": "issueRelationCreate"}]}
+  }
+}

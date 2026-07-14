@@ -99,20 +99,20 @@ branch: feature/linear-artifact-backend
 - Create: `skills/woostack-init/scripts/tests/fixtures/linear/http-*.json`
 - Modify: `skills/woostack-init/scripts/tests/run-tests.sh`
 
-- [ ] **Step 1: Add transport fixtures and failing tests**
+- [x] **Step 1: Add transport fixtures and failing tests**
   Test exact behavior for: successful data; HTTP 401/403/429/5xx; HTTP 200 with top-level `errors`; partial `data` plus `errors`; malformed JSON; missing `LINEAR_API_KEY`; bounded retry for explicitly transient read queries; no blind mutation retry; retry timing extraction; and redaction of authorization values from stdout/stderr/receipt output. Use a fake `curl` executable prepended to `PATH` so the suite is offline.
 
-- [ ] **Step 2: Run transport tests red**
+- [x] **Step 2: Run transport tests red**
   Run: `bash skills/woostack-init/scripts/tests/test-linear-transport.sh`
   Expected: FAIL because `linear-request.sh` does not exist.
 
-- [ ] **Step 3: Implement request classification**
+- [x] **Step 3: Implement request classification**
   Implement `linear-request.sh --operation <query|mutation> --document <path> --variables <json>`. Require `LINEAR_API_KEY`; POST to `https://api.linear.app/graphql`; separate headers/body/status; reject any GraphQL `errors` array; classify auth, rate-limit, retryable transport/server, and terminal client failures; retry only read queries with a fixed bounded attempt count; emit canonical response JSON on stdout and non-secret diagnostics on stderr.
 
-- [ ] **Step 4: Add schema preflight query**
+- [x] **Step 4: Add schema preflight query**
   Add a named GraphQL document that resolves viewer/workspace, teams, project statuses, team workflow states, and required project/document/issue/relation mutation capabilities. Tests assert missing or ambiguous configured names are reported before a write operation.
 
-- [ ] **Step 5: Run transport tests green**
+- [x] **Step 5: Run transport tests green**
   Run: `bash skills/woostack-init/scripts/tests/test-linear-transport.sh`
   Expected: PASS with no network access and no secret material in captured output.
 
@@ -124,21 +124,21 @@ branch: feature/linear-artifact-backend
 - Create: `skills/woostack-init/scripts/tests/fixtures/linear/metadata-*.md`
 - Modify: `skills/woostack-init/scripts/tests/run-tests.sh`
 
-- [ ] **Step 1: Add failing metadata tests**
+- [x] **Step 1: Add failing metadata tests**
   Assert parse and replace behavior for exactly one `+++ Woostack metadata — managed, do not edit` section containing canonical JSON. Cover round-trip preservation outside the section, sorted compact keys, unsupported schema, absent/duplicate/malformed blocks, foreign repository/project IDs, changed `updatedAt` or content hash, and Unicode human content.
 
-- [ ] **Step 2: Run metadata tests red**
+- [x] **Step 2: Run metadata tests red**
   Run: `bash skills/woostack-init/scripts/tests/test-linear-metadata.sh`
   Expected: FAIL because `linear-metadata.py` does not exist.
 
-- [ ] **Step 3: Implement parser and narrow replacement**
+- [x] **Step 3: Implement parser and narrow replacement**
   Implement Python subcommands `parse`, `replace`, `revision`, and `validate-feature`. Read UTF-8 from stdin, use only the standard library, require schema version `1`, canonicalize JSON with sorted keys and compact separators, preserve all bytes outside the managed section, and return nonzero with path-free diagnostics for invalid ownership or concurrency.
 
-- [ ] **Step 4: Run metadata and full init suites**
+- [x] **Step 4: Run metadata and full init suites**
   Run: `bash skills/woostack-init/scripts/tests/test-linear-metadata.sh && bash skills/woostack-init/scripts/tests/run-tests.sh`
   Expected: PASS.
 
-- [ ] **Step 5: Commit Increment 2**
+- [x] **Step 5: Commit Increment 2**
   Run: `gt create -m "feat(linear): add fail-closed GraphQL transport"`
   Expected: one PR containing transport, metadata transforms, fixtures, and focused tests.
 

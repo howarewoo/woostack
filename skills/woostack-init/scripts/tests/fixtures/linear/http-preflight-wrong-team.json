@@ -1,0 +1,9 @@
+{
+  "data": {
+    "viewer": {"id": "viewer-1", "name": "Ada", "organization": {"id": "org-1", "name": "Acme", "urlKey": "acme"}},
+    "teams": {"nodes": [{"id": "team-1", "key": "ENG", "name": "Engineering"}, {"id": "team-2", "key": "OPS", "name": "Operations"}], "pageInfo": {"hasNextPage": false, "endCursor": null}},
+    "projectStatuses": {"nodes": [{"id": "ps-1", "name": "Draft", "type": "backlog"}], "pageInfo": {"hasNextPage": false, "endCursor": null}},
+    "workflowStates": {"nodes": [{"id": "ws-2", "name": "Backlog", "type": "backlog", "team": {"id": "team-2", "key": "OPS"}}], "pageInfo": {"hasNextPage": false, "endCursor": null}},
+    "mutationCapabilities": {"fields": [{"name": "projectCreate"}, {"name": "projectUpdate"}, {"name": "documentCreate"}, {"name": "documentUpdate"}, {"name": "issueCreate"}, {"name": "issueUpdate"}, {"name": "issueRelationCreate"}]}
+  }
+}
