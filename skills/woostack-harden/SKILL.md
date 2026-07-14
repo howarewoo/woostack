@@ -26,10 +26,10 @@ decisions one by one.
   first so downstream questions are well-posed.
 - **Angle pre-flight.** Walk the
   [spec/plan angle pre-flight](references/angle-preflight.md) when hardening a spec or plan, and
-  always walk its premise lens when hardening a fix. Raise a question for any angle the artifact's
-  surface implicates but leaves unaddressed — its skip rule keeps untouched angles silent, except
-  the premise lens, which never skips and applies its artifact-specific evidence rule. This makes
-  the interview angle-driven, not only decision-tree-driven.
+  always walk its premise lens when hardening a design or fix. Raise a question for any angle the
+  artifact's surface implicates but leaves unaddressed — its skip rule keeps untouched angles
+  silent, except the premise lens, which never skips and applies its artifact-specific evidence
+  rule. This makes the interview angle-driven, not only decision-tree-driven.
 
 ## Amend the artifact in place
 
@@ -42,8 +42,9 @@ nothing.
 
 ## Terminal state: hardened, handed back
 
-Stop when a full pass over the decision tree produces **no new questions** and — for a spec or
-plan — every angle the artifact implicates is addressed (the
+Stop when a full pass over the decision tree produces **no new questions**; for a spec or plan,
+every angle the artifact implicates is addressed; and for a spec, plan, design, or fix, the
+premise lens's artifact-specific evidence rule is satisfied (the
 [angle pre-flight](references/angle-preflight.md) walks clean). The artifact is hardened. Then
 hand back to the caller and name the next step:
 
@@ -71,8 +72,8 @@ the caller is what preserves woostack-build's "inherit gates, add none."
 - **Angle pre-flight (spec/plan).** Before declaring a spec or plan hardened, walk the
   [angle pre-flight](references/angle-preflight.md); raise a question for each implicated-but-
   unaddressed angle. No gate; amend in place.
-- **Premise before solution (never skips).** Before declaring a spec, plan, or fix `hardened`, walk
-  the premise lens first and follow its artifact-specific recording rule
+- **Premise before solution (never skips).** Before declaring a spec, plan, design, or fix
+  `hardened`, walk the premise lens first and follow its artifact-specific recording rule
   ([`references/angle-preflight.md`](references/angle-preflight.md)). For a plan, verify the linked
   source spec's §1 rather than amending the plan. This adds no gate: a disproven premise is killed
   at the caller's approve gate.
