@@ -1,0 +1,11 @@
+{
+  "data": {
+    "projects": {
+      "nodes": [],
+      "pageInfo": {
+        "hasNextPage": true,
+        "endCursor": null
+      }
+    }
+  }
+}

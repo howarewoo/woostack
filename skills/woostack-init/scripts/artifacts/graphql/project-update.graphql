@@ -1,0 +1,14 @@
+mutation WoostackProjectUpdate($id: String!, $input: ProjectUpdateInput!) {
+  projectUpdate(id: $id, input: $input) {
+    success
+    project {
+      id
+      name
+      url
+      description
+      archivedAt
+      updatedAt
+      status { id name }
+    }
+  }
+}

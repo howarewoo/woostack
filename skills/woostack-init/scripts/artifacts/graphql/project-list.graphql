@@ -1,0 +1,14 @@
+query WoostackProjectList($after: String) {
+  projects(first: 250, after: $after, includeArchived: true) {
+    nodes {
+      id
+      name
+      url
+      description
+      archivedAt
+      updatedAt
+      status { id name }
+    }
+    pageInfo { hasNextPage endCursor }
+  }
+}

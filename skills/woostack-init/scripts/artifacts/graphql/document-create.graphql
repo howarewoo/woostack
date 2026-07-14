@@ -1,0 +1,12 @@
+mutation WoostackDocumentCreate($input: DocumentCreateInput!) {
+  documentCreate(input: $input) {
+    success
+    document {
+      id
+      title
+      url
+      updatedAt
+      project { id }
+    }
+  }
+}
