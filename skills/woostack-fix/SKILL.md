@@ -128,7 +128,7 @@ approved execution has actually run.
    # Fix: <Short description of the bug/symptom>
 
    ## 1. Root Cause
-   *Summarize the findings from woostack-debug. Where does the bad value originate? What is the evidence?*
+   *Summarize the findings from woostack-debug. Where does the bad value originate? What is the evidence?* **For an enhancement (no bad value to trace), demonstrate the current behavior is genuinely deficient — a baseline, not an assertion. Harden's premise lens gates this.**
 
    ## 2. Proposed Fix
    *Describe the minimal, targeted code changes to resolve the root cause. Fix the shared root once: grep every caller, and prefer one guard at the shared function over one-per-caller patches — smaller diff and correct. Never drop edge-case or safety coverage to shrink the change (per [`patterns.md §10`](../woostack-bootstrap/references/patterns.md)).*

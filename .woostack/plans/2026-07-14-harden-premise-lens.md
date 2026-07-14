@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-07-14-harden-premise-lens.md
-status: ready
+status: done
 branch: feature/harden-premise-lens
 ---
 
@@ -26,7 +26,7 @@ All commands run from the repository root (the worktree root: `.woostack/worktre
 **Files:**
 - Modify: `skills/woostack-harden/references/angle-preflight.md` (insert new section before line 19 `## Skip rule (YAGNI)`; amend the Skip rule body, lines 19-23)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
   Confirm the section does not exist yet and the current Skip rule wording is present (the baseline we will amend):
   ```bash
   grep -c '^## Premise lens' skills/woostack-harden/references/angle-preflight.md
@@ -35,11 +35,11 @@ All commands run from the repository root (the worktree root: `.woostack/worktre
   grep -cE '^- \*\*(security|observability|bugs|tests|api|database|i18n|deps|infra|architecture|types)\*\*' skills/woostack-harden/references/angle-preflight.md
   ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
   Run: (the three commands above)
   Expected: first prints `0` (no premise-lens section yet); second prints the line `22:...Do not manufacture questions for` (current Skip rule body intact, our edit anchor); third prints `15` (the pre-edit code-angle baseline).
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
   Insert a new `## Premise lens` section **immediately before** `## Skip rule (YAGNI)` (before line 19), so the never-skip lens leads the file:
   ```markdown
   ## Premise lens — is the problem real? (never skips)
@@ -68,7 +68,7 @@ All commands run from the repository root (the worktree root: `.woostack/worktre
   lens above is exempt — it never skips; every change rests on a premise.**
   ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
   Run:
   ```bash
   # New section present, and positioned before the Skip rule (order check):
@@ -80,7 +80,7 @@ All commands run from the repository root (the worktree root: `.woostack/worktre
   ```
   Expected: `ORDER_OK`; `1`; and `15` (9 spec-lens single-name bullets + 6 plan-lens single-name bullets — the combined `- **api / database**` plan bullet is intentionally not matched by the single-name pattern; the `## Spec lens` / `## Plan lens` bodies are untouched, so this equals the pre-edit count).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt create -m "docs(harden): add non-skippable premise lens to angle pre-flight"
   ```
@@ -92,17 +92,17 @@ All commands run from the repository root (the worktree root: `.woostack/worktre
 - Modify: `skills/woostack-fix/SKILL.md` (extend the embedded §1 Root Cause guidance, line 131)
 - Verify unchanged: `skills/woostack-build/references/spec-template.html`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
   ```bash
   grep -c 'Premise / evidence' skills/woostack-build/references/spec-template.md
   grep -c 'demonstrate the current behavior is genuinely deficient' skills/woostack-fix/SKILL.md
   ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
   Run: (both commands above)
   Expected: both print `0` — neither template carries the evidence field yet.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
   In `spec-template.md`, insert this authoring blockquote between the `## 1. Problem` heading (line 18) and the `{{PROBLEM}}` placeholder (line 20), mirroring the §7 pre-flight callout pattern (blank line above and below):
   ```markdown
   > **Premise / evidence.** State the evidence the problem is real. A derived claim about current behavior must be *demonstrated* (a baseline/repro), not asserted — harden's premise lens will not stamp this spec `hardened` otherwise. A self-evident premise (visible bug, explicit request) just cites the repro/request.
@@ -112,7 +112,7 @@ All commands run from the repository root (the worktree root: `.woostack/worktre
      *Summarize the findings from woostack-debug. Where does the bad value originate? What is the evidence?* **For an enhancement (no bad value to trace), demonstrate the current behavior is genuinely deficient — a baseline, not an assertion. Harden's premise lens gates this.**
   ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
   ```bash
   # Both evidence fields present:
   grep -c 'Premise / evidence' skills/woostack-build/references/spec-template.md
@@ -124,7 +124,7 @@ All commands run from the repository root (the worktree root: `.woostack/worktre
   ```
   Expected: `1`; `1`; then `0` (no premise text in the HTML); `9` (all nine section headings still present); and the `git status` line is **empty** (the `.html` file is not modified).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt modify -c -m "docs(templates): demand premise evidence in spec and fix §1"
   ```
@@ -134,17 +134,17 @@ All commands run from the repository root (the worktree root: `.woostack/worktre
 **Files:**
 - Modify: `skills/woostack-harden/SKILL.md` (narrative bullet, lines 27-30; new `## Hard constraints` bullet after line 71)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
   ```bash
   grep -c 'never skips' skills/woostack-harden/SKILL.md
   grep -c 'Premise before solution' skills/woostack-harden/SKILL.md
   ```
 
-- [ ] **Step 2: Run the test, confirm it fails**
+- [x] **Step 2: Run the test, confirm it fails**
   Run: (both commands above)
   Expected: both print `0` — the SKILL does not yet name the never-skip premise lens in either location.
 
-- [ ] **Step 3: Minimal implementation**
+- [x] **Step 3: Minimal implementation**
   (a) Amend the narrative **Angle pre-flight** bullet (lines 27-30) so the premise lens is the stated exception — replace the bullet with:
   ```markdown
   - **Angle pre-flight.** When hardening a spec or plan, walk the
@@ -163,7 +163,7 @@ All commands run from the repository root (the worktree root: `.woostack/worktre
     disproof. This adds no gate: a disproven premise is killed at the caller's approve gate.
   ```
 
-- [ ] **Step 4: Run the test, confirm it passes**
+- [x] **Step 4: Run the test, confirm it passes**
   ```bash
   # Both edits present:
   grep -c 'never skips' skills/woostack-harden/SKILL.md          # narrative + hard-constraint => 2
@@ -173,7 +173,7 @@ All commands run from the repository root (the worktree root: `.woostack/worktre
   ```
   Expected: `2` (the phrase "never skips" now appears in both the narrative bullet and the hard-constraint bullet); `1`; `PLACEMENT_OK`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt modify -c -m "docs(harden): name the never-skip premise lens in both SKILL pre-flight sites"
   ```
@@ -182,7 +182,7 @@ All commands run from the repository root (the worktree root: `.woostack/worktre
 
 > Verification-only — no file edit, so **no commit**. Pins the negative invariants (AC4) and runs the two §8 checks that are not per-edit greps.
 
-- [ ] **Step 1: Scope guards — premise is NOT a review angle (AC4 edge)**
+- [x] **Step 1: Scope guards — premise is NOT a review angle (AC4 edge)**
   Run:
   ```bash
   # VALID_ANGLES must NOT contain "premise":
@@ -196,7 +196,7 @@ All commands run from the repository root (the worktree root: `.woostack/worktre
   ```
   Expected: `0` (premise not in `VALID_ANGLES`); `0` (no rubric file); `1` (note intact); `1` (priority explicitly out of scope in the premise lens).
 
-- [ ] **Step 2: Cross-link integrity + no-duplication (AC4 error)**
+- [x] **Step 2: Cross-link integrity + no-duplication (AC4 error)**
   Run:
   ```bash
   # Every relative link the new/edited content points at resolves to a real file:
@@ -208,7 +208,7 @@ All commands run from the repository root (the worktree root: `.woostack/worktre
   ```
   Expected: `LINK_OK_preflight`; and each `grep -rl` prints exactly one path — `skills/woostack-harden/references/angle-preflight.md` — confirming the templates and SKILL reference the rule (by prose/link) rather than duplicating its full text.
 
-- [ ] **Step 3: Docs-site sync check (§8, CLAUDE.md constraint)**
+- [x] **Step 3: Docs-site sync check (§8, CLAUDE.md constraint)**
   Run:
   ```bash
   # No authored docs page restates the pre-flight lens list or harden's constraint set:
@@ -220,7 +220,7 @@ All commands run from the repository root (the worktree root: `.woostack/worktre
   ```
   Expected: `NO_AUTHORED_PAGE_MENTIONS (expected)`; `pnpm -C site build` exits `0`; the `git status` line is empty (generated per-skill pages are gitignored, authored pages untouched). If `site` deps are absent, run `pnpm -C site install` first.
 
-- [ ] **Step 4: Behavioral dogfood (§8 — corroborating evidence, not a CI gate)**
+- [x] **Step 4: Behavioral dogfood (§8 — corroborating evidence, not a CI gate)**
   Construct a throwaway spec whose §1 is a *bare derived assertion* with no baseline, then walk `woostack-harden`'s premise lens against it and confirm the lens fires:
   ```bash
   cat > /tmp/premise-dogfood-spec.md <<'EOF'

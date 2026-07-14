@@ -24,10 +24,12 @@ decisions one by one.
   the codebase instead of asking the user.
 - **Resolve dependencies in order.** When one decision gates another, settle the upstream one
   first so downstream questions are well-posed.
-- **Angle pre-flight.** When hardening a spec or plan, walk the
-  [spec/plan angle pre-flight](references/angle-preflight.md) and raise a question for any angle
-  the artifact's surface implicates but leaves unaddressed — its skip rule keeps untouched angles
-  silent. This makes the interview angle-driven, not only decision-tree-driven.
+- **Angle pre-flight.** Walk the
+  [spec/plan angle pre-flight](references/angle-preflight.md) when hardening a spec or plan, and
+  always walk its premise lens when hardening a fix. Raise a question for any angle the artifact's
+  surface implicates but leaves unaddressed — its skip rule keeps untouched angles silent, except
+  the premise lens, which never skips and applies its artifact-specific evidence rule. This makes
+  the interview angle-driven, not only decision-tree-driven.
 
 ## Amend the artifact in place
 
@@ -69,4 +71,9 @@ the caller is what preserves woostack-build's "inherit gates, add none."
 - **Angle pre-flight (spec/plan).** Before declaring a spec or plan hardened, walk the
   [angle pre-flight](references/angle-preflight.md); raise a question for each implicated-but-
   unaddressed angle. No gate; amend in place.
+- **Premise before solution (never skips).** Before declaring a spec, plan, or fix `hardened`, walk
+  the premise lens first and follow its artifact-specific recording rule
+  ([`references/angle-preflight.md`](references/angle-preflight.md)). For a plan, verify the linked
+  source spec's §1 rather than amending the plan. This adds no gate: a disproven premise is killed
+  at the caller's approve gate.
 - **Own no gate.** Hand back at "no new questions"; never solicit final approval or merge.

@@ -17,6 +17,8 @@ links:
 
 ## 1. Problem
 
+> **Premise / evidence.** State the evidence the problem is real. A derived claim about current behavior must be *demonstrated* (a baseline/repro), not asserted — harden's premise lens will not stamp this spec `hardened` otherwise. A self-evident premise (visible bug, explicit request) just cites the repro/request.
+
 {{PROBLEM}}
 
 ## 2. Goal

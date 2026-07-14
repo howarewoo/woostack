@@ -53,7 +53,7 @@ The exact gating heuristics (file globs and diff-token patterns) live in [`detec
 
 ## Angles also pre-flight authoring
 
-The same angle vocabulary runs **earlier**, too. When [`woostack-harden`](/docs/skills/woostack-harden) hardens a spec or plan (and when [`woostack-plan`](/docs/skills/woostack-plan) self-reviews), they walk a **spec/plan angle pre-flight** that translates each lens into "what to ask before writing," so gaps are caught at authoring instead of surfacing here on the diff. It adds no approval gate; the swarm review described on this page still runs on the code increment PRs.
+The review-angle vocabulary runs **earlier**, too. When [`woostack-harden`](/docs/skills/woostack-harden) hardens a spec or plan (and when [`woostack-plan`](/docs/skills/woostack-plan) self-reviews), it walks a **spec/plan angle pre-flight** that translates each relevant review lens into "what to ask before writing." A separate premise lens leads that pre-flight and never skips: it validates the problem at the earliest problem-bearing artifact (a spec or combined fix), while plan hardening verifies the linked source spec already records the evidence. Neither pre-flight adds an approval gate; the swarm review described on this page still runs on the code increment PRs.
 
 ## Tiers
 
