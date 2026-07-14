@@ -131,7 +131,7 @@ approved execution has actually run.
    *Summarize the findings from woostack-debug. Where does the bad value originate? What is the evidence?*
 
    ## 2. Proposed Fix
-   *Describe the minimal, targeted code changes to resolve the root cause.*
+   *Describe the minimal, targeted code changes to resolve the root cause. Fix the shared root once: grep every caller, and prefer one guard at the shared function over one-per-caller patches — smaller diff and correct. Never drop edge-case or safety coverage to shrink the change (per [`patterns.md §10`](../woostack-bootstrap/references/patterns.md)).*
 
    ## 3. Implementation Plan
    - [ ] **Step 1: Reproduce with a failing test**
@@ -238,6 +238,7 @@ approved execution has actually run.
 ## Hard constraints
 
 - **No guess-and-check.** Always run `woostack-debug` to trace the data flow and confirm the root cause before writing the fix plan.
+- **Least code, still safe.** The fix is the smallest change that resolves the *root* cause per [`patterns.md §10`](../woostack-bootstrap/references/patterns.md) — fix the shared root once, never patch symptoms per-caller, never cut safety coverage.
 - **Debug driver.** Step 1's investigation runs inline or via a read-only `general-purpose` subagent (`--inline`/`--subagent`, smart default = subagent where the host can spawn, else inline); the subagent returns only `woostack-debug`'s Phase 4 handback and needs no worktree. See [Debug investigation mode](#debug-investigation-mode).
 - **One combined markdown file under `.woostack/fixes/`.** Fixes are specified and planned in a single file under `.woostack/fixes/` (not `.woostack/specs/` or `.woostack/plans/`).
 - **Wait for explicit approval.** Never execute a fix plan on inferred or assumed approval. Silence is not a yes; ambiguous "later" answers are Hand off, not Go.

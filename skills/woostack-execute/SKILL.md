@@ -104,7 +104,7 @@ For each increment:
    [references/inline-driver.md](references/inline-driver.md) in inline mode, or
    [references/subagent-driver.md](references/subagent-driver.md) in subagent mode. Both follow
    TDD, run the verifications the plan specifies exactly, and check each task for spec compliance
-   and code quality before it is marked complete. Follow each safe plan step exactly. During a UI-touching increment, the implementer may optionally invoke [impeccable](https://github.com/pbakaus/impeccable) for front-end design craft (host-dependent; proceed normally if it is not installed) — the same optional-detour shape as the `woostack-debug` routing in "When to stop and ask".
+   and code quality before it is marked complete. Follow each safe plan step exactly. During a UI-touching increment, the implementer may optionally invoke [impeccable](https://github.com/pbakaus/impeccable) for front-end design craft (host-dependent; proceed normally if it is not installed) — the same optional-detour shape as the `woostack-debug` routing in "When to stop and ask". Write the least code that satisfies the task per [`patterns.md §10`](../woostack-bootstrap/references/patterns.md) (understand-first, smallest existing solution, why-not-what comments) — without dropping the edge-case, error-path, security, or accessibility coverage the TDD classes already require.
 3. **Tick the plan's checkboxes in place.** Edit the markdown plan, `[ ]` → `[x]`, as each step
    or task completes, so the plan file is the live progress record.
 4. **Commit** via [`woostack-commit`](../woostack-commit/SKILL.md) on the increment's
@@ -238,5 +238,6 @@ not an approval gate. The skill never merges and never auto-addresses review fin
   Inline mode performs them in the controller session; subagent mode dispatches reviewer
   subagents and pauses on a BLOCKED escalation.
 - **Distill durable knowledge only.** Reject-by-default; dedupe; never feature-specific trivia.
+- **Least code, still safe.** Implement the smallest change that passes per [`patterns.md §10`](../woostack-bootstrap/references/patterns.md); never cut validation, error handling, security, or accessibility to shrink a diff.
 - **Never merge, never force-push, never start on a protected branch.**
 - **Own no gate; never auto-address findings.**

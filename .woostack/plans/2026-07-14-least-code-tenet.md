@@ -133,27 +133,27 @@ expected output (per the `woostack-tdd` no-runner substitution).
 **Files:**
 - Modify: `skills/woostack-execute/SKILL.md` (Implement step 2 at line 107; `## Hard constraints` after line 240).
 
-- [ ] **Step 1: Write the failing check**
+- [x] **Step 1: Write the failing check**
   Run: `grep -c "least code that satisfies the task" skills/woostack-execute/SKILL.md`
   Expected: FAIL — prints `0`.
 
-- [ ] **Step 2: Add the Implement-step sentence**
+- [x] **Step 2: Add the Implement-step sentence**
   Append to the end of step 2 ("**Implement** its tasks…", the line ending "…the `woostack-debug` routing in \"When to stop and ask\"."):
   ```markdown
    Write the least code that satisfies the task per [`patterns.md §10`](../woostack-bootstrap/references/patterns.md) (understand-first, smallest existing solution, why-not-what comments) — without dropping the edge-case, error-path, security, or accessibility coverage the TDD classes already require.
   ```
 
-- [ ] **Step 3: Add the Hard-constraints bullet**
+- [x] **Step 3: Add the Hard-constraints bullet**
   Insert after the `- **Distill durable knowledge only.** …` bullet in `## Hard constraints`:
   ```markdown
   - **Least code, still safe.** Implement the smallest change that passes per [`patterns.md §10`](../woostack-bootstrap/references/patterns.md); never cut validation, error handling, security, or accessibility to shrink a diff.
   ```
 
-- [ ] **Step 4: Confirm both references land and the link resolves**
+- [x] **Step 4: Confirm both references land and the link resolves**
   Run: `grep -c "least code that satisfies the task" skills/woostack-execute/SKILL.md && grep -c "patterns.md §10" skills/woostack-execute/SKILL.md && test -f skills/woostack-bootstrap/references/patterns.md && echo OK`
   Expected: PASS — `1`, `2`, `OK`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt create -m "docs: cross-link least-code doctrine from woostack-execute"
   ```
@@ -163,24 +163,25 @@ expected output (per the `woostack-tdd` no-runner substitution).
 **Files:**
 - Modify: `skills/woostack-ideate/SKILL.md` (Key principles, "Least code wins" bullet, lines 117–118).
 
-- [ ] **Step 1: Write the failing check**
+- [x] **Step 1: Write the failing check**
   Run: `grep -c "YAGNI cuts speculative features" skills/woostack-ideate/SKILL.md`
   Expected: FAIL — prints `0`.
 
-- [ ] **Step 2: Extend the "Least code wins" bullet with the guard half**
+- [x] **Step 2: Extend the "Least code wins" bullet with the guard half**
   Replace the existing bullet:
   ```markdown
   - **Least code wins.** Prefer the smallest solution that already exists — stdlib, a native
     feature, an installed dependency — before proposing a new abstraction or dependency. Understand
     the problem before choosing the smallest shape; YAGNI cuts speculative features, never
-    validation, error handling, security, accessibility, or safety redundancy.
+    validation, error handling, security, accessibility, or safety redundancy. Apply the full
+    standard in [`patterns.md §10`](../woostack-bootstrap/references/patterns.md).
   ```
 
-- [ ] **Step 3: Confirm the guard half landed**
-  Run: `grep -c "YAGNI cuts speculative features" skills/woostack-ideate/SKILL.md`
-  Expected: PASS — `1`.
+- [x] **Step 3: Confirm the guard half and cross-link landed**
+  Run: `grep -c "YAGNI cuts speculative features" skills/woostack-ideate/SKILL.md && grep -c "patterns.md §10" skills/woostack-ideate/SKILL.md && test -f skills/woostack-bootstrap/references/patterns.md && echo OK`
+  Expected: PASS — `1`, `1`, `OK`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
   ```bash
   gt modify -c -m "docs: add safety guard to woostack-ideate Least code wins"
   ```
@@ -190,27 +191,27 @@ expected output (per the `woostack-tdd` no-runner substitution).
 **Files:**
 - Modify: `skills/woostack-fix/SKILL.md` (Proposed Fix template line 134; `## Hard constraints` after line 240).
 
-- [ ] **Step 1: Write the failing check**
+- [x] **Step 1: Write the failing check**
   Run: `grep -c "one guard at the shared function" skills/woostack-fix/SKILL.md`
   Expected: FAIL — prints `0`.
 
-- [ ] **Step 2: Sharpen the Proposed Fix template line (delta F)**
+- [x] **Step 2: Sharpen the Proposed Fix template line (delta F)**
   Replace `*Describe the minimal, targeted code changes to resolve the root cause.*` with:
   ```markdown
   *Describe the minimal, targeted code changes to resolve the root cause. Fix the shared root once: grep every caller, and prefer one guard at the shared function over one-per-caller patches — smaller diff and correct. Never drop edge-case or safety coverage to shrink the change (per [`patterns.md §10`](../woostack-bootstrap/references/patterns.md)).*
   ```
 
-- [ ] **Step 3: Add the Hard-constraints bullet**
+- [x] **Step 3: Add the Hard-constraints bullet**
   Insert after `- **No guess-and-check.** …` in `## Hard constraints`:
   ```markdown
   - **Least code, still safe.** The fix is the smallest change that resolves the *root* cause per [`patterns.md §10`](../woostack-bootstrap/references/patterns.md) — fix the shared root once, never patch symptoms per-caller, never cut safety coverage.
   ```
 
-- [ ] **Step 4: Confirm delta F, both §10 links, and the target**
+- [x] **Step 4: Confirm delta F, both §10 links, and the target**
   Run: `grep -c "one guard at the shared function" skills/woostack-fix/SKILL.md && grep -c "patterns.md §10" skills/woostack-fix/SKILL.md && test -f skills/woostack-bootstrap/references/patterns.md && echo OK`
   Expected: PASS — `1`, `2`, `OK`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt modify -c -m "docs: cross-link least-code doctrine from woostack-fix (delta F)"
   ```
@@ -219,19 +220,19 @@ expected output (per the `woostack-tdd` no-runner substitution).
 
 **Files:** none (verification only).
 
-- [ ] **Step 1: Confirm the full paragraph lives in ≤2 shipped files (AC5)**
+- [x] **Step 1: Confirm the full paragraph lives in ≤2 shipped files (AC5)**
   Run: `grep -rl "boring over clever" --include="*.md" AGENTS.md skills site | sort`
   Expected: PASS — exactly two lines: `AGENTS.md` and `skills/woostack-bootstrap/references/patterns.md` (execute/ideate/fix carry pointers, not the paragraph).
 
-- [ ] **Step 2: Confirm the ladder prose is not copied into the authoring skills (AC5)**
+- [x] **Step 2: Confirm the ladder prose is not copied into the authoring skills (AC5)**
   Run: `grep -rl "in-tree reuse" --include="*.md" skills | sort`
   Expected: PASS — exactly one line: `skills/woostack-bootstrap/references/patterns.md`.
 
-- [ ] **Step 3: Confirm every new authoring-skill link resolves (AC6)**
-  Run: `for f in skills/woostack-execute skills/woostack-fix; do (cd "$f" && test -f ../woostack-bootstrap/references/patterns.md && echo "$f OK"); done`
-  Expected: PASS — `skills/woostack-execute OK`, `skills/woostack-fix OK`.
+- [x] **Step 3: Confirm every new authoring-skill link resolves (AC6)**
+  Run: `for f in skills/woostack-execute skills/woostack-ideate skills/woostack-fix; do (cd "$f" && test -f ../woostack-bootstrap/references/patterns.md && echo "$f OK"); done`
+  Expected: PASS — `skills/woostack-execute OK`, `skills/woostack-ideate OK`, `skills/woostack-fix OK`.
 
-- [ ] **Step 4: No commit**
+- [x] **Step 4: No commit**
   Verification-only task — no files change. The checkbox ticks are committed with this increment's
   edit tasks (Tasks 1–3). If a check above failed, fix the offending file in its own task and re-run.
 
