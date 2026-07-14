@@ -64,7 +64,7 @@ the cap.
   `clean`.
 - The no-progress guard stays **blocking-only** (it already is); only its "nits loop to the cap"
   clause is replaced by "nits get one address pass, then advance."
-- Bottom-up, each PR reviewed once on the way up; a fix restacks only the PRs above it; never
+- Bottom-up, each PR handled once on the way up; a fix restacks only the PRs above it; never
   merge, never force-push a protected base, never edit the primary tree.
 
 **Tradeoff (deliberate, matches the request).** Advancing after a single nit address pass skips

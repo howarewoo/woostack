@@ -1,6 +1,6 @@
 ---
 name: woostack-sweep
-description: Use to drive a stack of stacked PRs to a clean review — sweep each increment PR bottom-up (woostack-review --full → woostack-address-comments → restack this stack only → re-review), bounded by review_sweep.max_rounds plus a no-progress guard, to a clean verdict or approved-with-only-nits. Autonomous by default; stops and reports on a blocker. The single home of the review-sweep loop, reused by woostack-execute-overnight per track. Never merges.
+description: Use to drive a stack of stacked PRs to a clean review — sweep each increment PR bottom-up (woostack-review --full → woostack-address-comments → restack this stack only), re-reviewing only while blocking findings remain (bounded by review_sweep.max_rounds plus a no-progress guard) and advancing a no-blocking verdict after a single address pass, to a clean verdict or approved-with-only-nits. Autonomous by default; stops and reports on a blocker. The single home of the review-sweep loop, reused by woostack-execute-overnight per track. Never merges.
 ---
 
 # woostack-sweep
@@ -64,7 +64,10 @@ no-blocking verdict resolves in a single pass (step 2):
 > swarm-derived.
 
 1. **Review** — `woostack-review <PR#> --full`. **Every** round is `--full` (a complete re-review
-   of the whole PR), so a fix that breaks something *outside* its own diff is still caught.
+   of the whole PR), so a **blocking** fix that breaks something *outside* its own diff is
+   re-caught on the next round. The nits-only path is the deliberate exception: it takes a single
+   address pass with **no** re-review (step 2), so the sweep does not re-catch an out-of-diff
+   regression from a nit fix — the accepted nits-only tradeoff.
 2. **Verdict?** — Read the **verdict, not the GitHub event**: self-authored stack PRs get the
    posted event downgraded `APPROVE`→`COMMENT`, so trust `STATUS_LINE`. Branch on it:
    - **No blocking findings + zero unresolved threads** — a valid **review receipt** for this
@@ -72,10 +75,13 @@ no-blocking verdict resolves in a single pass (step 2):
      unresolved threads (checked via `gh`) ⇒ **clean** ⇒ teardown the worktree, advance to the
      next PR up. No receipt for HEAD ⇒ the review did not run ⇒ **`blocked`**, never `clean`.
      "Clean" is **review-clean, not a merge-approval** — the run never merges.
-   - **No blocking findings + open nit threads** ⇒ **address the nits once** (step 3), restack
-     (step 4), then **advance** to the next PR up as `done-with-findings` (record the nits
-     addressed and any left open). Do **not** re-review (step 5): nits get a single address pass,
-     never a loop.
+   - **No blocking findings + open threads** (`APPROVED` / `APPROVED WITH SUGGESTIONS` with
+     unresolved non-blocking comments — nits, and any non-blocking suggestions) ⇒ **address them
+     once** (step 3), restack (step 4), then **advance** to the next PR up as `done-with-findings`
+     (record what was addressed and any left open). Do **not** re-review (step 5): a no-blocking
+     verdict gets a single address pass, never a loop — the no-progress guard and cap are
+     blocking-only, so looping non-blocking findings would only burn rounds before the same
+     `done-with-findings` outcome.
    - **Blocking findings** (request-changes) ⇒ address (step 3), restack (step 4), and re-review
      (step 5), looping up to `max_rounds` (see Termination backstop).
 3. **Address** — otherwise run
