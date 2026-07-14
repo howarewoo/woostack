@@ -1,7 +1,7 @@
 ---
 name: least-code-tenet
 type: spec
-status: hardened
+status: approved
 date: 2026-07-14
 branch: feature/least-code-tenet
 links:
@@ -56,6 +56,7 @@ restated) from the authoring skills. Fold in the genuinely additive improvements
 [`DietrichGebert/ponytail`](https://github.com/DietrichGebert/ponytail) (deltas A–F below) that
 sharpen how our skills generate code, while keeping woostack's leaner single-source + cross-link
 architecture.
+A user-facing docs-site concepts page also surfaces the tenet to consumers of the collection.
 
 ## 3. Non-goals
 
@@ -76,8 +77,8 @@ architecture.
 
 ## 4. Approach
 
-A **targeted 5-file** change: one canonical statement, one detailed doctrine home, three
-cross-links. Exact anchors and current text confirmed by read.
+A **targeted 6-artifact** change: one canonical statement, one detailed doctrine home, three skill
+cross-links, and one user-facing docs-site concepts page. Exact anchors confirmed by read.
 
 **File 1 — `.claude/CLAUDE.md` / `AGENTS.md` (symlinked; edit the real file), Hard constraints.**
 Add the canonical tenet as a new hard-constraint bullet — the tight, authoritative statement that
@@ -132,10 +133,15 @@ constraints.** Sharpen "minimal, targeted code changes" to include **delta F**: 
 root once (grep callers; one guard at the shared function beats one-per-caller — smaller diff and
 correct), without dropping edge-case or safety coverage.
 
-**Docs-site sync check.** `AGENTS.md` per-skill reference pages regenerate from `SKILL.md`; the
-authored framing pages under `site/content/docs/` are unaffected by a tenet bullet + reference
-expansion. Confirm with `pnpm -C site build` only if an authored page turns out to state the skill
-surface/count (it does not for this change).
+**File 6 — `site/content/docs/concepts/least-code.mdx` (new) + nav wiring.** Add a user-facing
+"Core concepts" page presenting the tenet to consumers (Fumadocs MDX: `title` + `description`
+frontmatter, `##` sections, links to `/docs/skills/…` and `/docs/concepts/…`). Wire it into the
+nav two ways: append `"least-code"` to `site/content/docs/concepts/meta.json`'s `pages` array, and
+add a `<Card>` for it to `site/content/docs/concepts/index.mdx`. The page frames the tenet for
+readers (what "least code, still safe" means, the ladder, the guard) and links the skills; it does
+not restate the full `patterns.md §10` prose. Per-`SKILL.md` reference pages still regenerate at
+build; only these authored pages are hand-edited. Confirm the whole site builds with
+`pnpm -C site build`.
 
 ## 5. Components & data flow
 
@@ -165,8 +171,8 @@ Failure modes for a docs/skills change and how each is prevented or caught:
   §10 full); the other three files carry pointers only. Verified in §7 AC5.
 - **Broken cross-links** (wrong relative depth from AGENTS.md at repo root vs. skills). Verified in
   §7 AC6 by resolving each new link target on disk.
-- **Docs-site drift.** Authored pages unaffected; if any authored page states the skill
-  surface/count, `pnpm -C site build` must still pass. Verified in §7 AC7.
+- **Docs-site drift.** File 6 adds one authored page plus two nav wirings; no existing authored
+  page is rewritten. `pnpm -C site build` must pass and the new page must be nav-wired. Verified in §7 AC7.
 - **Over-editing** (touching already-aligned skills). Prevention: non-goals list them explicitly;
   AC scans confirm they are unchanged.
 - **Angle pre-flight (spec lens).** security → the tenet *protects* security/validation checks
@@ -199,8 +205,8 @@ each "test" is a concrete **verification command** with exact expected output (p
   - error: a reference that restates the ladder instead of linking fails (duplication).
   - edge: each link uses the correct relative path from its file's location.
 - **AC4 — Already-aligned skills untouched.**
-  - happy: `git diff --name-only` against base lists only the 5 target files (+ the spec/plan under
-    `.woostack/`).
+  - happy: `git diff --name-only` against base lists only the 6 target files plus the two docs-site
+    nav wirings (`concepts/meta.json`, `concepts/index.mdx`) and the spec/plan under `.woostack/`.
   - error: any diff to `woostack-tdd`, the review angles, or `woostack-audit` is out of scope.
   - edge: N/A.
 - **AC5 — No prose duplication.**
@@ -212,16 +218,17 @@ each "test" is a concrete **verification command** with exact expected output (p
   - happy: every new link target path exists on disk (checked from the linking file's directory).
   - error: a 404 relative path.
   - edge: links from repo-root AGENTS.md vs. from `skills/*/SKILL.md` use different depths.
-- **AC7 — Docs site still builds (guard).**
-  - happy: authored `site/content/docs/` pages need no change (skill surface/count unchanged); if
-    touched, `pnpm -C site build` passes.
-  - error: an authored page contradicting the new tenet.
-  - edge: `N/A` if no authored page references code-brevity doctrine.
+- **AC7 — Docs-site concepts page added and builds.**
+  - happy: `site/content/docs/concepts/least-code.mdx` exists with `title`/`description`
+    frontmatter; `"least-code"` is in `concepts/meta.json` `pages`; `concepts/index.mdx` has its
+    `<Card>`; `pnpm -C site build` exits 0.
+  - error: page present but unwired in `meta.json` (missing from nav) → fails.
+  - edge: the page links `/docs/skills/…` and `/docs/concepts/…`, not repo-relative paths.
 
 ## 8. Testing
 
-Strategy: no test runner in this repo — verification is by `grep`/link-resolution/`git diff`
-scans and a conditional `pnpm -C site build`. Per-behavior checks live in §7. The plan will make
+Strategy: no test runner in this repo — verification is by `grep`/link-resolution/`git diff` scans
+plus a required `pnpm -C site build` (File 6 adds an authored page). Per-behavior checks live in §7. The plan will make
 each AC a checkbox with its exact command and expected output. Manual read-through of each anchor
 confirms wording matches the approved design.
 
@@ -232,11 +239,11 @@ confirms wording matches the approved design.
   §10 is the de-facto cross-skill code standard; a new shared reference would violate least-code.
 - **§10 heading broadens** "Code size & comments" → "Least code & comments" to match the expanded
   content (folded into §4 File 2).
-- **No docs-site page edit in this change** — scanned `site/content/docs/`: `index.mdx` "Minimal
-  dependencies" is skill-architecture (not code brevity) and `concepts/review-angles.mdx` already
-  describes the `simplify` angle (enforcement, accurate). No authored page states a code-brevity
-  *authoring* stance to update; AC7 keeps the build green. Whether to add a user-facing "Least
-  code, still safe" concepts page is a scope call surfaced at the spec-approval gate, not assumed.
+- **Docs-site concepts page ADDED** — at the spec-approval gate the user chose to add a user-facing
+  "Least code, still safe" page (File 6). It joins the existing concept pages
+  (`concepts/meta.json` + an `index.mdx` card) and links the skills; it does not restate
+  `patterns.md §10`. The scan still holds: no *existing* authored page contradicted the tenet, so
+  none is rewritten — only the new page and its two nav wirings are added.
 - **Angle pre-flight (spec lens) walks clean:** security (tenet protects checks; no new threat
   surface), bugs/edge-error (guard clause = the ACs), tests (AC1–7 each carry a verification
   command), deps (none — non-goal), infra (only the AC7 `pnpm -C site build` guard).
