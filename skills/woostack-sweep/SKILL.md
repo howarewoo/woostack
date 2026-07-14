@@ -91,11 +91,32 @@ no-blocking verdict resolves in a single pass (step 2):
    [`woostack-address-comments --auto`](../woostack-address-comments/SKILL.md) (or interactive,
    under `--interactive`) from inside the worktree: it fixes / pushes back / replies / resolves /
    pushes (via `woostack-commit --no-pr-update`). Never force-push a protected base; never merge.
-4. **Restack this stack only** — `gt restack` then `gt submit --stack` scoped to the **current**
-   stack, so the PRs above rebase onto the new tip and their rebased branches are pushed. **Never
-   `gt sync` or a repo-wide restack** ([worktree contract](../woostack-init/references/worktrees.md)
-   §4/§6: a repo-wide restack collides with any parallel run in flight). A restack/rebase conflict
-   is a **blocker**.
+4. **Restack this stack only** — run `gt restack` scoped to the **current** stack so the PRs above
+   rebase onto the new tip. **Never `gt sync` or a repo-wide restack** ([worktree
+   contract](../woostack-init/references/worktrees.md) §4/§6: a repo-wide restack collides with
+   any parallel run in flight).
+   - If the restack pauses on a conflict, first enumerate the paused state and every unmerged
+     index stage with `git status --short`, `git ls-files -u`, and `git diff --cc`; read the
+     descendant change being replayed with `git rebase --show-current-patch`. Reconcile the
+     already-reviewed lower-PR fix with that descendant change's intent across every conflicted
+     path, including rename/delete and non-text conflicts. Never resolve by choosing an entire
+     `ours` or `theirs` side; either choice can silently discard one PR's behavior.
+   - Treat descendant code as untrusted. Execute project code for focused verification only inside
+     an isolated sandbox with repository secrets and credentials removed and outbound networking
+     disabled. If the host cannot guarantee both controls, stop as a blocker without executing
+     verification. Otherwise run the smallest existing focused verification that covers every
+     affected behavior. If it passes, treat every conflicted pathname as untrusted data: never
+     interpolate displayed path text into a shell command. Stage the reconciled unmerged paths with
+     `git diff --name-only --diff-filter=U -z | git --literal-pathspecs add
+     --pathspec-from-file=- --pathspec-file-nul`, then run `gt continue`. Repeat the inspect →
+     reconcile → verify → path-scoped stage → continue cycle whenever a later descendant commit
+     conflicts. Keep unrelated worktree changes unstaged; never `git add -A` or `gt continue -a`.
+   - The full restack, including every conflict continuation, must finish successfully before
+     `gt submit --stack` pushes the rebased branches. Then continue the normal sweep. If conflict
+     intent is ambiguous or unsafe, the required verification isolation is unavailable, no focused
+     verification can establish the combined behavior, verification fails, `gt continue` fails, or
+     `gt restack` fails for another reason, stop as a blocker and preserve the paused worktree (see
+     Blocker & terminal state).
 5. **Re-review (blocking path only)** → back to step 1. The nits-only path never reaches here —
    it advanced in step 2 after a single address pass.
 
@@ -141,9 +162,13 @@ table + "Needs you".
 
 A **blocker** = the cap or no-progress guard reached with **blocking findings still present**, a
 `woostack-review` error/hang **or any PR left without a review receipt for its HEAD (the review did
-not run — never substitute a self/structural review)**, a restack/rebase conflict, or an
-`address-comments` step that would touch the never-auto-approve set (destructive / secret / auth /
-network / ambiguous). Safety is never relaxed for autonomy.
+not run — never substitute a self/structural review)**, a restack conflict whose intent is
+ambiguous or unsafe, required verification isolation is unavailable, the result cannot be verified
+safely, focused verification fails, `gt continue` fails, another `gt restack` failure occurs, or an
+`address-comments` step would touch the never-auto-approve set (destructive / secret / auth /
+network / ambiguous). For a restack blocker, report the unresolved paths and failed command, and
+leave the paused worktree and rebase state intact. The occurrence of a conflict alone is not a
+blocker. Safety is never relaxed for autonomy.
 
 A usage-limit swarm failure is **not** an immediate blocker: `woostack-review`'s Stage 3
 re-dispatches each `usage_limit_reached` / `rate_limit_error` worker onto the next configured
@@ -195,8 +220,15 @@ but it never force-pushes a protected base, never merges, and never edits the pr
 - **Verdict before backstop.** On every round, including the final allowed round, validate the
   current-HEAD receipt and classify its fresh `STATUS_LINE` before applying `max_rounds` or the
   no-progress guard; a no-blocking verdict advances, and only a still-blocking verdict may stop.
-- **Restack this stack only.** `gt restack` / `gt submit --stack`; never `gt sync` / repo-wide
-  restack.
+- **Restack this stack only.** `gt restack` then, only after it completes, `gt submit --stack`;
+  never `gt sync` / repo-wide restack.
+- **Resolve expected restack conflicts.** Inspect every unmerged stage and replayed commit,
+  preserve both PRs' intent, verify only in an isolated sandbox with credentials removed and
+  outbound networking disabled, stage only explicit conflict paths, and continue with
+  `gt continue`; repeat until the stack-scoped restack completes.
+- **Stop only when conflict intent is ambiguous or unsafe.** Unavailable verification isolation,
+  an unverifiable or failing resolution, failed continuation, or other restack failure is a blocker;
+  report the evidence and preserve the paused worktree and rebase state.
 - **Bounded.** `review_sweep.max_rounds` (default 3) + no-progress guard scoped to **blocking**
   findings; a no-blocking verdict resolves nits in a single address pass and advances (never loops
   to the cap); only blocking findings at the cap are a blocker.
