@@ -80,6 +80,14 @@ directory, not in this repo.
 
 ## Hard constraints
 
+- **Least code, still safe.** Skills — and the code they generate — write as little code as
+  necessary: understand the change first, then take the first rung that holds, preferring
+  deletion over addition and boring over clever — small because it is necessary, not golfed.
+  Never buy that smallness by cutting edge cases or risks: validation, error handling, security,
+  accessibility, and data-loss handling stay, and deliberate multi-layer safety redundancy is
+  kept, not DRY-removed. Full standard — the ladder, its deltas, comments, and magic-literal
+  rules — is [`patterns.md §10`](skills/woostack-bootstrap/references/patterns.md), enforced by
+  the `simplify`/`comments` review angles.
 - No fabricated versions. When a skill or generated project needs a version, resolve it
   live with `npm view <pkg> version` or an equivalent registry command.
 - No hidden tools. Do not invent CI, app tests, package scripts, or app build steps for this

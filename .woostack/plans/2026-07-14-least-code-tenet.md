@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-07-14-least-code-tenet.md
-status: ready
+status: executing
 branch: feature/least-code-tenet
 ---
 
@@ -33,11 +33,11 @@ expected output (per the `woostack-tdd` no-runner substitution).
 **Files:**
 - Modify: `AGENTS.md` (`## Hard constraints`, after the heading at line 81) — real file; `.claude/CLAUDE.md` is a symlink to it.
 
-- [ ] **Step 1: Write the failing check**
+- [x] **Step 1: Write the failing check**
   Run: `grep -c "Least code, still safe" AGENTS.md`
   Expected: FAIL — prints `0` (tenet absent).
 
-- [ ] **Step 2: Add the tenet as the first Hard-constraints bullet**
+- [x] **Step 2: Add the tenet as the first Hard-constraints bullet**
   Insert immediately after the `## Hard constraints` heading (before `- No fabricated versions.`):
   ```markdown
   - **Least code, still safe.** Skills — and the code they generate — write as little code as
@@ -54,15 +54,15 @@ expected output (per the `woostack-tdd` no-runner substitution).
     `simplify`/`comments` review angles.
   ```
 
-- [ ] **Step 3: Confirm the tenet, its link, and the symlink**
+- [x] **Step 3: Confirm the tenet, its link, and the symlink**
   Run: `grep -c "Least code, still safe" AGENTS.md && grep -c "skills/woostack-bootstrap/references/patterns.md" AGENTS.md && grep -c "Least code, still safe" .claude/CLAUDE.md`
   Expected: PASS — `1`, `1`, `1` (edit landed in the real file; symlink reflects it).
 
-- [ ] **Step 4: Confirm the link target resolves (AC6)**
+- [x] **Step 4: Confirm the link target resolves (AC6)**
   Run: `test -f skills/woostack-bootstrap/references/patterns.md && echo OK`
   Expected: PASS — `OK`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt create -m "docs: add Least code, still safe tenet to AGENTS.md"
   ```
@@ -72,11 +72,11 @@ expected output (per the `woostack-tdd` no-runner substitution).
 **Files:**
 - Modify: `skills/woostack-bootstrap/references/patterns.md` (§10, lines 158–163) — rename heading, keep the four existing bullets, prepend the ladder + deltas A–E.
 
-- [ ] **Step 1: Write the failing check**
-  Run: `grep -c "Read first (delta A)" skills/woostack-bootstrap/references/patterns.md`
+- [x] **Step 1: Write the failing check**
+  Run: `grep -c -F "Read first (delta A)" skills/woostack-bootstrap/references/patterns.md`
   Expected: FAIL — prints `0` (doctrine absent).
 
-- [ ] **Step 2: Rename §10 and expand it**
+- [x] **Step 2: Rename §10 and expand it**
   Replace the `## 10. Code size & comments` heading and its four bullets with:
   ```markdown
   ## 10. Least code & comments
@@ -110,15 +110,15 @@ expected output (per the `woostack-tdd` no-runner substitution).
   - No magic literals. Extract to `UPPER_SNAKE_CASE` constants with descriptive names.
   ```
 
-- [ ] **Step 3: Confirm rename, deltas, and preserved bullets (AC2)**
-  Run: `grep -c "## 10. Least code & comments" skills/woostack-bootstrap/references/patterns.md && grep -c "## 10. Code size & comments" skills/woostack-bootstrap/references/patterns.md && grep -c "Read first (delta A)" skills/woostack-bootstrap/references/patterns.md && grep -c "No magic literals" skills/woostack-bootstrap/references/patterns.md`
+- [x] **Step 3: Confirm rename, deltas, and preserved bullets (AC2)**
+  Run: `grep -c -F "## 10. Least code & comments" skills/woostack-bootstrap/references/patterns.md ; grep -c -F "## 10. Code size & comments" skills/woostack-bootstrap/references/patterns.md ; grep -c -F "Read first (delta A)" skills/woostack-bootstrap/references/patterns.md ; grep -c -F "No magic literals" skills/woostack-bootstrap/references/patterns.md`
   Expected: PASS — `1`, `0`, `1`, `1` (renamed; read-first present; existing bullet preserved).
 
-- [ ] **Step 4: Confirm the simplify-angle link resolves (AC6)**
+- [x] **Step 4: Confirm the simplify-angle link resolves (AC6)**
   Run: `test -f skills/woostack-review/prompts/angles/simplify.md && echo OK`
   Expected: PASS — `OK` (target of `../../woostack-review/prompts/angles/simplify.md` from §10's dir).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   ```bash
   gt modify -c -m "docs: expand patterns.md §10 into full least-code doctrine"
   ```
