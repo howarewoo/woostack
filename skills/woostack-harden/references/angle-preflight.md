@@ -16,11 +16,34 @@ The actual swarm review still runs on the execution-increment **code** PRs.
 **translates** the relevant angles from "what they flag in a diff" into "what to ask before
 writing."
 
+## Premise lens — is the problem real? (never skips)
+
+Every change rests on a premise: that the problem is real. Walk this lens first for every spec,
+design, or fix. For a plan, follow its canonical source join and verify the linked spec's §1
+already records the premise. The lens is **never** skipped by the YAGNI rule below.
+
+- **State the problem and the evidence it is real.** If the premise is an *inference about current
+  behavior* ("the tool fails to X", "the rubric misses Y"), **demonstrate it** — a reproduction
+  (bug) or a baseline showing the deficiency (enhancement). **Reject assertion-as-evidence.** Lands
+  in §1 Problem (spec), §1 Root Cause (fix), or the named design's problem/rationale section; with
+  no design file, establish the evidence conversationally and write nothing.
+- **Evidence bar scales with the claim.** A self-evident premise (a visible bug, an explicit user
+  request) is satisfied by pointing at the repro/request — no ceremony. Only a *derived* premise
+  about current behavior must be demonstrated.
+- **Harden records, plan re-confirms, the gate decides.** Harden amends the spec/fix §1 or named
+  design's problem/rationale section with the evidence *or the disproof*; with no design file, it
+  establishes the evidence conversationally and writes nothing. When the target is a plan, verify
+  its linked source spec's §1 already carries that record; do not duplicate it in the plan. A
+  disproven premise is killed at the caller's approve gate, not by harden.
+- **Premise ≠ priority.** This lens validates that the problem *exists*, not that it is worth
+  solving vs. other work (out of scope — see the caller's gate).
+
 ## Skip rule (YAGNI)
 
-Walk only the angles whose surface the artifact actually implicates. A spec with no data layer
-skips `database`; a CLI-only change skips `api` and `i18n`. Do not manufacture questions for
-angles the work does not touch.
+Walk only the angles **in the lenses below** (the code-derived Spec/Plan lenses) whose surface the
+artifact actually implicates. A spec with no data layer skips `database`; a CLI-only change skips
+`api` and `i18n`. Do not manufacture questions for angles the work does not touch.
+**The premise lens above is exempt — it never skips; every change rests on a premise.**
 
 ## Spec lens — what to build (lands in §6 Error handling / §7 Acceptance criteria)
 
