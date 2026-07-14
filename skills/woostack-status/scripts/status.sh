@@ -150,7 +150,7 @@ prs_for_spec() {
     suffix="specs/$base"
   fi
   json="$(gh_json pr list --state all --search "$base" \
-          --json number,state,headRefName,author,updatedAt,body --limit 50)"
+          --json number,state,headRefName,author,updatedAt,body,url --limit 50)"
   [ -n "$json" ] || return 0
   # gh --search is fuzzy (tokenizes the path), so it cross-matches look-alike PRs. Narrow
   # with the search, then exact-match a Spec: trailer value in each PR body. The needle
@@ -161,17 +161,17 @@ prs_for_spec() {
             test("^[[:space:]]*Spec:[[:space:]]")
             and (sub("^[[:space:]]*Spec:[[:space:]]*"; "") | gsub("[[:space:]]+$"; "") | endswith($needle))
           ))
-        | [.number, .state, .headRefName, (.author.login // ""), .updatedAt] | @tsv' 2>/dev/null
+        | [.number, .state, .headRefName, (.author.login // ""), .updatedAt, (.url // "")] | @tsv' 2>/dev/null
 }
 
 prs_for_branch() {
   local branch="$1" json
   [ -n "$branch" ] || return 0
   json="$(gh_json pr list --state all --head "$branch" \
-          --json number,state,headRefName,author,updatedAt --limit 20)"
+          --json number,state,headRefName,author,updatedAt,url --limit 20)"
   [ -n "$json" ] || return 0
   printf '%s' "$json" | jq -r \
-    '.[] | [.number, .state, .headRefName, (.author.login // ""), .updatedAt] | @tsv' 2>/dev/null
+    '.[] | [.number, .state, .headRefName, (.author.login // ""), .updatedAt, (.url // "")] | @tsv' 2>/dev/null
 }
 
 resolve_phase() {
@@ -269,7 +269,15 @@ html_escape() {
   printf '%s' "$s"
 }
 
-chip() { printf '<span class="chip c-%s">#%s %s</span>' "$1" "$2" "$3"; }
+chip() {
+  local mark="$1" num="$2" label="$3" url="${4:-}"
+  if [ -n "$url" ]; then
+    printf '<a class="chip c-%s" href="%s" target="_blank" rel="noopener noreferrer">#%s %s</a>' \
+      "$mark" "$(html_escape "$url")" "$num" "$label"
+  else
+    printf '<span class="chip c-%s">#%s %s</span>' "$mark" "$num" "$label"
+  fi
+}
 
 render_html() {
   local tpl="$HERE/board-template.html" out="$WOO_DIR/visuals/status-board.html"
@@ -366,23 +374,23 @@ for f in "${specs[@]}"; do
   fi
   open=0; merged=0; prcount=0; inc_cell="-"; inc_parts=""; inc_html=""
   last_author=""; last_upd_date=""
-  while IFS=$'\t' read -r num state head author upd; do
+  while IFS=$'\t' read -r num state head author upd url; do
     [ -z "$num" ] && continue
     prcount=$((prcount+1))
     case "$state" in OPEN) open=$((open+1)) ;; MERGED) merged=$((merged+1)) ;; esac
     mark="."; case "$state" in MERGED) mark="merged" ;; OPEN) mark="open" ;; CLOSED) mark="closed" ;; esac
     inc_parts="${inc_parts:+$inc_parts . }#$num $mark"
-    inc_html="${inc_html}$(chip "$mark" "$num" "$mark")"
+    inc_html="${inc_html}$(chip "$mark" "$num" "$mark" "$url")"
     last_author="$author"; last_upd_date="${upd:0:10}"
   done < <(prs_for_spec "$specpath")
 
   if [ "$prcount" -eq 0 ] && [ -n "$br" ] && [ "$br" != unknown ]; then
-    while IFS=$'\t' read -r num state head author upd; do
+    while IFS=$'\t' read -r num state head author upd url; do
       [ -z "$num" ] && continue
       prcount=$((prcount+1))
       case "$state" in OPEN) open=$((open+1)) ;; MERGED) merged=$((merged+1)) ;; esac
       inc_cell="#$num (partial)"
-      inc_html="$(chip partial "$num" "(partial)")"
+      inc_html="$(chip partial "$num" "(partial)" "$url")"
       last_author="$author"; last_upd_date="${upd:0:10}"
     done < <(prs_for_branch "$br")
   fi
