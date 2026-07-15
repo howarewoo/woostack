@@ -30,9 +30,21 @@ them.
   frontmatter property mirrors the same spec path. The `**Source:**` line remains the canonical
   join for `/woostack-status` and `woostack-doctor`; both readers also accept the legacy bare-path
   form `**Source:** .woostack/specs/<file>.md`. Slug-match is the final fallback.
-- plan -> PR join: every PR body carries a trailer line `Spec: .woostack/specs/<file>.md`.
-  The board narrows candidates with `gh pr list --search`, then **exact-matches** the trailer
-  value in each PR body to avoid fuzzy cross-matches.
+- plan/issue -> PR join is backend-specific:
+  - **Markdown:** every PR body carries the exact trailer line
+    `Spec: .woostack/specs/<file>.md`. The board narrows candidates with
+    `gh pr list --search`, then **exact-matches** the trailer value in each PR body to avoid
+    fuzzy cross-matches. This spelling and path form are unchanged.
+  - **Linear:** every implementation PR body ends with exactly one
+    `Linear-Project: <uuid>` trailer followed by exactly one
+    `Linear-Issue: <TEAM-NUMBER>` trailer. The values must identify one repository-owned
+    managed issue that belongs to that project; missing API verification, missing or foreign
+    issues, mismatched pairs, and duplicate trailers fail closed. The submitted branch and
+    canonical repository PR URL are stored only in the managed issue metadata after successful
+    Graphite submission and verified adapter read-back. This attribution proves the issue/PR
+    join; it does not prove a merge and does not make the issue eligible for `done`.
+    The atomic transition, evidence write, read-back classification, and retry boundary live in
+    the [backend execution controller](../../woostack-execute/references/controller.md#linear-issue-cadence).
 - Markdown plan frontmatter shape:
   ```yaml
   ---

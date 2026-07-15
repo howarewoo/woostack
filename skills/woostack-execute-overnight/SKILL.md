@@ -1,64 +1,91 @@
 ---
 name: woostack-execute-overnight
-description: Use to execute an approved woostack plan unattended overnight, with autonomous blocker handling, optional tracks, a post-implementation review sweep that clears blocking findings or records approved-with-nits outcomes, and a morning report. Never merges.
+description: Use to execute an approved Markdown plan or Linear project unattended overnight, with autonomous blocker handling, deterministic sequential tracks, post-implementation review sweeps, and a backend-identified morning report. Never merges.
 ---
 
 # woostack-execute-overnight
 
-Execute an approved plan the way [`woostack-execute`](../woostack-execute/SKILL.md) does, but
-**unattended**. Same input (one plan path), same per-increment cadence, same drivers, same hard
+Execute an approved artifact the way [`woostack-execute`](../woostack-execute/SKILL.md) does, but
+**unattended**. Same backend-aware input, same per-increment cadence, same drivers, same hard
 safety invariants — this skill **reuses all of it** and overrides only the three points where
 execute would *stop and ask*, replacing each with an autonomous *resolve-or-log-and-continue*
 policy. It ends by writing a **morning report** a human reads first thing to test the work. It
 **never merges**.
 
-The use case: spend the day crafting a genuinely good plan through the gated build loop, then let
-this run it overnight so the work is waiting — reviewed, or partially reviewed with blockers
+The use case: spend the day crafting a genuinely good artifact through the gated build loop, then
+let this run it overnight so the work is waiting — reviewed, or partially reviewed with blockers
 logged — in the morning.
 
 ## Commands
 
-- `/woostack-execute-overnight <plan-path> [--inline | --subagent]` — execute the named markdown
-  plan under `.woostack/plans/` autonomously. **The plan path is required.** The optional,
-  mutually exclusive mode flag selects the driver; omit it for the smart default. Passing both is
-  an error: stop and ask which.
-- `/woostack-execute-overnight` (no argument) — do **not** guess "the current plan." Ask which
-  plan to execute (optionally list `.woostack/plans/` candidates) and stop until one is named.
-  This is the **only** moment user input is solicited; an unattended run cannot start without a
-  plan.
+- `/woostack-execute-overnight <artifact> [--inline | --subagent]` — execute an approved artifact
+  autonomously. With the Markdown backend, `<artifact>` is the named plan under
+  `.woostack/plans/`; with Linear it is a project UUID, URL, or unambiguous managed reference.
+  **The artifact is required.** The optional, mutually exclusive mode flag selects the driver;
+  omit it for the smart default. Passing both is an error: stop and ask which.
+- `/woostack-execute-overnight` (no argument) — do **not** guess the current artifact. Ask which
+  plan or Linear project to execute (optionally list backend-appropriate candidates) and stop
+  until one is named. This is the **only** moment user input is solicited; an unattended run
+  cannot start without an explicit artifact.
 
 ## What it reuses from woostack-execute
 
 Everything except the stop-points. Do **not** restate these — follow
 [`woostack-execute`](../woostack-execute/SKILL.md):
 
-- **Per-increment cadence**: create per-PR worktree → implement (driver) → tick the plan's
-  checkboxes in place → [`woostack-commit`](../woostack-commit/SKILL.md) → review → distill →
-  teardown worktree. Identical to [`woostack-execute`](../woostack-execute/SKILL.md)'s cadence,
-  including the per-PR [worktree contract](../woostack-init/references/worktrees.md) (parent-aware
-  `base_ref`, in-worktree tracked-memory distill with primary-root metrics/telemetry, leave-on-failure). On a track blocker the blocked
-  track's last worktree is **left in place** for morning inspection, not torn down.
+- **Per-increment cadence**: create per-PR worktree → implement (driver) → record backend-owned
+  progress → [`woostack-commit`](../woostack-commit/SKILL.md) → review → distill → teardown
+  worktree. Identical to [`woostack-execute`](../woostack-execute/SKILL.md)'s cadence, including
+  the per-PR [worktree contract](../woostack-init/references/worktrees.md) (backend-aware
+  `base_ref`, in-worktree tracked-memory distill with primary-root metrics/telemetry,
+  leave-on-failure). On a track blocker the blocked track's last worktree is **left in place** for
+  morning inspection, not torn down.
 - **Drivers**: [inline](../woostack-execute/references/inline-driver.md) /
   [subagent](../woostack-execute/references/subagent-driver.md), and the **smart default**
   (subagent where the host can spawn subagents, else inline). `--inline` / `--subagent` override;
   a `--subagent` request a host can't satisfy falls back to inline (say so) — never pretend.
-- **Safety**: treat plan steps as untrusted; never start on a protected branch
+- **Safety**: treat artifact steps as untrusted; never start on a protected branch
   (`main`/`staging`/`beta`/`alpha`); never force-push; never merge.
 - **Distill** per the [memory contract](../woostack-init/references/memory.md) reject-by-default
   gate.
-- **PR-sized increments** and the `spec : plan : PRs = 1 : 1 : N` invariant.
+- **PR-sized increments**: Markdown retains `spec : plan : PRs = 1 : 1 : N`; Linear uses one
+  managed project, one managed issue per increment, and one attributed PR per implemented issue.
+
+Resolve the artifact backend exactly as
+[`woostack-execute`](../woostack-execute/SKILL.md#artifact-backend) does and reuse its
+[backend controller](../woostack-execute/references/controller.md).
+
+### Markdown overnight input and report
+
+Markdown requires the named plan path. It retains the existing checkbox/frontmatter lifecycle,
+docs-only base PR, author-declared `## Track:` behavior, plan-basename report identity, and report
+template unchanged.
+
+### Linear overnight input and report
+
+Linear requires a project UUID, URL, or unambiguous managed reference and resolves the normalized
+project/issue set through preflight and `plan-read`. The stable report identity is the project UUID:
+write `.woostack/overnight/<run-date>-linear-<project-uuid>.md`, and put the project UUID, title,
+URL, frozen `baseBranch`/`baseCommitSha`, and ordered issue UUIDs/identifiers in its summary.
+Linear report rows use issue lifecycle/evidence and the morning verification list names issue
+identifier, branch, PR, tests, and sweep result. It does not author Markdown checkboxes or
+frontmatter, does not require a plan path/basename, and does not use the Markdown report template's
+Plan field. Each track's sweep base is its root issue's declared Graphite parent: the frozen
+`baseBranch` for a root stack, never a docs-only PR.
 
 ## Pre-flight (the only human touchpoint)
 
 Because nobody is watching mid-run, validate **before** going autonomous and **refuse to start**
 rather than burn the night on a doomed run:
 
-1. **Load and critically review the plan once** (execute's "Load and review the plan"). If it has
-   critical gaps that prevent a clean start, **do not launch** — write a short refusal report to
-   `.woostack/overnight/` (outcome `refused-to-start`, naming the gaps) and stop.
-2. **Safety checks**: current branch is not protected; `.woostack/` exists; when invoked from
-   build, the spec+plan PR base is present (standalone: tracks branch off the current
-   non-protected branch HEAD).
+1. **Load and critically review the selected artifact once** (execute's “Load and review the
+   artifact”). If it has critical gaps that prevent a clean start, **do not launch** — write a
+   short refusal report to `.woostack/overnight/` (outcome `refused-to-start`, naming the gaps)
+   and stop.
+2. **Safety checks**: current branch is not protected; `.woostack/` exists; in Markdown mode when
+   invoked from build, the spec+plan PR base is present. Linear instead requires execution-approved
+   project state, a frozen root branch/SHA, a valid dependency DAG, and valid declared Git parents.
+   Standalone Markdown tracks branch off the current non-protected branch HEAD.
 3. **Review feasibility**: confirm the contracted review swarm can actually run — the host can
    spawn the `woostack-review` sub-agents **and** a review provider/model resolves (the same
    capability signal the smart driver default probes). The post-implementation sweep delegates to
@@ -74,12 +101,12 @@ rather than burn the night on a doomed run:
    (e.g. a second credential for the same provider or a host-level fallback chain covering the tier models).
    Without it, mid-run provider exhaustion halts the track through the normal blocker path;
    this is a recommendation, not a refusal condition.
-4. **Open the report**: create `.woostack/overnight/` if missing and open
-   `.woostack/overnight/<run-date>-<plan-slug>.md` — the run date (`YYYY-MM-DD`, today) plus the
-   plan basename with any leading `YYYY-MM-DD-` stripped (see
-   [Morning report](#morning-report)) — from
-   [references/report-template.md](references/report-template.md). Write it **incrementally** so a
-   crash still leaves a partial record.
+4. **Open the backend report**: create `.woostack/overnight/` if missing. Markdown opens
+   `.woostack/overnight/<run-date>-<plan-slug>.md` from
+   [references/report-template.md](references/report-template.md), retaining its established
+   basename normalization. Linear opens
+   `.woostack/overnight/<run-date>-linear-<project-uuid>.md` using the normalized project/issue
+   fields defined above. Write either report **incrementally** so a crash leaves a partial record.
 
 Clean pre-flight → go autonomous and solicit no further input.
 
@@ -121,22 +148,59 @@ invariant as "safety is never relaxed for autonomy."
 
 ## Tracks & halt policy
 
-A plan may group its increments under top-level **`## Track:` headings**. Each track is its own
-linear `gt` stack branched off the **common base** (the spec+plan PR when invoked from build, else
-the current non-protected branch HEAD). A plan with **no** track headings has **one implicit
-track** — exactly `woostack-execute`'s linear behavior. The convention is **author-driven**:
-[`woostack-plan`](../woostack-plan/SKILL.md) documents and allows it; this skill is the only
-consumer.
+For Markdown, a plan may group increments under top-level **`## Track:` headings**. Each track is
+its own linear `gt` stack branched off the **common base** (the spec+plan PR when invoked from
+build, else the current non-protected branch HEAD). A plan with no track headings has one implicit
+track — exactly `woostack-execute`'s linear behavior. This convention is author-driven and
+Markdown-only.
 
-Process tracks **in order, sequentially** (single session — no real concurrency); within a track,
-increments in order. On a **blocker**:
+### Linear dependency tracks
 
-- **End the current track** at the blocker — never stack new work on broken work; work already
-  committed stays committed (no rollback).
-- **Advance to the next track**, branching its first increment off the common base. Record the
-  blocked track's remaining increments as `not-attempted`.
-- A single-track (default) plan therefore halts the remainder at the blocker — expected and
-  reported, not an error.
+For Linear, derive tracks from native `blocked by` relations and validate their mirror in managed
+metadata. Use each issue's explicit unique ordinal only as the deterministic tie-breaker among
+ready dependency roots; never Linear UI sort, priority, creation time, title order, or adjacency.
+A deterministic ready root starts a dependency track. A Linear track is one maximal linear
+Graphite chain along declared Git-parent edges. Continue that chain only while exactly one ready
+child names the current issue branch as its Git parent. At a fork, close and sweep the current
+chain, then enqueue every ready child as a separate non-root track ordered by explicit unique
+ordinal; each child track uses its declared parent branch as its sweep base. At a join, enqueue the
+issue only after every native dependency satisfies the controller's merged-or-reachable rule and
+its declared Git parent is ready, then apply the same non-root track rule.
+Select one ready independent track at a time; complete or block that track, run its sweep, then
+select the next deterministic ready track. Linear execution remains sequential:
+there is no Linear-only concurrency and no parallel issue or track dispatch.
+
+Within a Linear track, an issue is runnable only when native dependencies and its declared Git
+parent satisfy the shared [controller](../woostack-execute/references/controller.md). The root
+starts at the frozen base SHA; a dependent issue starts at its declared parent issue branch.
+Never infer Graphite ancestry from ordinal or Linear display order.
+
+The Linear sweep base is the track root issue's declared Graphite parent. For a dependency root this is
+the frozen `baseBranch` (while its worktree started at the frozen SHA); for every non-root track it
+is the validated declared parent branch. Sweep only that track's linear issue PRs above the base.
+
+Before attribution, an implementation/test/review/commit/submit failure halts only the affected track.
+Leave its worktree and move the issue to `blocked` only with a verified receipt. Once the
+single attribution transition has been attempted, always discover/read back: exact `inReview`
+plus exact evidence is success despite a lost response; unchanged `executing` is a stopped,
+non-applied attribution attempt that requires a separate verified `executing → blocked`
+transition before another track may start; and partial/mismatched evidence requires manual
+reconciliation. If that blocked transition cannot be verified, halt the overnight run rather than
+claiming the track is isolated. Never issue a second attribution mutation in the same run or infer
+state from transport failure. Append the observed state, issue UUID/identifier,
+operation/classification, receipt/read-back, worktree, branch/PR evidence, and remaining
+`not-attempted` issues to the morning report, then continue only with the next independently ready
+track.
+
+Both backends process one track sequentially (single session — no real concurrency). Markdown uses
+authored track order; Linear uses the deterministic ready-root selection above. On a blocker:
+
+- **End only the current track** — never stack new work on broken work; committed work stays.
+- **Advance to the next eligible track** from its backend-specific base. Record the blocked track's
+  remaining increments/issues as `not-attempted`.
+- A single-track artifact halts its remainder. A later invocation resumes through the controller's
+  discovery/idempotent retry contract; the same overnight run never silently retries a blocked
+  issue.
 
 ## Post-implementation review sweep
 
@@ -147,13 +211,16 @@ loop. This is **additive**: the per-increment override #2 (the `--fast` blocking
 during the build) is unchanged; the sweep is a separate, thorough pass over the finished stack. It
 runs for **both drivers** and **never merges**.
 
-For each track, from the track tip, invoke `woostack-sweep --base <track-base-branch>`, where
-`<track-base-branch>` is the common base (the spec+plan PR branch when invoked from build, else the
-current non-protected branch HEAD). `woostack-sweep` then sweeps that track's increment PRs
-**above the base**, bottom-up, excluding the docs-only spec+plan base PR. The loop mechanics, the
-`review_sweep.max_rounds` + no-progress bounds, and the `clean` / `done-with-findings` / `blocked`
-per-PR outcomes all live in [`woostack-sweep`](../woostack-sweep/SKILL.md) — **do not restate them
-here**.
+For each track, from the track tip, invoke `woostack-sweep --base <track-base-branch>`.
+
+- **Markdown:** `<track-base-branch>` is the common spec+plan PR branch (or standalone current
+  non-protected branch), and the sweep excludes that docs-only base PR.
+- **Linear:** `<track-base-branch>` is the root issue's validated declared Graphite parent described
+  above; the sweep includes only managed issue PRs above it and has no docs-only exclusion.
+
+The loop mechanics, `review_sweep.max_rounds` + no-progress bounds, and `clean` /
+`done-with-findings` / `blocked` outcomes live in
+[`woostack-sweep`](../woostack-sweep/SKILL.md) — **do not restate them here**.
 
 Overnight owns the wrapping around each delegated sweep:
 
@@ -174,34 +241,34 @@ Overnight owns the wrapping around each delegated sweep:
   to the next track per [Tracks & halt policy](#tracks--halt-policy). (Caught earlier as a static
   gap, this is `refused-to-start` at pre-flight instead.)
 
-A plan with no `## Track:` headings has one implicit track, so the default is exactly: implement
-the whole stack, then delegate one `woostack-sweep` over it. The sweep covers **increment PRs
-only** — the `--base` excludes the docs-only spec+plan base PR.
+For Markdown, no `## Track:` headings means one implicit track and one sweep above the docs-only
+base. For Linear, the validated dependency graph supplies roots/tracks and each completed track is
+swept above its root's declared parent.
 
 ## Morning report
 
-Written incrementally to `.woostack/overnight/<run-date>-<plan-slug>.md` — the run date
-(`YYYY-MM-DD`, today) joined to the plan basename **with any leading `YYYY-MM-DD-` stripped** (the
-plan basename already begins with the spec's date, since `woostack-plan` reuses it, so stripping it
-before prefixing the run date keeps the filename a single, run-keyed date instead of doubling it,
-e.g. `2026-06-12-memory-vault.md`, not `2026-06-12-2026-06-12-memory-vault.md`) — from
-[references/report-template.md](references/report-template.md). It is **gitignored** (a per-run
-artifact, like `.woostack/visuals/`), so it never rides into an increment PR and never dirties the
-tree for the review / address-comments clean-tree preconditions. Sections:
+The backend input section above owns the report filename and identity. Both reports are written
+incrementally and are gitignored per-run artifacts, so they never ride an increment PR or dirty
+the review/address-comments worktree. Markdown uses the existing report template unchanged.
+Linear writes the same operational sections but identifies the project and ordered issues rather
+than a plan file.
 
 - **Needs you** (top): blockers, any **outstanding nits** on `done-with-findings` PRs
   (approved-with-nits the sweep left open after its single address pass — to review in the
-  morning, distinct from blockers), and a morning **test checklist** (what to verify, the HEAD
-  branch per track).
-- **Run summary**: plan, driver, start/end, outcome (`clean` / `done-with-findings` /
-  `partial+blockers` / `sweep-unavailable` / `refused-to-start`). `clean` always means
-  swarm-derived (a real `woostack-review --full` receipt per swept PR); a sweep that could not run
-  is `sweep-unavailable`, never a downgraded `clean`.
-- **Per-increment table**: status (`done` / `done-with-findings` / `blocked` / `not-attempted`),
-  branch + PR URL, review verdict, auto-address rounds used, and sweep verdict.
+  morning, distinct from blockers), and concrete morning verification. Markdown names its
+  plan/track HEADs; Linear names issue identifiers, branches/PRs, test evidence, receipt failures,
+  and retained worktrees.
+- **Run summary**: selected backend artifact, driver, start/end, and outcome (`clean` /
+  `done-with-findings` / `partial+blockers` / `sweep-unavailable` / `refused-to-start`). `clean`
+  always means swarm-derived (a real `woostack-review --full` receipt per swept PR); a sweep that
+  could not run is `sweep-unavailable`, never a downgraded `clean`.
+- **Per-increment/issue table**: report-local outcome (`done` / `done-with-findings` / `blocked` /
+  `not-attempted`), native state where applicable, branch + PR URL, review verdict, auto-address
+  rounds used, and sweep verdict. For Linear, `done-with-findings` is only a report verdict; the
+  native issue remains `inReview`.
 - **Review sweep**: per-PR rounds used, final sweep verdict (`clean` / `done-with-findings` /
   `blocked`), no-progress flag, and blocker reason.
-- **Decision log**: every autonomous decision with its rationale.
+- **Decision log**: every autonomous decision with its receipt-backed rationale.
 
 ## Terminal state
 
@@ -212,13 +279,16 @@ increment PRs each driven to a clean review — or approved with only nits, addr
 pass and any left open logged for the morning — or partially, with blockers logged — plus a
 complete morning report. Report the path. "Clean" is review-clean, never a merge. **Never merge.**
 
-When the whole plan reaches 100% — every track's increments implemented and every plan checkbox
-`[x]` — author the plan's terminal `status: done` **once** (never per-track) and commit the bump via
-[`woostack-commit`](../woostack-commit/SKILL.md) `--no-pr-update` before writing the morning report,
-mirroring [`woostack-execute`](../woostack-execute/SKILL.md) step 8. If any track halted on a
-blocker (the plan is not 100%), leave the authored `status:` untouched — `done` is reserved for a
-fully completed plan. This applies to plan files only; a `.woostack/fixes/` file's frontmatter stays
-owned by [`woostack-fix`](../woostack-fix/SKILL.md).
+**Markdown completion.** When the whole plan reaches 100% — every track implemented and every plan
+checkbox `[x]` — author terminal `status: done` once and commit that bump via
+[`woostack-commit`](../woostack-commit/SKILL.md) `--no-pr-update`. A blocked plan leaves authored
+status untouched; fix frontmatter remains owned by [`woostack-fix`](../woostack-fix/SKILL.md).
+
+**Linear completion.** A completed track has every submitted issue verified `inReview` and its
+sweep recorded; a blocked track retains truthful `executing`/`blocked` issue state and evidence.
+When every issue is verified `inReview`, the controller may verify project `inReview`. Overnight
+never writes `done` for an issue or project, never authors plan checkboxes/frontmatter, and never
+waits for merge before producing the morning report.
 
 ## Gate boundary
 
@@ -229,21 +299,20 @@ an inference. It never merges and never relaxes safety for autonomy.
 
 ## Hard constraints
 
-- **Plan path required.** Never guess "the current plan"; ask when no argument is given.
-- **Unattended after launch.** Pre-flight (and the no-arg plan prompt) is the only input; once
-  running, solicit nothing.
-- **Refuse a doomed run.** A plan with critical gaps → refuse at pre-flight with a report; don't
-  start.
-- **Resolve-or-log-and-continue, never relax safety.** debug / bounded auto-address /
+- **Artifact required.** Never guess the current Markdown plan or Linear project; ask when no
+  argument is given.
+- **Unattended after launch.** Pre-flight (and the no-argument artifact prompt) is the only input;
+  once running, solicit nothing.
+- **Refuse a doomed run.** Critical backend artifact gaps produce a refusal report; don't start.
+- **Resolve-or-log-and-continue, never relax safety.** Debug / bounded auto-address /
   blocker-and-halt as above; destructive/secret/auth/network/ambiguous steps are never
   auto-approved.
-- **Tracks: author-driven, overnight-only.** Honor `## Track:` headings (default one implicit
-  track); a blocker ends only its track. Never force-build on broken work.
-- **Drive the stack to clean review (delegated).** After a track's increments are committed,
-  delegate the post-implementation sweep to [`woostack-sweep`](../woostack-sweep/SKILL.md)
-  (`woostack-sweep --base <track-base>`, one invocation per track) — it drives that track's
-  increment PRs to a clean review, bounded by `review_sweep.max_rounds` (default 3). A blocker
-  halts only that track; overnight maps each per-PR outcome into the morning report. Both drivers.
+- **Backend-owned tracks.** Markdown honors authored `## Track:` headings (default one implicit
+  track). Linear derives deterministic ready tracks from native dependencies. A blocker ends only
+  its track; neither backend adds concurrency.
+- **Drive each stack to clean review (delegated).** Delegate
+  `woostack-sweep --base <backend-track-base>` once per completed track; Markdown uses its common
+  base, Linear uses the root issue's declared Graphite parent. A blocker halts only that track.
   Never merge.
 - **Never downgrade a contracted review.** Pre-flight checks review feasibility (static infeasible
   → `refused-to-start`); the post-implementation sweep runs the real `woostack-review --full` swarm

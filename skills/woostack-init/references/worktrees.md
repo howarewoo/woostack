@@ -29,6 +29,21 @@ This value is what a **stack base** branch is cut from and what a **base PR targ
 
 ## 2. Worktree lifecycle
 
+### Artifact-backend boundary
+
+Spec/plan authoring worktrees and docs-only base branches are Markdown-only. Markdown retains the
+full lifecycle below: spec and plan files are authored in a feature worktree, committed as their
+docs-only base PR, and implementation increments stack above it. Linear stores the spec and plan
+in Linear, so it creates no authoring worktree or docs-only base branch; only implementation
+issues receive worktrees.
+
+For a Linear dependency root, create its implementation branch at the project's exact frozen root
+commit SHA (`baseCommitSha`), while tracking the frozen `baseBranch` as its Graphite parent. Do not
+substitute the branch's newer tip. For a dependent Linear issue, create its branch at the declared
+parent issue branch and pass that same branch to `gt track --parent`; additional native
+dependencies must already be merged or reachable from that parent. The controller validates both
+native dependency readiness and Git-parent readiness before creating the worktree.
+
 ### Create (on the first Git-backed write)
 
 ```bash
@@ -99,6 +114,15 @@ Removal-after-commit is safe because `git worktree remove` deletes only the work
 outlives it, so the next increment's `base_ref` still exists to cut from. The plan file was committed
 on the spec+plan branch, so every increment worktree (branching off it) **has the plan**, and the
 increment's checkbox ticks are made there and ride that increment's PR.
+
+Linear uses the same mechanism but not Markdown's implicit “previous increment” rule:
+
+- **Linear dependency root** → `base_ref` is the frozen root commit SHA; Graphite parent is the
+  frozen base branch.
+- **Linear dependent issue** → `base_ref` and Graphite parent are the declared parent issue branch.
+
+Never derive a Linear parent from ordinal adjacency or current branch tips. The issue's declared
+parent is part of the approved plan, and a frozen SHA is immutable after execution approval.
 
 `gt track --parent <parent>` + `gt submit` open/update each PR with **base = parent branch** so
 GitHub renders the stack. **`gt submit` scope:** submit only the current branch's own (disjoint)

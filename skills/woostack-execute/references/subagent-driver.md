@@ -15,6 +15,12 @@ for the other mode.
 spec compliance first, then code quality — each looping until it passes. The controller
 coordinates; it does not implement.
 
+The input to this loop is one Markdown increment's ordered task list or one Linear issue's
+normalized ordered task list, already selected and claimed by the backend
+[controller](controller.md). The driver implements and reviews task content only: it
+does not transition Linear state, write branch/PR attribution, or decide dependency/Git-parent
+readiness.
+
 **Self-contained briefs.** Every dispatched brief (implementer, spec-reviewer, quality-reviewer)
 is **self-contained**, and the workers run on a plain/general-purpose profile: they must **never**
 load `skill://woostack-review` or route via `using-woostack` into the PR-review orchestrator. A
@@ -63,7 +69,7 @@ so commits would land off the PR branch. Do not use them to satisfy this contrac
 
 ## Per-task loop
 
-For each task in the increment, in order:
+For each task in that selected increment task list, in order:
 
 1. **Dispatch an implementer subagent** with [../prompts/implementer.md](../prompts/implementer.md).
    Pass the full task text and exactly the context it needs — the subagent never inherits this
@@ -91,11 +97,15 @@ For each task in the increment, in order:
    [../prompts/quality-reviewer.md](../prompts/quality-reviewer.md) — only after spec compliance
    is ✅ — scoped to the same diff. Fix-and-re-review loop until ✅. Resolve and pass its model per
    [Dispatch model](#dispatch-model-resolve--map--pass) and [Tier selection](#tier-selection).
-5. **Tick the plan's checkboxes in place** for the completed task.
+5. **Record progress after both reviews pass.** For Markdown, tick the plan's checkboxes in place.
+   For Linear, return the local verification result to [controller.md](controller.md); implementers
+   and reviewers write no issue content or lifecycle/evidence fields.
 
 A reviewer finding an issue the implementer cannot resolve surfaces as **BLOCKED** → escalate to
 the user. This is the blocking-stop for subagent mode; there is no `woostack-review --fast`
 `REQUEST_CHANGES` gate here.
+The subagent driver does not transition Linear state. Implementers and reviewers never commit,
+push, submit, or merge; the controller retains those boundaries.
 
 ## Model tiers
 

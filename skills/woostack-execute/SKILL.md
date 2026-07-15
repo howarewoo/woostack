@@ -1,6 +1,6 @@
 ---
 name: woostack-execute
-description: Use to execute an approved woostack plan as PR-sized stacked increments, updating plan progress and status, committing each increment, reviewing the work, and continuing until done. Never merges.
+description: Use to execute an approved Markdown plan or Linear project as PR-sized stacked increments, updating managed progress and lifecycle state, committing each increment, reviewing the work, and continuing until submitted. Never merges.
 ---
 
 # woostack-execute
@@ -14,14 +14,39 @@ reviewed, and distilled before the next. It never merges and owns no approval ga
 
 ## Commands
 
-- `/woostack-execute <plan-path> [--inline | --subagent]` — execute the named markdown plan
-  under `.woostack/plans/`. **The plan path is required.** The optional, mutually exclusive
-  mode flag selects the execution driver (see [Execution mode](#execution-mode)); omit it to
-  take the smart default.
-- `/woostack-execute` (no argument) — do **not** guess "the current plan." Ask which plan to
-  execute (optionally list `.woostack/plans/` candidates) and stop until one is named.
+- `/woostack-execute <artifact> [--inline | --subagent]` — execute an approved artifact. With
+  the Markdown backend, `<artifact>` is the named Markdown plan under `.woostack/plans/`. With the
+  Linear backend, it is a project UUID, URL, or unambiguous managed reference. **The artifact is
+  required.** The optional, mutually exclusive mode flag selects the execution driver (see
+  [Execution mode](#execution-mode)); omit it to take the smart default.
+- `/woostack-execute` (no argument) — do **not** guess the current artifact. Ask which plan or
+  project to execute (optionally list backend-appropriate candidates) and stop until one is named.
 
 Passing both `--inline` and `--subagent` is an error: stop and ask which one to use.
+
+## Artifact backend
+
+Before loading execution input, resolve `.woostack/config.json` through
+`../woostack-init/scripts/artifacts/resolve-backend.sh`. Follow the backend-aware
+[controller contract](references/controller.md); it is the single home for Linear readiness,
+state/receipt ordering, Git-parent validation, managed progress, submission evidence, and
+failure truth.
+
+## Markdown backend (unchanged)
+
+Require the named Markdown plan, then run the existing load/review and per-increment cadence below
+unchanged. The plan file remains the live progress record: tick its checkboxes in place and author
+its established `executing` / terminal `status: done` lifecycle. The Markdown spec+plan docs-only
+PR remains the first increment's stack base. Do not reinterpret or synchronize it as Linear data.
+
+## Linear backend
+
+Accept a Linear project UUID, URL, or unambiguous managed reference. Resolve the normalized ordered
+issue set through the shared artifact adapter, then execute one ready issue at a time through
+[references/controller.md](references/controller.md). The issue is the live task record; execution
+writes only supported native state and managed branch/PR evidence through `issue-transition`.
+Linear execution ends successfully at `inReview`, never `done`, because terminal state requires
+later merge evidence.
 
 ## Execution mode
 
@@ -49,14 +74,15 @@ is available), otherwise inline. If `--subagent` is requested but the host canno
 subagents, say so and fall back to inline (degraded, not equivalent) or stop and ask — never
 pretend subagent mode ran.
 
-When `woostack-build` reaches step 8 it invokes this skill with the plan path it wrote in step 4.
-By then build has already committed the spec and plan as their own PR (build step 7); that
-docs-only PR is the base of the stack, and the increments below stack on top of it.
+When `woostack-build` reaches step 8 it invokes this skill with its selected artifact. In Markdown
+mode, build has already committed the spec and plan as their own PR (build step 7), and that
+docs-only PR is the base of the stack. Linear has no docs-only PR; its frozen base and declared
+issue Git parents drive implementation ancestry.
 
-## Load and review the plan
+## Load and review the artifact
 
-1. Read the plan file.
-2. Review it critically — surface any questions or concerns about the plan, the spec it traces
+1. Read the Markdown plan or normalized Linear project and ordered issues.
+2. Review it critically — surface any questions or concerns about the artifact, the spec it traces
    to, or the increment breakdown.
 3. If there are concerns: raise them with the user before starting.
 4. If none: proceed.
@@ -84,29 +110,38 @@ Run **one increment per cycle**, in order.
 
 For each increment:
 
+The backend-aware state and evidence boundaries around this cadence are defined by
+[references/controller.md](references/controller.md). The steps below retain their Markdown
+meaning; in Linear mode, “plan” means the selected issue's normalized task record where the
+controller contract says so, and lifecycle/progress writes follow that contract instead of plan
+frontmatter or arbitrary issue checkboxes.
+
 1. **Start its branch before editing — in a per-PR worktree.** Verify the current branch is not
-   protected, then create (or, when a caller like `woostack-fix` already made it, verify) the
-   increment's fresh Graphite-stacked branch **in its own worktree** off the **parent branch tip**,
-   per the [worktree contract](../woostack-init/references/worktrees.md):
+   protected, then follow the [worktree contract](../woostack-init/references/worktrees.md):
 
-   ```bash
-   git worktree add -b <inc-branch> "$WOOSTACK_ROOT/.woostack/worktrees/<inc-slug>" "$parent_branch"
-   ( cd "$WOOSTACK_ROOT/.woostack/worktrees/<inc-slug>" && gt track --parent "$parent_branch" )
-   ```
+   - **Markdown:** preserve the established behavior: create the increment's fresh
+     Graphite-stacked branch in its own worktree off the parent branch tip. The parent is the
+     spec+plan branch for increment 1, else the previous increment branch.
+   - **Linear:** use the deterministic issue branch/path from
+     [references/controller.md](references/controller.md). A root worktree starts at the frozen
+     `baseCommitSha` and tracks the frozen `baseBranch`; a dependent starts at and tracks its
+     validated declared parent issue branch. Discovery/retry must reuse an exact retained branch
+     or worktree rather than create a duplicate.
 
-   `$parent_branch` is the spec+plan branch for increment 1, else the previous increment's branch
-   (the stack base uses the resolved base branch; stacked increments use their parent). All work —
-   the TDD code, the plan checkbox ticks (step 3), and, in subagent mode, the implementer subagents
-   (**pinned to the worktree** — cwd = `$wt` where the host's spawn API exposes a per-call cwd, else
-   self-pinned by the dispatch-prompt guard, per the
-   [worktree contract](../woostack-init/references/worktrees.md)) — happens inside it.
+   All work — TDD code, Markdown checkbox ticks where applicable, and implementer subagents —
+   happens inside the worktree. Subagents remain pinned to `$wt` through per-call cwd where
+   available plus the dispatch-prompt guard.
 2. **Implement** its tasks via the resolved driver (see [Execution mode](#execution-mode)):
    [references/inline-driver.md](references/inline-driver.md) in inline mode, or
    [references/subagent-driver.md](references/subagent-driver.md) in subagent mode. Both follow
-   TDD, run the verifications the plan specifies exactly, and check each task for spec compliance
-   and code quality before it is marked complete. Follow each safe plan step exactly. During a UI-touching increment, the implementer may optionally invoke [impeccable](https://github.com/pbakaus/impeccable) for front-end design craft (host-dependent; proceed normally if it is not installed) — the same optional-detour shape as the `woostack-debug` routing in "When to stop and ask". Write the least code that satisfies the task per [`patterns.md §10`](../woostack-bootstrap/references/patterns.md) (understand-first, smallest existing solution, why-not-what comments) — without dropping the edge-case, error-path, security, or accessibility coverage the TDD classes already require.
+   TDD, run the verifications each task in the selected increment's normalized ordered task list
+   specifies exactly, and check each task for spec compliance and code quality before it is marked
+   complete.
+   Follow each safe artifact step exactly. During a UI-touching increment, the implementer may optionally invoke [impeccable](https://github.com/pbakaus/impeccable) for front-end design craft (host-dependent; proceed normally if it is not installed) — the same optional-detour shape as the `woostack-debug` routing in "When to stop and ask". Write the least code that satisfies the task per [`patterns.md §10`](../woostack-bootstrap/references/patterns.md) (understand-first, smallest existing solution, why-not-what comments) — without dropping the edge-case, error-path, security, or accessibility coverage the TDD classes already require.
 3. **Tick the plan's checkboxes in place.** Edit the markdown plan, `[ ]` → `[x]`, as each step
    or task completes, so the plan file is the live progress record.
+   In Linear mode there are no per-step checkbox writes; the controller records only supported
+   state and branch/PR evidence while preserving issue task Markdown.
 4. **Commit** via [`woostack-commit`](../woostack-commit/SKILL.md) on the increment's
    Graphite-stacked feature branch — one branch + PR per increment. This is the "multiple PRs
    per plan" shape.
@@ -134,26 +169,24 @@ For each increment:
    `woostack-commit`. Metrics, telemetry, and watermark sidecars remain primary-root local state
    per the [worktree contract](../woostack-init/references/worktrees.md) §5.
 
-8. **Author the plan's execution status — plan files only.** If the artifact is a plan
-   (`type: plan`, under `.woostack/plans/`), author the plan's frontmatter status inside this
-   increment's worktree and commit that one-line bump via
+8. **Author backend execution state.** For Markdown plan files only, author the plan's frontmatter
+   status inside this increment's worktree and commit that one-line bump via
    [`woostack-commit`](../woostack-commit/SKILL.md) `--no-pr-update`, so the authored
    state persists to the branch tip rather than dying with the worktree. Use `status: executing`
    for every non-final increment, and use terminal `status: done` for the final increment. These
-   are execute's authored lifecycle transitions after `planning`
+   are Markdown execute's authored lifecycle transitions after `planning`
    ([`woostack-plan`](../woostack-plan/SKILL.md)) and `ready`
    ([`woostack-build`](../woostack-build/SKILL.md) step 6). **Skip it for a `.woostack/fixes/`
    file:** a fix file's frontmatter lifecycle stays owned by
    [`woostack-fix`](../woostack-fix/SKILL.md). The board still derives the `in-review` band from
    artifacts and shows `in-review` while an increment PR is open, reconciling to `done` at merge
    after the final PR — authoring `done` only stops the plan file from rotting, it does not assert
-   the stack is merged.
-9. **Teardown the worktree.** After the increment is committed, reviewed, distilled, and (on the
-   final increment) marked `done`, remove its
-   worktree (`git worktree remove "$WOOSTACK_ROOT/.woostack/worktrees/<inc-slug>"`); the
-   branch/commits/PR persist as the stack base for the next increment. **Leave it on a
-   blocker/failure** and report its path. The next increment's worktree is cut off this increment's
-   branch tip.
+   the stack is merged. In Linear mode, use the verified `executing → inReview` issue transition
+   in [references/controller.md](references/controller.md); build never writes `done`.
+9. **Teardown the worktree.** After commit/review/distill and all backend receipts verify, remove
+   the worktree. The branch/commits/PR persist for descendants. **Leave it on a blocker/failure**
+   and report its path. Markdown's next increment starts from the previous increment branch;
+   Linear's next issue starts only from its validated declared parent branch.
 
 Then advance to the next increment.
 
@@ -183,6 +216,10 @@ and their review mode. **Never merge.** For a **plan** file, non-final increment
 `status: executing`, and the final increment advanced it to `status: done` (step 8); these
 are execute's only frontmatter writes. A `.woostack/fixes/` file's lifecycle stays with
 [`woostack-fix`](../woostack-fix/SKILL.md).
+For Linear, every successful issue ends at verified `inReview`; build execution never writes
+`done`. Pre-attribution failures remain truthfully `executing` or become `blocked` only through a
+verified receipt. An unknown attribution result is classified from read-back and may already be
+`inReview`; transport failure alone never determines lifecycle state.
 
 ## Memory Is Shared
 
@@ -198,7 +235,7 @@ repeatedly-failing verification instead routes to [`woostack-debug`](../woostack
 and escalates to the user only when debug cannot establish a root cause:
 
 - A blocker hits (missing dependency, failing verification, unclear instruction).
-- The plan has critical gaps preventing a start.
+- The selected Markdown plan or Linear issue set has critical gaps preventing a start.
 - A verification fails repeatedly — route it to `/woostack-debug <target>`, which runs its
   root-cause analysis autonomously and hands back the root cause and a proposed minimal fix.
   `woostack-debug` is investigative only and never commits — execute implements and commits the
@@ -209,7 +246,7 @@ and escalates to the user only when debug cannot establish a root cause:
 A mid-run distill (e.g. a `woostack-debug` detour) is never stranded: tracked memory notes ride the
 increment commit, while metrics and telemetry remain local sidecars (see [Memory Is Shared](#memory-is-shared)).
 
-Return to the plan-review step if the plan is updated or the approach needs rethinking.
+Return to artifact review if the selected plan/project is updated or the approach needs rethinking.
 
 ## Gate boundary
 
@@ -220,19 +257,20 @@ not an approval gate. The skill never merges and never auto-addresses review fin
 
 ## Hard constraints
 
-- **Plan path required.** Never guess "the current plan"; ask when no argument is given.
+- **Artifact required.** Never guess the current Markdown plan or Linear project; ask when no
+  argument is given.
 - **One increment per cycle.** Don't let a cycle balloon past a reviewable PR.
-- **Multiple stacked PRs per plan.** Each increment is its own `gt`-stacked branch + PR via
+- **Multiple stacked PRs per artifact.** Each increment is its own `gt`-stacked branch + PR via
   `woostack-commit`.
 - **Branch before editing.** Create or verify the increment's Graphite branch before changing
   implementation files.
-- **Tick checkboxes in place.** The plan file is the live progress record.
-- **Author the plan's terminal `status: done` — and only that.** At the final increment of a
-  plan file (every box `[x]`), author `status: done`; otherwise author
-  `status: executing` for plan increments that are not final. Commit the bump via
-  `woostack-commit --no-pr-update` (step 8). These are execute's only frontmatter writes; never
-  touch a `.woostack/fixes/` file's frontmatter (owned by
-  [`woostack-fix`](../woostack-fix/SKILL.md)).
+- **Backend-owned progress only.** Tick checkboxes in place for Markdown; for Linear, write only
+  native lifecycle state and managed branch/PR evidence through the adapter.
+- **Markdown lifecycle remains unchanged; Linear stops at `inReview`.** At the final increment of
+  a Markdown plan file (every box `[x]`), author terminal `status: done`; otherwise author
+  `status: executing`. Commit the bump via `woostack-commit --no-pr-update` (step 8). Never touch
+  a `.woostack/fixes/` file's frontmatter. Linear uses verified issue transitions and build never
+  writes issue/project `done`.
 - **Commit + review every increment.** `woostack-commit` always; each task must already have
   passed the shared spec-compliance plus code-quality checks before the increment is committed.
   Inline mode performs them in the controller session; subagent mode dispatches reviewer

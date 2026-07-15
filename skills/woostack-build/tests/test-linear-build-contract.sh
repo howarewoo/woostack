@@ -163,7 +163,8 @@ must(linear_branch, "`.woostack/specs/` or `.woostack/plans/` source file", "Lin
 for forbidden in ("git worktree add", "gt create", "woostack-commit"):
     must_not(linear_branch, forbidden, "Linear branch")
 
-# Ready precedes the provisional branch/SHA freeze and the current handoff-only endpoint.
+# Ready precedes the provisional branch/SHA freeze; explicit Go/overnight approval makes the
+# frozen base immutable before either executor starts.
 ordered(linear_branch, (
     "planning → ready",
     "Immediately before the execution-handoff gate",
@@ -172,25 +173,46 @@ ordered(linear_branch, (
     "designState: ready",
     "linear.sh feature-read",
     'name="execution-handoff"',
-    "**Hand off**",
 ), "Linear freeze/handoff")
 for token in (
     "pair is provisional",
     "accidental `ready → ready` pair change fails closed",
     "Explicit replan sequence",
     "--target planning --replan",
-    "null branch/PR evidence",
     "repository-owned spec",
     "project/spec lifecycle mismatch",
     "no implementation branch, worktree, commit, or",
-    "does not offer Go or Run",
-    "Increment 6 adds those choices",
 ):
     must(linear_branch, token, "Linear handoff/replan")
-for forbidden in ("run `woostack-execute`", "`woostack-execute-overnight` unattended", "9. **Execute.**"):
-    must_not(linear_branch, forbidden, "Linear handoff")
-for token in ("stops at the verified `ready` handoff", "supports Hand off only"):
-    must(texts["building_rules"], token, "served build-loop docs")
+linear_handoff = section(
+    linear_branch,
+    '8. <HARD-GATE backend="linear" name="execution-handoff">',
+    "</HARD-GATE>",
+)
+ordered(linear_handoff, (
+    "**Go**",
+    "**Run overnight**",
+    "**Hand off**",
+    "linear.sh plan-read",
+    "null branch/PR evidence",
+    "linear.sh spec-read",
+    "linear.sh spec-write",
+    "designState: executionApproved",
+    "linear.sh feature-read",
+), "Linear execution approval")
+for token in (
+    "base pair becomes immutable",
+    "Ambiguous or no answer is not Go",
+    "Create no implementation Git",
+):
+    must(linear_handoff, token, "Linear execution approval")
+for token in (
+    "9. **Execute.**",
+    "run `woostack-execute`",
+    "`woostack-execute-overnight` unattended",
+    "root increment branches start from the frozen SHA",
+):
+    must(linear_branch, token, "Linear execution handoff")
 
 # Planning propagates preflight UUID context and standalone stops before harden/ready/freeze/handoff.
 for token in (
