@@ -1,11 +1,12 @@
 ---
 title: Parallelism with worktrees
-description: How woostack runs many builds, fixes, and executions at once by isolating each in its own git worktree.
+description: How woostack runs many builds, changes, fixes, and executions at once by isolating each in its own git worktree.
 ---
 
-woostack isolates Git writes so several plans can run at the same time without collision. The
-mechanism is the **git worktree**: every Markdown build, fix, and implementation increment does
-its writes in a private working tree, while the primary checkout stays clean on the base branch.
+woostack isolates Git writes so several plans and changes can run at the same time without
+collision. The mechanism is the **git worktree**: every Markdown build, bounded change, fix, and
+implementation increment does its writes in a private working tree, while the primary checkout
+stays clean on the base branch.
 Two runs never touch the same files, so they never collide.
 
 ## A worktree per run
@@ -17,6 +18,7 @@ it creates follows the run:
 | Run | Branch | Worktree directory |
 | --- | --- | --- |
 | [woostack-build](/docs/skills/woostack-build) Markdown spec+plan | `feature/<slug>` | `.woostack/worktrees/feature-<slug>` |
+| [woostack-change](/docs/skills/woostack-change) | `change/<slug>` | `.woostack/worktrees/change-<slug>` |
 | [woostack-fix](/docs/skills/woostack-fix) | `fix/<slug>` | `.woostack/worktrees/fix-<slug>` |
 | [woostack-execute](/docs/skills/woostack-execute) increment | the plan's increment branch | one per increment |
 
@@ -52,13 +54,18 @@ through git's index and ref locks: brief contention, never corruption.
   deleted.
 - **Failure:** on a commit/push error or an unresolved review blocker, the run **leaves the
   worktree in place** and reports its path, so you can inspect it.
-- **Abandon:** a run dropped before any PR exists force-removes the worktree and deletes its
-  dangling branch.
+- **Abandon:** build, fix, and other runs dropped before any PR exists force-remove the worktree
+  and delete its dangling branch.
+- **Change exception:** [woostack-change](/docs/skills/woostack-change) preserves every recoverable
+  `change/*` branch and worktree on any unsuccessful stop without verified PR read-back. It is
+  excluded from generic pre-PR abandon cleanup; only successful closeout removes its worktree.
+  See the [canonical worktree authority](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/worktrees.md#teardown-after-a-successful-commit--push--pr).
 
 A stale directory left by a crashed run is inert (the `worktrees/` path is gitignored).
 [woostack-doctor](/docs/skills/woostack-doctor) detects an orphaned worktree and prunes it; you
 can also reclaim one by hand with `git worktree prune` / `git worktree remove`.
 
-Parallelism here is **across independent runs**, several `woostack-build` or `woostack-fix`
-plans in flight at once. Increments within a single plan run sequentially; the worktree's job is
-isolation, not intra-plan concurrency.
+Parallelism here is **across independent runs**: several `woostack-build`, `woostack-change`, or
+`woostack-fix` runs can be in flight at once. Increments within a single plan run sequentially;
+the worktree's job is isolation, not intra-plan concurrency. The linked skill pages own each
+run's operational mechanics.

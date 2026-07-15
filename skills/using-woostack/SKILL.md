@@ -84,6 +84,7 @@ link it, never restate it.
 | `/woostack-bootstrap <goal>`, scaffold a new web/mobile/API project | `woostack-bootstrap` |
 | `/woostack-build <goal>`, build a feature through the woostack loop | `woostack-build` |
 | `/woostack-fix <target> [description]`, resolve a bug/issue through the unified fix loop | `woostack-fix` |
+| `/woostack-change <goal>`, implement a bounded non-bug enhancement or refactor that fits one reviewable PR | `woostack-change` |
 | `/woostack-plan <spec-reference>`, write the implementation plan for an approved spec from a required backend-specific reference (Markdown spec path or Linear project UUID/URL) as PR-sized increments | `woostack-plan` |
 | `/woostack-execute <plan-path> [--inline\|--subagent]`, execute an approved plan as PR-sized stacked increments (inline or subagent-driven) | `woostack-execute` |
 | `/woostack-execute-overnight <plan-path> [--inline\|--subagent]`, execute an approved plan unattended overnight (autonomous, morning report) | `woostack-execute-overnight` |
@@ -104,6 +105,12 @@ link it, never restate it.
 
 If the user asks for the behavior without using the exact command name, route by intent.
 For example, "use woostack to review this PR" means load `woostack-review`.
+
+When routing by intent, use `woostack-change` only for a bounded non-bug enhancement or refactor
+whose complete safe work fits one reviewable PR without an approval gate or persisted plan. Keep
+bugs and root-cause work on `woostack-fix`, greenfield project creation on `woostack-bootstrap`,
+and work requiring multiple PRs on `woostack-build`. An explicit `/woostack-fix` invocation still
+follows that skill's own accepted scope.
 
 ## Red Flags
 

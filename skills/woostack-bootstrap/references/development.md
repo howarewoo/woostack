@@ -9,8 +9,9 @@ for each phase:
 
 | Phase | Skill |
 |---|---|
-| Build a feature, idea → implementation (gated chain — the skill owns the steps) | `woostack-build` |
-| Fix a small issue, diagnosis → implementation (gated fix loop) | `woostack-fix` |
+| Build a feature or work item requiring multiple PRs, idea → implementation (gated chain — the skill owns the steps) | `woostack-build` |
+| Fix a bug or do root-cause work, diagnosis → implementation (gated fix loop) | `woostack-fix` |
+| Implement a bounded non-bug enhancement or refactor that fits one reviewable PR (no approval gate or persisted plan) | `woostack-change` |
 | Review | `woostack-review` |
 | Audit standing code (simplify + production-readiness) | `woostack-audit` |
 | Exploratory-QA a running app in the browser | `woostack-qa` |

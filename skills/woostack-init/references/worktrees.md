@@ -2,11 +2,13 @@
 
 The single source of truth for **how woostack skills isolate Git-backed writes in per-PR
 worktrees** and **how the base/trunk branch is resolved**. `woostack-build`, `woostack-execute`,
-`woostack-execute-overnight`, `woostack-fix`, and `woostack-commit` link this file; none restate it.
-The point: let multiple bootstrap/build/fix runs proceed **in parallel on one machine** without
-collision. Markdown build/planning writes spec/plan artifacts in a worktree. Linear build/planning
-mutates managed remote artifacts and creates no Git worktree; its first implementation increment
-creates one from the verified frozen base after the execution handoff.
+`woostack-execute-overnight`, `woostack-fix`, [`woostack-change`](../../woostack-change/SKILL.md),
+and `woostack-commit` link this file; none restate it. The point: let multiple
+bootstrap/build/fix/change runs proceed **in parallel on one machine** without collision. Markdown
+build/planning writes spec/plan artifacts in a worktree. Linear build/planning mutates managed
+remote artifacts and creates no Git worktree; its first implementation increment creates one from
+the verified frozen base after the execution handoff. `woostack-change` creates its standalone
+implementation worktree after its own preflight.
 
 `<wi>` below = the installed `woostack-init` scripts directory (the same place `build-index.sh`
 lives; the agent resolves it when the skill is available).
@@ -52,11 +54,14 @@ native dependency readiness and Git-parent readiness before creating the worktre
 
 ```bash
 base="$(bash <wi>/resolve-base.sh)"            # or the parent branch tip for a stacked increment
-slug="${branch//\//-}"                          # branch feature/foo -> dir feature-foo
+slug="${branch//\//-}"                          # feature/foo -> feature-foo; change/foo -> change-foo
 wt="$WOOSTACK_ROOT/.woostack/worktrees/$slug"   # anchored to the PRIMARY repo root
 git worktree add -b "$branch" "$wt" "$base_ref"
 ( cd "$wt" && gt track --parent "$base_parent_branch" )   # Graphite: register the stack parent
 ```
+
+For [`woostack-change`](../../woostack-change/SKILL.md), `branch` is `change/<slug>` and `$wt` is
+`$WOOSTACK_ROOT/.woostack/worktrees/change-<slug>`.
 
 `-b` creates a **fresh** branch at `$base_ref`, so `$base_ref` is only a start-point and is never
 checked out — no "branch already checked out in another worktree" clash, and parallel runs (disjoint
@@ -64,10 +69,12 @@ branch sets) never collide.
 
 ### Operate (cwd = the worktree)
 
-After the first Git-backed write, the run operates with **cwd = `$wt`**. **All Git-backed**
-writes happen there — Markdown `.woostack/` spec/plan/fix artifacts and implementation code — and
-any sub-skill the run calls (`woostack-plan`, `woostack-harden`, `woostack-commit`) inherits that
-cwd whenever it is operating on Git-backed artifacts, so it never authors into the primary tree.
+After the first Git-backed write, the driving run (`woostack-build`, `woostack-execute`,
+`woostack-execute-overnight`, `woostack-fix`, or `woostack-change`) operates with **cwd = `$wt`**.
+**All Git-backed** writes happen there — Markdown `.woostack/` spec/plan/fix artifacts and
+implementation code — and any sub-skill the run calls (`woostack-plan`, `woostack-harden`,
+`woostack-commit`) inherits that cwd whenever it is operating on Git-backed artifacts, so it never
+authors into the primary tree.
 In subagent mode the controller places each implementer in `$wt` with a two-layer guard so it
 holds even on a host whose spawn API has **no per-call cwd**: it
 sets the spawn call's cwd to `$wt` where the host exposes one, and **always** pins via the dispatch
@@ -87,6 +94,12 @@ Only the working dir is deleted; the **branch, commits, and PR persist**. **On f
 push errored, or an unresolved review blocker) → **leave the worktree** and report its path. **On
 abandon** (the run is dropped before a PR exists) → `git worktree remove --force "$wt"` and delete
 the dangling branch. Never lose committed work.
+
+**`woostack-change` exception:** without successful PR read-back verifying the submitted URL, head,
+base, and commit, preserve every recoverable `change/*` branch and worktree and report its exact
+path. Never force-remove its worktree or delete its branch under the generic abandon rule; only
+[`woostack-change`](../../woostack-change/SKILL.md) closeout after verified PR read-back may remove
+the worktree.
 
 ## 3. Hard invariant: the primary tree is never edited
 
@@ -110,8 +123,9 @@ source rather than treating the primary working tree as universal WIP state.
 
 `woostack-execute` produces a Graphite stack. `base_ref` is **parent-aware**:
 
-- **stack base** (the spec+plan branch, or a standalone fix/bootstrap branch) → the resolved
-  `WOOSTACK_BASE_BRANCH`.
+- **stack base** (the spec+plan branch, a standalone fix/bootstrap branch, or a standalone
+  [`change/<slug>`](../../woostack-change/SKILL.md) one-PR stack base) → the resolved
+  `WOOSTACK_BASE_BRANCH`; the `change/<slug>` PR targets that resolved base.
 - **stacked increment k** → the **increment k-1 branch tip** (increment 1 → the spec+plan branch).
 
 Removal-after-commit is safe because `git worktree remove` deletes only the working dir — the branch
