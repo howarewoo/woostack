@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Prefetches PR diff, metadata, and rules for the agentic review.
+# Prefetches PR diff, metadata, governing intent, and rules for the agentic review.
 # Inputs (env): GH_TOKEN, GITHUB_REPOSITORY, INPUT_SKIP_LABELS, INPUT_INCREMENTAL,
 #               INPUT_FORCE_TIER, PR_NUMBER, EVENT_NAME, EVENT_ACTION, COMMENT_BODY.
 # Outputs: skip=true|false and outdir=<path> to $GITHUB_OUTPUT (outdir also to stdout).
 # Side effects: writes /tmp/pr-review/{diff.txt,meta.json,last_sha.txt,prior-findings.json},
-#               and rules.md when project-rule files (AGENTS.md / CLAUDE.md / .cursorrules /
-#               .windsurfrules / GEMINI.md) are discovered.
+#               intent.md when a governing woostack artifact resolves, and rules.md when
+#               project-rule files are discovered.
 #
 # Incremental mode (INPUT_INCREMENTAL=auto, default): if a prior woostack-review marker
 # `<!-- woostack-review:sha=<oid> -->` is found in any prior review body, diff
@@ -322,13 +322,16 @@ fi
 if [ "$TEST_MODE" = "1" ] && [ -n "${WOO_REVIEW_FAKE_META_JSON:-}" ]; then
   printf '%s' "$WOO_REVIEW_FAKE_META_JSON" > "$OUTDIR/meta.json"
 else
-  gh pr view "$PR_NUMBER" --json headRefOid,baseRefName,title,body,files,author > "$OUTDIR/meta.json"
+  gh pr view "$PR_NUMBER" --json headRefOid,headRefName,baseRefName,title,body,files,author > "$OUTDIR/meta.json"
 fi
 HEAD_SHA=$(jq -r '.headRefOid' "$OUTDIR/meta.json")
 
 # Load per-repo config early (issue #19) so the bot-author / release-rollup
 # skip checks can read user overrides BEFORE we pay for the diff fetch.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+# Resolve the governing spec+plan or self-contained fix once. Missing or ambiguous
+# intent is a successful no-op, so repositories without woostack artifacts review as before.
+bash "$SCRIPT_DIR/resolve-intent.sh"
 bash "$SCRIPT_DIR/load-config.sh"
 
 # Force-tier precedence:

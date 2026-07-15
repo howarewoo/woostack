@@ -37,6 +37,8 @@
 #   conventions — gated on prefetch having produced /tmp/pr-review/rules.md
 #               (i.e. the repo carries AGENTS.md / CLAUDE.md / .cursorrules /
 #               .windsurfrules / GEMINI.md somewhere along the changed paths).
+#   acceptance — gated on prefetch having produced intent.md from the branch's
+#               governing woostack spec/plan/fix artifact.
 #   tests     — test-file paths in diff: *.test.{ts,tsx,js,jsx,mjs,cjs},
 #               *_test.{go,py}, *.spec.{ts,tsx,js,jsx}, *_spec.rb, and the
 #               tests/, __tests__/, spec/ directory trees.
@@ -314,6 +316,10 @@ ANGLES=("bugs" "security" "simplify")
 
 if [ -f "$OUTDIR/rules.md" ]; then
   ANGLES+=("conventions")
+fi
+
+if [ -f "$OUTDIR/intent.md" ]; then
+  ANGLES+=("acceptance")
 fi
 
 if has_seo_file || has_seo_soft_diff_token; then

@@ -100,7 +100,7 @@ Read `$OUTDIR/angles.txt`. Check `$OUTDIR/chunks.txt`:
 Each subagent:
 
 - Loads its angle prompt: `$WOO_REVIEW_ACTION_PATH/prompts/angles/<angle>.md`.
-- Runs on `claude-opus-4-8` (every tier → opus). The angle's `tier:` frontmatter now selects **effort**, not model: `standard` → `effort: medium` (`bugs`/`security`/`architecture`/`design`/`react`/`database`/`tests`/`api`/`infra`/`observability`/`types`/`simplify`/`production-readiness`), `fast` → `effort: low` (`seo`/`aeo`/`i18n`/`docs`/`deps`/`comments`). The spawning Task call MUST pass `model:` explicitly, plus `effort:` when the Task API accepts it — see Model Routing section above.
+- Runs on `claude-opus-4-8` (every tier → opus). The angle's `tier:` frontmatter now selects **effort**, not model: `standard` → `effort: medium` (`bugs`/`security`/`acceptance`/`architecture`/`design`/`react`/`database`/`tests`/`api`/`infra`/`observability`/`types`/`simplify`/`production-readiness`), `fast` → `effort: low` (`seo`/`aeo`/`i18n`/`docs`/`deps`/`comments`). The spawning Task call MUST pass `model:` explicitly, plus `effort:` when the Task API accepts it — see Model Routing section above.
 - Reads its assigned diff (`$OUTDIR/diff.txt` for the unchunked case, `$OUTDIR/diff.chunk-<id>.txt` for chunked).
 - For `react`: runs `npx -y react-doctor@$REACT_DOCTOR_VERSION --diff $BASE_REF --offline`, parses output, then performs LLM review per the react prompt.
 - Returns its findings list AND writes them to `$OUTDIR/findings.<angle>.json` (unchunked) or `$OUTDIR/findings.<angle>.<chunk_id>.json` (chunked).

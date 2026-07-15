@@ -321,9 +321,10 @@ for f in findings:
     # Stack-aware deferral (issue #224): a finding the defender confirmed a later
     # increment fills (via a woostack-defer marker) is forced to a non-blocking
     # nit, INDEPENDENT of the floor. Hard off-switch: defer_markers=false
-    # ignores it.
+    # ignores it. Security is structurally non-deferrable even if malformed
+    # validator output supplies deferred_to.
     dt = f.get("deferred_to")
-    if defer_on and isinstance(dt, str) and dt.strip():
+    if f.get("angle") != "security" and defer_on and isinstance(dt, str) and dt.strip():
         f["nit"] = True
         f["blocking"] = False
         out.append(f)

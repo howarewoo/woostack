@@ -89,4 +89,44 @@ assert_eq "$(jq -r '.[0].nit' "$OUTDIR/findings.json")" "true" "adversarial: def
 assert_eq "$(jq -r '.deferred_count' "$OUTDIR/validator-metrics.json")" "1" "adversarial: deferred_count counted"
 rm -rf "$work"
 
+# Acceptance findings use the existing defender-populated deferral path.
+work="$(mktemp -d)"
+export OUTDIR="$work"
+printf '{"disable_adversarial":true,"severity_floor":"high","defer_markers":true}\n' > "$OUTDIR/config.json"
+cat > "$OUTDIR/findings.defender.json" <<'JSON'
+[
+  {"angle":"acceptance","file":"x.ts","line":3,"severity":"HIGH","blocking":true,
+   "title":"Checked step is not implemented","description":"d","fix":"f","fix_type":"prose",
+   "suggestion":null,"rule_quote":null,"deferred_to":"increment 3"}
+]
+JSON
+printf '[]\n' > "$OUTDIR/raw_findings.json"
+bash "$SCRIPT" >/tmp/intersect-deferred.out 2>&1
+assert_eq "$(jq -r '.[0].nit' "$OUTDIR/findings.json")" "true" "acceptance deferral -> nit"
+assert_eq "$(jq -r '.[0].blocking' "$OUTDIR/findings.json")" "false" "acceptance deferral -> non-blocking"
+assert_eq "$(jq -r '.deferred_count' "$OUTDIR/validator-metrics.json")" "1" "acceptance deferral counted"
+printf '{"disable_adversarial":true,"severity_floor":"high","defer_markers":false}\n' > "$OUTDIR/config.json"
+bash "$SCRIPT" >/tmp/intersect-deferred.out 2>&1
+assert_eq "$(jq -r '.[0].nit' "$OUTDIR/findings.json")" "false" "acceptance deferral disabled -> not a nit"
+assert_eq "$(jq -r '.[0].blocking' "$OUTDIR/findings.json")" "true" "acceptance deferral disabled -> stays blocking"
+rm -rf "$work"
+
+# Defense in depth: malformed validator output must never defer security.
+work="$(mktemp -d)"
+export OUTDIR="$work"
+printf '{"disable_adversarial":true,"severity_floor":"high","defer_markers":true}\n' > "$OUTDIR/config.json"
+cat > "$OUTDIR/findings.defender.json" <<'JSON'
+[
+  {"angle":"security","file":"x.ts","line":3,"severity":"HIGH","blocking":true,
+   "title":"Authorization is missing","description":"d","fix":"f","fix_type":"prose",
+   "suggestion":null,"rule_quote":null,"deferred_to":"increment 3"}
+]
+JSON
+printf '[]\n' > "$OUTDIR/raw_findings.json"
+bash "$SCRIPT" >/tmp/intersect-deferred.out 2>&1
+assert_eq "$(jq -r '.[0].nit' "$OUTDIR/findings.json")" "false" "security cannot be deferred"
+assert_eq "$(jq -r '.[0].blocking' "$OUTDIR/findings.json")" "true" "security remains blocking"
+assert_eq "$(jq -r '.deferred_count' "$OUTDIR/validator-metrics.json")" "0" "security deferral is not counted"
+rm -rf "$work"
+
 finish
