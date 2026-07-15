@@ -160,27 +160,39 @@ jq -r '.commit.pre_commit // empty' .woostack/config.json
 For an ordinary invocation, execute a non-empty command with the user's shell. If it fails, stop
 and report the failure. If it succeeds and changes files, reassess relevance before staging.
 
-For a verified `change/*` invocation, require the caller's supplied `woostack-change` `PASS`
-receipt identity before running the hook (or before staging when no hook is configured). That
-identity contains the exact branch, resolved base ref and commit, HEAD commit, a hash of the
-binary-safe base-to-HEAD state, separate hashes of the binary staged and unstaged states, and every
-untracked non-ignored path plus its Git object hash. Recompute the same **current full identity**
-and compare it exactly with the supplied PASS receipt. Hash binary diff payloads rather than
-relying on porcelain alone, and encode untracked paths without newline ambiguity. A branch, base,
-HEAD, tracked-content, staging, or untracked mismatch returns immediately to
+For a verified `change/*` invocation, both skills use the shipped identity helper — never invent a
+second hash or path encoding:
+
+```bash
+receipt_identity="$(bash <commit-skill-dir>/scripts/change-receipt.sh "$base_ref")"
+```
+
+The helper emits one compact JSON object with this canonical schema:
+
+```json
+{"branch":"change/example","baseRef":"main","baseCommit":"<oid>","headCommit":"<oid>","baseToHead":"<git-object-hash>","staged":"<git-object-hash>","unstaged":"<git-object-hash>","untracked":[{"pathBase64":"<raw-path-bytes-base64>","object":"<git-object-hash>"}]}
+```
+
+It resolves the base and HEAD commits, hashes `git diff --binary --no-ext-diff` payloads with
+`git hash-object --stdin`, and lists non-ignored untracked paths in Git's bytewise order as base64
+path bytes plus `git hash-object --no-filters` object IDs. Its compact JSON output is the exact
+receipt identity; compare it byte for byte.
+
+Require the caller's supplied `woostack-change` `PASS` identity before running the hook (or before
+staging when no hook is configured). Re-run the helper with the receipt's `baseRef` and compare
+its output exactly with the supplied identity. A branch, base, HEAD, tracked-content, staging, or
+untracked mismatch returns immediately to
 [`woostack-change`](../woostack-change/SKILL.md) for changed-path verification, smoke testing, and
 a fresh full-diff `PASS`/`BLOCKED` review before any hook, staging, or commit.
 
-When a hook is configured and the receipt comparison succeeds, retain that current identity as the
-**pre-hook full identity**, execute the command exactly once with the user's shell, then recompute
-the **post-hook full identity** with the same fields and binary-safe hashing. If the hook fails or
-the two identities are not exactly equal, stop before staging or committing and return to
-`woostack-change` for the same verification and full-diff review. Only a fresh `woostack-commit`
-invocation with the new PASS receipt may resume; it compares the supplied receipt before the hook,
-runs the hook once, and proceeds only when pre-hook and post-hook full identities are equal. Repeat
-this return → verify → full-diff review → fresh commit invocation loop until the hook makes no
-further change. Because branch, base, and HEAD are identity fields, hook-created commits, checkouts,
-or ref movement are detected. Never stage or commit under a stale receipt.
+When a hook is configured and the receipt comparison succeeds, retain that output as the
+**pre-hook full identity**, execute the command exactly once with the user's shell, then run the
+helper again as the **post-hook full identity**. If the hook fails or the two JSON values differ,
+stop before staging or committing and return to `woostack-change` for the same verification and
+full-diff review. Only a fresh `woostack-commit` invocation with the new PASS receipt may resume.
+Repeat this return → verify → full-diff review → fresh commit invocation loop until the hook makes
+no further change. Because branch, base, and HEAD are identity fields, hook-created commits,
+checkouts, or ref movement are detected. Never stage or commit under a stale receipt.
 
 ### 4. Stage only session-relevant changes
 

@@ -59,22 +59,20 @@ run before editing; never guess, overwrite, or silently select another workflow.
    smoke-test the changed path as a user or caller exercises it. Record the exact commands and
    observed results. A narrowed check does not replace the changed-path smoke test.
 
-4. **Review the current diff inline.** Define the reviewed state as the complete base-to-HEAD diff
-   plus all staged, unstaged, and untracked changes. Its complete identity includes the branch,
-   resolved base ref and commit, HEAD commit, binary-safe hashes for the base-to-HEAD, staged, and
-   unstaged states, and the path plus Git object hash of every untracked non-ignored file. Review
-   that exact state through both explicit lenses:
+4. **Review the current diff inline.** Resolve this run's base ref, then use
+   [`woostack-commit`'s canonical receipt helper](../woostack-commit/scripts/change-receipt.sh)
+   to identify the complete base-to-HEAD diff, staged, unstaged, and untracked state. Review that exact
+   identity through both explicit lenses:
    - **Intent/specification compliance:** the diff fulfills the stated goal and scope, updates every
      affected caller or contract, and introduces nothing outside the one-PR boundary.
    - **Code/skill quality:** the implementation is correct, minimal, maintainable, safe at edges,
      and supported by the verification evidence.
 
-   Resolve findings and re-review the resulting state. Emit a receipt whose status is exactly
-   `PASS` only when both lenses have no blockers. Otherwise emit exactly `BLOCKED`, list every
-   concrete finding anchored to its file and line or diff hunk, preserve the worktree, and stop.
-   Every receipt names the branch, resolved base ref and commit, HEAD commit, binary-safe
-   base-to-HEAD, staged, and unstaged hashes, and each untracked path plus Git object hash. A
-   missing or state-incomplete receipt is `BLOCKED`; only `PASS` may proceed.
+   Resolve findings and recompute and re-review the resulting identity. Emit a receipt whose status
+   is exactly `PASS` only when both lenses have no blockers; include the helper's compact JSON
+   output unchanged. Otherwise emit exactly `BLOCKED`, list every concrete finding anchored to its
+   file and line or diff hunk, preserve the worktree, and stop. A missing, altered, or
+   state-incomplete identity is `BLOCKED`; only `PASS` may proceed.
 
 5. **Commit and submit.** On `PASS`, supply that exact receipt identity and invoke
    [`woostack-commit`](../woostack-commit/SKILL.md) from the same `change/*` worktree. It must
