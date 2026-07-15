@@ -1,38 +1,45 @@
 ---
 title: Building rules
-description: The gated build loop, its three hard gates, and the one-spec-one-plan-N-PRs invariant.
+description: The shared three-gate build loop and the artifact handoff for Markdown and Linear.
 ---
 
-woostack drives a feature through a fixed, gated chain. The rules below are what make the loop
-trustworthy: a defined order, three places the chain stops for a human, and one invariant that
-keeps every feature's artifacts joined.
+woostack drives every feature through one fixed loop. The selected backend changes where specs,
+plans, and lifecycle state live; it does not add, remove, or reorder a gate.
 
-## The build loop
+## The shared loop
 
-[woostack-build](/docs/skills/woostack-build) chains the phases in a fixed, gated order:
+[woostack-build](/docs/skills/woostack-build) sequences:
 
-> ideate → write selected spec → harden spec → **approve spec** → plan → harden plan
-> → publish selected artifacts → **execution handoff**
+> ideate → capture spec → harden spec → **approve spec** → plan → harden plan
+> → **execution handoff** → execute (per increment: implement → commit → review → distill)
 
-Each phase is its own skill. Build is the glue that sequences them and owns the handoffs between
-them. Markdown commits the spec before approval, later appends the plan to the same docs-only PR,
-and may continue from the handoff into per-increment execution. Linear writes the managed project,
-spec document, and increment issues directly, creates no spec/plan Git artifact, and currently
-stops at the verified `ready` handoff.
+## Exactly three hard gates
 
-## Three hard gates
+The loop advances only on an explicit answer:
 
-The chain only advances past these on an explicit "yes":
+1. **Design approval** accepts the proposed design before either backend creates a spec artifact.
+2. **Written-spec approval** accepts the hardened spec before planning begins.
+3. **Execution handoff** chooses Go, Run overnight, or Hand off after the plan is ready.
 
-1. **Design approval** is owned by [woostack-ideate](/docs/skills/woostack-ideate).
-2. **Spec approval** happens when the persisted spec is presented, before any planning begins.
-3. **Execution handoff** is where Markdown offers Go, Run overnight, or Hand off. Linear currently
-   supports Hand off only; later execution support adds the other choices.
+Hardening, persistence, read-back, status transitions, and commits are work steps, not extra
+approval gates.
 
-## One spec, one plan, N PRs
+## Backend artifact handoff
 
-Every feature keeps one spec and one plan decomposition. Markdown represents execution as
-`spec : plan : PRs = 1 : 1 : N`; Linear planning represents the same decomposition as
-`project : spec document : increment issues = 1 : 1 : N` until execution support adds
-implementation PRs. [woostack-status](/docs/skills/woostack-status) derives the feature board
-from those selected backend artifacts instead of a hand-maintained file.
+| | Markdown (default) | Linear |
+| --- | --- | --- |
+| Canonical feature model | joined `.woostack/specs/` and `.woostack/plans/` Markdown files | one managed project, one spec document, and one ordered increment-issue set |
+| Lifecycle | authored spec/plan frontmatter plus derived Git and PR state | native project and issue states plus the managed spec lifecycle |
+| Dependencies | plan relationships represented by the implementation stack | native `blocked by` relations, mirrored in managed metadata |
+| Before execution | a docs-only spec+plan PR is open as the stack base | project, document, issue URLs, and a frozen base branch and SHA are presented; no branch, worktree, commit, or PR exists yet |
+| Abandon at the spec gate | close the PR and remove the temporary branch and worktree | retain the project and document audit history in their native abandoned lifecycle |
+
+Both keep the same logical `spec : plan : PRs = 1 : 1 : N` invariant and create one implementation
+PR per independently shippable increment. Linear has no docs-only base PR: after execution is
+explicitly approved, root increments begin at the frozen SHA and dependent increments use their
+declared Git parent.
+
+The [Linear build procedure](https://github.com/howarewoo/woostack/blob/main/skills/woostack-build/SKILL.md#linear-backend-procedure)
+owns the operational lifecycle. [Configuration](/docs/configuration#artifact-backend) owns backend
+selection and environment authentication; [Status tracking](/docs/concepts/status-tracking)
+explains how each model reaches terminal truth.

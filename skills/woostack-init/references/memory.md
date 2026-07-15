@@ -19,8 +19,8 @@ The `/woostack-init` scaffold verb creates this tree in a consumer repo:
 ├── memory/
 │   ├── MEMORY.md    derived index (build-index writes it)
 │   └── .gitkeep
-├── specs/           woostack-build markdown specs (type: spec)
-├── plans/           woostack-build markdown plans
+├── specs/           Markdown-backend specs (type: spec; inactive when Linear is selected)
+├── plans/           Markdown-backend plans (inactive when Linear is selected)
 ├── wisdom/          generalized findings, wholesale-loaded — see wisdom.md (sibling store)
 ├── respond/
 │   ├── .gitkeep     tracked sanitized response reports live beside it
@@ -29,11 +29,10 @@ The `/woostack-init` scaffold verb creates this tree in a consumer repo:
 └── .gitignore       ignores transient response evidence and local sidecars; tracks specs/plans/fixes/respond/config/memory notes
 ```
 
-The `config.json` file uses a top-level namespace-per-tool convention: `"artifacts"` selects the
-spec/plan backend, `"review"` configures woostack-review, `"respond"` holds non-secret
-production-response workflow defaults, and `"models"` is shared across tools. The full backend
-schema and Linear mappings are documented in the
-[init skill](../SKILL.md#workflow). Provider credentials never belong in this file.
+The `config.json` file uses a top-level namespace-per-tool convention. `"artifacts"` selects the
+spec/plan backend and defaults to Markdown; `"review"` configures woostack-review, `"respond"`
+holds non-secret production-response defaults, and `"models"` is shared across tools. Provider
+credentials never belong in this file.
 
 The `.gitignore` ignores `metrics.json`, `*.local.*`, `respond/evidence/`, memory telemetry, and
 the dream watermark. Sanitized response reports remain tracked shared decision evidence alongside

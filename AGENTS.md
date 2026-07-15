@@ -61,6 +61,18 @@ source code / no app lockfile" rule above. Its per-skill reference pages are **g
 from `skills/*/SKILL.md` at build time and are gitignored; only the app shell and authored
 framing pages are committed. Deploy notes live in [`site/README.md`](site/README.md).
 
+## Consumer artifact backends
+
+Consumer projects select where feature specs and plans live with `artifacts.specPlan`.
+Markdown is the default, not a universal storage rule; Linear mode keeps one managed project,
+one spec document, and ordered increment issues in Linear. Authentication for Linear comes only
+from `LINEAR_API_KEY` in the process environment — never repository config or a committed env
+file. The adoption contract and links to the build, worktree, and status authorities live in
+[`development.md`](skills/woostack-bootstrap/references/development.md#artifact-backend).
+
+This collection still has twenty-one public command/adoption skills at twenty-four fixed
+`SKILL.md` locations. Backend support adds neither a command-routing row nor a per-backend skill.
+
 ## Modes
 
 Identify the mode before acting.

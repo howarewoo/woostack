@@ -1,127 +1,71 @@
 ---
 title: Collaboration with status tracking
-description: "How woostack computes the Markdown feature board and tracks Linear design and planning artifacts before execution."
+description: How the feature board derives Markdown truth and reconciles Linear terminal state.
 ---
 
-woostack never commits a `STATUS.md`. Instead [woostack-status](/docs/skills/woostack-status)
-**computes** a feature board on demand from Markdown specs, plans, fixes, and open PRs. Because
-the board is derived, it cannot drift the way a hand-edited status file does. Linear is also a
-selectable artifact backend for the build and planning phases, but its managed projects,
-documents, and increment issues are not yet inputs to this board.
+woostack never commits a `STATUS.md`. [woostack-status](/docs/skills/woostack-status) resolves the
+configured artifact backend, reads its canonical feature model, and computes a fresh board for the
+terminal and a gitignored HTML view. The board is a view of the artifacts, not another source of
+truth.
 
-## Lifecycle ownership
+## Canonical models
 
-The selected backend owns the pre-execution design and planning artifacts. Markdown continues
-through execution and board reconciliation today; Linear support currently stops at the
-execution handoff:
+The selected backend owns the canonical artifacts and lifecycle state. Markdown remains the
+default; Linear now continues through execution and terminal reconciliation.
 
-> **Markdown:** spec `draft → hardened → approved` · plan `planning → ready → executing → in-review → done`
->
-> **Linear today:** managed spec `designState` `draft → hardened → approved → planning → ready`
-
-Both pre-execution flows can be abandoned. In Linear, `ready` plus the verified frozen base is
-the current handoff endpoint; planned increment issues retain their stable identities and
-ordering. The later execution lifecycle begins with `executionApproved`.
-
-The Markdown lifecycle, board derivation, and joins are defined in the canonical
-[Markdown status conventions](https://github.com/howarewoo/woostack/blob/main/skills/woostack-status/references/conventions.md#markdown-lifecycle-and-joins).
-Linear build and planning use the managed-artifact identity and base-freeze contracts in the
-[Linear lifecycle and joins](https://github.com/howarewoo/woostack/blob/main/skills/woostack-status/references/conventions.md#linear-lifecycle-and-joins);
-later execution states in that contract are not yet implemented by `woostack-execute` or
-displayed by `woostack-status`.
-
-## Status definitions
-
-### Spec statuses
-
-| Status | Meaning |
-| --- | --- |
-| `draft` | The spec exists but has not completed hardening. |
-| `hardened` | The spec has been grilled and refined, but still needs user approval. |
-| `approved` | The spec approval gate is cleared and planning can begin. |
-| `abandoned` | Work intentionally stopped. |
-
-### Plan statuses
-
-| Status | Meaning |
-| --- | --- |
-| `planning` | The implementation plan exists but has not completed hardening. |
-| `ready` | The plan is hardened, no implementation work has started, and the selected artifacts are verified before execution handoff. |
-| `executing` | `woostack-execute` has started plan execution and authored this status for a non-final increment. |
-| `in-review` | The board derives this from an open increment PR; it is not the durable plan frontmatter state. |
-| `done` | `woostack-execute` authored the final plan status after every box is checked; the board confirms completion from merged PR artifacts. |
-| `abandoned` | Work intentionally stopped. |
-
-### Linear managed-spec states available before execution
-
-| `designState` | Meaning |
-| --- | --- |
-| `draft` / `hardened` / `approved` | The persisted spec advances through the design and approval gates. |
-| `planning` / `ready` | Managed increment issues are reconciled, then the plan is hardened and verified. |
-| `executionApproved` | Future execution lifecycle: the execution-handoff gate has cleared and the frozen base is immutable; the project remains `ready`. Current Linear build/planning stops before recording this state. |
-| `abandoned` | Work intentionally stopped; the managed project and document remain as audit history. |
-
-### Fix statuses
-
-| Status | Meaning |
-| --- | --- |
-| `draft` | The fix plan exists but has not completed hardening. |
-| `hardened` | The fix plan has been refined, committed for review, and still needs user approval. |
-| `approved` | The fix approval gate is cleared; execution may start now or be handed off to another session/tool before code is written. |
-| `executing` | `woostack-fix` has delegated execution to `woostack-execute` on the fix worktree. |
-| `in-review` | The fix PR is open for review. |
-| `done` | The fix lifecycle is complete. |
-| `abandoned` | Work intentionally stopped. |
-
-## Who updates status
-
-Each workflow writes only the lifecycle fields owned by the selected backend and phase:
-
-| Backend / flow | Status location | Updates |
+| | Markdown (default) | Linear |
 | --- | --- | --- |
-| Markdown [woostack-build](/docs/skills/woostack-build) | `.woostack/specs/<slug>.md` frontmatter | creates `draft`, then writes `hardened` and `approved` around the spec gate |
-| Markdown [woostack-plan](/docs/skills/woostack-plan) and build | `.woostack/plans/<spec-basename>.md` frontmatter | creates the joined plan at `planning`; build writes `ready` after hardening and verification |
-| Markdown [woostack-execute](/docs/skills/woostack-execute) | plan checkboxes/frontmatter plus Git/PR artifacts | writes `executing` and terminal `done`; the board derives `in-review` from open PRs |
-| Linear [woostack-build](/docs/skills/woostack-build) and [woostack-plan](/docs/skills/woostack-plan) | managed spec `designState`, project status, and increment issues | advances design through verified `ready`, reconciles one issue per increment, freezes the base, and stops at the current handoff |
-| [woostack-fix](/docs/skills/woostack-fix) | `.woostack/fixes/YYYY-MM-DD-<slug>.md` frontmatter | owns the combined fix lifecycle from `draft` through `done` or `abandoned` |
+| Feature source | joined local spec and plan files; self-contained `.woostack/fixes/*.md` rows bypass that join | managed project, spec document, and ordered increment issues |
+| Lifecycle source | authored frontmatter reconciled with branch, commit, and PR state | native project and team issue states plus managed spec lifecycle metadata |
+| PR attribution | exact `Spec:` trailer | exact project/issue trailer pair, verified against the owned resources |
+| Status behavior | read-only derivation and drift flags | authenticated read, narrow terminal reconciliation, then render |
 
-That split is deliberate. Markdown features use the spec/plan pair and appear on the current
-board. Linear features use managed artifacts through the pre-execution handoff, but do not yet
-appear on that board and cannot yet be passed to `woostack-execute`. Fixes remain tracked by
-their combined `.woostack/fixes/` file and one implementation PR.
+Markdown keeps the familiar `draft → hardened → approved → planning → ready → executing →
+in-review → done` feature progression. Linear uses the configured native project-status and
+team issue-state names; normalized Linear lifecycle tokens use `inReview`, not Markdown's
+`in-review`. The full enum, joins, and evidence rules live in the
+[status conventions](https://github.com/howarewoo/woostack/blob/main/skills/woostack-status/references/conventions.md).
 
-During closeout, `woostack-execute` owns the code/checklist commit and `woostack-fix`
-owns the final `status: in-review` lifecycle commit, PR URL handback, verification
-summary, and worktree teardown on that same fix PR.
+Markdown fixes keep their own concise lifecycle because one fix file acts as both spec and plan:
+`draft → hardened → approved → executing → in-review → done`, plus terminal `abandoned`. Each fix
+ships as one PR; it does not acquire a feature plan or enter the Linear project model.
 
-## One spec, one plan decomposition, N PRs
+## Reconciliation
 
-The current board relies on the Markdown topology:
+### Markdown
 
-- `spec : plan : PRs = 1 : 1 : N`. Reciprocal spec/plan links join the tracked files; every PR
-  body carries the exact `Spec: .woostack/specs/<file>.md` trailer.
+Markdown status never changes a spec, plan, fix, branch, commit, or PR. It derives visible
+execution and review phases from local checkboxes and GitHub artifacts, and flags disagreements
+instead of rewriting frontmatter. It also reports malformed joins, missing branches, duplicate
+in-flight branches, and stale execution based on
+[`status.staleDays`](/docs/configuration#status-board).
 
-Linear build and planning preserve the corresponding pre-execution topology:
+### Linear
 
-- `project : spec document : increment issues = 1 : 1 : N`. Managed metadata joins the
-  repository-owned project, document, and issues by exact project/repository identity. Those
-  artifacts prepare the handoff; the current board does not discover them, and the current
-  execution skill does not add branch or pull-request evidence to them.
+Every Linear status run authenticates and performs terminal reconciliation before rendering. It
+verifies that each attributed PR belongs to the managed project and issue and is actually merged,
+previews eligible writes, then permits only `inReview → done` for those issues. After verified
+read-back, it moves the project to `done` only when every managed issue is observed `done`.
 
-## Computed, not authored
+This is deliberately narrower than general lifecycle management: status never reopens,
+downgrades, abandons, or writes a non-terminal Linear state. Missing authentication, foreign or
+ambiguous attribution, API failure, partial evidence, or read-back mismatch fails closed rather
+than becoming a successful or empty board. The
+[woostack-status reference](/docs/skills/woostack-status) owns the exact reconciliation procedure.
+
+## Migration boundary
+
+Only the selected backend participates in the feature board. When Linear is active, local
+`.woostack/specs/` and `.woostack/plans/` files are inactive legacy artifacts: status does not
+merge, synchronize, or fall back to them, and doctor leaves them untouched while reporting the
+migration boundary. Self-contained Markdown fixes remain a separate compatibility model, not a
+way to import or shadow a Linear feature. Switch deliberately and keep one canonical feature
+store.
 
 <Callout type="info">
-  The board is computed fresh each run, printed to the terminal, and mirrored to a gitignored
-  HTML render under `.woostack/visuals/status-board.html`. It never fetches, commits, pushes, or
-  writes a tracked status file. A lagging authored `status:` is reconciled against the artifacts,
-  not trusted blindly.
+  The terminal table is canonical narration. The mirrored
+  `.woostack/visuals/status-board.html` file is gitignored presentation only; no tracked status
+  snapshot is created.
 </Callout>
 
-The board displays the effective phase derived from Markdown artifacts and Git/PR state. A
-disagreement between authored lifecycle and computed evidence is surfaced as a flag, not displayed
-as truth. Drift includes unknown status, missing/duplicate plan, missing execution branch, or PRs
-inconsistent with the plan phase. Executing rows older than `status.staleDays` (a
-[config](/docs/configuration) key, default 14) are stale.
 
-Because `status.sh` exits 0 even when it prints drift flags and only writes the gitignored HTML
-render, the board is safe to run anywhere, including CI, without mutating tracked state.

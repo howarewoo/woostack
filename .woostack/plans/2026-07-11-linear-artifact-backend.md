@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-07-11-linear-artifact-backend.md
-status: executing
+status: done
 branch: feature/linear-artifact-backend
 ---
 
@@ -479,17 +479,17 @@ branch: feature/linear-artifact-backend
 - Modify: `skills/woostack-init/references/worktrees.md`
 - Modify: `skills/woostack-status/references/conventions.md`
 
-- [ ] **Step 1: Add failing documentation contract assertions**
+- [x] **Step 1: Add failing documentation contract assertions**
   Extend the structural artifact-reader test to assert: Markdown is described as the default, not universal; Linear auth is environment-only; project/document/issues and native states are canonical in Linear mode; three gates remain; no docs-only base PR exists in Linear mode; status always reconciles terminal states; no public command count/routing row is added.
 
-- [ ] **Step 2: Run docs contract red**
+- [x] **Step 2: Run docs contract red**
   Run: `bash skills/using-woostack/tests/test-artifact-reader-contract.sh`
   Expected: FAIL on stale Markdown-only statements.
 
-- [ ] **Step 3: Update authored skill/repository references**
-  Cross-link the backend and lifecycle authorities instead of duplicating query details. Keep the twenty-skill public surface and twenty-two fixed `SKILL.md` locations unchanged. Document `LINEAR_API_KEY` without showing a real value or suggesting checked-in env files.
+- [x] **Step 3: Update authored skill/repository references**
+  Cross-link the backend and lifecycle authorities instead of duplicating query details. Keep the twenty-one-skill public/adoption surface and twenty-four fixed `SKILL.md` locations unchanged. Document `LINEAR_API_KEY` without showing a real value or suggesting checked-in env files.
 
-- [ ] **Step 4: Run docs contract green**
+- [x] **Step 4: Run docs contract green**
   Run: `bash skills/using-woostack/tests/test-artifact-reader-contract.sh`
   Expected: PASS.
 
@@ -500,25 +500,26 @@ branch: feature/linear-artifact-backend
 - Modify: `site/content/docs/getting-started.mdx`
 - Modify: `site/content/docs/concepts.mdx`
 - Modify: `site/content/docs/configuration.mdx`
-- Modify: `site/content/docs/build-loop.mdx`
-- Modify: `site/content/docs/status.mdx`
+- Modify: `site/content/docs/concepts/building-rules.mdx`
+- Modify: `site/content/docs/concepts/status-tracking.mdx`
 
-- [ ] **Step 1: Update the authored framing pages**
+- [x] **Step 1: Update the authored framing pages**
   Explain backend selection, environment authentication, Linear artifact mapping, native lifecycle behavior, gate differences, status reconciliation, migration boundary, and Markdown compatibility. Do not manually edit generated per-skill pages.
 
-- [ ] **Step 2: Run all focused shell suites**
+- [x] **Step 2: Run all focused shell suites**
   Run: `bash skills/woostack-init/scripts/tests/run-tests.sh && bash skills/woostack-build/tests/test-linear-build-contract.sh && bash skills/woostack-execute/tests/test-linear-execute-contract.sh && bash skills/woostack-commit/tests/test-linear-attribution.sh && bash skills/woostack-status/scripts/tests/run-tests.sh && bash skills/woostack-doctor/scripts/tests/run-tests.sh && bash skills/using-woostack/tests/test-artifact-reader-contract.sh`
   Expected: PASS.
 
-- [ ] **Step 3: Build the documentation site**
+- [x] **Step 3: Build the documentation site**
   Run: `pnpm -C site build`
   Expected: PASS; authored pages compile and generated skill references remain valid.
 
-- [ ] **Step 4: Run the opt-in Linear sandbox smoke test**
+- [x] **Step 4: Run the opt-in Linear sandbox smoke test**
   With `LINEAR_API_KEY` and an explicitly configured disposable sandbox team, run the documented smoke operation to preflight, create/read/update/abandon a managed project, spec document, two related increment issues, and read-back receipts.
   Expected: PASS and the disposable project ends in configured `abandoned`; if no sandbox credentials are available, record this manual check as not run rather than substituting mocks.
+  Result: **NOT RUN** — `LINEAR_API_KEY` and an explicitly configured disposable sandbox team were unavailable; no mocks were substituted.
 
-- [ ] **Step 5: Commit Increment 10**
+- [x] **Step 5: Commit Increment 10**
   Run: `gt create -m "docs: document Linear artifact backend"`
   Expected: final reviewable PR containing authored documentation and lockstep verification only.
 

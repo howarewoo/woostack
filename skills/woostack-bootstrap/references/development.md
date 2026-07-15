@@ -19,10 +19,45 @@ for each phase:
 
 Each command is discrete and ends by offering the next step. Merge stays with the human.
 
-Artifacts live under `.woostack/` in the project: markdown specs in `.woostack/specs/`,
-markdown plans in `.woostack/plans/`, and review config in `.woostack/config.json`
-(review metrics `.woostack/metrics.json` and [local-only memory](../../woostack-init/references/memory.md)
-`.woostack/memory/` are gitignored).
+Review config and non-design project state remain under `.woostack/`; review metrics
+`.woostack/metrics.json` and [local-only memory](../../woostack-init/references/memory.md)
+`.woostack/memory/` are gitignored. Feature specs and plans follow the selected artifact backend.
+
+## Artifact backend
+
+`.woostack/config.json` selects feature storage with `artifacts.specPlan`. A missing selector
+means `markdown`, so Markdown is the default, not a universal requirement. Markdown stores specs
+in `.woostack/specs/` and plans in `.woostack/plans/`. Selecting `linear` instead makes one
+repository-owned Linear project the feature, one managed spec document its specification, and
+ordered increment issues its plan. Native project statuses and team issue states carry lifecycle
+state through the configured semantic mappings; do not mirror them into Markdown source files.
+
+Linear authentication is environment only. The process running a Linear-backed skill must receive
+`LINEAR_API_KEY`; the key never belongs in `.woostack/config.json`, a credential-file path, a
+checked-in env file, or documentation. Backend resolution, validation, and normalized adapter
+behavior are owned by
+[`resolve-backend.sh`](../../woostack-init/scripts/artifacts/resolve-backend.sh) and its sibling
+adapters. Adoption docs must not duplicate their request or query details.
+
+Storage changes neither workflow intent nor approval policy. Both backends preserve exactly three
+hard gates: design approval, written-spec approval, and execution handoff. The
+[`woostack-build` lifecycle](../../woostack-build/SKILL.md) owns their order and backend-specific
+work steps. Markdown opens one docs-only spec+plan base PR before implementation; Linear persists
+the project/document/issues natively and has no docs-only base PR. Linear implementation branches
+begin only after handoff and follow the frozen-base/dependency rules in the
+[worktree contract](../../woostack-init/references/worktrees.md#artifact-backend-boundary).
+
+Every `/woostack-status` run resolves the selected backend. Markdown derives terminal truth
+read-only; Linear verifies merge evidence and reconciles only eligible terminal issue/project
+states before rendering. The
+[feature-state conventions](../../woostack-status/references/conventions.md) own lifecycle
+spelling, attribution joins, reconciliation, and failure behavior.
+
+Backend selection is a clean boundary, not live migration. Existing Markdown specs and plans stay
+authoritative under Markdown. After selecting Linear, local spec/plan files are inactive
+compatibility data: no command imports, adopts, or falls back to them. Move a feature only through
+an explicit, separately reviewed migration; changing the selector alone never copies or adopts
+artifacts.
 
 ## Branching model
 

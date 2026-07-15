@@ -16,6 +16,17 @@ them.
 
 ## Markdown lifecycle and joins
 
+Markdown uses the spec/plan/PR joins below. Selection, authentication, and migration boundaries
+live in the
+[artifact-backend adoption contract](../../woostack-bootstrap/references/development.md#artifact-backend).
+
+Every `/woostack-status` run resolves the backend and performs its terminal reconciliation path
+before rendering: Markdown derives terminal truth without writes, while Linear verifies merge
+evidence, reconciles only eligible `inReview` issues to `done`, and marks the project `done` only
+after every managed issue is observed `done`. There is no read-only or presentation-only bypass
+for Linear. Failed authentication, evidence, mutation, or read-back blocks rendering rather than
+presenting stale state.
+
 - Spec frontmatter owns design approval: `draft -> hardened -> approved`.
 - Plan frontmatter owns implementation lifecycle after spec approval:
   `planning -> ready -> executing -> in-review -> done`.

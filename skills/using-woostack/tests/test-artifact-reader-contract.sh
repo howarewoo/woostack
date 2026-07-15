@@ -13,12 +13,13 @@ TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/woostack-reader-contract.XXXXXX")" || exi
 trap 'rm -rf -- "$TMP_ROOT"' EXIT HUP INT TERM
 
 analyze_root() {
-  python3 - "$1" <<'PY'
+  python3 - "$1" "${2:-repository}" <<'PY'
 import re
 import sys
 from pathlib import Path
 
 root = Path(sys.argv[1])
+validation_mode = sys.argv[2]
 skills_root = root / "skills"
 
 # Every artifact-reading SKILL discovered below must be classified here. This is wider than
@@ -237,6 +238,161 @@ if not (re.search(r"spec-only", dream, re.I) and re.search(r"(?:absent|missing|w
 if re.search(r"resolve-backend\.sh[^.]{0,120}exactly\s+once", folded, re.I):
     failure("woostack-dream", "claims a false process-wide resolver call count despite doctor runtime isolation")
 
+
+# Adoption documentation mirrors workflow contracts without becoming a second implementation
+# manual. Keep this set closed: adding a SKILL.md or routing row is a deliberate public-surface
+# change, not a side effect of documenting an artifact backend.
+fixed_skills = {
+    "using-woostack",
+    "woostack-address-comments",
+    "woostack-ask",
+    "woostack-audit",
+    "woostack-bootstrap",
+    "woostack-build",
+    "woostack-commit",
+    "woostack-debug",
+    "woostack-doctor",
+    "woostack-dream",
+    "woostack-execute",
+    "woostack-execute-overnight",
+    "woostack-fix",
+    "woostack-harden",
+    "woostack-ideate",
+    "woostack-init",
+    "woostack-plan",
+    "woostack-qa",
+    "woostack-respond",
+    "woostack-review",
+    "woostack-status",
+    "woostack-sweep",
+    "woostack-tdd",
+    "woostack-visualize",
+}
+public_skills = fixed_skills - {"woostack-ask", "woostack-harden", "woostack-ideate"}
+if set(texts) != fixed_skills:
+    failure("skill-surface", f"expected 24 fixed SKILL.md locations, found {len(texts)}")
+
+using = texts.get("using-woostack", "")
+routes = re.findall(r"^\| `/([^`\s]+)", using, re.M)
+expected_routes = [
+    "woostack-init",
+    "woostack-bootstrap",
+    "woostack-build",
+    "woostack-fix",
+    "woostack-plan",
+    "woostack-execute",
+    "woostack-execute-overnight",
+    "woostack-sweep",
+    "woostack-commit",
+    "woostack-review",
+    "woostack-audit",
+    "woostack-qa",
+    "woostack-respond",
+    "woostack-address-comments",
+    "woostack-status",
+    "woostack-visualize",
+    "woostack-debug",
+    "woostack-tdd",
+    "woostack-dream",
+    "woostack-doctor",
+]
+if routes != expected_routes:
+    failure("skill-surface", "public command routing rows must remain exactly the ordered 20-command surface")
+
+if validation_mode == "repository":
+    doc_paths = {
+        "AGENTS.md": root / "AGENTS.md",
+        "README.md": root / "README.md",
+        "CONTRIBUTING.md": root / "CONTRIBUTING.md",
+        "using-woostack": skills_root / "using-woostack" / "SKILL.md",
+        "development": skills_root / "woostack-bootstrap" / "references" / "development.md",
+        "init": skills_root / "woostack-init" / "SKILL.md",
+        "worktrees": skills_root / "woostack-init" / "references" / "worktrees.md",
+        "status-conventions": skills_root / "woostack-status" / "references" / "conventions.md",
+        "site-index": root / "site" / "content" / "docs" / "index.mdx",
+        "site-getting-started": root / "site" / "content" / "docs" / "getting-started.mdx",
+        "site-concepts": root / "site" / "content" / "docs" / "concepts.mdx",
+        "site-configuration": root / "site" / "content" / "docs" / "configuration.mdx",
+        "site-build-loop": root / "site" / "content" / "docs" / "concepts" / "building-rules.mdx",
+        "site-status": root / "site" / "content" / "docs" / "concepts" / "status-tracking.mdx",
+    }
+    doc_texts = {}
+    for name, path in doc_paths.items():
+        if not path.is_file():
+            failure(name, "required adoption document is missing")
+            doc_texts[name] = ""
+        else:
+            doc_texts[name] = path.read_text(encoding="utf-8")
+
+    def require_doc(name: str, pattern: str, message: str):
+        if not re.search(pattern, doc_texts.get(name, ""), re.I | re.S):
+            failure(name, message)
+
+    # development.md owns the adoption overview; related docs link to it and to the existing
+    # build/worktree/status authorities rather than restating adapter commands or GraphQL.
+    for name in ("AGENTS.md", "README.md", "CONTRIBUTING.md", "using-woostack", "init"):
+        require_doc(name, r"development\.md#artifact-backend", "does not link the artifact-backend adoption authority")
+    require_doc("development", r"\.\./\.\./woostack-build/SKILL\.md", "does not link the build lifecycle authority")
+    require_doc("development", r"\.\./\.\./woostack-init/references/worktrees\.md", "does not link the worktree authority")
+    require_doc("development", r"\.\./\.\./woostack-status/references/conventions\.md", "does not link the status authority")
+    require_doc("worktrees", r"woostack-build/SKILL\.md#linear-backend-procedure", "does not link the Linear build authority")
+    require_doc("status-conventions", r"woostack-bootstrap/references/development\.md#artifact-backend", "does not link the adoption authority")
+
+    require_doc("development", r"Markdown.{0,100}\bdefault\b", "does not describe Markdown as the default backend")
+    require_doc("development", r"(?:LINEAR_API_KEY.{0,160}\benvironment\b|\benvironment\b.{0,160}LINEAR_API_KEY)", "does not make Linear authentication environment-only")
+    require_doc("development", r"\bproject\b.{0,160}\bspec document\b.{0,160}\bincrement issues\b", "does not state the canonical Linear artifact model")
+    require_doc("development", r"native project statuses.{0,160}team issue states", "does not preserve native Linear lifecycle state")
+    require_doc("development", r"exactly\s+three\s+hard\s+gates", "does not preserve exactly three workflow gates")
+    require_doc("development", r"Linear.{0,200}no docs-only base PR", "does not exclude the Markdown docs-only base PR from Linear mode")
+    require_doc("status-conventions", r"Every `/woostack-status` run.{0,240}terminal\s+reconciliation", "does not require terminal reconciliation on every status run")
+    require_doc("AGENTS.md", r"twenty-one\s+public.{0,160}twenty-four\s+fixed\s+`SKILL\.md`", "does not preserve the 21-public/24-fixed skill surface")
+
+    # The authored site has six framing-page equivalents. Generated per-skill pages remain out of
+    # scope, but each authored page must preserve the backend fact it presents to consumers.
+    require_doc("site-index", r"Markdown\s+is\s+the\s+default.{0,160}Linear.{0,160}(?:projects|project).{0,100}(?:documents|document).{0,100}(?:issues|issue).{0,80}canonical", "does not frame the default and canonical Linear model")
+    require_doc("site-index", r"/docs/configuration#artifact-backend", "does not link the site backend authority")
+
+    require_doc("site-getting-started", r"artifacts\.specPlan.{0,80}linear", "does not explain Linear selection")
+    require_doc("site-getting-started", r"LINEAR_API_KEY.{0,160}(?:process environment|secret manager)", "does not make Linear authentication environment-only")
+    require_doc("site-getting-started", r"native projects.{0,120}documents.{0,120}issues.{0,120}canonical", "does not identify native Linear artifacts as canonical")
+    require_doc("site-getting-started", r"clean boundary.{0,240}(?:inactive|Migrate deliberately)", "does not explain the migration boundary")
+    require_doc("site-getting-started", r"development\.md#artifact-backend", "does not link the repository adoption authority")
+
+    require_doc("site-concepts", r"Three hard gates", "does not preserve the three-gate overview")
+    require_doc("site-concepts", r"Markdown.{0,120}default.{0,240}Linear.{0,200}project.{0,120}spec document.{0,120}(?:increment issues|ordered issue)", "does not compare canonical backend models")
+    require_doc("site-concepts", r"Linear.{0,240}no docs-only base PR", "does not preserve the Linear handoff difference")
+    require_doc("site-concepts", r"/docs/configuration#artifact-backend", "does not link the site backend authority")
+
+    require_doc("site-configuration", r"artifacts\.specPlan.{0,160}default is `markdown`", "does not document the default selector")
+    require_doc("site-configuration", r"Projects\s+are\s+the\s+feature.{0,160}document\s+is\s+the\s+spec.{0,160}issues\s+are\s+the\s+plan\s+increments", "does not document the canonical Linear resource model")
+    require_doc("site-configuration", r"native states.{0,120}(?:relations|canonical)", "does not preserve native Linear lifecycle state")
+    require_doc("site-configuration", r"LINEAR_API_KEY.{0,120}(?:environment-only|shell or secret manager)", "does not make Linear authentication environment-only")
+    require_doc("site-configuration", r"Changing the selector does not migrate data.{0,320}inactive legacy artifacts", "does not document the migration boundary")
+    require_doc("site-configuration", r"development\.md#artifact-backend", "does not link the repository adoption authority")
+
+    require_doc("site-build-loop", r"Exactly three hard gates", "does not preserve exactly three gates")
+    for gate in ("Design approval", "Written-spec approval", "Execution handoff"):
+        require_doc("site-build-loop", re.escape(gate), f"does not preserve the {gate} gate")
+    require_doc("site-build-loop", r"Markdown \(default\).{0,300}Linear", "does not compare backend handoffs")
+    require_doc("site-build-loop", r"Linear has no docs-only base PR", "does not exclude a Linear docs-only base PR")
+    require_doc("site-build-loop", r"woostack-build/SKILL\.md#linear-backend-procedure", "does not link the Linear lifecycle authority")
+
+    require_doc("site-status", r"Every Linear status run.{0,120}terminal reconciliation before rendering", "does not require per-run terminal reconciliation")
+    require_doc("site-status", r"managed project.{0,120}spec document.{0,120}ordered increment issues", "does not preserve the canonical Linear model")
+    require_doc("site-status", r"native project.{0,120}team issue states", "does not preserve native lifecycle state")
+    require_doc("site-status", r"Migration boundary.{0,400}(?:inactive legacy artifacts|does not.{0,80}fall back)", "does not preserve the status migration boundary")
+    require_doc("site-status", r"woostack-status/references/conventions\.md", "does not link the status authority")
+
+    joined_docs = "\n".join(doc_texts.values())
+    if re.search(r"twenty\s+public|twenty-two\s+fixed|20\s+public|22\s+fixed", joined_docs, re.I):
+        failure("skill-surface", "stale 20-public/22-fixed count remains in adoption docs")
+    for forbidden in (
+        r"api\.linear\.app/graphql",
+        r"\b(?:query|mutation)\s*\{",
+        r"\b(?:project|document|issue)(?:Create|Update)\b",
+    ):
+        if re.search(forbidden, joined_docs):
+            failure("adoption-docs", f"duplicates adapter query detail: {forbidden}")
 if failures:
     print("\n".join(failures))
     raise SystemExit(1)
@@ -246,7 +402,7 @@ PY
 
 record_analysis() {
   local root="$1" label="$2" output
-  if output="$(analyze_root "$root" 2>&1)"; then
+  if output="$(analyze_root "$root" repository 2>&1)"; then
     pass
   else
     fail "$label: $output"
@@ -254,8 +410,8 @@ record_analysis() {
 }
 
 expect_fixture_failure() {
-  local root="$1" expected="$2" label="$3" output
-  if output="$(analyze_root "$root" 2>&1)"; then
+  local root="$1" expected="$2" label="$3" mode="${4:-fixture}" output
+  if output="$(analyze_root "$root" "$mode" 2>&1)"; then
     fail "$label: injected violation unexpectedly passed"
   elif [[ "$output" == *"$expected"* ]]; then
     pass
@@ -290,6 +446,30 @@ fi
 
 # Behavioral fixtures prove discovery and semantic checks cannot be satisfied by sprinkling
 # expected tokens into today's seven files.
+fixture="$TMP_ROOT/duplicate-route"
+make_fixture "$fixture"
+printf '\n| `/woostack-init`, duplicate route | `woostack-init` |\n' \
+  >> "$fixture/skills/using-woostack/SKILL.md"
+expect_fixture_failure "$fixture" "ordered 20-command surface" "duplicate routing-row rejection"
+
+fixture="$TMP_ROOT/reordered-routes"
+make_fixture "$fixture"
+python3 - "$fixture/skills/using-woostack/SKILL.md" <<'PY'
+import sys
+from pathlib import Path
+path = Path(sys.argv[1])
+lines = path.read_text().splitlines()
+routes = [index for index, line in enumerate(lines) if line.startswith("| `/")]
+lines[routes[0]], lines[routes[1]] = lines[routes[1]], lines[routes[0]]
+path.write_text("\n".join(lines) + "\n")
+PY
+expect_fixture_failure "$fixture" "ordered 20-command surface" "routing-row order rejection"
+
+fixture="$TMP_ROOT/missing-adoption-contract"
+make_fixture "$fixture"
+expect_fixture_failure "$fixture" "required adoption document is missing" \
+  "missing repository adoption contract" repository
+
 fixture="$TMP_ROOT/new-reader"
 make_fixture "$fixture"
 mkdir -p "$fixture/skills/woostack-injected-reader"

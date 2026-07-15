@@ -4,18 +4,18 @@ description: Every key in the .woostack/config.json file, what it tunes, its typ
 ---
 
 woostack reads optional settings from `.woostack/config.json` at the repository root.
-[woostack-init](/docs/skills/woostack-init) creates the file, and every key is optional: when a
-key is absent, the skill that reads it falls back to a built-in default. The init template
-ships five top-level keys: `artifacts`, `models`, `review`, `respond`, and `status`.
-[woostack-doctor](/docs/skills/woostack-doctor) checks the scaffolded namespaces and validates
-response metadata without querying a provider.
+[woostack-init](/docs/skills/woostack-init) creates the file. The init template ships five
+top-level keys: `artifacts`, `models`, `review`, `respond`, and `status`; other settings use
+built-in defaults when absent. [woostack-doctor](/docs/skills/woostack-doctor) checks the
+required shape without reading credentials or contacting Linear unless you explicitly request
+`--live`.
 
 There are ten top-level settings:
 
 | Setting | Read by | Tunes |
 | --- | --- | --- |
-| `artifacts` | spec/plan workflows | selects the Markdown or Linear artifact backend |
-| `linear` | spec/plan workflows when `artifacts.specPlan` is `linear` | secret-free Linear workspace, repository, and lifecycle mappings |
+| `artifacts` | all spec/plan consumers | selects the canonical spec and plan backend |
+| `linear` | all spec/plan consumers when Linear is selected | workspace, team, repository, and native state mappings |
 | `review` | [woostack-review](/docs/skills/woostack-review) | the PR review engine: angles, noise, validation |
 | `models` | [woostack-review](/docs/skills/woostack-review), [woostack-audit](/docs/skills/woostack-audit), and local subagent drivers | shared model selection and tier parameters |
 | `audit` | [woostack-audit](/docs/skills/woostack-audit) | standing-code audit angles, filtering, chunking, and output |
@@ -25,37 +25,16 @@ There are ten top-level settings:
 | `status` | [woostack-status](/docs/skills/woostack-status) | when the board flags a spec as stale |
 | `base_branch` | [woostack-init](/docs/skills/woostack-init) | the trunk branch for PRs and worktrees |
 
-## A complete example
+## A complete Markdown example
 
-Every top-level setting is populated as a starting point. JSON has no comments, so each key is
-explained in the sections below.
+Every top-level setting used by the Markdown backend is populated as a starting point. The
+Linear-only mapping is shown separately below. JSON has no comments, so each key is explained in
+the sections that follow.
 
 ```json
 {
   "artifacts": { "specPlan": "markdown" },
-  "linear": {
-    "workspace": "acme",
-    "team": "ENG",
-    "repository": "acme/widgets",
-    "projectStatuses": {
-      "draft": "Draft",
-      "hardened": "Hardened",
-      "approved": "Approved",
-      "planning": "Planning",
-      "ready": "Ready",
-      "executing": "In Progress",
-      "inReview": "In Review",
-      "done": "Completed",
-      "abandoned": "Canceled"
-    },
-    "issueStates": {
-      "planned": "Backlog",
-      "executing": "In Progress",
-      "inReview": "In Review",
-      "done": "Done",
-      "blocked": "Blocked"
-    }
-  },
+
   "review": {
     "severity_floor": "high",
     "nits": true,
@@ -97,36 +76,72 @@ explained in the sections below.
 
 ## Artifact backend
 
-`artifacts.specPlan` accepts `markdown` (the default) or `linear`. Markdown reads and writes
-tracked `.woostack/specs/*.md` and `.woostack/plans/*.md` files. Linear is operational for the
-spec/plan build loop: it stores one repository-owned project, one managed spec document, and one
-managed issue per increment, with verified read-backs after every mutation. Linear mode writes no
-local spec/plan source and opens no docs-only spec+plan PR.
+`artifacts.specPlan` selects one backend for the repository: the default is `markdown`; the alternative is `linear`.
+Skills resolve this selector before touching a spec or plan and never infer storage from files,
+credentials, or command arguments. Markdown reads and writes tracked `.woostack/specs/*.md` and
+`.woostack/plans/*.md` files. Linear stores one repository-owned project, one managed spec
+document, and one managed issue per increment, with verified read-backs after every mutation. It
+writes no local spec/plan source and opens no docs-only spec+plan PR. A Linear failure never falls
+back to Markdown.
 
-| Key | Required for `linear` | Meaning |
-| --- | --- | --- |
-| `linear.workspace` | yes | Linear workspace slug or identifier. |
-| `linear.team` | yes | Team key or identifier used for increment issues. |
-| `linear.repository` | when no GitHub `origin` can be resolved | Canonical `owner/repository` identity. An explicit value takes precedence over Git remote discovery. |
-| `linear.projectStatuses.draft` | yes | Project status for draft specs. |
-| `linear.projectStatuses.hardened` | yes | Project status for hardened specs. |
-| `linear.projectStatuses.approved` | yes | Project status for approved specs. |
-| `linear.projectStatuses.planning` | yes | Project status while a plan is being written. |
-| `linear.projectStatuses.ready` | yes | Project status for an approved plan awaiting execution. |
-| `linear.projectStatuses.executing` | yes | Project status while increments are being implemented. |
-| `linear.projectStatuses.inReview` | yes | Project status while increment PRs are under review. |
-| `linear.projectStatuses.done` | yes | Project status after every increment is complete. |
-| `linear.projectStatuses.abandoned` | yes | Project status for abandoned work. |
-| `linear.issueStates.planned` | yes | Issue state for planned increments. |
-| `linear.issueStates.executing` | yes | Issue state for active increments. |
-| `linear.issueStates.inReview` | yes | Issue state for increments under review. |
-| `linear.issueStates.done` | yes | Issue state for completed increments. |
-| `linear.issueStates.blocked` | yes | Issue state for blocked increments. |
+| Key | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `artifacts.specPlan` | `"markdown"` or `"linear"` | `"markdown"` | Canonical spec/plan backend for the repository. |
+| `linear.repository` | `owner/repo` string | repository's GitHub origin | Repository identity recorded on managed resources. |
+| `linear.workspace` | non-empty string | required in Linear mode | Linear workspace name or key. |
+| `linear.team` | non-empty string | required in Linear mode | Linear team name or key for increment issues. |
+| `linear.projectStatuses` | complete name map | required in Linear mode | Maps woostack project phases to native Linear project-status names. |
+| `linear.issueStates` | complete name map | required in Linear mode | Maps increment phases to native team workflow-state names. |
 
 Only the keys listed above are accepted; unknown keys fail closed. The namespace must not contain
 credentials at any depth. Keep API keys, tokens, authorization headers, passwords, private or
 access keys, client secrets, credential files, and provider authentication in the host's native
 secret store.
+The configured names are resolved to native IDs during authenticated preflight. Projects are the
+feature, one managed document is the spec, and ordered issues are the plan increments; their
+native states and `blocked by` relations remain canonical. The
+[artifact-backend reference](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/development.md#artifact-backend)
+owns the selection and resource model, while [Building rules](/docs/concepts/building-rules)
+explains how those resources pass through the three gates.
+
+```json
+{
+  "artifacts": { "specPlan": "linear" },
+  "linear": {
+    "repository": "owner/repository",
+    "workspace": "workspace-key",
+    "team": "TEAM",
+    "projectStatuses": {
+      "draft": "Draft",
+      "hardened": "Hardened",
+      "approved": "Approved",
+      "planning": "Planning",
+      "ready": "Ready",
+      "executing": "In Progress",
+      "inReview": "In Review",
+      "done": "Completed",
+      "abandoned": "Canceled"
+    },
+    "issueStates": {
+      "planned": "Backlog",
+      "executing": "In Progress",
+      "inReview": "In Review",
+      "done": "Done",
+      "blocked": "Blocked"
+    }
+  }
+}
+```
+
+Linear authentication is environment-only. Supply `LINEAR_API_KEY` to the woostack process from
+your shell or secret manager; never add the key to this JSON, a committed `.env` file, generated
+docs, or any artifact. Static doctor checks are credential-free. `/woostack-doctor --live` is the
+explicit authenticated validation path.
+
+Changing the selector does not migrate data. In Linear mode, existing `.woostack/specs/` and
+`.woostack/plans/` files are inactive legacy artifacts: doctor reports them but never imports,
+rewrites, deletes, or synchronizes them. Switch only after a deliberate migration and use one
+backend at a time.
 
 ## Response
 
@@ -370,10 +385,10 @@ worktrees are cut from.
 ## Defaults and doctor
 
 <Callout type="info">
-  Every key is optional. The init template ships `artifacts`, `models`, `review`, `respond`, and
-  `status`; everything else takes its built-in default when absent.
-  [woostack-doctor](/docs/skills/woostack-doctor) validates the five scaffolded keys and can repair
-  a missing one. Each owning skill validates its settings when it runs.
+  Every key is optional in the Markdown default. The init template ships `artifacts`, `models`,
+  `review`, `respond`, and `status`; everything else takes its built-in default when absent.
+  [woostack-doctor](/docs/skills/woostack-doctor) validates all five scaffolded keys and can
+  repair a missing local default. Each owning skill validates its settings when it runs.
 </Callout>
 
 ## Where to go next
