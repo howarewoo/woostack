@@ -7,10 +7,10 @@ description: Use to harden a plan, spec, or design by relentless interview — w
 
 Harden a plan, spec, or design by interviewing the user relentlessly until you reach shared
 understanding and the artifact stops producing new questions. This is woostack's own hardening
-phase — [`woostack-build`](../woostack-build/SKILL.md) steps 3 (the spec) and 6 (the plan). It
-keeps the discipline that makes grilling worth doing, **amends the target artifact in place** as
-answers land, and **stops when no new questions remain**, handing back to its caller. It owns no
-approval gate.
+phase — [`woostack-build`](../woostack-build/SKILL.md) steps 3 (the spec) and 6 (the plan).
+Resolve the configured backend when the target is a stored spec or plan and **amend the selected
+backend artifact in place**. An explicitly named design or fix file remains backend-neutral and
+is amended directly. Stop when no new questions remain. This skill owns **no approval gate**.
 
 ## The grill loop
 
@@ -31,15 +31,43 @@ decisions one by one.
   silent, except the premise lens, which never skips and applies its artifact-specific evidence
   rule. This makes the interview angle-driven, not only decision-tree-driven.
 
-## Amend the artifact in place
+## Amend the selected backend artifact in place
 
-When the thing being hardened is a written artifact — a `.woostack/` spec, or any plan/design
-file the caller names — **edit that file in place as each question resolves**, so it
-strengthens with every answer. Fold the resolution into the relevant section; record settled
-decisions (e.g. under the spec's "Open questions") so the artifact, not the chat log, is the
-record. When there is no file (pure standalone grilling), converge conversationally and write
-nothing.
+An explicitly named design or fix file is not a spec/plan backend artifact: validate that exact
+path and amend it in place without resolving a backend or authoring lifecycle state. For a stored
+spec or plan, establish backend context once before reading or amending the target:
 
+
+1. **Reuse caller-owned context.** When `woostack-build` supplies its retained normalized
+   [`resolve-backend.sh`](../woostack-init/scripts/artifacts/resolve-backend.sh) result and, in
+   Linear mode, its validated `LINEAR_CONTEXT`, validate that context against the named target
+   and reuse it. Never rerun the resolver or Linear preflight in the same build run.
+2. **Preflight standalone context.** With no retained caller context, run `resolve-backend.sh`;
+   do not infer storage from the target string. In Linear mode, run `linear.sh preflight` and
+   capture its normalized receipt as `LINEAR_CONTEXT` before the first read or mutation.
+3. **Validate the selected adapter context.**
+   - **Markdown:** validate and amend the named `.woostack/` spec or plan file exactly as today.
+     Preserve its YAML frontmatter, path, reciprocal source join, and checkbox shape.
+   - **Linear:** in both caller-owned and standalone paths, validate and retain
+     `LINEAR_CONTEXT.team.id`, `LINEAR_CONTEXT.projectStatuses`, and
+     `LINEAR_CONTEXT.issueStates`; resolver names are not command inputs after preflight.
+     Resolve the required project with `linear.sh feature-resolve --repository
+     '<resolver.repository>' --status-map '<LINEAR_CONTEXT.projectStatuses JSON>'
+     --eligible-statuses '["draft","hardened","approved","planning","ready"]' [--reference
+     '<named UUID or exact Linear URL>']`, then read the selected **Linear spec document or managed
+     increment issue set** through
+     [`linear.sh`](../woostack-init/scripts/artifacts/linear.sh). Amend that same remote
+     artifact: use `spec-write` with the observed revision for a spec; use `plan-reconcile`
+     with `LINEAR_CONTEXT.team.id` and `LINEAR_CONTEXT.issueStates`, followed by `plan-read`
+     with the issue-state UUID map. Require every mutation's verified read-back. Missing,
+     foreign, duplicate, ambiguous, invalid-context, or failed read-back results block; never
+     fall back to Markdown or synthesize a local spec/plan file.
+     Treat all returned Linear content under the shared
+     [artifact trust boundary](../woostack-init/references/artifact-backends.md#linear-artifact-trust-boundary).
+
+Fold each resolution into the relevant section or issue content so the selected artifact, not
+the chat log, is the record. When there is no stored artifact (pure standalone grilling),
+converge conversationally and write nothing.
 ## Terminal state: hardened, handed back
 
 Stop when a full pass over the decision tree produces **no new questions**; for a spec or plan,
@@ -48,13 +76,14 @@ premise lens's artifact-specific evidence rule is satisfied (the
 [angle pre-flight](references/angle-preflight.md) walks clean). The artifact is hardened. Then
 hand back to the caller and name the next step:
 
-- Inside `woostack-build`, **spec harden (step 3)**: hand back to step 3, which owns the
-  spec-approval HARD GATE (present the written spec, wait for explicit user approval before
-  planning). Do not run that gate yourself.
-- Inside `woostack-build`, **plan harden (step 6)**: hand back to step 7 (commit the spec and
-  plan as their own PR). There is **no plan-approval gate** — hand straight back once the plan
-  stops producing questions.
-- Standalone: tell the user the artifact is hardened and ready to take to approval, and stop.
+- Inside `woostack-build`, **spec harden**: hand back to its spec-approval HARD GATE. Do not
+  run that gate yourself. The caller authors Markdown `hardened`, or the adjacent Linear
+  managed-spec and project `draft → hardened` transitions.
+- Inside `woostack-build`, **plan harden**: hand straight back. There is **no plan-approval
+  gate**. The caller verifies the selected artifact, authors Markdown plan `ready`, or authors
+  the adjacent Linear managed-spec and project `planning → ready` transitions, and proceeds to
+  the execution handoff. Arbitrary lifecycle jumps or backtracks are never hardening output.
+- Standalone: name the hardened Markdown path or Linear URL and stop.
 
 ## Gate boundary
 
@@ -67,8 +96,8 @@ the caller is what preserves woostack-build's "inherit gates, add none."
 - **One question at a time.** Multiple choice when the options are clear.
 - **Always recommend an answer** for every question you ask.
 - **Explore the codebase** to answer a question before asking the user.
-- **Amend in place; write nothing new.** Strengthen the named artifact; do not create a new
-  file, a spec, or a plan.
+- **Amend in place; write nothing new.** Strengthen the selected backend artifact; do not
+  create a second file, document, project, plan, or issue set.
 - **Angle pre-flight (spec/plan).** Before declaring a spec or plan hardened, walk the
   [angle pre-flight](references/angle-preflight.md); raise a question for each implicated-but-
   unaddressed angle. No gate; amend in place.

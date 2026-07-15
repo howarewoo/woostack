@@ -8,8 +8,9 @@ description: Use as the ideate phase of the woostack build loop — turn a featu
 Turn a feature idea into a fully formed, approved design through natural collaborative
 dialogue. This is woostack's own ideation phase — the first step of
 [`woostack-build`](../woostack-build/SKILL.md). It keeps the discipline that makes
-ideation worth doing and **stops at an approved design**: it writes no spec file and
-invokes no downstream skill. The caller decides what to do with the design.
+ideation worth doing and **stops at an approved design**: it writes no spec or plan artifact
+and invokes no downstream skill. The caller persists the design through the selected artifact
+backend.
 
 <HARD-GATE>
 Do NOT take any implementation action — write code, scaffold, run an implementation skill,
@@ -29,15 +30,15 @@ approval before moving on.
 
 The skill ends the moment the user approves the design. At that point:
 
-- **Write nothing.** Do not create a spec file, a plan, or any artifact. The approved design
-  lives in the conversation.
+- **Write nothing.** Do not create a spec file, Linear document/project, plan, issue, or other
+  artifact. The approved design lives in the conversation.
 - **Chain nothing.** Do not invoke `woostack-plan`, `woostack-execute`, or any implementation
   skill yourself.
 - **Hand back.** State that the design is approved and name the next step:
-  - Inside `woostack-build`: its **step 2** captures this design as a markdown spec under
-    `.woostack/specs/`. Return control there.
-  - Standalone: tell the user the design is ready to capture as a spec; offer
-    to hand off to `woostack-build` starting at **step 2**, and stop.
+  - Inside `woostack-build`: return control to its backend split. The caller captures the
+    design as a Markdown spec or Linear managed project/spec according to the selected artifact backend.
+  - Standalone: tell the user the design is ready for `woostack-build` to capture through the
+    configured backend, and stop.
 
 This boundary is the whole point of owning the phase: the caller owns the spec write and the
 plan, so this skill must not.
@@ -125,7 +126,7 @@ above is unchanged.
 
 ## Hard constraints
 
-- **Stop at an approved design.** Never write a spec/plan file or chain a downstream skill —
-  the caller owns those. Handing back is the terminal state.
+- **Stop at an approved design.** This skill writes no spec or plan artifact and chains no
+  downstream skill; the caller owns backend resolution and persistence.
 - **Respect the gate.** No implementation action of any kind before the user approves.
 - **No bespoke visual server.** Defer visual treatment to `woostack-visualize`.

@@ -17,9 +17,9 @@ commands:
   preflight --workspace NAME --team KEY --project-statuses JSON --issue-states JSON
   feature-resolve --repository OWNER/REPO --status-map JSON --eligible-statuses JSON [--reference UUID|LINEAR_URL]
   feature-create --repository OWNER/REPO --title TITLE --team-id UUID --status-map JSON --spec-file PATH
-  feature-transition --project UUID --repository OWNER/REPO --status-map JSON --target STATUS
+  feature-transition --project UUID --repository OWNER/REPO --status-map JSON --target STATUS [--replan --issue-state-map JSON --expected-revision JSON]
   spec-read --project UUID --repository OWNER/REPO
-  spec-write --project UUID --repository OWNER/REPO --content-file PATH --expected-revision JSON
+  spec-write --project UUID --repository OWNER/REPO --content-file PATH --expected-revision JSON [--issue-state-map JSON]
   plan-read --project UUID --repository OWNER/REPO --issue-state-map JSON
   plan-reconcile --project UUID --repository OWNER/REPO --team-id UUID --issue-state-map JSON --plan-file PATH
   issue-transition --project UUID --repository OWNER/REPO --issue UUID|TEAM-NUMBER --issue-state-map JSON --target STATUS [--branch NAME] [--pull-request URL]
@@ -193,7 +193,7 @@ prepare_spec() {
     [[ ! -s "$output" ]] || [[ "$(tail -c 1 "$output" | wc -l | tr -d ' ')" == 1 ]] || printf '\n' >>"$output"
     {
       printf '\n%s\n' '+++ Woostack metadata — managed, do not edit'
-      jq -cnS --arg projectId "$project_id" --arg repository "$repository" '{artifactType:"spec",projectId:$projectId,repository:$repository,schema:1}'
+      jq -cnS --arg projectId "$project_id" --arg repository "$repository" '{artifactType:"spec",designState:"draft",projectId:$projectId,repository:$repository,schema:1}'
       printf '%s\n' '+++'
     } >>"$output"
   fi
@@ -381,8 +381,8 @@ command_plan_read() {
   require_uuid "$project_id" "project id"; require_repository "$repository"; validate_issue_state_map "$issue_map"
   increments="$(normalized_increments "$project_id" "$repository" "$issue_map")"
   model="$(jq -cn --arg project "$project_id" --argjson increments "$increments" '
-    {backend:"linear",feature:{id:$project,url:"https://linear.invalid",title:"validation",status:"planning",branch:null},
-     spec:{id:"00000000-0000-4000-8000-000000000000",url:"https://linear.invalid",content:"",revision:"validation"},
+    {backend:"linear",feature:{id:$project,url:"https://linear.invalid",title:"validation",status:"planning",baseBranch:null,baseCommitSha:null},
+     spec:{id:"00000000-0000-4000-8000-000000000000",url:"https://linear.invalid",content:"",revision:{contentHash:"0000000000000000000000000000000000000000000000000000000000000000",updatedAt:"validation"}},
      increments:$increments}
   ')"
   python3 "$METADATA" validate-feature --project-id "$project_id" <<<"$model" >/dev/null || fail "managed increment graph is invalid"
@@ -390,7 +390,7 @@ command_plan_read() {
 }
 
 command_feature_read() {
-  local project_id='' repository='' status_map='' issue_map='' projects project documents doc spec increments model branch
+  local project_id='' repository='' status_map='' issue_map='' projects project documents doc spec increments model metadata base_branch base_commit_sha
   while [[ $# -gt 0 ]]; do case "$1" in
     --project) project_id="$2"; shift 2;; --repository) repository="$2"; shift 2;;
     --status-map) status_map="$2"; shift 2;; --issue-state-map) issue_map="$2"; shift 2;; *) usage;; esac; done
@@ -401,9 +401,11 @@ command_feature_read() {
   doc="$(find_spec "$project_id" "$repository" "$documents")" || fail "managed spec document not found"
   spec="$(spec_result "$doc")"
   increments="$(normalized_increments "$project_id" "$repository" "$issue_map")"
-  branch="$(jq -r '.content' <<<"$doc" | python3 "$METADATA" parse --repository "$repository" --project-id "$project_id" 2>/dev/null | jq -c '.baseBranch // null')" || fail "spec metadata is invalid"
-  model="$(jq -cn --argjson project "$project" --argjson spec "$spec" --argjson increments "$increments" --argjson branch "$branch" '
-    {backend:"linear",feature:{id:$project.id,url:$project.url,title:$project.name,status:$project.status,branch:$branch},spec:$spec,increments:$increments}
+  metadata="$(jq -r '.content' <<<"$doc" | python3 "$METADATA" parse --repository "$repository" --project-id "$project_id" 2>/dev/null)" || fail "spec metadata is invalid"
+  base_branch="$(jq -c '.baseBranch // null' <<<"$metadata")"
+  base_commit_sha="$(jq -c '.baseCommitSha // null' <<<"$metadata")"
+  model="$(jq -cn --argjson project "$project" --argjson spec "$spec" --argjson increments "$increments" --argjson baseBranch "$base_branch" --argjson baseCommitSha "$base_commit_sha" '
+    {backend:"linear",feature:{id:$project.id,url:$project.url,title:$project.name,status:$project.status,baseBranch:$baseBranch,baseCommitSha:$baseCommitSha},spec:$spec,increments:$increments}
   ')"
   python3 "$METADATA" validate-feature --project-id "$project_id" <<<"$model" >/dev/null || fail "normalized feature model is invalid"
   jq -cS . <<<"$model"
@@ -531,15 +533,39 @@ command_spec_read() {
 }
 
 command_spec_write() {
-  local project_id='' repository='' content_file='' expected='' documents doc current expected_file response returned=null readback='' observed_file verified=false pending='[]'
+  local project_id='' repository='' content_file='' expected='' issue_map='' documents doc current expected_file current_file replacement_metadata increments evidence response returned=null readback='' observed_file verified=false pending='[]'
   while [[ $# -gt 0 ]]; do case "$1" in --project) project_id="$2"; shift 2;; --repository) repository="$2"; shift 2;;
-    --content-file) content_file="$2"; shift 2;; --expected-revision) expected="$2"; shift 2;; *) usage;; esac; done
+    --content-file) content_file="$2"; shift 2;; --expected-revision) expected="$2"; shift 2;;
+    --issue-state-map) issue_map="$2"; shift 2;; *) usage;; esac; done
   require_uuid "$project_id" "project id"; require_repository "$repository"; [[ -r "$content_file" && -n "$expected" ]] || usage
   documents="$(document_list "$project_id")" || fail "spec discovery failed"
   doc="$(find_spec "$project_id" "$repository" "$documents")" || fail "managed spec document not found"
   current="$(spec_result "$doc")"
   [[ "$(jq -c '.revision' <<<"$current")" == "$(jq -cS . <<<"$expected" 2>/dev/null)" ]] || fail "optimistic revision mismatch"
-  expected_file="$(mktemp)"; prepare_spec "$content_file" "$project_id" "$repository" "$expected_file"
+  if [[ -n "$issue_map" ]]; then validate_issue_state_map "$issue_map"; fi
+  expected_file="$(mktemp)"
+  prepare_spec "$content_file" "$project_id" "$repository" "$expected_file" \
+    || { rm -f "$expected_file"; fail "replacement spec preparation failed"; }
+  current_file="$(mktemp)" || { rm -f "$expected_file"; fail "temporary spec allocation failed"; }
+  jq -j '.content' <<<"$doc" >"$current_file" \
+    || { rm -f "$current_file" "$expected_file"; fail "current spec content is invalid"; }
+  replacement_metadata="$(python3 "$METADATA" parse --repository "$repository" --project-id "$project_id" <"$expected_file")" \
+    || { rm -f "$current_file" "$expected_file"; fail "replacement spec metadata is invalid"; }
+  if [[ -n "$issue_map" ]]; then
+    increments="$(normalized_increments "$project_id" "$repository" "$issue_map")" \
+      || { rm -f "$current_file" "$expected_file"; fail "increment discovery failed"; }
+    evidence="$(jq -c '[.[] | {branch,pullRequest}]' <<<"$increments")" \
+      || { rm -f "$current_file" "$expected_file"; fail "increment evidence is invalid"; }
+    python3 "$METADATA" replace --metadata "$replacement_metadata" \
+      --repository "$repository" --project-id "$project_id" \
+      --increment-evidence "$evidence" <"$current_file" >/dev/null \
+      || { rm -f "$current_file" "$expected_file"; fail "spec metadata replacement is unsafe"; }
+  else
+    python3 "$METADATA" replace --metadata "$replacement_metadata" \
+      --repository "$repository" --project-id "$project_id" <"$current_file" >/dev/null \
+      || { rm -f "$current_file" "$expected_file"; fail "spec metadata replacement is unsafe"; }
+  fi
+  rm -f "$current_file"
   if response="$(request_mutation "$GRAPHQL/document-update.graphql" "$(jq -cn --arg id "$(jq -r '.id' <<<"$doc")" --rawfile content "$expected_file" '{id:$id,input:{content:$content}}')")"; then
     if jq -e '.data.documentUpdate.success==true and (.data.documentUpdate.document.id|type=="string")' >/dev/null 2>&1 <<<"$response"; then
       returned="$(jq -c '.data.documentUpdate.document | {id,title,url,updatedAt,project}' <<<"$response")"
@@ -567,11 +593,121 @@ command_spec_write() {
   [[ "$verified" == true ]]
 }
 
+command_replan_transition() {
+  local project_id="$1" repository="$2" status_map="$3" target="$4" issue_map="$5" expected="$6"
+  local projects current current_name documents doc spec metadata design_state increments claim_file claim_metadata
+  local claim_receipt claimed claimed_revision response returned=null readback readback_rc verified=false
+  local attempted='["documentUpdate","projectUpdate"]'
+  [[ "$target" == planning && -n "$issue_map" && -n "$expected" ]] \
+    || fail "explicit replan requires a planning target, issue evidence, and an expected spec revision"
+  validate_issue_state_map "$issue_map"
+  projects="$(project_list)" || fail "project discovery failed"
+  current="$(resolve_from_list "$projects" "$repository" "$status_map" "$REQUIRED_STATUSES" "$project_id")" || return $?
+  current_name="$(jq -r '.status' <<<"$current")"
+  [[ "$current_name" == ready || "$current_name" == planning ]] \
+    || fail "explicit replan requires a ready or planning project"
+  documents="$(document_list "$project_id")" || fail "spec discovery failed during replan"
+  doc="$(find_spec "$project_id" "$repository" "$documents")" \
+    || fail "managed spec document not found during replan"
+  spec="$(spec_result "$doc")" || fail "managed spec revision is invalid during replan"
+  [[ "$(jq -c '.revision' <<<"$spec")" == "$(jq -cS . <<<"$expected" 2>/dev/null)" ]] \
+    || fail "optimistic revision mismatch"
+  metadata="$(jq -j '.content' <<<"$doc" | python3 "$METADATA" parse \
+    --repository "$repository" --project-id "$project_id" 2>/dev/null)" \
+    || fail "managed spec lifecycle is invalid during replan"
+  design_state="$(jq -r '.designState // ""' <<<"$metadata")"
+  if [[ "$design_state" != "$current_name" \
+      && ! ("$current_name" == ready && "$design_state" == planning) ]]; then
+    fail "project and managed spec lifecycle mismatch blocks replanning"
+  fi
+  [[ "$design_state" == ready || "$design_state" == planning ]] \
+    || fail "managed spec lifecycle blocks replanning"
+  increments="$(normalized_increments "$project_id" "$repository" "$issue_map")" \
+    || fail "increment discovery failed during replan"
+  jq -e 'all(.[]; .branch==null and .pullRequest==null)' >/dev/null <<<"$increments" \
+    || fail "implementation evidence blocks replanning"
+  if [[ "$design_state" == planning ]]; then
+    if [[ "$current_name" == planning ]]; then
+      jq -cn --arg current "$current_name" --arg target "$target" --arg id "$project_id" \
+        '{current:$current,target:$target,attempted:[],observed:{project:$id},returned:{project:null},verified:true,pending:[]}'
+      return
+    fi
+    claimed_revision="$(jq -c '.revision' <<<"$spec")"
+    attempted='["projectUpdate"]'
+  else
+    claim_file="$(mktemp)"
+    claim_metadata="$(jq -cS '.designState="planning"' <<<"$metadata")" \
+      || { rm -f "$claim_file"; fail "replan claim metadata is invalid"; }
+    jq -j '.content' <<<"$doc" | python3 "$METADATA" replace --metadata "$claim_metadata" \
+      --repository "$repository" --project-id "$project_id" \
+      --increment-evidence "$(jq -c '[.[] | {branch,pullRequest}]' <<<"$increments")" \
+      --expected-revision "$expected" --updated-at "$(jq -r '.updatedAt' <<<"$doc")" >"$claim_file" \
+      || { rm -f "$claim_file"; fail "managed spec replan claim is unsafe"; }
+    if ! claim_receipt="$(command_spec_write --project "$project_id" --repository "$repository" \
+        --content-file "$claim_file" --expected-revision "$expected" --issue-state-map "$issue_map")"; then
+      rm -f "$claim_file"
+      printf '%s\n' "$claim_receipt"
+      return 1
+    fi
+    rm -f "$claim_file"
+    claimed="$(command_spec_read --project "$project_id" --repository "$repository")" \
+      || fail "claimed planning spec could not be read back"
+    [[ "$(jq -j '.content' <<<"$claimed" | python3 "$METADATA" parse \
+        --repository "$repository" --project-id "$project_id" 2>/dev/null | jq -r '.designState // ""')" == planning ]] \
+      || fail "claimed planning spec failed lifecycle verification"
+    claimed_revision="$(jq -c '.revision' <<<"$claimed")"
+  fi
+
+  if response="$(request_mutation "$GRAPHQL/project-update.graphql" "$(jq -cn --arg id "$project_id" --arg statusId "$(jq -r '.planning' <<<"$status_map")" '{id:$id,input:{statusId:$statusId}}')")"; then
+    if jq -e '.data.projectUpdate.success==true and (.data.projectUpdate.project.id|type=="string")' >/dev/null 2>&1 <<<"$response"; then
+      returned="$(jq -c '.data.projectUpdate.project | {id,name,url,status}' <<<"$response")"
+    fi
+  fi
+  projects="$(project_list)" || {
+    claimed="$(command_spec_read --project "$project_id" --repository "$repository")" \
+      || fail "project transition and planning spec read-back are both unverified"
+    [[ "$(jq -c '.revision' <<<"$claimed")" == "$claimed_revision" ]] \
+      || fail "failed project transition did not preserve the claimed spec revision"
+    [[ "$(jq -j '.content' <<<"$claimed" | python3 "$METADATA" parse \
+        --repository "$repository" --project-id "$project_id" 2>/dev/null | jq -r '.designState // ""')" == planning ]] \
+      || fail "failed project transition did not preserve a verified planning spec"
+    jq -cn --arg current "$current_name" --arg target "$target" --argjson attempted "$attempted" --argjson returned "$returned" \
+      '{current:$current,target:$target,attempted:$attempted,observed:{project:null},returned:{project:$returned},verified:false,pending:["project-read-back"]}'
+    return 1
+  }
+  set +e; readback="$(resolve_from_list "$projects" "$repository" "$status_map" "$REQUIRED_STATUSES" "$project_id" 2>/dev/null)"; readback_rc=$?; set -e
+  if [[ "$readback_rc" -eq 0 && "$(jq -r '.status' <<<"$readback")" == planning ]]; then
+    verified=true
+    if [[ "$returned" != null ]]; then
+      [[ "$(jq -r '.id' <<<"$returned")" == "$project_id" ]] || verified=false
+      [[ "$(jq -r '.status.id' <<<"$returned")" == "$(jq -r '.planning' <<<"$status_map")" ]] || verified=false
+    fi
+  fi
+  if [[ "$verified" != true ]]; then
+    claimed="$(command_spec_read --project "$project_id" --repository "$repository")" \
+      || fail "failed project transition did not preserve a readable planning spec"
+    [[ "$(jq -c '.revision' <<<"$claimed")" == "$claimed_revision" ]] \
+      || fail "failed project transition did not preserve the claimed spec revision"
+    [[ "$(jq -j '.content' <<<"$claimed" | python3 "$METADATA" parse \
+        --repository "$repository" --project-id "$project_id" 2>/dev/null | jq -r '.designState // ""')" == planning ]] \
+      || fail "failed project transition did not preserve a verified planning spec"
+  fi
+  jq -cn --arg current "$current_name" --arg target "$target" --arg id "${readback:+$(jq -r '.id' <<<"$readback")}" \
+    --argjson attempted "$attempted" --argjson returned "$returned" --argjson verified "$verified" \
+    '{current:$current,target:$target,attempted:$attempted,observed:{project:(if $id=="" then null else $id end)},returned:{project:$returned},verified:$verified,pending:(if $verified then [] else ["project-status-verification"] end)}'
+  [[ "$verified" == true ]]
+}
+
 command_feature_transition() {
-  local project_id='' repository='' status_map='' target='' projects current current_name current_index target_index response returned readback verified
+  local project_id='' repository='' status_map='' target='' replan=false issue_map='' expected='' projects current current_name current_index target_index response returned readback verified
   while [[ $# -gt 0 ]]; do case "$1" in --project) project_id="$2"; shift 2;; --repository) repository="$2"; shift 2;;
-    --status-map) status_map="$2"; shift 2;; --target) target="$2"; shift 2;; *) usage;; esac; done
+    --status-map) status_map="$2"; shift 2;; --target) target="$2"; shift 2;;
+    --replan) replan=true; shift;; --issue-state-map) issue_map="$2"; shift 2;; --expected-revision) expected="$2"; shift 2;; *) usage;; esac; done
   require_uuid "$project_id" "project id"; require_repository "$repository"; validate_status_map "$status_map"
+  if [[ "$replan" == true ]]; then
+    command_replan_transition "$project_id" "$repository" "$status_map" "$target" "$issue_map" "$expected"
+    return
+  fi
   jq -e --arg target "$target" 'has($target)' >/dev/null 2>&1 <<<"$status_map" || fail "archive, delete, or unknown lifecycle transitions are prohibited"
   projects="$(project_list)" || fail "project discovery failed"; current="$(resolve_from_list "$projects" "$repository" "$status_map" "$REQUIRED_STATUSES" "$project_id")" || return $?
   current_name="$(jq -r '.status' <<<"$current")"

@@ -64,20 +64,36 @@ function escapeBareTagsOutsideCode(line) {
   // split on inline code spans; only escape uppercase tags in the non-code segments
   return line
     .split(/(`[^`]*`)/)
-    .map((seg) => (seg.startsWith('`') ? seg : seg.replace(/<(\/?[A-Z][A-Z-]*)>/g, '&lt;$1&gt;')))
+    .map((seg) => (seg.startsWith('`') ? seg : seg.replace(/<(\/?[A-Z][A-Z-]*)(\s+[^<>]*?)?>/g, '&lt;$1$2&gt;')))
     .join('');
 }
 
 export function neutralizeTags(body) {
   const out = [];
   let inFence = false;
+  let attributedHardGateDepth = 0;
   for (const line of body.split('\n')) {
     if (/^\s*(```|~~~)/.test(line)) { inFence = !inFence; out.push(line); continue; }
     if (inFence) { out.push(line); continue; }
-    const open = /^<([A-Z][A-Z-]*)>\s*$/.exec(line);
+    if (/^\s*<!--.*-->\s*$/.test(line)) continue;
+    let strippedHardGate = false;
+    const publicLine = line
+      .split(/(`[^`]*`)/)
+      .map((seg) => (seg.startsWith('`') ? seg : seg.replace(
+        /<HARD-GATE\s+[^<>]*>|<\/HARD-GATE>/g,
+        (tag) => {
+          if (tag.startsWith('</') && attributedHardGateDepth === 0) return tag;
+          attributedHardGateDepth += tag.startsWith('</') ? -1 : 1;
+          strippedHardGate = true;
+          return '';
+        }
+      )))
+      .join('');
+    if (strippedHardGate && publicLine.trim() === '') continue;
+    const open = /^<([A-Z][A-Z-]*)>\s*$/.exec(publicLine);
     if (open) { out.push(`<Callout type="warn" title="${humanizeTag(open[1])}">`); continue; }
-    if (/^<\/[A-Z][A-Z-]*>\s*$/.test(line)) { out.push('</Callout>'); continue; }
-    out.push(escapeBareTagsOutsideCode(line));
+    if (/^<\/[A-Z][A-Z-]*>\s*$/.test(publicLine)) { out.push('</Callout>'); continue; }
+    out.push(escapeBareTagsOutsideCode(publicLine));
   }
   return out.join('\n');
 }

@@ -7,6 +7,12 @@ branch: {{FEATURE_BRANCH}}
 
 **Source:** [[specs/{{SPEC_BASENAME}}]]
 
+> **Normalized backend input:** one resolved spec identity, content, revision, and backend.
+> Markdown emits this file unchanged; Linear maps each `## Increment` to one managed issue and
+> carries its stable identity, explicit ordinal, dependencies, and Git parent in adapter input.
+> Linear also carries the captured preflight `team.id`, project-status UUID map, and issue-state
+> UUID map as run context; configured lifecycle names are never reconciliation inputs.
+
 # {{FEATURE_NAME}} Implementation Plan
 
 **Goal:** {{ONE_SENTENCE_WHAT_THIS_BUILDS}}
@@ -63,6 +69,14 @@ branch: {{FEATURE_BRANCH}}
 - **Angle coverage** - the plan lens of `skills/woostack-harden/references/angle-preflight.md` is
   walked: architecture, tests-per-AC, security/observability addressed by tasks (skip rule keeps
   untouched angles silent).
+
+## Backend output contract
+
+- **Markdown:** preserve this file's `type: plan` frontmatter, path, reciprocal
+  `**Source:** [[specs/{{SPEC_BASENAME}}]]` join, status, branch, headings, and checkboxes.
+- **Linear:** do not persist this file. Reconcile one issue per increment through the shared
+  adapter, with stable ID, unique ordinal, native blocked-by relations, mirrored dependencies,
+  one representable Git parent, complete issue content, and verified read-back.
 
 This file starts with YAML frontmatter for Obsidian properties, then preserves the `**Source:**`
 line — an Obsidian `[[specs/<basename>]]` wikilink, symmetric with the spec's

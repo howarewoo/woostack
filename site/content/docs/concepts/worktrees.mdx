@@ -3,10 +3,10 @@ title: Parallelism with worktrees
 description: How woostack runs many builds, fixes, and executions at once by isolating each in its own git worktree.
 ---
 
-woostack runs several plans at the same time on one machine without collision. The mechanism is
-the **git worktree**: every build, fix, and execution does all of its writes in a private working
-tree, while the primary checkout stays clean on the base branch. Two runs never touch the same
-files, so they never collide.
+woostack isolates Git writes so several plans can run at the same time without collision. The
+mechanism is the **git worktree**: every Markdown build, fix, and implementation increment does
+its writes in a private working tree, while the primary checkout stays clean on the base branch.
+Two runs never touch the same files, so they never collide.
 
 ## A worktree per run
 
@@ -16,9 +16,13 @@ it creates follows the run:
 
 | Run | Branch | Worktree directory |
 | --- | --- | --- |
-| [woostack-build](/docs/skills/woostack-build) spec+plan | `feature/<slug>` | `.woostack/worktrees/feature-<slug>` |
+| [woostack-build](/docs/skills/woostack-build) Markdown spec+plan | `feature/<slug>` | `.woostack/worktrees/feature-<slug>` |
 | [woostack-fix](/docs/skills/woostack-fix) | `fix/<slug>` | `.woostack/worktrees/fix-<slug>` |
 | [woostack-execute](/docs/skills/woostack-execute) increment | the plan's increment branch | one per increment |
+
+Linear build/planning creates no spec/plan worktree, branch, commit, or docs-only PR. Current
+Linear support stops at handoff with a verified frozen base. A future Linear executor will create
+the first implementation worktree from that base and dependent increments from their declared Git parent.
 
 The base branch is never hard-coded. A small script, `resolve-base.sh`, resolves it in order: an
 explicit `WOOSTACK_BASE_BRANCH` override, then `base_branch` in
@@ -37,8 +41,9 @@ This is the invariant that makes parallel runs safe:
 </Callout>
 
 Stacked increments build on each other rather than on the primary tree: increment _k_ branches
-off increment _k-1_'s tip (increment 1 off the spec+plan branch). The shared `.git` and Graphite
-metadata serialize through git's index and ref locks: brief contention, never corruption.
+off increment _k-1_'s tip. A Markdown root increment starts from the spec+plan branch; a Linear
+root increment starts from the frozen base SHA. The shared `.git` and Graphite metadata serialize
+through git's index and ref locks: brief contention, never corruption.
 
 ## Teardown, and what survives
 

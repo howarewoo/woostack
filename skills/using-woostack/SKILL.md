@@ -76,7 +76,7 @@ link it, never restate it.
 | `/woostack-bootstrap <goal>`, scaffold a new web/mobile/API project | `woostack-bootstrap` |
 | `/woostack-build <goal>`, build a feature through the woostack loop | `woostack-build` |
 | `/woostack-fix <target> [description]`, resolve a bug/issue through the unified fix loop | `woostack-fix` |
-| `/woostack-plan <spec-path>`, write the implementation plan for an approved spec as PR-sized increments | `woostack-plan` |
+| `/woostack-plan <spec-reference>`, write the implementation plan for an approved spec from a required backend-specific reference (Markdown spec path or Linear project UUID/URL) as PR-sized increments | `woostack-plan` |
 | `/woostack-execute <plan-path> [--inline\|--subagent]`, execute an approved plan as PR-sized stacked increments (inline or subagent-driven) | `woostack-execute` |
 | `/woostack-execute-overnight <plan-path> [--inline\|--subagent]`, execute an approved plan unattended overnight (autonomous, morning report) | `woostack-execute-overnight` |
 | `/woostack-sweep [PR#] [--base R] [--interactive]`, drive a stack of PRs to a clean review | `woostack-sweep` |

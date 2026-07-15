@@ -17,6 +17,7 @@ HEADER_RE = re.compile(rf"^{re.escape(HEADER)}(?:\r?\n|$)", re.MULTILINE)
 CLOSER_RE = re.compile(r"^\+\+\+(?:\r?\n|$)", re.MULTILINE)
 SCHEMA = 1
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+GIT_COMMIT_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 UUID_RE = re.compile(
     r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-"
     r"[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
@@ -34,6 +35,18 @@ FEATURE_STATUSES = {
     "abandoned",
 }
 INCREMENT_STATUSES = {"planned", "executing", "inReview", "done", "blocked"}
+DESIGN_SEQUENCE = (
+    "draft",
+    "hardened",
+    "approved",
+    "planning",
+    "ready",
+    "executionApproved",
+    "executing",
+    "inReview",
+    "done",
+)
+DESIGN_STATES = set(DESIGN_SEQUENCE) | {"abandoned"}
 
 
 class MetadataError(Exception):
@@ -122,6 +135,40 @@ def require_nonempty_string(value: Any, message: str) -> str:
     return value
 
 
+def valid_git_branch(value: Any) -> bool:
+    if (
+        not isinstance(value, str)
+        or not value
+        or value in {"@", "HEAD"}
+        or value.startswith("-")
+        or value.endswith((".", "/"))
+        or ".." in value
+        or "@{" in value
+        or "//" in value
+        or any(ord(character) <= 0x20 or ord(character) == 0x7F for character in value)
+        or any(character in "~^:?*[\\" for character in value)
+    ):
+        return False
+    components = value.split("/")
+    return all(
+        component
+        and component not in {".", ".."}
+        and not component.startswith(".")
+        and not component.endswith(".lock")
+        for component in components
+    )
+
+
+def valid_frozen_base(base_branch: Any, base_commit_sha: Any) -> bool:
+    if (base_branch is None) != (base_commit_sha is None):
+        return False
+    return base_branch is None or (
+        valid_git_branch(base_branch)
+        and isinstance(base_commit_sha, str)
+        and GIT_COMMIT_SHA_RE.fullmatch(base_commit_sha) is not None
+    )
+
+
 def validate_metadata(value: Any) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise MetadataError("managed metadata must be a JSON object")
@@ -135,6 +182,19 @@ def validate_metadata(value: Any) -> dict[str, Any]:
         raise MetadataError("metadata artifact type is invalid")
     require_nonempty_string(value.get("repository"), "metadata ownership is invalid")
     require_nonempty_string(value.get("projectId"), "metadata ownership is invalid")
+
+    if artifact_type == "spec":
+        base_branch = value.get("baseBranch")
+        base_commit_sha = value.get("baseCommitSha")
+        design_state = value.get("designState")
+        if design_state is not None and (
+            not isinstance(design_state, str) or design_state not in DESIGN_STATES
+        ):
+            raise MetadataError("spec design lifecycle is invalid")
+        if not valid_frozen_base(base_branch, base_commit_sha):
+            raise MetadataError("spec frozen base metadata is invalid")
+        if base_branch is not None and design_state is None:
+            raise MetadataError("spec frozen base metadata is invalid")
 
     if artifact_type == "increment":
         require_nonempty_string(value.get("incrementId"), "increment metadata is invalid")
@@ -259,6 +319,68 @@ def read_replacement(args: argparse.Namespace) -> dict[str, Any]:
     return validate_metadata(load_json(text, "replacement metadata JSON is malformed"))
 
 
+def replan_has_no_implementation_evidence(raw: str | None) -> bool:
+    if raw is None:
+        return False
+    evidence = load_json(raw, "increment evidence JSON is malformed")
+    if not isinstance(evidence, list):
+        raise MetadataError("increment evidence is invalid")
+    for increment in evidence:
+        if (
+            not isinstance(increment, dict)
+            or "branch" not in increment
+            or "pullRequest" not in increment
+            or (
+                increment["branch"] is not None
+                and (
+                    not isinstance(increment["branch"], str)
+                    or not increment["branch"]
+                )
+            )
+            or (
+                increment["pullRequest"] is not None
+                and (
+                    not isinstance(increment["pullRequest"], str)
+                    or not increment["pullRequest"]
+                )
+            )
+        ):
+            raise MetadataError("increment evidence is invalid")
+        if increment["branch"] is not None or increment["pullRequest"] is not None:
+            return False
+    return True
+
+
+def validate_design_state_transition(
+    current: Any, replacement: Any, increment_evidence: str | None
+) -> None:
+    if current == replacement:
+        return
+    if current is None:
+        if replacement == "draft":
+            return
+        raise MetadataError("design lifecycle must initialize at draft")
+    if current in {"done", "abandoned"}:
+        raise MetadataError("terminal design lifecycle is immutable")
+    if replacement == "abandoned":
+        return
+    if (current, replacement) == ("ready", "planning"):
+        if not replan_has_no_implementation_evidence(increment_evidence):
+            raise MetadataError("implementation evidence blocks design lifecycle replan")
+        return
+    current_index = DESIGN_SEQUENCE.index(current)
+    if (
+        current_index + 1 < len(DESIGN_SEQUENCE)
+        and replacement == DESIGN_SEQUENCE[current_index + 1]
+    ):
+        if current == "ready" and not replan_has_no_implementation_evidence(
+            increment_evidence
+        ):
+            raise MetadataError("implementation evidence blocks execution approval")
+        return
+    raise MetadataError("non-canonical design lifecycle transition")
+
+
 def command_replace(args: argparse.Namespace) -> None:
     raw, text = read_stdin()
     body_start, closer_start, newline, existing = managed_section(text)
@@ -277,6 +399,50 @@ def command_replace(args: argparse.Namespace) -> None:
         or replacement["projectId"] != existing["projectId"]
     ):
         raise MetadataError("metadata ownership mismatch")
+
+    if existing["artifactType"] == "spec":
+        validate_design_state_transition(
+            existing.get("designState"),
+            replacement.get("designState"),
+            args.increment_evidence,
+        )
+        if (
+            existing.get("designState") == "ready"
+            and replacement.get("designState") == "executionApproved"
+            and (
+                existing.get("baseBranch") is None
+                or replacement.get("baseBranch") != existing.get("baseBranch")
+                or replacement.get("baseCommitSha")
+                != existing.get("baseCommitSha")
+            )
+        ):
+            raise MetadataError("execution approval requires the frozen base pair")
+    base_changed = existing["artifactType"] == "spec" and (
+        replacement.get("baseBranch") != existing.get("baseBranch")
+        or replacement.get("baseCommitSha") != existing.get("baseCommitSha")
+    )
+    if base_changed:
+        no_implementation_evidence = replan_has_no_implementation_evidence(
+            args.increment_evidence
+        )
+        initial_ready_freeze = (
+            "baseBranch" not in existing
+            and "baseCommitSha" not in existing
+            and existing.get("designState") == "ready"
+            and replacement.get("designState") == "ready"
+            and no_implementation_evidence
+        )
+        explicit_pre_execution_replan = (
+            "baseBranch" in existing
+            and "baseCommitSha" in existing
+            and existing.get("designState") in {"ready", "planning"}
+            and replacement.get("designState") == "planning"
+            and no_implementation_evidence
+        )
+        if not (initial_ready_freeze or explicit_pre_execution_replan):
+            raise MetadataError(
+                "execution base change is not an eligible evidence-free replan or ready-state freeze"
+            )
 
     if args.expected_revision is not None:
         if args.updated_at is None:
@@ -320,15 +486,21 @@ def validate_feature(value: Any, expected_project_id: str | None) -> None:
     feature = value["feature"]
     if not isinstance(feature, dict):
         raise MetadataError("normalized feature is invalid")
-    require_keys(feature, {"id", "url", "title", "status", "branch"}, "normalized feature is invalid")
+    require_keys(
+        feature,
+        {"id", "url", "title", "status", "baseBranch", "baseCommitSha"},
+        "normalized feature is invalid",
+    )
     feature_id = require_nonempty_string(feature["id"], "normalized feature is invalid")
     require_nonempty_string(feature["url"], "normalized feature is invalid")
     require_nonempty_string(feature["title"], "normalized feature is invalid")
     strict_ids = UUID_RE.fullmatch(feature_id) is not None
+    base_branch = feature["baseBranch"]
+    base_commit_sha = feature["baseCommitSha"]
     if (
         not isinstance(feature["status"], str)
         or feature["status"] not in FEATURE_STATUSES
-        or not optional_string(feature["branch"])
+        or not valid_frozen_base(base_branch, base_commit_sha)
     ):
         raise MetadataError("normalized feature is invalid")
     if expected_project_id is not None and feature_id.lower() != expected_project_id.lower():
@@ -338,9 +510,19 @@ def validate_feature(value: Any, expected_project_id: str | None) -> None:
     if not isinstance(spec, dict):
         raise MetadataError("normalized spec is invalid")
     require_keys(spec, {"id", "url", "content", "revision"}, "normalized spec is invalid")
-    for key in ("id", "url", "revision"):
+    for key in ("id", "url"):
         require_nonempty_string(spec[key], "normalized spec is invalid")
-    if (strict_ids and not UUID_RE.fullmatch(spec["id"])) or not isinstance(spec["content"], str):
+    revision = spec["revision"]
+    if (
+        (strict_ids and not UUID_RE.fullmatch(spec["id"]))
+        or not isinstance(spec["content"], str)
+        or not isinstance(revision, dict)
+        or set(revision) != {"contentHash", "updatedAt"}
+        or not isinstance(revision.get("contentHash"), str)
+        or SHA256_RE.fullmatch(revision["contentHash"]) is None
+        or not isinstance(revision.get("updatedAt"), str)
+        or not revision["updatedAt"]
+    ):
         raise MetadataError("normalized spec is invalid")
 
     increments = value["increments"]
@@ -488,6 +670,7 @@ def build_parser() -> argparse.ArgumentParser:
     replace_parser.add_argument("--project-id")
     replace_parser.add_argument("--expected-revision")
     replace_parser.add_argument("--updated-at")
+    replace_parser.add_argument("--increment-evidence")
     replace_parser.set_defaults(handler=command_replace)
 
     revision_parser = subparsers.add_parser("revision")

@@ -1,10 +1,12 @@
 # Worktree lifecycle + base-branch contract
 
-The single source of truth for **how woostack skills isolate every write in a per-PR git
-worktree** and **how the base/trunk branch is resolved**. `woostack-build`, `woostack-execute`,
+The single source of truth for **how woostack skills isolate Git-backed writes in per-PR
+worktrees** and **how the base/trunk branch is resolved**. `woostack-build`, `woostack-execute`,
 `woostack-execute-overnight`, `woostack-fix`, and `woostack-commit` link this file; none restate it.
 The point: let multiple bootstrap/build/fix runs proceed **in parallel on one machine** without
-collision.
+collision. Markdown build/planning writes spec/plan artifacts in a worktree. Linear build/planning
+mutates managed remote artifacts and creates no Git worktree; its first implementation increment
+creates one from the verified frozen base after the execution handoff.
 
 `<wi>` below = the installed `woostack-init` scripts directory (the same place `build-index.sh`
 lives; the agent resolves it when the skill is available).
@@ -27,7 +29,7 @@ This value is what a **stack base** branch is cut from and what a **base PR targ
 
 ## 2. Worktree lifecycle
 
-### Create (on the first write)
+### Create (on the first Git-backed write)
 
 ```bash
 base="$(bash <wi>/resolve-base.sh)"            # or the parent branch tip for a stacked increment
@@ -43,11 +45,12 @@ branch sets) never collide.
 
 ### Operate (cwd = the worktree)
 
-From the first write onward the run operates with **cwd = `$wt`**. **All** writes happen there — the
-`.woostack/` spec/plan/fix markdown *and* the implementation code — and any sub-skill the run calls
-(`woostack-plan`, `woostack-harden`, `woostack-commit`) inherits that cwd so it authors into the
-worktree, not the primary tree. In subagent mode the controller places each implementer in `$wt`
-with a two-layer guard so it holds even on a host whose spawn API has **no per-call cwd**: it
+After the first Git-backed write, the run operates with **cwd = `$wt`**. **All Git-backed**
+writes happen there — Markdown `.woostack/` spec/plan/fix artifacts and implementation code — and
+any sub-skill the run calls (`woostack-plan`, `woostack-harden`, `woostack-commit`) inherits that
+cwd whenever it is operating on Git-backed artifacts, so it never authors into the primary tree.
+In subagent mode the controller places each implementer in `$wt` with a two-layer guard so it
+holds even on a host whose spawn API has **no per-call cwd**: it
 sets the spawn call's cwd to `$wt` where the host exposes one, and **always** pins via the dispatch
 prompt — the implementer's first action is `cd "$wt"` then a path-normalized
 `git rev-parse --show-toplevel` self-assertion that aborts before any write if it isn't in `$wt`.
@@ -68,9 +71,9 @@ the dangling branch. Never lose committed work.
 
 ## 3. Hard invariant: the primary tree is never edited
 
-A run does all its writes in its own worktree; the primary checkout stays on the base branch, clean,
-as the stable point all runs branch from. This is what makes parallel safe — two runs never touch
-the primary tree.
+A run does all Git-backed writes in its own worktree; Linear's pre-execution remote mutations do
+not edit Git at all. The primary checkout stays on the base branch, clean, as the stable point all
+runs branch from. This is what makes parallel safe — two runs never touch the primary tree.
 
 - **Local-only exception:** `.woostack/metrics.json`, `.woostack/memory/.telemetry.tsv`, and
   `.woostack/memory/.dream-watermark` are gitignored and primary-tree-only; they are written via
@@ -79,10 +82,10 @@ the primary tree.
 - **Workflow exception:** `woostack-bootstrap`'s one-time initial repo creation + first commit (no
   base branch exists yet, pre any parallelism).
 
-**Status visibility is by design.** In-flight artifacts live on a feature branch inside a worktree,
-never in the primary working tree, so `/woostack-status` (which scans the primary tree) surfaces
-**only merged / base-branch state**, not worktree WIP. A spec/plan/fix is not "on the board" until
-its PR merges.
+**Status visibility is by design.** Markdown in-flight artifacts live on a feature branch inside a
+worktree, never in the primary working tree; Linear in-flight artifacts live in its managed remote
+project/document/issues. Backend-aware status readers derive state from the selected artifact
+source rather than treating the primary working tree as universal WIP state.
 
 ## 4. `base_ref` for stacked PRs
 

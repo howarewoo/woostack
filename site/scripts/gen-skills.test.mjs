@@ -64,8 +64,24 @@ test('neutralizeTags: block tag -> Callout, prose tag escaped, code-span/fence p
   const code = 'POST `gh api repos/<repo>/pulls/<PR>/reviews` now';
   assert.equal(neutralizeTags(code), code); // uppercase tag inside inline code preserved
 
+  const attributed = '<FOO backend="linear">**Stop.**</FOO>';
+  assert.equal(
+    neutralizeTags(attributed),
+    '&lt;FOO backend="linear"&gt;**Stop.**&lt;/FOO&gt;'
+  );
+
+  const attributedGate = [
+    '<HARD-GATE backend="markdown" name="design-approval"></HARD-GATE>',
+    '1. <HARD-GATE backend="linear" name="spec-approval">**Stop.**',
+    'Wait for approval.</HARD-GATE>',
+  ].join('\n');
+  assert.equal(neutralizeTags(attributedGate), '1. **Stop.**\nWait for approval.');
+
   const fenced = '```\n<PR> stays\n```';
   assert.equal(neutralizeTags(fenced), fenced); // inside fence preserved
+
+  const marker = '<!-- linear-gates: design-approval | spec-approval | execution-handoff -->';
+  assert.equal(neutralizeTags(marker), '');
 });
 
 test('renderPage emits title/description, source link, internal note for sub-skills', () => {
@@ -112,25 +128,25 @@ test('model configuration docs follow the root models contract', async () => {
     readFile(path.join(repoRoot, 'skills', 'woostack-init', 'references', 'memory.md'), 'utf8'),
   ]);
   const template = JSON.parse(templateRaw);
-  assert.deepEqual(Object.keys(template), ['models', 'review', 'respond', 'status']);
+  assert.deepEqual(Object.keys(template), ['artifacts', 'models', 'review', 'respond', 'status']);
 
   const exampleMatch = /## A complete example[\s\S]*?```json\n([\s\S]*?)\n```/.exec(configuration);
   assert.ok(exampleMatch, 'configuration page exposes a complete JSON example');
   const example = JSON.parse(exampleMatch[1]);
   assert.deepEqual(
     Object.keys(example).sort(),
-    ['audit', 'base_branch', 'commit', 'models', 'respond', 'review', 'review_sweep', 'status']
+    ['artifacts', 'audit', 'base_branch', 'commit', 'linear', 'models', 'respond', 'review', 'review_sweep', 'status']
   );
   assert.ok(example.models);
   assert.equal(example.audit.models, undefined);
 
-  assert.match(configuration, /ships four top-level keys: `models`, `review`, `respond`, and `status`/);
-  assert.match(configuration, /There are eight top-level settings:/);
+  assert.match(configuration, /ships five top-level keys: `artifacts`, `models`, `review`, `respond`, and `status`/);
+  assert.match(configuration, /There are ten top-level settings:/);
   assert.match(configuration, /\| `audit` \|/);
   assert.match(configuration, /^## Audit engine$/m);
   assert.match(configuration, /`audit\.severity_floor`/);
   assert.match(configuration, /Root model tiers also drive \[woostack-audit\]/);
-  assert.match(configuration, /validates the four scaffolded keys/);
+  assert.match(configuration, /validates the five scaffolded keys/);
 
   const { fm, body } = parseFrontmatter(auditRaw, 'woostack-audit');
   const renderedBody = rewriteLinks(
@@ -148,6 +164,6 @@ test('model configuration docs follow the root models contract', async () => {
   const normalizedMemory = memory.replace(/\s+/g, ' ');
   assert.match(
     normalizedMemory,
-    /\{ "models": \{\}, "review": \{\}, "respond": \{\}, "status": \{ "staleDays": 14 \} \}/
+    /\{ "artifacts": \{ "specPlan": "markdown" \}, "models": \{\}, "review": \{\}, "respond": \{\}, "status": \{ "staleDays": 14 \} \}/
   );
 });

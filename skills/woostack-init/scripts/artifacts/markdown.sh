@@ -33,7 +33,6 @@ read_field() {
   ' "$file"
 }
 
-# woostack-defer(increment 5): workflow skills begin consuming the backend adapter in increment 5
 feature() {
   local requested="$1" requested_dir repo_hint repo_root spec_dir spec_path woo_root
   local basename stem plan_dir plan_path spec_slug spec_name

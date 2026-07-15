@@ -1,14 +1,27 @@
 # woostack feature-state conventions
 
-These definitions are the source of truth for the `/woostack-status` board and the
-`woostack-doctor` spec-plan checks.
+These definitions are the source of truth for feature lifecycle ownership and joins across both
+artifact backends, and for the `/woostack-status` board and `woostack-doctor` checks that consume
+them.
 
-- `spec : plan : PRs = 1 : 1 : N`
-- Every spec has exactly one plan. The plan owns N independently shippable increment PRs.
-- Spec frontmatter owns design approval only: `draft -> hardened -> approved`, plus terminal
-  `abandoned`.
+## Shared cardinality
+
+- Every feature has exactly one spec and one plan decomposition. The plan owns N independently
+  shippable increment PRs.
+- **Markdown:** `spec : plan : PRs = 1 : 1 : N`. The spec and plan are tracked files joined by
+  reciprocal links.
+- **Linear:** `managed project : managed spec document : managed increment issues : PRs =
+  1 : 1 : N : N`. The project owns exactly one repository-marked spec document and one ordered
+  managed issue per increment; each issue owns at most one implementation PR.
+
+## Markdown lifecycle and joins
+
+- Spec frontmatter owns design approval: `draft -> hardened -> approved`.
 - Plan frontmatter owns implementation lifecycle after spec approval:
-  `planning -> ready -> executing -> in-review -> done`, plus terminal `abandoned`.
+  `planning -> ready -> executing -> in-review -> done`.
+- Retained Markdown artifacts may also carry terminal `abandoned`. The normal build spec-gate
+  `Abandon` path instead closes the open PR and removes its temporary branch and worktree, so no
+  spec or plan survives on which to author that state.
 - Before a plan exists, `/woostack-status` displays the spec's `status:` and `branch:`.
   Once a plan resolves to the spec, the board displays the plan's `status:` and `branch:`.
 - spec -> plan join: the plan carries YAML frontmatter followed by a `**Source:**` line, an
@@ -20,7 +33,7 @@ These definitions are the source of truth for the `/woostack-status` board and t
 - plan -> PR join: every PR body carries a trailer line `Spec: .woostack/specs/<file>.md`.
   The board narrows candidates with `gh pr list --search`, then **exact-matches** the trailer
   value in each PR body to avoid fuzzy cross-matches.
-- Plan frontmatter shape:
+- Markdown plan frontmatter shape:
   ```yaml
   ---
   type: plan
@@ -31,7 +44,7 @@ These definitions are the source of truth for the `/woostack-status` board and t
 
   **Source:** [[specs/<basename>]]
   ```
-- Feature states:
+- Markdown feature states:
   - `draft` — spec written, not hardened
   - `hardened` — spec grilled, needs user approval
   - `approved` — spec gate cleared, no plan yet
@@ -47,8 +60,34 @@ These definitions are the source of truth for the `/woostack-status` board and t
     zero-checkbox plan has no progress signal, so the board trusts its authored `done` only when
     every active (open/merged) increment PR is merged (or no PR at all was discovered —
     closed included — and the branch has no active commits)
-  - `abandoned` — intentionally stopped; a terminal human decision, never overridden by
-    artifact-derived `done` (unlike stale `executing`/`in-review`/`done` fields)
+  - `abandoned` — intentionally stopped on a retained artifact; a terminal human decision never
+    overridden by artifact-derived `done`. The build spec-gate cleanup path leaves no retained
+    artifact and therefore authors no `abandoned` state.
+
+## Linear lifecycle and joins
+
+- The managed spec document's `designState` owns the complete design/execution handoff sequence:
+  `draft -> hardened -> approved -> planning -> ready -> executionApproved -> executing ->
+  inReview -> done`, plus terminal `abandoned`.
+- The Linear project mirrors that lifecycle through configured project statuses, except
+  `executionApproved`: while that spec-only approval marker is set, the project remains `ready`
+  until execution begins.
+- `ready -> planning` is the only backward transition and is allowed only for an explicit
+  pre-execution replan with no increment branch or pull-request evidence. Any active state may
+  transition to `abandoned`; `done` and `abandoned` are terminal.
+- The canonical `baseBranch` + `baseCommitSha` pair may first be frozen only in `ready` with
+  evidence proving no implementation branch or PR exists. It remains provisional during an
+  evidence-free replan and becomes immutable at `executionApproved`.
+- Each managed increment issue owns a stable identity, unique ordinal, dependency/Git-parent
+  shape, issue lifecycle (`planned`, `executing`, `inReview`, `done`, or `blocked`), and its
+  branch/PR evidence.
+- project -> spec join: the managed metadata carries the exact Linear `projectId` and canonical
+  repository identity; discovery requires exactly one matching managed spec document.
+- project -> increments join: every managed increment carries the same `projectId`, repository
+  identity, and stable increment identity. Native blocking relations must match metadata
+  dependencies.
+- increment -> PR join: the issue's managed branch and pull-request fields identify its one
+  implementation PR. Linear mode creates no Markdown spec/plan file or docs-only PR.
 
 `/woostack-status` derives truth from artifacts and flags drift instead of rewriting it:
 

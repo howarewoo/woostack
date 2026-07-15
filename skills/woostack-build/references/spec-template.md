@@ -9,9 +9,9 @@ links:
 
 # {{TITLE}} — Design Spec
 
-> Visualize on demand: render this file with [spec-template.html](spec-template.html) for a rich view. Markdown is the source of truth; the HTML is a presentation target only.
+> Artifact: {{ARTIFACT_REFERENCE}}. The selected backend artifact is the source of truth. Render with [spec-template.html](spec-template.html) for a rich presentation only.
 
-> `status:` is the build-loop phase enum: `draft → hardened → approved → planning → ready → executing → in-review → done` (plus the terminal `abandoned`). The build loop authors each transition and `/woostack-status` reads it; the enum and join contracts are defined once in [conventions.md](../../woostack-status/references/conventions.md).
+> `status:` follows the selected backend's owning-artifact contract. In Markdown, this spec owns `draft`, `hardened`, or `approved` while it exists; abandon removes the worktree and branch and closes the PR, leaving no artifact or authored abandoned status. Its joined plan owns later implementation phases and uses `in-review`. In Linear, the managed spec document owns `designState`, the project mirrors the applicable feature lifecycle including terminal `abandoned`, and increment issues own their separate normalized lifecycle including `inReview`. The enum and joins are defined once in [conventions.md](../../woostack-status/references/conventions.md).
 
 > **Plan:** [[plans/{{DATE}}-{{SLUG}}]]
 

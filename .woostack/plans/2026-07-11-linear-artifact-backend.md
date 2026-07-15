@@ -243,30 +243,30 @@ branch: feature/linear-artifact-backend
 - Modify: `skills/woostack-init/scripts/tests/run-tests.sh`
 - Modify: `skills/woostack-init/scripts/artifacts/markdown.sh`
 
-- [ ] **Step 1: Add a failing structural gate test**
+- [x] **Step 1: Add a failing structural gate test**
   Assert both backend branches preserve exactly the design, spec, and handoff hard gates. Assert Linear mode calls preflight before its first mutation, creates no spec/plan worktree or docs-only PR, requires read-back at every transition, uses one project/document/issue set, freezes the base branch+SHA immediately before handoff, and creates no implementation Git artifact before explicit handoff approval.
 
-- [ ] **Step 2: Run the contract test red**
+- [x] **Step 2: Run the contract test red**
   Run: `bash skills/woostack-build/tests/test-linear-build-contract.sh`
   Expected: FAIL because the skills describe only Markdown artifacts.
 
-- [ ] **Step 3: Update build backend branches**
-  Preserve the existing Markdown procedure verbatim behind `markdown`. Add the Linear procedure from the spec, including unique cross-session discovery, revise/abandon behavior, native transitions, no spec/plan PR, base freeze, and Go/Run overnight/Hand off terminal choices. Link shared backend commands rather than embedding GraphQL.
+- [x] **Step 3: Update build backend branches**
+  Preserve the existing Markdown procedure verbatim behind `markdown`. Add the Linear procedure from the spec, including unique cross-session discovery, revise/abandon behavior, native transitions, no spec/plan PR, base freeze, and the currently supported Hand off terminal choice; Increment 6 adds Go and Run overnight when execution accepts Linear artifacts. Link shared backend commands rather than embedding GraphQL.
 
-- [ ] **Step 4: Update plan and harden targets**
+- [x] **Step 4: Update plan and harden targets**
   Make `woostack-plan` accept a required Markdown spec path in Markdown mode or a Linear project UUID/URL in Linear mode. Define issue-per-increment output, native relations, ordinals, Git parents, AC coverage, reconciliation safety, and `planning → ready`. Make harden amend the selected artifact in place and retain its no-gate contract.
 
-- [ ] **Step 5: Remove the Increment 1 deferral marker**
+- [x] **Step 5: Remove the Increment 1 deferral marker**
   Remove `woostack-defer(increment 5)` from `markdown.sh` when build and plan begin using the resolver.
 
-- [ ] **Step 6: Keep template pair synchronized**
+- [x] **Step 6: Keep template pair synchronized**
   Update Markdown/HTML spec templates only where backend-neutral language changed, preserving their 1:1 section contract. Update plan template with the normalized backend input contract without weakening Markdown frontmatter/source joins.
 
-- [ ] **Step 7: Run build and artifact tests**
+- [x] **Step 7: Run build and artifact tests**
   Run: `bash skills/woostack-build/tests/test-linear-build-contract.sh && bash skills/woostack-init/scripts/tests/run-tests.sh`
   Expected: PASS for both backend branches and all three gates.
 
-- [ ] **Step 8: Commit Increment 5**
+- [x] **Step 8: Commit Increment 5**
   Run: `gt create -m "feat(build): support Linear-backed specs and plans"`
   Expected: one PR enabling the pre-execution build loop with no implementation behavior changes.
 
