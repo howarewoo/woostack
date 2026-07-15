@@ -1,7 +1,7 @@
 ---
 name: woostack-change
 type: spec
-status: hardened
+status: approved
 date: 2026-07-15
 branch: feature/woostack-change
 links:
@@ -55,7 +55,7 @@ If scope grows beyond one PR after work starts, or verification/review/commit/su
 
 - **`skills/woostack-change/SKILL.md`** owns classification, worktree lifecycle, direct implementation, verification, inline review, commit delegation, and closeout.
 - **`skills/using-woostack/SKILL.md`** routes explicit and intent-equivalent quick non-bug one-PR requests to the new skill.
-- **Existing authorities** remain single-source and are linked rather than copied: update the consumer list and lifecycle examples in `skills/woostack-init/references/worktrees.md`, then link its worktree/base mechanics; link TDD in `skills/woostack-tdd/SKILL.md`, commit/PR mechanics in `skills/woostack-commit/SKILL.md`, and least-code guidance in bootstrap `patterns.md §10`.
+- **Existing authorities** remain single-source and are linked rather than copied: update the consumer list and lifecycle examples in `skills/woostack-init/references/worktrees.md`; update `skills/woostack-commit/SKILL.md` so its branch-shape guard accepts the caller-created `change/*` worktree without creating another branch; then link worktree/base mechanics, TDD in `skills/woostack-tdd/SKILL.md`, commit/PR mechanics, and least-code guidance in bootstrap `patterns.md §10`.
 - **Public-surface bookkeeping** updates every known reader identified by the repository's `lockstep-edit-sites` wisdom: `AGENTS.md`, `README.md`, `CONTRIBUTING.md`, `skills/using-woostack/SKILL.md`, and `skills/woostack-bootstrap/references/development.md`.
 - **Authored docs-site framing** updates the getting-started workflow and worktree pages whose current claims exclude the new path. The per-skill reference page remains generated from `SKILL.md`.
 - **Verification** structurally checks that the new skill exists, routing and public counts agree, required safety barriers are present, and the docs site builds.
