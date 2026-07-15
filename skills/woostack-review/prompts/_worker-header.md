@@ -15,12 +15,12 @@ Every artifact you write under `$OUTDIR/findings.*.json` (default `/tmp/pr-revie
 - **Write your execution receipt as your LAST action.** After writing your real findings array, and just before EXIT, write `$OUTDIR/receipt.<angle>.json` (chunked runs: `$OUTDIR/receipt.<angle>.<chunk>.json`) — a JSON object that proves you actually ran: `{"angle":"<angle>","chunk":<chunk-id-or-null>,"runner":"<host or provider, e.g. claude-code>","model":"<your resolved model — the `Run model` line in the review context>","tier":"<fast|standard|deep — the `Force tier` line>","ts":"<ISO-8601 timestamp>"}`. `runner` and `model` MUST be non-empty. This receipt is how the orchestrator tells "ran and found nothing" (`[]` findings + receipt) apart from "never ran" (no receipt): a review where any angle has no valid receipt HARD-FAILS instead of silently reporting a clean pass. Do NOT pre-create the receipt — write it once, last, after the findings.
 - If your runtime offers a "write file" tool, use it directly — do NOT echo the JSON through a chat channel that prepends prose.
 - **Escape discipline inside string fields.** Every `"description"`, `"fix"`, and `"suggestion"` is a JSON string — inside it, the only valid backslash escapes are `\"`, `\\`, `\/`, `\b`, `\f`, `\n`, `\r`, `\t`, and `\uXXXX`. Bare backslashes in code samples (Windows paths, regex like `\d`, LaTeX) MUST be doubled to `\\`. Tabs and newlines in code samples MUST be `\t` / `\n`, never raw control bytes. The merge step has a fallback sanitizer, but a finding that loses content during sanitization is one that fails to land cleanly on the PR.
-- Before writing each finding's `line` field, validate it via:
+- Before writing each finding's `line` and optional `end_line`, validate the anchor via:
   ```bash
   bash "$WOO_REVIEW_ACTION_PATH/scripts/resolve-diff-line.sh" \
-    --file "<path>" --line "<N>"
+    --file "<path>" --line "<N>" --end "<N>"  # omit --end for one line
   ```
-  When the helper prints `null`, the line is not anchorable on the diff's RIGHT side and GitHub will reject the comment (HTTP 422). DROP the finding entirely rather than guessing a different line. The merge step also runs a final-pass safety net on this, but resolving up-front saves a round-trip and keeps the finding count honest.
+  The helper prints the canonical start for a single-line anchor, `<start>:<end>` for a valid same-hunk range, or `null` when the start is not anchorable on the diff's RIGHT side. DROP the finding when it prints `null`. When a requested range resolves to only the start, omit `end_line` and keep the single-line finding. The merge and intersection steps repeat this validation as final safety nets.
 - `$OUTDIR` defaults to a **per-project** path — `/tmp/pr-review-<hash>` derived from the repo's git toplevel (so concurrent reviews of different repos on one machine never share a tree). The orchestrator exports the resolved `OUTDIR` to you; **always prefer the exported `$OUTDIR` env var over any literal `/tmp/pr-review` path throughout this contract.** If `$OUTDIR` is somehow unset, re-derive it by sourcing `scripts/resolve-outdir.sh` — never fall back to a bare `/tmp/pr-review`.
 
 ## Prefetched Artifacts (do NOT re-fetch)
@@ -59,6 +59,7 @@ Every runner MUST write a final `findings.json` (for debugging + potential post-
     "angle": "bugs",
     "file": "src/foo.ts",
     "line": 42,
+    "end_line": 45,
     "severity": "HIGH",
     "blocking": true,
     "nit": false,
@@ -75,7 +76,7 @@ Every runner MUST write a final `findings.json` (for debugging + potential post-
 
 `angle` is one of `bugs | security | conventions | acceptance | seo | aeo | design | react | database | tests | api | infra | observability | types | i18n | docs | deps | architecture | comments | simplify | production-readiness`.
 
-`line` MUST be the post-patch absolute file line — i.e. a line that exists on the RIGHT side of the diff (a `+` added line or a ` ` context line within a hunk for `file`). Lines that fall in a deletion-only region, or outside any hunk for the file, will be rejected by the GitHub API. Validate every line via `scripts/resolve-diff-line.sh` before writing the finding (see *Output Discipline* above); drop the finding when the helper returns `null`.
+`line` MUST be the post-patch absolute start line — i.e. a line that exists on the RIGHT side of the diff (a `+` added line or a ` ` context line within a hunk for `file`). Optional `end_line` is the inclusive post-patch end of a multi-line anchor and MUST be greater than `line` on the RIGHT side of that same hunk. Validate both through `scripts/resolve-diff-line.sh` (see *Output Discipline* above). Drop the finding when the helper returns `null`; when it returns only the start for a requested range, omit `end_line` and keep the single-line finding.
 
 ### `fix_type` discriminator
 

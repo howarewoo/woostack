@@ -44,6 +44,8 @@ index 1111111..2222222 100644
 @@ -1,2 +1,2 @@
  const keep = true;
 +const changed = true;
+@@ -30,1 +30,1 @@
+ const later = true;
 DIFF
 
 # Defender objects win text fields (file/line) through the merge:
@@ -58,27 +60,38 @@ cat > "$work/findings.defender.json" <<'JSON'
 [
   {"angle":"bugs","file":"src/app.ts","line":99,"title":"Stale defender anchor survives validators","description":"d","fix":"f","severity":"HIGH","blocking":true,"fix_type":"prose","suggestion":null},
   {"angle":"bugs","file":"other.ts","line":1,"title":"Drop stale file adversarial","description":"d","fix":"f","severity":"HIGH","blocking":true,"fix_type":"prose","suggestion":null},
-  {"angle":"bugs","file":"src/app.ts","line":"2","title":"Keep valid adversarial finding","description":"d","fix":"f","severity":"HIGH","blocking":true,"fix_type":"prose","suggestion":null}
+  {"angle":"bugs","file":"src/app.ts","line":"2","title":"Keep valid adversarial finding","description":"d","fix":"f","severity":"HIGH","blocking":true,"fix_type":"prose","suggestion":null},
+  {"angle":"bugs","file":"src/app.ts","line":"1","end_line":"2","title":"Keep valid adversarial range","description":"d","fix":"f","severity":"HIGH","blocking":true,"fix_type":"prose","suggestion":null},
+  {"angle":"bugs","file":"src/app.ts","line":1,"end_line":30,"title":"Degrade adversarial range","description":"d","fix":"f","severity":"HIGH","blocking":true,"fix_type":"prose","suggestion":null},
+  {"angle":"bugs","file":"src/app.ts","line":30,"title":"Keep adversarial single anchor","description":"d","fix":"f","severity":"HIGH","blocking":true,"fix_type":"prose","suggestion":null}
 ]
 JSON
 cat > "$work/findings.prosecutor.json" <<'JSON'
 [
   {"angle":"bugs","file":"src/app.ts","line":2,"title":"Stale defender anchor survives validators","description":"d","fix":"f","severity":"HIGH","blocking":true,"fix_type":"prose","suggestion":null},
   {"angle":"bugs","file":"other.ts","line":1,"title":"Drop stale file adversarial","description":"d","fix":"f","severity":"HIGH","blocking":true,"fix_type":"prose","suggestion":null},
-  {"angle":"bugs","file":"src/app.ts","line":2,"title":"Keep valid adversarial finding","description":"d","fix":"f","severity":"HIGH","blocking":true,"fix_type":"prose","suggestion":null}
+  {"angle":"bugs","file":"src/app.ts","line":2,"title":"Keep valid adversarial finding","description":"d","fix":"f","severity":"HIGH","blocking":true,"fix_type":"prose","suggestion":null},
+  {"angle":"bugs","file":"src/app.ts","line":1,"end_line":2,"title":"Keep valid adversarial range","description":"d","fix":"f","severity":"HIGH","blocking":true,"fix_type":"prose","suggestion":null},
+  {"angle":"bugs","file":"src/app.ts","line":1,"end_line":30,"title":"Degrade adversarial range","description":"d","fix":"f","severity":"HIGH","blocking":true,"fix_type":"prose","suggestion":null},
+  {"angle":"bugs","file":"src/app.ts","line":30,"title":"Keep adversarial single anchor","description":"d","fix":"f","severity":"HIGH","blocking":true,"fix_type":"prose","suggestion":null}
 ]
 JSON
 cp "$work/findings.defender.json" "$work/raw_findings.json"
 
-bash "$SCRIPT" >/tmp/intersect-final-anchors-adversarial.out 2>&1 \
-  || { cat /tmp/intersect-final-anchors-adversarial.out; exit 1; }
+bash "$SCRIPT" >"$work/output.txt" 2>&1 \
+  || { cat "$work/output.txt"; exit 1; }
+assert_contains "$(cat "$work/output.txt")" "degraded 1 invalid range(s)" "adversarial filter reports one degraded invalid range"
 
 # Guard the path was actually adversarial, not a silent defender-only fallback.
 assert_eq "$(jq -r '.mode' "$work/validator-metrics.json")" "adversarial" "ran the adversarial merge path"
 
-assert_eq "$(jq 'length' "$work/findings.json")" "1" "adversarial final anchor filter keeps only postable findings"
-assert_eq "$(jq -r '.[0].title' "$work/findings.json")" "Keep valid adversarial finding" "adversarial filter drops merged stale file and stale line"
-assert_eq "$(jq -r '.[0].line' "$work/findings.json")" "2" "adversarial filter writes canonical numeric line"
-assert_eq "$(jq -r '.[0].line | type' "$work/findings.json")" "number" "adversarial filter stores canonical line as a number"
+assert_eq "$(jq 'length' "$work/findings.json")" "4" "adversarial final anchor filter keeps only postable findings"
+assert_eq "$(jq -r '[.[].title] | index("Stale defender anchor survives validators")' "$work/findings.json")" "null" "adversarial filter drops a merged stale line"
+assert_eq "$(jq -r '.[] | select(.title == "Keep valid adversarial finding") | .line' "$work/findings.json")" "2" "adversarial filter writes canonical numeric line"
+assert_eq "$(jq -r '.[] | select(.title == "Keep valid adversarial finding") | .line | type' "$work/findings.json")" "number" "adversarial filter stores canonical line as a number"
+assert_eq "$(jq -r '.[] | select(.title == "Keep valid adversarial range") | [.line, .end_line] | @csv' "$work/findings.json")" '1,2' "adversarial filter canonicalizes a same-hunk range"
+assert_eq "$(jq -r '.[] | select(.title == "Degrade adversarial range") | has("end_line")' "$work/findings.json")" "false" "adversarial filter strips a cross-hunk endpoint"
+assert_eq "$(jq -r '.[] | select(.title == "Degrade adversarial range") | .line' "$work/findings.json")" "1" "adversarial filter keeps a valid start when range degrades"
+assert_eq "$(jq -r '.[] | select(.title == "Keep adversarial single anchor") | has("end_line")' "$work/findings.json")" "false" "adversarial filter leaves range-free findings unchanged"
 
 finish

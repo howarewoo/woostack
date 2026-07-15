@@ -32,7 +32,7 @@ Launch one `fast`-tier subagent (resolve the tier per the shared Model Tiers tab
 
 ### Step 2 — Validation
 
-1. **Deduplicate**: If multiple angles flagged the same issue, pick the one with the most actionable and technical description. Preserve `title`, `description`, and `fix` from the winning finding.
+1. **Deduplicate**: If multiple angles flagged the same issue, pick the one with the most actionable and technical description. Preserve `title`, `description`, `fix`, `line`, and optional `end_line` from the winning finding; do not invent, widen, or independently shift its range.
 2. **Skeptical Audit**: For each finding in /tmp/pr-review/raw_findings.json, try to prove it is WRONG. 
    - Discard if: Pedantic, style-only (without rule backing), already caught by linting, or "maybe" behavior.
    - Keep if: Concrete bug, security risk, or objective rule violation.

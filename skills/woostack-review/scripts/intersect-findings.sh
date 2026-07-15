@@ -419,6 +419,7 @@ pr_files = load_pr_files()
 kept = []
 dropped_file = 0
 dropped_line = 0
+degraded_range = 0
 rewritten = 0
 
 for finding in findings:
@@ -433,9 +434,14 @@ for finding in findings:
         dropped_file += 1
         continue
 
+    command = ["bash", resolver, "--file", path, "--line", str(line)]
+    has_end = "end_line" in finding
+    if has_end:
+        command.extend(["--end", str(finding.get("end_line"))])
+
     try:
-        res = subprocess.run(
-            ["bash", resolver, "--file", path, "--line", str(line)],
+        result = subprocess.run(
+            command,
             env={"OUTDIR": outdir, "PATH": os.environ.get("PATH", "")},
             check=False,
             capture_output=True,
@@ -445,33 +451,49 @@ for finding in findings:
         kept.append(finding)
         continue
 
-    resolved = res.stdout.strip()
-    if res.returncode != 0 or resolved == "null" or not resolved:
+    resolved = result.stdout.strip()
+    if result.returncode != 0 or resolved == "null" or not resolved:
         dropped_line += 1
         continue
 
     try:
-        canonical = int(resolved)
+        if ":" in resolved:
+            start_text, end_text = resolved.split(":", 1)
+            canonical_start = int(start_text)
+            canonical_end = int(end_text)
+        else:
+            canonical_start = int(resolved)
+            canonical_end = None
     except ValueError:
         dropped_line += 1
         continue
 
-    if finding.get("line") != canonical:
-        finding = dict(finding)
-        finding["line"] = canonical
+    normalized = dict(finding)
+    normalized["line"] = canonical_start
+    if canonical_end is not None:
+        normalized["end_line"] = canonical_end
+    else:
+        normalized.pop("end_line", None)
+        if has_end:
+            degraded_range += 1
+
+    if normalized != finding:
         rewritten += 1
-    kept.append(finding)
+    kept.append(normalized)
 
 with open(out_path, "w") as fh:
     json.dump(kept, fh, indent=2)
     fh.write("\n")
 
-sys.stderr.write(
+message = (
     "intersect-findings: final anchor filter "
     f"dropped {dropped_file} non-PR-file finding(s), "
     f"{dropped_line} unresolvable finding(s), "
-    f"rewrote {rewritten} line(s)\n"
+    f"rewrote {rewritten} line(s)"
 )
+if degraded_range:
+    message += f", degraded {degraded_range} invalid range(s)"
+sys.stderr.write(message + "\n")
 PY
   mv "$tmp" "$FINAL"
 }

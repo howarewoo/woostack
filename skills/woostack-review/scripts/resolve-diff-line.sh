@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# resolve-diff-line.sh — given a (file, source_line) pair, validate that the
-# line is anchorable on the RIGHT side of the prefetched unified diff. Emits
-# the validated RIGHT-side absolute line number to stdout, or the literal
-# string `null` (newline-terminated) when the line cannot be resolved.
+# resolve-diff-line.sh — validate one post-patch line, or an optional range,
+# against the RIGHT side of the prefetched unified diff. Emits the canonical
+# line, `<start>:<end>` for a valid same-hunk range, or `null` when the start
+# cannot be resolved. An invalid endpoint degrades to the valid start.
 #
 # Rationale: the GitHub Pull Request Review API rejects comments whose `line`
 # does not correspond to a `+` (added) or ` ` (context) line on the RIGHT side
@@ -12,8 +12,8 @@
 # each finding; the merge step also runs a final-pass safety check.
 #
 # Usage:
-#   bash resolve-diff-line.sh --file <path> --line <N> [--diff <path>]
-#                              [--cache <path>] [--no-cache]
+#   bash resolve-diff-line.sh --file <path> --line <N> [--end <N>]
+#                              [--diff <path>] [--cache <path>] [--no-cache]
 #
 # Exit codes:
 #   0  always (success). Output is the resolved line or `null`. Callers
@@ -24,7 +24,7 @@
 #   OUTDIR=/tmp/pr-review
 #   --diff defaults to "$OUTDIR/diff.filtered.txt" if present, else "$OUTDIR/diff.txt".
 #   --cache defaults to "$OUTDIR/diff-line-cache.json" (a flat map keyed by
-#   "<path>:<line>").
+#   "<path>:<line>" or "<path>:<line>:<end>").
 
 set -euo pipefail
 
@@ -32,6 +32,8 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-outdir.sh"
 FILE=""
 LINE=""
+END=""
+END_SET=0
 DIFF=""
 CACHE=""
 USE_CACHE=1
@@ -40,6 +42,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --file)     FILE="$2"; shift 2 ;;
     --line)     LINE="$2"; shift 2 ;;
+    --end)      END="$2"; END_SET=1; shift 2 ;;
     --diff)     DIFF="$2"; shift 2 ;;
     --cache)    CACHE="$2"; shift 2 ;;
     --no-cache) USE_CACHE=0; shift ;;
@@ -73,29 +76,36 @@ if [ ! -s "$DIFF" ]; then
 fi
 
 # Python core — the bash side is just argv plumbing. Reads the cache, looks up
-# (file, line), parses unified hunks on miss, writes the cache atomically.
-python3 - "$FILE" "$LINE" "$DIFF" "$CACHE" "$USE_CACHE" <<'PY'
+# the requested anchor, parses unified hunks on miss, and writes the cache
+# atomically.
+python3 - "$FILE" "$LINE" "$END" "$END_SET" "$DIFF" "$CACHE" "$USE_CACHE" <<'PY'
 import json
 import os
 import re
 import sys
 import tempfile
 
-file_arg, line_arg, diff_path, cache_path, use_cache_flag = sys.argv[1:6]
+file_arg, line_arg, end_arg, end_set_flag, diff_path, cache_path, use_cache_flag = sys.argv[1:8]
+end_requested = end_set_flag == "1"
 use_cache = use_cache_flag == "1"
 
-# Defensive parse: LLMs occasionally emit decimal-string lines like "42.0".
-try:
-    target_line = int(str(line_arg).strip())
-except (TypeError, ValueError):
-    print("null")
-    sys.exit(0)
 
-if target_line <= 0:
+def parse_positive(value):
+    try:
+        parsed = int(str(value).strip())
+    except (TypeError, ValueError):
+        return None
+    return parsed if parsed > 0 else None
+
+
+target_line = parse_positive(line_arg)
+if target_line is None:
     print("null")
     sys.exit(0)
 
 cache_key = f"{file_arg}:{target_line}"
+if end_requested:
+    cache_key += f":{end_arg}"
 cache = {}
 if use_cache and os.path.exists(cache_path):
     try:
@@ -127,63 +137,65 @@ def emit(result):
     sys.exit(0)
 
 
-# Parse unified diff. Track the RIGHT-side (post-patch) line counter per file.
-# A line resolves only when target_line falls on a `+` (added) or ` ` (context)
-# line within a hunk for the requested file. Deletion-only regions and
-# out-of-hunk lines yield None.
+# Parse the unified diff once and map each RIGHT-side line to its hunk. Range
+# endpoints are post-patch lines and GitHub rejects cross-hunk ranges.
 file_header_re = re.compile(r"^diff --git a/(?P<a>.+?) b/(?P<b>.+?)$")
 hunk_header_re = re.compile(r"^@@ -\d+(?:,\d+)? \+(?P<new_start>\d+)(?:,\d+)? @@")
 
-current_file = None
 right_line = None
 in_target = False
-resolved = None
+hunk_id = 0
+anchors = {}
 
 try:
     with open(diff_path, "r", errors="replace") as fh:
         for raw in fh:
             line = raw.rstrip("\n")
-            m = file_header_re.match(line)
-            if m:
-                current_file = m.group("b")
-                in_target = current_file == file_arg
+            match = file_header_re.match(line)
+            if match:
+                in_target = match.group("b") == file_arg
                 right_line = None
                 continue
-            # Per-file metadata lines we skip silently.
             if line.startswith("--- ") or line.startswith("+++ "):
                 continue
             if not in_target:
                 continue
-            m = hunk_header_re.match(line)
-            if m:
-                right_line = int(m.group("new_start"))
+            match = hunk_header_re.match(line)
+            if match:
+                hunk_id += 1
+                right_line = int(match.group("new_start"))
                 continue
             if right_line is None:
                 continue
-            # Hunk body classifier. `\` introduces "No newline at end of file"
-            # metadata — does not advance the counter on either side.
+
             head = line[:1]
-            if head == "+":
-                if right_line == target_line:
-                    resolved = right_line
-                    break
-                right_line += 1
-            elif head == " ":
-                if right_line == target_line:
-                    resolved = right_line
-                    break
+            if head in ("+", " "):
+                if right_line == target_line and not end_requested:
+                    emit(right_line)
+                anchors.setdefault(right_line, hunk_id)
                 right_line += 1
             elif head == "-":
-                # Deletion-only — RIGHT counter does not advance. A target_line
-                # falling here cannot be anchored on RIGHT and stays unresolved.
                 continue
             elif head == "\\":
                 continue
             else:
-                # Stray context (rare; non-hunk body line). Bail this hunk.
                 right_line = None
 except OSError:
     emit(None)
 
-emit(resolved)
+start_hunk = anchors.get(target_line)
+if start_hunk is None:
+    emit(None)
+if not end_requested:
+    emit(target_line)
+
+end_line = parse_positive(end_arg)
+if (
+    end_line is None
+    or end_line <= target_line
+    or anchors.get(end_line) != start_hunk
+):
+    emit(target_line)
+
+emit(f"{target_line}:{end_line}")
 PY

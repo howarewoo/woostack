@@ -25,7 +25,7 @@ This pass is one half of an adversarial validation pipeline. Your output is inte
 printf '[]\n' > "${OUTDIR:-/tmp/pr-review}/findings.prosecutor.json"
 ```
 
-1. **Deduplicate**: If multiple angles flagged the same issue, pick the one with the most actionable description. Preserve `title`, `description`, and `fix` from the winning finding.
+1. **Deduplicate**: If multiple angles flagged the same issue, pick the one with the most actionable description. Preserve `title`, `description`, `fix`, `line`, and optional `end_line` from the winning finding; do not invent, widen, or independently shift its range.
 2. **Prosecutor Audit**: For each finding in `/tmp/pr-review/raw_findings.json`, assume it is REAL. Try to **justify keeping it**. Drop ONLY if ALL of the following hold:
    - The finding is verifiably wrong against the diff (e.g. the cited line does not contain the cited code, or the claimed behavior is contradicted by code visible in the diff).
    - OR it is purely cosmetic style with zero correctness/security/perf impact AND no rule backing.
