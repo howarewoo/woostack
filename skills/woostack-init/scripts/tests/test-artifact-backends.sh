@@ -324,6 +324,34 @@ run_markdown_failure() {
   MARKDOWN_FAILURE_OUTPUT="$output"
 }
 
+repo="$(make_repo markdown-spec-only)"
+mkdir -p "$repo/.woostack/specs"
+basename='2026-07-12-approved-spec-only'
+cat >"$repo/.woostack/specs/$basename.md" <<'EOF'
+---
+name: approved-spec-only
+type: spec
+status: approved
+date: 2026-07-12
+branch: feature/approved-spec-only
+---
+
+# Approved spec without a plan
+
+The plan PR has not been authored yet.
+EOF
+spec_path="$repo/.woostack/specs/$basename.md"
+spec_before="$(shasum -a 256 "$spec_path" | cut -d ' ' -f 1)"
+actual="$(bash "$MARKDOWN" feature "$spec_path")"
+assert_eq "$(jq -c 'keys' <<<"$actual")" '["backend","feature","increments","plan","spec"]' "spec-only Markdown model names the absent plan explicitly"
+assert_eq "$(jq -c '.feature | {id,url,title,status,branch}' <<<"$actual")" \
+  "$(jq -cn --arg id ".woostack/specs/$basename.md" '{id:$id,url:null,title:"approved-spec-only",status:"approved",branch:"feature/approved-spec-only"}')" \
+  "spec-only Markdown lifecycle is derived from spec frontmatter"
+assert_eq "$(jq -c '.plan' <<<"$actual")" 'null' "spec-only Markdown model has a null plan"
+assert_eq "$(jq -c '.increments' <<<"$actual")" '[]' "spec-only Markdown model has no invented increments"
+assert_eq "$(jq -r '.spec.content | contains("plan PR has not been authored")' <<<"$actual")" 'true' "spec-only Markdown content remains readable"
+assert_eq "$(shasum -a 256 "$spec_path" | cut -d ' ' -f 1)" "$spec_before" "spec-only read does not rewrite the spec"
+
 repo="$(make_repo markdown-canonical)"
 basename='2026-07-12-feature.v2+api_core'
 write_feature_pair "$repo" "$basename" "**Source:** [[specs/$basename]]"
@@ -331,7 +359,7 @@ spec_path="$repo/.woostack/specs/$basename.md"
 spec_before="$(shasum -a 256 "$spec_path" | cut -d ' ' -f 1)"
 plan_before="$(shasum -a 256 "$repo/.woostack/plans/$basename.md" | cut -d ' ' -f 1)"
 actual="$(bash "$MARKDOWN" feature "$spec_path")"
-assert_eq "$(jq -c 'keys' <<<"$actual")" '["backend","feature","increments","progress","spec"]' "Markdown model has deterministic top-level fields"
+assert_eq "$(jq -c 'keys' <<<"$actual")" '["backend","feature","increments","plan","progress","spec"]' "Markdown model has deterministic top-level fields in every lifecycle"
 assert_eq "$(jq -c '.backend' <<<"$actual")" '"markdown"' "Markdown model identifies its backend"
 assert_eq "$(jq -c '.feature | {id,url,title,status,branch}' <<<"$actual")" \
   "$(jq -cn --arg id ".woostack/specs/$basename.md" --arg title 'feature.v2+api_core' --arg branch 'feature/feature.v2+api_core' '{id:$id,url:null,title:$title,status:"executing",branch:$branch}')" \
@@ -341,6 +369,9 @@ assert_eq "$(jq -c '.spec | {id,url,content:(.content | contains("Spec body."))}
   "spec content is normalized"
 assert_eq "$(jq -r '.spec.revision' <<<"$actual")" "$spec_before" "spec revision is the deterministic content digest"
 assert_eq "$(jq -c '.progress' <<<"$actual")" '{"completed":3,"total":5}' "Markdown model preserves checkbox-level progress"
+assert_eq "$(jq -c '.plan | {id,url,content:(.content | contains("## Increment 4: Partial plan at EOF"))}' <<<"$actual")" \
+  "$(jq -cn --arg id ".woostack/plans/$basename.md" '{id:$id,url:null,content:true}')" \
+  "joined plan identity and exact source content are normalized"
 assert_eq "$(jq -c '[.increments[] | keys]' <<<"$actual")" \
   '[["branch","content","dependencies","id","identifier","ordinal","pullRequest","status"],["branch","content","dependencies","id","identifier","ordinal","pullRequest","status"],["branch","content","dependencies","id","identifier","ordinal","pullRequest","status"],["branch","content","dependencies","id","identifier","ordinal","pullRequest","status"]]' \
   "every increment exposes the complete normalized contract"
@@ -420,8 +451,10 @@ assert_eq "$(jq -r '.feature.id' <<<"$actual")" ".woostack/specs/$basename.md" "
 repo="$(make_repo markdown-slug-fallback-owned)"
 write_feature_pair "$repo" '2026-07-13-owned-slug' '**Source:** [[specs/2026-07-13-owned-slug]]'
 cp "$repo/.woostack/specs/2026-07-13-owned-slug.md" "$repo/.woostack/specs/2026-07-12-owned-slug.md"
-run_markdown_failure "$repo/.woostack/specs/2026-07-12-owned-slug.md"
-assert_contains "$MARKDOWN_FAILURE_OUTPUT" 'matching plan not found' "slug fallback excludes plans explicitly owned by another spec"
+actual="$(bash "$MARKDOWN" feature "$repo/.woostack/specs/2026-07-12-owned-slug.md")"
+assert_eq "$(jq -c '{plan,increments,status:.feature.status}' <<<"$actual")" \
+  '{"plan":null,"increments":[],"status":"approved"}' \
+  "slug fallback does not select a plan explicitly owned by another spec"
 
 repo="$(make_repo markdown-large-plan)"
 basename='2026-07-12-large-plan'
@@ -433,8 +466,10 @@ assert_eq "$(jq -r '.increments | length' <<<"$actual")" '4' "large valid plans 
 repo="$(make_repo markdown-missing)"
 mkdir -p "$repo/.woostack/specs" "$repo/.woostack/plans"
 printf '%s\n' '---' 'name: orphan' 'type: spec' 'status: approved' 'branch: feature/orphan' '---' '# Orphan' > "$repo/.woostack/specs/2026-07-12-orphan.md"
-run_markdown_failure "$repo/.woostack/specs/2026-07-12-orphan.md"
-assert_contains "$MARKDOWN_FAILURE_OUTPUT" 'plan' "missing plan join is diagnosed"
+actual="$(bash "$MARKDOWN" feature "$repo/.woostack/specs/2026-07-12-orphan.md")"
+assert_eq "$(jq -c '{plan,increments,status:.feature.status}' <<<"$actual")" \
+  '{"plan":null,"increments":[],"status":"approved"}' \
+  "an existing plans directory without a matching join remains a valid spec-only lifecycle"
 
 repo="$(make_repo markdown-duplicate)"
 write_feature_pair "$repo" '2026-07-12-duplicate' '**Source:** [[specs/2026-07-12-duplicate]]'

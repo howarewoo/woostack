@@ -22,6 +22,7 @@
 # present (issue #48 guard). Unset/0 = guard active (skip wipe if findings.* exist).
 
 set -euo pipefail
+umask 077
 
 # Atomic state. Prior runs may have left stale findings.<angle>.json,
 # raw_findings.json, validator-metrics.json, etc. in $OUTDIR. Without a wipe,
@@ -48,7 +49,12 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-outdir.sh"
 # shellcheck source=skills/woostack-review/scripts/resolve-root.sh
 source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-root.sh"
-if [ "${WOO_REVIEW_FRESH:-}" != "1" ] && compgen -G "$OUTDIR/findings.*" >/dev/null 2>&1; then
+if [ "${WOO_REVIEW_FRESH:-}" != "1" ] &&
+  [ "${GITHUB_ACTIONS:-}" = "true" ] &&
+  [ "${WOO_REVIEW_MODE:-}" = "review" ] &&
+  [ -f "$OUTDIR/artifact-context.json" ]; then
+  echo "::warning::prefetch: preserving detection artifact context for CI review worker" >&2
+elif [ "${WOO_REVIEW_FRESH:-}" != "1" ] && compgen -G "$OUTDIR/findings.*" >/dev/null 2>&1; then
   if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
     echo "::warning::prefetch: $OUTDIR holds in-flight findings.* — preserving (CI validate path); not wiping (set WOO_REVIEW_FRESH=1 to force a fresh wipe)" >&2
   else
@@ -59,6 +65,7 @@ else
   rm -rf "$OUTDIR"
 fi
 mkdir -p "$OUTDIR"
+chmod 700 "$OUTDIR"
 
 # Announce the resolved OUTDIR so a chat-host orchestrator can capture it and
 # export OUTDIR verbatim to every sub-agent (no recompute drift). Emitted before

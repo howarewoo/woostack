@@ -330,6 +330,141 @@ document_uri='linear://document/dddddddd-dddd-4ddd-8ddd-dddddddddddd'
 issue_uri='linear://issue/cccccccc-0001-4000-8000-000000000001'
 run_capture provenance-parse --reference "linear://project/nested/$project_id"
 assert_exit 1 "$RC" "nested Linear provenance URI is rejected rather than reduced to its final UUID"
+
+# One read-only identity operation accepts every supported source form, canonicalizes it,
+# verifies repository ownership through the normalized owning feature, and never mutates.
+queue_empty_identity() {
+  local name="$1" root="$2"
+  jq -cn --arg root "$root" '{data:{($root):{nodes:[]}}}' >"$work/responses/$name.1.json"
+}
+queue_identity_success() {
+  local source="$1" expected_kind="$2"
+  reset_fake
+  queue project-list project-list-one.json 1
+  cp "$work/frozen-document-list.json" "$work/responses/document-list.1.json"
+  queue issue-list issue-list-valid.json 1
+  queue provenance-document provenance-document.json 1
+  queue provenance-issue provenance-issue.json 1
+  if [[ "$source" == linear://* ]]; then
+    return
+  elif [[ "$source" == https://linear.app/* ]]; then
+    case "$expected_kind" in
+      project) queue identity-project-slug project-list-one.json 1 ;;
+      document) cp "$work/frozen-document-list.json" "$work/responses/identity-document-slug.1.json" ;;
+      issue)
+        jq '.data.issue.url="https://linear.app/acme/issue/ENG-11"' \
+          "$FIXTURES/provenance-issue.json" >"$work/responses/identity-issue-key.1.json"
+        ;;
+    esac
+  else
+    if [[ "$expected_kind" == project ]]; then
+      queue identity-project project-list-one.json 1
+    else
+      queue_empty_identity identity-project projects
+    fi
+    if [[ "$expected_kind" == document ]]; then
+      cp "$work/frozen-document-list.json" "$work/responses/identity-document.1.json"
+    else
+      queue_empty_identity identity-document documents
+    fi
+    if [[ "$expected_kind" == issue ]]; then
+      jq '.data.issues.nodes |= map(select(.id=="cccccccc-0001-4000-8000-000000000001"))' \
+        "$FIXTURES/issue-list-valid.json" >"$work/responses/identity-issue.1.json"
+    else
+      queue_empty_identity identity-issue issues
+    fi
+  fi
+}
+assert_identity_success() {
+  local source="$1" expected_kind="$2" expected_id="$3" expected_lookups
+  queue_identity_success "$source" "$expected_kind"
+  run_capture identity-resolve --source "$source" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map"
+  assert_exit 0 "$RC" "identity-resolve accepts $expected_kind source $source"
+  assert_eq "$(jq -c '.resource | {kind,id,uri,projectId}' <<<"$OUTPUT")" \
+    "$(jq -cn --arg kind "$expected_kind" --arg id "$expected_id" --arg project "$project_id" '{kind:$kind,id:$id,uri:("linear://"+$kind+"/"+$id),projectId:$project}')" \
+    "identity-resolve canonicalizes $expected_kind source $source"
+  assert_eq "$(jq -r '.feature.feature.id' <<<"$OUTPUT")" "$project_id" "identity-resolve returns the normalized owning feature"
+  case "$source" in
+    linear://*) expected_lookups=0 ;;
+    https://linear.app/*) expected_lookups=1 ;;
+    *) expected_lookups=3 ;;
+  esac
+  assert_eq "$(grep -c $'\tidentity-' "$work/calls" || true)" "$expected_lookups" \
+    "identity-resolve bounds targeted lookup count for $source"
+  assert_eq "$(grep -c $'\tproject-list\t' "$work/calls" || true)" 1 \
+    "identity-resolve reads the owning feature through one project snapshot"
+  assert_not_contains "$(cat "$work/calls")" $'mutation\t' "identity-resolve remains read-only for $source"
+}
+
+assert_identity_success "$project_id" project "$project_id"
+assert_identity_success 'https://linear.app/acme/project/feature-alpha-abc123' project "$project_id"
+assert_identity_success 'https://linear.app/acme/project/feature-alpha-abc123/overview' project "$project_id"
+assert_identity_success "$project_uri" project "$project_id"
+assert_identity_success 'dddddddd-dddd-4ddd-8ddd-dddddddddddd' document 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+assert_identity_success 'https://linear.app/acme/document/feature-alpha-spec-dddddddd' document 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+assert_identity_success "$document_uri" document 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+assert_identity_success 'cccccccc-0001-4000-8000-000000000001' issue 'cccccccc-0001-4000-8000-000000000001'
+assert_identity_success 'https://linear.app/acme/issue/ENG-11' issue 'cccccccc-0001-4000-8000-000000000001'
+assert_identity_success 'https://linear.app/acme/issue/ENG-11/fix-login' issue 'cccccccc-0001-4000-8000-000000000001'
+assert_identity_success "$issue_uri" issue 'cccccccc-0001-4000-8000-000000000001'
+
+reset_fake
+queue identity-project-slug project-list-one.json 1
+run_capture identity-resolve --source 'https://linear.app/wrong/project/feature-alpha-abc123' --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map"
+assert_exit 3 "$RC" "identity-resolve rejects a matching slug under the wrong exact URL"
+assert_contains "$OUTPUT" "not found" "exact URL mismatch has a deterministic safe diagnostic"
+
+reset_fake
+queue identity-project project-list-one.json 1
+jq --arg duplicate "$project_id" '.data.documents.nodes[0].id=$duplicate' \
+  "$work/frozen-document-list.json" >"$work/responses/identity-document.1.json"
+queue_empty_identity identity-issue issues
+run_capture identity-resolve --source "$project_id" --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map"
+assert_exit 4 "$RC" "bare UUID shared by multiple Linear kinds fails as ambiguous"
+assert_contains "$OUTPUT" "ambiguous" "ambiguous bare UUID has a deterministic safe diagnostic"
+assert_not_contains "$(cat "$work/calls")" $'mutation\t' "ambiguous identity discovery performs no mutation"
+
+reset_fake
+queue_empty_identity identity-project projects
+queue_empty_identity identity-document documents
+queue_empty_identity identity-issue issues
+run_capture identity-resolve --source '99999999-9999-4999-8999-999999999999' --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map"
+assert_exit 3 "$RC" "unknown bare UUID fails as not found"
+assert_contains "$OUTPUT" "not found" "unknown identity has a deterministic safe diagnostic"
+
+reset_fake
+queue identity-project-slug project-list-foreign.json 1
+queue project-list project-list-foreign.json 1
+run_capture identity-resolve --source 'https://linear.app/acme/project/feature-alpha-abc123' --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map"
+assert_exit 1 "$RC" "foreign exact URL fails closed during normalized ownership verification"
+assert_contains "$OUTPUT" "ownership" "foreign exact URL reports the verified ownership boundary"
+assert_not_contains "$(cat "$work/calls")" $'mutation\t' "foreign identity discovery performs no mutation"
+
+reset_fake
+cp "$work/frozen-document-list.json" "$work/responses/identity-document-slug.1.json"
+queue project-list project-list-one.json 1
+jq '.data.documents.nodes[0].content="# Unmanaged document\n"' \
+  "$work/frozen-document-list.json" >"$work/responses/document-list.1.json"
+queue provenance-document provenance-document.json 1
+queue issue-list issue-list-none.json 1
+run_capture identity-resolve --source 'https://linear.app/acme/document/feature-alpha-spec-dddddddd' --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map"
+assert_exit 1 "$RC" "unmanaged document exact URL fails ownership verification"
+assert_contains "$OUTPUT" "managed spec" "unmanaged document failure identifies the verified feature boundary"
+assert_not_contains "$(cat "$work/calls")" $'mutation\t' "unmanaged document verification performs no mutation"
+
+reset_fake
+jq '.data.issue.url="https://linear.app/acme/issue/ENG-11"' \
+  "$FIXTURES/provenance-issue.json" >"$work/responses/identity-issue-key.1.json"
+queue project-list project-list-one.json 1
+cp "$work/frozen-document-list.json" "$work/responses/document-list.1.json"
+queue provenance-issue provenance-issue.json 1
+jq '.data.issues.nodes |= map(select(.id=="cccccccc-0001-4000-8000-000000000001")) |
+    .data.issues.nodes[0].description="# Unmanaged issue\n"' \
+  "$FIXTURES/issue-list-valid.json" >"$work/responses/issue-list.1.json"
+run_capture identity-resolve --source 'https://linear.app/acme/issue/ENG-11' --repository acme/widgets --status-map "$status_map" --issue-state-map "$issue_state_map"
+assert_exit 1 "$RC" "unmanaged issue exact URL fails ownership verification"
+assert_contains "$OUTPUT" "managed increment" "unmanaged issue failure identifies the verified feature boundary"
+assert_not_contains "$(cat "$work/calls")" $'mutation\t' "unmanaged issue verification performs no mutation"
 reset_fake
 queue project-list project-list-one.json 1
 cp "$work/frozen-document-list.json" "$work/responses/document-list.1.json"

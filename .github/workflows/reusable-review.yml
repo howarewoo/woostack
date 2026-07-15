@@ -68,6 +68,9 @@ on:
         required: false
       openrouter_api_key:
         required: false
+      linear_api_key:
+        description: 'Optional Linear API key for read-only PR artifact context. Scoped to attributed Linear reads and encryption of remote context between trusted jobs.'
+        required: false
 
 # Cancel superseded runs on the same PR so rapid pushes do not queue parallel
 # expensive AI passes.
@@ -86,19 +89,43 @@ jobs:
       chunks: ${{ steps.woo.outputs.chunks_json }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      # Self-references pinned to the current tag. Bump in lockstep with releases.
+      # Self-references pinned to the reviewed action commit. Bump in lockstep with releases.
       - id: woo
-        uses: howarewoo/woostack@main
+        uses: howarewoo/woostack@2182f3d5fef541701e373c3e7a7f322121af9b85
         with:
           mode: detect
           disable_angles: ${{ inputs.disable_angles }}
           incremental: ${{ inputs.incremental }}
           force_tier: ${{ inputs.force_tier }}
+          linear-api-key: ${{ secrets.linear_api_key }}
+      - name: Encrypt remote artifact context
+        shell: bash
+        env:
+          OUTDIR: /tmp/pr-review
+          INPUT_LINEAR_API_KEY: ${{ secrets.linear_api_key }}
+        run: |
+          set -euo pipefail
+          context="$OUTDIR/artifact-context.json"
+          sealed="$context.enc"
+          [ -f "$context" ] || exit 0
+          [ "$(jq -er '.backend' "$context")" = "linear" ] || exit 0
+          if [ -z "${INPUT_LINEAR_API_KEY:-}" ]; then
+            echo "::error::Linear artifact context cannot be uploaded without encryption" >&2
+            exit 1
+          fi
+          umask 077
+          openssl enc -aes-256-cbc -pbkdf2 -salt \
+            -in "$context" -out "$sealed" -pass env:INPUT_LINEAR_API_KEY
+          rm -f "$context"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: review-artifacts
           path: /tmp/pr-review/
           retention-days: 1
+      - name: Remove local review artifacts
+        if: always()
+        shell: bash
+        run: rm -rf /tmp/pr-review
 
   review:
     needs: detect
@@ -124,13 +151,37 @@ jobs:
         with:
           name: review-artifacts
           path: /tmp/pr-review/
+      - name: Decrypt remote artifact context
+        shell: bash
+        env:
+          OUTDIR: /tmp/pr-review
+          INPUT_LINEAR_API_KEY: ${{ secrets.linear_api_key }}
+        run: |
+          set -euo pipefail
+          context="$OUTDIR/artifact-context.json"
+          sealed="$context.enc"
+          [ -f "$sealed" ] || exit 0
+          if [ -z "${INPUT_LINEAR_API_KEY:-}" ]; then
+            echo "::error::Linear artifact context cannot be read without its encryption key" >&2
+            exit 1
+          fi
+          umask 077
+          tmp="$OUTDIR/.artifact-context.$$"
+          trap 'rm -f "$tmp"' EXIT
+          openssl enc -d -aes-256-cbc -pbkdf2 \
+            -in "$sealed" -out "$tmp" -pass env:INPUT_LINEAR_API_KEY
+          jq -e '.backend == "linear"' "$tmp" >/dev/null
+          chmod 600 "$tmp"
+          mv "$tmp" "$context"
+          rm -f "$sealed"
+          trap - EXIT
       # One-retry wrapper: a transient angle failure (model timeout, rate limit) gets
       # one re-run before the receipt gate fails the review, mirroring the local swarm's
       # single retry. Dependency-free — a duplicated action step, no third-party retry action.
       - name: Run angle review (attempt 1)
         id: review1
         continue-on-error: true
-        uses: howarewoo/woostack@main
+        uses: howarewoo/woostack@2182f3d5fef541701e373c3e7a7f322121af9b85
         with:
           mode: review
           angle: ${{ matrix.angle }}
@@ -153,7 +204,7 @@ jobs:
           impeccable_version: ${{ inputs.impeccable_version }}
       - name: Run angle review (retry once)
         if: steps.review1.outcome == 'failure'
-        uses: howarewoo/woostack@main
+        uses: howarewoo/woostack@2182f3d5fef541701e373c3e7a7f322121af9b85
         with:
           mode: review
           angle: ${{ matrix.angle }}
@@ -188,6 +239,10 @@ jobs:
             /tmp/pr-review/receipt.${{ matrix.angle }}*.json
           retention-days: 1
           if-no-files-found: ignore
+      - name: Remove local angle artifacts
+        if: always()
+        shell: bash
+        run: rm -rf /tmp/pr-review
 
   validate:
     needs: [detect, review]
@@ -212,6 +267,30 @@ jobs:
         with:
           name: review-artifacts
           path: /tmp/pr-review/
+      - name: Decrypt remote artifact context
+        shell: bash
+        env:
+          OUTDIR: /tmp/pr-review
+          INPUT_LINEAR_API_KEY: ${{ secrets.linear_api_key }}
+        run: |
+          set -euo pipefail
+          context="$OUTDIR/artifact-context.json"
+          sealed="$context.enc"
+          [ -f "$sealed" ] || exit 0
+          if [ -z "${INPUT_LINEAR_API_KEY:-}" ]; then
+            echo "::error::Linear artifact context cannot be read without its encryption key" >&2
+            exit 1
+          fi
+          umask 077
+          tmp="$OUTDIR/.artifact-context.$$"
+          trap 'rm -f "$tmp"' EXIT
+          openssl enc -d -aes-256-cbc -pbkdf2 \
+            -in "$sealed" -out "$tmp" -pass env:INPUT_LINEAR_API_KEY
+          jq -e '.backend == "linear"' "$tmp" >/dev/null
+          chmod 600 "$tmp"
+          mv "$tmp" "$context"
+          rm -f "$sealed"
+          trap - EXIT
       - name: Download findings
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         continue-on-error: true
@@ -240,7 +319,7 @@ jobs:
 
       - name: Validate (prosecutor pass)
         if: steps.adv.outputs.disabled != 'true'
-        uses: howarewoo/woostack@main
+        uses: howarewoo/woostack@2182f3d5fef541701e373c3e7a7f322121af9b85
         with:
           mode: validate-prosecutor
           disable_angles: ${{ inputs.disable_angles }}
@@ -259,7 +338,7 @@ jobs:
           prompt_override: ${{ inputs.prompt_override }}
 
       - name: Validate (defender pass + intersect + post)
-        uses: howarewoo/woostack@main
+        uses: howarewoo/woostack@2182f3d5fef541701e373c3e7a7f322121af9b85
         with:
           mode: validate
           disable_angles: ${{ inputs.disable_angles }}
@@ -287,3 +366,7 @@ jobs:
             /tmp/pr-review/findings.metrics.json
           retention-days: 7
           if-no-files-found: ignore
+      - name: Remove local validator artifacts
+        if: always()
+        shell: bash
+        run: rm -rf /tmp/pr-review
