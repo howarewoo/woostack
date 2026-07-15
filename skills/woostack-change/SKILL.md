@@ -39,19 +39,12 @@ run before editing; never guess, overwrite, or silently select another workflow.
 
 ## Procedure
 
-1. **Resolve isolation.** Use the canonical
-   [worktree and base-branch authority](../woostack-init/references/worktrees.md) only for primary
-   root/base resolution, worktree creation, and successful-PR removal. Resolve the installed
-   `woostack-init/scripts` directory as `<wi>`, the primary repository root as `WOOSTACK_ROOT`,
-   and `base="$(bash <wi>/resolve-base.sh)"`. If root resolution fails, stop and report the failed
-   resolver and that no worktree path was established. Once the root resolves, choose a short slug
-   and establish the intended path `$WOOSTACK_ROOT/.woostack/worktrees/change-<slug>`. Create the
-   fresh `change/<slug>` branch there from the resolved base, then run
-   `gt track --parent "$base"` from that worktree. Abort before edits if base resolution, creation,
-   or Graphite tracking fails. Preserve any recoverable branch or worktree state, never
-   auto-delete it, and report the blocker plus the exact intended/preserved worktree path. Every
-   subsequent write, command, and skill invocation uses that worktree as its cwd; self-assert its
-   normalized `git rev-parse --show-toplevel` first.
+1. **Resolve isolation.** Follow the canonical
+   [worktree and base-branch authority](../woostack-init/references/worktrees.md) end to end,
+   including its `woostack-change` create, operate, failure-preservation, and verified-closeout
+   rules. Do not edit until that authority has established the fresh, Graphite-tracked
+   `change/<slug>` worktree; continue the run there. A failed prerequisite stops the run under
+   the authority's reporting and preservation contract — never improvise a fallback.
 
 2. **State intent and implement.** State the goal, bounded files/surface, and planned verification
    concisely in the conversation. This is informative: do not wait for approval. Implement the
