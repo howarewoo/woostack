@@ -1,6 +1,6 @@
 ---
 type: fix
-status: hardened
+status: executing
 branch: fix/multi-line-review-anchors
 ---
 
@@ -30,27 +30,27 @@ In the existing orchestrator payload builder, leave the current location object 
 
 ## 3. Implementation Plan
 
-- [ ] **Step 1: Reproduce resolver and safety-net range failures**
+- [x] **Step 1: Reproduce resolver and safety-net range failures**
   - Add `skills/woostack-review/scripts/tests/test-resolve-diff-line.sh` covering unchanged single-line output; valid same-hunk RIGHT-side ranges; malformed, equal, reversed, deletion-only, out-of-hunk, and different-hunk endpoints degrading to the valid start; invalid starts returning `null`; and endpoint-aware cache keys.
   - Extend `test-intersect-final-anchors.sh` and `test-intersect-final-anchors-adversarial.sh` with valid-range preservation, invalid-range degradation without finding loss, and no-`end_line` compatibility in both validator modes.
   - Add `skills/woostack-review/scripts/tests/test-merge-finding-anchors.sh` proving a valid range survives pre-validation, an invalid endpoint is stripped without dropping a valid-start finding, and a finding without `end_line` is unchanged.
   - Run the focused tests before implementation and confirm the new range assertions fail against the single-line contract.
 
-- [ ] **Step 2: Implement one range-aware diff resolver**
+- [x] **Step 2: Implement one range-aware diff resolver**
   - Add optional `--end` parsing, range-aware cache keys, per-hunk RIGHT-side anchor tracking, and the `<start>:<end>` / `<start>` / `null` output contract to `resolve-diff-line.sh`.
   - Preserve the current invocation, exit status, default diff/cache resolution, atomic cache writes, and missing-diff behavior when `--end` is absent.
   - Run `test-resolve-diff-line.sh` and confirm all single-line and range cases pass.
 
-- [ ] **Step 3: Preserve and validate ranges through the finding pipeline**
+- [x] **Step 3: Preserve and validate ranges through the finding pipeline**
   - Add optional `end_line` and its same-file, same-hunk, RIGHT-side semantics to `_worker-header.md` and `_orchestrator-header.md`; require `validator.md` and `validator-prosecutor.md` to preserve the winning finding's endpoint.
   - Update `merge-findings.sh` and `intersect-findings.sh::filter_final_anchors` to parse the shared resolver result, retain canonical valid ranges, strip invalid endpoints, drop only invalid starts, and report endpoint degradation counts on stderr.
   - Run `test-merge-finding-anchors.sh` and both intersection tests; confirm valid ranges survive, invalid ranges degrade, findings without `end_line` remain unchanged, and both validator paths preserve the field.
 
-- [ ] **Step 4: Emit GitHub multi-line review payloads**
+- [x] **Step 4: Emit GitHub multi-line review payloads**
   - Add `skills/woostack-review/scripts/tests/test-review-payload-ranges.sh` around the existing orchestrator payload builder: no endpoint must produce exactly the current location fields; `line: 10, end_line: 12` must produce `start_line: 10`, `start_side: "RIGHT"`, `line: 12`, and `side: "RIGHT"`; degraded findings must contain no range fields.
   - Update the sole payload builder in `_orchestrator-header.md` and run the new payload test to green.
 
-- [ ] **Step 5: Verification**
+- [x] **Step 5: Verification**
   - Run `bash -n` on `resolve-diff-line.sh`, `merge-findings.sh`, and `intersect-findings.sh`.
   - Run `test-resolve-diff-line.sh`, `test-merge-finding-anchors.sh`, `test-intersect-final-anchors.sh`, `test-intersect-final-anchors-adversarial.sh`, and `test-review-payload-ranges.sh`.
   - Smoke-test a synthetic two-hunk diff through resolver → merge → intersection → payload construction: a same-hunk range must post range fields, a cross-hunk endpoint must post the original single-line location, and an invalid start must still be dropped.

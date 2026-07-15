@@ -185,16 +185,13 @@ fi
 
 jq -s 'add // []' "$TMP" > "$MERGED_FILE"
 
-# Safety net: drop any finding whose (file, line) cannot be anchored on the
-# RIGHT side of the prefetched diff. Catches agents that ignored the
-# resolve-diff-line.sh contract in _header.md — without this, the gh api
-# POST returns HTTP 422 "Line could not be resolved" and the whole review
-# fails. Findings without `file` / `line` pass through (validator handles
-# them); only lookups that resolve to "null" are dropped.
+# Safety net: validate each finding's start and optional endpoint on the RIGHT
+# side of the prefetched diff. Invalid starts are dropped; invalid ranges
+# degrade to the valid start so one bad endpoint cannot sink the review.
 #
-# Skipped when no diff is present in $OUTDIR (unit tests, hosts that
-# invoke merge-findings.sh directly without a prefetched diff) or when the
-# resolver script is missing.
+# Skipped when no diff is present in $OUTDIR (unit tests, hosts that invoke
+# merge-findings.sh directly without a prefetched diff) or when the resolver
+# script is missing.
 DIFF_FOR_RESOLVE=""
 if [ -s "$OUTDIR/diff.filtered.txt" ]; then
   DIFF_FOR_RESOLVE="$OUTDIR/diff.filtered.txt"
@@ -208,6 +205,7 @@ if [ -n "$DIFF_FOR_RESOLVE" ] && [ -f "$SCRIPT_DIR/resolve-diff-line.sh" ]; then
   trap 'rm -f "$TMP" "$TMP_RESOLVED"' EXIT
   python3 - "$MERGED_FILE" "$TMP_RESOLVED" "$SCRIPT_DIR/resolve-diff-line.sh" "$OUTDIR" <<'PY'
 import json
+import os
 import subprocess
 import sys
 
@@ -218,38 +216,75 @@ with open(merged_path, "r") as fh:
 
 kept = []
 dropped = 0
-for f in findings:
-    path = f.get("file")
-    line = f.get("line")
+degraded = 0
+for finding in findings:
+    path = finding.get("file")
+    line = finding.get("line")
     if not path or line in (None, ""):
-        kept.append(f)
+        kept.append(finding)
         continue
+
+    command = [
+        "bash", resolver,
+        "--file", str(path),
+        "--line", str(line),
+    ]
+    has_end = "end_line" in finding
+    if has_end:
+        command.extend(["--end", str(finding.get("end_line"))])
+
     try:
-        res = subprocess.run(
-            [
-                "bash", resolver,
-                "--file", str(path),
-                "--line", str(line),
-            ],
-            env={"OUTDIR": outdir, "PATH": "/usr/local/bin:/usr/bin:/bin"},
+        result = subprocess.run(
+            command,
+            env={"OUTDIR": outdir, "PATH": os.environ.get("PATH", "")},
             check=False,
             capture_output=True,
             text=True,
         )
     except OSError:
-        kept.append(f)
+        kept.append(finding)
         continue
-    if res.stdout.strip() == "null":
+
+    resolved = result.stdout.strip()
+    if result.returncode != 0 or resolved == "null" or not resolved:
         dropped += 1
         continue
-    kept.append(f)
+    if not has_end:
+        kept.append(finding)
+        continue
+
+    try:
+        if ":" in resolved:
+            start_text, end_text = resolved.split(":", 1)
+            canonical_start = int(start_text)
+            canonical_end = int(end_text)
+        else:
+            canonical_start = int(resolved)
+            canonical_end = None
+    except ValueError:
+        dropped += 1
+        continue
+
+    normalized = dict(finding)
+    normalized["line"] = canonical_start
+    if canonical_end is not None:
+        normalized["end_line"] = canonical_end
+    else:
+        normalized.pop("end_line", None)
+        if has_end:
+            degraded += 1
+    kept.append(normalized)
 
 with open(out_path, "w") as fh:
     json.dump(kept, fh)
 
-sys.stderr.write(
-    f"merge-findings: resolve-diff-line dropped {dropped} finding(s) with unresolvable lines\n"
+message = (
+    "merge-findings: resolve-diff-line "
+    f"dropped {dropped} finding(s) with unresolvable lines"
 )
+if degraded:
+    message += f"; degraded {degraded} invalid range(s)"
+sys.stderr.write(message + "\n")
 PY
   mv "$TMP_RESOLVED" "$MERGED_FILE"
   POST_RESOLVE=$(jq 'length' "$MERGED_FILE")

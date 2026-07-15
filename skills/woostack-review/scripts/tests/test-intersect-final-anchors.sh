@@ -30,22 +30,32 @@ index 1111111..2222222 100644
 @@ -1,2 +1,2 @@
  const keep = true;
 +const changed = true;
+@@ -30,1 +30,1 @@
+ const later = true;
 DIFF
 
 cat > "$work/findings.defender.json" <<'JSON'
 [
   {"angle":"bugs","file":"src/app.ts","line":99,"title":"Drop stale line","description":"d","fix":"f","severity":"HIGH","blocking":true,"fix_type":"prose","suggestion":null},
   {"angle":"bugs","file":"other.ts","line":1,"title":"Drop stale file","description":"d","fix":"f","severity":"HIGH","blocking":true,"fix_type":"prose","suggestion":null},
-  {"angle":"bugs","file":"src/app.ts","line":"2","title":"Keep valid line","description":"d","fix":"f","severity":"HIGH","blocking":true,"fix_type":"prose","suggestion":null}
+  {"angle":"bugs","file":"src/app.ts","line":"2","title":"Keep valid line","description":"d","fix":"f","severity":"HIGH","blocking":true,"fix_type":"prose","suggestion":null},
+  {"angle":"bugs","file":"src/app.ts","line":"1","end_line":"2","title":"Keep valid range","description":"d","fix":"f","severity":"HIGH","blocking":true,"fix_type":"prose","suggestion":null},
+  {"angle":"bugs","file":"src/app.ts","line":1,"end_line":30,"title":"Degrade cross-hunk range","description":"d","fix":"f","severity":"HIGH","blocking":true,"fix_type":"prose","suggestion":null},
+  {"angle":"bugs","file":"src/app.ts","line":30,"title":"Keep range-free finding","description":"d","fix":"f","severity":"HIGH","blocking":true,"fix_type":"prose","suggestion":null}
 ]
 JSON
 cp "$work/findings.defender.json" "$work/raw_findings.json"
 
 bash "$SCRIPT"
 
-assert_eq "$(jq 'length' "$work/findings.json")" "1" "final anchor filter keeps only postable findings"
-assert_eq "$(jq -r '.[0].title' "$work/findings.json")" "Keep valid line" "final anchor filter drops stale file and line"
-assert_eq "$(jq -r '.[0].line' "$work/findings.json")" "2" "final anchor filter writes canonical numeric line"
-assert_eq "$(jq -r '.[0].line | type' "$work/findings.json")" "number" "final anchor filter stores canonical line as a number"
+assert_eq "$(jq 'length' "$work/findings.json")" "4" "final anchor filter keeps only postable findings"
+assert_eq "$(jq -r '[.[].title] | index("Drop stale line")' "$work/findings.json")" "null" "final anchor filter drops a stale line"
+assert_eq "$(jq -r '.[] | select(.title == "Keep valid line") | .line' "$work/findings.json")" "2" "final anchor filter writes canonical numeric line"
+assert_eq "$(jq -r '.[] | select(.title == "Keep valid line") | .line | type' "$work/findings.json")" "number" "final anchor filter stores canonical line as a number"
+assert_eq "$(jq -r '.[] | select(.title == "Keep valid range") | [.line, .end_line] | @csv' "$work/findings.json")" '1,2' "defender-only filter canonicalizes a same-hunk range"
+assert_eq "$(jq -r '.[] | select(.title == "Keep valid range") | .end_line | type' "$work/findings.json")" "number" "defender-only filter stores canonical endpoint as a number"
+assert_eq "$(jq -r '.[] | select(.title == "Degrade cross-hunk range") | has("end_line")' "$work/findings.json")" "false" "defender-only filter strips a cross-hunk endpoint"
+assert_eq "$(jq -r '.[] | select(.title == "Degrade cross-hunk range") | .line' "$work/findings.json")" "1" "defender-only filter keeps a valid start when range degrades"
+assert_eq "$(jq -r '.[] | select(.title == "Keep range-free finding") | has("end_line")' "$work/findings.json")" "false" "defender-only filter leaves range-free findings unchanged"
 
 finish

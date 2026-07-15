@@ -241,12 +241,19 @@ for f in findings:
     if footer_parts:
         body += "\n\n<sub>— " + " · ".join(footer_parts) + "</sub>"
 
-    comments.append({
+    location = {
         "path": f["file"],
         "line": int(f["line"]),
         "side": "RIGHT",
         "body": body
-    })
+    }
+    if f.get("end_line") is not None:
+        location.update({
+            "start_line": int(f["line"]),
+            "start_side": "RIGHT",
+            "line": int(f["end_line"])
+        })
+    comments.append(location)
 
 payload = {
     "commit_id": commit_id,
@@ -356,6 +363,7 @@ Every runner MUST write a final `findings.json` (for debugging + potential post-
     "angle": "bugs",
     "file": "src/foo.ts",
     "line": 42,
+    "end_line": 45,
     "severity": "HIGH",
     "blocking": true,
     "nit": false,
@@ -372,7 +380,7 @@ Every runner MUST write a final `findings.json` (for debugging + potential post-
 
 `angle` is one of `bugs | security | conventions | acceptance | seo | aeo | design | react | database | tests | api | infra | observability | types | i18n | docs | deps | architecture | comments | simplify | production-readiness`.
 
-`line` MUST be the post-patch absolute file line — i.e. a line that exists on the RIGHT side of the diff (a `+` added line or a ` ` context line within a hunk for `file`). Lines that fall in a deletion-only region, or outside any hunk for the file, will be rejected by the GitHub API. Validate every line via `scripts/resolve-diff-line.sh` before writing the finding (see *Output Discipline* above); drop the finding when the helper returns `null`.
+`line` MUST be the post-patch absolute start line — i.e. a line that exists on the RIGHT side of the diff (a `+` added line or a ` ` context line within a hunk for `file`). Optional `end_line` is the inclusive post-patch end of a multi-line anchor and MUST be greater than `line` on the RIGHT side of that same hunk. Validate both via `scripts/resolve-diff-line.sh`; drop a finding when the helper returns `null`, and omit `end_line` when a requested range degrades to its valid start.
 
 ### `fix_type` discriminator
 
