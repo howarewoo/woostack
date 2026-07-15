@@ -34,6 +34,7 @@ cat > "$work/findings.bugs.json" <<'JSON'
 JSON
 
 bash "$SCRIPT" >"$work/output.txt" 2>&1
+assert_contains "$(cat "$work/output.txt")" "degraded 1 invalid range(s)" "merge reports one degraded invalid range"
 
 assert_eq "$(jq 'length' "$work/raw_findings.json")" "3" "merge keeps every valid-start finding"
 assert_eq "$(jq -r '.[] | select(.title == "Keep valid range") | [.line, .end_line] | @csv' "$work/raw_findings.json")" '10,12' "merge canonicalizes a valid range"

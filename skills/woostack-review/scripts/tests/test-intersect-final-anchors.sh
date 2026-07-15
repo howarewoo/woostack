@@ -46,7 +46,8 @@ cat > "$work/findings.defender.json" <<'JSON'
 JSON
 cp "$work/findings.defender.json" "$work/raw_findings.json"
 
-bash "$SCRIPT"
+bash "$SCRIPT" >"$work/output.txt" 2>&1
+assert_contains "$(cat "$work/output.txt")" "degraded 1 invalid range(s)" "defender-only filter reports one degraded invalid range"
 
 assert_eq "$(jq 'length' "$work/findings.json")" "4" "final anchor filter keeps only postable findings"
 assert_eq "$(jq -r '[.[].title] | index("Drop stale line")' "$work/findings.json")" "null" "final anchor filter drops a stale line"

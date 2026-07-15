@@ -78,8 +78,9 @@ cat > "$work/findings.prosecutor.json" <<'JSON'
 JSON
 cp "$work/findings.defender.json" "$work/raw_findings.json"
 
-bash "$SCRIPT" >/tmp/intersect-final-anchors-adversarial.out 2>&1 \
-  || { cat /tmp/intersect-final-anchors-adversarial.out; exit 1; }
+bash "$SCRIPT" >"$work/output.txt" 2>&1 \
+  || { cat "$work/output.txt"; exit 1; }
+assert_contains "$(cat "$work/output.txt")" "degraded 1 invalid range(s)" "adversarial filter reports one degraded invalid range"
 
 # Guard the path was actually adversarial, not a silent defender-only fallback.
 assert_eq "$(jq -r '.mode' "$work/validator-metrics.json")" "adversarial" "ran the adversarial merge path"
