@@ -1,66 +1,56 @@
 ---
-title: Collaboration with status tracking
-description: How the feature board derives Markdown truth and reconciles Linear terminal state.
+title: "Tracking work: local Markdown vs Linear"
+description: Choose where woostack tracks feature artifacts and understand how each backend feeds the status board.
 ---
 
-woostack never commits a `STATUS.md`. [woostack-status](/docs/skills/woostack-status) resolves the
-configured artifact backend, reads its canonical feature model, and computes a fresh board for the
-terminal and a gitignored HTML view. The board is a view of the artifacts, not another source of
-truth.
+woostack tracks feature definitions and progress in one configured artifact backend. Local
+Markdown is the default; Linear is the collaborative alternative. In both modes,
+[woostack-status](/docs/skills/woostack-status) computes a fresh board from the selected source
+of truth instead of committing a separate `STATUS.md`.
 
-## Canonical models
+## Choose a source of truth
 
-The selected backend owns the canonical artifacts and lifecycle state. Markdown remains the
-default; Linear now continues through execution and terminal reconciliation.
-
-| | Markdown (default) | Linear |
+| | Local Markdown (default) | Linear |
 | --- | --- | --- |
-| Feature source | joined local spec and plan files; self-contained `.woostack/fixes/*.md` rows bypass that join | managed project, spec document, and ordered increment issues |
+| Best fit | Git-first projects that want reviewable artifacts beside the code | Teams that coordinate planning and progress in Linear |
+| Feature source | joined `.woostack/specs/` and `.woostack/plans/` files | one managed project, spec document, and ordered increment issues |
 | Lifecycle source | authored frontmatter reconciled with branch, commit, and PR state | native project and team issue states plus managed spec lifecycle metadata |
-| PR attribution | exact `Spec:` trailer | exact project/issue trailer pair, verified against the owned resources |
-| Status behavior | read-only derivation and drift flags | authenticated read, narrow terminal reconciliation, then render |
+| PR attribution | exact `Spec:` trailer | exact managed project and issue trailers |
+| Collaboration | normal Git review, history, and ownership | Linear assignments, dependencies, workflow states, and project views |
+| Setup | none beyond `woostack-init` | backend mappings in config and environment-only `LINEAR_API_KEY` |
 
-Markdown keeps the familiar `draft → hardened → approved → planning → ready → executing →
-in-review → done` feature progression. Linear uses the configured native project-status and
-team issue-state names; normalized Linear lifecycle tokens use `inReview`, not Markdown's
-`in-review`. The full enum, joins, and evidence rules live in the
-[status conventions](https://github.com/howarewoo/woostack/blob/main/skills/woostack-status/references/conventions.md).
+`artifacts.specPlan` selects one backend at a time. The default is `markdown`; `linear` must be
+configured explicitly. See [Artifact backend configuration](/docs/configuration#artifact-backend)
+for the accepted keys and validation rules.
 
-Markdown fixes keep their own concise lifecycle because one fix file acts as both spec and plan:
-`draft → hardened → approved → executing → in-review → done`, plus terminal `abandoned`. Each fix
-ships as one PR; it does not acquire a feature plan or enter the Linear project model.
+### Local Markdown
 
-## Reconciliation
+Markdown keeps specifications and plans in the repository, so their history and review travel
+with the codebase. A feature uses the familiar `draft → hardened → approved → planning → ready →
+executing → in-review → done` progression. The spec and plan first ship as a docs-only base PR,
+then implementation PRs stack above it.
 
-### Markdown
+Status is read-only in this mode. It derives visible execution and review phases from local
+checkboxes and GitHub artifacts, and flags malformed joins, missing branches, duplicate in-flight
+branches, and stale execution instead of rewriting frontmatter.
 
-Markdown status never changes a spec, plan, fix, branch, commit, or PR. It derives visible
-execution and review phases from local checkboxes and GitHub artifacts, and flags disagreements
-instead of rewriting frontmatter. It also reports malformed joins, missing branches, duplicate
-in-flight branches, and stale execution based on
-[`status.staleDays`](/docs/configuration#status-board).
+Self-contained `.woostack/fixes/*.md` files remain local in either mode. A fix file acts as its
+combined specification and plan and ships as one PR.
 
 ### Linear
 
-Every Linear status run authenticates and performs terminal reconciliation before rendering. It
-verifies that each attributed PR belongs to the managed project and issue and is actually merged,
-previews eligible writes, then permits only `inReview → done` for those issues. After verified
-read-back, it moves the project to `done` only when every managed issue is observed `done`.
+Linear makes one managed project, its spec document, and its ordered increment issues canonical.
+Native project statuses, issue states, dependencies, and assignments remain in Linear rather than
+being mirrored into local spec or plan files. Implementation begins after the same three build
+gates, without a docs-only base PR.
 
-This is deliberately narrower than general lifecycle management: status never reopens,
-downgrades, abandons, or writes a non-terminal Linear state. Missing authentication, foreign or
-ambiguous attribution, API failure, partial evidence, or read-back mismatch fails closed rather
-than becoming a successful or empty board. The
-[woostack-status reference](/docs/skills/woostack-status) owns the exact reconciliation procedure.
+Status authenticates before reading Linear and performs only narrow terminal reconciliation. It
+verifies attributed merged PRs, permits eligible issues to move from `inReview` to `done`, reads
+the result back, and marks the project done only after every managed issue is observed done.
+Missing authentication, ambiguous attribution, API failure, or partial evidence fails closed.
 
-## Migration boundary
-
-Only the selected backend participates in the feature board. When Linear is active, local
-`.woostack/specs/` and `.woostack/plans/` files are inactive legacy artifacts: status does not
-merge, synchronize, or fall back to them, and doctor leaves them untouched while reporting the
-migration boundary. Self-contained Markdown fixes remain a separate compatibility model, not a
-way to import or shadow a Linear feature. Switch deliberately and keep one canonical feature
-store.
+The full lifecycle enum, joins, and evidence rules live in the
+[status conventions](https://github.com/howarewoo/woostack/blob/main/skills/woostack-status/references/conventions.md).
 
 <Callout type="info">
   The terminal table is canonical narration. The mirrored
@@ -68,4 +58,17 @@ store.
   snapshot is created.
 </Callout>
 
+## Switching backends
+
+Backend selection is a clean boundary, not synchronization or fallback. After switching to
+Linear, existing `.woostack/specs/` and `.woostack/plans/` files remain untouched but inactive.
+No command imports, merges, or silently adopts them. Migrate deliberately and keep one canonical
+feature store.
+
+## Roadmap: GitHub Issues
+
+GitHub Issues is planned as another tracking option for teams that want feature coordination in
+the same place as their code and pull requests. It is not supported yet and is not a valid
+`artifacts.specPlan` value. Until that backend ships, choose `markdown` or `linear`; do not model
+GitHub Issues as a shadow copy of either source of truth.
 
