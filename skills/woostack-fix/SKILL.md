@@ -1,6 +1,6 @@
 ---
 name: woostack-fix
-description: Use to resolve small technical issues (bugs, hotfixes, refactors) through a unified execution loop — diagnose root cause with woostack-debug, author a fix plan under .woostack/fixes/, harden and commit it for review, get explicit user approval, then either execute via woostack-execute or hand off the approved plan before implementation.
+description: Use for bugs, regressions, hotfixes, and small technical issues that require diagnosis or root-cause analysis before implementation.
 ---
 
 # woostack-fix

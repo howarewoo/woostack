@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-07-15-woostack-change.md
-status: ready
+status: done
 branch: feature/woostack-change
 ---
 
@@ -26,13 +26,12 @@ branch: feature/woostack-change
 **Files:**
 - Create: `skills/woostack-change/scripts/tests/test-command-surface.sh`
 
-- [ ] **Step 1: Write the executable structural test**
+- [x] **Step 1: Write the executable structural test**
   ```bash
   #!/usr/bin/env bash
   set -euo pipefail
 
   ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)"
-  skill="$ROOT/skills/woostack-change/SKILL.md"
 
   require_file() {
     [ -f "$ROOT/$1" ] || { printf 'missing file: %s\n' "$1" >&2; exit 1; }
@@ -74,11 +73,11 @@ branch: feature/woostack-change
   printf 'woostack-change command surface: PASS\n'
   ```
 
-- [ ] **Step 2: Confirm the test is syntactically valid**
+- [x] **Step 2: Confirm the test is syntactically valid**
   Run: `bash -n skills/woostack-change/scripts/tests/test-command-surface.sh`
   Expected: exit `0`, no output.
 
-- [ ] **Step 3: Run the test before implementation and confirm red**
+- [x] **Step 3: Run the test before implementation and confirm red**
   Run: `bash skills/woostack-change/scripts/tests/test-command-surface.sh`
   Expected: FAIL with `missing file: skills/woostack-change/SKILL.md`.
 
@@ -88,18 +87,18 @@ branch: feature/woostack-change
 - Create: `skills/woostack-change/SKILL.md`
 - Test: `skills/woostack-change/scripts/tests/test-command-surface.sh`
 
-- [ ] **Step 1: Add concise discovery frontmatter and command boundary**
+- [x] **Step 1: Add concise discovery frontmatter and command boundary**
   The file must begin with:
   ```markdown
   ---
   name: woostack-change
-  description: Use for a bounded non-bug enhancement or refactor that can ship as one reviewable PR without the full build or fix loop. Classifies scope before writing, isolates work on change/<slug>, implements with TDD or concrete verification, records an inline review receipt, commits through woostack-commit, and tears down only after a verified PR. Routes bugs to woostack-fix, greenfield work to woostack-bootstrap, and multi-PR work to woostack-build. Never merges. Invoke via /woostack-change <goal>.
+  description: Use for a bounded non-bug enhancement or refactor that can ship as one reviewable PR without the full build or fix loop. Invoke via /woostack-change <goal>.
   ---
 
   # woostack-change
   ```
 
-- [ ] **Step 2: Define the complete qualifying and routing contract**
+- [x] **Step 2: Define the complete qualifying and routing contract**
   Add sections `## Commands`, `## Scope preflight`, and `## Procedure` that require:
   - an explicit goal; one focused question when the target or outcome is ambiguous;
   - repository/context inspection before any write;
@@ -109,16 +108,16 @@ branch: feature/woostack-change
   - qualifying non-bug behavior/API changes and refactors may proceed even when user-visible, provided the full safe change remains one PR;
   - classification happens before creating the worktree, and routing is not an approval gate.
 
-- [ ] **Step 3: Define worktree creation and direct implementation**
+- [x] **Step 3: Define worktree creation and direct implementation**
   Link `../woostack-init/references/worktrees.md` as the authority. Require resolving the primary root and base, creating `change/<slug>` at `$WOOSTACK_ROOT/.woostack/worktrees/change-<slug>`, and running `gt track --parent "$base"` from that worktree. All writes and downstream skill calls use that cwd. State a concise intent, then implement without waiting. Link the TDD kernel and `patterns.md §10`; require red→green→refactor for new observable behavior and exact concrete verification for docs/config/no-runner work.
 
-- [ ] **Step 4: Define verification, review receipt, and closeout**
+- [x] **Step 4: Define verification, review receipt, and closeout**
   Require the narrow relevant checks plus a smoke test of the changed path. Review the current diff inline through two explicit lenses: specification/intent compliance and code/skill quality. Emit a receipt of exactly `PASS` or `BLOCKED` naming the reviewed diff state; a missing receipt is blocked. On `PASS`, invoke `woostack-commit` from the same `change/*` worktree, require successful push/submission and PR read-back, then remove only the worktree. Return branch, commit, PR URL, verification evidence, and review receipt. Never merge.
 
-- [ ] **Step 5: Add a prominent failure barrier and matching hard constraints**
+- [x] **Step 5: Add a prominent failure barrier and matching hard constraints**
   Include a visible `<HARD-STOP>` block plus `## Hard constraints` restatement covering: no approval gate; no spec/plan/change artifact; no writes before classification; no silent workflow fallback; no verification/review downgrade; one branch/one PR; preserve worktree on expanded scope or any verification/review/commit/submit failure; verified PR before teardown; never merge. Expanded scope after writes must stop and report the exact worktree path rather than auto-stack or delete work.
 
-- [ ] **Step 6: Verify the skill-specific structural contract**
+- [x] **Step 6: Verify the skill-specific structural contract**
   Run: `bash skills/woostack-change/scripts/tests/test-command-surface.sh`
   Expected at this intermediate point: FAIL at the first not-yet-updated external command-surface site, proving the skill checks now pass and bookkeeping remains red.
 
@@ -129,13 +128,13 @@ branch: feature/woostack-change
 - Modify: `skills/woostack-init/references/worktrees.md`
 - Test: `skills/woostack-change/scripts/tests/test-command-surface.sh`
 
-- [ ] **Step 1: Extend the commit branch-shape guard**
+- [x] **Step 1: Extend the commit branch-shape guard**
   Update every relevant `woostack-commit` branch-shape and caller-created-worktree sentence so `change/*` is accepted alongside `feature/*` and `fix/*`, and so a driving `woostack-change` caller reuses its existing worktree instead of creating a second branch. Do not weaken protected-branch checks or Linear attribution behavior. A Markdown change PR with no spec/fix continues to omit the `Spec:` trailer under the existing rule.
 
-- [ ] **Step 2: Extend the canonical worktree consumer contract**
+- [x] **Step 2: Extend the canonical worktree consumer contract**
   Add `woostack-change` to the authority's consumer list, create/operate examples, stack-base description, and parallel-run descriptions where build/fix are currently exhaustive. Document `change/<slug>` → `.woostack/worktrees/change-<slug>` and one standalone PR targeting the resolved base. Cross-link the new skill; do not duplicate its classification or review workflow.
 
-- [ ] **Step 3: Verify the integration clauses**
+- [x] **Step 3: Verify the integration clauses**
   Run: `grep -F 'change/*' skills/woostack-commit/SKILL.md && grep -F 'change/<slug>' skills/woostack-init/references/worktrees.md`
   Expected: both commands print matching contract lines and exit `0`.
 
@@ -149,16 +148,16 @@ branch: feature/woostack-change
 - Modify: `skills/woostack-bootstrap/references/development.md`
 - Test: `skills/woostack-change/scripts/tests/test-command-surface.sh`
 
-- [ ] **Step 1: Update repository authority and contribution map**
-  In `AGENTS.md`, change the public count from twenty-one to twenty-two, insert `woostack-change` after `woostack-fix`, add it to Mode B routing and the Quick file map, and change the protected `SKILL.md` total from twenty-four to twenty-five while preserving the two internal plus one unregistered accounting. In `CONTRIBUTING.md`, add the skill to the complete public surface, identify it as the twenty-second registered public/adoption skill, and add its change-location table row.
+- [x] **Step 1: Update repository authority and contribution map**
+  In `AGENTS.md`, change the public count from twenty-one to twenty-two, insert `woostack-change` after `woostack-fix`, add it to Mode B routing and the Quick file map, and change the protected `SKILL.md` total from twenty-four to twenty-five while preserving the two internal plus one unregistered accounting. In `CONTRIBUTING.md`, add the skill to the complete public surface and add its change-location table row; keep ordinal wording out because the canonical inventory and totals already carry the accounting.
 
-- [ ] **Step 2: Update adoption and command routing**
+- [x] **Step 2: Update adoption and command routing**
   Add `/woostack-change <goal>` to `skills/using-woostack/SKILL.md` with the exact bounded non-bug one-PR boundary. Update `README.md` installation examples and authoring-flow section so bootstrap, build, fix, and change are the four supported code-writing routes; describe fix as bugs/root-cause work and change as gate-free bounded non-bug work. Update `skills/woostack-bootstrap/references/development.md` with the new command row.
 
-- [ ] **Step 3: Preserve cross-skill boundaries**
+- [x] **Step 3: Preserve cross-skill boundaries**
   Ensure no existing `/woostack-fix` claim still presents generic non-bug refactors/enhancements as its preferred entry point where the new routing boundary applies. Do not rewrite fix's internal ability to handle an enhancement when explicitly invoked; routing and public-facing recommendations should prefer change for qualifying non-bug work.
 
-- [ ] **Step 4: Re-run the structural test**
+- [x] **Step 4: Re-run the structural test**
   Run: `bash skills/woostack-change/scripts/tests/test-command-surface.sh`
   Expected at this intermediate point: FAIL at the first not-yet-updated authored site page, proving repository routing/bookkeeping now passes.
 
@@ -171,22 +170,22 @@ branch: feature/woostack-change
 - Generated, not committed: `site/content/docs/skills/woostack-change.mdx`
 - Test: `skills/woostack-change/scripts/tests/test-command-surface.sh`
 
-- [ ] **Step 1: Update authored workflow framing**
+- [x] **Step 1: Update authored workflow framing**
   Add `woostack-change` to getting-started with its non-bug, one-PR, no-gate boundary and distinguish `woostack-fix` as the diagnosed bug path. Add its branch/path row and parallel-run wording to the worktree page. Add it to the authoring skills that carry least-code guidance. Do not manually create or edit the generated per-skill MDX page.
 
-- [ ] **Step 2: Run focused structural verification**
+- [x] **Step 2: Run focused structural verification**
   Run: `bash -n skills/woostack-change/scripts/tests/test-command-surface.sh && bash skills/woostack-change/scripts/tests/test-command-surface.sh`
   Expected: `woostack-change command surface: PASS` and exit `0`.
 
-- [ ] **Step 3: Build the documentation site**
+- [x] **Step 3: Build the documentation site**
   Run: `pnpm -C site build`
   Expected: exit `0`; prebuild generates a valid `/docs/skills/woostack-change` reference page and the Next.js production build completes.
 
-- [ ] **Step 4: Smoke-test generated command discovery**
+- [x] **Step 4: Smoke-test generated command discovery**
   Run: `test -f site/content/docs/skills/woostack-change.mdx && grep -Fq 'name: woostack-change' skills/woostack-change/SKILL.md && grep -Fq '/woostack-change <goal>' skills/using-woostack/SKILL.md`
   Expected: exit `0`. Generated files remain gitignored and unstaged.
 
-- [ ] **Step 5: Perform the increment review receipt**
+- [x] **Step 5: Perform the increment review receipt**
   Review the complete implementation diff against spec AC1–AC5 and the skill-authoring/least-code constraints. Record `PASS` only when the new skill, branch guard, worktree authority, public counts, routing, authored docs, and structural verification agree; otherwise record `BLOCKED` with exact findings and fix them before commit.
 
 ## Plan Checks

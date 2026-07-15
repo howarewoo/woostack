@@ -34,7 +34,7 @@ Rules:
 - Treat a missing `.woostack/config.json` or missing `commit.pre_commit` as no-op.
 - Run the command exactly once per `/woostack-commit` invocation.
 - If it exits non-zero, stop immediately. Do not stage, commit, push, or update PR fields.
-- If it modifies files, include those changes only when they are relevant to the session change; otherwise stop and ask.
+- If it modifies files, include those changes only when they are relevant to the session change; otherwise stop and ask. A verified `change/*` invocation follows the stricter receipt-freshness loop in step 3 instead.
 - Report the command and result in the PR test plan.
 
 ## Fast-subagent drafting
@@ -72,13 +72,20 @@ ARTIFACT_CONTEXT="$(bash <wi>/artifacts/resolve-backend.sh <repo-root>)"
 
 Require one successful normalized result and retain its `backend`, `repository`, and resolved
 Linear UUID context for the whole invocation. Do not inspect invariants, dispatch a drafting
-subagent, or draft commit/PR text before this succeeds. Branch only on the returned `backend`;
-never infer it from `.woostack/` files, the current branch, credentials, or caller arguments,
-and never fall back from Linear to Markdown.
+subagent, or draft commit/PR text before this succeeds. The returned `backend` controls artifact
+attribution except for a canonical, verified `change/*` invocation established only by the guard
+in step 2; never infer that exception from caller arguments, credentials, or an unverified branch
+name, and never fall back from Linear to Markdown.
 
-In Linear mode the driving execution flow must also supply the managed project UUID and issue
-identifier (`<TEAM-NUMBER>`) selected for this increment. Treat missing or malformed execution
-context as an error; never guess an issue from a branch name, title, or recent activity.
+In Linear mode, retain supplied managed project UUID and issue identifier (`<TEAM-NUMBER>`)
+execution context when present. After step 2 establishes the invocation mode, require valid
+context for every invocation that is not a verified `change/*` invocation; missing or malformed
+context is an error, and an issue must never be guessed from a branch name, title, or recent
+activity. A verified `change/*` invocation is artifact-neutral even when the resolver returns
+Linear: it neither requires nor uses project, issue, spec, or fix attribution. This exception
+cannot apply to `feature/*`, `fix/*`, or any other branch, which retain all backend-specific
+requirements. Do not perform backend-specific drafting or attribution work until step 2 has
+established which path applies.
 
 
 ### 1. Inspect state
@@ -111,6 +118,21 @@ base="$(bash <wi>/resolve-base.sh)"
 Never commit directly to protected integration branches: the resolved `$base`, plus conventional protected names `main`, `staging`, `beta`, or `alpha`. These branch names do not need to exist in every repo, but when the current branch is one of them, create a `feature/*` branch before staging or committing.
 
 - If current branch matches `feature/*` or `fix/*`, continue.
+- If current branch matches `change/*`, continue only after verifying the caller's existing isolation and Graphite registration:
+
+```bash
+branch="$(git branch --show-current)"
+export WOOSTACK_ROOT="$(cd "$(git rev-parse --git-common-dir)/.." && pwd -P)"
+actual_root="$(cd "$(git rev-parse --show-toplevel)" && pwd -P)"
+expected_root="$(cd "$WOOSTACK_ROOT/.woostack/worktrees/${branch//\//-}" && pwd -P)"
+test "$actual_root" = "$expected_root"
+gt branch info --branch "$branch" --quiet
+```
+
+Every command and the path equality must succeed. If the canonical worktree does not exist, the
+normalized roots differ, or Graphite does not positively identify the current branch, stop; do not
+ask to continue, create another branch, or use the raw-git fallback. Raw git cannot satisfy the
+`change/*` guard.
 - If current branch is `$base`, `main`, `staging`, `beta`, or `alpha`, create a new feature branch from the resolved integration branch before staging:
 
 ```bash
@@ -123,25 +145,54 @@ gt track feature/<short-slug> --parent "$base"
 
 Use a short slug based on the change, such as `feature/review-model-defaults` or `feature/add-commit-skill`. Prefer Graphite for branch creation and tracking: switch to the resolved base, run `gt create feature/<short-slug>`, then ensure the parent is registered with `gt track feature/<short-slug> --parent "$base"`. If Graphite is unavailable or clearly not initialized, fall back to raw git only: `git switch -c feature/<short-slug> "$base"`.
 
-**Running inside a worktree:** when a driving skill (build / execute / fix) has already created a per-PR worktree on a `feature/*` or `fix/*` branch (see the [worktree contract](../woostack-init/references/worktrees.md)), this step finds a non-protected branch and continues — `woostack-commit` commits whatever tree it is invoked in and creates no second branch.
+**Running inside a worktree:** when a driving skill (build / execute / fix / `woostack-change`) has already created a per-PR worktree on a `feature/*`, `fix/*`, or `change/*` branch (see the [worktree contract](../woostack-init/references/worktrees.md)), this step finds a non-protected branch and continues — for `change/*`, only after the isolation and Graphite guard above succeeds. `woostack-commit` then commits whatever tree it is invoked in and creates no second branch.
 
 Never force-push. Never commit directly to `$base`, `main`, `staging`, `beta`, or `alpha`.
 
 ### 3. Run configured pre-commit command
 
-If `.woostack/config.json` has `commit.pre_commit`, run it from the repo root before staging:
+Read `.woostack/config.json` for `commit.pre_commit`:
 
 ```bash
 jq -r '.commit.pre_commit // empty' .woostack/config.json
 ```
 
-If the value is non-empty, execute it with the user's shell:
+For an ordinary invocation, execute a non-empty command with the user's shell. If it fails, stop
+and report the failure. If it succeeds and changes files, reassess relevance before staging.
+
+For a verified `change/*` invocation, both skills use the shipped identity helper — never invent a
+second hash or path encoding:
 
 ```bash
-<pre_commit command>
+receipt_identity="$(bash <commit-skill-dir>/scripts/change-receipt.sh "$base_ref")"
 ```
 
-If the command fails, stop and report the failure. If the command succeeds and changes files, reassess relevance before staging.
+The helper emits one compact JSON object with this canonical schema:
+
+```json
+{"branch":"change/example","baseRef":"main","baseCommit":"<oid>","headCommit":"<oid>","baseToHead":"<git-object-hash>","staged":"<git-object-hash>","unstaged":"<git-object-hash>","untracked":[{"pathBase64":"<raw-path-bytes-base64>","object":"<git-object-hash>"}]}
+```
+
+It resolves the base and HEAD commits, hashes `git diff --binary --no-ext-diff` payloads with
+`git hash-object --stdin`, and lists non-ignored untracked paths in Git's bytewise order as base64
+path bytes plus `git hash-object --no-filters` object IDs. Its compact JSON output is the exact
+receipt identity; compare it byte for byte.
+
+Require the caller's supplied `woostack-change` `PASS` identity before running the hook (or before
+staging when no hook is configured). Re-run the helper with the receipt's `baseRef` and compare
+its output exactly with the supplied identity. A branch, base, HEAD, tracked-content, staging, or
+untracked mismatch returns immediately to
+[`woostack-change`](../woostack-change/SKILL.md) for changed-path verification, smoke testing, and
+a fresh full-diff `PASS`/`BLOCKED` review before any hook, staging, or commit.
+
+When a hook is configured and the receipt comparison succeeds, retain that output as the
+**pre-hook full identity**, execute the command exactly once with the user's shell, then run the
+helper again as the **post-hook full identity**. If the hook fails or the two JSON values differ,
+stop before staging or committing and return to `woostack-change` for the same verification and
+full-diff review. Only a fresh `woostack-commit` invocation with the new PASS receipt may resume.
+Repeat this return → verify → full-diff review → fresh commit invocation loop until the hook makes
+no further change. Because branch, base, and HEAD are identity fields, hook-created commits,
+checkouts, or ref movement are detected. Never stage or commit under a stale receipt.
 
 ### 4. Stage only session-relevant changes
 
@@ -163,6 +214,12 @@ sidecars such as `.telemetry.tsv` or `.dream-watermark`, generated files, secret
 unrelated dirty files, or user work from outside this session.
 
 ### 4.5 Backend-specific invariant and attribution checks
+
+A **verified `change/*` invocation** is artifact-neutral and skips both backend subsections below,
+regardless of the resolver's backend. It performs no Markdown invariant lookup, Linear API
+verification or lifecycle transition, and carries no project, issue, spec, or fix attribution.
+Only the canonical branch/worktree/Graphite guard in step 2 enables this path; `feature/*` and
+`fix/*` always use the resolved backend path.
 
 #### Markdown
 
@@ -207,13 +264,17 @@ path. `--no-pr-update` never permits this missing-pair recovery.
 If a fast-subagent draft is available, use it only after validating that the proposed
 subject describes the staged diff accurately and follows the rules below.
 
-Prefer Graphite:
+Use Graphite:
 
 ```bash
 gt modify -m "<type>: <concise subject>"
 ```
 
-Use `gt create -m "<type>: <concise subject>"` only when creating the branch and committing in one Graphite flow is appropriate for the local stack state. Fall back to raw git only when Graphite is unavailable:
+For a verified `change/*` invocation this command is mandatory; its pre-existing tracked branch
+must not use `gt create` or raw git. For other invocations, prefer `gt modify`, use
+`gt create -m "<type>: <concise subject>"` only when creating the branch and committing in one
+Graphite flow is appropriate for the local stack state, and fall back to raw git only when
+Graphite is unavailable:
 
 ```bash
 git commit -m "<type>: <concise subject>"
@@ -226,6 +287,11 @@ Commit message rules:
 - Add a body only when the reason is not obvious from the diff.
 
 ### 6. Push or submit
+
+#### Verified `change/*`
+
+Run `gt submit` and require success. The already verified Graphite-tracked branch has no raw-git
+or `gh pr create` fallback; a failure stops before PR update.
 
 #### Markdown
 
@@ -253,10 +319,11 @@ Resolve the PR after the successful commit/push so it reflects the latest branch
 If the `--no-pr-update` flag is specified (or if a context signal like
 `WOOSTACK_COMMIT_NO_PR_UPDATE=1` is set in the environment), skip updating the PR title and body
 description and do not run `gh pr edit`, but still ensure the PR is created if it does not exist.
-In Linear mode this branch requires the existing PR body to carry the exact verified trailer
-pair, then still records attribution through `linear.sh issue-transition` and performs the
-mandatory `feature-read` read-back. The flag skips only the field edit; it never skips attribution
-validation, adapter recording, or read-back.
+For non-change Linear invocations this branch requires the existing PR body to carry the exact
+verified trailer pair, then still records attribution through `linear.sh issue-transition` and
+performs the mandatory `feature-read` read-back. The flag skips only the field edit; it never
+skips attribution validation, adapter recording, or read-back. Verified `change/*` invocations
+perform no Linear attribution or adapter mutation.
 
 Use a validated fast-subagent draft for the PR title/body when available. The main agent
 must still preserve accurate existing context, remove stale generated content, and ensure
@@ -268,7 +335,13 @@ Resolve the PR:
 gh pr view --json number,title,body,headRefName,baseRefName,url
 ```
 
-If no PR exists after submit/push, create one targeting the resolved base branch (`<wi>` = the installed `woostack-init` scripts dir, as in step 2):
+For a verified `change/*` invocation, require the PR created by successful `gt submit` to exist,
+match the current head branch and resolved repository, and target the resolved base. Update and
+read back its normal title/body through the standard `gh pr edit` / `gh pr view` path unless
+`--no-pr-update` applies. Its body must contain no `Spec:`, `Linear-Project:`, or `Linear-Issue:`
+trailer, and no Linear adapter transition or read-back occurs.
+
+For any invocation other than verified `change/*`, if no PR exists after submit/push, create one targeting the resolved base branch (`<wi>` = the installed `woostack-init` scripts dir, as in step 2):
 
 ```bash
 base="$(bash <wi>/resolve-base.sh)"
@@ -277,7 +350,7 @@ gh pr create --base "$base" --head "$(git branch --show-current)" --title "<conc
 
 For a **stacked** increment PR the base is the **parent branch**, not `$base` (see the [worktree contract](../woostack-init/references/worktrees.md) §4); Graphite sets it automatically via `gt submit` when the branch was `gt track --parent`ed.
 
-For Linear, a PR must already exist from the successful Graphite submit. Require its head branch
+For non-change Linear invocations, a PR must already exist from the successful Graphite submit. Require its head branch
 to equal `git branch --show-current`, its repository to equal the backend resolver's repository,
 and its URL to be the canonical PR URL for that repository. Unless `--no-pr-update` applies,
 apply the validated title/body with `gh pr edit`, then re-fetch its body with `gh pr view` and
@@ -315,8 +388,9 @@ Never write branch/PR evidence before successful submission and exact PR-body ve
 and never write it directly through GraphQL or PR text; the adapter owns the atomic mutation
 and read-back.
 
-Compose the validated body with this structure. Markdown sets or updates it at this point;
-Linear applied and verified it before adapter attribution above:
+Compose the validated body with this structure. Markdown and verified `change/*` invocations set
+or update it at this point; non-change Linear applied and verified it before adapter attribution
+above:
 
 ```markdown
 ## Goal
@@ -346,8 +420,7 @@ Linear applied and verified it before adapter attribution above:
 
 Spec: .woostack/specs/<file>.md
 ```
-
-For a Linear-backed PR, replace the Markdown `Spec:` trailer with this exact final pair:
+For a non-change Linear-backed PR, replace the Markdown `Spec:` trailer with this exact final pair:
 
 ```text
 Linear-Project: <uuid>
@@ -356,8 +429,10 @@ Linear-Issue: <TEAM-NUMBER>
 
 Rules:
 
-- **Markdown:** end the body with the exact `Spec: .woostack/specs/<file>.md` or `Spec: .woostack/fixes/<file>.md` **trailer line** naming the spec/fix this PR's increments trace to — the spec/fix whose `branch:` matches the current branch, or the spec/fix under active work. The `/woostack-status` board enumerates a spec/fix's increment PRs by searching this exact trailer (`gh pr list --search "Spec: <path>"`); the contract is defined in [`../woostack-status/references/conventions.md`](../woostack-status/references/conventions.md). Omit the trailer only when the Markdown change traces to no spec/fix (for example a repo-meta or tooling edit).
-- **Linear:** the final two nonblank lines are exactly one `Linear-Project: <uuid>` trailer followed by exactly one `Linear-Issue: <TEAM-NUMBER>` trailer. Both values come from the blocking adapter verification in step 4.5. A Linear implementation PR may never omit these trailers or use a Markdown `Spec:` trailer.
+- **Verified `change/*`:** omit `Spec:`, `Linear-Project:`, and `Linear-Issue:` trailers. The
+  invocation is artifact-neutral even when the backend resolver reports Linear.
+- **Markdown (non-change):** end the body with the exact `Spec: .woostack/specs/<file>.md` or `Spec: .woostack/fixes/<file>.md` **trailer line** naming the spec/fix this PR's increments trace to — the spec/fix whose `branch:` matches the current branch, or the spec/fix under active work. The `/woostack-status` board enumerates a spec/fix's increment PRs by searching this exact trailer (`gh pr list --search "Spec: <path>"`); the contract is defined in [`../woostack-status/references/conventions.md`](../woostack-status/references/conventions.md). Omit the trailer only when the Markdown change traces to no spec/fix (for example a repo-meta or tooling edit).
+- **Linear (non-change):** the final two nonblank lines are exactly one `Linear-Project: <uuid>` trailer followed by exactly one `Linear-Issue: <TEAM-NUMBER>` trailer. Both values come from the blocking adapter verification in step 4.5. A Linear implementation PR may never omit these trailers or use a Markdown `Spec:` trailer.
 - State the **Goal** as intent or the problem solved in one or two sentences — not a change list. It is distinct from Summary, which lists *what* changed. Always present it.
 - Keep Summary bullets concise and specific. Include only changes in the committed diff.
 - Under **Automated**, list the commands/tests actually run, plus the configured `commit.pre_commit` command and result when it ran. Show this group whenever an automated check (test, lint, typecheck, `pre_commit`) could have run for the change: list results, or `Not run` with the reason when one was expected but skipped. Omit `### Automated` entirely when no automated check applies to the change (for example a doc-only edit in a repo with no test harness) rather than emitting a `Not run` placeholder.
@@ -379,7 +454,7 @@ Return:
 - Branch name.
 - Commit subject/SHA if available.
 - PR URL.
-- Selected artifact backend; for Linear, the verified project UUID and issue identifier.
+- Selected artifact backend and whether the verified `change/*` artifact-neutral override applied; for non-change Linear, the verified project UUID and issue identifier.
 - Goal used.
 - Summary bullets used.
 - Test plan bullets used (Automated and Manual).

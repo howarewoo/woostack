@@ -2,7 +2,7 @@
 
 **A model-agnostic collection of software development skills covering every phase of the engineering process.**
 
-`woostack` packages opinionated, gated workflows into installable skills that any AI coding agent can follow—covering every stage of software engineering from greenfield project bootstrapping to feature building, debugging, automated code review, and feedback iteration. It provides a standard set of decisions for projects of any size, complete with a local, token-efficient memory system.
+`woostack` packages opinionated workflows into installable skills that any AI coding agent can follow—covering every stage of software engineering from greenfield project bootstrapping to feature building, debugging, automated code review, and feedback iteration. It provides a standard set of decisions for projects of any size, complete with a local, token-efficient memory system.
 
 - **Agent & Model Agnostic**: Works seamlessly across Claude Code, Cursor, Codex, Aider, and other agents that respect the `skills` convention.
 - **Local Memory System**: Retains and routes learnings on a per-clone basis, ensuring subsequent agent sessions do not repeat prior mistakes.
@@ -43,11 +43,11 @@ pnpx skills add howarewoo/woostack
 
 *Note: `pnpm` (and `pnpx`) is the recommended package manager for woostack, as bootstrapped projects default to a pnpm workspace catalog.*
 
-This command registers twenty-one public command/adoption skills and three bundled supporting
-skills at twenty-four fixed `SKILL.md` locations. Backend selection does not add another command;
-the collection still includes `using-woostack`, `woostack-init`, `woostack-bootstrap`,
-`woostack-build`, `woostack-fix`, `woostack-review`, and `woostack-address-comments`, among the
-rest, plus its internal and unregistered helpers.
+This command registers twenty-two public command/adoption skills and three bundled supporting skills at twenty-five fixed `SKILL.md` locations.
+Backend selection does not add another command; the collection still includes
+`using-woostack`, `woostack-init`, `woostack-bootstrap`,
+`woostack-build`, `woostack-fix`, `woostack-change`, `woostack-review`, and
+`woostack-address-comments`, among the rest, plus its internal and unregistered helpers.
 
 > **Recommended companion — [impeccable](https://github.com/pbakaus/impeccable).** woostack's front-end design skill of choice. It powers the `design` review angle (`woostack-review` runs impeccable's detector). Optional but recommended:
 >
@@ -121,21 +121,23 @@ status contracts; those references own the details.
 
 ## The Core Development & Review Loop
 
-`woostack` enforces structured, gated pipelines to ensure high-quality code changes.
+`woostack` enforces structured workflows to ensure high-quality code changes.
 
 ### Writing and Modifying Code
 
-No code changes should be made ad-hoc. All coding tasks must go through one of the three primary development entry points:
+No code changes should be made ad-hoc. All coding tasks must go through one of the four primary development entry points:
 
 1. **Greenfield Applications** → [/woostack-bootstrap](skills/woostack-bootstrap/SKILL.md)
    Walks through a technology selection protocol, obtains design approval, and scaffolds a clean monorepo architecture.
-2. **Features** → [/woostack-build](skills/woostack-build/SKILL.md)
-   A fixed, gated loop from idea to PR: `ideate → spec → spec-approval (gate) → plan → execute (TDD) → review → commit`.
-3. **Fixes & Refactors** → [/woostack-fix](skills/woostack-fix/SKILL.md)
-   A lightweight, unified fix loop for bugs: `diagnose root-cause → plan → plan-approval (gate) → execute (TDD) → commit`.
+2. **Multi-PR Features or Work Items** → [/woostack-build](skills/woostack-build/SKILL.md)
+   Use the full gated build authority when the complete work requires multiple reviewable PRs.
+3. **Bug Fixes & Root-Cause Work** → [/woostack-fix](skills/woostack-fix/SKILL.md)
+   Use the gated fix authority for bugs and root-cause work.
+4. **Bounded Non-Bug Changes** → [/woostack-change](skills/woostack-change/SKILL.md)
+   Ships an enhancement or refactor that fits one reviewable PR without an approval gate or persisted plan.
 
 > [!WARNING]
-> **No code should be written or modified without using one of these three skills.** Greenfield apps use `/woostack-bootstrap`, features use `/woostack-build`, and fixes/bugs use `/woostack-fix`. This ensures all code changes follow a gated, structured design and test-driven workflow.
+> **No code should be written or modified without using one of these four skills.** Greenfield apps use `/woostack-bootstrap`, multi-PR features use `/woostack-build`, bugs and root-cause work use `/woostack-fix`, and bounded one-PR non-bug enhancements or refactors use `/woostack-change`. This ensures each code change follows the workflow appropriate to its scope.
 
 ### Review and Iterate Flow
 
