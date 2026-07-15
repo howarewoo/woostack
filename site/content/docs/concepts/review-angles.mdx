@@ -10,7 +10,7 @@ woostack-review reviews a pull request through a set of **angles**. Each angle i
 Three rules decide which angles run on a given pull request:
 
 1. **`bugs`, `security`, and `simplify` always run.** They are on for every review and can never be skipped.
-2. **The other angles auto-detect from the diff.** Each one looks at the files the PR touches and the content of the diff, and turns itself on when it sees something relevant. A `.sql` file pulls in `database`; a `.tsx` file pulls in `react`.
+2. **The other angles auto-detect from the diff or prefetched review context.** Most look at changed files and diff content. `acceptance` instead runs when the branch resolves to a governing woostack spec+plan or fix. A `.sql` file pulls in `database`; a `.tsx` file pulls in `react`.
 3. **You can override detection.** `review.angles.force` runs an angle whatever the diff looks like, and `review.angles.skip` keeps one off. `force` wins a tie, and `bugs` / `security` / `simplify` ignore `skip`. See [Choosing angles](/docs/configuration#choosing-angles).
 
 ## The catalog
@@ -19,6 +19,7 @@ Every angle, what it reviews, a plain-language summary of when it auto-fires, an
 
 | Angle | Audits | Fires when | Tier |
 | --- | --- | --- | --- |
+| `acceptance` | Governing intent: explicit acceptance criteria, checked implementation steps, and artifact claims | prefetch resolves the PR to a woostack spec+plan or self-contained fix (`intent.md` exists) | standard |
 | `aeo` | Answer-engine optimization: AI-crawler access and structured data for answer engines | `robots.txt`, `llms.txt`, pricing/public content surfaces, or AI-crawler / JSON-LD tokens in the diff | fast |
 | `api` | API contracts: routes, OpenAPI / GraphQL / proto schemas, HTTP handlers | OpenAPI / GraphQL / proto files, route trees, or HTTP-verb route bindings in the diff | standard |
 | `architecture` | Structural quality of source: boundaries, coupling, code health | any general-purpose source file changes (skips doc-only and config-only PRs) | standard |
@@ -48,7 +49,7 @@ The exact gating heuristics (file globs and diff-token patterns) live in [`detec
 </Callout>
 
 <Callout type="info">
-  Two angles behave specially. `comments` is always non-blocking: it posts nits, never a blocking finding. `conventions` only runs when the repo carries a rule file (AGENTS.md, CLAUDE.md, .cursorrules, .windsurfrules, or GEMINI.md) along the changed paths.
+  Three angles behave specially. `comments` is always non-blocking: it posts nits, never a blocking finding. `conventions` only runs when the repo carries a rule file (AGENTS.md, CLAUDE.md, .cursorrules, .windsurfrules, or GEMINI.md) along the changed paths. `acceptance` only runs when prefetch resolves governing woostack intent; a later-increment `woostack-defer(<ref>)` marker can demote matching missing work to a visible non-blocking nit, but never defers security.
 </Callout>
 
 ## Angles also pre-flight authoring

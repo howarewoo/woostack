@@ -26,9 +26,10 @@ Every artifact you write under `$OUTDIR/findings.*.json` (default `/tmp/pr-revie
 ## Prefetched Artifacts (do NOT re-fetch)
 
 - **Diff**: `/tmp/pr-review/diff.txt` — may be a full PR diff OR an incremental `last_sha...HEAD` diff (see `last_sha.txt`).
-- **PR metadata** (title, body, headRefOid, baseRefName, files, author): `/tmp/pr-review/meta.json`
+- **PR metadata** (title, body, headRefOid, headRefName, baseRefName, files, author): `/tmp/pr-review/meta.json`
 - **Enabled angles** (one per line): `/tmp/pr-review/angles.txt`
 - **Project rules** (optional, present only if discovered): `/tmp/pr-review/rules.md`
+- **Governing intent** (optional, present only when the PR resolves to a woostack spec+plan or fix): `/tmp/pr-review/intent.md` — each artifact is prefixed by `## SOURCE: <path>`. The `acceptance` worker verifies its criteria, checked steps, and code claims against the diff.
 - **Per-repo config** (always present, defaults to `{"severity_floor":"high"}`): `/tmp/pr-review/config.json` — parsed from `.woostack/config.json` in the consumer repo.
 - **Incremental base SHA** (always present, may be empty): `/tmp/pr-review/last_sha.txt` — non-empty means `diff.txt` covers only the new commits since the last woostack-review pass. Treat findings as scoped to those commits.
 - **Prior unresolved review threads** (always present, may be `[]`): `/tmp/pr-review/prior-findings.json` — array of `{file, line, title, author}` for any unresolved thread on the PR. Consumed by the posting stage for the event-floor gate; angle workers MUST ignore this file. No per-entry `blocking` flag — any non-empty list floors the review event to `REQUEST_CHANGES` (conservative "do not APPROVE while threads open" rule).
@@ -72,7 +73,7 @@ Every runner MUST write a final `findings.json` (for debugging + potential post-
 ]
 ```
 
-`angle` is one of `bugs | security | conventions | seo | aeo | design | react | database | tests | api | infra | observability | types | i18n | docs | deps | architecture | comments | simplify | production-readiness`.
+`angle` is one of `bugs | security | conventions | acceptance | seo | aeo | design | react | database | tests | api | infra | observability | types | i18n | docs | deps | architecture | comments | simplify | production-readiness`.
 
 `line` MUST be the post-patch absolute file line — i.e. a line that exists on the RIGHT side of the diff (a `+` added line or a ` ` context line within a hunk for `file`). Lines that fall in a deletion-only region, or outside any hunk for the file, will be rejected by the GitHub API. Validate every line via `scripts/resolve-diff-line.sh` before writing the finding (see *Output Discipline* above); drop the finding when the helper returns `null`.
 

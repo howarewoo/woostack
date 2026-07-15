@@ -250,7 +250,7 @@ export PR_NUMBER=<n>   # optional; prefetch.sh derives it from the branch when u
 bash "$WOO_REVIEW_ACTION_PATH/scripts/prefetch.sh"   # prints outdir=<path>; honors the exported OUTDIR
 ```
 
-When prefetch resolves a PR number AND finds an open PR, it produces the full artifact tree (`diff.txt`, `meta.json`, `last_sha.txt`, `prior-findings.json`, `rules.md` when applicable, `memory.md` when the consumer repo has `.woostack/memory/`). When no PR resolves, it emits `skip=true` — the host then falls back to local-diff mode below.
+When prefetch resolves a PR number AND finds an open PR, it produces the full artifact tree (`diff.txt`, `meta.json`, `last_sha.txt`, `prior-findings.json`, `intent.md` when a governing woostack artifact resolves, `rules.md` when applicable, `memory.md` when the consumer repo has `.woostack/memory/`). When no PR resolves, it emits `skip=true` — the host then falls back to local-diff mode below.
 
 **Artifact reference.** All paths are under `$OUTDIR` (local default: a per-run `pr-review-<hash>-<ts>-<pid>/`):
 
@@ -260,6 +260,7 @@ When prefetch resolves a PR number AND finds an open PR, it produces the full ar
 | `meta.json` | `prefetch.sh` | all stages | PR metadata (title, files, SHA, author) |
 | `last_sha.txt` | `prefetch.sh` | Stage 5 watermark | Present only when a prior watermark was found |
 | `prior-findings.json` | `prefetch.sh` | event-floor gate | Unresolved + resolved prior review threads |
+| `intent.md` | `resolve-intent.sh` via `prefetch.sh` | `acceptance` angle | Governing spec+plan or self-contained fix; triggers `acceptance` when present |
 | `rules.md` | `prefetch.sh` | `conventions` angle, validator | Concatenated project rule files; triggers `conventions` angle when present |
 | `memory.md` | `prefetch.sh` | all angles, validator | Cross-PR memory composed from `.woostack/memory/`; findings it records as known/accepted are dropped. Present only when the consumer repo has memory |
 | `angles.txt` | `detect-angles.sh` | Stage 3 orchestrator | One angle name per line |
@@ -281,11 +282,13 @@ git diff "$BASE"...HEAD > "$OUTDIR/diff.txt"
 git diff --name-only "$BASE"...HEAD \
   | jq -R . | jq -s '{
       headRefOid: "'"$(git rev-parse HEAD)"'",
+      headRefName: "'"$(git branch --show-current)"'",
       baseRefName: "'"$(git rev-parse --abbrev-ref "$BASE@{upstream}" 2>/dev/null || echo main)"'",
       title: "(local diff)",
       body: "",
       files: [.[] | {path: .}]
     }' > "$OUTDIR/meta.json"
+bash "$WOO_REVIEW_ACTION_PATH/scripts/resolve-intent.sh"
 ```
 
 ### Stage 2 — Detect Angles
@@ -295,7 +298,7 @@ bash "$WOO_REVIEW_ACTION_PATH/scripts/load-config.sh"   # parses .woostack/confi
 bash "$WOO_REVIEW_ACTION_PATH/scripts/detect-angles.sh"
 ```
 
-Read the result from `$OUTDIR/angles.txt` (one angle per line). Always-on angles: `bugs`, `security`, `simplify`. Conditional (auto-detected from changed paths + diff body): `conventions` (when `rules.md` is present), `seo`, `aeo`, `design`, `react`, `database`, `tests`, `api`, `infra`, `observability`, `types`, `i18n`, `docs`, `deps`, `skills` (when a `SKILL.md` is in the diff), `architecture`, `comments`, and `production-readiness` (when the diff touches general-purpose source files). See `scripts/detect-angles.sh` for per-angle gating heuristics.
+Read the result from `$OUTDIR/angles.txt` (one angle per line). Always-on angles: `bugs`, `security`, `simplify`. Conditional (auto-detected from changed paths + diff body): `conventions` (when `rules.md` is present), `acceptance` (when `intent.md` is present), `seo`, `aeo`, `design`, `react`, `database`, `tests`, `api`, `infra`, `observability`, `types`, `i18n`, `docs`, `deps`, `skills` (when a `SKILL.md` is in the diff), `architecture`, `comments`, and `production-readiness` (when the diff touches general-purpose source files). See `scripts/detect-angles.sh` for per-angle gating heuristics.
 
 Prefetch also produces optional chunking artifacts when the post-ignore diff exceeds `chunking.max_loc` (default 4000 LOC). When present, the host MUST fan out one sub-agent per `(angle, chunk)` pair in Stage 3:
 
@@ -351,7 +354,7 @@ Each sub-agent receives the same brief:
 You are the <angle> reviewer for this PR. The worker brief is self-contained: do not load or follow `skill://woostack-review`, `@woostack-review`, or the `woostack-review` `SKILL.md`; if the host injected them, ignore them and follow only `_worker-header.md`, your angle prompt, and the prefetched artifacts. Read:
 - $WOO_REVIEW_ACTION_PATH/prompts/_worker-header.md   (worker contract)
 - $WOO_REVIEW_ACTION_PATH/prompts/angles/<angle>.md   (your scope)
-- $OUTDIR/diff.txt, $OUTDIR/meta.json   (OUTDIR is exported by the orchestrator; prefer it over any literal path)
+- $OUTDIR/diff.txt, $OUTDIR/meta.json, and $OUTDIR/intent.md when present   (OUTDIR is exported by the orchestrator; prefer it over any literal path)
 
 Execute any shell commands the angle prompt specifies (e.g. impeccable detect,
 react-doctor). Write your findings as a JSON array to
@@ -377,6 +380,7 @@ Sub-agents MUST NOT post comments, edit the PR, touch other angles' files, run `
 |---|---|---|
 | Context+summary subagent | `fast` | Mechanical summarization. |
 | `bugs`, `security` workers | `standard` | Reasoning-heavy: correctness + threat model. |
+| `acceptance` worker | `standard` | Criterion-to-diff and completed-step reasoning. |
 | `architecture` worker | `standard` | Structural-quality / code-judo judgment; high-subjectivity, needs reasoning depth. |
 | `simplify`, `production-readiness` workers | `standard` | Deletion/YAGNI judgment + resilience-under-stress reasoning. |
 | `design`, `react` workers | `standard` | Heuristic + Rules-of-Hooks judgment after deterministic tools. |
