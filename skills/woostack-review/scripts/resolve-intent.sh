@@ -49,7 +49,15 @@ def warn(message):
 
 def markdown_files(kind):
     directory = allowed_dirs[kind]
-    return sorted(directory.glob("*.md")) if directory.is_dir() else []
+    return (
+        sorted(
+            path
+            for path in directory.glob("*.md")
+            if path.resolve().parent == directory.resolve() and path.is_file()
+        )
+        if directory.is_dir()
+        else []
+    )
 
 
 def relative(path):
@@ -120,7 +128,11 @@ def plans_for_spec(spec):
     names = {date_slug(spec.name)}
     if spec_fields.get("name"):
         names.add(spec_fields["name"])
-    return [plan for plan in markdown_files("plans") if date_slug(plan.name) in names]
+    return [
+        plan
+        for plan in markdown_files("plans")
+        if plan_source(plan) is None and date_slug(plan.name) in names
+    ]
 
 
 def compose_artifact(path):

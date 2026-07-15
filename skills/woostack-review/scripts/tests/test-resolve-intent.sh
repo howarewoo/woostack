@@ -126,6 +126,38 @@ run_resolver
 [ ! -e "$out/intent.md" ] && pass || fail "unrelated branch matches produce no intent"
 assert_contains "$(cat "$work/stderr")" "warning" "ambiguous branch matches warn"
 
+cat > "$work/outside.md" <<'EOF'
+---
+branch: fix/symlink
+---
+# Outside artifact
+EOF
+ln -s "$work/outside.md" "$repo/.woostack/fixes/2026-07-14-linked.md"
+write_meta '' "fix/symlink"
+run_resolver
+[ ! -e "$out/intent.md" ] && pass || fail "branch fallback ignores symlinked artifacts outside allowed dirs"
+
+cat > "$repo/.woostack/specs/2026-07-14-collision.md" <<'EOF'
+---
+type: spec
+status: approved
+---
+# Collision spec
+EOF
+cat > "$repo/.woostack/plans/2026-07-14-collision.md" <<'EOF'
+---
+type: plan
+source: .woostack/specs/2026-07-14-alpha.md
+status: executing
+---
+# Plan for another spec
+EOF
+write_meta 'Spec: .woostack/specs/2026-07-14-collision.md' "feature/other"
+run_resolver
+intent="$(cat "$out/intent.md")"
+assert_contains "$intent" "## SOURCE: .woostack/specs/2026-07-14-collision.md" "filename fallback keeps selected spec"
+assert_not_contains "$intent" "## SOURCE: .woostack/plans/2026-07-14-collision.md" "filename fallback ignores plan sourced to another spec"
+
 printf 'stale\n' > "$out/intent.md"
 write_meta '' "feature/unknown"
 run_resolver
