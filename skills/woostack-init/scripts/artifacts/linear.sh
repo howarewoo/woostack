@@ -24,6 +24,9 @@ commands:
   plan-reconcile --project UUID --repository OWNER/REPO --team-id UUID --issue-state-map JSON --plan-file PATH
   issue-transition --project UUID --repository OWNER/REPO --issue UUID|TEAM-NUMBER --issue-state-map JSON --target STATUS [--branch NAME] [--pull-request URL]
   feature-read --project UUID --repository OWNER/REPO --status-map JSON --issue-state-map JSON
+  doctor-read --repository OWNER/REPO --status-map JSON --issue-state-map JSON
+  provenance-parse --reference linear://project|document|issue/UUID
+  provenance-resolve --reference linear://project|document|issue/UUID --repository OWNER/REPO --status-map JSON --issue-state-map JSON
   status-reconcile --project UUID --repository OWNER/REPO --status-map JSON --issue-state-map JSON --pull-requests-file PATH --expected-eligible JSON --expected-project-transition BOOLEAN --expected-snapshot JSON
 USAGE
   exit 2
@@ -389,14 +392,10 @@ command_plan_read() {
   jq -cn --arg project "$project_id" --argjson increments "$increments" '{projectId:$project,increments:$increments}'
 }
 
-command_feature_read() {
-  local project_id='' repository='' status_map='' issue_map='' projects project documents doc spec increments model metadata base_branch base_commit_sha
-  while [[ $# -gt 0 ]]; do case "$1" in
-    --project) project_id="$2"; shift 2;; --repository) repository="$2"; shift 2;;
-    --status-map) status_map="$2"; shift 2;; --issue-state-map) issue_map="$2"; shift 2;; *) usage;; esac; done
-  require_uuid "$project_id" "project id"; require_repository "$repository"; validate_status_map "$status_map"; validate_issue_state_map "$issue_map"
-  projects="$(project_list)" || fail "project discovery failed"
-  project="$(resolve_from_list "$projects" "$repository" "$status_map" "$REQUIRED_STATUSES" "$project_id")" || return $?
+feature_model_from_project() {
+  local project="$1" repository="$2" issue_map="$3" project_id documents doc spec increments model metadata base_branch base_commit_sha
+  project_id="$(jq -r '.id' <<<"$project")"
+  require_uuid "$project_id" "project id"
   documents="$(document_list "$project_id")" || fail "spec discovery failed"
   doc="$(find_spec "$project_id" "$repository" "$documents")" || fail "managed spec document not found"
   spec="$(spec_result "$doc")"
@@ -409,6 +408,157 @@ command_feature_read() {
   ')"
   python3 "$METADATA" validate-feature --project-id "$project_id" <<<"$model" >/dev/null || fail "normalized feature model is invalid"
   jq -cS . <<<"$model"
+}
+
+command_feature_read() {
+  local project_id='' repository='' status_map='' issue_map='' projects project
+  while [[ $# -gt 0 ]]; do case "$1" in
+    --project) project_id="$2"; shift 2;; --repository) repository="$2"; shift 2;;
+    --status-map) status_map="$2"; shift 2;; --issue-state-map) issue_map="$2"; shift 2;; *) usage;; esac; done
+  require_uuid "$project_id" "project id"; require_repository "$repository"; validate_status_map "$status_map"; validate_issue_state_map "$issue_map"
+  projects="$(project_list)" || fail "project discovery failed"
+  project="$(resolve_from_list "$projects" "$repository" "$status_map" "$REQUIRED_STATUSES" "$project_id")" || return $?
+  feature_model_from_project "$project" "$repository" "$issue_map"
+}
+
+command_provenance_parse() {
+  local reference='' kind id canonical
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --reference) reference="$2"; shift 2 ;;
+      *) usage ;;
+    esac
+  done
+  if [[ "$reference" =~ ^linear://([^/]+)/([^/]+)$ ]]; then
+    kind="${BASH_REMATCH[1]}"
+    id="${BASH_REMATCH[2]}"
+  else
+    fail "provenance reference must be linear://project|document|issue/UUID"
+  fi
+  case "$kind" in
+    project|document|issue) ;;
+    *) fail "provenance reference must be linear://project|document|issue/UUID" ;;
+  esac
+  [[ "$id" =~ $UUID_RE ]] || fail "provenance reference must be linear://project|document|issue/UUID"
+  id="$(printf '%s' "$id" | tr '[:upper:]' '[:lower:]')"
+  canonical="linear://$kind/$id"
+  jq -cn --arg uri "$canonical" --arg kind "$kind" --arg id "$id" '{uri:$uri,kind:$kind,id:$id}'
+}
+
+
+command_doctor_read() {
+  local repository='' status_map='' issue_map='' projects managed marker results='[]' project model
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --repository) repository="$2"; shift 2 ;;
+      --status-map) status_map="$2"; shift 2 ;;
+      --issue-state-map) issue_map="$2"; shift 2 ;;
+      *) usage ;;
+    esac
+  done
+  require_repository "$repository"
+  validate_status_map "$status_map"
+  validate_issue_state_map "$issue_map"
+  projects="$(project_list)" || fail "doctor project discovery failed"
+  jq -e '[.nodes[].id | ascii_downcase] | group_by(.) | all(.[]; length==1)' \
+    >/dev/null 2>&1 <<<"$projects" || fail "doctor managed project identity is ambiguous"
+  marker="$(project_marker "$repository")"
+  managed="$(jq -ce --arg repository "$repository" --arg marker "$marker" --argjson statuses "$status_map" '
+    [
+      .nodes[] |
+      select(.archivedAt==null) |
+      . as $project |
+      (try (.description | split("\n")[1] | fromjson) catch null) as $metadata |
+      select(($metadata|type)=="object" and $metadata.repository==$repository) |
+      {project:$project,metadata:$metadata}
+    ] |
+    if any(.[]; .project.description!=$marker or .metadata!={repository:$repository,schema:1})
+    then error("managed project metadata drift") else map(.project) end |
+    if any(.[]; (.status.id|type)!="string" or
+      ([.status.id as $id | $statuses[] | select(.==$id)]|length)!=1)
+    then error("managed project status mapping drift") else . end
+  ' <<<"$projects")" || fail "doctor managed project ownership, schema, or status mapping drift"
+  [ "$(jq -r 'length' <<<"$managed")" -gt 0 ] ||
+    fail "doctor managed feature not found"
+  managed="$(jq -c --argjson statuses "$status_map" '
+    [.[] | . as $project |
+      ($statuses | to_entries[] | select(.value==$project.status.id) | .key) as $semantic |
+      {id,name,url,status:$semantic,statusId:.status.id,updatedAt}
+    ] | sort_by(.id)
+  ' <<<"$managed")"
+  while IFS= read -r project; do
+    [[ -n "$project" ]] || continue
+    model="$(feature_model_from_project "$project" "$repository" "$issue_map")" ||
+      fail "doctor managed resource validation failed"
+    results="$(jq -cn --argjson results "$results" --argjson model "$model" '$results+[$model]')"
+  done < <(jq -c '.[]' <<<"$managed")
+  jq -cnS --argjson features "$results" '{backend:"linear",features:$features}'
+}
+command_provenance_resolve() {
+  local reference='' repository='' status_map='' issue_map='' parsed kind id project_id response model
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --reference) reference="$2"; shift 2 ;;
+      --repository) repository="$2"; shift 2 ;;
+      --status-map) status_map="$2"; shift 2 ;;
+      --issue-state-map) issue_map="$2"; shift 2 ;;
+      *) usage ;;
+    esac
+  done
+  require_repository "$repository"
+  validate_status_map "$status_map"
+  validate_issue_state_map "$issue_map"
+  parsed="$(command_provenance_parse --reference "$reference")"
+  kind="$(jq -r '.kind' <<<"$parsed")"
+  id="$(jq -r '.id' <<<"$parsed")"
+
+  case "$kind" in
+    project)
+      project_id="$id"
+      ;;
+    document)
+      response="$(request_query "$GRAPHQL/provenance-document.graphql" "$(jq -cn --arg id "$id" '{id:$id}')")" ||
+        fail "provenance document lookup failed"
+      jq -e --arg id "$id" '
+        type=="object" and (.data.document|type)=="object" and
+        ((.data.document.id|ascii_downcase)==$id) and
+        (.data.document.project.id|type)=="string"
+      ' >/dev/null 2>&1 <<<"$response" || fail "provenance document is missing or invalid"
+      project_id="$(jq -r '.data.document.project.id | ascii_downcase' <<<"$response")"
+      require_uuid "$project_id" "provenance document project id"
+      ;;
+    issue)
+      response="$(request_query "$GRAPHQL/provenance-issue.graphql" "$(jq -cn --arg id "$id" '{id:$id}')")" ||
+        fail "provenance issue lookup failed"
+      jq -e --arg id "$id" '
+        type=="object" and (.data.issue|type)=="object" and
+        ((.data.issue.id|ascii_downcase)==$id) and
+        (.data.issue.project.id|type)=="string"
+      ' >/dev/null 2>&1 <<<"$response" || fail "provenance issue is missing or invalid"
+      project_id="$(jq -r '.data.issue.project.id | ascii_downcase' <<<"$response")"
+      require_uuid "$project_id" "provenance issue project id"
+      ;;
+  esac
+
+  model="$(command_feature_read --project "$project_id" --repository "$repository" \
+    --status-map "$status_map" --issue-state-map "$issue_map")" ||
+    fail "provenance parent feature is missing, foreign, or drifted"
+  case "$kind" in
+    project)
+      jq -e --arg id "$id" '(.feature.id|ascii_downcase)==$id' >/dev/null <<<"$model" ||
+        fail "provenance project does not match the normalized feature"
+      ;;
+    document)
+      jq -e --arg id "$id" '(.spec.id|ascii_downcase)==$id' >/dev/null <<<"$model" ||
+        fail "provenance document is not the managed spec"
+      ;;
+    issue)
+      jq -e --arg id "$id" 'any(.increments[]; (.id|ascii_downcase)==$id)' >/dev/null <<<"$model" ||
+        fail "provenance issue is not a managed increment"
+      ;;
+  esac
+  jq -cnS --argjson reference "$parsed" --arg projectId "$project_id" --argjson feature "$model" \
+    '{backend:"linear",resource:($reference+{projectId:$projectId}),feature:$feature}'
 }
 command_preflight() {
   local workspace='' team='' project_statuses='' issue_states='' response tmp
@@ -1242,6 +1392,9 @@ case "$command" in
   plan-reconcile) command_plan_reconcile "$@";;
   issue-transition) command_issue_transition "$@";;
   feature-read) command_feature_read "$@";;
+  doctor-read) command_doctor_read "$@";;
   status-reconcile) command_status_reconcile "$@";;
+  provenance-parse) command_provenance_parse "$@";;
+  provenance-resolve) command_provenance_resolve "$@";;
   *) usage;;
 esac

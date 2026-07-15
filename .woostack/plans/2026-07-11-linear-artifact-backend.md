@@ -381,22 +381,38 @@ branch: feature/linear-artifact-backend
 - Modify: `skills/woostack-doctor/scripts/checks/memory.sh`
 - Modify: `skills/woostack-doctor/scripts/tests/run-tests.sh`
 - Modify: `skills/woostack-init/references/memory.md`
+- Modify: `skills/woostack-doctor/scripts/doctor.sh`
+- Add: `skills/woostack-doctor/scripts/tests/test-linear-backend.sh`
+- Modify: `skills/woostack-init/scripts/artifacts/graphql/preflight.graphql`
+- Add: `skills/woostack-init/scripts/artifacts/graphql/provenance-document.graphql`
+- Add: `skills/woostack-init/scripts/artifacts/graphql/provenance-issue.graphql`
+- Modify: `skills/woostack-init/scripts/artifacts/linear-preflight.sh`
+- Modify: `skills/woostack-init/scripts/artifacts/linear.sh`
+- Modify: `skills/woostack-init/scripts/tests/fixtures/linear/http-preflight-ambiguous.json`
+- Modify: `skills/woostack-init/scripts/tests/fixtures/linear/http-preflight-missing-capability.json`
+- Modify: `skills/woostack-init/scripts/tests/fixtures/linear/http-preflight-missing.json`
+- Modify: `skills/woostack-init/scripts/tests/fixtures/linear/http-preflight-partial-page.json`
+- Modify: `skills/woostack-init/scripts/tests/fixtures/linear/http-preflight-success.json`
+- Modify: `skills/woostack-init/scripts/tests/fixtures/linear/http-preflight-wrong-team.json`
+- Add: `skills/woostack-init/scripts/tests/fixtures/linear/provenance-document.json`
+- Add: `skills/woostack-init/scripts/tests/fixtures/linear/provenance-issue.json`
+- Modify: `skills/woostack-init/scripts/tests/test-linear-resources.sh`
 
-- [ ] **Step 1: Add failing static/live doctor tests**
-  Assert static Linear checks validate selector/config/URI shapes without credentials, skip local spec/plan document checks, and report inactive legacy files. Assert opt-in live checks validate auth, schema, workspace/team/mappings, permissions, resource existence, and relation/metadata drift. Add `linear://project/`, `linear://document/`, and `linear://issue/` provenance cases.
+- [x] **Step 1: Add failing static/live doctor tests**
+  Assert static Linear checks validate selector/config/URI shapes without credentials, skip local spec/plan document checks, and report inactive legacy files. Assert opt-in live checks validate auth, schema, workspace/team/mappings, mutation-field capabilities, resource existence, and relation/metadata drift, while explicitly reporting that effective write authorization cannot be proven without mutation. Add `linear://project/`, `linear://document/`, and `linear://issue/` provenance cases.
 
-- [ ] **Step 2: Run doctor tests red**
+- [x] **Step 2: Run doctor tests red**
   Run: `bash skills/woostack-doctor/scripts/tests/run-tests.sh`
   Expected: FAIL at new backend/provenance cases.
 
-- [ ] **Step 3: Implement backend gating and live diagnostics**
+- [x] **Step 3: Implement backend gating and live diagnostics**
   Keep existing Markdown checks exact. In Linear mode, replace filesystem spec/plan checks with config/static URI checks; make live validation explicit and authenticated; never auto-repair remote content during ordinary doctor repair. Update memory provenance parsing and resolution through the adapter.
 
-- [ ] **Step 4: Run doctor tests green**
+- [x] **Step 4: Run doctor tests green**
   Run: `bash skills/woostack-doctor/scripts/tests/run-tests.sh`
   Expected: PASS.
 
-- [ ] **Step 5: Commit Increment 8**
+- [x] **Step 5: Commit Increment 8**
   Run: `gt create -m "feat(doctor): validate Linear artifact state"`
   Expected: one PR limited to doctor checks and provenance.
 

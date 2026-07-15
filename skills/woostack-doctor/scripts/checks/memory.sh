@@ -5,6 +5,7 @@
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$HERE/../../../woostack-init/scripts/lib.sh"
+LINEAR="${WOOSTACK_LINEAR_ADAPTER:-$HERE/../../../woostack-init/scripts/artifacts/linear.sh}"
 WOO_ROOT="${1:-.}"
 MEM_DIR="$WOO_ROOT/.woostack/memory"
 [ -d "$MEM_DIR" ] || exit 0
@@ -16,6 +17,21 @@ warn() { emit warn  "$1" report "$2" "$3"; }
 VALID_TYPES=" decision pattern gotcha convention hotspot "
 seen="$(mktemp)"; overlap_pairs="$(mktemp)"
 paths="$(cd "$WOO_ROOT" && git ls-files 2>/dev/null || true)"
+
+# Authenticated state is prepared exactly once by the doctor controller. This check only
+# consumes its non-secret receipt; failed preflight is already a controller finding.
+backend=''
+linear_live_ready=0
+resolved_statuses=''
+resolved_states=''
+live_context="${WOOSTACK_DOCTOR_LIVE_CONTEXT:-}"
+if [ "${WOOSTACK_DOCTOR_LIVE:-0}" = 1 ] && [ -r "$live_context" ] &&
+  jq -e '.ready == true and .backend.backend == "linear"' "$live_context" >/dev/null 2>&1; then
+  backend="$(jq -c '.backend' "$live_context")"
+  resolved_statuses="$(jq -c '.preflight.projectStatuses' "$live_context")"
+  resolved_states="$(jq -c '.preflight.issueStates' "$live_context")"
+  linear_live_ready=1
+fi
 
 shopt -s nullglob
 for f in "$MEM_DIR"/*.md; do
@@ -46,14 +62,26 @@ for f in "$MEM_DIR"/*.md; do
     fi
   fi
   source_raw="$(field "$f" source)"
-  # Normalize a provenance wikilink [[<dir>/<basename>]] for the three authored artifact dirs
-  # (specs|plans|fixes) to its .woostack path; an optional trailing .md is tolerated. A raw
-  # path or a pr-/address-comments review marker passes through unchanged.
+  # Normalize local wikilink provenance and delegate stable Linear URI parsing to the
+  # normalized adapter. Static parsing never authenticates or makes a remote request.
   source_path="$source_raw"
   case "$source_raw" in
     '[['*']]')
       _wl="${source_raw#\[\[}"; _wl="${_wl%\]\]}"; _wl="${_wl%.md}"
-      case "$_wl" in specs/*|plans/*|fixes/*) source_path=".woostack/$_wl.md" ;; esac ;;
+      case "$_wl" in specs/*|plans/*|fixes/*) source_path=".woostack/$_wl.md" ;; esac
+      ;;
+    linear://*)
+      if ! bash "$LINEAR" provenance-parse --reference "$source_raw" >/dev/null 2>&1; then
+        warn memory-provenance "$rp" "$base: source '$source_raw' is malformed (expected linear://project|document|issue/<uuid>)"
+      elif [ "$linear_live_ready" -eq 1 ]; then
+        if ! bash "$LINEAR" provenance-resolve --reference "$source_raw" \
+          --repository "$(jq -r '.repository' <<<"$backend")" \
+          --status-map "$resolved_statuses" \
+          --issue-state-map "$resolved_states" >/dev/null 2>&1; then
+          err memory-provenance-live "$rp" "$base: source '$source_raw' is missing, foreign, or has relation/metadata drift"
+        fi
+      fi
+      ;;
   esac
   case "$source_path" in
     .woostack/specs/*|.woostack/plans/*|.woostack/fixes/*)
