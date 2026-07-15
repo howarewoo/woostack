@@ -345,21 +345,21 @@ branch: feature/linear-artifact-backend
 - Modify: `skills/woostack-status/scripts/tests/test-html-board.sh`
 - Modify: `skills/woostack-status/scripts/board-template.html`
 
-- [ ] **Step 1: Add failing Linear board/reconciliation tests**
+- [x] **Step 1: Add failing Linear board/reconciliation tests**
   Mock normalized Linear projects and GitHub PR states. Assert every Linear-backed status run authenticates, previews exact eligible `inReview → done` transitions, applies only merge-backed transitions, verifies read-back, transitions the project only after all issues are done, then renders. Missing credentials, ambiguous trailers, API failure, or mismatch must fail closed. Markdown status remains read-only and unchanged.
 
-- [ ] **Step 2: Run status tests red**
+- [x] **Step 2: Run status tests red**
   Run: `bash skills/woostack-status/scripts/tests/run-tests.sh`
   Expected: FAIL at new Linear cases.
 
-- [ ] **Step 3: Implement backend-aware board input**
+- [x] **Step 3: Implement backend-aware board input**
   Route Markdown enumeration through `markdown.sh`; query managed repository projects through `linear.sh`. Reconcile only terminal transitions before rendering and never reopen/downgrade or change non-terminal states. Preserve HTML escaping and stale-age behavior.
 
-- [ ] **Step 4: Run status tests green**
+- [x] **Step 4: Run status tests green**
   Run: `bash skills/woostack-status/scripts/tests/run-tests.sh`
   Expected: PASS for Markdown rendering and Linear reconciliation/rendering.
 
-- [ ] **Step 5: Commit Increment 7**
+- [x] **Step 5: Commit Increment 7**
   Run: `gt create -m "feat(status): reconcile Linear feature lifecycle"`
   Expected: one PR limited to status reconciliation and board rendering.
 

@@ -24,7 +24,7 @@ commands:
   plan-reconcile --project UUID --repository OWNER/REPO --team-id UUID --issue-state-map JSON --plan-file PATH
   issue-transition --project UUID --repository OWNER/REPO --issue UUID|TEAM-NUMBER --issue-state-map JSON --target STATUS [--branch NAME] [--pull-request URL]
   feature-read --project UUID --repository OWNER/REPO --status-map JSON --issue-state-map JSON
-  status-reconcile --project UUID --repository OWNER/REPO --status-map JSON --issue-state-map JSON --pull-requests-file PATH
+  status-reconcile --project UUID --repository OWNER/REPO --status-map JSON --issue-state-map JSON --pull-requests-file PATH --expected-eligible JSON --expected-project-transition BOOLEAN --expected-snapshot JSON
 USAGE
   exit 2
 }
@@ -819,26 +819,64 @@ command_issue_transition() {
 }
 
 command_status_reconcile() {
-  local project_id='' repository='' status_map='' issue_map='' prs_file='' increments eligible='[]' inc evidence matches response after projects project project_semantic project_verified=false
+  local project_id='' repository='' status_map='' issue_map='' prs_file=''
+  local expected_eligible='' expected_project_transition='' expected_snapshot=''
+  local increments eligible eligible_ids inc response after projects project project_semantic current_project_semantic
+  local observed_snapshot all_done should_project project_verified=false non_target_ok
   local attempted='[]' completed='[]' pending='[]'
   while [[ $# -gt 0 ]]; do case "$1" in
     --project) project_id="$2"; shift 2;; --repository) repository="$2"; shift 2;;
     --status-map) status_map="$2"; shift 2;; --issue-state-map) issue_map="$2"; shift 2;;
-    --pull-requests-file) prs_file="$2"; shift 2;; *) usage;; esac; done
-  require_uuid "$project_id" "project id"; require_repository "$repository"; validate_status_map "$status_map"; validate_issue_state_map "$issue_map"
+    --pull-requests-file) prs_file="$2"; shift 2;;
+    --expected-eligible) expected_eligible="$2"; shift 2;;
+    --expected-project-transition) expected_project_transition="$2"; shift 2;;
+    --expected-snapshot) expected_snapshot="$2"; shift 2;;
+    *) usage;;
+  esac; done
+  require_uuid "$project_id" "project id"; require_repository "$repository"
+  validate_status_map "$status_map"; validate_issue_state_map "$issue_map"
   [[ -r "$prs_file" ]] || fail "pull request evidence file is unreadable"
-  jq -e --arg prefix "https://github.com/$repository/pull/" 'type=="array" and all(.[]; type=="object" and (.projectId|type=="string") and (.projectId|test("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$")) and (.issueIdentifier|type=="string") and (.issueIdentifier|test("^[A-Z][A-Z0-9]*-[1-9][0-9]*$")) and (.url|type=="string") and (.url|startswith($prefix)) and (.url|ltrimstr($prefix)|test("^[1-9][0-9]*$")) and (.merged|type=="boolean"))' >/dev/null 2>&1 "$prs_file" || fail "pull request evidence is invalid or foreign"
+  jq -e '
+    type=="array" and length==(unique|length) and
+    all(.[]; type=="string" and test("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"))
+  ' >/dev/null 2>&1 <<<"$expected_eligible" || fail "expected eligible issue set is invalid"
+  [[ "$expected_project_transition" == true || "$expected_project_transition" == false ]] \
+    || fail "expected project transition must be boolean"
+  jq -e --argjson issue_map "$issue_map" --argjson status_map "$status_map" '
+    type=="object" and
+    (.projectStatus|type=="string") and $status_map[.projectStatus]!=null and
+    (.issues|type=="array") and
+    (.issues|length)==([.issues[].id]|unique|length) and
+    all(.issues[]; (.id|type=="string") and (.status|type=="string") and $issue_map[.status]!=null)
+  ' >/dev/null 2>&1 <<<"$expected_snapshot" || fail "expected status snapshot is invalid"
+  jq -e --arg prefix "https://github.com/$repository/pull/" '
+    type=="array" and all(.[];
+      type=="object" and
+      (.projectId|type=="string") and
+      (.projectId|test("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$")) and
+      (.issueIdentifier|type=="string") and
+      (.issueIdentifier|test("^[A-Z][A-Z0-9]*-[1-9][0-9]*$")) and
+      (.url|type=="string") and
+      (.url|startswith($prefix)) and
+      (.url|ltrimstr($prefix)|test("^[1-9][0-9]*$")) and
+      (.merged|type=="boolean")
+    )
+  ' >/dev/null 2>&1 "$prs_file" || fail "pull request evidence is invalid or foreign"
+
   project="$(owned_project "$project_id" "$repository")"
-  project_semantic="$(jq -r --arg state "$(jq -r '.status.id' <<<"$project")" 'to_entries | map(select(.value==$state)) | if length==1 then .[0].key else "" end' <<<"$status_map")"
+  project_semantic="$(jq -r --arg state "$(jq -r '.status.id' <<<"$project")" \
+    'to_entries | map(select(.value==$state)) | if length==1 then .[0].key else "" end' <<<"$status_map")"
   [[ -n "$project_semantic" ]] || fail "parent project has an unmapped status"
   [[ "$project_semantic" != "abandoned" ]] || fail "abandoned project is immutable"
-  [[ "$project_semantic" == "inReview" || "$project_semantic" == "done" ]] || fail "project is not eligible for terminal reconciliation"
+  [[ "$project_semantic" == "inReview" || "$project_semantic" == "done" ]] \
+    || fail "project is not eligible for terminal reconciliation"
   increments="$(normalized_increments "$project_id" "$repository" "$issue_map")"
-  if [[ "$project_semantic" == "done" ]]; then
-    jq -e 'all(.[]; .status=="done")' >/dev/null <<<"$increments" || fail "done project has non-done managed issues"
-    jq -cn --arg id "$project_id" '{eligibleIssues:[],attempted:[],completed:[],pending:[],projectDone:true,observed:{project:$id},verified:true}'
-    return
-  fi
+  observed_snapshot="$(jq -cn --arg status "$project_semantic" --argjson increments "$increments" \
+    '{projectStatus:$status,issues:($increments|map({id,status})|sort_by(.id))}')"
+  jq -e --argjson expected "$expected_snapshot" \
+    '(.projectStatus==$expected.projectStatus) and ((.issues|sort_by(.id))==($expected.issues|sort_by(.id)))' \
+    >/dev/null 2>&1 <<<"$observed_snapshot" || fail "status snapshot drifted before mutation"
+
   jq -e --arg project "$project_id" --argjson increments "$increments" '
     . as $evidence |
     (group_by(.projectId,.issueIdentifier) | all(.[]; length==1)) and
@@ -847,47 +885,116 @@ command_status_reconcile() {
       ([$increments[] | select(.identifier==$item.issueIdentifier and .pullRequest==$item.url)] | length)==1
     ) and
     all($increments[] | select(.status=="inReview" and .pullRequest!=null); . as $issue |
-      any($evidence[]; .projectId==$project and .issueIdentifier==$issue.identifier and .url==$issue.pullRequest)
+      ([$evidence[] | select(.projectId==$project and .issueIdentifier==$issue.identifier and .url==$issue.pullRequest)] | length)==1
+    ) and
+    all($increments[] | select(.status=="done"); . as $issue |
+      ([$evidence[] | select(
+        .projectId==$project and .issueIdentifier==$issue.identifier and
+        .url==$issue.pullRequest and .merged==true
+      )] | length)==1
     )
-  ' >/dev/null 2>&1 "$prs_file" || fail "pull request attribution pair is missing, duplicate, or foreign"
-  while IFS= read -r inc; do
-    [[ "$(jq -r '.status' <<<"$inc")" == inReview ]] || continue
-    evidence="$(jq -c --arg project "$project_id" --arg identifier "$(jq -r '.identifier' <<<"$inc")" '
-      [.[] | select(.projectId==$project and .issueIdentifier==$identifier)]
-    ' "$prs_file")"
-    matches="$(jq 'length' <<<"$evidence")"
-    [[ "$matches" -le 1 ]] || fail "pull request attribution is ambiguous"
-    if [[ "$matches" -eq 1 ]] &&
-       [[ "$(jq -r '.[0].url' <<<"$evidence")" == "$(jq -r '.pullRequest // ""' <<<"$inc")" ]] &&
-       [[ "$(jq -r '.[0].merged' <<<"$evidence")" == true ]]; then
-      eligible="$(jq -cn --argjson old "$eligible" --argjson item "$inc" '$old+[$item]')"
-    fi
-  done < <(jq -c '.[]' <<<"$increments")
+  ' >/dev/null 2>&1 "$prs_file" \
+    || fail "pull request attribution pair is missing, duplicate, or foreign; or done evidence is unmerged"
+
+  eligible="$(jq -cn --arg project "$project_id" --argjson increments "$increments" --slurpfile evidence "$prs_file" '
+    [$increments[] | select(.status=="inReview") | . as $issue |
+      [$evidence[0][] | select(
+        .projectId==$project and .issueIdentifier==$issue.identifier and
+        .url==$issue.pullRequest and .merged==true
+      )] | select(length==1) | $issue]
+  ')"
+  eligible_ids="$(jq -c '[.[].id]|sort' <<<"$eligible")"
+  jq -e --argjson actual "$eligible_ids" '(sort)==$actual' >/dev/null 2>&1 <<<"$expected_eligible" \
+    || fail "eligible issue set drifted before mutation"
+  all_done=false
+  if [[ "$(jq 'length' <<<"$increments")" -gt 0 ]] &&
+     jq -e 'all(.[]; .status=="done")' >/dev/null <<<"$increments"; then all_done=true; fi
+  [[ "$project_semantic" != done || "$all_done" == true ]] \
+    || fail "project and managed issue terminal states are inconsistent"
+  should_project=false
+  if [[ "$project_semantic" == inReview && "$(jq 'length' <<<"$increments")" -gt 0 ]] &&
+     jq -e --argjson eligible "$eligible_ids" '
+       all(.[]; . as $issue | .status=="done" or any($eligible[]; .==$issue.id))
+     ' >/dev/null <<<"$increments"; then should_project=true; fi
+  [[ "$should_project" == "$expected_project_transition" ]] \
+    || fail "project transition preview drifted before mutation"
+
+  if [[ "$project_semantic" == done ]]; then
+    [[ "$(jq 'length' <<<"$eligible_ids")" -eq 0 && "$expected_project_transition" == false ]] \
+      || fail "done project cannot carry pending terminal writes"
+    jq -cn --arg id "$project_id" \
+      '{eligibleIssues:[],attempted:[],completed:[],pending:[],projectDone:true,observed:{project:$id},verified:true}'
+    return
+  fi
+
   while IFS= read -r inc; do
     attempted="$(jq -c '.+["issueUpdate"]' <<<"$attempted")"
-    if response="$(request_mutation "$GRAPHQL/issue-update.graphql" "$(jq -cn --arg id "$(jq -r '.id' <<<"$inc")" --arg stateId "$(jq -r '.done' <<<"$issue_map")" '{id:$id,input:{stateId:$stateId}}')")"; then :; fi
+    if response="$(request_mutation "$GRAPHQL/issue-update.graphql" \
+      "$(jq -cn --arg id "$(jq -r '.id' <<<"$inc")" --arg stateId "$(jq -r '.done' <<<"$issue_map")" \
+        '{id:$id,input:{stateId:$stateId}}')")" &&
+       jq -e --arg id "$(jq -r '.id' <<<"$inc")" --arg state "$(jq -r '.done' <<<"$issue_map")" \
+         '.data.issueUpdate.success==true and .data.issueUpdate.issue.id==$id and .data.issueUpdate.issue.state.id==$state' \
+         >/dev/null 2>&1 <<<"$response"; then
+      :
+    else
+      pending="$(jq -c '.+["issue-update-failed"]' <<<"$pending")"
+    fi
   done < <(jq -c '.[]' <<<"$eligible")
   after="$(normalized_increments "$project_id" "$repository" "$issue_map")"
   while IFS= read -r inc; do
-    if jq -e --arg id "$(jq -r '.id' <<<"$inc")" 'any(.[]; .id==$id and .status=="done")' >/dev/null <<<"$after"; then
+    if jq -e --arg id "$(jq -r '.id' <<<"$inc")" \
+      'any(.[]; .id==$id and .status=="done")' >/dev/null <<<"$after"; then
       completed="$(jq -c '.+["issueUpdate"]' <<<"$completed")"
-    else pending="$(jq -c '.+["issue-done-verification"]' <<<"$pending")"; fi
-  done < <(jq -c '.[]' <<<"$eligible")
-  if [[ "$(jq 'length' <<<"$after")" -gt 0 ]] && jq -e 'all(.[]; .status=="done")' >/dev/null <<<"$after"; then
-    projects="$(project_list)" || fail "project discovery failed"
-    if jq -e --arg id "$project_id" --arg status "$(jq -r '.done' <<<"$status_map")" 'any(.nodes[]; .id==$id and .status.id==$status)' >/dev/null <<<"$projects"; then
-      project_verified=true
     else
-      attempted="$(jq -c '.+["projectUpdate"]' <<<"$attempted")"
-      if response="$(request_mutation "$GRAPHQL/project-update.graphql" "$(jq -cn --arg id "$project_id" --arg statusId "$(jq -r '.done' <<<"$status_map")" '{id:$id,input:{statusId:$statusId}}')")"; then :; fi
-      projects="$(project_list)" || fail "project status read-back failed"
-      if jq -e --arg id "$project_id" --arg status "$(jq -r '.done' <<<"$status_map")" 'any(.nodes[]; .id==$id and .status.id==$status)' >/dev/null <<<"$projects"; then
-        project_verified=true; completed="$(jq -c '.+["projectUpdate"]' <<<"$completed")"
-      else pending="$(jq -c '.+["project-done-verification"]' <<<"$pending")"; fi
+      pending="$(jq -c '.+["issue-done-verification"]' <<<"$pending")"
+    fi
+  done < <(jq -c '.[]' <<<"$eligible")
+  non_target_ok="$(jq -n --argjson before "$increments" --argjson after "$after" --argjson targets "$eligible_ids" '
+    def untouched:
+      map(select(.id as $id | ($targets|index($id)|not))) | map({id,status}) | sort_by(.id);
+    ($before|untouched)==($after|untouched) and
+    ([$before[].id]|sort)==([$after[].id]|sort)
+  ')"
+  [[ "$non_target_ok" == true ]] \
+    || pending="$(jq -c '.+["non-target-status-verification"]' <<<"$pending")"
+
+  if [[ "$expected_project_transition" == true ]] &&
+     [[ "$(jq 'length' <<<"$pending")" -eq 0 ]] &&
+     [[ "$(jq 'length' <<<"$after")" -gt 0 ]] &&
+     jq -e 'all(.[]; .status=="done")' >/dev/null <<<"$after"; then
+    projects="$(project_list)" || fail "project discovery failed before terminal write"
+    current_project_semantic="$(jq -r --arg id "$project_id" --argjson statuses "$status_map" '
+      [.nodes[] | select(.id==$id)] |
+      if length==1 then .[0].status.id as $state |
+        ($statuses|to_entries|map(select(.value==$state))|if length==1 then .[0].key else "" end)
+      else "" end
+    ' <<<"$projects")"
+    [[ "$current_project_semantic" == inReview ]] \
+      || fail "project status drifted before terminal mutation"
+    attempted="$(jq -c '.+["projectUpdate"]' <<<"$attempted")"
+    if response="$(request_mutation "$GRAPHQL/project-update.graphql" \
+      "$(jq -cn --arg id "$project_id" --arg statusId "$(jq -r '.done' <<<"$status_map")" \
+        '{id:$id,input:{statusId:$statusId}}')")" &&
+       jq -e --arg id "$project_id" --arg status "$(jq -r '.done' <<<"$status_map")" \
+         '.data.projectUpdate.success==true and .data.projectUpdate.project.id==$id and .data.projectUpdate.project.status.id==$status' \
+         >/dev/null 2>&1 <<<"$response"; then
+      :
+    else
+      pending="$(jq -c '.+["project-update-failed"]' <<<"$pending")"
+    fi
+    projects="$(project_list)" || fail "project status read-back failed"
+    if jq -e --arg id "$project_id" --arg status "$(jq -r '.done' <<<"$status_map")" \
+      'any(.nodes[]; .id==$id and .status.id==$status)' >/dev/null <<<"$projects"; then
+      project_verified=true
+      completed="$(jq -c '.+["projectUpdate"]' <<<"$completed")"
+    else
+      pending="$(jq -c '.+["project-done-verification"]' <<<"$pending")"
     fi
   fi
-  jq -cn --argjson eligible "$eligible" --argjson attempted "$attempted" --argjson completed "$completed" --argjson pending "$pending" --argjson projectDone "$project_verified" \
-    '{eligibleIssues:($eligible|map(.id)),attempted:$attempted,completed:$completed,pending:$pending,projectDone:$projectDone,verified:($pending|length==0)}'
+  jq -cn --argjson eligible "$eligible_ids" --argjson attempted "$attempted" \
+    --argjson completed "$completed" --argjson pending "$pending" \
+    --argjson projectDone "$project_verified" \
+    '{eligibleIssues:$eligible,attempted:$attempted,completed:$completed,pending:$pending,projectDone:$projectDone,verified:($pending|length==0)}'
   [[ "$(jq 'length' <<<"$pending")" -eq 0 ]]
 }
 

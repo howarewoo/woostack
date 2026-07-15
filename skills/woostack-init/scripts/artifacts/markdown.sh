@@ -175,7 +175,7 @@ feature() {
   validate_frontmatter "$plan_path"
   [[ "$(read_field "$plan_path" type)" == 'plan' ]] || fail "joined artifact is not a plan"
 
-  local feature_name feature_status feature_branch spec_id plan_id parsed revision increments
+  local feature_name feature_status feature_branch spec_id plan_id parsed revision increments progress
   feature_name="$(read_field "$spec_path" name)"
   [[ -n "$feature_name" ]] || feature_name="${stem#????-??-??-}"
   feature_status="$(read_field "$plan_path" status)"
@@ -277,10 +277,14 @@ if len(ordinals) != len(set(ordinals)):
     raise SystemExit("plan has duplicate increment ordinals")
 
 increments = []
+completed_boxes = 0
+total_boxes = 0
 for section in sorted(sections, key=lambda item: item["ordinal"]):
     boxes = checkbox_values(section["lines"])
     done = sum(value.lower() == "x" for value in boxes)
     total = len(boxes)
+    completed_boxes += done
+    total_boxes += total
     status = "done" if total and done == total else "executing" if done else "planned"
     ordinal = section["ordinal"]
     increments.append({
@@ -297,11 +301,13 @@ for section in sorted(sections, key=lambda item: item["ordinal"]):
 print(json.dumps({
     "revision": hashlib.sha256(spec_bytes).hexdigest(),
     "increments": increments,
+    "progress": {"completed": completed_boxes, "total": total_boxes},
 }, separators=(",", ":")))
 PY
   )" || fail "plan increments could not be parsed"
   revision="$(jq -r '.revision' <<<"$parsed")"
   increments="$(jq -c '.increments' <<<"$parsed")"
+  progress="$(jq -c '.progress' <<<"$parsed")"
 
   jq -cn \
     --arg feature_id "$spec_id" \
@@ -311,7 +317,8 @@ PY
     --arg spec_id "$spec_id" \
     --rawfile content "$spec_path" \
     --arg revision "$revision" \
-    --argjson increments "$increments" '
+    --argjson increments "$increments" \
+    --argjson progress "$progress" '
       {
         backend: "markdown",
         feature: {
@@ -327,6 +334,7 @@ PY
           content: $content,
           revision: $revision
         },
+        progress: $progress,
         increments: $increments
       }
     '

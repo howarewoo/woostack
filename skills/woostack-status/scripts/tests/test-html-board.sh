@@ -15,6 +15,8 @@ done
 assert_not_contains "$TPL_OUT" "http://" "template is offline (no http URLs)"
 assert_not_contains "$TPL_OUT" "https://" "template is offline (no https URLs)"
 assert_contains "$TPL_OUT" "prefers-color-scheme" "template has dark-mode styles"
+assert_contains "$TPL_OUT" ".source-linear" "template styles the Linear backend source label"
+assert_contains "$TPL_OUT" "<th>Feature</th>" "template uses a backend-neutral feature heading"
 
 OUT=""; CODE=0
 run_status() {
@@ -60,7 +62,7 @@ assert_contains "$HTML" "zulu" "AC1: done row present in HTML without --all"
 assert_contains "$HTML" "3/3" "AC1: plan progress rendered"
 
 # --- AC2: terminal table unchanged (spot checks match test-status.sh expectations) ---
-assert_contains "$OUT" "SPEC" "AC2: table header intact"
+assert_contains "$OUT" "FEATURE" "AC2: backend-neutral table header intact"
 assert_contains "$OUT" "draft" "AC2: phase cell intact"
 assert_contains "$OUT" "1 done" "AC2: footer counts intact"
 
@@ -94,7 +96,12 @@ rm -f "$tmpd/scripts/board-template.html"
 r3="$(mktemp -d)/.woostack"
 mkspec "$r3" alpha draft feature/alpha
 set +e
-OUT3="$(WOO_DIR="$r3" WOO_STATUS_NO_OPEN=1 bash "$tmpd/scripts/status.sh" 2>&1)"
+ARTIFACTS="$DIR/../../woostack-init/scripts/artifacts"
+OUT3="$(WOO_DIR="$r3" WOO_STATUS_NO_OPEN=1 \
+  WOOSTACK_BACKEND_RESOLVER="$ARTIFACTS/resolve-backend.sh" \
+  WOOSTACK_MARKDOWN_ADAPTER="$ARTIFACTS/markdown.sh" \
+  WOOSTACK_LINEAR_ADAPTER="$ARTIFACTS/linear.sh" \
+  bash "$tmpd/scripts/status.sh" 2>&1)"
 CODE3=$?
 set -e
 assert_exit 0 "$CODE3" "AC1 error: exits 0 when board template missing"
@@ -108,7 +115,7 @@ touch "$r/visuals"   # file squats on the dir path
 run_status "$r"
 assert_exit 0 "$CODE" "AC1 error: exits 0 when visuals uncreatable"
 assert_contains "$OUT" "HTML board skipped" "AC1 error: notice printed"
-assert_contains "$OUT" "SPEC" "AC1 error: terminal board still printed"
+assert_contains "$OUT" "FEATURE" "AC1 error: terminal board still printed"
 
 # --- AC1 edge: zero specs -> no HTML ---
 empty="$(mktemp -d)"

@@ -1,33 +1,39 @@
 ---
 name: woostack-status
-description: Use to show the derived woostack feature board — for every spec in .woostack/specs/ and fix in .woostack/fixes/, its reconciled phase, plan progress, increment-PR state, owner, age, and the single next action, plus flags for any drift between the authored status field and the artifacts on disk. Read-only; never fetches, commits, or pushes. Use for /woostack-status, "what's in flight", or "what should I do next".
+description: Use to show the backend-aware woostack feature board — Markdown specs/fixes remain read-only, while Linear-backed runs authenticate and reconcile only verified merge-backed terminal issue/project transitions before rendering phase, progress, PR state, owner, age, next action, and drift. Use for /woostack-status, "what's in flight", or "what should I do next".
 ---
 
 # woostack-status
 
 ## Overview
 
-Prints an on-demand, read-only **feature board** derived from the real `.woostack/`
-artifacts. For every spec (in `.woostack/specs/`) and fix (in `.woostack/fixes/`) it shows
-the reconciled phase, plan progress (`N/M` boxes), the increment-PR rollup, owner, age,
-and the single concrete **next action** — and flags any drift.
+Prints an on-demand **feature board** from the configured spec/plan artifact backend. The
+default Markdown backend remains read-only and derives every spec in `.woostack/specs/` plus
+every self-contained fix in `.woostack/fixes/`. The Linear backend reads managed projects,
+their spec documents, and ordered increment issues through the normalized artifact adapter.
+Both render the reconciled phase, plan progress, increment-PR rollup, owner, age, and one
+concrete **next action**.
 
 The board is computed fresh each run, printed to the terminal, and rendered to a local HTML
-board. It never fetches, commits, or pushes.
+board. Markdown mode never fetches unless asked, commits, pushes, or mutates artifacts.
+Linear mode always authenticates, verifies exact PR attribution and merged state, previews
+each eligible terminal write, applies only `inReview → done`, verifies read-back, and moves
+the project to `done` only after every managed issue is observed `done`. It never reopens,
+downgrades, or writes a non-terminal state.
 
-The board is backed by the `spec : plan : PRs = 1 : 1 : N` invariant (for specs) and the phase
-enum, both defined once in [references/conventions.md](references/conventions.md). Fixes
-under `.woostack/fixes/` bypass the spec-to-plan join because they are self-contained: the file
-acts as both the spec and the plan. This skill does not restate these definitions — that file is
-the canonical home.
+Markdown's `spec : plan : PRs = 1 : 1 : N` invariant and the canonical phase enum live in
+[references/conventions.md](references/conventions.md). Fixes bypass the Markdown spec-to-plan
+join because the file acts as both spec and plan. Linear uses the backend's normalized
+project/document/issues model. This skill does not duplicate either backend contract.
 
 ## Commands
 
 - `/woostack-status` — render the in-flight feature board for the current project.
 - `/woostack-status --all` — also expand the `done` and `abandoned` features (hidden by
   default, surfaced as a footer count).
-- `/woostack-status --fetch` — opt in to a `git fetch` first so PR-less branch data is fresh.
-  This is the only network access the board ever does; it still never commits or pushes.
+- `/woostack-status --fetch` — in Markdown mode, opt in to a `git fetch` first so PR-less
+  branch data is fresh. Linear mode already performs authenticated API reads and ignores this
+  freshness hint after the fetch.
 - `/woostack-status --no-open` — write the HTML board but do not open a browser (also
   suppressed by `WOO_STATUS_NO_OPEN=1` or a `CI`/`GITHUB_ACTIONS` environment).
 
@@ -43,12 +49,20 @@ the canonical home.
 
    Keep the current working directory at the consumer project root; only the script path comes
    from the skill bundle. `WOO_DIR` defaults to `./.woostack` (override only for tests). The
-   script is read-only and exits `0` even when it emits drift flags — operational failure is
-   the only non-zero exit — so it is safe to run anywhere, including CI.
+   script resolves the backend before enumeration. Markdown drift flags still exit `0`;
+   operational failures exit non-zero. Linear additionally requires `LINEAR_API_KEY`, a
+   successful schema/auth preflight, normalized-model discovery before GitHub parsing,
+   unambiguous exact `Linear-Project` and `Linear-Issue` trailers for every referenced PR in
+   the complete paginated result, verified merge state, an unchanged pre-write project/issue
+   snapshot, successful mutations, and matching read-back. Malformed historical trailers on
+   PRs not referenced by a managed increment are ignored.
+   Any missing credential, ambiguity, API failure, partial receipt, or mismatch exits non-zero
+   without rendering stale success.
+
    Alongside the terminal table the script writes a self-contained HTML render of the same
    board to the gitignored `.woostack/visuals/status-board.html` and opens it in the default
    browser (suppressed in CI or via `--no-open`); the terminal output remains the canonical
-   narration surface.
+   narration and Linear write-preview surface.
 
 2. **Narrate the board.** Present the table as printed, then for each in-flight feature call
    out its single **next action** (the `NEXT` column). Lead with whatever is actionable now.
@@ -69,21 +83,31 @@ the canonical home.
    itself also has illustrative `woostack-defer(...)` in `skills/**` / `.woostack/` docs; exclude
    those doc paths if the example noise distracts.)
 
-5. **Note degradation.** If `gh` is absent or unauthenticated the board still renders,
-   omitting PR / increment / owner data for PR-phase rows; relay the script's notice rather
-   than hiding it. The footer also notes when PR-less branch data may be stale (pass
-   `--fetch`).
+5. **Note backend-specific degradation.** Markdown mode keeps rendering if `gh` is absent or
+   unauthenticated, omitting PR / increment / owner data for PR-phase rows and printing the
+   existing notice. Linear cannot safely reconcile terminal state without authenticated Linear
+   access and verified GitHub PR evidence, so it fails closed instead of degrading.
 
 ## Hard constraints
 
-- **Read-only.** Never fetches (except the explicit `--fetch`), commits, pushes, or mutates
-  any spec, plan, or git state. The board only reads.
+- **Markdown is read-only.** It never fetches (except explicit `--fetch`), commits, pushes,
+  or mutates a spec, plan, fix, or git state.
+- **Linear writes only the terminal merge reconciliation.** Authenticate before reading.
+  Preview exact eligible issue identities and the project transition, pin the complete
+  project/issue status snapshot immediately before writing, permit only merge-backed
+  `inReview → done`, and read back target and non-target issue states. Move the project only
+  after every managed issue is done; if an earlier issue mutation succeeded despite an unknown
+  response, a later run resumes with only the project transition. Never reopen, downgrade,
+  abandon, or write any non-terminal state.
+- **Fail closed in Linear mode.** Missing credentials, ambiguous/mismatched trailers, foreign
+  evidence, API/GraphQL failure, partial receipts, or read-back mismatch are operational
+  failures. Do not render them as successful reconciliation.
 - **No committed status file.** Print to the terminal; never write `STATUS.md` or any
   *tracked* snapshot. The gitignored `.woostack/visuals/status-board.html` render is the
-  sanctioned exception — it is a presentation target, never a source of truth.
-- **The artifacts are the source of truth.** Display the authored `status:` for head states
-  but the *computed* phase for the execute → review → done band; a disagreement is a flag, not
-  displayed truth. The contracts live in
-  [references/conventions.md](references/conventions.md) — link it, do not restate it.
-- **Degrade, never hard-fail.** Missing `gh`, no specs, malformed frontmatter, or a missing
-  plan each produce a friendly notice or a flag and a clean exit, never a crash.
+  sanctioned exception — it is presentation, never source of truth.
+- **The configured artifacts are the source of truth.** Consume both backends through their
+  normalized adapters. Preserve Markdown's derived execute/review/done truth table and render
+  Linear's verified post-reconciliation model. The canonical contracts live in
+  [references/conventions.md](references/conventions.md).
+- **Markdown degradation stays compatible.** No specs, missing plans, malformed rows, or
+  unavailable `gh` retain their friendly notice/flag behavior and clean exit.
