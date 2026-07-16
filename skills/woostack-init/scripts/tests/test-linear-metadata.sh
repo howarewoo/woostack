@@ -506,12 +506,16 @@ header = "+++ Woostack metadata — managed, do not edit".encode()
 variants = {
     "lf": (b"before\n\n", b"\n", b"\n", b"\n", b"\nafter\n"),
     "crlf": (b"before\r\n\r\n", b"\r\n", b"\r\n", b"\r\n", b"\r\nafter\r\n"),
+    "normalized-lf": (b"before\n\n", b"\n", b"\n", b"\n", b"\nafter\n"),
+    "normalized-crlf": (b"before\r\n\r\n", b"\r\n", b"\r\n", b"\r\n", b"\r\nafter\r\n"),
     "mixed": (b"before\r\n", b"\n", b"\n", b"\r\n", b"after\n"),
     "no-final-newline": (b"before\n", b"\n", b"\n", b"", b""),
     "unicode": ("préface 東京\n".encode(), b"\n", b"\n", b"\n", "\nfin naïve 🚀\n".encode()),
 }
+normalized_inputs = {"normalized-lf", "normalized-crlf"}
 for name, (prefix, header_nl, body_nl, closer_nl, suffix) in variants.items():
-    source = prefix + header + header_nl + old + body_nl + b"+++" + closer_nl + suffix
+    source_padding = name in normalized_inputs
+    source = prefix + header + header_nl + (header_nl if source_padding else b"") + old + body_nl + (body_nl if source_padding else b"") + b"+++" + closer_nl + suffix
     expected = prefix + header + header_nl + header_nl + new + body_nl + body_nl + b"+++" + closer_nl + suffix
     (root / f"bytes-{name}.md").write_bytes(source)
     (root / f"bytes-{name}.expected").write_bytes(expected)
@@ -531,6 +535,8 @@ check_byte_variant() {
 }
 check_byte_variant lf
 check_byte_variant crlf
+check_byte_variant normalized-lf
+check_byte_variant normalized-crlf
 check_byte_variant mixed
 check_byte_variant no-final-newline
 check_byte_variant unicode
