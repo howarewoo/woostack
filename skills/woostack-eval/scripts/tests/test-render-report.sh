@@ -284,12 +284,12 @@ const blocked = {
 const degraded = {
   ...base,
   runId: '20260716T120002Z-4242',
-  baseline: { kind: 'none', identity: '0123456789abcdef0123456789abcdef01234567:absent' },
+  baseline: structuredClone(base.baseline),
   executionStatus: 'degraded',
   cases: [{
     caseId: 'candidate-only',
     kind: 'behavior',
-    candidate: [run(1, 100, [])],
+    candidate: [run(1, 'unavailable', [qualitativeAssertion])],
     baseline: [],
     durationMs: 'unavailable',
     objectivePassRate: 'unavailable',
@@ -378,21 +378,21 @@ forged['behavior-trigger-unavailable-string'] = structuredClone(complete);
 forged['behavior-trigger-unavailable-string'].overall.triggerPrecision = 'unavailable';
 forged['trigger-objective-unavailable-string'] = structuredClone(triggerOnly);
 forged['trigger-objective-unavailable-string'].overall.objectivePassRate = 'unavailable';
-forged['complete-none'] = structuredClone(complete);
-forged['complete-none'].baseline = {
+const completeNoSkill = structuredClone(complete);
+completeNoSkill.baseline = {
   kind: 'none',
   identity: '0123456789abcdef0123456789abcdef01234567:absent',
 };
-forged['degraded-configured'] = structuredClone(degraded);
-forged['degraded-configured'].baseline = structuredClone(base.baseline);
+forged['degraded-missing-qualitative-proof'] = structuredClone(degraded);
+forged['degraded-missing-qualitative-proof'].cases[0].candidate[0].assertions = [];
+forged['degraded-action-duration'] = structuredClone(degraded);
+forged['degraded-action-duration'].cases[0].candidate[0].durationMs = 100;
+forged['degraded-action-tokens'] = structuredClone(degraded);
+forged['degraded-action-tokens'].cases[0].candidate[0].tokenUsage = tokens(10, 5);
 forged['degraded-paired'] = structuredClone(degraded);
 forged['degraded-paired'].cases[0].baseline = [structuredClone(complete.cases[0].baseline[0])];
 forged['blocked-comparable'] = structuredClone(blocked);
 forged['blocked-comparable'].overall.objectivePassRate = comparison(0.5, 0.5, 0);
-forged['blocked-candidate-only-configured'] = structuredClone(blocked);
-forged['blocked-candidate-only-configured'].cases[0].baseline = [];
-forged['blocked-paired-none'] = structuredClone(blocked);
-forged['blocked-paired-none'].baseline = structuredClone(degraded.baseline);
 forged['stale-case-rate'] = structuredClone(complete);
 forged['stale-case-rate'].cases[0].objectivePassRate = comparison(0.5, 1, -0.5);
 forged['stale-overall-rate'] = structuredClone(complete);
@@ -409,6 +409,7 @@ forged['trigger-invalid-selected-skill'].cases[0].candidate[0].selectedSkill = '
 
 for (const [name, value] of Object.entries({
   complete,
+  completeNoSkill,
   publicationFailure,
   triggerOnly,
   qualitativeOnly,
@@ -444,6 +445,12 @@ SECRET_ENV_VALUE=DO_NOT_PRINT_THIS \
   --out "$TMP_ROOT/complete.html" \
   --terminal >"$TMP_ROOT/terminal.txt" 2>"$TMP_ROOT/complete.err"
 [ ! -s "$TMP_ROOT/complete.err" ] || fail "successful render wrote stderr"
+"$NODE" "$RENDERER" \
+  --aggregate "$TMP_ROOT/completeNoSkill.json" \
+  --out "$TMP_ROOT/completeNoSkill.html" \
+  >"$TMP_ROOT/completeNoSkill.stdout" 2>"$TMP_ROOT/completeNoSkill.err"
+[ ! -s "$TMP_ROOT/completeNoSkill.stdout" ] || fail "no-skill render wrote stdout"
+[ ! -s "$TMP_ROOT/completeNoSkill.err" ] || fail "no-skill report render wrote stderr"
 "$NODE" "$RENDERER" \
   --aggregate "$TMP_ROOT/triggerOnly.json" \
   --out "$TMP_ROOT/triggerOnly.html" >"$TMP_ROOT/triggerOnly.stdout" 2>"$TMP_ROOT/triggerOnly.err"

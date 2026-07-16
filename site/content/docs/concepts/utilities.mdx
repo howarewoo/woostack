@@ -14,9 +14,11 @@ They split by one question: **does the skill write `.woostack` workspace artifac
 ## Investigate & present
 
 These point at the truth (your repo, the `.woostack/` artifacts, a spec, or bounded production
-telemetry) and answer or render it. Most are read-only; `woostack-qa` and `woostack-respond` write
-reports. `woostack-respond` also reads production telemetry and may dispatch gated fix preparation,
-so run it only in an explicitly authorized operational context—not as an unconditional CI utility.
+telemetry) and answer, render, or evaluate it. Most are read-only; `woostack-qa` and
+`woostack-respond` write reports. `woostack-eval` may materialize tracked corpus files only after
+explicit approval; its evidence and reports are transient, and it never edits the target skill.
+`woostack-respond` also reads production telemetry and may dispatch gated fix preparation, so run it
+only in an explicitly authorized operational context—not as an unconditional CI utility.
 
 | Skill | What it does | Writes? | Invoke |
 | --- | --- | --- | --- |
@@ -26,6 +28,7 @@ so run it only in an explicitly authorized operational context—not as an uncon
 | [woostack-debug](/docs/skills/woostack-debug) | Runs a four-phase root-cause analysis and hands the findings back; it never writes the fix. | no | `/woostack-debug <target>` |
 | [woostack-qa](/docs/skills/woostack-qa) | Exploratory-QAs a running app in a real browser and writes a severity-ranked, report-only findings doc. | report file only | `/woostack-qa <url> [focus…]` |
 | [woostack-respond](/docs/skills/woostack-respond) | Investigates bounded production telemetry, writes a tracked sanitized report, and prepares verified fixes only through their existing approval gates. | report file; gated fix plans | `/woostack-respond <signal> [scope…]` |
+| [woostack-eval](/docs/skills/woostack-eval) | Runs approved behavior and trigger corpora as isolated candidate/baseline comparisons. | approved tracked corpus files only; transient evidence and reports; no target skill edit | `/woostack-eval <skill-path> [--behavior\|--triggers\|--all]` |
 
 <Callout type="info">
   `woostack-debug` is **dual-natured**. The standalone `/woostack-debug` command is the pure

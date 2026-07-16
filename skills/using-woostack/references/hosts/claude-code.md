@@ -41,6 +41,12 @@ to entry 0, or re-run after editing config).
   per-call.
 - **woostack-review (local swarm):** dispatch every active angle task via `Task`, letting the
   host schedule; workers are `general-purpose`.
+- **woostack-eval (comparative dispatch):** place both isolated `general-purpose` workers for
+  each candidate/baseline inseparable pair in the same `Task` dispatch turn, alongside other
+  intact pairs within capacity. Pin the same concrete `model` (and exposed effort) on both
+  calls. `session-default` is provable only when both calls omit `model` and the host confirms
+  inheritance from the same session identity. One-turn sibling `Task` dispatch supports
+  comparative concurrency; a Task mode that serializes the pair cannot.
 
 ## Degradation
 

@@ -33,6 +33,12 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
 - **woostack-review (local swarm):** orchestrate isolated-context subagents per angle (see
   `skills/woostack-review/prompts/google.md` for the orchestration narrative); the CI runner
   remains `run-gemini-cli` (Antigravity cannot run headless there).
+- **woostack-eval (comparative dispatch):** instantiate the two isolated-context workers for
+  each candidate/baseline inseparable pair in the same dynamic orchestration turn. There is no
+  concrete per-call model pin; choose one concrete run model before the session.
+  `session-default` is provable when both workers inherit that same identified session model.
+  Parallel dynamic subagents can satisfy comparative concurrency; a host mode that serializes
+  the pair cannot.
 
 ## Degradation
 

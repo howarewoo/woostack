@@ -167,6 +167,7 @@ function gradingPlanKey(value) {
 }
 
 async function requireResolvedGradingPlan(runRoot, manifest, snapshot) {
+  const candidateOnly = manifest.expected.every((item) => item.variant === 'candidate');
   const expectedKinds = new Map(manifest.expected.map((item) => [item.caseId, item.kind]));
   const canonicalEntries = [];
   for (const pair of manifest.pairs) {
@@ -175,8 +176,13 @@ async function requireResolvedGradingPlan(runRoot, manifest, snapshot) {
     if (parsed.state.kind !== 'file' || parsed.malformed || parsed.value.id !== pair.caseId) {
       throw new Error(`frozen ${kind} definition is missing or invalid`);
     }
-    for (const assertion of (parsed.value.assertions ?? [])
-      .filter((item) => item.kind === 'qualitative')) {
+    const qualitativeAssertions = Array.isArray(parsed.value.assertions)
+      ? parsed.value.assertions.filter((assertion) => assertion.kind === 'qualitative')
+      : [];
+    if (candidateOnly && qualitativeAssertions.length === 0) {
+      throw new Error('candidate-only manifest cases must contain qualitative assertions');
+    }
+    for (const assertion of qualitativeAssertions) {
       canonicalEntries.push({
         caseId: pair.caseId,
         repetition: pair.repetition,
@@ -282,6 +288,9 @@ async function validateActionReceipt(receipt, expected, manifest, runRoot, recei
   }
   if (!capabilitiesValid(receipt.capabilities)) {
     return { error: errorRecord('identity-mismatch', '/capabilities', receiptPath, 'Receipt capabilities must be a unique array of documented capabilities') };
+  }
+  if (isGrader && receipt.capabilities.length !== 0) {
+    return { error: errorRecord('grader-configuration-mismatch', '/capabilities', receiptPath, 'Grader receipt capabilities must be exactly empty') };
   }
   if (!completionIdentityValid(receipt)) {
     return { error: errorRecord('missing-completion-identity', '/model', receiptPath, 'Receipt requires exactly one concrete completion identity') };
@@ -617,6 +626,7 @@ async function aggregate(options) {
     }
   }
 
+  const candidateOnly = manifest.expected.every((item) => item.variant === 'candidate');
   for (const expected of manifest.expected) {
     const key = expectedKey(expected);
     const claim = claimed.get(key);
@@ -668,7 +678,7 @@ async function aggregate(options) {
     const expectedCapabilities = loaded.definition.capabilities ?? ['read-workspace'];
     if (!same(claim.receipt.capabilities, expectedCapabilities)) {
       errors.push(errorRecord(
-        'identity-mismatch',
+        'configuration-mismatch',
         '/capabilities',
         claim.path,
         'Receipt capabilities do not match the copied case definition',
@@ -682,6 +692,7 @@ async function aggregate(options) {
     const fileCache = new Map();
     if (expected.kind === 'behavior') {
       for (const assertion of loaded.definition.assertions) {
+        if (candidateOnly && assertion.kind !== 'qualitative') continue;
         assertions.push(await evaluateAssertion(assertion, {
           workspaceRoot: loaded.workspaceRoot,
           workspacePrefix: loaded.workspacePrefix,
@@ -699,13 +710,12 @@ async function aggregate(options) {
       receipt: receiptProof,
       output: claim.receipt.output,
       transcript: claim.receipt.transcript,
-      durationMs: claim.receipt.durationMs,
-      tokenUsage: claim.receipt.tokenUsage,
+      durationMs: candidateOnly ? UNAVAILABLE : claim.receipt.durationMs,
+      tokenUsage: candidateOnly ? UNAVAILABLE : claim.receipt.tokenUsage,
       selectedSkill: claim.receipt.selectedSkill,
       assertions,
     });
   }
-  const candidateOnly = manifest.expected.every((item) => item.variant === 'candidate');
 
   const qualitativeExpected = new Map();
   for (const entry of aggregateCases.values()) {
@@ -856,13 +866,7 @@ async function aggregate(options) {
       continue;
     }
 
-    let expectedGrade = qualitativeExpected.get(directKey);
-    let expose = true;
-    if (!expectedGrade && candidateOnly && filenameIdentity.variant === 'baseline') {
-      const candidateKey = `${grade.caseId}\u0000candidate\u0000${grade.repetition}\u0000${grade.assertionId}`;
-      expectedGrade = qualitativeExpected.get(candidateKey);
-      expose = false;
-    }
+    const expectedGrade = qualitativeExpected.get(directKey);
     if (!expectedGrade) {
       const field = aggregateCases.has(grade.caseId) ? '/assertionId' : '/caseId';
       errors.push(errorRecord('unknown-receipt', field, gradePath, 'Grade does not match an expected qualitative assertion'));
@@ -877,13 +881,11 @@ async function aggregate(options) {
       ));
       continue;
     }
-    if (expose) {
-      if (claimedQualitative.has(directKey)) {
-        errors.push(errorRecord('duplicate-receipt', '', gradePath, 'More than one grade claims one expected qualitative assertion'));
-        continue;
-      }
-      claimedQualitative.set(directKey, gradePath);
+    if (claimedQualitative.has(directKey)) {
+      errors.push(errorRecord('duplicate-receipt', '', gradePath, 'More than one grade claims one expected qualitative assertion'));
+      continue;
     }
+    claimedQualitative.set(directKey, gradePath);
     const payloadError = qualitativePayloadError(grade);
     if (payloadError) {
       errors.push(errorRecord('malformed-receipt', payloadError.field, gradePath, payloadError.message));
@@ -992,7 +994,6 @@ async function aggregate(options) {
       expectedGrade,
       input: inputProof.input,
       inputBytes: inputProof.bytes,
-      expose,
       graderReceipt,
       graderReceiptBytes: linked.bytes,
       graderReceiptPath: grade.receipt.path,
@@ -1021,6 +1022,12 @@ async function aggregate(options) {
     }
   }
   for (const group of gradeGroups.values()) {
+    if (candidateOnly) {
+      if (group.candidate) {
+        group.candidate.pairMatched = group.candidate.valid;
+      }
+      continue;
+    }
     if (!group.candidate || !group.baseline) {
       const present = group.candidate ?? group.baseline;
       if (present) present.valid = false;
@@ -1056,8 +1063,7 @@ async function aggregate(options) {
     group.baseline.pairMatched = matched;
   }
 
-  for (const proof of gradeProofs.filter((item) =>
-    item.valid && item.pairMatched && item.expose)) {
+  for (const proof of gradeProofs.filter((item) => item.valid && item.pairMatched)) {
     const assertionResult = proof.expectedGrade.result.assertions
       .find((item) => item.assertionId === proof.grade.assertionId);
     Object.assign(assertionResult, {

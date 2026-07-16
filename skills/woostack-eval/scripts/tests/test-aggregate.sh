@@ -215,7 +215,7 @@ async function writeGrade(runRoot, variant, repetition) {
     targetSkill,
     baseline,
     packageHash,
-    capabilities: ['read-workspace'],
+    capabilities: [],
     host: runConfiguration.host,
     runner: 'grader',
     model: 'grader-model',
@@ -860,6 +860,11 @@ await mutateReceipt(duplicateCapability, (receipt) => {
   receipt.capabilities = ['read-workspace', 'read-workspace'];
 });
 
+const capabilityMismatch = await cloneRun('one-run', 'capability-mismatch');
+await mutateReceipt(capabilityMismatch, (receipt) => {
+  receipt.capabilities = ['write-workspace'];
+});
+
 const missingOutput = await cloneRun('one-run', 'missing-output');
 await mutateReceipt(missingOutput, (receipt) => { delete receipt.output; });
 
@@ -980,6 +985,9 @@ for (const [name, field, value] of [
 
 for (const [name, transform] of [
   ['paired-grader-wrong-host-type', (receipt) => { receipt.host = 7; }],
+  ['paired-grader-non-empty-capability', (receipt) => {
+    receipt.capabilities = ['read-workspace'];
+  }],
   ['paired-grader-unknown-capability', (receipt) => {
     receipt.capabilities = ['network'];
   }],
@@ -1088,24 +1096,46 @@ const partial = await cloneRun('one-run', 'partial');
 await rm(path.join(partial, 'evidence', receiptName('behavior', 'objective-check', 'candidate', 1)));
 
 const smoke = await cloneRun('one-run', 'smoke');
-// The orchestrator records explicit candidate-only smoke acceptance by intentionally narrowing
-// expected to candidate identities. Paired workspace paths remain available for provenance; an
-// ordinary paired manifest with a missing baseline receipt is still blocked by the missing case.
+// Candidate-only smoke selects only candidate actions for qualitative behavior cases. Its pairs
+// retain both prepared paths for those selected cases, but no baseline action or grade is evidence.
 const smokeManifestPath = path.join(smoke, 'manifest.json');
 const smokeManifest = JSON.parse(await readFile(smokeManifestPath, 'utf8'));
-smokeManifest.expected = smokeManifest.expected.filter((entry) => entry.variant === 'candidate');
+smokeManifest.expected = smokeManifest.expected.filter((entry) =>
+  entry.caseId === 'qualitative-check' && entry.variant === 'candidate');
+smokeManifest.pairs =
+  smokeManifest.pairs.filter((entry) => entry.caseId === 'qualitative-check');
+smokeManifest.gradingPlan =
+  smokeManifest.gradingPlan.filter((entry) => entry.caseId === 'qualitative-check');
 await writeFile(smokeManifestPath, `${JSON.stringify(smokeManifest, null, 2)}\n`);
+const smokeDefinitionPath =
+  path.join(smoke, 'definitions', 'behavior.qualitative-check.json');
+const smokeDefinition = JSON.parse(await readFile(smokeDefinitionPath, 'utf8'));
+smokeDefinition.assertions.push({
+  id: 'smoke-objective',
+  kind: 'final-contains',
+  substring: 'candidate output',
+  critical: false,
+});
+await writeFile(smokeDefinitionPath, `${JSON.stringify(smokeDefinition)}\n`);
 for (const item of cases) {
-  await rm(path.join(smoke, 'evidence', receiptName(item.kind, item.caseId, 'baseline', 1)));
+  for (const variant of ['candidate', 'baseline']) {
+    if (item.caseId === 'qualitative-check' && variant === 'candidate') continue;
+    await rm(path.join(smoke, 'evidence', receiptName(item.kind, item.caseId, variant, 1)));
+  }
 }
 await rm(path.join(smoke, 'evidence', 'grade.qualitative-check.baseline.1.clarity-grader.json'));
 await rm(path.join(smoke, 'evidence', 'action.grader.qualitative-check.baseline.1.clarity-grader.json'));
 await rm(path.join(smoke, 'evidence', 'input.qualitative-check.baseline.1.clarity-grader.json'));
-assert.equal(smokeManifest.expected.length, cases.length);
-assert.equal(smokeManifest.expected.every((entry) => entry.variant === 'candidate'), true);
-assert.equal(smokeManifest.pairs.length, cases.length);
-assert.equal(smokeManifest.pairs.every((pair) =>
-  pair.candidate.endsWith('/candidate') && pair.baseline.endsWith('/baseline')), true);
+assert.deepEqual(smokeManifest.expected, [{
+  caseId: 'qualitative-check',
+  variant: 'candidate',
+  repetition: 1,
+  kind: 'behavior',
+}]);
+assert.equal(smokeManifest.pairs.length, 1);
+assert.equal(smokeManifest.pairs[0].candidate.endsWith('/candidate'), true);
+assert.equal(smokeManifest.pairs[0].baseline.endsWith('/baseline'), true);
+assert.equal(smokeManifest.gradingPlan.length, 1);
 
 const unsafeSmokePair = await cloneRun('smoke', 'unsafe-smoke-pair');
 const unsafeSmokePairManifestPath = path.join(unsafeSmokePair, 'manifest.json');
@@ -1120,31 +1150,23 @@ await writeFile(
 const missingSmokeBaselineWorkspace =
   await cloneRun('smoke', 'missing-smoke-baseline-workspace');
 await rm(
-  path.join(missingSmokeBaselineWorkspace, 'cases', 'objective-check', '1', 'baseline'),
+  path.join(missingSmokeBaselineWorkspace, 'cases', 'qualitative-check', '1', 'baseline'),
   { recursive: true },
 );
 
-const smokePairedGrader = await cloneRun('one-run', 'smoke-paired-grader');
-const smokePairedManifestPath = path.join(smokePairedGrader, 'manifest.json');
-const smokePairedManifest = JSON.parse(await readFile(smokePairedManifestPath, 'utf8'));
-smokePairedManifest.expected =
-  smokePairedManifest.expected.filter((entry) => entry.variant === 'candidate');
-await writeFile(smokePairedManifestPath, `${JSON.stringify(smokePairedManifest, null, 2)}\n`);
-for (const item of cases) {
-  await rm(path.join(
-    smokePairedGrader,
-    'evidence',
-    receiptName(item.kind, item.caseId, 'baseline', 1),
-  ));
+for (const [name, caseId] of [
+  ['candidate-only-trigger', 'positive-trigger'],
+  ['candidate-only-objective', 'objective-check'],
+]) {
+  const runRoot = await cloneRun('one-run', name);
+  const manifestPath = path.join(runRoot, 'manifest.json');
+  const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+  manifest.expected = manifest.expected.filter((entry) =>
+    entry.caseId === caseId && entry.variant === 'candidate');
+  manifest.pairs = manifest.pairs.filter((entry) => entry.caseId === caseId);
+  manifest.gradingPlan = manifest.gradingPlan.filter((entry) => entry.caseId === caseId);
+  await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 }
-const smokeCandidateReceipt = JSON.parse(await readFile(path.join(
-  smokePairedGrader,
-  'evidence',
-  receiptName('behavior', 'qualitative-check', 'candidate', 1),
-), 'utf8'));
-await mutateGradeInput(smokePairedGrader, 'baseline', (input) => {
-  input.source = smokeCandidateReceipt.output;
-});
 
 const orphanGrade = await cloneRun('one-run', 'orphan-grade');
 await rm(path.join(orphanGrade, 'evidence', 'action.grader.qualitative-check.candidate.1.clarity-grader.json'));
@@ -2035,16 +2057,19 @@ const expectedBaseline = assertion === 'no-baseline-package'
 assert.deepEqual(aggregate.baseline, expectedBaseline);
 assert.equal(Array.isArray(aggregate.cases), true);
 assert.equal(Array.isArray(aggregate.evidenceErrors), true);
+const expectedCases = assertion === 'smoke'
+  ? ['qualitative-check|behavior']
+  : [
+      'negative-trigger|trigger',
+      'objective-check|behavior',
+      'positive-trigger|trigger',
+      'qualitative-check|behavior',
+    ];
 assert.deepEqual(
   aggregate.cases
     .map((entry) => `${entry.caseId}|${entry.kind}`)
     .sort(),
-  [
-    'negative-trigger|trigger',
-    'objective-check|behavior',
-    'positive-trigger|trigger',
-    'qualitative-check|behavior',
-  ],
+  expectedCases,
   'aggregate cases must have the exact manifest membership and kinds',
 );
 
@@ -2310,18 +2335,21 @@ if (assertion === 'complete') {
 } else if (assertion === 'smoke') {
   assert.equal(aggregate.executionStatus, 'degraded');
   assert.equal(aggregate.overall.objectivePassRate, 'unavailable');
+  const smokeResult = repetition('qualitative-check', 'candidate');
+  assert.equal(smokeResult.durationMs, 'unavailable');
+  assert.equal(smokeResult.tokenUsage, 'unavailable');
   assert.equal(aggregate.overall.durationMs, 'unavailable');
   assert.equal(aggregate.overall.tokenUsage, 'unavailable');
   assert.equal(aggregate.overall.triggerPrecision, 'unavailable');
   assert.equal(aggregate.overall.triggerRecall, 'unavailable');
-  assert.equal(repetition('objective-check', 'candidate').completionStatus, 'complete');
-  assert.deepEqual(caseResult('objective-check').baseline, []);
   assert.deepEqual(aggregate.evidenceErrors, []);
-  assertBlindGrade('candidate');
-} else if (assertion === 'smoke-paired-grader') {
-  assert.equal(aggregate.executionStatus, 'degraded');
-  assert.deepEqual(aggregate.evidenceErrors, []);
+  assert.equal(aggregate.cases.length, 1);
+  assert.equal(aggregate.cases[0].caseId, 'qualitative-check');
   assert.deepEqual(caseResult('qualitative-check').baseline, []);
+  assert.deepEqual(
+    repetition('qualitative-check', 'candidate').assertions.map((entry) => entry.assertionId),
+    ['clear-handoff'],
+  );
   assert.equal((await assertGradeProof('candidate')).pass, false);
 } else if (assertion.startsWith('grader-invalid|')) {
   const [, code, field, errorPath] = assertion.split('|');
@@ -2726,6 +2754,8 @@ invalid_case ambiguous-completion-identity missing-completion-identity /model \
   evidence/action.behavior.objective-check.candidate.1.json
 invalid_case duplicate-capability identity-mismatch /capabilities \
   evidence/action.behavior.objective-check.candidate.1.json
+invalid_case capability-mismatch configuration-mismatch /capabilities \
+  evidence/action.behavior.objective-check.candidate.1.json
 invalid_case missing-output missing-field /output \
   evidence/action.behavior.objective-check.candidate.1.json
 invalid_case output-hash-mismatch output-hash-mismatch /output/sha256 \
@@ -2809,6 +2839,8 @@ grader_invalid_case grader-missing-completion-identity missing-completion-identi
   evidence/action.grader.qualitative-check.candidate.1.clarity-grader.json
 paired_grader_invalid_case paired-grader-wrong-host-type identity-mismatch /host
 paired_grader_invalid_case paired-grader-unknown-capability identity-mismatch /capabilities
+paired_grader_invalid_case paired-grader-non-empty-capability \
+  grader-configuration-mismatch /capabilities
 grader_invalid_case grader-output-hash-mismatch output-hash-mismatch /output/sha256 \
   evidence/action.grader.qualitative-check.candidate.1.clarity-grader.json
 grader_invalid_case grader-output-bytes-mismatch output-bytes-mismatch /output/bytes \
@@ -2871,8 +2903,6 @@ assert_aggregate streamed-transcript one-run
 run_aggregate smoke
 assert_aggregate smoke smoke
 
-run_aggregate smoke-paired-grader
-assert_aggregate smoke-paired-grader smoke-paired-grader
 
 run_aggregate orphan-grade
 assert_aggregate orphan-grade orphan-grade
@@ -2914,10 +2944,14 @@ assert_rejected_manifest behavior-mode-with-trigger \
   'manifest contains an invalid expected identity'
 assert_rejected_manifest triggers-mode-with-behavior \
   'manifest contains an invalid expected identity'
+assert_rejected_manifest candidate-only-trigger \
+  'candidate-only manifest must contain behavior cases only'
+assert_rejected_manifest candidate-only-objective \
+  'candidate-only manifest cases must contain qualitative assertions'
 assert_rejected_manifest unsafe-smoke-pair \
   'manifest contains an invalid workspace pair'
 assert_rejected_manifest missing-smoke-baseline-workspace \
-  'manifest baseline workspace objective-check/1 must already exist as a directory'
+  'manifest baseline workspace qualitative-check/1 must already exist as a directory'
 assert_rejected_manifest missing-quiescence 'host quiescence proof is missing or unsafe'
 assert_rejected_manifest invalid-quiescence 'host quiescence proof is invalid'
 assert_rejected_manifest public-run-root 'run root must be a private mode-0700 non-symlink directory'

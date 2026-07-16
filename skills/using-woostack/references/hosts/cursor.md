@@ -31,6 +31,11 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
 
 - **woostack-review (local swarm):** dispatch angle workers in parallel and let the host
   schedule or queue them.
+- **woostack-eval (comparative dispatch):** submit the two isolated workers for each
+  candidate/baseline inseparable pair together through Composer's parallel-subagent primitive.
+  Cursor exposes no concrete per-call model pin; `session-default` is provable only when the
+  host confirms that both workers inherit the same session model identity. Composer parallel
+  subagents support comparative concurrency; a queue-only runtime cannot.
 
 ## Degradation
 

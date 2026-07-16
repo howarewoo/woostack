@@ -17,6 +17,7 @@ export const PUBLIC_ORDER = [
   'woostack-bootstrap',
   'woostack-build',
   'woostack-fix',
+  'woostack-change',
   'woostack-plan',
   'woostack-execute',
   'woostack-execute-overnight',
@@ -33,6 +34,7 @@ export const PUBLIC_ORDER = [
   'woostack-qa',
   'woostack-audit',
   'woostack-respond',
+  'woostack-eval',
 ];
 export const SUPPORTING_ORDER = ['woostack-ask'];
 export const INTERNAL_ORDER = ['woostack-harden', 'woostack-ideate'];
