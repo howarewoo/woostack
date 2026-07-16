@@ -27,6 +27,10 @@ query WoostackIssueList($projectId: ID!, $after: String) {
         }
         pageInfo { hasNextPage endCursor }
       }
+      attachments(first: 50) {
+        nodes { url }
+        pageInfo { hasNextPage }
+      }
     }
     pageInfo { hasNextPage endCursor }
   }

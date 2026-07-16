@@ -80,12 +80,32 @@ owned_project() {
   jq -c '.[0]' <<<"$matches"
 }
 
+normalize_repository_pr_url() {
+  local repository="$1" url="$2"
+  python3 "$METADATA" normalize-pr --repository "$repository" <<<"$url" 2>/dev/null ||
+    fail "pull request evidence is foreign or invalid"
+}
+
 require_repository_pr_url() {
-  local repository="$1" url="$2" prefix number
-  prefix="https://github.com/$repository/pull/"
-  [[ "$url" == "$prefix"* ]] || fail "pull request evidence is foreign or invalid"
-  number="${url#"$prefix"}"
-  [[ "$number" =~ ^[1-9][0-9]*$ ]] || fail "pull request evidence is foreign or invalid"
+  normalize_repository_pr_url "$1" "$2" >/dev/null
+}
+
+content_files_equivalent() {
+  python3 "$METADATA" compare --expected-file "$1" --observed-file "$2"
+}
+
+content_json_equivalent() {
+  local expected="$1" observed="$2" expected_file observed_file result
+  expected_file="$(mktemp)"
+  observed_file="$(mktemp)"
+  jq -j '.content' <<<"$expected" >"$expected_file"
+  jq -j '.content' <<<"$observed" >"$observed_file"
+  set +e
+  content_files_equivalent "$expected_file" "$observed_file"
+  result=$?
+  set -e
+  rm -f "$expected_file" "$observed_file"
+  return "$result"
 }
 
 
@@ -281,7 +301,11 @@ issue_list() {
         (.relations.nodes|type=="array") and
         (((.relations.pageInfo.hasNextPage // false))|type=="boolean") and
         (.inverseRelations.nodes|type=="array") and
-        (((.inverseRelations.pageInfo.hasNextPage // false))|type=="boolean")
+        (((.inverseRelations.pageInfo.hasNextPage // false))|type=="boolean") and
+        (.attachments == null or (
+          (.attachments.nodes|type)=="array" and
+          .attachments.pageInfo.hasNextPage==false
+        ))
       )
     ' >/dev/null 2>&1 <<<"$response" || fail "issue list response is invalid"
     page='[]'
@@ -301,7 +325,9 @@ issue_list() {
 }
 
 raw_managed_increments() {
-  local issues="$1" project_id="$2" repository="$3" issue_map="$4" enforce_ordinal_cardinality="${5:-true}" tmp result='[]' node description metadata body native_refs semantic item pr branch
+  local issues="$1" project_id="$2" repository="$3" issue_map="$4" enforce_ordinal_cardinality="${5:-true}"
+  local tmp result='[]' node description metadata body native_refs semantic item pr branch
+  local attachment_url normalized_attachment attachment_prs effective_pr
   tmp="$(mktemp -d)"
   while IFS= read -r node; do
     description="$(jq -r '.description // ""' <<<"$node")"
@@ -311,11 +337,30 @@ raw_managed_increments() {
     [[ "$(jq -r '.artifactType' <<<"$metadata")" == increment ]] || { rm -rf "$tmp"; fail "managed issue metadata has the wrong artifact type"; }
     pr="$(jq -r '.pullRequest // empty' <<<"$metadata")"
     branch="$(jq -r '.branch // empty' <<<"$metadata")"
+    attachment_prs='[]'
+    while IFS= read -r attachment_url; do
+      [[ "$attachment_url" == *github.com/*/pull/* ]] || continue
+      normalized_attachment="$(normalize_repository_pr_url "$repository" "$attachment_url")"
+      attachment_prs="$(jq -cn --argjson urls "$attachment_prs" --arg url "$normalized_attachment" '$urls+[$url]|unique|sort')"
+    done < <(jq -r '.attachments.nodes[]?.url? // empty' <<<"$node")
     if [[ -n "$pr" ]]; then
       [[ -n "$branch" ]] || { rm -rf "$tmp"; fail "pull request metadata requires a branch"; }
-      require_repository_pr_url "$repository" "$pr"
+      if ! jq -e --arg pr "$pr" 'all(.[]; .==$pr)' >/dev/null <<<"$attachment_prs"; then
+        [[ "$(jq 'length' <<<"$attachment_prs")" -eq 0 ]] || { rm -rf "$tmp"; fail "managed issue pull request metadata conflicts with native attachment evidence"; }
+      fi
+      effective_pr="$pr"
+    else
+      case "$(jq 'length' <<<"$attachment_prs")" in
+        0) effective_pr='' ;;
+        1) effective_pr="$(jq -r '.[0]' <<<"$attachment_prs")" ;;
+        *) rm -rf "$tmp"; fail "managed issue has ambiguous native pull request attachment evidence" ;;
+      esac
     fi
-    body="$(python3 "$METADATA" body --repository "$repository" --project-id "$project_id" <"$tmp/description" 2>/dev/null)" || { rm -rf "$tmp"; fail "managed increment content is invalid"; }
+    python3 "$METADATA" body --repository "$repository" --project-id "$project_id" <"$tmp/description" >"$tmp/body" 2>/dev/null ||
+      { rm -rf "$tmp"; fail "managed increment content is invalid"; }
+    body="$(cat "$tmp/body")"
+    printf '%s' "$body" | python3 "$METADATA" normalize-content >"$tmp/body-normalized" ||
+      { rm -rf "$tmp"; fail "managed increment content normalization failed"; }
     native_refs="$(jq -c '
       [
         (.blockedBy.nodes[]?.id),
@@ -331,7 +376,7 @@ raw_managed_increments() {
     ' >/dev/null 2>&1 <<<"$node" || { rm -rf "$tmp"; fail "managed issue has a cross-project relation"; }
     semantic="$(jq -r --arg state "$(jq -r '.state.id' <<<"$node")" 'to_entries | map(select(.value==$state)) | if length==1 then .[0].key else "" end' <<<"$issue_map")"
     [[ -n "$semantic" ]] || { rm -rf "$tmp"; fail "managed issue has an unmapped state"; }
-    item="$(jq -cn --argjson issue "$node" --argjson metadata "$metadata" --argjson native "$native_refs" --arg status "$semantic" --arg content "$body" '
+    item="$(jq -cn --argjson issue "$node" --argjson metadata "$metadata" --argjson native "$native_refs" --arg status "$semantic" --arg content "$body" --rawfile normalizedContent "$tmp/body-normalized" --arg pullRequest "$effective_pr" '
       {
         id:$issue.id,
         identifier:$issue.identifier,
@@ -342,8 +387,9 @@ raw_managed_increments() {
         nativeDependencies:$native,
         gitParent:$metadata.gitParent,
         branch:($metadata.branch // null),
-        pullRequest:($metadata.pullRequest // null),
+        pullRequest:(if $pullRequest=="" then null else $pullRequest end),
         content:$content,
+        contentNormalized:$normalizedContent,
         title:$issue.title,
         url:$issue.url,
         incrementId:$metadata.incrementId
@@ -366,13 +412,13 @@ raw_managed_increments() {
 }
 
 normalized_increments() {
-  local project_id="$1" repository="$2" issue_map="$3" issues raw
+  local project_id="$1" repository="$2" issue_map="$3" include_content="${4:-false}" issues raw
   issues="$(issue_list "$project_id")" || fail "issue discovery failed"
   raw="$(raw_managed_increments "$issues" "$project_id" "$repository" "$issue_map")"
-  jq -ce '
+  jq -ce --argjson includeContent "$include_content" '
     if any(.[]; .dependencies!=.nativeDependencies)
     then error("native blocked-by relations disagree with managed metadata")
-    else map(del(.nativeDependencies,.projectId))
+    else map(del(.nativeDependencies,.projectId) | if $includeContent then . else del(.contentNormalized) end)
     end
   ' <<<"$raw" || fail "native blocked-by relations disagree with managed metadata"
 }
@@ -737,7 +783,7 @@ command_feature_resolve() {
 
 command_feature_create() {
   local repository='' title='' team_id='' status_map='' spec_file='' projects project='' project_attempted=false returned_project=null
-  local documents doc='' document_attempted=false returned_document=null expected_file observed_file variables response attempted observed pending='[]' verified
+  local documents doc='' document_attempted=false returned_document=null expected_file observed_file variables response attempted observed pending='[]' verified normalized=false
   while [[ $# -gt 0 ]]; do case "$1" in
     --repository) repository="$2"; shift 2;; --title) title="$2"; shift 2;; --team-id) team_id="$2"; shift 2;;
     --status-map) status_map="$2"; shift 2;; --spec-file) spec_file="$2"; shift 2;; *) usage;; esac; done
@@ -794,7 +840,10 @@ command_feature_create() {
   observed="$(jq -cn --arg project "$project_id" --arg document "${doc:+$(jq -r '.id' <<<"$doc")}" '{project:$project,document:(if $document=="" then null else $document end)}')"
   if [[ -n "$doc" ]]; then
     observed_file="$(mktemp)"; jq -j '.content' <<<"$doc" >"$observed_file"
-    cmp -s "$expected_file" "$observed_file" || pending="$(jq -c '.+["document-content-verification"]' <<<"$pending")"
+    if ! cmp -s "$expected_file" "$observed_file"; then
+      content_files_equivalent "$expected_file" "$observed_file" && normalized=true ||
+        pending="$(jq -c '.+["document-content-verification"]' <<<"$pending")"
+    fi
     rm -f "$observed_file"
   fi
   rm -f "$expected_file"
@@ -811,7 +860,7 @@ command_feature_create() {
     fi
   fi
   verified=false; [[ "$(jq 'length' <<<"$pending")" -eq 0 ]] && verified=true
-  jq -cn --argjson attempted "$attempted" --argjson observed "$observed" --argjson rp "$returned_project" --argjson rd "$returned_document" --argjson verified "$verified" --argjson pending "$pending" '{attempted:$attempted,observed:$observed,returned:{project:$rp,document:$rd},verified:$verified,pending:$pending}'
+  jq -cn --argjson attempted "$attempted" --argjson observed "$observed" --argjson rp "$returned_project" --argjson rd "$returned_document" --argjson verified "$verified" --argjson normalized "$normalized" --argjson pending "$pending" '{attempted:$attempted,observed:$observed,returned:{project:$rp,document:$rd},outcome:(if $verified and $normalized then "writtenButNormalized" elif $verified then "verified" elif ($attempted|length)>0 then "attemptedWithUnknown" else "attempted" end),verified:$verified,pending:$pending}'
   [[ "$verified" == true ]]
 }
 
@@ -825,7 +874,7 @@ command_spec_read() {
 }
 
 command_spec_write() {
-  local project_id='' repository='' content_file='' expected='' issue_map='' documents doc current expected_file current_file replacement_metadata increments evidence response returned=null readback='' observed_file verified=false pending='[]'
+  local project_id='' repository='' content_file='' expected='' issue_map='' documents doc current expected_file current_file replacement_metadata increments evidence response returned=null readback='' observed_file verified=false normalized=false pending='[]'
   while [[ $# -gt 0 ]]; do case "$1" in --project) project_id="$2"; shift 2;; --repository) repository="$2"; shift 2;;
     --content-file) content_file="$2"; shift 2;; --expected-revision) expected="$2"; shift 2;;
     --issue-state-map) issue_map="$2"; shift 2;; *) usage;; esac; done
@@ -873,15 +922,18 @@ command_spec_write() {
     pending='["document-discovery"]'
   else
     observed_file="$(mktemp)"; jq -j '.content' <<<"$readback" >"$observed_file"
-    cmp -s "$expected_file" "$observed_file" || pending="$(jq -c '.+["document-content-verification"]' <<<"$pending")"
+    if ! cmp -s "$expected_file" "$observed_file"; then
+      content_files_equivalent "$expected_file" "$observed_file" && normalized=true ||
+        pending="$(jq -c '.+["document-content-verification"]' <<<"$pending")"
+    fi
     rm -f "$observed_file"
     [[ "$(jq -r '.id' <<<"$readback")" == "$(jq -r '.id' <<<"$doc")" ]] || pending="$(jq -c '.+["document-identity-verification"]' <<<"$pending")"
     if [[ "$returned" != null && "$(jq -r '.id' <<<"$returned")" != "$(jq -r '.id' <<<"$readback")" ]]; then pending="$(jq -c '.+["document-return-mismatch"]' <<<"$pending")"; fi
   fi
   rm -f "$expected_file"
   [[ "$(jq 'length' <<<"$pending")" -eq 0 ]] && verified=true
-  jq -cn --arg id "${readback:+$(jq -r '.id' <<<"$readback")}" --argjson returned "$returned" --argjson verified "$verified" --argjson pending "$pending" \
-    '{attempted:["documentUpdate"],observed:{document:(if $id=="" then null else $id end)},returned:{document:$returned},verified:$verified,pending:$pending}'
+  jq -cn --arg id "${readback:+$(jq -r '.id' <<<"$readback")}" --argjson returned "$returned" --argjson verified "$verified" --argjson normalized "$normalized" --argjson pending "$pending" \
+    '{attempted:["documentUpdate"],observed:{document:(if $id=="" then null else $id end)},returned:{document:$returned},outcome:(if $verified and $normalized then "writtenButNormalized" elif $verified then "verified" elif $returned==null then "attemptedWithUnknown" else "attempted" end),verified:$verified,pending:$pending}'
   [[ "$verified" == true ]]
 }
 
@@ -1055,7 +1107,9 @@ command_issue_transition() {
   [[ -n "$issue_ref" && -n "$target" ]] || usage
   jq -e --arg target "$target" 'has($target)' >/dev/null 2>&1 <<<"$issue_map" || fail "unknown issue state"
   [[ "$target" != "done" ]] || fail "done requires verified merge attribution through status-reconcile"
-  [[ -z "$pull_request" ]] || require_repository_pr_url "$repository" "$pull_request"
+  if [[ -n "$pull_request" ]]; then
+    pull_request="$(normalize_repository_pr_url "$repository" "$pull_request")"
+  fi
   [[ -z "$pull_request" || -n "$branch" ]] || fail "pull request attribution requires a branch"
   owned_project "$project_id" "$repository" >/dev/null
   issues="$(issue_list "$project_id")" || fail "issue discovery failed"
@@ -1106,12 +1160,12 @@ command_issue_transition() {
   fi
   [[ "$verified" == true ]] || pending='["issue-status-or-evidence-verification"]'
   jq -cn --arg current "$current" --arg target "$target" --arg id "$(jq -r '.id // empty' <<<"$readback")" --argjson returned "$returned" --argjson verified "$verified" --argjson pending "$pending" \
-    '{current:$current,target:$target,attempted:["issueUpdate"],completed:(if $verified then ["issueUpdate"] else [] end),observed:{issue:(if $id=="" then null else $id end)},returned:{issue:$returned},verified:$verified,pending:$pending}'
+    '{current:$current,target:$target,attempted:["issueUpdate"],completed:(if $verified then ["issueUpdate"] else [] end),observed:{issue:(if $id=="" then null else $id end)},returned:{issue:$returned},outcome:(if $verified then "verified" elif $returned==null then "attemptedWithUnknown" else "attempted" end),verified:$verified,pending:$pending}'
   [[ "$verified" == true ]]
 }
 
 command_status_reconcile() {
-  local project_id='' repository='' status_map='' issue_map='' prs_file=''
+  local project_id='' repository='' status_map='' issue_map='' prs_file='' prs_json=''
   local expected_eligible='' expected_project_transition='' expected_snapshot=''
   local increments eligible eligible_ids inc response after projects project project_semantic current_project_semantic
   local observed_snapshot all_done should_project project_verified=false non_target_ok
@@ -1128,6 +1182,8 @@ command_status_reconcile() {
   require_uuid "$project_id" "project id"; require_repository "$repository"
   validate_status_map "$status_map"; validate_issue_state_map "$issue_map"
   [[ -r "$prs_file" ]] || fail "pull request evidence file is unreadable"
+  prs_json="$(python3 "$METADATA" normalize-prs --repository "$repository" <"$prs_file")" ||
+    fail "pull request evidence is invalid or foreign"
   jq -e '
     type=="array" and length==(unique|length) and
     all(.[]; type=="string" and test("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"))
@@ -1153,7 +1209,7 @@ command_status_reconcile() {
       (.url|ltrimstr($prefix)|test("^[1-9][0-9]*$")) and
       (.merged|type=="boolean")
     )
-  ' >/dev/null 2>&1 "$prs_file" || fail "pull request evidence is invalid or foreign"
+  ' >/dev/null 2>&1 <<<"$prs_json" || fail "pull request evidence is invalid or foreign"
 
   project="$(owned_project "$project_id" "$repository")"
   project_semantic="$(jq -r --arg state "$(jq -r '.status.id' <<<"$project")" \
@@ -1185,12 +1241,11 @@ command_status_reconcile() {
         .url==$issue.pullRequest and .merged==true
       )] | length)==1
     )
-  ' >/dev/null 2>&1 "$prs_file" \
+  ' >/dev/null 2>&1 <<<"$prs_json" \
     || fail "pull request attribution pair is missing, duplicate, or foreign; or done evidence is unmerged"
-
-  eligible="$(jq -cn --arg project "$project_id" --argjson increments "$increments" --slurpfile evidence "$prs_file" '
+  eligible="$(jq -cn --arg project "$project_id" --argjson increments "$increments" --argjson evidence "$prs_json" '
     [$increments[] | select(.status=="inReview") | . as $issue |
-      [$evidence[0][] | select(
+      [$evidence[] | select(
         .projectId==$project and .issueIdentifier==$issue.identifier and
         .url==$issue.pullRequest and .merged==true
       )] | select(length==1) | $issue]
@@ -1201,7 +1256,7 @@ command_status_reconcile() {
   all_done=false
   if [[ "$(jq 'length' <<<"$increments")" -gt 0 ]] &&
      jq -e 'all(.[]; .status=="done")' >/dev/null <<<"$increments"; then all_done=true; fi
-  [[ "$project_semantic" != done || "$all_done" == true ]] \
+  [[ "$project_semantic" != "done" || "$all_done" == true ]] \
     || fail "project and managed issue terminal states are inconsistent"
   should_project=false
   if [[ "$project_semantic" == inReview && "$(jq 'length' <<<"$increments")" -gt 0 ]] &&
@@ -1211,7 +1266,7 @@ command_status_reconcile() {
   [[ "$should_project" == "$expected_project_transition" ]] \
     || fail "project transition preview drifted before mutation"
 
-  if [[ "$project_semantic" == done ]]; then
+  if [[ "$project_semantic" == "done" ]]; then
     [[ "$(jq 'length' <<<"$eligible_ids")" -eq 0 && "$expected_project_transition" == false ]] \
       || fail "done project cannot carry pending terminal writes"
     jq -cn --arg id "$project_id" \
@@ -1319,7 +1374,7 @@ compose_increment_description() {
 
 command_plan_reconcile() {
   local project_id='' repository='' team_id='' issue_map='' plan_file='' desired current issues uuid_map observed match removed inc stable id dep_ids parent old metadata description variables response returned response_valid
-  local attempted='[]' completed='[]' pending='[]' mutation_responses='[]' current_relations desired_relations rel key final expected verified=false
+  local attempted='[]' completed='[]' pending='[]' mutation_responses='[]' current_relations desired_relations rel key final expected verified=false normalized=false
   while [[ $# -gt 0 ]]; do case "$1" in
     --project) project_id="$2"; shift 2;; --repository) repository="$2"; shift 2;;
     --team-id) team_id="$2"; shift 2;; --issue-state-map) issue_map="$2"; shift 2;;
@@ -1358,7 +1413,7 @@ command_plan_reconcile() {
     then error("unrepresentable Git ancestry") else . end |
     if any(.[]; . as $item | any($item.dependencies[]; . as $dependency | item($dependency).ordinal >= $item.ordinal))
     then error("dependency must precede dependent ordinal") else . end
-  ' "$plan_file" 2>/dev/null)" || fail "desired increment plan is invalid"
+  ' "$plan_file" 2>/dev/null | python3 "$METADATA" normalize-plan)" || fail "desired increment plan is invalid"
 
   owned_project "$project_id" "$repository" >/dev/null
   issues="$(issue_list "$project_id")" || fail "issue discovery failed"
@@ -1421,7 +1476,7 @@ command_plan_reconcile() {
       old="$(jq -c --arg stable "$stable" '[.[]|select(.incrementId==$stable)] | if length==1 then .[0] else null end' <<<"$current")"
       [[ "$old" != null ]] || continue
       if jq -e --argjson old "$old" --argjson desired "$inc" --argjson dependencies "$dep_ids" --arg parent "$parent" '
-        $old.title==$desired.title and $old.content==$desired.content and
+        $old.title==$desired.title and $old.contentNormalized==$desired.content and
         $old.ordinal==$desired.ordinal and $old.dependencies==$dependencies and
         $old.gitParent==$parent
       ' >/dev/null; then continue; fi
@@ -1470,26 +1525,32 @@ command_plan_reconcile() {
   fi
 
   set +e
-  final="$(normalized_increments "$project_id" "$repository" "$issue_map" 2>/dev/null)"
+  final="$(normalized_increments "$project_id" "$repository" "$issue_map" true 2>/dev/null)"
   final_rc=$?
   set -e
   if [[ "$final_rc" -eq 0 ]]; then
     expected="$(jq -cn --argjson desired "$desired" --argjson ids "$uuid_map" '
       [$desired[] | . as $item | {
-        id:$ids[.incrementId],incrementId,ordinal,title,content,
+        id:$ids[.incrementId],incrementId,ordinal,title,content,contentNormalized:.content,
         dependencies:([.dependencies[] | $ids[.]] | sort),
         gitParent:(if $ids[.gitParent] then $ids[.gitParent] else .gitParent end)
       }] | sort_by(.ordinal,.id)
     ')"
     if jq -e --argjson expected "$expected" '
-      map({id,incrementId,ordinal,title,content,dependencies,gitParent}) == $expected
-    ' >/dev/null <<<"$final"; then verified=true; else pending="$(jq -c '.+["final-plan-verification"]' <<<"$pending")"; fi
+      map({id,incrementId,ordinal,title,contentNormalized,dependencies,gitParent}) ==
+      ($expected | map({id,incrementId,ordinal,title,contentNormalized,dependencies,gitParent}))
+    ' >/dev/null <<<"$final"; then
+      verified=true
+      if jq -e --argjson desired "$desired" '
+        any(.[]; . as $got | any($desired[]; .incrementId==$got.incrementId and .content!=$got.content))
+      ' >/dev/null <<<"$final"; then normalized=true; fi
+    else pending="$(jq -c '.+["final-plan-verification"]' <<<"$pending")"; fi
   else pending="$(jq -c '.+["final-dag-verification"]' <<<"$pending")"; fi
   operation_status="$(jq -cn --argjson mutations "$mutation_responses" --argjson final "${final:-[]}" --argjson desired "$desired" --argjson ids "$uuid_map" '
     def issue_ok($stable):
       ([ $desired[] | select(.incrementId==$stable) ][0]) as $want |
       ([ $final[] | select(.incrementId==$stable) ][0]) as $got |
-      ($got != null and $got.title==$want.title and $got.content==$want.content and
+      ($got != null and $got.title==$want.title and $got.contentNormalized==$want.content and
        $got.ordinal==$want.ordinal and
        $got.dependencies==([$want.dependencies[] | $ids[.]] | sort) and
        $got.gitParent==(if $ids[$want.gitParent] then $ids[$want.gitParent] else $want.gitParent end));
@@ -1510,13 +1571,15 @@ command_plan_reconcile() {
   ')"
   completed="$(jq -c '.completed' <<<"$operation_status")"
   pending="$(jq -cn --argjson existing "$pending" --argjson operations "$(jq -c '.pending' <<<"$operation_status")" '$existing+$operations|unique')"
-  jq -cn --argjson desired "$desired" --argjson uuidMap "$uuid_map" --argjson attempted "$attempted" --argjson completed "$completed" --argjson pending "$pending" --argjson mutations "$mutation_responses" --argjson final "${final:-null}" --argjson relations "${desired_relations:-[]}" --argjson verified "$verified" '
+  jq -cn --argjson desired "$desired" --argjson uuidMap "$uuid_map" --argjson attempted "$attempted" --argjson completed "$completed" --argjson pending "$pending" --argjson mutations "$mutation_responses" --argjson final "${final:-null}" --argjson relations "${desired_relations:-[]}" --argjson verified "$verified" --argjson normalized "$normalized" '
     {
       intended:{operations:$attempted,increments:[$desired[]|{incrementId,ordinal,dependencies,gitParent}]},
       observed:{issueIds:($uuidMap|to_entries|map({incrementId:.key,id:.value})),relations:$relations},
       returned:{mutations:$mutations},
       readBack:{increments:(if ($final|type)=="array" then [$final[]|{id,incrementId,ordinal,dependencies,gitParent,status}] else null end),dagVerified:$verified},
-      attempted:$attempted,completed:$completed,pending:$pending,remainingSubsteps:$pending,verified:$verified
+      attempted:$attempted,completed:$completed,pending:$pending,remainingSubsteps:$pending,
+      outcome:(if $verified and $normalized then "writtenButNormalized" elif $verified then "verified" elif ($attempted|length)>0 then "attemptedWithUnknown" else "attempted" end),
+      verified:$verified
     }'
   [[ "$verified" == true && "$(jq 'length' <<<"$pending")" -eq 0 ]]
 }

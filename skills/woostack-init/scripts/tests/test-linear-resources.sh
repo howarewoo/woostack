@@ -170,6 +170,23 @@ assert_eq "$(jq -r '.input.projectId' <<<"$document_create_variables")" "$projec
 assert_contains "$(jq -r '.input.content' <<<"$document_create_variables")" "Acceptance body." "document create sends exact source content"
 assert_contains "$(jq -r '.input.content' <<<"$document_create_variables")" '"repository":"acme/widgets"' "document create appends canonical spec ownership"
 
+# Linear may rewrite Markdown list markers while preserving the document.
+printf '# Feature Alpha\n\n- Provider-normalized item.\n' >"$work/provider-spec.md"
+printf '# Feature Alpha\n\n* Provider-normalized item.\n\n+++ Woostack metadata — managed, do not edit\n{"artifactType":"spec","designState":"draft","projectId":"%s","repository":"acme/widgets","schema":1}\n+++\n' \
+  "$project_id" >"$work/provider-spec-observed.md"
+make_document_list "$work/provider-document-list.json" "$work/provider-spec-observed.md" \
+  '2026-07-12T10:04:00.000Z'
+reset_fake
+queue project-list project-list-one.json 1
+cp "$work/provider-document-list.json" "$work/responses/document-list.1.json"
+run_capture feature-create --repository acme/widgets --title 'Feature Alpha' \
+  --team-id "$team_id" --status-map "$status_map" --spec-file "$work/provider-spec.md"
+assert_exit 0 "$RC" "feature create resumes across provider list-marker normalization"
+assert_not_contains "$(cat "$work/calls")" $'mutation\t' \
+  "provider-normalized existing spec needs no duplicate mutation"
+assert_eq "$(jq -r '.outcome' <<<"$OUTPUT")" "writtenButNormalized" \
+  "feature create classifies provider-normalized readback"
+
 # Unknown mutation outcome is discovered and resumed without repeating the mutation.
 reset_fake
 queue project-list project-list-none.json 1
@@ -246,6 +263,22 @@ assert_eq "$(jq -r '.verified' <<<"$OUTPUT")" "true" "spec update is read-back v
 document_update_variables="$(call_variables document-update 1)"
 assert_eq "$(jq -r '.id' <<<"$document_update_variables")" "dddddddd-dddd-4ddd-8ddd-dddddddddddd" "document update targets the managed spec"
 assert_contains "$(jq -r '.input.content' <<<"$document_update_variables")" "Revised body." "document update sends revised content"
+printf '# Feature Alpha\n\n- Revised item.\n\n+++ Woostack metadata — managed, do not edit\n{"artifactType":"spec","designState":"draft","projectId":"%s","repository":"acme/widgets","schema":1}\n+++\n' \
+  "$project_id" >"$work/revised-list.md"
+sed 's/- Revised item./* Revised item./' "$work/revised-list.md" >"$work/revised-list-observed.md"
+make_document_list "$work/revised-list-document.json" "$work/revised-list-observed.md" \
+  '2026-07-12T10:05:00.000Z'
+reset_fake
+queue document-list document-list-one.json 1
+queue document-update document-update-success.json 1
+cp "$work/revised-list-document.json" "$work/responses/document-list.2.json"
+run_capture spec-write --project "$project_id" --repository acme/widgets \
+  --content-file "$work/revised-list.md" --expected-revision "$revision"
+assert_exit 0 "$RC" "spec write verifies provider-normalized list markers"
+assert_eq "$(jq -r '.verified' <<<"$OUTPUT")" true \
+  "provider-normalized spec write remains fully verified"
+assert_eq "$(jq -r '.outcome' <<<"$OUTPUT")" "writtenButNormalized" \
+  "spec write classifies provider-normalized readback"
 reset_fake; queue document-list document-list-one.json 1; queue document-update document-update-success.json 1; touch "$work/responses/document-update.1.fail"; queue document-list document-list-updated.json 2
 run_capture spec-write --project "$project_id" --repository acme/widgets --content-file "$work/revised.md" --expected-revision "$revision"
 assert_exit 0 "$RC" "unknown spec update outcome resumes by read-back"
@@ -923,6 +956,41 @@ assert_eq "$(jq -r '[.increments[] | select(.dependencies|length==0)] | length' 
 assert_eq "$(jq -r '.increments[2].dependencies[0]' <<<"$OUTPUT")" "cccccccc-0001-4000-8000-000000000001" "native blocked-by UUID is normalized"
 assert_eq "$(jq -r '.increments[2].gitParent' <<<"$OUTPUT")" "cccccccc-0001-4000-8000-000000000001" "one representable Git parent is retained"
 
+jq '
+  .data.issues.nodes[0].description |= (
+    sub("\"branch\":null"; "\"branch\":\"feature/eng-11\"") |
+    sub("\"pullRequest\":null"; "\"pullRequest\":\"https://github.com/acme/widgets/pull/11\"")
+  ) |
+  .data.issues.nodes[0].attachments={
+    nodes:[{url:"https://github.com/acme/widgets/pull/99"}],
+    pageInfo:{hasNextPage:false}
+  }
+' "$FIXTURES/issue-list-valid.json" >"$work/issue-list-conflicting-pr.json"
+reset_fake
+cp "$work/issue-list-conflicting-pr.json" "$work/responses/issue-list.1.json"
+run_capture plan-read --project "$project_id" --repository acme/widgets \
+  --issue-state-map "$issue_state_map"
+assert_exit 1 "$RC" "conflicting metadata and native PR evidence fails closed"
+assert_contains "$OUTPUT" "conflicts" "conflicting PR evidence has a safe diagnostic"
+
+jq '
+  .data.issues.nodes[0].description |=
+    sub("\"pullRequest\":\"https://github.com/acme/widgets/pull/11\""; "\"pullRequest\":null") |
+  .data.issues.nodes[0].attachments={
+    nodes:[
+      {url:"https://github.com/acme/widgets/pull/11"},
+      {url:"https://github.com/acme/widgets/pull/12"}
+    ],
+    pageInfo:{hasNextPage:false}
+  }
+' "$FIXTURES/issue-list-valid.json" >"$work/issue-list-ambiguous-pr.json"
+reset_fake
+cp "$work/issue-list-ambiguous-pr.json" "$work/responses/issue-list.1.json"
+run_capture plan-read --project "$project_id" --repository acme/widgets \
+  --issue-state-map "$issue_state_map"
+assert_exit 1 "$RC" "ambiguous native PR evidence fails closed"
+assert_contains "$OUTPUT" "ambiguous" "ambiguous PR evidence has a safe diagnostic"
+
 # Metadata/native relation disagreement blocks rather than guessing.
 reset_fake; queue issue-list issue-list-relation-drift.json 1
 run_capture plan-read --project "$project_id" --repository acme/widgets --issue-state-map "$issue_state_map"
@@ -1024,6 +1092,25 @@ assert_eq "$(grep -c $'mutation\tissue-create' "$work/calls")" "1" "create misma
 assert_not_contains "$(cat "$work/calls")" $'mutation\tissue-update' "create mismatch stops before issue update"
 assert_not_contains "$(cat "$work/calls")" $'mutation\trelation-' "create mismatch stops before relation mutation"
 
+# Plan verification uses the same provider-aware Markdown equivalence as specs.
+jq '.increments[0].content="- normalized item"' "$work/reconcile-plan.json" \
+  >"$work/reconcile-provider-plan.json"
+jq '.data.issues.nodes[0].description |= sub("New A\\."; "* normalized item")' \
+  "$FIXTURES/issue-list-reconcile-final.json" >"$work/issue-list-provider-normalized.json"
+reset_fake
+queue project-list project-list-one.json 1
+for count in 1 2 3; do
+  cp "$work/issue-list-provider-normalized.json" "$work/responses/issue-list.$count.json"
+done
+run_capture plan-reconcile --project "$project_id" --repository acme/widgets \
+  --team-id "$team_id" --issue-state-map "$issue_state_map" \
+  --plan-file "$work/reconcile-provider-plan.json"
+assert_exit 0 "$RC" "plan reconciliation verifies provider-normalized list markers"
+assert_not_contains "$(cat "$work/calls")" $'mutation\t' \
+  "provider-equivalent plan content performs no issue mutation"
+assert_eq "$(jq -r '.outcome' <<<"$OUTPUT")" "writtenButNormalized" \
+  "plan reconciliation classifies provider-normalized readback"
+
 # Relation repair can resume from metadata/native drift left by an unknown
 # relation outcome. Initial discovery tolerates only that drift; final readback
 # remains strict and keeps the failed repair pending.
@@ -1062,7 +1149,28 @@ transition_metadata="$(jq -r '.input.description' <<<"$transition_variables" | p
 assert_eq "$(jq -r '.branch' <<<"$transition_metadata")" "feature/eng-11" "branch is stored in managed issue metadata"
 assert_eq "$(jq -r '.pullRequest' <<<"$transition_metadata")" "https://github.com/acme/widgets/pull/11" "pull request is stored in managed issue metadata"
 assert_eq "$(jq -r '.verified' <<<"$OUTPUT")" "true" "inReview transition receipt is read-back verified"
+assert_eq "$(jq -r '.outcome' <<<"$OUTPUT")" "verified" \
+  "issue transition reports its fully verified outcome"
 assert_eq "$(cut -f2 "$work/calls" | tr '\n' ',')" "project-list,issue-list,issue-update,issue-list," "issue transition discovers owned project/issue, mutates once, then reads back"
+
+autolink_pr='[https://github.com/acme/widgets/pull/11](<https://github.com/acme/widgets/pull/11>)'
+jq --arg pr "$autolink_pr" '
+  .data.issues.nodes[0].description |=
+    sub("https://github.com/acme/widgets/pull/11"; $pr)
+' "$FIXTURES/issue-list-evidence.json" >"$work/issue-list-evidence-autolink.json"
+reset_fake
+queue project-list project-list-one.json 1
+queue issue-list issue-list-executing.json 1
+queue issue-update issue-update-success.json 1
+cp "$work/issue-list-evidence-autolink.json" "$work/responses/issue-list.2.json"
+run_capture issue-transition --project "$project_id" --repository acme/widgets \
+  --issue ENG-11 --issue-state-map "$issue_state_map" --target inReview \
+  --branch feature/eng-11 --pull-request https://github.com/acme/widgets/pull/11
+assert_exit 0 "$RC" "inReview transition verifies Linear-autolink PR readback"
+assert_eq "$(jq -r '.verified' <<<"$OUTPUT")" true \
+  "autolink-normalized issue evidence is fully verified"
+assert_eq "$(jq -r '.outcome' <<<"$OUTPUT")" "verified" \
+  "autolink normalization produces a fully verified transition outcome"
 
 reset_fake; queue project-list project-list-one.json 1; queue issue-list issue-list-executing.json 1
 run_capture issue-transition --project "$project_id" --repository acme/widgets --issue ENG-11 --issue-state-map "$issue_state_map" --target inReview
@@ -1086,6 +1194,31 @@ executing_snapshot='{"projectStatus":"inReview","issues":[{"id":"cccccccc-0001-4
 review_expect=(--expected-eligible "$review_eligible" --expected-project-transition true --expected-snapshot "$review_snapshot")
 done_expect=(--expected-eligible '[]' --expected-project-transition false --expected-snapshot "$done_snapshot")
 executing_expect=(--expected-eligible '[]' --expected-project-transition false --expected-snapshot "$executing_snapshot")
+jq '
+  .data.issues.nodes[0].description |=
+    sub("\"pullRequest\":\"https://github.com/acme/widgets/pull/11\""; "\"pullRequest\":null") |
+  .data.issues.nodes[0].attachments={nodes:[{url:"https://github.com/acme/widgets/pull/11"}],pageInfo:{hasNextPage:false}}
+' "$FIXTURES/issue-list-evidence.json" >"$work/issue-list-attachment-evidence.json"
+jq '
+  .data.issues.nodes[0].description |=
+    sub("\"pullRequest\":\"https://github.com/acme/widgets/pull/11\""; "\"pullRequest\":null") |
+  .data.issues.nodes[0].attachments={nodes:[{url:"https://github.com/acme/widgets/pull/11"}],pageInfo:{hasNextPage:false}}
+' "$FIXTURES/issue-list-evidence-done.json" >"$work/issue-list-attachment-evidence-done.json"
+reset_fake
+queue project-list project-list-in-review.json 1
+cp "$work/issue-list-attachment-evidence.json" "$work/responses/issue-list.1.json"
+queue issue-update issue-update-success.json 1
+cp "$work/issue-list-attachment-evidence-done.json" "$work/responses/issue-list.2.json"
+queue project-list project-list-in-review.json 2
+queue project-update project-update-done.json 1
+queue project-list project-list-done.json 3
+run_capture status-reconcile --project "$project_id" --repository acme/widgets \
+  --status-map "$status_map" --issue-state-map "$issue_state_map" \
+  --pull-requests-file "$work/merged-prs.json" "${review_expect[@]}"
+assert_exit 0 "$RC" "status reconciliation accepts native PR attachment evidence"
+assert_eq "$(jq -r '.verified' <<<"$OUTPUT")" true \
+  "native attachment terminal reconciliation is fully verified"
+
 reset_fake
 queue project-list project-list-in-review.json 1
 queue issue-list issue-list-evidence.json 1
@@ -1237,8 +1370,8 @@ jq --arg executing "$(jq -r '.executing' <<<"$issue_state_map")" '
     )
   )]
 ' "$FIXTURES/issue-list-evidence.json" >"$work/status-two-before.json"
-jq --arg done "$(jq -r '.done' <<<"$issue_state_map")" --arg blocked "$(jq -r '.blocked' <<<"$issue_state_map")" '
-  .data.issues.nodes[0].state.id=$done |
+jq --arg done_state "$(jq -r '.done' <<<"$issue_state_map")" --arg blocked "$(jq -r '.blocked' <<<"$issue_state_map")" '
+  .data.issues.nodes[0].state.id=$done_state |
   .data.issues.nodes[1].state.id=$blocked
 ' "$work/status-two-before.json" >"$work/status-two-after-drift.json"
 two_snapshot='{"projectStatus":"inReview","issues":[{"id":"cccccccc-0001-4000-8000-000000000001","status":"inReview"},{"id":"cccccccc-0002-4000-8000-000000000002","status":"executing"}]}'
