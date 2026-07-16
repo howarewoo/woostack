@@ -2,8 +2,8 @@ import { createHash } from 'node:crypto';
 import { execFile as execFileCallback } from 'node:child_process';
 import { lstat, readFile, readdir, realpath } from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
-import { pathToFileURL } from 'node:url';
 
 const execFile = promisify(execFileCallback);
 const KEBAB_CASE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -1167,7 +1167,11 @@ async function main(argv) {
   process.stdout.write(`${JSON.stringify(result, null, options.json ? 0 : 2)}\n`);
   if (!result.valid) process.exitCode = 1;
 }
-
-if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
-  await main(process.argv.slice(2));
+if (process.argv[1]) {
+  const self = await realpath(fileURLToPath(import.meta.url)).catch(() => path.resolve(fileURLToPath(import.meta.url)));
+  const requested = await realpath(path.resolve(process.argv[1])).catch(() => path.resolve(process.argv[1]));
+  if (self === requested) {
+    await main(process.argv.slice(2));
+  }
 }
+
