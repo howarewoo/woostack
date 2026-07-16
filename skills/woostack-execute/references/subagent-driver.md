@@ -83,10 +83,11 @@ For each task in that selected increment task list, in order:
    - **DONE_WITH_CONCERNS** → read the concerns; resolve correctness/scope ones before review,
      note observations and proceed.
    - **NEEDS_CONTEXT** → provide the missing context and re-dispatch.
-   - **BLOCKED** → assess: context gap (re-dispatch with more context), needs more reasoning
-     (re-dispatch per [Tier selection](#tier-selection) — a prior BLOCKED is itself
-     a bump-UP signal), task too large (split it), or the plan is wrong (escalate to the user).
-     **Never** silently retry the same model unchanged.
+   - **BLOCKED** → assess: context gap (re-dispatch with more context), task too large (split it),
+     or the plan is wrong (escalate to the user). If a `fast` implementer specifically needs more
+     reasoning, re-dispatch once at `standard` per [Tier selection](#tier-selection). A `standard`
+     implementer never retries at `deep`; split the task or escalate instead. **Never** silently
+     retry the same model unchanged.
 3. **Dispatch a spec-compliance reviewer** with
    [../prompts/spec-reviewer.md](../prompts/spec-reviewer.md), scoped to the implementer's
    reported task diff (this isolates the current task from earlier tasks' still-uncommitted work,
@@ -116,16 +117,16 @@ Each prompt template declares its `tier:` in frontmatter as the role default.
 
 ### Tier selection
 
-Each role has a **default** tier (its prompt's `tier:` frontmatter): implementer `standard`,
-spec-reviewer `standard`, quality-reviewer `deep`. The controller adjusts that default **per task**
-from complexity and risk — this table is the single home for the choice:
+Each role has a **default** tier (its prompt's `tier:` frontmatter): implementer `fast`,
+spec-reviewer `standard`, quality-reviewer `deep`. The controller adjusts tiers **per role and
+task** from complexity and risk — this table is the single home for the choice:
 
 | Adjust | Effective tier | When |
 |---|---|---|
-| **Bump UP** | `deep` | the task touches security / auth / crypto, data migrations, concurrency / locking, money / billing, or is cross-cutting / architectural; the task spec is highly ambiguous; or the task previously returned **BLOCKED** for "needs more reasoning". |
-| **Bump DOWN** | `fast` | the task is mechanical, fully specified, single-file, and low-risk (rename, copy/string change, mechanical refactor, config tweak, docstring/comment). |
+| **Implementation escalate** | `standard` | the task touches security / auth / crypto, data migrations, concurrency / locking, money / billing, or is cross-cutting / architectural; the task spec is highly ambiguous; or a `fast` attempt returned **BLOCKED** specifically because it needs more reasoning. |
+| **Implementation ceiling** | never `deep` | `standard` is the maximum for implementation. If it remains blocked, provide missing context, split the task, or escalate the plan to the user. |
 | **Reviewer downgrade** | `fast` / `standard` | spec-reviewer → `fast` on a trivial diff; quality-reviewer → `standard` on a trivial diff (otherwise stays `deep`). |
-| **Ambiguous signals** | role default | default-safe — never downgrade risky work on uncertainty. |
+| **No implementation escalation signal** | `fast` | favor the implementer default; use `standard` only when a signal above establishes the need. |
 
 ### Dispatch model (resolve → map → pass)
 
