@@ -815,6 +815,39 @@ function normalizeReferenceLabel(value) {
   return markdownUnescape(value).trim().replace(/\s+/g, ' ').toLowerCase();
 }
 
+function stripInlineCodeSpans(line) {
+  let output = '';
+  for (let index = 0; index < line.length;) {
+    if (line[index] === '\\' && index + 1 < line.length) {
+      output += line.slice(index, index + 2);
+      index += 2;
+      continue;
+    }
+    if (line[index] !== '`') {
+      output += line[index];
+      index += 1;
+      continue;
+    }
+
+    let runEnd = index;
+    while (line[runEnd] === '`') runEnd += 1;
+    const marker = line.slice(index, runEnd);
+    let close = runEnd;
+    while ((close = line.indexOf(marker, close)) !== -1) {
+      if (line[close - 1] !== '`' && line[close + marker.length] !== '`') break;
+      close += marker.length;
+    }
+    if (close === -1) {
+      output += marker;
+      index = runEnd;
+      continue;
+    }
+    output += ' '.repeat(close + marker.length - index);
+    index = close + marker.length;
+  }
+  return output;
+}
+
 function extractMarkdownLinks(raw) {
   const lines = markdownContentLines(raw);
   const definitions = new Map();
@@ -831,8 +864,9 @@ function extractMarkdownLinks(raw) {
   });
 
   const links = [];
-  lines.forEach((line, lineIndex) => {
-    if (definitionLines.has(lineIndex)) return;
+  lines.forEach((rawLine, lineIndex) => {
+    if (definitionLines.has(lineIndex) || /^(?: {4}|\t)/.test(rawLine)) return;
+    const line = stripInlineCodeSpans(rawLine);
     for (let index = 0; index < line.length; index += 1) {
       if (line[index] === '\\') {
         index += 1;
@@ -887,6 +921,7 @@ async function validateLinks(packageRoot, repositoryRoot, files, trackedPaths, e
     try {
       raw = await readFile(absolute, 'utf8');
     } catch {
+      addError(errors, 'package-read-error', '', file.path, 'Package file could not be read');
       continue;
     }
     const links = extractMarkdownLinks(raw);

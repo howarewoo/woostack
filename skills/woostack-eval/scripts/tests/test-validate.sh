@@ -331,6 +331,15 @@ make_package missing-link 'description: Package with a missing link.'
 printf '\n[Missing](references/missing.md)\n' >>"$PACKAGE/SKILL.md"
 expect_invalid 'missing local Markdown link' link-target-missing SKILL.md /links/1
 
+make_package code-shaped-link 'description: Package with link-shaped code examples.'
+cat >>"$PACKAGE/SKILL.md" <<'EOF'
+
+`[Inline code](references/missing-inline.md)`
+
+    [Indented code](references/missing-indented.md)
+EOF
+expect_valid 'link-shaped Markdown code is ignored' code-shaped-link 'Package with link-shaped code examples.'
+
 make_package escaping-link 'description: Package with an escaping link.'
 printf '\n[Outside](../../outside.md)\n' >>"$PACKAGE/SKILL.md"
 expect_invalid 'escaping local Markdown link' link-target-outside SKILL.md /links/1
