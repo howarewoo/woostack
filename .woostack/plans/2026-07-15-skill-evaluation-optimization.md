@@ -52,7 +52,7 @@ Every implementation branch follows Red → Green → Refactor. Run only the nam
 - Create: `skills/woostack-eval/scripts/tests/test-shared-parser.sh`
 - Test: `site/scripts/gen-skills.test.mjs`
 
-- [ ] **Step 1 — Red: write contract fixtures and assertions**
+- [x] **Step 1 — Red: write contract fixtures and assertions**
 
 Use temporary package directories from the shell tests; do not commit synthetic skill packages. Pin these cases:
 
@@ -70,7 +70,7 @@ invalid: symlink, FIFO/special file, `.git`, `.env*`, or secret-looking package 
 
 The parser test imports one exported `parseFrontmatter(raw, file)` function and asserts `{fm, body}` compatibility with the site generator. The package validator test expects a non-zero exit plus an exact field/path for each invalid fixture.
 
-- [ ] **Step 2 — Verify Red**
+- [x] **Step 2 — Verify Red**
 
 Run:
 
@@ -86,7 +86,7 @@ Expected: both fail because `validate.mjs` does not exist.
 **Files:**
 - Create: `skills/woostack-eval/scripts/validate.mjs`
 
-- [ ] **Step 1 — Green: implement the smallest exported API**
+- [x] **Step 1 — Green: implement the smallest exported API**
 
 Export and document:
 
@@ -117,7 +117,7 @@ Required behavior:
 - Never call a model, network, package manager, or provider.
 - Guard the CLI entrypoint with an `import.meta.url` check so site generation and `prepare.mjs` can import the module without executing argument parsing or writing output.
 
-- [ ] **Step 2 — Run Green tests**
+- [x] **Step 2 — Run Green tests**
 
 ```bash
 bash skills/woostack-eval/scripts/tests/run-tests.sh
@@ -131,15 +131,15 @@ Expected: parser, package, corpus, path-safety, placeholder, and YAML-hazard cas
 - Modify: `site/scripts/gen-skills.mjs:1-55`
 - Modify: `site/scripts/gen-skills.test.mjs:1-35`
 
-- [ ] **Step 1 — Red: change the test import authority**
+- [x] **Step 1 — Red: change the test import authority**
 
 Import `parseFrontmatter` directly from `../../skills/woostack-eval/scripts/validate.mjs` in the test and add the safe-placeholder/colon-space pair. Expected failure: the generator still owns a second parser.
 
-- [ ] **Step 2 — Green: delete the duplicate parser**
+- [x] **Step 2 — Green: delete the duplicate parser**
 
 Import and re-export `parseFrontmatter` from the canonical validator in `gen-skills.mjs` so existing generator consumers retain their API. Keep rendering functions in the site script.
 
-- [ ] **Step 3 — Verify shared production behavior**
+- [x] **Step 3 — Verify shared production behavior**
 
 ```bash
 node --test site/scripts/gen-skills.test.mjs
