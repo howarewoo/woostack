@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-fix",
+  "cases": [
+    {
+      "id": "diagnosed-webhook-transaction-order",
+      "query": "We traced occasional lost webhook events to the database transaction committing after the queue publish. Correct the ordering and add a regression test for the failure we observed.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-fix"
+    },
+    {
+      "id": "unknown-search-latency-regression",
+      "query": "The search endpoint became three times slower after Tuesday's deployment, but the cause is unknown. Reproduce the slowdown, isolate what changed, and restore the previous latency without masking the problem.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-fix"
+    },
+    {
+      "id": "nondefect-parser-api-cleanup",
+      "query": "Replace the parser's two boolean options with a single mode enum and update its internal callers. The current behavior is correct, the package is unreleased, and the cleanup can ship in one pull request.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-change",
+      "conflictsWith": ["woostack-fix"]
+    },
+    {
+      "id": "existing-product-team-access-initiative",
+      "query": "Introduce delegated team access in our existing analytics product across invitations, roles, billing seats, audit history, and administration. The behavior needs product decisions and delivery will span several dependent pull requests.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-build",
+      "conflictsWith": ["woostack-fix"]
+    }
+  ]
+}

@@ -344,6 +344,110 @@ make_package escaping-link 'description: Package with an escaping link.'
 printf '\n[Outside](../../outside.md)\n' >>"$PACKAGE/SKILL.md"
 expect_invalid 'escaping local Markdown link' link-target-outside SKILL.md /links/1
 
+make_package missing-sibling-link 'description: Package with a missing sibling link.'
+printf '\n[Missing sibling](../absent-sibling/references/guide.md)\n' >>"$PACKAGE/SKILL.md"
+expect_invalid 'default validation rejects a missing sibling link' link-target-missing SKILL.md /links/1
+
+POLICY_COLLECTION="$TMP_ROOT/baseline-policy"
+mkdir -p "$POLICY_COLLECTION/sibling-target/references"
+mkfifo "$POLICY_COLLECTION/sibling-target/references/special"
+
+"$NODE" --input-type=module - "$VALIDATOR" "$POLICY_COLLECTION" <<'NODE'
+import assert from 'node:assert/strict';
+import { mkdir, symlink, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+
+const [validatorPath, collectionRoot] = process.argv.slice(2);
+const { validatePackage } = await import(pathToFileURL(validatorPath).href);
+const packageRoot = path.join(collectionRoot, 'snapshot-target');
+await mkdir(path.join(packageRoot, 'references'), { recursive: true });
+await writeFile(path.join(packageRoot, 'references', 'guide.md'), '# Guide\n');
+const skill = (link) => `---
+name: snapshot-target
+description: Baseline snapshot link policy fixture.
+---
+# snapshot-target
+
+[Guide](references/guide.md)
+[Policy target](${link})
+`;
+
+await writeFile(path.join(packageRoot, 'SKILL.md'), skill('../sibling-target/references/guide.md'));
+const crossPackage = await validatePackage(packageRoot, {
+  repositoryRoot: collectionRoot,
+  baselineSnapshot: { collectionRoot },
+});
+assert.equal(crossPackage.valid, true, JSON.stringify(crossPackage.errors));
+
+await writeFile(
+  path.join(packageRoot, 'SKILL.md'),
+  skill('../absent-sibling/references/guide.md'),
+);
+const outsideCollection = await validatePackage(packageRoot, {
+  repositoryRoot: collectionRoot,
+  baselineSnapshot: { collectionRoot: path.join(collectionRoot, '..', 'outside-collection') },
+});
+assert.equal(outsideCollection.valid, false);
+assert.equal(
+  outsideCollection.errors.some(({ code }) => code === 'link-target-missing'),
+  true,
+);
+const nonContainingCollection = await validatePackage(packageRoot, {
+  repositoryRoot: collectionRoot,
+  baselineSnapshot: { collectionRoot: path.join(collectionRoot, 'sibling-target') },
+});
+assert.equal(nonContainingCollection.valid, false);
+assert.equal(
+  nonContainingCollection.errors.some(({ code }) => code === 'link-target-missing'),
+  true,
+);
+
+await writeFile(path.join(packageRoot, 'SKILL.md'), skill('references/missing.md'));
+const inPackage = await validatePackage(packageRoot, {
+  repositoryRoot: collectionRoot,
+  baselineSnapshot: { collectionRoot },
+});
+assert.equal(inPackage.valid, false);
+assert.equal(inPackage.errors.some(({ code }) => code === 'link-target-missing'), true);
+
+await writeFile(path.join(packageRoot, 'SKILL.md'), skill('../../outside.md'));
+const escaped = await validatePackage(packageRoot, {
+  repositoryRoot: collectionRoot,
+  baselineSnapshot: { collectionRoot },
+});
+assert.equal(escaped.valid, false);
+assert.equal(escaped.errors.some(({ code }) => code === 'link-target-outside'), true);
+
+await writeFile(path.join(packageRoot, 'SKILL.md'), skill('../sibling-target/../missing.md'));
+const nonNormalized = await validatePackage(packageRoot, {
+  repositoryRoot: collectionRoot,
+  baselineSnapshot: { collectionRoot },
+});
+assert.equal(nonNormalized.valid, false);
+assert.equal(nonNormalized.errors.some(({ code }) => code === 'link-target-not-normalized'), true);
+
+await symlink(
+  path.join(packageRoot, 'references', 'guide.md'),
+  path.join(collectionRoot, 'sibling-target', 'references', 'linked.md'),
+);
+await writeFile(path.join(packageRoot, 'SKILL.md'), skill('../sibling-target/references/linked.md'));
+const symlinked = await validatePackage(packageRoot, {
+  repositoryRoot: collectionRoot,
+  baselineSnapshot: { collectionRoot },
+});
+assert.equal(symlinked.valid, false);
+assert.equal(symlinked.errors.some(({ code }) => code === 'link-target-symlink'), true);
+
+await writeFile(path.join(packageRoot, 'SKILL.md'), skill('../sibling-target/references/special'));
+const special = await validatePackage(packageRoot, {
+  repositoryRoot: collectionRoot,
+  baselineSnapshot: { collectionRoot },
+});
+assert.equal(special.valid, false);
+assert.equal(special.errors.some(({ code }) => code === 'link-target-not-regular'), true);
+NODE
+
 make_package balanced-link 'description: Package with balanced and escaped link destinations.'
 printf '# Parenthesized guide\n' >"$PACKAGE/references/guide(1).md"
 printf '\n[Balanced](references/guide(1).md)\n[Escaped](references/guide\\(1\\).md)\n' >>"$PACKAGE/SKILL.md"

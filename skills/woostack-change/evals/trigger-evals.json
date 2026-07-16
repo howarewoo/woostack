@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-change",
+  "cases": [
+    {
+      "id": "existing-admin-copy-row-action",
+      "query": "On the existing admin table, add an action that copies a row's public ID and show a brief confirmation. It is an isolated UI addition with a clear outcome and should stay within one pull request.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-change"
+    },
+    {
+      "id": "internal-config-key-cleanup",
+      "query": "Rename the unreleased cache package's `staleWindow` option to `refreshWindow`, update its three callers and examples, and remove the old spelling. This is a small cleanup; no production behavior is failing.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-change"
+    },
+    {
+      "id": "new-trails-mobile-foundation",
+      "query": "I want to launch a trail-condition mobile app, and no repository or technology choices exist yet. Recommend the current client, backend, mapping, and sign-in services, then create the initial project structure.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-bootstrap",
+      "conflictsWith": ["woostack-change"]
+    },
+    {
+      "id": "existing-platform-retention-controls",
+      "query": "Our existing compliance product needs tenant-specific retention rules spanning policy design, schema changes, background deletion, audit evidence, and administrator controls. It will take multiple dependent pull requests and still has unresolved behavior decisions.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-build",
+      "conflictsWith": ["woostack-change"]
+    },
+    {
+      "id": "unknown-pdf-preview-regression",
+      "query": "PDF previews have been blank since the rendering library update, and we do not know why. Reproduce the failure, identify the cause, and restore previews with coverage for the regression.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-fix",
+      "conflictsWith": ["woostack-change"]
+    }
+  ]
+}

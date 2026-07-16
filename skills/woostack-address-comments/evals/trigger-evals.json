@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-address-comments",
+  "cases": [
+    {
+      "id": "open-threads-rate-limit-pr",
+      "query": "PR #2410 has six open reviewer conversations about its rate-limit implementation. Verify each concern, update the branch where the concern is valid, and explain any disagreement in the conversation where it was raised.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-address-comments"
+    },
+    {
+      "id": "requested-changes-billing-pr",
+      "query": "A maintainer requested changes on PR #2438 and three conversations remain open. Reconcile those specific requests with the code, make the warranted updates, and communicate the outcome back on each conversation.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-address-comments"
+    },
+    {
+      "id": "fresh-single-pr-inspection",
+      "query": "No one has inspected PR #2462 yet. Examine its diff for defects and missing coverage and return the validated findings without changing the branch.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-review",
+      "conflictsWith": ["woostack-address-comments"]
+    },
+    {
+      "id": "whole-stack-release-readiness",
+      "query": "The current Graphite series contains four dependent pull requests at different feedback stages. Work across the entire chain from the oldest dependency onward until every branch is ready to merge or progress is genuinely blocked.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-sweep",
+      "conflictsWith": ["woostack-address-comments"]
+    }
+  ]
+}
