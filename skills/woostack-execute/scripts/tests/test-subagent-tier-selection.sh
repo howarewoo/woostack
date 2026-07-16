@@ -23,6 +23,10 @@ assert_contains "$driver" '| **Implementation escalate** | `standard` |' \
   "implementation may escalate only to standard"
 assert_contains "$driver" 'the task touches security / auth / crypto, data migrations, concurrency / locking, money / billing' \
   "risk-sensitive implementation must escalate to standard"
+assert_contains "$driver" 'or is cross-cutting / architectural;' \
+  "cross-cutting implementation must escalate to standard"
+assert_contains "$driver" 'the task spec is highly ambiguous;' \
+  "ambiguous implementation must escalate to standard"
 assert_contains "$driver" 'a `fast` attempt returned **BLOCKED** specifically because it needs more reasoning.' \
   "a reasoning-blocked fast implementer must escalate to standard"
 assert_contains "$driver" '| **Implementation ceiling** | never `deep` |' \
