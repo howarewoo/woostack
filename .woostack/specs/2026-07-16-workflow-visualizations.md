@@ -1,7 +1,7 @@
 ---
 name: workflow-visualizations
 type: spec
-status: hardened
+status: approved
 date: 2026-07-16
 branch: feature/workflow-visualizations
 links:
