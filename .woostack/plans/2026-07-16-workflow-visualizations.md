@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-07-16-workflow-visualizations.md
-status: ready
+status: done
 branch: feature/workflow-visualizations
 ---
 
@@ -39,11 +39,11 @@ branch: feature/workflow-visualizations
 - Create: `site/components/concepts/workflow-atlas.tsx`
 - Create: `site/components/concepts/workflow-atlas.module.css`
 
-- [ ] **Step 1: Confirm the component baseline is absent.**
+- [x] **Step 1: Confirm the component baseline is absent.**
   Run: `test -e site/components/concepts/workflow-atlas.tsx`
   Expected: exit 1 because the component does not exist on the spec+plan base branch.
 
-- [ ] **Step 2: Define the workflow model and canonical content.**
+- [x] **Step 2: Define the workflow model and canonical content.**
   In `workflow-atlas.tsx`, define local discriminated types equivalent to:
   ```ts
   type StepKind = 'work' | 'gate' | 'handoff' | 'terminal';
@@ -76,10 +76,10 @@ branch: feature/workflow-visualizations
   - Bootstrap: gather requirements → live industry research → compare stack options → explicit stack choice → load reference contracts → scaffold and clean boilerplate → verify pipelines and boot surfaces → bootable project.
   Link each title to `/docs/skills/woostack-change`, `/docs/skills/woostack-fix`, `/docs/skills/woostack-build`, or `/docs/skills/woostack-bootstrap` respectively.
 
-- [ ] **Step 3: Render semantic groups before visual connectors.**
+- [x] **Step 3: Render semantic groups before visual connectors.**
   Export a named `WorkflowAtlas` function and default export. Render a `<figure>` containing a visible legend and one `<section aria-labelledby>` per workflow. Render the primary sequence as `<ol>` and each branch as a labelled nested `<div>` plus `<ol>`. Include visible `Gate`, `Handoff`, `Outcome`, and `No approval gate` text; set decorative connector elements or pseudo-elements outside the accessibility tree. Keep the component server-rendered: do not add `'use client'`, hooks, event handlers, or runtime data.
 
-- [ ] **Step 4: Style responsive workflow rails.**
+- [x] **Step 4: Style responsive workflow rails.**
   In the CSS module:
   - derive foreground, muted foreground, card, border, and primary surfaces from `--color-fd-*` tokens;
   - define a local amber gate accent with verified readable foreground in light and dark themes;
@@ -91,7 +91,7 @@ branch: feature/workflow-visualizations
   - add visible `:focus-visible` treatment for skill links and a non-color-only gate marker;
   - add no animation and change no global stylesheet.
 
-- [ ] **Step 5: Run the component-level type check.**
+- [x] **Step 5: Run the component-level type check.**
   Run: `pnpm -C site types:check`
   Expected: PASS with no TypeScript, CSS-module, MDX-generation, or Next.js type errors.
 
@@ -104,23 +104,23 @@ branch: feature/workflow-visualizations
 - Modify: `site/content/docs/getting-started.mdx`
 - Modify: `site/content/docs/concepts/building-rules.mdx`
 
-- [ ] **Step 1: Confirm the route baseline is absent.**
+- [x] **Step 1: Confirm the route baseline is absent.**
   Run: `test -e site/content/docs/concepts/workflows.mdx`
   Expected: exit 1 because the authored route does not exist on the spec+plan base branch.
 
-- [ ] **Step 2: Author the workflow comparison page.**
+- [x] **Step 2: Author the workflow comparison page.**
   Create `workflows.mdx` with frontmatter title `Workflow maps` and a description that names the four compared loops. Import `WorkflowAtlas` from `@/components/concepts/workflow-atlas`. Explain in concise prose that the maps summarize canonical skills and that work steps are not approval gates. Render `<WorkflowAtlas />`, then add a short “Choose the loop” section linking Bootstrap for greenfield creation, Build for multi-PR features, Fix for diagnosed bugs/root-cause work, and Change for bounded non-bug work that fits one PR.
 
-- [ ] **Step 3: Register the page in Core concepts navigation.**
+- [x] **Step 3: Register the page in Core concepts navigation.**
   Insert `"workflows"` immediately after `"building-rules"` in `site/content/docs/concepts/meta.json`; preserve the existing page order otherwise.
 
-- [ ] **Step 4: Add three bounded discovery links.**
+- [x] **Step 4: Add three bounded discovery links.**
   - In `concepts/index.mdx`, add one `Workflow maps` card beside Building rules with a description that compares Bootstrap, Build, Fix, and Change.
   - In `getting-started.mdx`, add one sentence after the Bootstrap/Build/Change/Fix command-selection bullets linking to `/docs/concepts/workflows` for the visual comparison.
   - In `concepts/building-rules.mdx`, add one sentence after the shared loop introduction linking to Workflow maps for the cross-workflow comparison.
   Do not copy stage-by-stage operational instructions into these pages.
 
-- [ ] **Step 5: Run the complete production checks.**
+- [x] **Step 5: Run the complete production checks.**
   Run: `pnpm -C site types:check`
   Expected: PASS.
   Run: `pnpm -C site build`
@@ -133,19 +133,19 @@ branch: feature/workflow-visualizations
 - Verify: `site/components/concepts/workflow-atlas.tsx`
 - Verify: `site/components/concepts/workflow-atlas.module.css`
 
-- [ ] **Step 1: Start the built documentation app.**
+- [x] **Step 1: Start the built documentation app.**
   Start `pnpm -C site start --port 4173` through the host’s long-running-process manager after the successful production build and wait for port 4173 to accept connections.
 
-- [ ] **Step 2: Verify the desktop route in both themes.**
+- [x] **Step 2: Verify the desktop route in both themes.**
   Open `/docs/concepts/workflows` at 1440×900. Confirm four workflow sections in Change, Fix, Build, Bootstrap order; readable left-to-right rails; visible gate and outcome labels; correct branch attachment; working canonical skill links; no clipped labels; and no document-level horizontal overflow. Toggle light/dark theme and confirm every label and node remains readable.
 
-- [ ] **Step 3: Verify the narrow layout and source order.**
+- [x] **Step 3: Verify the narrow layout and source order.**
   Recheck at 390×844. Confirm all rails reflow vertically, branch continuations remain associated with their decision, long labels wrap, the document has no horizontal overflow, and all content remains at the surrounding documentation text scale.
 
-- [ ] **Step 4: Verify accessibility and discovery.**
+- [x] **Step 4: Verify accessibility and discovery.**
   Inspect the browser accessibility tree for four labelled workflow groups, ordered primary steps, labelled branches, visible gate/outcome meaning, and no duplicate announcements from decorative connectors. Keyboard through every skill and discovery link and confirm visible focus. Follow the links from Core concepts, Getting started, and Building rules back to `/docs/concepts/workflows`.
 
-- [ ] **Step 5: Commit the reviewed increment.**
+- [x] **Step 5: Commit the reviewed increment.**
   Invoke `woostack-commit` from the increment worktree with subject `feat(site): add workflow maps`. The PR body must report both production commands and the desktop/mobile, light/dark, accessibility, focus, and discovery-link browser evidence. Do not merge.
 
 ## Acceptance coverage
