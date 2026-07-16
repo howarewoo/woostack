@@ -222,6 +222,8 @@ assert_eq "$(jq -r '.verified' <<<"$OUTPUT")" "false" "failed project read-back 
 assert_eq "$(jq -c '.pending' <<<"$OUTPUT")" '["project-read-back"]' "failed project read-back has a precise pending reason"
 assert_not_contains "$OUTPUT" "Acceptance body." "failed project read-back receipt excludes spec content"
 assert_eq "$(grep -c $'mutation\tproject-create' "$work/calls")" "1" "failed project read-back never retries project create"
+assert_eq "$(jq -r '.outcome' <<<"$OUTPUT")" "attemptedWithUnknown" \
+  "failed project-create read-back classifies an unknown attempted mutation"
 
 reset_fake
 queue project-list project-list-one.json 1
@@ -234,6 +236,18 @@ assert_eq "$(jq -r '.verified' <<<"$OUTPUT")" "false" "failed document read-back
 assert_eq "$(jq -c '.pending' <<<"$OUTPUT")" '["document-read-back"]' "failed document read-back has a precise pending reason"
 assert_not_contains "$OUTPUT" "Acceptance body." "failed document read-back receipt excludes spec content"
 assert_eq "$(grep -c $'mutation\tdocument-create' "$work/calls")" "1" "failed document read-back never retries document create"
+assert_eq "$(jq -r '.outcome' <<<"$OUTPUT")" "attemptedWithUnknown" \
+  "failed document-create read-back classifies an unknown attempted mutation"
+reset_fake
+queue project-list project-list-one.json 1
+queue document-list document-list-updated.json 1
+run_capture feature-create --repository acme/widgets --title 'Feature Alpha' \
+  --team-id "$team_id" --status-map "$status_map" --spec-file "$work/spec.md"
+assert_exit 1 "$RC" "existing mismatched spec stays unverified without a mutation"
+assert_eq "$(jq -r '.outcome' <<<"$OUTPUT")" "attempted" \
+  "feature create classifies an unverified no-mutation attempt"
+assert_not_contains "$(cat "$work/calls")" $'mutation\t' \
+  "existing mismatched spec performs no mutation"
 
 # Partial completion resumes existing project and document without duplicate mutation.
 reset_fake
@@ -294,6 +308,18 @@ assert_eq "$(jq -r '.verified' <<<"$OUTPUT")" "false" "failed spec read-back is 
 assert_eq "$(jq -c '.pending' <<<"$OUTPUT")" '["document-read-back"]' "failed spec read-back has a precise pending reason"
 assert_not_contains "$OUTPUT" "Revised body." "failed spec read-back receipt excludes spec content"
 assert_eq "$(grep -c $'mutation\tdocument-update' "$work/calls")" "1" "failed spec read-back never retries document update"
+assert_eq "$(jq -r '.outcome' <<<"$OUTPUT")" "attemptedWithUnknown" \
+  "failed spec read-back classifies an unknown update outcome"
+reset_fake
+queue document-list document-list-one.json 1
+queue document-update document-update-success.json 1
+queue document-list document-list-updated.json 2
+touch "$work/responses/document-list.2.fail"
+run_capture spec-write --project "$project_id" --repository acme/widgets \
+  --content-file "$work/revised.md" --expected-revision "$revision"
+assert_exit 1 "$RC" "failed spec read-back after a returned update stays unverified"
+assert_eq "$(jq -r '.outcome' <<<"$OUTPUT")" "attempted" \
+  "spec write distinguishes a returned update from an unknown mutation outcome"
 
 reset_fake; queue document-list document-list-updated.json 1
 run_capture spec-write --project "$project_id" --repository acme/widgets --content-file "$work/revised.md" --expected-revision "$revision"
@@ -990,6 +1016,15 @@ run_capture plan-read --project "$project_id" --repository acme/widgets \
   --issue-state-map "$issue_state_map"
 assert_exit 1 "$RC" "ambiguous native PR evidence fails closed"
 assert_contains "$OUTPUT" "ambiguous" "ambiguous PR evidence has a safe diagnostic"
+jq '.data.issues.nodes[0].attachments.pageInfo.hasNextPage=true' \
+  "$FIXTURES/issue-list-valid.json" >"$work/issue-list-truncated-attachments.json"
+reset_fake
+cp "$work/issue-list-truncated-attachments.json" "$work/responses/issue-list.1.json"
+run_capture plan-read --project "$project_id" --repository acme/widgets \
+  --issue-state-map "$issue_state_map"
+assert_exit 1 "$RC" "truncated native PR attachment evidence fails closed"
+assert_contains "$OUTPUT" "issue discovery failed" \
+  "truncated attachment evidence has a safe diagnostic"
 
 # Metadata/native relation disagreement blocks rather than guessing.
 reset_fake; queue issue-list issue-list-relation-drift.json 1
@@ -1110,6 +1145,18 @@ assert_not_contains "$(cat "$work/calls")" $'mutation\t' \
   "provider-equivalent plan content performs no issue mutation"
 assert_eq "$(jq -r '.outcome' <<<"$OUTPUT")" "writtenButNormalized" \
   "plan reconciliation classifies provider-normalized readback"
+reset_fake
+queue project-list project-list-one.json 1
+for count in 1 2 3; do
+  cp "$work/issue-list-provider-normalized.json" "$work/responses/issue-list.$count.json"
+done
+touch "$work/responses/issue-list.3.fail"
+run_capture plan-reconcile --project "$project_id" --repository acme/widgets \
+  --team-id "$team_id" --issue-state-map "$issue_state_map" \
+  --plan-file "$work/reconcile-provider-plan.json"
+assert_exit 1 "$RC" "failed final plan read-back stays unverified without a mutation"
+assert_eq "$(jq -r '.outcome' <<<"$OUTPUT")" "attempted" \
+  "plan reconciliation classifies an unverified no-mutation attempt"
 
 # Relation repair can resume from metadata/native drift left by an unknown
 # relation outcome. Initial discovery tolerates only that drift; final readback
@@ -1123,6 +1170,8 @@ assert_exit 1 "$RC" "failed relation repair remains pending after strict readbac
 assert_eq "$(grep -c $'mutation\trelation-create' "$work/calls")" "1" "failed relation repair is attempted once"
 assert_not_contains "$(cat "$work/calls")" $'mutation\tissue-' "failed relation repair does not duplicate converged issue writes"
 assert_contains "$(jq -r '.pending|join(",")' <<<"$OUTPUT")" "final-dag-verification" "relation drift fails strict final DAG verification"
+assert_eq "$(jq -r '.outcome' <<<"$OUTPUT")" "attemptedWithUnknown" \
+  "failed relation repair classifies an attempted unknown outcome"
 reset_fake; queue project-list project-list-one.json 1
 cp "$work/issue-list-relation-drift-resume.json" "$work/responses/issue-list.1.json"
 cp "$work/issue-list-relation-drift-resume.json" "$work/responses/issue-list.2.json"
@@ -1171,6 +1220,29 @@ assert_eq "$(jq -r '.verified' <<<"$OUTPUT")" true \
   "autolink-normalized issue evidence is fully verified"
 assert_eq "$(jq -r '.outcome' <<<"$OUTPUT")" "verified" \
   "autolink normalization produces a fully verified transition outcome"
+reset_fake
+queue project-list project-list-one.json 1
+queue issue-list issue-list-executing.json 1
+queue issue-update issue-update-success.json 1
+queue issue-list issue-list-executing.json 2
+run_capture issue-transition --project "$project_id" --repository acme/widgets \
+  --issue ENG-11 --issue-state-map "$issue_state_map" --target inReview \
+  --branch feature/eng-11 --pull-request https://github.com/acme/widgets/pull/11
+assert_exit 1 "$RC" "issue transition rejects an unchanged returned update"
+assert_eq "$(jq -r '.outcome' <<<"$OUTPUT")" "attempted" \
+  "issue transition classifies a returned but unverified update"
+reset_fake
+queue project-list project-list-one.json 1
+queue issue-list issue-list-executing.json 1
+queue issue-update issue-update-success.json 1
+touch "$work/responses/issue-update.1.fail"
+queue issue-list issue-list-executing.json 2
+run_capture issue-transition --project "$project_id" --repository acme/widgets \
+  --issue ENG-11 --issue-state-map "$issue_state_map" --target inReview \
+  --branch feature/eng-11 --pull-request https://github.com/acme/widgets/pull/11
+assert_exit 1 "$RC" "issue transition rejects an unchanged unknown update"
+assert_eq "$(jq -r '.outcome' <<<"$OUTPUT")" "attemptedWithUnknown" \
+  "issue transition classifies an unverified unknown update"
 
 reset_fake; queue project-list project-list-one.json 1; queue issue-list issue-list-executing.json 1
 run_capture issue-transition --project "$project_id" --repository acme/widgets --issue ENG-11 --issue-state-map "$issue_state_map" --target inReview

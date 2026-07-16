@@ -165,7 +165,36 @@ def normalize_pull_request(value: Any, repository: str) -> str:
 
 def normalize_content(text: str) -> str:
     normalized = text.replace("\r\n", "\n").replace("\r", "\n")
-    return re.sub(r"^([ \t]*)[+*](?=[ \t]+)", r"\1-", normalized, flags=re.MULTILINE)
+    result: list[str] = []
+    fence_character: str | None = None
+    fence_length = 0
+    for line in normalized.splitlines(keepends=True):
+        content = line.removesuffix("\n")
+        fence = re.match(r"^ {0,3}(?P<marker>`{3,}|~{3,})(?P<rest>.*)$", content)
+        if fence_character is not None:
+            if (
+                fence is not None
+                and fence.group("marker")[0] == fence_character
+                and len(fence.group("marker")) >= fence_length
+                and not fence.group("rest").strip()
+            ):
+                fence_character = None
+                fence_length = 0
+            result.append(line)
+            continue
+        if fence is not None:
+            marker = fence.group("marker")
+            rest = fence.group("rest")
+            if marker[0] == "~" or "`" not in rest:
+                fence_character = marker[0]
+                fence_length = len(marker)
+                result.append(line)
+                continue
+        if re.fullmatch(r" {0,3}\*(?:[ \t]*\*){2,}[ \t]*", content):
+            result.append(line)
+            continue
+        result.append(re.sub(r"^( {0,3})[+*](?=[ \t]+)", r"\1-", line))
+    return "".join(result)
 
 
 def normalize_content_fields(value: Any) -> Any:

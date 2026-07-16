@@ -801,12 +801,12 @@ command_feature_create() {
         fi
       fi
       if ! projects="$(project_list)"; then
-        jq -cn --argjson returned "$returned_project" '{attempted:["projectCreate"],observed:{project:null,document:null},returned:{project:$returned,document:null},verified:false,pending:["project-read-back"]}'
+        jq -cn --argjson returned "$returned_project" '{attempted:["projectCreate"],observed:{project:null,document:null},returned:{project:$returned,document:null},outcome:"attemptedWithUnknown",verified:false,pending:["project-read-back"]}'
         return 1
       fi
       set +e; project="$(resolve_from_list "$projects" "$repository" "$status_map" "$ACTIVE_STATUSES" '')"; resolve_rc=$?; set -e
       if [[ "$resolve_rc" -ne 0 ]]; then
-        jq -cn --argjson returned "$returned_project" '{attempted:["projectCreate"],observed:{project:null,document:null},returned:{project:$returned,document:null},verified:false,pending:["project-discovery"]}'
+        jq -cn --argjson returned "$returned_project" '{attempted:["projectCreate"],observed:{project:null,document:null},returned:{project:$returned,document:null},outcome:"attemptedWithUnknown",verified:false,pending:["project-discovery"]}'
         return 1
       fi
       ;;
@@ -828,7 +828,7 @@ command_feature_create() {
       fi
       if ! documents="$(document_list "$project_id")"; then
         rm -f "$expected_file"
-        jq -cn --arg project "$project_id" --argjson returned "$returned_document" '{attempted:["documentCreate"],observed:{project:$project,document:null},returned:{project:null,document:$returned},verified:false,pending:["document-read-back"]}'
+        jq -cn --arg project "$project_id" --argjson returned "$returned_document" '{attempted:["documentCreate"],observed:{project:$project,document:null},returned:{project:null,document:$returned},outcome:"attemptedWithUnknown",verified:false,pending:["document-read-back"]}'
         return 1
       fi
       set +e; doc="$(find_spec "$project_id" "$repository" "$documents")"; doc_rc=$?; set -e
@@ -914,7 +914,7 @@ command_spec_write() {
   fi
   if ! documents="$(document_list "$project_id")"; then
     rm -f "$expected_file"
-    jq -cn --argjson returned "$returned" '{attempted:["documentUpdate"],observed:{document:null},returned:{document:$returned},verified:false,pending:["document-read-back"]}'
+    jq -cn --argjson returned "$returned" '{attempted:["documentUpdate"],observed:{document:null},returned:{document:$returned},outcome:(if $returned==null then "attemptedWithUnknown" else "attempted" end),verified:false,pending:["document-read-back"]}'
     return 1
   fi
   set +e; readback="$(find_spec "$project_id" "$repository" "$documents")"; readback_rc=$?; set -e

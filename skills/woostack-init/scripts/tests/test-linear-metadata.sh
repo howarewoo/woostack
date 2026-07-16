@@ -65,6 +65,33 @@ printf '%s\n' '- different' >"$TMP/different-markers.md"
 run_metadata "$TMP/provider-markers.md" compare \
   --expected-file "$TMP/different-markers.md" --observed-file "$TMP/provider-markers.md"
 assert_exit 1 "$RUN_RC" "provider content comparison preserves semantic mismatches"
+cat >"$TMP/literal-markers-expected.md" <<'EOF'
+```text
+- fenced
+```
+    - indented
+~~~
+- tilde fenced
+~~~
+EOF
+cat >"$TMP/literal-markers-observed.md" <<'EOF'
+```text
+* fenced
+```
+    * indented
+~~~
+* tilde fenced
+~~~
+EOF
+run_metadata "$TMP/literal-markers-observed.md" compare \
+  --expected-file "$TMP/literal-markers-expected.md" \
+  --observed-file "$TMP/literal-markers-observed.md"
+assert_exit 1 "$RUN_RC" "provider normalization preserves fenced and indented code markers"
+printf '%s\n' '- * *' >"$TMP/list-item-asterisks.md"
+printf '%s\n' '* * *' >"$TMP/thematic-break.md"
+run_metadata "$TMP/thematic-break.md" compare \
+  --expected-file "$TMP/list-item-asterisks.md" --observed-file "$TMP/thematic-break.md"
+assert_exit 1 "$RUN_RC" "provider normalization preserves thematic breaks"
 for invalid_padding in \
   $'+++ Woostack metadata — managed, do not edit\n\n{"artifactType":"spec","projectId":"project-123","repository":"acme/widgets","schema":1}\n+++\n' \
   $'+++ Woostack metadata — managed, do not edit\n{"artifactType":"spec","projectId":"project-123","repository":"acme/widgets","schema":1}\n\n+++\n' \
