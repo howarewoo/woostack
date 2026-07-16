@@ -1,7 +1,7 @@
 ---
 name: skill-evaluation-optimization
 type: spec
-status: hardened
+status: approved
 date: 2026-07-15
 branch: feature/skill-evaluation-optimization
 links:
