@@ -4,7 +4,7 @@ This contract is identical across every provider runner. The orchestration secti
 
 ## Output Discipline (READ FIRST)
 
-> This section governs the **review JSON artifacts** below. For **prose handbacks** elsewhere in woostack (subagent reports, memory bodies), see the separate [internal-comms Output Discipline](../../using-woostack/references/output-discipline.md) — a different channel with different rules.
+> This section governs the **review JSON artifacts** below. For user replies and prose handbacks elsewhere in woostack, see the shared [Output Discipline](../../using-woostack/references/output-discipline.md) — a different channel with different rules.
 
 Every artifact you write under `$OUTDIR/findings.*.json` (default `/tmp/pr-review/findings.<angle>.json`) MUST be a valid JSON array — and **only** a JSON array.
 
@@ -67,9 +67,9 @@ Every runner MUST write a final `findings.json` (for debugging + potential post-
     "blocking": true,
     "nit": false,
     "title": "Short bold headline (≤60 chars, no trailing punctuation)",
-    "description": "Issue description: what is wrong and why it matters. Do NOT include the fix here.",
+    "description": "One evidence-bearing sentence: the defect, decisive diff evidence, and impact. No fix or title repetition.",
     "fix_type": "suggestion",
-    "fix": "Recommended change in prose (e.g. 'use `<=` instead of `<` so the boundary value is included').",
+    "fix": "One imperative sentence naming the minimum safe change; no rationale already stated above.",
     "suggestion": "verbatim replacement code for the GitHub ```suggestion``` block — REQUIRED when fix_type == \"suggestion\", MUST be null when fix_type == \"prose\"",
     "rule_quote": "exact quoted rule text if rule-based, else null",
     "deferred_to": "the <ref> of a woostack-defer marker (e.g. \"increment 3\") this finding is deferred to, set by the defender when a marker covers the missing work; else null"
@@ -105,13 +105,13 @@ Every inline comment posted to GitHub MUST follow this four-part structure, asse
 
 Fix: <fix>
 
-<sub>— <strong><severity> · BLOCKING</strong> · flagged by the <code><angle></code> agent</sub>
+<sub>— <strong><severity> · BLOCKING</strong> · <code><angle></code></sub>
 ```
 
 - **Title** — bold one-liner, ≤60 characters, no trailing punctuation. Names the problem.
-- **Description** — the issue itself: what is broken, why it matters, with diff-anchored evidence. Do NOT prescribe the fix here.
-- **Fix** — recommended change, prefixed literally with `Fix: `. Required for every finding. The body builder appends a GitHub ```suggestion``` block after the `Fix:` line if and only if `fix_type == "suggestion"` AND `suggestion` is a non-empty string; `fix_type == "prose"` renders the recommendation in prose only.
-- **Attribution footer** — small-print line carrying the finding's `severity` (HIGH / MEDIUM / LOW; suffixed with `· BLOCKING` when `blocking == true`, or `· NIT` when `nit == true`) and the angle agent that flagged it (e.g. `<sub>— <strong>HIGH · BLOCKING</strong> · flagged by the <code>bugs</code> agent</sub>`, or `<sub>— <strong>LOW · NIT</strong> · flagged by the <code>bugs</code> agent</sub>`). The body builder appends this automatically from the finding's `severity` / `blocking` / `nit` / `angle` fields. Both `severity` and `angle` are whitelisted against their known sets; unknown/missing values are dropped from the footer rather than injecting raw text. If both are missing, the footer is omitted entirely.
+- **Description** — one evidence-bearing sentence by default: what is broken, the decisive diff-anchored evidence, and why it matters. Do not repeat the title or prescribe the fix. Add a second sentence only when security, destructive action, architecture, or ambiguity requires it.
+- **Fix** — one imperative sentence naming the minimum safe change, prefixed literally with `Fix: `. Do not repeat the description or spell out replacement code that the GitHub ```suggestion``` block already carries. Add steps only when the safe change genuinely requires an ordered sequence.
+- **Attribution footer** — compact small-print metadata: severity (HIGH / MEDIUM / LOW, suffixed with `· BLOCKING` or `· NIT`) and the angle slug (for example, `<sub>— <strong>HIGH · BLOCKING</strong> · <code>bugs</code></sub>`). The body builder appends it automatically from the finding's `severity` / `blocking` / `nit` / `angle` fields. Both `severity` and `angle` are whitelisted against their known sets; unknown/missing values are dropped from the footer rather than injecting raw text. If both are missing, the footer is omitted entirely.
 
 `nit` is a boolean set by `intersect-findings.sh` (the floor classifier), **not** by angle agents: `true` marks a validated below-floor non-blocking finding. The body builder renders a `nit: true` finding with a `Nit:` title prefix and a `· NIT` footer tag, and the event computation treats it as event-neutral (a PR whose only findings are nits still `APPROVE`s, with the nits posted inline). A nit is always non-blocking; a below-floor finding that is `blocking: true` stays a normal finding (`nit: false`).
 

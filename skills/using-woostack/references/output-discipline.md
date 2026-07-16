@@ -1,25 +1,43 @@
-# Output Discipline (internal comms)
+# Output Discipline
 
-Canonical rules for **internal** woostack communication — subagent→parent handbacks, swarm/worker reports, and memory/log writes. Cross-linked from the channels that emit them; never restated. Sibling of [model-tiers.md](model-tiers.md).
+Canonical rules for woostack communication — user-facing replies, subagent→parent handbacks,
+swarm/worker reports, and memory/log writes. Cross-linked from the channels that emit them; never
+restated. Sibling of [model-tiers.md](model-tiers.md).
 
-**Governing principle: strip the envelope, never the reasoning.** Terseness applies to the *wrapper prose* — preamble, narration, pleasantries, hedging. It never applies to structured/contract fields or to risk-bearing reasoning.
+**Governing principle: strip the envelope, never the reasoning.** Terseness applies to the
+*wrapper prose* — preamble, narration, pleasantries, hedging, and repetition. It never applies to
+structured/contract fields or to risk-bearing reasoning.
 
 ## Scope
 
-Applies to internal comms only:
+Applies to:
 
+- user-facing replies from controllers and inline workflows,
 - subagent→parent handbacks (implementer, spec/quality reviewers, debug),
 - swarm/worker reports,
 - memory note bodies and log/report writes.
 
-Does **NOT** apply to:
+Does **NOT** apply to authored source, documentation, commit messages, or PR descriptions. The
+review JSON-artifact and inline-comment contract is governed separately by
+[woostack-review `_worker-header.md`](../../woostack-review/prompts/_worker-header.md).
 
-- user-facing replies — including a controller's own inline-mode narration in `woostack-execute --inline`;
-- the review JSON-artifact contract — that is governed by the "Output Discipline (READ FIRST)" section of [woostack-review `_header.md`](../../woostack-review/prompts/_header.md), a different channel.
+## User-facing replies
 
-## Default terse rules
+- Lead with the conclusion, result, or blocker. Include a next action only when it is useful.
+- Drop tool-call narration, preambles, pleasantries, generic transitions, and completion recaps
+  that only repeat the answer.
+- State each fact once. Prefer short paragraphs or bullets. Skip decorative headings, emoji, and
+  tables; use a table only when comparison benefits from columns.
+- Keep code symbols, file paths, line numbers, CLI commands, and error strings **verbatim**.
+- Use standard technical terms, not invented abbreviations or compressed grammar the reader must
+  decode.
+- User requests for more detail override the terse default. Answer the requested depth without
+  restoring filler.
 
-- Drop preamble, narration ("I have completed…", "I went ahead and…"), pleasantries ("sure", "happy to"), and hedging.
+## Internal terse rules
+
+- Drop preamble, narration ("I have completed…", "I went ahead and…"), pleasantries ("sure",
+  "happy to"), and hedging.
 - Use structured, named fields; fragments are fine.
 - Keep code symbols, file paths, line numbers, and error strings **verbatim**.
 - No invented abbreviations — a reader must be able to decode every term.

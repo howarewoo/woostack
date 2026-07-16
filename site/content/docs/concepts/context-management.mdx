@@ -1,12 +1,25 @@
 ---
 title: Context management
-description: "How woostack keeps the working context small: scripts compute in the shell, subagents isolate heavy work, and model tiers route each task."
+description: "How woostack keeps context small, isolates heavy work, routes model tiers, and keeps agent output compact."
 ---
 
 Context economy has three mechanisms. One of them, recall by scope, is the [Memory](/docs/concepts/memory)
 store. The other two live here: shell scripts that compute and return a compact result, and
 subagents that carry heavy work off the main thread. Each returns something small, so the bulk
 never reaches the main context.
+
+## Output stays compact
+
+[using-woostack](/docs/skills/using-woostack) loads one shared output discipline for user replies
+and internal handbacks: lead with the result, remove narration and repetition, and preserve exact
+evidence, commands, paths, and errors. Requests for more detail override the terse default, while
+security, destructive actions, root-cause analysis, and architecture keep the language needed to
+remain unambiguous.
+
+[woostack-review](/docs/skills/woostack-review) applies the same principle through its stricter
+finding contract. Each inline comment uses a short title, one evidence-bearing description
+sentence, one imperative fix sentence, and a compact severity-and-angle footer. A second sentence
+or ordered fix steps remain available when the risk cannot be stated safely in the default shape.
 
 ## Scripts compute, agents read
 

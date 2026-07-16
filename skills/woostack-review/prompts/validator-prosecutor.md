@@ -45,6 +45,7 @@ printf '[]\n' > "${OUTDIR:-/tmp/pr-review}/findings.prosecutor.json"
 5. **Severity Check**: You MAY downgrade severity / blocking. You MAY NOT upgrade.
 6. **Severity Floor — applied downstream now (do NOT drop by severity here)**: The `severity_floor` filter has moved to `scripts/intersect-findings.sh` (Stage 4c), which turns below-floor validated findings into non-blocking nits (keeping below-floor blocking findings as normal findings, dropping below-floor non-blocking findings only under `review.nits: false`). Keep every validated finding (after any allowed *downgrade* in step 5) so the classifier can see it. Do not read or apply `severity_floor`.
 7. **Comment Shape Check**: Same as Defender — `title` (≤60 chars, no trailing punctuation), `description` (issue only), `fix` (recommended change in prose) all populated. Split overloaded `description` into the three fields when an angle collapsed them.
+7b. **Conciseness Check**: Same as Defender — one evidence-bearing `description` sentence and one imperative `fix` sentence by default. Remove preamble, title repetition, duplicated rationale, and code already carried by `suggestion`; keep the detail required for security, destructive action, architecture, ambiguity, or decisive evidence.
 8. **`fix_type` Enforcement**: Same size + scope cap as Defender. Downgrade `"suggestion"` → `"prose"` (clearing `suggestion`) when any of these hold:
    - `suggestion` null/empty/whitespace.
    - `suggestion` exceeds **10 lines**.

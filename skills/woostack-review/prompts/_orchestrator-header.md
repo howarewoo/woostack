@@ -113,9 +113,9 @@ export AUTH_LOGIN PR_AUTHOR
 # running cat — same pattern already used for STATUS_LINE. Single-quoted form
 # avoids any shell-expansion surface from values that pass through here.
 cat <<'BODY_EOF' > /tmp/pr_review_body.txt
-## AI Deep Code Review Summary
+## Review summary
 
-<1-2 sentence high-level summary of the review results>
+<One-sentence verdict and cross-cutting risk; add a second sentence only when required>
 
 ---
 ${STATUS_LINE}
@@ -184,8 +184,7 @@ if self_pr and event in ("REQUEST_CHANGES", "APPROVE"):
 comments = []
 for f in findings:
     # Inline comment format: bold title, issue description, recommended fix,
-    # trailing attribution footer naming the severity + angle agent that
-    # flagged the finding (plus a "blocking" tag when blocking == true).
+    # compact severity + angle footer.
     nit = bool(f.get("nit", False))
     title = f["title"].strip()
     # Guard against an angle that already phrased the title as "Nit: …".
@@ -205,17 +204,16 @@ for f in findings:
     # spans. Valid refs ("increment 3", "#225") are unaffected.
     dt = re.sub(r"[`_*\[\]<>\n\r]", "", dt)
     if dt:
-        body += f"\n\n_Deferred to {dt} — a later increment completes this; non-blocking._"
+        body += f"\n\n_Deferred to {dt}; non-blocking._"
     if fix:
         body += f"\n\nFix: {fix}"
     # Render ```suggestion``` block only when validator-approved as fix_type=suggestion.
     # fix_type=prose (or missing) → prose-only recommendation, no block.
     if f.get("fix_type") == "suggestion" and f.get("suggestion"):
-        # Defense-in-depth: neutralize any line of ≥3 backticks inside the snippet
-        # that would close the fenced block early and let agent-supplied content
-        # escape into the surrounding PR-comment Markdown. Validator step 7
-        # already downgrades such findings, but we re-guard at the render site
-        # because the renderer is the trust boundary to GitHub.
+        # Defense-in-depth: neutralize any line of ≥3 backticks that would close
+        # the fence and let agent-supplied content escape into comment Markdown.
+        # Validator step 8 already downgrades these; the renderer rechecks at the
+        # GitHub trust boundary.
         safe_lines = []
         for line in f["suggestion"].splitlines():
             if re.match(r"^\s*`{3,}", line):
@@ -224,9 +222,8 @@ for f in findings:
         safe = "\n".join(safe_lines)
         body += f"\n\n```suggestion\n{safe}\n```"
 
-    # Attribution footer: severity + which angle agent found this. Both values
-    # are whitelisted against their known sets so malformed/garbage input
-    # cannot inject text into the rendered comment.
+    # Attribution footer: compact severity + angle metadata. Both values are
+    # whitelisted so malformed input cannot inject text into the rendered comment.
     footer_parts = []
     if severity in {"HIGH", "MEDIUM", "LOW"}:
         if nit:
@@ -237,7 +234,7 @@ for f in findings:
             sev_tag = severity
         footer_parts.append(f"<strong>{sev_tag}</strong>")
     if angle in {"bugs","security","conventions","acceptance","seo","aeo","design","react","database","tests","api","infra","observability","types","i18n","docs","deps","architecture","skills","comments","simplify","production-readiness"}:
-        footer_parts.append(f"flagged by the <code>{angle}</code> agent")
+        footer_parts.append(f"<code>{angle}</code>")
     if footer_parts:
         body += "\n\n<sub>— " + " · ".join(footer_parts) + "</sub>"
 
@@ -330,7 +327,7 @@ gh api "repos/${GITHUB_REPOSITORY}/pulls/$PR_NUMBER/reviews" \
 
 ### Review Body Rules
 The `pr_review_body.txt` should contain:
-- A 1-2 sentence high-level summary of the findings.
+- A one-sentence verdict and cross-cutting risk; add a second sentence only when required. Never recap each inline finding.
 - The `${STATUS_LINE}`.
 - Credits line (*Audited by woostack-review...*).
 - A hidden HTML comment `<!-- woostack-review:sha=${HEAD_SHA} -->` as the last line. This is the watermark the next run's prefetch step reads to enable incremental review.
@@ -368,9 +365,9 @@ Every runner MUST write a final `findings.json` (for debugging + potential post-
     "blocking": true,
     "nit": false,
     "title": "Short bold headline (≤60 chars, no trailing punctuation)",
-    "description": "Issue description: what is wrong and why it matters. Do NOT include the fix here.",
+    "description": "One evidence-bearing sentence: the defect, decisive diff evidence, and impact. No fix or title repetition.",
     "fix_type": "suggestion",
-    "fix": "Recommended change in prose (e.g. 'use `<=` instead of `<` so the boundary value is included').",
+    "fix": "One imperative sentence naming the minimum safe change; no rationale already stated above.",
     "suggestion": "verbatim replacement code for the GitHub ```suggestion``` block — REQUIRED when fix_type == \"suggestion\", MUST be null when fix_type == \"prose\"",
     "rule_quote": "exact quoted rule text if rule-based, else null",
     "deferred_to": "the <ref> of a woostack-defer marker (e.g. \"increment 3\") this finding is deferred to, set by the defender when a marker covers the missing work; else null"
@@ -406,13 +403,13 @@ Every inline comment posted to GitHub MUST follow this four-part structure, asse
 
 Fix: <fix>
 
-<sub>— <strong><severity> · BLOCKING</strong> · flagged by the <code><angle></code> agent</sub>
+<sub>— <strong><severity> · BLOCKING</strong> · <code><angle></code></sub>
 ```
 
 - **Title** — bold one-liner, ≤60 characters, no trailing punctuation. Names the problem.
-- **Description** — the issue itself: what is broken, why it matters, with diff-anchored evidence. Do NOT prescribe the fix here.
-- **Fix** — recommended change, prefixed literally with `Fix: `. Required for every finding. The body builder appends a GitHub ```suggestion``` block after the `Fix:` line if and only if `fix_type == "suggestion"` AND `suggestion` is a non-empty string; `fix_type == "prose"` renders the recommendation in prose only.
-- **Attribution footer** — small-print line carrying the finding's `severity` (HIGH / MEDIUM / LOW; suffixed with `· BLOCKING` when `blocking == true`, or `· NIT` when `nit == true`) and the angle agent that flagged it (e.g. `<sub>— <strong>HIGH · BLOCKING</strong> · flagged by the <code>bugs</code> agent</sub>`, or `<sub>— <strong>LOW · NIT</strong> · flagged by the <code>bugs</code> agent</sub>`). The body builder appends this automatically from the finding's `severity` / `blocking` / `nit` / `angle` fields. Both `severity` and `angle` are whitelisted against their known sets; unknown/missing values are dropped from the footer rather than injecting raw text. If both are missing, the footer is omitted entirely.
+- **Description** — one evidence-bearing sentence by default: what is broken, the decisive diff-anchored evidence, and why it matters. Do not repeat the title or prescribe the fix. Add a second sentence only when security, destructive action, architecture, or ambiguity requires it.
+- **Fix** — one imperative sentence naming the minimum safe change, prefixed literally with `Fix: `. Do not repeat the description or spell out replacement code that the GitHub ```suggestion``` block already carries. Add steps only when the safe change genuinely requires an ordered sequence.
+- **Attribution footer** — compact small-print metadata: severity (HIGH / MEDIUM / LOW, suffixed with `· BLOCKING` or `· NIT`) and the angle slug (for example, `<sub>— <strong>HIGH · BLOCKING</strong> · <code>bugs</code></sub>`). The body builder appends it automatically from the finding's `severity` / `blocking` / `nit` / `angle` fields. Both `severity` and `angle` are whitelisted against their known sets; unknown/missing values are dropped from the footer rather than injecting raw text. If both are missing, the footer is omitted entirely.
 
 `nit` is a boolean set by `intersect-findings.sh` (the floor classifier), **not** by angle agents: `true` marks a validated below-floor non-blocking finding. The body builder renders a `nit: true` finding with a `Nit:` title prefix and a `· NIT` footer tag, and the event computation treats it as event-neutral (a PR whose only findings are nits still `APPROVE`s, with the nits posted inline). A nit is always non-blocking; a below-floor finding that is `blocking: true` stays a normal finding (`nit: false`).
 
