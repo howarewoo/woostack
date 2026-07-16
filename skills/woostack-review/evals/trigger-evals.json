@@ -27,6 +27,27 @@
       "shouldTrigger": false,
       "expectedSkill": "woostack-address-comments",
       "conflictsWith": ["woostack-review"]
+    },
+    {
+      "id": "full-authorization-pr-rereview",
+      "query": "PR #317 replaced the authorization layer after its last review. Start the review again against the current diff rather than relying on earlier findings, verify anything you plan to raise, and leave the result on the pull request.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-review",
+      "conflictsWith": ["woostack-audit", "woostack-qa"]
+    },
+    {
+      "id": "standing-session-module-audit",
+      "query": "We aren't changing src/auth/session yet; I need to know what technical or security debt is already there before we plan work. Inspect the module and rank the risks you find.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-audit",
+      "conflictsWith": ["woostack-review"]
+    },
+    {
+      "id": "running-auth-build-browser-qa",
+      "query": "The authorization branch has a build at http://localhost:3000. Exercise login, logout, session expiry, and back-button behavior as a customer would, then record the issues you can make happen again.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-qa",
+      "conflictsWith": ["woostack-review"]
     }
   ]
 }

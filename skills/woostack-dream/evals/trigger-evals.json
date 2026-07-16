@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-dream",
+  "cases": [
+    {
+      "id": "auth-knowledge-curation-changeset",
+      "query": "We have overlapping auth notes, three fixes that repeat the same session lesson, and an old overnight report that may now be redundant. Propose one coherent set of long-lived guidance and the source material it can safely replace, including any docs that would become stale.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-dream",
+      "conflictsWith": ["woostack-ask", "woostack-doctor"]
+    },
+    {
+      "id": "auth-migration-feature-board",
+      "query": "Show me where the auth migration feature stands now: which increment and PR are active, what is blocked, and the next action to take. Do not change or consolidate the knowledge store.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-status",
+      "conflictsWith": ["woostack-dream"]
+    },
+    {
+      "id": "workspace-structure-convention-repair",
+      "query": "A merge left some .woostack note headers invalid and several provenance links pointing at resources that no longer match. Identify the convention failures and offer the repairs that are mechanically safe.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-doctor",
+      "conflictsWith": ["woostack-dream"]
+    }
+  ]
+}

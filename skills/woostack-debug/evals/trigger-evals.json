@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-debug",
+  "cases": [
+    {
+      "id": "plus-address-invite-root-cause",
+      "query": "Invites work for alice@example.com, but the same flow rejects alice+demo@example.com with 403. Follow both requests far enough to prove where they diverge, then report what causes it; don't patch it yet.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-debug",
+      "conflictsWith": ["woostack-ask", "woostack-qa"]
+    },
+    {
+      "id": "invitation-module-standing-audit",
+      "query": "Before we change the invitation module, assess it as it stands across correctness, security, and maintainability, rank the risks you find, and produce a report without fixing anything.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-audit",
+      "conflictsWith": ["woostack-debug"]
+    },
+    {
+      "id": "running-app-account-journey-exploration",
+      "query": "A candidate build is available at http://localhost:4173. Go through account creation, recovery, and deletion the way a customer would, including expired links and back-button use, and list only problems you can repeat.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-qa",
+      "conflictsWith": ["woostack-debug"]
+    }
+  ]
+}

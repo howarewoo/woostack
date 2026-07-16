@@ -26,6 +26,7 @@ const MAX_EVIDENCE_FILE_BYTES = 4 * 1024 * 1024;
 const MAX_EVIDENCE_TOTAL_BYTES = 8 * 1024 * 1024;
 const LINKABLE_EVIDENCE_EXTENSIONS = new Set(['.json', '.txt']);
 const UNAVAILABLE = 'unavailable';
+const TRIGGER_METHODOLOGY = 'Trigger metrics measure controlled catalog selection, not host-loader proof.';
 const SHA256 = /^sha256:[0-9a-f]{64}$/;
 const KEBAB = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const CSP = "default-src 'none'; script-src 'none'; style-src 'unsafe-inline'; img-src 'none'; font-src 'none'; connect-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; child-src 'none'; worker-src 'none'; manifest-src 'none'; base-uri 'none'; form-action 'none'";
@@ -960,11 +961,18 @@ function renderEvidenceErrors(errors) {
 </table>`;
 }
 
+function containsTriggerEvidence(aggregate) {
+  return aggregate.cases.some((entry) => entry.kind === 'trigger');
+}
+
 function renderReport(aggregate, options) {
   const context = { evidenceHrefs: options.evidenceHrefs ?? new Map() };
   const executionStatus = titleCase(aggregate.executionStatus);
   const degradedNote = aggregate.executionStatus === 'degraded'
     ? '<p class="notice">Candidate-only evidence: comparisons are unavailable.</p>'
+    : '';
+  const triggerMethodology = containsTriggerEvidence(aggregate)
+    ? `<p>${TRIGGER_METHODOLOGY}</p>`
     : '';
   const cases = aggregate.cases.map((entry) => renderCase(entry, context)).join('\n');
   return `<!doctype html>
@@ -1022,6 +1030,7 @@ ${degradedNote}
 </section>
 <section aria-labelledby="overall-heading">
 <h2 id="overall-heading">Overall metrics</h2>
+${triggerMethodology}
 <table>
 <caption>Candidate and baseline comparison</caption>
 <thead><tr><th scope="col">Metric</th><th scope="col">Candidate</th><th scope="col">Baseline</th><th scope="col">Delta</th><th scope="col">Comparison</th></tr></thead>
@@ -1059,6 +1068,7 @@ function terminalField(value, maxBytes) {
 function terminalSummary(aggregate, options) {
   const summary = [
     `Execution status: ${aggregate.executionStatus}`,
+    ...(containsTriggerEvidence(aggregate) ? [`Methodology: ${TRIGGER_METHODOLOGY}`] : []),
     `Aggregate: ${terminalField(options.aggregate, 360)}`,
     `Report: ${terminalField(options.out, 360)}`,
     `Cases: ${aggregate.cases.length}`,

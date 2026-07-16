@@ -453,8 +453,8 @@ SECRET_ENV_VALUE=DO_NOT_PRINT_THIS \
 [ ! -s "$TMP_ROOT/completeNoSkill.err" ] || fail "no-skill report render wrote stderr"
 "$NODE" "$RENDERER" \
   --aggregate "$TMP_ROOT/triggerOnly.json" \
-  --out "$TMP_ROOT/triggerOnly.html" >"$TMP_ROOT/triggerOnly.stdout" 2>"$TMP_ROOT/triggerOnly.err"
-[ ! -s "$TMP_ROOT/triggerOnly.stdout" ] || fail "trigger-only render wrote stdout"
+  --out "$TMP_ROOT/triggerOnly.html" \
+  --terminal >"$TMP_ROOT/triggerOnly.terminal" 2>"$TMP_ROOT/triggerOnly.err"
 [ ! -s "$TMP_ROOT/triggerOnly.err" ] || fail "trigger-only report render wrote stderr"
 "$NODE" "$RENDERER" \
   --aggregate "$TMP_ROOT/qualitativeOnly.json" \
@@ -464,8 +464,8 @@ SECRET_ENV_VALUE=DO_NOT_PRINT_THIS \
 [ ! -s "$TMP_ROOT/qualitativeOnly.err" ] || fail "qualitative-only report render wrote stderr"
 "$NODE" "$RENDERER" \
   --aggregate "$TMP_ROOT/mixed.json" \
-  --out "$TMP_ROOT/mixed.html" >"$TMP_ROOT/mixed.stdout" 2>"$TMP_ROOT/mixed.err"
-[ ! -s "$TMP_ROOT/mixed.stdout" ] || fail "mixed render wrote stdout"
+  --out "$TMP_ROOT/mixed.html" \
+  --terminal >"$TMP_ROOT/mixed.terminal" 2>"$TMP_ROOT/mixed.err"
 [ ! -s "$TMP_ROOT/mixed.err" ] || fail "mixed report render wrote stderr"
 "$NODE" "$RENDERER" \
   --aggregate "$TMP_ROOT/completeUnavailableTokens.json" \
@@ -529,6 +529,8 @@ const completeUnavailableTokens = await readFile(
 );
 const degraded = await readFile(path.join(root, 'degraded.html'), 'utf8');
 const terminal = await readFile(path.join(root, 'terminal.txt'));
+const triggerTerminal = await readFile(path.join(root, 'triggerOnly.terminal'));
+const mixedTerminal = await readFile(path.join(root, 'mixed.terminal'));
 const differentDirectory = await readFile(path.join(root, 'report-output', 'complete.html'), 'utf8');
 const symlinked = await readFile(path.join(root, 'symlinked.html'), 'utf8');
 const hashMismatched = await readFile(path.join(root, 'hashMismatched.html'), 'utf8');
@@ -590,6 +592,11 @@ assert.match(
   completeUnavailableTokens,
   /<td><span class="status status-complete">Complete<\/span><\/td><td>Not applicable<\/td><td>125<\/td><td>Unavailable<\/td>/,
 );
+assert.match(triggerOnly, /controlled catalog selection/i);
+assert.match(triggerOnly, /not host-loader proof/i);
+assert.match(mixed, /controlled catalog selection/i);
+assert.match(mixed, /not host-loader proof/i);
+assert.doesNotMatch(complete, /controlled catalog selection|host-loader proof/i);
 assert.match(complete, /href="\.woostack-report-[0-9a-f]+-[0-9a-f]+\.txt"/);
 assert.doesNotMatch(complete, /href="[^"]*evidence\//);
 assert.match(
@@ -634,6 +641,7 @@ assert.doesNotMatch(blocked, /<(?:script|img)(?:\s|>)/i);
 assert.match(blocked, /<strong>escaped-output<\/strong> — Fail/);
 assert.match(degraded, /Execution status: <strong>Degraded<\/strong>/);
 assert.match(degraded, /Candidate-only evidence/);
+assert.doesNotMatch(degraded, /controlled catalog selection|host-loader proof/i);
 
 const hrefs = [...complete.matchAll(/href="([^"]+)"/g)].map((match) => match[1]);
 assert.ok(hrefs.length > 0, 'report must link local evidence identities');
@@ -691,6 +699,13 @@ const terminalText = terminal.toString('utf8');
 assert.match(terminalText, /^Execution status: complete$/m);
 assert.match(terminalText, /^Aggregate: .*complete\.json$/m);
 assert.match(terminalText, /^Report: .*complete\.html$/m);
+assert.doesNotMatch(terminalText, /controlled catalog selection|host-loader proof/i);
+const triggerTerminalText = triggerTerminal.toString('utf8');
+assert.match(triggerTerminalText, /controlled catalog selection/i);
+assert.match(triggerTerminalText, /not host-loader proof/i);
+const mixedTerminalText = mixedTerminal.toString('utf8');
+assert.match(mixedTerminalText, /controlled catalog selection/i);
+assert.match(mixedTerminalText, /not host-loader proof/i);
 assert.doesNotMatch(terminalText, /TOP_SECRET|DO_NOT_PRINT_THIS|collector\.invalid|RAW_EVIDENCE_SECRET/);
 NODE
 
