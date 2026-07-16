@@ -64,8 +64,8 @@ the same task-level spec-compliance and code-quality checks; only who performs t
   same checks as inline mode and **are** the automated review; each PR is reviewed manually after
   execution. This driver internalizes the subagent-driven
   implementation pattern — no runtime dependency on any external skill. In subagent mode the
-  driver also **varies the model per task** — resolving a `fast | standard | deep` tier from task
-  complexity/risk and passing it on each dispatch (see
+  driver varies the model by role and task. Implementers default to `fast`, may escalate to
+  `standard` when necessary, and never use `deep`. Reviewer tiers remain independent (see
   [references/subagent-driver.md](references/subagent-driver.md) → Tier selection / Dispatch model).
 
 **Selecting the mode:** an explicit `--inline` or `--subagent` flag always wins. With no flag,

@@ -1,5 +1,5 @@
 ---
-tier: standard
+tier: fast
 ---
 
 # Implementer subagent
