@@ -52,8 +52,11 @@ call_variables() {
   grep $'\t'"$name"$'\t' "$work/calls" | sed -n "${occurrence}p" | cut -f3-
 }
 make_document_list() {
-  local output="$1" content_file="$2" updated_at="$3"
-  jq -n --rawfile content "$content_file" --arg project "$project_id" --arg updated "$updated_at" '
+  local output="$1" content_file="$2" updated_at="$3" metadata normalized
+  metadata="$(python3 "$ARTIFACTS/linear-metadata.py" parse <"$content_file")"
+  normalized="$(mktemp)"
+  python3 "$ARTIFACTS/linear-metadata.py" replace --metadata "$metadata" <"$content_file" >"$normalized"
+  jq -n --rawfile content "$normalized" --arg project "$project_id" --arg updated "$updated_at" '
     {data:{documents:{nodes:[{
       id:"dddddddd-dddd-4ddd-8ddd-dddddddddddd",
       title:"Feature Alpha — Spec",
@@ -63,6 +66,7 @@ make_document_list() {
       project:{id:$project}
     }],pageInfo:{hasNextPage:false,endCursor:null}}}}
   ' >"$output"
+  rm -f "$normalized"
 }
 make_increment_description() {
   local content="$1" stable="$2" ordinal="$3" dependencies="$4" parent="$5" metadata
@@ -291,8 +295,8 @@ printf '# Feature Alpha\n\nReady.\n\n+++ Woostack metadata — managed, do not e
 printf '# Feature Alpha\n\nReady.\n\n+++ Woostack metadata — managed, do not edit\n{"artifactType":"spec","baseBranch":"main","baseCommitSha":"0123456789abcdef0123456789abcdef01234567","designState":"ready","projectId":"%s","repository":"acme/widgets","schema":1}\n+++\n' "$project_id" >"$work/ready-frozen.md"
 make_document_list "$work/ready-unfrozen-list.json" "$work/ready-unfrozen.md" '2026-07-12T10:09:00.000Z'
 make_document_list "$work/ready-frozen-list.json" "$work/ready-frozen.md" '2026-07-12T10:10:00.000Z'
-freeze_revision="$(python3 "$ARTIFACTS/linear-metadata.py" revision \
-  --updated-at '2026-07-12T10:09:00.000Z' <"$work/ready-unfrozen.md")"
+freeze_revision="$(jq -j '.data.documents.nodes[0].content' "$work/ready-unfrozen-list.json" |
+  python3 "$ARTIFACTS/linear-metadata.py" revision --updated-at '2026-07-12T10:09:00.000Z')"
 reset_fake
 cp "$work/ready-unfrozen-list.json" "$work/responses/document-list.1.json"
 queue issue-list issue-list-none.json 1
@@ -582,7 +586,7 @@ assert_exit 1 "$RC" "live doctor read fails closed on managed relation or metada
 # Explicit replan may change the frozen pair only after live increment evidence is clean.
 printf '# Feature Alpha\n\nReplanned.\n\n+++ Woostack metadata — managed, do not edit\n{"artifactType":"spec","baseBranch":"release/next","baseCommitSha":"2123456789abcdef0123456789abcdef01234567","designState":"planning","projectId":"%s","repository":"acme/widgets","schema":1}\n+++\n' "$project_id" >"$work/replanned-spec.md"
 make_document_list "$work/replanned-document-list.json" "$work/replanned-spec.md" '2026-07-12T10:09:00.000Z'
-frozen_revision="$("$ARTIFACTS/linear-metadata.py" revision --updated-at '2026-07-12T10:08:00.000Z' <"$work/frozen-spec.md")"
+frozen_revision="$(jq -j '.data.documents.nodes[0].content' "$work/frozen-document-list.json" | "$ARTIFACTS/linear-metadata.py" revision --updated-at '2026-07-12T10:08:00.000Z')"
 reset_fake
 cp "$work/frozen-document-list.json" "$work/responses/document-list.1.json"
 queue issue-list issue-list-none.json 1
@@ -611,7 +615,7 @@ jq --arg status "$(jq -r '.planning' <<<"$status_map")" '.data.projectUpdate.pro
   "$FIXTURES/project-update-hardened.json" >"$work/project-update-planning.json"
 printf '# Feature Alpha\n\nFrozen.\n\n+++ Woostack metadata — managed, do not edit\n{"artifactType":"spec","baseBranch":"main","baseCommitSha":"0123456789abcdef0123456789abcdef01234567","designState":"planning","projectId":"%s","repository":"acme/widgets","schema":1}\n+++\n' "$project_id" >"$work/claimed-spec.md"
 make_document_list "$work/claimed-document-list.json" "$work/claimed-spec.md" '2026-07-12T10:09:00.000Z'
-claimed_revision="$("$ARTIFACTS/linear-metadata.py" revision --updated-at '2026-07-12T10:09:00.000Z' <"$work/claimed-spec.md")"
+claimed_revision="$(jq -j '.data.documents.nodes[0].content' "$work/claimed-document-list.json" | "$ARTIFACTS/linear-metadata.py" revision --updated-at '2026-07-12T10:09:00.000Z')"
 reset_fake
 cp "$work/project-list-ready.json" "$work/responses/project-list.1.json"
 cp "$work/frozen-document-list.json" "$work/responses/document-list.1.json"

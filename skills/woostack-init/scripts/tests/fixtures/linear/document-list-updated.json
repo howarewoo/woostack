@@ -6,7 +6,7 @@
           "id": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
           "title": "Feature Alpha \u2014 Spec",
           "url": "https://linear.app/acme/document/feature-alpha-spec-dddddddd",
-          "content": "# Feature Alpha\n\nRevised body.\n\n+++ Woostack metadata \u2014 managed, do not edit\n{\"artifactType\":\"spec\",\"designState\":\"draft\",\"projectId\":\"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa\",\"repository\":\"acme/widgets\",\"schema\":1}\n+++\n",
+          "content": "# Feature Alpha\n\nRevised body.\n\n+++ Woostack metadata \u2014 managed, do not edit\n\n{\"artifactType\":\"spec\",\"designState\":\"draft\",\"projectId\":\"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa\",\"repository\":\"acme/widgets\",\"schema\":1}\n\n+++\n",
           "updatedAt": "2026-07-12T10:05:00.000Z",
           "project": {
             "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"

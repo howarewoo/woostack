@@ -29,6 +29,28 @@ assert_exit 0 "$RUN_RC" "canonical managed metadata parses"
 assert_eq "$RUN_STDOUT" "$canonical" "parse emits compact sorted canonical JSON"
 assert_eq "$RUN_STDERR" "" "successful parse is quiet on stderr"
 
+cat >"$TMP/linear-normalized.md" <<'EOF'
++++ Woostack metadata — managed, do not edit
+
+{"artifactType":"spec","projectId":"project-123","repository":"acme/widgets","schema":1,"state":"approved"}
+
++++
+EOF
+run_metadata "$TMP/linear-normalized.md" parse --repository acme/widgets --project-id project-123
+assert_exit 0 "$RUN_RC" "Linear-normalized managed metadata parses"
+assert_eq "$RUN_STDOUT" "$canonical" "Linear-normalized parse emits canonical JSON"
+printf '%b' '+++ Woostack metadata — managed, do not edit\r\n\r\n{"artifactType":"spec","projectId":"project-123","repository":"acme/widgets","schema":1,"state":"approved"}\r\n\r\n+++\r\n' >"$TMP/linear-normalized-crlf.md"
+run_metadata "$TMP/linear-normalized-crlf.md" parse
+assert_exit 0 "$RUN_RC" "CRLF Linear-normalized managed metadata parses"
+for invalid_padding in \
+  $'+++ Woostack metadata — managed, do not edit\n\n{"artifactType":"spec","projectId":"project-123","repository":"acme/widgets","schema":1}\n+++\n' \
+  $'+++ Woostack metadata — managed, do not edit\n{"artifactType":"spec","projectId":"project-123","repository":"acme/widgets","schema":1}\n\n+++\n' \
+  $'+++ Woostack metadata — managed, do not edit\n\n\n{"artifactType":"spec","projectId":"project-123","repository":"acme/widgets","schema":1}\n\n+++\n'; do
+  printf '%s' "$invalid_padding" >"$TMP/invalid-padding.md"
+  run_metadata "$TMP/invalid-padding.md" parse
+  assert_exit 1 "$RUN_RC" "asymmetric or excessive metadata padding is rejected"
+done
+
 printf '%s\n' 'No managed metadata here. SECRET-HUMAN-CONTENT' >"$TMP/absent.md"
 run_metadata "$TMP/absent.md" parse
 assert_exit 1 "$RUN_RC" "absent metadata is rejected"
@@ -484,13 +506,17 @@ header = "+++ Woostack metadata — managed, do not edit".encode()
 variants = {
     "lf": (b"before\n\n", b"\n", b"\n", b"\n", b"\nafter\n"),
     "crlf": (b"before\r\n\r\n", b"\r\n", b"\r\n", b"\r\n", b"\r\nafter\r\n"),
+    "normalized-lf": (b"before\n\n", b"\n", b"\n", b"\n", b"\nafter\n"),
+    "normalized-crlf": (b"before\r\n\r\n", b"\r\n", b"\r\n", b"\r\n", b"\r\nafter\r\n"),
     "mixed": (b"before\r\n", b"\n", b"\n", b"\r\n", b"after\n"),
     "no-final-newline": (b"before\n", b"\n", b"\n", b"", b""),
     "unicode": ("préface 東京\n".encode(), b"\n", b"\n", b"\n", "\nfin naïve 🚀\n".encode()),
 }
+normalized_inputs = {"normalized-lf", "normalized-crlf"}
 for name, (prefix, header_nl, body_nl, closer_nl, suffix) in variants.items():
-    source = prefix + header + header_nl + old + body_nl + b"+++" + closer_nl + suffix
-    expected = prefix + header + header_nl + new + body_nl + b"+++" + closer_nl + suffix
+    source_padding = name in normalized_inputs
+    source = prefix + header + header_nl + (header_nl if source_padding else b"") + old + body_nl + (body_nl if source_padding else b"") + b"+++" + closer_nl + suffix
+    expected = prefix + header + header_nl + header_nl + new + body_nl + body_nl + b"+++" + closer_nl + suffix
     (root / f"bytes-{name}.md").write_bytes(source)
     (root / f"bytes-{name}.expected").write_bytes(expected)
 PY
@@ -509,6 +535,8 @@ check_byte_variant() {
 }
 check_byte_variant lf
 check_byte_variant crlf
+check_byte_variant normalized-lf
+check_byte_variant normalized-crlf
 check_byte_variant mixed
 check_byte_variant no-final-newline
 check_byte_variant unicode
