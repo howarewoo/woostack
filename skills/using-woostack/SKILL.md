@@ -47,7 +47,10 @@ At the start of work in a repository:
 3. Check whether the user's request maps to one of the woostack skills below.
 4. Load the mapped skill before asking clarifying questions, making edits, opening PRs, or
    posting review feedback.
-5. If the request maps to **no** woostack command but you will still answer or edit from the
+5. Load and apply the shared
+   [Output Discipline](references/output-discipline.md) to every user-facing reply. It keeps the
+   answer compact without compressing evidence, risk, or required contract fields.
+6. If the request maps to **no** woostack command but you will still answer or edit from the
    project's accumulated knowledge, **recall first** (read-only). Load the scoped
    `.woostack/memory/` notes for your working set via the procedure in
    [`memory.md`](../woostack-init/references/memory.md) — script-assisted when the

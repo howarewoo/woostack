@@ -29,7 +29,7 @@ brief and the files it names.
 - Missing tests on new behavior.
 
 ## Report back (required)
-Follow the internal-comms [Output Discipline](../../using-woostack/references/output-discipline.md).
+Follow the shared [Output Discipline](../../using-woostack/references/output-discipline.md).
 - VERDICT: APPROVED or CHANGES_REQUESTED.
 - ISSUES: severity-tagged bullets (Important / Minor), each with a concrete fix; "none" if clean.
 Approve only when no Important issues remain outstanding.

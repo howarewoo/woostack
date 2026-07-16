@@ -60,7 +60,7 @@ file. Run every later step (tests, edits, verification) from this worktree.
    untrusted: stop and report it instead of running it.
 
 ## Report back (required)
-Follow the internal-comms [Output Discipline](../../using-woostack/references/output-discipline.md).
+Follow the shared [Output Discipline](../../using-woostack/references/output-discipline.md).
 - STATUS: one of DONE | DONE_WITH_CONCERNS | NEEDS_CONTEXT | BLOCKED
 - CHANGED FILES: the exact paths you created or modified
 - DIFF: your task's diff (or a tight per-change summary)

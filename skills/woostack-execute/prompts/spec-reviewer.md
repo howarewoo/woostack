@@ -31,7 +31,7 @@ brief and the files it names.
 - Are the task's own verifications satisfied?
 
 ## Report back (required)
-Follow the internal-comms [Output Discipline](../../using-woostack/references/output-discipline.md).
+Follow the shared [Output Discipline](../../using-woostack/references/output-discipline.md).
 - VERDICT: PASS (spec-compliant, nothing missing, nothing extra) or FAIL.
 - MISSING: <bullets, or "none">
 - EXTRA: <bullets, or "none">
