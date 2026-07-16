@@ -674,11 +674,41 @@ async function publishCreateNew(outPath, contents, {
       failure = new Error('publication committed but directory-handle cleanup failed', {
         cause: error,
       });
+      failure.code = 'publication-committed';
+      failure.publicationIdentity = tempIdentity;
     } else {
       failure = failure
         ? combinedFailure(failure, error, 'publication and directory-handle cleanup failed')
         : error;
     }
+  }
+  if (failure) throw failure;
+  return tempIdentity;
+}
+
+async function rollbackCreateNew(outPath, expectedIdentity) {
+  const absoluteOut = path.resolve(outPath);
+  const parent = path.dirname(absoluteOut);
+  const directory = await requirePrivatePublicationParent(parent);
+  let failure;
+  try {
+    await rollbackLinkedOutput(
+      absoluteOut,
+      parent,
+      directory,
+      expectedIdentity,
+      (directoryHandle) => directoryHandle.sync(),
+      closeHandle,
+    );
+  } catch (error) {
+    failure = error;
+  }
+  try {
+    await closeHandle(directory.handle, parent);
+  } catch (error) {
+    failure = failure
+      ? combinedFailure(failure, error, 'publication rollback and directory cleanup failed')
+      : error;
   }
   if (failure) throw failure;
 }
@@ -694,6 +724,7 @@ export {
   listDirectoryNames,
   parseFile,
   publishCreateNew,
+  rollbackCreateNew,
   regularFile,
   relativeTo,
   requireDirectoryChain,
