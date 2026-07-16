@@ -189,10 +189,13 @@ or non-regular proof before enumerating evidence. The host then builds an immuta
 before processing. For every regular evidence, definition, input mapping, output/transcript, and
 copied-package file, it binds the run-root-relative path to device, inode, size, mtime, and a
 streamed SHA-256 taken from an opened no-follow handle. It also binds directory identities and
-name sets using opened directory handles where the host supports them. After processing and before
-publication, the aggregator reopens every path no-follow and revalidates all identities, hashes,
-directories, and names. A same-name rewrite, replacement, added/removed file, directory swap, or
-late evidence emits fatal `snapshot-mutation` and refuses publication.
+name sets using opened directory handles where the host supports them. Snapshot traversal admits at
+most 4,096 entries including the run root, hashes at most 16 MiB per regular file and 128 MiB
+across the run, and emits
+fatal `snapshot-limit-exceeded` before publication when a bound is crossed. After processing and
+before publication, the aggregator reopens every path no-follow and revalidates all identities,
+hashes, directories, and names. A same-name rewrite, replacement, added/removed file, directory
+swap, or late evidence emits fatal `snapshot-mutation` and refuses publication.
 
 After all workers finish, hash the original target package again. Any delta invalidates comparison,
 preserves the run directory, and reports changed paths without resetting them. Missing or malformed
