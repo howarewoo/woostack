@@ -17,6 +17,9 @@ HEADER_RE = re.compile(rf"^{re.escape(HEADER)}(?:\r?\n|$)", re.MULTILINE)
 CLOSER_RE = re.compile(r"^\+\+\+(?:\r?\n|$)", re.MULTILINE)
 SCHEMA = 1
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+PR_URL_RE = re.compile(
+    r"^https://github\.com/(?P<repository>[^/\s]+/[^/\s]+)/pull/(?P<number>[1-9][0-9]*)$"
+)
 GIT_COMMIT_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 UUID_RE = re.compile(
     r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-"
@@ -129,6 +132,84 @@ def canonical_json(value: Any) -> str:
         raise MetadataError("JSON value cannot be canonicalized") from error
 
 
+def normalize_pull_request(value: Any, repository: str) -> str:
+    if not isinstance(value, str) or not value:
+        raise MetadataError("pull request evidence is invalid")
+
+    urls: list[str]
+    canonical = PR_URL_RE.fullmatch(value)
+    if canonical is not None:
+        urls = [value]
+    else:
+        linked = re.fullmatch(
+            r"\[(?P<label>https://github\.com/[^\s<>]+)\]\("
+            r"(?P<target><https://github\.com/[^\s<>]+>|https://github\.com/[^\s<>]+)\)",
+            value,
+        )
+        angle = re.fullmatch(r"<(?P<url>https://github\.com/[^\s<>]+)>", value)
+        if linked is not None:
+            target = linked.group("target")
+            urls = [linked.group("label"), target[1:-1] if target.startswith("<") else target]
+        elif angle is not None:
+            urls = [angle.group("url")]
+        else:
+            raise MetadataError("pull request evidence is foreign or invalid")
+
+    if len(set(urls)) != 1:
+        raise MetadataError("pull request evidence is foreign or invalid")
+    match = PR_URL_RE.fullmatch(urls[0])
+    if match is None or match.group("repository") != repository:
+        raise MetadataError("pull request evidence is foreign or invalid")
+    return urls[0]
+
+
+def normalize_content(text: str) -> str:
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    result: list[str] = []
+    fence_character: str | None = None
+    fence_length = 0
+    for line in normalized.splitlines(keepends=True):
+        content = line.removesuffix("\n")
+        fence = re.match(r"^ {0,3}(?P<marker>`{3,}|~{3,})(?P<rest>.*)$", content)
+        if fence_character is not None:
+            if (
+                fence is not None
+                and fence.group("marker")[0] == fence_character
+                and len(fence.group("marker")) >= fence_length
+                and not fence.group("rest").strip()
+            ):
+                fence_character = None
+                fence_length = 0
+            result.append(line)
+            continue
+        if fence is not None:
+            marker = fence.group("marker")
+            rest = fence.group("rest")
+            if marker[0] == "~" or "`" not in rest:
+                fence_character = marker[0]
+                fence_length = len(marker)
+                result.append(line)
+                continue
+        if re.fullmatch(r" {0,3}\*(?:[ \t]*\*){2,}[ \t]*", content):
+            result.append(line)
+            continue
+        result.append(re.sub(r"^( {0,3})[+*](?=[ \t]+)", r"\1-", line))
+    return "".join(result)
+
+
+def normalize_content_fields(value: Any) -> Any:
+    pending = [value]
+    while pending:
+        current = pending.pop()
+        if isinstance(current, dict):
+            if isinstance(current.get("content"), str):
+                current["content"] = normalize_content(current["content"])
+            pending.extend(current.values())
+        elif isinstance(current, list):
+            pending.extend(current)
+    return value
+
+
 def require_nonempty_string(value: Any, message: str) -> str:
     if not isinstance(value, str) or not value:
         raise MetadataError(message)
@@ -208,15 +289,15 @@ def validate_metadata(value: Any) -> dict[str, Any]:
             or len(dependencies) != len(set(dependencies))
         ):
             raise MetadataError("increment metadata is invalid")
-        git_parent = require_nonempty_string(
-            value.get("gitParent"), "increment metadata is invalid"
-        )
+        require_nonempty_string(value.get("gitParent"), "increment metadata is invalid")
         for key in ("branch", "pullRequest"):
             if key in value and not optional_string(value[key]):
                 raise MetadataError("increment metadata is invalid")
+        if value.get("pullRequest") is not None:
+            value["pullRequest"] = normalize_pull_request(
+                value["pullRequest"], value["repository"]
+            )
     return value
-
-
 def managed_section(text: str) -> tuple[int, int, str, dict[str, Any]]:
     headers = list(HEADER_RE.finditer(text))
     if not headers:
@@ -246,9 +327,10 @@ def managed_section(text: str) -> tuple[int, int, str, dict[str, Any]]:
     if "\n" in json_text or "\r" in json_text or not json_text:
         raise MetadataError("managed metadata block is malformed")
 
-    value = validate_metadata(load_json(json_text, "managed metadata JSON is malformed"))
-    if json_text != canonical_json(value):
+    raw_value = load_json(json_text, "managed metadata JSON is malformed")
+    if json_text != canonical_json(raw_value):
         raise MetadataError("managed metadata JSON is not canonical")
+    value = validate_metadata(raw_value)
     return header.end(), closer.start(), newline, value
 
 
@@ -309,6 +391,49 @@ def command_body(args: argparse.Namespace) -> None:
     if before.endswith(("\r\n", "\n")) and after.startswith(("\r\n", "\n")):
         after = after[2:] if after.startswith("\r\n") else after[1:]
     sys.stdout.write(before + after)
+
+
+def read_text_file(path: str, message: str) -> str:
+    try:
+        return Path(path).read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as error:
+        raise MetadataError(message) from error
+
+
+def command_compare(args: argparse.Namespace) -> None:
+    expected = normalize_content(read_text_file(args.expected_file, "expected content could not be read"))
+    observed = normalize_content(read_text_file(args.observed_file, "observed content could not be read"))
+    raise SystemExit(0 if expected == observed else 1)
+
+
+def command_normalize_content(args: argparse.Namespace) -> None:
+    _, text = read_stdin()
+    sys.stdout.write(normalize_content(text))
+
+
+def command_normalize_plan(args: argparse.Namespace) -> None:
+    _, text = read_stdin()
+    value = load_json(text, "plan JSON is malformed")
+    if not isinstance(value, list):
+        raise MetadataError("plan JSON must be an array")
+    print(canonical_json(normalize_content_fields(value)))
+
+
+def command_normalize_pr(args: argparse.Namespace) -> None:
+    _, text = read_stdin()
+    print(normalize_pull_request(text.rstrip("\r\n"), args.repository))
+
+
+def command_normalize_prs(args: argparse.Namespace) -> None:
+    _, text = read_stdin()
+    value = load_json(text, "pull request evidence JSON is malformed")
+    if not isinstance(value, list):
+        raise MetadataError("pull request evidence must be an array")
+    for item in value:
+        if not isinstance(item, dict) or "url" not in item:
+            raise MetadataError("pull request evidence is invalid")
+        item["url"] = normalize_pull_request(item["url"], args.repository)
+    print(canonical_json(value))
 
 
 def read_replacement(args: argparse.Namespace) -> dict[str, Any]:
@@ -665,6 +790,25 @@ def build_parser() -> argparse.ArgumentParser:
     body_parser.add_argument("--repository")
     body_parser.add_argument("--project-id")
     body_parser.set_defaults(handler=command_body)
+
+    compare_parser = subparsers.add_parser("compare")
+    compare_parser.add_argument("--expected-file", required=True)
+    compare_parser.add_argument("--observed-file", required=True)
+    compare_parser.set_defaults(handler=command_compare)
+
+    normalize_content_parser = subparsers.add_parser("normalize-content")
+    normalize_content_parser.set_defaults(handler=command_normalize_content)
+
+    normalize_plan_parser = subparsers.add_parser("normalize-plan")
+    normalize_plan_parser.set_defaults(handler=command_normalize_plan)
+
+    normalize_pr_parser = subparsers.add_parser("normalize-pr")
+    normalize_pr_parser.add_argument("--repository", required=True)
+    normalize_pr_parser.set_defaults(handler=command_normalize_pr)
+
+    normalize_prs_parser = subparsers.add_parser("normalize-prs")
+    normalize_prs_parser.add_argument("--repository", required=True)
+    normalize_prs_parser.set_defaults(handler=command_normalize_prs)
 
     replace_parser = subparsers.add_parser("replace")
     replacement = replace_parser.add_mutually_exclusive_group(required=True)
