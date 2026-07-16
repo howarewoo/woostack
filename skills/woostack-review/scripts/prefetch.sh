@@ -16,7 +16,7 @@
 #   WOO_REVIEW_FAKE_FULL_DIFF, WOO_REVIEW_FAKE_INCREMENTAL_DIFF,
 #   WOO_REVIEW_FAKE_PRIOR_THREADS_JSON, WOO_REVIEW_FAKE_BOT_COMMENTS,
 #   WOO_REVIEW_TEST_SNAPSHOT_MAX_FILES, WOO_REVIEW_TEST_SNAPSHOT_MAX_FILE_BYTES,
-#   WOO_REVIEW_TEST_SNAPSHOT_MAX_BYTES.
+#   WOO_REVIEW_TEST_SNAPSHOT_MAX_BYTES, WOO_REVIEW_TEST_SNAPSHOT_VALIDATOR.
 #   The mode flag is intentionally not
 #   exposed in action.yml — a calling workflow cannot opt itself into the
 #   fake-data hooks without first setting an undocumented env var.
@@ -51,11 +51,17 @@ umask 077
 source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-outdir.sh"
 # shellcheck source=skills/woostack-review/scripts/resolve-root.sh
 source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-root.sh"
+has_complete_skill_packages() {
+  [ -f "$OUTDIR/skill-packages.json" ] || return 1
+  [ -d "$OUTDIR/skill-packages" ] ||
+    jq -e '.schemaVersion == 1 and (.packages | type == "array" and length == 0)' \
+      "$OUTDIR/skill-packages.json" >/dev/null 2>&1
+}
 if [ "${WOO_REVIEW_FRESH:-}" != "1" ] &&
   [ "${GITHUB_ACTIONS:-}" = "true" ] &&
   [ "${WOO_REVIEW_MODE:-}" = "review" ] &&
   { [ -f "$OUTDIR/artifact-context.json" ] ||
-    { [ -f "$OUTDIR/skill-packages.json" ] && [ -d "$OUTDIR/skill-packages" ]; }; }; then
+    has_complete_skill_packages; }; then
   echo "::warning::prefetch: preserving detection artifacts for CI review worker" >&2
 elif [ "${WOO_REVIEW_FRESH:-}" != "1" ] && compgen -G "$OUTDIR/findings.*" >/dev/null 2>&1; then
   if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
@@ -522,14 +528,17 @@ fi
 # them: review mode carries artifact-context.json, while validate modes carry
 # in-flight findings.*.
 if [ "${GITHUB_ACTIONS:-}" = "true" ] &&
-  [ -f "$OUTDIR/skill-packages.json" ] &&
-  [ -d "$OUTDIR/skill-packages" ] &&
+  has_complete_skill_packages &&
   { [ "${WOO_REVIEW_MODE:-}" = "review" ] ||
     compgen -G "$OUTDIR/findings.*" >/dev/null 2>&1; }; then
   echo "::warning::prefetch: preserving detection skill package artifacts for downstream CI worker" >&2
 else
   SNAPSHOT_REPOSITORY="$(git -C "${GITHUB_WORKSPACE:-.}" rev-parse --show-toplevel 2>/dev/null || true)"
   SNAPSHOT_VALIDATOR="$SCRIPT_DIR/../../woostack-eval/scripts/validate.mjs"
+  if [ "${WOO_REVIEW_TEST_MODE:-}" = "1" ] &&
+    [ -n "${WOO_REVIEW_TEST_SNAPSHOT_VALIDATOR:-}" ]; then
+    SNAPSHOT_VALIDATOR="$WOO_REVIEW_TEST_SNAPSHOT_VALIDATOR"
+  fi
   if ! node - "$OUTDIR" "$SNAPSHOT_REPOSITORY" "$SNAPSHOT_VALIDATOR" <<'NODE'
 const crypto = require('node:crypto');
 const childProcess = require('node:child_process');
@@ -583,21 +592,49 @@ function validationErrorDiagnostic(error) {
     })
     .join(' ');
 }
+function processDiagnostic(result) {
+  const clean = (value, fallback) => {
+    const text = value === undefined || value === null || value === ''
+      ? fallback
+      : String(value);
+    return text.replace(/[\0-\x1f\x7f]/g, ' ').slice(0, 512);
+  };
+  return [
+    `status=${clean(result && result.status, 'null')}`,
+    `signal=${clean(result && result.signal, 'none')}`,
+    `error=${clean(result && result.error && result.error.message, 'none')}`,
+    `stderr=${clean(result && result.stderr, 'empty')}`,
+  ].join(' ');
+}
+
+function requireImmutablePackage(repository, packagePath) {
+  const pathspec = packagePath === '.' ? '.' : `:(literal)${packagePath}`;
+  const result = childProcess.spawnSync(
+    'git',
+    ['-C', repository, 'diff', '--quiet', 'HEAD', '--', pathspec],
+    { encoding: 'utf8', maxBuffer: 1024 * 1024 },
+  );
+  if (result.status === 1 && !result.signal && !result.error) {
+    fail(`tracked package differs from the immutable PR head: ${packagePath}`);
+  }
+  if (result.status !== 0 || result.signal || result.error) {
+    fail(`could not verify immutable package bytes for ${packagePath}: ${processDiagnostic(result)}`);
+  }
+}
 
 function trackedFiles(repository, packagePath) {
-  const pathspec = packagePath === '.' ? '.' : `:(literal)${packagePath}`;
   const output = childProcess.execFileSync(
     'git',
-    ['-C', repository, 'ls-files', '--stage', '-z', '--', pathspec],
+    ['-C', repository, 'ls-tree', '-r', '-l', '-z', '--full-tree', 'HEAD', '--', packagePath],
     { encoding: 'buffer', maxBuffer: 16 * 1024 * 1024 },
   );
   const files = [];
   const seen = new Set();
   for (const record of output.toString('utf8').split('\0')) {
     if (!record) continue;
-    const match = /^([0-9]{6}) ([0-9a-f]{40}(?:[0-9a-f]{24})?) ([0-3])\t([\s\S]+)$/.exec(record);
-    if (!match || match[3] !== '0') fail('Git returned an unsafe tracked package record');
-    const [, mode, , , repositoryPath] = match;
+    const match = /^([0-9]{6}) (blob|commit) ([0-9a-f]{40}(?:[0-9a-f]{24})?) +(-|[0-9]+)\t([\s\S]+)$/.exec(record);
+    if (!match) fail('Git returned an unsafe tracked package record');
+    const [, mode, type, oid, size, repositoryPath] = match;
     const relative = packagePath === '.'
       ? repositoryPath
       : repositoryPath.startsWith(`${packagePath}/`)
@@ -606,37 +643,67 @@ function trackedFiles(repository, packagePath) {
     if (!safePath(repositoryPath) || !safePath(relative) || seen.has(relative)) {
       fail('Git returned an out-of-package or duplicate tracked path');
     }
-    if (mode !== '100644' && mode !== '100755') {
+    if (
+      type !== 'blob' ||
+      (mode !== '100644' && mode !== '100755') ||
+      !/^[0-9]+$/.test(size)
+    ) {
       fail(`tracked package entry is not a regular file: ${relative}`);
     }
+    const bytes = Number(size);
+    if (!Number.isSafeInteger(bytes)) fail(`tracked package file has an invalid size: ${relative}`);
     seen.add(relative);
-    files.push({ mode, path: relative });
+    files.push({ mode, path: relative, oid, bytes });
   }
   files.sort((left, right) => compare(left.path, right.path));
   if (!seen.has('SKILL.md')) fail('owning SKILL.md is not Git-visible');
   return files;
 }
 
-function checkedSource(packageRoot, relative) {
-  let current = packageRoot;
-  for (const segment of relative.split('/')) {
-    current = path.join(current, segment);
-    const state = fs.lstatSync(current);
-    if (state.isSymbolicLink()) fail(`tracked package entry is a symlink: ${relative}`);
-  }
-  const state = fs.lstatSync(current);
-  if (!state.isFile()) fail(`tracked package entry is not a regular file: ${relative}`);
-  return { path: current, bytes: state.size };
+function immutableBlobs(repository, tracked) {
+  if (tracked.length === 0) return [];
+  const output = childProcess.execFileSync(
+    'git',
+    ['-C', repository, 'cat-file', '--batch'],
+    {
+      input: `${tracked.map((file) => file.oid).join('\n')}\n`,
+      encoding: null,
+      maxBuffer: tracked.reduce((total, file) => total + file.bytes + 256, 1),
+    },
+  );
+  let offset = 0;
+  const blobs = tracked.map((file) => {
+    const headerEnd = output.indexOf(0x0a, offset);
+    if (headerEnd < 0) fail(`Git returned a truncated blob header: ${file.path}`);
+    const [oid, type, size] = output.subarray(offset, headerEnd).toString('utf8').split(' ');
+    const bodyStart = headerEnd + 1;
+    const bodyEnd = bodyStart + file.bytes;
+    if (
+      oid !== file.oid ||
+      type !== 'blob' ||
+      Number(size) !== file.bytes ||
+      bodyEnd >= output.length ||
+      output[bodyEnd] !== 0x0a
+    ) {
+      fail(`Git returned invalid immutable blob bytes: ${file.path}`);
+    }
+    offset = bodyEnd + 1;
+    return output.subarray(bodyStart, bodyEnd);
+  });
+  if (offset !== output.length) fail('Git returned trailing immutable blob data');
+  return blobs;
 }
 
+
 function hasRightSideSkill(repository, skillPath) {
-  const pathspec = skillPath === 'SKILL.md' ? 'SKILL.md' : `:(literal)${skillPath}`;
-  const tracked = childProcess.execFileSync(
+  const result = childProcess.spawnSync(
     'git',
-    ['-C', repository, 'ls-files', '--stage', '-z', '--', pathspec],
-    { encoding: 'buffer', maxBuffer: 1024 * 1024 },
+    ['-C', repository, 'cat-file', '-e', `HEAD:${skillPath}`],
+    { encoding: 'utf8', maxBuffer: 1024 * 1024 },
   );
-  return tracked.length > 0;
+  if (result.status === 0 && !result.signal && !result.error) return true;
+  if (result.status === 128 && !result.signal && !result.error) return false;
+  fail(`could not resolve right-side SKILL.md: ${processDiagnostic(result)}`);
 }
 
 try {
@@ -685,21 +752,22 @@ try {
     if (packageState.isSymbolicLink() || !packageState.isDirectory()) {
       fail(`owning skill package is not a regular directory: ${packagePath}`);
     }
+    requireImmutablePackage(repository, packagePath);
     const tracked = trackedFiles(repository, packagePath);
     snapshotFileCount += tracked.length;
     if (snapshotFileCount > MAX_SNAPSHOT_FILES) {
       fail(`skill package snapshot exceeds ${MAX_SNAPSHOT_FILES} tracked files`);
     }
     for (const file of tracked) {
-      const source = checkedSource(packageRoot, file.path);
-      if (source.bytes > MAX_SNAPSHOT_FILE_BYTES) {
+      if (file.bytes > MAX_SNAPSHOT_FILE_BYTES) {
         fail(`tracked package file exceeds ${MAX_SNAPSHOT_FILE_BYTES} bytes: ${file.path}`);
       }
-      snapshotBytes += source.bytes;
+      snapshotBytes += file.bytes;
       if (snapshotBytes > MAX_SNAPSHOT_BYTES) {
         fail(`skill package snapshot exceeds ${MAX_SNAPSHOT_BYTES} bytes`);
       }
     }
+    const immutable = immutableBlobs(repository, tracked);
 
     const validation = childProcess.spawnSync(
       process.execPath,
@@ -716,7 +784,7 @@ try {
     try {
       result = JSON.parse(validation.stdout || '');
     } catch {
-      fail(`shared validator returned unreadable output for ${packagePath}`);
+      fail(`shared validator returned unreadable output for ${packagePath}: ${processDiagnostic(validation)}`);
     }
     if (validation.status !== 0 || !result.valid) {
       const errors = Array.isArray(result.errors)
@@ -734,7 +802,7 @@ try {
     ) {
       fail(`shared validator inventory differs from Git for ${packagePath}`);
     }
-    return { skillPath, packagePath, packageRoot, tracked, validated };
+    return { skillPath, packagePath, tracked, validated, immutable };
   });
 
   stagingPath = fs.mkdtempSync(path.join(outdir, '.skill-packages.tmp-'));
@@ -750,8 +818,7 @@ try {
     for (let index = 0; index < skillPackage.tracked.length; index += 1) {
       const tracked = skillPackage.tracked[index];
       const validated = skillPackage.validated[index];
-      const source = checkedSource(skillPackage.packageRoot, tracked.path).path;
-      const bytes = fs.readFileSync(source);
+      const bytes = skillPackage.immutable[index];
       const sha256 = digest(bytes);
       if (
         validated.bytes !== bytes.length ||

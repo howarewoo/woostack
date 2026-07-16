@@ -98,8 +98,10 @@ git -C "$REPO" add .
 git -C "$REPO" commit -q -m base
 sed -i.bak 's/Review example packages safely/Review example packages carefully/' "$REPO/skills/example/SKILL.md"
 rm "$REPO/skills/example/SKILL.md.bak"
+git -C "$REPO" add skills/example/SKILL.md
+git -C "$REPO" commit -q -m reviewable-change
 present_diff="$TMP_ROOT/present-skill.diff"
-git -C "$REPO" diff --no-ext-diff --binary -- skills/example/SKILL.md >"$present_diff"
+git -C "$REPO" show --format= --no-ext-diff --binary HEAD -- skills/example/SKILL.md >"$present_diff"
 present_out="$TMP_ROOT/present-skill-out"
 run_prefetch "$present_out" "$(meta_for skills/example/SKILL.md 1 1)" "$present_diff"
 assert_exit 0 "$RUN_RC" "one-line existing SKILL.md edit completes prefetch"
@@ -140,8 +142,10 @@ git -C "$REPO" add .
 git -C "$REPO" commit -q -m base
 sed -i.bak 's|references/guide.md|references/missing.md|' "$REPO/skills/example/SKILL.md"
 rm "$REPO/skills/example/SKILL.md.bak"
+git -C "$REPO" add skills/example/SKILL.md
+git -C "$REPO" commit -q -m invalid-change
 invalid_diff="$TMP_ROOT/invalid-skill.diff"
-git -C "$REPO" diff --no-ext-diff --binary -- skills/example/SKILL.md >"$invalid_diff"
+git -C "$REPO" show --format= --no-ext-diff --binary HEAD -- skills/example/SKILL.md >"$invalid_diff"
 run_prefetch "$TMP_ROOT/invalid-skill-out" "$(meta_for skills/example/SKILL.md 1 1)" "$invalid_diff"
 if [ "$RUN_RC" -ne 0 ]; then pass; else fail "invalid small SKILL.md edit must hard-fail prefetch"; fi
 assert_contains "$RUN_STDERR" "skill package validation or snapshot failed" "invalid small SKILL.md edit reports package validation failure"

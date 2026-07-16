@@ -32,8 +32,10 @@ result. The agent reads the result, not the inputs that produced it.
   matched.
 - `status.sh` reads the specs, plans, and PR state and prints the feature board, so the agent never
   loads all those artifacts itself.
-- `prefetch.sh` gathers a PR's diff, metadata, rules, memory, and wisdom once, and the review
-  subagents read those files rather than each re-fetching from GitHub.
+- `prefetch.sh` gathers a PR's diff, metadata, rules, memory, and wisdom once. For each touched
+  right-side `SKILL.md`, it also snapshots and validates the whole tracked package. Review subagents
+  read those artifacts rather than re-fetching GitHub or the mutable checkout; findings remain
+  anchored only to changed lines in the authoritative diff.
 
 This is what makes recall scale: on a repo with 500 notes, recall loads only the handful that match
 the changed files, not the full corpus. Because the work happens in the shell, the results are
