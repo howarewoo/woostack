@@ -29,6 +29,28 @@ assert_exit 0 "$RUN_RC" "canonical managed metadata parses"
 assert_eq "$RUN_STDOUT" "$canonical" "parse emits compact sorted canonical JSON"
 assert_eq "$RUN_STDERR" "" "successful parse is quiet on stderr"
 
+cat >"$TMP/linear-normalized.md" <<'EOF'
++++ Woostack metadata — managed, do not edit
+
+{"artifactType":"spec","projectId":"project-123","repository":"acme/widgets","schema":1,"state":"approved"}
+
++++
+EOF
+run_metadata "$TMP/linear-normalized.md" parse --repository acme/widgets --project-id project-123
+assert_exit 0 "$RUN_RC" "Linear-normalized managed metadata parses"
+assert_eq "$RUN_STDOUT" "$canonical" "Linear-normalized parse emits canonical JSON"
+printf '%b' '+++ Woostack metadata — managed, do not edit\r\n\r\n{"artifactType":"spec","projectId":"project-123","repository":"acme/widgets","schema":1,"state":"approved"}\r\n\r\n+++\r\n' >"$TMP/linear-normalized-crlf.md"
+run_metadata "$TMP/linear-normalized-crlf.md" parse
+assert_exit 0 "$RUN_RC" "CRLF Linear-normalized managed metadata parses"
+for invalid_padding in \
+  $'+++ Woostack metadata — managed, do not edit\n\n{"artifactType":"spec","projectId":"project-123","repository":"acme/widgets","schema":1}\n+++\n' \
+  $'+++ Woostack metadata — managed, do not edit\n{"artifactType":"spec","projectId":"project-123","repository":"acme/widgets","schema":1}\n\n+++\n' \
+  $'+++ Woostack metadata — managed, do not edit\n\n\n{"artifactType":"spec","projectId":"project-123","repository":"acme/widgets","schema":1}\n\n+++\n'; do
+  printf '%s' "$invalid_padding" >"$TMP/invalid-padding.md"
+  run_metadata "$TMP/invalid-padding.md" parse
+  assert_exit 1 "$RUN_RC" "asymmetric or excessive metadata padding is rejected"
+done
+
 printf '%s\n' 'No managed metadata here. SECRET-HUMAN-CONTENT' >"$TMP/absent.md"
 run_metadata "$TMP/absent.md" parse
 assert_exit 1 "$RUN_RC" "absent metadata is rejected"
@@ -490,7 +512,7 @@ variants = {
 }
 for name, (prefix, header_nl, body_nl, closer_nl, suffix) in variants.items():
     source = prefix + header + header_nl + old + body_nl + b"+++" + closer_nl + suffix
-    expected = prefix + header + header_nl + new + body_nl + b"+++" + closer_nl + suffix
+    expected = prefix + header + header_nl + header_nl + new + body_nl + body_nl + b"+++" + closer_nl + suffix
     (root / f"bytes-{name}.md").write_bytes(source)
     (root / f"bytes-{name}.expected").write_bytes(expected)
 PY

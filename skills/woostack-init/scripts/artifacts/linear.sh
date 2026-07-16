@@ -191,14 +191,14 @@ prepare_spec() {
   if grep -qF '+++ Woostack metadata — managed, do not edit' "$source"; then
     parsed="$(python3 "$METADATA" parse --repository "$repository" --project-id "$project_id" <"$source")" || fail "spec metadata is invalid"
     [[ "$(jq -r '.artifactType' <<<"$parsed")" == spec ]] || fail "spec metadata has the wrong artifact type"
-    cat "$source" >"$output"
+    python3 "$METADATA" replace --metadata "$parsed" --repository "$repository" --project-id "$project_id" <"$source" >"$output" || fail "spec metadata could not be normalized"
   else
     cat "$source" >"$output"
     [[ ! -s "$output" ]] || [[ "$(tail -c 1 "$output" | wc -l | tr -d ' ')" == 1 ]] || printf '\n' >>"$output"
     {
-      printf '\n%s\n' '+++ Woostack metadata — managed, do not edit'
+      printf '\n%s\n\n' '+++ Woostack metadata — managed, do not edit'
       jq -cnS --arg projectId "$project_id" --arg repository "$repository" '{artifactType:"spec",designState:"draft",projectId:$projectId,repository:$repository,schema:1}'
-      printf '%s\n' '+++'
+      printf '\n%s\n' '+++'
     } >>"$output"
   fi
 }

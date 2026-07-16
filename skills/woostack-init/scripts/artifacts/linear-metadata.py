@@ -233,13 +233,16 @@ def managed_section(text: str) -> tuple[int, int, str, dict[str, Any]]:
 
     body = text[header.end() : closer.start()]
     if body.endswith("\r\n"):
-        json_text = body[:-2]
         newline = "\r\n"
     elif body.endswith("\n"):
-        json_text = body[:-1]
         newline = "\n"
     else:
         raise MetadataError("managed metadata block is malformed")
+
+    if body.startswith(newline) and body.endswith(newline * 2):
+        json_text = body[len(newline) : -len(newline * 2)]
+    else:
+        json_text = body[: -len(newline)]
     if "\n" in json_text or "\r" in json_text or not json_text:
         raise MetadataError("managed metadata block is malformed")
 
@@ -455,8 +458,9 @@ def command_replace(args: argparse.Namespace) -> None:
 
     output = (
         text[:body_start]
-        + canonical_json(replacement)
         + newline
+        + canonical_json(replacement)
+        + newline * 2
         + text[closer_start:]
     )
     sys.stdout.buffer.write(output.encode("utf-8"))

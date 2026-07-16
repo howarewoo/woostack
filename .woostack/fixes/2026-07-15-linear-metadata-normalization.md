@@ -1,6 +1,6 @@
 ---
 type: fix
-status: hardened
+status: executing
 branch: fix/linear-metadata-normalization
 ---
 
@@ -24,16 +24,16 @@ Update the Linear document fixture to the exact blank-line representation return
 
 ## 3. Implementation Plan
 
-- [ ] **Step 1: Reproduce with failing tests**
+- [x] **Step 1: Reproduce with failing tests**
   - Add metadata parser cases using the exact LF and CRLF Linear-normalized blocks and require canonical parsed JSON.
   - Add negative cases for asymmetric or excessive blank-line padding so tolerance remains limited to the observed API representation.
   - Change the managed document fixture to Linear's returned representation and confirm the existing `feature-create` success scenario fails before implementation.
   - Add serializer regressions proving compact input is emitted in the normalized form while every byte outside the managed block remains unchanged.
-- [ ] **Step 2: Apply the minimal fix**
+- [x] **Step 2: Apply the minimal fix**
   - Update `managed_section` in `skills/woostack-init/scripts/artifacts/linear-metadata.py` to recognize only compact and Linear-normalized managed JSON bodies while preserving canonical JSON and duplicate/ownership validation.
   - Make `command_replace` emit the normalized managed-block layout without changing content outside that block.
   - Make `prepare_spec` in `skills/woostack-init/scripts/artifacts/linear.sh` serialize both new and pre-existing valid metadata into the normalized layout before document mutations.
-- [ ] **Step 3: Verification**
+- [x] **Step 3: Verification**
   - Run `bash skills/woostack-init/scripts/tests/test-linear-metadata.sh`.
   - Run `bash skills/woostack-init/scripts/tests/test-linear-resources.sh`.
   - Confirm the exact Linear-normalized fixture produces `verified: true`, while duplicate/foreign/non-canonical metadata, changed spec body text, and terminal-newline mismatches still fail closed.
