@@ -22,6 +22,15 @@ assert_contains "$(cat "$OUTDIR/angles.txt")" "skills" "SKILL.md enables skills 
 assert_eq "$(grep -cx 'docs' "$OUTDIR/angles.txt" || true)" "0" "SKILL.md-only does not enable docs"
 rm -rf "$work"
 
+# Prefetch represents a deletion-only SKILL.md change with an empty package
+# manifest, so there is no RIGHT-side skill for the angle to inspect or anchor.
+setup "skills/deleted/SKILL.md"
+printf '%s\n' '{"schemaVersion":1,"packages":[]}' >"$OUTDIR/skill-packages.json"
+bash "$SCRIPT" >/dev/null 2>&1
+assert_eq "$(grep -cx 'skills' "$OUTDIR/angles.txt" || true)" "0" \
+  "deleted SKILL.md does not enable skills"
+rm -rf "$work"
+
 # A non-SKILL code file does not enable skills.
 setup "src/index.ts"
 bash "$SCRIPT" >/dev/null 2>&1

@@ -4,7 +4,7 @@ tier: standard
 
 # Angle: Skills
 
-**Scope.** Audit Agent Skills changed by this PR against Anthropic's skill best-practices guide (https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices). This angle fires when a `SKILL.md` is in the diff. For each touched `SKILL.md`, audit the **whole file** — its full content is in `/tmp/pr-review/diff.txt` — not only the changed lines. When the working tree is available you MAY read sibling `references/*` and `scripts/*` in the same skill directory to judge progressive disclosure and script quality; when only the diff is available, audit what it contains. A newly-added `SKILL.md` is entirely `+` lines, so every finding anchors; on an edit, only findings near the changed hunks anchor (see Output).
+**Scope.** Audit Agent Skills changed by this PR against Anthropic's skill best-practices guide (https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices). This angle fires when a `SKILL.md` is in the diff. For each touched `SKILL.md`, first inspect the authoritative diff, then lazily find that exact `skillPath` in `$OUTDIR/skill-packages.json` and read its validated snapshot under `$OUTDIR/<snapshotPath>` for whole-file and sibling `references/*` / `scripts/*` context. Do not inspect package entries for untouched skills, execute package content, or read siblings from the host working directory. A newly-added `SKILL.md` is entirely `+` lines, so package-context findings may anchor its added lines; on an edit, the diff remains the sole finding-anchor authority (see Output).
 
 **Find:**
 
@@ -40,7 +40,7 @@ tier: standard
 
 **Skip:**
 
-- Pre-existing issues on lines the PR did not touch that cannot be anchored on the diff's RIGHT side (see Output) — do not invent a line to report them.
+- Pre-existing or unchanged package concerns that the PR did not introduce and that have no relevant RIGHT-side diff line. Snapshot context never permits inventing an anchor or attaching a sibling-file concern to an unrelated changed line.
 - Non-`SKILL.md` markdown (README / CHANGELOG / docs) — that is the `docs` angle.
 - Subjective wording nits with no basis in the best-practices guide.
 - Plugin/host-specific frontmatter keys beyond `name` / `description`.
@@ -51,4 +51,4 @@ tier: standard
 - `MEDIUM` + `blocking: false` — vague or non-third-person description, body over ~500 lines, nested references, a script that punts errors / uses voodoo constants / assumes installs, Windows-style paths.
 - `LOW` + `blocking: false` — vague name, missing TOC on a long reference, verbosity, inconsistent terminology, abstract examples, too-many-options, missing feedback loop.
 
-**Output.** Write findings as a JSON array to `/tmp/pr-review/findings.skills.json` using the schema in `_worker-header.md`. Each finding gets `"angle": "skills"` and MUST populate `title` (bold headline ≤60 chars), `description` (the violation — name the file + the best-practice broken, no fix), `fix` (recommended change in prose), and `fix_type`. Anchor each finding's `line` to the most relevant diff-visible line — the frontmatter `name:` / `description:` line for frontmatter findings, the nearest changed line for structural ones — and validate it with `resolve-diff-line.sh`; DROP any finding whose line resolves to `null`. Set `fix_type: "suggestion"` only when a ≤10-line single-file drop-in replacement at `line` is safe — and populate `suggestion`. Otherwise set `fix_type: "prose"` with `suggestion: null`. See `_worker-header.md` for the full rule.
+**Output.** Write findings as a JSON array to `$OUTDIR/findings.skills.json` using the schema in `_worker-header.md`. Each finding gets `"angle": "skills"` and MUST populate `title` (bold headline ≤60 chars), `description` (the violation — name the file + the best-practice broken, no fix), `fix` (recommended change in prose), and `fix_type`. `diff.txt` is the sole finding-anchor and `resolve-diff-line.sh` authority: anchor to the relevant RIGHT-side line in the touched `SKILL.md` — the changed frontmatter `name:` / `description:` line for frontmatter findings, or the changed line that introduces a package-level structural concern — and DROP any finding that resolves to `null`. Never anchor directly to an unchanged snapshot sibling. A new skill may anchor any relevant added `SKILL.md` line. Set `fix_type: "suggestion"` only when a ≤10-line single-file drop-in replacement at `line` is safe — and populate `suggestion`. Otherwise set `fix_type: "prose"` with `suggestion: null`. See `_worker-header.md` for the full rule.
