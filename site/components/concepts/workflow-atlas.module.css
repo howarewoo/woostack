@@ -136,15 +136,36 @@
   content: '';
 }
 
-.step:nth-child(4n):not(:last-child)::after {
-  top: calc(100% + 0.35rem);
+.step:nth-child(4):not(:last-child)::after {
+  top: 100%;
   left: 50%;
-  width: 0.55rem;
-  height: 0.55rem;
-  border-right: 1px solid var(--atlas-border);
-  border-bottom: 1px solid var(--atlas-border);
-  background: transparent;
-  transform: rotate(45deg);
+  width: 1px;
+  height: 1.5rem;
+}
+
+.step:nth-child(n + 5):not(:last-child)::after {
+  right: 100%;
+  left: auto;
+}
+
+.step:nth-child(5) {
+  grid-row: 2;
+  grid-column: 4;
+}
+
+.step:nth-child(6) {
+  grid-row: 2;
+  grid-column: 3;
+}
+
+.step:nth-child(7) {
+  grid-row: 2;
+  grid-column: 2;
+}
+
+.step:nth-child(8) {
+  grid-row: 2;
+  grid-column: 1;
 }
 
 .node {
@@ -179,7 +200,7 @@
 
 .kind {
   color: var(--atlas-subtle);
-  font-size: 0.6875rem;
+  font-size: 0.875rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   line-height: 1.2;
@@ -203,7 +224,7 @@
 
 .detail {
   color: var(--atlas-subtle);
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   line-height: 1.4;
 }
 
@@ -225,13 +246,13 @@
 }
 
 .branchGroup[data-workflow='build']::before {
-  left: 62.5%;
+  left: 37.5%;
 }
 
 .branchGroup h4 {
   margin: 0 0 0.4rem;
   color: var(--atlas-subtle);
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 600;
 }
 
@@ -241,7 +262,7 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
 }
 
 .branches > li {
