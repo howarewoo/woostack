@@ -33,5 +33,10 @@ assert_contains "$body" 'status: executing`, `in-review`, or `done` → do not r
 assert_contains "$body" 'Any missing branch, missing fix file, dirty resurrected worktree, or conflicting worktree' "resume blocker states leave recovery context intact"
 assert_contains "$body" "Handoff does not satisfy the closeout invariant" "handoff is distinct from completed execution"
 assert_contains "$body" "Submit PR, Mark In Review, And Tear Down Worktree" "step 6 heading is operational"
+assert_contains "$body" '/woostack-execute .woostack/fixes/YYYY-MM-DD-<slug>.md --subagent' "execution always dispatches the execute subagent driver"
+assert_contains "$body" 'including for a resumed fix; never fall back to' "resumed execution keeps the subagent driver"
+assert_not_contains "$body" '/woostack-execute .woostack/fixes/YYYY-MM-DD-<slug>.md --inline' "execution never selects the inline driver"
+assert_contains "$body" 'Before changing the fix lifecycle, verify that the host can spawn subagents' "missing subagent support blocks before execution starts"
+assert_contains "$body" 'leave the frontmatter at `status: approved`' "capability blocker preserves the resumable approved state"
 
 finish

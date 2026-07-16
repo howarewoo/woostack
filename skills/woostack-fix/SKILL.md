@@ -181,11 +181,14 @@ approved execution has actually run.
    are **Hand off**, not **Go**.
 
 5. **Execute via [`woostack-execute`](../woostack-execute/SKILL.md).**
-   Set the fix file's frontmatter `status: executing`, then hand the fix file to the execute
-   engine — the fix file *is* the plan, and its `## 3. Implementation Plan` is the single
+   Before changing the fix lifecycle, verify that the host can spawn subagents. If it cannot,
+   stop before execution, leave the frontmatter at `status: approved`, and report the blocker.
+   After the capability check passes, set the frontmatter to `status: executing`, then hand the
+   fix file to the execute engine — the fix file *is* the plan, and its
+   `## 3. Implementation Plan` is the single
    increment:
    ```
-   /woostack-execute .woostack/fixes/YYYY-MM-DD-<slug>.md --inline
+   /woostack-execute .woostack/fixes/YYYY-MM-DD-<slug>.md --subagent
    ```
    Execute runs **in the active fix worktree on the `fix/<slug>` branch** that step 2 created or
    resume mode recreated: it **verifies and reuses** that branch and worktree (the
@@ -198,11 +201,11 @@ approved execution has actually run.
    or updates **one PR** — and
    runs the task-scoped spec-compliance and code-quality review, then distills durable learnings
    into `.woostack/memory/`.
-   A fix is one increment / one PR, so default to **`--inline`** for this lightweight loop;
-   use `--subagent` only for a larger fix. When distilling, make sure the increment captures the
-   root-cause **gotcha** learned in step 1 — the debugging insight is a fix's most reusable
-   takeaway. `woostack-execute` owns no approval gate and never merges; the fix's one gate
-   (step 4) stays upstream.
+   Execution always uses **`--subagent`**, including for a resumed fix; never fall back to
+   **`--inline`**.
+   When distilling, make sure the increment captures the root-cause **gotcha** learned in step 1 —
+   the debugging insight is a fix's most reusable takeaway. `woostack-execute` owns no approval
+   gate and never merges; the fix's one gate (step 4) stays upstream.
 
 6. **Submit PR, Mark In Review, And Tear Down Worktree.**
    This closeout commit is separate from the execution commit: `woostack-execute`
@@ -256,7 +259,7 @@ approved execution has actually run.
   invariant, writes no implementation code, removes the worktree, and returns the PR URL plus
   `/woostack-fix .woostack/fixes/YYYY-MM-DD-<slug>.md --resume` so another session or tool can
   continue.
-- **Delegate execution.** Step 5 hands the fix file to [`woostack-execute`](../woostack-execute/SKILL.md); never re-inline a TDD/commit/review/distill loop. Execute runs inside the active `fix/<slug>` worktree and owns the branch, TDD per task, checkbox ticking, commit via `woostack-commit` (code + plan updates into the one PR), task review, and distill. This skill retains only diagnosis, the fix plan, hardening, the pre-approval plan commit, the approval gate, handoff/resume, and the frontmatter lifecycle.
+- **Delegate execution through a subagent.** Step 5 always hands the fix file to [`woostack-execute`](../woostack-execute/SKILL.md) with `--subagent`; never re-inline a TDD/commit/review/distill loop or fall back to `--inline`. If the host cannot spawn subagents, stop before execution and report the blocker. Execute runs inside the active `fix/<slug>` worktree and owns the branch, TDD per task, checkbox ticking, commit via `woostack-commit` (code + plan updates into the one PR), task review, and distill. This skill retains only diagnosis, the fix plan, hardening, the pre-approval plan commit, the approval gate, handoff/resume, and the frontmatter lifecycle.
 - **Closeout is mandatory.** After approved execution succeeds, do not final-answer until the single PR is submitted or updated, the fix frontmatter is `status: in-review`, the lifecycle update is committed and submitted, and the fix worktree is removed. If any closeout step fails, leave the worktree in place and report the blocker plus path.
 - **Closeout handback.** The final response must include the PR URL and verification summary. A failed closeout must report both the blocker and the fix worktree path.
 - **TDD Kernel.** Every fix is driven by a failing test first — enforced by `woostack-execute`'s per-task TDD loop.
