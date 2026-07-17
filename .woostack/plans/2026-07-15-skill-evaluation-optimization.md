@@ -1,7 +1,7 @@
 ---
 type: plan
 source: .woostack/specs/2026-07-15-skill-evaluation-optimization.md
-status: executing
+status: done
 branch: feature/skill-evaluation-optimization
 ---
 

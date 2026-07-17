@@ -1,13 +1,13 @@
 ---
 name: woostack-harden
-description: Use to harden a plan, spec, or design by relentless interview — walk every branch of the decision tree, resolve each open question one at a time with a recommended answer, and amend the artifact in place until no new questions remain. This is the harden phase of the woostack build loop (woostack-build steps 3 and 6 — first the spec, then the plan); also usable standalone to stress-test or "grill me" on a design before committing to it.
+description: Use to harden a plan, spec, or design by relentless interview — walk every branch of the decision tree, resolve each open question one at a time with a recommended answer, and amend the artifact in place until no new questions remain. This is the spec-and-plan hardening phase of the woostack build loop; also usable standalone to stress-test or "grill me" on a design before committing to it.
 ---
 
 # woostack-harden
 
 Harden a plan, spec, or design by interviewing the user relentlessly until you reach shared
-understanding and the artifact stops producing new questions. This is woostack's own hardening
-phase — [`woostack-build`](../woostack-build/SKILL.md) steps 3 (the spec) and 6 (the plan).
+understanding and the artifact stops producing new questions. This is woostack's own spec-and-plan
+hardening phase in the [`woostack-build`](../woostack-build/SKILL.md) shared chain.
 Resolve the configured backend when the target is a stored spec or plan and **amend the selected
 backend artifact in place**. An explicitly named design or fix file remains backend-neutral and
 is amended directly. Stop when no new questions remain. This skill owns **no approval gate**.
