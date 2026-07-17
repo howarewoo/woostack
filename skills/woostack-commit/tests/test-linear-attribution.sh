@@ -8,7 +8,19 @@ import sys
 from pathlib import Path
 
 root = Path(sys.argv[1])
-commit = (root / "skills/woostack-commit/SKILL.md").read_text(encoding="utf-8")
+commit_root = (root / "skills/woostack-commit/SKILL.md").read_text(encoding="utf-8")
+markdown_attribution = (
+    root / "skills/woostack-commit/references/markdown-attribution.md"
+).read_text(encoding="utf-8")
+linear_attribution = (
+    root / "skills/woostack-commit/references/linear-attribution.md"
+).read_text(encoding="utf-8")
+pr_body = (root / "skills/woostack-commit/references/pr-body.md").read_text(encoding="utf-8")
+graphite = (root / "skills/woostack-commit/references/graphite.md").read_text(encoding="utf-8")
+shared_commit = "\n".join((commit_root, pr_body, graphite))
+markdown_commit = "\n".join((shared_commit, markdown_attribution))
+linear_commit = "\n".join((shared_commit, linear_attribution))
+commit = linear_commit
 conventions = (root / "skills/woostack-status/references/conventions.md").read_text(encoding="utf-8")
 controller = (root / "skills/woostack-execute/references/controller.md").read_text(encoding="utf-8")
 
@@ -48,7 +60,7 @@ def section(text, start, end):
 
 
 # Backend selection is authoritative and precedes every invariant or draft operation.
-ordered(commit, (
+ordered(commit_root, (
     "resolve-backend.sh <repo-root>",
     "### 1. Inspect state",
     "### 4.5 Backend-specific invariant and attribution checks",
@@ -57,10 +69,47 @@ ordered(commit, (
 must(commit, "Do not inspect invariants, dispatch a drafting", "backend-first workflow")
 must(commit, "draft commit/PR text before this succeeds", "backend-first workflow")
 must(commit, "never fall back from Linear to Markdown", "backend-first workflow")
+ordered(commit_root, (
+    "When the resolved backend is Linear:",
+    "references/pr-body.md",
+    "do not apply it yet",
+    "Verify the owned project and issue",
+    "stop at the next heading",
+    "Do not submit, edit the PR, invoke `issue-transition`",
+    "### 5. Commit",
+), "Linear pre-commit reader phase")
+ordered(commit_root, (
+    "### 6. Push or submit",
+    "Submit exactly once on the applicable backend path",
+    "Submit with Graphite",
+    "stop at the next heading",
+    "### 7. Resolve and attribute the PR",
+    "Identify and verify the PR",
+    "Record and read back attribution",
+    "Do not repeat the step-4.5 preflight or step-6 submission",
+), "Linear post-commit reader phases")
+must(
+    commit_root,
+    "For Markdown-backed and verified `change/*` invocations only",
+    "generic PR update backend scope",
+)
+
+# Moved PR formatting and Graphite fallback law remain part of the lockstep contract.
+for token in (
+    "Format test-plan items as unchecked Markdown checkboxes",
+    "Re-fetch with `gh pr view`",
+):
+    must(pr_body, token, "PR body procedure")
+for token in (
+    "For a Markdown-backed invocation, if Graphite is unavailable",
+    "A verified `change/*` invocation has no raw-git or `gh pr create` fallback",
+    "A Linear-backed invocation also requires successful Graphite submission",
+):
+    must(graphite, token, "Graphite fallback procedure")
 
 # Markdown attribution remains byte-for-byte compatible with status discovery.
 markdown_trailer = "Spec: .woostack/specs/<file>.md"
-if commit.count(markdown_trailer) < 2:
+if markdown_commit.count(markdown_trailer) < 2:
     fail("commit workflow no longer preserves the exact Markdown Spec trailer")
 must(conventions, "trailer line `Spec: .woostack/specs/<file>.md`", "Markdown conventions")
 
@@ -107,7 +156,7 @@ for token in (
     must(commit, token, "unattributed PR recovery")
 
 linear_pr_resolution = section(
-    commit,
+    linear_attribution,
     "For Linear, a PR must already exist",
     "Immediately call `linear.sh feature-read`",
 )
@@ -145,11 +194,11 @@ for token in (
 ):
     must(commit, token, "post-submit attribution")
 
-no_update = section(
-    commit,
-    "If the `--no-pr-update` flag is specified",
-    "Use a validated fast-subagent draft",
-)
+no_update_start = "If the `--no-pr-update` flag is specified"
+try:
+    no_update = linear_attribution[linear_attribution.index(no_update_start):]
+except ValueError:
+    fail(f"section boundary missing: {no_update_start!r}")
 for token in (
     "do not run `gh pr edit`",
     "existing PR body to carry the exact verified trailer pair",
