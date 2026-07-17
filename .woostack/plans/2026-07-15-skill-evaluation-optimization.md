@@ -22,8 +22,10 @@ Create one Graphite stack above the existing spec+plan base branch. Each increme
 | Increment | Branch | Git parent | Acceptance coverage |
 | --- | --- | --- | --- |
 | 1 | `feature/skill-eval-validation` | `feature/skill-evaluation-optimization` | AC3, AC11 prerequisite, AC18 |
-| 2 | `feature/skill-eval-runtime` | increment 1 | AC4–AC9 engine proof |
-| 3 | `feature/skill-eval-command` | increment 2 | AC1, AC2, AC4–AC10, AC19 |
+| 2a | `feature/skill-eval-runtime-preparation` | increment 1 | AC4, AC5 preparation |
+| 2b | `feature/skill-eval-runtime-aggregate` | increment 2a | AC5–AC8 aggregation |
+| 2c | `feature/skill-eval-runtime-report` | increment 2b | AC9 and complete engine proof |
+| 3 | `feature/skill-eval-command` | increment 2c | AC1, AC2, AC4–AC10, AC19 |
 | 4 | `feature/skill-review-package-context` | increment 3 | AC3, AC11, AC12 |
 | 5 | `feature/skill-review-rubric` | increment 4 | AC13 |
 | 6 | `feature/skill-trigger-core` | increment 5 | AC14, cluster 1 |
@@ -162,13 +164,13 @@ pnpm -C site build
 
 Commit with `/woostack-commit --no-pr-update`, review this PR, and leave no registration deferral: there is no `SKILL.md` or public command yet.
 
-## Increment 2: Isolated evaluator runtime, receipts, aggregation, and reports
+## Increment 2a: Isolated evaluator preparation
 
-> **Branch:** `feature/skill-eval-runtime`  
+> **Branch:** `feature/skill-eval-runtime-preparation`  
 > **Depends on:** Increment 1  
 > **Git parent:** `feature/skill-eval-validation`
 
-> Independently shippable internal evaluator engine. It is deterministic and fully testable with synthetic worker evidence; it still exposes no public command.
+> Independently shippable preparation tooling: safe baseline resolution, private workspaces, frozen definitions and package identities, and deterministic dispatch manifests.
 
 ### Task 1: Pin workspace and baseline preparation
 
@@ -176,7 +178,7 @@ Commit with `/woostack-commit --no-pr-update`, review this PR, and leave no regi
 - Create: `skills/woostack-eval/references/runner.md`
 - Create: `skills/woostack-eval/scripts/tests/test-prepare.sh`
 
-- [ ] **Step 1 — Red**
+- [x] **Step 1 — Red**
 
 Cover explicit baseline-ref precedence, explicit baseline-path precedence, mutual exclusion, merge-base resolution through `skills/woostack-init/scripts/resolve-base.sh`, no-skill baseline only for proven absence/non-Git target, dirty candidate preservation, invalid Git lookup fail-closed, atomic run IDs, concurrent runs, ignored `.woostack/tmp` selection, `${TMPDIR:-/tmp}` fallback, traversal/symlink rejection, candidate/baseline separation, fixture copying, canonical trigger catalogs, and original-package pre-dispatch hash.
 
@@ -192,6 +194,8 @@ Expected manifest shape:
   "baseline": {"kind": "git-ref", "identity": "0123456789abcdef0123456789abcdef01234567"},
   "runConfiguration": {"host": null, "runner": null, "model": null, "sessionIdentity": null, "tier": null, "effort": null},
   "originalPackageHash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "packageHashes": {"candidate": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", "baseline": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"},
+  "gradingPlan": [{"caseId": "markdown-handoff", "repetition": 1, "assertionId": "clear-handoff", "graderId": null}],
   "expected": [{"caseId": "markdown-handoff", "variant": "candidate", "repetition": 1, "kind": "behavior"}],
   "pairs": [{"caseId": "markdown-handoff", "repetition": 1, "candidate": "cases/markdown-handoff/1/candidate", "baseline": "cases/markdown-handoff/1/baseline"}]
 }
@@ -217,11 +221,19 @@ Implementation requirements:
 - Read baseline Git objects without checking out over the user's worktree: enumerate with `git ls-tree -r -z <sha> -- <relative-package>`, reject non-regular modes, and materialize each accepted blob with `git show <sha>:<path>` into the private temporary tree. An explicit absolute baseline path establishes a read-only allowed root.
 - Allocate the run directory atomically with mode `0700`; never reuse an existing ID.
 - Use `.woostack/tmp/skill-evals` only after canonical-root resolution and `git check-ignore` proof; otherwise use an atomic system-temporary directory and report that fallback.
-- Copy only allowed package/fixture files. Build one isolated workspace per case/variant/repetition, plus append-only `evidence/` paths outside the case's capability root. Evidence names are deterministic and collision-free: `action.<kind>.<case-id>.<variant>.<repetition>.json` and `grade.<case-id>.<repetition>.<grader-id>.json`; writers use create-new semantics.
+- Copy only allowed package/fixture files. Build one isolated workspace per case/variant/repetition, plus append-only `evidence/` paths outside the case's capability root. Evidence names are deterministic and collision-free: `action.<kind>.<case-id>.<variant>.<repetition>.json` and `grade.<case-id>.<variant>.<repetition>.<grader-id>.json`; writers use create-new semantics.
 - Produce candidate and baseline trigger catalogs from the same canonical public name/description list rooted at the explicit `--catalog-root` supplied by the skill; default only to the installed collection root derived from `import.meta.url`. Change only the target variant. Add an external target to the candidate catalog when absent; a no-skill baseline omits it.
 - Group candidate/baseline workers into inseparable pairs; do not decide host concurrency in the script.
 
 Run `test-prepare.sh`; expected pass.
+
+## Increment 2b: Receipt aggregation and grading
+
+> **Branch:** `feature/skill-eval-runtime-aggregate`  
+> **Depends on:** Increment 2a  
+> **Git parent:** `feature/skill-eval-runtime-preparation`
+
+> Independently shippable aggregation authority: immutable evidence snapshots, exact receipts, objective assertions, blinded qualitative grades, and honest complete/blocked/degraded metrics.
 
 ### Task 3: Pin receipt, assertion, grade, and aggregate behavior
 
@@ -243,6 +255,7 @@ Red cases:
 
 **Files:**
 - Create: `skills/woostack-eval/scripts/aggregate.mjs`
+- Create: `skills/woostack-eval/scripts/aggregate/*.mjs`
 
 CLI:
 
@@ -253,6 +266,14 @@ node aggregate.mjs --manifest <manifest.json> --evidence <dir> --out <aggregate.
 Accept append-only action receipts with the spec-required identity, timing, output, completion, and error fields. Validate exactly the manifest's expected set before grading. Run deterministic assertions against copied workspaces/captured outputs, accept only explicit qualitative grades with completed grader receipts, compute per-case/overall rates and variance, and emit `executionStatus` exactly `complete | blocked | degraded`. Assertion failures may coexist with `complete`; missing execution proof may not. Do not emit a universal merge verdict.
 
 Run `test-aggregate.sh`; expected pass.
+
+## Increment 2c: Escaped reports and complete engine verification
+
+> **Branch:** `feature/skill-eval-runtime-report`  
+> **Depends on:** Increment 2b  
+> **Git parent:** `feature/skill-eval-runtime-aggregate`
+
+> Independently shippable reporting surface: safe static HTML and terminal summaries over the aggregate authority, followed by complete deterministic engine verification.
 
 ### Task 5: Pin and implement escaped reporting
 
@@ -289,8 +310,8 @@ Expected: all validation, preparation, receipt, partial-run, assertion, trigger,
 ## Increment 3: Public `/woostack-eval` workflow and lockstep registration
 
 > **Branch:** `feature/skill-eval-command`  
-> **Depends on:** Increment 2  
-> **Git parent:** `feature/skill-eval-runtime`
+> **Depends on:** Increment 2c  
+> **Git parent:** `feature/skill-eval-runtime-report`
 
 > First public release of the evaluator. Registration and a complete executable workflow ship together; there is no public half-state.
 
