@@ -1,0 +1,37 @@
+{
+  "mode": "local-pr",
+  "pr": 42,
+  "authenticatedUser": "reviewer",
+  "prAuthor": "contributor",
+  "expectedAngles": [
+    "architecture"
+  ],
+  "receipts": [
+    {
+      "angle": "architecture",
+      "runner": "synthetic-worker",
+      "model": "synthetic-model"
+    }
+  ],
+  "config": {
+    "defer_markers": true,
+    "severity_floor": "high"
+  },
+  "diffMarkers": [
+    {
+      "file": "src/payments.ts",
+      "line": 12,
+      "token": "woostack-defer(increment 3): wire provider after schema lands"
+    }
+  ],
+  "defenderDecision": {
+    "file": "src/payments.ts",
+    "line": 12,
+    "angle": "architecture",
+    "title": "Payment provider is not wired",
+    "issueType": "missing",
+    "blocking": true,
+    "deferred_to": "increment 3"
+  },
+  "pendingReviews": []
+}

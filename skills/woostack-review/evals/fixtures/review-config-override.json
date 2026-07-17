@@ -1,0 +1,15 @@
+{
+  "operation": "load-config-override",
+  "invocationAlreadyParsed": true,
+  "defaults": {
+    "severity_floor": "high",
+    "nits": true,
+    "defer_markers": true
+  },
+  "config": {
+    "review": {
+      "severity_floor": "medium",
+      "nits": false
+    }
+  }
+}

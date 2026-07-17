@@ -4,15 +4,24 @@
   "cases": [
     {
       "id": "missing-angle-receipt-blocks-merge-and-post",
-      "prompt": "Classify the bounded synthetic review run in fixtures/review-missing-receipt.json. Treat each listed receipt record as valid host-produced evidence for its named angle; the absent expected angle has no receipt. Do not dispatch agents, call providers, mutate Linear, edit code, or post anywhere. Return exactly one JSON object using the keys status, allReceiptsVerified, missingReceiptAngles, mergeStarted, validationStarted, reviewPostStarted, codeFixesApplied, and linearMutationCount.",
+      "prompt": "Classify the bounded synthetic review run in fixtures/review-missing-receipt.json. Treat each listed receipt record as valid host-produced evidence for its named angle; the absent expected angle has no receipt. Do not dispatch agents, call providers, mutate Linear, edit code, or post anywhere. Return exactly one JSON object using the keys selectedReaders, status, allReceiptsVerified, missingReceiptAngles, mergeStarted, validationStarted, reviewPostStarted, codeFixesApplied, and linearMutationCount.",
       "fixtures": [
         "review-missing-receipt.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The absent security receipt makes the receipt set incomplete and blocks merge, adversarial validation, and posting, with no code fix or Linear mutation.",
+      "expected": "The root alone classifies the absent security receipt as incomplete and blocks merge, adversarial validation, and posting, with no code fix or Linear mutation.",
       "assertions": [
+        {
+          "id": "failure-root-only-reader-selection",
+          "kind": "final-json-path-equals",
+          "pointer": "/selectedReaders",
+          "expected": [
+            "SKILL.md"
+          ],
+          "critical": true
+        },
         {
           "id": "receipts-incomplete",
           "kind": "final-json-path-equals",
@@ -52,9 +61,8 @@
         },
         {
           "id": "no-review-fixes",
-          "kind": "final-json-path-equals",
-          "pointer": "/codeFixesApplied",
-          "expected": false,
+          "kind": "qualitative",
+          "rubric": "Does the response show that no code fixes were applied, accepting either boolean false or numeric zero?",
           "critical": true
         },
         {
@@ -68,15 +76,24 @@
     },
     {
       "id": "separates-local-output-from-single-ci-review",
-      "prompt": "Apply the packaged review reporting boundary to both completed synthetic runs in fixtures/review-boundaries.json. Do not call GitHub, providers, Linear, or modify source. Return exactly one JSON object using the keys allReceiptsVerified, local, ci, codeFixesApplied, and linearMutations. local and ci must each contain batchedReviewsPosted and terminalOnly; ci must also contain reviewPayloadCount.",
+      "prompt": "Apply the packaged review reporting boundary to both completed synthetic runs in fixtures/review-boundaries.json. Do not call GitHub, providers, Linear, or modify source. Return exactly one JSON object using the keys selectedReaders, allReceiptsVerified, local, ci, codeFixesApplied, and linearMutations. local and ci must each contain batchedReviewsPosted and terminalOnly; ci must also contain reviewPayloadCount.",
       "fixtures": [
         "review-boundaries.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "With all receipts present, local mode remains terminal-only with no remote post, while CI/PR mode produces exactly one batched review payload; neither path fixes code nor mutates Linear.",
+      "expected": "The root alone covers the completed local and CI reporting boundary: local remains terminal-only with no remote post, while CI/PR produces exactly one batched review payload; neither path fixes code nor mutates Linear.",
       "assertions": [
+        {
+          "id": "reporting-root-only-reader-selection",
+          "kind": "final-json-path-equals",
+          "pointer": "/selectedReaders",
+          "expected": [
+            "SKILL.md"
+          ],
+          "critical": true
+        },
         {
           "id": "success-receipts-complete",
           "kind": "final-json-path-equals",
@@ -106,6 +123,277 @@
           "id": "success-path-no-linear-mutation",
           "kind": "qualitative",
           "rubric": "Does the response show that no Linear mutations occurred, accepting either numeric zero or boolean false?",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "local-pr-honors-declared-stack-deferral",
+      "prompt": "Apply the packaged woostack-review behavior to the bounded local PR run in fixtures/review-local-pr-deferred-stack.json. The explicit PR number is already resolved. Treat the listed receipt and defender decision as valid synthetic evidence; do not dispatch agents, call providers, fetch any other pull request, mutate Linear, edit code, or post anywhere. Return exactly one JSON object using the keys selectedReaders, allReceiptsVerified, deferredTo, finalFinding, reviewPayloadCount, reviewEvent, otherPullRequestsFetched, codeFixesApplied, and linearMutationCount. finalFinding must contain exactly the keys blocking and nit.",
+      "fixtures": [
+        "review-local-pr-deferred-stack.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "A local explicit-PR path reads the root plus command catalog, retains that PR as the target, and converts the declared gap to a visible non-blocking nit deferred to increment 3; the clean PR prepares one APPROVE payload without fetching another PR, applying a fix, or mutating Linear.",
+      "assertions": [
+        {
+          "id": "local-pr-command-reader-selection",
+          "kind": "final-json-path-equals",
+          "pointer": "/selectedReaders",
+          "expected": [
+            "SKILL.md",
+            "references/commands.md"
+          ],
+          "critical": true
+        },
+        {
+          "id": "local-pr-receipt-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/allReceiptsVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "declared-gap-deferred",
+          "kind": "final-json-path-equals",
+          "pointer": "/deferredTo",
+          "expected": "increment 3",
+          "critical": true
+        },
+        {
+          "id": "deferred-finding-nonblocking",
+          "kind": "final-json-path-equals",
+          "pointer": "/finalFinding/blocking",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "deferred-finding-visible-nit",
+          "kind": "final-json-path-equals",
+          "pointer": "/finalFinding/nit",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "local-pr-single-review-payload",
+          "kind": "final-json-path-equals",
+          "pointer": "/reviewPayloadCount",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "deferred-only-event-approve",
+          "kind": "final-json-path-equals",
+          "pointer": "/reviewEvent",
+          "expected": "APPROVE",
+          "critical": true
+        },
+        {
+          "id": "no-other-pr-fetch",
+          "kind": "qualitative",
+          "rubric": "Does the response show that no other pull request was fetched, accepting either boolean false or numeric zero?",
+          "critical": true
+        },
+        {
+          "id": "deferred-case-no-fix",
+          "kind": "qualitative",
+          "rubric": "Does the response show that no code fixes were applied, accepting either boolean false or numeric zero?",
+          "critical": true
+        },
+        {
+          "id": "deferred-case-no-linear-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/linearMutationCount",
+          "expected": 0,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "config-override-selects-configuration-reader",
+      "prompt": "Apply the packaged woostack-review progressive-disclosure and configuration behavior to fixtures/review-config-override.json. Invocation parsing is already complete. Do not dispatch agents, call providers or GitHub, mutate Linear, edit code, or read an unrelated direct reference. Return exactly one JSON object using the keys selectedReaders, effectiveConfig, providerWorkersDispatched, githubCalls, codeFixesApplied, and linearMutationCount. selectedReaders must be an array in load order. effectiveConfig must contain exactly the keys severity_floor, nits, and defer_markers.",
+      "fixtures": [
+        "review-config-override.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Because invocation parsing has finished and a repository config override is being loaded, the reader selects only SKILL.md and references/configuration.md. The supplied severity_floor and nits override defaults while defer_markers retains its default, with no workers, GitHub call, code fix, or Linear mutation.",
+      "assertions": [
+        {
+          "id": "configuration-only-reader-selection",
+          "kind": "final-json-path-equals",
+          "pointer": "/selectedReaders",
+          "expected": [
+            "SKILL.md",
+            "references/configuration.md"
+          ],
+          "critical": true
+        },
+        {
+          "id": "severity-floor-override-applied",
+          "kind": "final-json-path-equals",
+          "pointer": "/effectiveConfig/severity_floor",
+          "expected": "medium",
+          "critical": true
+        },
+        {
+          "id": "nits-override-applied",
+          "kind": "final-json-path-equals",
+          "pointer": "/effectiveConfig/nits",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "defer-marker-default-retained",
+          "kind": "final-json-path-equals",
+          "pointer": "/effectiveConfig/defer_markers",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "config-selection-no-workers",
+          "kind": "final-json-path-equals",
+          "pointer": "/providerWorkersDispatched",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "config-selection-no-github-call",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubCalls",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "config-selection-no-fix",
+          "kind": "qualitative",
+          "rubric": "Does the response show that no code fixes were applied, accepting either boolean false or numeric zero?",
+          "critical": true
+        },
+        {
+          "id": "config-selection-no-linear-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/linearMutationCount",
+          "expected": 0,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "ci-setup-selects-ci-reader",
+      "prompt": "Prepare the bounded dry-run CI setup requested in fixtures/review-ci-setup.json. Invocation parsing and repository inspection are already complete. Do not dispatch agents, call providers or GitHub, mutate Linear, edit code, write the workflow, or read an unrelated direct reference. Return exactly one JSON object using the keys selectedReaders, workflowPath, reusableWorkflow, provider, providerSecret, linearSecretRequired, pullRequestTypes, issueCommentTypes, trustedCommentAssociations, providerCalls, githubCalls, codeFixesApplied, and linearMutationCount. selectedReaders must be an array in load order.",
+      "fixtures": [
+        "review-ci-setup.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Because the request is specifically for CI setup, the reader selects only SKILL.md and references/ci.md. The dry run maps OpenAI to openai_api_key, omits the Linear secret for a Markdown backend, preserves the documented pull-request and trusted issue-comment gates, and targets the reusable review workflow without dispatching or mutating anything.",
+      "assertions": [
+        {
+          "id": "ci-only-reader-selection",
+          "kind": "final-json-path-equals",
+          "pointer": "/selectedReaders",
+          "expected": [
+            "SKILL.md",
+            "references/ci.md"
+          ],
+          "critical": true
+        },
+        {
+          "id": "ci-workflow-path",
+          "kind": "final-json-path-equals",
+          "pointer": "/workflowPath",
+          "expected": ".github/workflows/ai-review.yml",
+          "critical": true
+        },
+        {
+          "id": "ci-reusable-workflow",
+          "kind": "final-json-path-equals",
+          "pointer": "/reusableWorkflow",
+          "expected": "howarewoo/woostack/.github/workflows/reusable-review.yml@main",
+          "critical": true
+        },
+        {
+          "id": "ci-provider",
+          "kind": "final-json-path-equals",
+          "pointer": "/provider",
+          "expected": "openai",
+          "critical": true
+        },
+        {
+          "id": "ci-provider-secret",
+          "kind": "final-json-path-equals",
+          "pointer": "/providerSecret",
+          "expected": "openai_api_key",
+          "critical": true
+        },
+        {
+          "id": "ci-no-linear-secret",
+          "kind": "final-json-path-equals",
+          "pointer": "/linearSecretRequired",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "ci-pull-request-types",
+          "kind": "final-json-path-equals",
+          "pointer": "/pullRequestTypes",
+          "expected": [
+            "opened",
+            "reopened",
+            "ready_for_review"
+          ],
+          "critical": true
+        },
+        {
+          "id": "ci-issue-comment-types",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueCommentTypes",
+          "expected": [
+            "created"
+          ],
+          "critical": true
+        },
+        {
+          "id": "ci-trusted-comment-associations",
+          "kind": "final-json-path-equals",
+          "pointer": "/trustedCommentAssociations",
+          "expected": [
+            "OWNER",
+            "MEMBER",
+            "COLLABORATOR"
+          ],
+          "critical": true
+        },
+        {
+          "id": "ci-setup-no-provider-call",
+          "kind": "final-json-path-equals",
+          "pointer": "/providerCalls",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "ci-setup-no-github-call",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubCalls",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "ci-setup-no-code-fix",
+          "kind": "qualitative",
+          "rubric": "Does the response show that no code fixes were applied, accepting either boolean false or numeric zero?",
+          "critical": true
+        },
+        {
+          "id": "ci-setup-no-linear-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/linearMutationCount",
+          "expected": 0,
           "critical": true
         }
       ]

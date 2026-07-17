@@ -198,8 +198,11 @@ const approvedCaseContracts = {
     'stages-only-relevant-linear-change-and-verifies-submit': readOnlyCase('7214b1b783277f750f97c0c4c02117d7cd53a7eafaba423bfc38b9efd705c425'),
   },
   'woostack-review': {
-    'missing-angle-receipt-blocks-merge-and-post': readOnlyCase('2dd335487734664e9566e63452d2e67beec183dcb3ca1cca20fb094252d18c97'),
-    'separates-local-output-from-single-ci-review': readOnlyCase('7438493cab60aae0c6e6598d4e25972bd036c2da6a6cc9334bc4d0e703bfe410'),
+    'missing-angle-receipt-blocks-merge-and-post': readOnlyCase('8f6ec54482b05dbbbe84dca9ccede900e36dbbde8a1b0478ec0948e5ea70d2f9'),
+    'separates-local-output-from-single-ci-review': readOnlyCase('3b5ce31411967781b15b3775abc16a338cbcd266e2a552abd8a722b80391ec26'),
+    'local-pr-honors-declared-stack-deferral': readOnlyCase('59adeaeae0280fb908f225bad6faaa1215d46cf52e47958aa17e227ba8951bd9'),
+    'config-override-selects-configuration-reader': readOnlyCase('a398c59c76200a4ae980cd68f6ded0a0c8a011fac357705d1fea50def44d8a54'),
+    'ci-setup-selects-ci-reader': readOnlyCase('aa399280928102cb8bfcca9558e5b3ff4c76c84df82ae3282165562525a0b6c8'),
   },
   'woostack-sweep': {
     'bottom-up-loop-stops-on-no-progress': readOnlyCase('9d88cd4855a8e72211f7027403ea9ea3c62f58dde7d0071bf2c00779eb8cfd8b'),
@@ -488,8 +491,17 @@ for (let index = 0; index < packages.length; index += 1) {
   const corpusPath = path.join(repositoryRoot, packagePath, 'evals', 'evals.json');
   if (!fs.statSync(corpusPath).isFile()) throw new Error(`missing required corpus: ${corpusPath}`);
   const corpus = JSON.parse(fs.readFileSync(corpusPath, 'utf8'));
-  if (corpus.skill !== skill || !Array.isArray(corpus.cases) || corpus.cases.length < 1 || corpus.cases.length > 2) {
-    throw new Error(`${packagePath} must have one or two behavior cases for its own skill`);
+  const validCaseCount = Array.isArray(corpus.cases) && (
+    skill === 'woostack-review'
+      ? corpus.cases.length === 5
+      : corpus.cases.length >= 1 && corpus.cases.length <= 2
+  );
+  if (corpus.skill !== skill || !validCaseCount) {
+    throw new Error(
+      skill === 'woostack-review'
+        ? `${packagePath} must have exactly its five approved behavior cases`
+        : `${packagePath} must have one or two behavior cases for its own skill`,
+    );
   }
   if (validation.corpora.behavior.caseCount !== corpus.cases.length) {
     throw new Error(`${packagePath} validator case count disagrees with its corpus`);

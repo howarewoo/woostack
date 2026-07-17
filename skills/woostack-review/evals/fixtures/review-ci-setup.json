@@ -1,0 +1,16 @@
+{
+  "request": {
+    "mode": "ci-setup",
+    "workflowPath": ".github/workflows/ai-review.yml",
+    "provider": "openai",
+    "artifactBackend": "markdown"
+  },
+  "availableRepositorySecrets": [
+    "OPENAI_API_KEY"
+  ],
+  "constraints": {
+    "dryRun": true,
+    "dispatchReview": false,
+    "writeWorkflow": false
+  }
+}
