@@ -15,6 +15,11 @@ See [Workflow maps](/docs/concepts/workflows) for a cross-workflow comparison.
 > ideate → capture spec → harden spec → **approve spec** → plan → harden plan
 > → **execution handoff** → execute (per increment: implement → commit → review → distill)
 
+Markdown persists its artifacts between those shared gates:
+
+> harden spec → commit spec PR → **approve spec** → plan → harden plan
+> → append plan to spec+plan PR → **execution handoff**
+
 ## Exactly three hard gates
 
 The loop advances only on an explicit answer:
@@ -41,7 +46,7 @@ PR per independently shippable increment. Linear has no docs-only base PR: after
 explicitly approved, root increments begin at the frozen SHA and dependent increments use their
 declared Git parent.
 
-The [Linear build procedure](https://github.com/howarewoo/woostack/blob/main/skills/woostack-build/SKILL.md#linear-backend-procedure)
+The [Linear build procedure](https://github.com/howarewoo/woostack/blob/main/skills/woostack-build/references/linear-procedure.md)
 owns the operational lifecycle. [Configuration](/docs/configuration#artifact-backend) owns backend
 selection and environment authentication; [Status tracking](/docs/concepts/status-tracking)
 explains how each model reaches terminal truth.
