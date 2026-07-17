@@ -96,7 +96,7 @@ Example `.woostack/config.json`:
 - **`review.severity_floor`**: Filter results by severity (e.g., `high`, `medium`, `low`).
 - **`review.ignore`**: Exclude generated or external code files from PR reviews.
 
-For detailed configurations, see [woostack-review config options](skills/woostack-review/SKILL.md#per-repo-configuration-woostackconfigjson).
+For detailed configurations, see [woostack-review config options](skills/woostack-review/references/configuration.md#per-repo-configuration-woostackconfigjson).
 
 ### 5. Artifact Backend
 
