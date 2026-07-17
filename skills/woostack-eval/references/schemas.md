@@ -365,8 +365,9 @@ failure, and contains no merge verdict.
 
 Aggregate and HTML report publication share one create-new authority at mode `0600`: it writes
 and fsyncs a same-directory temporary file, atomically links that file to the requested absent
-output path, fsyncs the parent directory, and removes the temporary name on success or failure.
-It never overwrites an existing aggregate or report.
+output path, fsyncs the parent directory, and attempts to remove the temporary name on success
+and failure. Cleanup failures are surfaced; an unlink failure can retain the private temporary
+file. Publication never overwrites an existing aggregate or report.
 
 `objectivePassRate` uses only deterministic assertion observations from behavior cases. For each
 variant, every assertion/repetition observation has equal weight: the rate is passing deterministic
@@ -428,7 +429,8 @@ Aggregate evidence and fatal snapshot errors use these exhaustive canonical code
 | `package-hash-mismatch` | `/packageHash` | A copied package, worker receipt, or grader receipt differs from the applicable frozen manifest package identity. |
 | `unsafe-evidence-path` | `/output/path`, `/transcript/path`, or `/receipt/path` | The referenced path is absolute, escapes the run root, or is otherwise unsafe. |
 | `non-regular-evidence` | `/output/path`, `/transcript/path`, or `/receipt/path` | Referenced evidence is missing, a directory, symlink, special file, or unstable regular file. |
-| `snapshot-mutation` | empty pointer | Fatal: a snapshotted path, directory identity/name set, opened-handle inode/device/size/mtime, or streamed SHA-256 changes; publication is refused. |
+| `snapshot-limit-exceeded` | empty pointer | Fatal: a [snapshot bound](runner.md#isolated-workspaces-and-evidence) is crossed; publication is refused. |
+| `snapshot-mutation` | empty pointer | Fatal: a snapshotted path, directory identity/name set, opened-handle inode/device/size/mtime, streamed SHA-256, or consumed file identity differs; publication is refused. |
 Errors are normalized and sorted by `path`, then `field`, then `code`. A single-fault input emits
 only its canonical error; secondary missing/unknown errors for the same rejected receipt are not
 added.
