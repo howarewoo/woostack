@@ -2,17 +2,22 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { parseFrontmatter } from '../../skills/woostack-eval/scripts/validate.mjs';
 import {
   INTERNAL_ORDER,
   PUBLIC_ORDER,
   SUPPORTING_ORDER,
-  parseFrontmatter,
+  parseFrontmatter as generatorParseFrontmatter,
   stripTitleHeading,
   rewriteLinks,
   neutralizeTags,
   renderPage,
   navOrder,
 } from './gen-skills.mjs';
+
+test('generator re-exports the canonical frontmatter parser', () => {
+  assert.equal(generatorParseFrontmatter, parseFrontmatter);
+});
 
 test('parseFrontmatter extracts name + description and returns the body', () => {
   const raw = '---\nname: woostack-build\ndescription: Use when building a feature.\n---\n\n# woostack-build\n\nbody';
@@ -30,6 +35,27 @@ test('parseFrontmatter strips surrounding YAML quotes (some descriptions are quo
   const raw = '---\nname: woostack-tdd\ndescription: "TDD home: red→green. Quoted in source."\n---\nb';
   const { fm } = parseFrontmatter(raw, 'woostack-tdd');
   assert.equal(fm.description, 'TDD home: red→green. Quoted in source.'); // no leading/trailing "
+});
+
+test('parseFrontmatter accepts safe placeholders in plain descriptions', () => {
+  const raw = '---\nname: woostack-plan\ndescription: Write the approved spec to <plan-path>.\n---\nbody';
+  const { fm } = parseFrontmatter(raw, 'woostack-plan');
+  assert.equal(fm.description, 'Write the approved spec to <plan-path>.');
+});
+
+test('parseFrontmatter accepts quoted colon-space descriptions with safe placeholders', () => {
+  const raw = '---\nname: woostack-plan\ndescription: "Plan output: write <plan-path> safely."\n---\nbody';
+  const { fm } = parseFrontmatter(raw, 'woostack-plan');
+  assert.equal(fm.description, 'Plan output: write <plan-path> safely.');
+});
+
+test('parseFrontmatter rejects colon-space in a plain description deterministically', () => {
+  const raw = '---\nname: woostack-plan\ndescription: Plan output: write safely.\n---\nbody';
+  assert.throws(
+    () => parseFrontmatter(raw, 'woostack-plan'),
+    (error) => error.code === 'frontmatter-plain-colon-space' &&
+      error.message === 'woostack-plan: description contains colon-space in a plain scalar; quote the value',
+  );
 });
 
 test('stripTitleHeading removes only the first exact "# <name>" H1', () => {

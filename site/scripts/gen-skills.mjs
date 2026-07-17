@@ -2,6 +2,9 @@ import { readdir, readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { parseFrontmatter } from '../../skills/woostack-eval/scripts/validate.mjs';
+
+export { parseFrontmatter };
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..', '..'); // site/scripts -> repo root
@@ -36,24 +39,6 @@ export const INTERNAL_ORDER = ['woostack-harden', 'woostack-ideate'];
 
 const ORDER = [...PUBLIC_ORDER, ...SUPPORTING_ORDER, ...INTERNAL_ORDER];
 const INTERNAL = new Set(INTERNAL_ORDER);
-
-export function parseFrontmatter(raw, file = '<input>') {
-  const m = /^---\n([\s\S]*?)\n---\n?/.exec(raw);
-  if (!m) throw new Error(`${file}: missing frontmatter`);
-  const fm = {};
-  for (const line of m[1].split('\n')) {
-    const mm = /^(\w+):\s*(.*)$/.exec(line);
-    if (!mm) continue;
-    let v = mm[2].trim();
-    if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
-      v = v.slice(1, -1).replace(/\\"/g, '"'); // some descriptions are YAML-quoted in source
-    }
-    fm[mm[1]] = v;
-  }
-  if (!fm.name) throw new Error(`${file}: frontmatter missing 'name'`);
-  if (!fm.description) throw new Error(`${file}: frontmatter missing 'description'`);
-  return { fm, body: raw.slice(m[0].length) };
-}
 
 export function stripTitleHeading(body, name) {
   const lines = body.split('\n');
