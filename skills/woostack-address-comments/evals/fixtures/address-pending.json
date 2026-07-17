@@ -1,0 +1,10 @@
+{
+  "mode": "default",
+  "approval": null,
+  "workingTreeClean": true,
+  "currentBranchIsPrHead": true,
+  "threads": [
+    {"id": "T1", "file": "src/cache.ts", "line": 2, "finding": "cache misses are returned without an explicit result type", "verified": true, "recommended": "FIX", "fixPlan": "return an explicit typed miss when store.get(key) yields no value"},
+    {"id": "T2", "file": "src/cache.ts", "line": 2, "finding": "rename the established store API", "verified": false, "recommended": "ACCEPT", "reason": "the public API name is intentional"}
+  ]
+}

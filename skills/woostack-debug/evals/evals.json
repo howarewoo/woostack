@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-debug",
+  "cases": [
+    {
+      "id": "traces-root-cause-and-hands-back-without-fixing",
+      "prompt": "Investigate the synthetic failing cache test using fixtures/repo/test/cache.test.js, fixtures/repo/src/cache.js, and fixtures/repo/src/clock.js. Work through the packaged skill's root-cause, pattern, hypothesis/test, and handback phases. Do not edit any file or chain implementation. Return exactly one JSON object with keys rootCause, evidenceCitations, proposedFix, regressionTest, implementationStarted, and chainedSkill. Cite applicable line ranges, keep the proved root cause separate from the proposed fix, and use null for chainedSkill when no skill is invoked.",
+      "fixtures": [
+        "repo/test/cache.test.js",
+        "repo/src/cache.js",
+        "repo/src/clock.js"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The investigation proves the seconds/milliseconds mismatch from source and test evidence before proposing a minimal fix, names the regression test, edits nothing, and chains no implementation.",
+      "assertions": [
+        {
+          "id": "root-cause-and-evidence-sufficient",
+          "kind": "qualitative",
+          "rubric": "Does rootCause identify the seconds-versus-milliseconds mismatch, do evidenceCitations cite the clock, cache, and failing test with applicable fixture line numbers or ranges, and does the evidence establish the cause independently of proposedFix?",
+          "critical": true
+        },
+        {
+          "id": "minimal-fix-proposed-not-applied",
+          "kind": "qualitative",
+          "rubric": "Does proposedFix keep the age calculation in one time unit without claiming it was applied, while the response remains an investigative handback rather than implementation?",
+          "critical": true
+        },
+        {
+          "id": "regression-test-named",
+          "kind": "final-json-path-equals",
+          "pointer": "/regressionTest",
+          "expected": "expires an entry older than 30 seconds"
+        },
+        {
+          "id": "implementation-not-started",
+          "kind": "final-json-path-equals",
+          "pointer": "/implementationStarted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-chained-skill",
+          "kind": "final-json-path-equals",
+          "pointer": "/chainedSkill",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "debug-source-unchanged",
+          "kind": "file-contains",
+          "file": "fixtures/repo/src/cache.js",
+          "substring": "return nowSeconds() - entry.createdAtMs < 30_000;",
+          "critical": true
+        },
+        {
+          "id": "no-debug-patch",
+          "kind": "path-absent",
+          "path": "fix.patch",
+          "critical": true
+        }
+      ]
+    }
+  ]
+}

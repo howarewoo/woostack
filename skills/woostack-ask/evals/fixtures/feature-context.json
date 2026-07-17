@@ -1,0 +1,5 @@
+{
+  "feature": {"title": "Bound cache freshness"},
+  "spec": {"path": ".woostack/specs/cache.md"},
+  "increments": []
+}

@@ -1,3 +1,4 @@
+import { isUtf8 } from 'node:buffer';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 
@@ -393,6 +394,12 @@ async function evaluateAssertion(assertion, context) {
     const contains = context.outputText.includes(assertion.substring);
     pass = assertion.kind === 'final-contains' ? contains : !contains;
     observed = context.receipt.output;
+  } else if (assertion.kind === 'final-json-path-equals') {
+    observed = context.receipt.output;
+    if (context.outputJson.parsed) {
+      const actual = pointerValue(context.outputJson.value, assertion.pointer);
+      pass = actual.found && same(actual.value, assertion.expected);
+    }
   } else if (assertion.kind === 'receipt-field-equals') {
     const actual = pointerValue(context.receipt, assertion.pointer);
     pass = actual.found && same(actual.value, assertion.expected);
@@ -402,12 +409,14 @@ async function evaluateAssertion(assertion, context) {
     const exists = state.kind === 'file';
     pass = assertion.kind === 'path-exists' ? exists : state.kind === 'missing';
     observed = { path: assertion.path };
-  } else if (['file-contains', 'file-excludes', 'json-path-equals'].includes(assertion.kind)) {
+  } else if (['file-contains', 'file-excludes', 'file-sha256-equals', 'json-path-equals'].includes(assertion.kind)) {
     const relativePath = assertion.path ?? assertion.file;
     const state = await assertionPathState(context, relativePath);
     if (state.kind === 'file') {
       observed = { path: relativePath, sha256: state.sha256, bytes: state.byteCount };
-      if (assertion.kind === 'file-contains' || assertion.kind === 'file-excludes') {
+      if (assertion.kind === 'file-sha256-equals') {
+        pass = state.sha256 === assertion.sha256;
+      } else if (assertion.kind === 'file-contains' || assertion.kind === 'file-excludes') {
         const contains = state.bytes.toString('utf8').includes(assertion.substring);
         pass = assertion.kind === 'file-contains' ? contains : !contains;
       } else {
@@ -691,17 +700,31 @@ async function aggregate(options) {
     const outputText = validated.outputBytes.toString('utf8');
     const fileCache = new Map();
     if (expected.kind === 'behavior') {
+      let outputJson = null;
+      if (loaded.definition.assertions.some((item) =>
+        item.kind === 'final-json-path-equals')) {
+        outputJson = { parsed: false };
+        if (isUtf8(validated.outputBytes)) {
+          try {
+            outputJson = { parsed: true, value: JSON.parse(outputText) };
+          } catch {
+            outputJson = { parsed: false };
+          }
+        }
+      }
+      const assertionContext = {
+        workspaceRoot: loaded.workspaceRoot,
+        workspacePrefix: loaded.workspacePrefix,
+        snapshot,
+        receipt: claim.receipt,
+        receiptIdentity: receiptProof,
+        outputText,
+        outputJson,
+        fileCache,
+      };
       for (const assertion of loaded.definition.assertions) {
         if (candidateOnly && assertion.kind !== 'qualitative') continue;
-        assertions.push(await evaluateAssertion(assertion, {
-          workspaceRoot: loaded.workspaceRoot,
-          workspacePrefix: loaded.workspacePrefix,
-          snapshot,
-          receipt: claim.receipt,
-          receiptIdentity: receiptProof,
-          outputText,
-          fileCache,
-        }));
+        assertions.push(await evaluateAssertion(assertion, assertionContext));
       }
     }
     target.push({

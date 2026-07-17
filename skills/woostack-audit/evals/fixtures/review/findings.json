@@ -1,0 +1,3 @@
+[
+  {"severity": "high", "file": "fixtures/repo/src/cache.js", "line": 2, "title": "Unbounded cache growth", "description": "Entries are never evicted.", "fix": "Add an explicit bounded eviction policy."}
+]

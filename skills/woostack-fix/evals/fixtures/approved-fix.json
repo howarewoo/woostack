@@ -1,0 +1,5 @@
+{
+  "rootCause": {"summary": "the lock expiry is shorter than the protected refresh", "evidence": "src/cache.ts:44 and tests/cache.test.ts:81"},
+  "fixPlan": {"path": ".woostack/fixes/2026-07-16-cache-stampede.md", "hardened": true, "committed": true},
+  "approval": {"decision": "Go", "explicit": true}
+}

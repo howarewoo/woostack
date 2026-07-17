@@ -1,0 +1,14 @@
+{
+  "baseExclusive": "feature/spec-plan",
+  "maxRounds": 3,
+  "stackBottomUp": [
+    {"pr": 101, "rounds": [
+      {"head": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "receipt": {"head": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "statusLine": "CHANGES REQUESTED"}, "blockingFingerprints": ["src/a.ts:8:null-check"]},
+      {"head": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "receipt": {"head": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "statusLine": "APPROVED"}, "blockingFingerprints": [], "unresolvedThreads": 0}
+    ]},
+    {"pr": 102, "rounds": [
+      {"head": "cccccccccccccccccccccccccccccccccccccccc", "receipt": {"head": "cccccccccccccccccccccccccccccccccccccccc", "statusLine": "CHANGES REQUESTED"}, "blockingFingerprints": ["src/b.ts:12:auth-check"]},
+      {"head": "dddddddddddddddddddddddddddddddddddddddd", "receipt": {"head": "dddddddddddddddddddddddddddddddddddddddd", "statusLine": "CHANGES REQUESTED"}, "blockingFingerprints": ["src/b.ts:12:auth-check"]}
+    ]}
+  ]
+}

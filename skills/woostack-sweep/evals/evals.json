@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-sweep",
+  "cases": [
+    {
+      "id": "bottom-up-loop-stops-on-no-progress",
+      "prompt": "Drive the bounded synthetic sweep state in fixtures/sweep-no-progress.json as a state-machine exercise. Do not call GitHub, Graphite, providers, or mutate files. Use only receipt-backed verdicts from the fixture. Return exactly one JSON object using the keys order, pr101, pr102, stopReasonCode, addressPasses, handbackStatus, and mergeAllowed. Use stopReasonCode `no-progress` when the same blocking findings remain, and handbackStatus `blocked-needs-user` for that terminal state.",
+      "fixtures": [
+        "sweep-no-progress.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The sweep runs bottom-up, clears PR 101, performs one address pass per PR, stops on the no-progress guard for PR 102, hands back blocked, and never merges.",
+      "assertions": [
+        {
+          "id": "strict-bottom-up-order",
+          "kind": "final-json-path-equals",
+          "pointer": "/order",
+          "expected": [
+            101,
+            102
+          ],
+          "critical": true
+        },
+        {
+          "id": "lower-pr-clean",
+          "kind": "final-json-path-equals",
+          "pointer": "/pr101",
+          "expected": "clean",
+          "critical": true
+        },
+        {
+          "id": "upper-pr-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/pr102",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "no-progress-guard",
+          "kind": "final-json-path-equals",
+          "pointer": "/stopReasonCode",
+          "expected": "no-progress",
+          "critical": true
+        },
+        {
+          "id": "address-pass-count",
+          "kind": "final-json-path-equals",
+          "pointer": "/addressPasses",
+          "expected": {
+            "101": 1,
+            "102": 1
+          },
+          "critical": true
+        },
+        {
+          "id": "blocked-handback",
+          "kind": "final-json-path-equals",
+          "pointer": "/handbackStatus",
+          "expected": "blocked-needs-user",
+          "critical": true
+        },
+        {
+          "id": "sweep-never-merges",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeAllowed",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "missing-head-receipt-is-blocked-not-clean",
+      "prompt": "Classify the bounded sweep round in fixtures/sweep-missing-receipt.json. Do not call providers or remote services. Return exactly one JSON object using the keys outcome, reasonCode, selfReviewSubstituted, addressStarted, and mergeAllowed. Use reasonCode `missing-review-receipt-for-head` when no receipt matches current HEAD.",
+      "fixtures": [
+        "sweep-missing-receipt.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "A clean-looking verdict without a matching HEAD receipt is blocked and is never replaced by self-review, addressed, or merged.",
+      "assertions": [
+        {
+          "id": "missing-receipt-blocks-clean",
+          "kind": "final-json-path-equals",
+          "pointer": "/outcome",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "receipt-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": "missing-review-receipt-for-head",
+          "critical": true
+        },
+        {
+          "id": "no-self-review-substitute",
+          "kind": "final-json-path-equals",
+          "pointer": "/selfReviewSubstituted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-address-without-receipt",
+          "kind": "final-json-path-equals",
+          "pointer": "/addressStarted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "missing-receipt-never-merges",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeAllowed",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    }
+  ]
+}

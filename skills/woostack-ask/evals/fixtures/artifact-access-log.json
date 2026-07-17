@@ -1,0 +1,7 @@
+{
+  "events": [
+    {"sequence": 1, "operation": "resolve-backend", "result": "markdown"},
+    {"sequence": 2, "operation": "feature-context-read", "path": "fixtures/feature-context.json"}
+  ],
+  "fallback": null
+}

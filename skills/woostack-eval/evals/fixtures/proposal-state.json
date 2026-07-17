@@ -1,0 +1,7 @@
+{
+  "head": {"evals/evals.json": null},
+  "workingTree": {"evals/evals.json": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
+  "proposalSnapshot": {"digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111", "readOnly": true},
+  "approval": null,
+  "target": {"before": "sha256:2222222222222222222222222222222222222222222222222222222222222222", "current": "sha256:2222222222222222222222222222222222222222222222222222222222222222"}
+}

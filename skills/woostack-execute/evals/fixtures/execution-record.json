@@ -1,0 +1,14 @@
+{
+  "backend": "linear",
+  "input": {"project": "11111111-1111-4111-8111-111111111111", "specDesignState": "executionApproved", "projectState": "ready", "approvalReadReceipt": {"verified": true}},
+  "increment": {
+    "identifier": "APP-12",
+    "implementationReceipt": {"status": "complete"},
+    "verificationReceipt": {"command": "node --test test/cache.test.js", "exitCode": 0},
+    "commitReceipt": {"sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
+    "reviewReceipt": {"specCompliant": true, "qualityClean": true},
+    "distillReceipt": {"decision": "rejected-trivia", "indexBuilt": true, "doctorExit": 0},
+    "submissionReceipt": {"verified": true, "branch": "feature/app-12-cache", "pr": "https://example.invalid/acme/widgets/pull/42"}
+  },
+  "readBack": {"issueState": "inReview", "projectState": "inReview", "specDesignState": "inReview"}
+}

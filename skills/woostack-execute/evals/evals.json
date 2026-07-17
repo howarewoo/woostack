@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-execute",
+  "cases": [
+    {
+      "id": "hands-back-receipt-backed-linear-increment",
+      "prompt": "Inspect the bounded synthetic Linear execution record in fixtures/execution-record.json. Do not call adapters, Git, providers, or modify files. Apply the packaged skill's controller, receipt, and lifecycle contract. Return exactly one JSON object using the keys approvedInput, perIncrementEvidence, receiptsVerified, lifecycle, handback, and mergeAllowed. Preserve the receipt objects under perIncrementEvidence. lifecycle must report issue, project, spec, and completionVerified. When final branch/PR proof is inconsistent, handback.status must be blocked-for-manual-reconciliation rather than claiming completion.",
+      "fixtures": [
+        "execution-record.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The execution-approved input and all five cadence receipts are recognized, but inconsistent final branch proof prevents completion verification and produces a blocked lifecycle handback without merge.",
+      "assertions": [
+        {
+          "id": "input-was-approved",
+          "kind": "qualitative",
+          "rubric": "Does approvedInput affirm that the bounded Linear input passed its execution-approval/readiness gate, either as boolean true or as a detailed object preserving the approval facts?",
+          "critical": true
+        },
+        {
+          "id": "implementation-receipt",
+          "kind": "qualitative",
+          "rubric": "Does the response recognize APP-12's implementation receipt as complete based on status complete?",
+          "critical": true
+        },
+        {
+          "id": "verification-receipt",
+          "kind": "qualitative",
+          "rubric": "Does the response preserve APP-12's verification evidence that `node --test test/cache.test.js` exited with code 0?",
+          "critical": true
+        },
+        {
+          "id": "commit-receipt",
+          "kind": "qualitative",
+          "rubric": "Does the response preserve APP-12's commit evidence with SHA aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa?",
+          "critical": true
+        },
+        {
+          "id": "review-receipt",
+          "kind": "qualitative",
+          "rubric": "Does the response preserve APP-12's review evidence with both specCompliant and qualityClean true?",
+          "critical": true
+        },
+        {
+          "id": "distill-receipt",
+          "kind": "qualitative",
+          "rubric": "Does the response preserve APP-12's distill evidence with decision rejected-trivia, indexBuilt true, and doctorExit 0?",
+          "critical": true
+        },
+        {
+          "id": "lifecycle-readback-preserved",
+          "kind": "final-json-path-equals",
+          "pointer": "/lifecycle",
+          "expected": {
+            "issue": "inReview",
+            "project": "inReview",
+            "spec": "inReview",
+            "completionVerified": false
+          },
+          "critical": true
+        },
+        {
+          "id": "blocked-lifecycle-handback",
+          "kind": "final-json-path-equals",
+          "pointer": "/handback/status",
+          "expected": "blocked-for-manual-reconciliation",
+          "critical": true
+        },
+        {
+          "id": "execute-never-merges",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeAllowed",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-audit",
+  "cases": [
+    {
+      "id": "audits-standing-file-through-all-added-report-only-path",
+      "prompt": "Run a bounded offline audit of the standing target fixtures/repo/src/cache.js. Do not call a provider, network, GitHub, or Linear, and do not edit the target. Treat fixtures/review/receipts.json and fixtures/review/findings.json as host-produced synthetic swarm evidence. Build an all-added diff at audit-out/diff.txt, verify that every expected synthetic angle has a receipt, and render the ranked report at the fixed date/path .woostack/audits/2026-07-16-cache-js.md. The report must identify that it audited standing code through an all-added diff, record the verified receipt IDs, cite the validated finding, and hand off the small issue to /woostack-fix. Return only the report path.",
+      "fixtures": [
+        "repo/src/cache.js",
+        "review/receipts.json",
+        "review/findings.json"
+      ],
+      "capabilities": [
+        "read-workspace",
+        "write-workspace"
+      ],
+      "expected": "The standing target becomes an all-added diff, all expected receipt IDs and the validated finding appear in a ranked local report, the target remains unchanged, and no post, fix, or merge artifact is created.",
+      "assertions": [
+        {
+          "id": "all-added-diff-created",
+          "kind": "path-exists",
+          "path": "audit-out/diff.txt"
+        },
+        {
+          "id": "all-added-line-present",
+          "kind": "file-contains",
+          "file": "audit-out/diff.txt",
+          "substring": "+export function put(cache, key, value)"
+        },
+        {
+          "id": "audit-report-created",
+          "kind": "path-exists",
+          "path": ".woostack/audits/2026-07-16-cache-js.md"
+        },
+        {
+          "id": "standing-code-method-recorded",
+          "kind": "file-contains",
+          "file": ".woostack/audits/2026-07-16-cache-js.md",
+          "substring": "all-added diff"
+        },
+        {
+          "id": "simplify-receipt-proof-recorded",
+          "kind": "file-contains",
+          "file": ".woostack/audits/2026-07-16-cache-js.md",
+          "substring": "receipt-simplify-cache",
+          "critical": true
+        },
+        {
+          "id": "bugs-receipt-proof-recorded",
+          "kind": "file-contains",
+          "file": ".woostack/audits/2026-07-16-cache-js.md",
+          "substring": "receipt-bugs-cache",
+          "critical": true
+        },
+        {
+          "id": "security-receipt-proof-recorded",
+          "kind": "file-contains",
+          "file": ".woostack/audits/2026-07-16-cache-js.md",
+          "substring": "receipt-security-cache",
+          "critical": true
+        },
+        {
+          "id": "production-receipt-proof-recorded",
+          "kind": "file-contains",
+          "file": ".woostack/audits/2026-07-16-cache-js.md",
+          "substring": "receipt-production-cache",
+          "critical": true
+        },
+        {
+          "id": "validated-finding-recorded",
+          "kind": "file-contains",
+          "file": ".woostack/audits/2026-07-16-cache-js.md",
+          "substring": "Unbounded cache growth"
+        },
+        {
+          "id": "fix-handoff-recorded",
+          "kind": "file-contains",
+          "file": ".woostack/audits/2026-07-16-cache-js.md",
+          "substring": "/woostack-fix"
+        },
+        {
+          "id": "standing-target-unchanged",
+          "kind": "file-sha256-equals",
+          "file": "fixtures/repo/src/cache.js",
+          "sha256": "sha256:564515d609ff8c08c2557a4e54f88184779e06ef2e93bf9729683aec467b4227",
+          "critical": true
+        },
+        {
+          "id": "no-code-host-post",
+          "kind": "path-absent",
+          "path": "audit-out/code-host-post.json",
+          "critical": true
+        },
+        {
+          "id": "no-audit-fix",
+          "kind": "path-absent",
+          "path": "fixtures/repo/src/cache.fixed.js",
+          "critical": true
+        },
+        {
+          "id": "no-audit-merge",
+          "kind": "path-absent",
+          "path": "audit-out/merge.json",
+          "critical": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-commit",
+  "cases": [
+    {
+      "id": "stages-only-relevant-linear-change-and-verifies-submit",
+      "prompt": "Execute the /woostack-commit decision workflow against the bounded synthetic command-adapter state in fixtures/commit-state.json. Do not run Git, Graphite, GitHub, Linear, network, or provider commands; the fixture records the responses those adapters returned. Return exactly one JSON object using the keys backendResolvedBeforeInvariants, stagedPaths, excludedPaths, submit, prReadBackVerified, attribution, and mergeAllowed. submit must preserve the command and exitCode receipt, and attribution must be the final trailer-line array.",
+      "fixtures": [
+        "commit-state.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Backend resolution precedes invariants; only session-relevant paths are staged; Graphite submission succeeds and is read back; exact Linear attribution is retained; no merge occurs.",
+      "assertions": [
+        {
+          "id": "backend-before-invariants",
+          "kind": "final-json-path-equals",
+          "pointer": "/backendResolvedBeforeInvariants",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "targeted-staging",
+          "kind": "final-json-path-equals",
+          "pointer": "/stagedPaths",
+          "expected": [
+            "src/cache.ts",
+            "test/cache.test.ts"
+          ],
+          "critical": true
+        },
+        {
+          "id": "unrelated-work-excluded",
+          "kind": "final-json-path-equals",
+          "pointer": "/excludedPaths",
+          "expected": [
+            "notes/private.txt"
+          ],
+          "critical": true
+        },
+        {
+          "id": "graphite-submit-command",
+          "kind": "final-json-path-equals",
+          "pointer": "/submit/command",
+          "expected": "gt submit",
+          "critical": true
+        },
+        {
+          "id": "graphite-submit-succeeded",
+          "kind": "final-json-path-equals",
+          "pointer": "/submit/exitCode",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "pr-readback-verified",
+          "kind": "final-json-path-equals",
+          "pointer": "/prReadBackVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "exact-linear-attribution",
+          "kind": "final-json-path-equals",
+          "pointer": "/attribution",
+          "expected": [
+            "Linear-Project: 11111111-1111-4111-8111-111111111111",
+            "Linear-Issue: APP-12"
+          ],
+          "critical": true
+        },
+        {
+          "id": "commit-never-merges",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeAllowed",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    }
+  ]
+}

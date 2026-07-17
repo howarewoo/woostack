@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-doctor",
+  "cases": [
+    {
+      "id": "diagnoses-before-local-repair-approval",
+      "prompt": "Apply the packaged /woostack-doctor interactive repair procedure to the host-produced static diagnosis in fixtures/diagnosis.json. Do not use --live and do not modify any file. Diagnose first, present the auto-fixable changeset, and because approval is absent stop before repair. Return exactly one JSON object using the keys findingCodes, diagnosisCompleted, approvalRequired, repairApplied, and liveValidationInvoked.",
+      "fixtures": [
+        "project/.woostack/config.json",
+        "project/.woostack/memory/MEMORY.md",
+        "diagnosis.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Static diagnosis completes first, reports config-key, leaves explicit repair approval pending, applies no repair, does not invoke live validation, and preserves local files.",
+      "assertions": [
+        {
+          "id": "config-key-diagnosed",
+          "kind": "final-json-path-equals",
+          "pointer": "/findingCodes",
+          "expected": [
+            "config-key"
+          ],
+          "critical": true
+        },
+        {
+          "id": "diagnosis-completed-first",
+          "kind": "final-json-path-equals",
+          "pointer": "/diagnosisCompleted",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "repair-approval-pending",
+          "kind": "final-json-path-equals",
+          "pointer": "/approvalRequired",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "repair-not-applied",
+          "kind": "final-json-path-equals",
+          "pointer": "/repairApplied",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "remote-doctor-not-invoked",
+          "kind": "final-json-path-equals",
+          "pointer": "/liveValidationInvoked",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "doctor-config-not-repaired",
+          "kind": "file-contains",
+          "file": "fixtures/project/.woostack/config.json",
+          "substring": "\"artifacts\": {\"specPlan\": \"markdown\"}",
+          "critical": true
+        },
+        {
+          "id": "missing-review-key-stays-missing",
+          "kind": "file-excludes",
+          "file": "fixtures/project/.woostack/config.json",
+          "substring": "\"review\"",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "check-mode-is-exit-coded-and-read-only",
+      "prompt": "Apply the packaged /woostack-doctor --check --live contract to the bounded host-produced result in fixtures/ci-diagnosis.json. Do not call a network, inspect credentials, or modify any file. Return exactly one JSON object using the keys findingCodes, exitCode, liveReadReceiptCount, remoteMutationCount, repairApplied, and mode.",
+      "fixtures": [
+        "ci-project/.woostack/config.json",
+        "ci-project/.woostack/memory/MEMORY.md",
+        "ci-project/.woostack/memory/bad.md",
+        "ci-diagnosis.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Check-live reports the malformed note and remote drift, preserves nonzero exit status, records authenticated reads with zero remote mutations, applies no repair, and leaves local files unchanged.",
+      "assertions": [
+        {
+          "id": "ci-finding-codes",
+          "kind": "final-json-path-equals",
+          "pointer": "/findingCodes",
+          "expected": [
+            "memory-malformed",
+            "linear-live"
+          ],
+          "critical": true
+        },
+        {
+          "id": "ci-nonzero-reported",
+          "kind": "final-json-path-equals",
+          "pointer": "/exitCode",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "live-read-receipts-observed",
+          "kind": "final-json-path-equals",
+          "pointer": "/liveReadReceiptCount",
+          "expected": 2,
+          "critical": true
+        },
+        {
+          "id": "remote-mutation-boundary",
+          "kind": "final-json-path-equals",
+          "pointer": "/remoteMutationCount",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "live-failure-report-only",
+          "kind": "final-json-path-equals",
+          "pointer": "/repairApplied",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "check-live-mode-reported",
+          "kind": "final-json-path-equals",
+          "pointer": "/mode",
+          "expected": "check-live",
+          "critical": true
+        },
+        {
+          "id": "ci-malformed-note-unchanged",
+          "kind": "file-contains",
+          "file": "fixtures/ci-project/.woostack/memory/bad.md",
+          "substring": "no frontmatter here",
+          "critical": true
+        },
+        {
+          "id": "ci-no-repair-artifact",
+          "kind": "path-absent",
+          "path": "fixtures/ci-project/.woostack/doctor-repair.json",
+          "critical": true
+        }
+      ]
+    }
+  ]
+}

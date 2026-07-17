@@ -1,0 +1,6 @@
+{
+  "mode": "interactive-static",
+  "exitCode": 0,
+  "findings": [{"severity": "warn", "code": "config-key", "fixable": "auto", "path": ".woostack/config.json", "message": "missing required config key: review"}],
+  "approval": null
+}

@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-fix",
+  "cases": [
+    {
+      "id": "blocks-plan-when-root-cause-is-unproven",
+      "prompt": "Continue the bounded synthetic fix investigation in fixtures/no-root-cause.json. Do not edit or create files. Apply the packaged skill contract and return exactly one JSON object using the keys status, rootCauseEstablished, planAuthored, executionDelegated, and mergeAllowed.",
+      "fixtures": [
+        "no-root-cause.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The flow blocks because root cause is not established, authors no plan, delegates no execution, writes no fix artifact, and never merges.",
+      "assertions": [
+        {
+          "id": "root-cause-blocker",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "root-cause-not-established",
+          "kind": "final-json-path-equals",
+          "pointer": "/rootCauseEstablished",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-plan-before-root-cause",
+          "kind": "final-json-path-equals",
+          "pointer": "/planAuthored",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-execution-before-root-cause",
+          "kind": "final-json-path-equals",
+          "pointer": "/executionDelegated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-fix-artifact-write",
+          "kind": "path-absent",
+          "path": ".woostack/fixes/cache-stampede.md",
+          "critical": true
+        },
+        {
+          "id": "fix-never-merges-on-block",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeAllowed",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "approved-fix-delegates-execution",
+      "prompt": "Resume the bounded synthetic fix state in fixtures/approved-fix.json. Do not run Git or implement code. Apply the packaged skill contract and return exactly one JSON object using the keys rootCauseEstablished, planApproved, executionDelegated, executionSkill, and mergeAllowed. planApproved is true only for an explicit approval, and executionSkill names the delegated skill rather than its invocation wording.",
+      "fixtures": [
+        "approved-fix.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "A proved root cause and explicit plan approval delegate implementation to woostack-execute, while the fix flow itself never implements or merges.",
+      "assertions": [
+        {
+          "id": "proved-root-cause-retained",
+          "kind": "final-json-path-equals",
+          "pointer": "/rootCauseEstablished",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "explicit-plan-gate-cleared",
+          "kind": "final-json-path-equals",
+          "pointer": "/planApproved",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "execution-is-delegated",
+          "kind": "final-json-path-equals",
+          "pointer": "/executionDelegated",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "execute-owns-implementation",
+          "kind": "final-json-path-equals",
+          "pointer": "/executionSkill",
+          "expected": "woostack-execute",
+          "critical": true
+        },
+        {
+          "id": "fix-never-merges-after-approval",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeAllowed",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    }
+  ]
+}

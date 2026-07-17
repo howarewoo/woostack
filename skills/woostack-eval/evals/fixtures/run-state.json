@@ -1,0 +1,6 @@
+{
+  "expected": [{"caseId": "safe-case", "variant": "candidate", "repetition": 1, "kind": "behavior"}],
+  "receipts": [],
+  "dispatchClosed": true,
+  "target": {"before": "sha256:2222222222222222222222222222222222222222222222222222222222222222", "current": "sha256:2222222222222222222222222222222222222222222222222222222222222222"}
+}

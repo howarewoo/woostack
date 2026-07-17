@@ -1,0 +1,7 @@
+{
+  "symptom": "cache requests intermittently time out",
+  "reproduced": true,
+  "investigation": ["captured timeout at the API boundary", "compared the healthy request path"],
+  "rootCause": null,
+  "requestedPlanPath": ".woostack/fixes/cache-stampede.md"
+}

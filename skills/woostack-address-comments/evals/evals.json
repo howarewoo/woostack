@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-address-comments",
+  "cases": [
+    {
+      "id": "default-flow-stops-at-verdict-gate",
+      "prompt": "Analyze the bounded unresolved threads in fixtures/address-pending.json under the default /woostack-address-comments flow. Do not edit, commit, push, reply, resolve, or write memory. Return exactly one JSON object using the keys status, recommendationsComplete, gateState, editsApplied, pushed, repliesPosted, threadsResolved, memoryWritten, and mergeAllowed. Use booleans for completion and side-effect fields, status `awaiting-verdict-approval`, and gateState `pending-explicit-approval`.",
+      "fixtures": [
+        "address-pending.json",
+        "repo/src/cache.ts"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Every thread receives a recommendation, then the default flow stops at the explicit verdict gate with no edit, push, reply, resolution, memory write, or merge.",
+      "assertions": [
+        {
+          "id": "all-thread-recommendations-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/recommendationsComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "verdict-gate-pending",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "awaiting-verdict-approval",
+          "critical": true
+        },
+        {
+          "id": "gate-not-inferred",
+          "kind": "final-json-path-equals",
+          "pointer": "/gateState",
+          "expected": "pending-explicit-approval",
+          "critical": true
+        },
+        {
+          "id": "no-edits-before-gate",
+          "kind": "final-json-path-equals",
+          "pointer": "/editsApplied",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-push-before-gate",
+          "kind": "final-json-path-equals",
+          "pointer": "/pushed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-replies-before-gate",
+          "kind": "final-json-path-equals",
+          "pointer": "/repliesPosted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-resolves-before-gate",
+          "kind": "final-json-path-equals",
+          "pointer": "/threadsResolved",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-memory-before-gate",
+          "kind": "final-json-path-equals",
+          "pointer": "/memoryWritten",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "source-unchanged-before-gate",
+          "kind": "file-contains",
+          "file": "fixtures/repo/src/cache.ts",
+          "substring": "return store.get(key);",
+          "critical": true
+        },
+        {
+          "id": "address-never-merges-at-gate",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeAllowed",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "approved-verdicts-require-push-receipt-before-thread-close",
+      "prompt": "Complete the bounded post-approval address-comments state in fixtures/address-approved.json as a synthetic receipt-validation exercise. Do not call GitHub, Git, providers, or mutate source; the fixture contains the ordered host event stream. Return exactly one JSON object using the keys approvalVerified, handledThreads, finalOutcomes, pushed, pushReceiptVerified, closeoutAfterPushReceipt, repliesPosted, threadsResolved, offeredRereview, and mergeAllowed. finalOutcomes must map each thread ID to the applied semantic outcome, using only `fixed` or `pushed-back`; repliesPosted and threadsResolved must list the affected thread IDs.",
+      "fixtures": [
+        "address-approved.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The approved T1 fix and T2 pushback are represented as their applied outcomes; a verified pushed commit precedes every reply and resolution; re-review is offered; no merge occurs.",
+      "assertions": [
+        {
+          "id": "approved-verdict-batch-verified",
+          "kind": "final-json-path-equals",
+          "pointer": "/approvalVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "every-thread-handled",
+          "kind": "final-json-path-equals",
+          "pointer": "/handledThreads",
+          "expected": [
+            "T1",
+            "T2"
+          ],
+          "critical": true
+        },
+        {
+          "id": "fix-outcome-recorded",
+          "kind": "final-json-path-equals",
+          "pointer": "/finalOutcomes/T1",
+          "expected": "fixed",
+          "critical": true
+        },
+        {
+          "id": "pushback-outcome-recorded",
+          "kind": "final-json-path-equals",
+          "pointer": "/finalOutcomes/T2",
+          "expected": "pushed-back",
+          "critical": true
+        },
+        {
+          "id": "push-completed",
+          "kind": "final-json-path-equals",
+          "pointer": "/pushed",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "push-receipt-gates-closeout",
+          "kind": "final-json-path-equals",
+          "pointer": "/pushReceiptVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "closeout-after-push-receipt",
+          "kind": "final-json-path-equals",
+          "pointer": "/closeoutAfterPushReceipt",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "all-replies-posted",
+          "kind": "final-json-path-equals",
+          "pointer": "/repliesPosted",
+          "expected": [
+            "T1",
+            "T2"
+          ],
+          "critical": true
+        },
+        {
+          "id": "all-handled-threads-resolved",
+          "kind": "final-json-path-equals",
+          "pointer": "/threadsResolved",
+          "expected": [
+            "T1",
+            "T2"
+          ],
+          "critical": true
+        },
+        {
+          "id": "rereview-offered",
+          "kind": "final-json-path-equals",
+          "pointer": "/offeredRereview",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "address-never-merges-after-closeout",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeAllowed",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    }
+  ]
+}

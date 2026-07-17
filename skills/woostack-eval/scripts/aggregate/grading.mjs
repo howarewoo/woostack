@@ -75,8 +75,18 @@ function pointerValue(root, pointer) {
   if (parts === null) return { found: false };
   let value = root;
   for (const part of parts) {
-    if (!isObject(value) && !Array.isArray(value)) return { found: false };
-    if (!Object.hasOwn(value, part)) return { found: false };
+    if (Array.isArray(value)) {
+      if (!/^(?:0|[1-9][0-9]*)$/.test(part)) return { found: false };
+      const index = Number(part);
+      if (!Number.isSafeInteger(index)
+        || index >= value.length
+        || !Object.hasOwn(value, index)) {
+        return { found: false };
+      }
+      value = value[index];
+      continue;
+    }
+    if (!isObject(value) || !Object.hasOwn(value, part)) return { found: false };
     value = value[part];
   }
   return { found: true, value };

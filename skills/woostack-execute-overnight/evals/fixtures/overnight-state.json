@@ -1,0 +1,11 @@
+{
+  "runDate": "2026-07-16",
+  "backend": "linear",
+  "project": "11111111-1111-4111-8111-111111111111",
+  "reportPath": ".woostack/overnight/2026-07-16-linear-11111111-1111-4111-8111-111111111111.md",
+  "tracks": [
+    {"name": "Track A", "worktree": "fixtures/worktrees/track-a", "prs": [21, 23], "sweep": {"contractedReview": "woostack-review --full", "providerResolvedAtPreflight": true, "invocation": {"pr": 21, "phase": "mid-run", "status": "failed", "error": "review-engine-unavailable"}, "receiptForPr21Head": null, "remaining": [23]}},
+    {"name": "Track B", "worktree": "fixtures/worktrees/track-b", "prs": [22], "sweep": {"contractedReview": "woostack-review --full", "invocation": {"pr": 22, "phase": "mid-run", "status": "complete"}, "receiptForPr22Head": {"id": "review-receipt-track-b-pr-22", "head": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "statusLine": "APPROVED", "unresolvedThreads": 0}}}
+  ],
+  "hostActions": ["invoke-full-review-track-a", "record-track-a-failure", "continue-independent-track-b", "invoke-full-review-track-b"]
+}

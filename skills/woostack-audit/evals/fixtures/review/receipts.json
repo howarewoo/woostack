@@ -1,0 +1,9 @@
+{
+  "expectedAngles": ["bugs", "security", "simplify", "production-readiness"],
+  "receipts": [
+    {"id": "receipt-bugs-cache", "angle": "bugs", "runner": "synthetic-worker", "model": "synthetic-model"},
+    {"id": "receipt-security-cache", "angle": "security", "runner": "synthetic-worker", "model": "synthetic-model"},
+    {"id": "receipt-simplify-cache", "angle": "simplify", "runner": "synthetic-worker", "model": "synthetic-model"},
+    {"id": "receipt-production-cache", "angle": "production-readiness", "runner": "synthetic-worker", "model": "synthetic-model"}
+  ]
+}
