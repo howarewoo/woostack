@@ -46,8 +46,9 @@ verification decisions.
 
 Rules:
 
-- Delegate only text drafting: commit subject/body candidate, PR title candidate, Goal line,
-  Summary bullets, and Test plan bullets (Automated and Manual).
+- Delegate only text drafting: the commit subject/body candidate and, for PR prose, the title,
+  Goal line, Summary bullets, and Test plan bullets (Automated and Manual). Attribution is not a
+  drafting field.
 - Pass a bounded prompt containing the staged diff, changed-file list, commands run and
   results, relevant user intent, and any existing PR title/body that should be preserved.
 - Route the subagent at the `fast` tier when the host can select it explicitly: resolve the
@@ -59,6 +60,9 @@ Rules:
   commit, push, edit PRs, or decide whether dirty files are relevant.
 - Before using any draft, compare it against the staged diff and command results. Rewrite or
   discard anything stale, overstated, vague, or unsupported.
+- The controller owns attribution. Discard any fast-subagent or inline PR draft that introduces,
+  copies, or normalizes a `Spec:`, `Linear-Project:`, or `Linear-Issue:` line; compose the body
+  again from only the validated title, Goal, Summary, and Test plan fields.
 
 ## Hard constraints
 
@@ -241,8 +245,11 @@ Only the canonical branch/worktree/Graphite guard in step 2 enables this path; `
 
 When the resolved backend is Markdown, load and follow
 [`references/markdown-attribution.md`](references/markdown-attribution.md) for the advisory
-artifact invariants and exact `Spec: .woostack/specs/<file>.md` or
-`Spec: .woostack/fixes/<file>.md` trailer decision. Load no Linear attribution procedure.
+artifact invariants and trailer decision. When that decision requires attribution, resolve and
+retain exactly one active artifact path and require it to match
+`.woostack/specs/<basename>.md` or `.woostack/fixes/<basename>.md`; missing, ambiguous, or
+malformed paths block PR creation and update. When the decision says the change traces to no
+spec/fix, retain that artifact-neutral result. Load no Linear attribution procedure.
 
 #### Linear
 
@@ -286,11 +293,17 @@ Do not merge. Do not force-push.
 Resolve the PR after the successful commit/push so it reflects the latest branch state.
 
 If the `--no-pr-update` flag is specified (or if a context signal like
-`WOOSTACK_COMMIT_NO_PR_UPDATE=1` is set in the environment), skip updating the PR title and body
-description and do not run `gh pr edit`, but still ensure the PR is created if it does not exist.
-For a non-change Linear invocation, the flag skips only the field edit; continue through the
-phase-scoped identity, adapter-recording, and read-back sections below. A verified `change/*`
-invocation performs no Linear attribution or adapter mutation.
+`WOOSTACK_COMMIT_NO_PR_UPDATE=1` is set in the environment), preserve the existing PR title and
+body and do not run `gh pr create` or `gh pr edit`. This path requires a valid existing attribution
+state: a Markdown invocation must have an existing PR and body, and blocks if either is absent.
+For a non-change Markdown invocation with a validated active
+artifact, the untouched body must already carry the exact raw trailer for that artifact as its
+sole final nonblank attribution line, with no other backend attribution. For an artifact-neutral
+Markdown invocation, the untouched body must contain no `Spec:`, `Linear-Project:`, or
+`Linear-Issue:` attribution. Otherwise block rather than repairing the body or reporting a
+verified result. For a non-change Linear invocation, the flag skips only the field edit; continue
+through the phase-scoped identity, adapter-recording, and read-back sections below. A verified
+`change/*` invocation performs no Linear attribution or adapter mutation.
 
 Resolve the PR:
 
@@ -303,9 +316,31 @@ match the current head branch and resolved repository, and target the resolved b
 contain no `Spec:`, `Linear-Project:`, or `Linear-Issue:` trailer, and no Linear adapter transition
 or read-back occurs.
 
-For any invocation other than verified `change/*`, if no PR exists after submit/push, create one
-targeting the resolved base branch (`<wi>` = the installed `woostack-init` scripts dir, as in step
-2):
+For Markdown-backed and verified `change/*` invocations only, when PR updates are enabled, apply
+this entire controller-owned body workflow:
+
+1. Load [`references/pr-body.md`](references/pr-body.md) and compose a proposed body from only the
+   validated title, Goal, Summary, and Test plan fields.
+2. For a non-change Markdown invocation with a validated active artifact, append exactly one raw
+   `Spec: .woostack/specs/<file>.md` or raw `Spec: .woostack/fixes/<file>.md` line, using the
+   validated path, as the sole final nonblank attribution line. For a Markdown change that traces
+   to no spec/fix and for a verified `change/*` invocation, keep the proposed body
+   artifact-neutral.
+3. Before any `gh pr create` or `gh pr edit`, validate the proposed body. Its attribution must
+   exactly match the retained decision: reject missing, wrapped, duplicate, mixed, or mismatched
+   attribution, any additional `Spec:` line, and any `Linear-Project:` or `Linear-Issue:` line.
+   Name the expected raw trailer in the error. A normal update may replace malformed current
+   attribution with the validated active artifact because only the proposed body is submitted;
+   never copy or normalize current trailer text.
+4. If the PR already exists, apply the validated fields with the documented `gh pr edit` command.
+   After that edit, or after creation below, re-fetch the body with `gh pr view` and require its
+   read-back to satisfy the same exact proposed-body attribution check before reporting success.
+
+For any invocation other than verified `change/*`, missing-PR handling is backend-specific:
+
+For a non-change Markdown-backed invocation with PR updates enabled, if no PR exists after
+submit/push, create one targeting the resolved base branch (`<wi>` = the installed
+`woostack-init` scripts dir, as in step 2):
 
 ```bash
 base="$(bash <wi>/resolve-base.sh)"
@@ -316,16 +351,13 @@ For a **stacked** increment PR the base is the **parent branch**, not `$base` (s
 [worktree contract](../woostack-init/references/worktrees.md) §4); Graphite sets it automatically
 via `gt submit` when the branch was `gt track --parent`ed.
 
-For Linear, a PR must already exist after successful Graphite submission. Follow
+For Linear, a PR must already exist after successful Graphite submission. If no PR exists after
+`gt submit`, block without running `gh pr create`, `gh pr edit`, or any adapter transition, leaving
+adapter state untouched. Otherwise follow
 [Identify and verify the PR](references/linear-attribution.md#identify-and-verify-the-pr), then
 [Record and read back attribution](references/linear-attribution.md#record-and-read-back-attribution)
 in that order. Do not repeat the step-4.5 preflight or step-6 submission.
 
-For Markdown-backed and verified `change/*` invocations only, unless `--no-pr-update` applies, perform all three steps:
-
-1. Load [`references/pr-body.md`](references/pr-body.md) for the title/body template and formatting rules.
-2. Apply the validated fields with its documented `gh pr edit` command.
-3. Re-fetch them with `gh pr view`; only the observed intended read-back is success.
 
 ### 8. Report
 
@@ -338,5 +370,7 @@ Return:
 - Goal used.
 - Summary bullets used.
 - Test plan bullets used (Automated and Manual).
+- For non-change Markdown, the verified active artifact path, or the verified artifact-neutral
+  result when the change traces to no spec/fix.
 
 Do not claim tests passed unless you ran them and saw passing output.

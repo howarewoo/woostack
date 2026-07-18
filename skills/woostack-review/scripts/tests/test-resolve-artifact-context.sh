@@ -162,6 +162,7 @@ assert_eq "$(grep -c '^markdown ' "$LOG" || true)" 0 "fix compatibility does not
 
 for bad in \
   $'Spec: .woostack/specs/feature.md\nSpec: .woostack/specs/other.md' \
+  'Spec: `.woostack/fixes/bug.md`' \
   'Spec: ../secret.md' \
   $'Spec: .woostack/specs/feature.md\nLinear-Issue: ENG-7'; do
   run_context "$bad" markdown
