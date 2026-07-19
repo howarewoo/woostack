@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-sweep",
+  "cases": [
+    {
+      "id": "current-stack-release-readiness",
+      "query": "My current Graphite series has four dependent pull requests. Start with the earliest dependency, handle blocking feedback on each branch, and continue toward the tip until the entire series is ready to merge or you hit a blocker you cannot safely resolve.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-sweep"
+    },
+    {
+      "id": "containing-stack-blocker-convergence",
+      "query": "PR #2260 sits in the middle of a five-branch series. Take responsibility for the whole series rather than only that pull request, iterating on failed checks and reviewer concerns across the dependent branches until no blocking work remains.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-sweep"
+    },
+    {
+      "id": "single-pr-findings-only",
+      "query": "Inspect only PR #2304 for defects and return a findings list. Do not alter its branch or examine the other pull requests that depend on it.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-review",
+      "conflictsWith": ["woostack-sweep"]
+    },
+    {
+      "id": "single-pr-open-conversations-only",
+      "query": "PR #2317 has two open reviewer conversations with agreed corrections. Make those corrections on that branch and respond in the existing conversations; do not inspect or advance the rest of its series.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-address-comments",
+      "conflictsWith": ["woostack-sweep"]
+    }
+  ]
+}

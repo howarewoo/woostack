@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-execute",
+  "cases": [
+    {
+      "id": "signedoff-tenant-archive-implementation",
+      "query": "We signed off on `.woostack/plans/tenant-archive.md`. Start implementing it now; I'll stay in this session, so pause when a blocker or an unexpected product decision needs me.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-execute"
+    },
+    {
+      "id": "ready-linear-workspace-migration",
+      "query": "The managed workspace-migration project is marked Ready and its ordered issues are final. Work through the implementation while I'm online, and check with me rather than choosing through any unsafe ambiguity.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-execute"
+    },
+    {
+      "id": "offline-night-search-rollout",
+      "query": "The implementation plan at `.woostack/plans/search-rollout.md` has been reviewed and signed off, including its pull-request order. I'm signing off until tomorrow; carry it out without waiting for replies, record anything you cannot resolve, and leave the result for me to inspect when I return.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-execute-overnight",
+      "conflictsWith": ["woostack-execute"]
+    },
+    {
+      "id": "signedoff-export-spec-decomposition",
+      "query": "The export-service specification has sign-off. Turn it into ordered, test-first implementation tasks sized for separate pull requests, but stop before modifying product code.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-plan",
+      "conflictsWith": ["woostack-execute"]
+    }
+  ]
+}

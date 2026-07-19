@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-build",
+  "cases": [
+    {
+      "id": "existing-platform-permissions-overhaul",
+      "query": "Our live education platform needs district-level permissions across the data model, APIs, admin screens, and migration tooling. Several product and architecture choices are unresolved, and delivery will require a sequence of dependent pull requests.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-build"
+    },
+    {
+      "id": "existing-product-offline-sync-initiative",
+      "query": "Add offline editing to our existing field app, including device storage, server reconciliation, conflict behavior, and operational visibility. This is larger than one pull request, and I want the behavior and technical approach agreed before implementation begins.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-build"
+    },
+    {
+      "id": "new-event-platform-foundation",
+      "query": "We have a concept for a community event service but no codebase. Compare sensible current choices for the web client, API, identity, and database, then establish the repository and initial architecture.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-bootstrap",
+      "conflictsWith": ["woostack-build"]
+    },
+    {
+      "id": "existing-feed-sort-preference",
+      "query": "Add a newest-first versus most-relevant preference to the existing activity feed, store it with the user's settings, and cover the small UI and API adjustment in one pull request. This is not correcting a defect.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-change",
+      "conflictsWith": ["woostack-build"]
+    },
+    {
+      "id": "diagnosed-export-cursor-regression",
+      "query": "The nightly export duplicates rows after rate limiting. We traced it to the retry handler resetting the pagination cursor after a 429; correct that behavior and add regression coverage.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-fix",
+      "conflictsWith": ["woostack-build"]
+    }
+  ]
+}

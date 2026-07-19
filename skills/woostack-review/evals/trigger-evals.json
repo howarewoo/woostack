@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-review",
+  "cases": [
+    {
+      "id": "single-pr-tax-rounding-inspection",
+      "query": "Inspect PR #1842's tax-rounding diff for correctness, security, and missing tests, and give me the validated findings. Do not modify the branch.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-review"
+    },
+    {
+      "id": "local-diff-cache-invalidation-inspection",
+      "query": "Before I commit the current working-tree changes, look for regressions or unsafe assumptions in the cache invalidation code and report what should be corrected. Leave the files untouched.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-review"
+    },
+    {
+      "id": "dependent-pr-series-convergence",
+      "query": "There are five dependent Graphite pull requests above main. Take the entire series from its earliest dependency to the tip, deal with blocking feedback as it appears, and keep going until all five are ready to merge or a real blocker stops progress.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-sweep",
+      "conflictsWith": ["woostack-review"]
+    },
+    {
+      "id": "existing-pr-threads-implementation",
+      "query": "PR #2091 already has four open reviewer conversations. Apply the warranted corrections on its branch and explain any disagreement in the corresponding conversation.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-address-comments",
+      "conflictsWith": ["woostack-review"]
+    }
+  ]
+}

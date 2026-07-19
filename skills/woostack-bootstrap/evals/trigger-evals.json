@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-bootstrap",
+  "cases": [
+    {
+      "id": "greenfield-field-service-foundation",
+      "query": "I have wireframes and requirements for a field-service product, but no repository yet. Choose suitable current web, mobile, data, and identity technologies, then create the initial codebase and package structure.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-bootstrap"
+    },
+    {
+      "id": "empty-repo-museum-api-foundation",
+      "query": "We're starting an API for museum collections; today there is only an empty repository and a list of endpoints. Set up the service, persistence, deployment plumbing, and the conventions future modules will follow.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-bootstrap"
+    },
+    {
+      "id": "existing-clinic-care-pathways-initiative",
+      "query": "Our deployed clinic portal needs configurable care pathways across scheduling, notifications, permissions, and reporting. The architecture is still open and the work will land as several dependent pull requests; help us settle the approach and deliver it.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-build",
+      "conflictsWith": ["woostack-bootstrap"]
+    },
+    {
+      "id": "existing-worker-retry-cap-option",
+      "query": "In the existing job worker, expose the maximum retry delay as a configuration option and update its tests and operator guide. Nothing is broken, and the work is confined to that package and its documentation.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-change",
+      "conflictsWith": ["woostack-bootstrap"]
+    }
+  ]
+}

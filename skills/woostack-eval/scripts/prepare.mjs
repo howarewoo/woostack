@@ -470,6 +470,45 @@ function safePackageRelative(gitRoot, packageRoot) {
   return toCanonical(relative);
 }
 
+function gitValidationLayout(gitRoot, packageRoot) {
+  const packageRelative = safePackageRelative(gitRoot, packageRoot);
+  if (!packageRelative) {
+    throw new Error('candidate package is outside resolved Git root');
+  }
+  const parts = packageRelative.split('/');
+  return {
+    packageRelative,
+    boundaryRelative: parts[parts.length - 2] === 'skills'
+      ? parts.slice(0, -1).join('/')
+      : '.',
+  };
+}
+
+async function canonicalGitTarget(input, packageRoot, gitRoot) {
+  const packageState = await lstatAsync(packageRoot);
+  if (packageState.isSymbolicLink()) {
+    throw new Error('target validation failed: package-symlink Package path must not be a symlink');
+  }
+  const skillPath = path.join(packageRoot, 'SKILL.md');
+  const skillState = await lstatAsync(skillPath).catch(() => null);
+  if (skillState?.isSymbolicLink()) {
+    throw new Error('target validation failed: package-symlink Owning SKILL.md must not be a symlink');
+  }
+  const canonicalPackageRoot = await realpathAsync(packageRoot);
+  const layout = gitValidationLayout(gitRoot, canonicalPackageRoot);
+  const validationRoot = layout.boundaryRelative === '.'
+    ? gitRoot
+    : path.join(gitRoot, layout.boundaryRelative);
+  return {
+    input: path.basename(input) === 'SKILL.md'
+      ? path.join(canonicalPackageRoot, 'SKILL.md')
+      : canonicalPackageRoot,
+    layout,
+    validationRoot,
+  };
+}
+
+
 function parseValidation(value, label) {
   if (!value || !value.valid) {
     const first = Array.isArray(value?.errors) && value.errors.length > 0
@@ -638,7 +677,8 @@ function catalogForTarget(baseSkills, includeTarget, targetName, targetDescripti
   };
 }
 
-async function materializeGitPackage(gitRoot, commit, packageRelative) {
+async function materializeGitPackage(gitRoot, commit, layout) {
+  const { packageRelative, boundaryRelative } = layout;
   const ls = await runGit(gitRoot, ['ls-tree', '-r', '-z', commit, '--', packageRelative], {
     allowCodes: [0],
     encoding: 'utf8',
@@ -650,13 +690,17 @@ async function materializeGitPackage(gitRoot, commit, packageRelative) {
     return {
       present: false,
       tempRoot: null,
+      validationRoot: null,
       packageRoot: null,
     };
   }
 
   const tempRoot = await mkdtempAsync(path.join(os.tmpdir(), 'woostack-eval-baseline-'));
   tempRoots.add(tempRoot);
-  const packageRoot = path.join(tempRoot, path.posix.basename(packageRelative));
+  const packageRoot = path.join(tempRoot, ...packageRelative.split('/'));
+  const validationRoot = boundaryRelative === '.'
+    ? tempRoot
+    : path.join(tempRoot, ...boundaryRelative.split('/'));
   await mkdirAsync(packageRoot, { mode: SAFE_FILE_MODE, recursive: true });
 
   for (const rawEntry of records) {
@@ -693,6 +737,7 @@ async function materializeGitPackage(gitRoot, commit, packageRelative) {
     present: true,
     tempRoot,
     packageRoot,
+    validationRoot,
   };
 }
 
@@ -1118,17 +1163,14 @@ async function chooseBaseline(info, options) {
     if (!resolved) {
       throw new Error(`invalid baseline ref: ${options.baselineRef}`);
     }
-    const packageRelative = safePackageRelative(gitRoot, info.packageRoot);
-    if (!packageRelative) {
-      throw new Error('candidate package is outside git root');
-    }
-    const materialized = await materializeGitPackage(gitRoot, resolved, packageRelative);
+    const materialized = await materializeGitPackage(gitRoot, resolved, info.gitLayout);
     if (!materialized.present) {
       throw new Error('explicit baseline ref does not point to a package');
     }
     const validation = await validatePackage(materialized.packageRoot, {
-      repositoryRoot: materialized.tempRoot,
+      repositoryRoot: materialized.validationRoot,
       trackedOnly: false,
+      baselineSnapshot: { collectionRoot: materialized.validationRoot },
     });
     parseValidation(validation, 'baseline');
     return {
@@ -1186,11 +1228,7 @@ async function chooseBaseline(info, options) {
   if (!mergeBase) {
     throw new Error('could not compute merge-base baseline');
   }
-  const packageRelative = safePackageRelative(gitRoot, info.packageRoot);
-  if (!packageRelative) {
-    throw new Error('candidate package is outside resolved Git root');
-  }
-  const materialized = await materializeGitPackage(gitRoot, mergeBase, packageRelative);
+  const materialized = await materializeGitPackage(gitRoot, mergeBase, info.gitLayout);
   if (!materialized.present) {
     return {
       identity: { kind: 'none', identity: `${mergeBase}:absent` },
@@ -1201,8 +1239,9 @@ async function chooseBaseline(info, options) {
     };
   }
   const validation = await validatePackage(materialized.packageRoot, {
-    repositoryRoot: materialized.tempRoot,
+    repositoryRoot: materialized.validationRoot,
     trackedOnly: false,
+    baselineSnapshot: { collectionRoot: materialized.validationRoot },
   });
   if (!validation.valid) {
     throw new Error('merge-base baseline materialization is invalid');
@@ -1252,7 +1291,14 @@ async function prepare(argv) {
   const candidateBoundary = path.basename(candidateInput) === 'SKILL.md'
     ? path.dirname(candidateInput)
     : candidateInput;
-  const target = await validateTargetPackage(candidateInput, candidateBoundary);
+  const gitRoot = await resolveGitRoot(candidateBoundary);
+  const gitTarget = gitRoot
+    ? await canonicalGitTarget(candidateInput, candidateBoundary, gitRoot)
+    : null;
+  const target = await validateTargetPackage(
+    gitTarget?.input || candidateInput,
+    gitTarget?.validationRoot || candidateBoundary,
+  );
   const targetPackageRoot = target.root;
   const candidateCatalogCases = await loadCasesFromCorpus(path.join(targetPackageRoot, 'evals', 'evals.json'), 'behavior');
   const candidateTriggerCases = await loadCasesFromCorpus(path.join(targetPackageRoot, 'evals', 'trigger-evals.json'), 'trigger');
@@ -1266,7 +1312,6 @@ async function prepare(argv) {
   const publicSkillNames = await loadPublicSkillNames(safeCatalogRoot);
   const catalogSkills = await loadCatalogSkills(safeCatalogRoot, publicSkillNames);
 
-  const gitRoot = await resolveGitRoot(targetPackageRoot);
   const sourceSnapshot = await snapshotSource(targetPackageRoot, gitRoot);
   if (sourceSnapshot.packageHash !== target.hash) {
     throw new Error('source target changed during validation');
@@ -1279,7 +1324,7 @@ async function prepare(argv) {
 
   const baseline = await chooseBaseline({
     gitRoot,
-    packageRoot: targetPackageRoot,
+    gitLayout: gitTarget?.layout || null,
     targetName: target.name,
     targetHash: target.hash,
   }, options);

@@ -730,6 +730,7 @@ printf '#!/usr/bin/env bash\nexit 0\n' >"$TARGET/references/executable.sh"
 chmod 0755 "$TARGET/references/executable.sh"
 write_skill "$GIT_REPO/skills/catalog-peer" catalog-peer 'Repository catalog peer description.'
 write_public_authority "$GIT_REPO/skills/using-woostack"
+printf '\n[Catalog peer guide](../catalog-peer/references/guide.md)\n' >>"$TARGET/SKILL.md"
 printf '.woostack/tmp/skill-evals/\n' >"$GIT_REPO/.gitignore"
 BASELINE_HASH=$(package_hash "$TARGET" "$TMP_ROOT/baseline-validation.json")
 git -C "$GIT_REPO" add .
@@ -738,6 +739,7 @@ BASE_COMMIT=$(git -C "$GIT_REPO" rev-parse HEAD)
 git -C "$GIT_REPO" tag -a baseline-package -m 'annotated baseline package' "$BASE_COMMIT"
 git -C "$GIT_REPO" switch -qc feature
 write_skill "$TARGET" prepare-target 'Dirty candidate target description.'
+printf '\n[Catalog peer guide](../catalog-peer/references/guide.md)\n' >>"$TARGET/SKILL.md"
 printf 'dirty candidate only\n' >"$TARGET/references/dirty-only.txt"
 CANDIDATE_HASH=$(package_hash "$TARGET" "$TMP_ROOT/candidate-validation.json")
 HEAD_BEFORE=$(git -C "$GIT_REPO" rev-parse HEAD)
@@ -950,6 +952,76 @@ assert_manifest "$RUN_ROOT/manifest.json" merge-base prepare-target triggers 1 \
   "{\"kind\":\"git-ref\",\"identity\":\"$BASE_COMMIT\"}" "$CANDIDATE_HASH"
 [ "$(wc -l <"$TMP_ROOT/resolver-marker" | tr -d ' ')" -eq 1 ] || fail 'canonical resolver was not invoked exactly once'
 
+# A non-skills Git package uses the repository boundary in both the live tree and target-only
+# materializations. A symlinked invocation prefix does not change that Git-relative policy.
+NESTED_REPO="$TMP_ROOT/nested-boundary-repo"
+git init -q -b base "$NESTED_REPO"
+git -C "$NESTED_REPO" config user.email evaluator@example.invalid
+git -C "$NESTED_REPO" config user.name 'Evaluator Contract'
+CANONICAL_NESTED_REPO=$(CDPATH= cd -- "$NESTED_REPO" && pwd -P)
+NESTED_TARGET="$CANONICAL_NESTED_REPO/packages/nested-target"
+write_skill "$NESTED_TARGET" nested-target 'Nested Git baseline description.'
+write_corpora "$NESTED_TARGET" nested-target 'nested Git fixture'
+printf '# Repository guide\n' >"$CANONICAL_NESTED_REPO/shared.md"
+printf '\n[Repository guide](../../shared.md)\n' >>"$NESTED_TARGET/SKILL.md"
+git -C "$CANONICAL_NESTED_REPO" add .
+git -C "$CANONICAL_NESTED_REPO" commit -qm 'nested baseline'
+NESTED_BASE=$(git -C "$CANONICAL_NESTED_REPO" rev-parse HEAD)
+git -C "$CANONICAL_NESTED_REPO" switch -qc feature
+write_skill "$NESTED_TARGET" nested-target 'Nested Git candidate description.'
+printf '\n[Repository guide](../../shared.md)\n' >>"$NESTED_TARGET/SKILL.md"
+expect_success 'nested Git explicit baseline shares repository boundary' \
+  --target "$NESTED_TARGET" --mode behavior --runs 1 --baseline-ref "$NESTED_BASE" \
+  --out-root "$TMP_ROOT/runs" --run-id nested-git-explicit
+TEST_BASE_BRANCH=base expect_success 'nested Git merge-base shares repository boundary' \
+  --target "$NESTED_TARGET" --mode behavior --runs 1 \
+  --out-root "$TMP_ROOT/runs" --run-id nested-git-merge-base
+NESTED_ALIAS="$TMP_ROOT/nested-boundary-alias"
+ln -s "$CANONICAL_NESTED_REPO" "$NESTED_ALIAS"
+expect_success 'nested Git target through symlinked prefix' \
+  --target "$NESTED_ALIAS/packages/nested-target/SKILL.md" --mode behavior --runs 1 \
+  --baseline-ref "$NESTED_BASE" --out-root "$TMP_ROOT/runs" --run-id nested-git-alias
+
+# A nested `vendor/skills/<package>` collection keeps its own parent boundary. Missing sibling
+# targets are allowed only in target-only Git snapshots; links beyond that collection still fail.
+VENDOR_REPO="$TMP_ROOT/vendor-skills-repo"
+git init -q -b base "$VENDOR_REPO"
+git -C "$VENDOR_REPO" config user.email evaluator@example.invalid
+git -C "$VENDOR_REPO" config user.name 'Evaluator Contract'
+CANONICAL_VENDOR_REPO=$(CDPATH= cd -- "$VENDOR_REPO" && pwd -P)
+VENDOR_TARGET="$CANONICAL_VENDOR_REPO/vendor/skills/vendor-target"
+write_skill "$VENDOR_TARGET" vendor-target 'Nested collection baseline description.'
+write_corpora "$VENDOR_TARGET" vendor-target 'nested collection fixture'
+write_skill "$CANONICAL_VENDOR_REPO/vendor/skills/vendor-peer" vendor-peer 'Nested collection sibling.'
+printf '\n[Sibling](../vendor-peer/references/guide.md)\n' >>"$VENDOR_TARGET/SKILL.md"
+printf '# Outside collection\n' >"$CANONICAL_VENDOR_REPO/outside.md"
+git -C "$CANONICAL_VENDOR_REPO" add .
+git -C "$CANONICAL_VENDOR_REPO" commit -qm 'valid nested collection baseline'
+VENDOR_VALID_BASE=$(git -C "$CANONICAL_VENDOR_REPO" rev-parse HEAD)
+git -C "$CANONICAL_VENDOR_REPO" switch -qc invalid-base
+write_skill "$VENDOR_TARGET" vendor-target 'Escaping nested collection baseline.'
+printf '\n[Outside collection](../../../outside.md)\n' >>"$VENDOR_TARGET/SKILL.md"
+git -C "$CANONICAL_VENDOR_REPO" add "$VENDOR_TARGET/SKILL.md"
+git -C "$CANONICAL_VENDOR_REPO" commit -qm 'escaping nested collection baseline'
+VENDOR_INVALID_BASE=$(git -C "$CANONICAL_VENDOR_REPO" rev-parse HEAD)
+git -C "$CANONICAL_VENDOR_REPO" switch -qc feature
+write_skill "$VENDOR_TARGET" vendor-target 'Nested collection candidate description.'
+printf '\n[Sibling](../vendor-peer/references/guide.md)\n' >>"$VENDOR_TARGET/SKILL.md"
+expect_success 'nested skills collection explicit baseline accepts sibling' \
+  --target "$VENDOR_TARGET" --mode behavior --runs 1 --baseline-ref "$VENDOR_VALID_BASE" \
+  --out-root "$TMP_ROOT/runs" --run-id vendor-skills-explicit
+TEST_BASE_BRANCH=base expect_success 'nested skills collection merge-base accepts sibling' \
+  --target "$VENDOR_TARGET" --mode behavior --runs 1 \
+  --out-root "$TMP_ROOT/runs" --run-id vendor-skills-merge-base
+expect_failure 'nested skills collection explicit baseline rejects collection escape' \
+  --target "$VENDOR_TARGET" --mode behavior --runs 1 --baseline-ref "$VENDOR_INVALID_BASE" \
+  --out-root "$TMP_ROOT/runs" --run-id vendor-skills-explicit-escape
+assert_file_contains "$STDERR_FILE" 'link-target-outside' 'nested explicit collection escape diagnostic'
+TEST_BASE_BRANCH=invalid-base expect_failure \
+  'nested skills collection merge-base rejects collection escape' \
+  --target "$VENDOR_TARGET" --mode behavior --runs 1 \
+  --out-root "$TMP_ROOT/runs" --run-id vendor-skills-merge-escape
+
 # Missing canonical resolution fails closed, while an explicit baseline remains usable.
 mv "$RESOLVER" "$RESOLVER.disabled"
 expect_failure 'missing canonical resolver without explicit baseline' \
@@ -1012,6 +1084,20 @@ assert_catalog "$RUN_ROOT/cases/alpha-trigger/1/candidate/catalog.json" \
   '{"schemaVersion":1,"skills":[{"name":"catalog-peer","description":"New repository peer."},{"name":"new-target","description":"New target candidate description."},{"name":"using-woostack","description":"Installed public command-routing authority."}]}'
 assert_catalog "$RUN_ROOT/cases/alpha-trigger/1/baseline/catalog.json" \
   '{"schemaVersion":1,"skills":[{"name":"catalog-peer","description":"New repository peer."},{"name":"using-woostack","description":"Installed public command-routing authority."}]}'
+
+# A parent named `skills` is not a proven collection boundary outside Git.
+STRICT_NON_GIT_TARGET="$TMP_ROOT/non-git-named-collection/skills/non-git-strict"
+STRICT_NON_GIT_BASELINE="$TMP_ROOT/non-git-strict-baseline/non-git-strict"
+write_skill "$STRICT_NON_GIT_TARGET" non-git-strict 'Non-Git skills-parent boundary target.'
+write_corpora "$STRICT_NON_GIT_TARGET" non-git-strict 'non-Git strict fixture'
+write_skill "$TMP_ROOT/non-git-named-collection/skills/sibling" sibling 'Unproven non-Git sibling.'
+printf '\n[Unproven sibling](../sibling/references/guide.md)\n' >>"$STRICT_NON_GIT_TARGET/SKILL.md"
+write_skill "$STRICT_NON_GIT_BASELINE" non-git-strict 'Non-Git skills-parent boundary baseline.'
+expect_failure 'non-Git skills-named parent remains package-root strict' \
+  --target "$STRICT_NON_GIT_TARGET" --mode behavior --runs 1 \
+  --baseline-path "$STRICT_NON_GIT_BASELINE" --out-root "$TMP_ROOT/runs" \
+  --run-id non-git-unproven-collection
+assert_file_contains "$STDERR_FILE" 'link-target-outside' 'non-Git skills-parent containment diagnostic'
 
 # An exact target outside Git defaults to a deterministic no-skill baseline. Explicit baselines
 # still take precedence. The installed catalog remains the default authority and the fallback run

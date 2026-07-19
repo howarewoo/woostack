@@ -222,6 +222,26 @@ async function safeLstat(root, candidate) {
   }
 }
 
+async function baselineCollectionRoot(repositoryRoot, packageRoot, baselineSnapshot) {
+  if (
+    !baselineSnapshot ||
+    typeof baselineSnapshot !== 'object' ||
+    typeof baselineSnapshot.collectionRoot !== 'string'
+  ) {
+    return null;
+  }
+  const collectionRoot = path.resolve(baselineSnapshot.collectionRoot);
+  if (
+    !isContained(repositoryRoot, collectionRoot) ||
+    !isContained(collectionRoot, packageRoot)
+  ) {
+    return null;
+  }
+  const state = await safeLstat(repositoryRoot, collectionRoot);
+  return state.kind === 'directory' ? collectionRoot : null;
+}
+
+
 function isForbiddenPath(relative) {
   return relative.split('/').some((part) => part === '.git' || /^\.env/.test(part));
 }
@@ -914,7 +934,8 @@ function localLinkTarget(target) {
   }
 }
 
-async function validateLinks(packageRoot, repositoryRoot, files, trackedPaths, errors) {
+async function validateLinks(packageRoot, repositoryRoot, files, trackedPaths, errors, baselineSnapshot) {
+  const snapshotRoot = await baselineCollectionRoot(repositoryRoot, packageRoot, baselineSnapshot);
   for (const file of files) {
     if (!/\.md$/i.test(file.path)) continue;
     const absolute = path.join(packageRoot, ...file.path.split('/'));
@@ -950,7 +971,13 @@ async function validateLinks(packageRoot, repositoryRoot, files, trackedPaths, e
       }
       const state = await safeLstat(repositoryRoot, candidate);
       if (state.kind === 'missing') {
-        addError(errors, 'link-target-missing', field, file.path, 'Local link target does not exist');
+        if (
+          !snapshotRoot ||
+          isContained(packageRoot, candidate) ||
+          !isContained(snapshotRoot, candidate)
+        ) {
+          addError(errors, 'link-target-missing', field, file.path, 'Local link target does not exist');
+        }
       } else if (state.kind === 'symlink') {
         addError(errors, 'link-target-symlink', field, file.path, 'Local link target must not resolve through a symlink');
       } else if (state.kind !== 'file') {
@@ -1014,7 +1041,11 @@ async function resolvePackage(packagePath, repositoryRoot, errors) {
   return { packageRoot, skillPath };
 }
 
-export async function validatePackage(packagePath, { repositoryRoot = process.cwd(), trackedOnly = false } = {}) {
+export async function validatePackage(packagePath, {
+  repositoryRoot = process.cwd(),
+  trackedOnly = false,
+  baselineSnapshot = false,
+} = {}) {
   const root = path.resolve(repositoryRoot);
   const input = path.resolve(packagePath);
   const fallbackRoot = path.basename(input) === 'SKILL.md' ? path.dirname(input) : input;
@@ -1090,7 +1121,14 @@ export async function validatePackage(packagePath, { repositoryRoot = process.cw
     }
   }
 
-  await validateLinks(packageRoot, root, result.files, inventory.trackedPaths, result.errors);
+  await validateLinks(
+    packageRoot,
+    root,
+    result.files,
+    inventory.trackedPaths,
+    result.errors,
+    baselineSnapshot,
+  );
   for (const [filename, summaryKey] of CORPUS_FILES) {
     const corpusRelative = `evals/${filename}`;
     if (inventory.trackedPaths && !inventory.trackedPaths.has(corpusRelative)) continue;

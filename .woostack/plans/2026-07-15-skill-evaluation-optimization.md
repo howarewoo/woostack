@@ -569,6 +569,23 @@ Do not lengthen already-distinct `change`, `fix`, `bootstrap`, `execute`, `execu
 
 Also run trigger mode once for each unchanged owning corpus to prove no adjacency regression. Require explicit selected-skill receipts; report precision/recall by stable ID. A changed description must improve the failing case and introduce no new near-miss failure, or revert it.
 
+> **Execution note (2026-07-16):** The user approved the exact 38-case snapshot
+> `sha256:6282da26f68891b878513fbfe1d85a122b88b52e02d90e4bcee1fee285154815`.
+> Preparation exposed and the user approved fixing a prerequisite evaluator defect: live skill
+> packages now validate sibling links against their proven Git collection boundary, while
+> target-only Git baseline snapshots may leave only contained cross-package links unresolved.
+> The validator and prepare regressions retain strict handling for non-Git packages, in-package
+> misses, symlinks, special files, non-normalized paths, and boundary escapes. The first immutable
+> dispatches correctly aggregated as blocked because their host receipts claimed no
+> `read-workspace` capability; fresh comparative runs used the definition-required capability and
+> completed. All nine corpora ran candidate and Increment 5 baseline descriptions three times with
+> explicit selected-skill receipts: candidate and baseline precision/recall were `1.0 / 1.0` for
+> every corpus and stable ID. With no demonstrated boundary gap, Task 3 made no metadata edit.
+> Complete aggregates and reports are transient under `.woostack/tmp/skill-evals/` run IDs
+> `20260716T185946Z-12412`, `-12413`, `-12414`, `-12418`, `20260716T185947Z-12416`,
+> `20260716T185946Z-12417`, `20260716T185947Z-12420`, `20260716T185946Z-12419`, and
+> `20260716T185947Z-12421`.
+
 ## Increment 7: Trigger boundaries for investigation, workspace, and QA utilities
 
 > **Branch:** `feature/skill-trigger-utilities`  
