@@ -24,14 +24,6 @@ If answering seems to require a change, describe the change and name the command
 `recall.sh`'s gitignored telemetry sidecar (best-effort, non-fatal) — `git status` stays clean.
 </WRITE-BLOCK>
 
-## When to use
-
-Any read-only question about this codebase: how a subsystem works, where something lives, why a
-decision was made, what a spec/plan/fix says, or whether an external project has something worth
-adopting. Use it instead of an unscoped agent whenever you want an answer with **no chance of an
-edit**. For a bug's root cause use [`woostack-debug`](../woostack-debug/SKILL.md); to curate the
-knowledge store use [`woostack-dream`](../woostack-dream/SKILL.md).
-
 ## Artifact backend (read-only)
 
 Before any feature, spec, plan, or increment-issue access, run

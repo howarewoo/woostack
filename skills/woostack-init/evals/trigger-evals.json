@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-init",
+  "cases": [
+    {
+      "id": "brownfield-first-workspace-scaffold",
+      "query": "I pulled this established repository onto a new machine. The team uses woostack, but this checkout has no .woostack directory, so set up the project-local workspace needed by the rest of the commands.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-init",
+      "conflictsWith": ["woostack-doctor"]
+    },
+    {
+      "id": "incomplete-workspace-scaffold-repair",
+      "query": "A bad merge removed .woostack/config.json and a few standard directories, while our existing memory and plans are intact. Restore only the missing workspace pieces and refresh anything derived from them.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-init",
+      "conflictsWith": ["woostack-doctor"]
+    },
+    {
+      "id": "existing-workspace-convention-repair",
+      "query": "All expected .woostack files are present, but several notes now fail metadata and provenance checks after a hand edit. Show me what is invalid and the safe corrections; don't apply them until I choose.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-doctor",
+      "conflictsWith": ["woostack-init"]
+    },
+    {
+      "id": "current-feature-board-request",
+      "query": "I've been away for a week. Which work items are active, how far has each pull-request stack progressed, and what should I pick up next?",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-status",
+      "conflictsWith": ["woostack-init"]
+    }
+  ]
+}

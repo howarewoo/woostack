@@ -1,6 +1,6 @@
 ---
 name: woostack-qa
-description: Exploratory browser QA for a running web app; reproduce confirmed bugs and create severity-ranked, report-only findings for follow-up.
+description: Use to explore a running web app in a real browser, reproduce confirmed bugs, and create severity-ranked, report-only findings; use woostack-review for code diffs and woostack-audit for standing code.
 install: pnpx skills add howarewoo/woostack
 recommends:
   bins: [agent-browser]

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-audit",
+  "cases": [
+    {
+      "id": "standing-billing-module-assessment",
+      "query": "I'm taking ownership of src/billing before the next release. Read through the module as it exists and tell me, in priority order, which risks or missing safeguards deserve work first.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-audit",
+      "conflictsWith": ["woostack-review", "woostack-qa"]
+    },
+    {
+      "id": "billing-retry-pr-review",
+      "query": "PR #284 changes the retry path after a payment timeout. Decide whether those changed lines are safe to merge and leave the validated findings on the pull request.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-review",
+      "conflictsWith": ["woostack-audit"]
+    },
+    {
+      "id": "staging-checkout-browser-qa",
+      "query": "Checkout and refunds are deployed at https://staging.example.test. Use the flows with success, decline, retry, and double-submit scenarios and report only failures you can reproduce.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-qa",
+      "conflictsWith": ["woostack-audit"]
+    }
+  ]
+}

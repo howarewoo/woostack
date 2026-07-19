@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-qa",
+  "cases": [
+    {
+      "id": "running-onboarding-browser-exploration",
+      "query": "The onboarding branch has a preview at http://localhost:5173. Use it like a new team owner—invite members, go backward, refresh midway, and retry failed submissions—and tell me which problems you can reproduce, including relevant browser or network evidence.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-qa",
+      "conflictsWith": ["woostack-debug", "woostack-audit", "woostack-review"]
+    },
+    {
+      "id": "standing-onboarding-code-audit",
+      "query": "Before we schedule an onboarding rewrite, inspect src/onboarding as it stands and rank the existing correctness, security, and maintainability risks.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-audit",
+      "conflictsWith": ["woostack-qa"]
+    },
+    {
+      "id": "onboarding-pull-request-review",
+      "query": "PR #411 changes three onboarding steps. Check whether the diff introduces regressions or misses necessary tests, validate each concern, and leave the result on the pull request.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-review",
+      "conflictsWith": ["woostack-qa"]
+    }
+  ]
+}

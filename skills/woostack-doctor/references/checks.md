@@ -1,6 +1,6 @@
 # woostack-doctor check catalog
 
-Each check is a script under [`../scripts/checks/`](../scripts/checks/) that emits findings to
+Each check is a script under `../scripts/checks/` that emits findings to
 stdout, one per line, tab-delimited: `severity⇥code⇥fixable⇥path⇥message`.
 
 - **severity** — `error` (structural breakage; the orchestrator exits nonzero) or `warn`
