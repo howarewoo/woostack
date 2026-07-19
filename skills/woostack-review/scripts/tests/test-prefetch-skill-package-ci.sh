@@ -42,10 +42,12 @@ while [ "$i" -le 12 ]; do
   printf 'Changed CI package contract line %02d.\n' "$i" >>"$REPO/skills/ci-skill/SKILL.md"
   i=$((i + 1))
 done
+git -C "$REPO" add skills/ci-skill/SKILL.md
+git -C "$REPO" commit -q -m reviewable-change
 
 DIFF_FIXTURE="$TMP_ROOT/authoritative.diff"
 META_FIXTURE="$TMP_ROOT/meta.json"
-git -C "$REPO" diff --no-ext-diff --binary -- skills/ci-skill/SKILL.md >"$DIFF_FIXTURE"
+git -C "$REPO" show --format= --no-ext-diff --binary HEAD -- skills/ci-skill/SKILL.md >"$DIFF_FIXTURE"
 jq -cn --arg head "$(git -C "$REPO" rev-parse HEAD)" \
   '{headRefOid:$head,headRefName:"feature/package-context",baseRefName:"main",title:"skill package",body:"",author:{login:"human"},files:[{path:"skills/ci-skill/SKILL.md",additions:12,deletions:0}]}' \
   >"$META_FIXTURE"
@@ -258,6 +260,45 @@ if [ "$(grep -c '^pr diff ' "$GH_CALL_LOG")" -eq 4 ]; then
   pass
 else
   fail "package snapshot CI: fixture must execute exactly four actual prefetch diff fetches"
+fi
+
+# Artifact upload drops an empty snapshot directory. The manifest is sufficient
+# evidence that a non-skill PR completed package detection successfully.
+REPO="$TMP_ROOT/non-skill-repo"
+mkdir -p "$REPO"
+git -C "$REPO" init -q
+git -C "$REPO" config user.email test@example.com
+git -C "$REPO" config user.name "Test User"
+printf 'base\n' >"$REPO/README.md"
+git -C "$REPO" add README.md
+git -C "$REPO" commit -q -m base
+printf 'reviewable\n' >>"$REPO/README.md"
+git -C "$REPO" add README.md
+git -C "$REPO" commit -q -m reviewable-change
+DIFF_FIXTURE="$TMP_ROOT/non-skill.diff"
+META_FIXTURE="$TMP_ROOT/non-skill-meta.json"
+git -C "$REPO" show --format= --no-ext-diff --binary HEAD -- README.md >"$DIFF_FIXTURE"
+jq -cn --arg head "$(git -C "$REPO" rev-parse HEAD)" \
+  '{headRefOid:$head,headRefName:"feature/non-skill",baseRefName:"main",title:"non-skill",body:"",author:{login:"human"},files:[{path:"README.md",additions:1,deletions:0}]}' \
+  >"$META_FIXTURE"
+EMPTY_DETECT_OUT="$TMP_ROOT/empty-detect-out"
+run_ci_prefetch "$EMPTY_DETECT_OUT" detect
+assert_exit 0 "$RUN_RC" "non-skill CI detect publishes an empty package manifest"
+assert_eq "$(jq -r '.schemaVersion, (.packages | length)' "$EMPTY_DETECT_OUT/skill-packages.json")" \
+  "$(printf '1\n0')" "non-skill CI detect manifest is schema-valid and empty"
+EMPTY_VALIDATE_OUT="$TMP_ROOT/empty-validate-out"
+mkdir -p "$EMPTY_VALIDATE_OUT"
+cp -R "$EMPTY_DETECT_OUT/." "$EMPTY_VALIDATE_OUT/"
+rm -rf "$EMPTY_VALIDATE_OUT/skill-packages"
+printf '[]\n' >"$EMPTY_VALIDATE_OUT/findings.bugs.json"
+run_ci_prefetch "$EMPTY_VALIDATE_OUT" validate
+assert_exit 0 "$RUN_RC" "CI validate accepts an empty manifest without an uploaded snapshot directory"
+assert_eq "$(jq -r '.packages | length' "$EMPTY_VALIDATE_OUT/skill-packages.json")" 0 \
+  "CI validate preserves the empty detection manifest"
+if [ ! -e "$EMPTY_VALIDATE_OUT/skill-packages" ]; then
+  pass
+else
+  fail "package snapshot CI: empty-manifest validation must not regenerate a snapshot directory"
 fi
 
 finish

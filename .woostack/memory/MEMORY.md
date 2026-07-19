@@ -81,3 +81,4 @@
 - [agent-evidence-binds-frozen-inputs](agent-evidence-binds-frozen-inputs.md) `pattern` scope=`skills/**/scripts/**` — agent evidence → frozen host-owned inputs plus receipts
 - [bash-template-marker-substitution](bash-template-marker-substitution.md) `pattern` scope=`skills/**/scripts/**` — Populate a bundled text/HTML template from bash with awk index()+printf ENVIRON on whole marker lines — never gsub, never sed, never inline expansion.
 - [fanout-empty-needs-receipt](fanout-empty-needs-receipt.md) `pattern` scope=`skills/woostack-review/**` — An empty aggregate from a fan-out of workers is ambiguous (clean vs never-ran) — require a per-worker execution receipt to disambiguate.
+- [review-process-evidence-needs-observability](review-process-evidence-needs-observability.md) `pattern` scope=`skills/woostack-review/prompts/**` — Package absence does not prove that an external authoring process was skipped.

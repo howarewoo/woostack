@@ -124,6 +124,9 @@ run_local_prefetch() {
     WOO_REVIEW_TEST_SNAPSHOT_MAX_FILES="${WOO_REVIEW_TEST_SNAPSHOT_MAX_FILES:-}" \
     WOO_REVIEW_TEST_SNAPSHOT_MAX_FILE_BYTES="${WOO_REVIEW_TEST_SNAPSHOT_MAX_FILE_BYTES:-}" \
     WOO_REVIEW_TEST_SNAPSHOT_MAX_BYTES="${WOO_REVIEW_TEST_SNAPSHOT_MAX_BYTES:-}" \
+    WOO_REVIEW_TEST_SNAPSHOT_VALIDATOR="${WOO_REVIEW_TEST_SNAPSHOT_VALIDATOR:-}" \
+    WOO_REVIEW_TEST_REAL_VALIDATOR="${WOO_REVIEW_TEST_REAL_VALIDATOR:-}" \
+    WOO_REVIEW_TEST_RACE_FILE="${WOO_REVIEW_TEST_RACE_FILE:-}" \
       bash "$PREFETCH"
   ) >"$stdout_file" 2>"$stderr_file"
   RUN_RC=$?
@@ -263,8 +266,10 @@ git -C "$REPO" commit -q -m base
 printf 'ignored\n' >"$REPO/skills/alpha/assets/ignored.txt"
 printf 'untracked\n' >"$REPO/skills/alpha/assets/untracked.txt"
 append_reviewable_change skills/alpha/SKILL.md
+git -C "$REPO" add skills/alpha/SKILL.md
+git -C "$REPO" commit -q -m reviewable-change
 existing_diff="$TMP_ROOT/existing.diff"
-git -C "$REPO" diff --no-ext-diff --binary -- skills/alpha/SKILL.md >"$existing_diff"
+git -C "$REPO" show --format= --no-ext-diff --binary HEAD -- skills/alpha/SKILL.md >"$existing_diff"
 normalize_diff_fixture "$existing_diff"
 existing_meta=$(meta_for_paths skills/alpha/SKILL.md)
 existing_out="$TMP_ROOT/existing-out"
@@ -300,6 +305,65 @@ else
   fail "package snapshot: repeated fresh local prefetch uses the same deterministic package manifest"
 fi
 
+# Every tracked package byte must still match the immutable reviewed HEAD.
+printf 'dirty sibling bytes\n' >>"$REPO/skills/alpha/references/guide.md"
+run_local_prefetch "$TMP_ROOT/dirty-sibling-out" "$existing_meta" "$existing_diff"
+assert_blocked "$TMP_ROOT/dirty-sibling-out" "dirty tracked package sibling" "$existing_diff"
+assert_contains "$RUN_STDERR" \
+  'tracked package differs from the immutable PR head: skills/alpha' \
+  "dirty tracked sibling identifies the package that violated the immutable source boundary"
+git -C "$REPO" checkout -- skills/alpha/references/guide.md
+
+# Validator process failures retain bounded process diagnostics instead of
+# collapsing every failure into an unreadable-output message.
+fake_validator="$TMP_ROOT/failing-validator.mjs"
+cat >"$fake_validator" <<'NODE'
+process.stderr.write('simulated validator\u0001crash\n');
+process.stdout.write('{');
+process.exit(7);
+NODE
+WOO_REVIEW_TEST_SNAPSHOT_VALIDATOR="$fake_validator" \
+  run_local_prefetch "$TMP_ROOT/validator-process-out" "$existing_meta" "$existing_diff"
+assert_blocked "$TMP_ROOT/validator-process-out" "validator process failure" "$existing_diff"
+assert_contains "$RUN_STDERR" \
+  'status=7 signal=none error=none stderr=simulated validator crash' \
+  "validator failure reports sanitized status, signal, error, and stderr context"
+
+# A tracked file that changes after validation cannot race into the published
+# snapshot: publication uses the immutable HEAD blobs captured before validation.
+race_validator="$TMP_ROOT/race-validator.mjs"
+cat >"$race_validator" <<'NODE'
+import fs from 'node:fs';
+import { spawnSync } from 'node:child_process';
+
+const validation = spawnSync(
+  process.execPath,
+  [process.env.WOO_REVIEW_TEST_REAL_VALIDATOR, ...process.argv.slice(2)],
+  { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 },
+);
+if (validation.error) throw validation.error;
+fs.appendFileSync(process.env.WOO_REVIEW_TEST_RACE_FILE, 'raced bytes\n');
+process.stdout.write(validation.stdout || '');
+process.stderr.write(validation.stderr || '');
+process.exit(validation.status ?? 1);
+NODE
+race_out="$TMP_ROOT/race-out"
+WOO_REVIEW_TEST_SNAPSHOT_VALIDATOR="$race_validator" \
+WOO_REVIEW_TEST_REAL_VALIDATOR="$ROOT/skills/woostack-eval/scripts/validate.mjs" \
+WOO_REVIEW_TEST_RACE_FILE="$REPO/skills/alpha/references/guide.md" \
+  run_local_prefetch "$race_out" "$existing_meta" "$existing_diff"
+assert_exit 0 "$RUN_RC" "concurrent post-validation package change cannot alter the snapshot"
+git -C "$REPO" show HEAD:skills/alpha/references/guide.md >"$TMP_ROOT/head-guide.md"
+if cmp -s "$TMP_ROOT/head-guide.md" \
+  "$race_out/skill-packages/skills%2Falpha/references/guide.md" &&
+  ! cmp -s "$REPO/skills/alpha/references/guide.md" \
+  "$race_out/skill-packages/skills%2Falpha/references/guide.md"; then
+  pass
+else
+  fail "package snapshot: publication must use immutable HEAD bytes after a concurrent mutation"
+fi
+git -C "$REPO" checkout -- skills/alpha/references/guide.md
+
 # A repository-root SKILL.md uses package path `.`. The collision-safe encoding
 # formula is path-segment URI encoding with `/` encoded as `%2F`, and the root
 # sentinel encoded explicitly as `%2E`.
@@ -308,8 +372,10 @@ create_skill . root-skill
 git -C "$REPO" add .
 git -C "$REPO" commit -q -m base
 append_reviewable_change SKILL.md
+git -C "$REPO" add SKILL.md
+git -C "$REPO" commit -q -m reviewable-change
 root_diff="$TMP_ROOT/root.diff"
-git -C "$REPO" diff --no-ext-diff --binary -- SKILL.md >"$root_diff"
+git -C "$REPO" show --format= --no-ext-diff --binary HEAD -- SKILL.md >"$root_diff"
 normalize_diff_fixture "$root_diff"
 root_out="$TMP_ROOT/root-out"
 run_local_prefetch "$root_out" "$(meta_for_paths SKILL.md)" "$root_diff"
@@ -372,8 +438,10 @@ ln -s ../SKILL.md "$REPO/skills/alpha/assets/linked-skill"
 git -C "$REPO" add .
 git -C "$REPO" commit -q -m base
 append_reviewable_change skills/alpha/SKILL.md
+git -C "$REPO" add skills/alpha/SKILL.md
+git -C "$REPO" commit -q -m reviewable-change
 symlink_diff="$TMP_ROOT/symlink.diff"
-git -C "$REPO" diff --no-ext-diff --binary -- skills/alpha/SKILL.md >"$symlink_diff"
+git -C "$REPO" show --format= --no-ext-diff --binary HEAD -- skills/alpha/SKILL.md >"$symlink_diff"
 normalize_diff_fixture "$symlink_diff"
 run_local_prefetch "$TMP_ROOT/symlink-out" "$(meta_for_paths skills/alpha/SKILL.md)" "$symlink_diff"
 assert_blocked "$TMP_ROOT/symlink-out" "tracked symlink" "$symlink_diff"
@@ -387,8 +455,10 @@ special_oid=$(git -C "$REPO" rev-parse HEAD)
 git -C "$REPO" update-index --add --cacheinfo "160000,$special_oid,skills/alpha/assets/vendor"
 git -C "$REPO" commit -q -m gitlink
 append_reviewable_change skills/alpha/SKILL.md
+git -C "$REPO" add skills/alpha/SKILL.md
+git -C "$REPO" commit -q -m reviewable-change
 special_diff="$TMP_ROOT/special.diff"
-git -C "$REPO" diff --no-ext-diff --binary -- skills/alpha/SKILL.md >"$special_diff"
+git -C "$REPO" show --format= --no-ext-diff --binary HEAD -- skills/alpha/SKILL.md >"$special_diff"
 normalize_diff_fixture "$special_diff"
 run_local_prefetch "$TMP_ROOT/special-out" "$(meta_for_paths skills/alpha/SKILL.md)" "$special_diff"
 assert_blocked "$TMP_ROOT/special-out" "tracked special file" "$special_diff"
@@ -400,8 +470,10 @@ printf 'not-a-real-secret\n' >"$REPO/skills/alpha/.env.secret"
 git -C "$REPO" add -f .
 git -C "$REPO" commit -q -m base
 append_reviewable_change skills/alpha/SKILL.md
+git -C "$REPO" add skills/alpha/SKILL.md
+git -C "$REPO" commit -q -m reviewable-change
 unsafe_diff="$TMP_ROOT/unsafe.diff"
-git -C "$REPO" diff --no-ext-diff --binary -- skills/alpha/SKILL.md >"$unsafe_diff"
+git -C "$REPO" show --format= --no-ext-diff --binary HEAD -- skills/alpha/SKILL.md >"$unsafe_diff"
 normalize_diff_fixture "$unsafe_diff"
 run_local_prefetch "$TMP_ROOT/unsafe-out" "$(meta_for_paths skills/alpha/SKILL.md)" "$unsafe_diff"
 assert_blocked "$TMP_ROOT/unsafe-out" "tracked unsafe path" "$unsafe_diff"
@@ -413,8 +485,10 @@ git -C "$REPO" add .
 git -C "$REPO" commit -q -m base
 printf '\n[Missing](references/missing.md)\n' >>"$REPO/skills/alpha/SKILL.md"
 i=1; while [ "$i" -le 10 ]; do printf 'Invalid fixture filler %02d.\n' "$i" >>"$REPO/skills/alpha/SKILL.md"; i=$((i + 1)); done
+git -C "$REPO" add skills/alpha/SKILL.md
+git -C "$REPO" commit -q -m reviewable-change
 invalid_diff="$TMP_ROOT/invalid.diff"
-git -C "$REPO" diff --no-ext-diff --binary -- skills/alpha/SKILL.md >"$invalid_diff"
+git -C "$REPO" show --format= --no-ext-diff --binary HEAD -- skills/alpha/SKILL.md >"$invalid_diff"
 normalize_diff_fixture "$invalid_diff"
 run_local_prefetch "$TMP_ROOT/invalid-out" "$(meta_for_paths skills/alpha/SKILL.md)" "$invalid_diff"
 assert_blocked "$TMP_ROOT/invalid-out" "shared validator failure" "$invalid_diff"
@@ -429,8 +503,10 @@ create_skill skills/alpha alpha
 git -C "$REPO" add .
 git -C "$REPO" commit -q -m base
 append_reviewable_change skills/alpha/SKILL.md
+git -C "$REPO" add skills/alpha/SKILL.md
+git -C "$REPO" commit -q -m reviewable-change
 bounded_diff="$TMP_ROOT/bounded.diff"
-git -C "$REPO" diff --no-ext-diff --binary -- skills/alpha/SKILL.md >"$bounded_diff"
+git -C "$REPO" show --format= --no-ext-diff --binary HEAD -- skills/alpha/SKILL.md >"$bounded_diff"
 normalize_diff_fixture "$bounded_diff"
 WOO_REVIEW_TEST_SNAPSHOT_MAX_FILES=4 \
   run_local_prefetch "$TMP_ROOT/bounded-files-out" \
@@ -460,9 +536,10 @@ git -C "$REPO" commit -q -m base
 create_skill skills/new-skill new-skill
 printf 'ignored\n' >"$REPO/skills/new-skill/assets/ignored.txt"
 git -C "$REPO" add skills/new-skill
+git -C "$REPO" commit -q -m add-skill
 printf 'untracked\n' >"$REPO/skills/new-skill/assets/untracked.txt"
 new_diff="$TMP_ROOT/new.diff"
-git -C "$REPO" diff --cached --no-ext-diff --binary -- skills/new-skill >"$new_diff"
+git -C "$REPO" show --format= --no-ext-diff --binary HEAD -- skills/new-skill >"$new_diff"
 normalize_diff_fixture "$new_diff"
 run_local_prefetch "$TMP_ROOT/new-out" "$(meta_for_paths skills/new-skill/SKILL.md)" "$new_diff"
 assert_exit 0 "$RUN_RC" "new skill fixture reaches prefetch completion"
@@ -488,8 +565,11 @@ git -C "$REPO" add .
 git -C "$REPO" commit -q -m base
 append_reviewable_change skills/alpha/SKILL.md
 append_reviewable_change skills/beta/SKILL.md
+git -C "$REPO" add skills/alpha/SKILL.md skills/beta/SKILL.md
+git -C "$REPO" commit -q -m reviewable-changes
 multiple_diff="$TMP_ROOT/multiple.diff"
-git -C "$REPO" diff --no-ext-diff --binary -- skills/alpha/SKILL.md skills/beta/SKILL.md >"$multiple_diff"
+git -C "$REPO" show --format= --no-ext-diff --binary HEAD -- \
+  skills/alpha/SKILL.md skills/beta/SKILL.md >"$multiple_diff"
 normalize_diff_fixture "$multiple_diff"
 run_local_prefetch "$TMP_ROOT/multiple-out" \
   "$(meta_for_paths skills/beta/SKILL.md skills/alpha/SKILL.md)" "$multiple_diff"
