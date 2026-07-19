@@ -43,11 +43,11 @@ pnpx skills add howarewoo/woostack
 
 *Note: `pnpm` (and `pnpx`) is the recommended package manager for woostack, as bootstrapped projects default to a pnpm workspace catalog.*
 
-This command registers twenty-two public command/adoption skills and three bundled supporting skills at twenty-five fixed `SKILL.md` locations.
+This command registers twenty-three public command/adoption skills and three bundled supporting skills at twenty-six fixed `SKILL.md` locations.
 Backend selection does not add another command; the collection still includes
 `using-woostack`, `woostack-init`, `woostack-bootstrap`,
-`woostack-build`, `woostack-fix`, `woostack-change`, `woostack-review`, and
-`woostack-address-comments`, among the rest, plus its internal and unregistered helpers.
+`woostack-build`, `woostack-fix`, `woostack-change`, `woostack-review`,
+`woostack-address-comments`, and `woostack-eval`, among the rest, plus its internal and unregistered helpers.
 
 > **Recommended companion — [impeccable](https://github.com/pbakaus/impeccable).** woostack's front-end design skill of choice. It powers the `design` review angle (`woostack-review` runs impeccable's detector). Optional but recommended:
 >
@@ -153,6 +153,8 @@ After writing code, use the verification and iteration loop:
   Drives a running app in a real browser (via the `agent-browser` CLI): walks core journeys, attacks edge cases, monitors console errors / failed requests / visual breakage / dead controls, reproduces each bug, and writes a severity-ranked, report-only findings doc under `.woostack/qa/`. Never fixes, posts, or merges.
 - **Production Error Response** → [/woostack-respond](skills/woostack-respond/SKILL.md)
   Reads a bounded production window through host-provided observability integrations, correlates errors and traces, writes a tracked sanitized report, and prepares repository fixes only through the existing `/woostack-fix` approval gate. It never mutates providers or production.
+- **Skill Evaluation** → [/woostack-eval](skills/woostack-eval/SKILL.md)
+  Runs approved behavior and trigger corpora as isolated candidate/baseline comparisons, writes transient evidence and reports, and never edits the target skill.
 
 ---
 

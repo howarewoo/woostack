@@ -5,6 +5,16 @@ versions, unknown fields, wrong JSON types, and duplicate identities. Paths are 
 relative paths even when the host is Windows. They must be normalized before use, must stay
 inside the stated root, and must resolve only through regular, non-symlink files.
 
+## Contents
+
+- [Corpus files](#corpus-files)
+- [Assertions](#assertions)
+- [Manifest](#manifest)
+- [Action receipts](#action-receipts)
+- [Qualitative grades](#qualitative-grades)
+- [Aggregate](#aggregate)
+- [Validator result and errors](#validator-result-and-errors)
+
 ## Corpus files
 
 Both corpus files have this envelope:
@@ -156,17 +166,24 @@ The grader's boolean and rationale are stored in a grade, never inferred from pr
 }
 ```
 
-Every object has exactly the keys shown. `runId`, `targetSkill`, `mode`, `runs`, baseline
-identity, and the six run-configuration fields follow the runner contract. Exactly one of
-`model` and `sessionIdentity` is a non-empty string in a resolved manifest; the inactive field is
-exactly `null`, never an empty string or another JSON type. `originalPackageHash` is the source
-candidate identity captured before preparation. `packageHashes` instead binds the actual copied
-package trees: `candidate` is a canonical SHA-256 identity, and `baseline` is a canonical SHA-256
-identity except that it is exactly `null` for a no-skill baseline. Every copied package for one
-variant must hash to its frozen value. For `baseline.kind: path`, `baseline.identity` is exactly
-the same frozen identity as `packageHashes.baseline`; it does not retain a different pre-copy
-source-tree hash. An action receipt uses its variant's frozen hash; a grader receipt uses the
-candidate frozen hash.
+Every object has exactly the keys shown. `runId`, `targetSkill`, `mode`, `runs`, baseline identity,
+and the six run-configuration fields follow the runner contract. Exactly one of `model` and
+`sessionIdentity` is a non-empty string in a resolved manifest; the inactive field is exactly
+`null`, never an empty string or another JSON type. A `none` baseline identity is exactly either
+`<40-lowercase-hex-merge-base-commit>:absent` for absence proved at a valid merge base or
+`non-git:<sha256-package-hash>:absent` for an exact target proved outside Git. Invalid explicit
+baselines and unavailable or unprovable Git resolution never produce either identity and never fall
+through.
+
+`originalPackageHash` is the source candidate identity captured only after the exact private
+immutable proposed package/corpora snapshot has validated, its digest has been explicitly approved
+when required, and any materialized target corpus bytes have been exact-byte revalidated.
+`packageHashes` instead binds the actual copied package trees: `candidate` is a canonical SHA-256
+identity, and `baseline` is a canonical SHA-256 identity except that it is exactly `null` for a
+no-skill baseline. Every copied package for one variant must hash to its frozen value. For
+`baseline.kind: path`, `baseline.identity` is exactly the same frozen identity as
+`packageHashes.baseline`; it does not retain a different pre-copy source-tree hash. An action
+receipt uses its variant's frozen hash; a grader receipt uses the candidate frozen hash.
 
 `gradingPlan` contains exactly one entry per frozen qualitative assertion and case/repetition pair,
 sorted by case ID, repetition, then assertion ID. `caseId`, `assertionId`, and a resolved
@@ -178,11 +195,13 @@ may not omit or add a qualitative assertion, contain duplicate identities, or se
 case/assertion absent from the frozen definitions.
 
 `expected` is the canonical unique action identity set. Comparative runs contain candidate then
-baseline for every pair; an explicitly accepted candidate-only run may omit baseline expected
-identities but retains both workspace paths in `pairs`. Each pair has exactly one selected
-case/repetition, canonical contained workspace paths, and no concurrency field. `expected`,
-`pairs`, and `gradingPlan` retain their required deterministic order even though JSON object member
-order is insignificant.
+baseline for every pair. An explicitly accepted candidate-only run contains only candidate actions
+for behavior cases with qualitative assertions; trigger and objective-only cases are absent.
+`pairs` contains exactly those selected cases and retains both canonical candidate and baseline
+workspace paths. Its `gradingPlan` contains exactly the selected cases' qualitative assertions.
+Each pair has one selected case/repetition, canonical contained paths, and no concurrency field.
+`expected`, `pairs`, and `gradingPlan` retain their required deterministic order even though JSON
+object member order is insignificant.
 
 ## Action receipts
 
@@ -229,6 +248,11 @@ reproducible `identity`. Exactly one of non-empty `model` and non-empty `session
 completion identity. `tier` and `effort` are strings when exposed and otherwise `null`.
 `packageHash` is exactly the manifest's frozen hash for the receipt variant. For `kind: grader`,
 it is exactly the frozen candidate hash. A no-skill baseline worker receipt alone uses `null`.
+
+For worker receipts, `capabilities` is exactly the frozen case capability array actually granted,
+in canonical order. For every `kind: grader` receipt it is exactly the empty array `[]`; a missing,
+non-array, non-empty, or otherwise different value invalidates the receipt. Graders have no implied
+default capability.
 `startedAt` is component-valid RFC 3339 UTC. `durationMs`, every identity byte length, and every
 token count is a non-negative JSON safe integer. `output`
 identifies a regular evidence file by relative path, SHA-256, and byte length.
@@ -245,13 +269,36 @@ canonical skill name or `none`; a behavior or grader receipt sets it to `null`. 
 grader receipt is host-owned: its case, repetition, and variant map the linked grade's blind
 `anonymizedOutputId` back to one manifest identity only after the receipt validates.
 
-`completionStatus` is exactly `complete`, `failed`, or `timed-out`. A complete receipt has
-`error: null`; another status has exactly
-`{"code":"<stable-kebab-case>","message":"<non-empty sanitized text>"}`. A receipt is not
-proof until it is the unique receipt for a manifest identity and all identity/configuration
-fields match its paired run.
+`completionStatus` is exactly `complete`, `failed`, or `timed-out`. Every action is dispatched under
+a host-owned finite positive deadline and finite positive graceful and forced whole-descendant
+teardown bounds; these controls do not add receipt fields. `timed-out` is valid only after the
+deadline elapsed, all capabilities were revoked, graceful termination was attempted, forced
+termination followed within its bound when necessary, and every descendant was confirmed gone
+within the final bound. A host unable to guarantee that sequence must refuse dispatch.
+
+A complete receipt has `error: null`; another status has exactly
+`{"code":"<stable-kebab-case>","message":"<non-empty sanitized text>"}`. A receipt is not proof until
+it is the unique last receipt for a manifest identity, teardown is complete, and all
+identity/configuration/capability fields match its frozen action.
 
 ## Qualitative grades
+
+Each qualitative assertion is graded in a fresh payload-only context. The grader-visible request has
+exactly this shape:
+
+```json
+{
+  "anonymizedOutputId": "output-7f3a",
+  "output": "Opaque captured output bytes decoded as validated UTF-8.",
+  "rubric": "Does the output make the required handoff explicit?"
+}
+```
+
+The grader-visible response has exactly `{"pass":<boolean>,"rationale":"<non-empty text>"}`. The
+context receives no other messages or identities and has no tools, workspace or filesystem view,
+environment, network, credentials, provider access, host paths, or capabilities. The host creates
+the input mapping, adds all grade identity and completion fields, and writes the grade and receipt;
+the grader cannot choose paths, filenames, IDs, status, or provenance.
 
 A grade is append-only and has this exact shape:
 
@@ -273,16 +320,16 @@ A grade is append-only and has this exact shape:
 }
 ```
 
-The grade JSON contains no candidate/baseline label. Its host-owned deterministic filename is
-`grade.<case-id>.<variant>.<repetition>.<grader-id>.json`; the host does not present that filename
-or variant to the grader/model. Its `receipt.path` must be exactly
+The host-owned grade JSON contains no candidate/baseline label. Its deterministic filename is
+`grade.<case-id>.<variant>.<repetition>.<grader-id>.json`; that filename, its variant, and every
+other host identity remain outside the fresh grader payload. Its `receipt.path` must be exactly
 `evidence/action.grader.<case-id>.<variant>.<repetition>.<grader-id>.json` for the same resolved
 grading-plan identity. `graderId`, `assertionId`, and `anonymizedOutputId` are stable kebab-case
-identities. `completionStatus` uses the action receipt enum. On `complete`, `pass` is boolean,
-`rationale` is non-empty, and `error` is null. Otherwise `pass` and `rationale` are null and
-`error` has the receipt error shape. The aggregate restores the variant only after validating the
-linked completed grader receipt against the manifest; it never infers the variant from grade
-content.
+identities. `completionStatus` uses the action receipt enum. On `complete`, `pass` is the grader's
+boolean, `rationale` is its non-empty rationale, and `error` is null. Otherwise `pass` and
+`rationale` are null and `error` has the receipt error shape. The aggregate restores the variant
+only after validating the linked completed grader receipt, including exact `capabilities: []`,
+against the manifest; it never infers the variant from grade content.
 
 The host writes the blind input mapping create-new before grader dispatch. Its deterministic
 filename is `input.<case-id>.<variant>.<repetition>.<grader-id>.json`; that filename and its
@@ -310,17 +357,17 @@ in one pair therefore always differ. A swapped mapping, reused anonymized ID, wr
 input, or mismatched valid grader identity blocks both grades in every affected pair before any
 boolean is exposed.
 
-Grader receipts are exempt from the workers' manifest `runConfiguration`. Each linked grader
-receipt still has exactly one concrete completion identity (`model` or `sessionIdentity`). For the
-candidate and baseline grades sharing one case, repetition, and `graderId`, their validated grader
-receipts must match on `host`, `runner`, completion identity, `tier`, and `effort`; a mismatch
-blocks aggregation rather than permitting grading bias.
+Grader receipts are exempt from the workers' manifest `runConfiguration`, but always require exact
+`capabilities: []` and exactly one concrete completion identity (`model` or `sessionIdentity`). For
+the candidate and baseline grades sharing one comparative case, repetition, and `graderId`, their
+validated grader receipts must match on `host`, `runner`, completion identity, `tier`, and `effort`;
+a mismatch blocks aggregation rather than permitting grading bias.
 
-Qualitative unblinding always requires complete candidate and baseline grade, mapping, and grader-
-receipt proofs for the pair. This remains true for an accepted candidate-only run: the baseline
-worker result is omitted from aggregate cases, but its isolated grading proof is still required to
-unblind the candidate grade. A lone candidate proof remains blind rather than becoming paired by
-degradation alone.
+Comparative qualitative unblinding requires complete candidate and baseline grade, mapping, empty-
+capability grader-receipt, and teardown proofs for the pair. In an explicitly accepted candidate-only
+qualitative smoke run, the aggregate may restore only the candidate grade after that candidate's
+complete blind mapping, grade, exact-empty-capability receipt, and teardown proof validate. It does
+not manufacture baseline proof or expose the candidate result as a comparison.
 
 ## Aggregate
 
@@ -351,8 +398,10 @@ The aggregate is versioned and has these top-level fields:
 coexist with `complete`. Missing, duplicate, malformed, failed, timed-out, unknown, or
 identity-mismatched required evidence makes the aggregate `blocked`; every comparison, duration,
 token, precision, and recall metric is then `unavailable`, while individually proven repetition
-evidence remains in `cases`. Explicitly accepted candidate-only smoke evidence is `degraded` and
-likewise emits no comparison, duration, token, precision, or recall metric.
+evidence remains in `cases`. Explicitly accepted candidate-only smoke evidence is `degraded`,
+contains only independently blinded candidate qualitative assertions, and likewise emits no
+comparison, trigger-selection, objective-pass-rate, duration, token, precision, or recall metric.
+Candidate-only repetition results also set `durationMs` and `tokenUsage` to `unavailable`.
 
 Each case entry identifies `caseId`, `kind`, and separate `candidate` and `baseline`
 repetition results; each assertion result identifies `assertionId`, `critical`, `pass`, and
@@ -411,8 +460,8 @@ Aggregate evidence and fatal snapshot errors use these exhaustive canonical code
 | `missing-field` | the missing field pointer | A required action, grade, nested receipt, or input field is absent. |
 | `incomplete-receipt` | `/completionStatus` | A required worker or grader failed or timed out. |
 | `missing-completion-identity` | `/model` | Exactly one concrete model or session identity is not present. |
-| `configuration-mismatch` | `/host`, `/runner`, `/model`, `/sessionIdentity`, `/tier`, or `/effort` | A worker differs from the manifest run configuration. |
-| `grader-configuration-mismatch` | `/host`, `/runner`, `/model`, `/sessionIdentity`, `/tier`, or `/effort` | Paired grader receipts differ on required grading configuration. |
+| `configuration-mismatch` | `/host`, `/runner`, `/model`, `/sessionIdentity`, `/tier`, `/effort`, or `/capabilities` | A worker differs from the manifest run configuration or frozen case capabilities. |
+| `grader-configuration-mismatch` | `/host`, `/runner`, `/model`, `/sessionIdentity`, `/tier`, `/effort`, or `/capabilities` | Paired grader receipts differ on required grading configuration, or a grader receipt does not have exact `capabilities: []`. |
 | `grader-identity-mismatch` | `/graderId` | Candidate and baseline grades in a pair use different grader identities. |
 | `identity-mismatch` | the mismatched identity or payload pointer | An action receipt, grade, linked receipt, or input path disagrees with its host-owned expected identity, including the resolved grader ID in a grader receipt filename. |
 | `missing-grade-receipt` | `/receipt/path` | A grade's deterministic linked `action.grader.<case-id>.<variant>.<repetition>.<grader-id>.json` receipt is absent. |
@@ -443,6 +492,10 @@ added.
 `files` contains sorted `{path,type,bytes,sha256}` entries where `type` is `skill`,
 `reference`, `script`, `asset`, or `eval`; `corpora` contains behavior/trigger presence and
 case counts; `packageHash` is a `sha256:` identity or `null` when safe hashing cannot finish.
+For an approval-pending proposal, `files`, `corpora`, and `packageHash` describe the exact private
+immutable proposed package/corpora snapshot. Approval may be requested only from a successful result
+for that snapshot; after approval, snapshot and materialized target bytes are revalidated against
+the approved inventory and digest before `originalPackageHash` is captured.
 
 Every validator error has exactly `{code,field,path,message}`. `field` is an RFC 6901
 pointer into the source document (the empty pointer for a whole-file/path failure), `path` is

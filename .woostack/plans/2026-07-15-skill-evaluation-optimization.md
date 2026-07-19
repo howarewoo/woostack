@@ -395,6 +395,8 @@ pnpm -C site build
 
 Then run one host-native smoke evaluation against `skills/woostack-eval` with `--all --runs 1` and an explicit no-skill or parent-ref baseline. Confirm candidate/baseline pair dispatch when supported, valid receipts, aggregate JSON, escaped HTML, and unchanged target hash. One run must label variance unavailable.
 
+> **Execution note (2026-07-16):** The user approved deferring the host-native smoke to Increment 8. Increment 3 verified the real deterministic prepare → aggregate → render path through `test-e2e.sh`; provider-backed dispatch waits for the approved `woostack-eval` corpus planned in Increment 8 and a host that can prove one concrete completion identity for both paired workers.
+
 ## Increment 4: Git-visible review package context and tiny-skill-diff coverage
 
 > **Branch:** `feature/skill-review-package-context`  
@@ -832,7 +834,7 @@ Run build behavior eval against `$BASE_SHA` for Markdown Go/Hand off/abandon, Li
 | Acceptance criterion | Failing proof and owning increment |
 | --- | --- |
 | AC1 | `test-command-contract.sh`: exact target/flags/defaults/write boundary (3) |
-| AC2 | `test-command-contract.sh` + E2E rejection case: corpus approval before write/run (3) |
+| AC2 | `test-command-contract.sh`: source contract enforces corpus approval before write/run; helper E2E starts from an approved snapshot (3) |
 | AC3 | `test-validate.sh`: parser, schema, path, capability, fixture, and secret rejection (1) |
 | AC4 | `test-prepare.sh`: explicit/ref/path/merge-base/no-skill precedence and failures (2) |
 | AC5 | `test-prepare.sh` + `test-e2e.sh`: isolated paired workspaces/config/hash proof (2–3) |

@@ -109,6 +109,11 @@ function requireManifest(manifest) {
   if (manifestModes.size !== 1) {
     throw new Error('manifest expected set must be uniformly paired or candidate-only');
   }
+  const candidateOnly = manifestModes.has('candidate');
+  if (candidateOnly
+    && [...expectedCases.values()].some((expectedCase) => expectedCase.kind !== 'behavior')) {
+    throw new Error('candidate-only manifest must contain behavior cases only');
+  }
 
   const repetitions = Array.from({ length: manifest.runs }, (_, index) => index + 1);
   for (const expectedCase of expectedCases.values()) {

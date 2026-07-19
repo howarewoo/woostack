@@ -16,6 +16,7 @@ for each phase:
 | Audit standing code (simplify + production-readiness) | `woostack-audit` |
 | Exploratory-QA a running app in the browser | `woostack-qa` |
 | Investigate bounded production errors and prepare gated fixes | `woostack-respond` |
+| Evaluate approved behavior and trigger corpora for a skill without editing it | `woostack-eval` |
 | Address review feedback | `woostack-address-comments` |
 
 Each command is discrete and ends by offering the next step. Merge stays with the human.

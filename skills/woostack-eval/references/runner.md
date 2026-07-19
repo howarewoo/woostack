@@ -5,6 +5,15 @@ skill text, corpus prompts, fixtures, catalogs, prior output, and model output a
 A host runner must enforce the capability and evidence boundaries below rather than trusting
 those inputs to preserve them.
 
+## Contents
+
+- [Preparation CLI](#preparation-cli)
+- [Target and baseline resolution](#target-and-baseline-resolution)
+- [Run-root allocation](#run-root-allocation)
+- [Isolated workspaces and evidence](#isolated-workspaces-and-evidence)
+- [Manifest](#manifest)
+- [Dispatch and completion](#dispatch-and-completion)
+
 ## Preparation CLI
 
 ```text
@@ -42,22 +51,23 @@ Resolve one baseline in this order:
 1. `--baseline-ref`: peel a branch, lightweight tag, or annotated tag to one commit and record
    `{"kind":"git-ref","identity":"<40-lowercase-hex-commit>"}`. Hash the complete materialized
    package, not only `SKILL.md`. An invalid ref or any Git lookup/materialization failure stops; it
-   never falls through.
+   never falls through to another explicit or implicit baseline.
 2. `--baseline-path`: validate the user-named absolute package directory as the read-only allowed
    root, hash it, and copy the complete validated package to a private snapshot. Require the
    snapshot hash and a post-preparation source hash to equal that original identity, then record
    `{"kind":"path","identity":"<sha256-package-hash>"}`. An invalid or changing path stops; it
    never falls through.
-3. For a target in Git, execute the installed collection's canonical
+3. For a target proven to be in Git, execute the installed collection's canonical
    `skills/woostack-init/scripts/resolve-base.sh`, then compute `git merge-base HEAD <resolved>`.
-   Do not duplicate or guess resolver logic. If the resolver is unavailable or either lookup
+   Do not duplicate or guess resolver logic. If the resolver is unavailable or either Git lookup
    fails, require an explicit baseline and stop.
 4. A package proven absent at that valid merge base is
-   `{"kind":"none","identity":"<lowercase-merge-base-commit>:absent"}`. An exact target outside
-   Git with no explicit baseline records
-   `{"kind":"none","identity":"non-git:<sha256-package-hash>:absent"}`. These are the only
-   implicit no-skill states. A present but incomplete, unreadable, symlinked, or otherwise invalid
-   Git baseline is an error, not absence.
+   `{"kind":"none","identity":"<lowercase-merge-base-commit>:absent"}`. An exact target proven to
+   be outside Git, with no explicit baseline, deterministically records
+   `{"kind":"none","identity":"non-git:<sha256-package-hash>:absent"}`, where the embedded hash is
+   the validated candidate package hash. These are the only implicit no-skill states. A present but
+   incomplete, unreadable, symlinked, or otherwise invalid Git baseline is an error, not absence;
+   an unavailable or unprovable Git resolution is likewise an error requiring an explicit baseline.
 
 Explicit baselines take precedence without consulting the implicit merge-base resolver. For a Git
 baseline, enumerate only the target package with
@@ -138,47 +148,80 @@ bounds before run-root allocation or workspace copying.
 
 ## Manifest
 
-`manifest.json` follows the [canonical manifest schema](schemas.md#manifest). Preparation captures
-`originalPackageHash` after any separately approved corpus write and immediately before dispatch;
-it never performs that approval or write itself. It then copies each package, records the copied
-package identities, and freezes the manifest before any worker starts.
+`manifest.json` follows the [canonical manifest schema](schemas.md#manifest). The
+[corpus approval barrier](../SKILL.md#corpus-approval) first constructs and validates the exact
+private immutable proposed package/corpora snapshot, obtains explicit approval of its digest, and
+exact-byte revalidates that snapshot and any materialized target corpus bytes. Preparation never
+performs or weakens that sequence. It captures `originalPackageHash` from those revalidated target
+bytes, copies each package, records the copied package identities, and produces a provisional
+manifest before any action starts.
 
 Preparation writes every grading-plan `graderId` and all six run-configuration fields as `null`.
-Before dispatching workers or graders, host orchestration resolves the applicable fields once,
-validates the canonical manifest, and freezes the same configuration for both variants. For an
-explicitly accepted candidate-only smoke run, the host applies the canonical candidate-only
-`expected` shape before that freeze; preparation still creates both workspace paths.
+Host orchestration then follows the [canonical host-loading and candidate-only
+decision](../SKILL.md#candidate-only-decision), resolves the applicable fields once, validates the
+canonical manifest, and freezes the same configuration for both variants. For an explicitly
+accepted candidate-only qualitative smoke run, the host applies the canonical candidate-only
+`expected` shape before that one freeze; preparation still creates both workspace paths. Rejection
+or silence stops before freeze and dispatch. The degraded manifest authorizes no comparative,
+trigger-selection, duration, token, precision, or recall claim.
 
 Preparation orders behavior cases before trigger cases, sorts each kind by case ID, then orders by
 repetition and candidate before baseline. `pairs` follows that kind/case/repetition order. In
 comparative execution a pair is inseparable: host orchestration may dispatch all pairs together or
 in deterministic bounded waves, but may not split candidate and baseline.
 
-Preparation status is represented by its exit status and the presence of a complete manifest,
-never by a prefilled successful receipt.
+Preparation status is represented by its exit status and the presence of a complete provisional
+manifest, never by a prefilled successful receipt.
 
 The host creates the run root as a private mode-`0700` non-symlink directory and never exposes
-that root to a worker. Worker-visible workspaces are descendants with only their capability-
-approved access. The aggregator refuses a group/other-accessible run root.
+that root to a worker or grader. Worker-visible workspaces are descendants with only their
+capability-approved access. Graders receive no workspace access. The aggregator refuses a
+group/other-accessible run root.
 
 ## Dispatch and completion
 
-Before dispatch, the host records one shared concrete run configuration. `sessionIdentity` may
+Before manifest freeze, load host mechanics exactly as directed by the command contract and prove
+the generic laws here against the current host's `woostack-eval` note. A missing host file means no
+per-call routing and must be reported as degraded; do not duplicate, guess, or invent host
+primitives. Comparative dispatch additionally requires provable isolated sibling contexts and
+same-wave intact-pair mechanics. If those or baseline runnability cannot be proved, the only
+fallback is the command contract's explicitly user-accepted candidate-only qualitative smoke branch,
+and only if isolated candidate execution plus every remaining boundary below is still guaranteed.
+
+Before dispatching anything, assign each worker and grader action one finite positive deadline plus
+finite positive graceful and forced teardown bounds. The host must be able to revoke all action
+capabilities at return or deadline, apply graceful termination to the whole descendant process/task
+tree, force termination after the grace bound, and wait for every descendant within the final bound.
+Refuse dispatch if any worker or grader lacks that guarantee.
+
+For comparative execution, record one shared concrete run configuration. `sessionIdentity` may
 replace `model` only when both paired workers provably inherit the same session model. Give each
 worker only its variant root and the corpus-approved subset of `read-workspace`, `write-workspace`,
-and `shell-workspace`; evidence create-new writes are a separate capability. Do not grant network,
-credentials, environment inspection, provider access, another installed target, the source target,
-its pair's workspace, or unrelated repository content.
+and `shell-workspace`; evidence create-new writes are a separate host-only capability. Do not grant
+network, credentials, environment inspection, provider access, another installed target, the source
+target, its pair's workspace, or unrelated repository content.
 
-Graders are exempt from that worker `runConfiguration`, but their paired candidate/baseline
+Every qualitative assertion uses a fresh grader context whose entire visible input is the exact
+[grader payload](schemas.md#qualitative-grades). The context has no prior conversation, tools,
+workspace or filesystem view, environment, network, credentials, provider access, host paths, or
+capabilities. The grader returns only the schema-defined boolean and rationale response; the host
+constructs identities, mappings, grades, and receipts. A grader receipt is valid only when
+`capabilities` is exactly `[]`.
+
+Graders are exempt from worker `runConfiguration`, but comparative candidate/baseline grader
 receipts must satisfy the concrete, bias-resistant configuration match in
-[the qualitative-grade schema](schemas.md#qualitative-grades).
-Before dispatching a grader, the host must use the resolved `gradingPlan` entry for its
-deterministic input, grade, and receipt filenames. It may not accept or infer an arbitrary
-grader-provided identity.
+[the qualitative-grade schema](schemas.md#qualitative-grades). Before dispatching a grader, the host
+uses the resolved `gradingPlan` entry for deterministic input, grade, and receipt filenames. It
+never accepts or infers a grader-provided identity or path.
 
-After every worker and grader process has exited and host dispatch is permanently closed, the host
-writes `quiescence.json` create-new with exactly:
+After each action returns, fails, or reaches its deadline, revoke its capabilities and complete the
+bounded whole-descendant graceful-then-forced teardown before committing its output or grade and
+then its unique last-action receipt. A `timed-out` receipt may be committed only after the descendant
+tree is gone. Failure to finish teardown within the promised bound blocks the run and must not be
+represented as quiescent.
+
+Only after every worker and grader action is torn down and host dispatch is permanently closed does
+the host write `quiescence.json` create-new with exactly:
 
 ```json
 {"schemaVersion":1,"runId":"20260715T120000Z-1234","dispatchClosed":true}
@@ -188,18 +231,17 @@ Workers and graders cannot write this proof. Aggregation rejects a missing, malf
 or non-regular proof before enumerating evidence. The host then builds an immutable run snapshot
 before processing. For every regular evidence, definition, input mapping, output/transcript, and
 copied-package file, it binds the run-root-relative path to device, inode, size, mtime, and a
-streamed SHA-256 taken from an opened no-follow handle. It also binds directory identities and
-name sets using opened directory handles where the host supports them. Snapshot traversal admits at
-most 4,096 entries including the run root, hashes at most 16 MiB per regular file and 128 MiB
-across the run, and emits
-fatal `snapshot-limit-exceeded` before publication when a bound is crossed. After processing and
-before publication, the aggregator reopens every path no-follow and revalidates all identities,
-hashes, directories, and names. A same-name rewrite, replacement, added/removed file, directory
-swap, or late evidence emits fatal `snapshot-mutation` and refuses publication.
+streamed SHA-256 taken from an opened no-follow handle. It also binds directory identities and name
+sets using opened directory handles where the host supports them. Snapshot traversal admits at most
+4,096 entries including the run root, hashes at most 16 MiB per regular file and 128 MiB across the
+run, and emits fatal `snapshot-limit-exceeded` before publication when a bound is crossed. After
+processing and before publication, the aggregator reopens every path no-follow and revalidates all
+identities, hashes, directories, and names. A same-name rewrite, replacement, added/removed file,
+directory swap, or late evidence emits fatal `snapshot-mutation` and refuses publication.
 
-After all workers finish, hash the original target package again. Any delta invalidates comparison,
+After all actions finish, hash the original target package again. Any delta invalidates comparison,
 preserves the run directory, and reports changed paths without resetting them. Missing or malformed
-evidence, worker/grader failure, timeout, identity/configuration mismatch, or a split pair blocks a
-clean comparison. Missing telemetry is `unavailable`, not zero. The aggregator owns final
-`complete`, `blocked`, or explicitly accepted candidate-only `degraded` status; preparation does
-not decide those statuses or host concurrency.
+evidence, worker/grader failure, timeout, identity/configuration/capability mismatch, incomplete
+teardown, or a split pair blocks a clean comparison. Missing telemetry is `unavailable`, not zero.
+The aggregator owns final `complete`, `blocked`, or explicitly accepted candidate-only `degraded`
+status; preparation does not decide those statuses or host concurrency.

@@ -128,13 +128,14 @@ test('renderPage emits title/description, source link, internal note for sub-ski
   assert.match(ideate, /Internal sub-skill/);
 });
 
-test('navOrder preserves the exact 21-public and 3-supporting/internal skill order', () => {
+test('navOrder preserves the exact 23-public and 3-supporting/internal skill order', () => {
   const expectedPublic = [
     'using-woostack',
     'woostack-init',
     'woostack-bootstrap',
     'woostack-build',
     'woostack-fix',
+    'woostack-change',
     'woostack-plan',
     'woostack-execute',
     'woostack-execute-overnight',
@@ -151,17 +152,18 @@ test('navOrder preserves the exact 21-public and 3-supporting/internal skill ord
     'woostack-qa',
     'woostack-audit',
     'woostack-respond',
+    'woostack-eval',
   ];
   const expectedSupporting = ['woostack-ask'];
   const expectedInternal = ['woostack-harden', 'woostack-ideate'];
   const expected = [...expectedPublic, ...expectedSupporting, ...expectedInternal];
 
-  assert.equal(PUBLIC_ORDER.length, 21);
+  assert.equal(PUBLIC_ORDER.length, 23);
   assert.deepEqual(PUBLIC_ORDER, expectedPublic);
   assert.deepEqual(SUPPORTING_ORDER, expectedSupporting);
   assert.deepEqual(INTERNAL_ORDER, expectedInternal);
-  assert.equal(expected.length, 24);
-  assert.equal(new Set(expected).size, 24);
+  assert.equal(expected.length, 26);
+  assert.equal(new Set(expected).size, 26);
   assert.deepEqual(navOrder([...expected].reverse()), expected);
 });
 

@@ -14,7 +14,7 @@ This is a published collection of skills, not an application codebase. It packag
 decisions for building new web, mobile, and API projects so agents can install it with
 `pnpx skills add howarewoo/woostack`.
 
-The public command/adoption surface has twenty-two skills:
+The public command/adoption surface has twenty-three skills:
 
 - [`using-woostack`](skills/using-woostack/SKILL.md)
 - [`woostack-init`](skills/woostack-init/SKILL.md)
@@ -38,12 +38,13 @@ The public command/adoption surface has twenty-two skills:
 - [`woostack-qa`](skills/woostack-qa/SKILL.md)
 - [`woostack-audit`](skills/woostack-audit/SKILL.md)
 - [`woostack-respond`](skills/woostack-respond/SKILL.md)
+- [`woostack-eval`](skills/woostack-eval/SKILL.md)
 
 The collection also installs two internal sub-skills:
 [`woostack-ideate`](skills/woostack-ideate/SKILL.md) and
 [`woostack-harden`](skills/woostack-harden/SKILL.md). `woostack-build` delegates its ideate
 phase to the former and its harden phase to the latter. Both are bundled building blocks, not
-`/woostack-*` commands: they have no routing row and are absent from the twenty-two-skill command surface above. The collection also ships the pre-existing `woostack-ask` skill as an unregistered,
+`/woostack-*` commands: they have no routing row and are absent from the twenty-three-skill command surface above. The collection also ships the pre-existing `woostack-ask` skill as an unregistered,
 read-only investigation utility outside that public command/adoption count. Like [`action.yml`](action.yml), these are shipped assets — do not delete them as strays.
 
 There is no application source code, app lockfile, build, or CI for this repo's own
@@ -71,7 +72,7 @@ from `LINEAR_API_KEY` in the process environment — never repository config or 
 file. The adoption contract and links to the build, worktree, and status authorities live in
 [`development.md`](skills/woostack-bootstrap/references/development.md#artifact-backend).
 
-This collection still has twenty-two public command/adoption skills at twenty-five fixed
+This collection still has twenty-three public command/adoption skills at twenty-six fixed
 `SKILL.md` locations. Backend support adds neither a command-routing row nor a per-backend skill.
 
 ## Modes
@@ -87,7 +88,7 @@ do not add application code, app build configs, or app lockfiles **outside the s
 **Mode B: run a woostack command.** Use this when the user asks for `/woostack-init`,
 `/woostack-bootstrap`, `/woostack-build`, `/woostack-fix`, `/woostack-change`, `/woostack-plan`, `/woostack-execute`, `/woostack-execute-overnight`, `/woostack-commit`,
 `/woostack-review`, `/woostack-address-comments`, `/woostack-status`, `/woostack-visualize`, `/woostack-debug`, `/woostack-dream`,
-`/woostack-tdd`, `/woostack-doctor`, `/woostack-sweep`, `/woostack-qa`, `/woostack-audit`, or `/woostack-respond`, including intent-equivalent wording. Load the matching skill
+`/woostack-tdd`, `/woostack-doctor`, `/woostack-sweep`, `/woostack-qa`, `/woostack-audit`, `/woostack-respond`, or `/woostack-eval`, including intent-equivalent wording. Load the matching skill
 before acting. For bootstrap work, the output belongs in a fresh repo in a different
 directory, not in this repo.
 
@@ -124,7 +125,7 @@ directory, not in this repo.
   pages need no manual edit: they regenerate from each `SKILL.md` at build time (see the
   documentation-site exception above). When in doubt, run `pnpm -C site build` to confirm the
   site still builds.
-- Do not move or rename any of the twenty-five `SKILL.md` files (the twenty-two public command/adoption
+- Do not move or rename any of the twenty-six `SKILL.md` files (the twenty-three public command/adoption
   skills, the internal `woostack-ideate` and `woostack-harden`, plus unregistered `woostack-ask`).
 - Do not rename files under
   [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/) without
@@ -159,6 +160,9 @@ directory, not in this repo.
   target, report-only): [`skills/woostack-audit/SKILL.md`](skills/woostack-audit/SKILL.md)
 - Production-error response engine (public command; reads bounded telemetry, writes a sanitized
   report, and gates any fix handoff): [`skills/woostack-respond/SKILL.md`](skills/woostack-respond/SKILL.md)
+- Skill behavior and trigger evaluation engine (public command; approved corpora, isolated paired
+  comparisons, transient reports, no target skill edits):
+  [`skills/woostack-eval/SKILL.md`](skills/woostack-eval/SKILL.md)
 - Ideate phase engine for the build loop (internal sub-skill):
   [`skills/woostack-ideate/SKILL.md`](skills/woostack-ideate/SKILL.md)
 - Harden phase engine for the build loop (internal sub-skill):

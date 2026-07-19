@@ -217,7 +217,7 @@ function validateResult(value, location, runs, caseKind) {
     identity(value.receipt, `${location}/receipt`, 'receipt');
     identity(value.output, `${location}/output`, 'file');
     if (value.transcript !== UNAVAILABLE) identity(value.transcript, `${location}/transcript`, 'file');
-    integer(value.durationMs, `${location}/durationMs`);
+    if (value.durationMs !== UNAVAILABLE) integer(value.durationMs, `${location}/durationMs`);
     tokenUsage(value.tokenUsage, `${location}/tokenUsage`);
     text(value.selectedSkill, `${location}/selectedSkill`, { nullable: true, maxLength: 1024 });
     if (caseKind === 'trigger') {
@@ -532,9 +532,15 @@ function validateExecutionConsistency(value) {
     schemaError('/cases');
   }
   const baselineMode = [...baselineModes][0];
-  if ((baselineMode === 'candidate-only') !== (value.baseline.kind === 'none')) {
-    schemaError('/baseline/kind');
-  }
+  const completeAssertions = (result) => result.assertions.length > 0
+    && result.assertions.every((assertion) =>
+      typeof assertion.pass === 'boolean'
+        && assertion.grade !== null
+        && assertion.graderReceipt !== null
+        && assertion.graderInput !== null
+        && !Object.hasOwn(assertion, 'observed'));
+  const candidateQualitativeComplete = value.cases.every((entry) =>
+    entry.kind === 'behavior' && entry.candidate.every(completeAssertions));
   const baselineComplete = value.cases.every((entry) =>
     entry.baseline.every((result) => result.completionStatus === 'complete'));
   const hasBehaviorCases = value.cases.some((entry) => entry.kind === 'behavior');
@@ -543,6 +549,9 @@ function validateExecutionConsistency(value) {
     applicable ? metricValue === UNAVAILABLE : !comparisonUnavailable(metricValue);
   const caseMetricsUnavailable = value.cases.every((entry) =>
     entry.durationMs === UNAVAILABLE && entry.objectivePassRate === UNAVAILABLE);
+  const candidateActionMetricsUnavailable = value.cases.every((entry) =>
+    entry.candidate.every((result) =>
+      result.durationMs === UNAVAILABLE && result.tokenUsage === UNAVAILABLE));
   const overallMetricsUnavailable = [
     value.overall.objectivePassRate,
     value.overall.triggerPrecision,
@@ -553,7 +562,6 @@ function validateExecutionConsistency(value) {
 
   if (value.executionStatus === 'complete') {
     if (baselineMode !== 'paired'
-      || value.baseline.kind === 'none'
       || !candidateComplete
       || !baselineComplete
       || value.evidenceErrors.length !== 0
@@ -570,8 +578,9 @@ function validateExecutionConsistency(value) {
   }
   if (value.executionStatus === 'degraded') {
     if (baselineMode !== 'candidate-only'
-      || value.baseline.kind !== 'none'
       || !candidateComplete
+      || !candidateQualitativeComplete
+      || !candidateActionMetricsUnavailable
       || value.evidenceErrors.length !== 0
       || !caseMetricsUnavailable
       || !overallMetricsUnavailable) {
