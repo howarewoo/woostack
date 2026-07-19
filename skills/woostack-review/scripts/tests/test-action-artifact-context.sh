@@ -50,6 +50,9 @@ assert_eq "$(jq -r '(.on // .true).workflow_call.secrets.linear_api_key.required
   "reusable workflow exposes optional Linear secret"
 assert_eq "$(jq -r '.jobs.detect.steps[] | select(.id=="woo") | .with["linear-api-key"]' "$workflow")" \
   '${{ secrets.linear_api_key }}' "detect action alone receives the Linear secret as an action input"
+assert_eq "$(jq -r '.jobs.detect.steps[] | select(.uses | strings | contains("actions/checkout")) | .with.ref' "$workflow")" \
+  '${{ github.event.pull_request.head.sha || format('"'"'refs/pull/{0}/head'"'"', github.event.issue.number) }}' \
+  "detect checks out the immutable PR head for pull-request and trusted comment runs"
 for step in \
   'review:review1' \
   'review:Run angle review (retry once)' \
@@ -114,6 +117,8 @@ assert_eq "$(jq -r '.jobs.detect.steps[] | select(.uses | strings | contains("up
   '1' "base artifact context retention is bounded to one day"
 assert_eq "$(jq -r '.jobs.detect.steps[] | select(.uses | strings | contains("upload-artifact")) | .with.path' "$workflow")" \
   '/tmp/pr-review/' "base artifact upload carries encrypted remote or ordinary local context downstream"
+assert_eq "$(jq -r '.jobs.detect.steps[] | select(.uses | strings | contains("upload-artifact")) | .with["include-hidden-files"]' "$workflow")" \
+  'true' "base artifact upload preserves tracked dotfiles from package snapshots"
 
 for job in detect review validate; do
   cleanup="$(jq -c --arg job "$job" '.jobs[$job].steps[-1] | {name,if,run}' "$workflow")"

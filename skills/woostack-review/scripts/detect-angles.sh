@@ -308,7 +308,14 @@ has_deps_file() {
 }
 
 has_skills_file() {
-  # Canonical Agent Skill manifest signal: a file named SKILL.md at any depth.
+  # Prefetch omits deleted SKILL.md paths because they have no RIGHT-side package
+  # or review anchor. Standalone detector tests/legacy artifacts fall back to the
+  # changed path list when no package manifest exists.
+  if [ -f "$OUTDIR/skill-packages.json" ]; then
+    jq -e '.schemaVersion == 1 and ((.packages // []) | length > 0)' \
+      "$OUTDIR/skill-packages.json" >/dev/null 2>&1
+    return
+  fi
   echo "$CHANGED_PATHS" | grep -qE '(^|/)SKILL\.md$'
 }
 

@@ -14,7 +14,9 @@
 # Test hooks (env, only active when WOO_REVIEW_TEST_MODE=1):
 #   WOO_REVIEW_FAKE_PR_REVIEWS_JSON, WOO_REVIEW_FAKE_META_JSON,
 #   WOO_REVIEW_FAKE_FULL_DIFF, WOO_REVIEW_FAKE_INCREMENTAL_DIFF,
-#   WOO_REVIEW_FAKE_PRIOR_THREADS_JSON, WOO_REVIEW_FAKE_BOT_COMMENTS.
+#   WOO_REVIEW_FAKE_PRIOR_THREADS_JSON, WOO_REVIEW_FAKE_BOT_COMMENTS,
+#   WOO_REVIEW_TEST_SNAPSHOT_MAX_FILES, WOO_REVIEW_TEST_SNAPSHOT_MAX_FILE_BYTES,
+#   WOO_REVIEW_TEST_SNAPSHOT_MAX_BYTES.
 #   The mode flag is intentionally not
 #   exposed in action.yml — a calling workflow cannot opt itself into the
 #   fake-data hooks without first setting an undocumented env var.
@@ -52,8 +54,9 @@ source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-root.sh"
 if [ "${WOO_REVIEW_FRESH:-}" != "1" ] &&
   [ "${GITHUB_ACTIONS:-}" = "true" ] &&
   [ "${WOO_REVIEW_MODE:-}" = "review" ] &&
-  [ -f "$OUTDIR/artifact-context.json" ]; then
-  echo "::warning::prefetch: preserving detection artifact context for CI review worker" >&2
+  { [ -f "$OUTDIR/artifact-context.json" ] ||
+    { [ -f "$OUTDIR/skill-packages.json" ] && [ -d "$OUTDIR/skill-packages" ]; }; }; then
+  echo "::warning::prefetch: preserving detection artifacts for CI review worker" >&2
 elif [ "${WOO_REVIEW_FRESH:-}" != "1" ] && compgen -G "$OUTDIR/findings.*" >/dev/null 2>&1; then
   if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
     echo "::warning::prefetch: $OUTDIR holds in-flight findings.* — preserving (CI validate path); not wiping (set WOO_REVIEW_FRESH=1 to force a fresh wipe)" >&2
@@ -511,6 +514,313 @@ print("prefetch: dropped %d off-PR diff section(s) not in PR file set (rebased m
 PY
 fi
 
+# A skills review needs the touched skill's whole tracked package, but workers
+# must not read the host checkout: downstream CI review/validate jobs may not
+# even have the same tree. Detection/local prefetch therefore validates and
+# snapshots each owning package before any size/angle skip decisions. A CI stage
+# that downloaded detection artifacts preserves them instead of regenerating
+# them: review mode carries artifact-context.json, while validate modes carry
+# in-flight findings.*.
+if [ "${GITHUB_ACTIONS:-}" = "true" ] &&
+  [ -f "$OUTDIR/skill-packages.json" ] &&
+  [ -d "$OUTDIR/skill-packages" ] &&
+  { [ "${WOO_REVIEW_MODE:-}" = "review" ] ||
+    compgen -G "$OUTDIR/findings.*" >/dev/null 2>&1; }; then
+  echo "::warning::prefetch: preserving detection skill package artifacts for downstream CI worker" >&2
+else
+  SNAPSHOT_REPOSITORY="$(git -C "${GITHUB_WORKSPACE:-.}" rev-parse --show-toplevel 2>/dev/null || true)"
+  SNAPSHOT_VALIDATOR="$SCRIPT_DIR/../../woostack-eval/scripts/validate.mjs"
+  if ! node - "$OUTDIR" "$SNAPSHOT_REPOSITORY" "$SNAPSHOT_VALIDATOR" <<'NODE'
+const crypto = require('node:crypto');
+const childProcess = require('node:child_process');
+const fs = require('node:fs');
+const path = require('node:path');
+
+const [outdir, repositoryArgument, validator] = process.argv.slice(2);
+const manifestPath = path.join(outdir, 'skill-packages.json');
+const snapshotsPath = path.join(outdir, 'skill-packages');
+const compare = (left, right) => left < right ? -1 : left > right ? 1 : 0;
+const digest = (bytes) =>
+  `sha256:${crypto.createHash('sha256').update(bytes).digest('hex')}`;
+const safePath = (value) =>
+  typeof value === 'string' &&
+  value.length > 0 &&
+  !path.posix.isAbsolute(value) &&
+  !value.includes('\\') &&
+  !/[\0-\x1f\x7f]/.test(value) &&
+  value.split('/').every((part) => part && part !== '.' && part !== '..');
+
+function testLimit(name, fallback) {
+  if (process.env.WOO_REVIEW_TEST_MODE !== '1' || !process.env[name]) return fallback;
+  const value = Number(process.env[name]);
+  if (!Number.isSafeInteger(value) || value < 1) fail(`invalid ${name} test limit`);
+  return value;
+}
+
+const MAX_SNAPSHOT_FILES =
+  testLimit('WOO_REVIEW_TEST_SNAPSHOT_MAX_FILES', 2000);
+const MAX_SNAPSHOT_FILE_BYTES =
+  testLimit('WOO_REVIEW_TEST_SNAPSHOT_MAX_FILE_BYTES', 5 * 1024 * 1024);
+const MAX_SNAPSHOT_BYTES =
+  testLimit('WOO_REVIEW_TEST_SNAPSHOT_MAX_BYTES', 50 * 1024 * 1024);
+
+let stagingPath;
+let manifestTemporary;
+let publishedSnapshots = false;
+let publishedManifest = false;
+
+function fail(message) {
+  throw new Error(message);
+}
+
+function validationErrorDiagnostic(error) {
+  if (!error || typeof error !== 'object') return 'code=unknown';
+  return ['code', 'path', 'field', 'message']
+    .filter((key) => error[key] !== undefined && error[key] !== '')
+    .map((key) => {
+      const value = String(error[key]).replace(/[\0-\x1f\x7f]/g, ' ').slice(0, 256);
+      return `${key}=${value}`;
+    })
+    .join(' ');
+}
+
+function trackedFiles(repository, packagePath) {
+  const pathspec = packagePath === '.' ? '.' : `:(literal)${packagePath}`;
+  const output = childProcess.execFileSync(
+    'git',
+    ['-C', repository, 'ls-files', '--stage', '-z', '--', pathspec],
+    { encoding: 'buffer', maxBuffer: 16 * 1024 * 1024 },
+  );
+  const files = [];
+  const seen = new Set();
+  for (const record of output.toString('utf8').split('\0')) {
+    if (!record) continue;
+    const match = /^([0-9]{6}) ([0-9a-f]{40}(?:[0-9a-f]{24})?) ([0-3])\t([\s\S]+)$/.exec(record);
+    if (!match || match[3] !== '0') fail('Git returned an unsafe tracked package record');
+    const [, mode, , , repositoryPath] = match;
+    const relative = packagePath === '.'
+      ? repositoryPath
+      : repositoryPath.startsWith(`${packagePath}/`)
+        ? repositoryPath.slice(packagePath.length + 1)
+        : '';
+    if (!safePath(repositoryPath) || !safePath(relative) || seen.has(relative)) {
+      fail('Git returned an out-of-package or duplicate tracked path');
+    }
+    if (mode !== '100644' && mode !== '100755') {
+      fail(`tracked package entry is not a regular file: ${relative}`);
+    }
+    seen.add(relative);
+    files.push({ mode, path: relative });
+  }
+  files.sort((left, right) => compare(left.path, right.path));
+  if (!seen.has('SKILL.md')) fail('owning SKILL.md is not Git-visible');
+  return files;
+}
+
+function checkedSource(packageRoot, relative) {
+  let current = packageRoot;
+  for (const segment of relative.split('/')) {
+    current = path.join(current, segment);
+    const state = fs.lstatSync(current);
+    if (state.isSymbolicLink()) fail(`tracked package entry is a symlink: ${relative}`);
+  }
+  const state = fs.lstatSync(current);
+  if (!state.isFile()) fail(`tracked package entry is not a regular file: ${relative}`);
+  return { path: current, bytes: state.size };
+}
+
+function hasRightSideSkill(repository, skillPath) {
+  const pathspec = skillPath === 'SKILL.md' ? 'SKILL.md' : `:(literal)${skillPath}`;
+  const tracked = childProcess.execFileSync(
+    'git',
+    ['-C', repository, 'ls-files', '--stage', '-z', '--', pathspec],
+    { encoding: 'buffer', maxBuffer: 1024 * 1024 },
+  );
+  return tracked.length > 0;
+}
+
+try {
+  if (!repositoryArgument) fail('repository root is unavailable');
+  if (!fs.existsSync(validator)) fail('shared skill package validator is unavailable');
+  if (fs.existsSync(manifestPath) || fs.existsSync(snapshotsPath)) {
+    fail('skill package artifact destination already exists');
+  }
+
+  const repository = fs.realpathSync(repositoryArgument);
+  const metadata = JSON.parse(fs.readFileSync(path.join(outdir, 'meta.json'), 'utf8'));
+  const checkoutHead = childProcess.execFileSync(
+    'git',
+    ['-C', repository, 'rev-parse', 'HEAD'],
+    { encoding: 'utf8', maxBuffer: 1024 },
+  ).trim();
+  if (
+    typeof metadata.headRefOid !== 'string' ||
+    !/^[0-9a-f]{40}(?:[0-9a-f]{24})?$/.test(metadata.headRefOid) ||
+    checkoutHead !== metadata.headRefOid
+  ) {
+    fail('repository checkout does not match the immutable PR head');
+  }
+  const touchedSkillPaths = [...new Set(
+    (Array.isArray(metadata.files) ? metadata.files : [])
+      .map((file) => file && file.path)
+      .filter((file) => file === 'SKILL.md' ||
+        (typeof file === 'string' && file.endsWith('/SKILL.md'))),
+  )].sort(compare);
+  for (const skillPath of touchedSkillPaths) {
+    if (skillPath !== 'SKILL.md' && !safePath(skillPath)) {
+      fail('metadata contains an unsafe SKILL.md path');
+    }
+  }
+  const skillPaths = touchedSkillPaths.filter((skillPath) =>
+    hasRightSideSkill(repository, skillPath));
+
+  let snapshotFileCount = 0;
+  let snapshotBytes = 0;
+  const packages = skillPaths.map((skillPath) => {
+    const packagePath = path.posix.dirname(skillPath);
+    const packageRoot = packagePath === '.'
+      ? repository
+      : path.join(repository, ...packagePath.split('/'));
+    const packageState = fs.lstatSync(packageRoot);
+    if (packageState.isSymbolicLink() || !packageState.isDirectory()) {
+      fail(`owning skill package is not a regular directory: ${packagePath}`);
+    }
+    const tracked = trackedFiles(repository, packagePath);
+    snapshotFileCount += tracked.length;
+    if (snapshotFileCount > MAX_SNAPSHOT_FILES) {
+      fail(`skill package snapshot exceeds ${MAX_SNAPSHOT_FILES} tracked files`);
+    }
+    for (const file of tracked) {
+      const source = checkedSource(packageRoot, file.path);
+      if (source.bytes > MAX_SNAPSHOT_FILE_BYTES) {
+        fail(`tracked package file exceeds ${MAX_SNAPSHOT_FILE_BYTES} bytes: ${file.path}`);
+      }
+      snapshotBytes += source.bytes;
+      if (snapshotBytes > MAX_SNAPSHOT_BYTES) {
+        fail(`skill package snapshot exceeds ${MAX_SNAPSHOT_BYTES} bytes`);
+      }
+    }
+
+    const validation = childProcess.spawnSync(
+      process.execPath,
+      [
+        validator,
+        '--package', packageRoot,
+        '--repository-root', repository,
+        '--tracked-only',
+        '--json',
+      ],
+      { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 },
+    );
+    let result;
+    try {
+      result = JSON.parse(validation.stdout || '');
+    } catch {
+      fail(`shared validator returned unreadable output for ${packagePath}`);
+    }
+    if (validation.status !== 0 || !result.valid) {
+      const errors = Array.isArray(result.errors)
+        ? result.errors.slice(0, 10).map(validationErrorDiagnostic)
+        : [];
+      const omitted = Array.isArray(result.errors) && result.errors.length > errors.length
+        ? `; ${result.errors.length - errors.length} more error(s)`
+        : '';
+      fail(`shared validator rejected ${packagePath}${errors.length ? `: ${errors.join('; ')}${omitted}` : ''}`);
+    }
+    const validated = Array.isArray(result.files) ? result.files : [];
+    if (
+      validated.length !== tracked.length ||
+      validated.some((file, index) => file.path !== tracked[index].path)
+    ) {
+      fail(`shared validator inventory differs from Git for ${packagePath}`);
+    }
+    return { skillPath, packagePath, packageRoot, tracked, validated };
+  });
+
+  stagingPath = fs.mkdtempSync(path.join(outdir, '.skill-packages.tmp-'));
+  fs.chmodSync(stagingPath, 0o700);
+  const entries = [];
+  for (const skillPackage of packages) {
+    const encoded = skillPackage.packagePath === '.'
+      ? '%2E'
+      : skillPackage.packagePath.split('/').map(encodeURIComponent).join('%2F');
+    const destinationRoot = path.join(stagingPath, encoded);
+    fs.mkdirSync(destinationRoot, { recursive: true, mode: 0o700 });
+    const files = [];
+    for (let index = 0; index < skillPackage.tracked.length; index += 1) {
+      const tracked = skillPackage.tracked[index];
+      const validated = skillPackage.validated[index];
+      const source = checkedSource(skillPackage.packageRoot, tracked.path).path;
+      const bytes = fs.readFileSync(source);
+      const sha256 = digest(bytes);
+      if (
+        validated.bytes !== bytes.length ||
+        validated.sha256 !== sha256 ||
+        typeof validated.type !== 'string'
+      ) {
+        fail(`tracked package changed after validation: ${skillPackage.packagePath}/${tracked.path}`);
+      }
+      const destination = path.join(destinationRoot, ...tracked.path.split('/'));
+      fs.mkdirSync(path.dirname(destination), { recursive: true, mode: 0o700 });
+      const descriptor = fs.openSync(destination, 'wx', tracked.mode === '100755' ? 0o755 : 0o644);
+      try {
+        fs.writeFileSync(descriptor, bytes);
+      } finally {
+        fs.closeSync(descriptor);
+      }
+      files.push({
+        path: tracked.path,
+        type: validated.type,
+        bytes: bytes.length,
+        sha256,
+      });
+    }
+    const packageHash = digest(Buffer.from(
+      files.map((file) => `${file.path}\0${file.sha256}\n`).join(''),
+      'utf8',
+    ));
+    entries.push({
+      skillPath: skillPackage.skillPath,
+      packagePath: skillPackage.packagePath,
+      snapshotPath: `skill-packages/${encoded}`,
+      packageHash,
+      files,
+    });
+  }
+
+  const manifest = `${JSON.stringify({ schemaVersion: 1, packages: entries }, null, 2)}\n`;
+  manifestTemporary = path.join(
+    outdir,
+    `.skill-packages.json.tmp-${process.pid}-${crypto.randomBytes(8).toString('hex')}`,
+  );
+  fs.writeFileSync(manifestTemporary, manifest, { flag: 'wx', mode: 0o600 });
+  fs.renameSync(stagingPath, snapshotsPath);
+  stagingPath = undefined;
+  publishedSnapshots = true;
+  fs.linkSync(manifestTemporary, manifestPath);
+  publishedManifest = true;
+  fs.unlinkSync(manifestTemporary);
+  manifestTemporary = undefined;
+} catch (error) {
+  if (manifestTemporary) fs.rmSync(manifestTemporary, { force: true });
+  if (stagingPath) fs.rmSync(stagingPath, { recursive: true, force: true });
+  if (publishedManifest) fs.rmSync(manifestPath, { force: true });
+  if (publishedSnapshots) fs.rmSync(snapshotsPath, { recursive: true, force: true });
+  console.error(`prefetch: ${error instanceof Error ? error.message : 'skill package snapshot failed'}`);
+  process.exitCode = 1;
+}
+NODE
+  then
+    echo "::error::prefetch: skill package validation or snapshot failed; review blocked" >&2
+    exit 1
+  fi
+fi
+
+# The package manifest is the validated current/right-side view of touched
+# SKILL.md paths. A deletion produces no package entry and gets no exemption.
+HAS_TOUCHED_SKILL=$(jq -r 'if (.packages | length) > 0 then 1 else 0 end' \
+  "$OUTDIR/skill-packages.json")
+
 DIFF_BYTES=$(wc -c < "$OUTDIR/diff.txt")
 if [ -n "$INCREMENTAL_USED" ]; then
   # Derive CODE_FILES / LOC_CHANGED from the incremental diff itself (meta.json
@@ -538,9 +848,11 @@ if [ "$CODE_FILES" -eq 0 ] && [ "$HAS_SKILL_OR_DOC" -eq 0 ]; then
   emit_skip "no code files changed"
 fi
 
-# LOC floor: only enforced on full-diff runs. Incremental runs may legitimately
-# review a tiny fixup; the validator dedupe handles noise.
-if [ -z "$INCREMENTAL_USED" ] && [ "$LOC_CHANGED" -lt 10 ]; then
+# LOC floor: only enforced on full-diff runs without a present touched skill.
+# Incremental runs may legitimately review a tiny fixup; the validator dedupe
+# handles noise. Skill package validation/snapshotting above must succeed before
+# a small present SKILL.md can bypass this gate.
+if [ -z "$INCREMENTAL_USED" ] && [ "$HAS_TOUCHED_SKILL" -eq 0 ] && [ "$LOC_CHANGED" -lt 10 ]; then
   emit_skip "<10 LOC changed"
 fi
 

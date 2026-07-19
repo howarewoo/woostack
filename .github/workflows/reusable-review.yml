@@ -89,6 +89,9 @@ jobs:
       chunks: ${{ steps.woo.outputs.chunks_json }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || format('refs/pull/{0}/head', github.event.issue.number) }}
+          fetch-depth: 1
       # Self-references pinned to the reviewed action commit. Bump in lockstep with releases.
       - id: woo
         uses: howarewoo/woostack@2182f3d5fef541701e373c3e7a7f322121af9b85
@@ -122,6 +125,7 @@ jobs:
           name: review-artifacts
           path: /tmp/pr-review/
           retention-days: 1
+          include-hidden-files: true
       - name: Remove local review artifacts
         if: always()
         shell: bash

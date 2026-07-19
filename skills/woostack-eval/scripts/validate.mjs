@@ -259,9 +259,10 @@ function hashManifest(files) {
 }
 
 async function gitTrackedEntries(repositoryRoot, packageRoot) {
-  const packageRelative = toPosix(path.relative(repositoryRoot, packageRoot));
-  if (!packageRelative || packageRelative === '.' || packageRelative.startsWith('../')) {
-    throw new Error('package must be a repository subdirectory in tracked-only mode');
+  const relativeRoot = toPosix(path.relative(repositoryRoot, packageRoot));
+  const packageRelative = relativeRoot || '.';
+  if (packageRelative.startsWith('../') || path.posix.isAbsolute(packageRelative)) {
+    throw new Error('package must be inside the repository in tracked-only mode');
   }
   const { stdout } = await execFile(
     'git',

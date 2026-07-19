@@ -558,6 +558,42 @@ git -C "$TRACKED_ROOT" add -- untracked-link/SKILL.md
 printf '# Guide\n' >"$PACKAGE/references/guide.md"
 expect_invalid 'untracked local link target' link-target-untracked SKILL.md /links/0
 
+# A repository-root skill is a valid tracked-only package. Its canonical package
+# path is `.`, and Git enumeration still excludes untracked files.
+ROOT_PACKAGE="$TMP_ROOT/root-package"
+mkdir -p "$ROOT_PACKAGE/references"
+git init -q "$ROOT_PACKAGE"
+PACKAGE="$ROOT_PACKAGE"
+REPOSITORY_ROOT=$ROOT_PACKAGE
+cat >"$PACKAGE/SKILL.md" <<'EOF'
+---
+name: root-package
+description: Validate a repository-root skill package.
+---
+# root-package
+
+[Guide](references/guide.md)
+EOF
+printf '# Guide\n' >"$PACKAGE/references/guide.md"
+printf 'untracked\n' >"$PACKAGE/untracked.txt"
+git -C "$ROOT_PACKAGE" add -- SKILL.md references/guide.md
+run_validator
+[ "$STATUS" -eq 0 ] || fail 'repository-root package should be valid in tracked-only mode'
+"$NODE" - "$RESULT" <<'NODE'
+const fs = require('node:fs');
+const result = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+const inventory = result.files.map(({ path, type }) => [path, type]);
+if (
+  result.package.path !== '.' ||
+  JSON.stringify(inventory) !== JSON.stringify([
+    ['SKILL.md', 'skill'],
+    ['references/guide.md', 'reference'],
+  ])
+) {
+  throw new Error(`root package inventory is not canonical: ${JSON.stringify(result)}`);
+}
+NODE
+
 unset REPOSITORY_ROOT TRACKED_ONLY
 
 # Multiple independent errors pin complete error invariants and path/field/code ordering.
