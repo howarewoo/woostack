@@ -1,0 +1,98 @@
+---
+title: Skill evals
+description: "How woostack compares skill behavior and routing against a frozen baseline, with approved corpora and receipt-backed evidence."
+---
+
+A skill can fail in two different ways: it can run at the wrong time, or it can run at the right
+time and do the wrong thing. `woostack-eval` measures both against a frozen baseline. It repeats
+candidate and baseline cases under the same host configuration, validates the resulting evidence,
+and produces an aggregate JSON file plus an HTML report.
+
+<Callout type="warn" title="The corpus is the contract">
+  New or changed corpus bytes are untrusted until the validator accepts an immutable snapshot and
+  you explicitly approve that snapshot's digest. Approval applies to the exact cases, fixtures,
+  assertions, and bytes presented—not to a general intent or an older proposal.
+</Callout>
+
+## Two evaluation surfaces
+
+| Surface | Corpus | What it answers | Evidence |
+| --- | --- | --- | --- |
+| Behavior | `evals/evals.json` | Does the skill produce the required outcome and preserve its gates? | Workspace state, final output, action receipts, or an isolated qualitative grade |
+| Triggers | `evals/trigger-evals.json` | Does the router select this skill for the right requests and reject near misses? | The worker's explicit skill selection, scored as precision and recall |
+
+Behavior cases contain a stable ID, prompt, expected outcome, and one or more assertions. They may
+include fixtures and grant only a bounded subset of workspace read, write, or shell access. Corpus
+data can never grant network, credential, provider, environment, or out-of-workspace access.
+
+Trigger cases pair a query with the expected skill and whether the target should activate. Positive
+cases measure missed activations; negative and conflict cases catch a description that has become
+too broad. Trigger workers classify the query but never execute the selected skill.
+
+Assertions should be deterministic whenever the contract is observable: require or forbid a path,
+check literal file or final-output content, compare a JSON value, or verify a receipt field. Use a
+qualitative assertion only for a boolean rubric that cannot be expressed as one of those checks. A
+fresh grader sees only an anonymized output and that rubric; it cannot see the variant, repository,
+or paired result.
+
+## What one run does
+
+1. **Validate the package.** Schema versions, IDs, paths, fixtures, capabilities, assertions, and
+   skill identity must be exact. Changed corpus bytes stop at the approval barrier.
+2. **Freeze the comparison.** The runner copies candidate and baseline packages into isolated
+   workspaces and freezes one manifest with the run configuration and expected evidence identities.
+3. **Dispatch intact pairs.** Candidate and baseline for a case start together in the same bounded
+   wave. Each action has a deadline, scoped capabilities, and verified descendant teardown.
+4. **Grade without trusting prose.** Deterministic assertions inspect captured artifacts. Qualitative
+   assertions use isolated, blinded graders. Host-owned receipts bind every result to its package,
+   configuration, timing, and output hash.
+5. **Aggregate after quiescence.** Once dispatch is closed and the source package is unchanged, the
+   runner validates the complete evidence set, writes `aggregate.json`, and renders `report.html`.
+
+The evaluator does not edit the skill implementation, call model providers directly, decide whether
+to merge, or automatically fix a failing case.
+
+## Run an evaluation
+
+```text
+/woostack-eval <skill-path> [--behavior | --triggers | --all]
+  [--runs <1..10>]
+  [--baseline-ref <git-ref> | --baseline-path <skill-dir>]
+```
+
+With no mode flag, the command runs both surfaces. The default is three repetitions. With no
+explicit baseline, preparation resolves the package at the Git merge base; use `--baseline-ref` or
+`--baseline-path` when that is not the comparison you need.
+
+The command validates and prepares evidence locally, but model work runs only through the current
+host's native isolated-worker mechanics. If the host cannot prove comparative isolation or the
+baseline cannot run, the command stops before dispatch. It may offer a candidate-only qualitative
+smoke run, but only with explicit acceptance.
+
+## Read the result
+
+Execution status and assertion outcome are separate:
+
+| Status | Meaning |
+| --- | --- |
+| `complete` | Every required receipt and artifact validated. Individual assertions may still fail. |
+| `blocked` | Required evidence is missing, malformed, timed out, failed, or identity-mismatched. Comparative metrics are unavailable. |
+| `degraded` | You explicitly accepted candidate-only qualitative smoke evidence. It is not a benchmark and has no comparative metrics. |
+
+A complete comparative report can include objective behavior pass rate, critical failures, trigger
+precision and recall, duration, token usage, and candidate-minus-baseline deltas. Unavailable data
+stays `unavailable`; it is never converted to zero. Start with critical failures and evidence errors,
+then inspect per-case repetitions before drawing conclusions from an overall rate.
+
+<Callout type="info">
+  `complete` means the evaluation evidence is trustworthy. It does not mean the candidate passed
+  every assertion or outperformed the baseline.
+</Callout>
+
+## Where to go next
+
+<Cards>
+  <Card title="woostack-eval command" href="/docs/skills/woostack-eval" description="Invocation, corpus approval, isolation, evidence, and handback contracts." />
+  <Card title="Utilities" href="/docs/concepts/utilities" description="Where eval fits among woostack's on-demand investigation and reporting skills." />
+  <Card title="Review angles" href="/docs/concepts/review-angles" description="Static and diff-based review lenses that complement runtime skill evidence." />
+</Cards>
