@@ -46,18 +46,19 @@ for heading in (
 check(re.search(r"^## Hard constraints\s*$", skill, re.MULTILINE), "root missing prominent Hard constraints section")
 check(len(skill.splitlines()) <= 500, "root exceeds approximately 500 lines")
 default_update = re.search(
-    r"For Markdown-backed and verified `change/\*` invocations only, unless `--no-pr-update` applies, perform all three steps:(.*?)(?=### 8\. Report)",
+    r"For Markdown-backed and verified `change/\*` invocations only, when PR updates are enabled, apply\s+this entire controller-owned body workflow:(.*?)(?=For any invocation other than verified `change/\*`)",
     skill,
     re.DOTALL,
 )
-check(default_update is not None, "root no longer scopes PR field updates to the default path")
+check(default_update is not None, "root no longer scopes PR field updates to the enabled-update path")
 if default_update:
     for token in (
         "1. Load [`references/pr-body.md`](references/pr-body.md)",
-        "2. Apply the validated fields",
-        "3. Re-fetch them with `gh pr view`",
+        "2. For a non-change Markdown invocation",
+        "3. Before any `gh pr create` or `gh pr edit`, validate the proposed body",
+        "4. If the PR already exists, apply the validated fields",
     ):
-        check(token in default_update.group(1), f"default PR update path missing {token!r}")
+        check(token in default_update.group(1), f"enabled PR update path missing {token!r}")
 
 # Each conditional procedure is a direct reader from root, never an index chain.
 for name in reference_names:
