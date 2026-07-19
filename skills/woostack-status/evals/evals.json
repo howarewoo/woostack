@@ -1,0 +1,163 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-status",
+  "cases": [
+    {
+      "id": "renders-markdown-board-without-artifact-mutation",
+      "prompt": "Render the bounded Markdown feature board from fixtures/markdown-state.json. Do not fetch, commit, push, edit artifacts, or call providers. Return exactly one JSON object using the keys backend, features, nextActionKind, artifactMutations, and reconciliationWrites. Use nextActionKind `address-comments-or-merge-when-green` for an in-review open PR, and represent writes as arrays of attempted writes.",
+      "fixtures": [
+        "markdown-state.json",
+        "repo/.woostack/specs/cache.md",
+        "repo/.woostack/plans/cache.md"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The resolved Markdown board reports the in-review feature and canonical address-comments-or-merge-when-green action, attempts no artifact or reconciliation writes, and leaves spec and plan unchanged.",
+      "assertions": [
+        {
+          "id": "markdown-backend-board",
+          "kind": "final-json-path-equals",
+          "pointer": "/backend",
+          "expected": "markdown",
+          "critical": true
+        },
+        {
+          "id": "markdown-feature-name",
+          "kind": "final-json-path-equals",
+          "pointer": "/features/0/name",
+          "expected": "Cache freshness",
+          "critical": true
+        },
+        {
+          "id": "markdown-feature-progress",
+          "kind": "final-json-path-equals",
+          "pointer": "/features/0/progress",
+          "expected": "1/1",
+          "critical": true
+        },
+        {
+          "id": "markdown-feature-pr",
+          "kind": "final-json-path-equals",
+          "pointer": "/features/0/pr",
+          "expected": 42,
+          "critical": true
+        },
+        {
+          "id": "markdown-feature-pr-state",
+          "kind": "final-json-path-equals",
+          "pointer": "/features/0/prState",
+          "expected": "open",
+          "critical": true
+        },
+        {
+          "id": "markdown-feature-in-review",
+          "kind": "qualitative",
+          "rubric": "Does the first rendered Markdown feature derive and report the in-review state, whether that state is represented under phase or derivedPhase?",
+          "critical": true
+        },
+        {
+          "id": "markdown-next-action",
+          "kind": "final-json-path-equals",
+          "pointer": "/nextActionKind",
+          "expected": "address-comments-or-merge-when-green",
+          "critical": true
+        },
+        {
+          "id": "markdown-artifacts-read-only",
+          "kind": "final-json-path-equals",
+          "pointer": "/artifactMutations",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "markdown-no-reconciliation-write",
+          "kind": "final-json-path-equals",
+          "pointer": "/reconciliationWrites",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "markdown-spec-unchanged",
+          "kind": "file-contains",
+          "file": "fixtures/repo/.woostack/specs/cache.md",
+          "substring": "status: approved",
+          "critical": true
+        },
+        {
+          "id": "markdown-plan-unchanged",
+          "kind": "file-contains",
+          "file": "fixtures/repo/.woostack/plans/cache.md",
+          "substring": "status: done",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "linear-reconciles-only-verified-merged-terminal-state",
+      "prompt": "Classify the bounded Linear board reconciliation snapshot in fixtures/linear-state.json. Do not call Linear, GitHub, providers, or modify files; the fixture is a normalized read snapshot. Return exactly one JSON object using the keys backend, eligibleIssueTransitions, ineligibleIssues, projectTransition, readBackRequired, and nonTerminalWrites. eligibleIssueTransitions must contain objects with identifier, from, and to; ineligibleIssues must contain objects with identifier and reasonCode, using `pr-not-merged` when the attributed PR is still open; nonTerminalWrites must be an array of attempted writes.",
+      "fixtures": [
+        "linear-state.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Only APP-12 with exact attribution and a verified merged PR is eligible for inReview-to-done; APP-13 remains ineligible because its PR is unmerged; the project cannot become done; read-back is required; no nonterminal write is attempted.",
+      "assertions": [
+        {
+          "id": "linear-backend-board",
+          "kind": "final-json-path-equals",
+          "pointer": "/backend",
+          "expected": "linear",
+          "critical": true
+        },
+        {
+          "id": "only-merged-issue-eligible",
+          "kind": "final-json-path-equals",
+          "pointer": "/eligibleIssueTransitions",
+          "expected": [
+            {
+              "identifier": "APP-12",
+              "from": "inReview",
+              "to": "done"
+            }
+          ],
+          "critical": true
+        },
+        {
+          "id": "open-pr-not-reconciled",
+          "kind": "final-json-path-equals",
+          "pointer": "/ineligibleIssues",
+          "expected": [
+            {
+              "identifier": "APP-13",
+              "reasonCode": "pr-not-merged"
+            }
+          ],
+          "critical": true
+        },
+        {
+          "id": "project-not-done-early",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectTransition",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "linear-readback-required",
+          "kind": "final-json-path-equals",
+          "pointer": "/readBackRequired",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "no-nonterminal-linear-writes",
+          "kind": "final-json-path-equals",
+          "pointer": "/nonTerminalWrites",
+          "expected": [],
+          "critical": true
+        }
+      ]
+    }
+  ]
+}

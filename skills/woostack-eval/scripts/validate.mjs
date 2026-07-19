@@ -16,8 +16,10 @@ const ASSERTION_FIELDS = new Map([
   ['path-exists', ['path']],
   ['path-absent', ['path']],
   ['file-contains', ['file', 'substring']],
+  ['file-sha256-equals', ['file', 'sha256']],
   ['file-excludes', ['file', 'substring']],
   ['json-path-equals', ['file', 'pointer', 'expected']],
+  ['final-json-path-equals', ['pointer', 'expected']],
   ['final-contains', ['substring']],
   ['final-excludes', ['substring']],
   ['receipt-field-equals', ['pointer', 'expected']],
@@ -553,6 +555,10 @@ function validateAssertion(assertion, caseIndex, assertionIndex, sourcePath, err
   if (required.includes('substring') &&
       (typeof assertion.substring !== 'string' || assertion.substring.length === 0)) {
     addError(errors, 'corpus-invalid-substring', pointer(...base, 'substring'), sourcePath, 'substring must be a non-empty string');
+  }
+  if (required.includes('sha256') &&
+      !/^sha256:[0-9a-f]{64}$/.test(assertion.sha256)) {
+    addError(errors, 'corpus-invalid-sha256', pointer(...base, 'sha256'), sourcePath, 'sha256 must be a lowercase sha256:<hex> digest');
   }
   if (required.includes('pointer') && !isJsonPointer(assertion.pointer)) {
     addError(errors, 'corpus-invalid-pointer', pointer(...base, 'pointer'), sourcePath, 'pointer must be an RFC 6901 JSON Pointer');

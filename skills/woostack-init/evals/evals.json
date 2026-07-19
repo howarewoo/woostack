@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-init",
+  "cases": [
+    {
+      "id": "repairs-missing-workspace-without-clobbering-config",
+      "prompt": "Initialize the synthetic project at fixtures/project using the packaged woostack-init procedure in --no-clobber mode. Work only inside fixtures/project. Preserve the existing .woostack/config.json byte-for-byte, create only missing canonical workspace pieces from package/templates, run the packaged build-index script, then run `bash fixtures/tools/doctor.sh fixtures/project` as the fully local synthetic doctor validation. Do not invent provider credentials or configuration keys. Return exactly one JSON object with keys mode, createdPaths, skippedPaths, validationOrder, doctorExitCode, configBeforeSha256, and configAfterSha256.",
+      "fixtures": [
+        "project/.woostack/config.json",
+        "project/.woostack/existing-note.txt",
+        "tools/doctor.sh"
+      ],
+      "capabilities": [
+        "read-workspace",
+        "write-workspace",
+        "shell-workspace"
+      ],
+      "expected": "No-clobber initialization preserves the complete config and existing file, creates missing canonical workspace pieces, runs build-index before the local doctor with a zero exit, and invents no secret or provider config.",
+      "assertions": [
+        {
+          "id": "memory-index-created",
+          "kind": "path-exists",
+          "path": "fixtures/project/.woostack/memory/MEMORY.md"
+        },
+        {
+          "id": "fixes-marker-created",
+          "kind": "path-exists",
+          "path": "fixtures/project/.woostack/fixes/.gitkeep"
+        },
+        {
+          "id": "wisdom-marker-created",
+          "kind": "path-exists",
+          "path": "fixtures/project/.woostack/wisdom/.gitkeep"
+        },
+        {
+          "id": "respond-directory-materialized",
+          "kind": "path-exists",
+          "path": "fixtures/project/.woostack/respond/.gitkeep"
+        },
+        {
+          "id": "gitignore-created",
+          "kind": "path-exists",
+          "path": "fixtures/project/.woostack/.gitignore"
+        },
+        {
+          "id": "complete-config-object-preserved",
+          "kind": "json-path-equals",
+          "file": "fixtures/project/.woostack/config.json",
+          "pointer": "",
+          "expected": {
+            "artifacts": {
+              "specPlan": "markdown"
+            },
+            "models": {},
+            "review": {},
+            "status": {
+              "staleDays": 14
+            },
+            "owner": "platform"
+          },
+          "critical": true
+        },
+        {
+          "id": "no-linear-secret-invented",
+          "kind": "file-excludes",
+          "file": "fixtures/project/.woostack/config.json",
+          "substring": "LINEAR_API_KEY",
+          "critical": true
+        },
+        {
+          "id": "existing-file-preserved",
+          "kind": "file-contains",
+          "file": "fixtures/project/.woostack/existing-note.txt",
+          "substring": "user-owned sentinel",
+          "critical": true
+        },
+        {
+          "id": "no-clobber-mode-reported",
+          "kind": "final-json-path-equals",
+          "pointer": "/mode",
+          "expected": "no-clobber",
+          "critical": true
+        },
+        {
+          "id": "validation-order",
+          "kind": "qualitative",
+          "rubric": "Does the response evidence show that the packaged build-index step ran before the local doctor validation, whether the steps are represented by short labels or full commands?",
+          "critical": true
+        },
+        {
+          "id": "doctor-validation-succeeded",
+          "kind": "final-json-path-equals",
+          "pointer": "/doctorExitCode",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "config-before-hash",
+          "kind": "final-json-path-equals",
+          "pointer": "/configBeforeSha256",
+          "expected": "47331bee24b432c3accb11f13a5aec6f772a62fa38fbe5a91fc27d3f8838c4d9",
+          "critical": true
+        },
+        {
+          "id": "config-after-hash",
+          "kind": "final-json-path-equals",
+          "pointer": "/configAfterSha256",
+          "expected": "47331bee24b432c3accb11f13a5aec6f772a62fa38fbe5a91fc27d3f8838c4d9",
+          "critical": true
+        }
+      ]
+    }
+  ]
+}

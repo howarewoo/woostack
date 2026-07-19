@@ -1,0 +1,13 @@
+{
+  "approval": {"explicit": true, "decision": "approve-all"},
+  "finalVerdicts": [{"thread": "T1", "verdict": "FIX"}, {"thread": "T2", "verdict": "ACCEPT"}],
+  "events": [
+    {"sequence": 1, "type": "fix-applied", "thread": "T1"},
+    {"sequence": 2, "type": "pushback-retained", "thread": "T2"},
+    {"sequence": 3, "type": "commit-push-receipt", "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "pushed": true, "verified": true},
+    {"sequence": 4, "type": "reply-posted", "thread": "T1", "body": "Fixed in aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
+    {"sequence": 5, "type": "thread-resolved", "thread": "T1"},
+    {"sequence": 6, "type": "reply-posted", "thread": "T2", "body": "The public API name is intentional and remains unchanged."},
+    {"sequence": 7, "type": "thread-resolved", "thread": "T2"}
+  ]
+}

@@ -91,15 +91,17 @@ cases use this same shape.
 ## Assertions
 
 Every assertion has exactly `id`, `kind`, its kind-specific fields, and optional boolean
-`critical` (default `false`). The eight deterministic kinds and the qualitative kind are:
+`critical` (default `false`). The ten deterministic kinds and the qualitative kind are:
 
 | `kind` | Required fields | Semantics |
 | --- | --- | --- |
 | `path-exists` | `path` | A regular, non-symlink workspace path exists. |
-| `path-absent` | `path` | No workspace entry exists at the path. |
+| `path-absent` | `path` | No workspace entry exists at the path; a missing safely traversed ancestor also passes. |
 | `file-contains` | `file`, `substring` | UTF-8 file includes the literal substring. |
+| `file-sha256-equals` | `file`, `sha256` | The regular file's exact bytes have the lowercase `sha256:<hex>` digest. |
 | `file-excludes` | `file`, `substring` | UTF-8 file excludes the literal substring. |
 | `json-path-equals` | `file`, `pointer`, `expected` | Parsed JSON value at the pointer is deeply equal to the JSON `expected` value. |
+| `final-json-path-equals` | `pointer`, `expected` | The complete captured final output parses as JSON and its value at the pointer is deeply equal to the JSON `expected` value. |
 | `final-contains` | `substring` | Captured final output includes the literal substring. |
 | `final-excludes` | `substring` | Captured final output excludes the literal substring. |
 | `receipt-field-equals` | `pointer`, `expected` | Action receipt value at the pointer is deeply equal to `expected`. |
@@ -109,6 +111,7 @@ Every assertion has exactly `id`, `kind`, its kind-specific fields, and optional
 All `substring` checks are case-sensitive, literal UTF-8 substring checks: they are not
 regular expressions, globs, Unicode normalization, or Markdown-aware matching. An empty
 substring is invalid.
+`sha256` is a lowercase SHA-256 identity in `sha256:<64 lowercase hexadecimal digits>` form.
 
 `pointer` is an RFC 6901 JSON Pointer. It is either the empty string (the whole document) or
 starts with `/`; `~0` decodes to `~` and `~1` to `/`. No dot-path or URI-fragment syntax is

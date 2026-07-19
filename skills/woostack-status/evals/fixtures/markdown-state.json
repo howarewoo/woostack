@@ -1,0 +1,4 @@
+{
+  "backendResolution": {"calls": 1, "backend": "markdown"},
+  "feature": {"name": "Cache freshness", "specStatus": "approved", "planStatus": "done", "progress": "1/1", "derivedPhase": "in-review", "pr": 42, "prState": "open"}
+}

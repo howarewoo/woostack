@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-ask",
+  "cases": [
+    {
+      "id": "answers-from-backend-first-evidence-without-writing",
+      "prompt": "Answer this question using the bounded synthetic repository snapshot: Why does cache lookup return a miss after 30 seconds? Use fixtures/backend-result.json, fixtures/artifact-access-log.json, fixtures/feature-context.json, fixtures/repo/src/cache.ts, and fixtures/memory/cache-policy.md as evidence. Do not write, edit, commit, merge, or chain another skill. Return exactly one JSON object with keys answer and provenance. answer must cite concrete fixture paths and line ranges, distinguish grounded facts from inference, and end with a terminal handback. provenance must contain backend, resolverCalls, featureContextAfterResolver, and fallback, preserving the fixture's JSON null fallback.",
+      "fixtures": [
+        "backend-result.json",
+        "feature-context.json",
+        "repo/src/cache.ts",
+        "memory/cache-policy.md",
+        "artifact-access-log.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The answer is backend-first, read-only, grounded in the TTL implementation and policy note, labels inference, and hands back terminally; provenance reflects one Markdown resolution, feature-context access afterward, and a null fallback.",
+      "assertions": [
+        {
+          "id": "backend-provenance",
+          "kind": "final-json-path-equals",
+          "pointer": "/provenance/backend",
+          "expected": "markdown",
+          "critical": true
+        },
+        {
+          "id": "single-resolver-call",
+          "kind": "final-json-path-equals",
+          "pointer": "/provenance/resolverCalls",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "feature-context-after-resolver",
+          "kind": "final-json-path-equals",
+          "pointer": "/provenance/featureContextAfterResolver",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "null-fallback-preserved",
+          "kind": "final-json-path-equals",
+          "pointer": "/provenance/fallback",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "grounded-sufficient-answer",
+          "kind": "qualitative",
+          "rubric": "Does the answer identify the exclusive 30-second freshness boundary from the cited cache implementation and policy, support every material factual claim with a concrete fixture path and applicable line or line range, and clearly label any inference?",
+          "critical": true
+        },
+        {
+          "id": "terminal-no-chain",
+          "kind": "qualitative",
+          "rubric": "Does the answer hand the investigation back terminally without claiming to edit, fix, commit, merge, or invoke another woostack command?",
+          "critical": true
+        },
+        {
+          "id": "no-ask-artifact-write",
+          "kind": "path-absent",
+          "path": ".woostack/ask",
+          "critical": true
+        },
+        {
+          "id": "no-code-write",
+          "kind": "file-contains",
+          "file": "fixtures/repo/src/cache.ts",
+          "substring": "const MAX_AGE_MS = 30_000;",
+          "critical": true
+        },
+        {
+          "id": "no-memory-write",
+          "kind": "file-contains",
+          "file": "fixtures/memory/cache-policy.md",
+          "substring": "Cache entries expire after 30 seconds",
+          "critical": true
+        }
+      ]
+    }
+  ]
+}

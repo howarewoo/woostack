@@ -1,0 +1,9 @@
+{
+  "backendResolution": {"calls": 1, "result": {"backend": "markdown", "repository": "acme/widgets"}},
+  "events": [
+    {"gate": "design-approval", "decision": "approved"},
+    {"gate": "spec-approval", "decision": "approved"},
+    {"gate": "execution-handoff", "decision": "run-overnight"}
+  ],
+  "artifacts": {"plan": ".woostack/plans/2026-07-16-cache.md", "basePr": "https://example.invalid/acme/widgets/pull/40"}
+}

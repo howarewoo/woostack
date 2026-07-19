@@ -1,0 +1,8 @@
+{
+  "backendResolution": {"calls": 1, "backend": "linear"},
+  "project": {"id": "11111111-1111-4111-8111-111111111111", "state": "inReview"},
+  "issues": [
+    {"identifier": "APP-12", "state": "inReview", "attributionExact": true, "pr": {"number": 42, "merged": true, "mergeCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}},
+    {"identifier": "APP-13", "state": "inReview", "attributionExact": true, "pr": {"number": 43, "merged": false, "state": "open"}}
+  ]
+}

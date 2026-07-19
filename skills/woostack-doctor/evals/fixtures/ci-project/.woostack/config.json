@@ -1,0 +1,34 @@
+{
+  "artifacts": {
+    "specPlan": "linear"
+  },
+  "linear": {
+    "workspace": "acme",
+    "team": "ENG",
+    "repository": "acme/widgets",
+    "projectStatuses": {
+      "draft": "Draft",
+      "hardened": "Hardened",
+      "approved": "Approved",
+      "planning": "Planning",
+      "ready": "Ready",
+      "executing": "In Progress",
+      "inReview": "In Review",
+      "done": "Completed",
+      "abandoned": "Canceled"
+    },
+    "issueStates": {
+      "planned": "Backlog",
+      "executing": "In Progress",
+      "inReview": "In Review",
+      "done": "Done",
+      "blocked": "Blocked"
+    }
+  },
+  "models": {},
+  "review": {},
+  "respond": {},
+  "status": {
+    "staleDays": 14
+  }
+}

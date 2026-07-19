@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-execute-overnight",
+  "cases": [
+    {
+      "id": "records-blocked-track-and-continues-independent-track",
+      "prompt": "Continue the bounded overnight run from fixtures/overnight-state.json without calling a provider, network, Git, or any real review engine. Treat the fixture's review invocation records as host-produced evidence. Apply the packaged skill's autonomous halt and receipt rules, then write the morning report to the fixed report path supplied by the fixture. The report must use the skill's operational outcome labels, name retained worktrees and not-attempted review work, cite each valid review receipt ID used to claim clean, put blockers under a Needs you heading, and report evidence-backed decisions using the lines `Self-review fallback used: <true-or-false>` and `Merge performed: <yes-or-no>`. Return only the report path.",
+      "fixtures": [
+        "overnight-state.json",
+        "worktrees/track-a/src/cache.js",
+        "worktrees/track-b/src/metrics.js"
+      ],
+      "capabilities": [
+        "read-workspace",
+        "write-workspace"
+      ],
+      "expected": "A missing full-review receipt makes Track A sweep-unavailable and preserves its worktree; independent Track B proceeds and is clean only from a valid receipt; the morning report records no self-review downgrade and no merge.",
+      "assertions": [
+        {
+          "id": "morning-report-written",
+          "kind": "path-exists",
+          "path": ".woostack/overnight/2026-07-16-linear-11111111-1111-4111-8111-111111111111.md"
+        },
+        {
+          "id": "blocked-track-classified",
+          "kind": "file-contains",
+          "file": ".woostack/overnight/2026-07-16-linear-11111111-1111-4111-8111-111111111111.md",
+          "substring": "sweep-unavailable",
+          "critical": true
+        },
+        {
+          "id": "remaining-review-not-attempted",
+          "kind": "file-contains",
+          "file": ".woostack/overnight/2026-07-16-linear-11111111-1111-4111-8111-111111111111.md",
+          "substring": "not-attempted-review",
+          "critical": true
+        },
+        {
+          "id": "retained-worktree-reported",
+          "kind": "file-contains",
+          "file": ".woostack/overnight/2026-07-16-linear-11111111-1111-4111-8111-111111111111.md",
+          "substring": "fixtures/worktrees/track-a",
+          "critical": true
+        },
+        {
+          "id": "clean-track-has-proof-receipt",
+          "kind": "file-contains",
+          "file": ".woostack/overnight/2026-07-16-linear-11111111-1111-4111-8111-111111111111.md",
+          "substring": "review-receipt-track-b-pr-22",
+          "critical": true
+        },
+        {
+          "id": "no-hidden-review-downgrade",
+          "kind": "file-contains",
+          "file": ".woostack/overnight/2026-07-16-linear-11111111-1111-4111-8111-111111111111.md",
+          "substring": "Self-review fallback used: false",
+          "critical": true
+        },
+        {
+          "id": "no-overnight-merge",
+          "kind": "file-contains",
+          "file": ".woostack/overnight/2026-07-16-linear-11111111-1111-4111-8111-111111111111.md",
+          "substring": "Merge performed: no",
+          "critical": true
+        },
+        {
+          "id": "blocked-worktree-unchanged",
+          "kind": "file-contains",
+          "file": "fixtures/worktrees/track-a/src/cache.js",
+          "substring": "export const cacheVersion = 1;",
+          "critical": true
+        }
+      ]
+    }
+  ]
+}

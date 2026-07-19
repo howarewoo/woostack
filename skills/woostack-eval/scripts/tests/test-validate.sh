@@ -499,8 +499,10 @@ cat >"$PACKAGE/evals/evals.json" <<'EOF'
       {"id":"exists","kind":"path-exists","path":"result.txt"},
       {"id":"absent","kind":"path-absent","path":"forbidden.txt"},
       {"id":"contains","kind":"file-contains","file":"result.txt","substring":"literal .* text"},
+      {"id":"sha256","kind":"file-sha256-equals","file":"result.txt","sha256":"sha256:688fd6bd79488b16291edc13a90ca17ad758115f04ac715a75abf2914229b226"},
       {"id":"excludes","kind":"file-excludes","file":"result.txt","substring":"secret"},
       {"id":"json","kind":"json-path-equals","file":"result.json","pointer":"/a~1b/~0key","expected":{"ok":true}},
+      {"id":"final-json","kind":"final-json-path-equals","pointer":"/items/0/enabled","expected":true},
       {"id":"final-has","kind":"final-contains","substring":"done"},
       {"id":"final-lacks","kind":"final-excludes","substring":"failed"},
       {"id":"receipt","kind":"receipt-field-equals","pointer":"/completionStatus","expected":"complete"},
@@ -546,6 +548,42 @@ cat >"$PACKAGE/evals/evals.json" <<'EOF'
 ]}
 EOF
 expect_invalid 'unsupported assertion' corpus-unsupported-assertion evals/evals.json /cases/0/assertions/0/kind
+
+make_package invalid-file-sha256 'description: Corpus with an invalid file digest.'
+mkdir -p "$PACKAGE/evals"
+cat >"$PACKAGE/evals/evals.json" <<'EOF'
+{"schemaVersion":1,"skill":"invalid-file-sha256","cases":[
+  {"id":"digest-case","prompt":"Check bytes","expected":"Exact bytes","assertions":[{"id":"digest","kind":"file-sha256-equals","file":"result.txt","sha256":"SHA256:not-a-digest"}]}
+]}
+EOF
+expect_invalid 'file SHA-256 assertion requires a canonical digest' corpus-invalid-sha256 evals/evals.json /cases/0/assertions/0/sha256
+
+make_package missing-final-json-pointer 'description: Corpus with an incomplete final JSON assertion.'
+mkdir -p "$PACKAGE/evals"
+cat >"$PACKAGE/evals/evals.json" <<'EOF'
+{"schemaVersion":1,"skill":"missing-final-json-pointer","cases":[
+  {"id":"json-case","prompt":"Return JSON","expected":"Validate the final JSON","assertions":[{"id":"json","kind":"final-json-path-equals","expected":true}]}
+]}
+EOF
+expect_invalid 'final JSON assertion requires pointer' corpus-missing-field evals/evals.json /cases/0/assertions/0/pointer
+
+make_package extra-final-json-field 'description: Corpus with an over-specified final JSON assertion.'
+mkdir -p "$PACKAGE/evals"
+cat >"$PACKAGE/evals/evals.json" <<'EOF'
+{"schemaVersion":1,"skill":"extra-final-json-field","cases":[
+  {"id":"json-case","prompt":"Return JSON","expected":"Validate the final JSON","assertions":[{"id":"json","kind":"final-json-path-equals","pointer":"","expected":{"ok":true},"file":"result.json"}]}
+]}
+EOF
+expect_invalid 'final JSON assertion rejects extra fields' corpus-unknown-field evals/evals.json /cases/0/assertions/0/file
+
+make_package invalid-final-json-pointer 'description: Corpus with an invalid final JSON pointer.'
+mkdir -p "$PACKAGE/evals"
+cat >"$PACKAGE/evals/evals.json" <<'EOF'
+{"schemaVersion":1,"skill":"invalid-final-json-pointer","cases":[
+  {"id":"json-case","prompt":"Return JSON","expected":"Validate the final JSON","assertions":[{"id":"json","kind":"final-json-path-equals","pointer":"items/0","expected":true}]}
+]}
+EOF
+expect_invalid 'final JSON assertion requires RFC 6901 pointer' corpus-invalid-pointer evals/evals.json /cases/0/assertions/0/pointer
 
 make_package missing-fixture 'description: Corpus with a missing fixture.'
 mkdir -p "$PACKAGE/evals"

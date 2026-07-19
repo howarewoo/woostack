@@ -399,6 +399,32 @@ async function mutateActionReceipt(runRoot, kind, caseId, variant, repetition, t
   await writeFile(receiptPath, `${JSON.stringify(receipt, null, 2)}\n`);
 }
 
+async function configureObjectiveAssertions(runRoot, assertions, outputs = null) {
+  const definitionPath = path.join(runRoot, 'definitions', 'behavior.objective-check.json');
+  const definition = JSON.parse(await readFile(definitionPath, 'utf8'));
+  definition.assertions = assertions;
+  await writeFile(definitionPath, `${JSON.stringify(definition, null, 2)}\n`);
+  if (outputs === null) return;
+  for (const variant of ['candidate', 'baseline']) {
+    const bytes = Buffer.from(outputs[variant], 'utf8');
+    await writeFile(
+      path.join(runRoot, 'outputs', `behavior.objective-check.${variant}.1.txt`),
+      bytes,
+    );
+    await mutateActionReceipt(
+      runRoot,
+      'behavior',
+      'objective-check',
+      variant,
+      1,
+      (receipt) => {
+        receipt.output.sha256 = sha256(bytes);
+        receipt.output.bytes = bytes.length;
+      },
+    );
+  }
+}
+
 async function mutateGraderReceiptForVariant(runRoot, variant, transform) {
   const receiptPath = path.join(
     runRoot,
@@ -584,6 +610,9 @@ objectiveDefinition.assertions.push(
   { id: 'file-contains-pass', kind: 'file-contains', file: 'assertions/present.txt', substring: 'present marker', critical: false },
   { id: 'file-contains-fail', kind: 'file-contains', file: 'assertions/present.txt', substring: 'absent marker', critical: false },
   { id: 'file-contains-missing', kind: 'file-contains', file: 'assertions/missing.txt', substring: 'marker', critical: false },
+  { id: 'file-sha256-pass', kind: 'file-sha256-equals', file: 'assertions/present.txt', sha256: 'sha256:688fd6bd79488b16291edc13a90ca17ad758115f04ac715a75abf2914229b226', critical: false },
+  { id: 'file-sha256-fail', kind: 'file-sha256-equals', file: 'assertions/present.txt', sha256: 'sha256:0000000000000000000000000000000000000000000000000000000000000000', critical: false },
+  { id: 'file-sha256-missing', kind: 'file-sha256-equals', file: 'assertions/missing.txt', sha256: 'sha256:688fd6bd79488b16291edc13a90ca17ad758115f04ac715a75abf2914229b226', critical: false },
   { id: 'file-excludes-pass', kind: 'file-excludes', file: 'assertions/present.txt', substring: 'absent marker', critical: false },
   { id: 'file-excludes-fail', kind: 'file-excludes', file: 'assertions/present.txt', substring: 'present marker', critical: false },
   { id: 'file-excludes-missing', kind: 'file-excludes', file: 'assertions/missing.txt', substring: 'marker', critical: false },
@@ -1528,6 +1557,166 @@ await writeFile(
   `${JSON.stringify(pathDirectoryDefinition, null, 2)}\n`,
 );
 
+const semanticJson = await cloneRun('one-run', 'semantic-json');
+const semanticJsonValue = {
+  items: [{ enabled: false }, { enabled: true }],
+  meta: { status: 'ready' },
+  objectTokens: { length: 2, '01': 'leading zero', '-': 'hyphen' },
+};
+await configureObjectiveAssertions(semanticJson, [{
+  id: 'final-json-root',
+  kind: 'final-json-path-equals',
+  pointer: '',
+  expected: semanticJsonValue,
+}, {
+  id: 'final-json-array',
+  kind: 'final-json-path-equals',
+  pointer: '/items',
+  expected: semanticJsonValue.items,
+}, {
+  id: 'final-json-object',
+  kind: 'final-json-path-equals',
+  pointer: '/meta',
+  expected: semanticJsonValue.meta,
+}, {
+  id: 'final-json-boolean',
+  kind: 'final-json-path-equals',
+  pointer: '/items/1/enabled',
+  expected: true,
+}, {
+  id: 'final-json-array-length',
+  kind: 'final-json-path-equals',
+  pointer: '/items/length',
+  expected: 2,
+}, {
+  id: 'final-json-array-leading-zero',
+  kind: 'final-json-path-equals',
+  pointer: '/items/01',
+  expected: semanticJsonValue.items[1],
+}, {
+  id: 'final-json-array-hyphen',
+  kind: 'final-json-path-equals',
+  pointer: '/items/-',
+  expected: null,
+}, {
+  id: 'final-json-array-out-of-range',
+  kind: 'final-json-path-equals',
+  pointer: '/items/2',
+  expected: null,
+}, {
+  id: 'final-json-object-length',
+  kind: 'final-json-path-equals',
+  pointer: '/objectTokens/length',
+  expected: 2,
+}, {
+  id: 'final-json-object-leading-zero',
+  kind: 'final-json-path-equals',
+  pointer: '/objectTokens/01',
+  expected: 'leading zero',
+}, {
+  id: 'final-json-object-hyphen',
+  kind: 'final-json-path-equals',
+  pointer: '/objectTokens/-',
+  expected: 'hyphen',
+}, {
+  id: 'final-json-missing',
+  kind: 'final-json-path-equals',
+  pointer: '/missing',
+  expected: null,
+}, {
+  id: 'final-json-unequal',
+  kind: 'final-json-path-equals',
+  pointer: '/items/0/enabled',
+  expected: true,
+}], {
+  candidate: `${JSON.stringify(semanticJsonValue, null, 2)}\n`,
+  baseline: '{"items":[\n',
+});
+
+const invalidUtf8Json = await cloneRun('semantic-json', 'invalid-utf8-json');
+const invalidUtf8Bytes = Buffer.concat([
+  Buffer.from('{"items":"', 'utf8'),
+  Buffer.from([0xc3, 0x28]),
+  Buffer.from('"}\n', 'utf8'),
+]);
+for (const variant of ['candidate', 'baseline']) {
+  await writeFile(
+    path.join(invalidUtf8Json, 'outputs', `behavior.objective-check.${variant}.1.txt`),
+    invalidUtf8Bytes,
+  );
+  await mutateActionReceipt(
+    invalidUtf8Json,
+    'behavior',
+    'objective-check',
+    variant,
+    1,
+    (receipt) => {
+      receipt.output.sha256 = sha256(invalidUtf8Bytes);
+      receipt.output.bytes = invalidUtf8Bytes.length;
+    },
+  );
+}
+
+const pathAbsence = await cloneRun('one-run', 'path-absence');
+await configureObjectiveAssertions(pathAbsence, [{
+  id: 'missing-ancestor-is-absent',
+  kind: 'path-absent',
+  path: 'uncreated/nested/result.txt',
+}, {
+  id: 'missing-target-is-absent',
+  kind: 'path-absent',
+  path: 'existing-directory/result.txt',
+}, {
+  id: 'file-ancestor-is-unsafe',
+  kind: 'path-absent',
+  path: 'file-ancestor/result.txt',
+}, {
+  id: 'fifo-ancestor-is-unsafe',
+  kind: 'path-absent',
+  path: 'fifo-ancestor/result.txt',
+}, {
+  id: 'directory-target-is-not-absent',
+  kind: 'path-absent',
+  path: 'existing-directory',
+}]);
+for (const variant of ['candidate', 'baseline']) {
+  const workspace = path.join(
+    pathAbsence,
+    'cases',
+    'objective-check',
+    '1',
+    variant,
+  );
+  await writeFile(path.join(workspace, 'file-ancestor'), 'not a directory\n');
+  await mkdir(path.join(workspace, 'existing-directory'));
+}
+
+const pathSymlinkAncestor = await cloneRun('one-run', 'path-symlink-ancestor');
+try {
+  await configureObjectiveAssertions(pathSymlinkAncestor, [{
+    id: 'symlink-ancestor-is-unsafe',
+    kind: 'path-absent',
+    path: 'linked-ancestor/SKILL.md',
+  }]);
+  for (const variant of ['candidate', 'baseline']) {
+    await symlink(
+      'package',
+      path.join(
+        pathSymlinkAncestor,
+        'cases',
+        'objective-check',
+        '1',
+        variant,
+        'linked-ancestor',
+      ),
+    );
+  }
+  await writeFile(path.join(root, 'path-symlink-supported'), 'yes\n');
+} catch (error) {
+  if (!['EACCES', 'ENOSYS', 'ENOTSUP', 'EPERM'].includes(error?.code)) throw error;
+  await rm(pathSymlinkAncestor, { recursive: true, force: true });
+}
+
 const corpusMutation = await cloneRun('one-run', 'corpus-mutation');
 const mutatedCorpusPath = path.join(
   corpusMutation,
@@ -1772,7 +1961,45 @@ for (const runRoot of [complete, oneRun, sessionIdentityRun, tokenUsageRun]) {
 }
 NODE
 
+mkfifo "$TMP_ROOT/path-absence/cases/objective-check/1/candidate/fifo-ancestor"
+mkfifo "$TMP_ROOT/path-absence/cases/objective-check/1/baseline/fifo-ancestor"
 mkfifo "$TMP_ROOT/fifo-output/outputs/fifo"
+
+"$NODE" --input-type=module - "$SCRIPT_DIR/../aggregate/safe-access.mjs" \
+  "$TMP_ROOT/missing-revalidation" <<'NODE'
+import assert from 'node:assert/strict';
+import { mkdir, rename } from 'node:fs/promises';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+
+const [safeAccessPath, root] = process.argv.slice(2);
+const { regularFile } = await import(pathToFileURL(safeAccessPath).href);
+const parent = path.join(root, 'parent');
+await mkdir(parent, { recursive: true });
+let hookCalls = 0;
+const state = await regularFile(root, 'parent/missing/result.txt', {
+  beforeMissingRevalidation: async () => {
+    hookCalls += 1;
+    await rename(parent, path.join(root, 'replaced-parent'));
+    await mkdir(parent);
+  },
+});
+assert.equal(hookCalls, 1);
+assert.equal(state.kind, 'replaced');
+
+const leafParent = path.join(root, 'leaf-parent');
+await mkdir(leafParent);
+let leafHookCalls = 0;
+const leafState = await regularFile(root, 'leaf-parent/result.txt', {
+  beforeMissingRevalidation: async () => {
+    leafHookCalls += 1;
+    await rename(leafParent, path.join(root, 'replaced-leaf-parent'));
+    await mkdir(leafParent);
+  },
+});
+assert.equal(leafHookCalls, 1);
+assert.equal(leafState.kind, 'replaced');
+NODE
 
 if [ ! -f "$AGGREGATOR" ]; then
   fail "aggregate.mjs is missing (expected Red: deterministic aggregate fixtures self-validated)"
@@ -2266,6 +2493,7 @@ if (assertion === 'complete') {
     'path-absent-pass',
     'path-exists-pass',
     'file-contains-pass',
+    'file-sha256-pass',
     'file-excludes-pass',
     'json-path-pass',
   ];
@@ -2275,6 +2503,8 @@ if (assertion === 'complete') {
     'path-absent-fail',
     'file-contains-fail',
     'file-contains-missing',
+    'file-sha256-fail',
+    'file-sha256-missing',
     'file-excludes-fail',
     'file-excludes-missing',
     'json-path-mismatch',
@@ -2479,6 +2709,87 @@ if (assertion === 'complete') {
     assertionResult('objective-check', 'baseline', 'directory-is-not-regular').pass,
     false,
   );
+} else if (assertion === 'semantic-json') {
+  assert.equal(aggregate.executionStatus, 'complete');
+  assert.deepEqual(aggregate.evidenceErrors, []);
+  const expectedCandidate = {
+    'final-json-root': true,
+    'final-json-array': true,
+    'final-json-object': true,
+    'final-json-boolean': true,
+    'final-json-array-length': false,
+    'final-json-array-leading-zero': false,
+    'final-json-array-hyphen': false,
+    'final-json-array-out-of-range': false,
+    'final-json-object-length': true,
+    'final-json-object-leading-zero': true,
+    'final-json-object-hyphen': true,
+    'final-json-missing': false,
+    'final-json-unequal': false,
+  };
+  for (const [assertionId, expectedPass] of Object.entries(expectedCandidate)) {
+    const result = assertionResult('objective-check', 'candidate', assertionId);
+    assert.equal(result.pass, expectedPass, assertionId);
+    assert.deepEqual(result.observed, repetition('objective-check', 'candidate').output);
+    assert.equal(
+      assertionResult('objective-check', 'baseline', assertionId).pass,
+      false,
+      `${assertionId} must fail for malformed JSON`,
+    );
+  }
+} else if (assertion === 'invalid-utf8-json') {
+  assert.equal(aggregate.executionStatus, 'complete');
+  assert.deepEqual(aggregate.evidenceErrors, []);
+  for (const variant of ['candidate', 'baseline']) {
+    for (const assertionId of [
+      'final-json-root',
+      'final-json-array',
+      'final-json-object',
+      'final-json-boolean',
+      'final-json-array-length',
+      'final-json-array-leading-zero',
+      'final-json-array-hyphen',
+      'final-json-array-out-of-range',
+      'final-json-object-length',
+      'final-json-object-leading-zero',
+      'final-json-object-hyphen',
+      'final-json-missing',
+      'final-json-unequal',
+    ]) {
+      assert.equal(
+        assertionResult('objective-check', variant, assertionId).pass,
+        false,
+        `${assertionId} must fail for invalid UTF-8 ${variant} output`,
+      );
+    }
+  }
+} else if (assertion === 'path-absence') {
+  assert.equal(aggregate.executionStatus, 'complete');
+  assert.deepEqual(aggregate.evidenceErrors, []);
+  for (const variant of ['candidate', 'baseline']) {
+    for (const assertionId of [
+      'missing-ancestor-is-absent',
+      'missing-target-is-absent',
+    ]) {
+      assert.equal(assertionResult('objective-check', variant, assertionId).pass, true);
+    }
+    for (const assertionId of [
+      'file-ancestor-is-unsafe',
+      'fifo-ancestor-is-unsafe',
+      'directory-target-is-not-absent',
+    ]) {
+      assert.equal(assertionResult('objective-check', variant, assertionId).pass, false);
+    }
+  }
+} else if (assertion === 'path-symlink-ancestor') {
+  assert.equal(aggregate.executionStatus, 'complete');
+  assert.deepEqual(aggregate.evidenceErrors, []);
+  for (const variant of ['candidate', 'baseline']) {
+    assert.equal(
+      assertionResult('objective-check', variant, 'symlink-ancestor-is-unsafe').pass,
+      false,
+    );
+  }
 } else if (assertion === 'no-baseline-package') {
   assert.equal(aggregate.executionStatus, 'complete');
   assert.deepEqual(aggregate.evidenceErrors, []);
@@ -2912,6 +3223,19 @@ assert_aggregate missing-second-grade missing-second-grade
 
 run_aggregate path-directory
 assert_aggregate path-directory path-directory
+
+run_aggregate semantic-json
+assert_aggregate semantic-json semantic-json
+run_aggregate invalid-utf8-json
+assert_aggregate invalid-utf8-json invalid-utf8-json
+
+run_aggregate path-absence
+assert_aggregate path-absence path-absence
+
+if [ -f "$TMP_ROOT/path-symlink-supported" ]; then
+  run_aggregate path-symlink-ancestor
+  assert_aggregate path-symlink-ancestor path-symlink-ancestor
+fi
 
 run_aggregate no-baseline-package
 assert_aggregate no-baseline-package no-baseline-package

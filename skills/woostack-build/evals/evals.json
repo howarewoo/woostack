@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-build",
+  "cases": [
+    {
+      "id": "routes-approved-build-to-overnight-handoff",
+      "prompt": "Resume the bounded synthetic build represented by fixtures/build-state.json. Do not perform Git, provider, or repository mutations. Apply the packaged skill's orchestration contract and return exactly one JSON object using the keys backendResolverCalls, backend, hardGates, terminalChoices, terminalChoice, executionSkill, and mergeAllowed. Use the skill's user-facing labels for terminalChoices and terminalChoice.",
+      "fixtures": [
+        "build-state.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The Markdown backend remains resolved once, exactly three explicit gates are recognized, all three terminal choices are exposed, the selected overnight branch routes to woostack-execute-overnight, and no merge is allowed.",
+      "assertions": [
+        {
+          "id": "backend-resolved-once",
+          "kind": "final-json-path-equals",
+          "pointer": "/backendResolverCalls",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "resolved-backend-retained",
+          "kind": "final-json-path-equals",
+          "pointer": "/backend",
+          "expected": "markdown",
+          "critical": true
+        },
+        {
+          "id": "exact-three-gates",
+          "kind": "final-json-path-equals",
+          "pointer": "/hardGates",
+          "expected": [
+            "design-approval",
+            "spec-approval",
+            "execution-handoff"
+          ],
+          "critical": true
+        },
+        {
+          "id": "complete-terminal-choice-set",
+          "kind": "final-json-path-equals",
+          "pointer": "/terminalChoices",
+          "expected": [
+            "Go",
+            "Run overnight",
+            "Hand off"
+          ],
+          "critical": true
+        },
+        {
+          "id": "overnight-choice-preserved",
+          "kind": "final-json-path-equals",
+          "pointer": "/terminalChoice",
+          "expected": "Run overnight",
+          "critical": true
+        },
+        {
+          "id": "overnight-driver-selected",
+          "kind": "final-json-path-equals",
+          "pointer": "/executionSkill",
+          "expected": "woostack-execute-overnight",
+          "critical": true
+        },
+        {
+          "id": "build-never-merges",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeAllowed",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    }
+  ]
+}

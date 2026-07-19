@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-review",
+  "cases": [
+    {
+      "id": "missing-angle-receipt-blocks-merge-and-post",
+      "prompt": "Classify the bounded synthetic review run in fixtures/review-missing-receipt.json. Treat each listed receipt record as valid host-produced evidence for its named angle; the absent expected angle has no receipt. Do not dispatch agents, call providers, mutate Linear, edit code, or post anywhere. Return exactly one JSON object using the keys status, allReceiptsVerified, missingReceiptAngles, mergeStarted, validationStarted, reviewPostStarted, codeFixesApplied, and linearMutationCount.",
+      "fixtures": [
+        "review-missing-receipt.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The absent security receipt makes the receipt set incomplete and blocks merge, adversarial validation, and posting, with no code fix or Linear mutation.",
+      "assertions": [
+        {
+          "id": "receipts-incomplete",
+          "kind": "final-json-path-equals",
+          "pointer": "/allReceiptsVerified",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "missing-security-receipt",
+          "kind": "final-json-path-equals",
+          "pointer": "/missingReceiptAngles",
+          "expected": [
+            "security"
+          ],
+          "critical": true
+        },
+        {
+          "id": "no-findings-merge",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeStarted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-validation",
+          "kind": "final-json-path-equals",
+          "pointer": "/validationStarted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-review-post",
+          "kind": "final-json-path-equals",
+          "pointer": "/reviewPostStarted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-review-fixes",
+          "kind": "final-json-path-equals",
+          "pointer": "/codeFixesApplied",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-review-linear-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/linearMutationCount",
+          "expected": 0,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "separates-local-output-from-single-ci-review",
+      "prompt": "Apply the packaged review reporting boundary to both completed synthetic runs in fixtures/review-boundaries.json. Do not call GitHub, providers, Linear, or modify source. Return exactly one JSON object using the keys allReceiptsVerified, local, ci, codeFixesApplied, and linearMutations. local and ci must each contain batchedReviewsPosted and terminalOnly; ci must also contain reviewPayloadCount.",
+      "fixtures": [
+        "review-boundaries.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "With all receipts present, local mode remains terminal-only with no remote post, while CI/PR mode produces exactly one batched review payload; neither path fixes code nor mutates Linear.",
+      "assertions": [
+        {
+          "id": "success-receipts-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/allReceiptsVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "local-stays-terminal-only",
+          "kind": "qualitative",
+          "rubric": "Does local show terminal-only reporting with no batched review posted, accepting either numeric zero or boolean false for the no-post value?",
+          "critical": true
+        },
+        {
+          "id": "ci-has-one-batch",
+          "kind": "qualitative",
+          "rubric": "Does ci show non-terminal-only reporting with exactly one batched review and one review payload, accepting either numeric one or boolean true for the posted value?",
+          "critical": true
+        },
+        {
+          "id": "success-path-no-fixes",
+          "kind": "qualitative",
+          "rubric": "Does the response show that no code fixes were applied, accepting either boolean false or numeric zero?",
+          "critical": true
+        },
+        {
+          "id": "success-path-no-linear-mutation",
+          "kind": "qualitative",
+          "rubric": "Does the response show that no Linear mutations occurred, accepting either numeric zero or boolean false?",
+          "critical": true
+        }
+      ]
+    }
+  ]
+}

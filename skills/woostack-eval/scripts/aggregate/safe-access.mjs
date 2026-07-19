@@ -99,7 +99,7 @@ async function requireDirectoryChain(root, candidate, label) {
   }
 }
 
-async function openedDirectoryIdentity(absolutePath, {
+async function openedDirectoryState(absolutePath, {
   evidencePath = '',
   closeOpenedHandle = closeHandle,
 } = {}) {
@@ -113,12 +113,15 @@ async function openedDirectoryIdentity(absolutePath, {
         | (fsConstants.O_NOFOLLOW ?? 0),
     );
   } catch (error) {
-    if (['ENOENT', 'ENOTDIR', 'ELOOP'].includes(error?.code)) return null;
+    if (error?.code === 'ENOENT') return { kind: 'missing' };
+    if (['ENOTDIR', 'ELOOP'].includes(error?.code)) return { kind: 'non-regular' };
     throw error;
   }
   try {
     const stats = await handle.stat({ bigint: true });
-    return stats.isDirectory() ? statIdentity(stats) : null;
+    return stats.isDirectory()
+      ? { kind: 'directory', identity: statIdentity(stats) }
+      : { kind: 'non-regular' };
   } catch (error) {
     failure = error;
     throw error;
@@ -130,6 +133,11 @@ async function openedDirectoryIdentity(absolutePath, {
       failure = preservePrimaryFailure(failure, error, 'directory-handle cleanup failed');
     }
   }
+}
+
+async function openedDirectoryIdentity(absolutePath, options) {
+  const state = await openedDirectoryState(absolutePath, options);
+  return state.kind === 'directory' ? state.identity : null;
 }
 
 async function openedNodeIdentity(absolutePath, {
@@ -217,11 +225,27 @@ function snapshotEntryState(snapshot, relativePath) {
   return { kind: 'missing' };
 }
 
+async function directoryChainUnchanged(directories) {
+  for (const directory of directories) {
+    const state = await openedDirectoryState(directory.path);
+    if (state.kind !== 'directory' || !same(state.identity, directory.identity)) return false;
+  }
+  return true;
+}
+
+async function classifyMissing(directories, beforeMissingRevalidation) {
+  if (beforeMissingRevalidation) await beforeMissingRevalidation();
+  return await directoryChainUnchanged(directories)
+    ? { kind: 'missing' }
+    : { kind: 'replaced' };
+}
+
 async function regularFile(root, relativePath, {
   materialize = true,
   maxBytes = MAX_MATERIALIZED_BYTES,
   snapshot = null,
   snapshotPath = relativePath,
+  beforeMissingRevalidation = null,
 } = {}) {
   if (typeof relativePath !== 'string' || relativePath.length === 0 || path.isAbsolute(relativePath)) {
     return { kind: 'unsafe' };
@@ -236,15 +260,18 @@ async function regularFile(root, relativePath, {
   const expected = snapshot ? snapshotEntryState(snapshot, snapshotPath) : null;
   if (expected && expected.kind !== 'file') return { kind: expected.kind };
 
-  const rootIdentity = await openedDirectoryIdentity(root);
-  if (!rootIdentity) return { kind: 'non-regular' };
-  const directories = [{ path: root, identity: rootIdentity }];
+  const rootState = await openedDirectoryState(root);
+  if (rootState.kind !== 'directory') return { kind: 'non-regular' };
+  const directories = [{ path: root, identity: rootState.identity }];
   let cursor = root;
   for (const part of parts.slice(0, -1)) {
     cursor = path.join(cursor, part);
-    const identity = await openedDirectoryIdentity(cursor);
-    if (!identity) return { kind: 'non-regular' };
-    directories.push({ path: cursor, identity });
+    const state = await openedDirectoryState(cursor);
+    if (state.kind === 'missing') {
+      return classifyMissing(directories, beforeMissingRevalidation);
+    }
+    if (state.kind !== 'directory') return { kind: 'non-regular' };
+    directories.push({ path: cursor, identity: state.identity });
   }
 
   let handle;
@@ -256,8 +283,12 @@ async function regularFile(root, relativePath, {
         | (fsConstants.O_NOFOLLOW ?? 0),
     );
   } catch (error) {
-    if (['ENOENT', 'ENOTDIR'].includes(error?.code)) return { kind: 'missing' };
-    if (['ELOOP', 'EISDIR'].includes(error?.code)) return { kind: 'non-regular' };
+    if (error?.code === 'ENOENT') {
+      return classifyMissing(directories, beforeMissingRevalidation);
+    }
+    if (['ENOTDIR', 'ELOOP', 'EISDIR'].includes(error?.code)) {
+      return { kind: 'non-regular' };
+    }
     throw error;
   }
   try {
@@ -278,10 +309,7 @@ async function regularFile(root, relativePath, {
     const after = await handle.stat({ bigint: true });
     const identity = statIdentity(after);
     if (!same(statIdentity(before), identity)) return { kind: 'replaced' };
-    for (const directory of directories) {
-      const directoryIdentity = await openedDirectoryIdentity(directory.path);
-      if (!directoryIdentity || !same(directoryIdentity, directory.identity)) return { kind: 'replaced' };
-    }
+    if (!await directoryChainUnchanged(directories)) return { kind: 'replaced' };
     const digest = `sha256:${hash.digest('hex')}`;
     if (expected && (
       !same(identity, expected.entry.identity)
