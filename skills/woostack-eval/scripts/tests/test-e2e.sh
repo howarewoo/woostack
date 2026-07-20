@@ -307,7 +307,7 @@ await mkdir(path.join(runRoot, 'outputs'));
 const { hashPackage } = await import(pathToFileURL(process.argv[3]).href);
 const manifestPath = path.join(runRoot, 'manifest.json');
 const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
-assert.equal(manifest.schemaVersion, 1);
+assert.equal(manifest.schemaVersion, 2);
 assert.equal(manifest.runId, 'deterministic-e2e');
 assert.equal(manifest.targetSkill, 'e2e-target');
 assert.equal(manifest.mode, 'behavior');
@@ -335,6 +335,7 @@ assert.deepEqual(manifest.gradingPlan, [{
 
 manifest.runConfiguration = {
   host: 'deterministic-host',
+  isolationAssurance: 'enforced',
   runner: 'simulated-worker',
   model: null,
   sessionIdentity: 'deterministic-e2e-session',
@@ -565,8 +566,11 @@ const fs = require('node:fs');
 const [aggregatePath, reportPath, manifestPath] = process.argv.slice(2);
 const aggregate = JSON.parse(fs.readFileSync(aggregatePath, 'utf8'));
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-if (aggregate.schemaVersion !== 1 || aggregate.executionStatus !== 'complete') {
+if (aggregate.schemaVersion !== 2 || aggregate.executionStatus !== 'complete') {
   throw new Error(`unexpected aggregate status: ${aggregate.executionStatus}; evidence: ${JSON.stringify(aggregate.evidenceErrors)}`);
+}
+if (aggregate.isolationAssurance !== 'enforced') {
+  throw new Error(`unexpected isolation assurance: ${aggregate.isolationAssurance}`);
 }
 if (aggregate.evidenceErrors.length !== 0 || aggregate.cases.length !== 1) {
   throw new Error(`unexpected aggregate evidence: ${JSON.stringify(aggregate.evidenceErrors)}`);
@@ -591,6 +595,8 @@ for (const marker of [
   "default-src 'none'",
   'e2e-target evaluation report',
   'Complete',
+  'Isolation assurance:',
+  '<strong>Enforced</strong>',
   'terminal-handback',
 ]) {
   if (!report.includes(marker)) throw new Error(`rendered report missing marker: ${marker}`);

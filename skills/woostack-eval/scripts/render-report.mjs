@@ -533,6 +533,9 @@ function validateExecutionConsistency(value) {
     schemaError('/cases');
   }
   const baselineMode = [...baselineModes][0];
+  if (value.isolationAssurance === 'advisory' && baselineMode !== 'candidate-only') {
+    schemaError('/isolationAssurance');
+  }
   const completeAssertions = (result) => result.assertions.length > 0
     && result.assertions.every((assertion) =>
       typeof assertion.pass === 'boolean'
@@ -598,14 +601,17 @@ function validateExecutionConsistency(value) {
 
 function validateAggregate(value) {
   exactKeys(value, [
-    'schemaVersion', 'runId', 'targetSkill', 'executionStatus', 'baseline',
-    'runs', 'cases', 'overall', 'evidenceErrors',
+    'schemaVersion', 'runId', 'targetSkill', 'executionStatus', 'isolationAssurance',
+    'baseline', 'runs', 'cases', 'overall', 'evidenceErrors',
   ], '');
-  if (value.schemaVersion !== 1) schemaError('/schemaVersion');
+  if (value.schemaVersion !== 2) schemaError('/schemaVersion');
   text(value.runId, '/runId', { maxLength: 1024 });
   text(value.targetSkill, '/targetSkill', { maxLength: 1024 });
   if (!['complete', 'blocked', 'degraded'].includes(value.executionStatus)) {
     schemaError('/executionStatus');
+  }
+  if (!['enforced', 'advisory'].includes(value.isolationAssurance)) {
+    schemaError('/isolationAssurance');
   }
   integer(value.runs, '/runs', { minimum: 1, maximum: 10 });
   exactKeys(value.baseline, ['kind', 'identity'], '/baseline');
@@ -968,8 +974,12 @@ function containsTriggerEvidence(aggregate) {
 function renderReport(aggregate, options) {
   const context = { evidenceHrefs: options.evidenceHrefs ?? new Map() };
   const executionStatus = titleCase(aggregate.executionStatus);
+  const isolationAssurance = titleCase(aggregate.isolationAssurance);
   const degradedNote = aggregate.executionStatus === 'degraded'
     ? '<p class="notice">Candidate-only evidence: comparisons are unavailable.</p>'
+    : '';
+  const isolationNote = aggregate.isolationAssurance === 'advisory'
+    ? '<p class="notice">Candidate-only behavior smoke evidence; capability isolation was not enforced. Comparative results and credential, network, process-containment, or isolation claims are unavailable.</p>'
     : '';
   const triggerMethodology = containsTriggerEvidence(aggregate)
     ? `<p>${TRIGGER_METHODOLOGY}</p>`
@@ -1014,6 +1024,8 @@ a { color: #164e83; text-decoration-thickness: .1em; }
 <header>
 <h1>Skill evaluation report</h1>
 <p class="status ${statusClass(aggregate.executionStatus)}">Execution status: <strong>${executionStatus}</strong></p>
+<p>Isolation assurance: <strong>${isolationAssurance}</strong></p>
+${isolationNote}
 ${degradedNote}
 </header>
 <section aria-labelledby="run-summary-heading">
@@ -1068,6 +1080,10 @@ function terminalField(value, maxBytes) {
 function terminalSummary(aggregate, options) {
   const summary = [
     `Execution status: ${aggregate.executionStatus}`,
+    `Isolation assurance: ${aggregate.isolationAssurance}`,
+    ...(aggregate.isolationAssurance === 'advisory'
+      ? ['Candidate-only behavior smoke evidence; capability isolation was not enforced. Comparative results are unavailable.']
+      : []),
     ...(containsTriggerEvidence(aggregate) ? [`Methodology: ${TRIGGER_METHODOLOGY}`] : []),
     `Aggregate: ${terminalField(options.aggregate, 360)}`,
     `Report: ${terminalField(options.out, 360)}`,

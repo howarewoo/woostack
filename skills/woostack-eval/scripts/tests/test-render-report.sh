@@ -154,9 +154,10 @@ const unavailableOverall = {
   tokenUsage: 'unavailable',
 };
 const base = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   runId: '20260716T120000Z-4242',
   targetSkill: 'woostack-example',
+  isolationAssurance: 'enforced',
   baseline: { kind: 'git-ref', identity: '0123456789abcdef0123456789abcdef01234567' },
   runs: 1,
 };
@@ -383,6 +384,9 @@ completeNoSkill.baseline = {
   kind: 'none',
   identity: '0123456789abcdef0123456789abcdef01234567:absent',
 };
+const advisory = structuredClone(degraded);
+advisory.runId = '20260716T120005Z-4242';
+advisory.isolationAssurance = 'advisory';
 forged['degraded-missing-qualitative-proof'] = structuredClone(degraded);
 forged['degraded-missing-qualitative-proof'].cases[0].candidate[0].assertions = [];
 forged['degraded-action-duration'] = structuredClone(degraded);
@@ -405,11 +409,18 @@ forged['trigger-missing-selected-skill'] = structuredClone(triggerOnly);
 forged['trigger-missing-selected-skill'].cases[0].candidate[0].selectedSkill = null;
 forged['trigger-invalid-selected-skill'] = structuredClone(triggerOnly);
 forged['trigger-invalid-selected-skill'].cases[0].candidate[0].selectedSkill = 'Not Kebab';
+forged['invalid-isolation-assurance'] = structuredClone(complete);
+forged['invalid-isolation-assurance'].isolationAssurance = 'best-effort';
+forged['advisory-comparison'] = structuredClone(complete);
+forged['advisory-comparison'].isolationAssurance = 'advisory';
+forged['stale-aggregate-schema'] = structuredClone(complete);
+forged['stale-aggregate-schema'].schemaVersion = 1;
 
 
 for (const [name, value] of Object.entries({
   complete,
   completeNoSkill,
+  advisory,
   publicationFailure,
   triggerOnly,
   qualitativeOnly,
@@ -445,6 +456,11 @@ SECRET_ENV_VALUE=DO_NOT_PRINT_THIS \
   --out "$TMP_ROOT/complete.html" \
   --terminal >"$TMP_ROOT/terminal.txt" 2>"$TMP_ROOT/complete.err"
 [ ! -s "$TMP_ROOT/complete.err" ] || fail "successful render wrote stderr"
+"$NODE" "$RENDERER" \
+  --aggregate "$TMP_ROOT/advisory.json" \
+  --out "$TMP_ROOT/advisory.html" \
+  --terminal >"$TMP_ROOT/advisory.terminal" 2>"$TMP_ROOT/advisory.err"
+[ ! -s "$TMP_ROOT/advisory.err" ] || fail "advisory report render wrote stderr"
 "$NODE" "$RENDERER" \
   --aggregate "$TMP_ROOT/completeNoSkill.json" \
   --out "$TMP_ROOT/completeNoSkill.html" \
@@ -521,6 +537,7 @@ import path from 'node:path';
 const root = process.argv[2];
 const complete = await readFile(path.join(root, 'complete.html'), 'utf8');
 const blocked = await readFile(path.join(root, 'blocked.html'), 'utf8');
+const advisory = await readFile(path.join(root, 'advisory.html'), 'utf8');
 const triggerOnly = await readFile(path.join(root, 'triggerOnly.html'), 'utf8');
 const mixed = await readFile(path.join(root, 'mixed.html'), 'utf8');
 const completeUnavailableTokens = await readFile(
@@ -529,6 +546,7 @@ const completeUnavailableTokens = await readFile(
 );
 const degraded = await readFile(path.join(root, 'degraded.html'), 'utf8');
 const terminal = await readFile(path.join(root, 'terminal.txt'));
+const advisoryTerminal = await readFile(path.join(root, 'advisory.terminal'));
 const triggerTerminal = await readFile(path.join(root, 'triggerOnly.terminal'));
 const mixedTerminal = await readFile(path.join(root, 'mixed.terminal'));
 const differentDirectory = await readFile(path.join(root, 'report-output', 'complete.html'), 'utf8');
@@ -568,6 +586,10 @@ for (let index = 1; index < headingLevels.length; index += 1) {
   );
 }
 assert.match(complete, /Execution status: <strong>Complete<\/strong>/);
+assert.match(complete, /Isolation assurance: <strong>Enforced<\/strong>/);
+assert.doesNotMatch(complete, /Candidate-only behavior smoke evidence/);
+assert.match(advisory, /Isolation assurance: <strong>Advisory<\/strong>/);
+assert.match(advisory, /Candidate-only behavior smoke evidence; capability isolation was not enforced/);
 assert.match(triggerOnly, />Equal</);
 assert.match(complete, />Changed</);
 assert.match(complete, /Token usage — input<\/th><td>10<\/td><td>8<\/td><td>2<\/td>/);
@@ -699,6 +721,10 @@ const terminalText = terminal.toString('utf8');
 assert.match(terminalText, /^Execution status: complete$/m);
 assert.match(terminalText, /^Aggregate: .*complete\.json$/m);
 assert.match(terminalText, /^Report: .*complete\.html$/m);
+assert.match(terminalText, /^Isolation assurance: enforced$/m);
+const advisoryTerminalText = advisoryTerminal.toString('utf8');
+assert.match(advisoryTerminalText, /^Isolation assurance: advisory$/m);
+assert.match(advisoryTerminalText, /Candidate-only behavior smoke evidence; capability isolation was not enforced/);
 assert.doesNotMatch(terminalText, /controlled catalog selection|host-loader proof/i);
 const triggerTerminalText = triggerTerminal.toString('utf8');
 assert.match(triggerTerminalText, /controlled catalog selection/i);

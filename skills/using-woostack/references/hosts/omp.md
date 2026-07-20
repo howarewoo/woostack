@@ -98,6 +98,11 @@ because the receipt's codex model-check fires only for codex-runner receipts.
   completion identity for both actions; an unprovable identity, host fallback, or model/effort
   divergence fails the mechanics proof and blocks the current comparison. A host mode
   unable to start both siblings in the same batch fails comparative preflight.
+  OMP `task` isolation does not expose enforceable per-worker network, credential, environment,
+  filesystem, or tool restrictions. Unless an outer runner supplies and proves every required
+  isolation boundary, OMP may run only the evaluator's explicitly accepted candidate-only
+  qualitative smoke branch with `runConfiguration.isolationAssurance: advisory`; it cannot emit a
+  paired comparison.
 - **woostack-execute-overnight (preflight advisory):** an unattended run now relies on a
   configured cross-provider `models.<tier>` fallback so the review swarm can auto-recover from
   primary usage-exhaustion (a concurrent-spawn burst can defeat omp's native chain); strongly

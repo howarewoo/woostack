@@ -38,6 +38,7 @@ const baseline = { kind: 'git-ref', identity: '0123456789abcdef0123456789abcdef0
 const materializationLimit = 1024 * 1024;
 const runConfiguration = {
   host: 'omp',
+  isolationAssurance: 'enforced',
   runner: 'worker',
   model: 'model-a',
   sessionIdentity: null,
@@ -330,7 +331,7 @@ async function createRun(name, repetitions) {
     }
   }
   const manifest = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     runId,
     targetSkill,
     mode: 'all',
@@ -550,6 +551,15 @@ async function addObjectiveQualitativePair(runRoot) {
 
 const complete = await createRun('complete', 2);
 const oneRun = await createRun('one-run', 1);
+const advisoryComparison = await cloneRun('one-run', 'advisory-comparison');
+const advisoryComparisonManifestPath = path.join(advisoryComparison, 'manifest.json');
+const advisoryComparisonManifest =
+  JSON.parse(await readFile(advisoryComparisonManifestPath, 'utf8'));
+advisoryComparisonManifest.runConfiguration.isolationAssurance = 'advisory';
+await writeFile(
+  advisoryComparisonManifestPath,
+  `${JSON.stringify(advisoryComparisonManifest, null, 2)}\n`,
+);
 
 const sessionIdentityRun = await cloneRun('one-run', 'session-identity');
 const sessionManifestPath = path.join(sessionIdentityRun, 'manifest.json');
@@ -1129,6 +1139,7 @@ const smoke = await cloneRun('one-run', 'smoke');
 // retain both prepared paths for those selected cases, but no baseline action or grade is evidence.
 const smokeManifestPath = path.join(smoke, 'manifest.json');
 const smokeManifest = JSON.parse(await readFile(smokeManifestPath, 'utf8'));
+smokeManifest.runConfiguration.isolationAssurance = 'advisory';
 smokeManifest.expected = smokeManifest.expected.filter((entry) =>
   entry.caseId === 'qualitative-check' && entry.variant === 'candidate');
 smokeManifest.pairs =
@@ -1781,6 +1792,12 @@ for (const [name, transform] of [
       identity: '0123456789ABCDEF0123456789ABCDEF01234567:absent',
     };
   }],
+  ['stale-manifest-schema', (manifest) => {
+    manifest.schemaVersion = 1;
+  }],
+  ['manifest-isolation-assurance-invalid', (manifest) => {
+    manifest.runConfiguration.isolationAssurance = 'best-effort';
+  }],
   ['manifest-model-empty', (manifest) => {
     manifest.runConfiguration.model = '';
   }],
@@ -2266,12 +2283,16 @@ const [aggregatePath, assertion] = process.argv.slice(2);
 const runRoot = path.dirname(aggregatePath);
 const aggregate = JSON.parse(await readFile(aggregatePath, 'utf8'));
 assert.deepEqual(Object.keys(aggregate).sort(), [
-  'baseline', 'cases', 'evidenceErrors', 'executionStatus', 'overall',
-  'runId', 'runs', 'schemaVersion', 'targetSkill',
+  'baseline', 'cases', 'evidenceErrors', 'executionStatus', 'isolationAssurance',
+  'overall', 'runId', 'runs', 'schemaVersion', 'targetSkill',
 ]);
-assert.equal(aggregate.schemaVersion, 1);
+assert.equal(aggregate.schemaVersion, 2);
 assert.equal(aggregate.runId, '20260715T120000Z-4242');
 assert.equal(aggregate.targetSkill, 'woostack-example');
+const expectedIsolationAssurance = path.basename(runRoot) === 'smoke'
+  ? 'advisory'
+  : 'enforced';
+assert.equal(aggregate.isolationAssurance, expectedIsolationAssurance);
 const expectedBaseline = assertion === 'no-baseline-package'
   ? {
       kind: 'none',
@@ -3256,6 +3277,12 @@ assert_rejected_manifest invalid-baseline-identity-type 'manifest baseline is in
 assert_rejected_manifest invalid-baseline-path 'manifest baseline is invalid'
 assert_rejected_manifest invalid-baseline-none 'manifest baseline is invalid'
 assert_rejected_manifest invalid-baseline-uppercase-none 'manifest baseline is invalid'
+assert_rejected_manifest manifest-isolation-assurance-invalid \
+  'manifest run configuration is invalid'
+assert_rejected_manifest advisory-comparison \
+  'advisory manifest must be candidate-only'
+assert_rejected_manifest stale-manifest-schema \
+  'manifest must be a schemaVersion 2 object with the canonical key set'
 assert_rejected_manifest manifest-model-empty 'manifest run configuration is invalid'
 assert_rejected_manifest manifest-inactive-empty 'manifest run configuration is invalid'
 assert_rejected_manifest manifest-inactive-wrong-type 'manifest run configuration is invalid'

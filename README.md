@@ -154,7 +154,7 @@ After writing code, use the verification and iteration loop:
 - **Production Error Response** → [/woostack-respond](skills/woostack-respond/SKILL.md)
   Reads a bounded production window through host-provided observability integrations, correlates errors and traces, writes a tracked sanitized report, and prepares repository fixes only through the existing `/woostack-fix` approval gate. It never mutates providers or production.
 - **Skill Evaluation** → [/woostack-eval](skills/woostack-eval/SKILL.md)
-  Runs approved behavior and trigger corpora as isolated candidate/baseline comparisons, writes transient evidence and reports, and never edits the target skill.
+  Runs approved behavior and trigger corpora as assurance-labeled candidate/baseline comparisons, writes transient evidence and reports, and never edits the target skill. Comparative runs require enforced isolation; hosts without it may run only an explicitly approved advisory candidate-only qualitative smoke.
 
 ---
 

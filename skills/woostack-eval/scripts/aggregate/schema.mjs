@@ -26,8 +26,8 @@ function requireManifest(manifest) {
     'runConfiguration', 'originalPackageHash', 'packageHashes', 'gradingPlan',
     'expected', 'pairs',
   ];
-  if (!exactKeys(manifest, manifestFields) || manifest.schemaVersion !== 1) {
-    throw new Error('manifest must be a schemaVersion 1 object with the canonical key set');
+  if (!exactKeys(manifest, manifestFields) || manifest.schemaVersion !== 2) {
+    throw new Error('manifest must be a schemaVersion 2 object with the canonical key set');
   }
   if (typeof manifest.runId !== 'string' || !RUN_ID.test(manifest.runId)
     || manifest.runId === '.' || manifest.runId === '..'
@@ -52,9 +52,12 @@ function requireManifest(manifest) {
       && manifest.packageHashes.baseline !== manifest.baseline.identity)) {
     throw new Error('manifest package hashes are invalid');
   }
-  const configurationFields = ['host', 'runner', 'model', 'sessionIdentity', 'tier', 'effort'];
+  const configurationFields = [
+    'host', 'isolationAssurance', 'runner', 'model', 'sessionIdentity', 'tier', 'effort',
+  ];
   if (!exactKeys(manifest.runConfiguration, configurationFields)
     || !nonEmptyString(manifest.runConfiguration.host)
+    || !['enforced', 'advisory'].includes(manifest.runConfiguration.isolationAssurance)
     || !nonEmptyString(manifest.runConfiguration.runner)
     || !completionIdentityValid(manifest.runConfiguration)
     || !optionalString(manifest.runConfiguration.tier)
@@ -113,6 +116,9 @@ function requireManifest(manifest) {
   if (candidateOnly
     && [...expectedCases.values()].some((expectedCase) => expectedCase.kind !== 'behavior')) {
     throw new Error('candidate-only manifest must contain behavior cases only');
+  }
+  if (manifest.runConfiguration.isolationAssurance === 'advisory' && !candidateOnly) {
+    throw new Error('advisory manifest must be candidate-only');
   }
 
   const repetitions = Array.from({ length: manifest.runs }, (_, index) => index + 1);
