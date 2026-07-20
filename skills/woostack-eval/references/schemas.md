@@ -1,7 +1,8 @@
 # Skill evaluation schemas
 
-All schemas in this document use `schemaVersion: 1`. Producers must reject unknown
-versions, unknown fields, wrong JSON types, and duplicate identities. Paths are POSIX-style,
+The manifest and aggregate use `schemaVersion: 2`; the remaining schemas use `schemaVersion: 1`.
+Producers must reject unknown versions, unknown fields, wrong JSON types, and duplicate identities.
+Paths are POSIX-style,
 relative paths even when the host is Windows. They must be normalized before use, must stay
 inside the stated root, and must resolve only through regular, non-symlink files.
 
@@ -105,7 +106,7 @@ Every assertion has exactly `id`, `kind`, its kind-specific fields, and optional
 | `final-contains` | `substring` | Captured final output includes the literal substring. |
 | `final-excludes` | `substring` | Captured final output excludes the literal substring. |
 | `receipt-field-equals` | `pointer`, `expected` | Action receipt value at the pointer is deeply equal to `expected`. |
-| `qualitative` | `rubric` | An isolated grader answers the explicit boolean question in `rubric`. |
+| `qualitative` | `rubric` | A fresh blind grader answers the explicit boolean question in `rubric`. |
 
 `path` and `file` are relative to the copied case workspace and never follow symlinks.
 All `substring` checks are case-sensitive, literal UTF-8 substring checks: they are not
@@ -124,7 +125,7 @@ The grader's boolean and rationale are stored in a grade, never inferred from pr
 
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "runId": "20260715T120000Z-1234",
   "targetSkill": "woostack-example",
   "mode": "all",
@@ -132,6 +133,7 @@ The grader's boolean and rationale are stored in a grade, never inferred from pr
   "baseline": {"kind":"git-ref","identity":"0123456789abcdef0123456789abcdef01234567"},
   "runConfiguration": {
     "host": null,
+    "isolationAssurance": null,
     "runner": null,
     "model": null,
     "sessionIdentity": null,
@@ -169,8 +171,15 @@ The grader's boolean and rationale are stored in a grade, never inferred from pr
 }
 ```
 
+Preparation writes `isolationAssurance: null`. Before the one manifest freeze, the host replaces it
+with exactly `enforced` or `advisory`. `enforced` means the host technically applies the workspace,
+ambient-authority, capability-revocation, descendant-teardown, and grader boundaries.
+`advisory` is valid only after the user approves the disclosed unavailable controls; it records that
+requested scopes were not fully enforceable and makes the resulting comparison behavior evidence,
+not security or isolation proof.
+
 Every object has exactly the keys shown. `runId`, `targetSkill`, `mode`, `runs`, baseline identity,
-and the six run-configuration fields follow the runner contract. Exactly one of `model` and
+and the seven run-configuration fields follow the runner contract. Exactly one of `model` and
 `sessionIdentity` is a non-empty string in a resolved manifest; the inactive field is exactly
 `null`, never an empty string or another JSON type. A `none` baseline identity is exactly either
 `<40-lowercase-hex-merge-base-commit>:absent` for absence proved at a valid merge base or
@@ -252,10 +261,11 @@ completion identity. `tier` and `effort` are strings when exposed and otherwise 
 `packageHash` is exactly the manifest's frozen hash for the receipt variant. For `kind: grader`,
 it is exactly the frozen candidate hash. A no-skill baseline worker receipt alone uses `null`.
 
-For worker receipts, `capabilities` is exactly the frozen case capability array actually granted,
-in canonical order. For every `kind: grader` receipt it is exactly the empty array `[]`; a missing,
-non-array, non-empty, or otherwise different value invalidates the receipt. Graders have no implied
-default capability.
+For worker receipts, `capabilities` is exactly the frozen case capability array in canonical order.
+It records the granted set under enforced assurance and the requested set under advisory assurance.
+For every `kind: grader` receipt it is exactly the empty array `[]`, with the same
+granted-versus-requested interpretation; a missing, non-array, non-empty, or otherwise different
+value invalidates the receipt.
 `startedAt` is component-valid RFC 3339 UTC. `durationMs`, every identity byte length, and every
 token count is a non-negative JSON safe integer. `output`
 identifies a regular evidence file by relative path, SHA-256, and byte length.
@@ -272,17 +282,16 @@ canonical skill name or `none`; a behavior or grader receipt sets it to `null`. 
 grader receipt is host-owned: its case, repetition, and variant map the linked grade's blind
 `anonymizedOutputId` back to one manifest identity only after the receipt validates.
 
-`completionStatus` is exactly `complete`, `failed`, or `timed-out`. Every action is dispatched under
-a host-owned finite positive deadline and finite positive graceful and forced whole-descendant
-teardown bounds; these controls do not add receipt fields. `timed-out` is valid only after the
-deadline elapsed, all capabilities were revoked, graceful termination was attempted, forced
-termination followed within its bound when necessary, and every descendant was confirmed gone
-within the final bound. A host unable to guarantee that sequence must refuse dispatch.
+`completionStatus` is exactly `complete`, `failed`, or `timed-out`. Every action receives a
+host-owned finite positive deadline and finite positive graceful and forced whole-descendant
+teardown bounds; these controls do not add receipt fields. The host requests capability revocation
+and teardown through every available control. A reported teardown failure blocks the action;
+controls the host cannot enforce are disclosed and recorded through advisory assurance.
 
 A complete receipt has `error: null`; another status has exactly
 `{"code":"<stable-kebab-case>","message":"<non-empty sanitized text>"}`. A receipt is not proof until
-it is the unique last receipt for a manifest identity, teardown is complete, and all
-identity/configuration/capability fields match its frozen action.
+it is the unique last receipt for a manifest identity, every available teardown attempt is complete,
+the assurance limitation is disclosed, and all identity/configuration/capability fields match.
 
 ## Qualitative grades
 
@@ -366,11 +375,11 @@ the candidate and baseline grades sharing one comparative case, repetition, and 
 validated grader receipts must match on `host`, `runner`, completion identity, `tier`, and `effort`;
 a mismatch blocks aggregation rather than permitting grading bias.
 
-Comparative qualitative unblinding requires complete candidate and baseline grade, mapping, empty-
-capability grader-receipt, and teardown proofs for the pair. In an explicitly accepted candidate-only
-qualitative smoke run, the aggregate may restore only the candidate grade after that candidate's
-complete blind mapping, grade, exact-empty-capability receipt, and teardown proof validate. It does
-not manufacture baseline proof or expose the candidate result as a comparison.
+Comparative qualitative unblinding requires complete candidate and baseline grade, mapping,
+empty-capability grader receipt, and available-teardown records for the pair. In an explicitly
+accepted candidate-only qualitative smoke run, the aggregate may restore only the candidate grade
+after that candidate's complete blind mapping, grade, empty-capability receipt, and teardown record
+validate. It does not manufacture baseline proof or expose the candidate result as a comparison.
 
 ## Aggregate
 
@@ -378,10 +387,11 @@ The aggregate is versioned and has these top-level fields:
 
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "runId": "20260715T120000Z-1234",
   "targetSkill": "woostack-example",
   "executionStatus": "complete",
+  "isolationAssurance": "advisory",
   "baseline": {"kind":"git-ref","identity":"0123456789abcdef0123456789abcdef01234567"},
   "runs": 3,
   "cases": [],
@@ -405,6 +415,11 @@ evidence remains in `cases`. Explicitly accepted candidate-only smoke evidence i
 contains only independently blinded candidate qualitative assertions, and likewise emits no
 comparison, trigger-selection, objective-pass-rate, duration, token, precision, or recall metric.
 Candidate-only repetition results also set `durationMs` and `tokenUsage` to `unavailable`.
+
+`isolationAssurance` is copied from the frozen manifest and is exactly `enforced` or `advisory`.
+It is independent of `executionStatus`: a complete advisory comparison can prove behavior results
+while explicitly not proving credential isolation, network denial, process containment, or other
+host-enforced security boundaries.
 
 Each case entry identifies `caseId`, `kind`, and separate `candidate` and `baseline`
 repetition results; each assertion result identifies `assertionId`, `critical`, `pass`, and

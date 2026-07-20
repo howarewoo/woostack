@@ -598,14 +598,17 @@ function validateExecutionConsistency(value) {
 
 function validateAggregate(value) {
   exactKeys(value, [
-    'schemaVersion', 'runId', 'targetSkill', 'executionStatus', 'baseline',
-    'runs', 'cases', 'overall', 'evidenceErrors',
+    'schemaVersion', 'runId', 'targetSkill', 'executionStatus', 'isolationAssurance',
+    'baseline', 'runs', 'cases', 'overall', 'evidenceErrors',
   ], '');
-  if (value.schemaVersion !== 1) schemaError('/schemaVersion');
+  if (value.schemaVersion !== 2) schemaError('/schemaVersion');
   text(value.runId, '/runId', { maxLength: 1024 });
   text(value.targetSkill, '/targetSkill', { maxLength: 1024 });
   if (!['complete', 'blocked', 'degraded'].includes(value.executionStatus)) {
     schemaError('/executionStatus');
+  }
+  if (!['enforced', 'advisory'].includes(value.isolationAssurance)) {
+    schemaError('/isolationAssurance');
   }
   integer(value.runs, '/runs', { minimum: 1, maximum: 10 });
   exactKeys(value.baseline, ['kind', 'identity'], '/baseline');
@@ -968,8 +971,12 @@ function containsTriggerEvidence(aggregate) {
 function renderReport(aggregate, options) {
   const context = { evidenceHrefs: options.evidenceHrefs ?? new Map() };
   const executionStatus = titleCase(aggregate.executionStatus);
+  const isolationAssurance = titleCase(aggregate.isolationAssurance);
   const degradedNote = aggregate.executionStatus === 'degraded'
     ? '<p class="notice">Candidate-only evidence: comparisons are unavailable.</p>'
+    : '';
+  const isolationNote = aggregate.isolationAssurance === 'advisory'
+    ? '<p class="notice">Behavior evidence only; capability isolation was not enforced. Do not treat this run as credential, network, process-containment, or isolation evidence.</p>'
     : '';
   const triggerMethodology = containsTriggerEvidence(aggregate)
     ? `<p>${TRIGGER_METHODOLOGY}</p>`
@@ -1014,6 +1021,8 @@ a { color: #164e83; text-decoration-thickness: .1em; }
 <header>
 <h1>Skill evaluation report</h1>
 <p class="status ${statusClass(aggregate.executionStatus)}">Execution status: <strong>${executionStatus}</strong></p>
+<p>Isolation assurance: <strong>${isolationAssurance}</strong></p>
+${isolationNote}
 ${degradedNote}
 </header>
 <section aria-labelledby="run-summary-heading">
@@ -1068,6 +1077,10 @@ function terminalField(value, maxBytes) {
 function terminalSummary(aggregate, options) {
   const summary = [
     `Execution status: ${aggregate.executionStatus}`,
+    `Isolation assurance: ${aggregate.isolationAssurance}`,
+    ...(aggregate.isolationAssurance === 'advisory'
+      ? ['Behavior evidence only; capability isolation was not enforced.']
+      : []),
     ...(containsTriggerEvidence(aggregate) ? [`Methodology: ${TRIGGER_METHODOLOGY}`] : []),
     `Aggregate: ${terminalField(options.aggregate, 360)}`,
     `Report: ${terminalField(options.out, 360)}`,

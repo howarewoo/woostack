@@ -1189,10 +1189,11 @@ async function aggregate(options) {
 
   for (const entry of cases) delete entry.definition;
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     runId: manifest.runId,
     targetSkill: manifest.targetSkill,
     executionStatus: status,
+    isolationAssurance: manifest.runConfiguration.isolationAssurance,
     baseline: manifest.baseline,
     runs: manifest.runs,
     cases,

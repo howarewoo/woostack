@@ -903,7 +903,7 @@ function makeManifest({
   pairs,
 }) {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     runId,
     targetSkill: targetName,
     mode,
@@ -911,6 +911,7 @@ function makeManifest({
     baseline,
     runConfiguration: {
       host: null,
+      isolationAssurance: null,
       runner: null,
       model: null,
       sessionIdentity: null,

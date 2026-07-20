@@ -518,7 +518,7 @@ for (const entry of expected) {
 }
 assert.deepEqual(actual.gradingPlan, expectedGradingPlan);
 const wanted = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   runId,
   targetSkill,
   mode,
@@ -526,6 +526,7 @@ const wanted = {
   baseline,
   runConfiguration: {
     host: null,
+    isolationAssurance: null,
     runner: null,
     model: null,
     sessionIdentity: null,
