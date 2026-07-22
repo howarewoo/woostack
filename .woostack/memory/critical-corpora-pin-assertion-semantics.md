@@ -1,7 +1,7 @@
 ---
 name: critical-corpora-pin-assertion-semantics
 type: pattern
-scope: skills/*/evals/**, skills/woostack-eval/scripts/tests/**
+scope: skills/*/evals/**, tooling/evals/scripts/tests/**
 tags: evals, contracts, safety
 hook: Critical corpora pin case ownership, capability sets, and assertion semantics
 updated: 2026-07-16

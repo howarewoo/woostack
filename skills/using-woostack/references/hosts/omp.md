@@ -64,7 +64,7 @@ worker rotates onto a fallback entry — so all siblings exit `usage_limit_reach
 receipt even though a usable fallback is configured. This is an omp-side limitation this repo
 cannot fix. The resilient recovery is host-agnostic and lives in the review orchestrator: it
 re-dispatches each usage/rate-limited worker pinned to the next configured `models.<tier>`
-entry (resolved with `resolve-model.sh --index`, via the eval `agent(model=<slug>)` pin) and
+entry (resolved with `resolve-model.sh --index`, via the host's per-worker model pin) and
 walks the chain before its receipt gate fails (see `skills/woostack-review/SKILL.md` Stage 3).
 A cross-provider fallback receipt (e.g. Anthropic under a Codex primary) validates cleanly
 because the receipt's codex model-check fires only for codex-runner receipts.
@@ -87,17 +87,7 @@ because the receipt's codex model-check fires only for codex-runner receipts.
   the next configured `models.<tier>` entry before its receipt gate runs; only a worker still
   without a receipt after the configured fallback chain is exhausted hard-fails the run — no
   silently thinner review.
-- **woostack-eval (comparative dispatch):** create each candidate/baseline action as two
-  isolated `task` workers in the same `tasks[]` call, and batch as many intact inseparable
-  pairs as capacity permits. `task` has no per-call model pin. For a concrete run, use the
-  same host-owned eval agent definition for both siblings, with exactly one resolved `model`
-  selector and the same `thinkingLevel`; a generated tier definition containing a fallback
-  list is not a concrete pin. `session-default` is provable only when that same definition
-  omits `model` and both workers inherit the same known parent session identity. Batched
-  `task` dispatch supports comparative concurrency. Prove the exact definition and actual
-  completion identity for both actions; an unprovable identity, host fallback, or model/effort
-  divergence fails the mechanics proof and blocks the current comparison. A host mode
-  unable to start both siblings in the same batch fails comparative preflight.
+
 - **woostack-execute-overnight (preflight advisory):** an unattended run now relies on a
   configured cross-provider `models.<tier>` fallback so the review swarm can auto-recover from
   primary usage-exhaustion (a concurrent-spawn burst can defeat omp's native chain); strongly

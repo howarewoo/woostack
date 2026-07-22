@@ -17,6 +17,14 @@ links:
 
 > **Plan:** [[plans/2026-07-15-skill-evaluation-optimization]]
 
+> **Maintainer-boundary amendment (2026-07-22):** The public evaluator command described in the
+> original approved design is superseded by [#559](https://github.com/howarewoo/woostack/issues/559).
+> Corpora, methodology, and deterministic tooling remain publicly inspectable, but execution is
+> maintainer-only under `tooling/evals/`. Consumers do not install or run comparative evaluation
+> infrastructure. Model-backed execution remains blocked until the isolated runner in
+> [#560](https://github.com/howarewoo/woostack/issues/560) satisfies the unchanged evidence and
+> security contract.
+
 ## 1. Problem
 
 Woostack has deterministic package checks and a dedicated `skills` review angle, but it has no committed skill-evaluation corpus: `skills/**/evals/**` currently resolves to no files. Skill changes therefore receive static prose and package review without paired old-skill versus candidate behavioral evidence, realistic trigger near-misses, objective assertions, run receipts, or comparable timing/token results. This leaves trigger regressions, skipped workflow gates, unnecessary file loading, premature handbacks, and other model behaviors outside the current proof surface.
@@ -30,35 +38,38 @@ Progressive disclosure is also uneven. The three largest always-loaded roots are
 
 ## 2. Goal
 
-Create a model-agnostic, public `/woostack-eval` workflow that evaluates and reports on a target skill without editing it; establish portable behavior and trigger corpora; make skill-package review deterministic and small-diff safe; align the house rubric with complementary Anthropic and OpenAI guidance; improve adjacent command discovery; and progressively disclose the three largest orchestration skills without weakening their workflows, structural gates, receipts, backend isolation, or hard constraints.
+Create model-agnostic maintainer evaluation infrastructure that evaluates and reports on a target skill without editing it; establish portable behavior and trigger corpora; make skill-package review deterministic and small-diff safe; align the house rubric with complementary Anthropic and OpenAI guidance; improve adjacent command discovery; and progressively disclose the three largest orchestration skills without weakening their workflows, structural gates, receipts, backend isolation, or hard constraints.
 
 ## 3. Non-goals
 
 - Do not vendor or require either upstream `skill-creator` package.
 - Do not make Claude, Codex, a provider API, or a specific model a runtime dependency.
-- Do not let `/woostack-eval` edit the evaluated `SKILL.md`, commit, open/update a PR, merge, or author feature lifecycle state. Skill changes remain owned by `/woostack-change` or `/woostack-build`.
+- Do not let maintainer evaluation edit the evaluated `SKILL.md`, commit, open/update a PR, merge, or author feature lifecycle state. Skill changes remain owned by the consumer change/build workflows.
+- Do not install, route, or document evaluation execution as a consumer command or require consumers to configure evaluator infrastructure.
 - Do not add provider-backed model runs to this repository's own CI. CI remains deterministic; comparative runs occur in an agent host and carry explicit receipts.
-- Do not turn benchmark scores into a universal merge gate. The command reports evidence; reviewers and the owning change workflow decide what action follows.
+- Do not turn benchmark scores into a universal merge gate. The maintainer workflow reports evidence; reviewers and the owning change workflow decide what action follows.
 - Do not change the semantics or number of existing approval gates, backend lifecycle transitions, review posting rules, or proof-of-execution receipts while reorganizing skill content.
 - Do not rename or move any existing fixed `SKILL.md` path.
 - Do not add application code, an app lockfile, or dependencies outside the sanctioned `site/` subtree. Evaluation helpers use repository-standard shell and Node standard library only.
-- Do not retain raw benchmark output as durable project knowledge by default. Run workspaces are ignored and the command hands the report back in conversation.
-- Do not introduce localization infrastructure. The command and offline report follow this repository's existing English-only contributor/tooling surface; report semantics must remain machine-readable so localization can be added later without changing evidence contracts.
+- Do not retain raw benchmark output as durable project knowledge by default. Run workspaces are ignored and the maintainer workflow hands the report back in conversation.
+- Do not introduce localization infrastructure. The maintainer report follows this repository's existing English-only contributor/tooling surface; report semantics must remain machine-readable so localization can be added later without changing evidence contracts.
 - Do not add behavior corpora to every skill in this feature. Initial behavior coverage is limited to the explicitly named load-bearing set below; trigger corpora cover the adjacent routing clusters separately.
 
 ## 4. Approach
 
-### 4.1 Add one dedicated public command
+### 4.1 Keep evaluation outside the consumer command surface
 
-Add `/woostack-eval` as the twenty-third public command and the twenty-sixth fixed `SKILL.md` location. Its interface is:
+Place the internal orchestration contract under `tooling/evals/`, outside the installer-discovered
+`skills/` root. Maintainers load it explicitly from a trusted checkout. The public router, command
+catalog, generated site navigation, adoption docs, and fixed installed-skill inventory do not expose
+an evaluator command. Installed review workflows retain only the shared deterministic package
+validator they need.
 
-```text
-/woostack-eval <skill-path> [--behavior | --triggers | --all] [--runs <1..10>] [--baseline-ref <git-ref> | --baseline-path <skill-dir>]
-```
-
-`--all` is the default. `--runs` defaults to three repetitions per case and variant and accepts integers from one through ten. The mode flags and baseline flags are mutually exclusive within their groups. The target must be one exact skill directory or its `SKILL.md`. The command may create or update that target's tracked eval corpus and may write transient run/report artifacts, but it never edits the target skill. A corpus is approval-pending when it is untracked or differs byte-for-byte from `HEAD`. The evaluator copies the complete proposed package and overlays proposed corpus/fixture bytes into one private immutable snapshot outside the target, validates that exact snapshot, and only then presents its canonical inventory and digest for explicit approval. Target corpus writes occur only after successful validation and explicit approval of that digest; the evaluator revalidates the immutable snapshot and exact target bytes before preparation. Silence, ambiguity, rejection, invalid bytes, or any digest/byte mismatch stops without target writes or dispatch. An existing valid corpus identical to `HEAD` runs without another gate.
-
-The command resolves a baseline in this order: valid explicit `--baseline-ref`, valid explicit `--baseline-path`, then the target directory at `git merge-base HEAD "$(resolve-base.sh)"` when Git resolution is provable. A package proved absent at that valid merge base records `<merge-base-commit>:absent`; an exact target proved outside Git without an explicit baseline records `non-git:<sha256-package-hash>:absent`. Invalid explicit baselines never fall through, and unavailable or unprovable Git resolution requires an explicit baseline. Candidate and baseline execute in isolated copies during the same wave with one shared resolved run configuration: a concrete model/tier/effort when the host exposes them, or a documented `session-default` identity only when both workers are guaranteed to inherit the same session model. Behavior workers receive only the selected copied package variant through a scoped task contract and must not load another installed copy of the target. The evaluator records the injected package hash and verifies the original target package hash again after the wave. The current host's native subagent primitive performs the model work; evaluator scripts never invoke a provider directly.
+The maintainer workflow accepts one exact skill directory or its `SKILL.md`, a behavior/trigger/all
+mode, one through ten repetitions, and an optional baseline ref or path. It may create or update an
+approved tracked corpus and write transient run/report artifacts, but never edits the target skill.
+The immutable snapshot, exact-byte approval, baseline resolution, frozen inputs, receipt, and
+post-run target-hash guarantees remain unchanged.
 
 ### 4.2 Store portable corpora with each skill
 
@@ -68,19 +79,24 @@ An evaluated package may contain:
 - `evals/trigger-evals.json` — versioned should-trigger and near-miss should-not-trigger queries, the expected skill, and any adjacent command whose incorrect selection the case guards against.
 - `evals/fixtures/` — deterministic inputs needed by behavior cases.
 
-Tracked corpora are product tests. Run-specific prompts, observable transcripts, outputs, grades, receipts, aggregates, and HTML live under the primary repository's `.woostack/tmp/skill-evals/<run-id>/` only when the canonical root resolver is available and Git confirms that path is ignored. Otherwise the command allocates an atomic directory beneath `${TMPDIR:-/tmp}`, reports the fallback, and does not scaffold or modify `.woostack/` or `.gitignore`.
+Tracked corpora are product tests. Run-specific prompts, observable transcripts, outputs, grades, receipts, aggregates, and HTML live under the primary repository's ignored `.woostack/tmp/skill-evals/<run-id>/`. If that safe maintainer-owned root cannot be proven, preparation stops rather than degrading to a host-native or non-isolated location.
 
-### 4.3 Use deterministic helpers around host-native workers
+### 4.3 Use deterministic helpers around an isolated maintainer runner
 
-Place the evaluator under `skills/woostack-eval/` with a concise root `SKILL.md`, direct references for schemas and runner/grading behavior, scripts for deterministic operations, and shell-based contract tests. Helpers validate an immutable package/corpus snapshot, prepare isolated candidate/baseline workspaces, aggregate receipts and grades, and render a self-contained escaped HTML review. They accept and emit documented JSON; they do not call a model, infer success from empty output, or hide partial failures.
+Place the evaluator under `tooling/evals/` with a concise root `SKILL.md`, direct references for schemas and runner/grading behavior, scripts for deterministic operations, and shell-based contract tests. Helpers validate an immutable package/corpus snapshot, prepare isolated candidate/baseline workspaces, aggregate receipts and grades, and render a self-contained escaped HTML review. They accept and emit documented JSON; they do not call a model, infer success from empty output, or hide partial failures.
 
-Host-specific primitive names and knob forms remain in the per-host files and are loaded through the repository's exact [canonical host mechanics directive](../../skills/using-woostack/references/hosts/README.md); the evaluator cross-links rather than duplicating those mechanics. A missing host file means no per-call routing and is reported as degraded. Before manifest freeze, the host must prove comparative isolated-sibling and intact same-wave pair mechanics. If comparative host isolation/pair mechanics or baseline runnability cannot be proved, exactly one alternative exists: offer a candidate-only qualitative smoke run, require explicit user acceptance, and proceed only if isolated scoped candidate execution and every action-lifetime boundary remain enforceable. Rejection or silence stops. The smoke result is `degraded` and makes no comparative, trigger-selection, duration, token, precision, or recall claim.
+Model-backed dispatch uses only an approved maintainer runner adapter. Ordinary host subagents, OMP
+`task` workers, and same-session context separation are not security boundaries. Before manifest
+freeze, the runner must prove enforced isolated sibling workspaces, exact matching model identity,
+intact same-wave pairs, supervisor-owned evidence, hard deadlines, and bounded teardown. Missing
+proof or baseline runnability stops dispatch; there is no direct, advisory, or candidate-only
+fallback.
 
 Every worker and grader action has a finite positive deadline plus finite positive graceful and forced teardown bounds. On return or deadline the host revokes capabilities, gracefully terminates the whole descendant process/task tree, forcibly terminates remaining descendants after the grace bound, and waits within the final bound before committing the last-action receipt. A host that cannot guarantee this sequence refuses dispatch.
 
 Every model repetition writes a separate last-action receipt with at least: schema version, run ID, case ID, one-based repetition index, candidate/baseline variant, target skill, baseline identity, exact granted capabilities, host, runner, concrete model or documented session identity, tier/effort when exposed, start time, duration, output identity, completion state, and explicit error. Missing or malformed receipts block comparative claims. Token counts and observable action transcripts are reported only when the host exposes them; their absence is `unavailable`, not zero or fabricated hidden reasoning.
 
-The run manifest groups each case/repetition's candidate and baseline workers as an inseparable pair. Dispatch all independent comparative pairs together when they fit the host's documented concurrency limit; otherwise partition them deterministically into bounded waves without splitting a pair. A host that cannot run one pair concurrently cannot produce a comparative benchmark and may use only the explicitly accepted candidate-only smoke branch above.
+The run manifest groups each case/repetition's candidate and baseline workers as an inseparable pair. Dispatch all independent comparative pairs together when they fit the host's documented concurrency limit; otherwise partition them deterministically into bounded waves without splitting a pair. A runner that cannot run one pair concurrently cannot produce evaluation evidence and must refuse dispatch.
 
 Behavior cases use deterministic assertions where possible. Every explicitly qualitative assertion uses a fresh payload-only grader context whose complete visible input is the anonymized output, opaque output text, and one boolean rubric. It has no prior conversation, tools, workspace/filesystem view, environment, network, credentials, provider access, host paths, or capabilities; its last-action receipt requires exact `capabilities: []`. Trigger cases run a controlled catalog-selection task: candidate and baseline workers receive the same canonical public skill name/description catalog except for the target variant, then record the selected skill or `none`. This measures semantic routing precision and recall portably; it does not claim to test a host's private loader implementation, and prompt-text similarity without an explicit selection receipt is not evidence.
 
@@ -113,11 +129,11 @@ Cover these clusters:
 
 ### 4.7 Add critical behavior corpora
 
-Add initial behavior corpora for `woostack-eval`, `woostack-build`, `woostack-fix`, `woostack-execute`, `woostack-execute-overnight`, `woostack-commit`, `woostack-review`, `woostack-sweep`, `woostack-address-comments`, `woostack-ask`, `woostack-debug`, `woostack-audit`, `woostack-init`, `woostack-doctor`, and `woostack-status`. Cases are intentionally narrow: approval barriers, write boundaries, backend isolation, proof receipts, lifecycle/terminal states, and handbacks. Critical assertions mark safety invariants; qualitative assertions judge clarity or efficiency without converting preference into a gate.
+Add initial behavior corpora for internal `evals`, `woostack-build`, `woostack-fix`, `woostack-execute`, `woostack-execute-overnight`, `woostack-commit`, `woostack-review`, `woostack-sweep`, `woostack-address-comments`, `woostack-ask`, `woostack-debug`, `woostack-audit`, `woostack-init`, `woostack-doctor`, and `woostack-status`. Cases are intentionally narrow: approval barriers, write boundaries, backend isolation, proof receipts, lifecycle/terminal states, and handbacks. Critical assertions mark safety invariants; qualitative assertions judge clarity or efficiency without converting preference into a gate.
 
 ### 4.8 Progressively disclose conditional detail
 
-Refactor only after `/woostack-eval` can compare the old and candidate packages.
+Refactor only after the isolated maintainer runner can compare the old and candidate packages.
 
 - `woostack-review`: keep the stage-by-stage orchestration, execution receipts, posting behavior, and hard constraints in root. Move invocation catalog, configuration schema/key reference, integration-specific setup, installation examples, and troubleshooting into direct conditional references.
 - `woostack-commit`: keep shared inspection, attribution decision, staging, commit, submission, verification, and reporting in root. Move Markdown- and Linear-specific attribution detail, PR-body formatting, and Graphite fallback/reference detail into direct references.
@@ -127,19 +143,19 @@ Refactor only after `/woostack-eval` can compare the old and candidate packages.
 
 ### 5.1 Files and ownership
 
-- `skills/woostack-eval/SKILL.md` — public command contract, corpus approval gate, orchestration, degradation, write boundary, and handback.
-- `skills/woostack-eval/references/schemas.md` — canonical corpus, receipt, grade, and aggregate field contracts.
-- `skills/woostack-eval/references/runner.md` — baseline resolution, isolation, dispatch, grading, report, and failure procedure.
-- `skills/woostack-eval/scripts/validate.mjs` — shared skill-frontmatter parser plus package and JSON validation using Node standard library; imported by the site generator and review prefetch.
-- `skills/woostack-eval/scripts/prepare.mjs` — safe baseline/candidate/fixture copying and run manifest creation.
-- `skills/woostack-eval/scripts/aggregate.mjs` — receipt completeness, assertion grades, metrics, and deltas.
-- `skills/woostack-eval/scripts/render-report.mjs` — escaped self-contained HTML plus machine-readable summary.
-- `skills/woostack-eval/scripts/tests/` — deterministic validation, path safety, partial-run, escaping, aggregate, shared-parser, and command-contract tests.
+- `tooling/evals/SKILL.md` — maintainer-only orchestration contract, corpus approval gate, write boundary, and handback.
+- `tooling/evals/references/schemas.md` — canonical corpus, receipt, grade, and aggregate field contracts.
+- `tooling/evals/references/runner.md` — baseline resolution, isolation, dispatch, grading, report, and failure procedure.
+- `skills/using-woostack/scripts/validate-skill-package.mjs` — installed shared skill-frontmatter parser plus package and JSON validation using Node standard library; imported by the site generator, review prefetch, and maintainer tooling.
+- `tooling/evals/scripts/prepare.mjs` — safe baseline/candidate/fixture copying and run manifest creation.
+- `tooling/evals/scripts/aggregate.mjs` — receipt completeness, assertion grades, metrics, and deltas.
+- `tooling/evals/scripts/render-report.mjs` — escaped self-contained HTML plus machine-readable summary.
+- `tooling/evals/scripts/tests/` — deterministic validation, path safety, partial-run, escaping, aggregate, shared-parser, and maintainer-boundary tests.
 - `skills/<name>/evals/` — tracked product-level behavior and trigger corpora.
-- `.woostack/tmp/skill-evals/<run-id>/`, or an atomic `${TMPDIR:-/tmp}` fallback outside initialized woostack checkouts — ignored run workspace and report output.
+- `.woostack/tmp/skill-evals/<run-id>/` beneath a proven ignored maintainer run root — transient run workspace and report output.
 - `skills/woostack-review/scripts/prefetch.sh` and its tests — Git-visible package snapshot, skill-aware skip decision, and validator invocation.
 - `skills/woostack-review/prompts/angles/skills.md` — cross-vendor rubric and package-context instructions.
-- `skills/using-woostack/SKILL.md`, six `references/hosts/*.md` files, repo command maps, and authored site pages — new command discovery and host-specific dispatch notes.
+- `skills/using-woostack/SKILL.md`, repository command maps, authored site pages, and boundary tests — proof that evaluation is absent from consumer discovery and host dispatch notes.
 - Direct references split from `woostack-review`, `woostack-commit`, and `woostack-build`, linked from their root `SKILL.md` files.
 
 ### 5.2 Eval corpus contracts
@@ -150,7 +166,7 @@ A behavior case carries `id`, `prompt`, optional `fixtures`, optional `capabilit
 
 A trigger case carries `id`, `query`, `shouldTrigger`, `expectedSkill`, and optional `conflictsWith`. Positive and negative cases share one schema and the same controlled catalog-selection procedure so precision and recall are comparable across variants and hosts.
 
-Receipts and grades are append-only per repetition and are never preinitialized as successful. The aggregate accepts only the manifest's expected case/variant/repetition set, rejects duplicates and unknown identities, distinguishes failed assertions from missing/failed execution, computes per-case and overall variance across the selected repetition count, and never converts absent values to passing defaults. Qualitative graders run in fresh payload-only contexts with no ambient authority; their receipt `capabilities` field is exactly `[]`. The aggregate restores variant identity only after the host-owned mapping, grade, teardown proof, and last-action receipt validate. `executionStatus` is exactly `complete`, `blocked`, or `degraded`; assertion failures can coexist with `complete`, while missing execution evidence is `blocked` and explicitly accepted candidate-only qualitative smoke evidence is `degraded`. Degraded evidence carries no comparative, trigger-selection, duration, token, precision, or recall claims. The report exposes critical failures and per-assertion evidence but does not manufacture a universal merge verdict.
+Receipts and grades are append-only per repetition and are never preinitialized as successful. The aggregate requires candidate and baseline for every expected case/variant/repetition pair, rejects duplicates and unknown identities, distinguishes failed assertions from missing/failed execution, computes per-case and overall variance across the selected repetition count, and never converts absent values to passing defaults. Qualitative graders run in fresh payload-only contexts with no ambient authority; their receipt `capabilities` field is exactly `[]`. The aggregate restores variant identity only after the host-owned mapping, paired grades, teardown proofs, and last-action receipts validate. `executionStatus` is exactly `complete` or `blocked`; assertion failures can coexist with `complete`, while missing execution evidence is `blocked`. The report exposes critical failures and per-assertion evidence but does not manufacture a universal merge verdict.
 
 ### 5.3 Runtime flow
 
@@ -162,7 +178,7 @@ exact skill target + proposed corpus bytes
   -> exact snapshot revalidation
   -> approved corpus materialization + exact target-byte revalidation
   -> baseline resolution
-  -> canonical host-file load and pre-freeze comparative/candidate-only decision
+  -> approved isolated-runner proof and comparative-only decision
   -> manifest freeze with positive action deadlines and teardown guarantees
   -> isolated candidate + baseline + fixtures
   -> same-wave scoped candidate/baseline workers
@@ -195,7 +211,7 @@ touched SKILL.md in PR/local diff
 - Existing dirty target changes: copy the current filesystem candidate exactly; do not reset, stage, or modify it. Baseline reads use Git objects or an explicit external path, never checkout over the worktree.
 - Unsafe symlink, traversal, special file, or package/fixture path escaping its allowed root: reject before copying. A user-named absolute baseline path establishes its own read-only allowed root; all nested paths remain containment-checked. Never copy `.git`, `.env*`, secrets, or ignored run output into a worker workspace.
 - Worker prompts wrap corpus prompts, fixtures, skill text, baseline text, and prior outputs as untrusted data beneath a higher-priority scoped task contract. A requested network/credential/environment/provider capability is invalid rather than an instruction to expand access.
-- Load the host through the canonical host directive; a missing host file means no per-call routing and must be reported as degraded. If comparative isolated-sibling/pair mechanics cannot be proved, permit only the explicit pre-freeze candidate-only qualitative smoke offer. Explicit acceptance plus proven isolated candidate execution and action teardown may dispatch it; rejection, silence, or loss of any remaining boundary stops. It emits no comparative, trigger-selection, duration, token, precision, or recall claim.
+- Require an approved maintainer runner adapter. If enforced isolated-sibling workspaces, matching concrete model identity, intact-pair concurrency, supervisor-owned evidence, deadlines, or teardown cannot be proved, stop before dispatch. Ordinary host subagents, OMP tasks, advisory isolation, and candidate-only execution are not substitutes.
 - Every action needs a finite positive deadline and bounded whole-descendant graceful-then-forced teardown with capability revocation. If the host cannot guarantee and confirm teardown within those bounds, refuse dispatch; never write quiescence or a completed/timed-out receipt around live descendants.
 - Every qualitative assertion gets a fresh payload-only grader context with no prior conversation, tools, workspace/filesystem view, environment, network, credentials, provider access, host paths, or capabilities. Any grader receipt whose `capabilities` is not exactly `[]` is invalid and blocks aggregation.
 - The evaluator hashes the original target package after approved exact-byte corpus revalidation and before dispatch, then again after all workers finish. Any unexpected delta invalidates the run, preserves the workspace, and reports changed paths; it never resets or overwrites the user's files.
@@ -203,17 +219,17 @@ touched SKILL.md in PR/local diff
 - Missing token telemetry: show `unavailable`. Missing duration or completion identity: invalid receipt and blocked aggregate.
 - Static renderer failure: retain JSON and terminal evidence, report the renderer failure explicitly, and mark the HTML review unavailable; do not discard successful run evidence.
 - HTML output: strip disallowed control bytes; escape every prompt, observable transcript, path, error, and model-produced value; emit a restrictive no-script/no-network content-security policy; use semantic headings/tables, keyboard-operable disclosure controls, visible text in addition to status color, and accessible contrast. Never embed model-produced scripts or active external resources.
-- Concurrent runs allocate workspaces atomically beneath the primary common root or `${TMPDIR:-/tmp}` fallback. Never reuse or overwrite an existing run ID.
-- Missing root resolver, an unignored `.woostack/tmp`, or a non-woostack target uses the system-temporary fallback and reports it. The command never guesses a common root or edits ignore rules.
+- Concurrent runs allocate workspaces atomically beneath the proven ignored maintainer run root. Never reuse or overwrite an existing run ID.
+- Missing root resolution or an unignored `.woostack/tmp` stops preparation. The maintainer workflow never guesses a common root, degrades to host-native execution, or edits ignore rules.
 - Review package snapshot failure or validator failure: emit a blocking prefetch error. Do not fall back to diff-only claims that the full package was inspected.
-- Command-surface bookkeeping mismatch after adding `/woostack-eval`: deterministic cross-site tests fail and block the registration increment.
+- Consumer-surface bookkeeping that exposes evaluation routing, docs, site navigation, host mechanics, or an installed evaluator package fails deterministic boundary tests.
 - Progressive-disclosure refactor with broken links, missing moved content, changed gates, lost backend branch, or benchmark regression: fail the owning increment and keep the old root structure.
 - Logs and reports must not include environment variables, credentials, or unrelated repository content. Prompts, fixtures, baseline skill text, and model output are untrusted data and cannot expand tool, repository, or disclosure scope.
 
 ## 7. Acceptance criteria
 
-- **AC1 — The evaluator has one explicit public contract and write boundary.**
-  - happy: `/woostack-eval <skill-path>` resolves one skill, defaults to all evals and three repetitions, and hands back evidence without editing the target skill.
+- **AC1 — The evaluator has one explicit maintainer contract and write boundary.**
+  - happy: explicit loading from `tooling/evals/SKILL.md` resolves one skill, defaults to all evals and three repetitions, and hands back evidence without editing the target skill.
   - error: a missing/ambiguous target, an out-of-range/non-integer `--runs`, or an attempt to request target editing stops before dispatch with the appropriate correction or change/build handback.
   - edge: invoking with the exact `SKILL.md` path and with its owning directory resolves the same package; `--runs 1` is valid but reports variance as unavailable.
 - **AC2 — New or changed eval corpora require validated digest approval.**
@@ -229,9 +245,9 @@ touched SKILL.md in PR/local diff
   - error: combined baseline flags, an invalid explicit baseline, or unavailable/unprovable Git resolution stops without fallback and requires an explicit baseline where resolution is needed.
   - edge: a new skill proved absent at the merge base records `<merge-base-commit>:absent`; an exact target proved outside Git with no explicit baseline records `non-git:<sha256-package-hash>:absent`.
 - **AC5 — Candidate and baseline runs are isolated and comparable.**
-  - happy: after canonical host-file loading, both variants run in the same wave, in separate copied workspaces, with one proven shared run configuration, the same approved restricted capabilities, injected package hashes, and a pre/post checksum proving the original target package did not change.
+  - happy: after approved maintainer-runner proof, both variants run in the same wave, in separate copied workspaces, with one proven shared run configuration, the same approved restricted capabilities, injected package hashes, and a pre/post checksum proving the original target package did not change.
   - error: a worker configuration/capability mismatch, installed-target contamination, scoped-task violation, out-of-workspace access, original-package checksum delta, or unproved comparative mechanics blocks comparative output and never triggers an automatic reset or silent downgrade.
-  - edge: when comparative isolation/pair mechanics cannot be proved, exactly one explicit user-accepted candidate-only qualitative smoke branch may freeze and dispatch if candidate isolation and all remaining boundaries are proved; rejection/silence stops, and degraded output makes no comparative, trigger-selection, duration, token, precision, or recall claim.
+  - edge: when comparative isolation/pair mechanics cannot be proved, the workflow stops before freeze and dispatch; it does not emit candidate-only or advisory evidence.
 - **AC6 — Proof receipts and bounded action lifetimes prevent empty or partial success.**
   - happy: every expected case/variant/repetition and qualitative grader runs under a finite positive deadline, revokes capabilities, completes bounded whole-descendant graceful-then-forced teardown, and writes one valid last-action receipt exactly once.
   - error: missing, duplicate, malformed, failed, timed-out, repetition-mismatched, identity/capability-mismatched receipts, live descendants, or unavailable teardown guarantees block dispatch or a clean benchmark as applicable.
@@ -244,14 +260,14 @@ touched SKILL.md in PR/local diff
   - happy: positive and near-miss negative queries run against candidate/baseline variants of the same canonical name/description catalog and report explicit selected-skill receipts plus precision/recall by stable case ID.
   - error: transcript wording, prompt similarity, or an unrecorded host loader decision cannot count as a trigger pass.
   - edge: a near-miss that correctly selects an adjacent `conflictsWith` command passes only when the target is not selected; reports label the result as catalog selection rather than host-loader proof.
-- **AC9 — Reports are complete, escaped, accessible, and honest about degradation.**
-  - happy: the command emits machine-readable aggregate data, a terminal summary, and self-contained escaped HTML with per-case candidate/baseline evidence, metrics, semantic structure, keyboard operation, non-color status text, accessible contrast, and a no-script/no-network policy.
+- **AC9 — Reports are complete, escaped, accessible, and honest about blocked evidence.**
+  - happy: the maintainer workflow emits machine-readable aggregate data, a terminal summary, and self-contained escaped HTML with per-case candidate/baseline evidence, metrics, semantic structure, keyboard operation, non-color status text, accessible contrast, and a no-script/no-network policy.
   - error: renderer failure is explicit and does not erase JSON/terminal results; missing required evidence blocks clean status; untrusted output cannot inject markup, scripts, control bytes, or network loads.
   - edge: raw output may remain in the workspace while the summary references it without embedding oversized content; the English-only presentation does not alter the language-neutral JSON contract.
-- **AC10 — `/woostack-eval` is registered in lockstep.**
-  - happy: all command routing, skill counts/orders, contributor maps, host notes, authored docs/navigation, generated site expectations, and package tests agree on 23 public commands and 26 fixed `SKILL.md` locations.
-  - error: any missing or stale site fails deterministic command-surface tests.
-  - edge: the evaluator engine may land one stacked increment before public registration only with the repository's explicit down-stack deferral marker; no final stack may retain that deferral.
+- **AC10 — Evaluation is excluded from the consumer surface in lockstep.**
+  - happy: command routing, skill counts/orders, contributor maps, host notes, authored docs/navigation, generated site expectations, and package tests agree on 22 public commands and 25 installed `SKILL.md` locations while linking maintainer tooling only from contributor authorities.
+  - error: any routed command, generated evaluator page, host dispatch note, public catalog entry, or stale count fails deterministic boundary tests.
+  - edge: the installed shared package validator remains available to review and site generation without pulling comparative execution tooling into consumer workflows.
 - **AC11 — Tiny skill edits cannot bypass skill review.**
   - happy: a one-line `SKILL.md` description change bypasses the full-diff `<10 LOC` skip, snapshots the full owning package, runs deterministic validation, and invokes the skills angle.
   - error: snapshot or validation failure blocks rather than claiming whole-package review.
@@ -285,7 +301,7 @@ touched SKILL.md in PR/local diff
   - error: any missing/extra gate, inferred approval, mixed backend, lifecycle drift, implementation artifact before handoff, or changed never-merge behavior blocks the refactor.
   - edge: both Markdown and Linear benchmark cases prove revise, abandon, handoff, go, and overnight branches where applicable.
 - **AC19 — Public documentation remains synchronized.**
-  - happy: authored site pages and contributor/project maps describe the new command, count, evaluation loop, and any changed public workflow after the behavior is proven.
+  - happy: authored site pages and contributor/project maps preserve the public command count and omit evaluator discovery, routing, and consumer workflow guidance.
   - error: site generation/order tests or the site build fail on stale routing/count/navigation claims.
   - edge: generated per-skill reference pages remain generator-owned and receive no manual edit.
 
@@ -293,14 +309,14 @@ touched SKILL.md in PR/local diff
 
 Use the existing shell-test conventions and repository-standard runtimes; add no external dependency or provider call to CI.
 
-- Unit/contract tests for every evaluator helper: schema/version validation, IDs, assertion kinds, fixture containment, symlink/special-file rejection, baseline manifests, no-skill baseline, receipt completeness, duplicates, partial waves, metrics unavailable, aggregate deltas, HTML escaping, and renderer degradation.
-- End-to-end deterministic fixtures for `/woostack-eval`: exact file/directory target resolution, candidate/baseline workspace isolation, same-model manifest enforcement, no target mutation, successful report, blocked partial run, and non-isolated-host degradation. Source-contract tests cover host-orchestrated corpus approval and rejection before materialization or execution; helper E2E begins from an approved corpus snapshot. Stub only the host dispatch boundary; do not fake helper behavior.
+- Unit/contract tests for every evaluator helper: schema/version validation, IDs, assertion kinds, fixture containment, symlink/special-file rejection, paired baseline manifests, receipt completeness, duplicates, partial waves, metrics unavailable, aggregate deltas, HTML escaping, and blocked report rendering.
+- End-to-end deterministic fixtures for the maintainer evaluator: exact file/directory target resolution, candidate/baseline workspace isolation, same-model manifest enforcement, no target mutation, successful report, blocked partial run, and fail-closed runner behavior. Source-contract tests cover maintainer-only routing boundaries and rejection before materialization or execution; helper E2E begins from an approved corpus snapshot. Deterministic tests do not fake helper behavior or model-backed dispatch.
 - Review prefetch tests for one-line description diffs, unchanged tiny non-skill diffs, full package snapshot inventory, missing resource/invalid corpus failures, local/CI parity, and right-side finding anchors.
-- Cross-skill contract tests for public command order/count, all routing and authored-document sites, six host-file notes, direct-reference existence, one-level navigation, preserved gate text, backend-resolve-before-load order, and no stale deferral marker.
+- Cross-skill contract tests for public command order/count, authored routing and documentation boundaries, direct-reference existence, one-level navigation, preserved gate text, backend-resolve-before-load order, and no stale deferral marker.
 - Committed trigger corpora for the two adjacent-command clusters and behavior corpora for critical workflow invariants. CI validates their schemas; agent-host runs generate candidate/baseline evidence during the owning implementation increments.
-- For each progressive-disclosure increment, run `/woostack-eval --behavior` against the old skill and candidate with the same model configuration, inspect the static review, and require no critical assertion regression. Record context/token deltas when the host exposes them; otherwise record the metric as unavailable.
+- For each progressive-disclosure increment, run `maintainer evaluator --behavior` against the old skill and candidate with the same model configuration, inspect the static review, and require no critical assertion regression. Record context/token deltas when the host exposes them; otherwise record the metric as unavailable.
 - Run the bounded existing test scripts for every touched skill package. After behavior is proven and authored site claims change, run `node --test site/scripts/gen-skills.test.mjs` and `pnpm -C site build`.
 
 ## 9. Open questions
 
-N/A — the design and hardening gates resolved the public command surface, evaluate/report-only authority, corpus approval boundary, three-run default with bounded override, provider-neutral worker boundary, controlled catalog routing proxy, baseline precedence, scoped capabilities, receipt/status contracts, tracked-versus-transient persistence, non-Git degradation, report accessibility/security, initial corpus scope, and all eleven increment themes.
+N/A — the design and hardening gates resolved the maintainer-only boundary, evaluate/report-only authority, corpus approval boundary, three-run default with bounded override, provider-neutral worker boundary, controlled catalog routing proxy, baseline precedence, scoped capabilities, receipt/status contracts, tracked transient persistence, fail-closed runner behavior, report accessibility/security, initial corpus scope, and all eleven increment themes.

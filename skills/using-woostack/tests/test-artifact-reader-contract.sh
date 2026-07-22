@@ -256,7 +256,6 @@ fixed_skills = {
     "woostack-execute",
     "woostack-execute-overnight",
     "woostack-fix",
-    "woostack-eval",
     "woostack-change",
     "woostack-harden",
     "woostack-ideate",
@@ -272,7 +271,7 @@ fixed_skills = {
 }
 public_skills = fixed_skills - {"woostack-ask", "woostack-harden", "woostack-ideate"}
 if set(texts) != fixed_skills:
-    failure("skill-surface", f"expected 26 fixed SKILL.md locations, found {len(texts)}")
+    failure("skill-surface", f"expected 25 fixed SKILL.md locations, found {len(texts)}")
 
 using = texts.get("using-woostack", "")
 routes = re.findall(r"^\| `/([^`\s]+)", using, re.M)
@@ -291,7 +290,6 @@ expected_routes = [
     "woostack-audit",
     "woostack-qa",
     "woostack-respond",
-    "woostack-eval",
     "woostack-address-comments",
     "woostack-status",
     "woostack-visualize",
@@ -301,7 +299,7 @@ expected_routes = [
     "woostack-doctor",
 ]
 if routes != expected_routes:
-    failure("skill-surface", "public command routing rows must remain exactly the ordered 23-command surface")
+    failure("skill-surface", "public command routing rows must remain exactly the ordered 22-command surface")
 
 if validation_mode == "repository":
     doc_paths = {
@@ -349,7 +347,7 @@ if validation_mode == "repository":
     require_doc("development", r"exactly\s+three\s+hard\s+gates", "does not preserve exactly three workflow gates")
     require_doc("development", r"Linear.{0,200}no docs-only base PR", "does not exclude the Markdown docs-only base PR from Linear mode")
     require_doc("status-conventions", r"Every `/woostack-status` run.{0,240}terminal\s+reconciliation", "does not require terminal reconciliation on every status run")
-    require_doc("AGENTS.md", r"twenty-three\s+public.{0,160}twenty-six\s+fixed\s+`SKILL\.md`", "does not preserve the 23-public/26-fixed skill surface")
+    require_doc("AGENTS.md", r"twenty-two\s+public.{0,160}twenty-five\s+fixed\s+`SKILL\.md`", "does not preserve the 22-public/25-fixed skill surface")
 
     # The authored site has six framing-page equivalents. Generated per-skill pages remain out of
     # scope, but each authored page must preserve the backend fact it presents to consumers.
@@ -387,8 +385,8 @@ if validation_mode == "repository":
     require_doc("site-status", r"woostack-status/references/conventions\.md", "does not link the status authority")
 
     joined_docs = "\n".join(doc_texts.values())
-    if re.search(r"twenty-two\s+(?:public|skills)|twenty-five\s+(?:fixed|`SKILL\.md`)|22\s+public|25\s+fixed|twenty-one\s+public|twenty-four\s+fixed|21\s+public|24\s+fixed|twenty\s+public|twenty-two\s+fixed|20\s+public|22\s+fixed", joined_docs, re.I):
-        failure("skill-surface", "stale pre-23-public/pre-26-fixed count remains in adoption docs")
+    if re.search(r"twenty-three\s+(?:public|skills)|twenty-six\s+(?:fixed|`SKILL\.md`)|23\s+public|26\s+fixed|twenty-one\s+public|twenty-four\s+fixed|21\s+public|24\s+fixed|twenty\s+public|twenty-two\s+fixed|20\s+public|22\s+fixed", joined_docs, re.I):
+        failure("skill-surface", "stale non-22-public/non-25-fixed count remains in adoption docs")
     for forbidden in (
         r"api\.linear\.app/graphql",
         r"\b(?:query|mutation)\s*\{",
@@ -453,7 +451,7 @@ fixture="$TMP_ROOT/duplicate-route"
 make_fixture "$fixture"
 printf '\n| `/woostack-init`, duplicate route | `woostack-init` |\n' \
   >> "$fixture/skills/using-woostack/SKILL.md"
-expect_fixture_failure "$fixture" "ordered 23-command surface" "duplicate routing-row rejection"
+expect_fixture_failure "$fixture" "ordered 22-command surface" "duplicate routing-row rejection"
 
 fixture="$TMP_ROOT/reordered-routes"
 make_fixture "$fixture"
@@ -466,7 +464,7 @@ routes = [index for index, line in enumerate(lines) if line.startswith("| `/")]
 lines[routes[0]], lines[routes[1]] = lines[routes[1]], lines[routes[0]]
 path.write_text("\n".join(lines) + "\n")
 PY
-expect_fixture_failure "$fixture" "ordered 23-command surface" "routing-row order rejection"
+expect_fixture_failure "$fixture" "ordered 22-command surface" "routing-row order rejection"
 
 fixture="$TMP_ROOT/missing-adoption-contract"
 make_fixture "$fixture"

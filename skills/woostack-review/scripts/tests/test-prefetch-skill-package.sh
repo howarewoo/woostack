@@ -349,7 +349,7 @@ process.exit(validation.status ?? 1);
 NODE
 race_out="$TMP_ROOT/race-out"
 WOO_REVIEW_TEST_SNAPSHOT_VALIDATOR="$race_validator" \
-WOO_REVIEW_TEST_REAL_VALIDATOR="$ROOT/skills/woostack-eval/scripts/validate.mjs" \
+WOO_REVIEW_TEST_REAL_VALIDATOR="$ROOT/skills/using-woostack/scripts/validate-skill-package.mjs" \
 WOO_REVIEW_TEST_RACE_FILE="$REPO/skills/alpha/references/guide.md" \
   run_local_prefetch "$race_out" "$existing_meta" "$existing_diff"
 assert_exit 0 "$RUN_RC" "concurrent post-validation package change cannot alter the snapshot"

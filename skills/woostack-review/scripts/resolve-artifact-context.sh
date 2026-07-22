@@ -83,24 +83,19 @@ trap cleanup EXIT HUP INT TERM
 case "$KIND" in
   markdown-spec)
     ARTIFACT_PATH="$(jq -er '.path' <<<"$ATTRIBUTION")"
-    MODEL="$(
-      env -u LINEAR_API_KEY -u INPUT_LINEAR_API_KEY \
-        bash "$MARKDOWN" feature "$REPO_ROOT/$ARTIFACT_PATH"
-    )" || {
-      echo "artifact context: Markdown feature read failed" >&2
+    if ! env -u LINEAR_API_KEY -u INPUT_LINEAR_API_KEY \
+      bash "$MARKDOWN" feature "$REPO_ROOT/$ARTIFACT_PATH" \
+      | jq -ce --arg path "$ARTIFACT_PATH" '
+          select(
+            .backend == "markdown" and
+            (.feature | type) == "object" and .feature.id == $path and
+            (.spec | type) == "object" and .spec.id == $path and
+            (.increments | type) == "array"
+          )
+        ' >"$TMP_CONTEXT"; then
+      echo "artifact context: Markdown feature read failed or returned an invalid normalized model" >&2
       exit 1
-    }
-    jq -ce --arg path "$ARTIFACT_PATH" '
-      select(
-        .backend == "markdown" and
-        (.feature | type) == "object" and .feature.id == $path and
-        (.spec | type) == "object" and .spec.id == $path and
-        (.increments | type) == "array"
-      )
-    ' <<<"$MODEL" >"$TMP_CONTEXT" || {
-      echo "artifact context: Markdown reader returned an invalid normalized model" >&2
-      exit 1
-    }
+    fi
     ;;
 
   markdown-fix)

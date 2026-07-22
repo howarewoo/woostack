@@ -1,7 +1,7 @@
 ---
 name: schema-unions-need-positive-branch-coverage
 type: pattern
-scope: skills/woostack-eval/scripts/aggregate/**,skills/woostack-eval/scripts/tests/test-aggregate.sh
+scope: tooling/evals/scripts/aggregate/**,tooling/evals/scripts/tests/test-aggregate.sh
 tags: tests, schema, union, telemetry, identity, regression-coverage
 hook: A schema union is not covered when tests exercise only one successful branch and invalid forms of the other — add a positive contract case for every supported branch.
 updated: 2026-07-17

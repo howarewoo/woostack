@@ -2,7 +2,7 @@ import { readdir, readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseFrontmatter } from '../../skills/woostack-eval/scripts/validate.mjs';
+import { parseFrontmatter } from '../../skills/using-woostack/scripts/validate-skill-package.mjs';
 
 export { parseFrontmatter };
 
@@ -34,7 +34,6 @@ export const PUBLIC_ORDER = [
   'woostack-qa',
   'woostack-audit',
   'woostack-respond',
-  'woostack-eval',
 ];
 export const SUPPORTING_ORDER = ['woostack-ask'];
 export const INTERNAL_ORDER = ['woostack-harden', 'woostack-ideate'];

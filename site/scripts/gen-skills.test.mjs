@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { parseFrontmatter } from '../../skills/woostack-eval/scripts/validate.mjs';
+import { parseFrontmatter } from '../../skills/using-woostack/scripts/validate-skill-package.mjs';
 import {
   INTERNAL_ORDER,
   PUBLIC_ORDER,
@@ -128,7 +128,7 @@ test('renderPage emits title/description, source link, internal note for sub-ski
   assert.match(ideate, /Internal sub-skill/);
 });
 
-test('navOrder preserves the exact 23-public and 3-supporting/internal skill order', () => {
+test('navOrder preserves the exact 22-public and 3-supporting/internal skill order', () => {
   const expectedPublic = [
     'using-woostack',
     'woostack-init',
@@ -152,18 +152,17 @@ test('navOrder preserves the exact 23-public and 3-supporting/internal skill ord
     'woostack-qa',
     'woostack-audit',
     'woostack-respond',
-    'woostack-eval',
   ];
   const expectedSupporting = ['woostack-ask'];
   const expectedInternal = ['woostack-harden', 'woostack-ideate'];
   const expected = [...expectedPublic, ...expectedSupporting, ...expectedInternal];
 
-  assert.equal(PUBLIC_ORDER.length, 23);
+  assert.equal(PUBLIC_ORDER.length, 22);
   assert.deepEqual(PUBLIC_ORDER, expectedPublic);
   assert.deepEqual(SUPPORTING_ORDER, expectedSupporting);
   assert.deepEqual(INTERNAL_ORDER, expectedInternal);
-  assert.equal(expected.length, 26);
-  assert.equal(new Set(expected).size, 26);
+  assert.equal(expected.length, 25);
+  assert.equal(new Set(expected).size, 25);
   assert.deepEqual(navOrder([...expected].reverse()), expected);
 });
 

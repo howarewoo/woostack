@@ -1,7 +1,7 @@
 ---
 name: comparative-evals-require-concrete-model-identity
 type: gotcha
-scope: skills/using-woostack/references/hosts/**,skills/woostack-eval/**
+scope: skills/using-woostack/references/hosts/**,tooling/evals/**
 tags: evaluation, models, fallback, comparison
 hook: A fallback model list is not a concrete comparative pin; prove one completion identity for both paired workers or block the comparison.
 updated: 2026-07-16

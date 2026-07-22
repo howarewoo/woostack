@@ -32,10 +32,16 @@ cat >"$ADAPTERS/markdown.sh" <<'SH'
 set -euo pipefail
 printf 'markdown op=%s path=%s secret=%s input=%s\n' "${1:-}" "${2:-}" "${LINEAR_API_KEY:+present}" "${INPUT_LINEAR_API_KEY:+present}" >>"$FAKE_ADAPTER_LOG"
 [ "${1:-}" = feature ] || { echo mutation-invoked >&2; exit 1; }
-[ "${FAKE_MARKDOWN_MODE:-ok}" = ok ] || { echo 'markdown read failed' >&2; exit 1; }
+[ "${FAKE_MARKDOWN_MODE:-ok}" != fail ] || { echo 'markdown read failed' >&2; exit 1; }
 case "${2:-}" in
   */.woostack/specs/feature.md)
-    printf '%s\n' '{"backend":"markdown","feature":{"id":".woostack/specs/feature.md","title":"Feature"},"spec":{"id":".woostack/specs/feature.md","content":"spec body","revision":"rev"},"plan":null,"increments":[]}' ;;
+    if [ "${FAKE_MARKDOWN_MODE:-ok}" = large ]; then
+      printf '%s' '{"backend":"markdown","feature":{"id":".woostack/specs/feature.md","title":"Feature"},"spec":{"id":".woostack/specs/feature.md","content":"'
+      printf '%*s' 131072 '' | tr ' ' x
+      printf '%s\n' '","revision":"rev"},"plan":null,"increments":[]}'
+    else
+      printf '%s\n' '{"backend":"markdown","feature":{"id":".woostack/specs/feature.md","title":"Feature"},"spec":{"id":".woostack/specs/feature.md","content":"spec body","revision":"rev"},"plan":null,"increments":[]}'
+    fi ;;
   *) echo 'unexpected markdown path' >&2; exit 1 ;;
 esac
 SH
@@ -68,7 +74,7 @@ write_meta() {
 }
 
 file_mode() {
-  stat -f '%Lp' "$1" 2>/dev/null || stat -c '%a' "$1"
+  stat -c '%a' "$1" 2>/dev/null || stat -f '%Lp' "$1"
 }
 
 run_context() {
@@ -147,6 +153,13 @@ assert_eq "$(file_mode "$OUT")" '700' "OUTDIR is private"
 assert_eq "$(file_mode "$OUT/artifact-context.json")" '600' "artifact context is private"
 assert_contains "$(cat "$LOG")" 'markdown op=feature' "Markdown uses only agreed feature read op"
 assert_contains "$(cat "$LOG")" 'secret= input=' "Markdown adapter receives no Linear credential variables"
+
+FAKE_MARKDOWN_MODE=large
+run_context $'Summary\n\nSpec: .woostack/specs/feature.md' markdown
+unset FAKE_MARKDOWN_MODE
+assert_exit 0 "$CODE" "large Markdown feature model streams through validation"
+assert_eq "$(jq -r '.spec.content | length' "$OUT/artifact-context.json")" '131072' \
+  "large Markdown feature content is preserved without a command-line argument"
 
 run_context $'Example attribution:\nSpec: .woostack/specs/example.md\n\nActual trailer follows.\n\nSpec: .woostack/specs/feature.md' markdown
 assert_exit 0 "$CODE" "Spec-like body prose does not override the final Markdown trailer block"

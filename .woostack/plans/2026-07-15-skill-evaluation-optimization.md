@@ -9,9 +9,17 @@ branch: feature/skill-evaluation-optimization
 
 # Skill Evaluation and Optimization Implementation Plan
 
+> **Amendment (2026-07-22):** Increment 3's public-command registration is superseded by
+> [#559](https://github.com/howarewoo/woostack/issues/559). Evaluation moves to maintainer-only
+> `tooling/evals/`; the consumer surface returns to 22 public and 25 installed skills. Host-native
+> dispatch and candidate-only degradation are removed. Model-backed runs remain blocked on the
+> enforceably isolated runner tracked in [#560](https://github.com/howarewoo/woostack/issues/560).
+> The deterministic corpus, preparation, aggregation, reporting, and review-validation increments
+> remain applicable at their amended paths.
+
 **Goal:** Add portable, receipt-backed skill evaluation; make skill-package review deterministic and tiny-diff safe; improve adjacent-command routing; and progressively disclose the three largest orchestration skills without weakening their contracts.
 
-**Architecture:** Deterministic Node standard-library helpers validate skill packages and corpora, prepare isolated candidate/baseline workspaces, aggregate host-written evidence, and render an escaped report. The public `woostack-eval` skill owns corpus approval, host-native paired dispatch, degradation, and handback. Review reuses the same validator and a Git-visible package snapshot while retaining Git diff as the sole finding-anchor authority. Product-level eval corpora then protect trigger boundaries and load-bearing behavior before any root skill is split into direct references.
+**Architecture:** Deterministic Node standard-library helpers validate skill packages and corpora, prepare isolated candidate/baseline workspaces, aggregate supervisor-owned evidence, and render an escaped report. The maintainer-only evaluator owns corpus approval and handback; an approved isolated runner owns paired dispatch without degradation. Review reuses the installed shared validator and a Git-visible package snapshot while retaining Git diff as the sole finding-anchor authority. Product-level eval corpora then protect trigger boundaries and load-bearing behavior before any root skill is split into direct references.
 
 **Tech Stack:** Markdown Agent Skills, Node.js ESM standard library, Bash contract tests, Git/Graphite, GitHub CLI, Fumadocs site generator.
 
@@ -25,7 +33,7 @@ Create one Graphite stack above the existing spec+plan base branch. Each increme
 | 2a | `feature/skill-eval-runtime-preparation` | increment 1 | AC4, AC5 preparation |
 | 2b | `feature/skill-eval-runtime-aggregate` | increment 2a | AC5–AC8 aggregation |
 | 2c | `feature/skill-eval-runtime-report` | increment 2b | AC9 and complete engine proof |
-| 3 | `feature/skill-eval-command` | increment 2c | AC1, AC2, AC4–AC10, AC19 |
+| 3 | `feature/internal-eval-tooling` | increment 2c | AC1, AC2, AC4–AC10, AC19 |
 | 4 | `feature/skill-review-package-context` | increment 3 | AC3, AC11, AC12 |
 | 5 | `feature/skill-review-rubric` | increment 4 | AC13 |
 | 6 | `feature/skill-trigger-core` | increment 5 | AC14, cluster 1 |
@@ -48,10 +56,10 @@ Every implementation branch follows Red → Green → Refactor. Run only the nam
 ### Task 1: Pin the shared parser and validator contracts
 
 **Files:**
-- Create: `skills/woostack-eval/references/schemas.md`
-- Create: `skills/woostack-eval/scripts/tests/run-tests.sh`
-- Create: `skills/woostack-eval/scripts/tests/test-validate.sh`
-- Create: `skills/woostack-eval/scripts/tests/test-shared-parser.sh`
+- Create: `tooling/evals/references/schemas.md`
+- Create: `tooling/evals/scripts/tests/run-tests.sh`
+- Create: `tooling/evals/scripts/tests/test-validate.sh`
+- Create: `tooling/evals/scripts/tests/test-shared-parser.sh`
 - Test: `site/scripts/gen-skills.test.mjs`
 
 - [x] **Step 1 — Red: write contract fixtures and assertions**
@@ -77,16 +85,16 @@ The parser test imports one exported `parseFrontmatter(raw, file)` function and 
 Run:
 
 ```bash
-bash skills/woostack-eval/scripts/tests/test-validate.sh
-bash skills/woostack-eval/scripts/tests/test-shared-parser.sh
+bash tooling/evals/scripts/tests/test-validate.sh
+bash tooling/evals/scripts/tests/test-shared-parser.sh
 ```
 
-Expected: both fail because `validate.mjs` does not exist.
+Expected: both fail because `validate-skill-package.mjs` does not exist.
 
 ### Task 2: Implement deterministic package and corpus validation
 
 **Files:**
-- Create: `skills/woostack-eval/scripts/validate.mjs`
+- Create: `skills/using-woostack/scripts/validate-skill-package.mjs`
 
 - [x] **Step 1 — Green: implement the smallest exported API**
 
@@ -102,7 +110,7 @@ hashPackage(packagePath, { trackedOnly })
 The CLI is:
 
 ```text
-node validate.mjs --package <skill-dir-or-SKILL.md> [--repository-root <root>] [--tracked-only] [--json]
+node skills/using-woostack/scripts/validate-skill-package.mjs --package <skill-dir-or-SKILL.md> [--repository-root <root>] [--tracked-only] [--json]
 ```
 
 Required behavior:
@@ -122,7 +130,7 @@ Required behavior:
 - [x] **Step 2 — Run Green tests**
 
 ```bash
-bash skills/woostack-eval/scripts/tests/run-tests.sh
+bash tooling/evals/scripts/tests/run-tests.sh
 ```
 
 Expected: parser, package, corpus, path-safety, placeholder, and YAML-hazard cases pass.
@@ -135,7 +143,7 @@ Expected: parser, package, corpus, path-safety, placeholder, and YAML-hazard cas
 
 - [x] **Step 1 — Red: change the test import authority**
 
-Import `parseFrontmatter` directly from `../../skills/woostack-eval/scripts/validate.mjs` in the test and add the safe-placeholder/colon-space pair. Expected failure: the generator still owns a second parser.
+Import `parseFrontmatter` directly from `skills/using-woostack/scripts/validate-skill-package.mjs` in the test and add the safe-placeholder/colon-space pair. Expected failure: the generator still owns a second parser.
 
 - [x] **Step 2 — Green: delete the duplicate parser**
 
@@ -157,7 +165,7 @@ Keep fatal validation limited to the deterministic list in the spec. Do not add 
 **Increment verification:**
 
 ```bash
-bash skills/woostack-eval/scripts/tests/run-tests.sh
+bash tooling/evals/scripts/tests/run-tests.sh
 node --test site/scripts/gen-skills.test.mjs
 pnpm -C site build
 ```
@@ -175,12 +183,12 @@ Commit with `/woostack-commit --no-pr-update`, review this PR, and leave no regi
 ### Task 1: Pin workspace and baseline preparation
 
 **Files:**
-- Create: `skills/woostack-eval/references/runner.md`
-- Create: `skills/woostack-eval/scripts/tests/test-prepare.sh`
+- Create: `tooling/evals/references/runner.md`
+- Create: `tooling/evals/scripts/tests/test-prepare.sh`
 
 - [x] **Step 1 — Red**
 
-Cover explicit baseline-ref precedence, explicit baseline-path precedence, mutual exclusion, merge-base resolution through `skills/woostack-init/scripts/resolve-base.sh`, no-skill baseline only for proven absence/non-Git target, dirty candidate preservation, invalid Git lookup fail-closed, atomic run IDs, concurrent runs, ignored `.woostack/tmp` selection, `${TMPDIR:-/tmp}` fallback, traversal/symlink rejection, candidate/baseline separation, fixture copying, canonical trigger catalogs, and original-package pre-dispatch hash.
+Cover explicit baseline-ref precedence, explicit baseline-path precedence, mutual exclusion, merge-base resolution through `skills/woostack-init/scripts/resolve-base.sh`, no-skill baseline only for proven absence/non-Git target, dirty candidate preservation, invalid Git lookup fail-closed, atomic run IDs, concurrent runs, ignored `.woostack/tmp` selection, missing or unignored default-output rejection, traversal/symlink rejection, candidate/baseline separation, fixture copying, canonical trigger catalogs, and original-package pre-dispatch hash.
 
 Expected manifest shape:
 
@@ -204,7 +212,7 @@ Expected manifest shape:
 ### Task 2: Implement safe preparation
 
 **Files:**
-- Create: `skills/woostack-eval/scripts/prepare.mjs`
+- Create: `tooling/evals/scripts/prepare.mjs`
 
 CLI:
 
@@ -220,7 +228,7 @@ Implementation requirements:
 - Invoke Git with argument arrays, never shell interpolation. Resolve merge-base only via the canonical resolver; an unavailable resolver requires an explicit baseline.
 - Read baseline Git objects without checking out over the user's worktree: enumerate with `git ls-tree -r -z <sha> -- <relative-package>`, reject non-regular modes, and materialize each accepted blob with `git show <sha>:<path>` into the private temporary tree. An explicit absolute baseline path establishes a read-only allowed root.
 - Allocate the run directory atomically with mode `0700`; never reuse an existing ID.
-- Use `.woostack/tmp/skill-evals` only after canonical-root resolution and `git check-ignore` proof; otherwise use an atomic system-temporary directory and report that fallback.
+- Use `.woostack/tmp/skill-evals` only after canonical-root resolution and `git check-ignore` proof; otherwise require an explicit `--out-root` and fail closed.
 - Copy only allowed package/fixture files. Build one isolated workspace per case/variant/repetition, plus append-only `evidence/` paths outside the case's capability root. Evidence names are deterministic and collision-free: `action.<kind>.<case-id>.<variant>.<repetition>.json` and `grade.<case-id>.<variant>.<repetition>.<grader-id>.json`; writers use create-new semantics.
 - Produce candidate and baseline trigger catalogs from the same canonical public name/description list rooted at the explicit `--catalog-root` supplied by the skill; default only to the installed collection root derived from `import.meta.url`. Change only the target variant. Add an external target to the candidate catalog when absent; a no-skill baseline omits it.
 - Group candidate/baseline workers into inseparable pairs; do not decide host concurrency in the script.
@@ -233,12 +241,12 @@ Run `test-prepare.sh`; expected pass.
 > **Depends on:** Increment 2a  
 > **Git parent:** `feature/skill-eval-runtime-preparation`
 
-> Independently shippable aggregation authority: immutable evidence snapshots, exact receipts, objective assertions, blinded qualitative grades, and honest complete/blocked/degraded metrics.
+> Independently shippable aggregation authority: immutable evidence snapshots, exact receipts, objective assertions, blinded qualitative grades, and honest complete/blocked metrics.
 
 ### Task 3: Pin receipt, assertion, grade, and aggregate behavior
 
 **Files:**
-- Create: `skills/woostack-eval/scripts/tests/test-aggregate.sh`
+- Create: `tooling/evals/scripts/tests/test-aggregate.sh`
 
 Red cases:
 
@@ -246,7 +254,7 @@ Red cases:
 - missing, duplicate, unknown, malformed, timed-out, failed, model/tier/effort-mismatched, repetition-mismatched, and identity-mismatched receipts block comparison;
 - one repetition reports variance unavailable;
 - partial wave preserves successful evidence but overall status is blocked;
-- candidate-only accepted smoke evidence is degraded and emits no comparative/trigger metric;
+- candidate-only manifests are rejected before evidence processing;
 - qualitative grade identity remains blinded until its own complete receipt;
 - trigger precision/recall uses explicit selected-skill receipts, not transcript text;
 - absent token telemetry is `unavailable`, never zero; duration/completion identity are required.
@@ -254,8 +262,8 @@ Red cases:
 ### Task 4: Implement the single aggregate authority
 
 **Files:**
-- Create: `skills/woostack-eval/scripts/aggregate.mjs`
-- Create: `skills/woostack-eval/scripts/aggregate/*.mjs`
+- Create: `tooling/evals/scripts/aggregate.mjs`
+- Create: `tooling/evals/scripts/aggregate/*.mjs`
 
 CLI:
 
@@ -263,7 +271,7 @@ CLI:
 node aggregate.mjs --manifest <manifest.json> --evidence <dir> --out <aggregate.json>
 ```
 
-Accept append-only action receipts with the spec-required identity, timing, output, completion, and error fields. Validate exactly the manifest's expected set before grading. Run deterministic assertions against copied workspaces/captured outputs, accept only explicit qualitative grades with completed grader receipts, compute per-case/overall rates and variance, and emit `executionStatus` exactly `complete | blocked | degraded`. Assertion failures may coexist with `complete`; missing execution proof may not. Do not emit a universal merge verdict.
+Accept append-only action receipts with the spec-required identity, timing, output, completion, and error fields. Validate exactly the manifest's paired candidate/baseline expected set before grading. Run deterministic assertions against copied workspaces/captured outputs, accept only explicit qualitative grades with completed paired grader receipts, compute per-case/overall rates and variance, and emit `executionStatus` exactly `complete | blocked`. Assertion failures may coexist with `complete`; missing execution proof may not. Do not emit a universal merge verdict.
 
 Run `test-aggregate.sh`; expected pass.
 
@@ -278,8 +286,8 @@ Run `test-aggregate.sh`; expected pass.
 ### Task 5: Pin and implement escaped reporting
 
 **Files:**
-- Create: `skills/woostack-eval/scripts/tests/test-render-report.sh`
-- Create: `skills/woostack-eval/scripts/render-report.mjs`
+- Create: `tooling/evals/scripts/tests/test-render-report.sh`
+- Create: `tooling/evals/scripts/render-report.mjs`
 
 CLI:
 
@@ -287,7 +295,7 @@ CLI:
 node render-report.mjs --aggregate <aggregate.json> --out <report.html> [--terminal]
 ```
 
-The Red fixture contains `</script>`, active HTML, control bytes, a network URL, huge raw output, a missing token count, blocked/degraded cases, and equal/changed metrics. Green output must:
+The Red fixture contains `</script>`, active HTML, control bytes, a network URL, huge raw output, a missing token count, blocked cases, and equal/changed metrics. Green output must:
 
 - start with a restrictive no-script/no-network CSP;
 - escape every untrusted value and remove disallowed controls;
@@ -302,106 +310,68 @@ The Red fixture contains `</script>`, active HTML, control bytes, a network URL,
 Keep worker dispatch out of scripts. Ensure no success file is preinitialized, each receipt is append-only, and aggregate/render writes use create-new or atomic rename semantics.
 
 ```bash
-bash skills/woostack-eval/scripts/tests/run-tests.sh
+bash tooling/evals/scripts/tests/run-tests.sh
 ```
 
 Expected: all validation, preparation, receipt, partial-run, assertion, trigger, escaping, and concurrency tests pass without network or model access.
 
-## Increment 3: Public `/woostack-eval` workflow and lockstep registration
+## Increment 3: Maintainer-only evaluation workflow and consumer boundary
 
-> **Branch:** `feature/skill-eval-command`  
+> **Branch:** `feature/internal-eval-tooling`
 > **Depends on:** Increment 2c  
-> **Git parent:** `feature/skill-eval-runtime-report`
+> **Git parent:** `main`
 
-> First public release of the evaluator. Registration and a complete executable workflow ship together; there is no public half-state.
+> Amended by #559 and #560. Evaluation remains publicly inspectable but is no longer an installed or
+> routed consumer skill.
 
-### Task 1: Pin command orchestration and write boundaries
+### Task 1: Relocate execution tooling and preserve installed validation
 
-**Files:**
-- Create: `skills/woostack-eval/scripts/tests/test-command-contract.sh`
-- Create: `skills/woostack-eval/scripts/tests/test-e2e.sh`
+- Move the evaluator workflow, corpora, preparation, aggregation, rendering, and tests to
+  `tooling/evals/`.
+- Keep the shared package validator at
+  `skills/using-woostack/scripts/validate-skill-package.mjs` so installed review workflows and site
+  generation retain deterministic validation without depending on maintainer execution tooling.
+- Update all imports, synthetic checkout fixtures, and repository memory scopes.
 
-Red contract assertions:
+### Task 2: Make model-backed dispatch fail closed
 
-```text
-/woostack-eval <skill-path> [--behavior | --triggers | --all]
-  [--runs <1..10>]
-  [--baseline-ref <git-ref> | --baseline-path <skill-dir>]
-```
+The maintainer contract requires an approved isolated runner adapter. Ordinary host subagents, OMP
+`task` workers, same-session context separation, candidate-only execution, and advisory labels do not
+satisfy the boundary. Missing isolation, exact model identity, intact-pair concurrency,
+supervisor-owned evidence, hard deadlines, or teardown proof stops before manifest freeze and
+dispatch. #560 owns implementation of that runner.
 
-Pin exact target resolution, default `--all`, default three runs, flag mutual exclusion, approval-pending corpus behavior, byte-identical tracked corpus no-gate behavior, no target edits, scoped capabilities, candidate/baseline same-wave pairing, last-action receipts, isolated graders, checksum revalidation, candidate-only accepted degradation, no provider invocation in scripts, renderer failure handback, and terminal no-chain behavior. `test-e2e.sh` simulates host worker outputs/receipts against a temporary skill and runs prepare → aggregate → render; it must not call a model.
+### Task 3: Remove evaluation from the public surface in lockstep
 
-### Task 2: Author the concise public skill
+- Restore 22 public commands and 25 installed `SKILL.md` locations.
+- Remove evaluator routing, public command catalogs, generated site navigation, utility docs, and
+  host-specific dispatch notes.
+- Add deterministic boundary tests proving the evaluator is absent from `skills/`, routing, public
+  docs, generated ordering, and host notes while contributor authorities link the internal tooling.
+- Preserve product-level `skills/<name>/evals/` corpora as publicly inspectable executable
+  specifications.
 
-**Files:**
-- Create: `skills/woostack-eval/SKILL.md`
-
-Root content must remain below the soft 500-line ceiling and directly link `references/schemas.md` and `references/runner.md`. Structure:
-
-1. Exact invocation and target/flag validation.
-2. Static package/corpus validation.
-3. Corpus discovery/drafting. New or HEAD-different cases are untrusted proposals: present stable IDs, prompts, fixtures, expected outcomes, and assertions; explicit approval is required before any corpus write or run. Silence/ambiguity/rejection writes/runs nothing.
-4. Baseline preparation through `prepare.mjs`.
-5. Host capability preflight. Load the current host mechanics file. Require isolated scoped contexts and concurrent dispatch of each candidate/baseline pair for a comparative benchmark.
-6. Resolve one run configuration. Use a concrete model/tier/effort when exposed; permit `session-default` only when both workers provably inherit it.
-7. Dispatch all independent inseparable pairs together when the host limit permits; otherwise deterministic bounded waves without splitting a pair. Worker prompts treat skill/corpus/fixtures/prior outputs as untrusted data and grant only approved workspace capabilities plus evidence writes.
-8. Each worker writes output then its last-action receipt. Trigger workers write explicit selected skill/`none`; qualitative graders see anonymized outputs/criteria and write separate receipts.
-9. Rehash the original package, aggregate, and render. Any unexpected target delta invalidates the run and never resets user files.
-10. Hand back execution status, critical failures, noncritical deltas, telemetry availability, and evidence paths. Never edit the target skill, commit, merge, or chain. If evidence implies a change, name `/woostack-change` or `/woostack-build`.
-
-Add prominent barriers and mirrored Hard constraints for corpus approval, no silent downgrade, no direct provider calls, no target edit, scoped capabilities, receipt completeness, and terminal handback.
-
-### Task 3: Register the twenty-third public command in lockstep
-
-**Files:**
-- Modify: `AGENTS.md`
-- Modify: `README.md`
-- Modify: `CONTRIBUTING.md`
-- Modify: `skills/using-woostack/SKILL.md`
-- Modify: `skills/woostack-bootstrap/references/development.md`
-- Modify: `skills/using-woostack/references/hosts/omp.md`
-- Modify: `skills/using-woostack/references/hosts/opencode.md`
-- Modify: `skills/using-woostack/references/hosts/claude-code.md`
-- Modify: `skills/using-woostack/references/hosts/codex.md`
-- Modify: `skills/using-woostack/references/hosts/cursor.md`
-- Modify: `skills/using-woostack/references/hosts/antigravity.md`
-- Modify: `site/content/docs/concepts/index.mdx`
-- Modify: `site/content/docs/concepts/utilities.mdx`
-- Modify: `site/scripts/gen-skills.mjs`
-- Modify: `site/scripts/gen-skills.test.mjs`
-- Modify: `skills/using-woostack/tests/test-artifact-reader-contract.sh`
-- Modify: `skills/woostack-change/scripts/tests/test-command-surface.sh`
-- Modify: `skills/woostack-respond/scripts/tests/test-command-surface.sh`
-- Create: `skills/woostack-eval/scripts/tests/test-command-surface.sh`
-
-Update all public/fixed counts from 22/25 to 23/26 and add `woostack-eval` to the public list, Mode B routing, fixed-path constraint, quick map, README command catalog, contributor map, bootstrap adoption map, `using-woostack` command table, and authored utility docs. Keep `woostack-ask` supporting/unregistered and `woostack-harden`/`woostack-ideate` internal.
-
-Correct the existing generated-site ordering gap in the same lockstep edit: add both already-public `woostack-change` and new `woostack-eval` to `PUBLIC_ORDER`; expected lengths become 23 public and 26 total. Do not hand-edit the generated per-skill page.
-
-Each host file gains only mechanics: how `woostack-eval` dispatches inseparable pairs, whether a concrete per-call model can be pinned, when `session-default` is provable, and whether host concurrency can satisfy comparative mode. Keep evaluator law in `SKILL.md`, not duplicated in host notes.
-
-The new command-surface test reads every site above, asserts one routing row, exact counts/orders, no stale 22/25 phrases in adoption docs, and the utility page's honest write boundary (tracked corpora only after approval; transient reports; no target skill edit).
-
-### Task 4: Verify functional and adoption surfaces
+### Task 4: Verify deterministic and adoption surfaces
 
 ```bash
-bash skills/woostack-eval/scripts/tests/run-tests.sh
+bash tooling/evals/scripts/tests/run-tests.sh
 bash skills/using-woostack/tests/test-artifact-reader-contract.sh
 bash skills/woostack-change/scripts/tests/test-command-surface.sh
 bash skills/woostack-respond/scripts/tests/test-command-surface.sh
+bash skills/woostack-review/scripts/tests/test-prefetch-skill-package.sh
 node --test site/scripts/gen-skills.test.mjs
 pnpm -C site build
+pnpx skills add . --list
 ```
 
-Then run one host-native smoke evaluation against `skills/woostack-eval` with `--all --runs 1` and an explicit no-skill or parent-ref baseline. Confirm candidate/baseline pair dispatch when supported, valid receipts, aggregate JSON, escaped HTML, and unchanged target hash. One run must label variance unavailable.
-
-> **Execution note (2026-07-16):** The user approved deferring the host-native smoke to Increment 8. Increment 3 verified the real deterministic prepare → aggregate → render path through `test-e2e.sh`; provider-backed dispatch waits for the approved `woostack-eval` corpus planned in Increment 8 and a host that can prove one concrete completion identity for both paired workers.
+The deterministic prepare → aggregate → render path remains testable. Provider-backed comparative
+execution is intentionally blocked until #560 supplies and verifies the isolated runner.
 
 ## Increment 4: Git-visible review package context and tiny-skill-diff coverage
 
 > **Branch:** `feature/skill-review-package-context`  
 > **Depends on:** Increment 3  
-> **Git parent:** `feature/skill-eval-command`
+> **Git parent:** `feature/internal-eval-tooling`
 
 ### Task 1: Pin safe full-package snapshot behavior
 
@@ -431,7 +401,7 @@ After the authoritative diff/meta are available and before skip/angle decisions:
 
 - detect touched paths ending in `/SKILL.md` or exactly `SKILL.md`;
 - use `git ls-files --stage -z` under each owning package to reject symlink/special modes and enumerate only tracked files;
-- invoke the shared `validate.mjs --tracked-only --json` before copying;
+- invoke the shared `validate-skill-package.mjs --tracked-only --json` before copying;
 - materialize under `$OUTDIR/skill-packages/<encoded-skill>/` and write `$OUTDIR/skill-packages.json` atomically;
 - fail closed with a blocking prefetch error on snapshot/validation failure; never claim diff-only whole-package review;
 - preserve artifacts in CI's detection/review handoff and local per-run output.
@@ -465,7 +435,7 @@ bash skills/woostack-review/scripts/tests/test-prefetch-skill-package.sh
 bash skills/woostack-review/scripts/tests/test-prefetch-skill-package-ci.sh
 bash skills/woostack-review/scripts/tests/test-prefetch-skill-small-diff.sh
 bash skills/woostack-review/scripts/tests/test-detect-angles-skills.sh
-bash skills/woostack-eval/scripts/tests/run-tests.sh
+bash tooling/evals/scripts/tests/run-tests.sh
 ```
 
 Smoke a local review on a temporary one-line `SKILL.md` description diff. Observe package manifest, validator result, `skills` in `angles.txt`, and no `<10 LOC` skip; do not require a model finding.
@@ -563,8 +533,8 @@ Do not lengthen already-distinct `change`, `fix`, `bootstrap`, `execute`, `execu
 ### Task 4: Verify candidate routing
 
 ```text
-/woostack-eval skills/woostack-build --triggers --runs 3 --baseline-ref <increment-5-sha>
-/woostack-eval skills/woostack-review --triggers --runs 3 --baseline-ref <increment-5-sha>
+maintainer evaluator skills/woostack-build --triggers --runs 3 --baseline-ref <increment-5-sha>
+maintainer evaluator skills/woostack-review --triggers --runs 3 --baseline-ref <increment-5-sha>
 ```
 
 Also run trigger mode once for each unchanged owning corpus to prove no adjacency regression. Require explicit selected-skill receipts; report precision/recall by stable ID. A changed description must improve the failing case and introduce no new near-miss failure, or revert it.
@@ -625,7 +595,7 @@ After candidate trigger evals pass with no regression, remove only the redundant
 
 ### Task 3: Verify controlled routing
 
-Run `/woostack-eval <target> --triggers --runs 3 --baseline-ref <increment-6-sha>` for changed descriptions and one run for every other second-cluster corpus. Reject any metadata edit that raises adjacent-command confusion. The report must label this controlled catalog selection, not host-loader proof.
+Run `maintainer evaluator <target> --triggers --runs 3 --baseline-ref <increment-6-sha>` for changed descriptions and one run for every other second-cluster corpus. Reject any metadata edit that raises adjacent-command confusion. The report must label this controlled catalog selection, not host-loader proof.
 
 ## Increment 8: Critical behavior corpora for fifteen workflows
 
@@ -636,7 +606,7 @@ Run `/woostack-eval <target> --triggers --runs 3 --baseline-ref <increment-6-sha
 ### Task 1: Add narrow load-bearing behavior cases
 
 **Files:**
-- Create: `skills/woostack-eval/evals/evals.json`
+- Create: `tooling/evals/evals/evals.json`
 - Create: `skills/woostack-build/evals/evals.json`
 - Create: `skills/woostack-fix/evals/evals.json`
 - Create: `skills/woostack-execute/evals/evals.json`
@@ -678,16 +648,16 @@ Prefer deterministic path/final/receipt assertions. Use `qualitative` only for c
 ### Task 2: Add named-corpus structural coverage
 
 **Files:**
-- Create: `skills/woostack-eval/scripts/tests/test-critical-corpora.sh`
+- Create: `tooling/evals/scripts/tests/test-critical-corpora.sh`
 
-The test enumerates exactly the fifteen required paths, runs `validate.mjs` on each package, proves at least one critical assertion per applicable safety contract, rejects prohibited capabilities, and confirms no corpus is an empty placeholder. It does not inspect prose with brittle full-output snapshots.
+The test enumerates exactly the fifteen required paths, runs `validate-skill-package.mjs` on each package, proves at least one critical assertion per applicable safety contract, rejects prohibited capabilities, and confirms no corpus is an empty placeholder. It does not inspect prose with brittle full-output snapshots.
 
 ### Task 3: Approve and smoke the corpora
 
 Present all new cases grouped by skill and obtain explicit approval before writing/running. Run deterministic validation for all fifteen. Then run `--behavior --runs 1` on each to smoke execution shape and `--runs 3` on at least build, eval, review, commit, and execute to prove paired receipts and variance. Use old/no-skill baselines as appropriate; record noncritical clarity/cost differences as evidence, not merge verdicts.
 
 ```bash
-bash skills/woostack-eval/scripts/tests/test-critical-corpora.sh
+bash tooling/evals/scripts/tests/test-critical-corpora.sh
 ```
 
 ## Increment 9: Progressively disclose `woostack-review`
@@ -701,7 +671,7 @@ bash skills/woostack-eval/scripts/tests/test-critical-corpora.sh
 Before editing, record `BASE_SHA=$(git rev-parse HEAD)` and run:
 
 ```text
-/woostack-eval skills/woostack-review --behavior --runs 3 --baseline-ref $BASE_SHA
+maintainer evaluator skills/woostack-review --behavior --runs 3 --baseline-ref $BASE_SHA
 ```
 
 This candidate-equals-baseline control must complete before the refactor. Retain transient aggregate paths in the PR test plan, not tracked output.
@@ -746,8 +716,8 @@ Run the structural test and shared package validator. Then evaluate the candidat
 
 ```bash
 bash skills/woostack-review/scripts/tests/test-progressive-disclosure.sh
-bash skills/woostack-eval/scripts/tests/test-critical-corpora.sh
-node skills/woostack-eval/scripts/validate.mjs --package skills/woostack-review
+bash tooling/evals/scripts/tests/test-critical-corpora.sh
+node skills/using-woostack/scripts/validate-skill-package.mjs --package skills/woostack-review
 ```
 
 ## Increment 10: Progressively disclose `woostack-commit`
@@ -789,7 +759,7 @@ At each root decision point, link directly and load only the selected backend/de
 ```bash
 bash skills/woostack-commit/tests/test-linear-attribution.sh
 bash skills/woostack-commit/tests/test-progressive-disclosure.sh
-node skills/woostack-eval/scripts/validate.mjs --package skills/woostack-commit
+node skills/using-woostack/scripts/validate-skill-package.mjs --package skills/woostack-commit
 ```
 
 Run behavior eval against `$BASE_SHA` for Markdown, Linear, verified `change/*`, `--no-pr-update`, Graphite success, unknown submit outcome, and failure-retention cases. Require exact attribution/trailers, no critical regression, and lower/equal loaded context per selected backend. Missing token telemetry remains unavailable.
@@ -840,7 +810,7 @@ No backend reference may be read before the resolver succeeds. Linear failures n
 bash skills/woostack-build/tests/test-linear-build-contract.sh
 bash skills/woostack-build/scripts/tests/test-build-spec-commit-ordering.sh
 bash skills/woostack-build/scripts/tests/test-progressive-disclosure.sh
-node skills/woostack-eval/scripts/validate.mjs --package skills/woostack-build
+node skills/using-woostack/scripts/validate-skill-package.mjs --package skills/woostack-build
 pnpm -C site build
 ```
 
@@ -850,8 +820,8 @@ Run build behavior eval against `$BASE_SHA` for Markdown Go/Hand off/abandon, Li
 
 | Acceptance criterion | Failing proof and owning increment |
 | --- | --- |
-| AC1 | `test-command-contract.sh`: exact target/flags/defaults/write boundary (3) |
-| AC2 | `test-command-contract.sh`: source contract enforces corpus approval before write/run; helper E2E starts from an approved snapshot (3) |
+| AC1 | `test-maintainer-contract.test.mjs`: internal-only target/default/write-boundary contract (3) |
+| AC2 | `test-maintainer-contract.test.mjs`: corpus approval before write/run; helper E2E starts from an approved snapshot (3) |
 | AC3 | `test-validate.sh`: parser, schema, path, capability, fixture, and secret rejection (1) |
 | AC4 | `test-prepare.sh`: explicit/ref/path/merge-base/no-skill precedence and failures (2) |
 | AC5 | `test-prepare.sh` + `test-e2e.sh`: isolated paired workspaces/config/hash proof (2–3) |
@@ -859,7 +829,7 @@ Run build behavior eval against `$BASE_SHA` for Markdown Go/Hand off/abandon, Li
 | AC7 | `test-aggregate.sh`: deterministic assertions and blinded qualitative grades (2) |
 | AC8 | `test-aggregate.sh` + trigger corpora: explicit catalog selection and precision/recall (2, 6–7) |
 | AC9 | `test-render-report.sh`: CSP, escaping, accessibility, degradation, retained JSON (2) |
-| AC10 | `test-command-surface.sh` plus existing adoption/site tests: 23 public/26 fixed (3) |
+| AC10 | `test-public-boundary.test.mjs` plus adoption/site tests: 22 public/25 installed and no evaluator routing (3) |
 | AC11 | `test-prefetch-skill-small-diff.sh`: skill-only LOC-floor exemption and failure close (4) |
 | AC12 | package/anchor fixtures: full context with changed-right-side anchoring only (4) |
 | AC13 | `test-skills-angle-rubric.sh`: combined house rubric and exceptions (5) |
@@ -868,24 +838,24 @@ Run build behavior eval against `$BASE_SHA` for Markdown Go/Hand off/abandon, Li
 | AC16 | review structural test plus old/candidate local+CI behavior/context eval (9) |
 | AC17 | commit attribution/structural tests plus Markdown+Linear behavior/context eval (10) |
 | AC18 | build gate/Linear/ordering/structural tests plus both-backend behavior/context eval (11) |
-| AC19 | command-surface test, authored docs sync, generated page build, no stale deferral (3) |
+| AC19 | public-boundary test, authored docs sync, generated page build, no stale deferral (3) |
 
 - **Spec coverage:** Every §4 component, §5 file/data-flow contract, §6 failure class, and §7 AC has an owning task and proof above.
-- **Increment shape:** Eleven unique branches form one representable Graphite parent chain. Registration ships only after the deterministic engine is complete. Every later refactor depends on committed behavior corpora.
+- **Increment shape:** The original eleven increments remain historical; #559 supersedes Increment 3 on a standalone branch from `main`, and #560 supplies the isolated runner before comparative execution resumes. Every later refactor depends on committed behavior corpora and receipt-backed evidence.
 - **No placeholders:** Commands, paths, schemas, branch names, failure expectations, and smoke stories are concrete; implementation may not introduce stubs, provider calls, or fake receipts.
 - **Type consistency:** All helper interfaces use documented JSON with `schemaVersion: 1`; IDs, variants, repetitions, statuses, capabilities, assertions, receipt names, and RFC 6901 pointers have one meaning across prepare/aggregate/report/review.
 - **Premise:** The linked approved spec §1 records the measured absence of corpora, current tiny-diff skip, duplicate parser, routing gaps, and oversized roots; the plan does not restate or inflate that evidence.
-- **Architecture:** One parser/validator authority feeds site, evaluator, and review. Scripts own deterministic mechanics; the skill owns approval and host dispatch. No backend/provider/runtime layer leaks across those boundaries.
+- **Architecture:** One installed parser/validator authority feeds site, evaluator, and review. Scripts own deterministic mechanics; the internal contract owns approval, while the approved runner owns isolated dispatch. No backend/provider/runtime layer leaks across those boundaries.
 - **Security/observability:** Untrusted corpus/model/remote text cannot expand capabilities; unsafe paths/secrets fail before dispatch; every non-success is explicit in a receipt, aggregate status, terminal summary, or renderer handback.
 - **Dependencies/infra:** No new package dependency, lockfile, provider SDK, app code, or model-backed CI is introduced. Existing Node, Bash, Git, Graphite, GitHub CLI, and site build surfaces remain the only runtime/tooling assumptions.
 
 ## Final stack verification and handback
 
-After all eleven increment PRs are implemented and individually reviewed, run from the top branch:
+After the original increments and the #559 amendment are implemented and individually reviewed, run from the top branch:
 
 ```bash
-bash skills/woostack-eval/scripts/tests/run-tests.sh
-bash skills/woostack-eval/scripts/tests/test-critical-corpora.sh
+bash tooling/evals/scripts/tests/run-tests.sh
+bash tooling/evals/scripts/tests/test-critical-corpora.sh
 bash skills/woostack-review/scripts/tests/test-prefetch-skill-package.sh
 bash skills/woostack-review/scripts/tests/test-prefetch-skill-package-ci.sh
 bash skills/woostack-review/scripts/tests/test-prefetch-skill-small-diff.sh
@@ -899,6 +869,7 @@ bash skills/woostack-build/scripts/tests/test-progressive-disclosure.sh
 bash skills/using-woostack/tests/test-artifact-reader-contract.sh
 bash skills/woostack-change/scripts/tests/test-command-surface.sh
 bash skills/woostack-respond/scripts/tests/test-command-surface.sh
+node --test tooling/evals/scripts/tests/test-maintainer-contract.test.mjs tooling/evals/scripts/tests/test-public-boundary.test.mjs
 node --test site/scripts/gen-skills.test.mjs
 pnpm -C site build
 ```
@@ -906,7 +877,7 @@ pnpm -C site build
 Then perform these observable smoke stories:
 
 1. New/changed corpus: explicit approval required; rejection/silence writes and runs nothing.
-2. Existing HEAD-identical corpus: three paired repetitions run without a repeated gate.
+2. After #560 lands, an existing HEAD-identical corpus runs three isolated paired repetitions without a repeated gate; before then, dispatch fails closed.
 3. Explicit ref/path, merge-base, no-skill, and invalid baseline paths behave exactly by precedence/failure contract.
 4. Partial/missing/mismatched receipt blocks comparison while retaining successful evidence.
 5. One-line `SKILL.md` edit reaches validated package-aware skills review locally; CI fixture proves the same artifact contract.

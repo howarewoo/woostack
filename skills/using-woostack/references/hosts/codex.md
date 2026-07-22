@@ -35,12 +35,6 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
 - **woostack-review (local swarm):** per-call bucket — honor each angle prompt's `tier:` and
   resolve each spawn's model via the review scripts' resolver; (CI) the single-session
   `load-prompt.sh` / `resolve-model.sh` path owns routing and is self-contained.
-- **woostack-eval (comparative dispatch):** local Codex can start the two isolated workers in
-  each candidate/baseline inseparable pair together and pin the same concrete `model` plus
-  `reasoning_effort` on both calls. `session-default` is provable only when both calls omit
-  overrides and the host confirms the same session identity. Local concurrent dispatch can
-  satisfy comparative mode; single-session Codex Action cannot create the required paired
-  workers and fails that mechanics preflight.
 
 ## Degradation
 

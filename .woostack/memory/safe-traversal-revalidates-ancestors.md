@@ -1,7 +1,7 @@
 ---
 name: safe-traversal-revalidates-ancestors
 type: gotcha
-scope: skills/woostack-eval/scripts/**
+scope: tooling/evals/scripts/**
 tags: evals, filesystem, safety
 hook: Safe traversal revalidates every ancestor before classifying a path as missing
 updated: 2026-07-16

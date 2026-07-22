@@ -33,11 +33,6 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
 - **woostack-review (local swarm):** dispatch angle workers via the runtime primitive (see
   `skills/woostack-review/prompts/opencode.md`); cap concurrency (`N=1`) only when the build
   lacks parallelism.
-- **woostack-eval (comparative dispatch):** submit the candidate and baseline as two isolated
-  `@subagent` workers in the same parallel dispatch, keeping every inseparable pair intact.
-  Pin the same concrete model on both calls. `session-default` is provable only when the runtime
-  identifies both workers as inheriting the same session model. Builds with true parallel
-  subagents support comparative concurrency; an `N=1` or queue-only build cannot.
 
 ## Degradation
 

@@ -534,7 +534,7 @@ if [ "${GITHUB_ACTIONS:-}" = "true" ] &&
   echo "::warning::prefetch: preserving detection skill package artifacts for downstream CI worker" >&2
 else
   SNAPSHOT_REPOSITORY="$(git -C "${GITHUB_WORKSPACE:-.}" rev-parse --show-toplevel 2>/dev/null || true)"
-  SNAPSHOT_VALIDATOR="$SCRIPT_DIR/../../woostack-eval/scripts/validate.mjs"
+  SNAPSHOT_VALIDATOR="$SCRIPT_DIR/../../using-woostack/scripts/validate-skill-package.mjs"
   if [ "${WOO_REVIEW_TEST_MODE:-}" = "1" ] &&
     [ -n "${WOO_REVIEW_TEST_SNAPSHOT_VALIDATOR:-}" ]; then
     SNAPSHOT_VALIDATOR="$WOO_REVIEW_TEST_SNAPSHOT_VALIDATOR"

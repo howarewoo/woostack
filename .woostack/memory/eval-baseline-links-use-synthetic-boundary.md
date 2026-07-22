@@ -1,7 +1,7 @@
 ---
 name: eval-baseline-links-use-synthetic-boundary
 type: gotcha
-scope: skills/woostack-eval/scripts/**
+scope: tooling/evals/scripts/**
 tags: evaluation, validation, baselines, links
 hook: Validate live cross-package links strictly, but let target-only Git snapshots leave only links outside the package and inside the preserved synthetic collection unresolved.
 updated: 2026-07-16
