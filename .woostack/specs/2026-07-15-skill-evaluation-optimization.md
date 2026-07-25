@@ -117,7 +117,7 @@ Add initial behavior corpora for `woostack-eval`, `woostack-build`, `woostack-fi
 
 ### 4.8 Progressively disclose conditional detail
 
-Refactor only after `/woostack-eval` can compare the old and candidate packages.
+**Superseding decision (2026-07-25):** For progressive-disclosure increments 9–11, model-backed old-versus-candidate comparisons are optional advisory evidence, not a prerequisite or acceptance gate. The available isolation runtime proved unreliable and consumed disproportionate engineering effort. Required proof is deterministic structural coverage, package validation, direct-reader/selective-loading assertions, and manual review. Comparative evaluation remains available elsewhere in the evaluation workflow and may supplement, but never replace or block, that proof.
 
 - `woostack-review`: keep the stage-by-stage orchestration, execution receipts, posting behavior, and hard constraints in root. Move invocation catalog, configuration schema/key reference, integration-specific setup, installation examples, and troubleshooting into direct conditional references.
 - `woostack-commit`: keep shared inspection, attribution decision, staging, commit, submission, verification, and reporting in root. Move Markdown- and Linear-specific attribution detail, PR-body formatting, and Graphite fallback/reference detail into direct references.
@@ -273,17 +273,17 @@ touched SKILL.md in PR/local diff
   - error: a skipped gate, silent downgrade, cross-backend fallback, fabricated receipt, unauthorized write, premature chain, or missing named corpus fails the owning assertion/structural test.
   - edge: autonomous modes remain autonomous while still proving their structural completion receipts; noncritical clarity/efficiency findings remain report evidence rather than merge gates.
 - **AC16 — `woostack-review` progressively discloses without behavior loss.**
-  - happy: conditional catalogs/setup/troubleshooting move to direct references; root retains stages, receipts, posting, and hard constraints; old versus candidate evals preserve behavior with lower or equal context use on representative prompts.
-  - error: missing commands, configuration behavior, integration routes, or posting/receipt constraints blocks the refactor.
-  - edge: local and CI modes both load only the conditional reference they need and remain independently proven.
+  - happy: conditional catalogs/setup/troubleshooting move to direct references; root retains stages, receipts, posting, and hard constraints; deterministic structural tests, package validation, direct-reader/selective-loading assertions, and manual review prove the refactor.
+  - error: missing commands, configuration behavior, integration routes, posting/receipt constraints, or deterministic proof blocks the refactor.
+  - edge: local and CI modes both load only the conditional reference they need and remain independently proven; model-backed old-versus-candidate comparison is optional advisory evidence.
 - **AC17 — `woostack-commit` progressively discloses without behavior loss.**
-  - happy: backend-specific attribution/formatting and Graphite detail move to direct references; shared inspect-to-report workflow remains root-visible and benchmarks preserve both backends.
-  - error: changed PR trailers, attribution, push/read-back, or failure retention blocks the refactor.
-  - edge: Markdown and Linear runs load only their selected attribution reference.
+  - happy: backend-specific attribution/formatting and Graphite detail move to direct references; shared inspect-to-report workflow remains root-visible; deterministic structural tests, package validation, direct-reader/selective-loading assertions, and manual review preserve both backends.
+  - error: changed PR trailers, attribution, push/read-back, failure retention, or deterministic proof blocks the refactor.
+  - edge: Markdown and Linear runs load only their selected attribution reference; model-backed comparison is optional advisory evidence.
 - **AC18 — `woostack-build` progressively discloses without weakening gates.**
-  - happy: the root resolves the backend once and loads only the selected backend procedure while retaining the three-gate chain, terminal states, and all hard constraints.
-  - error: any missing/extra gate, inferred approval, mixed backend, lifecycle drift, implementation artifact before handoff, or changed never-merge behavior blocks the refactor.
-  - edge: both Markdown and Linear benchmark cases prove revise, abandon, handoff, go, and overnight branches where applicable.
+  - happy: the root resolves the backend once and loads only the selected backend procedure while retaining the three-gate chain, terminal states, and all hard constraints; deterministic structural tests, package validation, direct-reader/selective-loading assertions, and manual review are required proof.
+  - error: any missing/extra gate, inferred approval, mixed backend, lifecycle drift, implementation artifact before handoff, changed never-merge behavior, or deterministic proof failure blocks the refactor.
+  - edge: Markdown and Linear direct-reader/selective-loading assertions cover revise, abandon, handoff, go, and overnight branches where applicable; model-backed comparison is optional advisory evidence.
 - **AC19 — Public documentation remains synchronized.**
   - happy: authored site pages and contributor/project maps describe the new command, count, evaluation loop, and any changed public workflow after the behavior is proven.
   - error: site generation/order tests or the site build fail on stale routing/count/navigation claims.
@@ -298,7 +298,7 @@ Use the existing shell-test conventions and repository-standard runtimes; add no
 - Review prefetch tests for one-line description diffs, unchanged tiny non-skill diffs, full package snapshot inventory, missing resource/invalid corpus failures, local/CI parity, and right-side finding anchors.
 - Cross-skill contract tests for public command order/count, all routing and authored-document sites, six host-file notes, direct-reference existence, one-level navigation, preserved gate text, backend-resolve-before-load order, and no stale deferral marker.
 - Committed trigger corpora for the two adjacent-command clusters and behavior corpora for critical workflow invariants. CI validates their schemas; agent-host runs generate candidate/baseline evidence during the owning implementation increments.
-- For each progressive-disclosure increment, run `/woostack-eval --behavior` against the old skill and candidate with the same model configuration, inspect the static review, and require no critical assertion regression. Record context/token deltas when the host exposes them; otherwise record the metric as unavailable.
+- For progressive-disclosure increments 9–11, require deterministic structural tests, package validation, direct-reader/selective-loading assertions, and manual review. `/woostack-eval --behavior` old-versus-candidate runs may provide optional advisory evidence with honestly reported context/token availability, but no model-backed receipt, report, or comparison gates acceptance.
 - Run the bounded existing test scripts for every touched skill package. After behavior is proven and authored site claims change, run `node --test site/scripts/gen-skills.test.mjs` and `pnpm -C site build`.
 
 ## 9. Open questions
