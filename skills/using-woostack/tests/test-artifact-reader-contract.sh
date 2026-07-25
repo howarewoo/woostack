@@ -339,7 +339,7 @@ if validation_mode == "repository":
     require_doc("development", r"\.\./\.\./woostack-build/SKILL\.md", "does not link the build lifecycle authority")
     require_doc("development", r"\.\./\.\./woostack-init/references/worktrees\.md", "does not link the worktree authority")
     require_doc("development", r"\.\./\.\./woostack-status/references/conventions\.md", "does not link the status authority")
-    require_doc("worktrees", r"woostack-build/SKILL\.md#linear-backend-procedure", "does not link the Linear build authority")
+    require_doc("worktrees", r"woostack-build/references/linear-procedure\.md", "does not link the Linear build authority")
     require_doc("status-conventions", r"woostack-bootstrap/references/development\.md#artifact-backend", "does not link the adoption authority")
 
     require_doc("development", r"Markdown.{0,100}\bdefault\b", "does not describe Markdown as the default backend")
@@ -379,7 +379,7 @@ if validation_mode == "repository":
         require_doc("site-build-loop", re.escape(gate), f"does not preserve the {gate} gate")
     require_doc("site-build-loop", r"Markdown \(default\).{0,300}Linear", "does not compare backend handoffs")
     require_doc("site-build-loop", r"Linear has no docs-only base PR", "does not exclude a Linear docs-only base PR")
-    require_doc("site-build-loop", r"woostack-build/SKILL\.md#linear-backend-procedure", "does not link the Linear lifecycle authority")
+    require_doc("site-build-loop", r"woostack-build/references/linear-procedure\.md", "does not link the Linear lifecycle authority")
     require_doc("site-status", r"Status authenticates before reading Linear.{0,120}narrow terminal reconciliation", "does not preserve authenticated terminal reconciliation")
     require_doc("site-status", r"managed project.{0,120}spec document.{0,120}ordered increment issues", "does not preserve the canonical Linear model")
     require_doc("site-status", r"native project.{0,120}team issue states", "does not preserve native lifecycle state")

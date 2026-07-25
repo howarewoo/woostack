@@ -40,7 +40,7 @@ in Linear, so it creates no authoring worktree or docs-only base branch; only im
 issues receive worktrees.
 
 This boundary implements the backend-specific persistence steps in the
-[`woostack-build` Linear procedure](../../woostack-build/SKILL.md#linear-backend-procedure);
+[`woostack-build` Linear procedure](../../woostack-build/references/linear-procedure.md);
 that workflow remains the lifecycle authority.
 
 For a Linear dependency root, create its implementation branch at the project's exact frozen root

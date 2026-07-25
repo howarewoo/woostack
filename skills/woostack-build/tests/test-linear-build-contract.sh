@@ -10,6 +10,8 @@ from pathlib import Path
 root = Path(sys.argv[1])
 paths = {
     "build": root / "skills/woostack-build/SKILL.md",
+    "markdown_procedure": root / "skills/woostack-build/references/markdown-procedure.md",
+    "linear_procedure": root / "skills/woostack-build/references/linear-procedure.md",
     "plan": root / "skills/woostack-plan/SKILL.md",
     "harden": root / "skills/woostack-harden/SKILL.md",
     "ideate": root / "skills/woostack-ideate/SKILL.md",
@@ -51,8 +53,10 @@ def ordered(text, tokens, scope):
             fail(f"{scope} missing or misorders {token!r}")
 
 build = texts["build"]
-markdown_branch = section(build, "## Markdown backend procedure", "## Linear backend procedure")
-linear_branch = section(build, "## Linear backend procedure", "## Shared terminal states")
+markdown_branch = build + "\n" + texts["markdown_procedure"]
+linear_branch = build + "\n" + texts["linear_procedure"]
+must_not(texts["markdown_procedure"], "linear-procedure.md", "Markdown selected procedure")
+must_not(texts["linear_procedure"], "markdown-procedure.md", "Linear selected procedure")
 linear_spec_gate = section(
     linear_branch,
     '<HARD-GATE backend="linear" name="spec-approval">',
@@ -126,7 +130,7 @@ for token in (
     "close the now-open PR",
 ):
     must(markdown_branch, token, "Markdown abandon cleanup")
-must_not(markdown_branch, "`abandoned`", "Markdown branch")
+must_not(texts["markdown_procedure"], "`abandoned`", "Markdown procedure")
 must(linear_branch, "preserve the project/document audit history", "Linear abandon persistence")
 
 # Linear preflight is captured once and every later command consumes UUID context, not names.
@@ -161,7 +165,7 @@ for token in (
 must(linear_branch, "no spec/plan worktree, branch, commit, or docs-only PR", "Linear branch")
 must(linear_branch, "`.woostack/specs/` or `.woostack/plans/` source file", "Linear branch")
 for forbidden in ("git worktree add", "gt create", "woostack-commit"):
-    must_not(linear_branch, forbidden, "Linear branch")
+    must_not(texts["linear_procedure"], forbidden, "Linear procedure")
 
 # Ready precedes the provisional branch/SHA freeze; explicit Go/overnight approval makes the
 # frozen base immutable before either executor starts.
@@ -263,8 +267,8 @@ for token in ("baseBranch", "baseCommitSha", "GIT_COMMIT_SHA_RE", "DESIGN_SEQUEN
 for token in ("baseBranch:$baseBranch", "baseCommitSha:$baseCommitSha", "--replan", "--issue-state-map", "--expected-revision", "project and managed spec lifecycle mismatch blocks replanning"):
     must(texts["linear"], token, "Linear adapter")
 for token in ("retain its `.revision`", "--expected-revision", "claims the revisioned spec as", "before it attempts the project transition", "verified, resumable `planning` spec receipt"):
-    must(build, token, "Linear replan caller")
-for workflow in (build, texts["plan"], texts["harden"], texts["ideate"]):
+    must(linear_branch, token, "Linear replan caller")
+for workflow in (build, texts["linear_procedure"], texts["plan"], texts["harden"], texts["ideate"]):
     for forbidden in ("api.linear.app/graphql", "query {", "mutation {"):
         must_not(workflow, forbidden, "workflow skill")
 

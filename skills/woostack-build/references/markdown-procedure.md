@@ -1,0 +1,195 @@
+## Markdown backend procedure
+
+## Procedure map
+
+- [Design and spec capture](#design-and-spec-capture)
+- [Spec approval and planning](#spec-approval-and-planning)
+- [Execution handoff and implementation](#execution-handoff-and-implementation)
+- [Preserved hard constraints](#markdown-hard-constraints-preserved)
+
+## Design and spec capture
+
+{/* <!-- markdown-gates: design-approval | spec-approval | execution-handoff --> */}
+
+<HARD-GATE backend="markdown" name="design-approval">
+
+1. **Ideate.** Invoke [`woostack-ideate`](../../woostack-ideate/SKILL.md) to explore
+   the problem and converge on a design. Let it run its own approval gate. It hands back an
+   approved design and stops there — it writes no spec and chains no plan, so the next steps
+   are yours to drive.
+   The design phase loads `.woostack/wisdom/*.md` wholesale as guidance (via `woostack-ideate`'s
+   context exploration); see the wisdom contract
+   [`../../woostack-init/references/wisdom.md`](../../woostack-init/references/wisdom.md).
+</HARD-GATE>
+2. **Write the spec as markdown.** When the design is approved, do **not** write to a generic
+   `docs/specs/` location. **First create the spec+plan worktree** (the first write of this run,
+   per the [worktree contract](../../woostack-init/references/worktrees.md)): pick the branch
+   `feature/<slug>`, then `git worktree add -b feature/<slug>
+   "$WOOSTACK_ROOT/.woostack/worktrees/feature-<slug>" "$(bash <wi>/resolve-base.sh)"`, run
+   `gt track --parent "$(bash <wi>/resolve-base.sh)"` from inside that worktree, and run
+   **steps 2–7 with cwd = that worktree** — the spec, the `woostack-plan` plan, and both hardens
+   author into it, never the primary tree. (On abandon at the spec gate, `git worktree remove
+   --force` it and delete the branch.) Instead author a markdown spec to
+   `.woostack/specs/YYYY-MM-DD-<slug>.md`, populating
+   [references/spec-template.md](spec-template.md). Markdown specs are the source
+   of truth: they carry `type: spec` frontmatter, are Obsidian vault nodes that can `[[link]]`
+   memory notes, and are excluded from memory recall routing by type. **Visualize on demand** —
+   if a rich view is wanted, hand the markdown to
+   [`woostack-visualize`](../../woostack-visualize/SKILL.md) (audience `engineer` for specs; it
+   uses [references/spec-template.html](spec-template.html) as a starting point).
+   The HTML is a presentation target only, never the authored source. Set the spec's
+   `status: draft` in frontmatter — the build loop owns the `status:` enum and authors a
+   transition at each step so `/woostack-status` can read it (the enum and join contracts live
+   in [`../../woostack-status/references/conventions.md`](../../woostack-status/references/conventions.md);
+   link it, do not restate it).
+
+## Spec approval and planning
+
+<HARD-GATE backend="markdown" name="spec-approval">
+
+3. **Harden the spec, commit it for review, then get spec approval.** Invoke
+   [`woostack-harden`](../../woostack-harden/SKILL.md) against the spec. Amend the spec
+   in place until hardening stops producing new questions, then set `status: hardened`. **Then
+   commit the spec before the gate** so the user reviews it in a PR, not as a raw worktree file:
+   from inside the `feature/<slug>` worktree, commit the `.woostack/specs/` markdown via
+   [`woostack-commit`](../../woostack-commit/SKILL.md) on the existing `feature/<slug>` branch and
+   submit it — this opens the spec+plan base PR, **initially spec-only** (the plan is appended in
+   step 7; it is the same base PR, not a separate one). Then **always present the spec to the user
+   and get explicit approval before planning** — this is a hard gate. Point the user at the **PR
+   URL** (the committed spec; offer the file path or a `woostack-visualize` render if it helps),
+   wait for a clear yes, and make any requested changes before advancing.
+   - **Go** → set `status: approved` (the worktree stays alive; steps 4–7 plan into it and step 7
+     appends the plan to this same PR).
+   - **Revise** → amend the spec in the still-alive worktree, **commit the revision** on the same
+     `feature/<slug>` branch (so the PR reflects it), and re-present at the gate.
+   - **Abandon** → **close the now-open PR**, then `git worktree remove --force` the worktree
+     and delete the `feature/<slug>` branch.
+   Do **not** proceed to step 4 on inferred or assumed approval; silence is not a yes. Committing
+   the spec here is a work step; it adds no gate.
+</HARD-GATE>
+4. **Plan.** Once the spec is approved, invoke
+   [`woostack-plan`](../../woostack-plan/SKILL.md) with the approved spec path. It writes the
+   plan to `.woostack/plans/<spec-basename>.md` with YAML frontmatter followed by the
+   `**Source:** [[specs/<basename>]]` wikilink line so status and doctor join it 1:1, structures
+   it as PR-sized increments, and sets the plan's `status: planning`. It writes the plan and
+   ships in this collection, so the build loop has no external skill dependencies.
+5. **Verify the increment decomposition.** `woostack-plan` already structures the plan as
+   PR-sized increments; build confirms the increment boundaries are reviewable, independently
+   shippable, and feed cleanly into `woostack-execute`. Flag any slice that is not reviewable
+   or independently shippable and propose a further split before executing. The
+   `spec : plan : PRs = 1 : 1 : N` invariant holds throughout: exactly one plan per spec, and
+   that one plan owns the N increment PRs.
+6. **Harden the plan.** Invoke [`woostack-harden`](../../woostack-harden/SKILL.md) again, this
+   time against the plan and its increment breakdown — stress-test the sequencing, the
+   increment boundaries, and the verifications until hardening stops producing new questions.
+   Amend the plan markdown in place as answers land. This adds **no approval gate**: harden
+   owns none and hands straight back. The chain's last hard stop is the **execution-handoff
+   gate (step 8)**, after the spec+plan PR — not a plan-*quality* gate here. Do not turn this
+   harden into a plan-approval gate. When hardening stops producing new questions, set the
+   plan's `status: ready` — the [conventions.md](../../woostack-status/references/conventions.md)
+   value for "plan hardened, ready for execution" (mirroring step 3's `hardened`, but for the
+   plan). Plans own implementation lifecycle, so this transition is authored on the **plan**, not the spec.
+7. **Append the plan to the spec+plan PR.** The spec was already committed and its PR opened in
+   step 3, so this step **adds the plan to that same PR** — it does not open a second one. Before
+   any implementation, commit the `.woostack/` plan via
+   [`woostack-commit`](../../woostack-commit/SKILL.md) onto the **same** `feature/<slug>` branch,
+   updating the existing PR so it now carries the spec **and** the plan. This docs-only PR is the
+   **base of the stack** — execution increments (step 9) stack on top of it via `gt create`. It
+   carries no code and is **never merged** by build. This is a work step, not an approval stop. The
+   commit happens inside the spec+plan worktree via `woostack-commit`; after the plan is committed,
+   **teardown** the worktree
+   (`git worktree remove "$WOOSTACK_ROOT/.woostack/worktrees/feature-<slug>"`) — the branch/commits/PR
+   persist as the stack base. Leave the worktree on failure and report its path
+   ([worktree contract](../../woostack-init/references/worktrees.md)).
+
+## Execution handoff and implementation
+
+<HARD-GATE backend="markdown" name="execution-handoff">
+
+8. **Stop before execute (execution-handoff gate).** After the spec+plan PR is open, **halt** —
+   this is a hard gate. Surface the handoff artifacts: the plan path (`.woostack/plans/…`), the
+   spec+plan PR URL, and — on request — a
+   [`woostack-visualize`](../../woostack-visualize/SKILL.md) render of the plan (audience
+   `engineer`). Then ask the user to choose:
+   - **Go** → proceed to step 9 and run `woostack-execute` in this session.
+   - **Run overnight** → proceed to step 9 but run
+     [`woostack-execute-overnight`](../../woostack-execute-overnight/SKILL.md) instead: it drives the
+     whole plan **unattended** (autonomous, no further input) and leaves a morning report under
+     `.woostack/overnight/` for you to test. Use this to let a well-made plan run overnight.
+   - **Hand off** → stop here. The user takes the plan PR and executes later or elsewhere (e.g.
+     Codex, or a fresh session via `/woostack-execute <plan-path>`).
+   Ambiguous or no answer is **not** a "go": never auto-run execute (supervised or overnight)
+   without an explicit go-ahead. This is the chain's last hard gate.
+</HARD-GATE>
+9. **Execute.** Invoke [`woostack-execute`](../../woostack-execute/SKILL.md) — or, if the user chose
+   **Run overnight** at step 8, [`woostack-execute-overnight`](../../woostack-execute-overnight/SKILL.md)
+   (unattended) — with the plan path to
+   work the plan as PR-sized stacked increments on top of the spec+plan PR — each implemented
+   with TDD (the [woostack-tdd kernel](../../woostack-tdd/SKILL.md)), the plan's checkboxes
+   ticked in place, committed via `woostack-commit`, reviewed per
+   the execution mode the active driver selects (`woostack-execute`: shared task-level
+   spec-compliance and code-quality checks, performed inline by the controller or by reviewer
+   subagents depending on mode; `woostack-execute-overnight` drives its own autonomous review
+   policy), and distilled into
+   `.woostack/memory/` — `woostack-execute` pausing on a blocking stop, `woostack-execute-overnight`
+   instead logging the blocker and continuing per its halt policy. `woostack-execute` owns the
+   per-increment commit/review/distill cadence and the inline-vs-subagent mode choice (one plan
+   per spec, multiple stacked PRs per plan), so it absorbs what used to be separate "distill
+   memory" and "offer the PR" steps here. As branches, commits, and increment PRs appear the
+   plan advances into the `executing` → `in-review` band; `woostack-execute` authors the plan's
+   terminal `status: done` at the final increment (so the authored value no longer lags), while the
+   board still **computes** that band from the artifacts via its truth table — showing `in-review`
+   until the final PR merges, then `done` — so any still-lagging authored `status:` is reconciled
+   rather than trusted blindly.
+10. **End on the chosen terminal state.** Build ends in one of three shapes, never merging any:
+    - **Hand off** → only the spec+plan PR is open (no increment PRs), ready for external or
+      later execute.
+    - **Go** → a Graphite stack with the spec+plan PR at the base and a reviewed increment PR
+      above each step.
+    - **Run overnight** → an autonomous `woostack-execute-overnight` run: a reviewed (or partially
+      reviewed, blockers logged) stack — linear or tree-stacked across `## Track:`s — plus a
+      morning report under `.woostack/overnight/`.
+    Build does not separately ask to open a PR (step 7 and the execute phase open them as work
+    steps) and **never merges**.
+
+### Markdown hard constraints (preserved)
+
+- **Inherit two gates, add one.** Do not insert *extra* approval stops beyond the three hard
+  gates: **design approval** (step 1) and **spec approval** (step 3), both inherited, plus the
+  **execution handoff** (step 8), which build owns because the plan→execute boundary belongs to
+  no sub-skill. The spec commit (step 3), the plan harden (step 6), and appending the plan to the
+  spec+plan PR (step 7) are work steps, not gates.
+- **Harden twice, neither harden gates.** Harden the spec (step 3, feeds the spec-approval gate)
+  and the plan (step 6, amends in place, no gate). The execution-handoff gate (step 8) is
+  separate and build-owned, not a plan-*quality* gate; never turn the plan harden into a
+  plan-approval gate.
+- **Always get explicit spec approval before planning.** After the spec harden, present the
+  written spec and wait for the user's clear yes. Never advance to `woostack-plan` on assumed
+  or inferred approval.
+- **Markdown specs and plans, under `.woostack/`.** Never write specs to a generic location
+  outside `.woostack/`. HTML is a render-on-demand target only, not the authored format.
+- **Commit the spec before its approval gate.** After the spec harden (step 3), commit the
+  `.woostack/specs/` markdown on the `feature/<slug>` branch and open the base PR **before** asking
+  for spec approval, so the user reviews the spec in the PR rather than a raw worktree file
+  (mirroring [`woostack-fix`](../../woostack-fix/SKILL.md)). Revisions at the gate are committed
+  before re-presenting; Abandon closes the now-open PR. This is a work step — it adds no gate, so
+  the chain still has exactly the three hard gates.
+- **Spec+plan ship as their own PR before execution.** The spec is committed at the gate (step 3)
+  and the plan appended to the **same** docs-only PR (step 7) — the base of the stack — before any
+  implementation begins. One PR, not two; never merge it.
+- **Stop before execute.** Never auto-run execute — supervised `woostack-execute` or unattended
+  `woostack-execute-overnight`; always halt at the execution-handoff gate (step 8) after the
+  spec+plan PR and let the user choose Go / Run overnight / Hand off. The plan PR is the artifact
+  for executing here or in another tool. Ambiguous or no answer is not a "go."
+- **Never merge.** build ends on the terminal state (handoff PR, or reviewed stack), nothing
+  further.
+- **Author status on the owning Markdown artifact.** Follow the canonical lifecycle and ownership
+  rules in
+  [`../../woostack-status/references/conventions.md`](../../woostack-status/references/conventions.md).
+  The local spec-gate `Abandon` path closes the open PR, then removes the temporary branch and
+  worktree; because no Markdown artifact survives, do not create a status-only abandonment
+  commit. Otherwise write each transition only on the artifact that owns it.
+- **One increment per cycle.** Do not let a single build cycle balloon past a reviewable PR.
+- **Distill durable knowledge only.** `woostack-execute` writes scoped, deduplicated memory
+  notes per increment — never feature-specific trivia, never a duplicate of an existing note. A
+  small curated store beats a large noisy one.

@@ -6,9 +6,9 @@ description: "Use to write the implementation plan for an approved woostack spec
 # woostack-plan
 
 Write a comprehensive implementation plan from one approved spec, structured as PR-sized
-increments. This is woostack's own planning phase — [`woostack-build`](../woostack-build/SKILL.md)
-step 4. It preserves one normalized planning contract across storage backends: file-structure
-first, bite-sized TDD tasks, no placeholders, explicit dependency/Git-parent shape, acceptance
+increments. This is woostack's own planning phase in the
+[`woostack-build`](../woostack-build/SKILL.md) shared chain. It preserves one normalized
+planning contract across storage backends: file-structure first, bite-sized TDD tasks, no placeholders, explicit dependency/Git-parent shape, acceptance
 coverage, and a self-review pass.
 
 When `woostack-build` supplies its retained resolver result and, for Linear, the normalized

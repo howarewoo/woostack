@@ -6,8 +6,8 @@ description: Use to execute an approved Markdown plan or Linear project as PR-si
 # woostack-execute
 
 Execute an approved plan by driving it to implementation as a sequence of PR-sized, stacked
-increments. This is woostack's own execution phase — [`woostack-build`](../woostack-build/SKILL.md)
-step 8. It keeps the discipline that makes plan execution reliable (load the plan, review it
+increments. This is woostack's own execution phase after
+[`woostack-build`](../woostack-build/SKILL.md) clears its execution-handoff gate. It keeps the discipline that makes plan execution reliable (load the plan, review it
 critically, follow steps exactly, run verifications, stop when blocked) and adds the woostack PR
 cadence: **one plan per spec, multiple stacked PRs per plan**, each increment committed,
 reviewed, and distilled before the next. It never merges and owns no approval gate.
@@ -74,10 +74,11 @@ is available), otherwise inline. If `--subagent` is requested but the host canno
 subagents, say so and fall back to inline (degraded, not equivalent) or stop and ask — never
 pretend subagent mode ran.
 
-When `woostack-build` reaches step 8 it invokes this skill with its selected artifact. In Markdown
-mode, build has already committed the spec and plan as their own PR (build step 7), and that
-docs-only PR is the base of the stack. Linear has no docs-only PR; its frozen base and declared
-issue Git parents drive implementation ancestry.
+When `woostack-build` clears the execution-handoff gate, it invokes this skill with its selected
+artifact. In Markdown mode, the [Markdown procedure](../woostack-build/references/markdown-procedure.md)
+has already committed the spec and plan in one docs-only PR that forms the stack base. The
+[Linear procedure](../woostack-build/references/linear-procedure.md) creates no docs-only PR;
+its frozen base and declared issue Git parents drive implementation ancestry.
 
 ## Load and review the artifact
 
@@ -99,8 +100,8 @@ do not rely on commit-time branch creation after work has already changed the tr
 ## PR-sized increments
 
 Implement the plan as a sequence of independently shippable increments — preferably ≤500 LOC
-each (a soft target, not a gate). When `woostack-build` invoked this skill, its step 5 already
-decomposed the plan into increments. When run standalone, perform the same decomposition:
+each (a soft target, not a gate). When `woostack-build` invoked this skill, its plan-verification
+phase already decomposed the plan into increments. When run standalone, perform the same decomposition:
 structure the work as increments, flag any slice that can't reasonably stay under the target,
 and propose a split before executing it. Genuinely atomic changes may exceed the target.
 
@@ -176,7 +177,7 @@ frontmatter or arbitrary issue checkboxes.
    for every non-final increment, and use terminal `status: done` for the final increment. These
    are Markdown execute's authored lifecycle transitions after `planning`
    ([`woostack-plan`](../woostack-plan/SKILL.md)) and `ready`
-   ([`woostack-build`](../woostack-build/SKILL.md) step 6). **Skip it for a `.woostack/fixes/`
+   (the [`woostack-build`](../woostack-build/SKILL.md) plan-hardening phase). **Skip it for a `.woostack/fixes/`
    file:** a fix file's frontmatter lifecycle stays owned by
    [`woostack-fix`](../woostack-fix/SKILL.md). The board still derives the `in-review` band from
    artifacts and shows `in-review` while an increment PR is open, reconciling to `done` at merge
