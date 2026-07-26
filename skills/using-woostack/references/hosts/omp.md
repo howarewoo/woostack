@@ -2,113 +2,95 @@
 
 ## Detection
 
-The `task` tool exposes an `agent:` selector but **no per-call `model`/`tier`/`effort`
-argument**; generated agent definitions live under `.omp/agents/`; host config lives in
-`~/.omp/` (user-global) and `.omp/` (project).
+The `task` tool exposes an `agent:` selector but no per-call `model`, `tier`, or `effort`
+argument. omp ships dispatchable workers and resolves their model roles from omp-owned
+configuration. woostack detects the `task` primitive and uses those bundled workers; it does not
+expect a project agent definition.
 
 ## Subagent spawn
 
-- **Primitive:** `task` tool, one subagent per task; dispatch independent tasks in a single
-  turn to run them in parallel.
-- **Per-call model/effort knob:** none — model routing rides the agent definition.
-- **Per-call cwd:** pass it when the spawn accepts one; the dispatch-prompt worktree pin is
-  filled regardless (the guard double-checks).
+- **Primitive:** `task` tool, one subagent per task; dispatch independent tasks in one `tasks[]`
+  call to run them in parallel.
+- **Worker selector:** choose the bundled `oracle`, `task`, or `quick_task` worker from the
+  effective tier mapping below.
+- **Per-call model/effort knob:** none. Worker selection routes through omp's model roles.
+- **Per-call cwd:** pass it when the spawn accepts one; always fill the dispatch-prompt worktree
+  pin as the portable guard.
+
+The worker names and spawn behavior are defined by omp's published
+[Subagents & IRC](https://omp.sh/docs/subagents) contract.
 
 ## Tier routing
 
-**Agent-by-tier.** omp resolves a subagent's model from the **agent definition** (`model` +
-`thinkingLevel`). woostack ships three generated defs
-`.omp/agents/woostack-{fast,standard,deep}.md` — baked from `.woostack/config.json` flat
-`models.<tier>` by `skills/woostack-init/scripts/gen-omp-agents.sh` — and the dispatching
-skill selects `agent: woostack-<effective-tier>` per spawn. **Ensure-then-select:** before
-dispatch, run the generator (idempotent) so the defs exist and are current, then select the
-per-task effective tier's agent — **agent-by-tier** routing. This is a routing pattern
-over the existing flat `models.<tier>` config — **not a fifth provider column** and **not
-a new config key**. An unset tier resolves to a `thinkingLevel`-only def (fast→low,
-standard→medium, deep→xhigh) inheriting the session model. woostack effort
-(`minimal|low|medium|high|xhigh`) maps 1:1 to omp `thinkingLevel` (which also allows
-`off`). This is the "host cannot route per call" branch done right — it is **not**
-degraded: the tier's model/effort apply via the def, so never "run at session model + say
-so" under omp. Tier→model values and override precedence:
-[`../model-tiers.md`](../model-tiers.md).
+**Host-owned role routing.** After the calling skill resolves the effective woostack tier, use
+this fixed map:
 
-**Cross-consumer coexistence.** On CI/single-session hosts the flat provider table and
-`resolve-model.sh` are untouched; this bucket is informational there. A consumer can still
-set provider-specific columnar models for those hosts.
+| Effective tier | omp model role | Built-in worker selector |
+|---|---|---|
+| `deep -> slow` | `slow` | `agent: oracle` |
+| `standard -> default` | `default` | `agent: task` |
+| `fast -> smol` | `smol` | `agent: quick_task` |
+
+These are **role-backed built-in workers** shipped by omp. Selecting them is a full,
+non-degraded routing capability even though `task` has no model argument. The generic `tier:`
+metadata and any skill-level tier override still determine the effective tier; after that,
+woostack applies only the fixed role/worker map above.
+
+Do not resolve a model for an omp dispatch, inspect model leaves in `.woostack/config.json`, or
+pass a repository model identity through the worker brief. omp alone resolves `slow`, `default`,
+and `smol` through its
+[Model roles](https://omp.sh/docs/roles) configuration and owns the concrete model, provider,
+thinking level, and role overrides.
+
+**Cross-consumer coexistence.** The shared model schema, provider table, and model resolvers remain
+available to non-omp hosts and the CI single-session path. omp dispatch bypasses that repository
+model layer; this exception does not change another host's resolution or override precedence.
 
 ## Host-level fallback
 
-Tier routing above is **static**; usage-limit failover is **host-owned**. The tier def picks
-the subagent session's *starting* model; on provider exhaustion omp walks its ladder —
-rotate sibling credentials (same provider), then apply its own `retry.fallbackChains` as a
-**temporary, self-announcing** model switch (`retry_fallback_applied` events) that reverts on
-cooldown expiry, then informed waiting against the provider's retry-after, then loud failure —
-beneath, not instead of, the tier's configured model. Credential-cooldown state is
-store-level, so a sibling spawn of the same tier agent falls over at spawn time rather than
-mid-task; the temporary model switch itself is per-session. woostack documents this layer but
-never reads or writes omp host config (`~/.omp/`).
+Fallback is entirely host-owned. omp owns provider and credential selection, credential rotation,
+cooldowns, retry policy, and any temporary model fallback behind the selected role. woostack
+neither reads nor manages omp model-role, fallback, or credential configuration in user or project
+host config, and it never translates repository model settings into an omp retry chain.
 
-**Fallback lists (`models.<tier>` arrays):** enacted natively. The generator renders entries
-1..n as a comma-separated selector list on the def's `model:` line
-(`model: "primary,fb:low,fb2"`); at spawn omp takes the first auth-usable entry as the
-session model and installs the rest as that spawn's own `retry.fallbackChains` chain (a
-synthetic `subagent:<id>` role — per-tier, self-reverting, with a fallback entry's `effort`
-riding its selector as `:level`). Still zero host-config writes: the chain lives inside the
-already generated, gitignored defs. Note omp's config-level `retry.fallbackChains` is keyed
-by model **role**, never model slug — do not hand-write slug-keyed chains.
-
-**Concurrent-spawn burst (native enactment can fail to engage).** When review fans out its
-angle workers at once and every sibling hits the Codex primary's usage limit simultaneously,
-omp's store-level credential cooldown can collapse the whole `models.<tier>` chain before any
-worker rotates onto a fallback entry — so all siblings exit `usage_limit_reached` with no
-receipt even though a usable fallback is configured. This is an omp-side limitation this repo
-cannot fix. The resilient recovery is host-agnostic and lives in the review orchestrator: it
-re-dispatches each usage/rate-limited worker pinned to the next configured `models.<tier>`
-entry (resolved with `resolve-model.sh --index`, via the eval `agent(model=<slug>)` pin) and
-walks the chain before its receipt gate fails (see `skills/woostack-review/SKILL.md` Stage 3).
-A cross-provider fallback receipt (e.g. Anthropic under a Codex primary) validates cleanly
-because the receipt's codex model-check fires only for codex-runner receipts.
+Request the mapped built-in worker and let omp perform its own recovery. Do not redispatch an omp
+worker by resolving a later repository model entry or by synthesizing another project worker. If
+host recovery ends without the receipt required by the calling skill, that skill's existing
+receipt or preflight gate fails loudly; review in particular must not turn a missing receipt into
+an empty successful angle.
 
 ## Per-skill notes
 
-- **woostack-init (scaffold):** after writing `.woostack/config.json` (or when it already
-  exists), run `skills/woostack-init/scripts/gen-omp-agents.sh` to generate the three tier
-  defs; the generator writes an adjacent `.omp/agents/.gitignore` so defs stay untracked.
-- **woostack-commit (fast drafting):** select `agent: woostack-fast` for the drafting spawn
-  (ensure defs first via the generator).
-- **woostack-review (local swarm only):** dispatch each angle worker as
-  `agent: woostack-<tier>` (tier-pinned general-purpose worker) and the deep validator as
-  `agent: woostack-deep`; ensure defs first. The CI single-session
-  `load-prompt.sh` / `resolve-model.sh` path is unchanged. If a worker hits a usage limit,
-  omp recovers inside the worker (rotation/fallback) and the worker finishes on the fallback
-  model — receipt `model` stays the configured slug while the transcript records the concrete
-  model. If native recovery fails to engage — e.g. a concurrent-spawn burst collapses the
-  chain (see Host-level fallback above) — the review orchestrator re-dispatches the worker on
-  the next configured `models.<tier>` entry before its receipt gate runs; only a worker still
-  without a receipt after the configured fallback chain is exhausted hard-fails the run — no
-  silently thinner review.
-- **woostack-eval (comparative dispatch):** create each candidate/baseline action as two
-  isolated `task` workers in the same `tasks[]` call, and batch as many intact inseparable
-  pairs as capacity permits. `task` has no per-call model pin. For a concrete run, use the
-  same host-owned eval agent definition for both siblings, with exactly one resolved `model`
-  selector and the same `thinkingLevel`; a generated tier definition containing a fallback
-  list is not a concrete pin. `session-default` is provable only when that same definition
-  omits `model` and both workers inherit the same known parent session identity. Batched
-  `task` dispatch supports comparative concurrency. Prove the exact definition and actual
-  completion identity for both actions; an unprovable identity, host fallback, or model/effort
-  divergence fails the mechanics proof and blocks the current comparison. A host mode
-  unable to start both siblings in the same batch fails comparative preflight.
-- **woostack-execute-overnight (preflight advisory):** an unattended run now relies on a
-  configured cross-provider `models.<tier>` fallback so the review swarm can auto-recover from
-  primary usage-exhaustion (a concurrent-spawn burst can defeat omp's native chain); strongly
-  check that resilience — a second provider login or `retry.fallbackChains` covering the tier
-  models, and at least one configured cross-provider fallback entry — before an unattended run.
-  Without it, a burst that exhausts the primary tier halts the track through the normal blocker
-  path. This remains a strong recommendation, not a refusal condition.
+- **woostack-init (scaffold):** no omp-specific scaffold runs. Do not create, regenerate, ignore,
+  validate, or edit project `.omp/agents/*`; locally authored agents remain owned by the user.
+- **woostack-commit (fast drafting):** map the drafting spawn's effective `fast` tier to
+  `agent: quick_task`. If that worker cannot run, draft inline under the normal commit rule.
+- **woostack-review (local swarm only):** resolve each angle's effective tier, then select
+  `agent: quick_task` for `fast`, `agent: task` for `standard`, and `agent: oracle` for `deep`;
+  the deep validator therefore uses `oracle`. Do not run the repository model resolver for these
+  dispatches. The CI single-session path is unchanged. omp owns in-worker recovery; if recovery
+  leaves any expected worker without a valid receipt, the existing hard receipt gate aborts the
+  run with no project-configured fallback redispatch and no silently thinner review.
+- **woostack-eval (comparative dispatch):** map the candidate and baseline's common effective tier
+  to the same bundled worker and start both siblings in the same `tasks[]` call. The selector is a
+  role pin, not proof of a concrete model. Use omp-provided completion identity to prove both
+  actions actually ran with the required identical model and effort; an unprovable identity,
+  host fallback divergence, or model/effort divergence fails the mechanics proof. Do not consult
+  repository model settings to manufacture that proof. A host mode unable to start both siblings
+  in the same batch fails comparative preflight.
+- **woostack-execute-overnight (preflight advisory):** rely on omp's configured roles,
+  authenticated providers, and host-owned recovery. Advise the user to make that host capacity
+  resilient before an unattended run, but do not inspect or mutate omp role, fallback, or
+  credential config and do not require a repository model list. Exhausted host recovery halts the
+  track through the normal blocker path; the advisory remains a recommendation, not a refusal
+  condition.
 
 ## Degradation
 
-- Defs missing or stale → run the generator (idempotent) and re-select; that is the fix, not
-  a degradation.
-- Generator cannot run (no shell) → treat as no-per-call-routing: run at the session model
-  and say so (degraded), per the inline law of the dispatching skill.
+- Missing `task` support or an unavailable mapped built-in worker is a host capability failure,
+  not a reason to generate a project worker. Follow the calling skill's existing behavior:
+  review stops at preflight or the receipt gate, commit drafts inline, and execution falls back
+  inline only where its driver already permits that degradation.
+- A concrete model change performed by omp's own retry policy is host recovery, not failed tier
+  routing. Keep the effective tier and selected worker truthful, and preserve any actual model
+  identity required by the worker receipt.

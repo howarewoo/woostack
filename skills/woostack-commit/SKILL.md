@@ -39,10 +39,10 @@ Rules:
 
 ## Fast-subagent drafting
 
-Use a fast-tier subagent to draft commit and PR text when the host supports subagents with
-model routing. This is a cost optimization for the mechanical writing portion only; the
-main agent remains responsible for all git, Graphite, GitHub, staging, relevance, and final
-verification decisions.
+Use a fast-tier subagent to draft commit and PR text when the host supports subagents with either
+explicit model routing or host-owned role routing. This is a cost optimization for the mechanical
+writing portion only; the main agent remains responsible for all git, Graphite, GitHub, staging,
+relevance, and final verification decisions.
 
 Rules:
 
@@ -51,11 +51,13 @@ Rules:
   drafting field.
 - Pass a bounded prompt containing the staged diff, changed-file list, commands run and
   results, relevant user intent, and any existing PR title/body that should be preserved.
-- Route the subagent at the `fast` tier when the host can select it explicitly: resolve the
-  tier through the shared [Model Tiers table](../using-woostack/references/model-tiers.md) and pass
-  what it resolves to on the spawn. **Host mechanics:** before any host-dependent step (subagent dispatch, scaffold, draft), load `skills/using-woostack/references/hosts/<current-host>.md`; no matching file -> treat the host as having no per-call routing and say so (degraded).
-  If the host can neither route a subagent per call nor select an agent-by-tier definition,
-  draft inline in the main session.
+- Route the subagent at the `fast` tier. On a host with explicit per-call model routing, resolve
+  the tier through the shared [Model Tiers table](../using-woostack/references/model-tiers.md) and
+  pass what it resolves to on the spawn. On a host with host-owned role routing, select the fixed
+  role-backed built-in worker from its host file without reading repository model settings; this
+  is non-degraded. **Host mechanics:** before any host-dependent step (subagent dispatch, scaffold, draft), load `skills/using-woostack/references/hosts/<current-host>.md`; no matching file -> treat the host as having no per-call routing and say so (degraded).
+  If the host offers neither explicit per-call routing nor a mapped built-in worker, draft inline
+  in the main session.
 - The subagent must return only proposed text. It must not run commands, stage files,
   commit, push, edit PRs, or decide whether dirty files are relevant.
 - Before using any draft, compare it against the staged diff and command results. Rewrite or

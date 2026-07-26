@@ -70,5 +70,3 @@ pnpm-debug.log*
 # Claude Code scheduling runtime lock (generated, not source)
 .claude/scheduled_tasks.lock
 
-# generated omp tier agent-defs (see skills/woostack-init/scripts/gen-omp-agents.sh)
-.omp/agents/woostack-*.md
