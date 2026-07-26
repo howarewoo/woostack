@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-plan",
+  "cases": [
+    {
+      "id": "verified-feature-project-needs-decomposition",
+      "query": "Reconcile the approved specification in this verified Linear feature project into stable increment issues and native blocked-by relations.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-plan"
+    },
+    {
+      "id": "verified-feature-project-needs-replan",
+      "query": "Replan this verified Linear feature project while preserving increment issue identities and existing implementation evidence.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-plan"
+    },
+    {
+      "id": "unapproved-feature-idea-needs-design",
+      "query": "I have a multi-part feature idea, but its behavior and architecture are not designed or approved yet.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-build",
+      "conflictsWith": ["woostack-plan"]
+    },
+    {
+      "id": "bounded-change-needs-direct-workflow",
+      "query": "Add one bounded preference in a single pull request; no multi-increment project is needed.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-change",
+      "conflictsWith": ["woostack-plan"]
+    }
+  ]
+}

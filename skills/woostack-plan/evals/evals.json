@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-plan",
+  "cases": [
+    {
+      "id": "reconciles-stable-increments-with-native-dependencies",
+      "prompt": "Reconcile a verified Linear feature project whose desired increments are: clientId 10000000-0000-4000-8000-000000000001 ordinal 20 title Storage with no blocker; clientId 10000000-0000-4000-8000-000000000002 ordinal 10 title API blocked by the Storage clientId. Existing issues have those exact clientIds and native IDs issue-1 and issue-2. Independent read-back matches every field and relation. Do not perform provider, Git, or repository mutations. Return exactly one JSON object with keys advance, reasonCode, issueCount, preservedClientIds, nativeBlockedBy, ordinalDefinesAncestry, repositoryEffects, and readBackVerified.",
+      "capabilities": ["read-workspace"],
+      "expected": "Stable issue identities and native blocked-by relations reconcile successfully; ordinals do not imply ancestry and read-back is mandatory.",
+      "assertions": [
+        {"id":"reconcile-advances","kind":"final-json-path-equals","pointer":"/advance","expected":true,"critical":true},
+        {"id":"reconcile-reason","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"reconciled","critical":true},
+        {"id":"reconcile-count","kind":"final-json-path-equals","pointer":"/issueCount","expected":2,"critical":true},
+        {"id":"reconcile-identities","kind":"final-json-path-equals","pointer":"/preservedClientIds","expected":["10000000-0000-4000-8000-000000000001","10000000-0000-4000-8000-000000000002"],"critical":true},
+        {"id":"reconcile-relation","kind":"final-json-path-equals","pointer":"/nativeBlockedBy","expected":{"issue-2":["issue-1"]},"critical":true},
+        {"id":"reconcile-ordinal-not-ancestry","kind":"final-json-path-equals","pointer":"/ordinalDefinesAncestry","expected":false,"critical":true},
+        {"id":"reconcile-no-repository-effects","kind":"final-json-path-equals","pointer":"/repositoryEffects","expected":[],"critical":true},
+        {"id":"reconcile-read-back","kind":"final-json-path-equals","pointer":"/readBackVerified","expected":true,"critical":true}
+      ]
+    },
+    {
+      "id": "refuses-evidence-bearing-issue-removal",
+      "prompt": "Replan a verified Linear feature project containing issue-1 with stable clientId 10000000-0000-4000-8000-000000000001 and issue-2 with stable clientId 10000000-0000-4000-8000-000000000002. The requested plan retains issue-1 but removes issue-2; issue-2 has commit evidence. Do not perform provider, Git, or repository mutations. Return exactly one JSON object with keys advance, reasonCode, preservedClientIds, repositoryEffects, and readBackVerified.",
+      "capabilities": ["read-workspace"],
+      "expected": "Replanning preserves stable identities and refuses removal of an issue that has implementation evidence.",
+      "assertions": [
+        {"id":"replan-blocks","kind":"final-json-path-equals","pointer":"/advance","expected":false,"critical":true},
+        {"id":"replan-reason","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"evidence-bearing-issue-removal-refused","critical":true},
+        {"id":"replan-preserves-identities","kind":"final-json-path-equals","pointer":"/preservedClientIds","expected":["10000000-0000-4000-8000-000000000001","10000000-0000-4000-8000-000000000002"],"critical":true},
+        {"id":"replan-no-repository-effects","kind":"final-json-path-equals","pointer":"/repositoryEffects","expected":[],"critical":true},
+        {"id":"replan-read-back","kind":"final-json-path-equals","pointer":"/readBackVerified","expected":true,"critical":true}
+      ]
+    }
+  ]
+}

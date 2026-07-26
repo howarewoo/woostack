@@ -1,91 +1,76 @@
----
-type: plan
-source: .woostack/specs/{{SPEC_BASENAME}}.md
-status: planning
-branch: {{FEATURE_BRANCH}}
----
+# Linear increment issue template
 
-**Source:** [[specs/{{SPEC_BASENAME}}]]
+This template defines the readable description for one managed `increment` issue in one verified
+repository-owned Linear feature project. It is not a local file output. The planner reconciles the
+rendered content through official host-exposed Linear MCP and independently reads it back.
 
-> **Normalized backend input:** one resolved spec identity, content, revision, and backend.
-> Markdown emits this file unchanged; Linear maps each `## Increment` to one managed issue and
-> carries its stable identity, explicit ordinal, dependencies, and Git parent in adapter input.
-> Linear also carries the captured preflight `team.id`, project-status UUID map, and issue-state
-> UUID map as run context; configured lifecycle names are never reconciliation inputs.
+## Managed identity
 
-# {{FEATURE_NAME}} Implementation Plan
+- **Stable client UUID:** `{{INCREMENT_CLIENT_UUID}}`
+- **Ordinal:** `{{UNIQUE_POSITIVE_ORDINAL}}`
+- **Project:** `{{EXACT_PROJECT_ID_OR_URL}}`
+- **Git parent:** `{{PENDING_PROJECT_FROZEN_BASE_REFERENCE_OR_ONE_DEPENDENCY_ISSUE_ID}}`
 
-**Goal:** {{ONE_SENTENCE_WHAT_THIS_BUILDS}}
+The stable UUID, not title or ordinal, owns identity. Ordinals are presentation order and never imply
+dependency or Git ancestry.
 
-**Architecture:** {{TWO_OR_THREE_SENTENCES_ON_THE_APPROACH}}
+During planning, each dependency root uses the typed unresolved reference
+`{"kind":"projectFrozenBase","state":"pending"}`. Immediately before `ready`, after the lifecycle
+authority freezes the exact base branch and commit SHA, reconcile every root to
+`{"kind":"projectFrozenBase","state":"bound","branch":"{{EXACT_BASE_BRANCH}}","sha":"{{EXACT_40_HEX_SHA}}"}`;
+independently read each root and the complete graph back. A pending, wrong, or partially read root
+blocks `ready`. Non-root Git parents remain exact native dependency issue IDs.
 
-**Tech Stack:** {{KEY_TECHNOLOGIES}}
+## Objective
 
-## Increment 1: {{PR_SIZED_SLICE_NAME}}
+{{ONE_INDEPENDENTLY_SHIPPABLE_OUTCOME}}
 
-> One independently shippable PR (<=500 LOC soft target) -- its own Graphite-stacked branch.
+## Acceptance criteria
 
-### Task 1: {{COMPONENT_NAME}}
+- {{EXACT_ACCEPTANCE_CRITERION_AND_OBSERVABLE_RESULT}}
 
-**Files:**
-- Create: `{{exact/path/to/new.ext}}`
-- Modify: `{{exact/path/to/existing.ext}}:{{LINES}}`
-- Test: `{{exact/path/to/test.ext}}`
+Every project acceptance criterion maps to at least one increment issue. Preserve explicit happy,
+error, edge, success, and failure behavior or record why a class is not applicable.
 
-- [ ] **Step 1: Write the failing test**
-  ```{{lang}}
-  {{actual test code - never a placeholder}}
-  ```
+## Files
 
-- [ ] **Step 2: Run the test, confirm it fails**
-  Run: `{{exact command}}`
-  Expected: FAIL - `{{exact expected failure}}`
+- Create: `{{EXACT_PATH}}` — {{SINGLE_RESPONSIBILITY}}
+- Modify: `{{EXACT_PATH}}` — {{SINGLE_RESPONSIBILITY}}
+- Test: `{{EXACT_PATH}}` — {{OBSERVABLE_CONTRACT}}
 
-- [ ] **Step 3: Minimal implementation**
-  ```{{lang}}
-  {{actual implementation code}}
-  ```
+## Native dependencies
 
-- [ ] **Step 4: Run the test, confirm it passes**
-  Run: `{{exact command}}`
-  Expected: PASS
+- Blocked by: `{{STABLE_DEPENDENCY_ISSUE_ID_OR_NONE}}`
 
-- [ ] **Step 5: Commit**
-  ```bash
-  # First commit in the increment:
-  gt create -m "{{type}}: {{subject}}"
+Materialize each dependency as a native Linear `blocked by` relation. Reject cycles, foreign or
+unknown issues, and graphs with more than one representable Git parent.
 
-  # Later commits in the same increment:
-  gt modify -c -m "{{type}}: {{subject}}"
-  ```
+## Red → Green → Refactor tasks
 
-## Plan Checks
+- [ ] **Red:** add `{{EXACT_TEST}}` for `{{OBSERVABLE_BEHAVIOR}}`.
+- [ ] Run `{{EXACT_COMMAND}}`; expect failure `{{EXACT_FAILURE}}`.
+- [ ] **Green:** implement the minimum change in `{{EXACT_PATHS}}`.
+- [ ] Run `{{EXACT_COMMAND}}`; expect success `{{EXACT_SUCCESS}}`.
+- [ ] **Refactor:** remove duplication or improve names without changing behavior.
+- [ ] Run `{{EXACT_VERIFICATION_COMMANDS}}`; expect `{{EXACT_RESULTS}}`.
 
-- **Spec coverage** - every spec requirement maps to a task.
-- **AC coverage** - each spec section 7 acceptance criterion maps to a test; a `N/A` is
-  sanity-checked against the spec body.
-- **No placeholders** - no TBD/TODO; complete code, exact commands, and expected output.
-- **Type consistency** - types, signatures, and names match the current codebase.
-- **Angle coverage** - the plan lens of `skills/woostack-harden/references/angle-preflight.md` is
-  walked: architecture, tests-per-AC, security/observability addressed by tasks (skip rule keeps
-  untouched angles silent).
+Use concrete paths, interfaces, commands, cases, and outcomes. Placeholders such as `TBD`, `TODO`,
+“similar to,” or an unspecified verification step are invalid in a reconciled issue.
 
-## Backend output contract
+## Automated verification
 
-- **Markdown:** preserve this file's `type: plan` frontmatter, path, reciprocal
-  `**Source:** [[specs/{{SPEC_BASENAME}}]]` join, status, branch, headings, and checkboxes.
-- **Linear:** do not persist this file. Reconcile one issue per increment through the shared
-  adapter, with stable ID, unique ordinal, native blocked-by relations, mirrored dependencies,
-  one representable Git parent, complete issue content, and verified read-back.
+- Command: `{{EXACT_AUTOMATED_COMMAND}}`
+- Expected result: `{{EXACT_MACHINE_CHECKED_RESULT}}`
 
-This file starts with YAML frontmatter for Obsidian properties, then preserves the `**Source:**`
-line — an Obsidian `[[specs/<basename>]]` wikilink, symmetric with the spec's
-`> **Plan:** [[plans/<basename>]]` callout — as the canonical spec -> plan join used by
-`/woostack-status` and `woostack-doctor`. (The legacy bare-path form
-`**Source:** .woostack/specs/<basename>.md` is still accepted by both readers.)
+## Manual verification
 
-> Filename mirrors spec basename: `.woostack/plans/<spec-basename>.md`.
+- Procedure: `{{EXACT_MANUAL_VERIFICATION_STEPS}}`
+- Expected result: `{{EXACT_OBSERVED_RESULT}}`
 
-**No required-sub-skill banner.** Plans are executable by `woostack-execute` directly. In this
-skills repo, a "failing test" step can be a concrete verification command such as `grep`,
-`bash -n`, an existing test, or a `python3 -c` parser check with exact expected output.
+## Reconciliation contract
+
+Preserve the stable issue identity across replans. Reconcile the exact description, project
+membership, native relations, ordinal, work owner, and state; independently read every mutation and
+the complete final graph back. Never persist MCP transport input or emit a specification or plan
+record to the repository. Refuse deletion or detachment of an issue carrying implementation
+evidence and return the conflict to the project lifecycle authority.

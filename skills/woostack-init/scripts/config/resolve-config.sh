@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../path-args.sh
+. "$SCRIPT_DIR/../path-args.sh"
+
 usage() {
   printf 'usage: %s <repo-root>\n' "${0##*/}" >&2
   exit 2
@@ -15,7 +19,7 @@ fail() {
 repo_root="$(cd "$1" 2>/dev/null && pwd -P)" || fail "repository root is unavailable"
 config_path="$repo_root/.woostack/config.json"
 [ -f "$config_path" ] || fail ".woostack/config.json is missing"
-if ! config="$(jq -c 'if type == "object" then . else error("root") end' "$config_path" 2>/dev/null)"; then
+if ! config="$(jq -c 'if type == "object" then . else error("root") end' "$(tool_path_arg jq "$config_path")" 2>/dev/null)"; then
   fail ".woostack/config.json must contain an object"
 fi
 
@@ -41,7 +45,7 @@ if ! local_config="$(jq -c '
   then .
   else error("shape")
   end
-' "$local_path" 2>/dev/null)"; then
+' "$(tool_path_arg jq "$local_path")" 2>/dev/null)"; then
   fail ".woostack/config.local.json may override only a nonblank linear.team"
 fi
 
