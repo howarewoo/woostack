@@ -81,6 +81,11 @@ write_config "$repo" '{"artifacts":{"specPlan":"markdown"}}'
 actual="$(bash "$SCRIPT" "$repo")"
 assert_eq "$actual" '{"backend":"markdown","repository":null,"linear":null}' "explicit Markdown resolves without Linear config"
 
+repo="$(make_repo markdown-with-future-linear-policy)"
+write_config "$repo" '{"artifacts":{"specPlan":"markdown"},"linear":{"repository":"https://github.com/acme/widgets","workspace":"","team":"","projectStatuses":{"backlog":"","planned":"","started":"","paused":"","completed":"","canceled":""},"issueStates":{"planned":"","executing":"","inReview":"","done":"","blocked":""}}}'
+actual="$(bash "$SCRIPT" "$repo")"
+assert_eq "$actual" '{"backend":"markdown","repository":null,"linear":null}' "Markdown ignores non-secret Linear policy from a future backend schema"
+
 repo="$(make_repo markdown-secret)"
 secret_value='DO-NOT-LEAK-MARKDOWN'
 write_config "$repo" "$(jq -cn --arg value "$secret_value" '{artifacts:{specPlan:"markdown"},linear:{nested:{apiKey:$value}}}')"

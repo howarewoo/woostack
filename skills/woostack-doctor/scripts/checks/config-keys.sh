@@ -50,6 +50,9 @@ if [ -n "$credential_path" ]; then
 fi
 
 allowed='["repository","workspace","team","projectStatuses","issueStates"]'
+project_keys='["backlog","planned","started","paused","completed","canceled"]'
+issue_keys='["planned","executing","inReview","done","blocked"]'
+issue_categories='{"planned":"backlog","executing":"started","inReview":"started","done":"completed","blocked":"started"}'
 if ! jq -e --argjson allowed "$allowed" '
   .linear | type == "object" and ((keys - $allowed) | length == 0)
   and (.repository | type == "string" and test("^https://github\\.com/[^/]+/[^/]+$"))
@@ -60,8 +63,6 @@ if ! jq -e --argjson allowed "$allowed" '
 ' "$CFG" >/dev/null 2>&1; then
   emit error linear-policy report ".woostack/config.json" "linear policy requires repository, workspace, team, projectStatuses, and issueStates only"
 else
-  project_keys='["designApproved","specHardened","specApproved","planning","ready","executionApproved","executing","inReview","done","abandoned","paused"]'
-  issue_keys='["planned","executing","inReview","done","blocked"]'
   if ! jq -e --argjson keys "$project_keys" '
     (.linear.projectStatuses | keys | sort) == ($keys | sort)
     and all(.linear.projectStatuses[]; type == "string" and length > 0)
@@ -88,8 +89,43 @@ done
 
 [ "${WOOSTACK_DOCTOR_LIVE:-0}" = 1 ] || exit 0
 receipt="${WOOSTACK_DOCTOR_LIVE_CONTEXT:-}"
-if [ ! -r "$receipt" ] || ! jq -e 'type == "object" and .ready == true' "$receipt" >/dev/null 2>&1; then
-  emit error linear-live report ".woostack/config.json" "normalized Linear MCP receipt is missing, malformed, or not ready"
+if [ ! -r "$receipt" ] || ! jq -e \
+  --argjson project_keys "$project_keys" \
+  --argjson issue_keys "$issue_keys" \
+  --argjson issue_categories "$issue_categories" \
+  --slurpfile config "$CFG" '
+    . as $receipt
+    | .schemaVersion == 1
+      and .provider == "official-linear-mcp"
+      and .mcpAvailable == true
+      and .authenticated == true
+      and .ready == true
+      and .workspaceResolution.status == "unique"
+      and .workspaceResolution.name == .workspace
+      and (.workspaceResolution.id | type == "string"
+        and test("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"))
+      and .teamResolution.status == "unique"
+      and .teamResolution.key == .team
+      and (.teamResolution.id | type == "string"
+        and test("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"))
+      and .projectStatuses.complete == true
+      and (.projectStatuses.resolved | keys | sort) == ($project_keys | sort)
+      and all($project_keys[];
+        . as $key
+        | ($receipt.projectStatuses.resolved[$key]
+          | .name == $config[0].linear.projectStatuses[$key] and .category == $key))
+      and .issueStates.complete == true
+      and (.issueStates.resolved | keys | sort) == ($issue_keys | sort)
+      and all($issue_keys[];
+        . as $key
+        | ($receipt.issueStates.resolved[$key]
+          | .name == $config[0].linear.issueStates[$key]
+            and .category == $issue_categories[$key]))
+      and .readBack.status == "verified"
+      and .readBack.complete == true
+      and .readBack.independent == true
+  ' "$receipt" >/dev/null 2>&1; then
+  emit error linear-live report ".woostack/config.json" "normalized Linear MCP receipt is missing, malformed, partial, or not ready"
   exit 0
 fi
 

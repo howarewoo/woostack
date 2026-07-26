@@ -11,3 +11,5 @@ memory/.dream-watermark
 .obsidian/workspace*
 .obsidian/cache
 .obsidian/graph.json
+qa/evidence/
+respond/evidence/

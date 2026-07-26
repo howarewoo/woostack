@@ -4,17 +4,12 @@
     "workspace": "acme",
     "team": "ENG",
     "projectStatuses": {
-      "designApproved": "Backlog",
-      "specHardened": "Backlog",
-      "specApproved": "Backlog",
-      "planning": "Backlog",
-      "ready": "Planned",
-      "executionApproved": "Planned",
-      "executing": "Started",
-      "inReview": "Started",
-      "done": "Completed",
-      "abandoned": "Canceled",
-      "paused": "Paused"
+      "backlog": "Backlog",
+      "planned": "Planned",
+      "started": "Started",
+      "paused": "Paused",
+      "completed": "Completed",
+      "canceled": "Canceled"
     },
     "issueStates": {
       "planned": "Backlog",

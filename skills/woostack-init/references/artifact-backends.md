@@ -11,10 +11,9 @@ contains only:
 
 - `repository`: the canonical `https://github.com/<owner>/<repository>` URL;
 - `workspace` and `team`: the exact configured Linear workspace and team;
-- `projectStatuses`: one native status name for each fine-grained phase
-  `designApproved`, `specHardened`, `specApproved`, `planning`, `ready`,
-  `executionApproved`, `executing`, `inReview`, `done`, and `abandoned`, plus the
-  `paused` blocker override; and
+- `projectStatuses`: one uniquely resolved native status name for each coarse category
+  `backlog`, `planned`, `started`, `paused`, `completed`, and `canceled`; fine-grained phase
+  remains derived from the managed project-event chain rather than configuration; and
 - `issueStates`: one team issue-state name for each semantic state `planned`, `executing`,
   `inReview`, `done`, and `blocked`.
 
@@ -162,6 +161,10 @@ The semantic increment/work-item state path is:
 ```text
 planned → executing → inReview → done
 ```
+
+Each configured issue-state name must resolve to its semantic key's native category:
+`planned` → `backlog`; `executing`, `inReview`, and `blocked` → `started`; and
+`done` → `completed`.
 
 `blocked` is an explicit temporary transition from a non-terminal state. A verified `unblocked`
 event restores the immediately preceding non-terminal state. Terminal `done` requires the

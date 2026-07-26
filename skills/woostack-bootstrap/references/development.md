@@ -42,7 +42,7 @@ delegation, receipts, trust boundaries, and exact PR trailers. Related workflow 
 contract rather than defining another resource model.
 
 `.woostack/config.json` is non-secret repository policy only. Its `linear` namespace records the
-canonical repository URL, workspace, team, `projectStatuses` phase-to-native-status mappings, and
+canonical repository URL, workspace, team, coarse-category `projectStatuses` mappings, and
 semantic `issueStates` mappings. It contains no development record, transport configuration, or
 provider credential. Authentication comes from the host's official Linear MCP/OAuth connection;
 missing authentication or a required read/write capability blocks before artifact access or

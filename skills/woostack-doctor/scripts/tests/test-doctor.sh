@@ -12,7 +12,7 @@ repo="$TMP/repo"
 mkdir -p "$repo/.woostack/memory"
 git -C "$repo" init -q
 cat >"$repo/.woostack/config.json" <<'JSON'
-{"linear":{"repository":"https://github.com/acme/widgets","workspace":"acme","team":"ENG","projectStatuses":{"designApproved":"Backlog","specHardened":"Backlog","specApproved":"Backlog","planning":"Backlog","ready":"Planned","executionApproved":"Planned","executing":"Started","inReview":"Started","done":"Completed","abandoned":"Canceled","paused":"Paused"},"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Review","done":"Done","blocked":"Blocked"}},"models":{},"review":{},"respond":{},"status":{"staleDays":14}}
+{"linear":{"repository":"https://github.com/acme/widgets","workspace":"acme","team":"ENG","projectStatuses":{"backlog":"Backlog","planned":"Planned","started":"Started","paused":"Paused","completed":"Completed","canceled":"Canceled"},"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Review","done":"Done","blocked":"Blocked"}},"models":{},"review":{},"respond":{},"status":{"staleDays":14}}
 JSON
 cat >"$repo/.woostack/memory/good.md" <<'MD'
 ---

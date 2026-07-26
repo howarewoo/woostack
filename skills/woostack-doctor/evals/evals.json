@@ -69,77 +69,51 @@
       ]
     },
     {
-      "id": "check-mode-is-exit-coded-and-read-only",
-      "prompt": "Apply the packaged /woostack-doctor --check --live contract to the bounded normalized non-secret host-MCP receipt and diagnosis in fixtures/ci-diagnosis.json. Do not call a network, inspect credentials, or modify any file. Return exactly one JSON object using the keys findingCodes, exitCode, liveReadReceiptCount, remoteMutationCount, repairApplied, and mode.",
+      "id": "check-live-consumes-one-normalized-receipt-without-provider-calls",
+      "prompt": "Apply the packaged /woostack-doctor --check live-receipt boundary to fixtures/ci-diagnosis.json and fixtures/receipts/provenance-drift.json. Treat that mode-0600-style normalized non-secret receipt as the only host-MCP input. Never call a network, provider, custom adapter, hard-coded MCP tool, or remote mutation, and do not modify files. Return exactly one JSON object with keys findingCodes, exitCode, receiptProvenanceCount, providerInvocationCount, legacyAdapterInvocationCount, remoteMutationCount, repairApplied, and mode.",
       "fixtures": [
         "ci-project/.woostack/config.json",
         "ci-project/.woostack/memory/MEMORY.md",
         "ci-project/.woostack/memory/bad.md",
-        "ci-diagnosis.json"
+        "ci-project/.woostack/memory/linear.md",
+        "ci-diagnosis.json",
+        "receipts/provenance-drift.json"
       ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Check-live consumes the host-produced receipt, reports the malformed note and remote drift, preserves nonzero exit status, records verified read-backs with zero remote mutations, applies no repair, and leaves local files unchanged.",
+      "capabilities": ["read-workspace"],
+      "expected": "Check-live reports malformed memory and receipt-provenance drift while invoking no provider, legacy adapter, or mutation and applying no repair.",
       "assertions": [
-        {
-          "id": "ci-finding-codes",
-          "kind": "final-json-path-equals",
-          "pointer": "/findingCodes",
-          "expected": [
-            "memory-malformed",
-            "linear-live"
-          ],
-          "critical": true
-        },
-        {
-          "id": "ci-nonzero-reported",
-          "kind": "final-json-path-equals",
-          "pointer": "/exitCode",
-          "expected": 1,
-          "critical": true
-        },
-        {
-          "id": "live-read-receipts-observed",
-          "kind": "final-json-path-equals",
-          "pointer": "/liveReadReceiptCount",
-          "expected": 2,
-          "critical": true
-        },
-        {
-          "id": "remote-mutation-boundary",
-          "kind": "final-json-path-equals",
-          "pointer": "/remoteMutationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "live-failure-report-only",
-          "kind": "final-json-path-equals",
-          "pointer": "/repairApplied",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "check-live-mode-reported",
-          "kind": "final-json-path-equals",
-          "pointer": "/mode",
-          "expected": "check-live",
-          "critical": true
-        },
-        {
-          "id": "ci-malformed-note-unchanged",
-          "kind": "file-contains",
-          "file": "fixtures/ci-project/.woostack/memory/bad.md",
-          "substring": "no frontmatter here",
-          "critical": true
-        },
-        {
-          "id": "ci-no-repair-artifact",
-          "kind": "path-absent",
-          "path": "fixtures/ci-project/.woostack/doctor-repair.json",
-          "critical": true
-        }
+        {"id":"ci-finding-codes","kind":"final-json-path-equals","pointer":"/findingCodes","expected":["memory-malformed","memory-provenance-live"],"critical":true},
+        {"id":"ci-nonzero-reported","kind":"final-json-path-equals","pointer":"/exitCode","expected":1,"critical":true},
+        {"id":"one-receipt-provenance-observed","kind":"final-json-path-equals","pointer":"/receiptProvenanceCount","expected":1,"critical":true},
+        {"id":"no-provider-invocation","kind":"final-json-path-equals","pointer":"/providerInvocationCount","expected":0,"critical":true},
+        {"id":"no-legacy-adapter-invocation","kind":"final-json-path-equals","pointer":"/legacyAdapterInvocationCount","expected":0,"critical":true},
+        {"id":"remote-mutation-boundary","kind":"final-json-path-equals","pointer":"/remoteMutationCount","expected":0,"critical":true},
+        {"id":"live-failure-report-only","kind":"final-json-path-equals","pointer":"/repairApplied","expected":false,"critical":true},
+        {"id":"check-live-mode-reported","kind":"final-json-path-equals","pointer":"/mode","expected":"check-live","critical":true},
+        {"id":"ci-malformed-note-unchanged","kind":"file-contains","file":"fixtures/ci-project/.woostack/memory/bad.md","substring":"no frontmatter here","critical":true},
+        {"id":"ci-no-repair-artifact","kind":"path-absent","path":"fixtures/ci-project/.woostack/doctor-repair.json","critical":true}
+      ]
+    },
+    {
+      "id": "verified-receipt-provenance-passes-without-adapter-fallback",
+      "prompt": "Apply the packaged /woostack-doctor --check live-receipt boundary to fixtures/project and fixtures/receipts/success.json. Parse the Linear URI locally and accept its provenance only from the matching normalized receipt entry. Never invoke a provider, legacy adapter, hard-coded MCP tool, or remote mutation. Return exactly one JSON object with keys findingCodes, exitCode, receiptProvenanceCount, providerInvocationCount, legacyAdapterInvocationCount, remoteMutationCount, repairApplied, and mode.",
+      "fixtures": [
+        "project/.woostack/config.json",
+        "project/.woostack/memory/MEMORY.md",
+        "project/.woostack/memory/linear.md",
+        "receipts/success.json"
+      ],
+      "capabilities": ["read-workspace"],
+      "expected": "A complete matching normalized provenance entry passes while doctor remains provider- and adapter-free.",
+      "assertions": [
+        {"id":"success-no-findings","kind":"final-json-path-equals","pointer":"/findingCodes","expected":[],"critical":true},
+        {"id":"success-zero-exit","kind":"final-json-path-equals","pointer":"/exitCode","expected":0,"critical":true},
+        {"id":"success-one-provenance","kind":"final-json-path-equals","pointer":"/receiptProvenanceCount","expected":1,"critical":true},
+        {"id":"success-no-provider","kind":"final-json-path-equals","pointer":"/providerInvocationCount","expected":0,"critical":true},
+        {"id":"success-no-legacy-adapter","kind":"final-json-path-equals","pointer":"/legacyAdapterInvocationCount","expected":0,"critical":true},
+        {"id":"success-no-remote-mutation","kind":"final-json-path-equals","pointer":"/remoteMutationCount","expected":0,"critical":true},
+        {"id":"success-no-repair","kind":"final-json-path-equals","pointer":"/repairApplied","expected":false,"critical":true},
+        {"id":"success-mode","kind":"final-json-path-equals","pointer":"/mode","expected":"check-live","critical":true}
       ]
     }
   ]

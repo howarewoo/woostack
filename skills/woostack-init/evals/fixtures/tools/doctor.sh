@@ -1,8 +1,29 @@
 #!/usr/bin/env bash
 set -u
-root="$1/.woostack"
+
+if [ "$#" -ne 3 ] || [ "$1" != "--live-receipt" ]; then
+  printf 'error\tinvocation-shape\texpected --live-receipt <receipt> <repository-root>\n'
+  exit 2
+fi
+
+receipt="$2"
+project_root="$3"
+case "$project_root" in
+  */.woostack/memory|.woostack/memory)
+    printf 'error\tdoctor-target\treceived memory directory instead of repository root\n'
+    exit 2
+    ;;
+esac
+if [ ! -r "$receipt" ] ||
+  ! grep -q '"provider"[[:space:]]*:[[:space:]]*"official-linear-mcp"' "$receipt" ||
+  ! grep -q '"ready"[[:space:]]*:[[:space:]]*true' "$receipt"; then
+  printf 'error\tlive-receipt\tmissing or unsuccessful official host-MCP receipt\n'
+  exit 1
+fi
+
+root="$project_root/.woostack"
 failed=0
-for path in memory/MEMORY.md fixes/.gitkeep wisdom/.gitkeep respond/.gitkeep config.json .gitignore; do
+for path in memory/MEMORY.md wisdom/.gitkeep respond/.gitkeep config.json .gitignore; do
   if [ ! -f "$root/$path" ]; then
     printf "error\tmissing-canonical-path\t%s\n" "$path"
     failed=1

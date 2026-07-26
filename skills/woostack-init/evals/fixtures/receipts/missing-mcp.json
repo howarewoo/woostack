@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "provider": "official-linear-mcp",
+  "mcpAvailable": false,
+  "authenticated": false,
+  "ready": true,
+  "repository": "https://github.com/acme/widgets",
+  "workspaceResolution": {"status": "not-attempted", "matches": []},
+  "teamResolution": {"status": "not-attempted", "matches": []},
+  "projectStatuses": {},
+  "issueStates": {},
+  "capabilities": {},
+  "readBack": {"status": "not-attempted", "complete": false, "independent": false}
+}

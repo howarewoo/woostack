@@ -23,22 +23,28 @@ Two callers:
 
 ## Procedure
 
-1. **Resolve the target directory.** If an argument is given, treat it as the
-   project root; otherwise use the current working directory. Check whether
-   `.woostack/` already exists and note each file that is present — these are
-   candidates for the keep/overwrite prompt.
+1. **Capture the target without touching it.** If an argument is given, retain that path as the
+   requested project root; otherwise retain the current-directory path supplied by the host. Do
+   not stat, list, read, canonicalize, or search the target, and do not invoke Git yet.
 
-2. **Validate official Linear MCP before filesystem writes.** Discover the host-exposed MCP tools
-   at `https://mcp.linear.app/mcp`; authenticate through the host's OAuth/MCP secret store. Resolve
-   exactly one configured workspace and team. Verify the repository identity, every configured
-   project-status category and issue-state mapping, and the required project/issue/update/comment/
-   relation/owner/read-back capabilities. Prefer reversible or non-destructive reads. Missing,
-   read-only, ambiguous, or unauthenticated access is an actionable hard stop before creating or
-   modifying project files. Tool names are host-discovered rather than hard-coded. The canonical
-   capability, policy, and receipt contract is
+2. **Validate official Linear MCP before any project filesystem or Git access.** Discover the
+   host-exposed MCP tools at `https://mcp.linear.app/mcp`; authenticate through the host's
+   OAuth/MCP secret store. Resolve exactly one workspace and team from host/invocation context.
+   Verify the requested repository identity, every project-status name and required native
+   category, every issue-state name, and the required project/issue/update/comment/relation/owner
+   read and mutation capabilities. Require an independent, complete read-back; prefer reversible
+   or non-destructive reads. Missing MCP, authentication, a unique workspace/team, a valid native
+   mapping, mutation capability, or a conclusive read-back is an actionable hard stop with zero
+   target filesystem or Git access. Tool names are host-discovered rather than hard-coded. The
+   canonical capability, policy, and normalized non-secret receipt contract is
    [Linear MCP development authority](references/artifact-backends.md).
 
-3. **Create missing pieces from `templates/`.** After the preflight succeeds, create each item
+3. **Resolve and inspect the repository only after preflight succeeds.** Resolve the retained
+   target to the repository root, then inspect whether `.woostack/` and each managed file already
+   exist. These are candidates for the keep/overwrite prompt. Verify any existing non-secret
+   `linear` policy against the successful receipt before using it.
+
+4. **Create missing pieces from `templates/`.** After the preflight succeeds, create each item
    only if it is absent (unless `--force` is active):
 
    | Item | Source |
@@ -79,12 +85,12 @@ Two callers:
    Under omp there is no host-specific scaffold: omp owns its built-in workers and role
    configuration, and woostack does not create or edit `.omp/agents/`.
 
-4. **Handle existing files.** For any file that already exists and `--force`
+5. **Handle existing files.** For any file that already exists and `--force`
    is not active: prompt the user to keep or overwrite it. Under `--no-clobber`
    skip all existing files silently without prompting. After the run, state
    which mode was used (interactive / force / no-clobber) in the summary.
 
-5. **Production-error response setup (optional).** If `--respond` was passed, or if
+6. **Production-error response setup (optional).** If `--respond` was passed, or if
    `--no-respond` was not passed and the user accepts `Set up production error response? [y/N]`,
    inspect repository dependencies, configuration filenames, instrumentation imports,
    configured exporters, and environment-variable **names**, then inventory available host
@@ -101,7 +107,7 @@ Two callers:
    This setup never authenticates a provider, stores a token/DSN/password/cookie/API key, or
    queries production telemetry.
 
-6. **Obsidian vault config (optional).** If `--obsidian` was passed, or if
+7. **Obsidian vault config (optional).** If `--obsidian` was passed, or if
    `--no-obsidian` was not passed and the user accepts the prompt ("Set up
    Obsidian vault config? [y/N]", default no), copy
    `templates/obsidian/` into `.woostack/.obsidian/`. Never clobber an
@@ -109,17 +115,18 @@ Two callers:
    available as an optional `[[wikilink]]` graph; development records remain in Linear.
    All memory tooling works without Obsidian.
 
-7. **Run the scripts.**
+8. **Run the scripts.** Use the resolved repository root as the doctor target; the memory
+   directory is only the index builder's target.
 
    ```
-   bash scripts/build-index.sh .woostack/memory
-   bash ../woostack-doctor/scripts/doctor.sh --live-receipt "$receipt" .woostack/memory
+   bash scripts/build-index.sh "$repository_root/.woostack/memory"
+   bash ../woostack-doctor/scripts/doctor.sh --live-receipt "$receipt" "$repository_root"
    ```
 
    The skill controller writes the normalized non-secret MCP preflight receipt to a mode-0600
    temporary file, passes it to doctor, and deletes it after consumption.
 
-8. **Report.** Print a summary listing MCP readiness and each file as `created` or `skipped`,
+9. **Report.** Print a summary listing MCP readiness and each file as `created` or `skipped`,
    then echo the doctor output (warnings and error count). If doctor exits
    non-zero, surface the errors prominently so the user can act on them before
    committing.
@@ -133,9 +140,9 @@ Two callers:
   automated contexts (CI, bootstrap) where the workspace may already be
   partially initialized.
 - `--obsidian` — force-enable the optional Obsidian vault config scaffold
-  (step 6) without prompting.
+  (step 7) without prompting.
 - `--no-obsidian` — force-skip the optional Obsidian vault config scaffold
-  (step 6) without prompting.
+  (step 7) without prompting.
 - `--respond` — opt into guided non-secret production-error response configuration without the
   initial prompt.
 - `--no-respond` — suppress production-error response discovery and configuration. Mutually
@@ -156,7 +163,7 @@ Two callers:
   node, python, or any other runtime to fulfill this verb.
 - **Response setup is non-secret and non-operational.** It may detect instrumentation and host
   capabilities, but never reads credential values, authenticates, or queries production.
-- **Obsidian is never required.** The `.obsidian/` scaffold is opt-in (step 5).
+- **Obsidian is never required.** The `.obsidian/` scaffold is opt-in (step 7).
   All memory tooling (`recall`, `doctor`, `build-index`) works headlessly
   without Obsidian. See
   [references/memory.md](references/memory.md#9-obsidian-optional) for the

@@ -4,17 +4,12 @@
     "workspace": "",
     "team": "",
     "projectStatuses": {
-      "designApproved": "",
-      "specHardened": "",
-      "specApproved": "",
-      "planning": "",
-      "ready": "",
-      "executionApproved": "",
-      "executing": "",
-      "inReview": "",
-      "done": "",
-      "abandoned": "",
-      "paused": ""
+      "backlog": "",
+      "planned": "",
+      "started": "",
+      "paused": "",
+      "completed": "",
+      "canceled": ""
     },
     "issueStates": {
       "planned": "",

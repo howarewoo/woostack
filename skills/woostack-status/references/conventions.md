@@ -51,16 +51,16 @@ revision, supersession cycle, illegal transition, multiple current phase heads, 
 duplicate, or conflict with issue/PR evidence. It never chooses a phase by update timestamp or
 project title.
 
-Native project status remains coarse. The configured `linear.projectStatuses` map supplies one
-native status name for every phase and the `paused` blocker override; each name must resolve to the
-required native Linear category:
+Native project status remains coarse. The configured `linear.projectStatuses` map contains exactly
+one native status name for each category `backlog`, `planned`, `started`, `paused`, `completed`,
+and `canceled`. The current phase selects the category:
 
-- `designApproved`, `specHardened`, `specApproved`, and `planning` → `backlog`;
-- `ready` and `executionApproved` → `planned`;
-- `executing` and `inReview` → `started`;
-- `paused` → `paused`, only while a verified unresolved project blocker exists;
-- `done` → `completed`; and
-- `abandoned` → `canceled`.
+- `designApproved`, `specHardened`, `specApproved`, and `planning` use `backlog`;
+- `ready` and `executionApproved` use `planned`;
+- `executing` and `inReview` use `started`;
+- an unresolved verified project blocker temporarily uses `paused`;
+- `done` uses `completed`; and
+- `abandoned` uses `canceled`.
 
 A `blockerResolved` update must relate to the exact unresolved `blockerOpened` update and restores
 the native status mapped from the unchanged fine-grained phase. Custom workspace statuses do not

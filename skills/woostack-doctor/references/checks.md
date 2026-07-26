@@ -32,7 +32,7 @@ never inspect credentials or invoke HTTP, GraphQL, provider adapters, or hard-co
 | `memory-type` | memory note has an unknown `type:` | error | report | — |
 | `memory-dup` | duplicate memory note `name:` | error | report | — |
 | `memory-scope-stale` | `scope:` matches no tracked files | warn | report | — |
-| `memory-provenance` | missing `source:`; stale local spec/plan/fix source; or malformed `linear://project/<uuid>`, `linear://document/<uuid>`, or `linear://issue/<uuid>` (URI parsing is delegated to the normalized adapter) | warn | report | — |
+| `memory-provenance` | missing `source:`; stale local spec/plan/fix source; or malformed `linear://project/<uuid>`, `linear://document/<uuid>`, or `linear://issue/<uuid>` (URI syntax is parsed locally without a provider or adapter) | warn | report | — |
 | `memory-scope-trivia` | non-glob `scope:` (possible trivia) | warn | report | — |
 | `memory-unresolved-link` | unresolved `[[wikilink]]` in a memory note (kept `warn` to not break consumer CI) | warn | report | — |
 | `memory-no-updated` | memory note missing `updated:` (cannot be aged) | warn | report | — |
@@ -45,7 +45,7 @@ never inspect credentials or invoke HTTP, GraphQL, provider adapters, or hard-co
 | `linear-policy` | backend selector, credential-like key, incomplete repository/workspace/team, or incomplete category/state mapping | error | report | — |
 | `legacy-development-records` | active or ambiguous local spec/plan/fix/overnight set requires one-way migration | error | report | — |
 | `linear-live` | normalized live receipt is missing, malformed, partial, stale, foreign, read-only, or lacks an exact required capability/read-back | error | report | — |
-| `memory-provenance-live` | explicit receipt reports missing/foreign managed Linear identity or relation drift | error | report | — |
+| `memory-provenance-live` | normalized receipt lacks a complete verified managed identity/relation result for a valid Linear provenance URI, or reports missing/foreign/drifted identity | error | report | — |
 | `respond-config` | invalid type, key, bound, or value in the optional `respond` namespace | warn | report | — |
 | `respond-credentials` | credential-like key under `respond` | warn | report | — |
 | `respond-stale-evidence` | response evidence run directory older than 24 hours | warn | report (manual deletion after failed-run review) | — |
@@ -66,15 +66,26 @@ Static diagnosis is provider-free. It validates:
 `--live` is controller-owned. The skill controller discovers the official host MCP tools,
 authenticates through the host connection, resolves exactly one workspace/team, validates native
 project categories and issue states, and proves the required project, issue, update, comment,
-relation, owner, mutation, and independent read-back capabilities. It writes the normalized
+relation, owner, mutation, and independent read-back capabilities. It writes exactly one normalized
 non-secret outcome to a mode-0600 temporary file, passes that path to
 `doctor.sh --live-receipt <path>`, and deletes it after consumption.
 
-The shell engine only validates the receipt schema and reports exact missing capabilities. It
-never calls a provider or reads a provider credential. Missing authentication, missing/ambiguous
-workspace or team, bad state mappings, read-only access, an incomplete receipt, or an unknown
-mutation outcome is an error. There is no local-development-record, alternate-transport, or
-empty-success fallback. Every Linear finding is report-only; no `--fix` path mutates Linear.
+The receipt's top level supplies `ready`, canonical `repository`, resolved `workspace` and `team`,
+and the capability booleans consumed by the shell engine. When memory notes contain valid Linear
+provenance, the same receipt may contain a `provenance` object keyed by the lowercase canonical
+`linear://project|document|issue/<uuid>` URI. Each value is a normalized object with exact `kind`,
+lowercase `id`, `repository`, `workspace`, and `team`, plus boolean `verified`,
+`managedIdentityVerified`, and `relationsVerified` outcomes. The controller derives these
+non-secret outcomes from official host-MCP reads; raw provider responses are not receipt input.
+A live note whose canonical URI has no entry, a partial entry, false verification, or mismatched
+identity is `memory-provenance-live`.
+
+The shell engine parses URI syntax locally, validates only the normalized receipt, and reports exact
+missing capabilities or provenance fields. It never calls a provider or adapter and never reads a
+provider credential. Missing authentication, missing/ambiguous workspace or team, bad state
+mappings, read-only access, an incomplete receipt, or an unknown mutation/read-back outcome is an
+error. There is no local-development-record, alternate-transport, or empty-success fallback. Every
+Linear finding is report-only; no `--fix` path mutates Linear.
 
 ## Adding a check
 

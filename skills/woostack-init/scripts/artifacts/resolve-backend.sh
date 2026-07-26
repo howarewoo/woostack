@@ -43,23 +43,6 @@ if [ -n "$secret_path" ]; then
   error_path "linear.$secret_path"
 fi
 
-unknown_linear_path="$(jq -r '
-  first(
-    (.linear? | objects | keys[] as $key |
-      select(["workspace", "team", "repository", "projectStatuses", "issueStates"] | index($key) | not) |
-      ["linear", $key]),
-    (.linear?.projectStatuses? | objects | keys[] as $key |
-      select(["draft", "hardened", "approved", "planning", "ready", "executing", "inReview", "done", "abandoned"] | index($key) | not) |
-      ["linear", "projectStatuses", $key]),
-    (.linear?.issueStates? | objects | keys[] as $key |
-      select(["planned", "executing", "inReview", "done", "blocked"] | index($key) | not) |
-      ["linear", "issueStates", $key])
-  ) // empty |
-  join(".")
-' <<<"$config")"
-if [ -n "$unknown_linear_path" ]; then
-  error_path "$unknown_linear_path"
-fi
 
 if ! jq -e '
   (has("artifacts") | not) or
@@ -86,6 +69,24 @@ case "$backend" in
     error_path 'artifacts.specPlan'
     ;;
 esac
+
+unknown_linear_path="$(jq -r '
+  first(
+    (.linear? | objects | keys[] as $key |
+      select(["workspace", "team", "repository", "projectStatuses", "issueStates"] | index($key) | not) |
+      ["linear", $key]),
+    (.linear?.projectStatuses? | objects | keys[] as $key |
+      select(["draft", "hardened", "approved", "planning", "ready", "executing", "inReview", "done", "abandoned"] | index($key) | not) |
+      ["linear", "projectStatuses", $key]),
+    (.linear?.issueStates? | objects | keys[] as $key |
+      select(["planned", "executing", "inReview", "done", "blocked"] | index($key) | not) |
+      ["linear", "issueStates", $key])
+  ) // empty |
+  join(".")
+' <<<"$config")"
+if [ -n "$unknown_linear_path" ]; then
+  error_path "$unknown_linear_path"
+fi
 
 if ! jq -e '.linear | type == "object"' >/dev/null 2>&1 <<<"$config"; then
   error_path 'linear'
