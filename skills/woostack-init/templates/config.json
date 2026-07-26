@@ -1,6 +1,28 @@
 {
-  "artifacts": {
-    "specPlan": "markdown"
+  "linear": {
+    "repository": "",
+    "workspace": "",
+    "team": "",
+    "projectStatuses": {
+      "designApproved": "",
+      "specHardened": "",
+      "specApproved": "",
+      "planning": "",
+      "ready": "",
+      "executionApproved": "",
+      "executing": "",
+      "inReview": "",
+      "done": "",
+      "abandoned": "",
+      "paused": ""
+    },
+    "issueStates": {
+      "planned": "",
+      "executing": "",
+      "inReview": "",
+      "done": "",
+      "blocked": ""
+    }
   },
   "models": {},
   "review": {},

@@ -56,7 +56,7 @@
           "id": "doctor-config-not-repaired",
           "kind": "file-contains",
           "file": "fixtures/project/.woostack/config.json",
-          "substring": "\"artifacts\": {\"specPlan\": \"markdown\"}",
+          "substring": "\"linear\":",
           "critical": true
         },
         {
@@ -70,7 +70,7 @@
     },
     {
       "id": "check-mode-is-exit-coded-and-read-only",
-      "prompt": "Apply the packaged /woostack-doctor --check --live contract to the bounded host-produced result in fixtures/ci-diagnosis.json. Do not call a network, inspect credentials, or modify any file. Return exactly one JSON object using the keys findingCodes, exitCode, liveReadReceiptCount, remoteMutationCount, repairApplied, and mode.",
+      "prompt": "Apply the packaged /woostack-doctor --check --live contract to the bounded normalized non-secret host-MCP receipt and diagnosis in fixtures/ci-diagnosis.json. Do not call a network, inspect credentials, or modify any file. Return exactly one JSON object using the keys findingCodes, exitCode, liveReadReceiptCount, remoteMutationCount, repairApplied, and mode.",
       "fixtures": [
         "ci-project/.woostack/config.json",
         "ci-project/.woostack/memory/MEMORY.md",
@@ -80,7 +80,7 @@
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Check-live reports the malformed note and remote drift, preserves nonzero exit status, records authenticated reads with zero remote mutations, applies no repair, and leaves local files unchanged.",
+      "expected": "Check-live consumes the host-produced receipt, reports the malformed note and remote drift, preserves nonzero exit status, records verified read-backs with zero remote mutations, applies no repair, and leaves local files unchanged.",
       "assertions": [
         {
           "id": "ci-finding-codes",

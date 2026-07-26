@@ -1,284 +1,97 @@
 #!/usr/bin/env bash
 set -euo pipefail
+
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOCTOR="$HERE/../doctor.sh"
-CHECKS="$HERE/../checks"
-LINEAR="$HERE/../../../woostack-init/scripts/artifacts/linear.sh"
 # shellcheck disable=SC1091
 source "$HERE/../../../woostack-init/scripts/tests/assert.sh"
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
-complete_linear_config() {
+complete_config() {
   jq -cn '{
-    artifacts:{specPlan:"linear"},
+    models:{},review:{},respond:{},status:{staleDays:14},
     linear:{
-      repository:"acme/widgets",
-      workspace:"acme",
-      team:"ENG",
-      projectStatuses:{draft:"Draft",hardened:"Hardened",approved:"Approved",planning:"Planning",ready:"Ready",executing:"In Progress",inReview:"In Review",done:"Completed",abandoned:"Canceled"},
+      repository:"https://github.com/acme/widgets",workspace:"acme",team:"ENG",
+      projectStatuses:{
+        designApproved:"Backlog",specHardened:"Backlog",specApproved:"Backlog",planning:"Backlog",
+        ready:"Planned",executionApproved:"Planned",executing:"Started",inReview:"Started",
+        done:"Completed",abandoned:"Canceled",paused:"Paused"
+      },
       issueStates:{planned:"Backlog",executing:"In Progress",inReview:"In Review",done:"Done",blocked:"Blocked"}
     }
   }'
 }
 
 make_repo() {
-  local name="$1" repo
-  repo="$TMP/$name"
-  mkdir -p "$repo/.woostack/memory" "$repo/.woostack/specs" "$repo/.woostack/plans" "$repo/.woostack/fixes"
+  local name="$1" repo="$TMP/$1"
+  mkdir -p "$repo/.woostack/memory"
   git -C "$repo" init -q
-  complete_linear_config >"$repo/.woostack/config.json"
+  complete_config >"$repo/.woostack/config.json"
   printf '%s\n' "$repo"
-}
-
-write_note() {
-  local repo="$1" file="$2" source="$3"
-  cat >"$repo/.woostack/memory/$file" <<EOF
----
-name: ${file%.md}
-type: pattern
-scope: *
-source: $source
-updated: 2026-07-13
----
-body
-EOF
 }
 
 run_doctor() {
   local repo="$1"; shift
   set +e
-  OUTPUT="$(bash "$DOCTOR" "$repo" "$@" 2>&1)"
+  OUTPUT="$(bash "$DOCTOR" "$@" "$repo" 2>&1)"
   RC=$?
   set -e
 }
 
-# Static Linear diagnostics must resolve config without credentials, skip local spec/plan
-# authoring checks, preserve fixes checks, and report coexisting local docs as inactive legacy.
-repo="$(make_repo static)"
-cat >"$repo/.woostack/specs/legacy.md" <<'EOF'
----
-type: wrong
-status: wip
----
-# Legacy spec
-EOF
-cat >"$repo/.woostack/plans/legacy.md" <<'EOF'
----
-type: wrong
-status: approved
----
-# Legacy plan
-EOF
-cat >"$repo/.woostack/fixes/active.md" <<'EOF'
----
-type: wrong
-status: wip
----
-# Active fix
-EOF
+repo="$(make_repo static-success)"
 run_doctor "$repo"
-assert_exit 1 "$RC" "Linear static doctor keeps active fix errors"
-assert_contains "$OUTPUT" "artifact-legacy-local" "Linear mode reports inactive local spec/plan artifacts"
-assert_contains "$OUTPUT" ".woostack/specs/legacy.md" "inactive spec is identified"
-assert_contains "$OUTPUT" ".woostack/plans/legacy.md" "inactive plan is identified"
-assert_not_contains "$OUTPUT" "[doc-type] .woostack/specs/legacy.md" "Linear mode skips local spec type checks"
-assert_not_contains "$OUTPUT" "[status-enum] .woostack/specs/legacy.md" "Linear mode skips local spec status checks"
-assert_not_contains "$OUTPUT" "[doc-type] .woostack/plans/legacy.md" "Linear mode skips local plan type checks"
-assert_not_contains "$OUTPUT" "[status-band]" "Linear mode skips local spec/plan status-band checks"
-assert_not_contains "$OUTPUT" "[plan-source" "Linear mode skips local plan source checks"
-assert_not_contains "$OUTPUT" "[spec-plan-backlink]" "Linear mode skips local spec/plan backlink checks"
-assert_contains "$OUTPUT" "[doc-type] .woostack/fixes/active.md" "Linear mode still checks backend-neutral fixes"
-assert_contains "$OUTPUT" "[status-enum] .woostack/fixes/active.md" "Linear mode still checks fix status values"
+assert_exit 0 "$RC" "valid non-secret Linear policy passes static diagnosis"
+assert_not_contains "$OUTPUT" "linear-live" "static diagnosis performs no live-provider check"
 
-# Invalid selector/config is a static error, and the static run never requests credentials.
-bad="$(make_repo bad-config)"
-jq '.artifacts.specPlan="sqlite"' "$bad/.woostack/config.json" >"$bad/.woostack/config.json.tmp"
-mv "$bad/.woostack/config.json.tmp" "$bad/.woostack/config.json"
-run_doctor "$bad"
-assert_exit 1 "$RC" "invalid backend config fails static doctor"
-assert_contains "$OUTPUT" "artifact-config" "invalid selector is a backend config finding"
-assert_contains "$OUTPUT" "artifacts.specPlan" "invalid selector finding names the safe config path"
-assert_not_contains "$OUTPUT" "LINEAR_API_KEY" "static config diagnostics do not ask for credentials"
+bad_selector="$(make_repo selector)"
+jq '.artifacts={specPlan:"markdown"}' "$bad_selector/.woostack/config.json" >"$bad_selector/config.tmp"
+mv "$bad_selector/config.tmp" "$bad_selector/.woostack/config.json"
+run_doctor "$bad_selector"
+assert_exit 1 "$RC" "backend selector fails static diagnosis"
+assert_contains "$OUTPUT" "development backend selectors are not supported" "selector finding is actionable"
 
-# Resolver failures must not reinterpret inactive spec/plan files as Markdown or repair them.
-broken="$(make_repo incomplete-linear)"
-jq 'del(.linear.team)' "$broken/.woostack/config.json" >"$broken/.woostack/config.json.tmp"
-mv "$broken/.woostack/config.json.tmp" "$broken/.woostack/config.json"
-cat >"$broken/.woostack/specs/legacy.md" <<'EOF'
----
-type: wrong
-status: wip
----
-# Inactive legacy spec
-EOF
-run_doctor "$broken"
-assert_exit 1 "$RC" "incomplete Linear config fails static doctor"
-assert_contains "$OUTPUT" "artifact-config" "incomplete Linear config is reported by its owning check"
-assert_not_contains "$OUTPUT" "[doc-type] .woostack/specs/legacy.md" "resolver failure does not enable Markdown type checks"
-assert_not_contains "$OUTPUT" "[status-enum] .woostack/specs/legacy.md" "resolver failure does not enable Markdown status checks"
-bash "$CHECKS/doc-type.sh" --fix "$broken" "$broken/.woostack/specs/legacy.md" >/dev/null 2>&1 || true
-assert_eq "$(grep -m1 '^type:' "$broken/.woostack/specs/legacy.md")" "type: wrong" "resolver failure prevents local spec repair"
+bad_secret="$(make_repo secret)"
+jq '.linear.apiKey="secret"' "$bad_secret/.woostack/config.json" >"$bad_secret/config.tmp"
+mv "$bad_secret/config.tmp" "$bad_secret/.woostack/config.json"
+run_doctor "$bad_secret"
+assert_exit 1 "$RC" "credential-like Linear key fails static diagnosis"
+assert_contains "$OUTPUT" "credential-like configuration key" "credential finding names the violated boundary"
 
-# Missing jq must not suppress jq-independent Markdown diagnostics.
-no_jq_repo="$(make_repo no-jq-markdown)"
-jq '.artifacts.specPlan="markdown" | del(.linear)' "$no_jq_repo/.woostack/config.json" \
-  >"$no_jq_repo/.woostack/config.json.tmp"
-mv "$no_jq_repo/.woostack/config.json.tmp" "$no_jq_repo/.woostack/config.json"
-no_jq="$TMP/no-jq"
-mkdir -p "$no_jq"
-for tool in bash dirname mktemp rm cat grep; do
-  ln -s "$(command -v "$tool")" "$no_jq/$tool"
-done
-set +e
-OUTPUT="$(PATH="$no_jq" "$no_jq/bash" "$DOCTOR" "$no_jq_repo" 2>&1)"
-RC=$?
-set -e
-assert_exit 0 "$RC" "Markdown doctor keeps jq-independent diagnostics when jq is unavailable"
-assert_contains "$OUTPUT" "gitignore-drift" "missing jq does not suppress jq-independent checks"
-assert_not_contains "$OUTPUT" "jq is required" "Markdown doctor has no global jq prerequisite"
-set +e
-OUTPUT="$(PATH="$no_jq" "$no_jq/bash" "$DOCTOR" "$repo" --live 2>&1)"
-RC=$?
-set -e
-assert_exit 1 "$RC" "live doctor fails closed when jq cannot resolve a Linear backend"
-assert_contains "$OUTPUT" "linear-live" "missing jq is an explicit live validation error"
+bad_mapping="$(make_repo mapping)"
+jq 'del(.linear.issueStates.blocked)' "$bad_mapping/.woostack/config.json" >"$bad_mapping/config.tmp"
+mv "$bad_mapping/config.tmp" "$bad_mapping/.woostack/config.json"
+run_doctor "$bad_mapping"
+assert_exit 1 "$RC" "incomplete state mapping fails static diagnosis"
+assert_contains "$OUTPUT" "issueStates mapping is incomplete" "mapping finding is actionable"
 
-# The adapter owns strict, stable Linear provenance URI parsing without authentication.
-project_uri='linear://project/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
-document_uri='linear://document/dddddddd-dddd-4ddd-8ddd-dddddddddddd'
-issue_uri='linear://issue/11111111-1111-4111-8111-111111111111'
-for uri in "$project_uri" "$document_uri" "$issue_uri"; do
-  parsed="$(bash "$LINEAR" provenance-parse --reference "$uri")"
-  assert_eq "$(jq -r '.uri' <<<"$parsed")" "$uri" "adapter preserves canonical Linear provenance URI"
-  assert_eq "$(jq -r '.id' <<<"$parsed")" "${uri##*/}" "adapter parses stable resource UUID"
-done
-parsed="$(bash "$LINEAR" provenance-parse --reference 'linear://project/AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA')"
-assert_eq "$(jq -r '.uri' <<<"$parsed")" "$project_uri" "adapter canonicalizes UUID case without changing identity"
-for uri in \
-  'linear://project/not-a-uuid' \
-  'linear://project/nested/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' \
-  'linear://documents/dddddddd-dddd-4ddd-8ddd-dddddddddddd' \
-  'linear://issue/11111111-1111-4111-8111-111111111111?x=1' \
-  'https://linear.app/acme/project/example'; do
-  if bash "$LINEAR" provenance-parse --reference "$uri" >/dev/null 2>&1; then
-    fail "adapter must reject malformed provenance URI: $uri"
-  else
-    pass
-  fi
-done
+legacy="$(make_repo legacy)"
+mkdir -p "$legacy/.woostack/specs" "$legacy/.woostack/plans"
+printf x >"$legacy/.woostack/specs/one.md"
+printf x >"$legacy/.woostack/plans/one.md"
+run_doctor "$legacy"
+assert_exit 1 "$RC" "legacy development records block normal diagnosis"
+assert_eq "$(printf '%s\n' "$OUTPUT" | grep -c '^error.*legacy-development-records')" "2" "one blocker is emitted per legacy record set"
+assert_not_contains "$OUTPUT" "[doc-type]" "legacy records do not enter normal document lint"
+assert_not_contains "$OUTPUT" "[status-enum]" "legacy records do not enter normal lifecycle lint"
 
-prov="$(make_repo provenance)"
-write_note "$prov" project.md "$project_uri"
-write_note "$prov" document.md "$document_uri"
-write_note "$prov" issue.md "$issue_uri"
-write_note "$prov" malformed.md 'linear://project/not-a-uuid'
-write_note "$prov" nested.md 'linear://project/nested/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
-run_doctor "$prov"
-assert_exit 0 "$RC" "Linear provenance shape warnings do not fail static doctor"
-assert_not_contains "$OUTPUT" "project.md: source" "valid project URI passes static provenance validation"
-assert_not_contains "$OUTPUT" "document.md: source" "valid document URI passes static provenance validation"
-assert_not_contains "$OUTPUT" "issue.md: source" "valid issue URI passes static provenance validation"
-assert_contains "$OUTPUT" "malformed.md: source 'linear://project/not-a-uuid' is malformed" "malformed Linear URI is reported statically"
-assert_contains "$OUTPUT" "nested.md: source" "nested Linear URI is reported statically"
+receipt="$TMP/receipt.json"
+capabilities='{"projectRead":true,"projectWrite":true,"projectUpdateRead":true,"projectUpdateWrite":true,"issueRead":true,"issueWrite":true,"commentRead":true,"commentWrite":true,"relationRead":true,"relationWrite":true,"ownerRead":true,"ownerWrite":true,"independentReadBack":true}'
+jq -cn --argjson capabilities "$capabilities" '{ready:true,workspace:"acme",team:"ENG",repository:"https://github.com/acme/widgets",capabilities:$capabilities}' >"$receipt"
+chmod 600 "$receipt"
+run_doctor "$repo" --live-receipt "$receipt"
+assert_exit 0 "$RC" "complete normalized live receipt passes"
 
-# Fake normalized adapter proves live mode is explicit, authenticated, fail-closed, and
-# resolves each provenance kind without allowing any remote repair path.
-FAKE="$TMP/fake-linear.sh"
-cat >"$FAKE" <<'FAKE'
-#!/usr/bin/env bash
-set -euo pipefail
-printf '%s\n' "$*" >>"$FAKE_LINEAR_LOG"
-command="$1"; shift
-case "$command" in
-  preflight)
-    [ -n "${LINEAR_API_KEY:-}" ] || { echo 'linear request: LINEAR_API_KEY is required' >&2; exit 1; }
-    [ "${FAKE_LINEAR_MODE:-ok}" = ok ] || { echo "linear preflight: ${FAKE_LINEAR_MODE}" >&2; exit 1; }
-    printf '%s\n' '{"workspace":{"id":"w"},"team":{"id":"t"},"projectStatuses":{"draft":"1"},"issueStates":{"planned":"2"}}'
-    ;;
-  doctor-read)
-    [ -n "${LINEAR_API_KEY:-}" ] || exit 1
-    [ "${FAKE_LINEAR_RESOURCE_MODE:-ok}" = ok ] || { echo 'linear resources: missing or drifted' >&2; exit 1; }
-    printf '%s\n' '{"backend":"linear","features":[]}'
-    ;;
-  provenance-parse)
-    reference="$2"
-    [[ "$reference" =~ ^linear://(project|document|issue)/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$ ]]
-    ;;
-  provenance-resolve)
-    [ -n "${LINEAR_API_KEY:-}" ] || exit 1
-    [ "${FAKE_LINEAR_RESOURCE_MODE:-ok}" = ok ] || { echo 'linear resources: missing or drifted' >&2; exit 1; }
-    printf '%s\n' '{"backend":"linear","resource":{"exists":true},"feature":{"id":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"}}'
-    ;;
-  *) exit 2 ;;
-esac
-FAKE
-chmod +x "$FAKE"
-export WOOSTACK_LINEAR_ADAPTER="$FAKE"
-export FAKE_LINEAR_LOG="$TMP/fake-linear.log"
-: >"$FAKE_LINEAR_LOG"
+jq '.capabilities.commentWrite=false' "$receipt" >"$TMP/read-only.json"
+chmod 600 "$TMP/read-only.json"
+run_doctor "$repo" --live-receipt "$TMP/read-only.json"
+assert_exit 1 "$RC" "read-only live receipt fails closed"
+assert_contains "$OUTPUT" "missing Linear MCP capability: commentWrite" "missing mutation capability is exact"
+assert_not_contains "$OUTPUT" "LINEAR_API_KEY" "diagnosis never requests an API key"
 
-# A live request must distinguish resolver failure from a non-Linear backend.
-: >"$FAKE_LINEAR_LOG"
-run_doctor "$broken" --live
-assert_exit 1 "$RC" "live doctor fails closed when backend resolution fails"
-assert_contains "$OUTPUT" "artifact backend resolution failed" "live resolver failure is explicit"
-assert_eq "$(cat "$FAKE_LINEAR_LOG")" "" "live resolver failure blocks adapter preflight"
-
-# --live is a no-op for Markdown: no credentials, adapter calls, or diagnostic drift.
-markdown="$(make_repo markdown-live)"
-jq '.artifacts.specPlan="markdown" | del(.linear)' "$markdown/.woostack/config.json" \
-  >"$markdown/.woostack/config.json.tmp"
-mv "$markdown/.woostack/config.json.tmp" "$markdown/.woostack/config.json"
-run_doctor "$markdown"
-markdown_static_output="$OUTPUT"
-markdown_static_rc="$RC"
-: >"$FAKE_LINEAR_LOG"
-run_doctor "$markdown" --live
-assert_exit "$markdown_static_rc" "$RC" "Markdown live mode preserves static exit behavior"
-assert_eq "$OUTPUT" "$markdown_static_output" "Markdown live mode preserves static diagnostics"
-assert_eq "$(cat "$FAKE_LINEAR_LOG")" "" "Markdown live mode never invokes the Linear adapter"
-
-unset LINEAR_API_KEY
-run_doctor "$prov" --live
-assert_exit 1 "$RC" "live doctor fails closed without authentication"
-assert_contains "$OUTPUT" "linear-live" "missing live authentication is an error finding"
-assert_contains "$(cat "$FAKE_LINEAR_LOG")" "preflight" "live doctor invokes normalized adapter preflight"
-assert_not_contains "$(cat "$FAKE_LINEAR_LOG")" "provenance-resolve" "resource reads stop when preflight fails"
-
-: >"$FAKE_LINEAR_LOG"
-export LINEAR_API_KEY='test-only-secret'
-export FAKE_LINEAR_MODE=ok
-export FAKE_LINEAR_RESOURCE_MODE=ok
-run_doctor "$prov" --live
-assert_exit 0 "$RC" "authenticated live doctor succeeds on valid remote state"
-assert_contains "$OUTPUT" "linear-write-scope-unverifiable" "live doctor reports the non-mutating write-scope introspection limit"
-assert_contains "$(cat "$FAKE_LINEAR_LOG")" "preflight" "live doctor validates schema workspace team mappings and capabilities"
-assert_eq "$(grep -c '^preflight' "$FAKE_LINEAR_LOG")" 1 "live doctor performs authenticated preflight exactly once"
-assert_contains "$(cat "$FAKE_LINEAR_LOG")" "doctor-read" "live doctor validates all managed resources through normalized adapter"
-assert_contains "$(cat "$FAKE_LINEAR_LOG")" "provenance-resolve --reference $project_uri" "live doctor resolves project provenance through adapter"
-assert_contains "$(cat "$FAKE_LINEAR_LOG")" "provenance-resolve --reference $document_uri" "live doctor resolves document provenance through adapter"
-assert_contains "$(cat "$FAKE_LINEAR_LOG")" "provenance-resolve --reference $issue_uri" "live doctor resolves issue provenance through adapter"
-assert_not_contains "$(cat "$FAKE_LINEAR_LOG")" "provenance-resolve --reference linear://project/not-a-uuid" "malformed provenance is parsed but never resolved remotely"
-
-for mode in authentication schema workspace team mappings access; do
-  : >"$FAKE_LINEAR_LOG"
-  export FAKE_LINEAR_MODE="$mode"
-  run_doctor "$prov" --live
-  assert_exit 1 "$RC" "live doctor fails closed on $mode validation failure"
-  assert_contains "$OUTPUT" "linear-live" "$mode failure is surfaced as a live error"
-done
-
-export FAKE_LINEAR_MODE=ok
-export FAKE_LINEAR_RESOURCE_MODE=drift
-run_doctor "$prov" --live
-assert_exit 1 "$RC" "live doctor fails closed on resource relation or metadata drift"
-assert_contains "$OUTPUT" "memory-provenance-live" "remote provenance drift is surfaced"
-
-: >"$FAKE_LINEAR_LOG"
-bash "$CHECKS/config-keys.sh" --fix "$prov" artifacts >/dev/null 2>&1 || true
-bash "$CHECKS/doc-type.sh" --fix "$prov" "$prov/.woostack/specs/legacy.md" >/dev/null 2>&1 || true
-assert_eq "$(cat "$FAKE_LINEAR_LOG")" "" "doctor repair paths never call or mutate Linear"
+run_doctor "$repo" --live-receipt "$TMP/missing.json"
+assert_exit 1 "$RC" "missing live receipt fails closed"
+assert_contains "$OUTPUT" "receipt is missing or unreadable" "missing receipt is actionable"
 
 finish

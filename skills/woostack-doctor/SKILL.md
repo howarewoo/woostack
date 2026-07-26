@@ -1,6 +1,6 @@
 ---
 name: woostack-doctor
-description: Use to diagnose and (gated) repair a repo's .woostack/ workspace health — backend-aware static store/config/convention checks, plus explicit authenticated Linear live validation; Markdown behavior stays unchanged, and remote content is never auto-repaired. Includes exit-coded CI mode and an interactive local repair gate. Never scaffolds, curates memory, reconciles the board, or merges.
+description: Use to diagnose and (gated) repair a repo's `.woostack/` workspace health — static knowledge/config checks, legacy-development-record migration blockers, and explicit host-verified Linear MCP capability receipts. Remote content is never auto-repaired. Includes exit-coded CI mode and an interactive local repair gate.
 ---
 
 # woostack-doctor
@@ -13,13 +13,13 @@ existing content and conventions**.
 
 It has two layers:
 
-- A **headless diagnose engine** (`scripts/doctor.sh`) — pure bash and **exit-coded** (0 = no
-  errors, nonzero = at least one `error` finding). Static diagnosis is credential-free. In Linear
-  mode, `--live` explicitly opts into authenticated remote validation.
-- An **interactive repair layer** (this skill's procedure) — proposes a changeset for local,
-  auto-fixable findings, mutates **nothing** before approval, applies approved local repairs, and
-  hands file changes to [`woostack-commit`](../woostack-commit/SKILL.md). It **never repairs Linear
-  resources and never merges**.
+- A **headless diagnose engine** (`scripts/doctor.sh`) — pure bash and exit-coded. Static diagnosis
+  reads no credentials and calls no provider. For explicit live diagnosis it validates a
+  normalized, non-secret receipt supplied by the skill controller through
+  `--live-receipt <path>`; the script never calls MCP, HTTP, GraphQL, or a hard-coded provider tool.
+- An **interactive repair layer** — proposes local auto-fixes, mutates nothing before approval,
+  and hands approved file changes to [`woostack-commit`](../woostack-commit/SKILL.md). Linear
+  resources and legacy development records are report-only; doctor never merges.
 
 ## Commands
 
@@ -28,16 +28,16 @@ It has two layers:
 - `/woostack-doctor [path] --check` — **CI mode**: diagnose only. Prints GitHub-style annotations
   and sets the exit code (nonzero iff any `error`); suppresses the machine-readable findings dump.
   Mutates nothing.
-- `/woostack-doctor [path] --live` — run static checks, then (only when the configured artifact
-  backend is Linear) require `LINEAR_API_KEY` and validate authenticated viewer identity/active
-  state, workspace/team/resource visibility, status mappings, schema mutation capabilities, every
-  managed repository feature and its resources, referenced provenance resource existence, managed
-  ownership/metadata, and native relation agreement. Linear exposes no non-mutating introspection
-  of a personal API key's effective write scope, so live doctor reports that limitation and does
-  not claim to pre-prove future mutation authorization. Any auth, API, visibility, or drift failure
-  is an `error`; live mode fails closed and never falls back to local specs/plans.
-- `/woostack-doctor [path] --check --live` — the same explicit live validation with CI-style
-  annotations and exit behavior.
+- `/woostack-doctor [path] --live` — after static checks, discover the host's official Linear MCP
+  tools and authenticate through the host connection. Resolve the configured workspace/team,
+  validate project/update/issue/comment/relation/owner/read-back capabilities and native mappings,
+  independently read back the probe results, write only the normalized non-secret result to a
+  mode-0600 temporary receipt, invoke `doctor.sh --live-receipt <path> [path]`, then delete the
+  receipt. Missing MCP, authentication, identity, team, state mapping, mutation capability, or
+  read-back is an `error` before artifact or Git access. Read-only MCP reports the exact missing
+  mutation capabilities.
+- `/woostack-doctor [path] --check --live` — the same controller-owned live preflight with
+  CI-style annotations and exit behavior.
 
 The engine depends on [`woostack-init`](../woostack-init/SKILL.md) being installed (it sources the
 shared libs and reads the `templates/` it ships); the woostack collection installs both as
@@ -45,17 +45,16 @@ siblings, so this holds by construction.
 
 ## Procedure
 
-1. **Diagnose statically.** Run `bash <doctor>/scripts/doctor.sh [path]`. This reads no Linear
-   credentials and makes no network request. It resolves `artifacts.specPlan`, validates backend
-   config and Linear provenance URI shapes, and emits one machine-readable finding per line:
-   `severity⇥code⇥fixable⇥path⇥message`. Severity is `error` (structural breakage — fails CI) or
-   `warn` (hygiene/convention). `fixable` is `auto` (the owning local check ships a `--fix`) or
-   `report` (judgment — surfaced, never auto-applied). The catalog is in
-   [references/checks.md](references/checks.md).
-2. **Optionally validate Linear live.** Only on an explicit `--live`, let the normalized adapter
-   use `LINEAR_API_KEY`. Treat missing auth, schema/capability drift, missing or ambiguous mappings,
-   inaccessible resources, foreign ownership, malformed managed metadata, and native
-   relation/metadata disagreement as errors. Never retry by reading local spec/plan files.
+1. **Diagnose statically.** Run `bash <doctor>/scripts/doctor.sh [path]`. This makes no provider
+   call. It validates the non-secret Linear policy, knowledge stores, diagnostics, and local
+   worktree hygiene. Legacy `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, or
+   `.woostack/overnight/` sets produce one blocking migration finding per active or ambiguous set;
+   doctor does not run normal spec/plan lifecycle lint on them. Findings use
+   `severity⇥code⇥fixable⇥path⇥message`; see [references/checks.md](references/checks.md).
+2. **Optionally validate Linear live.** Only on explicit `--live`, the skill controller discovers
+   host MCP capabilities and supplies `doctor.sh --live-receipt <path>` with a normalized,
+   non-secret receipt. The script validates the receipt and never impersonates a provider call.
+   Missing, partial, stale, foreign, ambiguous, read-only, or conflicting receipts are errors.
 3. **No workspace?** If the engine exits 2 with "no `.woostack/`", **stop** and tell the user to
    run [`woostack-init`](../woostack-init/SKILL.md). Doctor never scaffolds.
 4. **Propose a changeset.** Group the local `fixable=auto` findings into a proposed repair set —
@@ -77,24 +76,17 @@ siblings, so this holds by construction.
 
 - **Never scaffold.** Absent `.woostack/` → point at `woostack-init`; never create the workspace.
 - **Never reconcile the board** (that is `woostack-status`) and **never curate memory content**
-  (that is `woostack-dream`). Doctor repairs **static, authoring-time** doc drift — `type:`, the
-  `status:` enum (normalizing exact-match aliases), and the plan→spec `**Source:**` join — and
-  **reports** judgment-only signals (dead notes, wrong-band status); it never auto-prunes knowledge.
-  It **never computes or writes the git/PR-derived execute→done band**; that stays
-  `woostack-status`'s read-only computed truth.
-- **Backend boundaries are exact.** Markdown remains the default and keeps every existing
-  filesystem check and repair. Linear mode validates selector/config/URI shapes statically, skips
-  filesystem spec/plan type/status/source/backlink checks, and reports coexisting local specs/plans
-  as inactive legacy artifacts. Backend-neutral fixes remain checked.
-- **Remote validation is opt-in and read-only.** Ordinary diagnosis and every repair path are
-  credential-free. `--live` alone may authenticate through the normalized adapter. The controller
-  performs preflight exactly once before checks, exports a temporary non-secret receipt, and the
-  config/resource and memory-provenance checks consume that shared result. Live mode fails closed
-  on identity/active-access/API/schema/mapping/capability/resource/ownership/metadata/relation
-  failure and never creates, updates, archives, deletes, or repairs a Linear resource. The API
-  provides no non-mutating effective write-scope introspection for personal API keys, so doctor
-  surfaces `linear-write-scope-unverifiable` rather than claiming future writes are authorized;
-  actual adapter mutations remain fail-closed.
+  (that is `woostack-dream`). Doctor repairs static knowledge/config drift and reports judgment-only
+  signals; it never computes or writes lifecycle state.
+- **Linear is the only development authority.** Static diagnosis validates non-secret policy.
+  Local development-record directories are migration blockers, not a backend and not normal lint
+  input. Doctor never creates, repairs, adopts, or deletes them.
+- **Provider access belongs to the skill controller.** Ordinary diagnosis and every repair path
+  are provider-free. Explicit `--live` discovers official host MCP tools, performs authenticated
+  read/write/update/comment/relation/owner/read-back preflight, and passes only a normalized
+  non-secret receipt to the shell engine. The temporary receipt is mode 0600 and deleted after
+  consumption. The shell never reads a provider credential or invokes HTTP, GraphQL, an API-key
+  adapter, or a hard-coded MCP tool name. Unknown or partial outcomes fail closed.
 - **Gate every repair.** Nothing mutates before explicit approval; `report` findings are never
   auto-applied.
 - **Safety is never relaxed.** The only filesystem repair is `git worktree prune` (admin-only);

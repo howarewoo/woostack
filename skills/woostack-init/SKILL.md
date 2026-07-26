@@ -1,17 +1,16 @@
 ---
 name: woostack-init
-description: Use when initializing, scaffolding, or repairing the .woostack/ workspace — creates the memory store, specs and plans directories, config.json, and .gitignore from canonical templates, then runs the index builder and the `woostack-doctor` store linter. For ongoing workspace-health checks and convention repair, use [`woostack-doctor`](../woostack-doctor/SKILL.md). Invoke at project setup (brownfield) or from woostack-bootstrap (greenfield).
+description: Use when initializing, scaffolding, or repairing a Linear-backed `.woostack/` workspace — verifies the host's official Linear MCP connection, writes non-secret repository policy and local knowledge/diagnostic stores, then runs the index builder and `woostack-doctor`. For ongoing workspace-health checks and convention repair, use [`woostack-doctor`](../woostack-doctor/SKILL.md).
 ---
 
 # woostack-init
 
 ## Overview
 
-Creates or repairs the `.woostack/` workspace directory tree for a project. It
-writes every missing piece from the skill's `templates/` directory, runs
-`build-index.sh` to regenerate the derived memory index, and then runs
-`doctor.sh` to lint the store. At the end it reports what was created, what
-was skipped, and any doctor warnings or errors.
+Verifies mandatory official Linear MCP access, then creates or repairs the non-authoritative
+`.woostack/` knowledge, response, worktree, and diagnostic stores. It never creates local
+development specs, plans, or fixes. At the end it reports MCP readiness, created/skipped files,
+and doctor findings.
 
 Two callers:
 
@@ -29,49 +28,46 @@ Two callers:
    `.woostack/` already exists and note each file that is present — these are
    candidates for the keep/overwrite prompt.
 
-2. **Create missing pieces from `templates/`.** For each item below, create it
+2. **Validate official Linear MCP before filesystem writes.** Discover the host-exposed MCP tools
+   at `https://mcp.linear.app/mcp`; authenticate through the host's OAuth/MCP secret store. Resolve
+   exactly one configured workspace and team. Verify the repository identity, every configured
+   project-status category and issue-state mapping, and the required project/issue/update/comment/
+   relation/owner/read-back capabilities. Prefer reversible or non-destructive reads. Missing,
+   read-only, ambiguous, or unauthenticated access is an actionable hard stop before creating or
+   modifying project files. Tool names are host-discovered rather than hard-coded. The canonical
+   capability, policy, and receipt contract is
+   [Linear MCP development authority](references/artifact-backends.md).
+
+3. **Create missing pieces from `templates/`.** After the preflight succeeds, create each item
    only if it is absent (unless `--force` is active):
 
    | Item | Source |
    |---|---|
    | `.woostack/memory/` directory | (create empty) |
    | `.woostack/memory/.gitkeep` | (touch) |
-   | `.woostack/specs/` directory | (create empty) |
-   | `.woostack/plans/` directory | (create empty) |
-   | `.woostack/fixes/` directory | (create empty) |
-   | `.woostack/fixes/.gitkeep` | `templates/fixes/.gitkeep` |
    | `.woostack/wisdom/` directory | (create empty) |
    | `.woostack/wisdom/.gitkeep` | `templates/wisdom/.gitkeep` |
    | `.woostack/respond/` directory | (create empty — tracked sanitized response reports) |
    | `.woostack/respond/.gitkeep` | `templates/respond/.gitkeep` |
-   | `.woostack/config.json` | `templates/config.json` (`artifacts.specPlan` defaults to `markdown`; tool namespaces follow) |
+   | `.woostack/config.json` | `templates/config.json` |
    | `.woostack/.gitignore` | `templates/gitignore` |
-   | `.woostack/worktrees/` directory | (create empty — per-PR git worktrees, gitignored) |
+   | `.woostack/worktrees/` directory | (create empty — per-PR Git worktrees, gitignored) |
 
-   `config.json` ships with `artifacts.specPlan` set to `markdown`, plus empty `models`, `review`,
-   and `respond` namespaces and `status.staleDays` set to 14. Each tool owns its namespace.
-   `artifacts.specPlan` selects the spec/plan backend: `markdown` keeps tracked `.woostack`
-   artifacts; `linear` stores the build and planning lifecycle in one managed project, one
-   managed spec document, and ordered managed increment issues. Linear reaches the verified
-   pre-execution handoff without local spec/plan Git artifacts. The accepted keys, lifecycle
-   mappings, and current boundary are defined in the
-   [artifact backend configuration reference](references/artifact-backends.md). Provider
-   credentials never belong in this file.
+   Do not create `.woostack/specs/`, `.woostack/plans/`, or `.woostack/fixes/`. Existing copies
+   are legacy migration input; leave them untouched and let doctor report one blocking migration
+   finding per active or ambiguous record set.
+
+   `config.json` contains non-secret repository policy plus tool-owned `models`, `review`,
+   `respond`, and `status` namespaces. Initialization persists the verified canonical repository
+   URL, workspace, team, `projectStatuses`, and `issueStates` under `linear`. It stores no
+   development record, backend selector, provider credential, authorization header, or credential
+   path. The exact policy schema is in
+   [Linear MCP development authority](references/artifact-backends.md).
 
    The optional `respond` namespace accepts only non-secret workflow defaults: `provider`,
    `environment`, `window`, `max_groups`, and `remediation`; provider credentials remain in
-   provider-native stores. The `status` namespace holds `staleDays` (default 14 — the age in days
-   past which an executing spec is flagged stale on the `/woostack-status` board), defined in
+   provider-native stores. The `status` namespace holds `staleDays` (default 14), defined in
    [../woostack-status/references/conventions.md](../woostack-status/references/conventions.md).
-
-   `artifacts.specPlan` accepts `markdown` or `linear`; a missing selector also resolves to
-   Markdown, so Markdown is the default rather than a universal storage requirement. Linear's
-   workspace, team, native project-status, and native issue-state names live in the non-secret
-   `linear` config namespace. `LINEAR_API_KEY` is environment only: never store it, another
-   credential, or a credential-file path in config or a checked-in env file. The
-   [artifact-backend adoption contract](../woostack-bootstrap/references/development.md#artifact-backend)
-   owns the canonical project/document/issues model and migration boundary. The resolver owns
-   validation; do not duplicate its adapter details here.
 
    The optional top-level `base_branch` key sets the integration/trunk branch that base branches
    are cut from and PRs target; unset, it auto-detects the remote default (`origin/HEAD`, else
@@ -83,12 +79,12 @@ Two callers:
    Under omp there is no host-specific scaffold: omp owns its built-in workers and role
    configuration, and woostack does not create or edit `.omp/agents/`.
 
-3. **Handle existing files.** For any file that already exists and `--force`
+4. **Handle existing files.** For any file that already exists and `--force`
    is not active: prompt the user to keep or overwrite it. Under `--no-clobber`
    skip all existing files silently without prompting. After the run, state
    which mode was used (interactive / force / no-clobber) in the summary.
 
-4. **Production-error response setup (optional).** If `--respond` was passed, or if
+5. **Production-error response setup (optional).** If `--respond` was passed, or if
    `--no-respond` was not passed and the user accepts `Set up production error response? [y/N]`,
    inspect repository dependencies, configuration filenames, instrumentation imports,
    configured exporters, and environment-variable **names**, then inventory available host
@@ -105,27 +101,25 @@ Two callers:
    This setup never authenticates a provider, stores a token/DSN/password/cookie/API key, or
    queries production telemetry.
 
-5. **Obsidian vault config (optional).** If `--obsidian` was passed, or if
+6. **Obsidian vault config (optional).** If `--obsidian` was passed, or if
    `--no-obsidian` was not passed and the user accepts the prompt ("Set up
    Obsidian vault config? [y/N]", default no), copy
    `templates/obsidian/` into `.woostack/.obsidian/`. Never clobber an
-   existing `.woostack/.obsidian/` directory — skip silently if it is
-   already present. This makes `.woostack/` an Obsidian vault so
-   `memory/`, `specs/`, and `plans/` appear as a `[[wikilink]]` graph in the
-   desktop app. Obsidian is **optional** — all memory tooling (`recall`,
-   `doctor`, `build-index`) works without it.
+   existing `.woostack/.obsidian/` directory. This makes the local memory and wisdom stores
+   available as an optional `[[wikilink]]` graph; development records remain in Linear.
+   All memory tooling works without Obsidian.
 
-6. **Run the scripts.**
+7. **Run the scripts.**
 
    ```
    bash scripts/build-index.sh .woostack/memory
-   bash ../woostack-doctor/scripts/doctor.sh .woostack/memory
+   bash ../woostack-doctor/scripts/doctor.sh --live-receipt "$receipt" .woostack/memory
    ```
 
-   Run `build-index.sh` first so the index is current before `doctor.sh` checks
-   for wikilink targets.
+   The skill controller writes the normalized non-secret MCP preflight receipt to a mode-0600
+   temporary file, passes it to doctor, and deletes it after consumption.
 
-7. **Report.** Print a summary listing each file as `created` or `skipped`,
+8. **Report.** Print a summary listing MCP readiness and each file as `created` or `skipped`,
    then echo the doctor output (warnings and error count). If doctor exits
    non-zero, surface the errors prominently so the user can act on them before
    committing.
@@ -139,9 +133,9 @@ Two callers:
   automated contexts (CI, bootstrap) where the workspace may already be
   partially initialized.
 - `--obsidian` — force-enable the optional Obsidian vault config scaffold
-  (step 5) without prompting.
+  (step 6) without prompting.
 - `--no-obsidian` — force-skip the optional Obsidian vault config scaffold
-  (step 5) without prompting.
+  (step 6) without prompting.
 - `--respond` — opt into guided non-secret production-error response configuration without the
   initial prompt.
 - `--no-respond` — suppress production-error response discovery and configuration. Mutually
@@ -152,8 +146,8 @@ Two callers:
 - **Never clobber `memory.md`, notes, or `config.json`** without an explicit
   overwrite instruction (user confirmation or `--force`). These files contain
   project-specific knowledge that cannot be regenerated.
-- **Legacy memory files are out of scope.** `/woostack-init` creates and repairs
-  only the scoped `.woostack/memory/` store.
+- **Legacy development records are migration-only.** Never create or repair local specs, plans,
+  or fixes. Preserve legacy sets until the verified one-way migration authorizes deletion.
 - **Other skills' files are out of scope.** Do not touch anything under
   `skills/`, `action.yml`, or any path outside `.woostack/` in the target
   project.

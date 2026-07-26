@@ -1,7 +1,33 @@
 {
+	"linear": {
+		"repository": "https://github.com/howarewoo/woostack",
+		"workspace": "",
+		"team": "",
+		"projectStatuses": {
+			"designApproved": "",
+			"specHardened": "",
+			"specApproved": "",
+			"planning": "",
+			"ready": "",
+			"executionApproved": "",
+			"executing": "",
+			"inReview": "",
+			"done": "",
+			"abandoned": "",
+			"paused": ""
+		},
+		"issueStates": {
+			"planned": "",
+			"executing": "",
+			"inReview": "",
+			"done": "",
+			"blocked": ""
+		}
+	},
 	"review": {
 		"metrics": true
 	},
+	"respond": {},
 	"status": {
 		"staleDays": 14
 	}
