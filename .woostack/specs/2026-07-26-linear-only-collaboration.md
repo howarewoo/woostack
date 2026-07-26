@@ -1,7 +1,7 @@
 ---
 name: linear-only-collaboration
 type: spec
-status: hardened
+status: approved
 date: 2026-07-26
 branch: feature/linear-only-collaboration
 links:
