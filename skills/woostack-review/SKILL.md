@@ -206,18 +206,19 @@ Review swarm execution means:
 3. spawn every expected worker unless an explicit bounded cap is configured;
 4. drain the full first-pass queue;
 5. retry missing, empty, invalid-JSON, or non-array artifacts once after the queue drains;
-6. reset still-invalid *findings* artifacts to `[]`, and treat a missing/invalid *receipt* as a worker that did not execute; **when a worker left no receipt because it exited on a usage/rate limit (`usage_limit_reached` / `rate_limit_error`) and the host routes models per call (agent-by-tier — see the host file), re-dispatch that worker pinned to the next configured `models.<tier>` entry** — resolved with `resolve-model.sh --provider <p> --tier <t> --index N` (N incrementing from 1) — **walking the configured fallback chain until the worker produces a receipt or the chain is exhausted** (`resolve-model.sh --index` exits 3 for "no further fallback"), enacting the configured fallback that a host's native `models.<tier>` chain can fail to engage under a concurrent-spawn burst; a still-missing receipt aborts the run only after the fallback chain is exhausted (or immediately on a single-model-per-session host that cannot re-pin), since receipts are never pre-initialized and their presence is the proof of execution;
+6. reset still-invalid *findings* artifacts to `[]`, and treat a missing/invalid *receipt* as a worker that did not execute; **when a worker left no receipt because it exited on a usage/rate limit (`usage_limit_reached` / `rate_limit_error`) and the host exposes an explicit per-call model override, re-dispatch that worker pinned to the next configured `models.<tier>` entry** — resolved with `resolve-model.sh --provider <p> --tier <t> --index N` (N incrementing from 1) — **walking the configured fallback chain until the worker produces a receipt or the chain is exhausted** (`resolve-model.sh --index` exits 3 for "no further fallback"). This repository-configured recovery handles the concurrent-spawn burst for hosts that can re-pin each call. Do not apply it to single-model sessions or host-owned role routing: those hosts own their recovery, and a still-missing receipt proceeds to the hard gate without a repository-model redispatch;
 7. write `$OUTDIR/swarm-metrics.json` so the summary can disclose host-managed versus bounded mode and degraded coverage.
 
 For unchunked reviews, the expected artifact is `$OUTDIR/findings.<angle>.json`. For chunked reviews, the expected artifact is `$OUTDIR/findings.<angle>.<chunk_id>.json`.
 
 Use your host's primitive for host-managed fan-out — the current host's reference file names it.
 
-Angle workers MUST be spawned as **plain/general-purpose/default** sub-agents with no
-`woostack-review` skill scope attached. Do not use a `woostack-review`-scoped worker profile,
-`@woostack-review`, `skill://woostack-review`, or this `SKILL.md` as worker context. If the host
-exposes a `subagent_type`, profile, or agent selector, choose the plain/general/default worker
-profile (Claude Code: `general-purpose`) and pass only the brief below plus the prefetched artifacts.
+Angle workers MUST be spawned with no `woostack-review` skill scope attached. Use the worker
+selector required by the current host file; a host with role-backed built-in workers selects the
+worker mapped from the angle's effective tier. On hosts without that mechanism, choose the
+plain/general/default worker profile (Claude Code: `general-purpose`). Never use a
+`woostack-review`-scoped profile, `@woostack-review`, `skill://woostack-review`, or this `SKILL.md`
+as worker context.
 
 **Host mechanics:** before any host-dependent step (subagent dispatch, scaffold, draft), load `skills/using-woostack/references/hosts/<current-host>.md`; no matching file -> treat the host as having no per-call routing and say so (degraded). Each host file's "Per-skill notes" section carries this skill's local dispatch row. **Local only** — the CI single-session `load-prompt.sh` / `resolve-model.sh` path is unchanged and follows no links.
 
@@ -266,7 +267,15 @@ and model, proving you executed (see _worker-header.md). EXIT.
 
 Sub-agents MUST NOT post comments, edit the PR, touch other angles' files, run `prefetch.sh`, or delete/recreate `$OUTDIR`. `prefetch.sh` is a Stage-1-only operation; re-running it mid-swarm wipes `meta.json` / `prior-findings.json` and corrupts the posting stage (issue #48).
 
-**Model routing (token optimization, host-agnostic).** Each angle prompt and the validator declare a `tier:` in frontmatter — `fast`, `standard`, or `deep`. The host resolves the tier to a concrete model with `scripts/resolve-model.sh` — it consults `$OUTDIR/config.json`'s `models.<provider>.<tier>` and flat `models.<tier>` overrides first, selects entry 0 when a leaf is an ordered fallback array, and falls back to the default table in `prompts/_orchestrator-header.md`, so a per-repo model override in `.woostack/config.json` is honored on the next run. Reading a static header table directly skips the config step and is a routing bug (issue #295). Tier assignments:
+**Tier routing (token optimization, host-agnostic policy).** Each angle prompt and the validator
+declare a `tier:` in frontmatter — `fast`, `standard`, or `deep`. On explicit per-call and
+single-session hosts that consume repository model configuration, resolve it with
+`scripts/resolve-model.sh`: the resolver consults `$OUTDIR/config.json`'s
+`models.<provider>.<tier>` and flat `models.<tier>` overrides first. A fallback leaf must be a
+non-empty ordered array; entry 0 is the primary, and the resolver falls back to the default table in
+`prompts/_orchestrator-header.md`. On a host with host-owned role routing, resolve only the
+effective tier and select its fixed role-backed built-in worker; do not invoke the repository
+model resolver or read model leaves for that dispatch. Tier assignments:
 
 | Stage | Tier | Why |
 |---|---|---|
@@ -299,10 +308,26 @@ Per-provider resolution (canonical table in `../using-woostack/references/model-
 
 **Host capability:**
 
-- The host's capability class (per-call / single-session / agent-by-tier) and spawn mechanics live in `skills/using-woostack/references/hosts/<current-host>.md` (local runs only; CI is self-contained).
-- Whatever the class, resolve models with `bash $WOO_REVIEW_ACTION_PATH/scripts/resolve-model.sh --provider <provider> --tier <tier>` (honors `$OUTDIR/config.json` overrides): per-call hosts pass the resolved slug explicitly on every spawn; single-session hosts pin the run to a resolved run-tier (`fast` or `deep` via `FORCE_TIER`, otherwise `standard`) — `tier:` becomes informational once the run tier resolves; split into multiple jobs for per-angle fast/deep behavior.
+- The host's capability class (explicit per-call / single-session / host-owned role routing) and
+  spawn mechanics live in `skills/using-woostack/references/hosts/<current-host>.md` (local runs
+  only; CI is self-contained).
+- On explicit per-call and single-session hosts, resolve models with
+  `bash $WOO_REVIEW_ACTION_PATH/scripts/resolve-model.sh --provider <provider> --tier <tier>`
+  (honors `$OUTDIR/config.json` overrides). Per-call hosts pass the resolved values on every
+  spawn. Single-session hosts pin the run to a resolved run-tier (`fast` or `deep` via
+  `FORCE_TIER`, otherwise `standard`); `tier:` is informational after that, and separate jobs are
+  required for per-angle fast/deep behavior.
+- On host-owned role-routing hosts, apply `FORCE_TIER` when present, map the effective tier to the
+  host file's fixed built-in worker, and let the host own the concrete model and fallback. Never
+  call the repository model resolver for that route.
 
-Review runners MUST preserve the resolved tier/model context for every spawned worker. In single-model hosts, pass the resolved run-tier (`FORCE_TIER` when set, otherwise the host's standard tier) to every worker. In per-call-routing hosts, apply each angle prompt's `tier:` while preserving any explicit `FORCE_TIER` override, and set the spawn call's model field to the slug from `resolve-model.sh` (config-aware — never the static header table directly). Write that same resolved model into the worker's receipt (`model`) so receipts reflect the configured model, not the default. Omitting the spawn model field is a routing bug because the worker inherits the parent session's model and defeats the tier mapping. Host-managed or explicitly bounded scheduling must not cause later-starting angles to fall back to default model settings.
+Review runners MUST preserve the route actually used for every worker. Repository-model hosts
+preserve the resolved tier/model context: per-call hosts set the resolved spawn values, and
+single-session hosts pass the resolved run-tier to every worker. Host-owned role-routing hosts
+preserve the effective tier and worker selector, and the worker must write its actual host-supplied
+model identity into the receipt. A missing or unprovable model identity is not repaired with a
+configured repository value; it produces an invalid receipt. Host-managed or explicitly bounded
+scheduling must not cause later-starting angles to lose the selected route.
 
 **Receipt gate (hard fail).** After the swarm finishes — and before `merge-findings.sh` — run:
 
@@ -310,7 +335,17 @@ Review runners MUST preserve the resolved tier/model context for every spawned w
 bash "$WOO_REVIEW_ACTION_PATH/scripts/verify-receipts.sh"
 ```
 
-This is the single authority on whether each expected angle actually executed: it hard-fails (non-zero) and prints an actionable `::error` if any angle in `angles.txt` (× `chunks.txt`) lacks a valid receipt (`receipt.<angle>[.<chunk>].json` — a JSON object with matching `angle`/`chunk` and non-empty `runner`+`model`). The shell helper `run-bounded-swarm.sh` already calls this as its final step; hosts that dispatch workers natively (no shell helper) MUST run it themselves. On non-zero, **abort the run and surface the error — do NOT proceed to merge/validate/post.** A missing receipt means that angle never ran, so an empty `findings.json` would be a false clean PASS. This applies in both PR and local-no-PR modes. Because Stage 3 step 6 already re-dispatches usage/rate-limited workers onto the configured `models.<tier>` fallback chain before this gate runs, a hard fail here means that chain was genuinely exhausted — a usage-limit hit on the primary tier alone is not an immediate blocker when a usable fallback is configured.
+This is the single authority on whether each expected angle actually executed: it hard-fails
+(non-zero) and prints an actionable `::error` if any angle in `angles.txt` (× `chunks.txt`) lacks
+a valid receipt (`receipt.<angle>[.<chunk>].json` — a JSON object with matching `angle`/`chunk`
+and non-empty `runner`+`model`). The shell helper `run-bounded-swarm.sh` already calls this as its
+final step; hosts that dispatch workers natively (no shell helper) MUST run it themselves. On
+non-zero, **abort the run and surface the error — do NOT proceed to merge/validate/post.** A
+missing receipt means that angle never ran, so an empty `findings.json` would be a false clean
+PASS. This applies in both PR and local-no-PR modes. On hosts with an explicit per-call model
+override, Stage 3 step 6 walks every configured fallback before this gate. On host-owned
+role-routing hosts, host recovery is the only model fallback; if it leaves no valid worker
+receipt, this gate fails loudly.
 
 ### Stage 4 — Merge + Adversarial Validation
 
@@ -455,7 +490,9 @@ Only when invoking woostack-review through CI or setting up the GitHub Action wo
 
 - Always parallelize Stage 3 when the host supports it; the validator pass is calibrated for ~5 angles' worth of input.
 - Trust the Skeptical Validator. Disabling it produces noisy reviews.
-- Honor angle-prompt tiers (`fast`/`standard`/`deep`) when the host supports per-call model routing. Hosts that run one model per session should pin `gpt-5.5`; use tier-specific reasoning effort when the host supports it.
+- Honor angle-prompt tiers (`fast`/`standard`/`deep`) through the current host's routing class:
+  pass the resolved values on explicit per-call hosts, select the mapped worker on host-owned
+  role-routing hosts, and pin one resolved run model on single-session hosts.
 - Pass `disable_angles` to skip optional angles when scope is narrow (e.g. backend-only PR → `disable_angles: "seo,aeo,design,react,i18n"`).
 - For a confirmed bug (not a style nit) that the author wants to fix, suggest investigating it with [`woostack-debug`](../woostack-debug/SKILL.md): `/woostack-debug <target>` (it runs an autonomous root-cause analysis and hands back the root cause and a proposed fix). Review never dispatches `woostack-debug` itself: it owns no fix behavior and never auto-addresses findings, so it only points the author at the command.
 

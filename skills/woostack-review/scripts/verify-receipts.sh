@@ -2,7 +2,7 @@
 # Postflight gate: assert every expected angle (from angles.txt × chunks.txt) wrote
 # a VALID execution receipt. A valid receipt is a JSON object whose `angle` (and
 # `chunk`, when chunking is active) matches and whose `runner`, `model`, and `tier`
-# are non-empty. For Codex/OpenAI workers, the model must also match the tier mapping.
+# are non-empty. For repository-routed Codex/OpenAI workers, the model must also match the tier mapping.
 # This is the single authority on "did the angle worker actually execute":
 # empty findings are an honest clean review ONLY when the receipt proves the worker ran.
 #
@@ -92,12 +92,13 @@ receipt_needs_openai_model_check() { # file
   runner="$(jq -r '.runner // ""' "$f" 2>/dev/null | tr '[:upper:]' '[:lower:]' || true)"
   host="$(printf '%s' "${WOO_REVIEW_HOST:-}" | tr '[:upper:]' '[:lower:]')"
   provider="$(printf '%s' "${WOO_REVIEW_PROVIDER:-}" | tr '[:upper:]' '[:lower:]')"
+  [ "$host" = "omp" ] && return 1
   [ "$provider" = "openai" ] || [ "$host" = "codex" ] || [[ "$runner" == *codex* ]]
 }
 
 # Valid iff: JSON object; .angle == angle; (.chunk matches, or both empty/null);
-# .runner, .model, and .tier are non-empty; and Codex/OpenAI receipts report the
-# model mapped from their effective tier.
+# .runner, .model, and .tier are non-empty; repository-routed Codex/OpenAI
+# receipts must also report the model mapped from their effective tier.
 is_valid_receipt() { # angle chunk file
   local angle="$1" chunk="$2" f="$3" tier model expected
   [ -s "$f" ] || return 1

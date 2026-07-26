@@ -1,36 +1,4 @@
 {
-	"models": {
-		"deep": [
-			{
-				"model": "openai-codex/gpt-5.6-sol",
-				"effort": "high"
-			},
-			{
-				"model": "anthropic/claude-opus-4-8",
-				"effort": "high"
-			}
-		],
-		"standard": [
-			{
-				"model": "openai-codex/gpt-5.6-sol",
-				"effort": "medium"
-			},
-			{
-				"model": "anthropic/claude-opus-4-8",
-				"effort": "medium"
-			}
-		],
-		"fast": [
-			{
-				"model": "openai-codex/gpt-5.6-sol",
-				"effort": "low"
-			},
-			{
-				"model": "anthropic/claude-opus-4-8",
-				"effort": "low"
-			}
-		]
-	},
 	"review": {
 		"metrics": true
 	},

@@ -75,7 +75,7 @@ For each task in that selected increment task list, in order:
    Pass the full task text and exactly the context it needs — the subagent never inherits this
    session's history. **Place it in the increment's worktree per [Worktree placement](#worktree-placement)
    above:** fill the prompt's `<worktree absolute path — $wt>` pin with `$wt`, and additionally set
-   the spawn call's cwd to `$wt` where the host's API exposes one. Resolve and pass its model per
+   the spawn call's cwd to `$wt` where the host's API exposes one. Route its effective tier per
    [Dispatch model](#dispatch-model-resolve--map--pass) and [Tier selection](#tier-selection). It
    follows TDD, self-reviews, and **reports its changed files + diff; it does not commit.**
 2. **Handle its status** — one of:
@@ -87,16 +87,16 @@ For each task in that selected increment task list, in order:
      or the plan is wrong (escalate to the user). If a `fast` implementer specifically needs more
      reasoning, re-dispatch once at `standard` per [Tier selection](#tier-selection). A `standard`
      implementer never retries at `deep`; split the task or escalate instead. **Never** silently
-     retry the same model unchanged.
+     retry the same tier and host route unchanged.
 3. **Dispatch a spec-compliance reviewer** with
    [../prompts/spec-reviewer.md](../prompts/spec-reviewer.md), scoped to the implementer's
    reported task diff (this isolates the current task from earlier tasks' still-uncommitted work,
    since there is no per-task SHA to diff against). If it finds gaps, the **same implementer**
-   fixes them and the reviewer re-reviews. Loop until ✅. Resolve and pass its model per
+   fixes them and the reviewer re-reviews. Loop until ✅. Route its effective tier per
    [Dispatch model](#dispatch-model-resolve--map--pass) and [Tier selection](#tier-selection).
 4. **Dispatch a code-quality reviewer** with
    [../prompts/quality-reviewer.md](../prompts/quality-reviewer.md) — only after spec compliance
-   is ✅ — scoped to the same diff. Fix-and-re-review loop until ✅. Resolve and pass its model per
+   is ✅ — scoped to the same diff. Fix-and-re-review loop until ✅. Route its effective tier per
    [Dispatch model](#dispatch-model-resolve--map--pass) and [Tier selection](#tier-selection).
 5. **Record progress after both reviews pass.** For Markdown, tick the plan's checkboxes in place.
    For Linear, return the local verification result to [controller.md](controller.md); implementers
@@ -131,27 +131,31 @@ task** from complexity and risk — this table is the single home for the choice
 ### Dispatch model (resolve → map → pass)
 
 Before each subagent dispatch, resolve the task's **effective tier** (role default, adjusted per
-[Tier selection](#tier-selection) above) and resolve it through the shared
-[model-tiers.md](../../using-woostack/references/model-tiers.md) (the host provider's column plus
-any configured overrides, per that file's precedence rules). **Pass exactly what the resolved
-tier specifies** on the dispatch, in whatever form the host's spawn API accepts. The configured
-tiers are the single source of what a tier resolves to — never invent a mapping that is not
-configured there.
+[Tier selection](#tier-selection) above), then apply the current host's routing class. On a host
+that consumes repository model configuration, resolve the tier through the shared
+[model-tiers.md](../../using-woostack/references/model-tiers.md) provider table and configured
+overrides, then pass the resolved values in the form its spawn API accepts. On a host with
+host-owned role routing, map the effective tier to the fixed role-backed built-in worker named by
+the host file and do not resolve or read repository model leaves. The effective tier remains the
+single portable input; the host file owns how it is enacted.
 
-**When the host supports per-call routing, every dispatch MUST pass the tier's resolved
-values.** Omitting them makes the subagent inherit the parent session's settings, silently
-defeating tier routing and burning multiples of the tokens on cheap work — the same rationale
-`woostack-review`'s [`prompts/anthropic.md`](../../woostack-review/prompts/anthropic.md) already
-states for its angle spawns. **When the host cannot route per call**, run at the session model and
-**say so** (degraded, not equivalent) — never pretend a tier ran.
+**When the host supports explicit per-call model routing, every dispatch MUST pass the tier's
+resolved values.** Omitting them makes the subagent inherit the parent session's settings,
+silently defeating tier routing and burning multiples of the tokens on cheap work — the same
+rationale `woostack-review`'s
+[`prompts/anthropic.md`](../../woostack-review/prompts/anthropic.md) already states for its angle
+spawns. **Host-owned role routing is also non-degraded:** select the mapped built-in worker and let
+the host own its concrete model, role configuration, and fallback. **When the host offers neither
+capability**, run at the session model and **say so** (degraded, not equivalent) — never pretend a
+tier ran.
 
 **Host mechanics:** before any host-dependent step (subagent dispatch, scaffold, draft), load `skills/using-woostack/references/hosts/<current-host>.md`; no matching file -> treat the host as having no per-call routing and say so (degraded).
 
-The host file answers the capability questions this doctrine needs: the spawn primitive and
-its per-call model/effort/cwd knobs, the tier-routing class (an agent-by-tier host is **not**
-degraded — the tier applies via the host's mechanism), and the host-level fallback posture.
-A host-applied **temporary** model fallback on a usage-limit error is host-owned recovery,
-not the silent tier claim this doctrine forbids — the driver has no re-report obligation.
+The host file answers the capability questions this doctrine needs: the spawn primitive and its
+per-call model/effort/cwd knobs, the tier-routing class (host-owned role routing is **not**
+degraded), and the host-level fallback posture. A host-applied **temporary** model fallback on a
+usage-limit error is host-owned recovery, not the silent tier claim this doctrine forbids — the
+driver has no re-report obligation.
 
 ## Review
 

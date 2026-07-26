@@ -40,20 +40,30 @@ assert_contains "$mt" "| Tier | Use for | Anthropic | OpenAI (Codex) | Google (G
 assert_contains "$mt" "hosts/README.md" "stability: model-tiers points at hosts/"
 assert_contains "$(cat "$S/woostack-review/prompts/_orchestrator-header.md")" "<!-- WOO_MODEL_TIERS_TABLE -->" "stability: CI table-inline marker intact"
 
-# (d) omp mechanics moved, not duplicated
+# (d) omp uses fixed role-backed built-in workers, not generated project agents
 omp="$(cat "$H/omp.md")"
-assert_contains "$omp" "agent-by-tier" "moved: agent-by-tier in hosts/omp.md"
-assert_contains "$omp" "gen-omp-agents.sh" "moved: generator invocation in hosts/omp.md"
-assert_contains "$omp" "## Host-level fallback" "moved: fallback section in hosts/omp.md"
-assert_contains "$omp" "usage-exhaustion" "moved: overnight advisory mechanics in hosts/omp.md"
-assert_not_contains "$mt" "agent-by-tier (omp / Oh My Pi)" "dedup: omp bucket gone from model-tiers.md"
-assert_not_contains "$mt" "gen-omp-agents.sh" "dedup: generator invocation gone from model-tiers.md"
-assert_not_contains "$(cat "$S/woostack-execute/references/subagent-driver.md")" "gen-omp-agents.sh" "dedup: generator invocation gone from subagent-driver.md"
-assert_not_contains "$(cat "$S/woostack-review/SKILL.md")" "gen-omp-agents.sh" "dedup: generator invocation gone from review SKILL.md"
-assert_not_contains "$(cat "$S/woostack-commit/SKILL.md")" "gen-omp-agents.sh" "dedup: generator invocation gone from commit SKILL.md"
-assert_not_contains "$(cat "$S/woostack-execute-overnight/SKILL.md")" "retry.fallbackChains" "dedup: omp mechanics gone from overnight SKILL.md"
-assert_contains "$(cat "$S/woostack-init/SKILL.md")" "run the generator" "retained: init one-line generator step"
-assert_not_contains "$(cat "$S/woostack-init/SKILL.md")" "gen-omp-agents.sh" "dedup: generator mechanics not duplicated in init SKILL.md"
+for row in \
+  '| `deep -> slow` | `slow` | `agent: oracle` |' \
+  '| `standard -> default` | `default` | `agent: task` |' \
+  '| `fast -> smol` | `smol` | `agent: quick_task` |'; do
+  assert_contains "$omp" "$row" "omp roles: canonical guidance contains $row"
+done
+assert_contains "$omp" "role-backed built-in workers" "omp roles: canonical guidance names bundled routing"
+for token in "gen-omp-agents.sh" "woostack-fast" "woostack-standard" "woostack-deep" "agent-by-tier" "Agent-by-tier" "models.<tier>"; do
+  assert_not_contains "$omp" "$token" "omp roles: canonical guidance omits $token"
+done
+
+for consumer in \
+  "init:$S/woostack-init/SKILL.md" \
+  "commit:$S/woostack-commit/SKILL.md" \
+  "execute:$S/woostack-execute/references/subagent-driver.md" \
+  "review:$S/woostack-review/SKILL.md"; do
+  label="${consumer%%:*}"
+  body="$(cat "${consumer#*:}")"
+  for token in "gen-omp-agents.sh" "woostack-fast" "woostack-standard" "woostack-deep" "agent-by-tier" "Agent-by-tier"; do
+    assert_not_contains "$body" "$token" "omp consumers: $label omits stale $token guidance"
+  done
+done
 
 # (e) authored docs mirror the supported-host contract
 ROOT="$(cd "$S/.." && pwd)"
@@ -79,18 +89,32 @@ if [ -f "$HARNESS_DOCS/index.mdx" ] && [ -f "$HARNESS_DOCS/meta.json" ]; then
     fi
   done
 fi
+for page in "harnesses/index.mdx:$HARNESS_DOCS/index.mdx" "harnesses/omp.mdx:$HARNESS_DOCS/omp.mdx" "configuration.mdx:$DOCS/configuration.mdx" "concepts/context-management.mdx:$DOCS/concepts/context-management.mdx"; do
+  label="${page%%:*}"
+  path="${page#*:}"
+  assert_eq "$([ -f "$path" ] && echo y)" "y" "docs: omp guidance page present: $label"
+  [ -f "$path" ] || continue
+  source="$(cat "$path")"
+  assert_contains "$source" "host-owned role routing" "docs: $label summarizes OMP routing"
+  assert_contains "$source" "skills/using-woostack/references/hosts/omp.md" "docs: $label links canonical OMP guidance"
+  for token in "deep -> slow" "standard -> default" "fast -> smol" "role-backed built-in workers"; do
+    assert_not_contains "$source" "$token" "docs: $label cross-links instead of duplicating $token"
+  done
+  for token in "gen-omp-agents.sh" "woostack-fast" "woostack-standard" "woostack-deep" "agent-by-tier" "Agent-by-tier" "models.<tier>"; do
+    assert_not_contains "$source" "$token" "docs: $label omits $token"
+  done
+done
 landing="$(cat "$DOCS/index.mdx")"
 assert_not_contains "$landing" "Aider" "docs: Aider is not explicitly supported"
 assert_contains "$landing" "/docs/harnesses" "docs: landing links harnesses"
 
-# still-required infrastructure (inherited from test-omp-lockstep.sh)
-assert_eq "$([ -f "$S/woostack-init/scripts/gen-omp-agents.sh" ] && echo y)" "y" "site: generator present"
-assert_eq "$([ -f "$S/woostack-doctor/scripts/checks/omp-agents.sh" ] && echo y)" "y" "site: doctor check present"
 # (e) review schema and host routing stay aligned on ordered fallback leaves.
 review_skill="$(cat "$S/woostack-review/SKILL.md")"
 review_header="$(cat "$S/woostack-review/prompts/_orchestrator-header.md")"
 assert_contains "$review_skill" "non-empty ordered array" "fallback schema: review skill accepts arrays"
 assert_contains "$review_skill" "entry 0 is the primary" "fallback schema: review skill defines primary"
+assert_contains "$review_skill" "call the repository model resolver for that route." "omp review: host-owned route skips repository model resolution"
+assert_contains "$review_skill" "host recovery is the only model fallback" "omp review: host-owned route skips repository fallback redispatch"
 assert_contains "$review_header" "non-empty ordered array" "fallback schema: orchestrator accepts arrays"
 assert_contains "$review_header" "entry 0 is primary" "fallback schema: orchestrator defines primary"
 for prompt in anthropic openai opencode; do
@@ -98,11 +122,7 @@ for prompt in anthropic openai opencode; do
     "fallback routing: $prompt selects entry 0"
 done
 
-# (f) issue #494: omp documents the concurrent-spawn-burst limitation + orchestrator recovery,
-# and review/sweep carry the fallback re-dispatch contract.
-assert_contains "$omp" "Concurrent-spawn burst" "reconcile: omp documents native-enactment burst limitation"
-assert_contains "$omp" "re-dispatches each usage/rate-limited worker" "reconcile: omp documents orchestrator re-dispatch recovery"
-assert_contains "$omp" "resolve-model.sh --index" "reconcile: omp names the fallback resolver"
+# (f) generic review/sweep fallback recovery remains intact
 assert_contains "$review_skill" "concurrent-spawn burst" "re-dispatch: review names the burst condition"
 assert_contains "$review_skill" "resolve-model.sh --provider <p> --tier <t> --index N" "re-dispatch: review pins the next configured entry via resolver"
 assert_contains "$review_skill" "walking the configured fallback chain" "re-dispatch: review walks the chain before the receipt gate"

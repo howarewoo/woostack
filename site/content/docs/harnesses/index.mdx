@@ -14,19 +14,25 @@ not pretend that the native integration succeeded.
 
 | Harness | Model and effort routing | Working directory | Host behavior |
 | --- | --- | --- | --- |
-| [omp (Oh My Pi)](/docs/harnesses/omp) | Agent-by-tier definitions; no per-call model knob | Passed when exposed; prompt pin always | Native per-spawn fallback chains and credential rotation |
+| [omp (Oh My Pi)](/docs/harnesses/omp) | Host-owned roles through bundled workers; no per-call model knob | Passed when exposed; prompt pin always | OMP-owned model identity, retry fallback, and credential rotation |
 | [opencode](/docs/harnesses/opencode) | Per-call model routing | Passed when exposed; prompt pin always | Provider exhaustion surfaces as an error |
 | [Claude Code](/docs/harnesses/claude-code) | Per-call model and supported effort routing | No per-call cwd; subagent self-pins | Provider exhaustion surfaces as an error |
 | [Codex](/docs/harnesses/codex) | Per-call locally; one model per Codex Action job | Passed when exposed; prompt pin always | Local and CI routing differ |
 | [Cursor / Composer](/docs/harnesses/cursor) | Session model; no per-call routing | No per-call cwd; subagent self-pins | Requested tiers collapse to the session model |
 | [Antigravity CLI](/docs/harnesses/antigravity) | One model per session | No per-call cwd; subagent self-pins | Cannot run headless in ephemeral CI |
 
+For omp, [host-owned role routing](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md)
+selects bundled workers while omp owns role configuration, concrete models, provider credentials,
+and fallback policy. omp ignores `.woostack/config.json` model settings. This is a supported,
+non-degraded routing class; shared repository model configuration still serves the other
+harnesses that consume it.
+
 The [model-tier reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/model-tiers.md)
 defines the shared `fast`, `standard`, and `deep` policy. Each page below links to its canonical
 host reference for the exact mechanics.
 
 <Cards>
-  <Card title="omp (Oh My Pi)" href="/docs/harnesses/omp" description="Agent-by-tier routing and host-native fallback." />
+  <Card title="omp (Oh My Pi)" href="/docs/harnesses/omp" description="Host-owned role routing through bundled workers." />
   <Card title="opencode" href="/docs/harnesses/opencode" description="Per-call routing through the runtime subagent primitive." />
   <Card title="Claude Code" href="/docs/harnesses/claude-code" description="Task-based dispatch with per-call models and prompt-pinned worktrees." />
   <Card title="Codex" href="/docs/harnesses/codex" description="Local per-call routing and Codex Action's single-session mode." />

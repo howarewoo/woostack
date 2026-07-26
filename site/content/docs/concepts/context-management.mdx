@@ -55,8 +55,16 @@ compact result, so the heavy reading and reasoning never land in the main thread
   artifacts directly — not the full review orchestrator skill — then two opposing validator passes
   keep only the findings both agree on.
 
-Each subagent runs at a tier matched to the work, so cheap tasks don't burn an expensive model. Hosts that support per-call model routing map these tiers to a concrete model per provider in
-[model-tiers.md](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/model-tiers.md). Under omp (Oh My Pi), which does not support per-call overrides, the tiers map to generated agent-definition files (`.omp/agents/woostack-<tier>.md`) baked from your `.woostack/config.json` `models` settings.
+Each subagent runs at a tier matched to the work, so cheap tasks do not burn an expensive model.
+Hosts with explicit repository-model routing map these tiers to a concrete provider model through
+[model-tiers.md](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/model-tiers.md).
+omp uses a different, equally capable route:
+[host-owned role routing](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md)
+through bundled workers. omp ignores `.woostack/config.json` model settings and owns the concrete
+model, role configuration, credentials, and fallback. woostack passes only the effective tier
+through that canonical worker map.
+
+For hosts that consume the shared repository model configuration, the Anthropic defaults are:
 
 | Tier | Use for | Anthropic model |
 | --- | --- | --- |

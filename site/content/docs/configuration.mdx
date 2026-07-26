@@ -10,6 +10,11 @@ built-in defaults when absent. [woostack-doctor](/docs/skills/woostack-doctor) c
 required shape without reading credentials or contacting Linear unless you explicitly request
 `--live`.
 
+**omp exception:** woostack uses
+[host-owned role routing](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md)
+through bundled workers. omp ignores `.woostack/config.json` model settings and owns role
+configuration, concrete model identity, provider credentials, and fallback.
+
 There are ten top-level settings:
 
 | Setting | Read by | Tunes |
@@ -17,7 +22,7 @@ There are ten top-level settings:
 | `artifacts` | all spec/plan consumers | selects the canonical spec and plan backend |
 | `linear` | all spec/plan consumers when Linear is selected | workspace, team, repository, and native state mappings |
 | `review` | [woostack-review](/docs/skills/woostack-review) | the PR review engine: angles, noise, validation |
-| `models` | [woostack-review](/docs/skills/woostack-review), [woostack-audit](/docs/skills/woostack-audit), and local subagent drivers | shared model selection and tier parameters |
+| `models` | [woostack-review](/docs/skills/woostack-review), [woostack-audit](/docs/skills/woostack-audit), and local subagent drivers | shared model selection and tier parameters for hosts that consume repository model configuration; ignored by omp |
 | `audit` | [woostack-audit](/docs/skills/woostack-audit) | standing-code audit angles, filtering, chunking, and output |
 | `review_sweep` | [woostack-sweep](/docs/skills/woostack-sweep) | how many review rounds a stack sweep runs |
 | `commit` | [woostack-commit](/docs/skills/woostack-commit) | a pre-commit hook command |
@@ -28,6 +33,7 @@ There are ten top-level settings:
 ## A complete Markdown example
 
 Every top-level setting used by the Markdown backend is populated as a starting point. The
+`models` block demonstrates shared configuration for non-omp hosts; omp ignores it. The
 Linear-only mapping is shown separately below. JSON has no comments, so each key is explained in
 the sections that follow.
 
@@ -214,30 +220,33 @@ to opt out: an empty array for `authors_skip`, or an empty string for the patter
 
 ### Model selection
 
-Each review subagent runs at a tier (`fast`, `standard`, or `deep`). The host maps that tier to
-a model. Model tiers live at the **root** of `.woostack/config.json` in a top-level `models`
-field, not under `review`, so review, audit, and local subagent drivers can share them.
+Each review subagent runs at a tier (`fast`, `standard`, or `deep`). On hosts that consume
+repository model configuration, the top-level `models` namespace maps that tier to a concrete
+model and optional effort. The namespace sits at the root, not under `review`, so review, audit,
+and local subagent drivers can share it.
 
-The same config file can serve several hosts. Claude Code reads the Anthropic branch, Codex reads
-the OpenAI branch, and omp reads the flat tiers used to generate its agent definitions.
+omp is the host-owned exception. It ignores the entire `models` namespace and maps the effective
+tier to its fixed bundled worker instead. Changing a flat or provider-specific model leaf never
+changes an omp dispatch.
 
-| Host | Model config | Flat fallback | Dispatch behavior |
+| Host | Repository model config | Flat fallback | Dispatch behavior |
 | --- | --- | --- | --- |
-| Claude Code | `models.anthropic.<tier>` | `models.<tier>` | Passes the resolved Anthropic model and effort to each Task call. The single-session CI action can pass the model, but not effort. |
-| Codex | `models.openai.<tier>` | `models.<tier>` | Passes the resolved OpenAI model and reasoning effort when the host supports per-call overrides. A single-model session resolves once for the whole run. |
-| omp (Oh My Pi) | `models.<tier>` | Current session model when the flat tier is absent | Selects a generated `woostack-fast`, `woostack-standard`, or `woostack-deep` agent because omp's task call has no model or effort argument. |
-| Gemini | `models.google.<tier>` | `models.<tier>` | Uses the Google model for the resolved tier. |
-| OpenRouter | `models.openrouter.<tier>` | `models.<tier>` | Uses the OpenRouter model and reasoning effort for the resolved tier. |
+| Claude Code | `models.anthropic.fast`, `.standard`, or `.deep` | matching flat leaf | Passes the resolved Anthropic model and effort to each Task call. The single-session CI action can pass the model, but not effort. |
+| Codex | `models.openai.fast`, `.standard`, or `.deep` | matching flat leaf | Passes the resolved OpenAI model and reasoning effort when the host supports per-call overrides. A single-model session resolves once for the whole run. |
+| Gemini | `models.google.fast`, `.standard`, or `.deep` | matching flat leaf | Uses the Google model for the resolved tier. |
+| OpenRouter | `models.openrouter.fast`, `.standard`, or `.deep` | matching flat leaf | Uses the OpenRouter model and reasoning effort for the resolved tier. |
+| omp (Oh My Pi) | ignored | ignored | Selects the fixed role-backed worker; omp owns its model and fallback. |
 
-Provider-specific entries take precedence over flat entries. This lets an omp model slug live in
-the flat tiers without affecting Claude Code or Codex:
+For hosts that consume this namespace, a provider-specific leaf takes precedence over the
+matching flat leaf. The same config file can therefore supply provider-neutral defaults and
+provider-specific overrides:
 
 ```json
 {
   "models": {
-    "fast": { "model": "openai-codex/gpt-5.6-sol", "effort": "low" },
+    "fast": { "model": "google/gemini-3-5-flash", "effort": "low" },
     "standard": { "model": "openai-codex/gpt-5.6-sol", "effort": "medium" },
-    "deep": { "model": "openai-codex/gpt-5.6-sol", "effort": "xhigh" },
+    "deep": { "model": "anthropic/claude-opus-4-8", "effort": "xhigh" },
     "anthropic": {
       "fast": { "model": "claude-opus-4-8", "effort": "low" },
       "standard": { "model": "claude-opus-4-8", "effort": "medium" },
@@ -252,29 +261,27 @@ the flat tiers without affecting Claude Code or Codex:
 }
 ```
 
-In this example, Claude Code ignores the flat omp slugs because `models.anthropic` is present.
-Codex ignores them because `models.openai` is present. omp uses the flat entries to generate
-`.omp/agents/woostack-<tier>.md`, with `effort` mapped to the agent's `thinkingLevel`. If a flat
-tier is absent, the generated omp agent omits `model`, inherits the active session model, and
-sets only the tier's default thinking level.
+In this example, Claude Code selects the Anthropic branch and Codex selects the OpenAI branch.
+Another repository-model host can use the flat leaves. omp ignores every entry in the block.
+How each non-omp host consumes the schema, including spawn primitives, per-call routing knobs,
+and fallback, lives in its canonical host reference under
+`skills/using-woostack/references/hosts/`.
 
-How each host consumes this config, including spawn primitives, per-call routing knobs, and
-host-level fallback, lives in the per-host reference files under
-`skills/using-woostack/references/hosts/`. omp enacts tier arrays from `.woostack/config.json`
-through its generated agent definitions; unrelated global retry chains remain omp settings.
+Each tier leaf supports all three shared forms:
 
-Each tier leaf can be a model-slug string, an object
-`{ "model": "<slug>", "effort": "<level>" }`, or an **ordered array** of those forms, a
-fallback list. Supported effort levels are `minimal`, `low`, `medium`, `high`, and `xhigh`.
-`review.force_tier` pins every subagent to one tier, like running the review with `--fast` or
-`--deep`.
+- a model-slug string;
+- an object `{ "model": "<slug>", "effort": "<level>" }`; or
+- a non-empty ordered array of either form, used as a fallback preference list.
 
-In an array leaf, entry 0 is the primary and carries the exact semantics of the bare value:
-every resolver reads entry 0, and a one-element array equals the bare form. Entries 1..n
-declare a static preference order; runtime enactment is per-host (see the per-host reference
-files above). omp enacts the list natively as a per-spawn retry chain; per-call hosts
-(Claude Code, Codex, and friends) treat entries 1..n as a documented preference order for
-manual switching. An empty array is a hard config error.
+Supported effort levels are `minimal`, `low`, `medium`, `high`, and `xhigh`.
+`review.force_tier` pins every review subagent to one tier, like running the review with `--fast`
+or `--deep`.
+
+In an array leaf, entry 0 is the primary and has the exact semantics of the bare value. Entries
+1..n declare a static preference order; runtime enactment remains host-specific. A review host
+with an explicit per-call model override can redispatch a rate-limited worker along later entries;
+other consumers follow their host reference. omp does not read or enact the array. An empty array
+is a hard config error.
 
 ```json
 {
@@ -288,16 +295,16 @@ manual switching. An empty array is a hard config error.
 }
 ```
 
-The [complete example](#a-complete-example) uses flat tiers to assign each tier to a different
-provider.
+The [complete example](#a-complete-example) uses flat leaves to assign non-omp hosts a model for
+each tier.
 
 **Clean break:** `models` moved out of `review`. A `review.models` block is a hard config error.
 Move it to the top level. `woostack-doctor` warns on a lingering `review.models`.
 
 | Key | Type | Default | Meaning |
 | --- | --- | --- | --- |
-| `models.<tier>` | string, `{model, effort}`, or array of those (fallback list) | provider table | Provider-agnostic model for `fast` / `standard` / `deep`. |
-| `models.<provider>.<tier>` | string, `{model, effort}`, or array of those (fallback list) | provider table | Per-provider override; provider is `anthropic`, `openai`, `google`, or `openrouter`. |
+| `models.fast`, `models.standard`, `models.deep` | string, `{model, effort}`, or array of those (fallback list) | provider table | Provider-agnostic model for the three shared tiers on repository-model hosts. |
+| `models.anthropic.*`, `models.openai.*`, `models.google.*`, `models.openrouter.*` | string, `{model, effort}`, or array of those (fallback list) | provider table | Per-provider override, with one `fast`, `standard`, or `deep` leaf. |
 | `review.force_tier` | string | absent (= standard) | Pin every subagent to `fast` or `deep`. Empty string = absent. |
 
 The default model per provider and tier:
@@ -313,9 +320,11 @@ Anthropic routes every tier to `claude-opus-4-8`, so the tier is carried by reas
 (`low`/`medium`/`xhigh`) rather than by the model. Effort applies on per-call hosts (Claude Code);
 the CI single-session `claude-code-action` step passes only the model.
 
-The tier resolves by precedence, highest to lowest: an inline `--fast` / `--deep` comment on the
-PR → the action's `force_tier` input → `review.force_tier` → the action's `model` input →
-`models.<provider>.<tier>` → the flat `models.<tier>` → the provider table default.
+On repository-model hosts, the tier resolves by precedence, highest to lowest: an inline
+`--fast` / `--deep` comment on the PR → the action's `force_tier` input →
+`review.force_tier` → the action's `model` input → the matching provider-specific leaf → the
+matching flat leaf → the provider table default. On omp, only the effective-tier decisions apply;
+the fixed worker map replaces every model-resolution step.
 
 ### Chunking, validation, and metrics
 
@@ -343,8 +352,10 @@ safety floor from the review engine. Configured force and skip lists add to thos
 | `audit.chunking.max_loc` | integer ≥ 0 | `4000` | Changed-line threshold for splitting the synthetic diff into chunks. |
 | `audit.report_dir` | string | `".woostack/audits"` | Repository-relative directory for audit reports. |
 
-Root model tiers also drive [woostack-audit](/docs/skills/woostack-audit). Put overrides under
-`models.<tier>` or `models.<provider>.<tier>`. A nested `audit.models` block is a hard error.
+Root model tiers also drive [woostack-audit](/docs/skills/woostack-audit) on hosts that consume
+repository model configuration. Put overrides in the root `models` namespace using flat leaves
+(`models.fast`, `models.standard`, `models.deep`) or provider-specific leaves. A nested
+`audit.models` block is a hard error.
 
 ## Sweep rounds
 

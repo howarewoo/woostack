@@ -59,7 +59,6 @@ networked adapter commands when live mode is `0`.
 | `respond-config` | invalid type, key, bound, or value in the optional `respond` namespace | warn | report | — |
 | `respond-credentials` | credential-like key under `respond` | warn | report | — |
 | `respond-stale-evidence` | response evidence run directory older than 24 hours | warn | report (manual deletion after failed-run review) | — |
-| `omp-agents-missing` / `omp-agents-drift` | generated omp tier def missing or drifted from `.woostack/config.json` (gated on `.omp/` existing) | warn | auto | `<root>` (runs `gen-omp-agents.sh`) |
 
 Memory checks are all `report` — memory *content* repair is [`woostack-dream`](../../woostack-dream/SKILL.md)'s
 job; doctor only surfaces the structural signals. The spec↔plan join reuses the

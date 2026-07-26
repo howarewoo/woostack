@@ -1,19 +1,25 @@
 ---
 title: omp (Oh My Pi)
-description: Agent-by-tier routing and host-native fallback in Oh My Pi.
+description: Host-owned role routing through omp's bundled workers.
 ---
 
-omp exposes a `task` primitive with an agent selector, but no per-call model, tier, or effort
-argument. woostack generates `woostack-fast`, `woostack-standard`, and `woostack-deep` agent
-definitions from project configuration, then selects the matching definition for each task. This
-is full tier routing through agent definitions, not a degraded session-model fallback.
+omp exposes a `task` primitive with a worker selector, but no per-call model, tier, or effort
+argument. woostack uses
+[host-owned role routing](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md)
+through omp's bundled workers. The canonical reference owns the fixed tier-to-role and
+worker-selector mapping.
+
+Selecting a bundled worker is full tier routing, not a degraded session-model fallback. omp
+resolves the selected role to a concrete model and owns provider choice, thinking level,
+credential rotation, and retry fallback.
+
+omp ignores `.woostack/config.json` model settings. woostack does not generate project workers,
+read or edit omp role configuration, or translate repository model preferences into host
+fallbacks. Shared model settings remain available to other harnesses.
 
 When the spawn API exposes a working-directory argument, woostack passes it. The dispatch prompt
-always pins and verifies the worktree as a second guard.
+always pins and verifies the worktree as a second guard. If omp recovery ends without a required
+worker receipt, the calling workflow fails loudly rather than claiming thinner coverage.
 
-omp is the only supported harness with documented host-native usage-limit recovery. A spawned
-agent can rotate sibling credentials and apply its temporary fallback chain. woostack generates
-the agent definitions but never reads or changes omp's user-level host configuration.
-
-For detection, generator behavior, per-skill instructions, and degradation rules, read the
-[canonical omp reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md).
+See omp's published [model roles](https://omp.sh/docs/roles) and
+[bundled subagents](https://omp.sh/docs/subagents).

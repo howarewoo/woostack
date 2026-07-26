@@ -52,6 +52,12 @@ rc=0; err="$(bash "$SCRIPT" 2>&1 1>/dev/null)" || rc=$?
 assert_exit 1 "$rc" "fallback receipt model cannot substitute for configured primary"
 assert_contains "$err" "bugs" "fallback-model mismatch names the worker"
 
+export WOO_REVIEW_HOST=omp
+printf '{"angle":"bugs","chunk":null,"runner":"omp","model":"host-owned-model","tier":"standard","ts":"t"}\n' > "$OUTDIR/receipt.bugs.json"
+rc=0; bash "$SCRIPT" >/dev/null 2>&1 || rc=$?
+assert_exit 0 "$rc" "OMP accepts a non-empty host-owned model identity"
+unset WOO_REVIEW_HOST
+
 unset WOO_REVIEW_PROVIDER
 export WOO_REVIEW_HOST=codex
 rm -f "$OUTDIR/config.json"

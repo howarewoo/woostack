@@ -7,8 +7,8 @@ keeps only its own **runtime bindings** (env vars, config paths, dispatch calls)
 precedence rules below — there is no second copy of this table.
 
 Tiers are `fast | standard | deep`. A prompt or template declares a `tier:` in frontmatter; the
-host resolves it to a concrete model via the table. The context/summary helper subagent is
-implicitly `fast`.
+runtime either resolves that tier to a concrete model or maps it to a host-owned role, according
+to the current host's capability class. The context/summary helper subagent is implicitly `fast`.
 
 | Tier | Use for | Anthropic | OpenAI (Codex) | Google (Gemini) | OpenRouter |
 |---|---|---|---|---|---|
@@ -24,14 +24,15 @@ implicitly `fast`.
 
 ## Routing by host capability (generic)
 
-Three capability classes: **per-call routing** (the spawn accepts an explicit model/effort —
+Three capability classes: **per-call model routing** (the spawn accepts an explicit model/effort;
 resolve the effective tier and pass everything it specifies), **single model per session**
-(resolve one run model up front; per-tier behavior collapses onto it), and **per-call routing
-via agent-by-tier** (no per-call knob; the host selects a tier-pinned agent definition per
-spawn). Which class a host falls in, its spawn mechanics, its per-skill notes, and its
-host-level fallback behavior live in one file per host under [`hosts/`](hosts/README.md).
-On CI/single-session hosts the flat provider table above and `resolve-model.sh` are
-untouched; a consumer can still set provider-specific columnar models for those hosts.
+(resolve one run model up front; per-tier behavior collapses onto it), and **host-owned role
+routing** (the spawn selects a role-backed built-in worker; the host owns the concrete model).
+Host-owned role routing is non-degraded and bypasses repository model resolution. Which class a
+host falls in, its spawn mechanics, its fixed role mapping where applicable, its per-skill notes,
+and its host-level fallback behavior live in one file per host under
+[`hosts/`](hosts/README.md). The provider table and `resolve-model.sh` remain unchanged for CI and
+other hosts that consume repository model configuration.
 
 **Host mechanics:** before any host-dependent step (subagent dispatch, scaffold, draft), load `skills/using-woostack/references/hosts/<current-host>.md`; no matching file -> treat the host as having no per-call routing and say so (degraded).
 
@@ -45,22 +46,29 @@ When a host supports per-repo / per-run overrides, resolve highest-precedence fi
 4. **Flat per-tier** override key.
 5. **Table default** (above).
 
-Each consumer binds these to its own surface. For example `woostack-review` binds them to
+A forced tier still determines the effective tier on every host. A host-owned role-routing host
+then stops at its fixed tier-to-role map: it does not resolve model-specific items 2–5, read
+repository model leaves, or invoke a model resolver. The host owns role configuration, concrete
+model identity, credentials, and fallback. Per-call and single-session hosts continue through the
+full precedence above.
+
+On repository-model hosts, each consumer binds these to its own surface. For example
+`woostack-review` binds them to
 `FORCE_TIER` (Review Context) › `inputs.model` (action.yml) › **root** `models.<provider>.<tier>` /
 `models.<tier>` in the consumer `.woostack/config.json` (canonicalized into
 `/tmp/pr-review/config.json`), resolved by `scripts/load-prompt.sh` (`default_model_for()` is the
 Bash mirror of the Anthropic/OpenAI/Google/OpenRouter columns — keep it in sync with this table).
 
-Each tier leaf is a model-slug string, an object `{ model, effort }`, **or an ordered array**
-of those forms (a fallback list). `effort`
+For hosts that consume repository model configuration, each tier leaf is a model-slug string, an
+object `{ model, effort }`, **or an ordered array** of those forms (a fallback list). `effort`
 (`minimal | low | medium | high | xhigh`) is a real config field: the `reasoning_effort:`
 annotations in the table above are illustrative defaults, and a config-set `effort` overrides them
 config-first in `load-prompt.sh` (precedence: action input → config `effort` → tier default).
 
-**Array leaves (fallback lists):** entry 0 is the primary and carries the exact semantics of
-the bare value — every resolver (`load-prompt.sh`, `resolve-model.sh`, and each host's
-tier-def generator) reads entry 0; a one-element array equals the bare form. Entries 1..n
-declare a static preference order owned by woostack; **runtime enactment is per-host** —
-each host file's "Host-level fallback" section under [`hosts/`](hosts/README.md) states
-what its host does with them (omp enacts them as a real per-spawn retry chain; per-call
-hosts document the order for manual switching). An empty array is a hard config error.
+**Array leaves (fallback lists):** entry 0 is the primary and carries the exact semantics of the
+bare value — every repository-model resolver (`load-prompt.sh` and `resolve-model.sh`) reads entry
+0; a one-element array equals the bare form. Entries 1..n declare a static preference order owned
+by woostack; runtime enactment is per-host. Each host file's "Host-level fallback" section under
+[`hosts/`](hosts/README.md) states what that host does. Host-owned role-routing hosts bypass these
+leaves entirely; hosts with repository model routing preserve their documented resolution and
+fallback behavior. An empty array is a hard config error.
