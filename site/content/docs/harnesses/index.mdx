@@ -21,11 +21,11 @@ not pretend that the native integration succeeded.
 | [Cursor / Composer](/docs/harnesses/cursor) | Session model; no per-call routing | No per-call cwd; subagent self-pins | Requested tiers collapse to the session model |
 | [Antigravity CLI](/docs/harnesses/antigravity) | One model per session | No per-call cwd; subagent self-pins | Cannot run headless in ephemeral CI |
 
-For omp, woostack maps `deep -> slow`, `standard -> default`, and `fast -> smol`, then selects
-**role-backed built-in workers**. omp ignores `.woostack/config.json` model settings because its
-roles, concrete models, provider credentials, and fallback policy are host-owned. This is a
-supported, non-degraded routing class; shared repository model configuration still serves the
-other harnesses that consume it.
+For omp, [host-owned role routing](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md)
+selects bundled workers while omp owns role configuration, concrete models, provider credentials,
+and fallback policy. omp ignores `.woostack/config.json` model settings. This is a supported,
+non-degraded routing class; shared repository model configuration still serves the other
+harnesses that consume it.
 
 The [model-tier reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/model-tiers.md)
 defines the shared `fast`, `standard`, and `deep` policy. Each page below links to its canonical

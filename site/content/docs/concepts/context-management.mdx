@@ -58,11 +58,11 @@ compact result, so the heavy reading and reasoning never land in the main thread
 Each subagent runs at a tier matched to the work, so cheap tasks do not burn an expensive model.
 Hosts with explicit repository-model routing map these tiers to a concrete provider model through
 [model-tiers.md](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/model-tiers.md).
-omp uses a different, equally capable route: `deep -> slow`, `standard -> default`, and
-`fast -> smol`, selected through **role-backed built-in workers** (`oracle`, `task`, and
-`quick_task`). omp ignores `.woostack/config.json` model settings and owns the concrete model,
-role configuration, credentials, and fallback. woostack passes only the effective tier through
-that fixed worker map.
+omp uses a different, equally capable route:
+[host-owned role routing](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md)
+through bundled workers. omp ignores `.woostack/config.json` model settings and owns the concrete
+model, role configuration, credentials, and fallback. woostack passes only the effective tier
+through that canonical worker map.
 
 For hosts that consume the shared repository model configuration, the Anthropic defaults are:
 

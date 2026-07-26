@@ -10,9 +10,10 @@ built-in defaults when absent. [woostack-doctor](/docs/skills/woostack-doctor) c
 required shape without reading credentials or contacting Linear unless you explicitly request
 `--live`.
 
-**omp exception:** woostack maps `deep -> slow`, `standard -> default`, and `fast -> smol`
-through **role-backed built-in workers**. omp ignores `.woostack/config.json` model settings;
-omp owns role configuration, concrete model identity, provider credentials, and fallback.
+**omp exception:** woostack uses
+[host-owned role routing](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md)
+through bundled workers. omp ignores `.woostack/config.json` model settings and owns role
+configuration, concrete model identity, provider credentials, and fallback.
 
 There are ten top-level settings:
 

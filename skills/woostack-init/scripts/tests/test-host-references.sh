@@ -42,11 +42,27 @@ assert_contains "$(cat "$S/woostack-review/prompts/_orchestrator-header.md")" "<
 
 # (d) omp uses fixed role-backed built-in workers, not generated project agents
 omp="$(cat "$H/omp.md")"
-for token in "deep -> slow" "standard -> default" "fast -> smol" "role-backed built-in workers"; do
-  assert_contains "$omp" "$token" "omp roles: canonical guidance contains $token"
+for row in \
+  '| `deep -> slow` | `slow` | `agent: oracle` |' \
+  '| `standard -> default` | `default` | `agent: task` |' \
+  '| `fast -> smol` | `smol` | `agent: quick_task` |'; do
+  assert_contains "$omp" "$row" "omp roles: canonical guidance contains $row"
 done
+assert_contains "$omp" "role-backed built-in workers" "omp roles: canonical guidance names bundled routing"
 for token in "gen-omp-agents.sh" "woostack-fast" "woostack-standard" "woostack-deep" "agent-by-tier" "Agent-by-tier" "models.<tier>"; do
   assert_not_contains "$omp" "$token" "omp roles: canonical guidance omits $token"
+done
+
+for consumer in \
+  "init:$S/woostack-init/SKILL.md" \
+  "commit:$S/woostack-commit/SKILL.md" \
+  "execute:$S/woostack-execute/references/subagent-driver.md" \
+  "review:$S/woostack-review/SKILL.md"; do
+  label="${consumer%%:*}"
+  body="$(cat "${consumer#*:}")"
+  for token in "gen-omp-agents.sh" "woostack-fast" "woostack-standard" "woostack-deep" "agent-by-tier" "Agent-by-tier"; do
+    assert_not_contains "$body" "$token" "omp consumers: $label omits stale $token guidance"
+  done
 done
 
 # (e) authored docs mirror the supported-host contract
@@ -79,8 +95,10 @@ for page in "harnesses/index.mdx:$HARNESS_DOCS/index.mdx" "harnesses/omp.mdx:$HA
   assert_eq "$([ -f "$path" ] && echo y)" "y" "docs: omp guidance page present: $label"
   [ -f "$path" ] || continue
   source="$(cat "$path")"
+  assert_contains "$source" "host-owned role routing" "docs: $label summarizes OMP routing"
+  assert_contains "$source" "skills/using-woostack/references/hosts/omp.md" "docs: $label links canonical OMP guidance"
   for token in "deep -> slow" "standard -> default" "fast -> smol" "role-backed built-in workers"; do
-    assert_contains "$source" "$token" "docs: $label contains $token"
+    assert_not_contains "$source" "$token" "docs: $label cross-links instead of duplicating $token"
   done
   for token in "gen-omp-agents.sh" "woostack-fast" "woostack-standard" "woostack-deep" "agent-by-tier" "Agent-by-tier" "models.<tier>"; do
     assert_not_contains "$source" "$token" "docs: $label omits $token"
@@ -95,6 +113,8 @@ review_skill="$(cat "$S/woostack-review/SKILL.md")"
 review_header="$(cat "$S/woostack-review/prompts/_orchestrator-header.md")"
 assert_contains "$review_skill" "non-empty ordered array" "fallback schema: review skill accepts arrays"
 assert_contains "$review_skill" "entry 0 is the primary" "fallback schema: review skill defines primary"
+assert_contains "$review_skill" "call the repository model resolver for that route." "omp review: host-owned route skips repository model resolution"
+assert_contains "$review_skill" "host recovery is the only model fallback" "omp review: host-owned route skips repository fallback redispatch"
 assert_contains "$review_header" "non-empty ordered array" "fallback schema: orchestrator accepts arrays"
 assert_contains "$review_header" "entry 0 is primary" "fallback schema: orchestrator defines primary"
 for prompt in anthropic openai opencode; do
