@@ -3,75 +3,541 @@
   "skill": "woostack-commit",
   "cases": [
     {
-      "id": "stages-only-relevant-linear-change-and-verifies-submit",
-      "prompt": "Execute the /woostack-commit decision workflow against the bounded synthetic command-adapter state in fixtures/commit-state.json. Do not run Git, Graphite, GitHub, Linear, network, or provider commands; the fixture records the responses those adapters returned. Return exactly one JSON object using the keys backendResolvedBeforeInvariants, stagedPaths, excludedPaths, submit, prReadBackVerified, attribution, and mergeAllowed. submit must preserve the command and exitCode receipt, and attribution must be the final trailer-line array.",
-      "fixtures": [
-        "commit-state.json"
-      ],
+      "id": "submits-standalone-work-item-with-issue-only-attribution",
+      "prompt": "Classify this bounded normalized /woostack-commit receipt without running Git, Graphite, GitHub, Linear, network, or provider commands. The caller supplied exact issue URL https://linear.app/acme/issue/APP-41/cache-guard. Independent official-MCP reads verify one managed role-work-item issue in executing, canonical repository https://github.com/acme/widgets, no project membership, app delegate engineer-7 matching the invoking engineer, current assignment/verification/review relations, and complete pagination. Git verifies change/cache-guard at the resolved main base with valid ancestry and Graphite registration. The proposed body has one final raw Linear-Issue: APP-41 line and no project or Spec mention. The finalized local commit is c41. Its typed implementationEvidence contains only baseCommitSha b41, headCommitSha c41, and committedDiffHash d41 and reads back exactly before gt submit; no staged, unstaged, or untracked identity is remote. The canonical PR then reads back with the same head/base/body, its issue relation reads back exactly, and the issue state reads back inReview. Return exactly one JSON object using keys status, issueRole, projectIdentityUsed, trailers, operationOrder, finalIssueState, and mergeAllowed.",
+      "fixtures": [],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Backend resolution precedes invariants; only session-relevant paths are staged; Graphite submission succeeds and is read back; exact Linear attribution is retained; no merge occurs.",
+      "expected": "The standalone issue remains project-free, records finalized implementation evidence before submission, has one issue-only trailer, verifies PR/relation/state in order, and never merges.",
       "assertions": [
         {
-          "id": "backend-before-invariants",
+          "id": "standalone-success",
           "kind": "final-json-path-equals",
-          "pointer": "/backendResolvedBeforeInvariants",
+          "pointer": "/status",
+          "expected": "verified",
+          "critical": true
+        },
+        {
+          "id": "standalone-role",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueRole",
+          "expected": "work-item",
+          "critical": true
+        },
+        {
+          "id": "standalone-no-project",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectIdentityUsed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "standalone-exact-trailer",
+          "kind": "final-json-path-equals",
+          "pointer": "/trailers",
+          "expected": [
+            "Linear-Issue: APP-41"
+          ],
+          "critical": true
+        },
+        {
+          "id": "standalone-operation-order",
+          "kind": "final-json-path-equals",
+          "pointer": "/operationOrder",
+          "expected": [
+            "commit",
+            "implementationEvidence:append",
+            "implementationEvidence:read-back",
+            "gt submit",
+            "canonical-pr:update",
+            "canonical-pr:read-back",
+            "issue-pr-relation:write",
+            "issue-pr-relation:read-back",
+            "issue-state:inReview",
+            "issue-state:read-back"
+          ],
+          "critical": true
+        },
+        {
+          "id": "standalone-in-review",
+          "kind": "final-json-path-equals",
+          "pointer": "/finalIssueState",
+          "expected": "inReview",
+          "critical": true
+        },
+        {
+          "id": "standalone-never-merges",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeAllowed",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "submits-project-increment-with-exact-pair",
+      "prompt": "Classify this bounded normalized /woostack-commit receipt without running commands or mutating anything. The caller supplied exact issue UUID 22222222-2222-4222-8222-222222222222 and exact project UUID 11111111-1111-4111-8111-111111111111. Complete independent official-MCP reads verify a managed role-increment issue APP-42 in executing, one managed role-feature project, matching native project membership, canonical repository https://github.com/acme/widgets, matching human assignee, current typed evidence, and a declared parent issue branch feature/app-41. Git and Graphite verify feature/app-42 descends from and targets feature/app-41 and all additional dependencies are reachable. Finalized commit c42 receives an exact typed implementationEvidence read-back containing only its baseCommitSha, headCommitSha, and committedDiffHash before submission. The canonical PR and exact project-plus-issue suffix, relation evidence, and inReview state all read back independently. Return exactly one JSON object using keys status, issueRole, projectIdentityUsed, trailers, ancestryVerified, relationVerified, finalIssueState, and mergeAllowed.",
+      "fixtures": [],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The increment uses exactly its verified feature project, preserves declared Git ancestry, carries the adjacent project/issue trailer pair, verifies relation/state, and never merges.",
+      "assertions": [
+        {
+          "id": "increment-success",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "verified",
+          "critical": true
+        },
+        {
+          "id": "increment-role",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueRole",
+          "expected": "increment",
+          "critical": true
+        },
+        {
+          "id": "increment-project-used",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectIdentityUsed",
           "expected": true,
           "critical": true
         },
         {
-          "id": "targeted-staging",
+          "id": "increment-exact-trailer-pair",
           "kind": "final-json-path-equals",
-          "pointer": "/stagedPaths",
+          "pointer": "/trailers",
           "expected": [
-            "src/cache.ts",
-            "test/cache.test.ts"
+            "Linear-Project: 11111111-1111-4111-8111-111111111111",
+            "Linear-Issue: APP-42"
           ],
           "critical": true
         },
         {
-          "id": "unrelated-work-excluded",
+          "id": "increment-ancestry-verified",
           "kind": "final-json-path-equals",
-          "pointer": "/excludedPaths",
-          "expected": [
-            "notes/private.txt"
-          ],
+          "pointer": "/ancestryVerified",
+          "expected": true,
           "critical": true
         },
         {
-          "id": "graphite-submit-command",
+          "id": "increment-relation-verified",
           "kind": "final-json-path-equals",
-          "pointer": "/submit/command",
-          "expected": "gt submit",
+          "pointer": "/relationVerified",
+          "expected": true,
           "critical": true
         },
         {
-          "id": "graphite-submit-succeeded",
+          "id": "increment-in-review",
           "kind": "final-json-path-equals",
-          "pointer": "/submit/exitCode",
+          "pointer": "/finalIssueState",
+          "expected": "inReview",
+          "critical": true
+        },
+        {
+          "id": "increment-never-merges",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeAllowed",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "rejects-malformed-work-item-attribution-before-mutation",
+      "prompt": "Classify this bounded pre-commit state without running commands or mutating anything. The exact official-MCP issue read is otherwise valid role-work-item APP-43 with no project membership, but the proposed PR body ends with Linear-Project: 11111111-1111-4111-8111-111111111111, then Linear-Issue: APP-43 twice, and also contains a raw Spec: .woostack/fixes/cache.md line. Return exactly one JSON object using keys status, reasonCode, commitCreated, commentMutations, prMutations, relationMutations, stateMutations, and mergeAllowed.",
+      "fixtures": [],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Malformed, duplicate, synthetic-project, and Spec attribution fails the pre-commit gate with no commit or downstream mutation.",
+      "assertions": [
+        {
+          "id": "malformed-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "malformed-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": "invalid-linear-attribution",
+          "critical": true
+        },
+        {
+          "id": "malformed-no-commit",
+          "kind": "final-json-path-equals",
+          "pointer": "/commitCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "malformed-no-comment",
+          "kind": "final-json-path-equals",
+          "pointer": "/commentMutations",
           "expected": 0,
           "critical": true
         },
         {
-          "id": "pr-readback-verified",
+          "id": "malformed-no-pr-write",
           "kind": "final-json-path-equals",
-          "pointer": "/prReadBackVerified",
+          "pointer": "/prMutations",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "malformed-no-relation",
+          "kind": "final-json-path-equals",
+          "pointer": "/relationMutations",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "malformed-no-state",
+          "kind": "final-json-path-equals",
+          "pointer": "/stateMutations",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "malformed-never-merges",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeAllowed",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "stops-on-partial-implementation-evidence-read-back",
+      "prompt": "Classify this bounded post-commit state without running commands or mutating anything. All pre-commit issue, role-work-item, owner, repository, ancestry, relation, and issue-only trailer checks passed and finalized commit c44 exists locally. The implementationEvidence append response reported success, but the independent comment read finds the stable event UUID with missing relatedIds and no committedDiffHash. No push or Graphite submission has occurred. Return exactly one JSON object using keys status, reasonCode, commitCreated, implementationEvidenceVerified, submitAttempted, prMutationAttempted, relationMutationAttempted, stateMutationAttempted, and mergeAllowed.",
+      "fixtures": [],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "A partial comment read-back is unknown, preserves the local commit and stable event UUID, and stops before submission, PR, relation, or state mutation.",
+      "assertions": [
+        {
+          "id": "partial-read-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "partial-read-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": "implementation-evidence-read-back-incomplete",
+          "critical": true
+        },
+        {
+          "id": "partial-read-keeps-commit",
+          "kind": "final-json-path-equals",
+          "pointer": "/commitCreated",
           "expected": true,
           "critical": true
         },
         {
-          "id": "exact-linear-attribution",
+          "id": "partial-read-not-verified",
           "kind": "final-json-path-equals",
-          "pointer": "/attribution",
+          "pointer": "/implementationEvidenceVerified",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "partial-read-no-submit",
+          "kind": "final-json-path-equals",
+          "pointer": "/submitAttempted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "partial-read-no-pr-write",
+          "kind": "final-json-path-equals",
+          "pointer": "/prMutationAttempted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "partial-read-no-relation",
+          "kind": "final-json-path-equals",
+          "pointer": "/relationMutationAttempted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "partial-read-no-state",
+          "kind": "final-json-path-equals",
+          "pointer": "/stateMutationAttempted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "partial-read-never-merges",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeAllowed",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "resumes-after-unknown-submit-without-replaying-exact-boundaries",
+      "prompt": "Classify this bounded resume snapshot without running commands or mutating anything. Fresh complete reads verify the caller-owned work-item, owner, repository, ancestry, finalized local commit c45, and one exact implementationEvidence event with stable UUID e45 and only baseCommitSha b45, headCommitSha c45, and committedDiffHash d45. A prior gt submit timed out, but fresh Graphite and canonical GitHub reads now verify the exact submitted branch, commit, PR head/base/body, and issue-only trailer. PR fields are exact. The Linear branch/PR relation is proven absent and the issue remains executing. Return exactly one JSON object using keys status, resumeBoundary, skippedMutations, hookRuns, passFreshnessRuns, stagingRuns, gtModifyRuns, nextMutation, resubmitAllowed, duplicateEventAllowed, and mergeAllowed.",
+      "fixtures": [],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Resume runs zero hook, PASS-freshness helper, staging, or gt modify operations; it skips the finalized commit, exact event, submission, and exact PR edit, preserves the event UUID, and admits only the missing Linear relation next.",
+      "assertions": [
+        {
+          "id": "resume-admitted",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "ready",
+          "critical": true
+        },
+        {
+          "id": "resume-first-missing-boundary",
+          "kind": "final-json-path-equals",
+          "pointer": "/resumeBoundary",
+          "expected": "linear-pr-relation",
+          "critical": true
+        },
+        {
+          "id": "resume-skips-exact-mutations",
+          "kind": "final-json-path-equals",
+          "pointer": "/skippedMutations",
           "expected": [
-            "Linear-Project: 11111111-1111-4111-8111-111111111111",
-            "Linear-Issue: APP-12"
+            "gt modify",
+            "implementationEvidence:append",
+            "gt submit",
+            "gh pr edit"
           ],
           "critical": true
         },
         {
-          "id": "commit-never-merges",
+          "id": "resume-relation-next",
+          "kind": "final-json-path-equals",
+          "pointer": "/nextMutation",
+          "expected": "linear-pr-relation:write",
+          "critical": true
+        },
+        {
+          "id": "resume-does-not-resubmit",
+          "kind": "final-json-path-equals",
+          "pointer": "/resubmitAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "resume-does-not-duplicate-event",
+          "kind": "final-json-path-equals",
+          "pointer": "/duplicateEventAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "resume-runs-no-hook",
+          "kind": "final-json-path-equals",
+          "pointer": "/hookRuns",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "resume-runs-no-pass-helper",
+          "kind": "final-json-path-equals",
+          "pointer": "/passFreshnessRuns",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "resume-runs-no-staging",
+          "kind": "final-json-path-equals",
+          "pointer": "/stagingRuns",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "resume-runs-no-modify",
+          "kind": "final-json-path-equals",
+          "pointer": "/gtModifyRuns",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "resume-never-merges",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeAllowed",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "unknown-submit-resubmits-only-after-complete-absence",
+      "prompt": "Classify this bounded resume snapshot without running commands or mutating anything. The exact finalized commit c46 and implementationEvidence event e46 read back completely. A prior gt submit timed out. Fresh complete Graphite and GitHub reads, including all required pages, prove the remote branch, Graphite submission, and canonical PR are all absent. The issue remains executing with no PR relation. Return exactly one JSON object using keys status, resumeBoundary, resubmitAllowed, gtModifyAllowed, newEventUuidAllowed, reasonCode, and mergeAllowed.",
+      "fixtures": [],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Complete remote absence admits one Graphite resubmit while preserving the exact local commit and existing implementation event.",
+      "assertions": [
+        {
+          "id": "absence-resume-ready",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "ready",
+          "critical": true
+        },
+        {
+          "id": "absence-resumes-submit",
+          "kind": "final-json-path-equals",
+          "pointer": "/resumeBoundary",
+          "expected": "graphite-submit",
+          "critical": true
+        },
+        {
+          "id": "absence-permits-one-resubmit",
+          "kind": "final-json-path-equals",
+          "pointer": "/resubmitAllowed",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "absence-does-not-recommit",
+          "kind": "final-json-path-equals",
+          "pointer": "/gtModifyAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "absence-does-not-reallocate-event",
+          "kind": "final-json-path-equals",
+          "pointer": "/newEventUuidAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "absence-has-no-blocker",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "absence-never-merges",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeAllowed",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "rebuilds-stale-pr-from-exact-committed-diff-on-resume",
+      "prompt": "Classify this bounded resume snapshot without running commands or mutating anything. Fresh complete reads verify one caller-owned work-item, exact finalized local commit c47 from base b47, exact implementationEvidence e47 with committedDiffHash d47, exact Graphite submission, and the canonical PR identity/head/base. The PR body is stale and unattributed, so PR fields are the first missing boundary. The prior in-memory draft is lost. Current unrelated state contains staged notes/private.txt, unstaged scratch.txt, and untracked tmp/output.bin. No retained observation proves the earlier pre_commit command or result for b47..c47. Return exactly one JSON object using keys status, resumeBoundary, draftSource, draftIdentity, usedLostDraft, ignoredDirtyState, hookResultReport, hookRuns, passFreshnessRuns, stagingRuns, gtModifyRuns, nextMutation, and mergeAllowed.",
+      "fixtures": [],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Resume reconstructs the stale PR solely from the verified committed b47-to-c47 diff, ignores every dirty-state class and lost draft, reports unavailable hook evidence without rerunning it, performs zero hook/PASS/stage/modify operations, and admits only the PR field edit.",
+      "assertions": [
+        {
+          "id": "stale-pr-resume-ready",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "ready",
+          "critical": true
+        },
+        {
+          "id": "stale-pr-first-missing",
+          "kind": "final-json-path-equals",
+          "pointer": "/resumeBoundary",
+          "expected": "pr-fields",
+          "critical": true
+        },
+        {
+          "id": "stale-pr-uses-committed-diff",
+          "kind": "final-json-path-equals",
+          "pointer": "/draftSource",
+          "expected": "verified-committed-base-to-head-diff",
+          "critical": true
+        },
+        {
+          "id": "stale-pr-uses-exact-identity",
+          "kind": "final-json-path-equals",
+          "pointer": "/draftIdentity",
+          "expected": "b47..c47:d47",
+          "critical": true
+        },
+        {
+          "id": "stale-pr-does-not-use-lost-draft",
+          "kind": "final-json-path-equals",
+          "pointer": "/usedLostDraft",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "stale-pr-ignores-dirty-state",
+          "kind": "final-json-path-equals",
+          "pointer": "/ignoredDirtyState",
+          "expected": [
+            "staged:notes/private.txt",
+            "unstaged:scratch.txt",
+            "untracked:tmp/output.bin"
+          ],
+          "critical": true
+        },
+        {
+          "id": "stale-pr-reports-hook-unavailable",
+          "kind": "final-json-path-equals",
+          "pointer": "/hookResultReport",
+          "expected": "Not rerun on resume; prior pre_commit result unavailable",
+          "critical": true
+        },
+        {
+          "id": "stale-pr-no-hook",
+          "kind": "final-json-path-equals",
+          "pointer": "/hookRuns",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "stale-pr-no-pass-helper",
+          "kind": "final-json-path-equals",
+          "pointer": "/passFreshnessRuns",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "stale-pr-no-staging",
+          "kind": "final-json-path-equals",
+          "pointer": "/stagingRuns",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "stale-pr-no-modify",
+          "kind": "final-json-path-equals",
+          "pointer": "/gtModifyRuns",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "stale-pr-edit-next",
+          "kind": "final-json-path-equals",
+          "pointer": "/nextMutation",
+          "expected": "gh pr edit",
+          "critical": true
+        },
+        {
+          "id": "stale-pr-never-merges",
           "kind": "final-json-path-equals",
           "pointer": "/mergeAllowed",
           "expected": false,

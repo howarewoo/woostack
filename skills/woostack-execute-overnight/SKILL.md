@@ -279,10 +279,12 @@ increment PRs each driven to a clean review — or approved with only nits, addr
 pass and any left open logged for the morning — or partially, with blockers logged — plus a
 complete morning report. Report the path. "Clean" is review-clean, never a merge. **Never merge.**
 
-**Markdown completion.** When the whole plan reaches 100% — every track implemented and every plan
-checkbox `[x]` — author terminal `status: done` once and commit that bump via
-[`woostack-commit`](../woostack-commit/SKILL.md) `--no-pr-update`. A blocked plan leaves authored
-status untouched; fix frontmatter remains owned by [`woostack-fix`](../woostack-fix/SKILL.md).
+**Markdown completion.** When the whole compatibility plan reaches 100% — every track implemented
+and every plan checkbox `[x]` — author terminal `status: done` once. Include the bump in the final
+issue-owned commit when possible; otherwise invoke [`woostack-commit`](../woostack-commit/SKILL.md)
+with `--issue <same exact verified issue UUID-or-URL> --no-pr-update`. Never drop commit identity at
+this follow-up boundary. A blocked plan leaves authored status untouched; fix frontmatter remains
+owned by [`woostack-fix`](../woostack-fix/SKILL.md).
 
 **Linear completion.** A completed track has every submitted issue verified `inReview` and its
 sweep recorded; a blocked track retains truthful `executing`/`blocked` issue state and evidence.

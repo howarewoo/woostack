@@ -16,7 +16,7 @@ action="$TMP/action.json"
 workflow="$TMP/workflow.json"
 
 file_mode() {
-  stat -f '%Lp' "$1" 2>/dev/null || stat -c '%a' "$1"
+  stat -c '%a' "$1" 2>/dev/null || stat -f '%Lp' "$1"
 }
 
 assert_eq "$(jq -r '.inputs["linear-api-key"].required' "$action")" 'false' \
@@ -32,9 +32,12 @@ if [ "$prefetch_index" -lt "$context_index" ] && [ "$context_index" -lt "$detect
 else
   fail "artifact context executes after prefetch and before angle detection"
 fi
-assert_eq "$(jq -r '.runs.steps[] | select(.name=="Resolve read-only artifact context") | .run' "$action")" \
+assert_contains "$(jq -r '.runs.steps[] | select(.name=="Resolve read-only artifact context") | .run' "$action")" \
   'bash "${{ github.action_path }}/skills/woostack-review/scripts/resolve-artifact-context.sh"' \
-  "action truly executes the artifact-context helper"
+  "action executes the artifact-context helper"
+assert_contains "$(jq -r '.runs.steps[] | select(.name=="Resolve read-only artifact context") | .run' "$action")" \
+  'if [ -e "$OUTDIR/artifact-context-request.json" ]; then' \
+  "action fails closed when standalone work-item verification needs a parent MCP consumer"
 assert_eq "$(jq -r '.runs.steps[] | select(.name=="Resolve read-only artifact context") | .env.INPUT_LINEAR_API_KEY' "$action")" \
   "\${{ inputs['linear-api-key'] }}" \
   "action passes the optional secret only to the helper input env"
@@ -121,7 +124,7 @@ assert_eq "$(jq -r '.jobs.detect.steps[] | select(.uses | strings | contains("up
   'true' "base artifact upload preserves tracked dotfiles from package snapshots"
 
 for job in detect review validate; do
-  cleanup="$(jq -c --arg job "$job" '.jobs[$job].steps[-1] | {name,if,run}' "$workflow")"
+  cleanup="$(jq -c --arg job "$job" '.jobs[$job].steps[-1] | {"name": .name, "if": .if, "run": .run}' "$workflow")"
   assert_contains "$cleanup" 'Remove local' "$job ends with local artifact cleanup"
   assert_contains "$cleanup" 'always()' "$job cleanup runs on every outcome"
   assert_contains "$cleanup" 'rm -rf /tmp/pr-review' "$job cleanup removes sensitive local context"

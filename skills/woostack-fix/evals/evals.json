@@ -3,15 +3,15 @@
   "skill": "woostack-fix",
   "cases": [
     {
-      "id": "blocks-plan-when-root-cause-is-unproven",
-      "prompt": "Continue the bounded synthetic fix investigation in fixtures/no-root-cause.json. Do not edit or create files. Apply the packaged skill contract and return exactly one JSON object using the keys status, rootCauseEstablished, planAuthored, executionDelegated, and mergeAllowed.",
+      "id": "blocks-before-issue-when-root-cause-is-unproven",
+      "prompt": "Evaluate the bounded synthetic fix investigation in fixtures/no-root-cause.json. Its requestedPlanPath is a legacy request, not authority. Do not edit, create, or mutate anything. Apply the packaged skill contract and return exactly one JSON object using the keys status, rootCauseEstablished, issueBound, branchCreated, localDevelopmentRecordCreated, and mergeAllowed.",
       "fixtures": [
         "no-root-cause.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The flow blocks because root cause is not established, authors no plan, delegates no execution, writes no fix artifact, and never merges.",
+      "expected": "The flow blocks before issue binding or Git because no root cause is proved, rejects the requested local fix record, and never merges.",
       "assertions": [
         {
           "id": "root-cause-blocker",
@@ -28,21 +28,28 @@
           "critical": true
         },
         {
-          "id": "no-plan-before-root-cause",
+          "id": "no-issue-before-root-cause",
           "kind": "final-json-path-equals",
-          "pointer": "/planAuthored",
+          "pointer": "/issueBound",
           "expected": false,
           "critical": true
         },
         {
-          "id": "no-execution-before-root-cause",
+          "id": "no-branch-before-root-cause",
           "kind": "final-json-path-equals",
-          "pointer": "/executionDelegated",
+          "pointer": "/branchCreated",
           "expected": false,
           "critical": true
         },
         {
-          "id": "no-fix-artifact-write",
+          "id": "no-local-development-record",
+          "kind": "final-json-path-equals",
+          "pointer": "/localDevelopmentRecordCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "legacy-request-path-absent",
           "kind": "path-absent",
           "path": ".woostack/fixes/cache-stampede.md",
           "critical": true
@@ -57,28 +64,70 @@
       ]
     },
     {
-      "id": "approved-fix-delegates-execution",
-      "prompt": "Resume the bounded synthetic fix state in fixtures/approved-fix.json. Do not run Git or implement code. Apply the packaged skill contract and return exactly one JSON object using the keys rootCauseEstablished, planApproved, executionDelegated, executionSkill, and mergeAllowed. planApproved is true only for an explicit approval, and executionSkill names the delegated skill rather than its invocation wording.",
+      "id": "verified-work-item-approval-delegates-execution",
+      "prompt": "Evaluate fixtures/approved-fix.json validReuse as the current state after the one explicit Go decision. Do not run Git, call a provider, or implement code. Apply the packaged skill contract and return exactly one JSON object using the keys issueState, issueIdentifier, resourceRole, projectCreated, hardGates, approvalVerified, eventKindsBeforeExecution, executionDelegated, executionSkill, prTrailer, and mergeAllowed. Set issueState to the fixture's verified native semantic state.",
       "fixtures": [
         "approved-fix.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "A proved root cause and explicit plan approval delegate implementation to woostack-execute, while the fix flow itself never implements or merges.",
+      "expected": "The exact repository-owned standalone issue, complete receipts, type-aware delegate, diagnosis, hardened contract, and explicit approval permit delegation to woostack-execute with one issue trailer and no project.",
       "assertions": [
         {
-          "id": "proved-root-cause-retained",
+          "id": "verified-issue-state",
           "kind": "final-json-path-equals",
-          "pointer": "/rootCauseEstablished",
+          "pointer": "/issueState",
+          "expected": "executing",
+          "critical": true
+        },
+        {
+          "id": "exact-issue-retained",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueIdentifier",
+          "expected": "APP-241",
+          "critical": true
+        },
+        {
+          "id": "standalone-role-retained",
+          "kind": "final-json-path-equals",
+          "pointer": "/resourceRole",
+          "expected": "work-item",
+          "critical": true
+        },
+        {
+          "id": "no-wrapper-project",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "exact-one-gate",
+          "kind": "final-json-path-equals",
+          "pointer": "/hardGates",
+          "expected": [
+            "approve-to-execute"
+          ],
+          "critical": true
+        },
+        {
+          "id": "explicit-approval-read-back",
+          "kind": "final-json-path-equals",
+          "pointer": "/approvalVerified",
           "expected": true,
           "critical": true
         },
         {
-          "id": "explicit-plan-gate-cleared",
+          "id": "pre-execution-event-chain",
           "kind": "final-json-path-equals",
-          "pointer": "/planApproved",
-          "expected": true,
+          "pointer": "/eventKindsBeforeExecution",
+          "expected": [
+            "verification",
+            "decisionRequest",
+            "acceptance",
+            "assignmentAccepted"
+          ],
           "critical": true
         },
         {
@@ -96,7 +145,230 @@
           "critical": true
         },
         {
+          "id": "standalone-trailer",
+          "kind": "final-json-path-equals",
+          "pointer": "/prTrailer",
+          "expected": "Linear-Issue: APP-241",
+          "critical": true
+        },
+        {
           "id": "fix-never-merges-after-approval",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeAllowed",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "safe-create-and-retry-use-stable-uuid",
+      "prompt": "Evaluate fixtures/approved-fix.json safeCreate at the issue-binding boundary. Treat initialDiscovery as the pre-create search and retryDiscovery as a later retry after the verified create. Do not call a provider or create files. Return exactly one JSON object using the keys issueState, clientId, issueIdentifier, createAttempts, retryMatchedExisting, replacementCreated, readBackVerified, projectCreated, and branchCreated. Set issueState to the created issue's verified semantic state.",
+      "fixtures": [
+        "approved-fix.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "One preallocated UUID creates one standalone issue, independent read-back verifies it, retry resumes the same native issue, and no project or branch exists.",
+      "assertions": [
+        {
+          "id": "created-issue-state",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueState",
+          "expected": "planned",
+          "critical": true
+        },
+        {
+          "id": "stable-client-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/clientId",
+          "expected": "12222222-2222-4222-8222-222222222222",
+          "critical": true
+        },
+        {
+          "id": "created-issue-identity",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueIdentifier",
+          "expected": "APP-242",
+          "critical": true
+        },
+        {
+          "id": "single-create-attempt",
+          "kind": "final-json-path-equals",
+          "pointer": "/createAttempts",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "retry-resumes-existing",
+          "kind": "final-json-path-equals",
+          "pointer": "/retryMatchedExisting",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "no-replacement",
+          "kind": "final-json-path-equals",
+          "pointer": "/replacementCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "complete-create-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/readBackVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "safe-create-no-project",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "safe-create-no-branch-before-approval",
+          "kind": "final-json-path-equals",
+          "pointer": "/branchCreated",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "invalid-resource-identities-fail-before-git",
+      "prompt": "Evaluate every entry in fixtures/approved-fix.json invalidIdentityScenarios as a separately supplied identity. Do not select, repair, migrate, or mutate any resource. Return exactly one JSON object using the keys status, decisions, repositoryMutationCount, branchCreated, and projectCreated. decisions must map ambiguousIssue, foreignRepository, foreignTeam, featureProject, projectIncrement, and linearDocument to blocked.",
+      "fixtures": [
+        "approved-fix.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Ambiguous, foreign, project, increment, and document identities all block before project, branch, or worktree creation.",
+      "assertions": [
+        {
+          "id": "identity-matrix-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "every-invalid-identity-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/decisions",
+          "expected": {
+            "ambiguousIssue": "blocked",
+            "foreignRepository": "blocked",
+            "foreignTeam": "blocked",
+            "featureProject": "blocked",
+            "projectIncrement": "blocked",
+            "linearDocument": "blocked"
+          },
+          "critical": true
+        },
+        {
+          "id": "identity-failure-no-repository-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "identity-failure-no-branch",
+          "kind": "final-json-path-equals",
+          "pointer": "/branchCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "identity-failure-no-project",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectCreated",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "receipt-owner-evidence-and-authority-conflicts-fail-closed",
+      "prompt": "Evaluate every entry in fixtures/approved-fix.json blockedScenarios independently at the next mutation boundary. Do not use fallback credentials, custom transport, local development records, or inferred evidence. Return exactly one JSON object using the keys status, decisions, repositoryMutationCount, branchCreated, projectCreated, stableIdsPreserved, localDevelopmentRecordCreated, and mergeAllowed. decisions must map every blockedScenarios key to blocked.",
+      "fixtures": [
+        "approved-fix.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Owner drift, partial or unknown read-back, wrong lifecycle/evidence, local authority, repository credentials, custom Linear transport, and missing official MCP capability all stop with stable IDs preserved and zero repository mutation.",
+      "assertions": [
+        {
+          "id": "conflict-matrix-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "every-conflict-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/decisions",
+          "expected": {
+            "ownershipChanged": "blocked",
+            "partialReadBack": "blocked",
+            "unknownReadBack": "blocked",
+            "wrongLifecycle": "blocked",
+            "wrongEvidence": "blocked",
+            "localDevelopmentRecord": "blocked",
+            "repositoryCredential": "blocked",
+            "customLinearTransport": "blocked",
+            "officialMcpUnavailable": "blocked"
+          },
+          "critical": true
+        },
+        {
+          "id": "conflicts-stop-repository-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "conflicts-stop-branch",
+          "kind": "final-json-path-equals",
+          "pointer": "/branchCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "conflicts-never-create-project",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "unknown-outcome-preserves-ids",
+          "kind": "final-json-path-equals",
+          "pointer": "/stableIdsPreserved",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "no-local-fallback",
+          "kind": "final-json-path-equals",
+          "pointer": "/localDevelopmentRecordCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-local-fix-file",
+          "kind": "path-absent",
+          "path": ".woostack/fixes/2026-07-26-cache-stampede.md",
+          "critical": true
+        },
+        {
+          "id": "conflicts-never-merge",
           "kind": "final-json-path-equals",
           "pointer": "/mergeAllowed",
           "expected": false,

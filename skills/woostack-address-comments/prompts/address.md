@@ -136,14 +136,15 @@ Show the fix plan alongside the FIX verdict **wherever the gate renders it**:
      bash "$WOO_ADDRESS_ACTION_PATH/scripts/memory-record.sh"
    ```
 
-2. Stage any FIX edits plus any tracked memory notes/index updates, then invoke the
-   [`woostack-commit`](../../woostack-commit/SKILL.md) skill with `--no-pr-update`
-   to commit and push/submit without overwriting the PR metadata:
+2. Stage any FIX edits plus tracked memory notes/index updates, then invoke
+   [`woostack-commit`](../../woostack-commit/SKILL.md) with the exact issue UUID/URL retained from
+   artifact resolution, the exact project UUID/URL only for a verified role-`increment`,
+   `--no-pr-update`, and the thread message:
    ```
-   /woostack-commit --no-pr-update "fix: address review threads <ids>"
+   /woostack-commit --issue <exact-issue> [--project <exact-project>] --no-pr-update "fix: address review threads <ids>"
    ```
-   Then capture the commit `<sha>` (e.g., `git rev-parse HEAD`) before posting any
-   replies. Never force-push.
+   Never substitute `TEAM-123`, the PR number, branch, or recent activity for exact identity. Then
+   capture the commit `<sha>` before posting replies. Never force-push.
 3. For each handled thread, reply and resolve:
 
    ```bash

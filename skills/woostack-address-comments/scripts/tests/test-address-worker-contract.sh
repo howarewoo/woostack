@@ -40,3 +40,6 @@ if rg -q "/tmp/pr-review/(address-threads|memory)\\.md|/tmp/pr-review/address-th
 fi
 assert_contains "$SKILL" "fast workers"
 assert_contains "$SKILL" "parent orchestrator"
+assert_contains "$PROMPT" "/woostack-commit --issue <exact-issue> [--project <exact-project>] --no-pr-update"
+assert_contains "$SKILL" "role \`work-item\`"
+assert_contains "$SKILL" "Never pass only \`TEAM-123\`"

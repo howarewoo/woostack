@@ -18,8 +18,9 @@ It has two layers:
   normalized, non-secret receipt supplied by the skill controller through
   `--live-receipt <path>`; the script never calls MCP, HTTP, GraphQL, or a hard-coded provider tool.
 - An **interactive repair layer** — proposes local auto-fixes, mutates nothing before approval,
-  and hands approved file changes to [`woostack-commit`](../woostack-commit/SKILL.md). Linear
-  resources and legacy development records are report-only; doctor never merges.
+  routes approved tracked repairs through [`woostack-change`](../woostack-change/SKILL.md) before
+  any file mutation, and runs filesystem-only repairs directly. Linear resources and legacy
+  development records are report-only; doctor never merges.
 
 ## Commands
 
@@ -74,15 +75,19 @@ siblings, so this holds by construction.
    findings separately as "manual / judgment" items. Linear findings are always report-only.
 6. **HARD GATE — approval.** Mutate nothing until the user approves. Silence is not a yes. The user
    may approve all, a subset, or none. `report`-only findings are never auto-applied.
-7. **Apply locally.** For each approved local finding, invoke the owning check's `--fix` path with
-   the uniform convention `<check> --fix <WOO_ROOT> <extra-args...>` (see
-   [references/checks.md](references/checks.md) for each check's args). File repairs mutate the
-   working tree; the filesystem-only repair (`orphan-worktree --fix`, a safe `git worktree prune`)
-   runs directly. No repair command calls Linear or mutates remote content.
-8. **Commit.** After file repairs, hand to [`woostack-commit`](../woostack-commit/SKILL.md) — it
-   creates a fresh `feature/*` branch and opens a PR (respects branch protection; **never merges**).
-   Filesystem-only repairs need no commit.
-9. **Confirm.** Re-run the same static or explicitly live engine mode and report residual findings.
+7. **Route tracked repairs before mutation.** If the approved set includes a file repair, hand its
+   exact finding codes, paths, changes, target, and validation mode to
+   [`woostack-change`](../woostack-change/SKILL.md) before invoking any `--fix` path. That workflow
+   binds or creates the standalone issue, records the approved bounded contract, establishes its
+   worktree, invokes each owning check as `<check> --fix <WOO_ROOT> <extra-args...>` (see
+   [references/checks.md](references/checks.md)), re-runs the same engine mode, and commits through
+   the verified issue. Doctor never hands tracked repairs directly to `woostack-commit`. If every
+   approved repair is filesystem-only, run `orphan-worktree --fix` (a safe `git worktree prune`)
+   directly after the gate; it needs no issue or commit. No repair shell command calls Linear or
+   mutates remote content.
+8. **Confirm.** Require the change workflow's retained re-run result for tracked repairs, or re-run
+   the same static or explicitly live engine mode after a filesystem-only repair, and report
+   residual findings.
 
 ## Hard constraints
 
@@ -93,17 +98,20 @@ siblings, so this holds by construction.
 - **Linear is the only development authority.** Static diagnosis validates non-secret policy.
   Local development-record directories are migration blockers, not a backend and not normal lint
   input. Doctor never creates, repairs, adopts, or deletes them.
-- **Provider access belongs to the skill controller.** Ordinary diagnosis and every repair path
-  are provider-free. Explicit `--live` discovers official host MCP tools, performs authenticated
-  read/write/update/comment/relation/owner/read-back preflight, and passes only a normalized
-  non-secret receipt to the shell engine. The temporary receipt is mode 0600 and deleted after
-  consumption. The shell never reads a provider credential or invokes HTTP, GraphQL, an API-key
-  adapter, or a hard-coded MCP tool name. Unknown or partial outcomes fail closed.
+- **Provider access belongs to skill controllers.** Diagnosis and every doctor shell repair remain
+  provider-free. For approved tracked repairs, `woostack-change` owns official Linear MCP access,
+  issue identity, and mutation receipts before the first file edit. Explicit `--live` discovers
+  official host MCP tools, performs authenticated read/write/update/comment/relation/owner/read-back
+  preflight, and passes only a normalized non-secret receipt to the shell engine. The temporary
+  receipt is mode 0600 and deleted after consumption. The shell never reads a provider credential
+  or invokes HTTP, GraphQL, an API-key adapter, or a hard-coded MCP tool name. Unknown or partial
+  outcomes fail closed.
 - **Gate every repair.** Nothing mutates before explicit approval; `report` findings are never
   auto-applied.
 - **Safety is never relaxed.** The only filesystem repair is `git worktree prune` (admin-only);
   a present worktree dir that may hold work is always `report`, never auto-removed.
-- **Never merge.** Approved file repairs land via `woostack-commit` (branch + PR), never a merge.
+- **Never merge.** Approved file repairs enter `woostack-change` before mutation and commit through
+  that workflow's verified standalone issue; doctor never invokes `woostack-commit` directly.
 - **Cross-link, don't restate.** The spec↔plan join contract lives in
   [`../woostack-status/references/conventions.md`](../woostack-status/references/conventions.md);
   link it.

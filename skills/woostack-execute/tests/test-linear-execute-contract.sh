@@ -59,7 +59,8 @@ execute = texts["execute"]
 controller = texts["controller"]
 overnight = texts["overnight"]
 linear_adapter = texts["linear_adapter"]
-resolution = section(controller, "## Resolve the backend and input", "## Resolve the next ready issue")
+resolution = section(controller, "## Resolve authority and input", "## Standalone work-item path")
+standalone = section(controller, "## Standalone work-item path", "## Resolve the next ready issue")
 next_issue = section(controller, "## Resolve the next ready issue", "## Selection precedence")
 linear_cadence = section(controller, "## Linear issue cadence", "## Failure and lifecycle truth")
 failure_truth = section(controller, "## Failure and lifecycle truth", "Build execution never transitions")
@@ -69,7 +70,7 @@ linear_input = section(overnight, "### Linear overnight input and report", "## P
 linear_tracks = section(overnight, "### Linear dependency tracks", "## Post-implementation review sweep")
 terminal = section(overnight, "## Terminal state", "## Gate boundary")
 
-# Entry resolves either backend while retaining the established Markdown plan-path workflow.
+# Entry classifies exact Linear authority before retaining the Markdown compatibility path.
 for token in (
     "resolve-backend.sh",
     "## Markdown backend (unchanged)",
@@ -85,7 +86,24 @@ for token in (
 ):
     must(execute, token, "Markdown compatibility")
 
-# The controller owns all Linear state/evidence sequencing and adapter-only API access.
+for token in (
+    "exact Linear UUID/URL",
+    "role-`work-item` issue",
+    "without invoking `resolve-backend.sh`",
+    "managed role-`feature` project",
+):
+    must(resolution, token, "exact execution authority")
+for token in (
+    "stable ID and URL",
+    "role `work-item`",
+    "no project membership",
+    "semantic state `executing`",
+    "type-aware owner",
+    "woostack-commit --issue <exact issue UUID-or-URL>",
+    "do not run the project closure cadence",
+):
+    must(standalone, token, "standalone execution authority")
+# The controller owns project state/evidence sequencing and exact issue identity.
 ordered(linear_cadence, (
     "linear.sh spec-read",
     "linear.sh spec-write --issue-state-map",
@@ -97,10 +115,12 @@ ordered(linear_cadence, (
     "linear.sh issue-transition ... --target executing",
     "`planned → executing`",
     "implementation branch or worktree",
-    "perform TDD",
+    "Implement and review",
+    "woostack-commit",
+    "exact issue UUID/URL",
+    "issue identifier is never commit identity",
     "gt submit",
-    "linear.sh issue-transition ... --target inReview",
-    "read-back",
+    "advances the issue to `inReview`",
     "After every managed issue has verified `inReview`",
     "linear.sh spec-read",
     "linear.sh spec-write --issue-state-map",
@@ -113,12 +133,13 @@ ordered(linear_cadence, (
     "leave both `executing`",
 ), "Linear supervised cadence")
 ordered(resolution, (
+    "resolve-backend.sh",
+    "Markdown",
     "linear.sh preflight",
-    "LINEAR_TEAM_ID",
-    "LINEAR_PROJECT_STATUSES",
-    "LINEAR_ISSUE_STATES",
-    "linear.sh feature-read",
-    "complete normalized model",
+    "LINEAR_CONTEXT",
+    "project UUID/URL",
+    "resolve the repository-owned project through `feature-read`",
+    "normalized model's project ID",
     "project `ready` / spec `ready`",
     "project `ready` / spec `executionApproved`",
     "project `executing` / spec `executing`",
@@ -176,10 +197,10 @@ for token in (
 ):
     must(controller, token, "Linear controller")
 for token in (
-    "invoke the attribution transition exactly once",
-    "run `feature-read` regardless",
-    "Exact intended `inReview` state and exact branch/PR evidence",
+    "Exact intended `inReview` state and exact branch/PR evidence is success",
+    "response was lost",
     "observed state remains `executing` with no attribution evidence",
+    "Only a later explicit resume",
     "partial or mismatched",
     "manual reconciliation",
 ):
@@ -320,26 +341,25 @@ for token in (
 ):
     must(texts["worktrees"], token, "worktree backend contract")
 for token in (
-    "Linear issue UUID, URL",
-    "Linear issue",
-    "Linear project UUID or URL plus",
-    "require both project and issue references",
-    "An issue-only reference is",
-    "adapter deliberately",
-    "linear.sh feature-resolve",
-    '--eligible-statuses \'["executing"]\'',
-    "captured project-status UUID",
-    "exactly one repository-owned result",
-    "repository marker",
-    "captured issue-state UUID map",
-    "plan-read` with its `.id",
+    "exact project UUID or URL **and** exact issue UUID or URL",
+    "require both exact project and issue inputs",
+    "official host-exposed Linear MCP",
+    "independently read and verify project and issue identity",
+    "repository attribution",
+    "workspace/team",
+    "`woostack` ownership metadata",
+    "project membership",
+    "dependencies, work owner",
+    "complete issue contract",
+    "An issue-only input",
+    "blocks before local writes",
 ):
     must(texts["tdd"], token, "TDD Linear target")
 for token in (
     "immutable execution input",
-    "tests only to the local code worktree",
-    "does not mutate issue content",
-    "revision/CAS",
+    "Write only tests in the local code worktree",
+    "Never mutate the project",
+    "report a planning defect for explicit reconciliation",
 ):
     must(texts["tdd"], token, "TDD read-only Linear issue")
 must_not(texts["tdd"], "linear.sh plan-reconcile", "TDD execution-time mutation")

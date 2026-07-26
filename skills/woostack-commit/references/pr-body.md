@@ -1,11 +1,46 @@
 # PR title and body
 
-Load this reference only when drafting or updating PR fields. The root workflow supplies the valid
-artifact trailer, if any; this procedure does not select or validate backend attribution.
+Load this reference only after the caller-supplied Linear issue, optional project, repository, role,
+relations, and owner have been independently verified through official MCP. The root workflow
+supplies the exact verified role and identities; this procedure never discovers, chooses, or
+normalizes attribution.
 
-Use a validated fast-subagent draft for the PR title/body when available. The main agent must still preserve accurate existing context, remove stale generated content, and ensure the Goal, Summary, and Test plan mention only committed changes and real verification.
+Use a validated fast-subagent draft for the PR title/body when available. The controller must still
+preserve accurate existing context, remove stale generated content, and ensure the Goal, Summary,
+and Test plan mention only committed changes and verification actually observed.
 
-Compose the validated body with this structure:
+## Select the authoritative drafting input
+
+Resume admission selects exactly one content source before any draft is accepted:
+
+- **Finalized commit absent:** use only the exact staged diff that will be committed. Draft and
+  validate against its retained identity.
+- **Exact finalized commit present:** stage nothing. Reconstruct solely from the independently
+  verified committed base-to-head diff for that exact base/head pair:
+
+  ```bash
+  git diff --binary --full-index --no-ext-diff "$base_commit_sha" "$head_commit_sha"
+  ```
+
+  Ignore every current staged, unstaged, and untracked path/content, even when dirty state appeared
+  after the commit. Do not mix it into changed paths, Goal, Summary, Test plan, title, or manual
+  steps. A missing in-memory draft is not a blocker and a surviving draft is not authority; discard
+  it unless its recorded base/head/diff identity exactly matches the selected committed diff, then
+  still verify every claim from that diff and retained observations.
+
+Existing PR text may provide accurate human context but never replaces the selected diff. A stale
+or unattributed PR is rebuilt from the selected source, not copied.
+
+Prior hook output may appear under Automated only when a retained observation verifies the exact
+command, result, and same committed base/head identity. If that observation is absent, write a
+truthful entry such as `Not rerun on resume; prior pre_commit result unavailable` when the hook is
+applicable. Never infer a prior result, rerun the hook, invoke the PASS helper, or stage files while
+reconstructing a post-commit PR body.
+
+Any fast-subagent prompt and returned draft must carry the selected input identity. Lost,
+identity-less, stale, dirty-tree-derived, or mismatched draft text is discarded and reconstructed.
+
+Compose the prose first with this structure:
 
 ```markdown
 ## Goal
@@ -32,25 +67,80 @@ Compose the validated body with this structure:
 **After merge**
 
 - [ ] <step only verifiable post-merge — deploy / migration / env-gated>
-
-<selected backend trailer, when required>
 ```
 
-Rules:
+Then append exactly one controller-owned suffix selected only from the verified resource role.
+For a role-`increment` issue, the final two lines are adjacent and exactly:
 
-- **Verified `change/*`:** omit `Spec:`, `Linear-Project:`, and `Linear-Issue:` trailers. The invocation is artifact-neutral even when the backend resolver reports Linear.
-- State the **Goal** as intent or the problem solved in one or two sentences — not a change list. It is distinct from Summary, which lists *what* changed. Always present it.
-- Keep Summary bullets concise and specific. Include only changes in the committed diff.
-- Under **Automated**, list the commands/tests actually run, plus the configured `commit.pre_commit` command and result when it ran. Show this group whenever an automated check (test, lint, typecheck, `pre_commit`) could have run for the change: list results, or `Not run` with the reason when one was expected but skipped. Omit `### Automated` entirely when no automated check applies to the change (for example a doc-only edit in a repo with no test harness) rather than emitting a `Not run` placeholder.
-- Under **Manual**, group human verification into **Before merge** and **After merge**. Before-merge steps are what a reviewer can inspect or exercise now — read the diff, run the command locally, exercise the change on the branch or a preview, for example `Run /woostack-commit on a dirty feature branch and confirm the PR body shows Goal, Summary, and the Automated/Manual test plan`. After-merge steps are verification only possible once the PR lands — staging/prod deploy behavior, migrations, env-specific config. Include the After-merge group only when such steps exist; this is the "if applicable".
-- Omit any empty group — `### Automated`, `### Manual`, or either before/after block — rather than leaving placeholder bullets.
-- Preserve important existing PR context when it is still accurate. Replace stale generated summaries/test plans with the current ones.
-- Format test-plan items as unchecked Markdown checkboxes (`- [ ] ...`) so reviewers can mark verification complete.
+```text
+Linear-Project: <verified-project-uuid>
+Linear-Issue: <TEAM-NUMBER>
+```
 
-Update with:
+For a role-`work-item` issue, the sole attribution line is exactly:
+
+```text
+Linear-Issue: <TEAM-NUMBER>
+```
+
+`<TEAM-NUMBER>` is the exact identifier returned by the independent read of the caller-supplied
+issue. `<verified-project-uuid>` is the exact stable UUID returned by the independent read of the
+caller-supplied role-`feature` project. Never derive either value from display text, a branch, an
+existing PR body, or recent Linear activity.
+
+## Exact suffix validation
+
+Validate the complete proposed body against the selected diff: before commit on the commit-absent
+path, or before any GitHub field mutation on a finalized-commit resume.
+
+- There is exactly one raw `Linear-Issue: <TEAM-NUMBER>` line, and it is the final nonblank line.
+- For role `increment`, there is exactly one raw `Linear-Project: <verified-project-uuid>` line
+  immediately before the issue line, with no blank or intervening line.
+- For role `work-item`, there is no `Linear-Project:` line anywhere. Do not fabricate a project.
+- There is no `Spec:` mention anywhere, including bulleted, quoted, fenced, indented, or
+  inline-code wrapping.
+- No Linear attribution label is wrapped in Markdown, quoted, bulleted, fenced, indented, split,
+  or surrounded by extra whitespace. Labels, capitalization, one-space separators, values, order,
+  and raw line form are exact.
+- Reject missing, duplicate, partial, reordered, malformed, foreign, or mismatched attribution,
+  including a project from another repository, an issue outside the verified project, and any
+  suffix inconsistent with the verified issue role.
+
+Never copy, repair, or normalize attribution from a fast-subagent draft or current PR. An existing
+current-branch PR may be treated as unattributed only when its body contains no `Spec:` mention
+and no `Linear-Project:` or `Linear-Issue:` line, and PR updates are enabled. Any partial or
+conflicting attribution blocks before commit or GitHub/Linear mutation. With `--no-pr-update`, the
+existing body must already pass the exact role-derived suffix validation.
+
+## Prose rules
+
+- State the **Goal** as intent or the problem solved in one or two sentences, not a change list. It
+  is distinct from Summary, which lists what changed. Always present it.
+- Keep Summary bullets concise and specific. Include only changes in the finalized commit.
+- Under **Automated**, list commands/tests actually run from verified observations, plus the
+  configured `commit.pre_commit` command and result only when its retained observation matches the
+  selected input identity. On a finalized-commit resume with no such observation, report
+  `Not rerun on resume; prior pre_commit result unavailable` when the hook applies. Never infer or
+  rerun it. Show this group whenever an automated check could have run: list observed results, or
+  `Not run` with the reason when one was expected but skipped. Omit `### Automated` when no
+  automated check applies rather than emitting a placeholder.
+- Under **Manual**, group human verification into **Before merge** and **After merge**.
+  Before-merge steps are what a reviewer can inspect or exercise now. Include After merge only for
+  checks that require a landed change, deployment, migration, or environment-specific state.
+- Omit an empty `### Automated`, `### Manual`, Before merge, or After merge group instead of leaving
+  placeholder bullets.
+- Preserve important existing PR context only when it remains accurate. Replace stale generated
+  summaries and test plans; never preserve stale attribution.
+- Format test-plan items as unchecked Markdown checkboxes (`- [ ] ...`) so reviewers can mark
+  verification complete.
+
+Update the verified existing PR with:
 
 ```bash
 gh pr edit <number> --title "<concise title>" --body-file <tmp-body-file>
 ```
 
-Re-fetch with `gh pr view`; the exact intended read-back is success. Never report a title or body that was not observed in the read-back.
+Re-fetch with `gh pr view`; the exact intended title and body read-back is success. A missing,
+partial, stale, or mismatched read-back is not success and permits no later Linear relation or
+state mutation. Never report a title, body, or attribution suffix that was not observed in the
+canonical GitHub read-back.

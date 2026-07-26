@@ -16,6 +16,8 @@ mkdir -p "$OUTDIR"
 chmod 700 "$OUTDIR"
 CONTEXT="$OUTDIR/artifact-context.json"
 rm -f "$CONTEXT"
+REQUEST="$OUTDIR/artifact-context-request.json"
+rm -f "$REQUEST"
 
 # No PR means a local diff. Do not resolve a backend or touch any artifact reader.
 if [ -z "${PR_NUMBER:-}" ]; then
@@ -80,6 +82,7 @@ cleanup() {
 }
 trap cleanup EXIT HUP INT TERM
 
+OUTPUT_PATH="$CONTEXT"
 case "$KIND" in
   markdown-spec)
     ARTIFACT_PATH="$(jq -er '.path' <<<"$ATTRIBUTION")"
@@ -132,7 +135,7 @@ case "$KIND" in
     ' >"$TMP_CONTEXT"
     ;;
 
-  linear)
+  linear-increment)
     PROJECT="$(jq -er '.project' <<<"$ATTRIBUTION")"
     ISSUE="$(jq -er '.issue' <<<"$ATTRIBUTION")"
     API_KEY="$PROVIDED_LINEAR_API_KEY"
@@ -189,6 +192,32 @@ case "$KIND" in
     }
     ;;
 
+  linear-work-item)
+    ISSUE="$(jq -er '.issue' <<<"$ATTRIBUTION")"
+    PR_URL="$(jq -er '.url | strings | select(length > 0)' "$META")" || {
+      echo "artifact context: canonical pull request URL is missing" >&2
+      exit 1
+    }
+    jq -cn --arg issue "$ISSUE" --arg pullRequest "$PR_URL" '
+      {
+        kind: "linear-work-item",
+        issueIdentifier: $issue,
+        pullRequest: $pullRequest,
+        requiredVerification: [
+          "stable-identity",
+          "canonical-repository",
+          "woostack-label",
+          "work-item-role",
+          "workspace-team",
+          "no-project",
+          "current-pr-relation",
+          "type-aware-owner"
+        ]
+      }
+    ' >"$TMP_CONTEXT"
+    OUTPUT_PATH="$REQUEST"
+    ;;
+
   *)
     echo "artifact context: parser returned an unsupported attribution kind" >&2
     exit 1
@@ -196,6 +225,6 @@ case "$KIND" in
 esac
 
 chmod 600 "$TMP_CONTEXT"
-mv -f "$TMP_CONTEXT" "$CONTEXT"
-chmod 600 "$CONTEXT"
+mv -f "$TMP_CONTEXT" "$OUTPUT_PATH"
+chmod 600 "$OUTPUT_PATH"
 trap - EXIT HUP INT TERM

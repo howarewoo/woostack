@@ -1,36 +1,46 @@
 ---
 name: woostack-execute
-description: Use to execute an approved Markdown plan or Linear project as PR-sized stacked increments, updating managed progress and lifecycle state, committing each increment, reviewing the work, and continuing until submitted. Never merges.
+description: Use to execute an approved Markdown plan, Linear project, or exact standalone Linear work item as PR-sized increments, updating managed progress and lifecycle state, committing each issue, reviewing the work, and continuing until submitted. Never merges.
 ---
 
 # woostack-execute
 
-Execute an approved plan by driving it to implementation as a sequence of PR-sized, stacked
-increments. This is woostack's own execution phase after
-[`woostack-build`](../woostack-build/SKILL.md) clears its execution-handoff gate. It keeps the discipline that makes plan execution reliable (load the plan, review it
-critically, follow steps exactly, run verifications, stop when blocked) and adds the woostack PR
-cadence: **one plan per spec, multiple stacked PRs per plan**, each increment committed,
-reviewed, and distilled before the next. It never merges and owns no approval gate.
+Execute approved work by driving it to implementation as one or more PR-sized increments. A
+role-`feature` project produces a stacked PR per managed increment; a role-`work-item` issue
+produces exactly one PR; Markdown plans remain compatibility input only when the caller retains an
+exact verified Linear issue identity for every selected increment. This is woostack's execution
+phase after [`woostack-build`](../woostack-build/SKILL.md) or [`woostack-fix`](../woostack-fix/SKILL.md)
+clears its execution gate. It loads the contract, reviews it critically, follows safe steps,
+verifies the result, commits, reviews, and distills before continuing. It never merges and owns no
+approval gate.
 
 ## Commands
 
-- `/woostack-execute <artifact> [--inline | --subagent]` — execute an approved artifact. With
-  the Markdown backend, `<artifact>` is the named Markdown plan under `.woostack/plans/`. With the
-  Linear backend, it is a project UUID, URL, or unambiguous managed reference. **The artifact is
-  required.** The optional, mutually exclusive mode flag selects the execution driver (see
-  [Execution mode](#execution-mode)); omit it to take the smart default.
-- `/woostack-execute` (no argument) — do **not** guess the current artifact. Ask which plan or
-  project to execute (optionally list backend-appropriate candidates) and stop until one is named.
+- `/woostack-execute <artifact> [--inline | --subagent]` — execute approved work. `<artifact>` may
+  be an exact Linear role-`work-item` issue UUID/URL, a Linear role-`feature` project UUID/URL or
+  managed project reference, or the named Markdown plan under `.woostack/plans/`. A standalone
+  issue must use an exact UUID/URL; an issue identifier such as `TEAM-123` is insufficient.
+  Markdown compatibility additionally requires a caller-retained exact issue identity for each
+  selected increment. The optional, mutually exclusive mode flag selects the execution driver.
+- `/woostack-execute` (no argument) — do **not** guess the current artifact. Ask for the exact
+  issue, project, or plan and stop until one is named.
 
 Passing both `--inline` and `--subagent` is an error: stop and ask which one to use.
 
-## Artifact backend
+## Resolve execution authority
 
-Before loading execution input, resolve `.woostack/config.json` through
-`../woostack-init/scripts/artifacts/resolve-backend.sh`. Follow the backend-aware
-[controller contract](references/controller.md); it is the single home for Linear readiness,
-state/receipt ordering, Git-parent validation, managed progress, submission evidence, and
-failure truth.
+When `<artifact>` is an exact Linear UUID/URL, load the canonical
+[Linear MCP development authority](../woostack-init/references/artifact-backends.md) and use only
+official host-exposed MCP reads to classify it. A managed role-`work-item` issue takes the
+standalone path below without invoking the backend resolver. A managed role-`feature` project
+continues through the backend-aware [controller contract](references/controller.md). A foreign,
+ambiguous, unmanaged, project-backed increment supplied as the top-level artifact, or incomplete
+read fails closed.
+
+For a named Markdown plan, resolve `.woostack/config.json` through
+`../woostack-init/scripts/artifacts/resolve-backend.sh` and follow the compatibility controller
+path. The caller must also supply the exact independently verified issue identity selected for
+each increment; execute never derives it from Markdown, a branch, or recent activity.
 
 ## Markdown backend (unchanged)
 
@@ -47,6 +57,27 @@ issue set through the shared artifact adapter, then execute one ready issue at a
 writes only supported native state and managed branch/PR evidence through `issue-transition`.
 Linear execution ends successfully at `inReview`, never `done`, because terminal state requires
 later merge evidence.
+
+## Standalone work-item execution
+
+Independently verify the exact issue's stable UUID/URL, canonical repository, `woostack` label,
+role `work-item`, configured workspace/team, no project membership, semantic state `executing`,
+type-aware owner, execution approval, and readable problem/contract content. Partial pagination,
+owner drift, a missing approval, another role, or any project relation blocks before Git mutation.
+
+Treat the one issue as one increment. Normalize its readable implementation steps and acceptance
+criteria into the driver task shape without rewriting the issue. Create or reuse the issue-owned
+`fix/<slug>` or `change/<slug>` worktree from its verified integration base, implement and verify
+through the selected driver, then invoke:
+
+```text
+/woostack-commit --issue <exact verified issue UUID-or-URL>
+```
+
+Commit independently re-verifies the issue, records finalized implementation evidence, submits the
+single PR with only `Linear-Issue: <TEAM-NUMBER>`, records the exact PR relation, and transitions
+the issue to `inReview`. Standalone execution performs no project read or mutation and has no
+project-close step. Distill and tear down only after every commit/PR/issue receipt verifies.
 
 ## Execution mode
 
@@ -80,11 +111,12 @@ build no longer authors a Markdown spec or plan. The
 [Linear procedure](../woostack-build/references/linear-procedure.md) creates no docs-only PR;
 its frozen base and declared issue Git parents drive implementation ancestry.
 
-## Load and review the artifact
+## Load and review the work
 
-1. Read the Markdown plan or normalized Linear project and ordered issues.
-2. Review it critically — surface any questions or concerns about the artifact, the spec it traces
-   to, or the increment breakdown.
+1. Read the Markdown plan, normalized Linear project and ordered issues, or verified standalone
+   work-item contract.
+2. Review it critically — surface any questions or concerns about its contract, intent, or
+   increment breakdown.
 3. If there are concerns: raise them with the user before starting.
 4. If none: proceed.
 
@@ -111,11 +143,11 @@ Run **one increment per cycle**, in order.
 
 For each increment:
 
-The backend-aware state and evidence boundaries around this cadence are defined by
-[references/controller.md](references/controller.md). The steps below retain their Markdown
-meaning; in Linear mode, “plan” means the selected issue's normalized task record where the
-controller contract says so, and lifecycle/progress writes follow that contract instead of plan
-frontmatter or arbitrary issue checkboxes.
+The authority-aware state and evidence boundaries around this cadence are defined by
+[references/controller.md](references/controller.md). In standalone mode, “increment” means the
+single verified work-item issue. In project mode it means the selected managed increment. In
+Markdown compatibility mode the plan remains progress text, but each commit still receives the
+caller-retained exact Linear issue identity; no identity is inferred from the plan.
 
 1. **Start its branch before editing — in a per-PR worktree.** Verify the current branch is not
    protected, then follow the [worktree contract](../woostack-init/references/worktrees.md):
@@ -143,9 +175,9 @@ frontmatter or arbitrary issue checkboxes.
    or task completes, so the plan file is the live progress record.
    In Linear mode there are no per-step checkbox writes; the controller records only supported
    state and branch/PR evidence while preserving issue task Markdown.
-4. **Commit** via [`woostack-commit`](../woostack-commit/SKILL.md) on the increment's
-   Graphite-stacked feature branch — one branch + PR per increment. This is the "multiple PRs
-   per plan" shape.
+4. **Commit** via [`woostack-commit`](../woostack-commit/SKILL.md) with the selected issue's exact
+   UUID/URL and, only for a role-`increment`, the exact project UUID/URL. Never pass an issue
+   identifier, plan path, branch, or recent resource as commit identity. One branch + PR per issue.
 5. **Review — task-scoped:** the resolved driver has already reviewed each completed task using
    the shared spec-compliance plus code-quality checks. Inline mode performs those checks in the
    controller session ([references/inline-driver.md](references/inline-driver.md)); subagent mode
@@ -170,20 +202,16 @@ frontmatter or arbitrary issue checkboxes.
    `woostack-commit`. Metrics, telemetry, and watermark sidecars remain primary-root local state
    per the [worktree contract](../woostack-init/references/worktrees.md) §5.
 
-8. **Author backend execution state.** For Markdown plan files only, author the plan's frontmatter
-   status inside this increment's worktree and commit that one-line bump via
-   [`woostack-commit`](../woostack-commit/SKILL.md) `--no-pr-update`, so the authored
-   state persists to the branch tip rather than dying with the worktree. Use `status: executing`
-   for every non-final increment, and use terminal `status: done` for the final increment. These
-   are Markdown execute's authored lifecycle transitions after `planning`
-   ([`woostack-plan`](../woostack-plan/SKILL.md)) and `ready`
-   (the [`woostack-build`](../woostack-build/SKILL.md) plan-hardening phase). **Skip it for a `.woostack/fixes/`
-   file:** a fix file's frontmatter lifecycle stays owned by
-   [`woostack-fix`](../woostack-fix/SKILL.md). The board still derives the `in-review` band from
-   artifacts and shows `in-review` while an increment PR is open, reconciling to `done` at merge
-   after the final PR — authoring `done` only stops the plan file from rotting, it does not assert
-   the stack is merged. In Linear mode, use the verified `executing → inReview` issue transition
-   in [references/controller.md](references/controller.md); build never writes `done`.
+8. **Author backend execution state.** For Markdown compatibility plans only, author the plan's
+   frontmatter status inside this increment's worktree and include that one-line bump in the same
+   issue-owned commit when possible. If a separate commit is required, invoke
+   [`woostack-commit`](../woostack-commit/SKILL.md) `--issue <same exact issue UUID-or-URL>
+   --no-pr-update`; do not drop the identity at the status-bump boundary. Use `status: executing`
+   for every non-final increment and terminal `status: done` for the final increment. Skip this for
+   `.woostack/fixes/`: fix lifecycle remains owned by [`woostack-fix`](../woostack-fix/SKILL.md).
+   Linear project execution uses the verified `executing → inReview` issue transition in
+   [references/controller.md](references/controller.md); standalone execution delegates that
+   transition to `woostack-commit`. Build never writes `done`.
 9. **Teardown the worktree.** After commit/review/distill and all backend receipts verify, remove
    the worktree. The branch/commits/PR persist for descendants. **Leave it on a blocker/failure**
    and report its path. Markdown's next increment starts from the previous increment branch;
@@ -258,22 +286,22 @@ not an approval gate. The skill never merges and never auto-addresses review fin
 
 ## Hard constraints
 
-- **Artifact required.** Never guess the current Markdown plan or Linear project; ask when no
-  argument is given.
-- **One increment per cycle.** Don't let a cycle balloon past a reviewable PR.
-- **Multiple stacked PRs per artifact.** Each increment is its own `gt`-stacked branch + PR via
-  `woostack-commit`.
-- **Branch before editing.** Create or verify the increment's Graphite branch before changing
+- **Exact work required.** Never guess the current Markdown plan, Linear project, or standalone
+  issue. A standalone issue requires an exact UUID/URL.
+- **One issue per PR.** Each standalone work item or project increment owns one Graphite branch
+  and PR. Never reuse one issue for multiple implementation PRs.
+- **Branch before editing.** Create or verify the issue-owned Graphite branch before changing
   implementation files.
-- **Backend-owned progress only.** Tick checkboxes in place for Markdown; for Linear, write only
-  native lifecycle state and managed branch/PR evidence through the adapter.
-- **Markdown lifecycle remains unchanged; Linear stops at `inReview`.** At the final increment of
-  a Markdown plan file (every box `[x]`), author terminal `status: done`; otherwise author
-  `status: executing`. Commit the bump via `woostack-commit --no-pr-update` (step 8). Never touch
-  a `.woostack/fixes/` file's frontmatter. Linear uses verified issue transitions and build never
-  writes issue/project `done`.
-- **Commit + review every increment.** `woostack-commit` always; each task must already have
-  passed the shared spec-compliance plus code-quality checks before the increment is committed.
+- **Backend-owned progress only.** Tick compatibility Markdown checkboxes in place; for Linear,
+  write only the typed issue/project evidence and native state authorized by the verified contract.
+- **Exact commit identity.** Every `woostack-commit` call receives the selected issue's exact
+  UUID/URL and the exact project UUID/URL only for role `increment`; status-only follow-up commits
+  retain the same identity.
+- **Lifecycle truth.** Project and standalone Linear execution stop at `inReview`; only verified
+  later merge/acceptance evidence permits `done`. Markdown frontmatter is compatibility progress,
+  not commit authority.
+- **Commit + review every issue.** Each task must already have passed the shared spec-compliance
+  plus code-quality checks before the issue is committed.
   Inline mode performs them in the controller session; subagent mode dispatches reviewer
   subagents and pauses on a BLOCKED escalation.
 - **Distill durable knowledge only.** Reject-by-default; dedupe; never feature-specific trivia.

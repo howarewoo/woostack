@@ -1,0 +1,870 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-bootstrap",
+  "cases": [
+    {
+      "id": "approved-design-project-first-order",
+      "prompt": "Apply the packaged woostack-bootstrap contract to this deterministic dry run. Do not call a provider, use the network, invoke Git, or write the workspace. Facts: this is a genuinely greenfield field-service codebase; the target path has remained an opaque unaccessed string; the complete architecture and scope received explicit approval; the intended repository is https://github.com/acme/field-service and the intended initial base is main; the normalized official-MCP/config preflight is complete; canonical normalization yields approved-design key sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa and deterministic feature client UUID 11111111-1111-5111-8111-111111111111; complete paginated repository-owned project discovery found zero candidates before one create; an independent read verifies native project ID 22222222-2222-4222-8222-222222222222 and canonical URL https://linear.app/acme/project/field-service-22222222 with the full managed feature identity in backlog; deterministic event UUID 33333333-3333-5333-8333-333333333333 was derived; complete pre-append project-update pagination found zero matching events and no phase head; that UUID was appended once as designApproved revision 1 with null predecessor and supersession; an independent direct read plus a fresh complete update listing verifies that event, the exact initial base intent main, and the one-head chain. After all authority receipts, the first target-filesystem action is a read-only collision check that proves the target absent. Return exactly one JSON object with keys status, workflowOrder, approvedDesignKey, projectDiscoveryComplete, projectsCreated, designArtifactsBeforeApproval, projectReceiptVerified, projectUpdatesPaginationComplete, matchingDesignApprovedBeforeAppend, projectEventsAppended, designApprovedVerified, designApprovedBaseIntent, targetDirectoryWritesBeforeAuthority, firstTargetFilesystemAction, targetCollisionState, targetDirectoryCreationAuthorized, scaffoldProjectIdentity, buildProjectIdentity, localSpecsCreated, localPlansCreated, customLinearCalls, and credentialsRequested.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Explicit approval precedes deterministic identity derivation and complete official-MCP discovery; exactly one managed feature project is created only after absence is proven; complete pre-append update pagination proves designApproved absent before one append/read-back that matches exact initial base intent; the first target action is a passing read-only collision check; scaffolding and the woostack-build handoff then receive the identical project identity with no local spec/plan, custom Linear call, or credential request.",
+      "assertions": [
+        {
+          "id": "approved-flow-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "ready-to-scaffold",
+          "critical": true
+        },
+        {
+          "id": "project-first-order",
+          "kind": "final-json-path-equals",
+          "pointer": "/workflowOrder",
+          "expected": [
+            "classify-greenfield",
+            "artifact-free-design",
+            "explicit-design-approval",
+            "repository-base-intent",
+            "official-linear-mcp-preflight",
+            "derive-approved-design-key",
+            "complete-feature-project-discovery",
+            "feature-project-create",
+            "feature-project-read-back",
+            "derive-designApproved-event-id",
+            "complete-project-update-read",
+            "designApproved-append",
+            "designApproved-read-back",
+            "read-only-target-collision-check",
+            "target-directory-create",
+            "scaffold",
+            "handoff-to-woostack-build-with-exact-project-identity"
+          ],
+          "critical": true
+        },
+        {
+          "id": "exactly-one-project-created",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectsCreated",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "design-artifact-free-before-approval",
+          "kind": "final-json-path-equals",
+          "pointer": "/designArtifactsBeforeApproval",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "project-read-back-verified",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectReceiptVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "design-approved-read-back-verified",
+          "kind": "final-json-path-equals",
+          "pointer": "/designApprovedVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "approved-design-key-derived",
+          "kind": "final-json-path-equals",
+          "pointer": "/approvedDesignKey",
+          "expected": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "critical": true
+        },
+        {
+          "id": "project-discovery-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectDiscoveryComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "project-update-pagination-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectUpdatesPaginationComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "event-absence-proven-before-append",
+          "kind": "final-json-path-equals",
+          "pointer": "/matchingDesignApprovedBeforeAppend",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "exactly-one-event-appended",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectEventsAppended",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "exact-base-intent-read-back",
+          "kind": "final-json-path-equals",
+          "pointer": "/designApprovedBaseIntent",
+          "expected": "main",
+          "critical": true
+        },
+        {
+          "id": "zero-target-writes-before-authority",
+          "kind": "final-json-path-equals",
+          "pointer": "/targetDirectoryWritesBeforeAuthority",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "target-creation-authorized-after-receipts",
+          "kind": "final-json-path-equals",
+          "pointer": "/targetDirectoryCreationAuthorized",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "first-target-action-is-collision-check",
+          "kind": "final-json-path-equals",
+          "pointer": "/firstTargetFilesystemAction",
+          "expected": "read-only-collision-check",
+          "critical": true
+        },
+        {
+          "id": "absent-target-passes-collision-check",
+          "kind": "final-json-path-equals",
+          "pointer": "/targetCollisionState",
+          "expected": "absent",
+          "critical": true
+        },
+        {
+          "id": "scaffold-receives-exact-project",
+          "kind": "final-json-path-equals",
+          "pointer": "/scaffoldProjectIdentity",
+          "expected": {
+            "clientId": "11111111-1111-5111-8111-111111111111",
+            "nativeId": "22222222-2222-4222-8222-222222222222",
+            "url": "https://linear.app/acme/project/field-service-22222222"
+          },
+          "critical": true
+        },
+        {
+          "id": "build-handoff-receives-same-exact-project",
+          "kind": "final-json-path-equals",
+          "pointer": "/buildProjectIdentity",
+          "expected": {
+            "clientId": "11111111-1111-5111-8111-111111111111",
+            "nativeId": "22222222-2222-4222-8222-222222222222",
+            "url": "https://linear.app/acme/project/field-service-22222222"
+          },
+          "critical": true
+        },
+        {
+          "id": "no-local-spec",
+          "kind": "final-json-path-equals",
+          "pointer": "/localSpecsCreated",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "no-local-plan",
+          "kind": "final-json-path-equals",
+          "pointer": "/localPlansCreated",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "no-custom-linear-call",
+          "kind": "final-json-path-equals",
+          "pointer": "/customLinearCalls",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "no-credential-request",
+          "kind": "final-json-path-equals",
+          "pointer": "/credentialsRequested",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "missing-mcp-blocks-before-target-directory",
+      "prompt": "Apply the packaged woostack-bootstrap contract to this deterministic dry run. Do not call a provider, use the network, invoke Git, or access/write the workspace. Facts: this is genuinely greenfield; the complete design received explicit approval; the intended repository is https://github.com/acme/field-service and the intended initial base is main; the requested target path is only an opaque string and does not exist; official host-exposed Linear MCP is unavailable at the required post-approval preflight. Return exactly one JSON object with keys status, reasonCode, workflowOrder, targetDirectoryAccesses, targetDirectoryCreated, filesystemWritesStarted, gitInvocations, projectsCreated, projectEventsCreated, localSpecsCreated, localPlansCreated, customLinearCalls, credentialsRequested, and fallbackAuthority.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Missing official Linear MCP blocks immediately after the post-approval preflight attempt with no target access or creation, filesystem/Git activity, Linear mutation, local artifact, credential request, custom provider call, or fallback authority.",
+      "assertions": [
+        {
+          "id": "missing-mcp-blocks",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "missing-mcp-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": "official-linear-mcp-unavailable",
+          "critical": true
+        },
+        {
+          "id": "missing-mcp-order",
+          "kind": "final-json-path-equals",
+          "pointer": "/workflowOrder",
+          "expected": [
+            "classify-greenfield",
+            "artifact-free-design",
+            "explicit-design-approval",
+            "repository-base-intent",
+            "official-linear-mcp-preflight",
+            "blocked"
+          ],
+          "critical": true
+        },
+        {
+          "id": "no-target-access",
+          "kind": "final-json-path-equals",
+          "pointer": "/targetDirectoryAccesses",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "target-remains-absent",
+          "kind": "final-json-path-equals",
+          "pointer": "/targetDirectoryCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-filesystem-write",
+          "kind": "final-json-path-equals",
+          "pointer": "/filesystemWritesStarted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-git-access",
+          "kind": "final-json-path-equals",
+          "pointer": "/gitInvocations",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "no-project-created",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectsCreated",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "no-event-created",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectEventsCreated",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "no-local-spec-on-block",
+          "kind": "final-json-path-equals",
+          "pointer": "/localSpecsCreated",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "no-local-plan-on-block",
+          "kind": "final-json-path-equals",
+          "pointer": "/localPlansCreated",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "no-custom-provider-path",
+          "kind": "final-json-path-equals",
+          "pointer": "/customLinearCalls",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "no-credential-fallback",
+          "kind": "final-json-path-equals",
+          "pointer": "/credentialsRequested",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-fallback-authority",
+          "kind": "final-json-path-equals",
+          "pointer": "/fallbackAuthority",
+          "expected": null,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "routes-bounded-brownfield-before-bootstrap",
+      "prompt": "Classify this request using the packaged woostack-bootstrap routing contract. Do not call a provider, use the network, invoke Git, or access/write the workspace. The user has an existing production repository and asks to change one cache configuration file so a default TTL becomes configurable. Nothing is broken, the work is bounded, and it fits one reviewable pull request. Return exactly one JSON object with keys route, reasonCode, bootstrapStarted, designStarted, mcpPreflightStarted, projectsCreated, targetDirectoryAccesses, and localDevelopmentArtifactsCreated.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "A one-file bounded non-bug request in an existing repository routes to woostack-change before bootstrap design, MCP preflight, project creation, target access, or local development-artifact creation.",
+      "assertions": [
+        {
+          "id": "routes-to-change",
+          "kind": "final-json-path-equals",
+          "pointer": "/route",
+          "expected": "woostack-change",
+          "critical": true
+        },
+        {
+          "id": "bounded-brownfield-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": "bounded-brownfield-one-pr",
+          "critical": true
+        },
+        {
+          "id": "bootstrap-never-starts",
+          "kind": "final-json-path-equals",
+          "pointer": "/bootstrapStarted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "design-never-starts",
+          "kind": "final-json-path-equals",
+          "pointer": "/designStarted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "preflight-never-starts",
+          "kind": "final-json-path-equals",
+          "pointer": "/mcpPreflightStarted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "project-never-created",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectsCreated",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "target-never-accessed",
+          "kind": "final-json-path-equals",
+          "pointer": "/targetDirectoryAccesses",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "no-local-development-artifact",
+          "kind": "final-json-path-equals",
+          "pointer": "/localDevelopmentArtifactsCreated",
+          "expected": 0,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "fresh-restart-rediscovers-project-and-event",
+      "prompt": "Apply the packaged woostack-bootstrap restart contract to this deterministic dry run. Do not call a provider, use the network, invoke Git, or access/write the workspace. A prior invocation received explicit design approval, successfully created the project and appended designApproved, then terminated before retaining either mutation receipt; this fresh invocation has no in-memory client IDs. The same canonical repository and normalized approved goal/scope recompute approved-design key sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, deterministic feature client UUID 11111111-1111-5111-8111-111111111111, and deterministic designApproved event UUID 33333333-3333-5333-8333-333333333333. Complete repository-owned project pagination finds exactly one valid project with native ID 22222222-2222-4222-8222-222222222222; a direct independent read verifies it. Complete project-update pagination finds exactly one valid stable event identity with native update ID 44444444-4444-4444-8444-444444444444 and one current revision; a direct independent read verifies its approved content, exact initial base intent main, and unique chain. After those receipts, the first target-filesystem action is a read-only collision check that proves the target absent. Return exactly one JSON object with keys status, identitySource, workflowOrder, approvedDesignKey, featureClientId, projectDiscoveryComplete, matchingProjects, projectsCreated, projectReadBackVerified, eventDiscoveryComplete, matchingDesignApprovedEvents, projectEventsAppended, eventReadBackVerified, designApprovedBaseIntent, reusedProjectId, reusedDesignApprovedUpdateId, targetDirectoryAccessesBeforeReceipts, firstTargetFilesystemAction, targetCollisionState, and targetDirectoryCreationAuthorized.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "A fresh invocation recomputes the same managed identities, completely rediscovers and directly reads the one project and one designApproved event with matching initial base intent, creates/appends nothing, then performs a passing read-only collision check before target creation.",
+      "assertions": [
+        {
+          "id": "restart-ready",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "ready-to-scaffold",
+          "critical": true
+        },
+        {
+          "id": "restart-identity-source",
+          "kind": "final-json-path-equals",
+          "pointer": "/identitySource",
+          "expected": "recomputed-approved-design-key",
+          "critical": true
+        },
+        {
+          "id": "restart-order",
+          "kind": "final-json-path-equals",
+          "pointer": "/workflowOrder",
+          "expected": [
+            "derive-approved-design-key",
+            "complete-feature-project-discovery",
+            "feature-project-read-back",
+            "derive-designApproved-event-id",
+            "complete-project-update-read",
+            "designApproved-direct-read-back",
+            "read-only-target-collision-check",
+            "target-directory-create"
+          ],
+          "critical": true
+        },
+        {
+          "id": "restart-key-stable",
+          "kind": "final-json-path-equals",
+          "pointer": "/approvedDesignKey",
+          "expected": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "critical": true
+        },
+        {
+          "id": "restart-client-id-stable",
+          "kind": "final-json-path-equals",
+          "pointer": "/featureClientId",
+          "expected": "11111111-1111-5111-8111-111111111111",
+          "critical": true
+        },
+        {
+          "id": "restart-project-discovery-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectDiscoveryComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "restart-one-project",
+          "kind": "final-json-path-equals",
+          "pointer": "/matchingProjects",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "restart-no-project-create",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectsCreated",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "restart-project-read-back",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectReadBackVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "restart-event-discovery-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/eventDiscoveryComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "restart-one-event",
+          "kind": "final-json-path-equals",
+          "pointer": "/matchingDesignApprovedEvents",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "restart-no-event-append",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectEventsAppended",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "restart-event-read-back",
+          "kind": "final-json-path-equals",
+          "pointer": "/eventReadBackVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "restart-base-intent-matches",
+          "kind": "final-json-path-equals",
+          "pointer": "/designApprovedBaseIntent",
+          "expected": "main",
+          "critical": true
+        },
+        {
+          "id": "restart-first-target-action-is-check",
+          "kind": "final-json-path-equals",
+          "pointer": "/firstTargetFilesystemAction",
+          "expected": "read-only-collision-check",
+          "critical": true
+        },
+        {
+          "id": "restart-target-absent",
+          "kind": "final-json-path-equals",
+          "pointer": "/targetCollisionState",
+          "expected": "absent",
+          "critical": true
+        },
+        {
+          "id": "restart-project-reused",
+          "kind": "final-json-path-equals",
+          "pointer": "/reusedProjectId",
+          "expected": "22222222-2222-4222-8222-222222222222",
+          "critical": true
+        },
+        {
+          "id": "restart-update-reused",
+          "kind": "final-json-path-equals",
+          "pointer": "/reusedDesignApprovedUpdateId",
+          "expected": "44444444-4444-4444-8444-444444444444",
+          "critical": true
+        },
+        {
+          "id": "restart-zero-target-access-before-receipts",
+          "kind": "final-json-path-equals",
+          "pointer": "/targetDirectoryAccessesBeforeReceipts",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "restart-target-authorized",
+          "kind": "final-json-path-equals",
+          "pointer": "/targetDirectoryCreationAuthorized",
+          "expected": true,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "restart-blocks-partial-duplicate-project-identity",
+      "prompt": "Apply the packaged woostack-bootstrap restart contract to this deterministic dry run. Do not call a provider, use the network, invoke Git, or access/write the workspace. The fresh invocation recomputes approved-design key sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa and deterministic feature client UUID 11111111-1111-5111-8111-111111111111. Proven-complete repository-owned project pagination returns two candidates: one fully valid project with that managed UUID and tuple, and one malformed managed overview that contains the same UUID but lacks a verifiable role and workspace/team. Return exactly one JSON object with keys status, reasonCode, projectDiscoveryComplete, candidateCount, projectsCreated, projectEventsAppended, targetDirectoryAccesses, replacementClientIdAllocated, titleOrFilesystemIdentityUsed, and preservedClientId.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "A valid candidate plus a partial duplicate is ambiguous: bootstrap preserves the deterministic client UUID and blocks before create, update reconciliation, target access, or any replacement/title/filesystem identity fallback.",
+      "assertions": [
+        {
+          "id": "partial-duplicate-blocks",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "partial-duplicate-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": "ambiguous-or-partial-bootstrap-project",
+          "critical": true
+        },
+        {
+          "id": "partial-duplicate-discovery-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectDiscoveryComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "partial-duplicate-counted",
+          "kind": "final-json-path-equals",
+          "pointer": "/candidateCount",
+          "expected": 2,
+          "critical": true
+        },
+        {
+          "id": "partial-duplicate-no-create",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectsCreated",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "partial-duplicate-no-event",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectEventsAppended",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "partial-duplicate-no-target",
+          "kind": "final-json-path-equals",
+          "pointer": "/targetDirectoryAccesses",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "partial-duplicate-no-replacement-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/replacementClientIdAllocated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "partial-duplicate-no-title-or-filesystem-key",
+          "kind": "final-json-path-equals",
+          "pointer": "/titleOrFilesystemIdentityUsed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "partial-duplicate-preserves-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/preservedClientId",
+          "expected": "11111111-1111-5111-8111-111111111111",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "conflicting-project-update-heads-block-append",
+      "prompt": "Apply the packaged woostack-bootstrap event-reconciliation contract to this deterministic dry run. Do not call a provider, use the network, invoke Git, or access/write the workspace. The deterministic feature project is independently verified. Complete project-update pagination returns two unsuperseded current phase heads: one valid designApproved revision 1 with the recomputed stable event UUID and matching approved content, plus another designApproved event with a different stable UUID. Return exactly one JSON object with keys status, reasonCode, projectUpdatesPaginationComplete, matchingStableEvents, currentPhaseHeads, matchingEventReadBackAttempted, existingEventReused, projectEventsAppended, targetDirectoryAccesses, and preservedEventId.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Even one matching event cannot be reused when another current phase head conflicts; complete reconciliation blocks without append or target access and preserves the deterministic event identity.",
+      "assertions": [
+        {
+          "id": "conflicting-heads-block",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "conflicting-heads-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": "conflicting-or-duplicate-project-update-head",
+          "critical": true
+        },
+        {
+          "id": "conflicting-heads-pagination-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectUpdatesPaginationComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "conflicting-heads-one-matching-event",
+          "kind": "final-json-path-equals",
+          "pointer": "/matchingStableEvents",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "conflicting-heads-two-heads",
+          "kind": "final-json-path-equals",
+          "pointer": "/currentPhaseHeads",
+          "expected": 2,
+          "critical": true
+        },
+        {
+          "id": "conflicting-heads-direct-read-attempted",
+          "kind": "final-json-path-equals",
+          "pointer": "/matchingEventReadBackAttempted",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "conflicting-heads-not-reused",
+          "kind": "final-json-path-equals",
+          "pointer": "/existingEventReused",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "conflicting-heads-no-append",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectEventsAppended",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "conflicting-heads-no-target",
+          "kind": "final-json-path-equals",
+          "pointer": "/targetDirectoryAccesses",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "conflicting-heads-preserve-event-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/preservedEventId",
+          "expected": "33333333-3333-5333-8333-333333333333",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "target-collision-blocks-before-local-mutation",
+      "prompt": "Apply the packaged woostack-bootstrap post-authority barrier to this deterministic dry run. Do not call a provider, use the network, invoke Git, or write the workspace. Official-MCP preflight, project, and matching designApproved receipts are complete and verified for project 22222222-2222-4222-8222-222222222222 and event 33333333-3333-5333-8333-333333333333. The first target-filesystem action is a read-only collision check; it finds an existing populated directory with a .git entry, proving an existing Git checkout. Return exactly one JSON object with keys status, reasonCode, firstTargetFilesystemAction, targetCollisionState, authorityReceiptsVerified, authorityReceiptsPreserved, mkdirStarted, filesystemWritesStarted, scaffoldStarted, gitInvocations, reportedProjectId, and reportedEventId.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The mandatory first read-only target check detects an existing Git checkout and blocks every mkdir/write/scaffold/Git action while preserving and reporting the already verified remote authority receipts.",
+      "assertions": [
+        {
+          "id": "target-collision-blocks",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "target-collision-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": "target-collision-existing-git-checkout",
+          "critical": true
+        },
+        {
+          "id": "collision-check-is-first-action",
+          "kind": "final-json-path-equals",
+          "pointer": "/firstTargetFilesystemAction",
+          "expected": "read-only-collision-check",
+          "critical": true
+        },
+        {
+          "id": "collision-state-is-git-checkout",
+          "kind": "final-json-path-equals",
+          "pointer": "/targetCollisionState",
+          "expected": "existing-git-checkout",
+          "critical": true
+        },
+        {
+          "id": "collision-authority-was-verified",
+          "kind": "final-json-path-equals",
+          "pointer": "/authorityReceiptsVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "collision-authority-preserved",
+          "kind": "final-json-path-equals",
+          "pointer": "/authorityReceiptsPreserved",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "collision-no-mkdir",
+          "kind": "final-json-path-equals",
+          "pointer": "/mkdirStarted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "collision-no-write",
+          "kind": "final-json-path-equals",
+          "pointer": "/filesystemWritesStarted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "collision-no-scaffold",
+          "kind": "final-json-path-equals",
+          "pointer": "/scaffoldStarted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "collision-no-git",
+          "kind": "final-json-path-equals",
+          "pointer": "/gitInvocations",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "collision-reports-project",
+          "kind": "final-json-path-equals",
+          "pointer": "/reportedProjectId",
+          "expected": "22222222-2222-4222-8222-222222222222",
+          "critical": true
+        },
+        {
+          "id": "collision-reports-event",
+          "kind": "final-json-path-equals",
+          "pointer": "/reportedEventId",
+          "expected": "33333333-3333-5333-8333-333333333333",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "existing-design-approved-base-mismatch-blocks",
+      "prompt": "Apply the packaged woostack-bootstrap event-reuse contract to this deterministic dry run. Do not call a provider, use the network, invoke Git, or access/write the workspace. Current approved repository/base intent is https://github.com/acme/field-service on main. The project is independently verified. Complete update pagination finds exactly one stable designApproved event with the deterministic UUID and otherwise one valid chain, but its readable approval record names initial base staging. Return exactly one JSON object with keys status, reasonCode, projectUpdatesPaginationComplete, matchingStableEvents, expectedInitialBase, eventInitialBase, existingEventReused, projectEventsAppended, targetDirectoryAccesses, and preservedEventId.",
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "An otherwise unique matching designApproved event with changed initial base intent is conflicting authority and blocks reuse, append, and target access while preserving the stable event ID.",
+      "assertions": [
+        {
+          "id": "base-mismatch-blocks",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "base-mismatch-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": "design-approved-base-intent-mismatch",
+          "critical": true
+        },
+        {
+          "id": "base-mismatch-pagination-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectUpdatesPaginationComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "base-mismatch-one-event",
+          "kind": "final-json-path-equals",
+          "pointer": "/matchingStableEvents",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "base-mismatch-expected-base",
+          "kind": "final-json-path-equals",
+          "pointer": "/expectedInitialBase",
+          "expected": "main",
+          "critical": true
+        },
+        {
+          "id": "base-mismatch-event-base",
+          "kind": "final-json-path-equals",
+          "pointer": "/eventInitialBase",
+          "expected": "staging",
+          "critical": true
+        },
+        {
+          "id": "base-mismatch-not-reused",
+          "kind": "final-json-path-equals",
+          "pointer": "/existingEventReused",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "base-mismatch-no-append",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectEventsAppended",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "base-mismatch-no-target",
+          "kind": "final-json-path-equals",
+          "pointer": "/targetDirectoryAccesses",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "base-mismatch-preserves-event-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/preservedEventId",
+          "expected": "33333333-3333-5333-8333-333333333333",
+          "critical": true
+        }
+      ]
+    }
+  ]
+}
