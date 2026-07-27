@@ -36,8 +36,13 @@ adapter, direct API, title match, or document may substitute.
 GitHub Actions has no host MCP channel. In CI, `intent.md` MUST be absent and the review is
 diff-only advisory evidence. Never claim Linear read-back, managed-contract acceptance, or issue
 acceptance, and never try to obtain those through shell or network. Worker execution receipts
-always carry `authority:"advisory-only"` and prove execution only. A separately authenticated
-Hermes or human controller may later reconcile the native GitHub receipt under the canonical
+always carry `authority:"advisory-only"` and prove execution only. The CI single-session receipt
+also uses the exact `github-actions-single-session` profile plus the run/repository-derived
+session, principal, and provider-only credential-context IDs defined in `_worker-header.md`; these
+are CI execution sentinels, not development authority. An engineer-unit local swarm instead
+requires each receipt to match the controller-owned reviewer identity manifest and to differ from
+the implementing coder and decision-maker bindings. A separately authenticated Hermes or human
+controller may later reconcile the native GitHub receipt under the canonical
 [`status conventions`](../../woostack-status/references/conventions.md); that later workflow is not
 part of this run.
 
@@ -92,7 +97,18 @@ Each angle writes its findings to `/tmp/pr-review/findings.<angle>.json`. The or
 
 ## Output Contract
 
-Every run MUST end with one batched GitHub Review submitted via `gh api repos/<repo>/pulls/<PR>/reviews` containing all inline comments, the summary, the context disclosure, and the `STATUS_LINE` in the **review body**. The review `event` is the native GitHub blocking gate: `REQUEST_CHANGES` (≥1 blocking finding or open prior thread), `COMMENT` (≥1 non-nit non-blocking finding), or `APPROVE` (no findings, or only nits — nits post inline but never withhold approval). `APPROVE` is a code-review verdict only; it is never Linear `acceptance`. PR labels MUST NOT be added, removed, or otherwise mutated.
+Every run MUST end with one batched GitHub Review submitted via
+`gh api repos/<repo>/pulls/<PR>/reviews` containing all inline comments, the summary, the context
+disclosure, and the `STATUS_LINE` in the **review body**. First compute the candidate native event:
+`REQUEST_CHANGES` (≥1 blocking finding or open prior thread), `COMMENT` (≥1 non-nit non-blocking
+finding), or `APPROVE` (no findings, or only nits — nits post inline but never withhold approval).
+Immediately before the POST, independently read the implementation author's immutable native
+GitHub principal ID from canonical PR/head evidence and the authenticated posting actor's immutable
+native GitHub principal ID from GitHub. A login, profile/session, credential or token-store name,
+authentication-context label, or token possession is not actor proof. Use the candidate event only
+when both reads are complete and unambiguous and the native IDs differ; otherwise submit `COMMENT`
+while preserving the computed `STATUS_LINE` and every finding. `APPROVE` is a code-review verdict
+only; it is never Linear `acceptance`. PR labels MUST NOT be added, removed, or otherwise mutated.
 
 A run MUST end in either a **submitted** review or a **clearly reported failure** — never a silent un-posted state. GitHub allows only one pending (unsubmitted) review per user per PR, so the posting step preflights for a leftover pending review (step 2.5 below) before the create POST: it discards an empty woostack-owned draft and retries, but stops with an actionable error when a draft holds comments or is not woostack-owned, rather than blindly submitting (which would publish unrelated draft comments) or deleting (which would discard human work).
 
@@ -112,19 +128,34 @@ Counts: `BLOCKING_COUNT` (blocking findings), `NONBLOCKING_COUNT` (non-nit, non-
 Instead of posting individual comments, batch all findings into a single GitHub Review. This uses the `pull_request_review` API.
 
 ```bash
-# 0. Self-PR detection. The GitHub API rejects `event: REQUEST_CHANGES` when
-# the authenticated user is the PR author (HTTP 422 "Can not request changes
-# on your own pull request"). Capture both logins so the payload-builder can
-# downgrade silently when they match — without this, every self-review run
-# with a blocking finding fails to post at all.
-AUTH_LOGIN=$(gh api user --jq .login 2>/dev/null || echo "")
-PR_AUTHOR=$(jq -r '.author.login // empty' /tmp/pr-review/meta.json 2>/dev/null || echo "")
-if [ -z "$PR_AUTHOR" ]; then
-  # meta.json gone (issue #48). Without the author the self-PR downgrade fails
-  # and GitHub 422s on REQUEST_CHANGES against your own PR. Re-fetch it.
-  PR_AUTHOR=$(gh pr view "$PR_NUMBER" --json author --jq '.author.login' 2>/dev/null || echo "")
+# 0. Native GitHub actor proof. Read both immutable numeric IDs independently
+# from GitHub immediately before building the verdict. The reviewed-head commit
+# must still equal HEAD_SHA. Logins are retained only for pending-draft ownership
+# below; they are never actor-separation proof.
+AUTH_ACTOR_JSON="$(gh api user 2>/dev/null || printf '{}')"
+HEAD_ACTOR_JSON="$(
+  gh api "repos/${GITHUB_REPOSITORY}/commits/$HEAD_SHA" 2>/dev/null || printf '{}'
+)"
+AUTH_LOGIN="$(
+  printf '%s' "$AUTH_ACTOR_JSON" |
+    jq -r '.login // empty'
+)"
+AUTH_GITHUB_USER_ID="$(
+  printf '%s' "$AUTH_ACTOR_JSON" |
+    jq -r 'if (.id | type) == "number" then (.id | tostring) else empty end'
+)"
+IMPLEMENTATION_AUTHOR_GITHUB_USER_ID="$(
+  printf '%s' "$HEAD_ACTOR_JSON" |
+    jq -r 'if (.author.id | type) == "number" then (.author.id | tostring) else empty end'
+)"
+HEAD_ACTOR_SHA="$(
+  printf '%s' "$HEAD_ACTOR_JSON" |
+    jq -r '.sha // empty'
+)"
+if [ -z "${HEAD_SHA:-}" ] || [ "$HEAD_ACTOR_SHA" != "$HEAD_SHA" ]; then
+  IMPLEMENTATION_AUTHOR_GITHUB_USER_ID=""
 fi
-export AUTH_LOGIN PR_AUTHOR
+export AUTH_LOGIN AUTH_GITHUB_USER_ID IMPLEMENTATION_AUTHOR_GITHUB_USER_ID
 
 # 1. Prepare the review body (Summary + Status Line + hidden SHA marker).
 # The trailing <!-- woostack-review:sha=$HEAD_SHA --> marker is read by the next run's
@@ -157,13 +188,11 @@ ${CONTEXT_DISCLOSURE}
 <!-- woostack-review:sha=${HEAD_SHA} -->
 BODY_EOF
 
-# Surface a degraded adversarial pass (issue #47). When intersect-findings.sh
-# fell back to defender-only WHILE adversarial was enabled (degraded:true), tell
-# the author the findings are lower-confidence rather than silently shipping a
-# single-pass review as if it were the full two-pass result.
+# Surface a degraded independent-validation run. When only Pass B completed,
+# disclose the lower-confidence single-pass result.
 if [ -f /tmp/pr-review/validator-metrics.json ] && \
    [ "$(jq -r '.degraded // false' /tmp/pr-review/validator-metrics.json 2>/dev/null)" = "true" ]; then
-  printf '\n\n> ⚠️ **Adversarial prosecutor pass was unavailable** — these findings are *defender-only* (a single validation pass, lower confidence than the usual two-pass review).\n' >> /tmp/pr_review_body.txt
+  printf '\n\n> **Independent validator Pass A was unavailable** — these findings completed one validation pass, so confidence is lower than the usual two-pass review.\n' >> /tmp/pr_review_body.txt
 fi
 
 # 2. Prepare the review payload with inline comments
@@ -199,19 +228,23 @@ elif has_non_nit:
 else:
     event = "APPROVE"
 
-# Self-PR downgrade. GitHub rejects REQUEST_CHANGES + APPROVE when the
-# authenticated user is the PR author (HTTP 422 "Can not request changes on
-# your own pull request" / "Can not approve your own pull request"). Downgrade
-# both to COMMENT so the review still posts; the STATUS_LINE in the body
-# already carries the accurate signal.
-auth_login = (os.environ.get("AUTH_LOGIN") or "").lower()
-pr_author = (os.environ.get("PR_AUTHOR") or "").lower()
-self_pr = bool(auth_login) and bool(pr_author) and auth_login == pr_author
-if self_pr and event in ("REQUEST_CHANGES", "APPROVE"):
-    pr_body = pr_body.rstrip() + (
-        f"\n\n_Review event downgraded to COMMENT — GitHub blocks "
-        f"{event} on your own PR. Status line above carries the actual verdict._\n"
-    )
+# Native actor gate. A login/profile/session/token label is never proof. Retain
+# the computed status and findings, but deliver COMMENT unless both fresh native
+# GitHub IDs are present and distinct.
+auth_actor_id = os.environ.get("AUTH_GITHUB_USER_ID") or ""
+implementation_author_id = os.environ.get("IMPLEMENTATION_AUTHOR_GITHUB_USER_ID") or ""
+native_actor_separation_proved = (
+    bool(auth_actor_id)
+    and bool(implementation_author_id)
+    and auth_actor_id != implementation_author_id
+)
+if not native_actor_separation_proved:
+    if event != "COMMENT":
+        pr_body = pr_body.rstrip() + (
+            "\n\n_Review event delivered as COMMENT because distinct native "
+            "GitHub implementation-author and reviewer principal IDs were not "
+            "both proven. The status line above carries the actual verdict._\n"
+        )
     event = "COMMENT"
 
 comments = []
@@ -312,7 +345,8 @@ if [ -n "$AUTH_LOGIN" ]; then
   # `--slurp --jq`, which would error and (under `2>/dev/null`) silently no-op
   # the whole preflight.
   PENDING=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/$PR_NUMBER/reviews" --paginate --slurp 2>/dev/null \
-    | jq -r "[.. | objects | select((.state? // \"\")==\"PENDING\" and ((.user?.login // \"\") | ascii_downcase)==\"$AUTH_LC\")] | .[0] // empty" \
+    | jq -r --arg auth "$AUTH_LC" \
+        '[.. | objects | select((.state? // "") == "PENDING" and ((.user?.login // "") | ascii_downcase) == $auth)] | .[0] // empty' \
     || echo "")
   if [ -n "$PENDING" ]; then
     PENDING_ID=$(printf '%s' "$PENDING" | jq -r '.id')
@@ -447,7 +481,7 @@ Fix: <fix>
 - **Fix** — one imperative sentence naming the minimum safe change, prefixed literally with `Fix: `. Do not repeat the description or spell out replacement code that the GitHub ```suggestion``` block already carries. Add steps only when the safe change genuinely requires an ordered sequence.
 - **Attribution footer** — compact small-print metadata: severity (HIGH / MEDIUM / LOW, suffixed with `· BLOCKING` or `· NIT`) and the angle slug (for example, `<sub>— <strong>HIGH · BLOCKING</strong> · <code>bugs</code></sub>`). The body builder appends it automatically from the finding's `severity` / `blocking` / `nit` / `angle` fields. Both `severity` and `angle` are whitelisted against their known sets; unknown/missing values are dropped from the footer rather than injecting raw text. If both are missing, the footer is omitted entirely.
 
-`nit` is a boolean set by `intersect-findings.sh` (the floor classifier), **not** by angle agents: `true` marks a validated below-floor non-blocking finding. The body builder renders a `nit: true` finding with a `Nit:` title prefix and a `· NIT` footer tag, and the event computation treats it as event-neutral (a PR whose only findings are nits still `APPROVE`s, with the nits posted inline). A nit is always non-blocking; a below-floor finding that is `blocking: true` stays a normal finding (`nit: false`).
+`nit` is a boolean set by `intersect-findings.sh` (the floor classifier), **not** by angle agents: `true` marks a validated below-floor non-blocking finding. The body builder renders a `nit: true` finding with a `Nit:` title prefix and a `· NIT` footer tag, and candidate-event computation treats it as neutral (a PR whose only findings are nits has candidate `APPROVE`, with the nits posted inline). Final delivery still applies the independent native GitHub actor-ID gate. A nit is always non-blocking; a below-floor finding that is `blocking: true` stays a normal finding (`nit: false`).
 
 `deferred_to` is a string (the marker `<ref>`, e.g. `"increment 3"`) or null, set by the defender validator (`validator.md`) when an inline `woostack-defer(<ref>)` marker in the diff covers the gap a finding flags as missing. `intersect-findings.sh` forces any finding carrying a non-empty `deferred_to` to `nit: true, blocking: false` (independent of `severity_floor`, gated by `review.defer_markers`), and the body builder appends a `Deferred to <ref>` line. Never set on `security` findings or on wrong code present in this PR.
 

@@ -10,6 +10,7 @@ tests=(
   test-models-leaf-shape.sh
   test-repair-handoff.sh
   test-no-stale-paths.sh
+  test-omp-agents.sh
   test-respond.sh
   test-review-models-moved.sh
 )

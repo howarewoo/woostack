@@ -29,7 +29,7 @@ cat > "$work2/worker.sh" <<'WORKER'
 #!/usr/bin/env bash
 set -euo pipefail
 printf '[]\n' > "$OUTDIR/findings.$WOO_REVIEW_ANGLE.json"
-printf '{"angle":"%s","chunk":null,"runner":"test","model":"test-model","tier":"standard","ts":"t"}\n' "$WOO_REVIEW_ANGLE" > "$OUTDIR/receipt.$WOO_REVIEW_ANGLE.json"
+printf '{"angle":"%s","chunk":null,"runner":"test","model":"test-model","tier":"standard","ts":"t","authority":"advisory-only"}\n' "$WOO_REVIEW_ANGLE" > "$OUTDIR/receipt.$WOO_REVIEW_ANGLE.json"
 WORKER
 chmod +x "$work2/worker.sh"
 rc=0

@@ -764,6 +764,927 @@
           "critical": true
         }
       ]
+    },
+    {
+      "id": "permits-distinct-independent-engineer-allocations",
+      "prompt": "Inspect only fixtures/multi-agent-allocation.json as bounded normalized official-MCP evidence. Do not run commands or mutate anything. Apply the packaged allocation, isolation, boundary recheck, review, and submission contract. Return exactly one JSON object with keys status, reason, issueIds, projectLeadAllocated, assignmentAcceptedBeforeWork, preSideEffectRechecksComplete, pairedContextsComplete, intraUnitContextsDistinct, crossUnitContextsUnique, sharedUnitFields, concurrentWorkAllowed, sideEffectsStarted, completedLifecycle, ownerReadBackBeforeEveryBoundary, reviewReceiptsCurrent, and nextBoundary. Verify both independent units through registry acquisition, edit, test, independently bound precommit review, commit, push, pull request relation, and issue transition; current owner and acceptance must be read back before every boundary.",
+      "fixtures": [
+        "multi-agent-allocation.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Two independently allocated engineer units preserve unique contexts and current ownership through registry, implementation, test, independent review, commit, push, PR relation, and issue transition. Every boundary is read back and both complete lifecycles may proceed concurrently.",
+      "assertions": [
+        {
+          "id": "independent-allocation-proceeds",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "proceed",
+          "critical": true
+        },
+        {
+          "id": "independent-allocation-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "verified-distinct-independent-lifecycles",
+          "critical": true
+        },
+        {
+          "id": "independent-allocation-issues",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueIds",
+          "expected": [
+            "20000000-0000-4000-8000-000000000201",
+            "20000000-0000-4000-8000-000000000202"
+          ],
+          "critical": true
+        },
+        {
+          "id": "independent-allocation-by-lead",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectLeadAllocated",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "independent-acceptance-before-work",
+          "kind": "final-json-path-equals",
+          "pointer": "/assignmentAcceptedBeforeWork",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "independent-fresh-rechecks",
+          "kind": "final-json-path-equals",
+          "pointer": "/preSideEffectRechecksComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "independent-no-shared-unit-fields",
+          "kind": "final-json-path-equals",
+          "pointer": "/sharedUnitFields",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "independent-concurrency-allowed",
+          "kind": "final-json-path-equals",
+          "pointer": "/concurrentWorkAllowed",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "independent-lifecycle-started",
+          "kind": "final-json-path-equals",
+          "pointer": "/sideEffectsStarted",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "independent-next-boundary",
+          "kind": "final-json-path-equals",
+          "pointer": "/nextBoundary",
+          "expected": "submitted",
+          "critical": true
+        },
+        {
+          "id": "independent-paired-contexts-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/pairedContextsComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "independent-intra-unit-contexts-distinct",
+          "kind": "final-json-path-equals",
+          "pointer": "/intraUnitContextsDistinct",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "independent-cross-unit-contexts-unique",
+          "kind": "final-json-path-equals",
+          "pointer": "/crossUnitContextsUnique",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "independent-completed-lifecycle",
+          "kind": "final-json-path-equals",
+          "pointer": "/completedLifecycle",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "independent-owner-rechecks",
+          "kind": "final-json-path-equals",
+          "pointer": "/ownerReadBackBeforeEveryBoundary",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "independent-current-review-receipts",
+          "kind": "final-json-path-equals",
+          "pointer": "/reviewReceiptsCurrent",
+          "expected": true,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "blocks-stale-owner-after-review",
+      "prompt": "Inspect only fixtures/multi-agent-stale-owner.json as bounded normalized official-MCP evidence. Do not run commands or mutate anything. Apply the packaged boundary recheck and review-receipt contract. Return exactly one JSON object with keys status, reason, issueId, ownerDriftDetected, assignmentAcceptanceCurrent, reviewReceiptValid, commitAllowed, pushAllowed, pullRequestAllowed, issueTransitionAllowed, and nextBoundary. A fresh owner mismatch after review invalidates the accepted allocation and review receipt before commit.",
+      "fixtures": [
+        "multi-agent-stale-owner.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The pre-commit owner recheck no longer matches the accepted allocation. The prior acceptance and review receipt are stale, so commit, push, PR creation, and issue transition remain blocked until fresh allocation, acceptance, and review.",
+      "assertions": [
+        {
+          "id": "stale-owner-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "stale-owner-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "owner-drift-invalidates-acceptance-and-review",
+          "critical": true
+        },
+        {
+          "id": "stale-owner-detected",
+          "kind": "final-json-path-equals",
+          "pointer": "/ownerDriftDetected",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "stale-owner-review-invalid",
+          "kind": "final-json-path-equals",
+          "pointer": "/reviewReceiptValid",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "stale-owner-commit-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/commitAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "stale-owner-next",
+          "kind": "final-json-path-equals",
+          "pointer": "/nextBoundary",
+          "expected": "fresh-allocation-and-review",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "blocks-shared-engineer-identity",
+      "prompt": "Inspect only scenario shared-principal-and-profile in fixtures/assignment-collision.json as bounded normalized evidence. Do not run commands or mutate anything. Apply the packaged paired-context and concurrent-unit isolation contract, then return exactly one JSON object with keys status, reason, issueId, conflictingIssueId, pairedContextsComplete, intraUnitContextsDistinct, crossUnitContextsUnique, sharedFields, collisionEvent, collisionReadBackVerified, sharedIdentityAccepted, sideEffectsAllowed, and requiredAuthority. The two roles inside each engineer pair remain separately provisioned, but a second active unit may not reuse either role's authentication context, MCP session, token-cache context, environment, profile, or session, nor its Linear principal. The current owner may only record the observed boundary without creating around it.",
+      "fixtures": [
+        "assignment-collision.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Each pair is internally complete and separated, but the second unit reuses the first unit's Linear principal, coding profile, and all decision-maker/coding authentication, MCP, token-cache, environment, and session contexts. The verified collision blocks implementation until the project lead allocates a cross-unit-unique pair.",
+      "assertions": [
+        {
+          "id": "shared-identity-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "shared-identity-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "allocation-collision",
+          "critical": true
+        },
+        {
+          "id": "shared-identity-issue",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueId",
+          "expected": "22000000-0000-4000-8000-000000000302",
+          "critical": true
+        },
+        {
+          "id": "shared-identity-conflict",
+          "kind": "final-json-path-equals",
+          "pointer": "/conflictingIssueId",
+          "expected": "22000000-0000-4000-8000-000000000301",
+          "critical": true
+        },
+        {
+          "id": "shared-identity-fields",
+          "kind": "final-json-path-equals",
+          "pointer": "/sharedFields",
+          "expected": [
+            "codingAuthenticationContext",
+            "codingEnvironment",
+            "codingMcpSession",
+            "codingProfile",
+            "codingSession",
+            "codingTokenCacheContext",
+            "decisionMakerAuthenticationContext",
+            "decisionMakerEnvironment",
+            "decisionMakerMcpSession",
+            "decisionMakerSession",
+            "decisionMakerTokenCacheContext",
+            "linearPrincipal"
+          ],
+          "critical": true
+        },
+        {
+          "id": "shared-identity-typed-failure",
+          "kind": "final-json-path-equals",
+          "pointer": "/collisionEvent",
+          "expected": "failure",
+          "critical": true
+        },
+        {
+          "id": "shared-identity-failure-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/collisionReadBackVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "shared-identity-rejected",
+          "kind": "final-json-path-equals",
+          "pointer": "/sharedIdentityAccepted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "shared-identity-no-side-effects",
+          "kind": "final-json-path-equals",
+          "pointer": "/sideEffectsAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "shared-identity-lead-resolves",
+          "kind": "final-json-path-equals",
+          "pointer": "/requiredAuthority",
+          "expected": "project-lead",
+          "critical": true
+        },
+        {
+          "id": "shared-pairs-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/pairedContextsComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "shared-pairs-internally-distinct",
+          "kind": "final-json-path-equals",
+          "pointer": "/intraUnitContextsDistinct",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "shared-cross-unit-contexts-not-unique",
+          "kind": "final-json-path-equals",
+          "pointer": "/crossUnitContextsUnique",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "rejects-engineer-self-claim",
+      "prompt": "Inspect only scenario self-claim-unassigned-issue in fixtures/assignment-collision.json as bounded normalized evidence. Do not run commands or mutate anything. Apply the packaged allocation and paired-context boundaries, then return exactly one JSON object with keys status, reason, issueId, currentOwner, pairedContextsComplete, pairedContextsDistinct, assignmentAcceptedPresent, ownerMutationAllowed, selfClaimAllowed, sideEffectsAllowed, and requiredAuthority. The invoking pair has complete separately provisioned decision-maker/coding contexts, but an unowned planned issue still requires deliberate project-lead allocation before the decision-maker may author assignmentAccepted; neither role may claim it for itself.",
+      "fixtures": [
+        "assignment-collision.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The issue has no verified owner or assignment acceptance, so the invoking unit cannot set itself as delegate, append acceptance, or begin repository work; the project lead must allocate it.",
+      "assertions": [
+        {
+          "id": "self-claim-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "self-claim-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "self-claim-forbidden",
+          "critical": true
+        },
+        {
+          "id": "self-claim-issue",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueId",
+          "expected": "22000000-0000-4000-8000-000000000303",
+          "critical": true
+        },
+        {
+          "id": "self-claim-no-owner",
+          "kind": "final-json-path-equals",
+          "pointer": "/currentOwner",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "self-claim-no-acceptance",
+          "kind": "final-json-path-equals",
+          "pointer": "/assignmentAcceptedPresent",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "self-claim-no-owner-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/ownerMutationAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "self-claim-not-allowed",
+          "kind": "final-json-path-equals",
+          "pointer": "/selfClaimAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "self-claim-no-side-effects",
+          "kind": "final-json-path-equals",
+          "pointer": "/sideEffectsAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "self-claim-lead-required",
+          "kind": "final-json-path-equals",
+          "pointer": "/requiredAuthority",
+          "expected": "project-lead",
+          "critical": true
+        },
+        {
+          "id": "self-claim-paired-contexts-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/pairedContextsComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "self-claim-paired-contexts-distinct",
+          "kind": "final-json-path-equals",
+          "pointer": "/pairedContextsDistinct",
+          "expected": true,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "blocks-owner-drift-without-handoff",
+      "prompt": "Inspect only scenario owner-drift-without-handoff in fixtures/assignment-collision.json as bounded normalized evidence. Do not run commands or mutate anything. Apply the packaged paired-context, fresh pre-side-effect ownership, and typed transfer contract, then return exactly one JSON object with keys status, reason, issueId, expectedOwner, observedOwner, pairedContextsComplete, pairedContextsDistinct, ownerRecheckVerified, handoffVerified, incomingAssignmentAcceptedVerified, oldOwnerMayMutate, newOwnerMayMutate, and requiredEventChain. The outgoing pair's contexts remain complete and internally separate, but owner drift invalidates its brief; the old controller may not append a repair event, and the newly named owner may not work without the canonical handoff, deliberate reassignment, and its own assignmentAccepted read-back.",
+      "fixtures": [
+        "assignment-collision.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The fresh tracked-edit recheck finds a different delegate but no handoff or incoming assignment acceptance. Both units remain stopped until the project lead coordinates the canonical handoff and new acceptance chain.",
+      "assertions": [
+        {
+          "id": "owner-drift-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "owner-drift-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "owner-changed-without-handoff",
+          "critical": true
+        },
+        {
+          "id": "owner-drift-issue",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueId",
+          "expected": "22000000-0000-4000-8000-000000000304",
+          "critical": true
+        },
+        {
+          "id": "owner-drift-expected-owner",
+          "kind": "final-json-path-equals",
+          "pointer": "/expectedOwner",
+          "expected": "linear-app-engineer-old",
+          "critical": true
+        },
+        {
+          "id": "owner-drift-observed-owner",
+          "kind": "final-json-path-equals",
+          "pointer": "/observedOwner",
+          "expected": "linear-app-engineer-new",
+          "critical": true
+        },
+        {
+          "id": "owner-drift-recheck-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/ownerRecheckVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "owner-drift-no-handoff",
+          "kind": "final-json-path-equals",
+          "pointer": "/handoffVerified",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "owner-drift-no-incoming-acceptance",
+          "kind": "final-json-path-equals",
+          "pointer": "/incomingAssignmentAcceptedVerified",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "owner-drift-old-stopped",
+          "kind": "final-json-path-equals",
+          "pointer": "/oldOwnerMayMutate",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "owner-drift-new-stopped",
+          "kind": "final-json-path-equals",
+          "pointer": "/newOwnerMayMutate",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "owner-drift-required-chain",
+          "kind": "final-json-path-equals",
+          "pointer": "/requiredEventChain",
+          "expected": [
+            "handoff",
+            "assignmentAccepted"
+          ],
+          "critical": true
+        },
+        {
+          "id": "owner-drift-paired-contexts-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/pairedContextsComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "owner-drift-paired-contexts-distinct",
+          "kind": "final-json-path-equals",
+          "pointer": "/pairedContextsDistinct",
+          "expected": true,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "escalates-contract-changing-question",
+      "prompt": "Inspect only scenario contract-changing-question in fixtures/project-lead-escalation.json as bounded normalized evidence. Do not run commands or mutate anything. Apply the packaged coder, decision-maker, paired-context, and project-lead authority boundaries, then return exactly one JSON object with keys status, reason, coderStatus, pairedContextsComplete, pairedContextsDistinct, requiredEvent, eventReadBackVerified, requestedAuthority, contractMutationAllowed, repositorySideEffectsAllowed, and nextBoundary. The separately authenticated OMP coder's contract-changing question must return NEEDS_CONTEXT; its separately authenticated Hermes decision-maker must append and read back canonical decisionRequest and stop for an independently read lead decision.",
+      "fixtures": [
+        "project-lead-escalation.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The coder returns NEEDS_CONTEXT, the current decision-maker records a verified decisionRequest to the pinned project lead, and no contract or repository mutation proceeds before a related lead response is independently read.",
+      "assertions": [
+        {
+          "id": "contract-question-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "contract-question-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "awaiting-project-lead-contract-decision",
+          "critical": true
+        },
+        {
+          "id": "contract-question-coder-handback",
+          "kind": "final-json-path-equals",
+          "pointer": "/coderStatus",
+          "expected": "NEEDS_CONTEXT",
+          "critical": true
+        },
+        {
+          "id": "contract-question-event",
+          "kind": "final-json-path-equals",
+          "pointer": "/requiredEvent",
+          "expected": "decisionRequest",
+          "critical": true
+        },
+        {
+          "id": "contract-question-event-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/eventReadBackVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "contract-question-lead",
+          "kind": "final-json-path-equals",
+          "pointer": "/requestedAuthority",
+          "expected": "linear-user-project-lead",
+          "critical": true
+        },
+        {
+          "id": "contract-question-no-contract-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/contractMutationAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "contract-question-no-repository-side-effects",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositorySideEffectsAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "contract-question-next-boundary",
+          "kind": "final-json-path-equals",
+          "pointer": "/nextBoundary",
+          "expected": "independent-lead-response-read-back",
+          "critical": true
+        },
+        {
+          "id": "contract-escalation-paired-contexts-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/pairedContextsComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "contract-escalation-paired-contexts-distinct",
+          "kind": "final-json-path-equals",
+          "pointer": "/pairedContextsDistinct",
+          "expected": true,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "blocks-unmerged-dependency-and-escalates",
+      "prompt": "Inspect only scenario dependency-block-needs-lead-decision in fixtures/project-lead-escalation.json as bounded normalized evidence. Do not run commands or mutate anything. Apply the packaged non-parent dependency, paired-context, and typed escalation contract, then return exactly one JSON object with keys status, reason, coderStatus, pairedContextsComplete, pairedContextsDistinct, dependencyState, dependencyMerged, requiredEvents, blockedReadBackVerified, decisionRequestReadBackVerified, relationMutationAllowed, allocationMutationAllowed, repositorySideEffectsAllowed, and nextBoundary. The decision-maker and coder use complete separate contexts, but an in-review unmerged blocker cannot be bypassed; the current decision-maker records blocked plus decisionRequest and waits for the pinned lead instead of changing a relation or allocation.",
+      "fixtures": [
+        "project-lead-escalation.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The coder returns BLOCKED, the dependency remains inReview without responsible acceptance or verified merge, and verified blocked and decisionRequest events stop all relation, allocation, and repository side effects pending the project lead.",
+      "assertions": [
+        {
+          "id": "dependency-escalation-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "dependency-escalation-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "dependency-blocked-awaiting-project-lead",
+          "critical": true
+        },
+        {
+          "id": "dependency-escalation-coder-handback",
+          "kind": "final-json-path-equals",
+          "pointer": "/coderStatus",
+          "expected": "BLOCKED",
+          "critical": true
+        },
+        {
+          "id": "dependency-escalation-state",
+          "kind": "final-json-path-equals",
+          "pointer": "/dependencyState",
+          "expected": "inReview",
+          "critical": true
+        },
+        {
+          "id": "dependency-escalation-unmerged",
+          "kind": "final-json-path-equals",
+          "pointer": "/dependencyMerged",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "dependency-escalation-events",
+          "kind": "final-json-path-equals",
+          "pointer": "/requiredEvents",
+          "expected": [
+            "blocked",
+            "decisionRequest"
+          ],
+          "critical": true
+        },
+        {
+          "id": "dependency-escalation-blocked-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/blockedReadBackVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "dependency-escalation-decision-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/decisionRequestReadBackVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "dependency-escalation-no-relation-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/relationMutationAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "dependency-escalation-no-allocation-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/allocationMutationAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "dependency-escalation-no-repository-side-effects",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositorySideEffectsAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "dependency-escalation-next-boundary",
+          "kind": "final-json-path-equals",
+          "pointer": "/nextBoundary",
+          "expected": "independent-lead-response-read-back",
+          "critical": true
+        },
+        {
+          "id": "dependency-escalation-paired-contexts-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/pairedContextsComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "dependency-escalation-paired-contexts-distinct",
+          "kind": "final-json-path-equals",
+          "pointer": "/pairedContextsDistinct",
+          "expected": true,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "resumes-after-complete-engineer-handoff",
+      "prompt": "Inspect only scenario verified-engineer-handoff in fixtures/engineer-handoff.json as bounded normalized evidence. Do not run commands or mutate anything. Apply the packaged typed transfer, paired-context isolation, and fresh pre-resume verification contract, then return exactly one JSON object with keys status, reason, issueId, outgoingEngineer, incomingEngineer, pairedContextsComplete, intraUnitContextsDistinct, crossUnitContextsUnique, eventChain, handoffReadBackVerified, reassignmentReadBackVerified, newAssignmentAcceptedReadBackVerified, oldCoderStopped, preResumeRecheckComplete, oldOwnerMayMutate, incomingMayResume, and nextBoundary. Both outgoing and incoming pairs require complete separate decision-maker/coding authentication, MCP, token-cache, environment, and session IDs, and no context may cross the unit boundary. Resume also requires the canonical handoff, coder stop, deliberate lead reassignment, incoming assignmentAccepted, registry rebinding, and a fresh complete recheck.",
+      "fixtures": [
+        "engineer-handoff.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The outgoing owner records and reads back the typed handoff before stopping; the project lead deliberately reassigns the delegate; the complete internally separated incoming pair shares no context with the outgoing pair, accepts the handoff, and passes every fresh recheck, so only the incoming unit may resume.",
+      "assertions": [
+        {
+          "id": "engineer-handoff-proceeds",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "proceed",
+          "critical": true
+        },
+        {
+          "id": "engineer-handoff-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "verified-engineer-handoff",
+          "critical": true
+        },
+        {
+          "id": "engineer-handoff-issue",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueId",
+          "expected": "26000000-0000-4000-8000-000000000501",
+          "critical": true
+        },
+        {
+          "id": "engineer-handoff-outgoing",
+          "kind": "final-json-path-equals",
+          "pointer": "/outgoingEngineer",
+          "expected": "engineer-api-old",
+          "critical": true
+        },
+        {
+          "id": "engineer-handoff-incoming",
+          "kind": "final-json-path-equals",
+          "pointer": "/incomingEngineer",
+          "expected": "engineer-api-new",
+          "critical": true
+        },
+        {
+          "id": "engineer-handoff-event-chain",
+          "kind": "final-json-path-equals",
+          "pointer": "/eventChain",
+          "expected": [
+            "assignmentAccepted",
+            "failure",
+            "handoff",
+            "assignmentAccepted"
+          ],
+          "critical": true
+        },
+        {
+          "id": "engineer-handoff-event-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/handoffReadBackVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "engineer-handoff-reassignment-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/reassignmentReadBackVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "engineer-handoff-new-acceptance",
+          "kind": "final-json-path-equals",
+          "pointer": "/newAssignmentAcceptedReadBackVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "engineer-handoff-coder-stopped",
+          "kind": "final-json-path-equals",
+          "pointer": "/oldCoderStopped",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "engineer-handoff-fresh-recheck",
+          "kind": "final-json-path-equals",
+          "pointer": "/preResumeRecheckComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "engineer-handoff-old-owner-stopped",
+          "kind": "final-json-path-equals",
+          "pointer": "/oldOwnerMayMutate",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "engineer-handoff-incoming-resumes",
+          "kind": "final-json-path-equals",
+          "pointer": "/incomingMayResume",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "engineer-handoff-next-boundary",
+          "kind": "final-json-path-equals",
+          "pointer": "/nextBoundary",
+          "expected": "resume-existing-worktree",
+          "critical": true
+        },
+        {
+          "id": "handoff-paired-contexts-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/pairedContextsComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "handoff-intra-unit-contexts-distinct",
+          "kind": "final-json-path-equals",
+          "pointer": "/intraUnitContextsDistinct",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "handoff-cross-unit-contexts-unique",
+          "kind": "final-json-path-equals",
+          "pointer": "/crossUnitContextsUnique",
+          "expected": true,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "blocks-missing-or-equal-paired-contexts",
+      "prompt": "Inspect only scenario missing-and-equal-paired-contexts in fixtures/assignment-collision.json as bounded normalized evidence. Do not run commands or mutate anything. Apply the packaged engineer-pair isolation boundary, then return exactly one JSON object with keys status, reason, engineerName, missingContextFields, equalContextPairs, pairedContextsComplete, pairedContextsDistinct, pairAccepted, and sideEffectsAllowed. Decision-maker and coding authentication contexts, MCP sessions, token-cache contexts, environments, and sessions must all be present and distinct; non-secret labels are evidence only, never credentials.",
+      "fixtures": [
+        "assignment-collision.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The coding MCP session is missing and four decision-maker/coding context pairs are equal, so the engineer pair is not provisioned, cannot accept an assignment, and may perform no side effect.",
+      "assertions": [
+        {
+          "id": "invalid-pair-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "invalid-pair-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "paired-context-isolation-invalid",
+          "critical": true
+        },
+        {
+          "id": "invalid-pair-engineer",
+          "kind": "final-json-path-equals",
+          "pointer": "/engineerName",
+          "expected": "engineer-invalid-pair",
+          "critical": true
+        },
+        {
+          "id": "invalid-pair-missing-field",
+          "kind": "final-json-path-equals",
+          "pointer": "/missingContextFields",
+          "expected": [
+            "codingMcpSessionId"
+          ],
+          "critical": true
+        },
+        {
+          "id": "invalid-pair-equal-contexts",
+          "kind": "final-json-path-equals",
+          "pointer": "/equalContextPairs",
+          "expected": [
+            "authenticationContext",
+            "tokenCacheContext",
+            "environment",
+            "session"
+          ],
+          "critical": true
+        },
+        {
+          "id": "invalid-pair-incomplete",
+          "kind": "final-json-path-equals",
+          "pointer": "/pairedContextsComplete",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "invalid-pair-not-distinct",
+          "kind": "final-json-path-equals",
+          "pointer": "/pairedContextsDistinct",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "invalid-pair-not-accepted",
+          "kind": "final-json-path-equals",
+          "pointer": "/pairAccepted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "invalid-pair-no-side-effects",
+          "kind": "final-json-path-equals",
+          "pointer": "/sideEffectsAllowed",
+          "expected": false,
+          "critical": true
+        }
+      ]
     }
   ]
 }

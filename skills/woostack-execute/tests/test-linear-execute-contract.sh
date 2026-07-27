@@ -116,6 +116,7 @@ for token in (
     "Git and GitHub remain",
     "exact Linear project UUID-or-URL",
     "exact standalone issue UUID-or-URL",
+    "shared [engineer-agent authority protocol]",
 ):
     must(execute, token, "execute authority")
 for forbidden in (
@@ -140,6 +141,74 @@ for token in (
 ):
     must(controller if token != "A local artifact or mutation response is never a receipt" else execute,
          token, "local-authority rejection")
+
+# Mode selection must never collapse an admitted engineer pair into inline decision-maker coding.
+mode = section(execute, "## Execution mode", "## Review the verified issue before work")
+pair_mode_required = (
+    "classify the authority envelope before selecting a driver",
+    "complete engineer pair has the shared protocol's verified decision-maker profile/session",
+    "separately isolated paired coding profile/session",
+    "partial, stale, shared, or inferred pair is invalid and blocks",
+    "available only to deliberately non-paired execution",
+    "isolated paired coder implements and self-checks each task",
+    "decision-maker directly performs the ordered task-scoped spec review then quality review",
+    "For deliberately non-paired execution, preserve the generic route",
+    "An admitted engineer pair must use its paired subagent route",
+    "Reject explicit `--inline` before any worker dispatch",
+    "If the host cannot spawn the exact bound paired coder, stop at that same verified boundary",
+    "Never fall back to inline, let the decision-maker implement or self-review",
+    "Only deliberately non-paired execution uses the generic mode resolution",
+    "If explicit subagent mode is unavailable, state the degradation and either fall back to inline or stop",
+    "Generic non-paired execution keeps official-MCP mutations and source-control boundaries with the controller",
+    "exact post-review, controller-authorized paired-coder `woostack-commit` handoff",
+)
+for token in pair_mode_required:
+    must(mode, token, "engineer-pair mode selection")
+ordered(mode, (
+    "classify the authority envelope before selecting a driver",
+    "An admitted engineer pair must use its paired subagent route",
+    "Reject explicit `--inline`",
+    "Only deliberately non-paired execution uses the generic mode resolution",
+), "engineer-pair mode precedence")
+
+pair_mode_forbidden = (
+    "An admitted engineer pair may use inline.",
+    "If the paired coder spawn is unavailable, fall back to inline.",
+    "The decision-maker may implement and self-review when the paired coder is unavailable.",
+    "An invalid partial engineer pair may use deliberately non-paired fallback.",
+)
+def pair_mode_contradictions(subject):
+    folded = normalized(subject)
+    return tuple(token for token in pair_mode_forbidden if normalized(token) in folded)
+
+
+if pair_mode_contradictions(mode):
+    fail("engineer-pair mode selection contains a contradictory inline/fallback permission")
+
+# Adversarially retain every reassuring clause while injecting one contradictory permission.
+for mutation in pair_mode_forbidden:
+    mutant = mode + "\n" + mutation
+    if mutation not in pair_mode_contradictions(mutant):
+        fail(f"engineer-pair mode adversarial mutation escaped rejection: {mutation}")
+
+commit_mode = section(
+    execute,
+    "6. **Commit, submit, and attribute.**",
+    "7. **Distill only durable knowledge.**",
+)
+for token in (
+    "On deliberately non-paired execution, the controller invokes",
+    "For an engineer pair, the decision-maker instead issues the subagent driver's one bounded post-review authorization",
+    "paired coder invokes that same skill",
+    "only its own isolated Git/Graphite/GitHub and official Linear MCP contexts",
+    "appends and reads back `implementationEvidence`",
+    "create or refresh and read back the exact Linear relation",
+    "on initial submission only",
+    "request `executing → inReview` and read the state back",
+    "later update must independently confirm that the issue remains `inReview` without replaying the transition",
+):
+    must(commit_mode, token, "route-specific commit boundary")
+
 
 # Exact project-DAG and standalone admission pin the lead, issue roles, complete relations, and
 # official capability/read-back boundary.
@@ -169,7 +238,8 @@ for token in (
     "app engineer's resolved work owner is the native delegate",
     "neither field is a fallback",
     "Never self-claim",
-    "stable name, principal kind/ID, and fresh run ID",
+    "stable `ENGINEER_NAME`, exact Linear principal kind/native ID",
+    "fresh run ID",
     "currently `executing` issue already accepted by this same engineer/run",
     "`blocked` issue whose verified `unblocked` receipt",
     "lowest-ordinal `planned` issue",
@@ -403,8 +473,8 @@ for token in (
 ):
     must(restore, token, "blocker and handoff protocol")
 
-# Drivers retain both execution modes and TDD, but each worker gets one issue and no authority over
-# contracts, allocation, gates, project state, source control, or acceptance.
+# Drivers retain both deliberately non-paired execution and the engineer-pair subagent route, with
+# one issue per worker and no contract, allocation, gate, project-state, or acceptance authority.
 for name, text in (("inline", inline), ("subagent", subagent)):
     for token in (
         "exactly one Linear issue",
@@ -425,7 +495,7 @@ for token in (
 ):
     must(inline, token, "inline authority barrier")
 for token in (
-    "Every implementer and reviewer brief is self-contained",
+    "Every dispatched paired coder, generic implementer, or generic reviewer brief is self-contained",
     "names exactly one selected issue",
     "Never supply a local specification,",
     "must never load or follow `skill://woostack-review`",
@@ -433,7 +503,7 @@ for token in (
     "append project updates",
     "accept its own evidence",
     "request/write terminal `done`",
-    "Implementers are never dispatched in parallel",
+    "Implementation workers are never dispatched in parallel",
     "There is no per-task commit",
     "do not edit issue text, tick checkboxes, append local receipts, or mutate Linear",
 ):

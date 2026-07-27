@@ -59,6 +59,13 @@ printf '[]\n' > "${OUTDIR:-/tmp/pr-review}/findings.prosecutor.json"
 
 Write the surviving JSON array to **`$OUTDIR/findings.prosecutor.json`** (default `/tmp/pr-review/findings.prosecutor.json`). The file MUST be a JSON array only: starts with `[`, ends with `]`, no preamble, no commentary, no markdown fences.
 
+In an engineer-unit local run, copy only the controller-supplied prosecutor binding and, as the
+last action after the findings array, write `$OUTDIR/receipt.validator-prosecutor.json` with
+`validatorRole:"prosecutor"`, non-empty `runner` and `model`, `tier:"deep"`, the exact
+`reviewerProfile`, `reviewerSessionId`, `reviewerPrincipalId`, and
+`reviewerCredentialContextId`, and `authority:"advisory-only"`. Never infer or read another
+worker's binding.
+
 ### Step 2 — Exit
 
 DO NOT:
@@ -66,11 +73,11 @@ DO NOT:
 - Submit a `gh api ... reviews` call.
 - Edit the PR body or title.
 - Touch `/tmp/pr-review/findings.json` (owned by the intersect script, written after the Defender pass).
-- Write any other file.
+- Write any other file except the required engineer-unit validator receipt.
 - Run `prefetch.sh` or otherwise re-fetch the diff/meta.
 - Delete or recreate `$OUTDIR` (it holds orchestrator-owned `meta.json`, `prior-findings.json`, etc.).
 
-After writing `findings.prosecutor.json`, EXIT.
+After writing `findings.prosecutor.json` and its required engineer-unit receipt, EXIT.
 
 ## Why this exists
 

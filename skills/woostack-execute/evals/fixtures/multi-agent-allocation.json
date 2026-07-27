@@ -1,0 +1,368 @@
+{
+  "schemaVersion": 1,
+  "repository": "https://github.com/acme/widgets",
+  "workspaceId": "workspace-acme",
+  "teamId": "team-app",
+  "project": {
+    "id": "10000000-0000-4000-8000-000000000100",
+    "clientId": "10000000-0000-4000-8000-000000000101",
+    "role": "feature",
+    "phase": "executing",
+    "phaseReadBack": "complete",
+    "lead": {
+      "kind": "human",
+      "principalId": "linear-user-project-lead",
+      "decisionMakerProfile": "hermes-project-lead",
+      "readBack": "complete"
+    },
+    "frozenBase": {
+      "branch": "main",
+      "commitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "readBack": "complete"
+    }
+  },
+  "allocations": [
+    {
+      "issue": {
+        "id": "20000000-0000-4000-8000-000000000201",
+        "clientId": "21000000-0000-4000-8000-000000000201",
+        "identifier": "APP-201",
+        "role": "increment",
+        "projectId": "10000000-0000-4000-8000-000000000100",
+        "state": "executing",
+        "stateReadBack": "complete",
+        "contractReadBack": "complete",
+        "relationsReadBack": "complete",
+        "responsibilitySurfaces": [
+          "src/cache"
+        ]
+      },
+      "allocation": {
+        "authority": {
+          "kind": "human",
+          "principalId": "linear-user-project-lead"
+        },
+        "field": "delegate",
+        "previousPrincipalId": null,
+        "assignedPrincipalId": "linear-app-engineer-cache",
+        "changedAt": "2026-07-27T07:58:00Z",
+        "readAt": "2026-07-27T07:59:00Z",
+        "readComplete": true
+      },
+      "engineerUnit": {
+        "engineerName": "engineer-cache",
+        "linearPrincipal": {
+          "kind": "app",
+          "principalId": "linear-app-engineer-cache"
+        },
+        "decisionMakerProfile": "hermes-engineer-cache",
+        "decisionMakerAuthenticationContextId": "auth-context-decision-maker-cache-201",
+        "decisionMakerMcpSessionId": "mcp-session-decision-maker-cache-201",
+        "decisionMakerTokenCacheContextId": "token-cache-context-decision-maker-cache-201",
+        "decisionMakerEnvironmentId": "environment-decision-maker-cache-201",
+        "decisionMakerSessionId": "hermes-session-cache-201",
+        "codingProfile": "omp-engineer-cache",
+        "codingAuthenticationContextId": "auth-context-coding-cache-201",
+        "codingMcpSessionId": "mcp-session-coding-cache-201",
+        "codingTokenCacheContextId": "token-cache-context-coding-cache-201",
+        "codingEnvironmentId": "environment-coding-cache-201",
+        "codingSessionId": "omp-session-cache-201",
+        "runId": "run-cache-201",
+        "credentialMaterialPresent": false,
+        "sessionMaterialPresent": false
+      },
+      "owner": {
+        "kind": "app",
+        "field": "delegate",
+        "principalId": "linear-app-engineer-cache",
+        "readBack": "complete"
+      },
+      "unchangedAssignee": {
+        "principalId": "linear-user-cache-owner-of-record",
+        "readBack": "complete"
+      },
+      "assignmentAccepted": {
+        "id": "30000000-0000-4000-9000-000000000201",
+        "createdAt": "2026-07-27T08:00:00Z",
+        "actor": {
+          "kind": "app",
+          "principalId": "linear-app-engineer-cache"
+        },
+        "data": {
+          "issueId": "20000000-0000-4000-8000-000000000201",
+          "ownerKind": "app",
+          "ownerPrincipalId": "linear-app-engineer-cache",
+          "engineerName": "engineer-cache",
+          "runId": "run-cache-201"
+        },
+        "readComplete": true,
+        "envelope": {
+          "clientId": "31000000-0000-4000-8000-000000000201",
+          "event": "assignmentAccepted",
+          "issueId": "20000000-0000-4000-8000-000000000201",
+          "kind": "issueEvent",
+          "label": "woostack",
+          "relatedIds": [],
+          "repository": "https://github.com/acme/widgets",
+          "revision": 1,
+          "role": "increment",
+          "schema": 1,
+          "supersedesId": null
+        }
+      },
+      "ancestry": {
+        "kind": "independentRoot",
+        "nativeDependencies": [],
+        "relationPathToOtherAllocation": false,
+        "startCommitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "readBack": "complete"
+      },
+      "registry": {
+        "key": "20000000-0000-4000-8000-000000000201",
+        "state": "absent",
+        "readBack": "complete"
+      },
+      "preSideEffectRecheck": {
+        "readAt": "2026-07-27T08:02:00Z",
+        "issueReadBack": "complete",
+        "ownerReadBack": "complete",
+        "assignmentAcceptedId": "30000000-0000-4000-9000-000000000201",
+        "relationsReadBack": "complete",
+        "registryReadBack": "complete",
+        "drift": false,
+        "sideEffectsBeforeRecheck": false
+      },
+      "requestedBoundary": "submitted",
+      "execution": {
+        "registryAcquired": true,
+        "implementationComplete": true,
+        "testsPassed": true,
+        "precommitReview": {
+          "reviewerPrincipalId": "linear-app-reviewer-cache",
+          "reviewedHeadSha": "c111111111111111111111111111111111111111",
+          "reviewResult": "PASS",
+          "readBack": "complete"
+        },
+        "commit": {
+          "sha": "c111111111111111111111111111111111111111",
+          "authorProfile": "omp-engineer-cache",
+          "reviewReceiptStillCurrent": true
+        },
+        "push": {
+          "remoteHeadSha": "c111111111111111111111111111111111111111",
+          "readBack": "complete"
+        },
+        "pullRequest": {
+          "number": 201,
+          "headSha": "c111111111111111111111111111111111111111",
+          "authorPrincipalId": "github-engineer-cache",
+          "issueRelationReadBack": "complete"
+        },
+        "issueState": "inReview",
+        "issueStateReadBack": "complete",
+        "ownerReadBackBeforeBoundaries": {
+          "registry": true,
+          "edit": true,
+          "test": true,
+          "review": true,
+          "commit": true,
+          "push": true,
+          "pullRequest": true,
+          "issueTransition": true
+        }
+      }
+    },
+    {
+      "issue": {
+        "id": "20000000-0000-4000-8000-000000000202",
+        "clientId": "21000000-0000-4000-8000-000000000202",
+        "identifier": "APP-202",
+        "role": "increment",
+        "projectId": "10000000-0000-4000-8000-000000000100",
+        "state": "executing",
+        "stateReadBack": "complete",
+        "contractReadBack": "complete",
+        "relationsReadBack": "complete",
+        "responsibilitySurfaces": [
+          "src/search"
+        ]
+      },
+      "allocation": {
+        "authority": {
+          "kind": "human",
+          "principalId": "linear-user-project-lead"
+        },
+        "field": "delegate",
+        "previousPrincipalId": null,
+        "assignedPrincipalId": "linear-app-engineer-search",
+        "changedAt": "2026-07-27T07:59:15Z",
+        "readAt": "2026-07-27T07:59:30Z",
+        "readComplete": true
+      },
+      "engineerUnit": {
+        "engineerName": "engineer-search",
+        "linearPrincipal": {
+          "kind": "app",
+          "principalId": "linear-app-engineer-search"
+        },
+        "decisionMakerProfile": "hermes-engineer-search",
+        "decisionMakerAuthenticationContextId": "auth-context-decision-maker-search-202",
+        "decisionMakerMcpSessionId": "mcp-session-decision-maker-search-202",
+        "decisionMakerTokenCacheContextId": "token-cache-context-decision-maker-search-202",
+        "decisionMakerEnvironmentId": "environment-decision-maker-search-202",
+        "decisionMakerSessionId": "hermes-session-search-202",
+        "codingProfile": "omp-engineer-search",
+        "codingAuthenticationContextId": "auth-context-coding-search-202",
+        "codingMcpSessionId": "mcp-session-coding-search-202",
+        "codingTokenCacheContextId": "token-cache-context-coding-search-202",
+        "codingEnvironmentId": "environment-coding-search-202",
+        "codingSessionId": "omp-session-search-202",
+        "runId": "run-search-202",
+        "credentialMaterialPresent": false,
+        "sessionMaterialPresent": false
+      },
+      "owner": {
+        "kind": "app",
+        "field": "delegate",
+        "principalId": "linear-app-engineer-search",
+        "readBack": "complete"
+      },
+      "unchangedAssignee": {
+        "principalId": "linear-user-search-owner-of-record",
+        "readBack": "complete"
+      },
+      "assignmentAccepted": {
+        "id": "30000000-0000-4000-9000-000000000202",
+        "createdAt": "2026-07-27T08:01:00Z",
+        "actor": {
+          "kind": "app",
+          "principalId": "linear-app-engineer-search"
+        },
+        "data": {
+          "issueId": "20000000-0000-4000-8000-000000000202",
+          "ownerKind": "app",
+          "ownerPrincipalId": "linear-app-engineer-search",
+          "engineerName": "engineer-search",
+          "runId": "run-search-202"
+        },
+        "readComplete": true,
+        "envelope": {
+          "clientId": "31000000-0000-4000-8000-000000000202",
+          "event": "assignmentAccepted",
+          "issueId": "20000000-0000-4000-8000-000000000202",
+          "kind": "issueEvent",
+          "label": "woostack",
+          "relatedIds": [],
+          "repository": "https://github.com/acme/widgets",
+          "revision": 1,
+          "role": "increment",
+          "schema": 1,
+          "supersedesId": null
+        }
+      },
+      "ancestry": {
+        "kind": "independentRoot",
+        "nativeDependencies": [],
+        "relationPathToOtherAllocation": false,
+        "startCommitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "readBack": "complete"
+      },
+      "registry": {
+        "key": "20000000-0000-4000-8000-000000000202",
+        "state": "absent",
+        "readBack": "complete"
+      },
+      "preSideEffectRecheck": {
+        "readAt": "2026-07-27T08:03:00Z",
+        "issueReadBack": "complete",
+        "ownerReadBack": "complete",
+        "assignmentAcceptedId": "30000000-0000-4000-9000-000000000202",
+        "relationsReadBack": "complete",
+        "registryReadBack": "complete",
+        "drift": false,
+        "sideEffectsBeforeRecheck": false
+      },
+      "requestedBoundary": "submitted",
+      "execution": {
+        "registryAcquired": true,
+        "implementationComplete": true,
+        "testsPassed": true,
+        "precommitReview": {
+          "reviewerPrincipalId": "linear-app-reviewer-search",
+          "reviewedHeadSha": "d222222222222222222222222222222222222222",
+          "reviewResult": "PASS",
+          "readBack": "complete"
+        },
+        "commit": {
+          "sha": "d222222222222222222222222222222222222222",
+          "authorProfile": "omp-engineer-search",
+          "reviewReceiptStillCurrent": true
+        },
+        "push": {
+          "remoteHeadSha": "d222222222222222222222222222222222222222",
+          "readBack": "complete"
+        },
+        "pullRequest": {
+          "number": 202,
+          "headSha": "d222222222222222222222222222222222222222",
+          "authorPrincipalId": "github-engineer-search",
+          "issueRelationReadBack": "complete"
+        },
+        "issueState": "inReview",
+        "issueStateReadBack": "complete",
+        "ownerReadBackBeforeBoundaries": {
+          "registry": true,
+          "edit": true,
+          "test": true,
+          "review": true,
+          "commit": true,
+          "push": true,
+          "pullRequest": true,
+          "issueTransition": true
+        }
+      }
+    }
+  ],
+  "concurrencyProof": {
+    "completeDagReadBack": true,
+    "relationPathBetweenIssues": false,
+    "responsibilityOverlap": false,
+    "sharedEngineerName": false,
+    "sharedLinearPrincipal": false,
+    "sharedDecisionMakerProfile": false,
+    "sharedCodingProfile": false,
+    "sharedRunId": false,
+    "sharedIssueId": false,
+    "sharedRegistryKey": false,
+    "sharedDecisionMakerSession": false,
+    "sharedCodingSession": false,
+    "leadAllocationsBeforeAcceptance": true,
+    "assignmentAcceptancesBeforeWork": true,
+    "preSideEffectRechecksComplete": true,
+    "pairedContextsComplete": true,
+    "intraUnitContextsDistinct": true,
+    "crossUnitContextsUnique": true,
+    "sharedDecisionMakerAuthenticationContext": false,
+    "sharedCodingAuthenticationContext": false,
+    "sharedDecisionMakerMcpSession": false,
+    "sharedCodingMcpSession": false,
+    "sharedDecisionMakerTokenCacheContext": false,
+    "sharedCodingTokenCacheContext": false,
+    "sharedDecisionMakerEnvironment": false,
+    "sharedCodingEnvironment": false,
+    "credentialMaterialPresent": false,
+    "sessionMaterialPresent": false,
+    "completedLifecycleReadBack": true
+  },
+  "expected": {
+    "status": "proceed",
+    "reason": "verified-distinct-independent-lifecycles",
+    "concurrentWorkAllowed": true,
+    "nextBoundary": "submitted",
+    "pairedContextsComplete": true,
+    "intraUnitContextsDistinct": true,
+    "crossUnitContextsUnique": true,
+    "completedLifecycleReadBack": true,
+    "ownerReadBackBeforeEveryBoundary": true
+  }
+}

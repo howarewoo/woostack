@@ -1,0 +1,464 @@
+{
+  "schemaVersion": 1,
+  "repository": "https://github.com/acme/widgets",
+  "project": {
+    "id": "10000000-0000-4000-8000-000000000300",
+    "role": "feature",
+    "phase": "executing",
+    "lead": {
+      "kind": "human",
+      "principalId": "linear-user-project-lead",
+      "decisionMakerProfile": "hermes-project-lead",
+      "readBack": "complete"
+    }
+  },
+  "scenarios": [
+    {
+      "id": "shared-principal-and-profile",
+      "activeAllocations": [
+        {
+          "issueId": "22000000-0000-4000-8000-000000000301",
+          "identifier": "APP-301",
+          "owner": {
+            "kind": "app",
+            "field": "delegate",
+            "principalId": "linear-app-shared",
+            "readBack": "complete"
+          },
+          "engineerUnit": {
+            "engineerName": "engineer-cache",
+            "linearPrincipalId": "linear-app-shared",
+            "decisionMakerProfile": "hermes-engineer-cache",
+            "decisionMakerAuthenticationContextId": "auth-context-decision-maker-shared-allocation",
+            "decisionMakerMcpSessionId": "mcp-session-decision-maker-shared-allocation",
+            "decisionMakerTokenCacheContextId": "token-cache-context-decision-maker-shared-allocation",
+            "decisionMakerEnvironmentId": "environment-decision-maker-shared-allocation",
+            "decisionMakerSessionId": "hermes-session-shared-allocation",
+            "codingProfile": "omp-shared",
+            "codingAuthenticationContextId": "auth-context-coding-shared-allocation",
+            "codingMcpSessionId": "mcp-session-coding-shared-allocation",
+            "codingTokenCacheContextId": "token-cache-context-coding-shared-allocation",
+            "codingEnvironmentId": "environment-coding-shared-allocation",
+            "codingSessionId": "omp-session-shared-allocation",
+            "runId": "run-cache-301",
+            "credentialMaterialPresent": false,
+            "sessionMaterialPresent": false
+          },
+          "assignmentAccepted": {
+            "id": "32000000-0000-4000-9000-000000000301",
+            "createdAt": "2026-07-27T09:00:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "linear-app-shared"
+            },
+            "data": {
+              "issueId": "22000000-0000-4000-8000-000000000301",
+              "ownerKind": "app",
+              "ownerPrincipalId": "linear-app-shared",
+              "engineerName": "engineer-cache",
+              "runId": "run-cache-301"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "33000000-0000-4000-8000-000000000301",
+              "event": "assignmentAccepted",
+              "issueId": "22000000-0000-4000-8000-000000000301",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          }
+        },
+        {
+          "issueId": "22000000-0000-4000-8000-000000000302",
+          "identifier": "APP-302",
+          "owner": {
+            "kind": "app",
+            "field": "delegate",
+            "principalId": "linear-app-shared",
+            "readBack": "complete"
+          },
+          "engineerUnit": {
+            "engineerName": "engineer-search",
+            "linearPrincipalId": "linear-app-shared",
+            "decisionMakerProfile": "hermes-engineer-search",
+            "decisionMakerAuthenticationContextId": "auth-context-decision-maker-shared-allocation",
+            "decisionMakerMcpSessionId": "mcp-session-decision-maker-shared-allocation",
+            "decisionMakerTokenCacheContextId": "token-cache-context-decision-maker-shared-allocation",
+            "decisionMakerEnvironmentId": "environment-decision-maker-shared-allocation",
+            "decisionMakerSessionId": "hermes-session-shared-allocation",
+            "codingProfile": "omp-shared",
+            "codingAuthenticationContextId": "auth-context-coding-shared-allocation",
+            "codingMcpSessionId": "mcp-session-coding-shared-allocation",
+            "codingTokenCacheContextId": "token-cache-context-coding-shared-allocation",
+            "codingEnvironmentId": "environment-coding-shared-allocation",
+            "codingSessionId": "omp-session-shared-allocation",
+            "runId": "run-search-302",
+            "credentialMaterialPresent": false,
+            "sessionMaterialPresent": false
+          },
+          "assignmentAccepted": {
+            "id": "32000000-0000-4000-9000-000000000302",
+            "createdAt": "2026-07-27T09:01:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "linear-app-shared"
+            },
+            "data": {
+              "issueId": "22000000-0000-4000-8000-000000000302",
+              "ownerKind": "app",
+              "ownerPrincipalId": "linear-app-shared",
+              "engineerName": "engineer-search",
+              "runId": "run-search-302"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "33000000-0000-4000-8000-000000000302",
+              "event": "assignmentAccepted",
+              "issueId": "22000000-0000-4000-8000-000000000302",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          }
+        }
+      ],
+      "collision": {
+        "sharedFields": [
+          "codingAuthenticationContext",
+          "codingEnvironment",
+          "codingMcpSession",
+          "codingProfile",
+          "codingSession",
+          "codingTokenCacheContext",
+          "decisionMakerAuthenticationContext",
+          "decisionMakerEnvironment",
+          "decisionMakerMcpSession",
+          "decisionMakerSession",
+          "decisionMakerTokenCacheContext",
+          "linearPrincipal"
+        ],
+        "credentialMaterialPresent": false,
+        "sessionMaterialPresent": false,
+        "sideEffectsObserved": false,
+        "pairedContextsComplete": true,
+        "intraUnitContextsDistinct": true,
+        "crossUnitContextsUnique": false
+      },
+      "evidence": {
+        "disposition": "failure",
+        "record": {
+          "id": "42000000-0000-4000-9000-000000000302",
+          "createdAt": "2026-07-27T09:02:00Z",
+          "actor": {
+            "kind": "app",
+            "principalId": "linear-app-shared"
+          },
+          "data": {
+            "issueId": "22000000-0000-4000-8000-000000000302",
+            "boundary": "allocation",
+            "observedResult": "Linear principal, coding profile, and every decision-maker/coding authentication, MCP, token-cache, environment, and session context already belong to active APP-301",
+            "affectedIds": [
+              "22000000-0000-4000-8000-000000000301",
+              "32000000-0000-4000-9000-000000000301"
+            ],
+            "branch": null,
+            "worktreePath": null,
+            "safeNextAction": "project lead assigns a distinct engineer unit"
+          },
+          "readComplete": true,
+          "envelope": {
+            "clientId": "43000000-0000-4000-8000-000000000302",
+            "event": "failure",
+            "issueId": "22000000-0000-4000-8000-000000000302",
+            "kind": "issueEvent",
+            "label": "woostack",
+            "relatedIds": [
+              "22000000-0000-4000-8000-000000000301",
+              "32000000-0000-4000-9000-000000000301",
+              "32000000-0000-4000-9000-000000000302"
+            ],
+            "repository": "https://github.com/acme/widgets",
+            "revision": 1,
+            "role": "increment",
+            "schema": 1,
+            "supersedesId": null
+          }
+        }
+      },
+      "expected": {
+        "status": "blocked",
+        "reason": "allocation-collision",
+        "sharedIdentityAccepted": false,
+        "sideEffectsAllowed": false,
+        "pairedContextsComplete": true,
+        "intraUnitContextsDistinct": true,
+        "crossUnitContextsUnique": false
+      }
+    },
+    {
+      "id": "self-claim-unassigned-issue",
+      "issue": {
+        "id": "22000000-0000-4000-8000-000000000303",
+        "identifier": "APP-303",
+        "role": "increment",
+        "state": "planned",
+        "assignee": null,
+        "delegate": null,
+        "events": [],
+        "readBack": "complete"
+      },
+      "invokingUnit": {
+        "engineerName": "engineer-payments",
+        "linearPrincipal": {
+          "kind": "app",
+          "principalId": "linear-app-engineer-payments"
+        },
+        "decisionMakerProfile": "hermes-engineer-payments",
+        "decisionMakerAuthenticationContextId": "auth-context-decision-maker-payments-303",
+        "decisionMakerMcpSessionId": "mcp-session-decision-maker-payments-303",
+        "decisionMakerTokenCacheContextId": "token-cache-context-decision-maker-payments-303",
+        "decisionMakerEnvironmentId": "environment-decision-maker-payments-303",
+        "decisionMakerSessionId": "hermes-session-payments-303",
+        "codingProfile": "omp-engineer-payments",
+        "codingAuthenticationContextId": "auth-context-coding-payments-303",
+        "codingMcpSessionId": "mcp-session-coding-payments-303",
+        "codingTokenCacheContextId": "token-cache-context-coding-payments-303",
+        "codingEnvironmentId": "environment-coding-payments-303",
+        "codingSessionId": "omp-session-payments-303",
+        "runId": "run-payments-303",
+        "credentialMaterialPresent": false,
+        "sessionMaterialPresent": false
+      },
+      "preClaimReadBack": {
+        "issueReadBack": "complete",
+        "ownerField": "delegate",
+        "ownerPrincipalId": null,
+        "assignmentAcceptedId": null,
+        "projectLeadAllocationPresent": false,
+        "repositorySideEffectsObserved": false
+      },
+      "attempt": {
+        "operation": "set-self-as-delegate",
+        "mutationApplied": false,
+        "assignmentAcceptedAppended": false
+      },
+      "evidence": {
+        "disposition": "report-only",
+        "event": null,
+        "reason": "invoker-is-not-current-owner"
+      },
+      "expected": {
+        "status": "blocked",
+        "reason": "self-claim-forbidden",
+        "requiredAuthority": "project-lead",
+        "ownerMutationAllowed": false,
+        "sideEffectsAllowed": false
+      },
+      "contextIsolationProof": {
+        "requiredFields": [
+          "decisionMakerAuthenticationContextId",
+          "codingAuthenticationContextId",
+          "decisionMakerMcpSessionId",
+          "codingMcpSessionId",
+          "decisionMakerTokenCacheContextId",
+          "codingTokenCacheContextId",
+          "decisionMakerEnvironmentId",
+          "codingEnvironmentId",
+          "decisionMakerSessionId",
+          "codingSessionId"
+        ],
+        "pairedContextsComplete": true,
+        "decisionMakerAndCodingContextsDistinct": true,
+        "credentialMaterialPresent": false,
+        "sessionMaterialPresent": false
+      }
+    },
+    {
+      "id": "owner-drift-without-handoff",
+      "issue": {
+        "id": "22000000-0000-4000-8000-000000000304",
+        "identifier": "APP-304",
+        "role": "increment",
+        "state": "executing",
+        "owner": {
+          "kind": "app",
+          "field": "delegate",
+          "principalId": "linear-app-engineer-new",
+          "readBack": "complete"
+        }
+      },
+      "invokingUnit": {
+        "engineerName": "engineer-old",
+        "principalId": "linear-app-engineer-old",
+        "linearPrincipal": {
+          "kind": "app",
+          "principalId": "linear-app-engineer-old"
+        },
+        "decisionMakerProfile": "hermes-engineer-old",
+        "decisionMakerAuthenticationContextId": "auth-context-decision-maker-old-304",
+        "decisionMakerMcpSessionId": "mcp-session-decision-maker-old-304",
+        "decisionMakerTokenCacheContextId": "token-cache-context-decision-maker-old-304",
+        "decisionMakerEnvironmentId": "environment-decision-maker-old-304",
+        "decisionMakerSessionId": "hermes-session-old-304",
+        "codingProfile": "omp-engineer-old",
+        "codingAuthenticationContextId": "auth-context-coding-old-304",
+        "codingMcpSessionId": "mcp-session-coding-old-304",
+        "codingTokenCacheContextId": "token-cache-context-coding-old-304",
+        "codingEnvironmentId": "environment-coding-old-304",
+        "codingSessionId": "omp-session-old-304",
+        "runId": "run-old-304",
+        "credentialMaterialPresent": false,
+        "sessionMaterialPresent": false
+      },
+      "events": [
+        {
+          "id": "32000000-0000-4000-9000-000000000304",
+          "createdAt": "2026-07-27T09:10:00Z",
+          "actor": {
+            "kind": "app",
+            "principalId": "linear-app-engineer-old"
+          },
+          "data": {
+            "issueId": "22000000-0000-4000-8000-000000000304",
+            "ownerKind": "app",
+            "ownerPrincipalId": "linear-app-engineer-old",
+            "engineerName": "engineer-old",
+            "runId": "run-old-304"
+          },
+          "readComplete": true,
+          "envelope": {
+            "clientId": "33000000-0000-4000-8000-000000000304",
+            "event": "assignmentAccepted",
+            "issueId": "22000000-0000-4000-8000-000000000304",
+            "kind": "issueEvent",
+            "label": "woostack",
+            "relatedIds": [],
+            "repository": "https://github.com/acme/widgets",
+            "revision": 1,
+            "role": "increment",
+            "schema": 1,
+            "supersedesId": null
+          }
+        }
+      ],
+      "preSideEffectRecheck": {
+        "boundary": "tracked-edit",
+        "issueReadBack": "complete",
+        "eventsReadBack": "complete",
+        "expectedOwnerPrincipalId": "linear-app-engineer-old",
+        "observedOwnerPrincipalId": "linear-app-engineer-new",
+        "currentAssignmentAcceptedId": "32000000-0000-4000-9000-000000000304",
+        "drift": true,
+        "repositorySideEffectsObserved": false
+      },
+      "handoff": null,
+      "incomingAssignmentAccepted": null,
+      "evidence": {
+        "disposition": "report-only",
+        "event": null,
+        "reason": "outgoing-owner-no-longer-authorized"
+      },
+      "expected": {
+        "status": "blocked",
+        "reason": "owner-changed-without-handoff",
+        "oldOwnerMayMutate": false,
+        "newOwnerMayMutate": false,
+        "requiredEventChain": [
+          "handoff",
+          "assignmentAccepted"
+        ]
+      },
+      "contextIsolationProof": {
+        "requiredFields": [
+          "decisionMakerAuthenticationContextId",
+          "codingAuthenticationContextId",
+          "decisionMakerMcpSessionId",
+          "codingMcpSessionId",
+          "decisionMakerTokenCacheContextId",
+          "codingTokenCacheContextId",
+          "decisionMakerEnvironmentId",
+          "codingEnvironmentId",
+          "decisionMakerSessionId",
+          "codingSessionId"
+        ],
+        "pairedContextsComplete": true,
+        "decisionMakerAndCodingContextsDistinct": true,
+        "credentialMaterialPresent": false,
+        "sessionMaterialPresent": false
+      }
+    },
+    {
+      "id": "missing-and-equal-paired-contexts",
+      "engineerUnit": {
+        "engineerName": "engineer-invalid-pair",
+        "linearPrincipal": {
+          "kind": "app",
+          "principalId": "linear-app-engineer-invalid-pair"
+        },
+        "decisionMakerProfile": "hermes-engineer-invalid-pair",
+        "decisionMakerAuthenticationContextId": "auth-context-shared-invalid-pair",
+        "decisionMakerMcpSessionId": "mcp-session-decision-maker-invalid-pair",
+        "decisionMakerTokenCacheContextId": "token-cache-context-shared-invalid-pair",
+        "decisionMakerEnvironmentId": "environment-shared-invalid-pair",
+        "decisionMakerSessionId": "session-shared-invalid-pair",
+        "codingProfile": "omp-engineer-invalid-pair",
+        "codingAuthenticationContextId": "auth-context-shared-invalid-pair",
+        "codingTokenCacheContextId": "token-cache-context-shared-invalid-pair",
+        "codingEnvironmentId": "environment-shared-invalid-pair",
+        "codingSessionId": "session-shared-invalid-pair",
+        "runId": "run-invalid-pair-305",
+        "credentialMaterialPresent": false,
+        "sessionMaterialPresent": false
+      },
+      "contextCheck": {
+        "requiredFields": [
+          "decisionMakerAuthenticationContextId",
+          "codingAuthenticationContextId",
+          "decisionMakerMcpSessionId",
+          "codingMcpSessionId",
+          "decisionMakerTokenCacheContextId",
+          "codingTokenCacheContextId",
+          "decisionMakerEnvironmentId",
+          "codingEnvironmentId",
+          "decisionMakerSessionId",
+          "codingSessionId"
+        ],
+        "missingFields": [
+          "codingMcpSessionId"
+        ],
+        "equalContextPairs": [
+          "authenticationContext",
+          "tokenCacheContext",
+          "environment",
+          "session"
+        ],
+        "pairedContextsComplete": false,
+        "decisionMakerAndCodingContextsDistinct": false,
+        "credentialMaterialPresent": false,
+        "sessionMaterialPresent": false
+      },
+      "attempt": {
+        "requestedBoundary": "accept-assignment",
+        "pairProvisioned": false,
+        "sideEffectsObserved": false
+      },
+      "expected": {
+        "status": "blocked",
+        "reason": "paired-context-isolation-invalid",
+        "pairAccepted": false,
+        "sideEffectsAllowed": false
+      }
+    }
+  ]
+}
