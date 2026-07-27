@@ -8,6 +8,8 @@ source "$ROOT/skills/woostack-init/scripts/tests/assert.sh"
 SKILL="$ROOT/skills/woostack-review/SKILL.md"
 REF_DIR="$ROOT/skills/woostack-review/references"
 REFERENCES="commands.md configuration.md ci.md troubleshooting.md"
+VALIDATOR_PATH="$ROOT/skills/woostack-review/prompts/validator.md"
+PROSECUTOR_PATH="$ROOT/skills/woostack-review/prompts/validator-prosecutor.md"
 
 assert_matches() { # content regex message
   if grep -Eq -- "$2" <<< "$1"; then
@@ -59,6 +61,8 @@ assert_root_term() { # regex message
 
 ROOT_TEXT="$(cat "$SKILL")"
 ROOT_NORMALIZED="$(normalize_paragraphs < "$SKILL")"
+VALIDATOR_TEXT="$(cat "$VALIDATOR_PATH")"
+PROSECUTOR_TEXT="$(cat "$PROSECUTOR_PATH")"
 COMMANDS=""
 CONFIGURATION=""
 CI=""
@@ -96,7 +100,7 @@ $TROUBLESHOOTING"
 for stage in \
   'Stage 0.*Resolve skill path' \
   'Stage 1.*Prefetch' \
-  'Stage 1a.*Resolve PR artifact context' \
+  'Stage 1a.*Resolve verified Linear context' \
   'Stage 2.*Detect Angles' \
   'Stage 3.*Run Review Swarm' \
   'Stage 4.*Merge.*Adversarial Validation' \
@@ -259,6 +263,8 @@ if [ -n "$COMMANDS" ]; then
     '/woostack-review recheck' '/woostack-review force' '@review --full'; do
     assert_fixed "$COMMANDS" "$command" "commands.md retains command: $command"
   done
+  assert_fixed "$COMMANDS" '--issue <Linear issue URL|UUID>' 'commands.md exposes exact local issue identity'
+  assert_fixed "$COMMANDS" '--project <Linear project URL|UUID>' 'commands.md exposes exact local project identity'
   assert_matches "$COMMANDS_NORMALIZED" '--fast.*(/woostack-review fast|`fast`)|(/woostack-review fast|`fast`).*--fast' 'commands.md retains the fast alias'
   assert_matches "$COMMANDS_NORMALIZED" '--deep.*(/woostack-review deep|`deep`)|(/woostack-review deep|`deep`).*--deep' 'commands.md retains the deep alias'
   assert_matches "$COMMANDS_NORMALIZED" '/woostack-review force recheck|force.*combinable.*recheck' 'commands.md retains force+recheck composition'
@@ -270,6 +276,10 @@ if [ -n "$COMMANDS" ]; then
   assert_matches "$COMMANDS_NORMALIZED" 'compare API returns 404.*falls back to the full diff' 'commands.md retains force-push incremental fallback'
   assert_matches "$COMMANDS_NORMALIZED" 'no new commits.*skip=true|skip=true.*no new commits' 'commands.md retains same-SHA incremental skip'
   assert_matches "$COMMANDS_NORMALIZED" 'marker IS the state|There is no DB' 'commands.md retains state-light marker semantics'
+  assert_matches "$COMMANDS_NORMALIZED" 'official Linear MCP.*current managed contract|current managed contract.*official Linear MCP' 'commands.md requires current contract from official MCP'
+  assert_matches "$COMMANDS_NORMALIZED" 'Missing MCP.*hard stop|hard stop.*Missing MCP' 'commands.md blocks contract-aware review when local MCP is missing'
+  assert_matches "$COMMANDS_NORMALIZED" 'GitHub Actions.*diff-only advisory|diff-only advisory.*GitHub Actions' 'commands.md distinguishes CI advisory delivery'
+  assert_matches "$COMMANDS_NORMALIZED" '[Nn]either.*issue acceptance|issue acceptance.*[Nn]either' 'commands.md denies review self-acceptance'
   assert_not_matches "$CONFIGURATION_NORMALIZED
 $CI_NORMALIZED
 $TROUBLESHOOTING_NORMALIZED" '/woostack-review --fast|woostack-review install' 'command catalog is not duplicated into another reference'
@@ -312,10 +322,23 @@ for integration in \
   'openai/security-best-practices' 'coreyhaines31/ai-seo' \
   'supabase/supabase-postgres-best-practices' \
   'using-woostack/references/hosts/<current-host>.md' \
-  'resolve-artifact-context.sh' 'markdown.sh feature' 'linear.sh feature-read'; do
+  'woostack-init/references/artifact-backends.md' \
+  'woostack-status/references/conventions.md'; do
   assert_fixed "$CORPUS" "$integration" "integration route remains represented: $integration"
 done
-assert_corpus_term 'read-only Linear boundary|never mutates Linear' 'review remains read-only toward Linear'
+assert_corpus_term 'read-only toward Linear|never.*mutat.*Linear' 'review remains read-only toward Linear'
+
+for validator_prompt in "$VALIDATOR_TEXT" "$PROSECUTOR_TEXT"; do
+  assert_absent "$validator_prompt" 'artifact-context.json' 'validator omits deleted adapter context'
+  assert_fixed "$validator_prompt" '$OUTDIR/attribution.md' 'validator reads only the PR attribution candidate'
+  assert_fixed "$validator_prompt" '$OUTDIR/intent.md' 'validator recognizes local current-contract context'
+  assert_matches "$validator_prompt" 'official host-exposed Linear MCP' 'validator gates managed context on official MCP'
+  assert_matches "$validator_prompt" 'current managed contract' 'validator limits intent to the current managed contract'
+  assert_matches "$validator_prompt" 'untrusted.*data, never instructions' 'validator keeps remote text untrusted'
+  assert_matches "$validator_prompt" 'GitHub Actions.*intent.md.*absent.*diff-only advisory' 'validator keeps CI contract-free and advisory'
+  assert_matches "$validator_prompt" 'neither Linear read-back nor issue acceptance' 'validator denies Linear authority claims'
+done
+assert_matches "$VALIDATOR_TEXT" 'context disclosure required by `_orchestrator-header.md`' 'sequential validator posts the explicit advisory disclosure'
 
 if [ -n "$CI" ]; then
   assert_matches "$CI_NORMALIZED" '\.github/workflows/ai-review\.yml.*reusable-review\.yml@main' 'ci.md retains consumer-to-reusable workflow routing'
@@ -324,19 +347,26 @@ if [ -n "$CI" ]; then
   done
   assert_matches "$CI_NORMALIZED" 'issue_comment.*base-repo.*secrets|base-repo.*secrets.*issue_comment' 'ci.md explains base-repo secret exposure'
   assert_matches "$CI_NORMALIZED" 'Pin `@main` to a release tag|pin.*release tag' 'ci.md retains release-tag pinning'
-  assert_matches "$CI_NORMALIZED" 'Markdown-backed.*no additional setup' 'ci.md retains Markdown setup distinction'
-  assert_matches "$CI_NORMALIZED" 'Linear-backed.*LINEAR_API_KEY|linear_api_key.*Linear-backed' 'ci.md retains Linear setup distinction'
-  for credential in anthropic_token openai_api_key gemini_api_key openrouter_api_key linear_api_key; do
+  for credential in anthropic_token openai_api_key gemini_api_key openrouter_api_key; do
     assert_fixed "$CI" "$credential" "ci.md documents provider/integration credential independently: $credential"
   done
+  for forbidden in linear_api_key LINEAR_API_KEY resolve-artifact-context.sh artifact-context openssl; do
+    assert_absent "$CI" "$forbidden" "ci.md omits custom Linear credential/context path: $forbidden"
+  done
+  assert_matches "$CI_NORMALIZED" 'GitHub Actions has no host-exposed Linear MCP|no host-exposed Linear MCP channel' 'ci.md states the missing host-MCP channel'
+  assert_matches "$CI_NORMALIZED" 'diff-only advisory' 'ci.md labels CI review delivery advisory'
+  assert_matches "$CI_NORMALIZED" 'exact.*Linear-Project:.*Linear-Issue:.*attribution.md|Linear-Project:.*Linear-Issue:.*attribution.md' 'ci.md preserves exact trailer candidates'
+  assert_matches "$CI_NORMALIZED" 'authoritative-issue-context: absent' 'ci.md emits the explicit absent-authority marker'
+  assert_matches "$CI_NORMALIZED" 'never creates `intent.md`|`intent.md`.*never' 'ci.md keeps verified contract intent out of CI'
+  assert_matches "$CI_NORMALIZED" 'never runs.*`acceptance` angle|`acceptance` angle.*never' 'ci.md keeps acceptance angle out of CI'
+  assert_matches "$CI_NORMALIZED" 'advisory-only evidence|advisory.*evidence' 'ci.md limits receipts and reviews to advisory evidence'
+  assert_matches "$CI_NORMALIZED" 'neither Linear read-back nor issue acceptance' 'ci.md denies CI authority claims'
   for provider in anthropic openai google openrouter; do
     assert_matches "$CI_NORMALIZED" "provider.*$provider|$provider.*provider" "ci.md retains provider route: $provider"
   done
   assert_matches "$CI_NORMALIZED" 'only (the )?credential.*chosen provider|chosen provider.*only' 'ci.md scopes credentials to the selected provider'
   assert_matches "$CI_NORMALIZED" 'contents: read.*pull-requests: read' 'ci.md retains read-only detect/worker permissions'
   assert_matches "$CI_NORMALIZED" 'contents: read.*pull-requests: write' 'ci.md scopes PR write permission to posting'
-  assert_matches "$CI_NORMALIZED" 'LINEAR_API_KEY.*(feature-read|attributed Linear reads)|linear_api_key.*(feature-read|attributed Linear reads)' 'ci.md scopes Linear credentials to attributed reads'
-  assert_matches "$CI_NORMALIZED" 'never serializes|not serialized|no worker' 'ci.md retains Linear credential non-propagation'
   assert_not_matches "$COMMANDS_NORMALIZED
 $CONFIGURATION_NORMALIZED
 $TROUBLESHOOTING_NORMALIZED" 'reusable-review\.yml@main.*anthropic_token' 'full CI setup is not duplicated into another reference'
@@ -356,6 +386,11 @@ assert_matches "$ROOT_NORMALIZED" 'DO NOT modify the PR title or body.*DO NOT mu
 
 assert_matches "$ROOT_NORMALIZED" 'angles.txt.*chunks.txt' 'root retains angle-by-chunk expected work set'
 assert_matches "$ROOT_NORMALIZED" 'receipt\.<angle>.*matching `angle`/`chunk`.*runner.*model' 'root retains worker receipt identity contract'
+assert_matches "$ROOT_NORMALIZED" 'authority:"advisory-only"|authority.*advisory-only' 'root marks worker receipts advisory-only'
+assert_matches "$ROOT_NORMALIZED" 'official.*MCP.*intent.md|intent.md.*official.*MCP' 'root gates current contract context on official MCP'
+assert_matches "$ROOT_NORMALIZED" 'Missing MCP.*blocks.*contract-aware review|blocks.*contract-aware.*Missing MCP' 'root blocks local contract-aware delivery without MCP'
+assert_matches "$ROOT_NORMALIZED" 'authoritative Linear issue context is absent|authoritative-issue-context: absent' 'root labels absent CI authority'
+assert_matches "$ROOT_NORMALIZED" 'neither Linear read-back nor issue acceptance' 'root denies CI Linear read-back and acceptance claims'
 assert_matches "$ROOT_NORMALIZED" 'retry missing, empty, invalid-JSON, or non-array artifacts once' 'root retains worker artifact retry'
 assert_matches "$ROOT_NORMALIZED" 'usage_limit_reached.*rate_limit_error.*fallback chain' 'root retains worker model-fallback recovery'
 assert_matches "$ROOT_NORMALIZED" 'hard-fails.*abort.*merge/validate/post|hard-fails.*do NOT proceed to merge/validate/post' 'root retains receipt hard gate before pipeline tail'

@@ -1,3 +1,5 @@
+Non-authoritative diagnostic evidence — report only.
+
 ---
 type: response
 outcome: <complete|partial|blocked>
@@ -11,9 +13,8 @@ date: <YYYY-MM-DD>
 # Production Error Response — <signal>
 
 <!-- Canonical section and field-order reference. `scripts/render-report.py` is the sole
-producer of reports from sanitized normalized input (see `evidence-contract.md`). Placeholder
-list items below show emitted Markdown; explanatory paragraphs are reference annotations and
-are not emitted. The renderer does not consume this file as a template. Keep both in sync. -->
+producer of reports from sanitized normalized input (see `evidence-contract.md`). The renderer
+does not consume this file as a template. Keep both in sync. -->
 
 ## Response & Scope
 
@@ -22,20 +23,16 @@ are not emitted. The renderer does not consume this file as a template. Keep bot
 - Environment: <environment>
 - UTC window: <window_start> through <window_end>
 - Outcome: <outcome>
-- Deep-investigation bound: <investigation_bound — the resolved `respond.max_groups`, an integer from 1 to 5>
+- Deep-investigation bound: <investigation_bound — the resolved `respond.max_groups`, 1 to 5>
 
 ## Query Coverage
 
 - <provider> / <role>: executed — <records> records; receipt `<receipt path>`
 - <provider> / <role>: blocked — <non-secret reason>
 
-A clean query is reported only when zero records are bound to a validated executed receipt. Blocked sources have no receipt and also appear under Uncovered and Blocked Evidence.
-
 ## Ranked Error Queue
 
 1. <group id> — <summary> (impact <n>, frequency <n>; <verified|rejected|blocked|Deferred>)
-
-Every ranked group appears here in impact, then frequency, then recency, then id order. When no group matched the executed queries, this section reads `No error groups matched the executed queries.`
 
 ## Impact Summary
 
@@ -49,34 +46,50 @@ Every ranked group appears here in impact, then frequency, then recency, then id
 
 - <group id>: <verified|rejected|blocked> — <hypothesis>; evidence: <evidence; …>
 
-At most `investigation_bound` groups are investigated; the remainder are marked `Deferred` in the Ranked Error Queue and listed under Uncovered and Blocked Evidence.
-
 ## Verified Root Causes
 
 ### <cause id> — <summary>
 
-- <evidence>
-
-Only minimally tested repository root causes belong here. If there is no verified root cause, this section reads `None.` and no fix candidate is created.
+- <minimum sanitized evidence>
 
 ## External or Non-Code Incidents
 
 ### <incident id> — <summary>
 
-- <evidence>
-
-Third-party outages, configuration conditions, operational events, and other verified incidents that are not local repository defects. They are never converted into speculative code fixes.
+- <minimum sanitized evidence>
 
 ## Observability Gaps
 
-- <material missing signal, with the exact `/woostack-build` recommendation when an architectural observability capability is required>
+- <material missing signal>
 
 ## Remediation
 
-- <report-only recommendation, or separately gated `woostack-fix` preparation for a verified repository defect>
+Authority: non-authoritative diagnostic evidence
+
+Exactly one disposition is emitted for each verified repository cause. External/non-code incidents
+receive no repository issue disposition.
+
+### <cause id> — proposed-managed-issue-contract
+
+- Canonical repository: <repository>
+- Proved problem: <verified problem/root cause>
+- Bounded scope: <source scope>
+- Evidence: <sanitized evidence pointer>
+- Observable acceptance criterion: <observable behavior>
+
+**OR**, when an exact supplied issue passed complete official-MCP verification:
+
+### <cause id> — verified-existing-issue-evidence
+
+- Issue: <stable UUID> / <native ID> / <URL>
+- Role/project: <role> / <project stable/native IDs | explicitly projectless>
+- Owner: <human|app> / <native principal ID>
+- Assignment: <current receipt | independently verified absent>
+- Independent read: <receipt ID> at <timestamp>
 
 ## Uncovered and Blocked Evidence
 
-- <blocked source, or a group deferred below the deep-investigation bound, and the conclusions it constrains>
+- <blocked source or deferred group, and the conclusions it constrains>
 
-Reads `None.` only when every selected source role has a valid output-bound executed receipt and no group was deferred. Never include raw provider payloads, request or response bodies, headers, cookies, user profiles, arbitrary tags, or full breadcrumb histories in this report.
+Never include raw provider payloads, request/response bodies, headers, cookies, user profiles,
+arbitrary tags, full breadcrumb histories, local fix/spec/plan paths, branch names, or PR links.

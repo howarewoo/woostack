@@ -2,8 +2,12 @@
 
 ## Commands
 
-- `/woostack-review` — Auto-detect: if the current branch has an open PR (via `gh pr view --json number`), behave as `/woostack-review <PR#>`. Otherwise review the local diff (no GitHub posting).
-- `/woostack-review <PR#>` — Fetch the PR via `gh`, run the swarm, and post a native batched GitHub Review.
+- `/woostack-review [--issue <Linear issue URL|UUID>] [--project <Linear project URL|UUID>]` —
+  Auto-detect an open PR from the current branch; without one, review the local diff. Explicit
+  Linear context is local-host only and must pass the MCP gates below.
+- `/woostack-review <PR#> [--issue <Linear issue URL|UUID>] [--project <Linear project URL|UUID>]`
+  — Fetch that exact PR via `gh`, run the swarm, and post one native batched GitHub Review. When
+  explicit IDs and an exact PR suffix are both present, every identity must agree.
 - `/woostack-review --fast`, `/woostack-review fast` — One-run fast-tier override for the whole review (`FORCE_TIER = fast`).
 - `/woostack-review --deep`, `/woostack-review deep` — One-run deep-tier override for the whole review (`FORCE_TIER = deep`).
 - `/woostack-review --full` (or `@review --full` in a PR comment) — Force a complete re-review even when a prior SHA marker exists. Skips the incremental path described below.
@@ -13,6 +17,36 @@
 Once a local invocation resolves a PR number, retain that same PR through PR-mode reporting and
 posting; do not fetch neighboring PRs from its stack. Review remains report-only: it prepares at
 most one native review and never applies code fixes.
+
+## Linear context and authority
+
+A local/Hermes invocation becomes contract-aware only from one of these inputs:
+
+1. a caller-supplied Linear issue URL or UUID, plus a project URL or UUID when the independently
+   verified issue role is `increment`; or
+2. the exact final PR suffix defined by the canonical
+   [Linear MCP development authority](../../woostack-init/references/artifact-backends.md).
+
+An issue identifier such as `TEAM-123`, title, branch, changed path, recent item, or fuzzy match is
+not valid caller-supplied identity. The issue identifier is usable only as part of exact PR
+attribution, after the canonical GitHub PR and official MCP reads resolve it to one unique managed
+issue identity. A verified `work-item` forbids `--project`; a verified `increment` requires its one
+matching role-`feature` project. Explicit arguments, PR trailers, native membership, repository,
+workspace/team, `woostack` label, and resource roles must all agree.
+
+Local review discovers the host's official Linear MCP operations by capability and reads the
+current managed contract before prompt assembly. Missing MCP, authentication, complete pagination,
+managed identity, project membership, or current contract is a hard stop for the contract-aware
+run: do not fall back to local specs/plans/fixes, a document, title matching, repository
+credentials, direct API/GraphQL, or an adapter. An invocation with neither explicit context nor an
+exact attributed PR may still run as a clearly labeled diff-only advisory review; it omits
+`intent.md` and the `acceptance` angle.
+
+GitHub Actions cannot take these flags and has no Linear MCP channel. Its comment triggers below
+always produce diff-only advisory evidence, even when the PR body contains exact trailers. A later
+authenticated Hermes or human controller performs any MCP-backed receipt reconciliation. Neither
+path grants issue acceptance; the responsible authority and lifecycle rules remain those in the
+canonical [status conventions](../../woostack-status/references/conventions.md).
 
 ### PR-comment triggers (issue #19)
 

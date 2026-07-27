@@ -4,7 +4,7 @@
   "cases": [
     {
       "id": "default-flow-stops-at-verdict-gate",
-      "prompt": "Analyze the bounded unresolved threads in fixtures/address-pending.json under the default /woostack-address-comments flow. Do not edit, commit, push, reply, resolve, or write memory. Return exactly one JSON object using the keys status, recommendationsComplete, gateState, editsApplied, pushed, repliesPosted, threadsResolved, memoryWritten, and mergeAllowed. Use booleans for completion and side-effect fields, status `awaiting-verdict-approval`, and gateState `pending-explicit-approval`.",
+      "prompt": "Analyze the bounded unresolved threads in fixtures/address-pending.json under the default /woostack-address-comments flow as a synthetic receipt exercise. Do not call GitHub, Git, Linear, or mutate files. Facts: canonical PR #42 has the sole final trailer `Linear-Issue: APP-42`; official-MCP independent reads verify managed work-item client UUID 11111111-1111-4111-8111-111111111111, no project membership, human owner user-7, matching current assignmentAccepted, and a current reviewResult whose head/diff/thread IDs equal the fixture. Return exactly one JSON object using keys status, recommendationsComplete, gateState, issueClientId, projectId, ownerVerified, assignmentVerified, findingReceiptVerified, linearMutationCount, editsApplied, pushed, repliesPosted, threadsResolved, memoryWritten, and mergeAllowed. Use booleans for completion and side-effect fields, status `awaiting-verdict-approval`, and gateState `pending-explicit-approval`.",
       "fixtures": [
         "address-pending.json",
         "repo/src/cache.ts"
@@ -12,7 +12,7 @@
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Every thread receives a recommendation, then the default flow stops at the explicit verdict gate with no edit, push, reply, resolution, memory write, or merge.",
+      "expected": "Exact attribution, projectless role, type-aware owner/current assignment, and typed finding receipt are verified before recommendations; then the default flow stops at the explicit verdict gate with no Linear event, edit, push, reply, resolution, memory write, or merge.",
       "assertions": [
         {
           "id": "all-thread-recommendations-complete",
@@ -83,19 +83,61 @@
           "pointer": "/mergeAllowed",
           "expected": false,
           "critical": true
+        },
+        {
+          "id": "exact-issue-context-retained",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueClientId",
+          "expected": "11111111-1111-4111-8111-111111111111",
+          "critical": true
+        },
+        {
+          "id": "work-item-project-is-absent",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectId",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "type-aware-owner-verified",
+          "kind": "final-json-path-equals",
+          "pointer": "/ownerVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "current-assignment-verified",
+          "kind": "final-json-path-equals",
+          "pointer": "/assignmentVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "typed-finding-receipt-verified",
+          "kind": "final-json-path-equals",
+          "pointer": "/findingReceiptVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "no-linear-event-before-gate",
+          "kind": "final-json-path-equals",
+          "pointer": "/linearMutationCount",
+          "expected": 0,
+          "critical": true
         }
       ]
     },
     {
       "id": "approved-verdicts-require-push-receipt-before-thread-close",
-      "prompt": "Complete the bounded post-approval address-comments state in fixtures/address-approved.json as a synthetic receipt-validation exercise. Do not call GitHub, Git, providers, or mutate source; the fixture contains the ordered host event stream. Return exactly one JSON object using the keys approvalVerified, handledThreads, finalOutcomes, pushed, pushReceiptVerified, closeoutAfterPushReceipt, repliesPosted, threadsResolved, offeredRereview, and mergeAllowed. finalOutcomes must map each thread ID to the applied semantic outcome, using only `fixed` or `pushed-back`; repliesPosted and threadsResolved must list the affected thread IDs.",
+      "prompt": "Complete the bounded post-approval address-comments state in fixtures/address-approved.json as a synthetic receipt-validation exercise. Do not call GitHub, Git, Linear, providers, or mutate source; the fixture contains the ordered host event stream. Facts: exact canonical attribution resolves increment client UUID 22222222-2222-4222-8222-222222222222 in feature project client UUID 33333333-3333-4333-8333-333333333333; current app delegate app-9 and assignmentAccepted comment-10 are independently verified; reviewResult comment-20 records the fixture findings for the exact current head; verification comment-30, precommitReview comment-31, and finalized implementationEvidence comment-32 each have complete independent read-backs. Return exactly one JSON object using keys approvalVerified, issueClientId, projectClientId, ownerKind, ownerPrincipalId, assignmentEventId, findingEvent, resolutionEvents, linearReadBacksVerified, handoffCarriesExactContext, handledThreads, finalOutcomes, pushed, pushReceiptVerified, closeoutAfterPushReceipt, repliesPosted, threadsResolved, offeredRereview, and mergeAllowed. finalOutcomes maps each thread ID to `fixed` or `pushed-back`; repliesPosted and threadsResolved list affected thread IDs.",
       "fixtures": [
         "address-approved.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The approved T1 fix and T2 pushback are represented as their applied outcomes; a verified pushed commit precedes every reply and resolution; re-review is offered; no merge occurs.",
+      "expected": "The exact increment/project attribution and app owner resolved from the delegate field plus current assignment remain verified; typed finding and FIX-resolution events have independent read-backs; the exact-context commit/re-review handoff is retained; a verified pushed commit precedes replies/resolutions; re-review is offered and no merge occurs.",
       "assertions": [
         {
           "id": "approved-verdict-batch-verified",
@@ -181,6 +223,281 @@
           "kind": "final-json-path-equals",
           "pointer": "/mergeAllowed",
           "expected": false,
+          "critical": true
+        },
+        {
+          "id": "increment-issue-id-carried",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueClientId",
+          "expected": "22222222-2222-4222-8222-222222222222",
+          "critical": true
+        },
+        {
+          "id": "feature-project-id-carried",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectClientId",
+          "expected": "33333333-3333-4333-8333-333333333333",
+          "critical": true
+        },
+        {
+          "id": "app-owner-field-is-delegate",
+          "kind": "final-json-path-equals",
+          "pointer": "/ownerKind",
+          "expected": "app",
+          "critical": true
+        },
+        {
+          "id": "app-owner-principal-is-exact",
+          "kind": "final-json-path-equals",
+          "pointer": "/ownerPrincipalId",
+          "expected": "app-9",
+          "critical": true
+        },
+        {
+          "id": "assignment-receipt-carried",
+          "kind": "final-json-path-equals",
+          "pointer": "/assignmentEventId",
+          "expected": "comment-10",
+          "critical": true
+        },
+        {
+          "id": "finding-is-typed-review-result",
+          "kind": "final-json-path-equals",
+          "pointer": "/findingEvent",
+          "expected": "reviewResult:comment-20",
+          "critical": true
+        },
+        {
+          "id": "fix-resolution-events-are-typed",
+          "kind": "final-json-path-equals",
+          "pointer": "/resolutionEvents",
+          "expected": [
+            "verification:comment-30",
+            "precommitReview:comment-31",
+            "implementationEvidence:comment-32"
+          ],
+          "critical": true
+        },
+        {
+          "id": "all-linear-events-read-back",
+          "kind": "final-json-path-equals",
+          "pointer": "/linearReadBacksVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "handoff-carries-issue-project-owner",
+          "kind": "final-json-path-equals",
+          "pointer": "/handoffCarriesExactContext",
+          "expected": true,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "malformed-pr-attribution-blocks-before-linear-or-repository-mutation",
+      "prompt": "Classify this synthetic address-comments preflight without calling GitHub, Git, Linear, or writing files. Facts: PR #51 body ends with `Linear-Issue: APP-51`, then `Linear-Project: 44444444-4444-4444-8444-444444444444`, and contains a second wrapped `Linear-Issue:` mention earlier; no canonical role can produce that suffix. Return exactly one JSON object with keys status, reasonCode, issueResolved, ownerRead, findingEventWritten, repositoryMutationCount, and githubMutationCount.",
+      "fixtures": [],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Duplicate/reordered attribution fails closed before managed issue resolution, owner reads, typed finding writes, repository edits, replies, or resolutions.",
+      "assertions": [
+        {
+          "id": "attribution-blocks",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "canonical-attribution-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": "canonical-pr-attribution-invalid",
+          "critical": true
+        },
+        {
+          "id": "no-issue-guessed",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueResolved",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-owner-read-for-unbound-issue",
+          "kind": "final-json-path-equals",
+          "pointer": "/ownerRead",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-finding-event-fabricated",
+          "kind": "final-json-path-equals",
+          "pointer": "/findingEventWritten",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-repository-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "no-github-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubMutationCount",
+          "expected": 0,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "type-aware-owner-drift-blocks-before-side-effects",
+      "prompt": "Classify this synthetic address-comments mutation recheck without calling GitHub, Git, Linear, or writing files. Facts: canonical increment attribution and reviewResult are valid; initial official-MCP reads verified app delegate app-9 and assignmentAccepted owner app-9; immediately before the first approved FIX edit, the fresh issue read shows delegate app-10 while current assignmentAccepted still names app-9. Return exactly one JSON object with keys status, reasonCode, initialOwner, observedOwner, assignmentOwner, linearMutationCount, repositoryMutationCount, and githubMutationCount.",
+      "fixtures": [],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "App ownership is resolved only from the delegate field; delegate/assignment drift blocks before Linear event, edit, push, reply, or resolution and is never repaired by assignee fallback or self-claim.",
+      "assertions": [
+        {
+          "id": "owner-drift-blocks",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "owner-drift-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": "type-aware-owner-assignment-drift",
+          "critical": true
+        },
+        {
+          "id": "initial-owner-retained",
+          "kind": "final-json-path-equals",
+          "pointer": "/initialOwner",
+          "expected": "app:app-9",
+          "critical": true
+        },
+        {
+          "id": "fresh-owner-observed",
+          "kind": "final-json-path-equals",
+          "pointer": "/observedOwner",
+          "expected": "app:app-10",
+          "critical": true
+        },
+        {
+          "id": "assignment-drift-observed",
+          "kind": "final-json-path-equals",
+          "pointer": "/assignmentOwner",
+          "expected": "app:app-9",
+          "critical": true
+        },
+        {
+          "id": "no-linear-mutation-after-drift",
+          "kind": "final-json-path-equals",
+          "pointer": "/linearMutationCount",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "no-repository-mutation-after-drift",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "no-github-mutation-after-drift",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubMutationCount",
+          "expected": 0,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "unknown-resolution-event-outcome-recovers-by-stable-id-and-blocks",
+      "prompt": "Classify this synthetic post-approval address-comments recovery boundary without calling GitHub, Git, Linear, or writing files. Facts: exact issue/project attribution, owner, assignment, and finding reviewResult remain valid; verification event client UUID 55555555-5555-4555-8555-555555555555 was allocated before the official-MCP comment create; the response timed out; independent recovery pagination is incomplete and cannot prove zero or one matching native comment. Return exactly one JSON object with keys status, reasonCode, retainedEventClientId, duplicateEventAppended, replacementUuidAllocated, commitCreated, pushed, repliesPosted, threadsResolved, and safeNextAction.",
+      "fixtures": [],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The unknown typed-event outcome preserves its stable UUID and blocks before commit/push/reply/resolve; no duplicate/replacement is created and recovery requires a complete exact-ID read.",
+      "assertions": [
+        {
+          "id": "unknown-event-blocks",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "incomplete-readback-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": "unknown-linear-event-read-back",
+          "critical": true
+        },
+        {
+          "id": "event-stable-id-retained",
+          "kind": "final-json-path-equals",
+          "pointer": "/retainedEventClientId",
+          "expected": "55555555-5555-4555-8555-555555555555",
+          "critical": true
+        },
+        {
+          "id": "no-duplicate-event",
+          "kind": "final-json-path-equals",
+          "pointer": "/duplicateEventAppended",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-replacement-event-uuid",
+          "kind": "final-json-path-equals",
+          "pointer": "/replacementUuidAllocated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-commit-on-unknown",
+          "kind": "final-json-path-equals",
+          "pointer": "/commitCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-push-on-unknown",
+          "kind": "final-json-path-equals",
+          "pointer": "/pushed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-replies-on-unknown",
+          "kind": "final-json-path-equals",
+          "pointer": "/repliesPosted",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "no-resolutions-on-unknown",
+          "kind": "final-json-path-equals",
+          "pointer": "/threadsResolved",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "safe-recovery-is-exact-read",
+          "kind": "final-json-path-equals",
+          "pointer": "/safeNextAction",
+          "expected": "complete official-MCP read by retained event UUID",
           "critical": true
         }
       ]

@@ -136,17 +136,20 @@
   "observability_gaps": [
     "Add cache hit-rate instrumentation"
   ],
-  "remediation": [
-    "rc-checkout: Validate currency",
-    "rc-checkout fix plan: .woostack/fixes/checkout.md",
-    "rc-checkout branch: fix/checkout",
-    "rc-checkout PR: https://example.test/pr/1",
-    "rc-provider: No repository change",
-    "rc-provider fix plan: .woostack/fixes/provider-observability.md",
-    "rc-provider branch: fix/provider-observability",
-    "rc-provider PR: https://example.test/pr/2",
-    "hyp-webhook: None",
-    "hyp-cache: Acquire cache metrics"
+  "issue_dispositions": [
+    {
+      "cause_id": "rc-checkout",
+      "kind": "proposed-managed-issue-contract",
+      "canonical_repository": "https://github.com/acme/widgets",
+      "problem": "Checkout fails when cart currency is missing",
+      "scope": "Checkout currency validation only",
+      "evidence": [
+        "trace t-safe"
+      ],
+      "acceptance_criteria": [
+        "A checkout without cart currency returns a validated client error instead of HTTP 500"
+      ]
+    }
   ],
   "blocked_evidence": []
 }

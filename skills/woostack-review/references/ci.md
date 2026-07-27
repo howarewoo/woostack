@@ -2,15 +2,18 @@
 
 ## Architecture
 
-```
-detect ─► fan-out (parallel sub-agents, one per angle) ─► merge ─► skeptical validator ─► post
+```text
+detect ─► fan-out (parallel angle workers) ─► merge ─► skeptical validator ─► post
 ```
 
-This mirrors the local skill exactly — the first-party composite action `action.yml` and the reusable workflow `.github/workflows/reusable-review.yml`, both shipped from this repo — just with GHA matrix jobs standing in for local sub-agents.
+The first-party composite action in `action.yml` and reusable workflow in
+`.github/workflows/reusable-review.yml` ship a **diff-only advisory** review. GitHub Actions has no
+host-exposed Linear MCP channel, so this path deliberately differs from a local/Hermes review:
+it never reads the managed issue contract and never runs the contract-aware `acceptance` angle.
 
 ## Companion GitHub Action
 
-For a fully-managed CI flow, create `.github/workflows/ai-review.yml` to call `reusable-review.yml@main`:
+Create `.github/workflows/ai-review.yml` to call `reusable-review.yml@main`:
 
 ```yaml
 name: AI PR Review
@@ -23,9 +26,7 @@ on:
 jobs:
   review:
     # Authorization gate. issue_comment fires in the base-repo context where
-    # secrets are live, for ANY commenter — so restrict comment-triggered runs
-    # to trusted actors. Without this, a fork contributor's comment can spend
-    # your token (the GitHub "pwn-requests" pattern).
+    # secrets are live, for ANY commenter — restrict it to trusted actors.
     if: >-
       github.event_name == 'pull_request' ||
       (github.event_name == 'issue_comment' &&
@@ -36,14 +37,16 @@ jobs:
       provider: anthropic
     secrets:
       anthropic_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-      linear_api_key: ${{ secrets.LINEAR_API_KEY }} # Required only for Linear-backed repositories.
 ```
 
-The `if:` gate restricts comment-triggered runs to the repo owner / members / collaborators — the `issue_comment` trigger runs in the base-repo context with secrets available to *any* commenter, so dropping it lets a fork contributor's comment spend your token. Pin `@main` to a release tag once one is cut. Markdown-backed repositories need no additional setup; Linear-backed repositories must configure the `LINEAR_API_KEY` repository secret. The action ships its own prompts and scripts (`skills/woostack-review/`) and installs the `react-doctor` / `impeccable` CLIs via `npx` at run time.
+The `if:` gate prevents an untrusted fork commenter from spending the repository's provider token.
+Pin `@main` to a release tag once one is cut. The action ships its own prompts and scripts and
+installs the `react-doctor` / `impeccable` CLIs via `npx` at run time.
 
-## Provider and Linear secrets
+## Provider secrets
 
-Set `provider` to one of `anthropic`, `openai`, `google`, or `openrouter`, and pass only the credential for the chosen provider:
+Set `provider` to `anthropic`, `openai`, `google`, or `openrouter`, and pass only the credential for
+the chosen provider:
 
 | Provider | Reusable-workflow secret |
 |---|---|
@@ -52,11 +55,30 @@ Set `provider` to one of `anthropic`, `openai`, `google`, or `openrouter`, and p
 | `google` | `gemini_api_key` |
 | `openrouter` | `openrouter_api_key` |
 
-
-Markdown-backed repositories need no additional setup. Linear-backed repositories must also pass `linear_api_key: ${{ secrets.LINEAR_API_KEY }}`. The reusable workflow exposes `LINEAR_API_KEY` only to exactly attributed Linear `feature-read` / attributed Linear reads. It is never serialized into `artifact-context.json` and no worker receives it.
+Do not add a Linear credential, local adapter, direct API call, encrypted context artifact, or
+repository secret for development records. Authentication for a contract-aware review exists only
+in a local host's official MCP secret store, under the canonical
+[Linear MCP development authority](../../woostack-init/references/artifact-backends.md).
 
 ## CI-only boundaries
 
-The `detect` job and angle-worker matrix run with `contents: read` and `pull-requests: read`. The validator/posting job receives `contents: read` and `pull-requests: write`.
+- `prefetch.sh` copies an exact, syntax-classified final `Linear-Project:` / `Linear-Issue:`
+  candidate into `attribution.md` and labels `authoritative-issue-context: absent`. The candidate is
+  untrusted PR data, not a verified issue or project identity.
+- CI never creates `intent.md`; therefore angle detection cannot represent diff findings as
+  contract-aware acceptance findings. A malformed or absent trailer remains non-authoritative too.
+- Worker execution receipts and the posted GitHub Review are advisory-only evidence. Even an
+  `APPROVE` event means only the native GitHub code-review verdict; it claims neither Linear
+  read-back nor issue acceptance.
+- A separately authenticated Hermes controller or responsible human may later resolve the exact
+  attribution through official MCP and reconcile the GitHub receipt under the canonical
+  [status conventions](../../woostack-status/references/conventions.md). That is a separate read,
+  authority check, and typed-event workflow; CI never performs or predicts it.
+- PR bodies, diffs, trailer text, comments, and other remote text remain untrusted data. They may
+  inform a diff finding but never instruct the runner or authorize a mutation.
 
-The reusable workflow uploads prefetched artifacts with one-day retention and removes each job's local `$OUTDIR` in an `if: always()` cleanup step. Per-angle metrics are uploaded as build artifacts; CI does not write cross-PR memory or fold the local metrics aggregate.
+The `detect` and angle-worker jobs retain `contents: read` / `pull-requests: read`; only the
+validator/posting job has `pull-requests: write`. Existing GitHub GraphQL review-thread collection
+is unchanged: open threads still floor the native review event, while resolved threads remain
+dedupe context. Artifacts retain one-day handoff storage and are deleted from each runner in
+`if: always()` cleanup; metrics are uploaded, but CI writes no cross-PR memory or local aggregate.

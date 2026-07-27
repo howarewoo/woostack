@@ -14,10 +14,46 @@ out="$(mktemp -d)/report.md"
 AUDIT_REPORT_PATH="$out" AUDIT_TARGET="src" bash "$SCRIPT" >/dev/null 2>&1 && ec=0 || ec=$?
 assert_eq "$ec" "0" "renderer exits 0"
 body="$(cat "$out")"
+assert_eq "$(sed -n '1p' "$out")" "Non-authoritative diagnostic evidence — report only." "opens with authority boundary"
 assert_contains "$body" "## HIGH" "groups by severity"
 assert_contains "$body" "src/a.ts:1" "anchors finding"
-assert_contains "$body" "/woostack-fix" "suggests a next step"
+assert_eq "$(grep -c '^#### Proposed managed issue contract$' "$out")" "2" "one issue disposition per finding"
+assert_not_contains "$body" "_Next:" "does not manufacture a remediation handoff"
 assert_not_contains "$body" "REQUEST_CHANGES" "no PR-event language (report-only)"
+
+# Sensitive values are replaced before tracked output is written.
+cat > "$OUTDIR/findings.json" <<'JSON'
+[{"angle":"security","severity":"HIGH","file":"/Users/alice/project/src/a.ts","line":1,"title":"Token leaked to alice@example.com","description":"Authorization: Bearer synthetic-secret-token","fix":"set api_key=synthetic-value"}]
+JSON
+AUDIT_REPORT_PATH="$out" AUDIT_TARGET="/Users/alice/project" bash "$SCRIPT" >/dev/null 2>&1 && ec=0 || ec=$?
+assert_eq "$ec" "0" "sensitive finding is sanitized"
+body="$(cat "$out")"
+assert_contains "$body" "[REDACTED_HOME]" "redacts local home path"
+assert_contains "$body" "[REDACTED_EMAIL]" "redacts personal email"
+assert_contains "$body" "Bearer [REDACTED_TOKEN]" "redacts bearer token"
+assert_contains "$body" "api_key=[REDACTED_SECRET]" "redacts secret assignment"
+assert_not_contains "$body" "synthetic-secret-token" "does not retain raw token"
+
+# A residual control character fails closed and leaves no report.
+python3 - "$OUTDIR/findings.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+Path(sys.argv[1]).write_text(json.dumps([{
+    "angle": "security",
+    "severity": "HIGH",
+    "file": "src/a.ts",
+    "line": 1,
+    "title": "Control byte",
+    "description": "unsafe\u0000value",
+    "fix": "remove it",
+}]))
+PY
+residual="$(mktemp -d)/residual.md"
+if AUDIT_REPORT_PATH="$residual" AUDIT_TARGET="src" bash "$SCRIPT" >/dev/null 2>&1; then
+  fail "residual sanitization failure unexpectedly succeeded"
+fi
+assert_eq "$([ -e "$residual" ] && echo yes || echo no)" "no" "residual failure leaves no report"
 
 # Zero findings -> clean report, exit 0.
 echo '[]' > "$OUTDIR/findings.json"

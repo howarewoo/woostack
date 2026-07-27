@@ -13,9 +13,78 @@
     }
   },
   "events": [
-    {"gate": "design-approval", "decision": "approved"},
-    {"gate": "spec-approval", "decision": "approved"},
-    {"gate": "execution-handoff", "decision": "run-overnight"}
+    {
+      "eventId": "evt-001",
+      "eventKind": "designApproved",
+      "revision": 1,
+      "predecessorId": null,
+      "supersededId": null,
+      "gate": "design-approval",
+      "decision": "approved",
+      "clientIdentity": "client-001",
+      "nativeIdentity": "proj-001",
+      "verified": true
+    },
+    {
+      "eventId": "evt-002",
+      "eventKind": "specHardened",
+      "revision": 1,
+      "predecessorId": "evt-001",
+      "supersededId": null,
+      "gate": null,
+      "decision": null,
+      "clientIdentity": "client-001",
+      "nativeIdentity": "proj-001",
+      "verified": true
+    },
+    {
+      "eventId": "evt-003",
+      "eventKind": "specApproved",
+      "revision": 1,
+      "predecessorId": "evt-002",
+      "supersededId": null,
+      "gate": "spec-approval",
+      "decision": "approved",
+      "clientIdentity": "client-001",
+      "nativeIdentity": "proj-001",
+      "verified": true
+    },
+    {
+      "eventId": "evt-004",
+      "eventKind": "planning",
+      "revision": 1,
+      "predecessorId": "evt-003",
+      "supersededId": null,
+      "gate": null,
+      "decision": null,
+      "clientIdentity": "client-001",
+      "nativeIdentity": "proj-001",
+      "verified": true
+    },
+    {
+      "eventId": "evt-005",
+      "eventKind": "ready",
+      "revision": 1,
+      "predecessorId": "evt-004",
+      "supersededId": null,
+      "gate": null,
+      "decision": null,
+      "clientIdentity": "client-001",
+      "nativeIdentity": "proj-001",
+      "verified": true
+    },
+    {
+      "eventId": "evt-006",
+      "eventKind": "executionApproved",
+      "revision": 1,
+      "predecessorId": "evt-005",
+      "supersededId": null,
+      "gate": "execution-handoff",
+      "decision": "run-overnight",
+      "clientIdentity": "client-001",
+      "nativeIdentity": "proj-001",
+      "verified": true
+    }
   ],
   "executor": {
     "acceptsRetainedProjectEventContext": false,
