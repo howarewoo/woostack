@@ -125,7 +125,7 @@
           "expected": [
             "verification",
             "decisionRequest",
-            "acceptance",
+            "decisionResponse",
             "assignmentAccepted"
           ],
           "critical": true

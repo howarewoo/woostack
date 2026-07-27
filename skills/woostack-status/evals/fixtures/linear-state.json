@@ -1,8 +1,3357 @@
 {
-  "backendResolution": {"calls": 1, "backend": "linear"},
-  "project": {"id": "11111111-1111-4111-8111-111111111111", "state": "inReview"},
-  "issues": [
-    {"identifier": "APP-12", "state": "inReview", "attributionExact": true, "pr": {"number": 42, "merged": true, "mergeCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}},
-    {"identifier": "APP-13", "state": "inReview", "attributionExact": true, "pr": {"number": 43, "merged": false, "state": "open"}}
-  ]
+  "schemaVersion": 1,
+  "capturedAt": "2026-07-26T12:00:00Z",
+  "policy": {
+    "repository": "https://github.com/acme/widgets",
+    "workspace": "Acme",
+    "team": "APP",
+    "staleDays": 14,
+    "paginationComplete": {
+      "projects": true,
+      "projectUpdates": true,
+      "projectIssues": true,
+      "teamIssues": true,
+      "issueComments": true,
+      "relations": true,
+      "owners": true,
+      "githubPullRequests": true,
+      "githubReviews": true
+    }
+  },
+  "project": {
+    "id": "project-native-launch",
+    "title": "Linear launch",
+    "status": {
+      "name": "Started",
+      "category": "started"
+    },
+    "lead": {
+      "kind": "human",
+      "principalId": "user-lead"
+    },
+    "leadAuthority": {
+      "actor": {
+        "kind": "human",
+        "principalId": "user-lead"
+      },
+      "readAt": "2026-07-26T11:59:00Z",
+      "readComplete": true
+    },
+    "phaseAuthorities": {
+      "designApproved": {
+        "kind": "human",
+        "principalId": "user-lead"
+      },
+      "specHardened": {
+        "kind": "app",
+        "principalId": "app-spec-hardener"
+      },
+      "specApproved": {
+        "kind": "human",
+        "principalId": "user-lead"
+      },
+      "planning": {
+        "kind": "app",
+        "principalId": "app-planner"
+      },
+      "ready": {
+        "kind": "app",
+        "principalId": "app-planner"
+      },
+      "executionApproved": {
+        "kind": "human",
+        "principalId": "user-lead"
+      },
+      "executing": {
+        "kind": "human",
+        "principalId": "user-lead"
+      },
+      "inReview": {
+        "kind": "human",
+        "principalId": "user-lead"
+      },
+      "done": {
+        "kind": "human",
+        "principalId": "user-lead"
+      },
+      "abandoned": {
+        "kind": "human",
+        "principalId": "user-lead"
+      }
+    },
+    "readComplete": true,
+    "envelope": {
+      "clientId": "11111111-1111-4111-8111-111111111111",
+      "kind": "resource",
+      "label": "woostack",
+      "repository": "https://github.com/acme/widgets",
+      "role": "feature",
+      "schema": 1
+    },
+    "events": [
+      {
+        "id": "update-design-approved",
+        "createdAt": "2026-06-01T09:00:00Z",
+        "actor": {
+          "kind": "human",
+          "principalId": "user-lead"
+        },
+        "readComplete": true,
+        "envelope": {
+          "clientId": "00000000-0000-4000-8000-000000000001",
+          "event": "designApproved",
+          "kind": "projectEvent",
+          "label": "woostack",
+          "predecessorId": null,
+          "projectId": "project-native-launch",
+          "relatedIds": [],
+          "repository": "https://github.com/acme/widgets",
+          "revision": 1,
+          "role": "feature",
+          "schema": 1,
+          "supersedesId": null
+        }
+      },
+      {
+        "id": "update-spec-hardened",
+        "createdAt": "2026-06-02T09:00:00Z",
+        "actor": {
+          "kind": "app",
+          "principalId": "app-spec-hardener"
+        },
+        "readComplete": true,
+        "envelope": {
+          "clientId": "00000000-0000-4000-8000-000000000002",
+          "event": "specHardened",
+          "kind": "projectEvent",
+          "label": "woostack",
+          "predecessorId": "update-design-approved",
+          "projectId": "project-native-launch",
+          "relatedIds": [],
+          "repository": "https://github.com/acme/widgets",
+          "revision": 1,
+          "role": "feature",
+          "schema": 1,
+          "supersedesId": null
+        }
+      },
+      {
+        "id": "update-spec-approved",
+        "createdAt": "2026-06-03T09:00:00Z",
+        "actor": {
+          "kind": "human",
+          "principalId": "user-lead"
+        },
+        "readComplete": true,
+        "envelope": {
+          "clientId": "00000000-0000-4000-8000-000000000003",
+          "event": "specApproved",
+          "kind": "projectEvent",
+          "label": "woostack",
+          "predecessorId": "update-spec-hardened",
+          "projectId": "project-native-launch",
+          "relatedIds": [
+            "update-spec-hardened"
+          ],
+          "repository": "https://github.com/acme/widgets",
+          "revision": 1,
+          "role": "feature",
+          "schema": 1,
+          "supersedesId": null
+        }
+      },
+      {
+        "id": "update-planning",
+        "createdAt": "2026-06-04T09:00:00Z",
+        "actor": {
+          "kind": "app",
+          "principalId": "app-planner"
+        },
+        "readComplete": true,
+        "envelope": {
+          "clientId": "00000000-0000-4000-8000-000000000004",
+          "event": "planning",
+          "kind": "projectEvent",
+          "label": "woostack",
+          "predecessorId": "update-spec-approved",
+          "projectId": "project-native-launch",
+          "relatedIds": [
+            "issue-app-12",
+            "issue-app-13",
+            "issue-app-14"
+          ],
+          "repository": "https://github.com/acme/widgets",
+          "revision": 1,
+          "role": "feature",
+          "schema": 1,
+          "supersedesId": null
+        }
+      },
+      {
+        "id": "update-ready",
+        "createdAt": "2026-06-05T09:00:00Z",
+        "actor": {
+          "kind": "app",
+          "principalId": "app-planner"
+        },
+        "readComplete": true,
+        "envelope": {
+          "clientId": "00000000-0000-4000-8000-000000000005",
+          "event": "ready",
+          "kind": "projectEvent",
+          "label": "woostack",
+          "predecessorId": "update-planning",
+          "projectId": "project-native-launch",
+          "relatedIds": [
+            "issue-app-12",
+            "issue-app-13",
+            "issue-app-14"
+          ],
+          "repository": "https://github.com/acme/widgets",
+          "revision": 1,
+          "role": "feature",
+          "schema": 1,
+          "supersedesId": null
+        }
+      },
+      {
+        "id": "update-execution-approved",
+        "createdAt": "2026-06-06T09:00:00Z",
+        "actor": {
+          "kind": "human",
+          "principalId": "user-lead"
+        },
+        "readComplete": true,
+        "envelope": {
+          "clientId": "00000000-0000-4000-8000-000000000006",
+          "event": "executionApproved",
+          "kind": "projectEvent",
+          "label": "woostack",
+          "predecessorId": "update-ready",
+          "projectId": "project-native-launch",
+          "relatedIds": [
+            "issue-app-12",
+            "issue-app-13",
+            "issue-app-14"
+          ],
+          "repository": "https://github.com/acme/widgets",
+          "revision": 1,
+          "role": "feature",
+          "schema": 1,
+          "supersedesId": null
+        }
+      },
+      {
+        "id": "update-executing",
+        "createdAt": "2026-06-07T09:00:00Z",
+        "actor": {
+          "kind": "human",
+          "principalId": "user-lead"
+        },
+        "readComplete": true,
+        "envelope": {
+          "clientId": "00000000-0000-4000-8000-000000000007",
+          "event": "executing",
+          "kind": "projectEvent",
+          "label": "woostack",
+          "predecessorId": "update-execution-approved",
+          "projectId": "project-native-launch",
+          "relatedIds": [
+            "issue-app-12",
+            "issue-app-13",
+            "issue-app-14"
+          ],
+          "repository": "https://github.com/acme/widgets",
+          "revision": 1,
+          "role": "feature",
+          "schema": 1,
+          "supersedesId": null
+        }
+      },
+      {
+        "id": "update-in-review",
+        "createdAt": "2026-07-25T09:00:00Z",
+        "actor": {
+          "kind": "human",
+          "principalId": "user-lead"
+        },
+        "readComplete": true,
+        "envelope": {
+          "clientId": "00000000-0000-4000-8000-000000000010",
+          "event": "inReview",
+          "kind": "projectEvent",
+          "label": "woostack",
+          "predecessorId": "update-executing",
+          "projectId": "project-native-launch",
+          "relatedIds": [
+            "issue-app-12",
+            "issue-app-13",
+            "issue-app-14"
+          ],
+          "repository": "https://github.com/acme/widgets",
+          "revision": 1,
+          "role": "feature",
+          "schema": 1,
+          "supersedesId": null
+        }
+      },
+      {
+        "id": "update-progress-app12-done",
+        "createdAt": "2026-07-25T09:01:00Z",
+        "actor": {
+          "kind": "human",
+          "principalId": "user-lead"
+        },
+        "readComplete": true,
+        "envelope": {
+          "clientId": "00000000-0000-4000-8000-000000000013",
+          "event": "progress",
+          "kind": "projectEvent",
+          "label": "woostack",
+          "predecessorId": "update-in-review",
+          "projectId": "project-native-launch",
+          "relatedIds": [
+            "comment-app12-done",
+            "issue-app-12"
+          ],
+          "repository": "https://github.com/acme/widgets",
+          "revision": 1,
+          "role": "feature",
+          "schema": 1,
+          "supersedesId": null
+        }
+      },
+      {
+        "id": "update-project-blocker-open",
+        "createdAt": "2026-07-25T09:02:00Z",
+        "actor": {
+          "kind": "human",
+          "principalId": "user-lead"
+        },
+        "readComplete": true,
+        "envelope": {
+          "clientId": "00000000-0000-4000-8000-000000000008",
+          "event": "blockerOpened",
+          "kind": "projectEvent",
+          "label": "woostack",
+          "predecessorId": "update-in-review",
+          "projectId": "project-native-launch",
+          "relatedIds": [
+            "comment-app14-blocked-repeat",
+            "issue-app-14"
+          ],
+          "repository": "https://github.com/acme/widgets",
+          "revision": 1,
+          "role": "feature",
+          "schema": 1,
+          "supersedesId": null
+        }
+      },
+      {
+        "id": "update-restack-decision",
+        "createdAt": "2026-07-25T09:10:00Z",
+        "actor": {
+          "kind": "human",
+          "principalId": "user-lead"
+        },
+        "data": {
+          "operationId": "13131313-aaaa-4aaa-8aaa-131313131313",
+          "controllerPrincipalKind": "app",
+          "controllerPrincipalId": "app-sweep-controller",
+          "affectedIssueIds": [
+            "issue-app-13"
+          ],
+          "affectedRelationIds": [
+            "relation-app13-dep-app12"
+          ],
+          "expiresAt": "2026-07-25T10:00:00Z"
+        },
+        "readComplete": true,
+        "envelope": {
+          "clientId": "00000000-0000-4000-8000-000000000014",
+          "event": "decision",
+          "kind": "projectEvent",
+          "label": "woostack",
+          "predecessorId": "update-in-review",
+          "projectId": "project-native-launch",
+          "relatedIds": [
+            "comment-app13-restack-authorized",
+            "issue-app-13",
+            "relation-app13-dep-app12"
+          ],
+          "repository": "https://github.com/acme/widgets",
+          "revision": 1,
+          "role": "feature",
+          "schema": 1,
+          "supersedesId": null
+        }
+      },
+      {
+        "id": "update-project-blocker-resolved",
+        "createdAt": "2026-07-25T11:05:00Z",
+        "actor": {
+          "kind": "human",
+          "principalId": "user-lead"
+        },
+        "readComplete": true,
+        "envelope": {
+          "clientId": "00000000-0000-4000-8000-000000000009",
+          "event": "blockerResolved",
+          "kind": "projectEvent",
+          "label": "woostack",
+          "predecessorId": "update-in-review",
+          "projectId": "project-native-launch",
+          "relatedIds": [
+            "comment-app14-unblocked-repeat",
+            "update-project-blocker-open"
+          ],
+          "repository": "https://github.com/acme/widgets",
+          "revision": 1,
+          "role": "feature",
+          "schema": 1,
+          "supersedesId": null
+        }
+      },
+      {
+        "id": "update-project-handoff",
+        "createdAt": "2026-07-25T11:15:00Z",
+        "actor": {
+          "kind": "human",
+          "principalId": "user-lead"
+        },
+        "readComplete": true,
+        "envelope": {
+          "clientId": "00000000-0000-4000-8000-000000000015",
+          "event": "handoff",
+          "kind": "projectEvent",
+          "label": "woostack",
+          "predecessorId": "update-in-review",
+          "projectId": "project-native-launch",
+          "relatedIds": [
+            "comment-app14-handoff-return"
+          ],
+          "repository": "https://github.com/acme/widgets",
+          "revision": 1,
+          "role": "feature",
+          "schema": 1,
+          "supersedesId": null
+        }
+      },
+      {
+        "id": "update-address-decision-expired",
+        "createdAt": "2026-07-26T10:25:00Z",
+        "actor": {
+          "kind": "human",
+          "principalId": "user-lead"
+        },
+        "data": {
+          "operationId": "13131313-cccc-4ccc-8ccc-131313131313",
+          "controllerPrincipalKind": "app",
+          "controllerPrincipalId": "app-expired-controller",
+          "affectedIssueIds": [
+            "issue-app-13"
+          ],
+          "affectedRelationIds": [],
+          "expiresAt": "2026-07-26T11:00:00Z"
+        },
+        "readComplete": true,
+        "envelope": {
+          "clientId": "00000000-0000-4000-8000-000000000016",
+          "event": "decision",
+          "kind": "projectEvent",
+          "label": "woostack",
+          "predecessorId": "update-in-review",
+          "projectId": "project-native-launch",
+          "relatedIds": [
+            "comment-app13-review-authorized-expired",
+            "issue-app-13"
+          ],
+          "repository": "https://github.com/acme/widgets",
+          "revision": 1,
+          "role": "feature",
+          "schema": 1,
+          "supersedesId": null
+        }
+      }
+    ],
+    "issues": [
+      {
+        "id": "issue-app-12",
+        "identifier": "APP-12",
+        "title": "Ship cache index",
+        "state": "done",
+        "previousState": null,
+        "assigneeId": "user-lead",
+        "delegateId": "app-engineer-12",
+        "owner": {
+          "kind": "app",
+          "principalId": "app-engineer-12"
+        },
+        "acceptanceAuthority": {
+          "kind": "app",
+          "principalId": "app-acceptor-12"
+        },
+        "pullRequestNumber": 42,
+        "readComplete": true,
+        "envelope": {
+          "clientId": "12121212-1212-4121-8121-121212121212",
+          "dependencyIds": [],
+          "kind": "resource",
+          "label": "woostack",
+          "ordinal": 1,
+          "projectId": "project-native-launch",
+          "repository": "https://github.com/acme/widgets",
+          "role": "increment",
+          "schema": 1
+        },
+        "events": [
+          {
+            "id": "comment-app12-assignment",
+            "createdAt": "2026-07-20T09:00:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-engineer-12"
+            },
+            "data": {
+              "engineerName": "engineer-12",
+              "issueId": "issue-app-12",
+              "ownerKind": "app",
+              "ownerPrincipalId": "app-engineer-12",
+              "runId": "run-12"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1",
+              "event": "assignmentAccepted",
+              "issueId": "issue-app-12",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app12-verification",
+            "createdAt": "2026-07-22T09:00:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-engineer-12"
+            },
+            "data": {
+              "actor": {
+                "principalKind": "app",
+                "principalId": "app-engineer-12"
+              },
+              "changedPaths": [
+                "src/cache-index.ts",
+                "tests/cache-index.test.ts"
+              ],
+              "commands": [
+                "python3 -m pytest tests/test_cache_index.py"
+              ],
+              "issueId": "issue-app-12",
+              "observedResults": [
+                {
+                  "command": "python3 -m pytest tests/test_cache_index.py",
+                  "exitCode": 0,
+                  "result": "12 tests passed"
+                }
+              ],
+              "smokeObservations": [
+                "cache index returns fresh rows"
+              ],
+              "status": "PASS"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3",
+              "event": "verification",
+              "issueId": "issue-app-12",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app12-assignment",
+                "project-native-launch"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app12-precommit-review",
+            "createdAt": "2026-07-22T09:30:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-engineer-12"
+            },
+            "data": {
+              "actor": {
+                "principalKind": "app",
+                "principalId": "app-engineer-12"
+              },
+              "changedPaths": [
+                "src/cache-index.ts",
+                "tests/cache-index.test.ts"
+              ],
+              "issueId": "issue-app-12",
+              "reviewedDiffHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "reviewerReceipts": [
+                {
+                  "reviewType": "spec",
+                  "reviewerKind": "app",
+                  "reviewerId": "app-spec-reviewer-12",
+                  "reviewedDiffHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "verdict": "PASS"
+                },
+                {
+                  "reviewType": "quality",
+                  "reviewerKind": "app",
+                  "reviewerId": "app-quality-reviewer-12",
+                  "reviewedDiffHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "verdict": "PASS"
+                }
+              ],
+              "verdict": "PASS"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa7",
+              "event": "precommitReview",
+              "issueId": "issue-app-12",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app12-assignment",
+                "comment-app12-verification",
+                "project-native-launch"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app12-implementation",
+            "createdAt": "2026-07-23T09:00:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-engineer-12"
+            },
+            "data": {
+              "baseCommitSha": "0101010101010101010101010101010101010101",
+              "headCommitSha": "1212121212121212121212121212121212121212",
+              "committedDiffHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2",
+              "event": "implementationEvidence",
+              "issueId": "issue-app-12",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app12-assignment",
+                "comment-app12-precommit-review",
+                "comment-app12-verification",
+                "project-native-launch"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app12-review",
+            "createdAt": "2026-07-24T09:00:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-engineer-12"
+            },
+            "data": {
+              "committedDiffHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "githubReviewId": "github-review-4201",
+              "issueId": "issue-app-12",
+              "pullRequestNumber": 42,
+              "pullRequestUrl": "https://github.com/acme/widgets/pull/42",
+              "result": "PASS",
+              "reviewedHeadSha": "1212121212121212121212121212121212121212",
+              "round": 1,
+              "unresolvedFindingFingerprints": [],
+              "unresolvedThreadIds": []
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa4",
+              "event": "reviewResult",
+              "issueId": "issue-app-12",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app12-implementation",
+                "comment-app12-verification",
+                "github-review-4201",
+                "linear-relation-app12-pr42"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app12-acceptance",
+            "createdAt": "2026-07-25T08:00:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-acceptor-12"
+            },
+            "data": {
+              "actor": {
+                "principalKind": "app",
+                "principalId": "app-acceptor-12"
+              },
+              "issueId": "issue-app-12",
+              "result": "PASS"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa5",
+              "event": "acceptance",
+              "issueId": "issue-app-12",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app12-implementation",
+                "comment-app12-review",
+                "comment-app12-verification"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app12-done",
+            "createdAt": "2026-07-25T08:35:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-acceptor-12"
+            },
+            "data": {
+              "mergeCommitSha": "4242424242424242424242424242424242424242",
+              "pullRequestNumber": 42
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa6",
+              "event": "issueDone",
+              "issueId": "issue-app-12",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app12-acceptance",
+                "comment-app12-implementation",
+                "comment-app12-review",
+                "comment-app12-verification",
+                "linear-relation-app12-pr42"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          }
+        ]
+      },
+      {
+        "id": "issue-app-13",
+        "identifier": "APP-13",
+        "title": "Expose cache status",
+        "state": "inReview",
+        "previousState": null,
+        "assigneeId": "user-lead",
+        "delegateId": "app-engineer-13b",
+        "owner": {
+          "kind": "app",
+          "principalId": "app-engineer-13b"
+        },
+        "acceptanceAuthority": {
+          "kind": "app",
+          "principalId": "app-engineer-13b"
+        },
+        "pullRequestNumber": 43,
+        "readComplete": true,
+        "envelope": {
+          "clientId": "13131313-1313-4131-8131-131313131313",
+          "dependencyIds": [
+            "issue-app-12"
+          ],
+          "kind": "resource",
+          "label": "woostack",
+          "ordinal": 2,
+          "projectId": "project-native-launch",
+          "repository": "https://github.com/acme/widgets",
+          "role": "increment",
+          "schema": 1
+        },
+        "events": [
+          {
+            "id": "comment-app13-assignment",
+            "createdAt": "2026-07-23T09:00:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-engineer-13"
+            },
+            "data": {
+              "engineerName": "engineer-13",
+              "issueId": "issue-app-13",
+              "ownerKind": "app",
+              "ownerPrincipalId": "app-engineer-13",
+              "runId": "run-13"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb1",
+              "event": "assignmentAccepted",
+              "issueId": "issue-app-13",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app13-verification",
+            "createdAt": "2026-07-24T08:00:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-engineer-13"
+            },
+            "data": {
+              "actor": {
+                "principalKind": "app",
+                "principalId": "app-engineer-13"
+              },
+              "changedPaths": [
+                "src/cache-status.ts",
+                "tests/cache-status.test.ts"
+              ],
+              "commands": [
+                "python3 -m pytest tests/test_cache_status.py"
+              ],
+              "issueId": "issue-app-13",
+              "observedResults": [
+                {
+                  "command": "python3 -m pytest tests/test_cache_status.py",
+                  "exitCode": 0,
+                  "result": "8 tests passed"
+                }
+              ],
+              "smokeObservations": [
+                "status endpoint reports cache age"
+              ],
+              "status": "PASS"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb3",
+              "event": "verification",
+              "issueId": "issue-app-13",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app13-assignment",
+                "project-native-launch"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app13-precommit-review-original",
+            "createdAt": "2026-07-24T08:30:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-engineer-13"
+            },
+            "data": {
+              "actor": {
+                "principalKind": "app",
+                "principalId": "app-engineer-13"
+              },
+              "changedPaths": [
+                "src/cache-status.ts",
+                "tests/cache-status.test.ts"
+              ],
+              "issueId": "issue-app-13",
+              "reviewedDiffHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "reviewerReceipts": [
+                {
+                  "reviewType": "spec",
+                  "reviewerKind": "app",
+                  "reviewerId": "app-spec-reviewer",
+                  "reviewedDiffHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                  "verdict": "PASS"
+                },
+                {
+                  "reviewType": "quality",
+                  "reviewerKind": "app",
+                  "reviewerId": "app-quality-reviewer",
+                  "reviewedDiffHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                  "verdict": "PASS"
+                }
+              ],
+              "verdict": "PASS"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb8",
+              "event": "precommitReview",
+              "issueId": "issue-app-13",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app13-assignment",
+                "comment-app13-verification",
+                "project-native-launch"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app13-implementation-original",
+            "createdAt": "2026-07-24T09:00:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-engineer-13"
+            },
+            "data": {
+              "baseCommitSha": "1212121212121212121212121212121212121212",
+              "headCommitSha": "1313131313131313131313131313131313131313",
+              "committedDiffHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb2",
+              "event": "implementationEvidence",
+              "issueId": "issue-app-13",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app13-assignment",
+                "comment-app13-precommit-review-original",
+                "comment-app13-verification",
+                "project-native-launch"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app13-review-original",
+            "createdAt": "2026-07-25T08:00:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-reviewer"
+            },
+            "data": {
+              "committedDiffHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "githubReviewId": "github-review-4301",
+              "issueId": "issue-app-13",
+              "pullRequestNumber": 43,
+              "pullRequestUrl": "https://github.com/acme/widgets/pull/43",
+              "result": "CHANGES_REQUESTED",
+              "reviewedHeadSha": "1313131313131313131313131313131313131313",
+              "round": 1,
+              "unresolvedFindingFingerprints": [
+                "src/cache-status.ts:18:stale-age"
+              ],
+              "unresolvedThreadIds": [
+                "thread-app13-1"
+              ]
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb4",
+              "event": "reviewResult",
+              "issueId": "issue-app-13",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app13-implementation-original",
+                "comment-app13-verification",
+                "github-review-4301",
+                "linear-relation-app13-pr43"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app13-failure",
+            "createdAt": "2026-07-25T09:01:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-engineer-13"
+            },
+            "data": {
+              "affectedIds": [
+                "comment-app13-review-original",
+                "relation-app13-dep-app12"
+              ],
+              "boundary": "restack-precondition",
+              "branch": "feature/app-13",
+              "issueId": "issue-app-13",
+              "observedResult": "parent restack changed the required review head",
+              "safeNextAction": "request a bounded restack authorization",
+              "worktreePath": "/repo/.woostack/worktrees/issues/issue-app-13"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb7",
+              "event": "failure",
+              "issueId": "issue-app-13",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app13-assignment",
+                "comment-app13-review-original",
+                "relation-app13-dep-app12"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app13-restack-authorized",
+            "createdAt": "2026-07-25T09:05:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-engineer-13"
+            },
+            "data": {
+              "affectedRelationIds": [
+                "relation-app13-dep-app12"
+              ],
+              "branch": "feature/app-13",
+              "controllerPrincipalId": "app-sweep-controller",
+              "controllerPrincipalKind": "app",
+              "expiresAt": "2026-07-25T10:00:00Z",
+              "headCommitSha": "1313131313131313131313131313131313131313",
+              "operationId": "13131313-aaaa-4aaa-8aaa-131313131313",
+              "registryClaimPath": ".woostack/worktrees/.registry/issue-app-13/claim.json",
+              "worktreePath": "/repo/.woostack/worktrees/issues/issue-app-13"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb6",
+              "event": "restackAuthorized",
+              "issueId": "issue-app-13",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app13-assignment",
+                "comment-app13-implementation-original",
+                "linear-relation-app13-pr43",
+                "relation-app13-dep-app12"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app13-verification-restacked",
+            "createdAt": "2026-07-25T09:20:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-sweep-controller"
+            },
+            "data": {
+              "actor": {
+                "principalKind": "app",
+                "principalId": "app-sweep-controller"
+              },
+              "changedPaths": [
+                "src/cache-status.ts",
+                "tests/cache-status.test.ts"
+              ],
+              "commands": [
+                "python3 -m pytest tests/test_cache_status.py"
+              ],
+              "issueId": "issue-app-13",
+              "observedResults": [
+                {
+                  "command": "python3 -m pytest tests/test_cache_status.py",
+                  "exitCode": 0,
+                  "result": "8 tests passed"
+                }
+              ],
+              "smokeObservations": [
+                "status endpoint reports cache age"
+              ],
+              "status": "PASS"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb3",
+              "event": "verification",
+              "issueId": "issue-app-13",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app13-assignment",
+                "comment-app13-restack-authorized",
+                "project-native-launch"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 2,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": "comment-app13-verification"
+            }
+          },
+          {
+            "id": "comment-app13-precommit-review-restacked",
+            "createdAt": "2026-07-25T09:30:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-sweep-controller"
+            },
+            "data": {
+              "actor": {
+                "principalKind": "app",
+                "principalId": "app-sweep-controller"
+              },
+              "changedPaths": [
+                "src/cache-status.ts",
+                "tests/cache-status.test.ts"
+              ],
+              "issueId": "issue-app-13",
+              "reviewedDiffHash": "dddddddddddddddddddddddddddddddddddddddd",
+              "reviewerReceipts": [
+                {
+                  "reviewType": "spec",
+                  "reviewerKind": "app",
+                  "reviewerId": "app-spec-reviewer",
+                  "reviewedDiffHash": "dddddddddddddddddddddddddddddddddddddddd",
+                  "verdict": "PASS"
+                },
+                {
+                  "reviewType": "quality",
+                  "reviewerKind": "app",
+                  "reviewerId": "app-quality-reviewer",
+                  "reviewedDiffHash": "dddddddddddddddddddddddddddddddddddddddd",
+                  "verdict": "PASS"
+                }
+              ],
+              "verdict": "PASS"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb8",
+              "event": "precommitReview",
+              "issueId": "issue-app-13",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app13-assignment",
+                "comment-app13-restack-authorized",
+                "comment-app13-verification-restacked",
+                "project-native-launch"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 2,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": "comment-app13-precommit-review-original"
+            }
+          },
+          {
+            "id": "comment-app13-implementation-restacked",
+            "createdAt": "2026-07-25T10:00:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-sweep-controller"
+            },
+            "data": {
+              "baseCommitSha": "1212121212121212121212121212121212121212",
+              "headCommitSha": "2323232323232323232323232323232323232323",
+              "committedDiffHash": "dddddddddddddddddddddddddddddddddddddddd"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb2",
+              "event": "implementationEvidence",
+              "issueId": "issue-app-13",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app13-assignment",
+                "comment-app13-precommit-review-restacked",
+                "comment-app13-restack-authorized",
+                "comment-app13-verification-restacked",
+                "project-native-launch"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 2,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": "comment-app13-implementation-original"
+            }
+          },
+          {
+            "id": "comment-app13-review-restacked",
+            "createdAt": "2026-07-25T11:00:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-reviewer"
+            },
+            "data": {
+              "committedDiffHash": "dddddddddddddddddddddddddddddddddddddddd",
+              "githubReviewId": "github-review-4302",
+              "issueId": "issue-app-13",
+              "pullRequestNumber": 43,
+              "pullRequestUrl": "https://github.com/acme/widgets/pull/43",
+              "result": "CHANGES_REQUESTED",
+              "reviewedHeadSha": "2323232323232323232323232323232323232323",
+              "round": 2,
+              "unresolvedFindingFingerprints": [
+                "src/cache-status.ts:18:stale-age"
+              ],
+              "unresolvedThreadIds": [
+                "thread-app13-1"
+              ]
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbc1",
+              "event": "reviewResult",
+              "issueId": "issue-app-13",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app13-implementation-restacked",
+                "comment-app13-verification-restacked",
+                "github-review-4302",
+                "linear-relation-app13-pr43"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app13-address-authorized",
+            "createdAt": "2026-07-26T09:00:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-engineer-13"
+            },
+            "data": {
+              "affectedRelationIds": [],
+              "branch": "feature/app-13",
+              "controllerPrincipalId": "app-address-controller",
+              "controllerPrincipalKind": "app",
+              "expiresAt": "2026-07-26T10:00:00Z",
+              "headCommitSha": "2323232323232323232323232323232323232323",
+              "operationId": "13131313-bbbb-4bbb-8bbb-131313131313",
+              "registryClaimPath": ".woostack/worktrees/.registry/issue-app-13/claim.json",
+              "worktreePath": "/repo/.woostack/worktrees/issues/issue-app-13"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb9",
+              "event": "restackAuthorized",
+              "issueId": "issue-app-13",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app13-assignment",
+                "comment-app13-implementation-restacked",
+                "linear-relation-app13-pr43"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app13-verification-addressed",
+            "createdAt": "2026-07-26T09:15:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-address-controller"
+            },
+            "data": {
+              "actor": {
+                "principalKind": "app",
+                "principalId": "app-address-controller"
+              },
+              "changedPaths": [
+                "src/cache-status.ts",
+                "tests/cache-status.test.ts"
+              ],
+              "commands": [
+                "python3 -m pytest tests/test_cache_status.py"
+              ],
+              "issueId": "issue-app-13",
+              "observedResults": [
+                {
+                  "command": "python3 -m pytest tests/test_cache_status.py",
+                  "exitCode": 0,
+                  "result": "8 tests passed"
+                }
+              ],
+              "smokeObservations": [
+                "status endpoint reports cache age"
+              ],
+              "status": "PASS"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb3",
+              "event": "verification",
+              "issueId": "issue-app-13",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app13-address-authorized",
+                "comment-app13-assignment",
+                "project-native-launch"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 3,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": "comment-app13-verification-restacked"
+            }
+          },
+          {
+            "id": "comment-app13-precommit-review-addressed",
+            "createdAt": "2026-07-26T09:30:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-address-controller"
+            },
+            "data": {
+              "actor": {
+                "principalKind": "app",
+                "principalId": "app-address-controller"
+              },
+              "changedPaths": [
+                "src/cache-status.ts",
+                "tests/cache-status.test.ts"
+              ],
+              "issueId": "issue-app-13",
+              "reviewedDiffHash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "reviewerReceipts": [
+                {
+                  "reviewType": "spec",
+                  "reviewerKind": "app",
+                  "reviewerId": "app-spec-reviewer",
+                  "reviewedDiffHash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                  "verdict": "PASS"
+                },
+                {
+                  "reviewType": "quality",
+                  "reviewerKind": "app",
+                  "reviewerId": "app-quality-reviewer",
+                  "reviewedDiffHash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                  "verdict": "PASS"
+                }
+              ],
+              "verdict": "PASS"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb8",
+              "event": "precommitReview",
+              "issueId": "issue-app-13",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app13-address-authorized",
+                "comment-app13-assignment",
+                "comment-app13-verification-addressed",
+                "project-native-launch"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 3,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": "comment-app13-precommit-review-restacked"
+            }
+          },
+          {
+            "id": "comment-app13-implementation-addressed",
+            "createdAt": "2026-07-26T09:50:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-address-controller"
+            },
+            "data": {
+              "baseCommitSha": "1212121212121212121212121212121212121212",
+              "headCommitSha": "3434343434343434343434343434343434343434",
+              "committedDiffHash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb2",
+              "event": "implementationEvidence",
+              "issueId": "issue-app-13",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app13-address-authorized",
+                "comment-app13-assignment",
+                "comment-app13-precommit-review-addressed",
+                "comment-app13-verification-addressed",
+                "project-native-launch"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 3,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": "comment-app13-implementation-restacked"
+            }
+          },
+          {
+            "id": "comment-app13-review-addressed",
+            "createdAt": "2026-07-26T10:15:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-reviewer"
+            },
+            "data": {
+              "committedDiffHash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "githubReviewId": "github-review-4303",
+              "issueId": "issue-app-13",
+              "pullRequestNumber": 43,
+              "pullRequestUrl": "https://github.com/acme/widgets/pull/43",
+              "result": "CHANGES_REQUESTED",
+              "reviewedHeadSha": "3434343434343434343434343434343434343434",
+              "round": 3,
+              "unresolvedFindingFingerprints": [
+                "src/cache-status.ts:18:stale-age"
+              ],
+              "unresolvedThreadIds": [
+                "thread-app13-1"
+              ]
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbc2",
+              "event": "reviewResult",
+              "issueId": "issue-app-13",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app13-implementation-addressed",
+                "comment-app13-verification-addressed",
+                "github-review-4303",
+                "linear-relation-app13-pr43"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app13-review-authorized-expired",
+            "createdAt": "2026-07-26T10:20:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-engineer-13"
+            },
+            "data": {
+              "affectedRelationIds": [],
+              "branch": "feature/app-13",
+              "controllerPrincipalId": "app-expired-controller",
+              "controllerPrincipalKind": "app",
+              "expiresAt": "2026-07-26T11:00:00Z",
+              "headCommitSha": "3434343434343434343434343434343434343434",
+              "operationId": "13131313-cccc-4ccc-8ccc-131313131313",
+              "registryClaimPath": ".woostack/worktrees/.registry/issue-app-13/claim.json",
+              "worktreePath": "/repo/.woostack/worktrees/issues/issue-app-13"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbca",
+              "event": "restackAuthorized",
+              "issueId": "issue-app-13",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app13-assignment",
+                "comment-app13-implementation-addressed",
+                "linear-relation-app13-pr43"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app13-handoff",
+            "createdAt": "2026-07-26T11:05:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-engineer-13"
+            },
+            "data": {
+              "branch": "feature/app-13",
+              "issueId": "issue-app-13",
+              "nextAction": "accept handoff and continue current-head review",
+              "ownerKind": "app",
+              "ownerPrincipalId": "app-engineer-13b",
+              "pullRequestUrl": "https://github.com/acme/widgets/pull/43",
+              "recoveryEvidenceIds": [
+                "comment-app13-review-addressed",
+                "linear-relation-app13-pr43"
+              ],
+              "runId": "run-13b",
+              "unresolvedItems": [
+                "address current review findings"
+              ],
+              "worktreePath": "/repo/.woostack/worktrees/issues/issue-app-13"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbcb",
+              "event": "handoff",
+              "issueId": "issue-app-13",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app13-assignment",
+                "comment-app13-review-addressed",
+                "linear-relation-app13-pr43"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app13-assignment-successor",
+            "createdAt": "2026-07-26T11:10:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-engineer-13b"
+            },
+            "data": {
+              "engineerName": "engineer-13b",
+              "issueId": "issue-app-13",
+              "ownerKind": "app",
+              "ownerPrincipalId": "app-engineer-13b",
+              "runId": "run-13b"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbcc",
+              "event": "assignmentAccepted",
+              "issueId": "issue-app-13",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app13-handoff"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          }
+        ]
+      },
+      {
+        "id": "issue-app-14",
+        "identifier": "APP-14",
+        "title": "Document cache recovery",
+        "state": "executing",
+        "previousState": "blocked",
+        "assigneeId": "user-engineer-14",
+        "delegateId": null,
+        "owner": {
+          "kind": "human",
+          "principalId": "user-engineer-14"
+        },
+        "acceptanceAuthority": {
+          "kind": "human",
+          "principalId": "user-engineer-14"
+        },
+        "pullRequestNumber": null,
+        "readComplete": true,
+        "envelope": {
+          "clientId": "14141414-1414-4141-8141-141414141414",
+          "dependencyIds": [
+            "issue-app-13"
+          ],
+          "kind": "resource",
+          "label": "woostack",
+          "ordinal": 3,
+          "projectId": "project-native-launch",
+          "repository": "https://github.com/acme/widgets",
+          "role": "increment",
+          "schema": 1
+        },
+        "events": [
+          {
+            "id": "comment-app14-assignment",
+            "createdAt": "2026-07-24T07:00:00Z",
+            "actor": {
+              "kind": "human",
+              "principalId": "user-engineer-14"
+            },
+            "data": {
+              "engineerName": "engineer-14",
+              "issueId": "issue-app-14",
+              "ownerKind": "human",
+              "ownerPrincipalId": "user-engineer-14",
+              "runId": "run-14"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "cccccccc-cccc-4ccc-8ccc-ccccccccccc1",
+              "event": "assignmentAccepted",
+              "issueId": "issue-app-14",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app14-decision-request",
+            "createdAt": "2026-07-24T07:30:00Z",
+            "actor": {
+              "kind": "human",
+              "principalId": "user-engineer-14"
+            },
+            "data": {
+              "affectedIds": [
+                "issue-app-13"
+              ],
+              "issueId": "issue-app-14",
+              "question": "Confirm the APP-13 cache status contract.",
+              "requestKind": "dependency-contract",
+              "requestedAuthorityKind": "human",
+              "requestedAuthorityPrincipalId": "user-lead",
+              "safeNextAction": "wait for the responsible authority response"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "cccccccc-cccc-4ccc-8ccc-ccccccccccc4",
+              "event": "decisionRequest",
+              "issueId": "issue-app-14",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app14-assignment",
+                "issue-app-13"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app14-blocked",
+            "createdAt": "2026-07-24T08:00:00Z",
+            "actor": {
+              "kind": "human",
+              "principalId": "user-engineer-14"
+            },
+            "data": {
+              "affectedIds": [
+                "comment-app14-decision-request",
+                "issue-app-13"
+              ],
+              "condition": "APP-13 contract is independently settled",
+              "issueId": "issue-app-14",
+              "previousState": "executing"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "cccccccc-cccc-4ccc-8ccc-ccccccccccc2",
+              "event": "blocked",
+              "issueId": "issue-app-14",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app14-assignment",
+                "comment-app14-decision-request",
+                "issue-app-13"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app14-decision-response",
+            "createdAt": "2026-07-24T10:00:00Z",
+            "actor": {
+              "kind": "human",
+              "principalId": "user-lead"
+            },
+            "data": {
+              "decision": "APP-13 uses the retained cache contract.",
+              "decisionRequestId": "comment-app14-decision-request",
+              "issueId": "issue-app-14",
+              "resolution": "The dependency contract is confirmed without widening APP-14.",
+              "safeNextAction": "restore APP-14 to executing"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "deadbeef-dead-4eef-8ead-deadbeef0001",
+              "event": "decisionResponse",
+              "issueId": "issue-app-14",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app14-decision-request"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app14-unblocked",
+            "createdAt": "2026-07-24T12:00:00Z",
+            "actor": {
+              "kind": "human",
+              "principalId": "user-engineer-14"
+            },
+            "data": {
+              "blockedEventId": "comment-app14-blocked",
+              "issueId": "issue-app-14",
+              "resolution": "APP-13 contract response was independently read",
+              "resolutionEvidenceIds": [
+                "comment-app14-decision-response"
+              ],
+              "restoredState": "executing"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "cccccccc-cccc-4ccc-8ccc-ccccccccccc3",
+              "event": "unblocked",
+              "issueId": "issue-app-14",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app14-blocked",
+                "comment-app14-decision-response"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app14-blocked-repeat",
+            "createdAt": "2026-07-25T09:00:00Z",
+            "actor": {
+              "kind": "human",
+              "principalId": "user-engineer-14"
+            },
+            "data": {
+              "affectedIds": [
+                "issue-app-13"
+              ],
+              "condition": "APP-13 follow-up response is independently confirmed",
+              "issueId": "issue-app-14",
+              "previousState": "executing"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "cccccccc-cccc-4ccc-8ccc-ccccccccccc5",
+              "event": "blocked",
+              "issueId": "issue-app-14",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app14-assignment",
+                "issue-app-13"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app14-unblocked-repeat",
+            "createdAt": "2026-07-25T11:00:00Z",
+            "actor": {
+              "kind": "human",
+              "principalId": "user-engineer-14"
+            },
+            "data": {
+              "blockedEventId": "comment-app14-blocked-repeat",
+              "issueId": "issue-app-14",
+              "resolution": "APP-13 follow-up response was independently read",
+              "resolutionEvidenceIds": [
+                "linear-response-app13-contract-v2"
+              ],
+              "restoredState": "executing"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "cccccccc-cccc-4ccc-8ccc-ccccccccccc6",
+              "event": "unblocked",
+              "issueId": "issue-app-14",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app14-blocked-repeat",
+                "linear-response-app13-contract-v2"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app14-handoff-app",
+            "createdAt": "2026-07-25T11:06:00Z",
+            "actor": {
+              "kind": "human",
+              "principalId": "user-engineer-14"
+            },
+            "data": {
+              "branch": null,
+              "issueId": "issue-app-14",
+              "nextAction": "inspect the resolved recovery contract",
+              "ownerKind": "app",
+              "ownerPrincipalId": "app-engineer-14",
+              "pullRequestUrl": null,
+              "recoveryEvidenceIds": [
+                "comment-app14-unblocked-repeat"
+              ],
+              "runId": "run-14-app",
+              "unresolvedItems": [],
+              "worktreePath": null
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "cccccccc-cccc-4ccc-8ccc-ccccccccccc7",
+              "event": "handoff",
+              "issueId": "issue-app-14",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app14-assignment",
+                "comment-app14-unblocked-repeat"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app14-assignment-app",
+            "createdAt": "2026-07-25T11:07:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-engineer-14"
+            },
+            "data": {
+              "engineerName": "engineer-14-app",
+              "issueId": "issue-app-14",
+              "ownerKind": "app",
+              "ownerPrincipalId": "app-engineer-14",
+              "runId": "run-14-app"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "cccccccc-cccc-4ccc-8ccc-ccccccccccc8",
+              "event": "assignmentAccepted",
+              "issueId": "issue-app-14",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app14-handoff-app"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app14-handoff-return",
+            "createdAt": "2026-07-25T11:10:00Z",
+            "actor": {
+              "kind": "app",
+              "principalId": "app-engineer-14"
+            },
+            "data": {
+              "branch": null,
+              "issueId": "issue-app-14",
+              "nextAction": "resume implementation with the verified recovery contract",
+              "ownerKind": "human",
+              "ownerPrincipalId": "user-engineer-14",
+              "pullRequestUrl": null,
+              "recoveryEvidenceIds": [],
+              "runId": "run-14-return",
+              "unresolvedItems": [],
+              "worktreePath": null
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "cccccccc-cccc-4ccc-8ccc-ccccccccccc9",
+              "event": "handoff",
+              "issueId": "issue-app-14",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app14-assignment-app"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          },
+          {
+            "id": "comment-app14-assignment-return",
+            "createdAt": "2026-07-25T11:20:00Z",
+            "actor": {
+              "kind": "human",
+              "principalId": "user-engineer-14"
+            },
+            "data": {
+              "engineerName": "engineer-14-return",
+              "issueId": "issue-app-14",
+              "ownerKind": "human",
+              "ownerPrincipalId": "user-engineer-14",
+              "runId": "run-14-return"
+            },
+            "readComplete": true,
+            "envelope": {
+              "clientId": "cccccccc-cccc-4ccc-8ccc-ccccccccccca",
+              "event": "assignmentAccepted",
+              "issueId": "issue-app-14",
+              "kind": "issueEvent",
+              "label": "woostack",
+              "relatedIds": [
+                "comment-app14-handoff-return"
+              ],
+              "repository": "https://github.com/acme/widgets",
+              "revision": 1,
+              "role": "increment",
+              "schema": 1,
+              "supersedesId": null
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "standaloneIssues": [
+    {
+      "id": "issue-app-21",
+      "identifier": "APP-21",
+      "title": "Repair cache invalidation",
+      "state": "executing",
+      "previousState": null,
+      "assigneeId": "user-engineer-21b",
+      "delegateId": null,
+      "owner": {
+        "kind": "human",
+        "principalId": "user-engineer-21b"
+      },
+      "acceptanceAuthority": {
+        "kind": "human",
+        "principalId": "user-engineer-21b"
+      },
+      "pullRequestNumber": 51,
+      "projectMembership": null,
+      "readComplete": true,
+      "envelope": {
+        "clientId": "21212121-2121-4212-8212-212121212121",
+        "kind": "resource",
+        "label": "woostack",
+        "repository": "https://github.com/acme/widgets",
+        "role": "work-item",
+        "schema": 1
+      },
+      "events": [
+        {
+          "id": "comment-app21-assignment",
+          "createdAt": "2026-06-29T09:00:00Z",
+          "actor": {
+            "kind": "human",
+            "principalId": "user-engineer-21a"
+          },
+          "data": {
+            "engineerName": "engineer-21a",
+            "issueId": "issue-app-21",
+            "ownerKind": "human",
+            "ownerPrincipalId": "user-engineer-21a",
+            "runId": "run-21a"
+          },
+          "readComplete": true,
+          "envelope": {
+            "clientId": "dddddddd-dddd-4ddd-8ddd-ddddddddddd1",
+            "event": "assignmentAccepted",
+            "issueId": "issue-app-21",
+            "kind": "issueEvent",
+            "label": "woostack",
+            "relatedIds": [],
+            "repository": "https://github.com/acme/widgets",
+            "revision": 1,
+            "role": "work-item",
+            "schema": 1,
+            "supersedesId": null
+          }
+        },
+        {
+          "id": "comment-app21-verification",
+          "createdAt": "2026-06-30T08:00:00Z",
+          "actor": {
+            "kind": "human",
+            "principalId": "user-engineer-21a"
+          },
+          "data": {
+            "actor": {
+              "principalKind": "human",
+              "principalId": "user-engineer-21a"
+            },
+            "changedPaths": [
+              "src/invalidation.ts",
+              "tests/invalidation.test.ts"
+            ],
+            "commands": [
+              "python3 -m pytest tests/test_invalidation.py"
+            ],
+            "issueId": "issue-app-21",
+            "observedResults": [
+              {
+                "command": "python3 -m pytest tests/test_invalidation.py",
+                "exitCode": 0,
+                "result": "10 tests passed"
+              }
+            ],
+            "smokeObservations": [
+              "cache invalidation reproducer passes"
+            ],
+            "status": "PASS"
+          },
+          "readComplete": true,
+          "envelope": {
+            "clientId": "dddddddd-dddd-4ddd-8ddd-ddddddddddd5",
+            "event": "verification",
+            "issueId": "issue-app-21",
+            "kind": "issueEvent",
+            "label": "woostack",
+            "relatedIds": [
+              "comment-app21-assignment"
+            ],
+            "repository": "https://github.com/acme/widgets",
+            "revision": 1,
+            "role": "work-item",
+            "schema": 1,
+            "supersedesId": null
+          }
+        },
+        {
+          "id": "comment-app21-precommit-review",
+          "createdAt": "2026-06-30T08:30:00Z",
+          "actor": {
+            "kind": "human",
+            "principalId": "user-engineer-21a"
+          },
+          "data": {
+            "actor": {
+              "principalKind": "human",
+              "principalId": "user-engineer-21a"
+            },
+            "changedPaths": [
+              "src/invalidation.ts",
+              "tests/invalidation.test.ts"
+            ],
+            "issueId": "issue-app-21",
+            "reviewedDiffHash": "cccccccccccccccccccccccccccccccccccccccc",
+            "reviewerReceipts": [
+              {
+                "reviewType": "spec",
+                "reviewerKind": "human",
+                "reviewerId": "user-spec-reviewer-21",
+                "reviewedDiffHash": "cccccccccccccccccccccccccccccccccccccccc",
+                "verdict": "PASS"
+              },
+              {
+                "reviewType": "quality",
+                "reviewerKind": "human",
+                "reviewerId": "user-quality-reviewer-21",
+                "reviewedDiffHash": "cccccccccccccccccccccccccccccccccccccccc",
+                "verdict": "PASS"
+              }
+            ],
+            "verdict": "PASS"
+          },
+          "readComplete": true,
+          "envelope": {
+            "clientId": "dddddddd-dddd-4ddd-8ddd-ddddddddddd6",
+            "event": "precommitReview",
+            "issueId": "issue-app-21",
+            "kind": "issueEvent",
+            "label": "woostack",
+            "relatedIds": [
+              "comment-app21-assignment",
+              "comment-app21-verification"
+            ],
+            "repository": "https://github.com/acme/widgets",
+            "revision": 1,
+            "role": "work-item",
+            "schema": 1,
+            "supersedesId": null
+          }
+        },
+        {
+          "id": "comment-app21-implementation",
+          "createdAt": "2026-06-30T09:00:00Z",
+          "actor": {
+            "kind": "human",
+            "principalId": "user-engineer-21a"
+          },
+          "data": {
+            "baseCommitSha": "0101010101010101010101010101010101010101",
+            "headCommitSha": "2121212121212121212121212121212121212121",
+            "committedDiffHash": "cccccccccccccccccccccccccccccccccccccccc"
+          },
+          "readComplete": true,
+          "envelope": {
+            "clientId": "dddddddd-dddd-4ddd-8ddd-ddddddddddd2",
+            "event": "implementationEvidence",
+            "issueId": "issue-app-21",
+            "kind": "issueEvent",
+            "label": "woostack",
+            "relatedIds": [
+              "comment-app21-assignment",
+              "comment-app21-precommit-review",
+              "comment-app21-verification"
+            ],
+            "repository": "https://github.com/acme/widgets",
+            "revision": 1,
+            "role": "work-item",
+            "schema": 1,
+            "supersedesId": null
+          }
+        },
+        {
+          "id": "comment-app21-review",
+          "createdAt": "2026-07-01T08:00:00Z",
+          "actor": {
+            "kind": "human",
+            "principalId": "user-dispatcher"
+          },
+          "data": {
+            "committedDiffHash": "cccccccccccccccccccccccccccccccccccccccc",
+            "githubReviewId": "github-review-5101",
+            "issueId": "issue-app-21",
+            "pullRequestNumber": 51,
+            "pullRequestUrl": "https://github.com/acme/widgets/pull/51",
+            "result": "CHANGES_REQUESTED",
+            "reviewedHeadSha": "2121212121212121212121212121212121212121",
+            "round": 1,
+            "unresolvedFindingFingerprints": [
+              "src/invalidation.ts:27:missed-key"
+            ],
+            "unresolvedThreadIds": [
+              "thread-app21-1"
+            ]
+          },
+          "readComplete": true,
+          "envelope": {
+            "clientId": "dddddddd-dddd-4ddd-8ddd-ddddddddddd3",
+            "event": "reviewResult",
+            "issueId": "issue-app-21",
+            "kind": "issueEvent",
+            "label": "woostack",
+            "relatedIds": [
+              "comment-app21-implementation",
+              "comment-app21-verification",
+              "github-review-5101",
+              "linear-relation-app21-pr51"
+            ],
+            "repository": "https://github.com/acme/widgets",
+            "revision": 1,
+            "role": "work-item",
+            "schema": 1,
+            "supersedesId": null
+          }
+        },
+        {
+          "id": "comment-app21-handoff",
+          "createdAt": "2026-07-01T09:00:00Z",
+          "actor": {
+            "kind": "human",
+            "principalId": "user-engineer-21a"
+          },
+          "data": {
+            "branch": "feature/app-21",
+            "issueId": "issue-app-21",
+            "nextAction": "accept handoff and address PR #51",
+            "ownerKind": "human",
+            "ownerPrincipalId": "user-engineer-21b",
+            "pullRequestUrl": "https://github.com/acme/widgets/pull/51",
+            "recoveryEvidenceIds": [
+              "comment-app21-review",
+              "linear-relation-app21-pr51"
+            ],
+            "runId": "run-21b",
+            "unresolvedItems": [
+              "address current review findings"
+            ],
+            "worktreePath": "/repo/.woostack/worktrees/issues/issue-app-21"
+          },
+          "readComplete": true,
+          "envelope": {
+            "clientId": "dddddddd-dddd-4ddd-8ddd-ddddddddddd4",
+            "event": "handoff",
+            "issueId": "issue-app-21",
+            "kind": "issueEvent",
+            "label": "woostack",
+            "relatedIds": [
+              "comment-app21-assignment",
+              "comment-app21-review",
+              "linear-relation-app21-pr51"
+            ],
+            "repository": "https://github.com/acme/widgets",
+            "revision": 1,
+            "role": "work-item",
+            "schema": 1,
+            "supersedesId": null
+          }
+        }
+      ]
+    }
+  ],
+  "github": {
+    "repository": "https://github.com/acme/widgets",
+    "readComplete": true,
+    "pullRequests": [
+      {
+        "number": 42,
+        "url": "https://github.com/acme/widgets/pull/42",
+        "repository": "https://github.com/acme/widgets",
+        "state": "MERGED",
+        "reviewState": "PASS",
+        "headRefName": "feature/app-12",
+        "baseRefName": "main",
+        "headSha": "1212121212121212121212121212121212121212",
+        "committedDiffHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "changedPaths": [
+          "src/cache-index.ts",
+          "tests/cache-index.test.ts"
+        ],
+        "baseSha": "0101010101010101010101010101010101010101",
+        "mergeCommitSha": "4242424242424242424242424242424242424242",
+        "mergedAt": "2026-07-25T08:30:00Z",
+        "updatedAt": "2026-07-25T08:30:00Z",
+        "body": "Implements the first increment.\n\nLinear-Project: 11111111-1111-4111-8111-111111111111\nLinear-Issue: APP-12",
+        "ancestry": {
+          "verified": true,
+          "rootBaseVerified": true,
+          "parentIssueId": null,
+          "parentPullRequestNumber": null,
+          "nonParentDependenciesMerged": true
+        }
+      },
+      {
+        "number": 43,
+        "url": "https://github.com/acme/widgets/pull/43",
+        "repository": "https://github.com/acme/widgets",
+        "state": "OPEN",
+        "reviewState": "CHANGES_REQUESTED",
+        "headRefName": "feature/app-13",
+        "baseRefName": "feature/app-12",
+        "headSha": "3434343434343434343434343434343434343434",
+        "committedDiffHash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "changedPaths": [
+          "src/cache-status.ts",
+          "tests/cache-status.test.ts"
+        ],
+        "baseSha": "1212121212121212121212121212121212121212",
+        "mergeCommitSha": null,
+        "mergedAt": null,
+        "updatedAt": "2026-07-26T10:15:00Z",
+        "body": "Implements the dependent increment.\n\nLinear-Project: 11111111-1111-4111-8111-111111111111\nLinear-Issue: APP-13",
+        "ancestry": {
+          "verified": true,
+          "rootBaseVerified": false,
+          "parentIssueId": "issue-app-12",
+          "parentPullRequestNumber": 42,
+          "nonParentDependenciesMerged": true
+        }
+      },
+      {
+        "number": 51,
+        "url": "https://github.com/acme/widgets/pull/51",
+        "repository": "https://github.com/acme/widgets",
+        "state": "OPEN",
+        "reviewState": "CHANGES_REQUESTED",
+        "headRefName": "change/app-21",
+        "baseRefName": "main",
+        "headSha": "2121212121212121212121212121212121212121",
+        "committedDiffHash": "cccccccccccccccccccccccccccccccccccccccc",
+        "changedPaths": [
+          "src/invalidation.ts",
+          "tests/invalidation.test.ts"
+        ],
+        "baseSha": "0101010101010101010101010101010101010101",
+        "mergeCommitSha": null,
+        "mergedAt": null,
+        "updatedAt": "2026-07-01T09:00:00Z",
+        "body": "Repairs invalidation.\n\nLinear-Issue: APP-21",
+        "ancestry": {
+          "verified": true,
+          "rootBaseVerified": true,
+          "parentIssueId": null,
+          "parentPullRequestNumber": null,
+          "nonParentDependenciesMerged": true
+        }
+      }
+    ],
+    "historicalHeads": [
+      {
+        "issueId": "issue-app-13",
+        "pullRequestNumber": 43,
+        "branch": "feature/app-13",
+        "headSha": "1313131313131313131313131313131313131313",
+        "committedDiffHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "observedAt": "2026-07-25T09:04:00Z",
+        "readComplete": true
+      },
+      {
+        "issueId": "issue-app-13",
+        "pullRequestNumber": 43,
+        "branch": "feature/app-13",
+        "headSha": "2323232323232323232323232323232323232323",
+        "committedDiffHash": "dddddddddddddddddddddddddddddddddddddddd",
+        "observedAt": "2026-07-26T08:59:00Z",
+        "readComplete": true
+      },
+      {
+        "issueId": "issue-app-13",
+        "pullRequestNumber": 43,
+        "branch": "feature/app-13",
+        "headSha": "3434343434343434343434343434343434343434",
+        "committedDiffHash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "observedAt": "2026-07-26T10:19:00Z",
+        "readComplete": true
+      }
+    ],
+    "reviews": [
+      {
+        "id": "github-review-4201",
+        "url": "https://github.com/acme/widgets/pull/42#pullrequestreview-4201",
+        "repository": "https://github.com/acme/widgets",
+        "issueId": "issue-app-12",
+        "pullRequestNumber": 42,
+        "pullRequestUrl": "https://github.com/acme/widgets/pull/42",
+        "headSha": "1212121212121212121212121212121212121212",
+        "committedDiffHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "fullReview": true,
+        "headMarker": "<!-- woostack-review:sha=1212121212121212121212121212121212121212 -->",
+        "reviewer": {
+          "kind": "app",
+          "principalId": "app-engineer-12"
+        },
+        "round": 1,
+        "statusLine": "APPROVED",
+        "unresolvedFindingFingerprints": [],
+        "unresolvedThreadIds": [],
+        "submittedAt": "2026-07-24T08:59:00Z",
+        "readComplete": true
+      },
+      {
+        "id": "github-review-4301",
+        "url": "https://github.com/acme/widgets/pull/43#pullrequestreview-4301",
+        "repository": "https://github.com/acme/widgets",
+        "issueId": "issue-app-13",
+        "pullRequestNumber": 43,
+        "pullRequestUrl": "https://github.com/acme/widgets/pull/43",
+        "headSha": "1313131313131313131313131313131313131313",
+        "committedDiffHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "fullReview": true,
+        "headMarker": "<!-- woostack-review:sha=1313131313131313131313131313131313131313 -->",
+        "reviewer": {
+          "kind": "app",
+          "principalId": "app-reviewer"
+        },
+        "round": 1,
+        "statusLine": "CHANGES_REQUESTED",
+        "unresolvedFindingFingerprints": [
+          "src/cache-status.ts:18:stale-age"
+        ],
+        "unresolvedThreadIds": [
+          "thread-app13-1"
+        ],
+        "submittedAt": "2026-07-25T08:00:00Z",
+        "readComplete": true
+      },
+      {
+        "id": "github-review-4302",
+        "url": "https://github.com/acme/widgets/pull/43#pullrequestreview-4302",
+        "repository": "https://github.com/acme/widgets",
+        "issueId": "issue-app-13",
+        "pullRequestNumber": 43,
+        "pullRequestUrl": "https://github.com/acme/widgets/pull/43",
+        "headSha": "2323232323232323232323232323232323232323",
+        "committedDiffHash": "dddddddddddddddddddddddddddddddddddddddd",
+        "fullReview": true,
+        "headMarker": "<!-- woostack-review:sha=2323232323232323232323232323232323232323 -->",
+        "reviewer": {
+          "kind": "app",
+          "principalId": "app-reviewer"
+        },
+        "round": 2,
+        "statusLine": "CHANGES_REQUESTED",
+        "unresolvedFindingFingerprints": [
+          "src/cache-status.ts:18:stale-age"
+        ],
+        "unresolvedThreadIds": [
+          "thread-app13-1"
+        ],
+        "submittedAt": "2026-07-25T11:00:00Z",
+        "readComplete": true
+      },
+      {
+        "id": "github-review-5101",
+        "url": "https://github.com/acme/widgets/pull/51#pullrequestreview-5101",
+        "repository": "https://github.com/acme/widgets",
+        "issueId": "issue-app-21",
+        "pullRequestNumber": 51,
+        "pullRequestUrl": "https://github.com/acme/widgets/pull/51",
+        "headSha": "2121212121212121212121212121212121212121",
+        "committedDiffHash": "cccccccccccccccccccccccccccccccccccccccc",
+        "fullReview": true,
+        "headMarker": "<!-- woostack-review:sha=2121212121212121212121212121212121212121 -->",
+        "reviewer": {
+          "kind": "human",
+          "principalId": "user-dispatcher"
+        },
+        "round": 1,
+        "statusLine": "CHANGES_REQUESTED",
+        "unresolvedFindingFingerprints": [
+          "src/invalidation.ts:27:missed-key"
+        ],
+        "unresolvedThreadIds": [
+          "thread-app21-1"
+        ],
+        "submittedAt": "2026-07-01T08:00:00Z",
+        "readComplete": true
+      },
+      {
+        "id": "github-review-4303",
+        "url": "https://github.com/acme/widgets/pull/43#pullrequestreview-4303",
+        "repository": "https://github.com/acme/widgets",
+        "issueId": "issue-app-13",
+        "pullRequestNumber": 43,
+        "pullRequestUrl": "https://github.com/acme/widgets/pull/43",
+        "headSha": "3434343434343434343434343434343434343434",
+        "committedDiffHash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "fullReview": true,
+        "headMarker": "<!-- woostack-review:sha=3434343434343434343434343434343434343434 -->",
+        "reviewer": {
+          "kind": "app",
+          "principalId": "app-reviewer"
+        },
+        "round": 3,
+        "statusLine": "CHANGES_REQUESTED",
+        "unresolvedFindingFingerprints": [
+          "src/cache-status.ts:18:stale-age"
+        ],
+        "unresolvedThreadIds": [
+          "thread-app13-1"
+        ],
+        "submittedAt": "2026-07-26T10:14:00Z",
+        "readComplete": true
+      }
+    ]
+  },
+  "ancestryCases": {
+    "validOpenParentStack": {
+      "dependencyIds": [
+        "issue-parent-open"
+      ],
+      "parent": {
+        "issueId": "issue-parent-open",
+        "state": "inReview",
+        "pullRequest": {
+          "number": 60,
+          "state": "OPEN",
+          "headRefName": "feature/open-parent",
+          "headSha": "6060606060606060606060606060606060606060",
+          "mergeCommitSha": null,
+          "mergedAt": null
+        }
+      },
+      "nonParentDependencies": [],
+      "child": {
+        "issueId": "issue-open-child",
+        "state": "executing",
+        "gitParentIssueId": "issue-parent-open",
+        "gitParentPullRequestNumber": 60,
+        "startCommitSha": "6060606060606060606060606060606060606060",
+        "baseRefName": "feature/open-parent",
+        "baseSha": "6060606060606060606060606060606060606060",
+        "graphiteParent": "feature/open-parent",
+        "ancestryVerified": true
+      }
+    },
+    "doneParentWithOpenPr": {
+      "dependencyIds": [
+        "issue-parent-done"
+      ],
+      "parent": {
+        "issueId": "issue-parent-done",
+        "state": "done",
+        "pullRequest": {
+          "number": 61,
+          "state": "OPEN",
+          "headRefName": "feature/done-parent",
+          "headSha": "6161616161616161616161616161616161616161",
+          "mergeCommitSha": null,
+          "mergedAt": null
+        }
+      },
+      "nonParentDependencies": [],
+      "child": {
+        "issueId": "issue-unsafe-done-child",
+        "state": "executing",
+        "gitParentIssueId": "issue-parent-done",
+        "gitParentPullRequestNumber": 61,
+        "startCommitSha": "6161616161616161616161616161616161616161",
+        "baseRefName": "feature/done-parent",
+        "baseSha": "6161616161616161616161616161616161616161",
+        "graphiteParent": "feature/done-parent",
+        "ancestryVerified": true
+      }
+    },
+    "unmergedNonParentDependency": {
+      "dependencyIds": [
+        "issue-non-parent",
+        "issue-parent-open"
+      ],
+      "parent": {
+        "issueId": "issue-parent-open",
+        "state": "inReview",
+        "pullRequest": {
+          "number": 60,
+          "state": "OPEN",
+          "headRefName": "feature/open-parent",
+          "headSha": "6060606060606060606060606060606060606060",
+          "mergeCommitSha": null,
+          "mergedAt": null
+        }
+      },
+      "nonParentDependencies": [
+        {
+          "issueId": "issue-non-parent",
+          "state": "done",
+          "acceptanceCurrent": true,
+          "pullRequest": {
+            "number": 59,
+            "state": "OPEN",
+            "mergeCommitSha": null,
+            "mergedAt": null
+          },
+          "mergeRepresentedInChildAncestry": true
+        }
+      ],
+      "child": {
+        "issueId": "issue-unsafe-non-parent-child",
+        "state": "executing",
+        "gitParentIssueId": "issue-parent-open",
+        "gitParentPullRequestNumber": 60,
+        "startCommitSha": "6060606060606060606060606060606060606060",
+        "baseRefName": "feature/open-parent",
+        "baseSha": "6060606060606060606060606060606060606060",
+        "graphiteParent": "feature/open-parent",
+        "ancestryVerified": true
+      }
+    },
+    "driftedOpenParentHead": {
+      "dependencyIds": [
+        "issue-parent-open"
+      ],
+      "parent": {
+        "issueId": "issue-parent-open",
+        "state": "inReview",
+        "pullRequest": {
+          "number": 60,
+          "state": "OPEN",
+          "headRefName": "feature/open-parent",
+          "headSha": "6060606060606060606060606060606060606060",
+          "mergeCommitSha": null,
+          "mergedAt": null
+        }
+      },
+      "nonParentDependencies": [],
+      "child": {
+        "issueId": "issue-drifted-child",
+        "state": "executing",
+        "gitParentIssueId": "issue-parent-open",
+        "gitParentPullRequestNumber": 60,
+        "startCommitSha": "6262626262626262626262626262626262626262",
+        "baseRefName": "feature/open-parent",
+        "baseSha": "6262626262626262626262626262626262626262",
+        "graphiteParent": "feature/open-parent",
+        "ancestryVerified": true
+      }
+    }
+  },
+  "mutationReceipts": {
+    "issueDone": [
+      {
+        "principalGate": {
+          "acceptanceAuthority": {
+            "kind": "app",
+            "principalId": "app-acceptor-12"
+          },
+          "authenticatedPrincipal": {
+            "kind": "app",
+            "principalId": "app-acceptor-12"
+          },
+          "readComplete": true
+        },
+        "operation": "issueState",
+        "targetId": "issue-app-12",
+        "targetClientId": "12121212-1212-4121-8121-121212121212",
+        "eventClientId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa6",
+        "eventNativeId": "comment-app12-done",
+        "from": "inReview",
+        "to": "done",
+        "evidenceIds": [
+          "comment-app12-acceptance",
+          "comment-app12-implementation",
+          "comment-app12-review",
+          "comment-app12-verification",
+          "linear-relation-app12-pr42"
+        ],
+        "retryDiscovery": {
+          "clientId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa6",
+          "complete": true,
+          "nativeIds": [
+            "comment-app12-done"
+          ],
+          "reappend": false
+        },
+        "readBack": {
+          "complete": true,
+          "eventsComplete": true,
+          "id": "issue-app-12",
+          "clientId": "12121212-1212-4121-8121-121212121212",
+          "repository": "https://github.com/acme/widgets",
+          "role": "increment",
+          "projectId": "project-native-launch",
+          "state": "done",
+          "owner": {
+            "kind": "app",
+            "principalId": "app-engineer-12"
+          },
+          "dependencyIds": [],
+          "pullRequestNumber": 42,
+          "issueDoneEventClientId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa6",
+          "issueDoneEventNativeId": "comment-app12-done",
+          "currentEventIds": [
+            "comment-app12-acceptance",
+            "comment-app12-assignment",
+            "comment-app12-done",
+            "comment-app12-implementation",
+            "comment-app12-precommit-review",
+            "comment-app12-review",
+            "comment-app12-verification"
+          ],
+          "linearPullRequestRelationId": "linear-relation-app12-pr42"
+        },
+        "linearPullRequestRelationId": "linear-relation-app12-pr42"
+      }
+    ],
+    "allDoneProjectScenario": {
+      "donePhaseEvent": {
+        "id": "update-done",
+        "createdAt": "2026-07-26T11:00:00Z",
+        "actor": {
+          "kind": "human",
+          "principalId": "user-lead"
+        },
+        "readComplete": true,
+        "envelope": {
+          "clientId": "00000000-0000-4000-8000-000000000012",
+          "event": "done",
+          "kind": "projectEvent",
+          "label": "woostack",
+          "predecessorId": "update-in-review",
+          "projectId": "project-native-launch",
+          "relatedIds": [
+            "issue-app-12",
+            "issue-app-13",
+            "issue-app-14"
+          ],
+          "repository": "https://github.com/acme/widgets",
+          "revision": 1,
+          "role": "feature",
+          "schema": 1,
+          "supersedesId": null
+        }
+      },
+      "preconditions": {
+        "projectCategory": "started",
+        "issueStates": {
+          "issue-app-12": "done",
+          "issue-app-13": "done",
+          "issue-app-14": "done"
+        },
+        "allPullRequestsMerged": true,
+        "dependenciesSatisfied": true,
+        "unresolvedBlockerIds": [],
+        "handoffConflicts": [],
+        "leadReadComplete": true,
+        "mutationPrincipal": {
+          "kind": "human",
+          "principalId": "user-lead"
+        }
+      },
+      "operation": "projectStatus",
+      "targetId": "project-native-launch",
+      "targetClientId": "11111111-1111-4111-8111-111111111111",
+      "fromCategory": "started",
+      "toCategory": "completed",
+      "readBack": {
+        "complete": true,
+        "id": "project-native-launch",
+        "clientId": "11111111-1111-4111-8111-111111111111",
+        "repository": "https://github.com/acme/widgets",
+        "role": "feature",
+        "phase": "done",
+        "category": "completed",
+        "issueIds": [
+          "issue-app-12",
+          "issue-app-13",
+          "issue-app-14"
+        ],
+        "issueStates": {
+          "issue-app-12": "done",
+          "issue-app-13": "done",
+          "issue-app-14": "done"
+        }
+      }
+    }
+  },
+  "failureCases": {
+    "ambiguousPhaseEvent": {
+      "id": "update-abandoned-fork",
+      "createdAt": "2026-07-25T08:59:00Z",
+      "actor": {
+        "kind": "human",
+        "principalId": "user-lead"
+      },
+      "readComplete": true,
+      "envelope": {
+        "clientId": "00000000-0000-4000-8000-000000000011",
+        "event": "abandoned",
+        "kind": "projectEvent",
+        "label": "woostack",
+        "predecessorId": "update-executing",
+        "projectId": "project-native-launch",
+        "relatedIds": [
+          "issue-app-12",
+          "issue-app-13",
+          "issue-app-14"
+        ],
+        "repository": "https://github.com/acme/widgets",
+        "revision": 1,
+        "role": "feature",
+        "schema": 1,
+        "supersedesId": null
+      }
+    },
+    "gitMismatchBody": "Wrong issue attribution.\n\nLinear-Project: 11111111-1111-4111-8111-111111111111\nLinear-Issue: APP-99",
+    "partialCollection": "githubPullRequests",
+    "malformedImplementationEvidenceData": {
+      "baseCommitSha": "0101010101010101010101010101010101010101",
+      "headCommitSha": "1212121212121212121212121212121212121212",
+      "committedDiffHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "pullRequestNumber": 42
+    },
+    "malformedIssueDoneData": {
+      "decision": "accepted",
+      "mergeCommitSha": "4242424242424242424242424242424242424242",
+      "pullRequestNumber": 42
+    },
+    "issueDoneWrongRelatedIds": [
+      "comment-app12-acceptance",
+      "comment-app12-implementation",
+      "comment-app12-review",
+      "linear-relation-app12-pr42"
+    ],
+    "issueDoneWrongReceiptClientId": "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+    "minimalReviewResultData": {
+      "pullRequestNumber": 42,
+      "result": "PASS"
+    },
+    "reviewStaleHeadSha": "9999999999999999999999999999999999999999",
+    "reviewStaleDiffHash": "9999999999999999999999999999999999999999999999999999999999999999",
+    "reviewForeignIssueId": "issue-app-99",
+    "reviewForeignPullRequestNumber": 99,
+    "reviewForeignPullRequestUrl": "https://github.com/foreign/widgets/pull/42",
+    "reviewWrongRelatedIds": [
+      "comment-app12-implementation",
+      "comment-app12-verification",
+      "github-review-9999",
+      "linear-relation-app12-pr42"
+    ],
+    "reviewMissingFields": [
+      "result",
+      "round"
+    ],
+    "reviewReceiptMissingFields": [
+      "unresolvedFindingFingerprints",
+      "unresolvedThreadIds"
+    ],
+    "reviewNonPositiveRound": 0,
+    "nonFullReviewReceipt": false,
+    "reviewUnresolvedThreadIds": [
+      "thread-app12-unresolved"
+    ],
+    "partialReviewEventReadComplete": false,
+    "partialReviewReceiptReadComplete": false,
+    "reviewReceiptAfterEventAt": "2026-07-24T09:00:01Z",
+    "minimalVerificationData": {
+      "status": "PASS"
+    },
+    "verificationFutureImplementationFields": {
+      "committedDiffHash": "8888888888888888888888888888888888888888888888888888888888888888",
+      "headCommitSha": "8888888888888888888888888888888888888888"
+    },
+    "verificationForeignIssueId": "issue-app-99",
+    "verificationWrongActor": {
+      "principalKind": "human",
+      "principalId": "user-foreign"
+    },
+    "verificationWrongRelatedIds": [
+      "comment-app12-assignment"
+    ],
+    "implementationMissingVerificationRelatedIds": [
+      "comment-app12-assignment",
+      "comment-app12-precommit-review",
+      "project-native-launch"
+    ],
+    "implementationMissingPrecommitRelatedIds": [
+      "comment-app12-assignment",
+      "comment-app12-verification",
+      "project-native-launch"
+    ],
+    "partialVerificationReadComplete": false,
+    "restackWrongRelatedIds": [
+      "comment-app13-assignment",
+      "comment-app13-implementation-original",
+      "linear-relation-app13-pr43"
+    ],
+    "malformedRestackOperationId": "restack-app13-review-1",
+    "restackHistoricalHeadMismatch": "9999999999999999999999999999999999999999",
+    "restackCurrentHeadMismatch": "9898989898989898989898989898989898989898",
+    "restackMissingConsumptionRelatedIds": [
+      "comment-app13-assignment",
+      "comment-app13-precommit-review-restacked",
+      "comment-app13-verification-restacked",
+      "project-native-launch"
+    ],
+    "foreignProjectEventRepository": "https://github.com/foreign/widgets",
+    "malformedProjectProgressData": {
+      "percent": 100
+    },
+    "projectProgressWrongRelatedIds": [
+      "issue-app-12"
+    ],
+    "malformedProjectBlockerResolvedRelatedIds": [
+      "comment-app14-unblocked-repeat",
+      "issue-app-14",
+      "update-project-blocker-open"
+    ],
+    "projectHandoffWrongRelatedIds": [
+      "comment-app13-review-restacked"
+    ],
+    "projectDecisionWrongRelatedIds": [
+      "issue-app-13",
+      "relation-app13-dep-app12"
+    ],
+    "malformedProjectDecisionData": {
+      "affectedIssueIds": [
+        "issue-app-13"
+      ],
+      "affectedRelationIds": [
+        "relation-app13-dep-app12"
+      ],
+      "controllerPrincipalId": "app-sweep-controller",
+      "controllerPrincipalKind": "app",
+      "operationId": "13131313-aaaa-4aaa-8aaa-131313131313"
+    },
+    "unauthorizedProjectActor": {
+      "kind": "human",
+      "principalId": "user-not-lead"
+    },
+    "unauthorizedDesignActor": {
+      "kind": "app",
+      "principalId": "app-not-hardener"
+    },
+    "precommitReviewForeignIssueId": "issue-app-99",
+    "precommitReviewWrongActor": {
+      "kind": "human",
+      "principalId": "user-foreign"
+    },
+    "precommitReviewWrongRelatedIds": [
+      "comment-app12-assignment",
+      "project-native-launch"
+    ],
+    "precommitReviewReceiptHashMismatch": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "precommitReviewFutureFields": {
+      "headCommitSha": "8888888888888888888888888888888888888888",
+      "pullRequestNumber": 42
+    },
+    "implementationCodingWorkerActor": {
+      "kind": "coding-worker",
+      "principalId": "omp-run-12"
+    },
+    "restackHistoricalUsesCurrentPrecommitRelatedIds": [
+      "comment-app13-assignment",
+      "comment-app13-precommit-review-addressed",
+      "comment-app13-verification-addressed",
+      "project-native-launch"
+    ],
+    "restackCompletionAfterExpiry": "2026-07-25T10:00:01Z",
+    "inactiveRestackCompletionAfterExpiry": "2026-07-26T11:00:01Z",
+    "restackCompletionAtAuthorization": "2026-07-25T09:05:00Z",
+    "crossIssueDecisionEmptyAffectedRelations": {
+      "affectedIssueIds": [
+        "issue-app-13",
+        "issue-app-14"
+      ],
+      "affectedRelationIds": []
+    },
+    "unsupportedIssueEventKind": "unknownIssueEvent",
+    "wrongIssueDonePrincipalScenario": {
+      "principalGate": {
+        "acceptanceAuthority": {
+          "kind": "app",
+          "principalId": "app-acceptor-12"
+        },
+        "authenticatedPrincipal": {
+          "kind": "human",
+          "principalId": "user-lead"
+        },
+        "readComplete": true
+      },
+      "eventUuidAllocated": false,
+      "mutationsAttempted": []
+    },
+    "unauthorizedProjectDoneEvent": {
+      "id": "update-done",
+      "createdAt": "2026-07-26T11:00:00Z",
+      "actor": {
+        "kind": "human",
+        "principalId": "user-not-lead"
+      },
+      "readComplete": true,
+      "envelope": {
+        "clientId": "00000000-0000-4000-8000-000000000012",
+        "event": "done",
+        "kind": "projectEvent",
+        "label": "woostack",
+        "predecessorId": "update-in-review",
+        "projectId": "project-native-launch",
+        "relatedIds": [
+          "issue-app-12",
+          "issue-app-13",
+          "issue-app-14"
+        ],
+        "repository": "https://github.com/acme/widgets",
+        "revision": 1,
+        "role": "feature",
+        "schema": 1,
+        "supersedesId": null
+      }
+    },
+    "missingProjectDoneEventId": "update-done",
+    "verificationObsoleteActor": {
+      "kind": "app",
+      "principalId": "app-engineer-12"
+    },
+    "missingLinearPrRelationId": "linear-relation-app12-pr42",
+    "syntheticLinearPrRelationId": "linear-relation-app12-pr404",
+    "partialLinearPrRelationReadComplete": false,
+    "duplicateLinearPrRelation": {
+      "id": "linear-relation-app12-pr42-duplicate",
+      "issueId": "issue-app-12",
+      "repository": "https://github.com/acme/widgets",
+      "pullRequestNumber": 42,
+      "pullRequestUrl": "https://github.com/acme/widgets/pull/42",
+      "branch": "feature/app-12",
+      "createdAt": "2026-07-23T10:00:00Z",
+      "updatedAt": "2026-07-23T10:00:00Z",
+      "readComplete": true
+    },
+    "foreignLinearPrRelationRepository": "https://github.com/foreign/widgets",
+    "staleLinearPrRelationCreatedAt": "2026-07-24T09:00:01Z",
+    "sweepVerificationWrongNativeActor": {
+      "kind": "app",
+      "principalId": "app-engineer-13"
+    },
+    "sweepVerificationMissingAuthorizationRelatedIds": [
+      "comment-app13-assignment",
+      "project-native-launch"
+    ],
+    "sweepVerificationOutsideWindowAt": "2026-07-26T10:00:01Z",
+    "implementationStaleVerificationRelatedIds": [
+      "comment-app13-address-authorized",
+      "comment-app13-assignment",
+      "comment-app13-precommit-review-addressed",
+      "comment-app13-verification-restacked",
+      "project-native-launch"
+    ],
+    "reviewDuplicateRound": 2,
+    "reviewNonMonotonicRound": 1,
+    "reviewDuplicateCurrentHeadClientId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbcd1",
+    "restackDuplicateConsumerAuthorizationId": "comment-app13-restack-authorized",
+    "restackStaleCurrentHeadSha": "5656565656565656565656565656565656565656",
+    "historicalAuthorizationPresentOwnerActor": {
+      "kind": "app",
+      "principalId": "app-engineer-13b"
+    },
+    "implementationPresentAssignmentRelatedIds": [
+      "comment-app13-address-authorized",
+      "comment-app13-assignment-successor",
+      "comment-app13-precommit-review-addressed",
+      "comment-app13-verification-addressed",
+      "project-native-launch"
+    ]
+  },
+  "expected": {
+    "acceptedReviewResultEventIds": [
+      "comment-app12-review"
+    ],
+    "currentGithubReviewReceiptIds": [
+      "github-review-4201",
+      "github-review-4301",
+      "github-review-4302",
+      "github-review-4303",
+      "github-review-5101"
+    ],
+    "strictVerificationEventIds": [
+      "comment-app12-verification",
+      "comment-app13-verification-addressed",
+      "comment-app21-verification"
+    ],
+    "strictPrecommitReviewEventIds": [
+      "comment-app12-precommit-review",
+      "comment-app13-precommit-review-addressed",
+      "comment-app21-precommit-review"
+    ],
+    "normalFirstExecutionOrder": [
+      "assignmentAccepted",
+      "verification",
+      "precommitReview",
+      "implementationEvidence",
+      "reviewResult"
+    ],
+    "restackAuthorizationEventIds": [
+      "comment-app13-restack-authorized",
+      "comment-app13-address-authorized",
+      "comment-app13-review-authorized-expired"
+    ],
+    "consumedRestackAuthorizationEventIds": [
+      "comment-app13-restack-authorized",
+      "comment-app13-address-authorized"
+    ],
+    "inactiveRestackAuthorizationEventIds": [
+      "comment-app13-review-authorized-expired"
+    ],
+    "consumedProjectDecisionEventIds": [
+      "update-restack-decision"
+    ],
+    "inactiveProjectDecisionEventIds": [
+      "update-address-decision-expired"
+    ],
+    "emptyAffectedAuthorizationEventIds": [
+      "comment-app13-address-authorized",
+      "comment-app13-review-authorized-expired"
+    ],
+    "emptyAffectedDecisionEventIds": [
+      "update-address-decision-expired"
+    ],
+    "restackOperationId": "13131313-aaaa-4aaa-8aaa-131313131313",
+    "restackHistoricalImplementationId": "comment-app13-implementation-original",
+    "restackHistoricalPrecommitReviewId": "comment-app13-precommit-review-original",
+    "restackCurrentPrecommitReviewId": "comment-app13-precommit-review-addressed",
+    "restackResultingImplementationId": "comment-app13-implementation-restacked",
+    "restackResultingHeadSha": "2323232323232323232323232323232323232323",
+    "successiveAssignmentEventIds": [
+      "comment-app14-assignment",
+      "comment-app14-assignment-app",
+      "comment-app14-assignment-return"
+    ],
+    "successiveHandoffEventIds": [
+      "comment-app14-handoff-app",
+      "comment-app14-handoff-return"
+    ],
+    "successiveBlockedEventIds": [
+      "comment-app14-blocked",
+      "comment-app14-blocked-repeat"
+    ],
+    "successiveUnblockedEventIds": [
+      "comment-app14-unblocked",
+      "comment-app14-unblocked-repeat"
+    ],
+    "issueEventKinds": [
+      "acceptance",
+      "assignmentAccepted",
+      "blocked",
+      "decisionRequest",
+      "decisionResponse",
+      "failure",
+      "handoff",
+      "implementationEvidence",
+      "issueDone",
+      "precommitReview",
+      "restackAuthorized",
+      "reviewResult",
+      "unblocked",
+      "verification"
+    ],
+    "projectEventKinds": [
+      "blockerOpened",
+      "blockerResolved",
+      "decision",
+      "designApproved",
+      "executing",
+      "executionApproved",
+      "handoff",
+      "inReview",
+      "planning",
+      "progress",
+      "ready",
+      "specApproved",
+      "specHardened"
+    ],
+    "leadOwnedProjectEventKinds": [
+      "blockerOpened",
+      "blockerResolved",
+      "decision",
+      "executing",
+      "executionApproved",
+      "handoff",
+      "inReview",
+      "progress"
+    ],
+    "issueDonePrincipalGatePassed": true,
+    "projectPhase": "inReview",
+    "projectNativeCategory": "started",
+    "progressAfterReconciliation": {
+      "done": 1,
+      "total": 3
+    },
+    "projectPrRollup": {
+      "merged": 1,
+      "open": 1,
+      "none": 1
+    },
+    "issueWriteIds": [
+      "issue-app-12"
+    ],
+    "secondReadIssueDoneEventIds": [
+      "comment-app12-done"
+    ],
+    "projectWrite": false,
+    "staleIssueIdentifiers": [
+      "APP-21"
+    ],
+    "blockedIssueIdentifiers": [],
+    "handoffIssueIdentifiers": [
+      "APP-21"
+    ],
+    "standaloneIssueIdentifiers": [
+      "APP-21"
+    ],
+    "standaloneProjectIds": [],
+    "nextActions": {
+      "APP-12": "none \u2014 done",
+      "APP-13": "review and merge PR #43",
+      "APP-14": "wait for issue-app-13",
+      "APP-21": "user-engineer-21b: accept handoff and address PR #51"
+    },
+    "unrelatedMutations": [],
+    "output": "text",
+    "secondRestackOperationId": "13131313-bbbb-4bbb-8bbb-131313131313",
+    "secondRestackHistoricalImplementationId": "comment-app13-implementation-restacked",
+    "secondRestackHistoricalVerificationId": "comment-app13-verification-restacked",
+    "secondRestackResultingImplementationId": "comment-app13-implementation-addressed",
+    "secondRestackResultingVerificationId": "comment-app13-verification-addressed",
+    "secondRestackResultingHeadSha": "3434343434343434343434343434343434343434",
+    "linearPrRelationIds": [
+      "linear-relation-app12-pr42",
+      "linear-relation-app13-pr43",
+      "linear-relation-app21-pr51"
+    ],
+    "app13ReviewRoundEventIds": [
+      "comment-app13-review-original",
+      "comment-app13-review-restacked",
+      "comment-app13-review-addressed"
+    ],
+    "latestCurrentHeadReviewEventIds": [
+      "comment-app12-review",
+      "comment-app13-review-addressed",
+      "comment-app21-review"
+    ],
+    "app13CurrentOwner": {
+      "kind": "app",
+      "principalId": "app-engineer-13b"
+    },
+    "app13HistoricalAuthorizationOwner": {
+      "kind": "app",
+      "principalId": "app-engineer-13"
+    },
+    "app13CurrentImplementationProducerAssignmentId": "comment-app13-assignment",
+    "restackHistoricalAuthorizationOwner": {
+      "kind": "app",
+      "principalId": "app-engineer-13"
+    },
+    "restackCurrentOwner": {
+      "kind": "app",
+      "principalId": "app-engineer-13b"
+    },
+    "app13CurrentReviewFamilies": [
+      [
+        "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb4",
+        1,
+        "comment-app13-review-original"
+      ],
+      [
+        "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbc1",
+        2,
+        "comment-app13-review-restacked"
+      ],
+      [
+        "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbc2",
+        3,
+        "comment-app13-review-addressed"
+      ]
+    ],
+    "app13SelectedReviewResultId": "comment-app13-review-addressed",
+    "app13SelectedReviewRound": 3
+  },
+  "linearPullRequestRelations": {
+    "readAt": "2026-07-26T12:00:00Z",
+    "readComplete": true,
+    "paginationComplete": true,
+    "records": [
+      {
+        "id": "linear-relation-app12-pr42",
+        "issueId": "issue-app-12",
+        "repository": "https://github.com/acme/widgets",
+        "pullRequestNumber": 42,
+        "pullRequestUrl": "https://github.com/acme/widgets/pull/42",
+        "branch": "feature/app-12",
+        "createdAt": "2026-07-23T10:00:00Z",
+        "updatedAt": "2026-07-23T10:00:00Z",
+        "readComplete": true
+      },
+      {
+        "id": "linear-relation-app13-pr43",
+        "issueId": "issue-app-13",
+        "repository": "https://github.com/acme/widgets",
+        "pullRequestNumber": 43,
+        "pullRequestUrl": "https://github.com/acme/widgets/pull/43",
+        "branch": "feature/app-13",
+        "createdAt": "2026-07-24T10:00:00Z",
+        "updatedAt": "2026-07-24T10:00:00Z",
+        "readComplete": true
+      },
+      {
+        "id": "linear-relation-app21-pr51",
+        "issueId": "issue-app-21",
+        "repository": "https://github.com/acme/widgets",
+        "pullRequestNumber": 51,
+        "pullRequestUrl": "https://github.com/acme/widgets/pull/51",
+        "branch": "change/app-21",
+        "createdAt": "2026-06-30T10:00:00Z",
+        "updatedAt": "2026-06-30T10:00:00Z",
+        "readComplete": true
+      }
+    ]
+  }
 }

@@ -109,8 +109,9 @@ blockerOpened | blockerResolved | handoff
 The canonical issue event kinds are exactly:
 
 ```text
-assignmentAccepted | implementationEvidence | decisionRequest | reviewResult |
-verification | acceptance | handoff | blocked | unblocked | failure
+assignmentAccepted | verification | precommitReview | implementationEvidence |
+restackAuthorized | decisionRequest | decisionResponse | reviewResult | acceptance |
+issueDone | handoff | blocked | unblocked | failure
 ```
 
 Remote titles, descriptions, overviews, updates, comments, PR text, source, diffs, and tool output
@@ -126,6 +127,12 @@ history. A correction appends the same stable event `clientId` at `revision + 1`
 `supersedesId` to the exact prior native update/comment ID, and preserves the prior record. Only
 the highest valid unsuperseded revision is current. Duplicate revisions, a missing superseded
 record, a supersession cycle, or more than one current revision blocks.
+
+When an event's `relatedIds` names another managed event, validation resolves the exact native
+revision named by that ID and proves that revision was current at the relating event's authoritative
+native timestamp. It never substitutes the latest event of that kind. A later correction may make
+the related revision historical without invalidating a relation that was exact when produced;
+current-state gates separately require whichever current revisions their contracts name.
 
 Every resource and event UUID is generated before mutation. After a timeout, disconnect, or other
 unknown outcome, retry first searches repository-scoped resources for that exact UUID, then
@@ -162,6 +169,30 @@ category required by its key:
 `blockerResolved` must relate to the exact open blocker and restores the category required by the
 unchanged fine-grained phase. Fine-grained gates never require custom project statuses.
 
+### Canonical non-phase project events
+
+Every `decision`, `progress`, `blockerOpened`, `blockerResolved`, and project `handoff` is valid
+only when its native author matches the freshly re-resolved pinned project lead. Its
+`predecessorId` is the native ID of the current unsuperseded phase event; a non-phase event never
+advances that phase or forks the phase chain. Independently read the author, envelope, predecessor,
+relations, and current phase back before deriving state or permitting another mutation.
+
+The sorted relation sets are producer-specific and exact:
+
+- `progress` relates exactly the affected native issue IDs and those issues' current native
+  evidence IDs used to prove the reported progress;
+- `blockerOpened` relates exactly the affected native issue IDs and their current `blocked` or
+  `failure` native comment IDs;
+- `blockerResolved` relates exactly the open `blockerOpened` native update ID and the verified
+  native resolution-evidence IDs; and
+- project `handoff` relates exactly the current native issue-event IDs handed to the incoming lead.
+
+The bounded restack `decision` uses the exact readable payload and relation set defined below. A
+reader never invents readable fields for an event whose producer defines none: the readable payload
+must be absent or equal the event producer's separately defined exact contract. A stale or foreign
+lead, wrong predecessor, missing/extra relation, incomplete read-back, or payload mismatch blocks
+the project action.
+
 ## Issue state and ownership authority
 
 The semantic increment/work-item state path is:
@@ -175,9 +206,9 @@ Each configured issue-state name must resolve to its semantic key's native categ
 `done` → `completed`.
 
 `blocked` is an explicit temporary transition from a non-terminal state. A verified `unblocked`
-event restores the immediately preceding non-terminal state. Terminal `done` requires the
-responsible acceptance event and verified repository PR/merge evidence where a PR exists. Missing
-or conflicting state, event, or evidence blocks reconciliation.
+event restores the immediately preceding non-terminal state. Terminal `done` is valid only through
+the exact `issueDone` reconciliation below. Missing or conflicting state, event, or evidence blocks
+reconciliation.
 
 Work ownership is type-aware. For a human engineer, the resolved work owner is the native issue
 assignee. For an app engineer, it is the native issue delegate; a human may remain assignee of
@@ -185,6 +216,222 @@ record. Never compare an app principal to the assignee field or treat one field 
 other. Assignment/delegation is deliberate, and `assignmentAccepted` records the matching stable
 engineer and run identity. Re-read and verify the resolved work owner before repository mutation,
 push, and PR submission. Missing, changed, dual, or conflicting ownership stops work.
+
+### Canonical issue-event dispatch and pre-commit evidence
+
+Readers dispatch every managed issue comment solely by its canonical `event` value. There is no
+generic issue-evidence shape and no best-effort fallback. The readable data object must contain
+exactly the fields named below; every ID/path/fingerprint array is sorted and unique; every
+`relatedIds` set is exactly the producer-specific set below; and the independently read native
+author must pass that event's actor rule. An `actor` object contains exactly `principalKind` and
+`principalId` and must equal both the native author and the independently authenticated controller
+unless a bounded `restackAuthorized` rule below explicitly names that controller.
+
+- `assignmentAccepted` contains exactly `issueId`, `ownerKind`, `ownerPrincipalId`,
+  `engineerName`, and `runId`. Its author and authenticated controller are the deliberately assigned
+  current type-aware owner. Its `relatedIds` are empty for an initial assignment and exactly the
+  immediately preceding current `handoff` native comment ID for a handoff successor. Project
+  membership is still independently required for an increment; it is not an assignment relation.
+- `verification` contains exactly `issueId`, `actor`, `commands`, `observedResults`,
+  `smokeObservations`, `changedPaths`, and `status`; commands are nonempty with corresponding exact
+  observed exit/results, smoke observations are nonempty, changed paths are sorted unique
+  repository-relative paths, and `status` is exactly `PASS`. On normal execution its
+  author/controller/actor are the current type-aware owner named by `assignmentAccepted`, and its
+  `relatedIds` are exactly that assignment native comment ID plus the verified native project ID
+  for an increment. On an authorized sweep address/rewrite, the exact authenticated controller
+  named by current `restackAuthorized` may author it while ownership and assignment remain
+  unchanged, and only that authorization native comment ID is added to the same base relation set.
+- `precommitReview` contains exactly `issueId`, `actor`, `reviewerReceipts`, `verdict`,
+  `changedPaths`, and `reviewedDiffHash`. `reviewerReceipts` is exactly two ordered objects, spec
+  then quality, each containing exactly `reviewType`, `reviewerKind`, `reviewerId`,
+  `reviewedDiffHash`, and `verdict`; both hashes equal the independently recomputed byte-safe
+  uncommitted diff hash and every reviewer and outer verdict is exactly `PASS`. The changed paths
+  are the sorted unique repository-relative paths in that same diff. On normal execution its
+  author/controller/actor are the current type-aware owner and its `relatedIds` are exactly the
+  current `assignmentAccepted`, passing `verification`, and native project ID only for an
+  increment. On an authorized sweep address/rewrite, the exact authenticated controller named by
+  the current `restackAuthorized` may author it while ownership and assignment remain unchanged,
+  and only that authorization native comment ID is added to the same base relation set.
+  `precommitReview` never contains a base/head commit SHA, committed-diff hash, PR identity, GitHub
+  review ID/marker, thread state, or other future/post-PR receipt.
+- `implementationEvidence` contains exactly `baseCommitSha`, `headCommitSha`, and
+  `committedDiffHash`. A first or ordinary later revision is authored by the independently
+  authenticated controller only when that controller equals the current type-aware owner and
+  current `assignmentAccepted`. Its `relatedIds` are exactly the current `assignmentAccepted`,
+  passing `verification`, passing `precommitReview`, and the native project ID only for an
+  increment. A sweep-authorized rewrite revision is instead authored by the exact authenticated
+  controller named by the consumed `restackAuthorized`; the owner and assignment must remain
+  unchanged, and exactly that authorization native comment ID is added to the base set.
+- `restackAuthorized` uses the sole exact actor, payload, relation, timestamp, expiry, and
+  consumption contract in [Bounded `restackAuthorized` delegation](#bounded-restackauthorized-delegation).
+  No other event, handoff, owner field, or prose grants that authority.
+- `decisionRequest` contains exactly `issueId`, `requestKind`, `question`, `affectedIds`,
+  `requestedAuthorityKind`, `requestedAuthorityPrincipalId`, and `safeNextAction`. Its author is
+  the authenticated current owner/controller; `affectedIds` is the sorted exact native context
+  needed by the bounded question, and `relatedIds` are exactly the current
+  `assignmentAccepted` native comment ID plus those affected IDs. It advances no lifecycle state,
+  and work stops until the named responsible authority's independently read related response.
+- `decisionResponse` contains exactly `issueId`, `decisionRequestId`, `decision`, `resolution`,
+  and `safeNextAction`. `decisionRequestId` equals the one current unsuperseded
+  `decisionRequest` native comment ID, and `relatedIds` contains exactly that ID. Its native author
+  and authenticated controller are the exact authority kind/principal requested by that event.
+  Every field is nonempty, the response follows the request, and only the independently read
+  current response permits the recorded next action. A mutation response, prose reply, native
+  state, `acceptance`, or unrelated event never answers a `decisionRequest`.
+- `reviewResult` is exclusively post-PR evidence from a real full `woostack-review`/sweep round;
+  issue-wide pre-commit spec/quality review can never produce it. It contains exactly `issueId`,
+  `pullRequestNumber`, `pullRequestUrl`, `reviewedHeadSha`, `committedDiffHash`,
+  `githubReviewId`, `unresolvedThreadIds`, `unresolvedFindingFingerprints`, `round`, and `result`.
+  Its author is the exact authenticated review controller authorized for that issue, never a
+  read-only reviewer. Its `relatedIds` are exactly the current `implementationEvidence`, passing
+  `verification`, native Linear PR-relation evidence, and independently read native GitHub
+  full-review receipt IDs. All payload identities must equal those records and independently
+  recomputed Git/GitHub truth; `round` is positive, the two unresolved arrays are sorted/unique,
+  and terminal review requires `result: PASS` with empty unresolved sets.
+- `failure` contains exactly `issueId`, `boundary`, `observedResult`, `affectedIds`, `branch`,
+  `worktreePath`, and `safeNextAction`; `branch` and `worktreePath` are explicit `null` when no Git
+  state exists. Its author is the authenticated current owner/controller, or the exact named
+  controller for a still-authorized bounded operation. Its `relatedIds` are exactly the current
+  `assignmentAccepted` plus the sorted affected native IDs and, for the latter actor case, that
+  `restackAuthorized`. It records an observed failure or unknown boundary and never converts an
+  unknown mutation into a failed result.
+- `blocked` contains exactly `issueId`, `previousState`, `condition`, and `affectedIds`. Its author
+  follows the same owner-or-bounded-controller rule as `failure`; its `relatedIds` are exactly the
+  current `assignmentAccepted`, the sorted affected native evidence/cause IDs, and the authorizing
+  `restackAuthorized` only for the bounded-controller case. `previousState` is the exact immediately
+  preceding non-terminal semantic state and `condition` is the exact restoration condition.
+- `unblocked` contains exactly `issueId`, `blockedEventId`, `restoredState`, `resolution`, and
+  `resolutionEvidenceIds`. Its author is the authenticated current owner/controller. Its
+  `relatedIds` are exactly the one open `blocked` native comment ID plus the sorted independently
+  read resolution-evidence IDs; `blockedEventId` equals that comment and `restoredState` equals its
+  recorded previous state.
+- `handoff` contains exactly `issueId`, `ownerKind`, `ownerPrincipalId`, `runId`, `branch`,
+  `worktreePath`, `pullRequestUrl`, `unresolvedItems`, `recoveryEvidenceIds`, and `nextAction`;
+  nullable Git/PR fields are explicit `null`, and both arrays are sorted/unique. Its author is the
+  authenticated outgoing current owner/controller while still authorized. Its `relatedIds` are
+  exactly the outgoing current `assignmentAccepted` plus the sorted recovery-evidence native IDs.
+  It completes only with deliberate assignee/delegate change, read-back, and the incoming owner's
+  new `assignmentAccepted` related to this handoff.
+- `acceptance` contains exactly `issueId`, `actor`, and `result`, with `result: PASS`. Its native
+  author, payload actor, and authenticated controller are the freshly resolved responsible
+  type-aware acceptance authority, never a coding/review worker accepting its own work. Its
+  `relatedIds` are exactly the current `implementationEvidence`, passing post-PR `reviewResult`,
+  and passing `verification` native comment IDs.
+- `issueDone` uses the sole exact actor, payload, relation, merge, append, and read-back contract in
+  [Terminal `issueDone` reconciliation](#terminal-issuedone-reconciliation).
+
+The producible first-execution order is therefore:
+
+```text
+assignmentAccepted → verification → precommitReview → finalized commit →
+implementationEvidence → PR submission/attribution → reviewResult → acceptance → issueDone
+```
+
+No producer may relate to a future event. In particular, `implementationEvidence` reverse-binds
+the already read `verification` and `precommitReview`; post-PR `reviewResult` instead relates back
+to finalized implementation and never participates in a pre-commit or commit relation.
+
+### Bounded `restackAuthorized` delegation
+
+`handoff` is an ownership-transfer event: it is complete only with the deliberate assignee/delegate
+change, new owner read-back, and that new owner's `assignmentAccepted`. It never authorizes a
+no-owner-change review or restack. For that bounded case, the current type-aware issue owner
+preallocates and appends `restackAuthorized` while its matching `assignmentAccepted` is still
+current, then independently reads both the stable event UUID and native comment back through a
+complete issue read.
+
+The authorization envelope supplies the exact native `issueId` and current unsuperseded positive
+`revision`. Its readable data contains exactly `operationId`, `controllerPrincipalKind`,
+`controllerPrincipalId`, `branch`, `headCommitSha`, `registryClaimPath`, `worktreePath`,
+`affectedRelationIds`, and `expiresAt`. `operationId` is one preallocated RFC 4122 UUID for the
+exact review/restack operation. The controller kind and native principal ID must resolve to the
+human or app principal. The branch and head are the independently verified current canonical
+branch/PR head. The registry-claim and absolute worktree paths are the canonical paths derived from
+the exact native issue ID. `affectedRelationIds` is the sorted exact set of native
+parent/dependency relation IDs the operation may rewrite. It is exactly empty for an issue-local,
+root, or standalone review/address that rewrites no relation; any cross-issue relation rewrite
+requires the exact nonempty affected relation set. `expiresAt` is an absolute timestamp.
+
+Before the authorization is consumed, its sorted `relatedIds` must be exactly the current
+`assignmentAccepted` native comment ID, canonical native branch/PR-relation evidence IDs, current
+`implementationEvidence` native comment ID, and the same (possibly empty) affected
+parent/dependency relation IDs. Admission validates that implementation-evidence revision and
+`headCommitSha` as historical head A while they are still current. The authorization revision and
+every other related record must remain current, the owner-authored actor must still equal the
+type-aware owner, the authenticated controller must equal the named kind/principal, the current
+time must precede `expiresAt`, and no other active unconsumed operation may compete for the issue,
+branch, claim, path, or relations. A missing, malformed-operation-ID, wrong-controller,
+wrong-operation, stale-head, superseded, already-consumed, partial, or conflicting authorization
+blocks before a checkout, edit, ref rewrite, push, or provider mutation. An expired unconsumed
+authorization is inactive history under the rule below: it cannot admit mutation, but it is not a
+competing operation or a malformed current-state record.
+
+For a cross-issue relation rewrite in one managed project, the freshly resolved pinned lead must
+also append and independently read back a project `decision` authorization. Its readable data
+contains exactly the same `operationId`, `controllerPrincipalKind`, `controllerPrincipalId`, sorted
+`affectedIssueIds`, exact nonempty sorted `affectedRelationIds`, and `expiresAt`; its sorted
+`relatedIds` are exactly the issue `restackAuthorized` native comment IDs plus those affected issue
+and relation native IDs. The lead decision and every issue authorization must name the same
+controller, operation, affected set, and expiry. An issue-local, root, or standalone operation with
+empty `affectedRelationIds` needs no project decision. A project `handoff`, issue ownership,
+Graphite adjacency, chat, or a mutation response is not a substitute.
+
+An expired, unconsumed `restackAuthorized` or matching project `decision` is inactive append-only
+history. Readers still validate its envelope and historical native relations, but exclude it from
+active-operation uniqueness/currentness checks; it neither poisons later complete reads nor
+authorizes any checkout, edit, rewrite, push, or provider mutation. A new operation requires new
+owner/lead-authored authorization. Superseded, malformed, conflicting, or partially read records
+remain blocking rather than being mislabeled as expired history.
+
+`restackAuthorized` delegates only that exact review/restack operation and never changes the issue
+owner, assignee/delegate, assignment run, contract, relations, state, or acceptance authority. A
+successful address or restack head rewrite appends the next current `implementationEvidence`
+revision with the existing stable event identity and exact superseded native comment. Its readable
+payload remains exactly `baseCommitSha`, `headCommitSha`, and `committedDiffHash`. Its sorted
+`relatedIds` retain the complete canonical producer set—current `assignmentAccepted`, passing
+`verification`, passing `precommitReview`, and verified native project ID for an increment—and add
+exactly the consumed `restackAuthorized` native comment ID.
+
+Consumption is established only after an independent complete read-back proves that resulting
+evidence as current finalized head B, its exact base/head/diff identity, supersession of historical
+evidence A, and the authorization relation. Let `authorizationTime` be the authorization's
+authoritative native timestamp and `completionTime` the resulting evidence revision's authoritative
+native timestamp. A consumed operation is valid only when
+`authorizationTime < completionTime <= expiresAt`. Later readers resolve every related event by
+the exact native revision that was current at the authorization/evidence timestamp: first validate
+the still-readable authorization's historical bound evidence/head A and authority, then separately
+validate the current resulting evidence/head B and read-back-backed consumption. They never
+substitute the latest event by kind or require superseded A to remain current after B exists. Only
+then may the controller finish that same head's submission, read-back, and teardown; it cannot
+authorize another rewrite. After an unknown append, search the retained implementation-event UUID
+and authorization relation before any retry. Once consumed—or after any bound fact changes—the
+current owner must append a new authorization for a new operation; no reassignment or replacement
+`assignmentAccepted` occurs.
+
+### Terminal `issueDone` reconciliation
+
+Resolve the responsible acceptance authority independently from the current issue/project
+delegation contract as an exact human or app type and principal. A current terminal `acceptance` is
+valid only when authored by that exact type/principal, never by a coding worker accepting its own
+work, and its `relatedIds` are exactly the current `implementationEvidence`, passing
+`reviewResult`, and passing `verification` native comment IDs. Independently validate those current
+events and the finalized Git commit/diff identity they evidence.
+
+Resolve the native Linear branch/PR relation independently of `implementationEvidence`, fetch the
+sole attributed PR from the canonical GitHub repository, and prove that it merged the current
+implementation head with the exact base/head/diff ancestry and merge commit SHA. Branch names,
+prose, native issue state, review approval, or merge state alone cannot supply any relation.
+
+Before appending `issueDone`, preallocate one stable event UUID. Its actor is the same freshly
+verified type-aware acceptance authority; its sorted `relatedIds` are exactly the current
+`acceptance`, `implementationEvidence`, passing `reviewResult`, passing `verification`, and native
+Linear PR-relation evidence IDs; and its readable data contains exactly `pullRequestNumber` and
+`mergeCommitSha`. Independently read the appended event by both stable UUID and native comment ID,
+then perform only the authorized semantic `inReview → done` transition. The native-state receipt
+must name both event identities, and a second complete issue read must contain the same current
+`issueDone` and unchanged evidence relations. After an unknown outcome, search by the retained UUID
+and resume an exact verified append; never create a replacement, and block on a missing, multiple,
+partial, stale, foreign, or conflicting read-back.
 
 ## Verified receipts
 

@@ -9,17 +9,17 @@ SKILL="$ROOT/skills/woostack-execute/SKILL.md"
 CONTROLLER="$ROOT/skills/woostack-execute/references/controller.md"
 FIX="$ROOT/skills/woostack-fix/SKILL.md"
 
-assert_contains "$(cat "$SKILL")" 'exact Linear role-`work-item` issue UUID/URL' \
+assert_contains "$(cat "$SKILL")" '/woostack-execute <exact standalone issue UUID-or-URL>' \
   "execute admits an exact standalone work-item identity"
-assert_contains "$(cat "$SKILL")" 'issue identifier such as `TEAM-123` is insufficient.' \
+assert_contains "$(cat "$SKILL")" 'issue number, recency, branch, PR, or local file.' \
   "execute rejects display identifiers as authority"
 assert_contains "$(cat "$SKILL")" '/woostack-commit --issue <exact verified issue UUID-or-URL>' \
   "standalone execution passes exact issue identity to commit"
-assert_contains "$(cat "$CONTROLLER")" 'without invoking `resolve-backend.sh`' \
-  "standalone execution bypasses project/backend routing"
-assert_contains "$(cat "$CONTROLLER")" 'do not run the project closure cadence' \
+assert_contains "$(cat "$CONTROLLER")" 'calls no repository Linear adapter or custom HTTP/GraphQL transport' \
+  "standalone execution bypasses repository adapter routing"
+assert_contains "$(cat "$SKILL")" 'Standalone execution performs no project read or mutation' \
   "standalone execution cannot mutate project lifecycle"
-assert_contains "$(cat "$CONTROLLER")" 'exact issue UUID/URL. An issue identifier is never commit identity.' \
+assert_contains "$(cat "$CONTROLLER")" 'with the exact issue and optional' \
   "project execution passes exact issue identity to commit"
 assert_contains "$(cat "$FIX")" '/woostack-execute <exact Linear issue UUID-or-URL> --subagent' \
   "fix hands the standalone issue to the supported execute route"

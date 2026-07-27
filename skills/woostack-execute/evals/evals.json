@@ -3,76 +3,764 @@
   "skill": "woostack-execute",
   "cases": [
     {
-      "id": "hands-back-receipt-backed-linear-increment",
-      "prompt": "Inspect the bounded synthetic Linear execution record in fixtures/execution-record.json. Do not call adapters, Git, providers, or modify files. Apply the packaged skill's controller, receipt, and lifecycle contract. Return exactly one JSON object using the keys approvedInput, perIncrementEvidence, receiptsVerified, lifecycle, handback, and mergeAllowed. Preserve the receipt objects under perIncrementEvidence. lifecycle must report issue, project, spec, and completionVerified. When final branch/PR proof is inconsistent, handback.status must be blocked-for-manual-reconciliation rather than claiming completion.",
+      "id": "admits-verified-independent-root",
+      "prompt": "Inspect only scenario verified-independent-root in fixtures/execution-record.json. Do not run Git, Linear, network, provider, shell, or mutation commands. Apply the packaged execute controller and return exactly one JSON object with keys status, reason, issueId, startCommitSha, graphiteParent, registryKey, assignmentAcceptedVerified, localAuthorityAccepted, and nextBoundary. Set assignmentAcceptedVerified true only after validating the raw canonical comment record's exact six-field shape, exact issueEvent envelope and assignmentAccepted data keys, native comment ID, authoritative timestamp, native actor, stable client UUID, current revision/supersession chain, empty initial relatedIds, and complete independent read-back; resolve current revision by identity/revision/time, never array position. Admit work only from complete official-MCP identity, owner, assignment, ancestry, and exact-ID registry receipts.",
       "fixtures": [
         "execution-record.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The execution-approved input and all five cadence receipts are recognized, but inconsistent final branch proof prevents completion verification and produces a blocked lifecycle handback without merge.",
+      "expected": "The independently verified assigned root may proceed only because its exact current raw canonical assignment receipt and frozen-base issue/worktree receipts are complete; local authority remains rejected.",
       "assertions": [
         {
-          "id": "input-was-approved",
-          "kind": "qualitative",
-          "rubric": "Does approvedInput affirm that the bounded Linear input passed its execution-approval/readiness gate, either as boolean true or as a detailed object preserving the approval facts?",
-          "critical": true
-        },
-        {
-          "id": "implementation-receipt",
-          "kind": "qualitative",
-          "rubric": "Does the response recognize APP-12's implementation receipt as complete based on status complete?",
-          "critical": true
-        },
-        {
-          "id": "verification-receipt",
-          "kind": "qualitative",
-          "rubric": "Does the response preserve APP-12's verification evidence that `node --test test/cache.test.js` exited with code 0?",
-          "critical": true
-        },
-        {
-          "id": "commit-receipt",
-          "kind": "qualitative",
-          "rubric": "Does the response preserve APP-12's commit evidence with SHA aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa?",
-          "critical": true
-        },
-        {
-          "id": "review-receipt",
-          "kind": "qualitative",
-          "rubric": "Does the response preserve APP-12's review evidence with both specCompliant and qualityClean true?",
-          "critical": true
-        },
-        {
-          "id": "distill-receipt",
-          "kind": "qualitative",
-          "rubric": "Does the response preserve APP-12's distill evidence with decision rejected-trivia, indexBuilt true, and doctorExit 0?",
-          "critical": true
-        },
-        {
-          "id": "lifecycle-readback-preserved",
+          "id": "root-proceeds",
           "kind": "final-json-path-equals",
-          "pointer": "/lifecycle",
-          "expected": {
-            "issue": "inReview",
-            "project": "inReview",
-            "spec": "inReview",
-            "completionVerified": false
-          },
+          "pointer": "/status",
+          "expected": "proceed",
           "critical": true
         },
         {
-          "id": "blocked-lifecycle-handback",
+          "id": "root-reason",
           "kind": "final-json-path-equals",
-          "pointer": "/handback/status",
-          "expected": "blocked-for-manual-reconciliation",
+          "pointer": "/reason",
+          "expected": "verified-independent-root",
           "critical": true
         },
         {
-          "id": "execute-never-merges",
+          "id": "root-issue",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueId",
+          "expected": "22222222-2222-4222-8222-222222222222",
+          "critical": true
+        },
+        {
+          "id": "root-start",
+          "kind": "final-json-path-equals",
+          "pointer": "/startCommitSha",
+          "expected": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "critical": true
+        },
+        {
+          "id": "root-parent",
+          "kind": "final-json-path-equals",
+          "pointer": "/graphiteParent",
+          "expected": "main",
+          "critical": true
+        },
+        {
+          "id": "root-registry-key",
+          "kind": "final-json-path-equals",
+          "pointer": "/registryKey",
+          "expected": "22222222-2222-4222-8222-222222222222",
+          "critical": true
+        },
+        {
+          "id": "root-assignment-receipt",
+          "kind": "final-json-path-equals",
+          "pointer": "/assignmentAcceptedVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "root-rejects-local-authority",
+          "kind": "final-json-path-equals",
+          "pointer": "/localAuthorityAccepted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "root-next-boundary",
+          "kind": "final-json-path-equals",
+          "pointer": "/nextBoundary",
+          "expected": "edit",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "admits-verified-standalone-issue",
+      "prompt": "Inspect only scenario verified-standalone-resume in fixtures/execution-record.json. Do not run commands or mutate anything. Apply the packaged issue-only controller and return exactly one JSON object with keys status, reason, issueId, role, projectId, ownerField, assignmentAcceptedVerified, ancestryVerified, and nextBoundary. Set assignmentAcceptedVerified true only for the uniquely current raw canonical assignmentAccepted revision with exact record/envelope/data fields, native ID/timestamp/actor, stable UUID and valid supersession chain, empty initial relations, owner/run equality, and complete independent read-back; never select by array position. A standalone issue must also prove role work-item and explicit no-project state.",
+      "fixtures": [
+        "execution-record.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The exact assigned work-item resumes only with a fully validated current canonical assignment receipt, human-assignee ownership, no project, and verified standalone ancestry.",
+      "assertions": [
+        {
+          "id": "standalone-proceeds",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "proceed",
+          "critical": true
+        },
+        {
+          "id": "standalone-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "verified-standalone-resume",
+          "critical": true
+        },
+        {
+          "id": "standalone-role",
+          "kind": "final-json-path-equals",
+          "pointer": "/role",
+          "expected": "work-item",
+          "critical": true
+        },
+        {
+          "id": "standalone-no-project",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectId",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "standalone-owner-field",
+          "kind": "final-json-path-equals",
+          "pointer": "/ownerField",
+          "expected": "assignee",
+          "critical": true
+        },
+        {
+          "id": "standalone-assignment",
+          "kind": "final-json-path-equals",
+          "pointer": "/assignmentAcceptedVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "standalone-ancestry",
+          "kind": "final-json-path-equals",
+          "pointer": "/ancestryVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "standalone-next",
+          "kind": "final-json-path-equals",
+          "pointer": "/nextBoundary",
+          "expected": "edit",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "rejects-local-plan-and-progress-authority",
+      "prompt": "Inspect only scenario rejects-local-plan-progress-authority in fixtures/execution-record.json. Do not run commands or mutate anything. Return exactly one JSON object with keys status, reason, issueBound, mutationAllowed, localPlanAccepted, localProgressAccepted, fallbackAllowed, and nextAction. Apply the packaged Linear-only authority rule even though local paths are present.",
+      "fixtures": [
+        "execution-record.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Local plan and progress paths are rejected as authority; no issue is bound, no mutation or fallback is allowed, and the run asks for an exact Linear identity.",
+      "assertions": [
+        {
+          "id": "local-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "local-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "local-development-record-is-not-authority",
+          "critical": true
+        },
+        {
+          "id": "local-no-issue",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueBound",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "local-no-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/mutationAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "local-plan-rejected",
+          "kind": "final-json-path-equals",
+          "pointer": "/localPlanAccepted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "local-progress-rejected",
+          "kind": "final-json-path-equals",
+          "pointer": "/localProgressAccepted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "local-no-fallback",
+          "kind": "final-json-path-equals",
+          "pointer": "/fallbackAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "local-next-action",
+          "kind": "final-json-path-equals",
+          "pointer": "/nextAction",
+          "expected": "require-exact-linear-project-or-standalone-issue",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "blocks-owner-and-registry-collision",
+      "prompt": "Inspect only scenario rejects-owner-and-registry-collision in fixtures/execution-record.json. Do not run commands or mutate anything. Return exactly one JSON object with keys status, reason, observedOwner, expectedOwner, registryRun, invokingRun, editAllowed, overwriteRegistryAllowed, selfClaimAllowed, and requiredAuthority. Apply type-aware delegate ownership and collision rules.",
+      "fixtures": [
+        "execution-record.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The delegate and registry/run mismatch is a collision. Work stops before edit; self-claim and registry overwrite are forbidden; the pinned lead must resolve allocation.",
+      "assertions": [
+        {
+          "id": "collision-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "collision-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "ownership-or-registry-collision",
+          "critical": true
+        },
+        {
+          "id": "collision-observed",
+          "kind": "final-json-path-equals",
+          "pointer": "/observedOwner",
+          "expected": "app-engineer-b",
+          "critical": true
+        },
+        {
+          "id": "collision-expected",
+          "kind": "final-json-path-equals",
+          "pointer": "/expectedOwner",
+          "expected": "app-engineer-a",
+          "critical": true
+        },
+        {
+          "id": "collision-no-edit",
+          "kind": "final-json-path-equals",
+          "pointer": "/editAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "collision-no-overwrite",
+          "kind": "final-json-path-equals",
+          "pointer": "/overwriteRegistryAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "collision-no-self-claim",
+          "kind": "final-json-path-equals",
+          "pointer": "/selfClaimAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "collision-lead",
+          "kind": "final-json-path-equals",
+          "pointer": "/requiredAuthority",
+          "expected": "lead-or-dispatcher",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "blocks-unmerged-non-parent-dependency",
+      "prompt": "Inspect only scenario rejects-unmerged-non-parent-dependency in fixtures/execution-record.json. Do not run commands or mutate anything. Return exactly one JSON object with keys status, reason, parentAncestryVerified, nonParentIssueId, nonParentState, nonParentMerged, worktreeCreateAllowed, editAllowed, and ordinalInferenceAllowed. Apply the declared-parent and merge-before-nonparent rules.",
+      "fixtures": [
+        "execution-record.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The declared parent is exact, but the additional dependency is only in review and unmerged, so child worktree creation/edit remains blocked and ordinal inference is forbidden.",
+      "assertions": [
+        {
+          "id": "dependency-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "dependency-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "non-parent-dependency-is-not-merged",
+          "critical": true
+        },
+        {
+          "id": "dependency-parent-exact",
+          "kind": "final-json-path-equals",
+          "pointer": "/parentAncestryVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "dependency-extra-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/nonParentIssueId",
+          "expected": "66666666-6666-4666-8666-666666666666",
+          "critical": true
+        },
+        {
+          "id": "dependency-extra-state",
+          "kind": "final-json-path-equals",
+          "pointer": "/nonParentState",
+          "expected": "inReview",
+          "critical": true
+        },
+        {
+          "id": "dependency-unmerged",
+          "kind": "final-json-path-equals",
+          "pointer": "/nonParentMerged",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "dependency-no-worktree",
+          "kind": "final-json-path-equals",
+          "pointer": "/worktreeCreateAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "dependency-no-edit",
+          "kind": "final-json-path-equals",
+          "pointer": "/editAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "dependency-no-ordinal-parent",
+          "kind": "final-json-path-equals",
+          "pointer": "/ordinalInferenceAllowed",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "blocks-unknown-comment-readback",
+      "prompt": "Inspect only scenario rejects-unknown-verification-comment-outcome in fixtures/execution-record.json. Do not run commands or mutate anything. Return exactly one JSON object with keys status, reason, event, stableEventId, mutationOutcome, readBack, commitAllowed, retrySameInvocation, replacementEventAllowed, and preservedState. Apply append-only stable-UUID unknown-outcome rules.",
+      "fixtures": [
+        "execution-record.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "A timeout plus partial verification-comment read-back is unknown, not success or failure. Commit stops; same-invocation retry and replacement event are forbidden; executing recovery state is preserved.",
+      "assertions": [
+        {
+          "id": "unknown-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "unknown-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "unknown-event-read-back",
+          "critical": true
+        },
+        {
+          "id": "unknown-event",
+          "kind": "final-json-path-equals",
+          "pointer": "/event",
+          "expected": "verification",
+          "critical": true
+        },
+        {
+          "id": "unknown-event-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/stableEventId",
+          "expected": "36666666-6666-4666-8666-666666666666",
+          "critical": true
+        },
+        {
+          "id": "unknown-outcome",
+          "kind": "final-json-path-equals",
+          "pointer": "/mutationOutcome",
+          "expected": "timeout",
+          "critical": true
+        },
+        {
+          "id": "unknown-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/readBack",
+          "expected": "partial",
+          "critical": true
+        },
+        {
+          "id": "unknown-no-commit",
+          "kind": "final-json-path-equals",
+          "pointer": "/commitAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "unknown-no-retry",
+          "kind": "final-json-path-equals",
+          "pointer": "/retrySameInvocation",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "unknown-no-replacement",
+          "kind": "final-json-path-equals",
+          "pointer": "/replacementEventAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "unknown-preserved-state",
+          "kind": "final-json-path-equals",
+          "pointer": "/preservedState",
+          "expected": "executing",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "restores-blocked-issue-to-recorded-state",
+      "prompt": "Inspect only scenario restores-executing-after-verified-unblock in fixtures/execution-record.json. Do not run commands or mutate anything. Return exactly one JSON object with keys status, reason, blockedCommentId, unblockedRelatesTo, priorState, restoredState, remainingOpenBlockers, stateReadBackVerified, and nativeStateAloneSufficient. Apply exact blocker relation and restoration rules.",
+      "fixtures": [
+        "execution-record.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The verified unblocked event relates to the one open blocker, no blocker remains, and the issue restores to the recorded executing state; native state alone is insufficient.",
+      "assertions": [
+        {
+          "id": "unblock-proceeds",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "proceed",
+          "critical": true
+        },
+        {
+          "id": "unblock-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "verified-unblock-restores-executing",
+          "critical": true
+        },
+        {
+          "id": "unblock-native-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/blockedCommentId",
+          "expected": "comment-block-25",
+          "critical": true
+        },
+        {
+          "id": "unblock-relation",
+          "kind": "final-json-path-equals",
+          "pointer": "/unblockedRelatesTo",
+          "expected": "comment-block-25",
+          "critical": true
+        },
+        {
+          "id": "unblock-prior",
+          "kind": "final-json-path-equals",
+          "pointer": "/priorState",
+          "expected": "executing",
+          "critical": true
+        },
+        {
+          "id": "unblock-restored",
+          "kind": "final-json-path-equals",
+          "pointer": "/restoredState",
+          "expected": "executing",
+          "critical": true
+        },
+        {
+          "id": "unblock-none-open",
+          "kind": "final-json-path-equals",
+          "pointer": "/remainingOpenBlockers",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "unblock-state-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/stateReadBackVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "unblock-native-insufficient",
+          "kind": "final-json-path-equals",
+          "pointer": "/nativeStateAloneSufficient",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "resumes-only-after-complete-handoff",
+      "prompt": "Inspect only scenario accepts-verified-handoff-successor in fixtures/execution-record.json. Do not run commands or mutate anything. Return exactly one JSON object with keys status, reason, handoffVerified, reassignmentVerified, newAssignmentAcceptedVerified, currentOwner, currentRun, oldOwnerMayEdit, registryReboundVerified, and nextBoundary. Validate exact raw canonical record/envelope/data keys, native IDs, timestamps, native actors, stable UUID revision/supersession chains, exact relations, and complete read-backs without using array position. Handoff success requires exactly: the outgoing current assignment; an outgoing-owner-authored handoff related to exactly that assignment plus its sorted recovery evidence; a deliberate type-aware owner change with complete issue read-back; then the successor owner's assignmentAccepted related exactly to the handoff native comment. Reject any malformed, partial, stale, foreign, missing, duplicate, temporally invalid, or extra-relation variant.",
+      "fixtures": [
+        "execution-record.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The successor may resume only because the complete canonical outgoing-assignment → owner-authored handoff plus recovery evidence → deliberate reassignment/read-back → successor-assignment chain and exact registry rebinding verify; the old owner may not edit.",
+      "assertions": [
+        {
+          "id": "handoff-proceeds",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "proceed",
+          "critical": true
+        },
+        {
+          "id": "handoff-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "verified-handoff-successor",
+          "critical": true
+        },
+        {
+          "id": "handoff-event",
+          "kind": "final-json-path-equals",
+          "pointer": "/handoffVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "handoff-reassignment",
+          "kind": "final-json-path-equals",
+          "pointer": "/reassignmentVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "handoff-new-acceptance",
+          "kind": "final-json-path-equals",
+          "pointer": "/newAssignmentAcceptedVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "handoff-current-owner",
+          "kind": "final-json-path-equals",
+          "pointer": "/currentOwner",
+          "expected": "user-new-26",
+          "critical": true
+        },
+        {
+          "id": "handoff-current-run",
+          "kind": "final-json-path-equals",
+          "pointer": "/currentRun",
+          "expected": "run-new-026",
+          "critical": true
+        },
+        {
+          "id": "handoff-old-stopped",
+          "kind": "final-json-path-equals",
+          "pointer": "/oldOwnerMayEdit",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "handoff-registry",
+          "kind": "final-json-path-equals",
+          "pointer": "/registryReboundVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "handoff-next",
+          "kind": "final-json-path-equals",
+          "pointer": "/nextBoundary",
+          "expected": "resume",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "rejects-premature-issue-done",
+      "prompt": "Inspect only scenario rejects-premature-issue-done in fixtures/execution-record.json. Do not run commands or mutate anything. Return exactly one JSON object with keys status, reason, currentState, prMerged, mergeReadBackVerified, acceptanceReadBackVerified, doneAllowed, executeMayWriteDone, mergeAllowed, and requiredEvidence. Apply the packaged terminal lifecycle contract.",
+      "fixtures": [
+        "execution-record.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The issue remains in review. Complete implementation/verification/review evidence cannot substitute for responsible acceptance and verified merge; execute cannot write done or merge.",
+      "assertions": [
+        {
+          "id": "premature-issue-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "premature-issue-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "done-requires-responsible-acceptance-and-verified-merge",
+          "critical": true
+        },
+        {
+          "id": "premature-issue-state",
+          "kind": "final-json-path-equals",
+          "pointer": "/currentState",
+          "expected": "inReview",
+          "critical": true
+        },
+        {
+          "id": "premature-issue-unmerged",
+          "kind": "final-json-path-equals",
+          "pointer": "/prMerged",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "premature-issue-merge-read",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeReadBackVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "premature-issue-no-acceptance",
+          "kind": "final-json-path-equals",
+          "pointer": "/acceptanceReadBackVerified",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "premature-issue-no-done",
+          "kind": "final-json-path-equals",
+          "pointer": "/doneAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "premature-issue-execute-no-done",
+          "kind": "final-json-path-equals",
+          "pointer": "/executeMayWriteDone",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "premature-issue-never-merges",
           "kind": "final-json-path-equals",
           "pointer": "/mergeAllowed",
           "expected": false,
+          "critical": true
+        },
+        {
+          "id": "premature-issue-required-evidence",
+          "kind": "final-json-path-equals",
+          "pointer": "/requiredEvidence",
+          "expected": [
+            "responsible-acceptance",
+            "verified-canonical-merge"
+          ],
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "rejects-premature-project-done",
+      "prompt": "Inspect only scenario rejects-premature-project-done in fixtures/execution-record.json. Do not run commands or mutate anything. Return exactly one JSON object with keys status, reason, projectPhase, selectedIssueMerged, selectedIssueAccepted, allIssuesDone, projectDoneAllowed, executeMayWriteDone, and nextAction. Apply the all-done project completion rule.",
+      "fixtures": [
+        "execution-record.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Even though the selected issue has merge and acceptance evidence, the project remains in review because the complete DAG is not all done. Execute cannot write terminal state.",
+      "assertions": [
+        {
+          "id": "premature-project-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "premature-project-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "project-done-requires-all-issues-done",
+          "critical": true
+        },
+        {
+          "id": "premature-project-phase",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectPhase",
+          "expected": "inReview",
+          "critical": true
+        },
+        {
+          "id": "premature-project-issue-merged",
+          "kind": "final-json-path-equals",
+          "pointer": "/selectedIssueMerged",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "premature-project-issue-accepted",
+          "kind": "final-json-path-equals",
+          "pointer": "/selectedIssueAccepted",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "premature-project-not-all-done",
+          "kind": "final-json-path-equals",
+          "pointer": "/allIssuesDone",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "premature-project-no-done",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectDoneAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "premature-project-execute-no-done",
+          "kind": "final-json-path-equals",
+          "pointer": "/executeMayWriteDone",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "premature-project-next",
+          "kind": "final-json-path-equals",
+          "pointer": "/nextAction",
+          "expected": "retain-in-review-and-refresh-complete-dag",
           "critical": true
         }
       ]

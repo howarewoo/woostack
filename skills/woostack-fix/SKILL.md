@@ -148,15 +148,15 @@ Use the canonical issue event kinds as follows:
   context before a fix is proposed;
 - `decisionRequest` records the complete hardened fix contract and requests the one explicit
   approve-to-execute decision;
-- `acceptance`, with a readable purpose of execution approval and a relation to that exact
-  `decisionRequest`, records an explicit **Go** or approved **Hand off** choice;
+- `decisionResponse`, related only to that exact `decisionRequest` and authored by its requested
+  authority, records an explicit **Go** or approved **Hand off** choice;
 - `assignmentAccepted` records the matching owner kind, principal, engineer, and run at execution
   start;
 - `implementationEvidence` and a later `verification` record the changed paths, commits, exact
   commands, observed results, and changed-path smoke test;
 - `reviewResult` records the reviewed PR/diff identity and blocking or clean result;
-- a separate terminal `acceptance` relates to the current verification, review, and PR evidence;
-  it is never inferred from the earlier execution approval; and
+- terminal `acceptance` relates only to the current implementation, verification, review, and PR
+  evidence; it never records or substitutes for execution approval; and
 - `failure`, `blocked`/`unblocked`, and `handoff` record truthful interruption, recovery context,
   and the exact next owner/action.
 
@@ -177,12 +177,13 @@ investigated and never guess a contract.
 Resume accepts only the exact managed issue UUID or URL. Refresh the complete issue, current
 append-only events, native state, PR evidence, and type-aware owner:
 
-- `planned` with verified diagnosis and hardened `decisionRequest`, but no execution-approval
-  `acceptance` → present the one approve-to-execute gate;
-- `planned` with a verified execution-approval `acceptance` and `handoff` → first verify that the
-  required execution subagent capability exists; if it does not, leave assignment and state
-  unchanged and report the blocker. Only after that check, verify the current owner, transition to
-  `executing`, append `assignmentAccepted`, and continue without inventing a second gate;
+- `planned` with verified diagnosis and hardened `decisionRequest`, but no matching
+  `decisionResponse` → present the one approve-to-execute gate;
+- `planned` with a verified execution-approval `decisionResponse` and `handoff` → first verify
+  that the required execution subagent capability exists; if it does not,
+  leave assignment and state unchanged and report the blocker. Only after that check, verify the
+  current owner, transition to `executing`, append `assignmentAccepted`, and continue without
+  inventing a second gate;
 - `executing` → continue only from complete implementation/evidence and worktree recovery receipts;
 - `inReview` or `done` → report the verified state and next action; do not restart execution; and
 - any missing contract, illegal event order, wrong owner, dirty or conflicting worktree, or
@@ -211,11 +212,11 @@ identity, or a project/document identity.
 
 4. **Approve to execute (GATE).** Present the exact issue URL, proved root cause, current hardened
    contract, acceptance criteria, and verified event IDs. Wait for one explicit choice:
-   - **Go** → append and verify the execution-approval `acceptance`; verify that the host can spawn
-     the execution subagent, then verify and accept assignment, transition to `executing`, and
-     permit worktree creation.
+   - **Go** → append and verify the execution-approval `decisionResponse`; verify that the host can
+     spawn the execution subagent, then verify and accept assignment, transition to `executing`,
+     and permit worktree creation.
    - **Approved Hand off** → only on an explicit approval to hand off, append and verify the same
-     execution-approval `acceptance` and a `handoff`; keep the issue `planned`, create no
+     execution-approval `decisionResponse` and a `handoff`; keep the issue `planned`, create no
      branch/worktree/commit/PR, and return
      `/woostack-fix --issue <exact issue UUID-or-URL> --resume`.
    - **Revise** → revise the contract and append a superseding `decisionRequest`, verify it, and
@@ -224,9 +225,9 @@ identity, or a project/document identity.
      implementation Git artifact.
 
    Never execute on inferred approval. An ambiguous deferral such as "later" leaves the decision
-   pending: append no execution-approval `acceptance`, do not clear the gate, keep the issue
-   `planned`, and record only a verified `handoff` when a durable deferral record is needed. Only
-   explicit **Go** or explicit **Approved Hand off** records approval.
+   pending: append no execution-approval `decisionResponse`, do not clear the gate, keep the issue
+   `planned`, and record only a verified `handoff` when a durable ownership transfer is actually
+   requested. Only explicit **Go** or explicit **Approved Hand off** records approval.
 
 5. **Execute the exact issue.** After **Go**, re-read identity, role, no-project relation, state,
    approval evidence, and owner immediately before creating the one `fix/<slug>` worktree. Pass
