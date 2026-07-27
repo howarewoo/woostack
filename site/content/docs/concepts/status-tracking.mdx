@@ -1,74 +1,80 @@
 ---
-title: "Tracking work: local Markdown vs Linear"
-description: Choose where woostack tracks feature artifacts and understand how each backend feeds the status board.
+title: Tracking work with Linear
+description: How Linear development records join GitHub implementation and PR truth.
 ---
 
-woostack tracks feature definitions and progress in one configured artifact backend. Local
-Markdown is the default; Linear is the collaborative alternative. In both modes,
-[woostack-status](/docs/skills/woostack-status) computes a fresh board from the selected source
-of truth instead of committing a separate `STATUS.md`.
+[woostack-status](/docs/skills/woostack-status) builds a fresh view from two authorities:
+development records read through the [official Linear MCP](https://mcp.linear.app/mcp), and
+implementation evidence read from Git and GitHub. It does not maintain a separate tracked status
+snapshot.
 
-## Choose a source of truth
+Linear owns scope, contracts, gates, assignments, dependencies, decisions, progress, and
+acceptance. Git and GitHub own source, branches, commits, pull requests, reviews, checks, and merge
+state. Status joins the two by exact verified identities without treating either one as a fallback
+for the other.
 
-| | Local Markdown (default) | Linear |
-| --- | --- | --- |
-| Best fit | Git-first projects that want reviewable artifacts beside the code | Teams that coordinate planning and progress in Linear |
-| Feature source | joined `.woostack/specs/` and `.woostack/plans/` files | one managed project, spec document, and ordered increment issues |
-| Lifecycle source | authored frontmatter reconciled with branch, commit, and PR state | native project and team issue states plus managed spec lifecycle metadata |
-| PR attribution | exact `Spec:` trailer | exact managed project and issue trailers |
-| Collaboration | normal Git review, history, and ownership | Linear assignments, dependencies, workflow states, and project views |
-| Setup | none beyond `woostack-init` | backend mappings in config and environment-only `LINEAR_API_KEY` |
+## The two tracked shapes
 
-`artifacts.specPlan` selects one backend at a time. The default is `markdown`; `linear` must be
-configured explicitly. See [Artifact backend configuration](/docs/configuration#artifact-backend)
-for the accepted keys and validation rules.
+### Standalone work items
 
-### Local Markdown
+A bounded fix or change has one repository-owned standalone issue. It has no project. The issue
+description and comments carry its contract, decisions, evidence, review, and acceptance, while
+its attributed GitHub PR proves the implementation and merge state.
 
-Markdown keeps specifications and plans in the repository, so their history and review travel
-with the codebase. A feature uses the familiar `draft → hardened → approved → planning → ready →
-executing → in-review → done` progression. The spec and plan first ship as a docs-only base PR,
-then implementation PRs stack above it.
+Status renders the issue directly. It never invents project progress for a standalone work item.
 
-Status is read-only in this mode. It derives visible execution and review phases from local
-checkboxes and GitHub artifacts, and flags malformed joins, missing branches, duplicate in-flight
-branches, and stale execution instead of rewriting frontmatter.
+### Multi-issue projects
 
-Self-contained `.woostack/fixes/*.md` files remain local in either mode. A fix file acts as its
-combined specification and plan and ships as one PR.
+A multi-issue feature has one Linear project, specification-bearing project updates, and a complete
+ordered set of increment issues. Status derives phase and progress from verified project updates,
+current issue records, relations, ownership, and GitHub evidence.
 
-### Linear
+Each issue represents one independently shippable increment and one attributed PR. Project
+progress is based on the complete managed issue set. The project can reach completion only after
+every increment has reached its verified terminal condition.
 
-Linear makes one managed project, its spec document, and its ordered increment issues canonical.
-Native project statuses, issue states, dependencies, and assignments remain in Linear rather than
-being mirrored into local spec or plan files. Implementation begins after the same three build
-gates, without a docs-only base PR.
+## How the board is derived
 
-Status authenticates before reading Linear and performs only narrow terminal reconciliation. It
-verifies attributed merged PRs, permits eligible issues to move from `inReview` to `done`, reads
-the result back, and marks the project done only after every managed issue is observed done.
-Missing authentication, ambiguous attribution, API failure, or partial evidence fails closed.
+Each status run:
 
-The full lifecycle enum, joins, and evidence rules live in the
-[status conventions](https://github.com/howarewoo/woostack/blob/main/skills/woostack-status/references/conventions.md).
+1. discovers the host-exposed MCP tools by capability and preflights authenticated read access to
+   the configured Linear workspace and team;
+2. fully reads the repository-owned projects and standalone issues, their current updates,
+   comments, ownership, relations, and states;
+3. independently reads the matching GitHub PRs and merge evidence;
+4. validates the exact Linear-to-PR joins, complete histories, ownership, dependencies, and
+   repository attribution; and
+5. renders the current board or stops with an actionable ambiguity instead of guessing.
+
+The
+[canonical status conventions](https://github.com/howarewoo/woostack/blob/main/skills/woostack-status/references/conventions.md)
+define event validity, state derivation, PR attribution, reconciliation, stale work, and next
+actions. They are linked here rather than copied into an authored page.
+
+## Terminal truth
+
+Status may reconcile only narrowly eligible terminal state, and it must read each change back.
+An issue is not done merely because its PR merged: the relevant acceptance authority must also
+have accepted the verified evidence. Conversely, a Linear completion claim cannot prove a merge
+that GitHub does not report.
+
+For an engineer pair, the decision-maker remains the acceptance authority. The implementing coder's
+self-check is implementation evidence, not independent review. Only an explicit user invocation
+of [woostack-review](/docs/skills/woostack-review) may delegate analysis to independent reviewers,
+and their findings do not replace the decision-maker's verdict.
+
+## Fail-closed boundaries
+
+Status reports a blocker instead of a clean board when required MCP capability, pagination,
+identity, ownership, event history, relation, PR attribution, Git ancestry, review evidence, or
+read-back is missing, partial, stale, foreign, or ambiguous. It never derives a successful result
+from titles, branch resemblance, unchecked remote prose, or cached local output.
+
+Local `.woostack/memory/` and `.woostack/wisdom/` remain reusable knowledge only. Audit, QA, and
+production-response reports remain non-authoritative diagnostics. None of them can set a phase,
+assign an issue, clear a dependency, approve execution, accept work, or mark it complete.
 
 <Callout type="info">
-  The terminal table is canonical narration. The mirrored
-  `.woostack/visuals/status-board.html` file is gitignored presentation only; no tracked status
-  snapshot is created.
+  The status table is a current narration of Linear and GitHub truth, not a third record system.
+  Re-run it whenever either authority changes.
 </Callout>
-
-## Switching backends
-
-Backend selection is a clean boundary, not synchronization or fallback. After switching to
-Linear, existing `.woostack/specs/` and `.woostack/plans/` files remain untouched but inactive.
-No command imports, merges, or silently adopts them. Migrate deliberately and keep one canonical
-feature store.
-
-## Roadmap: GitHub Issues
-
-GitHub Issues is planned as another tracking option for teams that want feature coordination in
-the same place as their code and pull requests. It is not supported yet and is not a valid
-`artifacts.specPlan` value. Until that backend ships, choose `markdown` or `linear`; do not model
-GitHub Issues as a shadow copy of either source of truth.
-

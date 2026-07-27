@@ -179,7 +179,7 @@ test('concepts taxonomy keeps context economy under context management', async (
   assert.doesNotMatch(overview, /^## Context economy$/m);
 });
 
-test('Linear-only scaffold coexists with the current authored configuration contract', async () => {
+test('configuration docs follow the scaffold and Linear contract', async () => {
   const repoRoot = path.resolve(import.meta.dirname, '..', '..');
   const [templateRaw, configuration, auditRaw, memory] = await Promise.all([
     readFile(path.join(repoRoot, 'skills', 'woostack-init', 'templates', 'config.json'), 'utf8'),
@@ -188,9 +188,6 @@ test('Linear-only scaffold coexists with the current authored configuration cont
     readFile(path.join(repoRoot, 'skills', 'woostack-init', 'references', 'memory.md'), 'utf8'),
   ]);
   const template = JSON.parse(templateRaw);
-  // PR #564 moves the executable scaffold first; PR #570 owns the authored public-doc rewrite.
-  // Keep the existing Markdown-facing assertions below executable during that intentional stack
-  // transition while proving the internal template is already Linear-only and credential-free.
   assert.deepEqual(Object.keys(template), ['linear', 'models', 'review', 'respond', 'status']);
   assert.deepEqual(Object.keys(template.linear), [
     'repository',
@@ -201,27 +198,30 @@ test('Linear-only scaffold coexists with the current authored configuration cont
   ]);
   assert.equal(template.artifacts, undefined);
 
-  const exampleMatch = /## A complete Markdown example[\s\S]*?```json\n([\s\S]*?)\n```/.exec(configuration);
-  assert.ok(exampleMatch, 'configuration page exposes a complete Markdown JSON example');
+  const exampleMatch = /## A complete repository-policy example[\s\S]*?```json\n([\s\S]*?)\n```/.exec(configuration);
+  assert.ok(exampleMatch, 'configuration page exposes a complete repository-policy JSON example');
   const example = JSON.parse(exampleMatch[1]);
   assert.deepEqual(
     Object.keys(example).sort(),
-    ['artifacts', 'audit', 'base_branch', 'commit', 'models', 'respond', 'review', 'review_sweep', 'status']
+    ['audit', 'base_branch', 'commit', 'linear', 'models', 'respond', 'review', 'review_sweep', 'status']
   );
   assert.ok(example.models);
-  assert.deepEqual(example.artifacts, { specPlan: 'markdown' });
-  assert.equal(example.linear, undefined);
+  assert.equal(example.artifacts, undefined);
+  assert.deepEqual(example.linear.repository, 'https://github.com/owner/repository');
+  assert.ok(example.linear.workspace);
+  assert.ok(example.linear.team);
   assert.equal(example.audit.models, undefined);
 
-  assert.match(configuration, /ships five\s+top-level keys: `artifacts`, `models`, `review`, `respond`, and `status`/);
-  assert.match(configuration, /There are ten top-level settings:/);
-  assert.match(configuration, /\| `artifacts` \|/);
+  assert.match(configuration, /ships five\s+top-level keys: `linear`, `models`, `review`, `respond`, and `status`/);
+  assert.match(configuration, /There are nine top-level settings:/);
+  assert.doesNotMatch(configuration, /\| `artifacts` \|/);
   assert.match(configuration, /\| `linear` \|/);
   assert.match(configuration, /\| `audit` \|/);
+  assert.match(configuration, /^## Linear MCP development authority$/m);
   assert.match(configuration, /^## Audit engine$/m);
   assert.match(configuration, /`audit\.severity_floor`/);
   assert.match(configuration, /Root model tiers also drive \[woostack-audit\]/);
-  assert.match(configuration, /validates all five scaffolded keys/);
+  assert.match(configuration, /discovers and preflights the official MCP capabilities/);
 
   const { fm, body } = parseFrontmatter(auditRaw, 'woostack-audit');
   const renderedBody = rewriteLinks(
@@ -237,8 +237,19 @@ test('Linear-only scaffold coexists with the current authored configuration cont
   assert.doesNotMatch(renderedAudit, /`ignore`, `models`, `chunking/);
 
   const normalizedMemory = memory.replace(/\s+/g, ' ');
-  assert.match(normalizedMemory, /`linear` holds the canonical repository, workspace, optional default team/);
-  assert.match(normalizedMemory, /Provider credentials and development records never belong in either file/);
-  assert.match(normalizedMemory, /Init does not scaffold local specs, plans, or fixes/);
-  assert.match(normalizedMemory, /pre-cutover copies are migration input/);
+  assert.match(
+    normalizedMemory,
+    /exactly five top-level policy namespaces: `linear`, `models`, `review`, `respond`, and `status`/
+  );
+  assert.doesNotMatch(normalizedMemory, /artifacts\.specPlan|spec\/plan backend|defaults to Markdown/i);
+  assert.match(
+    normalizedMemory,
+    /does not create `\.woostack\/specs\/`, `\.woostack\/plans\/`, or `\.woostack\/fixes\/`/
+  );
+  assert.match(normalizedMemory, /historical migration input only/);
+  assert.match(normalizedMemory, /memory and (?:the sibling )?wisdom[\s\S]{0,120}non-authoritative/i);
+  assert.match(normalizedMemory, /sanitized diagnostic reports[\s\S]{0,100}non-authoritative/i);
+  assert.match(normalizedMemory, /linear:\/\/project\/<uuid>.*linear:\/\/issue\/<uuid>/i);
+  assert.match(normalizedMemory, /review-recorded notes use raw `pr-<n>` or `address-comments`/i);
+  assert.doesNotMatch(normalizedMemory, /linear:\/\/document\/|normalized adapter/i);
 });

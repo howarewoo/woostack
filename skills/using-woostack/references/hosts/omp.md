@@ -45,15 +45,16 @@ bounded, credential-free argument.
 
 Hermes must not place any of those values in its shell-parsed `terminal.command`. It preflights
 the owned mode-`0700` installed launcher directory resolved from
-`${WOO_ENGINEER_LAUNCHER_DIR:-$HOME/.local/libexec/woostack}` and its regular no-follow
-mode-`0500` `launch-omp` file. It then stages the literal raw bytes, without a terminator or
-encoding wrapper, as owned regular no-follow mode-`0600` files named exactly `profile`, `repo`,
+`${WOO_ENGINEER_LAUNCHER_ROOT:-$HOME/.local/libexec/woostack}/<ENGINEER_NAME>` and its regular
+no-follow mode-`0500` `launch-omp` file. It then stages the literal raw bytes, without a terminator
+or encoding wrapper, as owned regular no-follow mode-`0600` files named exactly `profile`, `repo`,
 and `prompt` in a fresh host-generated mode-`0700` dispatch directory. Its only PTY call is
 `terminal(command="<resolved-absolute-launcher-dir>/launch-omp", workdir=<host-generated-dispatch-directory>, pty=true)`.
-The installed launcher validates those files and directly calls `os.execvpe` or its host equivalent
-with argv `["omp", "--profile", profile, "-p", "--cwd", repo, "--", prompt]`. Direct exec
-preserves the real PTY, signal/resize behavior, exit status, and stdout/evidence handback; the host
-then removes the staged files/directory without replacing that status. The `--` option barrier
+The installed launcher validates those files and directly calls the pinned absolute executable
+with `os.execve` and argv
+`["omp", "--profile", profile, "-p", "--cwd", repo, "--", prompt]`. Direct exec preserves the real
+PTY, signal/resize behavior, exit status, and stdout/evidence handback; the host then removes the
+staged files/directory without replacing that status. The `--` option barrier
 keeps a leading-dash prompt positional. `$()`, backticks, single and double quotes, semicolons,
 embedded newlines, and leading dashes remain literal prompt data; they are never evaluated, split,
 or treated as options.

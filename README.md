@@ -1,12 +1,22 @@
 # woostack
 
-**A model-agnostic collection of software development skills covering every phase of the engineering process.**
+**Linear-backed multiperson collaboration and project tracking for AI-assisted software delivery.**
 
-`woostack` packages opinionated workflows into installable skills that any AI coding agent can follow—covering every stage of software engineering from greenfield project bootstrapping to feature building, debugging, automated code review, and feedback iteration. It provides a standard set of decisions for projects of any size, complete with a local, token-efficient memory system.
+`woostack` packages opinionated workflows into twenty-three public installable skills that work
+across coding harnesses. The official Linear MCP is the only development-record channel: a
+standalone change or fix is one Linear issue, while multi-issue work is one Linear project with
+specification-bearing project updates and ordered increment issues. Git and GitHub remain authoritative for code,
+branches, pull requests, reviews, and merge evidence.
 
-- **Agent & Model Agnostic**: Works seamlessly across Claude Code, Cursor, Codex, Aider, and other agents that respect the `skills` convention.
-- **Local Memory System**: Retains and routes learnings on a per-clone basis, ensuring subsequent agent sessions do not repeat prior mistakes.
-- **Team-Ready**: Designed for small-to-medium teams working on collaborative codebases.
+- **Multiperson by design:** Explicit ownership, dependency relations, handoffs, and verified
+  read-backs let human and agent engineers coordinate without hidden local state.
+- **Decision-maker/coder separation:** A decision-making engineer owns scope, review, and
+  acceptance; an isolated coding agent implements one assigned issue at a time.
+- **Local knowledge, not shadow state:** Memory and wisdom retain reusable learnings per clone.
+  Local diagnostic reports are advisory and never determine scope, status, assignment, or
+  acceptance.
+- **Agent and model agnostic:** The skills work across supported harnesses without moving
+  development authority out of Linear.
 
 ---
 
@@ -14,12 +24,12 @@
   - [1. Installation](#1-installation)
   - [2. Initialization](#2-initialization)
   - [3. Project Integration](#3-project-integration)
-  - [4. Repository Configuration](#4-repository-configuration)
-  - [5. Artifact Backend](#5-artifact-backend)
+  - [4. Repository Policy](#4-repository-policy)
+  - [5. Linear MCP and Engineer Units](#5-linear-mcp-and-engineer-units)
 - [The Core Development & Review Loop](#the-core-development--review-loop)
   - [Writing and Modifying Code](#writing-and-modifying-code)
   - [Review and Iterate Flow](#review-and-iterate-flow)
-- [Local Memory System](#local-memory-system)
+- [Local Knowledge System](#local-knowledge-system)
   - [Architecture](#architecture)
   - [Context Routing](#context-routing)
   - [Obsidian Vault Integration](#obsidian-vault-integration)
@@ -31,7 +41,8 @@
 
 ## Getting Started
 
-Follow this sequence to adopt and configure `woostack` in your repository.
+Follow this sequence to connect your repository to the official Linear MCP, install the skills, and
+give every human or agent engineer an explicit authority envelope.
 
 ### 1. Installation
 
@@ -43,11 +54,11 @@ pnpx skills add howarewoo/woostack
 
 *Note: `pnpm` (and `pnpx`) is the recommended package manager for woostack, as bootstrapped projects default to a pnpm workspace catalog.*
 
-This command registers twenty-three public command/adoption skills and three bundled supporting skills at twenty-six fixed `SKILL.md` locations.
-Backend selection does not add another command; the collection still includes
-`using-woostack`, `woostack-init`, `woostack-bootstrap`,
-`woostack-build`, `woostack-fix`, `woostack-change`, `woostack-review`,
-`woostack-address-comments`, and `woostack-eval`, among the rest, plus its internal and unregistered helpers.
+This command registers twenty-three public command/adoption skills and three bundled supporting
+skills at twenty-six fixed `SKILL.md` locations. The collection includes `using-woostack`,
+`woostack-init`, `woostack-bootstrap`, `woostack-build`, `woostack-fix`, `woostack-change`,
+`woostack-review`, `woostack-address-comments`, and `woostack-eval`, among the rest, plus its
+internal and unregistered helpers.
 
 > **Recommended companion — [impeccable](https://github.com/pbakaus/impeccable).** woostack's front-end design skill of choice. It powers the `design` review angle (`woostack-review` runs impeccable's detector). Optional but recommended:
 >
@@ -59,14 +70,19 @@ Backend selection does not add another command; the collection still includes
 
 ### 2. Initialization
 
-Run the initialization skill in the project root:
+Authenticate the current host against the
+[official Linear MCP](https://mcp.linear.app/mcp). This current-host connection is the only host
+setup required for generic initialization; Hermes, OMP, and paired launchers are not prerequisites.
+Then run the initialization skill in the project root:
 
 ```bash
 /woostack-init
 ```
 
 > [!IMPORTANT]
-> **You must run `/woostack-init` before using any other woostack skills.** This sets up the `.woostack/` workspace structure, default configurations, and gitignores.
+> **Run `/woostack-init` before using any other woostack skill.** Initialization requires only the
+> current host's authenticated official Linear MCP connection. It verifies the repository's Linear
+> policy, then creates the local knowledge, configuration, and diagnostic workspace.
 
 ### 3. Project Integration
 
@@ -79,11 +95,13 @@ project rules and route `/woostack-*` requests to the matching woostack skill.
 
 The [using-woostack](skills/using-woostack/SKILL.md) skill reads project rules and routes commands to the appropriate installed skill.
 
-### 4. Repository Configuration
+### 4. Repository Policy
 
-Customize tool behaviors using `.woostack/config.json`. This configures aspects like code reviews and pre-commit hooks without requiring you to fork the skill collection.
+Customize non-secret repository policy in `.woostack/config.json`, including code-review behavior,
+native Linear status mappings, and pre-commit hooks. MCP authentication stays in the host's OAuth
+and secret store, never in repository configuration.
 
-Example `.woostack/config.json`:
+Review-policy fragment (merge it into the init-generated file; do not replace the required `linear` mappings):
 ```json
 {
   "review": {
@@ -96,52 +114,76 @@ Example `.woostack/config.json`:
 - **`review.severity_floor`**: Filter results by severity (e.g., `high`, `medium`, `low`).
 - **`review.ignore`**: Exclude generated or external code files from PR reviews.
 
-For detailed configurations, see [woostack-review config options](skills/woostack-review/references/configuration.md#per-repo-configuration-woostackconfigjson).
+For the full policy surface, see the authored
+[configuration reference](site/content/docs/configuration.mdx).
 
-### 5. Artifact Backend
+### 5. Linear MCP and Engineer Units
 
-Feature specs and plans use a selected artifact backend. Markdown is the default when
-`artifacts.specPlan` is absent and remains available explicitly; it is not the only supported
-storage model. Linear mode uses one repository-owned project for the feature, one managed spec
-document, and ordered increment issues. Native project statuses and team issue states carry
-lifecycle state.
+Every participating profile connects to the
+[official Linear MCP](https://mcp.linear.app/mcp). Woostack discovers the capabilities exposed by
+the active host, proves the required project, issue, update, comment, ownership, relation, status,
+and independent read-back operations, and fails closed before development when that proof is
+incomplete. It never assumes a host-specific MCP tool name.
 
-Linear authentication is environment only: provide `LINEAR_API_KEY` to the process running the
-skill. Never put the key in `.woostack/config.json`, a checked-in env file, documentation, or a
-command example. The build loop retains exactly three hard gates under either backend. Markdown
-ships its spec and plan in a docs-only base PR; Linear writes those artifacts natively and has no
-docs-only base PR before implementation. Every Linear `/woostack-status` run verifies evidence and
-reconciles eligible terminal states before rendering; Markdown status remains read-only.
+The authority boundary is deliberate:
 
-See the [artifact-backend adoption contract](skills/woostack-bootstrap/references/development.md#artifact-backend)
-for selection and migration boundaries. It links the canonical build lifecycle, worktree, and
-status contracts; those references own the details.
+- **Linear** is the only development record. One standalone issue owns a bounded change or fix.
+  Multi-issue work uses one project, specification-bearing project updates, and ordered increment issues.
+- **Git and GitHub** own source, branches, commits, pull requests, reviews, and merge truth.
+- **Local memory and wisdom** are reusable knowledge only. Local audit, QA, response, evaluation,
+  and other diagnostic reports are non-authoritative evidence.
+
+Only after `/woostack-init` has established and verified repository policy may an operator
+explicitly select the optional
+[Hermes decision-maker + isolated OMP adapter](site/content/docs/getting-started.mdx). That pairing
+is a conditional host setup, not part of generic initialization.
+
+The generic [engineer-agent contract](skills/using-woostack/references/engineer-agents.md) separates
+decisions from implementation. In the published
+[Hermes + OMP setup](site/content/docs/getting-started.mdx), Hermes decides, independently reads and
+reviews the result, comments on the PR, and accepts or redispatches. Hermes never edits source, runs
+implementation or tests, commits, pushes, or opens an implementation PR. Its isolated OMP profile
+codes exactly one assigned Linear issue at a time. Only an explicit `/woostack-review` invocation
+may delegate independent review analysis; Hermes still owns the acceptance decision.
 
 ---
 
 ## The Core Development & Review Loop
 
-`woostack` enforces structured workflows to ensure high-quality code changes.
+`woostack` applies the same gated workflow to each Linear-backed development record.
 
 ### Writing and Modifying Code
 
-No code changes should be made ad-hoc. All coding tasks must go through one of the four primary development entry points:
+No repository mutation starts ad hoc. The sole pre-issue exception is
+`/woostack-bootstrap`'s approved project-first scaffold: its verified Linear project authorizes the
+initial scaffold before planning creates increment issues. Every later implementation task, and
+every non-bootstrap coding task, binds to exactly one Linear issue and enters through one of four
+development skills:
 
 1. **Greenfield Applications** → [/woostack-bootstrap](skills/woostack-bootstrap/SKILL.md)
-   Walks through a technology selection protocol, obtains design approval, and scaffolds a clean monorepo architecture.
+   Obtains design approval, creates the Linear project record, and scaffolds the selected
+   architecture.
 2. **Multi-PR Features or Work Items** → [/woostack-build](skills/woostack-build/SKILL.md)
-   Use the full gated build authority when the complete work requires multiple reviewable PRs.
+   Uses one Linear project and ordered increment issues for work that needs multiple reviewable
+   PRs.
 3. **Bug Fixes & Root-Cause Work** → [/woostack-fix](skills/woostack-fix/SKILL.md)
-   Use the gated fix authority for bugs and root-cause work.
+   Diagnoses the root cause and binds the approved fix to one standalone Linear issue.
 4. **Bounded Non-Bug Changes** → [/woostack-change](skills/woostack-change/SKILL.md)
-   Ships an enhancement or refactor that fits one reviewable PR without an approval gate or persisted plan.
+   Ships a bounded enhancement or refactor through one standalone Linear issue and one PR.
 
 > [!WARNING]
-> **No code should be written or modified without using one of these four skills.** Greenfield apps use `/woostack-bootstrap`, multi-PR features use `/woostack-build`, bugs and root-cause work use `/woostack-fix`, and bounded one-PR non-bug enhancements or refactors use `/woostack-change`. This ensures each code change follows the workflow appropriate to its scope.
+> **No implementation code should be written or modified without a bound Linear issue.** The only
+> exception is `/woostack-bootstrap`'s initial approved project-first, project-owned scaffold before
+> planning; every later bootstrap implementation increment is issue-bound. Multi-PR features use
+> `/woostack-build`, bugs use `/woostack-fix`, and bounded one-PR non-bug work uses
+> `/woostack-change`.
 
 ### Review and Iterate Flow
 
 After writing code, use the verification and iteration loop:
+
+Local findings and reports from review, audit, QA, response, and evaluation are evidence for the
+responsible decision-maker. They never replace the Linear contract or Git/GitHub facts.
 
 - **PR Reviews** → [/woostack-review](skills/woostack-review/SKILL.md)
   Fans out sub-agents in parallel to check distinct angles (bugs, security, observability, database, etc.), then runs an adversarial **Skeptical Validator** (prosecutor and defender checks) to eliminate false positives before posting reviews.
@@ -158,13 +200,17 @@ After writing code, use the verification and iteration loop:
 
 ---
 
-## Local Memory System
+## Local Knowledge System
 
-The memory system allows agents to accumulate durable learnings (such as architecture patterns, gotchas, and conventions) locally on a per-clone basis, ensuring later sessions build upon previous ones.
+The local memory and wisdom stores retain reusable architecture patterns, gotchas, and conventions
+on a per-clone basis so later sessions do not repeat mistakes. They are knowledge, not a
+development ledger: only Linear can establish scope, ownership, dependencies, lifecycle, progress,
+or acceptance.
 
 ### Architecture
 
-All memories are saved locally as scoped per-fact Markdown notes under `.woostack/memory/` (which is gitignored to prevent cross-developer leakage). Each note defines a single fact and contains simple frontmatter declaring its context scope, type, and source:
+Memories are scoped per-fact Markdown notes under `.woostack/memory/`, which is gitignored to avoid
+cross-developer leakage. Each note contains one reusable fact plus simple context and provenance:
 
 ```markdown
 ---
@@ -173,7 +219,7 @@ type: pattern
 scope: packages/api/**, packages/api/orpc/**
 hook: oRPC error → TanStack retry policy
 updated: 2026-06-02
-source: .woostack/specs/2026-06-02-api-errors.md
+source: linear://issue/22222222-2222-4222-8222-222222222222
 ---
 oRPC ORPCError maps to TanStack retry policy: throw typed,
 let [[tanstack-query-retries]] decide.

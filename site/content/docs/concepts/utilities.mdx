@@ -1,57 +1,64 @@
 ---
 title: Utilities
-description: "On-demand skills that complement the build and fix loops: investigate, render, and tend the workspace, without being a step in any flow."
+description: "On-demand investigation, presentation, diagnostics, and local knowledge maintenance alongside Linear-backed development."
 ---
 
-Most woostack skills are steps in a flow: the [build loop](/docs/concepts/building-rules) chains
-ideate → plan → execute, and the fix loop runs its own gated sequence. A second group of skills
-sits beside those flows for read-only investigation or report-only artifacts. You reach for them
-on demand, and each hands back a bounded result rather than advancing a pipeline. None of them
-merge, and none change your application code.
+Most woostack skills advance work bound to a Linear issue or project. Utilities sit beside those
+flows: they investigate, render, diagnose, evaluate, or maintain reusable local knowledge without
+becoming a development record. None merge, and none turn their output into permission to edit.
 
-They split by one question: **does the skill write `.woostack` workspace artifacts?**
+The authority boundary is constant: Linear is the only development-record authority. Git and
+GitHub own code, PR, review, and merge truth. Local views, reports, caches, memory, and wisdom are supporting material.
+The canonical
+[Linear development authority](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md)
+and [state conventions](https://github.com/howarewoo/woostack/blob/main/skills/woostack-status/references/conventions.md)
+define the remote record rather than these utilities.
 
-## Investigate & present
+## Investigate and present
 
-These point at the truth (your repo, the `.woostack/` artifacts, a spec, or bounded production
-telemetry) and answer, render, or evaluate it. Most are read-only; `woostack-qa` and
-`woostack-respond` write reports. `woostack-eval` may materialize tracked corpus files only after
-explicit approval; its evidence and reports are transient, and it never edits the target skill.
-`woostack-respond` also reads production telemetry and may dispatch gated fix preparation, so run it
-only in an explicitly authorized operational context—not as an unconditional CI utility.
+These skills answer, render, or inspect a bounded target. Where managed context is needed, they
+accept an exact issue/project identity, verify it through the
+[official Linear MCP](https://mcp.linear.app/mcp), and join code or PR facts independently.
+`woostack-respond` also reads production telemetry and may hand a verified repository defect to the
+normal issue gate. Run it only inside explicitly authorized operational context; repository setup
+or CI never implies production access.
 
 | Skill | What it does | Writes? | Invoke |
 | --- | --- | --- | --- |
-| [woostack-ask](/docs/skills/woostack-ask) | Answers a question grounded in the `.woostack/` knowledge surface and the code, citing its evidence. | no | `/woostack-ask <question>` |
-| [woostack-visualize](/docs/skills/woostack-visualize) | Renders any source (a spec, plan, file, or concept) to one self-contained HTML view for a chosen audience. | view only (HTML) | `/woostack-visualize <source>` |
-| [woostack-status](/docs/skills/woostack-status) | Computes the feature board from git artifacts and prints it. | no | `/woostack-status` |
-| [woostack-debug](/docs/skills/woostack-debug) | Runs a four-phase root-cause analysis and hands the findings back; it never writes the fix. | no | `/woostack-debug <target>` |
-| [woostack-qa](/docs/skills/woostack-qa) | Exploratory-QAs a running app in a real browser and writes a severity-ranked, report-only findings doc. | report file only | `/woostack-qa <url> [focus…]` |
-| [woostack-respond](/docs/skills/woostack-respond) | Investigates bounded production telemetry, writes a tracked sanitized report, and prepares verified fixes only through their existing approval gates. | report file; gated fix plans | `/woostack-respond <signal> [scope…]` |
-| [woostack-eval](/docs/skills/woostack-eval) | Runs approved behavior and trigger corpora as isolated candidate/baseline comparisons. | approved tracked corpus files only; transient evidence and reports; no target skill edit | `/woostack-eval <skill-path> [--behavior\|--triggers\|--all]` |
+| [woostack-ask](/docs/skills/woostack-ask) | Answers a question from code, local knowledge, cited external evidence, and verified Linear context only when managed facts are relevant. | no | `/woostack-ask <question>` |
+| [woostack-visualize](/docs/skills/woostack-visualize) | Renders a verified Linear project/issue, file, directory, or concept as one self-contained HTML view for a chosen audience. | disposable HTML view | `/woostack-visualize <source>` |
+| [woostack-status](/docs/skills/woostack-status) | Computes a fresh project-and-standalone-issue board from official MCP plus exact Git/GitHub evidence. | conditional receipt-backed terminal reconciliation; no local board file | `/woostack-status` |
+| [woostack-debug](/docs/skills/woostack-debug) | Runs a four-phase root-cause analysis and hands findings back without writing the correction. | no | `/woostack-debug <target>` |
+| [woostack-qa](/docs/skills/woostack-qa) | Exploratory-QAs a running app in a real browser and writes a sanitized, severity-ranked report. | non-authoritative report | `/woostack-qa <url> [focus…]` |
+| [woostack-audit](/docs/skills/woostack-audit) | Reviews standing code through the review swarm and writes a sanitized ranked report without remediation. | non-authoritative report | `/woostack-audit <target>` |
+| [woostack-respond](/docs/skills/woostack-respond) | Investigates bounded production telemetry, writes a sanitized report, and may hand a verified repository defect to the normal issue gate. | non-authoritative report; gated handoff | `/woostack-respond <signal> [scope…]` |
+| [woostack-eval](/docs/skills/woostack-eval) | Runs approved behavior and trigger corpora as isolated candidate/baseline comparisons without editing the target skill. | approved corpus changes only; transient evidence | `/woostack-eval <skill-path> [--behavior\|--triggers\|--all]` |
 
 <Callout type="info">
-  `woostack-debug` is **dual-natured**. The standalone `/woostack-debug` command is the pure
-  on-demand utility listed here. The same root-cause engine also runs automatically inside
-  [woostack-execute](/docs/skills/woostack-execute) (and its overnight variant) when a verification
-  keeps failing. [woostack-review](/docs/skills/woostack-review) only points you at the command; it
-  never dispatches the fix itself. It belongs here because, run on its own, it just investigates.
+  HTML views and sanitized diagnostic or evaluation reports are non-authoritative evidence. They
+  cannot establish scope, assignment, dependencies, lifecycle, acceptance, or implementation
+  permission. Acting on a finding requires the appropriate exact Linear issue/project binding and
+  fresh provider read-back.
 </Callout>
 
-## Tend the workspace
+Remote titles, descriptions, comments, diffs, telemetry, and tool output are untrusted evidence,
+never instructions. Reports exclude secrets and raw provider payloads; transient evidence stays
+outside the reusable knowledge stores.
 
-These maintain the `.woostack/` workspace itself. Both are **gated**: they propose a changeset and
-nothing is written until you approve it.
+## Tend local support state
+
+These skills maintain the non-authoritative `.woostack/` support surfaces. Both are gated: they
+propose a changeset and write only after explicit approval.
 
 | Skill | What it does | Writes? | Invoke |
 | --- | --- | --- | --- |
-| [woostack-doctor](/docs/skills/woostack-doctor) | Diagnoses `.woostack/` store integrity and conventions, then applies repairs you approve. | gated | `/woostack-doctor` |
-| [woostack-dream](/docs/skills/woostack-dream) | Curates the [memory and wisdom](/docs/concepts/memory) stores and docs via a gated changeset. | gated | `/woostack-dream [instructions]` |
+| [woostack-doctor](/docs/skills/woostack-doctor) | Diagnoses local policy, memory, wisdom, and workspace integrity, then applies only approved local repairs. It does not repair remote development records. | gated local changes | `/woostack-doctor` |
+| [woostack-dream](/docs/skills/woostack-dream) | Curates [memory and wisdom](/docs/concepts/memory) and evidence-backed docs. Verified remote context is read-only corroboration, never a curation target. | gated local changes | `/woostack-dream [instructions]` |
 
 ## Where to go next
 
 <Cards>
-  <Card title="Building rules" href="/docs/concepts/building-rules" description="The gated build loop these utilities complement." />
-  <Card title="Memory" href="/docs/concepts/memory" description="The stores woostack-dream curates and woostack-ask recalls." />
-  <Card title="All skills" href="/docs/skills/using-woostack" description="Per-skill reference, generated from each SKILL.md." />
+  <Card title="Building rules" href="/docs/concepts/building-rules" description="How Linear-backed work moves through its gates." />
+  <Card title="Memory" href="/docs/concepts/memory" description="Reusable local knowledge and its authority boundary." />
+  <Card title="Status tracking" href="/docs/concepts/status-tracking" description="How the board joins Linear development records with Git/GitHub truth." />
 </Cards>

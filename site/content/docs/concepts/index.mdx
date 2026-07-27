@@ -1,23 +1,31 @@
 ---
 title: Overview
-description: "woostack's core concepts: the least-code tenet, gated build loop, context management, and operational surfaces around them."
+description: "woostack's Linear collaboration model, gated workflows, authority boundaries, and context-management practices."
 ---
 
-woostack rests on two operational ideas. A feature moves through a **gated build loop** so quality
-is enforced by structure, not vigilance. Every step also practices **context management**: the
-agent's working context holds only what the step needs, so it reasons better and runs longer.
-Across both sits a cross-cutting engineering tenet: write the least code that safely works.
-Worktrees and the status board keep parallel work and collaboration cheap on top. The pages below
-take each concept on its own.
+woostack coordinates multiperson development through the
+[official Linear MCP](https://mcp.linear.app/mcp). Linear is the only development-record authority,
+while Git and GitHub remain authoritative for code and pull requests. Every repository-changing
+workflow is attributable to one exact issue.
+
+There are two record shapes. A bounded one-PR fix or change uses one standalone issue. Multi-issue
+work uses one Linear project, specification-bearing project updates, and an ordered set of
+independently shippable increment issues. Across both shapes, explicit gates, isolated
+implementation, and independent review keep decisions visible and ownership clear.
+
+Local memory and wisdom remain reusable engineering knowledge, not project state. Local diagnostic
+reports remain non-authoritative evidence. The pages below explain each boundary without
+duplicating the canonical skill contracts.
 
 <Cards>
-  <Card title="Building rules" href="/docs/concepts/building-rules" description="The gated build loop, its three hard gates, and the one-spec-one-plan-N-PRs invariant." />
-  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare the Bootstrap, Build, Fix, and Change workflows at a glance." />
-  <Card title="Least code, still safe" href="/docs/concepts/least-code" description="woostack's core engineering tenet: write as little code as necessary, without cutting edge cases or risks." />
-  <Card title="Memory" href="/docs/concepts/memory" description="The memory and wisdom stores, and how each is recalled." />
-  <Card title="Context management" href="/docs/concepts/context-management" description="Scripts compute, subagents isolate, and model tiers route work." />
-  <Card title="Parallelism with worktrees" href="/docs/concepts/worktrees" description="How woostack isolates each run in its own git worktree so multiple builds never collide." />
-  <Card title="Tracking work: Markdown vs Linear" href="/docs/concepts/status-tracking" description="Choose a canonical feature store, see how each backend feeds the status board, and understand the GitHub Issues roadmap." />
+  <Card title="Building rules" href="/docs/concepts/building-rules" description="The three-gate project loop, standalone issue path, and Linear/GitHub authority split." />
+  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Bootstrap, Build, Fix, and Change under the same Linear MCP contract." />
+  <Card title="Engineer agents" href="/docs/concepts/engineer-agents" description="Separate decision authority from one-issue-at-a-time implementation in an isolated coding profile." />
+  <Card title="Least code, still safe" href="/docs/concepts/least-code" description="Write as little code as necessary without cutting edge cases or risks." />
+  <Card title="Memory" href="/docs/concepts/memory" description="Use scoped memory and shared wisdom as reusable knowledge, never development authority." />
+  <Card title="Context management" href="/docs/concepts/context-management" description="Keep reasoning focused with compact reads, isolated sessions, and explicit handoffs." />
+  <Card title="Parallelism with worktrees" href="/docs/concepts/worktrees" description="Isolate assigned issues in separate Git worktrees so dependency-independent work can proceed safely." />
+  <Card title="Tracking work with Linear" href="/docs/concepts/status-tracking" description="Join authoritative Linear work records with authoritative GitHub PR and merge evidence." />
   <Card title="Review angles" href="/docs/concepts/review-angles" description="All 22 review angles: what each one audits, when it auto-fires, and which model tier it runs at." />
-  <Card title="Utilities" href="/docs/concepts/utilities" description="On-demand skills (ask, visualize, status, debug, eval, doctor, dream) that complement the loops without being a step in one." />
+  <Card title="Utilities" href="/docs/concepts/utilities" description="Use read-only and diagnostic skills without creating a second development record." />
 </Cards>

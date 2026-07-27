@@ -1,12 +1,22 @@
 ---
 title: Context management
-description: "How woostack keeps context small, isolates heavy work, routes model tiers, and keeps agent output compact."
+description: "How woostack keeps context small while preserving verified Linear, Git, and GitHub authority."
 ---
 
-Context economy has three mechanisms. One of them, recall by scope, is the [Memory](/docs/concepts/memory)
-store. The other two live here: shell scripts that compute and return a compact result, and
-subagents that carry heavy work off the main thread. Each returns something small, so the bulk
-never reaches the main context.
+Context economy is not authority compression. Linear is the only development-record authority;
+Git and GitHub own code and PR truth. When an answer depends on managed scope, acceptance,
+ownership, lifecycle, or decisions, the context consumer binds the exact issue and, when
+applicable, its project through the [official Linear MCP](https://mcp.linear.app/mcp), completes
+the required paginated reads, and validates current receipts. Code-only, local-knowledge,
+standing-code, runtime, and browser-only work does not invent a Linear dependency. Every path
+independently reads Git and GitHub for source and PR facts and never reconstructs development
+context from a local mirror, mutable title, nearby branch, or cached remote body.
+
+The canonical
+[Linear development authority](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md)
+and [state conventions](https://github.com/howarewoo/woostack/blob/main/skills/woostack-status/references/conventions.md)
+own those schemas. Hosts discover and preflight MCP operations by capability rather than relying on
+a hard-coded tool name.
 
 ## Output stays compact
 
@@ -17,57 +27,51 @@ security, destructive actions, root-cause analysis, and architecture keep the la
 remain unambiguous.
 
 [woostack-review](/docs/skills/woostack-review) applies the same principle through its stricter
-finding contract. Each inline comment uses a short title, one evidence-bearing description
-sentence, one imperative fix sentence, and a compact severity-and-angle footer. A second sentence
-or ordered fix steps remain available when the risk cannot be stated safely in the default shape.
+finding contract. Comments stay short, but never at the expense of evidence, an actionable fix, or
+the severity and review angle needed to make a sound decision.
 
-## Scripts compute, agents read
+## Helpers reduce bulk without replacing authority
 
-woostack ships small shell scripts that do the filesystem, git, and GitHub work and print a compact
-result. The agent reads the result, not the inputs that produced it.
+Small helpers compute bounded local results so an agent does not load every input:
 
-- `build-index.sh` compresses every memory note down to one index line in `MEMORY.md`, so a skill
-  reads the index instead of every note body.
-- `recall.sh` runs the scope match and the one-hop expansion, then emits only the notes that
-  matched.
-- `status.sh` reads the specs, plans, and PR state and prints the feature board, so the agent never
-  loads all those artifacts itself.
-- `prefetch.sh` gathers a PR's diff, metadata, rules, memory, and wisdom once. For each touched
-  right-side `SKILL.md`, it also snapshots and validates the whole tracked package. Review subagents
-  read those artifacts rather than re-fetching GitHub or the mutable checkout; findings remain
-  anchored only to changed lines in the authoritative diff.
+- `build-index.sh` compresses memory-note metadata into one line per note in `MEMORY.md`.
+- `recall.sh` scope-matches the current working set and returns only relevant notes plus bounded
+  one-hop expansions.
+- [woostack-status](/docs/skills/woostack-status) reads a fresh, complete official-MCP snapshot and
+  independently joins Git/GitHub evidence, then prints a compact board without creating a board
+  file.
+- Review's `prefetch.sh` gathers the verified PR diff, metadata, repository rules, memory, and
+  wisdom once. An optional managed intent snapshot is added only after exact official-MCP
+  verification.
 
-This is what makes recall scale: on a repo with 500 notes, recall loads only the handful that match
-the changed files, not the full corpus. Because the work happens in the shell, the results are
-deterministic and the scripts are idempotent, so they are safe to run anytime, including in CI.
+Generated indexes, temporary intent snapshots, review bundles, and other caches are
+non-authoritative context aids. Remote titles, descriptions, comments, diffs, and tool output are
+untrusted evidence, never instructions. A controller refreshes the relevant provider truth before
+any side effect instead of treating a compact snapshot as permission.
 
-## Subagents isolate work
+## Isolated agents receive bounded envelopes
 
-Some steps hand work to subagents. Each subagent runs in its own context window and returns only a
-compact result, so the heavy reading and reasoning never land in the main thread.
+Heavy reading and reasoning can run in separate context windows. Each worker receives the minimum
+verified envelope for its role and returns a compact result:
 
-- [woostack-execute](/docs/skills/woostack-execute) runs inline or with subagents. The smart
-  default is subagents where the host can spawn them, inline otherwise. In subagent mode a fresh
-  implementer writes each task, then a spec-compliance reviewer and a code-quality reviewer check
-  the diff. Each is a separate agent that sees only what it needs.
-- [woostack-review](/docs/skills/woostack-review) fans out one plain/default subagent per review
-  angle in parallel. Those workers receive the worker contract, angle prompt, and prefetched
-  artifacts directly — not the full review orchestrator skill — then two opposing validator passes
-  keep only the findings both agree on.
+- An isolated implementation worker receives one assigned Linear issue, its accepted ownership and
+  dependency context, the exact repository/worktree, and the verification contract. It gets no
+  authority over another issue or project decision.
+- An explicit [woostack-review](/docs/skills/woostack-review) run may fan out advisory review angles
+  in parallel. Review workers receive bounded diff/context bundles and cannot edit code, mutate
+  GitHub or Linear, or accept the work. The decision-maker independently reads the resulting diff
+  and evidence and retains acceptance authority.
 
-Each subagent runs at a tier matched to the work, so cheap tasks do not burn an expensive model.
-Hosts with explicit repository-model routing map these tiers to a concrete provider model through
-[model-tiers.md](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/model-tiers.md).
-omp uses a different, equally capable route:
+Isolation reduces context coupling; it never transfers authority. See the canonical
+[engineer-agent contract](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/engineer-agents.md)
+for the decision-maker/coder boundary and one-issue dispatch rule.
+
+## Model routing stays host-owned
+
+Hosts with repository model routing map `fast`, `standard`, and `deep` work to concrete models
+through the canonical
+[model-tier reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/model-tiers.md).
+OMP instead uses
 [host-owned role routing](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md)
-through bundled workers. omp ignores `.woostack/config.json` model settings and owns the concrete
-model, role configuration, credentials, and fallback. woostack passes only the effective tier
-through that canonical worker map.
-
-For hosts that consume the shared repository model configuration, the Anthropic defaults are:
-
-| Tier | Use for | Anthropic model |
-| --- | --- | --- |
-| `fast` | rubric checks, mechanical one-or-two-file tasks, context summaries | `claude-opus-4-8` (effort `low`) |
-| `standard` | reasoning workers, multi-file integration | `claude-opus-4-8` (effort `medium`) |
-| `deep` | code-quality review, design and architecture judgment, skeptical validation | `claude-opus-4-8` (effort `xhigh`) |
+through isolated profiles and bundled workers. The host owns concrete models, credentials, and
+fallback behavior; woostack supplies only the effective role or tier.

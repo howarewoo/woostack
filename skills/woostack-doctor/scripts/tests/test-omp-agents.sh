@@ -10,15 +10,29 @@ TMP="$(mktemp -d)"
 TMP="$(cd "$TMP" && pwd -P)"
 trap 'rm -rf "$TMP"' EXIT
 REPO="$TMP/repo"
-LAUNCHER_DIR="$TMP/launchers"
+ENGINEER_NAME="engineer.1"
+LAUNCHER_ROOT="$TMP/launcher-root"
+LAUNCHER_DIR="$LAUNCHER_ROOT/$ENGINEER_NAME"
 mkdir -p "$REPO/.woostack"
 
 run_check() {
-  (cd "$REPO" && WOO_ENGINEER_LAUNCHER_DIR="$LAUNCHER_DIR" HOME="$TMP/home" bash "$CHECK" "$REPO")
+  (
+    cd "$REPO"
+    ENGINEER_NAME="$ENGINEER_NAME" \
+      WOO_ENGINEER_LAUNCHER_ROOT="$LAUNCHER_ROOT" \
+      HOME="$TMP/controller-home" \
+      bash "$CHECK" "$REPO"
+  )
 }
 
 fix_check() {
-  (cd "$REPO" && WOO_ENGINEER_LAUNCHER_DIR="$LAUNCHER_DIR" HOME="$TMP/home" bash "$CHECK" --fix "$REPO")
+  (
+    cd "$REPO"
+    ENGINEER_NAME="$ENGINEER_NAME" \
+      WOO_ENGINEER_LAUNCHER_ROOT="$LAUNCHER_ROOT" \
+      HOME="$TMP/controller-home" \
+      bash "$CHECK" --fix "$REPO"
+  )
 }
 
 mode_of() {
@@ -40,32 +54,49 @@ PY
 }
 
 missing="$(run_check)"
-assert_contains "$missing" $'warn\tomp-agents\tauto\t' "missing launchers produce an auto-fixable doctor finding"
-assert_contains "$missing" "launch-omp" "doctor identifies the missing omp launcher"
-assert_contains "$missing" "launch-hermes-review" "doctor identifies the missing Hermes reviewer launcher"
+assert_contains "$missing" $'warn\tomp-agents\tauto\t' "missing per-engineer launchers produce an auto-fixable doctor finding"
+for launcher in launch-omp bind-engineer-unit; do
+  assert_contains "$missing" "$launcher" "doctor identifies missing $launcher"
+done
 
 fix_check
 assert_eq "$(run_check)" "" "--fix invokes the installer and clears missing findings"
-assert_eq "$(mode_of "$LAUNCHER_DIR")" "0700" "doctor fix creates a private launcher directory"
-assert_eq "$(mode_of "$LAUNCHER_DIR/launch-omp")" "0500" "doctor fix restores omp launcher mode 0500"
-assert_eq "$(mode_of "$LAUNCHER_DIR/launch-hermes-review")" "0500" "doctor fix restores Hermes launcher mode 0500"
+assert_eq "$(mode_of "$LAUNCHER_ROOT")" "0700" "doctor fix creates a private shared launcher root"
+assert_eq "$(mode_of "$LAUNCHER_DIR")" "0700" "doctor fix creates a private per-engineer directory"
+for launcher in launch-omp bind-engineer-unit; do
+  assert_eq "$(mode_of "$LAUNCHER_DIR/$launcher")" "0500" "doctor fix restores $launcher mode 0500"
+done
 [ ! -e "$REPO/.omp/agents" ] && pass || fail "doctor repair never revives project .omp/agents"
+printf '%s\n' 'retired launcher' >"$LAUNCHER_DIR/launch-hermes-review"
+chmod 500 "$LAUNCHER_DIR/launch-hermes-review"
+retired_launcher="$(run_check)"
+assert_contains "$retired_launcher" "retired reviewer launcher is present; --fix removes it" \
+  "doctor reports the retired decision-maker review launcher"
+fix_check
+[ ! -e "$LAUNCHER_DIR/launch-hermes-review" ] \
+  && pass || fail "doctor repair removes the retired decision-maker review launcher"
+
+chmod 755 "$LAUNCHER_ROOT"
+root_drift="$(run_check)"
+assert_contains "$root_drift" "launcher root mode is 0755, expected 0700" "doctor detects shared launcher root mode drift"
+fix_check
+assert_eq "$(mode_of "$LAUNCHER_ROOT")" "0700" "--fix restores launcher root mode 0700"
 
 chmod 755 "$LAUNCHER_DIR"
 directory_drift="$(run_check)"
-assert_contains "$directory_drift" "directory mode is 0755, expected 0700" "doctor detects launcher directory mode drift"
+assert_contains "$directory_drift" "per-engineer launcher directory mode is 0755, expected 0700" "doctor detects unit directory mode drift"
 fix_check
-assert_eq "$(mode_of "$LAUNCHER_DIR")" "0700" "--fix restores launcher directory mode 0700"
+assert_eq "$(mode_of "$LAUNCHER_DIR")" "0700" "--fix restores per-engineer directory mode 0700"
 assert_eq "$(run_check)" "" "directory mode repair restores a clean doctor check"
 
 before="$(file_state "$LAUNCHER_DIR/launch-omp")"
 fix_check
 after="$(file_state "$LAUNCHER_DIR/launch-omp")"
-assert_eq "$after" "$before" "doctor repair is idempotent when launchers are reviewed and clean"
+assert_eq "$after" "$before" "doctor repair is idempotent when static launchers are reviewed and clean"
 
 printf '%s\n' 'DOCTOR_MUST_NOT_READ_THIS_SECRET' >"$LAUNCHER_DIR/profile-secret"
 chmod 600 "$LAUNCHER_DIR/profile-secret"
-assert_eq "$(run_check)" "" "doctor ignores non-launcher host files instead of reading secrets"
+assert_eq "$(run_check)" "" "doctor ignores unrelated host files instead of reading secrets"
 
 chmod 700 "$LAUNCHER_DIR/launch-omp"
 mode_drift="$(run_check)"
@@ -86,15 +117,40 @@ assert_eq "$(run_check)" "" "--fix atomically reinstalls checksum-drifted launch
 
 printf '%s\n' 'SYMLINK_TARGET_SECRET' >"$TMP/secret-target"
 chmod 500 "$TMP/secret-target"
-rm "$LAUNCHER_DIR/launch-hermes-review"
-ln -s "$TMP/secret-target" "$LAUNCHER_DIR/launch-hermes-review"
+rm "$LAUNCHER_DIR/bind-engineer-unit"
+ln -s "$TMP/secret-target" "$LAUNCHER_DIR/bind-engineer-unit"
 symlink_drift="$(run_check)"
 assert_contains "$symlink_drift" "regular no-follow file" "doctor rejects a symlink in place of a launcher"
 assert_not_contains "$symlink_drift" "SYMLINK_TARGET_SECRET" "doctor never follows or emits a symlink target's content"
 fix_check
-[ ! -L "$LAUNCHER_DIR/launch-hermes-review" ] && pass || fail "--fix replaces a launcher symlink without following it"
+[ ! -L "$LAUNCHER_DIR/bind-engineer-unit" ] && pass || fail "--fix replaces a launcher symlink without following it"
 assert_eq "$(cat "$TMP/secret-target")" "SYMLINK_TARGET_SECRET" "repair leaves a symlink target untouched"
-assert_eq "$(run_check)" "" "symlink repair restores both reviewed launchers"
+assert_eq "$(run_check)" "" "symlink repair restores all reviewed launchers"
+
+printf '%s\n' '{"schemaVersion":1}' >"$LAUNCHER_DIR/unit-authority.json"
+chmod 600 "$LAUNCHER_DIR/unit-authority.json"
+authority_mode="$(run_check)"
+assert_contains "$authority_mode" "bound unit authority mode is 0600, expected 0400" "doctor rejects writable bound authority"
+assert_contains "$authority_mode" $'warn\tomp-agents\treport\t' \
+  "bound authority drift is report-only because static repair preserves the binding"
+assert_not_contains "$authority_mode" $'warn\tomp-agents\tauto\t' \
+  "bound authority drift is never advertised as auto-fixable"
+chmod 400 "$LAUNCHER_DIR/unit-authority.json"
+assert_eq "$(run_check)" "" "doctor accepts the authority file's canonical owner and mode without reading its contents"
+
+rm "$LAUNCHER_DIR/unit-authority.json"
+ln -s "$TMP/secret-target" "$LAUNCHER_DIR/unit-authority.json"
+authority_link="$(run_check)"
+assert_contains "$authority_link" "bound unit authority must be a regular no-follow file" "doctor rejects a symlinked authority file"
+assert_not_contains "$authority_link" "SYMLINK_TARGET_SECRET" "doctor never reads a symlinked authority target"
+rm "$LAUNCHER_DIR/unit-authority.json"
+
+set +e
+missing_name="$(cd "$REPO" && WOO_ENGINEER_LAUNCHER_ROOT="$LAUNCHER_ROOT" bash "$CHECK" "$REPO")"
+missing_name_status=$?
+set -e
+assert_exit 0 "$missing_name_status" "optional doctor check reports rather than crashes without a selected engineer"
+assert_contains "$missing_name" "ENGINEER_NAME must identify" "doctor refuses to guess a per-engineer directory"
 [ ! -e "$REPO/.omp/agents" ] && pass || fail "all doctor repairs remain host-only"
 
 finish
