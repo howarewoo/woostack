@@ -32,7 +32,7 @@ never inspect credentials or invoke HTTP, GraphQL, provider adapters, or hard-co
 | `memory-type` | memory note has an unknown `type:` | error | report | — |
 | `memory-dup` | duplicate memory note `name:` | error | report | — |
 | `memory-scope-stale` | `scope:` matches no tracked files | warn | report | — |
-| `memory-provenance` | missing `source:`; stale local spec/plan/fix source; or malformed `linear://project/<uuid>`, `linear://document/<uuid>`, or `linear://issue/<uuid>` (URI syntax is parsed locally without a provider or adapter) | warn | report | — |
+| `memory-provenance` | missing `source:`; stale legacy local source; or malformed `linear://project/<uuid>` or `linear://issue/<uuid>` (URI syntax is parsed locally without a provider or adapter) | warn | report | — |
 | `memory-scope-trivia` | non-glob `scope:` (possible trivia) | warn | report | — |
 | `memory-unresolved-link` | unresolved `[[wikilink]]` in a memory note (kept `warn` to not break consumer CI) | warn | report | — |
 | `memory-no-updated` | memory note missing `updated:` (cannot be aged) | warn | report | — |
@@ -71,10 +71,10 @@ non-secret outcome to a mode-0600 temporary file, passes that path to
 `doctor.sh --live-receipt <path>`, and deletes it after consumption.
 
 The receipt's top level supplies `ready`, canonical `repository`, resolved `workspace` and `team`,
-and the capability booleans consumed by the shell engine. When memory notes contain valid Linear
-provenance, the same receipt may contain a `provenance` object keyed by the lowercase canonical
-`linear://project|document|issue/<uuid>` URI. Each value is a normalized object with exact `kind`,
-lowercase `id`, `repository`, `workspace`, and `team`, plus boolean `verified`,
+and the capability booleans consumed by the shell engine. For current Linear provenance, the same
+receipt may contain a `provenance` object keyed by the lowercase canonical
+`linear://project|issue/<uuid>` URI. Each value is a normalized object with exact `kind`, lowercase
+`id`, `repository`, `workspace`, and `team`, plus boolean `verified`,
 `managedIdentityVerified`, and `relationsVerified` outcomes. The controller derives these
 non-secret outcomes from official host-MCP reads; raw provider responses are not receipt input.
 A live note whose canonical URI has no entry, a partial entry, false verification, or mismatched

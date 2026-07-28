@@ -75,6 +75,31 @@ run_doctor "$repo"
 assert_exit 0 "$RC" "valid non-secret Linear policy passes static diagnosis"
 assert_not_contains "$OUTPUT" "linear-live" "static diagnosis performs no live-provider check"
 
+local_team="$(make_repo local-team)"
+jq '.linear.team="DEFAULT"' "$local_team/.woostack/config.json" >"$local_team/config.tmp"
+mv "$local_team/config.tmp" "$local_team/.woostack/config.json"
+printf '%s\n' '{"linear":{"team":"ENG"}}' >"$local_team/.woostack/config.local.json"
+run_doctor "$local_team"
+assert_exit 0 "$RC" "valid primary-checkout local team override passes static diagnosis"
+
+invalid_local="$(make_repo invalid-local)"
+printf '%s\n' '{"linear":{"team":"ENG","workspace":"forbidden"}}' >"$invalid_local/.woostack/config.local.json"
+run_doctor "$invalid_local"
+assert_exit 1 "$RC" "unsupported local policy keys fail static diagnosis"
+assert_contains "$OUTPUT" "may override only" "invalid local override is actionable"
+
+blank_policy="$(make_repo blank-policy)"
+jq '.linear.workspace="   "' "$blank_policy/.woostack/config.json" >"$blank_policy/config.tmp"
+mv "$blank_policy/config.tmp" "$blank_policy/.woostack/config.json"
+run_doctor "$blank_policy"
+assert_exit 1 "$RC" "blank policy values fail static diagnosis"
+
+noncanonical_repository="$(make_repo repository-query)"
+jq '.linear.repository="https://github.com/acme/widgets?ref=main"' "$noncanonical_repository/.woostack/config.json" >"$noncanonical_repository/config.tmp"
+mv "$noncanonical_repository/config.tmp" "$noncanonical_repository/.woostack/config.json"
+run_doctor "$noncanonical_repository"
+assert_exit 1 "$RC" "repository URLs with query text fail static diagnosis"
+
 bad_selector="$(make_repo selector)"
 jq '.artifacts={specPlan:"markdown"}' "$bad_selector/.woostack/config.json" >"$bad_selector/config.tmp"
 mv "$bad_selector/config.tmp" "$bad_selector/.woostack/config.json"
@@ -105,6 +130,13 @@ assert_exit 1 "$RC" "legacy development records block normal diagnosis"
 assert_eq "$(printf '%s\n' "$OUTPUT" | grep -c '^error.*legacy-development-records')" "2" "one blocker is emitted per legacy record set"
 assert_not_contains "$OUTPUT" "[doc-type]" "legacy records do not enter normal document lint"
 assert_not_contains "$OUTPUT" "[status-enum]" "legacy records do not enter normal lifecycle lint"
+
+sentinel_only="$(make_repo sentinel-only)"
+mkdir -p "$sentinel_only/.woostack/fixes"
+touch "$sentinel_only/.woostack/fixes/.gitkeep"
+run_doctor "$sentinel_only"
+assert_exit 0 "$RC" "legacy record detection ignores a sentinel-only directory"
+assert_not_contains "$OUTPUT" "legacy-development-records" "sentinel files are not development records"
 
 receipt="$TMP/receipt.json"
 complete_receipt >"$receipt"
@@ -199,12 +231,19 @@ assert_exit 1 "$RC" "partial or drifted receipt provenance fails closed"
 assert_contains "$OUTPUT" "missing, partial, foreign, or drifted host-MCP provenance receipt" "receipt-only provenance failure is actionable"
 [ ! -e "$legacy_marker" ] || fail "drifted live receipt invoked the forbidden legacy Linear adapter"
 
-sed -i.bak "s|$provenance_uri|linear://issue/nested/$provenance_id|" \
+sed -i.bak "s|$provenance_uri|linear://document/$provenance_id|" \
+  "$provenance_repo/.woostack/memory/linear.md"
+rm -f "$provenance_repo/.woostack/memory/linear.md.bak"
+run_doctor "$provenance_repo"
+assert_exit 0 "$RC" "retired document provenance remains a static warning"
+assert_contains "$OUTPUT" "is malformed (expected linear://project|issue/<uuid>)" "document provenance is rejected after cutover"
+
+sed -i.bak "s|linear://document/$provenance_id|linear://issue/nested/$provenance_id|" \
   "$provenance_repo/.woostack/memory/linear.md"
 rm -f "$provenance_repo/.woostack/memory/linear.md.bak"
 run_doctor "$provenance_repo"
 assert_exit 0 "$RC" "malformed provenance remains a static warning"
-assert_contains "$OUTPUT" "is malformed (expected linear://project|document|issue/<uuid>)" "local parser rejects nested provenance paths"
+assert_contains "$OUTPUT" "is malformed (expected linear://project|issue/<uuid>)" "local parser rejects nested provenance paths"
 [ ! -e "$legacy_marker" ] || fail "malformed static provenance invoked the forbidden legacy Linear adapter"
 unset WOOSTACK_LINEAR_ADAPTER
 

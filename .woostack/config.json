@@ -26,8 +26,5 @@
   "status": {
     "staleDays": 14
   },
-  "artifacts": {
-    "specPlan": "markdown"
-  },
   "models": {}
 }

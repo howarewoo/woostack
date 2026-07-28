@@ -27,22 +27,24 @@ Two callers:
    requested project root; otherwise retain the current-directory path supplied by the host. Do
    not stat, list, read, canonicalize, or search the target, and do not invoke Git yet.
 
-2. **Validate official Linear MCP before any project filesystem or Git access.** Discover the
-   host-exposed MCP tools at `https://mcp.linear.app/mcp`; authenticate through the host's
-   OAuth/MCP secret store. Resolve exactly one workspace and team from host/invocation context.
-   Verify the requested repository identity, every project-status name and required native
-   category, every issue-state name, and the required project/issue/update/comment/relation/owner
-   read and mutation capabilities. Require an independent, complete read-back; prefer reversible
-   or non-destructive reads. Missing MCP, authentication, a unique workspace/team, a valid native
-   mapping, mutation capability, or a conclusive read-back is an actionable hard stop with zero
-   target filesystem or Git access. Tool names are host-discovered rather than hard-coded. The
-   canonical capability, policy, and normalized non-secret receipt contract is
-   [Linear MCP development authority](references/artifact-backends.md).
+2. **Preflight official Linear MCP independently of the target.** Discover the host-exposed MCP
+   tools at `https://mcp.linear.app/mcp` and authenticate through the host's OAuth/MCP secret
+   store. Verify provider availability and the required project/issue/update/comment/relation/
+   owner read and mutation capabilities with an independent read-back. Missing MCP,
+   authentication, mutation capability, or conclusive read-back is an actionable hard stop with
+   zero target filesystem or Git access. Tool names are host-discovered rather than hard-coded.
 
-3. **Resolve and inspect the repository only after preflight succeeds.** Resolve the retained
-   target to the repository root, then inspect whether `.woostack/` and each managed file already
-   exist. These are candidates for the keep/overwrite prompt. Verify any existing non-secret
-   `linear` policy against the successful receipt before using it.
+3. **Resolve the target, then validate target-specific policy before writing.** After the
+   provider-only preflight succeeds, resolve the retained target to the repository root and use
+   Git's common directory to identify the primary checkout. Derive the canonical repository
+   identity, read the committed policy plus the primary-checkout `.woostack/config.local.json`
+   team override, and verify exactly one workspace and effective team plus every project-status
+   and issue-state mapping through MCP. Require a complete independent read-back. Only then
+   inspect which managed workspace files already exist. The canonical capability, layering,
+   policy, and receipt contracts are in the
+   [Linear MCP development authority](references/artifact-backends.md). The repository-wide
+   [Linear-only development authority](../woostack-bootstrap/references/development.md#linear-development-authority)
+   defines the adoption model and links the build, worktree, and status authorities.
 
 4. **Create missing pieces from `templates/`.** After the preflight succeeds, create each item
    only if it is absent (unless `--force` is active):
@@ -59,15 +61,27 @@ Two callers:
    | `.woostack/.gitignore` | `templates/gitignore` |
    | `.woostack/worktrees/` directory | (create empty — per-PR Git worktrees, gitignored) |
 
-   Do not create `.woostack/specs/`, `.woostack/plans/`, or `.woostack/fixes/`. Existing copies
-   are legacy migration input; leave them untouched and let doctor report one blocking migration
-   finding per active or ambiguous record set.
+   Do not create legacy local development-record directories.
 
-   `config.json` contains non-secret repository policy plus tool-owned `models`, `review`,
-   `respond`, and `status` namespaces. Initialization persists the verified canonical repository
-   URL, workspace, team, `projectStatuses`, and `issueStates` under `linear`. It stores no
-   development record, backend selector, provider credential, authorization header, or credential
-   path. The exact policy schema is in
+   <!-- woostack-legacy-compatibility reader="woostack-init" operation="inspect" paths=".woostack/specs/|.woostack/plans/|.woostack/fixes/|.woostack/overnight/" purpose="migration-classification-only" lifecycle-use="prohibited" -->
+   Inspect `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, and
+   `.woostack/overnight/` for migration classification only. Never use them for normal, routine,
+   or day-to-day lifecycle work.
+   <!-- /woostack-legacy-compatibility -->
+
+   Leave legacy records untouched during an ordinary init and let doctor report one blocking
+   finding per active or ambiguous record set. Init never adopts, deletes, or runs normal
+   lifecycle processing on legacy development records. `/woostack-init --migrate` follows the
+   resumable, no-deletion-on-uncertainty procedure in
+   [Linear development-record migration](references/migration.md).
+
+   `config.json` contains shared non-secret repository policy plus tool-owned `models`, `review`,
+   `respond`, and `status` namespaces. Initialization persists the canonical repository URL,
+   workspace, project-status mappings, issue-state mappings, and any optional repository-default
+   team under `linear`. It writes the selected team as the sole override in the ignored
+   primary-checkout `.woostack/config.local.json`, so every linked worktree in that clone resolves
+   the same effective team. It stores no development record, backend selector, provider
+   credential, authorization header, or credential path. The exact policy schema is in
    [Linear MCP development authority](references/artifact-backends.md).
 
    The optional `respond` namespace accepts only non-secret workflow defaults: `provider`,
@@ -147,6 +161,9 @@ Two callers:
   initial prompt.
 - `--no-respond` — suppress production-error response discovery and configuration. Mutually
   exclusive with `--respond`.
+- `--migrate` — after successful MCP and target-specific preflight, classify and migrate legacy
+  local development records through [`references/migration.md`](references/migration.md).
+  Ambiguous, partial, or foreign evidence preserves every local record.
 
 ## Hard constraints
 

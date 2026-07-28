@@ -40,18 +40,19 @@ for path in configs:
             findings.append(f"{path.relative_to(root)}: credential-like linear key {key!r}")
 
 
+ACTIVE_FLAGS = re.I | re.S
 active_patterns = (
-    (re.compile(r"artifacts\.specPlan", re.I), "backend selector"),
-    (re.compile(r"resolve-backend\.sh", re.I), "backend resolver"),
-    (re.compile(r"\blinear\.sh\b", re.I), "legacy Linear adapter"),
-    (re.compile(r"\bWOOSTACK_LINEAR_ADAPTER\b", re.I), "legacy Linear adapter override"),
-    (re.compile(r"\bLINEAR_REQUEST_SH\b", re.I), "custom Linear request override"),
-    (re.compile(r"\bLINEAR_API_KEY\b", re.I), "repository Linear credential"),
-    (re.compile(r"api\.linear\.app/graphql", re.I), "custom Linear GraphQL endpoint"),
-    (re.compile(r"(?:\bLinear\b.{0,80}\bGraphQL\b|\bGraphQL\b.{0,80}\bLinear\b)", re.I), "custom Linear GraphQL transport"),
-    (re.compile(r"\b(?:Linear )?(?:specification )?document(?:-backed|\s+(?:owns|stores|is the source))", re.I), "document-backed development state"),
-    (re.compile(r"\bMarkdown\s+(?:is|remains|as)\s+(?:the\s+)?(?:default\s+)?(?:development\s+)?backend", re.I), "Markdown development backend"),
-    (re.compile(r"\blocal\s+(?:spec|plan|artifact)[^.;]*(?:authority|source of truth)", re.I), "local development-record authority"),
+    (re.compile(r"artifacts\.specPlan", ACTIVE_FLAGS), "backend selector"),
+    (re.compile(r"resolve-backend\.sh", ACTIVE_FLAGS), "backend resolver"),
+    (re.compile(r"\blinear\.sh\b", ACTIVE_FLAGS), "legacy Linear adapter"),
+    (re.compile(r"\bWOOSTACK_LINEAR_ADAPTER\b", ACTIVE_FLAGS), "legacy Linear adapter override"),
+    (re.compile(r"\bLINEAR_REQUEST_SH\b", ACTIVE_FLAGS), "custom Linear request override"),
+    (re.compile(r"\bLINEAR_API_KEY\b", ACTIVE_FLAGS), "repository Linear credential"),
+    (re.compile(r"api\.linear\.app/graphql", ACTIVE_FLAGS), "custom Linear GraphQL endpoint"),
+    (re.compile(r"(?:\bLinear\b[^.!?]{0,80}\bGraphQL\b|\bGraphQL\b[^.!?]{0,80}\bLinear\b)", ACTIVE_FLAGS), "custom Linear GraphQL transport"),
+    (re.compile(r"\b(?:Linear )?(?:specification )?document(?:-backed|\s+(?:owns|stores|is the source))", ACTIVE_FLAGS), "document-backed development state"),
+    (re.compile(r"\bMarkdown\s+(?:is|remains|as)\s+(?:the\s+)?(?:default\s+)?(?:development\s+)?backend", ACTIVE_FLAGS), "Markdown development backend"),
+    (re.compile(r"\blocal\s+(?:spec|plan|artifact)[^.;]*(?:authority|source of truth)", ACTIVE_FLAGS), "local development-record authority"),
 )
 
 
@@ -60,10 +61,11 @@ def classify(relative: str, line: str, context: str) -> set[str]:
     if line_offset < 0:
         context = line
         line_offset = 0
-
     def rejected(match: re.Match[str]) -> bool:
-        start = line_offset + match.start()
-        end = line_offset + match.end()
+        if re.search(r"\b(?:is|are|was|were)\s+not\b", match.group(0), re.I):
+            return True
+        start = match.start()
+        end = match.end()
         separators = list(re.finditer(r"\b(?:but|however|yet|while)\b", context, re.I))
         left = max(
             [context.rfind(mark, 0, start) for mark in ".;!?"]
@@ -89,8 +91,8 @@ def classify(relative: str, line: str, context: str) -> set[str]:
 
     labels: set[str] = set()
     for pattern, label in active_patterns:
-        for match in pattern.finditer(line):
-            if not rejected(match):
+        for match in pattern.finditer(context):
+            if line_offset <= match.start() < line_offset + len(line) and not rejected(match):
                 labels.add(label)
 
     linear_graphql_source = (
@@ -103,10 +105,15 @@ def classify(relative: str, line: str, context: str) -> set[str]:
     source_match = re.search(
         r"(?:\bGRAPHQL\b|\.graphql\b|--operation\s+(?:query|mutation)|"
         r"\b(?:query|mutation)\s+[A-Za-z_]|\brequest_(?:query|mutation)\b)",
-        line,
-        re.I,
+        context,
+        ACTIVE_FLAGS,
     )
-    if linear_graphql_source and source_match and not rejected(source_match):
+    if (
+        linear_graphql_source
+        and source_match
+        and line_offset <= source_match.start() < line_offset + len(line)
+        and not rejected(source_match)
+    ):
         labels.add("custom Linear GraphQL transport")
     return labels
 
@@ -115,8 +122,9 @@ def classify(relative: str, line: str, context: str) -> set[str]:
 # rejection/migration prose remain legal.
 self_fixtures = (
     ("skills/example/SKILL.md", "Invoke linear.sh feature-read for the selected project.", {"legacy Linear adapter"}),
-    ("skills/example/SKILL.md", "POST to https://api.linear.app/graphql for project data.", {"custom Linear GraphQL endpoint", "custom Linear GraphQL transport"}),
+    ("skills/example/SKILL.md", "POST to https://api.linear.app/graphql for project data.", {"custom Linear GraphQL endpoint"}),
     ("skills/example/SKILL.md", "Use Linear GraphQL mutations for project updates.", {"custom Linear GraphQL transport"}),
+    ("skills/example/SKILL.md", "Use Linear\nGraphQL mutations for project updates.", {"custom Linear GraphQL transport"}),
     ("skills/example/SKILL.md", "Use GitHub GraphQL to resolve review threads.", set()),
     ("skills/example/SKILL.md", "Woostack never issues custom Linear GraphQL requests; GitHub GraphQL remains valid.", set()),
     ("skills/example/references/migration.md", "Migrate away from linear.sh; it is a legacy transport.", set()),
@@ -156,7 +164,7 @@ for path in active_surfaces():
     relative = path.relative_to(root).as_posix()
     lines = path.read_text(errors="replace").splitlines()
     for index, line in enumerate(lines):
-        context = "\n".join(lines[max(0, index - 1):min(len(lines), index + 2)])
+        context = "\n".join(lines[max(0, index - 3):min(len(lines), index + 4)])
         for label in sorted(classify(relative, line, context)):
             findings.append(f"{relative}:{index + 1}: active {label}: {line.strip()}")
 

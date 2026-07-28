@@ -179,7 +179,7 @@ test('concepts taxonomy keeps context economy under context management', async (
   assert.doesNotMatch(overview, /^## Context economy$/m);
 });
 
-test('configuration docs follow the scaffold and backend contract', async () => {
+test('Linear-only scaffold coexists with the current authored configuration contract', async () => {
   const repoRoot = path.resolve(import.meta.dirname, '..', '..');
   const [templateRaw, configuration, auditRaw, memory] = await Promise.all([
     readFile(path.join(repoRoot, 'skills', 'woostack-init', 'templates', 'config.json'), 'utf8'),
@@ -188,7 +188,18 @@ test('configuration docs follow the scaffold and backend contract', async () => 
     readFile(path.join(repoRoot, 'skills', 'woostack-init', 'references', 'memory.md'), 'utf8'),
   ]);
   const template = JSON.parse(templateRaw);
-  assert.deepEqual(Object.keys(template), ['artifacts', 'models', 'review', 'respond', 'status']);
+  // PR #564 moves the executable scaffold first; PR #570 owns the authored public-doc rewrite.
+  // Keep the existing Markdown-facing assertions below executable during that intentional stack
+  // transition while proving the internal template is already Linear-only and credential-free.
+  assert.deepEqual(Object.keys(template), ['linear', 'models', 'review', 'respond', 'status']);
+  assert.deepEqual(Object.keys(template.linear), [
+    'repository',
+    'workspace',
+    'team',
+    'projectStatuses',
+    'issueStates',
+  ]);
+  assert.equal(template.artifacts, undefined);
 
   const exampleMatch = /## A complete Markdown example[\s\S]*?```json\n([\s\S]*?)\n```/.exec(configuration);
   assert.ok(exampleMatch, 'configuration page exposes a complete Markdown JSON example');
@@ -226,11 +237,8 @@ test('configuration docs follow the scaffold and backend contract', async () => 
   assert.doesNotMatch(renderedAudit, /`ignore`, `models`, `chunking/);
 
   const normalizedMemory = memory.replace(/\s+/g, ' ');
-  assert.match(
-    normalizedMemory,
-    /\{ "artifacts": \{ "specPlan": "markdown" \}, "models": \{\}, "review": \{\}, "respond": \{\}, "status": \{ "staleDays": 14 \} \}/
-  );
-  assert.match(normalizedMemory, /spec\/plan backend and defaults to Markdown/);
-  assert.match(normalizedMemory, /specs\/.*inactive when Linear is selected/);
-  assert.match(normalizedMemory, /plans\/.*inactive when Linear is selected/);
+  assert.match(normalizedMemory, /`linear` holds the canonical repository, workspace, optional default team/);
+  assert.match(normalizedMemory, /Provider credentials and development records never belong in either file/);
+  assert.match(normalizedMemory, /Init does not scaffold local specs, plans, or fixes/);
+  assert.match(normalizedMemory, /pre-cutover copies are migration input/);
 });

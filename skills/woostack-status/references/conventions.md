@@ -1,6 +1,9 @@
 # Woostack feature-state conventions
 
 These definitions are the source of truth for `/woostack-status` rendering and reconciliation.
+The repository's
+[Linear-only development authority](../../woostack-bootstrap/references/development.md#linear-development-authority)
+defines the adoption model and links the build and worktree authorities.
 The canonical
 [Linear MCP development authority](../../woostack-init/references/artifact-backends.md) owns the
 resource/event schema, identity tuple, trust boundary, receipts, and exact PR trailers; this file
@@ -128,6 +131,8 @@ Every `/woostack-status` run performs the following sequence before rendering:
    review/merge evidence, and project/issue correspondence.
 5. Reconcile only terminal native issue/project state that is eligible from the verified Linear
    acceptance record and GitHub evidence; independently read the mutation back before rendering.
+Every `/woostack-status` run therefore performs terminal reconciliation when verified evidence
+makes a terminal transition eligible; there is no presentation-only bypass.
 
 There is no read-only presentation bypass after a required reconciliation is identified. A failed
 MCP/GitHub read, mutation, or read-back blocks the board instead of displaying stale success.

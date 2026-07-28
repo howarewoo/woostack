@@ -28,14 +28,14 @@ It has two layers:
 - `/woostack-doctor [path] --check` — **CI mode**: diagnose only. Prints GitHub-style annotations
   and sets the exit code (nonzero iff any `error`); suppresses the machine-readable findings dump.
   Mutates nothing.
-- `/woostack-doctor [path] --live` — after static checks, discover the host's official Linear MCP
-  tools and authenticate through the host connection. Resolve the configured workspace/team,
-  validate project/update/issue/comment/relation/owner/read-back capabilities and native mappings,
-  independently read back the probe results, write only the normalized non-secret result to a
-  mode-0600 temporary receipt, invoke `doctor.sh --live-receipt <path> [path]`, then delete the
-  receipt. Missing MCP, authentication, identity, team, state mapping, mutation capability, or
-  read-back is an `error` before artifact or Git access. Read-only MCP reports the exact missing
-  mutation capabilities.
+- `/woostack-doctor [path] --live` — before touching the target, discover the host's official
+  Linear MCP tools, authenticate through the host connection, and verify provider availability
+  plus required read/mutation capabilities. Then resolve the target and its effective layered
+  policy, verify workspace/team, native mappings, and independent read-back, write only the
+  normalized non-secret result to a mode-0600 temporary receipt, invoke
+  `doctor.sh --live-receipt <path> [path]`, and delete the receipt. Missing MCP, authentication,
+  capability, identity, mapping, or read-back blocks at its phase; provider-only failures occur
+  before target filesystem or Git access.
 - `/woostack-doctor [path] --check --live` — the same controller-owned live preflight with
   CI-style annotations and exit behavior.
 
@@ -45,32 +45,44 @@ siblings, so this holds by construction.
 
 ## Procedure
 
-1. **Diagnose statically.** Run `bash <doctor>/scripts/doctor.sh [path]`. This makes no provider
-   call. It validates the non-secret Linear policy, knowledge stores, diagnostics, and local
-   worktree hygiene. Legacy `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, or
-   `.woostack/overnight/` sets produce one blocking migration finding per active or ambiguous set;
-   doctor does not run normal spec/plan lifecycle lint on them. Findings use
-   `severity⇥code⇥fixable⇥path⇥message`; see [references/checks.md](references/checks.md).
-2. **Optionally validate Linear live.** Only on explicit `--live`, the skill controller discovers
-   host MCP capabilities and supplies `doctor.sh --live-receipt <path>` with a normalized,
-   non-secret receipt. The script validates the receipt and never impersonates a provider call.
-   Missing, partial, stale, foreign, ambiguous, read-only, or conflicting receipts are errors.
-3. **No workspace?** If the engine exits 2 with "no `.woostack/`", **stop** and tell the user to
+1. **Capture the target.** Retain the requested path without statting, reading, canonicalizing, or
+   invoking Git.
+2. **Preflight the provider first in live mode.** For explicit `--live`, discover and authenticate
+   official host MCP before target access. Verify provider availability and required
+   project/update/issue/comment/relation/owner read and mutation capabilities. A provider-only
+   failure stops with zero target filesystem or Git access.
+3. **Resolve policy and diagnose once.** Resolve the target and primary checkout, then load the
+   effective committed plus primary-checkout local team policy. In live mode, verify the configured
+   workspace/team, native mappings, and independent read-back, write the normalized non-secret
+   mode-0600 receipt, and run `doctor.sh --live-receipt <path> [path]`. Otherwise run
+   `doctor.sh [path]`. The engine validates policy, knowledge stores, diagnostics, and local
+   worktree hygiene.
+
+   <!-- woostack-legacy-compatibility reader="woostack-doctor" operation="inspect" paths=".woostack/specs/|.woostack/plans/|.woostack/fixes/|.woostack/overnight/" purpose="migration-classification-only" lifecycle-use="prohibited" -->
+   Inspect `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, and
+   `.woostack/overnight/` for migration classification only. Never use them for normal, routine,
+   or day-to-day lifecycle work.
+   <!-- /woostack-legacy-compatibility -->
+
+   Report one blocking migration finding per active or ambiguous legacy set. Never adopt a legacy
+   set as normal lifecycle input. Point at the explicit
+   [migration procedure](../woostack-init/references/migration.md).
+4. **No workspace?** If the engine exits 2 with "no `.woostack/`", **stop** and tell the user to
    run [`woostack-init`](../woostack-init/SKILL.md). Doctor never scaffolds.
-4. **Propose a changeset.** Group the local `fixable=auto` findings into a proposed repair set —
+5. **Propose a changeset.** Group the local `fixable=auto` findings into a proposed repair set —
    one line per repair: the `code`, the `path`, and exactly what will change. List `report`-only
    findings separately as "manual / judgment" items. Linear findings are always report-only.
-5. **HARD GATE — approval.** Mutate nothing until the user approves. Silence is not a yes. The user
+6. **HARD GATE — approval.** Mutate nothing until the user approves. Silence is not a yes. The user
    may approve all, a subset, or none. `report`-only findings are never auto-applied.
-6. **Apply locally.** For each approved local finding, invoke the owning check's `--fix` path with
+7. **Apply locally.** For each approved local finding, invoke the owning check's `--fix` path with
    the uniform convention `<check> --fix <WOO_ROOT> <extra-args...>` (see
    [references/checks.md](references/checks.md) for each check's args). File repairs mutate the
    working tree; the filesystem-only repair (`orphan-worktree --fix`, a safe `git worktree prune`)
    runs directly. No repair command calls Linear or mutates remote content.
-7. **Commit.** After file repairs, hand to [`woostack-commit`](../woostack-commit/SKILL.md) — it
+8. **Commit.** After file repairs, hand to [`woostack-commit`](../woostack-commit/SKILL.md) — it
    creates a fresh `feature/*` branch and opens a PR (respects branch protection; **never merges**).
    Filesystem-only repairs need no commit.
-8. **Confirm.** Re-run the same static or explicitly live engine mode and report residual findings.
+9. **Confirm.** Re-run the same static or explicitly live engine mode and report residual findings.
 
 ## Hard constraints
 

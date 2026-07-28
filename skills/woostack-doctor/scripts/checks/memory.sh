@@ -65,8 +65,8 @@ for f in "$MEM_DIR"/*.md; do
       case "$_wl" in specs/*|plans/*|fixes/*) source_path=".woostack/$_wl.md" ;; esac
       ;;
     linear://*)
-      if [[ ! "$source_raw" =~ ^linear://(project|document|issue)/($LINEAR_UUID_RE)$ ]]; then
-        warn memory-provenance "$rp" "$base: source '$source_raw' is malformed (expected linear://project|document|issue/<uuid>)"
+      if [[ ! "$source_raw" =~ ^linear://(project|issue)/($LINEAR_UUID_RE)$ ]]; then
+        warn memory-provenance "$rp" "$base: source '$source_raw' is malformed (expected linear://project|issue/<uuid>)"
       else
         source_kind="${BASH_REMATCH[1]}"
         source_id="$(printf '%s' "${BASH_REMATCH[2]}" | tr '[:upper:]' '[:lower:]')"

@@ -6,22 +6,29 @@ authority, custom Linear GraphQL transport, or repository credential configurati
 remain authoritative for source, branches, pull requests, reviews, and merge evidence; GitHub
 GraphQL used for GitHub operations is unaffected.
 
-`.woostack/config.json` is non-secret repository policy. After initialization its `linear` object
-contains only:
+`.woostack/config.json` is committed non-secret repository policy. After initialization its
+`linear` object contains only:
 
 - `repository`: the canonical `https://github.com/<owner>/<repository>` URL;
-- `workspace` and `team`: the exact configured Linear workspace and team;
+- `workspace` and an optional repository-default `team`;
 - `projectStatuses`: one uniquely resolved native status name for each coarse category
   `backlog`, `planned`, `started`, `paused`, `completed`, and `canceled`; fine-grained phase
   remains derived from the managed project-event chain rather than configuration; and
 - `issueStates`: one team issue-state name for each semantic state `planned`, `executing`,
   `inReview`, `done`, and `blocked`.
 
-Every configured value is a non-empty string and must resolve uniquely through MCP. Unknown Linear
-policy keys, a missing mapping, a mapping whose native category is wrong, or an ambiguous name
-fails closed. Authentication belongs only to the host's official MCP/OAuth secret store. Config,
-prompts, logs, generated files, and repository environment files must not contain a token, secret,
-authorization header, credential-file path, or other provider credential.
+The ignored primary-checkout `.woostack/config.local.json` may contain only
+`{"linear":{"team":"<team>"}}`. [`scripts/config/resolve-config.sh`](../scripts/config/resolve-config.sh)
+locates that file through Git's common directory, so every linked worktree in one clone inherits
+the same selected team; the local team overrides the committed default. Separate clones may select
+different teams without changing shared policy.
+
+Every required committed value and the effective team is a nonblank string and must resolve
+uniquely through MCP. Unknown policy or local-override keys, a missing mapping, a mapping whose
+native category is wrong, or an ambiguous name fails closed. Authentication belongs only to the
+host's official MCP/OAuth secret store. Config, prompts, logs, generated files, and repository
+environment files must not contain a token, secret, authorization header, credential-file path,
+or other provider credential.
 
 ## Managed resource model
 
@@ -79,8 +86,9 @@ Project-update envelopes use `kind: "projectEvent"`, role `feature`, and additio
 - `event`, one canonical project event kind;
 - `revision`, a positive integer for the stable event `clientId`;
 - native `projectId`;
-- `predecessorId`, the immediately preceding unsuperseded phase update ID for a phase event, or
-  `null` only for `designApproved`;
+- `predecessorId`, the immediately preceding unsuperseded phase update ID for a phase event, the
+  active unsuperseded phase update ID for a non-phase event, or `null` only for
+  `designApproved`; a non-phase event cannot exist before `designApproved`;
 - `relatedIds`, a sorted array of native IDs needed to prove the decision, blocker, handoff, or
   affected issues; and
 - `supersedesId`, the prior native update ID when this revision corrects it, otherwise `null`.

@@ -247,8 +247,10 @@ must_not(plan_terminal, "standalone, name the selected artifact and offer", "pla
 # Status ownership is canonical; workflow docs carry only local operational details.
 for token in ("canonical lifecycle and ownership", "woostack-status/references/conventions.md", "no Markdown artifact survives", "status-only abandonment", "status is `inReview`"):
     must(build, token, "status ownership")
-for token in ("Spec frontmatter owns design approval: `draft -> hardened -> approved`", "Plan frontmatter owns implementation lifecycle", "Retained Markdown artifacts may also carry terminal `abandoned`", "build spec-gate cleanup path leaves no retained"):
-    must(texts["conventions"], token, "canonical Markdown lifecycle")
+for token in ("Official Linear MCP is the only development-record", "One repository-owned `feature` project", "designApproved → specHardened → specApproved → planning → ready →", "Any active phase may explicitly become", "`done` and `abandoned` are terminal"):
+    must(texts["conventions"], token, "canonical Linear lifecycle")
+for token in ("Spec frontmatter owns design approval", "Plan frontmatter owns implementation lifecycle", "Retained Markdown artifacts"):
+    must_not(texts["conventions"], token, "retired Markdown lifecycle")
 for token in ("In Markdown, this spec owns `draft`, `hardened`, or `approved`", "leaving no artifact or authored abandoned status", "plan owns later implementation phases", "managed spec document owns `designState`", "project mirrors the applicable feature lifecycle", "increment issues own their separate normalized lifecycle", "normalized lifecycle including `inReview`"):
     must(texts["spec_md"], token, "spec template status")
 must_not(texts["spec_md"], "this spec owns `draft`, `hardened`, `approved`, or terminal `abandoned`", "spec template status")

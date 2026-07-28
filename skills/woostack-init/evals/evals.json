@@ -4,7 +4,7 @@
   "cases": [
     {
       "id": "blocks-before-project-access-when-official-mcp-is-missing",
-      "prompt": "Apply the packaged woostack-init preflight to fixtures/receipts/missing-mcp.json. The receipt fixture is host input and is outside the target project. Do not stat, list, read, write, or canonicalize fixtures/project and do not invoke Git because preflight fails. Return exactly one JSON object with keys status, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, and doctorInvoked.",
+      "prompt": "Apply the packaged woostack-init preflight to fixtures/receipts/missing-mcp.json. The receipt fixture is host input and is outside the target project. Do not stat, list, read, write, or canonicalize fixtures/project and do not invoke Git because preflight fails. Return exactly one JSON object with keys status, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, and doctorInvoked. Use exactly status `blocked` and reasonCode `linear-mcp-unavailable`; equivalent tokens are invalid.",
       "fixtures": [
         "receipts/missing-mcp.json",
         "project/.woostack/config.json",
@@ -25,7 +25,7 @@
     },
     {
       "id": "blocks-before-project-access-when-official-mcp-is-unauthenticated",
-      "prompt": "Apply the packaged woostack-init preflight to fixtures/receipts/unauthenticated.json. The receipt fixture is host input and is outside the target project. Do not stat, list, read, write, or canonicalize fixtures/project and do not invoke Git because authentication failed. Return exactly one JSON object with keys status, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, and doctorInvoked.",
+      "prompt": "Apply the packaged woostack-init preflight to fixtures/receipts/unauthenticated.json. The receipt fixture is host input and is outside the target project. Do not stat, list, read, write, or canonicalize fixtures/project and do not invoke Git because authentication failed. Return exactly one JSON object with keys status, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, and doctorInvoked. Use exactly status `blocked` and reasonCode `linear-mcp-unauthenticated`; equivalent tokens are invalid.",
       "fixtures": [
         "receipts/unauthenticated.json",
         "project/.woostack/config.json",
@@ -46,7 +46,7 @@
     },
     {
       "id": "blocks-on-ambiguous-workspace-or-missing-team",
-      "prompt": "Apply the packaged woostack-init preflight to fixtures/receipts/ambiguous-workspace-missing-team.json. Inspect only the receipt fixture: the workspace has multiple matches and the team has none. Do not access fixtures/project or invoke Git. Return exactly one JSON object with keys status, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, and doctorInvoked.",
+      "prompt": "Apply the packaged woostack-init preflight to fixtures/receipts/ambiguous-workspace-missing-team.json. Inspect only the receipt fixture: the workspace has multiple matches and the team has none. Do not access fixtures/project or invoke Git. Return exactly one JSON object with keys status, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, and doctorInvoked. Use exactly status `blocked` and reasonCode `linear-workspace-team-resolution`; equivalent tokens are invalid.",
       "fixtures": [
         "receipts/ambiguous-workspace-missing-team.json",
         "project/.woostack/config.json",
@@ -67,7 +67,7 @@
     },
     {
       "id": "blocks-invalid-native-project-categories-and-issue-states",
-      "prompt": "Apply the packaged woostack-init preflight to fixtures/receipts/invalid-native-mappings.json. Require exactly the six coarse project-status keys and verify each resolves to its matching native category; separately validate every semantic issue-state key. Do not access fixtures/project or invoke Git. Return exactly one JSON object with keys status, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, and doctorInvoked.",
+      "prompt": "Apply the packaged woostack-init preflight to fixtures/receipts/invalid-native-mappings.json. Require exactly the six coarse project-status keys and verify each resolves to its matching native category; separately validate every semantic issue-state key. Do not access fixtures/project or invoke Git. Return exactly one JSON object with keys status, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, and doctorInvoked. Use exactly status `blocked` and reasonCode `linear-native-mapping-invalid`; equivalent tokens are invalid.",
       "fixtures": [
         "receipts/invalid-native-mappings.json",
         "project/.woostack/config.json",
@@ -88,7 +88,7 @@
     },
     {
       "id": "blocks-read-only-mcp-for-mutating-init",
-      "prompt": "Apply the packaged woostack-init preflight to fixtures/receipts/read-only-capability.json. Init is a mutating workflow, so inspect every required read and write capability and fail on the false projectWrite and commentWrite observations. Do not access fixtures/project or invoke Git. Return exactly one JSON object with keys status, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, and doctorInvoked.",
+      "prompt": "Apply the packaged woostack-init preflight to fixtures/receipts/read-only-capability.json. Init is a mutating workflow, so inspect every required read and write capability and fail on the false projectWrite and commentWrite observations. Do not access fixtures/project or invoke Git. Return exactly one JSON object with keys status, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, and doctorInvoked. Use exactly status `blocked` and reasonCode `linear-mcp-read-only`; equivalent tokens are invalid.",
       "fixtures": [
         "receipts/read-only-capability.json",
         "project/.woostack/config.json",
@@ -109,7 +109,7 @@
     },
     {
       "id": "blocks-unknown-or-partial-independent-read-back",
-      "prompt": "Apply the packaged woostack-init preflight to fixtures/receipts/unknown-read-back.json. All declared capabilities are true, but the independent read-back is unknown and partial; do not treat declarations as proof. Do not access fixtures/project or invoke Git. Return exactly one JSON object with keys status, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, and doctorInvoked.",
+      "prompt": "Apply the packaged woostack-init preflight to fixtures/receipts/unknown-read-back.json. All declared capabilities are true, but the independent read-back is unknown and partial; do not treat declarations as proof. Do not access fixtures/project or invoke Git. Return exactly one JSON object with keys status, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, and doctorInvoked. Use exactly status `blocked` and reasonCode `linear-read-back-unknown`; equivalent tokens are invalid.",
       "fixtures": [
         "receipts/unknown-read-back.json",
         "project/.woostack/config.json",
@@ -130,7 +130,7 @@
     },
     {
       "id": "successful-preflight-repairs-workspace-and-doctors-repository-root",
-      "prompt": "Initialize fixtures/project with the packaged woostack-init procedure in --no-clobber mode. First validate every field in fixtures/receipts/success.json while performing zero target-project filesystem or Git access. Only after that succeeds may you inspect fixtures/project, preserve its config byte-for-byte, create the remaining canonical knowledge/response/worktree/diagnostic pieces without specs, plans, or fixes, and run build-index. Then invoke exactly `bash fixtures/tools/doctor.sh --live-receipt fixtures/receipts/success.json fixtures/project`; never pass `.woostack/memory` as doctor's target. Return exactly one JSON object with keys status, mode, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, createdPaths, skippedPaths, validationOrder, doctorInvocation, doctorTarget, doctorExitCode, configBeforeSha256, and configAfterSha256.",
+      "prompt": "Initialize fixtures/project with the packaged woostack-init procedure in --no-clobber mode. First validate every field in fixtures/receipts/success.json while performing zero target-project filesystem or Git access. Only after that succeeds may you inspect fixtures/project, preserve its config byte-for-byte, create the remaining canonical knowledge/response/worktree/diagnostic pieces without specs, plans, or fixes, and run build-index. Then invoke exactly `bash fixtures/tools/doctor.sh --live-receipt fixtures/receipts/success.json fixtures/project`; never pass `.woostack/memory` as doctor's target. Return exactly one JSON object with keys status, mode, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, createdPaths, skippedPaths, validationOrder, doctorInvocation, doctorTarget, doctorExitCode, configBeforeSha256, and configAfterSha256. Use exactly status `complete`, mode `no-clobber`, and reasonCode `ready`; equivalent tokens are invalid.",
       "fixtures": [
         "receipts/success.json",
         "project/.woostack/config.json",
@@ -161,6 +161,25 @@
         {"id":"config-after-hash","kind":"final-json-path-equals","pointer":"/configAfterSha256","expected":"070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
         {"id":"config-preserved-on-disk","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
         {"id":"existing-file-preserved-on-disk","kind":"file-sha256-equals","file":"fixtures/project/.woostack/existing-note.txt","sha256":"sha256:60ba63428d6029222a9d092142fcdc64d045d93650e0c25cb25cd7f319351fae","critical":true}
+      ]
+    },
+    {
+      "id": "classifies-loss-safe-linear-migration-fixtures",
+      "prompt": "Apply the packaged migration contract in references/migration.md to migration-active.json, migration-historical.json, migration-ambiguous.json, migration-partial.json, and migration-foreign.json. Do not mutate any fixture. Verify that active deletion has complete receipts, historical cleanup has Git plus acceptance recovery proof without remote import, and ambiguous, partial, or foreign evidence produces zero deletions. Return exactly one JSON object with keys status, reasonCode, deletionsByFixture, and resumableClientId. Use exactly status `complete` and reasonCode `migration-safety-verified`; equivalent tokens are invalid.",
+      "fixtures": [
+        "migration-active.json",
+        "migration-historical.json",
+        "migration-ambiguous.json",
+        "migration-partial.json",
+        "migration-foreign.json"
+      ],
+      "capabilities": ["read-workspace"],
+      "expected": "Loss-safe migration permits deletion only with complete active receipts or recoverable historical evidence and preserves stable IDs across a partial resume.",
+      "assertions": [
+        {"id":"migration-status","kind":"final-json-path-equals","pointer":"/status","expected":"complete","critical":true},
+        {"id":"migration-reason","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"migration-safety-verified","critical":true},
+        {"id":"migration-deletions","kind":"final-json-path-equals","pointer":"/deletionsByFixture","expected":{"active":2,"historical":1,"ambiguous":0,"partial":0,"foreign":0},"critical":true},
+        {"id":"migration-resume-id","kind":"final-json-path-equals","pointer":"/resumableClientId","expected":"44444444-4444-4444-8444-444444444444","critical":true}
       ]
     }
   ]

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "classification": "active",
+  "local": {
+    "paths": [".woostack/specs/active.md", ".woostack/plans/active.md"],
+    "gitBlobs": ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+    "originalProvenance": ["[[specs/active]]", "[[plans/active]]"]
+  },
+  "remote": {
+    "clientId": "11111111-1111-4111-8111-111111111111",
+    "projectId": "22222222-2222-4222-8222-222222222222",
+    "issueIds": ["33333333-3333-4333-8333-333333333333"]
+  },
+  "receipts": {
+    "complete": true,
+    "independentReadBack": true,
+    "ownershipVerified": true,
+    "relationsVerified": true,
+    "provenanceVerified": true
+  },
+  "result": {
+    "status": "ready-to-delete",
+    "localDeletions": [".woostack/specs/active.md", ".woostack/plans/active.md"],
+    "provenanceRewrites": ["linear://project/22222222-2222-4222-8222-222222222222"]
+  }
+}

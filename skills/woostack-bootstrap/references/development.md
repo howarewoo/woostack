@@ -49,8 +49,8 @@ missing authentication or a required read/write capability blocks before artifac
 repository mutation. Woostack does not issue custom Linear GraphQL requests. GitHub GraphQL remains
 valid for GitHub-specific operations such as review-thread handling.
 
-Storage changes neither workflow intent nor approval policy. `woostack-build` preserves exactly
-three hard gates: design approval, written-spec approval, and execution handoff. Design is
+Storage changes neither workflow intent nor approval policy. [`woostack-build`](../../woostack-build/SKILL.md)
+preserves exactly three hard gates: design approval, written-spec approval, and execution handoff. Design is
 artifact-free until explicit approval creates the project and a verified `designApproved` update.
 Specification hardening and approval append verified project-update events; planning creates and
 reconciles issues and native relations. `ready` exists before the explicit handoff, and Go or an

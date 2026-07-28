@@ -251,7 +251,7 @@ for secret_key in "${secret_keys[@]}"; do
   secret_index=$((secret_index + 1))
 done
 
-assert_eq "$(jq -c '.artifacts' "$TEMPLATE")" '{"specPlan":"markdown"}' "config template selects Markdown by default"
+assert_eq "$(jq -c '.artifacts' "$TEMPLATE")" 'null' "Linear-only config template omits the retired backend selector"
 assert_eq "$(jq -r '[paths(scalars) as $p | ($p[-1] | tostring | ascii_downcase | gsub("[^a-z0-9]"; "")) | select(test("(apikey|token|credentials?(file|path)|authorization|password|secret|privatekey|accesskey)"))] | length' "$TEMPLATE")" '0' "config template contains no credential placeholders"
 
 write_feature_pair() {

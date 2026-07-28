@@ -3,6 +3,7 @@ set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TEMPLATE="$HERE/../../../woostack-init/templates/config.json"
+CONFIG_RESOLVER="$HERE/../../../woostack-init/scripts/config/resolve-config.sh"
 emit() { printf '%s\t%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" "$5"; }
 
 if [ "${1:-}" = "--fix" ]; then
@@ -30,6 +31,19 @@ if [ ! -f "$CFG" ] || ! jq -e 'type == "object"' "$CFG" >/dev/null 2>&1; then
   exit 0
 fi
 
+resolver_error="$(mktemp)"
+if [ ! -x "$CONFIG_RESOLVER" ] || ! effective_config="$(bash "$CONFIG_RESOLVER" "$WOO_ROOT" 2>"$resolver_error")"; then
+  detail="$(cat "$resolver_error")"
+  rm -f "$resolver_error"
+  [ -n "$detail" ] || detail="layered config resolver is unavailable"
+  emit error linear-policy report ".woostack/config.json" "$detail"
+  exit 0
+fi
+rm -f "$resolver_error"
+EFFECTIVE_CFG="$(mktemp)"
+printf '%s\n' "$effective_config" >"$EFFECTIVE_CFG"
+trap 'rm -f "$EFFECTIVE_CFG"' EXIT
+
 while IFS= read -r key; do
   if ! jq -e --arg key "$key" 'has($key)' "$CFG" >/dev/null; then
     emit warn config-key auto ".woostack/config.json" "missing required config key: $key"
@@ -55,24 +69,25 @@ issue_keys='["planned","executing","inReview","done","blocked"]'
 issue_categories='{"planned":"backlog","executing":"started","inReview":"started","done":"completed","blocked":"started"}'
 if ! jq -e --argjson allowed "$allowed" '
   .linear | type == "object" and ((keys - $allowed) | length == 0)
-  and (.repository | type == "string" and test("^https://github\\.com/[^/]+/[^/]+$"))
-  and (.workspace | type == "string" and length > 0)
-  and (.team | type == "string" and length > 0)
+  and (.repository | type == "string"
+    and test("^https://github\\.com/[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?/[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?$"))
+  and (.workspace | type == "string" and test("\\S"))
+  and (.team | type == "string" and test("\\S"))
   and (.projectStatuses | type == "object")
   and (.issueStates | type == "object")
-' "$CFG" >/dev/null 2>&1; then
+' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
   emit error linear-policy report ".woostack/config.json" "linear policy requires repository, workspace, team, projectStatuses, and issueStates only"
 else
   if ! jq -e --argjson keys "$project_keys" '
     (.linear.projectStatuses | keys | sort) == ($keys | sort)
-    and all(.linear.projectStatuses[]; type == "string" and length > 0)
-  ' "$CFG" >/dev/null; then
+    and all(.linear.projectStatuses[]; type == "string" and test("\\S"))
+  ' "$EFFECTIVE_CFG" >/dev/null; then
     emit error linear-policy report ".woostack/config.json" "projectStatuses mapping is incomplete or contains invalid values"
   fi
   if ! jq -e --argjson keys "$issue_keys" '
     (.linear.issueStates | keys | sort) == ($keys | sort)
-    and all(.linear.issueStates[]; type == "string" and length > 0)
-  ' "$CFG" >/dev/null; then
+    and all(.linear.issueStates[]; type == "string" and test("\\S"))
+  ' "$EFFECTIVE_CFG" >/dev/null; then
     emit error linear-policy report ".woostack/config.json" "issueStates mapping is incomplete or contains invalid values"
   fi
 fi
@@ -81,7 +96,10 @@ for name in specs plans fixes overnight; do
   dir="$WOO_ROOT/.woostack/$name"
   [ -d "$dir" ] || continue
   shopt -s nullglob dotglob
-  entries=("$dir"/*)
+  entries=()
+  for entry in "$dir"/*; do
+    [ "${entry##*/}" = ".gitkeep" ] || entries+=("$entry")
+  done
   shopt -u nullglob dotglob
   [ "${#entries[@]}" -eq 0 ] && continue
   emit error legacy-development-records report ".woostack/$name" "legacy development-record set requires verified migration classification"
@@ -93,7 +111,7 @@ if [ ! -r "$receipt" ] || ! jq -e \
   --argjson project_keys "$project_keys" \
   --argjson issue_keys "$issue_keys" \
   --argjson issue_categories "$issue_categories" \
-  --slurpfile config "$CFG" '
+  --slurpfile config "$EFFECTIVE_CFG" '
     . as $receipt
     | .schemaVersion == 1
       and .provider == "official-linear-mcp"
@@ -130,7 +148,7 @@ if [ ! -r "$receipt" ] || ! jq -e \
 fi
 
 for field in workspace team repository; do
-  expected="$(jq -r --arg field "$field" '.linear[$field]' "$CFG")"
+  expected="$(jq -r --arg field "$field" '.linear[$field]' "$EFFECTIVE_CFG")"
   actual="$(jq -r --arg field "$field" '.[$field] // empty' "$receipt")"
   if [ "$actual" != "$expected" ]; then
     emit error linear-live report ".woostack/config.json" "receipt $field does not match configured Linear policy"
