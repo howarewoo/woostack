@@ -6,7 +6,7 @@ unset WOOSTACK_DOCTOR_LIVE WOOSTACK_DOCTOR_LIVE_CONTEXT
 rc=0
 tests=(
   test-doctor.sh
-  test-linear-backend.sh
+  test-linear-mcp.sh
   test-models-leaf-shape.sh
   test-repair-handoff.sh
   test-no-stale-paths.sh

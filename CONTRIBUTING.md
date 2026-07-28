@@ -9,7 +9,7 @@ See [AGENTS.md](AGENTS.md) for the full repo contract; this file is the short co
 | You want to... | Edit |
 |---|---|
 | Change project adoption / command routing guidance | `skills/using-woostack/SKILL.md` |
-| Change artifact-backend adoption guidance | `skills/woostack-bootstrap/references/development.md` and its consumers |
+| Change Linear development-authority guidance | `skills/woostack-init/references/artifact-backends.md` and its consumers |
 | Add/revise a bootstrap decision or its default | `skills/woostack-bootstrap/references/decisions.md` |
 | Swap a default framework | `skills/woostack-bootstrap/references/frameworks.md` |
 | Document a new gotcha | `skills/woostack-bootstrap/references/frameworks.md` (Known gotchas section) |
@@ -26,7 +26,7 @@ See [AGENTS.md](AGENTS.md) for the full repo contract; this file is the short co
 | Change the harden phase (the build loop's stress-test step) | `skills/woostack-harden/SKILL.md` |
 | Change the plan phase (the build loop's planning step) | `skills/woostack-plan/SKILL.md` |
 | Change the execute phase (the build loop's implementation step) | `skills/woostack-execute/SKILL.md` |
-| Change the overnight execute phase (unattended autonomous run, morning report) | `skills/woostack-execute-overnight/SKILL.md` |
+| Change the overnight execute phase (unattended autonomous run, remote-record terminal handback) | `skills/woostack-execute-overnight/SKILL.md` |
 | Change the stack review-sweep engine (`/woostack-sweep`) | `skills/woostack-sweep/SKILL.md` |
 | Change the commit / PR update workflow | `skills/woostack-commit/SKILL.md` |
 | Change the review engine | `skills/woostack-review/SKILL.md`, `skills/woostack-review/scripts/`, `skills/woostack-review/prompts/` |
@@ -57,16 +57,18 @@ See [AGENTS.md](AGENTS.md) for the full repo contract; this file is the short co
 
 - **Skill assets only.** Markdown, plus the support files a skill ships (HTML templates and specs, the review engine's shell scripts and prompts, JSON config). No *application* code, app build configs, or app lockfiles belong in this repo.
 - **No fabricated versions.** When a skill needs a version, the procedure resolves it live (`npm view <pkg> version`). Reference frameworks by name, not by version, except in `skills/woostack-bootstrap/references/frameworks.md`, which may pin exact versions when a known incompatibility forces it.
-- **Consumer feature artifacts are backend-selected.** Markdown remains the default, not a
-  universal requirement; Linear keeps its project, spec document, and increment issues natively.
-  Keep non-design consumer state under `.woostack/`, and follow the
-  [artifact-backend adoption contract](skills/woostack-bootstrap/references/development.md#artifact-backend)
-  rather than restating adapter or lifecycle details. Don't reintroduce the old `.woo-review/`
+- **Consumer development authority is Linear-only.** The official host-exposed Linear MCP is the
+  sole development-record interface. A multi-issue feature uses one project with ordered increment
+  issues; project updates own its specification, decisions, phase, and progress. No Linear
+  document is created, and there is no selectable alternative authority. Keep non-design consumer
+  state under `.woostack/`, and follow the canonical
+  [Linear MCP development authority](skills/woostack-init/references/artifact-backends.md#managed-resource-model)
+  rather than restating resource or lifecycle details. Don't reintroduce the old `.woo-review/`
   paths.
 - Prefer tables for option matrices, bulleted lists for stepwise procedures.
 - Keep examples short. The skill describes intent; project-local docs cover the specifics.
 - **Cross-link rather than duplicate.** If a fact lives in `architecture.md`, link to it from `patterns.md`; don't restate.
-- **Preserve the public surface.** Artifact backends do not create skills or command-routing rows.
+- **Preserve the public surface.** Linear development authority does not create skills or command-routing rows.
   Keep the twenty-three public command/adoption skills and all twenty-six fixed `SKILL.md` files
   named in [AGENTS.md](AGENTS.md).
 - Keep each `SKILL.md` in sync with its references. Its `description` must state *when* to use the skill, not summarize the workflow — a workflow summary causes agents to skip the references.

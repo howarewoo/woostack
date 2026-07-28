@@ -1,9 +1,0 @@
-query WoostackIdentityDocument($id: ID!) {
-  documents(filter: { id: { eq: $id } }) {
-    nodes {
-      id
-      url
-      project { id }
-    }
-  }
-}

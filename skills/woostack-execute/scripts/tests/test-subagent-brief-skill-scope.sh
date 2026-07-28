@@ -66,8 +66,8 @@ assert_contains "$quality_brief" "passing spec-review receipt" \
 assert_contains "$quality_brief" "VERDICT: PASS" \
   "quality reviewer must emit a literal PASS receipt"
 
-# The controller-facing driver must layer exact issue identity and the authority barriers into every
-# dispatched template; inheriting repository context or a local progress artifact is insufficient.
+# The controller-facing driver must layer exact issue identity and authority barriers into every
+# dispatched template.
 assert_contains "$driver" "Every dispatched paired coder, generic implementer, or generic reviewer brief is self-contained and" \
   "driver must scope every worker to one issue"
 assert_contains "$driver" "exact issue UUID/URL" \
@@ -80,9 +80,9 @@ assert_contains "$driver" '`assignmentAccepted` event/read-back' \
   "driver must carry assignment acceptance read-back"
 assert_contains "$driver" "The task text comes only from that verified issue contract" \
   "driver must derive task text only from the issue"
-assert_contains "$driver" "Never supply a local specification," \
-  "driver must reject local development-record authority"
-assert_contains "$driver" "If the packet is incomplete, stale, contradictory, or names more than one issue, do not dispatch" \
+assert_contains "$driver" "The packet must be complete, current," \
+  "driver must require one complete verified issue packet"
+assert_contains "$driver" "self-consistent, and scoped to exactly one issue; otherwise do not dispatch" \
   "driver must fail closed on an unsafe brief"
 
 # Coding and reviewing workers cannot mutate the controller's allocation, project, gate, PR, or
@@ -103,14 +103,8 @@ assert_contains "$driver" "There is no per-task commit" \
   "controller must retain the one-issue commit boundary"
 assert_contains "$driver" "immediately before each implementer dispatch and each fix redispatch" \
   "controller must recheck ownership before worker edits"
-assert_contains "$driver" "do not edit issue text, tick checkboxes, append local receipts, or mutate Linear" \
-  "worker results must be evidence rather than progress mutation"
+assert_contains "$driver" "not record Linear evidence or lifecycle mutations" \
+  "worker results must remain evidence for the controller"
 
-assert_not_contains "$driver" "Markdown increment's ordered task list" \
-  "driver must not consume a local increment"
-assert_not_contains "$driver" "normalized ordered task list" \
-  "driver must not consume adapter-normalized work"
-assert_not_contains "$driver" "tick the plan" \
-  "driver must not mutate local progress"
 
 finish

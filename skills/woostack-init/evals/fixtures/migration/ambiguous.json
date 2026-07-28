@@ -1,0 +1,40 @@
+{
+  "repositoryId": "repo-woostack",
+  "legacyRecords": [
+    {
+      "path": ".woostack/specs/search.md",
+      "kind": "specification",
+      "stableClientId": "44444444-4444-4444-8444-444444444444",
+      "phase": "approved",
+      "provenance": ["git:6be4210:.woostack/specs/search.md"]
+    },
+    {
+      "path": ".woostack/plans/search-v2.md",
+      "kind": "plan",
+      "stableClientId": "55555555-5555-4555-8555-555555555555",
+      "phase": "complete",
+      "provenance": ["git:14a7ee9:.woostack/plans/search-v2.md"]
+    }
+  ],
+  "relationshipEvidence": {
+    "activeBranch": "feature/search",
+    "mergedPullRequest": 390,
+    "sameFeatureRelationship": "unknown"
+  },
+  "remoteObservations": [],
+  "receiptSet": {
+    "complete": false,
+    "independent": false
+  },
+  "provenanceLedger": {
+    "verified": false,
+    "entries": [
+      "git:6be4210:.woostack/specs/search.md",
+      "git:14a7ee9:.woostack/plans/search-v2.md"
+    ]
+  },
+  "gitRecovery": {
+    "allRecordsTracked": true,
+    "blobsVerified": true
+  }
+}

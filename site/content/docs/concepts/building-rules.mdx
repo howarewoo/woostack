@@ -15,7 +15,7 @@ Classify the work before creating a development record:
 
 | Shape | Commands | Linear record |
 | --- | --- | --- |
-| Standalone one-PR work | [woostack-fix](/docs/skills/woostack-fix), [woostack-change](/docs/skills/woostack-change) | One bound standalone issue; no project |
+| Standalone one-PR work | [woostack-fix](/docs/skills/woostack-fix), [woostack-change](/docs/skills/woostack-change) | One bound standalone issue; no feature project |
 | Multi-issue work | [woostack-build](/docs/skills/woostack-build) | One project, specification-bearing project updates, and ordered increment issues |
 | Greenfield creation | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | One project created only after design approval, then continued through the project model |
 
@@ -27,14 +27,16 @@ The selected shape is verified through Linear before repository mutation.
 
 [woostack-build](/docs/skills/woostack-build) sequences:
 
-> ideate → **approve design** → create and verify the project and initial specification update →
-> harden the written spec → **approve spec** → reconcile and order increment issues →
-> **execution handoff** → implement, verify, review, and accept each issue
+> ideate → **approve design** → create and verify the project and `designApproved` update → harden
+> through specification-bearing project updates → `specHardened` → **approve spec** →
+> `specApproved` → `planning` → `ready` → **execution handoff** → `executionApproved` for
+> execution → implement, verify, review, and accept each issue
 
-The project holds feature scope and coordination. Its updates contain the written specification,
-approved decisions, phase, and progress. Increment issue descriptions carry their contracts and
-acceptance criteria; relations define dependencies and Git parentage; issue comments carry
-implementation, verification, review, and acceptance evidence.
+The project holds feature scope and coordination. Its specification-bearing updates contain the
+written specification, approved decisions, phase, and feature progress; no Linear document is
+created. Increment issue descriptions carry their contracts and acceptance criteria; relations
+define dependencies and Git parentage; issue comments carry implementation, verification, review,
+and acceptance evidence.
 
 Planning produces that ordered issue set rather than another development artifact. One issue
 represents one independently shippable increment and, when implemented, one attributed PR.
@@ -50,16 +52,16 @@ them.
 
 The project loop advances only on an explicit answer:
 
-1. **Design approval** accepts the proposed design. Only then may the feature project and written
-   spec be created.
-2. **Written-spec approval** accepts the hardened specification before increment issues are
-   planned and reconciled.
-3. **Execution handoff** chooses Go, Run overnight, or Hand off after the ordered issues and their
-   relations are ready.
+1. **Design approval** accepts the proposed design. Only then may the feature project be created
+   and its `designApproved` update appended.
+2. **Written-spec approval** accepts the current `specHardened` specification before
+   `specApproved` and increment planning.
+3. **Execution handoff** chooses Go, Run overnight, or Hand off after `ready`; execution paths
+   append `executionApproved`.
 
-Project creation, spec persistence, MCP read-back, planning, issue assignment, verification,
-review, and progress updates are work steps, not additional approval gates. Silence or a tool
-success response never clears a gate.
+Project creation, project-update persistence, MCP read-back, planning, issue assignment,
+verification, review, and progress updates are work steps, not additional approval gates. Silence
+or a tool success response never clears a gate.
 
 ## The standalone issue path
 
@@ -67,10 +69,10 @@ A fix or bounded change binds or creates one repository-owned standalone issue. 
 goal or problem, scope, acceptance criteria, decisions, ownership, implementation evidence, review,
 acceptance, and PR link. Its comments provide the chronological record.
 
-There is no project for this shape. Fix retains its explicit approve-to-execute decision after
-root-cause diagnosis and contract hardening; Change remains the gate-light route for bounded
-non-bug work. Both still require verified ownership before implementation and independent review
-before acceptance.
+There is no feature project for this shape. Fix retains its explicit approve-to-execute decision
+after root-cause diagnosis and contract hardening; Change remains the gate-light route for
+bounded non-bug work. Both still require verified ownership before implementation and independent
+review before acceptance.
 
 ## Authority boundaries
 

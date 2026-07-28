@@ -1,0 +1,39 @@
+{
+  "repositoryId": "repo-woostack",
+  "legacyRecords": [
+    {
+      "path": ".woostack/specs/payments.md",
+      "kind": "specification",
+      "stableClientId": "34343434-3434-4434-8434-343434343434",
+      "phase": "approved",
+      "provenance": ["git:def5678:.woostack/specs/payments.md"]
+    }
+  ],
+  "managedResource": {
+    "clientId": "34343434-3434-4434-8434-343434343434",
+    "nativeId": "linear-project-payments",
+    "repositoryId": "repo-woostack",
+    "role": "feature",
+    "directReadComplete": true,
+    "ownerVerified": true,
+    "projectMembershipVerified": true,
+    "relationListingComplete": true,
+    "readableProvenance": "git:def5678:.woostack/specs/payments.md"
+  },
+  "knowledgeRewrite": {
+    "path": ".woostack/memory/payment-source.md",
+    "originalSha256": "7ba30c61ab4d587edb4f8a22fdd96fb6a5aebaa9a599c008983192363f1ccf7e",
+    "originalSource": "[[specs/payments]]",
+    "stagedSource": "linear://project/34343434-3434-4434-8434-343434343434",
+    "applied": false
+  },
+  "preDeleteRead": {
+    "nativeId": "linear-project-payments",
+    "directReadComplete": false,
+    "relationListingComplete": false
+  },
+  "gitRecovery": {
+    "allRecordsTracked": true,
+    "filteredIdentitiesVerified": true
+  }
+}

@@ -45,12 +45,5 @@
     "push": false,
     "pullRequest": false,
     "issueTransition": false
-  },
-  "expected": {
-    "status": "blocked",
-    "reason": "owner-drift-invalidates-acceptance-and-review",
-    "reviewReceiptValid": false,
-    "concurrentWorkAllowed": false,
-    "nextBoundary": "fresh-allocation-and-review"
   }
 }

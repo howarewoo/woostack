@@ -112,7 +112,10 @@ done
 
 TARGET="$TMP_ROOT/candidate/e2e-target"
 BASELINE="$TMP_ROOT/baseline/e2e-target"
-mkdir -p "$TARGET/references" "$TARGET/evals/fixtures" "$BASELINE/references" "$BASELINE/evals/fixtures"
+mkdir -p "$TARGET/references" "$TARGET/evals/fixtures" "$TARGET/evals/tests" \
+  "$TARGET/scripts/tests" "$TARGET/tests" \
+  "$BASELINE/references" "$BASELINE/evals/fixtures" "$BASELINE/evals/tests" \
+  "$BASELINE/scripts/tests" "$BASELINE/tests"
 
 cat >"$TARGET/SKILL.md" <<'EOF'
 ---
@@ -136,6 +139,15 @@ printf '# Candidate guide\n\nReturn a simulated handback.\n' >"$TARGET/reference
 printf '# Baseline guide\n\nReturn a simulated handback.\n' >"$BASELINE/references/guide.md"
 printf 'transient fixture payload\n' >"$TARGET/evals/fixtures/request.txt"
 printf 'transient fixture payload\n' >"$BASELINE/evals/fixtures/request.txt"
+for package in "$TARGET" "$BASELINE"; do
+  printf 'export const runtimeReady = true;\n' >"$package/scripts/runtime.mjs"
+  printf 'throw new Error("worker-visible test leak");\n' >"$package/scripts/tests/test-runtime.mjs"
+  printf 'throw new Error("worker-visible test leak");\n' >"$package/tests/runtime.test.mjs"
+  printf 'throw new Error("worker-visible grader leak");\n' >"$package/evals/grader.mjs"
+  printf 'throw new Error("worker-visible grader test leak");\n' >"$package/evals/tests/test-grader.mjs"
+  printf '{"expected":{"status":"complete","reason":"undeclared-oracle"}}\n' \
+    >"$package/evals/fixtures/undeclared-answer.json"
+done
 
 write_corpus() {
   package=$1
@@ -298,7 +310,7 @@ RUN_ROOT=$("$NODE" "$PREPARER" \
 "$NODE" --input-type=module - "$RUN_ROOT" "$VALIDATOR" <<'NODE'
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -394,6 +406,23 @@ async function simulateWorker(variant) {
     (await readFile(path.join(workspaceRoot, 'fixtures/request.txt'), 'utf8')).trim(),
     'transient fixture payload',
   );
+  assert.equal(
+    (await readFile(path.join(workspaceRoot, 'package/scripts/runtime.mjs'), 'utf8')).trim(),
+    'export const runtimeReady = true;',
+  );
+  for (const forbidden of [
+    'package/evals',
+    'package/tests',
+    'package/scripts/tests',
+    'fixtures/undeclared-answer.json',
+  ]) {
+    await assert.rejects(
+      lstat(path.join(workspaceRoot, forbidden)),
+      (error) => error?.code === 'ENOENT',
+      `${variant} worker retained forbidden ${forbidden}`,
+    );
+  }
+  assert.deepEqual(await readdir(path.join(workspaceRoot, 'fixtures')), ['request.txt']);
   const copiedHash = await hashPackage(path.join(workspaceRoot, 'package'), { trackedOnly: false });
   assert.equal(copiedHash, manifest.packageHashes[variant]);
   const output = await writeIdentity(

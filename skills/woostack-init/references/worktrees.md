@@ -25,7 +25,7 @@ repository root, resolved from any linked worktree with:
 export WOOSTACK_ROOT="$(cd "$(git rev-parse --git-common-dir)/.." && pwd)"
 ```
 
-## Artifact-backend boundary
+## Linear-authority bootstrap boundary
 
 Only `woostack-bootstrap` has a pre-repository exception, and it may cross that boundary exactly
 once. The complete design must already have explicit approval; the normalized official

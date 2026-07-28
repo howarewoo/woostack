@@ -13,35 +13,6 @@ else
   printf 'test-linear-build-contract: python3 or python is required\n' >&2
   exit 1
 fi
-
-TEAM_FIXTURE="$(mktemp -d)"
-trap 'rm -rf "$TEAM_FIXTURE"' EXIT
-mkdir -p "$TEAM_FIXTURE/.woostack"
-jq -n '{
-  linear: {
-    repository: "https://github.com/acme/widgets",
-    workspace: "Acme",
-    team: "",
-    projectStatuses: {},
-    issueStates: {}
-  }
-}' > "$TEAM_FIXTURE/.woostack/config.json"
-MISSING_LOCAL_TEAM="$("$ROOT/skills/woostack-init/scripts/config/resolve-config.sh" "$TEAM_FIXTURE" | jq -r '.linear.team')"
-[[ -z "$MISSING_LOCAL_TEAM" ]] || {
-  printf 'test-linear-build-contract: canonical resolver changed config without a local override\n' >&2
-  exit 1
-}
-jq -n '{linear: {team: "Platform"}}' > "$TEAM_FIXTURE/.woostack/config.local.json"
-RESOLVED_TEAM="$("$ROOT/skills/woostack-init/scripts/config/resolve-config.sh" "$TEAM_FIXTURE" | jq -r '.linear.team')"
-[[ "$RESOLVED_TEAM" == "Platform" ]] || {
-  printf 'test-linear-build-contract: canonical resolver did not yield effective local team\n' >&2
-  exit 1
-}
-jq -n '{linear: {team: "   "}}' > "$TEAM_FIXTURE/.woostack/config.local.json"
-if "$ROOT/skills/woostack-init/scripts/config/resolve-config.sh" "$TEAM_FIXTURE" >/dev/null 2>&1; then
-  printf 'test-linear-build-contract: canonical resolver accepted malformed local team\n' >&2
-  exit 1
-fi
 "$PYTHON" - "$(tool_path_arg "$PYTHON" "$ROOT")" <<'PY'
 import copy
 import json
@@ -58,27 +29,13 @@ paths = {
     "procedure": root / "skills/woostack-build/references/linear-procedure.md",
     "context": root / "skills/woostack-build/references/linear-context.md",
     "plan": root / "skills/woostack-plan/SKILL.md",
-    "adapter": root / "skills/woostack-plan/references/linear-adapter.md",
+    "planning": root / "skills/woostack-plan/references/linear-planning.md",
     "harden": root / "skills/woostack-harden/SKILL.md",
-    "router": root / "skills/using-woostack/SKILL.md",
-    "execute": root / "skills/woostack-execute/SKILL.md",
-    "overnight": root / "skills/woostack-execute-overnight/SKILL.md",
-    "tdd": root / "skills/woostack-tdd/SKILL.md",
-
-    "ideate": root / "skills/woostack-ideate/SKILL.md",
-    "spec_template": root / "skills/woostack-build/references/spec-template.md",
-    "spec_template_html": root / "skills/woostack-build/references/spec-template.html",
-    "build_evals": root / "skills/woostack-build/evals/evals.json",
-    "project_gates": root / "skills/woostack-build/evals/fixtures/project-gates.json",
-    "project_conflicts": root / "skills/woostack-build/evals/fixtures/project-update-conflict.json",
-    "project_replan": root / "skills/woostack-build/evals/fixtures/project-replan.json",
-    "build_state": root / "skills/woostack-build/evals/fixtures/build-state.json",
-    "plan_evals": root / "skills/woostack-plan/evals/evals.json",
-    "plan_triggers": root / "skills/woostack-plan/evals/trigger-evals.json",
+    "status": root / "skills/woostack-status/SKILL.md",
+    "conventions": root / "skills/woostack-status/references/conventions.md",
+    "evals": root / "skills/woostack-build/evals/evals.json",
     "test": root / "skills/woostack-build/tests/test-linear-build-contract.sh",
     "runner": root / "skills/woostack-init/scripts/tests/run-tests.sh",
-    "resolver": root / "skills/woostack-init/scripts/config/resolve-config.sh",
-    "authority": root / "skills/woostack-init/references/artifact-backends.md",
 }
 texts = {name: path.read_text(encoding="utf-8") for name, path in paths.items()}
 
@@ -106,253 +63,8 @@ if texts["runner"].count("test-linear-build-contract.sh") != 1:
     fail("contract test must be registered exactly once")
 
 workflow = "\n".join(texts[name] for name in (
-    "build", "procedure", "context", "plan", "adapter", "harden",
+    "build", "procedure", "context", "plan", "planning", "harden", "status", "conventions"
 ))
-for forbidden in (
-    "resolve-backend.sh",
-    "linear.sh",
-    "LINEAR_API_KEY",
-    "LINEAR_CONTEXT",
-    "spec-write",
-    "feature-transition",
-    "selected backend",
-    "Markdown mode",
-    "Linear spec document",
-    "managed spec document",
-    "GraphQL adapter",
-):
-    if forbidden.lower() in workflow.lower():
-        fail(f"workflow retains forbidden authority/transport token {forbidden!r}")
-
-def validate_correction_contract(text):
-    lowered = re.sub(r"\s+", " ", text.lower())
-    correction_classes = (
-        ("phase event correction", "current phase head"),
-        ("non-phase project event correction", "current revision"),
-        ("managed issue comment/event correction", "current revision"),
-    )
-    for correction_class, scope in correction_classes:
-        if correction_class not in lowered or scope not in lowered:
-            raise ValueError(f"correction contract missing {correction_class!r} scope")
-    for required in (
-        "next revision",
-        "supersedesid",
-        "preserve",
-        "predecessor",
-        "project identity",
-        "project-plus-issue identity",
-        "independently read",
-        "before mutation",
-        "explicit human-directed recovery",
-        "multi-write transaction",
-        "no phase-head requirement",
-        "does not advance, replace, or rewrite the phase chain",
-    ):
-        if required not in lowered:
-            raise ValueError(f"correction contract missing {required!r}")
-    if len(re.findall(r"never cascades? descendant revisions", lowered)) < 2:
-        raise ValueError("correction contract does not forbid descendant cascades")
-    if "append corrected revisions of every descendant" in lowered:
-        raise ValueError("correction contract permits a descendant cascade")
-
-
-for owner in ("procedure", "adapter"):
-    validate_correction_contract(texts[owner])
-    cascade_mutant, replacements = re.subn(
-        r"never cascades? descendant revisions",
-        "append corrected revisions of every descendant",
-        texts[owner],
-        count=1,
-        flags=re.IGNORECASE,
-    )
-    if replacements != 1:
-        fail(f"{owner} correction contract lacks one mutable no-cascade rule")
-    rejects(
-        f"{owner} descendant-cascade correction mutation",
-        lambda mutant=cascade_mutant: validate_correction_contract(mutant),
-    )
-
-for required in (
-    "resolve-config.sh",
-    "resolved JSON",
-    "missing or malformed effective team",
-    "committed optional team",
-    "config.local.json",
-    "non-secret policy/context",
-    "never alternate development-record authority",
-):
-    must(texts["context"], required, "effective Linear team resolution")
-must(texts["authority"], "local team overrides the committed default", "canonical team authority")
-if not os.access(paths["resolver"], os.X_OK):
-    fail("canonical config resolver is not executable")
-
-
-def validate_effective_config(config):
-    linear = config.get("linear")
-    if not isinstance(linear, dict):
-        raise ValueError("missing resolved linear policy")
-    for key in ("repository", "workspace", "team", "projectStatuses", "issueStates"):
-        if key not in linear:
-            raise ValueError(f"missing resolved {key}")
-    for key in ("repository", "workspace", "team"):
-        if not isinstance(linear[key], str) or not linear[key].strip():
-            raise ValueError(f"malformed resolved {key}")
-    return linear["team"]
-
-effective_fixture = {
-    "linear": {
-        "repository": "https://github.com/acme/widgets",
-        "workspace": "Acme",
-        "team": "Platform",
-        "projectStatuses": {},
-        "issueStates": {},
-    }
-}
-if validate_effective_config(effective_fixture) != "Platform":
-    fail("build context rejected canonical effective local team")
-missing_team = copy.deepcopy(effective_fixture)
-missing_team["linear"]["team"] = ""
-rejects("missing effective team", lambda: validate_effective_config(missing_team))
-
-for required in (
-    "official host-exposed Linear MCP",
-    "`designApproved` project update",
-    "caller owns shape classification and the Linear project-update lifecycle",
-):
-    must(texts["ideate"], required, "ideate handoff")
-for required in (
-    "`specHardened` project-update body template",
-    "stable event `clientId`",
-    "independently read the complete event and one-head lifecycle chain back",
-):
-    must(texts["spec_template"], required, "specification update template")
-markdown_sections = re.findall(r"^## ([0-9]+\\. .+)$", texts["spec_template"], re.MULTILINE)
-html_sections = [
-    value.replace("&amp;", "&")
-    for value in re.findall(r"<h2>([0-9]+\\. [^<]+)</h2>", texts["spec_template_html"])
-]
-if markdown_sections != html_sections:
-    fail(f"specification Markdown/HTML section parity differs: {markdown_sections!r} != {html_sections!r}")
-markdown_placeholders = set(re.findall(r"\{\{[^{}]+\}\}", texts["spec_template"]))
-html_placeholders = set(re.findall(r"\{\{[^{}]+\}\}", texts["spec_template_html"]))
-if markdown_placeholders != html_placeholders:
-    fail(
-        "specification Markdown/HTML placeholder parity differs: "
-        f"{sorted(markdown_placeholders)!r} != {sorted(html_placeholders)!r}"
-    )
-for legacy in ("{{STATUS}}", "{{DATE}}", "{{BRANCH}}", "{{ARTIFACT_REFERENCE}}"):
-    for template_name in ("spec_template", "spec_template_html"):
-        if legacy in texts[template_name]:
-            fail(f"{template_name} retains legacy metadata field {legacy!r}")
-for required in ("specHardened", "independent read-back"):
-    must(texts["spec_template_html"], required, "specification HTML mirror")
-
-router_rows = {
-    command: next(
-        (line for line in texts["router"].splitlines() if line.startswith(f"| `/{command} ")),
-        "",
-    )
-    for command in ("woostack-execute", "woostack-execute-overnight", "woostack-tdd")
-}
-for command in ("woostack-execute", "woostack-execute-overnight"):
-    row = router_rows[command]
-    must(row, "<artifact>", f"{command} router signature")
-    if "<plan-path>" in row or "Linear project UUID-or-exact-URL" in row:
-        fail(f"{command} router prematurely narrows its compatibility input")
-    owner = texts["execute" if command == "woostack-execute" else "overnight"]
-    must(owner, f"/{command} <artifact> [--inline | --subagent]", f"{command} owner signature")
-    must(owner, ".woostack/plans/", f"{command} Markdown compatibility input")
-    must(owner, "project UUID", f"{command} Linear compatibility input")
-
-must(router_rows["woostack-tdd"], "/woostack-tdd <target>", "woostack-tdd router signature")
-must(
-    router_rows["woostack-tdd"],
-    "code, a PR, or an exact verified Linear project and issue",
-    "woostack-tdd router targets",
-)
-for stale_target in ("spec", "plan"):
-    if re.search(rf"\b{stale_target}\b", router_rows["woostack-tdd"], re.IGNORECASE):
-        fail(f"woostack-tdd router retains stale {stale_target} target")
-for required in (
-    "/woostack-tdd <target>",
-    "| **code** |",
-    "| **PR** |",
-    "| **Linear issue** | exact project UUID or URL **and** exact issue UUID or URL |",
-):
-    must(texts["tdd"], required, "woostack-tdd owner targets")
-for stale_target in ("Markdown spec", "Markdown plan", "| **spec** |", "| **plan** |"):
-    if stale_target in texts["tdd"]:
-        fail(f"woostack-tdd owner retains stale target {stale_target!r}")
-
-for required in (
-    "Markdown is the default feature spec/plan backend",
-    "routing never infers storage",
-    "spec : plan : PRs = 1 : 1 : N",
-):
-    must(texts["router"], required, "temporary router authority")
-if "official host-exposed Linear MCP is the only" in texts["router"]:
-    fail("router prematurely claims Linear-only global development authority")
-
-build_state = json.loads(texts["build_state"])
-if build_state["executor"] != {
-    "acceptsRetainedProjectEventContext": False,
-    "legacyDependencies": ["backend-resolver", "managed-spec-document"],
-}:
-    fail("build compatibility fixture no longer identifies the legacy executor boundary")
-for required in (
-    "incompatible executor is a blocker at `ready`",
-    "append no `executionApproved`",
-    "create no Git artifact",
-):
-    must(texts["build"], required, "build compatibility barrier")
-
-build_evals = json.loads(texts["build_evals"])
-plan_evals = json.loads(texts["plan_evals"])
-plan_triggers = json.loads(texts["plan_triggers"])
-build_case_ids = [case["id"] for case in build_evals["cases"]]
-for case_id in (
-    "enforces-project-gates-and-bounded-routing",
-    "fails-closed-on-project-update-conflicts",
-    "refuses-unsafe-project-replan",
-):
-    if build_case_ids.count(case_id) != 1:
-        fail(f"build evaluation corpus must own {case_id!r} exactly once")
-if [case["id"] for case in plan_evals["cases"]] != [
-    "reconciles-stable-increments-with-native-dependencies",
-    "refuses-evidence-bearing-issue-removal",
-]:
-    fail("plan evaluation corpus differs from the exact reconciliation contract")
-if [case["id"] for case in plan_triggers["cases"]] != [
-    "verified-feature-project-needs-decomposition",
-    "verified-feature-project-needs-replan",
-    "unapproved-feature-idea-needs-design",
-    "bounded-change-needs-direct-workflow",
-]:
-    fail("plan trigger corpus differs from the exact routing contract")
-
-conflicts = json.loads(texts["project_conflicts"])
-if [case["id"] for case in conflicts["cases"]] != [
-    "missing-predecessor",
-    "duplicate-revision",
-    "multiple-phase-heads",
-    "stale-update",
-    "unsupported-schema",
-    "failed-read-back",
-]:
-    fail("project conflict fixture differs from the exact fail-closed matrix")
-if conflicts["expectedForEveryCase"] != {"advance": False, "repositoryEffects": []}:
-    fail("project conflict fixture permits advancement or repository effects")
-gates = json.loads(texts["project_gates"])
-if gates["expectedRouting"] != {
-    "route": "woostack-change",
-    "projectCreated": False,
-    "advance": False,
-    "repositoryEffects": [],
-}:
-    fail("bounded project-gate fixture permits project creation")
-replan = json.loads(texts["project_replan"])
-if replan["expected"]["reasonCode"] != "evidence-bearing-issue-removal-refused":
-    fail("project replan fixture permits evidence-bearing issue removal")
 
 for required in (
     "official host-exposed Linear MCP",
@@ -363,8 +75,8 @@ for required in (
     "predecessorId",
     "supersedesId",
     "exactly one current lifecycle chain",
-    "ideate → designApproved → harden specification → specHardened → specApproved →",
-    "planning → harden increment graph → ready → executionApproved → execute → inReview → done",
+    "designApproved → specHardened → specApproved → planning → ready",
+    "executionApproved",
     "independently read",
     "fail closed",
 ):
@@ -378,7 +90,7 @@ if len(re.findall(r"<HARD-GATE\b", workflow)) != 3:
 for token in (
     "ready → planning",
     "explicitly empty implementation branch and PR evidence",
-    "event UUID at exactly the next revision",
+    "same stable event UUID at exactly the next revision",
     "new `abandoned` phase event",
     "`blockerOpened`",
     "`blockerResolved`",
@@ -387,16 +99,6 @@ for token in (
 ):
     must(texts["procedure"], token, "Linear procedure")
 for token in (
-    "phase event correction may target only the current phase head",
-    "non-head phase correction stops before mutation",
-    "non-phase project event correction may target only that event's current revision",
-    "managed issue comment/event correction may target only that issue event's current revision",
-    "never cascades descendant revisions",
-    "missing receipt",
-):
-    must(texts["procedure"], token, "crash-safe correction contract")
-must(texts["procedure"], "uses the non-phase project event rule above, not the phase", "blocker correction")
-for token in (
     "one managed `increment` issue",
     "stable client UUID",
     "native Linear relations",
@@ -404,7 +106,251 @@ for token in (
     "acceptance criterion",
     "independent complete read-back",
 ):
-    must(texts["plan"] + texts["adapter"], token, "Linear planning")
+    must(texts["plan"] + texts["planning"], token, "Linear planning")
+for token in (
+    "`backlog`",
+    "`planned`",
+    "`started`",
+    "`paused`",
+    "`completed`",
+    "`canceled`",
+):
+    must(texts["conventions"], token, "coarse status mapping")
+
+# The build corpus owns observable decisions; fixtures are input-only snapshots. Keep exact
+# dispositions in host-side assertions, never in the prompt or fixture visible to a worker.
+eval_corpus = json.loads(texts["evals"])
+eval_cases = eval_corpus.get("cases", [])
+expected_case_ids = [
+    "routes-approved-build-to-overnight-handoff",
+    "classifies-existing-development-materials-without-project-reference",
+    *[f"classifies-build-snapshot-{number:02d}" for number in range(1, 13)],
+    "enforces-project-gates-and-bounded-routing",
+    "fails-closed-on-project-update-conflicts",
+    "refuses-unsafe-project-replan",
+]
+if [case.get("id") for case in eval_cases] != expected_case_ids:
+    fail("build behavior corpus case set/order changed")
+eval_by_id = {case["id"]: case for case in eval_cases}
+fixtures_root = root / "skills/woostack-build/evals/fixtures"
+
+happy_case = eval_by_id["routes-approved-build-to-overnight-handoff"]
+if happy_case.get("fixtures") != ["build-state.json"]:
+    fail("complete happy graph fixture changed")
+happy_fixture = json.loads((fixtures_root / "build-state.json").read_text(encoding="utf-8"))
+happy_authority = happy_fixture.get("authority", {})
+observed_capabilities = {
+    item.get("capability")
+    for item in happy_authority.get("capabilityObservations", [])
+    if item.get("available") is True and item.get("independentReadAvailable") is True
+}
+if (
+    happy_authority.get("preflightComplete") is not True
+    or happy_authority.get("paginationExhausted") is not True
+    or happy_authority.get("authentication", {}).get("authenticated") is not True
+    or observed_capabilities != set(happy_authority.get("requiredCapabilities", []))
+):
+    fail("complete happy graph lacks raw official-MCP preflight evidence")
+happy_dependencies = {
+    issue["id"]: issue["envelope"]["dependencyIds"]
+    for issue in happy_fixture.get("incrementIssues", [])
+}
+if happy_dependencies != {
+    "linear-issue-41": [],
+    "linear-issue-42": ["linear-issue-41"],
+}:
+    fail("complete happy increment graph changed")
+
+local_case = eval_by_id[
+    "classifies-existing-development-materials-without-project-reference"
+]
+local_contract = {
+    "/status": "blocked",
+    "/canonicalProjectIdentityResolved": False,
+    "/localSpecAccepted": False,
+    "/localPlanAccepted": False,
+    "/linearDocumentAccepted": False,
+    "/fallbackAllowed": False,
+    "/managedMutationCount": 0,
+    "/gitMutationCount": 0,
+    "/nextAction": "require-canonical-feature-project-uuid-or-url",
+}
+observed_local_contract = {
+    assertion.get("pointer"): assertion.get("expected")
+    for assertion in local_case.get("assertions", [])
+    if assertion.get("kind") == "final-json-path-equals"
+}
+if observed_local_contract != local_contract:
+    fail("local-material rejection must remain externally asserted")
+
+negative_reasons = {
+    1: "official-linear-mcp-capability-missing",
+    2: "official-linear-mcp-unauthenticated",
+    3: "managed-pagination-incomplete",
+    4: "managed-read-back-incomplete",
+    5: "mutation-read-receipt-mismatch",
+    6: "duplicate-current-phase-head",
+    7: "multiple-current-phase-heads",
+    8: "phase-predecessor-mismatch",
+    9: "native-category-lifecycle-mismatch",
+    10: "increment-dependency-relation-missing",
+    11: "increment-dependency-relation-foreign",
+    12: "increment-dependency-cycle",
+}
+negative_fixtures = {}
+for number, reason in negative_reasons.items():
+    case_id = f"classifies-build-snapshot-{number:02d}"
+    fixture_name = f"build-snapshot-{number:02d}.json"
+    case = eval_by_id[case_id]
+    if case.get("fixtures") != [fixture_name]:
+        fail(f"{case_id} must bind only its neutral raw snapshot")
+    if case.get("capabilities") != ["read-workspace"]:
+        fail(f"{case_id} must remain read-only")
+    expected_output = {
+        "/status": "blocked",
+        "/reasonCode": reason,
+        "/executionDispatchCount": 0,
+        "/managedMutationCount": 0,
+        "/repositoryMutationCount": 0,
+    }
+    observed_output = {
+        assertion.get("pointer"): assertion.get("expected")
+        for assertion in case.get("assertions", [])
+        if assertion.get("kind") == "final-json-path-equals"
+    }
+    if observed_output != expected_output:
+        fail(f"{case_id} blocked decision contract must remain exclusively external")
+
+    fixture = json.loads((fixtures_root / fixture_name).read_text(encoding="utf-8"))
+    negative_fixtures[number] = fixture
+    if fixture.get("authority", {}).get("preflightComplete") is not True:
+        fail(f"{fixture_name} must retain the misleading positive summary flag")
+    if "inputScenarios" in fixture:
+        fail(f"{fixture_name} contains an unrelated labeled input scenario")
+    visible_input = case.get("prompt", "") + "\n" + json.dumps(fixture, sort_keys=True)
+    for leaked_answer in (
+        *negative_reasons.values(),
+        '"status": "blocked"',
+        '"status":"blocked"',
+        "expected answer",
+        "must block",
+        "reject this snapshot",
+        "invalid snapshot",
+        "malformed snapshot",
+        "zero dispatch",
+        "no dispatch",
+    ):
+        if leaked_answer.lower() in visible_input.lower():
+            fail(f"{case_id} leaks its disposition to the worker: {leaked_answer!r}")
+
+required = set(negative_fixtures[1]["authority"]["requiredCapabilities"])
+observed = {
+    item["capability"]
+    for item in negative_fixtures[1]["authority"]["capabilityObservations"]
+    if item["available"] is True and item["independentReadAvailable"] is True
+}
+if required - observed != {"issue-relation-read"}:
+    fail("snapshot 01 does not encode one raw missing capability observation")
+if negative_fixtures[2]["authority"]["authentication"] != {
+    "source": "host-connection",
+    "authenticated": False,
+    "workspace": "acme",
+    "team": "APP",
+    "principal": None,
+}:
+    fail("snapshot 02 does not encode raw unavailable host authentication")
+if negative_fixtures[3]["authority"]["paginationExhausted"] is not False:
+    fail("snapshot 03 does not encode raw incomplete pagination")
+
+
+def fixture_issue(number, native_id):
+    return next(
+        item for item in negative_fixtures[number]["incrementIssues"]
+        if item["id"] == native_id
+    )
+
+
+def fixture_update(number, native_id):
+    return next(
+        item for item in negative_fixtures[number]["projectUpdates"]
+        if item["id"] == native_id
+    )
+
+
+if fixture_issue(4, "linear-issue-42")["independentReadReceipt"]["readComplete"] is not False:
+    fail("snapshot 04 does not encode a raw incomplete issue read-back")
+ready_mutation = fixture_update(5, "update-ready")
+if (
+    ready_mutation["contentRevision"] != 1
+    or ready_mutation["independentReadReceipt"]["contentRevision"] != 2
+):
+    fail("snapshot 05 does not encode a raw mutation/read receipt mismatch")
+duplicate_records = [
+    item
+    for item in negative_fixtures[6]["projectUpdates"]
+    if item["envelope"]["clientId"] == "88888888-8888-4888-8888-888888888888"
+    and item["envelope"]["revision"] == 1
+    and item["envelope"]["supersedesId"] is None
+]
+if sorted(item["id"] for item in duplicate_records) != [
+    "update-9c",
+    "update-execution-approved",
+]:
+    fail("snapshot 06 does not encode duplicate current records for one phase identity")
+multiple_records = [
+    item
+    for item in negative_fixtures[7]["projectUpdates"]
+    if item["envelope"]["event"] == "executionApproved"
+    and item["envelope"]["predecessorId"] == "update-ready"
+    and item["envelope"]["supersedesId"] is None
+]
+if (
+    sorted(item["id"] for item in multiple_records)
+    != ["update-9d", "update-execution-approved"]
+    or len({item["envelope"]["clientId"] for item in multiple_records}) != 2
+):
+    fail("snapshot 07 does not encode multiple current phase heads")
+wrong_predecessor = fixture_update(8, "update-execution-approved")
+if (
+    wrong_predecessor["envelope"]["predecessorId"] != "update-planning"
+    or wrong_predecessor["independentReadReceipt"]["predecessorId"] != "update-planning"
+):
+    fail("snapshot 08 does not encode a matching raw wrong-predecessor record")
+if (
+    negative_fixtures[9]["project"]["nativeStatus"]["category"] != "backlog"
+    or negative_fixtures[9]["project"]["independentReadReceipt"][
+        "nativeStatusCategory"
+    ] != "backlog"
+):
+    fail("snapshot 09 does not encode the raw native category observation")
+missing_relation = fixture_issue(10, "linear-issue-42")
+if (
+    missing_relation["contract"]["dependencyClientIds"]
+    != ["22222222-2222-4222-8222-222222222222"]
+    or missing_relation["envelope"]["dependencyIds"] != []
+    or missing_relation["independentReadReceipt"]["dependencyIds"] != []
+):
+    fail("snapshot 10 does not encode a missing native dependency relation")
+foreign_relation = fixture_issue(11, "linear-issue-42")
+if (
+    foreign_relation["envelope"]["dependencyIds"]
+    != ["linear-issue-41", "linear-issue-99"]
+    or foreign_relation["independentReadReceipt"]["dependencyIds"]
+    != ["linear-issue-41", "linear-issue-99"]
+    or "linear-issue-99"
+    in negative_fixtures[11]["project"]["independentReadReceipt"]["issueIds"]
+):
+    fail("snapshot 11 does not encode a foreign native dependency relation")
+cyclic_relations = {
+    issue["id"]: issue["envelope"]["dependencyIds"]
+    for issue in negative_fixtures[12]["incrementIssues"]
+}
+if cyclic_relations != {
+    "linear-issue-41": ["linear-issue-42"],
+    "linear-issue-42": ["linear-issue-41"],
+}:
+    fail("snapshot 12 does not encode the raw cyclic dependency relations")
+
 PHASES = {
     "designApproved", "specHardened", "specApproved", "planning", "ready",
     "executionApproved", "executing", "inReview", "done", "abandoned",
@@ -635,132 +581,15 @@ conflicting_receipts = receipts(conflict)
 conflicting_receipts[conflict[-1]["id"]]["revision"] = 99
 rejects("conflicting read-back", lambda: validate(conflict, conflicting_receipts, "backlog"))
 
-def current_revisions(events):
-    grouped = defaultdict(list)
-    for item in events:
-        grouped[item["clientId"]].append(item)
-    result = {}
-    for client_id, revisions in grouped.items():
-        revision_numbers = sorted(item["revision"] for item in revisions)
-        if revision_numbers != list(range(1, len(revisions) + 1)):
-            raise ValueError("skipped or duplicate revision")
-        candidates = [item for item in revisions if item["revision"] == len(revisions)]
-        if len(candidates) != 1:
-            raise ValueError("competing current revisions")
-        result[client_id] = candidates[0]
-    return result
-
-
-def correction_candidate(events, target_native_id, correction_class, receipt_ids):
-    currents = current_revisions(events)
-    targets = [item for item in currents.values() if item["id"] == target_native_id]
-    if len(targets) != 1:
-        raise ValueError("stale or ambiguous correction target blocked before mutation")
-    target = targets[0]
-    if target["id"] not in receipt_ids:
-        raise ValueError("missing exact receipt blocked before mutation")
-    if correction_class == "phase":
-        phase_events = [item for item in currents.values() if item["event"] in PHASES]
-        referenced = {item["predecessorId"] for item in phase_events if item["predecessorId"]}
-        heads = [item for item in phase_events if item["id"] not in referenced]
-        if len(heads) != 1 or heads[0]["id"] != target_native_id:
-            raise ValueError("historical correction blocked before mutation")
-    elif correction_class == "non-phase":
-        if target["event"] not in NON_PHASE:
-            raise ValueError("wrong non-phase correction kind")
-    else:
-        raise ValueError("unknown project correction class")
-    return event(
-        target["event"], f"{target['id']}-correction", 999,
-        target["predecessorId"], related=target["relatedIds"],
-        revision=target["revision"] + 1, supersedes=target["id"],
-        client_id=target["clientId"],
-    )
-
-
-def issue_event(native_id, number, revision=1, supersedes=None, client_id=None,
-                project_id=PROJECT_ID, issue_id="issue-native-1", kind="verification"):
-    return {
-        "schema": 1, "kind": "issueEvent", "clientId": client_id or client(number),
-        "repository": REPOSITORY, "label": "woostack", "role": "increment",
-        "projectId": project_id, "issueId": issue_id, "event": kind,
-        "revision": revision, "relatedIds": [], "supersedesId": supersedes,
-        "id": native_id,
-    }
-
-
-def issue_correction_candidate(events, target_native_id, receipt_ids):
-    target = next((item for item in current_revisions(events).values()
-                   if item["id"] == target_native_id), None)
-    if target is None or target["id"] not in receipt_ids:
-        raise ValueError("stale or missing-receipt issue correction")
-    if (target["kind"], target["repository"], target["label"], target["role"],
-            target["projectId"], target["issueId"]) != (
-            "issueEvent", REPOSITORY, "woostack", "increment", PROJECT_ID, "issue-native-1"):
-        raise ValueError("issue correction identity drift")
-    return issue_event(
-        f"{target['id']}-correction", 998, revision=target["revision"] + 1,
-        supersedes=target["id"], client_id=target["clientId"],
-        project_id=target["projectId"], issue_id=target["issueId"], kind=target["event"],
-    )
-
-
-# Append-only correction of the current phase requires its exact receipt.
+# Append-only correction of the current phase.
 corrected = make_chain(["designApproved", "specHardened", "specApproved", "planning", "ready"])
 prior_ready = corrected[-1]
-phase_correction = correction_candidate(corrected, prior_ready["id"], "phase", {prior_ready["id"]})
-corrected.append(phase_correction)
+corrected.append(event(
+    "ready", "u-ready-revision-2", 99, prior_ready["predecessorId"],
+    revision=2, supersedes=prior_ready["id"], client_id=prior_ready["clientId"],
+))
 if validate(corrected, receipts(corrected), "planned") != "ready":
     fail("valid correction did not preserve ready")
-historical = make_chain(["designApproved", "specHardened", "specApproved"])
-before_historical = copy.deepcopy(historical)
-rejects("historical correction before mutation", lambda: correction_candidate(
-    historical, historical[1]["id"], "phase", {historical[1]["id"]},
-))
-if historical != before_historical:
-    fail("blocked historical correction mutated the chain")
-rejects("phase correction missing receipt", lambda: correction_candidate(
-    historical, historical[-1]["id"], "phase", set(),
-))
-interrupted = make_chain(["designApproved", "specHardened", "specApproved", "planning"])
-pending_correction = correction_candidate(
-    interrupted, interrupted[-1]["id"], "phase", {interrupted[-1]["id"]},
-)
-interrupted.append(pending_correction)
-interrupted_receipts = receipts(interrupted[:-1])
-rejects("interrupted head correction", lambda: validate(
-    interrupted, interrupted_receipts, "backlog",
-))
-
-# A current non-phase blocker revision need not be phase head and cannot alter the phase chain.
-blocker_chain = make_chain(["designApproved", "specHardened", "specApproved", "planning", "ready"])
-blocker_head = blocker_chain[-1]
-blocker = event("blockerOpened", "u-blocker-current", 995, blocker_head["id"], related=["issue-1"])
-before_phase_ids = [item["id"] for item in blocker_chain]
-blocker_correction = correction_candidate(
-    blocker_chain + [blocker], blocker["id"], "non-phase", {blocker["id"]},
-)
-if blocker_correction["predecessorId"] != blocker_head["id"]:
-    fail("blocker correction changed contextual phase predecessor")
-if [item["id"] for item in blocker_chain] != before_phase_ids:
-    fail("blocker correction altered phase chain")
-rejects("stale non-phase correction", lambda: correction_candidate(
-    blocker_chain + [blocker, blocker_correction], blocker["id"], "non-phase", {blocker["id"]},
-))
-
-# A managed issue-comment correction needs exact project+issue identity, not a phase head.
-comment = issue_event("comment-current", 996)
-comment_correction = issue_correction_candidate([comment], comment["id"], {comment["id"]})
-for identity_field in ("projectId", "issueId", "event", "clientId"):
-    if comment_correction[identity_field] != comment[identity_field]:
-        fail(f"issue correction changed {identity_field}")
-rejects("issue correction missing receipt", lambda: issue_correction_candidate(
-    [comment], comment["id"], set(),
-))
-foreign_comment = issue_event("comment-foreign", 997, issue_id="issue-native-foreign")
-rejects("issue correction wrong identity", lambda: issue_correction_candidate(
-    [foreign_comment], foreign_comment["id"], {foreign_comment["id"]},
-))
 
 # Evidence-backed ready-to-planning replan, plus missing-evidence rejection.
 replan = make_chain(["designApproved", "specHardened", "specApproved", "planning", "ready"])

@@ -12,14 +12,15 @@ store; this file governs the wholesale-loaded `.woostack/wisdom/` store.
 woostack keeps knowledge in two tiers:
 
 - **`.woostack/memory/`** — scoped per-fact notes, loaded by scope-matched recall (see
-  [`memory.md`](memory.md)). Raw, per-feature scratch distilled by `woostack-execute`.
+  [`memory.md`](memory.md)) and distilled by `woostack-execute`.
 - **`.woostack/wisdom/`** — a deliberately small set of **generalized, cross-cutting findings**,
   loaded **wholesale** (always, regardless of file scope) to guide future development and reviews.
 
-`woostack-dream` is the only writer of `wisdom/`. It mines the tracked decision corpus
-(`.woostack/{fixes,specs,plans,respond}/`) plus scratch (`memory/`, `overnight/`) for recurring,
-corroborated trends. Raw `respond/evidence/` is excluded. A single incident report cannot establish
-generalized wisdom. Fully absorbed scratch may be pruned; tracked decision artifacts never are.
+`woostack-dream` is the only writer of `wisdom/`. It consolidates corroborated trends from local
+memory; sanitized diagnostic reports and independently verified remote or immutable Git context
+may corroborate those trends. Raw `respond/evidence/` is excluded. A single diagnostic report or
+remote artifact cannot establish generalized wisdom. Only fully absorbed memory notes may be
+pruned; diagnostic reports and development records never are.
 
 ---
 
@@ -31,11 +32,10 @@ generalized wisdom. Fully absorbed scratch may be pruned; tracked decision artif
 ├── wisdom/    generalized findings — THIS contract
 │   ├── <slug>.md
 │   └── .gitkeep
-├── specs/ plans/ fixes/ respond/   tracked decision corpus (mined, never pruned)
-└── overnight/                     run reports (gitignored scratch, mined + prunable)
+└── respond/                       sanitized diagnostic reports (evidence, never pruned)
 ```
 
-`wisdom/` is **tracked shared knowledge** — it is NOT gitignored (contrast `overnight/`, which is).
+`wisdom/` is **tracked shared knowledge** — it is NOT gitignored.
 `/woostack-init` scaffolds the directory with a `.gitkeep`.
 
 ---
@@ -54,8 +54,8 @@ category: review | planning | testing | process
 source: <comma-list of contributing inputs — see §5>
 updated: YYYY-MM-DD
 ---
-Generalized finding stated as durable guidance, plus how to apply it. [[wikilinks]] to related
-memory notes, specs, or plans are encouraged (Obsidian-native, grep-resolvable).
+Generalized finding stated as durable guidance, plus how to apply it. [[Wikilinks]] to related
+memory notes are encouraged (Obsidian-native, grep-resolvable).
 ```
 
 | Field | Required | Description |
@@ -85,30 +85,22 @@ recall docs stay self-consistent. Wisdom reaches consumers only via the wholesal
 
 ## 5. The `source:` ledger and prune semantics
 
-`source:` is a comma-list of **all** inputs that contributed to the finding. Each token is one of:
-- a memory note `name` (resolves to `.woostack/memory/<name>.md`);
-- a repo-relative path under `.woostack/overnight/`, `.woostack/specs/`, `.woostack/plans/`,
-  `.woostack/fixes/`, or `.woostack/respond/<file>.md` (never `respond/evidence/`).
+`source:` is a comma-list of validated stable provenance carried forward from the contributing
+claims. Every token follows the canonical [memory provenance contract](memory.md#fields);
+note names, report filenames, mutable paths, and copied development text never become provenance.
+The ledger is permanent: it records why the generalized finding exists.
 
-The ledger is **permanent provenance**: it still names a contributor after that contributor has been
-pruned (a tombstone). It records *why* the finding exists.
+**Only fully absorbed `.woostack/memory/` notes are prunable.**
+Pruning is gated:
 
-**Prune** is the deletion of fully-absorbed scratch. It is computed and gated by `woostack-dream`:
+1. `woostack-dream` names each candidate separately from the wisdom `source:` ledger.
+2. A candidate is prunable only when the proposed wisdom finding fully preserves its reusable value.
+3. Scope-specific precision, uncertainty, or any independent value keeps the candidate.
+4. The review gate shows the complete candidate and its absorbing wisdom entry before deletion.
+5. Explicit approval is required; silence is not approval.
 
-1. An input is **eligible** for prune only if it appears in some wisdom file's `source:`.
-2. Of the eligible inputs, the **prune list** is the subset whose value is *fully* captured by the
-   wisdom finding — judged per-input by the agent at synthesis time.
-3. Inputs that retain independent value (e.g. a **scope-specific** memory note whose precision would
-   be lost if generalized) are **partial** → kept (or rescoped), never in the prune list.
-4. **Any doubt → keep.**
-5. **Only scratch is prunable:** `.woostack/memory/` notes and `.woostack/overnight/` reports.
-   `specs`/`plans`/`fixes`/`respond` tokens are provenance-only and **never** deleted.
-
-Safety: `overnight/` is gitignored → a deleted report is **unrecoverable**. `woostack-dream`'s
-review gate therefore shows the **full body** of every overnight report on the prune list before
-any deletion, and requires explicit approval (silence is not approval). Memory notes are
-git-tracked (recoverable) but are still shown with their absorbing wisdom file. Pruning a memory
-note triggers `build-index.sh` regeneration; deleting an overnight report touches no index.
+Deleting a memory note triggers `build-index.sh` regeneration. Diagnostic reports remain
+non-authoritative evidence and are never deleted through wisdom pruning.
 
 ---
 
@@ -139,17 +131,16 @@ An empty or absent `wisdom/` makes every load a no-op (no consumer error).
 ## 7. Lifecycle
 
 ```
-woostack-execute distills ──► memory/ note (scoped scratch)
-woostack-execute-overnight ──► overnight/ report (gitignored scratch)
-woostack-dream consolidates corroborated trends across memory + overnight + fixes/specs/plans/respond
-        └──► wisdom/<slug>.md   (durable, generalized)   + gated prune of fully-absorbed scratch
+woostack-execute distills ──► memory/ note (scoped knowledge)
+woostack-dream consolidates corroborated trends across memory + verified evidence
+        └──► wisdom/<slug>.md   (durable, generalized)   + gated prune of fully absorbed memory notes
 review / build / plan / debug ──► wholesale-load wisdom/ as guidance
 ```
 
 `woostack-dream` no longer **creates** memory notes (its old `surface` op is now `consolidate`,
 retargeted to `wisdom/`); memory notes are created only by `woostack-execute` distillation.
-Tracked response reports remain decision evidence and never enter `MEMORY.md`; raw
-`respond/evidence/` is never read. One report alone cannot create wisdom.
+Sanitized response reports remain non-authoritative diagnostic evidence and never enter
+`MEMORY.md`; raw `respond/evidence/` is never read. One report alone cannot create wisdom.
 
 ---
 
@@ -157,7 +148,5 @@ Tracked response reports remain decision evidence and never enter `MEMORY.md`; r
 
 - No `.woostack/wisdom/` directory → consumers load nothing (no-op); `woostack-dream` creates it on
   first approved `consolidate` (or `/woostack-init` scaffolds it).
-- No `.woostack/overnight/` directory → the overnight scan is a no-op; the rest of the dream pass
-  proceeds.
 - Missing scripts (individual manual install) → announce the manual fallback, never fail silently
   (mirrors `memory.md` §10).

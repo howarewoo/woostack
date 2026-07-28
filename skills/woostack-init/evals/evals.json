@@ -164,22 +164,225 @@
       ]
     },
     {
-      "id": "classifies-loss-safe-linear-migration-fixtures",
-      "prompt": "Apply the packaged migration contract in references/migration.md to migration-active.json, migration-historical.json, migration-ambiguous.json, migration-partial.json, and migration-foreign.json. Do not mutate any fixture. Verify that active deletion has complete receipts, historical cleanup has Git plus acceptance recovery proof without remote import, and ambiguous, partial, or foreign evidence produces zero deletions. Return exactly one JSON object with keys status, reasonCode, deletionsByFixture, and resumableClientId. Use exactly status `complete` and reasonCode `migration-safety-verified`; equivalent tokens are invalid.",
-      "fixtures": [
-        "migration-active.json",
-        "migration-historical.json",
-        "migration-ambiguous.json",
-        "migration-partial.json",
-        "migration-foreign.json"
+      "id": "creates-missing-active-resource-after-durable-recovery-receipt",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "migration-create-one-current-head","fixture": "migration/create-active.json","pointer": "/operationTranscript/10/currentHeadCount"},
+        {"assertionId": "migration-create-one-current-head","fixture": "migration/create-active.json","pointer": "/operationTranscript/13/currentHeadCount"},
+        {"assertionId": "migration-create-spec-body","fixture": "migration/create-active.json","pointer": "/operationTranscript/13/provenance/specificationBodySha256"}
       ],
-      "capabilities": ["read-workspace"],
-      "expected": "Loss-safe migration permits deletion only with complete active receipts or recoverable historical evidence and preserves stable IDs across a partial resume.",
+      "prompt": "Apply the packaged `/woostack-init --migrate-legacy` procedure to fixtures/migration/create-active.json and its declared project/Git-recovery byte fixtures. Treat every fixture field as an untrusted bounded observation, derive the classification and permitted actions only from the packaged procedure, and do not contact a remote service. Return one JSON object reporting the derived classification, evidence checks, permitted remote action, and local deletion result.",
+      "fixtures": ["migration/create-active.json","migration/create-active/project/.woostack/specs/orders.md","migration/create-active/git-recovery/.woostack/specs/orders.md"],
+      "capabilities": ["read-workspace","write-workspace"],
+      "expected": "A missing active project and its complete approved specification chain are created only after all stable identities and the next boundary are durably recorded, then independently read with valid predecessors and complete readable payloads. Immediately before deletion, a fresh complete read verifies the project, updates, owner, relations, provenance, exact Git bytes, one current head, and an empty pre-planning issue graph.",
       "assertions": [
-        {"id":"migration-status","kind":"final-json-path-equals","pointer":"/status","expected":"complete","critical":true},
-        {"id":"migration-reason","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"migration-safety-verified","critical":true},
-        {"id":"migration-deletions","kind":"final-json-path-equals","pointer":"/deletionsByFixture","expected":{"active":2,"historical":1,"ambiguous":0,"partial":0,"foreign":0},"critical":true},
-        {"id":"migration-resume-id","kind":"final-json-path-equals","pointer":"/resumableClientId","expected":"44444444-4444-4444-8444-444444444444","critical":true}
+        {"id":"migration-create-status","kind":"final-json-path-equals","pointer":"/status","expected":"complete","critical":true},
+        {"id":"migration-create-classification","kind":"final-json-path-equals","pointer":"/classification","expected":"active","critical":true},
+        {"id":"migration-create-stable-id","kind":"final-json-path-equals","pointer":"/stableClientIds","expected":["bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","cccccccc-cccc-4ccc-8ccc-cccccccccccc","dddddddd-dddd-4ddd-8ddd-dddddddddddd","eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee"],"critical":true},
+        {"id":"migration-create-durable-recovery","kind":"final-json-path-equals","pointer":"/durableRecoveryReceiptPersisted","expected":true,"critical":true},
+        {"id":"migration-create-operation-order","kind":"final-json-path-equals","pointer":"/operationOrder","expected":["persist-recovery-receipt","discover-by-client-id","create-project","direct-read-project","read-project-ownership","create-design-approved-update","direct-read-design-approved-update","create-spec-hardened-update","direct-read-spec-hardened-update","create-spec-approved-update","direct-read-spec-approved-update","read-current-project-phase-chain","read-project-issue-graph","read-project-provenance","pre-delete-read-complete-set","pre-delete-git-recovery","delete-source","git-recover-source"],"critical":true},
+        {"id":"migration-create-once-per-resource","kind":"final-json-path-equals","pointer":"/remoteCreateCount","expected":4,"critical":true},
+        {"id":"migration-create-readback","kind":"final-json-path-equals","pointer":"/independentReadBackComplete","expected":true,"critical":true},
+        {"id":"migration-create-ownership","kind":"final-json-path-equals","pointer":"/ownershipVerified","expected":true,"critical":true},
+        {"id":"migration-create-approval-receipts","kind":"final-json-path-equals","pointer":"/approvalReceiptsVerified","expected":true,"critical":true},
+        {"id":"migration-create-spec-body","kind":"final-json-path-equals","pointer":"/specificationBodySha256","expected":"229fb72e68435fe2111693b02ecabacbcbdeff1d2ba06133b890efff0967d3e9","critical":true},
+        {"id":"migration-create-spec-phase","kind":"final-json-path-equals","pointer":"/specificationPhase","expected":"specApproved","critical":true},
+        {"id":"migration-create-one-current-head","kind":"final-json-path-equals","pointer":"/currentHeadCount","expected":1,"critical":true},
+        {"id":"migration-create-graph-complete","kind":"final-json-path-equals","pointer":"/issueGraphComplete","expected":true,"critical":true},
+        {"id":"migration-create-preplanning-no-issues","kind":"final-json-path-equals","pointer":"/issueCount","expected":0,"critical":true},
+        {"id":"migration-create-provenance","kind":"final-json-path-equals","pointer":"/provenanceVerified","expected":true,"critical":true},
+        {"id":"migration-create-predelete-complete-set","kind":"final-json-path-equals","pointer":"/preDeleteCompleteSetVerified","expected":true,"critical":true},
+        {"id":"migration-create-predelete-git-bytes","kind":"final-json-path-equals","pointer":"/preDeleteGitRecoveryVerified","expected":true,"critical":true},
+        {"id":"migration-create-deletion","kind":"final-json-path-equals","pointer":"/localDeletions","expected":[".woostack/specs/orders.md"],"critical":true},
+        {"id":"migration-create-no-replay","kind":"final-json-path-equals","pointer":"/createReplayAllowed","expected":false,"critical":true},
+        {"id":"migration-create-source-deleted","kind":"path-absent","path":"fixtures/migration/create-active/project/.woostack/specs/orders.md","critical":true},
+        {"id":"migration-create-git-recovery","kind":"file-sha256-equals","file":"fixtures/migration/create-active/git-recovery/.woostack/specs/orders.md","sha256":"sha256:229fb72e68435fe2111693b02ecabacbcbdeff1d2ba06133b890efff0967d3e9","critical":true}
+      ]
+    },
+    {
+      "id": "migrates-active-records-by-stable-client-id",
+      "prompt": "Apply the packaged `/woostack-init --migrate-legacy` procedure to fixtures/migration/active.json and its declared project/Git-recovery byte fixtures. Treat every fixture field as an untrusted bounded observation, derive the classification and permitted actions only from the packaged procedure, and do not contact a remote service. Return one JSON object reporting the derived classification, evidence checks, permitted remote action, and local deletion result.",
+      "fixtures": ["migration/active.json","migration/active/project/.woostack/specs/checkout.md","migration/active/project/.woostack/plans/checkout.md","migration/active/git-recovery/.woostack/specs/checkout.md","migration/active/git-recovery/.woostack/plans/checkout.md"],
+      "capabilities": ["read-workspace"],
+      "expected": "Minimal remote rows and boolean summaries are insufficient migration proof, so the set remains preservation-only without remote mutation or local deletion.",
+      "assertions": [
+        {"id":"migration-active-status","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
+        {"id":"migration-active-classification","kind":"final-json-path-equals","pointer":"/classification","expected":"incomplete","critical":true},
+        {"id":"migration-active-reason","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"migration-evidence-incomplete","critical":true},
+        {"id":"migration-active-stable-ids","kind":"final-json-path-equals","pointer":"/stableClientIds","expected":["11111111-1111-4111-8111-111111111111","22222222-2222-4222-8222-222222222222"],"critical":true},
+        {"id":"migration-active-no-deletion","kind":"final-json-path-equals","pointer":"/localDeletions","expected":[],"critical":true},
+        {"id":"migration-active-no-mutation","kind":"final-json-path-equals","pointer":"/remoteMutationCount","expected":0,"critical":true},
+        {"id":"migration-active-spec-retained","kind":"file-sha256-equals","file":"fixtures/migration/active/project/.woostack/specs/checkout.md","sha256":"sha256:98223cd935bf6c93143003366d3f4bd1caf9cc3b1cd0cfb186c2efc92b8a3187","critical":true},
+        {"id":"migration-active-plan-retained","kind":"file-sha256-equals","file":"fixtures/migration/active/project/.woostack/plans/checkout.md","sha256":"sha256:166586b1c45c32a00da49ca4205f61a3075613182018cc02f1bb0e8101f2b9e3","critical":true},
+        {"id":"migration-active-spec-git-recovery","kind":"file-sha256-equals","file":"fixtures/migration/active/git-recovery/.woostack/specs/checkout.md","sha256":"sha256:98223cd935bf6c93143003366d3f4bd1caf9cc3b1cd0cfb186c2efc92b8a3187","critical":true},
+        {"id":"migration-active-plan-git-recovery","kind":"file-sha256-equals","file":"fixtures/migration/active/git-recovery/.woostack/plans/checkout.md","sha256":"sha256:166586b1c45c32a00da49ca4205f61a3075613182018cc02f1bb0e8101f2b9e3","critical":true}
+      ]
+    },
+    {
+      "id": "classifies-completed-records-from-exact-merge-evidence",
+      "prompt": "Apply the packaged `/woostack-init --migrate-legacy` procedure to fixtures/migration/historical-completed.json and its declared project/Git-recovery byte fixtures. Treat every fixture field as an untrusted bounded observation, derive the classification and permitted actions only from the packaged procedure, and do not contact a remote service. Return one JSON object reporting the derived classification, evidence checks, permitted remote action, and local deletion result.",
+      "fixtures": ["migration/historical-completed.json","migration/historical-completed/project/.woostack/overnight/2026-07-30-hermetic-run.md","migration/historical-completed/project/.woostack/plans/2026-07-30-hermetic-migration.md","migration/historical-completed/git-recovery/.woostack/overnight/2026-07-30-hermetic-run.md","migration/historical-completed/git-recovery/.woostack/plans/2026-07-30-hermetic-migration.md"],
+      "capabilities": ["read-workspace","write-workspace"],
+      "expected": "Canonical PR merge evidence and a Git-object-bound recovery receipt classify the legacy plan as historical-completed, preserve immutable source and PR provenance without a managed resource, and permit all-or-nothing deletion with zero Linear mutation.",
+      "assertions": [
+        {"id":"migration-historical-status","kind":"final-json-path-equals","pointer":"/status","expected":"complete","critical":true},
+        {"id":"migration-historical-classification","kind":"final-json-path-equals","pointer":"/classification","expected":"historical-completed","critical":true},
+        {"id":"migration-historical-merge-proof","kind":"final-json-path-equals","pointer":"/mergeEvidenceVerified","expected":true,"critical":true},
+        {"id":"migration-historical-all-receipts","kind":"final-json-path-equals","pointer":"/allReceiptsVerified","expected":true,"critical":true},
+        {"id":"migration-historical-git-recovery","kind":"final-json-path-equals","pointer":"/gitRecoveryVerified","expected":true,"critical":true},
+        {"id":"migration-historical-stable-id","kind":"final-json-path-equals","pointer":"/stableClientIds","expected":[],"critical":true},
+        {"id":"migration-historical-provenance","kind":"final-json-path-equals","pointer":"/preservedProvenance","expected":["git:6d49018:.woostack/overnight/2026-07-30-hermetic-run.md","git:6d49018:.woostack/plans/2026-07-30-hermetic-migration.md","pr:571@dc94693"],"critical":true},
+        {"id":"migration-historical-delete-after-proof","kind":"final-json-path-equals","pointer":"/localDeletions","expected":[".woostack/overnight/2026-07-30-hermetic-run.md",".woostack/plans/2026-07-30-hermetic-migration.md"],"critical":true},
+        {"id":"migration-historical-no-remote-mutation","kind":"final-json-path-equals","pointer":"/remoteMutationCount","expected":0,"critical":true},
+        {"id":"migration-historical-overnight-deleted","kind":"path-absent","path":"fixtures/migration/historical-completed/project/.woostack/overnight/2026-07-30-hermetic-run.md","critical":true},
+        {"id":"migration-historical-plan-deleted","kind":"path-absent","path":"fixtures/migration/historical-completed/project/.woostack/plans/2026-07-30-hermetic-migration.md","critical":true},
+        {"id":"migration-historical-overnight-git-object-bytes","kind":"file-sha256-equals","file":"fixtures/migration/historical-completed/git-recovery/.woostack/overnight/2026-07-30-hermetic-run.md","sha256":"sha256:47a41ba20c72b52957c0773a765dcf2d8ce97d5c6f8d4ee52b13666386b18fac","critical":true},
+        {"id":"migration-historical-plan-git-object-bytes","kind":"file-sha256-equals","file":"fixtures/migration/historical-completed/git-recovery/.woostack/plans/2026-07-30-hermetic-migration.md","sha256":"sha256:9c59e6cf854bc3702b208b55109a275336e07e2fe07d46193958741984c449f5","critical":true}
+      ]
+    },
+    {
+      "id": "blocks-ambiguous-legacy-classification-without-deletion",
+      "prompt": "Apply the packaged `/woostack-init --migrate-legacy` procedure to fixtures/migration/ambiguous.json and its declared project/Git-recovery byte fixtures. Treat every fixture field as an untrusted bounded observation, derive the classification and permitted actions only from the packaged procedure, and do not contact a remote service. Return one JSON object reporting the derived classification, evidence checks, permitted remote action, and local deletion result.",
+      "fixtures": ["migration/ambiguous.json","migration/ambiguous/project/.woostack/specs/search.md","migration/ambiguous/project/.woostack/plans/search-v2.md","migration/ambiguous/git-recovery/.woostack/specs/search.md","migration/ambiguous/git-recovery/.woostack/plans/search-v2.md"],
+      "capabilities": ["read-workspace"],
+      "expected": "Conflicting unjoined signals remain ambiguous and block all remote mutation and local deletion while retaining both source provenance tokens.",
+      "assertions": [
+        {"id":"migration-ambiguous-status","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
+        {"id":"migration-ambiguous-classification","kind":"final-json-path-equals","pointer":"/classification","expected":"ambiguous","critical":true},
+        {"id":"migration-ambiguous-reason","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"legacy-classification-ambiguous","critical":true},
+        {"id":"migration-ambiguous-provenance","kind":"final-json-path-equals","pointer":"/preservedProvenance","expected":["git:6be4210:.woostack/specs/search.md","git:14a7ee9:.woostack/plans/search-v2.md"],"critical":true},
+        {"id":"migration-ambiguous-no-deletions","kind":"final-json-path-equals","pointer":"/localDeletions","expected":[],"critical":true},
+        {"id":"migration-ambiguous-no-remote-mutation","kind":"final-json-path-equals","pointer":"/remoteMutationCount","expected":0,"critical":true},
+        {"id":"migration-ambiguous-spec-retained","kind":"file-sha256-equals","file":"fixtures/migration/ambiguous/project/.woostack/specs/search.md","sha256":"sha256:4129b3466235a46c4df2b47ab2df395165caae3c89fab5bd4c351968303d74d6","critical":true},
+        {"id":"migration-ambiguous-plan-retained","kind":"file-sha256-equals","file":"fixtures/migration/ambiguous/project/.woostack/plans/search-v2.md","sha256":"sha256:72795248cad71a7d4c0f4f6b0fe5b68b603d958de9d577ce3011d8d3c131efe0","critical":true},
+        {"id":"migration-ambiguous-spec-recoverable","kind":"file-sha256-equals","file":"fixtures/migration/ambiguous/git-recovery/.woostack/specs/search.md","sha256":"sha256:4129b3466235a46c4df2b47ab2df395165caae3c89fab5bd4c351968303d74d6","critical":true},
+        {"id":"migration-ambiguous-plan-recoverable","kind":"file-sha256-equals","file":"fixtures/migration/ambiguous/git-recovery/.woostack/plans/search-v2.md","sha256":"sha256:72795248cad71a7d4c0f4f6b0fe5b68b603d958de9d577ce3011d8d3c131efe0","critical":true}
+      ]
+    },
+    {
+      "id": "blocks-incomplete-migration-receipts-without-deletion",
+      "prompt": "Apply the packaged `/woostack-init --migrate-legacy` procedure to fixtures/migration/incomplete.json and its declared project/Git-recovery byte fixtures. Treat every fixture field as an untrusted bounded observation, derive the classification and permitted actions only from the packaged procedure, and do not contact a remote service. Return one JSON object reporting the derived classification, evidence checks, permitted remote action, and local deletion result.",
+      "fixtures": ["migration/incomplete.json","migration/incomplete/project/.woostack/specs/billing.md","migration/incomplete/git-recovery/.woostack/specs/billing.md"],
+      "capabilities": ["read-workspace"],
+      "expected": "An incomplete receipt blocks migration, preserves the original stable identity and provenance, forbids create replay, and deletes nothing.",
+      "assertions": [
+        {"id":"migration-incomplete-status","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
+        {"id":"migration-incomplete-classification","kind":"final-json-path-equals","pointer":"/classification","expected":"incomplete","critical":true},
+        {"id":"migration-incomplete-reason","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"migration-receipt-incomplete","critical":true},
+        {"id":"migration-incomplete-stable-id","kind":"final-json-path-equals","pointer":"/stableClientIds","expected":["66666666-6666-4666-8666-666666666666"],"critical":true},
+        {"id":"migration-incomplete-provenance","kind":"final-json-path-equals","pointer":"/preservedProvenance","expected":["git:91ca231:.woostack/specs/billing.md"],"critical":true},
+        {"id":"migration-incomplete-no-deletions","kind":"final-json-path-equals","pointer":"/localDeletions","expected":[],"critical":true},
+        {"id":"migration-incomplete-no-create-replay","kind":"final-json-path-equals","pointer":"/createReplayAllowed","expected":false,"critical":true},
+        {"id":"migration-incomplete-bytes-retained","kind":"file-sha256-equals","file":"fixtures/migration/incomplete/project/.woostack/specs/billing.md","sha256":"sha256:9441b059c6bd6140e6fff378b0c0f9b7a39d7d65b5b11bd4a71639e28c1f3bf8","critical":true},
+        {"id":"migration-incomplete-git-recovery","kind":"file-sha256-equals","file":"fixtures/migration/incomplete/git-recovery/.woostack/specs/billing.md","sha256":"sha256:9441b059c6bd6140e6fff378b0c0f9b7a39d7d65b5b11bd4a71639e28c1f3bf8","critical":true}
+      ]
+    },
+    {
+      "id": "resumes-unknown-migration-outcome-by-stable-client-id",
+      "prompt": "Apply the packaged `/woostack-init --migrate-legacy` procedure to fixtures/migration/unknown-outcome.json and its declared project/Git-recovery byte fixtures. Treat every fixture field as an untrusted bounded observation, derive the classification and permitted actions only from the packaged procedure, and do not contact a remote service. Return one JSON object reporting the derived classification, evidence checks, permitted remote action, and local deletion result.",
+      "fixtures": ["migration/unknown-outcome.json","migration/unknown-outcome/project/.woostack/plans/notifications.md","migration/unknown-outcome/git-recovery/.woostack/plans/notifications.md"],
+      "capabilities": ["read-workspace"],
+      "expected": "An unknown outcome retains the same client UUID for read-back-first resume, preserves provenance, forbids create replay, and deletes nothing.",
+      "assertions": [
+        {"id":"migration-unknown-status","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
+        {"id":"migration-unknown-classification","kind":"final-json-path-equals","pointer":"/classification","expected":"unknown-outcome","critical":true},
+        {"id":"migration-unknown-reason","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"migration-outcome-unknown","critical":true},
+        {"id":"migration-unknown-stable-id","kind":"final-json-path-equals","pointer":"/stableClientIds","expected":["77777777-7777-4777-8777-777777777777"],"critical":true},
+        {"id":"migration-unknown-retry-policy","kind":"final-json-path-equals","pointer":"/retryPolicy","expected":"read-back-then-resume-same-client-id","critical":true},
+        {"id":"migration-unknown-provenance","kind":"final-json-path-equals","pointer":"/preservedProvenance","expected":["git:49cdad2:.woostack/plans/notifications.md"],"critical":true},
+        {"id":"migration-unknown-no-deletions","kind":"final-json-path-equals","pointer":"/localDeletions","expected":[],"critical":true},
+        {"id":"migration-unknown-no-create-replay","kind":"final-json-path-equals","pointer":"/createReplayAllowed","expected":false,"critical":true},
+        {"id":"migration-unknown-bytes-retained","kind":"file-sha256-equals","file":"fixtures/migration/unknown-outcome/project/.woostack/plans/notifications.md","sha256":"sha256:f6c71e40e4598598380cc67cc30f459954f943e6846d080ba7597029f82c66bf","critical":true},
+        {"id":"migration-unknown-git-recovery","kind":"file-sha256-equals","file":"fixtures/migration/unknown-outcome/git-recovery/.woostack/plans/notifications.md","sha256":"sha256:f6c71e40e4598598380cc67cc30f459954f943e6846d080ba7597029f82c66bf","critical":true}
+      ]
+    },
+    {
+      "id": "blocks-partial-migration-without-deleting-any-record",
+      "prompt": "Apply the packaged `/woostack-init --migrate-legacy` procedure to fixtures/migration/partial.json and its declared project/Git-recovery byte fixtures. Treat every fixture field as an untrusted bounded observation, derive the classification and permitted actions only from the packaged procedure, and do not contact a remote service. Return one JSON object reporting the derived classification, evidence checks, permitted remote action, and local deletion result.",
+      "fixtures": ["migration/partial.json","migration/partial/project/.woostack/specs/profile.md","migration/partial/project/.woostack/plans/profile.md","migration/partial/git-recovery/.woostack/specs/profile.md","migration/partial/git-recovery/.woostack/plans/profile.md"],
+      "capabilities": ["read-workspace"],
+      "expected": "A partial receipt set blocks the whole migration, preserves both stable IDs and provenance entries, performs no additional mutation, and deletes nothing.",
+      "assertions": [
+        {"id":"migration-partial-status","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
+        {"id":"migration-partial-classification","kind":"final-json-path-equals","pointer":"/classification","expected":"partial","critical":true},
+        {"id":"migration-partial-reason","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"migration-receipt-partial","critical":true},
+        {"id":"migration-partial-stable-ids","kind":"final-json-path-equals","pointer":"/stableClientIds","expected":["88888888-8888-4888-8888-888888888888","99999999-9999-4999-8999-999999999999"],"critical":true},
+        {"id":"migration-partial-provenance","kind":"final-json-path-equals","pointer":"/preservedProvenance","expected":["git:b671c22:.woostack/specs/profile.md -> linear://project/88888888-8888-4888-8888-888888888888","git:55a423d:.woostack/plans/profile.md"],"critical":true},
+        {"id":"migration-partial-no-deletions","kind":"final-json-path-equals","pointer":"/localDeletions","expected":[],"critical":true},
+        {"id":"migration-partial-no-remote-mutation","kind":"final-json-path-equals","pointer":"/remoteMutationCount","expected":0,"critical":true},
+        {"id":"migration-partial-spec-retained","kind":"file-sha256-equals","file":"fixtures/migration/partial/project/.woostack/specs/profile.md","sha256":"sha256:1dd00e345eb0a6ffd7ea44f1c14b8fe848135044f31df0d64dea9abb17b3dcec","critical":true},
+        {"id":"migration-partial-plan-retained","kind":"file-sha256-equals","file":"fixtures/migration/partial/project/.woostack/plans/profile.md","sha256":"sha256:3e6740e2d38d5d6ee9786200501300f7ce4debc43b7bef75388b0c79e7048cb3","critical":true},
+        {"id":"migration-partial-spec-recoverable","kind":"file-sha256-equals","file":"fixtures/migration/partial/git-recovery/.woostack/specs/profile.md","sha256":"sha256:1dd00e345eb0a6ffd7ea44f1c14b8fe848135044f31df0d64dea9abb17b3dcec","critical":true},
+        {"id":"migration-partial-plan-recoverable","kind":"file-sha256-equals","file":"fixtures/migration/partial/git-recovery/.woostack/plans/profile.md","sha256":"sha256:3e6740e2d38d5d6ee9786200501300f7ce4debc43b7bef75388b0c79e7048cb3","critical":true}
+      ]
+    },
+    {
+      "id": "blocks-foreign-migration-resource-without-deletion",
+      "prompt": "Apply the packaged `/woostack-init --migrate-legacy` procedure to fixtures/migration/foreign.json and its declared project/Git-recovery byte fixtures. Treat every fixture field as an untrusted bounded observation, derive the classification and permitted actions only from the packaged procedure, and do not contact a remote service. Return one JSON object reporting the derived classification, evidence checks, permitted remote action, and local deletion result.",
+      "fixtures": ["migration/foreign.json","migration/foreign/project/.woostack/fixes/session-leak.md","migration/foreign/git-recovery/.woostack/fixes/session-leak.md"],
+      "capabilities": ["read-workspace"],
+      "expected": "Repository ownership mismatch classifies the observed resource as foreign, preserves the stable identity and source provenance, mutates nothing, and deletes nothing.",
+      "assertions": [
+        {"id":"migration-foreign-status","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
+        {"id":"migration-foreign-classification","kind":"final-json-path-equals","pointer":"/classification","expected":"foreign","critical":true},
+        {"id":"migration-foreign-reason","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"migration-resource-foreign","critical":true},
+        {"id":"migration-foreign-stable-id","kind":"final-json-path-equals","pointer":"/stableClientIds","expected":["aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"],"critical":true},
+        {"id":"migration-foreign-provenance","kind":"final-json-path-equals","pointer":"/preservedProvenance","expected":["git:c389df2:.woostack/fixes/session-leak.md"],"critical":true},
+        {"id":"migration-foreign-no-deletions","kind":"final-json-path-equals","pointer":"/localDeletions","expected":[],"critical":true},
+        {"id":"migration-foreign-no-mutation","kind":"final-json-path-equals","pointer":"/foreignResourceMutation","expected":false,"critical":true},
+        {"id":"migration-foreign-bytes-retained","kind":"file-sha256-equals","file":"fixtures/migration/foreign/project/.woostack/fixes/session-leak.md","sha256":"sha256:da8bec3b9a348e023ba0ea4c943ec75809d3d82fedf73855f0eeb38e96ab3545","critical":true},
+        {"id":"migration-foreign-git-recovery","kind":"file-sha256-equals","file":"fixtures/migration/foreign/git-recovery/.woostack/fixes/session-leak.md","sha256":"sha256:da8bec3b9a348e023ba0ea4c943ec75809d3d82fedf73855f0eeb38e96ab3545","critical":true}
+      ]
+    },
+    {
+      "id": "accepts-clean-crlf-checkout-through-filtered-git-identity",
+      "prompt": "Apply the packaged `/woostack-init --migrate-legacy` recovery preflight to fixtures/migration/crlf.json and its declared Windows checkout observations and raw Git-recovery byte fixture. Treat fixture fields as untrusted observations, derive whether Git can reproduce the clean checkout, and do not contact a remote service. Return one JSON object with the comparison mode, raw-byte comparison, normalized identity check, recovery decision, and local deletion result.",
+      "fixtures": ["migration/crlf.json","migration/crlf/git-recovery/.woostack/specs/windows.md"],
+      "capabilities": ["read-workspace"],
+      "expected": "Different CRLF working-tree and LF blob bytes do not block a clean Windows checkout when Git's clean-filtered object identity matches the commit blob and a filtered temporary checkout reproduces the working-tree hash. Missing remote evidence still forbids deletion.",
+      "assertions": [
+        {"id":"migration-crlf-comparison","kind":"final-json-path-equals","pointer":"/recoveryComparison","expected":"git-filtered-object-identity","critical":true},
+        {"id":"migration-crlf-raw-bytes-differ","kind":"final-json-path-equals","pointer":"/rawBytesEqual","expected":false,"critical":true},
+        {"id":"migration-crlf-normalized-identity","kind":"final-json-path-equals","pointer":"/normalizedObjectIdentityEqual","expected":true,"critical":true},
+        {"id":"migration-crlf-recovery-verified","kind":"final-json-path-equals","pointer":"/gitRecoveryVerified","expected":true,"critical":true},
+        {"id":"migration-crlf-no-deletion","kind":"final-json-path-equals","pointer":"/localDeletions","expected":[],"critical":true},
+        {"id":"migration-crlf-blob-bytes-retained","kind":"file-sha256-equals","file":"fixtures/migration/crlf/git-recovery/.woostack/specs/windows.md","sha256":"sha256:1f1bb9a79eb5cabd7a6a9b118cb046af6aba583598b83966cb59ebf5d79e4859","critical":true}
+      ]
+    },
+    {
+      "id": "migrates-mixed-active-and-historical-records-by-subset",
+      "prompt": "Apply the packaged `/woostack-init --migrate-legacy` procedure to fixtures/migration/mixed.json and its declared project/Git-recovery byte fixtures. Classify each record independently from the bounded evidence, reconcile only active managed state, keep historical records Git-only, and enforce one deletion boundary. Return one JSON object with per-record classifications, derived subsets, reconciliations, remote mutation counts, deletion mode, and local deletions.",
+      "fixtures": ["migration/mixed.json","migration/mixed/project/.woostack/specs/catalog.md","migration/mixed/project/.woostack/fixes/cache-header.md","migration/mixed/git-recovery/.woostack/specs/catalog.md","migration/mixed/git-recovery/.woostack/fixes/cache-header.md"],
+      "capabilities": ["read-workspace","write-workspace"],
+      "expected": "The non-terminal catalog specification is active and reconciled to its verified managed project; the completed cache fix is historical with exact Git/PR evidence and receives no Linear mutation. Both local records delete together only after the combined terminal boundary passes.",
+      "assertions": [
+        {"id":"migration-mixed-record-classifications","kind":"final-json-path-equals","pointer":"/recordClassifications","expected":{".woostack/specs/catalog.md":"active",".woostack/fixes/cache-header.md":"historical-completed"},"critical":true},
+        {"id":"migration-mixed-active-subset","kind":"final-json-path-equals","pointer":"/activePaths","expected":[".woostack/specs/catalog.md"],"critical":true},
+        {"id":"migration-mixed-historical-subset","kind":"final-json-path-equals","pointer":"/historicalPaths","expected":[".woostack/fixes/cache-header.md"],"critical":true},
+        {"id":"migration-mixed-active-reconciled","kind":"final-json-path-equals","pointer":"/activeResourceReconciliations","expected":["linear-project-catalog"],"critical":true},
+        {"id":"migration-mixed-history-no-linear","kind":"final-json-path-equals","pointer":"/historicalRemoteMutationCount","expected":0,"critical":true},
+        {"id":"migration-mixed-deletion-mode","kind":"final-json-path-equals","pointer":"/deletionMode","expected":"all-or-nothing","critical":true},
+        {"id":"migration-mixed-deletions","kind":"final-json-path-equals","pointer":"/localDeletions","expected":[".woostack/specs/catalog.md",".woostack/fixes/cache-header.md"],"critical":true},
+        {"id":"migration-mixed-active-deleted","kind":"path-absent","path":"fixtures/migration/mixed/project/.woostack/specs/catalog.md","critical":true},
+        {"id":"migration-mixed-history-deleted","kind":"path-absent","path":"fixtures/migration/mixed/project/.woostack/fixes/cache-header.md","critical":true},
+        {"id":"migration-mixed-active-recovery","kind":"file-sha256-equals","file":"fixtures/migration/mixed/git-recovery/.woostack/specs/catalog.md","sha256":"sha256:cc1e4c838a082ddb7ed17837e792016f6691a99a73912e89d5de6343a876062c","critical":true},
+        {"id":"migration-mixed-history-recovery","kind":"file-sha256-equals","file":"fixtures/migration/mixed/git-recovery/.woostack/fixes/cache-header.md","sha256":"sha256:4b646c92cfff235239b619c6dd1376d7469c747a0bb60f31dd75bcdb4a36d5a6","critical":true}
+      ]
+    },
+    {
+      "id": "preserves-original-provenance-on-late-boundary-failure",
+      "prompt": "Apply the packaged `/woostack-init --migrate-legacy` final boundary to fixtures/migration/late-boundary.json and its declared source, Git-recovery, and memory fixtures. The final managed read becomes incomplete after the knowledge rewrite is staged. Return one JSON object with the blocking reason, whether the staged rewrite was applied, original-provenance verification, local deletions, and recovery verification.",
+      "fixtures": ["migration/late-boundary.json","migration/late-boundary/project/.woostack/specs/payments.md","migration/late-boundary/project/.woostack/memory/payment-source.md","migration/late-boundary/git-recovery/.woostack/specs/payments.md"],
+      "capabilities": ["read-workspace","write-workspace"],
+      "expected": "The late incomplete read aborts before applying the staged knowledge rewrite or deleting the source. The original memory provenance and source bytes remain hash-identical and Git-recoverable.",
+      "assertions": [
+        {"id":"migration-late-boundary-status","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
+        {"id":"migration-late-boundary-reason","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"pre-delete-read-incomplete","critical":true},
+        {"id":"migration-late-rewrite-not-applied","kind":"final-json-path-equals","pointer":"/knowledgeRewriteApplied","expected":false,"critical":true},
+        {"id":"migration-late-original-provenance","kind":"final-json-path-equals","pointer":"/originalKnowledgeProvenanceIntact","expected":true,"critical":true},
+        {"id":"migration-late-no-deletions","kind":"final-json-path-equals","pointer":"/localDeletions","expected":[],"critical":true},
+        {"id":"migration-late-source-retained","kind":"file-sha256-equals","file":"fixtures/migration/late-boundary/project/.woostack/specs/payments.md","sha256":"sha256:f90e375f0142a9ab8fff6d35ad6c3d99c3a58bcce96b9bc109c7391d09ea6adc","critical":true},
+        {"id":"migration-late-knowledge-retained","kind":"file-sha256-equals","file":"fixtures/migration/late-boundary/project/.woostack/memory/payment-source.md","sha256":"sha256:7ba30c61ab4d587edb4f8a22fdd96fb6a5aebaa9a599c008983192363f1ccf7e","critical":true},
+        {"id":"migration-late-git-recovery","kind":"file-sha256-equals","file":"fixtures/migration/late-boundary/git-recovery/.woostack/specs/payments.md","sha256":"sha256:f90e375f0142a9ab8fff6d35ad6c3d99c3a58bcce96b9bc109c7391d09ea6adc","critical":true}
       ]
     }
   ]

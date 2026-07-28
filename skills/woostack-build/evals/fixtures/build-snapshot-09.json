@@ -1,0 +1,802 @@
+{
+  "authority": {
+    "transport": "official-linear-mcp",
+    "endpoint": "https://mcp.linear.app/mcp",
+    "workspace": "acme",
+    "team": "APP",
+    "preflightComplete": true,
+    "paginationExhausted": true,
+    "toolDiscovery": "capability-based",
+    "requiredCapabilities": [
+      "project-create",
+      "project-read",
+      "project-update-create",
+      "project-update-read",
+      "project-update-list",
+      "issue-create",
+      "issue-read",
+      "issue-list",
+      "issue-relation-create",
+      "issue-relation-read"
+    ],
+    "authentication": {
+      "source": "host-connection",
+      "authenticated": true,
+      "workspace": "acme",
+      "team": "APP",
+      "principal": {
+        "kind": "human",
+        "principalId": "user-lead"
+      }
+    },
+    "capabilityObservations": [
+      {
+        "capability": "project-create",
+        "available": true,
+        "independentReadAvailable": true
+      },
+      {
+        "capability": "project-read",
+        "available": true,
+        "independentReadAvailable": true
+      },
+      {
+        "capability": "project-update-create",
+        "available": true,
+        "independentReadAvailable": true
+      },
+      {
+        "capability": "project-update-read",
+        "available": true,
+        "independentReadAvailable": true
+      },
+      {
+        "capability": "project-update-list",
+        "available": true,
+        "independentReadAvailable": true
+      },
+      {
+        "capability": "issue-create",
+        "available": true,
+        "independentReadAvailable": true
+      },
+      {
+        "capability": "issue-read",
+        "available": true,
+        "independentReadAvailable": true
+      },
+      {
+        "capability": "issue-list",
+        "available": true,
+        "independentReadAvailable": true
+      },
+      {
+        "capability": "issue-relation-create",
+        "available": true,
+        "independentReadAvailable": true
+      },
+      {
+        "capability": "issue-relation-read",
+        "available": true,
+        "independentReadAvailable": true
+      }
+    ]
+  },
+  "repository": "https://github.com/acme/widgets",
+  "project": {
+    "id": "linear-project-42",
+    "url": "https://linear.app/acme/project/linear-project-42",
+    "contentRevision": 1,
+    "workspace": "acme",
+    "team": "APP",
+    "nativeStatus": {
+      "name": "Backlog",
+      "category": "backlog"
+    },
+    "lead": {
+      "kind": "human",
+      "principalId": "user-lead"
+    },
+    "overview": {
+      "goal": "Bound cache freshness",
+      "scope": [
+        "refresh expired cache entries",
+        "coalesce concurrent refreshes for one key"
+      ]
+    },
+    "envelope": {
+      "clientId": "11111111-1111-4111-8111-111111111111",
+      "kind": "resource",
+      "label": "woostack",
+      "repository": "https://github.com/acme/widgets",
+      "role": "feature",
+      "schema": 1
+    },
+    "independentReadReceipt": {
+      "source": "independent-read",
+      "readComplete": true,
+      "nativeId": "linear-project-42",
+      "contentRevision": 1,
+      "workspace": "acme",
+      "team": "APP",
+      "clientId": "11111111-1111-4111-8111-111111111111",
+      "kind": "resource",
+      "label": "woostack",
+      "repository": "https://github.com/acme/widgets",
+      "role": "feature",
+      "schema": 1,
+      "nativeStatusCategory": "backlog",
+      "lead": {
+        "kind": "human",
+        "principalId": "user-lead"
+      },
+      "issueIds": [
+        "linear-issue-41",
+        "linear-issue-42"
+      ],
+      "updateIds": [
+        "update-design-approved",
+        "update-spec-hardened",
+        "update-spec-approved",
+        "update-planning",
+        "update-ready",
+        "update-execution-approved"
+      ]
+    }
+  },
+  "projectUpdates": [
+    {
+      "id": "update-design-approved",
+      "createdAt": "2026-07-20T09:00:00Z",
+      "contentRevision": 1,
+      "actor": {
+        "kind": "human",
+        "principalId": "user-lead"
+      },
+      "readable": {
+        "approvedDesign": {
+          "goal": "Bound cache freshness",
+          "scope": [
+            "refresh expired cache entries",
+            "coalesce concurrent refreshes for one key"
+          ]
+        },
+        "approvalEvidence": {
+          "decision": "Go",
+          "principalId": "user-lead"
+        }
+      },
+      "envelope": {
+        "clientId": "44444444-4444-4444-8444-444444444444",
+        "event": "designApproved",
+        "kind": "projectEvent",
+        "label": "woostack",
+        "predecessorId": null,
+        "projectId": "linear-project-42",
+        "relatedIds": [],
+        "repository": "https://github.com/acme/widgets",
+        "revision": 1,
+        "role": "feature",
+        "schema": 1,
+        "supersedesId": null
+      },
+      "independentReadReceipt": {
+        "source": "independent-read",
+        "readComplete": true,
+        "nativeId": "update-design-approved",
+        "contentRevision": 1,
+        "workspace": "acme",
+        "team": "APP",
+        "clientId": "44444444-4444-4444-8444-444444444444",
+        "event": "designApproved",
+        "kind": "projectEvent",
+        "label": "woostack",
+        "predecessorId": null,
+        "projectId": "linear-project-42",
+        "relatedIds": [],
+        "repository": "https://github.com/acme/widgets",
+        "revision": 1,
+        "role": "feature",
+        "schema": 1,
+        "supersedesId": null,
+        "nativeStatusCategory": "backlog",
+        "actor": {
+          "kind": "human",
+          "principalId": "user-lead"
+        }
+      }
+    },
+    {
+      "id": "update-spec-hardened",
+      "createdAt": "2026-07-20T10:00:00Z",
+      "contentRevision": 1,
+      "actor": {
+        "kind": "app",
+        "principalId": "app-spec-hardener"
+      },
+      "readable": {
+        "specification": {
+          "goal": "Bound cache freshness",
+          "scope": [
+            "refresh expired cache entries from the configured source",
+            "coalesce concurrent refreshes for one key"
+          ],
+          "outOfScope": [
+            "replace the cache storage provider",
+            "change cache key semantics"
+          ],
+          "acceptanceCriteria": [
+            {
+              "id": "AC-1",
+              "text": "Expired cache entries are refreshed once"
+            },
+            {
+              "id": "AC-2",
+              "text": "Concurrent callers observe the refreshed value"
+            }
+          ],
+          "decisions": [
+            "fresh entries remain a zero-refresh fast path",
+            "refresh coalescing is scoped by cache key"
+          ]
+        }
+      },
+      "envelope": {
+        "clientId": "55555555-5555-4555-8555-555555555555",
+        "event": "specHardened",
+        "kind": "projectEvent",
+        "label": "woostack",
+        "predecessorId": "update-design-approved",
+        "projectId": "linear-project-42",
+        "relatedIds": [],
+        "repository": "https://github.com/acme/widgets",
+        "revision": 1,
+        "role": "feature",
+        "schema": 1,
+        "supersedesId": null
+      },
+      "independentReadReceipt": {
+        "source": "independent-read",
+        "readComplete": true,
+        "nativeId": "update-spec-hardened",
+        "contentRevision": 1,
+        "workspace": "acme",
+        "team": "APP",
+        "clientId": "55555555-5555-4555-8555-555555555555",
+        "event": "specHardened",
+        "kind": "projectEvent",
+        "label": "woostack",
+        "predecessorId": "update-design-approved",
+        "projectId": "linear-project-42",
+        "relatedIds": [],
+        "repository": "https://github.com/acme/widgets",
+        "revision": 1,
+        "role": "feature",
+        "schema": 1,
+        "supersedesId": null,
+        "nativeStatusCategory": "backlog",
+        "actor": {
+          "kind": "app",
+          "principalId": "app-spec-hardener"
+        }
+      }
+    },
+    {
+      "id": "update-spec-approved",
+      "createdAt": "2026-07-20T11:00:00Z",
+      "contentRevision": 1,
+      "actor": {
+        "kind": "human",
+        "principalId": "user-lead"
+      },
+      "readable": {
+        "approvedRevision": 1,
+        "approvedUpdateId": "update-spec-hardened",
+        "approvalEvidence": {
+          "decision": "Go",
+          "principalId": "user-lead"
+        }
+      },
+      "envelope": {
+        "clientId": "66666666-6666-4666-8666-666666666666",
+        "event": "specApproved",
+        "kind": "projectEvent",
+        "label": "woostack",
+        "predecessorId": "update-spec-hardened",
+        "projectId": "linear-project-42",
+        "relatedIds": [
+          "update-spec-hardened"
+        ],
+        "repository": "https://github.com/acme/widgets",
+        "revision": 1,
+        "role": "feature",
+        "schema": 1,
+        "supersedesId": null
+      },
+      "independentReadReceipt": {
+        "source": "independent-read",
+        "readComplete": true,
+        "nativeId": "update-spec-approved",
+        "contentRevision": 1,
+        "workspace": "acme",
+        "team": "APP",
+        "clientId": "66666666-6666-4666-8666-666666666666",
+        "event": "specApproved",
+        "kind": "projectEvent",
+        "label": "woostack",
+        "predecessorId": "update-spec-hardened",
+        "projectId": "linear-project-42",
+        "relatedIds": [
+          "update-spec-hardened"
+        ],
+        "repository": "https://github.com/acme/widgets",
+        "revision": 1,
+        "role": "feature",
+        "schema": 1,
+        "supersedesId": null,
+        "nativeStatusCategory": "backlog",
+        "actor": {
+          "kind": "human",
+          "principalId": "user-lead"
+        }
+      }
+    },
+    {
+      "id": "update-planning",
+      "createdAt": "2026-07-20T12:00:00Z",
+      "contentRevision": 1,
+      "actor": {
+        "kind": "app",
+        "principalId": "app-planner"
+      },
+      "readable": {
+        "planningScope": "Create the complete two-increment cache freshness graph",
+        "acceptanceCoverageBasis": [
+          "AC-1",
+          "AC-2"
+        ]
+      },
+      "envelope": {
+        "clientId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "event": "planning",
+        "kind": "projectEvent",
+        "label": "woostack",
+        "predecessorId": "update-spec-approved",
+        "projectId": "linear-project-42",
+        "relatedIds": [
+          "update-spec-approved",
+          "update-spec-hardened"
+        ],
+        "repository": "https://github.com/acme/widgets",
+        "revision": 1,
+        "role": "feature",
+        "schema": 1,
+        "supersedesId": null
+      },
+      "independentReadReceipt": {
+        "source": "independent-read",
+        "readComplete": true,
+        "nativeId": "update-planning",
+        "contentRevision": 1,
+        "workspace": "acme",
+        "team": "APP",
+        "clientId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "event": "planning",
+        "kind": "projectEvent",
+        "label": "woostack",
+        "predecessorId": "update-spec-approved",
+        "projectId": "linear-project-42",
+        "relatedIds": [
+          "update-spec-approved",
+          "update-spec-hardened"
+        ],
+        "repository": "https://github.com/acme/widgets",
+        "revision": 1,
+        "role": "feature",
+        "schema": 1,
+        "supersedesId": null,
+        "nativeStatusCategory": "backlog",
+        "actor": {
+          "kind": "app",
+          "principalId": "app-planner"
+        }
+      }
+    },
+    {
+      "id": "update-ready",
+      "createdAt": "2026-07-20T13:00:00Z",
+      "contentRevision": 1,
+      "actor": {
+        "kind": "app",
+        "principalId": "app-planner"
+      },
+      "readable": {
+        "frozenBase": {
+          "branch": "main",
+          "commitSha": "9f4c2e7d81a0b3c4d5e6f708192a3b4c5d6e7f80"
+        },
+        "issueGraph": [
+          {
+            "issueId": "linear-issue-41",
+            "ordinal": 1,
+            "dependencyIds": []
+          },
+          {
+            "issueId": "linear-issue-42",
+            "ordinal": 2,
+            "dependencyIds": [
+              "linear-issue-41"
+            ]
+          }
+        ]
+      },
+      "envelope": {
+        "clientId": "77777777-7777-4777-8777-777777777777",
+        "event": "ready",
+        "kind": "projectEvent",
+        "label": "woostack",
+        "predecessorId": "update-planning",
+        "projectId": "linear-project-42",
+        "relatedIds": [
+          "linear-issue-41",
+          "linear-issue-42"
+        ],
+        "repository": "https://github.com/acme/widgets",
+        "revision": 1,
+        "role": "feature",
+        "schema": 1,
+        "supersedesId": null
+      },
+      "independentReadReceipt": {
+        "source": "independent-read",
+        "readComplete": true,
+        "nativeId": "update-ready",
+        "contentRevision": 1,
+        "workspace": "acme",
+        "team": "APP",
+        "clientId": "77777777-7777-4777-8777-777777777777",
+        "event": "ready",
+        "kind": "projectEvent",
+        "label": "woostack",
+        "predecessorId": "update-planning",
+        "projectId": "linear-project-42",
+        "relatedIds": [
+          "linear-issue-41",
+          "linear-issue-42"
+        ],
+        "repository": "https://github.com/acme/widgets",
+        "revision": 1,
+        "role": "feature",
+        "schema": 1,
+        "supersedesId": null,
+        "nativeStatusCategory": "planned",
+        "actor": {
+          "kind": "app",
+          "principalId": "app-planner"
+        }
+      }
+    },
+    {
+      "id": "update-execution-approved",
+      "createdAt": "2026-07-20T14:00:00Z",
+      "contentRevision": 1,
+      "actor": {
+        "kind": "human",
+        "principalId": "user-lead"
+      },
+      "readable": {
+        "choice": "Run overnight",
+        "frozenBase": {
+          "branch": "main",
+          "commitSha": "9f4c2e7d81a0b3c4d5e6f708192a3b4c5d6e7f80"
+        }
+      },
+      "envelope": {
+        "clientId": "88888888-8888-4888-8888-888888888888",
+        "event": "executionApproved",
+        "kind": "projectEvent",
+        "label": "woostack",
+        "predecessorId": "update-ready",
+        "projectId": "linear-project-42",
+        "relatedIds": [
+          "linear-issue-41",
+          "linear-issue-42"
+        ],
+        "repository": "https://github.com/acme/widgets",
+        "revision": 1,
+        "role": "feature",
+        "schema": 1,
+        "supersedesId": null
+      },
+      "independentReadReceipt": {
+        "source": "independent-read",
+        "readComplete": true,
+        "nativeId": "update-execution-approved",
+        "contentRevision": 1,
+        "workspace": "acme",
+        "team": "APP",
+        "clientId": "88888888-8888-4888-8888-888888888888",
+        "event": "executionApproved",
+        "kind": "projectEvent",
+        "label": "woostack",
+        "predecessorId": "update-ready",
+        "projectId": "linear-project-42",
+        "relatedIds": [
+          "linear-issue-41",
+          "linear-issue-42"
+        ],
+        "repository": "https://github.com/acme/widgets",
+        "revision": 1,
+        "role": "feature",
+        "schema": 1,
+        "supersedesId": null,
+        "nativeStatusCategory": "planned",
+        "actor": {
+          "kind": "human",
+          "principalId": "user-lead"
+        }
+      }
+    }
+  ],
+  "incrementIssues": [
+    {
+      "id": "linear-issue-41",
+      "identifier": "APP-41",
+      "url": "https://linear.app/acme/issue/APP-41",
+      "contentRevision": 1,
+      "workspace": "acme",
+      "team": "APP",
+      "nativeState": {
+        "name": "Planned",
+        "semantic": "planned"
+      },
+      "assignee": null,
+      "delegate": null,
+      "contract": {
+        "objective": "Refresh an expired cache entry from its configured source while preserving the fresh-entry fast path.",
+        "dependencyClientIds": [],
+        "filesAndResponsibilities": [
+          {
+            "path": "src/cache.ts",
+            "responsibilities": [
+              "detect expiration before returning a cached value",
+              "replace the stale value atomically after a successful refresh"
+            ]
+          },
+          {
+            "path": "tests/cache.test.ts",
+            "responsibilities": [
+              "prove an expired entry refreshes",
+              "prove a fresh entry performs no refresh"
+            ]
+          }
+        ],
+        "tasks": [
+          {
+            "phase": "red",
+            "command": "pnpm test tests/cache.test.ts -- --runInBand",
+            "expectedOutcome": "fails because the expired entry remains stale while the fresh-entry case passes"
+          },
+          {
+            "phase": "green",
+            "command": "pnpm test tests/cache.test.ts -- --runInBand",
+            "expectedOutcome": "passes the expired-refresh and fresh-entry cases"
+          },
+          {
+            "phase": "refactor",
+            "command": "pnpm test tests/cache.test.ts -- --runInBand",
+            "expectedOutcome": "continues to pass after extracting the expiry predicate without changing behavior"
+          }
+        ],
+        "acceptanceCriteria": [
+          {
+            "id": "AC-1",
+            "text": "Expired cache entries are refreshed once"
+          }
+        ],
+        "acceptanceCoverage": [
+          {
+            "criterionId": "AC-1",
+            "redTaskPhase": "red",
+            "greenTaskPhase": "green",
+            "automatedVerificationCommand": "pnpm test tests/cache.test.ts -- --runInBand",
+            "manualVerificationStep": "Inspect the refresh trace for one expired key."
+          }
+        ],
+        "automatedVerification": [
+          {
+            "command": "pnpm test tests/cache.test.ts -- --runInBand",
+            "expectedOutcome": "exit 0 with the expired-refresh and fresh-entry cases passing"
+          }
+        ],
+        "manualVerification": [
+          {
+            "step": "Inspect the refresh trace for one expired key.",
+            "expectedObservation": "one source read occurs before the refreshed value replaces the stale entry"
+          }
+        ],
+        "gitParent": {
+          "kind": "frozenBase",
+          "branch": "main",
+          "commitSha": "9f4c2e7d81a0b3c4d5e6f708192a3b4c5d6e7f80"
+        }
+      },
+      "envelope": {
+        "clientId": "22222222-2222-4222-8222-222222222222",
+        "dependencyIds": [],
+        "kind": "resource",
+        "label": "woostack",
+        "ordinal": 1,
+        "projectId": "linear-project-42",
+        "repository": "https://github.com/acme/widgets",
+        "role": "increment",
+        "schema": 1
+      },
+      "independentReadReceipt": {
+        "source": "independent-read",
+        "readComplete": true,
+        "nativeId": "linear-issue-41",
+        "identifier": "APP-41",
+        "contentRevision": 1,
+        "workspace": "acme",
+        "team": "APP",
+        "clientId": "22222222-2222-4222-8222-222222222222",
+        "dependencyIds": [],
+        "kind": "resource",
+        "label": "woostack",
+        "ordinal": 1,
+        "projectId": "linear-project-42",
+        "repository": "https://github.com/acme/widgets",
+        "role": "increment",
+        "schema": 1,
+        "nativeState": "planned",
+        "owner": null,
+        "contractReadComplete": true,
+        "acceptanceCoverageReadComplete": true,
+        "branchRelations": [],
+        "pullRequestRelations": []
+      }
+    },
+    {
+      "id": "linear-issue-42",
+      "identifier": "APP-42",
+      "url": "https://linear.app/acme/issue/APP-42",
+      "contentRevision": 1,
+      "workspace": "acme",
+      "team": "APP",
+      "nativeState": {
+        "name": "Planned",
+        "semantic": "planned"
+      },
+      "assignee": null,
+      "delegate": null,
+      "contract": {
+        "objective": "Coalesce concurrent refreshes for one expired key so every caller observes the same refreshed value.",
+        "dependencyClientIds": [
+          "22222222-2222-4222-8222-222222222222"
+        ],
+        "filesAndResponsibilities": [
+          {
+            "path": "src/cache.ts",
+            "responsibilities": [
+              "share one in-flight refresh per cache key",
+              "clear the in-flight entry after success or failure"
+            ]
+          },
+          {
+            "path": "tests/cache-concurrency.test.ts",
+            "responsibilities": [
+              "prove concurrent callers trigger one source read",
+              "prove every caller receives the same refreshed value"
+            ]
+          }
+        ],
+        "tasks": [
+          {
+            "phase": "red",
+            "command": "pnpm test tests/cache-concurrency.test.ts -- --runInBand",
+            "expectedOutcome": "fails because concurrent callers start more than one refresh"
+          },
+          {
+            "phase": "green",
+            "command": "pnpm test tests/cache-concurrency.test.ts -- --runInBand",
+            "expectedOutcome": "passes with exactly one source read and one shared refreshed value"
+          },
+          {
+            "phase": "refactor",
+            "command": "pnpm test tests/cache.test.ts tests/cache-concurrency.test.ts -- --runInBand",
+            "expectedOutcome": "both increment suites continue to pass after isolating in-flight refresh bookkeeping"
+          }
+        ],
+        "acceptanceCriteria": [
+          {
+            "id": "AC-2",
+            "text": "Concurrent callers observe the refreshed value"
+          }
+        ],
+        "acceptanceCoverage": [
+          {
+            "criterionId": "AC-2",
+            "redTaskPhase": "red",
+            "greenTaskPhase": "green",
+            "automatedVerificationCommand": "pnpm test tests/cache-concurrency.test.ts -- --runInBand",
+            "manualVerificationStep": "Inspect the concurrent refresh trace for one expired key."
+          }
+        ],
+        "automatedVerification": [
+          {
+            "command": "pnpm test tests/cache.test.ts tests/cache-concurrency.test.ts -- --runInBand",
+            "expectedOutcome": "exit 0 with the sequential and concurrent freshness cases passing"
+          }
+        ],
+        "manualVerification": [
+          {
+            "step": "Inspect the concurrent refresh trace for one expired key.",
+            "expectedObservation": "one source read completes before all waiting callers receive the same value"
+          }
+        ],
+        "gitParent": {
+          "kind": "issue",
+          "issueId": "linear-issue-41"
+        }
+      },
+      "envelope": {
+        "clientId": "33333333-3333-4333-8333-333333333333",
+        "dependencyIds": [
+          "linear-issue-41"
+        ],
+        "kind": "resource",
+        "label": "woostack",
+        "ordinal": 2,
+        "projectId": "linear-project-42",
+        "repository": "https://github.com/acme/widgets",
+        "role": "increment",
+        "schema": 1
+      },
+      "independentReadReceipt": {
+        "source": "independent-read",
+        "readComplete": true,
+        "nativeId": "linear-issue-42",
+        "identifier": "APP-42",
+        "contentRevision": 1,
+        "workspace": "acme",
+        "team": "APP",
+        "clientId": "33333333-3333-4333-8333-333333333333",
+        "dependencyIds": [
+          "linear-issue-41"
+        ],
+        "kind": "resource",
+        "label": "woostack",
+        "ordinal": 2,
+        "projectId": "linear-project-42",
+        "repository": "https://github.com/acme/widgets",
+        "role": "increment",
+        "schema": 1,
+        "nativeState": "planned",
+        "owner": null,
+        "contractReadComplete": true,
+        "acceptanceCoverageReadComplete": true,
+        "branchRelations": [],
+        "pullRequestRelations": []
+      }
+    }
+  ],
+  "gates": [
+    {
+      "gate": "design-approval",
+      "decision": "approved",
+      "readBackNativeUpdateId": "update-design-approved"
+    },
+    {
+      "gate": "spec-approval",
+      "decision": "approved",
+      "readBackNativeUpdateId": "update-spec-approved"
+    },
+    {
+      "gate": "execution-handoff",
+      "decision": "run-overnight",
+      "readBackNativeUpdateId": "update-execution-approved"
+    }
+  ],
+  "implementationGitArtifactsBeforeExecutionApproval": []
+}

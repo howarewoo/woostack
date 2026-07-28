@@ -1,0 +1,33 @@
+{
+  "repositoryId": "repo-woostack",
+  "legacyRecords": [
+    {
+      "path": ".woostack/specs/billing.md",
+      "kind": "specification",
+      "stableClientId": "66666666-6666-4666-8666-666666666666",
+      "phase": "approved",
+      "provenance": ["git:91ca231:.woostack/specs/billing.md"]
+    }
+  ],
+  "remoteObservations": [
+    {
+      "clientId": "66666666-6666-4666-8666-666666666666",
+      "nativeId": null,
+      "role": "feature",
+      "repositoryId": "repo-woostack",
+      "readBack": "missing"
+    }
+  ],
+  "receiptSet": {
+    "complete": false,
+    "independent": true
+  },
+  "provenanceLedger": {
+    "verified": false,
+    "entries": ["git:91ca231:.woostack/specs/billing.md"]
+  },
+  "gitRecovery": {
+    "allRecordsTracked": true,
+    "blobsVerified": true
+  }
+}

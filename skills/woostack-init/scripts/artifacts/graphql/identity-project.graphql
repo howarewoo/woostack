@@ -1,8 +1,0 @@
-query WoostackIdentityProject($id: ID!) {
-  projects(filter: { id: { eq: $id } }) {
-    nodes {
-      id
-      url
-    }
-  }
-}

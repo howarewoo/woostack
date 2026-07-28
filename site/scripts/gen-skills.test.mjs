@@ -38,19 +38,19 @@ test('parseFrontmatter strips surrounding YAML quotes (some descriptions are quo
 });
 
 test('parseFrontmatter accepts safe placeholders in plain descriptions', () => {
-  const raw = '---\nname: woostack-plan\ndescription: Write the approved spec to <plan-path>.\n---\nbody';
+  const raw = '---\nname: woostack-plan\ndescription: Plan the approved Linear project at <project-url>.\n---\nbody';
   const { fm } = parseFrontmatter(raw, 'woostack-plan');
-  assert.equal(fm.description, 'Write the approved spec to <plan-path>.');
+  assert.equal(fm.description, 'Plan the approved Linear project at <project-url>.');
 });
 
 test('parseFrontmatter accepts quoted colon-space descriptions with safe placeholders', () => {
-  const raw = '---\nname: woostack-plan\ndescription: "Plan output: write <plan-path> safely."\n---\nbody';
+  const raw = '---\nname: woostack-plan\ndescription: "Plan source: use <project-url> safely."\n---\nbody';
   const { fm } = parseFrontmatter(raw, 'woostack-plan');
-  assert.equal(fm.description, 'Plan output: write <plan-path> safely.');
+  assert.equal(fm.description, 'Plan source: use <project-url> safely.');
 });
 
 test('parseFrontmatter rejects colon-space in a plain description deterministically', () => {
-  const raw = '---\nname: woostack-plan\ndescription: Plan output: write safely.\n---\nbody';
+  const raw = '---\nname: woostack-plan\ndescription: Plan source: use safely.\n---\nbody';
   assert.throws(
     () => parseFrontmatter(raw, 'woostack-plan'),
     (error) => error.code === 'frontmatter-plain-colon-space' &&
@@ -74,8 +74,8 @@ test('rewriteLinks maps skill links to routes, refs to GitHub, leaves absolute/a
     '[wt](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/worktrees.md)'
   );
   assert.equal(
-    r('[self](references/plan-template.md)'),
-    '[self](https://github.com/howarewoo/woostack/blob/main/skills/woostack-build/references/plan-template.md)'
+    r('[self](references/linear-procedure.md)'),
+    '[self](https://github.com/howarewoo/woostack/blob/main/skills/woostack-build/references/linear-procedure.md)'
   );
   assert.equal(r('[ext](https://example.com)'), '[ext](https://example.com)');
   assert.equal(r('[here](#section)'), '[here](#section)');
@@ -93,15 +93,15 @@ test('neutralizeTags: block tag -> Callout, prose tag escaped, code-span/fence p
   const code = 'POST `gh api repos/<repo>/pulls/<PR>/reviews` now';
   assert.equal(neutralizeTags(code), code); // uppercase tag inside inline code preserved
 
-  const attributed = '<FOO backend="linear">**Stop.**</FOO>';
+  const attributed = '<FOO scope="feature">**Stop.**</FOO>';
   assert.equal(
     neutralizeTags(attributed),
-    '&lt;FOO backend="linear"&gt;**Stop.**&lt;/FOO&gt;'
+    '&lt;FOO scope="feature"&gt;**Stop.**&lt;/FOO&gt;'
   );
 
   const attributedGate = [
-    '<HARD-GATE backend="markdown" name="design-approval"></HARD-GATE>',
-    '1. <HARD-GATE backend="linear" name="spec-approval">**Stop.**',
+    '<HARD-GATE name="design-approval"></HARD-GATE>',
+    '1. <HARD-GATE name="spec-approval">**Stop.**',
     'Wait for approval.</HARD-GATE>',
   ].join('\n');
   assert.equal(neutralizeTags(attributedGate), '1. **Stop.**\nWait for approval.');
@@ -109,7 +109,7 @@ test('neutralizeTags: block tag -> Callout, prose tag escaped, code-span/fence p
   const fenced = '```\n<PR> stays\n```';
   assert.equal(neutralizeTags(fenced), fenced); // inside fence preserved
 
-  const marker = '<!-- linear-gates: design-approval | spec-approval | execution-handoff -->';
+  const marker = '<!-- build-gates: design-approval | spec-approval | execution-handoff -->';
   assert.equal(neutralizeTags(marker), '');
 });
 

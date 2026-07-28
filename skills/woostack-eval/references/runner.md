@@ -54,8 +54,9 @@ Resolve one baseline in this order:
    never falls through to another explicit or implicit baseline.
 2. `--baseline-path`: validate the user-named absolute package directory as the read-only allowed
    root, hash it, and copy the complete validated package to a private snapshot. Require the
-   snapshot hash and a post-preparation source hash to equal that original identity, then record
-   `{"kind":"path","identity":"<sha256-package-hash>"}`. An invalid or changing path stops; it
+   snapshot hash and a post-preparation source hash to equal that original source identity. The
+   manifest's `{"kind":"path","identity":"<sha256-package-hash>"}` then binds the worker projection
+   as defined by the [manifest schema](schemas.md#manifest). An invalid or changing path stops; it
    never falls through.
 3. For a target proven to be in Git, execute the installed collection's canonical
    `skills/woostack-init/scripts/resolve-base.sh`, then compute `git merge-base HEAD <resolved>`.
@@ -106,17 +107,29 @@ cases/<case-id>/<repetition>/candidate/
 cases/<case-id>/<repetition>/baseline/
 ```
 
-Each variant root contains `package/` for the selected package and an always-present `fixtures/`
-directory containing only the files listed by that behavior case. A no-skill baseline has no
-`package/`. Preserve fixture-relative paths below `fixtures/`; a case workspace must not receive a
-fixture declared only by another case.
-Copies must be regular, independent files: neither variant may be a symlink, hard link, or shared
-writable directory with the other variant or source package.
+Each variant root contains `package/`, a worker-facing projection of the selected package. Copy
+every shipped runtime file needed to apply the skill, but omit the complete evaluator-private
+`evals/`, `tests/`, and `scripts/tests/` surfaces. Thus workers cannot inspect behavior corpora,
+trigger queries or `expectedSkill`, fixture stores, graders, approval digests, or package tests.
+Apply the same exclusion predicate when copying and when enforcing the projected-workspace budget.
+A private path-baseline snapshot remains a complete byte-for-byte package copy for validation and
+identity checks; only its later worker projection excludes those surfaces.
 
-Preparation also writes one host-owned canonical snapshot of each selected case definition at
+Every variant also has an always-present `fixtures/` directory. For a behavior case it contains
+exact independent copies of only that case's declared fixture files, preserving their paths below
+`fixtures/`; for a trigger case it is empty. A case workspace must not receive an undeclared
+fixture or one declared only by another case. Declared fixtures are input only: they must not carry
+scenario-level `expected`, `answer`, or equivalent output-oracle fields. Expected outcomes belong
+in the host-private frozen assertions or a non-worker test ledger.
+
+All projected package and fixture copies must be regular, independent files: neither variant may
+receive a symlink, hard link, or shared writable directory with the other variant or source
+package.
+
+Preparation writes one host-owned canonical snapshot of each selected case definition at
 `definitions/<kind>.<case-id>.json`. The aggregator reads assertions, trigger truth, capabilities,
-and fixture declarations only from these frozen snapshots and requires their IDs to match the
-manifest. Worker mutation of a copied `evals/*.json` file cannot change the grading contract.
+and fixture declarations only from these frozen snapshots; workers receive neither `definitions/`
+nor a copied `evals/` tree. The aggregator requires definition IDs to match the manifest.
 
 A trigger variant additionally receives `catalog.json` with exact shape
 `{"schemaVersion":1,"skills":[{"name":"...","description":"..."}]}`. Sort catalog entries by
@@ -143,7 +156,8 @@ Selected case IDs share one namespace across behavior and trigger corpora. Rejec
 selected by `all`, and cap every selected case ID at 64 ASCII kebab-case characters before run
 allocation so deterministic workspace and evidence components remain below filesystem limits.
 Reject more than 100 selected cases, more than 500 case/repetition pairs, or a preparation whose
-projected copied package, fixture, definition, and catalog payload exceeds 64 MiB. Apply these
+projected worker packages, declared fixtures, definitions, and catalogs exceed 64 MiB. Compute the
+package contribution with the same worker-exclusion predicate used by the copier, and apply all
 bounds before run-root allocation or workspace copying.
 
 ## Manifest
@@ -152,9 +166,9 @@ bounds before run-root allocation or workspace copying.
 [corpus approval barrier](../SKILL.md#corpus-approval) first constructs and validates the exact
 private immutable proposed package/corpora snapshot, obtains explicit approval of its digest, and
 exact-byte revalidates that snapshot and any materialized target corpus bytes. Preparation never
-performs or weakens that sequence. It captures `originalPackageHash` from those revalidated target
-bytes, copies each package, records the copied package identities, and produces a provisional
-manifest before any action starts.
+performs or weakens that sequence. It captures `originalPackageHash` from those revalidated full
+target bytes, projects each worker package, records the projected package identities, and produces
+a provisional manifest before any action starts.
 
 Preparation writes every grading-plan `graderId` and all six run-configuration fields as `null`.
 Host orchestration then follows the [canonical host-loading and candidate-only

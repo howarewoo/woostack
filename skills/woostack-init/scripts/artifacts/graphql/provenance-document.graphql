@@ -1,6 +1,0 @@
-query WoostackProvenanceDocument($id: String!) {
-  document(id: $id) {
-    id
-    project { id }
-  }
-}

@@ -1,0 +1,30 @@
+{
+  "repositoryId": "repo-woostack",
+  "legacyRecords": [
+    {
+      "path": ".woostack/plans/notifications.md",
+      "kind": "plan",
+      "stableClientId": "77777777-7777-4777-8777-777777777777",
+      "phase": "ready",
+      "provenance": ["git:49cdad2:.woostack/plans/notifications.md"]
+    }
+  ],
+  "mutationObservation": {
+    "clientId": "77777777-7777-4777-8777-777777777777",
+    "responseReceived": false,
+    "nativeId": null
+  },
+  "remoteObservations": [],
+  "receiptSet": {
+    "complete": false,
+    "independent": false
+  },
+  "provenanceLedger": {
+    "verified": false,
+    "entries": ["git:49cdad2:.woostack/plans/notifications.md"]
+  },
+  "gitRecovery": {
+    "allRecordsTracked": true,
+    "blobsVerified": true
+  }
+}

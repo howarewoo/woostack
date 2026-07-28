@@ -1,0 +1,40 @@
+{
+  "repositoryId": "R_kgDORP1kWw",
+  "legacyRecords": [
+    {
+      "path": ".woostack/overnight/2026-07-30-hermetic-run.md",
+      "kind": "overnight",
+      "provenance": ["git:6d49018:.woostack/overnight/2026-07-30-hermetic-run.md"]
+    },
+    {
+      "path": ".woostack/plans/2026-07-30-hermetic-migration.md",
+      "kind": "plan",
+      "provenance": ["git:6d49018:.woostack/plans/2026-07-30-hermetic-migration.md"]
+    }
+  ],
+  "pullRequestObservation": {
+    "repositoryId": "R_kgDORP1kWw",
+    "number": 571,
+    "state": "MERGED",
+    "baseCommit": "f2be10522404dad399fd4cdc369a8d9d109ab7e9",
+    "headCommit": "6d49018c0a9851aa250c3d7f39886d107ebf7d4e",
+    "mergeCommit": "dc94693cb5fdc5f51305fd994f3350e118535814",
+    "changedPaths": [
+      ".woostack/overnight/2026-07-30-hermetic-run.md",
+      ".woostack/plans/2026-07-30-hermetic-migration.md",
+      "skills/woostack-init/references/migration-authority.txt"
+    ]
+  },
+  "gitRecoveryObservations": [
+    {
+      "path": ".woostack/overnight/2026-07-30-hermetic-run.md",
+      "sourceCommit": "6d49018c0a9851aa250c3d7f39886d107ebf7d4e",
+      "sha256": "sha256:47a41ba20c72b52957c0773a765dcf2d8ce97d5c6f8d4ee52b13666386b18fac"
+    },
+    {
+      "path": ".woostack/plans/2026-07-30-hermetic-migration.md",
+      "sourceCommit": "6d49018c0a9851aa250c3d7f39886d107ebf7d4e",
+      "sha256": "sha256:9c59e6cf854bc3702b208b55109a275336e07e2fe07d46193958741984c449f5"
+    }
+  ]
+}

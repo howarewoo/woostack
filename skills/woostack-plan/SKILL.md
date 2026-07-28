@@ -23,10 +23,9 @@ A bounded one-issue fix or change is outside this project-planning workflow.
 Use only official host-exposed Linear MCP. Load the canonical
 [Linear authority](../woostack-init/references/artifact-backends.md), the
 [retained context contract](../woostack-build/references/linear-context.md), and the
-[planning capability contract](references/linear-adapter.md). Discover MCP operations by
-capability, never by a hard-coded tool name. There is no development backend resolver, Linear
-specification document, local plan authority, custom provider transport, repository credential, or
-fallback.
+[planning capability contract](references/linear-planning.md). Discover MCP operations by
+capability, never by a hard-coded tool name, and treat those linked contracts as the complete
+planning authority.
 
 ## Resolve, read, and check the project
 
@@ -67,8 +66,10 @@ Every issue records:
 - complete Red→Green→Refactor tasks with concrete commands and expected outcomes;
 - every covered acceptance criterion plus automated and manual verification;
 - explicit dependency IDs materialized as native Linear relations; and
-- exactly one Git parent: the later-frozen project base for a root, or one dependency issue for a
-  stack child.
+- exactly one deferred Git parent: a root records
+  `{"kind":"projectBase","freezeOwner":"woostack-build"}` without a branch or SHA, while a stack
+  child names one dependency issue. `woostack-build` writes the root's concrete frozen base at
+  build-ready.
 
 Ordinals are presentation order, not dependency edges. Reject cycles, unknown or cross-project
 relations, duplicate identities/ordinals, relation metadata drift, missing acceptance coverage, and
@@ -77,7 +78,7 @@ from the declared parent before execution can start.
 
 ## Enter planning and reconcile
 
-Follow [references/linear-adapter.md](references/linear-adapter.md) as one operation boundary:
+Follow [references/linear-planning.md](references/linear-planning.md) as one operation boundary:
 
 1. From `specApproved`, append and independently verify one `planning` phase event whose
    predecessor is the current `specApproved` native update. Native project category remains
@@ -87,14 +88,16 @@ Follow [references/linear-adapter.md](references/linear-adapter.md) as one opera
    read proving every managed increment has no implementation branch or PR. Append a new
    `planning` event with the prior `ready` update as predecessor, relate every current issue, record
    the exact empty-evidence snapshot, then verify native `backlog` before reconciling.
-4. Reconcile the entire desired issue graph by stable client UUID. Allocate new UUIDs before create,
-   preserve retained identities and evidence, materialize native relations, and independently read
-   every mutation plus the complete final graph back.
+4. Reconcile the entire desired issue graph by stable client UUID. Allocate new UUIDs before create
+   and preserve retained identities and evidence. Independently read the existing native relations,
+   create only `desired - existing`, delete only `existing - desired`, then independently read back
+   every desired relation and verify every removed relation is absent. An incomplete or unknown
+   relation read, create, or delete outcome blocks replay until complete rediscovery.
 
-A replan may add, reorder, update, or rewire unstarted increments. Never delete or silently detach a
-managed increment, replace an identity after an unknown response, remove implementation evidence,
-or reinterpret started work as unstarted. Scope removal or conflicting evidence returns to build
-for an explicit decision or abandonment.
+A replan may add, reorder, update, or rewire unstarted increments while preserving stable
+identities. Never delete or silently detach a managed increment, replace an identity after an
+unknown response, remove implementation evidence, or reinterpret started work as unstarted. Scope
+removal or conflicting evidence returns to build for an explicit decision or abandonment.
 
 ## Deferral markers
 

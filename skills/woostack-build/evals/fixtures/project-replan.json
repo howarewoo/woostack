@@ -29,15 +29,5 @@
       "title": "Expose reconciliation receipt",
       "blockedBy": ["10000000-0000-4000-8000-000000000001"]
     }
-  },
-  "expected": {
-    "advance": false,
-    "reasonCode": "evidence-bearing-issue-removal-refused",
-    "preservedClientIds": [
-      "10000000-0000-4000-8000-000000000001",
-      "10000000-0000-4000-8000-000000000002"
-    ],
-    "ordinalDefinesAncestry": false,
-    "repositoryEffects": []
   }
 }

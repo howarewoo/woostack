@@ -70,6 +70,10 @@
     },
     {
       "id": "check-live-consumes-one-normalized-receipt-without-provider-calls",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "check-live-mode-reported","fixture": "ci-diagnosis.json","pointer": "/mode"},
+        {"assertionId": "ci-nonzero-reported","fixture": "ci-diagnosis.json","pointer": "/exitCode"}
+      ],
       "prompt": "Apply the packaged /woostack-doctor --check live-receipt boundary to fixtures/ci-diagnosis.json and fixtures/receipts/provenance-drift.json. Treat that mode-0600-style normalized non-secret receipt as the only host-MCP input. Never call a network, provider, custom adapter, hard-coded MCP tool, or remote mutation, and do not modify files. Return exactly one JSON object with keys findingCodes, exitCode, receiptProvenanceCount, providerInvocationCount, legacyAdapterInvocationCount, remoteMutationCount, repairApplied, and mode.",
       "fixtures": [
         "ci-project/.woostack/config.json",

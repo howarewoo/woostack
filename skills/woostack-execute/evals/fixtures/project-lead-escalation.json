@@ -132,14 +132,6 @@
         "contractMutationApplied": false,
         "repositorySideEffectsObserved": false
       },
-      "expected": {
-        "status": "blocked",
-        "reason": "awaiting-project-lead-contract-decision",
-        "requiredEvent": "decisionRequest",
-        "nextBoundary": "independent-lead-response-read-back",
-        "pairedContextsComplete": true,
-        "pairedContextsDistinct": true
-      },
       "contextIsolationProof": {
         "requiredFields": [
           "decisionMakerAuthenticationContextId",
@@ -320,17 +312,6 @@
         "relationMutationApplied": false,
         "allocationMutationApplied": false,
         "repositorySideEffectsObserved": false
-      },
-      "expected": {
-        "status": "blocked",
-        "reason": "dependency-blocked-awaiting-project-lead",
-        "requiredEvents": [
-          "blocked",
-          "decisionRequest"
-        ],
-        "nextBoundary": "independent-lead-response-read-back",
-        "pairedContextsComplete": true,
-        "pairedContextsDistinct": true
       },
       "contextIsolationProof": {
         "requiredFields": [

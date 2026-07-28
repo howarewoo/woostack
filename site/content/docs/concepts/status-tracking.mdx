@@ -17,17 +17,18 @@ for the other.
 
 ### Standalone work items
 
-A bounded fix or change has one repository-owned standalone issue. It has no project. The issue
-description and comments carry its contract, decisions, evidence, review, and acceptance, while
-its attributed GitHub PR proves the implementation and merge state.
+A bounded fix or change has one repository-owned standalone issue and no feature project. The
+issue description and comments carry its contract, decisions, evidence, review, and acceptance,
+while its attributed GitHub PR proves the implementation and merge state.
 
 Status renders the issue directly. It never invents project progress for a standalone work item.
 
 ### Multi-issue projects
 
 A multi-issue feature has one Linear project, specification-bearing project updates, and a complete
-ordered set of increment issues. Status derives phase and progress from verified project updates,
-current issue records, relations, ownership, and GitHub evidence.
+ordered set of increment issues. Those specification-bearing updates carry the written
+specification and lifecycle; status derives phase and progress from their verified event chain,
+current issue records, relations, ownership, and GitHub evidence. No Linear document is created.
 
 Each issue represents one independently shippable increment and one attributed PR. Project
 progress is based on the complete managed issue set. The project can reach completion only after

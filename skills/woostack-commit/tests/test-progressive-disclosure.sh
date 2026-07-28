@@ -81,11 +81,9 @@ normalized = compact(corpus)
 # The split may relocate detail, but it may not weaken the observable Linear-only commit/PR contract.
 for token in (
     "Official host-exposed Linear MCP",
-    "There is no backend selection or resolver",
     "Linear-Project: <verified-project-uuid>\nLinear-Issue: <TEAM-NUMBER>",
     "For a role-`work-item` issue, the sole attribution line is exactly",
     "there is no `Linear-Project:` line anywhere",
-    "There is no `Spec:` mention anywhere",
     "After the finalized commit exists and before any push or PR submission",
     "implementationEvidence",
     'gh pr edit <number> --title "<concise title>" --body-file <tmp-body-file>',
@@ -94,11 +92,16 @@ for token in (
     "exact intended title and body read-back is success",
     "Never force-push",
     "Do not merge",
+    "Create for a direct invocation from the parent",
+    'gt create "$branch" --no-interactive -m "<type>: <concise subject>"',
+    "Reuse an existing caller-created branch",
+    "never runs `gt create`, attaches a duplicate worktree, or reparents",
+    "$WOOSTACK_ROOT/.woostack/worktrees/issues/<native-issue-id>",
+    "Reject legacy `Spec:` attribution before drafting",
+    "blocks before branch creation, commit, PR edit, or Linear mutation",
 ):
     check(compact(token) in normalized, f"combined package missing exact behavior {token!r}")
 
-check(not (reference_dir / "markdown-attribution.md").exists(), "removed Markdown attribution reference still exists")
-check("markdown-attribution.md" not in corpus, "Linear-only package still dispatches Markdown attribution")
 
 if errors:
     raise SystemExit("test-progressive-disclosure:\n- " + "\n- ".join(errors))

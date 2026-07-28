@@ -1,8 +1,0 @@
-{
-  "errors": [
-    {
-      "message": "not allowed",
-      "extensions": {"code": "FORBIDDEN"}
-    }
-  ]
-}

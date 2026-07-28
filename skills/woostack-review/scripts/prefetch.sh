@@ -377,36 +377,29 @@ uuid = r"[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]
 issue = r"[A-Z][A-Z0-9]*-[1-9][0-9]*"
 project_pattern = re.compile(rf"Linear-Project: ({uuid})")
 issue_pattern = re.compile(rf"Linear-Issue: ({issue})")
-project_lines = [line for line in lines if re.search(r"(?<![A-Za-z0-9_])(?i:Linear-Project)[ \t]*:", line)]
-issue_lines = [line for line in lines if re.search(r"(?<![A-Za-z0-9_])(?i:Linear-Issue)[ \t]*:", line)]
-spec_lines = [line for line in lines if re.search(r"(?<![A-Za-z0-9_])(?i:Spec)[ \t]*:", line)]
+candidate_pattern = re.compile(
+    r"(?<![A-Za-z0-9_])(?i:Linear-Project|Linear-Issue|Spec)[ \t]*:"
+)
+candidates = [line for line in lines if candidate_pattern.search(line)]
 
 syntax = "absent"
 trailers = []
-if spec_lines:
-    syntax = "invalid"
-elif not project_lines and not issue_lines:
-    syntax = "absent"
-elif (
-    len(project_lines) == 1
-    and len(issue_lines) == 1
-    and len(lines) >= 2
-    and lines[-2:] == [project_lines[0], issue_lines[0]]
-    and project_pattern.fullmatch(project_lines[0])
-    and issue_pattern.fullmatch(issue_lines[0])
+if (
+    len(candidates) == 2
+    and candidates == lines[-2:]
+    and project_pattern.fullmatch(candidates[0])
+    and issue_pattern.fullmatch(candidates[1])
 ):
     syntax = "exact-project-issue"
-    trailers = [project_lines[0], issue_lines[0]]
+    trailers = candidates
 elif (
-    not project_lines
-    and len(issue_lines) == 1
-    and lines
-    and lines[-1] == issue_lines[0]
-    and issue_pattern.fullmatch(issue_lines[0])
+    len(candidates) == 1
+    and candidates == lines[-1:]
+    and issue_pattern.fullmatch(candidates[0])
 ):
     syntax = "exact-issue"
-    trailers = [issue_lines[0]]
-else:
+    trailers = candidates
+elif candidates:
     syntax = "invalid"
 
 with open(output_path, "w", encoding="utf-8") as output:

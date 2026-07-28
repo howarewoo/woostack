@@ -4,7 +4,7 @@
   "cases": [
     {
       "id": "offline-until-morning-catalog-migration",
-      "query": "The implementation plan at `.woostack/plans/catalog-migration.md` has been reviewed and signed off, including the ordered work. I'm closing my laptop until morning; carry it out while I'm away, make only safe reversible decisions, and record anything that could not be completed for me to inspect tomorrow.",
+      "query": "The managed Linear feature project at https://linear.app/acme/project/catalog-migration-33333333 has a verified executionApproved project-update head and its ordered increment issues are final. I'm closing my laptop until morning; carry it out while I'm away, make only safe reversible decisions, and leave verified remote blocker and handoff records for me to inspect tomorrow.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-execute-overnight"
     },
@@ -16,7 +16,7 @@
     },
     {
       "id": "present-for-audit-log-implementation",
-      "query": "`.woostack/plans/audit-log.md` is the implementation plan we reviewed and signed off on. Begin carrying it out now while I am here, and pause for my input if an assumption fails or progress is blocked.",
+      "query": "The managed Linear feature project at https://linear.app/acme/project/audit-log-44444444 has a verified executionApproved project-update head and its ordered increment issues are final. Begin carrying it out now while I am here, and pause for my input if an assumption fails or progress is blocked.",
       "shouldTrigger": false,
       "expectedSkill": "woostack-execute",
       "conflictsWith": ["woostack-execute-overnight"]

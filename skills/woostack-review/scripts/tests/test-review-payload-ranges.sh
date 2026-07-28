@@ -4,6 +4,26 @@ set -euo pipefail
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")/.." && pwd)"
 ROOT="$(cd "$DIR/../../.." && pwd)"
 source "$ROOT/skills/woostack-init/scripts/tests/assert.sh"
+
+assert_file_contains() {
+  local file="$1" needle="$2" message="$3"
+  if grep -Fq -- "$needle" "$file"; then
+    pass
+  else
+    fail "$message"
+    echo "    $(basename "$file") does not contain [$needle]"
+  fi
+}
+
+assert_file_not_contains() {
+  local file="$1" needle="$2" message="$3"
+  if grep -Fq -- "$needle" "$file"; then
+    fail "$message"
+    echo "    $(basename "$file") unexpectedly contains [$needle]"
+  else
+    pass
+  fi
+}
 HEADER="$ROOT/skills/woostack-review/prompts/_orchestrator-header.md"
 
 work="$(mktemp -d)"
@@ -81,9 +101,9 @@ assert_contains "$(cat "$HEADER")" '.author.id' "payload builder uses the review
 assert_contains "$(cat "$HEADER")" '.sha // empty' "payload builder binds author proof to reviewed head"
 assert_not_contains "$(cat "$HEADER")" 'auth_login == pr_author' "login equality cannot authorize or block native review verdict"
 
-assert_contains "$(cat "$ROOT/skills/woostack-review/prompts/_worker-header.md")" 'end_line' "worker contract exposes optional range endpoint"
-assert_contains "$(cat "$HEADER")" 'end_line' "orchestrator schema exposes optional range endpoint"
-assert_contains "$(cat "$ROOT/skills/woostack-review/prompts/validator.md")" 'end_line' "defender preserves range endpoint"
-assert_contains "$(cat "$ROOT/skills/woostack-review/prompts/validator-prosecutor.md")" 'end_line' "prosecutor preserves range endpoint"
+assert_file_contains "$ROOT/skills/woostack-review/prompts/_worker-header.md" 'end_line' "worker contract exposes optional range endpoint"
+assert_file_contains "$HEADER" 'end_line' "orchestrator schema exposes optional range endpoint"
+assert_file_contains "$ROOT/skills/woostack-review/prompts/validator.md" 'end_line' "defender preserves range endpoint"
+assert_file_contains "$ROOT/skills/woostack-review/prompts/validator-prosecutor.md" 'end_line' "prosecutor preserves range endpoint"
 
 finish

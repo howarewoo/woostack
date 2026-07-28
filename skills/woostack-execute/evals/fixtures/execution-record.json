@@ -8,9 +8,7 @@
       "id": "verified-independent-root",
       "input": {
         "source": "official-host-exposed-linear-mcp",
-        "shape": "projectIssueDag",
-        "localPlan": null,
-        "localProgress": null
+        "shape": "projectIssueDag"
       },
       "project": {
         "id": "11111111-1111-4111-8111-111111111111",
@@ -97,20 +95,13 @@
         "collision": false,
         "readBack": "complete"
       },
-      "requestedBoundary": "edit",
-      "expected": {
-        "status": "proceed",
-        "reason": "verified-independent-root",
-        "retryAllowed": false
-      }
+      "requestedBoundary": "edit"
     },
     {
       "id": "verified-standalone-resume",
       "input": {
         "source": "official-host-exposed-linear-mcp",
-        "shape": "standaloneIssue",
-        "localPlan": null,
-        "localProgress": null
+        "shape": "standaloneIssue"
       },
       "project": null,
       "issue": {
@@ -181,40 +172,24 @@
         "collision": false,
         "readBack": "complete"
       },
-      "requestedBoundary": "edit",
-      "expected": {
-        "status": "proceed",
-        "reason": "verified-standalone-resume",
-        "retryAllowed": false
-      }
+      "requestedBoundary": "edit"
     },
     {
-      "id": "rejects-local-plan-progress-authority",
-      "input": {
-        "source": "local-filesystem",
-        "shape": "localPlan",
-        "localPlan": ".woostack/plans/cache.md",
-        "localProgress": ".woostack/progress/cache.json"
-      },
-      "project": null,
-      "issue": null,
-      "events": [],
-      "ancestry": null,
-      "registry": null,
-      "requestedBoundary": "edit",
-      "expected": {
-        "status": "blocked",
-        "reason": "local-development-record-is-not-authority",
-        "retryAllowed": false
+      "id": "caller-resume-from-local-paths",
+      "callerRequest": {
+        "command": "/woostack-execute",
+        "arguments": [
+          ".woostack/plans/cache.md"
+        ],
+        "resumeFrom": ".woostack/progress/cache.json",
+        "requestedBoundary": "edit"
       }
     },
     {
       "id": "rejects-owner-and-registry-collision",
       "input": {
         "source": "official-host-exposed-linear-mcp",
-        "shape": "projectIssueDag",
-        "localPlan": null,
-        "localProgress": null
+        "shape": "projectIssueDag"
       },
       "project": {
         "id": "11111111-1111-4111-8111-111111111111",
@@ -301,20 +276,13 @@
         "collision": true,
         "readBack": "complete"
       },
-      "requestedBoundary": "edit",
-      "expected": {
-        "status": "blocked",
-        "reason": "ownership-or-registry-collision",
-        "retryAllowed": false
-      }
+      "requestedBoundary": "edit"
     },
     {
       "id": "rejects-unmerged-non-parent-dependency",
       "input": {
         "source": "official-host-exposed-linear-mcp",
-        "shape": "projectIssueDag",
-        "localPlan": null,
-        "localProgress": null
+        "shape": "projectIssueDag"
       },
       "project": {
         "id": "11111111-1111-4111-8111-111111111111",
@@ -417,20 +385,13 @@
         "collision": false,
         "readBack": "complete"
       },
-      "requestedBoundary": "edit",
-      "expected": {
-        "status": "blocked",
-        "reason": "non-parent-dependency-is-not-merged",
-        "retryAllowed": false
-      }
+      "requestedBoundary": "edit"
     },
     {
       "id": "rejects-unknown-verification-comment-outcome",
       "input": {
         "source": "official-host-exposed-linear-mcp",
-        "shape": "standaloneIssue",
-        "localPlan": null,
-        "localProgress": null
+        "shape": "standaloneIssue"
       },
       "project": null,
       "issue": {
@@ -521,20 +482,13 @@
         "collision": false,
         "readBack": "complete"
       },
-      "requestedBoundary": "commit",
-      "expected": {
-        "status": "blocked",
-        "reason": "unknown-event-read-back",
-        "retryAllowed": false
-      }
+      "requestedBoundary": "commit"
     },
     {
       "id": "restores-executing-after-verified-unblock",
       "input": {
         "source": "official-host-exposed-linear-mcp",
-        "shape": "standaloneIssue",
-        "localPlan": null,
-        "localProgress": null
+        "shape": "standaloneIssue"
       },
       "project": null,
       "issue": {
@@ -649,20 +603,13 @@
         "collision": false,
         "readBack": "complete"
       },
-      "requestedBoundary": "resume",
-      "expected": {
-        "status": "proceed",
-        "reason": "verified-unblock-restores-executing",
-        "retryAllowed": false
-      }
+      "requestedBoundary": "resume"
     },
     {
       "id": "accepts-verified-handoff-successor",
       "input": {
         "source": "official-host-exposed-linear-mcp",
-        "shape": "projectIssueDag",
-        "localPlan": null,
-        "localProgress": null
+        "shape": "projectIssueDag"
       },
       "project": {
         "id": "11111111-1111-4111-8111-111111111111",
@@ -876,20 +823,13 @@
         "collision": false,
         "readBack": "complete"
       },
-      "requestedBoundary": "resume",
-      "expected": {
-        "status": "proceed",
-        "reason": "verified-handoff-successor",
-        "retryAllowed": false
-      }
+      "requestedBoundary": "resume"
     },
     {
       "id": "rejects-premature-issue-done",
       "input": {
         "source": "official-host-exposed-linear-mcp",
-        "shape": "standaloneIssue",
-        "localPlan": null,
-        "localProgress": null
+        "shape": "standaloneIssue"
       },
       "project": null,
       "issue": {
@@ -1104,20 +1044,13 @@
         },
         "allIssuesDone": null
       },
-      "requestedBoundary": "done",
-      "expected": {
-        "status": "blocked",
-        "reason": "done-requires-responsible-acceptance-and-verified-merge",
-        "retryAllowed": false
-      }
+      "requestedBoundary": "done"
     },
     {
       "id": "rejects-premature-project-done",
       "input": {
         "source": "official-host-exposed-linear-mcp",
-        "shape": "projectIssueDag",
-        "localPlan": null,
-        "localProgress": null
+        "shape": "projectIssueDag"
       },
       "project": {
         "id": "11111111-1111-4111-8111-111111111111",
@@ -1182,12 +1115,7 @@
         "allIssuesDone": false,
         "projectAcceptanceReadBack": "complete"
       },
-      "requestedBoundary": "done",
-      "expected": {
-        "status": "blocked",
-        "reason": "project-done-requires-all-issues-done",
-        "retryAllowed": false
-      }
+      "requestedBoundary": "done"
     }
   ]
 }

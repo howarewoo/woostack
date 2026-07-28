@@ -1,0 +1,33 @@
+{
+  "repositoryId": "repo-woostack",
+  "legacyRecords": [
+    {
+      "path": ".woostack/fixes/session-leak.md",
+      "kind": "fix",
+      "stableClientId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "phase": "approved",
+      "provenance": ["git:c389df2:.woostack/fixes/session-leak.md"]
+    }
+  ],
+  "remoteObservations": [
+    {
+      "clientId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "nativeId": "linear-issue-foreign-session-leak",
+      "role": "work-item",
+      "repositoryId": "repo-other",
+      "readBack": "verified"
+    }
+  ],
+  "receiptSet": {
+    "complete": true,
+    "independent": true
+  },
+  "provenanceLedger": {
+    "verified": false,
+    "entries": ["git:c389df2:.woostack/fixes/session-leak.md"]
+  },
+  "gitRecovery": {
+    "allRecordsTracked": true,
+    "blobsVerified": true
+  }
+}

@@ -2,10 +2,9 @@
 
 Load this reference only for one exact Linear issue UUID or exact URL supplied by the caller. Load
 the canonical [Linear MCP development authority](../../woostack-init/references/artifact-backends.md)
-first. Use only host-exposed official Linear MCP capabilities discovered by what they do; do not
-call a Linear endpoint, embed Linear GraphQL, use a repository adapter, or fall back to local
-development records. Git and GitHub remain authoritative for commits, branches, repositories, pull
-requests, and ancestry. GitHub GraphQL remains valid only for GitHub operations.
+first. Discover host-exposed official Linear MCP capabilities by what they do. Git and GitHub remain
+authoritative for commits, branches, repositories, pull requests, and ancestry. GitHub GraphQL
+remains valid only for GitHub operations.
 
 ## Verify the caller-owned issue, project, and ancestry
 
@@ -54,10 +53,13 @@ project trailer. The expected PR attribution is exactly one final issue trailer:
 Linear-Issue: <TEAM-NUMBER>
 ```
 
-The verified integration base and caller receipt determine ancestry. Require the current
-issue-owned branch/worktree and Graphite parent to match that base, and require the current HEAD to
-be descended from the retained base commit. Reject a project argument, project relation, foreign
-base, unrelated branch, moved base, or incomplete ancestry proof.
+The verified integration base and caller receipt determine ancestry. An existing-branch admission
+requires the current HEAD to be descended from the retained base commit, with its exact issue
+claim/worktree and Graphite parent matching. A direct
+fresh admission instead requires the primary checkout on that exact base/start, the reviewed
+session diff only, and complete absence of the issue's claim, worktree, branch, Graphite/remote/PR,
+and Linear PR-relation evidence. Reject a project argument, foreign or moved base, unrelated or
+duplicate branch/worktree, incomplete ancestry, collision, or unknown absence.
 
 ### Project increment
 
@@ -68,13 +70,14 @@ and current ownership-valid project/update chain. Require the issue's native mem
 managed `projectId` to equal that exact project; reject a project selected by title or inferred from
 the issue trailer.
 
-Require the issue's complete native dependency relations and approved Git-parent relation. For a
-dependency root, the branch must start at the project's immutable frozen root commit and its
-Graphite parent/base must be the frozen base branch. For a dependent issue, its branch and Graphite
-parent/base must be the declared parent issue branch; every additional dependency must already be
-merged or reachable from that parent. Require HEAD ancestry from the exact retained base ref and
-reject ordinal adjacency, a newer base tip, wrong parent, cross-project dependency, missing
-relation, or partial reachability proof.
+Require the issue's complete native dependency relations and approved Git-parent relation. A
+dependency root retains the immutable frozen root commit and frozen base parent. A dependent issue
+retains the declared parent issue head/branch; every additional dependency is already merged or
+reachable from that parent. An existing-branch admission must match those exact facts. A direct
+fresh admission must be on the retained parent at the exact start with only the reviewed diff and
+complete absence of issue branch/worktree/submission/PR/relation evidence. Reject ordinal adjacency,
+a newer base tip, wrong parent, cross-project dependency, missing relation, partial reachability,
+collision, or unknown absence.
 
 The expected PR suffix is exactly:
 
@@ -88,9 +91,13 @@ Linear-Issue: <TEAM-NUMBER>
 Compose and validate the proposed body using `pr-body.md`. It must have exactly one raw final
 `Linear-Issue: <TEAM-NUMBER>` line. Only a verified role-`increment` issue has the one immediately
 preceding raw `Linear-Project: <verified-project-uuid>` line. A role-`work-item` has no project
-line. Reject any `Spec:` mention, including bulleted, quoted, fenced, indented, or inline-code
-wrapping; a missing issue line; a duplicate or reordered pair; extra spacing; a wrong value; a
+line. Reject a missing issue line; a duplicate or reordered pair; extra spacing; a wrong value; a
 foreign repository; a role or issue/project mismatch; or a synthetic project.
+
+Before a proposed body is accepted or an existing body is treated as unattributed, scan the
+complete raw existing PR body. Any case-insensitive exact, indented, quoted, or fenced legacy
+`Spec:` candidate blocks before branch creation, commit, GitHub, or Linear mutation. A valid Linear
+suffix does not override it, and it is never removed, translated, or normalized.
 
 Classify the complete all-state canonical-repository PR candidate set and Linear PR relations by
 the submission shape below; never select a PR or infer identity from a current branch name. A fresh
@@ -103,10 +110,11 @@ GitHub, Linear, Graphite, and Git history must agree on their shared stable iden
 prior implementation and every event it relates to as the exact native revisions current at the
 applicable authoritative timestamp; never substitute the latest event by kind.
 
-Independently read the existing PR body as well. It must have the expected exact suffix or, only
-when updates are enabled, contain no attribution line at all. A partial, malformed, foreign,
-duplicate, replacement, or conflicting PR/relation blocks rather than being normalized.
-`--no-pr-update` requires the exact suffix from the start.
+Independently read the existing PR body as well. It must contain no legacy `Spec:` candidate and
+must have the expected exact suffix or, only when updates are enabled, no Linear attribution line
+at all. A legacy, partial, malformed, foreign, duplicate, replacement, or conflicting body,
+PR, or relation blocks rather than being rebuilt or normalized. `--no-pr-update` requires the
+legacy guard and exact suffix from the start.
 
 Re-read the complete issue, optional project, owner, state, events, relations, repository, Git
 branch/base/HEAD ancestry, Graphite parent, and proposed body after staging. Every required page
@@ -348,7 +356,8 @@ Require all of:
   parent issue branch for the role/relation shape;
 - an existing update preserves the exact number/URL/repository/head branch/base proven at A;
 - Git ancestry from that exact base is valid, including every required increment dependency;
-- its current body either has the exact role-derived suffix or is completely unattributed when
+- its current body contains no case-insensitive exact, indented, quoted, or fenced legacy `Spec:`
+  candidate and either has the exact role-derived suffix or is completely unattributed when
   updates are enabled; and
 - the Linear issue/project identity, type-aware owner, state, membership, implementation history,
   and relations still match a fresh complete official-MCP read.
@@ -356,9 +365,9 @@ Require all of:
 For an existing update, a same-identity PR still at A means submission is not yet proven and
 returns to the safe submission classification; a PR at unexpected head C is a collision. No PR,
 multiple candidates, a foreign repository, changed number/head branch/base, bad ancestry, owner
-drift, relation mismatch, any `Spec:` mention (including Markdown wrapping), partial Linear suffix,
-duplicate/reordered trailer, wrong issue/project, or synthetic work-item project blocks before
-`gh pr edit`, Linear relation mutation, or state handling.
+drift, relation mismatch, a partial Linear suffix, duplicate/reordered trailer, wrong issue/project,
+or synthetic work-item project blocks before `gh pr edit`, Linear relation mutation, or state
+handling.
 
 Unless `--no-pr-update` applies, update that verified PR with the already validated title/body via
 `gh pr edit`, then independently re-fetch it by retained number with `gh pr view` and re-list the

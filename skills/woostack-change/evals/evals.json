@@ -1,0 +1,772 @@
+{
+  "schemaVersion": 1,
+  "skill": "woostack-change",
+  "cases": [
+    {
+      "id": "creates-one-verified-standalone-work-item",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "change-create-official-endpoint","fixture": "work-item-a.json","pointer": "/officialMcp/endpoint"}
+      ],
+      "prompt": "Read fixtures/work-item-a.json as an ordered bounded synthetic provider transcript. Do not modify files or contact remote services. Apply the packaged skill through the pre-worktree boundary and return exactly one JSON object with keys status, transport, endpoint, mcpPreflightVerified, issue, createAttempts, operationOrder, owner, assignmentEvent, allReadBacksVerified, projectCreated, worktreeCreationAuthorized, and repositoryMutationCount. Preserve input operation names and identities exactly.",
+      "fixtures": [
+        "work-item-a.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "One preallocated UUID creates one repository-owned role-work-item issue with no project, and every create, contract, delegate, state, and assignment mutation is independently read before the pre-worktree identity and owner gate succeeds.",
+      "assertions": [
+        {
+          "id": "change-create-ready-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "ready-for-worktree",
+          "critical": true
+        },
+        {
+          "id": "change-create-official-mcp",
+          "kind": "final-json-path-equals",
+          "pointer": "/transport",
+          "expected": "official-linear-mcp",
+          "critical": true
+        },
+        {
+          "id": "change-create-official-endpoint",
+          "kind": "final-json-path-equals",
+          "pointer": "/endpoint",
+          "expected": "https://mcp.linear.app/mcp",
+          "critical": true
+        },
+        {
+          "id": "change-create-mcp-preflight",
+          "kind": "final-json-path-equals",
+          "pointer": "/mcpPreflightVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "change-create-exact-work-item",
+          "kind": "final-json-path-equals",
+          "pointer": "/issue",
+          "expected": {
+            "clientId": "70000000-0000-4000-8000-000000000001",
+            "nativeId": "issue-cli-51",
+            "identifier": "APP-51",
+            "repository": "https://github.com/acme/cli",
+            "role": "work-item",
+            "projectId": null,
+            "semanticState": "executing"
+          },
+          "critical": true
+        },
+        {
+          "id": "change-create-once",
+          "kind": "final-json-path-equals",
+          "pointer": "/createAttempts",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "change-create-readback-order",
+          "kind": "final-json-path-equals",
+          "pointer": "/operationOrder",
+          "expected": [
+            "classify-scope",
+            "verify-mcp-capabilities",
+            "search-issue-client-id",
+            "create-issue",
+            "read-created-issue",
+            "update-contract",
+            "read-contract",
+            "set-delegate",
+            "read-delegate",
+            "transition-executing",
+            "read-executing-state",
+            "append-assignment-accepted",
+            "read-assignment-accepted",
+            "read-pre-worktree-issue"
+          ],
+          "critical": true
+        },
+        {
+          "id": "change-create-type-aware-owner",
+          "kind": "final-json-path-equals",
+          "pointer": "/owner",
+          "expected": {
+            "kind": "app",
+            "principalId": "app-engineer-9",
+            "field": "delegate"
+          },
+          "critical": true
+        },
+        {
+          "id": "change-create-assignment-receipt",
+          "kind": "final-json-path-equals",
+          "pointer": "/assignmentEvent",
+          "expected": {
+            "clientId": "70000000-0000-4000-8000-000000000011",
+            "nativeId": "comment-assignment-51",
+            "issueId": "issue-cli-51",
+            "ownerKind": "app",
+            "ownerPrincipalId": "app-engineer-9",
+            "readBackVerified": true
+          },
+          "critical": true
+        },
+        {
+          "id": "change-create-all-readbacks",
+          "kind": "final-json-path-equals",
+          "pointer": "/allReadBacksVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "change-create-no-project",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "change-create-worktree-gate",
+          "kind": "final-json-path-equals",
+          "pointer": "/worktreeCreationAuthorized",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "change-create-no-early-repository-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "resumes-exact-standalone-work-item-and-worktree",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "change-resume-exact-branch","fixture": "work-item-b.json","pointer": "/gitRead/worktrees/0/branch"}
+      ],
+      "prompt": "Read fixtures/work-item-b.json as a bounded resume snapshot and independent pre-mutation read. Do not modify files or contact remote services. Apply the packaged skill to determine resume admission and return exactly one JSON object with keys status, issue, resumeMode, createAttempts, projectCreated, owner, assignmentEventNativeId, branch, worktree, identityOwnerRecheckVerified, repositoryMutationAuthorized, and unrelatedMutationIds.",
+      "fixtures": [
+        "work-item-b.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The exact executing role-work-item with no project, current app-delegate assignment, matching branch, matching worktree, and unchanged final identity-owner read resumes existing isolation without creating a replacement issue or wrapper project.",
+      "assertions": [
+        {
+          "id": "change-resume-ready-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "ready-to-resume",
+          "critical": true
+        },
+        {
+          "id": "change-resume-exact-work-item",
+          "kind": "final-json-path-equals",
+          "pointer": "/issue",
+          "expected": {
+            "clientId": "71000000-0000-4000-8000-000000000001",
+            "nativeId": "issue-cli-51",
+            "identifier": "APP-51",
+            "repository": "https://github.com/acme/cli",
+            "role": "work-item",
+            "projectId": null,
+            "semanticState": "executing"
+          },
+          "critical": true
+        },
+        {
+          "id": "change-resume-existing-worktree",
+          "kind": "final-json-path-equals",
+          "pointer": "/resumeMode",
+          "expected": "recover-existing-worktree",
+          "critical": true
+        },
+        {
+          "id": "change-resume-no-create",
+          "kind": "final-json-path-equals",
+          "pointer": "/createAttempts",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "change-resume-no-project",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "change-resume-type-aware-owner",
+          "kind": "final-json-path-equals",
+          "pointer": "/owner",
+          "expected": {
+            "kind": "app",
+            "principalId": "app-engineer-9",
+            "field": "delegate"
+          },
+          "critical": true
+        },
+        {
+          "id": "change-resume-current-assignment",
+          "kind": "final-json-path-equals",
+          "pointer": "/assignmentEventNativeId",
+          "expected": "comment-assignment-51",
+          "critical": true
+        },
+        {
+          "id": "change-resume-exact-branch",
+          "kind": "final-json-path-equals",
+          "pointer": "/branch",
+          "expected": "change/report-color-flag",
+          "critical": true
+        },
+        {
+          "id": "change-resume-exact-worktree-path",
+          "kind": "final-json-path-equals",
+          "pointer": "/worktree",
+          "expected": ".woostack/worktrees/change-report-color-flag",
+          "critical": true
+        },
+        {
+          "id": "change-resume-final-identity-owner-read",
+          "kind": "final-json-path-equals",
+          "pointer": "/identityOwnerRecheckVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "change-resume-repository-boundary",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationAuthorized",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "change-resume-no-unrelated-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/unrelatedMutationIds",
+          "expected": [],
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "blocks-unavailable-or-partial-official-mcp",
+      "prompt": "Read fixtures/work-item-c.json as two independent capability snapshots for the same bounded change invocation. Do not modify files or contact remote services. Apply the packaged skill at the preflight boundary and return exactly one JSON object with keys status, decisions, issueMutationIds, projectMutationIds, worktreeCreated, and repositoryMutationCount. decisions must be keyed by the snapshot names and each value must contain status, reasonCode, and missingCapabilities.",
+      "fixtures": [
+        "work-item-c.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "An absent official connection and an authenticated but incomplete issue, owner, and comment capability surface both stop before issue, project, worktree, Git, or repository mutation.",
+      "assertions": [
+        {
+          "id": "change-mcp-scenarios-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "change-missing-partial-mcp-decisions",
+          "kind": "final-json-path-equals",
+          "pointer": "/decisions",
+          "expected": {
+            "connectionA": {
+              "status": "blocked",
+              "reasonCode": "official-mcp-unavailable",
+              "missingCapabilities": []
+            },
+            "connectionB": {
+              "status": "blocked",
+              "reasonCode": "official-mcp-capabilities-incomplete",
+              "missingCapabilities": [
+                "assignee.update",
+                "comment.list",
+                "comment.read",
+                "delegate.update"
+              ]
+            }
+          },
+          "critical": true
+        },
+        {
+          "id": "change-mcp-no-issue-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueMutationIds",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "change-mcp-no-project-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectMutationIds",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "change-mcp-no-worktree",
+          "kind": "final-json-path-equals",
+          "pointer": "/worktreeCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "change-mcp-no-repository-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "blocks-non-work-item-role-before-isolation",
+      "prompt": "Read fixtures/work-item-d.json as the complete independent read for one explicitly supplied issue. Do not modify files or contact remote services. Apply the packaged skill through identity admission and return exactly one JSON object with keys status, reasonCode, suppliedNativeId, observedRole, issueAccepted, issueMutationIds, projectMutationIds, worktreeCreated, and repositoryMutationCount.",
+      "fixtures": [
+        "work-item-d.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The supplied project increment is not a standalone work item, so its exact native identity is reported but it is not adopted, rewritten, wrapped, or used to authorize worktree or repository mutation.",
+      "assertions": [
+        {
+          "id": "change-wrong-role-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "change-wrong-role-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": "wrong-resource-role",
+          "critical": true
+        },
+        {
+          "id": "change-wrong-role-native-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/suppliedNativeId",
+          "expected": "issue-cli-52",
+          "critical": true
+        },
+        {
+          "id": "change-wrong-role-observed",
+          "kind": "final-json-path-equals",
+          "pointer": "/observedRole",
+          "expected": "increment",
+          "critical": true
+        },
+        {
+          "id": "change-wrong-role-not-accepted",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueAccepted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "change-wrong-role-no-issue-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueMutationIds",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "change-wrong-role-no-project-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectMutationIds",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "change-wrong-role-no-worktree",
+          "kind": "final-json-path-equals",
+          "pointer": "/worktreeCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "change-wrong-role-no-repository-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "blocks-project-backed-work-item-and-wrapper",
+      "prompt": "Read fixtures/work-item-e.json as the complete independent reads for one explicitly supplied issue and its native project relation. Do not modify files or contact remote services. Apply the packaged skill through identity admission and return exactly one JSON object with keys status, reasonCode, issueNativeId, issueRole, observedProjectId, issueAccepted, wrapperProjectAccepted, projectCreated, issueMutationIds, projectMutationIds, worktreeCreated, and repositoryMutationCount.",
+      "fixtures": [
+        "work-item-e.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Even with the work-item envelope, native project membership violates standalone identity; neither the issue nor its one-issue wrapper project is accepted or mutated, and isolation never begins.",
+      "assertions": [
+        {
+          "id": "change-project-membership-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "change-project-membership-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": "work-item-has-project-membership",
+          "critical": true
+        },
+        {
+          "id": "change-project-membership-issue-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueNativeId",
+          "expected": "issue-cli-53",
+          "critical": true
+        },
+        {
+          "id": "change-project-membership-role",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueRole",
+          "expected": "work-item",
+          "critical": true
+        },
+        {
+          "id": "change-project-membership-observed-project",
+          "kind": "final-json-path-equals",
+          "pointer": "/observedProjectId",
+          "expected": "project-wrapper-3",
+          "critical": true
+        },
+        {
+          "id": "change-project-membership-issue-rejected",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueAccepted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "change-wrapper-project-rejected",
+          "kind": "final-json-path-equals",
+          "pointer": "/wrapperProjectAccepted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "change-wrapper-project-not-created",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "change-project-membership-no-issue-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueMutationIds",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "change-project-membership-no-project-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectMutationIds",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "change-project-membership-no-worktree",
+          "kind": "final-json-path-equals",
+          "pointer": "/worktreeCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "change-project-membership-no-repository-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "blocks-ambiguous-rediscovery-after-unknown-create",
+      "prompt": "Read fixtures/work-item-f.json as an ordered synthetic transcript beginning with no issue match and one preallocated resource UUID. Do not modify files or contact remote services. Apply the packaged skill at the create boundary and return exactly one JSON object with keys status, reasonCode, issueClientId, createAttempts, rediscoveryMatchCount, knownNativeIds, replacementCreated, issueAccepted, projectCreated, worktreeCreated, and repositoryMutationCount.",
+      "fixtures": [
+        "work-item-f.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "After the only create attempt has an unknown outcome, rediscovery by the retained UUID finds two matches; the flow reports both native IDs, creates no replacement or project, accepts neither issue, and starts no repository isolation.",
+      "assertions": [
+        {
+          "id": "change-unknown-create-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "change-unknown-create-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": "ambiguous-unknown-create-outcome",
+          "critical": true
+        },
+        {
+          "id": "change-unknown-create-stable-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueClientId",
+          "expected": "74000000-0000-4000-8000-000000000001",
+          "critical": true
+        },
+        {
+          "id": "change-unknown-create-once",
+          "kind": "final-json-path-equals",
+          "pointer": "/createAttempts",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "change-unknown-create-two-matches",
+          "kind": "final-json-path-equals",
+          "pointer": "/rediscoveryMatchCount",
+          "expected": 2,
+          "critical": true
+        },
+        {
+          "id": "change-unknown-create-native-ids",
+          "kind": "final-json-path-equals",
+          "pointer": "/knownNativeIds",
+          "expected": [
+            "issue-cli-54",
+            "issue-cli-55"
+          ],
+          "critical": true
+        },
+        {
+          "id": "change-unknown-create-no-replacement",
+          "kind": "final-json-path-equals",
+          "pointer": "/replacementCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "change-unknown-create-no-issue",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueAccepted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "change-unknown-create-no-project",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "change-unknown-create-no-worktree",
+          "kind": "final-json-path-equals",
+          "pointer": "/worktreeCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "change-unknown-create-no-repository-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "blocks-owner-or-identity-drift-before-side-effect",
+      "prompt": "Read fixtures/work-item-g.json as two independent pairs of initial and pre-mutation issue reads. Do not modify files or contact remote services. Apply the packaged skill at the next repository side-effect boundary and return exactly one JSON object with keys status, decisions, repositoryMutationIds, worktreeCreated, pushAttempted, and submissionAttempted. decisions must be keyed by the input issue names and each value must contain status, reasonCode, initialPrincipalId, currentPrincipalId, initialRepository, and currentRepository.",
+      "fixtures": [
+        "work-item-g.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "A changed app delegate and a changed repository attribution independently invalidate the pre-side-effect gate; neither case mutates the repository, creates isolation, pushes, or submits.",
+      "assertions": [
+        {
+          "id": "change-drift-scenarios-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "change-owner-identity-drift-decisions",
+          "kind": "final-json-path-equals",
+          "pointer": "/decisions",
+          "expected": {
+            "issueA": {
+              "status": "blocked",
+              "reasonCode": "owner-drift",
+              "initialPrincipalId": "app-engineer-9",
+              "currentPrincipalId": "app-engineer-10",
+              "initialRepository": "https://github.com/acme/cli",
+              "currentRepository": "https://github.com/acme/cli"
+            },
+            "issueB": {
+              "status": "blocked",
+              "reasonCode": "identity-drift",
+              "initialPrincipalId": "app-engineer-9",
+              "currentPrincipalId": "app-engineer-9",
+              "initialRepository": "https://github.com/acme/cli",
+              "currentRepository": "https://github.com/other/cli"
+            }
+          },
+          "critical": true
+        },
+        {
+          "id": "change-drift-no-repository-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationIds",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "change-drift-no-worktree",
+          "kind": "final-json-path-equals",
+          "pointer": "/worktreeCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "change-drift-no-push",
+          "kind": "final-json-path-equals",
+          "pointer": "/pushAttempted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "change-drift-no-submission",
+          "kind": "final-json-path-equals",
+          "pointer": "/submissionAttempted",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "rejects-mutation-before-independent-readback",
+      "prompt": "Read fixtures/work-item-h.json as an observed ordered history at the standalone issue-binding boundary. Do not modify files or contact remote services. Apply the packaged skill to validate the history and return exactly one JSON object with keys status, reasonCode, issueClientId, issueNativeId, readBackOrderValid, firstUnverifiedMutationSequence, violatingMutationSequence, acceptedMutationSequences, issueAccepted, additionalMutationIds, projectCreated, worktreeCreationAuthorized, and repositoryMutationCount.",
+      "fixtures": [
+        "work-item-h.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "A contract update that follows issue creation before any independent issue read violates the mutation boundary; the later read cannot retroactively validate the sequence, so the issue is not admitted and no additional, project, worktree, or repository mutation is authorized.",
+      "assertions": [
+        {
+          "id": "change-mutation-order-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "change-mutation-order-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": "mutation-before-independent-read-back",
+          "critical": true
+        },
+        {
+          "id": "change-mutation-order-client-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueClientId",
+          "expected": "76000000-0000-4000-8000-000000000001",
+          "critical": true
+        },
+        {
+          "id": "change-mutation-order-native-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueNativeId",
+          "expected": "issue-cli-58",
+          "critical": true
+        },
+        {
+          "id": "change-mutation-order-invalid",
+          "kind": "final-json-path-equals",
+          "pointer": "/readBackOrderValid",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "change-mutation-order-first-unverified",
+          "kind": "final-json-path-equals",
+          "pointer": "/firstUnverifiedMutationSequence",
+          "expected": 2,
+          "critical": true
+        },
+        {
+          "id": "change-mutation-order-violating-sequence",
+          "kind": "final-json-path-equals",
+          "pointer": "/violatingMutationSequence",
+          "expected": 3,
+          "critical": true
+        },
+        {
+          "id": "change-mutation-order-no-accepted-mutations",
+          "kind": "final-json-path-equals",
+          "pointer": "/acceptedMutationSequences",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "change-mutation-order-issue-not-accepted",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueAccepted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "change-mutation-order-no-additional-mutations",
+          "kind": "final-json-path-equals",
+          "pointer": "/additionalMutationIds",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "change-mutation-order-no-project",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "change-mutation-order-no-worktree",
+          "kind": "final-json-path-equals",
+          "pointer": "/worktreeCreationAuthorized",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "change-mutation-order-no-repository-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
+          "critical": true
+        }
+      ]
+    }
+  ]
+}

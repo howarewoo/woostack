@@ -298,10 +298,13 @@ The final nonblank raw PR suffix for a standalone work item is exactly:
 Linear-Issue: <TEAM-NUMBER>
 ```
 
-The standalone body contains no `Linear-Project:` line. Every body contains no `Spec:` attribution.
-Wrong repository, duplicate/missing/reordered/wrapped/indented trailers, extra trailer whitespace,
-foreign project/issue, synthetic work-item project, mismatched Linear attachment/comment, or a PR
-claimed by two issues fails closed.
+The standalone body contains no `Linear-Project:` line. Before accepting either suffix, scan every
+line of the whole normalized body; any case-insensitive exact, indented, quoted, or fenced `Spec:`
+attribution candidate anywhere blocks before reconciliation or mutation. Candidate-only
+normalization never repairs or loosens raw Linear suffix validation. Wrong repository,
+duplicate/missing/reordered/wrapped/indented trailers, extra trailer whitespace, foreign
+project/issue, synthetic work-item project, mismatched Linear attachment/comment, or a PR claimed
+by two issues fails closed.
 
 Verify the exact Git head/base refs and SHAs, independently recomputed commit/diff identity from
 current `implementationEvidence`, review target, PR state, merge commit, and ancestry. Independent

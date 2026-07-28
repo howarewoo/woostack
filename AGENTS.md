@@ -68,9 +68,9 @@ framing pages are committed. Deploy notes live in [`site/README.md`](site/README
 Consumer projects use the official Linear MCP at `https://mcp.linear.app/mcp` as their only
 development-record channel. A standalone change or fix is exactly one bound Linear issue.
 Multi-issue work is exactly one Linear project with specification-bearing project updates and
-ordered increment issues. Linear owns scope, decisions, assignment, dependencies, progress, and
-acceptance; Git and GitHub own source, branches, commits, pull requests, reviews, and merge
-evidence.
+ordered increment issues. Project updates own its specification, decisions, phase, and progress;
+no Linear document is created. Linear owns scope, assignment, dependencies, and acceptance; Git
+and GitHub own source, branches, commits, pull requests, reviews, and merge evidence.
 
 `.woostack/config.json` stores non-secret repository policy only. Authentication belongs to the
 host's MCP/OAuth secret store. Skills discover the host-exposed official MCP capabilities and prove

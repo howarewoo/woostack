@@ -1,0 +1,50 @@
+{
+  "repositoryId": "repo-woostack",
+  "legacyRecords": [
+    {
+      "path": ".woostack/specs/profile.md",
+      "kind": "specification",
+      "stableClientId": "88888888-8888-4888-8888-888888888888",
+      "phase": "approved",
+      "provenance": ["git:b671c22:.woostack/specs/profile.md"]
+    },
+    {
+      "path": ".woostack/plans/profile.md",
+      "kind": "plan",
+      "stableClientId": "99999999-9999-4999-8999-999999999999",
+      "phase": "ready",
+      "provenance": ["git:55a423d:.woostack/plans/profile.md"]
+    }
+  ],
+  "remoteObservations": [
+    {
+      "clientId": "88888888-8888-4888-8888-888888888888",
+      "nativeId": "linear-project-profile",
+      "role": "feature",
+      "repositoryId": "repo-woostack",
+      "readBack": "verified"
+    },
+    {
+      "clientId": "99999999-9999-4999-8999-999999999999",
+      "nativeId": null,
+      "role": "increment",
+      "repositoryId": "repo-woostack",
+      "readComplete": false
+    }
+  ],
+  "receiptSet": {
+    "complete": false,
+    "independent": true
+  },
+  "provenanceLedger": {
+    "verified": false,
+    "entries": [
+      "git:b671c22:.woostack/specs/profile.md -> linear://project/88888888-8888-4888-8888-888888888888",
+      "git:55a423d:.woostack/plans/profile.md"
+    ]
+  },
+  "gitRecovery": {
+    "allRecordsTracked": true,
+    "blobsVerified": true
+  }
+}

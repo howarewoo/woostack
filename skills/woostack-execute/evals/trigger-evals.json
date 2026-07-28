@@ -4,7 +4,7 @@
   "cases": [
     {
       "id": "signedoff-tenant-archive-implementation",
-      "query": "We signed off on `.woostack/plans/tenant-archive.md`. Start implementing it now; I'll stay in this session, so pause when a blocker or an unexpected product decision needs me.",
+      "query": "The managed Linear feature project at https://linear.app/acme/project/tenant-archive-11111111 has a verified executionApproved project-update head and its ordered increment issues are final. Start implementing it now; I'll stay in this session, so pause when a blocker or an unexpected product decision needs me.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-execute"
     },
@@ -16,7 +16,7 @@
     },
     {
       "id": "offline-night-search-rollout",
-      "query": "The implementation plan at `.woostack/plans/search-rollout.md` has been reviewed and signed off, including its pull-request order. I'm signing off until tomorrow; carry it out without waiting for replies, record anything you cannot resolve, and leave the result for me to inspect when I return.",
+      "query": "The managed Linear feature project at https://linear.app/acme/project/search-rollout-22222222 has a verified executionApproved project-update head and its ordered increment issues are final. I'm signing off until tomorrow; carry it out without waiting for replies and leave the verified remote blocker and handoff records for me to inspect when I return.",
       "shouldTrigger": false,
       "expectedSkill": "woostack-execute-overnight",
       "conflictsWith": ["woostack-execute"]

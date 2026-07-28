@@ -79,8 +79,8 @@ assert_contains "$backends" '`blockerResolved` relates exactly the open `blocker
   "project blocker resolution relates the exact open blocker"
 assert_contains "$backends" 'project `handoff` relates exactly the current native issue-event IDs' \
   "project handoff relations preserve current issue evidence"
-assert_contains "$backends" 'never invents readable fields' \
-  "project readers do not fabricate producer payload fields"
+assert_contains "$backends" "must be absent or equal the event producer's separately defined exact contract" \
+  "project readers accept no fabricated or noncanonical producer payload fields"
 assert_contains "$backends" 'Its actor is the same freshly' \
   "issueDone uses the freshly verified type-aware acceptance authority"
 assert_contains "$backends" 'its sorted `relatedIds` are exactly the current' \

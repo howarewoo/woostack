@@ -1,9 +1,0 @@
-query WoostackIdentityDocumentSlug($slugId: String!) {
-  documents(filter: { slugId: { eq: $slugId } }) {
-    nodes {
-      id
-      url
-      project { id }
-    }
-  }
-}

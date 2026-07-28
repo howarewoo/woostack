@@ -25,10 +25,13 @@ mkdir -p src
 printf 'one\n' > src/app.sh
 git add .
 git commit -q -m init
+head_oid="$(git rev-parse HEAD)"
 
-# meta.json: PR scope is src/app.sh ONLY. headRefOid differs from the marker SHA
+# meta.json: PR scope is src/app.sh ONLY and its head matches the immutable
+# checkout. The trusted prior marker below deliberately differs from this SHA,
 # so the no-new-commits short-circuit does not fire and the incremental path runs.
-meta='{"headRefOid":"abc1234","baseRefName":"main","title":"feature work","body":"","author":{"login":"human"},"files":[{"path":"src/app.sh","additions":1,"deletions":0}]}'
+meta="$(jq -cn --arg head "$head_oid" \
+  '{headRefOid:$head,baseRefName:"main",title:"feature work",body:"",author:{login:"human"},files:[{path:"src/app.sh",additions:1,deletions:0}]}')"
 
 # Incremental diff as the stale three-dot compare would produce it: the in-PR file
 # plus a leaked off-PR file from the rebased-over base.
@@ -73,8 +76,10 @@ mkdir -p src
 printf 'one\n' > src/app.sh
 git add .
 git commit -q -m init
+head_oid2="$(git rev-parse HEAD)"
 
-meta_empty='{"headRefOid":"abc1234","baseRefName":"main","title":"feature work","body":"","author":{"login":"human"},"files":[]}'
+meta_empty="$(jq -cn --arg head "$head_oid2" \
+  '{headRefOid:$head,baseRefName:"main",title:"feature work",body:"",author:{login:"human"},files:[]}')"
 
 OUTDIR="$out2" \
 PR_NUMBER=1 \

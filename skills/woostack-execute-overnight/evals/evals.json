@@ -4,6 +4,15 @@
   "cases": [
     {
       "id": "renders-remote-handback-and-continues-independent-track",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "blocked-project-not-accepted","fixture": "overnight-state.json","pointer": "/receiptFailureExamples/missingWorker/acceptanceAllowed"},
+        {"assertionId": "blocked-project-not-accepted","fixture": "overnight-state.json","pointer": "/receiptFailureExamples/missingControllerIssueReceipt/acceptanceAllowed"},
+        {"assertionId": "blocked-project-not-accepted","fixture": "overnight-state.json","pointer": "/receiptFailureExamples/missingReview/acceptanceAllowed"},
+        {"assertionId": "blocked-project-not-accepted","fixture": "overnight-state.json","pointer": "/receiptFailureExamples/missingMutationReadBack/acceptanceAllowed"},
+        {"assertionId": "exact-project-retained","fixture": "overnight-state.json","pointer": "/projectUpdates/0/envelope/projectId"},
+        {"assertionId": "exact-project-retained","fixture": "overnight-state.json","pointer": "/projectUpdates/1/envelope/projectId"},
+        {"assertionId": "exact-project-retained","fixture": "overnight-state.json","pointer": "/projectUpdates/2/envelope/projectId"}
+      ],
       "prompt": "Classify fixtures/overnight-state.json as a bounded unattended state-machine exercise without calling providers, Git, GitHub, Linear, a review engine, or mutating files. Trust only complete independent read-backs. Derive tracks from native dependency IDs, stable issue IDs, and exact Git-parent records, using ordinal only to order simultaneously ready roots. Return exactly one JSON object with keys projectId, trackIssueOrder, issueOutcomes, cleanReviewReceiptIds, projectProgressSource, handbackStatus, needsYou, localReportAuthored, localReportAccepted, acceptanceAllowed, and mergeAllowed. Use APP-21 blocked, APP-22 clean, APP-23 not-attempted, projectProgressSource verified-issue-records, handbackStatus partial+blockers, and needsYou APP-21 then APP-23. A separately rooted issue is clean only when driver observations, controller-owned issue evidence, GitHub review, and Linear reviewResult receipts are complete. Set both local-report fields, acceptanceAllowed, and mergeAllowed false.",
       "fixtures": [
         "overnight-state.json"
@@ -117,6 +126,24 @@
     },
     {
       "id": "validates-canonical-app-22-unattended-records",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "app-22-native-issue-retained","fixture": "overnight-state.json","pointer": "/issues/1/pr/linearRelation/issueId"},
+        {"assertionId": "app-22-native-issue-retained","fixture": "overnight-state.json","pointer": "/issues/1/driverObservations/issueId"},
+        {"assertionId": "app-22-native-issue-retained","fixture": "overnight-state.json","pointer": "/issues/1/controllerReceipts/assignmentAccepted/data/issueId"},
+        {"assertionId": "app-22-native-issue-retained","fixture": "overnight-state.json","pointer": "/issues/1/controllerReceipts/assignmentAccepted/envelope/issueId"},
+        {"assertionId": "app-22-native-issue-retained","fixture": "overnight-state.json","pointer": "/issues/1/controllerReceipts/verification/data/issueId"},
+        {"assertionId": "app-22-native-issue-retained","fixture": "overnight-state.json","pointer": "/issues/1/controllerReceipts/verification/envelope/issueId"},
+        {"assertionId": "app-22-native-issue-retained","fixture": "overnight-state.json","pointer": "/issues/1/controllerReceipts/precommitReview/data/issueId"},
+        {"assertionId": "app-22-native-issue-retained","fixture": "overnight-state.json","pointer": "/issues/1/controllerReceipts/precommitReview/envelope/issueId"},
+        {"assertionId": "app-22-native-issue-retained","fixture": "overnight-state.json","pointer": "/issues/1/controllerReceipts/implementationEvidence/envelope/issueId"},
+        {"assertionId": "app-22-native-issue-retained","fixture": "overnight-state.json","pointer": "/issues/1/sweep/githubReviewReceipt/issueId"},
+        {"assertionId": "app-22-native-issue-retained","fixture": "overnight-state.json","pointer": "/issues/1/sweep/linearReviewResult/data/issueId"},
+        {"assertionId": "app-22-native-issue-retained","fixture": "overnight-state.json","pointer": "/issues/1/sweep/linearReviewResult/envelope/issueId"},
+        {"assertionId": "app-22-native-issue-retained","fixture": "overnight-state.json","pointer": "/receiptFailureExamples/missingWorker/issueId"},
+        {"assertionId": "app-22-native-issue-retained","fixture": "overnight-state.json","pointer": "/receiptFailureExamples/missingControllerIssueReceipt/issueId"},
+        {"assertionId": "app-22-native-issue-retained","fixture": "overnight-state.json","pointer": "/receiptFailureExamples/missingReview/issueId"},
+        {"assertionId": "app-22-native-issue-retained","fixture": "overnight-state.json","pointer": "/receiptFailureExamples/missingMutationReadBack/issueId"}
+      ],
       "prompt": "Inspect only APP-22 in fixtures/overnight-state.json without calling providers, Git, GitHub, Linear, a review engine, shell, or mutation commands. Validate the actual raw controller issue-event records rather than controllerWorkerBoundary or any generic ordered-boundary list. Every managed event must have exact native id, authoritative createdAt, native actor, exact event-specific data, complete independent read-back, and an exact canonical envelope. Validate assignmentAccepted then passing verification then passing spec-and-quality precommitReview before finalizedCommit and implementationEvidence; implementationEvidence must reverse-relate exactly the assignment, verification, precommit review, and native project. Validate the later native Linear PR relation and native current-head GitHub full-review receipt before the post-PR reviewResult; reviewResult must relate exactly implementation, verification, Linear PR relation, and GitHub receipt with matching PR/head/diff/review identity and empty unresolved sets. Return exactly one JSON object with keys issueId, nativeRecordIds, producibleOrder, implementationRelatedIds, reviewResultRelatedIds, linearPrRelationId, githubFullReviewReceiptId, authorsExact, payloadsExact, allReadBacksComplete, and clean.",
       "fixtures": [
         "overnight-state.json"
@@ -527,6 +554,15 @@
     },
     {
       "id": "keeps-implementation-evidence-commit-only",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "canonical-boundary-owner-retained","fixture": "overnight-state.json","pointer": "/implementationEvidenceContract/boundaryOwner"},
+        {"assertionId": "canonical-boundary-owner-retained","fixture": "overnight-state.json","pointer": "/controllerWorkerBoundary/controllerProgression/boundaryOwner"},
+        {"assertionId": "canonical-producer-boundary-retained","fixture": "overnight-state.json","pointer": "/implementationEvidenceContract/boundary"},
+        {"assertionId": "canonical-producer-retained","fixture": "overnight-state.json","pointer": "/implementationEvidenceContract/producer"},
+        {"assertionId": "canonical-three-field-payload","fixture": "overnight-state.json","pointer": "/implementationEvidenceContract/payloadKeys"},
+        {"assertionId": "pr-attribution-is-later","fixture": "overnight-state.json","pointer": "/implementationEvidenceContract/prAttributionBoundary"},
+        {"assertionId": "pr-attribution-uses-independent-authorities","fixture": "overnight-state.json","pointer": "/implementationEvidenceContract/prAttributionSources"}
+      ],
       "prompt": "Inspect implementationEvidenceContract and every controllerReceipts.implementationEvidence object in fixtures/overnight-state.json without calling providers or mutating files. Return exactly one JSON object with keys producer, boundaryOwner, boundary, payloadKeys, allImplementationPayloadsExact, prDataInImplementationPayload, prAttributionBoundary, and prAttributionSources. The issue controller invokes woostack-commit after the finalized commit and before push/PR submission; that invocation appends and independently reads back implementationEvidence. Its data contains exactly baseCommitSha, headCommitSha, and committedDiffHash. Branch, changed paths, PR fields, and relations are forbidden there; the canonical GitHub PR and Linear branch/PR relation are independently discovered after submission.",
       "fixtures": [
         "overnight-state.json"
@@ -603,6 +639,17 @@
     },
     {
       "id": "keeps-coding-worker-observation-only",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "acceptance-remains-separate","fixture": "overnight-state.json","pointer": "/controllerWorkerBoundary/controllerProgression/acceptanceDecisionOwner"},
+        {"assertionId": "controller-can-continue-unattended","fixture": "overnight-state.json","pointer": "/controllerWorkerBoundary/controllerProgression/unattendedContinuationAllowed"},
+        {"assertionId": "controller-invokes-canonical-commit-producer","fixture": "overnight-state.json","pointer": "/controllerWorkerBoundary/controllerProgression/implementationEvidenceProducer"},
+        {"assertionId": "controller-reads-implementation-evidence","fixture": "overnight-state.json","pointer": "/controllerWorkerBoundary/controllerProgression/implementationEvidenceAppendReadBack"},
+        {"assertionId": "controller-writes-verification","fixture": "overnight-state.json","pointer": "/controllerWorkerBoundary/controllerProgression/verificationAppendReadBack"},
+        {"assertionId": "project-mutations-remain-lead-owned","fixture": "overnight-state.json","pointer": "/controllerWorkerBoundary/controllerProgression/projectMutationOwner"},
+        {"assertionId": "worker-allocates-no-event-uuid","fixture": "overnight-state.json","pointer": "/controllerWorkerBoundary/scopeEscalationAttempt/eventUuidAllocated"},
+        {"assertionId": "worker-attempts-no-mutation","fixture": "overnight-state.json","pointer": "/controllerWorkerBoundary/scopeEscalationAttempt/mutationAttempted"},
+        {"assertionId": "worker-returns-to-controller","fixture": "overnight-state.json","pointer": "/controllerWorkerBoundary/scopeEscalationAttempt/nextAuthority"}
+      ],
       "prompt": "Inspect only controllerWorkerBoundary in fixtures/overnight-state.json without calling providers, Git, GitHub, Linear, shell, or mutating files. Return exactly one JSON object with keys workerIssueIds, workerAllowedActions, workerLeavesChangesUncommitted, workerHandback, scopeEscalationDecision, mutationAttempted, eventUuidAllocated, nextAuthority, controllerReads, controllerBoundaryOwner, controllerOwnedBoundaries, verificationAppendReadBack, implementationEvidenceProducer, implementationEvidenceAppendReadBack, projectMutationOwner, acceptanceDecisionOwner, and unattendedContinuationAllowed. Reject every coding-worker source-control, PR, Linear, lifecycle, project-update, or acceptance request before a side effect. Admit unattended progression only through the controller's complete owner/contract/evidence reads and ordered verification, task-scoped precommitReview, commit, implementationEvidence, push, PR-attribution, and inReview boundaries. Post-PR reviewResult belongs only to the later full-review sweep.",
       "fixtures": [
         "overnight-state.json"

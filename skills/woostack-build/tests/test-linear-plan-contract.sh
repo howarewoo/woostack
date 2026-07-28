@@ -15,6 +15,7 @@ else
 fi
 "$PYTHON" - "$(tool_path_arg "$PYTHON" "$ROOT")" <<'PY'
 import copy
+import json
 import os
 import sys
 import uuid
@@ -23,11 +24,10 @@ from pathlib import Path
 root = Path(sys.argv[1])
 paths = {
     "plan": root / "skills/woostack-plan/SKILL.md",
-    "adapter": root / "skills/woostack-plan/references/linear-adapter.md",
-    "authority": root / "skills/woostack-init/references/artifact-backends.md",
-    "template": root / "skills/woostack-plan/references/plan-template.md",
+    "planning": root / "skills/woostack-plan/references/linear-planning.md",
     "tdd": root / "skills/woostack-tdd/SKILL.md",
-    "router": root / "skills/using-woostack/SKILL.md",
+    "evals": root / "skills/woostack-plan/evals/evals.json",
+    "fixture": root / "skills/woostack-plan/evals/fixtures/project-a.json",
     "test": root / "skills/woostack-build/tests/test-linear-plan-contract.sh",
     "runner": root / "skills/woostack-init/scripts/tests/run-tests.sh",
 }
@@ -43,6 +43,147 @@ def must(text, token, scope):
         fail(f"{scope} missing {token!r}")
 
 
+if not os.access(paths["test"], os.X_OK):
+    fail("contract test is not executable")
+if texts["runner"].count("test-linear-plan-contract.sh") != 1:
+    fail("contract test must be registered exactly once")
+
+planning = texts["plan"] + "\n" + texts["planning"]
+for required in (
+    "official host-exposed Linear MCP",
+    "one ownership-valid `feature` project",
+    "stable client UUID",
+    "unique positive integer ordinal",
+    "exactly one Git parent declaration",
+    "Ordinals are presentation order, never implicit dependency edges",
+    "unknown or cross-project dependencies",
+    "Independent tracks are explicit dependency roots",
+    "`planning` project event",
+    "`specApproved` native update ID as `predecessorId`",
+    "ready → planning",
+    "no implementation branch or pull request",
+    "Reconcile by stable identity",
+    "Preserve execution evidence verbatim",
+    "independently read every",
+    "never deletes or silently detaches a managed increment",
+):
+    must(planning, required, "Linear planning contract")
+
+for forbidden in (
+    "scripts/artifacts/linear.sh",
+    "resolve-backend.sh",
+    "artifacts.specPlan",
+):
+    if forbidden in planning:
+        fail(f"Linear planning contract retains retired authority {forbidden!r}")
+
+for required in (
+    "verified feature project, verified increment issue",
+    "complete read-back",
+    "standalone issue or issue-only PR attribution is unsupported",
+    "Official MCP only",
+):
+    must(texts["tdd"], required, "TDD Linear target contract")
+
+evals = json.loads(texts["evals"])
+cases = evals.get("cases", [])
+expected_ids = [
+    "reconciles-stable-increments-with-native-dependencies",
+    "refuses-evidence-bearing-issue-removal",
+    "enters-planning-before-reconciling-increments",
+    "blocks-unavailable-or-partial-official-mcp",
+    "blocks-wrong-project-role-or-repository",
+    "blocks-duplicate-revisions-or-current-heads",
+    "preserves-event-uuid-after-unknown-planning-outcome",
+    "blocks-issue-mutation-on-incomplete-planning-readback",
+    "stops-reconciliation-on-incomplete-issue-readback",
+]
+if [case.get("id") for case in cases] != expected_ids:
+    fail("planning behavior corpus case set/order changed")
+
+by_id = {case["id"]: case for case in cases}
+assertions = {
+    case_id: {
+        assertion.get("pointer"): assertion.get("expected")
+        for assertion in case.get("assertions", [])
+        if assertion.get("kind") == "final-json-path-equals"
+    }
+    for case_id, case in by_id.items()
+}
+linear_only_ids = expected_ids[2:]
+positive = assertions[linear_only_ids[0]]
+if positive.get("/status") != "planning-complete":
+    fail("positive reconciliation no longer completes planning")
+if positive.get("/operationOrder", [])[:5] != [
+    "verify-mcp-capabilities",
+    "verify-project-identity",
+    "verify-current-phase-chain",
+    "build-desired-issue-graph",
+    "append-planning",
+]:
+    fail("planning must be verified before issue reconciliation")
+if positive.get("/allReadBacksVerified") is not True:
+    fail("positive reconciliation lacks complete read-back")
+if positive.get("/readyAppended") is not False:
+    fail("plan must hand back in planning rather than append ready")
+if positive.get("/repositoryMutationCount") != 0:
+    fail("plan corpus permits repository mutation")
+
+for case_id in linear_only_ids[1:]:
+    observed = assertions[case_id]
+    if observed.get("/status") != "blocked":
+        fail(f"{case_id} must fail closed")
+    if observed.get("/repositoryMutationCount") != 0:
+        fail(f"{case_id} permits repository mutation")
+
+unknown = assertions["preserves-event-uuid-after-unknown-planning-outcome"]
+if (
+    unknown.get("/replacementEventAllocated") is not False
+    or unknown.get("/samePhaseRetryAllowed") is not False
+    or unknown.get("/issueMutationIds") != []
+):
+    fail("unknown planning outcome does not preserve stable identity")
+
+partial_issue = assertions["stops-reconciliation-on-incomplete-issue-readback"]
+if (
+    partial_issue.get("/stableIssueIdPreserved") is not True
+    or partial_issue.get("/relationMutationIds") != []
+    or partial_issue.get("/finalGraphAccepted") is not False
+):
+    fail("incomplete issue read-back does not stop reconciliation safely")
+
+fixture = json.loads(texts["fixture"])
+records = [
+    response["record"]
+    for response in fixture.get("syntheticResponses", [])
+    if response.get("operation") == "read-increment"
+]
+if len(records) != 2:
+    fail("positive fixture must contain two independently read increments")
+ordinals = [record["envelope"].get("ordinal") for record in records]
+if ordinals != [1, 2] or len(set(ordinals)) != len(ordinals):
+    fail("positive fixture increment ordinals are not unique and stable")
+if records[0]["envelope"].get("dependencyNativeIds") != []:
+    fail("positive fixture root must remain independent")
+if records[1]["envelope"].get("dependencyNativeIds") != [records[0]["nativeId"]]:
+    fail("positive fixture child dependency changed")
+for record in records:
+    contract = record.get("contract", {})
+    required_contract = {
+        "objective",
+        "filesAndResponsibilities",
+        "tasks",
+        "acceptanceCriteria",
+        "acceptanceCoverage",
+        "automatedVerification",
+        "manualVerification",
+        "gitParent",
+    }
+    if not required_contract <= set(contract):
+        fail(f"{record['nativeId']} has an incomplete exact issue contract")
+    if [task.get("phase") for task in contract["tasks"]] != ["red", "green", "refactor"]:
+        fail(f"{record['nativeId']} does not retain Red→Green→Refactor tasks")
+
 def rejects(label, operation):
     try:
         operation()
@@ -51,312 +192,325 @@ def rejects(label, operation):
     fail(f"{label} was accepted")
 
 
-if not os.access(paths["test"], os.X_OK):
-    fail("contract test is not executable")
-if texts["runner"].count("test-linear-plan-contract.sh") != 1:
-    fail("contract test must be registered exactly once")
-
-workflow = "\n".join(texts[name] for name in ("plan", "adapter", "template", "tdd"))
-for required in (
-    "stable client UUID",
-    "unique positive integer ordinal",
-    "acceptance coverage",
-    "Native Linear dependency/blocker",
-    "exactly one Git parent declaration",
-    "Ordinals are presentation order, never implicit dependency edges",
-    "Independent tracks are explicit dependency roots",
-    "preserving stable",
-    "cannot be rewritten as unstarted",
-    "independently read every",
-    "cross-project dependencies",
-    "Graphite ancestry that cannot represent the declared parent",
+def validate_issue_graph(
+    existing,
+    desired,
+    read_backs,
+    existing_relation_reads,
+    relation_mutations,
+    relation_reads,
+    relation_deletions=(),
 ):
-    must(workflow, required, "Linear planning contract")
-for required in (
-    "exact project UUID or URL **and** exact issue UUID or URL",
-    "local code-test output only",
-    "official host-exposed Linear MCP",
-):
-    must(texts["tdd"], required, "TDD artifact input contract")
-for required in (
-    "It is not a local file output",
-    "native Linear `blocked by` relation",
-    "independently read every mutation",
-):
-    must(texts["template"], required, "increment issue template")
-for required in (
-    "## Automated verification",
-    "{{EXACT_AUTOMATED_COMMAND}}",
-    "{{EXACT_MACHINE_CHECKED_RESULT}}",
-    "## Manual verification",
-    "{{EXACT_MANUAL_VERIFICATION_STEPS}}",
-    "{{EXACT_OBSERVED_RESULT}}",
-):
-    must(texts["template"], required, "public verification fields")
-if texts["template"].index("## Automated verification") > texts["template"].index("## Manual verification"):
-    fail("public verification fields are out of order")
-for forbidden in ("<plan-path>", "code block, PR, spec, or plan"):
-    if forbidden.lower() in texts["router"].lower():
-        fail(f"router-obsolete guidance returned: {forbidden!r}")
+    if not desired:
+        raise ValueError("empty issue graph")
+    native_ids = [record["nativeId"] for record in desired]
+    if len(native_ids) != len(set(native_ids)):
+        raise ValueError("duplicate native issue identity")
+    client_ids = [record["envelope"].get("clientId") for record in desired]
+    if len(client_ids) != len(set(client_ids)):
+        raise ValueError("duplicate stable issue identity")
+    for client_id in client_ids:
+        if not client_id or uuid.UUID(client_id).version != 4:
+            raise ValueError("missing or malformed stable issue identity")
+    ordinals = [record["envelope"].get("ordinal") for record in desired]
+    if any(not isinstance(value, int) or value < 1 for value in ordinals):
+        raise ValueError("invalid issue ordinal")
+    if len(ordinals) != len(set(ordinals)):
+        raise ValueError("duplicate issue ordinal")
 
-for forbidden in (
-    "resolve-backend.sh",
-    "linear.sh",
-    "Markdown plan",
-    ".woostack/plans/",
-    "Normalized backend input",
-    "Backend output contract",
-):
-    if forbidden.lower() in workflow.lower():
-        fail(f"planning retains forbidden authority token {forbidden!r}")
+    desired_by_native = {record["nativeId"]: record for record in desired}
+    existing_by_native = {record["nativeId"]: record for record in existing}
+    read_by_native = {record["nativeId"]: record for record in read_backs}
+    if set(read_by_native) != set(desired_by_native):
+        raise ValueError("incomplete issue read-back")
+    for native_id, wanted in desired_by_native.items():
+        observed = read_by_native[native_id]
+        for field in ("workspace", "team"):
+            if observed.get(field) != wanted.get(field):
+                raise ValueError("ownership drift")
+        for field in ("clientId", "projectId", "repository", "role", "ordinal"):
+            if observed["envelope"].get(field) != wanted["envelope"].get(field):
+                raise ValueError("managed envelope read-back mismatch")
+        if observed.get("contract") != wanted.get("contract"):
+            raise ValueError("readable issue description mismatch")
+        if native_id in existing_by_native:
+            before = existing_by_native[native_id]
+            if before["envelope"].get("clientId") != wanted["envelope"].get("clientId"):
+                raise ValueError("replan changed stable issue identity")
+            for field in ("workspace", "team"):
+                if before.get(field) != wanted.get(field):
+                    raise ValueError("replan changed issue ownership")
+            for field in ("projectId", "repository", "role"):
+                if before["envelope"].get(field) != wanted["envelope"].get(field):
+                    raise ValueError("replan changed issue authority")
 
-PROJECT = "project-native-1"
-BASE = "0123456789abcdef0123456789abcdef01234567"
-PENDING_BASE = {"kind": "projectFrozenBase", "state": "pending"}
+        contract = wanted.get("contract", {})
+        criteria = {item.get("id") for item in contract.get("acceptanceCriteria", [])}
+        coverage = contract.get("acceptanceCoverage", [])
+        if not criteria or {item.get("criterionId") for item in coverage} != criteria:
+            raise ValueError("acceptance coverage mismatch")
+        phases = {task.get("phase") for task in contract.get("tasks", [])}
+        task_commands = {task.get("command") for task in contract.get("tasks", [])}
+        manual_steps = {item.get("step") for item in contract.get("manualVerification", [])}
+        for mapping in coverage:
+            if (
+                mapping.get("redTaskPhase") not in phases
+                or mapping.get("greenTaskPhase") not in phases
+                or mapping.get("automatedVerificationCommand") not in task_commands
+                or mapping.get("manualVerificationStep") not in manual_steps
+            ):
+                raise ValueError("acceptance criterion is not mapped to executable evidence")
 
-
-def bound_base(branch="main", sha=BASE):
-    return {"kind": "projectFrozenBase", "state": "bound", "branch": branch, "sha": sha}
-
-
-def client(number):
-    return f"00000000-0000-4000-8000-{number:012d}"
-
-
-def issue(number, ordinal, dependencies=(), parent=None, project=PROJECT, evidence=()):
-    client_id = client(number)
-    contract = {
-        "objective": f"Deliver increment {number}",
-        "files": [f"src/increment-{number}.ts"],
-        "tasks": [f"Red {number}", f"Green {number}", f"Refactor {number}"],
-        "acceptance": [f"AC-{number}"],
-        "automated": [f"test increment {number}"],
-        "manual": [f"exercise increment {number}"],
-    }
-    description = "\n".join(
-        [contract["objective"]]
-        + contract["files"]
-        + contract["tasks"]
-        + contract["acceptance"]
-        + contract["automated"]
-        + contract["manual"]
-    )
-    return {
-        "clientId": client_id,
-        "projectId": project,
-        "role": "increment",
-        "ordinal": ordinal,
-        "dependencies": list(dependencies),
-        "gitParent": copy.deepcopy(PENDING_BASE if parent is None else parent),
-        "contract": contract,
-        "description": description,
-        "evidence": list(evidence),
-    }
-
-
-def validate(current, desired, receipts, acceptance_criteria, ready=False, frozen_branch=None, frozen_sha=None):
-    desired_by_id = {}
-    ordinals = set()
-    for item in desired:
-        try:
-            uuid.UUID(item["clientId"])
-        except (KeyError, TypeError, ValueError):
-            raise ValueError("invalid stable identity")
-        if item["clientId"] in desired_by_id:
-            raise ValueError("duplicate stable identity")
-        desired_by_id[item["clientId"]] = item
-        if not isinstance(item["ordinal"], int) or item["ordinal"] < 1 or item["ordinal"] in ordinals:
-            raise ValueError("invalid or duplicate ordinal")
-        ordinals.add(item["ordinal"])
-        if item["projectId"] != PROJECT or item["role"] != "increment":
-            raise ValueError("ownership drift")
-        required = {"objective", "files", "tasks", "acceptance", "automated", "manual"}
-        if set(item["contract"]) != required or any(not item["contract"][key] for key in required):
-            raise ValueError("incomplete issue contract")
-        rendered = "\n".join(
-            [item["contract"]["objective"]]
-            + item["contract"]["files"]
-            + item["contract"]["tasks"]
-            + item["contract"]["acceptance"]
-            + item["contract"]["automated"]
-            + item["contract"]["manual"]
-        )
-        if item["description"] != rendered:
-            raise ValueError("description drift")
-
-    current_by_id = {item["clientId"]: item for item in current}
-    removed = set(current_by_id) - set(desired_by_id)
-    if removed:
-        if any(current_by_id[item_id]["evidence"] for item_id in removed):
+    removed = set(existing_by_native) - set(desired_by_native)
+    for native_id in removed:
+        prior = existing_by_native[native_id]
+        if any(
+            key in prior.get("contract", {})
+            for key in (
+                "branch",
+                "pullRequest",
+                "assignmentAcceptance",
+                "implementationEvidence",
+                "reviewEvidence",
+                "verificationEvidence",
+                "acceptanceEvidence",
+                "failureEvidence",
+            )
+        ):
             raise ValueError("evidence-bearing issue removal")
-        raise ValueError("silent issue removal")
+        raise ValueError("managed issue removal")
 
-    covered = set()
-    graph = {}
-    for item_id, item in desired_by_id.items():
-        dependencies = item["dependencies"]
-        if len(dependencies) != len(set(dependencies)):
-            raise ValueError("duplicate dependency")
-        if any(dependency not in desired_by_id for dependency in dependencies):
+    dependencies = {
+        record["nativeId"]: set(record["envelope"].get("dependencyNativeIds", []))
+        for record in desired
+    }
+    for native_id, dependency_ids in dependencies.items():
+        if dependency_ids - set(desired_by_native):
             raise ValueError("unknown or cross-project dependency")
-        graph[item_id] = dependencies
-        covered.update(item["contract"]["acceptance"])
-        parent = item["gitParent"]
-        if not dependencies:
-            if not isinstance(parent, dict) or parent.get("kind") != "projectFrozenBase":
-                raise ValueError("root lacks typed project base reference")
-            if ready:
-                if parent != bound_base(frozen_branch, frozen_sha):
-                    raise ValueError("root parent is pending or bound to wrong frozen base")
-            elif parent not in (PENDING_BASE, bound_base(frozen_branch, frozen_sha)):
-                raise ValueError("invalid root base state")
-        elif parent not in dependencies:
-            raise ValueError("Git parent is not one dependency")
-
-        prior = current_by_id.get(item_id)
-        changed = prior is None or prior != item
-        if changed:
-            receipt = receipts.get(item_id)
-            if receipt != {"source": "independent-read", "issue": item}:
-                raise ValueError("missing or conflicting independent read-back")
-
-    if set(acceptance_criteria) != covered:
-        raise ValueError("acceptance coverage drift")
+        parent = desired_by_native[native_id].get("contract", {}).get("gitParent")
+        if not isinstance(parent, dict):
+            raise ValueError("missing git parent")
+        if not dependency_ids:
+            if parent != {"kind": "projectBase", "freezeOwner": "woostack-build"}:
+                raise ValueError("root has an unrepresentable git parent")
+        elif (
+            parent.get("kind") != "issue"
+            or set(parent) != {"kind", "issueId"}
+            or parent.get("issueId") not in dependency_ids
+        ):
+            raise ValueError("child has an unrepresentable git parent")
 
     visiting = set()
     visited = set()
 
-    def visit(item_id):
-        if item_id in visiting:
+    def visit(native_id):
+        if native_id in visiting:
             raise ValueError("dependency cycle")
-        if item_id in visited:
+        if native_id in visited:
             return
-        visiting.add(item_id)
-        for dependency in graph[item_id]:
-            visit(dependency)
-        visiting.remove(item_id)
-        visited.add(item_id)
+        visiting.add(native_id)
+        for dependency_id in dependencies[native_id]:
+            visit(dependency_id)
+        visiting.remove(native_id)
+        visited.add(native_id)
 
-    for item_id in graph:
-        visit(item_id)
-    return [item["clientId"] for item in sorted(desired, key=lambda value: value["ordinal"])]
+    for native_id in dependencies:
+        visit(native_id)
+
+    expected_relations = {
+        (native_id, dependency_id, "depends-on")
+        for native_id, dependency_ids in dependencies.items()
+        for dependency_id in dependency_ids
+    }
+    if existing_relation_reads is None:
+        raise ValueError("existing relation discovery outcome is unknown")
+    if relation_mutations is None or relation_deletions is None:
+        raise ValueError("relation mutation outcome is unknown")
+    existing_relations = {
+        (
+            item["record"].get("fromNativeId"),
+            item["record"].get("toNativeId"),
+            item["record"].get("relation"),
+        )
+        for item in existing_relation_reads
+    }
+    created_relations = {
+        (item.get("fromNativeId"), item.get("toNativeId"), item.get("relation"))
+        for item in relation_mutations
+    }
+    deleted_relations = {
+        (item.get("fromNativeId"), item.get("toNativeId"), item.get("relation"))
+        for item in relation_deletions
+    }
+    if (
+        not isinstance(relation_reads, dict)
+        or not relation_reads.get("readComplete")
+        or not relation_reads.get("paginationComplete")
+    ):
+        raise ValueError("final relation snapshot is incomplete")
+    observed_relations = {
+        (
+            item.get("fromNativeId"),
+            item.get("toNativeId"),
+            item.get("relation"),
+        )
+        for item in relation_reads.get("records", [])
+    }
+    if created_relations != expected_relations - existing_relations:
+        raise ValueError("native relation create delta mismatch")
+    if deleted_relations != existing_relations - expected_relations:
+        raise ValueError("native relation delete delta mismatch")
+    if observed_relations != expected_relations:
+        raise ValueError("native relation read-back mismatch")
 
 
-def bind_roots_for_ready(current, branch, sha, receipts):
-    desired = copy.deepcopy(current)
-    for item in desired:
-        if not item["dependencies"]:
-            item["gitParent"] = bound_base(branch, sha)
-            receipt = receipts.get(item["clientId"])
-            if receipt != {"source": "independent-read", "issue": item}:
-                raise ValueError("root base reconciliation lacks exact read-back")
-    validate(current, desired, receipts, [f"AC-{n}" for n in (1, 2, 3)],
-             ready=True, frozen_branch=branch, frozen_sha=sha)
-    return desired
+responses = fixture["syntheticResponses"]
+existing_relation_responses = [
+    response for response in responses if response.get("operation") == "read-existing-relations"
+]
+if len(existing_relation_responses) != 1 or not existing_relation_responses[0].get("paginationComplete"):
+    fail("initial relation discovery is missing or incomplete")
+existing_relation_reads = [
+    {"record": record} for record in existing_relation_responses[0].get("records", [])
+]
+relation_mutations = [
+    response for response in responses if response.get("operation") == "create-relation"
+]
+final_relation_responses = [
+    response for response in responses if response.get("operation") == "read-final-relations"
+]
+if len(final_relation_responses) != 1:
+    fail("complete final relation snapshot is missing")
+relation_reads = final_relation_responses[0]
+final_relation_existing_reads = [
+    {"record": record} for record in relation_reads.get("records", [])
+]
+empty_relation_snapshot = {"records": [], "readComplete": True, "paginationComplete": True}
 
-
-# Ordinal order deliberately differs from dependency order. The child with ordinal 1 depends on
-# the root with ordinal 3; ordinal adjacency must not create or reject ancestry.
-root_issue = issue(3, 3)
-child = issue(1, 1, dependencies=(root_issue["clientId"],), parent=root_issue["clientId"])
-independent = issue(2, 2)
-desired = [child, independent, root_issue]
-receipts = {
-    item["clientId"]: {"source": "independent-read", "issue": item}
-    for item in desired
-}
-if validate([], desired, receipts, ["AC-1", "AC-2", "AC-3"]) != [
-    child["clientId"], independent["clientId"], root_issue["clientId"]
-]:
-    fail("valid graph did not preserve explicit ordinal presentation")
-root_receipts = {}
-for item in desired:
-    if not item["dependencies"]:
-        bound = copy.deepcopy(item)
-        bound["gitParent"] = bound_base("main", BASE)
-        root_receipts[item["clientId"]] = {"source": "independent-read", "issue": bound}
-ready_graph = bind_roots_for_ready(desired, "main", BASE, root_receipts)
-if any(item["gitParent"] != bound_base("main", BASE) for item in ready_graph if not item["dependencies"]):
-    fail("not all roots bind to the exact frozen BASE")
-rejects("ready with pending root", lambda: validate(
-    desired, desired, {}, ["AC-1", "AC-2", "AC-3"], ready=True,
-    frozen_branch="main", frozen_sha=BASE,
-))
-wrong_graph = copy.deepcopy(ready_graph)
-wrong_graph[1]["gitParent"]["sha"] = "f" * 40
-rejects("ready with wrong root SHA", lambda: validate(
-    ready_graph, wrong_graph,
-    {wrong_graph[1]["clientId"]: {"source": "independent-read", "issue": wrong_graph[1]}},
-    ["AC-1", "AC-2", "AC-3"], ready=True, frozen_branch="main", frozen_sha=BASE,
-))
-partial_receipts = dict(root_receipts)
-partial_receipts.pop(independent["clientId"])
-rejects("partial root binding receipt", lambda: bind_roots_for_ready(
-    desired, "main", BASE, partial_receipts,
-))
-
-# Replan updates content under the same stable identity and requires a fresh exact receipt.
-current = copy.deepcopy(desired)
-replanned = copy.deepcopy(desired)
-replanned[0]["contract"]["objective"] = "Deliver the revised first increment"
-replanned[0]["description"] = "\n".join(
-    [replanned[0]["contract"]["objective"]]
-    + replanned[0]["contract"]["files"]
-    + replanned[0]["contract"]["tasks"]
-    + replanned[0]["contract"]["acceptance"]
-    + replanned[0]["contract"]["automated"]
-    + replanned[0]["contract"]["manual"]
+# An approved replan may rewire an unstarted issue. Delete only `existing - desired`, then prove the
+# deleted relation is absent from the complete final relation read.
+rewired = copy.deepcopy(records)
+rewired[1]["envelope"]["dependencyNativeIds"] = []
+rewired[1]["contract"]["gitParent"] = {"kind": "projectBase", "freezeOwner": "woostack-build"}
+relation_deletions = [
+    {
+        "fromNativeId": "issue-cache-72",
+        "toNativeId": "issue-cache-71",
+        "relation": "depends-on",
+    }
+]
+validate_issue_graph(
+    records,
+    rewired,
+    copy.deepcopy(rewired),
+    final_relation_existing_reads,
+    [],
+    empty_relation_snapshot,
+    relation_deletions,
 )
-replan_receipts = {
-    replanned[0]["clientId"]: {"source": "independent-read", "issue": replanned[0]}
-}
-validate(current, replanned, replan_receipts, ["AC-1", "AC-2", "AC-3"])
-if replanned[0]["clientId"] != current[0]["clientId"]:
-    fail("replan changed stable identity")
 
-missing_receipt = copy.deepcopy(replan_receipts)
-missing_receipt.clear()
-rejects("mutation without read-back", lambda: validate(
-    current, replanned, missing_receipt, ["AC-1", "AC-2", "AC-3"]
-))
+rejects(
+    "unknown relation create outcome",
+    lambda: validate_issue_graph(
+        records, records, copy.deepcopy(records), existing_relation_reads, None, relation_reads
+    ),
+)
+rejects(
+    "unknown relation delete outcome",
+    lambda: validate_issue_graph(
+        records, rewired, copy.deepcopy(rewired), final_relation_existing_reads, [], empty_relation_snapshot, None
+    ),
+)
+validate_issue_graph([], records, records, existing_relation_reads, relation_mutations, relation_reads)
 
-cycle = copy.deepcopy(desired)
-cycle[2]["dependencies"] = [cycle[0]["clientId"]]
-cycle[2]["gitParent"] = cycle[0]["clientId"]
-cycle_receipts = {item["clientId"]: {"source": "independent-read", "issue": item} for item in cycle}
-rejects("dependency cycle", lambda: validate([], cycle, cycle_receipts, ["AC-1", "AC-2", "AC-3"]))
+# Replanning independently discovers the existing full relation set and mutates no relation.
+replanned = copy.deepcopy(records)
+replanned[0]["envelope"]["ordinal"] = 2
+replanned[1]["envelope"]["ordinal"] = 1
+validate_issue_graph(
+    records, replanned, copy.deepcopy(replanned), final_relation_existing_reads, [], relation_reads
+)
 
-foreign = copy.deepcopy(desired)
-foreign[1]["projectId"] = "foreign-project"
-foreign_receipts = {item["clientId"]: {"source": "independent-read", "issue": item} for item in foreign}
-rejects("cross-project ownership", lambda: validate([], foreign, foreign_receipts, ["AC-1", "AC-2", "AC-3"]))
+rejects(
+    "unknown existing relation discovery",
+    lambda: validate_issue_graph(
+        records, replanned, copy.deepcopy(replanned), None, [], relation_reads
+    ),
+)
 
-duplicate_ordinal = copy.deepcopy(desired)
-duplicate_ordinal[1]["ordinal"] = duplicate_ordinal[0]["ordinal"]
-duplicate_receipts = {
-    item["clientId"]: {"source": "independent-read", "issue": item}
-    for item in duplicate_ordinal
-}
-rejects("duplicate ordinal", lambda: validate(
-    [], duplicate_ordinal, duplicate_receipts, ["AC-1", "AC-2", "AC-3"]
-))
-
-evidence_current = copy.deepcopy(desired)
-evidence_current[1]["evidence"] = ["pull-request:https://example.invalid/2"]
-removed = [evidence_current[0], evidence_current[2]]
-rejects("evidence-bearing issue removal", lambda: validate(
-    evidence_current, removed, {}, ["AC-1", "AC-3"]
-))
-
-bad_parent = copy.deepcopy(desired)
-bad_parent[0]["gitParent"] = client(999)
-bad_parent_receipts = {
-    item["clientId"]: {"source": "independent-read", "issue": item}
-    for item in bad_parent
-}
-rejects("unrepresentable Git parent", lambda: validate(
-    [], bad_parent, bad_parent_receipts, ["AC-1", "AC-2", "AC-3"]
-))
-
+duplicate_uuid = copy.deepcopy(records)
+duplicate_uuid[1]["envelope"]["clientId"] = duplicate_uuid[0]["envelope"]["clientId"]
+rejects(
+    "duplicate stable client UUID",
+    lambda: validate_issue_graph([], duplicate_uuid, duplicate_uuid, [], relation_mutations, relation_reads),
+)
+missing_uuid = copy.deepcopy(records)
+missing_uuid[0]["envelope"]["clientId"] = None
+rejects(
+    "missing stable client UUID",
+    lambda: validate_issue_graph([], missing_uuid, missing_uuid, [], relation_mutations, relation_reads),
+)
+changed_identity = copy.deepcopy(records)
+changed_identity[0]["envelope"]["clientId"] = "70000000-0000-4000-8000-000000000001"
+rejects(
+    "replan identity change",
+    lambda: validate_issue_graph(records, changed_identity, changed_identity, [], relation_mutations, relation_reads),
+)
+description_drift = copy.deepcopy(records)
+description_drift[0]["contract"]["objective"] = "Different objective"
+rejects(
+    "readable issue description drift",
+    lambda: validate_issue_graph([], records, description_drift, [], relation_mutations, relation_reads),
+)
+coverage_drift = copy.deepcopy(records)
+coverage_drift[0]["contract"]["acceptanceCoverage"][0]["criterionId"] = "AC-foreign"
+rejects(
+    "acceptance mapping drift",
+    lambda: validate_issue_graph([], coverage_drift, coverage_drift, [], relation_mutations, relation_reads),
+)
+missing_relation_read = {"records": [], "readComplete": False, "paginationComplete": False}
+rejects(
+    "missing native blocked-by read-back",
+    lambda: validate_issue_graph([], records, records, [], relation_mutations, missing_relation_read),
+)
+wrong_parent = copy.deepcopy(records)
+wrong_parent[1]["contract"]["gitParent"]["issueId"] = "issue-foreign"
+rejects(
+    "unrepresentable Git parent",
+    lambda: validate_issue_graph([], wrong_parent, wrong_parent, [], relation_mutations, relation_reads),
+)
+cyclic = copy.deepcopy(records)
+cyclic[0]["envelope"]["dependencyNativeIds"] = [cyclic[1]["nativeId"]]
+cyclic[0]["contract"]["gitParent"] = {"kind": "issue", "issueId": cyclic[1]["nativeId"]}
+cycle_relations = relation_mutations + [
+    {
+        "fromNativeId": cyclic[0]["nativeId"],
+        "toNativeId": cyclic[1]["nativeId"],
+        "relation": "depends-on",
+    }
+]
+rejects(
+    "dependency cycle",
+    lambda: validate_issue_graph([], cyclic, cyclic, [], cycle_relations, relation_reads),
+)
+foreign = copy.deepcopy(records)
+foreign[1]["envelope"]["dependencyNativeIds"] = ["issue-other-project"]
+foreign[1]["contract"]["gitParent"]["issueId"] = "issue-other-project"
+rejects(
+    "cross-project dependency",
+    lambda: validate_issue_graph([], foreign, foreign, [], relation_mutations, relation_reads),
+)
+ownership_drift = copy.deepcopy(records)
+ownership_drift[0]["workspace"] = "Other"
+rejects(
+    "ownership drift",
+    lambda: validate_issue_graph(records, ownership_drift, ownership_drift, [], relation_mutations, relation_reads),
+)
+evidence_bearing = copy.deepcopy(records)
+evidence_bearing[1]["contract"]["implementationEvidence"] = {"commit": "abc123"}
+rejects(
+    "evidence-bearing issue removal",
+    lambda: validate_issue_graph(evidence_bearing, evidence_bearing[:1], evidence_bearing[:1], [], [], []),
+)
 print("test-linear-plan-contract: ok")
 PY

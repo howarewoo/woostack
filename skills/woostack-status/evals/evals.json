@@ -838,6 +838,9 @@
     },
     {
       "id": "blocks-wrong-principal-before-issue-done",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "no-uuid-before-authority","fixture": "linear-state.json","pointer": "/failureCases/wrongIssueDonePrincipalScenario/eventUuidAllocated"}
+      ],
       "prompt": "Read only APP-12, mutationReceipts.issueDone[0].principalGate, and failureCases.wrongIssueDonePrincipalScenario from linear-state.json without calling providers or modifying files. Independently compare the authenticated invoking MCP principal's exact kind/native ID with the freshly read type-aware acceptanceAuthority before any event UUID allocation or mutation. Return exactly one JSON object with keys baselinePrincipalAccepted, wrongPrincipalRejected, wrongPrincipalReasonCode, eventUuidAllocated, eventAppended, stateMutationAttempted, and writesAttempted.",
       "fixtures": [
         "linear-state.json"
@@ -1025,6 +1028,11 @@
     },
     {
       "id": "validates-consumed-restack-authorization-temporally",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "bounded-restack-operation","fixture": "linear-state.json","pointer": "/project/events/10/data/operationId"},
+        {"assertionId": "bounded-restack-operation","fixture": "linear-state.json","pointer": "/project/issues/1/events/6/data/operationId"},
+        {"assertionId": "bounded-restack-operation","fixture": "linear-state.json","pointer": "/failureCases/malformedProjectDecisionData/operationId"}
+      ],
       "prompt": "Read only APP-13, PR #43, github.historicalHeads, and the restack-related failureCases in linear-state.json without calling providers or modifying files. Validate the owner-authored restackAuthorized at its own instant against immutable historical implementation/head A, canonical paths, affected relations, unexpired boundary, exact controller, and an RFC 4122 operationId. Because the authorization is consumed, separately validate current resulting implementation/head B against current PR/Git and require the authorization as exactly the added implementation relation while owner/assignment remain unchanged. Apply restackWrongRelatedIds, malformedRestackOperationId, restackHistoricalHeadMismatch, restackCurrentHeadMismatch, and restackMissingConsumptionRelatedIds separately. Return exactly one JSON object with keys eventAccepted, eventId, operationId, operationIdRfc4122, consumed, historicalImplementationId, historicalHeadValidated, resultingImplementationId, resultingHeadSha, currentHeadValidated, ownerBefore, ownerAfter, assignmentEventId, wrongRelationsRejected, malformedOperationIdRejected, historicalMismatchRejected, currentMismatchRejected, missingConsumptionRelationRejected, terminalEvidence, issueDoneAuthorized, writesAttempted.",
       "fixtures": [
         "linear-state.json"

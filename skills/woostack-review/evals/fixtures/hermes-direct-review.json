@@ -128,15 +128,5 @@
     "codingProfileMayAccept": false,
     "delegatedReviewerMayAccept": false,
     "reviewInvocationRecordedAcceptance": false
-  },
-  "expected": {
-    "status": "ready",
-    "route": "hermes-direct-review",
-    "delegationAllowed": false,
-    "hermesOwnsGithubReview": true,
-    "acceptanceAuthorityProfile": "hermes-engineer-cache",
-    "acceptanceTransferred": false,
-    "pairedContextsComplete": true,
-    "pairedContextsDistinct": true
   }
 }

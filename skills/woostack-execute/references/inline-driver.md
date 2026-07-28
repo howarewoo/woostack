@@ -23,9 +23,8 @@ Accept one immutable issue-work packet assembled from fresh verified reads:
   dependency evidence; and
 - explicit authority prohibitions from [controller.md §6](controller.md#6-driver-boundary-one-issue-only).
 
-A local specification, plan, checkbox state, progress file, worktree registry entry, or remote title
-is not input authority. If any packet field is missing, stale, contradictory, or broader than one
-issue, return `BLOCKED` without editing.
+The verified issue contract is the sole development authority for the packet. If any packet field
+is missing, stale, contradictory, or broader than one issue, return `BLOCKED` without editing.
 
 ## Loop (per issue)
 
@@ -45,21 +44,17 @@ For each ordered task in the issue contract:
 4. **Run exact verification and smoke the changed path.** Preserve commands, exit/results, and
    direct observations for the controller's typed `verification` event. A failed or unknown result
    is not evidence and stops or routes through the controller's debug/failure path.
-5. **Return evidence, not progress mutation.** Keep the changed paths, task diff identity, and exact
-   verification/smoke observations. Do not edit the issue description, tick a checkbox, append a
-   local receipt, or mutate Linear.
-
-After every ordered task is implemented, independently compute the complete issue-wide
-uncommitted diff, sorted changed paths, and byte-safe hash:
-
-1. Apply [../prompts/spec-reviewer.md](../prompts/spec-reviewer.md) to the complete issue contract,
-   ordered task set, and complete diff. Resolve every missing or extra behavior, recompute the
-   complete diff, and repeat until the receipt is `PASS`.
-2. Apply [../prompts/quality-reviewer.md](../prompts/quality-reviewer.md) to that same complete diff
-   identity. Resolve every Important finding, recompute, then rerun spec review before quality
-   review so both final receipts bind identical bytes.
-3. Return exactly two ordered receipts, spec then quality, containing the authenticated inline
-   reviewer kind/ID, review type, current complete diff hash, and literal `PASS`.
+5. **Review for contract compliance.** Apply the criteria in
+   [../prompts/spec-reviewer.md](../prompts/spec-reviewer.md) to this task's complete diff: every
+   required behavior is present, nothing outside the issue contract was added, and affected callers
+   are handled. Resolve every gap before continuing.
+6. **Review for code quality.** Apply
+   [../prompts/quality-reviewer.md](../prompts/quality-reviewer.md): correctness, clarity,
+   duplication, needless complexity, repository consistency, safety at boundaries, and real test
+   coverage. Resolve every Important finding.
+7. **Return evidence, not progress mutation.** Return changed paths, task diff identity, exact
+   verification/smoke observations, and both review results to the controller. The controller
+   alone records typed issue evidence and lifecycle mutations.
 
 ## Authority barriers
 

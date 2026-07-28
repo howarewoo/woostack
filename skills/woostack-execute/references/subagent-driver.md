@@ -33,10 +33,8 @@ same immutable authority envelope:
   and dependency proof; and
 - the authority prohibitions below.
 
-The task text comes only from that verified issue contract. Never supply a local specification,
-plan, checkbox/progress snapshot, registry entry, branch name, title, chat summary, or mutation
-response as development authority. If the packet is incomplete, stale, contradictory, or names
-more than one issue, do not dispatch.
+The task text comes only from that verified issue contract. The packet must be complete, current,
+self-consistent, and scoped to exactly one issue; otherwise do not dispatch.
 
 **Self-contained skill guard.** Every fenced brief must say that it is self-contained and that the
 worker must never load or follow `skill://woostack-review`, the `woostack-review` `SKILL.md`, or
@@ -165,7 +163,7 @@ For each ordered task in the selected issue:
    reviewer identity, review type, `PASS` verdict, and same current byte-safe uncommitted diff hash.
    Return the exact task packet and ordered receipts to
    [controller.md §7](controller.md#7-typed-evidence-cadence). Implementation and review workers do
-   not edit issue text, tick checkboxes, append local receipts, or mutate Linear.
+   not record Linear evidence or lifecycle mutations.
 
 A blocked review remains blocked. Do not invoke the full PR-review orchestrator, silently retry
 unchanged routing, ask another worker to accept the implementation, or mark the task complete from

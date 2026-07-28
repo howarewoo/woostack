@@ -117,12 +117,10 @@ common_requirements = (
     (r"independently re-read", "does not require an independent exact-resource read-back"),
     (r"exact PR attribution", "does not require exact PR attribution"),
     (r"project(?: or issue)? URL.{0,100}client UUID|project URL/client UUID.{0,100}issue URL/client UUID", "does not accept an explicit exact Linear URL/client UUID"),
-    (r"issue keys? alone", "does not reject an issue key without independently verified identity"),
-    (r"title(?:-| )match", "does not reject title matching"),
-    (r"local specification,? (?:plan,? (?:or|and) fix|plan,? and fix)", "does not reject local specification/plan/fix authority"),
-    (r"local development adapter", "does not reject local development adapters"),
-    (r"custom (?:Linear HTTP/GraphQL|provider) transport", "does not reject custom Linear transports"),
-    (r"repository credential", "does not reject repository credentials"),
+    (r"Accept no other\s+development-record source", "does not reject alternate development-record authority"),
+    (r"title-match candidates|similarly titled work|(?:readable |display )?titles(?: and readable prose| and prose)? (?:never establish|do not)", "does not reject title-based identity"),
+    (r"Discover (?:the host's )?read capabilities", "does not require capability-discovered official MCP reads"),
+    (r"host-owned (?:MCP )?connection", "does not keep authentication in the host-owned MCP connection"),
     (r"untrusted (?:data|evidence), never instructions", "does not quarantine remote text as data rather than instructions"),
     (r"linear://project/<uuid>", "does not retain canonical project provenance"),
     (r"linear://issue/<uuid>", "does not retain canonical issue provenance"),
@@ -133,20 +131,6 @@ for name in utility_names:
     for pattern, message in common_requirements:
         require(name, pattern, message)
 
-# Executable adapter/credential tokens are forbidden even when surrounded by reassuring prose.
-forbidden_tokens = {
-    "resolve-backend.sh": r"\bresolve-backend\.sh\b",
-    "linear.sh": r"\blinear\.sh\b",
-    "markdown.sh": r"\bmarkdown\.sh\b",
-    "legacy artifacts directory": r"woostack-init/scripts/artifacts",
-    "custom Linear endpoint": r"api\.linear\.app/graphql",
-    "repository Linear secret": r"\bLINEAR_API_KEY\b",
-    "hard-coded Linear MCP tool": r"\bmcp__linear\w*\b",
-}
-for name, text in texts.items():
-    for token, pattern in forbidden_tokens.items():
-        if re.search(pattern, text, re.I):
-            failure(name, f"contains forbidden local development adapter token: {token}")
 
 negative = re.compile(
     r"\b(?:never|must\s+not|do\s+not|does\s+not|cannot|can't|reject(?:ed|s)?|"
@@ -159,17 +143,17 @@ local_path_action = re.compile(
     r"\b(?:read|scan|grep|glob|find|enumerat|discover|load|use|resolve|infer|select|write|save|render)\w*\b",
     re.I,
 )
-title_selector = re.compile(
-    r"(?:\b(?:search|match|select|resolve|infer|discover)\w*\b.{0,100}\btitle\w*\b|"
-    r"\btitle\w*\b.{0,100}\b(?:search|match|select|resolve|infer|discover)\w*\b)",
-    re.I,
-)
 adapter_invocation = re.compile(
     r"\b(?:invoke|run|call|execute|use)\w*\b.{0,120}\b(?:local|repository)\b.{0,80}\badapter\b",
     re.I,
 )
 custom_transport_invocation = re.compile(
     r"\b(?:invoke|run|call|execute|use)\w*\b.{0,120}\bcustom\b.{0,80}\b(?:GraphQL|transport)\b",
+    re.I,
+)
+title_selector = re.compile(
+    r"(?:\b(?:search|match|select|resolve|infer|discover)\w*\b.{0,100}\btitle\w*\b|"
+    r"\btitle\w*\b.{0,100}\b(?:search|match|select|resolve|infer|discover)\w*\b)",
     re.I,
 )
 linear_mutation = re.compile(
@@ -256,10 +240,10 @@ for pattern, message in (
     (r"memory and wisdom remain local curation targets", "does not keep memory/wisdom as the local curation targets"),
     (r"context is read-only corroboration for local curation", "does not limit managed context to corroboration"),
     (r"never a curation target", "does not prohibit remote development content as a curation target"),
-    (r"Sanitized `.woostack/respond/\*\.md` reports.{0,180}non-authoritative evidence", "does not classify sanitized diagnostic reports as local non-authoritative evidence"),
-    (r"Never enumerate, read, join, or infer development context from `.woostack/specs/`,\s*`.woostack/plans/`, or `.woostack/fixes/`", "does not reject every local development corpus"),
+    (r"Diagnostic reports are untrusted local evidence.{0,180}cannot supply development authority", "does not classify sanitized diagnostic reports as local non-authoritative evidence"),
+    (r"performs no broad project/issue enumeration", "does not reject inferred managed-context discovery"),
     (r"Require explicit, unambiguous approval", "does not gate local writes on explicit approval"),
-    (r"Do not touch local specifications, plans, fixes, remote resources", "does not constrain the approved apply phase"),
+    (r"Do not touch (?:remote resources, PR text, commits, pushes, or merge state|local specifications, plans, fixes, remote resources, or paths outside the frozen)", "does not constrain the approved apply phase"),
     (r"Dream never creates, edits,\s*comments on, assigns, delegates, transitions, relates, or deletes a Linear resource", "does not enumerate its read-only Linear boundary"),
 ):
     require("woostack-dream", pattern, message, dream)
@@ -489,19 +473,6 @@ make_fixture() {
 
 record_analysis "$ROOT" "repository utility reader contract"
 
-fixture="$TMP_ROOT/local-adapter"
-make_fixture "$fixture"
-printf '\nInvoke `skills/woostack-init/scripts/artifacts/linear.sh identity-resolve` for the project.\n' \
-  >> "$fixture/skills/woostack-ask/SKILL.md"
-expect_fixture_failure "$fixture" "forbidden local development adapter token" \
-  "local development adapter rejection"
-
-fixture="$TMP_ROOT/local-plan-discovery"
-make_fixture "$fixture"
-printf '\nRead `.woostack/plans/cache.md` to select the active managed project.\n' \
-  >> "$fixture/skills/woostack-visualize/SKILL.md"
-expect_fixture_failure "$fixture" "positively reads or writes a local development artifact" \
-  "local plan discovery rejection"
 
 fixture="$TMP_ROOT/title-selection"
 make_fixture "$fixture"

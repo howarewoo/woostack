@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "invocation": {
+    "goal": "Add a bounded --color flag to the existing report command.",
+    "issueReference": null
+  },
+  "repositoryPolicy": {
+    "repository": "https://github.com/acme/cli",
+    "workspace": "Acme",
+    "team": "APP"
+  },
+  "snapshots": {
+    "connectionA": {
+      "connections": []
+    },
+    "connectionB": {
+      "connections": [
+        {
+          "endpoint": "https://mcp.linear.app/mcp",
+          "authenticated": true,
+          "paginationComplete": true,
+          "capabilities": [
+            "repository-issues.read",
+            "issue.create",
+            "issue.read",
+            "issue.update",
+            "issue-state.read",
+            "issue-state.update",
+            "assignee.read",
+            "delegate.read",
+            "comment.create"
+          ]
+        }
+      ]
+    }
+  }
+}

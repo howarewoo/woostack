@@ -224,7 +224,7 @@ run_load_prompt "$outdir" "$github_output" MODE="full"
 prompt_payload="$(cat "$github_output")"
 assert_contains "$prompt_payload" "# Orchestrator Review Contract" "full mode loads orchestrator header"
 assert_contains "$prompt_payload" "## Model Tiers (host-agnostic)" "full mode includes model tiers section"
-assert_contains "$prompt_payload" "## Pull Request Review (Batch)" "full mode carries posting contract"
+assert_contains "$prompt_payload" "### Pull Request Review (Batch)" "full mode carries posting contract"
 assert_not_contains "$prompt_payload" "<!-- WOO_MODEL_TIERS_TABLE -->" "full mode replaces model marker"
 rm -rf "$outdir"
 

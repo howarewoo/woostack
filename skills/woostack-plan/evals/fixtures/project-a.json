@@ -1,0 +1,404 @@
+{
+  "schemaVersion": 1,
+  "invocation": {
+    "projectReference": "https://linear.app/acme/project/cache-refresh-7f46f8a1",
+    "repositoryRoot": "consumer-repository"
+  },
+  "repositoryPolicy": {
+    "repository": "https://github.com/acme/cache-service",
+    "workspace": "Acme",
+    "team": "APP",
+    "projectStatuses": {
+      "backlog": "Backlog",
+      "planned": "Planned"
+    },
+    "issueStates": {
+      "planned": "Planned"
+    }
+  },
+  "officialMcp": {
+    "endpoint": "https://mcp.linear.app/mcp",
+    "authenticated": true,
+    "paginationComplete": true,
+    "capabilities": [
+      "project.read",
+      "project-update.create",
+      "project-update.read",
+      "project-issues.read",
+      "issue.create",
+      "issue.read",
+      "issue.update",
+      "relation.create",
+      "relation.read",
+      "owner.read",
+      "state.read"
+    ]
+  },
+  "project": {
+    "nativeId": "project-cache-7",
+    "workspace": "Acme",
+    "team": "APP",
+    "nativeCategory": "backlog",
+    "overviewEnvelope": {
+      "clientId": "10000000-0000-4000-8000-000000000001",
+      "kind": "resource",
+      "label": "woostack",
+      "repository": "https://github.com/acme/cache-service",
+      "role": "feature",
+      "schema": 1
+    }
+  },
+  "phaseUpdates": [
+    {
+      "nativeId": "update-design-1",
+      "envelope": {
+        "clientId": "10000000-0000-4000-8000-000000000011",
+        "event": "designApproved",
+        "kind": "projectEvent",
+        "label": "woostack",
+        "predecessorId": null,
+        "projectId": "project-cache-7",
+        "relatedIds": [],
+        "repository": "https://github.com/acme/cache-service",
+        "revision": 1,
+        "role": "feature",
+        "schema": 1,
+        "supersedesId": null
+      }
+    },
+    {
+      "nativeId": "update-spec-1",
+      "readableBody": {
+        "goal": "Refresh expired cache values and coalesce concurrent refreshes.",
+        "acceptanceCriteria": [
+          "An expired key is refreshed exactly once before its value is returned.",
+          "Concurrent callers for one expired key share one refresh result."
+        ],
+        "repositorySurface": [
+          "src/cache.ts",
+          "tests/cache-expiry.test.ts",
+          "tests/cache-concurrency.test.ts"
+        ]
+      },
+      "envelope": {
+        "clientId": "10000000-0000-4000-8000-000000000012",
+        "event": "specHardened",
+        "kind": "projectEvent",
+        "label": "woostack",
+        "predecessorId": "update-design-1",
+        "projectId": "project-cache-7",
+        "relatedIds": [],
+        "repository": "https://github.com/acme/cache-service",
+        "revision": 1,
+        "role": "feature",
+        "schema": 1,
+        "supersedesId": null
+      }
+    },
+    {
+      "nativeId": "update-approved-1",
+      "envelope": {
+        "clientId": "10000000-0000-4000-8000-000000000013",
+        "event": "specApproved",
+        "kind": "projectEvent",
+        "label": "woostack",
+        "predecessorId": "update-spec-1",
+        "projectId": "project-cache-7",
+        "relatedIds": [
+          "update-spec-1"
+        ],
+        "repository": "https://github.com/acme/cache-service",
+        "revision": 1,
+        "role": "feature",
+        "schema": 1,
+        "supersedesId": null
+      }
+    }
+  ],
+  "projectIssueRead": {
+    "nodes": [],
+    "pageInfo": {
+      "hasNextPage": false
+    }
+  },
+  "allocatedIds": {
+    "planningEventClientId": "10000000-0000-4000-8000-000000000014",
+    "incrementClientIds": [
+      "10000000-0000-4000-8000-000000000021",
+      "10000000-0000-4000-8000-000000000022"
+    ]
+  },
+  "syntheticResponses": [
+    {
+      "operation": "append-planning",
+      "nativeId": "update-planning-1"
+    },
+    {
+      "operation": "read-planning-event",
+      "record": {
+        "nativeId": "update-planning-1",
+        "envelope": {
+          "clientId": "10000000-0000-4000-8000-000000000014",
+          "event": "planning",
+          "kind": "projectEvent",
+          "label": "woostack",
+          "predecessorId": "update-approved-1",
+          "projectId": "project-cache-7",
+          "relatedIds": [
+            "update-approved-1",
+            "update-spec-1"
+          ],
+          "repository": "https://github.com/acme/cache-service",
+          "revision": 1,
+          "role": "feature",
+          "schema": 1,
+          "supersedesId": null
+        }
+      }
+    },
+    {
+      "operation": "read-project-planning-head",
+      "nativeCategory": "backlog",
+      "currentHeadNativeId": "update-planning-1",
+      "currentHeadCount": 1
+    },
+    {
+      "operation": "create-increment",
+      "clientId": "10000000-0000-4000-8000-000000000021",
+      "nativeId": "issue-cache-71"
+    },
+    {
+      "operation": "read-increment",
+      "record": {
+        "nativeId": "issue-cache-71",
+        "workspace": "Acme",
+        "team": "APP",
+        "semanticState": "planned",
+        "envelope": {
+          "clientId": "10000000-0000-4000-8000-000000000021",
+          "dependencyNativeIds": [],
+          "kind": "resource",
+          "label": "woostack",
+          "ordinal": 1,
+          "projectId": "project-cache-7",
+          "repository": "https://github.com/acme/cache-service",
+          "role": "increment",
+          "schema": 1
+        },
+        "contract": {
+          "objective": "Refresh one expired cache value while retaining the fresh-value fast path.",
+          "dependencyClientIds": [],
+          "filesAndResponsibilities": [
+            {
+              "path": "src/cache.ts",
+              "responsibilities": [
+                "detect expiry before returning a cached value",
+                "replace a stale value only after a successful refresh"
+              ]
+            },
+            {
+              "path": "tests/cache-expiry.test.ts",
+              "responsibilities": [
+                "prove an expired value refreshes exactly once",
+                "prove a fresh value retains the fast path"
+              ]
+            }
+          ],
+          "tasks": [
+            {
+              "phase": "red",
+              "action": "Add expired-value and fresh-value behavior cases.",
+              "command": "pnpm test tests/cache-expiry.test.ts -- --runInBand",
+              "expectedOutcome": "the expired-value case fails because the stale value is returned"
+            },
+            {
+              "phase": "green",
+              "action": "Refresh an expired entry before returning it.",
+              "command": "pnpm test tests/cache-expiry.test.ts -- --runInBand",
+              "expectedOutcome": "the expired-value and fresh-value cases pass"
+            },
+            {
+              "phase": "refactor",
+              "action": "Extract the expiry predicate without changing behavior.",
+              "command": "pnpm test tests/cache-expiry.test.ts -- --runInBand",
+              "expectedOutcome": "the expired-value and fresh-value cases remain passing"
+            }
+          ],
+          "acceptanceCriteria": [
+            {
+              "id": "AC-1",
+              "text": "An expired key is refreshed exactly once before its value is returned."
+            }
+          ],
+          "acceptanceCoverage": [
+            {
+              "criterionId": "AC-1",
+              "redTaskPhase": "red",
+              "greenTaskPhase": "green",
+              "automatedVerificationCommand": "pnpm test tests/cache-expiry.test.ts -- --runInBand",
+              "manualVerificationStep": "Inspect one expired-key refresh trace."
+            }
+          ],
+          "automatedVerification": [
+            {
+              "command": "pnpm test tests/cache-expiry.test.ts -- --runInBand",
+              "expectedOutcome": "exit 0 with expired-value and fresh-value cases passing"
+            }
+          ],
+          "manualVerification": [
+            {
+              "step": "Inspect one expired-key refresh trace.",
+              "expectedObservation": "one source read completes before the refreshed value is returned"
+            }
+          ],
+          "gitParent": {
+            "kind": "projectBase",
+            "freezeOwner": "woostack-build"
+          }
+        }
+      }
+    },
+    {
+      "operation": "create-increment",
+      "clientId": "10000000-0000-4000-8000-000000000022",
+      "nativeId": "issue-cache-72"
+    },
+    {
+      "operation": "read-increment",
+      "record": {
+        "nativeId": "issue-cache-72",
+        "workspace": "Acme",
+        "team": "APP",
+        "semanticState": "planned",
+        "envelope": {
+          "clientId": "10000000-0000-4000-8000-000000000022",
+          "dependencyNativeIds": [
+            "issue-cache-71"
+          ],
+          "kind": "resource",
+          "label": "woostack",
+          "ordinal": 2,
+          "projectId": "project-cache-7",
+          "repository": "https://github.com/acme/cache-service",
+          "role": "increment",
+          "schema": 1
+        },
+        "contract": {
+          "objective": "Coalesce concurrent refreshes for one expired cache key.",
+          "dependencyClientIds": [
+            "10000000-0000-4000-8000-000000000021"
+          ],
+          "filesAndResponsibilities": [
+            {
+              "path": "src/cache.ts",
+              "responsibilities": [
+                "share one in-flight refresh per key",
+                "clear the in-flight entry after success or failure"
+              ]
+            },
+            {
+              "path": "tests/cache-concurrency.test.ts",
+              "responsibilities": [
+                "prove concurrent callers start one refresh",
+                "prove every caller receives the same refreshed value"
+              ]
+            }
+          ],
+          "tasks": [
+            {
+              "phase": "red",
+              "action": "Add concurrent-caller and failed-refresh behavior cases.",
+              "command": "pnpm test tests/cache-concurrency.test.ts -- --runInBand",
+              "expectedOutcome": "the concurrent-caller case fails because multiple source reads start"
+            },
+            {
+              "phase": "green",
+              "action": "Share and clear one in-flight refresh per cache key.",
+              "command": "pnpm test tests/cache-concurrency.test.ts -- --runInBand",
+              "expectedOutcome": "the concurrent-caller and failed-refresh cases pass"
+            },
+            {
+              "phase": "refactor",
+              "action": "Isolate in-flight refresh bookkeeping without changing behavior.",
+              "command": "pnpm test tests/cache-expiry.test.ts tests/cache-concurrency.test.ts -- --runInBand",
+              "expectedOutcome": "the expiry and concurrency suites remain passing"
+            }
+          ],
+          "acceptanceCriteria": [
+            {
+              "id": "AC-2",
+              "text": "Concurrent callers for one expired key share one refresh result."
+            }
+          ],
+          "acceptanceCoverage": [
+            {
+              "criterionId": "AC-2",
+              "redTaskPhase": "red",
+              "greenTaskPhase": "green",
+              "automatedVerificationCommand": "pnpm test tests/cache-concurrency.test.ts -- --runInBand",
+              "manualVerificationStep": "Inspect one concurrent refresh trace."
+            }
+          ],
+          "automatedVerification": [
+            {
+              "command": "pnpm test tests/cache-expiry.test.ts tests/cache-concurrency.test.ts -- --runInBand",
+              "expectedOutcome": "exit 0 with expiry and concurrency cases passing"
+            }
+          ],
+          "manualVerification": [
+            {
+              "step": "Inspect one concurrent refresh trace.",
+              "expectedObservation": "one source read completes before every waiting caller receives the same value"
+            }
+          ],
+          "gitParent": {
+            "kind": "issue",
+            "issueId": "issue-cache-71"
+          }
+        }
+      }
+    },
+    {
+      "operation": "read-existing-relations",
+      "records": [],
+      "paginationComplete": true
+    },
+    {
+      "operation": "create-relation",
+      "fromNativeId": "issue-cache-72",
+      "toNativeId": "issue-cache-71",
+      "relation": "depends-on"
+    },
+    {
+      "operation": "read-relation",
+      "record": {
+        "fromNativeId": "issue-cache-72",
+        "toNativeId": "issue-cache-71",
+        "relation": "depends-on"
+      }
+    },
+    {
+      "operation": "read-final-relations",
+      "records": [
+        {
+          "fromNativeId": "issue-cache-72",
+          "toNativeId": "issue-cache-71",
+          "relation": "depends-on"
+        }
+      ],
+      "readComplete": true,
+      "paginationComplete": true
+    },
+    {
+      "operation": "read-final-project-graph",
+      "nativeCategory": "backlog",
+      "currentHeadNativeId": "update-planning-1",
+      "currentHeadCount": 1,
+      "issueNativeIds": [
+        "issue-cache-71",
+        "issue-cache-72"
+      ],
+      "paginationComplete": true
+    }
+  ]
+}

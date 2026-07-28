@@ -12,11 +12,9 @@ Load the canonical Linear MCP
 [issue-event actor/payload/relation schemas](../../woostack-init/references/artifact-backends.md#canonical-issue-event-dispatch-and-pre-commit-evidence),
 [issue-state/current-event lifecycle](../../woostack-status/references/conventions.md#issue-state-and-events),
 [retained MCP context](../../woostack-build/references/linear-context.md), and shared
-[engineer-agent authority protocol](../../using-woostack/references/engineer-agents.md). This
-controller never reads or writes a local specification, plan, checkbox/progress record, or
-lifecycle mirror; creates no Linear document; calls no repository Linear adapter or custom
-HTTP/GraphQL transport; and reads no repository credential. A disposable worktree registry is
-recovery administration only.
+[engineer-agent authority protocol](../../using-woostack/references/engineer-agents.md). The
+controller consumes only those verified authorities. A disposable worktree registry is recovery
+administration only and cannot authorize work.
 
 ## 1. Discover capabilities and bind exact input
 
@@ -26,6 +24,7 @@ team, project/status, issue/state, native relation, assignment/delegation, branc
 project-update, and managed-comment reads plus the corresponding mutations and independent
 post-mutation reads this run may need. Missing, read-only, partial, ambiguous, or unauthenticated
 capability blocks without fallback.
+This path calls no repository Linear adapter or custom HTTP/GraphQL transport.
 
 Read `.woostack/config.json` only as non-secret repository policy. Independently resolve its exact
 workspace/team, canonical repository URL, project-status categories, and semantic issue-state
@@ -239,8 +238,8 @@ Pass a driver exactly one verified issue resource and one task at a time within 
 inline context or dispatched brief includes the exact issue UUID/URL, optional exact project
 UUID/URL, canonical repository, role, current contract revision/hash, bounded task text, allowed
 files/surface, acceptance and verification clauses, worktree path, base/parent identity, current
-owner/run receipt, and explicit authority prohibitions. It never includes a local development
-record as authority.
+owner/run receipt, and explicit authority prohibitions; the verified issue contract alone supplies
+development scope.
 
 The engineer-agent role split is load-bearing at this boundary:
 
@@ -362,8 +361,8 @@ Mutation-response success, partial body, missing relation, stale revision/timest
 current revision, or an unverified readable summary is not a receipt. The next side effect remains
 forbidden.
 
-No issue description checkbox, PR body alone, commit message, local report, worktree registry entry,
-or chat handback substitutes for a typed event receipt.
+Only an independently read typed event receipt establishes lifecycle evidence. Git, PR, commit,
+registry, and chat evidence may corroborate it but never substitute.
 
 ## 8. Blocked restoration and handoff
 
@@ -429,8 +428,7 @@ event related to the exact issue and evidence IDs. The lead appends/read backs p
 only after a fresh complete DAG proves every issue at exact `inReview` or `done` with current
 PR/evidence. A standalone issue has no project progress or closeout.
 
-`done` is never inferred from `inReview`, a merged label, a closed PR, a local report, or native
-state alone. It requires a current `acceptance` whose independently read human/app author matches
+`done` requires a current `acceptance` whose independently read human/app author matches
 the type-aware responsible issue authority and whose exact relations include current
 implementation, verification, and passing post-PR `reviewResult`, plus independently verified
 canonical GitHub merge identity. Project `done` additionally requires every managed issue
@@ -447,5 +445,5 @@ the exact issue/project native and client UUIDs, owner/run, branch/path, start/p
 known commit/PR, event UUIDs, first unknown boundary, and next responsible authority.
 
 A successful handback contains observed receipts, not a new authority summary. Before selecting
-another issue, re-read the complete project/DAG or stop after the standalone issue. No local
-progress, completion, or morning file is authored or accepted.
+another issue, re-read the complete project/DAG or stop after the standalone issue. The terminal
+handback is rendered from those verified records.

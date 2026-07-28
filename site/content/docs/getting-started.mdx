@@ -190,7 +190,7 @@ required scopes; both personal sessions must report `actor=user` and the same hu
 host-exposed capabilities rather than hard-coding runtime MCP tool names. Prove capabilities to:
 
 - read, create, and update projects and issues;
-- create and read specification-bearing project updates and issue comments;
+- create and read specification-bearing project updates and managed issue comments;
 - read and update native project statuses and team issue states;
 - read and update issue assignees or app delegates with the correct identity semantics;
 - read and create native issue relations; and
@@ -211,10 +211,10 @@ The work topology is fixed:
 
 - **Standalone work:** one bound Linear issue contains the change or fix contract, decisions,
   ownership, evidence, and acceptance.
-- **Multi-issue work:** one Linear project contains specification-bearing project updates and
-  ordered increment issues with native dependency relations.
+- **Multi-issue work:** one Linear project has specification-bearing project updates and ordered
+  increment issues with native dependency relations; no Linear document is created.
 
-The canonical [Linear MCP development authority](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md)
+The canonical [Linear MCP development authority](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#managed-resource-model)
 owns resource identity, lifecycle, and receipt details. Link to that contract rather than copying
 its event schemas into prompts.
 

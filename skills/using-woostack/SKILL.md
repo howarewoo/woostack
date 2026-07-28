@@ -93,14 +93,14 @@ isolation, bounded mutation, review independence, or acceptance authority.
 
 | Request | Load |
 |---|---|
-| `/woostack-init [path]`, initialize or repair the `.woostack/` workspace | `woostack-init` |
+| `/woostack-init [path] [--migrate-legacy]`, initialize or repair the `.woostack/` workspace, or explicitly migrate tracked legacy development records | `woostack-init` |
 | `/woostack-bootstrap <goal>`, scaffold a new web/mobile/API project | `woostack-bootstrap` |
 | `/woostack-build <goal>`, build a feature through the woostack loop | `woostack-build` |
 | `/woostack-fix <target> [description]`, resolve a bug/issue through the unified fix loop | `woostack-fix` |
 | `/woostack-change <goal>`, implement a bounded non-bug enhancement or refactor that fits one reviewable PR | `woostack-change` |
-| `/woostack-plan <Linear project UUID-or-exact-URL>`, write verified PR-sized increment issues and dependencies for one approved repository-owned feature project | `woostack-plan` |
-| `/woostack-execute <artifact> [--inline\|--subagent]`, execute an approved artifact as PR-sized stacked increments (inline or subagent-driven) | `woostack-execute` |
-| `/woostack-execute-overnight <artifact> [--inline\|--subagent]`, execute an approved artifact unattended overnight (autonomous, morning report) | `woostack-execute-overnight` |
+| `/woostack-plan <Linear project UUID-or-exact-URL>`, reconcile an approved feature project's PR-sized increment issue graph | `woostack-plan` |
+| `/woostack-execute <Linear project UUID-or-exact-URL> [--issue <increment UUID-or-exact-URL>] [--inline\|--subagent]`, or `/woostack-execute <standalone issue UUID-or-exact-URL> [--inline\|--subagent]`, execute verified assigned Linear work as an issue-scoped Graphite PR | `woostack-execute` |
+| `/woostack-execute-overnight <Linear project UUID-or-exact-URL> [--inline\|--subagent]`, execute a verified feature project unattended (autonomous, terminal handback) | `woostack-execute-overnight` |
 | `/woostack-sweep [PR#] [--base R] [--interactive]`, drive a stack of PRs to a clean review | `woostack-sweep` |
 | `/woostack-commit`, commit session-relevant changes and update PR fields | `woostack-commit` |
 | `/woostack-review [PR#]`, review a PR or local diff | `woostack-review` |
@@ -137,9 +137,9 @@ These thoughts mean stop and load the relevant rules:
 | "I remember the workflow." | The installed skill may have changed. Load it. |
 | "I'll initialize `.woostack/` to be helpful." | This skill is adoption-only; mutate project state only when requested or required by the task skill. |
 | "This is only a review comment." | Review and address flows have posting, validation, and memory rules. |
-| "I'll write another plan for this spec." | Specs and plans are 1:1. A second plan breaks the board's join — amend the one existing plan instead. See [`conventions.md`](../woostack-status/references/conventions.md). |
-| "I'll just set `status:`/`branch:` by hand." | The build loop authors spec design status and plan implementation status/branch, and the `/woostack-status` board reads them; hand-editing or blanking them causes drift flags. |
-| "I'll rename or move this spec or plan." | Renames break the spec↔plan↔PR joins (the `**Source:**` line, `branch:`, the `Spec:` PR trailer). Avoid it, or update every join at once. |
+| "I'll write another plan for this project." | One verified Linear feature project owns one managed increment issue graph. Reconcile the existing graph by stable identity instead of creating another authority. |
+| "I'll just set lifecycle state from prose." | The workflow derives lifecycle from verified typed Linear events and native state, then independently reads every mutation back. |
+| "I'll identify the work by a local spec or plan." | Development work is selected only by an exact, ownership-verified Linear project or issue identity; local knowledge never becomes scope or lifecycle authority. |
 | "I'll answer straight from the `.woostack/` store." | Recall the scoped memory for your working set first (read-only) per [`memory.md`](../woostack-init/references/memory.md); for a read-only question use `/woostack-ask`. |
 
 ## AGENTS.md Usage

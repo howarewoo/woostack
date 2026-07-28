@@ -9,10 +9,11 @@ for t in test-*.sh; do
   echo "== $t =="
   if bash "$t"; then :; else rc=1; fi
 done
-build_contract="$ROOT/skills/woostack-build/tests/test-linear-build-contract.sh"
-echo "== ${build_contract#"$ROOT"/} =="
-if bash "$build_contract"; then :; else rc=1; fi
-plan_contract="$ROOT/skills/woostack-build/tests/test-linear-plan-contract.sh"
-echo "== ${plan_contract#"$ROOT"/} =="
-if bash "$plan_contract"; then :; else rc=1; fi
+for contract in \
+  "$ROOT/skills/woostack-build/tests/test-linear-build-contract.sh" \
+  "$ROOT/skills/woostack-build/tests/test-linear-plan-contract.sh"
+do
+  echo "== ${contract#"$ROOT"/} =="
+  if bash "$contract"; then :; else rc=1; fi
+done
 exit "$rc"

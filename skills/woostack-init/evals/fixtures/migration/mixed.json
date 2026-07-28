@@ -1,0 +1,76 @@
+{
+  "repositoryId": "repo-woostack",
+  "legacyRecords": [
+    {
+      "path": ".woostack/specs/catalog.md",
+      "kind": "specification",
+      "stableClientId": "56565656-5656-4656-8656-565656565656",
+      "phase": "approved",
+      "branch": "feature/catalog",
+      "provenance": ["git:ca71001:.woostack/specs/catalog.md"]
+    },
+    {
+      "path": ".woostack/fixes/cache-header.md",
+      "kind": "fix",
+      "phase": "complete",
+      "provenance": ["git:ca71002:.woostack/fixes/cache-header.md"]
+    }
+  ],
+  "recordEvidence": {
+    ".woostack/specs/catalog.md": {
+      "branchExists": true,
+      "pullRequestMerged": false,
+      "managedRead": {
+        "clientId": "56565656-5656-4656-8656-565656565656",
+        "nativeId": "linear-project-catalog",
+        "repositoryId": "repo-woostack",
+        "role": "feature",
+        "workspace": "Acme",
+        "team": "APP",
+        "owner": "user-7",
+        "directReadComplete": true,
+        "paginationComplete": true,
+        "projectMembershipVerified": true,
+        "relationTuples": [],
+        "readableProvenance": "git:ca71001:.woostack/specs/catalog.md"
+      }
+    },
+    ".woostack/fixes/cache-header.md": {
+      "pullRequest": 441,
+      "mergeCommit": "ca71003",
+      "repositoryId": "repo-woostack",
+      "coversPath": ".woostack/fixes/cache-header.md",
+      "mergeVerified": true,
+      "ancestryVerified": true
+    }
+  },
+  "receiptSet": {
+    "complete": true,
+    "independent": true
+  },
+  "provenanceLedger": {
+    "verified": true,
+    "entries": [
+      "git:ca71001:.woostack/specs/catalog.md -> linear://project/56565656-5656-4656-8656-565656565656",
+      "git:ca71002:.woostack/fixes/cache-header.md",
+      "pr:441@ca71003"
+    ]
+  },
+  "preDeleteReads": [
+    {
+      "nativeId": "linear-project-catalog",
+      "directReadComplete": true,
+      "paginationComplete": true,
+      "relationTuples": []
+    },
+    {
+      "mergeCommit": "ca71003",
+      "mergeVerified": true,
+      "ancestryVerified": true
+    }
+  ],
+  "gitRecovery": {
+    "allRecordsTracked": true,
+    "filteredIdentitiesVerified": true
+  }
+}

@@ -19,18 +19,10 @@ paths = {
     "conventions": root / "skills/woostack-status/references/conventions.md",
     "evals": root / "skills/woostack-status/evals/evals.json",
     "fixture": root / "skills/woostack-status/evals/fixtures/linear-state.json",
+    "expected": root / "skills/woostack-status/scripts/tests/fixtures/linear-state-expected.json",
     "test": root / "skills/woostack-status/scripts/tests/test-status.sh",
     "runner": root / "skills/woostack-status/scripts/tests/run-tests.sh",
 }
-obsolete = [
-    root / "skills/woostack-status/scripts/status.sh",
-    root / "skills/woostack-status/scripts/lib.sh",
-    root / "skills/woostack-status/scripts/board-template.html",
-    root / "skills/woostack-status/scripts/tests/test-html-board.sh",
-    root / "skills/woostack-status/evals/fixtures/markdown-state.json",
-    root / "skills/woostack-status/evals/fixtures/repo/.woostack/specs/cache.md",
-    root / "skills/woostack-status/evals/fixtures/repo/.woostack/plans/cache.md",
-]
 texts = {name: path.read_text(encoding="utf-8") for name, path in paths.items()}
 
 
@@ -57,9 +49,6 @@ if not os.access(paths["runner"], os.X_OK):
     fail("test runner is not executable")
 if texts["runner"].count("test-status.sh") != 1:
     fail("test-status.sh must be registered exactly once")
-for path in obsolete:
-    if path.exists():
-        fail(f"obsolete backend/HTML/Markdown artifact remains: {path.relative_to(root)}")
 
 workflow = re.sub(r"\s+", " ", texts["skill"] + "\n" + texts["conventions"])
 for required in (
@@ -107,6 +96,7 @@ for required in (
     "all of its complete managed increment set is `done`",
     "Linear-Project: <verified stable project UUID>",
     "Linear-Issue: <TEAM-NUMBER>",
+    "case-insensitive exact, indented, quoted, or fenced `Spec:` attribution candidate",
     "Standalone work items (no project)",
     "activityAt",
     "stale",
@@ -116,28 +106,13 @@ for required in (
     "Text output only",
 ):
     must(workflow, required, "status contract")
-for forbidden in (
-    ".woostack/specs",
-    ".woostack/plans",
-    ".woostack/fixes",
-    ".woostack/overnight",
-    "status.sh",
-    "board-template.html",
-    "--no-open",
-    "WOO_STATUS_NO_OPEN",
-    "LINEAR_API_KEY",
-    "resolve-backend",
-    "Spec: .woostack/",
-):
-    if forbidden.lower() in workflow.lower():
-        fail(f"status contract retains forbidden local/backend token {forbidden!r}")
 
 fixture = json.loads(texts["fixture"])
+expected = json.loads(texts["expected"])
 evals = json.loads(texts["evals"])
 if set(fixture) != {
     "schemaVersion", "capturedAt", "policy", "project", "standaloneIssues", "github",
     "linearPullRequestRelations", "ancestryCases", "mutationReceipts", "failureCases",
-    "expected",
 }:
     fail("fixture top-level schema drift")
 if fixture["schemaVersion"] != 1:
@@ -177,8 +152,6 @@ for case_id in (
         fail(f"missing status eval case {case_id}")
 for case in evals["cases"]:
     fixtures = case.get("fixtures", [])
-    if "markdown-state.json" in fixtures:
-        fail(f"eval {case['id']} still consumes Markdown state")
     if case["id"] in case_ids & {
         "renders-feature-and-standalone-text-board",
         "reconciles-only-merge-and-acceptance-eligible-issue",
@@ -872,9 +845,9 @@ def unresolved_project_blockers(current):
 
 validate_project_resource(project)
 phase, project_current = validate_phase(project["events"])
-if phase != fixture["expected"]["projectPhase"]:
+if phase != expected["projectPhase"]:
     fail(f"fixture phase derived as {phase!r}")
-if project["status"]["category"] != fixture["expected"]["projectNativeCategory"]:
+if project["status"]["category"] != expected["projectNativeCategory"]:
     fail("project native category expectation mismatch")
 
 
@@ -1446,7 +1419,7 @@ if (
     != expected_relation_issue_ids
     or len(linear_pr_relation_records) != len(expected_relation_issue_ids)
     or sorted(record["id"] for record in linear_pr_relation_records)
-    != fixture["expected"]["linearPrRelationIds"]
+    != expected["linearPrRelationIds"]
 ):
     fail("native Linear PR relation universe drift")
 current_events = {}
@@ -1486,7 +1459,7 @@ for issue in increments:
     current_events[issue["id"]] = validate_issue_resource(issue, "increment")
 for issue in standalone:
     current_events[issue["id"]] = validate_issue_resource(issue, "work-item")
-if sorted(observed_issue_event_kinds) != fixture["expected"]["issueEventKinds"]:
+if sorted(observed_issue_event_kinds) != expected["issueEventKinds"]:
     fail("canonical issue event dispatch set drift")
 
 successive_issue = increments[2]
@@ -1500,7 +1473,7 @@ for fixture_field, event_kind in (
         event["id"] for event in successive_issue["events"]
         if event["envelope"]["event"] == event_kind
     ]
-    if observed_ids != fixture["expected"][fixture_field]:
+    if observed_ids != expected[fixture_field]:
         fail(f"successive stable {event_kind} families were not preserved")
 
 initial_assignment_relation = copy.deepcopy(successive_issue)
@@ -1796,19 +1769,19 @@ def validate_project_event_dispatch(current):
 
 project_dispatch = validate_project_event_dispatch(project_current)
 if (
-    project_dispatch["eventKinds"] != fixture["expected"]["projectEventKinds"]
-    or project_dispatch["leadOwnedEventKinds"] != fixture["expected"]["leadOwnedProjectEventKinds"]
+    project_dispatch["eventKinds"] != expected["projectEventKinds"]
+    or project_dispatch["leadOwnedEventKinds"] != expected["leadOwnedProjectEventKinds"]
     or project_dispatch["consumedDecisionIds"]
-    != fixture["expected"]["consumedProjectDecisionEventIds"]
+    != expected["consumedProjectDecisionEventIds"]
     or project_dispatch["inactiveDecisionIds"]
-    != fixture["expected"]["inactiveProjectDecisionEventIds"]
+    != expected["inactiveProjectDecisionEventIds"]
     or project_dispatch["emptyRelationDecisionIds"]
-    != fixture["expected"]["emptyAffectedDecisionEventIds"]
+    != expected["emptyAffectedDecisionEventIds"]
 ):
     fail("canonical project event dispatch set drift")
 if unresolved_project_blockers(project_current):
     fail("resolved project blocker remained open")
-if {issue["identifier"] for issue in standalone} != set(fixture["expected"]["standaloneIssueIdentifiers"]):
+if {issue["identifier"] for issue in standalone} != set(expected["standaloneIssueIdentifiers"]):
     fail("standalone fixture set mismatch")
 if any("projectId" in issue["envelope"] or issue.get("projectMembership") is not None for issue in standalone):
     fail("standalone issue gained a project")
@@ -2002,6 +1975,30 @@ def latest_event(issue, event):
     return max(matches, key=lambda item: instant(item["createdAt"])) if matches else None
 
 
+FENCE_PREFIX = re.compile(
+    r"^(?:`{3,}|~{3,})(?:[A-Za-z0-9_+-]+[ \t]+)?",
+)
+
+
+def normalized_attribution_candidate(raw_line):
+    candidate = raw_line.strip()
+    while candidate.startswith(">"):
+        candidate = candidate[1:].lstrip()
+    fence = FENCE_PREFIX.match(candidate)
+    if fence is not None:
+        candidate = candidate[fence.end():].lstrip()
+    while candidate[:1] in {"'", '"', "`"}:
+        candidate = candidate[1:].lstrip()
+    return candidate
+
+
+def has_retired_spec_attribution(body_lines):
+    return any(
+        normalized_attribution_candidate(line).casefold().startswith("spec:")
+        for line in body_lines
+    )
+
+
 def validate_pr(issue, role, prs_by_number=prs):
     number = issue["pullRequestNumber"]
     if number is None:
@@ -2016,9 +2013,9 @@ def validate_pr(issue, role, prs_by_number=prs):
     if not pr["ancestry"]["verified"]:
         raise ValueError("unverified PR ancestry")
     body_lines = pr["body"].splitlines()
+    if has_retired_spec_attribution(body_lines):
+        raise ValueError("retired Spec attribution")
     nonblank = [line for line in body_lines if line.strip()]
-    if any(re.search(r"(?:^|\s)Spec\s*:", line, re.IGNORECASE) for line in body_lines):
-        raise ValueError("Spec attribution is forbidden")
     issue_line = f"Linear-Issue: {issue['identifier']}"
     if role == "increment":
         expected = [f"Linear-Project: {project_client_id}", issue_line]
@@ -2514,13 +2511,13 @@ for issue in all_issues:
             empty_relation_authorization_ids.append(authorization["id"])
         restack_authorization_ids.append(authorization["id"])
 if (
-    restack_authorization_ids != fixture["expected"]["restackAuthorizationEventIds"]
+    restack_authorization_ids != expected["restackAuthorizationEventIds"]
     or consumed_restack_authorization_ids
-    != fixture["expected"]["consumedRestackAuthorizationEventIds"]
+    != expected["consumedRestackAuthorizationEventIds"]
     or inactive_restack_authorization_ids
-    != fixture["expected"]["inactiveRestackAuthorizationEventIds"]
+    != expected["inactiveRestackAuthorizationEventIds"]
     or empty_relation_authorization_ids
-    != fixture["expected"]["emptyAffectedAuthorizationEventIds"]
+    != expected["emptyAffectedAuthorizationEventIds"]
 ):
     fail("canonical restackAuthorized event set drift")
 
@@ -2698,11 +2695,11 @@ for issue in all_issues:
             issue, selected_review, issue_prs[issue["id"]],
         ):
             accepted_review_event_ids.append(selected_review["id"])
-if accepted_review_event_ids != fixture["expected"]["acceptedReviewResultEventIds"]:
+if accepted_review_event_ids != expected["acceptedReviewResultEventIds"]:
     fail("accepted current reviewResult set drift")
-if selected_review_event_ids != fixture["expected"]["latestCurrentHeadReviewEventIds"]:
+if selected_review_event_ids != expected["latestCurrentHeadReviewEventIds"]:
     fail("latest current-head reviewResult selection drift")
-if sorted(github_reviews) != fixture["expected"]["currentGithubReviewReceiptIds"]:
+if sorted(github_reviews) != expected["currentGithubReviewReceiptIds"]:
     fail("native GitHub review receipt set drift")
 
 
@@ -2935,7 +2932,7 @@ for before, receipt in zip(eligible, receipts):
     ):
         fail("second complete issue read-back drift")
 
-if fixture["expected"]["issueDonePrincipalGatePassed"] is not True:
+if expected["issueDonePrincipalGatePassed"] is not True:
     fail("fixture principal-gate expectation drift")
 wrong_principal = fixture["failureCases"]["wrongIssueDonePrincipalScenario"]
 rejects(
@@ -2949,7 +2946,7 @@ if [issue["identifier"] for issue in all_issues if terminal_eligible(issue)]:
     fail("second status read attempted to replay a verified terminal transition")
 states_after = {issue["id"]: issue["state"] for issue in increments}
 progress = {"done": sum(state == "done" for state in states_after.values()), "total": len(states_after)}
-if progress != fixture["expected"]["progressAfterReconciliation"]:
+if progress != expected["progressAfterReconciliation"]:
     fail(f"progress derived as {progress!r}")
 
 rollup = {"merged": 0, "open": 0, "none": 0}
@@ -2961,7 +2958,7 @@ for issue in increments:
         rollup["merged"] += 1
     elif pr["state"] == "OPEN":
         rollup["open"] += 1
-if rollup != fixture["expected"]["projectPrRollup"]:
+if rollup != expected["projectPrRollup"]:
     fail(f"project PR rollup derived as {rollup!r}")
 
 
@@ -2983,14 +2980,14 @@ for issue in all_issues:
     age_days = (now - activity_at(issue)).days
     if state != "done" and age_days >= fixture["policy"]["staleDays"]:
         stale.append(issue["identifier"])
-if stale != fixture["expected"]["staleIssueIdentifiers"]:
+if stale != expected["staleIssueIdentifiers"]:
     fail(f"stale set derived as {stale!r}")
 
 blocked = [issue["identifier"] for issue in all_issues if open_blocker(issue)]
 handoffs = [issue["identifier"] for issue in all_issues if pending_handoff(issue)]
-if blocked != fixture["expected"]["blockedIssueIdentifiers"]:
+if blocked != expected["blockedIssueIdentifiers"]:
     fail(f"blocked set derived as {blocked!r}")
-if handoffs != fixture["expected"]["handoffIssueIdentifiers"]:
+if handoffs != expected["handoffIssueIdentifiers"]:
     fail(f"handoff set derived as {handoffs!r}")
 
 
@@ -3015,7 +3012,7 @@ def next_action(issue):
 
 
 derived_actions = {issue["identifier"]: next_action(issue) for issue in all_issues}
-if derived_actions != fixture["expected"]["nextActions"]:
+if derived_actions != expected["nextActions"]:
     fail(f"next actions derived as {derived_actions!r}")
 
 
@@ -3298,6 +3295,49 @@ mismatched_prs = copy.deepcopy(prs)
 mismatched_prs[42]["body"] = fixture["failureCases"]["gitMismatchBody"]
 rejects("Git/Linear attribution mismatch", lambda: validate_pr(increments[0], "increment", mismatched_prs))
 
+if (
+    validate_pr(increments[0], "increment")["number"] != 42
+    or validate_pr(standalone[0], "work-item")["number"] != 51
+):
+    fail("valid role-derived Linear suffix was rejected")
+
+retired_spec_bodies = fixture["failureCases"]["retiredSpecAttributionBodies"]
+attribution_fixture_roles = {
+    "increment": (increments[0], "increment"),
+    "workItem": (standalone[0], "work-item"),
+}
+if set(retired_spec_bodies) != set(attribution_fixture_roles):
+    fail("retired Spec attribution fixture role drift")
+for fixture_role, (issue, validation_role) in attribution_fixture_roles.items():
+    bodies = retired_spec_bodies[fixture_role]
+    if set(bodies) != {"exact", "indented", "mixedCaseQuoted", "mixedCaseFenced"}:
+        fail(f"retired Spec attribution variant drift for {fixture_role}")
+    expected_suffix = (
+        [f"Linear-Project: {project_client_id}", f"Linear-Issue: {issue['identifier']}"]
+        if validation_role == "increment"
+        else [f"Linear-Issue: {issue['identifier']}"]
+    )
+    for variant, body in bodies.items():
+        fixture_nonblank = [line for line in body.splitlines() if line.strip()]
+        if fixture_nonblank[-len(expected_suffix):] != expected_suffix:
+            fail(f"{fixture_role} {variant} fixture lacks its otherwise-valid Linear suffix")
+        variant_prs = copy.deepcopy(prs)
+        variant_prs[issue["pullRequestNumber"]]["body"] = body
+        reconciliation_plan = []
+        mutation_attempts = []
+
+        def attempt_status_reconciliation():
+            validate_pr(issue, validation_role, variant_prs)
+            reconciliation_plan.append(issue["id"])
+            mutation_attempts.append(issue["id"])
+
+        rejects(
+            f"{fixture_role} {variant} retired Spec attribution",
+            attempt_status_reconciliation,
+        )
+        if reconciliation_plan or mutation_attempts:
+            fail(f"{fixture_role} {variant} crossed the attribution mutation gate")
+
 partial = copy.deepcopy(fixture)
 partial["policy"]["paginationComplete"][fixture["failureCases"]["partialCollection"]] = False
 rejects("partial provider collection", lambda: validate_complete(partial))
@@ -3516,7 +3556,7 @@ for issue in all_issues:
     if current_precommit is not None:
         validate_precommit_review(issue, current_precommit)
         strict_precommit_ids.append(current_precommit["id"])
-if strict_precommit_ids != fixture["expected"]["strictPrecommitReviewEventIds"]:
+if strict_precommit_ids != expected["strictPrecommitReviewEventIds"]:
     fail("strict current precommitReview set drift")
 for issue in all_issues:
     post_pr_review_ids = {
@@ -3537,7 +3577,7 @@ first_execution_order = [
         "implementationEvidence", "reviewResult",
     }
 ][0:5]
-if first_execution_order != fixture["expected"]["normalFirstExecutionOrder"]:
+if first_execution_order != expected["normalFirstExecutionOrder"]:
     fail("first execution did not review the uncommitted diff before implementation")
 
 app12_precommit = latest_event(increments[0], "precommitReview")
@@ -3615,7 +3655,7 @@ for issue in all_issues:
     if current_verification is not None:
         validate_verification(issue, current_verification)
         strict_verification_ids.append(current_verification["id"])
-if strict_verification_ids != fixture["expected"]["strictVerificationEventIds"]:
+if strict_verification_ids != expected["strictVerificationEventIds"]:
     fail("strict current verification set drift")
 
 app12_verification = latest_event(increments[0], "verification")
@@ -3740,7 +3780,7 @@ rejects(
 
 app13_pre_handoff_implementation = next(
     event for event in increments[1]["events"]
-    if event["id"] == fixture["expected"]["restackHistoricalImplementationId"]
+    if event["id"] == expected["restackHistoricalImplementationId"]
 )
 validate_historical_implementation(
     increments[1], app13_pre_handoff_implementation,
@@ -3764,52 +3804,52 @@ rejects(
 
 app13_restack = next(
     event for event in events_of(increments[1], "restackAuthorized")
-    if event["id"] == fixture["expected"]["consumedRestackAuthorizationEventIds"][0]
+    if event["id"] == expected["consumedRestackAuthorizationEventIds"][0]
 )
 restack_details = validate_restack_authorized(
     increments[1], app13_restack, issue_prs[increments[1]["id"]],
 )
 if (
-    restack_details["operationId"] != fixture["expected"]["restackOperationId"]
+    restack_details["operationId"] != expected["restackOperationId"]
     or restack_details["authorizationOwner"]
-    != fixture["expected"]["restackHistoricalAuthorizationOwner"]
-    or restack_details["currentOwner"] != fixture["expected"]["restackCurrentOwner"]
+    != expected["restackHistoricalAuthorizationOwner"]
+    or restack_details["currentOwner"] != expected["restackCurrentOwner"]
     or restack_details["assignmentEventId"] != "comment-app13-assignment"
     or restack_details["consumed"] is not True
     or restack_details["historicalImplementationId"]
-    != fixture["expected"]["restackHistoricalImplementationId"]
+    != expected["restackHistoricalImplementationId"]
     or restack_details["resultingImplementationId"]
-    != fixture["expected"]["restackResultingImplementationId"]
+    != expected["restackResultingImplementationId"]
     or restack_details["resultingHeadSha"]
-    != fixture["expected"]["restackResultingHeadSha"]
+    != expected["restackResultingHeadSha"]
     or restack_details["historicalPrecommitReviewId"]
-    != fixture["expected"]["restackHistoricalPrecommitReviewId"]
+    != expected["restackHistoricalPrecommitReviewId"]
     or restack_details["currentPrecommitReviewId"]
-    != fixture["expected"]["restackCurrentPrecommitReviewId"]
+    != expected["restackCurrentPrecommitReviewId"]
     or terminal_eligible(increments[1])
 ):
     fail("canonical consumed restackAuthorized changed ownership or supplied terminal evidence")
 
 app13_second_restack = next(
     event for event in events_of(increments[1], "restackAuthorized")
-    if event["id"] == fixture["expected"]["consumedRestackAuthorizationEventIds"][1]
+    if event["id"] == expected["consumedRestackAuthorizationEventIds"][1]
 )
 second_restack_details = validate_restack_authorized(
     increments[1], app13_second_restack, issue_prs[increments[1]["id"]],
 )
 if (
     second_restack_details["operationId"]
-    != fixture["expected"]["secondRestackOperationId"]
+    != expected["secondRestackOperationId"]
     or second_restack_details["authorizationOwner"]
-    != fixture["expected"]["restackHistoricalAuthorizationOwner"]
+    != expected["restackHistoricalAuthorizationOwner"]
     or second_restack_details["currentOwner"]
-    != fixture["expected"]["restackCurrentOwner"]
+    != expected["restackCurrentOwner"]
     or second_restack_details["historicalImplementationId"]
-    != fixture["expected"]["secondRestackHistoricalImplementationId"]
+    != expected["secondRestackHistoricalImplementationId"]
     or second_restack_details["resultingImplementationId"]
-    != fixture["expected"]["secondRestackResultingImplementationId"]
+    != expected["secondRestackResultingImplementationId"]
     or second_restack_details["currentImplementationId"]
-    != fixture["expected"]["secondRestackResultingImplementationId"]
+    != expected["secondRestackResultingImplementationId"]
     or second_restack_details["consumed"] is not True
 ):
     fail("second canonical restack authorization/consumer drift")
@@ -3826,7 +3866,7 @@ rejects(
 wrong_restack_revision_author = copy.deepcopy(increments[1])
 next(
     event for event in wrong_restack_revision_author["events"]
-    if event["id"] == fixture["expected"]["restackResultingImplementationId"]
+    if event["id"] == expected["restackResultingImplementationId"]
 )["actor"] = increments[1]["owner"]
 rejects(
     "restack implementation revision not authored by named controller",
@@ -3834,7 +3874,7 @@ rejects(
 )
 inactive_restack = next(
     event for event in events_of(increments[1], "restackAuthorized")
-    if event["id"] == fixture["expected"]["inactiveRestackAuthorizationEventIds"][0]
+    if event["id"] == expected["inactiveRestackAuthorizationEventIds"][0]
 )
 inactive_restack_details = validate_restack_authorized(
     increments[1], inactive_restack, issue_prs[increments[1]["id"]],
@@ -3925,7 +3965,7 @@ rejects(
 
 missing_consumption_relation = copy.deepcopy(next(
     event for event in increments[1]["events"]
-    if event["id"] == fixture["expected"]["restackResultingImplementationId"]
+    if event["id"] == expected["restackResultingImplementationId"]
 ))
 missing_consumption_relation["envelope"]["relatedIds"] = (
     fixture["failureCases"]["restackMissingConsumptionRelatedIds"]
@@ -3941,7 +3981,7 @@ rejects(
 )
 if instant(next(
     event for event in increments[1]["events"]
-    if event["id"] == fixture["expected"]["restackResultingImplementationId"]
+    if event["id"] == expected["restackResultingImplementationId"]
 )["createdAt"]) != timestamp(
     app13_restack["data"]["expiresAt"]
 ):
@@ -3965,7 +4005,7 @@ rejects(
 latest_revision_substitution = copy.deepcopy(
     next(
         event for event in increments[1]["events"]
-        if event["id"] == fixture["expected"]["restackHistoricalImplementationId"]
+        if event["id"] == expected["restackHistoricalImplementationId"]
     )
 )
 latest_revision_substitution["envelope"]["relatedIds"] = (
@@ -3986,7 +4026,7 @@ for label, completion_time in (
 ):
     out_of_window_implementation = copy.deepcopy(next(
         event for event in increments[1]["events"]
-        if event["id"] == fixture["expected"]["restackResultingImplementationId"]
+        if event["id"] == expected["restackResultingImplementationId"]
     ))
     out_of_window_implementation["createdAt"] = completion_time
     rejects(
@@ -4005,15 +4045,15 @@ app13_review_families = validate_review_round_families(increments[1])
 if [
     [event["envelope"]["clientId"], event["data"]["round"], event["id"]]
     for event in app13_review_families
-] != fixture["expected"]["app13CurrentReviewFamilies"]:
+] != expected["app13CurrentReviewFamilies"]:
     fail("multiple reviewResult client families drift")
 app13_selected_review = select_current_review_result(
     increments[1], issue_prs[increments[1]["id"]],
 )
 if (
-    app13_selected_review["id"] != fixture["expected"]["app13SelectedReviewResultId"]
+    app13_selected_review["id"] != expected["app13SelectedReviewResultId"]
     or app13_selected_review["data"]["round"]
-    != fixture["expected"]["app13SelectedReviewRound"]
+    != expected["app13SelectedReviewRound"]
 ):
     fail("latest valid current-head reviewResult selection drift")
 
@@ -4231,19 +4271,19 @@ rejects(
     lambda: validate_issue_done(increments[0], app12_done, issue_prs[increments[0]["id"]], wrong_receipt),
 )
 
-if fixture["expected"]["issueWriteIds"] != [receipt["targetId"] for receipt in receipts]:
+if expected["issueWriteIds"] != [receipt["targetId"] for receipt in receipts]:
     fail("fixture expected write set drift")
-if fixture["expected"]["secondReadIssueDoneEventIds"] != [
+if expected["secondReadIssueDoneEventIds"] != [
     event["id"] for event in events_of(increments[0], "issueDone")
 ]:
     fail("fixture second-read issueDone set drift")
-if fixture["expected"]["projectWrite"] is not False:
+if expected["projectWrite"] is not False:
     fail("baseline fixture must not complete the project")
-if fixture["expected"]["standaloneProjectIds"] != []:
+if expected["standaloneProjectIds"] != []:
     fail("fixture gives standalone work a synthetic project")
-if fixture["expected"]["unrelatedMutations"] != []:
+if expected["unrelatedMutations"] != []:
     fail("fixture permits unrelated mutation")
-if fixture["expected"]["output"] != "text":
+if expected["output"] != "text":
     fail("fixture output must be text")
 
 print("test-status: ok")

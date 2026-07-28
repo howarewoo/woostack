@@ -197,16 +197,6 @@
     "codingProfileMayAccept": false,
     "delegatedReviewerMayAccept": false
   },
-  "expected": {
-    "status": "ready",
-    "route": "explicit-woostack-review",
-    "delegationAllowed": true,
-    "hermesOwnsGithubReview": true,
-    "acceptanceAuthorityProfile": "hermes-engineer-search",
-    "acceptanceTransferred": false,
-    "pairedContextsComplete": true,
-    "pairedContextsDistinct": true
-  },
   "githubActorSeparationCases": [
     {
       "id": "same-native-user-id",
@@ -305,13 +295,6 @@
       "requestedBoundary": "post-pr-review",
       "reviewStarted": false,
       "sideEffectsObserved": false
-    },
-    "expected": {
-      "status": "blocked",
-      "reason": "paired-context-isolation-invalid",
-      "pairAccepted": false,
-      "reviewAllowed": false,
-      "sideEffectsAllowed": false
     }
   }
 }

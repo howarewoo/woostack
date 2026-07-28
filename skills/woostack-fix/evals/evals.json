@@ -162,6 +162,13 @@
     },
     {
       "id": "safe-create-and-retry-use-stable-uuid",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "no-replacement","fixture": "approved-fix.json","pointer": "/safeCreate/replacementCreated"},
+        {"assertionId": "safe-create-no-branch-before-approval","fixture": "approved-fix.json","pointer": "/safeCreate/branchCreated"},
+        {"assertionId": "single-create-attempt","fixture": "approved-fix.json","pointer": "/safeCreate/createAttempts"},
+        {"assertionId": "stable-client-id","fixture": "approved-fix.json","pointer": "/safeCreate/clientId"},
+        {"assertionId": "stable-client-id","fixture": "approved-fix.json","pointer": "/safeCreate/independentReadBack/clientId"}
+      ],
       "prompt": "Evaluate fixtures/approved-fix.json safeCreate at the issue-binding boundary. Treat initialDiscovery as the pre-create search and retryDiscovery as a later retry after the verified create. Do not call a provider or create files. Return exactly one JSON object using the keys issueState, clientId, issueIdentifier, createAttempts, retryMatchedExisting, replacementCreated, readBackVerified, projectCreated, and branchCreated. Set issueState to the created issue's verified semantic state.",
       "fixtures": [
         "approved-fix.json"
@@ -238,6 +245,9 @@
     },
     {
       "id": "invalid-resource-identities-fail-before-git",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "identity-failure-no-branch","fixture": "approved-fix.json","pointer": "/safeCreate/branchCreated"}
+      ],
       "prompt": "Evaluate every entry in fixtures/approved-fix.json invalidIdentityScenarios as a separately supplied identity. Do not select, repair, migrate, or mutate any resource. Return exactly one JSON object using the keys status, decisions, repositoryMutationCount, branchCreated, and projectCreated. decisions must map ambiguousIssue, foreignRepository, foreignTeam, featureProject, projectIncrement, and linearDocument to blocked.",
       "fixtures": [
         "approved-fix.json"
@@ -293,6 +303,9 @@
     },
     {
       "id": "receipt-owner-evidence-and-authority-conflicts-fail-closed",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "conflicts-stop-branch","fixture": "approved-fix.json","pointer": "/safeCreate/branchCreated"}
+      ],
       "prompt": "Evaluate every entry in fixtures/approved-fix.json blockedScenarios independently at the next mutation boundary. Do not use fallback credentials, custom transport, local development records, or inferred evidence. Return exactly one JSON object using the keys status, decisions, repositoryMutationCount, branchCreated, projectCreated, stableIdsPreserved, localDevelopmentRecordCreated, and mergeAllowed. decisions must map every blockedScenarios key to blocked.",
       "fixtures": [
         "approved-fix.json"

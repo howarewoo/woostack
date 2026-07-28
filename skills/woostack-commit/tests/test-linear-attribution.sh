@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 python3 - "$ROOT" <<'PY'
+import json
 import re
 import sys
 from pathlib import Path
@@ -12,7 +13,8 @@ commit_dir = root / "skills/woostack-commit"
 skill = (commit_dir / "SKILL.md").read_text(encoding="utf-8")
 linear = (commit_dir / "references/linear-attribution.md").read_text(encoding="utf-8")
 pr_body = (commit_dir / "references/pr-body.md").read_text(encoding="utf-8")
-corpus = "\n".join((skill, linear, pr_body))
+graphite = (commit_dir / "references/graphite.md").read_text(encoding="utf-8")
+corpus = "\n".join((skill, linear, pr_body, graphite))
 
 
 def fail(message):
@@ -28,10 +30,6 @@ def must(text, token, scope):
         fail(f"{scope} missing {token!r}")
 
 
-def must_not(text, token, scope):
-    if compact(token) in compact(text):
-        fail(f"{scope} unexpectedly contains {token!r}")
-
 
 def ordered(text, tokens, scope):
     haystack = compact(text)
@@ -42,13 +40,6 @@ def ordered(text, tokens, scope):
             fail(f"{scope} missing or misorders {token!r}")
 
 
-# Clean cutover: the commit package has no Markdown attribution reader or test.
-for obsolete in (
-    commit_dir / "references/markdown-attribution.md",
-    commit_dir / "tests/test-markdown-attribution.sh",
-):
-    if obsolete.exists():
-        fail(f"obsolete path still exists: {obsolete.relative_to(root)}")
 
 # Official host MCP and exact caller identities are the only Linear authority.
 for token in (
@@ -63,17 +54,6 @@ for token in (
 ):
     must(corpus, token, "official MCP authority")
 
-for forbidden in (
-    "resolve-backend.sh",
-    "linear.sh feature-read",
-    "linear.sh issue-transition",
-    "LINEAR_API_KEY",
-    "markdown-attribution.md",
-    "When the resolved backend is Markdown",
-    "When the resolved backend is Linear",
-    "verified `change/*` artifact-neutral",
-):
-    must_not(corpus, forbidden, "removed backend/adapter path")
 
 # Role shape is exact: every PR gets one issue, only increments get one project.
 for token in (
@@ -84,7 +64,6 @@ for token in (
     "exactly one raw `Linear-Issue: <TEAM-NUMBER>` line",
     "exactly one raw `Linear-Project: <verified-project-uuid>` line",
     "immediately before the issue line",
-    "There is no `Spec:` mention anywhere",
 ):
     must(corpus, token, "role-derived trailer contract")
 
@@ -109,6 +88,27 @@ for token in (
     "current HEAD to be descended from the retained base commit",
 ):
     must(corpus, token, "pre-mutation gate")
+
+# Direct invocation creates exactly once; workflow-created branch ownership is reused.
+for token in (
+    "**Direct fresh creation.**",
+    "**Existing caller-created branch reuse.**",
+    "$WOOSTACK_ROOT/.woostack/worktrees/issues/$issue_id",
+    "gt create \"$branch\" --no-interactive -m \"<type>: <concise subject>\"",
+    "git worktree add \"$wt\" \"$branch\"",
+    "never run `gt create`, attach another worktree, or reparent it",
+    "never use a title",
+):
+    must(corpus, token, "direct-create or caller-branch reuse")
+
+for token in (
+    "Reject legacy `Spec:` attribution before drafting",
+    "case-insensitive exact, indented, quoted, or fenced",
+    "blocks before branch creation, commit, PR edit, or Linear mutation",
+    "Do not strip Markdown wrappers",
+    "never removed, translated, or normalized",
+):
+    must(corpus, token, "legacy Spec attribution guard")
 
 ordered(
     skill,
@@ -287,17 +287,28 @@ for token in (
     must(corpus, token, "relation/state read-back")
 
 
+# Legacy Markdown attribution is a blocker, not input to normalize into a Linear suffix.
+legacy_spec_line = re.compile(
+    r"^[ \t]*(?:>[ \t]*)*(?:(?:`{3,}|~{3,})[ \t]*)?spec:",
+    re.IGNORECASE,
+)
+
+
+def reject_legacy_spec(body):
+    if any(legacy_spec_line.match(line) for line in body.splitlines()):
+        raise ValueError("legacy Spec attribution")
+
+
 # Executable trailer grammar. The mutation simulation below proves malformed input cannot cross
 # the pre-commit boundary and valid standalone/project suffixes choose exactly one shape.
 def validate_trailers(body, role, issue, project=None):
+    reject_legacy_spec(body)
     lines = body.splitlines()
     while lines and lines[-1] == "":
         lines.pop()
     if not lines:
         raise ValueError("empty body")
 
-    if any("Spec:" in line for line in lines):
-        raise ValueError("Spec mention")
 
     issue_mentions = [index for index, line in enumerate(lines) if "Linear-Issue:" in line]
     project_mentions = [index for index, line in enumerate(lines) if "Linear-Project:" in line]
@@ -337,14 +348,6 @@ if validate_trailers(increment, "increment", issue, project) != [
     fail("valid increment suffix was not retained exactly")
 
 malformed = {
-    "Spec trailer": f"{prose}\nSpec: .woostack/fixes/cache.md\nLinear-Issue: {issue}",
-    "bulleted Spec": f"{prose}\n- Spec: .woostack/fixes/cache.md\nLinear-Issue: {issue}",
-    "quoted Spec": f"{prose}\n> Spec: .woostack/fixes/cache.md\nLinear-Issue: {issue}",
-    "fenced Spec": (
-        f"{prose}\n```text\nSpec: .woostack/fixes/cache.md\n```\nLinear-Issue: {issue}"
-    ),
-    "indented Spec": f"{prose}\n    Spec: .woostack/fixes/cache.md\nLinear-Issue: {issue}",
-    "inline-code Spec": f"{prose}\n`Spec: .woostack/fixes/cache.md`\nLinear-Issue: {issue}",
     "duplicate issue": f"{prose}\nLinear-Issue: {issue}\nLinear-Issue: {issue}",
     "issue not final": f"{prose}\nLinear-Issue: {issue}\ntrailing text",
     "wrapped issue": f"{prose}\n- Linear-Issue: {issue}",
@@ -382,6 +385,17 @@ for name, body in malformed.items():
         continue
     fail(f"malformed trailer case crossed the gate: {name}")
 
+legacy_existing_bodies = {
+    "exact": f"Spec: .woostack/specs/cache.md\n\n{standalone}",
+    "mixed case": f"sPeC: .woostack/specs/cache.md\n\n{standalone}",
+    "indented": f"    Spec: .woostack/specs/cache.md\n\n{standalone}",
+    "quoted": f"> Spec: .woostack/specs/cache.md\n\n{standalone}",
+    "fenced block": (
+        f"```text\nSpec: .woostack/specs/cache.md\n```\n\n{standalone}"
+    ),
+    "inline fence": f"```Spec: .woostack/specs/cache.md\n\n{standalone}",
+}
+
 
 operation_receipts = [
     "commit",
@@ -397,10 +411,15 @@ operation_receipts = [
 ]
 
 
-def simulate(body, role, issue, project=None, failed_preflight=None):
+def simulate(body, role, issue, project=None, failed_preflight=None, existing_body=None):
     receipts = []
     if failed_preflight is not None:
         return receipts
+    if existing_body is not None:
+        try:
+            reject_legacy_spec(existing_body)
+        except ValueError:
+            return receipts
     try:
         validate_trailers(body, role, issue, project)
     except ValueError:
@@ -438,6 +457,268 @@ for name, body in malformed.items():
     supplied_project = None if role == "work-item" else project
     if simulate(body, role, issue, supplied_project):
         fail(f"malformed case produced a mutation receipt: {name}")
+
+if simulate(standalone, "work-item", issue, existing_body=standalone) != operation_receipts:
+    fail("legacy-free existing body did not preserve operation order")
+for name, body in legacy_existing_bodies.items():
+    if simulate(standalone, "work-item", issue, existing_body=body):
+        fail(f"legacy existing body crossed commit/PR/Linear mutation gate: {name}")
+
+
+behavior_corpus_path = commit_dir / "evals/evals.json"
+behavior_corpus = json.loads(behavior_corpus_path.read_text(encoding="utf-8"))
+behavior_cases = {case["id"]: case for case in behavior_corpus["cases"]}
+fixture_root = commit_dir / "evals/fixtures"
+
+zero_commands = {
+    "gt create": 0,
+    "git switch": 0,
+    "git worktree add": 0,
+    "gt branch info": 0,
+    "gt modify": 0,
+}
+zero_mutations = {
+    "branch": 0,
+    "commit": 0,
+    "pullRequest": 0,
+    "linear": 0,
+}
+direct_commands = {
+    "gt create": 1,
+    "git switch": 1,
+    "git worktree add": 1,
+    "gt branch info": 0,
+    "gt modify": 0,
+}
+reuse_commands = {
+    "gt create": 0,
+    "git switch": 0,
+    "git worktree add": 0,
+    "gt branch info": 1,
+    "gt modify": 1,
+}
+
+branch_case_contracts = {
+    "admits-one-exact-direct-branch-creation": {
+        "fixture": "branch-receipt-01.json",
+        "assertions": {
+            "direct-branch-ready": ("/status", "ready"),
+            "direct-branch-action": ("/branchAction", "create-direct-once"),
+            "direct-branch-name": ("/branchName", "change/app-61"),
+            "direct-native-identity-binding": (
+                "/identityBinding",
+                {"kind": "native-linear-issue-id", "value": "linear-issue-61"},
+            ),
+            "direct-parent-binding": (
+                "/parentBinding",
+                {"branch": "staging", "startCommit": "b61"},
+            ),
+            "direct-worktree-binding": (
+                "/worktreeBinding",
+                {
+                    "path": "/repo/.woostack/worktrees/issues/linear-issue-61",
+                    "branch": "change/app-61",
+                },
+            ),
+            "direct-command-choice": (
+                "/authorizedCommands",
+                ["gt create", "git switch", "git worktree add"],
+            ),
+            "direct-command-counts": ("/commandCounts", direct_commands),
+        },
+    },
+    "reuses-exact-caller-created-branch": {
+        "fixture": "branch-receipt-02.json",
+        "assertions": {
+            "reuse-branch-ready": ("/status", "ready"),
+            "reuse-branch-action": ("/branchAction", "reuse-caller-created"),
+            "reuse-branch-name": ("/branchName", "change/app-62"),
+            "reuse-native-identity-binding": (
+                "/identityBinding",
+                {"kind": "native-linear-issue-id", "value": "linear-issue-62"},
+            ),
+            "reuse-parent-binding": (
+                "/parentBinding",
+                {"branch": "staging", "startCommit": "b62"},
+            ),
+            "reuse-worktree-binding": (
+                "/worktreeBinding",
+                {
+                    "path": "/repo/.woostack/worktrees/issues/linear-issue-62",
+                    "branch": "change/app-62",
+                },
+            ),
+            "reuse-command-choice": (
+                "/authorizedCommands",
+                ["gt branch info", "gt modify"],
+            ),
+            "reuse-command-counts": ("/commandCounts", reuse_commands),
+        },
+    },
+    "blocks-conflicting-branch-claim": {
+        "fixture": "branch-receipt-03.json",
+        "assertions": {
+            "collision-branch-blocked": ("/status", "blocked"),
+            "collision-branch-reason": ("/reasonCode", "branch-claim-collision"),
+            "collision-no-branch-action": ("/branchAction", "none"),
+            "collision-no-branch-name": ("/branchName", None),
+            "collision-no-command-choice": ("/authorizedCommands", []),
+            "collision-zero-command-counts": ("/commandCounts", zero_commands),
+            "collision-no-selected-bindings": ("/identityBinding", None),
+            "collision-no-parent-binding": ("/parentBinding", None),
+            "collision-no-worktree-binding": ("/worktreeBinding", None),
+            "collision-zero-forbidden-mutations": ("/mutationCounts", zero_mutations),
+        },
+    },
+    "blocks-owner-drift-on-caller-claim": {
+        "fixture": "branch-receipt-04.json",
+        "assertions": {
+            "owner-drift-branch-blocked": ("/status", "blocked"),
+            "owner-drift-branch-reason": ("/reasonCode", "owner-drift"),
+            "owner-drift-no-branch-action": ("/branchAction", "none"),
+            "owner-drift-no-branch-name": ("/branchName", None),
+            "owner-drift-no-command-choice": ("/authorizedCommands", []),
+            "owner-drift-zero-command-counts": ("/commandCounts", zero_commands),
+            "owner-drift-no-selected-bindings": ("/identityBinding", None),
+            "owner-drift-no-parent-binding": ("/parentBinding", None),
+            "owner-drift-no-worktree-binding": ("/worktreeBinding", None),
+            "owner-drift-zero-forbidden-mutations": ("/mutationCounts", zero_mutations),
+        },
+    },
+    "blocks-worktree-drift-on-caller-claim": {
+        "fixture": "branch-receipt-05.json",
+        "assertions": {
+            "worktree-drift-branch-blocked": ("/status", "blocked"),
+            "worktree-drift-branch-reason": ("/reasonCode", "worktree-drift"),
+            "worktree-drift-no-branch-action": ("/branchAction", "none"),
+            "worktree-drift-no-branch-name": ("/branchName", None),
+            "worktree-drift-no-command-choice": ("/authorizedCommands", []),
+            "worktree-drift-zero-command-counts": ("/commandCounts", zero_commands),
+            "worktree-drift-no-selected-bindings": ("/identityBinding", None),
+            "worktree-drift-no-parent-binding": ("/parentBinding", None),
+            "worktree-drift-no-worktree-binding": ("/worktreeBinding", None),
+            "worktree-drift-zero-forbidden-mutations": ("/mutationCounts", zero_mutations),
+        },
+    },
+    "blocks-direct-creation-with-preexisting-artifacts": {
+        "fixture": "branch-receipt-06.json",
+        "assertions": {
+            "preexisting-artifact-branch-blocked": ("/status", "blocked"),
+            "preexisting-artifact-branch-reason": (
+                "/reasonCode",
+                "preexisting-issue-artifact",
+            ),
+            "preexisting-artifact-no-branch-action": ("/branchAction", "none"),
+            "preexisting-artifact-no-branch-name": ("/branchName", None),
+            "preexisting-artifact-no-command-choice": ("/authorizedCommands", []),
+            "preexisting-artifact-zero-command-counts": (
+                "/commandCounts",
+                zero_commands,
+            ),
+            "preexisting-artifact-no-selected-bindings": ("/identityBinding", None),
+            "preexisting-artifact-no-parent-binding": ("/parentBinding", None),
+            "preexisting-artifact-no-worktree-binding": ("/worktreeBinding", None),
+            "preexisting-artifact-zero-forbidden-mutations": (
+                "/mutationCounts",
+                zero_mutations,
+            ),
+        },
+    },
+    "blocks-title-derived-branch-identity": {
+        "fixture": "branch-receipt-07.json",
+        "assertions": {
+            "title-identity-branch-blocked": ("/status", "blocked"),
+            "title-identity-branch-reason": ("/reasonCode", "title-derived-identity"),
+            "title-identity-no-branch-action": ("/branchAction", "none"),
+            "title-identity-no-branch-name": ("/branchName", None),
+            "title-identity-no-command-choice": ("/authorizedCommands", []),
+            "title-identity-zero-command-counts": ("/commandCounts", zero_commands),
+            "title-identity-no-selected-bindings": ("/identityBinding", None),
+            "title-identity-no-parent-binding": ("/parentBinding", None),
+            "title-identity-no-worktree-binding": ("/worktreeBinding", None),
+            "title-identity-zero-forbidden-mutations": (
+                "/mutationCounts",
+                zero_mutations,
+            ),
+        },
+    },
+}
+
+grading_only_keys = {
+    "expected",
+    "assertions",
+    "status",
+    "reasonCode",
+    "branchAction",
+    "branchName",
+    "identityBinding",
+    "parentBinding",
+    "worktreeBinding",
+    "authorizedCommands",
+    "commandCounts",
+    "mutationCounts",
+}
+grading_literals = {
+    "ready",
+    "blocked",
+    "create-direct-once",
+    "reuse-caller-created",
+    "branch-claim-collision",
+    "owner-drift",
+    "worktree-drift",
+    "preexisting-issue-artifact",
+    "title-derived-identity",
+}
+
+
+def nested_keys(value):
+    if isinstance(value, dict):
+        for key, child in value.items():
+            yield key
+            yield from nested_keys(child)
+    elif isinstance(value, list):
+        for child in value:
+            yield from nested_keys(child)
+
+
+for case_id, contract in branch_case_contracts.items():
+    case = behavior_cases.get(case_id)
+    if case is None:
+        fail(f"branch behavior corpus missing {case_id}")
+    fixture_name = contract["fixture"]
+    if case.get("fixtures") != [fixture_name]:
+        fail(f"{case_id} must expose only its declared input receipt")
+    if case.get("capabilities") != ["read-workspace"]:
+        fail(f"{case_id} must remain read-only")
+    if f"fixtures/{fixture_name}" not in case["prompt"]:
+        fail(f"{case_id} prompt does not identify its declared receipt")
+
+    fixture = json.loads((fixture_root / fixture_name).read_text(encoding="utf-8"))
+    if fixture.get("receiptId") != fixture_name.removesuffix(".json"):
+        fail(f"{fixture_name} receipt identity is not stable")
+    leaked_keys = grading_only_keys.intersection(nested_keys(fixture))
+    if leaked_keys:
+        fail(f"{fixture_name} contains grading-only keys: {sorted(leaked_keys)!r}")
+
+    prompt_and_fixture = case["prompt"] + json.dumps(fixture, sort_keys=True)
+    leaked_literals = sorted(
+        literal for literal in grading_literals if literal in prompt_and_fixture
+    )
+    if leaked_literals:
+        fail(f"{case_id} exposes grading answers to the behavior worker: {leaked_literals!r}")
+
+    assertions = {assertion["id"]: assertion for assertion in case["assertions"]}
+    for assertion_id, (pointer, expected) in contract["assertions"].items():
+        observed = assertions.get(assertion_id)
+        required = {
+            "id": assertion_id,
+            "kind": "final-json-path-equals",
+            "pointer": pointer,
+            "expected": expected,
+            "critical": True,
+        }
+        if observed != required:
+            fail(f"{case_id} lacks exact external proof {assertion_id}")
 
 
 resume_boundaries = (

@@ -1,0 +1,483 @@
+{
+  "repositoryId": "repo-woostack",
+  "legacyRecords": [
+    {
+      "path": ".woostack/specs/orders.md",
+      "kind": "specification",
+      "stableClientId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "phase": "approved",
+      "provenance": [
+        "git:65fa901:.woostack/specs/orders.md"
+      ]
+    }
+  ],
+  "durableRecoveryReceipt": {
+    "persistedBeforeMutation": true,
+    "clientIds": [
+      "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+      "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee"
+    ],
+    "nextBoundary": "create-project",
+    "sourcePath": ".woostack/specs/orders.md"
+  },
+  "operationTranscript": [
+    {
+      "sequence": 1,
+      "operation": "discover-by-client-id",
+      "paginationComplete": true,
+      "matches": []
+    },
+    {
+      "sequence": 2,
+      "operation": "create-project",
+      "clientId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "mutationAcknowledged": true,
+      "envelope": {
+        "schema": 1,
+        "kind": "resource",
+        "clientId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        "repository": "https://github.com/acme/woostack",
+        "label": "woostack",
+        "role": "feature"
+      },
+      "readable": {
+        "goal": "Migrate the approved Orders specification to managed Linear authority.",
+        "scope": [
+          ".woostack/specs/orders.md"
+        ],
+        "acceptanceCriteria": [
+          {
+            "id": "AC-1",
+            "text": "The exact approved specification is independently readable from the managed project chain."
+          }
+        ]
+      }
+    },
+    {
+      "sequence": 3,
+      "operation": "direct-read-project",
+      "nativeId": "linear-project-orders",
+      "readComplete": true,
+      "envelope": {
+        "schema": 1,
+        "kind": "resource",
+        "clientId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        "repository": "https://github.com/acme/woostack",
+        "label": "woostack",
+        "role": "feature"
+      },
+      "readable": {
+        "goal": "Migrate the approved Orders specification to managed Linear authority.",
+        "scope": [
+          ".woostack/specs/orders.md"
+        ],
+        "acceptanceCriteria": [
+          {
+            "id": "AC-1",
+            "text": "The exact approved specification is independently readable from the managed project chain."
+          }
+        ]
+      },
+      "workspace": "Acme",
+      "team": "APP",
+      "nativeCategory": "backlog",
+      "nativeActor": {
+        "type": "user",
+        "id": "user-7"
+      }
+    },
+    {
+      "sequence": 4,
+      "operation": "read-project-ownership",
+      "repositoryId": "repo-woostack",
+      "role": "feature",
+      "owner": "user-7",
+      "readComplete": true
+    },
+    {
+      "sequence": 5,
+      "operation": "create-design-approved-update",
+      "envelope": {
+        "schema": 1,
+        "kind": "projectEvent",
+        "clientId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "repository": "https://github.com/acme/woostack",
+        "label": "woostack",
+        "role": "feature",
+        "event": "designApproved",
+        "revision": 1,
+        "projectId": "linear-project-orders",
+        "predecessorId": null,
+        "relatedIds": [],
+        "supersedesId": null
+      },
+      "readable": {
+        "approvedDesign": {
+          "goal": "Migrate the approved Orders specification to managed Linear authority.",
+          "scope": [
+            ".woostack/specs/orders.md"
+          ],
+          "acceptanceCriteria": [
+            {
+              "id": "AC-1",
+              "text": "The exact approved specification is independently readable from the managed project chain."
+            }
+          ]
+        },
+        "approvalEvidence": {
+          "nativeReceiptId": "linear-approval-orders-design",
+          "provider": "official-linear-mcp",
+          "authenticated": true,
+          "current": true,
+          "decision": "Go",
+          "workspace": "Acme",
+          "team": "APP",
+          "repository": "https://github.com/acme/woostack",
+          "principalId": "user-7",
+          "actorType": "user",
+          "approvedDesign": {
+            "goal": "Migrate the approved Orders specification to managed Linear authority.",
+            "scope": [
+              ".woostack/specs/orders.md"
+            ],
+            "acceptanceCriteria": [
+              {
+                "id": "AC-1",
+                "text": "The exact approved specification is independently readable from the managed project chain."
+              }
+            ]
+          },
+          "readComplete": true
+        }
+      },
+      "mutationAcknowledged": true
+    },
+    {
+      "sequence": 6,
+      "operation": "direct-read-design-approved-update",
+      "nativeId": "linear-update-orders-design-approved",
+      "readComplete": true,
+      "envelope": {
+        "schema": 1,
+        "kind": "projectEvent",
+        "clientId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "repository": "https://github.com/acme/woostack",
+        "label": "woostack",
+        "role": "feature",
+        "event": "designApproved",
+        "revision": 1,
+        "projectId": "linear-project-orders",
+        "predecessorId": null,
+        "relatedIds": [],
+        "supersedesId": null
+      },
+      "readable": {
+        "approvedDesign": {
+          "goal": "Migrate the approved Orders specification to managed Linear authority.",
+          "scope": [
+            ".woostack/specs/orders.md"
+          ],
+          "acceptanceCriteria": [
+            {
+              "id": "AC-1",
+              "text": "The exact approved specification is independently readable from the managed project chain."
+            }
+          ]
+        },
+        "approvalEvidence": {
+          "nativeReceiptId": "linear-approval-orders-design",
+          "provider": "official-linear-mcp",
+          "authenticated": true,
+          "current": true,
+          "decision": "Go",
+          "workspace": "Acme",
+          "team": "APP",
+          "repository": "https://github.com/acme/woostack",
+          "principalId": "user-7",
+          "actorType": "user",
+          "approvedDesign": {
+            "goal": "Migrate the approved Orders specification to managed Linear authority.",
+            "scope": [
+              ".woostack/specs/orders.md"
+            ],
+            "acceptanceCriteria": [
+              {
+                "id": "AC-1",
+                "text": "The exact approved specification is independently readable from the managed project chain."
+              }
+            ]
+          },
+          "readComplete": true
+        }
+      },
+      "workspace": "Acme",
+      "team": "APP",
+      "nativeCategory": "backlog",
+      "nativeActor": {
+        "type": "user",
+        "id": "user-7"
+      }
+    },
+    {
+      "sequence": 7,
+      "operation": "create-spec-hardened-update",
+      "envelope": {
+        "schema": 1,
+        "kind": "projectEvent",
+        "clientId": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+        "repository": "https://github.com/acme/woostack",
+        "label": "woostack",
+        "role": "feature",
+        "event": "specHardened",
+        "revision": 1,
+        "projectId": "linear-project-orders",
+        "predecessorId": "linear-update-orders-design-approved",
+        "relatedIds": [],
+        "supersedesId": null
+      },
+      "readable": {
+        "specification": "# Orders specification\n\nCreate an owned order project with independently verified provenance.\n",
+        "bodySha256": "229fb72e68435fe2111693b02ecabacbcbdeff1d2ba06133b890efff0967d3e9",
+        "source": "git:65fa901:.woostack/specs/orders.md"
+      },
+      "mutationAcknowledged": true
+    },
+    {
+      "sequence": 8,
+      "operation": "direct-read-spec-hardened-update",
+      "nativeId": "linear-update-orders-spec-hardened",
+      "bodySha256": "229fb72e68435fe2111693b02ecabacbcbdeff1d2ba06133b890efff0967d3e9",
+      "readComplete": true,
+      "envelope": {
+        "schema": 1,
+        "kind": "projectEvent",
+        "clientId": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+        "repository": "https://github.com/acme/woostack",
+        "label": "woostack",
+        "role": "feature",
+        "event": "specHardened",
+        "revision": 1,
+        "projectId": "linear-project-orders",
+        "predecessorId": "linear-update-orders-design-approved",
+        "relatedIds": [],
+        "supersedesId": null
+      },
+      "readable": {
+        "specification": "# Orders specification\n\nCreate an owned order project with independently verified provenance.\n",
+        "bodySha256": "229fb72e68435fe2111693b02ecabacbcbdeff1d2ba06133b890efff0967d3e9",
+        "source": "git:65fa901:.woostack/specs/orders.md"
+      },
+      "workspace": "Acme",
+      "team": "APP",
+      "nativeCategory": "backlog",
+      "nativeActor": {
+        "type": "user",
+        "id": "user-7"
+      }
+    },
+    {
+      "sequence": 9,
+      "operation": "create-spec-approved-update",
+      "envelope": {
+        "schema": 1,
+        "kind": "projectEvent",
+        "clientId": "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+        "repository": "https://github.com/acme/woostack",
+        "label": "woostack",
+        "role": "feature",
+        "event": "specApproved",
+        "revision": 1,
+        "projectId": "linear-project-orders",
+        "predecessorId": "linear-update-orders-spec-hardened",
+        "relatedIds": [
+          "linear-update-orders-spec-hardened"
+        ],
+        "supersedesId": null
+      },
+      "readable": {
+        "approvedRevision": 1,
+        "approvedUpdateId": "linear-update-orders-spec-hardened",
+        "approvalEvidence": {
+          "nativeReceiptId": "linear-approval-orders-spec",
+          "provider": "official-linear-mcp",
+          "authenticated": true,
+          "current": true,
+          "decision": "Go",
+          "workspace": "Acme",
+          "team": "APP",
+          "repository": "https://github.com/acme/woostack",
+          "principalId": "user-7",
+          "actorType": "user",
+          "approvedUpdateId": "linear-update-orders-spec-hardened",
+          "approvedRevision": 1,
+          "bodySha256": "229fb72e68435fe2111693b02ecabacbcbdeff1d2ba06133b890efff0967d3e9",
+          "readComplete": true
+        }
+      },
+      "mutationAcknowledged": true
+    },
+    {
+      "sequence": 10,
+      "operation": "direct-read-spec-approved-update",
+      "nativeId": "linear-update-orders-spec-approved",
+      "readComplete": true,
+      "envelope": {
+        "schema": 1,
+        "kind": "projectEvent",
+        "clientId": "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+        "repository": "https://github.com/acme/woostack",
+        "label": "woostack",
+        "role": "feature",
+        "event": "specApproved",
+        "revision": 1,
+        "projectId": "linear-project-orders",
+        "predecessorId": "linear-update-orders-spec-hardened",
+        "relatedIds": [
+          "linear-update-orders-spec-hardened"
+        ],
+        "supersedesId": null
+      },
+      "readable": {
+        "approvedRevision": 1,
+        "approvedUpdateId": "linear-update-orders-spec-hardened",
+        "approvalEvidence": {
+          "nativeReceiptId": "linear-approval-orders-spec",
+          "provider": "official-linear-mcp",
+          "authenticated": true,
+          "current": true,
+          "decision": "Go",
+          "workspace": "Acme",
+          "team": "APP",
+          "repository": "https://github.com/acme/woostack",
+          "principalId": "user-7",
+          "actorType": "user",
+          "approvedUpdateId": "linear-update-orders-spec-hardened",
+          "approvedRevision": 1,
+          "bodySha256": "229fb72e68435fe2111693b02ecabacbcbdeff1d2ba06133b890efff0967d3e9",
+          "readComplete": true
+        }
+      },
+      "workspace": "Acme",
+      "team": "APP",
+      "nativeCategory": "backlog",
+      "nativeActor": {
+        "type": "user",
+        "id": "user-7"
+      }
+    },
+    {
+      "sequence": 11,
+      "operation": "read-current-project-phase-chain",
+      "phases": [
+        "designApproved",
+        "specHardened",
+        "specApproved"
+      ],
+      "currentHeadNativeId": "linear-update-orders-spec-approved",
+      "currentHeadCount": 1,
+      "readComplete": true
+    },
+    {
+      "sequence": 12,
+      "operation": "read-project-issue-graph",
+      "phase": "specApproved",
+      "issues": [],
+      "paginationComplete": true,
+      "readComplete": true
+    },
+    {
+      "sequence": 13,
+      "operation": "read-project-provenance",
+      "source": "git:65fa901:.woostack/specs/orders.md",
+      "clientId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "specUpdateClientIds": [
+        "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+        "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee"
+      ],
+      "readComplete": true
+    },
+    {
+      "sequence": 14,
+      "operation": "pre-delete-read-complete-set",
+      "projectNativeId": "linear-project-orders",
+      "updateNativeIds": [
+        "linear-update-orders-design-approved",
+        "linear-update-orders-spec-hardened",
+        "linear-update-orders-spec-approved"
+      ],
+      "currentHeadNativeId": "linear-update-orders-spec-approved",
+      "currentHeadCount": 1,
+      "owner": "user-7",
+      "repositoryId": "repo-woostack",
+      "relations": [],
+      "relationsPaginationComplete": true,
+      "provenance": {
+        "source": "git:65fa901:.woostack/specs/orders.md",
+        "specificationBodySha256": "229fb72e68435fe2111693b02ecabacbcbdeff1d2ba06133b890efff0967d3e9"
+      },
+      "readComplete": true,
+      "approvalReceiptsCurrent": true,
+      "workspace": "Acme",
+      "team": "APP",
+      "nativeCategory": "backlog",
+      "nativeActor": {
+        "type": "user",
+        "id": "user-7"
+      }
+    },
+    {
+      "sequence": 15,
+      "operation": "pre-delete-git-recovery",
+      "path": ".woostack/specs/orders.md",
+      "commit": "65fa901",
+      "sha256": "229fb72e68435fe2111693b02ecabacbcbdeff1d2ba06133b890efff0967d3e9",
+      "bytesVerified": true
+    }
+  ],
+  "approvalReceipts": {
+    "design": {
+      "nativeReceiptId": "linear-approval-orders-design",
+      "provider": "official-linear-mcp",
+      "authenticated": true,
+      "current": true,
+      "decision": "Go",
+      "workspace": "Acme",
+      "team": "APP",
+      "repository": "https://github.com/acme/woostack",
+      "principalId": "user-7",
+      "actorType": "user",
+      "approvedDesign": {
+        "goal": "Migrate the approved Orders specification to managed Linear authority.",
+        "scope": [
+          ".woostack/specs/orders.md"
+        ],
+        "acceptanceCriteria": [
+          {
+            "id": "AC-1",
+            "text": "The exact approved specification is independently readable from the managed project chain."
+          }
+        ]
+      },
+      "readComplete": true
+    },
+    "specification": {
+      "nativeReceiptId": "linear-approval-orders-spec",
+      "provider": "official-linear-mcp",
+      "authenticated": true,
+      "current": true,
+      "decision": "Go",
+      "workspace": "Acme",
+      "team": "APP",
+      "repository": "https://github.com/acme/woostack",
+      "principalId": "user-7",
+      "actorType": "user",
+      "approvedUpdateId": "linear-update-orders-spec-hardened",
+      "approvedRevision": 1,
+      "bodySha256": "229fb72e68435fe2111693b02ecabacbcbdeff1d2ba06133b890efff0967d3e9",
+      "readComplete": true
+    }
+  }
+}

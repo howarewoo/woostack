@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "branch-receipt-04",
+  "invocation": {
+    "kind": "workflow-handoff",
+    "issueArgument": "https://linear.app/acme/issue/APP-64/cache-invalidation",
+    "projectArgument": null,
+    "branchHandoff": {
+      "workflow": "woostack-execute",
+      "nativeIssueId": "linear-issue-64",
+      "branch": "change/app-64",
+      "worktreePath": "/repo/.woostack/worktrees/issues/linear-issue-64",
+      "startCommit": "b64",
+      "graphiteParent": "staging",
+      "ownerPrincipal": "engineer-7",
+      "runId": "run-64-old",
+      "assignmentNativeId": "comment-assignment-64-old"
+    }
+  },
+  "officialLinearMcp": {
+    "endpoint": "https://mcp.linear.app/mcp",
+    "readsComplete": true,
+    "issue": {
+      "clientId": "64646464-6464-4464-8464-646464646464",
+      "nativeId": "linear-issue-64",
+      "identifier": "APP-64",
+      "title": "Cache invalidation",
+      "role": "work-item",
+      "state": "executing",
+      "projectId": null,
+      "repository": "https://github.com/acme/widgets",
+      "owner": {
+        "kind": "app",
+        "principal": "engineer-8"
+      },
+      "assignmentAccepted": {
+        "nativeId": "comment-assignment-64-new",
+        "stableEventId": "64646464-bbbb-4464-8464-646464646464",
+        "runId": "run-64-new",
+        "engineer": "engineer-8",
+        "readBackVerified": true
+      },
+      "verification": {
+        "nativeId": "comment-verification-64",
+        "verdict": "PASS",
+        "readBackVerified": true
+      },
+      "precommitReview": {
+        "nativeId": "comment-precommit-review-64",
+        "verdict": "PASS",
+        "readBackVerified": true
+      },
+      "handoffEvents": []
+    },
+    "authenticatedController": {
+      "kind": "app",
+      "principal": "engineer-8"
+    }
+  },
+  "sourceControl": {
+    "repositoryRead": {
+      "canonicalUrl": "https://github.com/acme/widgets",
+      "complete": true
+    },
+    "primaryRoot": "/repo",
+    "currentRoot": "/repo/.woostack/worktrees/issues/linear-issue-64",
+    "currentBranch": "change/app-64",
+    "head": "b64",
+    "retainedStartCommit": "b64",
+    "graphiteParent": "staging",
+    "graphiteParentHead": "b64",
+    "dirtyState": {
+      "complete": true,
+      "paths": [
+        "src/invalidation.ts"
+      ],
+      "reviewedSessionPaths": [
+        "src/invalidation.ts"
+      ],
+      "unrelatedPaths": []
+    }
+  },
+  "registry": {
+    "complete": true,
+    "claims": [
+      {
+        "nativeIssueId": "linear-issue-64",
+        "clientIssueId": "64646464-6464-4464-8464-646464646464",
+        "projectId": null,
+        "role": "work-item",
+        "repository": "https://github.com/acme/widgets",
+        "owner": {
+          "kind": "app",
+          "principal": "engineer-7",
+          "runId": "run-64-old"
+        },
+        "branch": "change/app-64",
+        "worktreePath": "/repo/.woostack/worktrees/issues/linear-issue-64",
+        "startCommit": "b64",
+        "graphiteParent": "staging",
+        "assignmentNativeId": "comment-assignment-64-old"
+      }
+    ]
+  },
+  "git": {
+    "complete": true,
+    "canonicalIssueWorktreePath": "/repo/.woostack/worktrees/issues/linear-issue-64",
+    "worktrees": [
+      {
+        "path": "/repo/.woostack/worktrees/issues/linear-issue-64",
+        "branch": "change/app-64",
+        "head": "b64"
+      }
+    ],
+    "localBranches": [
+      {
+        "name": "change/app-64",
+        "head": "b64",
+        "checkedOutAt": "/repo/.woostack/worktrees/issues/linear-issue-64"
+      }
+    ],
+    "issueCommits": []
+  },
+  "graphite": {
+    "complete": true,
+    "branches": [
+      {
+        "name": "change/app-64",
+        "head": "b64",
+        "parent": "staging"
+      }
+    ],
+    "submissions": []
+  },
+  "remote": {
+    "complete": true,
+    "branches": []
+  },
+  "github": {
+    "complete": true,
+    "pullRequests": []
+  },
+  "linearRelations": {
+    "complete": true,
+    "branchOrPr": []
+  }
+}

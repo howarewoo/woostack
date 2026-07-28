@@ -56,6 +56,16 @@ Required case fields are `id`, non-empty `prompt`, non-empty `expected`, and non
 `evals/fixtures/` directory. A fixture may not be absolute, contain a `..` segment, escape
 that directory, or resolve through a symlink or non-regular file.
 
+`fixturePassthroughAssertions` is an optional unique list of exact objects with the closed shape
+`{"assertionId":"private-assertion-id","fixture":"case/fixture.json","pointer":"/exact/raw/location"}`.
+`assertionId` must name a `final-json-path-equals`, `json-path-equals`, or
+`receipt-field-equals` assertion with an `expected` value. `fixture` must name one JSON fixture
+declared by that case. `pointer` must be a valid RFC 6901 pointer to the concrete raw
+value whose semantic key and deeply equal value match the assertion boundary. The declaration is
+consumed only at that exact fixture and location; duplicates, mismatches, unused declarations, and
+global exemptions are invalid. Reserved oracle fields such as `expected`, `outputOracle`, and
+`terminalReceipt` remain forbidden even at a declared location.
+
 `capabilities` is optional and defaults to `["read-workspace"]`. Its only allowed values are:
 
 - `read-workspace`
@@ -181,12 +191,13 @@ through.
 `originalPackageHash` is the source candidate identity captured only after the exact private
 immutable proposed package/corpora snapshot has validated, its digest has been explicitly approved
 when required, and any materialized target corpus bytes have been exact-byte revalidated.
-`packageHashes` instead binds the actual copied package trees: `candidate` is a canonical SHA-256
+`packageHashes` instead binds the actual worker-projected package trees after the evaluator-private
+`evals/`, `tests/`, and `scripts/tests/` surfaces are omitted: `candidate` is a canonical SHA-256
 identity, and `baseline` is a canonical SHA-256 identity except that it is exactly `null` for a
-no-skill baseline. Every copied package for one variant must hash to its frozen value. For
-`baseline.kind: path`, `baseline.identity` is exactly the same frozen identity as
-`packageHashes.baseline`; it does not retain a different pre-copy source-tree hash. An action
-receipt uses its variant's frozen hash; a grader receipt uses the candidate frozen hash.
+no-skill baseline. Every projected package for one variant must hash to its frozen value. For
+`baseline.kind: path`, `baseline.identity` is exactly the same frozen projected identity as
+`packageHashes.baseline`; it does not retain the complete private snapshot's source-tree hash. An
+action receipt uses its variant's frozen hash; a grader receipt uses the candidate frozen hash.
 
 `gradingPlan` contains exactly one entry per frozen qualitative assertion and case/repetition pair,
 sorted by case ID, repetition, then assertion ID. `caseId`, `assertionId`, and a resolved

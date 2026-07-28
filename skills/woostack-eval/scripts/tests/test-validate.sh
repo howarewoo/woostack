@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-VALIDATOR="$SCRIPT_DIR/../validate.mjs"
+ROOT=$(git -C "$(dirname "${BASH_SOURCE[0]}")" rev-parse --show-toplevel)
+SCRIPT_DIR="$ROOT/skills/woostack-eval/scripts/tests"
+VALIDATOR="$ROOT/skills/woostack-eval/scripts/validate.mjs"
 NODE=${NODE:-node}
-TMP_ROOT=$(mktemp -d "${TMPDIR:-/tmp}/woostack-eval-validate.XXXXXX")
+TMP_ROOT=$(mktemp -d "$ROOT/.woostack-eval-validate.XXXXXX")
 trap 'rm -rf "$TMP_ROOT"' EXIT HUP INT TERM
 RESULT="$TMP_ROOT/result.json"
 ERRORS="$TMP_ROOT/stderr.txt"
@@ -593,6 +594,178 @@ cat >"$PACKAGE/evals/evals.json" <<'EOF'
 ]}
 EOF
 expect_invalid 'missing fixture' corpus-fixture-missing evals/evals.json /cases/0/fixtures/0
+
+make_package worker-output-oracle 'description: Corpus with a worker-visible output oracle.'
+mkdir -p "$PACKAGE/evals/fixtures"
+printf '%s\n' '{"scenario":{"expected":{"status":"complete"}}}' >"$PACKAGE/evals/fixtures/answer.json"
+cat >"$PACKAGE/evals/evals.json" <<'EOF'
+{"schemaVersion":1,"skill":"worker-output-oracle","cases":[
+  {"id":"oracle-input","prompt":"Evaluate the scenario","fixtures":["answer.json"],"expected":"Derive the result","assertions":[{"id":"done","kind":"final-contains","substring":"done"}]}
+]}
+EOF
+expect_invalid 'worker-visible fixture output oracle' corpus-fixture-output-oracle evals/evals.json /cases/0/fixtures/0
+
+make_package worker-terminal-receipt 'description: Corpus with a derived terminal receipt.'
+mkdir -p "$PACKAGE/evals/fixtures"
+printf '%s\n' '{"observations":[],"terminalReceipt":{"complete":true}}' >"$PACKAGE/evals/fixtures/receipt.json"
+cat >"$PACKAGE/evals/evals.json" <<'EOF'
+{"schemaVersion":1,"skill":"worker-terminal-receipt","cases":[
+  {"id":"receipt-input","prompt":"Evaluate the observations","fixtures":["receipt.json"],"expected":"Derive the result","assertions":[{"id":"done","kind":"final-contains","substring":"done"}]}
+]}
+EOF
+expect_invalid 'worker-visible derived terminal receipt' corpus-fixture-output-oracle evals/evals.json /cases/0/fixtures/0
+
+make_package worker-semantic-oracles 'description: Corpus with semantic worker-visible output oracles.'
+mkdir -p "$PACKAGE/evals/fixtures"
+printf '%s\n' '{"scenario":"ambiguous"}' >"$PACKAGE/evals/fixtures/scenario.json"
+printf '%s\n' '{"receipt":{"outcome":"ambiguous"}}' >"$PACKAGE/evals/fixtures/outcome.json"
+printf '%s\n' '{"status":"complete"}' >"$PACKAGE/evals/fixtures/status.json"
+printf '%s\n' '{"classification":"ambiguous"}' >"$PACKAGE/evals/fixtures/classification.json"
+printf '%s\n' '{"label":"ambiguous"}' >"$PACKAGE/evals/fixtures/semantic-alias.json"
+printf '%s\n' '{"reasonCode":"missing-merge-evidence"}' >"$PACKAGE/evals/fixtures/reason-code.json"
+printf '%s\n' '{"status":true}' >"$PACKAGE/evals/fixtures/boolean-status.json"
+printf '%s\n' '{"classification":{"codes":[1,null],"kind":"ambiguous"}}' >"$PACKAGE/evals/fixtures/object-classification.json"
+printf '%s\n' '{"mergeEvidence":{"verified":true}}' >"$PACKAGE/evals/fixtures/derived-verification.json"
+printf '%s\n' '{"phase":"complete","blocked":false,"rendered":false,"selectedRound":3,"currentHeadId":null,"nextAction":null,"writesAttempted":[],"result":{"decision":"go"}}' >"$PACKAGE/evals/fixtures/generic-output.json"
+cat >"$PACKAGE/evals/evals.json" <<'EOF'
+{"schemaVersion":1,"skill":"worker-semantic-oracles","cases":[
+  {"id":"scenario-oracle","prompt":"Derive the classification","fixtures":["scenario.json"],"expected":"Derive it","assertions":[{"id":"classification","kind":"final-json-path-equals","pointer":"/classification","expected":"ambiguous"}]},
+  {"id":"outcome-oracle","prompt":"Derive the classification","fixtures":["outcome.json"],"expected":"Derive it","assertions":[{"id":"classification","kind":"final-json-path-equals","pointer":"/classification","expected":"ambiguous"}]},
+  {"id":"status-oracle","prompt":"Derive the status","fixtures":["status.json"],"expected":"Derive it","assertions":[{"id":"status","kind":"final-json-path-equals","pointer":"/status","expected":"complete"}]},
+  {"id":"classification-oracle","prompt":"Derive the classification","fixtures":["classification.json"],"expected":"Derive it","assertions":[{"id":"classification","kind":"final-json-path-equals","pointer":"/classification","expected":"ambiguous"}]},
+  {"id":"semantic-alias-oracle","prompt":"Derive the classification","fixtures":["semantic-alias.json"],"expected":"Derive it","assertions":[{"id":"classification","kind":"final-json-path-equals","pointer":"/classification","expected":"ambiguous"}]},
+  {"id":"reason-code-oracle","prompt":"Derive the reason code","fixtures":["reason-code.json"],"expected":"Derive it","assertions":[{"id":"reason-code","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"missing-merge-evidence"}]},
+  {"id":"boolean-status-oracle","prompt":"Derive the status","fixtures":["boolean-status.json"],"expected":"Derive it","assertions":[{"id":"status","kind":"final-json-path-equals","pointer":"/status","expected":true}]},
+  {"id":"object-classification-oracle","prompt":"Derive the classification","fixtures":["object-classification.json"],"expected":"Derive it","assertions":[{"id":"classification","kind":"final-json-path-equals","pointer":"/classification","expected":{"kind":"ambiguous","codes":[1,null]}}]},
+  {"id":"derived-verification-oracle","prompt":"Verify the merge evidence","fixtures":["derived-verification.json"],"expected":"Derive it","assertions":[{"id":"verified","kind":"final-json-path-equals","pointer":"/mergeEvidenceVerified","expected":true}]},
+  {"id":"string-output-oracle","prompt":"Derive the phase","fixtures":["generic-output.json"],"expected":"Derive it","assertions":[{"id":"phase","kind":"final-json-path-equals","pointer":"/phase","expected":"complete"}]},
+  {"id":"boolean-output-oracle","prompt":"Derive whether processing is blocked","fixtures":["generic-output.json"],"expected":"Derive it","assertions":[{"id":"blocked","kind":"final-json-path-equals","pointer":"/blocked","expected":false}]},
+  {"id":"boolean-alias-output-oracle","prompt":"Derive whether output rendered","fixtures":["generic-output.json"],"expected":"Derive it","assertions":[{"id":"rendered","kind":"final-json-path-equals","pointer":"/rendered","expected":false}]},
+  {"id":"number-output-oracle","prompt":"Select a round","fixtures":["generic-output.json"],"expected":"Derive it","assertions":[{"id":"selected-round","kind":"final-json-path-equals","pointer":"/selectedRound","expected":3}]},
+  {"id":"null-output-oracle","prompt":"Derive the current head","fixtures":["generic-output.json"],"expected":"Derive it","assertions":[{"id":"current-head","kind":"final-json-path-equals","pointer":"/currentHeadId","expected":null}]},
+  {"id":"null-alias-output-oracle","prompt":"Derive the next action","fixtures":["generic-output.json"],"expected":"Derive it","assertions":[{"id":"next-action","kind":"final-json-path-equals","pointer":"/nextAction","expected":null}]},
+  {"id":"array-output-oracle","prompt":"Derive attempted writes","fixtures":["generic-output.json"],"expected":"Derive it","assertions":[{"id":"writes","kind":"final-json-path-equals","pointer":"/writesAttempted","expected":[]}]},
+  {"id":"object-output-oracle","prompt":"Derive the result","fixtures":["generic-output.json"],"expected":"Derive it","assertions":[{"id":"result","kind":"final-json-path-equals","pointer":"/result","expected":{"decision":"go"}}]},
+  {"id":"file-json-output-oracle","prompt":"Write the classification","fixtures":["classification.json"],"capabilities":["write-workspace"],"expected":"Derive it","assertions":[{"id":"classification","kind":"json-path-equals","file":"result.json","pointer":"/classification","expected":"ambiguous"}]},
+  {"id":"receipt-output-oracle","prompt":"Return the classification receipt","fixtures":["classification.json"],"expected":"Derive it","assertions":[{"id":"classification","kind":"receipt-field-equals","pointer":"/classification","expected":"ambiguous"}]}
+]}
+EOF
+expect_invalid 'scenario semantic oracle' corpus-fixture-output-oracle evals/evals.json /cases/0/fixtures/0
+expect_invalid 'nested outcome semantic oracle' corpus-fixture-output-oracle evals/evals.json /cases/1/fixtures/0
+expect_invalid 'status semantic oracle' corpus-fixture-output-oracle evals/evals.json /cases/2/fixtures/0
+expect_invalid 'classification semantic oracle' corpus-fixture-output-oracle evals/evals.json /cases/3/fixtures/0
+expect_invalid 'aliased classification value oracle' corpus-fixture-output-oracle evals/evals.json /cases/4/fixtures/0
+expect_invalid 'aliased reason code oracle' corpus-fixture-output-oracle evals/evals.json /cases/5/fixtures/0
+expect_invalid 'boolean status oracle' corpus-fixture-output-oracle evals/evals.json /cases/6/fixtures/0
+expect_invalid 'object classification oracle' corpus-fixture-output-oracle evals/evals.json /cases/7/fixtures/0
+expect_invalid 'derived verification alias oracle' corpus-fixture-output-oracle evals/evals.json /cases/8/fixtures/0
+expect_invalid 'string assertion-key oracle' corpus-fixture-output-oracle evals/evals.json /cases/9/fixtures/0
+expect_invalid 'Boolean assertion-key oracle' corpus-fixture-output-oracle evals/evals.json /cases/10/fixtures/0
+expect_invalid 'Boolean alias assertion-key oracle' corpus-fixture-output-oracle evals/evals.json /cases/11/fixtures/0
+expect_invalid 'number assertion-key oracle' corpus-fixture-output-oracle evals/evals.json /cases/12/fixtures/0
+expect_invalid 'null assertion-key oracle' corpus-fixture-output-oracle evals/evals.json /cases/13/fixtures/0
+expect_invalid 'null alias assertion-key oracle' corpus-fixture-output-oracle evals/evals.json /cases/14/fixtures/0
+expect_invalid 'array assertion-key oracle' corpus-fixture-output-oracle evals/evals.json /cases/15/fixtures/0
+expect_invalid 'object assertion-key oracle' corpus-fixture-output-oracle evals/evals.json /cases/16/fixtures/0
+expect_invalid 'file JSON assertion-key oracle' corpus-fixture-output-oracle evals/evals.json /cases/17/fixtures/0
+expect_invalid 'receipt assertion-key oracle' corpus-fixture-output-oracle evals/evals.json /cases/18/fixtures/0
+
+make_package worker-arbitrary-oracles 'description: Corpus with arbitrary worker-visible output oracles.'
+mkdir -p "$PACKAGE/evals/fixtures"
+printf '%s\n' '{"verdict":"deny"}' >"$PACKAGE/evals/fixtures/string.json"
+printf '%s\n' '{"verdict":false}' >"$PACKAGE/evals/fixtures/boolean.json"
+printf '%s\n' '{"verdict":7}' >"$PACKAGE/evals/fixtures/number.json"
+printf '%s\n' '{"verdict":null}' >"$PACKAGE/evals/fixtures/null.json"
+printf '%s\n' '{"verdict":[1,null]}' >"$PACKAGE/evals/fixtures/array.json"
+printf '%s\n' '{"verdict":{"decision":"deny"}}' >"$PACKAGE/evals/fixtures/object.json"
+cat >"$PACKAGE/evals/evals.json" <<'EOF'
+{"schemaVersion":1,"skill":"worker-arbitrary-oracles","cases":[
+  {"id":"final-string","prompt":"Derive the verdict","fixtures":["string.json"],"expected":"Derive it","assertions":[{"id":"verdict","kind":"final-json-path-equals","pointer":"/verdict","expected":"deny"}]},
+  {"id":"final-boolean","prompt":"Derive the verdict","fixtures":["boolean.json"],"expected":"Derive it","assertions":[{"id":"verdict","kind":"final-json-path-equals","pointer":"/verdict","expected":false}]},
+  {"id":"final-number","prompt":"Derive the verdict","fixtures":["number.json"],"expected":"Derive it","assertions":[{"id":"verdict","kind":"final-json-path-equals","pointer":"/verdict","expected":7}]},
+  {"id":"final-null","prompt":"Derive the verdict","fixtures":["null.json"],"expected":"Derive it","assertions":[{"id":"verdict","kind":"final-json-path-equals","pointer":"/verdict","expected":null}]},
+  {"id":"final-array","prompt":"Derive the verdict","fixtures":["array.json"],"expected":"Derive it","assertions":[{"id":"verdict","kind":"final-json-path-equals","pointer":"/verdict","expected":[1,null]}]},
+  {"id":"final-object","prompt":"Derive the verdict","fixtures":["object.json"],"expected":"Derive it","assertions":[{"id":"verdict","kind":"final-json-path-equals","pointer":"/verdict","expected":{"decision":"deny"}}]},
+  {"id":"file-string","prompt":"Write the verdict","fixtures":["string.json"],"capabilities":["write-workspace"],"expected":"Derive it","assertions":[{"id":"verdict","kind":"json-path-equals","file":"result.json","pointer":"/verdict","expected":"deny"}]},
+  {"id":"file-boolean","prompt":"Write the verdict","fixtures":["boolean.json"],"capabilities":["write-workspace"],"expected":"Derive it","assertions":[{"id":"verdict","kind":"json-path-equals","file":"result.json","pointer":"/verdict","expected":false}]},
+  {"id":"file-number","prompt":"Write the verdict","fixtures":["number.json"],"capabilities":["write-workspace"],"expected":"Derive it","assertions":[{"id":"verdict","kind":"json-path-equals","file":"result.json","pointer":"/verdict","expected":7}]},
+  {"id":"file-null","prompt":"Write the verdict","fixtures":["null.json"],"capabilities":["write-workspace"],"expected":"Derive it","assertions":[{"id":"verdict","kind":"json-path-equals","file":"result.json","pointer":"/verdict","expected":null}]},
+  {"id":"file-array","prompt":"Write the verdict","fixtures":["array.json"],"capabilities":["write-workspace"],"expected":"Derive it","assertions":[{"id":"verdict","kind":"json-path-equals","file":"result.json","pointer":"/verdict","expected":[1,null]}]},
+  {"id":"file-object","prompt":"Write the verdict","fixtures":["object.json"],"capabilities":["write-workspace"],"expected":"Derive it","assertions":[{"id":"verdict","kind":"json-path-equals","file":"result.json","pointer":"/verdict","expected":{"decision":"deny"}}]},
+  {"id":"receipt-string","prompt":"Return the verdict receipt","fixtures":["string.json"],"expected":"Derive it","assertions":[{"id":"verdict","kind":"receipt-field-equals","pointer":"/verdict","expected":"deny"}]},
+  {"id":"receipt-boolean","prompt":"Return the verdict receipt","fixtures":["boolean.json"],"expected":"Derive it","assertions":[{"id":"verdict","kind":"receipt-field-equals","pointer":"/verdict","expected":false}]},
+  {"id":"receipt-number","prompt":"Return the verdict receipt","fixtures":["number.json"],"expected":"Derive it","assertions":[{"id":"verdict","kind":"receipt-field-equals","pointer":"/verdict","expected":7}]},
+  {"id":"receipt-null","prompt":"Return the verdict receipt","fixtures":["null.json"],"expected":"Derive it","assertions":[{"id":"verdict","kind":"receipt-field-equals","pointer":"/verdict","expected":null}]},
+  {"id":"receipt-array","prompt":"Return the verdict receipt","fixtures":["array.json"],"expected":"Derive it","assertions":[{"id":"verdict","kind":"receipt-field-equals","pointer":"/verdict","expected":[1,null]}]},
+  {"id":"receipt-object","prompt":"Return the verdict receipt","fixtures":["object.json"],"expected":"Derive it","assertions":[{"id":"verdict","kind":"receipt-field-equals","pointer":"/verdict","expected":{"decision":"deny"}}]}
+]}
+EOF
+expect_invalid 'arbitrary string final oracle' corpus-fixture-output-oracle evals/evals.json /cases/0/fixtures/0
+expect_invalid 'arbitrary Boolean final oracle' corpus-fixture-output-oracle evals/evals.json /cases/1/fixtures/0
+expect_invalid 'arbitrary number final oracle' corpus-fixture-output-oracle evals/evals.json /cases/2/fixtures/0
+expect_invalid 'arbitrary null final oracle' corpus-fixture-output-oracle evals/evals.json /cases/3/fixtures/0
+expect_invalid 'arbitrary array final oracle' corpus-fixture-output-oracle evals/evals.json /cases/4/fixtures/0
+expect_invalid 'arbitrary object final oracle' corpus-fixture-output-oracle evals/evals.json /cases/5/fixtures/0
+expect_invalid 'arbitrary string file oracle' corpus-fixture-output-oracle evals/evals.json /cases/6/fixtures/0
+expect_invalid 'arbitrary Boolean file oracle' corpus-fixture-output-oracle evals/evals.json /cases/7/fixtures/0
+expect_invalid 'arbitrary number file oracle' corpus-fixture-output-oracle evals/evals.json /cases/8/fixtures/0
+expect_invalid 'arbitrary null file oracle' corpus-fixture-output-oracle evals/evals.json /cases/9/fixtures/0
+expect_invalid 'arbitrary array file oracle' corpus-fixture-output-oracle evals/evals.json /cases/10/fixtures/0
+expect_invalid 'arbitrary object file oracle' corpus-fixture-output-oracle evals/evals.json /cases/11/fixtures/0
+expect_invalid 'arbitrary string receipt oracle' corpus-fixture-output-oracle evals/evals.json /cases/12/fixtures/0
+expect_invalid 'arbitrary Boolean receipt oracle' corpus-fixture-output-oracle evals/evals.json /cases/13/fixtures/0
+expect_invalid 'arbitrary number receipt oracle' corpus-fixture-output-oracle evals/evals.json /cases/14/fixtures/0
+expect_invalid 'arbitrary null receipt oracle' corpus-fixture-output-oracle evals/evals.json /cases/15/fixtures/0
+expect_invalid 'arbitrary array receipt oracle' corpus-fixture-output-oracle evals/evals.json /cases/16/fixtures/0
+expect_invalid 'arbitrary object receipt oracle' corpus-fixture-output-oracle evals/evals.json /cases/17/fixtures/0
+
+make_package worker-raw-evidence 'description: Corpus with legitimate raw evidence values.'
+mkdir -p "$PACKAGE/evals/fixtures"
+printf '%s\n' '{"proposalSnapshot":{"digest":"sha256:1111111111111111111111111111111111111111111111111111111111111111"}}' >"$PACKAGE/evals/fixtures/digest.json"
+printf '%s\n' '{"legacyRecords":[{"phase":"complete"}]}' >"$PACKAGE/evals/fixtures/phase.json"
+cat >"$PACKAGE/evals/evals.json" <<'EOF'
+{"schemaVersion":1,"skill":"worker-raw-evidence","cases":[
+  {"id":"digest-evidence","prompt":"Read the approval digest","fixtures":["digest.json"],"expected":"Report the observed digest","assertions":[{"id":"digest","kind":"final-json-path-equals","pointer":"/requiredApprovalDigest","expected":"sha256:1111111111111111111111111111111111111111111111111111111111111111"}]},
+  {"id":"phase-evidence","prompt":"Classify the legacy record phase","fixtures":["phase.json"],"expected":"Derive the status","assertions":[{"id":"status","kind":"final-json-path-equals","pointer":"/status","expected":"complete"}]}
+]}
+EOF
+expect_valid 'legitimate raw evidence values' worker-raw-evidence \
+  'Corpus with legitimate raw evidence values.' \
+  'SKILL.md:skill,evals/evals.json:eval,evals/fixtures/digest.json:eval,evals/fixtures/phase.json:eval,references/guide.md:reference' \
+  2 0
+
+make_package worker-undeclared-raw-passthrough 'description: Corpus with an undeclared raw passthrough.'
+mkdir -p "$PACKAGE/evals/fixtures"
+printf '%s\n' '{"endpoint":"https://mcp.linear.app/mcp"}' >"$PACKAGE/evals/fixtures/observation.json"
+cat >"$PACKAGE/evals/evals.json" <<'EOF'
+{"schemaVersion":1,"skill":"worker-undeclared-raw-passthrough","cases":[
+  {"id":"endpoint-observation","prompt":"Return the observed endpoint","fixtures":["observation.json"],"expected":"Echo the raw observation","assertions":[{"id":"endpoint","kind":"final-json-path-equals","pointer":"/endpoint","expected":"https://mcp.linear.app/mcp"}]}
+]}
+EOF
+expect_invalid 'undeclared same-key raw passthrough' corpus-fixture-output-oracle evals/evals.json /cases/0/fixtures/0
+
+make_package worker-declared-raw-passthrough 'description: Corpus with a declared raw passthrough.'
+mkdir -p "$PACKAGE/evals/fixtures"
+printf '%s\n' '{"endpoint":"https://mcp.linear.app/mcp"}' >"$PACKAGE/evals/fixtures/observation.json"
+cat >"$PACKAGE/evals/evals.json" <<'EOF'
+{"schemaVersion":1,"skill":"worker-declared-raw-passthrough","cases":[
+  {"id":"endpoint-observation","prompt":"Return the observed endpoint","fixtures":["observation.json"],"fixturePassthroughAssertions":[{"assertionId":"endpoint","fixture":"observation.json","pointer":"/endpoint"}],"expected":"Echo the raw observation","assertions":[{"id":"endpoint","kind":"final-json-path-equals","pointer":"/endpoint","expected":"https://mcp.linear.app/mcp"}]}
+]}
+EOF
+expect_valid 'declared same-key raw passthrough' worker-declared-raw-passthrough \
+  'Corpus with a declared raw passthrough.' \
+  'SKILL.md:skill,evals/evals.json:eval,evals/fixtures/observation.json:eval,references/guide.md:reference' \
+  1 0
+
+make_package worker-invalid-raw-passthrough 'description: Corpus with an invalid raw passthrough declaration.'
+mkdir -p "$PACKAGE/evals/fixtures"
+printf '%s\n' '{"endpoint":"https://mcp.linear.app/mcp"}' >"$PACKAGE/evals/fixtures/observation.json"
+cat >"$PACKAGE/evals/evals.json" <<'EOF'
+{"schemaVersion":1,"skill":"worker-invalid-raw-passthrough","cases":[
+  {"id":"endpoint-observation","prompt":"Return the observed endpoint","fixtures":["observation.json"],"fixturePassthroughAssertions":["missing"],"expected":"Echo the raw observation","assertions":[{"id":"endpoint","kind":"final-json-path-equals","pointer":"/endpoint","expected":"https://mcp.linear.app/mcp"}]}
+]}
+EOF
+expect_invalid 'raw passthrough names a private assertion' corpus-invalid-fixture-passthrough evals/evals.json /cases/0/fixturePassthroughAssertions/0
 
 make_package traversing-fixture 'description: Corpus with a traversing fixture.'
 mkdir -p "$PACKAGE/evals/fixtures"

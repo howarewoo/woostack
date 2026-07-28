@@ -18,7 +18,7 @@
     },
     {
       "id": "knowledge-store-reflection-and-promotion",
-      "query": "Several fixes and overnight reports keep teaching the same deployment lesson. Work out a single durable version, which notes it supersedes, and what supporting docs would need to change.",
+      "query": "Several memory notes keep teaching the same deployment lesson. Work out a single durable version, which notes it supersedes, and what supporting docs would need to change.",
       "shouldTrigger": false,
       "expectedSkill": "woostack-dream",
       "conflictsWith": ["woostack-status"]
