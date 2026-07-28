@@ -24,8 +24,8 @@ Create one linear Graphite stack above the existing spec+plan base branch. Each 
 | Increment | Branch | Git parent | Acceptance coverage |
 | --- | --- | --- | --- |
 | 1 | `feature/linear-mcp-authority` | `feature/linear-only-collaboration` | AC1–AC5 foundations, AC9 prerequisite |
-| 2 | `feature/linear-project-workflows` | increment 1 | AC2, AC3, AC6 multi-PR path |
-| 3 | `feature/linear-standalone-workflows` | increment 2 | AC2, AC3, AC6 single-PR/bootstrap path |
+| 2 | `feature/linear-project-lifecycle` | increment 1 | AC2, AC3, AC6 multi-PR path |
+| 3 | `feature/linear-issue-workflows` | increment 2 | AC2, AC3, AC6 single-PR/bootstrap path |
 | 4 | `feature/linear-execution-tracking` | increment 3 | AC3, AC4, AC7, AC8 |
 | 5 | `feature/linear-context-consumers` | increment 4 | AC1, AC3, AC4, AC8, AC9 read-only/CI boundary |
 | 6 | `feature/engineer-agent-contract` | increment 5 | AC7, AC10 |
@@ -50,18 +50,22 @@ Every implementation branch follows Red → Green → Refactor. Run only the nam
 - Modify: `skills/woostack-status/references/conventions.md`
 - Modify: `skills/woostack-init/templates/config.json`
 - Modify: `.woostack/config.json`
+- Modify: `skills/woostack-init/templates/gitignore`
+- Modify: `.woostack/.gitignore`
+- Create: `skills/woostack-init/scripts/config/resolve-config.sh`
+- Create: `skills/woostack-init/scripts/tests/test-config-precedence.sh`
 - Create: `skills/woostack-init/scripts/tests/test-linear-only-contract.sh`
 - Modify: `skills/woostack-init/scripts/tests/run-tests.sh`
 
 - [ ] **Step 1 — Red: reject backend and credential configuration**
 
-Create a structural test that fails while any active config/template/reference still accepts `artifacts.specPlan`, calls `resolve-backend.sh`, requires `LINEAR_API_KEY`, treats a Linear document as development state, or defines Markdown as a development backend. The test must separately allow GitHub GraphQL and the words Markdown/GraphQL inside migration history and explicit rejection prose.
+Create structural tests that fail while any active config/template/reference still accepts `artifacts.specPlan`, calls `resolve-backend.sh`, requires `LINEAR_API_KEY`, treats a Linear document as development state, or defines Markdown as a development backend. Pin the config layering contract separately: `.woostack/config.local.json` is ignored, resolves from the primary checkout when a command runs in a worktree, may override only `linear.team`, wins over the committed value, and rejects credential-like or unknown keys. The tests must separately allow GitHub GraphQL and the words Markdown/GraphQL inside migration history and explicit rejection prose.
 
 ```bash
 bash skills/woostack-init/scripts/tests/test-linear-only-contract.sh
 ```
 
-Expected: FAIL with exact active-path findings for `artifacts.specPlan`, `LINEAR_API_KEY`, backend resolution, document-backed specs, and local spec/plan authority.
+Expected: FAIL with exact active-path findings for `artifacts.specPlan`, `LINEAR_API_KEY`, backend resolution, document-backed specs, local spec/plan authority, and the missing local-team override contract.
 
 - [ ] **Step 2 — Green: define one versioned managed schema**
 
@@ -79,17 +83,19 @@ receipt: identity + workspace/team + repository + role + revision/event + native
   resolved work owner + required relations
 ```
 
-Specify canonical single-line JSON after `+++ Woostack metadata — managed, do not edit`, append-only revisions/supersession, untrusted remote text, unknown-outcome retry by UUID, project phase-chain validation, coarse native project categories, semantic issue-state mappings, type-aware assignee/delegate ownership, and exact PR trailers. Remove the backend selector from both config files; keep only non-secret Linear policy (`repository`, `workspace`, `team`, category/state mappings), models/review/respond/status, and existing unrelated settings.
+Specify canonical single-line JSON after `+++ Woostack metadata — managed, do not edit`, append-only revisions/supersession, untrusted remote text, unknown-outcome retry by UUID, project phase-chain validation, coarse native project categories, semantic issue-state mappings, type-aware assignee/delegate ownership, and exact PR trailers. Remove the backend selector from both committed config files; keep only non-secret Linear policy (`repository`, `workspace`, optional default `team`, category/state mappings), models/review/respond/status, and existing unrelated settings. Add an ignored `.woostack/config.local.json`, resolved from the primary checkout through the Git common directory, whose only supported override is `linear.team`; the local team wins over a committed default so separate clones can bind the same repository to different Linear teams without changing tracked policy. Reject unknown or credential-like local keys and require the effective merged config to contain exactly one validated team.
 
 - [ ] **Step 3 — Verify the contract**
 
 ```bash
 bash skills/woostack-init/scripts/tests/test-linear-only-contract.sh
+bash skills/woostack-init/scripts/tests/test-config-precedence.sh
 python3 -m json.tool skills/woostack-init/templates/config.json >/dev/null
 python3 -m json.tool .woostack/config.json >/dev/null
+git check-ignore -q .woostack/config.local.json
 ```
 
-Expected: PASS; config has no backend selector or credential key, and the canonical reference names no Linear document as an owned resource.
+Expected: PASS; config has no backend selector or credential key, the local team override is ignored and wins deterministically from both primary and linked worktrees, and the canonical reference names no Linear document as an owned resource.
 
 ### Task 2: Make init and doctor capability-driven
 
@@ -118,8 +124,9 @@ Expected: PASS; config has no backend selector or credential key, and the canoni
 Pin these outcomes in shell tests and eval fixtures:
 
 ```text
-static success: valid non-secret Linear policy; no provider call
-static failure: backend selector, credential-like key, incomplete category/state mapping
+static success: valid non-secret committed policy plus a valid effective team from committed or local config; no provider call
+static failure: backend selector, credential-like key, incomplete category/state mapping, unsupported local override, or missing effective team
+local precedence: primary-root `.woostack/config.local.json` overrides only `linear.team` from both the primary checkout and linked worktrees
 live success: host MCP exposes required read/write/update/comment/relation/owner/read-back capabilities
 live read-only: report exact missing mutation capabilities and block mutating commands
 legacy records: one blocking migration finding per active/ambiguous set, no normal spec/plan lint
@@ -136,9 +143,9 @@ Expected: FAIL because init still creates local development directories and doct
 
 - [ ] **Step 2 — Green: change initialization and live validation**
 
-`/woostack-init` must discover the host's MCP tools, authenticate to `https://mcp.linear.app/mcp`, resolve exactly one configured workspace/team, validate native categories and issue states, prove the capability set by reversible/non-destructive reads where possible, and persist only non-secret policy. Stop before writing project files when setup is incomplete. Stop creating `.woostack/specs/`, `.woostack/plans/`, and `.woostack/fixes/`; retain memory, wisdom, respond, ignored worktrees, and non-authoritative diagnostics.
+`/woostack-init` must discover the host's MCP tools, authenticate to `https://mcp.linear.app/mcp`, resolve exactly one workspace and selected team, validate native categories and issue states, prove the capability set by reversible/non-destructive reads where possible, and persist only non-secret policy. Repository-wide policy stays in committed `.woostack/config.json`; the selected `linear.team` is written to ignored primary-root `.woostack/config.local.json` and overrides any committed default. Stop before writing project files when setup is incomplete. Stop creating `.woostack/specs/`, `.woostack/plans/`, and `.woostack/fixes/`; retain memory, wisdom, respond, ignored worktrees, and non-authoritative diagnostics.
 
-`/woostack-doctor` runs static filesystem/config checks in its script and performs provider discovery/read-back in the skill controller only for `--live`. No shell script may pretend to call a host MCP tool. Remove normal local spec/plan lifecycle checks; legacy directories become migration blockers.
+`/woostack-doctor` resolves and validates the same effective layered config in the primary checkout and linked worktrees, runs static filesystem/config checks in its script, and performs provider discovery/read-back in the skill controller only for `--live`. No shell script may pretend to call a host MCP tool. Remove normal local spec/plan lifecycle checks; legacy directories become migration blockers.
 
 - [ ] **Step 3 — Verify init/doctor behavior**
 
@@ -147,7 +154,7 @@ bash skills/woostack-init/scripts/tests/run-tests.sh
 bash skills/woostack-doctor/scripts/tests/run-tests.sh
 ```
 
-Expected: PASS for static config, normalized live receipts, missing-capability failures, and legacy blockers; no test requires network credentials.
+Expected: PASS for committed/local config precedence, worktree-stable team resolution, normalized live receipts, missing-capability failures, and legacy blockers; no test requires network credentials.
 
 ### Task 3: Specify and fixture the loss-safe one-way migration
 
@@ -197,7 +204,7 @@ Manual: inspect the canonical contract and a simulated partial migration handbac
 
 ## Increment 2: Multi-PR project lifecycle through Linear projects, updates, and issues
 
-> **Branch:** `feature/linear-project-workflows`  
+> **Branch:** `feature/linear-project-lifecycle`
 > **Depends on:** Increment 1  
 > **Git parent:** `feature/linear-mcp-authority`
 
@@ -327,9 +334,9 @@ Manual: walk Design approval, Spec approval, Hand off, and Go against fixtures; 
 
 ## Increment 3: Standalone issue workflows and source-control attribution
 
-> **Branch:** `feature/linear-standalone-workflows`  
+> **Branch:** `feature/linear-issue-workflows`
 > **Depends on:** Increment 2  
-> **Git parent:** `feature/linear-project-workflows`
+> **Git parent:** `feature/linear-project-lifecycle`
 
 > Makes every one-PR repository mutation attributable to a standalone Linear issue without manufacturing a project.
 
@@ -442,7 +449,7 @@ Manual: inspect one standalone issue fixture from create/bind through PR evidenc
 
 > **Branch:** `feature/linear-execution-tracking`  
 > **Depends on:** Increment 3  
-> **Git parent:** `feature/linear-standalone-workflows`
+> **Git parent:** `feature/linear-issue-workflows`
 
 > Moves execution progress, unattended reports, handoff, and terminal reconciliation into typed Linear comments/updates while Git remains implementation truth.
 
@@ -1067,7 +1074,7 @@ Expected: AC12 happy path is observed with one identity. Multi-identity delegate
 
 | Spec AC | Primary increment(s) | Proof |
 | --- | --- | --- |
-| AC1 mandatory MCP | 1, 2, 3, 5, 8 | config/doctor structural tests, workflow capability fixtures, live preflight |
+| AC1 mandatory MCP | 1, 2, 3, 5, 8 | committed/local config precedence tests, doctor structural tests, workflow capability fixtures, live preflight |
 | AC2 only projects/updates/issues/comments | 1–4, 8 | canonical schema, build/plan/standalone fixtures, absence scan |
 | AC3 verified receipts | 1–6, 8 | receipt fixtures per mutating workflow and live read-back |
 | AC4 no local development authority | 1, 4, 5, 8 | migration blockers, no-local-output tests, final absence scan |
@@ -1087,7 +1094,7 @@ Expected: AC12 happy path is observed with one identity. Multi-identity delegate
 - **No placeholders:** all created paths, test commands, lifecycle/event names, identity fields, and required prompt parameters are explicit. Runtime MCP tool names intentionally remain discovered capabilities because the approved spec forbids hard-coded host-specific names.
 - **Type consistency:** project phase events, issue event kinds, native categories, semantic issue states, resource roles, PR trailers, assignee/delegate ownership, and stable UUID revisions use one spelling throughout.
 - **Graph validity:** eight unique increments form one acyclic Graphite chain. Increment 1 establishes the authority; increments 2–7 migrate callers; increment 8 alone deletes the dormant compatibility implementation and proves no caller remains.
-- **Architecture:** one canonical contract; no new transport wrapper, compatibility shim, local state mirror, or Linear document.
+- **Architecture:** one canonical contract; the ignored local team selection is non-authoritative machine policy, not a development record; no new transport wrapper, compatibility shim, local state mirror, or Linear document.
 - **Tests:** structural shell contracts defend active-source absence and barriers; behavior fixtures defend receipts, transitions, ownership, migration, and handoff; the live run proves provider operability without making multi-identity access a false release claim.
 - **Security/trust:** OAuth secrets stay in host stores; remote Linear/GitHub/repository text remains untrusted; decision-maker and coder credentials are least-privilege and separated; shared pair credentials are backed by repeated skill barriers.
 - **Error handling/observability:** every mutation has independent read-back; partial/unknown outcomes stop with exact identities; Linear typed comments/updates carry development evidence; local diagnostics remain explicitly non-authoritative.
