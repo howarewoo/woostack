@@ -5,7 +5,6 @@
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$HERE/../../../woostack-init/scripts/lib.sh"
-LINEAR="${WOOSTACK_LINEAR_ADAPTER:-$HERE/../../../woostack-init/scripts/artifacts/linear.sh}"
 WOO_ROOT="${1:-.}"
 MEM_DIR="$WOO_ROOT/.woostack/memory"
 [ -d "$MEM_DIR" ] || exit 0
@@ -15,21 +14,16 @@ err()  { emit error "$1" report "$2" "$3"; }
 warn() { emit warn  "$1" report "$2" "$3"; }
 
 VALID_TYPES=" decision pattern gotcha convention hotspot "
+LINEAR_UUID_RE='[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}'
 seen="$(mktemp)"; overlap_pairs="$(mktemp)"
 paths="$(cd "$WOO_ROOT" && git ls-files 2>/dev/null || true)"
 
-# Authenticated state is prepared exactly once by the doctor controller. This check only
-# consumes its non-secret receipt; failed preflight is already a controller finding.
-backend=''
+# Authenticated provider work is controller-owned. This check consumes only the one normalized,
+# non-secret receipt copied by doctor.sh; failed preflight is already a controller finding.
 linear_live_ready=0
-resolved_statuses=''
-resolved_states=''
 live_context="${WOOSTACK_DOCTOR_LIVE_CONTEXT:-}"
 if [ "${WOOSTACK_DOCTOR_LIVE:-0}" = 1 ] && [ -r "$live_context" ] &&
-  jq -e '.ready == true and .backend.backend == "linear"' "$live_context" >/dev/null 2>&1; then
-  backend="$(jq -c '.backend' "$live_context")"
-  resolved_statuses="$(jq -c '.preflight.projectStatuses' "$live_context")"
-  resolved_states="$(jq -c '.preflight.issueStates' "$live_context")"
+  jq -e 'type == "object" and .ready == true' "$live_context" >/dev/null 2>&1; then
   linear_live_ready=1
 fi
 
@@ -62,8 +56,8 @@ for f in "$MEM_DIR"/*.md; do
     fi
   fi
   source_raw="$(field "$f" source)"
-  # Normalize local wikilink provenance and delegate stable Linear URI parsing to the
-  # normalized adapter. Static parsing never authenticates or makes a remote request.
+  # Wikilinks resolve locally. Linear URI syntax is parsed locally too; live identity/relation
+  # outcomes may come only from the controller's normalized host-MCP receipt.
   source_path="$source_raw"
   case "$source_raw" in
     '[['*']]')
@@ -71,14 +65,29 @@ for f in "$MEM_DIR"/*.md; do
       case "$_wl" in specs/*|plans/*|fixes/*) source_path=".woostack/$_wl.md" ;; esac
       ;;
     linear://*)
-      if ! bash "$LINEAR" provenance-parse --reference "$source_raw" >/dev/null 2>&1; then
-        warn memory-provenance "$rp" "$base: source '$source_raw' is malformed (expected linear://project|document|issue/<uuid>)"
-      elif [ "$linear_live_ready" -eq 1 ]; then
-        if ! bash "$LINEAR" provenance-resolve --reference "$source_raw" \
-          --repository "$(jq -r '.repository' <<<"$backend")" \
-          --status-map "$resolved_statuses" \
-          --issue-state-map "$resolved_states" >/dev/null 2>&1; then
-          err memory-provenance-live "$rp" "$base: source '$source_raw' is missing, foreign, or has relation/metadata drift"
+      if [[ ! "$source_raw" =~ ^linear://(project|issue)/($LINEAR_UUID_RE)$ ]]; then
+        warn memory-provenance "$rp" "$base: source '$source_raw' is malformed (expected linear://project|issue/<uuid>)"
+      else
+        source_kind="${BASH_REMATCH[1]}"
+        source_id="$(printf '%s' "${BASH_REMATCH[2]}" | tr '[:upper:]' '[:lower:]')"
+        canonical_source="linear://$source_kind/$source_id"
+        if [ "$linear_live_ready" -eq 1 ] && ! jq -e \
+          --arg uri "$canonical_source" --arg kind "$source_kind" --arg id "$source_id" '
+            . as $receipt
+            | ($receipt.provenance | type == "object")
+              and (($receipt.provenance[$uri] // null) as $entry
+                | ($entry | type == "object")
+                  and ($entry.verified == true)
+                  and ($entry.managedIdentityVerified == true)
+                  and ($entry.relationsVerified == true)
+                  and ($entry.kind == $kind)
+                  and (($entry.id | type) == "string")
+                  and (($entry.id | ascii_downcase) == $id)
+                  and ($entry.repository == $receipt.repository)
+                  and ($entry.workspace == $receipt.workspace)
+                  and ($entry.team == $receipt.team))
+          ' "$live_context" >/dev/null 2>&1; then
+          err memory-provenance-live "$rp" "$base: source '$source_raw' has a missing, partial, foreign, or drifted host-MCP provenance receipt"
         fi
       fi
       ;;

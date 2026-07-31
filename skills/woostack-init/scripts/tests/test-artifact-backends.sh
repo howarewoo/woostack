@@ -81,6 +81,11 @@ write_config "$repo" '{"artifacts":{"specPlan":"markdown"}}'
 actual="$(bash "$SCRIPT" "$repo")"
 assert_eq "$actual" '{"backend":"markdown","repository":null,"linear":null}' "explicit Markdown resolves without Linear config"
 
+repo="$(make_repo markdown-with-future-linear-policy)"
+write_config "$repo" '{"artifacts":{"specPlan":"markdown"},"linear":{"repository":"https://github.com/acme/widgets","workspace":"","team":"","projectStatuses":{"backlog":"","planned":"","started":"","paused":"","completed":"","canceled":""},"issueStates":{"planned":"","executing":"","inReview":"","done":"","blocked":""}}}'
+actual="$(bash "$SCRIPT" "$repo")"
+assert_eq "$actual" '{"backend":"markdown","repository":null,"linear":null}' "Markdown ignores non-secret Linear policy from a future backend schema"
+
 repo="$(make_repo markdown-secret)"
 secret_value='DO-NOT-LEAK-MARKDOWN'
 write_config "$repo" "$(jq -cn --arg value "$secret_value" '{artifacts:{specPlan:"markdown"},linear:{nested:{apiKey:$value}}}')"
@@ -246,7 +251,7 @@ for secret_key in "${secret_keys[@]}"; do
   secret_index=$((secret_index + 1))
 done
 
-assert_eq "$(jq -c '.artifacts' "$TEMPLATE")" '{"specPlan":"markdown"}' "config template selects Markdown by default"
+assert_eq "$(jq -c '.artifacts' "$TEMPLATE")" 'null' "Linear-only config template omits the retired backend selector"
 assert_eq "$(jq -r '[paths(scalars) as $p | ($p[-1] | tostring | ascii_downcase | gsub("[^a-z0-9]"; "")) | select(test("(apikey|token|credentials?(file|path)|authorization|password|secret|privatekey|accesskey)"))] | length' "$TEMPLATE")" '0' "config template contains no credential placeholders"
 
 write_feature_pair() {

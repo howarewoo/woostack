@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "provider": "official-linear-mcp",
+  "mcpAvailable": true,
+  "authenticated": true,
+  "ready": true,
+  "repository": "https://github.com/acme/widgets",
+  "workspaceResolution": {"status": "unique", "id": "11111111-1111-4111-8111-111111111111", "name": "acme"},
+  "teamResolution": {"status": "unique", "id": "22222222-2222-4222-8222-222222222222", "name": "Engineering", "key": "ENG"},
+  "projectStatuses": {
+    "complete": true,
+    "resolved": {
+      "backlog": {"id": "30000000-0000-4000-8000-000000000001", "name": "Backlog", "category": "backlog"},
+      "planned": {"id": "30000000-0000-4000-8000-000000000002", "name": "Planned", "category": "planned"},
+      "started": {"id": "30000000-0000-4000-8000-000000000003", "name": "Started", "category": "started"},
+      "paused": {"id": "30000000-0000-4000-8000-000000000006", "name": "Paused", "category": "paused"},
+      "completed": {"id": "30000000-0000-4000-8000-000000000004", "name": "Completed", "category": "completed"},
+      "canceled": {"id": "30000000-0000-4000-8000-000000000005", "name": "Canceled", "category": "canceled"}
+    }
+  },
+  "issueStates": {
+    "complete": true,
+    "resolved": {
+      "planned": {"id": "40000000-0000-4000-8000-000000000001", "name": "Backlog", "category": "backlog"},
+      "executing": {"id": "40000000-0000-4000-8000-000000000002", "name": "In Progress", "category": "started"},
+      "inReview": {"id": "40000000-0000-4000-8000-000000000003", "name": "In Review", "category": "started"},
+      "done": {"id": "40000000-0000-4000-8000-000000000004", "name": "Done", "category": "completed"},
+      "blocked": {"id": "40000000-0000-4000-8000-000000000005", "name": "Blocked", "category": "started"}
+    }
+  },
+  "capabilities": {
+    "projectRead": true,
+    "projectWrite": false,
+    "projectUpdateRead": true,
+    "projectUpdateWrite": true,
+    "issueRead": true,
+    "issueWrite": true,
+    "commentRead": true,
+    "commentWrite": false,
+    "relationRead": true,
+    "relationWrite": true,
+    "ownerRead": true,
+    "ownerWrite": true,
+    "independentReadBack": true
+  },
+  "readBack": {"status": "not-attempted", "complete": false, "independent": true}
+}

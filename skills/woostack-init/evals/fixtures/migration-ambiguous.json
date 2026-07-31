@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "classification": "ambiguous",
+  "local": {
+    "paths": [".woostack/specs/ambiguous.md", ".woostack/plans/other.md"],
+    "gitBlobs": ["eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "ffffffffffffffffffffffffffffffffffffffff"],
+    "originalProvenance": ["[[specs/ambiguous]]"]
+  },
+  "evidence": {
+    "reason": "conflicting plan join and no accepted completion evidence"
+  },
+  "remote": {
+    "clientId": null,
+    "projectId": null,
+    "issueIds": []
+  },
+  "result": {
+    "status": "blocked",
+    "reasonCode": "migration-classification-ambiguous",
+    "localDeletions": [],
+    "provenanceRewrites": []
+  }
+}

@@ -3,111 +3,183 @@
   "skill": "woostack-init",
   "cases": [
     {
-      "id": "repairs-missing-workspace-without-clobbering-config",
-      "prompt": "Initialize the synthetic project at fixtures/project using the packaged woostack-init procedure in --no-clobber mode. Work only inside fixtures/project. Preserve the existing .woostack/config.json byte-for-byte, create only missing canonical workspace pieces from package/templates, run the packaged build-index script, then run `bash fixtures/tools/doctor.sh fixtures/project` as the fully local synthetic doctor validation. Do not invent provider credentials or configuration keys. Return exactly one JSON object with keys mode, createdPaths, skippedPaths, validationOrder, doctorExitCode, configBeforeSha256, and configAfterSha256.",
+      "id": "blocks-before-project-access-when-official-mcp-is-missing",
+      "prompt": "Apply the packaged woostack-init preflight to fixtures/receipts/missing-mcp.json. The receipt fixture is host input and is outside the target project. Do not stat, list, read, write, or canonicalize fixtures/project and do not invoke Git because preflight fails. Return exactly one JSON object with keys status, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, and doctorInvoked. Use exactly status `blocked` and reasonCode `linear-mcp-unavailable`; equivalent tokens are invalid.",
       "fixtures": [
+        "receipts/missing-mcp.json",
+        "project/.woostack/config.json",
+        "project/.woostack/existing-note.txt"
+      ],
+      "capabilities": ["read-workspace"],
+      "expected": "Missing host-exposed official Linear MCP blocks init before any target-project filesystem or Git access.",
+      "assertions": [
+        {"id":"missing-mcp-blocks","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
+        {"id":"missing-mcp-code","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"linear-mcp-unavailable","critical":true},
+        {"id":"missing-mcp-zero-project-access","kind":"final-json-path-equals","pointer":"/projectFilesystemAccessBeforePreflight","expected":0,"critical":true},
+        {"id":"missing-mcp-zero-git-access","kind":"final-json-path-equals","pointer":"/gitAccessBeforePreflight","expected":0,"critical":true},
+        {"id":"missing-mcp-no-write","kind":"final-json-path-equals","pointer":"/writesStarted","expected":false,"critical":true},
+        {"id":"missing-mcp-no-doctor","kind":"final-json-path-equals","pointer":"/doctorInvoked","expected":false,"critical":true},
+        {"id":"missing-mcp-config-unchanged","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
+        {"id":"missing-mcp-no-scaffold","kind":"path-absent","path":"fixtures/project/.woostack/memory","critical":true}
+      ]
+    },
+    {
+      "id": "blocks-before-project-access-when-official-mcp-is-unauthenticated",
+      "prompt": "Apply the packaged woostack-init preflight to fixtures/receipts/unauthenticated.json. The receipt fixture is host input and is outside the target project. Do not stat, list, read, write, or canonicalize fixtures/project and do not invoke Git because authentication failed. Return exactly one JSON object with keys status, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, and doctorInvoked. Use exactly status `blocked` and reasonCode `linear-mcp-unauthenticated`; equivalent tokens are invalid.",
+      "fixtures": [
+        "receipts/unauthenticated.json",
+        "project/.woostack/config.json",
+        "project/.woostack/existing-note.txt"
+      ],
+      "capabilities": ["read-workspace"],
+      "expected": "Missing host MCP authentication blocks init before any target-project filesystem or Git access.",
+      "assertions": [
+        {"id":"auth-blocks","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
+        {"id":"auth-code","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"linear-mcp-unauthenticated","critical":true},
+        {"id":"auth-zero-project-access","kind":"final-json-path-equals","pointer":"/projectFilesystemAccessBeforePreflight","expected":0,"critical":true},
+        {"id":"auth-zero-git-access","kind":"final-json-path-equals","pointer":"/gitAccessBeforePreflight","expected":0,"critical":true},
+        {"id":"auth-no-write","kind":"final-json-path-equals","pointer":"/writesStarted","expected":false,"critical":true},
+        {"id":"auth-no-doctor","kind":"final-json-path-equals","pointer":"/doctorInvoked","expected":false,"critical":true},
+        {"id":"auth-config-unchanged","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
+        {"id":"auth-no-scaffold","kind":"path-absent","path":"fixtures/project/.woostack/memory","critical":true}
+      ]
+    },
+    {
+      "id": "blocks-on-ambiguous-workspace-or-missing-team",
+      "prompt": "Apply the packaged woostack-init preflight to fixtures/receipts/ambiguous-workspace-missing-team.json. Inspect only the receipt fixture: the workspace has multiple matches and the team has none. Do not access fixtures/project or invoke Git. Return exactly one JSON object with keys status, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, and doctorInvoked. Use exactly status `blocked` and reasonCode `linear-workspace-team-resolution`; equivalent tokens are invalid.",
+      "fixtures": [
+        "receipts/ambiguous-workspace-missing-team.json",
+        "project/.woostack/config.json",
+        "project/.woostack/existing-note.txt"
+      ],
+      "capabilities": ["read-workspace"],
+      "expected": "Anything other than exactly one workspace and one team blocks init before target-project access.",
+      "assertions": [
+        {"id":"identity-blocks","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
+        {"id":"identity-code","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"linear-workspace-team-resolution","critical":true},
+        {"id":"identity-zero-project-access","kind":"final-json-path-equals","pointer":"/projectFilesystemAccessBeforePreflight","expected":0,"critical":true},
+        {"id":"identity-zero-git-access","kind":"final-json-path-equals","pointer":"/gitAccessBeforePreflight","expected":0,"critical":true},
+        {"id":"identity-no-write","kind":"final-json-path-equals","pointer":"/writesStarted","expected":false,"critical":true},
+        {"id":"identity-no-doctor","kind":"final-json-path-equals","pointer":"/doctorInvoked","expected":false,"critical":true},
+        {"id":"identity-config-unchanged","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
+        {"id":"identity-no-scaffold","kind":"path-absent","path":"fixtures/project/.woostack/memory","critical":true}
+      ]
+    },
+    {
+      "id": "blocks-invalid-native-project-categories-and-issue-states",
+      "prompt": "Apply the packaged woostack-init preflight to fixtures/receipts/invalid-native-mappings.json. Require exactly the six coarse project-status keys and verify each resolves to its matching native category; separately validate every semantic issue-state key. Do not access fixtures/project or invoke Git. Return exactly one JSON object with keys status, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, and doctorInvoked. Use exactly status `blocked` and reasonCode `linear-native-mapping-invalid`; equivalent tokens are invalid.",
+      "fixtures": [
+        "receipts/invalid-native-mappings.json",
+        "project/.woostack/config.json",
+        "project/.woostack/existing-note.txt"
+      ],
+      "capabilities": ["read-workspace"],
+      "expected": "Wrong native categories and incomplete category/state maps block before target-project access.",
+      "assertions": [
+        {"id":"mapping-blocks","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
+        {"id":"mapping-code","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"linear-native-mapping-invalid","critical":true},
+        {"id":"mapping-zero-project-access","kind":"final-json-path-equals","pointer":"/projectFilesystemAccessBeforePreflight","expected":0,"critical":true},
+        {"id":"mapping-zero-git-access","kind":"final-json-path-equals","pointer":"/gitAccessBeforePreflight","expected":0,"critical":true},
+        {"id":"mapping-no-write","kind":"final-json-path-equals","pointer":"/writesStarted","expected":false,"critical":true},
+        {"id":"mapping-no-doctor","kind":"final-json-path-equals","pointer":"/doctorInvoked","expected":false,"critical":true},
+        {"id":"mapping-config-unchanged","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
+        {"id":"mapping-no-scaffold","kind":"path-absent","path":"fixtures/project/.woostack/memory","critical":true}
+      ]
+    },
+    {
+      "id": "blocks-read-only-mcp-for-mutating-init",
+      "prompt": "Apply the packaged woostack-init preflight to fixtures/receipts/read-only-capability.json. Init is a mutating workflow, so inspect every required read and write capability and fail on the false projectWrite and commentWrite observations. Do not access fixtures/project or invoke Git. Return exactly one JSON object with keys status, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, and doctorInvoked. Use exactly status `blocked` and reasonCode `linear-mcp-read-only`; equivalent tokens are invalid.",
+      "fixtures": [
+        "receipts/read-only-capability.json",
+        "project/.woostack/config.json",
+        "project/.woostack/existing-note.txt"
+      ],
+      "capabilities": ["read-workspace"],
+      "expected": "Read-only official MCP access is insufficient for mutating init and blocks before target-project access.",
+      "assertions": [
+        {"id":"read-only-blocks","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
+        {"id":"read-only-code","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"linear-mcp-read-only","critical":true},
+        {"id":"read-only-zero-project-access","kind":"final-json-path-equals","pointer":"/projectFilesystemAccessBeforePreflight","expected":0,"critical":true},
+        {"id":"read-only-zero-git-access","kind":"final-json-path-equals","pointer":"/gitAccessBeforePreflight","expected":0,"critical":true},
+        {"id":"read-only-no-write","kind":"final-json-path-equals","pointer":"/writesStarted","expected":false,"critical":true},
+        {"id":"read-only-no-doctor","kind":"final-json-path-equals","pointer":"/doctorInvoked","expected":false,"critical":true},
+        {"id":"read-only-config-unchanged","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
+        {"id":"read-only-no-scaffold","kind":"path-absent","path":"fixtures/project/.woostack/memory","critical":true}
+      ]
+    },
+    {
+      "id": "blocks-unknown-or-partial-independent-read-back",
+      "prompt": "Apply the packaged woostack-init preflight to fixtures/receipts/unknown-read-back.json. All declared capabilities are true, but the independent read-back is unknown and partial; do not treat declarations as proof. Do not access fixtures/project or invoke Git. Return exactly one JSON object with keys status, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, and doctorInvoked. Use exactly status `blocked` and reasonCode `linear-read-back-unknown`; equivalent tokens are invalid.",
+      "fixtures": [
+        "receipts/unknown-read-back.json",
+        "project/.woostack/config.json",
+        "project/.woostack/existing-note.txt"
+      ],
+      "capabilities": ["read-workspace"],
+      "expected": "Declared capabilities without a complete conclusive independent read-back block before target-project access.",
+      "assertions": [
+        {"id":"read-back-blocks","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
+        {"id":"read-back-code","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"linear-read-back-unknown","critical":true},
+        {"id":"read-back-zero-project-access","kind":"final-json-path-equals","pointer":"/projectFilesystemAccessBeforePreflight","expected":0,"critical":true},
+        {"id":"read-back-zero-git-access","kind":"final-json-path-equals","pointer":"/gitAccessBeforePreflight","expected":0,"critical":true},
+        {"id":"read-back-no-write","kind":"final-json-path-equals","pointer":"/writesStarted","expected":false,"critical":true},
+        {"id":"read-back-no-doctor","kind":"final-json-path-equals","pointer":"/doctorInvoked","expected":false,"critical":true},
+        {"id":"read-back-config-unchanged","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
+        {"id":"read-back-no-scaffold","kind":"path-absent","path":"fixtures/project/.woostack/memory","critical":true}
+      ]
+    },
+    {
+      "id": "successful-preflight-repairs-workspace-and-doctors-repository-root",
+      "prompt": "Initialize fixtures/project with the packaged woostack-init procedure in --no-clobber mode. First validate every field in fixtures/receipts/success.json while performing zero target-project filesystem or Git access. Only after that succeeds may you inspect fixtures/project, preserve its config byte-for-byte, create the remaining canonical knowledge/response/worktree/diagnostic pieces without specs, plans, or fixes, and run build-index. Then invoke exactly `bash fixtures/tools/doctor.sh --live-receipt fixtures/receipts/success.json fixtures/project`; never pass `.woostack/memory` as doctor's target. Return exactly one JSON object with keys status, mode, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, createdPaths, skippedPaths, validationOrder, doctorInvocation, doctorTarget, doctorExitCode, configBeforeSha256, and configAfterSha256. Use exactly status `complete`, mode `no-clobber`, and reasonCode `ready`; equivalent tokens are invalid.",
+      "fixtures": [
+        "receipts/success.json",
         "project/.woostack/config.json",
         "project/.woostack/existing-note.txt",
         "tools/doctor.sh"
       ],
-      "capabilities": [
-        "read-workspace",
-        "write-workspace",
-        "shell-workspace"
-      ],
-      "expected": "No-clobber initialization preserves the complete config and existing file, creates missing canonical workspace pieces, runs build-index before the local doctor with a zero exit, and invents no secret or provider config.",
+      "capabilities": ["read-workspace", "write-workspace", "shell-workspace"],
+      "expected": "A complete normalized official host-MCP receipt alone clears preflight; no-clobber then repairs only non-authoritative stores, indexes memory, and calls doctor with --live-receipt and the repository root.",
       "assertions": [
-        {
-          "id": "memory-index-created",
-          "kind": "path-exists",
-          "path": "fixtures/project/.woostack/memory/MEMORY.md"
-        },
-        {
-          "id": "fixes-marker-created",
-          "kind": "path-exists",
-          "path": "fixtures/project/.woostack/fixes/.gitkeep"
-        },
-        {
-          "id": "wisdom-marker-created",
-          "kind": "path-exists",
-          "path": "fixtures/project/.woostack/wisdom/.gitkeep"
-        },
-        {
-          "id": "respond-directory-materialized",
-          "kind": "path-exists",
-          "path": "fixtures/project/.woostack/respond/.gitkeep"
-        },
-        {
-          "id": "gitignore-created",
-          "kind": "path-exists",
-          "path": "fixtures/project/.woostack/.gitignore"
-        },
-        {
-          "id": "complete-config-object-preserved",
-          "kind": "json-path-equals",
-          "file": "fixtures/project/.woostack/config.json",
-          "pointer": "",
-          "expected": {
-            "artifacts": {
-              "specPlan": "markdown"
-            },
-            "models": {},
-            "review": {},
-            "status": {
-              "staleDays": 14
-            },
-            "owner": "platform"
-          },
-          "critical": true
-        },
-        {
-          "id": "no-linear-secret-invented",
-          "kind": "file-excludes",
-          "file": "fixtures/project/.woostack/config.json",
-          "substring": "LINEAR_API_KEY",
-          "critical": true
-        },
-        {
-          "id": "existing-file-preserved",
-          "kind": "file-contains",
-          "file": "fixtures/project/.woostack/existing-note.txt",
-          "substring": "user-owned sentinel",
-          "critical": true
-        },
-        {
-          "id": "no-clobber-mode-reported",
-          "kind": "final-json-path-equals",
-          "pointer": "/mode",
-          "expected": "no-clobber",
-          "critical": true
-        },
-        {
-          "id": "validation-order",
-          "kind": "qualitative",
-          "rubric": "Does the response evidence show that the packaged build-index step ran before the local doctor validation, whether the steps are represented by short labels or full commands?",
-          "critical": true
-        },
-        {
-          "id": "doctor-validation-succeeded",
-          "kind": "final-json-path-equals",
-          "pointer": "/doctorExitCode",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "config-before-hash",
-          "kind": "final-json-path-equals",
-          "pointer": "/configBeforeSha256",
-          "expected": "47331bee24b432c3accb11f13a5aec6f772a62fa38fbe5a91fc27d3f8838c4d9",
-          "critical": true
-        },
-        {
-          "id": "config-after-hash",
-          "kind": "final-json-path-equals",
-          "pointer": "/configAfterSha256",
-          "expected": "47331bee24b432c3accb11f13a5aec6f772a62fa38fbe5a91fc27d3f8838c4d9",
-          "critical": true
-        }
+        {"id":"success-status","kind":"final-json-path-equals","pointer":"/status","expected":"complete","critical":true},
+        {"id":"success-reason","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"ready","critical":true},
+        {"id":"success-zero-project-access-before-preflight","kind":"final-json-path-equals","pointer":"/projectFilesystemAccessBeforePreflight","expected":0,"critical":true},
+        {"id":"success-zero-git-access-before-preflight","kind":"final-json-path-equals","pointer":"/gitAccessBeforePreflight","expected":0,"critical":true},
+        {"id":"success-writes-started-after-preflight","kind":"final-json-path-equals","pointer":"/writesStarted","expected":true,"critical":true},
+        {"id":"memory-index-created","kind":"path-exists","path":"fixtures/project/.woostack/memory/MEMORY.md"},
+        {"id":"wisdom-marker-created","kind":"path-exists","path":"fixtures/project/.woostack/wisdom/.gitkeep"},
+        {"id":"respond-directory-materialized","kind":"path-exists","path":"fixtures/project/.woostack/respond/.gitkeep"},
+        {"id":"gitignore-created","kind":"path-exists","path":"fixtures/project/.woostack/.gitignore"},
+        {"id":"no-local-specs","kind":"path-absent","path":"fixtures/project/.woostack/specs","critical":true},
+        {"id":"no-local-plans","kind":"path-absent","path":"fixtures/project/.woostack/plans","critical":true},
+        {"id":"no-local-fixes","kind":"path-absent","path":"fixtures/project/.woostack/fixes","critical":true},
+        {"id":"no-clobber-mode-reported","kind":"final-json-path-equals","pointer":"/mode","expected":"no-clobber","critical":true},
+        {"id":"validation-order","kind":"final-json-path-equals","pointer":"/validationOrder","expected":["official-linear-mcp-preflight","project-filesystem-access","build-index","doctor"],"critical":true},
+        {"id":"packaged-doctor-invocation","kind":"final-json-path-equals","pointer":"/doctorInvocation","expected":["bash","fixtures/tools/doctor.sh","--live-receipt","fixtures/receipts/success.json","fixtures/project"],"critical":true},
+        {"id":"doctor-target-is-repository-root","kind":"final-json-path-equals","pointer":"/doctorTarget","expected":"fixtures/project","critical":true},
+        {"id":"doctor-validation-succeeded","kind":"final-json-path-equals","pointer":"/doctorExitCode","expected":0,"critical":true},
+        {"id":"config-before-hash","kind":"final-json-path-equals","pointer":"/configBeforeSha256","expected":"070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
+        {"id":"config-after-hash","kind":"final-json-path-equals","pointer":"/configAfterSha256","expected":"070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
+        {"id":"config-preserved-on-disk","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
+        {"id":"existing-file-preserved-on-disk","kind":"file-sha256-equals","file":"fixtures/project/.woostack/existing-note.txt","sha256":"sha256:60ba63428d6029222a9d092142fcdc64d045d93650e0c25cb25cd7f319351fae","critical":true}
+      ]
+    },
+    {
+      "id": "classifies-loss-safe-linear-migration-fixtures",
+      "prompt": "Apply the packaged migration contract in references/migration.md to migration-active.json, migration-historical.json, migration-ambiguous.json, migration-partial.json, and migration-foreign.json. Do not mutate any fixture. Verify that active deletion has complete receipts, historical cleanup has Git plus acceptance recovery proof without remote import, and ambiguous, partial, or foreign evidence produces zero deletions. Return exactly one JSON object with keys status, reasonCode, deletionsByFixture, and resumableClientId. Use exactly status `complete` and reasonCode `migration-safety-verified`; equivalent tokens are invalid.",
+      "fixtures": [
+        "migration-active.json",
+        "migration-historical.json",
+        "migration-ambiguous.json",
+        "migration-partial.json",
+        "migration-foreign.json"
+      ],
+      "capabilities": ["read-workspace"],
+      "expected": "Loss-safe migration permits deletion only with complete active receipts or recoverable historical evidence and preserves stable IDs across a partial resume.",
+      "assertions": [
+        {"id":"migration-status","kind":"final-json-path-equals","pointer":"/status","expected":"complete","critical":true},
+        {"id":"migration-reason","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"migration-safety-verified","critical":true},
+        {"id":"migration-deletions","kind":"final-json-path-equals","pointer":"/deletionsByFixture","expected":{"active":2,"historical":1,"ambiguous":0,"partial":0,"foreign":0},"critical":true},
+        {"id":"migration-resume-id","kind":"final-json-path-equals","pointer":"/resumableClientId","expected":"44444444-4444-4444-8444-444444444444","critical":true}
       ]
     }
   ]

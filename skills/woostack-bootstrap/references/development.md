@@ -21,45 +21,60 @@ for each phase:
 
 Each command is discrete and ends by offering the next step. Merge stays with the human.
 
-Review config and non-design project state remain under `.woostack/`; review metrics
-`.woostack/metrics.json` and [local-only memory](../../woostack-init/references/memory.md)
-`.woostack/memory/` are gitignored. Feature specs and plans follow the selected artifact backend.
+Review config and explicitly non-authoritative diagnostic output may remain under `.woostack/`;
+review metrics `.woostack/metrics.json` and
+[local-only memory](../../woostack-init/references/memory.md) `.woostack/memory/` are gitignored.
+They never determine development scope, phase, approval, assignment, dependencies, or acceptance.
 
-## Artifact backend
+## Linear development authority
 
-`.woostack/config.json` selects feature storage with `artifacts.specPlan`. A missing selector
-means `markdown`, so Markdown is the default, not a universal requirement. Markdown stores specs
-in `.woostack/specs/` and plans in `.woostack/plans/`. Selecting `linear` instead makes one
-repository-owned Linear project the feature, one managed spec document its specification, and
-ordered increment issues its plan. Native project statuses and team issue states carry lifecycle
-state through the configured semantic mappings; do not mirror them into Markdown source files.
+Official Linear MCP is mandatory for woostack development records. Multi-PR work uses one
+repository-owned project, append-only typed project updates, and one dependency-aware issue per
+increment. A bounded change or fix uses one standalone issue and no wrapper project. Project
+updates own the design/specification and lifecycle record. Linear documents and local spec, plan,
+fix, progress, or overnight files are not development authority and are not created or read by the
+normal workflow.
 
-Linear authentication is environment only. The process running a Linear-backed skill must receive
-`LINEAR_API_KEY`; the key never belongs in `.woostack/config.json`, a credential-file path, a
-checked-in env file, or documentation. Backend resolution, validation, and normalized adapter
-behavior are owned by
-[`resolve-backend.sh`](../../woostack-init/scripts/artifacts/resolve-backend.sh) and its sibling
-adapters. Adoption docs must not duplicate their request or query details.
+The canonical
+[Linear MCP authority contract](../../woostack-init/references/artifact-backends.md) owns resource
+roles and identity, versioned managed metadata, event kinds, lifecycle validation, assignment and
+delegation, receipts, trust boundaries, and exact PR trailers. Related workflow docs link to that
+contract rather than defining another resource model.
 
-Storage changes neither workflow intent nor approval policy. Both backends preserve exactly three
-hard gates: design approval, written-spec approval, and execution handoff. The
-[`woostack-build` lifecycle](../../woostack-build/SKILL.md) owns their order and backend-specific
-work steps. Markdown opens one docs-only spec+plan base PR before implementation; Linear persists
-the project/document/issues natively and has no docs-only base PR. Linear implementation branches
-begin only after handoff and follow the frozen-base/dependency rules in the
+`.woostack/config.json` is non-secret repository policy only. Its `linear` namespace records the
+canonical repository URL, workspace, team, coarse-category `projectStatuses` mappings, and
+semantic `issueStates` mappings. It contains no development record, transport configuration, or
+provider credential. Authentication comes from the host's official Linear MCP/OAuth connection;
+missing authentication or a required read/write capability blocks before artifact access or
+repository mutation. Woostack does not issue custom Linear GraphQL requests. GitHub GraphQL remains
+valid for GitHub-specific operations such as review-thread handling.
+
+Storage changes neither workflow intent nor approval policy. [`woostack-build`](../../woostack-build/SKILL.md)
+preserves exactly three hard gates: design approval, written-spec approval, and execution handoff. Design is
+artifact-free until explicit approval creates the project and a verified `designApproved` update.
+Specification hardening and approval append verified project-update events; planning creates and
+reconciles issues and native relations. `ready` exists before the explicit handoff, and Go or an
+overnight run must read back `executionApproved` before any implementation Git artifact. Linear
+mode has no docs-only base PR.
+
+Implementation branches begin from verified repository base evidence and follow the
 [worktree contract](../../woostack-init/references/worktrees.md#artifact-backend-boundary).
+Every implementation PR carries exact Linear attribution. Git/Graphite and GitHub remain the
+source of truth for commits, branches, PRs, reviews, and merges; Linear records verified linkage
+and collaboration state.
 
-Every `/woostack-status` run resolves the selected backend. Markdown derives terminal truth
-read-only; Linear verifies merge evidence and reconciles only eligible terminal issue/project
-states before rendering. The
-[feature-state conventions](../../woostack-status/references/conventions.md) own lifecycle
-spelling, attribution joins, reconciliation, and failure behavior.
+Every `/woostack-status` run reads through official Linear MCP, validates the unsuperseded typed
+phase chain and issue ownership/relations, independently verifies repository PR evidence, and only
+then reconciles eligible native terminal states. The
+[feature-state conventions](../../woostack-status/references/conventions.md) define rendering,
+reconciliation, and failure behavior. Missing, partial, stale, foreign, or conflicting MCP
+read-back blocks rather than presenting stale state.
 
-Backend selection is a clean boundary, not live migration. Existing Markdown specs and plans stay
-authoritative under Markdown. After selecting Linear, local spec/plan files are inactive
-compatibility data: no command imports, adopts, or falls back to them. Move a feature only through
-an explicit, separately reviewed migration; changing the selector alone never copies or adopts
-artifacts.
+Legacy local development records are migration input only. They are never adopted as a fallback or
+mixed with Linear authority. An explicit one-way migration classifies active versus historical
+records, creates or resumes exact client-UUID-addressed Linear resources, verifies the complete
+remote receipt set and knowledge provenance, and deletes local records only after the whole
+migration succeeds. Historical development remains recoverable from Git.
 
 ## Branching model
 

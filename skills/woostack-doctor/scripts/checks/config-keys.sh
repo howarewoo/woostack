@@ -1,71 +1,167 @@
 #!/usr/bin/env bash
 set -uo pipefail
+
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TEMPLATE="$HERE/../../../woostack-init/templates/config.json"
-RESOLVER="${WOOSTACK_BACKEND_RESOLVER:-$HERE/../../../woostack-init/scripts/artifacts/resolve-backend.sh}"
-LINEAR="${WOOSTACK_LINEAR_ADAPTER:-$HERE/../../../woostack-init/scripts/artifacts/linear.sh}"
+CONFIG_RESOLVER="$HERE/../../../woostack-init/scripts/config/resolve-config.sh"
 emit() { printf '%s\t%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" "$5"; }
-[ -f "$TEMPLATE" ] || exit 0
-command -v jq >/dev/null 2>&1 || exit 0
 
-if [ "${1:-}" = "--fix" ]; then FIX=1; WOO_ROOT="${2:-.}"; key="${3:-}"; else FIX=0; WOO_ROOT="${1:-.}"; fi
-CFG="$WOO_ROOT/.woostack/config.json"
-
-if [ "$FIX" -eq 1 ]; then
-  # An empty key arg would make jq write a bogus "" entry into config.json
-  # (silent corruption). Require a real key; the orchestrator always passes one.
+if [ "${1:-}" = "--fix" ]; then
+  WOO_ROOT="${2:-.}"
+  key="${3:-}"
   [ -n "$key" ] || { echo "config-keys.sh: --fix requires a key argument" >&2; exit 2; }
-  [ -f "$CFG" ] || echo '{}' > "$CFG"
-  val="$(jq -c --arg k "$key" '.[$k]' "$TEMPLATE")"
-  tmp="$(mktemp)"; jq --arg k "$key" --argjson v "$val" '.[$k]=$v' "$CFG" > "$tmp" && mv "$tmp" "$CFG"
+  command -v jq >/dev/null 2>&1 || exit 2
+  CFG="$WOO_ROOT/.woostack/config.json"
+  [ -f "$CFG" ] || echo '{}' >"$CFG"
+  value="$(jq -c --arg key "$key" '.[$key]' "$TEMPLATE")"
+  tmp="$(mktemp)"
+  jq --arg key "$key" --argjson value "$value" '.[$key]=$value' "$CFG" >"$tmp" && mv "$tmp" "$CFG"
   exit $?
 fi
-req_keys="$(jq -r 'keys[]' "$TEMPLATE")"
-for k in $req_keys; do
-  if [ ! -f "$CFG" ] || [ "$(jq --arg k "$k" 'has($k)' "$CFG" 2>/dev/null)" != "true" ]; then
-    emit warn config-key auto ".woostack/config.json" "missing required config key: $k"
+
+WOO_ROOT="${1:-.}"
+CFG="$WOO_ROOT/.woostack/config.json"
+[ -f "$TEMPLATE" ] || exit 0
+if ! command -v jq >/dev/null 2>&1; then
+  emit error linear-policy report ".woostack/config.json" "jq is required for static Linear policy validation"
+  exit 0
+fi
+if [ ! -f "$CFG" ] || ! jq -e 'type == "object"' "$CFG" >/dev/null 2>&1; then
+  emit error linear-policy report ".woostack/config.json" "missing or malformed configuration object"
+  exit 0
+fi
+
+resolver_error="$(mktemp)"
+if [ ! -x "$CONFIG_RESOLVER" ] || ! effective_config="$(bash "$CONFIG_RESOLVER" "$WOO_ROOT" 2>"$resolver_error")"; then
+  detail="$(cat "$resolver_error")"
+  rm -f "$resolver_error"
+  [ -n "$detail" ] || detail="layered config resolver is unavailable"
+  emit error linear-policy report ".woostack/config.json" "$detail"
+  exit 0
+fi
+rm -f "$resolver_error"
+EFFECTIVE_CFG="$(mktemp)"
+printf '%s\n' "$effective_config" >"$EFFECTIVE_CFG"
+trap 'rm -f "$EFFECTIVE_CFG"' EXIT
+
+while IFS= read -r key; do
+  if ! jq -e --arg key "$key" 'has($key)' "$CFG" >/dev/null; then
+    emit warn config-key auto ".woostack/config.json" "missing required config key: $key"
+  fi
+done < <(jq -r 'keys[]' "$TEMPLATE")
+
+if jq -e 'has("artifacts")' "$CFG" >/dev/null; then
+  emit error linear-policy report ".woostack/config.json" "development backend selectors are not supported"
+fi
+credential_path="$(jq -r '
+  paths as $p
+  | ($p | map(tostring) | join(".")) as $name
+  | select($name | test("api.?key|token|secret|password|authorization|credential"; "i"))
+  | $name
+' "$CFG" 2>/dev/null | head -n 1)"
+if [ -n "$credential_path" ]; then
+  emit error linear-policy report ".woostack/config.json" "credential-like configuration key: $credential_path"
+fi
+
+allowed='["repository","workspace","team","projectStatuses","issueStates"]'
+project_keys='["backlog","planned","started","paused","completed","canceled"]'
+issue_keys='["planned","executing","inReview","done","blocked"]'
+issue_categories='{"planned":"backlog","executing":"started","inReview":"started","done":"completed","blocked":"started"}'
+if ! jq -e --argjson allowed "$allowed" '
+  .linear | type == "object" and ((keys - $allowed) | length == 0)
+  and (.repository | type == "string"
+    and test("^https://github\\.com/[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?/[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?$"))
+  and (.workspace | type == "string" and test("\\S"))
+  and (.team | type == "string" and test("\\S"))
+  and (.projectStatuses | type == "object")
+  and (.issueStates | type == "object")
+' "$EFFECTIVE_CFG" >/dev/null 2>&1; then
+  emit error linear-policy report ".woostack/config.json" "linear policy requires repository, workspace, team, projectStatuses, and issueStates only"
+else
+  if ! jq -e --argjson keys "$project_keys" '
+    (.linear.projectStatuses | keys | sort) == ($keys | sort)
+    and all(.linear.projectStatuses[]; type == "string" and test("\\S"))
+  ' "$EFFECTIVE_CFG" >/dev/null; then
+    emit error linear-policy report ".woostack/config.json" "projectStatuses mapping is incomplete or contains invalid values"
+  fi
+  if ! jq -e --argjson keys "$issue_keys" '
+    (.linear.issueStates | keys | sort) == ($keys | sort)
+    and all(.linear.issueStates[]; type == "string" and test("\\S"))
+  ' "$EFFECTIVE_CFG" >/dev/null; then
+    emit error linear-policy report ".woostack/config.json" "issueStates mapping is incomplete or contains invalid values"
+  fi
+fi
+
+for name in specs plans fixes overnight; do
+  dir="$WOO_ROOT/.woostack/$name"
+  [ -d "$dir" ] || continue
+  shopt -s nullglob dotglob
+  entries=()
+  for entry in "$dir"/*; do
+    [ "${entry##*/}" = ".gitkeep" ] || entries+=("$entry")
+  done
+  shopt -u nullglob dotglob
+  [ "${#entries[@]}" -eq 0 ] && continue
+  emit error legacy-development-records report ".woostack/$name" "legacy development-record set requires verified migration classification"
+done
+
+[ "${WOOSTACK_DOCTOR_LIVE:-0}" = 1 ] || exit 0
+receipt="${WOOSTACK_DOCTOR_LIVE_CONTEXT:-}"
+if [ ! -r "$receipt" ] || ! jq -e \
+  --argjson project_keys "$project_keys" \
+  --argjson issue_keys "$issue_keys" \
+  --argjson issue_categories "$issue_categories" \
+  --slurpfile config "$EFFECTIVE_CFG" '
+    . as $receipt
+    | .schemaVersion == 1
+      and .provider == "official-linear-mcp"
+      and .mcpAvailable == true
+      and .authenticated == true
+      and .ready == true
+      and .workspaceResolution.status == "unique"
+      and .workspaceResolution.name == .workspace
+      and (.workspaceResolution.id | type == "string"
+        and test("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"))
+      and .teamResolution.status == "unique"
+      and .teamResolution.key == .team
+      and (.teamResolution.id | type == "string"
+        and test("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"))
+      and .projectStatuses.complete == true
+      and (.projectStatuses.resolved | keys | sort) == ($project_keys | sort)
+      and all($project_keys[];
+        . as $key
+        | ($receipt.projectStatuses.resolved[$key]
+          | .name == $config[0].linear.projectStatuses[$key] and .category == $key))
+      and .issueStates.complete == true
+      and (.issueStates.resolved | keys | sort) == ($issue_keys | sort)
+      and all($issue_keys[];
+        . as $key
+        | ($receipt.issueStates.resolved[$key]
+          | .name == $config[0].linear.issueStates[$key]
+            and .category == $issue_categories[$key]))
+      and .readBack.status == "verified"
+      and .readBack.complete == true
+      and .readBack.independent == true
+  ' "$receipt" >/dev/null 2>&1; then
+  emit error linear-live report ".woostack/config.json" "normalized Linear MCP receipt is missing, malformed, partial, or not ready"
+  exit 0
+fi
+
+for field in workspace team repository; do
+  expected="$(jq -r --arg field "$field" '.linear[$field]' "$EFFECTIVE_CFG")"
+  actual="$(jq -r --arg field "$field" '.[$field] // empty' "$receipt")"
+  if [ "$actual" != "$expected" ]; then
+    emit error linear-live report ".woostack/config.json" "receipt $field does not match configured Linear policy"
   fi
 done
 
-# Backend configuration is a static doctor concern. Resolution validates the selector,
-# repository identity, mapping shapes, and credential-free config without touching Linear.
-if [ ! -f "$RESOLVER" ] || [ ! -r "$RESOLVER" ]; then
-  emit error artifact-config report ".woostack/config.json" "artifact backend resolver is unavailable"
-  exit 0
-fi
-backend_error="$(mktemp)"
-if ! backend="$(bash "$RESOLVER" "$WOO_ROOT" 2>"$backend_error")"; then
-  safe_path="$(cat "$backend_error")"
-  safe_path="${safe_path##* at }"
-  [ -n "$safe_path" ] || safe_path=".woostack/config.json"
-  rm -f "$backend_error"
-  emit error artifact-config report ".woostack/config.json" "invalid artifact backend config at $safe_path"
-  exit 0
-fi
-rm -f "$backend_error"
-[ "$(jq -r '.backend' <<<"$backend")" = linear ] || exit 0
-
-# Local specs/plans are deliberately inactive in Linear mode. Surface them for deliberate
-# archival, but never reinterpret, repair, delete, migrate, or synchronize them.
-shopt -s nullglob
-for dir in specs plans; do
-  for file in "$WOO_ROOT/.woostack/$dir"/*.md; do
-    emit warn artifact-legacy-local report "${file#"$WOO_ROOT"/}" "inactive legacy local artifact; Linear is the configured spec/plan backend"
-  done
+required_capabilities=(
+  projectRead projectWrite projectUpdateRead projectUpdateWrite
+  issueRead issueWrite commentRead commentWrite relationRead relationWrite
+  ownerRead ownerWrite independentReadBack
+)
+for capability in "${required_capabilities[@]}"; do
+  if ! jq -e --arg capability "$capability" '.capabilities[$capability] == true' "$receipt" >/dev/null 2>&1; then
+    emit error linear-live report ".woostack/config.json" "missing Linear MCP capability: $capability"
+  fi
 done
-
-# Remote diagnostics are explicit. Static doctor never reads credentials or makes a request.
-# The controller owns the single authenticated preflight and exports its non-secret receipt.
-[ "${WOOSTACK_DOCTOR_LIVE:-0}" = 1 ] || exit 0
-live_context="${WOOSTACK_DOCTOR_LIVE_CONTEXT:-}"
-[ -r "$live_context" ] || exit 0
-jq -e '.ready == true' "$live_context" >/dev/null 2>&1 || exit 0
-live_config="$(jq -c '.preflight' "$live_context")"
-if ! bash "$LINEAR" doctor-read \
-  --repository "$(jq -r '.repository' <<<"$backend")" \
-  --status-map "$(jq -c '.projectStatuses' <<<"$live_config")" \
-  --issue-state-map "$(jq -c '.issueStates' <<<"$live_config")" >/dev/null 2>&1; then
-  emit error linear-live report ".woostack/config.json" "authenticated Linear resource validation failed (existence, ownership, managed metadata, or native relations)"
-  exit 0
-fi
-emit warn linear-write-scope-unverifiable report ".woostack/config.json" "Linear exposes no non-mutating effective write-scope introspection; live doctor does not pre-prove future mutation authorization, and actual mutations remain fail-closed"

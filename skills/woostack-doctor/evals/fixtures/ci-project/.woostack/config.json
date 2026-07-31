@@ -1,21 +1,15 @@
 {
-  "artifacts": {
-    "specPlan": "linear"
-  },
   "linear": {
+    "repository": "https://github.com/acme/widgets",
     "workspace": "acme",
     "team": "ENG",
-    "repository": "acme/widgets",
     "projectStatuses": {
-      "draft": "Draft",
-      "hardened": "Hardened",
-      "approved": "Approved",
-      "planning": "Planning",
-      "ready": "Ready",
-      "executing": "In Progress",
-      "inReview": "In Review",
-      "done": "Completed",
-      "abandoned": "Canceled"
+      "backlog": "Backlog",
+      "planned": "Planned",
+      "started": "Started",
+      "paused": "Paused",
+      "completed": "Completed",
+      "canceled": "Canceled"
     },
     "issueStates": {
       "planned": "Backlog",
@@ -28,7 +22,5 @@
   "models": {},
   "review": {},
   "respond": {},
-  "status": {
-    "staleDays": 14
-  }
+  "status": {"staleDays": 14}
 }
