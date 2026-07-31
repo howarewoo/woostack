@@ -1,46 +1,70 @@
 ---
 title: Configuration
-description: Every key in the .woostack/config.json file, what it tunes, its type, and its default.
+description: Repository policy for mandatory official Linear MCP and woostack workflow engines.
 ---
 
-woostack reads optional settings from `.woostack/config.json` at the repository root.
-[woostack-init](/docs/skills/woostack-init) creates the file. The init template ships five
-top-level keys: `artifacts`, `models`, `review`, `respond`, and `status`; other settings use
-built-in defaults when absent. [woostack-doctor](/docs/skills/woostack-doctor) checks the
-required shape without reading credentials or contacting Linear unless you explicitly request
-`--live`.
+woostack reads non-secret repository policy from `.woostack/config.json`.
+[woostack-init](/docs/skills/woostack-init) creates and populates it after authenticating through
+the host's [official Linear MCP](https://mcp.linear.app/mcp) connection. The file is not a
+development record and never contains provider credentials.
 
-**omp exception:** woostack uses
+Linear is the only authority for development scope, decisions, assignment, dependencies, progress,
+and acceptance. Git and GitHub own code, branches, commits, pull requests, reviews, and merge
+truth. Local memory and wisdom are reusable knowledge only; local audit, QA, response, evaluation,
+and other diagnostic outputs are non-authoritative.
+
+The init template ships five top-level keys: `linear`, `models`, `review`, `respond`, and `status`.
+Other supported settings use built-in defaults when absent.
+[woostack-doctor](/docs/skills/woostack-doctor) checks the static policy shape; `--live` additionally
+discovers and preflights the official MCP capabilities exposed by the active host.
+
+**OMP exception:** woostack uses
 [host-owned role routing](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md)
-through bundled workers. omp ignores `.woostack/config.json` model settings and owns role
-configuration, concrete model identity, provider credentials, and fallback.
+through bundled workers. OMP ignores `.woostack/config.json` model settings and owns its isolated
+profile, role configuration, concrete model identity, provider authentication, and recovery.
 
-There are ten top-level settings:
+There are nine top-level settings:
 
 | Setting | Read by | Tunes |
 | --- | --- | --- |
-| `artifacts` | all spec/plan consumers | selects the canonical spec and plan backend |
-| `linear` | all spec/plan consumers when Linear is selected | workspace, team, repository, and native state mappings |
+| `linear` | every development workflow | repository, workspace, team, and native state mappings verified through official MCP |
 | `review` | [woostack-review](/docs/skills/woostack-review) | the PR review engine: angles, noise, validation |
-| `models` | [woostack-review](/docs/skills/woostack-review), [woostack-audit](/docs/skills/woostack-audit), and local subagent drivers | shared model selection and tier parameters for hosts that consume repository model configuration; ignored by omp |
+| `models` | [woostack-review](/docs/skills/woostack-review), [woostack-audit](/docs/skills/woostack-audit), and host subagent drivers | shared model selection and tier parameters for hosts that consume repository model configuration; ignored by OMP |
 | `audit` | [woostack-audit](/docs/skills/woostack-audit) | standing-code audit angles, filtering, chunking, and output |
 | `review_sweep` | [woostack-sweep](/docs/skills/woostack-sweep) | how many review rounds a stack sweep runs |
 | `commit` | [woostack-commit](/docs/skills/woostack-commit) | a pre-commit hook command |
 | `respond` | [woostack-respond](/docs/skills/woostack-respond) | bounded production-error discovery and remediation defaults |
-| `status` | [woostack-status](/docs/skills/woostack-status) | when the board flags a spec as stale |
+| `status` | [woostack-status](/docs/skills/woostack-status) | when the board flags an active Linear project as stale |
 | `base_branch` | [woostack-init](/docs/skills/woostack-init) | the trunk branch for PRs and worktrees |
 
-## A complete Markdown example
+## A complete repository-policy example
 
-Every top-level setting used by the Markdown backend is populated as a starting point. The
-`models` block demonstrates shared configuration for non-omp hosts; omp ignores it. The
-Linear-only mapping is shown separately below. JSON has no comments, so each key is explained in
-the sections that follow.
+The `linear` names below are examples; init selects the exact names from your workspace and verifies
+their native categories. The `models` block demonstrates shared configuration for non-OMP hosts.
+JSON has no comments, so each key is explained in the sections that follow.
 
 ```json
 {
-  "artifacts": { "specPlan": "markdown" },
-
+  "linear": {
+    "repository": "https://github.com/owner/repository",
+    "workspace": "workspace-key",
+    "team": "TEAM",
+    "projectStatuses": {
+      "backlog": "Backlog",
+      "planned": "Planned",
+      "started": "Started",
+      "paused": "Paused",
+      "completed": "Completed",
+      "canceled": "Canceled"
+    },
+    "issueStates": {
+      "planned": "Backlog",
+      "executing": "In Progress",
+      "inReview": "In Review",
+      "done": "Done",
+      "blocked": "Blocked"
+    }
+  },
   "review": {
     "severity_floor": "high",
     "nits": true,
@@ -80,74 +104,60 @@ the sections that follow.
 }
 ```
 
-## Artifact backend
+## Linear MCP development authority
 
-`artifacts.specPlan` selects one backend for the repository: the default is `markdown`; the alternative is `linear`.
-Skills resolve this selector before touching a spec or plan and never infer storage from files,
-credentials, or command arguments. Markdown reads and writes tracked `.woostack/specs/*.md` and
-`.woostack/plans/*.md` files. Linear stores one repository-owned project, one managed spec
-document, and one managed issue per increment, with verified read-backs after every mutation. It
-writes no local spec/plan source and opens no docs-only spec+plan PR. A Linear failure never falls
-back to Markdown.
+Every participating host profile connects to exactly:
 
-| Key | Type | Default | Meaning |
-| --- | --- | --- | --- |
-| `artifacts.specPlan` | `"markdown"` or `"linear"` | `"markdown"` | Canonical spec/plan backend for the repository. |
-| `linear.repository` | `owner/repo` string | repository's GitHub origin | Repository identity recorded on managed resources. |
-| `linear.workspace` | non-empty string | required in Linear mode | Linear workspace name or key. |
-| `linear.team` | non-empty string | required in Linear mode | Linear team name or key for increment issues. |
-| `linear.projectStatuses` | complete name map | required in Linear mode | Maps woostack project phases to native Linear project-status names. |
-| `linear.issueStates` | complete name map | required in Linear mode | Maps increment phases to native team workflow-state names. |
-
-Only the keys listed above are accepted; unknown keys fail closed. The namespace must not contain
-credentials at any depth. Keep API keys, tokens, authorization headers, passwords, private or
-access keys, client secrets, credential files, and provider authentication in the host's native
-secret store.
-The configured names are resolved to native IDs during authenticated preflight. Projects are the
-feature, one managed document is the spec, and ordered issues are the plan increments; their
-native states and `blocked by` relations remain canonical. The
-[artifact-backend reference](https://github.com/howarewoo/woostack/blob/main/skills/woostack-bootstrap/references/development.md#artifact-backend)
-owns the selection and resource model, while [Building rules](/docs/concepts/building-rules)
-explains how those resources pass through the three gates.
-
-```json
-{
-  "artifacts": { "specPlan": "linear" },
-  "linear": {
-    "repository": "owner/repository",
-    "workspace": "workspace-key",
-    "team": "TEAM",
-    "projectStatuses": {
-      "draft": "Draft",
-      "hardened": "Hardened",
-      "approved": "Approved",
-      "planning": "Planning",
-      "ready": "Ready",
-      "executing": "In Progress",
-      "inReview": "In Review",
-      "done": "Completed",
-      "abandoned": "Canceled"
-    },
-    "issueStates": {
-      "planned": "Backlog",
-      "executing": "In Progress",
-      "inReview": "In Review",
-      "done": "Done",
-      "blocked": "Blocked"
-    }
-  }
-}
+```text
+https://mcp.linear.app/mcp
 ```
 
-Linear authentication is environment-only. Supply `LINEAR_API_KEY` to the woostack process from
-your shell or secret manager; never add the key to this JSON, a committed `.env` file, generated
-docs, or any artifact. Static doctor checks are credential-free. `/woostack-doctor --live` is the
-explicit authenticated validation path.
+Woostack does not configure that connection through repository JSON. Authenticate with the host's
+official MCP/OAuth flow and keep all provider authentication in the profile's native secret store.
+No credential, authorization value, or credential-file path belongs in repository configuration,
+prompts, logs, generated files, or development records.
 
-Changing the selector does not migrate data. In Linear mode, existing `.woostack/specs/` and
-`.woostack/plans/` files are inactive legacy artifacts: doctor reports them but never imports,
-rewrites, deletes, or synchronizes them. Switch only after a deliberate migration and use one
-backend at a time.
+The development topology is fixed:
+
+- one standalone Linear issue owns one bounded change or fix; and
+- one Linear project, specification-bearing project updates, and ordered increment issues own
+  multi-issue work.
+
+Project updates hold the approved specification, decisions, lifecycle, and progress. Project and
+issue resources carry ownership, dependencies, and acceptance state. Git and GitHub independently
+carry the code and PR facts.
+
+| Key | Type | Requirement | Meaning |
+| --- | --- | --- | --- |
+| `linear.repository` | canonical `https://github.com/owner/repository` string | required | Repository identity recorded on every managed resource. |
+| `linear.workspace` | non-empty name or key | required | Exact Linear workspace. |
+| `linear.team` | non-empty name or key | required | Exact team for standalone and increment issues. |
+| `linear.projectStatuses` | complete name map | required | Native project-status name for each coarse category: `backlog`, `planned`, `started`, `paused`, `completed`, and `canceled`. |
+| `linear.issueStates` | complete name map | required | Native team issue-state name for `planned`, `executing`, `inReview`, `done`, and `blocked`. |
+
+Init resolves every configured name to one native ID and verifies the expected native category.
+Unknown policy keys, incomplete maps, category mismatches, ambiguous names, or a foreign repository,
+workspace, or team fail closed.
+
+The official endpoint is fixed, but MCP capability names vary by host. Init and live doctor
+discover the active profile's tools and prove the required project, specification-document, issue,
+project-update, issue-comment, native-state, relation, assignee/delegate, identity, and independent
+read-back capabilities. A configured server label or successful authentication screen is not
+proof. A missing or partial capability blocks development rather than falling through to a local
+record or another transport.
+
+The canonical
+[Linear MCP development authority](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md)
+owns resource identities, lifecycle, and receipt semantics. [Building rules](/docs/concepts/building-rules)
+owns the three gates, and [Engineer agents](/docs/concepts/engineer-agents) owns allocation,
+handoff, review, and acceptance authority. Cross-link those references rather than copying their
+event schemas into configuration guidance.
+
+In the published Hermes + OMP pair, configuration does not blur roles. Hermes is the decision-maker
+and independent PR reviewer/commenter only; the isolated OMP profile holds implementation
+credentials and codes one assigned issue at a time. Only an explicit `/woostack-review` may
+delegate independent review analysis, and Hermes still decides acceptance. Follow the complete
+[Getting started](/docs/getting-started) setup.
 
 ## Response
 
@@ -160,7 +170,7 @@ types fail preflight. An absent namespace or key uses the built-in default.
 | `respond.environment` | string | `"production"` | Provider environment to query unless the command overrides it. |
 | `respond.window` | duration | `"24h"` | Bounded lookback from 5 minutes through 30 days. |
 | `respond.max_groups` | integer | `5` | Independent high-impact groups to investigate, from 1 through 5. |
-| `respond.remediation` | enum | `"prepare-fix"` | `prepare-fix` may create separate gated fix plans for verified repository defects; `report-only` suppresses every fix handoff. |
+| `respond.remediation` | enum | `"prepare-fix"` | `prepare-fix` may hand a verified repository defect to [woostack-fix](/docs/skills/woostack-fix) on a separately bound Linear issue; `report-only` suppresses every fix handoff. |
 
 Explicit command arguments take precedence over `.woostack/config.json`, which takes precedence
 over repository/provider discovery, then built-in defaults. `--read-only` and
@@ -333,7 +343,7 @@ the fixed worker map replaces every model-resolution step.
 | `review.chunking.max_loc` | integer ≥ 0 | `4000` | Changed-line threshold; a larger diff is split into chunks and each angle fans out across them. `0` disables chunking. |
 | `review.disable_adversarial` | boolean | `false` | `true` skips the skeptical prosecutor pass and uses the defender pass alone, a cost opt-out. |
 | `review.defer_markers` | boolean | `true` | `true` honors inline `woostack-defer(<ref>)` markers, demoting a matching finding to a non-blocking nit. `security` findings are never deferred. |
-| `review.metrics` | boolean | `false` | `true` writes a per-angle signal/noise breakdown, folds a rolling local `.woostack/metrics.json`, and prints advisory `review.angles.skip` suggestions when an optional angle has at least 20 local runs with zero blockers and either zero kept findings or only nit findings. |
+| `review.metrics` | boolean | `false` | `true` writes a per-angle signal/noise breakdown, folds a rolling non-authoritative local `.woostack/metrics.json`, and prints advisory `review.angles.skip` suggestions when an optional angle has at least 20 local runs with zero blockers and either zero kept findings or only nit findings. |
 | `review.fix_commands` | array of string | `[]` | Reserved for a future loop mode; parsed but not yet consumed. |
 
 ## Audit engine
@@ -377,12 +387,12 @@ formatter, linter, or test runner.
 
 ## Status board
 
-[woostack-status](/docs/skills/woostack-status) flags a spec that has sat in the `executing` phase
-without activity.
+[woostack-status](/docs/skills/woostack-status) flags a Linear project that has remained in the
+`executing` phase without activity.
 
 | Key | Type | Default | Meaning |
 | --- | --- | --- | --- |
-| `status.staleDays` | integer | `14` | Days of inactivity before an executing spec row is flagged stale. |
+| `status.staleDays` | integer | `14` | Days of inactivity before an executing Linear project row is flagged stale. |
 
 ## Base branch
 
@@ -396,18 +406,20 @@ worktrees are cut from.
 ## Defaults and doctor
 
 <Callout type="info">
-  Every key is optional in the Markdown default. The init template ships `artifacts`, `models`,
-  `review`, `respond`, and `status`; everything else takes its built-in default when absent.
-  [woostack-doctor](/docs/skills/woostack-doctor) validates all five scaffolded keys and can
-  repair a missing local default. Each owning skill validates its settings when it runs.
+  Init always scaffolds `linear`, `models`, `review`, `respond`, and `status`. The complete
+  `linear` policy is required; optional workflow settings use built-in defaults when absent.
+  [woostack-doctor](/docs/skills/woostack-doctor) validates static policy, while `--live`
+  discovers and proves the active profile's official MCP connection and capabilities.
 </Callout>
 
 ## Where to go next
 
 <Cards>
+  <Card title="Getting started" href="/docs/getting-started" description="Configure official Linear MCP and the Hermes + OMP engineer pair." />
+  <Card title="Engineer agents" href="/docs/concepts/engineer-agents" description="Decision, coding, handoff, review, and acceptance authority." />
   <Card title="woostack-review" href="/docs/skills/woostack-review" description="The review engine that reads every review.* key." />
-  <Card title="woostack-init" href="/docs/skills/woostack-init" description="Creates .woostack/config.json and the workspace." />
-  <Card title="woostack-doctor" href="/docs/skills/woostack-doctor" description="Checks workspace and config health." />
-  <Card title="woostack-audit" href="/docs/skills/woostack-audit" description="Audits standing code for simplification + production readiness (report-only)." />
+  <Card title="woostack-init" href="/docs/skills/woostack-init" description="Verifies official MCP and writes non-secret repository policy." />
+  <Card title="woostack-doctor" href="/docs/skills/woostack-doctor" description="Checks policy and can preflight the live MCP connection." />
+  <Card title="woostack-audit" href="/docs/skills/woostack-audit" description="Writes non-authoritative standing-code findings." />
   <Card title="All skills" href="/docs/skills/using-woostack" description="Per-skill reference, generated from each SKILL.md." />
 </Cards>

@@ -63,17 +63,32 @@ source code / no app lockfile" rule above. Its per-skill reference pages are **g
 from `skills/*/SKILL.md` at build time and are gitignored; only the app shell and authored
 framing pages are committed. Deploy notes live in [`site/README.md`](site/README.md).
 
-## Consumer artifact backends
+## Consumer development authority
 
-Consumer projects select where feature specs and plans live with `artifacts.specPlan`.
-Markdown is the default, not a universal storage rule; Linear mode keeps one managed project,
-one spec document, and ordered increment issues in Linear. Authentication for Linear comes only
-from `LINEAR_API_KEY` in the process environment — never repository config or a committed env
-file. The adoption contract and links to the build, worktree, and status authorities live in
-[`development.md`](skills/woostack-bootstrap/references/development.md#artifact-backend).
+Consumer projects use the official Linear MCP at `https://mcp.linear.app/mcp` as their only
+development-record channel. A standalone change or fix is exactly one bound Linear issue.
+Multi-issue work is exactly one Linear project with specification-bearing project updates and
+ordered increment issues. Linear owns scope, decisions, assignment, dependencies, progress, and
+acceptance; Git and GitHub own source, branches, commits, pull requests, reviews, and merge
+evidence.
+
+`.woostack/config.json` stores non-secret repository policy only. Authentication belongs to the
+host's MCP/OAuth secret store. Skills discover the host-exposed official MCP capabilities and prove
+the required reads, writes, ownership semantics, relations, native states, and independent
+read-backs instead of hard-coding tool names. Local memory and wisdom are reusable knowledge only;
+local diagnostic reports are non-authoritative.
+
+The generic engineer contract separates decisions from implementation. Hermes is a decision-maker
+and independent PR reviewer/commenter only: it does not edit source, run implementation or tests,
+commit, push, or open implementation PRs. Its isolated OMP coding profile works on one assigned
+issue at a time. Only an explicit `/woostack-review` permits independent reviewer delegation, and
+Hermes retains acceptance authority. The canonical contracts live in
+[`engineer-agents.md`](skills/using-woostack/references/engineer-agents.md) and the
+[`Hermes host reference`](skills/using-woostack/references/hosts/hermes.md); cross-link them rather
+than duplicating their event or receipt schemas.
 
 This collection still has twenty-three public command/adoption skills at twenty-six fixed
-`SKILL.md` locations. Backend support adds neither a command-routing row nor a per-backend skill.
+`SKILL.md` locations. Linear support adds neither a command-routing row nor a per-provider skill.
 
 ## Modes
 

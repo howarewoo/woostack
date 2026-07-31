@@ -1,20 +1,122 @@
 ---
 title: Workflow maps
-description: Visual maps of the Bootstrap, Build, Fix, and Change workflows.
+description: Bootstrap, Build, Fix, and Change under one official Linear MCP authority model.
 ---
 
-import { WorkflowAtlas } from "@/components/concepts/workflow-atlas";
-
-These maps summarize the canonical skills so you can compare their shape at a glance. Work steps
-show progress through a workflow; they are not approval gates.
-
-<WorkflowAtlas />
+Every repository-changing woostack workflow uses the
+[official Linear MCP](https://mcp.linear.app/mcp). Linear is the sole development-record authority;
+Git and GitHub remain the authority for source, commits, pull requests, reviews, and merges. The
+four command routes keep their distinct purposes while sharing those boundaries.
 
 ## Choose the loop
 
-- [Bootstrap](/docs/skills/woostack-bootstrap) creates a new project from scratch.
-- [Build](/docs/skills/woostack-build) handles features that require multiple PRs.
-- [Fix](/docs/skills/woostack-fix) handles bugs and root-cause work.
-- [Change](/docs/skills/woostack-change) handles bounded non-bug work that fits one PR.
+| Loop | Use it for | Development-record shape |
+| --- | --- | --- |
+| [Bootstrap](/docs/skills/woostack-bootstrap) | A genuinely new web, mobile, or API codebase | One feature project created only after explicit design approval, then continued through the project path |
+| [Build](/docs/skills/woostack-build) | A feature needing multiple independently shippable PRs | One project, specification-bearing project updates, and ordered increment issues |
+| [Fix](/docs/skills/woostack-fix) | A bug, regression, or root-cause problem | One standalone issue and one PR |
+| [Change](/docs/skills/woostack-change) | A bounded non-bug enhancement or refactor that fits one PR | One standalone issue and one PR |
 
-For operational details, see the canonical skill pages linked above.
+Routing happens before a development record is created. In particular, Build redirects a bounded
+one-PR request to Change rather than manufacturing a one-issue project.
+
+## Shared entry barrier
+
+Before reading or mutating a development record, each loop discovers the host's exposed official
+Linear MCP tools by capability. It verifies authenticated workspace/team access, the exact
+project-or-issue identity, repository attribution, the current owner, and every read/write
+capability that loop needs. Every mutation requires independent read-back.
+
+Missing, read-only, partial, foreign, or ambiguous access stops before repository mutation. Tool
+names are never assumed, and an unavailable capability never causes work to continue under a
+different record.
+
+## Standalone issue flow
+
+Fix and Change share one record shape:
+
+> classify → bind or create one exact standalone issue → verify contract and ownership → assign
+> and accept work → implement in one isolated worktree → verify → open one attributed PR →
+> independently review → accept, redispatch, hand off, or escalate
+
+The issue description owns the goal or problem, scope, and acceptance criteria. Its comments hold
+the chronological decisions, implementation evidence, verification, review, and acceptance. GitHub
+proves the actual diff, checks, review threads, and merge.
+
+The commands differ inside that shape:
+
+- **Fix** diagnoses the root cause, hardens the fix contract, and waits for explicit
+  approve-to-execute before implementation.
+- **Change** records a bounded contract and proceeds without adding an approval gate.
+
+Neither command creates a project.
+
+## Multi-issue project flow
+
+Build uses the three-gate project path:
+
+> ideate → **approve design** → create one project and initial specification update → harden the
+> written spec → **approve spec** → reconcile ordered increment issues and relations →
+> **execution handoff** → assign, implement, verify, review, and accept one issue at a time
+
+Project updates hold the written specification, approved decisions, phase, and progress. Ordered
+issue contracts and relations form the implementation plan. Each issue ships through its own
+isolated worktree and attributed PR; dependency-independent issues may run concurrently only when
+distinct engineer units, identities, profiles, sessions, and worktrees own them.
+
+The execution handoff chooses Go, Run overnight, or Hand off. Execution and unattended work write
+their evidence back to the project and issues. The project reaches completion only when its
+complete increment set has verified acceptance and merge evidence.
+
+Operational event and transition details live in the
+[Linear build procedure](https://github.com/howarewoo/woostack/blob/main/skills/woostack-build/references/linear-procedure.md)
+and
+[status conventions](https://github.com/howarewoo/woostack/blob/main/skills/woostack-status/references/conventions.md);
+this map does not duplicate their schemas.
+
+## Bootstrap flow
+
+Bootstrap is project-first greenfield work:
+
+> gather requirements → research current options → present the complete design → **approve
+> design** → create and verify the Linear project → establish the repository boundary → scaffold
+> and verify the new codebase
+
+No target-directory write occurs before the approved project has been read back. When the new
+codebase is decomposed into independently shippable increments, it continues through the same
+project-update and ordered-issue model as Build rather than opening unrelated work items.
+
+## Decision-maker and isolated coder
+
+The workflow's engineer is a pair of roles, not one agent that decides, codes, and approves itself.
+The provider-neutral
+[engineer-agent authority protocol](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/engineer-agents.md)
+is canonical:
+
+1. A lead or standalone dispatcher deliberately assigns an issue. The decision-maker verifies and
+   accepts that assignment before implementation.
+2. The decision-maker dispatches exactly one issue to one isolated coding profile. It owns
+   in-contract decisions and directs implementation, but it does not edit source, run
+   implementation tests, commit, push, or open implementation PRs.
+3. The coder analyzes, implements, and verifies within the assigned issue and worktree, then
+   returns the uncommitted diff and verification evidence. Its self-check is evidence, not
+   independent review or acceptance.
+4. The decision-maker directly reviews the contract, exact worktree diff, source context,
+   verification, and precommit receipts, then freshly rechecks the issue and Git state.
+5. Only after that review may it authorize one bounded coder commit, push, and PR action. It later
+   independently reviews the submitted PR before commenting and deciding the next action.
+
+Hermes as decision-maker plus OMP as isolated coder is the first concrete adapter. Dispatch uses
+exactly:
+
+```text
+omp --profile <engineer> -p --cwd <repo> <prompt>
+```
+
+Only an explicit user invocation of [woostack-review](/docs/skills/woostack-review) permits
+delegation to separate independent reviewer profiles. Hermes verifies their receipts and retains
+the PR verdict and acceptance authority; the paired OMP coder never reviews its own work as an
+independent reviewer.
+
+See [Engineer agents](/docs/concepts/engineer-agents), [Hermes](/docs/harnesses/hermes), and
+[OMP](/docs/harnesses/omp) for the reusable contract and concrete setup.

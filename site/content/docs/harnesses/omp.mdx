@@ -1,25 +1,225 @@
 ---
 title: omp (Oh My Pi)
-description: Host-owned role routing through omp's bundled workers.
+description: Host-owned worker routing and an optional isolated implementation profile.
 ---
 
-omp exposes a `task` primitive with a worker selector, but no per-call model, tier, or effort
-argument. woostack uses
+OMP has two distinct woostack uses. Inside OMP, its native `task` primitive routes work through
+bundled workers. In the optional [Hermes engineer pairing](/docs/harnesses/hermes), a separate,
+profile-pinned OMP process is the isolated coder for exactly one assigned Linear issue. Selecting
+one mode never silently activates the other.
+
+Complete generic `/woostack-init` through the current host and establish repository policy before
+selecting this optional pairing. OMP/Hermes profiles and launchers are not generic initialization
+prerequisites.
+
+## Native OMP worker routing
+
+OMP's `task` primitive accepts a worker selector but no per-call model, tier, or effort argument.
+woostack uses
 [host-owned role routing](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md)
-through omp's bundled workers. The canonical reference owns the fixed tier-to-role and
+through OMP's bundled workers. The canonical reference owns the fixed tier-to-role and
 worker-selector mapping.
 
-Selecting a bundled worker is full tier routing, not a degraded session-model fallback. omp
+Selecting a bundled worker is full tier routing, not a degraded session-model fallback. OMP
 resolves the selected role to a concrete model and owns provider choice, thinking level,
-credential rotation, and retry fallback.
-
-omp ignores `.woostack/config.json` model settings. woostack does not generate project workers,
-read or edit omp role configuration, or translate repository model preferences into host
-fallbacks. Shared model settings remain available to other harnesses.
+credential rotation, and retry fallback. woostack does not generate project workers, read or edit
+OMP role configuration, or translate repository model preferences into host fallback.
 
 When the spawn API exposes a working-directory argument, woostack passes it. The dispatch prompt
-always pins and verifies the worktree as a second guard. If omp recovery ends without a required
-worker receipt, the calling workflow fails loudly rather than claiming thinner coverage.
+still pins and verifies the worktree. If OMP recovery ends without a required worker receipt, the
+calling workflow fails loudly rather than claiming thinner coverage.
 
-See omp's published [model roles](https://omp.sh/docs/roles) and
+See OMP's published [model roles](https://omp.sh/docs/roles) and
 [bundled subagents](https://omp.sh/docs/subagents).
+
+## Isolated coder in the Hermes pairing
+
+This path is available only when the operator explicitly selects the Hermes + OMP adapter and every
+applicable profile, identity, ownership, MCP, credential, launcher, worktree, and evidence boundary
+passes in the order below. Hermes is the decision-maker, independent reviewer, and acceptance
+authority; OMP implements and verifies. Hermes must not code, and the paired OMP profile must not
+review or accept its own work.
+
+Load the [generic engineer-agent contract](/docs/concepts/engineer-agents) first. A unit pins one
+stable `ENGINEER_NAME`, one Linear principal kind/native ID, one Hermes profile/session, one OMP
+profile/session, one human principal, and one issue/run/worktree at a time. Every concurrently
+active unit needs a different engineer name, Linear principal, pair of profiles, authentication
+contexts, sessions, issue, run, and worktree.
+
+### Provision the profile and official MCP without starting it
+
+Create the OMP profile manually outside the repository and keep its provider, model-role, MCP,
+session, cache, secret environment, and implementation credentials isolated. Configure it, but do
+not start a live session or read identity/capability evidence until the trusted per-unit launchers
+are installed and checked. An explicit `--profile` is always required; a default, alias,
+environment fallback, or another profile cannot replace it. The profile pin isolates OMP-owned
+state, not inherited Git, GitHub, Graphite, SSH, `HOME`, or XDG credentials, so the canonical host
+launcher supplies a coder-owned external-CLI environment.
+
+Connect only official Linear MCP at:
+
+```text
+https://mcp.linear.app/mcp
+```
+
+The actor determines authentication:
+
+- A human-operated `actor=user` unit may use the host's interactive personal-OAuth flow in each
+  profile. Configure both endpoints now, but defer login until after the trusted launcher check.
+  Hermes catalog/login belongs only to this user-actor path.
+- A long-running `actor=app` unit uses its own admin-installed Linear OAuth app and is the issue's
+  native **delegate**. Enable client credentials tokens for that app. An operator holding the
+  `client_secret` outside both profiles uses `grant_type=client_credentials` twice to issue
+  separate Hermes and OMP access tokens with the identical
+  `read,write,app:assignable,app:mentionable` scope set. A different scope request revokes existing
+  parallel app tokens. Each token expires after 30 days and has no refresh token.
+
+  Store the OMP access token only as `WOO_OMP_LINEAR_APP_ACCESS_TOKEN` in this profile's secret
+  environment. Put only the non-secret HTTP definition in the selected profile's user-scope
+  `agent/mcp.json` (normally `~/.omp/profiles/<OMP_PROFILE>/agent/mcp.json`):
+
+  ```json
+  {
+    "mcpServers": {
+      "linear": {
+        "type": "http",
+        "url": "https://mcp.linear.app/mcp",
+        "headers": {
+          "Authorization": "Bearer ${WOO_OMP_LINEAR_APP_ACCESS_TOKEN}"
+        }
+      }
+    }
+  }
+  ```
+
+  OMP expands the environment reference when it discovers the profile-local HTTP config. Never
+  put this definition in project `.omp/mcp.json`, copy the Hermes token, place a token or the
+  client secret in JSON, a repository, prompt, log, staged file, generated file, or Linear record,
+  or expose the operator-held client secret to either profile.
+
+  Rotate both profile access tokens from the operator boundary no later than their 30-day expiry
+  and immediately after a client-secret rotation, scope or team-access change, `401`, or suspected
+  exposure. Mint replacements with the identical scopes, update both profile-native secret stores,
+  retire the old tokens, and repeat the complete live identity/capability preflight before another
+  assignment or dispatch.
+
+The Hermes profile independently uses its own app access token and bearer header. Both profiles
+resolve the same unit principal but keep distinct profiles, secret environments, tokens, MCP
+sessions, and processes. Do not start either profile or treat configuration success as admission
+evidence here.
+
+### Install and preflight the reviewed host launchers
+
+Before issue allocation or live profile preflight, the controller pins a trusted installed woostack
+copy outside the project and runs its shipped
+`skills/woostack-init/scripts/gen-omp-agents.sh`, or runs `/woostack-doctor` from that same copy and
+explicitly approves the `omp-agents` repair. Project `/woostack-init` in the coder home does not
+install these launchers.
+
+For this unit, install into the unique controller-owned directory
+`${WOO_ENGINEER_LAUNCHER_ROOT:-$HOME/.local/libexec/woostack}/<ENGINEER_NAME>`. Every concurrently
+active engineer name uses a different directory. The trusted doctor check must verify reviewed
+checksums, no-follow ownership, directory mode `0700`, and mode `0500` on `launch-omp` and
+`bind-engineer-unit`. Do not create `unit.json` or `unit-authority.json` yet; binding is
+issue/worktree-specific.
+
+Only after that check passes, start fresh Hermes and OMP sessions. For `actor=user`, perform both
+profile-native interactive OAuth logins now. Independently read back `actor`, identical granted
+scope, required capabilities, workspace, `LINEAR_TEAM`, and immutable
+native principal ID from each live official-MCP connection. Also preflight the exact distinct
+profiles, OMP model role, both GitHub actors, pinned absolute `omp` and `hermes` executables, and
+each role's owned home/config/cache/credential roots and fixed `PATH`. Discover capabilities rather
+than hard-coding runtime MCP tool names. This step does not allocate an issue, create or preflight
+a worktree, or write a unit manifest.
+
+Only the OMP execution environment receives implementation Git, Graphite, and GitHub credentials
+for the assigned issue branch, commits, push, and PR. Hermes keeps separate read-only source and
+PR-read/review-comment credentials. A launcher child environment comes from the role-owned pins
+plus only harmless locale, terminal, and SSL-certificate keys; it never inherits the controller's
+`HOME`, `PATH`, credential state, or the other role's external CLI state.
+
+### Bounded prompt and exact launch shape
+
+Every first-phase brief pins `ENGINEER_NAME`, `PROJECT_ID` or the
+`STANDALONE_DISPATCHER_ENVELOPE`, `REPOSITORY_PATH`, `LINEAR_TEAM`, `HERMES_PROFILE`, `OMP_PROFILE`,
+`HUMAN_PRINCIPAL`, the exact issue and run, current owner and assignment receipts, acceptance
+criteria, and allowed surface. It is one self-contained paired-coder task populated from
+`skills/woostack-execute/prompts/implementer.md` under the engineer-pair authority in
+`skills/woostack-execute/references/subagent-driver.md`, not an invented public command. It grants
+no allocation, contract, relation, gate, cross-issue, source-control, review, or acceptance
+authority.
+
+The conceptual OMP command, confirmed by `omp --help`, is exactly:
+
+```text
+omp --profile <engineer> -p --cwd <repo> <prompt>
+```
+
+Those placeholders describe argv, not shell source. The explicit profile and repository must match
+the bound unit authority's exact OMP profile and canonical issue worktree; the credential-free
+prompt is one literal argument. Hermes never interpolates those values into `terminal.command`.
+The static launcher rejects mismatched arguments and a profile shared with Hermes, directly
+executes the pinned absolute OMP binary, constructs the isolated child environment from the
+role-owned manifest pins, preserves real exit status, and cleans raw no-follow staging files as
+defined by the
+[canonical Hermes host reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/hermes.md#optional-hermes--omp-engineer-pair-route).
+
+The complete copyable decision-maker prompt and ordered setup live on the
+[Hermes page](/docs/harnesses/hermes#set-up-one-engineer-unit-in-order).
+
+### Accept, establish the worktree, then implement
+
+The project lead or standalone dispatcher deliberately allocates exactly one issue. OMP never
+claims work for itself. Hermes first verifies the correct delegate or assignee and authors and
+reads back canonical `assignmentAccepted`. Only then does Hermes create or resolve and preflight
+the canonical issue worktree, including exact path, branch, parent, head, and recovery evidence.
+
+Only now may the trusted controller create mode-`0600` `unit.json` in a no-follow staging
+directory. Its exact schema is
+`{schemaVersion:1,engineerName,repository,omp:{profile,program,environment},hermes:{profile,program,environment}}`;
+`repository` is this canonical worktree, the profiles are exact and distinct, the programs are
+pinned absolute executables, and the environments contain secret-free role-owned roots and fixed
+`PATH` values. Invoke static `bind-engineer-unit` with the staging directory as its working
+directory. Continue only when it validates the manifest and atomically installs adjacent
+mode-`0400` `unit-authority.json` in this engineer's trusted launcher directory.
+
+The first OMP grant is the bounded paired-coder implementer task described above. It permits only
+implementation and verification for that issue/worktree, not commit, push, PR, review, or
+acceptance actions. Immediately before each allowed edit or Linear evidence mutation, OMP re-reads
+the exact issue, owner, state, relations, assignment receipt, and worktree evidence through its
+separate official-MCP session. It returns the implementer contract's exact status, changed files,
+uncommitted diff, command exits, verification results, profile/run identity, and official-MCP
+read-backs—or an explicit decision request.
+
+### Task review and one bounded commit redispatch
+
+Hermes directly reads the uncommitted worktree source/diff, current Linear contract, and
+verification evidence through its own contexts, then performs the task specification and quality
+review. When it passes, Hermes authors and independently reads back canonical verification and
+`precommitReview`.
+
+Hermes freshly rechecks issue authority, owner, state, relations, `assignmentAccepted`, worktree,
+branch, parent, expected diff, head, and both GitHub actors. It may then redispatch only the
+**same** OMP profile for the same issue/worktree with exactly one bounded `/woostack-commit`
+action. OMP re-reads the same authority and receipts immediately before acting and may commit only
+the reviewed diff, push, and submit or update the exact PR. The grant permits no implementation
+edit, wider command, force-push, restack, merge, other branch/PR/issue, review, or acceptance.
+
+OMP returns and reads back `implementationEvidence`, the exact native PR relation, and, for initial
+submission, the `executing` to `inReview` transition, plus commit, remote-head, PR, and exit
+evidence. Failure consumes the grant; retry requires a fresh task review, receipt, authority/Git
+read-back, and single-action grant.
+
+### Independent submitted-PR review
+
+Only after those submission receipts pass does Hermes independently read the submitted PR
+head/diff and current contract, post its own GitHub review comments or verdict, and author/read back
+the canonical review receipt. OMP self-checks are not independent review.
+
+Only an explicit user invocation of [`/woostack-review`](/docs/skills/woostack-review) may add
+configured independent reviewer profiles; the paired OMP implementation profile is never one of
+them. Hermes validates those advisory receipts and retains the PR comment, review decision, and
+acceptance authority. Missing, stale, shared, foreign, or conflicting identity, capability,
+ownership, relation, worktree, Git, exit-status, or receipt evidence stops at the last verified
+boundary; OMP does not retry under another profile, identity, model role, transport, or weaker tool
+surface.

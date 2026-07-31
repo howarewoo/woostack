@@ -57,6 +57,11 @@ done
 hermes="$(tr '\n\t' '  ' < "$H/hermes.md" | tr -s ' ')"
 omp="$(tr '\n\t' '  ' < "$H/omp.md" | tr -s ' ')"
 pair="$hermes $omp"
+installer_manifest="$(bash "$S/woostack-init/scripts/gen-omp-agents.sh" --manifest)"
+installer_program_count="$(printf '%s\n' "$installer_manifest" | awk 'NF { count++ } END { print count + 0 }')"
+assert_eq "$installer_program_count" "2" "engineer pair: installer manifest exposes exactly two static programs"
+assert_contains "$hermes" 'Install the two mode-`0500` programs only' \
+  "engineer pair: Hermes setup count matches the installer manifest"
 pair_command='omp --profile <engineer> -p --cwd <repo> <prompt>'
 safe_pair_launcher='terminal(command="<resolved-absolute-launcher-dir>/launch-omp", workdir=<host-generated-dispatch-directory>, pty=true)'
 unsafe_pair_launcher='terminal(command="omp --profile <engineer> -p --cwd <repo> <prompt>", pty=true)'
@@ -100,23 +105,44 @@ for token in \
   '^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$' \
   'existing canonical absolute' \
   'exactly equal the allocated issue worktree' \
-  '${WOO_ENGINEER_LAUNCHER_DIR:-$HOME/.local/libexec/woostack}' \
+  '${WOO_ENGINEER_LAUNCHER_ROOT:-$HOME/.local/libexec/woostack}/<ENGINEER_NAME>' \
+  '`WOO_ENGINEER_PYTHON`' \
+  'trusted `/usr/bin/python3` system shim' \
+  'embeds the actual canonical interpreter' \
+  'must exactly equal the running canonical interpreter' \
+  'controller `PATH` never select that interpreter' \
+  '`bind-engineer-unit`' \
+  'owned regular no-follow mode-`0600` file named `unit.json`' \
+  'adjacent `unit-authority.json`' \
+  '`schemaVersion`' \
   'mode `0700`' \
   'mode `0500`' \
   'mode `0600`' \
-  'owned regular no-follow files named `profile`, `repo`, `prompt`, and `session`' \
-  'with no terminator or encoding wrapper' \
+  'mode `0400`' \
+  'owned regular no-follow files named `profile`, `repo`, and `prompt`' \
+  'raw bytes with no terminator or encoding wrapper' \
   'never copied into a dispatch directory' \
   'Reject NUL' \
   '["omp", "--profile", profile, "-p", "--cwd", repo, "--", prompt]' \
-  '["omp", "--profile", profile, "--resume", session, "-p", "--cwd", repo, "--", prompt]' \
   'reads the staged values without evaluation' \
-  '`os.execvpe`' \
+  '`os.execve`' \
+  'pinned absolute executable' \
+  'owned by root or the controller user' \
+  'not group- or other-writable' \
+  'wrongly owned' \
+  'same-profile' \
+  'unsafe-program' \
+  'unsafe-PATH' \
+  'before/open/after file identity' \
   'Direct exec replaces the launcher process' \
   'inherits the PTY, terminal signals/resizes, stdout/stderr, and real process status' \
-  'four staged files and dispatch directory'; do
-  assert_contains "$hermes" "$token" "engineer pair safe launcher: contains $token"
+  'removes the three staged files and dispatch directory'; do
+  assert_contains "$pair" "$token" "engineer pair safe launcher: contains $token"
 done
+assert_not_contains "$pair" 'WOO_ENGINEER_LAUNCHER_DIR' \
+  "engineer pair launcher paths always include the stable engineer identity"
+assert_not_contains "$pair" '`os.execvpe`' \
+  "engineer pair launchers never resolve a bare executable through controller PATH"
 assert_contains "$omp" 'end-of-options barrier before the positional prompt' \
   "engineer pair safe launcher: installed omp parser preserves leading-dash prompts"
 
@@ -139,7 +165,7 @@ for token in \
   'same unit Linear principal' \
   'separate host secret stores' \
   'they never copy or share a token/session' \
-  'The principal is shared only by that pair' \
+  'same unit principal but own separate tokens' \
   '`terminal.home_mode: profile`'; do
   assert_contains "$pair" "$token" "engineer pair isolation: contains $token"
 done
@@ -148,6 +174,14 @@ for token in \
   '`actor=app`' \
   '`app:assignable`' \
   '`app:mentionable`' \
+  '`client_credentials`' \
+  'identical required scopes' \
+  '30 days' \
+  'no refresh token' \
+  'operator-held client secret' \
+  'mint two separate access tokens' \
+  'rotate both tokens' \
+  'repeat the complete live identity/capability preflight' \
   '`actor=user`' \
   'Personal OAuth is not a fallback' \
   'https://linear.app/developers/oauth-2-0-authentication'; do
@@ -171,38 +205,44 @@ done
 
 for token in \
   'omp-native auth/session/settings/cache state only' \
-  'profile-owned root' \
+  'coder-owned `HOME`' \
+  '`HERMES_HOME`' \
+  '`OMP_HOME`' \
+  '`XDG_CONFIG_HOME`' \
+  '`PATH`' \
   '`GH_CONFIG_DIR`' \
   '`GIT_CONFIG_GLOBAL`' \
-  '<launcher-dir>/profiles/<profile>' \
   '`GH_TOKEN`' \
   '`GITHUB_TOKEN`' \
   '`LINEAR_API_KEY`' \
+  '`LINEAR_ACCESS_TOKEN`' \
   'credential-helper/SSH context' \
   'Graphite state' \
   '`omp --profile` alone is not proof' \
-  'gen-omp-agents.sh' \
-  'No secret is staged'; do
+  'No secret is staged' \
+  'only harmless locale, terminal, color, and SSL metadata'; do
   assert_contains "$pair" "$token" "engineer pair external CLI isolation: contains $token"
 done
 
 for token in \
   'woostack-review (selected Hermes + omp pair only)' \
-  'terminal(command="<resolved-absolute-launcher-dir>/launch-hermes-review", workdir=<host-generated-review-dispatch-directory>, pty=false)' \
-  '["hermes", "chat", "-p", reviewer, "-q", review_prompt]' \
-  'fresh isolated session' \
-  'differ from the paired implementation profile' \
-  'Reviewers return advisory analysis' \
+  'host-native independent-reviewer dispatch' \
+  'Never launch review through the pair'"'"'s unit authority' \
+  'separately configured profile and fresh isolated session' \
+  'delegated review is unavailable' \
+  'valid advisory findings' \
   'posts the verdict comment' \
   '`reviewResult` receipt' \
   'retains every acceptance decision'; do
   assert_contains "$hermes" "$token" "engineer pair review dispatch: contains $token"
 done
+assert_not_contains "$pair" 'launch-hermes-review' \
+  "engineer pair review never reuses the bound decision-maker profile"
 
 for token in \
   'standalone dispatcher deliberately assigns' \
   '`assignmentAccepted`' \
-  '`assignmentAccepted`, and only then launches omp' \
+  '`assignmentAccepted`, and only then creates or resolves and preflights' \
   'The selected pair must not respond by coding inline' \
   'Immediately before every redispatch' \
   'Hermes re-reads the current issue, owner, state, relations' \
@@ -215,7 +255,6 @@ for token in \
   'Hermes independently reads and reviews the PR' \
   '`precommitReview`' \
   'authorize exactly one `/woostack-commit`' \
-  '`--resume <coding-session-id>`' \
   'commit the already reviewed diff' \
   'uses only its coder-owned credentials' \
   'append and read back' \
@@ -229,6 +268,24 @@ for token in \
   'decides acceptance'; do
   assert_contains "$pair" "$token" "engineer pair authority: contains $token"
 done
+
+for token in \
+  'Create both named profiles without live admission' \
+  'Configure official Linear MCP in both profiles without treating configuration as proof' \
+  'Do not start either profile or perform any live identity/capability read-back in this step' \
+  'Install and check the two static launchers' \
+  'Only after the static launcher check passes' \
+  'Only after the canonical `assignmentAccepted`' \
+  'Bind the accepted unit' \
+  'skills/woostack-execute/prompts/implementer.md' \
+  'skills/woostack-execute/references/subagent-driver.md' \
+  'bounded paired-coder implementation task'; do
+  assert_contains "$hermes" "$token" "engineer pair ordered binding: contains $token"
+done
+assert_not_contains "$hermes" 'one implementation woostack command' \
+  "engineer pair implementation brief is not an invented public command"
+assert_not_contains "$hermes" 'one woostack implementation command' \
+  "engineer pair detailed brief is not an invented public command"
 
 for token in \
   'Woostack does not generate or doctor these profiles.' \
@@ -292,7 +349,7 @@ for page in "harnesses/index.mdx:$HARNESS_DOCS/index.mdx" "harnesses/omp.mdx:$HA
   for token in "deep -> slow" "standard -> default" "fast -> smol" "role-backed built-in workers"; do
     assert_not_contains "$source" "$token" "docs: $label cross-links instead of duplicating $token"
   done
-  for token in "gen-omp-agents.sh" "woostack-fast" "woostack-standard" "woostack-deep" "agent-by-tier" "Agent-by-tier" "models.<tier>"; do
+  for token in "woostack-fast" "woostack-standard" "woostack-deep" "agent-by-tier" "Agent-by-tier" "models.<tier>"; do
     assert_not_contains "$source" "$token" "docs: $label omits $token"
   done
 done

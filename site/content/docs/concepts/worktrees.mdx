@@ -1,57 +1,71 @@
 ---
 title: Parallelism with worktrees
-description: How woostack runs many builds, changes, fixes, and executions at once by isolating each in its own git worktree.
+description: How woostack isolates implementation in issue-bound git worktrees while Linear remains the development-record authority.
 ---
 
-woostack isolates tracked implementation writes so multiple assigned issues can proceed without
-sharing a checkout. Every implementation worktree is bound to one verified Linear issue; Linear
-owns the work identity and Git, Graphite, and GitHub own branches, ancestry, PRs, and merge truth.
-Design, specification, planning, assignment, and gate mutations create no Git worktree.
+Worktrees isolate implementation writes; they do not own or mirror development state. Every
+implementation worktree is bound to exactly one verified Linear issue read through the
+[official Linear MCP](https://mcp.linear.app/mcp). Linear is the only development-record authority:
+it owns the contract, assignment, dependencies, lifecycle, progress, and acceptance record. Git and
+GitHub own source, branches, commits, pull requests, reviews, and merge truth; Graphite records stack ancestry.
 
-## A worktree per issue
+The [canonical Linear authority](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md)
+defines the development record. The
+[canonical worktree contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/worktrees.md)
+defines implementation isolation and recovery.
 
-The worktree path is derived from the issue's immutable native Linear ID, not its title or branch:
+## One worktree per verified issue
+
+Standalone work uses one bound role-`work-item` issue. Multi-issue work uses one role-`feature`
+project and one role-`increment` issue for each implementation unit. Project design and dependency
+ordering are recorded in Linear before implementation begins; each coder receives one accepted
+issue at a time.
+
+One exact issue owns one branch, one active worktree, and at most one canonical implementation PR.
+The worktree path is derived from the immutable native issue ID, not a mutable title or branch slug:
 
 ```text
-.woostack/worktrees/issues/<native-issue-id>
+.woostack/worktrees/issues/<exact-native-linear-issue-id>
 ```
 
-Branch names remain readable, but they are not recovery identity:
+An atomic, gitignored registry claim under `.woostack/worktrees/.registry/<issue-id>/claim.json`
+prevents competing local checkouts. It contains only derived recovery facts such as the issue ID,
+owner/run identity, branch, path, and start commit. It is never scope, assignment, lifecycle,
+dependency, evidence, or acceptance authority; every resume re-reads Linear and Git/GitHub.
 
-| Run | Branch | Worktree directory |
+The verified start point depends on the issue's place in the Linear graph:
+
+| Issue kind | Branch start | Graphite parent |
 | --- | --- | --- |
-| [woostack-change](/docs/skills/woostack-change) | `change/<slug>` | `.woostack/worktrees/issues/<native-issue-id>` |
-| [woostack-fix](/docs/skills/woostack-fix) | `fix/<slug>` | `.woostack/worktrees/issues/<native-issue-id>` |
-| [woostack-execute](/docs/skills/woostack-execute) increment | the verified issue branch | `.woostack/worktrees/issues/<native-issue-id>` |
+| Standalone work item | exact integration-branch commit verified through Git/GitHub | verified integration branch |
+| Project dependency root | immutable base commit frozen by the verified project readiness chain | frozen base branch |
+| Project dependency child | finalized head of its one declared parent issue | declared parent issue branch |
 
-Before creating or reattaching a worktree, the controller verifies the issue's repository,
-contract, owner, assignment receipt, dependency ancestry, branch/PR state, and complete local
-inventory. It then creates an atomic machine-local claim under
-`.woostack/worktrees/.registry/<native-issue-id>/claim.json`. The claim prevents competing local
-worktrees; it never replaces remote assignment, scope, dependency, evidence, or lifecycle
-authority.
-
-The base branch is never hard-coded. `resolve-base.sh` resolves the integration branch, while the
-issue's verified role and relations determine the exact start commit and Graphite parent:
-standalone issues use the retained integration commit, project roots use the feature's frozen base
-SHA, and dependency children use their declared Git parent's exact branch/head.
+The base branch is never hard-coded or inferred from the current checkout. Non-parent dependencies
+must already have verified completion and merge evidence represented in the child's ancestry. The
+canonical worktree contract owns the complete preconditions and collision rules.
 
 ## The primary tree stays clean
 
-This is the invariant that makes parallel runs safe:
-
 <Callout type="info">
-  A run does all its writes in its own worktree. The primary checkout stays on the base branch,
-  clean. It is the stable point every run branches from. Two runs never touch the primary tree, so
-  runs with disjoint branch sets never collide.
+  All tracked implementation writes happen inside the issue worktree. The primary checkout remains
+  a clean, stable integration point; it is not a work queue or a development-record store.
 </Callout>
 
 Stacked increments build on verified issue ancestry rather than the primary checkout. A root starts
 from the frozen base SHA. A dependency child starts from its declared Git parent's finalized head;
 a parent already marked `done` additionally requires verified merge evidence. Non-parent
 dependencies must be accepted, merged, and represented in the child's permitted ancestry.
+Independent issue roots may run in parallel only when the complete verified Linear dependency graph
+permits it and their responsibility surfaces, branches, worktrees, and PRs are disjoint. Dependent
+issues follow their declared Git parent. A worker cannot resolve overlapping ownership locally; the
+responsible Linear authority must correct and verify the contract before either worker continues.
 
-## Teardown, and what survives
+Subagents and isolated coding profiles must receive the exact worktree path and verify that their
+physical working directory matches the Git top level before writing. A host-created throwaway
+worktree is not a substitute for the issue-bound registry, ancestry, and ownership checks.
+
+## Teardown and recovery
 
 - **Success:** after the commit, push, canonical PR attribution, Linear relation, and `inReview`
   receipts all read back, the controller removes that issue's worktree and exact registry claim.
@@ -65,7 +79,9 @@ dependencies must be accepted, merged, and represented in the child's permitted 
 The registry is disposable administration, but unexplained branch/worktree state is a collision,
 not permission to delete or adopt it. See the
 [canonical worktree authority](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/worktrees.md)
-for exact create, resume, review-reopen, and teardown rules.
+for exact create, resume, review-reopen, and teardown rules. [woostack-doctor](/docs/skills/woostack-doctor)
+may diagnose local residue, but cleanup still requires the canonical authority reads; generic
+pruning never establishes that remote or repository state is safe.
 
 Parallelism is allowed only across dependency-independent issues with distinct owners, runs,
 responsibility surfaces, claims, branches, worktrees, and PRs. Native Linear relations and verified

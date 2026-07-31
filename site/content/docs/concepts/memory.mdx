@@ -1,58 +1,76 @@
 ---
 title: Memory
-description: "The memory and wisdom stores, and how woostack recalls each: scoped for memory, wholesale for wisdom."
+description: "How woostack recalls local reusable knowledge without confusing it with Linear development state."
 ---
 
-woostack keeps two knowledge stores under `.woostack/`, and they load in opposite ways. Memory is
-recalled narrowly, by scope; wisdom is loaded wholesale. Both are local to the clone, so later
-sessions stop repeating earlier mistakes.
+woostack keeps two local knowledge stores under `.woostack/`. Memory is recalled narrowly by
+scope; wisdom is loaded wholesale. Both preserve reusable learning across sessions, but neither is
+feature state or development authority. Linear is the only development-record authority. Git and
+GitHub own code and PR truth.
+
+The canonical [memory contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/memory.md)
+and [wisdom contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/wisdom.md)
+own their formats and curation rules. The
+[Linear authority](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md)
+owns managed identity, lifecycle, assignment, decisions, and acceptance.
 
 ## Two knowledge stores
 
-- **`memory/`** holds scoped, per-fact notes. Recall loads only the notes whose `scope` glob
-  matches the files in play, plus any notes those link to (one hop out). A change that touches a
-  few files pulls in a few notes, not the whole store.
-- **`wisdom/`** holds a small set of generalized, cross-cutting findings. These load *wholesale*:
-  every wisdom file, every time a skill gathers design, planning, review, or root-cause
-  investigation context, with no scope matching at all.
+- **`memory/`** holds scoped, per-fact notes. Recall loads only notes whose `scope` glob matches
+  the files in play, plus bounded linked and tag-related notes. A small working set pulls in a small
+  knowledge set.
+- **`wisdom/`** holds a compact set of generalized, cross-cutting findings. Skills that need wisdom
+  load the complete store rather than scope-matching it.
 
 <Callout type="info">
-  Wisdom is never scope-matched. It loads in full or not at all. Memory is the opposite: only the
-  notes whose scope matches the current files are read. An empty or absent store is a no-op either
-  way.
+  Knowledge can advise an implementation; it cannot authorize one. A note cannot establish scope,
+  ownership, dependencies, phase, approval, progress, or acceptance. Consumers first verify the
+  exact Linear issue/project context through official MCP and independently verify Git/GitHub facts,
+  then use relevant memory and wisdom as advisory context.
 </Callout>
 
-Sanitized `.woostack/respond/*.md` files are tracked **decision evidence**, not a third knowledge
-store. [woostack-dream](/docs/skills/woostack-dream) may use several corroborating reports as
-provenance for a recurring pattern, but one incident cannot establish generalized wisdom.
-Response reports never enter `MEMORY.md` and are never pruned. Raw provider telemetry lives only
-under ignored `respond/evidence/`; dream and recall never read it.
+## Stable provenance, never shadow authority
 
-Different skills reach for different stores, at different moments:
+New memory notes cite the most specific stable `linear://project/<uuid>` or
+`linear://issue/<uuid>` identity. Notes recorded from review use the exact `pr-<n>` marker or
+`address-comments`. Linear documents, titles, slugs, issue keys alone, and local specification,
+plan, or fix paths are not new provenance. Historical Markdown source values may remain only as
+migration input and never authorize current work.
+
+## Diagnostic reports are evidence, not state
+
+Sanitized local diagnostic reports, including response, QA, audit, and evaluation output, are
+non-authoritative evidence. They may identify a pattern worth investigating or corroborate a
+knowledge claim, but they cannot create a work item, change lifecycle state, grant implementation
+permission, or prove acceptance. Raw provider evidence remains transient and outside recall.
+
+[woostack-dream](/docs/skills/woostack-dream) may consolidate a recurring, independently
+corroborated pattern into wisdom through its approval gate. One report or incident is never enough,
+and remote development content remains context rather than a curation target.
+
+## When skills load knowledge
 
 | Skill | Reads memory (scoped) | Reads wisdom (wholesale) | Moment |
 | --- | :---: | :---: | --- |
-| [woostack-ideate](/docs/skills/woostack-ideate) | — | ✓ | exploring context, before proposing a design |
-| [woostack-plan](/docs/skills/woostack-plan) | — | ✓ | before writing the plan |
-| [woostack-debug](/docs/skills/woostack-debug) | ✓ | ✓ | at the start: known gotchas (scoped) and failure-class hints (wisdom), surfaced as hypotheses to test rather than answers |
-| [woostack-review](/docs/skills/woostack-review) | ✓ | ✓ | prefetch, before the angle subagents run |
-| [woostack-execute](/docs/skills/woostack-execute) | writes | — | distills a note after each increment |
-| [woostack-dream](/docs/skills/woostack-dream) | reads & curates | reads & writes | consolidating trends into wisdom |
-| [woostack-status](/docs/skills/woostack-status) | — | — | derives the board from artifacts only |
+| [woostack-ideate](/docs/skills/woostack-ideate) | — | ✓ | exploring reusable design constraints |
+| [woostack-plan](/docs/skills/woostack-plan) | — | ✓ | before recording implementation increments in Linear |
+| [woostack-debug](/docs/skills/woostack-debug) | ✓ | ✓ | surfacing known gotchas and failure-class hypotheses to test |
+| [woostack-review](/docs/skills/woostack-review) | ✓ | ✓ | before advisory angle workers inspect the verified diff |
+| [woostack-execute](/docs/skills/woostack-execute) | writes | — | distilling reusable learning after an implemented increment |
+| [woostack-dream](/docs/skills/woostack-dream) | reads & curates | reads & writes | consolidating corroborated knowledge |
+| [woostack-status](/docs/skills/woostack-status) | — | — | deriving a fresh board from official MCP and Git/GitHub |
 
-Two skills feed the stores. [woostack-execute](/docs/skills/woostack-execute) distills a scoped
-note after each increment. [woostack-dream](/docs/skills/woostack-dream) is the only writer of
-wisdom, and it rolls recurring trends up from memory and the decision corpus:
+Two skills feed the stores:
 
-```
-woostack-execute        ── distill ─────► memory/   (scoped, per-feature)
-woostack-dream          ── consolidate ─► wisdom/   (generalized, cross-cutting)
+```text
+woostack-execute        ── distill ─────► memory/   (scoped reusable learning)
+woostack-dream          ── consolidate ─► wisdom/   (generalized cross-cutting knowledge)
 
 ideate · plan · review · debug  ── load wholesale ─► wisdom/
 debug · review                  ── scope-match ────► memory/
 ```
 
-Recall is run in the shell, not the prompt: `recall.sh` does the scope match plus two one-hop
-expansions — a `[[wikilink]]` hop and a `tags:` hop that pulls notes sharing a tag with the
-matched set — and `build-index.sh` keeps `MEMORY.md` as a one-line-per-note index. See
-[Context management](/docs/concepts/context-management) for why that matters.
+Recall is computed outside the prompt: `recall.sh` performs the scope match plus bounded wikilink
+and tag expansion, while `build-index.sh` keeps `memory/MEMORY.md` to one line per note. See
+[Context management](/docs/concepts/context-management) for how that keeps working context small
+without weakening the authority boundary.

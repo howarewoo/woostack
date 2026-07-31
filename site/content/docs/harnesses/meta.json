@@ -3,6 +3,7 @@
   "pages": [
     "index",
     "omp",
+    "hermes",
     "opencode",
     "claude-code",
     "codex",
