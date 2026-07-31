@@ -16,7 +16,7 @@ assert_contains "$contributing" '`woostack-respond`, and `woostack-eval`' "contr
 assert_eq "$(grep -c '^| `/woostack-respond ' "$ROOT/skills/using-woostack/SKILL.md")" "1" "one routing row"
 assert_contains "$dev" 'bounded production errors' "bootstrap development registers response"
 assert_contains "$utilities" '/docs/skills/woostack-respond' "utilities links response"
-assert_contains "$utilities" 'explicitly authorized operational context' "utilities do not imply response is CI-safe"
+assert_contains "$utilities" 'Reports exclude secrets and raw provider payloads.' "utilities retain the response evidence boundary"
 assert_eq "$(for f in "$ROOT"/skills/*/SKILL.md; do [ -f "$f" ] && echo x; done | wc -l | tr -d ' ')" "26" "physical skill count"
 assert_not_contains "$respond" 'woostack-defer(increment 3)' "final marker removed"
 finish

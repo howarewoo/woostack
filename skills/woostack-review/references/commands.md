@@ -18,34 +18,29 @@ Once a local invocation resolves a PR number, retain that same PR through PR-mod
 posting; do not fetch neighboring PRs from its stack. Review remains report-only: it prepares at
 most one native review and never applies code fixes.
 
-## Linear context and authority
+## Optional contract and Linear artifact context
 
-A local/Hermes invocation becomes contract-aware only from one of these inputs:
+A local review may use the active caller-approved goal, fix contract, specification, plan, or
+acceptance criteria without any Linear artifact. The parent controller writes only that bounded
+contract into `intent.md`; it never reconstructs scope from a branch, commit, PR title/body,
+changed paths, recent activity, or current user.
 
-1. a caller-supplied Linear issue URL or UUID, plus a project URL or UUID when the independently
-   verified issue role is `increment`; or
-2. the exact final PR suffix defined by the canonical
-   [Linear MCP development authority](../../woostack-init/references/artifact-backends.md).
+Linear enriches that contract only when the caller supplies an exact issue/project URL or stable
+UUID. An issue key, title, branch, changed path, PR trailer, recent item, fuzzy match, or current
+user is not identity and never triggers discovery. Load the
+[optional artifact contract](../../woostack-init/references/artifact-backends.md), discover official
+host-exposed MCP read capabilities, resolve only the supplied resource, and independently read the
+requested specification/fix/plan fields. Verify canonical repository association when claimed and
+fully paginate relevant fields.
 
-An issue identifier such as `TEAM-123`, title, branch, changed path, recent item, or fuzzy match is
-not valid caller-supplied identity. The issue identifier is usable only as part of exact PR
-attribution, after the canonical GitHub PR and official MCP reads resolve it to one unique managed
-issue identity. A verified `work-item` forbids `--project`; a verified `increment` requires its one
-matching role-`feature` project. Explicit arguments, PR trailers, native membership, repository,
-workspace/team, `woostack` label, and resource roles must all agree.
+Missing MCP, authentication, complete pagination, unambiguous identity, or usable content omits
+only the Linear contribution and continues with active-contract or diff-only advisory review unless
+the caller explicitly required artifact-backed review. A PR requires no Linear trailer or artifact.
 
-Local review discovers the host's official Linear MCP operations by capability and reads the
-current managed contract before prompt assembly. Missing MCP, authentication, complete pagination,
-managed identity, project membership, or current contract blocks the contract-aware run. An
-invocation with neither explicit context nor an exact attributed PR may still run as a clearly
-labeled diff-only advisory review; it omits
-`intent.md` and the `acceptance` angle.
-
-GitHub Actions cannot take these flags and has no Linear MCP channel. Its comment triggers below
-always produce diff-only advisory evidence, even when the PR body contains exact trailers. A later
-authenticated Hermes or human controller performs any MCP-backed receipt reconciliation. Neither
-path grants issue acceptance; the responsible authority and lifecycle rules remain those in the
-canonical [status conventions](../../woostack-status/references/conventions.md).
+GitHub Actions cannot take these flags and has no parent conversation or Linear MCP channel. Its
+comment triggers below always produce diff-only advisory evidence, even when the PR body contains
+exact trailers. A later authenticated controller may reconcile optional artifact receipts.
+Neither path accepts the work; the active workflow and responsible controller retain that authority.
 
 ### PR-comment triggers (issue #19)
 

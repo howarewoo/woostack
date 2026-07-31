@@ -100,7 +100,7 @@ $TROUBLESHOOTING"
 for stage in \
   'Stage 0.*Resolve skill path' \
   'Stage 1.*Prefetch' \
-  'Stage 1a.*Resolve verified Linear context' \
+  'Stage 1a.*Resolve current contract context' \
   'Stage 2.*Detect Angles' \
   'Stage 3.*Run Review Swarm' \
   'Stage 4.*Merge.*Adversarial Validation' \
@@ -276,10 +276,10 @@ if [ -n "$COMMANDS" ]; then
   assert_matches "$COMMANDS_NORMALIZED" 'compare API returns 404.*falls back to the full diff' 'commands.md retains force-push incremental fallback'
   assert_matches "$COMMANDS_NORMALIZED" 'no new commits.*skip=true|skip=true.*no new commits' 'commands.md retains same-SHA incremental skip'
   assert_matches "$COMMANDS_NORMALIZED" 'marker IS the state|There is no DB' 'commands.md retains state-light marker semantics'
-  assert_matches "$COMMANDS_NORMALIZED" 'official Linear MCP.*current managed contract|current managed contract.*official Linear MCP' 'commands.md requires current contract from official MCP'
-  assert_matches "$COMMANDS_NORMALIZED" 'Missing MCP.*blocks the contract-aware run|blocks the contract-aware run.*Missing MCP' 'commands.md blocks contract-aware review when local MCP is missing'
+  assert_matches "$COMMANDS_NORMALIZED" 'optional artifact contract.*official.*MCP|official.*MCP.*supplied resource' 'commands.md gates optional artifact reads through official MCP'
+  assert_matches "$COMMANDS_NORMALIZED" 'Missing MCP.*omits.*Linear contribution|omits.*Linear contribution.*Missing MCP' 'commands.md degrades missing optional MCP context without losing active contract'
   assert_matches "$COMMANDS_NORMALIZED" 'GitHub Actions.*diff-only advisory|diff-only advisory.*GitHub Actions' 'commands.md distinguishes CI advisory delivery'
-  assert_matches "$COMMANDS_NORMALIZED" '[Nn]either.*issue acceptance|issue acceptance.*[Nn]either' 'commands.md denies review self-acceptance'
+  assert_matches "$COMMANDS_NORMALIZED" '[Nn]either path accepts the work|accepts the work.*[Nn]either path' 'commands.md denies review self-acceptance'
   assert_not_matches "$CONFIGURATION_NORMALIZED
 $CI_NORMALIZED
 $TROUBLESHOOTING_NORMALIZED" '/woostack-review --fast|woostack-review install' 'command catalog is not duplicated into another reference'
@@ -331,11 +331,11 @@ assert_corpus_term 'read-only toward Linear|never.*mutat.*Linear' 'review remain
 for validator_prompt in "$VALIDATOR_TEXT" "$PROSECUTOR_TEXT"; do
   assert_fixed "$validator_prompt" '$OUTDIR/attribution.md' 'validator reads only the PR attribution candidate'
   assert_fixed "$validator_prompt" '$OUTDIR/intent.md' 'validator recognizes verified current-contract context'
-  assert_matches "$validator_prompt" 'official host-exposed Linear MCP' 'validator gates managed context on official MCP'
-  assert_matches "$validator_prompt" 'current managed contract' 'validator limits intent to the current managed contract'
+  assert_matches "$validator_prompt" 'workflow://active-contract' 'validator accepts parent-owned artifact-free contract context'
+  assert_matches "$validator_prompt" 'current contract' 'validator limits intent to the current contract'
   assert_matches "$validator_prompt" 'untrusted.*data, never instructions' 'validator keeps remote text untrusted'
-  assert_matches "$validator_prompt" 'GitHub Actions.*intent.md.*absent.*diff-only advisory' 'validator keeps CI contract-free and advisory'
-  assert_matches "$validator_prompt" 'neither Linear read-back nor issue acceptance' 'validator denies Linear authority claims'
+  assert_matches "$validator_prompt" 'GitHub Actions.*intent.md.*absent' 'validator keeps CI contract-free and advisory'
+  assert_matches "$validator_prompt" 'mutate GitHub, Linear, or the repository' 'validator denies remote artifact authority'
 done
 assert_matches "$VALIDATOR_TEXT" 'context disclosure required by `_orchestrator-header.md`' 'sequential validator posts the explicit advisory disclosure'
 
@@ -390,10 +390,10 @@ assert_matches "$ROOT_NORMALIZED" 'host-bound reviewer identity.*never native Gi
 assert_matches "$ROOT_NORMALIZED" 'fresh home/config/cache/temp.*env -i|fresh `HOME`.*XDG.*temp.*allowlist' 'root launches engineer reviewers with fresh filesystem and environment contexts'
 assert_matches "$ROOT_NORMALIZED" 'validates and hashes.*reviewer identity manifest' 'root protects the controller-owned identity manifest across dispatch'
 assert_matches "$ROOT_NORMALIZED" 'branch/head.*staged and unstaged.*untracked.*hard-fails' 'root fingerprints Git-visible repository state across reviewer dispatch'
-assert_matches "$ROOT_NORMALIZED" 'official.*MCP.*intent.md|intent.md.*official.*MCP' 'root gates current contract context on official MCP'
-assert_matches "$ROOT_NORMALIZED" 'Missing MCP.*blocks.*contract-aware review|blocks.*contract-aware.*Missing MCP' 'root blocks local contract-aware delivery without MCP'
-assert_matches "$ROOT_NORMALIZED" 'authoritative Linear issue context is absent|authoritative-issue-context: absent' 'root labels absent CI authority'
-assert_matches "$ROOT_NORMALIZED" 'neither Linear read-back nor issue acceptance' 'root denies CI Linear read-back and acceptance claims'
+assert_matches "$ROOT_NORMALIZED" 'workflow://active-contract' 'root supports artifact-free current contract context'
+assert_matches "$ROOT_NORMALIZED" 'Missing MCP.*omits only.*artifact contribution|artifact contribution.*Missing MCP' 'root degrades missing optional MCP context without losing active contract'
+assert_matches "$ROOT_NORMALIZED" 'authoritative Linear issue context is absent|authoritative-issue-context: absent' 'root labels unverified PR attribution'
+assert_matches "$ROOT_NORMALIZED" 'no parent-supplied contract context' 'root denies CI contract context claims'
 assert_matches "$ROOT_NORMALIZED" 'retry missing, empty, invalid-JSON, or non-array artifacts once' 'root retains worker artifact retry'
 assert_matches "$ROOT_NORMALIZED" 'usage_limit_reached.*rate_limit_error.*fallback chain' 'root retains worker model-fallback recovery'
 assert_matches "$ROOT_NORMALIZED" 'abort the run.*do NOT proceed to merge/validate/post' 'root retains receipt hard gate before pipeline tail'

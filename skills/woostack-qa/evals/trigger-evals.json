@@ -4,14 +4,14 @@
   "cases": [
     {
       "id": "running-onboarding-browser-exploration",
-      "query": "The onboarding branch has a preview at http://localhost:5173. Use it like a new team owner—invite members, go backward, refresh midway, and retry failed submissions—and tell me which problems you can reproduce in a sanitized local report labeled non-authoritative. Do not change code or Linear; propose an issue contract for each confirmed bug instead.",
+      "query": "The onboarding branch has a preview at http://localhost:5173. Use it like a new team owner—invite members, go backward, refresh midway, and retry failed submissions—and tell me which problems you can reproduce in a sanitized local report labeled non-authoritative. Do not change code or Linear; propose a bounded remediation contract for each confirmed bug instead.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-qa",
       "conflictsWith": ["woostack-debug", "woostack-audit", "woostack-review"]
     },
     {
       "id": "live-checkout-qa-produces-report-not-remediation",
-      "query": "Explore http://localhost:4173/checkout in a real browser, reproduce the timeout twice, and write a sanitized non-authoritative QA report with a proposed managed issue contract. Do not mutate Linear or application source.",
+      "query": "Explore http://localhost:4173/checkout in a real browser, reproduce the timeout twice, and write a sanitized non-authoritative QA report with a proposed bounded remediation contract. Do not mutate Linear or application source.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-qa",
       "conflictsWith": ["woostack-fix", "woostack-respond", "woostack-audit"]

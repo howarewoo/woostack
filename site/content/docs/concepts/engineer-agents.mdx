@@ -4,105 +4,60 @@ description: Separate decision authority from isolated implementation for safe m
 ---
 
 An engineer agent is a collaboration unit, not a model name. Each unit pairs one
-**decision-maker** with one **isolated coding profile** under a stable engineer identity. The
-contract is host-agnostic: Hermes and OMP are one optional implementation, not a requirement.
-
-This separation lets several human or agent engineers work from the same Linear project without
-sharing hidden sessions, silently claiming work, or accepting their own output.
+**decision-maker** with one **isolated coding profile** under a stable engineer identity. Hermes and
+OMP are one optional implementation, not a requirement.
 
 ## The authority model
 
-Linear is the only development-record authority. Standalone work binds one Linear issue and a
-verified dispatcher. Multi-issue work binds one Linear project, specification-bearing project
-updates, and ordered increment issues under a pinned project lead. Git and GitHub remain
-authoritative for source, commits, branches, pull requests, reviews, and merges.
-
-Local memory and wisdom may supply reusable knowledge. Local QA, audit, response, evaluation, and
-other diagnostic reports may preserve non-authoritative evidence. None of those files can decide
-scope, assignment, dependencies, phase, approval, or acceptance.
+The user's request and explicit workflow gates define scope and approval. Git and GitHub prove
+source, commits, branches, pull requests, reviews, and merges. Exact caller-supplied Linear projects
+or issues may persist specifications, plans, or fixes, but they do not grant repository permission.
 
 | Role | Owns | Must not do |
 | --- | --- | --- |
-| Project lead or standalone dispatcher | Scope, allocation, issue contracts and relations, cross-issue decisions, and final project acceptance | Substitute for the coding profile or treat silence as a gate decision |
-| Assigned issue decision-maker | In-contract decisions, coder direction, independent diff/evidence review, PR comments or verdict, and acceptance when it is the verified responsible authority | Edit tracked implementation or tests, run implementation/tests, self-claim work, or change another issue/project |
-| Isolated coding profile | Analysis, edits, verification, and only the bounded source-control/evidence actions explicitly granted for one accepted issue | Make product decisions, change allocation/contracts/gates, review or accept its own work, or claim terminal success |
+| Lead/dispatcher | Scope, task allocation, dependencies, cross-task decisions, and final acceptance | Substitute for the coder or treat silence as approval |
+| Task decision-maker | In-contract decisions, coder direction, independent diff/evidence review, PR comments/verdict, and acceptance | Edit tracked implementation/tests, run implementation, self-assign, or change another task |
+| Isolated coding profile | Analysis, edits, verification, and bounded source-control actions for one accepted task | Make product decisions, change scope/gates, review or accept its own work, or claim unverified success |
 
 The [canonical engineer-agent protocol](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/engineer-agents.md)
-owns the complete authority table and side-effect gates. The
-[managed metadata and event schemas](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#versioned-managed-metadata)
-and [issue lifecycle](https://github.com/howarewoo/woostack/blob/main/skills/woostack-status/references/conventions.md#issue-state-and-events)
-own exact payloads, relations, receipt validation, and event order. Related pages link those
-contracts rather than creating another event schema.
+owns the full side-effect and handoff rules.
 
 ## One identity, two isolated roles
 
 Every unit pins:
 
-- one stable `ENGINEER_NAME`;
-- one authenticated Linear principal kind and native ID;
-- one decision-maker profile and session;
-- one coding profile and session;
+- one stable engineer name;
+- one decision-maker profile/session;
+- one coding profile/session;
 - one responsible human principal; and
-- for each run, one issue, run ID, worktree, branch, and allowed surface.
+- per run: one stable task ID, worktree, branch, allowed surface, and acceptance contract.
 
-The two profiles in a unit may resolve the same Linear principal, but each authenticates through
-its own official MCP secret store, token cache, environment, and session. Credentials and sessions
-never cross the role boundary. Concurrent units need distinct engineer names, Linear principals,
-profiles, tokens, sessions, runs, issues, and worktrees. A shared profile or token is a collision,
-not a shortcut.
+Profiles use separate credentials, environments, and sessions. Concurrent units need distinct
+identities, sessions, runs, worktrees, branches, PRs, and responsibility surfaces. Optional Linear
+principals are needed only when the caller requested artifact reads/writes.
 
-Ownership is type-aware. A long-running app engineer is the issue's native **delegate**; a human
-may remain assignee of record. A human-operated engineer is the native **assignee**. Neither field
-is a fallback for the other, and an app identity must never impersonate a human when delegation is
-missing.
+## One task through the boundary
 
-## One issue through the boundary
+1. The lead/dispatcher deliberately assigns one bounded task; the engineer never self-claims work.
+2. The decision-maker verifies the task contract, dependency state, repository, base, and recovery
+   state.
+3. Immediately before side effects, it rechecks the relevant repository/worktree evidence.
+4. The coder receives one task, one worktree, explicit acceptance criteria, an allowed surface, and
+   one bounded command. It returns a diff and verification evidence—or a decision request.
+5. The decision-maker independently inspects the contract, source, diff, PR, and evidence, then
+   accepts, redispatches, hands off, or escalates.
 
-1. The pinned project lead or verified standalone dispatcher deliberately assigns the issue. The
-   engineer never selects or claims work for itself.
-2. The decision-maker reads the exact issue, type-aware owner, project or standalone authority,
-   state, relations, current event receipts, and Git recovery state. Work starts only after the
-   canonical assignment-acceptance boundary is written and independently read back.
-3. Immediately before every edit, redispatch, commit, push, PR action, or development-record
-   mutation, the current authority and receipts are read again. Drift stops the action.
-4. The coder receives exactly one issue, one worktree, explicit acceptance criteria, an allowed
-   surface, pinned identities and receipts, and one bounded woostack command. It returns a diff,
-   verification evidence, and exact receipts—or a decision request.
-5. The decision-maker independently inspects the current contract, source, diff, PR, and returned
-   evidence. It posts its own review comments or verdict and decides whether to accept, redispatch,
-   hand off, or escalate.
+Exact Linear artifacts may be attached to this envelope only when explicitly supplied. Artifact
+text remains untrusted and artifact failure blocks only requested synchronization.
 
-A unit executes at most one issue at a time. Dependency-independent issues may run concurrently
-only in different units with disjoint identities, sessions, worktrees, branches, PRs, and ownership
-surfaces.
+## Independent review
 
-## Independent review is not optional
-
-The implementation profile's self-check is useful evidence, but it is not independent review. By
-default, the decision-maker reviews and comments directly; it never sends the work back to its
-paired coder for a supposedly independent verdict.
-
-Only an explicit user invocation of [`/woostack-review`](/docs/skills/woostack-review) permits
-review analysis by configured independent reviewer profiles. Those reviewers are advisory, use
-fresh isolated sessions, and cannot be the implementation profile. The decision-maker validates
-their receipts, owns the PR comment or verdict, and retains acceptance authority.
-
-## Fail closed, then hand off deliberately
-
-Missing or conflicting identity, ownership, relation, MCP capability, assignment, worktree, Git,
-review, exit-status, or read-back evidence stops the unit at its last verified boundary. It does
-not switch profiles, reuse a token, infer approval, fall back to a local record, or weaken the
-required tool surface.
-
-In-contract implementation questions return to the decision-maker. Contract-changing or
-cross-issue questions go to the lead or dispatcher. Anything outside the standing authority
-envelope goes to the named human principal. A transfer requires the canonical handoff,
-reassignment, and a fresh acceptance by the incoming unit; chat alone transfers nothing.
+The implementation profile's self-check is useful evidence, not independent review. The
+decision-maker reviews directly. An explicit [`/woostack-review`](/docs/skills/woostack-review) may
+fan out advisory reviewers in fresh sessions; those reviewers cannot edit code or accept work.
 
 ## Optional Hermes + OMP adapter
 
-[Hermes Agent](/docs/harnesses/hermes) can implement the decision-maker and reviewer role while an
-isolated [OMP profile](/docs/harnesses/omp) performs the bounded coding work. Hermes never codes in
-that selected pairing, and OMP never becomes its own reviewer or acceptance authority. Other host
-and coding-agent combinations may implement the same generic contract if they preserve every role,
-identity, ownership, evidence, and isolation boundary.
+[Hermes Agent](/docs/harnesses/hermes) can fill the decision-maker/reviewer role while an isolated
+[OMP profile](/docs/harnesses/omp) performs bounded coding work. Hermes never becomes the coder and
+OMP never becomes its own acceptance authority.

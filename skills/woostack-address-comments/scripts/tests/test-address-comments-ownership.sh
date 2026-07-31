@@ -1,95 +1,31 @@
 #!/usr/bin/env bash
+# Structural contract for repository-first comment addressing.
 set -euo pipefail
-
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)"
-ADDRESS_SKILL="$ROOT/skills/woostack-address-comments/SKILL.md"
-REVIEW_SKILL="$ROOT/skills/woostack-review/SKILL.md"
-ADDRESS_PROMPT="$ROOT/skills/woostack-address-comments/prompts/address.md"
-ADDRESS_SCRIPTS="$ROOT/skills/woostack-address-comments/scripts"
-
-assert_contains() {
-  local file="$1"
-  local pattern="$2"
-  if ! rg -q "$pattern" "$file"; then
-    echo "missing pattern in ${file#$ROOT/}: $pattern" >&2
-    exit 1
-  fi
-}
-
-assert_not_contains() {
-  local file="$1"
-  local pattern="$2"
-  if rg -q "$pattern" "$file"; then
-    echo "unexpected pattern in ${file#$ROOT/}: $pattern" >&2
-    exit 1
-  fi
-}
-
-assert_contains "$ADDRESS_SKILL" "## Workflow"
-assert_contains "$ADDRESS_SKILL" "Lifecycle"
-assert_contains "$ADDRESS_SKILL" "WOO_ADDRESS_ACTION_PATH"
-assert_contains "$ADDRESS_PROMPT" "Optional worker fan-out"
-assert_contains "$ADDRESS_PROMPT" "fix_plan"
-
-# issue #282: the verdict gate must be a prominent, summary/skim-resistant STOP barrier and be
-# restated in Hard constraints — not soft body prose a low-effort model collapses past. Pin the
-# barrier tag, the hard-constraint restatement, and the Phase 2 STOP cue (ASCII tokens per the
-# skill-test-assert-ascii-token convention).
-assert_contains "$ADDRESS_SKILL" "<HARD-GATE>"
-assert_contains "$ADDRESS_SKILL" "Silence is not a yes"
-assert_contains "$ADDRESS_PROMPT" "do not act until approved"
-
-for script in prefetch.sh fetch-threads.sh resolve-thread.sh memory-record.sh resolve-outdir.sh; do
-  if [ ! -f "$ADDRESS_SCRIPTS/$script" ]; then
-    echo "missing address-comments script: $script" >&2
-    exit 1
-  fi
-done
-
-assert_not_contains "$ADDRESS_SKILL" "Delegates to the woostack-review address verb"
-assert_not_contains "$ADDRESS_SKILL" "woostack-review address"
-assert_not_contains "$ADDRESS_SKILL" "No duplicate engine"
-assert_not_contains "$ADDRESS_SKILL" "review prefetch"
-assert_not_contains "$REVIEW_SKILL" "woostack-review address"
-assert_not_contains "$REVIEW_SKILL" "Addressing Reviews"
-
-
-# Linear-only attribution, type-aware ownership, typed evidence, and fail-closed recovery.
-for pattern in \
-  "official host-exposed Linear MCP" \
-  "Linear MCP development authority" \
-  "PR attribution contract" \
-  "Exact PR-to-issue binding" \
-  "canonical repository" \
-  "role-\`increment\`" \
-  "role-\`work-item\`" \
-  "type-aware owner" \
-  "native assignee" \
-  "native delegate" \
-  "assignmentAccepted" \
-  "reviewResult" \
-  "verification" \
-  "precommitReview" \
-  "implementationEvidence" \
-  "preallocated stable UUID" \
-  "independently read" \
-  "unknown Linear mutation" \
-  "Every worker/controller/re-review handoff carries exact project stable/native IDs" \
-  "woostack-commit --issue" \
-  "project <exact project UUID|URL>" \
-  "Never invoke a backend resolver" \
-  "No local development authority"; do
-  assert_contains "$ADDRESS_SKILL" "$pattern"
-done
-
-for forbidden in \
-  "resolve-backend\\.sh" \
-  "linear\\.sh" \
-  "markdown\\.sh" \
-  "backend == " \
-  "\\.woostack/specs/" \
-  "\\.woostack/plans/" \
-  "\\.woostack/fixes/" \
-  "LINEAR_API_KEY"; do
-  assert_not_contains "$ADDRESS_SKILL" "$forbidden"
-done
+python3 - "$ROOT" <<'PY'
+import re, sys
+from pathlib import Path
+root=Path(sys.argv[1])
+skill=re.sub(r"\s+"," ",(root/"skills/woostack-address-comments/SKILL.md").read_text())
+prompt=re.sub(r"\s+"," ",(root/"skills/woostack-address-comments/prompts/address.md").read_text())
+checks=[
+ (skill,r"No issue, assignment, owner, lifecycle receipt, or trailer is required","artifact-free boundary"),
+ (skill,r"GitHub owns PR identity, head, threads, replies, and resolution state","GitHub authority"),
+ (skill,r"Never select by title, recent activity, or first search result","exact PR selection"),
+ (skill,r"Missing or conflicting artifact access blocks only artifact-dependent","artifact degradation"),
+ (skill,r"Commit and submit.*woostack-commit","commit boundary"),
+ (skill,r"Unknown mutation outcome requires discovery before retry","idempotent recovery"),
+ (prompt,r"Silence is not approval","interactive gate"),
+ (prompt,r"A fix never requires an issue, project, trailer, assignment, lifecycle event, or artifact receipt","worker artifact-free path"),
+ (prompt,r"re-read the canonical PR/head.*target thread","fresh side-effect preflight"),
+]
+failures=[msg for text,pat,msg in checks if not re.search(pat,text,re.I|re.S)]
+for text,label in ((skill,"skill"),(prompt,"prompt")):
+ if re.search(r"assignmentAccepted|Linear-Issue:|must.*exact issue.*before",text,re.I|re.S):
+  failures.append(f"{label}: obsolete issue authority returned")
+if failures:
+ print("address-comments contract violations:",file=sys.stderr)
+ print("\n".join(f"- {f}" for f in failures),file=sys.stderr)
+ raise SystemExit(1)
+print("repository-first address-comments contract: ok")
+PY

@@ -1,81 +1,53 @@
 ---
-title: Tracking work with Linear
-description: How Linear development records join GitHub implementation and PR truth.
+title: Tracking work
+description: How woostack derives a current board from repository evidence and optional artifacts.
 ---
 
-[woostack-status](/docs/skills/woostack-status) builds a fresh view from two authorities:
-development records read through the [official Linear MCP](https://mcp.linear.app/mcp), and
-implementation evidence read from Git and GitHub. It does not maintain a separate tracked status
-snapshot.
+[woostack-status](/docs/skills/woostack-status) computes a fresh view from Git, Graphite, and
+canonical GitHub data. It maintains no separate board or development ledger. Linear projects/issues
+are optional specification, plan, and fix artifacts.
 
-Linear owns scope, contracts, gates, assignments, dependencies, decisions, progress, and
-acceptance. Git and GitHub own source, branches, commits, pull requests, reviews, checks, and merge
-state. Status joins the two by exact verified identities without treating either one as a fallback
-for the other.
+## What status tracks
 
-## The two tracked shapes
+The repository graph defines two display shapes:
 
-### Standalone work items
+- **Stacks/features:** Graphite-connected branches and PRs above the resolved integration base,
+  grouped by declared plan/dependency context when available.
+- **Standalone work:** a non-stacked branch/PR or bounded task with direct repository evidence.
 
-A bounded fix or change has one repository-owned standalone issue and no feature project. The
-issue description and comments carry its contract, decisions, evidence, review, and acceptance,
-while its attributed GitHub PR proves the implementation and merge state.
-
-Status renders the issue directly. It never invents project progress for a standalone work item.
-
-### Multi-issue projects
-
-A multi-issue feature has one Linear project, specification-bearing project updates, and a complete
-ordered set of increment issues. Those specification-bearing updates carry the written
-specification and lifecycle; status derives phase and progress from their verified event chain,
-current issue records, relations, ownership, and GitHub evidence. No Linear document is created.
-
-Each issue represents one independently shippable increment and one attributed PR. Project
-progress is based on the complete managed issue set. The project can reach completion only after
-every increment has reached its verified terminal condition.
+A row exists because repository work exists, not because an artifact exists. Canonical repository,
+ref, commit SHA, PR number, head/base, and ancestry establish identity; titles and branch names are
+display text.
 
 ## How the board is derived
 
 Each status run:
 
-1. discovers the host-exposed MCP tools by capability and preflights authenticated read access to
-   the configured Linear workspace and team;
-2. fully reads the repository-owned projects and standalone issues, their current updates,
-   comments, ownership, relations, and states;
-3. independently reads the matching GitHub PRs and merge evidence;
-4. validates the exact Linear-to-PR joins, complete histories, ownership, dependencies, and
-   repository attribution; and
-5. renders the current board or stops with an actionable ambiguity instead of guessing.
+1. resolves the canonical repository, integration base, local branches/worktrees, and Graphite
+   ancestry;
+2. fully reads candidate PRs, checks, reviews, unresolved threads, merge evidence, and timestamps;
+3. derives work/review/merge state from that complete snapshot;
+4. optionally reads exact caller-supplied Linear artifacts and joins only through independently
+   verified repository/PR identity; and
+5. prints the current board, terminal counts, blockers, staleness, and one next action per row.
 
 The
 [canonical status conventions](https://github.com/howarewoo/woostack/blob/main/skills/woostack-status/references/conventions.md)
-define event validity, state derivation, PR attribution, reconciliation, stale work, and next
-actions. They are linked here rather than copied into an authored page.
+own the precise state derivation and output contract.
 
-## Terminal truth
+## Authority and failure boundaries
 
-Status may reconcile only narrowly eligible terminal state, and it must read each change back.
-An issue is not done merely because its PR merged: the relevant acceptance authority must also
-have accepted the verified evidence. Conversely, a Linear completion claim cannot prove a merge
-that GitHub does not report.
+- The active user-approved workflow defines scope and acceptance.
+- Git and GitHub own source-control, PR, review, and merge truth.
+- Linear may explain an explicitly linked spec, plan, or fix but cannot create a row, grant
+  permission, or override repository evidence.
+- Local memory, wisdom, and diagnostic reports are supporting evidence only.
 
-For an engineer pair, the decision-maker remains the acceptance authority. The implementing coder's
-self-check is implementation evidence, not independent review. Only an explicit user invocation
-of [woostack-review](/docs/skills/woostack-review) may delegate analysis to independent reviewers,
-and their findings do not replace the decision-maker's verdict.
-
-## Fail-closed boundaries
-
-Status reports a blocker instead of a clean board when required MCP capability, pagination,
-identity, ownership, event history, relation, PR attribution, Git ancestry, review evidence, or
-read-back is missing, partial, stale, foreign, or ambiguous. It never derives a successful result
-from titles, branch resemblance, unchecked remote prose, or cached local output.
-
-Local `.woostack/memory/` and `.woostack/wisdom/` remain reusable knowledge only. Audit, QA, and
-production-response reports remain non-authoritative diagnostics. None of them can set a phase,
-assign an issue, clear a dependency, approve execution, accept work, or mark it complete.
+Missing Graphite may degrade to Git ancestry plus GitHub with disclosure. Missing GitHub evidence
+makes affected rows `unknown` or `blocked`. Missing Linear access affects only explicitly requested
+artifact enrichment. Status never synchronizes or mutates artifacts.
 
 <Callout type="info">
-  The status table is a current narration of Linear and GitHub truth, not a third record system.
-  Re-run it whenever either authority changes.
+  The board is a fresh repository view, not a third record system. Re-run it whenever source-control
+  or review state changes.
 </Callout>

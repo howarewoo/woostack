@@ -68,26 +68,20 @@ Do not run `/woostack-init`, create `.woostack/`, scaffold code, or add config u
 user explicitly asks for that behavior or the loaded task-specific skill requires it as part
 of an approved workflow.
 
-**Development-record invariant:** official host-exposed Linear MCP is the only development-record
-interface. The canonical Linear MCP
-[managed-resource and event schemas](../woostack-init/references/artifact-backends.md#versioned-managed-metadata)
-and [issue-event actor/receipt schemas](../woostack-init/references/artifact-backends.md#canonical-issue-event-dispatch-and-pre-commit-evidence)
-own managed identity, exact payloads and relations, type-aware ownership, and PR attribution. The
-[issue-state/current-event conventions](../woostack-status/references/conventions.md#issue-state-and-events)
-own lifecycle derivation and terminal reconciliation. Link those authorities; never replace them
-with local specification/plan/fix records, Linear documents, repository credentials, custom
-provider transports, or duplicated lifecycle/receipt schemas.
+**Artifact invariant:** Linear projects and issues are optional artifacts for feature
+specifications, implementation plans, and fix records. They never grant implementation permission,
+select work, own a branch, or replace direct Git/GitHub evidence. Artifact-free runs do not contact
+Linear. When the caller explicitly supplies an exact Linear URL/UUID or requests persistence, use
+the canonical [optional artifact contract](../woostack-init/references/artifact-backends.md) and
+independently read mutations back.
 
 **Engineer-agent invariant:** a host that pairs a decision-maker with a coder must follow the
 [provider-neutral engineer-agent authority protocol](references/engineer-agents.md). Each active
-unit pins one standing authority envelope, one stable `ENGINEER_NAME`, one Linear principal, one
-decision-maker profile/session, one isolated coding profile/session, and one run. The two profiles
-resolve their unit principal only through separate host secret/token/session contexts; concurrent
-units share none of those identities or contexts. A freshly resolved project lead or standalone
-dispatcher deliberately allocates work, the current type-aware owner records and independently
-reads back `assignmentAccepted` before work, and the decision-maker rechecks owner, state, and
-relations before each side effect. Host mechanics and reviewer delegation never weaken role
-isolation, bounded mutation, review independence, or acceptance authority.
+unit pins one standing authority envelope, one stable `ENGINEER_NAME`, one decision-maker
+profile/session, one isolated coding profile/session, and one run. When an explicit Linear artifact
+is used, provider identities and contexts stay separate and artifact operations follow the optional
+artifact contract. Host mechanics and reviewer delegation never weaken role isolation, bounded
+mutation, review independence, or acceptance authority.
 
 ## Command Routing
 
@@ -98,21 +92,21 @@ isolation, bounded mutation, review independence, or acceptance authority.
 | `/woostack-build <goal>`, build a feature through the woostack loop | `woostack-build` |
 | `/woostack-fix <target> [description]`, resolve a bug/issue through the unified fix loop | `woostack-fix` |
 | `/woostack-change <goal>`, implement a bounded non-bug enhancement or refactor that fits one reviewable PR | `woostack-change` |
-| `/woostack-plan <Linear project UUID-or-exact-URL>`, reconcile an approved feature project's PR-sized increment issue graph | `woostack-plan` |
-| `/woostack-execute <Linear project UUID-or-exact-URL> [--issue <increment UUID-or-exact-URL>] [--inline\|--subagent]`, or `/woostack-execute <standalone issue UUID-or-exact-URL> [--inline\|--subagent]`, execute verified assigned Linear work as an issue-scoped Graphite PR | `woostack-execute` |
-| `/woostack-execute-overnight <Linear project UUID-or-exact-URL> [--inline\|--subagent]`, execute a verified feature project unattended (autonomous, terminal handback) | `woostack-execute-overnight` |
-| `/woostack-sweep [PR#] [--base R] [--interactive]`, drive a stack of PRs to a clean review | `woostack-sweep` |
-| `/woostack-commit`, commit session-relevant changes and update PR fields | `woostack-commit` |
-| `/woostack-review [PR#]`, review a PR or local diff | `woostack-review` |
+| `/woostack-plan <approved specification> [--project <exact Linear URL-or-UUID>]`, produce a PR-sized dependency-aware implementation plan with optional Linear persistence | `woostack-plan` |
+| `/woostack-execute <approved plan-or-task> [--project <exact Linear URL-or-UUID>] [--issue <exact Linear URL-or-UUID>] [--inline\|--subagent]`, execute approved work as bounded Graphite PRs | `woostack-execute` |
+| `/woostack-execute-overnight <approved plan> [--project <exact Linear URL-or-UUID>] [--inline\|--subagent]`, execute approved work unattended with a truthful terminal handback | `woostack-execute-overnight` |
+| `/woostack-sweep [PR#] [--base R] [--interactive]`, drive a stack of PRs to a clean review; optional exact artifacts may receive notes | `woostack-sweep` |
+| `/woostack-commit [--issue <exact Linear URL-or-UUID>]`, commit session-relevant changes and update PR fields; artifact synchronization is optional | `woostack-commit` |
+| `/woostack-review [PR#] [--issue <exact Linear URL-or-UUID>] [--project <exact Linear URL-or-UUID>]`, review a PR or local diff with optional artifact intent | `woostack-review` |
 | `/woostack-audit <target> [--all] [--simplify\|--prod-only]`, audit standing code (a file/dir/repo at rest) for simplification + production-readiness, report-only | `woostack-audit` |
 | `/woostack-qa <url> [focus…] [--stop-first]`, exploratory-QA a running app in a real browser, report-only findings under `.woostack/qa/` | `woostack-qa` |
 | `/woostack-respond <signal> [scope…]`, investigate bounded production errors, write a sanitized report, and gate fix handoffs | `woostack-respond` |
 | `/woostack-eval <skill-path> [--behavior\|--triggers\|--all] [--runs <1..10>] [--baseline-ref <git-ref>\|--baseline-path <skill-dir>]`, evaluate an approved skill corpus without editing the target skill | `woostack-eval` |
-| `/woostack-address-comments [PR#]`, address unresolved review threads | `woostack-address-comments` |
-| `/woostack-status [--all] [--fetch]`, show the derived feature board (what's in flight, what to do next) | `woostack-status` |
+| `/woostack-address-comments [PR#] [--interactive]`, address unresolved review threads; optional exact artifacts may receive notes | `woostack-address-comments` |
+| `/woostack-status [branch|PR#|exact Linear URL-or-UUID]`, show the read-only repository-derived work board | `woostack-status` |
 | `/woostack-visualize <source> [for <audience>]`, render a source as audience-tailored HTML | `woostack-visualize` |
 | `/woostack-debug <target>`, run an autonomous root-cause analysis before fixing (investigative only — hands back the root cause and a proposed fix) | `woostack-debug` |
-| `/woostack-tdd <target>`, add appropriate tests to code, a PR, or an exact verified Linear project and issue (gate-light; TDD doctrine home) | `woostack-tdd` |
+| `/woostack-tdd <target> [--issue <exact Linear URL-or-UUID>]`, add appropriate tests to a bounded code/PR target with optional artifact context (gate-light; TDD doctrine home) | `woostack-tdd` |
 | `/woostack-dream [instructions]`, curate the memory store and recommend doc updates (gated) | `woostack-dream` |
 | `/woostack-doctor [path] [--check]`, diagnose + gated-repair `.woostack/` workspace health (store integrity + conventions; `--check` is CI-friendly exit-coded) | `woostack-doctor` |
 
@@ -137,9 +131,9 @@ These thoughts mean stop and load the relevant rules:
 | "I remember the workflow." | The installed skill may have changed. Load it. |
 | "I'll initialize `.woostack/` to be helpful." | This skill is adoption-only; mutate project state only when requested or required by the task skill. |
 | "This is only a review comment." | Review and address flows have posting, validation, and memory rules. |
-| "I'll write another plan for this project." | One verified Linear feature project owns one managed increment issue graph. Reconcile the existing graph by stable identity instead of creating another authority. |
-| "I'll just set lifecycle state from prose." | The workflow derives lifecycle from verified typed Linear events and native state, then independently reads every mutation back. |
-| "I'll identify the work by a local spec or plan." | Development work is selected only by an exact, ownership-verified Linear project or issue identity; local knowledge never becomes scope or lifecycle authority. |
+| "I'll write another plan for this project." | Reconcile the approved specification and any exact caller-supplied plan artifact instead of silently creating competing scope. |
+| "A Linear issue gives me permission to edit." | Artifacts record specs, plans, or fixes; the user request and workflow gates authorize work. |
+| "I'll infer the Linear artifact from the branch." | Artifact use is explicit. Require an exact caller-supplied URL/UUID and otherwise stay artifact-free. |
 | "I'll answer straight from the `.woostack/` store." | Recall the scoped memory for your working set first (read-only) per [`memory.md`](../woostack-init/references/memory.md); for a read-only question use `/woostack-ask`. |
 
 ## AGENTS.md Usage

@@ -1,23 +1,4 @@
 {
-  "linear": {
-    "repository": "",
-    "workspace": "",
-    "team": "",
-    "projectStatuses": {
-      "backlog": "",
-      "planned": "",
-      "started": "",
-      "completed": "",
-      "canceled": ""
-    },
-    "issueStates": {
-      "planned": "",
-      "executing": "",
-      "inReview": "",
-      "done": "",
-      "blocked": ""
-    }
-  },
   "models": {},
   "review": {},
   "respond": {},

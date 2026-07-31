@@ -4,12 +4,12 @@
   "cases": [
     {
       "id": "report-only-is-non-authoritative-and-never-mutates-linear",
-      "prompt": "Classify this deterministic /woostack-respond --stop-after report outcome without calling providers, Git, GitHub, Linear, or writing files. Facts: the provider query has a valid output-bound receipt; one repository root cause is verified; all retained evidence is sanitized; no exact managed issue was supplied. Return exactly one JSON object with keys status, reportAuthority, reportEligible, issueCandidateKind, issueBound, linearReadCount, linearMutationCount, repositorySourceMutationCount, remediationDispatched, and localDevelopmentArtifactCreated.",
+      "prompt": "Classify this deterministic /woostack-respond --stop-after report outcome without calling providers, Git, GitHub, Linear, or writing files. Facts: the provider query has a valid output-bound receipt; one repository root cause is verified; all retained evidence is sanitized; no exact Linear artifact was supplied. Return exactly one JSON object with keys status, reportAuthority, reportEligible, fixContractKind, artifactLinked, linearReadCount, linearMutationCount, repositorySourceMutationCount, remediationDispatched, and localDevelopmentArtifactCreated.",
       "fixtures": [],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The run is report-only: its sanitized report is eligible and explicitly non-authoritative, it proposes a managed issue contract, and it performs no Linear read/mutation, repository-source mutation, remediation dispatch, or local development-artifact write.",
+      "expected": "The run is report-only: its sanitized report is eligible and explicitly non-authoritative, it proposes a bounded fix contract, and it performs no Linear read/mutation, repository-source mutation, remediation dispatch, or local development-artifact write.",
       "assertions": [
         {
           "id": "report-only-completes",
@@ -35,14 +35,14 @@
         {
           "id": "candidate-is-only-proposed",
           "kind": "final-json-path-equals",
-          "pointer": "/issueCandidateKind",
-          "expected": "proposed-managed-issue-contract",
+          "pointer": "/fixContractKind",
+          "expected": "proposed-fix-contract",
           "critical": true
         },
         {
-          "id": "no-issue-bound",
+          "id": "no-artifact-linked",
           "kind": "final-json-path-equals",
-          "pointer": "/issueBound",
+          "pointer": "/artifactLinked",
           "expected": false,
           "critical": true
         },
@@ -84,26 +84,26 @@
       ]
     },
     {
-      "id": "prepare-fix-rejects-remediation-without-managed-issue-capability",
-      "prompt": "Classify this deterministic /woostack-respond prepare-fix boundary without calling providers, Git, GitHub, Linear, or writing files. Facts: a sanitized non-authoritative report and one verified root cause exist; no exact managed issue is bound; official host-exposed Linear MCP create/bind plus independent read-back capability is unavailable; the user asks to edit the repository now. Return exactly one JSON object with keys status, reasonCode, reportPreserved, issueBound, linearMutationCount, repositoryMutationCount, remediationDispatched, localFallbackUsed, and localDevelopmentArtifactCreated.",
+      "id": "prepare-fix-continues-without-linear-artifact",
+      "prompt": "Classify this deterministic /woostack-respond prepare-fix boundary without calling providers, Git, GitHub, Linear, or writing files. Facts: a sanitized non-authoritative report and one verified repository root cause exist; no Linear artifact was supplied and Linear MCP is unavailable; the user asks to proceed to remediation. Return exactly one JSON object with keys status, reasonCode, reportPreserved, artifactLinked, linearMutationCount, repositoryMutationCount, remediationDispatched, and localDevelopmentArtifactCreated.",
       "fixtures": [],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The report remains valid evidence but remediation blocks before any issue or repository mutation because one exact managed issue cannot be created/bound and independently verified; no local fallback is used.",
+      "expected": "The report remains valid non-authoritative evidence and the proposed bounded contract routes to woostack-fix for independent diagnosis and approval without any Linear prerequisite; this classification performs no Linear or repository mutation and creates no local development artifact.",
       "assertions": [
         {
-          "id": "remediation-blocks",
+          "id": "fix-handoff-ready",
           "kind": "final-json-path-equals",
           "pointer": "/status",
-          "expected": "blocked",
+          "expected": "fix-handoff-ready",
           "critical": true
         },
         {
-          "id": "managed-issue-reason",
+          "id": "linear-is-optional",
           "kind": "final-json-path-equals",
           "pointer": "/reasonCode",
-          "expected": "managed-issue-bind-create-unavailable",
+          "expected": "linear-artifact-optional",
           "critical": true
         },
         {
@@ -114,9 +114,9 @@
           "critical": true
         },
         {
-          "id": "no-issue-is-claimed",
+          "id": "no-artifact-linked",
           "kind": "final-json-path-equals",
-          "pointer": "/issueBound",
+          "pointer": "/artifactLinked",
           "expected": false,
           "critical": true
         },
@@ -128,24 +128,17 @@
           "critical": true
         },
         {
-          "id": "no-repository-mutation",
+          "id": "classification-does-not-mutate-repository",
           "kind": "final-json-path-equals",
           "pointer": "/repositoryMutationCount",
           "expected": 0,
           "critical": true
         },
         {
-          "id": "no-remediation-dispatch",
+          "id": "remediation-routed-to-fix",
           "kind": "final-json-path-equals",
           "pointer": "/remediationDispatched",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "no-alternate-authority",
-          "kind": "final-json-path-equals",
-          "pointer": "/localFallbackUsed",
-          "expected": false,
+          "expected": true,
           "critical": true
         },
         {
@@ -158,19 +151,26 @@
       ]
     },
     {
-      "id": "verified-work-item-handoff-carries-exact-owner-state",
-      "prompt": "Validate this synthetic prepare-fix handoff without calling a provider, Git, GitHub, Linear, or writing files. Facts: official-MCP independent reads uniquely verify work-item stable client UUID 11111111-1111-4111-8111-111111111111, native issue UUID 22222222-2222-4222-8222-222222222222, identifier APP-90, canonical repository https://github.com/acme/widgets, project membership absent, human assignee principal user-7, and current assignmentAccepted native comment comment-44 at revision 1 for engineer atlas/run run-9; the fix gate was explicitly approved and all receipts are complete. Return exactly one JSON object with keys status, issueClientId, issueNativeId, projectId, ownerKind, ownerPrincipalId, assignmentEventId, assignmentRevision, bindingReadBackVerified, repositoryMutationAuthorized, and localDevelopmentArtifactCreated.",
+      "id": "verified-issue-is-optional-artifact-context",
+      "prompt": "Validate this synthetic prepare-fix handoff without calling a provider, Git, GitHub, Linear, or writing files. Facts: independent official-MCP reads uniquely verify issue stable client UUID 11111111-1111-4111-8111-111111111111, native issue UUID 22222222-2222-4222-8222-222222222222, exact URL https://linear.app/acme/issue/APP-90, and read receipt read-44; the bounded fix contract was explicitly approved and repository evidence is complete. Return exactly one JSON object with keys status, artifactLinked, issueClientId, issueNativeId, artifactReadBackVerified, repositoryMutationAuthorized, authorizationSource, assignmentRequired, and localDevelopmentArtifactCreated.",
       "fixtures": [],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The repository-mutating handoff is admissible only with the exact projectless work-item IDs, verified human owner, current assignment receipt, explicit approval, and complete independent binding read-back.",
+      "expected": "The repository handoff is authorized by the approved fix contract and repository evidence; the exact independently read issue is carried only as optional artifact context and no assignment or Linear lifecycle state is required.",
       "assertions": [
         {
           "id": "handoff-ready",
           "kind": "final-json-path-equals",
           "pointer": "/status",
           "expected": "ready-for-repository-handoff",
+          "critical": true
+        },
+        {
+          "id": "artifact-linked",
+          "kind": "final-json-path-equals",
+          "pointer": "/artifactLinked",
+          "expected": true,
           "critical": true
         },
         {
@@ -188,44 +188,9 @@
           "critical": true
         },
         {
-          "id": "standalone-has-no-project",
+          "id": "artifact-read-back-is-complete",
           "kind": "final-json-path-equals",
-          "pointer": "/projectId",
-          "expected": null,
-          "critical": true
-        },
-        {
-          "id": "owner-kind-is-human",
-          "kind": "final-json-path-equals",
-          "pointer": "/ownerKind",
-          "expected": "human",
-          "critical": true
-        },
-        {
-          "id": "owner-principal-is-exact",
-          "kind": "final-json-path-equals",
-          "pointer": "/ownerPrincipalId",
-          "expected": "user-7",
-          "critical": true
-        },
-        {
-          "id": "assignment-receipt-is-carried",
-          "kind": "final-json-path-equals",
-          "pointer": "/assignmentEventId",
-          "expected": "comment-44",
-          "critical": true
-        },
-        {
-          "id": "assignment-revision-is-carried",
-          "kind": "final-json-path-equals",
-          "pointer": "/assignmentRevision",
-          "expected": 1,
-          "critical": true
-        },
-        {
-          "id": "binding-read-back-is-complete",
-          "kind": "final-json-path-equals",
-          "pointer": "/bindingReadBackVerified",
+          "pointer": "/artifactReadBackVerified",
           "expected": true,
           "critical": true
         },
@@ -234,6 +199,20 @@
           "kind": "final-json-path-equals",
           "pointer": "/repositoryMutationAuthorized",
           "expected": true,
+          "critical": true
+        },
+        {
+          "id": "approval-is-authority",
+          "kind": "final-json-path-equals",
+          "pointer": "/authorizationSource",
+          "expected": "approved-fix-contract",
+          "critical": true
+        },
+        {
+          "id": "assignment-not-required",
+          "kind": "final-json-path-equals",
+          "pointer": "/assignmentRequired",
+          "expected": false,
           "critical": true
         },
         {
@@ -246,26 +225,26 @@
       ]
     },
     {
-      "id": "unknown-issue-create-outcome-fails-closed-without-duplicate",
-      "prompt": "Classify this synthetic issue-create recovery boundary without calling a provider, Git, GitHub, Linear, or writing files. Facts: stable client UUID 33333333-3333-4333-8333-333333333333 was allocated before create; the create response timed out; an independent repository-scoped recovery read returns two ownership-valid native issues carrying that UUID. Return exactly one JSON object with keys status, reasonCode, retainedClientId, duplicateCreateAttempted, replacementUuidAllocated, issueBound, repositoryMutationCount, localFallbackUsed, and safeNextAction.",
+      "id": "unknown-artifact-create-outcome-is-scoped",
+      "prompt": "Classify this synthetic explicitly requested Linear artifact-create recovery boundary without calling a provider, Git, GitHub, Linear, or writing files. Facts: stable client UUID 33333333-3333-4333-8333-333333333333 was allocated before create; the create response timed out; an independent recovery read returns two issues carrying that UUID; the approved fix contract and repository path are otherwise valid. Return exactly one JSON object with keys status, reasonCode, retainedClientId, duplicateCreateAttempted, replacementUuidAllocated, artifactLinked, repositoryWorkBlocked, localFallbackUsed, and safeNextAction.",
       "fixtures": [],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Ambiguous read-back is an unknown mutation outcome: preserve the stable UUID, block, create no duplicate/replacement, perform no repository mutation, and require conflict resolution against the exact two native IDs.",
+      "expected": "The optional artifact synchronization blocks as an ambiguous unknown outcome: preserve the stable UUID, create no duplicate or replacement, link no artifact, and require exact conflict resolution. The ambiguity does not invalidate the approved artifact-free repository workflow.",
       "assertions": [
         {
-          "id": "unknown-outcome-blocks",
+          "id": "artifact-sync-blocks",
           "kind": "final-json-path-equals",
           "pointer": "/status",
-          "expected": "blocked",
+          "expected": "artifact-sync-blocked",
           "critical": true
         },
         {
           "id": "ambiguous-recovery-reason",
           "kind": "final-json-path-equals",
           "pointer": "/reasonCode",
-          "expected": "ambiguous-issue-create-read-back",
+          "expected": "ambiguous-artifact-create-read-back",
           "critical": true
         },
         {
@@ -290,17 +269,17 @@
           "critical": true
         },
         {
-          "id": "no-issue-is-claimed-bound",
+          "id": "no-artifact-is-linked",
           "kind": "final-json-path-equals",
-          "pointer": "/issueBound",
+          "pointer": "/artifactLinked",
           "expected": false,
           "critical": true
         },
         {
-          "id": "no-repository-mutation-after-unknown",
+          "id": "repository-work-remains-independent",
           "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0,
+          "pointer": "/repositoryWorkBlocked",
+          "expected": false,
           "critical": true
         },
         {
@@ -314,7 +293,7 @@
           "id": "safe-action-is-exact-conflict-resolution",
           "kind": "final-json-path-equals",
           "pointer": "/safeNextAction",
-          "expected": "resolve duplicate native issues for retained client UUID",
+          "expected": "resolve duplicate artifact resources for retained client UUID",
           "critical": true
         }
       ]

@@ -1,32 +1,28 @@
 ---
 title: Overview
-description: "woostack's Linear collaboration model, gated workflows, authority boundaries, and context-management practices."
+description: "woostack's gated workflows, optional artifacts, authority boundaries, and context-management practices."
 ---
 
-woostack coordinates multiperson development through the
-[official Linear MCP](https://mcp.linear.app/mcp). Linear is the only development-record authority,
-while Git and GitHub remain authoritative for code and pull requests. Every repository-changing
-workflow is attributable to one exact issue.
+woostack coordinates multiperson development through explicit workflow contracts, isolated
+implementation, and independent review. Git and GitHub own code and pull-request truth. Linear
+projects/issues are optional artifacts for specifications, plans, and fixes.
 
-There are two record shapes. A bounded one-PR fix or change uses one standalone issue. Multi-issue
-work uses one Linear project, specification-bearing project updates, and an ordered set of
-independently shippable increment issues; no Linear document is created. Across both shapes,
-explicit gates, isolated implementation, and independent review keep decisions visible and
-ownership clear.
+Bounded one-PR fixes or changes use one approved task contract. Multi-increment work uses an
+approved specification and ordered set of independently shippable increments. Either shape may
+remain artifact-free or synchronize exact caller-supplied Linear resources.
 
 Local memory and wisdom remain reusable engineering knowledge, not project state. Local diagnostic
-reports remain non-authoritative evidence. The pages below explain each boundary without
-duplicating the canonical skill contracts.
+reports remain non-authoritative evidence.
 
 <Cards>
-  <Card title="Building rules" href="/docs/concepts/building-rules" description="The three-gate project loop, standalone issue path, and Linear/GitHub authority split." />
-  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Bootstrap, Build, Fix, and Change under the same Linear MCP contract." />
-  <Card title="Engineer agents" href="/docs/concepts/engineer-agents" description="Separate decision authority from one-issue-at-a-time implementation in an isolated coding profile." />
+  <Card title="Building rules" href="/docs/concepts/building-rules" description="The three-gate project loop, standalone path, and repository authority boundary." />
+  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Bootstrap, Build, Fix, and Change with optional artifact persistence." />
+  <Card title="Engineer agents" href="/docs/concepts/engineer-agents" description="Separate decision authority from one-task-at-a-time isolated implementation." />
   <Card title="Least code, still safe" href="/docs/concepts/least-code" description="Write as little code as necessary without cutting edge cases or risks." />
   <Card title="Memory" href="/docs/concepts/memory" description="Use scoped memory and shared wisdom as reusable knowledge, never development authority." />
   <Card title="Context management" href="/docs/concepts/context-management" description="Keep reasoning focused with compact reads, isolated sessions, and explicit handoffs." />
-  <Card title="Parallelism with worktrees" href="/docs/concepts/worktrees" description="Isolate assigned issues in separate Git worktrees so dependency-independent work can proceed safely." />
-  <Card title="Tracking work with Linear" href="/docs/concepts/status-tracking" description="Join authoritative Linear work records with authoritative GitHub PR and merge evidence." />
+  <Card title="Parallelism with worktrees" href="/docs/concepts/worktrees" description="Isolate bounded tasks in separate Git worktrees for safe concurrency." />
+  <Card title="Tracking work" href="/docs/concepts/status-tracking" description="Derive a current board from Git, Graphite, and GitHub with optional artifacts." />
   <Card title="Review angles" href="/docs/concepts/review-angles" description="All 22 review angles: what each one audits, when it auto-fires, and which model tier it runs at." />
   <Card title="Utilities" href="/docs/concepts/utilities" description="Use read-only and diagnostic skills without creating a second development record." />
 </Cards>

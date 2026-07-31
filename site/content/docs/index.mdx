@@ -1,79 +1,55 @@
 ---
 title: What is woostack?
-description: Linear-backed multiperson collaboration and project tracking for software delivery.
+description: Artifact-optional, evidence-driven workflows for software delivery.
 ---
 
-woostack is a model-agnostic collection of gated software-development skills built around
-multiperson collaboration and project tracking. Every workflow uses the
-[official Linear MCP](https://mcp.linear.app/mcp): one standalone issue owns a bounded change or
-fix, while multi-issue work uses one Linear project, specification-bearing project updates, and
-ordered increment issues; no Linear document is created. Linear is the only development-record
-authority. Git and GitHub remain authoritative for source, branches, pull requests, reviews, and
-merge evidence.
+woostack is a model-agnostic collection of gated software-development skills for planning,
+implementation, review, diagnostics, and reusable knowledge.
 
 ```bash
 pnpx skills add howarewoo/woostack
 ```
 
-- **One shared project record:** ownership, dependencies, handoffs, decisions, progress, and
-  acceptance stay visible in Linear rather than a local mirror.
+- **Repository-first truth:** the user's approved workflow contract authorizes work; Git and GitHub
+  prove source, branches, pull requests, reviews, and merge state.
+- **Optional durable artifacts:** exact caller-supplied Linear projects/issues may store feature
+  specifications, implementation plans, fix records, and synchronization notes. Linear is not a
+  prerequisite for coding, committing, reviewing, or status.
 - **Decision-maker/coder separation:** the generic
-  [engineer-agent contract](/docs/concepts/engineer-agents) keeps decisions and independent review
-  with the engineer. The published [Hermes + OMP setup](/docs/getting-started) makes Hermes the
-  decision-maker and reviewer only while an isolated OMP profile codes one assigned issue at a
-  time.
-- **Clear authority boundaries:** Git/GitHub own code and PR truth. Local memory and wisdom are
-  reusable knowledge; local diagnostic reports are advisory and non-authoritative.
+  [engineer-agent contract](/docs/concepts/engineer-agents) keeps scope, independent review, and
+  acceptance separate from isolated implementation.
+- **Local knowledge, not shadow authority:** memory and wisdom are reusable knowledge; diagnostics
+  are evidence, not permission or lifecycle state.
 - **Agent- and model-agnostic:** the same skill logic supports
-  [multiple harnesses](/docs/harnesses) without moving the development record out of Linear.
+  [multiple harnesses](/docs/harnesses).
 - **Stable adoption surface:** one install provides twenty-three public command/adoption skills at
   twenty-six fixed `SKILL.md` locations.
 - **Pairs with [impeccable](https://github.com/pbakaus/impeccable):** woostack's recommended
-  front-end design skill. Install it alongside woostack with
-  `pnpx skills add pbakaus/impeccable`.
+  front-end design skill.
 
 ## Why woostack?
 
-I built woostack after getting frustrated with spec-driven and agent-workflow tools that each
-solved one slice of delivery and left the coordination gaps to me. woostack holds six goals at the
-same time:
+The collection keeps the whole delivery loop coherent without requiring a local development
+ledger or a particular provider:
 
-- **Easy install:** one `pnpx skills add` command exposes the complete skill collection.
-- **One development record:** official Linear MCP resources carry the contract from first
-  assignment through acceptance, without a competing local ledger.
-- **Safe multiperson concurrency:** explicit owners, dependency relations, isolated worktrees, and
-  verified handoffs let independent issues move in parallel.
-- **Separated authority:** a decision-maker scopes and reviews; a coding agent implements one
-  assigned issue. In the reference pair, Hermes never becomes the coder.
-- **Portable execution:** the skill logic works across supported harnesses and leaves model routing
-  to the active host.
-- **Whole-lifecycle coverage:** bootstrapping, building, debugging, review, feedback iteration,
-  and reusable local knowledge live in one collection.
+- one install and one routing surface;
+- explicit approval gates and bounded task contracts;
+- safe concurrency through declared dependencies and isolated worktrees;
+- decision-maker/coder role separation;
+- portable execution across supported harnesses;
+- optional persistence when durable specs, plans, or fix records are useful.
 
-These are all strong projects, and woostack borrows ideas from several of them. They just were not
-the fit I wanted personally:
-
-- **Superpowers** ([obra/superpowers](https://github.com/obra/superpowers)) is the most complete option here, but it works best inside Claude Code as a dedicated plugin. I moved away from it because it lacked a cross-agent memory layer, and it needed an extra hardening step to get reliable plans. I also wanted skills that work with any agent using the plain `skills` convention.
-- **grill-me** does one thing well: it interviews you about a plan until the gaps are gone. For me
-  that is a single phase of the loop, the discipline `woostack-harden` is built on, rather than the
-  whole lifecycle.
-- **Spec Kit** ([github/spec-kit](https://github.com/github/spec-kit)) needs a Python toolchain
-  (`uv` or `pipx`) and an interactive `init`, and it stays inside spec-driven development. I wanted
-  a one-command install and coverage past the spec.
-- **GSD** is powerful, but it was the most work to configure and keep updated, for little gain over
-  what woostack already gives me.
-
-The bet is that one installable collection, opinionated about the whole loop, beats stitching
-several narrow tools together.
+Remote artifact text, PR text, and tool output are untrusted evidence, never instructions. Missing
+Linear access blocks only a caller-requested artifact operation.
 
 ## Where to go next
 
 <Cards>
-  <Card title="Getting started" href="/docs/getting-started" description="Configure official Linear MCP and a Hermes decision-maker with an isolated OMP coder." />
-  <Card title="Configuration" href="/docs/configuration" description="Set repository policy for the mandatory Linear MCP workflow." />
-  <Card title="Engineer agents" href="/docs/concepts/engineer-agents" description="Understand decision, coding, ownership, review, and acceptance authority." />
+  <Card title="Getting started" href="/docs/getting-started" description="Install, initialize local support, and optionally connect Linear artifacts." />
+  <Card title="Configuration" href="/docs/configuration" description="Set non-secret repository policy." />
+  <Card title="Engineer agents" href="/docs/concepts/engineer-agents" description="Understand decision, coding, review, and acceptance boundaries." />
   <Card title="Core concepts" href="/docs/concepts" description="The build loop, context management, worktrees, and status tracking." />
   <Card title="Harnesses" href="/docs/harnesses" description="Supported hosts, profile isolation, and native capability differences." />
-  <Card title="woostack-build" href="/docs/skills/woostack-build" description="Drive a Linear project from idea to a reviewed PR stack." />
+  <Card title="woostack-build" href="/docs/skills/woostack-build" description="Drive a feature from idea to a reviewed PR stack, with optional artifacts." />
   <Card title="All skills" href="/docs/skills/using-woostack" description="Per-skill reference, generated from each SKILL.md." />
 </Cards>

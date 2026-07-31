@@ -27,7 +27,7 @@
   "observability_gaps": [
     "Provision a read-only error query integration"
   ],
-  "issue_dispositions": [],
+  "remediation_contracts": [],
   "blocked_evidence": [
     "error-tracking: query capability unavailable"
   ]

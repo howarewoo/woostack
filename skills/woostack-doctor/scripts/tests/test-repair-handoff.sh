@@ -1,33 +1,28 @@
 #!/usr/bin/env bash
+# Structural contract: tracked doctor repairs route through artifact-free change.
 set -euo pipefail
-
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)"
-DOCTOR="$ROOT/skills/woostack-doctor/SKILL.md"
-CHANGE="$ROOT/skills/woostack-change/SKILL.md"
-
-require_text() {
-  local file="$1" text="$2"
-  grep -Fq -- "$text" "$file" || {
-    printf 'missing repair handoff contract in %s: %s\n' "$file" "$text" >&2
-    exit 1
-  }
-}
-
-reject_text() {
-  local file="$1" text="$2"
-  if grep -Fq -- "$text" "$file"; then
-    printf 'forbidden repair handoff contract in %s: %s\n' "$file" "$text" >&2
-    exit 1
-  fi
-}
-
-require_text "$DOCTOR" 'routes approved tracked repairs through [`woostack-change`](../woostack-change/SKILL.md) before'
-require_text "$DOCTOR" 'before invoking any `--fix` path.'
-require_text "$DOCTOR" 'binds or creates the standalone issue, records the approved bounded contract'
-require_text "$DOCTOR" 'Doctor never hands tracked repairs directly to `woostack-commit`.'
-require_text "$DOCTOR" 'approved repair is filesystem-only, run `orphan-worktree --fix`'
-require_text "$CHANGE" 'Before any tracked repository edit, the issue'
-require_text "$CHANGE" 'binds or creates exactly'
-reject_text "$DOCTOR" 'After file repairs, hand to [`woostack-commit`]'
-
-printf 'doctor repair handoff contract: PASS\n'
+python3 - "$ROOT" <<'PY'
+import re, sys
+from pathlib import Path
+root=Path(sys.argv[1])
+doctor=re.sub(r"\s+"," ",(root/"skills/woostack-doctor/SKILL.md").read_text())
+change=re.sub(r"\s+"," ",(root/"skills/woostack-change/SKILL.md").read_text())
+checks=[
+ (doctor,r"routes approved tracked repairs through.*woostack-change","tracked repair routing"),
+ (doctor,r"before invoking any `--fix` path","pre-mutation routing"),
+ (doctor,r"records the approved bounded contract in the active run","in-run repair contract"),
+ (doctor,r"never hands tracked repairs directly to `woostack-commit`","commit boundary"),
+ (doctor,r"filesystem-only.*orphan-worktree --fix","filesystem-only repair"),
+ (doctor,r"Approved tracked repairs run through artifact-free `woostack-change`","artifact-free repair"),
+ (change,r"Without it, make no Linear call and never create an issue implicitly","change artifact default"),
+]
+failures=[msg for text,pat,msg in checks if not re.search(pat,text,re.I|re.S)]
+if re.search(r"binds or creates.*issue|Linear is the only development authority",doctor,re.I|re.S):
+ failures.append("doctor retains mandatory issue authority")
+if failures:
+ print("doctor repair contract violations:",file=sys.stderr)
+ print("\n".join(f"- {f}" for f in failures),file=sys.stderr)
+ raise SystemExit(1)
+print("doctor artifact-free repair handoff: ok")
+PY

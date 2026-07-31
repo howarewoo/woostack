@@ -1,74 +1,32 @@
 #!/usr/bin/env bash
-# Contract test: an expected bottom-up restack conflict enters autonomous semantic
-# recovery; only a conflict that cannot be resolved and verified safely blocks.
-set -uo pipefail
-HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$HERE/../../../woostack-init/scripts/tests/assert.sh"
-set +e
-
-SKILL="$HERE/../../SKILL.md"
-body="$(cat "$SKILL")"
-
-restack="$(printf '%s' "$body" | awk '/^4\. \*\*Restack this stack only\*\*/{f=1} /^5\. \*\*Re-review/{f=0} f')"
-restack_flat="$(printf '%s' "$restack" | tr '\n' ' ' | tr -s ' ')"
-assert_contains "$restack_flat" 'git status --short' \
-  "restack recovery enumerates the paused worktree state"
-assert_contains "$restack_flat" 'git ls-files -u' \
-  "restack recovery inspects every unmerged index stage"
-assert_contains "$restack_flat" 'git diff --cc' \
-  "restack recovery inspects the semantic combined diff"
-assert_contains "$restack_flat" 'git rebase --show-current-patch' \
-  "restack recovery reads the descendant commit being replayed"
-assert_contains "$restack_flat" 'focused verification' \
-  "restack recovery verifies the reconciled behavior"
-assert_contains "$restack_flat" 'isolated sandbox' \
-  "focused verification runs only inside an isolated sandbox"
-assert_contains "$restack_flat" 'repository secrets and credentials removed' \
-  "focused verification cannot inherit repository credentials"
-assert_contains "$restack_flat" 'outbound networking disabled' \
-  "focused verification cannot exfiltrate over the network"
-assert_contains "$restack_flat" 'without executing verification' \
-  "missing isolation blocks before descendant code executes"
-assert_contains "$restack_flat" 'git diff --name-only --diff-filter=U -z | git --literal-pathspecs add --pathspec-from-file=- --pathspec-file-nul' \
-  "restack recovery stages conflict paths without shell interpolation or pathspec magic"
-assert_contains "$restack_flat" '`gt continue`' \
-  "restack recovery resumes the halted Graphite command"
-assert_contains "$restack_flat" 'Repeat' \
-  "later descendant conflicts re-enter the recovery loop"
-assert_contains "$restack_flat" 'before `gt submit --stack`' \
-  "stack submission follows successful conflict continuation"
-assert_contains "$restack_flat" 'Never resolve by choosing an entire `ours` or `theirs` side' \
-  "semantic recovery cannot discard one side wholesale"
-assert_contains "$restack_flat" 'rename/delete' \
-  "semantic recovery covers rename and delete conflicts"
-assert_contains "$restack_flat" 'non-text conflicts' \
-  "semantic recovery covers non-text conflicts"
-assert_contains "$restack_flat" 'never `git add -A` or `gt continue -a`' \
-  "recovery cannot stage unrelated worktree changes"
-assert_not_contains "$restack_flat" 'A restack/rebase conflict is a **blocker**.' \
-  "the mere occurrence of a restack conflict is not a blocker"
-
-blockers="$(printf '%s' "$body" | awk '/^## Blocker & terminal state/{f=1; next} /^## Config/{f=0} f')"
-blockers_flat="$(printf '%s' "$blockers" | tr '\n' ' ' | tr -s ' ')"
-assert_contains "$blockers_flat" 'ambiguous' \
-  "an ambiguous conflict remains a blocker"
-assert_contains "$blockers_flat" 'cannot be verified safely' \
-  "an unverifiable conflict remains a blocker"
-assert_contains "$blockers_flat" '`gt continue` fails' \
-  "a failed Graphite continuation remains a blocker"
-assert_contains "$blockers_flat" 'focused verification fails' \
-  "a failed focused verification remains a blocker"
-assert_contains "$blockers_flat" 'another `gt restack` failure occurs' \
-  "a non-conflict restack failure remains a blocker"
-assert_contains "$blockers_flat" 'unresolved paths and failed command' \
-  "a conflict blocker reports actionable evidence"
-assert_contains "$blockers_flat" 'leave the paused worktree and rebase state intact' \
-  "a conflict blocker preserves recoverable state"
-
-hard="$(printf '%s' "$body" | awk '/^## Hard constraints/{f=1} f')"
-assert_contains "$hard" 'Resolve expected restack conflicts' \
-  "Hard constraints preserve autonomous conflict recovery"
-assert_contains "$hard" 'Stop only when conflict intent is ambiguous or unsafe' \
-  "Hard constraints preserve the safe stop boundary"
-
-finish
+# Structural contract for collision-safe stack-scoped restacks.
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)"
+python3 - "$ROOT" <<'PY'
+import re, sys
+from pathlib import Path
+text=re.sub(r"\s+"," ",(Path(sys.argv[1])/"skills/woostack-sweep/SKILL.md").read_text())
+checks={
+ "descendant inventory":r"inventory every descendant branch/PR.*including descendants above the requested display range",
+ "fresh state":r"current local/remote head, base, Graphite parent, canonical PR, worktree claim, dirty state, and approved task/dependency contract",
+ "collision gate":r"disjoint worktrees and no competing operation, unpushed work, unexplained checkout, ancestry mismatch, or collision",
+ "operation identity":r"bind one operation identity to the exact affected set and current heads",
+ "fresh reread":r"re-read all facts immediately before mutation",
+ "Graphite only":r"stack-scoped `gt restack`; never `gt sync`, force-push, or a repo-wide rewrite",
+ "semantic conflict":r"inspect every unmerged index stage and the replayed patch.*Reconcile both PR intents",
+ "no side discard":r"never choose an entire `ours` or `theirs` side",
+ "exact staging":r"Stage only resolved paths and continue with the exact Graphite command",
+ "decision stop":r"Abort and preserve state when the conflict requires a product/scope decision",
+ "post verification":r"verify every affected descendant's new head/base/ancestry.*focused checks.*re-review",
+ "submit affected":r"Submit only the exact affected stack after all resulting heads are verified",
+ "unknown outcome":r"Unknown mutation outcome requires full discovery before retry",
+ "reopen guard":r"same PR/head/task contract remains.*no competing claim or checkout exists",
+ "no destructive recovery":r"Never delete, reset, stash, overwrite, or create around unexplained state",
+}
+failures=[name for name,pat in checks.items() if not re.search(pat,text,re.I|re.S)]
+if failures:
+ print("sweep restack contract violations:",file=sys.stderr)
+ print("\n".join(f"- {f}" for f in failures),file=sys.stderr)
+ raise SystemExit(1)
+print("collision-safe sweep restack: ok")
+PY

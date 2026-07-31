@@ -82,7 +82,7 @@ else:
             "",
             f"**Bounded remediation direction:** {direction}",
             "",
-            "#### Proposed managed issue contract",
+            "#### Proposed bounded remediation contract",
             "",
             f"- **Canonical repository:** {repository}",
             f"- **Proved problem/root cause:** {title} — {description}",

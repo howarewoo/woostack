@@ -66,26 +66,22 @@ does not consume this file as a template. Keep both in sync. -->
 
 Authority: non-authoritative diagnostic evidence
 
-Exactly one disposition is emitted for each verified repository cause. External/non-code incidents
-receive no repository issue disposition.
+Exactly one proposed fix contract is emitted for each verified repository cause.
+External/non-code incidents receive no remediation contract.
 
-### <cause id> — proposed-managed-issue-contract
+### <cause id> — proposed-fix-contract
 
 - Canonical repository: <repository>
 - Proved problem: <verified problem/root cause>
 - Bounded scope: <source scope>
 - Evidence: <sanitized evidence pointer>
 - Observable acceptance criterion: <observable behavior>
+- Optional Linear artifact: none
 
-**OR**, when an exact supplied issue passed complete official-MCP verification:
+**OR**, when an exact supplied issue passed complete official-MCP read-back:
 
-### <cause id> — verified-existing-issue-evidence
-
-- Issue: <stable UUID> / <native ID> / <URL>
-- Role/project: <role> / <project stable/native IDs | explicitly projectless>
-- Owner: <human|app> / <native principal ID>
-- Assignment: <current receipt | independently verified absent>
-- Independent read: <receipt ID> at <timestamp>
+- Optional Linear artifact: <stable UUID> / <native ID> / <URL>
+- Artifact read-back: <receipt ID> at <timestamp>
 
 ## Uncovered and Blocked Evidence
 

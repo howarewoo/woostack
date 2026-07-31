@@ -1,28 +1,30 @@
 #!/usr/bin/env bash
+# Structural contract: approved task/plan admission is primary; Linear is optional.
 set -euo pipefail
-
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-ROOT="$(cd "$DIR/../../.." && pwd)"
-source "$ROOT/skills/woostack-init/scripts/tests/assert.sh"
-
-SKILL="$ROOT/skills/woostack-execute/SKILL.md"
-CONTROLLER="$ROOT/skills/woostack-execute/references/controller.md"
-FIX="$ROOT/skills/woostack-fix/SKILL.md"
-
-controller="$(tr '\n' ' ' < "$CONTROLLER" | tr -s ' ')"
-assert_contains "$(cat "$SKILL")" '/woostack-execute <exact standalone issue UUID-or-URL>' \
-  "execute admits an exact standalone work-item identity"
-assert_contains "$(cat "$SKILL")" 'issue number, recency, branch, PR, or local file.' \
-  "execute rejects display identifiers as authority"
-assert_contains "$(cat "$SKILL")" '/woostack-commit --issue <exact verified issue UUID-or-URL>' \
-  "standalone execution passes exact issue identity to commit"
-assert_contains "$controller" 'calls no repository Linear adapter or custom HTTP/GraphQL transport' \
-  "standalone execution bypasses repository adapter routing"
-assert_contains "$(cat "$SKILL")" 'Standalone execution performs no project read or mutation' \
-  "standalone execution cannot mutate project lifecycle"
-assert_contains "$(cat "$CONTROLLER")" 'with the exact issue and optional' \
-  "project execution passes exact issue identity to commit"
-assert_contains "$(cat "$FIX")" '/woostack-execute <exact Linear issue UUID-or-URL> --subagent' \
-  "fix hands the standalone issue to the supported execute route"
-
-finish
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)"
+python3 - "$ROOT" <<'PY'
+import re, sys
+from pathlib import Path
+root = Path(sys.argv[1])
+skill = re.sub(r"\s+", " ", (root / "skills/woostack-execute/SKILL.md").read_text())
+controller = re.sub(r"\s+", " ", (root / "skills/woostack-execute/references/controller.md").read_text())
+checks = [
+    (skill, r"approved task/plan is required", "approved input missing"),
+    (skill, r"Without artifact flags, make no Linear call", "artifact-free route missing"),
+    (skill, r"never assign workers or grant authority", "artifact authority boundary missing"),
+    (skill, r"one dependency-ready task per cycle", "one-task cycle missing"),
+    (skill, r"Never infer readiness from.*Linear status", "artifact state can select work"),
+    (controller, r"Artifact-free execution is the default", "controller defaults to artifacts"),
+    (controller, r"selection admits one task per controller cycle", "controller can admit multiple tasks"),
+    (controller, r"Optional artifact IDs are context only", "worker packet grants artifact authority"),
+]
+failures=[msg for text,pat,msg in checks if not re.search(pat,text,re.I|re.S)]
+for text,label in ((skill,"skill"),(controller,"controller")):
+    if re.search(r"`--issue` is required|Linear is the only development-record|must create.*issue",text,re.I|re.S):
+        failures.append(f"{label}: mandatory issue prerequisite returned")
+if failures:
+    print("execution admission contract violations:", file=sys.stderr)
+    print("\n".join(f"- {f}" for f in failures), file=sys.stderr)
+    raise SystemExit(1)
+print("repository-first execution admission: ok")
+PY

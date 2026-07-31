@@ -1,6 +1,6 @@
 ---
 name: woostack-build
-description: Use when building a multi-increment feature through one repository-owned Linear project — approve the design, harden and approve its project-update specification, plan dependency-aware increment issues, then hand execution through exactly three gates.
+description: Use when building a multi-increment feature — approve the design, harden and approve its specification, produce a dependency-aware plan, then hand execution through exactly three gates. Linear persistence is optional.
 ---
 
 # woostack-build
@@ -8,107 +8,90 @@ description: Use when building a multi-increment feature through one repository-
 ## Overview
 
 Drive one multi-increment feature from idea to a reviewed Graphite stack or a truthful handoff or
-blocker. Official host-exposed Linear MCP is the only development-record authority. One
-repository-owned `feature` project holds the goal and coarse native status; append-only typed
-project updates hold the specification, decisions, lifecycle, progress, blockers, and handoff; one
-managed `increment` issue holds each independently shippable implementation contract.
+blocker. The workflow owns three decisions: approve the design, approve the written specification,
+and approve execution of the plan. Linear projects and issues may persist those artifacts, but are
+never required and never authorize repository work.
 
 Git and GitHub remain authoritative for source, branches, commits, PRs, reviews, and merge
 evidence. Build never creates a docs-only base PR and never merges.
 
-This skill is for project-backed multi-increment feature work. A bounded one-issue fix or change
-has no wrapper project and remains outside this workflow; its unchanged ownership contract lives in
-the canonical
-[Linear MCP development authority](../woostack-init/references/artifact-backends.md).
+This skill is for multi-increment feature work. A bounded one-PR fix or change remains outside this
+workflow.
 
-## Authority and context
+## Authority and artifact context
 
-Before any development-record read, load:
+The user's request and the three explicit gates authorize this workflow. The approved design,
+specification, and implementation plan may remain in the active conversation or use a
+repository-authorized artifact.
 
-1. the [canonical Linear authority](../woostack-init/references/artifact-backends.md);
+Linear persistence is opt-in. When the caller supplies an exact project URL/UUID or explicitly asks
+for artifact synchronization, load:
+
+1. the [optional artifact contract](../woostack-init/references/artifact-backends.md);
 2. the [repository/project context procedure](references/linear-context.md); and
-3. the [Linear project lifecycle procedure](references/linear-procedure.md).
+3. the [Linear synchronization procedure](references/linear-procedure.md).
 
-Establish exactly one canonical repository URL, configured workspace/team, complete native status
-maps, and official MCP capability set. Discover MCP operations by capability rather than hard-coded
-tool names, and treat the linked authority contract as exhaustive.
-
-A project is identified by its stable client UUID, canonical repository URL, exact `woostack`
-label, role `feature`, and verified native ID. Titles are never identity. Resume only from a
-complete independent read that yields exactly one ownership-valid project and exactly one current
-unsuperseded phase chain. Zero, duplicate, foreign, partial, stale, or conflicting matches fail
-closed before mutation.
+Those procedures govern artifact identity, append-only updates, and read-back only. They do not
+grant approval, assignment, implementation permission, or acceptance. Without explicit artifact
+selection, do not contact Linear and skip every provider-specific step below.
 
 ## Fixed chain
 
 ```text
-ideate → designApproved → harden specification → specHardened → specApproved →
-planning → harden increment graph → ready → executionApproved → execute → inReview → done
+ideate → approve design → harden specification → approve specification →
+plan → harden increment graph → approve execution → execute → review → hand back
 ```
 
-The only deliberate backward phase transition is evidence-backed `ready → planning`. Any active
-phase may explicitly become `abandoned`; `done` and `abandoned` are terminal. Blocker events pause
-the native project without changing the fine-grained phase. Corrections append revisions and never
-edit or delete history.
+The workflow may return from a ready plan to planning only before implementation begins. An active
+run may be explicitly abandoned. When optional Linear persistence is selected, corresponding
+append-only phase and blocker events may mirror these transitions.
 
 ## Exactly three hard gates
 
 Build owns exactly these three barriers, in this order:
 
-1. **design-approval** — an explicit approved design authorizes project creation and the first
-   verified `designApproved` update. No Linear development resource exists before this gate.
-2. **spec-approval** — the current complete `specHardened` update is presented for explicit
-   approval. Planning cannot begin until a verified `specApproved` successor records that
-   approval.
-3. **execution-handoff** — the hardened issue graph, verified `ready` head, and frozen repository
-   base evidence are presented. No implementation branch, worktree, commit, or PR may exist before
-   an explicit execution choice and verified `executionApproved` successor.
+1. **design-approval** — explicit approval freezes the complete design.
+2. **spec-approval** — the current complete hardened specification is presented for explicit
+   approval. Planning cannot begin before this decision.
+3. **execution-handoff** — the hardened dependency-aware plan and frozen repository base evidence
+   are presented. No implementation branch, worktree, commit, or PR may exist before an explicit
+   execution choice.
 
-Harden, reconciliation, lifecycle writes, corrections, read-backs, replans, blocker handling, and
-native status updates are work steps, not extra gates. Silence, implication, an MCP mutation
-response, or a native status name never clears a gate.
+Hardening, planning, reconciliation, optional artifact synchronization, blocker handling, and
+read-backs are work steps, not extra gates. Silence, implication, or a provider response never
+clears a gate.
 
 ## Terminal choices at the execution handoff
 
-- **Go** — after verifying that the current [`woostack-execute`](../woostack-execute/SKILL.md)
-  contract accepts retained project-event context, append and independently verify
-  `executionApproved`, then invoke it with that context.
-- **Run overnight** — after the same compatibility check, append and independently verify the same
-  approval, then invoke [`woostack-execute-overnight`](../woostack-execute-overnight/SKILL.md).
-- **Hand off** — append and independently verify a non-phase `handoff` update, leave the phase at
-  `ready`, create no implementation Git artifact, and return the project URL and ordered issues.
+- **Go** — invoke [`woostack-execute`](../woostack-execute/SKILL.md) with the approved plan and any
+  explicitly selected artifact context.
+- **Run overnight** — invoke
+  [`woostack-execute-overnight`](../woostack-execute-overnight/SKILL.md) with the same approved plan.
+- **Hand off** — return the approved specification, ordered plan, repository base, and any exact
+  artifact links without creating an implementation Git artifact.
 
-An incompatible executor is a blocker at `ready`, not a reason to dispatch legacy
-backend/document input. In that case append no `executionApproved` and create no Git artifact.
-
-An explicit **Replan** returns `ready → planning` only after independent Linear and GitHub reads
-prove that every managed increment has no branch or PR. It does not clear the handoff gate. An
-explicit **Abandon** appends `abandoned`, verifies native `canceled`, preserves history, and stops;
-it does not clear a gate.
+An incompatible executor is a blocker, not a reason to silently change the contract. **Replan**
+returns to planning only when Git/GitHub evidence proves no implementation branch or PR exists.
+**Abandon** preserves evidence and stops. Optional artifact mode mirrors these outcomes only after
+independent read-back.
 
 ## Hard constraints
 
-- **One feature authority.** `project : project updates : increment issues : implementation PRs =
-  1 : N : N : at-most-N` with exactly one current lifecycle chain.
+- **One feature contract.** One approved specification maps to one dependency-aware plan whose
+  increments are independently shippable and create at most one PR each.
 - **Exactly three gates.** Design approval, written-spec approval, and execution handoff are the
   only hard stops. Plan hardening owns no approval gate.
-- **Stable append-only events.** Allocate client UUIDs before mutation. Corrections use the same
-  event UUID, the next revision, exact predecessor, and exact superseded native ID; duplicate
-  revisions or multiple current heads block.
-- **Verified mutations only.** Independently read every create, update, transition, assignment,
-  relation, comment, and project update back. Unknown outcomes retain their UUIDs and stop; they do
-  not trigger replacement resources or same-phase retries.
-- **Coarse native status only.** Fine-grained phase comes from the typed chain. Native categories
-  are `backlog` through planning, `planned` for ready/approval and while any verified project
-  blocker remains unresolved, `started` for execution/review, `completed` after verified done,
-  and `canceled` after abandonment.
-- **One development authority.** Resolve scope, lifecycle, progress, and acceptance only from
-  independently verified official Linear MCP resources under the canonical authority contract.
-  Keep Git and GitHub authoritative for source, branches, pull requests, reviews, and merge evidence.
+- **Artifacts are optional.** Linear projects/issues may persist specifications and plan
+  increments. They never authorize work, assign an engineer, own a branch, or override direct
+  repository evidence.
+- **Verified artifact mutations only.** In optional Linear mode, allocate stable identities before
+  mutation and independently read every write back. Unknown outcomes stop artifact synchronization
+  without fabricating a replacement.
+- **Git/GitHub truth.** Verify source, ancestry, PR, review, and merge facts directly.
 - **Fail closed.** Missing predecessors, illegal transitions, duplicate revisions, supersession
   errors, multiple current heads, ownership drift, relation drift, conflicting evidence, or
   incomplete read-back stops at the boundary and reports the precise blocker.
-- **Stop before implementation.** No implementation Git artifact exists before `Go` or
-  `Run overnight` and verified `executionApproved` read-back.
+- **Stop before implementation.** No implementation Git artifact exists before an explicit `Go` or
+  `Run overnight`; optional artifact synchronization may follow but never supplies that approval.
 - **Never merge.** Build may deliver a reviewed stack, a handoff, abandonment, or a truthful
   blocker; merge remains human-owned.

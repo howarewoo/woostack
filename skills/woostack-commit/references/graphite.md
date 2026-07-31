@@ -1,91 +1,75 @@
-# Graphite mechanics
+# Graphite branch and submission boundary
 
-Load this reference only when branch, commit, or submission work needs Graphite command details.
+Use this reference for repository history mutation in `woostack-commit`. It is task/branch based;
+Linear is not required.
 
-## Select the exact issue branch path
+## Resolve the task branch
 
-The root workflow supplies the verified native issue identity, role, repository, owner/assignment,
-start commit, Graphite parent, deterministic display branch, exact-ID registry claim, and canonical
-`$WOOSTACK_ROOT/.woostack/worktrees/issues/<native-issue-id>` path. Branch display text is never
-identity.
+The caller supplies the approved bounded task, stable task/run identity, canonical repository,
+integration base/start commit, intended Graphite parent, worktree, and reviewed diff identity.
+Before mutation verify:
 
-### Reuse an existing caller-created branch
+- exact physical repository/worktree and current branch/HEAD;
+- canonical remote and integration base;
+- Graphite parent/stack ancestry;
+- worktree registry claim when used;
+- staged, unstaged, untracked, and conflict state;
+- complete changed-path set equals the approved task surface;
+- absence or one exact current-branch canonical PR; and
+- no duplicate branch, checkout, registry claim, commit, or PR.
 
-When a driving workflow already created the issue branch, require its one exact claim, canonical
-worktree, checked-out branch, `HEAD`, Graphite parent, repository, issue/project IDs, owner/run, and
-assignment to match fresh authority reads. Verify:
+Branch display text is not task identity. Preserve unexpected or unrelated work and stop on
+collision. Never reset, clean, stash, delete, overwrite, or create around state.
 
-```bash
-gt branch info --branch "$branch" --quiet
-```
+## Create or modify
 
-Commit must reuse this branch in this worktree. It never runs `gt create`, attaches a duplicate
-worktree, or reparents a `woostack-change`, `woostack-execute`, or other workflow-owned branch.
-Missing, conflicting, partial, or unexplained identity returns to the owning workflow.
-
-### Create for a direct invocation from the parent
-
-A direct `/woostack-commit --issue …` may create once only when all preflight reads prove:
-
-- the current checkout is the primary root on the exact retained Graphite parent and start commit;
-- its complete dirty state is the exact reviewed session diff, with no unrelated path;
-- the exact issue, role, project shape, repository, owner, assignment, verification, and
-  `precommitReview` still match;
-- the exact-ID claim and canonical issue path are absent and collision-free; and
-- every local branch/checkout and Graphite/remote identity under the role-derived display name,
-  plus every commit, canonical PR, and Linear PR relation for the issue, is absent.
-
-Select `change/<lowercase-verified-issue-identifier>` for a direct role-`work-item` or
-`feature/<lowercase-verified-issue-identifier>` for a direct role-`increment`. The verified native
-issue ID in the claim and canonical path—not the display name or a title—binds the work.
-
-Only after the hook, targeted staging, fresh authority/diff read, proposed-body validation, and
-legacy-`Spec:` guard pass, repeat the preflight and atomically reserve the exact-ID claim. Then run:
+When the approved task has no branch and the current collision-safe checkout is at its exact start
+point, create one concise repository-conventional task branch/commit:
 
 ```bash
-gt create "$branch" --no-interactive -m "<type>: <concise subject>"
+gt create -m "<type>: <concise subject>"
 ```
 
-This command creates the branch and commits only the explicitly staged diff while stacking it on
-the verified current parent. Never pass implicit-staging flags, run `gt modify` on the parent, or
-follow with `gt track`. Independently verify the exact branch, commit contents, and Graphite parent.
-Then return the primary checkout to the retained parent and attach the existing new branch:
-
-```bash
-git switch "$graphite_parent"
-git worktree add "$wt" "$branch"
-```
-
-Verify the claim, canonical path, branch, `HEAD`, Graphite parent, repository, issue/project IDs,
-owner, and assignment again. Continue every later operation with `cwd="$wt"`.
-
-Any prior artifact forbids this path; never adopt, recreate, or create around it. After an error,
-timeout, or unknown create/switch/attach result, re-read the exact surfaces, preserve every
-observed claim/branch/commit/worktree boundary, and stop for explicit reconciliation. Never retry
-`gt create` blindly.
-
-## Commit on the reused branch
-
-Use `gt modify` only on the verified existing issue branch:
+When already on the one verified task branch, update only its staged task diff:
 
 ```bash
 gt modify -m "<type>: <concise subject>"
 ```
 
-An error, timeout, or unknown result requires a fresh Git and Graphite read before deciding whether
-the exact intended commit exists. Conflicting or ambiguous state blocks.
+Do not amend an unrelated commit or branch. After the command, independently read branch, HEAD,
+parent, commit message, committed diff, index, and worktree. Staged content must be empty and the
+committed paths/diff must equal the approved staged identity. Unrelated unstaged changes may remain
+untouched.
+
+An error or timeout is an unknown outcome. Re-read repository and Graphite state before deciding
+whether anything remains; never replay blindly.
 
 ## Submit
 
-Run:
+Before submission re-read the exact task branch/head/parent, Graphite stack, remote branch, and
+canonical PR inventory. Submit only the current task branch or explicitly approved affected stack:
 
 ```bash
 gt submit
 ```
 
-Graphite creates or updates the issue-owned PR. After every result, independently classify the
-remote branch and canonical GitHub PR set before retrying or continuing. Raw Git and `gh pr create`
-cannot substitute for Graphite submission; `gh pr edit` is allowed only for the independently
-verified existing PR under the PR read-back procedure.
+Do not use raw Git push or `gh pr create` as a substitute for Graphite. Do not force-push, sync the
+repository, submit unrelated descendants, or create a duplicate PR.
 
-Never force-push. Do not merge.
+Afterward independently fetch the canonical GitHub PR and verify repository, number/URL, head
+branch/SHA, base, open state, and uniqueness. If the submission result is unclear, rediscover remote
+branch and PR state. Retry only when complete evidence proves the intended boundary is absent.
+
+`gh pr edit` is allowed only after exact current PR identity verification and only for the title/body
+fields owned by `woostack-commit`.
+
+## Optional artifact context
+
+An exact caller-selected Linear artifact may be carried as descriptive context or receive a delivery
+note under [linear-attribution.md](linear-attribution.md). It never selects the branch, worktree,
+parent, commit, PR, or submission authority.
+
+## Return
+
+Return the exact worktree, branch, parent/base, commit SHA/message/diff identity, PR URL/head/base,
+and first unknown boundary. Never claim a history or remote mutation without direct read-back.

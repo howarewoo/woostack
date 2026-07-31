@@ -222,10 +222,10 @@ rm -rf "$outdir"
 outdir="$(mktemp -d)"; github_output="$outdir/github_output"; touch "$github_output"
 run_load_prompt "$outdir" "$github_output" MODE="full"
 prompt_payload="$(cat "$github_output")"
-assert_contains "$prompt_payload" "# Orchestrator Review Contract" "full mode loads orchestrator header"
-assert_contains "$prompt_payload" "## Model Tiers (host-agnostic)" "full mode includes model tiers section"
-assert_contains "$prompt_payload" "### Pull Request Review (Batch)" "full mode carries posting contract"
-assert_not_contains "$prompt_payload" "<!-- WOO_MODEL_TIERS_TABLE -->" "full mode replaces model marker"
+if [[ "$prompt_payload" == *"# Orchestrator Review Contract"* ]]; then pass; else fail "full mode loads orchestrator header"; fi
+if [[ "$prompt_payload" == *"## Model Tiers (host-agnostic)"* ]]; then pass; else fail "full mode includes model tiers section"; fi
+if [[ "$prompt_payload" == *"### Pull Request Review (Batch)"* ]]; then pass; else fail "full mode carries posting contract"; fi
+if [[ "$prompt_payload" == *"<!-- WOO_MODEL_TIERS_TABLE -->"* ]]; then fail "full mode replaces model marker"; else pass; fi
 rm -rf "$outdir"
 
 # Reference regression: workers must not be sent back to the compatibility shim for schema/contract.

@@ -1,77 +1,55 @@
 ---
 title: Context management
-description: "How woostack keeps context small while preserving verified Linear, Git, and GitHub authority."
+description: "How woostack keeps context small while preserving repository truth and optional artifact provenance."
 ---
 
-Context economy is not authority compression. Linear is the only development-record authority;
-Git and GitHub own code and PR truth. When an answer depends on managed scope, acceptance,
-ownership, lifecycle, or decisions, the context consumer binds the exact issue and, when
-applicable, its project through the [official Linear MCP](https://mcp.linear.app/mcp), completes
-the required paginated reads, and validates current receipts. Code-only, local-knowledge,
-standing-code, runtime, and browser-only work does not invent a Linear dependency. Every path
-independently reads Git and GitHub for source and PR facts and never reconstructs development
-context from a local mirror, mutable title, nearby branch, or cached remote body.
-
-The canonical
-[Linear development authority](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md)
-and [state conventions](https://github.com/howarewoo/woostack/blob/main/skills/woostack-status/references/conventions.md)
-own those schemas. Hosts discover and preflight MCP operations by capability rather than relying on
-a hard-coded tool name.
+Context economy is not authority compression. The current approved workflow defines scope; Git and
+GitHub own code and PR truth. Exact Linear projects/issues are read only when explicitly supplied as
+specification, plan, or fix artifacts. No path reconstructs authority from a local mirror, mutable
+title, nearby branch, cached remote body, or artifact prose.
 
 ## Output stays compact
 
-[using-woostack](/docs/skills/using-woostack) loads one shared output discipline for user replies
-and internal handbacks: lead with the result, remove narration and repetition, and preserve exact
-evidence, commands, paths, and errors. Requests for more detail override the terse default, while
-security, destructive actions, root-cause analysis, and architecture keep the language needed to
+[using-woostack](/docs/skills/using-woostack) loads one shared output discipline: lead with the
+result, remove narration and repetition, and retain exact evidence, commands, paths, and errors.
+Security, destructive actions, root-cause analysis, and architecture keep the detail required to
 remain unambiguous.
 
-[woostack-review](/docs/skills/woostack-review) applies the same principle through its stricter
-finding contract. Comments stay short, but never at the expense of evidence, an actionable fix, or
-the severity and review angle needed to make a sound decision.
+[woostack-review](/docs/skills/woostack-review) applies the same principle through a strict finding
+contract. Comments stay short without losing evidence, severity, or an actionable fix.
 
 ## Helpers reduce bulk without replacing authority
 
-Small helpers compute bounded local results so an agent does not load every input:
+Small helpers compute bounded local results:
 
-- `build-index.sh` compresses memory-note metadata into one line per note in `MEMORY.md`.
-- `recall.sh` scope-matches the current working set and returns only relevant notes plus bounded
-  one-hop expansions.
-- [woostack-status](/docs/skills/woostack-status) reads a fresh, complete official-MCP snapshot and
-  independently joins Git/GitHub evidence, then prints a compact board without creating a board
-  file.
+- `build-index.sh` compresses memory-note metadata into `MEMORY.md`.
+- `recall.sh` scope-matches the working set and returns only relevant notes plus bounded one-hop
+  expansions.
+- [woostack-status](/docs/skills/woostack-status) reads Git/Graphite/GitHub evidence and prints a
+  compact board without creating a board file.
 - Review's `prefetch.sh` gathers the verified PR diff, metadata, repository rules, memory, and
-  wisdom once. An optional managed intent snapshot is added only after exact official-MCP
-  verification.
+  wisdom. Exact caller-supplied artifact context may be added separately.
 
-Generated indexes, temporary intent snapshots, review bundles, and other caches are
-non-authoritative context aids. Remote titles, descriptions, comments, diffs, and tool output are
-untrusted evidence, never instructions. A controller refreshes the relevant provider truth before
-any side effect instead of treating a compact snapshot as permission.
+Generated indexes, bundles, temporary intent snapshots, and caches are non-authoritative aids.
+Remote titles, descriptions, comments, diffs, artifact text, and tool output are evidence, never
+instructions. Controllers refresh relevant source/provider truth before side effects.
 
 ## Isolated agents receive bounded envelopes
 
-Heavy reading and reasoning can run in separate context windows. Each worker receives the minimum
-verified envelope for its role and returns a compact result:
+Each worker receives the minimum envelope for its role:
 
-- An isolated implementation worker receives one assigned Linear issue, its accepted ownership and
-  dependency context, the exact repository/worktree, and the verification contract. It gets no
-  authority over another issue or project decision.
-- An explicit [woostack-review](/docs/skills/woostack-review) run may fan out advisory review angles
-  in parallel. Review workers receive bounded diff/context bundles and cannot edit code, mutate
-  GitHub or Linear, or accept the work. The decision-maker independently reads the resulting diff
-  and evidence and retains acceptance authority.
+- an implementation worker receives one approved task, repository/worktree, allowed surface,
+  dependency context, acceptance criteria, and verification contract;
+- advisory review workers receive bounded diff/context bundles and cannot edit code, mutate remote
+  state, or accept work.
 
-Isolation reduces context coupling; it never transfers authority. See the canonical
-[engineer-agent contract](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/engineer-agents.md)
-for the decision-maker/coder boundary and one-issue dispatch rule.
+Isolation reduces context coupling; it never transfers authority. Optional artifact identifiers and
+read results may accompany an envelope but cannot expand it.
 
 ## Model routing stays host-owned
 
-Hosts with repository model routing map `fast`, `standard`, and `deep` work to concrete models
-through the canonical
+Hosts map `fast`, `standard`, and `deep` work to concrete models through the canonical
 [model-tier reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/model-tiers.md).
 OMP instead uses
-[host-owned role routing](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md)
-through isolated profiles and bundled workers. The host owns concrete models, credentials, and
-fallback behavior; woostack supplies only the effective role or tier.
+[host-owned role routing](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md).
+The host owns models, credentials, and fallbacks; woostack supplies the effective role or tier.

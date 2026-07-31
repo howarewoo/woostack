@@ -1,11 +1,11 @@
 # Linear planning capability contract
 
-This workflow contract defines planning capabilities on official Linear MCP.
+This optional persistence contract applies only when the caller selected an exact Linear project.
 The canonical
-[Linear MCP development authority](../../woostack-init/references/artifact-backends.md) owns the
-resource and event envelopes. The
-[retained project context](../../woostack-build/references/linear-context.md) owns repository,
-workspace, team, policy, identity, retry, and read-back rules.
+[artifact contract](../../woostack-init/references/artifact-backends.md) owns selection, trust,
+provider, mutation, and read-back rules. The
+[retained artifact context](../../woostack-build/references/linear-context.md) owns repository and
+resource identity for this synchronization path.
 
 ## Required input
 

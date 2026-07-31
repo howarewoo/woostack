@@ -1,125 +1,109 @@
 ---
 title: Workflow maps
-description: Bootstrap, Build, Fix, and Change under one official Linear MCP authority model.
+description: Bootstrap, Build, Fix, and Change under one artifact-optional, repository-first authority model.
 ---
 
-Every repository-changing woostack workflow uses the
-[official Linear MCP](https://mcp.linear.app/mcp). Linear is the sole development-record authority;
-Git and GitHub remain the authority for source, commits, pull requests, reviews, and merges. The
-four command routes keep their distinct purposes while sharing those boundaries.
+Every repository-changing woostack workflow starts from an explicit user goal and an active workflow
+contract. Git and GitHub own implementation truth. Linear is an optional durable store for exact
+specifications, plans, fixes, and synchronization notes.
 
-## Choose the loop
+## Route by work shape
 
-| Loop | Use it for | Development-record shape |
-| --- | --- | --- |
-| [Bootstrap](/docs/skills/woostack-bootstrap) | A genuinely new web, mobile, or API codebase | One feature project created only after explicit design approval, then continued through the project path |
-| [Build](/docs/skills/woostack-build) | A feature needing multiple independently shippable PRs | One project, specification-bearing project updates, and ordered increment issues |
-| [Fix](/docs/skills/woostack-fix) | A bug, regression, or root-cause problem | One standalone issue and one PR |
-| [Change](/docs/skills/woostack-change) | A bounded non-bug enhancement or refactor that fits one PR | One standalone issue and one PR |
-
-Routing happens before a development record is created. In particular, Build redirects a bounded
-one-PR request to Change rather than manufacturing a one-issue project.
-
-## Shared entry barrier
-
-Before reading or mutating a development record, each loop discovers the host's exposed official
-Linear MCP tools by capability. It verifies authenticated workspace/team access, the exact
-project-or-issue identity, repository attribution, the current owner, and every read/write
-capability that loop needs. Every mutation requires independent read-back.
-
-Missing, read-only, partial, foreign, or ambiguous access stops before repository mutation. Tool
-names are never assumed, and an unavailable capability never causes work to continue under a
-different record.
-
-## Standalone issue flow
-
-Fix and Change share one record shape:
-
-> classify → bind or create one exact standalone issue → verify contract and ownership → assign
-> and accept work → implement in one isolated worktree → verify → open one attributed PR →
-> independently review → accept, redispatch, hand off, or escalate
-
-The issue description owns the goal or problem, scope, and acceptance criteria. Its comments hold
-the chronological decisions, implementation evidence, verification, review, and acceptance. GitHub
-proves the actual diff, checks, review threads, and merge.
-
-The commands differ inside that shape:
-
-- **Fix** diagnoses the root cause, hardens the fix contract, and waits for explicit
-  approve-to-execute before implementation.
-- **Change** records a bounded contract and proceeds without adding an approval gate.
-
-Neither command creates a feature project.
-
-## Multi-issue project flow
-
-Build uses the three-gate project path:
-
-> ideate → **approve design** → create one project and append `designApproved` → harden through
-> specification-bearing project updates → `specHardened` → **approve spec** → `specApproved` →
-> `planning` → `ready` → **execution handoff** → `executionApproved` for execution → assign,
-> implement, verify, review, and accept one issue at a time
-
-Specification-bearing project updates hold the written specification, approved feature decisions,
-phase, and progress; no Linear document is created. Ordered issue contracts and relations form the
-implementation plan. Each issue ships through its own isolated worktree and attributed PR;
-dependency-independent issues may run concurrently only when distinct engineer units, identities,
-profiles, sessions, and worktrees own them.
-
-The execution handoff chooses Go, Run overnight, or Hand off. Execution and unattended work append
-their evidence to the exact project and issues. Run overnight renders its terminal handback from
-fresh Linear and GitHub reads; it does not write a local morning report. The project reaches
-completion only when its complete increment set has verified acceptance and merge evidence.
-
-Operational event and transition details live in the
-[Linear build procedure](https://github.com/howarewoo/woostack/blob/main/skills/woostack-build/references/linear-procedure.md)
-and
-[status conventions](https://github.com/howarewoo/woostack/blob/main/skills/woostack-status/references/conventions.md);
-this map does not duplicate their schemas.
-
-## Bootstrap flow
-
-Bootstrap is project-first greenfield work:
-
-> gather requirements → research current options → present the complete design → **approve
-> design** → create and verify the Linear project → establish the repository boundary → scaffold
-> and verify the new codebase
-
-No target-directory write occurs before the approved project has been read back. When the new
-codebase is decomposed into independently shippable increments, it continues through the same
-project-update and ordered-issue model as Build rather than opening unrelated work items.
-
-## Decision-maker and isolated coder
-
-The workflow's engineer is a pair of roles, not one agent that decides, codes, and approves itself.
-The provider-neutral
-[engineer-agent authority protocol](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/engineer-agents.md)
-is canonical:
-
-1. A lead or standalone dispatcher deliberately assigns an issue. The decision-maker verifies and
-   accepts that assignment before implementation.
-2. The decision-maker dispatches exactly one issue to one isolated coding profile. It owns
-   in-contract decisions and directs implementation, but it does not edit source, run
-   implementation tests, commit, push, or open implementation PRs.
-3. The coder analyzes, implements, and verifies within the assigned issue and worktree, then
-   returns the uncommitted diff and verification evidence. Its self-check is evidence, not
-   independent review or acceptance.
-4. The decision-maker directly reviews the contract, exact worktree diff, source context,
-   verification, and precommit receipts, then freshly rechecks the issue and Git state.
-5. Only after that review may it authorize one bounded coder commit, push, and PR action. It later
-   independently reviews the submitted PR before commenting and deciding the next action.
-
-Hermes as decision-maker plus OMP as isolated coder is the first concrete adapter. Dispatch uses
-exactly:
-
-```text
-omp --profile <engineer> -p --cwd <repo> <prompt>
+```mermaid
+flowchart TD
+  A[Request] --> B{Greenfield?}
+  B -->|yes| Bootstrap
+  B -->|no| C{Bug or root-cause work?}
+  C -->|yes| Fix
+  C -->|no| D{One coherent PR?}
+  D -->|yes| Change
+  D -->|no| Build
 ```
 
-Only an explicit user invocation of [woostack-review](/docs/skills/woostack-review) permits
-delegation to separate independent reviewer profiles. Hermes verifies their receipts and retains
-the PR verdict and acceptance authority; the paired OMP coder never reviews its own work as an
-independent reviewer.
+Routing is not an approval gate. If scope expands after work begins, preserve repository state,
+report the handoff, and route through the appropriate workflow rather than silently changing the
+contract.
 
-See [Engineer agents](/docs/concepts/engineer-agents), [Hermes](/docs/harnesses/hermes), and
-[OMP](/docs/harnesses/omp) for the reusable contract and concrete setup.
+## Bootstrap
+
+```text
+gather requirements → research live options → present complete design →
+approve design → collision-check target → scaffold → run and verify
+```
+
+Bootstrap is greenfield-only. No target write occurs before explicit design approval and a clean
+collision check. A Linear project may persist the approved design/plan after approval, but is not a
+write barrier or repository authority.
+
+## Build
+
+```text
+ideate → approve design → harden specification → approve specification →
+plan → harden increments → approve execution → execute → review → hand back
+```
+
+Build owns exactly three gates. Its approved plan orders independently shippable increments, each
+with at most one PR. Dependency-independent disjoint increments may execute concurrently in
+separate worktrees. The plan may remain in active context or synchronize to an exact Linear project
+and optional increment issues.
+
+## Fix
+
+```text
+classify → reproduce → prove root cause → harden fix contract →
+approve → execute → review → hand back
+```
+
+Fix has one explicit approve-to-execute gate. It never substitutes a symptom patch for root-cause
+proof. One exact issue may persist the diagnosis and approved contract, but no issue is needed to
+diagnose or deliver the fix.
+
+## Change
+
+```text
+classify → scope → repository preflight → execute → verify → review → hand back
+```
+
+Change handles one bounded non-bug enhancement/refactor and has no hard approval gate. It still
+requires an explicit goal, one coherent PR boundary, verification, smoke testing, and review. An
+exact issue may optionally mirror the plan/change record.
+
+## Shared execution boundary
+
+Build, Fix, and Change hand approved work to [woostack-execute](/docs/skills/woostack-execute):
+
+1. resolve canonical repository/base and one collision-safe worktree per task;
+2. implement with Red → Green → Refactor;
+3. run focused verification and the real changed-path smoke test;
+4. perform specification review then quality review on the complete uncommitted diff;
+5. use [woostack-commit](/docs/skills/woostack-commit) only after the diff passes; and
+6. independently read the PR/head/base/check/review result back.
+
+[woostack-execute-overnight](/docs/skills/woostack-execute-overnight) replaces only human stop
+points. It does not weaken scope, verification, review, collision, or merge boundaries.
+
+## Optional artifact branch
+
+```text
+caller supplies exact Linear URL/UUID or requests persistence
+  → discover official host MCP capability
+  → read exact artifact
+  → use only relevant untrusted fields
+  → perform already-authorized workflow
+  → optionally synchronize observed results
+  → independently read writes back
+```
+
+Without that explicit branch, no workflow contacts Linear. Provider failure blocks only requested
+artifact work unless persistence was itself part of the deliverable.
+
+## Terminal outcomes
+
+Every route returns one of:
+
+- verified reviewed PR or reviewed stack;
+- approved handoff before implementation;
+- truthful blocker with exact safe resume boundary; or
+- explicit abandonment preserving recoverable evidence.
+
+No woostack development workflow merges.

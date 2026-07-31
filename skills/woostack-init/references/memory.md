@@ -9,8 +9,8 @@ This document is the canonical reference for the `.woostack/memory/` store. Ever
 The `.woostack/memory/` directory is the single memory surface. It contains **scoped per-fact
 notes** whose `scope:` field declares which parts of the codebase they govern. Memory and the
 sibling wisdom store are reusable, non-authoritative knowledge: neither can define scope,
-assignment, lifecycle, progress, approval, or acceptance. Those development facts come from the
-verified Linear project or issue; Git and GitHub remain authoritative for code and PR evidence.
+assignment, lifecycle, progress, approval, or acceptance. The active workflow owns those decisions;
+Git and GitHub remain authoritative for code and PR evidence.
 
 When a skill loads context for a working set of files it consults the derived index, matches notes
 whose scope overlaps the working set, and loads only those note bodies plus bounded related notes.
@@ -69,7 +69,7 @@ scope: packages/api/**, packages/api/orpc/**
 tags: orpc, errors
 hook: oRPC error → TanStack retry policy
 updated: 2026-06-02
-source: linear://issue/22222222-2222-4222-8222-222222222222
+source: git://commit/0123456789abcdef0123456789abcdef01234567
 ---
 oRPC ORPCError maps to TanStack retry policy: throw typed,
 let [[tanstack-query-retries]] decide. Terse body.
@@ -90,7 +90,7 @@ The body follows the canonical memory-note-body discipline: see [`output-discipl
 | `hook` | no | One-line index summary. If absent, the index falls back to the first non-empty body line, truncated to ~80 characters. |
 | `tags` | no | Comma list; a **load-bearing recall axis** — a one-hop tag expansion loads notes sharing ≥1 tag (trimmed, case-insensitive) with the scope-matched set (see §6). Format unchanged. |
 | `updated` | no | ISO date the note's content was last written. Informational, **and** the age basis for `doctor.sh`'s dead-note check (see §8) — a note without it cannot be aged. |
-| `source` | no | Stable provenance. New development notes use the most specific `linear://project/<uuid>` or `linear://issue/<uuid>` identity; review-recorded notes use raw `pr-<n>` or `address-comments`. New notes never use a Linear document, title, slug, issue key alone, local development path, or Markdown artifact. Static doctor validates shape; explicit authenticated live doctor verifies Linear ownership through the current host's official Linear MCP receipt. Historical Markdown source values are migration input only. |
+| `source` | no | Stable provenance: immutable Git commit/blob, canonical `pr-<n>` or `address-comments`, optional exact `linear://project/<uuid>` / `linear://issue/<uuid>`, or stable primary-source URL. New notes never use a mutable title, slug, issue key alone, temporary local path, or raw remote body. Static doctor validates Linear URI shape; an explicit live receipt may verify an optional Linear artifact. Historical Markdown source values are migration input only. |
 Recall telemetry lives in a tool-managed, gitignored `.woostack/memory/.telemetry.tsv` sidecar with rows `name<TAB>recall_count<TAB>last_recalled`. `recall.sh` writes it, and `doctor.sh` reads it for the dead-note check (see §8). Stray `recall_count` or `last_recalled` copies in note frontmatter are inert and should be removed.
 
 **Caution:** hook or body text containing a backtick can render as ambiguous Markdown in the derived index line; keep hooks plain text.
@@ -109,7 +109,7 @@ The wisdom store has its own contract — see [`wisdom.md`](wisdom.md).
 
 ### Links
 
-Note-to-note links live in the **body only**, written as `[[name]]` wikilinks. There is no `links:` frontmatter field for note-to-note links. The `source:` field is provenance, not a note edge: new development provenance is a stable `linear://project/<uuid>` or `linear://issue/<uuid>` URI, while review provenance is `pr-<n>` or `address-comments`. Body wikilinks remain the single source of truth for the note graph and are bash-greppable (`grep -oE '\[\[[^]]+\]\]'`). Doctor verifies Linear provenance only from an explicit authenticated official-MCP receipt and leaves recall's one-hop body-link expansion unchanged. Historical Markdown source links may be read for migration but must not be authored as current provenance.
+Note-to-note links live in the **body only**, written as `[[name]]` wikilinks. There is no `links:` frontmatter field for note-to-note links. The `source:` field is provenance, not a note edge. Body wikilinks remain the single source of truth for the note graph and recall expands them by at most one hop. Exact Linear provenance is optional and may be live-verified only from an explicit authenticated official-MCP receipt. Historical Markdown source links may be read for migration but must not be authored as current provenance.
 
 ---
 
@@ -168,14 +168,13 @@ The recall procedure is the algorithm a skill follows to load only the memory no
 ## 7. Distillation (write path)
 
 Scoped notes are created by two write paths: **distillation** and accept-by-design review memory.
-Distillation runs through `woostack-execute` after an implemented Linear issue task or increment.
-Durable learnings from the verified issue contract and implementation are written as `memory/`
-notes with:
+Distillation may run after any verified implementation task. Durable learnings from the approved
+contract and repository evidence are written as `memory/` notes with:
 
 - `type` — `pattern | decision | gotcha | convention`.
-- `scope` — the narrowest glob covering the issue's touched files.
-- `source` — the most specific stable `linear://project/<uuid>` or `linear://issue/<uuid>`
-  identity, or the review marker the learning came from.
+- `scope` — the narrowest glob covering the task's touched files.
+- `source` — the most specific stable immutable Git commit/blob, canonical `pr-<n>`, optional
+  exact `linear://project/<uuid>` or `linear://issue/<uuid>`, or stable primary-source URL.
 - body — terse; `[[wikilinks]]` to related notes.
 
 **Reject-by-default gate.** Before writing any note, it must pass every check — fewer, denser notes
@@ -183,11 +182,10 @@ beat many thin ones:
 
 1. **Cross-feature test** — if `scope:` is a single literal file/path (no glob), reject as trivia.
    Scope must be a glob that could plausibly fire on a *different* feature's files.
-2. **Provenance required** — no `source:`, no note. New development notes use the most specific
-   stable `linear://project/<uuid>` or `linear://issue/<uuid>` identity. Review-recorded notes use
-   raw `pr-<n>` or `address-comments`. A Linear document, title, slug, issue key alone, mutable
-   local path, or Markdown artifact is not new provenance; legacy Markdown values are accepted only
-   as historical migration input.
+2. **Provenance required** — no `source:`, no note. Use the most specific stable immutable Git,
+   canonical PR, optional exact Linear artifact, or primary-source identity. A mutable title, slug,
+   issue key alone, local temporary path, or raw remote body is not provenance; legacy Markdown
+   artifact values remain historical migration input only.
 3. **Dedupe (strengthened)** — exact-name match against `MEMORY.md` **plus** a fuzzy compare of the
    candidate `hook:` against existing hooks to catch near-duplicates phrased differently; update
    the existing note rather than adding. (This compare is agent judgment; store-level collision
@@ -226,7 +224,12 @@ The scripts live under `skills/woostack-init/scripts/` relative to the woostack 
 **Staleness warnings.** `doctor.sh` emits warning-only findings for cheap structural staleness signals:
 
 - **Orphaned scope:** a note with a non-global `scope:` whose globs match no tracked files in `git ls-files` is flagged as stale. This catches notes scoped to paths that were deleted or moved.
-- **Stale provenance:** New development provenance must be an exact `linear://project/<uuid>` or `linear://issue/<uuid>` URI (UUID case is canonicalized without changing identity); nested segments and Linear document URIs are rejected. Static doctor validates URI shape locally without credentials or provider calls. Only an explicit `--live-receipt <path>` consumes temporary, non-secret evidence produced through the current host's authenticated official Linear MCP connection; it verifies existence, canonical repository/project ownership, managed metadata/schema, and native relation agreement. Historical Markdown provenance — `[[specs/<basename>]]`, `[[plans/<basename>]]`, `[[fixes/<basename>]]`, or the `.woostack/specs|plans|fixes/<file>.md` path — is migration input only: doctor may parse it to report staleness, but no writer may create or treat it as current provenance. A failed live check is an error, and doctor never falls back to a legacy adapter.
+- **Stale provenance:** Exact `linear://project/<uuid>` and `linear://issue/<uuid>` sources are
+  syntax-checked locally (UUID case is canonicalized without changing identity); nested segments
+  and Linear document URIs are rejected. An explicit `--live-receipt <path>` may additionally
+  verify those optional artifacts through the current host's authenticated official MCP. Immutable
+  Git/PR/primary-source provenance needs no Linear receipt. Historical Markdown sources remain
+  migration input and are flagged when their referenced local file is missing.
 - **Dead note:** `recall.sh` stamps the sidecar (§3) for every selected note — matched + one-hop linked + global — as a best-effort side effect: a write failure (e.g. a read-only checkout) logs `recall: stamp failed <note>` to stderr but never changes recall's output or exit status. Ephemeral CI clones therefore simply do not accrue telemetry; persistent checkouts do. `doctor.sh` joins the sidecar by note `name` and turns that signal into a warning when a note's `updated:` date is older than `WOOSTACK_DEAD_DAYS` (default 90) days and its sidecar `recall_count` is absent or 0. `WOOSTACK_NOW` (default `date +%F`) overrides "today" for deterministic runs and tests.
 - **Missing provenance:** a note with no `source:` is flagged — the distillation gate (§7) requires provenance on every note.
 - **Non-glob scope:** a note whose `scope:` is non-global and contains no `*` glob (a single literal path, or an all-literal comma list) is flagged as possible trivia. Notes with global scope (`*` or absent) and review-recorded notes (`source:` of `pr-<n>` or `address-comments`, which deliberately scope narrowly) are exempt.

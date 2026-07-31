@@ -41,25 +41,15 @@ permission to mutate the repository.
 - **Root-cause confidence:** {{verified|high|medium|low}} — {{basis}}
 - **Bounded remediation direction:** {{one or two sentences; not authority to edit}}
 
-#### Issue disposition — exactly one
-
-{{Choose one shape; never emit both.}}
-
-**Proposed managed issue contract**
+#### Proposed bounded remediation contract
 
 - Canonical repository: {{REPOSITORY}}
 - Proved problem: {{problem and root-cause confidence}}
 - Bounded scope: {{source paths and excluded surface}}
 - Evidence pointers: {{finding and sanitized evidence references}}
 - Observable acceptance criteria: {{behavior that must be observed}}
-
-**OR — Verified existing issue evidence**
-
-- Issue: {{stable UUID}} / {{native ID or URL}}
-- Role/project: {{role; project stable/native IDs | explicitly projectless}}
-- Owner: {{human|app}} / {{native principal ID}}
-- Assignment: {{current receipt ID | independently verified absent}}
-- Independent read: {{receipt ID and timestamp}}
+- Optional Linear artifact: {{none | stable UUID / native ID / URL}}
+- Artifact read-back: {{n/a | receipt ID and timestamp}}
 
 ## Unconfirmed observations
 
