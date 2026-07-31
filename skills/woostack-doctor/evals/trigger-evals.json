@@ -4,23 +4,16 @@
   "cases": [
     {
       "id": "workspace-integrity-diagnosis-and-gate",
-      "query": "Nothing appears to be missing from .woostack, but recent hand edits may have broken config values, note provenance, and cross-links. Check the existing workspace, separate safe corrections from judgment calls, and let me choose what to apply.",
+      "query": "Nothing appears to be missing from .woostack, but recent hand edits may have broken config values, worktree claims, and response setup. Check the existing workspace, separate safe corrections from judgment calls, and let me choose what to apply.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-doctor",
-      "conflictsWith": ["woostack-init", "woostack-dream", "woostack-status"]
+      "conflictsWith": ["woostack-init", "woostack-status"]
     },
     {
       "id": "never-initialized-brownfield-workspace",
       "query": "We adopted woostack in this older repository today, and no project workspace exists yet. Add the standard local workspace without disturbing the application files.",
       "shouldTrigger": false,
       "expectedSkill": "woostack-init",
-      "conflictsWith": ["woostack-doctor"]
-    },
-    {
-      "id": "healthy-store-knowledge-consolidation",
-      "query": "Our workspace checks are clean, but five API notes repeat or contradict one another and two incident write-ups contain the same lesson. Propose what the long-lived guidance should say and which source notes it can replace.",
-      "shouldTrigger": false,
-      "expectedSkill": "woostack-dream",
       "conflictsWith": ["woostack-doctor"]
     }
   ]

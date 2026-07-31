@@ -1,13 +1,11 @@
-# Transient, per-clone — not shared knowledge.
+# Transient, per-clone.
+# Per-clone Obsidian workspace state and cache; shared `.obsidian` configuration remains tracked.
+.obsidian/workspace*
+.obsidian/cache
+
 metrics.json
 *.local.*
 visuals/
 qa/evidence/
 respond/evidence/
 worktrees/
-memory/.telemetry.tsv
-memory/.dream-watermark
-
-# Obsidian per-user UI state (the shared .obsidian/*.json config IS tracked).
-.obsidian/workspace*
-.obsidian/cache

@@ -1330,52 +1330,6 @@ printf '%s' "$THREADS_JSON" | jq '
 PRIOR_COUNT=$(jq 'length' "$OUTDIR/prior-findings.json" 2>/dev/null || echo 0)
 echo "Prior review threads (open + resolved): $PRIOR_COUNT"
 
-# Cross-PR memory — composed per-PR via recall.sh when a scope-routed store
-# (.woostack/memory/) exists: scope-matched notes, one-hop links, and
-# global-scoped notes. Missing store or recall.sh => no memory context
-# (normal for fresh repos or individual manual installs).
-WOOSTACK_DIR="$WOOSTACK_COMMON_ROOT/.woostack"
-MEMORY_OUT="$OUTDIR/memory.md"
-RECALL="$SCRIPT_DIR/../../woostack-init/scripts/recall.sh"
-# Working-set paths: prefer the ignore-filtered list, else derive from meta.json.
-PATHS_FILE="$OUTDIR/changed-paths.filtered.txt"
-if [ ! -f "$PATHS_FILE" ]; then
-  jq -r '.files[].path' "$OUTDIR/meta.json" 2>/dev/null > "$OUTDIR/changed-paths.txt" || true
-  PATHS_FILE="$OUTDIR/changed-paths.txt"
-fi
-
-if [ -d "$WOOSTACK_DIR/memory" ]; then
-  if [ -f "$RECALL" ]; then
-    if bash "$RECALL" "$WOOSTACK_DIR" "$PATHS_FILE" > "$MEMORY_OUT" 2> "$OUTDIR/recall.log"; then
-      [ -s "$MEMORY_OUT" ] || rm -f "$MEMORY_OUT"
-      echo "Composed cross-PR memory via recall.sh ($(wc -c < "$MEMORY_OUT" 2>/dev/null || echo 0)B; see recall.log)"
-    else
-      echo "::warning::recall.sh failed; omitting cross-PR memory"
-      rm -f "$MEMORY_OUT"
-    fi
-  else
-    echo "::warning::recall.sh not found at $RECALL; omitting cross-PR memory"
-    rm -f "$MEMORY_OUT"
-  fi
-else
-  rm -f "$MEMORY_OUT"
-fi
-
-# Wholesale wisdom guidance — every .woostack/wisdom/*.md body (generalized,
-# cross-cutting house-rules), composed via compose-wisdom.sh (the wisdom analogue
-# of recall.sh/memory.md). Always-load, no scope routing. No-op when the store is
-# absent/empty, so $OUTDIR/wisdom.md is present only when there is wisdom to read.
-WISDOM_OUT="$OUTDIR/wisdom.md"
-COMPOSE_WISDOM="$SCRIPT_DIR/compose-wisdom.sh"
-if [ -f "$COMPOSE_WISDOM" ]; then
-  if bash "$COMPOSE_WISDOM" "$WOOSTACK_COMMON_ROOT" > "$WISDOM_OUT" 2>"$OUTDIR/compose-wisdom.log"; then
-    [ -s "$WISDOM_OUT" ] || rm -f "$WISDOM_OUT"
-    [ -f "$WISDOM_OUT" ] && echo "Composed wisdom guidance ($(wc -c < "$WISDOM_OUT")B)"
-  else
-    echo "::warning::compose-wisdom.sh failed; omitting wisdom guidance (see compose-wisdom.log)" >&2
-    rm -f "$WISDOM_OUT"
-  fi
-fi
 
 # Issue #14: split oversized diffs into chunks. Runs LAST so it sees the final
 # post-ignore diff (diff.filtered.txt when present). Under the threshold this

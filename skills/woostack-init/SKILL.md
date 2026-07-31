@@ -1,6 +1,6 @@
 ---
 name: woostack-init
-description: Initialize or repair a repository's .woostack workspace, local knowledge/diagnostic stores, and non-secret policy. Linear artifact connectivity and guarded legacy migration are optional.
+description: Initialize or repair a repository's .woostack workspace, diagnostic stores, and non-secret policy. Linear artifact connectivity and guarded legacy migration are optional.
 ---
 
 # woostack-init
@@ -25,16 +25,14 @@ Linear call.
 
 1. Resolve the canonical target repository without changing it. Verify repository root, branch,
    working state, existing `.woostack/` files, and collision/symlink/path safety.
-2. Read existing configuration and preserve all valid user-owned values. Never clobber memory,
-   wisdom, reports, or policy without an exact approved repair.
+2. Read existing configuration and preserve all valid user-owned values. Never clobber reports or
+   policy without an exact approved repair.
 3. Create missing local support paths only:
    - `.woostack/config.json` from the shipped non-secret template;
-   - `.woostack/memory/` and its generated index contract;
-   - `.woostack/wisdom/`;
    - local diagnostic report roots for doctor, audit, QA, and response; and
    - worktree/recovery support declared by the canonical worktree contract.
-4. Validate JSON/schema/path permissions, ignore policy, knowledge formats, generated indexes, and
-   cross-links. Run the shipped build-index and doctor checks.
+4. Validate JSON/schema/path permissions, ignore policy, report roots, and cross-links. Run the
+   shipped doctor checks.
 5. Report created, repaired, preserved, skipped, and blocked paths with exact validation results.
 
 ## Optional Linear setup

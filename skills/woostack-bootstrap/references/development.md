@@ -22,9 +22,8 @@ for each phase:
 Each command is discrete and ends by offering the next step. Merge stays with the human.
 
 Review config and explicitly non-authoritative diagnostic output may remain under `.woostack/`;
-review metrics `.woostack/metrics.json` and
-[local-only memory](../../woostack-init/references/memory.md) `.woostack/memory/` are gitignored.
-They never determine development scope, phase, approval, assignment, dependencies, or acceptance.
+review metrics `.woostack/metrics.json` are gitignored. None determine development scope, phase,
+approval, assignment, dependencies, or acceptance.
 
 ## Optional Linear artifacts
 

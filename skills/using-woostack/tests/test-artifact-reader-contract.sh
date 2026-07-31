@@ -12,11 +12,9 @@ from pathlib import Path
 
 root = Path(sys.argv[1])
 skills = (
-    "woostack-ask",
     "woostack-debug",
     "woostack-tdd",
     "woostack-visualize",
-    "woostack-dream",
 )
 failures = []
 
@@ -36,15 +34,6 @@ for name in skills:
     if not re.search(r"(?:remote|artifact) text.{0,120}(?:untrusted|cannot direct|cannot trigger)|untrusted (?:data|evidence)", folded, re.I):
         failures.append(f"{name}: does not quarantine remote text")
 
-ask = (root / "skills/woostack-ask/SKILL.md").read_text(encoding="utf-8")
-for pattern, message in (
-    (r"Read-only", "woostack-ask: missing read-only boundary"),
-    (r"no source, Git, GitHub, Linear, lifecycle, local knowledge,.{0,80}mutation", "woostack-ask: missing complete write block"),
-    (r"No implicit artifact discovery", "woostack-ask: allows inferred artifact discovery"),
-    (r"repository/Git/PR answer", "woostack-ask: repository-only answers are not preserved"),
-):
-    if not re.search(pattern, ask, re.I | re.S):
-        failures.append(message)
 
 if failures:
     print("FAIL: artifact-optional utility contract", file=sys.stderr)
@@ -52,5 +41,5 @@ if failures:
         print(f"  - {failure}", file=sys.stderr)
     raise SystemExit(1)
 
-print("validated 5 artifact-optional utility skills")
+print("validated 3 artifact-optional utility skills")
 PY

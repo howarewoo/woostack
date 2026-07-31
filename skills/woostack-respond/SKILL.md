@@ -206,8 +206,8 @@ explicit deferred coverage.
 
 Dispatch at most five independent, read-only investigators, in parallel only when their source
 and invariants do not overlap. Each receives only its normalized selected-group evidence, relevant
-source and release context, applicable scoped memory/wisdom, and the existing
-[`woostack-debug`](../woostack-debug/SKILL.md) four-phase contract. Load and follow that skill; do
+source and release context, and the existing [`woostack-debug`](../woostack-debug/SKILL.md)
+four-phase contract. Load and follow that skill; do
 not restate, fork, abbreviate, or weaken its root-cause doctrine here. Investigators do not edit
 code, create tests, mutate providers, or operate production.
 
@@ -371,8 +371,8 @@ successful run; never delete it earlier merely because the report rendered.
 On abort, sanitization failure, unknown artifact outcome, or fix-preparation failure, retain the
 ignored or mode-`0700` evidence directory. Name its path and give an explicit manual deletion
 command without reading or printing its contents. If automatic deletion fails, report the retained
-path and manual action. Never commit evidence, mine it for memory or wisdom, or copy it into a
-tracked/remote artifact.
+path and manual action. Never commit evidence, use it as durable instruction input, or copy it into
+a tracked/remote artifact.
 
 
 Wall time: 0.18 seconds

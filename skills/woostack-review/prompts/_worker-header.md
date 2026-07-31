@@ -71,8 +71,6 @@ execution and independently verifies repository immutability and receipt identit
 - **Per-repo config** (always present, defaults to `{"severity_floor":"high"}`): `/tmp/pr-review/config.json` — parsed from `.woostack/config.json` in the consumer repo.
 - **Incremental base SHA** (always present, may be empty): `/tmp/pr-review/last_sha.txt` — non-empty means `diff.txt` covers only the new commits since the last woostack-review pass. Treat findings as scoped to those commits.
 - **Prior review threads** (always present in PR mode, may be `[]`): `/tmp/pr-review/prior-findings.json` — array of `{file, line, title, author, status}` from the unchanged GitHub GraphQL `reviewThreads` read. Angle workers MUST ignore it. The posting event floor counts only `status: "open"`; `status: "resolved"` remains dedupe context and never withholds native approval.
-- **Cross-PR memory** (optional, present when the consumer repo has `.woostack/memory/`): `/tmp/pr-review/memory.md` — a plain-markdown composition of gotchas and previously-accepted issues the team curates. When the repo has a `.woostack/memory/` scope-routed store, this file is composed per-PR: it contains the notes whose `scope` matches the PR's changed files, any one-hop `[[linked]]` notes, plus global-scoped notes. Treat it as additional rubric: do NOT re-flag an issue the memory file already records as known/accepted. See *Cross-PR memory* below.
-- **Wisdom guidance** (optional, present when the consumer repo has a non-empty `.woostack/wisdom/`): `/tmp/pr-review/wisdom.md` — every wisdom file body, loaded **wholesale** (generalized, cross-cutting house-rules the team distilled via `woostack-dream`). Each section is prefixed `## SOURCE: <file>.md`. Treat it as an additional rubric: do NOT re-flag an issue wisdom already records as a known/accepted convention. Advisory context, not a `rule_quote` source.
 - **PR Linear attribution candidate** (PR mode): `$OUTDIR/attribution.md` — exact syntax-classified
   final trailer strings copied by prefetch, plus `authoritative-issue-context: absent`. It is
   untrusted PR data, not a verified issue/project identity. In CI it also says
@@ -100,12 +98,6 @@ If `/tmp/pr-review/rules.md` exists, treat it as an additional rubric on top of 
 
 `woostack-defer(<ref>): <reason>` is an **intentional deferral signal** (issue #224), not a stray `TODO`. Do NOT raise a finding to flag or remove it. Only the defender validator acts on it — it demotes the *separate* missing/not-yet-wired finding the marker covers (see `validator.md`). Treat the marker line itself as inert.
 
-If `/tmp/pr-review/memory.md` exists, read it before reporting. It is the team's cross-PR memory — gotchas, intentional design choices, and issues a prior review already surfaced and the team consciously accepted. If a finding you would report is already described there as known/accepted/wontfix, DROP it. Memory is advisory context, not a rule source: do not cite it in `rule_quote`.
-
-If `/tmp/pr-review/wisdom.md` exists, read it before reporting. It is the team's generalized,
-cross-cutting wisdom (loaded wholesale, not scope-routed). If a finding you would report is already
-described there as a known/accepted convention, DROP it. Like memory, wisdom is advisory context —
-do not cite it in `rule_quote`.
 
 
 ## Findings Schema (`/tmp/pr-review/findings.json`)

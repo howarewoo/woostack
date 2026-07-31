@@ -115,21 +115,22 @@ canonical relation tuples, and readable provenance. A boolean summary or mutatio
 never proof. Historical-completed records bypass this section and retain immutable Git blob and
 verified PR provenance only.
 
-## 4. Repair preserved knowledge provenance
+## 4. Resolve local knowledge-store disposition
 
-Before authorizing deletion, enumerate every tracked `.woostack/memory/` and
-`.woostack/wisdom/` file. Record its original bytes, SHA-256, and every frontmatter `source:` value,
-body link, hook, or scope naming any enumerated legacy path. Active references become stable
-`linear://project/<client-uuid>` or `linear://issue/<client-uuid>` URIs. Historical references
-become immutable `<commit>:<path>@sha256:<source-sha256>` and exact merged-PR provenance. Remove a
-reference only when explicit curation marks it obsolete.
+Before evaluating the terminal receipt, explicitly enumerate every unsupported local knowledge
+store: every file under `.woostack/memory/` and `.woostack/wisdom/`, a repository-level
+`MEMORY.md`, and any other locally persisted project-knowledge store identified by workspace
+inspection, configuration, or hooks. Record each path and its original working-tree SHA-256; an
+expected-path list is not evidence that no other store exists.
 
-Build the complete rewrite set in a private staging area, record each before/after SHA-256 and
-replacement target in `knowledgeProvenanceLedger`, and verify that every replacement resolves to
-the independently read managed identity or exact Git object and PR. Do not modify a knowledge file
-yet. On any missing, ambiguous, stale, or unresolvable reference, discard the staged rewrites,
-delete nothing, hash-verify every original knowledge and legacy file, and retain the prior receipt
-boundary.
+Every enumerated knowledge store requires a current approval receipt that binds its exact path and
+hash to one disposition: **retain**, **export**, or **delete**. Retain leaves the source bytes
+untouched and outside the deletion set. Export requires a byte-exact destination and independent
+read-back while also leaving the source outside the deletion set. Delete authorizes only the exact
+enumerated source for inclusion in the all-or-nothing deletion set. A missing, stale, unrelated, or
+unsatisfied disposition blocks the terminal boundary:
+delete nothing and verify every legacy record and knowledge-store source still matches its original
+SHA-256.
 
 ## 5. Terminal receipt and deletion boundary
 
@@ -142,33 +143,34 @@ passes only when:
 - every historical record has exact immutable Git blob and PR provenance with zero Linear
   mutation;
 - the source ledger covers every specification, plan, fix, and overnight path exactly once;
-- every preserved knowledge reference resolves and its rewritten bytes match the provenance
-  ledger;
-- no foreign resource or unenumerated legacy path is present; and
+- every unsupported local knowledge store is explicitly enumerated and its approval-backed
+  retain/export/delete disposition is satisfied, with no unenumerated legacy or knowledge path
+  present; and
 - `git show` still recovers every source byte at its recorded SHA-256.
 
-Local deletion and the staged knowledge rewrite form one rollback-capable, all-or-nothing final
-boundary. With every original file still intact, immediately repeat the applicable active managed
-reads or historical Git/PR reads, relation reconciliation, staged knowledge-link verification,
-and filtered Git recovery. If any read is stale, partial, unknown, or mismatched, discard the
-staged rewrite, delete nothing, and hash-verify all original source and knowledge bytes.
+Local deletion is one rollback-capable, all-or-nothing final boundary over every enumerated legacy
+development-record path and every knowledge-store path with an approved **delete** disposition.
+Retained and exported knowledge-store sources remain intact and outside that deletion set. With
+every original file still intact, immediately repeat the applicable active managed reads or
+historical Git/PR reads, relation reconciliation, disposition approvals, export read-backs, and
+filtered Git recovery. If any read is stale, partial, unknown, or mismatched, delete nothing and
+hash-verify all original source bytes.
 
-Only after those checks pass, retain private byte-for-byte rollback copies, atomically apply the
-complete knowledge rewrite set, and delete only the enumerated legacy paths. Immediately verify
-every deleted path is absent, recover each file through Git's configured filters, and compare both
-its normalized object identity and platform checkout SHA-256 with the preflight ledger. Also
-re-read every rewritten knowledge file against the provenance ledger.
+Only after those checks pass, retain private byte-for-byte rollback copies and delete exactly the
+approved deletion set. Immediately verify every deleted path is absent, recover each file through
+Git's configured filters, and compare both its normalized object identity and platform checkout
+SHA-256 with the preflight ledger. Re-hash every retained or exported knowledge-store source and
+require its original SHA-256.
 
-If any step fails after the first knowledge rewrite, restore every original knowledge file and
-every missing legacy path byte-for-byte from the rollback copies, verify all original SHA-256
-values and normalized Git identities, and retain the prior receipt boundary. If restoration cannot
-be proved, stop with an explicit recovery error and preserve the rollback copies. Never delete
-directories wholesale, delete unenumerated files, rewrite Git history, or treat a local deletion
-list as evidence that deletion occurred.
+If any step fails after the first deletion, restore every missing legacy or delete-designated
+knowledge path byte-for-byte from the rollback copies, verify all original SHA-256 values and
+normalized Git identities, and retain the prior receipt boundary. If restoration cannot be proved,
+stop with an explicit recovery error and preserve the rollback copies. Never delete directories
+wholesale, delete unenumerated or non-delete-designated files, rewrite Git history, or treat a local
+deletion list as evidence that deletion occurred.
 
 Return every per-record classification; the exact active, historical, and blocked subsets; receipt
 handle and path; stable client/native IDs; canonical relation tuples; complete read-back receipt
-IDs; exact source and knowledge-provenance ledgers; raw, normalized, and platform-checkout
-pre/post hashes; remote mutations actually performed; and paths actually deleted. Blocked results
-include the reason, completed and next boundaries, and unchanged per-path source and knowledge
-hashes.
+IDs; source ledgers; raw, normalized, and platform-checkout pre/post hashes; remote mutations
+actually performed; and paths actually deleted. Blocked results include the reason, completed and
+next boundaries, and unchanged per-path source hashes.

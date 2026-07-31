@@ -29,8 +29,3 @@ assert_file_absent() { # path msg
     FAIL=$((FAIL+1)); echo "  FAIL: $2"; echo "    file exists: [$1]"; fi
 }
 finish() { echo "  $PASS passed, $FAIL failed"; [ "$FAIL" -eq 0 ]; }
-
-# Build a throwaway memory dir; echoes its path.
-mk_memdir() { mktemp -d; }
-# Write a note: mk_note <dir> <filename> <frontmatter-block> <body>
-mk_note() { printf -- '---\n%s\n---\n%s\n' "$3" "$4" > "$1/$2"; }

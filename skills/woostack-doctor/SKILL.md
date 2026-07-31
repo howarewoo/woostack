@@ -1,15 +1,14 @@
 ---
 name: woostack-doctor
-description: Diagnose and, after approval, repair a repo's `.woostack/` workspace health—static knowledge/config checks, guarded legacy-record checks, and optional live Linear artifact connectivity. Remote content is never auto-repaired. Includes exit-coded CI mode and an interactive local repair gate.
+description: Diagnose and, after approval, repair a repo's `.woostack/` workspace health—static config checks, guarded legacy-record checks, and optional live Linear artifact connectivity. Remote content is never auto-repaired. Includes exit-coded CI mode and an interactive local repair gate.
 ---
 
 # woostack-doctor
 
 Diagnose — and, with your approval, repair — the health of a repo's `.woostack/` workspace.
-This is the 17th public command and the **store-integrity + convention** quadrant of woostack
-health: `woostack-init` scaffolds (creates missing structure), `woostack-status` reconciles the
-feature board, `woostack-dream` curates memory *content*, and **`woostack-doctor` lints and repairs
-existing content and conventions**.
+This is the **workspace-integrity + convention** quadrant of woostack health:
+`woostack-init` scaffolds missing structure, `woostack-status` reconciles the feature board, and
+**`woostack-doctor` lints and repairs local policy and conventions**.
 
 It has two layers:
 
@@ -41,9 +40,8 @@ It has two layers:
 - `/woostack-doctor [path] --check --live` — the same controller-owned live preflight with
   CI-style annotations and exit behavior.
 
-The engine depends on [`woostack-init`](../woostack-init/SKILL.md) being installed (it sources the
-shared libs and reads the `templates/` it ships); the woostack collection installs both as
-siblings, so this holds by construction.
+The engine depends on [`woostack-init`](../woostack-init/SKILL.md) being installed because it reads
+the `templates/` shipped there; the woostack collection installs both as siblings.
 
 ## Procedure
 
@@ -58,8 +56,8 @@ siblings, so this holds by construction.
    OAuth-scoped workspace slug, native team ID/key, native mappings, and independent read-back,
    write the normalized non-secret mode-0600 receipt, and run
    `doctor.sh --live-receipt <path> [path]`. Otherwise run
-   `doctor.sh [path]`. The engine validates policy, knowledge stores, diagnostics, and local
-   worktree hygiene. Legacy `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, or
+   `doctor.sh [path]`. The engine validates policy, diagnostics, and local worktree hygiene.
+   Legacy `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, or
    `.woostack/overnight/` sets produce one blocking migration finding per active or ambiguous set;
    doctor does not run normal lifecycle lint on them and points at the explicit
    [legacy migration procedure](../woostack-init/references/legacy-migration.md).
@@ -87,9 +85,8 @@ siblings, so this holds by construction.
 ## Hard constraints
 
 - **Never scaffold.** Absent `.woostack/` → point at `woostack-init`; never create the workspace.
-- **Never reconcile the board** (that is `woostack-status`) and **never curate memory content**
-  (that is `woostack-dream`). Doctor repairs static knowledge/config drift and reports judgment-only
-  signals; it never computes or writes lifecycle state.
+- **Never reconcile the board** (that is `woostack-status`). Doctor repairs static config/workspace
+  drift and reports judgment-only signals; it never computes or writes lifecycle state.
 - **Artifacts are optional.** Static diagnosis validates non-secret policy. Local legacy
   development-record directories are migration blockers, not a backend and not normal lint input.
   Doctor never creates, repairs, adopts, or deletes them.

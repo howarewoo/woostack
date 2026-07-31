@@ -56,22 +56,15 @@ runs use the same approval, implementation, verification, and review gates.
 <ContextEconomy />
 
 The working context is scarce. A window stuffed with material the current step does not need
-reasons worse and runs out sooner. woostack keeps it focused through scoped recall, compact tool
-output, isolated coding sessions, and independent review.
+reasons worse and runs out sooner. woostack keeps it focused through compact tool output, isolated
+coding sessions, and independent review.
 
-### Reusable knowledge is not development state
+### Session learning becomes instruction suggestions
 
-woostack keeps two reusable knowledge stores under `.woostack/`:
+At the end of each session, woostack reviews the completed conversation and tool evidence for
+durable project rules. It suggests only novel rules that are likely to help future sessions and
+targets each suggestion to the global or narrowest applicable `AGENTS.md`.
 
-- **`memory/`** holds scoped, per-fact notes. Recall loads only notes whose scope matches the files
-  in play, plus one hop of linked notes.
-- **`wisdom/`** holds generalized, cross-cutting findings and loads as a small shared corpus when a
-  workflow needs it.
-
-<Callout type="info">
-  Memory and wisdom may inform a hypothesis or implementation choice, but they cannot establish
-  scope, approval, acceptance, or completion. The active contract and direct Git/GitHub evidence do.
-</Callout>
 
 Diagnostic outputs from audit, QA, or production-response workflows are similarly
 non-authoritative. They may support a decision; remediation enters the appropriate fix, change, or
@@ -80,12 +73,9 @@ build workflow and obtains its own approval contract.
 ### Tools compute, agents read compact results
 
 Small helpers gather and compress deterministic repository context so agents consume a result
-rather than every input:
-
-- `build-index.sh` reduces memory notes to an index used for scoped recall.
-- `recall.sh` performs scope matching and emits only the reusable knowledge that matched.
-- review prefetch gathers the relevant diff, metadata, rules, and knowledge once for independent
-  analysis.
+rather than every input. Review prefetch gathers the relevant diff, metadata, and repository rules
+once for independent analysis. Status and development workflows retain only the verified MCP
+identities and receipts required for the current decision.
 
 Optional artifact access uses the host's authenticated official Linear MCP connection. Skills
 discover capabilities, read only exact caller-supplied resources, and independently read requested
@@ -116,6 +106,6 @@ See [Engineer agents](/docs/concepts/engineer-agents) for the provider-neutral b
   <Card title="Building rules" href="/docs/concepts/building-rules" description="Follow the three gates and choose the smallest workflow for the work." />
   <Card title="Status tracking" href="/docs/concepts/status-tracking" description="Derive a fresh board from Git, Graphite, and GitHub with optional artifacts." />
   <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Bootstrap, Build, Fix, and Change under one authority model." />
-  <Card title="woostack-dream" href="/docs/skills/woostack-dream" description="Curate reusable memory and wisdom without turning them into project state." />
+  <Card title="Context management" href="/docs/concepts/context-management" description="Keep sessions compact and turn durable lessons into reviewed instruction suggestions." />
   <Card title="All skills" href="/docs/skills/using-woostack" description="Per-skill reference, generated from each SKILL.md." />
 </Cards>

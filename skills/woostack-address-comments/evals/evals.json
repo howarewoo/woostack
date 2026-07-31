@@ -4,7 +4,7 @@
   "cases": [
     {
       "id": "default-flow-stops-at-verdict-gate",
-      "prompt": "Analyze the bounded unresolved threads in fixtures/address-pending.json under the default /woostack-address-comments flow as a synthetic receipt exercise. Do not call GitHub, Git, Linear, or mutate files. Facts: canonical PR #42 has the sole final trailer `Linear-Issue: APP-42`; official-MCP independent reads verify managed work-item client UUID 11111111-1111-4111-8111-111111111111, no project membership, human owner user-7, matching current assignmentAccepted, and a current reviewResult whose head/diff/thread IDs equal the fixture. Return exactly one JSON object using keys status, recommendationsComplete, gateState, issueClientId, projectId, ownerVerified, assignmentVerified, findingReceiptVerified, linearMutationCount, editsApplied, pushed, repliesPosted, threadsResolved, memoryWritten, and mergeAllowed. Use booleans for completion and side-effect fields, status `awaiting-verdict-approval`, and gateState `pending-explicit-approval`.",
+      "prompt": "Analyze the bounded unresolved threads in fixtures/address-pending.json under the default /woostack-address-comments flow as a synthetic receipt exercise. Do not call GitHub, Git, Linear, or mutate files. Facts: canonical PR #42 has the sole final trailer `Linear-Issue: APP-42`; official-MCP independent reads verify managed work-item client UUID 11111111-1111-4111-8111-111111111111, no project membership, human owner user-7, matching current assignmentAccepted, and a current reviewResult whose head/diff/thread IDs equal the fixture. Return exactly one JSON object using keys status, recommendationsComplete, gateState, issueClientId, projectId, ownerVerified, assignmentVerified, findingReceiptVerified, linearMutationCount, editsApplied, pushed, repliesPosted, threadsResolved, and mergeAllowed. Use booleans for completion and side-effect fields, status `awaiting-verdict-approval`, and gateState `pending-explicit-approval`.",
       "fixtures": [
         "address-pending.json",
         "repo/src/cache.ts"
@@ -12,7 +12,7 @@
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Exact attribution, projectless role, type-aware owner/current assignment, and typed finding receipt are verified before recommendations; then the default flow stops at the explicit verdict gate with no Linear event, edit, push, reply, resolution, memory write, or merge.",
+      "expected": "Exact attribution, projectless role, type-aware owner/current assignment, and typed finding receipt are verified before recommendations; then the default flow stops at the explicit verdict gate with no Linear event, edit, push, reply, resolution, or merge.",
       "assertions": [
         {
           "id": "all-thread-recommendations-complete",
@@ -60,13 +60,6 @@
           "id": "no-resolves-before-gate",
           "kind": "final-json-path-equals",
           "pointer": "/threadsResolved",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "no-memory-before-gate",
-          "kind": "final-json-path-equals",
-          "pointer": "/memoryWritten",
           "expected": false,
           "critical": true
         },

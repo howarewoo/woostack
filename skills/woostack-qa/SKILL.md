@@ -74,9 +74,8 @@ journeys from, in order:
    [optional artifact contract](../woostack-init/references/artifact-backends.md), use official
    host-exposed MCP reads, fully paginate relevant fields, and extract only requested
    specification/fix/plan criteria. Missing artifact access blocks those criteria only.
-4. **Repository and local knowledge.** Inspect routes/source serving the app. Scope-matched memory
-   and wisdom may inform exploration as hypotheses, but local diagnostic reports never establish
-   intended behavior or acceptance.
+4. **Repository source.** Inspect routes/source serving the app. Local diagnostic reports never
+   establish intended behavior or acceptance.
 5. **Blind exploration.** With no explicit focus or verified context, discover the visible
    navigation surface and enumerate it.
 

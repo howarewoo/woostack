@@ -7,20 +7,13 @@
       "query": "I've just taken over this repo after a week away. Summarize each active effort's current phase, how its increments and pull requests are progressing, where work has drifted, and the next move.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-status",
-      "conflictsWith": ["woostack-doctor", "woostack-dream"]
+      "conflictsWith": ["woostack-doctor"]
     },
     {
       "id": "workspace-metadata-health-check",
       "query": "The workspace loads, but note headers and spec-to-plan links may have been damaged in a merge. Identify the convention violations and show the safe correction set before touching anything.",
       "shouldTrigger": false,
       "expectedSkill": "woostack-doctor",
-      "conflictsWith": ["woostack-status"]
-    },
-    {
-      "id": "knowledge-store-reflection-and-promotion",
-      "query": "Several memory notes keep teaching the same deployment lesson. Work out a single durable version, which notes it supersedes, and what supporting docs would need to change.",
-      "shouldTrigger": false,
-      "expectedSkill": "woostack-dream",
       "conflictsWith": ["woostack-status"]
     }
   ]

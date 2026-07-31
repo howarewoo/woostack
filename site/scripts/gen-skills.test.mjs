@@ -6,7 +6,6 @@ import { parseFrontmatter } from '../../skills/woostack-eval/scripts/validate.mj
 import {
   INTERNAL_ORDER,
   PUBLIC_ORDER,
-  SUPPORTING_ORDER,
   parseFrontmatter as generatorParseFrontmatter,
   stripTitleHeading,
   rewriteLinks,
@@ -128,7 +127,7 @@ test('renderPage emits title/description, source link, internal note for sub-ski
   assert.match(ideate, /Internal sub-skill/);
 });
 
-test('navOrder preserves the exact 23-public and 3-supporting/internal skill order', () => {
+test('navOrder preserves the exact 22-public and 2-internal skill order', () => {
   const expectedPublic = [
     'using-woostack',
     'woostack-init',
@@ -146,7 +145,6 @@ test('navOrder preserves the exact 23-public and 3-supporting/internal skill ord
     'woostack-visualize',
     'woostack-debug',
     'woostack-tdd',
-    'woostack-dream',
     'woostack-doctor',
     'woostack-sweep',
     'woostack-qa',
@@ -154,16 +152,14 @@ test('navOrder preserves the exact 23-public and 3-supporting/internal skill ord
     'woostack-respond',
     'woostack-eval',
   ];
-  const expectedSupporting = ['woostack-ask'];
   const expectedInternal = ['woostack-harden', 'woostack-ideate'];
-  const expected = [...expectedPublic, ...expectedSupporting, ...expectedInternal];
+  const expected = [...expectedPublic, ...expectedInternal];
 
-  assert.equal(PUBLIC_ORDER.length, 23);
+  assert.equal(PUBLIC_ORDER.length, 22);
   assert.deepEqual(PUBLIC_ORDER, expectedPublic);
-  assert.deepEqual(SUPPORTING_ORDER, expectedSupporting);
   assert.deepEqual(INTERNAL_ORDER, expectedInternal);
-  assert.equal(expected.length, 26);
-  assert.equal(new Set(expected).size, 26);
+  assert.equal(expected.length, 24);
+  assert.equal(new Set(expected).size, 24);
   assert.deepEqual(navOrder([...expected].reverse()), expected);
 });
 
@@ -181,11 +177,10 @@ test('concepts taxonomy keeps context economy under context management', async (
 
 test('configuration docs follow the scaffold and Linear contract', async () => {
   const repoRoot = path.resolve(import.meta.dirname, '..', '..');
-  const [templateRaw, configuration, auditRaw, memory] = await Promise.all([
+  const [templateRaw, configuration, auditRaw] = await Promise.all([
     readFile(path.join(repoRoot, 'skills', 'woostack-init', 'templates', 'config.json'), 'utf8'),
     readFile(path.join(repoRoot, 'site', 'content', 'docs', 'configuration.mdx'), 'utf8'),
     readFile(path.join(repoRoot, 'skills', 'woostack-audit', 'SKILL.md'), 'utf8'),
-    readFile(path.join(repoRoot, 'skills', 'woostack-init', 'references', 'memory.md'), 'utf8'),
   ]);
   const template = JSON.parse(templateRaw);
   assert.deepEqual(Object.keys(template), ['linear', 'models', 'review', 'respond', 'status']);
@@ -236,20 +231,4 @@ test('configuration docs follow the scaffold and Linear contract', async () => {
   );
   assert.doesNotMatch(renderedAudit, /`ignore`, `models`, `chunking/);
 
-  const normalizedMemory = memory.replace(/\s+/g, ' ');
-  assert.match(
-    normalizedMemory,
-    /exactly five top-level policy namespaces: `linear`, `models`, `review`, `respond`, and `status`/
-  );
-  assert.doesNotMatch(normalizedMemory, /artifacts\.specPlan|spec\/plan backend|defaults to Markdown/i);
-  assert.match(
-    normalizedMemory,
-    /does not create `\.woostack\/specs\/`, `\.woostack\/plans\/`, or `\.woostack\/fixes\/`/
-  );
-  assert.match(normalizedMemory, /historical migration input only/);
-  assert.match(normalizedMemory, /memory and (?:the sibling )?wisdom[\s\S]{0,120}non-authoritative/i);
-  assert.match(normalizedMemory, /sanitized diagnostic reports[\s\S]{0,100}non-authoritative/i);
-  assert.match(normalizedMemory, /linear:\/\/project\/<uuid>.*linear:\/\/issue\/<uuid>/i);
-  assert.match(normalizedMemory, /review-recorded notes use raw `pr-<n>` or `address-comments`/i);
-  assert.doesNotMatch(normalizedMemory, /linear:\/\/document\/|normalized adapter/i);
 });

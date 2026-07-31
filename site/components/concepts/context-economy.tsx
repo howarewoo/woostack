@@ -2,14 +2,14 @@
  * Context-economy hero for the Context management page.
  *
  * Three mechanisms feed one scarce resource: the agent's working context.
- * Scoped recall, shell scripts, and subagents each keep heavy work out of the
- * main context window. Pure inline SVG — no dependencies. Colors come from the
+ * Scoped instructions, shell scripts, and subagents each keep heavy work out
+ * of the main context window. Pure inline SVG — no dependencies. Colors come from the
  * Fumadocs theme tokens (`--color-fd-*`) so it adapts to light and dark with no
  * JavaScript.
  */
 export function ContextEconomy() {
   const sources = [
-    { y: 24, title: 'Scoped recall', sub: 'load the few notes that match' },
+    { y: 24, title: 'Scoped instructions', sub: 'load only applicable rules' },
     { y: 116, title: 'Scripts compute', sub: 'read the small output' },
     { y: 208, title: 'Subagents isolate', sub: 'return a compact result' },
   ];
@@ -19,7 +19,7 @@ export function ContextEconomy() {
       <svg
         viewBox="0 0 760 300"
         role="img"
-        aria-label="Three mechanisms — scoped recall, shell scripts, and subagents — keeping the agent's working context small."
+        aria-label="Three mechanisms — scoped instructions, shell scripts, and subagents — keeping the agent's working context small."
         style={{ width: '100%', height: 'auto', fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}
       >
         <defs>

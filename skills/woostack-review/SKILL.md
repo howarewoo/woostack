@@ -109,7 +109,7 @@ export PR_NUMBER=<n>   # optional; prefetch.sh derives it from the branch when u
 bash "$WOO_REVIEW_ACTION_PATH/scripts/prefetch.sh"   # prints outdir=<path>; honors the exported OUTDIR
 ```
 
-For an open PR, prefetch produces the full diff artifact tree (`diff.txt`, `meta.json`, `attribution.md`, `last_sha.txt`, `prior-findings.json`, plus applicable `rules.md` and `memory.md`). It never invents a development contract; a local host may add `intent.md` in Stage 1a from the active caller-approved contract and, optionally, exact verified Linear artifact content. When no PR resolves, prefetch emits `skip=true` and the host falls back to local-diff mode below.
+For an open PR, prefetch produces the full diff artifact tree (`diff.txt`, `meta.json`, `attribution.md`, `last_sha.txt`, `prior-findings.json`, plus applicable `rules.md`). It never invents a development contract; a local host may add `intent.md` in Stage 1a from the active caller-approved contract and, optionally, exact verified Linear artifact content. When no PR resolves, prefetch emits `skip=true` and the host falls back to local-diff mode below.
 
 **Artifact reference.** All paths are under `$OUTDIR` (local default: a per-run `pr-review-<hash>-<ts>-<pid>/`):
 
@@ -124,7 +124,6 @@ For an open PR, prefetch produces the full diff artifact tree (`diff.txt`, `meta
 | `attribution.md` | `prefetch.sh` | Stage 1a, workers | Exact syntax-classified PR trailer candidate plus an explicit `authoritative-issue-context: absent` boundary. Untrusted and never identity proof |
 | `intent.md` | local Stage 1a controller | `acceptance` angle | Active caller-approved contract, optionally enriched from an exact verified Linear artifact. Local only; triggers `acceptance` when present |
 | `rules.md` | `prefetch.sh` | `conventions` angle, validator | Concatenated project rule files; triggers `conventions` angle when present |
-| `memory.md` | `prefetch.sh` | all angles, validator | Cross-PR memory composed from `.woostack/memory/`; findings it records as known/accepted are dropped. Present only when the consumer repo has memory |
 | `angles.txt` | `detect-angles.sh` | Stage 3 orchestrator | One angle name per line |
 | `reviewer-identities.json` | engineer-unit controller | `verify-receipts.sh` | Optional only outside engineer-unit runs; host-owned role constraints and one reviewer binding per angle/chunk, never worker-authored or secret-bearing |
 | `receipt.<angle>[.<chunk>].json` | angle workers | `verify-receipts.sh` | Advisory execution plus host-bound reviewer identity; must match the controller manifest when present and is never native GitHub posting-actor proof |
@@ -195,7 +194,7 @@ bash "$WOO_REVIEW_ACTION_PATH/scripts/load-config.sh"   # parses .woostack/confi
 bash "$WOO_REVIEW_ACTION_PATH/scripts/detect-angles.sh"
 ```
 
-When loading or overriding `.woostack/config.json`, read the full [configuration schema and optional knowledge/memory behavior](references/configuration.md); otherwise continue with the defaults emitted by `load-config.sh`.
+When loading or overriding `.woostack/config.json`, read the full [configuration schema](references/configuration.md); otherwise continue with the defaults emitted by `load-config.sh`.
 
 Read the result from `$OUTDIR/angles.txt` (one angle per line). Always-on angles: `bugs`,
 `security`, `simplify`. Conditional: `conventions` (when `rules.md` is present), `acceptance`
@@ -532,26 +531,7 @@ acceptance without the separately authenticated canonical producer and complete 
 
 **If invoked locally with no PR number**, print the validated findings to the terminal and stop. Label them `contract-aware advisory` only with verified `intent.md`; otherwise use `diff-only advisory`. Include available swarm/degradation details, naming invalid angles whose artifacts contributed `[]`. Do not touch any remote.
 
-### Stage 6 — Update cross-PR memory (local hosts)
-
-After reporting, when the user **dismisses** a finding as a known/intentional/accepted issue, or tells you a gotcha worth remembering, record the **learning** — not the individual issue resolution. The goal is a small, deduplicated set of generalizable rules ("the team accepts X pattern because Y"), not a growing log of every finding ever dismissed.
-
-Before writing anything:
-
-1. **Read the existing memory** (`$OUTDIR/memory.md` and `.woostack/memory/MEMORY.md` when present).
-2. **Check coverage.** If an existing entry already captures this learning — even phrased differently, or scoped more narrowly/broadly — do **NOT** append a duplicate. If the existing entry is close but the new dismissal generalizes it (e.g. the same pattern in a second file), edit that entry to widen its scope rather than adding a near-duplicate.
-3. **Only when the learning is genuinely new**, record one terse reusable rule — one line, `<pattern>: <reason>`, per the canonical memory-note-body discipline ([`output-discipline.md`](../using-woostack/references/output-discipline.md#memory-note-bodies)). Write a scoped `.woostack/memory/` note when the scoped store exists; otherwise skip and defer to `/woostack-init`.
-
-```bash
-# Record ONLY after confirming no existing entry covers this learning.
-LEARNING="<general pattern>: <why it is accepted / what not to re-flag>" \
-MEMORY_SCOPE="<narrow glob or comma-separated globs>" \
-  bash "$WOO_REVIEW_ACTION_PATH/scripts/memory-record.sh"
-```
-
-Phrase entries as terse patterns, not instances — prefer "Generated `*.pb.go` files are intentional; do not flag their style" over "dismissed line 42 in user.pb.go". One line per entry, no narration. The local skill writes this memory directly — no post-session hook, no permission-isolated job. Only record on an explicit dismissal or a stated gotcha — never auto-record every finding. Do NOT write memory in CI: the GitHub Action's validator job holds `contents: read` and posts the review only; memory is curated locally and by humans editing the files. Memory is read back as review context on the next run (Stage 1) and the validator drops findings it records.
-
-### Stage 6.5 — Fold per-angle metrics (local hosts, opt-in)
+### Stage 6 — Fold per-angle metrics (local hosts, opt-in)
 
 Only when the consumer repo sets `review.metrics: true` in `.woostack/config.json`. The
 per-run `findings.metrics.json` (written by `intersect-findings.sh`) is folded into a
@@ -563,9 +543,9 @@ ensures that path is gitignored — the aggregate is local data, never committed
 bash "$WOO_REVIEW_ACTION_PATH/scripts/metrics-fold.sh"
 ```
 
-This is a no-op when `metrics` is off or no per-run record exists. As with memory, the
-GitHub Action does **not** fold — its job is `contents: read` + post; metrics persistence
-is local only (the action uploads `findings.metrics.json` as a build artifact instead).
+This is a no-op when `metrics` is off or no per-run record exists. The GitHub Action does **not**
+fold — its job is `contents: read` + post; metrics persistence is local only (the action uploads
+`findings.metrics.json` as a build artifact instead).
 
 **Reading the aggregate.** `metrics-fold.sh` prints advisory-only skip suggestions when a
 single clone has enough local evidence that an optional angle is not paying for itself. The

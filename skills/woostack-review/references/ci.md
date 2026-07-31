@@ -81,4 +81,4 @@ The `detect` and angle-worker jobs retain `contents: read` / `pull-requests: rea
 validator/posting job has `pull-requests: write`. Existing GitHub GraphQL review-thread collection
 is unchanged: open threads still floor the native review event, while resolved threads remain
 dedupe context. Artifacts retain one-day handoff storage and are deleted from each runner in
-`if: always()` cleanup; metrics are uploaded, but CI writes no cross-PR memory or local aggregate.
+`if: always()` cleanup; metrics are uploaded, but CI writes no local aggregate.

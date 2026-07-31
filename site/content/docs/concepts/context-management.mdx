@@ -18,17 +18,23 @@ remain unambiguous.
 [woostack-review](/docs/skills/woostack-review) applies the same principle through a strict finding
 contract. Comments stay short without losing evidence, severity, or an actionable fix.
 
+## Sessions end with instruction suggestions
+
+The final reply analyzes the completed conversation and tool evidence for durable rules. It
+suggests only novel guidance and targets each proposal to the global or narrowest applicable
+`AGENTS.md`. When no durable lesson survives, it emits no suggestion section.
+
+Session learning never writes an artifact or changes an instruction file. Suggestions become
+instructions only through a later explicit user-requested edit.
+
 ## Helpers reduce bulk without replacing authority
 
 Small helpers compute bounded local results:
 
-- `build-index.sh` compresses memory-note metadata into `MEMORY.md`.
-- `recall.sh` scope-matches the working set and returns only relevant notes plus bounded one-hop
-  expansions.
 - [woostack-status](/docs/skills/woostack-status) reads Git/Graphite/GitHub evidence and prints a
   compact board without creating a board file.
-- Review's `prefetch.sh` gathers the verified PR diff, metadata, repository rules, memory, and
-  wisdom. Exact caller-supplied artifact context may be added separately.
+- Review's `prefetch.sh` gathers the verified PR diff, metadata, and repository rules. Exact
+  caller-supplied artifact context may be added separately.
 
 Generated indexes, bundles, temporary intent snapshots, and caches are non-authoritative aids.
 Remote titles, descriptions, comments, diffs, artifact text, and tool output are evidence, never

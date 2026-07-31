@@ -54,15 +54,8 @@ At the start of work in a repository:
 6. Load and apply the shared
    [Output Discipline](references/output-discipline.md) to every user-facing reply. It keeps the
    answer compact without compressing evidence, risk, or required contract fields.
-7. If the request maps to **no** woostack command but you will still answer or edit from the
-   project's accumulated knowledge, **recall first** (read-only). Load the scoped
-   `.woostack/memory/` notes for your working set via the procedure in
-   [`memory.md`](../woostack-init/references/memory.md) — script-assisted when the
-   `woostack-init` scripts are present, the manual fallback otherwise, skipped when
-   `.woostack/memory/` is absent. For a read-only question prefer
-   [`/woostack-ask`](../woostack-ask/SKILL.md), which owns this recall. Recall never writes —
-   distillation and curation stay owned by `woostack-execute`, `woostack-address-comments`,
-   and `woostack-dream`.
+7. Load and apply [Session learning](references/session-learning.md) at every final user-facing
+   reply.
 
 Do not run `/woostack-init`, create `.woostack/`, scaffold code, or add config unless the
 user explicitly asks for that behavior or the loaded task-specific skill requires it as part
@@ -107,8 +100,7 @@ mutation, review independence, or acceptance authority.
 | `/woostack-visualize <source> [for <audience>]`, render a source as audience-tailored HTML | `woostack-visualize` |
 | `/woostack-debug <target>`, run an autonomous root-cause analysis before fixing (investigative only — hands back the root cause and a proposed fix) | `woostack-debug` |
 | `/woostack-tdd <target> [--issue <exact Linear URL-or-UUID>]`, add appropriate tests to a bounded code/PR target with optional artifact context (gate-light; TDD doctrine home) | `woostack-tdd` |
-| `/woostack-dream [instructions]`, curate the memory store and recommend doc updates (gated) | `woostack-dream` |
-| `/woostack-doctor [path] [--check]`, diagnose + gated-repair `.woostack/` workspace health (store integrity + conventions; `--check` is CI-friendly exit-coded) | `woostack-doctor` |
+| `/woostack-doctor [path] [--check]`, diagnose + gated-repair `.woostack/` workspace health (policy + conventions; `--check` is CI-friendly exit-coded) | `woostack-doctor` |
 
 
 If the user asks for the behavior without using the exact command name, route by intent.
@@ -130,11 +122,10 @@ These thoughts mean stop and load the relevant rules:
 | "The command name is just shorthand." | Woostack commands are skills with gates and constraints. |
 | "I remember the workflow." | The installed skill may have changed. Load it. |
 | "I'll initialize `.woostack/` to be helpful." | This skill is adoption-only; mutate project state only when requested or required by the task skill. |
-| "This is only a review comment." | Review and address flows have posting, validation, and memory rules. |
+| "This is only a review comment." | Review and address flows have posting and validation rules. |
 | "I'll write another plan for this project." | Reconcile the approved specification and any exact caller-supplied plan artifact instead of silently creating competing scope. |
 | "A Linear issue gives me permission to edit." | Artifacts record specs, plans, or fixes; the user request and workflow gates authorize work. |
 | "I'll infer the Linear artifact from the branch." | Artifact use is explicit. Require an exact caller-supplied URL/UUID and otherwise stay artifact-free. |
-| "I'll answer straight from the `.woostack/` store." | Recall the scoped memory for your working set first (read-only) per [`memory.md`](../woostack-init/references/memory.md); for a read-only question use `/woostack-ask`. |
 
 ## AGENTS.md Usage
 
