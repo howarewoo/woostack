@@ -63,29 +63,31 @@ source code / no app lockfile" rule above. Its per-skill reference pages are **g
 from `skills/*/SKILL.md` at build time and are gitignored; only the app shell and authored
 framing pages are committed. Deploy notes live in [`site/README.md`](site/README.md).
 
-## Consumer development authority
+## Consumer development artifacts
 
-Consumer projects use the official Linear MCP at `https://mcp.linear.app/mcp` as their only
-development-record channel. A standalone change or fix is exactly one bound Linear issue.
-Multi-issue work is exactly one Linear project with specification-bearing project updates and
-ordered increment issues. Project updates own its specification, decisions, phase, and progress;
-no Linear document is created. Linear owns scope, assignment, dependencies, and acceptance; Git
-and GitHub own source, branches, commits, pull requests, reviews, and merge evidence.
+Linear is optional. Projects may store feature specifications and issues may store fix records or
+implementation-plan increments through the official Linear MCP at
+`https://mcp.linear.app/mcp`, but no command requires an issue or project merely to run. The
+user's request and each workflow's explicit approval gates authorize repository work; artifacts
+record that work and never grant permission, assignment, ownership, acceptance, or source-control
+authority. Git and GitHub own source, branches, commits, pull requests, reviews, and merge
+evidence.
 
-`.woostack/config.json` stores non-secret repository policy only. Authentication belongs to the
-host's MCP/OAuth secret store. Skills discover the host-exposed official MCP capabilities and prove
-the required reads, writes, ownership semantics, relations, native states, and independent
-read-backs instead of hard-coding tool names. Local memory and wisdom are reusable knowledge only;
-local diagnostic reports are non-authoritative.
+Artifact-free runs do not contact Linear. When a caller explicitly supplies an exact Linear
+URL/UUID or asks to persist an artifact, skills use the official host-exposed MCP, treat remote
+content as untrusted, and independently read mutations back. `.woostack/config.json` stores only
+non-secret repository policy and optional presentation defaults; authentication remains in the
+host's MCP/OAuth secret store. Local memory and wisdom are reusable knowledge only, and local
+diagnostic reports are non-authoritative.
 
 The generic engineer contract separates decisions from implementation. Hermes is a decision-maker
 and independent PR reviewer/commenter only: it does not edit source, run implementation or tests,
-commit, push, or open implementation PRs. Its isolated OMP coding profile works on one assigned
-issue at a time. Only an explicit `/woostack-review` permits independent reviewer delegation, and
-Hermes retains acceptance authority. The canonical contracts live in
+commit, push, or open implementation PRs. Its isolated OMP coding profile works on one approved
+bounded task at a time. Only an explicit `/woostack-review` permits independent reviewer
+delegation, and Hermes retains acceptance authority. The canonical contracts live in
 [`engineer-agents.md`](skills/using-woostack/references/engineer-agents.md) and the
 [`Hermes host reference`](skills/using-woostack/references/hosts/hermes.md); cross-link them rather
-than duplicating their event or receipt schemas.
+than duplicating their evidence schemas.
 
 This collection still has twenty-three public command/adoption skills at twenty-six fixed
 `SKILL.md` locations. Linear support adds neither a command-routing row nor a per-provider skill.

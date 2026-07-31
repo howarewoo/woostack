@@ -13,7 +13,7 @@ import sys
 import tempfile
 import unicodedata
 
-TOP_FIELDS = {"schema_version", "signal", "scope", "environment", "window", "generated_at", "outcome", "investigation_bound", "coverage", "ranked_groups", "impact_summary", "timeline", "investigations", "verified_root_causes", "external_incidents", "observability_gaps", "issue_dispositions", "blocked_evidence"}
+TOP_FIELDS = {"schema_version", "signal", "scope", "environment", "window", "generated_at", "outcome", "investigation_bound", "coverage", "ranked_groups", "impact_summary", "timeline", "investigations", "verified_root_causes", "external_incidents", "observability_gaps", "remediation_contracts", "blocked_evidence"}
 SECTIONS = ("Response & Scope", "Query Coverage", "Ranked Error Queue", "Impact Summary", "Incident Timeline", "Investigated Groups", "Verified Root Causes", "External or Non-Code Incidents", "Observability Gaps", "Remediation", "Uncovered and Blocked Evidence")
 LATEST_INSTANT = datetime.max.replace(tzinfo=timezone.utc)
 
@@ -104,42 +104,26 @@ def validate(data):
             if iid in seen: raise InputError(f"{field} ids must be unique")
             seen.add(iid)
             if field == "verified_root_causes": verified_cause_ids.add(iid)
-    if not isinstance(data["issue_dispositions"],list): raise InputError("issue_dispositions must be a list")
-    disposition_ids=set()
-    for n,item in enumerate(data["issue_dispositions"]):
-        base={"cause_id","kind"}
-        if not isinstance(item,dict): raise InputError(f"issue_dispositions[{n}] must be an object")
-        cause_id=text(item.get("cause_id"),"issue_disposition.cause_id")
-        if cause_id in disposition_ids: raise InputError("issue disposition cause ids must be unique")
-        disposition_ids.add(cause_id)
-        kind=item.get("kind")
-        if kind == "proposed-managed-issue-contract":
-            required=base|{"canonical_repository","problem","scope","evidence","acceptance_criteria"}
-            exact_object(item,required,set(),f"issue_dispositions[{n}]")
-            for field in ("canonical_repository","problem","scope"): text(item[field],f"issue_disposition.{field}")
-            if not strings(item["evidence"],"issue_disposition.evidence"): raise InputError("proposed disposition evidence must be non-empty")
-            if not strings(item["acceptance_criteria"],"issue_disposition.acceptance_criteria"): raise InputError("proposed disposition acceptance_criteria must be non-empty")
-        elif kind == "verified-existing-issue-evidence":
-            required=base|{"issue_client_id","issue_native_id","issue_url","role","project_client_id","project_native_id","projectless","owner_kind","owner_principal_id","assignment_receipt","assignment_verified_absent","read_receipt","read_at"}
-            exact_object(item,required,set(),f"issue_dispositions[{n}]")
-            for field in ("issue_client_id","issue_native_id","issue_url","owner_principal_id","read_receipt"): text(item[field],f"issue_disposition.{field}")
-            timestamp(item["read_at"],"issue_disposition.read_at")
-            if item["role"] not in {"work-item","increment"}: raise InputError("verified disposition role is invalid")
-            if item["owner_kind"] not in {"human","app"}: raise InputError("verified disposition owner_kind is invalid")
-            if not isinstance(item["projectless"],bool) or not isinstance(item["assignment_verified_absent"],bool): raise InputError("verified disposition boolean fields are invalid")
-            assignment=item["assignment_receipt"]
-            if item["assignment_verified_absent"]:
-                if assignment is not None: raise InputError("verified-absent assignment cannot include a receipt")
-            else:
-                text(assignment,"issue_disposition.assignment_receipt")
-            if item["role"] == "work-item":
-                if not item["projectless"] or item["project_client_id"] is not None or item["project_native_id"] is not None: raise InputError("work-item disposition must be explicitly projectless")
-            else:
-                if item["projectless"]: raise InputError("increment disposition cannot be projectless")
-                text(item["project_client_id"],"issue_disposition.project_client_id"); text(item["project_native_id"],"issue_disposition.project_native_id")
-        else:
-            raise InputError("issue disposition kind is invalid")
-    if disposition_ids != verified_cause_ids: raise InputError("issue_dispositions must contain exactly one entry per verified repository cause")
+    if not isinstance(data["remediation_contracts"],list): raise InputError("remediation_contracts must be a list")
+    contract_ids=set()
+    for n,item in enumerate(data["remediation_contracts"]):
+        required={"cause_id","kind","canonical_repository","problem","scope","evidence","acceptance_criteria","artifact"}
+        exact_object(item,required,set(),f"remediation_contracts[{n}]")
+        cause_id=text(item["cause_id"],"remediation_contract.cause_id")
+        if cause_id in contract_ids: raise InputError("remediation contract cause ids must be unique")
+        contract_ids.add(cause_id)
+        if item["kind"] != "proposed-fix-contract": raise InputError("remediation contract kind must be proposed-fix-contract")
+        for field in ("canonical_repository","problem","scope"): text(item[field],f"remediation_contract.{field}")
+        if not strings(item["evidence"],"remediation_contract.evidence"): raise InputError("remediation contract evidence must be non-empty")
+        if not strings(item["acceptance_criteria"],"remediation_contract.acceptance_criteria"): raise InputError("remediation contract acceptance_criteria must be non-empty")
+        artifact=item["artifact"]
+        if artifact is not None:
+            artifact_fields={"issue_client_id","issue_native_id","issue_url","read_receipt","read_at"}
+            exact_object(artifact,artifact_fields,set(),f"remediation_contracts[{n}].artifact")
+            for field in ("issue_client_id","issue_native_id","issue_url","read_receipt"):
+                text(artifact[field],f"remediation_contract.artifact.{field}")
+            timestamp(artifact["read_at"],"remediation_contract.artifact.read_at")
+    if contract_ids != verified_cause_ids: raise InputError("remediation_contracts must contain exactly one entry per verified repository cause")
     for field in ("impact_summary","timeline","observability_gaps","blocked_evidence"): strings(data[field],field)
     return data
 
@@ -153,31 +137,28 @@ def findings(items):
     for item in sorted(items,key=lambda x:x["id"]): result += [f'### {item["id"]} — {item["summary"]}',"",*bullets(item["evidence"]),""]
     return result or ["None."]
 
-def render_dispositions(items):
+def render_contracts(items):
     result=["Authority: non-authoritative diagnostic evidence",""]
     for item in sorted(items,key=lambda value:value["cause_id"]):
-        result += [f'### {item["cause_id"]} — {item["kind"]}',""]
-        if item["kind"] == "proposed-managed-issue-contract":
-            result += [
-                f'- Canonical repository: {item["canonical_repository"]}',
-                f'- Proved problem: {item["problem"]}',
-                f'- Bounded scope: {item["scope"]}',
-                *[f"- Evidence: {entry}" for entry in item["evidence"]],
-                *[f"- Observable acceptance criterion: {entry}" for entry in item["acceptance_criteria"]],
-                "",
-            ]
+        result += [
+            f'### {item["cause_id"]} — {item["kind"]}',
+            "",
+            f'- Canonical repository: {item["canonical_repository"]}',
+            f'- Proved problem: {item["problem"]}',
+            f'- Bounded scope: {item["scope"]}',
+            *[f"- Evidence: {entry}" for entry in item["evidence"]],
+            *[f"- Observable acceptance criterion: {entry}" for entry in item["acceptance_criteria"]],
+        ]
+        artifact=item["artifact"]
+        if artifact is None:
+            result += ["- Optional Linear artifact: none", ""]
         else:
-            project = "explicitly projectless" if item["projectless"] else f'{item["project_client_id"]} / {item["project_native_id"]}'
-            assignment = "independently verified absent" if item["assignment_verified_absent"] else item["assignment_receipt"]
             result += [
-                f'- Issue: {item["issue_client_id"]} / {item["issue_native_id"]} / {item["issue_url"]}',
-                f'- Role/project: {item["role"]} / {project}',
-                f'- Owner: {item["owner_kind"]} / {item["owner_principal_id"]}',
-                f"- Assignment: {assignment}",
-                f'- Independent read: {item["read_receipt"]} at {item["read_at"]}',
+                f'- Optional Linear artifact: {artifact["issue_client_id"]} / {artifact["issue_native_id"]} / {artifact["issue_url"]}',
+                f'- Artifact read-back: {artifact["read_receipt"]} at {artifact["read_at"]}',
                 "",
             ]
-    return result or ["Authority: non-authoritative diagnostic evidence","", "No verified repository cause requires an issue disposition."]
+    return result or ["Authority: non-authoritative diagnostic evidence","", "No verified repository cause requires a remediation contract."]
 
 def render(data,date):
     providers=sorted({item["provider"] for item in data["coverage"]}); provider=providers[0] if len(providers)==1 else "multiple"
@@ -191,7 +172,7 @@ def render(data,date):
       "Impact Summary":bullets(data["impact_summary"]), "Incident Timeline":bullets(data["timeline"]),
       "Investigated Groups":[f'- {x["id"]}: {x["status"]} — {x["hypothesis"]}; evidence: {"; ".join(x["evidence"]) or "None"}' for x in sorted(data["investigations"],key=lambda x:x["id"])] or ["None."],
       "Verified Root Causes":findings(data["verified_root_causes"]), "External or Non-Code Incidents":findings(data["external_incidents"]),
-      "Observability Gaps":bullets(data["observability_gaps"]), "Remediation":render_dispositions(data["issue_dispositions"]), "Uncovered and Blocked Evidence":bullets(data["blocked_evidence"]),
+      "Observability Gaps":bullets(data["observability_gaps"]), "Remediation":render_contracts(data["remediation_contracts"]), "Uncovered and Blocked Evidence":bullets(data["blocked_evidence"]),
     }
     for section in SECTIONS: lines += [f"## {section}","",*sections[section],""]
     return "\n".join(lines)

@@ -40,7 +40,7 @@ assert_file_matches "$REVIEW_SKILL" \
   "independent worker mapped.*plain/general/default reviewer profile" \
   "Stage 3 selects a plain/general/default independent reviewer"
 assert_file_matches "$REVIEW_SKILL" \
-  "paired coding profile.*(cannot|never).*independent review.*(cannot|never|or).*accept its own work.*coder self-check.*implementation evidence only" \
+  "paired coding profile.*ineligible for default or independent review.*barred from.*accepting its own work.*coder self-check.*implementation evidence only" \
   "coding self-check remains implementation evidence, never independent review or self-acceptance"
 assert_file_matches "$REVIEW_SKILL" "fresh[[:space:]]+independent reviewer profile/session" \
   "Stage 3 requires a fresh isolated reviewer context"

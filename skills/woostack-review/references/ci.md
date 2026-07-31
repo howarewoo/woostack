@@ -56,9 +56,9 @@ the chosen provider:
 | `openrouter` | `openrouter_api_key` |
 
 Do not add a Linear credential, local adapter, direct API call, encrypted context artifact, or
-repository secret for development records. Authentication for a contract-aware review exists only
-in a local host's official MCP secret store, under the canonical
-[Linear MCP development authority](../../woostack-init/references/artifact-backends.md).
+repository secret. Optional artifact authentication exists only in a local host's official MCP
+secret store under the canonical
+[artifact contract](../../woostack-init/references/artifact-backends.md).
 
 ## CI-only boundaries
 

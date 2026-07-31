@@ -17,7 +17,7 @@ body="$(cat "$out")"
 assert_eq "$(sed -n '1p' "$out")" "Non-authoritative diagnostic evidence — report only." "opens with authority boundary"
 assert_contains "$body" "## HIGH" "groups by severity"
 assert_contains "$body" "src/a.ts:1" "anchors finding"
-assert_eq "$(grep -c '^#### Proposed managed issue contract$' "$out")" "2" "one issue disposition per finding"
+assert_eq "$(grep -c '^#### Proposed bounded remediation contract$' "$out")" "2" "one remediation contract per finding"
 assert_not_contains "$body" "_Next:" "does not manufacture a remediation handoff"
 assert_not_contains "$body" "REQUEST_CHANGES" "no PR-event language (report-only)"
 

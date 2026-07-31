@@ -10,10 +10,10 @@ profile isolation, and credential boundaries differ by host. A missing capabilit
 visibly or blocks the workflow; woostack never pretends the integration succeeded.
 
 The [engineer-agent contract](/docs/concepts/engineer-agents) sits above any one harness. It pairs
-a decision-maker with an isolated coding profile under one verified Linear identity and keeps
-review and acceptance independent from implementation. The explicit
+a decision-maker with an isolated coding profile under one bounded task contract and keeps review
+and acceptance independent from implementation. The explicit
 [Hermes + OMP adapter](/docs/harnesses/hermes) is optional; other host/coder pairs may implement the
-same authority, identity, ownership, and evidence boundaries.
+same authority, identity, worktree, and evidence boundaries.
 
 ## Supported harnesses
 
@@ -31,8 +31,8 @@ For normal in-process OMP use,
 [host-owned role routing](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md)
 selects bundled workers while OMP owns concrete models, provider credentials, and fallback policy.
 The optional engineer pairing is different: a deliberately selected, isolated OMP profile receives
-one assigned Linear issue from Hermes through the exact profile-pinned process described on the
-[OMP page](/docs/harnesses/omp).
+one approved bounded task from Hermes through the exact profile-pinned process described on the
+[OMP page](/docs/harnesses/omp). Linear is optional artifact context.
 
 The [model-tier reference](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/model-tiers.md)
 defines the shared `fast`, `standard`, and `deep` policy. Each page below links to its canonical

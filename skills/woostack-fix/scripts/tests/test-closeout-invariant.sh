@@ -1,77 +1,34 @@
 #!/usr/bin/env bash
+# Structural contract for artifact-free diagnosis, approval, and delivery.
 set -euo pipefail
-
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-ROOT="$(cd "$DIR/../../.." && pwd)"
-source "$ROOT/skills/woostack-init/scripts/tests/assert.sh"
-
-skill="$ROOT/skills/woostack-fix/SKILL.md"
-body="$(cat "$skill")"
-
-assert_contains "$body" "Official host-exposed" "fix requires official host MCP"
-assert_contains "$body" "exactly one managed" "fix binds one managed issue"
-assert_contains "$body" 'role `work-item`' "fix requires standalone work-item role"
-assert_contains "$body" "wrapper project and no Linear document." "fix forbids wrapper resources"
-assert_contains "$body" "Discover host tools by capability" "fix discovers MCP capabilities"
-assert_contains "$body" "client UUID before the first create mutation" "fix allocates identity before create"
-assert_contains "$body" "search by the same UUID" "fix retries by stable identity"
-assert_contains "$body" "Never create a replacement, match by title" "fix create retry is idempotent"
-assert_contains "$body" "A project, Linear" "fix rejects supplied project identity"
-assert_contains "$body" 'project-backed `increment` issue' "fix rejects project increment identity"
-assert_contains "$body" "foreign repository/team issue" "fix rejects foreign issue identity"
-assert_contains "$body" "blocks before branch or worktree" "fix identity failures stop before Git"
-assert_contains "$body" "current content revision" "fix reads explicit issue contract revision"
-assert_contains "$body" "Revision-check that readable content against the diagnosed target" "fix compares bound content to diagnosis"
-assert_contains "$body" "readable body is empty outside its managed block" "fix admits empty candidate content"
-assert_contains "$body" "all existing" "fix admits only same-target populated content"
-assert_contains "$body" "workflow-owned target, problem, scope, and acceptance fields match" "fix checks complete same-target content"
-assert_contains "$body" "exact repository-relative target/symbol" "fix does not match target by title"
-assert_contains "$body" "Re-read the content revision immediately before" "fix prevents stale contract update"
-assert_contains "$body" "block before description/state/assignment or Git mutation" "conflicting contract stops before mutation"
-assert_contains "$body" 'Append a verified `handoff` comment only when that write is safe' "contract conflict hands off safely"
-assert_contains "$body" "Never overwrite, repurpose, or adopt another" "fix never repurposes work items"
-assert_contains "$body" "A human engineer is the verified native assignee" "fix resolves human owner"
-assert_contains "$body" "verified native delegate" "fix resolves app delegate"
-assert_contains "$body" "immediately before worktree creation" "fix rechecks ownership before Git"
-assert_contains "$body" '`assignmentAccepted`' "fix records assignment acceptance"
-assert_contains "$body" '`verification` records the reproduced symptom' "fix records diagnosis evidence"
-assert_contains "$body" '`decisionRequest` records the complete hardened fix contract' "fix records hardened contract"
-assert_contains "$body" '`decisionResponse`' "fix records explicit approval"
-assert_contains "$body" "The skill has exactly one hard gate" "fix retains one approval gate"
-assert_contains "$body" "Hardening owns no gate." "hardening adds no approval gate"
-assert_contains "$body" "Never execute on inferred approval." "fix rejects inferred approval"
-assert_contains "$body" '/woostack-execute <exact Linear issue UUID-or-URL> --subagent' "fix delegates exact issue"
-assert_contains "$body" '`implementationEvidence`' "fix records implementation evidence"
-assert_contains "$body" '`reviewResult`' "fix records review evidence"
-assert_contains "$body" 'terminal `acceptance`' "fix distinguishes terminal acceptance"
-assert_contains "$body" '`failure`' "fix records failure evidence"
-assert_contains "$body" '`handoff`' "fix records handoff evidence"
-assert_contains "$body" 'issue is verified `inReview`' "fix closeout verifies lifecycle"
-assert_contains "$body" "both terminal acceptance and verified" "done requires acceptance and merge evidence"
-assert_contains "$body" 'Linear-Issue: <TEAM-NUMBER>' "fix requires exact issue trailer"
-assert_contains "$body" 'no `Linear-Project:` or `Spec:` trailer' "fix forbids project and spec trailers"
-assert_contains "$body" "PR is submitted or updated and independently read back" "fix requires PR read-back"
-assert_contains "$body" "fix worktree is removed" "fix requires worktree teardown"
-assert_contains "$body" "leave any worktree in place" "fix preserves recovery state"
-assert_contains "$body" "stable issue/event UUIDs" "fix reports stable identities on failure"
-assert_contains "$body" 'Legacy `.woostack/fixes/`' "legacy fix path appears only as migration rejection"
-assert_contains "$body" "migration input only" "legacy prose is explicitly non-authoritative"
-assert_contains "$body" "GitHub GraphQL remains" "GitHub-only GraphQL remains permitted"
-
-assert_contains "$body" "required execution subagent capability exists" "resume requires subagent capability before mutation"
-assert_contains "$body" "leave assignment and state" "missing capability preserves assignment and state"
-assert_contains "$body" 'An ambiguous deferral such as "later" leaves the decision' "ambiguous deferral remains pending"
-assert_contains "$body" "append no execution-approval" "ambiguous deferral records no approval"
-assert_contains "$body" "do not clear the gate" "ambiguous deferral cannot clear gate"
-assert_contains "$body" "explicit **Approved Hand off** records approval" "only approved handoff persists acceptance"
-
-assert_not_contains "$body" 'Create a markdown file under `.woostack/fixes/' "fix never authors local fix markdown"
-assert_not_contains "$body" '/woostack-fix .woostack/fixes/' "fix never resumes from local fix path"
-assert_not_contains "$body" '/woostack-execute .woostack/fixes/' "fix never delegates a local fix path"
-assert_not_contains "$body" "resolve-backend.sh" "fix has no backend resolver call"
-assert_not_contains "$body" "artifacts.specPlan" "fix has no backend selector"
-assert_not_contains "$body" "linear.sh" "fix has no custom Linear adapter call"
-assert_not_contains "$body" "Spec: .woostack/" "fix has no local artifact PR trailer"
-assert_not_contains "$body" "create a one-issue project" "fix never creates a wrapper project"
-
-finish
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)"
+python3 - "$ROOT" <<'PY'
+import re, sys
+from pathlib import Path
+text=re.sub(r"\s+"," ",(Path(sys.argv[1])/"skills/woostack-fix/SKILL.md").read_text())
+checks={
+ "artifact optional":r"Linear is an optional artifact.*no issue, assignment, owner, lifecycle state, receipt, or PR trailer is required",
+ "one gate":r"exactly one hard gate.*approve-to-execute",
+ "no implicit issue":r"Without it, make no Linear call and never create an issue implicitly",
+ "proved root cause":r"root cause and causal chain",
+ "no patch in debug":r"Do not patch during diagnosis",
+ "hardened contract":r"Produce one reviewable bounded contract",
+ "explicit approval":r"request explicit.*approve-to-execute",
+ "no preapproval write":r"Do not create a branch, worktree, edit, commit, PR, or artifact write before approval",
+ "isolated execute":r"dispatch exactly the approved bounded task to `woostack-execute`",
+ "red green":r"observes the failing reproduction.*observes it passing",
+ "scope invalidates":r"scope expansion.*invalidates approval",
+ "review and commit":r"Require task-wide contract and quality review.*woostack-commit",
+ "artifact narrow":r"Do not mutate assignment, ownership, status, acceptance, relations, or project membership",
+ "repository readback":r"independently read its commit/head/base/body",
+ "never merge":r"never merges",
+}
+failures=[name for name,pat in checks.items() if not re.search(pat,text,re.I|re.S)]
+if re.search(r"Linear-Issue:|must.*exactly one managed issue|create.*issue.*when no issue",text,re.I|re.S):
+ failures.append("mandatory issue lifecycle returned")
+if failures:
+ print("fix contract violations:",file=sys.stderr)
+ print("\n".join(f"- {f}" for f in failures),file=sys.stderr)
+ raise SystemExit(1)
+print("artifact-free fix closeout contract: ok")
+PY

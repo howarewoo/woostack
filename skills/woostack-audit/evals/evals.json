@@ -4,7 +4,7 @@
   "cases": [
     {
       "id": "audits-standing-file-through-all-added-report-only-path",
-      "prompt": "Run a bounded offline report-only audit of the standing target fixtures/repo/src/cache.js. Do not call a provider, network, GitHub, or Linear, and do not edit the target. Treat fixtures/review/receipts.json and fixtures/review/findings.json as host-produced synthetic swarm evidence. Build an all-added diff at audit-out/diff.txt, verify every expected synthetic angle receipt, and render the ranked report at the fixed date/path .woostack/audits/2026-07-16-cache-js.md. The report must open with `Non-authoritative diagnostic evidence — report only`, visibly state `Authority: non-authoritative diagnostic evidence`, record the receipt IDs and validated finding, and include a `Proposed managed issue contract` with repository, proved problem, bounded scope, evidence, and observable acceptance criteria while stating that it is not scope or acceptance authority. Do not bind, create, or mutate an issue, dispatch remediation, write a local spec/plan/fix handoff, or change source. Return only the report path.",
+      "prompt": "Run a bounded offline report-only audit of the standing target fixtures/repo/src/cache.js. Do not call a provider, network, GitHub, or Linear, and do not edit the target. Treat fixtures/review/receipts.json and fixtures/review/findings.json as host-produced synthetic swarm evidence. Build an all-added diff at audit-out/diff.txt, verify every expected synthetic angle receipt, and render the ranked report at the fixed date/path .woostack/audits/2026-07-16-cache-js.md. The report must open with `Non-authoritative diagnostic evidence — report only`, visibly state `Authority: non-authoritative diagnostic evidence`, record the receipt IDs and validated finding, and include a `Proposed bounded remediation contract` with repository, proved problem, bounded scope, evidence, and acceptance criteria. Do not create or bind an issue, mutate Linear, edit the target, write `.woostack/fixes/`, post to a code host, dispatch remediation, or merge.",
       "fixtures": [
         "repo/src/cache.js",
         "review/receipts.json",
@@ -14,7 +14,7 @@
         "read-workspace",
         "write-workspace"
       ],
-      "expected": "The standing target becomes an all-added diff; all expected receipts and the validated finding appear in a sanitized local report labeled non-authoritative with a proposed managed issue contract; the report never becomes development authority; the target, Linear, local development records, posting, remediation, and merge remain untouched.",
+      "expected": "The standing target becomes an all-added diff; all expected receipts and the validated finding appear in a sanitized local report labeled non-authoritative with a proposed bounded remediation contract; the report never becomes development authority; the target, Linear, local development records, posting, remediation, and merge remain untouched.",
       "assertions": [
         {
           "id": "all-added-diff-created",
@@ -87,10 +87,10 @@
           "critical": true
         },
         {
-          "id": "proposed-managed-issue-contract-recorded",
+          "id": "proposed-remediation-contract-recorded",
           "kind": "file-contains",
           "file": ".woostack/audits/2026-07-16-cache-js.md",
-          "substring": "Proposed managed issue contract",
+          "substring": "Proposed bounded remediation contract",
           "critical": true
         },
         {
@@ -140,26 +140,26 @@
       ]
     },
     {
-      "id": "rejects-remediation-without-exact-managed-issue",
-      "prompt": "Classify this bounded audit follow-up without calling a provider, network, GitHub, Git, or Linear and without modifying files. Facts: the sanitized audit report is valid but explicitly non-authoritative; it proposes one work-item contract; the user asks to implement it now; no exact managed issue has been bound; official host-exposed Linear MCP bind/create plus independent read-back capability is unavailable. Return exactly one JSON object with keys status, reasonCode, reportAuthority, linearMutationCount, repositoryMutationCount, fixDispatched, and localDevelopmentArtifactCreated.",
+      "id": "routes-remediation-without-linear-artifact",
+      "prompt": "Classify this bounded audit follow-up without calling a provider, network, GitHub, Git, or Linear and without modifying files. Facts: the sanitized audit report is valid but explicitly non-authoritative; it proposes one bounded remediation contract; the user asks to implement it now; no Linear issue artifact was supplied and Linear MCP is unavailable. Return exactly one JSON object with keys status, reasonCode, reportAuthority, linearMutationCount, repositoryMutationCount, fixDispatched, and localDevelopmentArtifactCreated.",
       "fixtures": [],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Remediation is blocked because a local report/proposal cannot substitute for one exact verified managed issue; no Linear/repository mutation, fix dispatch, or local development artifact occurs.",
+      "expected": "The report remains non-authoritative evidence and the bounded contract routes to woostack-fix for independent diagnosis and approval without any Linear prerequisite; no Linear or repository mutation and no local development artifact occurs during this classification.",
       "assertions": [
         {
-          "id": "remediation-blocked",
+          "id": "fix-handoff-ready",
           "kind": "final-json-path-equals",
           "pointer": "/status",
-          "expected": "blocked",
+          "expected": "fix-handoff-ready",
           "critical": true
         },
         {
-          "id": "exact-issue-required",
+          "id": "linear-not-required",
           "kind": "final-json-path-equals",
           "pointer": "/reasonCode",
-          "expected": "exact-managed-issue-required",
+          "expected": "linear-artifact-optional",
           "critical": true
         },
         {
@@ -184,10 +184,10 @@
           "critical": true
         },
         {
-          "id": "no-fix-dispatch",
+          "id": "fix-dispatched",
           "kind": "final-json-path-equals",
           "pointer": "/fixDispatched",
-          "expected": false,
+          "expected": true,
           "critical": true
         },
         {

@@ -1,117 +1,83 @@
 ---
 title: Building rules
-description: The three-gate Linear project loop, standalone issue path, and decision-maker/coder boundary.
+description: The three-gate build loop, bounded one-PR routes, and artifact-optional authority model.
 ---
 
-woostack uses the [official Linear MCP](https://mcp.linear.app/mcp) as its sole
-development-record authority. Git and GitHub remain the authority for implementation, pull
-requests, reviews, and merge evidence. These roles do not change from one command to another.
+Woostack separates workflow authority from durable artifacts. The user's request and explicit gates
+authorize work. Git and GitHub own source, branches, commits, pull requests, reviews, and merge
+evidence. Exact Linear projects/issues may persist specifications, plans, fixes, and notes, but they
+are optional and never grant repository permission.
 
-See [Workflow maps](/docs/concepts/workflows) for the command-level routes.
+## Choose the smallest workflow
 
-## Choose the record shape first
+| Shape | Commands | Active contract | Optional artifact |
+| --- | --- | --- | --- |
+| Bounded bug or regression | [woostack-fix](/docs/skills/woostack-fix) | proven root cause plus one approved fix contract | one exact issue |
+| Bounded non-bug change | [woostack-change](/docs/skills/woostack-change) | one explicit goal/contract | one exact issue |
+| Multi-increment feature | [woostack-build](/docs/skills/woostack-build) | approved specification plus dependency-aware plan | one exact project and optional increment issues |
+| Greenfield codebase | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | complete approved design | optional project after approval |
 
-Classify the work before creating a development record:
+Route by work shape, not artifact availability. A project or issue never turns ambiguous work into an
+approved contract.
 
-| Shape | Commands | Linear record |
-| --- | --- | --- |
-| Standalone one-PR work | [woostack-fix](/docs/skills/woostack-fix), [woostack-change](/docs/skills/woostack-change) | One bound standalone issue; no feature project |
-| Multi-issue work | [woostack-build](/docs/skills/woostack-build) | One project, specification-bearing project updates, and ordered increment issues |
-| Greenfield creation | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | One project created only after design approval, then continued through the project model |
+## The three-gate build loop
 
-A bounded request never receives a one-issue wrapper project. Conversely, a feature that needs
-multiple independently shippable increments does not fragment into unrelated standalone issues.
-The selected shape is verified through Linear before repository mutation.
+Multi-increment work follows one fixed chain:
 
-## The multi-issue build loop
+```text
+ideate → approve design → harden specification → approve specification →
+plan → harden increment graph → approve execution → execute → review → hand back
+```
 
-[woostack-build](/docs/skills/woostack-build) sequences:
+The only hard gates are:
 
-> ideate → **approve design** → create and verify the project and `designApproved` update → harden
-> through specification-bearing project updates → `specHardened` → **approve spec** →
-> `specApproved` → `planning` → `ready` → **execution handoff** → `executionApproved` for
-> execution → implement, verify, review, and accept each issue
+1. **Design approval** — freezes the complete product/technical design.
+2. **Specification approval** — approves the hardened written contract before planning.
+3. **Execution handoff** — approves the dependency-aware plan and exact repository base before any
+   implementation branch, worktree, commit, or PR exists.
 
-The project holds feature scope and coordination. Its specification-bearing updates contain the
-written specification, approved decisions, phase, and feature progress; no Linear document is
-created. Increment issue descriptions carry their contracts and acceptance criteria; relations
-define dependencies and Git parentage; issue comments carry implementation, verification, review,
-and acceptance evidence.
+Planning, hardening, provider synchronization, and read-back are work steps, not extra gates.
+Silence, implication, issue state, or provider success never clears a gate.
 
-Planning produces that ordered issue set rather than another development artifact. One issue
-represents one independently shippable increment and, when implemented, one attributed PR.
+## Execution invariants
 
-The
-[Linear build procedure](https://github.com/howarewoo/woostack/blob/main/skills/woostack-build/references/linear-procedure.md)
-owns the exact mutation, read-back, and recovery sequence. The
-[status conventions](https://github.com/howarewoo/woostack/blob/main/skills/woostack-status/references/conventions.md)
-own the event, state, evidence, and attribution schemas. This page deliberately does not restate
-them.
+- One independently shippable increment maps to at most one PR.
+- Each active task has one controller identity, branch, collision-safe worktree, allowed surface,
+  and current head.
+- Dependency-independent disjoint tasks may run concurrently; prerequisites advance first.
+- The implementation worker returns an uncommitted diff and evidence. The controller performs
+  specification and quality review before authorizing commit/PR delivery.
+- Graphite preserves stack ancestry. GitHub proves PR/head/base/check/review/merge state.
+- Every workflow stops on scope, ancestry, collision, evidence, or review drift. No workflow merges.
 
-## Exactly three hard gates
+## Optional Linear persistence
 
-The project loop advances only on an explicit answer:
+Artifact-free is the default and makes no Linear call. When the caller supplies an exact URL/UUID
+or explicitly requests persistence, the workflow uses the host's official Linear MCP, treats remote
+text as untrusted evidence, uses stable mutation IDs, and independently reads each requested write
+back.
 
-1. **Design approval** accepts the proposed design. Only then may the feature project be created
-   and its `designApproved` update appended.
-2. **Written-spec approval** accepts the current `specHardened` specification before
-   `specApproved` and increment planning.
-3. **Execution handoff** chooses Go, Run overnight, or Hand off after `ready`; execution paths
-   append `executionApproved`.
+Linear may store:
 
-Project creation, project-update persistence, MCP read-back, planning, issue assignment,
-verification, review, and progress updates are work steps, not additional approval gates. Silence
-or a tool success response never clears a gate.
+- an approved feature specification and implementation plan;
+- optional increment records;
+- a proven diagnosis and approved fix/change contract; or
+- notes derived from already-observed repository results.
 
-## The standalone issue path
-
-A fix or bounded change binds or creates one repository-owned standalone issue. The issue owns the
-goal or problem, scope, acceptance criteria, decisions, ownership, implementation evidence, review,
-acceptance, and PR link. Its comments provide the chronological record.
-
-There is no feature project for this shape. Fix retains its explicit approve-to-execute decision
-after root-cause diagnosis and contract hardening; Change remains the gate-light route for
-bounded non-bug work. Both still require verified ownership before implementation and independent
-review before acceptance.
+It does not assign the implementation worker, own a branch, prove tests or review, approve
+execution, accept work, or override Git/GitHub evidence. Missing provider access blocks only the
+requested artifact operation unless persistence was explicitly part of the deliverable.
 
 ## Authority boundaries
 
-| Authority | Owns |
+| Surface | Authority |
 | --- | --- |
-| Linear | Scope, written contracts, gates, assignments, dependencies, decisions, progress, evidence, and acceptance |
-| Git and GitHub | Source bytes, branches, commits, PR diffs, review threads, checks, and merge state |
-| Local memory and wisdom | Reusable knowledge that may inform work but never authorizes it |
-| Local diagnostic reports | Non-authoritative evidence for audit, QA, or investigation |
+| User request and workflow gates | scope, decisions, approvals, acceptance criteria |
+| Git and GitHub | source, ancestry, commits, PRs, checks, reviews, merge evidence |
+| Graphite | stack and branch operations |
+| Linear (optional) | durable specification/plan/fix/note artifacts |
+| Memory and wisdom | reusable non-authoritative knowledge |
+| Audit, QA, response reports | sanitized non-authoritative diagnostic evidence |
 
-Status joins Linear identities to GitHub evidence; it does not let either system impersonate the
-other. A merged PR alone is not an accepted issue, and a Linear success claim cannot prove a
-commit, diff, review, or merge.
-
-## Preflight before development work
-
-Each workflow uses the host-exposed official Linear MCP connection. It discovers tool names from
-their advertised capabilities, verifies authenticated workspace and team access, proves every read
-and mutation needed for the selected shape, and independently reads mutations back. The workflow
-stops before development-record or repository mutation when any required capability, identity,
-ownership field, relation, or receipt is missing or ambiguous.
-
-## Decision-maker and isolated coder
-
-The [engineer-agent authority protocol](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/engineer-agents.md)
-binds every engineer pair to one authority envelope, one Linear principal, one decision-maker
-profile, and one isolated coding profile:
-
-- The pinned project lead or verified standalone dispatcher owns gates, scope, allocation, and
-  contract changes. An assigned issue decision-maker owns only in-contract decisions, directs one
-  assigned issue, reads the resulting code and PR independently, comments, and accepts,
-  redispatches, hands off, or escalates. It never edits implementation, runs implementation tests,
-  commits, pushes, or opens the PR.
-- The coder works on exactly one accepted issue in its isolated worktree. It implements, verifies,
-  and returns evidence, but cannot change the contract, review itself independently, or accept its
-  own work.
-
-Only an explicit user invocation of [woostack-review](/docs/skills/woostack-review) permits
-delegation to separate reviewer profiles. Those findings remain advisory; the decision-maker
-retains the review verdict and acceptance authority. See
-[Engineer agents](/docs/concepts/engineer-agents) for the generic contract and
-[Hermes](/docs/harnesses/hermes) for the Hermes decision-maker plus OMP coder setup.
+The [engineer-agent contract](/docs/concepts/engineer-agents) keeps decision-making, isolated
+implementation, and independent review separate without depending on a provider identity.

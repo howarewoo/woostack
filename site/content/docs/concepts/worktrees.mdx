@@ -1,88 +1,57 @@
 ---
 title: Parallelism with worktrees
-description: How woostack isolates implementation in issue-bound git worktrees while Linear remains the development-record authority.
+description: How woostack isolates bounded implementation work without requiring Linear.
 ---
 
-Worktrees isolate implementation writes; they do not own or mirror development state. Every
-implementation worktree is bound to exactly one verified Linear issue read through the
-[official Linear MCP](https://mcp.linear.app/mcp). Linear is the only development-record authority:
-it owns the contract, assignment, dependencies, lifecycle, progress, and acceptance record. Git and
-GitHub own source, branches, commits, pull requests, reviews, and merge truth; Graphite records stack ancestry.
-
-The [canonical Linear authority](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md)
-defines the development record. The
+Worktrees isolate tracked writes. They do not own scope, approval, status, or acceptance. The
 [canonical worktree contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/worktrees.md)
-defines implementation isolation and recovery.
+defines collision checks, ancestry, recovery, and teardown.
 
-## One worktree per verified issue
+## One worktree per bounded task
 
-Standalone work uses one bound role-`work-item` issue. Multi-issue work uses one role-`feature`
-project and one role-`increment` issue for each implementation unit. Project design and dependency
-ordering are recorded in Linear before implementation begins; each coder receives one accepted
-issue at a time.
-
-One exact issue owns one branch, one active worktree, and at most one canonical implementation PR.
-The worktree path is derived from the immutable native issue ID, not a mutable title or branch slug:
+Each active task has one controller/run identity, one branch, one worktree, one allowed surface, and
+at most one implementation PR. A task may be keyed by an exact caller-supplied Linear issue UUID,
+but Linear is optional; artifact-free runs use a stable run/task UUID.
 
 ```text
-.woostack/worktrees/issues/<exact-native-linear-issue-id>
+.woostack/worktrees/tasks/<stable-task-id>
 ```
 
-An atomic, gitignored registry claim under `.woostack/worktrees/.registry/<issue-id>/claim.json`
-prevents competing local checkouts. It contains only derived recovery facts such as the issue ID,
-owner/run identity, branch, path, and start commit. It is never scope, assignment, lifecycle,
-dependency, evidence, or acceptance authority; every resume re-reads Linear and Git/GitHub.
+An atomic gitignored claim under `.woostack/worktrees/.registry/<task-id>/claim.json` prevents
+competing local checkouts. It contains only recovery facts such as the task ID, run/controller,
+branch, path, base, and start commit. It is disposable administration, not a development record.
 
-The verified start point depends on the issue's place in the Linear graph:
+The start point comes from the approved dependency plan and verified Git ancestry:
 
-| Issue kind | Branch start | Graphite parent |
+| Task kind | Branch start | Graphite parent |
 | --- | --- | --- |
-| Standalone work item | exact integration-branch commit verified through Git/GitHub | verified integration branch |
-| Project dependency root | immutable base commit frozen by the verified project readiness chain | frozen base branch |
-| Project dependency child | finalized head of its one declared parent issue | declared parent issue branch |
+| Standalone task | exact integration-base commit | integration branch |
+| Independent feature root | frozen base commit | frozen base branch |
+| Dependency child | finalized head of its declared Git parent | declared parent branch |
 
-The base branch is never hard-coded or inferred from the current checkout. Non-parent dependencies
-must already have verified completion and merge evidence represented in the child's ancestry. The
-canonical worktree contract owns the complete preconditions and collision rules.
+Titles, nearby branches, optional artifact relations, and task order do not substitute for declared
+dependencies and Git ancestry.
 
 ## The primary tree stays clean
 
 <Callout type="info">
-  All tracked implementation writes happen inside the issue worktree. The primary checkout remains
-  a clean, stable integration point; it is not a work queue or a development-record store.
+  Tracked implementation writes land in the task worktree. The primary checkout remains a clean,
+  stable coordination point.
 </Callout>
 
-Stacked increments build on verified issue ancestry rather than the primary checkout. A root starts
-from the frozen base SHA. A dependency child starts from its declared Git parent's finalized head;
-a parent already marked `done` additionally requires verified merge evidence. Non-parent
-dependencies must be accepted, merged, and represented in the child's permitted ancestry.
-Independent issue roots may run in parallel only when the complete verified Linear dependency graph
-permits it and their responsibility surfaces, branches, worktrees, and PRs are disjoint. Dependent
-issues follow their declared Git parent. A worker cannot resolve overlapping ownership locally; the
-responsible Linear authority must correct and verify the contract before either worker continues.
-
-Subagents and isolated coding profiles must receive the exact worktree path and verify that their
-physical working directory matches the Git top level before writing. A host-created throwaway
-worktree is not a substitute for the issue-bound registry, ancestry, and ownership checks.
+Independent roots may run concurrently only when their declared dependencies, responsibility
+surfaces, branches, worktrees, and PRs are disjoint. Dependent tasks follow their declared Git
+parent. Subagents receive the exact path and verify that their physical working directory matches
+the Git top level before writing.
 
 ## Teardown and recovery
 
-- **Success:** after the commit, push, canonical PR attribution, Linear relation, and `inReview`
-  receipts all read back, the controller removes that issue's worktree and exact registry claim.
-  The branch, commits, PR, and remote evidence remain.
-- **Failure or unknown:** preserve the worktree and claim. Report the exact issue, path, branch,
-  observed boundary, and safe next action; a timeout proves neither success nor absence.
-- **Review reopen:** after successful teardown, a sweep may reattach the existing branch only from
-  the canonical verified review-reopen state and one current bounded `restackAuthorized`. It cannot
-  use generic release/reclaim or invent an ad hoc worktree.
+- **Success:** after commit, push, and canonical PR identity read back, remove the exact worktree and
+  registry claim. Branch, commits, PR, and remote evidence remain.
+- **Failure or unknown:** preserve the worktree and claim. Report task ID, path, branch, observed
+  boundary, and safe next action; a timeout proves neither success nor absence.
+- **Review reopen:** reattach only the existing verified branch/head in a fresh collision-free
+  worktree; never invent an unrelated checkout.
 
-The registry is disposable administration, but unexplained branch/worktree state is a collision,
-not permission to delete or adopt it. See the
-[canonical worktree authority](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/worktrees.md)
-for exact create, resume, review-reopen, and teardown rules. [woostack-doctor](/docs/skills/woostack-doctor)
-may diagnose local residue, but cleanup still requires the canonical authority reads; generic
-pruning never establishes that remote or repository state is safe.
-
-Parallelism is allowed only across dependency-independent issues with distinct owners, runs,
-responsibility surfaces, claims, branches, worktrees, and PRs. Native Linear relations and verified
-Git ancestry—not issue order or branch naming—decide whether two tracks may proceed.
+Optional artifact synchronization occurs after repository evidence exists. Missing provider access
+never weakens the local collision or ancestry checks.

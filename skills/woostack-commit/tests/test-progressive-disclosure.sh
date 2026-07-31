@@ -1,109 +1,52 @@
 #!/usr/bin/env bash
+# Structural contract for repository-first commit delivery and optional attribution.
 set -euo pipefail
-
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 python3 - "$ROOT" <<'PY'
-import re
-import sys
+import re, sys
 from pathlib import Path
-
-root = Path(sys.argv[1])
-skill_path = root / "skills/woostack-commit/SKILL.md"
-reference_dir = skill_path.parent / "references"
-reference_names = (
-    "linear-attribution.md",
-    "pr-body.md",
-    "graphite.md",
-)
-skill = skill_path.read_text(encoding="utf-8")
-references = {}
-errors = []
-
-
-def check(condition, message):
-    if not condition:
-        errors.append(message)
-
-
-def compact(text):
-    return re.sub(r"\s+", " ", text)
-
-
-# The root remains the shared orchestrator and safety boundary.
-for heading in (
-    "### 0. Bind the caller-supplied Linear work",
-    "### 1. Inspect state",
-    "### 2. Enforce issue-owned branch shape before committing",
-    "### 3. Run the configured pre-commit command",
-    "### 4. Stage only session-relevant changes",
-    "### 4.5 Verify Linear identity and proposed attribution",
-    "### 5. Commit",
-    "### 5.5 Record finalized implementation evidence",
-    "### 6. Push or submit",
-    "### 7. Resolve and attribute the PR",
-    "### 8. Report",
-):
-    check(heading in skill, f"root missing shared workflow stage {heading!r}")
-check(re.search(r"^## Hard constraints\s*$", skill, re.MULTILINE), "root missing prominent Hard constraints section")
-check(len(skill.splitlines()) <= 500, "root exceeds approximately 500 lines")
-
-# Each conditional procedure is a direct reader from root, never an index chain.
-for name in reference_names:
-    path = reference_dir / name
-    if path.is_file():
-        references[name] = path.read_text(encoding="utf-8")
-    else:
-        references[name] = ""
-        errors.append(f"direct reference missing: references/{name}")
-
-    href = f"(references/{name}"
-    paragraphs = [compact(part) for part in re.split(r"\n\s*\n", skill) if href in part]
-    check(bool(paragraphs), f"root does not directly dispatch references/{name}")
-    if paragraphs:
-        context = " ".join(paragraphs)
-        check(
-            re.search(r"\b(when|if|only|for|read|use|load|follow)\b", context, re.IGNORECASE),
-            f"references/{name} lacks conditional when-to-read context",
-        )
-
-for name, text in references.items():
-    for other in reference_names:
-        if other == name:
-            continue
-        for paragraph in (compact(part) for part in re.split(r"\n\s*\n", text)):
-            links_other = f"({other}" in paragraph or f"(./{other}" in paragraph
-            requires_other = re.search(r"\b(must|required|before continuing|first)\b", paragraph, re.IGNORECASE)
-            check(not (links_other and requires_other), f"references/{name} requires nested procedure references/{other}")
-
-corpus = "\n".join((skill, *references.values()))
-normalized = compact(corpus)
-
-# The split may relocate detail, but it may not weaken the observable Linear-only commit/PR contract.
-for token in (
-    "Official host-exposed Linear MCP",
-    "Linear-Project: <verified-project-uuid>\nLinear-Issue: <TEAM-NUMBER>",
-    "For a role-`work-item` issue, the sole attribution line is exactly",
-    "there is no `Linear-Project:` line anywhere",
-    "After the finalized commit exists and before any push or PR submission",
-    "implementationEvidence",
-    'gh pr edit <number> --title "<concise title>" --body-file <tmp-body-file>',
-    "gt submit",
-    "Re-fetch with `gh pr view`",
-    "exact intended title and body read-back is success",
-    "Never force-push",
-    "Do not merge",
-    "Create for a direct invocation from the parent",
-    'gt create "$branch" --no-interactive -m "<type>: <concise subject>"',
-    "Reuse an existing caller-created branch",
-    "never runs `gt create`, attaches a duplicate worktree, or reparents",
-    "$WOOSTACK_ROOT/.woostack/worktrees/issues/<native-issue-id>",
-    "Reject legacy `Spec:` attribution before drafting",
-    "blocks before branch creation, commit, PR edit, or Linear mutation",
-):
-    check(compact(token) in normalized, f"combined package missing exact behavior {token!r}")
-
-
-if errors:
-    raise SystemExit("test-progressive-disclosure:\n- " + "\n- ".join(errors))
-print("test-progressive-disclosure: OK")
+root=Path(sys.argv[1])
+skill=(root/"skills/woostack-commit/SKILL.md").read_text()
+refs={name:(root/"skills/woostack-commit/references"/name).read_text() for name in ("graphite.md","pr-body.md","linear-attribution.md")}
+text=re.sub(r"\s+"," ",skill)
+corpus=re.sub(r"\s+"," ",skill+"\n"+"\n".join(refs.values()))
+checks={
+ "artifact-free command":r"/woostack-commit \[<message>\]",
+ "optional issue flag":r"--issue <exact Linear issue URL[|]UUID>",
+ "no issue prerequisite":r"Linear is optional: no issue, project",
+ "bounded input":r"approved bounded task contract.*direct repository evidence",
+ "no inferred scope":r"Do not reconstruct scope from a branch name, commit message, PR, artifact, or prior session",
+ "inspect":r"### 1\. Inspect repository state",
+ "verify":r"### 2\. Verify before staging",
+ "stage narrow":r"### 3\. Stage only task-relevant changes",
+ "Graphite commit":r"### 4\. Create or update the Graphite commit",
+ "Graphite submit":r"### 5\. Submit with Graphite",
+ "PR body":r"### 6\. Update PR title and body",
+ "optional sync":r"### 7\. Synchronize an optional artifact",
+ "stale verification":r"If source changed after verification, return to the calling workflow",
+ "explicit staging":r"Stage explicit paths or hunks.*whole bounded task and nothing else",
+ "no force push":r"Do not force-push",
+ "PR readback":r"independently read the canonical GitHub PR",
+ "body fields":r"## Goal.*## Summary.*## Test plan.*### Automated.*### Manual",
+ "artifact narrow":r"Never change assignment, ownership, lifecycle, acceptance, scope, or project membership",
+ "unknown outcome":r"Never replay a commit, submit, PR update, or artifact write",
+}
+failures=[name for name,pat in checks.items() if not re.search(pat,text,re.I|re.S)]
+for name in refs:
+ if f"references/{name}" not in skill: failures.append(f"missing dispatch {name}")
+reference_checks={
+ "Graphite authority":r"Linear is not required.*never selects the branch, worktree, parent, commit, PR, or submission authority",
+ "artifact-free PR":r"Artifact-free PRs have no Linear trailer requirement",
+ "ordinary link":r"one ordinary canonical link",
+ "body preservation":r"Preserve repository-required templates.*human-authored context",
+ "body validation":r"Before the edit verify the canonical repository.*current head branch/SHA.*After editing, independently read title, full body",
+ "artifact readback":r"independently read the mutation back",
+}
+for name,pat in reference_checks.items():
+ if not re.search(pat,corpus,re.I|re.S): failures.append(name)
+if failures:
+ print("commit package contract violations:",file=sys.stderr)
+ print("\n".join(f"- {f}" for f in failures),file=sys.stderr)
+ raise SystemExit(1)
+print("repository-first commit package: ok")
 PY

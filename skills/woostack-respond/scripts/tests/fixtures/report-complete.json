@@ -136,10 +136,10 @@
   "observability_gaps": [
     "Add cache hit-rate instrumentation"
   ],
-  "issue_dispositions": [
+  "remediation_contracts": [
     {
       "cause_id": "rc-checkout",
-      "kind": "proposed-managed-issue-contract",
+      "kind": "proposed-fix-contract",
       "canonical_repository": "https://github.com/acme/widgets",
       "problem": "Checkout fails when cart currency is missing",
       "scope": "Checkout currency validation only",
@@ -148,7 +148,8 @@
       ],
       "acceptance_criteria": [
         "A checkout without cart currency returns a validated client error instead of HTTP 500"
-      ]
+      ],
+      "artifact": null
     }
   ],
   "blocked_evidence": []

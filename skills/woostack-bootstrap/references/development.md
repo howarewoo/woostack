@@ -26,82 +26,65 @@ review metrics `.woostack/metrics.json` and
 [local-only memory](../../woostack-init/references/memory.md) `.woostack/memory/` are gitignored.
 They never determine development scope, phase, approval, assignment, dependencies, or acceptance.
 
-## Linear development authority
+## Optional Linear artifacts
 
-Official host-exposed Linear MCP is mandatory for woostack development records. Multi-PR work uses
-one repository-owned project, append-only typed project updates, and one dependency-aware issue per
-increment. A bounded change or fix uses one standalone issue and no wrapper project. Project
-updates own the design/specification and lifecycle record. Linear documents and local spec, plan,
-fix, progress, or overnight files are not development authority and are not created or read by the
-normal workflow.
+The approved workflow contract owns scope, gates, and acceptance. Git, Graphite, and canonical
+GitHub evidence own repository execution and delivery. Linear is optional persistence:
 
-The canonical
-[Linear MCP authority contract](../../woostack-init/references/artifact-backends.md) owns resource
-roles and identity, versioned managed metadata, event kinds, lifecycle validation, assignment and
-delegation, receipts, trust boundaries, and exact PR trailers. Related workflow docs link to that
-contract rather than defining another resource model.
+- a feature project/update may store an approved design or specification;
+- increment issues may mirror an approved implementation plan and dependency graph; and
+- a standalone issue may store a bounded fix or change contract.
 
-`.woostack/config.json` is non-secret repository policy only. Its `linear` namespace records the
-canonical repository URL, workspace, team, coarse-category `projectStatuses` mappings, and
-semantic `issueStates` mappings. It contains no development record, transport configuration, or
-provider credential. Authentication comes from the host's official Linear MCP/OAuth connection;
-missing authentication or a required read/write/read-back capability blocks before development
-artifact access, target-directory creation, or repository mutation. Woostack does not issue custom
-Linear HTTP/GraphQL requests or consume repository credentials. GitHub GraphQL remains valid only
-for GitHub-specific source-control operations such as review-thread handling.
+Artifact-free workflows use the same gates and repository evidence without contacting Linear.
+Never create a project or issue merely because a command runs. When the caller explicitly selects
+artifact persistence, follow the canonical
+[optional artifact contract](../../woostack-init/references/artifact-backends.md) for exact identity,
+untrusted-data handling, narrow mutations, stable operation IDs, and independent read-back.
 
-Storage changes neither workflow intent nor approval policy. [`woostack-build`](../../woostack-build/SKILL.md)
-preserves exactly three hard gates: design approval, written-spec approval, and execution handoff. Design is
-artifact-free until explicit approval creates the project and a verified `designApproved` update.
-Specification hardening and approval append verified project-update events; planning creates and
-reconciles issues and native relations. `ready` exists before the explicit handoff, and Go or an
-overnight run must read back `executionApproved` before any implementation Git artifact. There is
-no docs-only base PR.
+Linear documents and local spec, plan, fix, progress, or overnight files are not development
+authority. `.woostack/config.json` is non-secret repository policy; an optional `linear` object may
+provide provider hints but never credentials, permission, ownership, lifecycle, or acceptance.
+Provider authentication stays in the host's official Linear MCP/OAuth connection. Missing
+authentication blocks only an explicitly requested artifact read/write/read-back. Woostack does not
+issue custom Linear HTTP/GraphQL requests or consume repository credentials. GitHub GraphQL remains
+valid only for GitHub source-control operations such as review-thread handling.
 
-`woostack-bootstrap` is greenfield only. Before design, MCP preflight, project creation, or target
-access, it routes an existing-repository bug to `woostack-fix`, a bounded one-PR non-bug request to
-`woostack-change`, and multi-PR work to `woostack-build`. Its requirements, research, options, and
-complete design remain artifact-free until explicit approval. Only after approval does bootstrap
-retain canonical repository/base intent and apply `woostack-init`'s official-MCP/config capability
-preflight. It deterministically derives a managed feature client UUID from the canonical repository
-plus normalized approved goal/scope, completely searches repository-owned projects, and creates
-only after absence is proven. A fresh invocation recomputes that identity; duplicates, partial
-managed candidates, or conflicts block. After the project read-back, bootstrap completely reads
-project updates, reuses and reads back one matching stable `designApproved` event only when its
-repository, normalized design/key, approval evidence, and exact initial base intent match, or
-appends only when complete pagination proves it and every conflicting head absent.
-Duplicate/conflicting heads, changed base intent, or incomplete pagination block.
+Storage changes neither workflow intent nor approval policy.
+[`woostack-build`](../../woostack-build/SKILL.md) preserves exactly three hard gates: design
+approval, written-spec approval, and execution handoff. Those gates live in the active conversation
+and approved in-run contract. When selected, project updates may mirror the approved design/spec
+and issues may mirror the plan after each gate; no artifact event creates or replaces a gate.
+
+`woostack-bootstrap` is greenfield only. Before design or target access, it routes an
+existing-repository bug to `woostack-fix`, a bounded one-PR non-bug request to `woostack-change`,
+and multi-PR work to `woostack-build`. Its requirements, research, options, complete design, and
+explicit approval authorize the scaffold. Optional project persistence happens only when requested
+and remains separate from the filesystem boundary.
 
 Bootstrap does not stat, list, read, canonicalize, create, or write the target and does not invoke
-Git until the preflight, repository/base intent, project receipt, and `designApproved` receipt are
-all complete. Its first target-filesystem action is then a read-only collision check with no Git
-invocation. Only an absent target or a completely listed empty non-Git directory permits mkdir,
-write, scaffolding, or Git. A populated path, existing checkout, non-directory/symlink,
-unreadable/partial state, or ambiguity blocks while preserving and reporting the verified remote
-receipts. The exact feature client UUID, native project ID/URL, repository, workspace/team, base
-intent, and verified event context pass unchanged into scaffolding and later project
-lifecycle/planning. Init persists only non-secret policy and never creates local specs, plans, or
-fixes; planning mutates the exact Linear project rather than writing a local plan.
+Git before design approval. Its first target-filesystem action is a read-only collision check with
+no Git invocation. Only an absent target or a completely listed empty non-Git directory permits
+mkdir, write, scaffolding, or Git. A populated path, existing checkout, non-directory/symlink,
+unreadable/partial state, or ambiguity blocks while preserving the approved design and any optional
+artifact receipts. Init persists only non-secret policy and never creates local specs, plans, or
+fixes.
 
 Implementation branches begin from verified repository base evidence and follow the
-[Linear-authority worktree contract](../../woostack-init/references/worktrees.md#linear-authority-bootstrap-boundary).
-Bootstrap's initial new-repository scaffold is the one pre-base worktree exception. Every later
-implementation PR carries exact Linear attribution. Git/Graphite and GitHub remain the source of
-truth for commits, branches, PRs, reviews, and merges; Linear records verified linkage and
-collaboration state.
+[canonical worktree contract](../../woostack-init/references/worktrees.md). Bootstrap's initial
+new-repository scaffold is the one pre-base worktree exception. Later PRs require direct
+Git/Graphite/GitHub identity and may include an ordinary optional artifact link. Git/Graphite and
+GitHub remain the source of truth for commits, branches, PRs, reviews, and merges.
 
-Every `/woostack-status` run reads through official Linear MCP, validates the unsuperseded typed
-phase chain and issue ownership/relations, independently verifies repository PR evidence, and only
-then reconciles eligible native terminal states. The
+Every `/woostack-status` run derives rows from current repository/Graphite/GitHub evidence. Exact
+caller-supplied Linear context may enrich a row with linked specification, plan, or fix-artifact
+notes; missing artifact access affects only that enrichment. The
 [feature-state conventions](../../woostack-status/references/conventions.md) define rendering,
-reconciliation, and failure behavior. Missing, partial, stale, foreign, or conflicting MCP
-read-back blocks rather than presenting stale state.
+reconciliation, and failure behavior.
 
-Legacy local development records are migration input only. They are never adopted as a fallback or
-mixed with Linear authority. `/woostack-init --migrate-legacy` is the sole routed owner of the
-explicit one-way [legacy migration procedure](../../woostack-init/references/legacy-migration.md):
-it creates or resumes exact client-UUID-addressed Linear resources and deletes enumerated local
-records only after independent remote, ownership, provenance, and Git byte-recovery receipts pass.
+Legacy local development records are migration input only. They are never adopted as authority.
+`/woostack-init --migrate-legacy` is the sole routed owner of the explicit one-way
+[legacy migration procedure](../../woostack-init/references/legacy-migration.md) when a caller
+chooses Linear persistence.
 
 ## Branching model
 
@@ -125,3 +108,6 @@ Use Graphite (`gt create`, `gt modify`, `gt submit`) to manage stacks. The integ
 The loop is the default. Bypassing steps is allowed when the change is genuinely small (typo fix, comment edit, version bump) or genuinely urgent (production incident).
 
 Document any deviation in the PR description so reviewers understand why the usual gates were skipped.
+
+
+Wall time: 0.18 seconds

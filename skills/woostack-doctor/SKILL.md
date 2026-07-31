@@ -1,6 +1,6 @@
 ---
 name: woostack-doctor
-description: Use to diagnose and (gated) repair a repo's `.woostack/` workspace health — static knowledge/config checks, legacy-development-record migration blockers, and explicit host-verified Linear MCP capability receipts. Remote content is never auto-repaired. Includes exit-coded CI mode and an interactive local repair gate.
+description: Diagnose and, after approval, repair a repo's `.woostack/` workspace health—static knowledge/config checks, guarded legacy-record checks, and optional live Linear artifact connectivity. Remote content is never auto-repaired. Includes exit-coded CI mode and an interactive local repair gate.
 ---
 
 # woostack-doctor
@@ -73,13 +73,13 @@ siblings, so this holds by construction.
 7. **Route tracked repairs before mutation.** If the approved set includes a file repair, hand its
    exact finding codes, paths, changes, target, and validation mode to
    [`woostack-change`](../woostack-change/SKILL.md) before invoking any `--fix` path. That workflow
-   binds or creates the standalone issue, records the approved bounded contract, establishes its
-   worktree, invokes each owning check as `<check> --fix <WOO_ROOT> <extra-args...>` (see
+   records the approved bounded contract in the active run, establishes its isolated worktree,
+   invokes each owning check as `<check> --fix <WOO_ROOT> <extra-args...>` (see
    [references/checks.md](references/checks.md)), re-runs the same engine mode, and commits through
-   the verified issue. Doctor never hands tracked repairs directly to `woostack-commit`. If every
-   approved repair is filesystem-only, run `orphan-worktree --fix` (a safe `git worktree prune`)
-   directly after the gate; it needs no issue or commit. No repair shell command calls Linear or
-   mutates remote content.
+   its repository-first delivery path. Doctor never hands tracked repairs directly to
+   `woostack-commit`. If every approved repair is filesystem-only, run `orphan-worktree --fix` (a
+   safe `git worktree prune`) directly after the gate; it needs no issue or commit. No repair shell
+   command calls Linear or mutates remote content.
 8. **Confirm.** Require the change workflow's retained re-run result for tracked repairs, or re-run
    the same static or explicitly live engine mode after a filesystem-only repair, and report
    residual findings.
@@ -90,23 +90,24 @@ siblings, so this holds by construction.
 - **Never reconcile the board** (that is `woostack-status`) and **never curate memory content**
   (that is `woostack-dream`). Doctor repairs static knowledge/config drift and reports judgment-only
   signals; it never computes or writes lifecycle state.
-- **Linear is the only development authority.** Static diagnosis validates non-secret policy.
-  Local development-record directories are migration blockers, not a backend and not normal lint
-  input. Doctor never creates, repairs, adopts, or deletes them.
+- **Artifacts are optional.** Static diagnosis validates non-secret policy. Local legacy
+  development-record directories are migration blockers, not a backend and not normal lint input.
+  Doctor never creates, repairs, adopts, or deletes them.
 - **Provider access belongs to skill controllers.** Diagnosis and every doctor shell repair remain
-  provider-free. For approved tracked repairs, `woostack-change` owns official Linear MCP access,
-  issue identity, and mutation receipts before the first file edit. Explicit `--live` discovers
-  official host MCP tools, performs authenticated read/write/update/comment/relation/owner/read-back
-  preflight, and passes only a normalized non-secret receipt to the shell engine. The temporary
-  receipt is mode 0600 and deleted after consumption. The shell never reads a provider credential
-  or invokes HTTP, GraphQL, an API-key adapter, or a hard-coded MCP tool name. Unknown or partial
-  outcomes fail closed.
+  provider-free. Approved tracked repairs run through artifact-free `woostack-change` unless the
+  caller explicitly selected an exact Linear artifact. Explicit `--live` may validate official
+  host MCP connectivity for optional artifact use and passes only a normalized non-secret receipt
+  to the shell engine. The temporary receipt is mode 0600 and deleted after consumption. The shell
+  never reads a provider credential or invokes HTTP, GraphQL, an API-key adapter, or a hard-coded
+  MCP tool name. Unknown or partial provider outcomes block optional artifact operations only.
 - **Gate every repair.** Nothing mutates before explicit approval; `report` findings are never
   auto-applied.
 - **Safety is never relaxed.** The only filesystem repair is `git worktree prune` (admin-only);
   a present worktree dir that may hold work is always `report`, never auto-removed.
-- **Never merge.** Approved file repairs enter `woostack-change` before mutation and commit through
-  that workflow's verified standalone issue; doctor never invokes `woostack-commit` directly.
-- **Cross-link, don't restate.** The spec↔plan join contract lives in
-  [`../woostack-status/references/conventions.md`](../woostack-status/references/conventions.md);
-  link it.
+- **Never merge.** Approved file repairs enter `woostack-change` before mutation; doctor never
+  invokes `woostack-commit` directly.
+- **Cross-link, don't restate.** Repository-derived board rules live in
+  [`../woostack-status/references/conventions.md`](../woostack-status/references/conventions.md).
+
+
+Wall time: 0.20 seconds

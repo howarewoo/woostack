@@ -1,6 +1,6 @@
 ---
 name: woostack-dream
-description: "Use to curate local .woostack memory and wisdom. It may read explicitly identified, independently verified Linear project/issue or exact PR context through official MCP, but never discovers local development artifacts or mutates Linear. It proposes a gated local changeset and delegates approved tracked writes to the issue-owning change controller. Never commits or merges."
+description: "Curate local .woostack memory and wisdom from local knowledge, immutable Git source, and optional exact PR or Linear artifact context. Proposes a gated local changeset and delegates approved tracked writes to the responsible change controller. Never commits, merges, or mutates artifacts."
 ---
 
 # woostack-dream
@@ -43,9 +43,9 @@ dream input or scratch.
 Local knowledge never supplies development context. Keep recall bounded to the documented memory,
 wisdom, and diagnostic surfaces and do not dynamically discover development-record stores.
 
-### Development-context resolution (one path, read-only)
+### Optional artifact-context resolution (one path, read-only)
 
-Load the canonical [Linear MCP development authority](../woostack-init/references/artifact-backends.md)
+Load the canonical [optional artifact contract](../woostack-init/references/artifact-backends.md)
 and [status conventions](../woostack-status/references/conventions.md) before using remote
 development context. Those references own managed metadata, event, lifecycle, ownership,
 attribution, and receipt schemas.
@@ -118,7 +118,7 @@ inputs and unchanged verified source reads produce no operations.
 
 ## Phase 3 — Review gate (HARD)
 
-Present the complete changeset in the conversation before any issue handoff or tracked write:
+Present the complete changeset in the conversation before any execution handoff or tracked write:
 
 - before/after content for every merge/replace/resolve/consolidate;
 - the full body of each memory note proposed for drop or prune;
@@ -131,16 +131,16 @@ Require explicit, unambiguous approval. Silence and ambiguous assent are rejecti
 [`woostack-visualize`](../woostack-visualize/SKILL.md) render may aid review, but the actual changeset
 and gate stay in the conversation.
 
-## Phase 4 — Issue-owned execution (approved changes only)
+## Phase 4 — Repository execution (approved changes only)
 
 After approval, hand the exact frozen changeset to
 [`woostack-change`](../woostack-change/SKILL.md) before any tracked file is written or deleted.
-That controller binds or creates the exact standalone issue, records and reads back the bounded
-contract, verifies type-aware assignment and `assignmentAccepted`, creates or resumes the
-issue-owned isolated worktree with its ancestry receipt, applies only the approved memory, wisdom,
-index, and documentation operations, verifies the result, records `verification` and
-`precommitReview`, and owns commit/PR submission. Dream itself performs no tracked mutation,
-worktree creation, commit, push, PR write, or remote mutation.
+That controller records the approved bounded contract in the active run, creates or resumes the
+collision-safe isolated worktree, applies only the approved memory, wisdom, index, and documentation
+operations, verifies the result, runs the required independent review, and owns commit/PR
+submission. An exact caller-supplied Linear issue may receive the approved curation contract and
+delivery note as optional artifacts; the controller never creates one implicitly. Dream itself
+performs no tracked mutation, worktree creation, commit, push, PR write, or remote mutation.
 Do not touch local specifications, plans, fixes, remote resources, or paths outside the frozen
 curation changeset during the approved apply phase.
 
@@ -149,9 +149,10 @@ the handoff until the explicit loss-safe migration path completes.
 
 ## Phase 5 — Summarize and iterate
 
-Report the issue-owning controller's verified result, what remained unchanged, residual warnings,
-and the allowed provenance retained. A requested adjustment returns to Phase 2 and passes the gate
-again before a new frozen changeset is delegated. Dream never advances a watermark, self-commits,
+Report the repository controller's verified result, optional artifact synchronization result, what
+remained unchanged, residual warnings, and the allowed provenance retained. A requested adjustment
+returns to Phase 2 and passes the gate again before a new frozen changeset is delegated. Dream never
+advances a watermark, self-commits,
 pushes, or merges.
 
 ## Degradation
@@ -160,20 +161,20 @@ pushes, or merges.
   scaffolding.
 - Missing memory tools uses the documented manual local fallback and is reported.
 - Missing wisdom is reported in the proposed changeset; its directory may be created only by the
-  approved issue-owning controller.
+  approved repository controller.
 - Existing `.woostack/overnight/` blocks curation until the explicit migration path completes;
   absent overnight records require no action.
-- Invalid identity, malformed PR attribution, official-MCP failure, or incomplete read-back blocks a
-  pass that requested that source.
+- Invalid optional artifact identity, malformed requested PR provenance, official-MCP failure, or
+  incomplete read-back blocks only the pass that requested that source.
 - Invalid provenance is reported and excluded until the user supplies a verifiable allowed source;
   never rewrite it speculatively.
 
 ## Hard constraints
 
-- **One fail-closed context path.** Exact project/issue identity or exact PR attribution, official
-  MCP reads, managed-field parsing, complete read-back, then read-only corroboration.
-- **Issue-owned tracked writes only.** Approval freezes a changeset; `woostack-change` must bind the
-  issue, assignment, worktree, verification, review, commit, and PR before applying it.
+- **Optional fail-closed context path.** When explicitly supplied: exact project/issue identity or
+  exact PR source, official reads, complete read-back, then read-only corroboration.
+- **Repository-controlled tracked writes only.** Approval freezes a changeset; `woostack-change`
+  owns worktree isolation, verification, review, commit, and PR delivery. Linear is optional.
 - **No local development discovery.** Specifications, plans, fixes, documents, titles, adapters,
   and broad Linear enumeration are prohibited inputs and fallbacks.
 - **No Linear/GitHub mutation.** Remote context can corroborate but never becomes a curation target
@@ -186,6 +187,9 @@ pushes, or merges.
 - **Explicit approval.** Ambiguity is rejection.
 - **Full-body destructive visibility.** Show every dropped or pruned memory note.
 - **Inbound-link integrity and idempotence.** Repair links; unchanged inputs yield no operations.
-- **One curation author.** Dream authors the proposed curation changeset; the issue-owning controller
+- **One curation author.** Dream authors the proposed curation changeset; the repository controller
   applies it without changing its scope.
 - **No direct tracked write, self-commit, or merge.**
+
+
+Wall time: 0.24 seconds

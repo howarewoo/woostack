@@ -1,6 +1,6 @@
 ---
 name: woostack-ideate
-description: Use as the ideate phase of the woostack build loop — turn a feature idea into an approved design through collaborative dialogue, then stop. Explores intent, constraints, and approaches; presents a design and gets explicit approval. Writes no files and chains no skill; the caller owns the Linear project-update lifecycle. Usable standalone to design before implementation.
+description: Use as the ideate phase of the woostack build loop — turn a feature idea into an approved design through collaborative dialogue, then stop. Explores intent, constraints, and approaches; presents a design and gets explicit approval. Writes no files and chains no skill; the caller owns optional artifact synchronization. Usable standalone to design before implementation.
 ---
 
 # woostack-ideate
@@ -9,8 +9,8 @@ Turn a feature idea into a fully formed, approved design through natural collabo
 dialogue. This is woostack's own ideation phase — the first step of
 [`woostack-build`](../woostack-build/SKILL.md). It keeps the discipline that makes
 ideation worth doing and **stops at an approved design**: it writes no specification or plan
-artifact and invokes no downstream skill. The caller records the approved design through the
-official host-exposed Linear MCP when the multi-PR build lifecycle applies.
+artifact and invokes no downstream skill. The caller may persist the approved design in an exact
+Linear project when artifact synchronization was explicitly requested.
 
 <HARD-GATE>
 Do NOT take any implementation action — write code, scaffold, run an implementation skill,
@@ -34,13 +34,12 @@ The skill ends the moment the user approves the design. At that point:
 - **Chain nothing.** Do not invoke `woostack-plan`, `woostack-execute`, or any implementation
   skill yourself.
 - **Hand back.** State that the design is approved and name the next step:
-  - Inside `woostack-build`: return control to its shape classification. For multi-PR work, the
-    caller creates the repository-owned Linear project and appends the approved design in the
-    `designApproved` project update.
+  - Inside `woostack-build`: return control to specification authoring. If the caller selected
+    optional Linear persistence, build may append the approved design to that exact project.
   - Standalone: tell the user the approved design is ready to hand to `woostack-build`, and stop.
 
-This boundary is the whole point of owning the phase: the caller owns project-update persistence
-and planning, so this skill must not.
+This boundary is the whole point of owning the phase: the caller owns optional artifact
+persistence and planning, so this skill must not.
 
 ## Process
 
@@ -126,6 +125,6 @@ above is unchanged.
 ## Hard constraints
 
 - **Stop at an approved design.** This skill writes no specification or plan artifact and chains
-  no downstream skill; the caller owns shape classification and the Linear project-update lifecycle.
+  no downstream skill; the caller owns shape classification and any optional artifact persistence.
 - **Respect the gate.** No implementation action of any kind before the user approves.
 - **No bespoke visual server.** Defer visual treatment to `woostack-visualize`.

@@ -4,9 +4,12 @@ tier: standard
 
 # Acceptance-Criteria Review
 
-**Scope.** Verify that this PR's diff fulfills the governing woostack artifact in `$OUTDIR/intent.md`. The artifact is evidence of authorized intent, not evidence that the implementation is complete.
+**Scope.** Verify that this PR's diff fulfills the current contract in `$OUTDIR/intent.md`. The
+contract records caller-approved intent and may include optional Linear artifact evidence; neither
+source proves that the implementation is complete.
 
-If `$OUTDIR/intent.md` is absent, write `[]` to the acceptance findings file and exit. Otherwise read the assigned diff and every `## SOURCE:` section in `intent.md`.
+If `$OUTDIR/intent.md` is absent, write `[]` to the acceptance findings file and exit. Otherwise
+read the assigned diff and every `## SOURCE:` section in `intent.md`.
 
 **Find:**
 

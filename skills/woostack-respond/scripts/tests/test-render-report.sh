@@ -34,7 +34,7 @@ assert positions == sorted(positions)
 assert text.index("g1 — Checkout 500 A") < text.index("g2 — Checkout 500 B") < text.index("g6 — Worker timeout")
 assert text.count("### rc-checkout — Nil cart currency") == 1
 assert "Deferred" in text and "hyp-webhook" in text and "hyp-cache" in text
-assert text.count("### rc-checkout — proposed-managed-issue-contract") == 1
+assert text.count("### rc-checkout — proposed-fix-contract") == 1
 assert "Authority: non-authoritative diagnostic evidence" in text
 assert ".woostack/fixes/" not in text and "fix/checkout" not in text
 assert text.index("sentry / error-tracking") < text.index("vercel / deployment")
@@ -67,10 +67,10 @@ data = json.loads(source.read_text())
 data["verified_root_causes"][0]["evidence"] = ["Authorization: Bearer synthetic-secret-token"]
 (out / "token.json").write_text(json.dumps(data))
 data = json.loads(source.read_text())
-data["issue_dispositions"] = []
+data["remediation_contracts"] = []
 (out / "missing-disposition.json").write_text(json.dumps(data))
 data = json.loads(source.read_text())
-data["issue_dispositions"].append(dict(data["issue_dispositions"][0]))
+data["remediation_contracts"].append(dict(data["remediation_contracts"][0]))
 (out / "duplicate-disposition.json").write_text(json.dumps(data))
 data = json.loads(source.read_text())
 data["signal"] = "東京"
