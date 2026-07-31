@@ -71,12 +71,15 @@ non-secret outcome to a mode-0600 temporary file, passes that path to
 `doctor.sh --live-receipt <path>`, and deletes it after consumption.
 
 The receipt's top level supplies `ready`, canonical `repository`, resolved `workspace` and `team`,
-and the capability booleans consumed by the shell engine. When memory notes contain valid Linear
-provenance, the same receipt may contain a `provenance` object keyed by the lowercase canonical
-`linear://project/<uuid>` or `linear://issue/<uuid>` URI. Each value is a normalized object with exact `kind`,
-lowercase `id`, `repository`, `workspace`, and `team`, plus boolean `verified`,
-`managedIdentityVerified`, and `relationsVerified` outcomes. The controller derives these
-non-secret outcomes from official host-MCP reads; raw provider responses are not receipt input.
+and the capability booleans consumed by the shell engine. `workspaceResolution` contains exactly
+the unique OAuth-scoped workspace `name` and `status`; it never invents a native workspace ID when
+official MCP omits one. `teamResolution` retains the independently read native team ID and key.
+When memory notes contain valid Linear provenance, the same receipt may contain a `provenance`
+object keyed by the lowercase canonical `linear://project/<uuid>` or `linear://issue/<uuid>` URI.
+Each value is a normalized object with exact `kind`, lowercase `id`,
+`repository`, `workspace`, and `team`, plus boolean `verified`, `managedIdentityVerified`, and
+`relationsVerified` outcomes. The controller derives these non-secret outcomes from official
+host-MCP reads; raw provider responses are not receipt input.
 A live note whose canonical URI has no entry, a partial entry, false verification, or mismatched
 identity is `memory-provenance-live`.
 

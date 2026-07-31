@@ -32,8 +32,9 @@ It has two layers:
 - `/woostack-doctor [path] --live` — before touching the target, discover the host's official
   Linear MCP tools, authenticate through the host connection, and verify provider availability
   plus required read/mutation capabilities. Then resolve the target and its effective layered
-  policy, verify workspace/team, native mappings, and independent read-back, write only the
-  normalized non-secret result to a mode-0600 temporary receipt, invoke
+  policy, verify the OAuth-scoped workspace slug, native team ID/key, native mappings, and
+  independent read-back, write only the normalized non-secret result to a mode-0600 temporary
+  receipt, invoke
   `doctor.sh --live-receipt <path> [path]`, and delete the receipt. Missing MCP, authentication,
   capability, identity, mapping, or read-back blocks at its phase; provider-only failures occur
   before target filesystem or Git access.
@@ -54,8 +55,9 @@ siblings, so this holds by construction.
    failure stops with zero target filesystem or Git access.
 3. **Resolve policy and diagnose once.** Resolve the target and primary checkout, then load the
    effective committed plus primary-checkout local team policy. In live mode, verify the configured
-   workspace/team, native mappings, and independent read-back, write the normalized non-secret
-   mode-0600 receipt, and run `doctor.sh --live-receipt <path> [path]`. Otherwise run
+   OAuth-scoped workspace slug, native team ID/key, native mappings, and independent read-back,
+   write the normalized non-secret mode-0600 receipt, and run
+   `doctor.sh --live-receipt <path> [path]`. Otherwise run
    `doctor.sh [path]`. The engine validates policy, knowledge stores, diagnostics, and local
    worktree hygiene. Legacy `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, or
    `.woostack/overnight/` sets produce one blocking migration finding per active or ambiguous set;

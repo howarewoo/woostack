@@ -17,6 +17,13 @@ GraphQL used for GitHub operations is unaffected.
 - `issueStates`: one team issue-state name for each semantic state `planned`, `executing`,
   `inReview`, `done`, and `blocked`.
 
+`workspace` is the canonical slug of the OAuth-scoped Linear workspace, not a fabricated native
+ID. The official MCP may omit the workspace's internal ID; uniqueness is proved from the
+authenticated connection plus matching workspace context on independently read resources. The
+effective team still requires its native ID and key. A normalized receipt therefore records
+`workspaceResolution` as exactly `{"name":"<slug>","status":"unique"}` and records the native
+team ID only under `teamResolution`.
+
 The ignored primary-checkout `.woostack/config.local.json` may contain only
 `{"linear":{"team":"<team>"}}`. [`scripts/config/resolve-config.sh`](../scripts/config/resolve-config.sh)
 locates that file through Git's common directory, so every linked worktree in one clone inherits

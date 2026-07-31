@@ -118,10 +118,9 @@ if [ ! -r "$receipt" ] || ! jq -e \
       and .mcpAvailable == true
       and .authenticated == true
       and .ready == true
+      and (.workspaceResolution | type == "object" and (keys | sort) == ["name", "status"])
       and .workspaceResolution.status == "unique"
       and .workspaceResolution.name == .workspace
-      and (.workspaceResolution.id | type == "string"
-        and test("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"))
       and .teamResolution.status == "unique"
       and .teamResolution.key == .team
       and (.teamResolution.id | type == "string"
