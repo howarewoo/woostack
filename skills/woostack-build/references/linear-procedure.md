@@ -203,10 +203,10 @@ project, issues, updates, comments, and relations; never delete or archive histo
 
 A newly discovered blocker appends `blockerOpened` with a stable event UUID, the unchanged current
 phase head as predecessor, exact affected native IDs in `relatedIds`, and readable owner, impact,
-and resolution conditions. Verify it, then set native `paused` and read that back. A resolution
+and resolution conditions. Verify it, then set native `planned` and read that back. A resolution
 appends `blockerResolved` with a new UUID, the unchanged phase head as predecessor, and the exact
 open blocker update ID plus resolution evidence in `relatedIds`. Restore the category implied by
 the unchanged phase only after an independent complete read proves no unresolved blocker remains;
-otherwise keep `paused`. A correction uses the non-phase project event rule above, not the phase
+otherwise keep `planned`. A correction uses the non-phase project event rule above, not the phase
 event rule. A missing, multiply resolved, or ambiguously related blocker remains open and stops
 affected work.

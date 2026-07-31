@@ -11,7 +11,6 @@
     "backlog": {"name": "Backlog", "category": "backlog"},
     "planned": {"name": "Planned", "category": "planned"},
     "started": {"name": "Started", "category": "started"},
-    "paused": {"name": "Paused", "category": "paused"},
     "completed": {"name": "Completed", "category": "completed"},
     "canceled": {"name": "Canceled", "category": "canceled"}
   }},

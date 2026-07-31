@@ -5,7 +5,7 @@ status: ready
 branch: feature/impeccable-integration
 ---
 
-**Source:** .woostack/specs/2026-06-14-impeccable-integration.md
+**Source:** [[specs/2026-06-14-impeccable-integration]]
 
 # Impeccable integration Implementation Plan
 

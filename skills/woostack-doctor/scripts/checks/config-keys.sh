@@ -64,7 +64,7 @@ if [ -n "$credential_path" ]; then
 fi
 
 allowed='["repository","workspace","team","projectStatuses","issueStates"]'
-project_keys='["backlog","planned","started","paused","completed","canceled"]'
+project_keys='["backlog","planned","started","completed","canceled"]'
 issue_keys='["planned","executing","inReview","done","blocked"]'
 issue_categories='{"planned":"backlog","executing":"started","inReview":"started","done":"completed","blocked":"started"}'
 if ! jq -e --argjson allowed "$allowed" '

@@ -90,7 +90,7 @@ findings: list[str] = []
 
 def check_configs() -> None:
     expected_linear = {"repository", "workspace", "team", "projectStatuses", "issueStates"}
-    expected_project = {"backlog", "planned", "started", "paused", "completed", "canceled"}
+    expected_project = {"backlog", "planned", "started", "completed", "canceled"}
     expected_issue = {"planned", "executing", "inReview", "done", "blocked"}
     credential = re.compile(
         r"(?:api.?key|token|secret|password|authorization|credential)", re.I

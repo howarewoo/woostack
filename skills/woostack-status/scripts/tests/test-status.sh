@@ -724,7 +724,7 @@ def validate_project_resource(value):
     if envelope["kind"] != "resource":
         raise ValueError("project is not a resource")
     if value["status"]["category"] not in {
-        "backlog", "planned", "started", "paused", "completed", "canceled",
+        "backlog", "planned", "started", "completed", "canceled",
     }:
         raise ValueError("unknown native project category")
     validate_actor(value["lead"], "project lead")

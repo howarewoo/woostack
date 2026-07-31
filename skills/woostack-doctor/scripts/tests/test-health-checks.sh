@@ -29,7 +29,6 @@ if command -v jq >/dev/null 2>&1; then
       backlog: "Backlog",
       planned: "Planned",
       started: "Started",
-      paused: "Paused",
       completed: "Completed",
       canceled: "Canceled"
     },
