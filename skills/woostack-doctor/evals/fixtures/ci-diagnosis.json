@@ -2,8 +2,7 @@
   "mode": "check-live",
   "exitCode": 1,
   "findings": [
-    {"severity": "error", "code": "memory-malformed", "fixable": "report", "path": ".woostack/memory/bad.md", "message": "bad.md: malformed — missing opening frontmatter fence"},
-    {"severity": "error", "code": "memory-provenance-live", "fixable": "report", "path": ".woostack/memory/linear.md", "message": "receipt reports relation drift"}
+    {"severity": "error", "code": "linear-live", "fixable": "report", "path": ".woostack/config.json", "message": "normalized receipt is incomplete or inconsistent"}
   ],
   "repairs": []
 }

@@ -55,8 +55,8 @@ repository-relative path/range, or exact canonical PR source. Mutable titles and
 display citations only. Missing Linear access blocks only an artifact-dependent render; repository
 and PR renders require no Linear read.
 
-Visualization performs reads only. It never mutates Git, GitHub, Linear, source, local knowledge, or
-lifecycle state.
+Visualization reads its inputs without mutation. It never mutates Git, GitHub, Linear, source, or
+lifecycle state; its sole local write is the disposable HTML output described below.
 
 ## Procedure
 

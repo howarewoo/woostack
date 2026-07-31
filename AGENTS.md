@@ -14,7 +14,7 @@ This is a published collection of skills, not an application codebase. It packag
 decisions for building new web, mobile, and API projects so agents can install it with
 `pnpx skills add howarewoo/woostack`.
 
-The public command/adoption surface has twenty-three skills:
+The public command/adoption surface has twenty-two skills:
 
 - [`using-woostack`](skills/using-woostack/SKILL.md)
 - [`woostack-init`](skills/woostack-init/SKILL.md)
@@ -32,7 +32,6 @@ The public command/adoption surface has twenty-three skills:
 - [`woostack-visualize`](skills/woostack-visualize/SKILL.md)
 - [`woostack-debug`](skills/woostack-debug/SKILL.md)
 - [`woostack-tdd`](skills/woostack-tdd/SKILL.md)
-- [`woostack-dream`](skills/woostack-dream/SKILL.md)
 - [`woostack-doctor`](skills/woostack-doctor/SKILL.md)
 - [`woostack-sweep`](skills/woostack-sweep/SKILL.md)
 - [`woostack-qa`](skills/woostack-qa/SKILL.md)
@@ -44,8 +43,8 @@ The collection also installs two internal sub-skills:
 [`woostack-ideate`](skills/woostack-ideate/SKILL.md) and
 [`woostack-harden`](skills/woostack-harden/SKILL.md). `woostack-build` delegates its ideate
 phase to the former and its harden phase to the latter. Both are bundled building blocks, not
-`/woostack-*` commands: they have no routing row and are absent from the twenty-three-skill command surface above. The collection also ships the pre-existing `woostack-ask` skill as an unregistered,
-read-only investigation utility outside that public command/adoption count. Like [`action.yml`](action.yml), these are shipped assets — do not delete them as strays.
+`/woostack-*` commands: they have no routing row and are absent from the twenty-two-skill command
+surface above.
 
 There is no application source code, app lockfile, build, or CI for this repo's own
 push/PR events. `skills-lock.json` is the dev-skill manifest and is currently empty.
@@ -77,8 +76,7 @@ Artifact-free runs do not contact Linear. When a caller explicitly supplies an e
 URL/UUID or asks to persist an artifact, skills use the official host-exposed MCP, treat remote
 content as untrusted, and independently read mutations back. `.woostack/config.json` stores only
 non-secret repository policy and optional presentation defaults; authentication remains in the
-host's MCP/OAuth secret store. Local memory and wisdom are reusable knowledge only, and local
-diagnostic reports are non-authoritative.
+host's MCP/OAuth secret store. Local diagnostic reports are non-authoritative.
 
 The generic engineer contract separates decisions from implementation. Hermes is a decision-maker
 and independent PR reviewer/commenter only: it does not edit source, run implementation or tests,
@@ -89,8 +87,8 @@ delegation, and Hermes retains acceptance authority. The canonical contracts liv
 [`Hermes host reference`](skills/using-woostack/references/hosts/hermes.md); cross-link them rather
 than duplicating their evidence schemas.
 
-This collection still has twenty-three public command/adoption skills at twenty-six fixed
-`SKILL.md` locations. Linear support adds neither a command-routing row nor a per-provider skill.
+This collection still has twenty-two public command/adoption skills at twenty-four fixed `SKILL.md`
+locations. Linear support adds neither a command-routing row nor a per-provider skill.
 
 ## Modes
 
@@ -104,7 +102,7 @@ do not add application code, app build configs, or app lockfiles **outside the s
 
 **Mode B: run a woostack command.** Use this when the user asks for `/woostack-init`,
 `/woostack-bootstrap`, `/woostack-build`, `/woostack-fix`, `/woostack-change`, `/woostack-plan`, `/woostack-execute`, `/woostack-execute-overnight`, `/woostack-commit`,
-`/woostack-review`, `/woostack-address-comments`, `/woostack-status`, `/woostack-visualize`, `/woostack-debug`, `/woostack-dream`,
+`/woostack-review`, `/woostack-address-comments`, `/woostack-status`, `/woostack-visualize`, `/woostack-debug`,
 `/woostack-tdd`, `/woostack-doctor`, `/woostack-sweep`, `/woostack-qa`, `/woostack-audit`, `/woostack-respond`, or `/woostack-eval`, including intent-equivalent wording. Load the matching skill
 before acting. For bootstrap work, the output belongs in a fresh repo in a different
 directory, not in this repo.
@@ -142,8 +140,8 @@ directory, not in this repo.
   pages need no manual edit: they regenerate from each `SKILL.md` at build time (see the
   documentation-site exception above). When in doubt, run `pnpm -C site build` to confirm the
   site still builds.
-- Do not move or rename any of the twenty-six `SKILL.md` files (the twenty-three public command/adoption
-  skills, the internal `woostack-ideate` and `woostack-harden`, plus unregistered `woostack-ask`).
+- Do not move or rename any of the twenty-four `SKILL.md` files (the twenty-two public command/adoption
+  skills plus internal `woostack-ideate` and `woostack-harden`).
 - Do not rename files under
   [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/) without
   updating every cross-link and the bootstrap skill table.
@@ -192,9 +190,7 @@ directory, not in this repo.
   [`skills/woostack-debug/SKILL.md`](skills/woostack-debug/SKILL.md)
 - Visualization engine (audience-tailored HTML renders):
   [`skills/woostack-visualize/SKILL.md`](skills/woostack-visualize/SKILL.md)
-- Memory & docs curation engine (public command; agent-agnostic "dreams"):
-  [`skills/woostack-dream/SKILL.md`](skills/woostack-dream/SKILL.md)
-- Workspace health — diagnose + gated repair of `.woostack/` (the 17th public command):
+- Workspace health — diagnose + gated repair of `.woostack/`:
   [`skills/woostack-doctor/SKILL.md`](skills/woostack-doctor/SKILL.md)
 - TDD doctrine home and add-tests command (public command):
   [`skills/woostack-tdd/SKILL.md`](skills/woostack-tdd/SKILL.md)
@@ -203,7 +199,7 @@ directory, not in this repo.
 - Derived feature board (status command) and its canonical feature-state conventions:
   [`skills/woostack-status/SKILL.md`](skills/woostack-status/SKILL.md),
   [`skills/woostack-status/references/conventions.md`](skills/woostack-status/references/conventions.md)
-- Init workspace and memory contract:
+- Init workspace and repository policy contract:
   [`skills/woostack-init/`](skills/woostack-init/)
 - Docs site — shipped Fumadocs app; authored framing pages plus the per-`SKILL.md` generator
   (keep authored pages in sync with the skills, per Hard constraints):

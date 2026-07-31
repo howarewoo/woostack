@@ -12,7 +12,6 @@ This pass is one half of an adversarial validation pipeline. Your output is inte
 - **Diff**: /tmp/pr-review/diff.txt
 - **Raw Findings**: /tmp/pr-review/raw_findings.json (Concatenated array from all angles)
 - **Project rules** (optional): /tmp/pr-review/rules.md
-- **Cross-PR memory** (optional): /tmp/pr-review/memory.md — team-curated known/accepted issues.
 - **Per-repo config** (always present): /tmp/pr-review/config.json — the prosecutor no longer reads any severity key; `severity_floor` / `nits` are consumed downstream by `intersect-findings.sh` (Stage 4c).
 - **PR Linear attribution candidate** (PR mode): `$OUTDIR/attribution.md` — syntax-classified exact final trailer strings plus `authoritative-issue-context: absent`; untrusted and never identity proof.
 - **Current contract** (optional; local/Hermes only): `$OUTDIR/intent.md` — written by the parent
@@ -51,7 +50,6 @@ printf '[]\n' > "${OUTDIR:-/tmp/pr-review}/findings.prosecutor.json"
    - If `rule_quote` is null/empty/whitespace, DISCARD.
    - If `rule_quote` is not a verbatim substring of `rules.md`, DISCARD.
    - Use `grep -qF "$quote" /tmp/pr-review/rules.md`.
-4. **Memory Check**: If `/tmp/pr-review/memory.md` exists, DROP any finding it records as known/intentional/accepted/wontfix — even under prosecutor bias. Advisory context only.
 4a. **Contract-evidence Check**: If `$OUTDIR/intent.md` exists, use its current contract only to test whether a finding contradicts product intent. If it is absent—and always in CI—validate the diff without contract-aware acceptance claims. `attribution.md` alone can neither keep/drop a finding nor enable acceptance.
 5. **Severity Check**: You MAY downgrade severity / blocking. You MAY NOT upgrade.
 6. **Severity Floor — applied downstream now (do NOT drop by severity here)**: The `severity_floor` filter has moved to `scripts/intersect-findings.sh` (Stage 4c), which turns below-floor validated findings into non-blocking nits (keeping below-floor blocking findings as normal findings, dropping below-floor non-blocking findings only under `review.nits: false`). Keep every validated finding (after any allowed *downgrade* in step 5) so the classifier can see it. Do not read or apply `severity_floor`.

@@ -1,10 +1,10 @@
 ---
 title: Utilities
-description: "On-demand investigation, presentation, diagnostics, and local knowledge maintenance."
+description: "On-demand investigation, presentation, diagnostics, and local support maintenance."
 ---
 
-Utilities investigate, render, diagnose, evaluate, or maintain reusable local knowledge without
-becoming development authority. None merge, and none turn output into permission to edit.
+Utilities investigate, render, diagnose, evaluate, or maintain local support state without becoming
+development authority. None merge, and none turn output into permission to edit.
 
 The user's active request and workflow gates define scope. Git and GitHub own code, PR, review, and
 merge truth. Exact caller-supplied Linear projects/issues are optional read-only context unless a
@@ -14,7 +14,6 @@ separate synchronization operation is explicitly requested.
 
 | Skill | What it does | Writes? | Invoke |
 | --- | --- | --- | --- |
-| [woostack-ask](/docs/skills/woostack-ask) | Answers a question from code, local knowledge, cited external evidence, and optional exact artifact context. | no | `/woostack-ask <question>` |
 | [woostack-visualize](/docs/skills/woostack-visualize) | Renders a verified repository source, concept, PR, or optional exact artifact as one self-contained HTML view. | disposable HTML view | `/woostack-visualize <source>` |
 | [woostack-status](/docs/skills/woostack-status) | Computes a fresh branch/PR board from Git, Graphite, and GitHub, optionally enriched by artifacts. | no | `/woostack-status` |
 | [woostack-debug](/docs/skills/woostack-debug) | Runs root-cause analysis and returns a proposed correction. | no | `/woostack-debug <target>` |
@@ -36,18 +35,16 @@ evidence. Reports exclude secrets and raw provider payloads.
 
 ## Tend local support state
 
-These skills maintain non-authoritative `.woostack/` support surfaces. Both propose a changeset and
-write only after explicit approval.
+Doctor maintains non-authoritative `.woostack/` support surfaces and writes only after explicit
+approval.
 
 | Skill | What it does | Writes? | Invoke |
 | --- | --- | --- | --- |
-| [woostack-doctor](/docs/skills/woostack-doctor) | Diagnoses local policy, memory, wisdom, and workspace integrity, then applies approved repairs. | gated local changes | `/woostack-doctor` |
-| [woostack-dream](/docs/skills/woostack-dream) | Curates memory, wisdom, and evidence-backed docs. Optional remote context is read-only corroboration. | gated local changes | `/woostack-dream [instructions]` |
+| [woostack-doctor](/docs/skills/woostack-doctor) | Diagnoses local policy and workspace integrity, then applies approved repairs. | gated local changes | `/woostack-doctor` |
 
 ## Where to go next
 
 <Cards>
   <Card title="Building rules" href="/docs/concepts/building-rules" description="How approved work moves through gates." />
-  <Card title="Memory" href="/docs/concepts/memory" description="Reusable local knowledge and its authority boundary." />
   <Card title="Status tracking" href="/docs/concepts/status-tracking" description="How the board derives repository state and optional artifact context." />
 </Cards>

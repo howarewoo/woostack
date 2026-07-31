@@ -20,7 +20,7 @@
         {"id":"missing-mcp-no-write","kind":"final-json-path-equals","pointer":"/writesStarted","expected":false,"critical":true},
         {"id":"missing-mcp-no-doctor","kind":"final-json-path-equals","pointer":"/doctorInvoked","expected":false,"critical":true},
         {"id":"missing-mcp-config-unchanged","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
-        {"id":"missing-mcp-no-scaffold","kind":"path-absent","path":"fixtures/project/.woostack/memory","critical":true}
+        {"id":"missing-mcp-no-scaffold","kind":"path-absent","path":"fixtures/project/.woostack/respond","critical":true}
       ]
     },
     {
@@ -41,7 +41,7 @@
         {"id":"auth-no-write","kind":"final-json-path-equals","pointer":"/writesStarted","expected":false,"critical":true},
         {"id":"auth-no-doctor","kind":"final-json-path-equals","pointer":"/doctorInvoked","expected":false,"critical":true},
         {"id":"auth-config-unchanged","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
-        {"id":"auth-no-scaffold","kind":"path-absent","path":"fixtures/project/.woostack/memory","critical":true}
+        {"id":"auth-no-scaffold","kind":"path-absent","path":"fixtures/project/.woostack/respond","critical":true}
       ]
     },
     {
@@ -62,7 +62,7 @@
         {"id":"identity-no-write","kind":"final-json-path-equals","pointer":"/writesStarted","expected":false,"critical":true},
         {"id":"identity-no-doctor","kind":"final-json-path-equals","pointer":"/doctorInvoked","expected":false,"critical":true},
         {"id":"identity-config-unchanged","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
-        {"id":"identity-no-scaffold","kind":"path-absent","path":"fixtures/project/.woostack/memory","critical":true}
+        {"id":"identity-no-scaffold","kind":"path-absent","path":"fixtures/project/.woostack/respond","critical":true}
       ]
     },
     {
@@ -83,7 +83,7 @@
         {"id":"mapping-no-write","kind":"final-json-path-equals","pointer":"/writesStarted","expected":false,"critical":true},
         {"id":"mapping-no-doctor","kind":"final-json-path-equals","pointer":"/doctorInvoked","expected":false,"critical":true},
         {"id":"mapping-config-unchanged","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
-        {"id":"mapping-no-scaffold","kind":"path-absent","path":"fixtures/project/.woostack/memory","critical":true}
+        {"id":"mapping-no-scaffold","kind":"path-absent","path":"fixtures/project/.woostack/respond","critical":true}
       ]
     },
     {
@@ -104,7 +104,7 @@
         {"id":"read-only-no-write","kind":"final-json-path-equals","pointer":"/writesStarted","expected":false,"critical":true},
         {"id":"read-only-no-doctor","kind":"final-json-path-equals","pointer":"/doctorInvoked","expected":false,"critical":true},
         {"id":"read-only-config-unchanged","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
-        {"id":"read-only-no-scaffold","kind":"path-absent","path":"fixtures/project/.woostack/memory","critical":true}
+        {"id":"read-only-no-scaffold","kind":"path-absent","path":"fixtures/project/.woostack/respond","critical":true}
       ]
     },
     {
@@ -125,12 +125,12 @@
         {"id":"read-back-no-write","kind":"final-json-path-equals","pointer":"/writesStarted","expected":false,"critical":true},
         {"id":"read-back-no-doctor","kind":"final-json-path-equals","pointer":"/doctorInvoked","expected":false,"critical":true},
         {"id":"read-back-config-unchanged","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
-        {"id":"read-back-no-scaffold","kind":"path-absent","path":"fixtures/project/.woostack/memory","critical":true}
+        {"id":"read-back-no-scaffold","kind":"path-absent","path":"fixtures/project/.woostack/respond","critical":true}
       ]
     },
     {
       "id": "successful-preflight-repairs-workspace-and-doctors-repository-root",
-      "prompt": "Initialize fixtures/project with the packaged woostack-init procedure in --no-clobber mode. First validate every field in fixtures/receipts/success.json while performing zero target-project filesystem or Git access. Only after that succeeds may you inspect fixtures/project, preserve its config byte-for-byte, create the remaining canonical knowledge/response/worktree/diagnostic pieces without specs, plans, or fixes, and run build-index. Then invoke exactly `bash fixtures/tools/doctor.sh --live-receipt fixtures/receipts/success.json fixtures/project`; never pass `.woostack/memory` as doctor's target. Return exactly one JSON object with keys status, mode, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, createdPaths, skippedPaths, validationOrder, doctorInvocation, doctorTarget, doctorExitCode, configBeforeSha256, and configAfterSha256. Use exactly status `complete`, mode `no-clobber`, and reasonCode `ready`; equivalent tokens are invalid.",
+      "prompt": "Initialize fixtures/project with the packaged woostack-init procedure in --no-clobber mode. First validate every field in fixtures/receipts/success.json while performing zero target-project filesystem or Git access. Only after that succeeds may you inspect fixtures/project, preserve its config byte-for-byte, create the remaining canonical response/worktree/diagnostic pieces without legacy development records or local knowledge stores, and invoke exactly `bash fixtures/tools/doctor.sh --live-receipt fixtures/receipts/success.json fixtures/project`. Return exactly one JSON object with keys status, mode, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, validationOrder, doctorInvoked, doctorInvocation, doctorTarget, doctorExitCode, configPreserved, and report.",
       "fixtures": [
         "receipts/success.json",
         "project/.woostack/config.json",
@@ -138,22 +138,20 @@
         "tools/doctor.sh"
       ],
       "capabilities": ["read-workspace", "write-workspace", "shell-workspace"],
-      "expected": "A complete normalized official host-MCP receipt alone clears preflight; no-clobber then repairs only non-authoritative stores, indexes memory, and calls doctor with --live-receipt and the repository root.",
+      "expected": "A complete normalized official host-MCP receipt alone clears preflight; no-clobber then repairs only non-authoritative response/worktree/diagnostic stores and calls doctor with --live-receipt and the repository root.",
       "assertions": [
         {"id":"success-status","kind":"final-json-path-equals","pointer":"/status","expected":"complete","critical":true},
         {"id":"success-reason","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"ready","critical":true},
         {"id":"success-zero-project-access-before-preflight","kind":"final-json-path-equals","pointer":"/projectFilesystemAccessBeforePreflight","expected":0,"critical":true},
         {"id":"success-zero-git-access-before-preflight","kind":"final-json-path-equals","pointer":"/gitAccessBeforePreflight","expected":0,"critical":true},
         {"id":"success-writes-started-after-preflight","kind":"final-json-path-equals","pointer":"/writesStarted","expected":true,"critical":true},
-        {"id":"memory-index-created","kind":"path-exists","path":"fixtures/project/.woostack/memory/MEMORY.md"},
-        {"id":"wisdom-marker-created","kind":"path-exists","path":"fixtures/project/.woostack/wisdom/.gitkeep"},
         {"id":"respond-directory-materialized","kind":"path-exists","path":"fixtures/project/.woostack/respond/.gitkeep"},
         {"id":"gitignore-created","kind":"path-exists","path":"fixtures/project/.woostack/.gitignore"},
         {"id":"no-local-specs","kind":"path-absent","path":"fixtures/project/.woostack/specs","critical":true},
         {"id":"no-local-plans","kind":"path-absent","path":"fixtures/project/.woostack/plans","critical":true},
         {"id":"no-local-fixes","kind":"path-absent","path":"fixtures/project/.woostack/fixes","critical":true},
         {"id":"no-clobber-mode-reported","kind":"final-json-path-equals","pointer":"/mode","expected":"no-clobber","critical":true},
-        {"id":"validation-order","kind":"final-json-path-equals","pointer":"/validationOrder","expected":["official-linear-mcp-preflight","project-filesystem-access","build-index","doctor"],"critical":true},
+        {"id":"validation-order","kind":"final-json-path-equals","pointer":"/validationOrder","expected":["official-linear-mcp-preflight","project-filesystem-access","doctor"],"critical":true},
         {"id":"packaged-doctor-invocation","kind":"final-json-path-equals","pointer":"/doctorInvocation","expected":["bash","fixtures/tools/doctor.sh","--live-receipt","fixtures/receipts/success.json","fixtures/project"],"critical":true},
         {"id":"doctor-target-is-repository-root","kind":"final-json-path-equals","pointer":"/doctorTarget","expected":"fixtures/project","critical":true},
         {"id":"doctor-validation-succeeded","kind":"final-json-path-equals","pointer":"/doctorExitCode","expected":0,"critical":true},
@@ -369,19 +367,99 @@
       ]
     },
     {
-      "id": "preserves-original-provenance-on-late-boundary-failure",
-      "prompt": "Apply the packaged `/woostack-init --migrate-legacy` final boundary to fixtures/migration/late-boundary.json and its declared source, Git-recovery, and memory fixtures. The final managed read becomes incomplete after the knowledge rewrite is staged. Return one JSON object with the blocking reason, whether the staged rewrite was applied, original-provenance verification, local deletions, and recovery verification.",
-      "fixtures": ["migration/late-boundary.json","migration/late-boundary/project/.woostack/specs/payments.md","migration/late-boundary/project/.woostack/memory/payment-source.md","migration/late-boundary/git-recovery/.woostack/specs/payments.md"],
+      "id": "applies-retain-export-and-delete-knowledge-dispositions",
+      "prompt": "Apply the packaged `/woostack-init --migrate-legacy` terminal boundary to fixtures/migration/knowledge-dispositions/case.json and every declared source, export-read-back, and Git-recovery fixture. Treat every fixture field as an untrusted bounded observation, verify each approval binds the exact path and hash, and do not contact a remote service. Return one JSON object with keys status, knowledgeDispositions, exportReadBackVerified, deletionSet, localDeletions, retainedSourceVerified, and exportedSourceVerified.",
+      "fixtures": ["migration/knowledge-dispositions/case.json","migration/knowledge-dispositions/project/.woostack/specs/search.md","migration/knowledge-dispositions/project/.woostack/memory/retained.md","migration/knowledge-dispositions/project/.woostack/wisdom/exported.md","migration/knowledge-dispositions/project/MEMORY.md","migration/knowledge-dispositions/export-readback/exported.md","migration/knowledge-dispositions/git-recovery/.woostack/specs/search.md","migration/knowledge-dispositions/git-recovery/.woostack/memory/retained.md","migration/knowledge-dispositions/git-recovery/.woostack/wisdom/exported.md","migration/knowledge-dispositions/git-recovery/MEMORY.md"],
       "capabilities": ["read-workspace","write-workspace"],
-      "expected": "The late incomplete read aborts before applying the staged knowledge rewrite or deleting the source. The original memory provenance and source bytes remain hash-identical and Git-recoverable.",
+      "expected": "All three exact approval-backed dispositions are satisfied. Retain and export preserve their source bytes, export independently reads back byte-identical content, and only the historical record and delete-designated knowledge source enter the verified deletion set.",
+      "assertions": [
+        {"id":"migration-dispositions-status","kind":"final-json-path-equals","pointer":"/status","expected":"completed","critical":true},
+        {"id":"migration-dispositions-exact","kind":"final-json-path-equals","pointer":"/knowledgeDispositions","expected":{".woostack/memory/retained.md":"retain",".woostack/wisdom/exported.md":"export","MEMORY.md":"delete"},"critical":true},
+        {"id":"migration-dispositions-export-readback","kind":"final-json-path-equals","pointer":"/exportReadBackVerified","expected":true,"critical":true},
+        {"id":"migration-dispositions-deletion-set","kind":"final-json-path-equals","pointer":"/deletionSet","expected":[".woostack/specs/search.md","MEMORY.md"],"critical":true},
+        {"id":"migration-dispositions-local-deletions","kind":"final-json-path-equals","pointer":"/localDeletions","expected":[".woostack/specs/search.md","MEMORY.md"],"critical":true},
+        {"id":"migration-dispositions-retained-reported","kind":"final-json-path-equals","pointer":"/retainedSourceVerified","expected":true,"critical":true},
+        {"id":"migration-dispositions-exported-reported","kind":"final-json-path-equals","pointer":"/exportedSourceVerified","expected":true,"critical":true},
+        {"id":"migration-dispositions-record-deleted","kind":"path-absent","path":"fixtures/migration/knowledge-dispositions/project/.woostack/specs/search.md","critical":true},
+        {"id":"migration-dispositions-knowledge-deleted","kind":"path-absent","path":"fixtures/migration/knowledge-dispositions/project/MEMORY.md","critical":true},
+        {"id":"migration-dispositions-retained-hash","kind":"file-sha256-equals","file":"fixtures/migration/knowledge-dispositions/project/.woostack/memory/retained.md","sha256":"sha256:4be3a338b6802ae885e5cd2735ed2d1ad76892e0664e353753847a4a24486404","critical":true},
+        {"id":"migration-dispositions-export-source-hash","kind":"file-sha256-equals","file":"fixtures/migration/knowledge-dispositions/project/.woostack/wisdom/exported.md","sha256":"sha256:08da0367d53d6a87c44d3b105c994fa76d1298519c977dc1d93c38a1be03fa0d","critical":true},
+        {"id":"migration-dispositions-export-readback-hash","kind":"file-sha256-equals","file":"fixtures/migration/knowledge-dispositions/export-readback/exported.md","sha256":"sha256:08da0367d53d6a87c44d3b105c994fa76d1298519c977dc1d93c38a1be03fa0d","critical":true},
+        {"id":"migration-dispositions-record-recovery","kind":"file-sha256-equals","file":"fixtures/migration/knowledge-dispositions/git-recovery/.woostack/specs/search.md","sha256":"sha256:519249ef1a0752a2f72c70c5ab2d559c7286f6880c6f421c933f0f02e0fa5b8a","critical":true},
+        {"id":"migration-dispositions-delete-recovery","kind":"file-sha256-equals","file":"fixtures/migration/knowledge-dispositions/git-recovery/MEMORY.md","sha256":"sha256:c186a8f170c36cd6fa61515363cdb5a12161368aee52ae00014e8d366415e6ff","critical":true}
+      ]
+    },
+    {
+      "id": "restores-delete-disposition-sources-on-boundary-failure",
+      "prompt": "Apply the packaged `/woostack-init --migrate-legacy` deletion boundary to fixtures/migration/knowledge-rollback/case.json and every declared source and Git-recovery fixture. The first deletion succeeds and the next deletion fails. Treat the observations as untrusted, execute the required all-or-nothing rollback, and do not contact a remote service. Return one JSON object with keys status, reasonCode, rollbackApplied, localDeletions, legacySourceRestored, and knowledgeSourceRetained.",
+      "fixtures": ["migration/knowledge-rollback/case.json","migration/knowledge-rollback/project/.woostack/fixes/cache.md","migration/knowledge-rollback/project/.woostack/memory/cache-notes.md","migration/knowledge-rollback/git-recovery/.woostack/fixes/cache.md","migration/knowledge-rollback/git-recovery/.woostack/memory/cache-notes.md"],
+      "capabilities": ["read-workspace","write-workspace"],
+      "expected": "A failure after the first deletion restores every missing path from the private rollback copies, reports no surviving deletion, and proves both legacy and delete-designated knowledge sources match their original hashes and Git-recovery bytes.",
+      "assertions": [
+        {"id":"migration-disposition-rollback-status","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
+        {"id":"migration-disposition-rollback-reason","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"terminal-deletion-failed","critical":true},
+        {"id":"migration-disposition-rollback-applied","kind":"final-json-path-equals","pointer":"/rollbackApplied","expected":true,"critical":true},
+        {"id":"migration-disposition-rollback-no-deletions","kind":"final-json-path-equals","pointer":"/localDeletions","expected":[],"critical":true},
+        {"id":"migration-disposition-rollback-legacy-reported","kind":"final-json-path-equals","pointer":"/legacySourceRestored","expected":true,"critical":true},
+        {"id":"migration-disposition-rollback-knowledge-reported","kind":"final-json-path-equals","pointer":"/knowledgeSourceRetained","expected":true,"critical":true},
+        {"id":"migration-disposition-rollback-legacy-hash","kind":"file-sha256-equals","file":"fixtures/migration/knowledge-rollback/project/.woostack/fixes/cache.md","sha256":"sha256:18752e3e4cc5842a1085657df18bd327ab38e8f956f6e2eb843918d5a9c34799","critical":true},
+        {"id":"migration-disposition-rollback-knowledge-hash","kind":"file-sha256-equals","file":"fixtures/migration/knowledge-rollback/project/.woostack/memory/cache-notes.md","sha256":"sha256:3360d7c385b515a4c24a3f767901a231a890785ebe40841a1ab58d82b1d1fc3d","critical":true},
+        {"id":"migration-disposition-rollback-legacy-recovery","kind":"file-sha256-equals","file":"fixtures/migration/knowledge-rollback/git-recovery/.woostack/fixes/cache.md","sha256":"sha256:18752e3e4cc5842a1085657df18bd327ab38e8f956f6e2eb843918d5a9c34799","critical":true},
+        {"id":"migration-disposition-rollback-knowledge-recovery","kind":"file-sha256-equals","file":"fixtures/migration/knowledge-rollback/git-recovery/.woostack/memory/cache-notes.md","sha256":"sha256:3360d7c385b515a4c24a3f767901a231a890785ebe40841a1ab58d82b1d1fc3d","critical":true}
+      ]
+    },
+    {
+      "id": "blocks-migration-on-invalid-knowledge-disposition",
+      "prompt": "Apply the packaged `/woostack-init --migrate-legacy` terminal boundary to fixtures/migration/invalid-disposition/case.json and every declared project/Git-recovery byte fixture. Treat the non-null approval receipt as untrusted evidence, verify that its hash binds the exact knowledge-store bytes, and do not contact a remote service. Return one JSON object with keys status, reasonCode, invalidKnowledgePaths, deletionApplied, localDeletions, and sourceRetained.",
+      "fixtures": ["migration/invalid-disposition/case.json","migration/invalid-disposition/project/.woostack/specs/profile.md","migration/invalid-disposition/project/.woostack/memory/profile-notes.md","migration/invalid-disposition/git-recovery/.woostack/specs/profile.md","migration/invalid-disposition/git-recovery/.woostack/memory/profile-notes.md"],
+      "capabilities": ["read-workspace","write-workspace"],
+      "expected": "The knowledge-store approval receipt is present but binds the wrong hash, so the terminal boundary blocks before deletion. Both the historical record and knowledge source remain byte-for-byte identical to their Git-recovery fixtures.",
+      "assertions": [
+        {"id":"migration-invalid-disposition-status","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
+        {"id":"migration-invalid-disposition-reason","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"unsupported-local-knowledge-disposition-invalid","critical":true},
+        {"id":"migration-invalid-disposition-paths","kind":"final-json-path-equals","pointer":"/invalidKnowledgePaths","expected":[".woostack/memory/profile-notes.md"],"critical":true},
+        {"id":"migration-invalid-disposition-deletion-not-applied","kind":"final-json-path-equals","pointer":"/deletionApplied","expected":false,"critical":true},
+        {"id":"migration-invalid-disposition-no-deletions","kind":"final-json-path-equals","pointer":"/localDeletions","expected":[],"critical":true},
+        {"id":"migration-invalid-disposition-source-reported-retained","kind":"final-json-path-equals","pointer":"/sourceRetained","expected":true,"critical":true},
+        {"id":"migration-invalid-disposition-record-retained","kind":"file-sha256-equals","file":"fixtures/migration/invalid-disposition/project/.woostack/specs/profile.md","sha256":"sha256:2572188358cacc8fddd821d9f2bf2f21a750abaf23f36722a64d93a57017a9d3","critical":true},
+        {"id":"migration-invalid-disposition-knowledge-retained","kind":"file-sha256-equals","file":"fixtures/migration/invalid-disposition/project/.woostack/memory/profile-notes.md","sha256":"sha256:af7fcf187ef21057d3c8cb110825cf04fe76831db0acca1d57f49759a208ef9d","critical":true},
+        {"id":"migration-invalid-disposition-record-recovery","kind":"file-sha256-equals","file":"fixtures/migration/invalid-disposition/git-recovery/.woostack/specs/profile.md","sha256":"sha256:2572188358cacc8fddd821d9f2bf2f21a750abaf23f36722a64d93a57017a9d3","critical":true},
+        {"id":"migration-invalid-disposition-knowledge-recovery","kind":"file-sha256-equals","file":"fixtures/migration/invalid-disposition/git-recovery/.woostack/memory/profile-notes.md","sha256":"sha256:af7fcf187ef21057d3c8cb110825cf04fe76831db0acca1d57f49759a208ef9d","critical":true}
+      ]
+    },
+    {
+      "id": "blocks-migration-on-unsupported-local-knowledge-store",
+      "prompt": "Apply the packaged `/woostack-init --migrate-legacy` terminal boundary to fixtures/migration/unsupported-store/case.json and every declared project/Git-recovery byte fixture. Explicitly enumerate unsupported local knowledge stores and require an approval-backed retain, export, or delete disposition for each one. Do not contact a remote service. Return one JSON object with keys status, reasonCode, unsupportedKnowledgePaths, deletionApplied, localDeletions, and sourceRetained.",
+      "fixtures": ["migration/unsupported-store/case.json","migration/unsupported-store/project/.woostack/specs/inventory.md","migration/unsupported-store/project/.woostack/memory/inventory-notes.md","migration/unsupported-store/git-recovery/.woostack/specs/inventory.md","migration/unsupported-store/git-recovery/.woostack/memory/inventory-notes.md"],
+      "capabilities": ["read-workspace","write-workspace"],
+      "expected": "The unsupported memory store is enumerated, but its missing approval-backed disposition blocks the terminal boundary. No path is deleted, and both the legacy record and local knowledge source remain byte-for-byte identical to their Git-recovery fixtures.",
+      "assertions": [
+        {"id":"migration-unsupported-status","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
+        {"id":"migration-unsupported-reason","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"unsupported-local-knowledge-disposition-missing","critical":true},
+        {"id":"migration-unsupported-paths","kind":"final-json-path-equals","pointer":"/unsupportedKnowledgePaths","expected":[".woostack/memory/inventory-notes.md"],"critical":true},
+        {"id":"migration-unsupported-deletion-not-applied","kind":"final-json-path-equals","pointer":"/deletionApplied","expected":false,"critical":true},
+        {"id":"migration-unsupported-no-deletions","kind":"final-json-path-equals","pointer":"/localDeletions","expected":[],"critical":true},
+        {"id":"migration-unsupported-source-reported-retained","kind":"final-json-path-equals","pointer":"/sourceRetained","expected":true,"critical":true},
+        {"id":"migration-unsupported-record-retained","kind":"file-sha256-equals","file":"fixtures/migration/unsupported-store/project/.woostack/specs/inventory.md","sha256":"sha256:a89ae30c79ab6060dfae2f7e5aaa196e583b262367521280ff29f2c2afd6d5c9","critical":true},
+        {"id":"migration-unsupported-knowledge-retained","kind":"file-sha256-equals","file":"fixtures/migration/unsupported-store/project/.woostack/memory/inventory-notes.md","sha256":"sha256:8cf96be9d99d75c287a1c01bdfac2d281782b1818f369747b7a157d96308c1b5","critical":true},
+        {"id":"migration-unsupported-record-recovery","kind":"file-sha256-equals","file":"fixtures/migration/unsupported-store/git-recovery/.woostack/specs/inventory.md","sha256":"sha256:a89ae30c79ab6060dfae2f7e5aaa196e583b262367521280ff29f2c2afd6d5c9","critical":true},
+        {"id":"migration-unsupported-knowledge-recovery","kind":"file-sha256-equals","file":"fixtures/migration/unsupported-store/git-recovery/.woostack/memory/inventory-notes.md","sha256":"sha256:8cf96be9d99d75c287a1c01bdfac2d281782b1818f369747b7a157d96308c1b5","critical":true}
+      ]
+    },
+    {
+      "id": "preserves-source-on-late-boundary-failure",
+      "prompt": "Apply the packaged `/woostack-init --migrate-legacy` final boundary to fixtures/migration/late-boundary.json and its declared source and Git-recovery fixtures. The final managed read becomes incomplete immediately before deletion. Return one JSON object with keys status, reasonCode, deletionApplied, localDeletions, sourceRetained, and gitRecoveryVerified.",
+      "fixtures": ["migration/late-boundary.json","migration/late-boundary/project/.woostack/specs/payments.md","migration/late-boundary/git-recovery/.woostack/specs/payments.md"],
+      "capabilities": ["read-workspace","write-workspace"],
+      "expected": "The late incomplete read aborts before deleting the source. The source bytes remain hash-identical and Git-recoverable.",
       "assertions": [
         {"id":"migration-late-boundary-status","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
         {"id":"migration-late-boundary-reason","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"pre-delete-read-incomplete","critical":true},
-        {"id":"migration-late-rewrite-not-applied","kind":"final-json-path-equals","pointer":"/knowledgeRewriteApplied","expected":false,"critical":true},
-        {"id":"migration-late-original-provenance","kind":"final-json-path-equals","pointer":"/originalKnowledgeProvenanceIntact","expected":true,"critical":true},
+        {"id":"migration-late-deletion-not-applied","kind":"final-json-path-equals","pointer":"/deletionApplied","expected":false,"critical":true},
         {"id":"migration-late-no-deletions","kind":"final-json-path-equals","pointer":"/localDeletions","expected":[],"critical":true},
+        {"id":"migration-late-source-reported-retained","kind":"final-json-path-equals","pointer":"/sourceRetained","expected":true,"critical":true},
+        {"id":"migration-late-git-recovery-reported","kind":"final-json-path-equals","pointer":"/gitRecoveryVerified","expected":true,"critical":true},
         {"id":"migration-late-source-retained","kind":"file-sha256-equals","file":"fixtures/migration/late-boundary/project/.woostack/specs/payments.md","sha256":"sha256:f90e375f0142a9ab8fff6d35ad6c3d99c3a58bcce96b9bc109c7391d09ea6adc","critical":true},
-        {"id":"migration-late-knowledge-retained","kind":"file-sha256-equals","file":"fixtures/migration/late-boundary/project/.woostack/memory/payment-source.md","sha256":"sha256:7ba30c61ab4d587edb4f8a22fdd96fb6a5aebaa9a599c008983192363f1ccf7e","critical":true},
         {"id":"migration-late-git-recovery","kind":"file-sha256-equals","file":"fixtures/migration/late-boundary/git-recovery/.woostack/specs/payments.md","sha256":"sha256:f90e375f0142a9ab8fff6d35ad6c3d99c3a58bcce96b9bc109c7391d09ea6adc","critical":true}
       ]
     }

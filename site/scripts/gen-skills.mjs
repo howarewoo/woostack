@@ -28,7 +28,6 @@ export const PUBLIC_ORDER = [
   'woostack-visualize',
   'woostack-debug',
   'woostack-tdd',
-  'woostack-dream',
   'woostack-doctor',
   'woostack-sweep',
   'woostack-qa',
@@ -36,10 +35,9 @@ export const PUBLIC_ORDER = [
   'woostack-respond',
   'woostack-eval',
 ];
-export const SUPPORTING_ORDER = ['woostack-ask'];
 export const INTERNAL_ORDER = ['woostack-harden', 'woostack-ideate'];
 
-const ORDER = [...PUBLIC_ORDER, ...SUPPORTING_ORDER, ...INTERNAL_ORDER];
+const ORDER = [...PUBLIC_ORDER, ...INTERNAL_ORDER];
 const INTERNAL = new Set(INTERNAL_ORDER);
 
 export function stripTitleHeading(body, name) {

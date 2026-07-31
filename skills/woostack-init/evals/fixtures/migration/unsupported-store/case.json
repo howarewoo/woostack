@@ -1,0 +1,41 @@
+{
+  "repositoryId": "repo-woostack",
+  "legacyRecords": [
+    {
+      "path": ".woostack/specs/inventory.md",
+      "kind": "specification",
+      "workingTreeSha256": "sha256:a89ae30c79ab6060dfae2f7e5aaa196e583b262367521280ff29f2c2afd6d5c9",
+      "provenance": ["git:6d49018c0a9851aa250c3d7f39886d107ebf7d4e:.woostack/specs/inventory.md"]
+    }
+  ],
+  "pullRequestObservation": {
+    "repositoryId": "repo-woostack",
+    "number": 570,
+    "state": "MERGED",
+    "baseCommit": "f2be10522404dad399fd4cdc369a8d9d109ab7e9",
+    "headCommit": "6d49018c0a9851aa250c3d7f39886d107ebf7d4e",
+    "mergeCommit": "dc94693cb5fdc5f51305fd994f3350e118535814",
+    "changedPaths": [".woostack/specs/inventory.md"]
+  },
+  "localKnowledgeStores": [
+    {
+      "path": ".woostack/memory/inventory-notes.md",
+      "kind": "unsupported-memory-store",
+      "workingTreeSha256": "sha256:8cf96be9d99d75c287a1c01bdfac2d281782b1818f369747b7a157d96308c1b5",
+      "disposition": null,
+      "approvalReceipt": null
+    }
+  ],
+  "gitRecoveryObservations": [
+    {
+      "path": ".woostack/specs/inventory.md",
+      "sourceCommit": "6d49018c0a9851aa250c3d7f39886d107ebf7d4e",
+      "sha256": "sha256:a89ae30c79ab6060dfae2f7e5aaa196e583b262367521280ff29f2c2afd6d5c9"
+    },
+    {
+      "path": ".woostack/memory/inventory-notes.md",
+      "sourceCommit": "6d49018c0a9851aa250c3d7f39886d107ebf7d4e",
+      "sha256": "sha256:8cf96be9d99d75c287a1c01bdfac2d281782b1818f369747b7a157d96308c1b5"
+    }
+  ]
+}

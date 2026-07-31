@@ -37,18 +37,17 @@ valid_config='{
     "staleDays": 14
   }
 }'
-clean="$(mktemp -d)"; mkdir -p "$clean/.woostack/memory"
+clean="$(mktemp -d)"; mkdir -p "$clean/.woostack"
 printf '%s\n' "$valid_config" >"$clean/.woostack/config.json"
 bash "$DOC" "$clean" >/dev/null 2>&1; assert_exit 0 "$?" "clean workspace exits 0"
 
-warnws="$(mktemp -d)"; mkdir -p "$warnws/.woostack/memory"
-printf '%s\n' "$valid_config" >"$warnws/.woostack/config.json"
-printf -- '---\nname: n\ntype: gotcha\nscope: *\nsource: pr-123\nupdated: 2099-01-01\n---\nbody [[ghost]]\n' > "$warnws/.woostack/memory/n.md"
+warnws="$(mktemp -d)"; mkdir -p "$warnws/.woostack"
+printf '%s\n' "$valid_config" | jq 'del(.models)' >"$warnws/.woostack/config.json"
 bash "$DOC" "$warnws" >/dev/null 2>&1; assert_exit 0 "$?" "warn-only exits 0"
 
-errws="$(mktemp -d)"; mkdir -p "$errws/.woostack/memory"
+errws="$(mktemp -d)"; mkdir -p "$errws/.woostack/specs"
 printf '%s\n' "$valid_config" >"$errws/.woostack/config.json"
-printf 'no fence\n' > "$errws/.woostack/memory/bad.md"
+printf 'legacy\n' > "$errws/.woostack/specs/old.md"
 bash "$DOC" "$errws" >/dev/null 2>&1; assert_exit 1 "$?" "error finding exits 1"
 
 dump="$(bash "$DOC" --check "$warnws" 2>/dev/null)"
@@ -57,7 +56,7 @@ assert_eq "$dump" "" "--check suppresses machine dump on stdout"
 bash "$DOC" --check "$errws" >/dev/null 2>&1; assert_exit 1 "$?" "--check with errors still exits 1"
 
 dump2="$(bash "$DOC" "$warnws" 2>/dev/null)"
-assert_contains "$dump2" "memory-unresolved-link" "default mode dumps machine findings on stdout"
+assert_contains "$dump2" "config-key" "default mode dumps machine findings on stdout"
 
 bad="$(bash "$DOC" --bogus "$warnws" 2>&1)"; bc=$?
 assert_exit 2 "$bc" "unknown flag exits 2"

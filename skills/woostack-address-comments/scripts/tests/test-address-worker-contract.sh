@@ -9,7 +9,7 @@ text=re.sub(r"\s+"," ",(Path(sys.argv[1])/"skills/woostack-address-comments/prom
 checks={
  "fanout":r"Optional worker fan-out",
  "record":r"threadId, file, line, finding, recommended, reasoning, reply, fix_plan",
- "no worker mutations":r"must not edit files, commit, push, reply, resolve, write memory, mutate GitHub/Linear",
+ "no worker mutations":r"must not edit files, commit, push, reply, resolve, mutate GitHub/Linear",
  "gate":r"Phase 2.*Silence is not approval",
  "fix plan":r"fix plan in the FIX option text",
  "override confirmation":r"override becomes FIX.*bounded confirm",

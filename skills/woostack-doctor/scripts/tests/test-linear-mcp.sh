@@ -48,14 +48,13 @@ complete_receipt() {
       issueRead:true,issueWrite:true,commentRead:true,commentWrite:true,
       relationRead:true,relationWrite:true,ownerRead:true,ownerWrite:true,independentReadBack:true
     },
-    readBack:{status:"verified",complete:true,independent:true},
-    provenance:{}
+    readBack:{status:"verified",complete:true,independent:true}
   }'
 }
 
 make_repo() {
   local name="$1" repo="$TMP/$1"
-  mkdir -p "$repo/.woostack/memory"
+  mkdir -p "$repo/.woostack"
   git -C "$repo" init -q
   complete_config >"$repo/.woostack/config.json"
   printf '%s\n' "$repo"
@@ -222,87 +221,5 @@ run_doctor "$repo" --live-receipt "$TMP/missing.json"
 assert_exit 1 "$RC" "missing live receipt fails closed"
 assert_contains "$OUTPUT" "receipt is missing or unreadable" "missing receipt is actionable"
 
-provenance_repo="$(make_repo provenance)"
-provenance_id="55555555-5555-4555-8555-555555555555"
-provenance_uri="linear://issue/$provenance_id"
-cat >"$provenance_repo/.woostack/memory/linear.md" <<MD
----
-name: linear-provenance
-type: decision
-scope: "*"
-source: $provenance_uri
-updated: 2026-07-26
----
-receipt-only provenance
-MD
-
-legacy_marker="$TMP/legacy-adapter-invoked"
-legacy_adapter="$TMP/legacy-linear.sh"
-cat >"$legacy_adapter" <<SH
-#!/usr/bin/env bash
-: >"$legacy_marker"
-exit 0
-SH
-chmod +x "$legacy_adapter"
-export WOOSTACK_LINEAR_ADAPTER="$legacy_adapter"
-
-run_doctor "$provenance_repo"
-assert_exit 0 "$RC" "static doctor parses valid Linear provenance locally"
-assert_not_contains "$OUTPUT" "memory-provenance" "valid local provenance syntax is accepted"
-[ ! -e "$legacy_marker" ] || fail "static doctor invoked the forbidden legacy Linear adapter"
-
-provenance_receipt="$TMP/provenance-receipt.json"
-jq --arg uri "$provenance_uri" --arg id "$provenance_id" '
-  .provenance[$uri]={
-    verified:true,
-    managedIdentityVerified:true,
-    relationsVerified:true,
-    kind:"issue",
-    id:$id,
-    repository:.repository,
-    workspace:.workspace,
-    team:.team
-  }
-' "$receipt" >"$provenance_receipt"
-chmod 600 "$provenance_receipt"
-run_doctor "$provenance_repo" --live-receipt "$provenance_receipt"
-assert_exit 0 "$RC" "live doctor consumes verified provenance from the normalized receipt"
-assert_not_contains "$OUTPUT" "memory-provenance-live" "verified receipt provenance passes"
-[ ! -e "$legacy_marker" ] || fail "live doctor invoked the forbidden legacy Linear adapter"
-
-jq --arg uri "$provenance_uri" '.provenance[$uri].relationsVerified=false' \
-  "$provenance_receipt" >"$TMP/drifted-provenance.json"
-chmod 600 "$TMP/drifted-provenance.json"
-run_doctor "$provenance_repo" --live-receipt "$TMP/drifted-provenance.json"
-assert_exit 1 "$RC" "partial or drifted receipt provenance fails closed"
-assert_contains "$OUTPUT" "missing, partial, foreign, or drifted host-MCP provenance receipt" "receipt-only provenance failure is actionable"
-[ ! -e "$legacy_marker" ] || fail "drifted live receipt invoked the forbidden legacy Linear adapter"
-
-sed -i.bak "s|$provenance_uri|linear://document/$provenance_id|" \
-  "$provenance_repo/.woostack/memory/linear.md"
-rm -f "$provenance_repo/.woostack/memory/linear.md.bak"
-run_doctor "$provenance_repo"
-assert_exit 0 "$RC" "retired document provenance remains a static warning"
-assert_contains "$OUTPUT" "is malformed (expected linear://project|issue/<uuid>)" "document provenance is rejected after cutover"
-
-sed -i.bak "s|linear://document/$provenance_id|linear://issue/nested/$provenance_id|" \
-  "$provenance_repo/.woostack/memory/linear.md"
-rm -f "$provenance_repo/.woostack/memory/linear.md.bak"
-run_doctor "$provenance_repo"
-assert_exit 0 "$RC" "malformed provenance remains a static warning"
-assert_contains "$OUTPUT" "is malformed (expected linear://project|issue/<uuid>)" "local parser rejects nested provenance paths"
-[ ! -e "$legacy_marker" ] || fail "malformed static provenance invoked the forbidden legacy Linear adapter"
-sed -i.bak "s|linear://issue/nested/$provenance_id|linear://document/$provenance_id|" \
-  "$provenance_repo/.woostack/memory/linear.md"
-rm -f "$provenance_repo/.woostack/memory/linear.md.bak"
-run_doctor "$provenance_repo"
-assert_exit 0 "$RC" "Linear document provenance remains a static warning"
-assert_contains "$OUTPUT" "is malformed (expected linear://project|issue/<uuid>)" "local parser rejects retired Linear document provenance"
-[ ! -e "$legacy_marker" ] || fail "document provenance invoked the forbidden legacy Linear adapter"
-unset WOOSTACK_LINEAR_ADAPTER
-
-checks_catalog="$(<"$HERE/../../references/checks.md")"
-assert_contains "$checks_catalog" '`linear://project/<uuid>` or `linear://issue/<uuid>`' "catalog exposes only current Linear provenance forms"
-assert_not_contains "$checks_catalog" 'linear://document/' "catalog does not restore retired Linear document provenance"
 
 finish

@@ -1,0 +1,40 @@
+{
+  "repositoryId": "repo-woostack",
+  "legacyRecords": [
+    {
+      "path": ".woostack/specs/search.md",
+      "classification": "historical-completed",
+      "workingTreeSha256": "sha256:519249ef1a0752a2f72c70c5ab2d559c7286f6880c6f421c933f0f02e0fa5b8a",
+      "gitRecoveryVerified": true,
+      "pullRequestAttributionVerified": true
+    }
+  ],
+  "localKnowledgeStores": [
+    {
+      "path": ".woostack/memory/retained.md",
+      "workingTreeSha256": "sha256:4be3a338b6802ae885e5cd2735ed2d1ad76892e0664e353753847a4a24486404",
+      "disposition": "retain",
+      "approvalReceipt": {"path": ".woostack/memory/retained.md", "sha256": "sha256:4be3a338b6802ae885e5cd2735ed2d1ad76892e0664e353753847a4a24486404", "decision": "retain", "current": true}
+    },
+    {
+      "path": ".woostack/wisdom/exported.md",
+      "workingTreeSha256": "sha256:08da0367d53d6a87c44d3b105c994fa76d1298519c977dc1d93c38a1be03fa0d",
+      "disposition": "export",
+      "exportDestination": "export-readback/exported.md",
+      "exportReadBackSha256": "sha256:08da0367d53d6a87c44d3b105c994fa76d1298519c977dc1d93c38a1be03fa0d",
+      "approvalReceipt": {"path": ".woostack/wisdom/exported.md", "sha256": "sha256:08da0367d53d6a87c44d3b105c994fa76d1298519c977dc1d93c38a1be03fa0d", "decision": "export", "destination": "export-readback/exported.md", "current": true}
+    },
+    {
+      "path": "MEMORY.md",
+      "workingTreeSha256": "sha256:c186a8f170c36cd6fa61515363cdb5a12161368aee52ae00014e8d366415e6ff",
+      "disposition": "delete",
+      "approvalReceipt": {"path": "MEMORY.md", "sha256": "sha256:c186a8f170c36cd6fa61515363cdb5a12161368aee52ae00014e8d366415e6ff", "decision": "delete", "current": true}
+    }
+  ],
+  "terminalEvidence": {
+    "complete": true,
+    "allPathsEnumerated": true,
+    "legacyGitRecoveryVerified": true,
+    "knowledgeGitRecoveryVerified": true
+  }
+}

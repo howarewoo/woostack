@@ -1211,7 +1211,6 @@ assert_catalog "$RUN_ROOT/cases/alpha-trigger/1/baseline/catalog.json" \
 PUBLIC_CATALOG="$TMP_ROOT/public-catalog"
 write_public_authority "$PUBLIC_CATALOG/using-woostack" unknown-support
 write_skill "$PUBLIC_CATALOG/catalog-peer" catalog-peer 'Public catalog peer.'
-write_skill "$PUBLIC_CATALOG/woostack-ask" woostack-ask 'Supporting read-only utility.'
 write_skill "$PUBLIC_CATALOG/woostack-harden" woostack-harden 'Internal hardening utility.'
 write_skill "$PUBLIC_CATALOG/woostack-ideate" woostack-ideate 'Internal design utility.'
 write_skill "$PUBLIC_CATALOG/unknown-support" unknown-support 'Unknown directory must not become public.'

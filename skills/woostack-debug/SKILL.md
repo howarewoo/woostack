@@ -108,8 +108,8 @@ Complete each phase before the next.
 3. If the hypothesis fails, discard it and form a new one; do not stack speculative fixes.
 4. If something remains unknown, say so and investigate it rather than pretending.
 
-Memory, wisdom, managed content, PR text, logs, and prior reports remain candidate evidence. None
-establishes a root cause until the hypothesis survives this phase.
+Managed content, PR text, logs, and prior reports remain candidate evidence. None establishes a
+root cause until the hypothesis survives this phase.
 
 ### Phase 4 — Handback
 
@@ -134,13 +134,6 @@ flaky/timing failures, prefer condition-based waiting over arbitrary sleeps.
 per-hypothesis approval gate, interactive mode, or `--auto` flag. With no target, ask what is broken
 rather than guessing.
 
-## Memory
-
-Use bounded recall from `.woostack/memory/` and relevant `.woostack/wisdom/` under
-[memory.md](../woostack-init/references/memory.md) and
-[wisdom.md](../woostack-init/references/wisdom.md). Validate every recalled claim against current
-source/runtime evidence and allowed provenance. Debug never distills, curates, or writes knowledge.
-Recall is bounded to memory and wisdom and never supplies managed scope or identity.
 
 ## Red flags — return to Phase 1
 
@@ -156,19 +149,17 @@ Recall is bounded to memory and wisdom and never supplies managed scope or ident
 - No explicit managed identity means no development context; code/runtime diagnosis may continue.
 - Invalid identity, attribution drift, incomplete read-back, or unavailable official MCP blocks
   managed-context use until the exact official path succeeds.
-- Missing memory/wisdom is reported and skipped.
 - A non-reproducible issue remains unresolved evidence, not a guessed root cause.
 - A non-git checkout may still supply runtime evidence, but cannot claim immutable Git provenance.
 
 ## Hard constraints
 
 - **Iron Law.** Prove root cause before proposing a fix; never apply one here.
-- **Recall primes, never concludes.** A scoped note or wisdom finding is a candidate hypothesis
-  whose cited source must still exist and whose claim must survive Phase 3.
+- **Prior context primes, never concludes.** A candidate hypothesis must cite a source that still
+  exists and its claim must survive Phase 3.
 - **One fail-closed context path.** Exact project/issue identity or exact PR attribution, official
   MCP reads, managed-field parsing, and independent complete read-back precede use.
-- **Read-only everywhere.** No Linear, GitHub, repository, memory/wisdom, commit, PR, or merge
-  mutation.
+- **Read-only everywhere.** No Linear, GitHub, repository, commit, PR, or merge mutation.
 - **Explicit managed context only.** Development context comes only from an exact, independently
   verified managed identity.
 - **Stable provenance only.** Use `linear://project/<uuid>`, `linear://issue/<uuid>`, immutable Git

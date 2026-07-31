@@ -9,7 +9,7 @@ Render a fresh read-only work board. Git, Graphite, and canonical GitHub evidenc
 ancestry, commits, PRs, reviews, checks, threads, and merge state. Exact Linear projects/issues may
 supply optional specification, plan, or fix labels; they never define repository state.
 
-Status never edits source, Git, GitHub, Linear, local plans, memory, or lifecycle state. It does not
+Status never edits source, Git, GitHub, Linear, local plans, or lifecycle state. It does not
 reconcile, assign, transition, comment, accept, merge, or repair.
 
 ## Commands

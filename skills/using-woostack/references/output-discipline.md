@@ -1,7 +1,7 @@
 # Output Discipline
 
 Canonical rules for woostack communication — user-facing replies, subagent→parent handbacks,
-swarm/worker reports, and memory/log writes. Cross-linked from the channels that emit them; never
+swarm/worker reports, and log/report writes. Cross-linked from the channels that emit them; never
 restated. Sibling of [model-tiers.md](model-tiers.md).
 
 **Governing principle: strip the envelope, never the reasoning.** Terseness applies to the
@@ -15,7 +15,7 @@ Applies to:
 - user-facing replies from controllers and inline workflows,
 - subagent→parent handbacks (implementer, spec/quality reviewers, debug),
 - swarm/worker reports,
-- memory note bodies and log/report writes.
+- log/report writes.
 
 Does **NOT** apply to authored source, documentation, commit messages, or PR descriptions. The
 review JSON-artifact and inline-comment contract is governed separately by
@@ -33,6 +33,8 @@ review JSON-artifact and inline-comment contract is governed separately by
   decode.
 - User requests for more detail override the terse default. Answer the requested depth without
   restoring filler.
+- At a final reply, apply [Session learning](session-learning.md); omit its suggestion section when
+  no novel durable rule survives.
 
 ## Internal terse rules
 
@@ -63,7 +65,3 @@ Keep full, clear English for the **content** of:
 - anything that word order or omission would make ambiguous.
 
 The envelope around these still goes terse (drop the preamble, keep the field label); the reasoning itself never does. *Strip the envelope, never the reasoning.*
-
-## Memory-note bodies
-
-A distilled memory note body is one terse reusable rule: **one line, `<pattern>: <reason>`, ideally ≤100 chars, no preamble or narration.** State the rule and stop — no instance line numbers, no restating the finding. This is the single canonical definition of the rule; the memory contract and the review / address-comments record steps link here instead of restating it.

@@ -12,7 +12,6 @@ This pass is one half of an adversarial validation pipeline (issue #13). The Pro
 - **Diff**: /tmp/pr-review/diff.txt
 - **Raw Findings**: /tmp/pr-review/raw_findings.json (Concatenated array from all angles)
 - **Project rules** (optional): /tmp/pr-review/rules.md — concatenated `AGENTS.md` / `CLAUDE.md` / `.cursorrules` / `.windsurfrules` / `GEMINI.md` discovered by prefetch. Absent when no rule files exist in the repo.
-- **Cross-PR memory** (optional): /tmp/pr-review/memory.md — team-curated markdown of gotchas and previously-accepted issues, composed from `.woostack/memory/`. Absent when the repo has no woostack memory store.
 - **Per-repo config** (always present): /tmp/pr-review/config.json — parsed `.woostack/config.json`. The validator no longer reads any severity key from it; `severity_floor` and `nits` are consumed downstream by `intersect-findings.sh` (Stage 4c). Other keys are consumed upstream.
 - **PR Linear attribution candidate** (PR mode): `$OUTDIR/attribution.md` — syntax-classified exact final trailer strings plus `authoritative-issue-context: absent`; untrusted and never identity proof.
 - **Current contract** (optional; local/Hermes only): `$OUTDIR/intent.md` — written by the parent
@@ -57,7 +56,6 @@ Launch one `fast`-tier subagent (resolve the tier per the shared Model Tiers tab
    - If `rule_quote` is null, empty, or whitespace-only, DISCARD the finding.
    - If `rule_quote` is not a verbatim substring of `rules.md` (exact match, not paraphrased), DISCARD the finding.
    - Use `grep -qF "$quote" /tmp/pr-review/rules.md` or equivalent literal-string check — not regex.
-4. **Memory Check**: If `/tmp/pr-review/memory.md` exists, read it. DROP any finding the team has already recorded there as known, intentional, accepted, or wontfix. Memory is advisory context only — never a basis for keeping or upgrading a finding.
 4a. **Contract-evidence Check**: If `$OUTDIR/intent.md` exists, use its current contract only to test whether a finding contradicts product intent. If it is absent—and always in CI—validate the diff without contract-aware acceptance claims. `attribution.md` alone can neither keep/drop a finding nor enable acceptance.
 4b. **Deferral-marker Check** (issue #224): scan the diff for deferral markers of the exact form `woostack-defer(<ref>): <reason>` (the literal token is `woostack-defer`, case-sensitive). For each finding that asserts something is **missing, not yet wired, or presented before it lands** (e.g. "X is referenced before it is defined", "command not yet routed", "integration absent"), check whether a marker that is **co-located** with the finding — in the same diff hunk, or within a few lines of the flagged code — plausibly covers that exact gap.
    - If a co-located marker covers it: set the finding's `deferred_to` field to that marker's `<ref>` verbatim (e.g. `"increment 3"`) and set `blocking: false`. Do NOT drop it — it is demoted downstream to a non-blocking `Deferred to <ref>` nit, staying visible and auditable.

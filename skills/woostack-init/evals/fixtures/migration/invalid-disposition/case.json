@@ -1,0 +1,31 @@
+{
+  "repositoryId": "repo-woostack",
+  "legacyRecords": [
+    {
+      "path": ".woostack/specs/profile.md",
+      "classification": "historical-completed",
+      "workingTreeSha256": "sha256:2572188358cacc8fddd821d9f2bf2f21a750abaf23f36722a64d93a57017a9d3",
+      "gitRecoveryVerified": true,
+      "pullRequestAttributionVerified": true
+    }
+  ],
+  "localKnowledgeStores": [
+    {
+      "path": ".woostack/memory/profile-notes.md",
+      "workingTreeSha256": "sha256:af7fcf187ef21057d3c8cb110825cf04fe76831db0acca1d57f49759a208ef9d",
+      "disposition": "delete",
+      "approvalReceipt": {
+        "path": ".woostack/memory/profile-notes.md",
+        "sha256": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "decision": "delete",
+        "current": true
+      }
+    }
+  ],
+  "terminalEvidence": {
+    "complete": true,
+    "allPathsEnumerated": true,
+    "legacyGitRecoveryVerified": true,
+    "knowledgeGitRecoveryVerified": true
+  }
+}

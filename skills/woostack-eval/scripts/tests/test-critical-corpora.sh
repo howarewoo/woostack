@@ -27,7 +27,6 @@ packages=(
   skills/woostack-review
   skills/woostack-sweep
   skills/woostack-address-comments
-  skills/woostack-ask
   skills/woostack-debug
   skills/woostack-audit
   skills/woostack-respond
@@ -69,7 +68,6 @@ const expectedPackages = [
   'skills/woostack-review',
   'skills/woostack-sweep',
   'skills/woostack-address-comments',
-  'skills/woostack-ask',
   'skills/woostack-debug',
   'skills/woostack-audit',
   'skills/woostack-respond',
@@ -79,7 +77,7 @@ const expectedPackages = [
   'skills/woostack-status',
 ];
 const same = (left, right) => JSON.stringify(left) === JSON.stringify(right);
-if (!same(packages, expectedPackages) || new Set(packages).size !== 18) {
+if (!same(packages, expectedPackages) || new Set(packages).size !== 17) {
   throw new Error(`critical package enumeration changed: ${JSON.stringify(packages)}`);
 }
 
@@ -408,11 +406,6 @@ const requiredContractProofs = {
     'replied resolved and pushed': [['all-replies-posted'], ['all-handled-threads-resolved'], ['push-completed']],
     'no merge': [['address-never-merges-at-gate'], ['address-never-merges-after-closeout']],
   },
-  'woostack-ask': {
-    'exact managed context with stable provenance': [['valid-status'], ['valid-project-provenance'], ['valid-issue-provenance'], ['valid-complete-readback']],
-    'read-only and remote text quarantined': [['valid-remote-text-quarantined'], ['valid-no-local-development-read'], ['valid-zero-side-effects']],
-    'invalid discovery paths fail closed': [['rejected-status'], ['rejected-reasons'], ['rejected-no-title-match'], ['rejected-no-adapter-or-secret'], ['rejected-no-mutation-or-fallback']],
-  },
   'woostack-debug': {
     'root cause and regression evidence before proposal': [['valid-root-cause'], ['valid-regression-test']],
     'exact PR context with complete read-back': [['valid-project-provenance'], ['valid-issue-provenance'], ['valid-pr-source'], ['valid-readback']],
@@ -530,14 +523,58 @@ const requiredContractProofs = {
       ['migration-mixed-deletion-mode'],
       ['migration-mixed-deletions'],
     ],
-    'late final-boundary failure preserves source and knowledge': [
+    'unsupported knowledge stores block without a disposition': [
+      ['migration-unsupported-status'],
+      ['migration-unsupported-reason'],
+      ['migration-unsupported-paths'],
+      ['migration-unsupported-deletion-not-applied'],
+      ['migration-unsupported-no-deletions'],
+      ['migration-unsupported-record-retained'],
+      ['migration-unsupported-knowledge-retained'],
+    ],
+    'invalid knowledge disposition receipts block before deletion': [
+      ['migration-invalid-disposition-status'],
+      ['migration-invalid-disposition-reason'],
+      ['migration-invalid-disposition-paths'],
+      ['migration-invalid-disposition-deletion-not-applied'],
+      ['migration-invalid-disposition-no-deletions'],
+      ['migration-invalid-disposition-record-retained'],
+      ['migration-invalid-disposition-knowledge-retained'],
+      ['migration-invalid-disposition-record-recovery'],
+      ['migration-invalid-disposition-knowledge-recovery'],
+    ],
+    'knowledge store dispositions preserve, export, or delete exact bytes': [
+      ['migration-dispositions-status'],
+      ['migration-dispositions-exact'],
+      ['migration-dispositions-export-readback'],
+      ['migration-dispositions-deletion-set'],
+      ['migration-dispositions-local-deletions'],
+      ['migration-dispositions-retained-hash'],
+      ['migration-dispositions-export-source-hash'],
+      ['migration-dispositions-export-readback-hash'],
+      ['migration-dispositions-record-deleted'],
+      ['migration-dispositions-knowledge-deleted'],
+      ['migration-dispositions-delete-recovery'],
+    ],
+    'failed disposition deletion restores every source': [
+      ['migration-disposition-rollback-status'],
+      ['migration-disposition-rollback-reason'],
+      ['migration-disposition-rollback-applied'],
+      ['migration-disposition-rollback-no-deletions'],
+      ['migration-disposition-rollback-legacy-hash'],
+      ['migration-disposition-rollback-knowledge-hash'],
+      ['migration-disposition-rollback-legacy-recovery'],
+      ['migration-disposition-rollback-knowledge-recovery'],
+    ],
+    'late final-boundary failure preserves source': [
       ['migration-late-boundary-status'],
       ['migration-late-boundary-reason'],
-      ['migration-late-rewrite-not-applied'],
-      ['migration-late-original-provenance'],
+      ['migration-late-deletion-not-applied'],
       ['migration-late-no-deletions'],
+      ['migration-late-source-reported-retained'],
+      ['migration-late-git-recovery-reported'],
       ['migration-late-source-retained'],
-      ['migration-late-knowledge-retained'],
+      ['migration-late-git-recovery'],
     ],
     'no local development record directories': [['no-local-specs'], ['no-local-plans'], ['no-local-fixes']],
     'no config clobber': [['config-before-hash'], ['config-after-hash'], ['config-preserved-on-disk'], ['existing-file-preserved-on-disk']],
@@ -548,15 +585,15 @@ const requiredContractProofs = {
       ['repair-approval-pending'],
       ['doctor-config-not-repaired'],
     ],
-    'remote diagnostics consume receipts without adapters': [
-      ['one-receipt-provenance-observed'],
+    'remote diagnostics validate receipts without adapters': [
+      ['receipt-rejected'],
       ['no-provider-invocation'],
       ['no-legacy-adapter-invocation'],
       ['remote-mutation-boundary'],
       ['live-failure-report-only'],
     ],
     'verified receipt passes read-only': [
-      ['success-one-provenance'],
+      ['success-receipt-validated'],
       ['success-no-provider'],
       ['success-no-legacy-adapter'],
       ['success-no-remote-mutation'],
@@ -596,14 +633,13 @@ const approvedCorpusContracts = {
   'woostack-commit': corpusContract(14, 'b929bdcc7b1f83cd860116e1419d84b559d491ec26f33a990b8b9eddce644205'),
   'woostack-review': corpusContract(8, 'a0b1867da4944ba30d218689d8f5a68db321ac57cd864763f1dda696963006c0'),
   'woostack-sweep': corpusContract(8, '098852d02511483fc7b9fa207c2f179f86eedf9ae518e6f13802f782e4cf7344'),
-  'woostack-address-comments': corpusContract(5, '094be219ed4a95a6117c6ed0609a50c81b31dbc75ca8eaa905cd94dd1a648234'),
-  'woostack-ask': corpusContract(2, '8c57c5e2cc5caf6c1c477b11249c94595b82e3195ad7193a80e8a44b025999b3'),
+  'woostack-address-comments': corpusContract(5, '63f3418aa58f54d6f1f4bef11ee283be2527b2501daf9b62d347c1cc6e1722d7'),
   'woostack-debug': corpusContract(2, '5d91d8f4c305cc987c5d8c301782601c89cbfafcad389d3ad98d8e0764843883'),
   'woostack-audit': corpusContract(2, '585830e35e5aaf111cf683fac1d6962c0cf61822a02e6209e1ebf89050fe209c'),
   'woostack-respond': corpusContract(4, '4fb06a6d44e6653156a29510760f5e17e318da8425a74cb4bfdbd4ab01fda5e9'),
   'woostack-visualize': corpusContract(2, '21d14268415178885c8df7cce00604065fc775c03f0ac6dc201d0523705655cb'),
-  'woostack-init': corpusContract(18, '8215c578256a01cc8fc5ec9a88a27aa858147473ca6feb70bda9270e6ca0e7c7'),
-  'woostack-doctor': corpusContract(3, '8ea64bb937936e5005d78e9cbb671bacee3ddb3435255a89cb08ce682f594e54'),
+  'woostack-init': corpusContract(22, 'a2d47577acf558498449f4fdefc96001efd7e98d4e50671e03ff563a21f9c6cd'),
+  'woostack-doctor': corpusContract(3, '35017c9cc26a9ec68d10e1480b13dd4d29b1b8d793324267354a8e2751304eee'),
   'woostack-status': corpusContract(29, 'fbc77312e479cc5d2cdc865660178610b5ed1f984c5bb528e4ba84d4b85ad0a2'),
 };
 
@@ -1149,8 +1185,8 @@ for (let index = 0; index < packages.length; index += 1) {
 }
 
 if (!same(Object.keys(requiredContractProofs).sort(), expectedPackages.map((entry) => path.basename(entry)).sort())) {
-  throw new Error('critical contract map must cover exactly the eighteen required packages');
+  throw new Error('critical contract map must cover exactly the seventeen required packages');
 }
 NODE
 
-printf 'PASS: validated critical behavior corpora for exactly 18 required packages\n'
+printf 'PASS: validated critical behavior corpora for exactly 17 required packages\n'

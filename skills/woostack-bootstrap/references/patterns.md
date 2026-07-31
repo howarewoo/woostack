@@ -178,7 +178,7 @@ problem first, then take the first rung that holds.
   because it's necessary, not because it's golfed.
 - **Deliberate-corner marker (delta E).** A knowingly-cut corner with a known ceiling (global
   lock, O(n²) scan, naive heuristic) leaves a `why` comment naming the ceiling and the upgrade
-  path, and is distilled as a memory `gotcha`.
+  path. If broadly reusable, surface it as a session-end instruction suggestion.
 - Non-test source files: ≤ 500 lines.
 - User-facing components + procedures: JSDoc with purpose, inputs, outputs.
 - Comments explain **why** when non-obvious (hidden constraint, workaround, surprising invariant). Skip the **what** — code names that.

@@ -7,7 +7,7 @@
       "query": "Invites work for alice@example.com, but the same flow rejects alice+demo@example.com with 403. Follow both requests far enough to prove where they diverge, then report what causes it; don't patch it yet.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-debug",
-      "conflictsWith": ["woostack-ask", "woostack-qa"]
+      "conflictsWith": ["woostack-qa"]
     },
     {
       "id": "invitation-module-standing-audit",

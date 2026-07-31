@@ -108,8 +108,7 @@ for stage in \
   'Stage 4b.*Defender' \
   'Stage 4c.*Intersect' \
   'Stage 5.*Report' \
-  'Stage 6.*cross-PR memory' \
-  'Stage 6\.5.*metrics'; do
+  'Stage 6.*metrics'; do
   assert_root_term "$stage" "root retains workflow heading: $stage"
 done
 assert_root_term '^## Hard constraints' 'root has a prominent Hard constraints section'
@@ -121,7 +120,6 @@ assert_root_term 'DO NOT modify the PR title or body' 'root retains the PR-mutat
 assert_root_term 'invoked locally.*no PR|local.*no PR' 'root retains local report behavior'
 assert_root_term 'print the validated findings to the terminal' 'root keeps local findings terminal output'
 assert_root_term 'Do not touch any remote' 'root keeps local mode remote-free'
-assert_root_term 'Update cross-PR memory' 'root retains the memory stage'
 assert_root_term 'Fold per-angle metrics' 'root retains the metrics stage'
 
 # Every reference is selected directly from root at the point it becomes useful.
@@ -402,7 +400,7 @@ assert_matches "$ROOT_NORMALIZED" 'Re-launch a missing pass exactly.*once' 'root
 assert_matches "$ROOT_NORMALIZED" 'single-pass mode.*degraded: true.*validator-metrics.json' 'root retains validator degradation record'
 assert_matches "$ROOT_NORMALIZED" 'tell the user.*lower-confidence|summary.*disclose.*degraded' 'root retains degradation disclosure'
 assert_matches "$ROOT_NORMALIZED" '[Ll]ocal only.*CI|CI.*[Ll]ocal only|local.*not-in-CI' 'root retains explicit local/CI distinction'
-assert_matches "$ROOT_NORMALIZED" 'Do NOT write memory in CI|GitHub Action does .*not.*fold' 'root keeps memory and metrics persistence out of CI'
+assert_matches "$ROOT_NORMALIZED" 'GitHub Action does .*not.*fold' 'root keeps metrics persistence out of CI'
 
 if [ -n "$TROUBLESHOOTING" ]; then
   for recovery in \

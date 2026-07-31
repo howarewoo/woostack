@@ -12,7 +12,6 @@ const LAUNCHER_ROOT = '${WOO_ENGINEER_LAUNCHER_ROOT:-$HOME/.local/libexec/woosta
 const UNIT_SCHEMA =
   '{schemaVersion:1,engineerName,repository,omp:{profile,program,environment},hermes:{profile,program,environment}}';
 const SUPPORTING_CONTRACT_PATHS = [
-  'skills/woostack-init/references/memory.md',
   'site/content/docs/concepts/meta.json',
   'site/content/docs/harnesses/meta.json',
 ];
@@ -32,7 +31,6 @@ const AUTHORED_DOC_PATHS = [
   'site/content/docs/concepts/workflows.mdx',
   'site/content/docs/concepts/worktrees.mdx',
   'site/content/docs/concepts/context-management.mdx',
-  'site/content/docs/concepts/memory.mdx',
   'site/content/docs/concepts/utilities.mdx',
   'site/content/docs/concepts/engineer-agents.mdx',
   'site/content/docs/harnesses/index.mdx',
@@ -217,7 +215,6 @@ test('scan is limited to the authored Linear-only documentation surface', () => 
   );
   assert.ok(AUTHORED_DOC_PATHS.includes('site/content/docs/harnesses/hermes.mdx'));
   assert.ok(AUTHORED_DOC_PATHS.includes('site/content/docs/concepts/engineer-agents.mdx'));
-  assert.ok(SUPPORTING_CONTRACT_PATHS.includes('skills/woostack-init/references/memory.md'));
   assert.ok(SUPPORTING_CONTRACT_PATHS.includes('site/content/docs/concepts/meta.json'));
   assert.ok(SUPPORTING_CONTRACT_PATHS.includes('site/content/docs/harnesses/meta.json'));
 });
@@ -399,22 +396,11 @@ test('issue binding preserves the approved bootstrap project-first scaffold exce
   }
 });
 
-test('authored docs preserve the knowledge, diagnostic, code, and development-record authority boundaries', () => {
-  assertSemanticParagraph(
-    ['site/content/docs/concepts/memory.mdx'],
-    'memory and wisdom must be reusable knowledge rather than development authority',
-    [
-      { label: 'memory', pattern: /\bmemory\b/i },
-      { label: 'wisdom', pattern: /\bwisdom\b/i },
-      { label: 'reusable knowledge', pattern: /\breusable\b[\s\S]{0,40}\b(?:knowledge|learning)\b|\b(?:knowledge|learning)\b[\s\S]{0,40}\breusable\b/i },
-      { label: 'advisory or non-authoritative boundary', pattern: /\badvisory\b|\bnon-authoritative\b|\b(?:not|neither)\b[\s\S]{0,40}\bauthority\b/i },
-    ]
-  );
+test('authored docs preserve diagnostic, code, and development-record authority boundaries', () => {
 
   assertSemanticParagraph(
     [
       'site/content/docs/concepts/context-management.mdx',
-      'site/content/docs/concepts/memory.mdx',
       'site/content/docs/concepts/utilities.mdx',
     ],
     'local diagnostic reports must be explicitly non-authoritative evidence',
@@ -428,7 +414,6 @@ test('authored docs preserve the knowledge, diagnostic, code, and development-re
   assertSemanticParagraph(
     [
       'site/content/docs/concepts/context-management.mdx',
-      'site/content/docs/concepts/memory.mdx',
       'site/content/docs/concepts/utilities.mdx',
       'site/content/docs/concepts/status-tracking.mdx',
     ],
@@ -456,36 +441,6 @@ test('overnight guidance renders a fresh terminal handback without a local repor
   );
 });
 
-test('canonical memory stays local, non-authoritative, and Linear-project-or-issue-provenanced', () => {
-  const canonical = text('skills/woostack-init/references/memory.md');
-  assert.match(
-    canonical,
-    /\bexactly\s+five\s+top-level\s+policy\s+namespaces\b[\s\S]{0,120}\blinear\b[\s\S]{0,40}\bmodels\b[\s\S]{0,40}\breview\b[\s\S]{0,40}\brespond\b[\s\S]{0,40}\bstatus\b/i
-  );
-  assert.doesNotMatch(canonical, /\bartifacts\.specPlan\b|\bdefaults?\s+to\s+Markdown\b|\bspec\/plan\s+backend\b/i);
-  assert.match(
-    canonical,
-    /\bmemory\b[\s\S]{0,60}\bwisdom\b[\s\S]{0,100}\b(?:non-authoritative|neither\b[\s\S]{0,40}\bdefine)\b/i
-  );
-  assert.match(
-    canonical,
-    /\bsanitized\s+diagnostic\s+reports\b[\s\S]{0,100}\bnon-authoritative\b/i
-  );
-  assert.match(canonical, /linear:\/\/project\/<uuid>/i);
-  assert.match(canonical, /linear:\/\/issue\/<uuid>/i);
-  assert.match(canonical, /\bpr-<n>|\bpr\s+<n>/i);
-  assert.match(canonical, /\baddress-comments\b/i);
-  assert.doesNotMatch(canonical, /linear:\/\/document\/|\bnormalized\s+adapter\b/i);
-  assert.match(
-    canonical,
-    /\b(?:legacy|historical)\s+Markdown\b[\s\S]{0,100}\b(?:migration|historical)\b[\s\S]{0,80}\bonly\b|\bMarkdown\b[\s\S]{0,100}\bhistorical\s+migration\s+input\s+only\b/i
-  );
-
-  const authored = text('site/content/docs/concepts/memory.mdx');
-  assert.match(authored, /linear:\/\/project\/<uuid>[\s\S]{0,80}linear:\/\/issue\/<uuid>/i);
-  assert.match(authored, /\bpr-<n>[\s\S]{0,60}\baddress-comments\b/i);
-  assert.match(authored, /\bHistorical\s+Markdown\b[\s\S]{0,100}\bmigration\s+input\b/i);
-});
 
 test('generic engineer and Hermes pages publish the decision-maker plus isolated-coder contract', () => {
   const engineerPage = 'site/content/docs/concepts/engineer-agents.mdx';

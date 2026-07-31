@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # Structural contract for host-owned routing and optional artifact access.
 set -euo pipefail
-
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$HERE/assert.sh"
 S="$(cd "$HERE/../../.." && pwd)"
