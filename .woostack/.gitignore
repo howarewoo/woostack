@@ -2,6 +2,8 @@
 metrics.json
 *.local.*
 visuals/
+qa/evidence/
+respond/evidence/
 worktrees/
 memory/.telemetry.tsv
 memory/.dream-watermark
@@ -9,7 +11,3 @@ memory/.dream-watermark
 # Obsidian per-user UI state (the shared .obsidian/*.json config IS tracked).
 .obsidian/workspace*
 .obsidian/cache
-.obsidian/graph.json
-qa/evidence/
-respond/evidence/
-overnight/
