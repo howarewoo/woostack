@@ -99,9 +99,9 @@ it does not clear a gate.
   relation, comment, and project update back. Unknown outcomes retain their UUIDs and stop; they do
   not trigger replacement resources or same-phase retries.
 - **Coarse native status only.** Fine-grained phase comes from the typed chain. Native categories
-  are `backlog` through planning, `planned` for ready/approval, `started` for execution/review,
-  `paused` only for unresolved blockers, `completed` after verified done, and `canceled` after
-  abandonment.
+  are `backlog` through planning, `planned` for ready/approval and while any verified project
+  blocker remains unresolved, `started` for execution/review, `completed` after verified done,
+  and `canceled` after abandonment.
 - **One development authority.** Resolve scope, lifecycle, progress, and acceptance only from
   independently verified official Linear MCP resources under the canonical authority contract.
   Keep Git and GitHub authoritative for source, branches, pull requests, reviews, and merge evidence.

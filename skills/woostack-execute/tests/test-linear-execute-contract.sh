@@ -516,7 +516,7 @@ ordered(restore, (
 ), "issue blocker restoration")
 for token in (
     "`blockerOpened`",
-    "native paused",
+    "native planned",
     "`blockerResolved`",
     "unchanged project phase",
     "current owner appends/read backs `handoff`",

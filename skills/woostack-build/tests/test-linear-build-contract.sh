@@ -94,7 +94,7 @@ for token in (
     "new `abandoned` phase event",
     "`blockerOpened`",
     "`blockerResolved`",
-    "native `paused`",
+    "then set native `planned` and read that back",
     "native `canceled`",
 ):
     must(texts["procedure"], token, "Linear procedure")
@@ -111,7 +111,6 @@ for token in (
     "`backlog`",
     "`planned`",
     "`started`",
-    "`paused`",
     "`completed`",
     "`canceled`",
 ):
@@ -541,7 +540,7 @@ def validate(events, read_backs, native_category, replan_evidence=None):
     if any(count != 1 for count in resolved_counts.values()):
         raise ValueError("blocker resolved multiple times")
     unresolved = [native for native in opened if resolved_counts[native] == 0]
-    expected_category = "paused" if unresolved else CATEGORY[heads[0]["event"]]
+    expected_category = "planned" if unresolved else CATEGORY[heads[0]["event"]]
     if native_category != expected_category:
         raise ValueError("native category conflicts with lifecycle read-back")
     return heads[0]["event"]
@@ -623,8 +622,8 @@ blockers.extend([opened, resolved])
 if validate(blockers, receipts(blockers), "planned") != "ready":
     fail("resolved blocker changed the phase")
 unresolved = blockers[:-1]
-if validate(unresolved, receipts(unresolved), "paused") != "ready":
-    fail("open blocker did not preserve phase under paused status")
+if validate(unresolved, receipts(unresolved), "planned") != "ready":
+    fail("open blocker did not preserve phase under planned status")
 
 print("test-linear-build-contract: ok")
 PY

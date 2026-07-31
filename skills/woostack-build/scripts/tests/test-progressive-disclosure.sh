@@ -175,8 +175,8 @@ assert_contains "$HANDOFF_TEXT" 'mutation response without' \
   'execution handoff rejects an unverified mutation response'
 assert_contains "$ABANDONMENT_TEXT" 'native `canceled`' \
   'procedure retains canceled abandonment state'
-assert_contains "$ABANDONMENT_TEXT" 'native `paused`' \
-  'procedure retains paused blocker state'
+assert_contains "$ABANDONMENT_TEXT" 'native `planned`' \
+  'procedure reuses planned blocker state'
 
 # Shared references own capability discovery, retained identity, receipts, and trust boundaries
 # instead of duplicating their detailed schemas in the root.

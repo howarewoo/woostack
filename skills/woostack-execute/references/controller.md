@@ -378,7 +378,7 @@ Never restore from the current native category, latest activity, or guess. A res
 does not by itself create the `unblocked` receipt.
 
 For a project-wide stop, the pinned lead follows the canonical project-event contract: append/read
-back `blockerOpened`, set/read back native paused, later append/read back `blockerResolved` related
+back `blockerOpened`, set/read back native planned, later append/read back `blockerResolved` related
 to the exact open blocker, prove no unresolved project blocker remains, and restore the native
 category implied by the unchanged project phase. An issue worker may only report its issue blocker.
 

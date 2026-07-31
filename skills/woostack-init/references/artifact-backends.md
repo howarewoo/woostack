@@ -12,8 +12,8 @@ GraphQL used for GitHub operations is unaffected.
 - `repository`: the canonical `https://github.com/<owner>/<repository>` URL;
 - `workspace` and an optional repository-default `team`;
 - `projectStatuses`: one uniquely resolved native status name for each coarse category
-  `backlog`, `planned`, `started`, `paused`, `completed`, and `canceled`; fine-grained phase
-  remains derived from the managed project-event chain rather than configuration; and
+  `backlog`, `planned`, `started`, `completed`, and `canceled`; fine-grained phase remains derived
+  from the managed project-event chain rather than configuration; and
 - `issueStates`: one team issue-state name for each semantic state `planned`, `executing`,
   `inReview`, `done`, and `blocked`.
 
@@ -160,9 +160,9 @@ Native project statuses stay coarse. Each `projectStatuses` value must resolve t
 category required by its key:
 
 - `backlog`: design and specification through `planning`;
-- `planned`: `ready` and `executionApproved`;
+- `planned`: `ready`, `executionApproved`, and any phase while a verified unresolved
+  `blockerOpened` exists;
 - `started`: `executing` and `inReview`;
-- `paused`: only while a verified unresolved `blockerOpened` exists;
 - `completed`: only after `done` and verified completion evidence; and
 - `canceled`: only after `abandoned`.
 

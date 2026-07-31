@@ -59,7 +59,6 @@ JSON has no comments, so each key is explained in the sections that follow.
       "backlog": "Backlog",
       "planned": "Planned",
       "started": "Started",
-      "paused": "Paused",
       "completed": "Completed",
       "canceled": "Canceled"
     },
@@ -138,10 +137,14 @@ state. Git and GitHub independently carry the code and PR facts.
 | `linear.repository` | canonical `https://github.com/owner/repository` string | required | Repository identity recorded on every managed resource. |
 | `linear.workspace` | non-empty name or key | required | Exact Linear workspace. |
 | `linear.team` | non-empty name or key | required | Exact team for standalone and increment issues. |
-| `linear.projectStatuses` | complete name map | required | Native project-status name for each coarse category: `backlog`, `planned`, `started`, `paused`, `completed`, and `canceled`. |
+| `linear.projectStatuses` | complete name map | required | Native project-status name for each coarse category: `backlog`, `planned`, `started`, `completed`, and `canceled`. |
 | `linear.issueStates` | complete name map | required | Native team issue-state name for `planned`, `executing`, `inReview`, `done`, and `blocked`. |
 
 Init resolves every configured name to one native ID and verifies the expected native category.
+
+An unresolved project blocker temporarily reuses the configured `planned` status. The typed
+`blockerOpened` event remains authoritative for the stop and restores the phase-derived status
+after its matching `blockerResolved` event is independently verified.
 Unknown policy keys, incomplete maps, category mismatches, ambiguous names, or a foreign repository,
 workspace, or team fail closed.
 

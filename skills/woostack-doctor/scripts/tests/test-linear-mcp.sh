@@ -16,7 +16,7 @@ complete_config() {
       repository:"https://github.com/acme/widgets",workspace:"acme",team:"ENG",
       projectStatuses:{
         backlog:"Backlog",planned:"Planned",started:"Started",
-        paused:"Paused",completed:"Completed",canceled:"Canceled"
+        completed:"Completed",canceled:"Canceled"
       },
       issueStates:{planned:"Backlog",executing:"In Progress",inReview:"In Review",done:"Done",blocked:"Blocked"}
     }
@@ -33,7 +33,6 @@ complete_receipt() {
       backlog:{name:"Backlog",category:"backlog"},
       planned:{name:"Planned",category:"planned"},
       started:{name:"Started",category:"started"},
-      paused:{name:"Paused",category:"paused"},
       completed:{name:"Completed",category:"completed"},
       canceled:{name:"Canceled",category:"canceled"}
     }},
@@ -120,6 +119,13 @@ mv "$bad_mapping/config.tmp" "$bad_mapping/.woostack/config.json"
 run_doctor "$bad_mapping"
 assert_exit 1 "$RC" "incomplete state mapping fails static diagnosis"
 assert_contains "$OUTPUT" "issueStates mapping is incomplete" "mapping finding is actionable"
+
+legacy_paused_mapping="$(make_repo legacy-paused-mapping)"
+jq '.linear.projectStatuses.paused="Paused"' "$legacy_paused_mapping/.woostack/config.json" >"$legacy_paused_mapping/config.tmp"
+mv "$legacy_paused_mapping/config.tmp" "$legacy_paused_mapping/.woostack/config.json"
+run_doctor "$legacy_paused_mapping"
+assert_exit 1 "$RC" "obsolete paused project mapping fails static diagnosis"
+assert_contains "$OUTPUT" "projectStatuses mapping is incomplete" "obsolete paused mapping is actionable"
 
 legacy="$(make_repo legacy)"
 mkdir -p "$legacy/.woostack/specs" "$legacy/.woostack/plans"

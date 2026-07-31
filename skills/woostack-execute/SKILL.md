@@ -223,7 +223,7 @@ complete read proves no unresolved blocker remains may the controller restore th
 state. Native `blocked` alone cannot prove what to restore.
 
 For a project-wide blocker, only the pinned lead may append/read back `blockerOpened`, move/read back
-the coarse project status to paused, append/read back `blockerResolved` related to the exact open
+the coarse project status to `planned`, append/read back `blockerResolved` related to the exact open
 blocker, and restore the category implied by the unchanged phase. Issue workers report the issue
 blocker; they do not mutate project state.
 

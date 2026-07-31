@@ -100,7 +100,7 @@ The phase-derived coarse native category is:
 - `designApproved`, `specHardened`, `specApproved`, or `planning` → `backlog`;
 - `ready` or `executionApproved` → `planned`;
 - `executing` or `inReview` → `started`;
-- any phase with a verified unresolved project `blockerOpened` → `paused`;
+- any phase with a verified unresolved project `blockerOpened` → `planned`;
 - `done` → `completed`; and
 - `abandoned` → `canceled`.
 

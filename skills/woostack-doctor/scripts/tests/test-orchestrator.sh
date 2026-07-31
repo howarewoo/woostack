@@ -19,7 +19,6 @@ valid_config='{
       "backlog": "Backlog",
       "planned": "Planned",
       "started": "Started",
-      "paused": "Paused",
       "completed": "Completed",
       "canceled": "Canceled"
     },

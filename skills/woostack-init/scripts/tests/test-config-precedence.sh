@@ -15,7 +15,7 @@ git -C "$repo" init -q
 git -C "$repo" config user.email test@example.com
 git -C "$repo" config user.name Test
 cat >"$repo/.woostack/config.json" <<'JSON'
-{"linear":{"repository":"https://github.com/acme/widgets","workspace":"acme","team":"DEFAULT","projectStatuses":{"backlog":"Backlog","planned":"Planned","started":"Started","paused":"Paused","completed":"Completed","canceled":"Canceled"},"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Review","done":"Done","blocked":"Blocked"}}}
+{"linear":{"repository":"https://github.com/acme/widgets","workspace":"acme","team":"DEFAULT","projectStatuses":{"backlog":"Backlog","planned":"Planned","started":"Started","completed":"Completed","canceled":"Canceled"},"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Review","done":"Done","blocked":"Blocked"}}}
 JSON
 git -C "$repo" add .woostack/config.json
 git -C "$repo" commit -qm init
