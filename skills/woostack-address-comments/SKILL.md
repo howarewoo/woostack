@@ -14,7 +14,7 @@ one-line fix plan for each FIX, so you see *how* it will fix before approving �
 approval (or per-thread override) before applying anything; with `--auto` it skips the
 gate and acts autonomously. After the approved verdicts are applied it writes genuinely new
 accept-by-design learnings as scoped memory notes when available, commits and pushes via
-`woostack-commit --no-pr-update`, captures the commit SHA, replies without performative language,
+`woostack-commit --issue <exact issue UUID-or-URL> --no-pr-update`, captures the commit SHA, replies without performative language,
 resolves handled threads, and offers a re-review. **Never merges.**
 
 <HARD-GATE>
@@ -75,11 +75,10 @@ memory. It never merges.
 5. **Memory + commit + push** — apply all final `FIX` edits to the working tree, then write
    genuinely new **final `ACCEPT`** learnings with `scripts/memory-record.sh` so tracked memory
    notes and `MEMORY.md` are staged with the addressed-thread change. Invoke
-   [`woostack-commit`](../woostack-commit/SKILL.md) with `--no-pr-update` and a message referencing
-   the threads addressed (e.g., `/woostack-commit --no-pr-update "fix: address review threads
-   <ids>"`) to commit and push/submit without overwriting PR metadata → capture the commit `<sha>`
-   (e.g., via `git rev-parse HEAD`) before any reply, so "Fixed in `<sha>`" is real. Never
-   force-push.
+   [`woostack-commit`](../woostack-commit/SKILL.md) with the selected issue's exact UUID/URL,
+   the exact project UUID/URL only when its verified role is `increment`, `--no-pr-update`, and a
+   message referencing the threads addressed. Never pass only `TEAM-123`. Capture the commit
+   `<sha>` before any reply, so "Fixed in `<sha>`" is real. Never force-push.
 6. **Reply + resolve** — per handled thread, `scripts/resolve-thread.sh` posts the reply then
    resolves. CLARIFY threads use `RESOLVE=0`: reply only, left open.
 7. **Report** — summary table: thread → recommended → final → action → memory-written?
@@ -103,15 +102,19 @@ Parse only exact whole trailer lines:
   An exact fix path remains explicit Markdown compatibility and is read directly because fixes
   have no normalized feature/spec/issue model; do not manufacture one.
 - When `backend == linear`, any `Spec:` line is a backend mismatch and fails closed. No
-  Linear trailer means no feature context. Otherwise the final two nonblank PR-body lines must
-  be exactly one `Linear-Project: <uuid>` followed by exactly one
-  `Linear-Issue: <TEAM-NUMBER>`. Reject partial, malformed, reordered, or duplicate trailers.
-  Invoke `linear.sh feature-read` with the exact project UUID and the resolver's repository,
-  project-status map, and issue-state map. Require `.feature.id` to equal that UUID and exactly
-  one `.increments` member to match the issue identifier; retain that selected normalized issue
-  with `.feature`, `.spec`, and the full `.increments` array. Missing/foreign resources,
-  ownership failure, duplicate issue identifiers, auth/API failure, or any project/issue
-  mismatch aborts before analysis—never guess context or fall back to Markdown.
+  Linear trailer means no feature context and no commit authority. Otherwise accept exactly one of
+  two final suffixes:
+  - role `increment`: `Linear-Project: <uuid>` immediately followed by
+    `Linear-Issue: <TEAM-NUMBER>`;
+  - role `work-item`: one final `Linear-Issue: <TEAM-NUMBER>` and no project line.
+  Reject malformed, reordered, duplicate, mixed, or non-final trailers. For an increment, invoke
+  `linear.sh feature-read`, require the exact project and exactly one matching increment, and retain
+  that issue's exact `.id` plus the project `.feature.id`. For a work item, use official
+  host-exposed Linear MCP reads to resolve the exact identifier and verify one managed issue with
+  the canonical repository, `woostack` label, role `work-item`, configured workspace/team, no
+  project membership, exact current PR relation, and type-aware owner. Retain its stable UUID/URL.
+  Missing/foreign resources, ownership failure, duplicate identifiers, auth/API failure, or any
+  project/issue/PR mismatch aborts before analysis; never guess or fall back to Markdown.
 
 Write a successful model atomically to `$OUTDIR/artifact-context.json`. This lookup happens
 before recommendations but makes no working-tree, memory, GitHub, or Linear change, so it does
@@ -119,6 +122,9 @@ not cross the verdict gate. Address-comments keeps its existing post-approval ed
 writes, commit/push, replies, and thread resolutions. Its **read-only Linear boundary** forbids
 the Linear mutation operations `feature-create`, `feature-transition`, `spec-write`,
 `plan-reconcile`, `issue-transition`, and `status-reconcile`; this skill never mutates Linear.
+
+The retained exact issue identity is also the mandatory `woostack-commit` identity after the
+verdict phase. A Linear project is passed only for a verified role-`increment` issue.
 
 
 Only a **final ACCEPT** (accept-by-design — an ACCEPT the user kept in the default flow, or

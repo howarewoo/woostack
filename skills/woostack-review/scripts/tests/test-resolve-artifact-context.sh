@@ -68,7 +68,7 @@ write_meta() {
 }
 
 file_mode() {
-  stat -f '%Lp' "$1" 2>/dev/null || stat -c '%a' "$1"
+  stat -c '%a' "$1" 2>/dev/null || stat -f '%Lp' "$1"
 }
 
 run_context() {
@@ -171,6 +171,20 @@ for bad in \
   assert_eq "$(grep -c '^markdown ' "$LOG" || true)" 0 "invalid Markdown attribution blocks reader"
 done
 
+run_context $'Summary\n\nLinear-Issue: ENG-41\n' linear
+assert_exit 0 "$CODE" "standalone issue attribution requests official-MCP verification"
+[ ! -e "$OUT/artifact-context.json" ] && pass || fail "standalone issue is not exposed before verification"
+assert_eq "$(jq -r '.kind' "$OUT/artifact-context-request.json")" 'linear-work-item' \
+  "standalone request preserves its verified shape requirement"
+assert_eq "$(jq -r '.issueIdentifier' "$OUT/artifact-context-request.json")" 'ENG-41' \
+  "standalone request preserves the exact issue identifier"
+assert_eq "$(jq -r '.pullRequest' "$OUT/artifact-context-request.json")" \
+  'https://github.com/acme/widgets/pull/17' "standalone request binds the current PR"
+assert_eq "$(file_mode "$OUT/artifact-context-request.json")" '600' \
+  "standalone request is private"
+assert_eq "$(grep -c '^linear ' "$LOG" || true)" 0 \
+  "standalone request does not use the project adapter"
+
 INPUT_LINEAR_API_KEY='test-only-secret'
 run_context $'Summary\n\nLinear-Project: 11111111-1111-4111-8111-111111111111\nLinear-Issue: ENG-7\n' linear
 assert_exit 0 "$CODE" "exact ordered Linear trailers resolve"
@@ -199,6 +213,7 @@ assert_eq "$(grep -c '^linear ' "$LOG" || true)" 0 "missing credential blocks be
 INPUT_LINEAR_API_KEY='test-only-secret'
 for bad in \
   'Linear-Project: 11111111-1111-4111-8111-111111111111' \
+  $'Linear-Project: 11111111-1111-4111-8111-111111111111\nLinear-Issue: ENG-7\nLinear-Issue: ENG-8' \
   $'Linear-Issue: ENG-7\nLinear-Project: 11111111-1111-4111-8111-111111111111' \
   $'Linear-Project: 11111111-1111-4111-8111-111111111111\nLinear-Project: 11111111-1111-4111-8111-111111111111\nLinear-Issue: ENG-7' \
   $'Spec: .woostack/specs/feature.md\nLinear-Project: 11111111-1111-4111-8111-111111111111\nLinear-Issue: ENG-7' \

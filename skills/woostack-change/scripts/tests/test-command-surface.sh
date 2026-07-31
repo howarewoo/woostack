@@ -23,39 +23,96 @@ require_line() {
   }
 }
 
+reject_text() {
+  local file="$1" text="$2"
+  if grep -Fq -- "$text" "$ROOT/$file"; then
+    printf 'forbidden active contract in %s: %s\n' "$file" "$text" >&2
+    exit 1
+  fi
+}
+
 require_file "skills/woostack-change/SKILL.md"
 require_text "skills/woostack-change/SKILL.md" "name: woostack-change"
 require_line "skills/woostack-fix/SKILL.md" 'description: Use for bugs, regressions, hotfixes, and small technical issues that require diagnosis or root-cause analysis before implementation.'
-require_text "skills/woostack-change/SKILL.md" '/woostack-change <goal>'
+require_text "skills/woostack-change/SKILL.md" '/woostack-change <goal> [--issue <Linear issue UUID|exact URL>]'
 require_text "skills/woostack-change/SKILL.md" 'If either is ambiguous, ask exactly one'
 require_text "skills/woostack-change/SKILL.md" 'focused clarification question before classifying or writing.'
 require_text "skills/woostack-change/SKILL.md" 'Inspect repository context and the affected surface before any write'
 require_text "skills/woostack-change/SKILL.md" '[`woostack-fix`](../woostack-fix/SKILL.md).'
 require_text "skills/woostack-change/SKILL.md" '[`woostack-bootstrap`](../woostack-bootstrap/SKILL.md).'
 require_text "skills/woostack-change/SKILL.md" '[`woostack-build`](../woostack-build/SKILL.md).'
-require_text "skills/woostack-change/SKILL.md" 'Create no spec, plan, change artifact, `.woostack/changes/` directory'
+require_text "skills/woostack-change/SKILL.md" 'host-exposed Linear MCP is the only development-record authority.'
+require_text "skills/woostack-change/SKILL.md" 'one repository-owned standalone issue with role `work-item`'
+require_text "skills/woostack-change/SKILL.md" 'wrapper project, Linear document, local specification, plan, or change artifact.'
+require_text "skills/woostack-change/SKILL.md" 'Discover host tools by capability'
+require_text "skills/woostack-change/SKILL.md" 'generate the resource client UUID before mutation'
+require_text "skills/woostack-change/SKILL.md" 'search by the same UUID'
+require_text "skills/woostack-change/SKILL.md" 'Never create a replacement, match by title'
+require_text "skills/woostack-change/SKILL.md" 'A supplied project, Linear document, project-backed `increment` issue'
+require_text "skills/woostack-change/SKILL.md" 'repository/team issue'
+require_text "skills/woostack-change/SKILL.md" 'blocks before branch'
+require_text "skills/woostack-change/SKILL.md" 'Project creation is neither required nor permitted.'
+require_text "skills/woostack-change/SKILL.md" 'goal, target, in-scope and out-of-scope surface, acceptance criteria'
+require_text "skills/woostack-change/SKILL.md" 'before worktree creation or tracked repository mutation.'
+require_text "skills/woostack-change/SKILL.md" 'A human engineer is the native assignee'
+require_text "skills/woostack-change/SKILL.md" 'native delegate'
+require_text "skills/woostack-change/SKILL.md" 'immediately before worktree creation and every later'
+require_text "skills/woostack-change/SKILL.md" '`assignmentAccepted`'
+require_text "skills/woostack-change/SKILL.md" '`implementationEvidence`'
+require_text "skills/woostack-change/SKILL.md" '`verification`'
+require_text "skills/woostack-change/SKILL.md" '`reviewResult`'
+require_text "skills/woostack-change/SKILL.md" '`failure` or `handoff`'
+require_text "skills/woostack-change/SKILL.md" '**no hard approval gate**'
+require_text "skills/woostack-change/SKILL.md" 'Do not pause for approval.'
 require_text "skills/woostack-change/SKILL.md" '[`woostack-tdd` kernel](../woostack-tdd/SKILL.md)'
-require_text "skills/woostack-change/SKILL.md" 'name and run an exact concrete verification'
-require_text "skills/woostack-change/SKILL.md" 'smoke-test the changed path as a user or caller exercises it.'
-require_text "skills/woostack-change/SKILL.md" 'complete base-to-HEAD diff'
-require_text "skills/woostack-change/SKILL.md" 'staged, unstaged, and untracked state.'
-require_text "skills/woostack-change/SKILL.md" 'PASS'
-require_text "skills/woostack-change/SKILL.md" 'BLOCKED'
+require_text "skills/woostack-change/SKILL.md" 'the changed path as a user or caller exercises it.'
+require_text "skills/woostack-change/SKILL.md" 'complete base-to-HEAD diff plus staged, unstaged, and untracked state.'
+require_text "skills/woostack-change/SKILL.md" 'Only a matching `PASS` receipt may proceed'
+require_text "skills/woostack-change/SKILL.md" '`BLOCKED`'
 require_text "skills/woostack-change/SKILL.md" '[`woostack-commit`'"'"'s canonical receipt helper](../woostack-commit/scripts/change-receipt.sh)'
-require_text "skills/woostack-change/SKILL.md" 'Use exactly one `change/<slug>` branch and one PR'
-require_text "skills/woostack-change/SKILL.md" 'Only after successful PR read-back, remove the change worktree'
-require_text "skills/woostack-change/SKILL.md" 'preserve every recoverable branch or worktree state on creation/tracking'
-require_text "skills/woostack-change/SKILL.md" 'expanded scope, or any verification, review, commit, push, submit, or PR read-back'
-require_text "skills/woostack-change/SKILL.md" 'report the exact intended/preserved path and never auto-delete it.'
+require_text "skills/woostack-change/SKILL.md" 'Linear-Issue: <TEAM-NUMBER>'
+require_text "skills/woostack-change/SKILL.md" 'no `Linear-Project:` or `Spec:` trailer'
+require_text "skills/woostack-change/SKILL.md" 'issue to `inReview` and independently verify that state.'
+require_text "skills/woostack-change/SKILL.md" 'responsible terminal `acceptance` event plus verified merge evidence'
+require_text "skills/woostack-change/SKILL.md" 'GitHub GraphQL remains permitted'
+require_text "skills/woostack-change/SKILL.md" 'migration input only'
+require_text "skills/woostack-change/SKILL.md" 'preserve every recoverable branch/worktree'
+require_text "skills/woostack-change/SKILL.md" 'exact intended/preserved'
 require_text "skills/woostack-change/SKILL.md" '**Never merge.**'
+require_text "skills/woostack-change/SKILL.md" '## Resume and state admission'
+require_text "skills/woostack-change/SKILL.md" 'a fresh `planned` work item'
+require_text "skills/woostack-change/SKILL.md" 'no implementation branch, worktree, commit, PR, or prior `assignmentAccepted`'
+require_text "skills/woostack-change/SKILL.md" '`executing` when the issue/state receipt, current `assignmentAccepted`, and current resolved owner'
+require_text "skills/woostack-change/SKILL.md" '`blocked` only after a current verified `unblocked` event'
+require_text "skills/woostack-change/SKILL.md" '`inReview` or `done` as report-only states'
+require_text "skills/woostack-change/SKILL.md" 'without reopening implementation.'
+require_text "skills/woostack-change/SKILL.md" 'recreate an expected but missing Git artifact.'
+require_text "skills/woostack-change/SKILL.md" 'the exact existing branch/worktree and complete-state receipt match the issue'
+require_text "skills/woostack-change/SKILL.md" 'a fresh complete branch, worktree, commit, and PR read proves there are **no Git artifacts**'
+require_text "skills/woostack-change/SKILL.md" 'crash boundary after assignment/state mutation but before worktree creation'
+require_text "skills/woostack-change/SKILL.md" 'create the deterministic `change/<slug>` worktree exactly once'
+require_text "skills/woostack-change/SKILL.md" 'Any partial, unknown, duplicate, or conflicting Git residue blocks'
+require_text "skills/woostack-change/SKILL.md" 'only executing admission that may create the deterministic worktree.'
+require_text "skills/woostack-change/SKILL.md" 'Append and independently verify only the'
+require_text "skills/woostack-change/SKILL.md" 'do not write `implementationEvidence`.'
+require_text "skills/woostack-change/SKILL.md" 'After the finalized commit exists and before push or PR submission'
+require_text "skills/woostack-change/SKILL.md" '`woostack-commit` consumer owns appending `implementationEvidence`'
+require_text "skills/woostack-change/SKILL.md" 'evidence receipt stops before push.'
+
+reject_text "skills/woostack-change/SKILL.md" "resolve-backend.sh"
+reject_text "skills/woostack-change/SKILL.md" "artifacts.specPlan"
+reject_text "skills/woostack-change/SKILL.md" "linear.sh"
+reject_text "skills/woostack-change/SKILL.md" 'Create a markdown file under `.woostack/'
+reject_text "skills/woostack-change/SKILL.md" "Spec: .woostack/"
+reject_text "skills/woostack-change/SKILL.md" "create a one-issue project"
 
 require_text "skills/using-woostack/SKILL.md" '| `/woostack-change <goal>`, implement a bounded non-bug enhancement or refactor that fits one reviewable PR | `woostack-change` |'
 require_text "skills/woostack-commit/SKILL.md" 'change/*'
-require_text "skills/woostack-commit/SKILL.md" 'supplied `woostack-change` `PASS`'
+require_text "skills/woostack-commit/SKILL.md" 'supply its current `woostack-change` PASS identity'
 require_text "skills/woostack-commit/SKILL.md" 'scripts/change-receipt.sh "$base_ref"'
-require_text "skills/woostack-commit/SKILL.md" 'pre-hook full identity'
-require_text "skills/woostack-commit/SKILL.md" 'post-hook full identity'
-require_text "skills/woostack-commit/SKILL.md" 'hook-created commits'
+require_text "skills/woostack-commit/SKILL.md" 'supplied PASS identity before the hook'
+require_text "skills/woostack-commit/SKILL.md" 'fresh pre-hook and post-hook values'
+require_text "skills/woostack-commit/SKILL.md" 'never stage or commit under a stale receipt'
 require_file "skills/woostack-commit/scripts/change-receipt.sh"
 bash -n "$ROOT/skills/woostack-commit/scripts/change-receipt.sh"
 receipt="$(cd "$ROOT" && bash skills/woostack-commit/scripts/change-receipt.sh HEAD)"
@@ -97,7 +154,6 @@ if [ -e "$ROOT/.woostack/changes" ]; then
   exit 1
 fi
 
-bash "$ROOT/skills/using-woostack/tests/test-artifact-reader-contract.sh"
 bash "$ROOT/skills/woostack-respond/scripts/tests/test-command-surface.sh"
 
 printf 'woostack-change command surface: PASS\n'

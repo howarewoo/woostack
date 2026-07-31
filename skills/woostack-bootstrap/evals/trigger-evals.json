@@ -27,6 +27,13 @@
       "shouldTrigger": false,
       "expectedSkill": "woostack-change",
       "conflictsWith": ["woostack-bootstrap"]
+    },
+    {
+      "id": "brownfield-single-file-cache-setting",
+      "query": "In our existing production repository, update one cache configuration file so the default TTL is configurable. This is a bounded non-bug change that fits one reviewable pull request; do not redesign the application.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-change",
+      "conflictsWith": ["woostack-bootstrap"]
     }
   ]
 }

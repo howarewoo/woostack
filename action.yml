@@ -167,7 +167,12 @@ runs:
         PR_NUMBER: ${{ steps.pr.outputs.number }}
         GITHUB_WORKSPACE: ${{ github.workspace }}
         INPUT_LINEAR_API_KEY: ${{ inputs['linear-api-key'] }}
-      run: bash "${{ github.action_path }}/skills/woostack-review/scripts/resolve-artifact-context.sh"
+      run: |
+        bash "${{ github.action_path }}/skills/woostack-review/scripts/resolve-artifact-context.sh"
+        if [ -e "$OUTDIR/artifact-context-request.json" ]; then
+          echo "::error::Standalone Linear work-item review requires official host MCP verification, which the composite action cannot provide."
+          exit 1
+        fi
 
     - name: Detect review angles
       id: angles

@@ -11,7 +11,6 @@ root = Path(sys.argv[1])
 skill_path = root / "skills/woostack-commit/SKILL.md"
 reference_dir = skill_path.parent / "references"
 reference_names = (
-    "markdown-attribution.md",
     "linear-attribution.md",
     "pr-body.md",
     "graphite.md",
@@ -32,12 +31,14 @@ def compact(text):
 
 # The root remains the shared orchestrator and safety boundary.
 for heading in (
+    "### 0. Bind the caller-supplied Linear work",
     "### 1. Inspect state",
-    "### 2. Enforce branch shape before committing",
-    "### 3. Run configured pre-commit command",
+    "### 2. Enforce issue-owned branch shape before committing",
+    "### 3. Run the configured pre-commit command",
     "### 4. Stage only session-relevant changes",
-    "### 4.5 Backend-specific invariant and attribution checks",
+    "### 4.5 Verify Linear identity and proposed attribution",
     "### 5. Commit",
+    "### 5.5 Record finalized implementation evidence",
     "### 6. Push or submit",
     "### 7. Resolve and attribute the PR",
     "### 8. Report",
@@ -45,20 +46,6 @@ for heading in (
     check(heading in skill, f"root missing shared workflow stage {heading!r}")
 check(re.search(r"^## Hard constraints\s*$", skill, re.MULTILINE), "root missing prominent Hard constraints section")
 check(len(skill.splitlines()) <= 500, "root exceeds approximately 500 lines")
-default_update = re.search(
-    r"For Markdown-backed and verified `change/\*` invocations only, when PR updates are enabled, apply\s+this entire controller-owned body workflow:(.*?)(?=For any invocation other than verified `change/\*`)",
-    skill,
-    re.DOTALL,
-)
-check(default_update is not None, "root no longer scopes PR field updates to the enabled-update path")
-if default_update:
-    for token in (
-        "1. Load [`references/pr-body.md`](references/pr-body.md)",
-        "2. For a non-change Markdown invocation",
-        "3. Before any `gh pr create` or `gh pr edit`, validate the proposed body",
-        "4. If the PR already exists, apply the validated fields",
-    ):
-        check(token in default_update.group(1), f"enabled PR update path missing {token!r}")
 
 # Each conditional procedure is a direct reader from root, never an index chain.
 for name in reference_names:
@@ -75,7 +62,7 @@ for name in reference_names:
     if paragraphs:
         context = " ".join(paragraphs)
         check(
-            re.search(r"\b(when|if|only|for|read|use|load)\b", context, re.IGNORECASE),
+            re.search(r"\b(when|if|only|for|read|use|load|follow)\b", context, re.IGNORECASE),
             f"references/{name} lacks conditional when-to-read context",
         )
 
@@ -91,22 +78,27 @@ for name, text in references.items():
 corpus = "\n".join((skill, *references.values()))
 normalized = compact(corpus)
 
-# The split may relocate detail, but it may not weaken the observable commit/PR contract.
+# The split may relocate detail, but it may not weaken the observable Linear-only commit/PR contract.
 for token in (
-    "Spec: .woostack/specs/<file>.md",
-    "Spec: .woostack/fixes/<file>.md",
-    "Linear-Project: <uuid>",
-    "Linear-Issue: <TEAM-NUMBER>",
-    "gh pr edit <number> --title \"<concise title>\" --body-file <tmp-body-file>",
+    "Official host-exposed Linear MCP",
+    "There is no backend selection or resolver",
+    "Linear-Project: <verified-project-uuid>\nLinear-Issue: <TEAM-NUMBER>",
+    "For a role-`work-item` issue, the sole attribution line is exactly",
+    "there is no `Linear-Project:` line anywhere",
+    "There is no `Spec:` mention anywhere",
+    "After the finalized commit exists and before any push or PR submission",
+    "implementationEvidence",
+    'gh pr edit <number> --title "<concise title>" --body-file <tmp-body-file>',
     "gt submit",
-    "gh pr view",
-    "re-fetch its body",
-    "exact intended read-back is success",
+    "Re-fetch with `gh pr view`",
+    "exact intended title and body read-back is success",
     "Never force-push",
     "Do not merge",
 ):
     check(compact(token) in normalized, f"combined package missing exact behavior {token!r}")
 
+check(not (reference_dir / "markdown-attribution.md").exists(), "removed Markdown attribution reference still exists")
+check("markdown-attribution.md" not in corpus, "Linear-only package still dispatches Markdown attribution")
 
 if errors:
     raise SystemExit("test-progressive-disclosure:\n- " + "\n- ".join(errors))

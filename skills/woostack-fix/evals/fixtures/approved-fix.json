@@ -1,5 +1,234 @@
 {
-  "rootCause": {"summary": "the lock expiry is shorter than the protected refresh", "evidence": "src/cache.ts:44 and tests/cache.test.ts:81"},
-  "fixPlan": {"path": ".woostack/fixes/2026-07-16-cache-stampede.md", "hardened": true, "committed": true},
-  "approval": {"decision": "Go", "explicit": true}
+  "config": {
+    "repository": "https://github.com/acme/cache-service",
+    "workspace": {"id": "workspace-acme", "name": "Acme"},
+    "team": {"id": "team-app", "key": "APP", "name": "Application"},
+    "issueStates": {
+      "planned": {"name": "Todo", "category": "backlog"},
+      "executing": {"name": "In Progress", "category": "started"},
+      "inReview": {"name": "In Review", "category": "started"},
+      "done": {"name": "Done", "category": "completed"},
+      "blocked": {"name": "Blocked", "category": "started"}
+    }
+  },
+  "engineer": {
+    "kind": "app",
+    "principalId": "app-cache-engineer",
+    "engineerName": "cache-engineer",
+    "runId": "run-cache-241"
+  },
+  "validReuse": {
+    "suppliedIdentity": {
+      "kind": "issue",
+      "id": "issue-app-241",
+      "url": "https://linear.app/acme/issue/APP-241/cache-stampede",
+      "identifier": "APP-241"
+    },
+    "resource": {
+      "clientId": "11111111-1111-4111-8111-111111111111",
+      "kind": "resource",
+      "label": "woostack",
+      "repository": "https://github.com/acme/cache-service",
+      "role": "work-item",
+      "schema": 1
+    },
+    "workspaceId": "workspace-acme",
+    "teamId": "team-app",
+    "projectId": null,
+    "nativeState": {"semantic": "executing", "name": "In Progress", "category": "started"},
+    "assignee": {"id": "human-cache-owner"},
+    "delegate": {"id": "app-cache-engineer"},
+    "rootCause": {
+      "summary": "the lock expiry is shorter than the protected refresh",
+      "evidence": ["src/cache.ts:44", "tests/cache.test.ts:81"],
+      "reproduced": true
+    },
+    "hardenedContract": {
+      "scope": ["src/cache.ts", "tests/cache.test.ts"],
+      "outOfScope": ["cache storage provider replacement"],
+      "acceptanceCriteria": [
+        "one refresh owns the lock for the complete protected operation",
+        "concurrent callers reuse the refreshed value"
+      ],
+      "tdd": ["reproduce concurrent refresh overlap", "extend the shared lock lifetime", "verify contention and expiry"]
+    },
+    "events": [
+      {
+        "nativeId": "comment-diagnosis",
+        "clientId": "21111111-1111-4111-8111-111111111111",
+        "event": "verification",
+        "issueId": "issue-app-241",
+        "purpose": "diagnosis",
+        "revision": 1,
+        "relatedIds": [],
+        "supersedesId": null,
+        "readBackComplete": true
+      },
+      {
+        "nativeId": "comment-contract",
+        "clientId": "31111111-1111-4111-8111-111111111111",
+        "event": "decisionRequest",
+        "issueId": "issue-app-241",
+        "purpose": "approve-to-execute",
+        "revision": 1,
+        "relatedIds": ["comment-diagnosis"],
+        "supersedesId": null,
+        "readBackComplete": true
+      },
+      {
+        "nativeId": "comment-approval",
+        "clientId": "41111111-1111-4111-8111-111111111111",
+        "event": "acceptance",
+        "issueId": "issue-app-241",
+        "purpose": "execution-approval",
+        "decision": "Go",
+        "explicit": true,
+        "revision": 1,
+        "relatedIds": ["comment-contract"],
+        "supersedesId": null,
+        "readBackComplete": true
+      },
+      {
+        "nativeId": "comment-assignment",
+        "clientId": "51111111-1111-4111-8111-111111111111",
+        "event": "assignmentAccepted",
+        "issueId": "issue-app-241",
+        "ownerKind": "delegate",
+        "principalId": "app-cache-engineer",
+        "engineerName": "cache-engineer",
+        "runId": "run-cache-241",
+        "revision": 1,
+        "relatedIds": [],
+        "supersedesId": null,
+        "readBackComplete": true
+      }
+    ],
+    "readBack": {
+      "complete": true,
+      "identityVerified": true,
+      "repositoryVerified": true,
+      "workspaceTeamVerified": true,
+      "roleVerified": true,
+      "projectAbsent": true,
+      "ownerVerified": true,
+      "stateVerified": true,
+      "evidenceChainVerified": true
+    },
+    "expectedPrTrailer": "Linear-Issue: APP-241"
+  },
+  "safeCreate": {
+    "clientId": "12222222-2222-4222-8222-222222222222",
+    "initialDiscovery": [],
+    "createAttempts": 1,
+    "createdIssue": {
+      "id": "issue-app-242",
+      "identifier": "APP-242",
+      "role": "work-item",
+      "repository": "https://github.com/acme/cache-service",
+      "label": "woostack",
+      "teamId": "team-app",
+      "projectId": null,
+      "semanticState": "planned"
+    },
+    "independentReadBack": {
+      "complete": true,
+      "id": "issue-app-242",
+      "identifier": "APP-242",
+      "clientId": "12222222-2222-4222-8222-222222222222",
+      "repository": "https://github.com/acme/cache-service",
+      "label": "woostack",
+      "role": "work-item",
+      "workspaceId": "workspace-acme",
+      "teamId": "team-app",
+      "projectId": null,
+      "owner": null,
+      "semanticState": "planned",
+      "content": {
+        "problem": "concurrent refreshes outlive the lock and stampede the origin",
+        "candidateContract": "hold one shared lock for the complete protected refresh"
+      },
+      "identityVerified": true,
+      "repositoryVerified": true,
+      "workspaceTeamVerified": true,
+      "labelVerified": true,
+      "roleVerified": true,
+      "contentVerified": true,
+      "stateVerified": true,
+      "ownerVerified": true,
+      "projectAbsent": true
+    },
+    "retryDiscovery": ["issue-app-242"],
+    "replacementCreated": false,
+    "branchCreated": false
+  },
+  "invalidIdentityScenarios": {
+    "ambiguousIssue": {
+      "clientId": "13333333-3333-4333-8333-333333333333",
+      "matchingNativeIds": ["issue-app-243-a", "issue-app-243-b"]
+    },
+    "foreignRepository": {
+      "id": "issue-app-244",
+      "repository": "https://github.com/other/cache-service",
+      "role": "work-item"
+    },
+    "foreignTeam": {
+      "id": "issue-other-7",
+      "teamId": "team-other",
+      "role": "work-item"
+    },
+    "featureProject": {
+      "kind": "project",
+      "id": "project-feature-9",
+      "role": "feature"
+    },
+    "projectIncrement": {
+      "kind": "issue",
+      "id": "issue-app-245",
+      "role": "increment",
+      "projectId": "project-feature-9"
+    },
+    "linearDocument": {
+      "kind": "document",
+      "id": "document-fix-plan"
+    }
+  },
+  "blockedScenarios": {
+    "ownershipChanged": {
+      "ownerKind": "delegate",
+      "expectedPrincipalId": "app-cache-engineer",
+      "readBackPrincipalId": "app-other-engineer"
+    },
+    "partialReadBack": {
+      "issueId": "issue-app-246",
+      "missingFields": ["delegate", "teamId"]
+    },
+    "unknownReadBack": {
+      "clientId": "14444444-4444-4444-8444-444444444444",
+      "result": "timeout",
+      "matchingNativeIds": []
+    },
+    "wrongLifecycle": {
+      "issueId": "issue-app-247",
+      "semanticState": "done",
+      "mergeVerified": false,
+      "terminalAcceptanceEvent": null
+    },
+    "wrongEvidence": {
+      "issueId": "issue-app-248",
+      "approval": {"explicit": false, "source": "native-state"},
+      "event": {"event": "acceptance", "revision": 2, "supersedesId": null}
+    },
+    "localDevelopmentRecord": {
+      "requestedPath": ".woostack/fixes/2026-07-26-cache-stampede.md"
+    },
+    "repositoryCredential": {
+      "requestedInput": "LINEAR_API_KEY"
+    },
+    "customLinearTransport": {
+      "requestedInput": "custom Linear GraphQL"
+    },
+    "officialMcpUnavailable": {
+      "missingCapabilities": ["managed comment independent read-back"]
+    }
+  }
 }

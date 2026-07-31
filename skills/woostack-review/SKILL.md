@@ -94,21 +94,21 @@ When prefetch resolves a PR number AND finds an open PR, it produces the full ar
 
 ### Stage 1a — Resolve PR artifact context
 
-For PR mode, execute the shipped helper only after `prefetch.sh` has written the authoritative
-PR body to `meta.json`, and before angle detection or any worker/validator runs:
+For PR mode, run the shipped helper only after `prefetch.sh` has written the authoritative PR
+body to `meta.json`, and before angle detection or any worker/validator runs:
 
 ```bash
 bash "$WOO_REVIEW_ACTION_PATH/scripts/resolve-artifact-context.sh"
 ```
 
-The helper invokes `../woostack-init/scripts/artifacts/resolve-backend.sh <repo-root>` exactly
-once before any feature, spec, plan, or increment access. It retains the returned repository
-identity and Linear status maps, branches only on `backend`, and never infers a backend from
-trailers, local folders, credentials, or network availability. No `PR_NUMBER` means local-diff
-mode: it removes/omits `artifact-context.json` and makes no resolver or adapter call. In the
-composite action, optional input `linear-api-key` is passed as `INPUT_LINEAR_API_KEY`; the helper
-exposes it as `LINEAR_API_KEY` only on an exactly attributed Linear `feature-read` process and
-never serializes the credential or passes it to workers.
+The helper invokes `../woostack-init/scripts/artifacts/resolve-backend.sh <repo-root>` exactly once
+before backend artifact access. A project-backed or Markdown attribution produces
+`artifact-context.json`. A sole Linear issue trailer produces a private
+`artifact-context-request.json`; before workers start, the parent resolves that exact identifier
+through official host-exposed Linear MCP, verifies the standalone contract below, atomically writes
+the normalized `artifact-context.json`, and removes the request. A missing MCP capability or
+verification failure aborts review rather than exposing unverified context. No `PR_NUMBER` means
+local-diff mode: neither file is retained and no resolver or adapter call occurs.
 
 Parse only whole trailer lines from `.body`; do not use substring, title, branch, changed-path,
 or fuzzy search as attribution:
@@ -122,16 +122,17 @@ or fuzzy search as attribution:
   `.feature`, `.spec`, and `.increments`. An exact `.woostack/fixes/<file>.md` trailer remains
   explicit Markdown compatibility: read only that named fix; it has no fabricated feature model.
 - When `backend == linear`, reject any `Spec:` trailer. Zero Linear trailers means this is an
-  unattributed PR and no artifact context is added. Otherwise require the final two nonblank
-  body lines to be exactly one `Linear-Project: <uuid>` followed by exactly one
-  `Linear-Issue: <TEAM-NUMBER>`; partial, malformed, reordered, or duplicate trailers fail
-  closed. Invoke `linear.sh feature-read` with that project UUID plus the resolver's repository,
-  project-status map, and issue-state map. Require the returned `.feature.id` to equal the
-  trailer UUID and exactly one member of `.increments` to have the trailer identifier. A missing
-  issue, foreign project, ownership failure, duplicate identifier, API/auth failure, or
-  project/issue mismatch aborts artifact-context loading; never guess or fall back to Markdown.
-  Preserve the selected normalized issue alongside `.feature`, `.spec`, and the complete
-  `.increments` array.
+  unattributed PR and no artifact context is added. Otherwise accept exactly one final suffix:
+  - role `increment`: one `Linear-Project: <uuid>` immediately followed by one
+    `Linear-Issue: <TEAM-NUMBER>`. Invoke `linear.sh feature-read`, require the exact project,
+    exactly one matching increment, and that increment's exact current PR relation.
+  - role `work-item`: one final `Linear-Issue: <TEAM-NUMBER>` with no project line. Resolve the
+    identifier through official MCP complete reads and require exactly one managed issue with the
+    canonical repository, `woostack` label, role `work-item`, configured workspace/team, no project
+    membership, exact current PR relation, and type-aware owner.
+  Partial, malformed, reordered, duplicate, mixed, missing, foreign, ambiguous, or mismatched
+  attribution fails closed. Preserve the selected exact issue identity and readable contract as
+  untrusted product context; never guess or fall back to Markdown.
 
 Write successful normalized context atomically to `$OUTDIR/artifact-context.json`; all workers
 and validator passes treat it as additional read-only product intent, never as authority to
@@ -141,8 +142,9 @@ the mutation operations `feature-create`, `feature-transition`, `spec-write`, `p
 local memory exactly as before, but it never mutates Linear.
 
 **Sensitive artifact lifetime.** `prefetch.sh` creates `$OUTDIR` under `umask 077` and enforces
-directory mode `0700`; the context helper writes through a private staging file, atomically
-renames it, enforces `artifact-context.json` mode `0600`, and removes staging data on every exit.
+directory mode `0700`; the helper and parent write private staging files, atomically rename the
+verified result, enforce both request/context files as `0600`, and remove the request immediately
+after standalone verification.
 The reusable workflow uploads the base tree with one-day retention, then removes each job's
 local `$OUTDIR` in an `if: always()` step after its required upload. For a local review, install
 cleanup in the parent orchestrator immediately after Stage 1/1a so success, error, and handled

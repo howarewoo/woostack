@@ -15,6 +15,18 @@
       "expectedSkill": "woostack-change"
     },
     {
+      "id": "bounded-change-with-unsafe-local-plan-request",
+      "query": "Use /woostack-change to add a CLI color flag in one PR. I also want a local Markdown change plan and no Linear issue.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-change"
+    },
+    {
+      "id": "bounded-change-with-wrapper-project-request",
+      "query": "Use /woostack-change to rename one internal export and its callers. Please track this single PR by creating a one-issue Linear project instead of a standalone issue.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-change"
+    },
+    {
       "id": "new-trails-mobile-foundation",
       "query": "I want to launch a trail-condition mobile app, and no repository or technology choices exist yet. Recommend the current client, backend, mapping, and sign-in services, then create the initial project structure.",
       "shouldTrigger": false,

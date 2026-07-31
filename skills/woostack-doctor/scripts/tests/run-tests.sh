@@ -8,6 +8,7 @@ tests=(
   test-doctor.sh
   test-linear-backend.sh
   test-models-leaf-shape.sh
+  test-repair-handoff.sh
   test-no-stale-paths.sh
   test-respond.sh
   test-review-models-moved.sh

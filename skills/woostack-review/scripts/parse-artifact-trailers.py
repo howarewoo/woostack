@@ -82,16 +82,22 @@ def parse_linear(lines: list[str]) -> dict[str, str]:
     issues = [line for line in lines if line.startswith("Linear-Issue:")]
     if not projects and not issues:
         return {"kind": "none"}
-    if len(projects) != 1 or len(issues) != 1:
-        reject("Linear attribution requires exactly one project and one issue trailer")
-    project_match = PROJECT_LINE.fullmatch(projects[0])
+    if len(issues) != 1 or len(projects) > 1:
+        reject("Linear attribution requires one issue and at most one project trailer")
     issue_match = ISSUE_LINE.fullmatch(issues[0])
-    if project_match is None or issue_match is None:
-        reject("Linear trailer value is malformed")
+    if issue_match is None:
+        reject("Linear issue trailer value is malformed")
+    if not projects:
+        if lines != [issues[0]]:
+            reject("Standalone Linear issue must be the sole final trailer")
+        return {"kind": "linear-work-item", "issue": issue_match.group(1)}
+    project_match = PROJECT_LINE.fullmatch(projects[0])
+    if project_match is None:
+        reject("Linear project trailer value is malformed")
     if lines != [projects[0], issues[0]]:
         reject("Linear project and issue must be the final ordered trailer pair")
     return {
-        "kind": "linear",
+        "kind": "linear-increment",
         "project": project_match.group(1).lower(),
         "issue": issue_match.group(1),
     }
