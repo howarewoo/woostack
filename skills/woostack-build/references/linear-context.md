@@ -65,7 +65,7 @@ compatible executor. Do not serialize it as a development artifact. It contains:
 
 - authenticated actor type/native ID and the verified feature project's single lead type/native
   ID, which must match before a gate decision or project-update mutation;
-- canonical repository URL and verified workspace/team native IDs;
+- canonical repository URL, verified OAuth-scoped workspace slug, and native team ID/key;
 - configured names and independently resolved native IDs/categories for every project and issue
   state mapping;
 - feature resource client UUID and, after creation or resume, native project ID and canonical URL;

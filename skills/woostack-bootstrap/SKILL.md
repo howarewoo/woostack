@@ -105,7 +105,8 @@ approval, perform no official-MCP development mutation and create no development
    non-directory/symlink, unreadable state, partial result, or ambiguity blocks before mkdir,
    write, scaffold, or Git while preserving and reporting the verified project/event receipts.
    Retain the approved-design key, feature client UUID, native project ID, canonical Linear project
-   URL, repository, workspace/team IDs, base intent, and native `designApproved` update ID in memory.
+   URL, repository, OAuth-scoped workspace slug, native team ID/key, base intent, and native
+   `designApproved` update ID in memory.
    Pass that exact identity into the scaffold procedure and any later build/planning continuation;
    callees refresh mutable state but never rediscover by title or select another project.
 9. **Scaffold and verify.** Follow [references/bootstrap.md](references/bootstrap.md), including all

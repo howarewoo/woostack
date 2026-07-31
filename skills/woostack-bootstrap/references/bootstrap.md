@@ -183,7 +183,7 @@ Retain one in-memory context containing:
 - feature resource client UUID;
 - native project ID and canonical Linear project URL;
 - canonical repository URL and intended initial base branch;
-- verified workspace/team native IDs and policy mappings;
+- verified OAuth-scoped workspace slug, native team ID/key, and policy mappings;
 - native `designApproved` update ID and stable event UUID; and
 - the latest independent project and event receipts.
 

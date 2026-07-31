@@ -27,7 +27,7 @@ complete_receipt() {
   jq -cn '{
     schemaVersion:1,provider:"official-linear-mcp",mcpAvailable:true,authenticated:true,ready:true,
     repository:"https://github.com/acme/widgets",workspace:"acme",team:"ENG",
-    workspaceResolution:{status:"unique",id:"11111111-1111-4111-8111-111111111111",name:"acme"},
+    workspaceResolution:{status:"unique",name:"acme"},
     teamResolution:{status:"unique",id:"22222222-2222-4222-8222-222222222222",name:"Engineering",key:"ENG"},
     projectStatuses:{complete:true,resolved:{
       backlog:{name:"Backlog",category:"backlog"},
@@ -149,6 +149,18 @@ complete_receipt >"$receipt"
 chmod 600 "$receipt"
 run_doctor "$repo" --live-receipt "$receipt"
 assert_exit 0 "$RC" "complete normalized live receipt passes"
+
+workspace_id="$TMP/workspace-id.json"
+jq '.workspaceResolution.id="11111111-1111-4111-8111-111111111111"' "$receipt" >"$workspace_id"
+chmod 600 "$workspace_id"
+run_doctor "$repo" --live-receipt "$workspace_id"
+assert_exit 1 "$RC" "workspace resolution rejects a fabricated native ID"
+
+workspace_mismatch="$TMP/workspace-mismatch.json"
+jq '.workspaceResolution.name="other"' "$receipt" >"$workspace_mismatch"
+chmod 600 "$workspace_mismatch"
+run_doctor "$repo" --live-receipt "$workspace_mismatch"
+assert_exit 1 "$RC" "workspace resolution must match configured OAuth-scoped workspace"
 
 while IFS='|' read -r field expected; do
   mutant="$TMP/missing-${field//./-}.json"

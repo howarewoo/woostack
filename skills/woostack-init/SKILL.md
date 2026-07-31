@@ -39,8 +39,9 @@ Three callers:
    provider-only preflight succeeds, resolve the retained target to the repository root and use
    Git's common directory to identify the primary checkout. Derive the canonical repository
    identity, read the committed policy plus the primary-checkout `.woostack/config.local.json`
-   team override, and verify exactly one workspace and effective team plus every project-status
-   and issue-state mapping through MCP. Require a complete independent read-back. Only then
+   team override, and verify exactly one OAuth-scoped workspace slug and one effective team by
+   native ID/key, plus every project-status and issue-state mapping through MCP. Require a complete
+   independent read-back. Only then
    inspect which managed workspace files already exist. The canonical capability, layering,
    policy, and receipt contracts are in
    [Linear MCP development authority](references/artifact-backends.md).
