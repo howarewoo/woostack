@@ -77,7 +77,7 @@ Rules:
   the tier through the shared [Model Tiers table](../using-woostack/references/model-tiers.md) and
   pass what it resolves to on the spawn. On a host with host-owned role routing, select the fixed
   role-backed built-in worker from its host file without reading repository model settings; this
-  is non-degraded. **Host mechanics:** before any host-dependent step (subagent dispatch, scaffold, draft), load `skills/using-woostack/references/hosts/<current-host>.md`; no matching file -> treat the host as having no per-call routing and say so (degraded).
+  is non-degraded. **Host mechanics:** before any host-dependent step (subagent dispatch, scaffold, or draft), load `skills/using-woostack/references/hosts/<current-host>.md`; no matching file -> treat the host as having no per-call routing and say so (degraded). Draft inline when degraded.
 - The subagent returns only proposed text. It must not run commands, stage files, commit, push,
   mutate Linear, edit PRs, or decide whether dirty files are relevant.
 - Before using any draft, require its recorded input identity to equal the current

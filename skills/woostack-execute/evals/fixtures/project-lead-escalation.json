@@ -1,0 +1,355 @@
+{
+  "schemaVersion": 1,
+  "repository": "https://github.com/acme/widgets",
+  "project": {
+    "id": "10000000-0000-4000-8000-000000000400",
+    "role": "feature",
+    "phase": "executing",
+    "phaseReadBack": "complete",
+    "lead": {
+      "kind": "human",
+      "principalId": "linear-user-project-lead",
+      "decisionMakerProfile": "hermes-project-lead",
+      "readBack": "complete"
+    }
+  },
+  "scenarios": [
+    {
+      "id": "contract-changing-question",
+      "issue": {
+        "id": "24000000-0000-4000-8000-000000000401",
+        "identifier": "APP-401",
+        "role": "increment",
+        "projectId": "10000000-0000-4000-8000-000000000400",
+        "state": "executing",
+        "contractRevision": 3,
+        "contractReadBack": "complete",
+        "owner": {
+          "kind": "app",
+          "field": "delegate",
+          "principalId": "linear-app-engineer-api",
+          "readBack": "complete"
+        }
+      },
+      "engineerUnit": {
+        "engineerName": "engineer-api",
+        "linearPrincipal": {
+          "kind": "app",
+          "principalId": "linear-app-engineer-api"
+        },
+        "decisionMakerProfile": "hermes-engineer-api",
+        "decisionMakerAuthenticationContextId": "auth-context-decision-maker-api-401",
+        "decisionMakerMcpSessionId": "mcp-session-decision-maker-api-401",
+        "decisionMakerTokenCacheContextId": "token-cache-context-decision-maker-api-401",
+        "decisionMakerEnvironmentId": "environment-decision-maker-api-401",
+        "decisionMakerSessionId": "hermes-session-api-401",
+        "codingProfile": "omp-engineer-api",
+        "codingAuthenticationContextId": "auth-context-coding-api-401",
+        "codingMcpSessionId": "mcp-session-coding-api-401",
+        "codingTokenCacheContextId": "token-cache-context-coding-api-401",
+        "codingEnvironmentId": "environment-coding-api-401",
+        "codingSessionId": "omp-session-api-401",
+        "runId": "run-api-401",
+        "credentialMaterialPresent": false,
+        "sessionMaterialPresent": false
+      },
+      "codingHandback": {
+        "profile": "omp-engineer-api",
+        "status": "NEEDS_CONTEXT",
+        "questionClass": "contract-changing",
+        "repositoryEditsAfterQuestion": false
+      },
+      "events": [
+        {
+          "id": "34000000-0000-4000-9000-000000000401",
+          "createdAt": "2026-07-27T10:00:00Z",
+          "actor": {
+            "kind": "app",
+            "principalId": "linear-app-engineer-api"
+          },
+          "data": {
+            "issueId": "24000000-0000-4000-8000-000000000401",
+            "ownerKind": "app",
+            "ownerPrincipalId": "linear-app-engineer-api",
+            "engineerName": "engineer-api",
+            "runId": "run-api-401"
+          },
+          "readComplete": true,
+          "envelope": {
+            "clientId": "35000000-0000-4000-8000-000000000401",
+            "event": "assignmentAccepted",
+            "issueId": "24000000-0000-4000-8000-000000000401",
+            "kind": "issueEvent",
+            "label": "woostack",
+            "relatedIds": [],
+            "repository": "https://github.com/acme/widgets",
+            "revision": 1,
+            "role": "increment",
+            "schema": 1,
+            "supersedesId": null
+          }
+        },
+        {
+          "id": "44000000-0000-4000-9000-000000000401",
+          "createdAt": "2026-07-27T10:05:00Z",
+          "actor": {
+            "kind": "app",
+            "principalId": "linear-app-engineer-api"
+          },
+          "data": {
+            "issueId": "24000000-0000-4000-8000-000000000401",
+            "requestKind": "contract-change",
+            "question": "May APP-401 add a public API outside contract revision 3?",
+            "affectedIds": [
+              "10000000-0000-4000-8000-000000000400"
+            ],
+            "requestedAuthorityKind": "human",
+            "requestedAuthorityPrincipalId": "linear-user-project-lead",
+            "safeNextAction": "await the project lead's independently read decision"
+          },
+          "readComplete": true,
+          "envelope": {
+            "clientId": "45000000-0000-4000-8000-000000000401",
+            "event": "decisionRequest",
+            "issueId": "24000000-0000-4000-8000-000000000401",
+            "kind": "issueEvent",
+            "label": "woostack",
+            "relatedIds": [
+              "10000000-0000-4000-8000-000000000400",
+              "34000000-0000-4000-9000-000000000401"
+            ],
+            "repository": "https://github.com/acme/widgets",
+            "revision": 1,
+            "role": "increment",
+            "schema": 1,
+            "supersedesId": null
+          }
+        }
+      ],
+      "authorityResponse": null,
+      "observedBoundary": {
+        "workStopped": true,
+        "contractMutationApplied": false,
+        "repositorySideEffectsObserved": false
+      },
+      "expected": {
+        "status": "blocked",
+        "reason": "awaiting-project-lead-contract-decision",
+        "requiredEvent": "decisionRequest",
+        "nextBoundary": "independent-lead-response-read-back",
+        "pairedContextsComplete": true,
+        "pairedContextsDistinct": true
+      },
+      "contextIsolationProof": {
+        "requiredFields": [
+          "decisionMakerAuthenticationContextId",
+          "codingAuthenticationContextId",
+          "decisionMakerMcpSessionId",
+          "codingMcpSessionId",
+          "decisionMakerTokenCacheContextId",
+          "codingTokenCacheContextId",
+          "decisionMakerEnvironmentId",
+          "codingEnvironmentId",
+          "decisionMakerSessionId",
+          "codingSessionId"
+        ],
+        "pairedContextsComplete": true,
+        "decisionMakerAndCodingContextsDistinct": true,
+        "credentialMaterialPresent": false,
+        "sessionMaterialPresent": false
+      }
+    },
+    {
+      "id": "dependency-block-needs-lead-decision",
+      "issue": {
+        "id": "24000000-0000-4000-8000-000000000402",
+        "identifier": "APP-402",
+        "role": "increment",
+        "projectId": "10000000-0000-4000-8000-000000000400",
+        "state": "blocked",
+        "stateReadBack": "complete",
+        "owner": {
+          "kind": "app",
+          "field": "delegate",
+          "principalId": "linear-app-engineer-ui",
+          "readBack": "complete"
+        }
+      },
+      "engineerUnit": {
+        "engineerName": "engineer-ui",
+        "linearPrincipal": {
+          "kind": "app",
+          "principalId": "linear-app-engineer-ui"
+        },
+        "decisionMakerProfile": "hermes-engineer-ui",
+        "decisionMakerAuthenticationContextId": "auth-context-decision-maker-ui-402",
+        "decisionMakerMcpSessionId": "mcp-session-decision-maker-ui-402",
+        "decisionMakerTokenCacheContextId": "token-cache-context-decision-maker-ui-402",
+        "decisionMakerEnvironmentId": "environment-decision-maker-ui-402",
+        "decisionMakerSessionId": "hermes-session-ui-402",
+        "codingProfile": "omp-engineer-ui",
+        "codingAuthenticationContextId": "auth-context-coding-ui-402",
+        "codingMcpSessionId": "mcp-session-coding-ui-402",
+        "codingTokenCacheContextId": "token-cache-context-coding-ui-402",
+        "codingEnvironmentId": "environment-coding-ui-402",
+        "codingSessionId": "omp-session-ui-402",
+        "runId": "run-ui-402",
+        "credentialMaterialPresent": false,
+        "sessionMaterialPresent": false
+      },
+      "codingHandback": {
+        "profile": "omp-engineer-ui",
+        "status": "BLOCKED",
+        "questionClass": "dependency-or-allocation",
+        "repositoryEditsAfterBlock": false
+      },
+      "dependency": {
+        "issueId": "24000000-0000-4000-8000-000000000499",
+        "identifier": "APP-399",
+        "relation": "blocks",
+        "state": "inReview",
+        "responsibleAcceptance": false,
+        "canonicalMergeVerified": false,
+        "relationReadBack": "complete"
+      },
+      "events": [
+        {
+          "id": "34000000-0000-4000-9000-000000000402",
+          "createdAt": "2026-07-27T10:10:00Z",
+          "actor": {
+            "kind": "app",
+            "principalId": "linear-app-engineer-ui"
+          },
+          "data": {
+            "issueId": "24000000-0000-4000-8000-000000000402",
+            "ownerKind": "app",
+            "ownerPrincipalId": "linear-app-engineer-ui",
+            "engineerName": "engineer-ui",
+            "runId": "run-ui-402"
+          },
+          "readComplete": true,
+          "envelope": {
+            "clientId": "35000000-0000-4000-8000-000000000402",
+            "event": "assignmentAccepted",
+            "issueId": "24000000-0000-4000-8000-000000000402",
+            "kind": "issueEvent",
+            "label": "woostack",
+            "relatedIds": [],
+            "repository": "https://github.com/acme/widgets",
+            "revision": 1,
+            "role": "increment",
+            "schema": 1,
+            "supersedesId": null
+          }
+        },
+        {
+          "id": "44000000-0000-4000-9000-000000000402",
+          "createdAt": "2026-07-27T10:11:00Z",
+          "actor": {
+            "kind": "app",
+            "principalId": "linear-app-engineer-ui"
+          },
+          "data": {
+            "issueId": "24000000-0000-4000-8000-000000000402",
+            "previousState": "executing",
+            "condition": "APP-399 reaches done with responsible acceptance and verified merge",
+            "affectedIds": [
+              "24000000-0000-4000-8000-000000000499"
+            ]
+          },
+          "readComplete": true,
+          "envelope": {
+            "clientId": "45000000-0000-4000-8000-000000000402",
+            "event": "blocked",
+            "issueId": "24000000-0000-4000-8000-000000000402",
+            "kind": "issueEvent",
+            "label": "woostack",
+            "relatedIds": [
+              "24000000-0000-4000-8000-000000000499",
+              "34000000-0000-4000-9000-000000000402"
+            ],
+            "repository": "https://github.com/acme/widgets",
+            "revision": 1,
+            "role": "increment",
+            "schema": 1,
+            "supersedesId": null
+          }
+        },
+        {
+          "id": "44000000-0000-4000-9000-000000000403",
+          "createdAt": "2026-07-27T10:12:00Z",
+          "actor": {
+            "kind": "app",
+            "principalId": "linear-app-engineer-ui"
+          },
+          "data": {
+            "issueId": "24000000-0000-4000-8000-000000000402",
+            "requestKind": "relation-or-allocation",
+            "question": "Should APP-402's dependency contract or allocation change while APP-399 is unmerged?",
+            "affectedIds": [
+              "24000000-0000-4000-8000-000000000499",
+              "44000000-0000-4000-9000-000000000402"
+            ],
+            "requestedAuthorityKind": "human",
+            "requestedAuthorityPrincipalId": "linear-user-project-lead",
+            "safeNextAction": "await the project lead's independently read decision"
+          },
+          "readComplete": true,
+          "envelope": {
+            "clientId": "45000000-0000-4000-8000-000000000403",
+            "event": "decisionRequest",
+            "issueId": "24000000-0000-4000-8000-000000000402",
+            "kind": "issueEvent",
+            "label": "woostack",
+            "relatedIds": [
+              "24000000-0000-4000-8000-000000000499",
+              "34000000-0000-4000-9000-000000000402",
+              "44000000-0000-4000-9000-000000000402"
+            ],
+            "repository": "https://github.com/acme/widgets",
+            "revision": 1,
+            "role": "increment",
+            "schema": 1,
+            "supersedesId": null
+          }
+        }
+      ],
+      "authorityResponse": null,
+      "observedBoundary": {
+        "workStopped": true,
+        "relationMutationApplied": false,
+        "allocationMutationApplied": false,
+        "repositorySideEffectsObserved": false
+      },
+      "expected": {
+        "status": "blocked",
+        "reason": "dependency-blocked-awaiting-project-lead",
+        "requiredEvents": [
+          "blocked",
+          "decisionRequest"
+        ],
+        "nextBoundary": "independent-lead-response-read-back",
+        "pairedContextsComplete": true,
+        "pairedContextsDistinct": true
+      },
+      "contextIsolationProof": {
+        "requiredFields": [
+          "decisionMakerAuthenticationContextId",
+          "codingAuthenticationContextId",
+          "decisionMakerMcpSessionId",
+          "codingMcpSessionId",
+          "decisionMakerTokenCacheContextId",
+          "codingTokenCacheContextId",
+          "decisionMakerEnvironmentId",
+          "codingEnvironmentId",
+          "decisionMakerSessionId",
+          "codingSessionId"
+        ],
+        "pairedContextsComplete": true,
+        "decisionMakerAndCodingContextsDistinct": true,
+        "credentialMaterialPresent": false,
+        "sessionMaterialPresent": false
+      }
+    }
+  ]
+}

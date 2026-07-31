@@ -68,7 +68,7 @@ assert_contains "$quality_brief" "VERDICT: PASS" \
 
 # The controller-facing driver must layer exact issue identity and the authority barriers into every
 # dispatched template; inheriting repository context or a local progress artifact is insufficient.
-assert_contains "$driver" "Every implementer and reviewer brief is self-contained and names exactly one selected issue" \
+assert_contains "$driver" "Every dispatched paired coder, generic implementer, or generic reviewer brief is self-contained and" \
   "driver must scope every worker to one issue"
 assert_contains "$driver" "exact issue UUID/URL" \
   "driver must carry exact Linear issue identity"
@@ -93,11 +93,11 @@ for required in \
   "allocate/reassign work" \
   "accept its own evidence" \
   'request/write terminal `done`' \
-  "commit, push, submit, create/update a PR"; do
+  "commit, push, submit, or create/update a PR"; do
   assert_contains "$driver" "$required" \
     "driver must preserve worker authority barrier: $required"
 done
-assert_contains "$driver" "Implementers are never dispatched in parallel against that shared tree" \
+assert_contains "$driver" "Implementation workers are never dispatched in parallel against that shared tree" \
   "tasks for one issue must remain sequential"
 assert_contains "$driver" "There is no per-task commit" \
   "controller must retain the one-issue commit boundary"

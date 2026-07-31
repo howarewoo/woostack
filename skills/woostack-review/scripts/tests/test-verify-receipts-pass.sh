@@ -10,7 +10,7 @@ work="$(mktemp -d)"; trap 'rm -rf "$work"' EXIT
 export OUTDIR="$work/out"; mkdir -p "$OUTDIR"
 printf '%s\n' bugs security > "$OUTDIR/angles.txt"
 for a in bugs security; do
-  printf '{"angle":"%s","chunk":null,"runner":"claude-code","model":"claude-sonnet-4-6","tier":"standard","ts":"2026-06-06T00:00:00Z"}\n' "$a" > "$OUTDIR/receipt.$a.json"
+  printf '{"angle":"%s","chunk":null,"runner":"claude-code","model":"claude-sonnet-4-6","tier":"standard","ts":"2026-06-06T00:00:00Z","authority":"advisory-only"}\n' "$a" > "$OUTDIR/receipt.$a.json"
 done
 
 rc=0; bash "$SCRIPT" >/dev/null 2>&1 || rc=$?

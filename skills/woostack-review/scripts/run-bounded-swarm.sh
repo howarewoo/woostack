@@ -8,11 +8,14 @@ Usage: run-bounded-swarm.sh [--max-concurrency N] -- <worker command...>
 Runs detected woostack-review work items from $OUTDIR/angles.txt and, when
 present, $OUTDIR/chunks.txt. By default it starts every work item and lets the
 host manage scheduling pressure; pass a cap for explicit bounded concurrency.
-For each worker, exports
-WOO_REVIEW_ANGLE and WOO_REVIEW_CHUNK plus the caller's existing OUTDIR,
-WOO_REVIEW_ACTION_PATH, FORCE_TIER, provider/model env, and other review env.
-The worker must write $OUTDIR/findings.$WOO_REVIEW_ANGLE.json when unchunked,
-or $OUTDIR/findings.$WOO_REVIEW_ANGLE.$WOO_REVIEW_CHUNK.json when chunked.
+For each worker, exports WOO_REVIEW_ANGLE and WOO_REVIEW_CHUNK. Generic runs
+retain the caller environment. With WOO_REVIEW_ENGINEER_UNIT=true, each worker
+starts in OUTDIR with a fresh HOME/XDG/TMPDIR and an allowlisted environment:
+PATH/locale, OUTDIR/action path, tier/model routing, and known provider API
+variables plus any comma-separated names explicitly listed in
+WOO_REVIEW_PROVIDER_ENV. Linear/GitHub-write/SSH/Git/profile contexts are absent.
+The worker must write $OUTDIR/findings.$WOO_REVIEW_ANGLE.json when unchunked, or
+$OUTDIR/findings.$WOO_REVIEW_ANGLE.$WOO_REVIEW_CHUNK.json when chunked.
 
 Max concurrency precedence: --max-concurrency, WOO_REVIEW_MAX_CONCURRENCY, unset.
 USAGE
@@ -21,6 +24,98 @@ USAGE
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 # shellcheck source=skills/woostack-review/scripts/resolve-outdir.sh
 source "$SCRIPT_DIR/resolve-outdir.sh"
+
+engineer_unit=false
+case "${WOO_REVIEW_ENGINEER_UNIT:-}" in
+  1|true|yes) engineer_unit=true ;;
+  0|false|no|"") ;;
+  *)
+    echo "::error::WOO_REVIEW_ENGINEER_UNIT must be true/false (or 1/0)" >&2
+    exit 2
+    ;;
+esac
+
+engineer_repo_root=""
+engineer_repo_fingerprint_before=""
+engineer_identity_manifest=""
+engineer_identity_manifest_hash_before=""
+engineer_worker_root=""
+if [ "$engineer_unit" = true ]; then
+  engineer_repo_root="$(git rev-parse --show-toplevel 2>/dev/null)" || {
+    echo "::error::engineer-unit swarm requires a Git worktree for mutation fingerprinting" >&2
+    exit 2
+  }
+  engineer_repo_root="$(cd "$engineer_repo_root" && pwd -P)"
+  if [ -d "$OUTDIR" ]; then
+    engineer_outdir="$(cd "$OUTDIR" && pwd -P)"
+  else
+    engineer_outdir_parent="$(dirname "$OUTDIR")"
+    [ -d "$engineer_outdir_parent" ] || {
+      echo "::error::engineer-unit OUTDIR parent must already exist outside the implementation repository/worktree" >&2
+      exit 2
+    }
+    engineer_outdir="$(cd "$engineer_outdir_parent" && pwd -P)/$(basename "$OUTDIR")"
+  fi
+  case "$engineer_outdir/" in
+    "$engineer_repo_root/"*)
+      echo "::error::engineer-unit OUTDIR must be outside the implementation repository/worktree" >&2
+      exit 2
+      ;;
+  esac
+fi
+
+review_provider_env=(
+  ANTHROPIC_API_KEY
+  OPENAI_API_KEY
+  OPENAI_BASE_URL
+  AZURE_OPENAI_API_KEY
+  AZURE_OPENAI_ENDPOINT
+  GOOGLE_API_KEY
+  GEMINI_API_KEY
+  OPENROUTER_API_KEY
+  AI_GATEWAY_API_KEY
+)
+
+if [ "$engineer_unit" = true ] && [ -n "${WOO_REVIEW_PROVIDER_ENV:-}" ]; then
+  IFS=',' read -r -a extra_provider_env <<< "$WOO_REVIEW_PROVIDER_ENV"
+  for name in "${extra_provider_env[@]}"; do
+    case "$name" in
+      ""|[0-9]*|*[!A-Za-z0-9_]*)
+        echo "::error::invalid variable name in WOO_REVIEW_PROVIDER_ENV: $name" >&2
+        exit 2
+        ;;
+      LINEAR_*|GH_*|GITHUB_*|GIT_*|GRAPHITE_*|SSH_*|HERMES_*|OMP_*|CLAUDE_*|CODEX_*|OPENCODE_*|BROWSER_*|XDG_*|WOO_REVIEW_*|HOME|TMPDIR|PWD|OLDPWD|SHELL|USER|LOGNAME|PATH|TERM|CI|FORCE_TIER|INPUT_MODEL|*PROFILE*|*SESSION*|*PRINCIPAL*|*CREDENTIAL*|*TOKEN_CACHE*|*TOKEN_STORE*|*AUTH_CONTEXT*|*MCP*|*OAUTH*)
+        echo "::error::WOO_REVIEW_PROVIDER_ENV may name provider-only variables, not host/reviewer/Git credentials or contexts: $name" >&2
+        exit 2
+        ;;
+      *) review_provider_env+=("$name") ;;
+    esac
+  done
+fi
+repository_fingerprint() { # repository root
+  local root="$1" branch head staged unstaged untracked
+  branch="$(git -C "$root" symbolic-ref --quiet --short HEAD 2>/dev/null || printf 'DETACHED')"
+  head="$(git -C "$root" rev-parse --verify 'HEAD^{commit}')" || return 1
+  staged="$(git -C "$root" diff --binary --full-index --no-ext-diff --cached | git hash-object --stdin)" || return 1
+  unstaged="$(git -C "$root" diff --binary --full-index --no-ext-diff | git hash-object --stdin)" || return 1
+  untracked="$({
+    while IFS= read -r -d '' path; do
+      path_base64="$(printf '%s' "$path" | base64 | tr -d '\n')"
+      object="$(git -C "$root" hash-object --no-filters -- "$path")" || exit 1
+      printf '%s\t%s\n' "$path_base64" "$object"
+    done < <(LC_ALL=C git -C "$root" ls-files --others --exclude-standard -z)
+  } | jq -Rn '[inputs | split("\t") | {pathBase64: .[0], object: .[1]}]')" || return 1
+
+  jq -cn \
+    --arg branch "$branch" \
+    --arg head "$head" \
+    --arg staged "$staged" \
+    --arg unstaged "$unstaged" \
+    --argjson untracked "$untracked" \
+    '{branch:$branch,head:$head,staged:$staged,unstaged:$unstaged,untracked:$untracked}' |
+    git hash-object --stdin
+}
+
 
 max_concurrency="${WOO_REVIEW_MAX_CONCURRENCY:-}"
 while [ "$#" -gt 0 ]; do
@@ -177,9 +272,103 @@ run_worker() {
   (
     export WOO_REVIEW_ANGLE="$angle"
     export WOO_REVIEW_CHUNK="$chunk"
-    "${worker_cmd[@]}"
+    if [ "$engineer_unit" = true ]; then
+      controller_outdir="$OUTDIR"
+      worker_outdir="$(mktemp -d "$engineer_worker_root/work.XXXXXX")"
+      worker_outdir="$(cd "$worker_outdir" && pwd -P)"
+      cp -R "$controller_outdir/." "$worker_outdir/"
+      rm -f \
+        "$worker_outdir"/findings.*.json \
+        "$worker_outdir"/receipt.*.json \
+        "$worker_outdir"/reviewer-identities.json
+      jq -e --arg angle "$angle" --arg chunk "$chunk" '
+        [
+          .reviewers[]
+          | select(
+              .angle == $angle
+              and (
+                (($chunk == "") and ((.chunk == null) or (.chunk == "")))
+                or (.chunk == $chunk)
+              )
+            )
+        ]
+        | if length == 1 then .[0] else error("missing exact worker binding") end
+      ' "$engineer_identity_manifest" > "$worker_outdir/reviewer-binding.json"
+      chmod 400 "$worker_outdir/reviewer-binding.json"
+
+      reviewer_home="$worker_outdir/home"
+      mkdir -p \
+        "$reviewer_home/tmp" \
+        "$reviewer_home/.config" \
+        "$reviewer_home/.cache" \
+        "$reviewer_home/.local/share" \
+        "$reviewer_home/.local/state" \
+        "$reviewer_home/runtime"
+      chmod 700 "$reviewer_home/runtime"
+      worker_env=(
+        "PATH=${PATH:-/usr/bin:/bin}"
+        "LANG=${LANG:-C}"
+        "HOME=$reviewer_home"
+        "TMPDIR=$reviewer_home/tmp"
+        "XDG_CONFIG_HOME=$reviewer_home/.config"
+        "XDG_CACHE_HOME=$reviewer_home/.cache"
+        "XDG_DATA_HOME=$reviewer_home/.local/share"
+        "XDG_STATE_HOME=$reviewer_home/.local/state"
+        "XDG_RUNTIME_DIR=$reviewer_home/runtime"
+        "OUTDIR=$worker_outdir"
+        "WOO_REVIEW_BINDING_PATH=$worker_outdir/reviewer-binding.json"
+        "WOO_REVIEW_ACTION_PATH=${WOO_REVIEW_ACTION_PATH:-$SCRIPT_DIR/..}"
+        "WOO_REVIEW_ANGLE=$angle"
+        "WOO_REVIEW_CHUNK=$chunk"
+      )
+      for name in \
+        TERM USER LOGNAME SHELL NO_COLOR CI \
+        FORCE_TIER INPUT_MODEL WOO_REVIEW_PROVIDER WOO_REVIEW_HOST \
+        "${review_provider_env[@]}"; do
+        value="${!name-}"
+        [ -n "$value" ] && worker_env+=("$name=$value")
+      done
+      worker_rc=0
+      (
+        cd "$worker_outdir"
+        env -i "${worker_env[@]}" "${worker_cmd[@]}"
+      ) || worker_rc=$?
+
+      output_suffix="$angle${chunk:+.$chunk}"
+      for output_kind in findings receipt; do
+        worker_output="$worker_outdir/$output_kind.$output_suffix.json"
+        if [ -f "$worker_output" ] && [ ! -L "$worker_output" ]; then
+          cp "$worker_output" "$controller_outdir/$output_kind.$output_suffix.json"
+        fi
+      done
+      exit "$worker_rc"
+    else
+      "${worker_cmd[@]}"
+    fi
   )
 }
+if [ "$engineer_unit" = true ]; then
+  engineer_identity_manifest="${WOO_REVIEW_IDENTITY_MANIFEST:-$OUTDIR/reviewer-identities.json}"
+  OUTDIR="$OUTDIR" \
+    WOO_REVIEW_ENGINEER_UNIT=true \
+    WOO_REVIEW_IDENTITY_MANIFEST="$engineer_identity_manifest" \
+    bash "$SCRIPT_DIR/verify-receipts.sh" --list-missing >/dev/null
+  engineer_identity_manifest_hash_before="$(
+    git hash-object --no-filters -- "$engineer_identity_manifest"
+  )" || {
+    echo "::error::could not fingerprint the controller-owned reviewer identity manifest" >&2
+    exit 2
+  }
+  engineer_worker_root="$(mktemp -d "/tmp/woostack-review-workers.XXXXXX")"
+  chmod 700 "$engineer_worker_root"
+  trap 'rm -rf "$engineer_worker_root"' EXIT HUP INT TERM
+  engineer_repo_fingerprint_before="$(repository_fingerprint "$engineer_repo_root")" || {
+    echo "::error::could not capture the engineer worktree fingerprint before review dispatch" >&2
+    exit 2
+  }
+fi
+
+
 
 run_queue() {
   local queue=("$@")
@@ -343,6 +532,27 @@ jq -n \
 
 if [ "$degraded" = true ]; then
   echo "::warning::bounded swarm degraded; invalid angle artifacts after retry: $(label_list "${still_invalid[@]}")" >&2
+fi
+
+if [ "$engineer_unit" = true ]; then
+  engineer_identity_manifest_hash_after="$(
+    git hash-object --no-filters -- "$engineer_identity_manifest"
+  )" || {
+    echo "::error::controller-owned reviewer identity manifest disappeared during dispatch" >&2
+    exit 1
+  }
+  if [ "$engineer_identity_manifest_hash_after" != "$engineer_identity_manifest_hash_before" ]; then
+    echo "::error::review worker changed the controller-owned reviewer identity manifest" >&2
+    exit 1
+  fi
+  engineer_repo_fingerprint_after="$(repository_fingerprint "$engineer_repo_root")" || {
+    echo "::error::could not capture the engineer worktree fingerprint after review dispatch" >&2
+    exit 1
+  }
+  if [ "$engineer_repo_fingerprint_after" != "$engineer_repo_fingerprint_before" ]; then
+    echo "::error::engineer-unit review worker changed repository/worktree state; receipts and findings are invalid" >&2
+    exit 1
+  fi
 fi
 
 # Single-authority receipt gate. Findings degradation (above) is a soft warning;

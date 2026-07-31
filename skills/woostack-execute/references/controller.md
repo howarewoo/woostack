@@ -7,11 +7,16 @@ ready work, verifies lifecycle/event receipts, claims the issue worktree, invoke
 boundaries, and performs handback. Official host-exposed Linear MCP is the only development-record
 authority. Git and GitHub remain source, ancestry, PR, review, and merge truth.
 
-Load the canonical [Linear MCP development authority](../../woostack-init/references/artifact-backends.md)
-and [retained MCP context](../../woostack-build/references/linear-context.md). This controller never
-reads or writes a local specification, plan, checkbox/progress record, or lifecycle mirror; creates
-no Linear document; calls no repository Linear adapter or custom HTTP/GraphQL transport; and reads no
-provider credential. A disposable worktree registry is recovery administration only.
+Load the canonical Linear MCP
+[managed-resource/event-envelope schemas](../../woostack-init/references/artifact-backends.md#versioned-managed-metadata),
+[issue-event actor/payload/relation schemas](../../woostack-init/references/artifact-backends.md#canonical-issue-event-dispatch-and-pre-commit-evidence),
+[issue-state/current-event lifecycle](../../woostack-status/references/conventions.md#issue-state-and-events),
+[retained MCP context](../../woostack-build/references/linear-context.md), and shared
+[engineer-agent authority protocol](../../using-woostack/references/engineer-agents.md). This
+controller never reads or writes a local specification, plan, checkbox/progress record, or
+lifecycle mirror; creates no Linear document; calls no repository Linear adapter or custom
+HTTP/GraphQL transport; and reads no repository credential. A disposable worktree registry is
+recovery administration only.
 
 ## 1. Discover capabilities and bind exact input
 
@@ -103,10 +108,20 @@ Assignment is deliberate and type-aware:
 - neither field is a fallback for the other. The authenticated actor, project lead, issue creator,
   and last commenter do not imply ownership.
 
-Pin the invoking engineer's stable name, principal kind/ID, and fresh run ID. Never self-claim an
-unassigned issue. The verified project lead or standalone dispatcher must deliberately assign or
-delegate that exact engineer and independently read back the affected issue, correct owner field,
-unchanged other field, project membership, state, and relations.
+Before allocation, resolve whether the verified authority envelope selects the engineer-pair route
+or deliberately non-paired execution. On the engineer-pair route, bind the complete shared-protocol
+unit: standing authority envelope, stable `ENGINEER_NAME`, exact Linear principal kind/native ID,
+decision-maker profile/session, isolated coding profile/session, and fresh run ID. When both
+profiles need the unit principal, each resolves it through a separate official host
+secret/token/MCP session; neither receives the other's credential or context. Concurrent units
+must not share any name, principal, profile, authentication/token context, process/session, run,
+issue claim, or worktree. Deliberately non-paired execution instead binds the stable engineer name,
+exact Linear principal kind/native ID, controller session, and fresh run ID without inventing a
+decision-maker/coder pair; a partial, stale, or inferred pair still blocks.
+
+Never self-claim an unassigned issue. The verified project lead or standalone dispatcher must
+deliberately assign or delegate that exact engineer and independently read back the affected issue,
+correct owner field, unchanged other field, project membership, state, and relations.
 
 For a project, classify the complete DAG before choosing work. Selection admits only one issue per
 controller cycle and applies this precedence:
@@ -184,10 +199,10 @@ A fresh issue follows this ordered boundary:
 6. Re-read all of those facts immediately before acquiring a registry entry, creating a branch or
    worktree, dispatching a worker, or making the first tracked edit.
 
-No branch, worktree, edit, test mutation, commit, push, or PR action may precede the complete paired
-state and `assignmentAccepted` receipts. If the state transition applied but the event did not read
-back, preserve `executing`, the preallocated event UUID, and the exact unknown boundary; do not
-append a replacement or create Git state.
+No branch, worktree, edit, test mutation, commit, push, or PR action may precede the selected
+route's complete identity state and `assignmentAccepted` receipts. If the state transition applied
+but the event did not read back, preserve `executing`, the preallocated event UUID, and the exact
+unknown boundary; do not append a replacement or create Git state.
 
 For the first project claim, only the pinned lead may append the single `executing` project phase
 event after verified `assignmentAccepted`, independently read it back, then set/read the configured
@@ -227,16 +242,41 @@ files/surface, acceptance and verification clauses, worktree path, base/parent i
 owner/run receipt, and explicit authority prohibitions. It never includes a local development
 record as authority.
 
-A coding worker may analyze/edit only the selected issue's implementation surface, run its stated
-verification, and report evidence. It must not:
+The engineer-agent role split is load-bearing at this boundary:
 
-- edit the issue description, acceptance criteria, dependency/Git-parent relations, priority, or
-  allocation;
-- touch another issue, append project updates, change project phase/status, or clear a build gate;
-- assign/reassign work, decide a cross-issue or product-contract question, accept its own evidence,
-  or request/write terminal `done`; or
-- commit, push, submit, create/update a PR, or mutate Linear lifecycle/evidence directly when the
-  controller owns those boundaries.
+- **Decision-maker/coder separation.** The decision-maker/controller may dispatch, inspect,
+  review, reconcile receipts, and operate controller-owned Git/GitHub boundaries, but it never
+  authors or modifies tracked implementation/test bytes, runs implementation or test commands,
+  applies a fix, or substitutes its own coding capability for the isolated coding profile.
+- **Isolated authority contexts.** Both profiles may resolve the unit's one Linear principal only
+  through separately provisioned official host secret stores and isolated token, MCP/OAuth,
+  browser, environment, process, conversation, and session contexts. The coding profile never
+  receives, reads, copies, or impersonates the decision-maker's credential or context. Concurrent
+  engineer units share neither the principal nor either profile/context.
+- **No self-admission.** A coding worker cannot self-claim, assign/delegate itself, transition the
+  issue to gain authority, or author `assignmentAccepted`; it starts only after the controller has
+  independently verified the deliberate type-aware assignment and current acceptance receipt.
+- **Bounded mutation only.** A coding worker cannot read or mutate another issue/worktree or any
+  path, responsibility surface, contract, relation, branch, PR, or lifecycle resource outside the
+  verified brief. An out-of-scope request returns `NEEDS_CONTEXT` or `BLOCKED`, never a speculative
+  edit.
+- **Independent review and acceptance.** The implementing coding profile is never its own spec,
+  quality, or PR reviewer and never accepts its own work. Ordinary review is performed directly by
+  the decision-maker; only an explicit `/woostack-review` invocation may delegate analysis to
+  configured independent reviewer profiles. Reviewer delegation never transfers acceptance or
+  terminal authority.
+
+A coding worker is confined to the selected issue's implementation surface, its stated
+verification, and evidence reporting. It must not:
+
+- make a product or scope decision; edit the issue description, contract, acceptance criteria,
+  priority, dependency/Git-parent relation, assignment/delegation, or any other issue;
+- touch another issue/worktree or exclusive responsibility surface; append project updates, change
+  project phase/status, clear a gate, or make a cross-issue decision;
+- self-claim, author `assignmentAccepted`, assign/reassign work, broaden the allowed path/surface,
+  mutate Linear/GitHub evidence, accept its own work, or request/write terminal `done`; or
+- commit, push, submit, create/update a PR, merge, force-push, or restack when the controller owns
+  those boundaries.
 
 The driver preserves Red → Green → Refactor and returns changed paths, complete diff identity,
 exact commands/results, smoke observations, issue-wide spec/quality receipts, and one status. A
@@ -244,9 +284,11 @@ contract-changing question returns `NEEDS_CONTEXT`; a collision, missing owner r
 instruction, or failing invariant returns `BLOCKED`. The controller translates those outcomes into
 verified typed events where authorized. It never grants the worker more authority to avoid a stop.
 
-Immediately before each task's first tracked edit or redispatch, the controller independently
-rechecks the exact issue, project/relations when applicable, current assignment event, and resolved
-owner. Any drift invalidates the brief and blocks before the worker writes.
+Immediately before every driver dispatch or redispatch, first tracked edit, registry/worktree
+claim, lifecycle mutation, commit, push, or PR/GitHub side effect, the controller independently
+rechecks the exact issue, current semantic state, project membership/native relations when
+applicable, current `assignmentAccepted`, resolved type-aware owner, and affected Git/registry
+evidence. Any drift invalidates the brief and blocks before the side effect.
 
 ## 7. Typed evidence cadence
 

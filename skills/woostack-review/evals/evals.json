@@ -327,6 +327,552 @@
           "critical": true
         }
       ]
+    },
+    {
+      "id": "defaults-to-hermes-direct-review",
+      "prompt": "Inspect only fixtures/hermes-direct-review.json as bounded normalized review evidence. Do not dispatch agents, call providers, GitHub, Linear, Git, shell, or mutate files. Apply the packaged engineer-pair review, native-GitHub-actor, and acceptance boundaries, then return exactly one JSON object with keys status, route, explicitWoostackReview, delegatedReviewerProfiles, reviewerProfile, implementationAuthorProfile, pairedContextsComplete, pairedContextsDistinct, implementingCoderEligible, hermesOwnsGithubReview, implementationAuthorNativeGithubUserId, reviewerNativeGithubUserId, nativeGithubUserIdsDistinct, nativeGithubPrincipalReadbacksComplete, githubPrincipalProofBasis, nonNativeIdentityMetadataAcceptedAsProof, githubReviewEvent, receiptAuthority, acceptanceAuthorityProfile, acceptanceTransferred, reviewRecordedAcceptance, and linearMutations. Without an explicit /woostack-review invocation, Hermes performs the task-level review through its context separate from the OMP author. APPROVE is eligible only because independently read immutable native GitHub user IDs are complete and unequal; profile, session, login, credential, token-store, or context names are never actor proof. Review evidence remains advisory and does not transfer or record Linear acceptance.",
+      "fixtures": [
+        "hermes-direct-review.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The default route is direct Hermes review with a complete internally separated engineer pair. Independent complete GitHub principal read-backs prove that the OMP implementation author and authenticated Hermes reviewer have different native user IDs, so APPROVE is eligible. No configured reviewer is delegated and Linear acceptance remains untransferred with Hermes.",
+      "assertions": [
+        {
+          "id": "hermes-direct-ready",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "ready",
+          "critical": true
+        },
+        {
+          "id": "hermes-direct-route",
+          "kind": "final-json-path-equals",
+          "pointer": "/route",
+          "expected": "hermes-direct-review",
+          "critical": true
+        },
+        {
+          "id": "hermes-direct-no-explicit-command",
+          "kind": "final-json-path-equals",
+          "pointer": "/explicitWoostackReview",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "hermes-direct-no-delegation",
+          "kind": "final-json-path-equals",
+          "pointer": "/delegatedReviewerProfiles",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "hermes-direct-reviewer",
+          "kind": "final-json-path-equals",
+          "pointer": "/reviewerProfile",
+          "expected": "hermes-engineer-cache",
+          "critical": true
+        },
+        {
+          "id": "hermes-direct-implementation-author",
+          "kind": "final-json-path-equals",
+          "pointer": "/implementationAuthorProfile",
+          "expected": "omp-engineer-cache",
+          "critical": true
+        },
+        {
+          "id": "hermes-direct-coder-not-reviewer",
+          "kind": "final-json-path-equals",
+          "pointer": "/implementingCoderEligible",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "hermes-direct-owns-review",
+          "kind": "final-json-path-equals",
+          "pointer": "/hermesOwnsGithubReview",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "hermes-direct-advisory-evidence",
+          "kind": "final-json-path-equals",
+          "pointer": "/receiptAuthority",
+          "expected": "advisory-only",
+          "critical": true
+        },
+        {
+          "id": "hermes-direct-acceptance-owner",
+          "kind": "final-json-path-equals",
+          "pointer": "/acceptanceAuthorityProfile",
+          "expected": "hermes-engineer-cache",
+          "critical": true
+        },
+        {
+          "id": "hermes-direct-acceptance-not-transferred",
+          "kind": "final-json-path-equals",
+          "pointer": "/acceptanceTransferred",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "hermes-direct-review-does-not-accept",
+          "kind": "final-json-path-equals",
+          "pointer": "/reviewRecordedAcceptance",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "hermes-direct-no-linear-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/linearMutations",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "hermes-direct-paired-contexts-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/pairedContextsComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "hermes-direct-paired-contexts-distinct",
+          "kind": "final-json-path-equals",
+          "pointer": "/pairedContextsDistinct",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "hermes-direct-author-native-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/implementationAuthorNativeGithubUserId",
+          "expected": "8601601",
+          "critical": true
+        },
+        {
+          "id": "hermes-direct-reviewer-native-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/reviewerNativeGithubUserId",
+          "expected": "8602601",
+          "critical": true
+        },
+        {
+          "id": "hermes-direct-native-ids-distinct",
+          "kind": "final-json-path-equals",
+          "pointer": "/nativeGithubUserIdsDistinct",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "hermes-direct-principal-readbacks-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/nativeGithubPrincipalReadbacksComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "hermes-direct-proof-basis",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubPrincipalProofBasis",
+          "expected": "native-user-id",
+          "critical": true
+        },
+        {
+          "id": "hermes-direct-non-native-metadata-not-proof",
+          "kind": "final-json-path-equals",
+          "pointer": "/nonNativeIdentityMetadataAcceptedAsProof",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "hermes-direct-approve-event",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubReviewEvent",
+          "expected": "APPROVE",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "permits-only-explicit-independent-review-delegation",
+      "prompt": "Inspect only fixtures/explicit-woostack-review.json as bounded normalized review evidence. Do not dispatch agents, call providers, GitHub, Linear, Git, shell, or mutate files. Apply the packaged explicit-command review, engineer-pair isolation, native-GitHub-actor, and acceptance boundaries, then return exactly one JSON object with keys status, route, explicitCommand, delegationAllowed, delegatedReviewerProfiles, pairedContextsComplete, pairedContextsDistinct, implementingCoderEligible, reviewerSessionsIsolated, sharedEngineerCredential, receiptsVerified, findingsAuthority, githubReviewOwnerProfile, githubPrincipalProofBasis, githubActorSeparationCases, acceptanceAuthorityProfile, acceptanceTransferred, delegatedReviewerMayAccept, reviewRecordedAcceptance, and linearMutations. The explicit command may delegate analysis only to configured fresh profiles. Normalize both actor-separation cases with keys id, implementationAuthorNativeGithubUserId, reviewerNativeGithubUserId, nativeGithubPrincipalReadbacksComplete, actorSeparationProved, nonNativeIdentityMetadataAcceptedAsProof, candidateEvent, selectedEvent, postedStatusLine, and statusLinePreserved. A same native ID or a missing/unproved ID forces COMMENT, never APPROVE, while retaining the computed STATUS_LINE. Profile, session, login, credential, token-store, and authentication-context labels never substitute for immutable native user-ID proof. Hermes owns delivery and Linear acceptance remains untransferred.",
+      "fixtures": [
+        "explicit-woostack-review.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The exact explicit command permits two isolated configured reviewer profiles to return advisory receipts, while the implementation profile remains excluded and the engineer pair remains internally context-separated. In both negative GitHub actor-proof variants—same native ID and missing reviewer ID—Hermes selects COMMENT and preserves the accurate APPROVED status line. Hermes remains the sole Linear acceptance authority without any review-time mutation.",
+      "assertions": [
+        {
+          "id": "explicit-review-ready",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "ready",
+          "critical": true
+        },
+        {
+          "id": "explicit-review-route",
+          "kind": "final-json-path-equals",
+          "pointer": "/route",
+          "expected": "explicit-woostack-review",
+          "critical": true
+        },
+        {
+          "id": "explicit-review-command",
+          "kind": "final-json-path-equals",
+          "pointer": "/explicitCommand",
+          "expected": "/woostack-review 602",
+          "critical": true
+        },
+        {
+          "id": "explicit-review-delegation-allowed",
+          "kind": "final-json-path-equals",
+          "pointer": "/delegationAllowed",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "explicit-review-independent-profiles",
+          "kind": "final-json-path-equals",
+          "pointer": "/delegatedReviewerProfiles",
+          "expected": [
+            "reviewer-spec-search",
+            "reviewer-quality-search"
+          ],
+          "critical": true
+        },
+        {
+          "id": "explicit-review-coder-ineligible",
+          "kind": "final-json-path-equals",
+          "pointer": "/implementingCoderEligible",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "explicit-review-isolated-sessions",
+          "kind": "final-json-path-equals",
+          "pointer": "/reviewerSessionsIsolated",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "explicit-review-no-shared-credential",
+          "kind": "final-json-path-equals",
+          "pointer": "/sharedEngineerCredential",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "explicit-review-receipts-verified",
+          "kind": "final-json-path-equals",
+          "pointer": "/receiptsVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "explicit-review-advisory-findings",
+          "kind": "final-json-path-equals",
+          "pointer": "/findingsAuthority",
+          "expected": "advisory-only",
+          "critical": true
+        },
+        {
+          "id": "explicit-review-hermes-delivery",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubReviewOwnerProfile",
+          "expected": "hermes-engineer-search",
+          "critical": true
+        },
+        {
+          "id": "explicit-review-acceptance-owner",
+          "kind": "final-json-path-equals",
+          "pointer": "/acceptanceAuthorityProfile",
+          "expected": "hermes-engineer-search",
+          "critical": true
+        },
+        {
+          "id": "explicit-review-acceptance-not-transferred",
+          "kind": "final-json-path-equals",
+          "pointer": "/acceptanceTransferred",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "explicit-review-worker-cannot-accept",
+          "kind": "final-json-path-equals",
+          "pointer": "/delegatedReviewerMayAccept",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "explicit-review-does-not-accept",
+          "kind": "final-json-path-equals",
+          "pointer": "/reviewRecordedAcceptance",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "explicit-review-no-linear-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/linearMutations",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "explicit-review-paired-contexts-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/pairedContextsComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "explicit-review-paired-contexts-distinct",
+          "kind": "final-json-path-equals",
+          "pointer": "/pairedContextsDistinct",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "explicit-review-proof-basis",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubPrincipalProofBasis",
+          "expected": "native-user-id",
+          "critical": true
+        },
+        {
+          "id": "explicit-review-same-id-case",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubActorSeparationCases/0/id",
+          "expected": "same-native-user-id",
+          "critical": true
+        },
+        {
+          "id": "explicit-review-same-id-author",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubActorSeparationCases/0/implementationAuthorNativeGithubUserId",
+          "expected": "8601602",
+          "critical": true
+        },
+        {
+          "id": "explicit-review-same-id-reviewer",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubActorSeparationCases/0/reviewerNativeGithubUserId",
+          "expected": "8601602",
+          "critical": true
+        },
+        {
+          "id": "explicit-review-same-id-readbacks",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubActorSeparationCases/0/nativeGithubPrincipalReadbacksComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "explicit-review-same-id-not-separated",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubActorSeparationCases/0/actorSeparationProved",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "explicit-review-same-id-metadata-not-proof",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubActorSeparationCases/0/nonNativeIdentityMetadataAcceptedAsProof",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "explicit-review-same-id-comment",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubActorSeparationCases/0/selectedEvent",
+          "expected": "COMMENT",
+          "critical": true
+        },
+        {
+          "id": "explicit-review-same-id-status-line",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubActorSeparationCases/0/postedStatusLine",
+          "expected": "**Status: APPROVED** — No validated findings.",
+          "critical": true
+        },
+        {
+          "id": "explicit-review-same-id-status-preserved",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubActorSeparationCases/0/statusLinePreserved",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "explicit-review-missing-id-case",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubActorSeparationCases/1/id",
+          "expected": "missing-reviewer-native-user-id",
+          "critical": true
+        },
+        {
+          "id": "explicit-review-missing-id-author",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubActorSeparationCases/1/implementationAuthorNativeGithubUserId",
+          "expected": "8601602",
+          "critical": true
+        },
+        {
+          "id": "explicit-review-missing-id-reviewer",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubActorSeparationCases/1/reviewerNativeGithubUserId",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "explicit-review-missing-id-readbacks",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubActorSeparationCases/1/nativeGithubPrincipalReadbacksComplete",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "explicit-review-missing-id-not-separated",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubActorSeparationCases/1/actorSeparationProved",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "explicit-review-missing-id-metadata-not-proof",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubActorSeparationCases/1/nonNativeIdentityMetadataAcceptedAsProof",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "explicit-review-missing-id-comment",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubActorSeparationCases/1/selectedEvent",
+          "expected": "COMMENT",
+          "critical": true
+        },
+        {
+          "id": "explicit-review-missing-id-status-line",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubActorSeparationCases/1/postedStatusLine",
+          "expected": "**Status: APPROVED** — No validated findings.",
+          "critical": true
+        },
+        {
+          "id": "explicit-review-missing-id-status-preserved",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubActorSeparationCases/1/statusLinePreserved",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "explicit-review-same-id-candidate-approve",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubActorSeparationCases/0/candidateEvent",
+          "expected": "APPROVE",
+          "critical": true
+        },
+        {
+          "id": "explicit-review-missing-id-candidate-approve",
+          "kind": "final-json-path-equals",
+          "pointer": "/githubActorSeparationCases/1/candidateEvent",
+          "expected": "APPROVE",
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "blocks-missing-or-equal-review-pair-contexts",
+      "prompt": "Inspect only pairedContextIsolationNegative in fixtures/explicit-woostack-review.json as bounded normalized evidence. Do not dispatch agents, call providers, GitHub, Linear, Git, shell, or mutate files. Apply the packaged engineer-pair isolation boundary, then return exactly one JSON object with keys status, reason, engineerName, missingContextFields, equalContextPairs, pairedContextsComplete, pairedContextsDistinct, pairAccepted, reviewAllowed, and sideEffectsAllowed. Decision-maker and coding authentication contexts, MCP sessions, token-cache contexts, environments, and sessions must all be present and distinct before review; non-secret labels are evidence only, never credentials.",
+      "fixtures": [
+        "explicit-woostack-review.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The coding MCP session is missing and four decision-maker/coding context pairs are equal, so the review engineer pair is invalid, review cannot begin, and no side effect is permitted.",
+      "assertions": [
+        {
+          "id": "invalid-review-pair-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "invalid-review-pair-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reason",
+          "expected": "paired-context-isolation-invalid",
+          "critical": true
+        },
+        {
+          "id": "invalid-review-pair-engineer",
+          "kind": "final-json-path-equals",
+          "pointer": "/engineerName",
+          "expected": "engineer-review-invalid-pair",
+          "critical": true
+        },
+        {
+          "id": "invalid-review-pair-missing-field",
+          "kind": "final-json-path-equals",
+          "pointer": "/missingContextFields",
+          "expected": [
+            "codingMcpSessionId"
+          ],
+          "critical": true
+        },
+        {
+          "id": "invalid-review-pair-equal-contexts",
+          "kind": "final-json-path-equals",
+          "pointer": "/equalContextPairs",
+          "expected": [
+            "authenticationContext",
+            "tokenCacheContext",
+            "environment",
+            "session"
+          ],
+          "critical": true
+        },
+        {
+          "id": "invalid-review-pair-incomplete",
+          "kind": "final-json-path-equals",
+          "pointer": "/pairedContextsComplete",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "invalid-review-pair-not-distinct",
+          "kind": "final-json-path-equals",
+          "pointer": "/pairedContextsDistinct",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "invalid-review-pair-not-accepted",
+          "kind": "final-json-path-equals",
+          "pointer": "/pairAccepted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "invalid-review-pair-review-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/reviewAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "invalid-review-pair-no-side-effects",
+          "kind": "final-json-path-equals",
+          "pointer": "/sideEffectsAllowed",
+          "expected": false,
+          "critical": true
+        }
+      ]
     }
   ]
 }

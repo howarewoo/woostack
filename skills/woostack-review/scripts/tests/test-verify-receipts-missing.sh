@@ -11,7 +11,7 @@ export OUTDIR="$work/out"; mkdir -p "$OUTDIR"
 printf '%s\n' bugs security types > "$OUTDIR/angles.txt"
 # bugs + security executed; types produced NO receipt.
 for a in bugs security; do
-  printf '{"angle":"%s","chunk":null,"runner":"claude-code","model":"m","tier":"standard","ts":"t"}\n' "$a" > "$OUTDIR/receipt.$a.json"
+  printf '{"angle":"%s","chunk":null,"runner":"claude-code","model":"m","tier":"standard","ts":"t","authority":"advisory-only"}\n' "$a" > "$OUTDIR/receipt.$a.json"
 done
 
 rc=0; err="$(bash "$SCRIPT" 2>&1 1>/dev/null)" || rc=$?

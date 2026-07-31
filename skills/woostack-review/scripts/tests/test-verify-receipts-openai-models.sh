@@ -10,50 +10,50 @@ work="$(mktemp -d)"; trap 'rm -rf "$work"' EXIT
 export OUTDIR="$work/out"; mkdir -p "$OUTDIR"
 export WOO_REVIEW_PROVIDER=openai
 printf '%s\n' aeo bugs validator > "$OUTDIR/angles.txt"
-printf '{"angle":"aeo","chunk":null,"runner":"codex-subagent","model":"gpt-5.5","tier":"fast","ts":"t"}\n' > "$OUTDIR/receipt.aeo.json"
-printf '{"angle":"bugs","chunk":null,"runner":"codex-subagent","model":"gpt-5.5","tier":"standard","ts":"t"}\n' > "$OUTDIR/receipt.bugs.json"
-printf '{"angle":"validator","chunk":null,"runner":"codex-subagent","model":"gpt-5.5","tier":"deep","ts":"t"}\n' > "$OUTDIR/receipt.validator.json"
+printf '{"angle":"aeo","chunk":null,"runner":"codex-subagent","model":"gpt-5.5","tier":"fast","ts":"t","authority":"advisory-only"}\n' > "$OUTDIR/receipt.aeo.json"
+printf '{"angle":"bugs","chunk":null,"runner":"codex-subagent","model":"gpt-5.5","tier":"standard","ts":"t","authority":"advisory-only"}\n' > "$OUTDIR/receipt.bugs.json"
+printf '{"angle":"validator","chunk":null,"runner":"codex-subagent","model":"gpt-5.5","tier":"deep","ts":"t","authority":"advisory-only"}\n' > "$OUTDIR/receipt.validator.json"
 
 rc=0; bash "$SCRIPT" >/dev/null 2>&1 || rc=$?
 assert_exit 0 "$rc" "OpenAI receipts matching tier models pass"
 
-printf '{"angle":"bugs","chunk":null,"runner":"codex-subagent","model":"claude-sonnet-4-6","tier":"standard","ts":"t"}\n' > "$OUTDIR/receipt.bugs.json"
+printf '{"angle":"bugs","chunk":null,"runner":"codex-subagent","model":"claude-sonnet-4-6","tier":"standard","ts":"t","authority":"advisory-only"}\n' > "$OUTDIR/receipt.bugs.json"
 rc=0; err="$(bash "$SCRIPT" 2>&1 1>/dev/null)" || rc=$?
 assert_exit 1 "$rc" "OpenAI standard worker with mismatched provider model fails"
 assert_contains "$err" "bugs" "names the worker with mismatched model"
 
 printf '{"models":{"openai":{"standard":"gpt-custom-standard"}}}\n' > "$OUTDIR/config.json"
-printf '{"angle":"bugs","chunk":null,"runner":"codex-subagent","model":"gpt-custom-standard","tier":"standard","ts":"t"}\n' > "$OUTDIR/receipt.bugs.json"
+printf '{"angle":"bugs","chunk":null,"runner":"codex-subagent","model":"gpt-custom-standard","tier":"standard","ts":"t","authority":"advisory-only"}\n' > "$OUTDIR/receipt.bugs.json"
 rc=0; bash "$SCRIPT" >/dev/null 2>&1 || rc=$?
 assert_exit 0 "$rc" "OpenAI provider-scoped config override is honored"
 
 printf '{"models":{"standard":"gpt-flat-standard"}}\n' > "$OUTDIR/config.json"
-printf '{"angle":"bugs","chunk":null,"runner":"codex-subagent","model":"gpt-flat-standard","tier":"standard","ts":"t"}\n' > "$OUTDIR/receipt.bugs.json"
+printf '{"angle":"bugs","chunk":null,"runner":"codex-subagent","model":"gpt-flat-standard","tier":"standard","ts":"t","authority":"advisory-only"}\n' > "$OUTDIR/receipt.bugs.json"
 rc=0; bash "$SCRIPT" >/dev/null 2>&1 || rc=$?
 assert_exit 0 "$rc" "OpenAI flat config override is honored"
 
 printf '{"models":{"openai":{"standard":{"model":"gpt-obj-standard","effort":"low"}}}}\n' > "$OUTDIR/config.json"
-printf '{"angle":"bugs","chunk":null,"runner":"codex-subagent","model":"gpt-obj-standard","tier":"standard","ts":"t"}\n' > "$OUTDIR/receipt.bugs.json"
+printf '{"angle":"bugs","chunk":null,"runner":"codex-subagent","model":"gpt-obj-standard","tier":"standard","ts":"t","authority":"advisory-only"}\n' > "$OUTDIR/receipt.bugs.json"
 rc=0; bash "$SCRIPT" >/dev/null 2>&1 || rc=$?
 assert_exit 0 "$rc" "OpenAI object-leaf {model,effort} config override resolves to .model"
 
 printf '{"models":{"openai":{"standard":["gpt-provider-primary",{"model":"gpt-provider-fallback","effort":"high"}]}}}\n' > "$OUTDIR/config.json"
-printf '{"angle":"bugs","chunk":null,"runner":"codex-subagent","model":"gpt-provider-primary","tier":"standard","ts":"t"}\n' > "$OUTDIR/receipt.bugs.json"
+printf '{"angle":"bugs","chunk":null,"runner":"codex-subagent","model":"gpt-provider-primary","tier":"standard","ts":"t","authority":"advisory-only"}\n' > "$OUTDIR/receipt.bugs.json"
 rc=0; bash "$SCRIPT" >/dev/null 2>&1 || rc=$?
 assert_exit 0 "$rc" "provider-scoped fallback array validates against entry 0"
 
 printf '{"models":{"standard":[{"model":"gpt-flat-primary","effort":"medium"},"gpt-flat-fallback"]}}\n' > "$OUTDIR/config.json"
-printf '{"angle":"bugs","chunk":null,"runner":"codex-subagent","model":"gpt-flat-primary","tier":"standard","ts":"t"}\n' > "$OUTDIR/receipt.bugs.json"
+printf '{"angle":"bugs","chunk":null,"runner":"codex-subagent","model":"gpt-flat-primary","tier":"standard","ts":"t","authority":"advisory-only"}\n' > "$OUTDIR/receipt.bugs.json"
 rc=0; bash "$SCRIPT" >/dev/null 2>&1 || rc=$?
 assert_exit 0 "$rc" "flat fallback array validates against entry 0"
 
-printf '{"angle":"bugs","chunk":null,"runner":"codex-subagent","model":"gpt-flat-fallback","tier":"standard","ts":"t"}\n' > "$OUTDIR/receipt.bugs.json"
+printf '{"angle":"bugs","chunk":null,"runner":"codex-subagent","model":"gpt-flat-fallback","tier":"standard","ts":"t","authority":"advisory-only"}\n' > "$OUTDIR/receipt.bugs.json"
 rc=0; err="$(bash "$SCRIPT" 2>&1 1>/dev/null)" || rc=$?
 assert_exit 1 "$rc" "fallback receipt model cannot substitute for configured primary"
 assert_contains "$err" "bugs" "fallback-model mismatch names the worker"
 
 export WOO_REVIEW_HOST=omp
-printf '{"angle":"bugs","chunk":null,"runner":"omp","model":"host-owned-model","tier":"standard","ts":"t"}\n' > "$OUTDIR/receipt.bugs.json"
+printf '{"angle":"bugs","chunk":null,"runner":"omp","model":"host-owned-model","tier":"standard","ts":"t","authority":"advisory-only"}\n' > "$OUTDIR/receipt.bugs.json"
 rc=0; bash "$SCRIPT" >/dev/null 2>&1 || rc=$?
 assert_exit 0 "$rc" "OMP accepts a non-empty host-owned model identity"
 unset WOO_REVIEW_HOST
@@ -61,12 +61,12 @@ unset WOO_REVIEW_HOST
 unset WOO_REVIEW_PROVIDER
 export WOO_REVIEW_HOST=codex
 rm -f "$OUTDIR/config.json"
-printf '{"angle":"bugs","chunk":null,"runner":"local-worker","model":"claude-sonnet-4-6","tier":"standard","ts":"t"}\n' > "$OUTDIR/receipt.bugs.json"
+printf '{"angle":"bugs","chunk":null,"runner":"local-worker","model":"claude-sonnet-4-6","tier":"standard","ts":"t","authority":"advisory-only"}\n' > "$OUTDIR/receipt.bugs.json"
 rc=0; err="$(bash "$SCRIPT" 2>&1 1>/dev/null)" || rc=$?
 assert_exit 1 "$rc" "Codex host triggers model validation without provider or codex runner"
 assert_contains "$err" "bugs" "names the host-triggered worker with mismatched model"
 
-printf '{"angle":"bugs","chunk":null,"runner":"local-worker","model":"gpt-5.5","tier":"standard","ts":"t"}\n' > "$OUTDIR/receipt.bugs.json"
+printf '{"angle":"bugs","chunk":null,"runner":"local-worker","model":"gpt-5.5","tier":"standard","ts":"t","authority":"advisory-only"}\n' > "$OUTDIR/receipt.bugs.json"
 rc=0; bash "$SCRIPT" >/dev/null 2>&1 || rc=$?
 assert_exit 0 "$rc" "Codex host accepts matching model without provider or codex runner"
 

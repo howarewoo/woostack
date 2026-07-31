@@ -14,11 +14,39 @@ Every artifact you write under `$OUTDIR/findings.*.json` (default `/tmp/pr-revie
 - **Write `[]` to your findings file as the FIRST action.** Replace it with the real array just before EXIT. Sub-agents have died mid-run (stream errors, turn-limit interrupts) and left no file at all — the merge step then has no array to merge for that angle. An up-front empty array makes failure non-destructive: the worst case becomes "this angle reported nothing," not "this angle silently dropped out of the review."
 - **Write your execution receipt as your LAST action.** After writing your real findings array, and
   just before EXIT, write `$OUTDIR/receipt.<angle>.json` (chunked:
-  `$OUTDIR/receipt.<angle>.<chunk>.json`) — a JSON object that proves only that the angle ran:
-  `{"angle":"<angle>","chunk":<chunk-id-or-null>,"runner":"<host or provider>","model":"<resolved model>","tier":"<fast|standard|deep>","ts":"<ISO-8601 timestamp>","authority":"advisory-only"}`.
-  `runner` and `model` MUST be non-empty. The receipt distinguishes honest `[]` from a worker that
-  never ran, but it is never authoritative Linear context, Linear read-back, `reviewResult`, or
-  issue acceptance. A missing/invalid receipt still HARD-FAILS before merge, validation, or post.
+  `$OUTDIR/receipt.<angle>.<chunk>.json`) as a JSON object:
+  `{"angle":"<angle>","chunk":<chunk-id-or-null>,"runner":"<host or provider>","model":"<resolved model>","tier":"<fast|standard|deep>","ts":"<ISO-8601 timestamp>","reviewerProfile":"<host-bound reviewer profile>","reviewerSessionId":"<fresh reviewer session ID>","reviewerPrincipalId":"<native reviewer principal ID>","reviewerCredentialContextId":"<non-secret reviewer credential-context ID>","authority":"advisory-only"}`.
+  `runner`, `model`, and every supplied reviewer-identity field MUST be non-empty. In an
+  engineer-unit run, copy the exact non-secret reviewer binding supplied by the controller; never
+  infer it, substitute the implementing coder or decision-maker, or use a profile/token-store name
+  as a native principal. `verify-receipts.sh` compares it with the controller-owned identity
+  manifest and rejects a missing, foreign, shared-session, or shared-credential binding.
+- In the GitHub Actions single-session path, bind the receipt to the producing job attempt:
+  `reviewerProfile:"github-actions-single-session"`,
+  `reviewerRunAttempt:<GITHUB_RUN_ATTEMPT>`,
+  `reviewerSessionId:"github-actions:<GITHUB_RUN_ID>:<GITHUB_RUN_ATTEMPT>"`,
+  `reviewerPrincipalId:"github-actions:<GITHUB_REPOSITORY>"`, and
+  `reviewerCredentialContextId:"github-actions-provider-only:<GITHUB_RUN_ID>:<GITHUB_RUN_ATTEMPT>"`.
+  Validation derives the session and credential IDs from the receipt's producer attempt and
+  requires it not to exceed the validator job's current attempt. Re-running only validation
+  therefore accepts downloaded receipts from an earlier successful producer attempt without
+  detaching them from that attempt. This CI sentinel is diff-only execution identity, not a
+  development principal or issue authority.
+  A generic non-paired local run without a controller manifest SHOULD report its real host binding
+  when available. Any `reviewerPrincipalId` here binds worker execution only: it is not the native
+  GitHub posting actor ID and can never substitute for the independent GitHub actor read-backs at
+  verdict time.
+
+In an engineer-unit run, `$OUTDIR` is a private per-worker namespace outside the implementation
+repository. `$WOO_REVIEW_BINDING_PATH` names the only controller-supplied identity record this
+worker may read. Copy its exact profile, session, principal, and credential-context values into
+the receipt; never scan for or infer peer bindings. Write only this work item's designated
+`findings.*.json` and `receipt.*.json` outputs. The controller harvests those two files after
+execution and independently verifies repository immutability and receipt identity.
+- The receipt distinguishes honest `[]` from a worker that never ran, but it proves execution only
+  and is never authoritative Linear context, Linear read-back, `reviewResult`, or issue acceptance.
+  Missing/invalid identity or any authority other than `"advisory-only"` HARD-FAILS before merge,
+  validation, or post.
 - If your runtime offers a "write file" tool, use it directly — do NOT echo the JSON through a chat channel that prepends prose.
 - **Escape discipline inside string fields.** Every `"description"`, `"fix"`, and `"suggestion"` is a JSON string — inside it, the only valid backslash escapes are `\"`, `\\`, `\/`, `\b`, `\f`, `\n`, `\r`, `\t`, and `\uXXXX`. Bare backslashes in code samples (Windows paths, regex like `\d`, LaTeX) MUST be doubled to `\\`. Tabs and newlines in code samples MUST be `\t` / `\n`, never raw control bytes. The merge step has a fallback sanitizer, but a finding that loses content during sanitization is one that fails to land cleanly on the PR.
 - Before writing each finding's `line` and optional `end_line`, validate the anchor via:
@@ -141,7 +169,7 @@ Fix: <fix>
 - **Fix** — one imperative sentence naming the minimum safe change, prefixed literally with `Fix: `. Do not repeat the description or spell out replacement code that the GitHub ```suggestion``` block already carries. Add steps only when the safe change genuinely requires an ordered sequence.
 - **Attribution footer** — compact small-print metadata: severity (HIGH / MEDIUM / LOW, suffixed with `· BLOCKING` or `· NIT`) and the angle slug (for example, `<sub>— <strong>HIGH · BLOCKING</strong> · <code>bugs</code></sub>`). The body builder appends it automatically from the finding's `severity` / `blocking` / `nit` / `angle` fields. Both `severity` and `angle` are whitelisted against their known sets; unknown/missing values are dropped from the footer rather than injecting raw text. If both are missing, the footer is omitted entirely.
 
-`nit` is a boolean set by `intersect-findings.sh` (the floor classifier), **not** by angle agents: `true` marks a validated below-floor non-blocking finding. The body builder renders a `nit: true` finding with a `Nit:` title prefix and a `· NIT` footer tag, and the event computation treats it as event-neutral (a PR whose only findings are nits still `APPROVE`s, with the nits posted inline). A nit is always non-blocking; a below-floor finding that is `blocking: true` stays a normal finding (`nit: false`).
+`nit` is a boolean set by `intersect-findings.sh` (the floor classifier), **not** by angle agents: `true` marks a validated below-floor non-blocking finding. The body builder renders a `nit: true` finding with a `Nit:` title prefix and a `· NIT` footer tag, and candidate-event computation treats it as neutral (a PR whose only findings are nits has candidate `APPROVE`, with the nits posted inline). Final delivery still applies the independent native GitHub actor-ID gate. A nit is always non-blocking; a below-floor finding that is `blocking: true` stays a normal finding (`nit: false`).
 
 `deferred_to` is a string (the marker `<ref>`, e.g. `"increment 3"`) or null, set by the defender validator (`validator.md`) when an inline `woostack-defer(<ref>)` marker in the diff covers the gap a finding flags as missing. `intersect-findings.sh` forces any finding carrying a non-empty `deferred_to` to `nit: true, blocking: false` (independent of `severity_floor`, gated by `review.defer_markers`), and the body builder appends a `Deferred to <ref>` line. Never set on `security` findings or on wrong code present in this PR.
 

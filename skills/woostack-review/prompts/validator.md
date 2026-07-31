@@ -74,15 +74,22 @@ Launch one `fast`-tier subagent (resolve the tier per the shared Model Tiers tab
 
 Write the defender-validated JSON array to **`$OUTDIR/findings.defender.json`** (default `/tmp/pr-review/findings.defender.json`) — NOT `findings.json`. The file MUST be a JSON array only: starts with `[`, ends with `]`, no preamble, no commentary, no markdown fences. The final `findings.json` is produced by the intersect script in Step 3.
 
+In an engineer-unit local run, copy only the controller-supplied defender binding and, as the last
+action after the findings array, write `$OUTDIR/receipt.validator-defender.json` with
+`validatorRole:"defender"`, non-empty `runner` and `model`, `tier:"deep"`, the exact
+`reviewerProfile`, `reviewerSessionId`, `reviewerPrincipalId`, and
+`reviewerCredentialContextId`, and `authority:"advisory-only"`. Never infer or read another
+worker's binding.
+
 ---
 
 > ## STOP GATE — are you a swarm worker or the sequential validator?
 >
 > Steps 3 and 4 below (intersect + **posting the GitHub review**) run **ONLY** when the environment variable `WOO_REVIEW_SEQUENTIAL_VALIDATE=1` is set. That variable is set **exclusively** by the GitHub Action's `validate` mode, where a single agent owns the whole tail of the pipeline.
 >
-> **If `WOO_REVIEW_SEQUENTIAL_VALIDATE` is unset or not `1`, you are a swarm worker (SKILL.md Stage 4b).** Your job ended at Step 2: you have written `$OUTDIR/findings.defender.json`. **EXIT NOW.** The host orchestrator owns intersect (Stage 4c) and posting (Stage 5). Do NOT run `intersect-findings.sh`, do NOT `mv` over `findings.json`, do NOT post a review, do NOT re-run `prefetch.sh`, and do NOT delete or recreate `$OUTDIR`.
+> **If `WOO_REVIEW_SEQUENTIAL_VALIDATE` is unset or not `1`, you are a swarm worker (SKILL.md Stage 4b).** Your job ended at Step 2: you have written `$OUTDIR/findings.defender.json` and, for an engineer-unit run, its validator receipt. **EXIT NOW.** The host orchestrator owns intersect (Stage 4c) and posting (Stage 5). Do NOT run `intersect-findings.sh`, do NOT `mv` over `findings.json`, do NOT post a review, do NOT re-run `prefetch.sh`, and do NOT delete or recreate `$OUTDIR`.
 >
-> Enforce it — run this immediately after writing `findings.defender.json`; if you are a worker it stops you before Step 3: `[ "${WOO_REVIEW_SEQUENTIAL_VALIDATE:-}" = "1" ] || { echo "swarm worker — findings.defender.json written; EXITing before Step 3"; exit 0; }`
+> Enforce it after writing the findings and any required engineer-unit receipt: `[ "${WOO_REVIEW_SEQUENTIAL_VALIDATE:-}" = "1" ] || { echo "swarm worker — defender artifacts written; EXITing before Step 3"; exit 0; }`
 
 ---
 
@@ -104,7 +111,7 @@ Notes:
 Follow _orchestrator-header.md exactly. Compute BLOCKING_COUNT, NONBLOCKING_COUNT, HIGH_COUNT, MEDIUM_COUNT, LOW_COUNT. Build STATUS_LINE.
 - Use the findings from `/tmp/pr-review/findings.json` (the intersected set, not your defender output).
 - Submit one native batched GitHub Review with all inline comments, summary, status line, and the context disclosure required by `_orchestrator-header.md`. In CI the disclosure is always diff-only advisory and claims neither Linear read-back nor issue acceptance.
-- Determine the native GitHub event: `REQUEST_CHANGES` for blocking findings/open prior threads, `COMMENT` for non-nit non-blocking findings, otherwise `APPROVE`; nits are event-neutral. This event is never Linear acceptance.
+- Determine the candidate native GitHub event from findings and open prior threads: `REQUEST_CHANGES`, `COMMENT`, or otherwise `APPROVE`; nits are event-neutral. Then apply `_orchestrator-header.md`'s native actor-ID gate: same/missing/unproved actors deliver `COMMENT` without changing the status line. Neither candidate nor delivered event is Linear acceptance.
 - **DO NOT** update the PR description, title, or labels, and never mutate Linear.
 
 ### Step 5 — Exit (sequential mode)

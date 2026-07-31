@@ -15,7 +15,7 @@ driver="$(tr '\n' ' ' < "$DRIVER" | tr -s ' ')"
 skill="$(tr '\n' ' ' < "$SKILL" | tr -s ' ')"
 
 assert_eq "$tier" "fast" "implementer prompt must default to fast"
-assert_contains "$driver" 'implementer `fast`' \
+assert_contains "$driver" 'implementation `fast`' \
   "driver must default implementers to fast"
 assert_contains "$driver" 'spec-reviewer `standard`' \
   "driver must preserve the spec-reviewer default"
@@ -37,7 +37,7 @@ assert_contains "$driver" '`standard` is the implementation maximum' \
   "standard must remain the implementation maximum"
 assert_contains "$driver" 'send a `decisionRequest` to the responsible issue engineer/lead' \
   "a blocked standard worker must escalate through issue authority"
-assert_contains "$driver" 'a `standard` implementer never retries at `deep`' \
+assert_contains "$driver" 'a `standard` implementation worker never retries at `deep`' \
   "a blocked standard implementer must not escalate to deep"
 assert_not_contains "$driver" '| **Bump UP** | `deep` |' \
   "the role-agnostic deep bump must remain absent"
@@ -45,17 +45,17 @@ assert_contains "$driver" 'spec-reviewer → `fast` on a trivial diff' \
   "spec-reviewer trivial-diff downgrade must remain"
 assert_contains "$driver" 'quality-reviewer → `standard` on a trivial diff' \
   "quality-reviewer trivial-diff downgrade must remain"
-assert_contains "$skill" 'Implementers default to `fast`' \
+assert_contains "$skill" 'default to `fast`' \
   "execute overview must state the fast implementation default"
 assert_contains "$skill" 'never use `deep`' \
   "execute overview must state the implementation ceiling"
 
 # Tier selection changes reasoning capacity only; it cannot broaden the one-issue delegation.
-assert_contains "$driver" "the worker's authority never changes with tier" \
+assert_contains "$driver" "authority never changes with tier" \
   "model tier must not change worker authority"
-assert_contains "$driver" "Every implementer and reviewer brief is self-contained and names exactly one selected issue" \
+assert_contains "$driver" "Every dispatched paired coder, generic implementer, or generic reviewer brief is self-contained and names exactly one selected issue" \
   "every tier must keep one-issue scope"
-assert_contains "$driver" "It never acquires lifecycle" \
+assert_contains "$driver" "Neither route grants this driver lifecycle" \
   "tier escalation must not acquire controller authority"
 assert_contains "$driver" 'request/write terminal `done`' \
   "no implementation tier may mark terminal success"

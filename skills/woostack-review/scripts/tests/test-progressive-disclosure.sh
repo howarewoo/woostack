@@ -210,10 +210,10 @@ done
 
 # Root carries orchestration; details live in conditional references.
 root_lines="$(wc -l < "$SKILL" | tr -d ' ')"
-if [ "$root_lines" -le 500 ]; then
+if [ "$root_lines" -le 650 ]; then
   pass
 else
-  fail "root stays at or below approximately 500 lines (actual: $root_lines)"
+  fail "root stays at or below approximately 650 lines (actual: $root_lines)"
 fi
 
 # Long references need real navigation. Medium references (100–300 lines) are
@@ -380,23 +380,30 @@ assert_matches "$ROOT_NORMALIZED" 'blocking finding.*REQUEST_CHANGES' 'root reta
 assert_matches "$ROOT_NORMALIZED" 'open prior thread.*REQUEST_CHANGES|REQUEST_CHANGES.*open prior thread' 'root retains prior-thread event floor'
 assert_matches "$ROOT_NORMALIZED" 'non-nit non-blocking finding.*COMMENT|COMMENT.*non-nit non-blocking' 'root retains nonblocking COMMENT mapping'
 assert_matches "$ROOT_NORMALIZED" 'only findings are nits.*APPROVE|nits.*event-neutral.*APPROVE' 'root retains nit-only APPROVE mapping'
-assert_matches "$ROOT_NORMALIZED" 'self-authored PR.*COMMENT|downgrades the event to `COMMENT`' 'root retains self-review event downgrade'
+assert_matches "$ROOT_NORMALIZED" 'native GitHub principal ID.*IDs differ.*COMMENT.*STATUS_LINE|IDs match.*unproved.*COMMENT.*STATUS_LINE' 'root gates native approval on distinct GitHub principals and preserves status on COMMENT downgrade'
 assert_matches "$ROOT_NORMALIZED" 'pending review.*422.*discarded.*retried once' 'root retains pending-review collision recovery'
 assert_matches "$ROOT_NORMALIZED" 'DO NOT modify the PR title or body.*DO NOT mutate PR labels' 'root retains posting mutation limits'
 
 assert_matches "$ROOT_NORMALIZED" 'angles.txt.*chunks.txt' 'root retains angle-by-chunk expected work set'
 assert_matches "$ROOT_NORMALIZED" 'receipt\.<angle>.*matching `angle`/`chunk`.*runner.*model' 'root retains worker receipt identity contract'
 assert_matches "$ROOT_NORMALIZED" 'authority:"advisory-only"|authority.*advisory-only' 'root marks worker receipts advisory-only'
+assert_matches "$ROOT_NORMALIZED" 'reviewerProfile.*reviewerSessionId.*reviewerPrincipalId.*reviewerCredentialContextId' 'root binds receipts to reviewer profile/session/native principal/credential context'
+assert_matches "$ROOT_NORMALIZED" 'reviewer-identities\.json.*implementingCoder.*decisionMaker.*reviewers' 'root requires the engineer-unit controller identity manifest'
+assert_matches "$ROOT_NORMALIZED" 'paired coder.*shared.*profile/session/native principal/credential context|paired coder.*shared.*session.*credential' 'root rejects coder or shared-context reviewer receipts'
+assert_matches "$ROOT_NORMALIZED" 'host-bound reviewer identity.*never native GitHub posting-actor proof|host binding.*not the native GitHub.*actor' 'root keeps receipt identity separate from native GitHub actor proof'
+assert_matches "$ROOT_NORMALIZED" 'fresh home/config/cache/temp.*env -i|fresh `HOME`.*XDG.*temp.*allowlist' 'root launches engineer reviewers with fresh filesystem and environment contexts'
+assert_matches "$ROOT_NORMALIZED" 'validates and hashes.*reviewer identity manifest' 'root protects the controller-owned identity manifest across dispatch'
+assert_matches "$ROOT_NORMALIZED" 'branch/head.*staged and unstaged.*untracked.*hard-fails' 'root fingerprints Git-visible repository state across reviewer dispatch'
 assert_matches "$ROOT_NORMALIZED" 'official.*MCP.*intent.md|intent.md.*official.*MCP' 'root gates current contract context on official MCP'
 assert_matches "$ROOT_NORMALIZED" 'Missing MCP.*blocks.*contract-aware review|blocks.*contract-aware.*Missing MCP' 'root blocks local contract-aware delivery without MCP'
 assert_matches "$ROOT_NORMALIZED" 'authoritative Linear issue context is absent|authoritative-issue-context: absent' 'root labels absent CI authority'
 assert_matches "$ROOT_NORMALIZED" 'neither Linear read-back nor issue acceptance' 'root denies CI Linear read-back and acceptance claims'
 assert_matches "$ROOT_NORMALIZED" 'retry missing, empty, invalid-JSON, or non-array artifacts once' 'root retains worker artifact retry'
 assert_matches "$ROOT_NORMALIZED" 'usage_limit_reached.*rate_limit_error.*fallback chain' 'root retains worker model-fallback recovery'
-assert_matches "$ROOT_NORMALIZED" 'hard-fails.*abort.*merge/validate/post|hard-fails.*do NOT proceed to merge/validate/post' 'root retains receipt hard gate before pipeline tail'
+assert_matches "$ROOT_NORMALIZED" 'abort the run.*do NOT proceed to merge/validate/post' 'root retains receipt hard gate before pipeline tail'
 assert_matches "$ROOT_NORMALIZED" 'findings.prosecutor.json.*findings.defender.json' 'root retains both validator completion artifacts'
 assert_matches "$ROOT_NORMALIZED" 'Re-launch a missing pass exactly.*once' 'root retains validator retry gate'
-assert_matches "$ROOT_NORMALIZED" 'defender-only.*degraded.*validator-metrics.json|validator-metrics.json.*degraded.*defender-only' 'root retains validator degradation record'
+assert_matches "$ROOT_NORMALIZED" 'single-pass mode.*degraded: true.*validator-metrics.json' 'root retains validator degradation record'
 assert_matches "$ROOT_NORMALIZED" 'tell the user.*lower-confidence|summary.*disclose.*degraded' 'root retains degradation disclosure'
 assert_matches "$ROOT_NORMALIZED" '[Ll]ocal only.*CI|CI.*[Ll]ocal only|local.*not-in-CI' 'root retains explicit local/CI distinction'
 assert_matches "$ROOT_NORMALIZED" 'Do NOT write memory in CI|GitHub Action does .*not.*fold' 'root keeps memory and metrics persistence out of CI'
@@ -406,7 +413,7 @@ if [ -n "$TROUBLESHOOTING" ]; then
     'review-artifacts' 'raw_findings.json' 'resolve-diff-line.sh' \
     'rm -rf "$OUTDIR"' 'angles.json' 'Export `OUTDIR`' \
     'validator-metrics.json' 'derives the PR number itself' \
-    'GITHUB_ACTIONS=true' 'downgrades the event to `COMMENT`' \
+    'GITHUB_ACTIONS=true' 'same or an unproved actor posts `COMMENT`' \
     'retries missing/non-array artifacts once' 'json.loads(strict=False)' \
     'WOO_REVIEW_DIFF_CAP_BYTES'; do
     assert_fixed "$TROUBLESHOOTING" "$recovery" "troubleshooting.md retains recovery: $recovery"

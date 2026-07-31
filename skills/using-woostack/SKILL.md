@@ -47,10 +47,14 @@ At the start of work in a repository:
 3. Check whether the user's request maps to one of the woostack skills below.
 4. Load the mapped skill before asking clarifying questions, making edits, opening PRs, or
    posting review feedback.
-5. Load and apply the shared
+5. When work uses a decision-maker/coding-profile pair, load the shared
+   [engineer-agent authority protocol](references/engineer-agents.md) before allocation,
+   dispatch, review, or acceptance. Host references bind concrete profiles; they never redefine
+   the authority split.
+6. Load and apply the shared
    [Output Discipline](references/output-discipline.md) to every user-facing reply. It keeps the
    answer compact without compressing evidence, risk, or required contract fields.
-6. If the request maps to **no** woostack command but you will still answer or edit from the
+7. If the request maps to **no** woostack command but you will still answer or edit from the
    project's accumulated knowledge, **recall first** (read-only). Load the scoped
    `.woostack/memory/` notes for your working set via the procedure in
    [`memory.md`](../woostack-init/references/memory.md) — script-assisted when the
@@ -64,20 +68,26 @@ Do not run `/woostack-init`, create `.woostack/`, scaffold code, or add config u
 user explicitly asks for that behavior or the loaded task-specific skill requires it as part
 of an approved workflow.
 
-**Artifact-backend invariant:** Markdown is the default feature spec/plan backend, not a
-universal filesystem requirement. A loaded workflow skill resolves `artifacts.specPlan` and uses
-only the selected backend; routing never infers storage from folders or the presence of
-`LINEAR_API_KEY`. Linear authentication is supplied only through the process environment. The
-[artifact-backend adoption contract](../woostack-bootstrap/references/development.md#artifact-backend)
-defines the model and links the canonical build, worktree, and status authorities; do not
-duplicate their lifecycle or adapter details here.
+**Development-record invariant:** official host-exposed Linear MCP is the only development-record
+interface. The canonical Linear MCP
+[managed-resource and event schemas](../woostack-init/references/artifact-backends.md#versioned-managed-metadata)
+and [issue-event actor/receipt schemas](../woostack-init/references/artifact-backends.md#canonical-issue-event-dispatch-and-pre-commit-evidence)
+own managed identity, exact payloads and relations, type-aware ownership, and PR attribution. The
+[issue-state/current-event conventions](../woostack-status/references/conventions.md#issue-state-and-events)
+own lifecycle derivation and terminal reconciliation. Link those authorities; never replace them
+with local specification/plan/fix records, Linear documents, repository credentials, custom
+provider transports, or duplicated lifecycle/receipt schemas.
 
-**Feature-state invariant:** in a woostack project, every spec has exactly one plan
-(`spec : plan : PRs = 1 : 1 : N`), and the spec design `status:` plus plan implementation
-`status:`/`branch:` frontmatter is load-bearing for the `/woostack-status` board. The phase
-enum and the join contracts are defined once in
-[`../woostack-status/references/conventions.md`](../woostack-status/references/conventions.md);
-link it, never restate it.
+**Engineer-agent invariant:** a host that pairs a decision-maker with a coder must follow the
+[provider-neutral engineer-agent authority protocol](references/engineer-agents.md). Each active
+unit pins one standing authority envelope, one stable `ENGINEER_NAME`, one Linear principal, one
+decision-maker profile/session, one isolated coding profile/session, and one run. The two profiles
+resolve their unit principal only through separate host secret/token/session contexts; concurrent
+units share none of those identities or contexts. A freshly resolved project lead or standalone
+dispatcher deliberately allocates work, the current type-aware owner records and independently
+reads back `assignmentAccepted` before work, and the decision-maker rechecks owner, state, and
+relations before each side effect. Host mechanics and reviewer delegation never weaken role
+isolation, bounded mutation, review independence, or acceptance authority.
 
 ## Command Routing
 

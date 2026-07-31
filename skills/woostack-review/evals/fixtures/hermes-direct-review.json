@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "repository": "https://github.com/acme/widgets",
+  "project": {
+    "id": "70000000-0000-4000-8000-000000000601",
+    "role": "feature",
+    "phase": "inReview",
+    "lead": {
+      "kind": "human",
+      "principalId": "linear-user-project-lead",
+      "readBack": "complete"
+    }
+  },
+  "issue": {
+    "id": "71000000-0000-4000-8000-000000000601",
+    "clientId": "71100000-0000-4000-8000-000000000601",
+    "identifier": "APP-601",
+    "role": "increment",
+    "projectId": "70000000-0000-4000-8000-000000000601",
+    "state": "inReview",
+    "owner": {
+      "kind": "app",
+      "field": "delegate",
+      "principalId": "linear-app-engineer-cache",
+      "readBack": "complete"
+    },
+    "contractReadBack": "complete",
+    "relationsReadBack": "complete"
+  },
+  "engineerUnit": {
+    "engineerName": "engineer-cache",
+    "linearPrincipal": {
+      "kind": "app",
+      "principalId": "linear-app-engineer-cache"
+    },
+    "decisionMakerProfile": "hermes-engineer-cache",
+    "decisionMakerAuthenticationContextId": "auth-context-decision-maker-cache-601",
+    "decisionMakerMcpSessionId": "mcp-session-decision-maker-cache-601",
+    "decisionMakerTokenCacheContextId": "token-cache-context-decision-maker-cache-601",
+    "decisionMakerEnvironmentId": "environment-decision-maker-cache-601",
+    "decisionMakerSessionId": "hermes-review-session-cache-601",
+    "codingProfile": "omp-engineer-cache",
+    "codingAuthenticationContextId": "auth-context-coding-cache-601",
+    "codingMcpSessionId": "mcp-session-coding-cache-601",
+    "codingTokenCacheContextId": "token-cache-context-coding-cache-601",
+    "codingEnvironmentId": "environment-coding-cache-601",
+    "codingSessionId": "omp-coding-session-cache-601",
+    "runId": "run-cache-601",
+    "credentialMaterialPresent": false,
+    "sessionMaterialPresent": false
+  },
+  "invocation": {
+    "requestedBoundary": "post-pr-review",
+    "explicitCommand": null,
+    "explicitWoostackReview": false,
+    "configuredIndependentReviewers": [
+      "reviewer-spec-cache",
+      "reviewer-quality-cache"
+    ]
+  },
+  "implementation": {
+    "authorProfile": "omp-engineer-cache",
+    "authorSessionId": "omp-coding-session-cache-601",
+    "pullRequestNumber": 601,
+    "pullRequestUrl": "https://github.com/acme/widgets/pull/601",
+    "headCommitSha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "committedDiffHash": "sha256:cache-601-reviewed-diff",
+    "verificationStatus": "PASS",
+    "evidenceReadBack": "complete",
+    "coderStoppedBeforeReview": true,
+    "githubAuthorPrincipal": {
+      "nativeUserId": "8601601",
+      "login": "acme-omp-cache",
+      "readBack": "complete"
+    }
+  },
+  "preReviewRecheck": {
+    "issueReadBack": "complete",
+    "ownerReadBack": "complete",
+    "assignmentAcceptedId": "72000000-0000-4000-9000-000000000601",
+    "contractReadBack": "complete",
+    "relationsReadBack": "complete",
+    "headAndDiffReadBack": "complete",
+    "drift": false
+  },
+  "review": {
+    "mode": "hermes-direct",
+    "reviewerProfile": "hermes-engineer-cache",
+    "reviewerSessionId": "hermes-review-session-cache-601",
+    "delegatedReviewerProfiles": [],
+    "implementingCodingProfileEligible": false,
+    "performedByDecisionMaker": true,
+    "reviewedHeadSha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "reviewedDiffHash": "sha256:cache-601-reviewed-diff",
+    "githubReview": {
+      "id": "github-review-601",
+      "event": "APPROVE",
+      "commentsAuthoredByProfile": "hermes-engineer-cache",
+      "readBack": "complete",
+      "authenticatedReviewerPrincipal": {
+        "nativeUserId": "8602601",
+        "login": "acme-hermes-cache",
+        "readBack": "complete"
+      },
+      "candidateEvent": "APPROVE",
+      "actorSeparationProof": {
+        "proofBasis": "native-user-id",
+        "implementationAuthorNativeUserId": "8601601",
+        "reviewerNativeUserId": "8602601",
+        "nativeUserIdsEqual": false,
+        "requiredReadBacksComplete": true,
+        "nonNativeIdentityMetadataAcceptedAsProof": false,
+        "approveEligible": true
+      }
+    },
+    "receiptAuthority": "advisory-only",
+    "linearMutations": 0
+  },
+  "acceptance": {
+    "responsibleAuthority": {
+      "kind": "app",
+      "principalId": "linear-app-engineer-cache",
+      "profile": "hermes-engineer-cache"
+    },
+    "freshPrincipalReadBack": "complete",
+    "requiredEvidenceReadBack": "complete",
+    "transferredByReview": false,
+    "codingProfileMayAccept": false,
+    "delegatedReviewerMayAccept": false,
+    "reviewInvocationRecordedAcceptance": false
+  },
+  "expected": {
+    "status": "ready",
+    "route": "hermes-direct-review",
+    "delegationAllowed": false,
+    "hermesOwnsGithubReview": true,
+    "acceptanceAuthorityProfile": "hermes-engineer-cache",
+    "acceptanceTransferred": false,
+    "pairedContextsComplete": true,
+    "pairedContextsDistinct": true
+  }
+}

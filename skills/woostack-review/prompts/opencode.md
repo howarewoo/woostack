@@ -109,7 +109,7 @@ Produces `$OUTDIR/findings.json` (intersection by `(file, line, title-stem)`; se
 
 ## Phase 4 — Submit Native PR Review
 
-Compute counts. Build `STATUS_LINE`. Follow `_orchestrator-header.md` exactly: submit one batched `gh api repos/<repo>/pulls/<PR>/reviews` POST whose `body` carries the summary + `STATUS_LINE` and whose `comments[]` carries every finding as an inline comment. The review `event` is computed by the `_orchestrator-header.md` payload-builder (do not duplicate the logic here): `REQUEST_CHANGES` when any new finding is `blocking: true` OR when `$OUTDIR/prior-findings.json` is non-empty (unresolved review threads keep the PR at minimum `REQUEST_CHANGES`), `COMMENT` when a non-nit non-blocking new finding exists and no unresolved priors, `APPROVE` when the only new findings are nits (posted inline) or there are none, and prior unresolved threads are empty (nits are event-neutral).
+Compute counts and build `STATUS_LINE`. Follow `_orchestrator-header.md` exactly: submit one batched native review with every inline comment, the summary, and that status line. The payload builder first computes the candidate event from findings and open prior threads, then independently reads the implementation-author and authenticated-reviewer native GitHub IDs. It uses the candidate only when both reads are complete and the IDs differ; otherwise it posts `COMMENT` without changing `STATUS_LINE`. A login, profile/session, credential, or token-store label is never actor proof.
 
 Do NOT call `gh pr edit`. Do NOT add, remove, or mutate PR labels. The PR title, PR description, and PR labels stay untouched.
 

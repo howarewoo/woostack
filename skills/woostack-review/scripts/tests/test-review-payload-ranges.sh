@@ -35,7 +35,7 @@ code = code.replace('/tmp/pr_review_body.txt', body_path)
 print(code)
 PY
 
-HEAD_SHA=deadbeef AUTH_LOGIN=reviewer PR_AUTHOR=author \
+HEAD_SHA=deadbeef AUTH_GITHUB_USER_ID=2002 IMPLEMENTATION_AUTHOR_GITHUB_USER_ID=1001 \
   python3 "$work/builder.py" > "$work/payload.json"
 
 assert_eq "$(jq -c '.comments[0] | {path,line,side}' "$work/payload.json")" '{"path":"src/app.ts","line":2,"side":"RIGHT"}' "single anchor keeps the existing location object"
@@ -52,6 +52,34 @@ Fix: f
 
 <sub>— <strong>HIGH</strong> · <code>bugs</code></sub>'
 assert_eq "$(jq -r '.comments[0].body' "$work/payload.json")" "$expected_body" "inline finding renders the compact review format"
+
+printf '[]\n' > "$work/review/findings.json"
+printf '%s\n' '**Status: APPROVED** — No validated findings.' > "$work/body.txt"
+HEAD_SHA=deadbeef AUTH_GITHUB_USER_ID=2002 IMPLEMENTATION_AUTHOR_GITHUB_USER_ID=1001 \
+  python3 "$work/builder.py" > "$work/distinct-actors.json"
+assert_eq "$(jq -r '.event' "$work/distinct-actors.json")" "APPROVE" "distinct proven native GitHub actors permit APPROVE"
+
+HEAD_SHA=deadbeef AUTH_GITHUB_USER_ID=1001 IMPLEMENTATION_AUTHOR_GITHUB_USER_ID=1001 \
+  python3 "$work/builder.py" > "$work/same-actor.json"
+assert_eq "$(jq -r '.event' "$work/same-actor.json")" "COMMENT" "same native GitHub actor cannot self-approve"
+assert_contains "$(jq -r '.body' "$work/same-actor.json")" '**Status: APPROVED** — No validated findings.' "same-actor COMMENT preserves computed status line"
+
+HEAD_SHA=deadbeef \
+  AUTH_GITHUB_USER_ID=2002 \
+  IMPLEMENTATION_AUTHOR_GITHUB_USER_ID= \
+  AUTH_LOGIN=apparently-distinct-reviewer \
+  PR_AUTHOR=apparently-distinct-author \
+  HERMES_PROFILE=hermes-engineer \
+  TOKEN_STORE_NAME=hermes-token-cache \
+  python3 "$work/builder.py" > "$work/missing-actor.json"
+assert_eq "$(jq -r '.event' "$work/missing-actor.json")" "COMMENT" "missing native author proof cannot approve"
+assert_contains "$(jq -r '.body' "$work/missing-actor.json")" '**Status: APPROVED** — No validated findings.' "missing-proof COMMENT preserves computed status line"
+
+assert_contains "$(cat "$HEADER")" 'AUTH_GITHUB_USER_ID' "payload builder reads authenticated native GitHub principal ID"
+assert_contains "$(cat "$HEADER")" 'IMPLEMENTATION_AUTHOR_GITHUB_USER_ID' "payload builder reads implementation-author native GitHub principal ID"
+assert_contains "$(cat "$HEADER")" '.author.id' "payload builder uses the reviewed head commit author, not the PR opener"
+assert_contains "$(cat "$HEADER")" '.sha // empty' "payload builder binds author proof to reviewed head"
+assert_not_contains "$(cat "$HEADER")" 'auth_login == pr_author' "login equality cannot authorize or block native review verdict"
 
 assert_contains "$(cat "$ROOT/skills/woostack-review/prompts/_worker-header.md")" 'end_line' "worker contract exposes optional range endpoint"
 assert_contains "$(cat "$HEADER")" 'end_line' "orchestrator schema exposes optional range endpoint"
