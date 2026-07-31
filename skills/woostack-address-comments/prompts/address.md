@@ -101,24 +101,26 @@ Show the fix plan alongside the FIX verdict **wherever the gate renders it**:
 
 ## Phase 3 — Act on final verdicts
 
-- **FIX**: edit the working tree. Accumulate all fixes; do NOT commit per thread.
-- **ACCEPT**: this is the issue-#53 step. First check `$OUTDIR/memory.md`
-  and `.woostack/memory/MEMORY.md` when present:
-  if an existing entry already covers this learning — even phrased differently
-  or more broadly — do NOT add a duplicate; widen the existing scoped note
-  instead. Only when the learning is genuinely new, stage it for the
-  after-phases memory write. The after-phases step writes tracked memory before
-  invoking `woostack-commit`, so the scoped note and `MEMORY.md` ride the same PR
-  commit. Phrase it as a **terse pattern, not
-  an instance**: one line, `<pattern>: <reason>`, per the canonical
-  memory-note-body discipline
-  ([`output-discipline.md`](../../using-woostack/references/output-discipline.md#memory-note-bodies)).
-  Also stage `memory_scope`: the narrowest glob covering
-  where the accepted rule applies. Only a final ACCEPT (accept-by-design) writes
-  memory. A "won't-fix because transient / out-of-scope" is not a reusable rule
-  — do not record it.
-- **CLARIFY**: do not fix, do not write memory, do not resolve. Reply with a
-  specific question (handled below with `RESOLVE=0`).
+Before the first and every later side effect, re-read and verify the exact issue/project identities,
+PR/head relation, current type-aware owner, matching `assignmentAccepted`, and acting
+controller/authorization packet required by `SKILL.md`. A verdict never supplies mutation
+authority.
+
+- **FIX**: edit only after that fresh check. Accumulate all fixes; do not commit per thread. Run
+  focused verification and the task-scoped spec/quality review for the complete precommit diff,
+  append canonical `verification` and `precommitReview` issue events with preallocated UUIDs, and
+  independently read both events back before commit.
+- **ACCEPT**: first check `$OUTDIR/memory.md` and `.woostack/memory/MEMORY.md` when present. If an
+  existing entry already covers the learning—even phrased differently or more broadly—do not add a
+  duplicate; widen the existing scoped note instead. Only when the learning is genuinely new,
+  stage it for the after-phases memory write. Phrase it as a terse pattern, not an instance:
+  one line, `<pattern>: <reason>`, per
+  [`output-discipline.md`](../../using-woostack/references/output-discipline.md#memory-note-bodies).
+  Only a final accept-by-design verdict writes memory; a transient or already-fixed finding does
+  not.
+- **CLARIFY**: do not fix, write memory, or resolve. Stage one specific technical question. When
+  issue authority is required, append and independently read back the canonical `decisionRequest`
+  before posting it.
 
 ## After the phases
 
@@ -136,15 +138,18 @@ Show the fix plan alongside the FIX verdict **wherever the gate renders it**:
      bash "$WOO_ADDRESS_ACTION_PATH/scripts/memory-record.sh"
    ```
 
-2. Stage any FIX edits plus tracked memory notes/index updates, then invoke
-   [`woostack-commit`](../../woostack-commit/SKILL.md) with the exact issue UUID/URL retained from
-   artifact resolution, the exact project UUID/URL only for a verified role-`increment`,
-   `--no-pr-update`, and the thread message:
+2. For tracked changes, require the verified `verification` and `precommitReview` receipt IDs, then
+   invoke [`woostack-commit`](../../woostack-commit/SKILL.md) with the retained exact issue
+   UUID/URL, the exact project UUID/URL only for a verified role-`increment`, `--no-pr-update`, and
+   the thread message:
    ```
    /woostack-commit --issue <exact-issue> [--project <exact-project>] --no-pr-update "fix: address review threads <ids>"
    ```
-   Never substitute `TEAM-123`, the PR number, branch, or recent activity for exact identity. Then
-   capture the commit `<sha>` before posting replies. Never force-push.
+   The handoff carries the current owner, `assignmentAccepted`, acting controller/authorization,
+   `verification`, and `precommitReview` receipt IDs. Never substitute `TEAM-123`, the PR number,
+   branch, or recent activity. Require the finalized `implementationEvidence`, PR/head relation,
+   and `inReview` state read-back, then capture the real commit SHA before posting replies. Never
+   force-push.
 3. For each handled thread, reply and resolve:
 
    ```bash

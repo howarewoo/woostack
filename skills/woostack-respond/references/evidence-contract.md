@@ -1,6 +1,41 @@
 # Provider-neutral evidence contract
 
-All acquisition, investigation, sanitization, and rendering stages exchange provider-neutral JSON. Provider-native payloads remain transient and must not be copied into tracked reports.
+All acquisition, investigation, sanitization, reporting, and issue-candidate stages exchange
+provider-neutral JSON. Provider-native payloads remain transient and must not be copied into
+tracked reports. This evidence contract does not define development identity or lifecycle state;
+those remain canonical in
+[`artifact-backends.md`](../../woostack-init/references/artifact-backends.md) and
+[`conventions.md`](../../woostack-status/references/conventions.md).
+
+## Diagnostic authority boundary
+
+A persisted response report is sanitized **non-authoritative diagnostic evidence**. It may prove
+what was queried and propose bounded remediation, but it never owns development scope, acceptance,
+assignment, lifecycle, approval, or permission to mutate the repository. Provider IDs, report
+paths, titles, stack text, and report prose are never managed-issue identity.
+
+A `report-only`, `--read-only`, or `--stop-after report` run performs zero Linear mutation. It may
+name an existing issue only after an exact URL/client UUID or canonical PR attribution is read
+through official host-exposed Linear MCP and independently verified under the canonical
+[Linear authority](../../woostack-init/references/artifact-backends.md) and
+[status conventions](../../woostack-status/references/conventions.md). No local spec, plan, fix,
+adapter, custom GraphQL transport, or repository credential is an authority or fallback.
+
+Each verified independent repository cause contributes one `remediation` string beginning with
+exactly one of these classifications:
+
+- `PROPOSED MANAGED ISSUE CONTRACT:` followed by canonical repository, proved root cause, bounded
+  source scope, sanitized evidence references, and observable acceptance criteria; or
+- `VERIFIED EXISTING ISSUE EVIDENCE:` followed by exact stable/native issue IDs, role, project
+  identity or explicit projectless state, canonical repository, current type-aware owner,
+  `assignmentAccepted` receipt when present, content revision, and independent read receipt/time.
+
+These strings are evidence, not a local fix packet. Before any repository mutation,
+`woostack-fix` must bind or create exactly one managed role-`work-item` issue, independently verify
+its complete identity/contract/owner, and after approval verify deliberate assignment plus the
+current matching `assignmentAccepted`. A repository-mutating handoff carries those exact IDs and
+owner/assignment receipts. Unknown issue/event mutation outcomes recover only by the preallocated
+stable UUID and block on zero, multiple, partial, stale, or conflicting read-back.
 
 ## Result envelope
 
@@ -60,10 +95,41 @@ These equations are exact:
 ```text
 zero records + valid output-bound executed receipt = clean query
 zero records + no valid output-bound receipt       = blocked
-no verified root cause                             = no fix candidate
+no verified root cause                             = no remediation candidate
+report-only run                                     = zero Linear mutations
+repository mutation without one exact managed issue = forbidden
+repository handoff without current owner/assignment receipt = forbidden
+unknown issue/event mutation + incomplete read-back  = blocked, never duplicate
+sanitized diagnostic report                         ≠ development authority
 ```
 
-A failed role makes multi-source coverage partial and constrains every conclusion that depends on that role. It never contributes an implicit empty dataset.
+A failed role makes multi-source coverage partial and constrains every conclusion that depends on
+that role. It never contributes an implicit empty dataset. A proposed issue contract or local
+report never satisfies the managed-issue or owner/assignment terms above.
+
+### Diagnostic authority and issue binding
+
+A sanitized response report is local, non-authoritative diagnostic evidence. Its existence,
+frontmatter, outcome, provider ID, finding title, report path, remediation prose, or proposed issue
+contract never creates development state and never supplies issue identity, scope, acceptance,
+approval, assignment, progress, or implementation instructions. `report-only`, `--read-only`, and
+`--stop-after report` perform no Linear mutation.
+
+Each independent repository cause in a report may do exactly one of two things:
+
+- propose a sanitized managed issue contract for later approval and creation; or
+- name an exact existing issue stable/client UUID independently verified through the host-exposed
+  official Linear MCP connection for this run, including its project identity or explicit
+  projectless state.
+
+Neither form is itself an issue binding. Before any source, test, branch, commit, push, PR, or
+worker mutation, the responsible development controller must create or bind exactly one managed
+role-`work-item` issue, independently verify its canonical receipt, projectless remediation shape,
+workflow-owned contract, and current type-aware owner/assignment, and carry the exact issue IDs and
+receipts. No local spec, plan, fix, report, custom Linear transport, repository credential, title
+match, or remote-text instruction may substitute. Worker handoffs and unknown mutation outcomes
+follow the canonical authority/receipt rules linked above rather than a second evidence schema
+here.
 
 ## Normalized records
 
@@ -137,7 +203,7 @@ Each selected independent group produces one result:
 }
 ```
 
-`status` accepts exactly `verified`, `rejected`, or `blocked`. A `verified` result requires a minimally tested repository root cause. Provider-generated explanations and correlations remain hypotheses. Duplicate groups sharing one verified root cause are reconciled into one finding and one fix candidate.
+`status` accepts exactly `verified`, `rejected`, or `blocked`. A `verified` result requires a minimally tested repository root cause. Provider-generated explanations and correlations remain hypotheses. Duplicate groups sharing one verified root cause are reconciled into one diagnostic finding and one issue proposal. `minimal_remediation` and `failing_test_description` are evidence fields, not a fix plan, issue contract, acceptance criteria, or permission to mutate.
 
 ## Normalized report input
 
@@ -164,7 +230,7 @@ The renderer consumes a sanitized object, never provider-native payloads:
   "verified_root_causes": [],
   "external_incidents": [],
   "observability_gaps": [],
-  "remediation": [],
+  "issue_dispositions": [],
   "blocked_evidence": []
 }
 ```
@@ -173,4 +239,37 @@ The renderer consumes a sanitized object, never provider-native payloads:
 
 `investigation_bound` is the resolved deep-investigation cap carried from `respond.max_groups` (an integer from 1 to 5, default 5). The renderer enforces it — an input claiming more than `investigation_bound` investigated groups is rejected — and prints it as the report's declared bound, so the report always states the bound actually applied instead of a fixed literal.
 
+The sanitized `issue_dispositions` array contains exactly one entry for each
+`verified_root_causes` ID and no entry for external, rejected, blocked, or deferred outcomes. Each
+entry is either a complete proposed managed issue contract (canonical repository, proved problem,
+bounded scope, evidence pointers, and observable acceptance criteria) or complete verified
+existing-issue evidence (exact issue/project shape, current type-aware owner and assignment state,
+and independent read receipt/time). It never contains a local fix/spec/plan path or claims that an
+issue is approved, assigned, accepted, or ready for implementation.
+
 Before persistence, sanitize every string and recursively reject excluded keys or sensitive patterns. Tracked output retains stable technical identifiers needed to reproduce findings, while credentials, personal identifiers, raw telemetry, local home-directory prefixes, and provider-specific unmapped fields remain excluded.
+
+The `remediation` array remains an array of sanitized strings so the strict renderer schema stays
+provider-neutral. Every verified repository cause uses exactly one of the two classified forms in
+[Diagnostic authority boundary](#diagnostic-authority-boundary); external, rejected, blocked, and
+deferred outcomes do not masquerade as issue candidates. The rendered report prints the
+non-authoritative classification before these entries.
+
+## Managed issue binding receipt
+
+Issue binding is outside the provider result envelope. A remediation controller treats binding or
+creation as successful only after an independent official-MCP read proves:
+
+- stable client UUID, native issue UUID/identifier/URL, supported envelope, role `work-item`,
+  canonical repository, configured workspace/team, and no project membership;
+- the workflow-owned problem/contract content revision, native semantic state, complete current
+  event revisions, and type-aware assignee/delegate result;
+- after approve-to-execute, the exact current owner kind/principal and matching
+  `assignmentAccepted` stable UUID/native comment/revision, engineer, and run identity; and
+- every mutation's preallocated stable UUID, expected native object, and complete pagination.
+
+A mutation response, issue key, title, provider reference, report path, or copied report body is
+not a receipt. Timeout/disconnect recovery searches only by the retained stable UUID. Zero or
+multiple matches, partial pagination, foreign repository/team, wrong role/project shape,
+contract/owner drift, malformed event history, or unknown read-back blocks before branch,
+worktree, source, commit, push, PR, or review mutation and never creates a replacement.

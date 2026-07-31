@@ -52,3 +52,44 @@ assert_not_contains "$ADDRESS_SKILL" "No duplicate engine"
 assert_not_contains "$ADDRESS_SKILL" "review prefetch"
 assert_not_contains "$REVIEW_SKILL" "woostack-review address"
 assert_not_contains "$REVIEW_SKILL" "Addressing Reviews"
+
+
+# Linear-only attribution, type-aware ownership, typed evidence, and fail-closed recovery.
+for pattern in \
+  "official host-exposed Linear MCP" \
+  "Linear MCP development authority" \
+  "PR attribution contract" \
+  "Exact PR-to-issue binding" \
+  "canonical repository" \
+  "role-\`increment\`" \
+  "role-\`work-item\`" \
+  "type-aware owner" \
+  "native assignee" \
+  "native delegate" \
+  "assignmentAccepted" \
+  "reviewResult" \
+  "verification" \
+  "precommitReview" \
+  "implementationEvidence" \
+  "preallocated stable UUID" \
+  "independently read" \
+  "unknown Linear mutation" \
+  "Every worker/controller/re-review handoff carries exact project stable/native IDs" \
+  "woostack-commit --issue" \
+  "project <exact project UUID|URL>" \
+  "Never invoke a backend resolver" \
+  "No local development authority"; do
+  assert_contains "$ADDRESS_SKILL" "$pattern"
+done
+
+for forbidden in \
+  "resolve-backend\\.sh" \
+  "linear\\.sh" \
+  "markdown\\.sh" \
+  "backend == " \
+  "\\.woostack/specs/" \
+  "\\.woostack/plans/" \
+  "\\.woostack/fixes/" \
+  "LINEAR_API_KEY"; do
+  assert_not_contains "$ADDRESS_SKILL" "$forbidden"
+done

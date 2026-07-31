@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Prefetches PR diff, metadata, governing intent, and rules for the agentic review.
+# Prefetches PR diff, metadata, exact Linear trailer candidates, and review rules.
 # Inputs (env): GH_TOKEN, GITHUB_REPOSITORY, INPUT_SKIP_LABELS, INPUT_INCREMENTAL,
 #               INPUT_FORCE_TIER, PR_NUMBER, EVENT_NAME, EVENT_ACTION, COMMENT_BODY.
 # Outputs: skip=true|false and outdir=<path> to $GITHUB_OUTPUT (outdir also to stdout).
-# Side effects: writes /tmp/pr-review/{diff.txt,meta.json,last_sha.txt,prior-findings.json},
-#               intent.md when a governing woostack artifact resolves, and rules.md when
-#               project-rule files are discovered.
+# Side effects: writes /tmp/pr-review/{diff.txt,meta.json,attribution.md,last_sha.txt,
+#               prior-findings.json}, plus rules.md when project-rule files are
+#               discovered. It never reads authoritative Linear issue context.
 #
 # Incremental mode (INPUT_INCREMENTAL=auto, default): if a prior woostack-review marker
 # `<!-- woostack-review:sha=<oid> -->` is found in any prior review body, diff
@@ -60,8 +60,7 @@ has_complete_skill_packages() {
 if [ "${WOO_REVIEW_FRESH:-}" != "1" ] &&
   [ "${GITHUB_ACTIONS:-}" = "true" ] &&
   [ "${WOO_REVIEW_MODE:-}" = "review" ] &&
-  { [ -f "$OUTDIR/artifact-context.json" ] ||
-    has_complete_skill_packages; }; then
+  has_complete_skill_packages; then
   echo "::warning::prefetch: preserving detection artifacts for CI review worker" >&2
 elif [ "${WOO_REVIEW_FRESH:-}" != "1" ] && compgen -G "$OUTDIR/findings.*" >/dev/null 2>&1; then
   if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
@@ -345,9 +344,83 @@ HEAD_SHA=$(jq -r '.headRefOid' "$OUTDIR/meta.json")
 # Load per-repo config early (issue #19) so the bot-author / release-rollup
 # skip checks can read user overrides BEFORE we pay for the diff fetch.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
-# Resolve the governing spec+plan or self-contained fix once. Missing or ambiguous
-# intent is a successful no-op, so repositories without woostack artifacts review as before.
-bash "$SCRIPT_DIR/resolve-intent.sh"
+# Prefetch never reads local specs/plans/fixes or Linear. It records only an exact,
+# untrusted trailer candidate so a local host can verify it through official MCP.
+# GitHub Actions keeps this explicitly diff-only and advisory; no intent.md means
+# detect-angles.sh cannot run the contract-aware acceptance angle in CI.
+rm -f "$OUTDIR/intent.md"
+ATTRIBUTION_DELIVERY="local-mcp-verification-required"
+if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+  ATTRIBUTION_DELIVERY="ci-diff-only-advisory"
+fi
+python3 - "$OUTDIR/meta.json" "$OUTDIR/attribution.md" "$ATTRIBUTION_DELIVERY" <<'PY'
+import json
+import re
+import sys
+
+meta_path, output_path, delivery = sys.argv[1:]
+try:
+    with open(meta_path, encoding="utf-8") as source:
+        meta = json.load(source)
+except (OSError, ValueError):
+    meta = {}
+
+body = meta.get("body") if isinstance(meta, dict) else ""
+if not isinstance(body, str):
+    body = ""
+lines = body.split("\n")
+lines = [line[:-1] if line.endswith("\r") else line for line in lines]
+while lines and not lines[-1].strip():
+    lines.pop()
+
+uuid = r"[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}"
+issue = r"[A-Z][A-Z0-9]*-[1-9][0-9]*"
+project_pattern = re.compile(rf"Linear-Project: ({uuid})")
+issue_pattern = re.compile(rf"Linear-Issue: ({issue})")
+project_lines = [line for line in lines if re.search(r"(?<![A-Za-z0-9_])(?i:Linear-Project)[ \t]*:", line)]
+issue_lines = [line for line in lines if re.search(r"(?<![A-Za-z0-9_])(?i:Linear-Issue)[ \t]*:", line)]
+spec_lines = [line for line in lines if re.search(r"(?<![A-Za-z0-9_])(?i:Spec)[ \t]*:", line)]
+
+syntax = "absent"
+trailers = []
+if spec_lines:
+    syntax = "invalid"
+elif not project_lines and not issue_lines:
+    syntax = "absent"
+elif (
+    len(project_lines) == 1
+    and len(issue_lines) == 1
+    and len(lines) >= 2
+    and lines[-2:] == [project_lines[0], issue_lines[0]]
+    and project_pattern.fullmatch(project_lines[0])
+    and issue_pattern.fullmatch(issue_lines[0])
+):
+    syntax = "exact-project-issue"
+    trailers = [project_lines[0], issue_lines[0]]
+elif (
+    not project_lines
+    and len(issue_lines) == 1
+    and lines
+    and lines[-1] == issue_lines[0]
+    and issue_pattern.fullmatch(issue_lines[0])
+):
+    syntax = "exact-issue"
+    trailers = [issue_lines[0]]
+else:
+    syntax = "invalid"
+
+with open(output_path, "w", encoding="utf-8") as output:
+    output.write("# PR Linear attribution candidate\n\n")
+    output.write("authoritative-issue-context: absent\n")
+    output.write(f"delivery-boundary: {delivery}\n")
+    output.write(f"trailer-syntax: {syntax}\n")
+    if trailers:
+        output.write("\nexact-trailers:\n")
+        for trailer in trailers:
+            output.write(f"{trailer}\n")
+
+print(f"Prefetch attribution: {syntax}; authoritative issue context absent")
+PY
 bash "$SCRIPT_DIR/load-config.sh"
 
 # Force-tier precedence:
@@ -525,8 +598,8 @@ fi
 # even have the same tree. Detection/local prefetch therefore validates and
 # snapshots each owning package before any size/angle skip decisions. A CI stage
 # that downloaded detection artifacts preserves them instead of regenerating
-# them: review mode carries artifact-context.json, while validate modes carry
-# in-flight findings.*.
+# them: review mode carries the validated package snapshot, while validate modes
+# also carry in-flight findings.*.
 if [ "${GITHUB_ACTIONS:-}" = "true" ] &&
   has_complete_skill_packages &&
   { [ "${WOO_REVIEW_MODE:-}" = "review" ] ||

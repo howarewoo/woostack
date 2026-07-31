@@ -1,45 +1,113 @@
 #!/usr/bin/env bash
-# Renders $OUTDIR/findings.json into a severity-grouped markdown report (report-only; no network).
-# Writes AUDIT_REPORT_PATH (required; the caller sets it, e.g. .woostack/audits/<date>-<slug>.md)
-# and prints a terminal summary.
+# Renders $OUTDIR/findings.json into a sanitized, non-authoritative report (no network).
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]:-$0}")/../../woostack-review/scripts/resolve-outdir.sh"
 FINDINGS="$OUTDIR/findings.json"
 [ -f "$FINDINGS" ] || echo '[]' > "$FINDINGS"
 REPORT="${AUDIT_REPORT_PATH:?AUDIT_REPORT_PATH required}"
 TARGET="${AUDIT_TARGET:-(unspecified)}"
+REPOSITORY="${AUDIT_REPOSITORY:-$(git remote get-url origin 2>/dev/null || printf '(unknown repository)')}"
 mkdir -p "$(dirname "$REPORT")"
 
-python3 - "$FINDINGS" "$REPORT" "$TARGET" <<'PY'
-import json, sys
-findings = json.load(open(sys.argv[1]))
-report, target = sys.argv[2], sys.argv[3]
-lines = ["# Audit report — `%s`" % target, ""]
+python3 - "$FINDINGS" "$REPORT" "$TARGET" "$REPOSITORY" <<'PY'
+import json
+import os
+from pathlib import Path
+import re
+import sys
+import tempfile
+
+findings = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+report, target, repository = Path(sys.argv[2]), sys.argv[3], sys.argv[4]
+
+REDACTIONS = (
+    (re.compile(r"-----BEGIN [^-]*PRIVATE KEY-----.*?-----END [^-]*PRIVATE KEY-----", re.S), "[REDACTED_PRIVATE_KEY]"),
+    (re.compile(r"\bBearer\s+[A-Za-z0-9._~+/=-]+", re.I), "Bearer [REDACTED_TOKEN]"),
+    (re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|xox[baprs]-[A-Za-z0-9-]{10,})\b"), "[REDACTED_TOKEN]"),
+    (re.compile(r"(?i)\b(password|passwd|secret|token|api[_ -]?key|cookie)\b(\s*[:=]\s*)([^\s,;]+)"), r"\1\2[REDACTED_SECRET]"),
+    (re.compile(r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", re.I), "[REDACTED_EMAIL]"),
+    (re.compile(r"(?<![A-Za-z0-9_])/(?:Users|home)/[^/\s]+"), "[REDACTED_HOME]"),
+    (re.compile(r"(?i)\b[A-Z]:\\Users\\[^\\\s]+"), "[REDACTED_HOME]"),
+)
+RESIDUALS = (
+    re.compile(r"-----BEGIN [^-]*PRIVATE KEY-----", re.I),
+    re.compile(r"\bBearer\s+(?!\[REDACTED_TOKEN\])\S+", re.I),
+    re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|xox[baprs]-[A-Za-z0-9-]{10,})\b"),
+    re.compile(r"(?i)\b(?:password|passwd|secret|token|api[_ -]?key|cookie)\b\s*[:=]\s*(?!\[REDACTED_SECRET\])\S+"),
+    re.compile(r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", re.I),
+    re.compile(r"(?<![A-Za-z0-9_])/(?:Users|home)/[^/\s]+"),
+    re.compile(r"(?i)\b[A-Z]:\\Users\\[^\\\s]+"),
+    re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]"),
+)
+
+def clean(value):
+    text = "" if value is None else str(value)
+    for pattern, replacement in REDACTIONS:
+        text = pattern.sub(replacement, text)
+    return text
+
+target, repository = clean(target), clean(repository)
+lines = [
+    "Non-authoritative diagnostic evidence — report only.",
+    "",
+    f"# Audit report — `{target}`",
+    "",
+    f"- **Canonical repository:** {repository}",
+    "- **Authority:** diagnostic evidence only; not scope, approval, assignment, lifecycle, or acceptance.",
+    "- **Managed context:** none unless independently verified provenance is supplied by the caller.",
+    "",
+]
 if not findings:
-    lines += ["**Result: clean.** No findings.", ""]
+    lines += ["**Result: clean.** No findings in the executed audit coverage.", ""]
 else:
     order = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
-    # Use `(f.get(k) or default)`, not `f.get(k, default)`: a finding can carry an explicit null
-    # (jq `has()` passes null through merge-findings' schema gate), and dict.get only substitutes
-    # the default for *missing* keys — not null values. A null would otherwise reach the renderer
-    # and crash the sort/join or print a literal "None".
-    findings.sort(key=lambda f: (order.get((f.get("severity") or "LOW"), 3), (f.get("angle") or "")))
-    cur = None
-    for f in findings:
-        sev = f.get("severity") or "LOW"
-        if sev != cur:
-            lines += ["", "## %s" % sev, ""]
-            cur = sev
-        loc = "%s:%s" % (f.get("file") or "?", f.get("line") or "?")
+    findings.sort(key=lambda finding: (order.get(clean(finding.get("severity") or "LOW"), 3), clean(finding.get("angle") or "")))
+    current = None
+    for finding in findings:
+        severity = clean(finding.get("severity") or "LOW")
+        if severity != current:
+            lines += [f"## {severity}", ""]
+            current = severity
+        file = clean(finding.get("file") or "?")
+        line = clean(finding.get("line") or "?")
+        location = f"{file}:{line}"
+        title = clean(finding.get("title") or "(untitled)")
+        description = clean(finding.get("description") or "")
+        direction = clean(finding.get("fix") or "Reproduce the cited behavior and define the smallest corrective change.")
+        angle = clean(finding.get("angle") or "?")
         lines += [
-            "### %s — `%s` · `%s`" % (f.get("title") or "(untitled)", loc, f.get("angle") or "?"),
-            f.get("description") or "",
+            f"### {title} — `{location}` · `{angle}`",
             "",
-            "**Fix:** %s" % (f.get("fix") or ""),
+            description,
             "",
-            "_Next: `/woostack-fix` for a small change, `/woostack-build` for a larger one._",
+            f"**Bounded remediation direction:** {direction}",
+            "",
+            "#### Proposed managed issue contract",
+            "",
+            f"- **Canonical repository:** {repository}",
+            f"- **Proved problem/root cause:** {title} — {description}",
+            f"- **Bounded source scope:** `{location}`",
+            f"- **Evidence pointer:** validated `{angle}` audit finding at `{location}`",
+            f"- **Observable acceptance criteria:** the cited behavior no longer reproduces at `{location}` under focused verification.",
             "",
         ]
-open(report, "w").write("\n".join(lines) + "\n")
-print("audit: %d finding(s) -> %s" % (len(findings), report))
+
+markdown = "\n".join(lines) + "\n"
+for residual in RESIDUALS:
+    if residual.search(markdown):
+        raise SystemExit("audit renderer residual sanitization failure")
+
+fd, temporary_name = tempfile.mkstemp(prefix=".audit-", suffix=".md", dir=report.parent)
+temporary = Path(temporary_name)
+try:
+    with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as handle:
+        handle.write(markdown)
+        handle.flush()
+        os.fsync(handle.fileno())
+    os.replace(temporary, report)
+except BaseException:
+    temporary.unlink(missing_ok=True)
+    raise
+
+print(f"audit: {len(findings)} finding(s) -> {report}")
 PY

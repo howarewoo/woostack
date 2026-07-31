@@ -4,10 +4,24 @@
   "cases": [
     {
       "id": "running-onboarding-browser-exploration",
-      "query": "The onboarding branch has a preview at http://localhost:5173. Use it like a new team owner—invite members, go backward, refresh midway, and retry failed submissions—and tell me which problems you can reproduce, including relevant browser or network evidence.",
+      "query": "The onboarding branch has a preview at http://localhost:5173. Use it like a new team owner—invite members, go backward, refresh midway, and retry failed submissions—and tell me which problems you can reproduce in a sanitized local report labeled non-authoritative. Do not change code or Linear; propose an issue contract for each confirmed bug instead.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-qa",
       "conflictsWith": ["woostack-debug", "woostack-audit", "woostack-review"]
+    },
+    {
+      "id": "live-checkout-qa-produces-report-not-remediation",
+      "query": "Explore http://localhost:4173/checkout in a real browser, reproduce the timeout twice, and write a sanitized non-authoritative QA report with a proposed managed issue contract. Do not mutate Linear or application source.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-qa",
+      "conflictsWith": ["woostack-fix", "woostack-respond", "woostack-audit"]
+    },
+    {
+      "id": "confirmed-qa-report-remediation-belongs-to-fix",
+      "query": "The browser defect is already reproduced and documented. Implement the bounded correction under the exact managed work-item at https://linear.app/acme/issue/11111111-1111-4111-8111-111111111111.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-fix",
+      "conflictsWith": ["woostack-qa"]
     },
     {
       "id": "standing-onboarding-code-audit",
@@ -21,6 +35,13 @@
       "query": "PR #411 changes three onboarding steps. Check whether the diff introduces regressions or misses necessary tests, validate each concern, and leave the result on the pull request.",
       "shouldTrigger": false,
       "expectedSkill": "woostack-review",
+      "conflictsWith": ["woostack-qa"]
+    },
+    {
+      "id": "local-qa-report-is-not-remediation-authority",
+      "query": "Take .woostack/qa/2026-07-27-onboarding.md as the acceptance contract and implement every recommendation now without creating or binding a Linear issue.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-fix",
       "conflictsWith": ["woostack-qa"]
     }
   ]

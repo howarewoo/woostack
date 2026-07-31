@@ -20,7 +20,7 @@ complete=$(render "$fixtures/report-complete.json")
 python3 - "$complete" <<'PY' || exit 1
 import pathlib, sys
 text = pathlib.Path(sys.argv[1]).read_text()
-assert text.startswith("---\ntype: response\noutcome: complete\n")
+assert text.startswith("Non-authoritative diagnostic evidence — report only.\n\n---\ntype: response\noutcome: complete\n")
 assert "\nstatus:" not in text
 assert "Raw Payload" not in text
 sections = [
@@ -34,7 +34,9 @@ assert positions == sorted(positions)
 assert text.index("g1 — Checkout 500 A") < text.index("g2 — Checkout 500 B") < text.index("g6 — Worker timeout")
 assert text.count("### rc-checkout — Nil cart currency") == 1
 assert "Deferred" in text and "hyp-webhook" in text and "hyp-cache" in text
-assert ".woostack/fixes/checkout.md" in text and ".woostack/fixes/provider-observability.md" in text
+assert text.count("### rc-checkout — proposed-managed-issue-contract") == 1
+assert "Authority: non-authoritative diagnostic evidence" in text
+assert ".woostack/fixes/" not in text and "fix/checkout" not in text
 assert text.index("sentry / error-tracking") < text.index("vercel / deployment")
 PY
 
@@ -64,6 +66,12 @@ data["coverage"][0] = {"provider": data["coverage"][0]["provider"], "role": data
 data = json.loads(source.read_text())
 data["verified_root_causes"][0]["evidence"] = ["Authorization: Bearer synthetic-secret-token"]
 (out / "token.json").write_text(json.dumps(data))
+data = json.loads(source.read_text())
+data["issue_dispositions"] = []
+(out / "missing-disposition.json").write_text(json.dumps(data))
+data = json.loads(source.read_text())
+data["issue_dispositions"].append(dict(data["issue_dispositions"][0]))
+(out / "duplicate-disposition.json").write_text(json.dumps(data))
 data = json.loads(source.read_text())
 data["signal"] = "東京"
 data["scope"] = "!!!"
@@ -114,6 +122,8 @@ before=$(find "$reports" -type f | wc -l | tr -d ' ')
 if render "$tmp/unknown.json" >/dev/null 2>&1; then fail "unknown top-level field accepted"; fi
 if render "$tmp/false-complete.json" >/dev/null 2>&1; then fail "false complete accepted"; fi
 if render "$tmp/token.json" >/dev/null 2>&1; then fail "bearer token accepted"; fi
+if render "$tmp/missing-disposition.json" >/dev/null 2>&1; then fail "verified cause without disposition accepted"; fi
+if render "$tmp/duplicate-disposition.json" >/dev/null 2>&1; then fail "duplicate cause disposition accepted"; fi
 if render "$tmp/empty-slug.json" >/dev/null 2>&1; then fail "empty report slug accepted"; fi
 if render "$tmp/bound-high.json" >/dev/null 2>&1; then fail "investigation_bound above five accepted"; fi
 if render "$tmp/bound-low.json" >/dev/null 2>&1; then fail "investigated groups exceeding bound accepted"; fi
