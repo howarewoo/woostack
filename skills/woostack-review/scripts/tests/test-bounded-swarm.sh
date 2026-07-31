@@ -225,8 +225,7 @@ jq -n '{
 cat > "$engineer/isolated-worker.sh" <<'WORKER'
 #!/usr/bin/env bash
 set -euo pipefail
-[ "$PWD" = "$OUTDIR" ]
-[ -z "${LINEAR_API_KEY:-}" ]
+[ "$PWD" = "$(cd "$OUTDIR" && pwd -P)" ]
 [ -z "${GH_TOKEN:-}" ]
 [ -z "${GITHUB_TOKEN:-}" ]
 [ -z "${SSH_AUTH_SOCK:-}" ]
@@ -250,7 +249,6 @@ rc=0
     WOO_REVIEW_ENGINEER_UNIT=true \
     WOO_REVIEW_PROVIDER_ENV=REVIEW_PROVIDER_TOKEN \
     REVIEW_PROVIDER_TOKEN=provider-token \
-    LINEAR_API_KEY=linear-secret \
     GH_TOKEN=github-secret \
     GITHUB_TOKEN=github-actions-secret \
     SSH_AUTH_SOCK=/tmp/ssh-agent.sock \

@@ -2,13 +2,13 @@
 set -euo pipefail
 export LC_ALL=C
 
-SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-REPOSITORY_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/../../../.." && pwd)
-VALIDATOR="$SCRIPT_DIR/../validate.mjs"
+REPOSITORY_ROOT=$(git -C "$(dirname "${BASH_SOURCE[0]}")" rev-parse --show-toplevel)
+SCRIPT_DIR="$REPOSITORY_ROOT/skills/woostack-eval/scripts/tests"
+VALIDATOR="$REPOSITORY_ROOT/skills/woostack-eval/scripts/validate.mjs"
 NODE=${NODE:-node}
 # shellcheck source=../../../woostack-init/scripts/path-args.sh
 . "$REPOSITORY_ROOT/skills/woostack-init/scripts/path-args.sh"
-TMP_ROOT=$(mktemp -d "${TMPDIR:-/tmp}/woostack-eval-critical-corpora.XXXXXX")
+TMP_ROOT=$(mktemp -d "$REPOSITORY_ROOT/.woostack-eval-critical-corpora.XXXXXX")
 trap 'rm -rf "$TMP_ROOT"' EXIT HUP INT TERM
 
 fail() {
@@ -94,27 +94,186 @@ const requiredContractProofs = {
     'missing receipt blocks': [['missing-receipt-reported'], ['aggregation-blocked'], ['clean-comparison-denied']],
   },
   'woostack-build': {
-    'official Linear authority without backend fallback': [['official-linear-authority'], ['no-backend-resolution']],
-    'bounded work routes before project creation': [['bounded-shape-detected'], ['bounded-project-not-created'], ['bounded-route-selected'], ['project-build-stopped']],
+    'official Linear MCP feature authority': [
+      ['official-linear-mcp-only'],
+      ['official-linear-mcp-endpoint'],
+      ['complete-official-mcp-preflight'],
+      ['exact-feature-project-retained'],
+      ['exact-feature-project-native-id'],
+      ['feature-project-read-back'],
+      ['specification-project-update'],
+      ['all-managed-readbacks-complete'],
+    ],
+    'native phase and complete issue graph gate overnight dispatch': [
+      ['exact-native-phase-chain'],
+      ['complete-increment-issue-graph'],
+      ['overnight-dispatch-preconditions-verified'],
+    ],
+    'local and document inputs never become development authority': [
+      ['build-input-blocked-without-canonical-project'],
+      ['build-input-canonical-project-unresolved'],
+      ['build-input-local-spec-rejected'],
+      ['build-input-local-plan-rejected'],
+      ['build-input-linear-document-rejected'],
+      ['build-input-no-authority-fallback'],
+      ['build-input-no-managed-mutation'],
+      ['build-input-no-git-mutation'],
+      ['build-input-requires-canonical-project-identity'],
+    ],
+    'raw capability and authentication failures override preflightComplete': [
+      ['build-snapshot-01-blocked'],
+      ['build-snapshot-01-reason'],
+      ['build-snapshot-01-zero-dispatch'],
+      ['build-snapshot-01-zero-managed-mutation'],
+      ['build-snapshot-01-zero-repository-mutation'],
+      ['build-snapshot-02-blocked'],
+      ['build-snapshot-02-reason'],
+      ['build-snapshot-02-zero-dispatch'],
+      ['build-snapshot-02-zero-managed-mutation'],
+      ['build-snapshot-02-zero-repository-mutation'],
+    ],
+    'incomplete pagination and read-back override preflightComplete': [
+      ['build-snapshot-03-blocked'],
+      ['build-snapshot-03-reason'],
+      ['build-snapshot-03-zero-dispatch'],
+      ['build-snapshot-03-zero-managed-mutation'],
+      ['build-snapshot-03-zero-repository-mutation'],
+      ['build-snapshot-04-blocked'],
+      ['build-snapshot-04-reason'],
+      ['build-snapshot-04-zero-dispatch'],
+      ['build-snapshot-04-zero-managed-mutation'],
+      ['build-snapshot-04-zero-repository-mutation'],
+    ],
+    'mutation and independent receipt mismatch blocks': [
+      ['build-snapshot-05-blocked'],
+      ['build-snapshot-05-reason'],
+      ['build-snapshot-05-zero-dispatch'],
+      ['build-snapshot-05-zero-managed-mutation'],
+      ['build-snapshot-05-zero-repository-mutation'],
+    ],
+    'duplicate and multiple lifecycle heads block': [
+      ['build-snapshot-06-blocked'],
+      ['build-snapshot-06-reason'],
+      ['build-snapshot-06-zero-dispatch'],
+      ['build-snapshot-06-zero-managed-mutation'],
+      ['build-snapshot-06-zero-repository-mutation'],
+      ['build-snapshot-07-blocked'],
+      ['build-snapshot-07-reason'],
+      ['build-snapshot-07-zero-dispatch'],
+      ['build-snapshot-07-zero-managed-mutation'],
+      ['build-snapshot-07-zero-repository-mutation'],
+    ],
+    'wrong predecessor and native category block': [
+      ['build-snapshot-08-blocked'],
+      ['build-snapshot-08-reason'],
+      ['build-snapshot-08-zero-dispatch'],
+      ['build-snapshot-08-zero-managed-mutation'],
+      ['build-snapshot-08-zero-repository-mutation'],
+      ['build-snapshot-09-blocked'],
+      ['build-snapshot-09-reason'],
+      ['build-snapshot-09-zero-dispatch'],
+      ['build-snapshot-09-zero-managed-mutation'],
+      ['build-snapshot-09-zero-repository-mutation'],
+    ],
+    'missing foreign and cyclic increment dependency relations block': [
+      ['build-snapshot-10-blocked'],
+      ['build-snapshot-10-reason'],
+      ['build-snapshot-10-zero-dispatch'],
+      ['build-snapshot-10-zero-managed-mutation'],
+      ['build-snapshot-10-zero-repository-mutation'],
+      ['build-snapshot-11-blocked'],
+      ['build-snapshot-11-reason'],
+      ['build-snapshot-11-zero-dispatch'],
+      ['build-snapshot-11-zero-managed-mutation'],
+      ['build-snapshot-11-zero-repository-mutation'],
+      ['build-snapshot-12-blocked'],
+      ['build-snapshot-12-reason'],
+      ['build-snapshot-12-zero-dispatch'],
+      ['build-snapshot-12-zero-managed-mutation'],
+      ['build-snapshot-12-zero-repository-mutation'],
+    ],
     'exactly three explicit gates': [['exact-three-gates']],
-    'terminal choices and incompatible dispatch guard': [['complete-terminal-choice-set'], ['overnight-choice-preserved'], ['executor-compatibility-rejected'], ['incompatible-dispatch-blocked'], ['incompatible-dispatch-stays-ready'], ['execution-approval-not-appended'], ['legacy-executor-not-dispatched']],
-    'no merge': [['build-never-merges'], ['bounded-route-never-merges']],
+    'Go, overnight, or handoff terminal choice': [
+      ['complete-terminal-choice-set'],
+      ['overnight-choice-preserved'],
+      ['overnight-driver-selected'],
+    ],
+    'no merge': [['build-never-merges']],
   },
   'woostack-plan': {
-    'stable issue reconciliation': [['reconcile-advances'], ['reconcile-identities'], ['reconcile-count']],
-    'native dependencies independent of ordinal order': [['reconcile-relation'], ['reconcile-ordinal-not-ancestry']],
-    'verified mutation receipts': [['reconcile-read-back']],
-    'evidence-bearing removal refusal': [['replan-blocks'], ['replan-reason'], ['replan-preserves-identities'], ['replan-read-back']],
-    'no repository effects': [['reconcile-no-repository-effects'], ['replan-no-repository-effects']],
+    'official MCP and exact feature project authorize planning': [
+      ['plan-official-linear-mcp'],
+      ['plan-official-mcp-endpoint'],
+      ['plan-complete-mcp-preflight'],
+      ['plan-exact-feature-project'],
+      ['plan-current-approved-head'],
+    ],
+    'verified planning event precedes every issue mutation': [
+      ['plan-exact-planning-readback'],
+      ['plan-phase-before-issue-mutations'],
+      ['plan-final-phase'],
+      ['plan-backlog-category'],
+    ],
+    'complete stable issue graph and native relations are read back': [
+      ['plan-complete-increment-graph'],
+      ['plan-all-readbacks-complete'],
+    ],
+    'missing or partial official MCP blocks all mutation': [
+      ['plan-missing-partial-mcp-decisions'],
+      ['plan-mcp-blocks-project-update'],
+      ['plan-mcp-blocks-issues'],
+      ['plan-mcp-blocks-repository'],
+    ],
+    'wrong role or repository blocks before phase consumption': [
+      ['plan-wrong-role-repository-decisions'],
+      ['plan-identity-blocks-phase-read'],
+      ['plan-identity-blocks-planning-mutation'],
+      ['plan-identity-blocks-issue-mutation'],
+    ],
+    'duplicate revisions and multiple current heads fail closed': [
+      ['plan-duplicate-head-decisions'],
+      ['plan-conflict-selects-no-head'],
+      ['plan-conflict-no-planning-mutation'],
+      ['plan-conflict-no-issue-mutation'],
+    ],
+    'unknown planning mutation preserves identity without retry': [
+      ['plan-unknown-mutation-reason'],
+      ['plan-unknown-preserves-event-id'],
+      ['plan-unknown-single-append'],
+      ['plan-unknown-zero-rediscovery'],
+      ['plan-unknown-no-replacement-event'],
+      ['plan-unknown-no-same-phase-retry'],
+      ['plan-unknown-no-issue-mutation'],
+    ],
+    'incomplete event or issue read-back stops at its mutation boundary': [
+      ['plan-incomplete-event-readback-reason'],
+      ['plan-incomplete-event-not-accepted'],
+      ['plan-incomplete-event-no-issues'],
+      ['plan-incomplete-issue-readback-reason'],
+      ['plan-incomplete-issue-not-accepted'],
+      ['plan-incomplete-issue-no-relations'],
+      ['plan-incomplete-issue-stable-id'],
+    ],
+    'planning never appends ready or mutates the repository': [
+      ['plan-does-not-append-ready'],
+      ['plan-no-repository-mutation'],
+    ],
   },
   'woostack-fix': {
-    'diagnosis and root cause before issue creation': [['root-cause-blocker'], ['no-issue-before-root-cause']],
-    'exact standalone issue without wrapper project': [['exact-issue-retained'], ['standalone-role-retained'], ['no-wrapper-project']],
-    'one explicit approval gate with read-back': [['exact-one-gate'], ['explicit-approval-read-back']],
-    'stable safe create and independent read-back': [['stable-client-id'], ['complete-create-readback'], ['no-replacement']],
-    'invalid identity and receipt conflicts fail before mutation': [['every-invalid-identity-blocked'], ['identity-failure-no-repository-mutation'], ['every-conflict-blocked'], ['conflicts-stop-repository-mutation']],
-    'execution delegated': [['execution-is-delegated']],
-    'no merge': [['fix-never-merges-on-block'], ['fix-never-merges-after-approval'], ['conflicts-never-merge']],
+    'root cause before managed issue': [['root-cause-blocker'], ['no-issue-before-root-cause']],
+    'verified standalone work item without wrapper project': [
+      ['verified-issue-state'],
+      ['standalone-role-retained'],
+      ['no-wrapper-project'],
+      ['complete-create-readback'],
+    ],
+    'one approval gate and execution delegation': [
+      ['exact-one-gate'],
+      ['explicit-approval-read-back'],
+      ['execution-is-delegated'],
+    ],
+    'retired authorities fail closed': [['conflict-matrix-blocked'], ['no-local-fallback'], ['no-local-fix-file']],
+    'no merge': [['fix-never-merges-on-block'], ['fix-never-merges-after-approval']],
   },
   'woostack-execute': {
     'verified authority before execution': [['root-assignment-receipt'], ['standalone-assignment'], ['local-no-fallback']],
@@ -131,14 +290,97 @@ const requiredContractProofs = {
     'no local authority or merge': [['no-local-report-path'], ['overnight-never-merges']],
   },
   'woostack-commit': {
-    'standalone issue-only attribution and lifecycle': [['standalone-role'], ['standalone-no-project'], ['standalone-exact-trailer'], ['standalone-in-review']],
-    'project increment attribution and ancestry': [['increment-role'], ['increment-project-used'], ['increment-exact-trailer-pair'], ['increment-ancestry-verified'], ['increment-relation-verified']],
-    'malformed attribution blocks every side effect': [['malformed-blocked'], ['malformed-no-commit'], ['malformed-no-pr-write'], ['malformed-no-state']],
-    'implementation evidence read-back gates submit': [['partial-read-blocked'], ['partial-read-keeps-commit'], ['partial-read-no-submit']],
-    'resume skips exact boundaries and duplicates': [['resume-first-missing-boundary'], ['resume-skips-exact-mutations'], ['resume-does-not-resubmit'], ['resume-does-not-duplicate-event']],
-    'unknown submit repeats only after complete absence': [['absence-resumes-submit'], ['absence-permits-one-resubmit'], ['absence-does-not-recommit']],
-    'stale PR reconstruction uses committed diff only': [['stale-pr-uses-committed-diff'], ['stale-pr-uses-exact-identity'], ['stale-pr-ignores-dirty-state'], ['stale-pr-edit-next']],
-    'no merge': [['standalone-never-merges'], ['increment-never-merges'], ['malformed-never-merges'], ['partial-read-never-merges'], ['resume-never-merges'], ['absence-never-merges'], ['stale-pr-never-merges']],
+    'standalone and increment attribution are exact': [
+      ['standalone-role'],
+      ['standalone-no-project'],
+      ['standalone-exact-trailer'],
+      ['increment-role'],
+      ['increment-project-used'],
+      ['increment-exact-trailer-pair'],
+    ],
+    'commit submit relation and state read-backs are ordered': [
+      ['standalone-operation-order'],
+      ['increment-relation-verified'],
+      ['partial-read-blocked'],
+    ],
+    'unknown outcomes resume without replay': [
+      ['resume-skips-exact-mutations'],
+      ['absence-permits-one-resubmit'],
+      ['stale-pr-uses-committed-diff'],
+    ],
+    'direct branch creation is one exact native-issue action': [
+      ['direct-branch-ready'],
+      ['direct-branch-action'],
+      ['direct-branch-name'],
+      ['direct-native-identity-binding'],
+      ['direct-parent-binding'],
+      ['direct-worktree-binding'],
+      ['direct-command-choice'],
+      ['direct-command-counts'],
+    ],
+    'caller-created branch claim and worktree are reused without creation': [
+      ['reuse-branch-ready'],
+      ['reuse-branch-action'],
+      ['reuse-branch-name'],
+      ['reuse-native-identity-binding'],
+      ['reuse-parent-binding'],
+      ['reuse-worktree-binding'],
+      ['reuse-command-choice'],
+      ['reuse-command-counts'],
+    ],
+    'unsafe branch admission fails closed before every mutation': [
+      ['collision-branch-blocked'],
+      ['collision-branch-reason'],
+      ['collision-no-branch-action'],
+      ['collision-no-branch-name'],
+      ['collision-no-command-choice'],
+      ['collision-zero-command-counts'],
+      ['collision-no-selected-bindings'],
+      ['collision-no-parent-binding'],
+      ['collision-no-worktree-binding'],
+      ['collision-zero-forbidden-mutations'],
+      ['owner-drift-branch-blocked'],
+      ['owner-drift-branch-reason'],
+      ['owner-drift-no-branch-action'],
+      ['owner-drift-no-branch-name'],
+      ['owner-drift-no-command-choice'],
+      ['owner-drift-zero-command-counts'],
+      ['owner-drift-no-selected-bindings'],
+      ['owner-drift-no-parent-binding'],
+      ['owner-drift-no-worktree-binding'],
+      ['owner-drift-zero-forbidden-mutations'],
+      ['worktree-drift-branch-blocked'],
+      ['worktree-drift-branch-reason'],
+      ['worktree-drift-no-branch-action'],
+      ['worktree-drift-no-branch-name'],
+      ['worktree-drift-no-command-choice'],
+      ['worktree-drift-zero-command-counts'],
+      ['worktree-drift-no-selected-bindings'],
+      ['worktree-drift-no-parent-binding'],
+      ['worktree-drift-no-worktree-binding'],
+      ['worktree-drift-zero-forbidden-mutations'],
+      ['preexisting-artifact-branch-blocked'],
+      ['preexisting-artifact-branch-reason'],
+      ['preexisting-artifact-no-branch-action'],
+      ['preexisting-artifact-no-branch-name'],
+      ['preexisting-artifact-no-command-choice'],
+      ['preexisting-artifact-zero-command-counts'],
+      ['preexisting-artifact-no-selected-bindings'],
+      ['preexisting-artifact-no-parent-binding'],
+      ['preexisting-artifact-no-worktree-binding'],
+      ['preexisting-artifact-zero-forbidden-mutations'],
+      ['title-identity-branch-blocked'],
+      ['title-identity-branch-reason'],
+      ['title-identity-no-branch-action'],
+      ['title-identity-no-branch-name'],
+      ['title-identity-no-command-choice'],
+      ['title-identity-zero-command-counts'],
+      ['title-identity-no-selected-bindings'],
+      ['title-identity-no-parent-binding'],
+      ['title-identity-no-worktree-binding'],
+      ['title-identity-zero-forbidden-mutations'],
+    ],
+    'no merge': [['standalone-never-merges'], ['increment-never-merges']],
   },
   'woostack-review': {
     'all angle receipts before merge and post': [['missing-security-receipt'], ['no-findings-merge'], ['no-validation'], ['no-review-post'], ['success-receipts-complete']],
@@ -196,195 +438,173 @@ const requiredContractProofs = {
     'invalid source paths fail closed without output': [['rejected-visualize-status'], ['rejected-visualize-reasons'], ['rejected-visualize-no-local-authority'], ['rejected-visualize-no-side-effects'], ['rejected-visualize-no-output']],
   },
   'woostack-init': {
-    'official MCP preflight before project, Git, or workspace access': [['missing-mcp-zero-project-access'], ['missing-mcp-zero-git-access'], ['success-zero-project-access-before-preflight'], ['success-writes-started-after-preflight']],
-    'all preflight ambiguity and receipt failures block': [['missing-mcp-blocks'], ['auth-blocks'], ['identity-blocks'], ['mapping-blocks'], ['read-only-blocks'], ['read-back-blocks']],
-    'canonical workspace creation and repair boundary': [structural('memory-index-created'), structural('wisdom-marker-created'), structural('respond-directory-materialized'), structural('gitignore-created'), ['no-local-specs'], ['no-local-plans'], ['no-local-fixes'], ['no-clobber-mode-reported']],
-    'doctor-validated no-clobber result': [['validation-order'], ['packaged-doctor-invocation'], ['doctor-target-is-repository-root'], ['doctor-validation-succeeded'], ['config-before-hash'], ['config-after-hash']],
-    'config and existing files remain intact': [['config-preserved-on-disk'], ['existing-file-preserved-on-disk']],
-    'loss-safe migration classification': [['migration-status'], ['migration-deletions'], ['migration-resume-id']],
+    'official MCP preflight blocks before project access': [
+      ['missing-mcp-blocks'],
+      ['auth-blocks'],
+      ['identity-blocks'],
+      ['mapping-blocks'],
+      ['read-only-blocks'],
+      ['read-back-blocks'],
+    ],
+    'successful preflight precedes workspace writes': [
+      ['success-zero-project-access-before-preflight'],
+      ['success-writes-started-after-preflight'],
+      ['validation-order'],
+      ['doctor-validation-succeeded'],
+    ],
+    'incomplete active evidence remains preservation-only': [
+      ['migration-active-status'],
+      ['migration-active-classification'],
+      ['migration-active-reason'],
+      ['migration-active-stable-ids'],
+      ['migration-active-no-deletion'],
+      ['migration-active-no-mutation'],
+      ['migration-active-spec-retained'],
+      ['migration-active-plan-retained'],
+    ],
+    'eligible active creation requires authenticated approvals and complete pre-delete proof': [
+      ['migration-create-status'],
+      ['migration-create-approval-receipts'],
+      ['migration-create-readback'],
+      ['migration-create-spec-body'],
+      ['migration-create-one-current-head'],
+      ['migration-create-graph-complete'],
+      ['migration-create-predelete-complete-set'],
+      ['migration-create-predelete-git-bytes'],
+      ['migration-create-deletion'],
+    ],
+    'historical completion requires exact merge evidence and recovery': [
+      ['migration-historical-classification'],
+      ['migration-historical-merge-proof'],
+      ['migration-historical-all-receipts'],
+      ['migration-historical-git-recovery'],
+      ['migration-historical-stable-id'],
+      ['migration-historical-provenance'],
+      ['migration-historical-delete-after-proof'],
+      ['migration-historical-no-remote-mutation'],
+    ],
+    'ambiguous classification preserves all local evidence': [
+      ['migration-ambiguous-classification'],
+      ['migration-ambiguous-provenance'],
+      ['migration-ambiguous-no-deletions'],
+      ['migration-ambiguous-no-remote-mutation'],
+    ],
+    'incomplete and unknown outcomes retain stable retry identity': [
+      ['migration-incomplete-classification'],
+      ['migration-incomplete-stable-id'],
+      ['migration-incomplete-provenance'],
+      ['migration-incomplete-no-deletions'],
+      ['migration-incomplete-no-create-replay'],
+      ['migration-unknown-classification'],
+      ['migration-unknown-stable-id'],
+      ['migration-unknown-retry-policy'],
+      ['migration-unknown-provenance'],
+      ['migration-unknown-no-deletions'],
+      ['migration-unknown-no-create-replay'],
+    ],
+    'partial and foreign receipts fail closed without local deletion': [
+      ['migration-partial-classification'],
+      ['migration-partial-stable-ids'],
+      ['migration-partial-provenance'],
+      ['migration-partial-no-deletions'],
+      ['migration-partial-no-remote-mutation'],
+      ['migration-foreign-classification'],
+      ['migration-foreign-stable-id'],
+      ['migration-foreign-provenance'],
+      ['migration-foreign-no-deletions'],
+      ['migration-foreign-no-mutation'],
+    ],
+    'clean CRLF checkout uses filtered Git identity': [
+      ['migration-crlf-comparison'],
+      ['migration-crlf-raw-bytes-differ'],
+      ['migration-crlf-normalized-identity'],
+      ['migration-crlf-recovery-verified'],
+      ['migration-crlf-no-deletion'],
+    ],
+    'mixed records classify and act per subset': [
+      ['migration-mixed-record-classifications'],
+      ['migration-mixed-active-subset'],
+      ['migration-mixed-historical-subset'],
+      ['migration-mixed-active-reconciled'],
+      ['migration-mixed-history-no-linear'],
+      ['migration-mixed-deletion-mode'],
+      ['migration-mixed-deletions'],
+    ],
+    'late final-boundary failure preserves source and knowledge': [
+      ['migration-late-boundary-status'],
+      ['migration-late-boundary-reason'],
+      ['migration-late-rewrite-not-applied'],
+      ['migration-late-original-provenance'],
+      ['migration-late-no-deletions'],
+      ['migration-late-source-retained'],
+      ['migration-late-knowledge-retained'],
+    ],
+    'no local development record directories': [['no-local-specs'], ['no-local-plans'], ['no-local-fixes']],
+    'no config clobber': [['config-before-hash'], ['config-after-hash'], ['config-preserved-on-disk'], ['existing-file-preserved-on-disk']],
   },
   'woostack-doctor': {
-    'diagnose before explicit local repair approval': [structural('config-key-diagnosed'), ['repair-approval-pending'], ['doctor-config-not-repaired']],
-    'remote read-only normalized receipt': [['one-receipt-provenance-observed'], ['no-provider-invocation'], ['no-legacy-adapter-invocation'], ['remote-mutation-boundary'], ['live-failure-report-only']],
-    'exit-coded CI behavior': [['ci-finding-codes'], ['ci-nonzero-reported']],
-    'verified provenance succeeds without fallback': [['success-one-provenance'], ['success-no-provider'], ['success-no-legacy-adapter'], ['success-no-remote-mutation']],
+    'diagnose before explicit local repair approval': [
+      ['diagnosis-completed-first'],
+      ['repair-approval-pending'],
+      ['doctor-config-not-repaired'],
+    ],
+    'remote diagnostics consume receipts without adapters': [
+      ['one-receipt-provenance-observed'],
+      ['no-provider-invocation'],
+      ['no-legacy-adapter-invocation'],
+      ['remote-mutation-boundary'],
+      ['live-failure-report-only'],
+    ],
+    'verified receipt passes read-only': [
+      ['success-one-provenance'],
+      ['success-no-provider'],
+      ['success-no-legacy-adapter'],
+      ['success-no-remote-mutation'],
+      ['success-no-repair'],
+    ],
   },
   'woostack-status': {
-    'one corrected current lifecycle chain': [['phase-ready'], ['corrected-head'], ['correction-valid'], ['not-blocked'], ['no-write']],
-    'ambiguous phase chains fail closed': [['blocked'], ['multiple-head-code'], ['no-write-on-ambiguity'], ['no-stale-render']],
-    'exact blocker resolution restores the phase category': [['phase-unchanged'], ['no-open-blocker'], ['planned-restored'], ['resolution-valid'], ['no-redundant-write']],
+    'one corrected current phase chain': [['phase-ready'], ['corrected-head'], ['correction-valid']],
+    'feature and standalone board derive from Linear': [
+      ['board-rendered'],
+      ['standalone-row'],
+      ['no-synthetic-project'],
+      ['no-unrelated-mutation'],
+    ],
+    'terminal reconciliation is merge and acceptance backed': [
+      ['only-app12-prior-eligible'],
+      ['exact-issue-done'],
+      ['second-read-accepted'],
+      ['no-terminal-replay'],
+      ['partial-project-not-complete'],
+    ],
+    'attribution mismatch blocks without fallback': [['mismatch-blocks'], ['no-write-on-mismatch'], ['no-fallback']],
+    'canonical issue events dispatch strictly': [['all-canonical-kinds'], ['unsupported-kind-blocked'], ['no-generic-fallback']],
   },
 };
 
-// These hashes pin the canonical JSON of every assertion in its owning case. Together with the
-// exact capability sets and duplicate-ID rejection, they make an ID usable as contract proof only
-// while its kind, target, expected value, critical flag, and case ownership remain approved.
-const caseContract = (capabilities, assertionsDigest) => ({ capabilities, assertionsDigest });
-const readOnlyCase = (assertionsDigest) => caseContract(['read-workspace'], assertionsDigest);
-const approvedCaseContracts = {
-  'woostack-eval': {
-    'unapproved-corpus-stops-before-write': readOnlyCase('322a2fc0f6bdeb1c6cd1a303c351c684cef7deaaedcf7fa363746e8b8465c4b9'),
-    'missing-action-receipt-blocks-aggregation': readOnlyCase('d41a0c24ae7041ea84dfd095846a0851f6feefaf16bc21f3f161fb3541e334b6'),
-  },
-  'woostack-build': {
-    'blocks-incompatible-overnight-dispatch-at-ready': readOnlyCase('66eb1e1fedfc54f6d07446af1f8a5f2f5dd1ddcf5a5d914f89e4b07ef7cd6231'),
-    'routes-bounded-work-before-project-creation': readOnlyCase('ea161aab650c355d020134da2e1e42d6aa44126689f4feea603bb0d5e4ee489f'),
-    'enforces-project-gates-and-bounded-routing': readOnlyCase('5563e7cd90148a2ef8714bcb9983ffc9873f65bbd1434ef6370ba0ccf72a61fb'),
-    'fails-closed-on-project-update-conflicts': readOnlyCase('459804ced687781a88223afe9e4d9e1167e54fffaa5c63308eb02e19069d18ed'),
-    'refuses-unsafe-project-replan': readOnlyCase('66275aef33697a51bebb085eb6b47868bc485fc58aaabeb265a19a936ed12442'),
-  },
-  'woostack-plan': {
-    'reconciles-stable-increments-with-native-dependencies': readOnlyCase('a0a073c21ddfb57b8d29712d807cb59037b241dab2407fc373809dd476ae05ec'),
-    'refuses-evidence-bearing-issue-removal': readOnlyCase('c2523a255dbabd16e2522f4865e591a578b79f5f4e7af387a935e10a0ba6bfd4'),
-  },
-  'woostack-fix': {
-    'blocks-before-issue-when-root-cause-is-unproven': readOnlyCase('a502b19f4fa89863e13de768078a6e4c18cc4b49e84efb1f17f7c8324612f6b2'),
-    'verified-work-item-approval-delegates-execution': readOnlyCase('20bcdbbbefdd46b49c0a602e3d43a8e652fa3bbeea889df04c40aa754c7ccfba'),
-    'safe-create-and-retry-use-stable-uuid': readOnlyCase('d766c9127641ce68034be9eb3f79606b59c503555cd80ac442b1b44b412e6dc1'),
-    'invalid-resource-identities-fail-before-git': readOnlyCase('f0b6e9e4f4d918fd641954172433ce685fc38e614778745161fc4dc064be5b11'),
-    'receipt-owner-evidence-and-authority-conflicts-fail-closed': readOnlyCase('01f5c84f2fec4d8bc5ec31efeeb48f1593500e3ed5959f69f76f97610dd02add'),
-  },
-  'woostack-execute': {
-    'admits-verified-independent-root': readOnlyCase('65de97b3fb82939d733bf618610e4ffeb64ac177eca669b9f895026aabcff41e'),
-    'admits-verified-standalone-issue': readOnlyCase('f37d814037b9e3b0f01dc4edef21841cb7783615f41b224d6f8a5498a5e549ae'),
-    'rejects-local-plan-and-progress-authority': readOnlyCase('158e71e6639c6e90df1a48d3e1c656d5965aab5f4f2d500e0ee7e790988e21e7'),
-    'blocks-owner-and-registry-collision': readOnlyCase('2968d43bac4f09c289c07418293490df6908e8fe64782ed602cbf46db86248c8'),
-    'blocks-unmerged-non-parent-dependency': readOnlyCase('078177c48a505a92c5a2b82600c0c6ca913f36123f8647022fea82ff08c857e9'),
-    'blocks-unknown-comment-readback': readOnlyCase('4322e45244a7d61a560a93130f252f31976f9c283598bfc3f3b5a7bd423e0b0e'),
-    'restores-blocked-issue-to-recorded-state': readOnlyCase('245a2fa5090bf8e46b63d1fc781aa313d1492137fe6a4a7c77d850e862fbd5bd'),
-    'resumes-only-after-complete-handoff': readOnlyCase('b2e8af2e0a7343eb1dfc72c71e5244ef717b8a7e9f26a5531cd6c6d9bf70a182'),
-    'rejects-premature-issue-done': readOnlyCase('32390a73de5e92e0246b610b9805b6b327780a2840d1a72aae31d13b3e6023d3'),
-    'rejects-premature-project-done': readOnlyCase('bc4d001554814eb35acf74f9ed37413191715c3b1500a03e4445a6bad5564ec3'),
-    'permits-distinct-independent-engineer-allocations': readOnlyCase('df7adfac78a5cafd248e1305772012422ee7edfc1a9ac8b5dded740f311baed2'),
-    'blocks-stale-owner-after-review': readOnlyCase('cca3ad2cae9304815aa62436cf8ca46d0ade58f662dcb043ba47f8e5427aad04'),
-    'blocks-shared-engineer-identity': readOnlyCase('637130b6bc24bb895ef2590e49e8fc7a7706f2c1639857428489757abb253ee0'),
-    'rejects-engineer-self-claim': readOnlyCase('22790e09fcdb136aefacc12d2a6cefd1c55c0fdfdab0eb02dac524cd77b9071d'),
-    'blocks-owner-drift-without-handoff': readOnlyCase('01a58174a8ee047486b5f4d34b99bdaec0a8047b65708857a960367c7e00c24d'),
-    'escalates-contract-changing-question': readOnlyCase('d93c810fac123eff29750853e62ed3c56e36b2cff0c3db90bf26a933f59756f8'),
-    'blocks-unmerged-dependency-and-escalates': readOnlyCase('9662b717e3770da9d47cdb60310dc1615de669684efa88fd473276771698712f'),
-    'resumes-after-complete-engineer-handoff': readOnlyCase('85c9c0f20cbd71291e367cae9b8750470b7ce367ff0874275b687dafe16a84dd'),
-    'blocks-missing-or-equal-paired-contexts': readOnlyCase('d3434b94b3b0178e18248d7c7d9bffd064d7a3f24a828a996dd7000d69cc20b2'),
-  },
-  'woostack-execute-overnight': {
-    'renders-remote-handback-and-continues-independent-track': readOnlyCase('4a7845cdd59c38b82482259c304943393d178e2e9f0303a09e3043348905f2a6'),
-    'validates-canonical-app-22-unattended-records': readOnlyCase('90ff3a644db98d138fff20231cd5201fc1aa8ffff7f3a9849e60ab8b3a029aad'),
-    'every-receipt-family-is-required-for-acceptance': readOnlyCase('fa0101f68f270c1a47c6075d1b0d4b95bbab1fc0dfc117d1a7584f0499dff11a'),
-    'fresh-remote-records-render-morning-handback': readOnlyCase('3a10299a3608e7379b4d44907c25506a796ab2a1fa7e4a8f3402c7bda93ac984'),
-    'admits-fresh-or-exact-monotonic-resume-only': readOnlyCase('4cbb7583123c7d8524550edb523eda677caa28bbd0964461b6516cec62bfb31b'),
-    'requires-fresh-pinned-lead-for-every-project-mutation': readOnlyCase('2d7ecb602574a1342482668fb2eb33506ae5d5e6dac8961a7af073cd83b3db81'),
-    'keeps-implementation-evidence-commit-only': readOnlyCase('da04a041aeede971b9f72948763db21f05822be58142763ff089d900ea2cca3b'),
-    'keeps-coding-worker-observation-only': readOnlyCase('ca4e2a9fbe129941da1550a06edc0b24f341771770e851bd8b46d7e4b9e1713d'),
-  },
-  'woostack-commit': {
-    'submits-standalone-work-item-with-issue-only-attribution': readOnlyCase('9ab587f33f3826c8ac7a4c06bad7ba7f4208b4c9c397ebd961c3df4691985b61'),
-    'submits-project-increment-with-exact-pair': readOnlyCase('66995e3f265a94c10e4a6e6f1e81f9358f5d6fc1ebc0674374ab479e3e527dd6'),
-    'rejects-malformed-work-item-attribution-before-mutation': readOnlyCase('3057fceed7045f0c79883c6eb685c04949730a840ea6f4f0cb6459704405d225'),
-    'stops-on-partial-implementation-evidence-read-back': readOnlyCase('7c467c2d054bc84d844f9ad8df1e79456ac5e85a0336fcca23afe0a43106886d'),
-    'resumes-after-unknown-submit-without-replaying-exact-boundaries': readOnlyCase('70e787d358a61fb82713a0124e130eeafc195693eaf77af208340e933ac43ec8'),
-    'unknown-submit-resubmits-only-after-complete-absence': readOnlyCase('94c2d97619fd9168427636d5264116869b6597319849e806665147d27d0f764d'),
-    'rebuilds-stale-pr-from-exact-committed-diff-on-resume': readOnlyCase('4b442a9803e57469eb65a4ce77bfaf734f4ef102fe3b2d535dbe1b66d9047199'),
-  },
-  'woostack-review': {
-    'missing-angle-receipt-blocks-merge-and-post': readOnlyCase('2dd335487734664e9566e63452d2e67beec183dcb3ca1cca20fb094252d18c97'),
-    'separates-local-output-from-single-ci-review': readOnlyCase('7438493cab60aae0c6e6598d4e25972bd036c2da6a6cc9334bc4d0e703bfe410'),
-    'local-exact-attribution-reads-current-contract-through-official-mcp': readOnlyCase('3f0cd2c1faee0f33985096274a24e258aeb9e698b0dd7312025b15ca93fd1fab'),
-    'missing-local-mcp-blocks-contract-aware-review': readOnlyCase('f8e47ddc006b6e870b6d13e34d6d857c8aec0926f4b869545300b80b268c4e28'),
-    'ci-exact-trailers-remain-diff-only-advisory': readOnlyCase('3a332fac63755e6d0bceab6288b905ae2a7d7471de5e78241edafa5c67a58948'),
-    'defaults-to-hermes-direct-review': readOnlyCase('86cf76c791ff1ef3b3b189b86fd4e0e6e612af6460fd488e32af2ea1488ad757'),
-    'permits-only-explicit-independent-review-delegation': readOnlyCase('d2e55d14c22d8ad1a6d5ea2711d3e40af5627f2178ee858699449bc6c12b1353'),
-    'blocks-missing-or-equal-review-pair-contexts': readOnlyCase('0268cdc5275ff277828ad47cd4166dc096e8e12b6466bd5e3da2087d6e19671f'),
-  },
-  'woostack-sweep': {
-    'bottom-up-issue-sweep-stops-on-no-progress': readOnlyCase('33f6e772ff624a275e5820683cdf43581a2bf138221def94ae848e7bf22e20b7'),
-    'missing-head-receipt-is-issue-blocked-not-clean': readOnlyCase('bd549fecd8476381c753e250fbbb30c3aa57028934b224539c53121c0a3cfb32'),
-    'unknown-linear-review-result-readback-blocks': readOnlyCase('c191d6470eb8223772bffa79096ec087a0d90d77378656bb2d4296524976be40'),
-    'conflicting-checkout-or-claim-blocks-before-restack': readOnlyCase('66291c11ef777b3219ccb81e01e797f32c1e32c917c0484d07337df718ed0d91'),
-    'missing-restack-authorization-readback-blocks': readOnlyCase('66e8e1dc75d1fb6d773b12d4f615b9c4a4e429f6d0375faad67d00b7e6433edf'),
-    'wrong-expired-or-consumed-restack-authorization-blocks': readOnlyCase('6fbd44bf2e01bb493e3b3c3e137cb9f1bdb079d1110a5a718cf9a5894014a35e'),
-    'authorized-restack-with-verified-review-reopen-preserves-owner': readOnlyCase('ecdcf31e235203bd114f969b52e48c3baa9b2319acc0bf26b28a88c52c51c651'),
-    'canonical-first-commit-and-restack-revision-relations': readOnlyCase('3b558a84d1f9b6a98969e77855078bb2f83581eb6f7ab8ead76a16465f8e067c'),
-  },
-  'woostack-address-comments': {
-    'default-flow-stops-at-verdict-gate': readOnlyCase('ffa524e058dac8164a03b6972d242ea5b05d448e3b2addefb99996bdd57a8fa6'),
-    'approved-verdicts-require-push-receipt-before-thread-close': readOnlyCase('1f061a3c4b68b6a3e56841363f9ebe3326682d0640cee7ba12db3657da16ce9d'),
-    'malformed-pr-attribution-blocks-before-linear-or-repository-mutation': readOnlyCase('5fa0a3c96e856f418ea2d3b18921073c2dce413e23b48d099ba5046262048685'),
-    'type-aware-owner-drift-blocks-before-side-effects': readOnlyCase('04dc7ad07a4c394f9c908d4b5e26235b8db7b0b3bb23e3dfbf6bbe1b44278ba5'),
-    'unknown-resolution-event-outcome-recovers-by-stable-id-and-blocks': readOnlyCase('1e24ec1b57939cc9cf71631200c260531722065a6e82ef8b3c261d32df26bd0a'),
-  },
-  'woostack-ask': {
-    'valid-explicit-managed-context-is-read-only': readOnlyCase('3c0194c2629a7348dff8f9778345d596924ca29ad451d14ac4bb41eb17d55c2d'),
-    'rejects-local-discovery-title-matching-and-adapters': readOnlyCase('8e10049ff8580a4e7932bbeddb2ed9badfe4312fccd2c1a3f9196f2e8786c7c6'),
-  },
-  'woostack-debug': {
-    'valid-exact-pr-context-traces-root-cause-read-only': readOnlyCase('d200355771b1d04faa37ab230f5074fee600c15f7429f376b8ac85df5c659279'),
-    'rejects-local-fix-title-match-adapter-and-mutation': readOnlyCase('a6dd037b25aba6dedd67e273a1d1f9fc871b8a59bf0dbc86a177b9442f3d0276'),
-  },
-  'woostack-audit': {
-    'audits-standing-file-through-all-added-report-only-path': caseContract(
-      ['read-workspace', 'write-workspace'],
-      '2c02df175f9bf416daa8c340b9dac636d9aea77f094389a3eabb54627edbef8e',
-    ),
-    'rejects-remediation-without-exact-managed-issue': readOnlyCase('5fb7d9f86849f4036e953f8a4ac73d380fc327bb6831a822b9772c1b84b4ccb4'),
-  },
-  'woostack-respond': {
-    'report-only-is-non-authoritative-and-never-mutates-linear': readOnlyCase('5164b324aff04213a6a45b24ff0cd43df770337c108153c9c4a0acf202dfa935'),
-    'prepare-fix-rejects-remediation-without-managed-issue-capability': readOnlyCase('190ac3b438942ffe00c512ffebfe77f7220265f1b2b53be5551e7b08c130fd5f'),
-    'verified-work-item-handoff-carries-exact-owner-state': readOnlyCase('d142d8e9160e38c0fc72fc64afcab9c63b030749d89beec0cd6054d7499bdd99'),
-    'unknown-issue-create-outcome-fails-closed-without-duplicate': readOnlyCase('085b0fd576b1efd970427c66b7bd788be75c876c87b801b3eaca315f4f4de94a'),
-  },
-  'woostack-visualize': {
-    'valid-explicit-project-renders-disposable-output': readOnlyCase('2e72583c0f6a5282648fb53230e1e57df58fcc3464830d37e3020ac5d2404cb4'),
-    'rejects-local-plan-title-adapter-and-remote-mutation': readOnlyCase('bf46a8354505dd29e1b054913d618106e8118cd8d70df9d6cf7056732af617c7'),
-  },
-  'woostack-init': {
-    'blocks-before-project-access-when-official-mcp-is-missing': readOnlyCase('88389f3d4587d179102d3c6c6db5336788cf86febc3b2b1844079f063f3a6d3f'),
-    'blocks-before-project-access-when-official-mcp-is-unauthenticated': readOnlyCase('a80e30646f1e49e6f7065520acc016aedcae79aaebabe8bad6225f701edf82d2'),
-    'blocks-on-ambiguous-workspace-or-missing-team': readOnlyCase('6ef1ab3c32a30668a9b937ff6d93a4770229fd979c4935e5fec805405dcc9d9d'),
-    'blocks-invalid-native-project-categories-and-issue-states': readOnlyCase('df45527750d5b5797b7ee46a6778e0bcc99e5b8a75ed4d3d374178c8e3355bdc'),
-    'blocks-read-only-mcp-for-mutating-init': readOnlyCase('b05a77da16dbe37de296ceb7aa79e6b7b37ad13802163e7990c608d402ac3815'),
-    'blocks-unknown-or-partial-independent-read-back': readOnlyCase('0b7ea7b96b83925e023e63f66aabd28e7f29a398664409594b53e2a46e2a85c9'),
-    'successful-preflight-repairs-workspace-and-doctors-repository-root': caseContract(
-      ['read-workspace', 'write-workspace', 'shell-workspace'],
-      'b499323b53665c1af87ad71f530e5ab70c1f8187d37f6b401ceb7acfbfdd92e3',
-    ),
-    'classifies-loss-safe-linear-migration-fixtures': readOnlyCase('5322e5fdd9c8f7c35b336ded7c0d38beb8cdc368f8d03dcc0e0cdf841b9fa0c9'),
-  },
-  'woostack-doctor': {
-    'diagnoses-before-local-repair-approval': readOnlyCase('affe392539a3e5188863908886ec5fd2b8368c54c1b2edb8f1dff316b797b6f0'),
-    'check-live-consumes-one-normalized-receipt-without-provider-calls': readOnlyCase('c6e5bfb6c9194e9808c145218e77d12280e015c9ac18b40bc6029b8bc098617e'),
-    'verified-receipt-provenance-passes-without-adapter-fallback': readOnlyCase('817d8e8932e996be062400934b31e2ed5bfda1d2982fbc65f7c993870d0d0b0e'),
-  },
-  'woostack-status': {
-    'derives-one-corrected-current-chain': readOnlyCase('4bec0480935960e711c4d452115bb8b4670f9c0e1fc437804d30dab3fcf047c8'),
-    'blocks-multiple-current-phase-heads': readOnlyCase('3f7a64223716f82bd0ef725da6981307cca6f34cbf55c971b0fe22860cacc78a'),
-    'restores-phase-category-after-exact-blocker-resolution': readOnlyCase('a29004c47baff165953519c593cf7d25273e7254b827fb802c538929a6ee2dd5'),
-    'renders-feature-and-standalone-text-board': readOnlyCase('aded30814ed348281f0d52fa8272894ecdb009e236f9a03bcacb5a3405962790'),
-    'reconciles-only-merge-and-acceptance-eligible-issue': readOnlyCase('fb3bf607501112c829e479c3eac6fcdf13be79bf2935a360049a1aabec477c65'),
-    'accepts-open-git-parent-and-rejects-unsafe-dependencies': readOnlyCase('5d5b302ab849c70d3aa73fc90b4d676ca9a21a867a69c430d31b04e4a854aa2f'),
-    'rejects-malformed-review-result-evidence': readOnlyCase('f443fcf74c593e33154fa7fbd53df62b264b4d4b8481ef66b24f367f6fccc853'),
-    'rejects-stale-review-result-evidence': readOnlyCase('50279de59deda0bb9fbc874d6fd4176442b6c8fd04ec3c804e1465e2d49ab0af'),
-    'rejects-non-full-review-receipt': readOnlyCase('baaced9482aea35eceb021ab1630c7f4c13abc3c1d2d4eabb781a9f472b53d8d'),
-    'rejects-malformed-terminal-event-payload': readOnlyCase('5860ccfe90379833c9179be1880f6f968f48194f7b57b394e00ec1f571f145bc'),
-    'blocks-git-linear-attribution-mismatch': readOnlyCase('81d4a95be6bc2a131e145cf635d5e6729630ae2e9dba746ff683b3723a756924'),
-    'blocks-wrong-principal-before-issue-done': readOnlyCase('ec39c7598b2b7212c43212644ba54b632f054e275fc3c4a6a3d86d04b443bc3d'),
-    'rejects-malformed-foreign-precommit-verification': readOnlyCase('9b4fb6fd5cef7f34e8c32731ec12de1d07a8285629283c2994ea8af1d4fc7ade'),
-    'validates-consumed-restack-authorization-temporally': readOnlyCase('2c1134a8b3b91a0e72d71ef4430e7f8de1a7910e08ee54fe28a47bb69fa22362'),
-    'validates-complete-project-event-dispatch': readOnlyCase('afe87175e26ecb89e1f43ee53d002fa14c8b88a4289a02be648b39b68481a4c0'),
-    'completes-project-only-after-all-increments-done': readOnlyCase('e4f6a53e230ccd1b3a27ab211c53989f7ec2a439e33906b02534c907efede6dd'),
-    'validates-precommit-review-before-first-implementation': readOnlyCase('b9675486d93a1677481ea71670fee9fc87ccef2d35d6bb12797c51469bc6cad8'),
-    'validates-historical-native-revision-at-authorization-time': readOnlyCase('e4b278eeaa2f760cea82318709e2e82bfe53ff3518782dda05225e59bb34b8b8'),
-    'treats-expired-unused-restack-records-as-inactive': readOnlyCase('a2a2fe6cd8b90aa5ec18ce0ac8124effe7aad487bf6dc2e6d00f8796e8cf316e'),
-    'allows-empty-local-affected-relations-only': readOnlyCase('11f5cd5e2f729bd16d0e4d5f355bb5cf46e9f9809685c30060a5fde40db8c6ba'),
-    'dispatches-every-canonical-issue-event-strictly': readOnlyCase('cf563d6a47a50c3eab47d0df4e71e5848342602d5b0610cffeb0f9145f55f2f5'),
-    'validates-principal-kind-verification-actor': readOnlyCase('756a0bddc079a48a344e4241c1b2db32059d26e14d0d68294aaa9b99ed65ae2f'),
-    'resolves-independent-native-linear-pr-relation': readOnlyCase('da2978fca4921530817c6ad3d6ec3e0cb00b8fe7b09369bb0a62df432d8f48ca'),
-    'validates-sweep-authorized-verification-revision': readOnlyCase('bf7dd1b4ba733fa6b134dea5eeb07829367db2c2d84ca2962d099073fbb4aae8'),
-    'selects-latest-valid-current-head-review-family': readOnlyCase('04169738854ea1f932e7baac83007314e4b9ddab49fb94818b49eddc2a45314c'),
-    'resolves-unique-temporal-restack-consumers': readOnlyCase('f4f992e5e2bc1cf7c1b24a1fe2facc281ed96de4219169220b60d03f1492bf39'),
-    'validates-historical-authorization-owner-at-time': readOnlyCase('05dcf5ed1326e8c882ad84c745b0dba8fa5a892f90ffa565ec3e8dd095bf751c'),
-    'preserves-implementation-evidence-through-owner-handoff': readOnlyCase('6f510aa31b5887384e485b2827027533231288462d336f891d5087976b4195d0'),
-    'derives-blocker-issue-and-preserves-terminal-reconciliation': readOnlyCase('e9d7cc3c25fa9945234510b443219b0f59fbf8a79977c5ea896747f1918f5c93'),
-  },
+// Each digest pins the canonical parsed corpus and the exact content of every safely resolved
+// fixture. Case and assertion order remain significant, while fixture-reference order does not.
+const corpusContract = (caseCount, digest) => ({ caseCount, digest });
+const approvedCorpusContracts = {
+  'woostack-eval': corpusContract(2, 'c7f619f14335a4f1e57978742eea6a590f055e3e364026834feeadf44f391806'),
+  'woostack-build': corpusContract(17, '8a9bb51d77f6e5be37578b9dcfe3dba7a0f02cafaeaaab8b7118858a801a4a4f'),
+  'woostack-plan': corpusContract(9, '580bded363cfbfa30fc06a3207bfd132182798742f6347e69eb7b1c4713b8224'),
+  'woostack-fix': corpusContract(5, 'cde7dea1b27e6035a5b30950f65c0bf86fbf50eb85297d55fb5026852aace487'),
+  'woostack-execute': corpusContract(19, '95a0553fce8370202296b17828bbc9f7d4ce6aef747de72f7015164bcee0bf88'),
+  'woostack-execute-overnight': corpusContract(8, '15902f239a11d81e2b1667d249cc25cee5f62ead215b8afa79be16f9fa20136a'),
+  'woostack-commit': corpusContract(14, 'b929bdcc7b1f83cd860116e1419d84b559d491ec26f33a990b8b9eddce644205'),
+  'woostack-review': corpusContract(8, 'a0b1867da4944ba30d218689d8f5a68db321ac57cd864763f1dda696963006c0'),
+  'woostack-sweep': corpusContract(8, '098852d02511483fc7b9fa207c2f179f86eedf9ae518e6f13802f782e4cf7344'),
+  'woostack-address-comments': corpusContract(5, '094be219ed4a95a6117c6ed0609a50c81b31dbc75ca8eaa905cd94dd1a648234'),
+  'woostack-ask': corpusContract(2, '8c57c5e2cc5caf6c1c477b11249c94595b82e3195ad7193a80e8a44b025999b3'),
+  'woostack-debug': corpusContract(2, '5d91d8f4c305cc987c5d8c301782601c89cbfafcad389d3ad98d8e0764843883'),
+  'woostack-audit': corpusContract(2, 'c1c6ffac6012703cf566d9e9e394bcf887723a5e2293b95214863c206ab114a5'),
+  'woostack-respond': corpusContract(4, 'cb5f36c58a34253ca21a3c8932c879bea9b4a5336090c5438ef5155b08daa6b1'),
+  'woostack-visualize': corpusContract(2, '21d14268415178885c8df7cce00604065fc775c03f0ac6dc201d0523705655cb'),
+  'woostack-init': corpusContract(18, 'fcd632f0862c9a32e1a513a74abbbb1fd9a8e6d7b73c799033031c82bef1e09a'),
+  'woostack-doctor': corpusContract(3, '531453d08cf16439d5a9f36d68c6502e028c4056699ed01e9300e07ff2b07c80'),
+  'woostack-status': corpusContract(29, 'fbc77312e479cc5d2cdc865660178610b5ed1f984c5bb528e4ba84d4b85ad0a2'),
 };
 
 function canonicalize(value) {
@@ -403,35 +623,157 @@ function semanticDigest(value) {
     .digest('hex');
 }
 
-function assertCaseContracts(corpus, expectedCases, location) {
-  if (!expectedCases) throw new Error(`${location} has no approved case contract`);
-  const caseIds = corpus.cases.map((behaviorCase) => behaviorCase.id);
+function isContained(root, candidate) {
+  const relative = path.relative(root, candidate);
+  return relative === '' ||
+    (!relative.startsWith(`..${path.sep}`) && relative !== '..' && !path.isAbsolute(relative));
+}
+
+function normalizeFixtureReference(reference, location) {
   if (
-    new Set(caseIds).size !== caseIds.length ||
-    !same([...caseIds].sort(), Object.keys(expectedCases).sort())
+    typeof reference !== 'string' ||
+    !reference ||
+    reference.includes('\\') ||
+    reference.includes('\0') ||
+    path.posix.isAbsolute(reference)
   ) {
-    throw new Error(`${location} case ownership changed`);
+    throw new Error(`${location} must be a non-empty relative POSIX fixture path`);
+  }
+  const segments = reference.split('/');
+  if (
+    segments.includes('..') ||
+    segments.includes('.') ||
+    segments.includes('') ||
+    path.posix.normalize(reference) !== reference
+  ) {
+    throw new Error(`${location} must be normalized and remain inside evals/fixtures`);
+  }
+  return reference;
+}
+
+function requiredLstat(candidate, location) {
+  try {
+    return fs.lstatSync(candidate);
+  } catch (error) {
+    if (error?.code === 'ENOENT' || error?.code === 'ENOTDIR') {
+      throw new Error(`${location} is missing`);
+    }
+    throw new Error(`${location} cannot be read: ${error?.code ?? 'unknown error'}`);
+  }
+}
+
+
+function fixtureContentDigest(fixturesRoot, resolvedFixturesRoot, reference, location) {
+  const candidate = path.resolve(fixturesRoot, ...reference.split('/'));
+  if (!isContained(fixturesRoot, candidate)) {
+    throw new Error(`${location} escapes evals/fixtures`);
   }
 
-  const assertionIds = new Set();
-  for (const behaviorCase of corpus.cases) {
-    const expectedCase = expectedCases[behaviorCase.id];
-    const capabilities = behaviorCase.capabilities;
-    if (
-      new Set(capabilities).size !== capabilities.length ||
-      !same([...capabilities].sort(), [...expectedCase.capabilities].sort())
-    ) {
-      throw new Error(`${location} case ${behaviorCase.id} capabilities changed`);
+  let current = fixturesRoot;
+  let info;
+  const segments = reference.split('/');
+  for (const [index, segment] of segments.entries()) {
+    current = path.join(current, segment);
+    info = requiredLstat(current, location);
+    if (info.isSymbolicLink()) {
+      throw new Error(`${location} must not resolve through a symlink`);
     }
-    for (const assertion of behaviorCase.assertions) {
-      if (assertionIds.has(assertion.id)) {
-        throw new Error(`${location} duplicates assertion ID ${assertion.id}`);
+    if (index < segments.length - 1 && !info.isDirectory()) {
+      throw new Error(`${location} has a non-directory path component`);
+    }
+  }
+  if (!info.isFile()) {
+    throw new Error(`${location} must resolve to a regular file`);
+  }
+
+  const resolvedCandidate = fs.realpathSync(candidate);
+  if (!isContained(resolvedFixturesRoot, resolvedCandidate)) {
+    throw new Error(`${location} escapes evals/fixtures`);
+  }
+  const contents = fs.readFileSync(resolvedCandidate);
+  if (reference.endsWith('.json')) {
+    try {
+      JSON.parse(contents);
+    } catch (error) {
+      if (!(error instanceof SyntaxError)) throw error;
+    }
+  }
+  return crypto.createHash('sha256').update(contents).digest('hex');
+}
+
+function corpusSemanticDigest(corpus, fixturesRoot, location) {
+  if (!corpus || typeof corpus !== 'object' || !Array.isArray(corpus.cases)) {
+    throw new Error(`${location} must contain a cases array`);
+  }
+
+  const declaredFixtures = new Set();
+  const normalizedCorpus = {
+    ...corpus,
+    cases: corpus.cases.map((behaviorCase, caseIndex) => {
+      if (!behaviorCase || typeof behaviorCase !== 'object' || Array.isArray(behaviorCase)) {
+        throw new Error(`${location} case ${caseIndex} is malformed`);
       }
-      assertionIds.add(assertion.id);
+      if (!Object.hasOwn(behaviorCase, 'fixtures')) return behaviorCase;
+      if (!Array.isArray(behaviorCase.fixtures)) {
+        throw new Error(`${location} case ${caseIndex} fixtures must be an array`);
+      }
+
+      const seen = new Set();
+      const fixtures = behaviorCase.fixtures.map((reference, fixtureIndex) => {
+        const fixtureLocation = `${location}/cases/${caseIndex}/fixtures/${fixtureIndex}`;
+        const normalized = normalizeFixtureReference(reference, fixtureLocation);
+        if (seen.has(normalized)) {
+          throw new Error(`${fixtureLocation} duplicates fixture ${normalized}`);
+        }
+        seen.add(normalized);
+        declaredFixtures.add(normalized);
+        return normalized;
+      }).sort();
+      return { ...behaviorCase, fixtures };
+    }),
+  };
+
+  let resolvedFixturesRoot;
+  if (declaredFixtures.size > 0) {
+    const rootInfo = requiredLstat(fixturesRoot, `${location} fixture root`);
+    if (rootInfo.isSymbolicLink() || !rootInfo.isDirectory()) {
+      throw new Error(`${location} fixture root must be a real directory`);
     }
-    if (semanticDigest(behaviorCase.assertions) !== expectedCase.assertionsDigest) {
-      throw new Error(`${location} case ${behaviorCase.id} assertion semantics changed`);
+    resolvedFixturesRoot = fs.realpathSync(fixturesRoot);
+  }
+
+  const fixtures = [...declaredFixtures].sort().map((reference) => ({
+    path: reference,
+    digest: fixtureContentDigest(
+      fixturesRoot,
+      resolvedFixturesRoot,
+      reference,
+      `${location} fixture ${reference}`,
+    ),
+  }));
+  return semanticDigest({ corpus: normalizedCorpus, fixtures });
+}
+
+function assertCorpusContract(corpus, fixturesRoot, expectedContract, location) {
+  if (!expectedContract) throw new Error(`${location} has no approved corpus contract`);
+  if (corpus.cases.length !== expectedContract.caseCount) {
+    throw new Error(`${location} case count changed`);
+  }
+  const caseIds = corpus.cases.map((behaviorCase) => behaviorCase.id);
+  if (new Set(caseIds).size !== caseIds.length) {
+    throw new Error(`${location} duplicates a case ID`);
+  }
+  for (const behaviorCase of corpus.cases) {
+    const assertionIds = behaviorCase.assertions.map((assertion) => assertion.id);
+    if (new Set(assertionIds).size !== assertionIds.length) {
+      throw new Error(`${location} case ${behaviorCase.id} duplicates an assertion ID`);
     }
+    if (new Set(behaviorCase.capabilities).size !== behaviorCase.capabilities.length) {
+      throw new Error(`${location} case ${behaviorCase.id} duplicates a capability`);
+    }
+  }
+  if (corpusSemanticDigest(corpus, fixturesRoot, location) !== expectedContract.digest) {
+    throw new Error(`${location} corpus semantics or fixture content changed`);
   }
 }
 
@@ -572,10 +914,35 @@ if (naturalLanguageFields(pointerProbe).some(([, value]) => value === '/receipt/
   throw new Error('self-test treated a JSON pointer as request prose');
 }
 
+const semanticProbeFixtureRoot = path.join(resultsRoot, 'semantic-probe-fixtures');
+const semanticProbeFixturePath = path.join(semanticProbeFixtureRoot, 'state.json');
+const semanticProbeFixtureContents = Buffer.from(
+  '{"approved":true,"details":{"owner":"probe","revision":1}}\n',
+  'utf8',
+);
+fs.mkdirSync(semanticProbeFixtureRoot, { recursive: true });
+fs.writeFileSync(semanticProbeFixturePath, semanticProbeFixtureContents);
+fs.writeFileSync(path.join(semanticProbeFixtureRoot, 'receipt.txt'), 'stable receipt\n');
+
+function reverseObjectKeyOrder(value) {
+  if (Array.isArray(value)) return value.map(reverseObjectKeyOrder);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).reverse().map(([key, child]) => [key, reverseObjectKeyOrder(child)]),
+    );
+  }
+  return value;
+}
+
 const semanticProbe = {
+  schemaVersion: 1,
+  skill: 'probe',
   cases: [
     {
       id: 'owner-a',
+      prompt: 'Classify this bounded local receipt without any remote request or mutation.',
+      fixtures: ['state.json', 'receipt.txt'],
+      expected: 'The exact approved state is returned and the receipt remains unchanged.',
       capabilities: ['read-workspace'],
       assertions: [{
         id: 'proof-a',
@@ -587,6 +954,9 @@ const semanticProbe = {
     },
     {
       id: 'owner-b',
+      prompt: 'Classify this second bounded receipt without contacting any remote service.',
+      fixtures: [],
+      expected: 'The blocked state remains explicit and no side effect is attempted.',
       capabilities: ['read-workspace'],
       assertions: [{
         id: 'proof-b',
@@ -598,14 +968,19 @@ const semanticProbe = {
     },
   ],
 };
-const semanticProbeContracts = Object.fromEntries(semanticProbe.cases.map((behaviorCase) => [
-  behaviorCase.id,
-  caseContract([...behaviorCase.capabilities], semanticDigest(behaviorCase.assertions)),
-]));
+const semanticProbeContract = corpusContract(
+  semanticProbe.cases.length,
+  corpusSemanticDigest(semanticProbe, semanticProbeFixtureRoot, '<probe>'),
+);
 const mutateProbe = (operation) => {
   const probe = JSON.parse(JSON.stringify(semanticProbe));
   operation(probe);
-  return () => assertCaseContracts(probe, semanticProbeContracts, '<probe>');
+  return () => assertCorpusContract(
+    probe,
+    semanticProbeFixtureRoot,
+    semanticProbeContract,
+    '<probe>',
+  );
 };
 expectRejected('changed assertion kind', mutateProbe((probe) => {
   probe.cases[0].assertions[0].kind = 'qualitative';
@@ -622,11 +997,66 @@ expectRejected('changed assertion critical flag', mutateProbe((probe) => {
 expectRejected('changed assertion case ownership', mutateProbe((probe) => {
   probe.cases[1].assertions.push(probe.cases[0].assertions.shift());
 }));
-expectRejected('duplicate assertion ID across cases', mutateProbe((probe) => {
-  probe.cases[1].assertions[0].id = 'proof-a';
+expectRejected('duplicate assertion ID within a case', mutateProbe((probe) => {
+  probe.cases[0].assertions.push({ ...probe.cases[0].assertions[0] });
+}));
+expectRejected('duplicate case ID', mutateProbe((probe) => {
+  probe.cases[1].id = 'owner-a';
 }));
 expectRejected('extra allowed but unneeded capability', mutateProbe((probe) => {
   probe.cases[0].capabilities.push('write-workspace');
+}));
+const reorderedFixtureProbe = JSON.parse(JSON.stringify(semanticProbe));
+reorderedFixtureProbe.cases[0].fixtures.reverse();
+assertCorpusContract(
+  reorderedFixtureProbe,
+  semanticProbeFixtureRoot,
+  semanticProbeContract,
+  '<reordered-fixture-probe>',
+);
+const reformattedProbe = JSON.parse(
+  JSON.stringify(reverseObjectKeyOrder(semanticProbe), null, 2),
+);
+assertCorpusContract(
+  reformattedProbe,
+  semanticProbeFixtureRoot,
+  semanticProbeContract,
+  '<reformatted-json-probe>',
+);
+expectRejected('changed fixture content', () => {
+  fs.writeFileSync(
+    semanticProbeFixturePath,
+    '{"approved":false,"details":{"owner":"probe","revision":1}}\n',
+  );
+  try {
+    assertCorpusContract(
+      semanticProbe,
+      semanticProbeFixtureRoot,
+      semanticProbeContract,
+      '<changed-fixture-probe>',
+    );
+  } finally {
+    fs.writeFileSync(semanticProbeFixturePath, semanticProbeFixtureContents);
+  }
+});
+expectRejected('missing fixture reference', mutateProbe((probe) => {
+  probe.cases[0].fixtures = ['missing.json'];
+}));
+expectRejected('traversing fixture reference', mutateProbe((probe) => {
+  probe.cases[0].fixtures = ['../outside.json'];
+}));
+fs.mkdirSync(path.join(semanticProbeFixtureRoot, 'directory'));
+expectRejected('non-file fixture reference', mutateProbe((probe) => {
+  probe.cases[0].fixtures = ['directory'];
+}));
+expectRejected('duplicate fixture reference', mutateProbe((probe) => {
+  probe.cases[0].fixtures = ['state.json', 'state.json'];
+}));
+expectRejected('non-string fixture reference', mutateProbe((probe) => {
+  probe.cases[0].fixtures = [42];
+}));
+expectRejected('non-normalized fixture reference', mutateProbe((probe) => {
+  probe.cases[0].fixtures = ['./state.json'];
 }));
 for (let index = 0; index < packages.length; index += 1) {
   const packagePath = packages[index];
@@ -652,7 +1082,12 @@ for (let index = 0; index < packages.length; index += 1) {
     throw new Error(`${packagePath} validator case count disagrees with its corpus`);
   }
 
-  assertCaseContracts(corpus, approvedCaseContracts[skill], packagePath);
+  assertCorpusContract(
+    corpus,
+    path.join(path.dirname(corpusPath), 'fixtures'),
+    approvedCorpusContracts[skill],
+    packagePath,
+  );
   for (const [caseIndex, behaviorCase] of corpus.cases.entries()) {
     for (const field of ['prompt', 'expected']) {
       const value = behaviorCase[field];
@@ -678,8 +1113,14 @@ for (let index = 0; index < packages.length; index += 1) {
     assertNoProhibitedRequest(value, `${packagePath}${location}`);
   }
 
-  const assertionsById = new Map(corpus.cases.flatMap((entry) =>
-    entry.assertions.map((assertion) => [assertion.id, assertion])));
+  const assertionsById = new Map();
+  for (const behaviorCase of corpus.cases) {
+    for (const assertion of behaviorCase.assertions) {
+      const matches = assertionsById.get(assertion.id) ?? [];
+      matches.push(assertion);
+      assertionsById.set(assertion.id, matches);
+    }
+  }
   const contracts = requiredContractProofs[skill];
   if (!contracts) throw new Error(`missing contract map for ${skill}`);
   for (const [contract, proofGroups] of Object.entries(contracts)) {
@@ -688,9 +1129,7 @@ for (let index = 0; index < packages.length; index += 1) {
       const specification = Array.isArray(proofGroup)
         ? { ids: proofGroup, critical: true }
         : proofGroup;
-      const matches = specification.ids
-        .map((id) => assertionsById.get(id))
-        .filter(Boolean);
+      const matches = specification.ids.flatMap((id) => assertionsById.get(id) ?? []);
       if (matches.length === 0) {
         throw new Error(
           `${packagePath} lacks proof for ${contract}: ${specification.ids.join(' OR ')}`,
@@ -706,29 +1145,6 @@ for (let index = 0; index < packages.length; index += 1) {
     if (!contractEvidence.some((assertion) => assertion.critical === true)) {
       throw new Error(`${packagePath} lacks a critical assertion for: ${contract}`);
     }
-  }
-}
-
-const planTriggerPath = path.join(repositoryRoot, 'skills/woostack-plan/evals/trigger-evals.json');
-const planTriggerCorpus = JSON.parse(fs.readFileSync(planTriggerPath, 'utf8'));
-const approvedPlanTriggerDigests = {
-  'verified-feature-project-needs-decomposition': 'f83af22a9d39917e6231a4c5418c923cbadd12b057a1ee2cad30892020c4279f',
-  'verified-feature-project-needs-replan': 'a8d190ccd2bc4aca655bf45548e6cd8cedc677039bf433751aa32e624328da73',
-  'unapproved-feature-idea-needs-design': '265cf2ad5a8b8f90dbad3156e5d223233da2b0d335cbfe08ab20d942151c81db',
-  'bounded-change-needs-direct-workflow': 'b1ed4587786df714f5c89930f28533a41ee305aa2e6396a1b62e124817994c67',
-};
-if (
-  planTriggerCorpus.schemaVersion !== 1 ||
-  planTriggerCorpus.skill !== 'woostack-plan' ||
-  !Array.isArray(planTriggerCorpus.cases) ||
-  !same(planTriggerCorpus.cases.map(({id}) => id), Object.keys(approvedPlanTriggerDigests)) ||
-  new Set(planTriggerCorpus.cases.map(({id}) => id)).size !== 4
-) {
-  throw new Error('woostack-plan trigger corpus schema or exact case ownership changed');
-}
-for (const triggerCase of planTriggerCorpus.cases) {
-  if (semanticDigest(triggerCase) !== approvedPlanTriggerDigests[triggerCase.id]) {
-    throw new Error(`woostack-plan trigger case ${triggerCase.id} changed`);
   }
 }
 

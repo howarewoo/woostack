@@ -4,7 +4,6 @@ metrics.json
 visuals/
 qa/evidence/
 respond/evidence/
-overnight/
 worktrees/
 memory/.telemetry.tsv
 memory/.dream-watermark

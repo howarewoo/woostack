@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "branch-receipt-05",
+  "invocation": {
+    "kind": "workflow-handoff",
+    "issueArgument": "https://linear.app/acme/issue/APP-65/cache-locking",
+    "projectArgument": null,
+    "branchHandoff": {
+      "workflow": "woostack-change",
+      "nativeIssueId": "linear-issue-65",
+      "branch": "change/app-65",
+      "worktreePath": "/repo/.woostack/worktrees/issues/linear-issue-65",
+      "startCommit": "b65",
+      "graphiteParent": "staging",
+      "ownerPrincipal": "engineer-7",
+      "runId": "run-65",
+      "assignmentNativeId": "comment-assignment-65"
+    }
+  },
+  "officialLinearMcp": {
+    "endpoint": "https://mcp.linear.app/mcp",
+    "readsComplete": true,
+    "issue": {
+      "clientId": "65656565-6565-4565-8565-656565656565",
+      "nativeId": "linear-issue-65",
+      "identifier": "APP-65",
+      "title": "Cache locking",
+      "role": "work-item",
+      "state": "executing",
+      "projectId": null,
+      "repository": "https://github.com/acme/widgets",
+      "owner": {
+        "kind": "app",
+        "principal": "engineer-7"
+      },
+      "assignmentAccepted": {
+        "nativeId": "comment-assignment-65",
+        "stableEventId": "65656565-aaaa-4565-8565-656565656565",
+        "runId": "run-65",
+        "engineer": "engineer-7",
+        "readBackVerified": true
+      },
+      "verification": {
+        "nativeId": "comment-verification-65",
+        "verdict": "PASS",
+        "readBackVerified": true
+      },
+      "precommitReview": {
+        "nativeId": "comment-precommit-review-65",
+        "verdict": "PASS",
+        "readBackVerified": true
+      }
+    },
+    "authenticatedController": {
+      "kind": "app",
+      "principal": "engineer-7"
+    }
+  },
+  "sourceControl": {
+    "repositoryRead": {
+      "canonicalUrl": "https://github.com/acme/widgets",
+      "complete": true
+    },
+    "primaryRoot": "/repo",
+    "currentRoot": "/repo/.woostack/worktrees/manual/app-65",
+    "currentBranch": "change/app-65",
+    "head": "b65",
+    "retainedStartCommit": "b65",
+    "graphiteParent": "staging",
+    "graphiteParentHead": "b65",
+    "dirtyState": {
+      "complete": true,
+      "paths": [
+        "src/locking.ts"
+      ],
+      "reviewedSessionPaths": [
+        "src/locking.ts"
+      ],
+      "unrelatedPaths": []
+    }
+  },
+  "registry": {
+    "complete": true,
+    "claims": [
+      {
+        "nativeIssueId": "linear-issue-65",
+        "clientIssueId": "65656565-6565-4565-8565-656565656565",
+        "projectId": null,
+        "role": "work-item",
+        "repository": "https://github.com/acme/widgets",
+        "owner": {
+          "kind": "app",
+          "principal": "engineer-7",
+          "runId": "run-65"
+        },
+        "branch": "change/app-65",
+        "worktreePath": "/repo/.woostack/worktrees/issues/linear-issue-65",
+        "startCommit": "b65",
+        "graphiteParent": "staging",
+        "assignmentNativeId": "comment-assignment-65"
+      }
+    ]
+  },
+  "git": {
+    "complete": true,
+    "canonicalIssueWorktreePath": "/repo/.woostack/worktrees/issues/linear-issue-65",
+    "worktrees": [
+      {
+        "path": "/repo/.woostack/worktrees/manual/app-65",
+        "branch": "change/app-65",
+        "head": "b65"
+      }
+    ],
+    "localBranches": [
+      {
+        "name": "change/app-65",
+        "head": "b65",
+        "checkedOutAt": "/repo/.woostack/worktrees/manual/app-65"
+      }
+    ],
+    "issueCommits": []
+  },
+  "graphite": {
+    "complete": true,
+    "branches": [
+      {
+        "name": "change/app-65",
+        "head": "b65",
+        "parent": "staging"
+      }
+    ],
+    "submissions": []
+  },
+  "remote": {
+    "complete": true,
+    "branches": []
+  },
+  "github": {
+    "complete": true,
+    "pullRequests": []
+  },
+  "linearRelations": {
+    "complete": true,
+    "branchOrPr": []
+  }
+}

@@ -2842,6 +2842,20 @@
       }
     },
     "gitMismatchBody": "Wrong issue attribution.\n\nLinear-Project: 11111111-1111-4111-8111-111111111111\nLinear-Issue: APP-99",
+    "retiredSpecAttributionBodies": {
+      "increment": {
+        "exact": "Implements the first increment.\n\nSpec: .woostack/specs/retired.md\n\nLinear-Project: 11111111-1111-4111-8111-111111111111\nLinear-Issue: APP-12",
+        "indented": "Implements the first increment.\n\n    Spec: .woostack/specs/retired.md\n\nLinear-Project: 11111111-1111-4111-8111-111111111111\nLinear-Issue: APP-12",
+        "mixedCaseQuoted": "Implements the first increment.\n\n> sPeC: .woostack/specs/retired.md\n\nLinear-Project: 11111111-1111-4111-8111-111111111111\nLinear-Issue: APP-12",
+        "mixedCaseFenced": "Implements the first increment.\n\n```text\nSpEc: .woostack/specs/retired.md\n```\n\nLinear-Project: 11111111-1111-4111-8111-111111111111\nLinear-Issue: APP-12"
+      },
+      "workItem": {
+        "exact": "Repairs invalidation.\n\nSpec: .woostack/specs/retired.md\n\nLinear-Issue: APP-21",
+        "indented": "Repairs invalidation.\n\n    Spec: .woostack/specs/retired.md\n\nLinear-Issue: APP-21",
+        "mixedCaseQuoted": "Repairs invalidation.\n\n> sPeC: .woostack/specs/retired.md\n\nLinear-Issue: APP-21",
+        "mixedCaseFenced": "Repairs invalidation.\n\n```text\nSpEc: .woostack/specs/retired.md\n```\n\nLinear-Issue: APP-21"
+      }
+    },
     "partialCollection": "githubPullRequests",
     "malformedImplementationEvidenceData": {
       "baseCommitSha": "0101010101010101010101010101010101010101",
@@ -3101,219 +3115,7 @@
       "project-native-launch"
     ]
   },
-  "expected": {
-    "acceptedReviewResultEventIds": [
-      "comment-app12-review"
-    ],
-    "currentGithubReviewReceiptIds": [
-      "github-review-4201",
-      "github-review-4301",
-      "github-review-4302",
-      "github-review-4303",
-      "github-review-5101"
-    ],
-    "strictVerificationEventIds": [
-      "comment-app12-verification",
-      "comment-app13-verification-addressed",
-      "comment-app21-verification"
-    ],
-    "strictPrecommitReviewEventIds": [
-      "comment-app12-precommit-review",
-      "comment-app13-precommit-review-addressed",
-      "comment-app21-precommit-review"
-    ],
-    "normalFirstExecutionOrder": [
-      "assignmentAccepted",
-      "verification",
-      "precommitReview",
-      "implementationEvidence",
-      "reviewResult"
-    ],
-    "restackAuthorizationEventIds": [
-      "comment-app13-restack-authorized",
-      "comment-app13-address-authorized",
-      "comment-app13-review-authorized-expired"
-    ],
-    "consumedRestackAuthorizationEventIds": [
-      "comment-app13-restack-authorized",
-      "comment-app13-address-authorized"
-    ],
-    "inactiveRestackAuthorizationEventIds": [
-      "comment-app13-review-authorized-expired"
-    ],
-    "consumedProjectDecisionEventIds": [
-      "update-restack-decision"
-    ],
-    "inactiveProjectDecisionEventIds": [
-      "update-address-decision-expired"
-    ],
-    "emptyAffectedAuthorizationEventIds": [
-      "comment-app13-address-authorized",
-      "comment-app13-review-authorized-expired"
-    ],
-    "emptyAffectedDecisionEventIds": [
-      "update-address-decision-expired"
-    ],
-    "restackOperationId": "13131313-aaaa-4aaa-8aaa-131313131313",
-    "restackHistoricalImplementationId": "comment-app13-implementation-original",
-    "restackHistoricalPrecommitReviewId": "comment-app13-precommit-review-original",
-    "restackCurrentPrecommitReviewId": "comment-app13-precommit-review-addressed",
-    "restackResultingImplementationId": "comment-app13-implementation-restacked",
-    "restackResultingHeadSha": "2323232323232323232323232323232323232323",
-    "successiveAssignmentEventIds": [
-      "comment-app14-assignment",
-      "comment-app14-assignment-app",
-      "comment-app14-assignment-return"
-    ],
-    "successiveHandoffEventIds": [
-      "comment-app14-handoff-app",
-      "comment-app14-handoff-return"
-    ],
-    "successiveBlockedEventIds": [
-      "comment-app14-blocked",
-      "comment-app14-blocked-repeat"
-    ],
-    "successiveUnblockedEventIds": [
-      "comment-app14-unblocked",
-      "comment-app14-unblocked-repeat"
-    ],
-    "issueEventKinds": [
-      "acceptance",
-      "assignmentAccepted",
-      "blocked",
-      "decisionRequest",
-      "decisionResponse",
-      "failure",
-      "handoff",
-      "implementationEvidence",
-      "issueDone",
-      "precommitReview",
-      "restackAuthorized",
-      "reviewResult",
-      "unblocked",
-      "verification"
-    ],
-    "projectEventKinds": [
-      "blockerOpened",
-      "blockerResolved",
-      "decision",
-      "designApproved",
-      "executing",
-      "executionApproved",
-      "handoff",
-      "inReview",
-      "planning",
-      "progress",
-      "ready",
-      "specApproved",
-      "specHardened"
-    ],
-    "leadOwnedProjectEventKinds": [
-      "blockerOpened",
-      "blockerResolved",
-      "decision",
-      "executing",
-      "executionApproved",
-      "handoff",
-      "inReview",
-      "progress"
-    ],
-    "issueDonePrincipalGatePassed": true,
-    "projectPhase": "inReview",
-    "projectNativeCategory": "started",
-    "progressAfterReconciliation": {
-      "done": 1,
-      "total": 3
-    },
-    "projectPrRollup": {
-      "merged": 1,
-      "open": 1,
-      "none": 1
-    },
-    "issueWriteIds": [
-      "issue-app-12"
-    ],
-    "secondReadIssueDoneEventIds": [
-      "comment-app12-done"
-    ],
-    "projectWrite": false,
-    "staleIssueIdentifiers": [
-      "APP-21"
-    ],
-    "blockedIssueIdentifiers": [],
-    "handoffIssueIdentifiers": [
-      "APP-21"
-    ],
-    "standaloneIssueIdentifiers": [
-      "APP-21"
-    ],
-    "standaloneProjectIds": [],
-    "nextActions": {
-      "APP-12": "none \u2014 done",
-      "APP-13": "review and merge PR #43",
-      "APP-14": "wait for issue-app-13",
-      "APP-21": "user-engineer-21b: accept handoff and address PR #51"
-    },
-    "unrelatedMutations": [],
-    "output": "text",
-    "secondRestackOperationId": "13131313-bbbb-4bbb-8bbb-131313131313",
-    "secondRestackHistoricalImplementationId": "comment-app13-implementation-restacked",
-    "secondRestackHistoricalVerificationId": "comment-app13-verification-restacked",
-    "secondRestackResultingImplementationId": "comment-app13-implementation-addressed",
-    "secondRestackResultingVerificationId": "comment-app13-verification-addressed",
-    "secondRestackResultingHeadSha": "3434343434343434343434343434343434343434",
-    "linearPrRelationIds": [
-      "linear-relation-app12-pr42",
-      "linear-relation-app13-pr43",
-      "linear-relation-app21-pr51"
-    ],
-    "app13ReviewRoundEventIds": [
-      "comment-app13-review-original",
-      "comment-app13-review-restacked",
-      "comment-app13-review-addressed"
-    ],
-    "latestCurrentHeadReviewEventIds": [
-      "comment-app12-review",
-      "comment-app13-review-addressed",
-      "comment-app21-review"
-    ],
-    "app13CurrentOwner": {
-      "kind": "app",
-      "principalId": "app-engineer-13b"
-    },
-    "app13HistoricalAuthorizationOwner": {
-      "kind": "app",
-      "principalId": "app-engineer-13"
-    },
-    "app13CurrentImplementationProducerAssignmentId": "comment-app13-assignment",
-    "restackHistoricalAuthorizationOwner": {
-      "kind": "app",
-      "principalId": "app-engineer-13"
-    },
-    "restackCurrentOwner": {
-      "kind": "app",
-      "principalId": "app-engineer-13b"
-    },
-    "app13CurrentReviewFamilies": [
-      [
-        "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb4",
-        1,
-        "comment-app13-review-original"
-      ],
-      [
-        "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbc1",
-        2,
-        "comment-app13-review-restacked"
-      ],
-      [
-        "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbc2",
-        3,
-        "comment-app13-review-addressed"
-      ]
-    ],
-    "app13SelectedReviewResultId": "comment-app13-review-addressed",
-    "app13SelectedReviewRound": 3
-  },
+
   "linearPullRequestRelations": {
     "readAt": "2026-07-26T12:00:00Z",
     "readComplete": true,

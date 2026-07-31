@@ -3,7 +3,7 @@ import { execFile as execFileCallback } from 'node:child_process';
 import { lstat, readFile, readdir, realpath } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { promisify } from 'node:util';
+import { isDeepStrictEqual, promisify } from 'node:util';
 
 const execFile = promisify(execFileCallback);
 const KEBAB_CASE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -25,6 +25,11 @@ const ASSERTION_FIELDS = new Map([
   ['receipt-field-equals', ['pointer', 'expected']],
   ['qualitative', ['rubric']],
 ]);
+const PRIVATE_EXPECTED_ASSERTION_KINDS = new Set([
+  'final-json-path-equals',
+  'json-path-equals',
+  'receipt-field-equals',
+]);
 const HTML_TAGS = new Set([
   'a', 'abbr', 'address', 'article', 'aside', 'audio', 'b', 'blockquote', 'body', 'br',
   'button', 'canvas', 'caption', 'code', 'col', 'data', 'datalist', 'dd', 'del', 'details',
@@ -39,10 +44,42 @@ const HTML_TAGS = new Set([
   'xml',
 ]);
 const BEHAVIOR_CASE_FIELDS = new Set([
-  'id', 'prompt', 'fixtures', 'capabilities', 'expected', 'assertions',
+  'id', 'prompt', 'fixtures', 'fixturePassthroughAssertions', 'capabilities', 'expected', 'assertions',
 ]);
 const TRIGGER_CASE_FIELDS = new Set([
   'id', 'query', 'shouldTrigger', 'expectedSkill', 'conflictsWith',
+]);
+const WORKER_FIXTURE_ORACLE_KEYS = new Set([
+  'answer',
+  'expected',
+  'expectedAnswer',
+  'expectedOutput',
+  'expectedResult',
+  'oracle',
+  'outputOracle',
+  'terminalReceipt',
+]);
+const CLASSIFICATION_FIXTURE_ORACLE_KEYS = new Set([
+  'classification',
+  'label',
+  'outcome',
+  'scenario',
+]);
+const SEMANTIC_FIXTURE_ORACLE_KEYS = new Map([
+  ['classification', CLASSIFICATION_FIXTURE_ORACLE_KEYS],
+  ['label', CLASSIFICATION_FIXTURE_ORACLE_KEYS],
+  ['outcome', CLASSIFICATION_FIXTURE_ORACLE_KEYS],
+  ['scenario', CLASSIFICATION_FIXTURE_ORACLE_KEYS],
+  ['blocked', new Set(['blocked'])],
+  ['currentheadid', new Set(['currentheadid'])],
+  ['nextaction', new Set(['nextaction'])],
+  ['phase', new Set(['phase'])],
+  ['rendered', new Set(['rendered'])],
+  ['result', new Set(['result'])],
+  ['selectedround', new Set(['selectedround'])],
+  ['reasoncode', new Set(['reasoncode'])],
+  ['status', new Set(['status'])],
+  ['writesattempted', new Set(['writesattempted'])],
 ]);
 
 class ValidationFault extends Error {
@@ -496,7 +533,140 @@ function validateUniqueStringArray(value, key, baseField, sourcePath, errors, va
   });
 }
 
-async function validateFixture(fixture, corpusPath, packageRoot, trackedPaths, field, sourcePath, errors) {
+function escapeJsonPointerToken(value) {
+  return value.replaceAll('~', '~0').replaceAll('/', '~1');
+}
+
+function isExpectedActionIdentityList(value) {
+  return Array.isArray(value)
+    && value.length > 0
+    && value.every((entry) =>
+      entry !== null
+      && typeof entry === 'object'
+      && !Array.isArray(entry)
+      && Object.keys(entry).sort().join(',') === 'caseId,kind,repetition,variant'
+      && typeof entry.caseId === 'string'
+      && ['behavior', 'trigger'].includes(entry.kind)
+      && Number.isInteger(entry.repetition)
+      && entry.repetition > 0
+      && ['baseline', 'candidate'].includes(entry.variant));
+}
+
+
+function isFixtureOutputOracleKey(key) {
+  return WORKER_FIXTURE_ORACLE_KEYS.has(key);
+}
+
+function normalizeOracleKey(value) {
+  return value.toLowerCase().replaceAll(/[^a-z0-9]/g, '');
+}
+
+function decodeJsonPointerToken(value) {
+  return value.replaceAll('~1', '/').replaceAll('~0', '~');
+}
+
+function collectFixtureOutputBoundaries(assertions) {
+  const boundaries = [];
+  if (!Array.isArray(assertions)) return boundaries;
+  for (const assertion of assertions) {
+    if (
+      !PRIVATE_EXPECTED_ASSERTION_KINDS.has(assertion?.kind)
+      || !Object.hasOwn(assertion, 'expected')
+      || !isJsonPointer(assertion.pointer)
+    ) continue;
+    const tokens = assertion.pointer === ''
+      ? []
+      : assertion.pointer.slice(1).split('/').map(decodeJsonPointerToken);
+    const key = tokens.length === 0 ? null : normalizeOracleKey(tokens.at(-1));
+    const aliases = key === null ? null : (SEMANTIC_FIXTURE_ORACLE_KEYS.get(key) ?? new Set([key]));
+    boundaries.push({
+      aliases,
+      assertionId: assertion.id,
+      derivedBoolean: typeof assertion.expected === 'boolean' && key?.endsWith('verified'),
+      expected: assertion.expected,
+      key,
+      wholeDocument: assertion.pointer === '',
+    });
+  }
+  return boundaries;
+}
+
+function matchesFixtureOutputBoundary(key, child, location, boundaries) {
+  const normalizedKey = normalizeOracleKey(key);
+  const locationKeys = location
+    .slice(1)
+    .split('/')
+    .filter((token) => !/^[0-9]+$/.test(token))
+    .map(decodeJsonPointerToken)
+    .map(normalizeOracleKey);
+  return boundaries.some((boundary) => {
+    if (boundary.wholeDocument || !isDeepStrictEqual(child, boundary.expected)) return false;
+    let matches = boundary.aliases.has(normalizedKey);
+    if (!matches && boundary.derivedBoolean) {
+      let suffix = '';
+      for (let index = locationKeys.length - 1; index >= 0; index -= 1) {
+        suffix = locationKeys[index] + suffix;
+        if (suffix === boundary.key) {
+          matches = true;
+          break;
+        }
+      }
+    }
+    return matches;
+  });
+}
+
+function findFixtureOutputOracle(value, boundaries, declarations, location = '') {
+  const wholeBoundaries = boundaries.filter((boundary) =>
+    boundary.wholeDocument && isDeepStrictEqual(value, boundary.expected));
+  const locationDeclarations = declarations.get(location) ?? [];
+  if (wholeBoundaries.length > 0) {
+    const undeclaredBoundary = wholeBoundaries.find((boundary) =>
+      !locationDeclarations.some((declaration) =>
+        boundary.assertionId === declaration.assertionId));
+    if (undeclaredBoundary) return location;
+    locationDeclarations
+      .filter((declaration) =>
+        wholeBoundaries.some((boundary) =>
+          boundary.assertionId === declaration.assertionId))
+      .forEach((declaration) => { declaration.consumed = true; });
+  }
+  if (Array.isArray(value)) {
+    for (let index = 0; index < value.length; index += 1) {
+      const found = findFixtureOutputOracle(value[index], boundaries, declarations, `${location}/${index}`);
+      if (found !== null) return found;
+    }
+    return null;
+  }
+  if (value === null || typeof value !== 'object') return null;
+  for (const [key, child] of Object.entries(value)) {
+    const childLocation = `${location}/${escapeJsonPointerToken(key)}`;
+    if (
+      isFixtureOutputOracleKey(key)
+      && !(key === 'expected' && location === '' && isExpectedActionIdentityList(child))
+    ) return childLocation;
+    const childDeclarations = declarations.get(childLocation) ?? [];
+    const matchingBoundaries = boundaries.filter((boundary) =>
+      !boundary.wholeDocument
+      && matchesFixtureOutputBoundary(key, child, childLocation, [boundary]));
+    if (matchingBoundaries.length > 0) {
+      const undeclaredBoundary = matchingBoundaries.find((boundary) =>
+        !childDeclarations.some((declaration) =>
+          boundary.assertionId === declaration.assertionId));
+      if (undeclaredBoundary) return childLocation;
+      childDeclarations
+        .filter((declaration) =>
+          matchingBoundaries.some((boundary) =>
+            boundary.assertionId === declaration.assertionId))
+        .forEach((declaration) => { declaration.consumed = true; });
+    }
+    const found = findFixtureOutputOracle(child, boundaries, declarations, childLocation);
+    if (found !== null) return found;
+  }
+  return null;
+}
+
+async function validateFixture(fixture, corpusPath, packageRoot, trackedPaths, outputBoundaries, declarations, field, sourcePath, errors) {
   if (!validateRelativePath(fixture, field, sourcePath, errors, 'corpus-fixture-outside')) return;
   const fixtureRoot = path.join(path.dirname(corpusPath), 'fixtures');
   const candidate = path.resolve(fixtureRoot, ...fixture.split('/'));
@@ -519,6 +689,24 @@ async function validateFixture(fixture, corpusPath, packageRoot, trackedPaths, f
     addError(errors, 'corpus-fixture-symlink', field, sourcePath, 'Fixture path must not resolve through a symlink');
   } else if (state.kind !== 'file') {
     addError(errors, 'corpus-fixture-special-file', field, sourcePath, 'Fixture must be a regular file');
+  } else if (fixture.endsWith('.json')) {
+    let parsed;
+    try {
+      parsed = JSON.parse(await readFile(candidate, 'utf8'));
+    } catch (error) {
+      if (!(error instanceof SyntaxError)) throw error;
+      return;
+    }
+    const oracleLocation = findFixtureOutputOracle(parsed, outputBoundaries, declarations.get(fixture) ?? new Map());
+    if (oracleLocation !== null) {
+      addError(
+        errors,
+        'corpus-fixture-output-oracle',
+        field,
+        sourcePath,
+        `Fixture JSON exposes a worker-visible output oracle at ${oracleLocation}`,
+      );
+    }
   }
 }
 
@@ -587,6 +775,62 @@ async function validateBehaviorCase(value, index, corpusPath, packageRoot, track
       }
     });
   }
+  const privateAssertions = new Map(
+    Array.isArray(value.assertions)
+      ? value.assertions
+        .filter((assertion) =>
+          PRIVATE_EXPECTED_ASSERTION_KINDS.has(assertion?.kind)
+          && Object.hasOwn(assertion, 'expected'))
+        .map((assertion) => [assertion.id, assertion])
+      : [],
+  );
+  const declarations = new Map();
+  const declarationList = [];
+  if (Object.hasOwn(value, 'fixturePassthroughAssertions')) {
+    const declarationField = pointer(...base, 'fixturePassthroughAssertions');
+    if (!Array.isArray(value.fixturePassthroughAssertions)) {
+      addError(errors, 'corpus-invalid-type', declarationField, sourcePath, 'fixturePassthroughAssertions must be an array');
+    } else {
+      const seen = new Set();
+      value.fixturePassthroughAssertions.forEach((declaration, declarationIndex) => {
+        const field = pointer(...base, 'fixturePassthroughAssertions', declarationIndex);
+        if (!declaration || typeof declaration !== 'object' || Array.isArray(declaration)) {
+          addError(errors, 'corpus-invalid-fixture-passthrough', field, sourcePath, 'Fixture passthrough must be an object');
+          return;
+        }
+        const keys = Object.keys(declaration).sort();
+        if (keys.join(',') !== 'assertionId,fixture,pointer') {
+          addError(errors, 'corpus-invalid-fixture-passthrough', field, sourcePath, 'Fixture passthrough fields must be exactly assertionId, fixture, and pointer');
+          return;
+        }
+        const { assertionId, fixture, pointer: fixturePointer } = declaration;
+        const assertion = privateAssertions.get(assertionId);
+        const validPointer = typeof fixturePointer === 'string'
+          && isJsonPointer(fixturePointer);
+        const validFixture = typeof fixture === 'string'
+          && Array.isArray(value.fixtures)
+          && value.fixtures.includes(fixture)
+          && fixture.endsWith('.json');
+        if (!assertion || !validPointer || !validFixture) {
+          addError(errors, 'corpus-invalid-fixture-passthrough', field, sourcePath, 'Fixture passthrough must name a private assertion and a declared JSON fixture with an RFC 6901 pointer');
+          return;
+        }
+        const triple = `${assertionId}\u0000${fixture}\u0000${fixturePointer}`;
+        if (seen.has(triple)) {
+          addError(errors, 'corpus-duplicate-value', field, sourcePath, 'Fixture passthrough triples must be unique');
+          return;
+        }
+        seen.add(triple);
+        const tracked = { assertionId, consumed: false, field };
+        if (!declarations.has(fixture)) declarations.set(fixture, new Map());
+        const fixtureDeclarations = declarations.get(fixture);
+        if (!fixtureDeclarations.has(fixturePointer)) fixtureDeclarations.set(fixturePointer, []);
+        fixtureDeclarations.get(fixturePointer).push(tracked);
+        declarationList.push(tracked);
+      });
+    }
+  }
+  const outputBoundaries = collectFixtureOutputBoundaries(value.assertions);
   if (Object.hasOwn(value, 'fixtures')) {
     if (!Array.isArray(value.fixtures)) {
       addError(errors, 'corpus-invalid-type', pointer(...base, 'fixtures'), sourcePath, 'fixtures must be an array');
@@ -603,8 +847,13 @@ async function validateBehaviorCase(value, index, corpusPath, packageRoot, track
           addError(errors, 'corpus-duplicate-value', field, sourcePath, 'Fixture paths must be unique');
         }
         seenFixtures.add(fixture);
-        await validateFixture(fixture, corpusPath, packageRoot, trackedPaths, field, sourcePath, errors);
+        await validateFixture(fixture, corpusPath, packageRoot, trackedPaths, outputBoundaries, declarations, field, sourcePath, errors);
       }
+    }
+  }
+  for (const declaration of declarationList) {
+    if (!declaration.consumed) {
+      addError(errors, 'corpus-invalid-fixture-passthrough', declaration.field, sourcePath, 'Fixture passthrough declaration must match and be consumed at its exact raw location');
     }
   }
   if (!Array.isArray(value.assertions)) {

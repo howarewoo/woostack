@@ -1,0 +1,29 @@
+{
+  "repositoryId": "repo-woostack",
+  "legacyRecords": [
+    {
+      "path": ".woostack/specs/windows.md",
+      "kind": "specification",
+      "stableClientId": "12121212-1212-4212-8212-121212121212",
+      "phase": "approved",
+      "provenance": ["git:abc1234:.woostack/specs/windows.md"]
+    }
+  ],
+  "attributes": ["*.md text=auto"],
+  "checkoutPlatform": "windows",
+  "workingTreeEvidence": {
+    "indexDiffEntries": [],
+    "worktreeDiffEntries": [],
+    "workingTreeSha256": "7feb9974fc7a727d8223173b8342e3179fd1b30284dd8b6132b4d69e948ce6b9",
+    "rawBlobSha256": "1f1bb9a79eb5cabd7a6a9b118cb046af6aba583598b83966cb59ebf5d79e4859",
+    "workingTreeBytesEqualRawBlob": false,
+    "filteredObjectId": "blob-8b6f0c1",
+    "commitBlobObjectId": "blob-8b6f0c1",
+    "temporaryCheckoutSha256": "7feb9974fc7a727d8223173b8342e3179fd1b30284dd8b6132b4d69e948ce6b9"
+  },
+  "remoteObservations": [],
+  "gitRecovery": {
+    "allRecordsTracked": true,
+    "configuredFiltersApplied": true
+  }
+}

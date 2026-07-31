@@ -4,7 +4,7 @@
   "cases": [
     {
       "id": "local-memory-wisdom-curation",
-      "query": "Our local authentication memory notes overlap with existing wisdom, and an old overnight report may be fully absorbed. Propose one gated, idempotent changeset that merges or drops the notes, consolidates only corroborated long-lived guidance, shows every destructive body, and identifies any evidence-guarded documentation correction.",
+      "query": "Our local authentication memory notes overlap with existing wisdom. Propose one gated, idempotent changeset that merges or drops the notes, consolidates only corroborated long-lived guidance, shows every destructive body, and identifies any evidence-guarded documentation correction.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-dream",
       "conflictsWith": ["woostack-ask", "woostack-doctor"]

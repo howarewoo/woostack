@@ -263,16 +263,6 @@
         "drift": false,
         "repositorySideEffectsBeforeRecheck": false
       },
-      "expected": {
-        "status": "proceed",
-        "reason": "verified-engineer-handoff",
-        "oldOwnerMayMutate": false,
-        "incomingMayResume": true,
-        "nextBoundary": "resume-existing-worktree",
-        "pairedContextsComplete": true,
-        "intraUnitContextsDistinct": true,
-        "crossUnitContextsUnique": true
-      },
       "contextIsolationProof": {
         "requiredFields": [
           "decisionMakerAuthenticationContextId",

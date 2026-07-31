@@ -4,6 +4,24 @@
   "cases": [
     {
       "id": "admits-verified-independent-root",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "root-issue","fixture": "execution-record.json","pointer": "/scenarios/0/events/0/data/issueId"},
+        {"assertionId": "root-issue","fixture": "execution-record.json","pointer": "/scenarios/0/events/0/envelope/issueId"},
+        {"assertionId": "root-issue","fixture": "execution-record.json","pointer": "/scenarios/0/registry/issueId"},
+        {"assertionId": "root-issue","fixture": "execution-record.json","pointer": "/scenarios/4/ancestry/parent/issueId"},
+        {"assertionId": "root-parent","fixture": "execution-record.json","pointer": "/scenarios/0/ancestry/graphiteParent"},
+        {"assertionId": "root-parent","fixture": "execution-record.json","pointer": "/scenarios/1/ancestry/graphiteParent"},
+        {"assertionId": "root-parent","fixture": "execution-record.json","pointer": "/scenarios/3/ancestry/graphiteParent"},
+        {"assertionId": "root-parent","fixture": "execution-record.json","pointer": "/scenarios/5/ancestry/graphiteParent"},
+        {"assertionId": "root-parent","fixture": "execution-record.json","pointer": "/scenarios/6/ancestry/graphiteParent"},
+        {"assertionId": "root-parent","fixture": "execution-record.json","pointer": "/scenarios/7/ancestry/graphiteParent"},
+        {"assertionId": "root-parent","fixture": "execution-record.json","pointer": "/scenarios/8/ancestry/graphiteParent"},
+        {"assertionId": "root-parent","fixture": "execution-record.json","pointer": "/scenarios/9/ancestry/graphiteParent"},
+        {"assertionId": "root-start","fixture": "execution-record.json","pointer": "/scenarios/0/ancestry/startCommitSha"},
+        {"assertionId": "root-start","fixture": "execution-record.json","pointer": "/scenarios/3/ancestry/startCommitSha"},
+        {"assertionId": "root-start","fixture": "execution-record.json","pointer": "/scenarios/7/ancestry/startCommitSha"},
+        {"assertionId": "root-start","fixture": "execution-record.json","pointer": "/scenarios/9/ancestry/startCommitSha"}
+      ],
       "prompt": "Inspect only scenario verified-independent-root in fixtures/execution-record.json. Do not run Git, Linear, network, provider, shell, or mutation commands. Apply the packaged execute controller and return exactly one JSON object with keys status, reason, issueId, startCommitSha, graphiteParent, registryKey, assignmentAcceptedVerified, localAuthorityAccepted, and nextBoundary. Set assignmentAcceptedVerified true only after validating the raw canonical comment record's exact six-field shape, exact issueEvent envelope and assignmentAccepted data keys, native comment ID, authoritative timestamp, native actor, stable client UUID, current revision/supersession chain, empty initial relatedIds, and complete independent read-back; resolve current revision by identity/revision/time, never array position. Admit work only from complete official-MCP identity, owner, assignment, ancestry, and exact-ID registry receipts.",
       "fixtures": [
         "execution-record.json"
@@ -80,6 +98,30 @@
     },
     {
       "id": "admits-verified-standalone-issue",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "standalone-no-project","fixture": "execution-record.json","pointer": "/scenarios/1/issue/projectId"},
+        {"assertionId": "standalone-no-project","fixture": "execution-record.json","pointer": "/scenarios/1/registry/projectId"},
+        {"assertionId": "standalone-no-project","fixture": "execution-record.json","pointer": "/scenarios/5/issue/projectId"},
+        {"assertionId": "standalone-no-project","fixture": "execution-record.json","pointer": "/scenarios/5/registry/projectId"},
+        {"assertionId": "standalone-no-project","fixture": "execution-record.json","pointer": "/scenarios/6/issue/projectId"},
+        {"assertionId": "standalone-no-project","fixture": "execution-record.json","pointer": "/scenarios/6/registry/projectId"},
+        {"assertionId": "standalone-no-project","fixture": "execution-record.json","pointer": "/scenarios/8/issue/projectId"},
+        {"assertionId": "standalone-role","fixture": "execution-record.json","pointer": "/scenarios/1/issue/role"},
+        {"assertionId": "standalone-role","fixture": "execution-record.json","pointer": "/scenarios/1/events/0/envelope/role"},
+        {"assertionId": "standalone-role","fixture": "execution-record.json","pointer": "/scenarios/5/issue/role"},
+        {"assertionId": "standalone-role","fixture": "execution-record.json","pointer": "/scenarios/5/events/0/envelope/role"},
+        {"assertionId": "standalone-role","fixture": "execution-record.json","pointer": "/scenarios/5/events/1/role"},
+        {"assertionId": "standalone-role","fixture": "execution-record.json","pointer": "/scenarios/6/issue/role"},
+        {"assertionId": "standalone-role","fixture": "execution-record.json","pointer": "/scenarios/6/events/0/envelope/role"},
+        {"assertionId": "standalone-role","fixture": "execution-record.json","pointer": "/scenarios/6/events/1/role"},
+        {"assertionId": "standalone-role","fixture": "execution-record.json","pointer": "/scenarios/6/events/2/role"},
+        {"assertionId": "standalone-role","fixture": "execution-record.json","pointer": "/scenarios/8/issue/role"},
+        {"assertionId": "standalone-role","fixture": "execution-record.json","pointer": "/scenarios/8/events/0/envelope/role"},
+        {"assertionId": "standalone-role","fixture": "execution-record.json","pointer": "/scenarios/8/events/1/role"},
+        {"assertionId": "standalone-role","fixture": "execution-record.json","pointer": "/scenarios/8/events/2/role"},
+        {"assertionId": "standalone-role","fixture": "execution-record.json","pointer": "/scenarios/8/events/3/role"},
+        {"assertionId": "standalone-role","fixture": "execution-record.json","pointer": "/scenarios/8/events/4/role"}
+      ],
       "prompt": "Inspect only scenario verified-standalone-resume in fixtures/execution-record.json. Do not run commands or mutate anything. Apply the packaged issue-only controller and return exactly one JSON object with keys status, reason, issueId, role, projectId, ownerField, assignmentAcceptedVerified, ancestryVerified, and nextBoundary. Set assignmentAcceptedVerified true only for the uniquely current raw canonical assignmentAccepted revision with exact record/envelope/data fields, native ID/timestamp/actor, stable UUID and valid supersession chain, empty initial relations, owner/run equality, and complete independent read-back; never select by array position. A standalone issue must also prove role work-item and explicit no-project state.",
       "fixtures": [
         "execution-record.json"
@@ -148,15 +190,15 @@
       ]
     },
     {
-      "id": "rejects-local-plan-and-progress-authority",
-      "prompt": "Inspect only scenario rejects-local-plan-progress-authority in fixtures/execution-record.json. Do not run commands or mutate anything. Return exactly one JSON object with keys status, reason, issueBound, mutationAllowed, localPlanAccepted, localProgressAccepted, fallbackAllowed, and nextAction. Apply the packaged Linear-only authority rule even though local paths are present.",
+      "id": "classifies-caller-resume-from-local-paths",
+      "prompt": "Inspect only scenario caller-resume-from-local-paths in fixtures/execution-record.json. Apply the packaged execute controller to the caller's supplied resume request. Return exactly one JSON object with keys status, reason, issueBound, mutationAllowed, localPlanAccepted, localProgressAccepted, fallbackAllowed, and nextAction.",
       "fixtures": [
         "execution-record.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Local plan and progress paths are rejected as authority; no issue is bound, no mutation or fallback is allowed, and the run asks for an exact Linear identity.",
+      "expected": "The response applies the packaged execution contract to the supplied resume request and returns a complete, internally consistent classification for every requested field.",
       "assertions": [
         {
           "id": "local-blocked",
@@ -169,7 +211,7 @@
           "id": "local-reason",
           "kind": "final-json-path-equals",
           "pointer": "/reason",
-          "expected": "local-development-record-is-not-authority",
+          "expected": "unsupported-development-source",
           "critical": true
         },
         {
@@ -363,6 +405,12 @@
     },
     {
       "id": "blocks-unknown-comment-readback",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "unknown-event","fixture": "execution-record.json","pointer": "/scenarios/5/events/1/event"},
+        {"assertionId": "unknown-event","fixture": "execution-record.json","pointer": "/scenarios/8/events/1/event"},
+        {"assertionId": "unknown-outcome","fixture": "execution-record.json","pointer": "/scenarios/5/events/1/mutationOutcome"},
+        {"assertionId": "unknown-readback","fixture": "execution-record.json","pointer": "/scenarios/5/events/1/readBack"}
+      ],
       "prompt": "Inspect only scenario rejects-unknown-verification-comment-outcome in fixtures/execution-record.json. Do not run commands or mutate anything. Return exactly one JSON object with keys status, reason, event, stableEventId, mutationOutcome, readBack, commitAllowed, retrySameInvocation, replacementEventAllowed, and preservedState. Apply append-only stable-UUID unknown-outcome rules.",
       "fixtures": [
         "execution-record.json"
@@ -446,6 +494,12 @@
     },
     {
       "id": "restores-blocked-issue-to-recorded-state",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "unblock-none-open","fixture": "execution-record.json","pointer": "/scenarios/6/blockerRestoration/remainingOpenBlockers"},
+        {"assertionId": "unblock-prior","fixture": "execution-record.json","pointer": "/scenarios/6/blockerRestoration/priorState"},
+        {"assertionId": "unblock-restored","fixture": "execution-record.json","pointer": "/scenarios/6/events/2/restoredState"},
+        {"assertionId": "unblock-restored","fixture": "execution-record.json","pointer": "/scenarios/6/blockerRestoration/restoredState"}
+      ],
       "prompt": "Inspect only scenario restores-executing-after-verified-unblock in fixtures/execution-record.json. Do not run commands or mutate anything. Return exactly one JSON object with keys status, reason, blockedCommentId, unblockedRelatesTo, priorState, restoredState, remainingOpenBlockers, stateReadBackVerified, and nativeStateAloneSufficient. Apply exact blocker relation and restoration rules.",
       "fixtures": [
         "execution-record.json"
@@ -691,6 +745,9 @@
     },
     {
       "id": "rejects-premature-project-done",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "premature-project-not-all-done","fixture": "execution-record.json","pointer": "/scenarios/9/terminal/allIssuesDone"}
+      ],
       "prompt": "Inspect only scenario rejects-premature-project-done in fixtures/execution-record.json. Do not run commands or mutate anything. Return exactly one JSON object with keys status, reason, projectPhase, selectedIssueMerged, selectedIssueAccepted, allIssuesDone, projectDoneAllowed, executeMayWriteDone, and nextAction. Apply the all-done project completion rule.",
       "fixtures": [
         "execution-record.json"
@@ -767,6 +824,12 @@
     },
     {
       "id": "permits-distinct-independent-engineer-allocations",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "independent-cross-unit-contexts-unique","fixture": "multi-agent-allocation.json","pointer": "/concurrencyProof/crossUnitContextsUnique"},
+        {"assertionId": "independent-fresh-rechecks","fixture": "multi-agent-allocation.json","pointer": "/concurrencyProof/preSideEffectRechecksComplete"},
+        {"assertionId": "independent-intra-unit-contexts-distinct","fixture": "multi-agent-allocation.json","pointer": "/concurrencyProof/intraUnitContextsDistinct"},
+        {"assertionId": "independent-paired-contexts-complete","fixture": "multi-agent-allocation.json","pointer": "/concurrencyProof/pairedContextsComplete"}
+      ],
       "prompt": "Inspect only fixtures/multi-agent-allocation.json as bounded normalized official-MCP evidence. Do not run commands or mutate anything. Apply the packaged allocation, isolation, boundary recheck, review, and submission contract. Return exactly one JSON object with keys status, reason, issueIds, projectLeadAllocated, assignmentAcceptedBeforeWork, preSideEffectRechecksComplete, pairedContextsComplete, intraUnitContextsDistinct, crossUnitContextsUnique, sharedUnitFields, concurrentWorkAllowed, sideEffectsStarted, completedLifecycle, ownerReadBackBeforeEveryBoundary, reviewReceiptsCurrent, and nextBoundary. Verify both independent units through registry acquisition, edit, test, independently bound precommit review, commit, push, pull request relation, and issue transition; current owner and acceptance must be read back before every boundary.",
       "fixtures": [
         "multi-agent-allocation.json"
@@ -950,6 +1013,19 @@
     },
     {
       "id": "blocks-shared-engineer-identity",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "shared-cross-unit-contexts-not-unique","fixture": "assignment-collision.json","pointer": "/scenarios/0/collision/crossUnitContextsUnique"},
+        {"assertionId": "shared-identity-fields","fixture": "assignment-collision.json","pointer": "/scenarios/0/collision/sharedFields"},
+        {"assertionId": "shared-identity-issue","fixture": "assignment-collision.json","pointer": "/scenarios/0/activeAllocations/1/issueId"},
+        {"assertionId": "shared-identity-issue","fixture": "assignment-collision.json","pointer": "/scenarios/0/activeAllocations/1/assignmentAccepted/data/issueId"},
+        {"assertionId": "shared-identity-issue","fixture": "assignment-collision.json","pointer": "/scenarios/0/activeAllocations/1/assignmentAccepted/envelope/issueId"},
+        {"assertionId": "shared-identity-issue","fixture": "assignment-collision.json","pointer": "/scenarios/0/evidence/record/data/issueId"},
+        {"assertionId": "shared-identity-issue","fixture": "assignment-collision.json","pointer": "/scenarios/0/evidence/record/envelope/issueId"},
+        {"assertionId": "shared-pairs-complete","fixture": "assignment-collision.json","pointer": "/scenarios/0/collision/pairedContextsComplete"},
+        {"assertionId": "shared-pairs-complete","fixture": "assignment-collision.json","pointer": "/scenarios/1/contextIsolationProof/pairedContextsComplete"},
+        {"assertionId": "shared-pairs-complete","fixture": "assignment-collision.json","pointer": "/scenarios/2/contextIsolationProof/pairedContextsComplete"},
+        {"assertionId": "shared-pairs-internally-distinct","fixture": "assignment-collision.json","pointer": "/scenarios/0/collision/intraUnitContextsDistinct"}
+      ],
       "prompt": "Inspect only scenario shared-principal-and-profile in fixtures/assignment-collision.json as bounded normalized evidence. Do not run commands or mutate anything. Apply the packaged paired-context and concurrent-unit isolation contract, then return exactly one JSON object with keys status, reason, issueId, conflictingIssueId, pairedContextsComplete, intraUnitContextsDistinct, crossUnitContextsUnique, sharedFields, collisionEvent, collisionReadBackVerified, sharedIdentityAccepted, sideEffectsAllowed, and requiredAuthority. The two roles inside each engineer pair remain separately provisioned, but a second active unit may not reuse either role's authentication context, MCP session, token-cache context, environment, profile, or session, nor its Linear principal. The current owner may only record the observed boundary without creating around it.",
       "fixtures": [
         "assignment-collision.json"
@@ -1067,6 +1143,11 @@
     },
     {
       "id": "rejects-engineer-self-claim",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "self-claim-paired-contexts-complete","fixture": "assignment-collision.json","pointer": "/scenarios/0/collision/pairedContextsComplete"},
+        {"assertionId": "self-claim-paired-contexts-complete","fixture": "assignment-collision.json","pointer": "/scenarios/1/contextIsolationProof/pairedContextsComplete"},
+        {"assertionId": "self-claim-paired-contexts-complete","fixture": "assignment-collision.json","pointer": "/scenarios/2/contextIsolationProof/pairedContextsComplete"}
+      ],
       "prompt": "Inspect only scenario self-claim-unassigned-issue in fixtures/assignment-collision.json as bounded normalized evidence. Do not run commands or mutate anything. Apply the packaged allocation and paired-context boundaries, then return exactly one JSON object with keys status, reason, issueId, currentOwner, pairedContextsComplete, pairedContextsDistinct, assignmentAcceptedPresent, ownerMutationAllowed, selfClaimAllowed, sideEffectsAllowed, and requiredAuthority. The invoking pair has complete separately provisioned decision-maker/coding contexts, but an unowned planned issue still requires deliberate project-lead allocation before the decision-maker may author assignmentAccepted; neither role may claim it for itself.",
       "fixtures": [
         "assignment-collision.json"
@@ -1157,6 +1238,13 @@
     },
     {
       "id": "blocks-owner-drift-without-handoff",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "owner-drift-issue","fixture": "assignment-collision.json","pointer": "/scenarios/2/events/0/data/issueId"},
+        {"assertionId": "owner-drift-issue","fixture": "assignment-collision.json","pointer": "/scenarios/2/events/0/envelope/issueId"},
+        {"assertionId": "owner-drift-paired-contexts-complete","fixture": "assignment-collision.json","pointer": "/scenarios/0/collision/pairedContextsComplete"},
+        {"assertionId": "owner-drift-paired-contexts-complete","fixture": "assignment-collision.json","pointer": "/scenarios/1/contextIsolationProof/pairedContextsComplete"},
+        {"assertionId": "owner-drift-paired-contexts-complete","fixture": "assignment-collision.json","pointer": "/scenarios/2/contextIsolationProof/pairedContextsComplete"}
+      ],
       "prompt": "Inspect only scenario owner-drift-without-handoff in fixtures/assignment-collision.json as bounded normalized evidence. Do not run commands or mutate anything. Apply the packaged paired-context, fresh pre-side-effect ownership, and typed transfer contract, then return exactly one JSON object with keys status, reason, issueId, expectedOwner, observedOwner, pairedContextsComplete, pairedContextsDistinct, ownerRecheckVerified, handoffVerified, incomingAssignmentAcceptedVerified, oldOwnerMayMutate, newOwnerMayMutate, and requiredEventChain. The outgoing pair's contexts remain complete and internally separate, but owner drift invalidates its brief; the old controller may not append a repair event, and the newly named owner may not work without the canonical handoff, deliberate reassignment, and its own assignmentAccepted read-back.",
       "fixtures": [
         "assignment-collision.json"
@@ -1264,6 +1352,10 @@
     },
     {
       "id": "escalates-contract-changing-question",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "contract-escalation-paired-contexts-complete","fixture": "project-lead-escalation.json","pointer": "/scenarios/0/contextIsolationProof/pairedContextsComplete"},
+        {"assertionId": "contract-escalation-paired-contexts-complete","fixture": "project-lead-escalation.json","pointer": "/scenarios/1/contextIsolationProof/pairedContextsComplete"}
+      ],
       "prompt": "Inspect only scenario contract-changing-question in fixtures/project-lead-escalation.json as bounded normalized evidence. Do not run commands or mutate anything. Apply the packaged coder, decision-maker, paired-context, and project-lead authority boundaries, then return exactly one JSON object with keys status, reason, coderStatus, pairedContextsComplete, pairedContextsDistinct, requiredEvent, eventReadBackVerified, requestedAuthority, contractMutationAllowed, repositorySideEffectsAllowed, and nextBoundary. The separately authenticated OMP coder's contract-changing question must return NEEDS_CONTEXT; its separately authenticated Hermes decision-maker must append and read back canonical decisionRequest and stop for an independently read lead decision.",
       "fixtures": [
         "project-lead-escalation.json"
@@ -1354,6 +1446,10 @@
     },
     {
       "id": "blocks-unmerged-dependency-and-escalates",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "dependency-escalation-paired-contexts-complete","fixture": "project-lead-escalation.json","pointer": "/scenarios/0/contextIsolationProof/pairedContextsComplete"},
+        {"assertionId": "dependency-escalation-paired-contexts-complete","fixture": "project-lead-escalation.json","pointer": "/scenarios/1/contextIsolationProof/pairedContextsComplete"}
+      ],
       "prompt": "Inspect only scenario dependency-block-needs-lead-decision in fixtures/project-lead-escalation.json as bounded normalized evidence. Do not run commands or mutate anything. Apply the packaged non-parent dependency, paired-context, and typed escalation contract, then return exactly one JSON object with keys status, reason, coderStatus, pairedContextsComplete, pairedContextsDistinct, dependencyState, dependencyMerged, requiredEvents, blockedReadBackVerified, decisionRequestReadBackVerified, relationMutationAllowed, allocationMutationAllowed, repositorySideEffectsAllowed, and nextBoundary. The decision-maker and coder use complete separate contexts, but an in-review unmerged blocker cannot be bypassed; the current decision-maker records blocked plus decisionRequest and waits for the pinned lead instead of changing a relation or allocation.",
       "fixtures": [
         "project-lead-escalation.json"
@@ -1468,6 +1564,19 @@
     },
     {
       "id": "resumes-after-complete-engineer-handoff",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "engineer-handoff-issue","fixture": "engineer-handoff.json","pointer": "/scenarios/0/events/0/data/issueId"},
+        {"assertionId": "engineer-handoff-issue","fixture": "engineer-handoff.json","pointer": "/scenarios/0/events/0/envelope/issueId"},
+        {"assertionId": "engineer-handoff-issue","fixture": "engineer-handoff.json","pointer": "/scenarios/0/events/1/data/issueId"},
+        {"assertionId": "engineer-handoff-issue","fixture": "engineer-handoff.json","pointer": "/scenarios/0/events/1/envelope/issueId"},
+        {"assertionId": "engineer-handoff-issue","fixture": "engineer-handoff.json","pointer": "/scenarios/0/events/2/data/issueId"},
+        {"assertionId": "engineer-handoff-issue","fixture": "engineer-handoff.json","pointer": "/scenarios/0/events/2/envelope/issueId"},
+        {"assertionId": "engineer-handoff-issue","fixture": "engineer-handoff.json","pointer": "/scenarios/0/events/3/data/issueId"},
+        {"assertionId": "engineer-handoff-issue","fixture": "engineer-handoff.json","pointer": "/scenarios/0/events/3/envelope/issueId"},
+        {"assertionId": "engineer-handoff-issue","fixture": "engineer-handoff.json","pointer": "/scenarios/0/handoff/reassignment/issueId"},
+        {"assertionId": "engineer-handoff-issue","fixture": "engineer-handoff.json","pointer": "/scenarios/0/registry/issueId"},
+        {"assertionId": "handoff-cross-unit-contexts-unique","fixture": "engineer-handoff.json","pointer": "/scenarios/0/contextIsolationProof/crossUnitContextsUnique"}
+      ],
       "prompt": "Inspect only scenario verified-engineer-handoff in fixtures/engineer-handoff.json as bounded normalized evidence. Do not run commands or mutate anything. Apply the packaged typed transfer, paired-context isolation, and fresh pre-resume verification contract, then return exactly one JSON object with keys status, reason, issueId, outgoingEngineer, incomingEngineer, pairedContextsComplete, intraUnitContextsDistinct, crossUnitContextsUnique, eventChain, handoffReadBackVerified, reassignmentReadBackVerified, newAssignmentAcceptedReadBackVerified, oldCoderStopped, preResumeRecheckComplete, oldOwnerMayMutate, incomingMayResume, and nextBoundary. Both outgoing and incoming pairs require complete separate decision-maker/coding authentication, MCP, token-cache, environment, and session IDs, and no context may cross the unit boundary. Resume also requires the canonical handoff, coder stop, deliberate lead reassignment, incoming assignmentAccepted, registry rebinding, and a fresh complete recheck.",
       "fixtures": [
         "engineer-handoff.json"
@@ -1605,6 +1714,11 @@
     },
     {
       "id": "blocks-missing-or-equal-paired-contexts",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "invalid-pair-engineer","fixture": "assignment-collision.json","pointer": "/scenarios/3/engineerUnit/engineerName"},
+        {"assertionId": "invalid-pair-equal-contexts","fixture": "assignment-collision.json","pointer": "/scenarios/3/contextCheck/equalContextPairs"},
+        {"assertionId": "invalid-pair-incomplete","fixture": "assignment-collision.json","pointer": "/scenarios/3/contextCheck/pairedContextsComplete"}
+      ],
       "prompt": "Inspect only scenario missing-and-equal-paired-contexts in fixtures/assignment-collision.json as bounded normalized evidence. Do not run commands or mutate anything. Apply the packaged engineer-pair isolation boundary, then return exactly one JSON object with keys status, reason, engineerName, missingContextFields, equalContextPairs, pairedContextsComplete, pairedContextsDistinct, pairAccepted, and sideEffectsAllowed. Decision-maker and coding authentication contexts, MCP sessions, token-cache contexts, environments, and sessions must all be present and distinct; non-secret labels are evidence only, never credentials.",
       "fixtures": [
         "assignment-collision.json"

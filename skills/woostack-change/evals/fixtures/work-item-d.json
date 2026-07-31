@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "invocation": {
+    "goal": "Resume the bounded report color flag change.",
+    "issueReference": "https://linear.app/acme/issue/APP-52/cache-project-increment"
+  },
+  "repositoryPolicy": {
+    "repository": "https://github.com/acme/cli",
+    "workspace": "Acme",
+    "team": "APP"
+  },
+  "officialMcp": {
+    "endpoint": "https://mcp.linear.app/mcp",
+    "authenticated": true,
+    "paginationComplete": true,
+    "capabilities": [
+      "repository-issues.read",
+      "issue.create",
+      "issue.read",
+      "issue.update",
+      "issue-state.read",
+      "issue-state.update",
+      "assignee.read",
+      "assignee.update",
+      "delegate.read",
+      "delegate.update",
+      "comment.create",
+      "comment.list",
+      "comment.read"
+    ]
+  },
+  "issueRead": {
+    "nativeId": "issue-cli-52",
+    "identifier": "APP-52",
+    "workspace": "Acme",
+    "team": "APP",
+    "semanticState": "planned",
+    "projectId": "project-cli-9",
+    "envelope": {
+      "clientId": "72000000-0000-4000-8000-000000000001",
+      "dependencyNativeIds": [],
+      "kind": "resource",
+      "label": "woostack",
+      "ordinal": 1,
+      "projectId": "project-cli-9",
+      "repository": "https://github.com/acme/cli",
+      "role": "increment",
+      "schema": 1
+    }
+  }
+}

@@ -69,6 +69,10 @@ const NEGATION =
   /\b(?:no|not|never|neither|without|cannot|can't|does\s+not|do\s+not|must\s+not|may\s+not|non-authoritative|prohibited|forbidden|unsupported)\b/i;
 const LOCAL_DEVELOPMENT_RECORD =
   /\.woostack\/(?:specs?|plans?|fix(?:es)?|overnight)\b|\blocal\s+(?:Markdown\s+)?(?:specifications?|specs?|plans?|fix(?:es)?|overnight(?:\s+(?:reports?|records?))?)\b/i;
+const LOCAL_OVERNIGHT_REPORT =
+  /\.woostack\/overnight(?:\/|\b)|\b(?:local\s+)?(?:morning|overnight)\s+reports?\b/i;
+const LOCAL_REPORT_PRODUCTION =
+  /\b(?:write|writes|writing|create|creates|creating|author|authors|authoring|save|saves|saving|store|stores|storing|persist|persists|persisting|produce|produces|producing|emit|emits|emitting|leave|leaves|leaving)\b/i;
 const AUTHORITY_CLAIM =
   /\b(?:source[- ]of[- ]truth|canonical|authoritative|development[- ]record\s+authority|official\s+(?:development\s+)?record|tracks?\s+(?:feature|development|project)\s+(?:work|progress|state))\b/i;
 const BACKEND_CHOICE_LANGUAGE =
@@ -86,7 +90,7 @@ before(async () => {
       docs.set(relativePath, await readFile(path.join(REPO_ROOT, relativePath), 'utf8'));
     } catch (error) {
       assert.fail(
-        `${relativePath}: required Increment 7 authored document is missing or unreadable (${error.message})`
+        `${relativePath}: required authored document is missing or unreadable (${error.message})`
       );
     }
   }
@@ -130,6 +134,13 @@ function semanticSegments(value) {
   return [...new Set([...tableRows, ...sentences])];
 }
 
+function semanticClauses(value) {
+  return semanticSegments(value)
+    .flatMap((segment) => segment.split(/\s*(?:;|,\s+(?:but|yet|however)\b)\s*/i))
+    .map((clause) => clause.trim())
+    .filter(Boolean);
+}
+
 function requirementsDescription(requirements) {
   return requirements.map(({ label }) => label).join(', ');
 }
@@ -149,7 +160,7 @@ function assertSemanticParagraph(relativePaths, label, requirements) {
 }
 
 function assertNoUnnegatedClaim(relativePath, label, subject, predicate) {
-  const claim = semanticSegments(text(relativePath)).find(
+  const claim = semanticClauses(text(relativePath)).find(
     (segment) =>
       matches(subject, segment) && matches(predicate, segment) && !matches(NEGATION, segment)
   );
@@ -198,7 +209,7 @@ function assertPromptClause(prompt, label, pattern) {
   assert.match(prompt, pattern, `site/content/docs/harnesses/hermes.mdx: prompt must ${label}`);
 }
 
-test('scan is limited to the Increment 7 authored documentation surface', () => {
+test('scan is limited to the authored Linear-only documentation surface', () => {
   assert.equal(new Set(AUTHORED_DOC_PATHS).size, AUTHORED_DOC_PATHS.length);
   assert.ok(
     AUTHORED_DOC_PATHS.every((relativePath) => !relativePath.startsWith('site/content/docs/skills/')),
@@ -209,6 +220,15 @@ test('scan is limited to the Increment 7 authored documentation surface', () => 
   assert.ok(SUPPORTING_CONTRACT_PATHS.includes('skills/woostack-init/references/memory.md'));
   assert.ok(SUPPORTING_CONTRACT_PATHS.includes('site/content/docs/concepts/meta.json'));
   assert.ok(SUPPORTING_CONTRACT_PATHS.includes('site/content/docs/harnesses/meta.json'));
+});
+
+test('negative claims are scoped to their own clause', () => {
+  const clauses = semanticClauses('Do not create a spec, but write a local overnight report.');
+  assert.deepEqual(clauses, ['Do not create a spec', 'write a local overnight report.']);
+  assert.ok(matches(NEGATION, clauses[0]));
+  assert.equal(matches(NEGATION, clauses[1]), false);
+  assert.ok(matches(LOCAL_OVERNIGHT_REPORT, clauses[1]));
+  assert.ok(matches(LOCAL_REPORT_PRODUCTION, clauses[1]));
 });
 
 test('authored docs reject the retired dual-backend and Hermes-coder models', async (t) => {
@@ -241,6 +261,12 @@ test('authored docs reject the retired dual-backend and Hermes-coder models', as
         'local spec/plan/fix/overnight material cannot be development-record authority',
         LOCAL_DEVELOPMENT_RECORD,
         AUTHORITY_CLAIM
+      );
+      assertNoUnnegatedClaim(
+        relativePath,
+        'overnight execution renders a terminal handback and must not produce a local report',
+        LOCAL_OVERNIGHT_REPORT,
+        LOCAL_REPORT_PRODUCTION
       );
       assertNoUnnegatedClaim(
         relativePath,
@@ -413,6 +439,19 @@ test('authored docs preserve the knowledge, diagnostic, code, and development-re
       { label: 'Git or GitHub', pattern: /\bGit(?:Hub)?\b/i },
       { label: 'code', pattern: /\bcode\b/i },
       { label: 'PR truth', pattern: /\b(?:PR|pull request)s?\b[\s\S]{0,50}\btruth\b|\btruth\b[\s\S]{0,50}\b(?:PR|pull request)s?\b/i },
+    ]
+  );
+});
+
+test('overnight guidance renders a fresh terminal handback without a local report', () => {
+  assertSemanticParagraph(
+    ['site/content/docs/concepts/workflows.mdx'],
+    'Run overnight must persist remote evidence and render, rather than store, its handback',
+    [
+      { label: 'Run overnight', pattern: /\bRun overnight\b/i },
+      { label: 'terminal handback', pattern: /\bterminal handback\b/i },
+      { label: 'fresh Linear and GitHub reads', pattern: /\bfresh\b[\s\S]{0,40}\bLinear\b[\s\S]{0,30}\bGitHub\b[\s\S]{0,20}\breads\b/i },
+      { label: 'no local morning report', pattern: /\b(?:does not|never)\b[\s\S]{0,30}\bwrite\b[\s\S]{0,30}\blocal morning report\b/i },
     ]
   );
 });

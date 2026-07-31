@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 # Structural contract: unattended execution records progress, blockers, review, and handoff in
-# exact Linear issues/project updates, then renders (but never writes) the morning handback.
+# exact Linear issues/project updates, then renders (but never writes) the terminal handback.
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$HERE/../../../woostack-init/scripts/tests/assert.sh"
 set +e
 
 SKILL="$HERE/../../SKILL.md"
-REPORT_TEMPLATE="$HERE/../../references/report-template.md"
 body="$(cat "$SKILL")"
 
 authority="$(printf '%s' "$body" | awk '/^## Authority and MCP boundary/{f=1; next} /^## /{f=0} f' | tr '\n' ' ')"
@@ -15,19 +14,10 @@ assert_contains "$authority" "official Linear MCP" \
   "overnight uses only official host-exposed Linear MCP authority"
 assert_contains "$authority" "stable client UUIDs" \
   "overnight binds exact managed Linear identities"
-assert_contains "$authority" "never create, update, read, or accept" \
-  "overnight rejects local run records as both authoring target and receipt"
-assert_contains "$authority" '.woostack/overnight/' \
-  "overnight explicitly rejects the legacy local report path"
-assert_not_contains "$body" "Markdown overnight input" \
-  "overnight has no active Markdown execution branch"
-assert_not_contains "$body" "references/report-template.md" \
-  "overnight no longer links the local report template"
-if [[ -e "$REPORT_TEMPLATE" ]]; then
-  fail "legacy overnight report template is removed"
-else
-  pass
-fi
+assert_contains "$authority" "The complete verified project, issue graph, typed events" \
+  "overnight derives development state from verified remote records"
+assert_contains "$authority" "disposable worktree registry keyed by exact Linear IDs" \
+  "overnight keeps recovery administration identity-bound"
 
 drivers="$(printf '%s' "$body" | awk '/^## What it reuses from woostack-execute/{f=1; next} /^## Verified event protocol/{f=0} f' | tr '\n' ' ')"
 assert_contains "$drivers" "A coding worker may only analyze and edit" \
@@ -167,23 +157,25 @@ assert_contains "$sweep" '`done-with-findings` requires the exact full-review Gi
 assert_contains "$sweep" 'sweep deliberately does not re-review this' \
   "done-with-findings does not fabricate a head-B re-review"
 
-handback="$(printf '%s' "$body" | awk '/^## Morning handback/{f=1; next} /^## /{f=0} f' | tr '\n' ' ')"
-assert_contains "$handback" "Do not write a morning report" \
-  "morning output is rendered, not authored locally"
+handback="$(printf '%s' "$body" | awk '/^## Terminal handback/{f=1; next} /^## /{f=0} f' | tr '\n' ' ')"
+assert_contains "$handback" "Do not write a local report" \
+  "terminal output is rendered, not authored locally"
 assert_contains "$handback" 'do not append issue or project `handoff` events merely to record' \
   "ordinary open actions do not misuse ownership handoff events"
 assert_contains "$handback" "deliberate assignee/delegate change with read-back" \
   "real handoffs require verified ownership transfer"
 assert_contains "$handback" "Paginate and independently re-read" \
-  "morning output is reconstructed from fresh remote records"
+  "terminal output is reconstructed from fresh remote records"
 assert_contains "$handback" "render the handback directly in the terminal" \
-  "morning handback has no filesystem delivery target"
+  "terminal handback has no filesystem delivery target"
 assert_contains "$handback" "Project progress" \
-  "morning progress is a verified issue-set derivation"
+  "terminal progress is a verified issue-set derivation"
 
 hard="$(printf '%s' "$body" | awk '/^## Hard constraints/{f=1} f' | tr '\n' ' ')"
 assert_contains "$hard" "No local report" \
-  "the no-local-report barrier is repeated in hard constraints"
+  "the terminal handback is not a filesystem artifact"
+assert_contains "$hard" "never author, read, accept, or prune" \
+  "no report producer, reader, acceptance, or prune path may return"
 assert_contains "$hard" "One issue, observation-only worker" \
   "coding delegation stays one-issue, uncommitted, and observation-only"
 assert_contains "$hard" "Controller-owned evidence and source control" \

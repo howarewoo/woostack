@@ -19,6 +19,13 @@ root = Path(sys.argv[1])
 fixture = json.loads((root / "evals/fixtures/overnight-state.json").read_text())
 evals = json.loads((root / "evals/evals.json").read_text())
 
+skill = (root / "SKILL.md").read_text()
+for retired_token in (".woostack/overnight/", "references/report-template.md"):
+    if retired_token in skill:
+        raise SystemExit(f"FAIL: retired local-report contract returned: {retired_token}")
+if "localReportPath" in fixture or ".woostack/overnight/" in json.dumps(fixture):
+    raise SystemExit("FAIL: active overnight fixture contains a local report path")
+
 required_cases = {
     "renders-remote-handback-and-continues-independent-track",
     "validates-canonical-app-22-unattended-records",

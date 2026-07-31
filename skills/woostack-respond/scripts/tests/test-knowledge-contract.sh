@@ -7,6 +7,8 @@ dream="$(cat "$ROOT/skills/woostack-dream/SKILL.md")"
 wisdom="$(cat "$ROOT/skills/woostack-init/references/wisdom.md")"
 memory="$(cat "$ROOT/site/content/docs/concepts/memory.mdx")"
 build="$(cat "$ROOT/skills/woostack-init/scripts/build-index.sh")"
+dream_compact="$(printf '%s' "$dream" | tr '\n' ' ' | tr -s ' ')"
+wisdom_compact="$(printf '%s' "$wisdom" | tr '\n' ' ' | tr -s ' ')"
 
 for phrase in \
   'Sanitized `.woostack/respond/*.md` reports (excluding raw evidence)' \
@@ -19,7 +21,7 @@ for phrase in \
   'Development resources, diagnostics,' \
   'overnight records, and documentation never appear on the prune list.'
 do
-  assert_contains "$dream" "$phrase" "dream diagnostic-corroboration contract includes $phrase"
+  assert_contains "$dream_compact" "$phrase" "dream diagnostic-corroboration contract includes $phrase"
 done
 
 for phrase in \
@@ -33,16 +35,21 @@ done
 
 for phrase in \
   'Raw `respond/evidence/` is excluded.' \
-  'A single incident report cannot establish' \
-  '**Only scratch is prunable:** `.woostack/memory/` notes and `.woostack/overnight/` reports.'
+  'A single diagnostic report or remote artifact cannot establish generalized wisdom.' \
+  '**Only fully absorbed `.woostack/memory/` notes are prunable.**'
 do
-  assert_contains "$wisdom" "$phrase" "wisdom keeps diagnostic evidence bounded: $phrase"
+  assert_contains "$wisdom_compact" "$phrase" "wisdom keeps diagnostic evidence bounded: $phrase"
 done
 
+assert_contains "$dream_compact" 'If `.woostack/overnight/` exists, stop before reading or deleting any file' "dream blocks on legacy overnight records without consuming them"
+assert_not_contains "$wisdom" "overnight" "wisdom has no overnight-report corpus or lifecycle"
+assert_not_contains "$(cat "$ROOT/skills/woostack-dream/evals/trigger-evals.json")" "overnight report" "dream trigger corpus has no retired report input"
+assert_not_contains "$(cat "$ROOT/skills/woostack-status/evals/trigger-evals.json")" "overnight report" "status trigger corpus does not route retired reports to dream"
+
 for phrase in \
-  'one incident cannot establish generalized wisdom' \
-  'Response reports never enter `MEMORY.md` and are never pruned.' \
-  'dream and recall never read it.'
+  'One report or incident is never enough' \
+  'Sanitized response reports never enter `MEMORY.md` and are never pruned as curation scratch.' \
+  'Dream can read them as corroborating diagnostics; recall never reads them.'
 do
   assert_contains "$memory" "$phrase" "authored memory keeps diagnostic evidence bounded: $phrase"
 done

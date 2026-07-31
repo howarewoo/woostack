@@ -68,7 +68,8 @@ delegate/assignee, lifecycle state, dependency, acceptance, or merge state.
    receipt; require its PR, head, diff, review ID, unresolved thread IDs, and finding fingerprints
    to match fresh GitHub truth. A missing/stale/partial finding receipt blocks; address-comments
    never fabricates a review round from thread text.
-4. **Reception loop (analysis only)** — per thread, follow `prompts/address.md`: read, understand,
+4. **Reception loop (analysis only)** — the parent orchestrator may delegate this phase to fast workers.
+   Per thread, follow `prompts/address.md`: read, understand,
    verify, evaluate, then recommend `FIX` / `ACCEPT` / `CLARIFY`. Stage the verdict, reasoning,
    reply draft, and a one-line fix plan for every FIX. The loop makes no working-tree, Linear,
    GitHub, or memory mutation. Every worker receives the exact project/issue stable and native

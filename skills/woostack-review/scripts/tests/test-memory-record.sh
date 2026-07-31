@@ -12,24 +12,24 @@ pushd "$work" >/dev/null
 # Scoped store present: write an individual note and rebuild MEMORY.md.
 mkdir -p .woostack/memory
 WOOSTACK_NOW=2026-06-02 PR_NUMBER=165 \
-  LEARNING='.woostack/specs and .woostack/plans are tracked skill artifacts; do not flag them as stray.' \
-  MEMORY_SCOPE='.woostack/specs/**,.woostack/plans/**' \
+  LEARNING='API review findings require exact changed-line anchors.' \
+  MEMORY_SCOPE='src/api/**,app/api/**' \
   bash "$SCRIPT" >/tmp/memory-record-1.out
 
 note_count="$(find .woostack/memory -maxdepth 1 -type f -name '*.md' ! -name MEMORY.md | wc -l | tr -d ' ')"
 assert_eq "$note_count" "1" "scoped store writes one note"
 note="$(find .woostack/memory -maxdepth 1 -type f -name '*.md' ! -name MEMORY.md | head -1)"
 assert_contains "$(cat "$note")" "type: convention" "note type defaults to convention"
-assert_contains "$(cat "$note")" "scope: .woostack/specs/**,.woostack/plans/**" "note scope comes from MEMORY_SCOPE"
+assert_contains "$(cat "$note")" "scope: src/api/**,app/api/**" "note scope comes from MEMORY_SCOPE"
 assert_contains "$(cat "$note")" "updated: 2026-06-02" "note updated uses WOOSTACK_NOW"
 assert_contains "$(cat "$note")" "source: pr-165" "note source uses PR_NUMBER"
-assert_contains "$(cat "$note")" "tracked skill artifacts" "note body contains learning"
-assert_contains "$(cat .woostack/memory/MEMORY.md)" "tracked skill artifacts" "index rebuilt after scoped write"
+assert_contains "$(cat "$note")" "exact changed-line anchors" "note body contains learning"
+assert_contains "$(cat .woostack/memory/MEMORY.md)" "exact changed-line anchors" "index rebuilt after scoped write"
 
 # Re-running the same learning should not create a duplicate note.
 WOOSTACK_NOW=2026-06-03 PR_NUMBER=165 \
-  LEARNING='.woostack/specs and .woostack/plans are tracked skill artifacts; do not flag them as stray.' \
-  MEMORY_SCOPE='.woostack/specs/**,.woostack/plans/**' \
+  LEARNING='API review findings require exact changed-line anchors.' \
+  MEMORY_SCOPE='src/api/**,app/api/**' \
   bash "$SCRIPT" >/tmp/memory-record-2.out
 note_count="$(find .woostack/memory -maxdepth 1 -type f -name '*.md' ! -name MEMORY.md | wc -l | tr -d ' ')"
 assert_eq "$note_count" "1" "scoped write dedupes existing learning"

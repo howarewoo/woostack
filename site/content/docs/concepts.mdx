@@ -22,13 +22,14 @@ work.
 [woostack-build](/docs/skills/woostack-build) handles work expected to require multiple
 independently shippable increments. It chains a fixed sequence:
 
-> ideate → **approve design** → create the Linear project and initial specification update →
-> harden the written spec → **approve spec** → plan and order increment issues →
-> **execution handoff** → execute, review, and accept one issue at a time
+> ideate → **approve design** → create the Linear project and append `designApproved` → harden
+> through specification-bearing project updates → `specHardened` → **approve spec** →
+> `specApproved` → `planning` → `ready` → **execution handoff** → `executionApproved` for
+> execution → execute, review, and accept one issue at a time
 
-The project is the feature-level coordination surface. Its updates hold the written specification,
-approved decisions, phase, and progress, while ordered increment issues carry implementation
-contracts, dependencies, ownership, and evidence. The
+The project is the feature-level coordination surface. Its specification-bearing updates own the
+written specification, approved decisions, phase, and progress; no Linear document is created.
+Ordered increment issues carry implementation contracts, dependencies, ownership, and evidence. The
 [canonical build procedure](https://github.com/howarewoo/woostack/blob/main/skills/woostack-build/references/linear-procedure.md)
 owns the operational details.
 
@@ -42,10 +43,11 @@ is created.
 The multi-issue build loop advances past exactly three points only after an explicit answer:
 
 1. **Design approval** accepts the proposed design and permits creation of the project and its
-   initial specification update.
-2. **Written-spec approval** accepts the hardened specification before increment planning begins.
-3. **Execution handoff** chooses Go, Run overnight, or Hand off after the ordered issue set is
-   ready.
+   `designApproved` update.
+2. **Written-spec approval** accepts the current `specHardened` specification before
+   `specApproved` and increment planning.
+3. **Execution handoff** chooses Go, Run overnight, or Hand off after the project reaches `ready`;
+   execution paths append `executionApproved`.
 
 Persistence, read-back, planning, implementation checks, review, and progress updates are work
 steps, not additional approval gates. Silence never clears a gate.
@@ -57,7 +59,7 @@ steps, not additional approval gates. Silence never clears a gate.
 | Use when | One bounded fix or change can ship in one PR | A feature needs multiple independently shippable increments |
 | Linear records | One bound standalone issue | One project, specification-bearing project updates, and ordered increment issues |
 | Planning | Scope and acceptance criteria live on the issue | The issue order and dependency relations form the implementation plan |
-| Evidence | Decisions, implementation evidence, review, and acceptance stay with the issue | Project updates carry feature decisions/progress; issue comments carry increment evidence |
+| Evidence | Decisions, implementation evidence, review, and acceptance stay with the issue | Project updates carry the specification, feature decisions, and progress; issue comments carry increment evidence |
 | Code delivery | One attributed GitHub PR | One attributed GitHub PR per increment |
 
 The shapes are alternatives chosen by work size, not storage options. A one-PR request never gains

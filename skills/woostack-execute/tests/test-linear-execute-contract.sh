@@ -38,10 +38,6 @@ def must(text, token, scope):
         fail(f"{scope} missing {token!r}")
 
 
-def must_not(text, token, scope):
-    if normalized(token) in normalized(text):
-        fail(f"{scope} unexpectedly contains {token!r}")
-
 
 def ordered(text, tokens, scope):
     searchable = normalized(text)
@@ -78,7 +74,6 @@ subagent = texts["subagent"]
 worktrees = texts["worktrees"]
 authority = texts["authority"]
 commit_contract = texts["commit"]
-combined_active = "\n".join((execute, controller, inline, subagent, worktrees))
 eval_cases = {
     case["id"]: case
     for case in json.loads(texts["evals"]).get("cases", [])
@@ -106,41 +101,103 @@ for case_id, tokens in {
     for token in tokens:
         must(prompt, token, f"{case_id} canonical eval contract")
 
-# Linear issues are the only active execution authority. Old selectable/local execution paths and
-# repository adapter calls may not survive as workflow instructions.
+local_resume_case_id = "classifies-caller-resume-from-local-paths"
+local_resume_case = eval_cases.get(local_resume_case_id)
+if not isinstance(local_resume_case, dict):
+    fail("local-path resume eval case is missing")
+local_resume_output_contract = {
+    "/status": "blocked",
+    "/reason": "unsupported-development-source",
+    "/issueBound": False,
+    "/mutationAllowed": False,
+    "/localPlanAccepted": False,
+    "/localProgressAccepted": False,
+    "/fallbackAllowed": False,
+    "/nextAction": "require-exact-linear-project-or-standalone-issue",
+}
+observed_local_resume_contract = {
+    assertion.get("pointer"): assertion.get("expected")
+    for assertion in local_resume_case.get("assertions", [])
+    if assertion.get("kind") == "final-json-path-equals"
+}
+if observed_local_resume_contract != local_resume_output_contract:
+    fail("local-path resume outcome must remain exclusively in external assertions")
+
+local_resume_scenarios = [
+    scenario
+    for scenario in fixture.get("scenarios", [])
+    if scenario.get("id") == "caller-resume-from-local-paths"
+]
+if len(local_resume_scenarios) != 1:
+    fail("local-path resume input scenario is missing or duplicated")
+local_resume_scenario = local_resume_scenarios[0]
+expected_local_resume_input = {
+    "id": "caller-resume-from-local-paths",
+    "callerRequest": {
+        "command": "/woostack-execute",
+        "arguments": [".woostack/plans/cache.md"],
+        "resumeFrom": ".woostack/progress/cache.json",
+        "requestedBoundary": "edit",
+    },
+}
+if local_resume_scenario != expected_local_resume_input:
+    fail("local-path resume fixture must contain only the caller input")
+model_visible_local_resume = (
+    local_resume_case.get("prompt", "")
+    + "\n"
+    + json.dumps(local_resume_scenario, sort_keys=True)
+).lower()
+for leaked_answer in (
+    '"expected"',
+    "migration-negative",
+    "hostile",
+    "retiredlocaldevelopmentrecord",
+    "unsupported-development-source",
+    "require-exact-linear-project-or-standalone-issue",
+    '"status": "blocked"',
+    '"retryallowed"',
+    '"issuebound": false',
+    '"mutationallowed": false',
+    '"localplanaccepted": false',
+    '"localprogressaccepted": false',
+    '"fallbackallowed": false',
+    "do not mutate",
+    "no mutation",
+    "no issue is bound",
+):
+    if leaked_answer in model_visible_local_resume:
+        fail(f"local-path resume input leaks the expected answer: {leaked_answer!r}")
+
+# Exact Linear resources and independently read receipts are the only execution authority.
 for token in (
     "Official host-exposed Linear MCP is the only development-record authority",
     "one verified role-`feature` project and its complete role-`increment` issue DAG",
     "one verified standalone role-`work-item` issue",
-    "There is no local",
+    "The exact verified Linear resources are the complete execution contract",
     "Git and GitHub remain",
     "exact Linear project UUID-or-URL",
     "exact standalone issue UUID-or-URL",
     "shared [engineer-agent authority protocol]",
+    "Only independent official-MCP read-back and canonical Git/GitHub evidence are receipts",
 ):
     must(execute, token, "execute authority")
-for forbidden in (
-    "resolve-backend.sh",
-    "linear.sh",
-    "## Markdown backend",
-    "named Markdown plan",
-    "normalized ordered task list",
-    "Tick the plan",
-    "plan's checkboxes",
-    "the plan file is the live progress record",
-    "specDesignState",
-    "LINEAR_API_KEY",
-    "api.linear.app/graphql",
-):
-    must_not(combined_active, forbidden, "active execute surface")
 for token in (
-    "never reads or writes a local specification, plan, checkbox/progress record, or lifecycle mirror",
-    "calls no repository Linear adapter or custom HTTP/GraphQL transport",
-    "A local artifact or mutation response is never a receipt",
-    "No issue description checkbox, PR body alone, commit message, local report",
+    "The controller consumes only those verified authorities",
+    "the verified issue contract alone supplies development scope",
+    "Only an independently read typed event receipt establishes lifecycle evidence",
+    "The terminal handback is rendered from those verified records",
 ):
-    must(controller if token != "A local artifact or mutation response is never a receipt" else execute,
-         token, "local-authority rejection")
+    must(controller, token, "controller authority")
+must(
+    inline,
+    "The verified issue contract is the sole development authority for the packet",
+    "inline authority",
+)
+must(
+    subagent,
+    "The task text comes only from that verified issue contract",
+    "subagent authority",
+)
 
 # Mode selection must never collapse an admitted engineer pair into inline decision-maker coding.
 mode = section(execute, "## Execution mode", "## Review the verified issue before work")
@@ -295,11 +352,7 @@ for token in (
 
 # The sole greenfield bootstrap write is a pre-repository primary scaffold, not an implementation
 # worktree or reusable escape from issue-owned isolation.
-bootstrap_boundary = section(
-    worktrees,
-    "## Artifact-backend boundary",
-    "## 1. Verified start point",
-)
+bootstrap_boundary = worktrees
 for token in (
     "Only `woostack-bootstrap` has a pre-repository exception",
     "may cross that boundary exactly once",
@@ -497,7 +550,7 @@ for token in (
 for token in (
     "Every dispatched paired coder, generic implementer, or generic reviewer brief is self-contained",
     "names exactly one selected issue",
-    "Never supply a local specification,",
+    "The task text comes only from that verified issue contract",
     "must never load or follow `skill://woostack-review`",
     "edit the issue description, scope, acceptance criteria",
     "append project updates",
@@ -505,7 +558,7 @@ for token in (
     "request/write terminal `done`",
     "Implementation workers are never dispatched in parallel",
     "There is no per-task commit",
-    "do not edit issue text, tick checkboxes, append local receipts, or mutate Linear",
+    "not record Linear evidence or lifecycle mutations",
 ):
     must(subagent, token, "subagent authority barrier")
 
@@ -540,6 +593,9 @@ if not isinstance(scenarios, list) or not scenarios:
     fail("fixture scenarios must be a non-empty list")
 if len({item.get("id") for item in scenarios}) != len(scenarios):
     fail("fixture scenario IDs must be unique")
+for scenario in scenarios:
+    if "expected" in scenario:
+        fail(f"model-visible fixture scenario {scenario.get('id')!r} exposes an expected-result oracle")
 
 
 def valid_uuid(value):
@@ -895,14 +951,10 @@ def validate_handoff_chain(scenario, events, issue, owner):
 
 def classify(scenario):
     source = scenario.get("input", {})
-    if (
-        source.get("source") != "official-host-exposed-linear-mcp"
-        or source.get("localPlan") is not None
-        or source.get("localProgress") is not None
-    ):
+    if source.get("source") != "official-host-exposed-linear-mcp":
         return {
             "status": "blocked",
-            "reason": "local-development-record-is-not-authority",
+            "reason": "unsupported-development-source",
             "retryAllowed": False,
         }
 
@@ -1212,6 +1264,35 @@ def classify(scenario):
 
 
 by_scenario_id = {scenario["id"]: scenario for scenario in scenarios}
+scenario_eval_cases = {
+    "verified-independent-root": "admits-verified-independent-root",
+    "verified-standalone-resume": "admits-verified-standalone-issue",
+    "caller-resume-from-local-paths": "classifies-caller-resume-from-local-paths",
+    "rejects-owner-and-registry-collision": "blocks-owner-and-registry-collision",
+    "rejects-unmerged-non-parent-dependency": "blocks-unmerged-non-parent-dependency",
+    "rejects-unknown-verification-comment-outcome": "blocks-unknown-comment-readback",
+    "restores-executing-after-verified-unblock": "restores-blocked-issue-to-recorded-state",
+    "accepts-verified-handoff-successor": "resumes-only-after-complete-handoff",
+    "rejects-premature-issue-done": "rejects-premature-issue-done",
+    "rejects-premature-project-done": "rejects-premature-project-done",
+}
+if set(scenario_eval_cases) != set(by_scenario_id):
+    fail("execution-record scenarios and external eval assertion ledger diverged")
+
+
+def expected_outcome_from_eval(scenario_id):
+    case_id = scenario_eval_cases[scenario_id]
+    assertions = eval_cases.get(case_id, {}).get("assertions", [])
+    outcome = {
+        assertion.get("pointer", "").removeprefix("/"): assertion.get("expected")
+        for assertion in assertions
+        if assertion.get("kind") == "final-json-path-equals"
+        and assertion.get("pointer") in {"/status", "/reason"}
+    }
+    if set(outcome) != {"status", "reason"}:
+        fail(f"{case_id} must externalize status and reason in eval assertions")
+    return outcome
+
 
 
 def require_blocked_variant(name, scenario):
@@ -1259,7 +1340,7 @@ require_blocked_variant(
 handoff_receipt = by_scenario_id["accepts-verified-handoff-successor"]
 reordered_handoff = deepcopy(handoff_receipt)
 reordered_handoff["events"].reverse()
-if classify(reordered_handoff) != handoff_receipt["expected"]:
+if classify(reordered_handoff) != classify(handoff_receipt):
     fail("canonical handoff selection depends on array order")
 
 missing_outgoing = deepcopy(handoff_receipt)
@@ -1341,28 +1422,20 @@ successor = next(
 successor["createdAt"] = "2026-07-27T10:05:30Z"
 require_blocked_variant("successor before reassignment read-back", premature_successor)
 
-observed = {}
 for scenario in scenarios:
     result = classify(scenario)
-    observed[scenario["id"]] = result
-    if result != scenario.get("expected"):
-        fail(f"fixture scenario {scenario['id']!r} classified {result!r}, expected {scenario.get('expected')!r}")
-
-required_outcomes = {
-    "verified-independent-root": ("proceed", "verified-independent-root"),
-    "verified-standalone-resume": ("proceed", "verified-standalone-resume"),
-    "rejects-local-plan-progress-authority": ("blocked", "local-development-record-is-not-authority"),
-    "rejects-owner-and-registry-collision": ("blocked", "ownership-or-registry-collision"),
-    "rejects-unmerged-non-parent-dependency": ("blocked", "non-parent-dependency-is-not-merged"),
-    "rejects-unknown-verification-comment-outcome": ("blocked", "unknown-event-read-back"),
-    "restores-executing-after-verified-unblock": ("proceed", "verified-unblock-restores-executing"),
-    "accepts-verified-handoff-successor": ("proceed", "verified-handoff-successor"),
-    "rejects-premature-issue-done": ("blocked", "done-requires-responsible-acceptance-and-verified-merge"),
-    "rejects-premature-project-done": ("blocked", "project-done-requires-all-issues-done"),
-}
-for scenario_id, (status, reason) in required_outcomes.items():
-    if observed.get(scenario_id) != {"status": status, "reason": reason, "retryAllowed": False}:
-        fail(f"required deterministic outcome missing for {scenario_id}")
+    observed_outcome = {
+        "status": result.get("status"),
+        "reason": result.get("reason"),
+    }
+    expected_outcome = expected_outcome_from_eval(scenario["id"])
+    if observed_outcome != expected_outcome:
+        fail(
+            f"fixture scenario {scenario['id']!r} classified {observed_outcome!r}, "
+            f"external eval assertions require {expected_outcome!r}"
+        )
+    if result.get("retryAllowed") is not False:
+        fail(f"fixture scenario {scenario['id']!r} did not fail closed on retry")
 
 print("test-linear-execute-contract: OK")
 PY

@@ -5,8 +5,9 @@
 `woostack` packages opinionated workflows into twenty-three public installable skills that work
 across coding harnesses. The official Linear MCP is the only development-record channel: a
 standalone change or fix is one Linear issue, while multi-issue work is one Linear project with
-specification-bearing project updates and ordered increment issues. Git and GitHub remain authoritative for code,
-branches, pull requests, reviews, and merge evidence.
+specification-bearing project updates and ordered increment issues. Those updates own the project's
+specification, decisions, phase, and progress; no Linear document is created. Git and GitHub remain
+authoritative for code, branches, pull requests, reviews, and merge evidence.
 
 - **Multiperson by design:** Explicit ownership, dependency relations, handoffs, and verified
   read-backs let human and agent engineers coordinate without hidden local state.
@@ -84,6 +85,11 @@ Then run the initialization skill in the project root:
 > current host's authenticated official Linear MCP connection. It verifies the repository's Linear
 > policy, then creates the local knowledge, configuration, and diagnostic workspace.
 
+If the repository still contains tracked legacy specifications, plans, fixes, or overnight
+handbacks, run `/woostack-init --migrate-legacy`. This is the only migration route. Active work
+moves to verified Linear resources; completed history stays in Git. Every source file remains until
+ownership, provenance repair, independent read-back, and Git byte recovery all pass.
+
 ### 3. Project Integration
 
 To ensure coding agents automatically recognize and use the `woostack` pipeline, add the `using-woostack` routing block to your repository's agent instructions file (`AGENTS.md` or `CLAUDE.md`):
@@ -128,7 +134,9 @@ incomplete. It never assumes a host-specific MCP tool name.
 The authority boundary is deliberate:
 
 - **Linear** is the only development record. One standalone issue owns a bounded change or fix.
-  Multi-issue work uses one project, specification-bearing project updates, and ordered increment issues.
+  Multi-issue work uses one project, specification-bearing project updates, and ordered increment
+  issues. Project updates own its specification, decisions, phase, and progress. No Linear document
+  is created.
 - **Git and GitHub** own source, branches, commits, pull requests, reviews, and merge truth.
 - **Local memory and wisdom** are reusable knowledge only. Local audit, QA, response, evaluation,
   and other diagnostic reports are non-authoritative evidence.

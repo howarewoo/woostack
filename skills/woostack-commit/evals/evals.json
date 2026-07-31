@@ -544,6 +544,651 @@
           "critical": true
         }
       ]
+    },
+    {
+      "id": "admits-one-exact-direct-branch-creation",
+      "prompt": "Inspect only the declared fixture fixtures/branch-receipt-01.json as a bounded input snapshot. Apply the packaged /woostack-commit branch-admission contract without invoking Git, Graphite, GitHub, Linear, network, provider, or mutation commands. Return exactly one JSON object using keys status, reasonCode, branchAction, branchName, identityBinding, parentBinding, worktreeBinding, authorizedCommands, commandCounts, and mutationCounts.",
+      "fixtures": [
+        "branch-receipt-01.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The exact direct receipt authorizes one role-derived branch creation from the retained Graphite parent, binds the canonical native-issue worktree, and does not run gt modify.",
+      "assertions": [
+        {
+          "id": "direct-branch-ready",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "ready",
+          "critical": true
+        },
+        {
+          "id": "direct-branch-action",
+          "kind": "final-json-path-equals",
+          "pointer": "/branchAction",
+          "expected": "create-direct-once",
+          "critical": true
+        },
+        {
+          "id": "direct-branch-name",
+          "kind": "final-json-path-equals",
+          "pointer": "/branchName",
+          "expected": "change/app-61",
+          "critical": true
+        },
+        {
+          "id": "direct-native-identity-binding",
+          "kind": "final-json-path-equals",
+          "pointer": "/identityBinding",
+          "expected": {
+            "kind": "native-linear-issue-id",
+            "value": "linear-issue-61"
+          },
+          "critical": true
+        },
+        {
+          "id": "direct-parent-binding",
+          "kind": "final-json-path-equals",
+          "pointer": "/parentBinding",
+          "expected": {
+            "branch": "staging",
+            "startCommit": "b61"
+          },
+          "critical": true
+        },
+        {
+          "id": "direct-worktree-binding",
+          "kind": "final-json-path-equals",
+          "pointer": "/worktreeBinding",
+          "expected": {
+            "path": "/repo/.woostack/worktrees/issues/linear-issue-61",
+            "branch": "change/app-61"
+          },
+          "critical": true
+        },
+        {
+          "id": "direct-command-choice",
+          "kind": "final-json-path-equals",
+          "pointer": "/authorizedCommands",
+          "expected": [
+            "gt create",
+            "git switch",
+            "git worktree add"
+          ],
+          "critical": true
+        },
+        {
+          "id": "direct-command-counts",
+          "kind": "final-json-path-equals",
+          "pointer": "/commandCounts",
+          "expected": {
+            "gt create": 1,
+            "git switch": 1,
+            "git worktree add": 1,
+            "gt branch info": 0,
+            "gt modify": 0
+          },
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "reuses-exact-caller-created-branch",
+      "prompt": "Inspect only the declared fixture fixtures/branch-receipt-02.json as a bounded input snapshot. Apply the packaged /woostack-commit branch-admission contract without invoking Git, Graphite, GitHub, Linear, network, provider, or mutation commands. Return exactly one JSON object using keys status, reasonCode, branchAction, branchName, identityBinding, parentBinding, worktreeBinding, authorizedCommands, commandCounts, and mutationCounts.",
+      "fixtures": [
+        "branch-receipt-02.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The exact caller-owned claim, branch, worktree, parent, owner, and assignment are reused in place; verification and gt modify are selected while every creation command remains absent.",
+      "assertions": [
+        {
+          "id": "reuse-branch-ready",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "ready",
+          "critical": true
+        },
+        {
+          "id": "reuse-branch-action",
+          "kind": "final-json-path-equals",
+          "pointer": "/branchAction",
+          "expected": "reuse-caller-created",
+          "critical": true
+        },
+        {
+          "id": "reuse-branch-name",
+          "kind": "final-json-path-equals",
+          "pointer": "/branchName",
+          "expected": "change/app-62",
+          "critical": true
+        },
+        {
+          "id": "reuse-native-identity-binding",
+          "kind": "final-json-path-equals",
+          "pointer": "/identityBinding",
+          "expected": {
+            "kind": "native-linear-issue-id",
+            "value": "linear-issue-62"
+          },
+          "critical": true
+        },
+        {
+          "id": "reuse-parent-binding",
+          "kind": "final-json-path-equals",
+          "pointer": "/parentBinding",
+          "expected": {
+            "branch": "staging",
+            "startCommit": "b62"
+          },
+          "critical": true
+        },
+        {
+          "id": "reuse-worktree-binding",
+          "kind": "final-json-path-equals",
+          "pointer": "/worktreeBinding",
+          "expected": {
+            "path": "/repo/.woostack/worktrees/issues/linear-issue-62",
+            "branch": "change/app-62"
+          },
+          "critical": true
+        },
+        {
+          "id": "reuse-command-choice",
+          "kind": "final-json-path-equals",
+          "pointer": "/authorizedCommands",
+          "expected": [
+            "gt branch info",
+            "gt modify"
+          ],
+          "critical": true
+        },
+        {
+          "id": "reuse-command-counts",
+          "kind": "final-json-path-equals",
+          "pointer": "/commandCounts",
+          "expected": {
+            "gt create": 0,
+            "git switch": 0,
+            "git worktree add": 0,
+            "gt branch info": 1,
+            "gt modify": 1
+          },
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "blocks-conflicting-branch-claim",
+      "prompt": "Inspect only the declared fixture fixtures/branch-receipt-03.json as a bounded input snapshot. Apply the packaged /woostack-commit branch-admission contract without invoking Git, Graphite, GitHub, Linear, network, provider, or mutation commands. Return exactly one JSON object using keys status, reasonCode, branchAction, branchName, identityBinding, parentBinding, worktreeBinding, authorizedCommands, commandCounts, and mutationCounts.",
+      "fixtures": [
+        "branch-receipt-03.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The conflicting display branch and foreign exact-ID claim fail closed without selecting an identity, parent, worktree, branch command, commit, PR write, or Linear mutation.",
+      "assertions": [
+        {
+          "id": "collision-branch-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "collision-branch-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": "branch-claim-collision",
+          "critical": true
+        },
+        {
+          "id": "collision-no-branch-action",
+          "kind": "final-json-path-equals",
+          "pointer": "/branchAction",
+          "expected": "none",
+          "critical": true
+        },
+        {
+          "id": "collision-no-branch-name",
+          "kind": "final-json-path-equals",
+          "pointer": "/branchName",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "collision-no-command-choice",
+          "kind": "final-json-path-equals",
+          "pointer": "/authorizedCommands",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "collision-zero-command-counts",
+          "kind": "final-json-path-equals",
+          "pointer": "/commandCounts",
+          "expected": {
+            "gt create": 0,
+            "git switch": 0,
+            "git worktree add": 0,
+            "gt branch info": 0,
+            "gt modify": 0
+          },
+          "critical": true
+        },
+        {
+          "id": "collision-no-selected-bindings",
+          "kind": "final-json-path-equals",
+          "pointer": "/identityBinding",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "collision-no-parent-binding",
+          "kind": "final-json-path-equals",
+          "pointer": "/parentBinding",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "collision-no-worktree-binding",
+          "kind": "final-json-path-equals",
+          "pointer": "/worktreeBinding",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "collision-zero-forbidden-mutations",
+          "kind": "final-json-path-equals",
+          "pointer": "/mutationCounts",
+          "expected": {
+            "branch": 0,
+            "commit": 0,
+            "pullRequest": 0,
+            "linear": 0
+          },
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "blocks-owner-drift-on-caller-claim",
+      "prompt": "Inspect only the declared fixture fixtures/branch-receipt-04.json as a bounded input snapshot. Apply the packaged /woostack-commit branch-admission contract without invoking Git, Graphite, GitHub, Linear, network, provider, or mutation commands. Return exactly one JSON object using keys status, reasonCode, branchAction, branchName, identityBinding, parentBinding, worktreeBinding, authorizedCommands, commandCounts, and mutationCounts.",
+      "fixtures": [
+        "branch-receipt-04.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The stale owner and assignment retained by the caller claim fail closed without selecting its otherwise matching branch, parent, or canonical path and without any downstream mutation.",
+      "assertions": [
+        {
+          "id": "owner-drift-branch-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "owner-drift-branch-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": "owner-drift",
+          "critical": true
+        },
+        {
+          "id": "owner-drift-no-branch-action",
+          "kind": "final-json-path-equals",
+          "pointer": "/branchAction",
+          "expected": "none",
+          "critical": true
+        },
+        {
+          "id": "owner-drift-no-branch-name",
+          "kind": "final-json-path-equals",
+          "pointer": "/branchName",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "owner-drift-no-command-choice",
+          "kind": "final-json-path-equals",
+          "pointer": "/authorizedCommands",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "owner-drift-zero-command-counts",
+          "kind": "final-json-path-equals",
+          "pointer": "/commandCounts",
+          "expected": {
+            "gt create": 0,
+            "git switch": 0,
+            "git worktree add": 0,
+            "gt branch info": 0,
+            "gt modify": 0
+          },
+          "critical": true
+        },
+        {
+          "id": "owner-drift-no-selected-bindings",
+          "kind": "final-json-path-equals",
+          "pointer": "/identityBinding",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "owner-drift-no-parent-binding",
+          "kind": "final-json-path-equals",
+          "pointer": "/parentBinding",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "owner-drift-no-worktree-binding",
+          "kind": "final-json-path-equals",
+          "pointer": "/worktreeBinding",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "owner-drift-zero-forbidden-mutations",
+          "kind": "final-json-path-equals",
+          "pointer": "/mutationCounts",
+          "expected": {
+            "branch": 0,
+            "commit": 0,
+            "pullRequest": 0,
+            "linear": 0
+          },
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "blocks-worktree-drift-on-caller-claim",
+      "prompt": "Inspect only the declared fixture fixtures/branch-receipt-05.json as a bounded input snapshot. Apply the packaged /woostack-commit branch-admission contract without invoking Git, Graphite, GitHub, Linear, network, provider, or mutation commands. Return exactly one JSON object using keys status, reasonCode, branchAction, branchName, identityBinding, parentBinding, worktreeBinding, authorizedCommands, commandCounts, and mutationCounts.",
+      "fixtures": [
+        "branch-receipt-05.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The branch checked out outside the claimed canonical issue path fails closed rather than being adopted, attached, recreated, or committed, with no PR or Linear mutation.",
+      "assertions": [
+        {
+          "id": "worktree-drift-branch-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "worktree-drift-branch-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": "worktree-drift",
+          "critical": true
+        },
+        {
+          "id": "worktree-drift-no-branch-action",
+          "kind": "final-json-path-equals",
+          "pointer": "/branchAction",
+          "expected": "none",
+          "critical": true
+        },
+        {
+          "id": "worktree-drift-no-branch-name",
+          "kind": "final-json-path-equals",
+          "pointer": "/branchName",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "worktree-drift-no-command-choice",
+          "kind": "final-json-path-equals",
+          "pointer": "/authorizedCommands",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "worktree-drift-zero-command-counts",
+          "kind": "final-json-path-equals",
+          "pointer": "/commandCounts",
+          "expected": {
+            "gt create": 0,
+            "git switch": 0,
+            "git worktree add": 0,
+            "gt branch info": 0,
+            "gt modify": 0
+          },
+          "critical": true
+        },
+        {
+          "id": "worktree-drift-no-selected-bindings",
+          "kind": "final-json-path-equals",
+          "pointer": "/identityBinding",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "worktree-drift-no-parent-binding",
+          "kind": "final-json-path-equals",
+          "pointer": "/parentBinding",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "worktree-drift-no-worktree-binding",
+          "kind": "final-json-path-equals",
+          "pointer": "/worktreeBinding",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "worktree-drift-zero-forbidden-mutations",
+          "kind": "final-json-path-equals",
+          "pointer": "/mutationCounts",
+          "expected": {
+            "branch": 0,
+            "commit": 0,
+            "pullRequest": 0,
+            "linear": 0
+          },
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "blocks-direct-creation-with-preexisting-artifacts",
+      "prompt": "Inspect only the declared fixture fixtures/branch-receipt-06.json as a bounded input snapshot. Apply the packaged /woostack-commit branch-admission contract without invoking Git, Graphite, GitHub, Linear, network, provider, or mutation commands. Return exactly one JSON object using keys status, reasonCode, branchAction, branchName, identityBinding, parentBinding, worktreeBinding, authorizedCommands, commandCounts, and mutationCounts.",
+      "fixtures": [
+        "branch-receipt-06.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The observed submission, remote branch, canonical PR, and Linear relation disqualify fresh direct creation and cannot be adopted without a matching caller-owned claim and worktree.",
+      "assertions": [
+        {
+          "id": "preexisting-artifact-branch-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "preexisting-artifact-branch-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": "preexisting-issue-artifact",
+          "critical": true
+        },
+        {
+          "id": "preexisting-artifact-no-branch-action",
+          "kind": "final-json-path-equals",
+          "pointer": "/branchAction",
+          "expected": "none",
+          "critical": true
+        },
+        {
+          "id": "preexisting-artifact-no-branch-name",
+          "kind": "final-json-path-equals",
+          "pointer": "/branchName",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "preexisting-artifact-no-command-choice",
+          "kind": "final-json-path-equals",
+          "pointer": "/authorizedCommands",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "preexisting-artifact-zero-command-counts",
+          "kind": "final-json-path-equals",
+          "pointer": "/commandCounts",
+          "expected": {
+            "gt create": 0,
+            "git switch": 0,
+            "git worktree add": 0,
+            "gt branch info": 0,
+            "gt modify": 0
+          },
+          "critical": true
+        },
+        {
+          "id": "preexisting-artifact-no-selected-bindings",
+          "kind": "final-json-path-equals",
+          "pointer": "/identityBinding",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "preexisting-artifact-no-parent-binding",
+          "kind": "final-json-path-equals",
+          "pointer": "/parentBinding",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "preexisting-artifact-no-worktree-binding",
+          "kind": "final-json-path-equals",
+          "pointer": "/worktreeBinding",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "preexisting-artifact-zero-forbidden-mutations",
+          "kind": "final-json-path-equals",
+          "pointer": "/mutationCounts",
+          "expected": {
+            "branch": 0,
+            "commit": 0,
+            "pullRequest": 0,
+            "linear": 0
+          },
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "blocks-title-derived-branch-identity",
+      "prompt": "Inspect only the declared fixture fixtures/branch-receipt-07.json as a bounded input snapshot. Apply the packaged /woostack-commit branch-admission contract without invoking Git, Graphite, GitHub, Linear, network, provider, or mutation commands. Return exactly one JSON object using keys status, reasonCode, branchAction, branchName, identityBinding, parentBinding, worktreeBinding, authorizedCommands, commandCounts, and mutationCounts.",
+      "fixtures": [
+        "branch-receipt-07.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The title-derived display branch is not normalized or accepted as work identity; the attempt fails before selecting the native issue binding, parent, worktree, or any mutation.",
+      "assertions": [
+        {
+          "id": "title-identity-branch-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "title-identity-branch-reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": "title-derived-identity",
+          "critical": true
+        },
+        {
+          "id": "title-identity-no-branch-action",
+          "kind": "final-json-path-equals",
+          "pointer": "/branchAction",
+          "expected": "none",
+          "critical": true
+        },
+        {
+          "id": "title-identity-no-branch-name",
+          "kind": "final-json-path-equals",
+          "pointer": "/branchName",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "title-identity-no-command-choice",
+          "kind": "final-json-path-equals",
+          "pointer": "/authorizedCommands",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "title-identity-zero-command-counts",
+          "kind": "final-json-path-equals",
+          "pointer": "/commandCounts",
+          "expected": {
+            "gt create": 0,
+            "git switch": 0,
+            "git worktree add": 0,
+            "gt branch info": 0,
+            "gt modify": 0
+          },
+          "critical": true
+        },
+        {
+          "id": "title-identity-no-selected-bindings",
+          "kind": "final-json-path-equals",
+          "pointer": "/identityBinding",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "title-identity-no-parent-binding",
+          "kind": "final-json-path-equals",
+          "pointer": "/parentBinding",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "title-identity-no-worktree-binding",
+          "kind": "final-json-path-equals",
+          "pointer": "/worktreeBinding",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "title-identity-zero-forbidden-mutations",
+          "kind": "final-json-path-equals",
+          "pointer": "/mutationCounts",
+          "expected": {
+            "branch": 0,
+            "commit": 0,
+            "pullRequest": 0,
+            "linear": 0
+          },
+          "critical": true
+        }
+      ]
     }
   ]
 }

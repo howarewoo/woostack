@@ -49,24 +49,27 @@ The commands differ inside that shape:
   approve-to-execute before implementation.
 - **Change** records a bounded contract and proceeds without adding an approval gate.
 
-Neither command creates a project.
+Neither command creates a feature project.
 
 ## Multi-issue project flow
 
 Build uses the three-gate project path:
 
-> ideate → **approve design** → create one project and initial specification update → harden the
-> written spec → **approve spec** → reconcile ordered increment issues and relations →
-> **execution handoff** → assign, implement, verify, review, and accept one issue at a time
+> ideate → **approve design** → create one project and append `designApproved` → harden through
+> specification-bearing project updates → `specHardened` → **approve spec** → `specApproved` →
+> `planning` → `ready` → **execution handoff** → `executionApproved` for execution → assign,
+> implement, verify, review, and accept one issue at a time
 
-Project updates hold the written specification, approved decisions, phase, and progress. Ordered
-issue contracts and relations form the implementation plan. Each issue ships through its own
-isolated worktree and attributed PR; dependency-independent issues may run concurrently only when
-distinct engineer units, identities, profiles, sessions, and worktrees own them.
+Specification-bearing project updates hold the written specification, approved feature decisions,
+phase, and progress; no Linear document is created. Ordered issue contracts and relations form the
+implementation plan. Each issue ships through its own isolated worktree and attributed PR;
+dependency-independent issues may run concurrently only when distinct engineer units, identities,
+profiles, sessions, and worktrees own them.
 
-The execution handoff chooses Go, Run overnight, or Hand off. Execution and unattended work write
-their evidence back to the project and issues. The project reaches completion only when its
-complete increment set has verified acceptance and merge evidence.
+The execution handoff chooses Go, Run overnight, or Hand off. Execution and unattended work append
+their evidence to the exact project and issues. Run overnight renders its terminal handback from
+fresh Linear and GitHub reads; it does not write a local morning report. The project reaches
+completion only when its complete increment set has verified acceptance and merge evidence.
 
 Operational event and transition details live in the
 [Linear build procedure](https://github.com/howarewoo/woostack/blob/main/skills/woostack-build/references/linear-procedure.md)

@@ -741,7 +741,17 @@ async function materializeGitPackage(gitRoot, commit, layout) {
   };
 }
 
-async function copyDirectory(source, destination, prefix = '', { includeFixtures = false } = {}) {
+function isWorkerExcludedPath(relative) {
+  const canonical = toCanonical(relative);
+  return canonical === 'evals'
+    || canonical.startsWith('evals/')
+    || canonical === 'tests'
+    || canonical.startsWith('tests/')
+    || canonical === 'scripts/tests'
+    || canonical.startsWith('scripts/tests/');
+}
+
+async function copyDirectory(source, destination, prefix = '', { workerProjection = true } = {}) {
   const sourceState = await lstatAsync(source);
   if (!sourceState.isDirectory() || sourceState.isSymbolicLink()) {
     throw new Error(`invalid source directory: ${source}`);
@@ -754,7 +764,7 @@ async function copyDirectory(source, destination, prefix = '', { includeFixtures
     if (!isSafeRelativePath(child.name)) throw new Error(`unsafe path: ${child.name}`);
     const relative = prefix ? `${prefix}/${child.name}` : child.name;
     if (
-      (!includeFixtures && relative === 'evals/fixtures')
+      (workerProjection && isWorkerExcludedPath(relative))
       || relative === '.woostack/tmp/skill-evals'
       || relative.startsWith('.woostack/tmp/skill-evals/')
     ) {
@@ -767,7 +777,7 @@ async function copyDirectory(source, destination, prefix = '', { includeFixtures
       throw new Error(`symlink not allowed: ${from}`);
     }
     if (state.isDirectory()) {
-      await copyDirectory(from, to, relative, { includeFixtures });
+      await copyDirectory(from, to, relative, { workerProjection });
       continue;
     }
     if (!state.isFile()) {
@@ -831,18 +841,18 @@ function buildSelection(mode, behaviorCases, triggerCases, runs) {
   }
   return selected;
 }
-function sumPackageBytes(files, includeFixtures) {
+function sumPackageBytes(files) {
   let total = 0n;
   for (const file of files) {
-    if (!includeFixtures && file.path.startsWith('evals/fixtures/')) continue;
+    if (isWorkerExcludedPath(file.path)) continue;
     total += BigInt(file.bytes);
   }
   return total;
 }
 
 function assertWorkspaceBudget(selected, target, baseline, catalogSkills) {
-  const candidatePackageBytes = sumPackageBytes(target.validation.files, false);
-  const baselinePackageBytes = sumPackageBytes(baseline.files, false);
+  const candidatePackageBytes = sumPackageBytes(target.validation.files);
+  const baselinePackageBytes = sumPackageBytes(baseline.files);
   const fixtureBytes = new Map(
     target.validation.files
       .filter((file) => file.path.startsWith('evals/fixtures/'))
@@ -1197,7 +1207,7 @@ async function chooseBaseline(info, options) {
     tempRoots.add(tempRoot);
     await chmodAsync(tempRoot, SAFE_FILE_MODE);
     const snapshotRoot = path.join(tempRoot, 'package');
-    await copyDirectory(candidate.root, snapshotRoot, '', { includeFixtures: true });
+    await copyDirectory(candidate.root, snapshotRoot, '', { workerProjection: false });
     const snapshotHash = await hashPackage(snapshotRoot, { trackedOnly: false });
     if (snapshotHash !== candidate.hash) {
       throw new Error('explicit baseline changed while creating its private snapshot');
@@ -1395,10 +1405,11 @@ async function prepare(argv) {
           throw new Error(`copied ${variant} packages do not share one frozen hash`);
         }
       }
+      await mkdirAsync(path.join(candidateVariant, 'fixtures'), { mode: SAFE_FILE_MODE });
+      await mkdirAsync(path.join(baselineVariant, 'fixtures'), { mode: SAFE_FILE_MODE });
+
 
       if (item.kind === 'behavior') {
-        await mkdirAsync(path.join(candidateVariant, 'fixtures'), { mode: SAFE_FILE_MODE });
-        await mkdirAsync(path.join(baselineVariant, 'fixtures'), { mode: SAFE_FILE_MODE });
         for (const fixture of item.fixtures) {
           await copyFixture(targetPackageRoot, fixture, path.join(candidateVariant, 'fixtures'));
           if (baseline.packageRoot || baseline.identity.kind === 'none') {

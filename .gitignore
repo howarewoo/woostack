@@ -61,8 +61,6 @@ pnpm-debug.log*
 .woostack/memory/.dream-watermark
 # woostack: disposable HTML renders (regenerated from source)
 .woostack/visuals/
-# woostack: per-run overnight execution reports (regenerated each run)
-.woostack/overnight/
 # woostack: temporary review artifacts
 .woostack/tmp/
 # woostack: transient per-clone worktrees (managed by worktree lifecycle)

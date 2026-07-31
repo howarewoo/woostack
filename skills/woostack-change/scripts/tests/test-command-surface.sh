@@ -91,6 +91,8 @@ require_text "skills/woostack-change/SKILL.md" 'the exact existing branch/worktr
 require_text "skills/woostack-change/SKILL.md" 'a fresh complete branch, worktree, commit, and PR read proves there are **no Git artifacts**'
 require_text "skills/woostack-change/SKILL.md" 'crash boundary after assignment/state mutation but before worktree creation'
 require_text "skills/woostack-change/SKILL.md" '`.woostack/worktrees/issues/<exact-native-linear-issue-id>` worktree exactly once'
+require_text "skills/woostack-init/references/worktrees.md" '$WOOSTACK_ROOT/.woostack/worktrees/.registry/<exact-native-linear-issue-id>/claim.json'
+require_text "skills/woostack-init/references/worktrees.md" 'The directory name is the exact native Linear issue ID'
 require_text "skills/woostack-change/SKILL.md" 'Any partial, unknown, duplicate, or conflicting Git residue blocks'
 require_text "skills/woostack-change/SKILL.md" 'only executing admission that may create the deterministic worktree.'
 require_text "skills/woostack-change/SKILL.md" 'Append and independently verify only the'
@@ -131,7 +133,8 @@ printf '%s' "$receipt" | jq -e '
   printf 'invalid change receipt identity\n' >&2
   exit 1
 }
-require_text "skills/woostack-init/references/worktrees.md" 'change/<slug>'
+require_text "skills/woostack-init/references/worktrees.md" 'issue_id="<exact-native-linear-issue-id>"'
+require_text "skills/woostack-init/references/worktrees.md" 'wt="$WOOSTACK_ROOT/.woostack/worktrees/issues/$issue_id"'
 require_text "AGENTS.md" 'This collection still has twenty-three public command/adoption skills at twenty-six fixed'
 require_text "AGENTS.md" '- [`woostack-change`](skills/woostack-change/SKILL.md)'
 require_text "AGENTS.md" '`/woostack-fix`, `/woostack-change`, `/woostack-plan`'
@@ -145,10 +148,12 @@ require_text "CONTRIBUTING.md" '| Change the bounded non-bug one-PR workflow (`/
 require_text "skills/woostack-bootstrap/references/development.md" 'Build a feature or work item requiring multiple PRs'
 require_text "skills/woostack-bootstrap/references/development.md" 'bounded non-bug enhancement or refactor that fits one reviewable PR (no approval gate or persisted plan)'
 require_text "site/content/docs/getting-started.mdx" 'First complete generic [`/woostack-init`](/docs/skills/woostack-init)'
-require_text "site/content/docs/getting-started.mdx" 'Select this Hermes + OMP adapter only after init has'
-require_text "site/content/docs/getting-started.mdx" 'never a prerequisite for generic initialization.'
 require_text "site/content/docs/concepts/worktrees.mdx" 'Standalone work uses one bound role-`work-item` issue.'
+require_text "site/content/docs/concepts/workflows.mdx" '[Change](/docs/skills/woostack-change)'
+require_text "site/content/docs/concepts/workflows.mdx" 'A bounded non-bug enhancement or refactor that fits one PR'
+require_text "site/content/docs/concepts/workflows.mdx" '[Fix](/docs/skills/woostack-fix)'
 require_text "site/content/docs/concepts/worktrees.mdx" '.woostack/worktrees/issues/<exact-native-linear-issue-id>'
+require_text "site/content/docs/concepts/worktrees.mdx" 'An atomic, gitignored registry claim under `.woostack/worktrees/.registry/<issue-id>/claim.json`'
 require_text "site/content/docs/concepts/least-code.mdx" '[woostack-change](/docs/skills/woostack-change)'
 
 if [ -e "$ROOT/.woostack/changes" ]; then

@@ -195,15 +195,6 @@
             "supersedesId": null
           }
         }
-      },
-      "expected": {
-        "status": "blocked",
-        "reason": "allocation-collision",
-        "sharedIdentityAccepted": false,
-        "sideEffectsAllowed": false,
-        "pairedContextsComplete": true,
-        "intraUnitContextsDistinct": true,
-        "crossUnitContextsUnique": false
       }
     },
     {
@@ -257,13 +248,6 @@
         "disposition": "report-only",
         "event": null,
         "reason": "invoker-is-not-current-owner"
-      },
-      "expected": {
-        "status": "blocked",
-        "reason": "self-claim-forbidden",
-        "requiredAuthority": "project-lead",
-        "ownerMutationAllowed": false,
-        "sideEffectsAllowed": false
       },
       "contextIsolationProof": {
         "requiredFields": [
@@ -369,16 +353,6 @@
         "event": null,
         "reason": "outgoing-owner-no-longer-authorized"
       },
-      "expected": {
-        "status": "blocked",
-        "reason": "owner-changed-without-handoff",
-        "oldOwnerMayMutate": false,
-        "newOwnerMayMutate": false,
-        "requiredEventChain": [
-          "handoff",
-          "assignmentAccepted"
-        ]
-      },
       "contextIsolationProof": {
         "requiredFields": [
           "decisionMakerAuthenticationContextId",
@@ -452,12 +426,6 @@
         "requestedBoundary": "accept-assignment",
         "pairProvisioned": false,
         "sideEffectsObserved": false
-      },
-      "expected": {
-        "status": "blocked",
-        "reason": "paired-context-isolation-invalid",
-        "pairAccepted": false,
-        "sideEffectsAllowed": false
       }
     }
   ]

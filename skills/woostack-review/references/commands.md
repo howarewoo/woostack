@@ -36,10 +36,9 @@ workspace/team, `woostack` label, and resource roles must all agree.
 
 Local review discovers the host's official Linear MCP operations by capability and reads the
 current managed contract before prompt assembly. Missing MCP, authentication, complete pagination,
-managed identity, project membership, or current contract is a hard stop for the contract-aware
-run: do not fall back to local specs/plans/fixes, a document, title matching, repository
-credentials, direct API/GraphQL, or an adapter. An invocation with neither explicit context nor an
-exact attributed PR may still run as a clearly labeled diff-only advisory review; it omits
+managed identity, project membership, or current contract blocks the contract-aware run. An
+invocation with neither explicit context nor an exact attributed PR may still run as a clearly
+labeled diff-only advisory review; it omits
 `intent.md` and the `acceptance` angle.
 
 GitHub Actions cannot take these flags and has no Linear MCP channel. Its comment triggers below

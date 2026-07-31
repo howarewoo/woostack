@@ -838,7 +838,7 @@
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Verification and issue-wide precommitReview are producible before a commit and contain no PR/GitHub identity. First implementation evidence relates assignment, verification, precommitReview, and project—not post-PR reviewResult. Its author is the owner/controller. The authorized revision keeps those four relations, adds only authorization, is authored by the exact named controller without owner change, resolves historical revisions by timestamp, and completes within expiry before consumption/submission.",
+      "expected": "Verification and task-scoped precommitReview are producible before a commit and contain no PR/GitHub identity. First implementation evidence relates assignment, verification, precommitReview, and project—not post-PR reviewResult. Its author is the owner/controller. The authorized revision keeps those four relations, adds only authorization, is authored by the exact named controller without owner change, resolves historical revisions by timestamp, and completes within expiry before consumption/submission.",
       "assertions": [
         {
           "id": "canonical-verification-is-precommit",

@@ -330,6 +330,14 @@
     },
     {
       "id": "defaults-to-hermes-direct-review",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "hermes-direct-advisory-evidence","fixture": "hermes-direct-review.json","pointer": "/review/receiptAuthority"},
+        {"assertionId": "hermes-direct-no-delegation","fixture": "hermes-direct-review.json","pointer": "/review/delegatedReviewerProfiles"},
+        {"assertionId": "hermes-direct-no-explicit-command","fixture": "hermes-direct-review.json","pointer": "/invocation/explicitWoostackReview"},
+        {"assertionId": "hermes-direct-no-linear-mutation","fixture": "hermes-direct-review.json","pointer": "/review/linearMutations"},
+        {"assertionId": "hermes-direct-non-native-metadata-not-proof","fixture": "hermes-direct-review.json","pointer": "/review/githubReview/actorSeparationProof/nonNativeIdentityMetadataAcceptedAsProof"},
+        {"assertionId": "hermes-direct-reviewer","fixture": "hermes-direct-review.json","pointer": "/review/reviewerProfile"}
+      ],
       "prompt": "Inspect only fixtures/hermes-direct-review.json as bounded normalized review evidence. Do not dispatch agents, call providers, GitHub, Linear, Git, shell, or mutate files. Apply the packaged engineer-pair review, native-GitHub-actor, and acceptance boundaries, then return exactly one JSON object with keys status, route, explicitWoostackReview, delegatedReviewerProfiles, reviewerProfile, implementationAuthorProfile, pairedContextsComplete, pairedContextsDistinct, implementingCoderEligible, hermesOwnsGithubReview, implementationAuthorNativeGithubUserId, reviewerNativeGithubUserId, nativeGithubUserIdsDistinct, nativeGithubPrincipalReadbacksComplete, githubPrincipalProofBasis, nonNativeIdentityMetadataAcceptedAsProof, githubReviewEvent, receiptAuthority, acceptanceAuthorityProfile, acceptanceTransferred, reviewRecordedAcceptance, and linearMutations. Without an explicit /woostack-review invocation, Hermes performs the task-level review through its context separate from the OMP author. APPROVE is eligible only because independently read immutable native GitHub user IDs are complete and unequal; profile, session, login, credential, token-store, or context names are never actor proof. Review evidence remains advisory and does not transfer or record Linear acceptance.",
       "fixtures": [
         "hermes-direct-review.json"
@@ -497,6 +505,36 @@
     },
     {
       "id": "permits-only-explicit-independent-review-delegation",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "explicit-review-command","fixture": "explicit-woostack-review.json","pointer": "/invocation/explicitCommand"},
+        {"assertionId": "explicit-review-missing-id-candidate-approve","fixture": "explicit-woostack-review.json","pointer": "/githubActorSeparationCases/0/candidateEvent"},
+        {"assertionId": "explicit-review-missing-id-candidate-approve","fixture": "explicit-woostack-review.json","pointer": "/githubActorSeparationCases/1/candidateEvent"},
+        {"assertionId": "explicit-review-missing-id-case","fixture": "explicit-woostack-review.json","pointer": "/githubActorSeparationCases/1/id"},
+        {"assertionId": "explicit-review-missing-id-comment","fixture": "explicit-woostack-review.json","pointer": "/githubActorSeparationCases/0/selectedEvent"},
+        {"assertionId": "explicit-review-missing-id-comment","fixture": "explicit-woostack-review.json","pointer": "/githubActorSeparationCases/1/selectedEvent"},
+        {"assertionId": "explicit-review-missing-id-metadata-not-proof","fixture": "explicit-woostack-review.json","pointer": "/githubActorSeparationCases/0/nonNativeIdentityMetadataAcceptedAsProof"},
+        {"assertionId": "explicit-review-missing-id-metadata-not-proof","fixture": "explicit-woostack-review.json","pointer": "/githubActorSeparationCases/1/nonNativeIdentityMetadataAcceptedAsProof"},
+        {"assertionId": "explicit-review-missing-id-not-separated","fixture": "explicit-woostack-review.json","pointer": "/githubActorSeparationCases/0/actorSeparationProved"},
+        {"assertionId": "explicit-review-missing-id-not-separated","fixture": "explicit-woostack-review.json","pointer": "/githubActorSeparationCases/1/actorSeparationProved"},
+        {"assertionId": "explicit-review-missing-id-status-line","fixture": "explicit-woostack-review.json","pointer": "/githubActorSeparationCases/0/postedStatusLine"},
+        {"assertionId": "explicit-review-missing-id-status-line","fixture": "explicit-woostack-review.json","pointer": "/githubActorSeparationCases/1/postedStatusLine"},
+        {"assertionId": "explicit-review-missing-id-status-preserved","fixture": "explicit-woostack-review.json","pointer": "/githubActorSeparationCases/0/statusLinePreserved"},
+        {"assertionId": "explicit-review-missing-id-status-preserved","fixture": "explicit-woostack-review.json","pointer": "/githubActorSeparationCases/1/statusLinePreserved"},
+        {"assertionId": "explicit-review-same-id-candidate-approve","fixture": "explicit-woostack-review.json","pointer": "/githubActorSeparationCases/0/candidateEvent"},
+        {"assertionId": "explicit-review-same-id-candidate-approve","fixture": "explicit-woostack-review.json","pointer": "/githubActorSeparationCases/1/candidateEvent"},
+        {"assertionId": "explicit-review-same-id-case","fixture": "explicit-woostack-review.json","pointer": "/githubActorSeparationCases/0/id"},
+        {"assertionId": "explicit-review-same-id-comment","fixture": "explicit-woostack-review.json","pointer": "/githubActorSeparationCases/0/selectedEvent"},
+        {"assertionId": "explicit-review-same-id-comment","fixture": "explicit-woostack-review.json","pointer": "/githubActorSeparationCases/1/selectedEvent"},
+        {"assertionId": "explicit-review-same-id-metadata-not-proof","fixture": "explicit-woostack-review.json","pointer": "/githubActorSeparationCases/0/nonNativeIdentityMetadataAcceptedAsProof"},
+        {"assertionId": "explicit-review-same-id-metadata-not-proof","fixture": "explicit-woostack-review.json","pointer": "/githubActorSeparationCases/1/nonNativeIdentityMetadataAcceptedAsProof"},
+        {"assertionId": "explicit-review-same-id-not-separated","fixture": "explicit-woostack-review.json","pointer": "/githubActorSeparationCases/0/actorSeparationProved"},
+        {"assertionId": "explicit-review-same-id-not-separated","fixture": "explicit-woostack-review.json","pointer": "/githubActorSeparationCases/1/actorSeparationProved"},
+        {"assertionId": "explicit-review-same-id-status-line","fixture": "explicit-woostack-review.json","pointer": "/githubActorSeparationCases/0/postedStatusLine"},
+        {"assertionId": "explicit-review-same-id-status-line","fixture": "explicit-woostack-review.json","pointer": "/githubActorSeparationCases/1/postedStatusLine"},
+        {"assertionId": "explicit-review-same-id-status-preserved","fixture": "explicit-woostack-review.json","pointer": "/githubActorSeparationCases/0/statusLinePreserved"},
+        {"assertionId": "explicit-review-same-id-status-preserved","fixture": "explicit-woostack-review.json","pointer": "/githubActorSeparationCases/1/statusLinePreserved"},
+        {"assertionId": "explicit-review-worker-cannot-accept","fixture": "explicit-woostack-review.json","pointer": "/acceptance/delegatedReviewerMayAccept"}
+      ],
       "prompt": "Inspect only fixtures/explicit-woostack-review.json as bounded normalized review evidence. Do not dispatch agents, call providers, GitHub, Linear, Git, shell, or mutate files. Apply the packaged explicit-command review, engineer-pair isolation, native-GitHub-actor, and acceptance boundaries, then return exactly one JSON object with keys status, route, explicitCommand, delegationAllowed, delegatedReviewerProfiles, pairedContextsComplete, pairedContextsDistinct, implementingCoderEligible, reviewerSessionsIsolated, sharedEngineerCredential, receiptsVerified, findingsAuthority, githubReviewOwnerProfile, githubPrincipalProofBasis, githubActorSeparationCases, acceptanceAuthorityProfile, acceptanceTransferred, delegatedReviewerMayAccept, reviewRecordedAcceptance, and linearMutations. The explicit command may delegate analysis only to configured fresh profiles. Normalize both actor-separation cases with keys id, implementationAuthorNativeGithubUserId, reviewerNativeGithubUserId, nativeGithubPrincipalReadbacksComplete, actorSeparationProved, nonNativeIdentityMetadataAcceptedAsProof, candidateEvent, selectedEvent, postedStatusLine, and statusLinePreserved. A same native ID or a missing/unproved ID forces COMMENT, never APPROVE, while retaining the computed STATUS_LINE. Profile, session, login, credential, token-store, and authentication-context labels never substitute for immutable native user-ID proof. Hermes owns delivery and Linear acceptance remains untransferred.",
       "fixtures": [
         "explicit-woostack-review.json"
@@ -786,6 +824,11 @@
     },
     {
       "id": "blocks-missing-or-equal-review-pair-contexts",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "invalid-review-pair-engineer","fixture": "explicit-woostack-review.json","pointer": "/pairedContextIsolationNegative/engineerUnit/engineerName"},
+        {"assertionId": "invalid-review-pair-equal-contexts","fixture": "explicit-woostack-review.json","pointer": "/pairedContextIsolationNegative/contextCheck/equalContextPairs"},
+        {"assertionId": "invalid-review-pair-incomplete","fixture": "explicit-woostack-review.json","pointer": "/pairedContextIsolationNegative/contextCheck/pairedContextsComplete"}
+      ],
       "prompt": "Inspect only pairedContextIsolationNegative in fixtures/explicit-woostack-review.json as bounded normalized evidence. Do not dispatch agents, call providers, GitHub, Linear, Git, shell, or mutate files. Apply the packaged engineer-pair isolation boundary, then return exactly one JSON object with keys status, reason, engineerName, missingContextFields, equalContextPairs, pairedContextsComplete, pairedContextsDistinct, pairAccepted, reviewAllowed, and sideEffectsAllowed. Decision-maker and coding authentication contexts, MCP sessions, token-cache contexts, environments, and sessions must all be present and distinct before review; non-secret labels are evidence only, never credentials.",
       "fixtures": [
         "explicit-woostack-review.json"

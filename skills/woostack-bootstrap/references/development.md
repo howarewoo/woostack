@@ -84,7 +84,7 @@ lifecycle/planning. Init persists only non-secret policy and never creates local
 fixes; planning mutates the exact Linear project rather than writing a local plan.
 
 Implementation branches begin from verified repository base evidence and follow the
-[worktree contract](../../woostack-init/references/worktrees.md#artifact-backend-boundary).
+[Linear-authority worktree contract](../../woostack-init/references/worktrees.md#linear-authority-bootstrap-boundary).
 Bootstrap's initial new-repository scaffold is the one pre-base worktree exception. Every later
 implementation PR carries exact Linear attribution. Git/Graphite and GitHub remain the source of
 truth for commits, branches, PRs, reviews, and merges; Linear records verified linkage and
@@ -98,10 +98,10 @@ reconciliation, and failure behavior. Missing, partial, stale, foreign, or confl
 read-back blocks rather than presenting stale state.
 
 Legacy local development records are migration input only. They are never adopted as a fallback or
-mixed with Linear authority. An explicit one-way migration classifies active versus historical
-records, creates or resumes exact client-UUID-addressed Linear resources, verifies the complete
-remote receipt set and knowledge provenance, and deletes local records only after the whole
-migration succeeds. Historical development remains recoverable from Git.
+mixed with Linear authority. `/woostack-init --migrate-legacy` is the sole routed owner of the
+explicit one-way [legacy migration procedure](../../woostack-init/references/legacy-migration.md):
+it creates or resumes exact client-UUID-addressed Linear resources and deletes enumerated local
+records only after independent remote, ownership, provenance, and Git byte-recovery receipts pass.
 
 ## Branching model
 

@@ -2,7 +2,6 @@
 metrics.json
 *.local.*
 visuals/
-overnight/
 worktrees/
 memory/.telemetry.tsv
 memory/.dream-watermark

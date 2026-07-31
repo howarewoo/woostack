@@ -8,9 +8,8 @@ description: Use to execute a verified Linear project issue DAG or one standalon
 Execute repository work owned by Linear. Official host-exposed Linear MCP is the only
 development-record authority; Git and GitHub remain code, branch, pull-request, review, and merge
 truth. A multi-PR run consumes one verified role-`feature` project and its complete role-`increment`
-issue DAG. A one-PR run consumes one verified standalone role-`work-item` issue. There is no local
-specification, plan, progress, or lifecycle record and no Linear document, repository adapter,
-custom Linear transport, or credential fallback.
+issue DAG. A one-PR run consumes one verified standalone role-`work-item` issue. The exact verified
+Linear resources are the complete execution contract.
 
 The controller advances one assigned issue per cycle. Each issue owns one implementation contract,
 one work owner, one isolated worktree/branch, and at most one implementation PR. The selected
@@ -60,7 +59,8 @@ Admit only one of these complete verified shapes:
 
 Any unsupported schema, foreign identity, duplicate, partial page, broken event revision, illegal
 state, project/issue mismatch, dependency cycle, ambiguous lead or owner, unexplained Git artifact,
-or incomplete read is a hard stop. A local artifact or mutation response is never a receipt.
+or incomplete read is a hard stop. Only independent official-MCP read-back and canonical
+Git/GitHub evidence are receipts.
 
 ## Standalone work-item execution
 
@@ -164,7 +164,7 @@ For each admitted issue, in this order:
 4. **Implement and check.** Immediately recheck the exact resolved owner and issue/project
    relations before dispatch or the first tracked edit. Run the selected driver through Red →
    Green → Refactor, exact task verification, changed-path smoke test, spec compliance, and code
-   quality. No issue checkbox or local progress file is written.
+   quality. Independently verified typed issue events record all execution progress.
 5. **Record pre-commit evidence.** Before a finalized commit exists, append and independently
    verify `verification`. Its strict readable data proves the exact issue and actor, current
    assignment, exact commands and observed exit/results, smoke observations, sorted changed paths,
@@ -196,8 +196,8 @@ For each admitted issue, in this order:
    by this pre-commit/commit cadence. A push or mutation response alone is never success.
 7. **Distill only durable knowledge.** Apply the reject-by-default
    [memory contract](../woostack-init/references/memory.md) inside the issue worktree. Use the exact
-   Linear issue URL as provenance, not a local development artifact. Tracked memory may ride the
-   issue commit; local metrics/telemetry remain non-authoritative sidecars in the primary root.
+   Linear issue URL as provenance. Tracked memory may ride the issue commit; local metrics and
+   telemetry remain non-authoritative sidecars in the primary root.
 8. **Advance lead-owned project state when eligible.** A verified first claim permits the pinned
    lead to append/read back project `executing`. After each issue handback, the lead may append and
    independently read back a non-phase `progress` project event related to the exact issue/evidence

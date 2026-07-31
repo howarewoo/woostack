@@ -45,7 +45,7 @@ assert_contains "$driver" 'spec-reviewer → `fast` on a trivial diff' \
   "spec-reviewer trivial-diff downgrade must remain"
 assert_contains "$driver" 'quality-reviewer → `standard` on a trivial diff' \
   "quality-reviewer trivial-diff downgrade must remain"
-assert_contains "$skill" 'default to `fast`' \
+assert_contains "$skill" 'Implementation workers default to `fast`' \
   "execute overview must state the fast implementation default"
 assert_contains "$skill" 'never use `deep`' \
   "execute overview must state the implementation ceiling"
@@ -53,9 +53,9 @@ assert_contains "$skill" 'never use `deep`' \
 # Tier selection changes reasoning capacity only; it cannot broaden the one-issue delegation.
 assert_contains "$driver" "authority never changes with tier" \
   "model tier must not change worker authority"
-assert_contains "$driver" "Every dispatched paired coder, generic implementer, or generic reviewer brief is self-contained and names exactly one selected issue" \
+assert_contains "$driver" "Every dispatched paired coder, generic implementer, or generic reviewer brief is self-contained and" \
   "every tier must keep one-issue scope"
-assert_contains "$driver" "Neither route grants this driver lifecycle" \
+assert_contains "$driver" "Neither route grants this driver lifecycle, acceptance, or source-control authority" \
   "tier escalation must not acquire controller authority"
 assert_contains "$driver" 'request/write terminal `done`' \
   "no implementation tier may mark terminal success"

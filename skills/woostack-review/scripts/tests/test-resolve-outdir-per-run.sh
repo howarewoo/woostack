@@ -100,9 +100,11 @@ mkdir -p src
 printf 'one\n' > src/app.sh
 git add .
 git commit -q -m init
+head_oid="$(git rev-parse HEAD)"
 seed_c="$work_c/out"; mkdir -p "$seed_c"
 : > "$seed_c/findings.bugs.json"
-meta='{"headRefOid":"abc123","baseRefName":"main","title":"feature work","body":"","author":{"login":"human"},"files":[{"path":"src/app.sh","additions":12,"deletions":0}]}'
+meta="$(jq -cn --arg head "$head_oid" \
+  '{headRefOid:$head,baseRefName:"main",title:"feature work",body:"",author:{login:"human"},files:[{path:"src/app.sh",additions:12,deletions:0}]}')"
 diff=$'diff --git a/src/app.sh b/src/app.sh\n--- a/src/app.sh\n+++ b/src/app.sh\n@@ -1,1 +1,13 @@\n one\n+two\n+three\n+four\n+five\n+six\n+seven\n+eight\n+nine\n+ten\n+eleven\n+twelve\n+thirteen\n'
 fresh_out="$(mktemp)"
 set +e

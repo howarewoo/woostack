@@ -299,9 +299,9 @@ independent repository defect. Nothing external, expected, rejected, blocked, de
 correlated, or unverified may enter remediation. For each independent cause, construct sanitized
 **issue-proposal evidence**: goal, bounded source scope, candidate acceptance criteria, root cause,
 trigger, supporting and rejected evidence, affected files/symbols, minimal remediation direction,
-failing-test description, and any directly related observability gap. This is a proposal, not a
-local fix/spec/plan artifact or Linear authority. Independent causes require independent issues;
-never combine them merely because they share a report.
+failing-test description, and any directly related observability gap. The proposal remains
+non-authoritative report evidence. Independent causes require independent issues; never combine
+them merely because they share a report.
 
 Route each sanitized proposed contract through a separate
 [`woostack-fix`](../woostack-fix/SKILL.md) controller. That controller, not respond or the report,
@@ -317,8 +317,8 @@ repository-review mutation, it must:
    contract revision, native semantic state, type-aware owner, and current issue-event chain;
 3. reject a project, increment, document, unmanaged or foreign issue, conflicting contract, title
    match, issue key alone, provider ID, report path, branch name, duplicate, partial or ambiguous
-   read, custom Linear transport, repository credential, remote prose, or owner/assignment drift;
-   and
+   read, repository credential, remote prose, or owner/assignment drift. Custom Linear transport
+   is forbidden; and
 4. retain the independent create/bind receipt. A mutation response is never proof.
 
 There is no local fix packet or `.woostack` development handoff. The report contributes sanitized

@@ -16,7 +16,7 @@ for f in "$H"/*.md; do
   n=$((n+1))
   body="$(cat "$f")"
   for hdr in "## Detection" "## Subagent spawn" "## Tier routing" "## Host-level fallback" "## Per-skill notes" "## Degradation"; do
-    assert_contains "$body" "$hdr" "hosts: $(basename "$f") has '$hdr'"
+    assert_eq "$([[ "$body" == *"$hdr"* ]] && echo y)" "y" "hosts: $(basename "$f") has '$hdr'"
   done
 done
 for h in antigravity claude-code codex cursor hermes omp opencode; do
@@ -138,6 +138,14 @@ for token in \
   'inherits the PTY, terminal signals/resizes, stdout/stderr, and real process status' \
   'removes the three staged files and dispatch directory'; do
   assert_contains "$pair" "$token" "engineer pair safe launcher: contains $token"
+done
+for token in \
+  '${WOO_ENGINEER_LAUNCHER_ROOT:-$HOME/.local/libexec/woostack}/<ENGINEER_NAME>' \
+  'shipped checksum' \
+  'before/open/after file identity' \
+  '`os.execve`' \
+  'pinned canonical absolute omp executable'; do
+  assert_contains "$omp" "$token" "engineer pair omp launcher summary: contains $token"
 done
 assert_not_contains "$pair" 'WOO_ENGINEER_LAUNCHER_DIR' \
   "engineer pair launcher paths always include the stable engineer identity"

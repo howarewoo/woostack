@@ -88,21 +88,69 @@ assert_contains "$issue_attribution" "Linear-Issue: APP-43" \
 assert_not_contains "$issue_attribution" "Linear-Project:" \
   "standalone attribution does not invent a project trailer"
 
-invalid_meta="$(jq -cn --arg head "$head_oid" --arg project "$project_id" '{
+earlier_issue_meta="$(jq -cn --arg head "$head_oid" --arg project "$project_id" '{
   headRefOid:$head,
-  headRefName:"feature/other",
+  headRefName:"feature/conflicting-issue",
   baseRefName:"main",
   title:"feature",
-  body:("- Spec: .woostack/specs/legacy.md\n\nLinear-Project: " + $project + "\nLinear-Issue: APP-44"),
+  body:("Linear-Issue: UNTRUSTED-999\n\nLinear-Project: " + $project + "\nLinear-Issue: APP-44"),
   author:{login:"human"},
   files:[{path:"src/app.sh",additions:12,deletions:0}]
 }')"
-run_prefetch "$work/invalid-out" "$invalid_meta" >/dev/null
-invalid_attribution="$(cat "$work/invalid-out/attribution.md")"
-assert_contains "$invalid_attribution" "trailer-syntax: invalid" \
-  "wrapped legacy or mixed attribution is non-authoritative"
-assert_not_contains "$invalid_attribution" "exact-trailers:" \
-  "invalid remote text is not copied as a verified-looking trailer block"
+run_prefetch "$work/earlier-issue-out" "$earlier_issue_meta" >/dev/null
+earlier_issue_attribution="$(cat "$work/earlier-issue-out/attribution.md")"
+assert_contains "$earlier_issue_attribution" "trailer-syntax: invalid" \
+  "an earlier conflicting issue invalidates an otherwise valid final pair"
+assert_not_contains "$earlier_issue_attribution" "exact-trailers:" \
+  "conflicting issue candidates are not emitted as exact attribution"
+
+retired_spec_meta="$(jq -cn --arg head "$head_oid" '{
+  headRefOid:$head,
+  headRefName:"fix/retired-spec",
+  baseRefName:"main",
+  title:"fix",
+  body:"Spec: .woostack/fixes/retired.md\n\nLinear-Issue: APP-48",
+  author:{login:"human"},
+  files:[{path:"src/app.sh",additions:12,deletions:0}]
+}')"
+run_prefetch "$work/retired-spec-out" "$retired_spec_meta" >/dev/null
+retired_spec_attribution="$(cat "$work/retired-spec-out/attribution.md")"
+assert_contains "$retired_spec_attribution" "trailer-syntax: invalid" \
+  "an earlier retired Spec candidate invalidates a final issue suffix"
+assert_not_contains "$retired_spec_attribution" "exact-trailers:" \
+  "mixed retired and Linear candidates are not emitted as exact attribution"
+
+duplicate_project_meta="$(jq -cn --arg head "$head_oid" --arg project "$project_id" '{
+  headRefOid:$head,
+  headRefName:"feature/duplicate-project",
+  baseRefName:"main",
+  title:"feature",
+  body:("Linear-Project: " + $project + "\nLinear-Project: " + $project + "\nLinear-Issue: APP-49"),
+  author:{login:"human"},
+  files:[{path:"src/app.sh",additions:12,deletions:0}]
+}')"
+run_prefetch "$work/duplicate-project-out" "$duplicate_project_meta" >/dev/null
+duplicate_project_attribution="$(cat "$work/duplicate-project-out/attribution.md")"
+assert_contains "$duplicate_project_attribution" "trailer-syntax: invalid" \
+  "duplicate project candidates never become exact attribution"
+assert_not_contains "$duplicate_project_attribution" "exact-trailers:" \
+  "duplicate project candidates are not emitted as exact strings"
+
+benign_prose_meta="$(jq -cn --arg head "$head_oid" '{
+  headRefOid:$head,
+  headRefName:"fix/benign-prose",
+  baseRefName:"main",
+  title:"fix",
+  body:"Summary mentions Linear-Project, Linear-Issue, and Spec without trailer syntax.\n\nLinear-Issue: APP-50",
+  author:{login:"human"},
+  files:[{path:"src/app.sh",additions:12,deletions:0}]
+}')"
+run_prefetch "$work/benign-prose-out" "$benign_prose_meta" >/dev/null
+benign_prose_attribution="$(cat "$work/benign-prose-out/attribution.md")"
+assert_contains "$benign_prose_attribution" "trailer-syntax: exact-issue" \
+  "benign prose without exact trailer syntax does not add a candidate"
+assert_contains "$benign_prose_attribution" "Linear-Issue: APP-50" \
+  "the valid final issue suffix survives benign prose mentions"
 
 reordered_meta="$(jq -cn --arg head "$head_oid" --arg project "$project_id" '{
   headRefOid:$head,
@@ -180,9 +228,6 @@ assert_eq "$(jq -c '.[1]' "$work/project-out/prior-findings.json")" \
 prefetch_source="$(cat "$DIR/prefetch.sh")"
 action_source="$(cat "$ROOT/action.yml")"
 workflow_source="$(cat "$ROOT/.github/workflows/reusable-review.yml")"
-skill_source="$(cat "$ROOT/skills/woostack-review/SKILL.md")"
-worker_source="$(cat "$ROOT/skills/woostack-review/prompts/_worker-header.md")"
-orchestrator_source="$(cat "$ROOT/skills/woostack-review/prompts/_orchestrator-header.md")"
 
 assert_file_contains "$DIR/prefetch.sh" \
   'ATTRIBUTION_DELIVERY="ci-diff-only-advisory"' \
@@ -199,12 +244,16 @@ for forbidden in "resolve-intent.sh" "resolve-artifact-context.sh" \
   assert_not_contains "$prefetch_source" "$forbidden" \
     "prefetch has no local authority, credential, or custom-context path: $forbidden"
 done
-[ ! -e "$DIR/resolve-artifact-context.sh" ] && pass ||
-  fail "custom artifact-context resolver is deleted"
-[ ! -e "$DIR/tests/test-resolve-artifact-context.sh" ] && pass ||
-  fail "obsolete artifact-context resolver test is deleted"
-[ ! -e "$DIR/tests/test-action-artifact-context.sh" ] && pass ||
-  fail "obsolete action artifact-context test is deleted"
+for obsolete in \
+  "$DIR/resolve-artifact-context.sh" \
+  "$DIR/resolve-intent.sh" \
+  "$DIR/parse-artifact-trailers.py" \
+  "$DIR/tests/test-resolve-artifact-context.sh" \
+  "$DIR/tests/test-action-artifact-context.sh" \
+  "$DIR/tests/test-resolve-intent.sh"; do
+  [ ! -e "$obsolete" ] && pass ||
+    fail "obsolete local artifact reader remains: $obsolete"
+done
 
 for forbidden in "linear-api-key" "linear_api_key" "INPUT_LINEAR_API_KEY" \
   "LINEAR_API_KEY" "artifact-context" "resolve-artifact-context.sh"; do
@@ -222,15 +271,20 @@ assert_contains "$action_source" "CI-only, diff-only advisory extension" \
 assert_contains "$workflow_source" "exact PR trailer candidate, but no authoritative Linear issue context" \
   "reusable workflow labels uploaded review evidence non-authoritative"
 
-assert_contains "$skill_source" "Through official MCP, completely read and independently verify" \
+assert_file_contains "$ROOT/skills/woostack-review/SKILL.md" \
+  "Through official MCP, completely read and independently verify" \
   "local review requires verified official-MCP context"
-assert_contains "$skill_source" "Missing MCP, authentication, capability" \
+assert_file_contains "$ROOT/skills/woostack-review/SKILL.md" \
+  "Missing MCP, authentication, capability" \
   "missing local MCP blocks contract-aware acceptance"
-assert_contains "$skill_source" "linear://issue/<verified-stable-uuid>" \
+assert_file_contains "$ROOT/skills/woostack-review/SKILL.md" \
+  "linear://issue/<verified-stable-uuid>" \
   "local prompt context records verified Linear provenance"
-assert_contains "$worker_source" '"authority":"advisory-only"' \
+assert_file_contains "$ROOT/skills/woostack-review/prompts/_worker-header.md" \
+  '"authority":"advisory-only"' \
   "worker receipts are explicitly advisory-only"
-assert_contains "$orchestrator_source" "claims neither Linear read-back nor issue acceptance" \
+assert_file_contains "$ROOT/skills/woostack-review/prompts/_orchestrator-header.md" \
+  "claims neither Linear read-back nor issue acceptance" \
   "CI review body discloses the absent authority boundary"
 
 popd >/dev/null

@@ -1,30 +1,79 @@
-# Graphite mechanics and fallbacks
+# Graphite mechanics
 
-Load this reference only when branch creation, commit, or submission needs Graphite command details or an allowed fallback decision.
+Load this reference only when branch, commit, or submission work needs Graphite command details.
 
-## Create or track a branch
+## Select the exact issue branch path
 
-Use a short slug based on the change, such as `feature/review-model-defaults` or `feature/add-commit-skill`. Prefer Graphite for branch creation and tracking: switch to the resolved base, run `gt create feature/<short-slug>`, then ensure the parent is registered with `gt track feature/<short-slug> --parent "$base"`. If Graphite is unavailable or clearly not initialized, fall back to raw git only:
+The root workflow supplies the verified native issue identity, role, repository, owner/assignment,
+start commit, Graphite parent, deterministic display branch, exact-ID registry claim, and canonical
+`$WOOSTACK_ROOT/.woostack/worktrees/issues/<native-issue-id>` path. Branch display text is never
+identity.
+
+### Reuse an existing caller-created branch
+
+When a driving workflow already created the issue branch, require its one exact claim, canonical
+worktree, checked-out branch, `HEAD`, Graphite parent, repository, issue/project IDs, owner/run, and
+assignment to match fresh authority reads. Verify:
 
 ```bash
-git switch -c feature/<short-slug> "$base"
+gt branch info --branch "$branch" --quiet
 ```
 
-This fallback is forbidden for a verified `change/*` invocation because its branch must already pass the canonical worktree and Graphite-registration guard.
+Commit must reuse this branch in this worktree. It never runs `gt create`, attaches a duplicate
+worktree, or reparents a `woostack-change`, `woostack-execute`, or other workflow-owned branch.
+Missing, conflicting, partial, or unexplained identity returns to the owning workflow.
 
-## Commit
+### Create for a direct invocation from the parent
 
-Use Graphite:
+A direct `/woostack-commit --issue …` may create once only when all preflight reads prove:
+
+- the current checkout is the primary root on the exact retained Graphite parent and start commit;
+- its complete dirty state is the exact reviewed session diff, with no unrelated path;
+- the exact issue, role, project shape, repository, owner, assignment, verification, and
+  `precommitReview` still match;
+- the exact-ID claim and canonical issue path are absent and collision-free; and
+- every local branch/checkout and Graphite/remote identity under the role-derived display name,
+  plus every commit, canonical PR, and Linear PR relation for the issue, is absent.
+
+Select `change/<lowercase-verified-issue-identifier>` for a direct role-`work-item` or
+`feature/<lowercase-verified-issue-identifier>` for a direct role-`increment`. The verified native
+issue ID in the claim and canonical path—not the display name or a title—binds the work.
+
+Only after the hook, targeted staging, fresh authority/diff read, proposed-body validation, and
+legacy-`Spec:` guard pass, repeat the preflight and atomically reserve the exact-ID claim. Then run:
+
+```bash
+gt create "$branch" --no-interactive -m "<type>: <concise subject>"
+```
+
+This command creates the branch and commits only the explicitly staged diff while stacking it on
+the verified current parent. Never pass implicit-staging flags, run `gt modify` on the parent, or
+follow with `gt track`. Independently verify the exact branch, commit contents, and Graphite parent.
+Then return the primary checkout to the retained parent and attach the existing new branch:
+
+```bash
+git switch "$graphite_parent"
+git worktree add "$wt" "$branch"
+```
+
+Verify the claim, canonical path, branch, `HEAD`, Graphite parent, repository, issue/project IDs,
+owner, and assignment again. Continue every later operation with `cwd="$wt"`.
+
+Any prior artifact forbids this path; never adopt, recreate, or create around it. After an error,
+timeout, or unknown create/switch/attach result, re-read the exact surfaces, preserve every
+observed claim/branch/commit/worktree boundary, and stop for explicit reconciliation. Never retry
+`gt create` blindly.
+
+## Commit on the reused branch
+
+Use `gt modify` only on the verified existing issue branch:
 
 ```bash
 gt modify -m "<type>: <concise subject>"
 ```
 
-For a verified `change/*` invocation this command is mandatory; its pre-existing tracked branch must not use `gt create` or raw git. For other invocations, prefer `gt modify`, use `gt create -m "<type>: <concise subject>"` only when creating the branch and committing in one Graphite flow is appropriate for the local stack state, and fall back to raw git only when Graphite is unavailable:
-
-```bash
-git commit -m "<type>: <concise subject>"
-```
+An error, timeout, or unknown result requires a fresh Git and Graphite read before deciding whether
+the exact intended commit exists. Conflicting or ambiguous state blocks.
 
 ## Submit
 
@@ -34,8 +83,9 @@ Run:
 gt submit
 ```
 
-If a PR already exists, `gt submit` should update it. For a Markdown-backed invocation, if Graphite is unavailable, push the branch and use `gh pr create` or `gh pr edit` as appropriate.
-
-A verified `change/*` invocation has no raw-git or `gh pr create` fallback. A Linear-backed invocation also requires successful Graphite submission because the verified issue owns one exact branch/PR attribution pair; do not use raw-git or `gh pr create` fallbacks when submission fails or Graphite is unavailable.
+Graphite creates or updates the issue-owned PR. After every result, independently classify the
+remote branch and canonical GitHub PR set before retrying or continuing. Raw Git and `gh pr create`
+cannot substitute for Graphite submission; `gh pr edit` is allowed only for the independently
+verified existing PR under the PR read-back procedure.
 
 Never force-push. Do not merge.

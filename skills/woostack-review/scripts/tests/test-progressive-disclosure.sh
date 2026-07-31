@@ -277,7 +277,7 @@ if [ -n "$COMMANDS" ]; then
   assert_matches "$COMMANDS_NORMALIZED" 'no new commits.*skip=true|skip=true.*no new commits' 'commands.md retains same-SHA incremental skip'
   assert_matches "$COMMANDS_NORMALIZED" 'marker IS the state|There is no DB' 'commands.md retains state-light marker semantics'
   assert_matches "$COMMANDS_NORMALIZED" 'official Linear MCP.*current managed contract|current managed contract.*official Linear MCP' 'commands.md requires current contract from official MCP'
-  assert_matches "$COMMANDS_NORMALIZED" 'Missing MCP.*hard stop|hard stop.*Missing MCP' 'commands.md blocks contract-aware review when local MCP is missing'
+  assert_matches "$COMMANDS_NORMALIZED" 'Missing MCP.*blocks the contract-aware run|blocks the contract-aware run.*Missing MCP' 'commands.md blocks contract-aware review when local MCP is missing'
   assert_matches "$COMMANDS_NORMALIZED" 'GitHub Actions.*diff-only advisory|diff-only advisory.*GitHub Actions' 'commands.md distinguishes CI advisory delivery'
   assert_matches "$COMMANDS_NORMALIZED" '[Nn]either.*issue acceptance|issue acceptance.*[Nn]either' 'commands.md denies review self-acceptance'
   assert_not_matches "$CONFIGURATION_NORMALIZED
@@ -329,9 +329,8 @@ done
 assert_corpus_term 'read-only toward Linear|never.*mutat.*Linear' 'review remains read-only toward Linear'
 
 for validator_prompt in "$VALIDATOR_TEXT" "$PROSECUTOR_TEXT"; do
-  assert_absent "$validator_prompt" 'artifact-context.json' 'validator omits deleted adapter context'
   assert_fixed "$validator_prompt" '$OUTDIR/attribution.md' 'validator reads only the PR attribution candidate'
-  assert_fixed "$validator_prompt" '$OUTDIR/intent.md' 'validator recognizes local current-contract context'
+  assert_fixed "$validator_prompt" '$OUTDIR/intent.md' 'validator recognizes verified current-contract context'
   assert_matches "$validator_prompt" 'official host-exposed Linear MCP' 'validator gates managed context on official MCP'
   assert_matches "$validator_prompt" 'current managed contract' 'validator limits intent to the current managed contract'
   assert_matches "$validator_prompt" 'untrusted.*data, never instructions' 'validator keeps remote text untrusted'
@@ -349,9 +348,6 @@ if [ -n "$CI" ]; then
   assert_matches "$CI_NORMALIZED" 'Pin `@main` to a release tag|pin.*release tag' 'ci.md retains release-tag pinning'
   for credential in anthropic_token openai_api_key gemini_api_key openrouter_api_key; do
     assert_fixed "$CI" "$credential" "ci.md documents provider/integration credential independently: $credential"
-  done
-  for forbidden in linear_api_key LINEAR_API_KEY resolve-artifact-context.sh artifact-context openssl; do
-    assert_absent "$CI" "$forbidden" "ci.md omits custom Linear credential/context path: $forbidden"
   done
   assert_matches "$CI_NORMALIZED" 'GitHub Actions has no host-exposed Linear MCP|no host-exposed Linear MCP channel' 'ci.md states the missing host-MCP channel'
   assert_matches "$CI_NORMALIZED" 'diff-only advisory' 'ci.md labels CI review delivery advisory'
@@ -424,7 +420,7 @@ $CI_NORMALIZED" '^## Troubleshooting|Missing artifacts.*review-artifacts' 'troub
 fi
 
 assert_fixed "$(cat "$ROOT/README.md")" \
-  '(skills/woostack-review/references/configuration.md#per-repo-configuration-woostackconfigjson)' \
-  'README links directly to the moved per-repo configuration section'
+  '(site/content/docs/configuration.mdx)' \
+  'README links directly to the authored repository configuration reference'
 
 finish

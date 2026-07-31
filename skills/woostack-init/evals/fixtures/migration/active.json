@@ -1,0 +1,50 @@
+{
+  "repositoryId": "repo-woostack",
+  "legacyRecords": [
+    {
+      "path": ".woostack/specs/checkout.md",
+      "kind": "specification",
+      "stableClientId": "11111111-1111-4111-8111-111111111111",
+      "phase": "approved",
+      "provenance": ["git:8f41a31:.woostack/specs/checkout.md"]
+    },
+    {
+      "path": ".woostack/plans/checkout.md",
+      "kind": "plan",
+      "stableClientId": "22222222-2222-4222-8222-222222222222",
+      "phase": "executing",
+      "provenance": ["git:0a12bc4:.woostack/plans/checkout.md"]
+    }
+  ],
+  "remoteObservations": [
+    {
+      "clientId": "11111111-1111-4111-8111-111111111111",
+      "nativeId": "linear-project-checkout",
+      "role": "feature",
+      "repositoryId": "repo-woostack",
+      "readBack": "verified"
+    },
+    {
+      "clientId": "22222222-2222-4222-8222-222222222222",
+      "nativeId": "linear-issue-checkout-1",
+      "role": "increment",
+      "repositoryId": "repo-woostack",
+      "readBack": "verified"
+    }
+  ],
+  "receiptSet": {
+    "complete": true,
+    "independent": true
+  },
+  "provenanceLedger": {
+    "verified": true,
+    "entries": [
+      "git:8f41a31:.woostack/specs/checkout.md -> linear://project/11111111-1111-4111-8111-111111111111",
+      "git:0a12bc4:.woostack/plans/checkout.md -> linear://issue/22222222-2222-4222-8222-222222222222"
+    ]
+  },
+  "gitRecovery": {
+    "allRecordsTracked": true,
+    "blobsVerified": true
+  }
+}

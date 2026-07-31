@@ -8,6 +8,7 @@ set +e
 
 SKILL="$HERE/../../SKILL.md"
 body="$(cat "$SKILL")"
+authority="$(printf '%s' "$body" | awk '/^## Linear issue authority/{f=1; next} /^## The per-PR loop/{f=0} f')"
 
 loop="$(printf '%s' "$body" | awk '/^## The per-PR loop/{f=1; next} /^## Termination backstop/{f=0} f')"
 loop_flat="$(printf '%s' "$loop" | tr '\n' ' ' | tr -s ' ')"
@@ -100,7 +101,7 @@ assert_contains "$restack_flat" 'canonical `precommitReview`' \
   "conflict review is recorded before the rewritten commit"
 assert_contains "$restack_flat" 'neither event contains a future head/diff, PR, or GitHub' \
   "precommit evidence has no future or post-PR dependency"
-assert_contains "$body" 'One preallocated RFC 4122 `operationId`' \
+assert_contains "$authority" 'One preallocated RFC 4122 `operationId`' \
   "restack operationId is constrained to RFC 4122"
 termination="$(printf '%s' "$body" | awk '/^## Termination backstop/{f=1; next} /^## Per-issue outcome vocabulary/{f=0} f')"
 termination_flat="$(printf '%s' "$termination" | tr '\n' ' ' | tr -s ' ')"

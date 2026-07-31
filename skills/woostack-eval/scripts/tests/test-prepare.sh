@@ -116,7 +116,7 @@ write_skill() {
   package=$1
   name=$2
   description=$3
-  mkdir -p "$package/references"
+  mkdir -p "$package/references" "$package/scripts/tests" "$package/tests"
   cat >"$package/SKILL.md" <<EOF
 ---
 name: $name
@@ -127,6 +127,9 @@ description: $description
 [Guide](references/guide.md)
 EOF
   printf '# Guide\n\n%s\n' "$description" >"$package/references/guide.md"
+  printf 'export const runtimeReady = true;\n' >"$package/scripts/runtime.mjs"
+  printf 'throw new Error("worker-visible test leak");\n' >"$package/scripts/tests/test-runtime.mjs"
+  printf 'throw new Error("worker-visible test leak");\n' >"$package/tests/runtime.test.mjs"
 }
 
 write_public_authority() {
@@ -159,9 +162,14 @@ write_corpora() {
   package=$1
   name=$2
   fixture_text=$3
-  mkdir -p "$package/evals/fixtures"
+  mkdir -p "$package/evals/fixtures" "$package/evals/tests"
   printf '%s alpha\n' "$fixture_text" >"$package/evals/fixtures/alpha.txt"
   printf '%s zeta\n' "$fixture_text" >"$package/evals/fixtures/zeta.txt"
+  printf '{"expected":{"status":"blocked","reason":"undeclared-oracle"}}\n' \
+    >"$package/evals/fixtures/undeclared-answer.json"
+  printf '{"grading":"host-private"}\n' >"$package/evals/grading-ledger.json"
+  printf 'throw new Error("worker-visible grader test leak");\n' \
+    >"$package/evals/tests/test-grader.mjs"
   cat >"$package/evals/evals.json" <<EOF
 {
   "schemaVersion": 1,
@@ -658,16 +666,19 @@ assert_isolated_all_workspace() {
   root=$1
   candidate_description=$2
   baseline_description=$3
+  source_package=$4
   assert_file_contains "$root/cases/alpha-behavior/1/candidate/package/SKILL.md" "$candidate_description" 'candidate package copy'
   assert_file_contains "$root/cases/alpha-behavior/1/baseline/package/SKILL.md" "$baseline_description" 'baseline package copy'
   assert_file_contains "$root/cases/alpha-behavior/1/candidate/fixtures/alpha.txt" 'candidate fixture alpha' 'candidate alpha fixture copy'
   assert_file_contains "$root/cases/alpha-behavior/1/baseline/fixtures/alpha.txt" 'candidate fixture alpha' 'baseline alpha fixture copy'
   assert_file_contains "$root/cases/zeta-behavior/1/candidate/fixtures/zeta.txt" 'candidate fixture zeta' 'candidate zeta fixture copy'
   assert_file_contains "$root/cases/zeta-behavior/1/baseline/fixtures/zeta.txt" 'candidate fixture zeta' 'baseline zeta fixture copy'
-  "$NODE" - "$root" <<'NODE'
+  assert_file_contains "$root/cases/alpha-behavior/1/candidate/package/scripts/runtime.mjs" 'runtimeReady = true' 'candidate runtime copy'
+  assert_file_contains "$root/cases/alpha-behavior/1/baseline/package/scripts/runtime.mjs" 'runtimeReady = true' 'baseline runtime copy'
+  "$NODE" - "$root" "$source_package" <<'NODE'
 const fs = require('node:fs');
 const path = require('node:path');
-const root = process.argv[2];
+const [root, sourcePackage] = process.argv.slice(2);
 const files = [
   'cases/alpha-behavior/1/candidate/package/SKILL.md',
   'cases/alpha-behavior/1/baseline/package/SKILL.md',
@@ -680,6 +691,66 @@ for (const relative of files) {
   const full = path.join(root, relative);
   const stat = fs.lstatSync(full);
   if (!stat.isFile() || stat.isSymbolicLink()) throw new Error(`unsafe copied file: ${relative}`);
+}
+for (const [caseId, own] of [
+  ['alpha-behavior', 'alpha.txt'],
+  ['zeta-behavior', 'zeta.txt'],
+]) {
+  const source = fs.readFileSync(path.join(sourcePackage, 'evals', 'fixtures', own));
+  for (const variant of ['candidate', 'baseline']) {
+    const copied = fs.readFileSync(path.join(root, 'cases', caseId, '1', variant, 'fixtures', own));
+    if (!source.equals(copied)) throw new Error(`${caseId}/${variant} fixture bytes changed`);
+  }
+}
+for (const caseId of ['alpha-behavior', 'zeta-behavior', 'alpha-trigger', 'zeta-trigger']) {
+  for (const variant of ['candidate', 'baseline']) {
+    const capabilityRoot = path.join(root, 'cases', caseId, '1', variant);
+    const packageRoot = path.join(capabilityRoot, 'package');
+    for (const forbidden of ['evals', 'tests', path.join('scripts', 'tests')]) {
+      if (fs.existsSync(path.join(packageRoot, forbidden))) {
+        throw new Error(`${caseId}/${variant} retained forbidden package path ${forbidden}`);
+      }
+    }
+    if (!fs.existsSync(path.join(packageRoot, 'scripts', 'runtime.mjs'))) {
+      throw new Error(`${caseId}/${variant} lost shipped runtime script`);
+    }
+    const fixtureRoot = path.join(capabilityRoot, 'fixtures');
+    if (!fs.statSync(fixtureRoot).isDirectory()) {
+      throw new Error(`${caseId}/${variant} omitted dedicated fixture directory`);
+    }
+    if (fs.existsSync(path.join(fixtureRoot, 'undeclared-answer.json'))) {
+      throw new Error(`${caseId}/${variant} received undeclared answer oracle`);
+    }
+    if (caseId.endsWith('-trigger') && fs.readdirSync(fixtureRoot).length !== 0) {
+      throw new Error(`${caseId}/${variant} trigger workspace received fixture data`);
+    }
+    const pendingJson = [capabilityRoot];
+    while (pendingJson.length > 0) {
+      const directory = pendingJson.pop();
+      for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+        const child = path.join(directory, entry.name);
+        if (entry.isDirectory()) {
+          pendingJson.push(child);
+          continue;
+        }
+        if (!entry.isFile() || path.extname(entry.name) !== '.json') continue;
+        const inspect = (value, location = '') => {
+          if (Array.isArray(value)) {
+            value.forEach((item, index) => inspect(item, `${location}/${index}`));
+            return;
+          }
+          if (value === null || typeof value !== 'object') return;
+          for (const [key, childValue] of Object.entries(value)) {
+            if (['answer', 'assertions', 'expected', 'expectedSkill', 'query', 'shouldTrigger'].includes(key)) {
+              throw new Error(`${caseId}/${variant} leaked oracle key ${location}/${key}`);
+            }
+            inspect(childValue, `${location}/${key}`);
+          }
+        };
+        inspect(JSON.parse(fs.readFileSync(child, 'utf8')));
+      }
+    }
+  }
 }
 for (const [caseId, own, other] of [
   ['alpha-behavior', 'alpha.txt', 'zeta.txt'],
@@ -756,7 +827,7 @@ assert_private_run_root "$RUN_ROOT"
 assert_manifest "$RUN_ROOT/manifest.json" explicit-ref prepare-target all 2 \
   "{\"kind\":\"git-ref\",\"identity\":\"$BASE_COMMIT\"}" "$CANDIDATE_HASH"
 assert_frozen_definitions "$RUN_ROOT" "$TARGET" all
-assert_isolated_all_workspace "$RUN_ROOT" 'Dirty candidate target description.' 'Baseline target description.'
+assert_isolated_all_workspace "$RUN_ROOT" 'Dirty candidate target description.' 'Baseline target description.' "$TARGET"
 [ -f "$RUN_ROOT/cases/alpha-behavior/1/candidate/package/references/dirty-only.txt" ] || fail 'dirty candidate file was not preserved'
 [ ! -e "$RUN_ROOT/cases/alpha-behavior/1/baseline/package/references/dirty-only.txt" ] || fail 'baseline was read from the dirty worktree'
 "$NODE" - "$RUN_ROOT/cases/alpha-behavior/1/baseline/package/references/executable.sh" <<'NODE'
@@ -779,11 +850,11 @@ INDEX_TREE_AFTER=$(git -C "$GIT_REPO" write-tree)
 git -C "$GIT_REPO" status --porcelain=v1 -z --untracked-files=all >"$TMP_ROOT/status.after"
 [ "$CANDIDATE_HASH_AFTER" = "$CANDIDATE_HASH" ] || fail 'preparation changed the full candidate package hash'
 [ "$COPIED_BASELINE_HASH" != "$BASELINE_HASH" ] ||
-  fail 'Git-object capability package unexpectedly retained excluded fixture files'
-[ ! -e "$RUN_ROOT/cases/alpha-behavior/1/candidate/package/evals/fixtures" ] ||
-  fail 'candidate capability package retained evals/fixtures'
-[ ! -e "$RUN_ROOT/cases/alpha-behavior/1/baseline/package/evals/fixtures" ] ||
-  fail 'baseline capability package retained evals/fixtures'
+  fail 'Git-object capability package unexpectedly retained evaluator-private surfaces'
+[ ! -e "$RUN_ROOT/cases/alpha-behavior/1/candidate/package/evals" ] ||
+  fail 'candidate capability package retained evals'
+[ ! -e "$RUN_ROOT/cases/alpha-behavior/1/baseline/package/evals" ] ||
+  fail 'baseline capability package retained evals'
 [ "$HEAD_AFTER" = "$HEAD_BEFORE" ] || fail 'preparation moved HEAD'
 [ "$INDEX_TREE_AFTER" = "$INDEX_TREE_BEFORE" ] || fail 'preparation changed the index tree'
 cmp -s "$TMP_ROOT/status.before" "$TMP_ROOT/status.after" || fail 'preparation changed NUL-safe porcelain state'
@@ -848,7 +919,7 @@ assert_frozen_package_hashes \
 assert_file_contains "$RUN_ROOT/cases/alpha-behavior/1/baseline/package/SKILL.md" \
   'Explicit path baseline description.' 'explicit path baseline copy'
 [ "$COPIED_PATH_BASELINE_HASH" != "$PATH_BASELINE_HASH" ] ||
-  fail 'path capability package unexpectedly retained excluded fixture files'
+  fail 'path capability package unexpectedly retained evaluator-private surfaces'
 [ ! -e "$TMP_ROOT/resolver-marker" ] || fail 'explicit baseline-path must not invoke the implicit resolver'
 
 expect_failure 'output root inside explicit baseline package' \
@@ -1119,9 +1190,12 @@ write_skill "$NON_GIT_BASELINE" external-target 'External baseline description.'
 expect_success 'non-Git target with explicit baseline' \
   --target "$NON_GIT_TARGET" --mode triggers --runs 1 \
   --baseline-path "$NON_GIT_BASELINE" --run-id non-git-target
+COPIED_NON_GIT_BASELINE_HASH=$(raw_package_hash "$RUN_ROOT/cases/alpha-trigger/1/baseline/package" "$TMP_ROOT/copied-non-git-baseline-hash.txt")
 NON_GIT_BASELINE_HASH=$(package_hash "$NON_GIT_BASELINE" "$TMP_ROOT/non-git-baseline-validation.json")
 assert_manifest "$RUN_ROOT/manifest.json" non-git-target external-target triggers 1 \
-  "{\"kind\":\"path\",\"identity\":\"$NON_GIT_BASELINE_HASH\"}" "$NON_GIT_HASH"
+  "{\"kind\":\"path\",\"identity\":\"$COPIED_NON_GIT_BASELINE_HASH\"}" "$NON_GIT_HASH"
+[ "$COPIED_NON_GIT_BASELINE_HASH" != "$NON_GIT_BASELINE_HASH" ] ||
+  fail 'non-Git path capability package unexpectedly retained evaluator-private surfaces'
 case "$RUN_ROOT" in
   "$CANONICAL_SYSTEM_TMP"/*) ;;
   *) fail "non-Git fallback escaped TMPDIR: $RUN_ROOT" ;;

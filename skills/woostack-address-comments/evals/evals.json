@@ -130,6 +130,9 @@
     },
     {
       "id": "approved-verdicts-require-push-receipt-before-thread-close",
+      "fixturePassthroughAssertions": [
+        {"assertionId": "push-completed","fixture": "address-approved.json","pointer": "/events/2/pushed"}
+      ],
       "prompt": "Complete the bounded post-approval address-comments state in fixtures/address-approved.json as a synthetic receipt-validation exercise. Do not call GitHub, Git, Linear, providers, or mutate source; the fixture contains the ordered host event stream. Facts: exact canonical attribution resolves increment client UUID 22222222-2222-4222-8222-222222222222 in feature project client UUID 33333333-3333-4333-8333-333333333333; current app delegate app-9 and assignmentAccepted comment-10 are independently verified; reviewResult comment-20 records the fixture findings for the exact current head; verification comment-30, precommitReview comment-31, and finalized implementationEvidence comment-32 each have complete independent read-backs. Return exactly one JSON object using keys approvalVerified, issueClientId, projectClientId, ownerKind, ownerPrincipalId, assignmentEventId, findingEvent, resolutionEvents, linearReadBacksVerified, handoffCarriesExactContext, handledThreads, finalOutcomes, pushed, pushReceiptVerified, closeoutAfterPushReceipt, repliesPosted, threadsResolved, offeredRereview, and mergeAllowed. finalOutcomes maps each thread ID to `fixed` or `pushed-back`; repliesPosted and threadsResolved list affected thread IDs.",
       "fixtures": [
         "address-approved.json"

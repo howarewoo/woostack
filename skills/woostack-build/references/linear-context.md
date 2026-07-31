@@ -21,9 +21,9 @@ mutation, require independently readable capabilities for:
 
 Resolve exactly one authenticated actor, configured workspace, and team. A missing, read-only,
 partial, ambiguous, or unauthenticated capability is a hard stop. Authentication belongs only to
-the host's MCP/OAuth secret store. Never ask for or consume a repository token,
-environment-variable fallback, credential file, authorization header, endpoint call, custom
-GraphQL request, or local adapter.
+the host-owned MCP/OAuth connection; repository policy and process data carry no authentication
+material. Never ask for or consume a repository token, environment-variable fallback, credential
+file, authorization header, endpoint call, custom GraphQL request, or local adapter.
 
 ## Repository policy and identity
 

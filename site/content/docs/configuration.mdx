@@ -13,6 +13,12 @@ and acceptance. Git and GitHub own code, branches, commits, pull requests, revie
 truth. Local memory and wisdom are reusable knowledge only; local audit, QA, response, evaluation,
 and other diagnostic outputs are non-authoritative.
 
+Tracked legacy `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, and
+`.woostack/overnight/` are migration input, not configuration or fallback authority. Run
+`/woostack-init --migrate-legacy` to invoke the sole one-way migration route. Active work moves to
+verified Linear resources; completed history stays in Git. Source bytes remain until managed
+receipts, preserved-knowledge provenance repair, and Git recovery checks pass.
+
 The init template ships five top-level keys: `linear`, `models`, `review`, `respond`, and `status`.
 Other supported settings use built-in defaults when absent.
 [woostack-doctor](/docs/skills/woostack-doctor) checks the static policy shape; `--live` additionally
@@ -120,12 +126,12 @@ prompts, logs, generated files, or development records.
 The development topology is fixed:
 
 - one standalone Linear issue owns one bounded change or fix; and
-- one Linear project, specification-bearing project updates, and ordered increment issues own
-  multi-issue work.
+- one Linear project, specification-bearing append-only project updates, and ordered increment
+  issues own multi-issue work.
 
-Project updates hold the approved specification, decisions, lifecycle, and progress. Project and
-issue resources carry ownership, dependencies, and acceptance state. Git and GitHub independently
-carry the code and PR facts.
+Project updates own the approved specification, decisions, phase, and progress; no Linear document
+is created. Project and issue resources carry lifecycle, ownership, dependencies, and acceptance
+state. Git and GitHub independently carry the code and PR facts.
 
 | Key | Type | Requirement | Meaning |
 | --- | --- | --- | --- |
@@ -140,14 +146,14 @@ Unknown policy keys, incomplete maps, category mismatches, ambiguous names, or a
 workspace, or team fail closed.
 
 The official endpoint is fixed, but MCP capability names vary by host. Init and live doctor
-discover the active profile's tools and prove the required project, specification-document, issue,
-project-update, issue-comment, native-state, relation, assignee/delegate, identity, and independent
-read-back capabilities. A configured server label or successful authentication screen is not
-proof. A missing or partial capability blocks development rather than falling through to a local
+discover the active profile's tools and prove the required project, project-update, issue,
+issue-comment, native-state, relation, assignee/delegate, identity, and independent read-back
+capabilities. A configured server label or successful authentication screen is not proof. A
+missing or partial capability blocks development rather than falling through to a local
 record or another transport.
 
 The canonical
-[Linear MCP development authority](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md)
+[Linear MCP development authority](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#managed-resource-model)
 owns resource identities, lifecycle, and receipt semantics. [Building rules](/docs/concepts/building-rules)
 owns the three gates, and [Engineer agents](/docs/concepts/engineer-agents) owns allocation,
 handoff, review, and acceptance authority. Cross-link those references rather than copying their

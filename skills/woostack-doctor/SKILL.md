@@ -57,17 +57,10 @@ siblings, so this holds by construction.
    workspace/team, native mappings, and independent read-back, write the normalized non-secret
    mode-0600 receipt, and run `doctor.sh --live-receipt <path> [path]`. Otherwise run
    `doctor.sh [path]`. The engine validates policy, knowledge stores, diagnostics, and local
-   worktree hygiene.
-
-   <!-- woostack-legacy-compatibility reader="woostack-doctor" operation="inspect" paths=".woostack/specs/|.woostack/plans/|.woostack/fixes/|.woostack/overnight/" purpose="migration-classification-only" lifecycle-use="prohibited" -->
-   Inspect `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, and
-   `.woostack/overnight/` for migration classification only. Never use them for normal, routine,
-   or day-to-day lifecycle work.
-   <!-- /woostack-legacy-compatibility -->
-
-   Report one blocking migration finding per active or ambiguous legacy set. Never adopt a legacy
-   set as normal lifecycle input. Point at the explicit
-   [migration procedure](../woostack-init/references/migration.md).
+   worktree hygiene. Legacy `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, or
+   `.woostack/overnight/` sets produce one blocking migration finding per active or ambiguous set;
+   doctor does not run normal lifecycle lint on them and points at the explicit
+   [legacy migration procedure](../woostack-init/references/legacy-migration.md).
 4. **No workspace?** If the engine exits 2 with "no `.woostack/`", **stop** and tell the user to
    run [`woostack-init`](../woostack-init/SKILL.md). Doctor never scaffolds.
 5. **Propose a changeset.** Group the local `fixable=auto` findings into a proposed repair set —

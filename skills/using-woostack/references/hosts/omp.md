@@ -43,28 +43,34 @@ unit's stable `ENGINEER_NAME` and preflighted omp profile. `<repo>` is the exist
 absolute issue worktree and must exactly match current authority/Git evidence. `<prompt>` is one
 bounded, credential-free argument.
 
-Hermes must not place any of those values in its shell-parsed `terminal.command`. It preflights
-the owned mode-`0700` installed launcher directory resolved from
-`${WOO_ENGINEER_LAUNCHER_ROOT:-$HOME/.local/libexec/woostack}/<ENGINEER_NAME>` and its regular
-no-follow mode-`0500` `launch-omp` file. It then stages the literal raw bytes, without a terminator
-or encoding wrapper, as owned regular no-follow mode-`0600` files named exactly `profile`, `repo`,
-and `prompt` in a fresh host-generated mode-`0700` dispatch directory. Its only PTY call is
+Hermes must not place any of those values in its shell-parsed `terminal.command`. Resolve the
+installed per-unit launcher directory as
+`${WOO_ENGINEER_LAUNCHER_ROOT:-$HOME/.local/libexec/woostack}/<ENGINEER_NAME>` with a host path
+API. Require the owned no-follow mode-`0700` directories, the regular no-follow mode-`0500`
+`launch-omp` at its shipped checksum, and the adjacent mode-`0400` `unit-authority.json` to pass
+the ownership/mode, before/open/after file identity, and exact accepted-profile/worktree checks
+defined in [`hermes.md`](hermes.md).
+
+Hermes stages the literal raw bytes, without a terminator or encoding wrapper, as owned regular
+no-follow mode-`0600` files named exactly `profile`, `repo`, and `prompt` in a fresh host-generated
+mode-`0700` dispatch directory. Its only PTY call is
 `terminal(command="<resolved-absolute-launcher-dir>/launch-omp", workdir=<host-generated-dispatch-directory>, pty=true)`.
-The installed launcher validates those files and directly calls the pinned absolute executable
-with `os.execve` and argv
-`["omp", "--profile", profile, "-p", "--cwd", repo, "--", prompt]`. Direct exec preserves the real
-PTY, signal/resize behavior, exit status, and stdout/evidence handback; the host then removes the
-staged files/directory without replacing that status. The `--` option barrier
-keeps a leading-dash prompt positional. `$()`, backticks, single and double quotes, semicolons,
-embedded newlines, and leading dashes remain literal prompt data; they are never evaluated, split,
-or treated as options.
+The installed launcher revalidates those files and the bound authority, then calls `os.execve` on
+the authority's pinned canonical absolute omp executable with argv
+`["omp", "--profile", profile, "-p", "--cwd", repo, "--", prompt]`; a bare program lookup through
+controller `PATH` is forbidden. Direct exec preserves the real PTY, signal/resize behavior, exit
+status, and stdout/evidence handback; the host then removes the staged files/directory without
+replacing that status. The `--` option barrier keeps a leading-dash prompt positional. `$()`,
+backticks, single and double quotes, semicolons, embedded newlines, and leading dashes remain
+literal prompt data; they are never evaluated, split, or treated as options.
 
 The explicit `--profile` is mandatory even if `OMP_PROFILE`, a shell alias, or a sticky default
-exists, but it isolates only omp-native auth/session/settings/cache state. The launcher must also
-replace Hermes' inherited external-CLI environment with the coder-owned `HOME`/XDG roots,
-`GH_CONFIG_DIR`, `GIT_CONFIG_GLOBAL`, credential-helper/SSH context, and Graphite state, while
-scrubbing controller `GH_TOKEN`, `GITHUB_TOKEN`, `LINEAR_API_KEY`, askpass/config injection, SSH
-agent, and other credentials. No secret is staged in the prompt, repository, or temp directory.
+exists, but it isolates only omp-native auth/session/settings/cache state. The bound authority
+also pins the coder-owned `HOME`/XDG roots, `PATH`, `GH_CONFIG_DIR`, `GIT_CONFIG_GLOBAL`,
+credential-helper/SSH context, and Graphite state. The launcher builds the child environment from
+those pins rather than Hermes or controller state, scrubbing `GH_TOKEN`, `GITHUB_TOKEN`,
+`LINEAR_API_KEY`, askpass/config injection, SSH agent, and other credentials. No secret is staged
+in the prompt, repository, authority, or dispatch directory.
 This external process pin does not change the built-in `task` worker mapping used by skills already
 running inside omp.
 

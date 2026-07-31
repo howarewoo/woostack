@@ -28,9 +28,8 @@ catalogs.
 
 ## Hard constraints
 
-Official host-exposed Linear MCP is the only development-record interface. Never use a local
-spec/plan/fix, Linear document, backend resolver, provider adapter, repository credential, direct
-Linear HTTP/GraphQL, title match, or alternate-authority fallback. Before any Linear read, load the
+Official host-exposed Linear MCP is the only development-record interface. Before any Linear read,
+load the
 canonical [managed-resource/event-envelope schemas](../woostack-init/references/artifact-backends.md#versioned-managed-metadata),
 [issue-event actor/payload/relation schemas](../woostack-init/references/artifact-backends.md#canonical-issue-event-dispatch-and-pre-commit-evidence),
 and [issue-state/current-event lifecycle](../woostack-status/references/conventions.md#issue-state-and-events).
@@ -57,9 +56,9 @@ The implementing coder and every delegated reviewer use distinct profiles and fr
 sessions. A generic non-paired review launcher may preserve benign review/provider environment,
 but an engineer-unit reviewer launcher MUST start from `$OUTDIR` with fresh `HOME`, XDG, and temp
 directories and an explicit environment allowlist. Retain only path/locale, review artifact and
-tier/model routing, plus the provider authentication variables needed for analysis; omit
-`LINEAR_API_KEY`, `GH_TOKEN`, `GITHUB_TOKEN`, SSH/Git/Graphite credentials, host profile/token
-caches, and every decision-maker, engineer, Linear, GitHub-write, MCP/OAuth, or browser context.
+tier/model routing, plus the provider authentication variables needed for analysis; omit all
+undeclared secrets and every decision-maker, engineer, Linear, GitHub-write, MCP/OAuth, SSH/Git,
+Graphite, host-profile, token-cache, or browser context.
 A delegated reviewer receives no engineer/Linear principal credential or token, implementation
 profile/session/worktree, MCP/OAuth/browser authentication context, privileged process, or writable
 repository surface. Review workers are advisory only: they cannot claim/accept an assignment, author
@@ -149,7 +148,7 @@ trap 'rm -rf -- "$OUTDIR"' EXIT
 trap 'exit 130' HUP INT TERM
 ```
 
-**If no PR number resolved (local mode),** synthesize the clean local artifact tree before any
+**If no PR number resolved (worktree mode),** synthesize the clean repository diff input before any
 verified `intent.md` is written:
 
 ```bash
@@ -293,9 +292,8 @@ The helper exports `WOO_REVIEW_ANGLE` and, when chunking is active, `WOO_REVIEW_
 runs preserve the caller environment. With `WOO_REVIEW_ENGINEER_UNIT=true`, it runs each worker
 from `$OUTDIR` under a fresh home/config/cache/temp tree and `env -i`, retaining only its documented
 allowlist. Known provider API variables are supported directly; list any additional provider-only
-variable names in `WOO_REVIEW_PROVIDER_ENV`. The helper deliberately omits inherited
-`LINEAR_API_KEY`, `GH_TOKEN`, `GITHUB_TOKEN`, `SSH_AUTH_SOCK`, `GIT_ASKPASS`, Git/Graphite config,
-Hermes/OMP profiles and token caches, and all other undeclared environment. Before dispatch it
+variable names in `WOO_REVIEW_PROVIDER_ENV`. The helper deliberately omits GitHub-write, SSH/Git,
+Graphite, Hermes/OMP profile, token-cache, and all other undeclared environment. Before dispatch it
 validates and hashes the controller-owned reviewer identity manifest. It also fingerprints the
 current branch/head, staged and unstaged binary diffs, and untracked contents; after the whole
 worker/retry queue, any identity-manifest or Git-visible repository/worktree change hard-fails

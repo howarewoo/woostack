@@ -20,6 +20,28 @@ if command -v jq >/dev/null 2>&1; then
   for k in $(jq -r 'keys[]' "$HERE/../../../woostack-init/templates/config.json"); do
     bash "$C/config-keys.sh" --fix "$r2" "$k"
   done
+  tmp="$(mktemp)"
+  jq '.linear = {
+    repository: "https://github.com/acme/widgets",
+    workspace: "Acme",
+    team: "ENG",
+    projectStatuses: {
+      backlog: "Backlog",
+      planned: "Planned",
+      started: "Started",
+      paused: "Paused",
+      completed: "Completed",
+      canceled: "Canceled"
+    },
+    issueStates: {
+      planned: "Backlog",
+      executing: "In Progress",
+      inReview: "In Review",
+      done: "Done",
+      blocked: "Blocked"
+    }
+  }' "$r2/.woostack/config.json" >"$tmp"
+  mv "$tmp" "$r2/.woostack/config.json"
   assert_eq "$(bash "$C/config-keys.sh" "$r2")" "" "after fixing all keys, clean"
 
   # --fix with no key arg must refuse, not write a bogus "" entry into config.

@@ -144,17 +144,18 @@ tracked_eval_page = subprocess.run(
 require(not tracked_eval_page, "generated woostack-eval page must not be committed")
 
 readme = read("README.md")
+folded_readme = re.sub(r"\s+", " ", readme)
 contributing = read("CONTRIBUTING.md")
 development = read("skills/woostack-bootstrap/references/development.md")
 concepts = read("site/content/docs/concepts/index.mdx")
 utilities = read("site/content/docs/concepts/utilities.mdx")
-require("twenty-three public command/adoption skills and three bundled supporting skills at twenty-six fixed" in readme, "README count is stale")
+require("twenty-three public command/adoption skills and three bundled supporting skills at twenty-six fixed" in folded_readme, "README count is stale")
 require("[/woostack-eval](skills/woostack-eval/SKILL.md)" in readme, "README catalog omits woostack-eval")
 require("`woostack-respond`, and `woostack-eval`" in contributing, "CONTRIBUTING public list omits woostack-eval")
 require("| Change skill evaluation (`/woostack-eval`) |" in contributing, "CONTRIBUTING map omits woostack-eval")
 require("twenty-three public command/adoption skills and all twenty-six fixed" in contributing, "CONTRIBUTING count is stale")
 require("| Evaluate approved behavior and trigger corpora for a skill without editing it | `woostack-eval` |" in development, "bootstrap adoption map omits woostack-eval")
-require("debug, eval, doctor" in concepts, "authored concept overview omits woostack-eval")
+require('href="/docs/concepts/utilities"' in concepts, "authored concept overview omits the utilities surface")
 require("[woostack-eval](/docs/skills/woostack-eval)" in utilities, "utilities page omits woostack-eval")
 
 folded_utilities = re.sub(r"\s+", " ", utilities)
@@ -173,16 +174,13 @@ require(stale.search(adoption) is None, "stale 22-public/25-fixed adoption phras
 
 host_requirements = {
     "omp": (
-        r"isolated `task` workers in the same `tasks\[\]` call",
-        r"`task` has no per-call model pin",
-        r"host-owned eval agent definition",
-        r"exactly one resolved `model` selector",
-        r"same `thinkinglevel`",
-        r"fallback list is not a concrete pin",
-        r"`session-default`.*omits `model`.*same known parent session identity",
-        r"batched `task` dispatch supports comparative concurrency",
-        r"actual completion identity",
-        r"host fallback, or model/effort divergence fails the mechanics proof and blocks the current comparison",
+        r"candidate and baseline's common effective tier",
+        r"same bundled worker",
+        r"same `tasks\[\]` call",
+        r"role pin, not proof of a concrete model",
+        r"completion identity",
+        r"identical model and effort",
+        r"host fallback divergence, or model/effort divergence fails the mechanics proof",
         r"unable to start both siblings.*fails comparative preflight",
     ),
     "opencode": (

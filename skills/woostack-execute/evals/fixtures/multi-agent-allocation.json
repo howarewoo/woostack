@@ -353,16 +353,5 @@
     "credentialMaterialPresent": false,
     "sessionMaterialPresent": false,
     "completedLifecycleReadBack": true
-  },
-  "expected": {
-    "status": "proceed",
-    "reason": "verified-distinct-independent-lifecycles",
-    "concurrentWorkAllowed": true,
-    "nextBoundary": "submitted",
-    "pairedContextsComplete": true,
-    "intraUnitContextsDistinct": true,
-    "crossUnitContextsUnique": true,
-    "completedLifecycleReadBack": true,
-    "ownerReadBackBeforeEveryBoundary": true
   }
 }

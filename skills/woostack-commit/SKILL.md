@@ -40,9 +40,9 @@ Consumers may add a commit hook command under `.woostack/config.json`:
 }
 ```
 
-`commit.pre_commit` is a shell command eligible to run from the repo root after branch resolution
-and before staging only when resume admission proves the finalized commit absent. Use it for
-formatters, linters, test runners, or a repo-local script such as `./scripts/pre-commit.sh`.
+`commit.pre_commit` is a shell command eligible to run from the repo root after branch-path
+admission and before staging only when resume admission proves the finalized commit absent. Use it
+for formatters, linters, test runners, or a repo-local script such as `./scripts/pre-commit.sh`.
 
 Rules:
 
@@ -84,17 +84,15 @@ Rules:
   resume-admission-selected diff and compare its claims with retained command observations.
   Rewrite or discard anything stale, identity-less, overstated, vague, or unsupported. A lost
   in-memory draft is reconstructed; never infer or reuse it.
-- The controller owns attribution. Discard any draft that introduces, copies, or normalizes a
-  `Spec:`, `Linear-Project:`, or `Linear-Issue:` line; compose the body again from only the
-  validated title, Goal, Summary, and Test plan fields, then append the exact controller-owned
-  Linear suffix.
+- The controller owns the official Linear suffix. Discard any draft that introduces, copies, or
+  normalizes attribution; compose the body again from only the validated title, Goal, Summary, and
+  Test plan fields, then append the exact controller-owned suffix.
 
 ## Hard constraints
 
-- Official host-exposed Linear MCP is the only development-record interface. There is no backend
-  selection or resolver, local spec/fix/plan attribution, Linear document, provider adapter,
-  direct Linear HTTP/GraphQL call, or alternate-authority fallback. GitHub GraphQL is permitted
-  only for GitHub operations.
+- Official host-exposed Linear MCP is the only development-record interface. Git and GitHub remain
+  authoritative for repository, commit, branch, pull-request, review, and merge evidence. GitHub
+  GraphQL is permitted only for GitHub operations.
 - Load the canonical [Linear MCP development authority](../woostack-init/references/artifact-backends.md)
   before any Linear read. Discover official MCP operations by capability, not by hard-coded tool
   name.
@@ -110,20 +108,19 @@ Rules:
   review evidence and is never a commit input or an `implementationEvidence` relation.
 - Before any side effect, classify the exact local commit, `implementationEvidence` history,
   Graphite/remote state, complete all-state canonical GitHub PR candidate set, stable native Linear
-  PR relation, and issue state from fresh complete reads. A first submission is admitted only from
-  proven absence. An ordinary-later or consumed-restack revision is admitted only from the exact
-  sole canonical PR at historical head A and the same stable native relation, followed by an update
-  of that retained PR to finalized head B while the relation remains unchanged. Skip every exact
-  verified boundary and resume at the first pending one. Partial, ambiguous, non-monotonic,
-  stale-C, foreign, replacement, duplicate, or unknown state blocks; never rerun a finalized
-  commit, allocate a duplicate event UUID, infer a branch, create a second PR, or replace a
-  relation.
-- Stage only session-relevant changes. Never stage unrelated work, generated sidecars, secrets,
-  or `.env*`.
+  PR relation, and issue state from fresh complete reads. Admit a first submission only from proven
+  absence. Admit an ordinary-later or consumed-restack revision only from the exact sole canonical
+  PR at historical head A and the same stable relation, then update that retained PR to finalized
+  head B without replacing the relation. Skip verified boundaries and resume at the first pending
+  one. Partial, ambiguous, non-monotonic, stale-C, foreign, replacement, duplicate, or unknown state
+  blocks; never rerun a finalized commit, allocate a duplicate event UUID, infer a branch, create a
+  second PR, or replace a relation.
+- Branch admission reuses the caller-created issue branch/worktree or creates from its verified Graphite parent only after proving all exact-issue artifacts absent.
+  Any existing branch, claim, worktree, commit, submission, remote, PR, or relation forbids fresh
+  creation; never derive identity from branch display text or create/reparent a workflow branch.
+- Stage only session-relevant changes; never stage unrelated work, generated sidecars, secrets, or `.env*`.
 - Never force-push. Do not merge.
-- Preserve failure state. A hook, commit, Graphite submission, GitHub edit, Linear mutation, or
-  read-back failure stops at that boundary; never infer success from a mutation response, retry
-  blindly, discard a stable UUID, or continue after partial/unknown evidence.
+- Preserve failure state: any hook, commit, submission, GitHub/Linear mutation, or read-back failure stops there; never infer success, retry blindly, discard a UUID, or continue.
 - Report only commands, identities, and results actually observed.
 
 ## Workflow
@@ -191,50 +188,56 @@ which changes are relevant to the current user/session. Compare the GitHub repos
 verified canonical repository URL. If relevance is ambiguous or the repositories disagree, stop
 before staging or mutation.
 
+If an existing PR is present, scan its raw body before drafting, hooks, staging, branch creation,
+commit, PR edit, or Linear mutation. Follow the legacy-`Spec:` rejection rule in
+[`references/pr-body.md`](references/pr-body.md): any case-insensitive exact, indented, quoted, or
+fenced `Spec:` candidate blocks. Never delete, rewrite, or normalize it into Linear attribution.
+
 ### 2. Enforce issue-owned branch shape before committing
 
-Resolve the integration branch using the installed `woostack-init` scripts directory (`<wi>`):
-
-```bash
-base="$(bash <wi>/resolve-base.sh)"
-branch="$(git branch --show-current)"
-```
-
-Follow the canonical [worktree and base-branch contract](../woostack-init/references/worktrees.md).
-The verified Linear relations, not ordinal adjacency or a branch name, determine the expected base:
-
-- A standalone role-`work-item` branch targets the resolved integration base recorded by its caller
-  receipt and must have no project relation.
-- A dependency-root role-`increment` branch starts at the feature project's frozen root commit and
-  tracks the frozen base branch as its Graphite parent.
-- A dependent role-`increment` branch starts at its declared parent issue branch and tracks that
-  same branch. Every additional dependency must already be merged or Git-reachable from it.
-
-Never commit directly to `$base`, `main`, `staging`, `beta`, or `alpha`. A fresh branch may be
-created only when the verified issue has empty branch/PR evidence and the caller's exact expected
-branch, base ref, and role-compatible worktree relation are already established. Prefer:
-
-```bash
-git switch "$base"
-gt create <verified-role-compatible-branch>
-gt track <verified-role-compatible-branch> --parent <verified-parent-branch>
-```
-
-Otherwise require the existing issue-owned branch/worktree. Verify the canonical exact-issue path
-and Graphite registration:
+Resolve the primary root, integration branch, and exact native issue ID using the installed
+`woostack-init` scripts directory (`<wi>`):
 
 ```bash
 export WOOSTACK_ROOT="$(cd "$(git rev-parse --git-common-dir)/.." && pwd -P)"
-issue_id="<verified-exact-native-linear-issue-id>"
-actual_root="$(cd "$(git rev-parse --show-toplevel)" && pwd -P)"
-expected_root="$(cd "$WOOSTACK_ROOT/.woostack/worktrees/issues/$issue_id" && pwd -P)"
-test "$actual_root" = "$expected_root"
-gt branch info --branch "$branch" --quiet
+base="$(bash <wi>/resolve-base.sh)"
+current_root="$(cd "$(git rev-parse --show-toplevel)" && pwd -P)"
+current_branch="$(git branch --show-current)"
+issue_id="<verified-native-linear-issue-id>"
+wt="$WOOSTACK_ROOT/.woostack/worktrees/issues/$issue_id"
 ```
 
-Every check must succeed. For branch creation, tracking, or commit command mechanics, read
-[`references/graphite.md`](references/graphite.md); its non-Linear fallback paths do not apply.
-Raw Git cannot substitute for the required Graphite identity. Never force-push.
+Follow the canonical [worktree and base-branch contract](../woostack-init/references/worktrees.md).
+Verified Linear relations, not ordinal adjacency or a branch name, determine `start_sha` and
+`graphite_parent`:
+
+- A standalone role-`work-item` starts at the retained integration-base commit and uses the
+  integration branch as Graphite parent, with no project relation.
+- A dependency-root role-`increment` starts at the frozen project root and uses its frozen base.
+- A dependent role-`increment` starts at its declared parent issue head and uses that branch as
+  Graphite parent. Every additional dependency must already be merged or Git-reachable from it.
+
+Fresh complete official-MCP, registry, Git worktree, Git, Graphite, remote, and canonical-PR reads
+must admit exactly one branch path:
+
+- **Existing caller-created branch reuse.** The exact-ID claim, `$wt`, checked-out branch, start
+  commit, Graphite parent, repository, issue/project IDs, owner/run, and assignment all match.
+  Require `current_root="$wt"` and `gt branch info --branch "$current_branch" --quiet`. Reuse it;
+  never run `gt create`, attach another worktree, or reparent it. This is the only path accepted
+  from `woostack-change`, `woostack-execute`, or another workflow that owns the branch.
+- **Direct fresh creation.** The user invoked `/woostack-commit --issue …` without a branch
+  handoff; root, current parent, `HEAD`, and the complete dirty-state receipt exactly match, with no
+  unrelated path. Derive only display name `change/<lowercase-verified-issue-identifier>` for
+  `work-item` or `feature/<lowercase-verified-issue-identifier>` for `increment`; never use a title.
+  The claim, `$wt`, and every local branch/checkout or Graphite/remote identity under that exact
+  name, plus commit, PR, and Linear PR relation, are absent. Native issue ID in the claim and `$wt`
+  remains the binding. Retain pending creation until the hook, staging,
+  fresh authority/diff check, and proposed-body gate pass.
+
+Any mixed, partial, duplicate, foreign, stale, colliding, or unknown shape blocks. Existing
+branch/worktree evidence disqualifies direct creation rather than being adopted or recreated.
+Never run `gt modify` or raw Git commit on the parent/protected base. Read the exact commands in
+[`references/graphite.md`](references/graphite.md); never substitute transport or force-push.
 
 ### 3. Run the configured pre-commit command
 
@@ -305,38 +308,68 @@ equal the exact diff being committed. A post-PR `reviewResult` is neither expect
 a substitute.
 
 When PR fields may be drafted or updated, load [`references/pr-body.md`](references/pr-body.md) and
-select input from resume admission. On the commit-absent path, compose and validate from the staged
-diff. When the exact finalized commit exists, reconstruct the title/body solely from its verified
-committed base-to-head diff; ignore current staged, unstaged, and untracked state and any lost or
-identity-mismatched in-memory draft. Include prior hook output only from a verified retained
-observation; otherwise report it as unavailable and not rerun, without inference. Append the exact
-role-derived Linear suffix and validate the complete body against that selected diff before the
-next mutation. Inspect any existing current-branch PR
-as well: its repository/head/base must match, and its body must either contain the exact expected
-suffix or contain no attribution lines at all when updates are enabled. Any `Spec:` mention,
-including Markdown-wrapped text, or wrapped, missing, duplicate, reordered, partial, foreign, or
-mismatched Linear attribution blocks; an unattributed body is never accepted with
-`--no-pr-update`.
+select input from resume admission. Before rebuilding, copying, or editing an existing PR body,
+scan its raw lines and reject every case-insensitive exact, indented, quoted, or fenced `Spec:`
+candidate. This legacy attribution is a blocker even when the body also has the expected Linear
+suffix or updates are enabled; never remove or normalize it. On the commit-absent path, compose and
+validate from the staged diff. When the exact finalized commit exists, reconstruct the title/body
+solely from its verified committed base-to-head diff; ignore current staged, unstaged, and
+untracked state and any lost or identity-mismatched in-memory draft. Include prior hook output only
+from a verified retained observation; otherwise report it as unavailable and not rerun, without
+inference. Append the exact role-derived Linear suffix and validate the complete body against that
+selected diff before the next mutation. Inspect any existing current-branch PR as well: its
+repository/head/base must match, it must contain no legacy `Spec:` candidate, and its body must
+either contain the exact expected suffix or contain neither official Linear attribution label when
+updates are enabled. Wrapped, missing, duplicate, reordered, partial, foreign, or mismatched Linear
+attribution blocks; an unattributed body is never accepted with `--no-pr-update`.
 
-Do not commit, submit, edit the PR, append `implementationEvidence`, write a branch/PR relation, or
-change issue state unless every read and proposed-body check is complete and exact.
+Do not create a branch or commit, submit, edit the PR, append `implementationEvidence`, write a
+branch/PR relation, or change issue state unless every read and proposed-body check is complete and
+exact.
 
 ### 5. Commit
 
-If resume admission proves the finalized commit absent, validate any drafted subject against the
-staged diff, then create it locally:
+If resume admission proves the finalized commit absent, validate the drafted subject against the
+staged diff, then use exactly the branch action admitted in step 2.
+
+For an existing caller-created branch, create the commit on that verified current Graphite branch:
 
 ```bash
 gt modify -m "<type>: <concise subject>"
 commit_sha="$(git rev-parse HEAD)"
 ```
 
+For direct fresh creation only, repeat the exact issue, owner, assignment, repository, parent/start,
+complete-diff, and artifact-absence checks. Atomically reserve the canonical exact-ID claim for
+`$wt`, then create and commit the already staged diff without implicit staging:
+
+```bash
+gt create "$branch" --no-interactive -m "<type>: <concise subject>"
+commit_sha="$(git rev-parse HEAD)"
+```
+
+Require the observed branch, commit, staged contents, and Graphite parent to be exact. `gt create`
+already tracks the verified current parent; never `gt track` or reparent it. Then return the primary
+checkout to the parent and attach, rather than recreate, the branch at the reserved issue path:
+
+```bash
+git switch "$graphite_parent"
+git worktree add "$wt" "$branch"
+```
+
+Immediately verify the registry claim, absolute worktree path, branch, HEAD, Graphite parent,
+repository, exact issue/project IDs, and current owner/assignment, then perform every later step
+with `cwd="$wt"`. A failed, timed-out, or unknown create/switch/attach result preserves the claim,
+branch, commit, and worktree observations and stops for explicit reconciliation; never retry
+`gt create` or make a duplicate worktree.
+
 Use a concise conventional subject, usually `feat:`, `fix:`, `docs:`, or `chore:`. Mention the real
 change, not the process. Add a body only when the reason is not obvious from the diff. Require the
 observed commit to contain exactly the intended staged changes and remain unpushed. If admission
 already found the exact finalized commit for the reviewed base/head identity, retain its SHA and
-skip the mutation; never run `gt modify` again. A missing-but-partial or mismatched local commit
-blocks rather than recommitting. A commit failure stops with no Linear comment or state mutation.
+skip the mutation; never run `gt modify` or `gt create` again. A missing-but-partial or mismatched
+local commit blocks rather than recommitting. A commit failure stops with no Linear comment or
+state mutation.
 
 ### 5.5 Record finalized implementation evidence
 
@@ -451,7 +484,8 @@ Return:
 - Verified Linear issue UUID/URL, identifier, role, native ID, state, and type-aware owner.
 - Verified project UUID/URL and native ID for role-`increment`, or explicit no-project proof for
   role-`work-item`.
-- Branch name, verified base/parent ancestry, finalized commit subject/SHA, and the commit-scoped
+- Branch admission (`direct-created` or `caller-created-reused`), branch name, canonical exact-ID
+  worktree path, verified base/parent ancestry, finalized commit subject/SHA, and the commit-scoped
   base SHA, head B SHA, and committed-diff hash recorded remotely.
 - Read-back receipt and stable UUID for the typed `implementationEvidence` event, plus historical
   head A and superseded native revision for an ordinary-later or consumed-restack update.

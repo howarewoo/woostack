@@ -11,6 +11,6 @@ for phrase in '--respond' '--no-respond' 'Set up production error response? [y/N
 done
 assert_contains "$skill" '| `.woostack/respond/.gitkeep` | `templates/respond/.gitkeep` |' "init maps response scaffold"
 assert_contains "$memory" 'respond/evidence/' "memory layout names ignored evidence"
-assert_contains "$memory" 'Sanitized response reports remain tracked' "memory layout keeps reports tracked"
+assert_contains "$memory" 'tracked sanitized response reports live beside it' "memory layout keeps reports tracked"
 assert_not_contains "$respond" 'woostack-defer(' "all response increment markers are removed"
 finish

@@ -31,8 +31,7 @@ Before any development-record read, load:
 
 Establish exactly one canonical repository URL, configured workspace/team, complete native status
 maps, and official MCP capability set. Discover MCP operations by capability rather than hard-coded
-tool names. There is no backend selection, local development-record mode, Linear document
-lifecycle, repository credential, custom provider transport, or fallback authority.
+tool names, and treat the linked authority contract as exhaustive.
 
 A project is identified by its stable client UUID, canonical repository URL, exact `woostack`
 label, role `feature`, and verified native ID. Titles are never identity. Resume only from a
@@ -103,10 +102,9 @@ it does not clear a gate.
   are `backlog` through planning, `planned` for ready/approval, `started` for execution/review,
   `paused` only for unresolved blockers, `completed` after verified done, and `canceled` after
   abandonment.
-- **No alternate development authority.** Do not create or read local spec, plan, fix, progress,
-  or overnight records as lifecycle authority; do not create Linear documents; do not call a
-  custom Linear endpoint or GraphQL transport; do not obtain credentials outside official host
-  MCP/OAuth.
+- **One development authority.** Resolve scope, lifecycle, progress, and acceptance only from
+  independently verified official Linear MCP resources under the canonical authority contract.
+  Keep Git and GitHub authoritative for source, branches, pull requests, reviews, and merge evidence.
 - **Fail closed.** Missing predecessors, illegal transitions, duplicate revisions, supersession
   errors, multiple current heads, ownership drift, relation drift, conflicting evidence, or
   incomplete read-back stops at the boundary and reports the precise blocker.

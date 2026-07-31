@@ -1,9 +1,0 @@
-query WoostackIdentityIssueKey($id: String!) {
-  issue(id: $id) {
-    id
-    url
-    archivedAt
-    canceledAt
-    project { id }
-  }
-}
