@@ -1,23 +1,17 @@
----
-name: {{SLUG}}
-type: spec
-status: {{STATUS}}
-date: {{DATE}}
-branch: {{BRANCH}}
-links:
----
+# `specHardened` project-update body template
 
-# {{TITLE}} — Design Spec
+Use this structure for the readable body of the current `specHardened` project update. The
+managed event envelope supplies the stable event `clientId`, revision, predecessor,
+supersession, related IDs, repository identity, and project identity. Append or revise the
+update only through official host-exposed Linear MCP capabilities, then independently read the complete event and one-head lifecycle chain back before advancing.
 
-> Artifact: {{ARTIFACT_REFERENCE}}. The selected backend artifact is the source of truth. Render with [spec-template.html](spec-template.html) for a rich presentation only.
-
-> `status:` follows the selected backend's owning-artifact contract. In Markdown, this spec owns `draft`, `hardened`, or `approved` while it exists; abandon removes the worktree and branch and closes the PR, leaving no artifact or authored abandoned status. Its joined plan owns later implementation phases and uses `in-review`. In Linear, the managed spec document owns `designState`, the project mirrors the applicable feature lifecycle including terminal `abandoned`, and increment issues own their separate normalized lifecycle including `inReview`. The enum and joins are defined once in [conventions.md](../../woostack-status/references/conventions.md).
-
-> **Plan:** [[plans/{{DATE}}-{{SLUG}}]]
+# {{TITLE}} — Specification
 
 ## 1. Problem
 
-> **Premise / evidence.** State the evidence the problem is real. A derived claim about current behavior must be *demonstrated* (a baseline/repro), not asserted — harden's premise lens will not stamp this spec `hardened` otherwise. A self-evident premise (visible bug, explicit request) just cites the repro/request.
+> **Premise / evidence.** State the evidence the problem is real. A derived claim about current
+> behavior must be demonstrated with a baseline or reproduction. A self-evident premise cites
+> the visible defect or explicit request.
 
 {{PROBLEM}}
 
@@ -33,7 +27,7 @@ links:
 
 {{APPROACH}}
 
-## 5. Components & data flow
+## 5. Components and data flow
 
 {{COMPONENTS}}
 
@@ -43,9 +37,14 @@ links:
 
 ## 7. Acceptance criteria
 
-Each AC is a testable behavior → ≥1 plan task. Fill every class or mark `N/A — <reason>`; mark the whole section `N/A — <why no testable behavior>` only when the spec has no testable behavior.
+Each acceptance criterion is a testable behavior mapped to at least one increment issue. Fill
+every class or use `N/A — <reason>`; use `N/A — <why no testable behavior>` for the entire
+section only when the specification has no testable behavior.
 
-> **Angle pre-flight.** Before finalizing ACs, walk the spec lens of `skills/woostack-harden/references/angle-preflight.md`: capture each implicated angle — security, observability, api, database, edge/error — as a §6 error path or a §7 error/edge case.
+> **Angle pre-flight.** Before finalizing acceptance criteria, walk the specification lens in
+> [`angle-preflight.md`](../../woostack-harden/references/angle-preflight.md). Capture each
+> implicated security, observability, API, database, and edge/error angle as a section 6 error
+> path or section 7 error/edge case.
 
 - **AC1 — {{behavior}}**
   - happy: {{expected}}
@@ -58,7 +57,7 @@ Each AC is a testable behavior → ≥1 plan task. Fill every class or mark `N/A
 
 ## 8. Testing
 
-> Strategy only — harness, test levels, fixtures, CI. Per-behavior cases live in §7.
+> Strategy only: harness, test levels, fixtures, and CI. Per-behavior cases live in section 7.
 
 {{TESTING}}
 

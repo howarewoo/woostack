@@ -75,8 +75,8 @@ subagents, say so and fall back to inline (degraded, not equivalent) or stop and
 pretend subagent mode ran.
 
 When `woostack-build` clears the execution-handoff gate, it invokes this skill with its selected
-artifact. In Markdown mode, the [Markdown procedure](../woostack-build/references/markdown-procedure.md)
-has already committed the spec and plan in one docs-only PR that forms the stack base. The
+artifact. Pre-existing Markdown plans retain their established documentation-only stack base, but
+build no longer authors a Markdown spec or plan. The
 [Linear procedure](../woostack-build/references/linear-procedure.md) creates no docs-only PR;
 its frozen base and declared issue Git parents drive implementation ancestry.
 

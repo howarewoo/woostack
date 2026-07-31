@@ -1,0 +1,19 @@
+{
+  "developmentAuthority": "official-linear-mcp",
+  "shape": {
+    "pullRequestCount": 1,
+    "kind": "change",
+    "designApproved": true
+  },
+  "expectedRouting": {
+    "route": "woostack-change",
+    "projectCreated": false,
+    "advance": false,
+    "repositoryEffects": []
+  },
+  "multiIncrementGateOrder": [
+    "design-approval",
+    "spec-approval",
+    "execution-handoff"
+  ]
+}

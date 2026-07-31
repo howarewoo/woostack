@@ -3,28 +3,28 @@
   "skill": "woostack-build",
   "cases": [
     {
-      "id": "routes-approved-build-to-overnight-handoff",
-      "prompt": "Resume the bounded synthetic build represented by fixtures/build-state.json. Do not perform Git, provider, or repository mutations. Apply the packaged skill's orchestration contract and return exactly one JSON object using the keys backendResolverCalls, backend, hardGates, terminalChoices, terminalChoice, executionSkill, and mergeAllowed. Use the skill's user-facing labels for terminalChoices and terminalChoice.",
+      "id": "blocks-incompatible-overnight-dispatch-at-ready",
+      "prompt": "Resume the bounded synthetic project build represented by fixtures/build-state.json. Do not perform Git, provider, or repository mutations. Apply the packaged skill's orchestration contract and return exactly one JSON object using the keys developmentAuthority, backendResolverCalls, hardGates, terminalChoices, terminalChoice, executorCompatibilityVerified, phase, blocked, executionApprovedAppended, executionSkill, and mergeAllowed.",
       "fixtures": [
         "build-state.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The Markdown backend remains resolved once, exactly three explicit gates are recognized, all three terminal choices are exposed, the selected overnight branch routes to woostack-execute-overnight, and no merge is allowed.",
+      "expected": "Official Linear MCP remains the sole development authority without backend resolution, exactly three gates and all terminal choices are recognized, and incompatible overnight execution blocks at ready before approval or dispatch.",
       "assertions": [
         {
-          "id": "backend-resolved-once",
+          "id": "official-linear-authority",
           "kind": "final-json-path-equals",
-          "pointer": "/backendResolverCalls",
-          "expected": 1,
+          "pointer": "/developmentAuthority",
+          "expected": "official-linear-mcp",
           "critical": true
         },
         {
-          "id": "resolved-backend-retained",
+          "id": "no-backend-resolution",
           "kind": "final-json-path-equals",
-          "pointer": "/backend",
-          "expected": "markdown",
+          "pointer": "/backendResolverCalls",
+          "expected": 0,
           "critical": true
         },
         {
@@ -57,10 +57,38 @@
           "critical": true
         },
         {
-          "id": "overnight-driver-selected",
+          "id": "executor-compatibility-rejected",
+          "kind": "final-json-path-equals",
+          "pointer": "/executorCompatibilityVerified",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "incompatible-dispatch-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/blocked",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "incompatible-dispatch-stays-ready",
+          "kind": "final-json-path-equals",
+          "pointer": "/phase",
+          "expected": "ready",
+          "critical": true
+        },
+        {
+          "id": "execution-approval-not-appended",
+          "kind": "final-json-path-equals",
+          "pointer": "/executionApprovedAppended",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "legacy-executor-not-dispatched",
           "kind": "final-json-path-equals",
           "pointer": "/executionSkill",
-          "expected": "woostack-execute-overnight",
+          "expected": null,
           "critical": true
         },
         {
@@ -70,6 +98,100 @@
           "expected": false,
           "critical": true
         }
+      ]
+    },
+    {
+      "id": "routes-bounded-work-before-project-creation",
+      "prompt": "Classify the approved bounded design in fixtures/bounded-build-state.json without performing Git, provider, or repository mutations. Return exactly one JSON object using the keys shape, projectCreated, route, buildStopped, and mergeAllowed.",
+      "fixtures": [
+        "bounded-build-state.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "A one-PR non-bug design routes to woostack-change and stops the project-backed build before any Linear project is created, while merge authority remains human-owned.",
+      "assertions": [
+        {
+          "id": "bounded-shape-detected",
+          "kind": "final-json-path-equals",
+          "pointer": "/shape",
+          "expected": "one-reviewable-pr",
+          "critical": true
+        },
+        {
+          "id": "bounded-project-not-created",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "bounded-route-selected",
+          "kind": "final-json-path-equals",
+          "pointer": "/route",
+          "expected": "woostack-change",
+          "critical": true
+        },
+        {
+          "id": "project-build-stopped",
+          "kind": "final-json-path-equals",
+          "pointer": "/buildStopped",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "bounded-route-never-merges",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeAllowed",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "enforces-project-gates-and-bounded-routing",
+      "prompt": "Apply the lifecycle classification contract to fixtures/project-gates.json without provider, Git, or repository mutations. Return exactly one JSON object with keys developmentAuthority, hardGates, route, projectCreated, advance, and repositoryEffects.",
+      "fixtures": ["project-gates.json"],
+      "capabilities": ["read-workspace"],
+      "expected": "The official Linear MCP is the sole authority, exactly three ordered gates govern multi-increment work, and one bounded issue routes away before project creation.",
+      "assertions": [
+        {"id":"gates-authority","kind":"final-json-path-equals","pointer":"/developmentAuthority","expected":"official-linear-mcp","critical":true},
+        {"id":"gates-exact-order","kind":"final-json-path-equals","pointer":"/hardGates","expected":["design-approval","spec-approval","execution-handoff"],"critical":true},
+        {"id":"gates-bounded-route","kind":"final-json-path-equals","pointer":"/route","expected":"woostack-change","critical":true},
+        {"id":"gates-no-project","kind":"final-json-path-equals","pointer":"/projectCreated","expected":false,"critical":true},
+        {"id":"gates-no-advance","kind":"final-json-path-equals","pointer":"/advance","expected":false,"critical":true},
+        {"id":"gates-no-effects","kind":"final-json-path-equals","pointer":"/repositoryEffects","expected":[],"critical":true}
+      ]
+    },
+    {
+      "id": "fails-closed-on-project-update-conflicts",
+      "prompt": "Evaluate every case in fixtures/project-update-conflict.json without provider, Git, or repository mutations. Preserve fixture order. Return exactly one JSON object with key results, an array whose objects have exactly id, advance, reasonCode, and repositoryEffects.",
+      "fixtures": ["project-update-conflict.json"],
+      "capabilities": ["read-workspace"],
+      "expected": "Missing predecessor, duplicate revision, multiple phase heads, stale update, unsupported schema, and failed read-back each fail closed without repository effects.",
+      "assertions": [
+        {"id":"conflicts-fail-closed","kind":"final-json-path-equals","pointer":"/results","expected":[
+          {"id":"missing-predecessor","advance":false,"reasonCode":"missing-predecessor","repositoryEffects":[]},
+          {"id":"duplicate-revision","advance":false,"reasonCode":"duplicate-revision","repositoryEffects":[]},
+          {"id":"multiple-phase-heads","advance":false,"reasonCode":"multiple-phase-heads","repositoryEffects":[]},
+          {"id":"stale-update","advance":false,"reasonCode":"stale-update","repositoryEffects":[]},
+          {"id":"unsupported-schema","advance":false,"reasonCode":"unsupported-schema","repositoryEffects":[]},
+          {"id":"failed-read-back","advance":false,"reasonCode":"failed-read-back","repositoryEffects":[]}
+        ],"critical":true}
+      ]
+    },
+    {
+      "id": "refuses-unsafe-project-replan",
+      "prompt": "Apply the replan contract to fixtures/project-replan.json without provider, Git, or repository mutations. Return exactly one JSON object with keys advance, reasonCode, preservedClientIds, ordinalDefinesAncestry, and repositoryEffects.",
+      "fixtures": ["project-replan.json"],
+      "capabilities": ["read-workspace"],
+      "expected": "Replanning preserves stable issue identities, refuses evidence-bearing removal, and never derives dependency ancestry from ordinals.",
+      "assertions": [
+        {"id":"replan-no-advance","kind":"final-json-path-equals","pointer":"/advance","expected":false,"critical":true},
+        {"id":"replan-refusal","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"evidence-bearing-issue-removal-refused","critical":true},
+        {"id":"replan-identities","kind":"final-json-path-equals","pointer":"/preservedClientIds","expected":["10000000-0000-4000-8000-000000000001","10000000-0000-4000-8000-000000000002"],"critical":true},
+        {"id":"replan-ordinal-not-ancestry","kind":"final-json-path-equals","pointer":"/ordinalDefinesAncestry","expected":false,"critical":true},
+        {"id":"replan-no-effects","kind":"final-json-path-equals","pointer":"/repositoryEffects","expected":[],"critical":true}
       ]
     }
   ]

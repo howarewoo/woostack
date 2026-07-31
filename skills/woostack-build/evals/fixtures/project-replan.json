@@ -1,0 +1,43 @@
+{
+  "developmentAuthority": "official-linear-mcp",
+  "projectId": "project-native-1",
+  "phase": "ready",
+  "issues": [
+    {
+      "clientId": "10000000-0000-4000-8000-000000000001",
+      "nativeId": "issue-1",
+      "ordinal": 20,
+      "title": "Add storage contract",
+      "blockedBy": [],
+      "evidence": []
+    },
+    {
+      "clientId": "10000000-0000-4000-8000-000000000002",
+      "nativeId": "issue-2",
+      "ordinal": 10,
+      "title": "Wire API adapter",
+      "blockedBy": ["10000000-0000-4000-8000-000000000001"],
+      "evidence": ["commit:0123456789abcdef0123456789abcdef01234567"]
+    }
+  ],
+  "requestedReplan": {
+    "retain": ["10000000-0000-4000-8000-000000000001"],
+    "remove": ["10000000-0000-4000-8000-000000000002"],
+    "add": {
+      "clientId": "10000000-0000-4000-8000-000000000003",
+      "ordinal": 30,
+      "title": "Expose reconciliation receipt",
+      "blockedBy": ["10000000-0000-4000-8000-000000000001"]
+    }
+  },
+  "expected": {
+    "advance": false,
+    "reasonCode": "evidence-bearing-issue-removal-refused",
+    "preservedClientIds": [
+      "10000000-0000-4000-8000-000000000001",
+      "10000000-0000-4000-8000-000000000002"
+    ],
+    "ordinalDefinesAncestry": false,
+    "repositoryEffects": []
+  }
+}

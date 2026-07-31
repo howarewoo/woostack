@@ -88,9 +88,9 @@ link it, never restate it.
 | `/woostack-build <goal>`, build a feature through the woostack loop | `woostack-build` |
 | `/woostack-fix <target> [description]`, resolve a bug/issue through the unified fix loop | `woostack-fix` |
 | `/woostack-change <goal>`, implement a bounded non-bug enhancement or refactor that fits one reviewable PR | `woostack-change` |
-| `/woostack-plan <spec-reference>`, write the implementation plan for an approved spec from a required backend-specific reference (Markdown spec path or Linear project UUID/URL) as PR-sized increments | `woostack-plan` |
-| `/woostack-execute <plan-path> [--inline\|--subagent]`, execute an approved plan as PR-sized stacked increments (inline or subagent-driven) | `woostack-execute` |
-| `/woostack-execute-overnight <plan-path> [--inline\|--subagent]`, execute an approved plan unattended overnight (autonomous, morning report) | `woostack-execute-overnight` |
+| `/woostack-plan <Linear project UUID-or-exact-URL>`, write verified PR-sized increment issues and dependencies for one approved repository-owned feature project | `woostack-plan` |
+| `/woostack-execute <artifact> [--inline\|--subagent]`, execute an approved artifact as PR-sized stacked increments (inline or subagent-driven) | `woostack-execute` |
+| `/woostack-execute-overnight <artifact> [--inline\|--subagent]`, execute an approved artifact unattended overnight (autonomous, morning report) | `woostack-execute-overnight` |
 | `/woostack-sweep [PR#] [--base R] [--interactive]`, drive a stack of PRs to a clean review | `woostack-sweep` |
 | `/woostack-commit`, commit session-relevant changes and update PR fields | `woostack-commit` |
 | `/woostack-review [PR#]`, review a PR or local diff | `woostack-review` |
@@ -102,7 +102,7 @@ link it, never restate it.
 | `/woostack-status [--all] [--fetch]`, show the derived feature board (what's in flight, what to do next) | `woostack-status` |
 | `/woostack-visualize <source> [for <audience>]`, render a source as audience-tailored HTML | `woostack-visualize` |
 | `/woostack-debug <target>`, run an autonomous root-cause analysis before fixing (investigative only — hands back the root cause and a proposed fix) | `woostack-debug` |
-| `/woostack-tdd <target>`, add appropriate tests to a code block, PR, spec, or plan (gate-light; TDD doctrine home) | `woostack-tdd` |
+| `/woostack-tdd <target>`, add appropriate tests to code, a PR, or an exact verified Linear project and issue (gate-light; TDD doctrine home) | `woostack-tdd` |
 | `/woostack-dream [instructions]`, curate the memory store and recommend doc updates (gated) | `woostack-dream` |
 | `/woostack-doctor [path] [--check]`, diagnose + gated-repair `.woostack/` workspace health (store integrity + conventions; `--check` is CI-friendly exit-coded) | `woostack-doctor` |
 

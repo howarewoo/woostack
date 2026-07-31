@@ -6,6 +6,8 @@ SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 REPOSITORY_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/../../../.." && pwd)
 VALIDATOR="$SCRIPT_DIR/../validate.mjs"
 NODE=${NODE:-node}
+# shellcheck source=../../../woostack-init/scripts/path-args.sh
+. "$REPOSITORY_ROOT/skills/woostack-init/scripts/path-args.sh"
 TMP_ROOT=$(mktemp -d "${TMPDIR:-/tmp}/woostack-eval-critical-corpora.XXXXXX")
 trap 'rm -rf "$TMP_ROOT"' EXIT HUP INT TERM
 
@@ -17,6 +19,7 @@ fail() {
 packages=(
   skills/woostack-eval
   skills/woostack-build
+  skills/woostack-plan
   skills/woostack-fix
   skills/woostack-execute
   skills/woostack-execute-overnight
@@ -36,9 +39,9 @@ for index in "${!packages[@]}"; do
   package=${packages[$index]}
   result="$TMP_ROOT/$index.json"
   errors="$TMP_ROOT/$index.stderr"
-  if ! "$NODE" "$VALIDATOR" \
-    --package "$REPOSITORY_ROOT/$package" \
-    --repository-root "$REPOSITORY_ROOT" \
+  if ! "$NODE" "$(tool_path_arg "$NODE" "$VALIDATOR")" \
+    --package "$(tool_path_arg "$NODE" "$REPOSITORY_ROOT/$package")" \
+    --repository-root "$(tool_path_arg "$NODE" "$REPOSITORY_ROOT")" \
     --json >"$result" 2>"$errors"; then
     cat "$errors" >&2
     cat "$result" >&2
@@ -46,7 +49,8 @@ for index in "${!packages[@]}"; do
   fi
 done
 
-"$NODE" - "$REPOSITORY_ROOT" "$TMP_ROOT" "${packages[@]}" <<'NODE'
+"$NODE" - "$(tool_path_arg "$NODE" "$REPOSITORY_ROOT")" \
+  "$(tool_path_arg "$NODE" "$TMP_ROOT")" "${packages[@]}" <<'NODE'
 const fs = require('node:fs');
 const crypto = require('node:crypto');
 const path = require('node:path');
@@ -55,6 +59,7 @@ const [repositoryRoot, resultsRoot, ...packages] = process.argv.slice(2);
 const expectedPackages = [
   'skills/woostack-eval',
   'skills/woostack-build',
+  'skills/woostack-plan',
   'skills/woostack-fix',
   'skills/woostack-execute',
   'skills/woostack-execute-overnight',
@@ -70,7 +75,7 @@ const expectedPackages = [
   'skills/woostack-status',
 ];
 const same = (left, right) => JSON.stringify(left) === JSON.stringify(right);
-if (!same(packages, expectedPackages) || new Set(packages).size !== 15) {
+if (!same(packages, expectedPackages) || new Set(packages).size !== 16) {
   throw new Error(`critical package enumeration changed: ${JSON.stringify(packages)}`);
 }
 
@@ -85,10 +90,18 @@ const requiredContractProofs = {
     'missing receipt blocks': [['missing-receipt-reported'], ['aggregation-blocked'], ['clean-comparison-denied']],
   },
   'woostack-build': {
-    'backend resolved once': [['backend-resolved-once']],
+    'official Linear authority without backend fallback': [['official-linear-authority'], ['no-backend-resolution']],
+    'bounded work routes before project creation': [['bounded-shape-detected'], ['bounded-project-not-created'], ['bounded-route-selected'], ['project-build-stopped']],
     'exactly three explicit gates': [['exact-three-gates']],
-    'Go, overnight, or handoff terminal choice': [['complete-terminal-choice-set'], ['overnight-choice-preserved']],
-    'no merge': [['build-never-merges']],
+    'terminal choices and incompatible dispatch guard': [['complete-terminal-choice-set'], ['overnight-choice-preserved'], ['executor-compatibility-rejected'], ['incompatible-dispatch-blocked'], ['incompatible-dispatch-stays-ready'], ['execution-approval-not-appended'], ['legacy-executor-not-dispatched']],
+    'no merge': [['build-never-merges'], ['bounded-route-never-merges']],
+  },
+  'woostack-plan': {
+    'stable issue reconciliation': [['reconcile-advances'], ['reconcile-identities'], ['reconcile-count']],
+    'native dependencies independent of ordinal order': [['reconcile-relation'], ['reconcile-ordinal-not-ancestry']],
+    'verified mutation receipts': [['reconcile-read-back']],
+    'evidence-bearing removal refusal': [['replan-blocks'], ['replan-reason'], ['replan-preserves-identities'], ['replan-read-back']],
+    'no repository effects': [['reconcile-no-repository-effects'], ['replan-no-repository-effects']],
   },
   'woostack-fix': {
     'diagnosis and root cause before plan': [['root-cause-blocker'], ['no-plan-before-root-cause'], ['proved-root-cause-retained']],
@@ -152,14 +165,18 @@ const requiredContractProofs = {
     'no merge': [['no-audit-merge']],
   },
   'woostack-init': {
-    'canonical workspace creation and repair boundary': [structural('memory-index-created'), structural('fixes-marker-created'), structural('wisdom-marker-created'), structural('respond-directory-materialized'), structural('gitignore-created'), ['complete-config-object-preserved'], ['existing-file-preserved'], ['no-clobber-mode-reported']],
-    'doctor-validated no-clobber result': [['validation-order'], ['doctor-validation-succeeded'], ['config-before-hash'], ['config-after-hash']],
-    'no secret or config invention': [['no-linear-secret-invented'], ['complete-config-object-preserved']],
+    'official MCP preflight before project, Git, or workspace access': [['missing-mcp-zero-project-access'], ['missing-mcp-zero-git-access'], ['success-zero-project-access-before-preflight'], ['success-writes-started-after-preflight']],
+    'all preflight ambiguity and receipt failures block': [['missing-mcp-blocks'], ['auth-blocks'], ['identity-blocks'], ['mapping-blocks'], ['read-only-blocks'], ['read-back-blocks']],
+    'canonical workspace creation and repair boundary': [structural('memory-index-created'), structural('wisdom-marker-created'), structural('respond-directory-materialized'), structural('gitignore-created'), ['no-local-specs'], ['no-local-plans'], ['no-local-fixes'], ['no-clobber-mode-reported']],
+    'doctor-validated no-clobber result': [['validation-order'], ['packaged-doctor-invocation'], ['doctor-target-is-repository-root'], ['doctor-validation-succeeded'], ['config-before-hash'], ['config-after-hash']],
+    'config and existing files remain intact': [['config-preserved-on-disk'], ['existing-file-preserved-on-disk']],
+    'loss-safe migration classification': [['migration-status'], ['migration-deletions'], ['migration-resume-id']],
   },
   'woostack-doctor': {
     'diagnose before explicit local repair approval': [structural('config-key-diagnosed'), ['repair-approval-pending'], ['doctor-config-not-repaired']],
-    'remote read-only': [['live-read-receipts-observed'], ['remote-mutation-boundary'], ['live-failure-report-only']],
+    'remote read-only normalized receipt': [['one-receipt-provenance-observed'], ['no-provider-invocation'], ['no-legacy-adapter-invocation'], ['remote-mutation-boundary'], ['live-failure-report-only']],
     'exit-coded CI behavior': [['ci-finding-codes'], ['ci-nonzero-reported']],
+    'verified provenance succeeds without fallback': [['success-one-provenance'], ['success-no-provider'], ['success-no-legacy-adapter'], ['success-no-remote-mutation']],
   },
   'woostack-status': {
     'backend-aware board': [structural('markdown-backend-board'), ['markdown-feature-name'], ['markdown-feature-progress'], ['markdown-feature-pr'], ['markdown-feature-pr-state'], ['markdown-feature-in-review'], structural('linear-backend-board'), ['markdown-artifacts-read-only'], ['only-merged-issue-eligible']],
@@ -179,7 +196,15 @@ const approvedCaseContracts = {
     'missing-action-receipt-blocks-aggregation': readOnlyCase('d41a0c24ae7041ea84dfd095846a0851f6feefaf16bc21f3f161fb3541e334b6'),
   },
   'woostack-build': {
-    'routes-approved-build-to-overnight-handoff': readOnlyCase('f69775707e5fd7bf96293b824bf03e628287d8e87bb72593ab0de135a7cee1c4'),
+    'blocks-incompatible-overnight-dispatch-at-ready': readOnlyCase('66eb1e1fedfc54f6d07446af1f8a5f2f5dd1ddcf5a5d914f89e4b07ef7cd6231'),
+    'routes-bounded-work-before-project-creation': readOnlyCase('ea161aab650c355d020134da2e1e42d6aa44126689f4feea603bb0d5e4ee489f'),
+    'enforces-project-gates-and-bounded-routing': readOnlyCase('5563e7cd90148a2ef8714bcb9983ffc9873f65bbd1434ef6370ba0ccf72a61fb'),
+    'fails-closed-on-project-update-conflicts': readOnlyCase('459804ced687781a88223afe9e4d9e1167e54fffaa5c63308eb02e19069d18ed'),
+    'refuses-unsafe-project-replan': readOnlyCase('66275aef33697a51bebb085eb6b47868bc485fc58aaabeb265a19a936ed12442'),
+  },
+  'woostack-plan': {
+    'reconciles-stable-increments-with-native-dependencies': readOnlyCase('a0a073c21ddfb57b8d29712d807cb59037b241dab2407fc373809dd476ae05ec'),
+    'refuses-evidence-bearing-issue-removal': readOnlyCase('c2523a255dbabd16e2522f4865e591a578b79f5f4e7af387a935e10a0ba6bfd4'),
   },
   'woostack-fix': {
     'blocks-plan-when-root-cause-is-unproven': readOnlyCase('5121a9c940d934ffde56b98dda02a590f29e2148aac543ad67749a34e21a7b9b'),
@@ -222,14 +247,22 @@ const approvedCaseContracts = {
     ),
   },
   'woostack-init': {
-    'repairs-missing-workspace-without-clobbering-config': caseContract(
+    'blocks-before-project-access-when-official-mcp-is-missing': readOnlyCase('88389f3d4587d179102d3c6c6db5336788cf86febc3b2b1844079f063f3a6d3f'),
+    'blocks-before-project-access-when-official-mcp-is-unauthenticated': readOnlyCase('a80e30646f1e49e6f7065520acc016aedcae79aaebabe8bad6225f701edf82d2'),
+    'blocks-on-ambiguous-workspace-or-missing-team': readOnlyCase('6ef1ab3c32a30668a9b937ff6d93a4770229fd979c4935e5fec805405dcc9d9d'),
+    'blocks-invalid-native-project-categories-and-issue-states': readOnlyCase('df45527750d5b5797b7ee46a6778e0bcc99e5b8a75ed4d3d374178c8e3355bdc'),
+    'blocks-read-only-mcp-for-mutating-init': readOnlyCase('b05a77da16dbe37de296ceb7aa79e6b7b37ad13802163e7990c608d402ac3815'),
+    'blocks-unknown-or-partial-independent-read-back': readOnlyCase('0b7ea7b96b83925e023e63f66aabd28e7f29a398664409594b53e2a46e2a85c9'),
+    'successful-preflight-repairs-workspace-and-doctors-repository-root': caseContract(
       ['read-workspace', 'write-workspace', 'shell-workspace'],
-      '1d8f345ddf4b5286d6b82cfe5628ce87d0229cd26d45059fa998eb5294336612',
+      'b499323b53665c1af87ad71f530e5ab70c1f8187d37f6b401ceb7acfbfdd92e3',
     ),
+    'classifies-loss-safe-linear-migration-fixtures': readOnlyCase('5322e5fdd9c8f7c35b336ded7c0d38beb8cdc368f8d03dcc0e0cdf841b9fa0c9'),
   },
   'woostack-doctor': {
-    'diagnoses-before-local-repair-approval': readOnlyCase('6c506c8436a7ca8574aba119dc58b2564d762764ca2d772fe8a9a03115bd5551'),
-    'check-mode-is-exit-coded-and-read-only': readOnlyCase('bf0796dfe1da09f5357740fa88c04a507e89d831c6b58e16c64a6f0f55e7fcd2'),
+    'diagnoses-before-local-repair-approval': readOnlyCase('affe392539a3e5188863908886ec5fd2b8368c54c1b2edb8f1dff316b797b6f0'),
+    'check-live-consumes-one-normalized-receipt-without-provider-calls': readOnlyCase('c6e5bfb6c9194e9808c145218e77d12280e015c9ac18b40bc6029b8bc098617e'),
+    'verified-receipt-provenance-passes-without-adapter-fallback': readOnlyCase('817d8e8932e996be062400934b31e2ed5bfda1d2982fbc65f7c993870d0d0b0e'),
   },
   'woostack-status': {
     'renders-markdown-board-without-artifact-mutation': readOnlyCase('1b7329a98766bfdf8272647732edd53ef96b11413441268f8b05a27457edd751'),
@@ -488,8 +521,8 @@ for (let index = 0; index < packages.length; index += 1) {
   const corpusPath = path.join(repositoryRoot, packagePath, 'evals', 'evals.json');
   if (!fs.statSync(corpusPath).isFile()) throw new Error(`missing required corpus: ${corpusPath}`);
   const corpus = JSON.parse(fs.readFileSync(corpusPath, 'utf8'));
-  if (corpus.skill !== skill || !Array.isArray(corpus.cases) || corpus.cases.length < 1 || corpus.cases.length > 2) {
-    throw new Error(`${packagePath} must have one or two behavior cases for its own skill`);
+  if (corpus.skill !== skill || !Array.isArray(corpus.cases) || corpus.cases.length < 1) {
+    throw new Error(`${packagePath} must have at least one behavior case for its own skill`);
   }
   if (validation.corpora.behavior.caseCount !== corpus.cases.length) {
     throw new Error(`${packagePath} validator case count disagrees with its corpus`);
@@ -552,9 +585,32 @@ for (let index = 0; index < packages.length; index += 1) {
   }
 }
 
+const planTriggerPath = path.join(repositoryRoot, 'skills/woostack-plan/evals/trigger-evals.json');
+const planTriggerCorpus = JSON.parse(fs.readFileSync(planTriggerPath, 'utf8'));
+const approvedPlanTriggerDigests = {
+  'verified-feature-project-needs-decomposition': 'f83af22a9d39917e6231a4c5418c923cbadd12b057a1ee2cad30892020c4279f',
+  'verified-feature-project-needs-replan': 'a8d190ccd2bc4aca655bf45548e6cd8cedc677039bf433751aa32e624328da73',
+  'unapproved-feature-idea-needs-design': '265cf2ad5a8b8f90dbad3156e5d223233da2b0d335cbfe08ab20d942151c81db',
+  'bounded-change-needs-direct-workflow': 'b1ed4587786df714f5c89930f28533a41ee305aa2e6396a1b62e124817994c67',
+};
+if (
+  planTriggerCorpus.schemaVersion !== 1 ||
+  planTriggerCorpus.skill !== 'woostack-plan' ||
+  !Array.isArray(planTriggerCorpus.cases) ||
+  !same(planTriggerCorpus.cases.map(({id}) => id), Object.keys(approvedPlanTriggerDigests)) ||
+  new Set(planTriggerCorpus.cases.map(({id}) => id)).size !== 4
+) {
+  throw new Error('woostack-plan trigger corpus schema or exact case ownership changed');
+}
+for (const triggerCase of planTriggerCorpus.cases) {
+  if (semanticDigest(triggerCase) !== approvedPlanTriggerDigests[triggerCase.id]) {
+    throw new Error(`woostack-plan trigger case ${triggerCase.id} changed`);
+  }
+}
+
 if (!same(Object.keys(requiredContractProofs).sort(), expectedPackages.map((entry) => path.basename(entry)).sort())) {
-  throw new Error('critical contract map must cover exactly the fifteen required packages');
+  throw new Error('critical contract map must cover exactly the sixteen required packages');
 }
 NODE
 
-printf 'PASS: validated critical behavior corpora for exactly 15 required packages\n'
+printf 'PASS: validated critical behavior corpora for exactly 16 required packages\n'
