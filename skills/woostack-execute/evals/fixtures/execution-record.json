@@ -1,14 +1,1193 @@
 {
-  "backend": "linear",
-  "input": {"project": "11111111-1111-4111-8111-111111111111", "specDesignState": "executionApproved", "projectState": "ready", "approvalReadReceipt": {"verified": true}},
-  "increment": {
-    "identifier": "APP-12",
-    "implementationReceipt": {"status": "complete"},
-    "verificationReceipt": {"command": "node --test test/cache.test.js", "exitCode": 0},
-    "commitReceipt": {"sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
-    "reviewReceipt": {"specCompliant": true, "qualityClean": true},
-    "distillReceipt": {"decision": "rejected-trivia", "indexBuilt": true, "doctorExit": 0},
-    "submissionReceipt": {"verified": true, "branch": "feature/app-12-cache", "pr": "https://example.invalid/acme/widgets/pull/42"}
-  },
-  "readBack": {"issueState": "inReview", "projectState": "inReview", "specDesignState": "inReview"}
+  "schemaVersion": 1,
+  "repository": "https://github.com/acme/widgets",
+  "workspaceId": "workspace-acme",
+  "teamId": "team-app",
+  "scenarios": [
+    {
+      "id": "verified-independent-root",
+      "input": {
+        "source": "official-host-exposed-linear-mcp",
+        "shape": "projectIssueDag",
+        "localPlan": null,
+        "localProgress": null
+      },
+      "project": {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "clientId": "11111111-aaaa-4aaa-8aaa-111111111111",
+        "role": "feature",
+        "phase": "executing",
+        "phaseReadBack": "complete",
+        "lead": {
+          "kind": "human",
+          "principalId": "lead-7",
+          "readBack": "complete"
+        },
+        "frozenBase": {
+          "branch": "main",
+          "commitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "readBack": "complete"
+        }
+      },
+      "issue": {
+        "id": "22222222-2222-4222-8222-222222222222",
+        "clientId": "22222222-aaaa-4aaa-8aaa-222222222222",
+        "identifier": "APP-12",
+        "role": "increment",
+        "projectId": "11111111-1111-4111-8111-111111111111",
+        "state": "executing",
+        "stateReadBack": "complete",
+        "contractReadBack": "complete",
+        "owner": {
+          "kind": "app",
+          "field": "delegate",
+          "principalId": "app-engineer-cache",
+          "expectedPrincipalId": "app-engineer-cache",
+          "engineerName": "cache-engineer",
+          "runId": "run-cache-001",
+          "readBack": "complete"
+        }
+      },
+      "events": [
+        {
+          "id": "31111111-bbbb-4bbb-8bbb-111111111111",
+          "createdAt": "2026-07-27T08:00:00Z",
+          "actor": {
+            "kind": "app",
+            "principalId": "app-engineer-cache"
+          },
+          "data": {
+            "issueId": "22222222-2222-4222-8222-222222222222",
+            "ownerKind": "app",
+            "ownerPrincipalId": "app-engineer-cache",
+            "engineerName": "cache-engineer",
+            "runId": "run-cache-001"
+          },
+          "readComplete": true,
+          "envelope": {
+            "clientId": "31111111-1111-4111-8111-111111111111",
+            "event": "assignmentAccepted",
+            "issueId": "22222222-2222-4222-8222-222222222222",
+            "kind": "issueEvent",
+            "label": "woostack",
+            "relatedIds": [],
+            "repository": "https://github.com/acme/widgets",
+            "revision": 1,
+            "role": "increment",
+            "schema": 1,
+            "supersedesId": null
+          }
+        }
+      ],
+      "ancestry": {
+        "kind": "independentRoot",
+        "startCommitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "frozenCommitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "graphiteParent": "main",
+        "frozenBranch": "main",
+        "nonParentDependencies": [],
+        "readBack": "complete"
+      },
+      "registry": {
+        "key": "22222222-2222-4222-8222-222222222222",
+        "issueId": "22222222-2222-4222-8222-222222222222",
+        "projectId": "11111111-1111-4111-8111-111111111111",
+        "ownerPrincipalId": "app-engineer-cache",
+        "runId": "run-cache-001",
+        "collision": false,
+        "readBack": "complete"
+      },
+      "requestedBoundary": "edit",
+      "expected": {
+        "status": "proceed",
+        "reason": "verified-independent-root",
+        "retryAllowed": false
+      }
+    },
+    {
+      "id": "verified-standalone-resume",
+      "input": {
+        "source": "official-host-exposed-linear-mcp",
+        "shape": "standaloneIssue",
+        "localPlan": null,
+        "localProgress": null
+      },
+      "project": null,
+      "issue": {
+        "id": "33333333-3333-4333-8333-333333333333",
+        "clientId": "33333333-aaaa-4aaa-8aaa-333333333333",
+        "identifier": "APP-21",
+        "role": "work-item",
+        "projectId": null,
+        "state": "executing",
+        "stateReadBack": "complete",
+        "contractReadBack": "complete",
+        "owner": {
+          "kind": "human",
+          "field": "assignee",
+          "principalId": "user-21",
+          "expectedPrincipalId": "user-21",
+          "engineerName": "riley",
+          "runId": "run-riley-021",
+          "readBack": "complete"
+        }
+      },
+      "events": [
+        {
+          "id": "32222222-bbbb-4bbb-8bbb-222222222222",
+          "createdAt": "2026-07-27T08:05:00Z",
+          "actor": {
+            "kind": "human",
+            "principalId": "user-21"
+          },
+          "data": {
+            "issueId": "33333333-3333-4333-8333-333333333333",
+            "ownerKind": "human",
+            "ownerPrincipalId": "user-21",
+            "engineerName": "riley",
+            "runId": "run-riley-021"
+          },
+          "readComplete": true,
+          "envelope": {
+            "clientId": "32222222-2222-4222-8222-222222222222",
+            "event": "assignmentAccepted",
+            "issueId": "33333333-3333-4333-8333-333333333333",
+            "kind": "issueEvent",
+            "label": "woostack",
+            "relatedIds": [],
+            "repository": "https://github.com/acme/widgets",
+            "revision": 1,
+            "role": "work-item",
+            "schema": 1,
+            "supersedesId": null
+          }
+        }
+      ],
+      "ancestry": {
+        "kind": "standalone",
+        "startCommitSha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "integrationCommitSha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "graphiteParent": "main",
+        "integrationBranch": "main",
+        "nonParentDependencies": [],
+        "readBack": "complete"
+      },
+      "registry": {
+        "key": "33333333-3333-4333-8333-333333333333",
+        "issueId": "33333333-3333-4333-8333-333333333333",
+        "projectId": null,
+        "ownerPrincipalId": "user-21",
+        "runId": "run-riley-021",
+        "collision": false,
+        "readBack": "complete"
+      },
+      "requestedBoundary": "edit",
+      "expected": {
+        "status": "proceed",
+        "reason": "verified-standalone-resume",
+        "retryAllowed": false
+      }
+    },
+    {
+      "id": "rejects-local-plan-progress-authority",
+      "input": {
+        "source": "local-filesystem",
+        "shape": "localPlan",
+        "localPlan": ".woostack/plans/cache.md",
+        "localProgress": ".woostack/progress/cache.json"
+      },
+      "project": null,
+      "issue": null,
+      "events": [],
+      "ancestry": null,
+      "registry": null,
+      "requestedBoundary": "edit",
+      "expected": {
+        "status": "blocked",
+        "reason": "local-development-record-is-not-authority",
+        "retryAllowed": false
+      }
+    },
+    {
+      "id": "rejects-owner-and-registry-collision",
+      "input": {
+        "source": "official-host-exposed-linear-mcp",
+        "shape": "projectIssueDag",
+        "localPlan": null,
+        "localProgress": null
+      },
+      "project": {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "clientId": "11111111-aaaa-4aaa-8aaa-111111111111",
+        "role": "feature",
+        "phase": "executing",
+        "phaseReadBack": "complete",
+        "lead": {
+          "kind": "human",
+          "principalId": "lead-7",
+          "readBack": "complete"
+        },
+        "frozenBase": {
+          "branch": "main",
+          "commitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "readBack": "complete"
+        }
+      },
+      "issue": {
+        "id": "44444444-4444-4444-8444-444444444444",
+        "clientId": "44444444-aaaa-4aaa-8aaa-444444444444",
+        "identifier": "APP-22",
+        "role": "increment",
+        "projectId": "11111111-1111-4111-8111-111111111111",
+        "state": "executing",
+        "stateReadBack": "complete",
+        "contractReadBack": "complete",
+        "owner": {
+          "kind": "app",
+          "field": "delegate",
+          "principalId": "app-engineer-b",
+          "expectedPrincipalId": "app-engineer-a",
+          "engineerName": "engineer-a",
+          "runId": "run-a-022",
+          "readBack": "complete"
+        }
+      },
+      "events": [
+        {
+          "id": "33333333-bbbb-4bbb-8bbb-333333333333",
+          "createdAt": "2026-07-27T08:10:00Z",
+          "actor": {
+            "kind": "app",
+            "principalId": "app-engineer-a"
+          },
+          "data": {
+            "issueId": "44444444-4444-4444-8444-444444444444",
+            "ownerKind": "app",
+            "ownerPrincipalId": "app-engineer-a",
+            "engineerName": "engineer-a",
+            "runId": "run-a-022"
+          },
+          "readComplete": true,
+          "envelope": {
+            "clientId": "33333333-3333-4333-8333-333333333333",
+            "event": "assignmentAccepted",
+            "issueId": "44444444-4444-4444-8444-444444444444",
+            "kind": "issueEvent",
+            "label": "woostack",
+            "relatedIds": [],
+            "repository": "https://github.com/acme/widgets",
+            "revision": 1,
+            "role": "increment",
+            "schema": 1,
+            "supersedesId": null
+          }
+        }
+      ],
+      "ancestry": {
+        "kind": "independentRoot",
+        "startCommitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "frozenCommitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "graphiteParent": "main",
+        "frozenBranch": "main",
+        "nonParentDependencies": [],
+        "readBack": "complete"
+      },
+      "registry": {
+        "key": "44444444-4444-4444-8444-444444444444",
+        "issueId": "44444444-4444-4444-8444-444444444444",
+        "projectId": "11111111-1111-4111-8111-111111111111",
+        "ownerPrincipalId": "app-engineer-a",
+        "runId": "run-other-022",
+        "collision": true,
+        "readBack": "complete"
+      },
+      "requestedBoundary": "edit",
+      "expected": {
+        "status": "blocked",
+        "reason": "ownership-or-registry-collision",
+        "retryAllowed": false
+      }
+    },
+    {
+      "id": "rejects-unmerged-non-parent-dependency",
+      "input": {
+        "source": "official-host-exposed-linear-mcp",
+        "shape": "projectIssueDag",
+        "localPlan": null,
+        "localProgress": null
+      },
+      "project": {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "clientId": "11111111-aaaa-4aaa-8aaa-111111111111",
+        "role": "feature",
+        "phase": "executing",
+        "phaseReadBack": "complete",
+        "lead": {
+          "kind": "human",
+          "principalId": "lead-7",
+          "readBack": "complete"
+        },
+        "frozenBase": {
+          "branch": "main",
+          "commitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "readBack": "complete"
+        }
+      },
+      "issue": {
+        "id": "55555555-5555-4555-8555-555555555555",
+        "clientId": "55555555-aaaa-4aaa-8aaa-555555555555",
+        "identifier": "APP-23",
+        "role": "increment",
+        "projectId": "11111111-1111-4111-8111-111111111111",
+        "state": "executing",
+        "stateReadBack": "complete",
+        "contractReadBack": "complete",
+        "owner": {
+          "kind": "human",
+          "field": "assignee",
+          "principalId": "user-23",
+          "expectedPrincipalId": "user-23",
+          "engineerName": "morgan",
+          "runId": "run-morgan-023",
+          "readBack": "complete"
+        }
+      },
+      "events": [
+        {
+          "id": "34444444-bbbb-4bbb-8bbb-444444444444",
+          "createdAt": "2026-07-27T08:15:00Z",
+          "actor": {
+            "kind": "human",
+            "principalId": "user-23"
+          },
+          "data": {
+            "issueId": "55555555-5555-4555-8555-555555555555",
+            "ownerKind": "human",
+            "ownerPrincipalId": "user-23",
+            "engineerName": "morgan",
+            "runId": "run-morgan-023"
+          },
+          "readComplete": true,
+          "envelope": {
+            "clientId": "34444444-4444-4444-8444-444444444444",
+            "event": "assignmentAccepted",
+            "issueId": "55555555-5555-4555-8555-555555555555",
+            "kind": "issueEvent",
+            "label": "woostack",
+            "relatedIds": [],
+            "repository": "https://github.com/acme/widgets",
+            "revision": 1,
+            "role": "increment",
+            "schema": 1,
+            "supersedesId": null
+          }
+        }
+      ],
+      "ancestry": {
+        "kind": "dependencyChild",
+        "readBack": "complete",
+        "parent": {
+          "issueId": "22222222-2222-4222-8222-222222222222",
+          "state": "inReview",
+          "branch": "feature/app-12",
+          "headCommitSha": "cccccccccccccccccccccccccccccccccccccccc",
+          "implementationEvidence": "complete",
+          "canonicalPr": "complete",
+          "linearPrRelation": "complete"
+        },
+        "startCommitSha": "cccccccccccccccccccccccccccccccccccccccc",
+        "graphiteParent": "feature/app-12",
+        "nonParentDependencies": [
+          {
+            "issueId": "66666666-6666-4666-8666-666666666666",
+            "state": "inReview",
+            "acceptance": "absent",
+            "mergeEvidence": "absent",
+            "merged": false,
+            "permittedAncestry": "absent"
+          }
+        ]
+      },
+      "registry": {
+        "key": "55555555-5555-4555-8555-555555555555",
+        "issueId": "55555555-5555-4555-8555-555555555555",
+        "projectId": "11111111-1111-4111-8111-111111111111",
+        "ownerPrincipalId": "user-23",
+        "runId": "run-morgan-023",
+        "collision": false,
+        "readBack": "complete"
+      },
+      "requestedBoundary": "edit",
+      "expected": {
+        "status": "blocked",
+        "reason": "non-parent-dependency-is-not-merged",
+        "retryAllowed": false
+      }
+    },
+    {
+      "id": "rejects-unknown-verification-comment-outcome",
+      "input": {
+        "source": "official-host-exposed-linear-mcp",
+        "shape": "standaloneIssue",
+        "localPlan": null,
+        "localProgress": null
+      },
+      "project": null,
+      "issue": {
+        "id": "77777777-7777-4777-8777-777777777777",
+        "clientId": "77777777-aaaa-4aaa-8aaa-777777777777",
+        "identifier": "APP-24",
+        "role": "work-item",
+        "projectId": null,
+        "state": "executing",
+        "stateReadBack": "complete",
+        "contractReadBack": "complete",
+        "owner": {
+          "kind": "human",
+          "field": "assignee",
+          "principalId": "user-24",
+          "expectedPrincipalId": "user-24",
+          "engineerName": "sam",
+          "runId": "run-sam-024",
+          "readBack": "complete"
+        }
+      },
+      "events": [
+        {
+          "id": "35555555-bbbb-4bbb-8bbb-555555555555",
+          "createdAt": "2026-07-27T08:20:00Z",
+          "actor": {
+            "kind": "human",
+            "principalId": "user-24"
+          },
+          "data": {
+            "issueId": "77777777-7777-4777-8777-777777777777",
+            "ownerKind": "human",
+            "ownerPrincipalId": "user-24",
+            "engineerName": "sam",
+            "runId": "run-sam-024"
+          },
+          "readComplete": true,
+          "envelope": {
+            "clientId": "35555555-5555-4555-8555-555555555555",
+            "event": "assignmentAccepted",
+            "issueId": "77777777-7777-4777-8777-777777777777",
+            "kind": "issueEvent",
+            "label": "woostack",
+            "relatedIds": [],
+            "repository": "https://github.com/acme/widgets",
+            "revision": 1,
+            "role": "work-item",
+            "schema": 1,
+            "supersedesId": null
+          }
+        },
+        {
+          "schema": 1,
+          "kind": "issueEvent",
+          "clientId": "36666666-6666-4666-8666-666666666666",
+          "repository": "https://github.com/acme/widgets",
+          "label": "woostack",
+          "role": "work-item",
+          "event": "verification",
+          "revision": 1,
+          "issueId": "77777777-7777-4777-8777-777777777777",
+          "relatedIds": [
+            "35555555-bbbb-4bbb-8bbb-555555555555"
+          ],
+          "supersedesId": null,
+          "command": "node --test test/cache.test.js",
+          "observedExitCode": 0,
+          "smoke": "cache miss then hit observed",
+          "mutationOutcome": "timeout",
+          "readBack": "partial"
+        }
+      ],
+      "ancestry": {
+        "kind": "standalone",
+        "startCommitSha": "dddddddddddddddddddddddddddddddddddddddd",
+        "integrationCommitSha": "dddddddddddddddddddddddddddddddddddddddd",
+        "graphiteParent": "main",
+        "integrationBranch": "main",
+        "nonParentDependencies": [],
+        "readBack": "complete"
+      },
+      "registry": {
+        "key": "77777777-7777-4777-8777-777777777777",
+        "issueId": "77777777-7777-4777-8777-777777777777",
+        "projectId": null,
+        "ownerPrincipalId": "user-24",
+        "runId": "run-sam-024",
+        "collision": false,
+        "readBack": "complete"
+      },
+      "requestedBoundary": "commit",
+      "expected": {
+        "status": "blocked",
+        "reason": "unknown-event-read-back",
+        "retryAllowed": false
+      }
+    },
+    {
+      "id": "restores-executing-after-verified-unblock",
+      "input": {
+        "source": "official-host-exposed-linear-mcp",
+        "shape": "standaloneIssue",
+        "localPlan": null,
+        "localProgress": null
+      },
+      "project": null,
+      "issue": {
+        "id": "88888888-8888-4888-8888-888888888888",
+        "clientId": "88888888-aaaa-4aaa-8aaa-888888888888",
+        "identifier": "APP-25",
+        "role": "work-item",
+        "projectId": null,
+        "state": "blocked",
+        "stateReadBack": "complete",
+        "contractReadBack": "complete",
+        "owner": {
+          "kind": "app",
+          "field": "delegate",
+          "principalId": "app-engineer-search",
+          "expectedPrincipalId": "app-engineer-search",
+          "engineerName": "search-engineer",
+          "runId": "run-search-025",
+          "readBack": "complete"
+        }
+      },
+      "events": [
+        {
+          "id": "37777777-bbbb-4bbb-8bbb-777777777777",
+          "createdAt": "2026-07-27T08:25:00Z",
+          "actor": {
+            "kind": "app",
+            "principalId": "app-engineer-search"
+          },
+          "data": {
+            "issueId": "88888888-8888-4888-8888-888888888888",
+            "ownerKind": "app",
+            "ownerPrincipalId": "app-engineer-search",
+            "engineerName": "search-engineer",
+            "runId": "run-search-025"
+          },
+          "readComplete": true,
+          "envelope": {
+            "clientId": "37777777-7777-4777-8777-777777777777",
+            "event": "assignmentAccepted",
+            "issueId": "88888888-8888-4888-8888-888888888888",
+            "kind": "issueEvent",
+            "label": "woostack",
+            "relatedIds": [],
+            "repository": "https://github.com/acme/widgets",
+            "revision": 1,
+            "role": "work-item",
+            "schema": 1,
+            "supersedesId": null
+          }
+        },
+        {
+          "schema": 1,
+          "kind": "issueEvent",
+          "clientId": "38888888-8888-4888-8888-888888888888",
+          "repository": "https://github.com/acme/widgets",
+          "label": "woostack",
+          "role": "work-item",
+          "event": "blocked",
+          "revision": 1,
+          "issueId": "88888888-8888-4888-8888-888888888888",
+          "relatedIds": [
+            "37777777-bbbb-4bbb-8bbb-777777777777"
+          ],
+          "supersedesId": null,
+          "nativeCommentId": "comment-block-25",
+          "previousState": "executing",
+          "condition": "search fixture unavailable",
+          "readBack": "complete"
+        },
+        {
+          "schema": 1,
+          "kind": "issueEvent",
+          "clientId": "39999999-9999-4999-8999-999999999999",
+          "repository": "https://github.com/acme/widgets",
+          "label": "woostack",
+          "role": "work-item",
+          "event": "unblocked",
+          "revision": 1,
+          "issueId": "88888888-8888-4888-8888-888888888888",
+          "relatedIds": [
+            "comment-block-25"
+          ],
+          "supersedesId": null,
+          "restoredState": "executing",
+          "resolution": "fixture independently readable",
+          "readBack": "complete"
+        }
+      ],
+      "blockerRestoration": {
+        "openBlockerNativeId": "comment-block-25",
+        "remainingOpenBlockers": 0,
+        "priorState": "executing",
+        "restoredState": "executing",
+        "restoredStateReadBack": "complete"
+      },
+      "ancestry": {
+        "kind": "standalone",
+        "startCommitSha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "integrationCommitSha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "graphiteParent": "main",
+        "integrationBranch": "main",
+        "nonParentDependencies": [],
+        "readBack": "complete"
+      },
+      "registry": {
+        "key": "88888888-8888-4888-8888-888888888888",
+        "issueId": "88888888-8888-4888-8888-888888888888",
+        "projectId": null,
+        "ownerPrincipalId": "app-engineer-search",
+        "runId": "run-search-025",
+        "collision": false,
+        "readBack": "complete"
+      },
+      "requestedBoundary": "resume",
+      "expected": {
+        "status": "proceed",
+        "reason": "verified-unblock-restores-executing",
+        "retryAllowed": false
+      }
+    },
+    {
+      "id": "accepts-verified-handoff-successor",
+      "input": {
+        "source": "official-host-exposed-linear-mcp",
+        "shape": "projectIssueDag",
+        "localPlan": null,
+        "localProgress": null
+      },
+      "project": {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "clientId": "11111111-aaaa-4aaa-8aaa-111111111111",
+        "role": "feature",
+        "phase": "executing",
+        "phaseReadBack": "complete",
+        "lead": {
+          "kind": "human",
+          "principalId": "lead-7",
+          "readBack": "complete"
+        },
+        "frozenBase": {
+          "branch": "main",
+          "commitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "readBack": "complete"
+        }
+      },
+      "issue": {
+        "id": "99999999-9999-4999-8999-999999999999",
+        "clientId": "99999999-aaaa-4aaa-8aaa-999999999999",
+        "identifier": "APP-26",
+        "role": "increment",
+        "projectId": "11111111-1111-4111-8111-111111111111",
+        "state": "executing",
+        "stateReadBack": "complete",
+        "contractReadBack": "complete",
+        "owner": {
+          "kind": "human",
+          "field": "assignee",
+          "principalId": "user-new-26",
+          "expectedPrincipalId": "user-new-26",
+          "engineerName": "new-engineer",
+          "runId": "run-new-026",
+          "readBack": "complete"
+        }
+      },
+      "events": [
+        {
+          "id": "40000000-0000-4000-9000-000000000026",
+          "createdAt": "2026-07-27T09:00:00Z",
+          "actor": {
+            "kind": "human",
+            "principalId": "user-old-26"
+          },
+          "data": {
+            "issueId": "99999999-9999-4999-8999-999999999999",
+            "ownerKind": "human",
+            "ownerPrincipalId": "user-old-26",
+            "engineerName": "old-engineer",
+            "runId": "run-old-026"
+          },
+          "readComplete": true,
+          "envelope": {
+            "clientId": "40000000-0000-4000-8000-000000000026",
+            "event": "assignmentAccepted",
+            "issueId": "99999999-9999-4999-8999-999999999999",
+            "kind": "issueEvent",
+            "label": "woostack",
+            "relatedIds": [],
+            "repository": "https://github.com/acme/widgets",
+            "revision": 1,
+            "role": "increment",
+            "schema": 1,
+            "supersedesId": null
+          }
+        },
+        {
+          "id": "40111111-1111-4111-9111-111111111126",
+          "createdAt": "2026-07-27T09:30:00Z",
+          "actor": {
+            "kind": "human",
+            "principalId": "user-old-26"
+          },
+          "data": {
+            "issueId": "99999999-9999-4999-8999-999999999999",
+            "boundary": "verification",
+            "observedResult": "cache test failed",
+            "affectedIds": [],
+            "branch": "feature/app-26",
+            "worktreePath": "/repo/.woostack/worktrees/99999999-9999-4999-8999-999999999999",
+            "safeNextAction": "resume failing cache test"
+          },
+          "readComplete": true,
+          "envelope": {
+            "clientId": "40111111-1111-4111-8111-111111111126",
+            "event": "failure",
+            "issueId": "99999999-9999-4999-8999-999999999999",
+            "kind": "issueEvent",
+            "label": "woostack",
+            "relatedIds": [
+              "40000000-0000-4000-9000-000000000026"
+            ],
+            "repository": "https://github.com/acme/widgets",
+            "revision": 1,
+            "role": "increment",
+            "schema": 1,
+            "supersedesId": null
+          }
+        },
+        {
+          "id": "41111111-1111-4111-9111-111111111126",
+          "createdAt": "2026-07-27T10:00:00Z",
+          "actor": {
+            "kind": "human",
+            "principalId": "user-old-26"
+          },
+          "data": {
+            "issueId": "99999999-9999-4999-8999-999999999999",
+            "ownerKind": "human",
+            "ownerPrincipalId": "user-old-26",
+            "runId": "run-old-026",
+            "branch": "feature/app-26",
+            "worktreePath": "/repo/.woostack/worktrees/99999999-9999-4999-8999-999999999999",
+            "pullRequestUrl": null,
+            "unresolvedItems": [
+              "cache test failing"
+            ],
+            "recoveryEvidenceIds": [
+              "40111111-1111-4111-9111-111111111126"
+            ],
+            "nextAction": "resume failing cache test"
+          },
+          "readComplete": true,
+          "envelope": {
+            "clientId": "41111111-1111-4111-8111-111111111111",
+            "event": "handoff",
+            "issueId": "99999999-9999-4999-8999-999999999999",
+            "kind": "issueEvent",
+            "label": "woostack",
+            "relatedIds": [
+              "40000000-0000-4000-9000-000000000026",
+              "40111111-1111-4111-9111-111111111126"
+            ],
+            "repository": "https://github.com/acme/widgets",
+            "revision": 1,
+            "role": "increment",
+            "schema": 1,
+            "supersedesId": null
+          }
+        },
+        {
+          "id": "42222222-2222-4222-9222-222222222226",
+          "createdAt": "2026-07-27T10:10:00Z",
+          "actor": {
+            "kind": "human",
+            "principalId": "user-new-26"
+          },
+          "data": {
+            "issueId": "99999999-9999-4999-8999-999999999999",
+            "ownerKind": "human",
+            "ownerPrincipalId": "user-new-26",
+            "engineerName": "new-engineer",
+            "runId": "run-new-026"
+          },
+          "readComplete": true,
+          "envelope": {
+            "clientId": "42222222-2222-4222-8222-222222222222",
+            "event": "assignmentAccepted",
+            "issueId": "99999999-9999-4999-8999-999999999999",
+            "kind": "issueEvent",
+            "label": "woostack",
+            "relatedIds": [
+              "41111111-1111-4111-9111-111111111126"
+            ],
+            "repository": "https://github.com/acme/widgets",
+            "revision": 1,
+            "role": "increment",
+            "schema": 1,
+            "supersedesId": null
+          }
+        }
+      ],
+      "handoff": {
+        "reassignment": {
+          "issueId": "99999999-9999-4999-8999-999999999999",
+          "actor": {
+            "kind": "human",
+            "principalId": "lead-7"
+          },
+          "field": "assignee",
+          "fromOwner": {
+            "kind": "human",
+            "principalId": "user-old-26"
+          },
+          "toOwner": {
+            "kind": "human",
+            "principalId": "user-new-26"
+          },
+          "changedAt": "2026-07-27T10:05:00Z",
+          "readAt": "2026-07-27T10:06:00Z",
+          "readComplete": true
+        },
+        "oldOwnerStopped": true
+      },
+      "ancestry": {
+        "kind": "independentRoot",
+        "startCommitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "frozenCommitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "graphiteParent": "main",
+        "frozenBranch": "main",
+        "nonParentDependencies": [],
+        "readBack": "complete"
+      },
+      "registry": {
+        "key": "99999999-9999-4999-8999-999999999999",
+        "issueId": "99999999-9999-4999-8999-999999999999",
+        "projectId": "11111111-1111-4111-8111-111111111111",
+        "ownerPrincipalId": "user-new-26",
+        "runId": "run-new-026",
+        "collision": false,
+        "readBack": "complete"
+      },
+      "requestedBoundary": "resume",
+      "expected": {
+        "status": "proceed",
+        "reason": "verified-handoff-successor",
+        "retryAllowed": false
+      }
+    },
+    {
+      "id": "rejects-premature-issue-done",
+      "input": {
+        "source": "official-host-exposed-linear-mcp",
+        "shape": "standaloneIssue",
+        "localPlan": null,
+        "localProgress": null
+      },
+      "project": null,
+      "issue": {
+        "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "clientId": "aaaaaaaa-bbbb-4bbb-8bbb-aaaaaaaaaaaa",
+        "identifier": "APP-27",
+        "role": "work-item",
+        "projectId": null,
+        "state": "inReview",
+        "stateReadBack": "complete",
+        "contractReadBack": "complete",
+        "owner": {
+          "kind": "human",
+          "field": "assignee",
+          "principalId": "user-27",
+          "expectedPrincipalId": "user-27",
+          "engineerName": "taylor",
+          "runId": "run-taylor-027",
+          "readBack": "complete"
+        }
+      },
+      "events": [
+        {
+          "id": "41111111-cccc-4ccc-8ccc-aaaaaaaaaaaa",
+          "createdAt": "2026-07-27T10:00:00Z",
+          "actor": {
+            "kind": "human",
+            "principalId": "user-27"
+          },
+          "data": {
+            "issueId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+            "ownerKind": "human",
+            "ownerPrincipalId": "user-27",
+            "engineerName": "taylor",
+            "runId": "run-taylor-027"
+          },
+          "readComplete": true,
+          "envelope": {
+            "clientId": "41111111-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+            "event": "assignmentAccepted",
+            "issueId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+            "kind": "issueEvent",
+            "label": "woostack",
+            "relatedIds": [],
+            "repository": "https://github.com/acme/widgets",
+            "revision": 1,
+            "role": "work-item",
+            "schema": 1,
+            "supersedesId": null
+          }
+        },
+        {
+          "schema": 1,
+          "kind": "issueEvent",
+          "clientId": "44444444-4444-4444-8444-444444444444",
+          "repository": "https://github.com/acme/widgets",
+          "label": "woostack",
+          "role": "work-item",
+          "event": "verification",
+          "revision": 1,
+          "issueId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "relatedIds": [
+            "41111111-cccc-4ccc-8ccc-aaaaaaaaaaaa"
+          ],
+          "supersedesId": null,
+          "nativeCommentId": "comment-verification-27",
+          "createdAt": "2026-07-27T10:10:00Z",
+          "actor": {
+            "principalKind": "human",
+            "principalId": "user-27"
+          },
+          "commands": [
+            "node --test test/cache.test.js"
+          ],
+          "observedResults": [
+            {
+              "command": "node --test test/cache.test.js",
+              "exitCode": 0
+            }
+          ],
+          "smokeObservations": [
+            "cache guard rejects the stale value"
+          ],
+          "changedPaths": [
+            "src/cache.js",
+            "test/cache.test.js"
+          ],
+          "status": "PASS",
+          "readBack": "complete"
+        },
+        {
+          "schema": 1,
+          "kind": "issueEvent",
+          "clientId": "46666666-6666-4666-8666-666666666666",
+          "repository": "https://github.com/acme/widgets",
+          "label": "woostack",
+          "role": "work-item",
+          "event": "precommitReview",
+          "revision": 1,
+          "issueId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "relatedIds": [
+            "41111111-cccc-4ccc-8ccc-aaaaaaaaaaaa",
+            "comment-verification-27"
+          ],
+          "supersedesId": null,
+          "nativeCommentId": "comment-precommit-review-27",
+          "createdAt": "2026-07-27T10:15:00Z",
+          "actor": {
+            "principalKind": "human",
+            "principalId": "user-27"
+          },
+          "reviewerReceipts": [
+            {
+              "reviewType": "spec",
+              "reviewerKind": "subagent",
+              "reviewerId": "spec-reviewer-27",
+              "reviewedDiffHash": "sha256:precommit-27",
+              "verdict": "PASS"
+            },
+            {
+              "reviewType": "quality",
+              "reviewerKind": "subagent",
+              "reviewerId": "quality-reviewer-27",
+              "reviewedDiffHash": "sha256:precommit-27",
+              "verdict": "PASS"
+            }
+          ],
+          "verdict": "PASS",
+          "changedPaths": [
+            "src/cache.js",
+            "test/cache.test.js"
+          ],
+          "reviewedDiffHash": "sha256:precommit-27",
+          "readBack": "complete"
+        },
+        {
+          "schema": 1,
+          "kind": "issueEvent",
+          "clientId": "43333333-3333-4333-8333-333333333333",
+          "repository": "https://github.com/acme/widgets",
+          "label": "woostack",
+          "role": "work-item",
+          "event": "implementationEvidence",
+          "revision": 1,
+          "issueId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "relatedIds": [
+            "41111111-cccc-4ccc-8ccc-aaaaaaaaaaaa",
+            "comment-precommit-review-27",
+            "comment-verification-27"
+          ],
+          "supersedesId": null,
+          "nativeCommentId": "comment-implementation-27",
+          "createdAt": "2026-07-27T10:20:00Z",
+          "baseCommitSha": "ffffffffffffffffffffffffffffffffffffffff",
+          "headCommitSha": "1111111111111111111111111111111111111111",
+          "committedDiffHash": "sha256:example",
+          "readBack": "complete"
+        },
+        {
+          "schema": 1,
+          "kind": "issueEvent",
+          "clientId": "45555555-5555-4555-8555-555555555555",
+          "repository": "https://github.com/acme/widgets",
+          "label": "woostack",
+          "role": "work-item",
+          "event": "reviewResult",
+          "revision": 1,
+          "issueId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "relatedIds": [
+            "comment-github-review-27",
+            "comment-implementation-27",
+            "comment-verification-27",
+            "linear-pr-relation-27"
+          ],
+          "supersedesId": null,
+          "nativeCommentId": "comment-review-result-27",
+          "createdAt": "2026-07-27T10:40:00Z",
+          "pullRequestNumber": 27,
+          "pullRequestUrl": "https://github.com/acme/widgets/pull/27",
+          "reviewedHeadSha": "1111111111111111111111111111111111111111",
+          "committedDiffHash": "sha256:example",
+          "githubReviewId": "comment-github-review-27",
+          "unresolvedThreadIds": [],
+          "unresolvedFindingFingerprints": [],
+          "round": 1,
+          "result": "PASS",
+          "readBack": "complete"
+        }
+      ],
+      "ancestry": {
+        "kind": "standalone",
+        "startCommitSha": "ffffffffffffffffffffffffffffffffffffffff",
+        "integrationCommitSha": "ffffffffffffffffffffffffffffffffffffffff",
+        "graphiteParent": "main",
+        "integrationBranch": "main",
+        "nonParentDependencies": [],
+        "readBack": "complete"
+      },
+      "registry": null,
+      "terminal": {
+        "requestedState": "done",
+        "canonicalPr": {
+          "url": "https://github.com/acme/widgets/pull/27",
+          "relationReadBack": "complete",
+          "mergeReadBack": "complete",
+          "merged": false
+        },
+        "acceptance": {
+          "event": "acceptance",
+          "authority": "responsible-issue-engineer",
+          "readBack": "absent"
+        },
+        "allIssuesDone": null
+      },
+      "requestedBoundary": "done",
+      "expected": {
+        "status": "blocked",
+        "reason": "done-requires-responsible-acceptance-and-verified-merge",
+        "retryAllowed": false
+      }
+    },
+    {
+      "id": "rejects-premature-project-done",
+      "input": {
+        "source": "official-host-exposed-linear-mcp",
+        "shape": "projectIssueDag",
+        "localPlan": null,
+        "localProgress": null
+      },
+      "project": {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "clientId": "11111111-aaaa-4aaa-8aaa-111111111111",
+        "role": "feature",
+        "phase": "inReview",
+        "phaseReadBack": "complete",
+        "lead": {
+          "kind": "human",
+          "principalId": "lead-7",
+          "readBack": "complete"
+        },
+        "frozenBase": {
+          "branch": "main",
+          "commitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "readBack": "complete"
+        }
+      },
+      "issue": {
+        "id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        "clientId": "bbbbbbbb-aaaa-4aaa-8aaa-bbbbbbbbbbbb",
+        "identifier": "APP-28",
+        "role": "increment",
+        "projectId": "11111111-1111-4111-8111-111111111111",
+        "state": "inReview",
+        "stateReadBack": "complete",
+        "contractReadBack": "complete",
+        "owner": {
+          "kind": "human",
+          "field": "assignee",
+          "principalId": "user-28",
+          "expectedPrincipalId": "user-28",
+          "engineerName": "casey",
+          "runId": "run-casey-028",
+          "readBack": "complete"
+        }
+      },
+      "events": [],
+      "ancestry": {
+        "kind": "independentRoot",
+        "startCommitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "frozenCommitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "graphiteParent": "main",
+        "frozenBranch": "main",
+        "nonParentDependencies": [],
+        "readBack": "complete"
+      },
+      "registry": null,
+      "terminal": {
+        "requestedState": "done",
+        "canonicalPr": {
+          "url": "https://github.com/acme/widgets/pull/28",
+          "relationReadBack": "complete",
+          "mergeReadBack": "complete",
+          "merged": true
+        },
+        "acceptance": {
+          "event": "acceptance",
+          "authority": "responsible-issue-engineer",
+          "readBack": "complete"
+        },
+        "allIssuesDone": false,
+        "projectAcceptanceReadBack": "complete"
+      },
+      "requestedBoundary": "done",
+      "expected": {
+        "status": "blocked",
+        "reason": "project-done-requires-all-issues-done",
+        "retryAllowed": false
+      }
+    }
+  ]
 }

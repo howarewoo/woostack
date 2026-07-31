@@ -128,19 +128,20 @@ ordered(
     "root operation order",
 )
 
-# A fresh monotonic admission read resumes at the first absent boundary and never duplicates an
-# exact commit, event, submit, PR edit, relation, or state transition.
+# Fresh admission selects the initial-creation or existing-PR-update shape and never duplicates an
+# exact commit, event, PR, relation, field edit, or state transition.
 for token in (
     "Classify resume state before side effects",
-    "resume at the first missing boundary",
+    "resume at the first pending boundary",
     "never rerun `gt modify`",
     "skip UUID allocation and append",
-    "Skip submission when the exact branch/commit/PR is verified",
-    "resubmit only when complete reads prove",
+    "Initial PR creation",
+    "Existing canonical PR update",
+    "revision 1 has no predecessor and no historical canonical PR relation",
+    "ordinary-later or consumed-restack revision B",
+    "Existing updates never mutate their stable relation",
     "skip `gh pr edit`",
-    "retain and re-verify it without a relation mutation",
-    "skip the transition",
-    "Partial, ambiguous",
+    "performs neither relation nor state mutation",
     "stages 3–5 perform zero hook, PASS-helper, staging, or `gt modify` operations",
     "skip this entire step without reading the hook or invoking `change-receipt.sh`",
     "run no `git add` or `git add -p`",
@@ -150,10 +151,10 @@ for token in (
 ordered(
     linear,
     (
-        "finalized local commit → implementationEvidence",
-        "Graphite/canonical PR",
-        "exact PR fields",
-        "Linear branch/PR relation",
+        "finalized local head B → implementationEvidence B",
+        "initial: proven-absent submission/remote/all-state PR set",
+        "later: exact sole canonical PR at A + same stable Linear relation",
+        "exact PR fields at B + same stable relation",
         "inReview state",
     ),
     "resume boundary order",
@@ -200,6 +201,46 @@ for token in (
 ):
     must(corpus, token, "typed implementation evidence")
 
+for token in (
+    "current `verification` and `precommitReview` are already complete before this finalized commit",
+    "Validate `precommitReview` data containing exactly `issueId`, `actor`",
+    "ordered spec then quality receipts and outer verdict are PASS",
+    "must contain no PR/GitHub review receipt",
+    "reverse-binds both pre-commit events through `implementationEvidence`",
+    "Construct the sorted canonical `relatedIds` from exactly the current `assignmentAccepted`",
+    "passing `verification` native comment ID, passing `precommitReview` native comment ID",
+    "Never add post-PR `reviewResult`",
+    "A normal first or later commit has no `restackAuthorized` relation",
+    "add exactly its independently verified `restackAuthorized` native comment ID",
+    "authenticated controller, native comment author, current type-aware owner",
+    "native author/authenticated controller must instead equal",
+    "affectedRelationIds` is exactly empty",
+    "cross-issue relation rewrite requires an exact nonempty set",
+    "expired unconsumed authorization/decision is inactive history",
+    "never the latest event by kind",
+    "`authorizationTime < completionTime <= expiresAt`",
+):
+    must(linear, token, "canonical implementation evidence relation, actor, and revision")
+
+
+# Initial creation stays all-state absence-only; eligible later revisions preserve the canonical
+# PR identity and the stable native relation while GitHub advances A→B.
+for token in (
+    "every open, closed, and merged PR candidate",
+    "exactly one canonical PR plus one stable Linear PR relation",
+    "Resolve the prior implementation and every event it relates to as the exact native revisions current at the applicable authoritative timestamp",
+    "the relation has no head field to refresh",
+    "push head B and update that same PR",
+    "fetch by the retained PR number",
+    "preserves the exact number/URL/repository/head branch/base proven at A",
+    "Perform no relation mutation",
+    "native relation ID are immutable through the update",
+    "A pre-existing PR cannot promote an initial revision into the later-update path",
+    "enumerate the complete native dependency descendant set",
+    "current unexpired unconsumed owner-authored `restackAuthorized`",
+):
+    must(linear, token, "existing canonical PR update contract")
+
 # Graphite and GitHub stay source-control authorities, with independent canonical read-back.
 for token in (
     "gt modify -m \"<type>: <concise subject>\"",
@@ -214,32 +255,32 @@ for token in (
     must(corpus, token, "Graphite and GitHub boundary")
 
 for token in (
-    "After an error, timeout, or unknown `gt submit` result",
-    "read Graphite and canonical GitHub state",
-    "Complete absence of all three permits one resubmit",
+    "After an error, timeout, or otherwise unknown Graphite result",
+    "complete absence of submission, remote branch, PR, and relation permits one retry",
+    "all Graphite/remote/PR surfaces still exactly at A",
+    "mixed A/B state",
     "blocks without resubmission",
 ):
     must(corpus, token, "unknown submit admission")
 
-# PR read-back gates relation write/read-back, which gates state write/read-back.
+# PR B read-back gates initial relation creation or stable relation retention, then state handling.
 ordered(
     linear,
     (
         "## Identify, update, and verify the canonical PR",
-        "independently re-fetch it with `gh pr view`",
+        "independently re-fetch it by retained number with `gh pr view`",
         "## Record and read back PR relation and state",
-        "write only its managed branch/canonical-PR relation evidence",
-        "Independently re-read the issue and relation collection",
-        "Only the exact relation receipt permits the native issue transition",
-        "Independently read the issue, state, owner",
+        "The native Linear PR relation is a stable attribution record",
+        "independently re-read both the preallocated native relation identity",
+        "Only that stable relation plus exact GitHub-B receipt permits state handling",
     ),
     "PR relation and state boundary",
 )
 for token in (
-    "exactly one matching canonical PR relation",
-    "A role-`increment` relation must retain the exact project membership",
-    "a role-`work-item` relation must retain an explicitly absent project",
-    "does not transition a feature project",
+    "exactly one stable matching canonical PR relation",
+    "Project membership, dependency relations, role, owner, Git base, and head remain independently read authorities",
+    "ordinary-later or consumed-restack update must already be exactly `inReview`",
+    "never changes the feature project's phase/status",
     "never marks an issue or project `done`",
     "regardless of whether the mutation returned success, error, or timeout",
 ):
@@ -625,27 +666,232 @@ mismatched_hook = select_pr_input(
 if mismatched_hook["draftUsed"] or mismatched_hook["hookReport"] == "passed":
     fail("post-commit PR draft trusted identity-mismatched draft or hook output")
 
-def classify_unknown_submit(graphite, remote_branch, pull_request):
-    observed = (graphite, remote_branch, pull_request)
-    if observed == ("absent", "absent", "absent"):
-        return "resubmit"
-    if observed == ("exact", "exact", "exact"):
-        return "skip-submit"
+EXPECTED_PR_IDENTITY = {
+    "count": 1,
+    "number": 42,
+    "url": "https://github.com/acme/widgets/pull/42",
+    "repository": "https://github.com/acme/widgets",
+    "branch": "feature/app-41-cache",
+    "base": "main",
+}
+EXPECTED_STABLE_RELATION = {
+    "nativeRelationId": "linear-pr-relation-42",
+    "issueId": "issue-app-41",
+    "repository": "https://github.com/acme/widgets",
+    "pullRequestNumber": 42,
+    "pullRequestUrl": "https://github.com/acme/widgets/pull/42",
+    "branch": "feature/app-41-cache",
+}
+HEAD_A = "a" * 40
+HEAD_B = "b" * 40
+HEAD_C = "c" * 40
+
+
+def pr_at(head, **changes):
+    value = {**EXPECTED_PR_IDENTITY, "head": head}
+    value.update(changes)
+    return value
+
+
+def stable_relation(**changes):
+    value = dict(EXPECTED_STABLE_RELATION)
+    value.update(changes)
+    return value
+
+
+def exact_record(record, expected):
+    return isinstance(record, dict) and record == expected
+
+
+def classify_initial_submit(graphite, remote_branch, pull_request, relation, recovering=False):
+    observed = (graphite, remote_branch, pull_request, relation)
+    if observed == ("absent", "absent", "absent", "absent"):
+        return "retry-initial" if recovering else "submit-initial"
+    if (
+        recovering
+        and graphite == HEAD_B
+        and remote_branch == HEAD_B
+        and exact_record(pull_request, pr_at(HEAD_B))
+        and relation == "absent"
+    ):
+        return "read-back-initial-pr"
     return "blocked"
 
 
-if classify_unknown_submit("absent", "absent", "absent") != "resubmit":
-    fail("proven-absent unknown submit did not admit one resubmit")
-if classify_unknown_submit("exact", "exact", "exact") != "skip-submit":
-    fail("verified unknown submit did not skip resubmission")
-for observed in (
-    ("unknown", "unknown", "unknown"),
-    ("exact", "exact", "absent"),
-    ("absent", "exact", "absent"),
-    ("exact", "exact", "mismatched"),
+def classify_existing_update(
+    mode,
+    history,
+    graphite,
+    remote_branch,
+    pull_request,
+    relation,
+    recovering=False,
 ):
-    if classify_unknown_submit(*observed) != "blocked":
-        fail(f"partial unknown-submit state admitted resubmission: {observed!r}")
+    expected_history = {
+        "eventId": "implementation-event-41",
+        "priorNativeId": "implementation-native-a",
+        "priorHead": HEAD_A,
+        "currentHead": HEAD_B,
+        "supersedesId": "implementation-native-a",
+        "resolvedAt": (
+            "authorizationTime"
+            if mode == "consumed-restack"
+            else "prior-evidence-authoritative-time"
+        ),
+        "authorizationConsumed": mode == "consumed-restack",
+    }
+    if mode not in {"ordinary-later", "consumed-restack"} or history != expected_history:
+        return "blocked"
+    if not exact_record(relation, stable_relation()):
+        return "blocked"
+    if (
+        graphite == HEAD_A
+        and remote_branch == HEAD_A
+        and exact_record(pull_request, pr_at(HEAD_A))
+    ):
+        return "retry-same-pr" if recovering else "submit-same-pr"
+    if (
+        graphite == HEAD_B
+        and remote_branch == HEAD_B
+        and exact_record(pull_request, pr_at(HEAD_B))
+    ):
+        return "complete"
+    return "blocked"
+
+
+def history_for(mode):
+    return {
+        "eventId": "implementation-event-41",
+        "priorNativeId": "implementation-native-a",
+        "priorHead": HEAD_A,
+        "currentHead": HEAD_B,
+        "supersedesId": "implementation-native-a",
+        "resolvedAt": (
+            "authorizationTime"
+            if mode == "consumed-restack"
+            else "prior-evidence-authoritative-time"
+        ),
+        "authorizationConsumed": mode == "consumed-restack",
+    }
+
+
+# A first submit is fail-closed: only complete all-state absence admits creation. Existing state is
+# never promoted into the update path without a prior A revision and its stable relation.
+if classify_initial_submit("absent", "absent", "absent", "absent") != "submit-initial":
+    fail("proven-absent initial state did not admit the sole creation path")
+for observed in (
+    (HEAD_A, HEAD_A, pr_at(HEAD_A), stable_relation()),
+    (HEAD_B, HEAD_B, pr_at(HEAD_B), stable_relation()),
+    ("absent", HEAD_A, "absent", "absent"),
+    ("unknown", "unknown", "unknown", "unknown"),
+):
+    if classify_initial_submit(*observed) != "blocked":
+        fail(f"fresh initial submission admitted pre-existing or unknown state: {observed!r}")
+
+latest_by_kind_history = history_for("consumed-restack")
+latest_by_kind_history["resolvedAt"] = "latest-event-by-kind"
+if (
+    classify_existing_update(
+        "consumed-restack",
+        latest_by_kind_history,
+        HEAD_A,
+        HEAD_A,
+        pr_at(HEAD_A),
+        stable_relation(),
+    )
+    != "blocked"
+):
+    fail("restack admission substituted latest-by-kind history for authorizationTime")
+
+
+# Both eligible later modes update one immutable PR A→B while retaining one unchanged relation.
+for mode in ("ordinary-later", "consumed-restack"):
+    history = history_for(mode)
+    if (
+        classify_existing_update(
+            mode, history, HEAD_A, HEAD_A, pr_at(HEAD_A), stable_relation()
+        )
+        != "submit-same-pr"
+    ):
+        fail(f"{mode} did not admit same-PR update from exact A")
+    if (
+        classify_existing_update(
+            mode, history, HEAD_B, HEAD_B, pr_at(HEAD_B), stable_relation()
+        )
+        != "complete"
+    ):
+        fail(f"{mode} did not complete with the unchanged stable relation")
+
+
+# Stale/foreign/duplicate identities and A/B mixtures cannot create or replace a PR/relation.
+collision_cases = (
+    (HEAD_A, HEAD_A, pr_at(HEAD_C), stable_relation()),
+    (HEAD_A, HEAD_A, pr_at(HEAD_A, repository="https://github.com/evil/widgets"), stable_relation()),
+    (HEAD_A, HEAD_A, pr_at(HEAD_A, count=2), stable_relation()),
+    (HEAD_A, HEAD_A, pr_at(HEAD_A), stable_relation(nativeRelationId="replacement")),
+    (HEAD_B, HEAD_A, pr_at(HEAD_B), stable_relation()),
+)
+ordinary_history = history_for("ordinary-later")
+for observed in collision_cases:
+    if classify_existing_update("ordinary-later", ordinary_history, *observed) != "blocked":
+        fail(f"stale/foreign/duplicate existing-PR state crossed the gate: {observed!r}")
+
+
+# Unknown outcomes recover only against retained identities: exact A permits the same-PR retry,
+# exact B completes with the same stable relation, and partial state remains blocked.
+if (
+    classify_initial_submit("absent", "absent", "absent", "absent", recovering=True)
+    != "retry-initial"
+):
+    fail("proven-absent unknown initial submit did not admit one retry")
+if (
+    classify_initial_submit(HEAD_B, HEAD_B, pr_at(HEAD_B), "absent", recovering=True)
+    != "read-back-initial-pr"
+):
+    fail("verified unknown initial submit did not recover the exact B PR")
+if (
+    classify_existing_update(
+        "ordinary-later",
+        ordinary_history,
+        HEAD_A,
+        HEAD_A,
+        pr_at(HEAD_A),
+        stable_relation(),
+        recovering=True,
+    )
+    != "retry-same-pr"
+):
+    fail("unknown later submit did not limit retry to the retained PR at exact A")
+for relation in (
+    "unknown",
+    stable_relation(nativeRelationId="replacement"),
+    stable_relation(branch="feature/foreign"),
+):
+    if (
+        classify_existing_update(
+            "ordinary-later",
+            ordinary_history,
+            HEAD_B,
+            HEAD_B,
+            pr_at(HEAD_B),
+            relation,
+            recovering=True,
+        )
+        != "blocked"
+    ):
+        fail(f"existing update accepted partial/replacement relation: {relation!r}")
+for observed in (
+    ("unknown", "unknown", "unknown", "unknown"),
+    (HEAD_B, HEAD_A, pr_at(HEAD_B), stable_relation()),
+    (HEAD_B, HEAD_B, pr_at(HEAD_B, number=99), stable_relation()),
+):
+    if (
+        classify_existing_update(
+            "ordinary-later", ordinary_history, *observed, recovering=True
+        )
+        != "blocked"
+    ):
+        fail(f"partial unknown existing-PR state admitted retry: {observed!r}")
 
 print("test-linear-attribution: OK")
 PY

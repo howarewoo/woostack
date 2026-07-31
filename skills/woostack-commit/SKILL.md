@@ -105,11 +105,19 @@ Rules:
   has a preallocated stable event UUID and typed metadata. Preserve those UUIDs across an unknown
   outcome, and independently read the affected resource, event, relation, or state after every
   mutation before the next side effect.
-- Before any side effect, classify the exact local commit, `implementationEvidence` event,
-  Graphite/GitHub PR, Linear PR relation, and issue state from fresh complete reads. Skip every
-  exact verified boundary and resume at the first proven-missing boundary. Partial, ambiguous,
-  non-monotonic, or unknown state blocks; never rerun a finalized commit or allocate a duplicate
-  event UUID.
+- A Linear execution caller must supply independently read current passing `verification` and
+  canonical `precommitReview` receipts for the exact precommit diff. `reviewResult` is post-PR full
+  review evidence and is never a commit input or an `implementationEvidence` relation.
+- Before any side effect, classify the exact local commit, `implementationEvidence` history,
+  Graphite/remote state, complete all-state canonical GitHub PR candidate set, stable native Linear
+  PR relation, and issue state from fresh complete reads. A first submission is admitted only from
+  proven absence. An ordinary-later or consumed-restack revision is admitted only from the exact
+  sole canonical PR at historical head A and the same stable native relation, followed by an update
+  of that retained PR to finalized head B while the relation remains unchanged. Skip every exact
+  verified boundary and resume at the first pending one. Partial, ambiguous, non-monotonic,
+  stale-C, foreign, replacement, duplicate, or unknown state blocks; never rerun a finalized
+  commit, allocate a duplicate event UUID, infer a branch, create a second PR, or replace a
+  relation.
 - Stage only session-relevant changes. Never stage unrelated work, generated sidecars, secrets,
   or `.env*`.
 - Never force-push. Do not merge.
@@ -122,18 +130,20 @@ Rules:
 
 ### 0. Bind the caller-supplied Linear work
 
-Require the exact issue UUID or exact Linear URL and the invoking engineer/run identity. Accept an
-exact project UUID or exact Linear URL only as a candidate for role-`increment` work. Load the
-canonical authority linked above, discover the official MCP capabilities needed to read issues,
-projects, owners, comments, relations, and state, and require independently readable results with
-complete pagination.
+Require the exact issue UUID or exact Linear URL, invoking controller principal, engineer/run
+identity, and current passing `verification` and `precommitReview` receipts. Accept an exact project
+UUID or exact Linear URL only as a candidate for role-`increment` work. Load the canonical authority
+linked above, discover the official MCP capabilities needed to read issues, projects, owners,
+comments, relations, and state, and require independently readable results with complete
+pagination.
 
 Load [`references/linear-attribution.md`](references/linear-attribution.md) and perform the identity,
 ownership, repository, role, relation, and initial ancestry preflight under
 [Verify the caller-owned issue, project, and ancestry](references/linear-attribution.md#verify-the-caller-owned-issue-project-and-ancestry).
 Retain the verified native IDs, stable client UUIDs, issue identifier, resource role, canonical
-repository URL, workspace/team, current semantic state, resolved owner type/principal, expected
-base or Git parent, and exact required relations for the whole invocation.
+repository URL, workspace/team, current semantic state, resolved owner type/principal, exact
+authenticated controller, expected base or Git parent, current assignment/verification/
+`precommitReview`, and exact required relations for the whole invocation.
 
 This read must establish exactly one of two shapes:
 
@@ -150,12 +160,18 @@ identifier, branch, PR text, or recent activity.
 
 Before continuing, follow
 [Classify resume state before side effects](references/linear-attribution.md#classify-resume-state-before-side-effects).
-Fresh complete Git, Graphite, GitHub, and official-MCP reads must classify the local finalized
-commit, exact `implementationEvidence` event, canonical PR, issue PR relation, and native issue
-state as exact or absent. Skip exact verified mutations and resume at the first missing boundary:
-commit, implementation evidence, submission/PR, PR field update, relation, or `inReview` state.
-If all boundaries are exact, perform no mutation and report the verified result. Any downstream
-evidence without its prerequisite, duplicate candidate, mismatch, partial page, or unknown read
+Fresh complete Git, Graphite, all-state GitHub, and official-MCP reads must select one
+evidence-derived submission shape. Initial revision 1 requires proven absence of submission,
+remote branch, every canonical PR candidate, and Linear relation before its first submit. An
+ordinary-later or consumed-restack revision B requires the exact prior implementation
+revision/head A, sole retained PR number/repository/explicit branch/base, and same stable native
+Linear relation before any B update. Never infer the shape from a branch or PR.
+
+Skip exact verified mutations and resume at the first pending boundary: commit, implementation
+evidence, initial PR creation or same-PR update, initial relation creation, or `inReview`
+confirmation. Existing updates never mutate their stable relation. If all boundaries are exact at
+B, perform no mutation and report the verified result. Any downstream evidence without its
+prerequisite, duplicate candidate, changed identity, mismatch, partial page, or unknown read
 blocks. An existing finalized commit means stages 3–5 are read-only/skipped; never rerun
 `gt modify` or allocate a second implementation event.
 
@@ -204,13 +220,14 @@ gt create <verified-role-compatible-branch>
 gt track <verified-role-compatible-branch> --parent <verified-parent-branch>
 ```
 
-Otherwise require the existing issue-owned branch/worktree. For `change/*`, verify the canonical
-worktree path and Graphite registration:
+Otherwise require the existing issue-owned branch/worktree. Verify the canonical exact-issue path
+and Graphite registration:
 
 ```bash
 export WOOSTACK_ROOT="$(cd "$(git rev-parse --git-common-dir)/.." && pwd -P)"
+issue_id="<verified-exact-native-linear-issue-id>"
 actual_root="$(cd "$(git rev-parse --show-toplevel)" && pwd -P)"
-expected_root="$(cd "$WOOSTACK_ROOT/.woostack/worktrees/${branch//\//-}" && pwd -P)"
+expected_root="$(cd "$WOOSTACK_ROOT/.woostack/worktrees/issues/$issue_id" && pwd -P)"
 test "$actual_root" = "$expected_root"
 gt branch info --branch "$branch" --quiet
 ```
@@ -244,9 +261,10 @@ receipt_identity="$(bash <commit-skill-dir>/scripts/change-receipt.sh "$base_ref
 The helper's compact JSON is the byte-for-byte complete-state identity. Compare a fresh value with
 the supplied PASS identity before the hook (or before staging when there is no hook). When a hook
 runs, compare fresh pre-hook and post-hook values. Any branch, base, HEAD, tracked-content, staged,
-unstaged, or untracked mismatch returns to `woostack-change` for verification, smoke testing, and a
-fresh complete-diff review. Only a fresh `/woostack-commit` invocation with the new matching PASS
-receipt may resume; never stage or commit under a stale receipt.
+unstaged, or untracked mismatch invalidates the existing verification and reviewed-precommit-diff
+identity and returns to the caller for verification, smoke testing, and a fresh task-scoped
+spec/quality review. Only a fresh `/woostack-commit` invocation with new matching `verification`
+and `precommitReview` PASS receipts may resume; never stage or commit under a stale receipt.
 
 When resume admission finds the exact finalized commit, skip this entire step without reading the
 hook or invoking `change-receipt.sh`; retain the verified commit and resume at the first missing
@@ -280,8 +298,11 @@ official MCP. On a resume with an exact finalized commit, stage nothing and perf
 read-only identity/owner/ancestry admission needed for the later boundary. Follow
 [Verify the caller-owned issue, project, and ancestry](references/linear-attribution.md#verify-the-caller-owned-issue-project-and-ancestry),
 then stop at the next heading. Recompute and verify the current branch/base ancestry and Graphite
-parent against the retained role and native relations. Require the issue to remain in the
-execution lifecycle with the same type-aware owner and current assignment/evidence relations.
+parent against the retained role and native relations. Require the issue to remain in the execution
+lifecycle with the same type-aware owner and current assignment, passing `verification`, and
+passing `precommitReview`. Its sorted changed paths and reviewed byte-safe precommit diff hash must
+equal the exact diff being committed. A post-PR `reviewResult` is neither expected nor admissible as
+a substitute.
 
 When PR fields may be drafted or updated, load [`references/pr-body.md`](references/pr-body.md) and
 select input from resume admission. On the commit-absent path, compose and validate from the staged
@@ -321,66 +342,107 @@ blocks rather than recommitting. A commit failure stops with no Linear comment o
 
 After the finalized commit exists and before any push or PR submission, follow
 [Record and read back implementation evidence](references/linear-attribution.md#record-and-read-back-implementation-evidence).
-Re-read the issue identity, role, repository, relations, ancestry, current state, and type-aware
-owner. Record only the commit-scoped base SHA, head SHA, and hash of the byte-safe committed
+Re-read the issue identity, role, repository, relations, ancestry, current state, type-aware owner,
+current assignment/verification/`precommitReview`, and authenticated controller. For a first or
+ordinary later revision, the native author and authenticated controller must exactly equal the
+current type-aware owner and assignment. An authorized sweep rewrite instead requires the exact
+controller named by the still-valid `restackAuthorized` while owner and assignment remain
+unchanged. Record only the commit-scoped base SHA, head SHA, and hash of the byte-safe committed
 base-to-head diff in the typed `implementationEvidence` issue event. Staged, unstaged, and
 untracked paths or hashes remain local PASS-freshness data and must not enter the remote event.
 
 If resume admission proves the exact event absent, preallocate one stable event UUID, append once,
 and independently read that exact comment and all related records back. If the exact event already
-exists for the same commit evidence, reuse its stable UUID and skip both allocation and append. A
-missing, partial, stale, duplicate, foreign, mismatched, or unknown event read-back stops before
-push or submission. Never write evidence for a provisional commit, replace an event UUID after a
-timeout, or infer success from the mutation response.
+exists for the same commit evidence, canonical assignment/verification/`precommitReview`/project
+relations, and conditional restack authorization, reuse its stable UUID and skip both allocation
+and append. A missing, partial, stale, duplicate, foreign, mismatched, or unknown event read-back
+stops before push or submission. Never write evidence for a provisional commit, replace an event
+UUID after a timeout, or infer success from the mutation response.
+
+For every later B revision, the read-back must also preserve and resolve the exact superseded
+implementation/head A by its authoritative timestamp plus the retained sole PR and native Linear
+relation that were exact at A. The event append does not move either provider record. Missing A,
+unexpected head C, or changed PR/relation identity stops before submission.
 
 ### 6. Push or submit
 
-Immediately re-read the type-aware owner and retained issue/project relations. Then follow
+Immediately re-read the type-aware owner, retained issue/project relations, exact
+implementation A/B history, explicit issue branch, Graphite/remote state, complete canonical PR
+candidate set, and Linear PR relation. Then follow
 [Submit with Graphite](references/linear-attribution.md#submit-with-graphite).
 
-Run `gt submit` only when resume admission proves the canonical PR and Graphite submission absent.
-After a failed, timed-out, or otherwise unknown prior `gt submit`, read Graphite and canonical
-GitHub state first. Skip submission when the exact branch/commit/PR is verified; resubmit only when
-complete reads prove the remote branch, Graphite submission, and PR all absent. Partial,
-ambiguous, foreign, or conflicting remote state blocks without another submit.
+For initial revision 1, run the first `gt submit` only when complete reads prove the Graphite
+submission, remote branch, every all-state canonical PR candidate, and Linear PR relation all
+absent. Any pre-existing candidate blocks fresh creation. For an ordinary-later or
+consumed-restack revision B, run the Graphite submission only after independently re-proving the
+sole retained PR number/URL, repository, explicit head branch, base, historical head A, and the
+same stable native Linear relation. Submit/push B to that already verified branch and update that
+same PR; do not create, retarget, replace, or infer anything.
+
+Before updating any role-`increment` branch, enumerate the complete native dependency descendant
+set and every descendant branch/PR. No descendants permits the single-branch path. Any live
+descendant requires the caller-authorized coordinated restack path: every affected descendant
+owner must have a current unexpired unconsumed `restackAuthorized` naming this exact controller,
+operation, branch/head, claim/path, and affected relations, and the pinned project lead must have
+authorized the exact cross-issue operation. Missing, partial, conflicting, or unauthorized
+descendant evidence blocks before changing the parent ref or submitting.
+
+After a failed, timed-out, or otherwise unknown Graphite result, independently read Graphite,
+remote branch state, and the complete GitHub PR set before deciding anything. The retained same PR
+exactly at B skips another submit. On initial creation, complete absence of every remote surface
+permits one retry. On an existing update, every Graphite/remote/PR surface still exactly at A
+permits one retry against that same retained PR. Mixed A/B state, unexpected C, duplicate,
+replacement, foreign, partial, ambiguous, or unknown state blocks without another submit.
 
 This is the only push/submission path; do not use raw Git, `gh pr create`, or an alternate
-transport. If the host separates push and PR submission into distinct Graphite operations, repeat
-the owner/identity read immediately before each one. Do not merge or force-push.
+transport. A caller-authorized coordinated restack may use only its bounded Graphite stack
+submission for these same retained per-PR identities. If the host separates push and PR submission
+into distinct Graphite operations, repeat the owner/identity/A/B read immediately before each one.
+Do not merge or force-push.
 
 ### 7. Resolve and attribute the PR
 
-Resolve or resume the current PR through GitHub authority:
+Resolve or resume the canonical PR through GitHub authority. Initial creation resolves the sole
+candidate from the retained explicit branch and finalized head B. An existing update fetches the
+retained PR number directly and also lists the complete candidate set:
 
 ```bash
-gh pr view --json number,title,body,headRefName,baseRefName,url,headRefOid
+gh pr view <retained-number> --json number,title,body,headRefName,baseRefName,url,headRefOid
 ```
 
-A successful push is not a PR receipt. If complete Graphite/GitHub reads prove no submission or PR,
-return to stage 6; if they are partial or conflicting, block. Never use `gh pr create`. Follow
-[Identify, update, and verify the canonical PR](references/linear-attribution.md#identify-update-and-verify-the-canonical-pr).
-Require the canonical repository, exact submitted head and commit, verified role-derived base and
-ancestry, and exact trailer suffix.
+A successful push is not a PR receipt. Require exactly one PR with the retained canonical
+repository, number/URL, explicit head branch, verified base, and finalized head B. Existing updates
+must preserve the exact number/repository/branch/base proven at A; never infer the PR from a branch
+name or accept a duplicate/replacement. A same-identity PR still at A means submission remains
+pending; unexpected head C, a stale/foreign relation, or any partial/conflicting read blocks.
+Follow
+[Identify, update, and verify the canonical PR](references/linear-attribution.md#identify-update-and-verify-the-canonical-pr)
+and require exact role-derived ancestry and trailer suffix as well.
 
-When updates are enabled and the canonical PR is present but not yet the exact validated
-title/body, apply the fields once with the `gh pr edit` command in `references/pr-body.md`, then
-re-fetch and compare the exact intended result. If the fields already read back exactly, skip the
-edit. With `--no-pr-update`, require the existing body already be exact.
+When updates are enabled and the verified retained PR is present at B but not yet the exact
+validated title/body, apply the fields once with the `gh pr edit` command in
+`references/pr-body.md`, then independently re-fetch that number and re-list candidates. If the
+fields already read back exactly, skip the edit. With `--no-pr-update`, require the existing body
+already be exact. A mutation response alone never crosses this boundary.
 
-Only after canonical PR read-back succeeds, follow
+Only after canonical PR read-back at B succeeds, follow
 [Record and read back PR relation and state](references/linear-attribution.md#record-and-read-back-pr-relation-and-state).
-Perform a fresh official-MCP identity/owner/relation read. Write the exact branch and canonical PR
-relation only when admission proves it absent, then independently read it back; skip the write when
-the exact relation is already verified. Only that receipt permits the native issue transition
-from `executing` to `inReview`. Skip the transition when the exact `inReview` state and all
-prerequisite evidence already read back; otherwise transition once and independently re-read the
-state, issue, owner, event, and relation. Commit does not transition a feature project or mark any
-resource `done`.
+Perform a fresh complete official-MCP identity/owner/relation read. Initial creation writes the one
+stable relation only from proven absence. An existing update requires the exact retained native
+relation and performs no relation mutation: its issue, repository, PR number/URL, branch, native
+relation ID, and timestamps stay stable while GitHub supplies current head B.
 
-At every boundary, a missing prerequisite, partial, stale, foreign, ambiguous, conflicting, or
-unknown read-back stops before the next mutation. Preserve the branch, worktree, commit, stable
-resource/event UUIDs, and observed receipts for explicit reconciliation; never retry blindly,
-duplicate an exact mutation, or repair only one side.
+Independently read both the exact native relation ID and the complete relation collection after an
+initial create response, including an error, timeout, or unknown outcome. Exactly one stable
+matching relation plus the independently verified canonical PR at B permits state handling.
+Initial creation may transition `executing` to `inReview` once and read it back. An ordinary-later
+or consumed-restack update must remain `inReview` and performs neither relation nor state mutation.
+Commit never transitions a feature project or marks any resource `done`.
+
+At every boundary, a missing prerequisite, partial, stale, foreign, ambiguous, conflicting,
+replacement, duplicate, or unknown read-back stops before the next mutation. Preserve the explicit
+branch, worktree, A/B commits, PR number, native relation ID, stable resource/event UUIDs, and
+observed receipts for explicit reconciliation; never retry blindly or repair only one side.
 
 ### 8. Report
 
@@ -390,10 +452,13 @@ Return:
 - Verified project UUID/URL and native ID for role-`increment`, or explicit no-project proof for
   role-`work-item`.
 - Branch name, verified base/parent ancestry, finalized commit subject/SHA, and the commit-scoped
-  base SHA, head SHA, and committed-diff hash recorded remotely.
-- Read-back receipt and stable UUID for the typed `implementationEvidence` event.
-- Canonical PR URL and exact observed trailer suffix.
-- Read-back receipts for the branch/PR relation and `inReview` state.
+  base SHA, head B SHA, and committed-diff hash recorded remotely.
+- Read-back receipt and stable UUID for the typed `implementationEvidence` event, plus historical
+  head A and superseded native revision for an ordinary-later or consumed-restack update.
+- Canonical PR number/URL, exact observed trailer suffix, and proof that repository/branch/base and
+  PR identity were absent for first creation or unchanged from A through B for an existing update.
+- Read-back receipt and native ID for the created-or-retained stable Linear PR relation, plus
+  independently verified GitHub head B and `inReview` state.
 - Goal, Summary bullets, and Test plan bullets used (Automated and Manual).
 - Any preserved blocker/unknown-outcome identities and the exact safe resume boundary.
 

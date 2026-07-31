@@ -119,11 +119,12 @@ the exact prior native comment in `supersedesId`; never edit or delete history. 
 - `implementationEvidence` only after the finalized commit exists, recording its exact commit and
   complete diff identity;
 - `verification` for exact commands, observed results, and the changed-path smoke test;
-- `reviewResult` for the reviewed complete diff/PR identity and findings;
+- `precommitReview` for the complete pre-commit diff's ordered spec/quality reviewer receipts,
+  shared byte-safe diff hash, and literal `PASS`;
 - terminal `acceptance` only from responsible acceptance authority and only with current
-  verification/review/PR evidence; and
-- `decisionRequest`, `blocked`/`unblocked`, `failure`, or `handoff` for truthful uncertainty,
-  contract-bound decisions, interruption, and recovery.
+  implementation/verification/post-PR review/PR evidence; and
+- `decisionRequest`/`decisionResponse`, `blocked`/`unblocked`, `failure`, or `handoff` for truthful
+  uncertainty, contract-bound decisions, interruption, and recovery.
 
 An event of the wrong kind, issue, repository, revision, relation, or lifecycle position is not
 evidence. Native state and mutation responses never substitute for current managed comments.
@@ -142,7 +143,8 @@ contract, event, state, PR, worktree, and type-aware owner read. Admit only:
     without creating a replacement; or
   - a fresh complete branch, worktree, commit, and PR read proves there are **no Git artifacts** for
     the issue—the crash boundary after assignment/state mutation but before worktree creation. In
-    that one intermediate, create the deterministic `change/<slug>` worktree exactly once and
+    that one intermediate, create the deterministic
+    `.woostack/worktrees/issues/<exact-native-linear-issue-id>` worktree exactly once and
     immediately read/assert its issue, base, branch, path, and Graphite identity before continuing.
   Any partial, unknown, duplicate, or conflicting Git residue blocks;
 - `blocked` only after a current verified `unblocked` event relates to the exact open blocker and
@@ -199,14 +201,17 @@ only executing admission that may create the deterministic worktree.
    - **Quality:** the implementation is correct, minimal, maintainable, safe at edges, and
      supported by the recorded verification.
 
-   Resolve findings, recompute the complete identity, and re-review. Append and verify
-   `reviewResult`. Only a matching `PASS` receipt may proceed; `BLOCKED`, incomplete, altered, or
-   state-incomplete identity preserves the worktree and stops.
+   Resolve findings, recompute the complete identity, and re-review. Append and independently
+   verify canonical `precommitReview`: exactly two ordered reviewer receipts (spec, then quality)
+   bind their reviewer kind/ID, literal `PASS`, and the same recomputed byte-safe uncommitted diff
+   hash; its sorted changed paths and outer verdict also match that complete diff and read `PASS`.
+   `BLOCKED`, incomplete, altered, or state-incomplete identity preserves the worktree and stops.
 
 8. **Commit, record implementation identity, submit, and attribute.** Re-read owner and issue
    evidence immediately before commit. Invoke
    [`woostack-commit`](../woostack-commit/SKILL.md) from the same worktree with the exact issue
-   identity and matching `PASS` receipt. If a pre-commit hook changes any complete-state identity,
+   identity and matching passing `verification` and `precommitReview` receipts. If a pre-commit
+   hook changes any complete-state identity,
    repeat verification, smoke testing, evidence, and both review lenses before retrying.
 
    After the finalized commit exists and before push or PR submission, the later
@@ -241,8 +246,9 @@ side effect on scope expansion, owner drift, failed verification/smoke test, mis
 review receipt, hook drift, submit failure, PR mismatch, or failed read-back. Append and verify
 `failure` or `handoff` when safe, preserve every recoverable branch/worktree, and report the
 blocker, stable issue/event UUIDs, known native IDs, and exact intended/preserved
-`$WOOSTACK_ROOT/.woostack/worktrees/change-<slug>` path. An unreadable comment outcome is unknown,
-not success. Never auto-delete recovery state or silently fall back to fix/build/local records.
+`$WOOSTACK_ROOT/.woostack/worktrees/issues/<exact-native-linear-issue-id>` path. An unreadable
+comment outcome is unknown, not success. Never auto-delete recovery state or silently fall back to
+fix/build/local records.
 </HARD-STOP>
 
 ## Hard constraints

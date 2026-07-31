@@ -1,25 +1,16 @@
 #!/usr/bin/env bash
-# Regression: woostack-execute's dispatched subagent briefs must be self-contained.
-# A fresh subagent boots inside the consumer repo and inherits its AGENTS.md, so a bare
-# "review this task" brief routes through using-woostack into the full woostack-review
-# orchestrator skill (~14.7K tokens) — the wrong contract for a task-scoped reviewer.
-# Same bug class as woostack-review issue #447, extended to the execute subagent path.
+# Regression: execute workers receive a self-contained brief for exactly one verified Linear issue.
 set -euo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ROOT="$(cd "$DIR/../../.." && pwd)"
 source "$ROOT/skills/woostack-init/scripts/tests/assert.sh"
 
-# The dispatched brief is the text between a prompt's first four-backtick fence
-# and its close — exactly what the controller sends to the subagent. A guard in
-# the controller-facing preamble (outside the fence) never reaches the subagent,
-# so prompt assertions run against this region only, not the whole file.
+# The dispatched template text is the content between the first four-backtick fence and its close.
 fenced_brief() {
   awk 'BEGIN{f=0} /^````[[:space:]]*$/{f++; next} f==1' "$1"
 }
 
-# Newline-flattened, case-insensitive regex match. Content is flattened because
-# the guard emphasizes "Do NOT" and wraps across physical lines.
 assert_matches() {
   local content="$1" regex="$2" message="$3"
   if printf '%s' "$content" | tr '\n' ' ' | grep -Eiq -- "$regex"; then
@@ -30,29 +21,20 @@ assert_matches() {
   fi
 }
 
-# Assert CONTENT carries the self-contained guard forbidding BOTH load paths.
 assert_self_contained_guard() {
   local content="$1" label="$2"
   assert_contains "$content" "self-contained" \
     "$label must declare the brief self-contained"
-  # Bind the negation to the guard sentence with [^.]*, not a greedy .* — an
-  # unrelated "do not"/"never" elsewhere must not satisfy the check when the
-  # guard's own negation is dropped. skill://woostack-review sits before the
-  # SKILL.md inline-code period, so [^.]* still reaches it.
   assert_matches "$content" "(do not|never)[^.]*skill://woostack-review" \
-    "$label must forbid loading skill://woostack-review into the subagent"
-  # The guard forbids TWO paths; pin the using-woostack routing clause too (the
-  # primary vector this fix addresses). Match the backtick-wrapped token so the
-  # unrelated ../../using-woostack/... doc link (slash-form) cannot false-satisfy
-  # it — the [^.]* form above breaks here, as the SKILL.md period precedes it.
+    "$label must forbid loading skill://woostack-review"
   assert_contains "$content" '`using-woostack`' \
-    "$label must forbid routing via using-woostack"
+    "$label must forbid command routing through using-woostack"
 }
 
 PROMPTS="$ROOT/skills/woostack-execute/prompts"
 DRIVER="$ROOT/skills/woostack-execute/references/subagent-driver.md"
 
-# The three dispatched prompts: the guard must live INSIDE the fenced brief.
+driver="$(tr '\n' ' ' < "$DRIVER" | tr -s ' ')"
 for f in "$PROMPTS/implementer.md" "$PROMPTS/spec-reviewer.md" "$PROMPTS/quality-reviewer.md"; do
   brief="$(fenced_brief "$f")"
   base="$(basename "$f")"
@@ -62,9 +44,73 @@ for f in "$PROMPTS/implementer.md" "$PROMPTS/spec-reviewer.md" "$PROMPTS/quality
   fi
   assert_self_contained_guard "$brief" "$base fenced brief"
 done
+assert_self_contained_guard "$driver" "subagent-driver.md"
+spec_brief="$(fenced_brief "$PROMPTS/spec-reviewer.md")"
+quality_brief="$(fenced_brief "$PROMPTS/quality-reviewer.md")"
+for required in \
+  "exact issue UUID/URL" \
+  "complete issue contract" \
+  "complete issue task set" \
+  "complete issue-wide uncommitted diff" \
+  "authenticated reviewer kind/ID" \
+  "current byte-safe diff hash"; do
+  assert_contains "$spec_brief" "$required" \
+    "spec reviewer must bind its issue-wide receipt field: $required"
+  assert_contains "$quality_brief" "$required" \
+    "quality reviewer must bind its issue-wide receipt field: $required"
+done
+assert_contains "$spec_brief" "VERDICT: PASS" \
+  "spec reviewer must emit a literal PASS receipt"
+assert_contains "$quality_brief" "passing spec-review receipt" \
+  "quality review must consume the exact passing spec receipt"
+assert_contains "$quality_brief" "VERDICT: PASS" \
+  "quality reviewer must emit a literal PASS receipt"
 
-# The driver records the dispatch contract for the controller and is read whole
-# (it has no dispatched fence), so assert against the entire file.
-assert_self_contained_guard "$(cat "$DRIVER")" "subagent-driver.md"
+# The controller-facing driver must layer exact issue identity and the authority barriers into every
+# dispatched template; inheriting repository context or a local progress artifact is insufficient.
+assert_contains "$driver" "Every implementer and reviewer brief is self-contained and names exactly one selected issue" \
+  "driver must scope every worker to one issue"
+assert_contains "$driver" "exact issue UUID/URL" \
+  "driver must carry exact Linear issue identity"
+assert_contains "$driver" "current issue contract revision/hash" \
+  "driver must pin the verified contract revision"
+assert_contains "$driver" 'verified type-aware owner kind/principal' \
+  "driver must carry the type-aware owner receipt"
+assert_contains "$driver" '`assignmentAccepted` event/read-back' \
+  "driver must carry assignment acceptance read-back"
+assert_contains "$driver" "The task text comes only from that verified issue contract" \
+  "driver must derive task text only from the issue"
+assert_contains "$driver" "Never supply a local specification," \
+  "driver must reject local development-record authority"
+assert_contains "$driver" "If the packet is incomplete, stale, contradictory, or names more than one issue, do not dispatch" \
+  "driver must fail closed on an unsafe brief"
+
+# Coding and reviewing workers cannot mutate the controller's allocation, project, gate, PR, or
+# acceptance boundaries even when their paired profile can reach the same providers.
+for required in \
+  "edit the issue description, scope, acceptance criteria" \
+  "append project updates, change project phase/status, clear a gate" \
+  "allocate/reassign work" \
+  "accept its own evidence" \
+  'request/write terminal `done`' \
+  "commit, push, submit, create/update a PR"; do
+  assert_contains "$driver" "$required" \
+    "driver must preserve worker authority barrier: $required"
+done
+assert_contains "$driver" "Implementers are never dispatched in parallel against that shared tree" \
+  "tasks for one issue must remain sequential"
+assert_contains "$driver" "There is no per-task commit" \
+  "controller must retain the one-issue commit boundary"
+assert_contains "$driver" "immediately before each implementer dispatch and each fix redispatch" \
+  "controller must recheck ownership before worker edits"
+assert_contains "$driver" "do not edit issue text, tick checkboxes, append local receipts, or mutate Linear" \
+  "worker results must be evidence rather than progress mutation"
+
+assert_not_contains "$driver" "Markdown increment's ordered task list" \
+  "driver must not consume a local increment"
+assert_not_contains "$driver" "normalized ordered task list" \
+  "driver must not consume adapter-normalized work"
+assert_not_contains "$driver" "tick the plan" \
+  "driver must not mutate local progress"
 
 finish

@@ -3,34 +3,38 @@ title: Parallelism with worktrees
 description: How woostack runs many builds, changes, fixes, and executions at once by isolating each in its own git worktree.
 ---
 
-woostack isolates Git writes so several plans and changes can run at the same time without
-collision. The mechanism is the **git worktree**: every Markdown build, bounded change, fix, and
-implementation increment does its writes in a private working tree, while the primary checkout
-stays clean on the base branch.
-Two runs never touch the same files, so they never collide.
+woostack isolates tracked implementation writes so multiple assigned issues can proceed without
+sharing a checkout. Every implementation worktree is bound to one verified Linear issue; Linear
+owns the work identity and Git, Graphite, and GitHub own branches, ancestry, PRs, and merge truth.
+Design, specification, planning, assignment, and gate mutations create no Git worktree.
 
-## A worktree per run
+## A worktree per issue
 
-When a run starts, it creates a worktree under `.woostack/worktrees/<slug>`, where `<slug>` is the
-branch name with `/` replaced by `-` (branch `feature/foo` → directory `feature-foo`). The branch
-it creates follows the run:
+The worktree path is derived from the issue's immutable native Linear ID, not its title or branch:
+
+```text
+.woostack/worktrees/issues/<native-issue-id>
+```
+
+Branch names remain readable, but they are not recovery identity:
 
 | Run | Branch | Worktree directory |
 | --- | --- | --- |
-| [woostack-build](/docs/skills/woostack-build) Markdown spec+plan | `feature/<slug>` | `.woostack/worktrees/feature-<slug>` |
-| [woostack-change](/docs/skills/woostack-change) | `change/<slug>` | `.woostack/worktrees/change-<slug>` |
-| [woostack-fix](/docs/skills/woostack-fix) | `fix/<slug>` | `.woostack/worktrees/fix-<slug>` |
-| [woostack-execute](/docs/skills/woostack-execute) increment | the plan's increment branch | one per increment |
+| [woostack-change](/docs/skills/woostack-change) | `change/<slug>` | `.woostack/worktrees/issues/<native-issue-id>` |
+| [woostack-fix](/docs/skills/woostack-fix) | `fix/<slug>` | `.woostack/worktrees/issues/<native-issue-id>` |
+| [woostack-execute](/docs/skills/woostack-execute) increment | the verified issue branch | `.woostack/worktrees/issues/<native-issue-id>` |
 
-Linear build/planning creates no spec/plan worktree, branch, commit, or docs-only PR. Current
-Linear support stops at handoff with a verified frozen base. A future Linear executor will create
-the first implementation worktree from that base and dependent increments from their declared Git parent.
+Before creating or reattaching a worktree, the controller verifies the issue's repository,
+contract, owner, assignment receipt, dependency ancestry, branch/PR state, and complete local
+inventory. It then creates an atomic machine-local claim under
+`.woostack/worktrees/.registry/<native-issue-id>/claim.json`. The claim prevents competing local
+worktrees; it never replaces remote assignment, scope, dependency, evidence, or lifecycle
+authority.
 
-The base branch is never hard-coded. A small script, `resolve-base.sh`, resolves it in order: an
-explicit `WOOSTACK_BASE_BRANCH` override, then `base_branch` in
-[`.woostack/config.json`](/docs/configuration), then the remote's default branch, then `main`.
-After the worktree is added, the run registers the Graphite parent from inside it with
-`gt track --parent <base>`, so `gt submit` opens the PR against the right base.
+The base branch is never hard-coded. `resolve-base.sh` resolves the integration branch, while the
+issue's verified role and relations determine the exact start commit and Graphite parent:
+standalone issues use the retained integration commit, project roots use the feature's frozen base
+SHA, and dependency children use their declared Git parent's exact branch/head.
 
 ## The primary tree stays clean
 
@@ -42,30 +46,27 @@ This is the invariant that makes parallel runs safe:
   runs with disjoint branch sets never collide.
 </Callout>
 
-Stacked increments build on each other rather than on the primary tree: increment _k_ branches
-off increment _k-1_'s tip. A Markdown root increment starts from the spec+plan branch; a Linear
-root increment starts from the frozen base SHA. The shared `.git` and Graphite metadata serialize
-through git's index and ref locks: brief contention, never corruption.
+Stacked increments build on verified issue ancestry rather than the primary checkout. A root starts
+from the frozen base SHA. A dependency child starts from its declared Git parent's finalized head;
+a parent already marked `done` additionally requires verified merge evidence. Non-parent
+dependencies must be accepted, merged, and represented in the child's permitted ancestry.
 
 ## Teardown, and what survives
 
-- **Success:** once the commit, push, and PR exist, the run removes the worktree directory
-  (`git worktree remove`). The branch, commits, and PR persist; only the working directory is
-  deleted.
-- **Failure:** on a commit/push error or an unresolved review blocker, the run **leaves the
-  worktree in place** and reports its path, so you can inspect it.
-- **Abandon:** build, fix, and other runs dropped before any PR exists force-remove the worktree
-  and delete its dangling branch.
-- **Change exception:** [woostack-change](/docs/skills/woostack-change) preserves every recoverable
-  `change/*` branch and worktree on any unsuccessful stop without verified PR read-back. It is
-  excluded from generic pre-PR abandon cleanup; only successful closeout removes its worktree.
-  See the [canonical worktree authority](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/worktrees.md#teardown-after-a-successful-commit--push--pr).
+- **Success:** after the commit, push, canonical PR attribution, Linear relation, and `inReview`
+  receipts all read back, the controller removes that issue's worktree and exact registry claim.
+  The branch, commits, PR, and remote evidence remain.
+- **Failure or unknown:** preserve the worktree and claim. Report the exact issue, path, branch,
+  observed boundary, and safe next action; a timeout proves neither success nor absence.
+- **Review reopen:** after successful teardown, a sweep may reattach the existing branch only from
+  the canonical verified review-reopen state and one current bounded `restackAuthorized`. It cannot
+  use generic release/reclaim or invent an ad hoc worktree.
 
-A stale directory left by a crashed run is inert (the `worktrees/` path is gitignored).
-[woostack-doctor](/docs/skills/woostack-doctor) detects an orphaned worktree and prunes it; you
-can also reclaim one by hand with `git worktree prune` / `git worktree remove`.
+The registry is disposable administration, but unexplained branch/worktree state is a collision,
+not permission to delete or adopt it. See the
+[canonical worktree authority](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/worktrees.md)
+for exact create, resume, review-reopen, and teardown rules.
 
-Parallelism here is **across independent runs**: several `woostack-build`, `woostack-change`, or
-`woostack-fix` runs can be in flight at once. Increments within a single plan run sequentially;
-the worktree's job is isolation, not intra-plan concurrency. The linked skill pages own each
-run's operational mechanics.
+Parallelism is allowed only across dependency-independent issues with distinct owners, runs,
+responsibility surfaces, claims, branches, worktrees, and PRs. Native Linear relations and verified
+Git ancestry—not issue order or branch naming—decide whether two tracks may proceed.
