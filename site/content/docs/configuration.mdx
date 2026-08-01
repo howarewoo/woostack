@@ -1,6 +1,6 @@
 ---
 title: Configuration
-description: Non-secret repository policy for woostack workflow engines and optional artifacts.
+description: Non-secret repository policy for woostack workflow engines and Linear plan availability.
 ---
 
 woostack reads non-secret repository policy from `.woostack/config.json`.
@@ -8,8 +8,8 @@ woostack reads non-secret repository policy from `.woostack/config.json`.
 The file never contains credentials or grants permission to perform repository work.
 
 The active request and workflow gates define scope and approval. Git and GitHub own code, branches,
-commits, pull requests, reviews, and merge truth. Linear may be configured as an optional artifact
-provider for exact feature specifications, plans, or fixes.
+commits, pull requests, reviews, and merge truth. A validated `linear` object enables automatic
+availability preflight for fix/build plan persistence.
 
 Tracked legacy `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, and
 `.woostack/overnight/` remain local records unless the user explicitly invokes the guarded
@@ -17,7 +17,7 @@ Tracked legacy `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, and
 
 The init template ships four top-level keys: `models`, `review`, `respond`, and `status`. Other
 supported settings use built-in defaults. [woostack-doctor](/docs/skills/woostack-doctor) checks
-static policy; optional live artifact checks run only when explicitly requested.
+static policy; live Linear capability is proved by the fix/build/plan workflow before persistence.
 
 **OMP exception:** woostack uses
 [host-owned role routing](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md)
@@ -29,7 +29,7 @@ There are nine top-level settings:
 
 | Setting | Read by | Tunes |
 | --- | --- | --- |
-| `linear` | explicit artifact operations only | optional repository, workspace, team, and native-name hints |
+| `linear` | [woostack-build](/docs/skills/woostack-build), [woostack-fix](/docs/skills/woostack-fix), [woostack-plan](/docs/skills/woostack-plan), and explicit artifact operations | enables plan-persistence preflight and supplies repository, workspace, team, and native-name hints |
 | `review` | [woostack-review](/docs/skills/woostack-review) | the PR review engine: angles, noise, validation |
 | `models` | [woostack-review](/docs/skills/woostack-review), [woostack-audit](/docs/skills/woostack-audit), and host subagent drivers | shared model selection and tier parameters for hosts that consume repository model configuration; ignored by OMP |
 | `audit` | [woostack-audit](/docs/skills/woostack-audit) | standing-code audit angles, filtering, chunking, and output |
@@ -41,8 +41,8 @@ There are nine top-level settings:
 
 ## A complete repository-policy example
 
-The example is artifact-free. Add a `linear` object only when repository policy needs optional
-provider defaults. JSON has no comments, so each key is explained below.
+The example is artifact-free. Add a `linear` object when fix/build plans should persist whenever
+authenticated official MCP capability is available. JSON has no comments, so each key is explained below.
 
 ```json
 {
@@ -85,7 +85,7 @@ provider defaults. JSON has no comments, so each key is explained below.
 }
 ```
 
-## Optional Linear artifact configuration
+## Linear plan configuration
 
 Artifact-enabled profiles connect to the official endpoint:
 
@@ -93,23 +93,28 @@ Artifact-enabled profiles connect to the official endpoint:
 https://mcp.linear.app/mcp
 ```
 
-Authentication stays in the host's MCP/OAuth secret store. No credential, authorization value, or
-credential-file path belongs in repository configuration, prompts, logs, generated files, or
-artifacts.
+Authentication stays in the host's MCP/OAuth secret store. No API key, credential, authorization
+value, or credential-file path belongs in repository configuration, prompts, logs, generated files,
+or artifacts. Workflows prove availability from authenticated capability without reading the secret.
 
-The optional `linear` object may provide default repository/workspace/team hints and native names.
-It is not required for artifact-free work. When present, every value is non-empty and the complete
-object is validated before it is used. Unknown or incomplete configuration blocks only the
-requested artifact operation.
+The optional `linear` object provides repository/workspace/team hints and native names. When present,
+every value is non-empty and the complete object is validated before it is used. Fix/build/plan
+preflight the project, issue, sub-issue, relation, and independent read-back capabilities needed for
+the plan hierarchy. Fix/build additionally preflight the canceled project-status mapping, exact
+project update, and read-back capabilities needed for abandonment.
 
-Capabilities are resolved from the requested operation. A read requires exact resource lookup and
-pagination; a write additionally requires a stable mutation ID and independent read-back. Skills do
-not require lifecycle, assignment, relation, or status mutations merely because Linear is
-configured.
+A successful preflight makes persistence part of the fix/build plan deliverable: one project, one
+parent plan issue, and one native child issue per increment. Missing policy or unavailable/incomplete
+capability leaves automatic planning artifact-free. `woostack-change` ignores the `linear` object.
+
+`linear.projectStatuses.canceled` names the native status used to close an existing fix/build
+project after explicit abandonment. The workflow reads the status transition back and never creates a
+project solely to cancel it. Handoff, replanning, and blockers are not abandonment and leave the
+project open.
 
 The canonical
-[optional artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md)
-owns identity, untrusted-data handling, and synchronization receipts.
+[Linear artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md)
+owns identity, untrusted-data handling, hierarchy, failure boundaries, and synchronization receipts.
 
 In the published Hermes + OMP pair, configuration does not blur roles. Hermes is the decision-maker
 and independent PR reviewer/commenter only; the isolated OMP profile holds implementation

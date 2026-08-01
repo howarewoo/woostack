@@ -136,12 +136,31 @@ On unknown outcome, rediscover before retrying. Never duplicate a commit, branch
 After verified delivery, tear down only the exact clean task worktree/claim. Preserve state on
 failure, collision, blocker, handoff, or unknown outcome.
 
+## Fix/build abandonment
+
+If the user or owning controller explicitly abandons a fix/build at any point after execution
+handoff, stop admitting or dispatching work, cancel every active implementation, review, commit, or
+submission driver before its next mutation, and preserve its current branch/worktree/PR evidence
+without cleanup. Re-read Git, Graphite, and GitHub after cancellation and verify every driver is
+quiescent before project closure or handback.
+
+When an exact plan project exists, follow the
+[Linear artifact contract](../woostack-init/references/artifact-backends.md) to set only that
+project's native status to the configured `projectStatuses.canceled` value and independently read
+the closure back. If no exact persisted project exists, report that there is nothing to close and
+make no provider write. Do not create a project merely to cancel it or bulk-change issue states.
+
+Handoff, replanning, blockers, pauses, and failed tasks are not abandonment and leave the project
+open. An unavailable, failed, or unknown closure returns a truthful artifact blocker with the stable
+project identity and safe retry boundary; it never resumes repository work or claims closure.
+
 ## Optional artifact synchronization
 
 Only when explicitly selected, append the persisted task's observed branch, commit, PR, changed
-paths, verification, review, and blockers. Independently read each write back. Do not change artifact
-scope, assignment, ownership, status, acceptance, dependencies, relations, or project membership.
-Artifact failure is separate from repository execution.
+paths, verification, review, and blockers. Independently read each write back. Except for the
+workflow-owned fix/build project closure above, do not change artifact scope, assignment, ownership,
+status, acceptance, dependencies, relations, or project membership. Artifact failure is separate
+from repository execution.
 
 ## Handback
 

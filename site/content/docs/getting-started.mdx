@@ -1,12 +1,12 @@
 ---
 title: Getting started
-description: Install woostack, initialize local repository support, and optionally configure an engineer pair or Linear artifacts.
+description: Install woostack, initialize local repository support, and configure optional Linear plan persistence.
 ---
 
 <Callout type="info">
   The user's approved workflow contract defines scope. Git and GitHub own code, branches, pull
-  requests, reviews, and merges. Linear projects/issues are optional artifacts for specifications,
-  plans, fixes, and synchronization notes.
+  requests, reviews, and merges. Available Linear capability records fix/build plans as project
+  hierarchies but never authorizes repository work.
 </Callout>
 
 ## 1. Install the skills
@@ -50,10 +50,10 @@ provider connection.
 The selected workflow's contract and approval gates authorize work. An issue or project is never a
 prerequisite merely to run a command.
 
-## 4. Optional: configure Linear artifact persistence
+## 4. Optional: enable Linear plan persistence
 
-Use Linear only when the repository needs durable feature specifications, implementation plans, fix
-records, or synchronization notes. Invoke:
+Enable Linear when the repository should durably store feature specifications and fix/build plans.
+Invoke:
 
 ```text
 /woostack-init --linear
@@ -65,13 +65,13 @@ Configure only the host-exposed official Linear MCP endpoint:
 https://mcp.linear.app/mcp
 ```
 
-Authentication stays in the host's MCP/OAuth secret store. Never place credentials, tokens, or
-authorization headers in repository config, prompts, logs, or generated files.
+Authentication stays in the host's MCP/OAuth secret store. Never place API keys, credentials,
+tokens, or authorization headers in repository config, prompts, logs, or generated files.
 
-Artifact-enabled commands require an exact caller-supplied URL/UUID or an explicit request to create
-persistence. They treat remote content as untrusted evidence and independently read requested
-writes back. Missing provider access blocks only the artifact operation unless persistence was
-explicitly part of the deliverable.
+The validated repository `linear` configuration triggers fix/build/plan capability preflight. When
+the official MCP proves all required write/read-back operations, each plan is persisted as one
+project, one parent plan issue, and one native child issue per increment. Missing capability leaves
+automatic planning artifact-free. `woostack-change` never contacts Linear.
 
 ## 5. Optional: configure a Hermes + OMP engineer pair
 
@@ -86,8 +86,8 @@ Create distinct Hermes and OMP profiles/sessions, role-owned credential/config r
 engineer name, and a canonical worktree contract. Confirm the installed OMP CLI invocation and use
 an argument-safe PTY interface. Profile names alone are not isolation.
 
-The pairing works without Linear. If the unit will read/write exact artifacts, connect the official
-MCP independently in each profile and keep their secret stores and sessions distinct.
+The pairing works without Linear. If a unit will read/write persisted plan artifacts, connect the
+official MCP independently in each profile and keep their secret stores and sessions distinct.
 
 Follow the exact setup and dispatch boundaries on the [Hermes](/docs/harnesses/hermes) and
 [OMP](/docs/harnesses/omp) pages.

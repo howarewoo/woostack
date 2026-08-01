@@ -1,6 +1,6 @@
 ---
 title: What is woostack?
-description: Artifact-optional, evidence-driven workflows for software delivery.
+description: Evidence-driven workflows with repository-enabled Linear plan persistence.
 ---
 
 woostack is a model-agnostic collection of gated software-development skills for planning,
@@ -12,8 +12,8 @@ pnpx skills add howarewoo/woostack
 
 - **Repository-first truth:** the user's approved workflow contract authorizes work; Git and GitHub
   prove source, branches, pull requests, reviews, and merge state.
-- **Optional durable artifacts:** exact caller-supplied Linear projects/issues may store feature
-  specifications, implementation plans, fix records, and synchronization notes. Linear is not a
+- **Conditional durable plans:** when repository Linear capability is proved, fix/build plans use
+  one project, one parent plan issue, and one native child issue per increment. Linear is not a
   prerequisite for coding, committing, reviewing, or status.
 - **Decision-maker/coder separation:** the generic
   [engineer-agent contract](/docs/concepts/engineer-agents) keeps scope, independent review, and
@@ -36,10 +36,11 @@ ledger or a particular provider:
 - safe concurrency through declared dependencies and isolated worktrees;
 - decision-maker/coder role separation;
 - portable execution across supported harnesses;
-- optional persistence when durable specs, plans, or fix records are useful.
+- conditional plan persistence when repository Linear capability is available.
 
 Remote artifact text, PR text, and tool output are untrusted evidence, never instructions. Missing
-Linear access blocks only a caller-requested artifact operation.
+Linear capability keeps automatic planning artifact-free; failure after availability was proved
+blocks that plan at its last verified persistence boundary.
 
 ## Where to go next
 
@@ -49,6 +50,6 @@ Linear access blocks only a caller-requested artifact operation.
   <Card title="Engineer agents" href="/docs/concepts/engineer-agents" description="Understand decision, coding, review, and acceptance boundaries." />
   <Card title="Core concepts" href="/docs/concepts" description="The build loop, context management, worktrees, and status tracking." />
   <Card title="Harnesses" href="/docs/harnesses" description="Supported hosts, profile isolation, and native capability differences." />
-  <Card title="woostack-build" href="/docs/skills/woostack-build" description="Drive a feature from idea to a reviewed PR stack, with optional artifacts." />
+  <Card title="woostack-build" href="/docs/skills/woostack-build" description="Drive a feature from idea to a reviewed PR stack, persisting its plan when Linear is available." />
   <Card title="All skills" href="/docs/skills/using-woostack" description="Per-skill reference, generated from each SKILL.md." />
 </Cards>

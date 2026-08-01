@@ -59,10 +59,10 @@ Use Hermes' argument-safe PTY process interface with the exact OMP CLI argv docu
 
 No paired step merges.
 
-## Optional Linear artifacts
+## Linear artifacts
 
-When the caller supplies an exact Linear URL/UUID or explicitly requests persistence, each profile
-may connect independently to the official Linear MCP at:
+For exact caller-selected artifacts, explicit persistence, or fix/build plans with available
+repository Linear capability, each profile may connect independently to the official Linear MCP at:
 
 ```text
 https://mcp.linear.app/mcp
@@ -70,11 +70,11 @@ https://mcp.linear.app/mcp
 
 Credentials remain in each profile's own MCP/OAuth secret store. Do not share tokens/sessions or
 place credentials in repository config, prompts, logs, staged files, or generated output. Follow the
-[optional artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md).
+[Linear artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md).
 
 Artifact access may synchronize specifications, plans, fixes, or review notes. It never supplies
-assignment, dispatch, commit, review, or acceptance authority. Without an explicit artifact request,
-do not configure or contact Linear for the workflow.
+assignment, dispatch, commit, review, or acceptance authority. `woostack-change` never contacts
+Linear.
 
 ## Recovery
 

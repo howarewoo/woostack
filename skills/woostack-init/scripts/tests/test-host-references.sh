@@ -44,8 +44,8 @@ done
 assert_not_contains "$omp" 'agent: quick_task' "OMP never routes to the unavailable quick selector"
 assert_not_contains "$omp" 'agent: oracle' "OMP never routes to the unavailable deep selector"
 assert_contains "$omp" "Never generate or repair project workers during review" "OMP forbids review-time generation"
-assert_contains "$omp" "Artifact-free work makes no Linear call" "OMP keeps artifacts optional"
-assert_contains "$omp" "Missing Linear capability blocks only explicitly requested" "OMP degrades artifact work independently"
+assert_contains "$omp" "Artifact-free work makes no Linear call" "OMP preserves artifact-free operation"
+assert_contains "$omp" "Missing automatic capability keeps fix/build planning" "OMP degrades unavailable automatic persistence"
 
 hermes="$(cat "$H/hermes.md")"
 assert_contains "$hermes" 'native `delegate_task`' "Hermes keeps native default"
@@ -53,7 +53,7 @@ assert_contains "$hermes" "Neither route requires Linear" "Hermes does not requi
 assert_contains "$hermes" "omp --profile <engineer> -p --cwd <worktree> <prompt>" "Hermes pins conceptual OMP argv"
 assert_contains "$hermes" "Arguments are values, not shell source" "Hermes quarantines task text"
 assert_contains "$hermes" "distinct Hermes/OMP sessions and role credentials" "Hermes isolates paired roles"
-assert_contains "$hermes" "Without an artifact request, do not" "Hermes avoids implicit Linear calls"
+assert_contains "$hermes" "fix/build plan whose repository" "Hermes supports repository-enabled plan persistence"
 
 review="$(cat "$S/woostack-review/SKILL.md")"
 assert_eq "$([[ "$review" == *"after angle detection"* ]] && echo y)" "y" \

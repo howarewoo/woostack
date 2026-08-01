@@ -67,10 +67,10 @@ Hermes inspects the complete diff and performs specification then quality review
 may it redispatch the same OMP profile/worktree for one bounded `/woostack-commit` action. Hermes
 then reads the canonical PR/head/diff itself and performs independent review.
 
-## Optional Linear artifacts
+## Linear artifacts
 
-When the caller supplies an exact Linear URL/UUID or explicitly requests persistence, configure the
-official endpoint independently in each profile:
+For exact caller-selected artifacts, explicit persistence, or fix/build plans with available
+repository Linear capability, configure the official endpoint independently in each profile:
 
 ```text
 https://mcp.linear.app/mcp
@@ -78,11 +78,10 @@ https://mcp.linear.app/mcp
 
 Credentials stay in each profile's own MCP/OAuth secret environment and never enter repository
 config, prompts, logs, staged launcher files, or generated output. Follow the
-[optional artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md).
+[Linear artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md).
 
 Artifact access may read or synchronize a spec, plan, fix, or review note. It cannot authorize
-worker dispatch, edits, commit, review, or acceptance. Without an explicit artifact request, make no
-Linear call.
+worker dispatch, edits, commit, review, or acceptance. `woostack-change` never contacts Linear.
 
 ## Recovery
 

@@ -61,18 +61,23 @@ Do not run `/woostack-init`, create `.woostack/`, scaffold code, or add config u
 user explicitly asks for that behavior or the loaded task-specific skill requires it as part
 of an approved workflow.
 
-**Artifact invariant:** Linear projects and issues are optional artifacts for feature
+**Artifact invariant:** Linear projects and issues are durable artifacts for feature
 specifications, implementation plans, and fix records. They never grant implementation permission,
-select work, own a branch, or replace direct Git/GitHub evidence. Artifact-free runs do not contact
-Linear. When the caller explicitly supplies an exact Linear URL/UUID or requests persistence, use
-the canonical [optional artifact contract](../woostack-init/references/artifact-backends.md) and
-independently read mutations back.
+select work, own a branch, or replace direct Git/GitHub evidence. Build/fix planning persists one
+project, one parent plan issue, and one native child issue per increment when validated repository
+policy plus authenticated official MCP preflight proves Linear availability. Otherwise those runs
+stay artifact-free. `woostack-change` never contacts Linear. Explicit fix/build abandonment closes
+any existing plan project through the configured canceled status and independent read-back; handoff,
+replanning, and blockers do not. Exact caller-supplied artifacts and other explicit persistence
+requests follow the canonical
+[Linear artifact contract](../woostack-init/references/artifact-backends.md); every mutation requires
+independent read-back.
 
 **Engineer-agent invariant:** a host that pairs a decision-maker with a coder must follow the
 [provider-neutral engineer-agent authority protocol](references/engineer-agents.md). Each active
 unit pins one standing authority envelope, one stable `ENGINEER_NAME`, one decision-maker
-profile/session, one isolated coding profile/session, and one run. When an explicit Linear artifact
-is used, provider identities and contexts stay separate and artifact operations follow the optional
+profile/session, one isolated coding profile/session, and one run. When Linear artifact persistence
+is active, provider identities and contexts stay separate and artifact operations follow the
 artifact contract. Host mechanics and reviewer delegation never weaken role isolation, bounded
 mutation, review independence, or acceptance authority.
 
@@ -82,10 +87,10 @@ mutation, review independence, or acceptance authority.
 |---|---|
 | `/woostack-init [path] [--migrate-legacy]`, initialize or repair the `.woostack/` workspace, or explicitly migrate tracked legacy development records | `woostack-init` |
 | `/woostack-bootstrap <goal>`, scaffold a new web/mobile/API project | `woostack-bootstrap` |
-| `/woostack-build <goal>`, build a feature through the woostack loop | `woostack-build` |
-| `/woostack-fix <target> [description]`, resolve a bug/issue through the unified fix loop | `woostack-fix` |
-| `/woostack-change <goal>`, implement a bounded non-bug enhancement or refactor that fits one reviewable PR | `woostack-change` |
-| `/woostack-plan <approved specification> [--project <exact Linear URL-or-UUID>]`, produce a PR-sized dependency-aware implementation plan with optional Linear persistence | `woostack-plan` |
+| `/woostack-build <goal> [--project <exact Linear URL-or-UUID>]`, build a feature through the woostack loop and persist its plan when repository Linear is available | `woostack-build` |
+| `/woostack-fix <target> [description] [--project <exact Linear URL-or-UUID>]`, resolve a bug/issue and persist its approved fix plan when repository Linear is available | `woostack-fix` |
+| `/woostack-change <goal>`, implement an artifact-free bounded non-bug enhancement or refactor that fits one reviewable PR | `woostack-change` |
+| `/woostack-plan <approved specification> [--project <exact Linear URL-or-UUID>]`, produce a PR-sized dependency-aware plan and persist its project hierarchy when repository Linear is available | `woostack-plan` |
 | `/woostack-execute <approved plan-or-task> [--project <exact Linear URL-or-UUID>] [--issue <exact Linear URL-or-UUID>] [--inline\|--subagent]`, execute approved work as bounded Graphite PRs | `woostack-execute` |
 | `/woostack-execute-overnight <approved plan> [--project <exact Linear URL-or-UUID>] [--inline\|--subagent]`, execute approved work unattended with a truthful terminal handback | `woostack-execute-overnight` |
 | `/woostack-sweep [PR#] [--base R] [--interactive]`, drive a stack of PRs to a clean review; optional exact artifacts may receive notes | `woostack-sweep` |
@@ -125,7 +130,7 @@ These thoughts mean stop and load the relevant rules:
 | "This is only a review comment." | Review and address flows have posting and validation rules. |
 | "I'll write another plan for this project." | Reconcile the approved specification and any exact caller-supplied plan artifact instead of silently creating competing scope. |
 | "A Linear issue gives me permission to edit." | Artifacts record specs, plans, or fixes; the user request and workflow gates authorize work. |
-| "I'll infer the Linear artifact from the branch." | Artifact use is explicit. Require an exact caller-supplied URL/UUID and otherwise stay artifact-free. |
+| "I'll infer an existing Linear artifact from the branch." | Never fuzzy-match artifacts. Use an exact caller-supplied resource or the fix/build plan's stable automatic creation identity. |
 
 ## AGENTS.md Usage
 

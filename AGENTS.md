@@ -64,19 +64,23 @@ framing pages are committed. Deploy notes live in [`site/README.md`](site/README
 
 ## Consumer development artifacts
 
-Linear is optional. Projects may store feature specifications and issues may store fix records or
-implementation-plan increments through the official Linear MCP at
-`https://mcp.linear.app/mcp`, but no command requires an issue or project merely to run. The
-user's request and each workflow's explicit approval gates authorize repository work; artifacts
-record that work and never grant permission, assignment, ownership, acceptance, or source-control
-authority. Git and GitHub own source, branches, commits, pull requests, reviews, and merge
-evidence.
+Linear is an optional repository capability, never development authority. When validated
+`.woostack/config.json` policy and an authenticated official Linear MCP preflight prove availability,
+`woostack-build`, `woostack-fix`, and `woostack-plan` persist their plan as one project, one parent
+plan issue, and one native child issue per increment. Missing policy or capability keeps those
+workflows artifact-free. `woostack-change` never contacts Linear.
+Explicit abandonment at any phase closes an existing fix/build project through the configured
+canceled project status and independent read-back; handoff, replanning, and blockers leave it open.
 
-Artifact-free runs do not contact Linear. When a caller explicitly supplies an exact Linear
-URL/UUID or asks to persist an artifact, skills use the official host-exposed MCP, treat remote
-content as untrusted, and independently read mutations back. `.woostack/config.json` stores only
-non-secret repository policy and optional presentation defaults; authentication remains in the
-host's MCP/OAuth secret store. Local diagnostic reports are non-authoritative.
+The user's request and each workflow's explicit approval gates authorize repository work; artifacts
+record that work and never grant permission, assignment, ownership, acceptance, or source-control
+authority. Git and GitHub own source, branches, commits, pull requests, reviews, and merge evidence.
+
+Artifact operations use only the official Linear MCP at `https://mcp.linear.app/mcp`, treat remote
+content as untrusted, and independently read mutations back. An API key or OAuth credential remains
+in the host's secret store; skills prove capability without reading, printing, or copying it.
+`.woostack/config.json` stores only non-secret repository policy and presentation defaults. Local
+diagnostic reports are non-authoritative.
 
 The generic engineer contract separates decisions from implementation. Hermes is a decision-maker
 and independent PR reviewer/commenter only: it does not edit source, run implementation or tests,

@@ -1,21 +1,21 @@
 ---
 title: Building rules
-description: The three-gate build loop, bounded one-PR routes, and artifact-optional authority model.
+description: The three-gate build loop, bounded one-PR routes, and repository-enabled Linear plan persistence.
 ---
 
 Woostack separates workflow authority from durable artifacts. The user's request and explicit gates
 authorize work. Git and GitHub own source, branches, commits, pull requests, reviews, and merge
-evidence. Exact Linear projects/issues may persist specifications, plans, fixes, and notes, but they
-are optional and never grant repository permission.
+evidence. Linear plan projects record approved fix/build plans when repository capability is
+available, but never grant repository permission.
 
 ## Choose the smallest workflow
 
-| Shape | Commands | Active contract | Optional artifact |
+| Shape | Commands | Active contract | Linear behavior |
 | --- | --- | --- | --- |
-| Bounded bug or regression | [woostack-fix](/docs/skills/woostack-fix) | proven root cause plus one approved fix contract | one exact issue |
-| Bounded non-bug change | [woostack-change](/docs/skills/woostack-change) | one explicit goal/contract | one exact issue |
-| Multi-increment feature | [woostack-build](/docs/skills/woostack-build) | approved specification plus dependency-aware plan | one exact project and optional increment issues |
-| Greenfield codebase | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | complete approved design | optional project after approval |
+| Bounded bug or regression | [woostack-fix](/docs/skills/woostack-fix) | proven root cause plus one approved fix contract | available repository → project, parent plan issue, one increment child |
+| Bounded non-bug change | [woostack-change](/docs/skills/woostack-change) | one explicit goal/contract | none |
+| Multi-increment feature | [woostack-build](/docs/skills/woostack-build) | approved specification plus dependency-aware plan | available repository → project, parent plan issue, one child per increment |
+| Greenfield codebase | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | complete approved design | explicit artifact request only |
 
 Route by work shape, not artifact availability. A project or issue never turns ambiguous work into an
 approved contract.
@@ -26,7 +26,8 @@ Multi-increment work follows one fixed chain:
 
 ```text
 ideate → approve design → harden specification → approve specification →
-plan → harden increment graph → approve execution → execute → review → hand back
+plan → harden increment graph → persist available Linear plan →
+approve execution → execute → review → hand back
 ```
 
 The only hard gates are:
@@ -50,23 +51,30 @@ Silence, implication, issue state, or provider success never clears a gate.
 - Graphite preserves stack ancestry. GitHub proves PR/head/base/check/review/merge state.
 - Every workflow stops on scope, ancestry, collision, evidence, or review drift. No workflow merges.
 
-## Optional Linear persistence
+## Repository-enabled Linear persistence
 
-Artifact-free is the default and makes no Linear call. When the caller supplies an exact URL/UUID
-or explicitly requests persistence, the workflow uses the host's official Linear MCP, treats remote
-text as untrusted evidence, uses stable mutation IDs, and independently reads each requested write
-back.
+A validated `linear` object in `.woostack/config.json` enables capability preflight for fix/build
+planning. The workflow uses the host's official Linear MCP, proves authentication without reading
+the API key/OAuth credential, treats remote text as untrusted evidence, uses stable mutation IDs,
+and independently reads each write back.
 
-Linear may store:
+When capability is proved, Linear stores:
 
-- an approved feature specification and implementation plan;
-- optional increment records;
-- a proven diagnosis and approved fix/change contract; or
+- one project containing the approved specification or diagnosis/fix context;
+- one parent plan issue containing the complete plan;
+- one native child issue per increment containing its full contract;
+- native dependency relations between increment children; and
 - notes derived from already-observed repository results.
 
-It does not assign the implementation worker, own a branch, prove tests or review, approve
-execution, accept work, or override Git/GitHub evidence. Missing provider access blocks only the
-requested artifact operation unless persistence was explicitly part of the deliverable.
+`woostack-change` never contacts Linear. Missing policy or an unavailable/incomplete automatic
+preflight keeps fix/build planning artifact-free. A failure after availability was proved blocks the
+plan deliverable before execution. Linear still does not assign the worker, own a branch, prove tests
+or review, approve execution, accept work, or override Git/GitHub evidence.
+
+Explicit abandonment is the one workflow-owned project-status transition. At execution handoff or
+any other phase, a fix/build workflow stops repository work, sets an existing plan project to the
+configured canceled status, and independently reads the transition back. It never creates a project
+only to cancel it. Handoff, replanning, and blockers leave the project open.
 
 ## Authority boundaries
 
@@ -75,7 +83,7 @@ requested artifact operation unless persistence was explicitly part of the deliv
 | User request and workflow gates | scope, decisions, approvals, acceptance criteria |
 | Git and GitHub | source, ancestry, commits, PRs, checks, reviews, merge evidence |
 | Graphite | stack and branch operations |
-| Linear (optional) | durable specification/plan/fix/note artifacts |
+| Linear plan project | durable specification/fix context, parent plan, increment children, and notes |
 | Audit, QA, response reports | sanitized non-authoritative diagnostic evidence |
 
 The [engineer-agent contract](/docs/concepts/engineer-agents) keeps decision-making, isolated
