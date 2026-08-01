@@ -132,7 +132,7 @@ coverage classes, and no-runner substitution — lives once in
 [woostack-tdd](../../woostack-tdd/SKILL.md); follow it. This section records only the
 **project-specific** standard layered on top:
 
-**Frameworks:** Vitest everywhere except React Native (uses Jest via `jest-expo`). Playwright for E2E. Test files colocated with source as `*.test.ts(x)` or in `__tests__/`.
+**Frameworks:** Vitest everywhere except React Native (uses Jest via `jest-expo`). Playwright for E2E. Tests for a source file live in a sibling `__tests__/` directory.
 
 A feature is **not complete** until all tests pass.
 
