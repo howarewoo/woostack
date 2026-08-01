@@ -54,6 +54,10 @@ PY
 }
 
 missing="$(run_check)"
+assert_contains "$missing" $'warn\tomp-agent\tauto\t' "missing project OMP agents produce auto-fixable doctor findings"
+for tier in fast standard deep; do
+  assert_contains "$missing" "woostack-$tier.md" "doctor identifies missing $tier role definition"
+done
 assert_contains "$missing" $'warn\tomp-agents\tauto\t' "missing per-engineer launchers produce an auto-fixable doctor finding"
 for launcher in launch-omp bind-engineer-unit; do
   assert_contains "$missing" "$launcher" "doctor identifies missing $launcher"
@@ -66,7 +70,32 @@ assert_eq "$(mode_of "$LAUNCHER_DIR")" "0700" "doctor fix creates a private per-
 for launcher in launch-omp bind-engineer-unit; do
   assert_eq "$(mode_of "$LAUNCHER_DIR/$launcher")" "0500" "doctor fix restores $launcher mode 0500"
 done
-[ ! -e "$REPO/.omp/agents" ] && pass || fail "doctor repair never revives project .omp/agents"
+for tier in fast standard deep; do
+  [ -f "$REPO/.omp/agents/woostack-$tier.md" ] \
+    && pass || fail "doctor repair creates the managed $tier role definition"
+done
+printf '%s\n' 'consumer-owned' >"$REPO/.omp/agents/custom.md"
+printf '%s\n' '---' 'name: woostack-standard' 'model: "@smol"' '---' >"$REPO/.omp/agents/woostack-standard.md"
+role_drift="$(run_check)"
+assert_contains "$role_drift" $'warn\tomp-agent\tauto\t' "doctor reports a wrong-role managed definition"
+assert_contains "$role_drift" "wrong-role:" "doctor distinguishes wrong-role drift"
+fix_check
+assert_contains "$(cat "$REPO/.omp/agents/woostack-standard.md")" 'model: "@default"' \
+  "doctor restores the standard host role"
+assert_eq "$(cat "$REPO/.omp/agents/custom.md")" "consumer-owned" \
+  "doctor repair preserves unrelated project agents"
+printf '%s\n' '# stale body' >>"$REPO/.omp/agents/woostack-fast.md"
+definition_drift="$(run_check)"
+assert_contains "$definition_drift" "drifted:" "doctor reports stale managed definition content"
+fix_check
+assert_eq "$(run_check)" "" "doctor repair clears managed definition drift"
+printf '%s\n' 'consumer-ignore' 'woostack-*.md' 'woostack-*.md' >"$REPO/.omp/agents/.gitignore"
+ignore_drift="$(run_check)"
+assert_contains "$ignore_drift" ".omp/agents/.gitignore" \
+  "doctor reports duplicate generated-agent ignore coverage"
+fix_check
+assert_eq "$(cat "$REPO/.omp/agents/.gitignore")" $'consumer-ignore\nwoostack-*.md' \
+  "doctor repair preserves consumer ignore lines and one managed rule"
 printf '%s\n' 'retired launcher' >"$LAUNCHER_DIR/launch-hermes-review"
 chmod 500 "$LAUNCHER_DIR/launch-hermes-review"
 retired_launcher="$(run_check)"
@@ -151,6 +180,7 @@ missing_name_status=$?
 set -e
 assert_exit 0 "$missing_name_status" "optional doctor check reports rather than crashes without a selected engineer"
 assert_contains "$missing_name" "ENGINEER_NAME must identify" "doctor refuses to guess a per-engineer directory"
-[ ! -e "$REPO/.omp/agents" ] && pass || fail "all doctor repairs remain host-only"
+assert_eq "$(run_check | grep -c $'warn\tomp-agent' || true)" "0" \
+  "agent diagnosis remains clean without a selected engineer"
 
 finish

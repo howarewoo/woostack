@@ -170,7 +170,7 @@ require(stale.search(adoption) is None, "stale 23-public/26-fixed adoption phras
 host_requirements = {
     "omp": (
         r"candidate and baseline's common effective tier",
-        r"same bundled worker",
+        r"same managed worker",
         r"same `tasks\[\]` call",
         r"role pin, not proof of a concrete model",
         r"completion identity",

@@ -20,7 +20,7 @@ same authority, identity, worktree, and evidence boundaries.
 | Harness | Model and effort routing | Working directory | Host behavior |
 | --- | --- | --- | --- |
 | [Hermes Agent](/docs/harnesses/hermes) | Profile-owned delegation; optional pinned OMP implementation profile | Explicit profile and canonical worktree pins | In the selected pair, Hermes decides, reviews, and comments but never codes |
-| [omp (Oh My Pi)](/docs/harnesses/omp) | Host-owned roles through bundled workers; no per-call model knob | Passed when exposed; explicit `--cwd` in the paired process | OMP-owned model identity and recovery; optional isolated coder role |
+| [omp (Oh My Pi)](/docs/harnesses/omp) | Host-owned roles through init-managed project workers; no per-call model knob | Passed when exposed; explicit `--cwd` in the paired process | OMP-owned model identity and recovery; optional isolated coder role |
 | [opencode](/docs/harnesses/opencode) | Per-call model routing | Passed when exposed; prompt pin always | Provider exhaustion surfaces as an error |
 | [Claude Code](/docs/harnesses/claude-code) | Per-call model and supported effort routing | No per-call cwd; subagent self-pins | Provider exhaustion surfaces as an error |
 | [Codex](/docs/harnesses/codex) | Per-call locally; one model per Codex Action job | Passed when exposed; prompt pin always | Local and CI routing differ |
@@ -29,7 +29,8 @@ same authority, identity, worktree, and evidence boundaries.
 
 For normal in-process OMP use,
 [host-owned role routing](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md)
-selects bundled workers while OMP owns concrete models, provider credentials, and fallback policy.
+selects init-managed project workers while OMP owns concrete models, provider credentials, and
+fallback policy.
 The optional engineer pairing is different: a deliberately selected, isolated OMP profile receives
 one approved bounded task from Hermes through the exact profile-pinned process described on the
 [OMP page](/docs/harnesses/omp). Linear is optional artifact context.

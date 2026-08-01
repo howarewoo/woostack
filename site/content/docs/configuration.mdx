@@ -21,8 +21,9 @@ static policy; optional live artifact checks run only when explicitly requested.
 
 **OMP exception:** woostack uses
 [host-owned role routing](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md)
-through bundled workers. OMP ignores `.woostack/config.json` model settings and owns its isolated
-profile, role configuration, concrete model identity, provider authentication, and recovery.
+through three init-managed project workers. OMP ignores `.woostack/config.json` model settings and
+owns its isolated profile, role configuration, concrete model identity, provider authentication,
+and recovery.
 
 There are nine top-level settings:
 
@@ -193,8 +194,8 @@ model and optional effort. The namespace sits at the root, not under `review`, s
 and local subagent drivers can share it.
 
 omp is the host-owned exception. It ignores the entire `models` namespace and maps the effective
-tier to its fixed bundled worker instead. Changing a flat or provider-specific model leaf never
-changes an omp dispatch.
+tier to its fixed init-managed role worker instead. Changing a flat or provider-specific model leaf
+never changes an omp dispatch.
 
 | Host | Repository model config | Flat fallback | Dispatch behavior |
 | --- | --- | --- | --- |

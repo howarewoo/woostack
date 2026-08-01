@@ -9,8 +9,9 @@ authoritative. Linear is optional artifact context.
 ## Subagent spawn
 
 OMP's `task` primitive accepts a worker selector but no per-call model/tier/effort argument.
-Woostack uses the canonical host-owned role mapping from the active installation rather than
-inventing model names or reading repository model preferences.
+Woostack uses three project-scoped neutral workers provisioned by
+[`woostack-init`](../../../woostack-init/SKILL.md). Their model fields point only to OMP's
+host-owned roles; they never read repository model preferences or name a concrete model.
 
 - Batch dependency-independent bounded tasks in one `tasks` call.
 - Pass the exact worktree path and complete contract in each dispatch.
@@ -27,15 +28,20 @@ prompt and require the worker to verify it before reading or writing. A cwd mism
 
 After the calling skill resolves the effective tier, use this fixed host-owned map:
 
-| Effective tier | OMP model role | Built-in worker selector |
+| Effective tier | OMP model role | Project worker selector |
 |---|---|---|
-| `deep -> slow` | `slow` | `agent: oracle` |
-| `standard -> default` | `default` | `agent: task` |
-| `fast -> smol` | `smol` | `agent: quick_task` |
+| `deep -> slow` | `@slow` | `agent: woostack-deep` |
+| `standard -> default` | `@default` | `agent: woostack-standard` |
+| `fast -> smol` | `@smol` | `agent: woostack-fast` |
 
 OMP owns each role's concrete model, provider, thinking level, credential rotation, and retry
 policy. Do not inspect repository model leaves or translate repository fallbacks into a second
 worker dispatch.
+
+The three definitions share one neutral general-purpose worker body. Init creates or updates only
+those managed files under `.omp/agents/` and preserves every other project agent. Review never
+creates or repairs workers; a missing or drifted managed definition must return to init or the
+gated [`woostack-doctor`](../../../woostack-doctor/SKILL.md) repair path.
 
 ## Host-level fallback
 
@@ -67,11 +73,14 @@ artifact synchronization, not otherwise authorized repository work.
 
 ## Per-skill notes
 
-- `woostack-review`: map each angle's tier through the table above; missing receipts fail the
-  existing hard receipt gate.
-- `woostack-commit`: map optional fast drafting to `agent: quick_task`; draft inline if unavailable.
+- `woostack-review`: after angle detection and before any summary, angle, or validator worker,
+  discover the active task-agent registry and require every distinct selector needed by the
+  complete planned run. Missing support aborts the whole swarm before launch. Missing receipts
+  still fail the existing hard receipt gate.
+- `woostack-commit`: map optional fast drafting to `agent: woostack-fast`; draft inline if
+  unavailable.
 - **woostack-eval (comparative dispatch):** map the candidate and baseline's common effective tier
-  to the same bundled worker and start both siblings in the same `tasks[]` call. The selector is a
+  to the same managed worker and start both siblings in the same `tasks[]` call. The selector is a
   role pin, not proof of a concrete model. Use OMP-provided completion identity to prove both
   actions ran with the required identical model and effort; an unprovable identity, host fallback
   divergence, or model/effort divergence fails the mechanics proof. A host mode unable to start
@@ -81,9 +90,10 @@ artifact synchronization, not otherwise authorized repository work.
 
 ## Degradation
 
-Never generate project workers to replace unavailable built-ins. A workflow may fall back inline
-only when its own driver contract explicitly allows it. Preserve the effective tier and report the
-actual missing capability or receipt.
+Never generate or repair project workers during review. Missing managed workers are a capability
+failure that returns to init or gated doctor repair. A workflow may fall back inline only when its
+own driver contract explicitly allows it. Preserve the effective tier and report the actual
+missing capability or receipt.
 
 ## Recovery and handback
 

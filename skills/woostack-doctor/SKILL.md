@@ -56,7 +56,9 @@ the `templates/` shipped there; the woostack collection installs both as sibling
    OAuth-scoped workspace slug, native team ID/key, native mappings, and independent read-back,
    write the normalized non-secret mode-0600 receipt, and run
    `doctor.sh --live-receipt <path> [path]`. Otherwise run
-   `doctor.sh [path]`. The engine validates policy, diagnostics, and local worktree hygiene.
+   `doctor.sh [path]`. The engine validates policy, diagnostics, managed project OMP role-agent
+   definitions, and local worktree hygiene. OMP diagnosis is read-only; only the approved,
+   auto-fixable doctor path may invoke the init provisioner.
    Legacy `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, or
    `.woostack/overnight/` sets produce one blocking migration finding per active or ambiguous set;
    doctor does not run normal lifecycle lint on them and points at the explicit
