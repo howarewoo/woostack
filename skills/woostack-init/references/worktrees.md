@@ -5,21 +5,29 @@ own scope, allocation, dependencies, approval, acceptance, or merge authority. T
 workflow contract owns those decisions; Git, Graphite, and canonical GitHub reads own repository
 state. Linear is optional artifact context only.
 
-`<wi>` below means the installed `woostack-init` skill directory. The helpers are:
+`<wi>` below means the installed `woostack-init` skill directory. Its worktree helper is:
 
-- `<wi>/scripts/resolve-base.sh` — resolve the configured integration base;
-- `<wi>/scripts/worktree-common-root.sh` — resolve the common primary root; and
-- `<wi>/scripts/worktree-id.sh` — collision-safe stable-task-ID encoding.
+- `<wi>/scripts/resolve-base.sh` — resolve the configured integration base.
 
 ## 1. Identity and placement
 
 Every active implementation task has one stable task ID, one controller/engineer run, one branch,
-one worktree, and one registry claim. Never derive identity from a title, ordinal, recent activity,
-issue key, shortened hash, or disposable directory name.
+one worktree, and one registry claim. For filesystem placement, require the ID to be one non-empty
+path component matching `^[A-Za-z0-9][A-Za-z0-9._-]*$`; reject separators, whitespace, and any
+other encoding. Never derive identity from a title, ordinal, recent activity, issue key, shortened
+hash, or disposable directory name.
 
 The physical primary root is the common Git directory's repository root, not whichever worktree the
-caller currently occupies. Place task worktrees under a sibling administration root resolved by the
-helper; never nest them inside another worktree or a tracked source directory.
+caller currently occupies. Resolve it inline from any checkout:
+
+```sh
+git_common_dir="$(git rev-parse --git-common-dir)"
+WOOSTACK_ROOT="$(cd "$git_common_dir/.." && pwd -P)"
+```
+
+Place each task worktree at
+`$WOOSTACK_ROOT/.woostack/worktrees/tasks/<stable-task-id>`; never nest it inside another task
+worktree or a tracked source directory.
 
 Optional exact Linear project/issue IDs may be recorded as descriptive context, but cannot replace
 the stable task ID or any repository identity.
