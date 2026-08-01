@@ -22,48 +22,51 @@ for file in "$BUILD_SKILL" "$PROCEDURE" "$CONTEXT" "$AUTHORITY"; do
 done
 
 assert_literal "$BUILD_SKILL" \
-  'Linear projects and issues may persist those artifacts' \
-  'build admits artifact-free design, specification, and planning'
+  'When repository Linear availability is proved, the plan is' \
+  'build persists plans when repository Linear is available'
 assert_literal "$BUILD_SKILL" \
   'The user'\''s request and the three explicit gates authorize this workflow' \
   'workflow gates, not artifacts, authorize work'
 assert_literal "$BUILD_SKILL" \
-  'Without explicit artifact' \
-  'artifact-free build makes no Linear call'
+  'Missing configuration or unavailable/incomplete capability keeps the build artifact-free' \
+  'unavailable Linear keeps build artifact-free'
 assert_literal "$BUILD_SKILL" \
   'ideate → approve design → harden specification → approve specification →' \
   'build preserves the ordered design and specification gates'
 assert_literal "$BUILD_SKILL" \
-  'plan → harden increment graph → approve execution → execute → review → hand back' \
-  'build preserves the ordered planning and execution handoff'
+  'plan → harden increment graph → persist available Linear plan → approve execution →' \
+  'build preserves planning, persistence, and execution ordering'
 assert_literal "$BUILD_SKILL" \
   'Build owns exactly these three barriers, in this order' \
   'build retains exactly three explicit gates'
 assert_literal "$BUILD_SKILL" \
-  'No implementation branch, worktree, commit, or PR may exist before an explicit' \
+  'No implementation branch, worktree,' \
   'implementation stays behind execution approval'
 assert_literal "$BUILD_SKILL" \
   'Build never creates a docs-only base PR and never merges' \
   'retired docs-only approval PR remains absent'
 
 assert_literal "$PROCEDURE" \
-  'It runs only when the caller selected artifact persistence' \
-  'Linear procedure is opt-in synchronization'
+  'repository Linear availability is proved' \
+  'Linear procedure supports repository-enabled synchronization'
 assert_literal "$PROCEDURE" \
-  'Never create a project merely because build, plan, or' \
-  'build never creates an implicit project'
+  'one parent plan issue in the project' \
+  'plan hierarchy has one parent issue'
+assert_literal "$PROCEDURE" \
+  'one native child issue under that parent for every increment' \
+  'plan hierarchy has one child per increment'
 assert_literal "$PROCEDURE" \
   'Independently read every append or update back' \
-  'optional artifact writes require independent read-back'
+  'artifact writes require independent read-back'
 assert_literal "$PROCEDURE" \
-  'Artifact failure blocks the repository workflow only when successful persistence was explicitly' \
-  'artifact failure is scoped to the requested deliverable'
+  'blocks the plan deliverable and execution handoff' \
+  'post-availability failure blocks plan handoff'
 
 assert_literal "$CONTEXT" \
-  'Artifact-free build and planning runs skip this' \
-  'project context is skipped in artifact-free mode'
+  'unavailable automatic preflight falls back to artifact-free planning' \
+  'unavailable project capability falls back artifact-free'
 assert_literal "$CONTEXT" \
-  'They do not assign an engineer, clear a workflow gate, authorize execution, prove delivery' \
+  'They do not assign an engineer, clear a workflow gate, authorize' \
   'provider fields remain descriptive'
 assert_literal "$AUTHORITY" \
   'No woostack command requires an issue or project merely to run' \

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Structural contract: Linear stores optional artifacts; it never gates repository work.
+# Structural contract: Linear stores plans when available; it never grants repository authority.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -37,6 +37,10 @@ for pattern, message in (
     (r"stable client-generated operation ID", "idempotent mutation rule missing"),
     (r"perform a new independent complete read", "read-back rule missing"),
     (r"blocks only requested artifact use", "artifact-independent degradation missing"),
+    (r"projectStatuses\.canceled.*native canceled-category project status", "canceled-status preflight missing"),
+    (r"Explicit abandonment is a terminal workflow action, distinct from handoff, replan, or a blocker", "abandonment distinction missing"),
+    (r"Do not archive or delete the project, bulk-change issue states, or create a project merely to cancel it", "safe project closure missing"),
+    (r"failed or unknown closure produces a truthful artifact blocker", "closure failure boundary missing"),
 ):
     if not re.search(pattern, contract, re.I):
         failures.append(f"artifact-backends.md: {message}")
@@ -45,16 +49,20 @@ config = json.loads((root / "skills/woostack-init/templates/config.json").read_t
 if "linear" in config and config["linear"] != {}:
     failures.append("templates/config.json: Linear defaults must be absent or opt-in and empty")
 
-for name in ("woostack-commit", "woostack-fix", "woostack-change", "woostack-build", "woostack-plan", "woostack-execute"):
+for name in ("woostack-build", "woostack-fix", "woostack-plan"):
     text = re.sub(r"\s+", " ", (root / "skills" / name / "SKILL.md").read_text(encoding="utf-8"))
-    if not re.search(r"Linear (?:is )?(?:an )?optional|optional Linear|artifact-free|Without (?:it|artifact flags), make no Linear call", text, re.I):
-        failures.append(f"{name}: does not state artifact-free operation")
+    if not re.search(r"availability.*proved|capability.*preflight", text, re.I):
+        failures.append(f"{name}: does not declare repository-enabled persistence")
+
+change = re.sub(r"\s+", " ", (root / "skills/woostack-change/SKILL.md").read_text(encoding="utf-8"))
+if not re.search(r"never reads or writes Linear", change, re.I):
+    failures.append("woostack-change: does not remain Linear-free")
 
 if failures:
-    print("Artifact-optional contract violations:", file=sys.stderr)
+    print("Linear plan contract violations:", file=sys.stderr)
     for failure in failures:
         print(f"  {failure}", file=sys.stderr)
     raise SystemExit(1)
 
-print("artifact-optional contract: ok")
+print("Linear plan contract: ok")
 PY

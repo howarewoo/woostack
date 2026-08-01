@@ -183,14 +183,8 @@ test('configuration docs follow the scaffold and Linear contract', async () => {
     readFile(path.join(repoRoot, 'skills', 'woostack-audit', 'SKILL.md'), 'utf8'),
   ]);
   const template = JSON.parse(templateRaw);
-  assert.deepEqual(Object.keys(template), ['linear', 'models', 'review', 'respond', 'status']);
-  assert.deepEqual(Object.keys(template.linear), [
-    'repository',
-    'workspace',
-    'team',
-    'projectStatuses',
-    'issueStates',
-  ]);
+  assert.deepEqual(Object.keys(template), ['models', 'review', 'respond', 'status']);
+  assert.equal(template.linear, undefined);
   assert.equal(template.artifacts, undefined);
 
   const exampleMatch = /## A complete repository-policy example[\s\S]*?```json\n([\s\S]*?)\n```/.exec(configuration);
@@ -198,25 +192,23 @@ test('configuration docs follow the scaffold and Linear contract', async () => {
   const example = JSON.parse(exampleMatch[1]);
   assert.deepEqual(
     Object.keys(example).sort(),
-    ['audit', 'base_branch', 'commit', 'linear', 'models', 'respond', 'review', 'review_sweep', 'status']
+    ['audit', 'base_branch', 'commit', 'models', 'respond', 'review', 'review_sweep', 'status']
   );
   assert.ok(example.models);
+  assert.equal(example.linear, undefined);
   assert.equal(example.artifacts, undefined);
-  assert.deepEqual(example.linear.repository, 'https://github.com/owner/repository');
-  assert.ok(example.linear.workspace);
-  assert.ok(example.linear.team);
   assert.equal(example.audit.models, undefined);
 
-  assert.match(configuration, /ships five\s+top-level keys: `linear`, `models`, `review`, `respond`, and `status`/);
+  assert.match(configuration, /ships four\s+top-level keys: `models`, `review`, `respond`, and `status`/);
   assert.match(configuration, /There are nine top-level settings:/);
   assert.doesNotMatch(configuration, /\| `artifacts` \|/);
   assert.match(configuration, /\| `linear` \|/);
   assert.match(configuration, /\| `audit` \|/);
-  assert.match(configuration, /^## Linear MCP development authority$/m);
+  assert.match(configuration, /^## Linear plan configuration$/m);
   assert.match(configuration, /^## Audit engine$/m);
   assert.match(configuration, /`audit\.severity_floor`/);
   assert.match(configuration, /Root model tiers also drive \[woostack-audit\]/);
-  assert.match(configuration, /discovers and preflights the official MCP capabilities/);
+  assert.match(configuration, /enables automatic\s+availability preflight/);
 
   const { fm, body } = parseFrontmatter(auditRaw, 'woostack-audit');
   const renderedBody = rewriteLinks(

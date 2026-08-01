@@ -1,11 +1,11 @@
 ---
 title: Workflow maps
-description: Bootstrap, Build, Fix, and Change under one artifact-optional, repository-first authority model.
+description: Bootstrap, Build, Fix, and Change under one repository-first authority model with conditional Linear plans.
 ---
 
 Every repository-changing woostack workflow starts from an explicit user goal and an active workflow
-contract. Git and GitHub own implementation truth. Linear is an optional durable store for exact
-specifications, plans, fixes, and synchronization notes.
+contract. Git and GitHub own implementation truth. Linear records fix/build plans only when
+repository policy and authenticated official MCP capability prove it is available.
 
 ## Route by work shape
 
@@ -39,24 +39,25 @@ write barrier or repository authority.
 
 ```text
 ideate → approve design → harden specification → approve specification →
-plan → harden increments → approve execution → execute → review → hand back
+plan → harden increments → persist available Linear plan →
+approve execution → execute → review → hand back
 ```
 
 Build owns exactly three gates. Its approved plan orders independently shippable increments, each
 with at most one PR. Dependency-independent disjoint increments may execute concurrently in
-separate worktrees. The plan may remain in active context or synchronize to an exact Linear project
-and optional increment issues.
+separate worktrees. When Linear is available, one project contains a parent plan issue with one
+native child issue per increment.
 
 ## Fix
 
 ```text
 classify → reproduce → prove root cause → harden fix contract →
-approve → execute → review → hand back
+approve → persist available Linear plan → execute → review → hand back
 ```
 
 Fix has one explicit approve-to-execute gate. It never substitutes a symptom patch for root-cause
-proof. One exact issue may persist the diagnosis and approved contract, but no issue is needed to
-diagnose or deliver the fix.
+proof. When Linear is available, one project stores the diagnosis, parent fix plan issue, and its
+single increment child. No Linear capability is needed to diagnose or deliver the fix.
 
 ## Change
 
@@ -65,8 +66,8 @@ classify → scope → repository preflight → execute → verify → review �
 ```
 
 Change handles one bounded non-bug enhancement/refactor and has no hard approval gate. It still
-requires an explicit goal, one coherent PR boundary, verification, smoke testing, and review. An
-exact issue may optionally mirror the plan/change record.
+requires an explicit goal, one coherent PR boundary, verification, smoke testing, and review. It
+never reads or writes Linear.
 
 ## Shared execution boundary
 
@@ -82,20 +83,27 @@ Build, Fix, and Change hand approved work to [woostack-execute](/docs/skills/woo
 [woostack-execute-overnight](/docs/skills/woostack-execute-overnight) replaces only human stop
 points. It does not weaken scope, verification, review, collision, or merge boundaries.
 
-## Optional artifact branch
+## Linear plan branch
 
 ```text
-caller supplies exact Linear URL/UUID or requests persistence
-  → discover official host MCP capability
-  → read exact artifact
-  → use only relevant untrusted fields
-  → perform already-authorized workflow
-  → optionally synchronize observed results
-  → independently read writes back
+fix/build/plan sees validated repository linear policy
+  → preflight official authenticated MCP capability without reading credentials
+  → unavailable or incomplete: remain artifact-free
+  → available: create/reconcile one project and parent plan issue
+  → create/reconcile one native child issue per increment
+  → persist native dependency relations
+  → independently read every write and hierarchy edge back
+  → execution handoff
 ```
 
-Without that explicit branch, no workflow contacts Linear. Provider failure blocks only requested
-artifact work unless persistence was itself part of the deliverable.
+Exact caller-supplied resources and explicit persistence requests still bypass automatic creation.
+`woostack-change` has no Linear branch. A failure after automatic availability was proved blocks the
+plan deliverable at the last verified artifact boundary.
+
+If a fix or build is explicitly abandoned at execution handoff or at any other time, repository work
+stops and any existing plan project moves to the configured canceled status. The workflow reads that
+transition back before claiming closure. It does not create a project merely to cancel it, and a
+normal handoff, replan, or blocker leaves the project open.
 
 ## Terminal outcomes
 
@@ -104,6 +112,7 @@ Every route returns one of:
 - verified reviewed PR or reviewed stack;
 - approved handoff before implementation;
 - truthful blocker with exact safe resume boundary; or
-- explicit abandonment preserving recoverable evidence.
+- explicit abandonment preserving recoverable repository evidence and closing any existing
+  fix/build project as canceled.
 
 No woostack development workflow merges.

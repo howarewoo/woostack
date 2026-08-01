@@ -116,13 +116,31 @@ blocking threads resolve, ancestry is correct, and no uncommitted worker changes
 The implementing coder never acts as its own reviewer. Review workers remain read-only and have no
 repository-write, GitHub-posting, artifact, acceptance, or merge authority.
 
+## Fix/build abandonment
+
+An explicit user or owning-controller decision to abandon the fix/build stops every new dispatch
+and cancels every active implementation, verification, review, commit, or submission driver before
+its next mutation. Preserve current worktrees, branches, commits, and PRs without cleanup, re-read
+Git/Graphite/GitHub after cancellation, and verify every driver is quiescent before project closure
+or terminal handback.
+
+If an exact plan project exists, follow the
+[Linear artifact contract](../woostack-init/references/artifact-backends.md) to set only that
+project's native status to the configured `projectStatuses.canceled` value and independently read
+the closure back. If no exact persisted project exists, report that there is nothing to close and
+make no provider write. Never create a project merely to cancel it or bulk-change issue states.
+
+A task failure, blocker, pause, ordinary handoff, or replan is not abandonment and leaves the
+project open. A failed or unknown closure becomes a truthful terminal artifact blocker with the
+stable project identity and safe retry boundary; unattended execution does not resume.
+
 ## Optional artifact synchronization
 
 Only when selected, mirror the approved plan and requested task/PR evidence to the exact project or
 issue. Perform one minimal mutation at a real boundary, use a stable operation ID, preserve
-unrelated content, and independently read back the target. Do not mutate assignee, delegate, native
-status, relations, membership, or archival state unless the caller explicitly requested that exact
-metadata operation.
+unrelated content, and independently read back the target. Except for the workflow-owned fix/build
+project closure above, do not mutate assignee, delegate, native status, relations, membership, or
+archival state unless the caller explicitly requested that exact metadata operation.
 
 Artifact synchronization results are reported separately. Never delay safe repository handback
 merely to manufacture an artifact lifecycle.

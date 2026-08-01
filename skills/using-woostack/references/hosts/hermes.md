@@ -89,14 +89,14 @@ the isolated OMP launcher, profile, worktree, or role credentials cannot be prov
 the optional pair into a shared or unprofiled process; use the generic route or stop at the safe
 boundary.
 
-## Optional Linear artifacts
+## Linear artifacts
 
-If the caller supplies an exact Linear URL/UUID or requests persistence, both profiles may use the
-official host-exposed Linear MCP under the
-[optional artifact contract](../../../woostack-init/references/artifact-backends.md). Keep their
-secret stores and sessions distinct. Artifact access may synchronize specs, plans, fixes, or review
-notes but never authorizes dispatch or repository mutation. Without an artifact request, do not
-configure or contact Linear for the workflow.
+For exact caller-selected artifacts, explicit persistence, or a fix/build plan whose repository
+preflight proves Linear availability, both profiles may use the official host-exposed Linear MCP
+under the [Linear artifact contract](../../../woostack-init/references/artifact-backends.md). Keep
+their secret stores and sessions distinct. Prove capability without reading an API key or OAuth
+credential. Artifact access may synchronize specs, plans, fixes, or review notes but never
+authorizes dispatch or repository mutation. `woostack-change` never contacts Linear.
 
 ## Source grounding
 

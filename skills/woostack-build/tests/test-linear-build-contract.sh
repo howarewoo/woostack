@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Structural contract for the artifact-optional build loop.
+# Structural contract for repository-enabled Linear plan persistence in the build loop.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
@@ -33,16 +33,19 @@ for needle in (
     "**design-approval**",
     "**spec-approval**",
     "**execution-handoff**",
-    "Linear persistence is opt-in",
-    "Without explicit artifact",
+    "A complete preflight makes plan persistence",
+    "Missing configuration or unavailable/incomplete capability keeps the build artifact-free",
     "No implementation Git artifact exists before an explicit `Go` or",
+    "explicit abandonment must set an existing exact fix/build project's native status",
+    "If no project exists, report that there is nothing to close",
+    "Hand off**, **Replan**, and blocker handling are not abandonment",
 ):
     require("build", needle)
 
 require("ideate", "approved design lives in the conversation")
 require("ideate", "optional Linear persistence")
 require("harden", "Linear is never required and never owns approval")
-require("plan", "Without `--project`, return the complete plan in the conversation and do not contact Linear")
+require("plan", "one parent plan issue containing the complete plan")
 require("execute", "Exact Linear project/issue artifacts are optional")
 require("overnight", "Optional Linear artifacts may mirror the plan and evidence")
 
@@ -50,7 +53,7 @@ for name in text:
     forbid(name, r"(?:requires?|must have) (?:an? |one |exact )?(?:managed )?Linear (?:issue|project)")
 
 if failures:
-    print("artifact-optional build contract violations:", file=sys.stderr)
+    print("repository-enabled build contract violations:", file=sys.stderr)
     for failure in failures:
         print(f"  - {failure}", file=sys.stderr)
     raise SystemExit(1)

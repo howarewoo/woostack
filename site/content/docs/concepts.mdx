@@ -1,15 +1,15 @@
 ---
 title: Core concepts
-description: Artifact-optional collaboration, the gated build loop, and context-efficient engineering.
+description: Repository-first authority, repository-enabled plan persistence, and the gated build loop.
 ---
 
 import { ContextEconomy } from '@/components/concepts/context-economy';
 
-woostack is a multiperson development workflow with repository-first evidence and optional durable
-artifacts. The user's approved workflow contract defines scope and approval. Git and GitHub own
-source, branches, commits, pull requests, reviews, and merge evidence. Exact caller-supplied Linear
-projects/issues may persist feature specifications, implementation plans, fix records, and
-synchronization notes, but they never authorize repository work.
+woostack is a multiperson development workflow with repository-first evidence and optional Linear
+capability. The user's approved workflow contract defines scope and approval. Git and GitHub own
+source, branches, commits, pull requests, reviews, and merge evidence. When repository Linear
+availability is proved, build/fix plans are persisted as projects with a parent plan issue and one
+native child issue per increment. Those artifacts never authorize repository work.
 
 ## The build loop
 
@@ -17,15 +17,20 @@ synchronization notes, but they never authorize repository work.
 independently shippable increments. It chains a fixed sequence:
 
 > ideate → **approve design** → harden specification → **approve spec** → build a dependency-aware
-> increment plan → **execution handoff** → execute and review one increment at a time
+> increment plan → persist the available Linear project hierarchy → **execution handoff** → execute
+> and review one increment at a time
 
-The specification and plan may remain in the conversation, use a repository-authorized local
-artifact, or be persisted to an exact Linear project. Ordered increments remain independently
-shippable and map to reviewable PRs.
+Ordered increments remain independently shippable and map to reviewable PRs. Without configured,
+authenticated Linear capability, the specification and plan remain in the active workflow.
 
 Bounded one-PR work takes a smaller route. [woostack-fix](/docs/skills/woostack-fix) proves a root
-cause and approves one fix contract. [woostack-change](/docs/skills/woostack-change) executes one
-explicit bounded enhancement/refactor. Either may synchronize an exact Linear issue when requested.
+cause, approves one fix contract, and persists its one-increment plan project when Linear is
+available. [woostack-change](/docs/skills/woostack-change) executes one explicit bounded
+enhancement/refactor without contacting Linear.
+
+An explicit fix/build abandonment stops repository work and moves any existing plan project to the
+configured canceled status, with independent read-back. Normal handoff, replanning, and blockers do
+not close the project, and no project is created merely to record an artifact-free abandonment.
 
 ## Three hard gates
 
@@ -44,12 +49,12 @@ steps, not additional approval gates. Silence never clears a gate.
 | --- | --- | --- |
 | Use when | One bounded fix/change can ship in one PR | A feature needs multiple independently shippable increments |
 | Active contract | Approved goal/fix contract | Approved specification plus dependency-aware plan |
-| Optional Linear artifact | One exact issue | One exact project plus optional increment issues |
+| Linear plan | Fix: project → parent plan issue → one increment child. Change: none | Project → parent plan issue → one child per increment |
 | Evidence | Direct repository/PR evidence | Direct repository/PR evidence per increment |
 | Code delivery | One GitHub PR | One GitHub PR per increment |
 
-These shapes are chosen by work size, not by storage provider. Artifact-free and artifact-backed
-runs use the same approval, implementation, verification, and review gates.
+These shapes are chosen by work size, not by storage provider. Linear persistence never changes the
+approval, implementation, verification, or review gates.
 
 ## Context economy
 
@@ -77,9 +82,10 @@ rather than every input. Review prefetch gathers the relevant diff, metadata, an
 once for independent analysis. Status and development workflows retain only the verified MCP
 identities and receipts required for the current decision.
 
-Optional artifact access uses the host's authenticated official Linear MCP connection. Skills
-discover capabilities, read only exact caller-supplied resources, and independently read requested
-mutations back. Missing capability stops that artifact operation, not repository work.
+Repository-enabled artifact access uses the host's authenticated official Linear MCP connection.
+Skills prove capability without reading credentials and independently read mutations back. An
+unavailable preflight keeps automatic fix/build planning artifact-free; a failure after availability
+was proved blocks that plan before execution.
 
 ### Decision-makers and coders stay isolated
 

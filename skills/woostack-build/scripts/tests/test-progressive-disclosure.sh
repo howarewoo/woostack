@@ -23,7 +23,7 @@ for file in "$SKILL" "$PROCEDURE" "$CONTEXT" "$AUTHORITY"; do
   if [ -f "$file" ]; then pass; else fail "required workflow reference exists: ${file#"$ROOT/"}"; fi
 done
 
-# The root keeps the complete gate sequence and discloses optional references only when selected.
+# The root keeps the complete gate sequence and discloses Linear references at the plan boundary.
 for heading in \
   '## Overview' \
   '## Authority and artifact context' \
@@ -34,7 +34,7 @@ for heading in \
   assert_literal "$SKILL" "$heading" "root retains workflow section: $heading"
 done
 assert_literal "$SKILL" \
-  '[optional artifact contract](../woostack-init/references/artifact-backends.md)' \
+  '[Linear artifact contract](../woostack-init/references/artifact-backends.md)' \
   'root links the shared artifact contract'
 assert_literal "$SKILL" \
   '[repository/project context procedure](references/linear-context.md)' \
@@ -43,19 +43,19 @@ assert_literal "$SKILL" \
   '[Linear synchronization procedure](references/linear-procedure.md)' \
   'root links the provider synchronization procedure'
 assert_literal "$SKILL" \
-  'Without explicit artifact' \
-  'root keeps provider references off the artifact-free path'
+  'A complete preflight makes plan persistence' \
+  'root declares repository-enabled plan persistence'
 
 root_lines="$(wc -l < "$SKILL" | tr -d ' ')"
 if [ "$root_lines" -le 500 ]; then pass; else
   fail "root stays at or below approximately 500 lines (actual: $root_lines)"
 fi
 
-# Provider details remain progressively disclosed behind the optional-artifact branch.
+# Provider details remain progressively disclosed behind the plan-persistence branch.
 for heading in \
   '## Selection or creation' \
   '## Specification synchronization' \
-  '## Plan synchronization' \
+  '## Plan hierarchy synchronization' \
   '## Delivery notes' \
   '## Failures and resume'; do
   assert_literal "$PROCEDURE" "$heading" "Linear procedure retains section: $heading"
@@ -70,20 +70,20 @@ for heading in \
 done
 
 assert_literal "$PROCEDURE" \
-  'workflow gate, phase, assignment, execution, acceptance, or repository authority' \
+  'It owns no workflow gate,' \
   'synchronization procedure cannot grant workflow authority'
 assert_literal "$CONTEXT" \
-  'Missing, multiple, partial, foreign, stale, or conflicting results block only this artifact path' \
+  'Missing, multiple, partial, foreign, stale, or conflicting results block this artifact path' \
   'artifact context failures stay scoped'
 assert_literal "$CONTEXT" \
   'A mutation response alone is not proof' \
   'artifact context preserves independent read-back'
 assert_literal "$AUTHORITY" \
-  'Artifact-free operation is the' \
-  'shared contract declares the default mode'
+  'Artifact-free operation remains' \
+  'shared contract preserves artifact-free operation'
 assert_literal "$AUTHORITY" \
-  'Otherwise make no Linear call' \
-  'shared contract prohibits implicit provider discovery'
+  'one project, one parent plan issue, and one' \
+  'shared contract declares the required plan hierarchy'
 assert_literal "$AUTHORITY" \
   'Report repository delivery and artifact synchronization as separate outcomes' \
   'shared contract reports repository and artifact results separately'
