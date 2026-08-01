@@ -117,9 +117,10 @@
         "startCommitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "readBack": "complete"
       },
-      "registry": {
-        "key": "20000000-0000-4000-8000-000000000201",
-        "state": "absent",
+      "worktreePreflight": {
+        "deterministicPath": "/repo/.woostack/worktrees/tasks/20000000-0000-4000-8000-000000000201",
+        "filesystemState": "absent",
+        "worktreeListState": "absent",
         "readBack": "complete"
       },
       "preSideEffectRecheck": {
@@ -128,13 +129,13 @@
         "ownerReadBack": "complete",
         "assignmentAcceptedId": "30000000-0000-4000-9000-000000000201",
         "relationsReadBack": "complete",
-        "registryReadBack": "complete",
+        "worktreeReadBack": "complete",
         "drift": false,
         "sideEffectsBeforeRecheck": false
       },
       "requestedBoundary": "submitted",
       "execution": {
-        "registryAcquired": true,
+        "worktreeCreated": true,
         "implementationComplete": true,
         "testsPassed": true,
         "precommitReview": {
@@ -161,7 +162,7 @@
         "issueState": "inReview",
         "issueStateReadBack": "complete",
         "ownerReadBackBeforeBoundaries": {
-          "registry": true,
+          "worktree": true,
           "edit": true,
           "test": true,
           "review": true,
@@ -267,9 +268,10 @@
         "startCommitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "readBack": "complete"
       },
-      "registry": {
-        "key": "20000000-0000-4000-8000-000000000202",
-        "state": "absent",
+      "worktreePreflight": {
+        "deterministicPath": "/repo/.woostack/worktrees/tasks/20000000-0000-4000-8000-000000000202",
+        "filesystemState": "absent",
+        "worktreeListState": "absent",
         "readBack": "complete"
       },
       "preSideEffectRecheck": {
@@ -278,13 +280,13 @@
         "ownerReadBack": "complete",
         "assignmentAcceptedId": "30000000-0000-4000-9000-000000000202",
         "relationsReadBack": "complete",
-        "registryReadBack": "complete",
+        "worktreeReadBack": "complete",
         "drift": false,
         "sideEffectsBeforeRecheck": false
       },
       "requestedBoundary": "submitted",
       "execution": {
-        "registryAcquired": true,
+        "worktreeCreated": true,
         "implementationComplete": true,
         "testsPassed": true,
         "precommitReview": {
@@ -311,7 +313,7 @@
         "issueState": "inReview",
         "issueStateReadBack": "complete",
         "ownerReadBackBeforeBoundaries": {
-          "registry": true,
+          "worktree": true,
           "edit": true,
           "test": true,
           "review": true,
@@ -333,7 +335,7 @@
     "sharedCodingProfile": false,
     "sharedRunId": false,
     "sharedIssueId": false,
-    "sharedRegistryKey": false,
+    "sharedWorktreePath": false,
     "sharedDecisionMakerSession": false,
     "sharedCodingSession": false,
     "leadAllocationsBeforeAcceptance": true,

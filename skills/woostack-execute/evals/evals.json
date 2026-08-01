@@ -7,7 +7,7 @@
       "fixturePassthroughAssertions": [
         {"assertionId": "root-issue","fixture": "execution-record.json","pointer": "/scenarios/0/events/0/data/issueId"},
         {"assertionId": "root-issue","fixture": "execution-record.json","pointer": "/scenarios/0/events/0/envelope/issueId"},
-        {"assertionId": "root-issue","fixture": "execution-record.json","pointer": "/scenarios/0/registry/issueId"},
+        {"assertionId": "root-issue","fixture": "execution-record.json","pointer": "/scenarios/0/taskContract/issueId"},
         {"assertionId": "root-issue","fixture": "execution-record.json","pointer": "/scenarios/4/ancestry/parent/issueId"},
         {"assertionId": "root-parent","fixture": "execution-record.json","pointer": "/scenarios/0/ancestry/graphiteParent"},
         {"assertionId": "root-parent","fixture": "execution-record.json","pointer": "/scenarios/1/ancestry/graphiteParent"},
@@ -22,7 +22,7 @@
         {"assertionId": "root-start","fixture": "execution-record.json","pointer": "/scenarios/7/ancestry/startCommitSha"},
         {"assertionId": "root-start","fixture": "execution-record.json","pointer": "/scenarios/9/ancestry/startCommitSha"}
       ],
-      "prompt": "Inspect only scenario verified-independent-root in fixtures/execution-record.json. Do not run Git, Linear, network, provider, shell, or mutation commands. Apply the packaged execute controller and return exactly one JSON object with keys status, reason, issueId, startCommitSha, graphiteParent, registryKey, assignmentAcceptedVerified, localAuthorityAccepted, and nextBoundary. Set assignmentAcceptedVerified true only after validating the raw canonical comment record's exact six-field shape, exact issueEvent envelope and assignmentAccepted data keys, native comment ID, authoritative timestamp, native actor, stable client UUID, current revision/supersession chain, empty initial relatedIds, and complete independent read-back; resolve current revision by identity/revision/time, never array position. Admit work only from complete official-MCP identity, owner, assignment, ancestry, and exact-ID registry receipts.",
+      "prompt": "Inspect only scenario verified-independent-root in fixtures/execution-record.json. Do not run Git, Linear, network, provider, shell, or mutation commands. Apply the packaged execute controller and return exactly one JSON object with keys status, reason, issueId, startCommitSha, graphiteParent, stableTaskId, assignmentAcceptedVerified, directRepositoryStateVerified, localAuthorityAccepted, and nextBoundary. Set assignmentAcceptedVerified true only after validating the raw canonical comment record's exact six-field shape, exact issueEvent envelope and assignmentAccepted data keys, native comment ID, authoritative timestamp, native actor, stable client UUID, current revision/supersession chain, empty initial relatedIds, and complete independent read-back; resolve current revision by identity/revision/time, never array position. Set directRepositoryStateVerified true only after the deterministic path, filesystem state, worktree-list result, local and remote heads, Graphite parent, dirty state, index state, diff state, and complete read-back agree. Admit work only from complete official-MCP identity, owner, assignment, ancestry, approved task/run contract, and direct repository evidence.",
       "fixtures": [
         "execution-record.json"
       ],
@@ -67,9 +67,9 @@
           "critical": true
         },
         {
-          "id": "root-registry-key",
+          "id": "root-stable-task-id",
           "kind": "final-json-path-equals",
-          "pointer": "/registryKey",
+          "pointer": "/stableTaskId",
           "expected": "22222222-2222-4222-8222-222222222222",
           "critical": true
         },
@@ -77,6 +77,13 @@
           "id": "root-assignment-receipt",
           "kind": "final-json-path-equals",
           "pointer": "/assignmentAcceptedVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "root-direct-repository-state",
+          "kind": "final-json-path-equals",
+          "pointer": "/directRepositoryStateVerified",
           "expected": true,
           "critical": true
         },
@@ -100,11 +107,11 @@
       "id": "admits-verified-standalone-issue",
       "fixturePassthroughAssertions": [
         {"assertionId": "standalone-no-project","fixture": "execution-record.json","pointer": "/scenarios/1/issue/projectId"},
-        {"assertionId": "standalone-no-project","fixture": "execution-record.json","pointer": "/scenarios/1/registry/projectId"},
+        {"assertionId": "standalone-no-project","fixture": "execution-record.json","pointer": "/scenarios/1/taskContract/projectId"},
         {"assertionId": "standalone-no-project","fixture": "execution-record.json","pointer": "/scenarios/5/issue/projectId"},
-        {"assertionId": "standalone-no-project","fixture": "execution-record.json","pointer": "/scenarios/5/registry/projectId"},
+        {"assertionId": "standalone-no-project","fixture": "execution-record.json","pointer": "/scenarios/5/taskContract/projectId"},
         {"assertionId": "standalone-no-project","fixture": "execution-record.json","pointer": "/scenarios/6/issue/projectId"},
-        {"assertionId": "standalone-no-project","fixture": "execution-record.json","pointer": "/scenarios/6/registry/projectId"},
+        {"assertionId": "standalone-no-project","fixture": "execution-record.json","pointer": "/scenarios/6/taskContract/projectId"},
         {"assertionId": "standalone-no-project","fixture": "execution-record.json","pointer": "/scenarios/8/issue/projectId"},
         {"assertionId": "standalone-role","fixture": "execution-record.json","pointer": "/scenarios/1/issue/role"},
         {"assertionId": "standalone-role","fixture": "execution-record.json","pointer": "/scenarios/1/events/0/envelope/role"},
@@ -122,7 +129,7 @@
         {"assertionId": "standalone-role","fixture": "execution-record.json","pointer": "/scenarios/8/events/3/role"},
         {"assertionId": "standalone-role","fixture": "execution-record.json","pointer": "/scenarios/8/events/4/role"}
       ],
-      "prompt": "Inspect only scenario verified-standalone-resume in fixtures/execution-record.json. Do not run commands or mutate anything. Apply the packaged issue-only controller and return exactly one JSON object with keys status, reason, issueId, role, projectId, ownerField, assignmentAcceptedVerified, ancestryVerified, and nextBoundary. Set assignmentAcceptedVerified true only for the uniquely current raw canonical assignmentAccepted revision with exact record/envelope/data fields, native ID/timestamp/actor, stable UUID and valid supersession chain, empty initial relations, owner/run equality, and complete independent read-back; never select by array position. A standalone issue must also prove role work-item and explicit no-project state.",
+      "prompt": "Inspect only scenario verified-standalone-resume in fixtures/execution-record.json. Do not run commands or mutate anything. Apply the packaged issue-only controller and return exactly one JSON object with keys status, reason, issueId, role, projectId, ownerField, assignmentAcceptedVerified, ancestryVerified, directRepositoryStateVerified, and nextBoundary. Set assignmentAcceptedVerified true only for the uniquely current raw canonical assignmentAccepted revision with exact record/envelope/data fields, native ID/timestamp/actor, stable UUID and valid supersession chain, empty initial relations, owner/run equality, and complete independent read-back; never select by array position. A standalone issue must also prove role work-item and explicit no-project state. Set directRepositoryStateVerified true only when the deterministic path, filesystem state, worktree-list result, local and remote heads, Graphite parent, dirty state, index state, diff state, and complete read-back agree.",
       "fixtures": [
         "execution-record.json"
       ],
@@ -177,6 +184,13 @@
           "id": "standalone-ancestry",
           "kind": "final-json-path-equals",
           "pointer": "/ancestryVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "standalone-direct-repository-state",
+          "kind": "final-json-path-equals",
+          "pointer": "/directRepositoryStateVerified",
           "expected": true,
           "critical": true
         },
@@ -259,15 +273,15 @@
       ]
     },
     {
-      "id": "blocks-owner-and-registry-collision",
-      "prompt": "Inspect only scenario rejects-owner-and-registry-collision in fixtures/execution-record.json. Do not run commands or mutate anything. Return exactly one JSON object with keys status, reason, observedOwner, expectedOwner, registryRun, invokingRun, editAllowed, overwriteRegistryAllowed, selfClaimAllowed, and requiredAuthority. Apply type-aware delegate ownership and collision rules.",
+      "id": "blocks-owner-and-run-collision",
+      "prompt": "Inspect only scenario rejects-owner-and-run-collision in fixtures/execution-record.json. Do not run commands or mutate anything. Return exactly one JSON object with keys status, reason, observedOwner, expectedOwner, contractRun, invokingRun, editAllowed, overwriteTaskContractAllowed, selfClaimAllowed, and requiredAuthority. Apply type-aware delegate ownership, active task/run contract, and direct repository collision rules.",
       "fixtures": [
         "execution-record.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The delegate and registry/run mismatch is a collision. Work stops before edit; self-claim and registry overwrite are forbidden; the pinned lead must resolve allocation.",
+      "expected": "The delegate and active task/run mismatch is a collision. Work stops before edit; self-allocation and task-contract overwrite are forbidden; the pinned lead must resolve allocation.",
       "assertions": [
         {
           "id": "collision-blocked",
@@ -280,7 +294,7 @@
           "id": "collision-reason",
           "kind": "final-json-path-equals",
           "pointer": "/reason",
-          "expected": "ownership-or-registry-collision",
+          "expected": "ownership-or-run-collision",
           "critical": true
         },
         {
@@ -307,7 +321,7 @@
         {
           "id": "collision-no-overwrite",
           "kind": "final-json-path-equals",
-          "pointer": "/overwriteRegistryAllowed",
+          "pointer": "/overwriteTaskContractAllowed",
           "expected": false,
           "critical": true
         },
@@ -500,7 +514,7 @@
         {"assertionId": "unblock-restored","fixture": "execution-record.json","pointer": "/scenarios/6/events/2/restoredState"},
         {"assertionId": "unblock-restored","fixture": "execution-record.json","pointer": "/scenarios/6/blockerRestoration/restoredState"}
       ],
-      "prompt": "Inspect only scenario restores-executing-after-verified-unblock in fixtures/execution-record.json. Do not run commands or mutate anything. Return exactly one JSON object with keys status, reason, blockedCommentId, unblockedRelatesTo, priorState, restoredState, remainingOpenBlockers, stateReadBackVerified, and nativeStateAloneSufficient. Apply exact blocker relation and restoration rules.",
+      "prompt": "Inspect only scenario restores-executing-after-verified-unblock in fixtures/execution-record.json. Do not run commands or mutate anything. Return exactly one JSON object with keys status, reason, blockedCommentId, unblockedRelatesTo, priorState, restoredState, remainingOpenBlockers, stateReadBackVerified, directRepositoryStateVerified, and nativeStateAloneSufficient. Apply exact blocker relation and restoration rules. Set directRepositoryStateVerified true only when the deterministic path, filesystem state, worktree-list result, local and remote heads, Graphite parent, dirty state, index state, diff state, and complete read-back agree before resume.",
       "fixtures": [
         "execution-record.json"
       ],
@@ -566,6 +580,13 @@
           "critical": true
         },
         {
+          "id": "unblock-direct-repository-state",
+          "kind": "final-json-path-equals",
+          "pointer": "/directRepositoryStateVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
           "id": "unblock-native-insufficient",
           "kind": "final-json-path-equals",
           "pointer": "/nativeStateAloneSufficient",
@@ -576,14 +597,14 @@
     },
     {
       "id": "resumes-only-after-complete-handoff",
-      "prompt": "Inspect only scenario accepts-verified-handoff-successor in fixtures/execution-record.json. Do not run commands or mutate anything. Return exactly one JSON object with keys status, reason, handoffVerified, reassignmentVerified, newAssignmentAcceptedVerified, currentOwner, currentRun, oldOwnerMayEdit, registryReboundVerified, and nextBoundary. Validate exact raw canonical record/envelope/data keys, native IDs, timestamps, native actors, stable UUID revision/supersession chains, exact relations, and complete read-backs without using array position. Handoff success requires exactly: the outgoing current assignment; an outgoing-owner-authored handoff related to exactly that assignment plus its sorted recovery evidence; a deliberate type-aware owner change with complete issue read-back; then the successor owner's assignmentAccepted related exactly to the handoff native comment. Reject any malformed, partial, stale, foreign, missing, duplicate, temporally invalid, or extra-relation variant.",
+      "prompt": "Inspect only scenario accepts-verified-handoff-successor in fixtures/execution-record.json. Do not run commands or mutate anything. Return exactly one JSON object with keys status, reason, handoffVerified, reassignmentVerified, newAssignmentAcceptedVerified, currentOwner, currentRun, oldOwnerMayEdit, directWorktreeStateVerified, and nextBoundary. Validate exact raw canonical record/envelope/data keys, native IDs, timestamps, native actors, stable UUID revision/supersession chains, exact relations, and complete read-backs without using array position. Handoff success requires exactly: the outgoing current assignment; an outgoing-owner-authored handoff related to exactly that assignment plus its sorted recovery evidence; a deliberate type-aware owner change with complete issue read-back; then the successor owner's assignmentAccepted related exactly to the handoff native comment. Require the successor task contract, deterministic path, filesystem state, worktree inventory, local and remote heads, branch/ancestry, dirty state, index state, diff state, and complete read-back to agree at a fresh pre-resume read. Reject any malformed, partial, stale, foreign, missing, duplicate, temporally invalid, or extra-relation variant.",
       "fixtures": [
         "execution-record.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The successor may resume only because the complete canonical outgoing-assignment → owner-authored handoff plus recovery evidence → deliberate reassignment/read-back → successor-assignment chain and exact registry rebinding verify; the old owner may not edit.",
+      "expected": "The successor may resume only because the complete canonical outgoing-assignment → owner-authored handoff plus recovery evidence → deliberate reassignment/read-back → successor-assignment chain and fresh direct worktree-state verification agree; the old owner may not edit.",
       "assertions": [
         {
           "id": "handoff-proceeds",
@@ -642,9 +663,9 @@
           "critical": true
         },
         {
-          "id": "handoff-registry",
+          "id": "handoff-direct-worktree-state",
           "kind": "final-json-path-equals",
-          "pointer": "/registryReboundVerified",
+          "pointer": "/directWorktreeStateVerified",
           "expected": true,
           "critical": true
         },
@@ -830,14 +851,14 @@
         {"assertionId": "independent-intra-unit-contexts-distinct","fixture": "multi-agent-allocation.json","pointer": "/concurrencyProof/intraUnitContextsDistinct"},
         {"assertionId": "independent-paired-contexts-complete","fixture": "multi-agent-allocation.json","pointer": "/concurrencyProof/pairedContextsComplete"}
       ],
-      "prompt": "Inspect only fixtures/multi-agent-allocation.json as bounded normalized official-MCP evidence. Do not run commands or mutate anything. Apply the packaged allocation, isolation, boundary recheck, review, and submission contract. Return exactly one JSON object with keys status, reason, issueIds, projectLeadAllocated, assignmentAcceptedBeforeWork, preSideEffectRechecksComplete, pairedContextsComplete, intraUnitContextsDistinct, crossUnitContextsUnique, sharedUnitFields, concurrentWorkAllowed, sideEffectsStarted, completedLifecycle, ownerReadBackBeforeEveryBoundary, reviewReceiptsCurrent, and nextBoundary. Verify both independent units through registry acquisition, edit, test, independently bound precommit review, commit, push, pull request relation, and issue transition; current owner and acceptance must be read back before every boundary.",
+      "prompt": "Inspect only fixtures/multi-agent-allocation.json as bounded normalized official-MCP evidence. Do not run commands or mutate anything. Apply the packaged allocation, isolation, boundary recheck, review, and submission contract. Return exactly one JSON object with keys status, reason, issueIds, projectLeadAllocated, assignmentAcceptedBeforeWork, preSideEffectRechecksComplete, pairedContextsComplete, intraUnitContextsDistinct, crossUnitContextsUnique, sharedUnitFields, concurrentWorkAllowed, sideEffectsStarted, completedLifecycle, ownerReadBackBeforeEveryBoundary, reviewReceiptsCurrent, and nextBoundary. Verify both independent units through deterministic-path/worktree preflight and creation, edit, test, independently bound precommit review, commit, push, pull request relation, and issue transition; current owner and acceptance must be read back before every boundary.",
       "fixtures": [
         "multi-agent-allocation.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Two independently allocated engineer units preserve unique contexts and current ownership through registry, implementation, test, independent review, commit, push, PR relation, and issue transition. Every boundary is read back and both complete lifecycles may proceed concurrently.",
+      "expected": "Two independently allocated engineer units preserve unique contexts, disjoint deterministic worktree paths, and current ownership through implementation, test, independent review, commit, push, PR relation, and issue transition. Every boundary is read back and both complete lifecycles may proceed concurrently.",
       "assertions": [
         {
           "id": "independent-allocation-proceeds",
@@ -1574,10 +1595,10 @@
         {"assertionId": "engineer-handoff-issue","fixture": "engineer-handoff.json","pointer": "/scenarios/0/events/3/data/issueId"},
         {"assertionId": "engineer-handoff-issue","fixture": "engineer-handoff.json","pointer": "/scenarios/0/events/3/envelope/issueId"},
         {"assertionId": "engineer-handoff-issue","fixture": "engineer-handoff.json","pointer": "/scenarios/0/handoff/reassignment/issueId"},
-        {"assertionId": "engineer-handoff-issue","fixture": "engineer-handoff.json","pointer": "/scenarios/0/registry/issueId"},
+        {"assertionId": "engineer-handoff-issue","fixture": "engineer-handoff.json","pointer": "/scenarios/0/taskContract/issueId"},
         {"assertionId": "handoff-cross-unit-contexts-unique","fixture": "engineer-handoff.json","pointer": "/scenarios/0/contextIsolationProof/crossUnitContextsUnique"}
       ],
-      "prompt": "Inspect only scenario verified-engineer-handoff in fixtures/engineer-handoff.json as bounded normalized evidence. Do not run commands or mutate anything. Apply the packaged typed transfer, paired-context isolation, and fresh pre-resume verification contract, then return exactly one JSON object with keys status, reason, issueId, outgoingEngineer, incomingEngineer, pairedContextsComplete, intraUnitContextsDistinct, crossUnitContextsUnique, eventChain, handoffReadBackVerified, reassignmentReadBackVerified, newAssignmentAcceptedReadBackVerified, oldCoderStopped, preResumeRecheckComplete, oldOwnerMayMutate, incomingMayResume, and nextBoundary. Both outgoing and incoming pairs require complete separate decision-maker/coding authentication, MCP, token-cache, environment, and session IDs, and no context may cross the unit boundary. Resume also requires the canonical handoff, coder stop, deliberate lead reassignment, incoming assignmentAccepted, registry rebinding, and a fresh complete recheck.",
+      "prompt": "Inspect only scenario verified-engineer-handoff in fixtures/engineer-handoff.json as bounded normalized evidence. Do not run commands or mutate anything. Apply the packaged typed transfer, paired-context isolation, and fresh pre-resume verification contract, then return exactly one JSON object with keys status, reason, issueId, outgoingEngineer, incomingEngineer, pairedContextsComplete, intraUnitContextsDistinct, crossUnitContextsUnique, eventChain, handoffReadBackVerified, reassignmentReadBackVerified, newAssignmentAcceptedReadBackVerified, oldCoderStopped, preResumeRecheckComplete, oldOwnerMayMutate, incomingMayResume, and nextBoundary. Both outgoing and incoming pairs require complete separate decision-maker/coding authentication, MCP, token-cache, environment, and session IDs, and no context may cross the unit boundary. Resume also requires the canonical handoff, coder stop, deliberate lead reassignment, incoming assignmentAccepted, matching successor task contract, and a fresh complete direct worktree/branch/ancestry/dirty-state recheck.",
       "fixtures": [
         "engineer-handoff.json"
       ],

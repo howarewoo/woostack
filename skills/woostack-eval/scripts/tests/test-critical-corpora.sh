@@ -316,7 +316,7 @@ const requiredContractProofs = {
       ['direct-command-choice'],
       ['direct-command-counts'],
     ],
-    'caller-created branch claim and worktree are reused without creation': [
+    'verified task contract and direct worktree state are reused without creation': [
       ['reuse-branch-ready'],
       ['reuse-branch-action'],
       ['reuse-branch-name'],
@@ -628,11 +628,11 @@ const approvedCorpusContracts = {
   'woostack-build': corpusContract(17, '8a9bb51d77f6e5be37578b9dcfe3dba7a0f02cafaeaaab8b7118858a801a4a4f'),
   'woostack-plan': corpusContract(9, '580bded363cfbfa30fc06a3207bfd132182798742f6347e69eb7b1c4713b8224'),
   'woostack-fix': corpusContract(5, 'cde7dea1b27e6035a5b30950f65c0bf86fbf50eb85297d55fb5026852aace487'),
-  'woostack-execute': corpusContract(19, '95a0553fce8370202296b17828bbc9f7d4ce6aef747de72f7015164bcee0bf88'),
-  'woostack-execute-overnight': corpusContract(8, '03f33f8882a3b72bfceee4a786209d4a506be15c23bb93546973fafcb234ca09'),
-  'woostack-commit': corpusContract(14, 'b929bdcc7b1f83cd860116e1419d84b559d491ec26f33a990b8b9eddce644205'),
+  'woostack-execute': corpusContract(19, '61fe7a85b612590cf2b8c306da923eda6b1b5f04db7ddc2bf3916654de36803a'),
+  'woostack-execute-overnight': corpusContract(8, 'ef93b1b70e63ccef67e2f515041ace0d9652180d1303ce0b71652da6940416d6'),
+  'woostack-commit': corpusContract(14, '12306fe19af4e4cf50d2cfba1ce4870c74ae54ee74d7644b05c1df2e0b0357ce'),
   'woostack-review': corpusContract(8, 'a0b1867da4944ba30d218689d8f5a68db321ac57cd864763f1dda696963006c0'),
-  'woostack-sweep': corpusContract(8, '098852d02511483fc7b9fa207c2f179f86eedf9ae518e6f13802f782e4cf7344'),
+  'woostack-sweep': corpusContract(8, '89e49d6348148133915aca2e21abe50dafb9e7e46469b611833d34ebafedcd86'),
   'woostack-address-comments': corpusContract(5, '63f3418aa58f54d6f1f4bef11ee283be2527b2501daf9b62d347c1cc6e1722d7'),
   'woostack-debug': corpusContract(2, '5d91d8f4c305cc987c5d8c301782601c89cbfafcad389d3ad98d8e0764843883'),
   'woostack-audit': corpusContract(2, '585830e35e5aaf111cf683fac1d6962c0cf61822a02e6209e1ebf89050fe209c'),
@@ -640,7 +640,7 @@ const approvedCorpusContracts = {
   'woostack-visualize': corpusContract(2, '21d14268415178885c8df7cce00604065fc775c03f0ac6dc201d0523705655cb'),
   'woostack-init': corpusContract(22, 'a2d47577acf558498449f4fdefc96001efd7e98d4e50671e03ff563a21f9c6cd'),
   'woostack-doctor': corpusContract(3, '35017c9cc26a9ec68d10e1480b13dd4d29b1b8d793324267354a8e2751304eee'),
-  'woostack-status': corpusContract(29, 'fbc77312e479cc5d2cdc865660178610b5ed1f984c5bb528e4ba84d4b85ad0a2'),
+  'woostack-status': corpusContract(29, '1856a83e07e7174721d6e0d1433c0f68022411256c9b68ee04e99f78e6796b68'),
 };
 
 function canonicalize(value) {

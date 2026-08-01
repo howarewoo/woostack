@@ -8,8 +8,8 @@ from pathlib import Path
 text=re.sub(r"\s+"," ",(Path(sys.argv[1])/"skills/woostack-sweep/SKILL.md").read_text())
 checks={
  "descendant inventory":r"inventory every descendant branch/PR.*including descendants above the requested display range",
- "fresh state":r"current local/remote head, base, Graphite parent, canonical PR, worktree claim, dirty state, and approved task/dependency contract",
- "collision gate":r"disjoint worktrees and no competing operation, unpushed work, unexplained checkout, ancestry mismatch, or collision",
+ "fresh state":r"deterministic path.*git worktree list.*current local/remote head, base, Graphite parent, canonical PR.*dirty/index/diff state.*approved task/dependency contract",
+ "collision gate":r"disjoint worktrees and no competing operation, duplicate checkout/branch/PR, unpushed work, unexplained checkout, ancestry mismatch, or collision",
  "operation identity":r"bind one operation identity to the exact affected set and current heads",
  "fresh reread":r"re-read all facts immediately before mutation",
  "Graphite only":r"stack-scoped `gt restack`; never `gt sync`, force-push, or a repo-wide rewrite",
@@ -20,8 +20,8 @@ checks={
  "post verification":r"verify every affected descendant's new head/base/ancestry.*focused checks.*re-review",
  "submit affected":r"Submit only the exact affected stack after all resulting heads are verified",
  "unknown outcome":r"Unknown mutation outcome requires full discovery before retry",
- "reopen guard":r"same PR/head/task contract remains.*no competing claim or checkout exists",
- "no destructive recovery":r"Never delete, reset, stash, overwrite, or create around unexplained state",
+ "reopen guard":r"same PR/head/task contract remains.*deterministic path is free.*no competing checkout exists",
+ "no destructive recovery":r"Never delete, reset, stash, overwrite, attach, or create around unexplained state",
 }
 failures=[name for name,pat in checks.items() if not re.search(pat,text,re.I|re.S)]
 if failures:

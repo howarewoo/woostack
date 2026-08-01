@@ -73,13 +73,9 @@
       "source": "verified-issue-identifier"
     }
   },
-  "registry": {
-    "complete": true,
-    "claims": []
-  },
   "git": {
     "complete": true,
-    "canonicalIssueWorktreePath": "/repo/.woostack/worktrees/issues/linear-issue-66",
+    "deterministicTaskWorktreePath": "/repo/.woostack/worktrees/tasks/linear-issue-66",
     "worktrees": [],
     "localBranches": [],
     "issueCommits": []

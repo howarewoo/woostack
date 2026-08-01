@@ -86,13 +86,25 @@
         "nonParentDependencies": [],
         "readBack": "complete"
       },
-      "registry": {
-        "key": "22222222-2222-4222-8222-222222222222",
+      "repositoryState": {
+        "deterministicPath": "/repo/.woostack/worktrees/tasks/22222222-2222-4222-8222-222222222222",
+        "filesystemState": "directory",
+        "worktreeListState": "one-exact-entry",
+        "branch": "feature/app-20",
+        "localHeadCommitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "remoteHeadCommitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "observedGraphiteParent": "main",
+        "dirtyState": "clean",
+        "indexState": "clean",
+        "diffState": "empty",
+        "readBack": "complete"
+      },
+      "taskContract": {
+        "taskId": "22222222-2222-4222-8222-222222222222",
         "issueId": "22222222-2222-4222-8222-222222222222",
         "projectId": "11111111-1111-4111-8111-111111111111",
         "ownerPrincipalId": "app-engineer-cache",
         "runId": "run-cache-001",
-        "collision": false,
         "readBack": "complete"
       },
       "requestedBoundary": "edit"
@@ -163,13 +175,25 @@
         "nonParentDependencies": [],
         "readBack": "complete"
       },
-      "registry": {
-        "key": "33333333-3333-4333-8333-333333333333",
+      "repositoryState": {
+        "deterministicPath": "/repo/.woostack/worktrees/tasks/33333333-3333-4333-8333-333333333333",
+        "filesystemState": "directory",
+        "worktreeListState": "one-exact-entry",
+        "branch": "feature/app-21",
+        "localHeadCommitSha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "remoteHeadCommitSha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "observedGraphiteParent": "main",
+        "dirtyState": "clean",
+        "indexState": "clean",
+        "diffState": "empty",
+        "readBack": "complete"
+      },
+      "taskContract": {
+        "taskId": "33333333-3333-4333-8333-333333333333",
         "issueId": "33333333-3333-4333-8333-333333333333",
         "projectId": null,
         "ownerPrincipalId": "user-21",
         "runId": "run-riley-021",
-        "collision": false,
         "readBack": "complete"
       },
       "requestedBoundary": "edit"
@@ -186,7 +210,7 @@
       }
     },
     {
-      "id": "rejects-owner-and-registry-collision",
+      "id": "rejects-owner-and-run-collision",
       "input": {
         "source": "official-host-exposed-linear-mcp",
         "shape": "projectIssueDag"
@@ -267,13 +291,12 @@
         "nonParentDependencies": [],
         "readBack": "complete"
       },
-      "registry": {
-        "key": "44444444-4444-4444-8444-444444444444",
+      "taskContract": {
+        "taskId": "44444444-4444-4444-8444-444444444444",
         "issueId": "44444444-4444-4444-8444-444444444444",
         "projectId": "11111111-1111-4111-8111-111111111111",
         "ownerPrincipalId": "app-engineer-a",
         "runId": "run-other-022",
-        "collision": true,
         "readBack": "complete"
       },
       "requestedBoundary": "edit"
@@ -376,13 +399,12 @@
           }
         ]
       },
-      "registry": {
-        "key": "55555555-5555-4555-8555-555555555555",
+      "taskContract": {
+        "taskId": "55555555-5555-4555-8555-555555555555",
         "issueId": "55555555-5555-4555-8555-555555555555",
         "projectId": "11111111-1111-4111-8111-111111111111",
         "ownerPrincipalId": "user-23",
         "runId": "run-morgan-023",
-        "collision": false,
         "readBack": "complete"
       },
       "requestedBoundary": "edit"
@@ -473,13 +495,12 @@
         "nonParentDependencies": [],
         "readBack": "complete"
       },
-      "registry": {
-        "key": "77777777-7777-4777-8777-777777777777",
+      "taskContract": {
+        "taskId": "77777777-7777-4777-8777-777777777777",
         "issueId": "77777777-7777-4777-8777-777777777777",
         "projectId": null,
         "ownerPrincipalId": "user-24",
         "runId": "run-sam-024",
-        "collision": false,
         "readBack": "complete"
       },
       "requestedBoundary": "commit"
@@ -594,13 +615,25 @@
         "nonParentDependencies": [],
         "readBack": "complete"
       },
-      "registry": {
-        "key": "88888888-8888-4888-8888-888888888888",
+      "repositoryState": {
+        "deterministicPath": "/repo/.woostack/worktrees/tasks/88888888-8888-4888-8888-888888888888",
+        "filesystemState": "directory",
+        "worktreeListState": "one-exact-entry",
+        "branch": "feature/app-25",
+        "localHeadCommitSha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "remoteHeadCommitSha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "observedGraphiteParent": "main",
+        "dirtyState": "modified",
+        "indexState": "clean",
+        "diffState": "matches-preserved-state",
+        "readBack": "complete"
+      },
+      "taskContract": {
+        "taskId": "88888888-8888-4888-8888-888888888888",
         "issueId": "88888888-8888-4888-8888-888888888888",
         "projectId": null,
         "ownerPrincipalId": "app-engineer-search",
         "runId": "run-search-025",
-        "collision": false,
         "readBack": "complete"
       },
       "requestedBoundary": "resume"
@@ -690,7 +723,7 @@
             "observedResult": "cache test failed",
             "affectedIds": [],
             "branch": "feature/app-26",
-            "worktreePath": "/repo/.woostack/worktrees/99999999-9999-4999-8999-999999999999",
+            "worktreePath": "/repo/.woostack/worktrees/tasks/99999999-9999-4999-8999-999999999999",
             "safeNextAction": "resume failing cache test"
           },
           "readComplete": true,
@@ -723,7 +756,7 @@
             "ownerPrincipalId": "user-old-26",
             "runId": "run-old-026",
             "branch": "feature/app-26",
-            "worktreePath": "/repo/.woostack/worktrees/99999999-9999-4999-8999-999999999999",
+            "worktreePath": "/repo/.woostack/worktrees/tasks/99999999-9999-4999-8999-999999999999",
             "pullRequestUrl": null,
             "unresolvedItems": [
               "cache test failing"
@@ -814,13 +847,25 @@
         "nonParentDependencies": [],
         "readBack": "complete"
       },
-      "registry": {
-        "key": "99999999-9999-4999-8999-999999999999",
+      "repositoryState": {
+        "deterministicPath": "/repo/.woostack/worktrees/tasks/99999999-9999-4999-8999-999999999999",
+        "filesystemState": "directory",
+        "worktreeListState": "one-exact-entry",
+        "branch": "feature/app-26",
+        "localHeadCommitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "remoteHeadCommitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "observedGraphiteParent": "main",
+        "dirtyState": "modified",
+        "indexState": "clean",
+        "diffState": "matches-handoff-evidence",
+        "readBack": "complete"
+      },
+      "taskContract": {
+        "taskId": "99999999-9999-4999-8999-999999999999",
         "issueId": "99999999-9999-4999-8999-999999999999",
         "projectId": "11111111-1111-4111-8111-111111111111",
         "ownerPrincipalId": "user-new-26",
         "runId": "run-new-026",
-        "collision": false,
         "readBack": "complete"
       },
       "requestedBoundary": "resume"
@@ -1028,7 +1073,7 @@
         "nonParentDependencies": [],
         "readBack": "complete"
       },
-      "registry": null,
+      "taskContract": null,
       "terminal": {
         "requestedState": "done",
         "canonicalPr": {
@@ -1098,7 +1143,7 @@
         "nonParentDependencies": [],
         "readBack": "complete"
       },
-      "registry": null,
+      "taskContract": null,
       "terminal": {
         "requestedState": "done",
         "canonicalPr": {

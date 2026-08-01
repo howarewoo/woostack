@@ -55,12 +55,12 @@ Before creating or resuming a branch/worktree:
 
 1. resolve the physical repository root, canonical remote, configured integration base, and exact
    base commit;
-2. inventory local/remote branches, worktrees, registry claims, Graphite ancestry, commits, and
-   canonical GitHub PRs;
+2. inventory the deterministic task path, `git worktree list --porcelain`, local/remote branches
+   and commits, complete dirty/index/diff state, Graphite ancestry, and canonical GitHub PRs;
 3. require either all task state absent or one exact recoverable task/run/branch/worktree/PR state;
-4. reject protected-primary edits, detached HEAD, collisions, duplicate branches/PRs, unexplained
-   dirty state, or conflicting ancestry; and
-5. create/claim one isolated worktree under the
+4. reject protected-primary edits, detached HEAD, collisions, duplicate checkouts/branches/PRs,
+   unexplained dirty state, or conflicting ancestry; and
+5. create, attach, or resume one isolated worktree under the
    [canonical worktree contract](../woostack-init/references/worktrees.md).
 
 Preserve unexpected user work. Never reset, clean, stash, delete, overwrite, or create around a

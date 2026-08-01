@@ -9,11 +9,11 @@
       "observedBase": "main@2222222"
     },
     "branchCollision": {
-      "claimedBranch": "change/cache-key",
+      "expectedBranch": "change/cache-key",
       "observedOwner": "other-task"
     },
     "worktreeCollision": {
-      "claimedPath": ".woostack/worktrees/tasks/cache-key",
+      "expectedPath": ".woostack/worktrees/tasks/cache-key",
       "observedOwner": "other-task"
     },
     "headDrift": {

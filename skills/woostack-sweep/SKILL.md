@@ -81,10 +81,11 @@ Before any ref rewrite:
 
 1. inventory every descendant branch/PR the command can move, including descendants above the
    requested display range;
-2. verify each descendant's current local/remote head, base, Graphite parent, canonical PR, worktree
-   claim, dirty state, and approved task/dependency contract;
-3. require disjoint worktrees and no competing operation, unpushed work, unexplained checkout,
-   ancestry mismatch, or collision;
+2. verify each descendant's deterministic path, complete `git worktree list --porcelain` state,
+   current local/remote head, base, Graphite parent, canonical PR, complete dirty/index/diff state,
+   and approved task/dependency contract;
+3. require disjoint worktrees and no competing operation, duplicate checkout/branch/PR, unpushed
+   work, unexplained checkout, ancestry mismatch, or collision;
 4. bind one operation identity to the exact affected set and current heads; and
 5. re-read all facts immediately before mutation.
 
@@ -103,8 +104,9 @@ or replace a branch/PR.
 
 Use the [canonical worktree contract](../woostack-init/references/worktrees.md). A review-reopen may
 reattach the same canonical branch in a new isolated worktree only when the prior implementation
-worktree is absent, the same PR/head/task contract remains, and no competing claim or checkout
-exists. Never delete, reset, stash, overwrite, or create around unexplained state.
+worktree is absent, the same PR/head/task contract remains, the deterministic path is free, and no
+competing checkout exists. Never delete, reset, stash, overwrite, attach, or create around
+unexplained state.
 
 On interruption preserve the stable task/operation IDs, exact worktrees, branches, old/new heads,
 Graphite parents, PRs, completed rounds, first unknown boundary, and safe next action. Resume only

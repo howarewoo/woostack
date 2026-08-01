@@ -9,7 +9,7 @@
       "workflow": "woostack-change",
       "nativeIssueId": "linear-issue-62",
       "branch": "change/app-62",
-      "worktreePath": "/repo/.woostack/worktrees/issues/linear-issue-62",
+      "worktreePath": "/repo/.woostack/worktrees/tasks/linear-issue-62",
       "startCommit": "b62",
       "graphiteParent": "staging",
       "ownerPrincipal": "engineer-7",
@@ -62,7 +62,7 @@
       "complete": true
     },
     "primaryRoot": "/repo",
-    "currentRoot": "/repo/.woostack/worktrees/issues/linear-issue-62",
+    "currentRoot": "/repo/.woostack/worktrees/tasks/linear-issue-62",
     "currentBranch": "change/app-62",
     "head": "b62",
     "retainedStartCommit": "b62",
@@ -79,34 +79,24 @@
       "unrelatedPaths": []
     }
   },
-  "registry": {
-    "complete": true,
-    "claims": [
-      {
-        "nativeIssueId": "linear-issue-62",
-        "clientIssueId": "62626262-6262-4262-8262-626262626262",
-        "projectId": null,
-        "role": "work-item",
-        "repository": "https://github.com/acme/widgets",
-        "owner": {
-          "kind": "app",
-          "principal": "engineer-7",
-          "runId": "run-62"
-        },
-        "branch": "change/app-62",
-        "worktreePath": "/repo/.woostack/worktrees/issues/linear-issue-62",
-        "startCommit": "b62",
-        "graphiteParent": "staging",
-        "assignmentNativeId": "comment-assignment-62"
-      }
-    ]
+  "taskContract": {
+    "stableTaskId": "linear-issue-62",
+    "repository": "https://github.com/acme/widgets",
+    "controller": {
+      "principal": "engineer-7",
+      "runId": "run-62"
+    },
+    "branch": "change/app-62",
+    "worktreePath": "/repo/.woostack/worktrees/tasks/linear-issue-62",
+    "startCommit": "b62",
+    "graphiteParent": "staging"
   },
   "git": {
     "complete": true,
-    "canonicalIssueWorktreePath": "/repo/.woostack/worktrees/issues/linear-issue-62",
+    "deterministicTaskWorktreePath": "/repo/.woostack/worktrees/tasks/linear-issue-62",
     "worktrees": [
       {
-        "path": "/repo/.woostack/worktrees/issues/linear-issue-62",
+        "path": "/repo/.woostack/worktrees/tasks/linear-issue-62",
         "branch": "change/app-62",
         "head": "b62"
       }
@@ -115,7 +105,7 @@
       {
         "name": "change/app-62",
         "head": "b62",
-        "checkedOutAt": "/repo/.woostack/worktrees/issues/linear-issue-62"
+        "checkedOutAt": "/repo/.woostack/worktrees/tasks/linear-issue-62"
       }
     ],
     "issueCommits": []

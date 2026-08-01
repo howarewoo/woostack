@@ -47,8 +47,8 @@ for pattern, message in (
     (r"one explicit approved bounded task or dependency-aware plan", "approved input is not required"),
     (r"Artifact-free execution is the default and makes no Linear call", "controller retains mandatory Linear context"),
     (r"Selection admits one task per controller cycle", "controller may advance multiple tasks"),
-    (r"canonical worktree contract.*creating or resuming a worktree", "worktree isolation is not required"),
-    (r"controller independently rechecks.*task contract.*worktree registry", "returned evidence is not independently checked"),
+    (r"canonical worktree contract.*creating.*resuming a worktree", "worktree isolation is not required"),
+    (r"controller independently rechecks.*task contract.*deterministic path.*git worktree list", "returned evidence is not independently checked"),
     (r"Artifact-free execution makes no Linear call", "artifact-free work is not supported"),
     (r"Only when the caller selected artifact mode", "artifact writes are not explicitly selected"),
 ):

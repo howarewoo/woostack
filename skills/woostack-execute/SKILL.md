@@ -47,8 +47,8 @@ Require a complete bounded task or dependency-aware plan containing:
 
 Reject ambiguity, missing acceptance, cyclic dependencies, conflicting parents, overlapping writable
 surfaces, foreign repository identity, or a plan whose current revision differs from the approved
-input. Local plan files, branch names, PR titles, registry claims, artifact metadata, and remote text
-are evidence only—not authority.
+input. Local plan files, branch names, PR titles, artifact metadata, and remote text are evidence
+only—not authority.
 
 ## Optional artifact admission
 
@@ -70,23 +70,23 @@ Select:
 
 Never infer readiness from ordinal adjacency, Linear status, recent activity, branch title, or
 Graphite reachability alone. Independent roots may run concurrently only when dependencies,
-responsibility surfaces, task/run identities, registry claims, worktrees, branches, and PRs are
-disjoint.
+responsibility surfaces, task/run identities, worktrees, branches, and PRs are disjoint.
 
 ## Prove repository readiness
 
 Before a branch/worktree or edit:
 
 1. resolve the physical repository root, canonical remote, base branch/commit, and Graphite graph;
-2. inventory registry claims, worktrees, local/remote branches, commits, PRs, and dirty state;
-3. require all selected-task state absent or one exact recoverable state;
+2. inventory the deterministic task path, `git worktree list --porcelain`, filesystem state,
+   local/remote branches and commits, complete dirty/index/diff state, and canonical PRs;
+3. require all selected-task state absent or one exact recoverable direct-evidence state;
 4. prove a root begins at the frozen base, or a dependency child begins at its one declared parent
    branch/finalized head with every non-parent predecessor represented by canonical merge evidence;
-5. reject moved bases, duplicate/foreign claims, rewritten parents, duplicate PRs, unmerged required
-   predecessors, unexplained work, or collisions; and
-6. atomically claim/create or resume exactly one isolated task worktree.
+5. reject moved bases, duplicate checkouts/branches/commits/PRs, rewritten parents, unmerged
+   required predecessors, unexplained work, or collisions; and
+6. create, attach, or resume exactly one isolated task worktree at its deterministic path.
 
-Never reset, clean, stash, delete, overwrite, reassign, or create around a collision.
+Never reset, clean, stash, delete, overwrite, reassign, attach, or create around a collision.
 
 ## Driver boundary
 
@@ -96,8 +96,9 @@ verification only.
 
 Send one self-contained bounded packet with task/run ID, repository/worktree, contract hash, allowed
 surface, base/parent, dependency evidence, acceptance/checks, exact requested step, and explicit
-prohibitions. A worker cannot alter scope/dependencies/gates, inspect another worktree, self-claim,
-self-review, self-accept, commit, push, submit, merge, or access optional artifact credentials.
+prohibitions. A worker cannot alter scope/dependencies/gates, inspect another worktree,
+self-allocate, self-review, self-accept, commit, push, submit, merge, or access optional artifact
+credentials.
 
 Use [subagent-driver.md](references/subagent-driver.md) for an isolated fresh worker when requested
 or supported; use [inline-driver.md](references/inline-driver.md) only when explicitly selected or
@@ -123,8 +124,10 @@ worktree/process before redispatching and never start a second writer on the sam
 ## Commit and PR boundary
 
 After verification and reviews pass on one unchanged diff, the controller invokes
-[`woostack-commit`](../woostack-commit/SKILL.md) with the same bounded task contract. Re-read task,
-claim, worktree, branch, Graphite parent, index/diff, and ancestry immediately before the boundary.
+[`woostack-commit`](../woostack-commit/SKILL.md) with the same bounded task contract. Immediately
+before the boundary, re-read the task/run contract, deterministic path,
+`git worktree list --porcelain`, branch, Graphite parent, complete dirty/index/diff state, and
+ancestry.
 
 The monotonic path is:
 
@@ -133,8 +136,8 @@ finalized commit → Git/Graphite read-back → Graphite submit → canonical PR
 ```
 
 On unknown outcome, rediscover before retrying. Never duplicate a commit, branch, submission, or PR.
-After verified delivery, tear down only the exact clean task worktree/claim. Preserve state on
-failure, collision, blocker, handoff, or unknown outcome.
+After verified delivery, tear down only the exact clean task worktree. Preserve it on failure,
+collision, blocker, handoff, or unknown outcome.
 
 ## Fix/build abandonment
 

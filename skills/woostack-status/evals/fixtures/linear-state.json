@@ -1036,7 +1036,7 @@
               "issueId": "issue-app-13",
               "observedResult": "parent restack changed the required review head",
               "safeNextAction": "request a bounded restack authorization",
-              "worktreePath": "/repo/.woostack/worktrees/issues/issue-app-13"
+              "worktreePath": "/repo/.woostack/worktrees/tasks/issue-app-13"
             },
             "readComplete": true,
             "envelope": {
@@ -1074,8 +1074,7 @@
               "expiresAt": "2026-07-25T10:00:00Z",
               "headCommitSha": "1313131313131313131313131313131313131313",
               "operationId": "13131313-aaaa-4aaa-8aaa-131313131313",
-              "registryClaimPath": ".woostack/worktrees/.registry/issue-app-13/claim.json",
-              "worktreePath": "/repo/.woostack/worktrees/issues/issue-app-13"
+              "worktreePath": "/repo/.woostack/worktrees/tasks/issue-app-13"
             },
             "readComplete": true,
             "envelope": {
@@ -1295,8 +1294,7 @@
               "expiresAt": "2026-07-26T10:00:00Z",
               "headCommitSha": "2323232323232323232323232323232323232323",
               "operationId": "13131313-bbbb-4bbb-8bbb-131313131313",
-              "registryClaimPath": ".woostack/worktrees/.registry/issue-app-13/claim.json",
-              "worktreePath": "/repo/.woostack/worktrees/issues/issue-app-13"
+              "worktreePath": "/repo/.woostack/worktrees/tasks/issue-app-13"
             },
             "readComplete": true,
             "envelope": {
@@ -1515,8 +1513,7 @@
               "expiresAt": "2026-07-26T11:00:00Z",
               "headCommitSha": "3434343434343434343434343434343434343434",
               "operationId": "13131313-cccc-4ccc-8ccc-131313131313",
-              "registryClaimPath": ".woostack/worktrees/.registry/issue-app-13/claim.json",
-              "worktreePath": "/repo/.woostack/worktrees/issues/issue-app-13"
+              "worktreePath": "/repo/.woostack/worktrees/tasks/issue-app-13"
             },
             "readComplete": true,
             "envelope": {
@@ -1559,7 +1556,7 @@
               "unresolvedItems": [
                 "address current review findings"
               ],
-              "worktreePath": "/repo/.woostack/worktrees/issues/issue-app-13"
+              "worktreePath": "/repo/.woostack/worktrees/tasks/issue-app-13"
             },
             "readComplete": true,
             "envelope": {
@@ -2275,7 +2272,7 @@
             "unresolvedItems": [
               "address current review findings"
             ],
-            "worktreePath": "/repo/.woostack/worktrees/issues/issue-app-21"
+            "worktreePath": "/repo/.woostack/worktrees/tasks/issue-app-21"
           },
           "readComplete": true,
           "envelope": {

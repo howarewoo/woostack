@@ -66,8 +66,8 @@ context; inability to isolate those contexts blocks artifact operations, not art
 
 **Concurrent-unit isolation.** Concurrent units have distinct engineer names, task IDs,
 decision-maker and coding sessions, run IDs, worktrees, and credential contexts. Profiles,
-credentials, processes, conversations/sessions, or task claims are never pooled or shared. Only a
-bounded task brief and returned non-secret evidence cross the two role sessions.
+credentials, processes, conversations/sessions, or task contracts are never pooled or shared. Only
+a bounded task brief and returned non-secret evidence cross the two role sessions.
 
 ## Role authority
 
@@ -108,12 +108,14 @@ mutation; retry requires fresh controller authorization.
 The responsible human/controller deliberately allocates one approved bounded task to the engineer
 unit. The unit never selects work from titles, recency, branch names, artifact assignment fields, or
 an available queue. The decision-maker accepts the unchanged task contract and confirms the coder,
-run, repository, worktree, ancestry, and exclusive responsibility surface before dispatch.
+run, repository, deterministic worktree path, direct worktree/branch/ancestry evidence, and
+exclusive responsibility surface before dispatch.
 
-No worktree claim, branch creation, worker dispatch, tracked edit, test mutation, commit, push, or
-PR action may occur before that acceptance. Immediately before each side effect or redispatch, the
-decision-maker rechecks the task contract, role sessions, run identity, worktree claim, ancestry,
-and affected repository evidence. The coding profile checks the same bounded brief and worktree
+No worktree creation/attachment, branch creation, worker dispatch, tracked edit, test mutation,
+commit, push, or PR action may occur before that acceptance. Immediately before each side effect or
+redispatch, the decision-maker rechecks the task contract, role sessions, run identity,
+deterministic path, `git worktree list --porcelain`, branch/ancestry, dirty/index/diff state, and
+affected repository evidence. The coding profile checks the same bounded brief and worktree
 immediately before coder-owned actions. Drift invalidates the brief and blocks.
 
 When optional Linear artifacts are selected, native assignee/delegate and
@@ -125,13 +127,13 @@ rules and read-backs before writing those fields, but never treat them as admiss
 The controller classifies the complete approved dependency DAG and exclusive responsibility
 surfaces before allocation. Parallel work is permitted only for dependency-independent roots or
 subgraphs with no relation path or undeclared data dependency and with disjoint task IDs, contracts,
-paths/surfaces, owners, runs, sessions, registry claims, worktrees, branches, and PRs. A dependency
-child follows the execution controller's plan-relation and Git-ancestry gates; ordinal adjacency or
-a branch name never proves readiness.
+paths/surfaces, owners, runs, sessions, worktrees, branches, and PRs. A dependency child follows the
+execution controller's plan-relation and Git-ancestry gates; ordinal adjacency or a branch name
+never proves readiness.
 
 One engineer unit admits at most one actively executing task in a controller/coder run. Any
 dependency, scope, identity, worktree, branch, PR, or allocation overlap is a collision, not
-permission to serialize two claims through one profile or session.
+permission to serialize two tasks through one profile or session.
 
 ## Transfer, collision, and escalation
 
@@ -141,9 +143,10 @@ responsible controller deliberately reallocates the task. The incoming decision-
 rechecks the contract and evidence before accepting and resuming. Chat or a task result alone never
 substitutes for this handoff. Optional artifact notes may mirror it after direct read-back.
 
-**Collision.** On any competing claim, shared identity/session, overlapping surface, partial Git or
-registry state, or allocation drift, stop before delete, overwrite, replay, or create-around.
-Preserve recovery evidence and report the collision to the responsible controller.
+**Collision.** On any competing deterministic path, checkout, branch, commit, PR, shared
+identity/session, overlapping surface, partial direct repository state, or allocation drift, stop
+before delete, overwrite, replay, attach, or create-around. Preserve recovery evidence and report
+the collision to the responsible controller.
 
 **Escalation.** An in-contract implementation question returns from the coder to the
 decision-maker; the coder never turns an inference into scope. A question changing contract,

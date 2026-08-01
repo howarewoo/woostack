@@ -124,7 +124,7 @@
             "observedResult": "API contract test remains red after the bounded implementation attempt",
             "affectedIds": [],
             "branch": "feature/app-501",
-            "worktreePath": "/repo/.woostack/worktrees/26000000-0000-4000-8000-000000000501",
+            "worktreePath": "/repo/.woostack/worktrees/tasks/26000000-0000-4000-8000-000000000501",
             "safeNextAction": "resume the failing API contract test from the preserved worktree"
           },
           "readComplete": true,
@@ -157,7 +157,7 @@
             "ownerPrincipalId": "linear-app-engineer-api-old",
             "runId": "run-api-old-501",
             "branch": "feature/app-501",
-            "worktreePath": "/repo/.woostack/worktrees/26000000-0000-4000-8000-000000000501",
+            "worktreePath": "/repo/.woostack/worktrees/tasks/26000000-0000-4000-8000-000000000501",
             "pullRequestUrl": null,
             "unresolvedItems": [
               "API contract test remains red"
@@ -240,14 +240,14 @@
           "readComplete": true
         }
       },
-      "registry": {
-        "key": "26000000-0000-4000-8000-000000000501",
+      "taskContract": {
+        "taskId": "26000000-0000-4000-8000-000000000501",
         "issueId": "26000000-0000-4000-8000-000000000501",
         "projectId": "10000000-0000-4000-8000-000000000500",
         "ownerPrincipalId": "linear-app-engineer-api-new",
         "runId": "run-api-new-501",
         "branch": "feature/app-501",
-        "worktreePath": "/repo/.woostack/worktrees/26000000-0000-4000-8000-000000000501",
+        "worktreePath": "/repo/.woostack/worktrees/tasks/26000000-0000-4000-8000-000000000501",
         "readBack": "complete"
       },
       "preResumeRecheck": {

@@ -21,7 +21,7 @@
     "readBack": "complete"
   },
   "completedWork": {
-    "registryAcquired": true,
+    "worktreeCreated": true,
     "implementationComplete": true,
     "testsPassed": true,
     "review": {

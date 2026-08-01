@@ -9,14 +9,14 @@ The caller supplies the approved bounded task, stable task/run identity, canonic
 integration base/start commit, intended Graphite parent, worktree, and reviewed diff identity.
 Before mutation verify:
 
-- exact physical repository/worktree and current branch/HEAD;
+- exact deterministic worktree path, complete `git worktree list --porcelain` inventory, and current
+  branch/HEAD;
 - canonical remote and integration base;
 - Graphite parent/stack ancestry;
-- worktree registry claim when used;
-- staged, unstaged, untracked, and conflict state;
+- staged, unstaged, untracked, conflict, and complete diff state;
 - complete changed-path set equals the approved task surface;
 - absence or one exact current-branch canonical PR; and
-- no duplicate branch, checkout, registry claim, commit, or PR.
+- no duplicate branch, checkout, commit, or PR.
 
 Branch display text is not task identity. Preserve unexpected or unrelated work and stop on
 collision. Never reset, clean, stash, delete, overwrite, or create around state.
