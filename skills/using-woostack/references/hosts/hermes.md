@@ -43,6 +43,26 @@ This adapter separates decision authority from implementation:
 - Linear may be configured independently as optional artifact context; it is not the identity,
   assignment, launch, commit, review, or acceptance authority.
 
+### Bound-unit manifest and binding
+
+Keep setup in this order:
+
+1. provision distinct `HERMES_PROFILE` and `OMP_PROFILE` identities without starting live work;
+2. only for caller-selected artifacts, configure the official Linear MCP independently in each
+   profile without starting either profile;
+3. split repository/GitHub credentials and secret/config roots by role;
+4. install and checksum-check the reviewed `launch-omp` and `bind-engineer-unit` launchers;
+5. start fresh sessions and independently preflight the pinned programs, profiles, repository
+   access, and role capabilities; and
+6. only after the bounded task and canonical worktree exist, bind the unit before dispatch.
+
+For step 6, stage `unit.json` in a private directory with mode `0600` and the exact schema
+`{schemaVersion:1,engineerName,repository,omp:{profile,program,environment},hermes:{profile,program,environment}}`.
+Set `repository` to the canonical task worktree, use exact distinct profiles, pin absolute programs,
+and keep both environment maps secret-free and role-owned. Run `bind-engineer-unit` with the staging
+directory as its working directory. It atomically installs adjacent `unit-authority.json` with mode
+`0400`; implementation starts only after that binding succeeds.
+
 ### Dispatch
 
 Confirm the installed OMP CLI's exact argv with `omp --help`. The conceptual invocation is:
@@ -91,10 +111,12 @@ boundary.
 
 ## Linear artifacts
 
-For exact caller-selected artifacts, explicit persistence, or a fix/build plan whose repository
-preflight proves Linear availability, both profiles may use the official host-exposed Linear MCP
-under the [Linear artifact contract](../../../woostack-init/references/artifact-backends.md). Keep
-their secret stores and sessions distinct. Prove capability without reading an API key or OAuth
+Only an exact caller-selected artifact or explicit persistence request selects Linear.
+Without either selection, both profiles make no Linear call.
+Repository policy or a successful preflight alone cannot select artifact mode. When selected,
+each profile may independently use the official host-exposed Linear MCP under the
+[Linear artifact contract](../../../woostack-init/references/artifact-backends.md). Keep their
+secret stores and sessions distinct. Prove capability without reading an API key or OAuth
 credential. Artifact access may synchronize specs, plans, fixes, or review notes but never
 authorizes dispatch or repository mutation. `woostack-change` never contacts Linear.
 

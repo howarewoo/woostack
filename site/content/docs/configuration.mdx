@@ -1,6 +1,6 @@
 ---
 title: Configuration
-description: Non-secret repository policy for woostack workflow engines and Linear plan availability.
+description: Non-secret repository policy and post-selection Linear plan defaults.
 ---
 
 woostack reads non-secret repository policy from `.woostack/config.json`.
@@ -8,8 +8,9 @@ woostack reads non-secret repository policy from `.woostack/config.json`.
 The file never contains credentials or grants permission to perform repository work.
 
 The active request and workflow gates define scope and approval. Git and GitHub own code, branches,
-commits, pull requests, reviews, and merge truth. A validated `linear` object enables automatic
-availability preflight for fix/build plan persistence.
+commits, pull requests, reviews, and merge truth. A validated `linear` object supplies defaults only
+after the caller selects an exact artifact or explicitly requests persistence; it cannot trigger
+provider access or authorize a write.
 
 Tracked legacy `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, and
 `.woostack/overnight/` remain local records unless the user explicitly invokes the guarded
@@ -17,7 +18,8 @@ Tracked legacy `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, and
 
 The init template ships four top-level keys: `models`, `review`, `respond`, and `status`. Other
 supported settings use built-in defaults. [woostack-doctor](/docs/skills/woostack-doctor) checks
-static policy; live Linear capability is proved by the fix/build/plan workflow before persistence.
+static policy; selected fix/build/standalone-plan persistence proves live Linear capability before
+use.
 
 **OMP exception:** woostack uses
 [host-owned role routing](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md)
@@ -29,7 +31,7 @@ There are nine top-level settings:
 
 | Setting | Read by | Tunes |
 | --- | --- | --- |
-| `linear` | [woostack-build](/docs/skills/woostack-build), [woostack-fix](/docs/skills/woostack-fix), [woostack-plan](/docs/skills/woostack-plan), and explicit artifact operations | enables plan-persistence preflight and supplies repository, workspace, team, and native-name hints |
+| `linear` | Explicitly selected artifact operations in build, fix, plan, and other supporting workflows | supplies post-selection repository, workspace, team, native-name, and presentation defaults; never selects provider access |
 | `review` | [woostack-review](/docs/skills/woostack-review) | the PR review engine: angles, noise, validation |
 | `models` | [woostack-review](/docs/skills/woostack-review), [woostack-audit](/docs/skills/woostack-audit), and host subagent drivers | shared model selection and tier parameters for hosts that consume repository model configuration; ignored by OMP |
 | `audit` | [woostack-audit](/docs/skills/woostack-audit) | standing-code audit angles, filtering, chunking, and output |
@@ -41,8 +43,8 @@ There are nine top-level settings:
 
 ## A complete repository-policy example
 
-The example is artifact-free. Add a `linear` object when fix/build plans should persist whenever
-authenticated official MCP capability is available. JSON has no comments, so each key is explained below.
+The example is artifact-free. Add a `linear` object only to provide validated defaults after a
+caller separately selects artifact mode. JSON has no comments, so each key is explained below.
 
 ```json
 {
@@ -95,17 +97,19 @@ https://mcp.linear.app/mcp
 
 Authentication stays in the host's MCP/OAuth secret store. No API key, credential, authorization
 value, or credential-file path belongs in repository configuration, prompts, logs, generated files,
-or artifacts. Workflows prove availability from authenticated capability without reading the secret.
+or artifacts. Workflows prove capability without reading the secret.
 
-The optional `linear` object provides repository/workspace/team hints and native names. When present,
-every value is non-empty and the complete object is validated before it is used. Fix/build/plan
-preflight the project, issue, sub-issue, relation, and independent read-back capabilities needed for
-the plan hierarchy. Fix/build additionally preflight the canceled project-status mapping, exact
-project update, and read-back capabilities needed for abandonment.
+The optional `linear` object provides repository/workspace/team, native-name, and presentation
+defaults after artifact selection. It never selects artifact mode or authorizes a provider read or
+write. Before a selected mutation, the workflow verifies the canonical repository association,
+resolves the caller-selected workspace/team, and rejects missing, malformed, ambiguous, foreign, or
+conflicting values. It then preflights every project, issue, sub-issue, relation, mutation, and
+independent read-back capability needed for the selected hierarchy.
 
-A successful preflight makes persistence part of the fix/build plan deliverable: one project, one
-parent plan issue, and one native child issue per increment. Missing policy or unavailable/incomplete
-capability leaves automatic planning artifact-free. `woostack-change` ignores the `linear` object.
+Selected fix/build/standalone-plan persistence is one project, one parent plan issue, and one native
+child issue per increment. Missing capability blocks only the selected artifact operation at its
+retained safe boundary. Without an exact artifact or explicit persistence request, fix/build/plan
+make no Linear call. `woostack-change` ignores the `linear` object.
 
 `linear.projectStatuses.canceled` names the native status used to close an existing fix/build
 project after explicit abandonment. The workflow reads the status transition back and never creates a

@@ -5,35 +5,36 @@ fix records, decisions, and synchronization notes. They are not development auth
 request and the selected workflow's explicit approval gates authorize repository work; Git,
 Graphite, and canonical GitHub reads prove source, ancestry, PR, review, and merge state.
 
-No woostack command requires an issue or project merely to run. Artifact-free operation remains
-available when repository Linear capability is absent.
+No woostack command requires an issue or project merely to run. Artifact-free operation is the
+default until the caller selects artifact mode.
 
 ## Selection
 
-Enter artifact mode when:
+Artifact mode is selected only when:
 
-- the caller supplies one exact Linear project/issue URL or stable UUID;
-- the caller explicitly asks to create or persist an artifact; or
-- `woostack-build`, `woostack-fix`, or `woostack-plan` is writing a plan and repository Linear
-  availability is proved.
+- the caller supplies one exact Linear project/issue URL or stable UUID; or
+- the caller explicitly asks to create or persist an artifact.
 
-Repository Linear availability requires both validated non-secret `linear` policy in
-`.woostack/config.json` and an authenticated official Linear MCP capability preflight for every
-required project, issue, sub-issue, relation, and independent read-back operation. For automatic
-fix/build persistence, the preflight must also resolve the configured
-`projectStatuses.canceled` mapping to one native canceled-category project status and prove exact
-project update and independent read-back capability. Treat an API key or OAuth credential as
-host-owned secret state: prove capability without reading, printing, or copying the credential. If
-repository policy is absent or preflight is unavailable or incomplete, continue artifact-free
-unless the caller explicitly required persistence.
+Without one of those inputs, make no provider read or write. In particular, tracked
+`.woostack/config.json` policy cannot select artifact mode, authorize a provider operation, or turn
+an otherwise artifact-free command into a persistence run.
 
-An exact caller-supplied resource takes precedence over automatic creation. Otherwise, never infer
-an existing artifact from a title, issue key, branch name, PR body, attribution trailer, recent
-activity, search ranking, or authenticated user's history.
+After selection, validated non-secret `linear` policy may supply repository, workspace/team,
+native-status, and presentation defaults. Resolve every supplied value and compare it with the
+canonical repository and the caller-selected workspace/team before use. Missing, malformed,
+ambiguous, foreign, or conflicting values block the selected artifact operation; they never broaden
+the selection. Authentication remains in the host's secret store.
 
-For an available repository, a fix/build plan uses one project, one parent plan issue, and one
-native child issue per increment. The project holds the approved specification or fix context, the
-parent issue holds the complete plan, and child issues hold the complete increment contracts and
+Preflight the authenticated official Linear MCP for every selected read, project, issue, sub-issue,
+relation, mutation, and independent read-back operation. For an existing exact resource, resolve
+only that resource. For explicitly requested creation, allocate one stable resource identity.
+An exact caller-supplied resource always takes precedence over creation. Never infer an existing
+artifact from a title, issue key, branch name, PR body, attribution trailer, recent activity, search
+ranking, or authenticated user's history.
+
+A selected fix/build/standalone-plan persistence run uses one project, one parent plan issue, and
+one native child issue per increment. The project holds the approved specification or fix context,
+the parent issue holds the complete plan, and child issues hold complete increment contracts and
 native dependency relations. `woostack-change` never reads or writes Linear. Other workflows create
 or mutate artifacts only after exact caller selection or an explicit persistence request.
 
@@ -54,11 +55,11 @@ labels, relations, project membership, updates, and comments are artifact metada
 may synchronize them when explicitly requested, but must not depend on them for repository
 admission or delivery.
 
-A stale, missing, foreign, ambiguous, or unavailable caller-selected artifact blocks only requested
-artifact use. If automatic capability preflight does not prove repository Linear availability,
-continue artifact-free. Once availability is proved for a fix/build plan, successful hierarchy
-persistence and independent read-back are part of that plan deliverable and block its execution
-handoff on failure.
+A stale, missing, foreign, ambiguous, or unavailable caller-selected artifact blocks only the
+selected artifact operation. Missing provider capability cannot authorize a fallback write or
+weaken repository evidence. Once persistence is explicitly selected for a fix/build/standalone-plan
+run, successful hierarchy persistence and independent read-back are part of that selected
+deliverable and block its execution handoff or completion on failure.
 
 ## Provider and credential boundary
 
@@ -94,22 +95,24 @@ For a caller-supplied resource:
 1. resolve the exact URL/UUID without fuzzy discovery;
 2. independently read its native identity, workspace/team, type, current content, and relevant
    updates/comments/relations with complete pagination;
-3. verify it belongs to the canonical repository when it claims repository association;
-4. retain the exact revision/timestamp or content identity used; and
-5. compare extracted scope with the active approved workflow contract.
+3. resolve the canonical repository association from trusted Git/GitHub evidence and verify the
+   artifact belongs to it before any selected write;
+4. verify the resolved workspace/team against the caller's selection, using validated repository
+   policy only as post-selection defaults;
+5. retain the exact revision/timestamp or content identity used; and
+6. compare extracted scope with the active approved workflow contract.
 
 Artifact content may fill a requested specification/plan/fix input. A conflict with the active
 approved contract blocks artifact synchronization and requires the caller/owning workflow to choose;
 it never silently changes repository scope.
 
-## Writes and read-back
-
-Before every artifact mutation, re-read the exact target and fields being changed. Write the
+Before every artifact mutation, verify the canonical repository association and resolved
+caller-selected workspace/team, then re-read the exact target and fields being changed. Write the
 smallest selected payload. Preserve unrelated human-authored content. Do not change assignee,
 delegate, status, labels, archival state, or unrelated relations/project membership. The required
-fix/build plan hierarchy may set its own project membership, parent-child links, and dependency
-relations. The [fix/build project-closure invariant](#fixbuild-project-closure) is the sole
-workflow-owned status exception; other metadata changes require the caller's explicit request.
+fix/build/standalone-plan hierarchy may set its own project membership, parent-child links, and
+dependency relations. The [fix/build project-closure invariant](#fixbuild-project-closure) is the
+sole workflow-owned status exception; other metadata changes require the caller's explicit request.
 
 Use a stable client-generated operation ID when the host API exposes one. After mutation, perform a
 new independent complete read and compare:
@@ -128,17 +131,24 @@ retry with a new resource or operation ID merely because the first response was 
 
 Explicit abandonment is a terminal workflow action, distinct from handoff, replan, or a blocker.
 At any phase, if the active fix/build workflow already has one exact persisted project, stop
-repository work and transition only that project's native status to the validated
-`.woostack/config.json` `projectStatuses.canceled` mapping by following the
-[Linear synchronization procedure](../../woostack-build/references/linear-procedure.md#explicit-abandonment).
-Do not archive or delete the project, bulk-change issue states, or create a project merely to
-cancel it. If no project exists, report that there is nothing to close.
+repository work and perform only these closure synchronization steps:
 
-Closure is proved only by an independent read-back of the exact project identity, resolved native
-canceled status and category, revision, and stable mutation identity. A failed or unknown closure
-produces a truthful artifact blocker at the retained stable retry boundary; it
-never resumes repository work. Normal handoff, replan, and blocker handling leave project status
-unchanged.
+1. use the retained exact project identity to determine whether a persisted project exists; if none
+   exists, report that there is nothing to close and do not create one;
+2. validate `.woostack/config.json` only for post-selection defaults, resolve
+   `projectStatuses.canceled` to exactly one native canceled-category project status, and prove
+   exact project-update, stable mutation-identity, and independent read-back capability;
+3. verify the canonical repository association and resolved workspace/team for that exact project;
+4. immediately before mutation, re-read its native identity, current status, and revision, then
+   allocate or retain one stable closure mutation identity;
+5. update only that project's native status to the resolved canceled status; and
+6. independently re-read the exact project and verify its identity, canceled status name/ID and
+   category, revision, and stable mutation identity.
+
+Do not archive or delete the project, bulk-change issue states, or create a project merely to
+cancel it. Closure failure or an unknown outcome produces a truthful artifact blocker at the
+retained stable retry boundary and never resumes repository work. Handoff, replan, and blocker
+handling leave project status unchanged.
 
 ## Suggested artifact shape
 

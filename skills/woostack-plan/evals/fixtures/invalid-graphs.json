@@ -1,0 +1,163 @@
+{
+  "scenarios": {
+    "caseA": {
+      "acceptanceCriteria": [
+        "criterion-a"
+      ],
+      "increments": [
+        {
+          "taskId": "task-a",
+          "ordinal": 1,
+          "covers": [
+            "criterion-a"
+          ],
+          "predecessors": []
+        },
+        {
+          "taskId": "task-a",
+          "ordinal": 2,
+          "covers": [],
+          "predecessors": []
+        }
+      ]
+    },
+    "caseB": {
+      "acceptanceCriteria": [
+        "criterion-a"
+      ],
+      "increments": [
+        {
+          "taskId": "task-a",
+          "ordinal": 1,
+          "covers": [
+            "criterion-a"
+          ],
+          "predecessors": []
+        },
+        {
+          "taskId": "task-b",
+          "ordinal": 1,
+          "covers": [],
+          "predecessors": []
+        }
+      ]
+    },
+    "caseC": {
+      "acceptanceCriteria": [
+        "criterion-a"
+      ],
+      "increments": [
+        {
+          "taskId": "task-a",
+          "ordinal": 1,
+          "covers": [
+            "criterion-a"
+          ],
+          "predecessors": [
+            "task-missing"
+          ]
+        }
+      ]
+    },
+    "caseD": {
+      "acceptanceCriteria": [
+        "criterion-a",
+        "criterion-b"
+      ],
+      "increments": [
+        {
+          "taskId": "task-a",
+          "ordinal": 1,
+          "covers": [
+            "criterion-a"
+          ],
+          "predecessors": []
+        }
+      ]
+    },
+    "caseE": {
+      "acceptanceCriteria": [
+        "criterion-a",
+        "criterion-b"
+      ],
+      "increments": [
+        {
+          "taskId": "task-a",
+          "ordinal": 1,
+          "covers": [
+            "criterion-a"
+          ],
+          "predecessors": [],
+          "gitParent": null
+        },
+        {
+          "taskId": "task-b",
+          "ordinal": 2,
+          "covers": [
+            "criterion-b"
+          ],
+          "predecessors": [],
+          "gitParent": "task-a"
+        }
+      ]
+    },
+    "caseF": {
+      "acceptanceCriteria": [
+        "criterion-a"
+      ],
+      "increments": [
+        {
+          "taskId": "task-a",
+          "ordinal": 0,
+          "covers": [
+            "criterion-a"
+          ],
+          "predecessors": []
+        }
+      ]
+    },
+    "caseG": {
+      "acceptanceCriteria": [
+        "criterion-a",
+        "criterion-b"
+      ],
+      "increments": [
+        {
+          "taskId": "task-a",
+          "ordinal": 1,
+          "covers": [
+            "criterion-a"
+          ],
+          "predecessors": [
+            "task-b"
+          ]
+        },
+        {
+          "taskId": "task-b",
+          "ordinal": 2,
+          "covers": [
+            "criterion-b"
+          ],
+          "predecessors": [
+            "task-a"
+          ]
+        }
+      ]
+    },
+    "caseH": {
+      "acceptanceCriteria": [
+        "criterion-a"
+      ],
+      "increments": [
+        {
+          "taskId": "task-a",
+          "ordinal": true,
+          "covers": [
+            "criterion-a"
+          ],
+          "predecessors": []
+        }
+      ]
+    }
+  }
+}

@@ -22,20 +22,23 @@ for file in "$BUILD_SKILL" "$PROCEDURE" "$CONTEXT" "$AUTHORITY"; do
 done
 
 assert_literal "$BUILD_SKILL" \
-  'When repository Linear availability is proved, the plan is' \
-  'build persists plans when repository Linear is available'
+  'An exact caller-supplied project or explicit persistence request selects artifact mode' \
+  'build enters artifact mode only after exact or explicit selection'
 assert_literal "$BUILD_SKILL" \
   'The user'\''s request and the three explicit gates authorize this workflow' \
   'workflow gates, not artifacts, authorize work'
 assert_literal "$BUILD_SKILL" \
-  'Missing configuration or unavailable/incomplete capability keeps the build artifact-free' \
-  'unavailable Linear keeps build artifact-free'
+  'make no Linear read or write' \
+  'build remains artifact-free without selection'
 assert_literal "$BUILD_SKILL" \
   'ideate → approve design → harden specification → approve specification →' \
   'build preserves the ordered design and specification gates'
 assert_literal "$BUILD_SKILL" \
-  'plan → harden increment graph → persist available Linear plan → approve execution →' \
-  'build preserves planning, persistence, and execution ordering'
+  'delegate candidate planning without provider mutation → harden increment graph →' \
+  'build delegates planning before graph hardening'
+assert_literal "$BUILD_SKILL" \
+  'persist the selected Linear plan once → approve execution →' \
+  'build persists once after hardening and before execution'
 assert_literal "$BUILD_SKILL" \
   'Build owns exactly these three barriers, in this order' \
   'build retains exactly three explicit gates'
@@ -47,8 +50,8 @@ assert_literal "$BUILD_SKILL" \
   'retired docs-only approval PR remains absent'
 
 assert_literal "$PROCEDURE" \
-  'repository Linear availability is proved' \
-  'Linear procedure supports repository-enabled synchronization'
+  'only after the caller supplies an exact resource or explicitly requests persistence' \
+  'Linear procedure requires exact or explicit selection'
 assert_literal "$PROCEDURE" \
   'one parent plan issue in the project' \
   'plan hierarchy has one parent issue'
@@ -60,11 +63,11 @@ assert_literal "$PROCEDURE" \
   'artifact writes require independent read-back'
 assert_literal "$PROCEDURE" \
   'blocks the plan deliverable and execution handoff' \
-  'post-availability failure blocks plan handoff'
+  'selected persistence failure blocks plan handoff'
 
 assert_literal "$CONTEXT" \
-  'unavailable automatic preflight falls back to artifact-free planning' \
-  'unavailable project capability falls back artifact-free'
+  'Repository policy alone never selects artifact mode or' \
+  'repository policy cannot select provider access'
 assert_literal "$CONTEXT" \
   'They do not assign an engineer, clear a workflow gate, authorize' \
   'provider fields remain descriptive'

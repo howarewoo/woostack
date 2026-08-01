@@ -1,0 +1,185 @@
+{
+  "caller": {
+    "exactProjectUrl": "https://linear.app/acme/project/cache-stampede-project-feature-9",
+    "workspaceId": "workspace-acme",
+    "teamId": "team-app",
+    "clientIds": {
+      "project": "11222222-2222-4222-8222-222222222222",
+      "parent": "12222222-2222-4222-8222-222222222222",
+      "child": "13222222-2222-4222-8222-222222222222"
+    }
+  },
+  "repositoryOrigin": "https://github.com/acme/cache-service",
+  "selectedProjectRead": {
+    "fresh": {
+      "id": "project-feature-9",
+      "repository": "https://github.com/acme/cache-service",
+      "workspaceId": "workspace-acme",
+      "teamId": "team-app",
+      "role": "Feature",
+      "contentIdentity": "cache-stampede-fix",
+      "revision": 4,
+      "contentHash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    }
+  },
+  "approvedFix": {
+    "rootCause": "Concurrent refreshes outlive the lock and stampede the origin",
+    "contract": "Hold one shared lock for the complete protected refresh",
+    "projectContext": {
+      "contentIdentity": "cache-stampede-fix",
+      "revision": 5,
+      "contentHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "parentPlan": {
+      "contentIdentity": "cache-stampede-parent",
+      "revision": 5,
+      "contentHash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "increment": {
+      "taskId": "bounded-cache-refresh",
+      "contentIdentity": "cache-stampede-increment",
+      "revision": 5,
+      "contentHash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    }
+  },
+  "preMutationHierarchyReads": {
+    "parents": [
+      {
+        "page": 1,
+        "items": [
+          {
+            "id": "issue-app-241",
+            "contentIdentity": "cache-stampede-parent",
+            "revision": 4,
+            "contentHash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "projectMembership": "project-feature-9"
+          }
+        ],
+        "hasNextPage": false,
+        "complete": true
+      }
+    ],
+    "children": [
+      {
+        "page": 1,
+        "items": [
+          {
+            "id": "issue-app-242",
+            "taskId": "bounded-cache-refresh",
+            "contentIdentity": "cache-stampede-increment",
+            "revision": 4,
+            "contentHash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "parentLink": "issue-app-241",
+            "projectMembership": "project-feature-9"
+          }
+        ],
+        "hasNextPage": false,
+        "complete": true
+      }
+    ],
+    "relations": [
+      {
+        "page": 1,
+        "items": [],
+        "hasNextPage": false,
+        "complete": true
+      }
+    ]
+  },
+  "providerEvents": [
+    {
+      "operation": "update-project",
+      "target": "project-feature-9",
+      "clientId": "11222222-2222-4222-8222-222222222222",
+      "contentIdentity": "cache-stampede-fix",
+      "revision": 5,
+      "contentHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "operation": "read-project",
+      "fresh": {
+        "id": "project-feature-9",
+        "clientId": "11222222-2222-4222-8222-222222222222",
+        "contentIdentity": "cache-stampede-fix",
+        "revision": 5,
+        "contentHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "repository": "https://github.com/acme/cache-service",
+        "workspaceId": "workspace-acme",
+        "teamId": "team-app"
+      }
+    },
+    {
+      "operation": "update-parent",
+      "target": "issue-app-241",
+      "clientId": "12222222-2222-4222-8222-222222222222",
+      "contentIdentity": "cache-stampede-parent",
+      "revision": 5,
+      "contentHash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    {
+      "operation": "read-parent",
+      "fresh": {
+        "id": "issue-app-241",
+        "clientId": "12222222-2222-4222-8222-222222222222",
+        "contentIdentity": "cache-stampede-parent",
+        "revision": 5,
+        "contentHash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "projectMembership": "project-feature-9"
+      }
+    },
+    {
+      "operation": "update-child",
+      "target": "issue-app-242",
+      "clientId": "13222222-2222-4222-8222-222222222222",
+      "taskId": "bounded-cache-refresh",
+      "contentIdentity": "cache-stampede-increment",
+      "revision": 5,
+      "contentHash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    },
+    {
+      "operation": "read-child",
+      "fresh": {
+        "id": "issue-app-242",
+        "clientId": "13222222-2222-4222-8222-222222222222",
+        "taskId": "bounded-cache-refresh",
+        "contentIdentity": "cache-stampede-increment",
+        "revision": 5,
+        "contentHash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "parentLink": "issue-app-241",
+        "projectMembership": "project-feature-9"
+      }
+    },
+    {
+      "operation": "read-relation-set",
+      "fresh": {
+        "items": [],
+        "complete": true
+      }
+    }
+  ],
+  "partialReadScenario": {
+    "selectedProjectRead": {
+      "fresh": {
+        "id": "project-feature-9",
+        "repository": "https://github.com/acme/cache-service",
+        "workspaceId": "workspace-acme",
+        "teamId": "team-app"
+      }
+    },
+    "preMutationHierarchyReads": {
+      "parents": [
+        {
+          "page": 1,
+          "items": [
+            {
+              "id": "issue-app-241"
+            }
+          ],
+          "hasNextPage": true,
+          "complete": false
+        }
+      ]
+    },
+    "providerEvents": []
+  }
+}

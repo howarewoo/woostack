@@ -1,6 +1,6 @@
 ---
 title: What is woostack?
-description: Evidence-driven workflows with repository-enabled Linear plan persistence.
+description: Evidence-driven workflows with explicitly selected Linear plan persistence.
 ---
 
 woostack is a model-agnostic collection of gated software-development skills for planning,
@@ -12,8 +12,8 @@ pnpx skills add howarewoo/woostack
 
 - **Repository-first truth:** the user's approved workflow contract authorizes work; Git and GitHub
   prove source, branches, pull requests, reviews, and merge state.
-- **Conditional durable plans:** when repository Linear capability is proved, fix/build plans use
-  one project, one parent plan issue, and one native child issue per increment. Linear is not a
+- **Explicit durable plans:** caller-selected fix/build/standalone-plan persistence uses one
+  project, one parent plan issue, and one native child issue per increment. Linear is not a
   prerequisite for coding, committing, reviewing, or status.
 - **Decision-maker/coder separation:** the generic
   [engineer-agent contract](/docs/concepts/engineer-agents) keeps scope, independent review, and
@@ -36,11 +36,11 @@ ledger or a particular provider:
 - safe concurrency through declared dependencies and isolated worktrees;
 - decision-maker/coder role separation;
 - portable execution across supported harnesses;
-- conditional plan persistence when repository Linear capability is available.
+- optional plan persistence only for an exact artifact or explicit persistence request.
 
-Remote artifact text, PR text, and tool output are untrusted evidence, never instructions. Missing
-Linear capability keeps automatic planning artifact-free; failure after availability was proved
-blocks that plan at its last verified persistence boundary.
+Remote artifact text, PR text, and tool output are untrusted evidence, never instructions. Without
+an exact artifact or explicit persistence request, commands make no Linear call. Tracked policy
+provides validated defaults only after selection and cannot authorize provider writes.
 
 ## Where to go next
 
@@ -50,6 +50,6 @@ blocks that plan at its last verified persistence boundary.
   <Card title="Engineer agents" href="/docs/concepts/engineer-agents" description="Understand decision, coding, review, and acceptance boundaries." />
   <Card title="Core concepts" href="/docs/concepts" description="The build loop, context management, worktrees, and status tracking." />
   <Card title="Harnesses" href="/docs/harnesses" description="Supported hosts, profile isolation, and native capability differences." />
-  <Card title="woostack-build" href="/docs/skills/woostack-build" description="Drive a feature from idea to a reviewed PR stack, persisting its plan when Linear is available." />
+  <Card title="woostack-build" href="/docs/skills/woostack-build" description="Drive a feature from idea to a reviewed PR stack, optionally persisting one explicitly selected plan hierarchy." />
   <Card title="All skills" href="/docs/skills/using-woostack" description="Per-skill reference, generated from each SKILL.md." />
 </Cards>

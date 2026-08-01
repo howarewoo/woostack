@@ -64,42 +64,93 @@
       ]
     },
     {
-      "id": "verified-work-item-approval-delegates-execution",
-      "prompt": "Evaluate fixtures/approved-fix.json validReuse as the current state after the one explicit Go decision. Do not run Git, call a provider, or implement code. Apply the packaged skill contract and return exactly one JSON object using the keys issueState, issueIdentifier, resourceRole, projectCreated, hardGates, approvalVerified, eventKindsBeforeExecution, executionDelegated, executionSkill, prTrailer, and mergeAllowed. Set issueState to the fixture's verified native semantic state.",
+      "id": "exact-project-approval-persists-hierarchy-and-delegates",
+      "prompt": "Evaluate fixtures/selected-project-persistence.json as the state immediately after explicit approve-to-execute. The caller supplied the exact project and repository Linear policy is absent. Do not call a provider, run Git, or implement. Apply the packaged skill contract and return exactly one JSON object using the keys artifactModeSelected, repositoryPolicyPresent, canonicalRepositoryVerified, workspaceTeamVerified, projectId, projectCreated, preMutationHierarchyReadComplete, parentPlanIssueId, incrementChildIssueIds, hierarchyReadBackVerified, approvedProjectContextReadBackVerified, hardGates, executionDelegated, executionSkill, executionArtifactContext, prTrailer, and mergeAllowed.",
       "fixtures": [
-        "approved-fix.json"
+        "selected-project-persistence.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The exact repository-owned standalone issue, complete receipts, type-aware delegate, diagnosis, hardened contract, and explicit approval permit delegation to woostack-execute with one issue trailer and no project.",
+      "expected": "The exact caller-supplied project selects persistence even without repository policy. Canonical repository and workspace/team verification precede one project/parent/child hierarchy read-back, then the approved increment is delegated to woostack-execute with exact persisted context, no standalone trailer, and no merge.",
       "assertions": [
         {
-          "id": "verified-issue-state",
+          "id": "exact-project-selects-artifact-mode",
           "kind": "final-json-path-equals",
-          "pointer": "/issueState",
-          "expected": "executing",
+          "pointer": "/artifactModeSelected",
+          "expected": true,
           "critical": true
         },
         {
-          "id": "exact-issue-retained",
+          "id": "policy-is-absent",
           "kind": "final-json-path-equals",
-          "pointer": "/issueIdentifier",
-          "expected": "APP-241",
+          "pointer": "/repositoryPolicyPresent",
+          "expected": false,
           "critical": true
         },
         {
-          "id": "standalone-role-retained",
+          "id": "canonical-repository-verified",
           "kind": "final-json-path-equals",
-          "pointer": "/resourceRole",
-          "expected": "work-item",
+          "pointer": "/canonicalRepositoryVerified",
+          "expected": true,
           "critical": true
         },
         {
-          "id": "no-wrapper-project",
+          "id": "workspace-team-verified",
+          "kind": "final-json-path-equals",
+          "pointer": "/workspaceTeamVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "exact-project-retained",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectId",
+          "expected": "project-feature-9",
+          "critical": true
+        },
+        {
+          "id": "selected-project-is-not-created",
           "kind": "final-json-path-equals",
           "pointer": "/projectCreated",
           "expected": false,
+          "critical": true
+        },
+        {
+          "id": "pre-write-hierarchy-sets-are-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/preMutationHierarchyReadComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "parent-plan-retained",
+          "kind": "final-json-path-equals",
+          "pointer": "/parentPlanIssueId",
+          "expected": "issue-app-241",
+          "critical": true
+        },
+        {
+          "id": "single-increment-child",
+          "kind": "final-json-path-equals",
+          "pointer": "/incrementChildIssueIds",
+          "expected": [
+            "issue-app-242"
+          ],
+          "critical": true
+        },
+        {
+          "id": "hierarchy-read-back",
+          "kind": "final-json-path-equals",
+          "pointer": "/hierarchyReadBackVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "approved-project-context-read-back",
+          "kind": "final-json-path-equals",
+          "pointer": "/approvedProjectContextReadBackVerified",
+          "expected": true,
           "critical": true
         },
         {
@@ -108,25 +159,6 @@
           "pointer": "/hardGates",
           "expected": [
             "approve-to-execute"
-          ],
-          "critical": true
-        },
-        {
-          "id": "explicit-approval-read-back",
-          "kind": "final-json-path-equals",
-          "pointer": "/approvalVerified",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "pre-execution-event-chain",
-          "kind": "final-json-path-equals",
-          "pointer": "/eventKindsBeforeExecution",
-          "expected": [
-            "verification",
-            "decisionRequest",
-            "decisionResponse",
-            "assignmentAccepted"
           ],
           "critical": true
         },
@@ -145,10 +177,21 @@
           "critical": true
         },
         {
-          "id": "standalone-trailer",
+          "id": "exact-artifact-context",
+          "kind": "final-json-path-equals",
+          "pointer": "/executionArtifactContext",
+          "expected": {
+            "projectId": "project-feature-9",
+            "parentPlanIssueId": "issue-app-241",
+            "incrementChildIssueId": "issue-app-242"
+          },
+          "critical": true
+        },
+        {
+          "id": "no-standalone-trailer",
           "kind": "final-json-path-equals",
           "pointer": "/prTrailer",
-          "expected": "Linear-Issue: APP-241",
+          "expected": null,
           "critical": true
         },
         {
@@ -161,55 +204,152 @@
       ]
     },
     {
-      "id": "safe-create-and-retry-use-stable-uuid",
-      "fixturePassthroughAssertions": [
-        {"assertionId": "no-replacement","fixture": "approved-fix.json","pointer": "/safeCreate/replacementCreated"},
-        {"assertionId": "safe-create-no-branch-before-approval","fixture": "approved-fix.json","pointer": "/safeCreate/branchCreated"},
-        {"assertionId": "single-create-attempt","fixture": "approved-fix.json","pointer": "/safeCreate/createAttempts"},
-        {"assertionId": "stable-client-id","fixture": "approved-fix.json","pointer": "/safeCreate/clientId"},
-        {"assertionId": "stable-client-id","fixture": "approved-fix.json","pointer": "/safeCreate/independentReadBack/clientId"}
-      ],
-      "prompt": "Evaluate fixtures/approved-fix.json safeCreate at the issue-binding boundary. Treat initialDiscovery as the pre-create search and retryDiscovery as a later retry after the verified create. Do not call a provider or create files. Return exactly one JSON object using the keys issueState, clientId, issueIdentifier, createAttempts, retryMatchedExisting, replacementCreated, readBackVerified, projectCreated, and branchCreated. Set issueState to the created issue's verified semantic state.",
+      "id": "partial-selected-project-hierarchy-blocks-before-delegation",
+      "prompt": "Evaluate only fixtures/selected-project-persistence.json partialReadScenario at the approved persistence boundary. Do not infer unread pages, call a provider, run Git, or implement. Return exactly one JSON object using the keys status, reasonCode, projectCreated, providerMutationCount, hierarchyReadBackVerified, and executionDelegated.",
       "fixtures": [
-        "approved-fix.json"
+        "selected-project-persistence.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "One preallocated UUID creates one standalone issue, independent read-back verifies it, retry resumes the same native issue, and no project or branch exists.",
+      "expected": "An incomplete selected-project hierarchy read blocks before provider mutation or execution delegation and never creates a replacement project.",
       "assertions": [
         {
-          "id": "created-issue-state",
+          "id": "partial-hierarchy-blocked",
           "kind": "final-json-path-equals",
-          "pointer": "/issueState",
-          "expected": "planned",
+          "pointer": "/status",
+          "expected": "blocked",
           "critical": true
         },
         {
-          "id": "stable-client-id",
+          "id": "partial-hierarchy-reason",
           "kind": "final-json-path-equals",
-          "pointer": "/clientId",
-          "expected": "12222222-2222-4222-8222-222222222222",
+          "pointer": "/reasonCode",
+          "expected": "incomplete-hierarchy-readback",
           "critical": true
         },
         {
-          "id": "created-issue-identity",
+          "id": "partial-hierarchy-does-not-create-project",
           "kind": "final-json-path-equals",
-          "pointer": "/issueIdentifier",
-          "expected": "APP-242",
+          "pointer": "/projectCreated",
+          "expected": false,
           "critical": true
         },
         {
-          "id": "single-create-attempt",
+          "id": "partial-hierarchy-does-not-mutate-provider",
+          "kind": "final-json-path-equals",
+          "pointer": "/providerMutationCount",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "partial-hierarchy-is-not-verified",
+          "kind": "final-json-path-equals",
+          "pointer": "/hierarchyReadBackVerified",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "partial-hierarchy-does-not-delegate",
+          "kind": "final-json-path-equals",
+          "pointer": "/executionDelegated",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "explicit-create-uses-stable-project-parent-child-identities",
+      "prompt": "Evaluate fixtures/explicit-project-create.json at the selected persistence boundary. No exact project exists; the caller explicitly requested persistence. Do not call a provider or run Git. Return exactly one JSON object using the keys artifactModeSelected, canonicalRepositoryVerified, workspaceTeamVerified, absenceProvedBeforeCreate, projectMutationId, parentMutationId, childMutationIds, createAttempts, independentReadBacksVerified, approvedProjectContextReadBackVerified, retryMatchedExistingHierarchy, replacementCreated, and branchCreated.",
+      "fixtures": [
+        "explicit-project-create.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Explicit persistence proves the preallocated project identity absent, attempts one project create, and treats its timeout as unknown. An immediate complete lookup of the same identity recovers exactly one project before any parent write. Parent and child use their retained identities, every resource is independently read back, and no branch, replay, or replacement is created.",
+      "assertions": [
+        {
+          "id": "explicit-request-selects-artifact-mode",
+          "kind": "final-json-path-equals",
+          "pointer": "/artifactModeSelected",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "create-repository-verified",
+          "kind": "final-json-path-equals",
+          "pointer": "/canonicalRepositoryVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "create-workspace-team-verified",
+          "kind": "final-json-path-equals",
+          "pointer": "/workspaceTeamVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "absence-proved-before-create",
+          "kind": "final-json-path-equals",
+          "pointer": "/absenceProvedBeforeCreate",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "stable-project-mutation-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectMutationId",
+          "expected": "21111111-1111-4111-8111-111111111111",
+          "critical": true
+        },
+        {
+          "id": "stable-parent-mutation-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/parentMutationId",
+          "expected": "22222222-2222-4222-8222-222222222222",
+          "critical": true
+        },
+        {
+          "id": "stable-child-mutation-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/childMutationIds",
+          "expected": [
+            "23333333-3333-4333-8333-333333333333"
+          ],
+          "critical": true
+        },
+        {
+          "id": "single-create-pass",
           "kind": "final-json-path-equals",
           "pointer": "/createAttempts",
-          "expected": 1,
+          "expected": {
+            "project": 1,
+            "parent": 1,
+            "children": 1,
+            "parentChildLinks": 1
+          },
           "critical": true
         },
         {
-          "id": "retry-resumes-existing",
+          "id": "complete-hierarchy-readback",
           "kind": "final-json-path-equals",
-          "pointer": "/retryMatchedExisting",
+          "pointer": "/independentReadBacksVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "created-approved-project-context-read-back",
+          "kind": "final-json-path-equals",
+          "pointer": "/approvedProjectContextReadBackVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "retry-resumes-hierarchy",
+          "kind": "final-json-path-equals",
+          "pointer": "/retryMatchedExistingHierarchy",
           "expected": true,
           "critical": true
         },
@@ -221,21 +361,7 @@
           "critical": true
         },
         {
-          "id": "complete-create-readback",
-          "kind": "final-json-path-equals",
-          "pointer": "/readBackVerified",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "safe-create-no-project",
-          "kind": "final-json-path-equals",
-          "pointer": "/projectCreated",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "safe-create-no-branch-before-approval",
+          "id": "no-branch-before-persistence-proof",
           "kind": "final-json-path-equals",
           "pointer": "/branchCreated",
           "expected": false,
@@ -244,24 +370,21 @@
       ]
     },
     {
-      "id": "invalid-resource-identities-fail-before-git",
-      "fixturePassthroughAssertions": [
-        {"assertionId": "identity-failure-no-branch","fixture": "approved-fix.json","pointer": "/safeCreate/branchCreated"}
-      ],
-      "prompt": "Evaluate every entry in fixtures/approved-fix.json invalidIdentityScenarios as a separately supplied identity. Do not select, repair, migrate, or mutate any resource. Return exactly one JSON object using the keys status, decisions, repositoryMutationCount, branchCreated, and projectCreated. decisions must map ambiguousIssue, foreignRepository, foreignTeam, featureProject, projectIncrement, and linearDocument to blocked.",
+      "id": "classifies-exact-project-and-rejects-invalid-identities-before-git",
+      "prompt": "Evaluate every entry in fixtures/exact-project-classification.json candidates as a separately caller-supplied --project identity. Derive each classification from the supplied kind, repository association, workspace/team membership, and role evidence. Do not repair, migrate, mutate, or run Git. Return exactly one JSON object using the keys status, decisions, repositoryMutationCount, branchCreated, and projectCreated.",
       "fixtures": [
-        "approved-fix.json"
+        "exact-project-classification.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Ambiguous, foreign, project, increment, and document identities all block before project, branch, or worktree creation.",
+      "expected": "The exact canonical-repository project with resolved workspace/team is selected for later approved persistence. Ambiguous, foreign, issue, and document identities block their artifact paths before repository mutation; no new project or branch is created.",
       "assertions": [
         {
           "id": "identity-matrix-blocked",
           "kind": "final-json-path-equals",
           "pointer": "/status",
-          "expected": "blocked",
+          "expected": "classified",
           "critical": true
         },
         {
@@ -272,7 +395,7 @@
             "ambiguousIssue": "blocked",
             "foreignRepository": "blocked",
             "foreignTeam": "blocked",
-            "featureProject": "blocked",
+            "featureProject": "selected",
             "projectIncrement": "blocked",
             "linearDocument": "blocked"
           },
@@ -304,7 +427,11 @@
     {
       "id": "receipt-owner-evidence-and-authority-conflicts-fail-closed",
       "fixturePassthroughAssertions": [
-        {"assertionId": "conflicts-stop-branch","fixture": "approved-fix.json","pointer": "/safeCreate/branchCreated"}
+        {
+          "assertionId": "conflicts-stop-branch",
+          "fixture": "approved-fix.json",
+          "pointer": "/safeCreate/branchCreated"
+        }
       ],
       "prompt": "Evaluate every entry in fixtures/approved-fix.json blockedScenarios independently at the next mutation boundary. Do not use fallback credentials, custom transport, local development records, or inferred evidence. Return exactly one JSON object using the keys status, decisions, repositoryMutationCount, branchCreated, projectCreated, stableIdsPreserved, localDevelopmentRecordCreated, and mergeAllowed. decisions must map every blockedScenarios key to blocked.",
       "fixtures": [

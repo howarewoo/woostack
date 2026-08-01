@@ -1,0 +1,136 @@
+[
+  {
+    "id": "conflict-a",
+    "canonicalRepository": "https://github.com/acme/app",
+    "selectedWorkspaceId": "workspace-acme",
+    "selectedTeamId": "team-app",
+    "project": {
+      "id": "project-a",
+      "repository": "https://github.com/other/app",
+      "workspaceId": "workspace-acme",
+      "teamId": "team-app"
+    },
+    "readBack": {
+      "complete": true
+    }
+  },
+  {
+    "id": "conflict-b",
+    "canonicalRepository": "https://github.com/acme/app",
+    "selectedWorkspaceId": "workspace-acme",
+    "selectedTeamId": "team-app",
+    "project": {
+      "id": "project-b",
+      "repository": "https://github.com/acme/app",
+      "workspaceId": null,
+      "teamId": null
+    },
+    "readBack": {
+      "complete": true
+    }
+  },
+  {
+    "id": "conflict-c",
+    "canonicalRepository": "https://github.com/acme/app",
+    "selectedWorkspaceId": "workspace-acme",
+    "selectedTeamId": "team-app",
+    "project": {
+      "id": "project-c",
+      "repository": "https://github.com/acme/app",
+      "workspaceId": "workspace-acme",
+      "teamId": "team-app"
+    },
+    "parentPlanIssues": [
+      {
+        "id": "issue-parent-c-1",
+        "current": true
+      },
+      {
+        "id": "issue-parent-c-2",
+        "current": true
+      }
+    ],
+    "readBack": {
+      "complete": true
+    }
+  },
+  {
+    "id": "conflict-d",
+    "canonicalRepository": "https://github.com/acme/app",
+    "selectedWorkspaceId": "workspace-acme",
+    "selectedTeamId": "team-app",
+    "project": {
+      "id": "project-d",
+      "repository": "https://github.com/acme/app",
+      "workspaceId": "workspace-acme",
+      "teamId": "team-app"
+    },
+    "expectedChildren": [
+      {
+        "taskId": "api",
+        "nativeId": "issue-child-d-current"
+      }
+    ],
+    "observedChildren": [
+      {
+        "taskId": "api",
+        "nativeId": "issue-child-d-stale"
+      }
+    ],
+    "readBack": {
+      "complete": true
+    }
+  },
+  {
+    "id": "conflict-e",
+    "canonicalRepository": "https://github.com/acme/app",
+    "selectedWorkspaceId": "workspace-acme",
+    "selectedTeamId": "team-app",
+    "project": {
+      "id": "project-e",
+      "repository": "https://github.com/acme/app",
+      "workspaceId": "workspace-acme",
+      "teamId": "team-app"
+    },
+    "expectedRelations": [
+      {
+        "from": "issue-child-e-api",
+        "blockedBy": "issue-child-e-storage"
+      }
+    ],
+    "observedRelations": [],
+    "readBack": {
+      "complete": true
+    }
+  },
+  {
+    "id": "conflict-f",
+    "canonicalRepository": "https://github.com/acme/app",
+    "selectedWorkspaceId": "workspace-acme",
+    "selectedTeamId": "team-app",
+    "project": {
+      "id": "project-f",
+      "repository": "https://github.com/acme/app",
+      "workspaceId": "workspace-acme",
+      "teamId": "team-app"
+    },
+    "parentPlanIssues": [
+      {
+        "id": "issue-parent-f",
+        "current": true
+      }
+    ],
+    "children": [
+      {
+        "taskId": "api",
+        "nativeId": "issue-child-f"
+      }
+    ],
+    "readBack": {
+      "complete": false,
+      "missingCollections": [
+        "relations"
+      ]
+    }
+  }
+]

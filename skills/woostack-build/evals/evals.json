@@ -3,318 +3,129 @@
   "skill": "woostack-build",
   "cases": [
     {
-      "id": "routes-approved-build-to-overnight-handoff",
-      "prompt": "Resume the bounded synthetic build represented by fixtures/build-state.json. Do not perform Git, provider, Linear, or repository mutations. Apply the packaged skill's official-Linear-MCP orchestration contract. Validate the raw managed envelopes and every independent read receipt, derive the lifecycle only from native project-update IDs, and validate the complete increment contracts and native dependency graph before classifying the overnight handoff. Return exactly one JSON object using the keys developmentRecordTransport, mcpEndpoint, mcpPreflightVerified, projectClientId, projectNativeId, projectReadBackVerified, specificationAuthority, phaseNativeUpdateChain, incrementIssueGraph, allManagedReadBacksVerified, hardGates, terminalChoices, terminalChoice, overnightDispatchPreconditionsVerified, executionSkill, and mergeAllowed. Use the skill's user-facing labels for terminalChoices and terminalChoice.",
+      "id": "routes-selected-hardened-build-to-overnight-with-exact-context",
+      "prompt": "Evaluate fixtures/build-state.json selectedOvernight after the execution handoff choice. Do not mutate anything. Return exactly one JSON object using the keys status, artifactModeSelected, canonicalRepositoryVerified, workspaceTeamVerified, projectId, projectCreated, preMutationHierarchyReadComplete, persistenceChronologyVerified, parentPlanIssueId, incrementChildIssueIds, mutationClientIds, approvedProjectContextReadBackVerified, hierarchyReadBackVerified, providerPersistencePasses, hardGates, terminalChoice, executionSkill, executionArtifactContext, and mergeAllowed.",
       "fixtures": [
         "build-state.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "One completely read authority at the official Linear MCP endpoint retains the exact managed feature project and project-update specification. The exact native phase chain reaches executionApproved, both complete increment contracts and their native dependency edge are verified before dispatch, all managed read-backs agree, exactly three explicit gates and all terminal choices remain, the selected overnight branch routes to woostack-execute-overnight, and no merge is allowed.",
+      "expected": "The caller-selected existing project was reconciled once after graph hardening without replacement creation; provider preflight and complete pre-mutation hierarchy reads preceded all writes, and the approved specification context and complete hierarchy were independently read back. Exactly three gates remain, Run overnight routes the same approved plan plus exact project/parent/children context to woostack-execute-overnight, and merge remains forbidden.",
       "assertions": [
         {
-          "id": "official-linear-mcp-only",
+          "id": "ready",
           "kind": "final-json-path-equals",
-          "pointer": "/developmentRecordTransport",
-          "expected": "official-linear-mcp",
+          "pointer": "/status",
+          "expected": "ready",
           "critical": true
         },
         {
-          "id": "official-linear-mcp-endpoint",
+          "id": "selected",
           "kind": "final-json-path-equals",
-          "pointer": "/mcpEndpoint",
-          "expected": "https://mcp.linear.app/mcp",
-          "critical": true
-        },
-        {
-          "id": "complete-official-mcp-preflight",
-          "kind": "final-json-path-equals",
-          "pointer": "/mcpPreflightVerified",
+          "pointer": "/artifactModeSelected",
           "expected": true,
           "critical": true
         },
         {
-          "id": "exact-feature-project-retained",
+          "id": "repo",
           "kind": "final-json-path-equals",
-          "pointer": "/projectClientId",
-          "expected": "11111111-1111-4111-8111-111111111111",
-          "critical": true
-        },
-        {
-          "id": "exact-feature-project-native-id",
-          "kind": "final-json-path-equals",
-          "pointer": "/projectNativeId",
-          "expected": "linear-project-42",
-          "critical": true
-        },
-        {
-          "id": "feature-project-read-back",
-          "kind": "final-json-path-equals",
-          "pointer": "/projectReadBackVerified",
+          "pointer": "/canonicalRepositoryVerified",
           "expected": true,
           "critical": true
         },
         {
-          "id": "specification-project-update",
+          "id": "workspace-team",
           "kind": "final-json-path-equals",
-          "pointer": "/specificationAuthority",
-          "expected": "managed-project-update",
+          "pointer": "/workspaceTeamVerified",
+          "expected": true,
           "critical": true
         },
         {
-          "id": "exact-native-phase-chain",
+          "id": "project",
           "kind": "final-json-path-equals",
-          "pointer": "/phaseNativeUpdateChain",
+          "pointer": "/projectId",
+          "expected": "project-build-42",
+          "critical": true
+        },
+        {
+          "id": "project-not-recreated",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "complete-pre-mutation-hierarchy-read",
+          "kind": "final-json-path-equals",
+          "pointer": "/preMutationHierarchyReadComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "explicit-persistence-chronology",
+          "kind": "final-json-path-equals",
+          "pointer": "/persistenceChronologyVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "parent",
+          "kind": "final-json-path-equals",
+          "pointer": "/parentPlanIssueId",
+          "expected": "issue-build-parent-42",
+          "critical": true
+        },
+        {
+          "id": "children",
+          "kind": "final-json-path-equals",
+          "pointer": "/incrementChildIssueIds",
           "expected": [
-            {
-              "event": "designApproved",
-              "clientId": "44444444-4444-4444-8444-444444444444",
-              "nativeId": "update-design-approved",
-              "projectId": "linear-project-42",
-              "predecessorId": null,
-              "relatedIds": [],
-              "supersedesId": null,
-              "readBackVerified": true
-            },
-            {
-              "event": "specHardened",
-              "clientId": "55555555-5555-4555-8555-555555555555",
-              "nativeId": "update-spec-hardened",
-              "projectId": "linear-project-42",
-              "predecessorId": "update-design-approved",
-              "relatedIds": [],
-              "supersedesId": null,
-              "readBackVerified": true
-            },
-            {
-              "event": "specApproved",
-              "clientId": "66666666-6666-4666-8666-666666666666",
-              "nativeId": "update-spec-approved",
-              "projectId": "linear-project-42",
-              "predecessorId": "update-spec-hardened",
-              "relatedIds": [
-                "update-spec-hardened"
-              ],
-              "supersedesId": null,
-              "readBackVerified": true
-            },
-            {
-              "event": "planning",
-              "clientId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-              "nativeId": "update-planning",
-              "projectId": "linear-project-42",
-              "predecessorId": "update-spec-approved",
-              "relatedIds": [
-                "update-spec-approved",
-                "update-spec-hardened"
-              ],
-              "supersedesId": null,
-              "readBackVerified": true
-            },
-            {
-              "event": "ready",
-              "clientId": "77777777-7777-4777-8777-777777777777",
-              "nativeId": "update-ready",
-              "projectId": "linear-project-42",
-              "predecessorId": "update-planning",
-              "relatedIds": [
-                "linear-issue-41",
-                "linear-issue-42"
-              ],
-              "supersedesId": null,
-              "readBackVerified": true
-            },
-            {
-              "event": "executionApproved",
-              "clientId": "88888888-8888-4888-8888-888888888888",
-              "nativeId": "update-execution-approved",
-              "projectId": "linear-project-42",
-              "predecessorId": "update-ready",
-              "relatedIds": [
-                "linear-issue-41",
-                "linear-issue-42"
-              ],
-              "supersedesId": null,
-              "readBackVerified": true
-            }
+            "issue-build-child-1",
+            "issue-build-child-2"
           ],
           "critical": true
         },
         {
-          "id": "complete-increment-issue-graph",
+          "id": "stable-write-identities",
           "kind": "final-json-path-equals",
-          "pointer": "/incrementIssueGraph",
-          "expected": [
-            {
-              "clientId": "22222222-2222-4222-8222-222222222222",
-              "nativeId": "linear-issue-41",
-              "projectId": "linear-project-42",
-              "ordinal": 1,
-              "dependencyNativeIds": [],
-              "contract": {
-                "objective": "Refresh an expired cache entry from its configured source while preserving the fresh-entry fast path.",
-                "dependencyClientIds": [],
-                "filesAndResponsibilities": [
-                  {
-                    "path": "src/cache.ts",
-                    "responsibilities": [
-                      "detect expiration before returning a cached value",
-                      "replace the stale value atomically after a successful refresh"
-                    ]
-                  },
-                  {
-                    "path": "tests/cache.test.ts",
-                    "responsibilities": [
-                      "prove an expired entry refreshes",
-                      "prove a fresh entry performs no refresh"
-                    ]
-                  }
-                ],
-                "tasks": [
-                  {
-                    "phase": "red",
-                    "command": "pnpm test tests/cache.test.ts -- --runInBand",
-                    "expectedOutcome": "fails because the expired entry remains stale while the fresh-entry case passes"
-                  },
-                  {
-                    "phase": "green",
-                    "command": "pnpm test tests/cache.test.ts -- --runInBand",
-                    "expectedOutcome": "passes the expired-refresh and fresh-entry cases"
-                  },
-                  {
-                    "phase": "refactor",
-                    "command": "pnpm test tests/cache.test.ts -- --runInBand",
-                    "expectedOutcome": "continues to pass after extracting the expiry predicate without changing behavior"
-                  }
-                ],
-                "acceptanceCriteria": [
-                  {
-                    "id": "AC-1",
-                    "text": "Expired cache entries are refreshed once"
-                  }
-                ],
-                "acceptanceCoverage": [
-                  {
-                    "criterionId": "AC-1",
-                    "redTaskPhase": "red",
-                    "greenTaskPhase": "green",
-                    "automatedVerificationCommand": "pnpm test tests/cache.test.ts -- --runInBand",
-                    "manualVerificationStep": "Inspect the refresh trace for one expired key."
-                  }
-                ],
-                "automatedVerification": [
-                  {
-                    "command": "pnpm test tests/cache.test.ts -- --runInBand",
-                    "expectedOutcome": "exit 0 with the expired-refresh and fresh-entry cases passing"
-                  }
-                ],
-                "manualVerification": [
-                  {
-                    "step": "Inspect the refresh trace for one expired key.",
-                    "expectedObservation": "one source read occurs before the refreshed value replaces the stale entry"
-                  }
-                ],
-                "gitParent": {
-                  "kind": "frozenBase",
-                  "branch": "main",
-                  "commitSha": "9f4c2e7d81a0b3c4d5e6f708192a3b4c5d6e7f80"
-                }
-              },
-              "readBackVerified": true
-            },
-            {
-              "clientId": "33333333-3333-4333-8333-333333333333",
-              "nativeId": "linear-issue-42",
-              "projectId": "linear-project-42",
-              "ordinal": 2,
-              "dependencyNativeIds": [
-                "linear-issue-41"
-              ],
-              "contract": {
-                "objective": "Coalesce concurrent refreshes for one expired key so every caller observes the same refreshed value.",
-                "dependencyClientIds": [
-                  "22222222-2222-4222-8222-222222222222"
-                ],
-                "filesAndResponsibilities": [
-                  {
-                    "path": "src/cache.ts",
-                    "responsibilities": [
-                      "share one in-flight refresh per cache key",
-                      "clear the in-flight entry after success or failure"
-                    ]
-                  },
-                  {
-                    "path": "tests/cache-concurrency.test.ts",
-                    "responsibilities": [
-                      "prove concurrent callers trigger one source read",
-                      "prove every caller receives the same refreshed value"
-                    ]
-                  }
-                ],
-                "tasks": [
-                  {
-                    "phase": "red",
-                    "command": "pnpm test tests/cache-concurrency.test.ts -- --runInBand",
-                    "expectedOutcome": "fails because concurrent callers start more than one refresh"
-                  },
-                  {
-                    "phase": "green",
-                    "command": "pnpm test tests/cache-concurrency.test.ts -- --runInBand",
-                    "expectedOutcome": "passes with exactly one source read and one shared refreshed value"
-                  },
-                  {
-                    "phase": "refactor",
-                    "command": "pnpm test tests/cache.test.ts tests/cache-concurrency.test.ts -- --runInBand",
-                    "expectedOutcome": "both increment suites continue to pass after isolating in-flight refresh bookkeeping"
-                  }
-                ],
-                "acceptanceCriteria": [
-                  {
-                    "id": "AC-2",
-                    "text": "Concurrent callers observe the refreshed value"
-                  }
-                ],
-                "acceptanceCoverage": [
-                  {
-                    "criterionId": "AC-2",
-                    "redTaskPhase": "red",
-                    "greenTaskPhase": "green",
-                    "automatedVerificationCommand": "pnpm test tests/cache-concurrency.test.ts -- --runInBand",
-                    "manualVerificationStep": "Inspect the concurrent refresh trace for one expired key."
-                  }
-                ],
-                "automatedVerification": [
-                  {
-                    "command": "pnpm test tests/cache.test.ts tests/cache-concurrency.test.ts -- --runInBand",
-                    "expectedOutcome": "exit 0 with the sequential and concurrent freshness cases passing"
-                  }
-                ],
-                "manualVerification": [
-                  {
-                    "step": "Inspect the concurrent refresh trace for one expired key.",
-                    "expectedObservation": "one source read completes before all waiting callers receive the same value"
-                  }
-                ],
-                "gitParent": {
-                  "kind": "issue",
-                  "issueId": "linear-issue-41"
-                }
-              },
-              "readBackVerified": true
-            }
-          ],
+          "pointer": "/mutationClientIds",
+          "expected": {
+            "projectContext": "42000000-0000-4000-8000-000000000000",
+            "parent": "42000000-0000-4000-8000-000000000001",
+            "children": [
+              "42000000-0000-4000-8000-000000000002",
+              "42000000-0000-4000-8000-000000000003"
+            ],
+            "relations": [
+              "42000000-0000-4000-8000-000000000004"
+            ]
+          },
           "critical": true
         },
         {
-          "id": "all-managed-readbacks-complete",
+          "id": "approved-project-context-read-back",
           "kind": "final-json-path-equals",
-          "pointer": "/allManagedReadBacksVerified",
+          "pointer": "/approvedProjectContextReadBackVerified",
           "expected": true,
           "critical": true
         },
         {
-          "id": "exact-three-gates",
+          "id": "readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/hierarchyReadBackVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "one-persistence",
+          "kind": "final-json-path-equals",
+          "pointer": "/providerPersistencePasses",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "three-gates",
           "kind": "final-json-path-equals",
           "pointer": "/hardGates",
           "expected": [
@@ -325,39 +136,35 @@
           "critical": true
         },
         {
-          "id": "complete-terminal-choice-set",
-          "kind": "final-json-path-equals",
-          "pointer": "/terminalChoices",
-          "expected": [
-            "Go",
-            "Run overnight",
-            "Hand off"
-          ],
-          "critical": true
-        },
-        {
-          "id": "overnight-choice-preserved",
+          "id": "overnight",
           "kind": "final-json-path-equals",
           "pointer": "/terminalChoice",
-          "expected": "Run overnight",
+          "expected": "run-overnight",
           "critical": true
         },
         {
-          "id": "overnight-dispatch-preconditions-verified",
-          "kind": "final-json-path-equals",
-          "pointer": "/overnightDispatchPreconditionsVerified",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "overnight-driver-selected",
+          "id": "overnight-skill",
           "kind": "final-json-path-equals",
           "pointer": "/executionSkill",
           "expected": "woostack-execute-overnight",
           "critical": true
         },
         {
-          "id": "build-never-merges",
+          "id": "exact-context",
+          "kind": "final-json-path-equals",
+          "pointer": "/executionArtifactContext",
+          "expected": {
+            "projectId": "project-build-42",
+            "parentPlanIssueId": "issue-build-parent-42",
+            "incrementChildIssueIds": [
+              "issue-build-child-1",
+              "issue-build-child-2"
+            ]
+          },
+          "critical": true
+        },
+        {
+          "id": "never-merge",
           "kind": "final-json-path-equals",
           "pointer": "/mergeAllowed",
           "expected": false,
@@ -366,77 +173,77 @@
       ]
     },
     {
-      "id": "classifies-existing-development-materials-without-project-reference",
-      "prompt": "Inspect only inputScenarios.resume-from-existing-development-materials in fixtures/build-state.json as caller-supplied input. Apply the packaged woostack-build input-resolution contract and return exactly one JSON object using the keys status, canonicalProjectIdentityResolved, localSpecAccepted, localPlanAccepted, linearDocumentAccepted, fallbackAllowed, managedMutationCount, gitMutationCount, and nextAction.",
+      "id": "repository-policy-alone-keeps-build-artifact-free",
+      "prompt": "Evaluate fixtures/build-state.json policyOnly as a build with a complete approved specification and tracked Linear policy but no exact artifact or explicit persistence request. Do not contact a provider. Return exactly one JSON object using the keys status, artifactModeSelected, providerReadCount, providerWriteCount, repositoryPolicyUsedForSelection, candidateGraphReturned, graphHardened, nextAction, and mergeAllowed.",
       "fixtures": [
         "build-state.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The response applies the packaged build input-resolution contract to the supplied materials and returns a complete, internally consistent classification for every requested field.",
+      "expected": "Tracked policy cannot select artifacts or authorize provider access. Build delegates candidate planning without provider mutation, hardens the graph, and reaches the artifact-free execution handoff.",
       "assertions": [
         {
-          "id": "build-input-blocked-without-canonical-project",
+          "id": "handoff",
           "kind": "final-json-path-equals",
           "pointer": "/status",
-          "expected": "blocked",
+          "expected": "execution-handoff",
           "critical": true
         },
         {
-          "id": "build-input-canonical-project-unresolved",
+          "id": "not-selected",
           "kind": "final-json-path-equals",
-          "pointer": "/canonicalProjectIdentityResolved",
+          "pointer": "/artifactModeSelected",
           "expected": false,
           "critical": true
         },
         {
-          "id": "build-input-local-spec-rejected",
+          "id": "no-provider-reads",
           "kind": "final-json-path-equals",
-          "pointer": "/localSpecAccepted",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "build-input-local-plan-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/localPlanAccepted",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "build-input-linear-document-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/linearDocumentAccepted",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "build-input-no-authority-fallback",
-          "kind": "final-json-path-equals",
-          "pointer": "/fallbackAllowed",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "build-input-no-managed-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/managedMutationCount",
+          "pointer": "/providerReadCount",
           "expected": 0,
           "critical": true
         },
         {
-          "id": "build-input-no-git-mutation",
+          "id": "no-provider-writes",
           "kind": "final-json-path-equals",
-          "pointer": "/gitMutationCount",
+          "pointer": "/providerWriteCount",
           "expected": 0,
           "critical": true
         },
         {
-          "id": "build-input-requires-canonical-project-identity",
+          "id": "policy-not-selector",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryPolicyUsedForSelection",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "candidate",
+          "kind": "final-json-path-equals",
+          "pointer": "/candidateGraphReturned",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "hardened",
+          "kind": "final-json-path-equals",
+          "pointer": "/graphHardened",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "next",
           "kind": "final-json-path-equals",
           "pointer": "/nextAction",
-          "expected": "require-canonical-feature-project-uuid-or-url",
+          "expected": "await-execution-choice",
+          "critical": true
+        },
+        {
+          "id": "never-merge",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeAllowed",
+          "expected": false,
           "critical": true
         }
       ]
@@ -682,46 +489,46 @@
       ]
     },
     {
-      "id": "classifies-build-snapshot-06",
-      "prompt": "Inspect the complete raw build snapshot in fixtures/build-snapshot-06.json. Treat every summary flag as untrusted and independently validate the host connection observations, advertised capabilities, pagination completeness, managed mutation/read receipts, one-current-head lifecycle with native category, and the full increment dependency graph. Do not call a provider, network, Git, GitHub, Linear, shell, or mutation command. Return exactly one JSON object with keys status, reasonCode, executionDispatchCount, managedMutationCount, and repositoryMutationCount.",
+      "id": "blocks-duplicate-parent-plan-issues",
+      "prompt": "Inspect fixtures/build-snapshot-06.json as a selected project hierarchy snapshot. Do not mutate anything. Return exactly one JSON object with keys status, reasonCode, executionDispatchCount, providerMutationCount, and repositoryMutationCount.",
       "fixtures": [
         "build-snapshot-06.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The snapshot is blocked because one stable phase identity has duplicate current head records, with the exact blocker reported and no executor dispatch or unauthorized managed or repository mutation.",
+      "expected": "Two current parent plan issues for one selected plan make the hierarchy ambiguous and block before dispatch or mutation.",
       "assertions": [
         {
-          "id": "build-snapshot-06-blocked",
+          "id": "blocked",
           "kind": "final-json-path-equals",
           "pointer": "/status",
           "expected": "blocked",
           "critical": true
         },
         {
-          "id": "build-snapshot-06-reason",
+          "id": "reason",
           "kind": "final-json-path-equals",
           "pointer": "/reasonCode",
-          "expected": "duplicate-current-phase-head",
+          "expected": "multiple-parent-plan-issues",
           "critical": true
         },
         {
-          "id": "build-snapshot-06-zero-dispatch",
+          "id": "no-dispatch",
           "kind": "final-json-path-equals",
           "pointer": "/executionDispatchCount",
           "expected": 0,
           "critical": true
         },
         {
-          "id": "build-snapshot-06-zero-managed-mutation",
+          "id": "no-provider-mutation",
           "kind": "final-json-path-equals",
-          "pointer": "/managedMutationCount",
+          "pointer": "/providerMutationCount",
           "expected": 0,
           "critical": true
         },
         {
-          "id": "build-snapshot-06-zero-repository-mutation",
+          "id": "no-repo-mutation",
           "kind": "final-json-path-equals",
           "pointer": "/repositoryMutationCount",
           "expected": 0,
@@ -730,46 +537,46 @@
       ]
     },
     {
-      "id": "classifies-build-snapshot-07",
-      "prompt": "Inspect the complete raw build snapshot in fixtures/build-snapshot-07.json. Treat every summary flag as untrusted and independently validate the host connection observations, advertised capabilities, pagination completeness, managed mutation/read receipts, one-current-head lifecycle with native category, and the full increment dependency graph. Do not call a provider, network, Git, GitHub, Linear, shell, or mutation command. Return exactly one JSON object with keys status, reasonCode, executionDispatchCount, managedMutationCount, and repositoryMutationCount.",
+      "id": "blocks-child-parent-membership-drift",
+      "prompt": "Inspect fixtures/build-snapshot-07.json as a selected project hierarchy snapshot. Do not mutate anything. Return exactly one JSON object with keys status, reasonCode, executionDispatchCount, providerMutationCount, and repositoryMutationCount.",
       "fixtures": [
         "build-snapshot-07.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The snapshot is blocked because distinct phase identities create multiple current lifecycle heads, with the exact blocker reported and no executor dispatch or unauthorized managed or repository mutation.",
+      "expected": "An increment child attached to the wrong parent fails hierarchy verification before dispatch or mutation.",
       "assertions": [
         {
-          "id": "build-snapshot-07-blocked",
+          "id": "blocked",
           "kind": "final-json-path-equals",
           "pointer": "/status",
           "expected": "blocked",
           "critical": true
         },
         {
-          "id": "build-snapshot-07-reason",
+          "id": "reason",
           "kind": "final-json-path-equals",
           "pointer": "/reasonCode",
-          "expected": "multiple-current-phase-heads",
+          "expected": "child-parent-membership-drift",
           "critical": true
         },
         {
-          "id": "build-snapshot-07-zero-dispatch",
+          "id": "no-dispatch",
           "kind": "final-json-path-equals",
           "pointer": "/executionDispatchCount",
           "expected": 0,
           "critical": true
         },
         {
-          "id": "build-snapshot-07-zero-managed-mutation",
+          "id": "no-provider-mutation",
           "kind": "final-json-path-equals",
-          "pointer": "/managedMutationCount",
+          "pointer": "/providerMutationCount",
           "expected": 0,
           "critical": true
         },
         {
-          "id": "build-snapshot-07-zero-repository-mutation",
+          "id": "no-repo-mutation",
           "kind": "final-json-path-equals",
           "pointer": "/repositoryMutationCount",
           "expected": 0,
@@ -778,46 +585,46 @@
       ]
     },
     {
-      "id": "classifies-build-snapshot-08",
-      "prompt": "Inspect the complete raw build snapshot in fixtures/build-snapshot-08.json. Treat every summary flag as untrusted and independently validate the host connection observations, advertised capabilities, pagination completeness, managed mutation/read receipts, one-current-head lifecycle with native category, and the full increment dependency graph. Do not call a provider, network, Git, GitHub, Linear, shell, or mutation command. Return exactly one JSON object with keys status, reasonCode, executionDispatchCount, managedMutationCount, and repositoryMutationCount.",
+      "id": "blocks-native-dependency-relation-drift",
+      "prompt": "Inspect fixtures/build-snapshot-08.json as a selected project hierarchy snapshot. Do not mutate anything. Return exactly one JSON object with keys status, reasonCode, executionDispatchCount, providerMutationCount, and repositoryMutationCount.",
       "fixtures": [
         "build-snapshot-08.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The snapshot is blocked because a phase update names the wrong immediate predecessor, with the exact blocker reported and no executor dispatch or unauthorized managed or repository mutation.",
+      "expected": "The native child dependency edge disagrees with the hardened graph and blocks before dispatch or mutation.",
       "assertions": [
         {
-          "id": "build-snapshot-08-blocked",
+          "id": "blocked",
           "kind": "final-json-path-equals",
           "pointer": "/status",
           "expected": "blocked",
           "critical": true
         },
         {
-          "id": "build-snapshot-08-reason",
+          "id": "reason",
           "kind": "final-json-path-equals",
           "pointer": "/reasonCode",
-          "expected": "phase-predecessor-mismatch",
+          "expected": "native-dependency-relation-drift",
           "critical": true
         },
         {
-          "id": "build-snapshot-08-zero-dispatch",
+          "id": "no-dispatch",
           "kind": "final-json-path-equals",
           "pointer": "/executionDispatchCount",
           "expected": 0,
           "critical": true
         },
         {
-          "id": "build-snapshot-08-zero-managed-mutation",
+          "id": "no-provider-mutation",
           "kind": "final-json-path-equals",
-          "pointer": "/managedMutationCount",
+          "pointer": "/providerMutationCount",
           "expected": 0,
           "critical": true
         },
         {
-          "id": "build-snapshot-08-zero-repository-mutation",
+          "id": "no-repo-mutation",
           "kind": "final-json-path-equals",
           "pointer": "/repositoryMutationCount",
           "expected": 0,
@@ -1019,48 +826,176 @@
     },
     {
       "id": "enforces-project-gates-and-bounded-routing",
-      "prompt": "Apply the lifecycle classification contract to fixtures/project-gates.json without provider, Git, or repository mutations. Return exactly one JSON object with keys developmentAuthority, hardGates, route, projectCreated, advance, and repositoryEffects.",
-      "fixtures": ["project-gates.json"],
-      "capabilities": ["read-workspace"],
-      "expected": "The official Linear MCP is the sole authority, exactly three ordered gates govern multi-increment work, and one bounded issue routes away before project creation.",
+      "prompt": "Apply the lifecycle classification contract to fixtures/project-gates.json without provider, Git, or repository mutations. Return exactly one JSON object with keys developmentAuthority, linearRole, hardGates, route, projectCreated, advance, and repositoryEffects.",
+      "fixtures": [
+        "project-gates.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The approved user and workflow contract is the development authority; Linear contributes artifact evidence only. Exactly three ordered gates govern multi-increment work, and one bounded issue routes away before project creation.",
       "assertions": [
-        {"id":"gates-authority","kind":"final-json-path-equals","pointer":"/developmentAuthority","expected":"official-linear-mcp","critical":true},
-        {"id":"gates-exact-order","kind":"final-json-path-equals","pointer":"/hardGates","expected":["design-approval","spec-approval","execution-handoff"],"critical":true},
-        {"id":"gates-bounded-route","kind":"final-json-path-equals","pointer":"/route","expected":"woostack-change","critical":true},
-        {"id":"gates-no-project","kind":"final-json-path-equals","pointer":"/projectCreated","expected":false,"critical":true},
-        {"id":"gates-no-advance","kind":"final-json-path-equals","pointer":"/advance","expected":false,"critical":true},
-        {"id":"gates-no-effects","kind":"final-json-path-equals","pointer":"/repositoryEffects","expected":[],"critical":true}
+        {
+          "id": "gates-authority",
+          "kind": "final-json-path-equals",
+          "pointer": "/developmentAuthority",
+          "expected": "approved-user-and-workflow-contract",
+          "critical": true
+        },
+        {
+          "id": "gates-linear-role",
+          "kind": "final-json-path-equals",
+          "pointer": "/linearRole",
+          "expected": "artifact-evidence-only",
+          "critical": true
+        },
+        {
+          "id": "gates-exact-order",
+          "kind": "final-json-path-equals",
+          "pointer": "/hardGates",
+          "expected": [
+            "design-approval",
+            "spec-approval",
+            "execution-handoff"
+          ],
+          "critical": true
+        },
+        {
+          "id": "gates-bounded-route",
+          "kind": "final-json-path-equals",
+          "pointer": "/route",
+          "expected": "woostack-change",
+          "critical": true
+        },
+        {
+          "id": "gates-no-project",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "gates-no-advance",
+          "kind": "final-json-path-equals",
+          "pointer": "/advance",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "gates-no-effects",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryEffects",
+          "expected": [],
+          "critical": true
+        }
       ]
     },
     {
-      "id": "fails-closed-on-project-update-conflicts",
-      "prompt": "Evaluate every case in fixtures/project-update-conflict.json without provider, Git, or repository mutations. Preserve fixture order. Return exactly one JSON object with key results, an array whose objects have exactly id, advance, reasonCode, and repositoryEffects.",
-      "fixtures": ["project-update-conflict.json"],
-      "capabilities": ["read-workspace"],
-      "expected": "Missing predecessor, duplicate revision, multiple phase heads, stale update, unsupported schema, and failed read-back each fail closed without repository effects.",
+      "id": "fails-closed-on-selected-hierarchy-conflicts",
+      "prompt": "Evaluate every case in fixtures/hierarchy-conflict.json without provider, Git, or repository mutation. Preserve fixture order. Return exactly one JSON object with key results, an array whose objects have exactly id, advance, reasonCode, and repositoryEffects.",
+      "fixtures": [
+        "hierarchy-conflict.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Foreign repository association, unresolved workspace/team, multiple parent plan issues, stale child identity, relation drift, and incomplete read-back each fail closed without repository effects.",
       "assertions": [
-        {"id":"conflicts-fail-closed","kind":"final-json-path-equals","pointer":"/results","expected":[
-          {"id":"missing-predecessor","advance":false,"reasonCode":"missing-predecessor","repositoryEffects":[]},
-          {"id":"duplicate-revision","advance":false,"reasonCode":"duplicate-revision","repositoryEffects":[]},
-          {"id":"multiple-phase-heads","advance":false,"reasonCode":"multiple-phase-heads","repositoryEffects":[]},
-          {"id":"stale-update","advance":false,"reasonCode":"stale-update","repositoryEffects":[]},
-          {"id":"unsupported-schema","advance":false,"reasonCode":"unsupported-schema","repositoryEffects":[]},
-          {"id":"failed-read-back","advance":false,"reasonCode":"failed-read-back","repositoryEffects":[]}
-        ],"critical":true}
+        {
+          "id": "conflict-results",
+          "kind": "final-json-path-equals",
+          "pointer": "/results",
+          "expected": [
+            {
+              "id": "conflict-a",
+              "advance": false,
+              "reasonCode": "foreign-repository",
+              "repositoryEffects": []
+            },
+            {
+              "id": "conflict-b",
+              "advance": false,
+              "reasonCode": "unresolved-workspace-team",
+              "repositoryEffects": []
+            },
+            {
+              "id": "conflict-c",
+              "advance": false,
+              "reasonCode": "multiple-parent-plan-issues",
+              "repositoryEffects": []
+            },
+            {
+              "id": "conflict-d",
+              "advance": false,
+              "reasonCode": "stale-child-identity",
+              "repositoryEffects": []
+            },
+            {
+              "id": "conflict-e",
+              "advance": false,
+              "reasonCode": "native-dependency-relation-drift",
+              "repositoryEffects": []
+            },
+            {
+              "id": "conflict-f",
+              "advance": false,
+              "reasonCode": "incomplete-hierarchy-readback",
+              "repositoryEffects": []
+            }
+          ],
+          "critical": true
+        }
       ]
     },
     {
       "id": "refuses-unsafe-project-replan",
       "prompt": "Apply the replan contract to fixtures/project-replan.json without provider, Git, or repository mutations. Return exactly one JSON object with keys advance, reasonCode, preservedClientIds, ordinalDefinesAncestry, and repositoryEffects.",
-      "fixtures": ["project-replan.json"],
-      "capabilities": ["read-workspace"],
+      "fixtures": [
+        "project-replan.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
       "expected": "Replanning preserves stable issue identities, refuses evidence-bearing removal, and never derives dependency ancestry from ordinals.",
       "assertions": [
-        {"id":"replan-no-advance","kind":"final-json-path-equals","pointer":"/advance","expected":false,"critical":true},
-        {"id":"replan-refusal","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"evidence-bearing-issue-removal-refused","critical":true},
-        {"id":"replan-identities","kind":"final-json-path-equals","pointer":"/preservedClientIds","expected":["10000000-0000-4000-8000-000000000001","10000000-0000-4000-8000-000000000002"],"critical":true},
-        {"id":"replan-ordinal-not-ancestry","kind":"final-json-path-equals","pointer":"/ordinalDefinesAncestry","expected":false,"critical":true},
-        {"id":"replan-no-effects","kind":"final-json-path-equals","pointer":"/repositoryEffects","expected":[],"critical":true}
+        {
+          "id": "replan-no-advance",
+          "kind": "final-json-path-equals",
+          "pointer": "/advance",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "replan-refusal",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": "evidence-bearing-issue-removal-refused",
+          "critical": true
+        },
+        {
+          "id": "replan-identities",
+          "kind": "final-json-path-equals",
+          "pointer": "/preservedClientIds",
+          "expected": [
+            "10000000-0000-4000-8000-000000000001",
+            "10000000-0000-4000-8000-000000000002"
+          ],
+          "critical": true
+        },
+        {
+          "id": "replan-ordinal-not-ancestry",
+          "kind": "final-json-path-equals",
+          "pointer": "/ordinalDefinesAncestry",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "replan-no-effects",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryEffects",
+          "expected": [],
+          "critical": true
+        }
       ]
     }
   ]

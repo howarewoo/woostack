@@ -1,0 +1,49 @@
+{
+  "repositoryOrigin": "https://github.com/acme/cache-service",
+  "callerWorkspaceId": "workspace-acme",
+  "callerTeamId": "team-app",
+  "candidates": {
+    "ambiguousIssue": {
+      "kind": "issue",
+      "id": "issue-ambiguous",
+      "projectIds": [
+        "project-a",
+        "project-b"
+      ]
+    },
+    "foreignRepository": {
+      "kind": "project",
+      "id": "project-foreign",
+      "repository": "https://github.com/other/cache-service",
+      "workspaceId": "workspace-acme",
+      "teamId": "team-app",
+      "role": "Feature"
+    },
+    "foreignTeam": {
+      "kind": "project",
+      "id": "project-foreign-team",
+      "repository": "https://github.com/acme/cache-service",
+      "workspaceId": "workspace-acme",
+      "teamId": "team-other",
+      "role": "Feature"
+    },
+    "featureProject": {
+      "kind": "project",
+      "id": "project-feature-9",
+      "repository": "https://github.com/acme/cache-service",
+      "workspaceId": "workspace-acme",
+      "teamId": "team-app",
+      "role": "Feature"
+    },
+    "projectIncrement": {
+      "kind": "issue",
+      "id": "issue-app-245",
+      "projectId": "project-feature-9",
+      "role": "increment"
+    },
+    "linearDocument": {
+      "kind": "document",
+      "id": "document-cache-9"
+    }
+  }
+}

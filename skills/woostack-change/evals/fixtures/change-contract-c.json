@@ -1,0 +1,20 @@
+{
+  "goal": "Rename one bounded settings label",
+  "contract": {
+    "scope": [
+      "src/settings/label.ts"
+    ],
+    "nonGoals": [
+      "API changes"
+    ],
+    "acceptance": [
+      "new label renders"
+    ]
+  },
+  "preflight": {
+    "repository": true,
+    "base": true,
+    "worktree": true,
+    "collisions": false
+  }
+}

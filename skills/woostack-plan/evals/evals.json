@@ -3,294 +3,269 @@
   "skill": "woostack-plan",
   "cases": [
     {
-      "id": "reconciles-stable-increments-with-native-dependencies",
-      "prompt": "Reconcile a verified Linear feature project whose desired increments are: clientId 10000000-0000-4000-8000-000000000001 ordinal 20 title Storage with no blocker; clientId 10000000-0000-4000-8000-000000000002 ordinal 10 title API blocked by the Storage clientId. Existing issues have those exact clientIds and native IDs issue-1 and issue-2. Independent read-back matches every field and relation. Do not perform provider, Git, or repository mutations. Return exactly one JSON object with keys advance, reasonCode, issueCount, preservedClientIds, nativeBlockedBy, ordinalDefinesAncestry, repositoryEffects, and readBackVerified.",
+      "id": "reconciles-stable-increment-children-with-native-dependencies",
+      "prompt": "Reconcile a caller-selected exact Linear project whose desired parent plan issue contains two increment children: stable task storage ordinal 20 with no predecessor and stable task api ordinal 10 depending on storage. Existing native child IDs are issue-1 and issue-2, and independent read-back matches every child, parent-child link, and native blocked-by relation. Do not mutate anything. Return exactly one JSON object with keys status, parentPlanIssueCount, childIssueCount, preservedTaskIds, nativeBlockedBy, ordinalDefinesAncestry, repositoryEffects, and hierarchyReadBackVerified.",
+      "fixtures": [],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Stable issue identities and native blocked-by relations reconcile successfully; ordinals do not imply ancestry and read-back is mandatory.",
+      "expected": "One parent plan issue, two stable increment children, and the direct native dependency reconcile successfully; ordinals do not imply ancestry and all hierarchy edges are read back.",
       "assertions": [
         {
-          "id": "reconcile-advances",
+          "id": "ready",
           "kind": "final-json-path-equals",
-          "pointer": "/advance",
-          "expected": true,
+          "pointer": "/status",
+          "expected": "ready",
           "critical": true
         },
         {
-          "id": "reconcile-reason",
+          "id": "one-parent",
           "kind": "final-json-path-equals",
-          "pointer": "/reasonCode",
-          "expected": "reconciled",
+          "pointer": "/parentPlanIssueCount",
+          "expected": 1,
           "critical": true
         },
         {
-          "id": "reconcile-count",
+          "id": "two-children",
           "kind": "final-json-path-equals",
-          "pointer": "/issueCount",
+          "pointer": "/childIssueCount",
           "expected": 2,
           "critical": true
         },
         {
-          "id": "reconcile-identities",
+          "id": "stable-tasks",
           "kind": "final-json-path-equals",
-          "pointer": "/preservedClientIds",
+          "pointer": "/preservedTaskIds",
           "expected": [
-            "10000000-0000-4000-8000-000000000001",
-            "10000000-0000-4000-8000-000000000002"
+            "storage",
+            "api"
           ],
           "critical": true
         },
         {
-          "id": "reconcile-relation",
+          "id": "native-dependency",
           "kind": "final-json-path-equals",
           "pointer": "/nativeBlockedBy",
           "expected": {
-            "issue-2": [
+            "api": [
               "issue-1"
-            ]
+            ],
+            "storage": []
           },
           "critical": true
         },
         {
-          "id": "reconcile-ordinal-not-ancestry",
+          "id": "ordinal-not-ancestry",
           "kind": "final-json-path-equals",
           "pointer": "/ordinalDefinesAncestry",
           "expected": false,
           "critical": true
         },
         {
-          "id": "reconcile-no-repository-effects",
+          "id": "no-repository-effects",
           "kind": "final-json-path-equals",
           "pointer": "/repositoryEffects",
           "expected": [],
           "critical": true
         },
         {
-          "id": "reconcile-read-back",
+          "id": "hierarchy-readback",
           "kind": "final-json-path-equals",
-          "pointer": "/readBackVerified",
+          "pointer": "/hierarchyReadBackVerified",
           "expected": true,
           "critical": true
         }
       ]
     },
     {
-      "id": "refuses-evidence-bearing-issue-removal",
-      "prompt": "Replan a verified Linear feature project containing issue-1 with stable clientId 10000000-0000-4000-8000-000000000001 and issue-2 with stable clientId 10000000-0000-4000-8000-000000000002. The requested plan retains issue-1 but removes issue-2; issue-2 has commit evidence. Do not perform provider, Git, or repository mutations. Return exactly one JSON object with keys advance, reasonCode, preservedClientIds, repositoryEffects, and readBackVerified.",
+      "id": "refuses-evidence-bearing-increment-removal",
+      "prompt": "Replan one exact selected project whose parent plan issue has child task storage and child task api. The requested graph retains storage but removes api; api has verified implementation evidence. Do not mutate anything. Return exactly one JSON object with keys status, reasonCode, preservedTaskIds, providerMutationCount, repositoryEffects, and hierarchyReadBackVerified.",
+      "fixtures": [],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Replanning preserves stable identities and refuses removal of an issue that has implementation evidence.",
+      "expected": "Replanning preserves stable identities and refuses removal of an increment child that has implementation evidence.",
       "assertions": [
         {
-          "id": "replan-blocks",
+          "id": "blocked",
           "kind": "final-json-path-equals",
-          "pointer": "/advance",
-          "expected": false,
+          "pointer": "/status",
+          "expected": "blocked",
           "critical": true
         },
         {
-          "id": "replan-reason",
+          "id": "evidence-block",
           "kind": "final-json-path-equals",
           "pointer": "/reasonCode",
-          "expected": "evidence-bearing-issue-removal-refused",
+          "expected": "evidence-bearing-increment-removal",
           "critical": true
         },
         {
-          "id": "replan-preserves-identities",
+          "id": "ids-preserved",
           "kind": "final-json-path-equals",
-          "pointer": "/preservedClientIds",
+          "pointer": "/preservedTaskIds",
           "expected": [
-            "10000000-0000-4000-8000-000000000001",
-            "10000000-0000-4000-8000-000000000002"
+            "storage",
+            "api"
           ],
           "critical": true
         },
         {
-          "id": "replan-no-repository-effects",
+          "id": "no-provider-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/providerMutationCount",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "no-repository-effects",
           "kind": "final-json-path-equals",
           "pointer": "/repositoryEffects",
           "expected": [],
           "critical": true
         },
         {
-          "id": "replan-read-back",
+          "id": "snapshot-read",
           "kind": "final-json-path-equals",
-          "pointer": "/readBackVerified",
+          "pointer": "/hierarchyReadBackVerified",
           "expected": true,
           "critical": true
         }
       ]
     },
     {
-      "id": "enters-planning-before-reconciling-increments",
-      "fixturePassthroughAssertions": [
-        {
-          "assertionId": "plan-official-mcp-endpoint",
-          "fixture": "project-a.json",
-          "pointer": "/officialMcp/endpoint"
-        }
-      ],
-      "prompt": "Read fixtures/project-a.json as a bounded synthetic provider transcript. Do not modify files or contact remote services. Apply the packaged skill to determine which transcript operations can be consumed and what planning state follows. Return exactly one JSON object with keys status, transport, endpoint, mcpPreflightVerified, project, initialPhaseHead, planningEvent, operationOrder, issueGraph, finalPhase, finalNativeCategory, allReadBacksVerified, readyAppended, and repositoryMutationCount. Preserve input operation names and identities exactly.",
+      "id": "standalone-selected-plan-persists-project-parent-child-graph",
+      "prompt": "Read fixtures/project-a.json as a standalone woostack-plan invocation with one exact caller-supplied project. Do not contact a provider. Return exactly one JSON object with keys status, invocationMode, artifactModeSelected, canonicalRepositoryVerified, workspaceTeamVerified, projectId, projectCreated, preMutationHierarchyReadComplete, parentPlanIssueId, childIssueIds, nativeDependencies, mutationClientIds, providerMutationPasses, approvedProjectContextReadBackVerified, hierarchyReadBackVerified, and repositoryMutationCount.",
       "fixtures": [
         "project-a.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The ownership-valid feature project advances from the approved specification to one independently verified planning event before any issue mutation, then reconciles two complete stable increment issues and their native dependency relation.",
+      "expected": "Standalone exact-project planning selects persistence, reconciles the existing selected project without recreating it, verifies repository and workspace/team, performs one hierarchy synchronization pass, and independently reads the approved specification context, parent, children, and dependency edge back.",
       "assertions": [
         {
-          "id": "plan-positive-status",
+          "id": "complete",
           "kind": "final-json-path-equals",
           "pointer": "/status",
-          "expected": "planning-complete",
+          "expected": "complete",
           "critical": true
         },
         {
-          "id": "plan-official-linear-mcp",
+          "id": "standalone",
           "kind": "final-json-path-equals",
-          "pointer": "/transport",
-          "expected": "official-linear-mcp",
+          "pointer": "/invocationMode",
+          "expected": "standalone",
           "critical": true
         },
         {
-          "id": "plan-official-mcp-endpoint",
+          "id": "selected",
           "kind": "final-json-path-equals",
-          "pointer": "/endpoint",
-          "expected": "https://mcp.linear.app/mcp",
-          "critical": true
-        },
-        {
-          "id": "plan-complete-mcp-preflight",
-          "kind": "final-json-path-equals",
-          "pointer": "/mcpPreflightVerified",
+          "pointer": "/artifactModeSelected",
           "expected": true,
           "critical": true
         },
         {
-          "id": "plan-exact-feature-project",
+          "id": "repo",
           "kind": "final-json-path-equals",
-          "pointer": "/project",
-          "expected": {
-            "clientId": "10000000-0000-4000-8000-000000000001",
-            "nativeId": "project-cache-7",
-            "repository": "https://github.com/acme/cache-service",
-            "role": "feature"
-          },
+          "pointer": "/canonicalRepositoryVerified",
+          "expected": true,
           "critical": true
         },
         {
-          "id": "plan-current-approved-head",
+          "id": "workspace-team",
           "kind": "final-json-path-equals",
-          "pointer": "/initialPhaseHead",
-          "expected": {
-            "event": "specApproved",
-            "nativeId": "update-approved-1"
-          },
+          "pointer": "/workspaceTeamVerified",
+          "expected": true,
           "critical": true
         },
         {
-          "id": "plan-exact-planning-readback",
+          "id": "project",
           "kind": "final-json-path-equals",
-          "pointer": "/planningEvent",
-          "expected": {
-            "clientId": "10000000-0000-4000-8000-000000000014",
-            "nativeId": "update-planning-1",
-            "predecessorId": "update-approved-1",
-            "relatedIds": [
-              "update-approved-1",
-              "update-spec-1"
-            ],
-            "readBackVerified": true
-          },
+          "pointer": "/projectId",
+          "expected": "project-plan-a",
           "critical": true
         },
         {
-          "id": "plan-phase-before-issue-mutations",
+          "id": "project-not-recreated",
           "kind": "final-json-path-equals",
-          "pointer": "/operationOrder",
+          "pointer": "/projectCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "complete-pre-mutation-hierarchy-read",
+          "kind": "final-json-path-equals",
+          "pointer": "/preMutationHierarchyReadComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "parent",
+          "kind": "final-json-path-equals",
+          "pointer": "/parentPlanIssueId",
+          "expected": "issue-plan-a-parent",
+          "critical": true
+        },
+        {
+          "id": "children",
+          "kind": "final-json-path-equals",
+          "pointer": "/childIssueIds",
           "expected": [
-            "verify-mcp-capabilities",
-            "verify-project-identity",
-            "verify-current-phase-chain",
-            "build-desired-issue-graph",
-            "append-planning",
-            "read-planning-event",
-            "read-project-planning-head",
-            "create-increment:10000000-0000-4000-8000-000000000021",
-            "read-increment:issue-cache-71",
-            "create-increment:10000000-0000-4000-8000-000000000022",
-            "read-increment:issue-cache-72",
-            "read-existing-relations",
-            "create-relation:issue-cache-72->issue-cache-71",
-            "read-relation:issue-cache-72->issue-cache-71",
-            "read-final-relations",
-            "read-final-project-graph"
+            "issue-plan-a-1",
+            "issue-plan-a-2"
           ],
           "critical": true
         },
         {
-          "id": "plan-complete-increment-graph",
+          "id": "dependency",
           "kind": "final-json-path-equals",
-          "pointer": "/issueGraph",
+          "pointer": "/nativeDependencies",
           "expected": [
             {
-              "clientId": "10000000-0000-4000-8000-000000000021",
-              "nativeId": "issue-cache-71",
-              "ordinal": 1,
-              "projectId": "project-cache-7",
-              "dependencyNativeIds": [],
-              "objective": "Refresh one expired cache value while retaining the fresh-value fast path.",
-              "contractComplete": true,
-              "readBackVerified": true
-            },
-            {
-              "clientId": "10000000-0000-4000-8000-000000000022",
-              "nativeId": "issue-cache-72",
-              "ordinal": 2,
-              "projectId": "project-cache-7",
-              "dependencyNativeIds": [
-                "issue-cache-71"
-              ],
-              "objective": "Coalesce concurrent refreshes for one expired cache key.",
-              "contractComplete": true,
-              "readBackVerified": true
+              "from": "issue-plan-a-2",
+              "blockedBy": "issue-plan-a-1"
             }
           ],
           "critical": true
         },
         {
-          "id": "plan-final-phase",
+          "id": "stable-write-identities",
           "kind": "final-json-path-equals",
-          "pointer": "/finalPhase",
-          "expected": "planning",
+          "pointer": "/mutationClientIds",
+          "expected": {
+            "projectContext": "41000000-0000-4000-8000-000000000000",
+            "parent": "41000000-0000-4000-8000-000000000001",
+            "children": [
+              "41000000-0000-4000-8000-000000000002",
+              "41000000-0000-4000-8000-000000000003"
+            ]
+          },
           "critical": true
         },
         {
-          "id": "plan-backlog-category",
+          "id": "one-pass",
           "kind": "final-json-path-equals",
-          "pointer": "/finalNativeCategory",
-          "expected": "backlog",
+          "pointer": "/providerMutationPasses",
+          "expected": 1,
           "critical": true
         },
         {
-          "id": "plan-all-readbacks-complete",
+          "id": "approved-project-context-read-back",
           "kind": "final-json-path-equals",
-          "pointer": "/allReadBacksVerified",
+          "pointer": "/approvedProjectContextReadBackVerified",
           "expected": true,
           "critical": true
         },
         {
-          "id": "plan-does-not-append-ready",
+          "id": "readback",
           "kind": "final-json-path-equals",
-          "pointer": "/readyAppended",
-          "expected": false,
+          "pointer": "/hierarchyReadBackVerified",
+          "expected": true,
           "critical": true
         },
         {
-          "id": "plan-no-repository-mutation",
+          "id": "no-repo-mutation",
           "kind": "final-json-path-equals",
           "pointer": "/repositoryMutationCount",
           "expected": 0,
@@ -299,432 +274,545 @@
       ]
     },
     {
-      "id": "blocks-unavailable-or-partial-official-mcp",
-      "prompt": "Read fixtures/project-b.json as two independent capability snapshots for the same bounded planning invocation. Do not modify files or contact remote services. Apply the packaged skill at the preflight boundary and return exactly one JSON object with keys status, decisions, planningMutationIds, issueMutationIds, and repositoryMutationCount. decisions must be keyed by the snapshot names and each value must contain status, reasonCode, and missingCapabilities.",
+      "id": "blocks-selected-persistence-on-unavailable-or-partial-official-mcp",
+      "prompt": "Read fixtures/project-b.json as two independent official-MCP preflights after standalone persistence was explicitly selected. Do not contact a provider. Return exactly one JSON object with keys status, decisions, projectMutationIds, issueMutationIds, relationMutationIds, and repositoryMutationCount. decisions must preserve each scenario name and list missing capabilities.",
       "fixtures": [
         "project-b.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Both an absent official connection and an authenticated but incomplete capability surface stop before project-update, issue, relation, Git, or repository mutation, with the partial capability names reported exactly.",
+      "expected": "Missing connection and partial hierarchy capability both block the selected artifact operation before any provider or repository mutation.",
       "assertions": [
         {
-          "id": "plan-mcp-scenarios-blocked",
+          "id": "blocked",
           "kind": "final-json-path-equals",
           "pointer": "/status",
           "expected": "blocked",
           "critical": true
         },
         {
-          "id": "plan-missing-partial-mcp-decisions",
+          "id": "decisions",
           "kind": "final-json-path-equals",
           "pointer": "/decisions",
           "expected": {
-            "connectionA": {
+            "missingConnection": {
               "status": "blocked",
               "reasonCode": "official-mcp-unavailable",
-              "missingCapabilities": []
-            },
-            "connectionB": {
-              "status": "blocked",
-              "reasonCode": "official-mcp-capabilities-incomplete",
               "missingCapabilities": [
-                "project-update.read",
-                "relation.read"
+                "project.read",
+                "project.write",
+                "issue.read",
+                "issue.write",
+                "relation.read",
+                "relation.write",
+                "independent-read-back"
+              ]
+            },
+            "partialCapability": {
+              "status": "blocked",
+              "reasonCode": "official-mcp-incomplete",
+              "missingCapabilities": [
+                "relation.write",
+                "independent-read-back"
               ]
             }
           },
           "critical": true
         },
         {
-          "id": "plan-mcp-blocks-project-update",
+          "id": "no-project-mutation",
           "kind": "final-json-path-equals",
-          "pointer": "/planningMutationIds",
+          "pointer": "/projectMutationIds",
           "expected": [],
           "critical": true
         },
         {
-          "id": "plan-mcp-blocks-issues",
+          "id": "no-issue-mutation",
           "kind": "final-json-path-equals",
           "pointer": "/issueMutationIds",
           "expected": [],
           "critical": true
         },
         {
-          "id": "plan-mcp-blocks-repository",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "blocks-wrong-project-role-or-repository",
-      "prompt": "Read fixtures/project-c.json as two independently resolved project identities under one repository policy. Do not modify files or contact remote services. Apply the packaged skill through the identity boundary and return exactly one JSON object with keys status, decisions, phaseReadsStarted, planningMutationIds, issueMutationIds, and repositoryMutationCount. decisions must be keyed by the input project names and each value must contain status and reasonCode.",
-      "fixtures": [
-        "project-c.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "A project with the work-item role and a feature project attributed to another repository each fail identity admission before phase consumption or any managed or repository mutation.",
-      "assertions": [
-        {
-          "id": "plan-identity-scenarios-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "blocked",
-          "critical": true
-        },
-        {
-          "id": "plan-wrong-role-repository-decisions",
-          "kind": "final-json-path-equals",
-          "pointer": "/decisions",
-          "expected": {
-            "projectA": {
-              "status": "blocked",
-              "reasonCode": "wrong-project-role"
-            },
-            "projectB": {
-              "status": "blocked",
-              "reasonCode": "foreign-project-repository"
-            }
-          },
-          "critical": true
-        },
-        {
-          "id": "plan-identity-blocks-phase-read",
-          "kind": "final-json-path-equals",
-          "pointer": "/phaseReadsStarted",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "plan-identity-blocks-planning-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/planningMutationIds",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "plan-identity-blocks-issue-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/issueMutationIds",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "plan-identity-blocks-repository-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "blocks-duplicate-revisions-or-current-heads",
-      "prompt": "Read fixtures/project-d.json as two independent complete phase snapshots for the same verified feature project. Do not modify files or contact remote services. Apply the packaged skill to derive phase admission and return exactly one JSON object with keys status, decisions, selectedHeadIds, planningMutationIds, issueMutationIds, and repositoryMutationCount. decisions must be keyed by the input phase-set names and each value must contain status and reasonCode.",
-      "fixtures": [
-        "project-d.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Duplicate revisions and two unsuperseded current successors both fail closed, select no phase head, and permit no project-update, issue, Git, or repository mutation.",
-      "assertions": [
-        {
-          "id": "plan-phase-conflicts-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "blocked",
-          "critical": true
-        },
-        {
-          "id": "plan-duplicate-head-decisions",
-          "kind": "final-json-path-equals",
-          "pointer": "/decisions",
-          "expected": {
-            "phaseSetA": {
-              "status": "blocked",
-              "reasonCode": "duplicate-phase-revision"
-            },
-            "phaseSetB": {
-              "status": "blocked",
-              "reasonCode": "multiple-current-phase-heads"
-            }
-          },
-          "critical": true
-        },
-        {
-          "id": "plan-conflict-selects-no-head",
-          "kind": "final-json-path-equals",
-          "pointer": "/selectedHeadIds",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "plan-conflict-no-planning-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/planningMutationIds",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "plan-conflict-no-issue-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/issueMutationIds",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "plan-conflict-no-repository-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "preserves-event-uuid-after-unknown-planning-outcome",
-      "prompt": "Read fixtures/project-e.json as an ordered synthetic transcript at the planning-event mutation boundary. Do not modify files or contact remote services. Apply the packaged skill to determine the safe terminal decision and return exactly one JSON object with keys status, reasonCode, planningEventClientId, planningAppendAttempts, rediscoveryMatchCount, replacementEventAllocated, samePhaseRetryAllowed, issueMutationIds, and repositoryMutationCount.",
-      "fixtures": [
-        "project-e.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The disconnected planning append remains an unknown outcome after exact UUID rediscovery finds no match, so the stable UUID is preserved, no replacement or same-phase retry occurs, and issue reconciliation never starts.",
-      "assertions": [
-        {
-          "id": "plan-unknown-mutation-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "blocked",
-          "critical": true
-        },
-        {
-          "id": "plan-unknown-mutation-reason",
-          "kind": "final-json-path-equals",
-          "pointer": "/reasonCode",
-          "expected": "unknown-planning-mutation",
-          "critical": true
-        },
-        {
-          "id": "plan-unknown-preserves-event-id",
-          "kind": "final-json-path-equals",
-          "pointer": "/planningEventClientId",
-          "expected": "40000000-0000-4000-8000-000000000012",
-          "critical": true
-        },
-        {
-          "id": "plan-unknown-single-append",
-          "kind": "final-json-path-equals",
-          "pointer": "/planningAppendAttempts",
-          "expected": 1,
-          "critical": true
-        },
-        {
-          "id": "plan-unknown-zero-rediscovery",
-          "kind": "final-json-path-equals",
-          "pointer": "/rediscoveryMatchCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "plan-unknown-no-replacement-event",
-          "kind": "final-json-path-equals",
-          "pointer": "/replacementEventAllocated",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "plan-unknown-no-same-phase-retry",
-          "kind": "final-json-path-equals",
-          "pointer": "/samePhaseRetryAllowed",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "plan-unknown-no-issue-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/issueMutationIds",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "plan-unknown-no-repository-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "blocks-issue-mutation-on-incomplete-planning-readback",
-      "prompt": "Read fixtures/project-f.json as an ordered synthetic transcript beginning at a verified approved phase head. Do not modify files or contact remote services. Apply the packaged skill at each mutation boundary and return exactly one JSON object with keys status, reasonCode, planningEventClientId, planningEventNativeId, planningReadBackAccepted, planningAppendAttempts, issueMutationIds, finalPhaseAccepted, and repositoryMutationCount.",
-      "fixtures": [
-        "project-f.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "A planning update response whose independent event read omits a required relation is incomplete even when the project reports a planning head, so no increment mutation or final planning handback is accepted.",
-      "assertions": [
-        {
-          "id": "plan-incomplete-event-readback-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "blocked",
-          "critical": true
-        },
-        {
-          "id": "plan-incomplete-event-readback-reason",
-          "kind": "final-json-path-equals",
-          "pointer": "/reasonCode",
-          "expected": "incomplete-planning-read-back",
-          "critical": true
-        },
-        {
-          "id": "plan-incomplete-event-client-id",
-          "kind": "final-json-path-equals",
-          "pointer": "/planningEventClientId",
-          "expected": "50000000-0000-4000-8000-000000000012",
-          "critical": true
-        },
-        {
-          "id": "plan-incomplete-event-native-id",
-          "kind": "final-json-path-equals",
-          "pointer": "/planningEventNativeId",
-          "expected": "update-planning-1",
-          "critical": true
-        },
-        {
-          "id": "plan-incomplete-event-not-accepted",
-          "kind": "final-json-path-equals",
-          "pointer": "/planningReadBackAccepted",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "plan-incomplete-event-single-append",
-          "kind": "final-json-path-equals",
-          "pointer": "/planningAppendAttempts",
-          "expected": 1,
-          "critical": true
-        },
-        {
-          "id": "plan-incomplete-event-no-issues",
-          "kind": "final-json-path-equals",
-          "pointer": "/issueMutationIds",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "plan-incomplete-event-no-final-phase",
-          "kind": "final-json-path-equals",
-          "pointer": "/finalPhaseAccepted",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "plan-incomplete-event-no-repository-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "stops-reconciliation-on-incomplete-issue-readback",
-      "prompt": "Read fixtures/project-g.json as an ordered synthetic transcript under an already verified planning head. Do not modify files or contact remote services. Apply the packaged skill at each issue and relation boundary and return exactly one JSON object with keys status, reasonCode, verifiedPlanningHead, issueClientId, issueNativeId, issueMutationIds, issueReadBackAccepted, relationMutationIds, finalGraphAccepted, stableIssueIdPreserved, and repositoryMutationCount.",
-      "fixtures": [
-        "project-g.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The valid planning head permits one increment create, but the independent issue read lacks required project membership, so reconciliation stops with the stable issue UUID preserved before any relation or later issue mutation.",
-      "assertions": [
-        {
-          "id": "plan-incomplete-issue-readback-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "blocked",
-          "critical": true
-        },
-        {
-          "id": "plan-incomplete-issue-readback-reason",
-          "kind": "final-json-path-equals",
-          "pointer": "/reasonCode",
-          "expected": "incomplete-increment-read-back",
-          "critical": true
-        },
-        {
-          "id": "plan-incomplete-issue-planning-verified",
-          "kind": "final-json-path-equals",
-          "pointer": "/verifiedPlanningHead",
-          "expected": "update-planning-1",
-          "critical": true
-        },
-        {
-          "id": "plan-incomplete-issue-client-id",
-          "kind": "final-json-path-equals",
-          "pointer": "/issueClientId",
-          "expected": "60000000-0000-4000-8000-000000000021",
-          "critical": true
-        },
-        {
-          "id": "plan-incomplete-issue-native-id",
-          "kind": "final-json-path-equals",
-          "pointer": "/issueNativeId",
-          "expected": "issue-cache-71",
-          "critical": true
-        },
-        {
-          "id": "plan-incomplete-issue-one-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/issueMutationIds",
-          "expected": [
-            "create-increment:60000000-0000-4000-8000-000000000021"
-          ],
-          "critical": true
-        },
-        {
-          "id": "plan-incomplete-issue-not-accepted",
-          "kind": "final-json-path-equals",
-          "pointer": "/issueReadBackAccepted",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "plan-incomplete-issue-no-relations",
+          "id": "no-relation-mutation",
           "kind": "final-json-path-equals",
           "pointer": "/relationMutationIds",
           "expected": [],
           "critical": true
         },
         {
-          "id": "plan-incomplete-issue-no-final-graph",
+          "id": "no-repo-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "blocks-wrong-resource-type-or-repository",
+      "prompt": "Read fixtures/project-c.json as two exact --project inputs. Do not mutate anything. Return exactly one JSON object with keys status, decisions, hierarchyReadsStarted, providerMutationIds, and repositoryMutationCount. decisions must classify suppliedIssue and foreignRepositoryProject as blocked.",
+      "fixtures": [
+        "project-c.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "An issue supplied where a project is required and a project associated with another canonical repository both fail before hierarchy reads or mutations.",
+      "assertions": [
+        {
+          "id": "blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "decisions",
+          "kind": "final-json-path-equals",
+          "pointer": "/decisions",
+          "expected": {
+            "suppliedIssue": {
+              "status": "blocked",
+              "reasonCode": "expected-project-resource"
+            },
+            "foreignRepositoryProject": {
+              "status": "blocked",
+              "reasonCode": "foreign-repository"
+            }
+          },
+          "critical": true
+        },
+        {
+          "id": "no-hierarchy-read",
+          "kind": "final-json-path-equals",
+          "pointer": "/hierarchyReadsStarted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-provider-mutations",
+          "kind": "final-json-path-equals",
+          "pointer": "/providerMutationIds",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "no-repo-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "build-delegated-planning-returns-candidate-without-provider-mutation",
+      "prompt": "Read fixtures/project-d.json as a woostack-build delegated planning invocation with exact read-only artifact context. Do not contact a provider. Return exactly one JSON object with keys status, invocationMode, candidateTaskIds, graphValid, providerReadCount, providerWriteCount, persistenceOwner, graphHardeningOwner, and repositoryMutationCount.",
+      "fixtures": [
+        "project-d.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Build-delegated planning returns the complete candidate graph without provider mutation; build owns graph hardening and the single later persistence pass.",
+      "assertions": [
+        {
+          "id": "candidate",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "candidate",
+          "critical": true
+        },
+        {
+          "id": "delegated",
+          "kind": "final-json-path-equals",
+          "pointer": "/invocationMode",
+          "expected": "build-delegated",
+          "critical": true
+        },
+        {
+          "id": "tasks",
+          "kind": "final-json-path-equals",
+          "pointer": "/candidateTaskIds",
+          "expected": [
+            "storage",
+            "api"
+          ],
+          "critical": true
+        },
+        {
+          "id": "valid",
+          "kind": "final-json-path-equals",
+          "pointer": "/graphValid",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "no-provider-reads",
+          "kind": "final-json-path-equals",
+          "pointer": "/providerReadCount",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "no-provider-writes",
+          "kind": "final-json-path-equals",
+          "pointer": "/providerWriteCount",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "persistence-owner",
+          "kind": "final-json-path-equals",
+          "pointer": "/persistenceOwner",
+          "expected": "woostack-build",
+          "critical": true
+        },
+        {
+          "id": "hardening-owner",
+          "kind": "final-json-path-equals",
+          "pointer": "/graphHardeningOwner",
+          "expected": "woostack-build",
+          "critical": true
+        },
+        {
+          "id": "no-repo-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "preserves-hierarchy-identities-after-unknown-create-outcome",
+      "prompt": "Read fixtures/project-e.json as an explicit standalone creation transcript with an unknown project-create outcome. Do not contact a provider. Return exactly one JSON object with keys status, reasonCode, projectMutationId, parentMutationId, childMutationIds, projectCreateAttempts, rediscoveryMatchCount, replacementIdentityAllocated, issueMutationIds, laterProviderMutationCount, and repositoryMutationCount.",
+      "fixtures": [
+        "project-e.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The unknown project create retains all preallocated hierarchy identities, re-reads the same project identity, allocates no replacement, and starts no issue or repository mutation.",
+      "assertions": [
+        {
+          "id": "blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "unknown",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": "unknown-project-create-outcome",
+          "critical": true
+        },
+        {
+          "id": "project-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectMutationId",
+          "expected": "50000000-0000-4000-8000-000000000001",
+          "critical": true
+        },
+        {
+          "id": "parent-id",
+          "kind": "final-json-path-equals",
+          "pointer": "/parentMutationId",
+          "expected": "50000000-0000-4000-8000-000000000002",
+          "critical": true
+        },
+        {
+          "id": "child-ids",
+          "kind": "final-json-path-equals",
+          "pointer": "/childMutationIds",
+          "expected": [
+            "50000000-0000-4000-8000-000000000003"
+          ],
+          "critical": true
+        },
+        {
+          "id": "single-project-create-attempt",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectCreateAttempts",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "rediscovery",
+          "kind": "final-json-path-equals",
+          "pointer": "/rediscoveryMatchCount",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "no-replacement",
+          "kind": "final-json-path-equals",
+          "pointer": "/replacementIdentityAllocated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-issues",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueMutationIds",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "no-later-provider-mutations",
+          "kind": "final-json-path-equals",
+          "pointer": "/laterProviderMutationCount",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "no-repo",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "blocks-child-mutation-on-incomplete-parent-readback",
+      "prompt": "Read fixtures/project-f.json at selected standalone persistence. Do not contact a provider. Return exactly one JSON object with keys status, reasonCode, projectMutationId, projectReadBackVerified, parentMutationId, parentNativeId, parentReadBackAccepted, parentCreateAttempts, childMutationIds, hierarchyAccepted, and repositoryMutationCount.",
+      "fixtures": [
+        "project-f.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "A parent plan issue response whose independent read omits verified project membership blocks before child creation and hierarchy acceptance.",
+      "assertions": [
+        {
+          "id": "blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": "incomplete-parent-readback",
+          "critical": true
+        },
+        {
+          "id": "project-client",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectMutationId",
+          "expected": "60000000-0000-4000-8000-000000000000",
+          "critical": true
+        },
+        {
+          "id": "project-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectReadBackVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "parent-client",
+          "kind": "final-json-path-equals",
+          "pointer": "/parentMutationId",
+          "expected": "60000000-0000-4000-8000-000000000001",
+          "critical": true
+        },
+        {
+          "id": "parent-native",
+          "kind": "final-json-path-equals",
+          "pointer": "/parentNativeId",
+          "expected": "issue-parent-f",
+          "critical": true
+        },
+        {
+          "id": "readback-rejected",
+          "kind": "final-json-path-equals",
+          "pointer": "/parentReadBackAccepted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "one-attempt",
+          "kind": "final-json-path-equals",
+          "pointer": "/parentCreateAttempts",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "no-children",
+          "kind": "final-json-path-equals",
+          "pointer": "/childMutationIds",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "not-accepted",
+          "kind": "final-json-path-equals",
+          "pointer": "/hierarchyAccepted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-repo",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "stops-relations-on-incomplete-child-readback",
+      "prompt": "Read fixtures/project-g.json at the child issue boundary under a verified selected project and parent plan issue. Do not contact a provider. Return exactly one JSON object with keys status, reasonCode, projectMutationId, projectReadBackVerified, parentMutationId, parentReadBackVerified, childMutationId, childNativeId, childReadBackAccepted, relationMutationIds, finalGraphAccepted, stableChildIdPreserved, and repositoryMutationCount.",
+      "fixtures": [
+        "project-g.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The verified parent permits one child create, but missing parent/project membership in the independent child read stops relation creation with the same stable identity preserved.",
+      "assertions": [
+        {
+          "id": "blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "reason",
+          "kind": "final-json-path-equals",
+          "pointer": "/reasonCode",
+          "expected": "incomplete-child-readback",
+          "critical": true
+        },
+        {
+          "id": "project-client",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectMutationId",
+          "expected": "70000000-0000-4000-8000-000000000010",
+          "critical": true
+        },
+        {
+          "id": "project-read",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectReadBackVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "parent-client",
+          "kind": "final-json-path-equals",
+          "pointer": "/parentMutationId",
+          "expected": "70000000-0000-4000-8000-000000000020",
+          "critical": true
+        },
+        {
+          "id": "parent-read",
+          "kind": "final-json-path-equals",
+          "pointer": "/parentReadBackVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "child-client",
+          "kind": "final-json-path-equals",
+          "pointer": "/childMutationId",
+          "expected": "70000000-0000-4000-8000-000000000001",
+          "critical": true
+        },
+        {
+          "id": "child-native",
+          "kind": "final-json-path-equals",
+          "pointer": "/childNativeId",
+          "expected": "issue-child-g",
+          "critical": true
+        },
+        {
+          "id": "child-rejected",
+          "kind": "final-json-path-equals",
+          "pointer": "/childReadBackAccepted",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "no-relations",
+          "kind": "final-json-path-equals",
+          "pointer": "/relationMutationIds",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "graph-rejected",
           "kind": "final-json-path-equals",
           "pointer": "/finalGraphAccepted",
           "expected": false,
           "critical": true
         },
         {
-          "id": "plan-incomplete-issue-stable-id",
+          "id": "stable-id",
           "kind": "final-json-path-equals",
-          "pointer": "/stableIssueIdPreserved",
+          "pointer": "/stableChildIdPreserved",
           "expected": true,
           "critical": true
         },
         {
-          "id": "plan-incomplete-issue-no-repository-mutation",
+          "id": "no-repo",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "rejects-invalid-plan-graphs-before-persistence",
+      "prompt": "Evaluate each scenario in fixtures/invalid-graphs.json independently against the packaged Plan contract. Derive the result from task identity, ordinal, acceptance-coverage, predecessor, and Git-parent evidence. Do not mutate a provider or repository. Return exactly one JSON object with keys status, decisions, providerMutationCount, and repositoryMutationCount.",
+      "fixtures": [
+        "invalid-graphs.json"
+      ],
+      "capabilities": [],
+      "expected": "Every invalid graph is rejected before persistence: task IDs and exact positive integer ordinals are unique, dependencies resolve to declared tasks, acceptance criteria are covered, and intended Git parents are representable by dependency and Graphite ancestry.",
+      "assertions": [
+        {
+          "id": "invalid-graphs-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "invalid-graph-reasons",
+          "kind": "final-json-path-equals",
+          "pointer": "/decisions",
+          "expected": {
+            "caseA": "duplicate-task-id",
+            "caseB": "duplicate-ordinal",
+            "caseC": "unknown-dependency",
+            "caseD": "uncovered-acceptance-criterion",
+            "caseE": "unrepresentable-git-parent",
+            "caseF": "non-positive-ordinal",
+            "caseG": "dependency-cycle",
+            "caseH": "non-integer-ordinal"
+          },
+          "critical": true
+        },
+        {
+          "id": "invalid-graphs-do-not-mutate-provider",
+          "kind": "final-json-path-equals",
+          "pointer": "/providerMutationCount",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "invalid-graphs-do-not-mutate-repository",
           "kind": "final-json-path-equals",
           "pointer": "/repositoryMutationCount",
           "expected": 0,

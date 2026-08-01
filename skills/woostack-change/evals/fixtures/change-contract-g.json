@@ -1,0 +1,35 @@
+{
+  "checks": {
+    "foreignRepository": {
+      "recordedRepository": "https://github.com/acme/app",
+      "observedRepository": "https://github.com/other/app"
+    },
+    "baseDrift": {
+      "recordedBase": "main@1111111",
+      "observedBase": "main@2222222"
+    },
+    "branchCollision": {
+      "claimedBranch": "change/cache-key",
+      "observedOwner": "other-task"
+    },
+    "worktreeCollision": {
+      "claimedPath": ".woostack/worktrees/tasks/cache-key",
+      "observedOwner": "other-task"
+    },
+    "headDrift": {
+      "recordedHead": "1111111",
+      "observedHead": "2222222"
+    },
+    "scopeExpansion": {
+      "approvedPaths": [
+        "src/cache.ts"
+      ],
+      "observedPaths": [
+        "src/cache.ts",
+        "src/session.ts"
+      ]
+    }
+  },
+  "providerEvents": [],
+  "repositoryMutationEvents": []
+}

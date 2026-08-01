@@ -48,6 +48,10 @@ A unit pins:
 Neither profile requires a Linear principal or issue. Linear may be configured independently when
 the caller requests exact artifact reads/writes.
 
+Before the first coder dispatch, create or resolve the canonical task worktree, then follow the
+canonical [Hermes bound-unit setup](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/hermes.md#bound-unit-manifest-and-binding).
+Dispatch begins only after that setup binds the unit successfully.
+
 ### Dispatch
 
 Confirm the installed CLI's exact argv with `omp --help`. The conceptual command is:
@@ -69,8 +73,8 @@ then reads the canonical PR/head/diff itself and performs independent review.
 
 ## Linear artifacts
 
-For exact caller-selected artifacts, explicit persistence, or fix/build plans with available
-repository Linear capability, configure the official endpoint independently in each profile:
+Only an exact caller-selected artifact or explicit persistence request selects Linear. When
+selected, configure the official endpoint independently in each profile:
 
 ```text
 https://mcp.linear.app/mcp
@@ -81,7 +85,8 @@ config, prompts, logs, staged launcher files, or generated output. Follow the
 [Linear artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md).
 
 Artifact access may read or synchronize a spec, plan, fix, or review note. It cannot authorize
-worker dispatch, edits, commit, review, or acceptance. `woostack-change` never contacts Linear.
+worker dispatch, edits, commit, review, or acceptance. Without an exact artifact or explicit
+persistence request, make no Linear call. `woostack-change` never contacts Linear.
 
 ## Recovery
 

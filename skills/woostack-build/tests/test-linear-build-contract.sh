@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Structural contract for repository-enabled Linear plan persistence in the build loop.
+# Structural contract for explicitly selected Linear plan persistence in the build loop.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
@@ -33,8 +33,13 @@ for needle in (
     "**design-approval**",
     "**spec-approval**",
     "**execution-handoff**",
-    "A complete preflight makes plan persistence",
-    "Missing configuration or unavailable/incomplete capability keeps the build artifact-free",
+    "make no Linear read or write",
+    "policy may provide validated non-secret defaults",
+    "without provider mutation",
+    "only then synchronize the selected hierarchy once",
+    "exact persisted project, parent plan issue, and increment child context",
+    "same approved plan",
+    "exact persisted artifact context when present",
     "No implementation Git artifact exists before an explicit `Go` or",
     "explicit abandonment must set an existing exact fix/build project's native status",
     "If no project exists, report that there is nothing to close",
@@ -53,7 +58,7 @@ for name in text:
     forbid(name, r"(?:requires?|must have) (?:an? |one |exact )?(?:managed )?Linear (?:issue|project)")
 
 if failures:
-    print("repository-enabled build contract violations:", file=sys.stderr)
+    print("explicitly selected build persistence contract violations:", file=sys.stderr)
     for failure in failures:
         print(f"  - {failure}", file=sys.stderr)
     raise SystemExit(1)

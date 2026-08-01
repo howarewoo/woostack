@@ -1,127 +1,24 @@
 {
-  "schemaVersion": 1,
-  "repositoryPolicy": {
-    "repository": "https://github.com/acme/cache-service",
-    "workspace": "Acme",
-    "team": "APP"
-  },
-  "officialMcp": {
-    "endpoint": "https://mcp.linear.app/mcp",
-    "authenticated": true,
-    "paginationComplete": true,
-    "capabilities": [
-      "project.read",
-      "project-update.create",
-      "project-update.read",
-      "project-issues.read",
-      "issue.create",
-      "issue.read",
-      "issue.update",
-      "relation.create",
-      "relation.read",
-      "owner.read",
-      "state.read"
-    ]
-  },
-  "project": {
-    "nativeId": "project-cache-7",
-    "nativeCategory": "backlog",
-    "workspace": "Acme",
-    "team": "APP",
-    "envelope": {
-      "clientId": "40000000-0000-4000-8000-000000000001",
-      "kind": "resource",
-      "label": "woostack",
-      "repository": "https://github.com/acme/cache-service",
-      "role": "feature",
-      "schema": 1
+  "caller": {
+    "persistenceRequest": "persist",
+    "clientIds": {
+      "project": "50000000-0000-4000-8000-000000000001",
+      "parent": "50000000-0000-4000-8000-000000000002",
+      "child": "50000000-0000-4000-8000-000000000003"
     }
   },
-  "phaseUpdates": [
+  "providerEvents": [
     {
-      "nativeId": "update-design-1",
-      "envelope": {
-        "clientId": "40000000-0000-4000-8000-000000000009",
-        "event": "designApproved",
-        "kind": "projectEvent",
-        "label": "woostack",
-        "predecessorId": null,
-        "projectId": "project-cache-7",
-        "relatedIds": [],
-        "repository": "https://github.com/acme/cache-service",
-        "revision": 1,
-        "role": "feature",
-        "schema": 1,
-        "supersedesId": null
-      }
+      "operation": "create-project",
+      "clientId": "50000000-0000-4000-8000-000000000001",
+      "transport": "timeout-unknown"
     },
     {
-      "nativeId": "update-hardened-1",
-      "readableBody": {
-        "goal": "Refresh expired cache values.",
-        "acceptanceCriteria": [
-          "An expired key is refreshed before its value is returned."
-        ]
-      },
-      "envelope": {
-        "clientId": "40000000-0000-4000-8000-000000000010",
-        "event": "specHardened",
-        "kind": "projectEvent",
-        "label": "woostack",
-        "predecessorId": "update-design-1",
-        "projectId": "project-cache-7",
-        "relatedIds": [],
-        "repository": "https://github.com/acme/cache-service",
-        "revision": 1,
-        "role": "feature",
-        "schema": 1,
-        "supersedesId": null
-      }
-    },
-    {
-      "nativeId": "update-approved-1",
-      "envelope": {
-        "clientId": "40000000-0000-4000-8000-000000000011",
-        "event": "specApproved",
-        "kind": "projectEvent",
-        "label": "woostack",
-        "predecessorId": "update-hardened-1",
-        "projectId": "project-cache-7",
-        "relatedIds": [
-          "update-hardened-1"
-        ],
-        "repository": "https://github.com/acme/cache-service",
-        "revision": 1,
-        "role": "feature",
-        "schema": 1,
-        "supersedesId": null
-      }
+      "operation": "lookup-project-by-client-id",
+      "clientId": "50000000-0000-4000-8000-000000000001",
+      "freshMatches": [],
+      "complete": true,
+      "terminalBoundary": true
     }
-  ],
-  "projectIssueRead": {
-    "nodes": [],
-    "pageInfo": {
-      "hasNextPage": false
-    }
-  },
-  "allocatedPlanningEventClientId": "40000000-0000-4000-8000-000000000012",
-  "syntheticResponses": [
-    {
-      "operation": "append-planning",
-      "outcome": "connection-closed",
-      "nativeId": null
-    },
-    {
-      "operation": "search-project-updates-by-client-id",
-      "clientId": "40000000-0000-4000-8000-000000000012",
-      "nodes": [],
-      "pageInfo": {
-        "hasNextPage": false
-      }
-    }
-  ],
-  "desiredIncrementIds": [
-    "40000000-0000-4000-8000-000000000021",
-    "40000000-0000-4000-8000-000000000022"
   ]
 }

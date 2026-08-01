@@ -1,9 +1,8 @@
 # Linear project context
 
-Use this procedure when the caller supplies an exact Linear project URL/stable UUID, explicitly
-requests project persistence, or validated repository `linear` policy triggers the availability
-preflight for a fix/build plan. If policy is absent or official capability is unavailable or
-incomplete, artifact-free build and planning skip provider writes.
+Use this procedure only after the caller supplies an exact Linear project URL/stable UUID or
+explicitly requests project persistence. Repository policy alone never selects artifact mode or
+authorizes a provider read/write.
 
 The canonical [Linear artifact contract](../../woostack-init/references/artifact-backends.md) owns
 selection, transport, authentication, trust, mutation, read-back, and degradation rules. This
@@ -13,31 +12,34 @@ reference only narrows those rules for a fix/build plan project.
 
 Before reading, creating, or synchronizing a project:
 
-1. Resolve the canonical repository and current base from Git/GitHub.
-2. Validate configured repository, workspace, and team hints.
-3. Preflight the exact official MCP capabilities required to create/read/update the project, parent
-   plan issue, increment child issues, parent-child links, dependency relations, and read-backs.
-   This includes resolving `projectStatuses.canceled` to one native canceled-category project
-   status and proving exact project-status update, stable mutation identity, and independent
-   read-back capability.
-4. For a caller-supplied project, resolve only that exact resource. For automatic creation,
-   allocate one stable project identity and verify no resource exists under that identity.
-5. Fully paginate the specification/fix context, plan issue, increment children, updates, and
+1. Resolve the canonical repository association and current base from trusted Git/GitHub evidence.
+2. Resolve the caller-selected workspace/team. Only after selection, validate any configured
+   repository, workspace, team, native-status, or presentation defaults against that selection.
+3. Preflight the exact official MCP capabilities required for the selected project, parent plan
+   issue, increment child issues, parent-child links, dependency relations, mutations, and
+   read-backs. For fix/build abandonment, also resolve `projectStatuses.canceled` to one native
+   canceled-category project status and prove exact project-status update, stable mutation identity,
+   and independent read-back capability.
+4. For a caller-supplied project, resolve only that exact resource. For explicitly requested
+   creation, allocate one stable project identity and verify no resource exists under it.
+5. Verify the exact project's canonical repository association and resolved workspace/team before
+   every selected write.
+6. Fully paginate the specification/fix context, plan issue, increment children, updates, and
    relations needed by the operation.
-6. Independently re-read the selected current revisions.
+7. Independently re-read the selected current revisions.
 
 Never select a project by title, slug, recent activity, branch name, PR text, or singleton search.
-Missing, multiple, partial, foreign, stale, or conflicting results block this artifact path. An
-unavailable automatic preflight falls back to artifact-free planning; a failure after availability
-was proved blocks the plan deliverable before execution handoff.
+Missing, multiple, partial, foreign, stale, or conflicting results block the selected artifact
+path. They never trigger a fallback provider write or weaken the artifact-free repository workflow.
 
 ## Configuration
 
-`.woostack/config.json` is non-secret policy only. A validated `linear` object enables automatic
-availability preflight and supplies canonical repository, workspace/team, and display-state hints.
-It never contains credentials, creates authority, selects work, or replaces live resource
-verification. Unknown, malformed, or ambiguous configured values fail closed for the artifact
-operation. Never read or expose an API key to establish availability.
+`.woostack/config.json` is non-secret policy only. It cannot select artifact mode, authorize a
+provider operation, or supply authentication. After caller selection, validated `linear` policy may
+supply repository, workspace/team, native-status, and presentation defaults, but every value must
+resolve and agree with the canonical repository and caller-selected workspace/team. Unknown,
+malformed, ambiguous, or conflicting values fail closed for the selected artifact operation. Never
+read or expose an API key.
 
 ## Artifact fields
 
