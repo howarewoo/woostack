@@ -44,8 +44,10 @@ done
 assert_not_contains "$omp" 'agent: quick_task' "OMP never routes to the unavailable quick selector"
 assert_not_contains "$omp" 'agent: oracle' "OMP never routes to the unavailable deep selector"
 assert_contains "$omp" "Never generate or repair project workers during review" "OMP forbids review-time generation"
-assert_contains "$omp" "Artifact-free work makes no Linear call" "OMP preserves artifact-free operation"
-assert_contains "$omp" "Missing automatic capability keeps fix/build planning" "OMP degrades unavailable automatic persistence"
+assert_contains "$omp" "Only an exact caller-selected artifact or explicit persistence request selects Linear" "OMP requires exact or explicit selection"
+assert_contains "$omp" "policy may supply validated defaults only after selection; it never selects artifact mode or" "OMP limits policy to post-selection defaults"
+assert_contains "$omp" "Without either selection, make no Linear call" "OMP preserves no-selection no-call behavior"
+assert_contains "$omp" "Failure after selected persistence blocks only the" "OMP scopes selected persistence failure"
 
 hermes="$(cat "$H/hermes.md")"
 assert_contains "$hermes" 'native `delegate_task`' "Hermes keeps native default"
@@ -53,7 +55,9 @@ assert_contains "$hermes" "Neither route requires Linear" "Hermes does not requi
 assert_contains "$hermes" "omp --profile <engineer> -p --cwd <worktree> <prompt>" "Hermes pins conceptual OMP argv"
 assert_contains "$hermes" "Arguments are values, not shell source" "Hermes quarantines task text"
 assert_contains "$hermes" "distinct Hermes/OMP sessions and role credentials" "Hermes isolates paired roles"
-assert_contains "$hermes" "fix/build plan whose repository" "Hermes supports repository-enabled plan persistence"
+assert_contains "$hermes" "Only an exact caller-selected artifact or explicit persistence request selects Linear" "Hermes requires exact or explicit selection"
+assert_contains "$hermes" "Without either selection, both profiles make no Linear call" "Hermes preserves no-selection no-call behavior"
+assert_contains "$hermes" "Repository policy or a successful preflight alone" "Hermes rejects policy and preflight as selectors"
 
 review="$(cat "$S/woostack-review/SKILL.md")"
 assert_eq "$([[ "$review" == *"after angle detection"* ]] && echo y)" "y" \

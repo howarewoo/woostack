@@ -1,14 +1,15 @@
 ---
 title: Core concepts
-description: Repository-first authority, repository-enabled plan persistence, and the gated build loop.
+description: Repository-first authority, explicitly selected plan persistence, and the gated build loop.
 ---
 
 import { ContextEconomy } from '@/components/concepts/context-economy';
 
 woostack is a multiperson development workflow with repository-first evidence and optional Linear
-capability. The user's approved workflow contract defines scope and approval. Git and GitHub own
-source, branches, commits, pull requests, reviews, and merge evidence. When repository Linear
-availability is proved, build/fix plans are persisted as projects with a parent plan issue and one
+artifacts. The user's approved workflow contract defines scope and approval. Git and GitHub own
+source, branches, commits, pull requests, reviews, and merge evidence. An exact caller-supplied
+artifact or explicit persistence request selects Linear; otherwise policy makes no provider call.
+Selected fix/build/standalone-plan persistence uses one project with a parent plan issue and one
 native child issue per increment. Those artifacts never authorize repository work.
 
 ## The build loop
@@ -16,16 +17,16 @@ native child issue per increment. Those artifacts never authorize repository wor
 [woostack-build](/docs/skills/woostack-build) handles work expected to require multiple
 independently shippable increments. It chains a fixed sequence:
 
-> ideate → **approve design** → harden specification → **approve spec** → build a dependency-aware
-> increment plan → persist the available Linear project hierarchy → **execution handoff** → execute
-> and review one increment at a time
+> ideate → **approve design** → harden specification → **approve spec** → delegate candidate
+> planning without provider mutation → harden the increment graph → persist one selected hierarchy
+> once → **execution handoff** → execute and review one increment at a time
 
-Ordered increments remain independently shippable and map to reviewable PRs. Without configured,
-authenticated Linear capability, the specification and plan remain in the active workflow.
+Ordered increments remain independently shippable and map to reviewable PRs. Without an exact
+artifact or explicit persistence request, the workflow makes no Linear call.
 
 Bounded one-PR work takes a smaller route. [woostack-fix](/docs/skills/woostack-fix) proves a root
-cause, approves one fix contract, and persists its one-increment plan project when Linear is
-available. [woostack-change](/docs/skills/woostack-change) executes one explicit bounded
+cause, approves one fix contract, and optionally persists its explicitly selected one-increment
+plan project. [woostack-change](/docs/skills/woostack-change) executes one explicit bounded
 enhancement/refactor without contacting Linear.
 
 An explicit fix/build abandonment stops repository work and moves any existing plan project to the
@@ -82,10 +83,10 @@ rather than every input. Review prefetch gathers the relevant diff, metadata, an
 once for independent analysis. Status and development workflows retain only the verified MCP
 identities and receipts required for the current decision.
 
-Repository-enabled artifact access uses the host's authenticated official Linear MCP connection.
-Skills prove capability without reading credentials and independently read mutations back. An
-unavailable preflight keeps automatic fix/build planning artifact-free; a failure after availability
-was proved blocks that plan before execution.
+Selected artifact access uses the host's authenticated official Linear MCP connection. Skills
+verify the canonical repository association and resolved caller-selected workspace/team, prove
+capability without reading credentials, and independently read mutations back. Tracked policy
+provides defaults only after selection and cannot authorize a provider read or write.
 
 ### Decision-makers and coders stay isolated
 

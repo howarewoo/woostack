@@ -1,11 +1,11 @@
 ---
 title: Workflow maps
-description: Bootstrap, Build, Fix, and Change under one repository-first authority model with conditional Linear plans.
+description: Bootstrap, Build, Fix, and Change under one repository-first authority model with explicitly selected Linear plans.
 ---
 
 Every repository-changing woostack workflow starts from an explicit user goal and an active workflow
-contract. Git and GitHub own implementation truth. Linear records fix/build plans only when
-repository policy and authenticated official MCP capability prove it is available.
+contract. Git and GitHub own implementation truth. Linear records plans only when the caller
+supplies an exact artifact or explicitly requests persistence; policy alone makes no provider call.
 
 ## Route by work shape
 
@@ -39,25 +39,26 @@ write barrier or repository authority.
 
 ```text
 ideate → approve design → harden specification → approve specification →
-plan → harden increments → persist available Linear plan →
-approve execution → execute → review → hand back
+delegate candidate planning without provider mutation → harden increments →
+persist one selected Linear hierarchy once → approve execution → execute → review → hand back
 ```
 
 Build owns exactly three gates. Its approved plan orders independently shippable increments, each
 with at most one PR. Dependency-independent disjoint increments may execute concurrently in
-separate worktrees. When Linear is available, one project contains a parent plan issue with one
-native child issue per increment.
+separate worktrees. Selected persistence uses one project, one parent plan issue, and one native
+child issue per increment.
 
 ## Fix
 
 ```text
 classify → reproduce → prove root cause → harden fix contract →
-approve → persist available Linear plan → execute → review → hand back
+approve → optionally persist one selected Linear hierarchy → execute → review → hand back
 ```
 
 Fix has one explicit approve-to-execute gate. It never substitutes a symptom patch for root-cause
-proof. When Linear is available, one project stores the diagnosis, parent fix plan issue, and its
-single increment child. No Linear capability is needed to diagnose or deliver the fix.
+proof. An exact `--project` persists the approved diagnosis, parent fix plan issue, and single
+increment child even without repository policy. Without exact selection or an explicit persistence
+request, fix makes no Linear call.
 
 ## Change
 
@@ -86,19 +87,20 @@ points. It does not weaken scope, verification, review, collision, or merge boun
 ## Linear plan branch
 
 ```text
-fix/build/plan sees validated repository linear policy
+caller supplies exact resource or explicitly requests persistence
+  → verify canonical repository association and resolved caller-selected workspace/team
+  → use tracked policy only for validated post-selection defaults
   → preflight official authenticated MCP capability without reading credentials
-  → unavailable or incomplete: remain artifact-free
-  → available: create/reconcile one project and parent plan issue
+  → create/reconcile one selected project and parent plan issue
   → create/reconcile one native child issue per increment
   → persist native dependency relations
   → independently read every write and hierarchy edge back
   → execution handoff
 ```
 
-Exact caller-supplied resources and explicit persistence requests still bypass automatic creation.
-`woostack-change` has no Linear branch. A failure after automatic availability was proved blocks the
-plan deliverable at the last verified artifact boundary.
+Exact caller-supplied resources take precedence over creation. `woostack-change` has no Linear
+branch. Missing capability or incomplete read-back blocks the selected artifact operation at the
+retained stable boundary.
 
 If a fix or build is explicitly abandoned at execution handoff or at any other time, repository work
 stops and any existing plan project moves to the configured canceled status. The workflow reads that

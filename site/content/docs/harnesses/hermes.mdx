@@ -44,6 +44,13 @@ worktrees and role-specific environments supply the actual boundary.
 Do not dispatch on profile-name or config claims alone. Verify the active executables, profile,
 repository, worktree, branch/ancestry, credential surfaces, and required capabilities.
 
+### Safe setup and bound-unit manifest
+
+Follow the canonical
+[Hermes host binding contract](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/hermes.md#bound-unit-manifest-and-binding).
+It owns the fixed setup order, exact manifest schema, file modes, static binder, and pre-dispatch
+verification. This page does not redefine that installed-skill contract.
+
 ### Dispatch and review
 
 Use Hermes' argument-safe PTY process interface with the exact OMP CLI argv documented on the
@@ -57,12 +64,36 @@ Use Hermes' argument-safe PTY process interface with the exact OMP CLI argv docu
 5. An in-contract correction returns to the same coder/worktree. Contract changes go to the user or
    owning decision-maker.
 
+Use this parameterized decision-maker handoff:
+
+```text
+You are the decision-making engineer for ENGINEER_NAME.
+Hermes profile: HERMES_PROFILE. Isolated coder: OMP_PROFILE.
+Repository: REPOSITORY_PATH. Approved bounded contract: TASK_CONTRACT.
+1. Re-read the approved contract, allowed paths, non-goals, and acceptance criteria.
+2. Verify ENGINEER_NAME and the exact distinct Hermes and OMP profiles.
+3. Verify the canonical repository, base, branch, and current head from Git/GitHub.
+4. Create or resolve one collision-safe canonical task worktree.
+5. Stage mode-0600 unit.json with the documented exact bound-unit schema.
+6. Run bind-engineer-unit and verify adjacent mode-0400 unit-authority.json.
+7. Dispatch OMP for implementation and verification only; do not grant commit, push, PR, review, acceptance, or merge authority.
+8. Require the complete uncommitted diff plus exact commands and observed results.
+9. Read the complete diff and perform task-specification review.
+10. Perform an independent quality review on that same diff.
+11. Read the canonical verification evidence and stop on missing or conflicting results.
+12. Do not ask OMP to review its own work; Hermes owns the review and verdict.
+13. After both reviews pass, freshly re-read authority and Git state, then redispatch the same OMP profile for exactly one bounded /woostack-commit action.
+14. Independently read the submitted PR, head, base, and complete diff from GitHub.
+15. Post your own GitHub review comments or verdict; advisory reviewers never replace Hermes acceptance authority.
+16. Accept, redispatch an in-contract correction, hand off a contract decision, or report the exact blocker. Never merge.
+```
+
 No paired step merges.
 
 ## Linear artifacts
 
-For exact caller-selected artifacts, explicit persistence, or fix/build plans with available
-repository Linear capability, each profile may connect independently to the official Linear MCP at:
+Only exact caller-selected artifacts or explicit persistence requests select Linear. When selected,
+each profile may connect independently to the official Linear MCP at:
 
 ```text
 https://mcp.linear.app/mcp
@@ -73,8 +104,8 @@ place credentials in repository config, prompts, logs, staged files, or generate
 [Linear artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md).
 
 Artifact access may synchronize specifications, plans, fixes, or review notes. It never supplies
-assignment, dispatch, commit, review, or acceptance authority. `woostack-change` never contacts
-Linear.
+assignment, dispatch, commit, review, or acceptance authority. Without an exact artifact or explicit
+persistence request, make no Linear call. `woostack-change` never contacts Linear.
 
 ## Recovery
 

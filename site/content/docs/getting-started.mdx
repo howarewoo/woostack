@@ -1,12 +1,12 @@
 ---
 title: Getting started
-description: Install woostack, initialize local repository support, and configure optional Linear plan persistence.
+description: Install woostack, initialize local support, and configure optional post-selection Linear defaults or an engineer pair.
 ---
 
 <Callout type="info">
   The user's approved workflow contract defines scope. Git and GitHub own code, branches, pull
-  requests, reviews, and merges. Available Linear capability records fix/build plans as project
-  hierarchies but never authorizes repository work.
+  requests, reviews, and merges. Linear records plans only for an exact caller-selected artifact or
+  explicit persistence request and never authorizes repository work.
 </Callout>
 
 ## 1. Install the skills
@@ -50,10 +50,9 @@ provider connection.
 The selected workflow's contract and approval gates authorize work. An issue or project is never a
 prerequisite merely to run a command.
 
-## 4. Optional: enable Linear plan persistence
+## 4. Optional: configure Linear plan defaults
 
-Enable Linear when the repository should durably store feature specifications and fix/build plans.
-Invoke:
+Configure Linear defaults only when later caller-selected artifact operations need them. Invoke:
 
 ```text
 /woostack-init --linear
@@ -68,10 +67,12 @@ https://mcp.linear.app/mcp
 Authentication stays in the host's MCP/OAuth secret store. Never place API keys, credentials,
 tokens, or authorization headers in repository config, prompts, logs, or generated files.
 
-The validated repository `linear` configuration triggers fix/build/plan capability preflight. When
-the official MCP proves all required write/read-back operations, each plan is persisted as one
-project, one parent plan issue, and one native child issue per increment. Missing capability leaves
-automatic planning artifact-free. `woostack-change` never contacts Linear.
+The `linear` configuration supplies validated repository/workspace/team defaults only after the
+caller supplies an exact resource or explicitly requests persistence. It cannot trigger provider
+access or authorize a write. Before selected persistence, the workflow verifies the canonical
+repository association and resolved caller-selected workspace/team, then stores one project, one
+parent plan issue, and one native child issue per increment with independent read-back.
+`woostack-change` never contacts Linear.
 
 ## 5. Optional: configure a Hermes + OMP engineer pair
 
@@ -91,6 +92,10 @@ official MCP independently in each profile and keep their secret stores and sess
 
 Follow the exact setup and dispatch boundaries on the [Hermes](/docs/harnesses/hermes) and
 [OMP](/docs/harnesses/omp) pages.
+
+The canonical [Hermes bound-unit setup](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/hermes.md#bound-unit-manifest-and-binding)
+owns the setup sequence and manifest contract. Follow it once rather than copying the schema here;
+the [OMP page](/docs/harnesses/omp) owns coder dispatch details.
 
 ## 6. Optional: production-error response policy
 

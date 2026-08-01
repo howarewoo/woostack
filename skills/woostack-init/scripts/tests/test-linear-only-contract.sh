@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Structural contract: Linear stores plans when available; it never grants repository authority.
+# Structural contract: caller-selected Linear may store plans; it never grants repository authority.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -33,14 +33,19 @@ contract = re.sub(r"\s+", " ", contract_path.read_text(encoding="utf-8"))
 for pattern, message in (
     (r"Linear projects and issues are optional durable artifacts", "optional provider role missing"),
     (r"not development authority", "artifact authority boundary missing"),
+    (r"Artifact mode is selected only when", "explicit selection rule missing"),
+    (r"Without one of those inputs, make no provider read or write", "artifact-free default missing"),
+    (r"policy cannot select artifact mode, authorize a provider operation", "policy authority boundary missing"),
+    (r"exact caller-supplied resource always takes precedence over creation", "exact-resource precedence missing"),
+    (r"canonical repository association.*caller-selected workspace/team", "repository/workspace write verification missing"),
     (r"host's authenticated official Linear MCP", "official transport boundary missing"),
     (r"stable client-generated operation ID", "idempotent mutation rule missing"),
     (r"perform a new independent complete read", "read-back rule missing"),
-    (r"blocks only requested artifact use", "artifact-independent degradation missing"),
+    (r"blocks only the selected artifact operation", "artifact-independent degradation missing"),
     (r"projectStatuses\.canceled.*native canceled-category project status", "canceled-status preflight missing"),
     (r"Explicit abandonment is a terminal workflow action, distinct from handoff, replan, or a blocker", "abandonment distinction missing"),
     (r"Do not archive or delete the project, bulk-change issue states, or create a project merely to cancel it", "safe project closure missing"),
-    (r"failed or unknown closure produces a truthful artifact blocker", "closure failure boundary missing"),
+    (r"Closure failure or an unknown outcome produces a truthful artifact blocker", "closure failure boundary missing"),
 ):
     if not re.search(pattern, contract, re.I):
         failures.append(f"artifact-backends.md: {message}")
@@ -51,8 +56,10 @@ if "linear" in config and config["linear"] != {}:
 
 for name in ("woostack-build", "woostack-fix", "woostack-plan"):
     text = re.sub(r"\s+", " ", (root / "skills" / name / "SKILL.md").read_text(encoding="utf-8"))
-    if not re.search(r"availability.*proved|capability.*preflight", text, re.I):
-        failures.append(f"{name}: does not declare repository-enabled persistence")
+    if not re.search(r"Without .*make no Linear (?:read or write|call)|Otherwise make no Linear read or write", text, re.I):
+        failures.append(f"{name}: does not require explicit artifact selection")
+    if not re.search(r"policy.*(?:cannot|never).*authorize.*provider (?:read or )?write|policy alone.*no provider", text, re.I):
+        failures.append(f"{name}: repository policy can still appear to authorize provider access")
 
 change = re.sub(r"\s+", " ", (root / "skills/woostack-change/SKILL.md").read_text(encoding="utf-8"))
 if not re.search(r"never reads or writes Linear", change, re.I):

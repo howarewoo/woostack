@@ -1,55 +1,17 @@
 {
-  "schemaVersion": 1,
-  "projectReference": "https://linear.app/acme/project/cache-refresh-7f46f8a1",
-  "repositoryPolicy": {
-    "repository": "https://github.com/acme/cache-service",
-    "workspace": "Acme",
-    "team": "APP"
-  },
-  "officialMcp": {
-    "endpoint": "https://mcp.linear.app/mcp",
-    "authenticated": true,
-    "paginationComplete": true,
-    "capabilities": [
-      "project.read",
-      "project-update.create",
-      "project-update.read",
-      "project-issues.read",
-      "issue.create",
-      "issue.read",
-      "issue.update",
-      "relation.create",
-      "relation.read",
-      "owner.read",
-      "state.read"
-    ]
-  },
-  "snapshots": {
-    "projectA": {
-      "nativeId": "project-cache-7",
-      "workspace": "Acme",
-      "team": "APP",
-      "envelope": {
-        "clientId": "20000000-0000-4000-8000-000000000001",
-        "kind": "resource",
-        "label": "woostack",
-        "repository": "https://github.com/acme/cache-service",
-        "role": "work-item",
-        "schema": 1
-      }
+  "canonicalRepository": "https://github.com/acme/app",
+  "suppliedResources": [
+    {
+      "kind": "issue",
+      "id": "issue-wrong-type",
+      "role": "work-item",
+      "repository": "https://github.com/acme/app"
     },
-    "projectB": {
-      "nativeId": "project-cache-7",
-      "workspace": "Acme",
-      "team": "APP",
-      "envelope": {
-        "clientId": "20000000-0000-4000-8000-000000000002",
-        "kind": "resource",
-        "label": "woostack",
-        "repository": "https://github.com/other/cache-service",
-        "role": "feature",
-        "schema": 1
-      }
+    {
+      "kind": "project",
+      "id": "project-foreign",
+      "role": "Feature",
+      "repository": "https://github.com/other/app"
     }
-  }
+  ]
 }

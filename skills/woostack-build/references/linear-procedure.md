@@ -1,8 +1,9 @@
 # Linear plan synchronization procedure
 
-This procedure writes an approved fix/build plan into one exact Linear project. It runs when the
-caller selects persistence or repository Linear availability is proved. It owns no workflow gate,
-phase, assignment, execution, acceptance, or repository authority.
+This procedure writes an approved fix/build/standalone plan into one exact Linear project. It runs
+only after the caller supplies an exact resource or explicitly requests persistence. Repository
+policy alone never selects this procedure. It owns no workflow gate, phase, assignment, execution,
+acceptance, or repository authority.
 
 Use the [optional artifact contract](../../woostack-init/references/artifact-backends.md) and
 [project context procedure](linear-context.md) for every read and write.
@@ -10,14 +11,14 @@ Use the [optional artifact contract](../../woostack-init/references/artifact-bac
 ## Selection or creation
 
 For an existing artifact, resolve only the exact caller-supplied project URL/stable UUID. For
-automatic or explicitly requested creation, allocate one stable project mutation UUID before the
-first write and retain it through recovery. Never discover or reuse a project by title or recent
-activity.
+explicitly requested creation, allocate one stable project mutation UUID before the first write and
+retain it through recovery. Never discover or reuse a project by title or recent activity.
 
-Before creation, read by that stable identity and prove the resource is absent. After creation,
-independently read the exact project back and verify its identity, canonical repository link, and
-requested initial content. An unknown outcome is recovered by re-reading the same identity; never
-retry with a replacement UUID.
+Before creation, verify the canonical repository and caller-selected workspace/team, read by the
+stable identity, and prove the resource is absent. After creation, independently read the exact
+project back and verify its identity, canonical repository association, resolved workspace/team,
+and requested initial content. An unknown outcome is recovered by re-reading the same identity;
+never retry with a replacement UUID.
 
 ## Specification synchronization
 
@@ -36,7 +37,9 @@ Independently read every append or update back.
 
 ## Plan hierarchy synchronization
 
-After `woostack-plan` or `woostack-fix` returns a complete dependency-aware graph, persist:
+After `woostack-fix` returns its approved contract, standalone `woostack-plan` finishes its graph,
+or `woostack-build` hardens the candidate graph returned by delegated planning, persist exactly
+once:
 
 1. one parent plan issue in the project containing the complete ordered plan, base assumptions,
    cross-increment verification strategy, and open blockers;
@@ -59,32 +62,18 @@ Reconcile idempotently:
    read-back; and
 6. preserve the same identities when an outcome is unknown.
 
+Never remove, detach, or reset an increment child that carries verified implementation evidence.
+Preserve its stable identity and current hierarchy membership; conflicting replans stop before
+provider mutation.
+
 Issue state, assignee, delegate, label, parent, project, and relation fields describe the artifact.
 They never select a worker, grant permission, clear the execution handoff, or prove implementation.
 
-
 ## Explicit abandonment
 
-The shared [fix/build project-closure invariant](../../woostack-init/references/artifact-backends.md#fixbuild-project-closure)
-applies at every phase. On explicit abandonment:
-
-1. stop repository work and all artifact work except closure recovery;
-2. use the retained exact project identity to determine whether a persisted project already exists;
-   if none exists, report that there is nothing to close and do not create one;
-3. validate `.woostack/config.json`, resolve `projectStatuses.canceled` to exactly one native
-   canceled-category project status, and prove exact project update, stable mutation identity, and
-   independent read-back capability;
-4. immediately before mutation, re-read the exact project's native identity, current status, and
-   revision, then allocate or retain one stable closure mutation identity;
-5. update only that project's native status to the resolved canceled status; and
-6. independently re-read the exact project and verify its identity, canceled status name/ID and
-   category, revision, and stable mutation identity.
-
-Do not archive or delete the project and do not bulk-change issue states.
-Handoff, replan, and blocker handling are not abandonment; they leave project status unchanged. A
-failed read, failed update, incomplete read-back, or unknown outcome becomes a truthful artifact
-blocker. Retain the same project and mutation identities, re-read before retrying from the first
-unproved closure boundary, and never resume repository work.
+Follow the neutral canonical artifact contract's
+[fix/build project-closure procedure](../../woostack-init/references/artifact-backends.md#fixbuild-project-closure).
+This build-owned synchronization procedure does not redefine closure steps.
 
 ## Delivery notes
 
@@ -99,6 +88,6 @@ A missing capability, failed read, unknown mutation, incomplete pagination, conf
 or foreign resource stops at the last verified artifact boundary. Report exact retained IDs and the
 next safe artifact action. Do not create a replacement or replay an already verified write.
 
-An unavailable automatic preflight keeps the repository workflow artifact-free. A failure after
-repository Linear availability was proved blocks the plan deliverable and execution handoff at the
-last verified artifact boundary. Explicitly requested persistence fails at the same boundary.
+Missing capability blocks the selected artifact operation. A failure after persistence was selected
+blocks the plan deliverable and execution handoff at the last verified artifact boundary. Repository
+policy never selects persistence or authorizes a fallback provider write.

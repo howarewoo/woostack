@@ -1,0 +1,14 @@
+{
+  "pullRequests": [
+    {
+      "url": "https://github.com/acme/app/pull/42",
+      "head": "cccccccc",
+      "base": "main",
+      "readBackVerified": true
+    }
+  ],
+  "review": {
+    "head": "cccccccc",
+    "result": "pass"
+  }
+}

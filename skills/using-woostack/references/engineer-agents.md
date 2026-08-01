@@ -15,9 +15,10 @@ retained session, authenticated actor, or artifact field authorizes work.
 **Workflow-selected artifact context.** Linear projects/issues may persist specifications, plans,
 fixes, or notes under the
 [Linear artifact contract](../../woostack-init/references/artifact-backends.md). Artifact-free
-engineer units make no Linear call. A fix/build plan may select automatic persistence after
-repository capability preflight; exact caller-supplied artifacts and explicit requests remain
-supported. All Linear-specific identity, principal, lifecycle, event, relation, trailer, and
+engineer units make no Linear call. One exact caller-supplied resource or an explicit persistence
+request selects artifact mode. Tracked repository policy may supply validated defaults only after
+selection; it cannot select provider access or authorize a read or write. All Linear-specific
+identity, principal, lifecycle, event, relation, trailer, and
 receipt requirements below apply only to that synchronization path. Artifact state never grants
 assignment, implementation, review, acceptance, or source-control authority.
 
@@ -37,6 +38,10 @@ The envelope grants no side effect by itself. Every consequential action still r
 workflow gate, current task contract, fresh worktree/repository evidence, and the role authorization
 below. A host reference may map abstract roles to concrete profiles and separate secret stores, but
 cannot merge roles or omit a gate.
+
+The concrete Hermes + OMP manifest and static binding procedure live in the
+[Hermes host reference](hosts/hermes.md#bound-unit-manifest-and-binding). Other host adapters must
+define an equally explicit binding without copying or weakening that contract.
 
 ## One isolated engineer unit
 

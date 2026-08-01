@@ -1,12 +1,12 @@
 ---
 title: Overview
-description: "woostack's gated workflows, conditional Linear plan persistence, authority boundaries, and context management."
+description: "woostack's gated workflows, explicitly selected Linear plan persistence, authority boundaries, and context management."
 ---
 
 woostack coordinates multiperson development through explicit workflow contracts, isolated
-implementation, and independent review. Git and GitHub own code and pull-request truth. When
-repository Linear availability is proved, fix/build plans use one project, one parent plan issue,
-and one native child issue per increment.
+implementation, and independent review. Git and GitHub own code and pull-request truth. Selected
+fix/build/standalone-plan persistence uses one project, one parent plan issue, and one native child
+issue per increment; policy alone makes no provider call.
 
 Bounded fixes use one approved task contract. Multi-increment work uses an approved specification
 and ordered set of independently shippable increments. Bounded changes remain Linear-free.
@@ -16,7 +16,7 @@ diagnostic reports remain non-authoritative evidence.
 
 <Cards>
   <Card title="Building rules" href="/docs/concepts/building-rules" description="The three-gate project loop, standalone path, and repository authority boundary." />
-  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Bootstrap, Build, Fix, and Change with conditional Linear plan persistence." />
+  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Bootstrap, Build, Fix, and Change with explicitly selected Linear plan persistence." />
   <Card title="Engineer agents" href="/docs/concepts/engineer-agents" description="Separate decision authority from one-task-at-a-time isolated implementation." />
   <Card title="Least code, still safe" href="/docs/concepts/least-code" description="Write as little code as necessary without cutting edge cases or risks." />
   <Card title="Context management" href="/docs/concepts/context-management" description="Keep reasoning focused with compact reads, isolated sessions, and explicit handoffs." />

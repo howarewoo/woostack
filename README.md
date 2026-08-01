@@ -4,16 +4,16 @@
 
 `woostack` packages opinionated workflows into twenty-two public installable skills that work
 across coding harnesses. The user's approved contract authorizes work. Git and GitHub own source,
-branches, pull requests, reviews, and merge evidence. When repository Linear capability is
-available, fix/build plans are stored as structured project hierarchies.
+branches, pull requests, reviews, and merge evidence. Linear is contacted only for an exact
+caller-supplied artifact or an explicit persistence request.
 
 - **Multiperson by design:** Explicit task boundaries, dependency relations, handoffs, and verified
   source-control evidence let human and agent engineers coordinate without hidden local state.
 - **Decision-maker/coder separation:** A decision-maker owns scope, review, and acceptance; an
   isolated coding profile implements one bounded task at a time.
-- **Conditional durable plans:** Available Linear capability stores one project, one parent plan
-  issue, and one native child issue per increment. These artifacts never grant permission to edit,
-  commit, or accept work.
+- **Explicit durable plans:** Selected fix/build/standalone-plan persistence stores one project,
+  one parent plan issue, and one native child issue per increment. These artifacts never grant
+  permission to edit, commit, or accept work.
 - **Agent and model agnostic:** The skills work across supported harnesses without making a
   provider prerequisite for repository work.
 
@@ -37,7 +37,7 @@ available, fix/build plans are stored as structured project hierarchies.
 ## Getting Started
 
 Follow this sequence to install the skills, initialize local repository support, and optionally
-enable Linear plan persistence.
+configure post-selection Linear defaults.
 
 ### 1. Installation
 
@@ -72,8 +72,9 @@ Run initialization in the project root:
 ```
 
 Initialization creates non-secret repository policy, diagnostics, and worktree support. Use
-`/woostack-init --linear` when this repository should persist fix/build plans whenever authenticated
-official MCP capability is available. Authentication remains in the host's secret store.
+`/woostack-init --linear` only to configure validated repository/workspace/team defaults for later
+caller-selected artifact operations. Policy never selects artifact mode or authorizes a provider
+write. Authentication remains in the host's secret store.
 
 If the repository still contains tracked legacy specifications, plans, fixes, or overnight
 handbacks, run `/woostack-init --migrate-legacy` only when you explicitly want the guarded
@@ -93,8 +94,9 @@ The [using-woostack](skills/using-woostack/SKILL.md) skill reads project rules a
 ### 4. Repository Policy
 
 Customize non-secret repository policy in `.woostack/config.json`, including review behavior,
-status staleness, pre-commit hooks, and optional Linear workspace/team hints. Provider
-authentication stays in the host's OAuth or secret store.
+status staleness, pre-commit hooks, and optional Linear workspace/team defaults. Those defaults
+apply only after the caller supplies an exact resource or explicitly requests persistence; they
+cannot select artifact mode. Provider authentication stays in the host's OAuth or secret store.
 
 Review-policy fragment:
 ```json
@@ -114,10 +116,12 @@ For the full policy surface, see the authored
 
 ### 5. Linear Plan Persistence and Engineer Units
 
-A validated repository `linear` configuration triggers official Linear MCP capability preflight for
-fix/build/plan. When capability is proved, the workflow creates or reconciles one project, one
-parent plan issue, and one native child issue per increment, then independently reads every write
-and hierarchy edge back. Skills never read or expose the API key/OAuth credential.
+Linear artifact mode starts only when the caller supplies one exact resource or explicitly requests
+persistence. Then the workflow verifies the canonical repository association and resolved
+caller-selected workspace/team, preflights the official Linear MCP, creates or reconciles one
+project, one parent plan issue, and one native child issue per increment, and independently reads
+every write and hierarchy edge back. Exact resources take precedence over creation. Skills never
+read or expose the API key/OAuth credential.
 
 If a fix or build is explicitly abandoned at the execution handoff or at any other point after a
 project exists, the workflow sets that project to the configured `projectStatuses.canceled` status
@@ -144,7 +148,7 @@ approved bounded task.
 
 ## The Core Development & Review Loop
 
-`woostack` applies gated, repository-first workflows with conditional Linear plan persistence.
+`woostack` applies gated, repository-first workflows with explicitly selected Linear plan persistence.
 
 ### Writing and Modifying Code
 
@@ -153,16 +157,16 @@ No repository mutation starts ad hoc. An explicit goal and workflow approval con
 1. **Greenfield Applications** → [/woostack-bootstrap](skills/woostack-bootstrap/SKILL.md)
    Obtains design approval, collision-checks the target, and scaffolds the selected architecture.
 2. **Multi-PR Features or Work Items** → [/woostack-build](skills/woostack-build/SKILL.md)
-   Approves a specification and dependency-aware plan, persists its project hierarchy when Linear
-   is available, then executes reviewable PRs.
+   Approves and hardens a dependency-aware plan, optionally persists one explicitly selected
+   project hierarchy, then executes reviewable PRs.
 3. **Bug Fixes & Root-Cause Work** → [/woostack-fix](skills/woostack-fix/SKILL.md)
-   Proves the root cause, approves a bounded fix plan, persists it when Linear is available, and
-   delivers one reviewed PR.
+   Proves the root cause, approves a bounded fix plan, optionally persists one explicitly selected
+   hierarchy, and delivers one reviewed PR.
 4. **Bounded Non-Bug Changes** → [/woostack-change](skills/woostack-change/SKILL.md)
    Ships a bounded enhancement or refactor through one PR without contacting Linear.
 
-Missing Linear capability keeps fix/build planning artifact-free. `woostack-change` never reads or
-writes Linear.
+Without an exact artifact or explicit persistence request, fix/build/plan make no Linear call.
+`woostack-change` never reads or writes Linear.
 
 ### Review and Iterate Flow
 

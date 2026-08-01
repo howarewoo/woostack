@@ -43,8 +43,8 @@ assert_literal "$SKILL" \
   '[Linear synchronization procedure](references/linear-procedure.md)' \
   'root links the provider synchronization procedure'
 assert_literal "$SKILL" \
-  'A complete preflight makes plan persistence' \
-  'root declares repository-enabled plan persistence'
+  'An exact caller-supplied project or explicit persistence request selects artifact mode' \
+  'root requires exact or explicit selection for plan persistence'
 
 root_lines="$(wc -l < "$SKILL" | tr -d ' ')"
 if [ "$root_lines" -le 500 ]; then pass; else
@@ -73,16 +73,16 @@ assert_literal "$PROCEDURE" \
   'It owns no workflow gate,' \
   'synchronization procedure cannot grant workflow authority'
 assert_literal "$CONTEXT" \
-  'Missing, multiple, partial, foreign, stale, or conflicting results block this artifact path' \
+  'Missing, multiple, partial, foreign, stale, or conflicting results block the selected artifact' \
   'artifact context failures stay scoped'
 assert_literal "$CONTEXT" \
   'A mutation response alone is not proof' \
   'artifact context preserves independent read-back'
 assert_literal "$AUTHORITY" \
-  'Artifact-free operation remains' \
+  'default until the caller selects artifact mode' \
   'shared contract preserves artifact-free operation'
 assert_literal "$AUTHORITY" \
-  'one project, one parent plan issue, and one' \
+  'uses one project, one parent plan issue, and' \
   'shared contract declares the required plan hierarchy'
 assert_literal "$AUTHORITY" \
   'Report repository delivery and artifact synchronization as separate outcomes' \

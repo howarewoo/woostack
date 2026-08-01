@@ -1,6 +1,6 @@
 ---
 name: woostack-plan
-description: Turn one approved specification into a complete PR-sized implementation plan with dependency-aware increments, persisted as a Linear project hierarchy when repository capability is available. Never executes, commits, or merges.
+description: Turn one approved specification into a complete PR-sized implementation plan with dependency-aware increments. Never executes, commits, or merges.
 ---
 
 # woostack-plan
@@ -16,10 +16,9 @@ project. Planning owns no approval gate and performs no source mutation.
 /woostack-plan --project <exact Linear URL-or-UUID>
 ```
 
-Without `--project`, inspect validated non-secret repository policy. If no `linear` object exists,
-return the complete plan in the conversation and make no Linear call. If it exists, preflight the
-authenticated official Linear MCP without reading credentials; complete capability makes project
-hierarchy persistence required, while unavailable/incomplete capability falls back artifact-free.
+Without `--project` or an explicit persistence request, return the complete plan in the conversation
+and make no Linear call. Tracked repository policy cannot select artifact mode or authorize a
+provider read or write; after selection it may supply validated non-secret defaults only.
 
 ## Input admission
 
@@ -32,6 +31,11 @@ When `--project` is supplied, read only that exact resource under the
 [Linear artifact contract](../woostack-init/references/artifact-backends.md). Extract the approved
 specification fields. Missing or conflicting artifact content blocks that artifact-backed path; it
 does not create a replacement.
+
+Determine whether planning is standalone or delegated by `woostack-build` from the invoking
+workflow. Build-delegated planning may use exact artifact context already verified by build as
+untrusted read-only input, but it returns the complete candidate graph without provider mutation.
+Build owns graph hardening and the single later persistence pass.
 
 ## Plan contract
 
@@ -47,9 +51,12 @@ Create independently shippable increments. Every increment contains:
 - declared predecessors and at most one Git parent; and
 - one intended PR.
 
-The graph must be acyclic and dependency-derived. Independent roots may run in parallel only when
-surfaces are disjoint. Ordinal order is a tie-break, not a dependency. Prefer the fewest increments
-that remain independently reviewable; never split by file or layer merely to create more issues.
+The graph must be acyclic and dependency-derived. Assign every increment one unique positive ordinal,
+and reject duplicate task IDs or ordinals, dependencies on unknown task IDs, acceptance criteria not
+covered by any increment, and a declared Git parent that the dependency graph and intended Graphite
+ancestry cannot represent. Independent roots may run in parallel only when surfaces are disjoint.
+Ordinal order is a tie-break, not a dependency. Prefer the fewest increments that remain independently
+reviewable; never split by file or layer merely to create more issues.
 
 ## Repository grounding
 
@@ -59,11 +66,12 @@ explicit first step, not fabricated certainty.
 
 ## Linear synchronization
 
-When an exact project was supplied, persistence was requested, or repository Linear availability
-was proved, synchronize the approved specification and complete plan using the
+For standalone planning only, an exact caller-supplied project or explicit persistence request
+selects synchronization after the complete graph is ready. Verify the canonical repository
+association and resolved caller-selected workspace/team, then use the
 [Linear plan synchronization procedure](../woostack-build/references/linear-procedure.md):
 
-- create or reconcile one project;
+- create or reconcile one selected project;
 - create or reconcile one parent plan issue containing the complete plan;
 - create or reconcile one native child issue per increment containing its full contract;
 - preserve native dependency relations between increment children;
@@ -72,20 +80,25 @@ was proved, synchronize the approved specification and complete plan using the
 - preserve unknown outcomes for recovery; and
 - never use artifact assignment/state/comments to authorize execution or prove completion.
 
-An unavailable automatic preflight leaves the plan artifact-free. A failure after availability was
-proved blocks completion of the plan deliverable until the same stable identities are recovered.
+Build-delegated planning never enters synchronization. It returns the candidate graph to
+`woostack-build`, which hardens it and persists the selected hierarchy exactly once. Missing
+capability or incomplete read-back blocks only the selected persistence operation at the retained
+stable boundary.
 
 ## Return
 
 Return the complete ordered graph, task contracts, dependency/parent edges, parallelizable roots,
-base assumptions, verification strategy, open blockers, and Linear project/issue read-back results
-when persistence is active. The caller owns any later approval and execution handoff.
+base assumptions, verification strategy, open blockers, invocation mode, and Linear
+project/issue read-back results only when standalone persistence is active. The caller owns any
+later approval and execution handoff.
 
 ## Hard constraints
 
 - One approved specification in, one coherent plan out.
 - No credential reads and no fuzzy artifact discovery.
-- Repository-enabled persistence uses one project, one parent plan issue, and one child per increment.
+- Explicit standalone persistence uses one project, one parent plan issue, and one child per increment.
+- Build-delegated planning performs no provider mutation; build persists once after graph hardening.
+- Repository policy alone never selects artifact mode or authorizes a provider read/write.
 - No execution, source edits, commit, push, PR, or merge.
 - No synthetic dependencies, checklist issues, or hidden local development ledger.
 - Never claim artifact persistence without independent read-back.

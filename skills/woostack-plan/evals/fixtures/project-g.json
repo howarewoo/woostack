@@ -1,160 +1,59 @@
 {
-  "schemaVersion": 1,
-  "repositoryPolicy": {
-    "repository": "https://github.com/acme/cache-service",
-    "workspace": "Acme",
-    "team": "APP"
-  },
-  "officialMcp": {
-    "endpoint": "https://mcp.linear.app/mcp",
-    "authenticated": true,
-    "paginationComplete": true,
-    "capabilities": [
-      "project.read",
-      "project-update.create",
-      "project-update.read",
-      "project-issues.read",
-      "issue.create",
-      "issue.read",
-      "issue.update",
-      "relation.create",
-      "relation.read",
-      "owner.read",
-      "state.read"
-    ]
-  },
-  "project": {
-    "nativeId": "project-cache-7",
-    "nativeCategory": "backlog",
-    "workspace": "Acme",
-    "team": "APP",
-    "envelope": {
-      "clientId": "60000000-0000-4000-8000-000000000001",
-      "kind": "resource",
-      "label": "woostack",
-      "repository": "https://github.com/acme/cache-service",
-      "role": "feature",
-      "schema": 1
+  "caller": {
+    "persistenceRequest": "persist",
+    "clientIds": {
+      "project": "70000000-0000-4000-8000-000000000010",
+      "parent": "70000000-0000-4000-8000-000000000020",
+      "child": "70000000-0000-4000-8000-000000000001"
     }
   },
-  "phaseUpdates": [
+  "providerEvents": [
     {
-      "nativeId": "update-design-1",
-      "envelope": {
-        "clientId": "60000000-0000-4000-8000-000000000008",
-        "event": "designApproved",
-        "kind": "projectEvent",
-        "label": "woostack",
-        "predecessorId": null,
-        "projectId": "project-cache-7",
-        "relatedIds": [],
-        "repository": "https://github.com/acme/cache-service",
-        "revision": 1,
-        "role": "feature",
-        "schema": 1,
-        "supersedesId": null
+      "operation": "create-project",
+      "clientId": "70000000-0000-4000-8000-000000000010",
+      "response": {
+        "id": "project-child-fail"
       }
     },
     {
-      "nativeId": "update-hardened-1",
-      "readableBody": {
-        "goal": "Refresh expired cache values.",
-        "acceptanceCriteria": [
-          "An expired key is refreshed before its value is returned."
-        ]
-      },
-      "envelope": {
-        "clientId": "60000000-0000-4000-8000-000000000009",
-        "event": "specHardened",
-        "kind": "projectEvent",
-        "label": "woostack",
-        "predecessorId": "update-design-1",
-        "projectId": "project-cache-7",
-        "relatedIds": [],
-        "repository": "https://github.com/acme/cache-service",
-        "revision": 1,
-        "role": "feature",
-        "schema": 1,
-        "supersedesId": null
+      "operation": "read-project",
+      "fresh": {
+        "clientId": "70000000-0000-4000-8000-000000000010",
+        "id": "project-child-fail"
       }
     },
     {
-      "nativeId": "update-approved-1",
-      "envelope": {
-        "clientId": "60000000-0000-4000-8000-000000000010",
-        "event": "specApproved",
-        "kind": "projectEvent",
-        "label": "woostack",
-        "predecessorId": "update-hardened-1",
-        "projectId": "project-cache-7",
-        "relatedIds": [
-          "update-hardened-1"
-        ],
-        "repository": "https://github.com/acme/cache-service",
-        "revision": 1,
-        "role": "feature",
-        "schema": 1,
-        "supersedesId": null
+      "operation": "create-parent",
+      "clientId": "70000000-0000-4000-8000-000000000020",
+      "response": {
+        "id": "issue-parent-ok",
+        "projectMembership": "project-child-fail"
       }
     },
     {
-      "nativeId": "update-planning-1",
-      "envelope": {
-        "clientId": "60000000-0000-4000-8000-000000000011",
-        "event": "planning",
-        "kind": "projectEvent",
-        "label": "woostack",
-        "predecessorId": "update-approved-1",
-        "projectId": "project-cache-7",
-        "relatedIds": [
-          "update-approved-1",
-          "update-hardened-1"
-        ],
-        "repository": "https://github.com/acme/cache-service",
-        "revision": 1,
-        "role": "feature",
-        "schema": 1,
-        "supersedesId": null
-      }
-    }
-  ],
-  "projectIssueRead": {
-    "nodes": [],
-    "pageInfo": {
-      "hasNextPage": false
-    }
-  },
-  "allocatedIncrementClientId": "60000000-0000-4000-8000-000000000021",
-  "syntheticResponses": [
-    {
-      "operation": "create-increment",
-      "clientId": "60000000-0000-4000-8000-000000000021",
-      "nativeId": "issue-cache-71"
-    },
-    {
-      "operation": "read-increment",
-      "record": {
-        "nativeId": "issue-cache-71",
-        "workspace": "Acme",
-        "team": "APP",
-        "semanticState": "planned",
-        "envelope": {
-          "clientId": "60000000-0000-4000-8000-000000000021",
-          "dependencyNativeIds": [],
-          "kind": "resource",
-          "label": "woostack",
-          "ordinal": 1,
-          "repository": "https://github.com/acme/cache-service",
-          "role": "increment",
-          "schema": 1
-        }
+      "operation": "read-parent",
+      "fresh": {
+        "clientId": "70000000-0000-4000-8000-000000000020",
+        "id": "issue-parent-ok",
+        "projectMembership": "project-child-fail"
       }
     },
     {
-      "operation": "create-relation",
-      "fromNativeId": "issue-cache-72",
-      "toNativeId": "issue-cache-71",
-      "relation": "depends-on"
+      "operation": "create-child",
+      "clientId": "70000000-0000-4000-8000-000000000001",
+      "response": {
+        "clientId": "70000000-0000-4000-8000-000000000001",
+        "id": "issue-child-g",
+        "parentLink": "issue-parent-ok"
+      }
+    },
+    {
+      "operation": "read-child",
+      "fresh": {
+        "clientId": "70000000-0000-4000-8000-000000000001",
+        "id": "issue-child-g",
+        "parentLink": null
+      }
     }
   ]
 }

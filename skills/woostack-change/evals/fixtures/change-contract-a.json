@@ -1,0 +1,12 @@
+{
+  "goal": "Rename one bounded settings label",
+  "classification": "non-bug-change",
+  "repository": "https://github.com/acme/app",
+  "base": {
+    "branch": "main",
+    "sha": "aaaaaaaa"
+  },
+  "existingTaskState": [],
+  "collisions": [],
+  "expectedWorktree": ".woostack/worktrees/tasks/settings-label"
+}

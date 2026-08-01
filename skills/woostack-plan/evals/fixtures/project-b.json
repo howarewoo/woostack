@@ -1,33 +1,38 @@
 {
-  "schemaVersion": 1,
-  "projectReference": "https://linear.app/acme/project/cache-refresh-7f46f8a1",
-  "repositoryPolicy": {
-    "repository": "https://github.com/acme/cache-service",
-    "workspace": "Acme",
-    "team": "APP"
+  "caller": {
+    "persistenceRequest": "persist"
   },
-  "snapshots": {
-    "connectionA": {
-      "connections": []
+  "preflights": {
+    "missingConnection": {
+      "connectionAvailable": false,
+      "requiredCapabilities": [
+        "project.read",
+        "project.write",
+        "issue.read",
+        "issue.write",
+        "relation.read",
+        "relation.write",
+        "independent-read-back"
+      ],
+      "officialCapabilities": []
     },
-    "connectionB": {
-      "connections": [
-        {
-          "endpoint": "https://mcp.linear.app/mcp",
-          "authenticated": true,
-          "paginationComplete": true,
-          "capabilities": [
-            "project.read",
-            "project-update.create",
-            "project-issues.read",
-            "issue.create",
-            "issue.read",
-            "issue.update",
-            "relation.create",
-            "owner.read",
-            "state.read"
-          ]
-        }
+    "partialCapability": {
+      "connectionAvailable": true,
+      "requiredCapabilities": [
+        "project.read",
+        "project.write",
+        "issue.read",
+        "issue.write",
+        "relation.read",
+        "relation.write",
+        "independent-read-back"
+      ],
+      "officialCapabilities": [
+        "project.read",
+        "project.write",
+        "issue.read",
+        "issue.write",
+        "relation.read"
       ]
     }
   }

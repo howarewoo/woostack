@@ -1,5 +1,6 @@
 {
-  "developmentAuthority": "official-linear-mcp",
+  "developmentAuthority": "approved-user-and-workflow-contract",
+  "linearRole": "artifact-evidence-only",
   "projectId": "project-native-1",
   "phase": "ready",
   "issues": [

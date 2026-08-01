@@ -1,0 +1,13 @@
+{
+  "goal": "Resume settings label change",
+  "stableTaskId": "settings-label",
+  "recoverableStates": [
+    {
+      "worktree": ".woostack/worktrees/tasks/settings-label",
+      "branch": "change/settings-label",
+      "head": "bbbbbbbb",
+      "clean": true
+    }
+  ],
+  "collisions": []
+}
