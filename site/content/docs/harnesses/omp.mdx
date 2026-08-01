@@ -3,25 +3,32 @@ title: omp (Oh My Pi)
 description: Host-owned worker routing and an optional isolated implementation profile.
 ---
 
-OMP has two distinct woostack uses. Native in-process OMP routes work through bundled workers. In
-the optional [Hermes engineer pairing](/docs/harnesses/hermes), a separate profile-pinned OMP
-process implements one approved bounded task. Selecting one mode never activates the other.
+OMP has two distinct woostack uses. Native in-process OMP routes work through project-scoped
+role workers provisioned by `woostack-init`. In the optional
+[Hermes engineer pairing](/docs/harnesses/hermes), a separate profile-pinned OMP process implements
+one approved bounded task. Selecting one mode never activates the other.
 
 ## Native OMP worker routing
 
 OMP's `task` primitive accepts a worker selector but no per-call model, tier, or effort argument.
-Woostack uses the host-owned role mapping from the active installation. OMP owns concrete models,
-provider credentials, thinking level, and retry/fallback behavior.
+Woostack provisions three neutral project workers whose model fields point to OMP-owned role
+aliases. OMP owns concrete models, provider credentials, thinking level, and retry/fallback
+behavior; repository model leaves are ignored.
 
+- Run `woostack-init` before review; gated `woostack-doctor` repair restores missing or drifted
+  managed definitions while preserving other project agents.
+- After review angle detection, OMP verifies the complete planned selector set in the active agent
+  registry before launching any summary, angle, or validator worker.
+- Review never generates or repairs agents and never launches a partial swarm.
 - Batch dependency-independent bounded tasks in one dispatch.
 - Pass the exact worktree and complete task contract.
-- Use the most specific worker role available.
 - Workers return observations/changes; the controller owns synthesis and acceptance.
 - If the spawn API cannot set cwd, pin it in the prompt and require the worker to verify it.
 
-See OMP's published [model roles](https://omp.sh/docs/roles),
-[bundled subagents](https://omp.sh/docs/subagents), and the canonical
-[host adapter](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md).
+See OMP's published [model roles](https://omp.sh/docs/roles), [custom
+subagents](https://omp.sh/docs/subagents), and the canonical
+[host adapter](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md)
+for the exact mapping and lifecycle.
 
 ## Isolated coder in the Hermes pairing
 

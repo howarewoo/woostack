@@ -27,7 +27,7 @@ to the current host's capability class. The context/summary helper subagent is i
 Three capability classes: **per-call model routing** (the spawn accepts an explicit model/effort;
 resolve the effective tier and pass everything it specifies), **single model per session**
 (resolve one run model up front; per-tier behavior collapses onto it), and **host-owned role
-routing** (the spawn selects a role-backed built-in worker; the host owns the concrete model).
+routing** (the spawn selects a role-backed worker; the host owns the concrete model).
 Host-owned role routing is non-degraded and bypasses repository model resolution. Which class a
 host falls in, its spawn mechanics, its fixed role mapping where applicable, its per-skill notes,
 and its host-level fallback behavior live in one file per host under

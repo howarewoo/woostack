@@ -216,7 +216,15 @@ Boundary precedence: workspace packages (`packages/<name>/`, `apps/<name>/`, `se
 
 **This is the local swarm step.** Local hosts MUST dispatch every detected angle or `(angle, chunk)` pair and let the host manage its own subagent queue by default. Do not impose a woostack hard cap: hosts with large subagent budgets can run every angle at once, while hosts with smaller limits can queue internally. Use an explicit cap only when the host or shell caller asks for bounded execution (for example `--max-concurrency`, `WOO_REVIEW_MAX_CONCURRENCY`, or `N=1` for a sequential fallback).
 
-**Preflight (local).** Before dispatching workers, confirm your host can actually run review sub-agents (its `Task`/sub-agent primitive is available). If it cannot, stop now with an actionable error — do not dispatch a swarm that will produce no receipts and then hard-fail the gate. In the GitHub Action, `detect-provider.sh` performs the equivalent provider/runner preflight.
+**Preflight (local, after angle detection).** Read the complete planned work from `angles.txt`, apply
+any forced tier, include the fast context/summary helper and both deep validators, and derive the
+distinct selector set required by the whole run. Before launching any summary, angle, or validator
+worker, discover the active host task-agent registry and prove that its spawn primitive and every
+planned selector are available. On OMP this checks the managed selectors from the canonical host
+adapter; it never creates or repairs an agent during review. Any missing capability aborts the
+entire swarm before the first worker, with the missing selectors named—never launch a partial swarm
+that will later fail receipts. In the GitHub Action, `detect-provider.sh` performs the equivalent
+provider/runner preflight.
 
 Review swarm execution means:
 
@@ -235,7 +243,7 @@ Use your host's primitive for host-managed fan-out — the current host's refere
 Angle workers MUST be spawned with no `woostack-review` skill scope attached and with a fresh
 independent reviewer profile/session that is not the paired implementation coding profile or its
 session. Use the worker selector required by the current host file; a host with role-backed
-built-in workers selects the independent worker mapped from the angle's effective tier. On hosts
+workers selects the independent worker mapped from the angle's effective tier. On hosts
 without that mechanism, choose a fresh plain/general/default reviewer profile (Claude Code:
 `general-purpose`). Never reuse the implementing coder, share its profile/session/credential
 context, or use a `woostack-review`-scoped profile, `@woostack-review`,
@@ -333,8 +341,8 @@ single-session hosts that consume repository model configuration, resolve it wit
 `models.<provider>.<tier>` and flat `models.<tier>` overrides first. A fallback leaf must be a
 non-empty ordered array; entry 0 is the primary, and the resolver falls back to the default table in
 `prompts/_orchestrator-header.md`. On a host with host-owned role routing, resolve only the
-effective tier and select its fixed role-backed built-in worker; do not invoke the repository
-model resolver or read model leaves for that dispatch. Tier assignments:
+effective tier and select its fixed role-backed worker; do not invoke the repository model resolver
+or read model leaves for that dispatch. Tier assignments:
 
 | Stage | Tier | Why |
 |---|---|---|
@@ -377,8 +385,8 @@ Per-provider resolution (canonical table in `../using-woostack/references/model-
   `FORCE_TIER`, otherwise `standard`); `tier:` is informational after that, and separate jobs are
   required for per-angle fast/deep behavior.
 - On host-owned role-routing hosts, apply `FORCE_TIER` when present, map the effective tier to the
-  host file's fixed built-in worker, and let the host own the concrete model and fallback. Never
-  call the repository model resolver for that route.
+  host file's fixed worker, and let the host own the concrete model and fallback. Never call the
+  repository model resolver for that route.
 
 Review runners MUST preserve the route actually used for every worker. Repository-model hosts
 preserve the resolved tier/model context: per-call hosts set the resolved spawn values, and

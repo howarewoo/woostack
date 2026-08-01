@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# omp-agents.sh — verify one optional trusted per-engineer launcher directory.
-# The historical check name is retained; project .omp/agents are never generated.
+# omp-agents.sh — verify project OMP role agents and the optional trusted launchers.
+# The two generated surfaces retain separate installation authorities.
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALLER="$HERE/../../../woostack-init/scripts/gen-omp-agents.sh"
+PROVISIONER="$HERE/../../../woostack-init/scripts/provision-omp-agents.sh"
 emit() { printf '%s\t%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" "$5"; }
 
 if [ "${1:-}" = "--fix" ]; then
@@ -13,6 +14,8 @@ if [ "${1:-}" = "--fix" ]; then
     echo "omp-agents.sh: usage: omp-agents.sh [--fix [workspace]]" >&2
     exit 2
   }
+  WOO_ROOT="${1:-.}"
+  /bin/bash "$PROVISIONER" "$WOO_ROOT" >/dev/null || exit
   exec /bin/bash "$INSTALLER"
 fi
 
@@ -20,6 +23,12 @@ fi
   echo "omp-agents.sh: usage: omp-agents.sh [workspace]" >&2
   exit 2
 }
+WOO_ROOT="${1:-.}"
+while IFS=$'\t' read -r state path message; do
+  [ -n "$state" ] || continue
+  emit warn omp-agent auto "$path" "$state: $message; --fix repairs only woostack-managed OMP agent content"
+done < <(/bin/bash "$PROVISIONER" --check "$WOO_ROOT")
+
 
 launcher_root="${WOO_ENGINEER_LAUNCHER_ROOT:-${HOME:-}/.local/libexec/woostack}"
 engineer_name="${ENGINEER_NAME:-}"

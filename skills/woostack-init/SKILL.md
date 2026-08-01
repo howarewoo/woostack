@@ -22,6 +22,8 @@ creates a spec, plan, fix, issue, project, branch, PR, or lifecycle state.
 Linear call.
 
 ## Procedure
+`<wi>` below means the installed `woostack-init` skill directory.
+
 
 1. Resolve the canonical target repository without changing it. Verify repository root, branch,
    working state, existing `.woostack/` files, and collision/symlink/path safety.
@@ -29,10 +31,16 @@ Linear call.
    policy without an exact approved repair.
 3. Create missing local support paths only:
    - `.woostack/config.json` from the shipped non-secret template;
-   - local diagnostic report roots for doctor, audit, QA, and response; and
-   - worktree/recovery support declared by the canonical worktree contract.
-4. Validate JSON/schema/path permissions, ignore policy, report roots, and cross-links. Run the
-   shipped doctor checks.
+   - local diagnostic report roots for doctor, audit, QA, and response;
+   - worktree/recovery support declared by the canonical worktree contract; and
+   - the three managed project OMP role agents by running
+     `bash <wi>/scripts/provision-omp-agents.sh <canonical-repository>`. This
+     deterministic provisioner updates only `woostack-fast`, `woostack-standard`, and
+     `woostack-deep` under `.omp/agents/`, preserves every other agent, ensures exactly one scoped
+     `woostack-*.md` rule without overwriting consumer-owned `.omp/agents/.gitignore` lines, and
+     never reads model configuration.
+4. Validate JSON/schema/path permissions, ignore policy, report roots, managed OMP role agents, and
+   cross-links. Run the shipped doctor checks.
 5. Report created, repaired, preserved, skipped, and blocked paths with exact validation results.
 
 ## Optional Linear setup
@@ -93,6 +101,7 @@ turns observability configuration into development authority.
 ## Hard constraints
 
 - Artifact-free by default; Linear never required for local initialization or repair.
-- No source edit outside `.woostack/`; no application scaffold.
+- No source edit outside `.woostack/` except the three init-managed `.omp/agents/woostack-*.md`
+  role definitions; no application scaffold.
 - No credential read/write, implicit migration, destructive cleanup, commit, push, PR, or merge.
 - Preserve user-owned content and fail closed on symlink/path/collision ambiguity.
