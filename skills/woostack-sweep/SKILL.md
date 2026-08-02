@@ -62,17 +62,28 @@ thread set, changed paths, and approved task contract.
 2. **Classify.** A round is clean only when the full review has no blocking findings, required
    checks pass, and no unresolved blocking thread remains. A missing reviewer, partial result,
    unknown check, or changed head is `blocked`, never clean.
-3. **Address once.** For confirmed findings or threads, invoke
-   [`woostack-address-comments`](../woostack-address-comments/SKILL.md) in the PR's isolated worktree.
-   It may fix, push back, clarify, or request a decision. Do not broaden the task contract.
+3. **Address once before any transition.** For every submitted PR, before moving to another PR or
+   returning any terminal result, refresh the exact current-head unresolved-thread snapshot. If
+   confirmed findings remain or the snapshot is nonempty, invoke
+   [`woostack-address-comments`](../woostack-address-comments/SKILL.md) once before advancing or
+   stopping, in the PR's isolated worktree. Do not broaden the task contract. Rely on its canonical
+   loop to continue all other independent threads; one blocked thread cannot be used to skip them.
+   After the attempt, refetch the canonical PR/head and complete unresolved-thread set. Head and
+   thread-set changes attributable to the completed addressing attempt are the expected refreshed
+   state for the next decision. Only unexpected or concurrent head or thread-set drift invalidates
+   the round, restarts discovery, and requires a fresh stable snapshot before deciding the next
+   action. If the snapshot is empty, do not invoke address-comments solely for this gate;
+   continue the existing no-thread flow. An unsafe, failed, or decision-blocked attempt may stop
+   truthfully, but only after the attempt.
 4. **Verify.** Require focused verification and the calling workflow's complete review boundary on
    the unchanged addressed diff before commit/submission.
 5. **Restack affected descendants.** If the PR head changed, follow the restack boundary below.
 6. **Re-review.** Fetch the updated PR/head and run a new full review. Never reuse a result from a
    prior head.
 
-Stop a PR after `review.max_rounds`, a repeated complete finding/thread signature on the same head,
-no repository progress, a blocker, or a required decision. Do not silently downgrade full review to
+Only after this gate, including the required attempt for a nonempty snapshot, may
+`review.max_rounds`, a repeated complete finding/thread signature on the same head, no repository
+progress, a blocker, or a required decision stop the PR. Do not silently downgrade full review to
 self-review or a narrower angle.
 
 ## Stack-scoped restack boundary
