@@ -3,162 +3,133 @@
   "skill": "woostack-init",
   "cases": [
     {
-      "id": "blocks-before-project-access-when-official-mcp-is-missing",
-      "prompt": "Apply the packaged woostack-init preflight to fixtures/receipts/missing-mcp.json. The receipt fixture is host input and is outside the target project. Do not stat, list, read, write, or canonicalize fixtures/project and do not invoke Git because preflight fails. Return exactly one JSON object with keys status, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, and doctorInvoked. Use exactly status `blocked` and reasonCode `linear-mcp-unavailable`; equivalent tokens are invalid.",
-      "fixtures": [
-        "receipts/missing-mcp.json",
-        "project/.woostack/config.json",
-        "project/.woostack/existing-note.txt"
-      ],
+      "id": "missing-mcp-skips-only-linear-setup",
+      "prompt": "Apply automatic Linear setup for default `/woostack-init` to fixtures/receipts/missing-mcp.json and inspect the existing config without changing it. Return exactly one JSON object with overallInitDisposition `continue`, linearSetupAttempted true, linearSetupStatus `skipped`, linearReasonCode `linear-mcp-unavailable`, artifactModeSelected false, providerMutationCount 0, configAction `preserve`, and doctorDisposition `run-local-validation`.",
+      "fixtures": ["receipts/missing-mcp.json","project/.woostack/config.json","project/.woostack/existing-note.txt"],
       "capabilities": ["read-workspace"],
-      "expected": "Missing host-exposed official Linear MCP blocks init before any target-project filesystem or Git access.",
+      "expected": "Unavailable official MCP skips only automatic Linear setup; local init continues without persistence selection or provider mutation.",
       "assertions": [
-        {"id":"missing-mcp-blocks","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
-        {"id":"missing-mcp-code","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"linear-mcp-unavailable","critical":true},
-        {"id":"missing-mcp-zero-project-access","kind":"final-json-path-equals","pointer":"/projectFilesystemAccessBeforePreflight","expected":0,"critical":true},
-        {"id":"missing-mcp-zero-git-access","kind":"final-json-path-equals","pointer":"/gitAccessBeforePreflight","expected":0,"critical":true},
-        {"id":"missing-mcp-no-write","kind":"final-json-path-equals","pointer":"/writesStarted","expected":false,"critical":true},
-        {"id":"missing-mcp-no-doctor","kind":"final-json-path-equals","pointer":"/doctorInvoked","expected":false,"critical":true},
-        {"id":"missing-mcp-config-unchanged","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
-        {"id":"missing-mcp-no-scaffold","kind":"path-absent","path":"fixtures/project/.woostack/respond","critical":true}
+        {"id":"missing-continues","kind":"final-json-path-equals","pointer":"/overallInitDisposition","expected":"continue","critical":true},
+        {"id":"missing-attempted","kind":"final-json-path-equals","pointer":"/linearSetupAttempted","expected":true,"critical":true},
+        {"id":"missing-skipped","kind":"final-json-path-equals","pointer":"/linearSetupStatus","expected":"skipped","critical":true},
+        {"id":"missing-no-selection","kind":"final-json-path-equals","pointer":"/artifactModeSelected","expected":false,"critical":true},
+        {"id":"missing-no-provider-write","kind":"final-json-path-equals","pointer":"/providerMutationCount","expected":0,"critical":true},
+        {"id":"missing-local-validation","kind":"final-json-path-equals","pointer":"/doctorDisposition","expected":"run-local-validation","critical":true},
+        {"id":"missing-config-preserved","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true}
       ]
     },
     {
-      "id": "blocks-before-project-access-when-official-mcp-is-unauthenticated",
-      "prompt": "Apply the packaged woostack-init preflight to fixtures/receipts/unauthenticated.json. The receipt fixture is host input and is outside the target project. Do not stat, list, read, write, or canonicalize fixtures/project and do not invoke Git because authentication failed. Return exactly one JSON object with keys status, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, and doctorInvoked. Use exactly status `blocked` and reasonCode `linear-mcp-unauthenticated`; equivalent tokens are invalid.",
-      "fixtures": [
-        "receipts/unauthenticated.json",
-        "project/.woostack/config.json",
-        "project/.woostack/existing-note.txt"
-      ],
+      "id": "unauthenticated-mcp-blocks-only-linear-setup",
+      "prompt": "Apply automatic Linear setup for default `/woostack-init` to fixtures/receipts/unauthenticated.json and inspect the existing config without changing it. Return exactly one JSON object with overallInitDisposition `continue`, linearSetupAttempted true, linearSetupStatus `setup-blocked`, linearReasonCode `linear-mcp-unauthenticated`, artifactModeSelected false, providerMutationCount 0, configAction `preserve`, and doctorDisposition `run-local-validation`.",
+      "fixtures": ["receipts/unauthenticated.json","project/.woostack/config.json","project/.woostack/existing-note.txt"],
       "capabilities": ["read-workspace"],
-      "expected": "Missing host MCP authentication blocks init before any target-project filesystem or Git access.",
+      "expected": "Unauthenticated official MCP blocks only Linear setup; local init continues without credential access or provider mutation.",
       "assertions": [
-        {"id":"auth-blocks","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
-        {"id":"auth-code","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"linear-mcp-unauthenticated","critical":true},
-        {"id":"auth-zero-project-access","kind":"final-json-path-equals","pointer":"/projectFilesystemAccessBeforePreflight","expected":0,"critical":true},
-        {"id":"auth-zero-git-access","kind":"final-json-path-equals","pointer":"/gitAccessBeforePreflight","expected":0,"critical":true},
-        {"id":"auth-no-write","kind":"final-json-path-equals","pointer":"/writesStarted","expected":false,"critical":true},
-        {"id":"auth-no-doctor","kind":"final-json-path-equals","pointer":"/doctorInvoked","expected":false,"critical":true},
-        {"id":"auth-config-unchanged","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
-        {"id":"auth-no-scaffold","kind":"path-absent","path":"fixtures/project/.woostack/respond","critical":true}
+        {"id":"auth-continues","kind":"final-json-path-equals","pointer":"/overallInitDisposition","expected":"continue","critical":true},
+        {"id":"auth-attempted","kind":"final-json-path-equals","pointer":"/linearSetupAttempted","expected":true,"critical":true},
+        {"id":"auth-setup-blocked","kind":"final-json-path-equals","pointer":"/linearSetupStatus","expected":"setup-blocked","critical":true},
+        {"id":"auth-code","kind":"final-json-path-equals","pointer":"/linearReasonCode","expected":"linear-mcp-unauthenticated","critical":true},
+        {"id":"auth-no-selection","kind":"final-json-path-equals","pointer":"/artifactModeSelected","expected":false,"critical":true},
+        {"id":"auth-no-provider-write","kind":"final-json-path-equals","pointer":"/providerMutationCount","expected":0,"critical":true},
+        {"id":"auth-config-preserved","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true}
       ]
     },
     {
-      "id": "blocks-on-ambiguous-workspace-or-missing-team",
-      "prompt": "Apply the packaged woostack-init preflight to fixtures/receipts/ambiguous-workspace-missing-team.json. Inspect only the receipt fixture: the workspace has multiple matches and the team has none. Do not access fixtures/project or invoke Git. Return exactly one JSON object with keys status, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, and doctorInvoked. Use exactly status `blocked` and reasonCode `linear-workspace-team-resolution`; equivalent tokens are invalid.",
-      "fixtures": [
-        "receipts/ambiguous-workspace-missing-team.json",
-        "project/.woostack/config.json",
-        "project/.woostack/existing-note.txt"
-      ],
+      "id": "ambiguous-identity-blocks-only-linear-setup",
+      "prompt": "Apply automatic Linear setup for default `/woostack-init` to fixtures/receipts/ambiguous-workspace-missing-team.json and inspect the existing config without changing it. Return exactly one JSON object with overallInitDisposition `continue`, linearSetupAttempted true, linearSetupStatus `setup-blocked`, linearReasonCode `linear-workspace-team-resolution`, artifactModeSelected false, providerMutationCount 0, configAction `preserve`, and doctorDisposition `run-local-validation`.",
+      "fixtures": ["receipts/ambiguous-workspace-missing-team.json","project/.woostack/config.json","project/.woostack/existing-note.txt"],
       "capabilities": ["read-workspace"],
-      "expected": "Anything other than exactly one workspace and one team blocks init before target-project access.",
+      "expected": "Ambiguous workspace/team discovery blocks only Linear setup and preserves valid config while local init continues.",
       "assertions": [
-        {"id":"identity-blocks","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
-        {"id":"identity-code","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"linear-workspace-team-resolution","critical":true},
-        {"id":"identity-zero-project-access","kind":"final-json-path-equals","pointer":"/projectFilesystemAccessBeforePreflight","expected":0,"critical":true},
-        {"id":"identity-zero-git-access","kind":"final-json-path-equals","pointer":"/gitAccessBeforePreflight","expected":0,"critical":true},
-        {"id":"identity-no-write","kind":"final-json-path-equals","pointer":"/writesStarted","expected":false,"critical":true},
-        {"id":"identity-no-doctor","kind":"final-json-path-equals","pointer":"/doctorInvoked","expected":false,"critical":true},
-        {"id":"identity-config-unchanged","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
-        {"id":"identity-no-scaffold","kind":"path-absent","path":"fixtures/project/.woostack/respond","critical":true}
+        {"id":"identity-continues","kind":"final-json-path-equals","pointer":"/overallInitDisposition","expected":"continue","critical":true},
+        {"id":"identity-attempted","kind":"final-json-path-equals","pointer":"/linearSetupAttempted","expected":true,"critical":true},
+        {"id":"identity-setup-blocked","kind":"final-json-path-equals","pointer":"/linearSetupStatus","expected":"setup-blocked","critical":true},
+        {"id":"identity-code","kind":"final-json-path-equals","pointer":"/linearReasonCode","expected":"linear-workspace-team-resolution","critical":true},
+        {"id":"identity-no-selection","kind":"final-json-path-equals","pointer":"/artifactModeSelected","expected":false,"critical":true},
+        {"id":"identity-no-provider-write","kind":"final-json-path-equals","pointer":"/providerMutationCount","expected":0,"critical":true},
+        {"id":"identity-config-preserved","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true}
       ]
     },
     {
-      "id": "blocks-invalid-native-project-categories-and-issue-states",
-      "prompt": "Apply the packaged woostack-init preflight to fixtures/receipts/invalid-native-mappings.json. Require exactly the six coarse project-status keys and verify each resolves to its matching native category; separately validate every semantic issue-state key. Do not access fixtures/project or invoke Git. Return exactly one JSON object with keys status, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, and doctorInvoked. Use exactly status `blocked` and reasonCode `linear-native-mapping-invalid`; equivalent tokens are invalid.",
-      "fixtures": [
-        "receipts/invalid-native-mappings.json",
-        "project/.woostack/config.json",
-        "project/.woostack/existing-note.txt"
-      ],
+      "id": "invalid-native-names-block-only-linear-setup",
+      "prompt": "Apply automatic Linear setup for default `/woostack-init` to fixtures/receipts/invalid-native-mappings.json and inspect the existing config without changing it. Return exactly one JSON object with overallInitDisposition `continue`, linearSetupAttempted true, linearSetupStatus `setup-blocked`, linearReasonCode `linear-native-mapping-invalid`, artifactModeSelected false, providerMutationCount 0, configAction `preserve`, and doctorDisposition `run-local-validation`.",
+      "fixtures": ["receipts/invalid-native-mappings.json","project/.woostack/config.json","project/.woostack/existing-note.txt"],
       "capabilities": ["read-workspace"],
-      "expected": "Wrong native categories and incomplete category/state maps block before target-project access.",
+      "expected": "Invalid or partial native-name discovery blocks only Linear setup and leaves local init and valid policy untouched.",
       "assertions": [
-        {"id":"mapping-blocks","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
-        {"id":"mapping-code","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"linear-native-mapping-invalid","critical":true},
-        {"id":"mapping-zero-project-access","kind":"final-json-path-equals","pointer":"/projectFilesystemAccessBeforePreflight","expected":0,"critical":true},
-        {"id":"mapping-zero-git-access","kind":"final-json-path-equals","pointer":"/gitAccessBeforePreflight","expected":0,"critical":true},
-        {"id":"mapping-no-write","kind":"final-json-path-equals","pointer":"/writesStarted","expected":false,"critical":true},
-        {"id":"mapping-no-doctor","kind":"final-json-path-equals","pointer":"/doctorInvoked","expected":false,"critical":true},
-        {"id":"mapping-config-unchanged","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
-        {"id":"mapping-no-scaffold","kind":"path-absent","path":"fixtures/project/.woostack/respond","critical":true}
+        {"id":"mapping-continues","kind":"final-json-path-equals","pointer":"/overallInitDisposition","expected":"continue","critical":true},
+        {"id":"mapping-attempted","kind":"final-json-path-equals","pointer":"/linearSetupAttempted","expected":true,"critical":true},
+        {"id":"mapping-setup-blocked","kind":"final-json-path-equals","pointer":"/linearSetupStatus","expected":"setup-blocked","critical":true},
+        {"id":"mapping-code","kind":"final-json-path-equals","pointer":"/linearReasonCode","expected":"linear-native-mapping-invalid","critical":true},
+        {"id":"mapping-no-selection","kind":"final-json-path-equals","pointer":"/artifactModeSelected","expected":false,"critical":true},
+        {"id":"mapping-no-provider-write","kind":"final-json-path-equals","pointer":"/providerMutationCount","expected":0,"critical":true},
+        {"id":"mapping-config-preserved","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true}
       ]
     },
     {
-      "id": "blocks-read-only-mcp-for-mutating-init",
-      "prompt": "Apply the packaged woostack-init preflight to fixtures/receipts/read-only-capability.json. Init is a mutating workflow, so inspect every required read and write capability and fail on the false projectWrite and commentWrite observations. Do not access fixtures/project or invoke Git. Return exactly one JSON object with keys status, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, and doctorInvoked. Use exactly status `blocked` and reasonCode `linear-mcp-read-only`; equivalent tokens are invalid.",
-      "fixtures": [
-        "receipts/read-only-capability.json",
-        "project/.woostack/config.json",
-        "project/.woostack/existing-note.txt"
-      ],
+      "id": "authenticated-read-only-mcp-is-sufficient-for-setup",
+      "prompt": "Apply automatic Linear setup for default `/woostack-init` to fixtures/receipts/read-only-capability.json. Preserve the matching valid config. Return exactly one JSON object with overallInitDisposition `continue`, linearSetupAttempted true, linearSetupStatus `preserved`, linearReasonCode `ready`, artifactModeSelected false, providerMutationCount 0, configAction `preserve`, providerWriteCapabilityRequired false, providerReadBackRequired false, and doctorDisposition `run-local-validation`.",
+      "fixtures": ["receipts/read-only-capability.json","project/.woostack/config.json","project/.woostack/existing-note.txt"],
       "capabilities": ["read-workspace"],
-      "expected": "Read-only official MCP access is insufficient for mutating init and blocks before target-project access.",
+      "expected": "Authenticated official MCP read access is sufficient; provider write capability is not required and matching valid config is preserved.",
       "assertions": [
-        {"id":"read-only-blocks","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
-        {"id":"read-only-code","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"linear-mcp-read-only","critical":true},
-        {"id":"read-only-zero-project-access","kind":"final-json-path-equals","pointer":"/projectFilesystemAccessBeforePreflight","expected":0,"critical":true},
-        {"id":"read-only-zero-git-access","kind":"final-json-path-equals","pointer":"/gitAccessBeforePreflight","expected":0,"critical":true},
-        {"id":"read-only-no-write","kind":"final-json-path-equals","pointer":"/writesStarted","expected":false,"critical":true},
-        {"id":"read-only-no-doctor","kind":"final-json-path-equals","pointer":"/doctorInvoked","expected":false,"critical":true},
-        {"id":"read-only-config-unchanged","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
-        {"id":"read-only-no-scaffold","kind":"path-absent","path":"fixtures/project/.woostack/respond","critical":true}
+        {"id":"read-only-continues","kind":"final-json-path-equals","pointer":"/overallInitDisposition","expected":"continue","critical":true},
+        {"id":"read-only-attempted","kind":"final-json-path-equals","pointer":"/linearSetupAttempted","expected":true,"critical":true},
+        {"id":"read-only-preserved","kind":"final-json-path-equals","pointer":"/linearSetupStatus","expected":"preserved","critical":true},
+        {"id":"read-only-no-selection","kind":"final-json-path-equals","pointer":"/artifactModeSelected","expected":false,"critical":true},
+        {"id":"read-only-no-provider-write","kind":"final-json-path-equals","pointer":"/providerMutationCount","expected":0,"critical":true},
+        {"id":"read-only-no-write-requirement","kind":"final-json-path-equals","pointer":"/providerWriteCapabilityRequired","expected":false,"critical":true},
+        {"id":"read-only-no-readback-requirement","kind":"final-json-path-equals","pointer":"/providerReadBackRequired","expected":false,"critical":true},
+        {"id":"read-only-config-preserved","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true}
       ]
     },
     {
-      "id": "blocks-unknown-or-partial-independent-read-back",
-      "prompt": "Apply the packaged woostack-init preflight to fixtures/receipts/unknown-read-back.json. All declared capabilities are true, but the independent read-back is unknown and partial; do not treat declarations as proof. Do not access fixtures/project or invoke Git. Return exactly one JSON object with keys status, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, and doctorInvoked. Use exactly status `blocked` and reasonCode `linear-read-back-unknown`; equivalent tokens are invalid.",
-      "fixtures": [
-        "receipts/unknown-read-back.json",
-        "project/.woostack/config.json",
-        "project/.woostack/existing-note.txt"
-      ],
+      "id": "provider-mutation-read-back-is-not-required-for-setup",
+      "prompt": "Apply automatic Linear setup for default `/woostack-init` to fixtures/receipts/unknown-read-back.json. Its authenticated discovery reads are complete; provider mutation read-back is irrelevant because setup performs no provider mutation. Preserve matching valid config. Return exactly one JSON object with overallInitDisposition `continue`, linearSetupAttempted true, linearSetupStatus `preserved`, linearReasonCode `ready-without-provider-read-back`, artifactModeSelected false, providerMutationCount 0, configAction `preserve`, providerWriteCapabilityRequired false, providerReadBackRequired false, and doctorDisposition `run-local-validation`.",
+      "fixtures": ["receipts/unknown-read-back.json","project/.woostack/config.json","project/.woostack/existing-note.txt"],
       "capabilities": ["read-workspace"],
-      "expected": "Declared capabilities without a complete conclusive independent read-back block before target-project access.",
+      "expected": "Unknown provider mutation read-back does not block read-only setup or local init because init never mutates a provider resource.",
       "assertions": [
-        {"id":"read-back-blocks","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
-        {"id":"read-back-code","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"linear-read-back-unknown","critical":true},
-        {"id":"read-back-zero-project-access","kind":"final-json-path-equals","pointer":"/projectFilesystemAccessBeforePreflight","expected":0,"critical":true},
-        {"id":"read-back-zero-git-access","kind":"final-json-path-equals","pointer":"/gitAccessBeforePreflight","expected":0,"critical":true},
-        {"id":"read-back-no-write","kind":"final-json-path-equals","pointer":"/writesStarted","expected":false,"critical":true},
-        {"id":"read-back-no-doctor","kind":"final-json-path-equals","pointer":"/doctorInvoked","expected":false,"critical":true},
-        {"id":"read-back-config-unchanged","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
-        {"id":"read-back-no-scaffold","kind":"path-absent","path":"fixtures/project/.woostack/respond","critical":true}
+        {"id":"read-back-continues","kind":"final-json-path-equals","pointer":"/overallInitDisposition","expected":"continue","critical":true},
+        {"id":"read-back-attempted","kind":"final-json-path-equals","pointer":"/linearSetupAttempted","expected":true,"critical":true},
+        {"id":"read-back-preserved","kind":"final-json-path-equals","pointer":"/linearSetupStatus","expected":"preserved","critical":true},
+        {"id":"read-back-no-selection","kind":"final-json-path-equals","pointer":"/artifactModeSelected","expected":false,"critical":true},
+        {"id":"read-back-no-provider-write","kind":"final-json-path-equals","pointer":"/providerMutationCount","expected":0,"critical":true},
+        {"id":"read-back-no-write-requirement","kind":"final-json-path-equals","pointer":"/providerWriteCapabilityRequired","expected":false,"critical":true},
+        {"id":"read-back-not-required","kind":"final-json-path-equals","pointer":"/providerReadBackRequired","expected":false,"critical":true},
+        {"id":"read-back-config-preserved","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true}
       ]
     },
     {
-      "id": "successful-preflight-repairs-workspace-and-doctors-repository-root",
-      "prompt": "Initialize fixtures/project with the packaged woostack-init procedure in --no-clobber mode. First validate every field in fixtures/receipts/success.json while performing zero target-project filesystem or Git access. Only after that succeeds may you inspect fixtures/project, preserve its config byte-for-byte, create the remaining canonical response/worktree/diagnostic pieces without legacy development records or local knowledge stores, and invoke exactly `bash fixtures/tools/doctor.sh --live-receipt fixtures/receipts/success.json fixtures/project`. Return exactly one JSON object with keys status, mode, reasonCode, projectFilesystemAccessBeforePreflight, gitAccessBeforePreflight, writesStarted, validationOrder, doctorInvoked, doctorInvocation, doctorTarget, doctorExitCode, configPreserved, and report.",
-      "fixtures": [
-        "receipts/success.json",
-        "project/.woostack/config.json",
-        "project/.woostack/existing-note.txt",
-        "tools/doctor.sh"
-      ],
-      "capabilities": ["read-workspace", "write-workspace", "shell-workspace"],
-      "expected": "A complete normalized official host-MCP receipt alone clears preflight; no-clobber then repairs only non-authoritative response/worktree/diagnostic stores and calls doctor with --live-receipt and the repository root.",
+      "id": "default-init-automatically-preserves-linear-defaults",
+      "prompt": "Initialize fixtures/project with default `/woostack-init` in --no-clobber mode. Preserve its existing config byte-for-byte and create the remaining local support before automatically inspecting authenticated read discovery in fixtures/receipts/success.json. Then invoke exactly `bash fixtures/tools/doctor.sh --live-receipt fixtures/receipts/success.json fixtures/project`. Select no artifact and perform no provider mutation. Return one JSON object with status, mode, reasonCode, linearSetupAttempted, linearSetupStatus, artifactModeSelected, providerMutationCount, providerWriteCapabilityRequired, providerReadBackRequired, writesStarted, validationOrder, doctorInvoked, doctorInvocation, doctorTarget, doctorExitCode, configBeforeSha256, and configAfterSha256.",
+      "fixtures": ["receipts/success.json","project/.woostack/config.json","project/.woostack/existing-note.txt","tools/doctor.sh"],
+      "capabilities": ["read-workspace","write-workspace","shell-workspace"],
+      "expected": "Default init automatically performs safe read-only setup, preserves matching valid defaults, repairs local support, and runs doctor without selecting persistence or mutating Linear.",
       "assertions": [
         {"id":"success-status","kind":"final-json-path-equals","pointer":"/status","expected":"complete","critical":true},
         {"id":"success-reason","kind":"final-json-path-equals","pointer":"/reasonCode","expected":"ready","critical":true},
-        {"id":"success-zero-project-access-before-preflight","kind":"final-json-path-equals","pointer":"/projectFilesystemAccessBeforePreflight","expected":0,"critical":true},
-        {"id":"success-zero-git-access-before-preflight","kind":"final-json-path-equals","pointer":"/gitAccessBeforePreflight","expected":0,"critical":true},
-        {"id":"success-writes-started-after-preflight","kind":"final-json-path-equals","pointer":"/writesStarted","expected":true,"critical":true},
+        {"id":"success-mode","kind":"final-json-path-equals","pointer":"/mode","expected":"no-clobber","critical":true},
+        {"id":"success-linear-attempted","kind":"final-json-path-equals","pointer":"/linearSetupAttempted","expected":true,"critical":true},
+        {"id":"success-linear-preserved","kind":"final-json-path-equals","pointer":"/linearSetupStatus","expected":"preserved","critical":true},
+        {"id":"success-no-selection","kind":"final-json-path-equals","pointer":"/artifactModeSelected","expected":false,"critical":true},
+        {"id":"success-no-provider-write","kind":"final-json-path-equals","pointer":"/providerMutationCount","expected":0,"critical":true},
+        {"id":"success-no-write-requirement","kind":"final-json-path-equals","pointer":"/providerWriteCapabilityRequired","expected":false,"critical":true},
+        {"id":"success-no-readback-requirement","kind":"final-json-path-equals","pointer":"/providerReadBackRequired","expected":false,"critical":true},
+        {"id":"success-writes-started-locally","kind":"final-json-path-equals","pointer":"/writesStarted","expected":true,"critical":true},
         {"id":"respond-directory-materialized","kind":"path-exists","path":"fixtures/project/.woostack/respond/.gitkeep"},
         {"id":"gitignore-created","kind":"path-exists","path":"fixtures/project/.woostack/.gitignore"},
         {"id":"no-local-specs","kind":"path-absent","path":"fixtures/project/.woostack/specs","critical":true},
         {"id":"no-local-plans","kind":"path-absent","path":"fixtures/project/.woostack/plans","critical":true},
         {"id":"no-local-fixes","kind":"path-absent","path":"fixtures/project/.woostack/fixes","critical":true},
-        {"id":"no-clobber-mode-reported","kind":"final-json-path-equals","pointer":"/mode","expected":"no-clobber","critical":true},
-        {"id":"validation-order","kind":"final-json-path-equals","pointer":"/validationOrder","expected":["official-linear-mcp-preflight","project-filesystem-access","doctor"],"critical":true},
-        {"id":"packaged-doctor-invocation","kind":"final-json-path-equals","pointer":"/doctorInvocation","expected":["bash","fixtures/tools/doctor.sh","--live-receipt","fixtures/receipts/success.json","fixtures/project"],"critical":true},
-        {"id":"doctor-target-is-repository-root","kind":"final-json-path-equals","pointer":"/doctorTarget","expected":"fixtures/project","critical":true},
-        {"id":"doctor-validation-succeeded","kind":"final-json-path-equals","pointer":"/doctorExitCode","expected":0,"critical":true},
+        {"id":"validation-order","kind":"final-json-path-equals","pointer":"/validationOrder","expected":["project-filesystem-access","automatic-linear-read-only-setup","doctor"],"critical":true},
+        {"id":"doctor-invocation","kind":"final-json-path-equals","pointer":"/doctorInvocation","expected":["bash","fixtures/tools/doctor.sh","--live-receipt","fixtures/receipts/success.json","fixtures/project"],"critical":true},
+        {"id":"doctor-target","kind":"final-json-path-equals","pointer":"/doctorTarget","expected":"fixtures/project","critical":true},
+        {"id":"doctor-succeeded","kind":"final-json-path-equals","pointer":"/doctorExitCode","expected":0,"critical":true},
         {"id":"config-before-hash","kind":"final-json-path-equals","pointer":"/configBeforeSha256","expected":"070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
         {"id":"config-after-hash","kind":"final-json-path-equals","pointer":"/configAfterSha256","expected":"070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
-        {"id":"config-preserved-on-disk","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
-        {"id":"existing-file-preserved-on-disk","kind":"file-sha256-equals","file":"fixtures/project/.woostack/existing-note.txt","sha256":"sha256:60ba63428d6029222a9d092142fcdc64d045d93650e0c25cb25cd7f319351fae","critical":true}
+        {"id":"config-preserved","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
+        {"id":"existing-note-preserved","kind":"file-sha256-equals","file":"fixtures/project/.woostack/existing-note.txt","sha256":"sha256:60ba63428d6029222a9d092142fcdc64d045d93650e0c25cb25cd7f319351fae","critical":true}
       ]
     },
     {

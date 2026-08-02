@@ -15,15 +15,23 @@ Artifact mode is selected only when:
 - the caller supplies one exact Linear project/issue URL or stable UUID; or
 - the caller explicitly asks to create or persist an artifact.
 
-Without one of those inputs, make no provider read or write. In particular, tracked
-`.woostack/config.json` policy cannot select artifact mode, authorize a provider operation, or turn
-an otherwise artifact-free command into a persistence run.
+Without one of those inputs, commands make no provider read or write, except for
+`/woostack-init`'s automatic authenticated read-only setup discovery. That exception may validate
+only non-secret repository/workspace/team/native-name defaults; it does not select artifact mode,
+authorize later provider access, or permit issue/project reads or any provider mutation. In
+particular, tracked `.woostack/config.json` policy cannot select artifact mode, authorize a provider
+operation, or turn an otherwise artifact-free command into a persistence run.
 
 After selection, validated non-secret `linear` policy may supply repository, workspace/team,
 native-status, and presentation defaults. Resolve every supplied value and compare it with the
 canonical repository and the caller-selected workspace/team before use. Missing, malformed,
 ambiguous, foreign, or conflicting values block the selected artifact operation; they never broaden
 the selection. Authentication remains in the host's secret store.
+
+Init setup preserves valid existing policy and may add only missing values validated by those
+read-only discovery results. It independently reopens, parses, and compares any local config write.
+Absent, unauthenticated, insufficient, partial, ambiguous, or conflicting capability is reported as
+skipped or setup-blocked separately from ordinary local init; it never blocks local initialization.
 
 Preflight the authenticated official Linear MCP for every selected read, project, issue, sub-issue,
 relation, mutation, and independent read-back operation. For an existing exact resource, resolve
@@ -68,15 +76,18 @@ active host instead of hard-coding tool names. Never read repository credentials
 use custom HTTP/GraphQL transport, or copy host tokens into a worker, subprocess, prompt, report,
 or file.
 
-Before a requested operation, prove the minimum capabilities needed for that operation:
+Before a requested artifact operation, prove the minimum capabilities needed for that operation:
 
 - exact project/issue read;
 - complete pagination for updates/comments/relations when those fields are used;
 - create or update only when requested; and
 - an independent post-mutation read.
 
-Missing write capability degrades to read-only artifact context. Missing read capability omits the
-artifact. Neither condition weakens repository evidence or workflow gates.
+Automatic init setup is not an artifact operation. Authenticated read capability sufficient to
+resolve its repository/workspace/team/native-name defaults is enough; provider write and
+post-mutation read-back capability are neither required nor probed. Missing artifact write
+capability degrades a selected operation to read-only context. Missing artifact read capability
+omits the selected artifact. Neither condition weakens repository evidence or workflow gates.
 
 ## Untrusted remote content
 

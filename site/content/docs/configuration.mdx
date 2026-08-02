@@ -1,16 +1,18 @@
 ---
 title: Configuration
-description: Non-secret repository policy and post-selection Linear plan defaults.
+description: Non-secret repository policy, automatic safe Linear defaults, and explicitly selected plan persistence.
 ---
 
 woostack reads non-secret repository policy from `.woostack/config.json`.
-[woostack-init](/docs/skills/woostack-init) creates it without requiring a provider connection.
-The file never contains credentials or grants permission to perform repository work.
+[woostack-init](/docs/skills/woostack-init) creates it without requiring a provider connection and
+automatically attempts safe read-only Linear default discovery when the host exposes the official
+authenticated MCP. Missing or incomplete Linear setup never blocks local initialization. The file
+never contains credentials or grants permission to perform repository work.
 
 The active request and workflow gates define scope and approval. Git and GitHub own code, branches,
-commits, pull requests, reviews, and merge truth. A validated `linear` object supplies defaults only
-after the caller selects an exact artifact or explicitly requests persistence; it cannot trigger
-provider access or authorize a write.
+commits, pull requests, reviews, and merge truth. Init's discovery calls neither select persistence
+nor authorize later provider access. A validated `linear` object supplies defaults only after the
+caller selects an exact artifact or explicitly requests persistence; it cannot authorize a write.
 
 Tracked legacy `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, and
 `.woostack/overnight/` remain local records unless the user explicitly invokes the guarded
@@ -31,7 +33,7 @@ There are nine top-level settings:
 
 | Setting | Read by | Tunes |
 | --- | --- | --- |
-| `linear` | Explicitly selected artifact operations in build, fix, plan, and other supporting workflows | supplies post-selection repository, workspace, team, native-name, and presentation defaults; never selects provider access |
+| `linear` | Automatic read-only setup in [woostack-init](/docs/skills/woostack-init), then explicitly selected artifact operations in build, fix, plan, and supporting workflows | stores validated non-secret repository, workspace, team, and native-name defaults; never selects persistence or authorizes a provider write |
 | `review` | [woostack-review](/docs/skills/woostack-review) | the PR review engine: angles, noise, validation |
 | `models` | [woostack-review](/docs/skills/woostack-review), [woostack-audit](/docs/skills/woostack-audit), and host subagent drivers | shared model selection and tier parameters for hosts that consume repository model configuration; ignored by OMP |
 | `audit` | [woostack-audit](/docs/skills/woostack-audit) | standing-code audit angles, filtering, chunking, and output |
@@ -43,8 +45,9 @@ There are nine top-level settings:
 
 ## A complete repository-policy example
 
-The example is artifact-free. Add a `linear` object only to provide validated defaults after a
-caller separately selects artifact mode. JSON has no comments, so each key is explained below.
+The example omits `linear`: init adds that object only when authenticated read-only discovery
+produces complete validated defaults. Its presence still does not select artifact mode. JSON has no
+comments, so each key is explained below.
 
 ```json
 {
@@ -99,10 +102,14 @@ Authentication stays in the host's MCP/OAuth secret store. No API key, credentia
 value, or credential-file path belongs in repository configuration, prompts, logs, generated files,
 or artifacts. Workflows prove capability without reading the secret.
 
-The optional `linear` object provides repository/workspace/team, native-name, and presentation
-defaults after artifact selection. It never selects artifact mode or authorizes a provider read or
-write. Before a selected mutation, the workflow verifies the canonical repository association,
-resolves the caller-selected workspace/team, and rejects missing, malformed, ambiguous, foreign, or
+The `linear` object provides repository/workspace/team and native-name defaults after artifact
+selection. Default init may populate missing fields from authenticated read-only discovery
+and independently validates any local config write; it preserves valid existing values. That
+narrow setup does not select artifact mode, read an artifact, require provider write/read-back
+capability, or authorize later provider access.
+
+Before a selected mutation, the workflow verifies the canonical repository association, resolves
+the caller-selected workspace/team, and rejects missing, malformed, ambiguous, foreign, or
 conflicting values. It then preflights every project, issue, sub-issue, relation, mutation, and
 independent read-back capability needed for the selected hierarchy.
 
@@ -373,18 +380,20 @@ worktrees are cut from.
 ## Defaults and doctor
 
 <Callout type="info">
-  Init scaffolds `models`, `review`, `respond`, and `status`. Provider policy is optional.
-  [woostack-doctor](/docs/skills/woostack-doctor) validates static policy; explicit live checks can
-  prove artifact connectivity without blocking ordinary repository workflows.
+  Init scaffolds `models`, `review`, `respond`, and `status`, then automatically adds validated
+  Linear defaults when safe authenticated discovery succeeds. Provider connectivity remains
+  optional for ordinary local workflows. [woostack-doctor](/docs/skills/woostack-doctor) validates
+  static policy; explicit live checks can prove artifact connectivity without blocking repository
+  workflows.
 </Callout>
 
 ## Where to go next
 
 <Cards>
-  <Card title="Getting started" href="/docs/getting-started" description="Initialize locally and optionally configure Linear artifacts or Hermes + OMP." />
+  <Card title="Getting started" href="/docs/getting-started" description="Initialize locally with automatic safe Linear defaults, then optionally configure Hermes + OMP." />
   <Card title="Engineer agents" href="/docs/concepts/engineer-agents" description="Decision, coding, handoff, review, and acceptance boundaries." />
   <Card title="woostack-review" href="/docs/skills/woostack-review" description="The review engine that reads every review.* key." />
-  <Card title="woostack-init" href="/docs/skills/woostack-init" description="Creates local support and optional artifact connectivity." />
+  <Card title="woostack-init" href="/docs/skills/woostack-init" description="Creates local support and automatically configures safe non-secret Linear defaults when authenticated read access exists." />
   <Card title="woostack-doctor" href="/docs/skills/woostack-doctor" description="Checks policy and optional live artifact connectivity." />
   <Card title="woostack-audit" href="/docs/skills/woostack-audit" description="Writes non-authoritative standing-code findings." />
   <Card title="All skills" href="/docs/skills/using-woostack" description="Per-skill reference, generated from each SKILL.md." />

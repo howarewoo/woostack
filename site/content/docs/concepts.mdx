@@ -7,10 +7,12 @@ import { ContextEconomy } from '@/components/concepts/context-economy';
 
 woostack is a multiperson development workflow with repository-first evidence and optional Linear
 artifacts. The user's approved workflow contract defines scope and approval. Git and GitHub own
-source, branches, commits, pull requests, reviews, and merge evidence. An exact caller-supplied
-artifact or explicit persistence request selects Linear; otherwise policy makes no provider call.
-Selected fix/build/standalone-plan persistence uses one project with a parent plan issue and one
-native child issue per increment. Those artifacts never authorize repository work.
+source, branches, commits, pull requests, reviews, and merge evidence. Default init may make
+authenticated read-only Linear setup calls to validate non-secret defaults, but that narrow
+exception selects no artifact and permits no provider write. Otherwise, an exact caller-supplied
+artifact or explicit persistence request selects Linear; without one, commands make no provider
+call. Selected fix/build/standalone-plan persistence uses one project with a parent plan issue and
+one native child issue per increment. Those artifacts never authorize repository work.
 
 ## The build loop
 
@@ -83,10 +85,12 @@ rather than every input. Review prefetch gathers the relevant diff, metadata, an
 once for independent analysis. Status and development workflows retain only the verified MCP
 identities and receipts required for the current decision.
 
-Selected artifact access uses the host's authenticated official Linear MCP connection. Skills
-verify the canonical repository association and resolved caller-selected workspace/team, prove
-capability without reading credentials, and independently read mutations back. Tracked policy
-provides defaults only after selection and cannot authorize a provider read or write.
+Automatic init setup and selected artifact access use the host's authenticated official Linear MCP
+connection. Init needs only read capability and validates local config writes independently; it
+never reads an artifact or probes a provider write. Selected artifact operations verify the
+canonical repository association and resolved caller-selected workspace/team, prove the exact
+capabilities they need without reading credentials, and independently read mutations back. Tracked
+policy provides defaults only after selection and cannot authorize provider writes.
 
 ### Decision-makers and coders stay isolated
 

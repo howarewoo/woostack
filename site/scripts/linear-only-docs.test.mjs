@@ -290,7 +290,7 @@ test('authored setup order keeps initialization, role isolation, binding, and di
   assertInOrder('site/content/docs/getting-started.mdx', [
     ['initialize local support', /\b2\.\s+Initialize local support\b/i],
     ['choose workflow', /\b3\.\s+Choose the workflow\b/i],
-    ['configure Linear defaults', /\b4\.\s+Optional:\s+configure Linear plan defaults\b/i],
+    ['automatic Linear defaults', /\b4\.\s+Automatic Linear default setup\b/i],
     ['configure engineer pair', /\b5\.\s+Optional:\s+configure a Hermes \+ OMP engineer pair\b/i],
   ]);
   assertInOrder('skills/using-woostack/references/hosts/hermes.md', [

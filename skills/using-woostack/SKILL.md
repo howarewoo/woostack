@@ -63,13 +63,15 @@ of an approved workflow.
 
 **Artifact invariant:** Linear projects and issues are optional durable artifacts for feature
 specifications, implementation plans, and fix records. They never grant implementation permission,
-select work, own a branch, or replace direct Git/GitHub evidence. An exact caller-supplied resource
-or explicit persistence request selects Linear artifact mode; otherwise no command reads or writes
-Linear. Selected fix/build/standalone-plan persistence uses one project, one parent plan issue, and
-one native child issue per increment; `woostack-change` never contacts Linear.
-Tracked repository policy supplies validated defaults only after selection and cannot authorize
-provider writes. Before selected writes, verify the canonical repository association and resolved
-caller-selected workspace/team.
+select work, own a branch, or replace direct Git/GitHub evidence. `/woostack-init` has one narrow
+exception: it may make authenticated read-only setup calls through the official Linear MCP to
+validate non-secret defaults, but it cannot select persistence, read artifact content, or perform a
+provider write. Outside that setup, an exact caller-supplied resource or explicit persistence
+request selects Linear artifact mode; otherwise commands make no Linear read or write. Selected
+fix/build/standalone-plan persistence uses one project, one parent plan issue, and one native child
+issue per increment; `woostack-change` never contacts Linear. Tracked repository policy supplies
+validated defaults only after selection and cannot authorize provider writes. Before selected
+writes, verify the canonical repository association and resolved caller-selected workspace/team.
 Exact resources take precedence over creation. Explicit fix/build abandonment closes any existing
 persisted plan project through the configured canceled status and independent read-back; handoff,
 replanning, and blockers do not. Follow the canonical
