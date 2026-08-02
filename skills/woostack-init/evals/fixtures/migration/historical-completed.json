@@ -36,5 +36,621 @@
       "sourceCommit": "6d49018c0a9851aa250c3d7f39886d107ebf7d4e",
       "sha256": "sha256:9c59e6cf854bc3702b208b55109a275336e07e2fe07d46193958741984c449f5"
     }
-  ]
+  ],
+  "historicalImport": {
+    "operationOrder": [
+      "classify-records-and-groups",
+      "derive-receipt-path",
+      "acquire-exclusive-receipt-operation-lock",
+      "observe-receipt-absence-or-require-explicit-resume",
+      "discover-existing-resources-by-provenance",
+      "allocate-or-reuse-immutable-client-id-ledger",
+      "persist-recovery-receipt",
+      "pre-create-discover-project-by-client-id",
+      "compare-and-swap-project-attempting-unknown",
+      "create-project",
+      "post-create-discover-project-by-client-id",
+      "direct-read-project",
+      "compare-and-swap-project-verified-complete",
+      "pre-create-discover-issue-by-client-id",
+      "compare-and-swap-issue-attempting-unknown",
+      "create-issue",
+      "post-create-discover-issue-by-client-id",
+      "direct-read-issue",
+      "compare-and-swap-issue-verified-complete",
+      "pre-create-discover-comment-by-client-id",
+      "compare-and-swap-comment-attempting-unknown",
+      "create-comment",
+      "post-create-discover-comment-by-client-id",
+      "direct-read-comment",
+      "compare-and-swap-comment-verified-complete",
+      "capture-fresh-terminal-pre-delete-snapshot",
+      "pin-and-revalidate-source-files",
+      "stage-and-verify-private-quarantine",
+      "delete-source-set"
+    ],
+    "receiptPreflight": {
+      "derivedPath": "/home/eval/.local/state/woostack/migrations/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee.json",
+      "portableHandle": "woostack-migration:v1:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "operationLock": {
+        "path": "/home/eval/.local/state/woostack/migrations/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee.json.lock",
+        "mode": "exclusive-nonblocking",
+        "acquired": true,
+        "heldThrough": "terminal-result",
+        "contentionDisposition": "blocked",
+        "receiptWriteMode": "no-clobber-compare-and-swap"
+      },
+      "lostReceiptProvenanceDiscovery": {
+        "groupKey": "historical-group:v1:919d91ae9128ca198578b9d4ff5e4348436f91ba9c9026b7eb5a424345369e65",
+        "sourceSha256s": [
+          "sha256:47a41ba20c72b52957c0773a765dcf2d8ce97d5c6f8d4ee52b13666386b18fac",
+          "sha256:9c59e6cf854bc3702b208b55109a275336e07e2fe07d46193958741984c449f5"
+        ],
+        "projectPages": [{"matches": [], "nextCursor": null}],
+        "issuePages": [{"matches": [], "nextCursor": null}],
+        "commentPages": [{"matches": [], "nextCursor": null}],
+        "priorMappingDisposition": "absent"
+      },
+      "observedExistingReceipt": null,
+      "explicitResumeArgument": null,
+      "allocationMode": "allocate-after-proven-absence",
+      "resourceAttemptBoundaries": {
+        "project": "never-attempted",
+        "planIssue": "never-attempted",
+        "overnightComment": "never-attempted"
+      },
+      "resourceAttemptTransitionHistory": [
+        {
+          "resourceType": "project",
+          "clientId": "10101010-1010-4010-8010-101010101010",
+          "beforeProviderCall": "attempting/unknown",
+          "beforeProviderCallReceiptWrite": "no-clobber-compare-and-swap",
+          "afterDirectRead": "verified-complete",
+          "afterDirectReadReceiptWrite": "no-clobber-compare-and-swap"
+        },
+        {
+          "resourceType": "issue",
+          "clientId": "20202020-2020-4020-8020-202020202020",
+          "beforeProviderCall": "attempting/unknown",
+          "beforeProviderCallReceiptWrite": "no-clobber-compare-and-swap",
+          "afterDirectRead": "verified-complete",
+          "afterDirectReadReceiptWrite": "no-clobber-compare-and-swap"
+        },
+        {
+          "resourceType": "comment",
+          "clientId": "30303030-3030-4030-8030-303030303030",
+          "beforeProviderCall": "attempting/unknown",
+          "beforeProviderCallReceiptWrite": "no-clobber-compare-and-swap",
+          "afterDirectRead": "verified-complete",
+          "afterDirectReadReceiptWrite": "no-clobber-compare-and-swap"
+        }
+      ],
+      "receiptWriteConflictObservations": {
+        "initialCreate": {
+          "receiptAlreadyExists": true,
+          "explicitResumeArgument": null,
+          "providerCallCount": 0
+        },
+        "attemptingBoundaryTransition": {
+          "lastReadPayloadSha256": "sha256:6771276bbc33b053180e3be342a057b6530930b6f3689f0ffcf3fd180d77adb7",
+          "currentPayloadSha256": "sha256:ee2925b1869c8cdca2b059d28ada6dda6734f04dfa5d430c765babef8b8c45ce",
+          "targetBoundary": "attempting/unknown",
+          "providerCallCount": 0
+        }
+      },
+      "postCreateTransitionFailureObservation": {
+        "resourceType": "project",
+        "clientId": "10101010-1010-4010-8010-101010101010",
+        "lastDurableBoundary": "attempting/unknown",
+        "providerCreateAcknowledged": true,
+        "attemptedBoundary": "verified-complete",
+        "receiptWriteOutcome": "payload-digest-mismatch"
+      },
+      "existingReceiptResumeObservation": {
+        "portableHandle": "woostack-migration:v1:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "explicitResumeArgument": "woostack-migration:v1:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "allocationMode": "reuse-immutable-ledger",
+        "resourceClientIds": {
+          "project": "10101010-1010-4010-8010-101010101010",
+          "planIssue": "20202020-2020-4020-8020-202020202020",
+          "overnightComment": "30303030-3030-4030-8030-303030303030"
+        },
+        "resourceAttemptBoundaries": {
+          "project": "verified-complete",
+          "planIssue": "attempting/unknown",
+          "overnightComment": "never-attempted"
+        },
+        "resumeStableIdDiscoveryPages": [
+          {
+            "resourceType": "project",
+            "clientId": "10101010-1010-4010-8010-101010101010",
+            "attemptBoundary": "verified-complete",
+            "pages": [
+              {
+                "matches": [
+                  {
+                    "nativeId": "linear-project-historical-hermetic",
+                    "repositoryId": "R_kgDORP1kWw",
+                    "workspace": "Acme",
+                    "team": "APP",
+                    "role": "historical-project"
+                  }
+                ],
+                "nextCursor": null
+              }
+            ]
+          },
+          {
+            "resourceType": "issue",
+            "clientId": "20202020-2020-4020-8020-202020202020",
+            "attemptBoundary": "attempting/unknown",
+            "pages": [
+              {
+                "matches": [],
+                "nextCursor": null
+              }
+            ]
+          }
+        ],
+        "resumeDirectReadNativeIds": [
+          "linear-project-historical-hermetic"
+        ],
+        "resumeOperationOrder": [
+          "discover-project-by-client-id",
+          "direct-read-project",
+          "discover-issue-by-client-id",
+          "block-zero-match-at-unknown-boundary"
+        ],
+        "createReplayAllowed": false
+      }
+    },
+    "classificationPreflight": {
+      "groupResults": [
+        {
+          "groupKey": "historical-group:v1:919d91ae9128ca198578b9d4ff5e4348436f91ba9c9026b7eb5a424345369e65",
+          "memberClassifications": {
+            ".woostack/overnight/2026-07-30-hermetic-run.md": "historical-completed",
+            ".woostack/plans/2026-07-30-hermetic-migration.md": "historical-completed"
+          },
+          "disposition": "import"
+        }
+      ],
+      "mixedLifecycleCounterfactual": {
+        "groupKey": "historical-group:v1:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "memberClassifications": {
+          ".woostack/specs/counterfactual.md": "active",
+          ".woostack/plans/counterfactual.md": "historical-completed"
+        },
+        "disposition": "preservation-only",
+        "remoteMutationCount": 0
+      }
+    },
+    "groupingLedger": [
+      {
+        "groupKey": "historical-group:v1:919d91ae9128ca198578b9d4ff5e4348436f91ba9c9026b7eb5a424345369e65",
+        "specificationPaths": [],
+        "planPath": ".woostack/plans/2026-07-30-hermetic-migration.md",
+        "overnightPaths": [
+          ".woostack/overnight/2026-07-30-hermetic-run.md"
+        ],
+        "projectClientId": "10101010-1010-4010-8010-101010101010",
+        "planIssueClientId": "20202020-2020-4020-8020-202020202020"
+      }
+    ],
+    "resourceClientIds": {
+      "project": "10101010-1010-4010-8010-101010101010",
+      "planIssue": "20202020-2020-4020-8020-202020202020",
+      "overnightComment": "30303030-3030-4030-8030-303030303030"
+    },
+    "sourceResourceLedger": [
+      {
+        "sourcePath": ".woostack/plans/2026-07-30-hermetic-migration.md",
+        "sourceKind": "plan",
+        "resourceType": "issue",
+        "resourceClientId": "20202020-2020-4020-8020-202020202020",
+        "resourceNativeId": "linear-issue-historical-hermetic-plan",
+        "containerClientId": "10101010-1010-4010-8010-101010101010",
+        "sourceCommit": "6d49018c0a9851aa250c3d7f39886d107ebf7d4e",
+        "sourceBlobObjectId": "115a036a77a59404497be2ca700c4d6456c26b18",
+        "sourceSha256": "sha256:9c59e6cf854bc3702b208b55109a275336e07e2fe07d46193958741984c449f5",
+        "canonicalPullRequestUrl": "https://github.com/howarewoo/woostack/pull/571",
+        "pullRequestNumber": 571,
+        "mergeCommit": "dc94693cb5fdc5f51305fd994f3350e118535814"
+      },
+      {
+        "sourcePath": ".woostack/overnight/2026-07-30-hermetic-run.md",
+        "sourceKind": "overnight",
+        "resourceType": "comment",
+        "resourceClientId": "30303030-3030-4030-8030-303030303030",
+        "resourceNativeId": "linear-comment-historical-hermetic-run",
+        "containerClientId": "20202020-2020-4020-8020-202020202020",
+        "sourceCommit": "6d49018c0a9851aa250c3d7f39886d107ebf7d4e",
+        "sourceBlobObjectId": "ae18fd22788a36645a15f9646f8c2d69029b52ba",
+        "sourceSha256": "sha256:47a41ba20c72b52957c0773a765dcf2d8ce97d5c6f8d4ee52b13666386b18fac",
+        "canonicalPullRequestUrl": "https://github.com/howarewoo/woostack/pull/571",
+        "pullRequestNumber": 571,
+        "mergeCommit": "dc94693cb5fdc5f51305fd994f3350e118535814"
+      }
+    ],
+    "preCreateStableIdDiscoveryPages": [
+      {
+        "resourceType": "project",
+        "clientId": "10101010-1010-4010-8010-101010101010",
+        "attemptBoundary": "never-attempted",
+        "pages": [
+          {
+            "matches": [],
+            "nextCursor": null
+          }
+        ]
+      },
+      {
+        "resourceType": "issue",
+        "clientId": "20202020-2020-4020-8020-202020202020",
+        "containerNativeId": "linear-project-historical-hermetic",
+        "attemptBoundary": "never-attempted",
+        "pages": [
+          {
+            "matches": [],
+            "nextCursor": null
+          }
+        ]
+      },
+      {
+        "resourceType": "comment",
+        "clientId": "30303030-3030-4030-8030-303030303030",
+        "containerNativeId": "linear-issue-historical-hermetic-plan",
+        "attemptBoundary": "never-attempted",
+        "pages": [
+          {
+            "matches": [],
+            "nextCursor": null
+          }
+        ]
+      }
+    ],
+    "stableIdDiscoveryPages": [
+      {
+        "resourceType": "project",
+        "clientId": "10101010-1010-4010-8010-101010101010",
+        "pages": [
+          {
+            "matches": [
+              {
+                "nativeId": "linear-project-historical-hermetic",
+                "repositoryId": "R_kgDORP1kWw",
+                "workspace": "Acme",
+                "team": "APP",
+                "role": "historical-project"
+              }
+            ],
+            "nextCursor": null
+          }
+        ]
+      },
+      {
+        "resourceType": "issue",
+        "clientId": "20202020-2020-4020-8020-202020202020",
+        "pages": [
+          {
+            "matches": [
+              {
+                "nativeId": "linear-issue-historical-hermetic-plan",
+                "repositoryId": "R_kgDORP1kWw",
+                "workspace": "Acme",
+                "team": "APP",
+                "role": "historical-plan"
+              }
+            ],
+            "nextCursor": null
+          }
+        ]
+      },
+      {
+        "resourceType": "comment",
+        "clientId": "30303030-3030-4030-8030-303030303030",
+        "pages": [
+          {
+            "matches": [
+              {
+                "nativeId": "linear-comment-historical-hermetic-run",
+                "repositoryId": "R_kgDORP1kWw",
+                "workspace": "Acme",
+                "team": "APP",
+                "role": "historical-overnight"
+              }
+            ],
+            "nextCursor": null
+          }
+        ]
+      }
+    ],
+    "mutationObservations": [
+      {
+        "operation": "create-project",
+        "clientId": "10101010-1010-4010-8010-101010101010"
+      },
+      {
+        "operation": "create-issue",
+        "clientId": "20202020-2020-4020-8020-202020202020"
+      },
+      {
+        "operation": "create-comment",
+        "clientId": "30303030-3030-4030-8030-303030303030"
+      }
+    ],
+    "independentReads": {
+      "projects": [
+        {
+          "clientId": "10101010-1010-4010-8010-101010101010",
+          "nativeId": "linear-project-historical-hermetic",
+          "title": "[Historical] Hermetic migration",
+          "workspace": "Acme",
+          "team": "APP",
+          "statusType": "completed",
+          "lead": null,
+          "members": [],
+          "metadata": {
+            "managedBy": "woostack",
+            "canonicalRepository": "https://github.com/howarewoo/woostack",
+            "repositoryId": "R_kgDORP1kWw",
+            "role": "historical-project",
+            "referenceOnly": true,
+            "grantsAuthority": false,
+            "groupKey": "historical-group:v1:919d91ae9128ca198578b9d4ff5e4348436f91ba9c9026b7eb5a424345369e65"
+          },
+          "overview": {
+            "specificationSource": null,
+            "specificationAbsence": "no-related-specification-record",
+            "canonicalPullRequestUrl": "https://github.com/howarewoo/woostack/pull/571",
+            "mergeCommit": "dc94693cb5fdc5f51305fd994f3350e118535814"
+          }
+        }
+      ],
+      "issues": [
+        {
+          "clientId": "20202020-2020-4020-8020-202020202020",
+          "nativeId": "linear-issue-historical-hermetic-plan",
+          "title": "[Historical] Hermetic migration plan",
+          "workspace": "Acme",
+          "team": "APP",
+          "projectNativeId": "linear-project-historical-hermetic",
+          "parentNativeId": null,
+          "stateType": "completed",
+          "assignee": null,
+          "metadata": {
+            "managedBy": "woostack",
+            "canonicalRepository": "https://github.com/howarewoo/woostack",
+            "repositoryId": "R_kgDORP1kWw",
+            "role": "historical-plan",
+            "referenceOnly": true,
+            "grantsAuthority": false
+          },
+          "description": {
+            "sourceBytes": "---\ntype: plan\nstatus: done\n---\n\n# Hermetic migration plan\n",
+            "sourcePath": ".woostack/plans/2026-07-30-hermetic-migration.md",
+            "sourceCommit": "6d49018c0a9851aa250c3d7f39886d107ebf7d4e",
+            "sourceBlobObjectId": "115a036a77a59404497be2ca700c4d6456c26b18",
+            "sourceSha256": "sha256:9c59e6cf854bc3702b208b55109a275336e07e2fe07d46193958741984c449f5",
+            "canonicalPullRequestUrl": "https://github.com/howarewoo/woostack/pull/571",
+            "pullRequestNumber": 571,
+            "mergeCommit": "dc94693cb5fdc5f51305fd994f3350e118535814"
+          }
+        }
+      ],
+      "comments": [
+        {
+          "clientId": "30303030-3030-4030-8030-303030303030",
+          "nativeId": "linear-comment-historical-hermetic-run",
+          "issueNativeId": "linear-issue-historical-hermetic-plan",
+          "author": "migration-principal",
+          "metadata": {
+            "managedBy": "woostack",
+            "canonicalRepository": "https://github.com/howarewoo/woostack",
+            "repositoryId": "R_kgDORP1kWw",
+            "role": "historical-overnight",
+            "referenceOnly": true,
+            "grantsAuthority": false,
+            "verificationKind": "historical-handback"
+          },
+          "body": {
+            "sourceBytes": "---\ntype: overnight\nstatus: complete\n---\n\n# Hermetic overnight run\n",
+            "sourcePath": ".woostack/overnight/2026-07-30-hermetic-run.md",
+            "sourceCommit": "6d49018c0a9851aa250c3d7f39886d107ebf7d4e",
+            "sourceBlobObjectId": "ae18fd22788a36645a15f9646f8c2d69029b52ba",
+            "sourceSha256": "sha256:47a41ba20c72b52957c0773a765dcf2d8ce97d5c6f8d4ee52b13666386b18fac",
+            "canonicalPullRequestUrl": "https://github.com/howarewoo/woostack/pull/571",
+            "pullRequestNumber": 571,
+            "mergeCommit": "dc94693cb5fdc5f51305fd994f3350e118535814"
+          }
+        }
+      ],
+      "projectIssueMembershipPages": [
+        {
+          "projectNativeId": "linear-project-historical-hermetic",
+          "issueNativeIds": ["linear-issue-historical-hermetic-plan"],
+          "nextCursor": null
+        }
+      ],
+      "issueRelationPages": [
+        {
+          "issueNativeId": "linear-issue-historical-hermetic-plan",
+          "relationTuples": [],
+          "nextCursor": null
+        }
+      ],
+      "issueCommentPages": [
+        {
+          "issueNativeId": "linear-issue-historical-hermetic-plan",
+          "commentNativeIds": ["linear-comment-historical-hermetic-run"],
+          "nextCursor": null
+        }
+      ]
+    },
+    "terminalPreDeleteSnapshot": {
+      "snapshotId": "historical-terminal-read-0001",
+      "capturedAfterMutationClientIds": [
+        "10101010-1010-4010-8010-101010101010",
+        "20202020-2020-4020-8020-202020202020",
+        "30303030-3030-4030-8030-303030303030"
+      ],
+      "stableIdDiscoveryPages": [
+        {
+          "resourceType": "project",
+          "clientId": "10101010-1010-4010-8010-101010101010",
+          "pages": [
+            {
+              "matches": [
+                {
+                  "nativeId": "linear-project-historical-hermetic",
+                  "repositoryId": "R_kgDORP1kWw",
+                  "workspace": "Acme",
+                  "team": "APP",
+                  "role": "historical-project"
+                }
+              ],
+              "nextCursor": null
+            }
+          ]
+        },
+        {
+          "resourceType": "issue",
+          "clientId": "20202020-2020-4020-8020-202020202020",
+          "pages": [
+            {
+              "matches": [
+                {
+                  "nativeId": "linear-issue-historical-hermetic-plan",
+                  "repositoryId": "R_kgDORP1kWw",
+                  "workspace": "Acme",
+                  "team": "APP",
+                  "role": "historical-plan"
+                }
+              ],
+              "nextCursor": null
+            }
+          ]
+        },
+        {
+          "resourceType": "comment",
+          "clientId": "30303030-3030-4030-8030-303030303030",
+          "pages": [
+            {
+              "matches": [
+                {
+                  "nativeId": "linear-comment-historical-hermetic-run",
+                  "repositoryId": "R_kgDORP1kWw",
+                  "workspace": "Acme",
+                  "team": "APP",
+                  "role": "historical-overnight"
+                }
+              ],
+              "nextCursor": null
+            }
+          ]
+        }
+      ],
+      "directReads": [
+        {
+          "resourceType": "project",
+          "clientId": "10101010-1010-4010-8010-101010101010",
+          "nativeId": "linear-project-historical-hermetic",
+          "repositoryId": "R_kgDORP1kWw",
+          "role": "historical-project",
+          "statusType": "completed",
+          "lead": null,
+          "members": [],
+          "referenceOnly": true,
+          "grantsAuthority": false,
+          "groupKey": "historical-group:v1:919d91ae9128ca198578b9d4ff5e4348436f91ba9c9026b7eb5a424345369e65",
+          "specificationAbsence": "no-related-specification-record",
+          "canonicalPullRequestUrl": "https://github.com/howarewoo/woostack/pull/571",
+          "mergeCommit": "dc94693cb5fdc5f51305fd994f3350e118535814"
+        },
+        {
+          "resourceType": "issue",
+          "clientId": "20202020-2020-4020-8020-202020202020",
+          "nativeId": "linear-issue-historical-hermetic-plan",
+          "repositoryId": "R_kgDORP1kWw",
+          "role": "historical-plan",
+          "stateType": "completed",
+          "assignee": null,
+          "projectNativeId": "linear-project-historical-hermetic",
+          "referenceOnly": true,
+          "grantsAuthority": false,
+          "sourceBytes": "---\ntype: plan\nstatus: done\n---\n\n# Hermetic migration plan\n",
+          "sourcePath": ".woostack/plans/2026-07-30-hermetic-migration.md",
+          "sourceCommit": "6d49018c0a9851aa250c3d7f39886d107ebf7d4e",
+          "sourceBlobObjectId": "115a036a77a59404497be2ca700c4d6456c26b18",
+          "sourceSha256": "sha256:9c59e6cf854bc3702b208b55109a275336e07e2fe07d46193958741984c449f5",
+          "canonicalPullRequestUrl": "https://github.com/howarewoo/woostack/pull/571",
+          "pullRequestNumber": 571,
+          "mergeCommit": "dc94693cb5fdc5f51305fd994f3350e118535814"
+        },
+        {
+          "resourceType": "comment",
+          "clientId": "30303030-3030-4030-8030-303030303030",
+          "nativeId": "linear-comment-historical-hermetic-run",
+          "repositoryId": "R_kgDORP1kWw",
+          "role": "historical-overnight",
+          "issueNativeId": "linear-issue-historical-hermetic-plan",
+          "referenceOnly": true,
+          "grantsAuthority": false,
+          "sourceBytes": "---\ntype: overnight\nstatus: complete\n---\n\n# Hermetic overnight run\n",
+          "sourcePath": ".woostack/overnight/2026-07-30-hermetic-run.md",
+          "sourceCommit": "6d49018c0a9851aa250c3d7f39886d107ebf7d4e",
+          "sourceBlobObjectId": "ae18fd22788a36645a15f9646f8c2d69029b52ba",
+          "sourceSha256": "sha256:47a41ba20c72b52957c0773a765dcf2d8ce97d5c6f8d4ee52b13666386b18fac",
+          "canonicalPullRequestUrl": "https://github.com/howarewoo/woostack/pull/571",
+          "pullRequestNumber": 571,
+          "mergeCommit": "dc94693cb5fdc5f51305fd994f3350e118535814"
+        }
+      ],
+      "sourceFileReads": [
+        {
+          "path": ".woostack/overnight/2026-07-30-hermetic-run.md",
+          "fileType": "regular",
+          "noFollow": true,
+          "descriptorPinned": true,
+          "descriptorHeldThroughDeletion": true,
+          "sourceBytes": "---\ntype: overnight\nstatus: complete\n---\n\n# Hermetic overnight run\n",
+          "sourceSha256": "sha256:47a41ba20c72b52957c0773a765dcf2d8ce97d5c6f8d4ee52b13666386b18fac",
+          "preUnlinkIdentityStable": true,
+          "quarantineIdentityCheck": "matched-pinned-descriptor"
+        },
+        {
+          "path": ".woostack/plans/2026-07-30-hermetic-migration.md",
+          "fileType": "regular",
+          "noFollow": true,
+          "descriptorPinned": true,
+          "descriptorHeldThroughDeletion": true,
+          "sourceBytes": "---\ntype: plan\nstatus: done\n---\n\n# Hermetic migration plan\n",
+          "sourceSha256": "sha256:9c59e6cf854bc3702b208b55109a275336e07e2fe07d46193958741984c449f5",
+          "preUnlinkIdentityStable": true,
+          "quarantineIdentityCheck": "matched-pinned-descriptor"
+        }
+      ],
+      "projectIssueMembershipPages": [
+        {
+          "projectNativeId": "linear-project-historical-hermetic",
+          "issueNativeIds": ["linear-issue-historical-hermetic-plan"],
+          "nextCursor": null
+        }
+      ],
+      "issueRelationPages": [
+        {
+          "issueNativeId": "linear-issue-historical-hermetic-plan",
+          "relationTuples": [],
+          "nextCursor": null
+        }
+      ],
+      "issueCommentPages": [
+        {
+          "issueNativeId": "linear-issue-historical-hermetic-plan",
+          "commentNativeIds": ["linear-comment-historical-hermetic-run"],
+          "nextCursor": null
+        }
+      ]
+    }
+  }
 }

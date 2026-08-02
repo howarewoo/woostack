@@ -79,8 +79,10 @@ never fails local initialization. Setup makes no provider write, selects no arti
 authentication in the host's secret store.
 
 If the repository still contains tracked legacy specifications, plans, fixes, or overnight
-handbacks, run `/woostack-init --migrate-legacy` only when you explicitly want the guarded
-one-way artifact migration. Never migrate or delete those files implicitly.
+handbacks, run `/woostack-init --migrate-legacy` only when you explicitly want the guarded one-way
+import. It imports both active and historical-completed records into verified Linear resources,
+preserves Git/merged-PR recovery and attribution evidence, and deletes local sources only after the
+complete all-or-nothing read-back receipt passes. Never migrate or delete those files implicitly.
 
 ### 3. Project Integration
 
