@@ -75,19 +75,10 @@ write.
 Tracked legacy `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, and overnight records are
 ordinary user-owned files. Never migrate or delete them implicitly.
 
-For `--migrate-legacy`:
-
-1. inventory every tracked legacy record and its provenance;
-2. present an exact one-way migration plan and require explicit confirmation;
-3. require working official MCP artifact connectivity;
-4. create/update only approved destination artifacts with stable mutation IDs and independent
-   read-back;
-5. verify every source-to-destination mapping completely; and
-6. delete local legacy files only after explicit deletion approval and direct proof that no data is
-   lost.
-
-Unknown/partial provider outcomes stop migration with retained IDs and all local files preserved.
-There is no alternate transport or silent fallback.
+For `--migrate-legacy`, follow the
+[canonical legacy migration contract](references/legacy-migration.md). The route is explicitly
+one-way: any unknown or partial outcome preserves every local source, and deletion requires the
+contract's fresh terminal proof plus explicit approval.
 
 ## Optional response setup
 

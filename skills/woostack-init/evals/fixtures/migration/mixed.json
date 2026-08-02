@@ -12,6 +12,7 @@
     {
       "path": ".woostack/fixes/cache-header.md",
       "kind": "fix",
+      "stableClientId": "67676767-6767-4676-8676-676767676767",
       "phase": "complete",
       "provenance": ["git:ca71002:.woostack/fixes/cache-header.md"]
     }
@@ -37,11 +38,232 @@
     },
     ".woostack/fixes/cache-header.md": {
       "pullRequest": 441,
-      "mergeCommit": "ca71003",
+      "mergeCommit": "ca71003ca71003ca71003ca71003ca71003ca710",
       "repositoryId": "repo-woostack",
       "coversPath": ".woostack/fixes/cache-header.md",
       "mergeVerified": true,
       "ancestryVerified": true
+    }
+  },
+  "historicalImport": {
+    "operationOrder": [
+      "classify-records-and-groups",
+      "derive-receipt-path",
+      "observe-receipt-absence-or-require-explicit-resume",
+      "allocate-or-reuse-immutable-client-id-ledger",
+      "persist-recovery-receipt",
+      "pre-create-discover-historical-fix-by-client-id",
+      "create-historical-fix-issue",
+      "post-create-discover-historical-fix-by-client-id",
+      "direct-read-historical-fix",
+      "capture-fresh-terminal-pre-delete-snapshot",
+      "delete-source-set"
+    ],
+    "receiptPreflight": {
+      "derivedPath": "/home/eval/.local/state/woostack/migrations/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.json",
+      "portableHandle": "woostack-migration:v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "observedExistingReceipt": null,
+      "explicitResumeArgument": null,
+      "allocationMode": "allocate-after-proven-absence",
+      "resourceAttemptBoundaries": {
+        "fixIssue": "never-attempted"
+      }
+    },
+    "classificationPreflight": {
+      "groups": [
+        {
+          "sourcePaths": [".woostack/specs/catalog.md"],
+          "memberClassifications": ["active"],
+          "disposition": "reconcile-active"
+        },
+        {
+          "sourcePaths": [".woostack/fixes/cache-header.md"],
+          "memberClassifications": ["historical-completed"],
+          "disposition": "import-historical"
+        }
+      ],
+      "mixedLifecycleGroupCount": 0
+    },
+    "resourceClientIds": {
+      "fixIssue": "67676767-6767-4676-8676-676767676767"
+    },
+    "sourceResourceLedger": [
+      {
+        "sourcePath": ".woostack/fixes/cache-header.md",
+        "sourceKind": "fix",
+        "resourceType": "issue",
+        "resourceClientId": "67676767-6767-4676-8676-676767676767",
+        "resourceNativeId": "linear-issue-historical-cache-header",
+        "containerClientId": null,
+        "sourceCommit": "ca71002ca71002ca71002ca71002ca71002ca710",
+        "sourceBlobObjectId": "fab9fdd974e2325f2c4a439268c76672209358c0",
+        "sourceSha256": "sha256:4b646c92cfff235239b619c6dd1376d7469c747a0bb60f31dd75bcdb4a36d5a6",
+        "canonicalPullRequestUrl": "https://github.com/acme/woostack/pull/441",
+        "pullRequestNumber": 441,
+        "mergeCommit": "ca71003ca71003ca71003ca71003ca71003ca710"
+      }
+    ],
+    "preCreateStableIdDiscoveryPages": [
+      {
+        "resourceType": "issue",
+        "clientId": "67676767-6767-4676-8676-676767676767",
+        "attemptBoundary": "never-attempted",
+        "pages": [
+          {
+            "matches": [],
+            "nextCursor": null
+          }
+        ]
+      }
+    ],
+    "stableIdDiscoveryPages": [
+      {
+        "resourceType": "issue",
+        "clientId": "67676767-6767-4676-8676-676767676767",
+        "pages": [
+          {
+            "matches": [
+              {
+                "nativeId": "linear-issue-historical-cache-header",
+                "repositoryId": "repo-woostack",
+                "workspace": "Acme",
+                "team": "APP",
+                "role": "historical-fix"
+              }
+            ],
+            "nextCursor": null
+          }
+        ]
+      }
+    ],
+    "mutationObservations": [
+      {
+        "operation": "create-issue",
+        "clientId": "67676767-6767-4676-8676-676767676767"
+      }
+    ],
+    "independentReads": {
+      "issues": [
+        {
+          "clientId": "67676767-6767-4676-8676-676767676767",
+          "nativeId": "linear-issue-historical-cache-header",
+          "title": "[Historical] Cache header fix",
+          "workspace": "Acme",
+          "team": "APP",
+          "projectNativeId": null,
+          "parentNativeId": null,
+          "stateType": "completed",
+          "assignee": null,
+          "metadata": {
+            "managedBy": "woostack",
+            "canonicalRepository": "https://github.com/acme/woostack",
+            "repositoryId": "repo-woostack",
+            "role": "historical-fix",
+            "referenceOnly": true,
+            "grantsAuthority": false
+          },
+          "description": {
+            "sourceBytes": "# Cache header fix\n\nCompleted in pull request 441.\n",
+            "sourcePath": ".woostack/fixes/cache-header.md",
+            "sourceCommit": "ca71002ca71002ca71002ca71002ca71002ca710",
+            "sourceBlobObjectId": "fab9fdd974e2325f2c4a439268c76672209358c0",
+            "sourceSha256": "sha256:4b646c92cfff235239b619c6dd1376d7469c747a0bb60f31dd75bcdb4a36d5a6",
+            "canonicalPullRequestUrl": "https://github.com/acme/woostack/pull/441",
+            "pullRequestNumber": 441,
+            "mergeCommit": "ca71003ca71003ca71003ca71003ca71003ca710"
+          }
+        }
+      ],
+      "issueProjectMembershipPages": [
+        {
+          "issueNativeId": "linear-issue-historical-cache-header",
+          "projectNativeIds": [],
+          "nextCursor": null
+        }
+      ],
+      "issueRelationPages": [
+        {
+          "issueNativeId": "linear-issue-historical-cache-header",
+          "relationTuples": [],
+          "nextCursor": null
+        }
+      ],
+      "issueCommentPages": [
+        {
+          "issueNativeId": "linear-issue-historical-cache-header",
+          "commentNativeIds": [],
+          "nextCursor": null
+        }
+      ]
+    },
+    "terminalPreDeleteSnapshot": {
+      "snapshotId": "mixed-terminal-read-0001",
+      "capturedAfterMutationClientIds": [
+        "67676767-6767-4676-8676-676767676767"
+      ],
+      "stableIdDiscoveryPages": [
+        {
+          "resourceType": "issue",
+          "clientId": "67676767-6767-4676-8676-676767676767",
+          "pages": [
+            {
+              "matches": [
+                {
+                  "nativeId": "linear-issue-historical-cache-header",
+                  "repositoryId": "repo-woostack",
+                  "workspace": "Acme",
+                  "team": "APP",
+                  "role": "historical-fix"
+                }
+              ],
+              "nextCursor": null
+            }
+          ]
+        }
+      ],
+      "directReads": [
+        {
+          "resourceType": "issue",
+          "clientId": "67676767-6767-4676-8676-676767676767",
+          "nativeId": "linear-issue-historical-cache-header",
+          "repositoryId": "repo-woostack",
+          "role": "historical-fix",
+          "stateType": "completed",
+          "assignee": null,
+          "projectNativeId": null,
+          "referenceOnly": true,
+          "grantsAuthority": false,
+          "sourceBytes": "# Cache header fix\n\nCompleted in pull request 441.\n",
+          "sourcePath": ".woostack/fixes/cache-header.md",
+          "sourceCommit": "ca71002ca71002ca71002ca71002ca71002ca710",
+          "sourceBlobObjectId": "fab9fdd974e2325f2c4a439268c76672209358c0",
+          "sourceSha256": "sha256:4b646c92cfff235239b619c6dd1376d7469c747a0bb60f31dd75bcdb4a36d5a6",
+          "canonicalPullRequestUrl": "https://github.com/acme/woostack/pull/441",
+          "pullRequestNumber": 441,
+          "mergeCommit": "ca71003ca71003ca71003ca71003ca71003ca710"
+        }
+      ],
+      "issueProjectMembershipPages": [
+        {
+          "issueNativeId": "linear-issue-historical-cache-header",
+          "projectNativeIds": [],
+          "nextCursor": null
+        }
+      ],
+      "issueRelationPages": [
+        {
+          "issueNativeId": "linear-issue-historical-cache-header",
+          "relationTuples": [],
+          "nextCursor": null
+        }
+      ],
+      "issueCommentPages": [
+        {
+          "issueNativeId": "linear-issue-historical-cache-header",
+          "commentNativeIds": [],
+          "nextCursor": null
+        }
+      ]
     }
   },
   "receiptSet": {
@@ -52,7 +274,7 @@
     "verified": true,
     "entries": [
       "git:ca71001:.woostack/specs/catalog.md -> linear://project/56565656-5656-4656-8656-565656565656",
-      "git:ca71002:.woostack/fixes/cache-header.md",
+      "git:ca71002:.woostack/fixes/cache-header.md -> linear://issue/67676767-6767-4676-8676-676767676767",
       "pr:441@ca71003"
     ]
   },
@@ -64,7 +286,32 @@
       "relationTuples": []
     },
     {
-      "mergeCommit": "ca71003",
+      "nativeId": "linear-issue-historical-cache-header",
+      "clientId": "67676767-6767-4676-8676-676767676767",
+      "stateType": "completed",
+      "assignee": null,
+      "projectNativeId": null,
+      "issueProjectMembershipPages": [
+        {
+          "projectNativeIds": [],
+          "nextCursor": null
+        }
+      ],
+      "issueRelationPages": [
+        {
+          "relationTuples": [],
+          "nextCursor": null
+        }
+      ],
+      "issueCommentPages": [
+        {
+          "commentNativeIds": [],
+          "nextCursor": null
+        }
+      ]
+    },
+    {
+      "mergeCommit": "ca71003ca71003ca71003ca71003ca71003ca710",
       "mergeVerified": true,
       "ancestryVerified": true
     }

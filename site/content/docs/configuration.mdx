@@ -14,9 +14,10 @@ commits, pull requests, reviews, and merge truth. Init's discovery calls neither
 nor authorize later provider access. A validated `linear` object supplies defaults only after the
 caller selects an exact artifact or explicitly requests persistence; it cannot authorize a write.
 
-Tracked legacy `.woostack/specs/`, `.woostack/plans/`, `.woostack/fixes/`, and
-`.woostack/overnight/` remain local records unless the user explicitly invokes the guarded
-`/woostack-init --migrate-legacy` route.
+Tracked legacy records remain local unless the user explicitly invokes the guarded
+`/woostack-init --migrate-legacy` route. The
+[woostack-init migration contract](/docs/skills/woostack-init#optional-guarded-legacy-migration)
+owns its import, preservation, recovery, and deletion boundaries.
 
 The init template ships four top-level keys: `models`, `review`, `respond`, and `status`. Other
 supported settings use built-in defaults. [woostack-doctor](/docs/skills/woostack-doctor) checks
