@@ -1025,6 +1025,91 @@
           "critical": true
         }
       ]
+    },
+    {
+      "id": "deduplicates-overlapping-follow-up-reviewers",
+      "prompt": "Classify this bounded post-address review plan without calling GitHub, Graphite, Linear, model providers, or mutating files. An initial canonical `woostack-review --full` found multiple issues. Addressing and focused checks produced a four-file correction on a new head. Before commit, the sweep controller proposes two supplemental independent reviewers: a deep reviewer asks `Do the four-file addressed diff and unchanged acceptance criteria prove every confirmed finding is fixed without a regression?`; a standard reviewer is queued with the same question and would accept or reject on the same evidence. The later canonical current-head full re-review remains required. Its angle/chunk workers have distinct angle contracts, and its prosecutor and defender validators have opposing biases. The user flags review cost before the queued standard reviewer starts. Return exactly one JSON object with keys followUpReviewerCount, keptReviewer, canceledReviewers, decisionQuestions, sameEvidenceAssignmentsAllowed, confidenceOnlyDuplicationAllowed, costFlagAction, canonicalFullRereviewCount, angleWorkersPreserved, and adversarialValidatorsPreserved.",
+      "fixtures": [],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "The controller keeps one focused skeptical deep follow-up reviewer, cancels the overlapping standard reviewer immediately, rejects same-evidence or confidence-only duplication, preserves exactly one later canonical full re-review, and leaves its distinct angle workers and adversarial validator pair unchanged.",
+      "assertions": [
+        {
+          "id": "one-focused-follow-up-reviewer",
+          "kind": "final-json-path-equals",
+          "pointer": "/followUpReviewerCount",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "stronger-reviewer-kept",
+          "kind": "final-json-path-equals",
+          "pointer": "/keptReviewer",
+          "expected": "deep",
+          "critical": true
+        },
+        {
+          "id": "overlapping-reviewer-canceled",
+          "kind": "final-json-path-equals",
+          "pointer": "/canceledReviewers",
+          "expected": [
+            "standard"
+          ],
+          "critical": true
+        },
+        {
+          "id": "one-explicit-decision-question",
+          "kind": "final-json-path-equals",
+          "pointer": "/decisionQuestions",
+          "expected": [
+            "Do the four-file addressed diff and unchanged acceptance criteria prove every confirmed finding is fixed without a regression?"
+          ],
+          "critical": true
+        },
+        {
+          "id": "same-evidence-assignments-rejected",
+          "kind": "final-json-path-equals",
+          "pointer": "/sameEvidenceAssignmentsAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "confidence-only-duplication-rejected",
+          "kind": "final-json-path-equals",
+          "pointer": "/confidenceOnlyDuplicationAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "cost-flag-cancels-overlap",
+          "kind": "final-json-path-equals",
+          "pointer": "/costFlagAction",
+          "expected": "cancel-overlap-and-continue-minimum",
+          "critical": true
+        },
+        {
+          "id": "one-canonical-full-rereview-remains",
+          "kind": "final-json-path-equals",
+          "pointer": "/canonicalFullRereviewCount",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "distinct-angle-workers-preserved",
+          "kind": "final-json-path-equals",
+          "pointer": "/angleWorkersPreserved",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "adversarial-validator-pair-preserved",
+          "kind": "final-json-path-equals",
+          "pointer": "/adversarialValidatorsPreserved",
+          "expected": true,
+          "critical": true
+        }
+      ]
     }
   ]
 }
