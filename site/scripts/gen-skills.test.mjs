@@ -208,7 +208,9 @@ test('configuration docs follow the scaffold and Linear contract', async () => {
   assert.match(configuration, /^## Audit engine$/m);
   assert.match(configuration, /`audit\.severity_floor`/);
   assert.match(configuration, /Root model tiers also drive \[woostack-audit\]/);
-  assert.match(configuration, /enables automatic\s+availability preflight/);
+  assert.match(configuration, /automatically attempts safe read-only Linear default discovery/);
+  assert.match(configuration, /Missing or incomplete Linear setup never blocks local initialization/);
+  assert.match(configuration, /neither select persistence\s+nor authorize later provider access/);
 
   const { fm, body } = parseFrontmatter(auditRaw, 'woostack-audit');
   const renderedBody = rewriteLinks(

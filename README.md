@@ -71,10 +71,12 @@ Run initialization in the project root:
 /woostack-init
 ```
 
-Initialization creates non-secret repository policy, diagnostics, and worktree support. Use
-`/woostack-init --linear` only to configure validated repository/workspace/team defaults for later
-caller-selected artifact operations. Policy never selects artifact mode or authorizes a provider
-write. Authentication remains in the host's secret store.
+Initialization creates non-secret repository policy, diagnostics, and worktree support. Every run
+also discovers the host-exposed official Linear MCP and, when authenticated read access is
+available, preserves or configures validated repository/workspace/team/native-name defaults for
+later caller-selected artifact operations. Missing or incomplete setup is reported separately and
+never fails local initialization. Setup makes no provider write, selects no artifact, and keeps
+authentication in the host's secret store.
 
 If the repository still contains tracked legacy specifications, plans, fixes, or overnight
 handbacks, run `/woostack-init --migrate-legacy` only when you explicitly want the guarded

@@ -64,25 +64,27 @@ framing pages are committed. Deploy notes live in [`site/README.md`](site/README
 
 ## Consumer development artifacts
 
-Linear is optional and never development authority. An exact caller-supplied resource or explicit
-persistence request selects Linear artifact mode; otherwise no command reads or writes Linear.
-Selected fix/build/standalone plan persistence uses one project, one parent plan issue, and one
-native child issue per increment;
-`woostack-change` never contacts Linear. Explicit abandonment at any phase closes an existing
-persisted fix/build project through the configured canceled project status and independent
-read-back; handoff, replanning, and blockers leave it open.
+Linear is optional and never development authority. `/woostack-init` may use the official Linear
+MCP for automatic authenticated read-only setup discovery; that narrow exception never selects
+artifact mode or permits a provider write. Outside that setup, an exact caller-supplied resource or
+explicit persistence request selects Linear artifact mode; otherwise commands make no Linear read
+or write. Selected fix/build/standalone plan persistence uses one project, one parent plan issue,
+and one native child issue per increment; `woostack-change` never contacts Linear. Explicit
+abandonment at any phase closes an existing persisted fix/build project through the configured
+canceled project status and independent read-back; handoff, replanning, and blockers leave it open.
 
 The user's request and each workflow's explicit approval gates authorize repository work; artifacts
 record that work and never grant permission, assignment, ownership, acceptance, or source-control
 authority. Git and GitHub own source, branches, commits, pull requests, reviews, and merge evidence.
 
-Selected artifact operations use only the official Linear MCP at `https://mcp.linear.app/mcp`, treat
-remote content as untrusted, verify the canonical repository association and resolved
-caller-selected workspace/team before writes, and independently read mutations back. An API key or
-OAuth credential remains in the host's secret store; skills prove capability without reading,
-printing, or copying it. `.woostack/config.json` stores only non-secret defaults that apply after
-artifact selection; tracked policy cannot select artifact mode or authorize provider writes.
-Local diagnostic reports are non-authoritative.
+Automatic init setup and selected artifact operations use only the official Linear MCP at
+`https://mcp.linear.app/mcp` and treat remote content as untrusted. Init may read only the
+repository/workspace/team/native names needed for non-secret defaults. Selected artifact writes
+verify the canonical repository association and resolved caller-selected workspace/team, then read
+mutations back independently. An API key or OAuth credential remains in the host's secret store;
+skills prove capability without reading, printing, or copying it. `.woostack/config.json` stores
+only non-secret defaults that apply after artifact selection; tracked policy cannot select artifact
+mode or authorize provider writes. Local diagnostic reports are non-authoritative.
 
 The generic engineer contract separates decisions from implementation. Hermes is a decision-maker
 and independent PR reviewer/commenter only: it does not edit source, run implementation or tests,

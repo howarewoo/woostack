@@ -1,6 +1,6 @@
 ---
 title: Getting started
-description: Install woostack, initialize local support, and configure optional post-selection Linear defaults or an engineer pair.
+description: Install woostack, initialize local support with automatic safe Linear defaults, and optionally configure an engineer pair.
 ---
 
 <Callout type="info">
@@ -30,10 +30,12 @@ From the target repository, invoke:
 
 Initialization creates or repairs non-secret `.woostack/config.json`, diagnostic report roots,
 worktree support, and the three project-scoped OMP role workers. It preserves other project agents
-and does not create a specification, plan, fix, issue, project, branch, or PR.
+and does not create a specification, plan, fix, issue, project, branch, or PR. Every run also
+attempts safe read-only Linear default discovery through the host-exposed official MCP. Missing or
+incomplete Linear capability is reported separately and never blocks local initialization.
 
-Read [Configuration](/docs/configuration) for optional policy. Artifact-free workflows need no
-provider connection.
+Read [Configuration](/docs/configuration) for optional policy. Artifact-free workflows require no
+provider connection or persistence selection.
 
 ## 3. Choose the workflow
 
@@ -50,29 +52,28 @@ provider connection.
 The selected workflow's contract and approval gates authorize work. An issue or project is never a
 prerequisite merely to run a command.
 
-## 4. Optional: configure Linear plan defaults
+## 4. Automatic Linear default setup
 
-Configure Linear defaults only when later caller-selected artifact operations need them. Invoke:
-
-```text
-/woostack-init --linear
-```
-
-Configure only the host-exposed official Linear MCP endpoint:
+The default `/woostack-init` run discovers only the host-exposed official Linear MCP endpoint:
 
 ```text
 https://mcp.linear.app/mcp
 ```
 
+Authenticated read access is enough to preserve or configure validated non-secret
+repository/workspace/team/native-name defaults. Init never probes provider writes, reads or creates
+an artifact, or selects persistence. Missing, unauthenticated, ambiguous, or incomplete capability
+is a separately reported setup skip/blocker and does not fail ordinary local initialization.
+
 Authentication stays in the host's MCP/OAuth secret store. Never place API keys, credentials,
 tokens, or authorization headers in repository config, prompts, logs, or generated files.
 
-The `linear` configuration supplies validated repository/workspace/team defaults only after the
-caller supplies an exact resource or explicitly requests persistence. It cannot trigger provider
-access or authorize a write. Before selected persistence, the workflow verifies the canonical
-repository association and resolved caller-selected workspace/team, then stores one project, one
-parent plan issue, and one native child issue per increment with independent read-back.
-`woostack-change` never contacts Linear.
+The `linear` configuration supplies validated defaults only after a later caller supplies an exact
+resource or explicitly requests persistence. It cannot trigger provider access or authorize a
+write. Before selected persistence, the workflow verifies the canonical repository association and
+resolved caller-selected workspace/team, then stores one project, one parent plan issue, and one
+native child issue per increment with independent read-back. `woostack-change` never contacts
+Linear.
 
 ## 5. Optional: configure a Hermes + OMP engineer pair
 
@@ -109,7 +110,7 @@ hardens its fix/change/build contract and may run artifact-free.
 ## Setup references
 
 <Cards>
-  <Card title="Configuration" href="/docs/configuration" description="Non-secret repository policy and optional provider settings." />
+  <Card title="Configuration" href="/docs/configuration" description="Non-secret repository policy and automatic safe Linear defaults." />
   <Card title="Building rules" href="/docs/concepts/building-rules" description="Workflow routing, gates, execution, and authority boundaries." />
   <Card title="Engineer agents" href="/docs/concepts/engineer-agents" description="Decision, implementation, review, and acceptance separation." />
   <Card title="Hermes" href="/docs/harnesses/hermes" description="Optional decision-maker and independent reviewer adapter." />
