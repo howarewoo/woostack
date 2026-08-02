@@ -393,6 +393,7 @@ const requiredContractProofs = {
     'bottom-up bounded loop and no-progress guard': [['strict-bottom-up-order'], ['address-pass-count'], ['no-progress-guard']],
     'review receipts gate clean outcomes': [['linear-review-result-receipts-retained'], ['missing-receipt-blocks-clean'], ['unknown-readback-blocks']],
     'restack requires conflict-free single-use authorization': [['collision-no-restack'], ['missing-authorization-no-restack'], ['invalid-authorization-no-restack'], ['authorized-one-operation']],
+    'generic follow-up reviewers deduplicate without weakening canonical roles': [['one-focused-follow-up-reviewer'], ['stronger-reviewer-kept'], ['overlapping-reviewer-canceled'], ['one-explicit-decision-question'], ['same-evidence-assignments-rejected'], ['confidence-only-duplication-rejected'], ['cost-flag-cancels-overlap'], ['one-canonical-full-rereview-remains'], ['distinct-angle-workers-preserved'], ['adversarial-validator-pair-preserved']],
     'no merge': [['sweep-never-merges'], ['missing-receipt-never-merges']],
   },
   'woostack-address-comments': {
@@ -632,7 +633,7 @@ const approvedCorpusContracts = {
   'woostack-execute-overnight': corpusContract(8, 'ef93b1b70e63ccef67e2f515041ace0d9652180d1303ce0b71652da6940416d6'),
   'woostack-commit': corpusContract(14, '12306fe19af4e4cf50d2cfba1ce4870c74ae54ee74d7644b05c1df2e0b0357ce'),
   'woostack-review': corpusContract(8, 'a0b1867da4944ba30d218689d8f5a68db321ac57cd864763f1dda696963006c0'),
-  'woostack-sweep': corpusContract(8, '89e49d6348148133915aca2e21abe50dafb9e7e46469b611833d34ebafedcd86'),
+  'woostack-sweep': corpusContract(9, 'f0a49f1ef44c9707c32b33bea645b4d3247a5128562d018491d5f0fd4399b1bc'),
   'woostack-address-comments': corpusContract(5, '63f3418aa58f54d6f1f4bef11ee283be2527b2501daf9b62d347c1cc6e1722d7'),
   'woostack-debug': corpusContract(2, '5d91d8f4c305cc987c5d8c301782601c89cbfafcad389d3ad98d8e0764843883'),
   'woostack-audit': corpusContract(2, '585830e35e5aaf111cf683fac1d6962c0cf61822a02e6209e1ebf89050fe209c'),

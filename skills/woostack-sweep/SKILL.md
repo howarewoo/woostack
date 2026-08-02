@@ -77,6 +77,17 @@ thread set, changed paths, and approved task contract.
    truthfully, but only after the attempt.
 4. **Verify.** Require focused verification and the calling workflow's complete review boundary on
    the unchanged addressed diff before commit/submission.
+   Before dispatching any generic post-address follow-up review, state the distinct decision question
+   for each proposed assignment. Default to one focused skeptical reviewer over the addressed diff
+   and unchanged acceptance criteria. If two assignments would accept or reject on the same
+   evidence, combine them or retain only the stronger reviewer. Confidence or symmetry never
+   justifies duplication. If the user flags review cost, cancel overlapping work and confirm it is
+   quiescent before continuing with the minimum required set.
+
+   This gate applies only to generic post-address follow-up reviewers. It does not collapse the
+   initial canonical `woostack-review --full` angle/chunk workers, which retain distinct angle
+   contracts; Step 6's canonical current-head full re-review; or the Prosecutor/Defender validators,
+   whose opposing biases are distinct contracts.
 5. **Restack affected descendants.** If the PR head changed, follow the restack boundary below.
 6. **Re-review.** Fetch the updated PR/head and run a new full review. Never reuse a result from a
    prior head.
