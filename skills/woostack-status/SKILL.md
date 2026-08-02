@@ -27,15 +27,16 @@ activity, current user, or search ranking.
 ## Repository snapshot
 
 1. Resolve the physical repository root and canonical remote.
-2. Read the configured integration branch, current checkout, local/remote branches, worktrees,
-   working-tree states, and Graphite ancestry.
+2. Read the configured integration branch, deterministic task paths from any active approved
+   contracts, filesystem state, `git worktree list --porcelain`, local/remote branches and commits,
+   complete dirty/index/diff state, and Graphite ancestry.
 3. Fetch canonical GitHub PR metadata for candidate branches with complete pagination: number/URL,
    state, head/base branches and SHAs, draft state, checks, reviews, unresolved threads, and merge
    evidence.
-4. Match branch to PR by canonical repository plus exact head ref/SHA. Reject duplicates, ambiguous
-   matches, stale heads, moved bases, or incomplete pages.
-5. Read disposable task registry claims only as recovery hints, then verify every claim against Git,
-   Graphite, worktree, and GitHub facts. Registry fields never authorize work or override source.
+4. Match branch to PR by canonical repository plus exact head ref/SHA. Reject duplicate checkouts,
+   branches, commits, or PRs; ambiguous matches; stale heads; moved bases; or incomplete pages.
+5. Reconcile each deterministic path and retained task/run contract directly against Git, Graphite,
+   worktree, dirty-state, and GitHub facts. Contract metadata never overrides repository state.
 6. Freeze the complete snapshot before rendering. If a material read changes mid-snapshot, restart
    once; repeated drift is reported as `unstable`, not smoothed over.
 
@@ -62,9 +63,9 @@ repository board and disclose the omission. Status makes no artifact write.
 
 ## Row derivation
 
-Create one row per stable repository task/branch/PR identity. Prefer the stable task ID from the
-approved in-run contract or verified disposable registry; otherwise use the exact canonical branch
-or PR identity without inventing an issue.
+Create one row per stable repository task/branch/PR identity. Prefer the stable task ID only when an
+active approved in-run contract supplies it; otherwise use the exact canonical branch or PR identity
+without inventing an issue.
 
 Derive coarse state only from direct facts:
 
@@ -116,7 +117,7 @@ Render a concise table containing:
 - repository state;
 - branch and Graphite parent/base;
 - PR URL, head/base, checks, review/thread summary, and merge evidence;
-- worktree/registry collision or dirty-state warning;
+- worktree checkout/path collision or dirty-state warning;
 - dependency readiness when an approved plan was supplied;
 - optional artifact URL plus spec/plan/fix label and drift note;
 - staleness; and

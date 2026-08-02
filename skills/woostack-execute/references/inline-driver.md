@@ -27,8 +27,9 @@ Missing, stale, partial, or contradictory input returns `BLOCKED` before editing
 
 For each ordered step in the task contract:
 
-1. **Recheck before edit.** Confirm the task/run identity, worktree claim, branch/parent, allowed
-   surface, and current diff. Stop on drift or collision.
+1. **Recheck before edit.** Confirm the approved task/run contract, deterministic worktree path,
+   `git worktree list --porcelain` entry, branch/parent, allowed surface, and complete
+   dirty/index/diff state. Stop on drift or collision.
 2. **Red.** Follow the [woostack-tdd kernel](../../woostack-tdd/SKILL.md). For new observable
    behavior, first run the smallest meaningful test/reproduction and observe the intended failure.
    A compile or fixture failure unrelated to the contract is not a valid Red.

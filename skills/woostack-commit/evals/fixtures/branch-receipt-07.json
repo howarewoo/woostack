@@ -74,13 +74,9 @@
       "sourceValue": "Cache hardening"
     }
   },
-  "registry": {
-    "complete": true,
-    "claims": []
-  },
   "git": {
     "complete": true,
-    "canonicalIssueWorktreePath": "/repo/.woostack/worktrees/issues/linear-issue-67",
+    "deterministicTaskWorktreePath": "/repo/.woostack/worktrees/tasks/linear-issue-67",
     "worktrees": [],
     "localBranches": [],
     "issueCommits": []

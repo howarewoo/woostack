@@ -73,34 +73,12 @@
       "source": "verified-issue-identifier"
     }
   },
-  "registry": {
-    "complete": true,
-    "claims": [
-      {
-        "nativeIssueId": "linear-issue-963",
-        "clientIssueId": "96396396-3963-4963-8963-963963963963",
-        "projectId": null,
-        "role": "work-item",
-        "repository": "https://github.com/acme/widgets",
-        "owner": {
-          "kind": "human",
-          "principal": "user-9",
-          "runId": "run-963"
-        },
-        "branch": "change/app-63",
-        "worktreePath": "/repo/.woostack/worktrees/issues/linear-issue-963",
-        "startCommit": "x63",
-        "graphiteParent": "staging",
-        "assignmentNativeId": "comment-assignment-963"
-      }
-    ]
-  },
   "git": {
     "complete": true,
-    "canonicalIssueWorktreePath": "/repo/.woostack/worktrees/issues/linear-issue-63",
+    "deterministicTaskWorktreePath": "/repo/.woostack/worktrees/tasks/linear-issue-63",
     "worktrees": [
       {
-        "path": "/repo/.woostack/worktrees/issues/linear-issue-963",
+        "path": "/repo/.woostack/worktrees/tasks/linear-issue-963",
         "branch": "change/app-63",
         "head": "x63"
       }
@@ -109,7 +87,7 @@
       {
         "name": "change/app-63",
         "head": "x63",
-        "checkedOutAt": "/repo/.woostack/worktrees/issues/linear-issue-963"
+        "checkedOutAt": "/repo/.woostack/worktrees/tasks/linear-issue-963"
       }
     ],
     "issueCommits": []

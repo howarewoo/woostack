@@ -117,9 +117,10 @@ retry boundary and never resumes repository work.
 After explicit approval and any required plan persistence:
 
 1. re-read the repository and prove the approved contract still matches the target;
-2. resolve canonical remote/base, Git/Graphite ancestry, branches, worktrees, claims, and PRs;
-3. require all task state absent or one exact recoverable task state;
-4. claim one isolated worktree through the
+2. resolve canonical remote/base, deterministic task path, complete worktree inventory,
+   Git/Graphite ancestry, local/remote branches and commits, dirty/index/diff state, and PRs;
+3. require all task state absent or one exact recoverable direct-evidence task state;
+4. create, attach, or resume one isolated worktree through the
    [canonical worktree contract](../woostack-init/references/worktrees.md); and
 5. dispatch exactly the approved bounded increment to `woostack-execute`, including its exact
    persisted project, parent plan issue, and increment child context when present.

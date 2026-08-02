@@ -4,7 +4,7 @@
   "cases": [
     {
       "id": "workspace-integrity-diagnosis-and-gate",
-      "query": "Nothing appears to be missing from .woostack, but recent hand edits may have broken config values, worktree claims, and response setup. Check the existing workspace, separate safe corrections from judgment calls, and let me choose what to apply.",
+      "query": "Nothing appears to be missing from .woostack, but recent hand edits may have broken config values, response setup, or static workspace policy. Check the existing workspace, separate safe corrections from judgment calls, and let me choose what to apply.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-doctor",
       "conflictsWith": ["woostack-init", "woostack-status"]

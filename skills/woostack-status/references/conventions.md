@@ -11,14 +11,17 @@ or override repository status.
 Take one logical snapshot:
 
 1. resolve the canonical repository and configured integration base;
-2. inventory local worktrees, branches, heads, dirty state, and disposable task claims;
+2. inventory deterministic paths from any active approved contracts, filesystem state,
+   `git worktree list --porcelain`, local/remote branches and commits, and complete
+   dirty/index/diff state;
 3. inventory Graphite parent/stack ancestry; and
 4. fully paginate canonical GitHub PRs, commits, reviews, checks, threads, and merge evidence for
    candidate branches.
 
-Match facts by canonical repository and exact branch/head/PR identity. Titles, timestamps, issue
-keys, PR trailers, recent activity, current user, and artifact fields are not identity. A mutable
-registry claim is a recovery hint only and must agree with direct repository evidence.
+Match facts by canonical repository and exact path/checkout/branch/head/PR identity. Titles,
+timestamps, issue keys, PR trailers, recent activity, current user, and artifact fields are not
+identity. A task/run identity is usable only from the active approved contract and must agree with
+direct repository evidence.
 
 If a material fact changes while the snapshot is assembled, discard the snapshot and retry once.
 Repeated drift is `unknown`. Missing or ambiguous evidence never becomes an empty successful set.
@@ -27,7 +30,7 @@ Repeated drift is `unknown`. Missing or ambiguous evidence never becomes an empt
 
 Create one row for each non-base stable task/branch/PR identity:
 
-- use a stable approved task ID when the active plan or verified registry supplies one;
+- use a stable approved task ID only when the active approved contract supplies one;
 - otherwise use the exact branch or canonical PR identity;
 - keep an unsubmitted worktree branch as a local row; and
 - group rows only by verified Graphite ancestry or an explicitly supplied approved dependency plan.
@@ -65,17 +68,17 @@ contract or thread disposition says it blocks; never silently dismiss it from ti
 
 ## Worktrees and collisions
 
-Validate each claimed worktree against the
+Validate each observed worktree against the
 [canonical worktree contract](../../woostack-init/references/worktrees.md). Report:
 
-- expected and actual path;
-- branch/head and Graphite parent;
-- dirty/index state;
-- duplicate checkout or registry claim;
-- competing run/task identity; and
+- deterministic and actual path;
+- complete `git worktree list --porcelain` entry, branch/head, and Graphite parent;
+- dirty/index/diff state;
+- duplicate checkout, branch, commit, or PR;
+- conflict with an active approved task/run contract; and
 - first safe recovery boundary.
 
-Never repair, remove, clean, reset, stash, or reassign from status.
+Never repair, remove, clean, reset, stash, reassign, attach, or create from status.
 
 ## Optional artifact columns
 

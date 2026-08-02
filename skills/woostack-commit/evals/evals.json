@@ -602,7 +602,7 @@
           "kind": "final-json-path-equals",
           "pointer": "/worktreeBinding",
           "expected": {
-            "path": "/repo/.woostack/worktrees/issues/linear-issue-61",
+            "path": "/repo/.woostack/worktrees/tasks/linear-issue-61",
             "branch": "change/app-61"
           },
           "critical": true
@@ -642,7 +642,7 @@
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The exact caller-owned claim, branch, worktree, parent, owner, and assignment are reused in place; verification and gt modify are selected while every creation command remains absent.",
+      "expected": "The exact caller task contract, branch, deterministic worktree, parent, owner, and assignment agree with direct repository evidence and are reused in place; verification and gt modify are selected while every creation command remains absent.",
       "assertions": [
         {
           "id": "reuse-branch-ready",
@@ -690,7 +690,7 @@
           "kind": "final-json-path-equals",
           "pointer": "/worktreeBinding",
           "expected": {
-            "path": "/repo/.woostack/worktrees/issues/linear-issue-62",
+            "path": "/repo/.woostack/worktrees/tasks/linear-issue-62",
             "branch": "change/app-62"
           },
           "critical": true
@@ -721,7 +721,7 @@
       ]
     },
     {
-      "id": "blocks-conflicting-branch-claim",
+      "id": "blocks-conflicting-checkout-path",
       "prompt": "Inspect only the declared fixture fixtures/branch-receipt-03.json as a bounded input snapshot. Apply the packaged /woostack-commit branch-admission contract without invoking Git, Graphite, GitHub, Linear, network, provider, or mutation commands. Return exactly one JSON object using keys status, reasonCode, branchAction, branchName, identityBinding, parentBinding, worktreeBinding, authorizedCommands, commandCounts, and mutationCounts.",
       "fixtures": [
         "branch-receipt-03.json"
@@ -729,7 +729,7 @@
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The conflicting display branch and foreign exact-ID claim fail closed without selecting an identity, parent, worktree, branch command, commit, PR write, or Linear mutation.",
+      "expected": "The conflicting display branch and foreign checkout at a non-deterministic path fail closed without selecting an identity, parent, worktree, branch command, commit, PR write, or Linear mutation.",
       "assertions": [
         {
           "id": "collision-branch-blocked",
@@ -742,7 +742,7 @@
           "id": "collision-branch-reason",
           "kind": "final-json-path-equals",
           "pointer": "/reasonCode",
-          "expected": "branch-claim-collision",
+          "expected": "checkout-path-collision",
           "critical": true
         },
         {
@@ -815,7 +815,7 @@
       ]
     },
     {
-      "id": "blocks-owner-drift-on-caller-claim",
+      "id": "blocks-owner-drift-on-task-contract",
       "prompt": "Inspect only the declared fixture fixtures/branch-receipt-04.json as a bounded input snapshot. Apply the packaged /woostack-commit branch-admission contract without invoking Git, Graphite, GitHub, Linear, network, provider, or mutation commands. Return exactly one JSON object using keys status, reasonCode, branchAction, branchName, identityBinding, parentBinding, worktreeBinding, authorizedCommands, commandCounts, and mutationCounts.",
       "fixtures": [
         "branch-receipt-04.json"
@@ -823,7 +823,7 @@
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The stale owner and assignment retained by the caller claim fail closed without selecting its otherwise matching branch, parent, or canonical path and without any downstream mutation.",
+      "expected": "The stale owner and assignment retained by the active task contract fail closed without selecting its otherwise matching branch, parent, or deterministic path and without any downstream mutation.",
       "assertions": [
         {
           "id": "owner-drift-branch-blocked",
@@ -909,7 +909,7 @@
       ]
     },
     {
-      "id": "blocks-worktree-drift-on-caller-claim",
+      "id": "blocks-worktree-path-drift",
       "prompt": "Inspect only the declared fixture fixtures/branch-receipt-05.json as a bounded input snapshot. Apply the packaged /woostack-commit branch-admission contract without invoking Git, Graphite, GitHub, Linear, network, provider, or mutation commands. Return exactly one JSON object using keys status, reasonCode, branchAction, branchName, identityBinding, parentBinding, worktreeBinding, authorizedCommands, commandCounts, and mutationCounts.",
       "fixtures": [
         "branch-receipt-05.json"
@@ -917,7 +917,7 @@
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The branch checked out outside the claimed canonical issue path fails closed rather than being adopted, attached, recreated, or committed, with no PR or Linear mutation.",
+      "expected": "The branch checked out outside the deterministic task path fails closed rather than being adopted, attached, recreated, or committed, with no PR or Linear mutation.",
       "assertions": [
         {
           "id": "worktree-drift-branch-blocked",
@@ -1011,7 +1011,7 @@
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The observed submission, remote branch, canonical PR, and Linear relation disqualify fresh direct creation and cannot be adopted without a matching caller-owned claim and worktree.",
+      "expected": "The observed submission, remote branch, canonical PR, and Linear relation disqualify fresh direct creation and cannot be adopted without a matching approved task/run contract and exact direct worktree evidence.",
       "assertions": [
         {
           "id": "preexisting-artifact-branch-blocked",

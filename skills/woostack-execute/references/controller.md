@@ -3,8 +3,9 @@
 This is the authority boundary for [`woostack-execute`](../SKILL.md). The selected
 [inline](inline-driver.md) or [subagent](subagent-driver.md) driver implements and checks one
 bounded task; the controller alone admits the approved contract, pins responsibility, selects
-dependency-ready work, claims the worktree, invokes source-control boundaries, and performs
-handback. Git and GitHub remain source, ancestry, PR, review, and merge truth.
+dependency-ready work, provisions and validates the isolated worktree, invokes source-control
+boundaries, and performs handback. Git and GitHub remain source, ancestry, PR, review, and merge
+truth.
 
 Artifact-free execution is the default and makes no Linear call. In that route, use stable plan
 task IDs, approved task contracts, controller allocation, direct verification/review evidence, and
@@ -46,9 +47,9 @@ inside one approved task; the coding worker has the narrower authority in
 [§6](#6-driver-boundary-one-task-only).
 
 Bind the stable task ID, controller/engineer name, fresh run ID, decision-maker session, isolated
-coding session, repository, worktree claim, and exclusive surface. Concurrent units share none of
-those identities or writable surfaces. Never self-claim from a queue, title, artifact assignment,
-recent activity, or first unowned item.
+coding session, repository, deterministic worktree path, and exclusive surface. Concurrent units
+share none of those identities or writable surfaces. Never self-allocate from a queue, title,
+artifact assignment, recent activity, or first unowned item.
 
 For a plan, classify the complete dependency DAG before choosing work. Selection admits one task per
 controller cycle with this precedence:
@@ -59,8 +60,8 @@ controller cycle with this precedence:
 
 Do not adopt another run's retained work, leapfrog recoverable state, infer readiness from ordinal
 adjacency, or silently allocate an unapproved task. Independent controllers may select different
-roots only when dependencies, task identities, responsibility surfaces, runs, registry claims,
-worktrees, branches, and PRs are disjoint.
+roots only when dependencies, task identities, responsibility surfaces, runs, worktrees, branches,
+and PRs are disjoint.
 
 Optional artifact assignee/delegate/status fields may be synchronized when explicitly requested.
 They describe the allocation; they neither choose the worker nor gate repository work.
@@ -91,7 +92,8 @@ rewritten branch, incomplete merge proof, or unknown ancestry.
 ### Standalone bounded task
 
 A standalone task begins at the exact verified integration-base commit and Graphite-tracks that
-base branch. Reject a moved base, unrelated branch, competing worktree claim, or incomplete proof.
+base branch. Reject a moved base, unrelated branch, competing checkout or deterministic path, or
+incomplete proof.
 
 ## 4. Accept the task
 
@@ -101,8 +103,8 @@ Before Git state or dispatch:
    intended start/parent identity;
 2. require verified absence or one exact recoverable branch/worktree/commit/PR state;
 3. bind the fresh run to the stable task ID and isolated profiles; and
-4. re-read those facts immediately before claiming the registry, creating a branch/worktree,
-   dispatching the worker, or making the first tracked edit.
+4. re-read those facts immediately before creating or attaching a branch/worktree, dispatching the
+   worker, or making the first tracked edit.
 
 No branch, worktree, edit, test mutation, commit, push, or PR action may precede that complete
 admission. Optional artifact synchronization happens separately and cannot substitute for it.
@@ -110,21 +112,24 @@ admission. Optional artifact synchronization happens separately and cannot subst
 ## 5. Discovery, collision, and recovery
 
 Follow the [canonical worktree contract](../../woostack-init/references/worktrees.md). Before
-creating or resuming a worktree, inventory the stable task registry, local worktrees, branches,
-Graphite ancestry, commits, and canonical GitHub PR state.
+creating, attaching, or resuming a worktree, inventory the deterministic task path,
+`git worktree list --porcelain`, filesystem state, local/remote branches and commits, complete
+dirty/index/diff state, Graphite ancestry, and canonical GitHub PR state.
 
-- **All absent:** atomically claim the stable task registry key, create one branch/worktree from the
-  approved start point, Graphite-track the approved parent, then verify registry, path, branch,
-  start SHA, parent, task/run identity, and optional artifact IDs.
-- **One exact retained state:** resume only when every registry and repository fact matches the same
-  task/run (or verified handoff successor), branch/path, start SHA, parent, ancestry, commit/PR
-  state, and evidence boundary.
-- **Any partial or competing state:** stop. A duplicate claim, branch, or PR; one branch/path
-  claimed by another task; foreign run; unexplained local work; overlapping exclusive scope; or
-  mismatched ancestry is a collision, not a resume signal.
+- **All absent:** require the deterministic path, checkout, local/remote branch, commit, and PR state
+  to be absent; create one branch/worktree from the approved start point, Graphite-track the
+  approved parent, then verify path, branch, start SHA, parent, task/run contract, dirty state, and
+  optional artifact IDs.
+- **One exact retained state:** resume only when every direct repository fact matches the same
+  approved task/run contract (or completely verified handoff successor), deterministic path,
+  branch, start SHA, parent, ancestry, dirty/index/diff, commit/PR state, and evidence boundary.
+- **Any partial or competing state:** stop. A duplicate checkout, branch, commit, or PR; one branch
+  checked out at another path; foreign task/run contract; unexplained local work; overlapping
+  exclusive scope; or mismatched ancestry is a collision, not a resume signal.
 
-Never delete, overwrite, reassign, or create around a collision. Preserve exact conflicting IDs and
-recovery state and return them to the responsible controller for deliberate resolution.
+Never delete, overwrite, reassign, attach, or create around a collision. Preserve exact conflicting
+IDs and direct recovery evidence and return them to the responsible controller for deliberate
+resolution.
 
 ## 6. Driver boundary: one task only
 
@@ -157,12 +162,13 @@ pushes, submits, opens/updates a PR, merges, force-pushes, or restacks when the 
 boundaries. A contract-changing question returns `NEEDS_CONTEXT`; a collision, unsafe instruction,
 or failing invariant returns `BLOCKED`.
 
-Immediately before every driver dispatch or redispatch, first tracked edit, registry/worktree
-claim, commit, push, or PR/GitHub side effect, the controller independently rechecks the approved
-task contract, stable task/run identity, dependency state, worktree registry, branch/Graphite
-parent, and affected Git evidence. Any drift invalidates the brief and blocks before the side
-effect. When optional artifact synchronization was selected, re-read the exact artifact only before
-an artifact write; artifact metadata never gates the repository side effect.
+Immediately before every driver dispatch or redispatch, first tracked edit, worktree
+creation/attachment, commit, push, or PR/GitHub side effect, the controller independently rechecks
+the approved task contract, stable task/run identity, dependency state, deterministic path,
+`git worktree list --porcelain`, branch/Graphite parent, dirty/index/diff state, and affected Git
+evidence. Any drift invalidates the brief and blocks before the side effect. When optional artifact
+synchronization was selected, re-read the exact artifact only before an artifact write; artifact
+metadata never gates the repository side effect.
 
 ## 7. Evidence cadence
 
@@ -197,18 +203,20 @@ execution unless persistence was explicitly part of the deliverable.
 
 The controller keeps the last verified task state and first blocked boundary. Resume only after
 independent reads prove the blocker resolved and the approved contract, dependency graph,
-worktree/registry, branch/parent, and diff identity remain unchanged. Never restore from recent
-activity, a title, an artifact status, or a guess.
+deterministic path, complete worktree inventory, branch/parent, and dirty/index/diff identity remain
+unchanged. Never restore from recent activity, a title, an artifact status, or a guess.
 
-For handoff, stop the outgoing coder, preserve the worktree/registry, and return the exact bounded
-contract plus evidence and safe resume boundary. The responsible controller deliberately
-reallocates the task. The incoming decision-maker independently verifies that packet and accepts it
-before resuming. Optional artifact notes may mirror this handoff but cannot replace it.
+For handoff, stop the outgoing coder, preserve the worktree, and return the exact bounded contract
+plus direct evidence and safe resume boundary. The responsible controller deliberately reallocates
+the task. The incoming decision-maker independently verifies that packet, deterministic path,
+worktree/branch/ancestry, and dirty state before accepting and resuming. Optional artifact notes may
+mirror this handoff but cannot replace it.
 
 ## 9. Commit and PR boundary
 
 After passing verification and precommit review, re-read the task contract, dependency state,
-worktree registry, branch, Graphite parent, complete precommit diff identity, and ancestry. Invoke
+deterministic worktree path, complete worktree inventory, branch, Graphite parent, complete
+precommit dirty/index/diff identity, and ancestry. Invoke
 [`woostack-commit`](../../woostack-commit/SKILL.md) with the same bounded contract and observed
 evidence. Supply an exact Linear artifact only when synchronization was selected.
 
@@ -231,14 +239,12 @@ workflow.
 
 ## 10. Teardown and handback
 
-After exact commit and PR read-back, remove only the completed task's worktree and disposable
-registry entry. Branch, commits, and PR remain. On failure, blocker, collision, handoff, or unknown
-outcome, preserve worktree/registry and report the exact stable task/run ID, branch/path,
-start/parent ancestry, known commit/PR, first unknown boundary, and next responsible controller.
+After exact commit and PR read-back, remove only the completed task's exact clean worktree. Branch,
+commits, and PR remain. On failure, blocker, collision, handoff, or unknown outcome, preserve the
+worktree and report the exact stable task/run ID, deterministic branch/path, worktree inventory,
+dirty/index/diff state, start/parent ancestry, known commit/PR, first unknown boundary, and next
+responsible controller.
 
 A successful handback contains observed evidence, not a new authority summary. Before selecting
 another task, re-read the approved dependency plan. The terminal handback is rendered from direct
 repository results plus any separately verified optional artifact synchronization.
-
-
-Wall time: 0.18 seconds

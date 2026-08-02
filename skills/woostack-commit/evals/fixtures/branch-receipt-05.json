@@ -9,7 +9,7 @@
       "workflow": "woostack-change",
       "nativeIssueId": "linear-issue-65",
       "branch": "change/app-65",
-      "worktreePath": "/repo/.woostack/worktrees/issues/linear-issue-65",
+      "worktreePath": "/repo/.woostack/worktrees/tasks/linear-issue-65",
       "startCommit": "b65",
       "graphiteParent": "staging",
       "ownerPrincipal": "engineer-7",
@@ -79,31 +79,9 @@
       "unrelatedPaths": []
     }
   },
-  "registry": {
-    "complete": true,
-    "claims": [
-      {
-        "nativeIssueId": "linear-issue-65",
-        "clientIssueId": "65656565-6565-4565-8565-656565656565",
-        "projectId": null,
-        "role": "work-item",
-        "repository": "https://github.com/acme/widgets",
-        "owner": {
-          "kind": "app",
-          "principal": "engineer-7",
-          "runId": "run-65"
-        },
-        "branch": "change/app-65",
-        "worktreePath": "/repo/.woostack/worktrees/issues/linear-issue-65",
-        "startCommit": "b65",
-        "graphiteParent": "staging",
-        "assignmentNativeId": "comment-assignment-65"
-      }
-    ]
-  },
   "git": {
     "complete": true,
-    "canonicalIssueWorktreePath": "/repo/.woostack/worktrees/issues/linear-issue-65",
+    "deterministicTaskWorktreePath": "/repo/.woostack/worktrees/tasks/linear-issue-65",
     "worktrees": [
       {
         "path": "/repo/.woostack/worktrees/manual/app-65",

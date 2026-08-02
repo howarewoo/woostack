@@ -10,16 +10,23 @@ defines collision checks, ancestry, recovery, and teardown.
 ## One worktree per bounded task
 
 Each active task has one controller/run identity, one branch, one worktree, one allowed surface, and
-at most one implementation PR. A task may be keyed by an exact caller-supplied Linear issue UUID,
-but Linear is optional; artifact-free runs use a stable run/task UUID.
+at most one implementation PR. An exact caller-supplied Linear issue UUID may appear as optional
+context, but the active approved contract always supplies stable task/run identity.
 
 ```text
 .woostack/worktrees/tasks/<stable-task-id>
 ```
 
-An atomic gitignored claim under `.woostack/worktrees/.registry/<task-id>/claim.json` prevents
-competing local checkouts. It contains only recovery facts such as the task ID, run/controller,
-branch, path, base, and start commit. It is disposable administration, not a development record.
+Before create, resume, review reopen, commit, or teardown, woostack reconciles the deterministic
+path and active task/run contract directly with filesystem state, `git worktree list --porcelain`,
+local/remote branches and commits, dirty/index/diff state, Graphite ancestry, and canonical GitHub
+PR facts. The branch may have only one checkout and every observed head/base/path must form one
+consistent state.
+
+For new work, `git worktree add -b` creates the branch and deterministic checkout together and lets
+Git reject an existing branch, path, or checkout. A retained task resumes only when every direct
+fact agrees with the same approved contract or completely verified handoff. Partial, foreign, or
+competing state blocks without reset, stash, deletion, adoption, or create-around.
 
 The start point comes from the approved dependency plan and verified Git ancestry:
 
@@ -46,12 +53,14 @@ the Git top level before writing.
 
 ## Teardown and recovery
 
-- **Success:** after commit, push, and canonical PR identity read back, remove the exact worktree and
-  registry claim. Branch, commits, PR, and remote evidence remain.
-- **Failure or unknown:** preserve the worktree and claim. Report task ID, path, branch, observed
-  boundary, and safe next action; a timeout proves neither success nor absence.
-- **Review reopen:** reattach only the existing verified branch/head in a fresh collision-free
-  worktree; never invent an unrelated checkout.
+- **Success:** after the finalized commit and canonical PR identity read back and the task worktree
+  is clean, remove only the exact deterministic worktree. Branch, commits, PR, and remote evidence
+  remain.
+- **Failure, handoff, or unknown:** preserve the worktree. Report task/run contract, deterministic
+  path, worktree inventory, branch/ancestry, dirty state, observed boundary, and safe next action; a
+  timeout proves neither success nor absence.
+- **Review reopen:** reattach only the existing verified branch/head when its deterministic path is
+  free and the branch is checked out nowhere; never invent or adopt an unrelated checkout.
 
 Optional artifact synchronization occurs after repository evidence exists. Missing provider access
 never weakens the local collision or ancestry checks.

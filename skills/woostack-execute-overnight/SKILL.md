@@ -38,10 +38,11 @@ Require:
 - explicit unattended handoff (`Run overnight` or intent-equivalent wording); and
 - no unresolved decision that requires product, security, data-loss, or scope judgment.
 
-Read repository policy, Git/Graphite ancestry, local worktrees/registry, branches, commits, and fully
-paginated GitHub PR/review/check/thread state. Reject duplicate claims, unexplained work, moved
-ancestry, overlapping surfaces, stale plans, ambiguous recovery, or a task that cannot be safely
-bounded without human judgment.
+Read repository policy, the deterministic task paths, `git worktree list --porcelain`, filesystem
+state, local/remote branches and commits, complete dirty/index/diff state, Git/Graphite ancestry,
+and fully paginated GitHub PR/review/check/thread state. Reject duplicate checkouts, branches,
+commits, or PRs; unexplained work; moved ancestry; overlapping surfaces; stale plans; ambiguous
+recovery; or a task that cannot be safely bounded without human judgment.
 
 If exact artifact context was supplied, read it independently and compare its specification/plan
 fields with the approved plan. Conflict blocks artifact use and the affected task; it does not
@@ -54,8 +55,8 @@ Follow the [execution controller](../woostack-execute/references/controller.md) 
 task:
 
 1. derive the currently dependency-ready task set from the approved DAG and repository evidence;
-2. admit one task per controller/coder run and atomically claim its stable worktree registry key;
-3. create/verify the isolated Graphite branch at the exact approved base/parent head;
+2. admit one task per controller/coder run and verify its deterministic path is collision-free;
+3. create/verify its isolated worktree and Graphite branch at the exact approved base/parent head;
 4. run the selected [inline](../woostack-execute/references/inline-driver.md) or
    [subagent](../woostack-execute/references/subagent-driver.md) driver through Red → Green →
    Refactor, focused verification, and smoke observation;
@@ -63,8 +64,9 @@ task:
 6. invoke [`woostack-commit`](../woostack-commit/SKILL.md) for the controller-owned commit and PR
    boundary;
 7. run the bounded bottom-up [`woostack-sweep`](../woostack-sweep/SKILL.md) for the affected stack;
-8. independently read back branch/head/base, PR, reviews, checks, threads, and ancestry; and
-9. hand back direct evidence and release only a completed task's worktree claim.
+8. independently read back worktree, dirty state, branch/head/base, PR, reviews, checks, threads,
+   and ancestry; and
+9. hand back direct evidence and remove only a completed task's exact clean worktree.
 
 Never process two dependent tasks concurrently. Independent roots may run concurrently only when
 paths/surfaces, runs, profiles, worktrees, branches, PRs, and provider sessions are disjoint.
@@ -91,7 +93,8 @@ surfaces prove that continuation cannot be invalidated by the answer.
 
 Classify every stop:
 
-- **task-local failure** — preserve its worktree/registry and block descendants;
+- **task-local failure** — preserve its worktree and direct repository evidence and block
+  descendants;
 - **track-local review or submission failure** — preserve branch/PR evidence and block only tasks
   that depend on that head;
 - **shared invariant failure** — stop every affected track;

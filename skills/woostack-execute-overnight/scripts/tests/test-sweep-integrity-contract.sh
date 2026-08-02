@@ -12,7 +12,7 @@ checks={
  "repository authority":r"Git, Graphite, and canonical GitHub reads own source, ancestry, PR, review, and delivery truth",
  "approved plan":r"one complete explicitly approved implementation plan",
  "complete DAG":r"stable task IDs.*acyclic dependency graph",
- "repo preflight":r"Git/Graphite ancestry.*worktrees/registry.*GitHub PR/review/check/thread state",
+ "repo preflight":r"deterministic task paths.*git worktree list.*dirty/index/diff state.*Git/Graphite ancestry.*GitHub PR/review/check/thread state",
  "artifact conflict":r"Conflict blocks artifact use and the affected task; it does not rewrite the plan",
  "fixed loop":r"derive the currently dependency-ready task set.*Red → Green → Refactor.*specification review then quality review.*woostack-commit.*woostack-sweep",
  "no dependent concurrency":r"Never process two dependent tasks concurrently",

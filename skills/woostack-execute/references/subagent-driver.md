@@ -80,8 +80,9 @@ write source, run mutation commands, commit, push, or post a verdict directly.
 ## Redispatch
 
 Every redispatch contains the complete refreshed packet and current diff identity. The controller
-first verifies task/run/worktree/branch/parent and no competing claim. A previous receipt, chat
-message, or worker memory never substitutes for that recheck.
+first verifies the task/run contract, deterministic worktree path, complete worktree inventory,
+branch/parent, dirty/index/diff state, and absence of any competing checkout or repository
+identity. A previous receipt, chat message, or worker memory never substitutes for that recheck.
 
 Use the outcomes exactly:
 

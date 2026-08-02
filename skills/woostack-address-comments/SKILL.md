@@ -24,8 +24,9 @@ the default autonomous route applies only changes already inside the approved PR
 1. Resolve the canonical repository and exactly one open PR.
 2. Read its number/URL, head/base branches and SHAs, author, complete changed-path set, reviews, and
    every unresolved thread with pagination.
-3. Verify the local branch/worktree, HEAD, index/diff, Graphite parent, and collision-free registry
-   state under the [worktree contract](../woostack-init/references/worktrees.md).
+3. Verify the deterministic worktree path, complete `git worktree list --porcelain` inventory,
+   branch, HEAD, dirty/index/diff state, Graphite parent, and collision-free repository state under
+   the [worktree contract](../woostack-init/references/worktrees.md).
 4. Bind the current PR head as the round identity. A head/base, worktree, branch, or thread-set change
    invalidates the round and requires a fresh preflight.
 5. Load the approved task/PR contract. A comment can identify a defect but cannot expand scope,

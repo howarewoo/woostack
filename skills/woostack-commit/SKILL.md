@@ -76,8 +76,8 @@ prior verification and return to the caller.
 
 Stage explicit paths or hunks. Re-read the staged diff and changed-path set. The index must contain
 the whole bounded task and nothing else. Do not use broad staging as a substitute for classification.
-Do not stage secrets, `.env*`, ignored runtime evidence, disposable worktree registries, generated
-files that repository policy excludes, or unrelated local files.
+Do not stage secrets, `.env*`, ignored runtime evidence, generated files that repository policy
+excludes, or unrelated local files.
 
 If a hook or staging operation changed content unexpectedly, unstage only the paths this invocation
 staged, preserve the worktree, and stop with the exact mismatch.
