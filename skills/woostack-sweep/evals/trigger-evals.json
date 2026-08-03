@@ -3,14 +3,14 @@
   "skill": "woostack-sweep",
   "cases": [
     {
-      "id": "current-stack-release-readiness",
-      "query": "My current Graphite series has four dependent pull requests. Start with the earliest dependency, handle blocking feedback on each branch, and continue toward the tip until the entire series is ready to merge or you hit a blocker you cannot safely resolve.",
+      "id": "current-stack-readiness",
+      "query": "My current Graphite series has four dependent pull requests. Start with the earliest dependency, address existing conversations before each review, resolve new findings, and continue until every current head is clean or an unchanged blocker halts the sweep.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-sweep"
     },
     {
-      "id": "containing-stack-blocker-convergence",
-      "query": "PR #2260 sits in the middle of a five-branch series. Take responsibility for the whole series rather than only that pull request, iterating on failed checks and reviewer concerns across the dependent branches until no blocking work remains.",
+      "id": "middle-stack-blocker",
+      "query": "PR #2260 sits in the middle of a five-branch series. Sweep the whole containing stack bottom-up, repeat review only after a blocking round and descendant restack, and advance after resolved nits.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-sweep"
     },
