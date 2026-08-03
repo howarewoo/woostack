@@ -33,6 +33,8 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
 - **woostack-review (local swarm):** orchestrate isolated-context subagents per angle (see
   `skills/woostack-review/prompts/google.md` for the orchestration narrative); the CI runner
   remains `run-gemini-cli` (Antigravity cannot run headless there).
+- **woostack-execute (and overnight):** resolve the session model from the `fast` tier before
+  dispatch; all implementation workers share that session model.
 - **woostack-eval (comparative dispatch):** instantiate the two isolated-context workers for
   each candidate/baseline inseparable pair in the same dynamic orchestration turn. There is no
   concrete per-call model pin; choose one concrete run model before the session.

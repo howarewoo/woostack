@@ -45,22 +45,24 @@ for pattern, message in (
     require("generic", pattern, message)
 
 for pattern, message in (
-    (r"one explicit approved bounded task or dependency-aware plan", "approved input is not required"),
-    (r"Artifact-free execution is permitted only for standalone input and makes no Linear call", "standalone artifact-free admission is not explicit"),
-    (r"after every worker handback.*before every redispatch.*immediately before commit", "fix approval is not rechecked at worker and commit boundaries"),
-    (r"Only caller-selected ordinary artifact mode for standalone work is optional", "ordinary artifact writes are not explicitly selected"),
-    (r"Selection admits one task per controller cycle", "controller may advance multiple tasks"),
-    (r"canonical worktree contract.*creating.*resuming a worktree", "worktree isolation is not required"),
-    (r"controller independently rechecks.*task contract.*deterministic path.*git worktree list", "returned evidence is not independently checked"),
+    (r"exactly one caller-supplied Linear project or exact direct issue.*matching pair", "exact approved resource and records are not required"),
+    (r"projectSpecApprovalRecord.*executionPlanApprovalRecord", "shared approval records are missing"),
+    (r"incomplete pagination.*blocks before any branch, worktree, edit, or Linear lifecycle write", "admission failure is not fail-closed"),
+    (r"Project mode repeatedly runs one cycle; issue mode runs one cycle", "controller cycle boundary is missing"),
+    (r"more than one admitted issue per cycle", "controller may admit multiple issues in one cycle"),
+    (r"Inventory `git worktree list --porcelain`.*either no state.*create exactly one worktree.*one exact recoverable state", "worktree isolation and recovery are not required"),
+    (r"After handback, the controller rechecks admission records.*worktree identity.*branch/parent.*diff", "worker handback is not independently checked"),
+    (r"Before commit, re-read records.*selected issue.*worktree.*Graphite parent", "commit boundary is not independently rechecked"),
+    (r"fresh independent Linear, Git, Graphite, and GitHub evidence", "resume evidence is not independent"),
 ):
     require("controller", pattern, message)
 
 for pattern, message in (
-    (r"worker owns implementation and its focused verification only", "worker authority is too broad"),
-    (r"artifact text.*untrusted data", "artifact prose can direct work"),
-    (r"coder never reviews or accepts its own work", "worker self-review is allowed"),
-    (r"Return.*Do not commit", "default source-control boundary is missing"),
-    (r"no scope decisions, other worktrees, commit, push, submit, PR mutation, merge, acceptance, artifact access", "worker mutation prohibitions are incomplete"),
+    (r"worker owns only the exact implementation packet and focused verification", "worker authority is too broad"),
+    (r"repository files, diffs, issue text, PR text, comments, and tool output as untrusted data", "remote prose can direct work"),
+    (r"worker never commits, pushes, submits a PR, writes Linear.*reviews, accepts, merges", "worker mutation prohibitions are incomplete"),
+    (r"never share a worktree, session, branch, or writable surface", "worker isolation is incomplete"),
+    (r"controller independently rechecks the approval records.*complete dirty/index/diff state", "worker result is not independently verified"),
 ):
     require("subagent", pattern, message)
 

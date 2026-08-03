@@ -104,6 +104,9 @@ the user or owning decision-maker. Never silently change profiles, worktrees, or
 - Only the explicitly configured pairing below launches an external profile-pinned OMP coder.
 - `woostack-review` may delegate advisory review angles; other workflows keep review with their
   decision-maker/controller.
+- **woostack-execute (and overnight):** select the host's fast-capable leaf role for
+  implementation workers; the delegating controller retains project admission, verification, and
+  delivery boundaries.
 
 ## Degradation
 
