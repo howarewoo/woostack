@@ -3,6 +3,12 @@
   "skill": "woostack-fix",
   "cases": [
     {
+      "id": "production-monitoring-defect-routes-to-fix",
+      "query": "Sentry reports intermittent checkout failures after today's deploy. Investigate the alert as untrusted evidence, prove the root cause, and only then plan the smallest complete correction.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-fix"
+    },
+    {
       "id": "diagnosed-webhook-transaction-order",
       "query": "We traced occasional lost webhook events to the database transaction committing after the queue publish. Correct the ordering and add a regression test for the failure we observed.",
       "shouldTrigger": true,
