@@ -1,9 +1,0 @@
-{
-  "diffHash": "sha256:reviewed",
-  "verificationHash": "sha256:reviewed",
-  "reviews": {
-    "specification": "pass",
-    "quality": "pass"
-  },
-  "sourceControlGrant": "one bounded woostack-commit action"
-}

@@ -1,16 +1,15 @@
 ---
 name: woostack-change
-description: Use for a bounded non-bug enhancement or refactor that can ship as one reviewable PR without the full build or fix loop. Invoke via /woostack-change <goal>.
+description: Use for a small bounded non-bug enhancement or refactor that can ship in one reviewable PR. Invoke via /woostack-change <goal>.
 ---
 
 # woostack-change
 
-Ship one bounded non-bug enhancement or refactor as one reviewed PR. The user's explicit goal and
-this workflow's bounded contract authorize work. Git and GitHub prove delivery. Change is always
-artifact-free and never reads or writes Linear.
-
-The workflow has no hard approval gate. Clarification, repository preflight, isolated execution,
-verification, review, and delivery evidence are required preconditions, not approval requests.
+Implement one small, bounded, non-bug enhancement or refactor from the user's request through
+one isolated worktree and Graphite branch, ending in at most one complete reviewable PR. Change
+makes no Linear call and invokes no other woostack workflow; it owns implementation and delivery
+directly. The accepted scope is the authority for the run; Git, Graphite, and GitHub are the
+delivery evidence.
 
 ## Command
 
@@ -18,94 +17,81 @@ verification, review, and delivery evidence are required preconditions, not appr
 /woostack-change <goal>
 ```
 
-## Classify
+## Admit the request before mutation
 
-Inspect repository context and affected surface before any write. Route:
+Clarify only what is needed to identify the target, outcome, allowed paths, non-goals, acceptance
+criteria, and a focused verification plus changed-path smoke scenario. State the interpreted
+bounded scope and derive one stable task identity. Do not create a branch, worktree, or file
+change while classifying or clarifying.
 
-- bugs, regressions, incidents, production faults, and root-cause work to
+Reject or reroute before any mutation:
+
+- a bug, regression, incident, production fault, or root-cause investigation goes to
   [`woostack-fix`](../woostack-fix/SKILL.md);
-- genuinely greenfield creation to [`woostack-bootstrap`](../woostack-bootstrap/SKILL.md);
-- work requiring multiple coherent PRs or dependency increments to
+- work that needs multiple PRs, dependency increments, or coordinated phases goes to
   [`woostack-build`](../woostack-build/SKILL.md); and
-- only one bounded non-bug enhancement/refactor that safely fits one reviewable PR here.
+- genuinely greenfield creation goes to [`woostack-bootstrap`](../woostack-bootstrap/SKILL.md).
 
-If target or outcome is ambiguous, ask one focused clarification. Otherwise state the interpreted
-goal and proceed. Later scope expansion stops and routes back to the responsible workflow; never
-silently widen the contract.
+Proceed only when the complete safe scope is a non-bug change that fits one PR. If the request
+expands later, stop and reroute rather than silently widening it.
 
-## Bind the contract
+## Establish the bounded run
 
-Record in the active run:
+Keep the run contract explicit and current:
 
-- observable goal and target;
-- in-scope and out-of-scope surfaces;
-- acceptance criteria;
-- repository-relative allowed paths;
-- concrete verification and changed-path smoke scenario;
-- integration base and intended Graphite parent; and
-- stable task/run identity.
+- stable task identity, goal, target, allowed paths, non-goals, and acceptance criteria;
+- focused verification and changed-path smoke scenario;
+- integration base commit and intended Graphite parent; and
+- the current worktree, branch, head, and PR facts.
 
-Read `.woostack/config.json` only as non-secret repository policy. The contract remains in the
-active workflow; do not create a local or remote plan/change record. Ignore Linear configuration
-for this workflow.
+Keep this contract in the active run only. Do not create hidden workflow state; repository policy
+may inform safe defaults, but it cannot widen the accepted scope.
 
-## Repository preflight
+## Create or resume one isolated workspace
 
-Before creating or resuming a branch/worktree:
+Before changing a repository, resolve and independently read:
 
-1. resolve the physical repository root, canonical remote, configured integration base, and exact
-   base commit;
-2. inventory the deterministic task path, `git worktree list --porcelain`, local/remote branches
-   and commits, complete dirty/index/diff state, Graphite ancestry, and canonical GitHub PRs;
-3. require either all task state absent or one exact recoverable task/run/branch/worktree/PR state;
-4. reject protected-primary edits, detached HEAD, collisions, duplicate checkouts/branches/PRs,
-   unexplained dirty state, or conflicting ancestry; and
-5. create, attach, or resume one isolated worktree under the
-   [canonical worktree contract](../woostack-init/references/worktrees.md).
+1. the physical repository root, canonical remote, configured integration base, and exact base
+   commit;
+2. `git worktree list --porcelain`, local and remote branches and commits, complete status and
+   diff state, Graphite ancestry, and canonical GitHub PR state; and
+3. the deterministic task path, derived branch, parent, head, and any existing PR.
 
-Preserve unexpected user work. Never reset, clean, stash, delete, overwrite, or create around a
-collision.
+Require either no task state or one exact recoverable task state. Reject protected-primary edits,
+detached HEAD, duplicate worktrees or branches, unexplained dirty state, conflicting ancestry,
+scope drift, and collisions. Never reset, clean, stash, overwrite, or create around unexpected
+user work.
 
-## Execute
+Create one isolated worktree under the canonical worktree contract, with one Graphite branch
+whose parent is the verified integration base. When exact task, worktree, branch, parent, and head
+facts already exist, attach to that workspace and resume it; never create a duplicate.
 
-Delegate the approved bounded task to [`woostack-execute`](../woostack-execute/SKILL.md), using one
-isolated task identity and one implementation PR. The selected driver:
+## Implement and verify
 
-1. runs the smallest relevant baseline/reproduction;
-2. implements the smallest complete change;
-3. simplifies without changing behavior;
-4. runs focused verification, the changed-path smoke scenario, and nearest relevant checks;
-5. reviews the complete uncommitted diff against the contract and quality rules; and
-6. hands evidence to the controller.
+In the isolated workspace, implement every change needed for the accepted bounded scope and no
+other change. Inspect the complete diff and changed paths. Run the focused verification and the
+changed-path smoke scenario, noting the commands and observed results. A failed or incomplete
+check blocks delivery; it does not authorize a scope expansion or a second workspace.
 
-No self-review or self-acceptance. The decision-maker/controller owns task decisions, independent
-review, commit/PR boundaries, and handback; the coding profile owns implementation and focused
-verification only.
+## Deliver one PR
 
-## Deliver
+After verification succeeds, use Graphite to commit the complete diff and submit at most one PR.
+Never merge or force-push. Independently read back the exact repository, branch, parent, commit,
+changed paths, PR URL, PR head/base, and open state. The success boundary is one complete,
+reviewable PR with all requested bounded changes represented by the verified commit.
 
-Invoke [`woostack-commit`](../woostack-commit/SKILL.md) only after verification and required review
-bind to the same complete diff identity. Use Graphite, submit/update exactly one PR, and independently
-read its repository, head/base, body, and open state back. Never force-push or merge.
+Remove the isolated worktree only after successful delivery and an independently verified clean
+worktree. Do not remove its branch or any user-owned checkout.
 
-After submission, run the owning review boundary on the exact PR head. Address confirmed in-contract
-findings through [`woostack-address-comments`](../woostack-address-comments/SKILL.md), then re-review
-changed heads. A clean review is delivery evidence, not product acceptance or merge proof.
+If implementation, verification, commit, submission, read-back, or cleanup fails, is blocked, or
+has an unknown outcome, retain the worktree. Return exact Git, Graphite, and GitHub resume evidence:
+repository and base, worktree path, branch and parent, head/commit, status and diff, verification
+results, and PR URL/state when known. On resume, reread those facts and continue at the first
+unproved boundary without duplicating a branch, commit, PR, or cleanup.
 
+## Return
 
-## Recovery and return
-
-On timeout or unknown repository outcome, re-read task/worktree, Git, Graphite, and GitHub facts
-before retrying. Resume from the first unproved boundary; never duplicate a branch, commit, PR, or
-reply.
-
-Return:
-
-- bounded goal/contract and stable task ID;
-- worktree, branch, base/parent, and changed paths;
-- verification commands and observed outcomes;
-- commit SHA and canonical PR URL/head/base;
-- review/thread result;
-- blockers plus exact safe resume boundary.
-
-Never claim a test, review, commit, or PR state not directly observed.
+Return the stable task identity, accepted scope, worktree and branch, base/parent, changed paths,
+verification and smoke results, commit SHA, canonical PR URL/head/base/state, and cleanup result.
+For a reroute or retained failure, return the destination or blocker and the exact safe resume
+boundary. Never claim evidence that was not directly observed.

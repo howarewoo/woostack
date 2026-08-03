@@ -15,14 +15,14 @@
       "expectedSkill": "woostack-change"
     },
     {
-      "id": "bounded-change-with-unsafe-local-plan-request",
-      "query": "Use /woostack-change to add a CLI color flag in one PR. I also want a local Markdown change plan and no Linear issue.",
+      "id": "bounded-change-with-extra-record-request",
+      "query": "Use /woostack-change to add a CLI color flag in one PR. I also want a local Markdown work log; keep the implementation bounded and do not widen the change.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-change"
     },
     {
-      "id": "bounded-change-with-wrapper-project-request",
-      "query": "Use /woostack-change to rename one internal export and its callers. Please track this single PR by creating a one-issue Linear project instead of a standalone issue.",
+      "id": "bounded-change-with-external-tracker-request",
+      "query": "Use /woostack-change to rename one internal export and its callers in a single PR. I can provide an external tracker link, but the repository work must remain one bounded change.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-change"
     },
