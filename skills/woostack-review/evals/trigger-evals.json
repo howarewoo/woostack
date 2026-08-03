@@ -3,50 +3,37 @@
   "skill": "woostack-review",
   "cases": [
     {
-      "id": "single-pr-tax-rounding-inspection",
-      "query": "Inspect PR #1842's tax-rounding diff for correctness, security, and missing tests, and give me the validated findings. Do not modify the branch.",
+      "id": "explicit-existing-pr-review",
+      "query": "Review PR #1842's tax-rounding diff for correctness, security, and missing tests, validate the findings, and leave the result on that pull request. Do not modify the branch.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-review"
     },
     {
-      "id": "local-diff-cache-invalidation-inspection",
-      "query": "Before I commit the current working-tree changes, look for regressions or unsafe assumptions in the cache invalidation code and report what should be corrected. Leave the files untouched.",
-      "shouldTrigger": true,
-      "expectedSkill": "woostack-review"
+      "id": "missing-pr-review-request",
+      "query": "Review the current working-tree diff for cache invalidation regressions before I commit it, and report what should be corrected. Leave the files untouched.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-audit",
+      "conflictsWith": ["woostack-review"]
     },
     {
-      "id": "dependent-pr-series-convergence",
+      "id": "review-stack-not-single-pr",
       "query": "There are five dependent Graphite pull requests above main. Take the entire series from its earliest dependency to the tip, deal with blocking feedback as it appears, and keep going until all five are ready to merge or a real blocker stops progress.",
       "shouldTrigger": false,
       "expectedSkill": "woostack-sweep",
       "conflictsWith": ["woostack-review"]
     },
     {
-      "id": "existing-pr-threads-implementation",
+      "id": "review-threads-need-implementation",
       "query": "PR #2091 already has four open reviewer conversations. Apply the warranted corrections on its branch and explain any disagreement in the corresponding conversation.",
       "shouldTrigger": false,
       "expectedSkill": "woostack-address-comments",
       "conflictsWith": ["woostack-review"]
     },
     {
-      "id": "full-authorization-pr-rereview",
-      "query": "PR #317 replaced the authorization layer after its last review. Start the review again against the current diff rather than relying on earlier findings, verify anything you plan to raise, and leave the result on the pull request.",
-      "shouldTrigger": true,
-      "expectedSkill": "woostack-review",
-      "conflictsWith": ["woostack-audit", "woostack-qa"]
-    },
-    {
-      "id": "standing-session-module-audit",
+      "id": "standing-code-is-audit",
       "query": "We aren't changing src/auth/session yet; I need to know what technical or security debt is already there before we plan work. Inspect the module and rank the risks you find.",
       "shouldTrigger": false,
       "expectedSkill": "woostack-audit",
-      "conflictsWith": ["woostack-review"]
-    },
-    {
-      "id": "running-auth-build-browser-qa",
-      "query": "The authorization branch has a build at http://localhost:3000. Exercise login, logout, session expiry, and back-button behavior as a customer would, then record the issues you can make happen again.",
-      "shouldTrigger": false,
-      "expectedSkill": "woostack-qa",
       "conflictsWith": ["woostack-review"]
     }
   ]

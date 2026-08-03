@@ -105,7 +105,7 @@ mutation, review independence, or acceptance authority.
 | `/woostack-execute-overnight <approved plan> [--project <exact Linear URL-or-UUID>] [--inline\|--subagent]`, execute unattended; build origin requires its exact approved project graph | `woostack-execute-overnight` |
 | `/woostack-sweep [PR#] [--base R] [--interactive]`, drive a stack to clean review while retaining any required fix/build origin approval context | `woostack-sweep` |
 | `/woostack-commit [--issue <exact Linear URL-or-UUID>]`, commit session-relevant changes and update PR fields; artifact synchronization is optional | `woostack-commit` |
-| `/woostack-review [PR#] [--issue <exact Linear URL-or-UUID>] [--project <exact Linear URL-or-UUID>]`, review a PR or local diff with optional artifact intent | `woostack-review` |
+| `/woostack-review <PR#>`, review one exact existing PR through one detected multi-angle swarm and the two adversarial validators, then post one batched native GitHub Review; report-only, never edits or merges | `woostack-review` |
 | `/woostack-audit <target> [--all] [--simplify\|--prod-only]`, audit standing code (a file/dir/repo at rest) for simplification + production-readiness, report-only | `woostack-audit` |
 | `/woostack-qa <url> [focus…] [--stop-first]`, exploratory-QA a running app in a real browser, report-only findings under `.woostack/qa/` | `woostack-qa` |
 | `/woostack-respond <signal> [scope…]`, investigate bounded production errors, write a sanitized report, and gate fix handoffs | `woostack-respond` |
