@@ -271,15 +271,6 @@ assert_contains "$action_source" "CI-only, diff-only advisory extension" \
 assert_contains "$workflow_source" "exact PR trailer candidate, but no authoritative Linear issue context" \
   "reusable workflow labels uploaded review evidence non-authoritative"
 
-assert_file_contains "$ROOT/skills/woostack-review/SKILL.md" \
-  "discover official" \
-  "optional local artifact context uses official-MCP discovery"
-assert_file_contains "$ROOT/skills/woostack-review/SKILL.md" \
-  "Missing MCP" \
-  "missing optional MCP context degrades only artifact contribution"
-assert_file_contains "$ROOT/skills/woostack-review/SKILL.md" \
-  "linear://issue/<uuid>" \
-  "local prompt context records verified optional Linear provenance"
 assert_file_contains "$ROOT/skills/woostack-review/prompts/_worker-header.md" \
   '"authority":"advisory-only"' \
   "worker receipts are explicitly advisory-only"

@@ -4,7 +4,7 @@
   "cases": [
     {
       "id": "project-selects-lowest-unfinished",
-      "prompt": "Project mode sees ordinal 1 delivered In Review with complete evidence, ordinal 2 Backlog, ordinal 3 Todo, no stop marker, and ordinal 2's verified predecessor issue-001. Return exactly one JSON object with keys status, mode, selectedIssueId, selectedOrdinal, predecessor, stopMarker, siblingsAdvanced, and nextBoundary. Do not run commands or mutate anything.",
+      "prompt": "Project mode sees ordinal 1 delivered In Review with complete evidence, ordinals 2 and 3 in Backlog, no stop marker, and ordinal 2's verified predecessor issue-001. Return exactly one JSON object with keys status, mode, selectedIssueId, selectedOrdinal, predecessor, stopMarker, siblingsAdvanced, and nextBoundary. Do not run commands or mutate anything.",
       "capabilities": ["read-workspace"],
       "expected": "Project mode chooses the lowest unfinished ordinal, proves its predecessor, and admits no sibling in the same cycle.",
       "assertions": [

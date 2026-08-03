@@ -32,7 +32,7 @@
       "expected": "A production signal that describes a possible defect routes directly to woostack-fix, and still requires Debug proof.",
       "assertions": [
         {"id": "fix-route", "kind": "final-json-path-equals", "pointer": "/nextSkill", "expected": "woostack-fix", "critical": true},
-        {"id": "debug-required", "kind": "final-json-path-equals", "pointer": "/firstPhase", "expected": "woostack-debug", "critical": true},
+        {"id": "debug-required", "kind": "final-json-path-equals", "pointer": "/firstPhase", "expected": "woostack-debug", "critical": true}
       ]
     },
     {
