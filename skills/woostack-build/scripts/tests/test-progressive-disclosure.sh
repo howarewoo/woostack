@@ -21,13 +21,10 @@ for file in "$SKILL" "$PROCEDURE" "$CONTEXT" "$AUTHORITY"; do
 done
 
 for heading in \
-  '## Overview' \
   '## Commands' \
   '## Fixed chain' \
-  '## Exactly two hard gates' \
-  '## Direct increment contract' \
-  '## Terminal choices at gate 2' \
-  '## Hard constraints'; do
+  '## Exactly two approval stops' \
+  '## Execute transition'; do
   assert_literal "$SKILL" "$heading" "root retains workflow section: $heading"
 done
 assert_literal "$SKILL" \
@@ -39,10 +36,25 @@ assert_literal "$SKILL" \
 assert_literal "$SKILL" \
   '[Linear synchronization procedure](references/linear-procedure.md)' \
   'root links the provider synchronization procedure'
+assert_literal "$SKILL" \
+  'projectSpecApprovalRecord' \
+  'root names the shared project approval record'
+assert_literal "$SKILL" \
+  'executionPlanApprovalRecord' \
+  'root names the shared execution approval record'
+assert_literal "$SKILL" \
+  'active conversation' \
+  'root requires active-conversation approval'
+assert_literal "$SKILL" \
+  'normal [`woostack-execute`]' \
+  'root has one normal Execute transition'
+assert_literal "$SKILL" \
+  'no artifact-free' \
+  'root has no artifact-free fallback'
 
 root_lines="$(wc -l < "$SKILL" | tr -d ' ')"
-if [ "$root_lines" -le 180 ]; then pass; else
-  fail "root stays concise (actual: $root_lines)"
+if [ "$root_lines" -le 120 ]; then pass; else
+  fail "root stays thin (actual: $root_lines)"
 fi
 
 for heading in \
@@ -66,10 +78,10 @@ assert_literal "$PROCEDURE" \
   'It owns no workflow gate' \
   'synchronization procedure cannot clear approval'
 assert_literal "$CONTEXT" \
-  'A status, lead, label, update, conversation response, agent-authored comment' \
-  'context rejects non-authoritative approval signals'
+  'conversation response without a Linear receipt, or read-back without the matching active approval' \
+  'context rejects incomplete approval evidence'
 assert_literal "$CONTEXT" \
-  'There is no local, conversational, cached, or alternate-provider execution fallback' \
+  'There is no local, cached, or alternate-provider execution fallback' \
   'required build authority fails closed'
 assert_literal "$AUTHORITY" \
   'Do not create a parent plan issue' \
