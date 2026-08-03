@@ -39,20 +39,21 @@ for pattern, message in (
 
 contract = flat(root / "skills/woostack-init/references/artifact-backends.md")
 for pattern, message in (
-    (r"canonical product records for `woostack-build` and post-diagnosis `woostack-fix`", "canonical fix/build role missing"),
-    (r"one project plus one direct project issue per increment", "direct build issue shape missing"),
+    (r"canonical product records for `woostack-build` and project-backed `woostack-fix`", "canonical fix/build role missing"),
+    (r"Each independently shippable increment is one direct issue in that project", "direct build issue shape missing"),
     (r"Do not create a parent plan issue", "retired build wrapper is not forbidden"),
-    (r"A new fix uses one issue", "single fix issue shape missing"),
+    (r"project-backed fix keeps diagnosis, plan, approval, and delivery evidence", "project-backed fix record shape missing"),
     (r"not source-control or delivery authority", "source-control authority boundary missing"),
-    (r"responsible user's explicit native Linear approval", "native approval authority missing"),
+    (r"active conversation.*Linear.*receipt.*independently.*read", "active approval receipt authority missing"),
     (r"automatic authenticated read-only setup discovery", "automatic init exception missing"),
     (r"Tracked `.woostack/config\.json` policy never authorizes provider access by itself", "policy authority boundary missing"),
     (r"exact caller-supplied resource always takes precedence over creation", "exact-resource precedence missing"),
     (r"host's authenticated official Linear MCP", "official transport boundary missing"),
     (r"stable client-generated operation ID", "idempotent mutation rule missing"),
     (r"perform a new independent complete read", "read-back rule missing"),
-    (r"buildProjectSpecApprovalRecord", "project approval record missing"),
-    (r"buildExecutionPlanApprovalRecord", "execution-plan approval record missing"),
+    (r"projectSpecApprovalRecord", "project-spec approval record missing"),
+    (r"executionPlanApprovalRecord", "execution-plan approval record missing"),
+    (r"project-specification change invalidates both.*issue or dependency change invalidates only", "approval invalidation rules missing"),
     (r"projectStatuses\.canceled", "canceled-status mapping missing"),
 ):
     require("artifact-backends.md", contract, pattern, message)

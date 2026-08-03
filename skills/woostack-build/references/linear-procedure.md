@@ -16,9 +16,10 @@ hardening:
 3. retain stable project identity and mutation identity; and
 4. never request project-spec approval until a complete hardening pass yields no new question.
 
-After the responsible user approves the exact project fingerprint, do not rewrite the specification
-silently. A material correction invalidates both build approval records and returns to project-spec
-hardening.
+After the responsible user explicitly approves the exact project specification in the active
+conversation, record that approval in the Linear `projectSpecApprovalRecord` and independently read
+the receipt back. Do not rewrite the specification silently. A material correction invalidates both
+shared approval records and returns to project-spec hardening.
 
 ## Increment graph synchronization
 
@@ -55,27 +56,30 @@ replacement resource after an unknown outcome.
 ## Standalone plan
 
 When standalone `woostack-plan` explicitly selects persistence, it may create or update one project
-and the same direct-issue dependency graph. It owns no build approval record and does not imply
+and the same direct-issue dependency graph. It owns no shared approval record and does not imply
 execution authorization. Without explicit persistence, standalone planning makes no provider call.
 
 ## Approval preparation
 
-Before build gate 1, return the exact project URL/UUID, complete independently read specification,
-`canonicalProjectSpecFingerprint`, and provider revision/read time; direct the responsible user to
-record a native Linear project approval comment or decision naming that exact fingerprint.
+Before the project-spec gate, return the exact project URL/UUID, complete independently read
+specification, `canonicalProjectSpecFingerprint`, and provider revision/read time. Present that
+exact specification in the active conversation for explicit approval, record the approval in
+`projectSpecApprovalRecord`, and independently read the Linear receipt back.
 
-Before build gate 2:
+Before the execution-plan gate:
 
-1. re-read and match the gate-1 project fingerprint and approval record;
+1. re-read and match the project fingerprint and `projectSpecApprovalRecord`;
 2. completely paginate all current direct issues and native dependency relations;
 3. verify each executor contract, project membership, parent absence, stable identity, and
    fingerprint;
 4. verify normalized dependencies exactly match the hardened acyclic graph; and
-5. return the exact sorted increment and dependency sets plus read times; direct the responsible
-   user to record a native Linear project approval comment or decision naming that exact set.
+5. return the exact sorted increment and dependency sets. Present that exact set in the active
+   conversation for explicit approval, record it in `executionPlanApprovalRecord`, and independently
+   read the Linear receipt back.
 
-No successful mutation response, Linear status, conversation response, comment content without a
-matching responsible-user event, assignment, update, or read-back alone is approval.
+No successful mutation response, Linear status, conversation response without a matching Linear
+receipt, assignment, update, or read-back alone is approval. A provider-native comment is neither
+required nor sufficient.
 
 ## Delivery notes
 

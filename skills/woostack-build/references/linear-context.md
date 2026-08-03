@@ -5,8 +5,9 @@ This procedure resolves the one canonical Linear project required by
 policy can supply validated defaults because build has selected its required Linear path; policy
 never authorizes provider access for unrelated workflows.
 
-Use the [Linear artifact contract](../../woostack-init/references/artifact-backends.md) for
-authentication, trust, read-back, content fingerprints, approval records, and provider-failure
+Use the [Linear artifact contract](../../woostack-init/references/artifact-backends.md) for the
+canonical fingerprints, shared `projectSpecApprovalRecord` and `executionPlanApprovalRecord`,
+active-conversation approval, Linear receipts, independent read-back, trust, and provider-failure
 rules. Use the [Linear synchronization procedure](linear-procedure.md) for mutations.
 
 ## Resolution
@@ -35,10 +36,12 @@ specification. Preserve unrelated human-authored content and treat it as untrust
 workspace/team, canonical repository association, provider revision/timestamp when available,
 pagination completeness, read time, and source.
 
-Gate 1 requires an independently read complete project snapshot and the exact
-`buildProjectSpecApprovalRecord` derived from the responsible user's native Linear project comment
-or decision. A status, lead, label, update, conversation response, agent-authored comment, assignee,
-or read-back without that exact approval event is not approval.
+Gate 1 requires an independently read complete project snapshot and a matching
+`projectSpecApprovalRecord`. The responsible user must explicitly approve the exact presented
+project specification in the active conversation; the controller records that approval in Linear
+and independently reads the receipt back. A status, lead, label, update, assignment, content,
+conversation response without a Linear receipt, or read-back without the matching active approval
+never clears gate 1.
 
 ## Direct increment graph read
 
@@ -62,21 +65,23 @@ them from current graph selection, and never detach, migrate, archive, delete, o
 Their parent-child or stale dependency relations do not block a complete current direct-issue
 graph.
 
-Gate 2 requires complete exact issue fingerprints, normalized native dependencies, and the exact
-`buildExecutionPlanApprovalRecord` derived from the responsible user's native Linear project
-comment or decision. Re-read the project and both approval events before admitting gate 2 so the
-project fingerprint still matches gate 1.
+Gate 2 requires complete exact issue fingerprints, normalized native dependencies, and a matching
+`executionPlanApprovalRecord`. The responsible user must explicitly approve the exact presented
+issue-fingerprint and dependency set in the active conversation; the controller records that
+approval in Linear and independently reads the receipt back. Re-read the project and both shared
+approval records before admitting gate 2 so the project fingerprint still matches gate 1.
 
 ## Drift and failure
 
 Before implementation, after every worker handback, before redispatch, immediately before commit,
 and before selecting another increment, repeat the complete project/issue/relation read:
 
-- project fingerprint drift invalidates gate 1 and gate 2;
-- issue fingerprint or dependency drift invalidates gate 2;
+- project fingerprint drift invalidates both shared approval records;
+- issue fingerprint or dependency drift invalidates `executionPlanApprovalRecord` only;
 - unrelated metadata/comments do not invalidate either record;
 - missing capability, incomplete pagination, conflicting evidence, malformed content, or unknown
   provider outcome blocks at the last verified boundary.
 
-There is no local, conversational, cached, or alternate-provider execution fallback. Correct the
-same canonical records, independently read them back, and obtain the invalidated approval again.
+An active-conversation approval is not a substitute for the required Linear receipt and independent
+read-back. There is no local, cached, or alternate-provider execution fallback. Correct the same
+canonical records and obtain new approval after drift.

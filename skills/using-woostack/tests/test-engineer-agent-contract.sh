@@ -33,20 +33,20 @@ def require(label, pattern, message):
 for pattern, message in (
     (r"approved workflow contract defines scope, gates, and acceptance", "workflow authority is not explicit"),
     (r"Git and canonical GitHub reads own code, ancestry, PR, review, and merge truth", "repository authority is not explicit"),
-    (r"Linear is the canonical product record for builds and post-diagnosis fixes.*Standalone plan and other artifact-capable workflows remain opt-in", "Linear authority split is not explicit"),
+    (r"Linear is the canonical product record for builds and project-backed fixes.*standalone plan and other artifact-capable workflows remain opt-in", "Linear authority split is not explicit"),
     (r"Responsible human/controller.*Task decision-maker.*Paired coding profile", "abstract roles are incomplete"),
     (r"coding profile may analyze and modify only the selected task", "coder scope is not bounded"),
     (r"must not.*review its own work.*accept its own work", "self-acceptance is not prohibited"),
     (r"Each profile uses only its own host-owned credentials", "profile credentials are not isolated"),
     (r"Only an explicit user invocation of `/woostack-review`.*delegate review analysis", "review delegation exception is not bounded"),
     (r"Required provider failure blocks the fix/build boundary.*Optional provider failure blocks only optional artifact work", "required and optional artifact failures are not separated"),
+    (r"active-conversation approval.*projectSpecApprovalRecord.*executionPlanApprovalRecord.*independently read", "shared approval receipt contract is not explicit"),
 ):
     require("generic", pattern, message)
 
 for pattern, message in (
     (r"one explicit approved bounded task or dependency-aware plan", "approved input is not required"),
     (r"Artifact-free execution is permitted only for standalone input and makes no Linear call", "standalone artifact-free admission is not explicit"),
-    (r"fix-origin execution.*fixApprovalRecord.*issueId.*canonicalContentFingerprint.*approvedBy.*approvedAt.*approvalEventRef.*exact `--issue`", "fix execution does not require exact issue approval provenance"),
     (r"after every worker handback.*before every redispatch.*immediately before commit", "fix approval is not rechecked at worker and commit boundaries"),
     (r"Only caller-selected ordinary artifact mode for standalone work is optional", "ordinary artifact writes are not explicitly selected"),
     (r"Selection admits one task per controller cycle", "controller may advance multiple tasks"),
