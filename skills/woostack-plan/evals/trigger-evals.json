@@ -3,16 +3,23 @@
   "skill": "woostack-plan",
   "cases": [
     {
-      "id": "verified-feature-project-needs-decomposition",
-      "query": "Reconcile the approved specification in this verified Linear feature project into stable increment issues and native blocked-by relations.",
+      "id": "exact-project-needs-decomposition",
+      "query": "Reconcile this approved specification against the exact existing Linear project into one direct issue per sequential execution increment with native predecessor relations.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-plan"
     },
     {
-      "id": "verified-feature-project-needs-replan",
-      "query": "Replan this verified Linear feature project while preserving increment issue identities and existing implementation evidence.",
+      "id": "direct-spec-with-exact-project-needs-plan",
+      "query": "Plan this approved specification in the exact existing Linear project URL I supplied; return PR-sized direct issue contracts and synchronize the strict chain.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-plan"
+    },
+    {
+      "id": "direct-spec-without-project-is-blocked-not-artifact-free-plan",
+      "query": "Plan this approved multi-increment specification, but no exact existing Linear project was supplied.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-build",
+      "conflictsWith": ["woostack-plan"]
     },
     {
       "id": "unapproved-feature-idea-needs-design",
@@ -23,7 +30,7 @@
     },
     {
       "id": "bounded-change-needs-direct-workflow",
-      "query": "Add one bounded preference in a single pull request; no multi-increment project is needed.",
+      "query": "Add one bounded preference in a single pull request; no sequential multi-increment project is needed.",
       "shouldTrigger": false,
       "expectedSkill": "woostack-change",
       "conflictsWith": ["woostack-plan"]

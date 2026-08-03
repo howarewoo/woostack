@@ -3,26 +3,38 @@
   "skill": "woostack-plan",
   "cases": [
     {
-      "id": "reconciles-direct-increment-issues-with-native-dependencies",
-      "prompt": "Reconcile a caller-selected exact Linear project with two direct increment issues: stable task storage ordinal 20 with no predecessor and stable task api ordinal 10 depending on storage. Existing native issue IDs are issue-1 and issue-2, each has no parent, and independent read-back matches project membership, complete executor contracts, and the native dependency. Do not mutate anything. Return exactly one JSON object with keys status, directIssueCount, parentPlanIssueCount, preservedTaskIds, nativeDependencies, ordinalDefinesAncestry, repositoryEffects, and graphReadBackVerified.",
-      "fixtures": [],
+      "id": "synchronizes-existing-exact-project-strict-chain",
+      "prompt": "Read fixtures/project-a.json as a standalone woostack-plan invocation. The caller supplies one exact existing Linear project and an approved specification fingerprint. Reconcile exactly two direct project issues with task IDs storage and api, ordinals 1 and 2, one native dependency storage → api, complete executor contracts including stop markers and Graphite parents, and independent read-back. Do not mutate the repository. Return exactly one JSON object with keys status, invocationMode, artifactModeSelected, existingProjectRequired, projectCreated, directIssueIds, parentPlanIssueCount, ordinals, nativeDependencies, graphReadBackVerified, repositoryMutationCount, approvalOwned, and executionOwned.",
+      "fixtures": [
+        "project-a.json"
+      ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Two stable direct project issues and one native dependency reconcile successfully without a parent plan issue. Ordinals do not imply ancestry, complete executor contracts are retained, and the exact direct graph is independently read back.",
+      "expected": "The exact existing project is reused, two direct issues are reconciled with contiguous ordinals and the sole strict predecessor edge, no parent issue or project is created, the complete graph is independently read back, and Plan neither approves nor executes.",
       "assertions": [
         {
-          "id": "plan-direct-ready",
+          "id": "plan-existing-project-required",
           "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "ready",
+          "pointer": "/existingProjectRequired",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "plan-project-reused",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectCreated",
+          "expected": false,
           "critical": true
         },
         {
           "id": "plan-two-direct-issues",
           "kind": "final-json-path-equals",
-          "pointer": "/directIssueCount",
-          "expected": 2,
+          "pointer": "/directIssueIds",
+          "expected": [
+            "issue-plan-a-storage",
+            "issue-plan-a-api"
+          ],
           "critical": true
         },
         {
@@ -33,179 +45,17 @@
           "critical": true
         },
         {
-          "id": "plan-stable-tasks",
+          "id": "plan-contiguous-ordinals",
           "kind": "final-json-path-equals",
-          "pointer": "/preservedTaskIds",
+          "pointer": "/ordinals",
           "expected": [
-            "storage",
-            "api"
-          ]
-        },
-        {
-          "id": "plan-native-dependency",
-          "kind": "final-json-path-equals",
-          "pointer": "/nativeDependencies",
-          "expected": [
-            [
-              "issue-1",
-              "issue-2"
-            ]
+            1,
+            2
           ],
           "critical": true
         },
         {
-          "id": "plan-ordinal-not-ancestry",
-          "kind": "final-json-path-equals",
-          "pointer": "/ordinalDefinesAncestry",
-          "expected": false
-        },
-        {
-          "id": "plan-no-repository-effects",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryEffects",
-          "expected": []
-        },
-        {
-          "id": "plan-graph-readback",
-          "kind": "final-json-path-equals",
-          "pointer": "/graphReadBackVerified",
-          "expected": true,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "refuses-evidence-bearing-increment-removal",
-      "prompt": "Replan one exact selected project whose direct issues are stable task storage and stable task api. The requested graph retains storage but removes api, and api has verified implementation evidence. Do not mutate anything. Return exactly one JSON object with keys status, reasonCode, preservedTaskIds, executionPlanApprovalInvalidated, providerMutationCount, repositoryEffects, and graphReadBackVerified.",
-      "fixtures": [],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Replanning preserves stable direct-issue identities, invalidates the execution-plan approval for a material graph change, and refuses removal of an increment carrying repository evidence without any mutation.",
-      "assertions": [
-        {
-          "id": "plan-replan-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "blocked",
-          "critical": true
-        },
-        {
-          "id": "plan-evidence-removal-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/reasonCode",
-          "expected": "evidence-bearing-increment-removal"
-        },
-        {
-          "id": "plan-replan-identities-preserved",
-          "kind": "final-json-path-equals",
-          "pointer": "/preservedTaskIds",
-          "expected": [
-            "storage",
-            "api"
-          ]
-        },
-        {
-          "id": "plan-replan-approval-invalidated",
-          "kind": "final-json-path-equals",
-          "pointer": "/executionPlanApprovalInvalidated",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "plan-replan-no-provider-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/providerMutationCount",
-          "expected": 0
-        },
-        {
-          "id": "plan-replan-no-repository-effects",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryEffects",
-          "expected": []
-        },
-        {
-          "id": "plan-replan-graph-read",
-          "kind": "final-json-path-equals",
-          "pointer": "/graphReadBackVerified",
-          "expected": true
-        }
-      ]
-    },
-    {
-      "id": "standalone-selected-plan-persists-direct-issue-graph",
-      "prompt": "Read fixtures/project-a.json as a standalone woostack-plan invocation with one exact caller-supplied project. Do not contact a provider. Return exactly one JSON object with keys status, invocationMode, artifactModeSelected, canonicalRepositoryVerified, workspaceTeamVerified, projectId, projectCreated, directIssueIds, parentPlanIssueCount, nativeDependencies, mutationClientIds, providerMutationPasses, graphReadBackVerified, and repositoryMutationCount.",
-      "fixtures": [
-        "project-a.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Standalone exact-project planning selects persistence, reuses the verified project, creates two direct executor-ready issues and one native dependency with stable identities, independently reads the complete graph back, creates no parent issue, and performs no repository mutation.",
-      "assertions": [
-        {
-          "id": "plan-standalone-complete",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "complete",
-          "critical": true
-        },
-        {
-          "id": "plan-standalone-mode",
-          "kind": "final-json-path-equals",
-          "pointer": "/invocationMode",
-          "expected": "standalone"
-        },
-        {
-          "id": "plan-artifact-selected",
-          "kind": "final-json-path-equals",
-          "pointer": "/artifactModeSelected",
-          "expected": true
-        },
-        {
-          "id": "plan-repository-verified",
-          "kind": "final-json-path-equals",
-          "pointer": "/canonicalRepositoryVerified",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "plan-workspace-team-verified",
-          "kind": "final-json-path-equals",
-          "pointer": "/workspaceTeamVerified",
-          "expected": true
-        },
-        {
-          "id": "plan-project-reused",
-          "kind": "final-json-path-equals",
-          "pointer": "/projectId",
-          "expected": "project-plan-a"
-        },
-        {
-          "id": "plan-project-not-created",
-          "kind": "final-json-path-equals",
-          "pointer": "/projectCreated",
-          "expected": false
-        },
-        {
-          "id": "plan-direct-issue-ids",
-          "kind": "final-json-path-equals",
-          "pointer": "/directIssueIds",
-          "expected": [
-            "issue-plan-a-storage",
-            "issue-plan-a-api"
-          ],
-          "critical": true
-        },
-        {
-          "id": "plan-zero-parent-issues",
-          "kind": "final-json-path-equals",
-          "pointer": "/parentPlanIssueCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "plan-standalone-native-dependency",
+          "id": "plan-strict-dependency",
           "kind": "final-json-path-equals",
           "pointer": "/nativeDependencies",
           "expected": [
@@ -217,102 +67,75 @@
           "critical": true
         },
         {
-          "id": "plan-stable-write-identities",
-          "kind": "final-json-path-equals",
-          "pointer": "/mutationClientIds",
-          "expected": [
-            "41000000-0000-4000-8000-000000000001",
-            "41000000-0000-4000-8000-000000000002",
-            "41000000-0000-4000-8000-000000000003"
-          ]
-        },
-        {
-          "id": "plan-one-persistence-pass",
-          "kind": "final-json-path-equals",
-          "pointer": "/providerMutationPasses",
-          "expected": 1
-        },
-        {
-          "id": "plan-standalone-graph-readback",
+          "id": "plan-readback",
           "kind": "final-json-path-equals",
           "pointer": "/graphReadBackVerified",
           "expected": true,
           "critical": true
         },
         {
-          "id": "plan-standalone-no-repository-mutation",
+          "id": "plan-no-repository-mutation",
           "kind": "final-json-path-equals",
           "pointer": "/repositoryMutationCount",
           "expected": 0
+        },
+        {
+          "id": "plan-does-not-approve",
+          "kind": "final-json-path-equals",
+          "pointer": "/approvalOwned",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "plan-does-not-execute",
+          "kind": "final-json-path-equals",
+          "pointer": "/executionOwned",
+          "expected": false,
+          "critical": true
         }
       ]
     },
     {
-      "id": "blocks-selected-persistence-on-unavailable-or-partial-official-mcp",
-      "prompt": "Read fixtures/project-b.json as two independent official-MCP preflights after standalone persistence was explicitly selected. Do not contact a provider. Return exactly one JSON object with keys status, decisions, projectMutationIds, issueMutationIds, relationMutationIds, and repositoryMutationCount. Decisions must preserve each scenario name and list missing capabilities.",
-      "fixtures": [
-        "project-b.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Missing connection and partial native dependency capabilities both block selected standalone persistence before any provider or repository mutation, without inventing a direct-issue graph or alternate provider fallback.",
+      "id": "requires-exact-project-for-direct-specification",
+      "prompt": "Evaluate two independent woostack-plan inputs: a complete approved specification supplied directly without --project, and the same specification supplied with an exact project that is missing or foreign. Do not contact a provider or mutate the repository. Return exactly one JSON object with keys status, decisions, providerMutationCount, and repositoryMutationCount.",
+      "fixtures": [],
+      "capabilities": [],
+      "expected": "Both inputs are blocked before planning or mutation: Plan requires one exact existing project for a direct specification and never creates an implicit project or fuzzy-matches another resource.",
       "assertions": [
         {
-          "id": "plan-mcp-blocked",
+          "id": "plan-exact-project-blocked",
           "kind": "final-json-path-equals",
           "pointer": "/status",
           "expected": "blocked",
           "critical": true
         },
         {
-          "id": "plan-mcp-decisions",
+          "id": "plan-direct-project-decision",
           "kind": "final-json-path-equals",
           "pointer": "/decisions",
           "expected": [
             {
-              "id": "missing-connection",
+              "id": "direct-specification-without-project",
               "advance": false,
-              "missingCapabilities": [
-                "project-read",
-                "issue-read",
-                "issue-write",
-                "dependency-read",
-                "dependency-write"
-              ]
+              "reasonCode": "exact-existing-project-required"
             },
             {
-              "id": "partial-direct-graph-capability",
+              "id": "missing-or-foreign-project",
               "advance": false,
-              "missingCapabilities": [
-                "dependency-read",
-                "dependency-write"
-              ]
+              "reasonCode": "exact-existing-project-invalid"
             }
           ],
           "critical": true
         },
         {
-          "id": "plan-mcp-no-project-mutation",
+          "id": "plan-no-provider-mutation",
           "kind": "final-json-path-equals",
-          "pointer": "/projectMutationIds",
-          "expected": []
-        },
-        {
-          "id": "plan-mcp-no-issue-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/issueMutationIds",
-          "expected": [],
+          "pointer": "/providerMutationCount",
+          "expected": 0,
           "critical": true
         },
         {
-          "id": "plan-mcp-no-relation-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/relationMutationIds",
-          "expected": []
-        },
-        {
-          "id": "plan-mcp-no-repository-mutation",
+          "id": "plan-no-repository-mutation",
           "kind": "final-json-path-equals",
           "pointer": "/repositoryMutationCount",
           "expected": 0
@@ -320,56 +143,63 @@
       ]
     },
     {
-      "id": "blocks-wrong-resource-type-or-repository",
-      "prompt": "Read fixtures/project-c.json as two exact --project inputs. Do not mutate anything. Return exactly one JSON object with keys status, decisions, graphReadsStarted, providerMutationIds, and repositoryMutationCount. Decisions must classify suppliedIssue and foreignRepositoryProject as blocked.",
+      "id": "rejects-nonsequential-or-incomplete-contract",
+      "prompt": "Evaluate each scenario in fixtures/invalid-graphs.json independently against the packaged Plan contract. Reject before any provider or repository mutation when task IDs or ordinals are invalid, ordinals are not exactly 1..N, a dependency is not the matching immediate predecessor, a required executor field is absent, or the PR size exceeds the allowed threshold without the deletion-only exception. Return exactly one JSON object with keys status, decisions, providerMutationCount, and repositoryMutationCount.",
       "fixtures": [
-        "project-c.json"
+        "invalid-graphs.json"
       ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "An issue supplied where a project is required and a project associated with another canonical repository both fail before graph reads or provider and repository mutations.",
+      "capabilities": [],
+      "expected": "Every invalid chain or incomplete/oversized issue contract is rejected before persistence, with no provider or repository mutation.",
       "assertions": [
         {
-          "id": "plan-identity-blocked",
+          "id": "plan-invalid-contracts-blocked",
           "kind": "final-json-path-equals",
           "pointer": "/status",
           "expected": "blocked",
           "critical": true
         },
         {
-          "id": "plan-identity-decisions",
+          "id": "plan-invalid-contract-reasons",
           "kind": "final-json-path-equals",
           "pointer": "/decisions",
           "expected": [
             {
-              "id": "suppliedIssue",
-              "advance": false,
-              "reasonCode": "project-required"
+              "id": "duplicate-task-id",
+              "valid": false,
+              "reasonCode": "duplicate-task-id"
             },
             {
-              "id": "foreignRepositoryProject",
-              "advance": false,
-              "reasonCode": "foreign-project-repository"
+              "id": "ordinal-gap",
+              "valid": false,
+              "reasonCode": "ordinals-not-contiguous"
+            },
+            {
+              "id": "wrong-predecessor",
+              "valid": false,
+              "reasonCode": "strict-predecessor-chain-required"
+            },
+            {
+              "id": "missing-stop-marker",
+              "valid": false,
+              "reasonCode": "incomplete-executor-contract"
+            },
+            {
+              "id": "oversized-pr",
+              "valid": false,
+              "reasonCode": "pr-size-target-exceeded"
             }
           ],
           "critical": true
         },
         {
-          "id": "plan-identity-no-graph-read",
+          "id": "plan-invalid-no-provider-mutation",
           "kind": "final-json-path-equals",
-          "pointer": "/graphReadsStarted",
-          "expected": false
-        },
-        {
-          "id": "plan-identity-no-provider-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/providerMutationIds",
-          "expected": [],
+          "pointer": "/providerMutationCount",
+          "expected": 0,
           "critical": true
         },
         {
-          "id": "plan-identity-no-repository-mutation",
+          "id": "plan-invalid-no-repository-mutation",
           "kind": "final-json-path-equals",
           "pointer": "/repositoryMutationCount",
           "expected": 0
@@ -377,15 +207,15 @@
       ]
     },
     {
-      "id": "build-delegated-planning-returns-candidate-without-provider-mutation",
-      "prompt": "Read fixtures/project-d.json as a woostack-build delegated planning invocation with exact read-only project context. Do not contact a provider. Return exactly one JSON object with keys status, invocationMode, candidateTaskIds, executorContractsComplete, graphValid, providerReadCount, providerWriteCount, synchronizationOwner, graphHardeningOwner, and repositoryMutationCount.",
+      "id": "delegated-candidate-does-not-touch-provider",
+      "prompt": "Read fixtures/project-d.json as a woostack-build delegated planning invocation with the exact approved project fingerprint and read-only project context. The candidate has two increments and must be normalized to ordinals 1 and 2 with storage → api. Do not contact a provider. Return exactly one JSON object with keys status, invocationMode, candidateTaskIds, ordinals, nativeDependencies, executorContractsComplete, graphValid, providerReadCount, providerWriteCount, synchronizationOwner, graphHardeningOwner, and repositoryMutationCount.",
       "fixtures": [
         "project-d.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Build-delegated planning returns the complete candidate direct-issue graph and executor-ready contracts without provider access; build owns graph hardening and synchronization to the canonical project.",
+      "expected": "Delegated planning returns a complete strict-chain candidate without provider reads or writes; the Build wrapper owns hardening and then synchronization.",
       "assertions": [
         {
           "id": "plan-delegated-candidate",
@@ -407,10 +237,33 @@
           "expected": [
             "storage",
             "api"
-          ]
+          ],
+          "critical": true
         },
         {
-          "id": "plan-delegated-executor-ready",
+          "id": "plan-delegated-ordinals",
+          "kind": "final-json-path-equals",
+          "pointer": "/ordinals",
+          "expected": [
+            1,
+            2
+          ],
+          "critical": true
+        },
+        {
+          "id": "plan-delegated-dependency",
+          "kind": "final-json-path-equals",
+          "pointer": "/nativeDependencies",
+          "expected": [
+            [
+              "storage",
+              "api"
+            ]
+          ],
+          "critical": true
+        },
+        {
+          "id": "plan-delegated-contracts",
           "kind": "final-json-path-equals",
           "pointer": "/executorContractsComplete",
           "expected": true,
@@ -436,7 +289,7 @@
           "critical": true
         },
         {
-          "id": "plan-delegated-synchronization-owner",
+          "id": "plan-delegated-sync-owner",
           "kind": "final-json-path-equals",
           "pointer": "/synchronizationOwner",
           "expected": "woostack-build",
@@ -446,8 +299,7 @@
           "id": "plan-delegated-hardening-owner",
           "kind": "final-json-path-equals",
           "pointer": "/graphHardeningOwner",
-          "expected": "woostack-build",
-          "critical": true
+          "expected": "woostack-build"
         },
         {
           "id": "plan-delegated-no-repository-mutation",
@@ -458,245 +310,63 @@
       ]
     },
     {
-      "id": "preserves-direct-graph-identities-after-unknown-project-create",
-      "prompt": "Read fixtures/project-e.json as an explicit standalone project creation transcript with an unknown project-create outcome. Do not contact a provider. Return exactly one JSON object with keys status, reasonCode, projectMutationId, directIssueMutationIds, relationMutationIds, projectCreateAttempts, rediscoveryComplete, replacementIdentityAllocated, issueMutationIds, laterProviderMutationCount, and repositoryMutationCount.",
-      "fixtures": [
-        "project-e.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The unknown project create retains every preallocated direct-graph identity, performs one create attempt, stops on incomplete recovery read, allocates no replacement, and starts no issue, relation, later provider, or repository mutation.",
+      "id": "refuses-approval-or-execution-claims",
+      "prompt": "Given a valid exact-project strict-chain plan, return the Plan handoff record only. Do not approve a specification or execution graph, create implementation branches, execute tasks, commit, open or review PRs, or merge. Return exactly one JSON object with keys status, approvalOwned, executionOwned, commitOwned, reviewOwned, mergeOwned, repositoryMutationCount, and graphReadBackVerified.",
+      "fixtures": [],
+      "capabilities": [],
+      "expected": "Plan returns a verified planning handoff while owning none of the approval, implementation, commit, PR, review, or merge actions.",
       "assertions": [
         {
-          "id": "plan-unknown-blocked",
+          "id": "plan-handoff-ready",
           "kind": "final-json-path-equals",
           "pointer": "/status",
-          "expected": "blocked",
+          "expected": "ready",
           "critical": true
         },
         {
-          "id": "plan-unknown-reason",
+          "id": "plan-no-approval",
           "kind": "final-json-path-equals",
-          "pointer": "/reasonCode",
-          "expected": "unknown-project-create-incomplete-recovery-read"
-        },
-        {
-          "id": "plan-unknown-project-id",
-          "kind": "final-json-path-equals",
-          "pointer": "/projectMutationId",
-          "expected": "50000000-0000-4000-8000-000000000000"
-        },
-        {
-          "id": "plan-unknown-direct-issue-ids",
-          "kind": "final-json-path-equals",
-          "pointer": "/directIssueMutationIds",
-          "expected": [
-            "50000000-0000-4000-8000-000000000001",
-            "50000000-0000-4000-8000-000000000002"
-          ]
-        },
-        {
-          "id": "plan-unknown-relation-ids",
-          "kind": "final-json-path-equals",
-          "pointer": "/relationMutationIds",
-          "expected": [
-            "50000000-0000-4000-8000-000000000003"
-          ]
-        },
-        {
-          "id": "plan-unknown-one-create",
-          "kind": "final-json-path-equals",
-          "pointer": "/projectCreateAttempts",
-          "expected": 1,
-          "critical": true
-        },
-        {
-          "id": "plan-unknown-recovery-incomplete",
-          "kind": "final-json-path-equals",
-          "pointer": "/rediscoveryComplete",
-          "expected": false
-        },
-        {
-          "id": "plan-unknown-no-replacement",
-          "kind": "final-json-path-equals",
-          "pointer": "/replacementIdentityAllocated",
+          "pointer": "/approvalOwned",
           "expected": false,
           "critical": true
         },
         {
-          "id": "plan-unknown-no-issues",
+          "id": "plan-no-execution",
           "kind": "final-json-path-equals",
-          "pointer": "/issueMutationIds",
-          "expected": []
+          "pointer": "/executionOwned",
+          "expected": false,
+          "critical": true
         },
         {
-          "id": "plan-unknown-no-later-provider-mutations",
+          "id": "plan-no-commit",
           "kind": "final-json-path-equals",
-          "pointer": "/laterProviderMutationCount",
-          "expected": 0
+          "pointer": "/commitOwned",
+          "expected": false
         },
         {
-          "id": "plan-unknown-no-repository-mutation",
+          "id": "plan-no-review",
+          "kind": "final-json-path-equals",
+          "pointer": "/reviewOwned",
+          "expected": false
+        },
+        {
+          "id": "plan-no-merge",
+          "kind": "final-json-path-equals",
+          "pointer": "/mergeOwned",
+          "expected": false
+        },
+        {
+          "id": "plan-no-repository-mutation",
           "kind": "final-json-path-equals",
           "pointer": "/repositoryMutationCount",
           "expected": 0
-        }
-      ]
-    },
-    {
-      "id": "blocks-relations-on-incomplete-direct-issue-readback",
-      "prompt": "Read fixtures/project-f.json at selected standalone persistence. Do not contact a provider. Return exactly one JSON object with keys status, reasonCode, projectMutationId, projectReadBackVerified, directIssueMutationId, directIssueNativeId, directIssueReadBackAccepted, directIssueCreateAttempts, relationMutationIds, graphAccepted, stableIssueIdPreserved, and repositoryMutationCount.",
-      "fixtures": [
-        "project-f.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "A verified project permits one direct issue create, but an independent issue read that omits exact project membership blocks relation creation and graph acceptance while preserving the stable issue identity.",
-      "assertions": [
-        {
-          "id": "plan-issue-readback-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "blocked",
-          "critical": true
         },
         {
-          "id": "plan-issue-readback-reason",
+          "id": "plan-readback-required",
           "kind": "final-json-path-equals",
-          "pointer": "/reasonCode",
-          "expected": "direct-issue-project-membership-readback-mismatch"
-        },
-        {
-          "id": "plan-issue-project-client",
-          "kind": "final-json-path-equals",
-          "pointer": "/projectMutationId",
-          "expected": "60000000-0000-4000-8000-000000000000"
-        },
-        {
-          "id": "plan-issue-project-read",
-          "kind": "final-json-path-equals",
-          "pointer": "/projectReadBackVerified",
-          "expected": true
-        },
-        {
-          "id": "plan-issue-client",
-          "kind": "final-json-path-equals",
-          "pointer": "/directIssueMutationId",
-          "expected": "60000000-0000-4000-8000-000000000001"
-        },
-        {
-          "id": "plan-issue-native",
-          "kind": "final-json-path-equals",
-          "pointer": "/directIssueNativeId",
-          "expected": "issue-storage"
-        },
-        {
-          "id": "plan-issue-readback-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/directIssueReadBackAccepted",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "plan-issue-one-attempt",
-          "kind": "final-json-path-equals",
-          "pointer": "/directIssueCreateAttempts",
-          "expected": 1
-        },
-        {
-          "id": "plan-issue-no-relations",
-          "kind": "final-json-path-equals",
-          "pointer": "/relationMutationIds",
-          "expected": []
-        },
-        {
-          "id": "plan-issue-graph-rejected",
-          "kind": "final-json-path-equals",
-          "pointer": "/graphAccepted",
-          "expected": false
-        },
-        {
-          "id": "plan-issue-stable-id",
-          "kind": "final-json-path-equals",
-          "pointer": "/stableIssueIdPreserved",
+          "pointer": "/graphReadBackVerified",
           "expected": true,
           "critical": true
-        },
-        {
-          "id": "plan-issue-no-repository-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0
-        }
-      ]
-    },
-    {
-      "id": "rejects-invalid-plan-graphs-before-persistence",
-      "prompt": "Evaluate each scenario in fixtures/invalid-graphs.json independently against the packaged Plan contract. Derive the result from task identity, ordinal, acceptance coverage, predecessor, and Git-parent evidence. Do not mutate a provider or repository. Return exactly one JSON object with keys status, decisions, providerMutationCount, and repositoryMutationCount.",
-      "fixtures": [
-        "invalid-graphs.json"
-      ],
-      "capabilities": [],
-      "expected": "Every invalid graph is rejected before persistence: task IDs and exact positive integer ordinals are unique, dependencies resolve to declared tasks, acceptance criteria are covered, and intended Git parents are representable by dependency and Graphite ancestry.",
-      "assertions": [
-        {
-          "id": "plan-invalid-graphs-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "blocked",
-          "critical": true
-        },
-        {
-          "id": "plan-invalid-graph-reasons",
-          "kind": "final-json-path-equals",
-          "pointer": "/decisions",
-          "expected": [
-            {
-              "id": "duplicate-task-id",
-              "valid": false,
-              "reasonCode": "duplicate-task-id"
-            },
-            {
-              "id": "duplicate-ordinal",
-              "valid": false,
-              "reasonCode": "duplicate-ordinal"
-            },
-            {
-              "id": "non-integer-ordinal",
-              "valid": false,
-              "reasonCode": "invalid-ordinal"
-            },
-            {
-              "id": "unknown-predecessor",
-              "valid": false,
-              "reasonCode": "unknown-predecessor"
-            },
-            {
-              "id": "uncovered-acceptance",
-              "valid": false,
-              "reasonCode": "acceptance-coverage-gap"
-            },
-            {
-              "id": "unrepresentable-git-parent",
-              "valid": false,
-              "reasonCode": "git-parent-not-representable"
-            }
-          ],
-          "critical": true
-        },
-        {
-          "id": "plan-invalid-no-provider-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/providerMutationCount",
-          "expected": 0
-        },
-        {
-          "id": "plan-invalid-no-repository-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0
         }
       ]
     }
