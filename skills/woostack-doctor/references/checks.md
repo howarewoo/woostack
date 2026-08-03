@@ -35,9 +35,6 @@ never inspect credentials or invoke HTTP, GraphQL, provider adapters, or hard-co
 | `linear-policy` | backend selector, credential-like key, incomplete repository/workspace/team, or incomplete category/state mapping | error | report | — |
 | `legacy-development-records` | active or ambiguous local spec/plan/fix/overnight set requires one-way migration | error | report | — |
 | `linear-live` | normalized live receipt is missing, malformed, partial, stale, foreign, read-only, or lacks an exact required capability/read-back | error | report | — |
-| `respond-config` | invalid type, key, bound, or value in the optional `respond` namespace | warn | report | — |
-| `respond-credentials` | credential-like key under `respond` | warn | report | — |
-| `respond-stale-evidence` | response evidence run directory older than 24 hours | warn | report (manual deletion after failed-run review) | — |
 
 Legacy development records are migration input, not normal document-lint or auto-repair targets.
 
@@ -46,7 +43,7 @@ Legacy development records are migration input, not normal document-lint or auto
 Static diagnosis is provider-free. It validates:
 
 - the non-secret `linear` policy shape and rejects backend selectors or credential-like keys;
-- response, generated-host, Git-ignore, and worktree hygiene; and
+- generated-host, Git-ignore, and worktree hygiene; and
 - legacy development-record directories as one blocking `legacy-development-records` finding per
   active or ambiguous set, without running document type/status/source/backlink checks.
 

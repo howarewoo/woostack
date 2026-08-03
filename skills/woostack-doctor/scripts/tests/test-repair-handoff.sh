@@ -15,7 +15,7 @@ checks=[
  (doctor,r"never hands tracked repairs directly to `woostack-commit`","commit boundary"),
  (doctor,r"filesystem-only.*orphan-worktree --fix","filesystem-only repair"),
  (doctor,r"Approved tracked repairs run through artifact-free `woostack-change`","artifact-free repair"),
- (change,r"never reads or writes Linear","change artifact default"),
+ (change,r"(never reads or writes Linear|makes no Linear call)","change artifact default"),
 ]
 failures=[msg for text,pat,msg in checks if not re.search(pat,text,re.I|re.S)]
 if re.search(r"binds or creates.*issue|Linear is the only development authority",doctor,re.I|re.S):

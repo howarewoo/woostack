@@ -11,14 +11,14 @@
     },
     {
       "id": "incomplete-workspace-scaffold-repair",
-      "query": "A bad merge removed .woostack/config.json and a few standard directories, while our existing response reports are intact. Restore only the missing workspace pieces.",
+      "query": "A bad merge removed .woostack/config.json and a few standard directories, while our existing diagnostic reports are intact. Restore only the missing workspace pieces.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-init",
       "conflictsWith": ["woostack-doctor"]
     },
     {
       "id": "existing-workspace-convention-repair",
-      "query": "All expected .woostack files are present, but recent hand edits may have broken config values, response setup, or static workspace policy. Show me what is invalid and the safe corrections; don't apply them until I choose.",
+      "query": "All expected .woostack files are present, but recent hand edits may have broken config values, config values, or static workspace policy. Show me what is invalid and the safe corrections; don't apply them until I choose.",
       "shouldTrigger": false,
       "expectedSkill": "woostack-doctor",
       "conflictsWith": ["woostack-init"]

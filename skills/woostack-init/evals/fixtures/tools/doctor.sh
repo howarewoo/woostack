@@ -17,7 +17,7 @@ fi
 
 root="$project_root/.woostack"
 failed=0
-for path in respond/.gitkeep config.json .gitignore; do
+for path in config.json .gitignore; do
   if [ ! -f "$root/$path" ]; then
     printf "error\tmissing-canonical-path\t%s\n" "$path"
     failed=1

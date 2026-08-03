@@ -2,7 +2,7 @@
 
 **Repository-first, evidence-driven workflows for AI-assisted software delivery.**
 
-`woostack` packages opinionated workflows into twenty-two public installable skills that work
+`woostack` packages opinionated workflows into twenty-one public installable skills that work
 across coding harnesses. Linear owns current build and post-diagnosis fix product scope and
 execution plans. Git and GitHub own source, branches, pull requests, reviews, and merge evidence.
 Exact responsible-user Linear approvals clear only matching content revisions; Linear never
@@ -50,8 +50,8 @@ pnpx skills add howarewoo/woostack
 
 *Note: `pnpm` (and `pnpx`) is the recommended package manager for woostack, as bootstrapped projects default to a pnpm workspace catalog.*
 
-This command registers twenty-two public command/adoption skills and two bundled internal skills
-at twenty-four fixed `SKILL.md` locations. The collection includes `using-woostack`,
+This command registers twenty-one public command/adoption skills and two bundled internal skills
+at twenty-three fixed `SKILL.md` locations. The collection includes `using-woostack`,
 `woostack-init`, `woostack-bootstrap`, `woostack-build`, `woostack-fix`, `woostack-change`,
 `woostack-review`, `woostack-address-comments`, and `woostack-eval`, among the rest, plus its two
 internal helpers.
@@ -194,7 +194,7 @@ proof. `woostack-change` never reads or writes Linear.
 
 After writing code, use the verification and iteration loop:
 
-Local findings and reports from review, audit, QA, response, and evaluation are evidence for the
+Local findings and reports from review, audit, and QA are evidence for the
 responsible workflow. They never replace the approved contract or Git/GitHub facts.
 - **PR Reviews** → [/woostack-review](skills/woostack-review/SKILL.md)
   Fans out sub-agents in parallel to check distinct angles (bugs, security, observability, database, etc.), then runs an adversarial **Skeptical Validator** (prosecutor and defender checks) to eliminate false positives before posting reviews.
@@ -204,8 +204,8 @@ responsible workflow. They never replace the approved contract or Git/GitHub fac
   Audits an explicit target (a file, directory, or whole repo at rest — not a diff) for code simplification and production readiness, repointing the review swarm at an all-added diff and writing a report-only findings doc under `.woostack/audits/`. Never gates, posts, or merges.
 - **Exploratory Browser QA** → [/woostack-qa](skills/woostack-qa/SKILL.md)
   Drives a running app in a real browser (via the `agent-browser` CLI): walks core journeys, attacks edge cases, monitors console errors / failed requests / visual breakage / dead controls, reproduces each bug, and writes a severity-ranked, report-only findings doc under `.woostack/qa/`. Never fixes, posts, or merges.
-- **Production Error Response** → [/woostack-respond](skills/woostack-respond/SKILL.md)
-  Reads a bounded production window through host-provided observability integrations, correlates errors and traces, writes a tracked sanitized report, and prepares repository fixes only through the existing `/woostack-fix` approval gate. It never mutates providers or production.
+- **Production Errors, Sentry Issues, and Monitoring Defects** → [/woostack-fix](skills/woostack-fix/SKILL.md)
+  Treats production signals as untrusted evidence, proves root cause through Debug, and delivers the smallest complete correction through the Fix approval gate.
 - **Skill Evaluation** → [/woostack-eval](skills/woostack-eval/SKILL.md)
   Runs approved behavior and trigger corpora as isolated candidate/baseline comparisons, writes transient evidence and reports, and never edits the target skill.
 

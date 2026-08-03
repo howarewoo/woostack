@@ -19,7 +19,7 @@ separate synchronization operation is explicitly requested.
 | [woostack-debug](/docs/skills/woostack-debug) | Runs root-cause analysis and returns a proposed correction. | no | `/woostack-debug <target>` |
 | [woostack-qa](/docs/skills/woostack-qa) | Exploratory-QAs a running app and writes a sanitized report. | non-authoritative report | `/woostack-qa <url> [focus…]` |
 | [woostack-audit](/docs/skills/woostack-audit) | Reviews standing code and writes a ranked report without remediation. | non-authoritative report | `/woostack-audit <target>` |
-| [woostack-respond](/docs/skills/woostack-respond) | Investigates bounded production telemetry and may propose a repository fix. | non-authoritative report | `/woostack-respond <signal> [scope…]` |
+| Production errors, Sentry issues, and monitoring defects | [woostack-fix](/docs/skills/woostack-fix) proves root cause and delivers the correction. | approved fix workflow | `/woostack-fix <prompt>` |
 | [woostack-eval](/docs/skills/woostack-eval) | Runs approved behavior/trigger corpora without editing the target skill. | approved corpus changes only; transient evidence | `/woostack-eval <skill-path> [--behavior\|--triggers\|--all]` |
 
 `woostack-eval` writes tracked corpus files only after explicit approval and never edits the target

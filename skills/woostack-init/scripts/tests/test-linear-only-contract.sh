@@ -81,7 +81,7 @@ require("woostack-plan", plan, r"`--project` is mandatory", "exact-project selec
 require("woostack-plan", plan, r"exactly one direct project issue for each execution increment", "direct-issue persistence missing")
 
 change = flat(root / "skills/woostack-change/SKILL.md")
-require("woostack-change", change, r"never reads or writes Linear", "change is not Linear-free")
+require("woostack-change", change, r"(never reads or writes Linear|makes no Linear call)", "change is not Linear-free")
 
 if failures:
     print("Linear authority contract violations:", file=sys.stderr)

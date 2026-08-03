@@ -60,12 +60,12 @@ assert_contains "$hermes" "Standalone/other artifact use still requires an exact
 assert_contains "$hermes" "Repository policy supplies defaults only after selection" "Hermes rejects policy as unrelated authority"
 
 review="$(cat "$S/woostack-review/SKILL.md")"
-assert_eq "$([[ "$review" == *"after angle detection"* ]] && echo y)" "y" \
-  "review preflights after detecting planned angles"
-assert_eq "$([[ "$review" == *"Before launching any summary, angle, or validator"* ]] && echo y)" "y" \
+assert_eq "$([[ "$review" == *"Before host-dependent dispatch"* ]] && echo y)" "y" \
+  "review preflights before host-dependent dispatch"
+assert_eq "$([[ "$review" == *"required host selectors before launch"* ]] && echo y)" "y" \
   "review preflights the complete selector set before launch"
-assert_eq "$([[ "$review" == *"never creates or repairs an agent during review"* ]] && echo y)" "y" \
-  "review does not generate workers at dispatch time"
+assert_eq "$([[ "$review" == *"blocks before the first worker"* ]] && echo y)" "y" \
+  "review fails before dispatch when selectors are missing"
 assert_eq "$([[ "$review" != *'agent: quick_task'* ]] && echo y)" "y" \
   "review omits the unavailable quick selector"
 assert_eq "$([[ "$review" != *'agent: oracle'* ]] && echo y)" "y" \
