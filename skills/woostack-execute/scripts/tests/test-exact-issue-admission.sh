@@ -23,7 +23,8 @@ checks = [
     (skill, r"configured fast-model subagent", "fast-model dispatch missing"),
     (skill, r"one focused verification.*one small bounded spec-compliance validator", "narrow verification boundary missing"),
     (skill, r"Backlog` or `Todo` → `In Progress` → `In Review`", "Linear lifecycle missing"),
-    (skill, r"branch, commit, PR URL/head/base, verification receipt", "successful delivery evidence missing"),
+    (skill, r"branch, commit, PR URL/head/base.*verification receipt", "successful delivery evidence missing"),
+    (skill, r"woostack-commit.*exact selected issue.*`Resolves <issue identifier>`", "selected issue closing reference missing"),
     (skill, r"clean exact worktree", "clean-worktree gate missing"),
     (skill, r"never create a duplicate", "duplicate resume protection missing"),
     (controller, r"--project` xor `--issue", "controller exact resource admission missing"),
@@ -36,6 +37,8 @@ checks = [
     (controller, r"bounded spec-compliance validator", "controller validator missing"),
     (controller, r"Backlog`/`Todo` → `In Progress` → `In Review", "controller lifecycle missing"),
     (controller, r"Successful submission requires branch, commit, PR", "controller PR gate missing"),
+    (controller, r"woostack-commit.*exact selected issue", "controller does not pass the exact issue to commit"),
+    (controller, r"exactly one closing reference for the selected issue", "controller closing-reference read-back missing"),
     (controller, r"fresh independent Linear, Git, Graphite, and GitHub evidence", "resume evidence missing"),
     (driver, r"configured fast-model subagent", "driver fast model missing"),
 ]

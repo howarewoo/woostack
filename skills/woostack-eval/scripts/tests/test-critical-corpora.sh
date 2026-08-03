@@ -191,13 +191,13 @@ const requiredContractProofs = {
     'no local authority or merge': [['no-local-report-path'], ['overnight-never-merges']],
   },
   'woostack-commit': {
-    'standalone and increment attribution are exact': [
+    'standalone and increment issue closing references are exact': [
       ['standalone-role'],
       ['standalone-no-project'],
-      ['standalone-exact-trailer'],
+      ['standalone-exact-closing-reference'],
       ['increment-role'],
       ['increment-project-used'],
-      ['increment-exact-trailer-pair'],
+      ['increment-exact-closing-reference'],
     ],
     'commit submit relation and state read-backs are ordered': [
       ['standalone-operation-order'],
@@ -560,7 +560,7 @@ const approvedCorpusContracts = {
   'woostack-fix': corpusContract(8, '7bc7ebde7786449f00467d992448a1e53fca48291927f6e35b42412eaa5e9b99'),
   'woostack-execute': corpusContract(6, 'd2232dd4f4559d52e08dfbd53410c18eb68cb2e8bf3c5d2224e43e42897356ee'),
   'woostack-execute-overnight': corpusContract(8, 'ef93b1b70e63ccef67e2f515041ace0d9652180d1303ce0b71652da6940416d6'),
-  'woostack-commit': corpusContract(14, '12306fe19af4e4cf50d2cfba1ce4870c74ae54ee74d7644b05c1df2e0b0357ce'),
+  'woostack-commit': corpusContract(14, '6abca6644de9e86c1e953c5a82297eb59bf738c190550ab1b4bb6b5c71af024e'),
   'woostack-review': corpusContract(3, '8ae2f0384a96f3ea2f27ce494348a7d87059a95faab8b2b595bafdbf279b0960'),
   'woostack-sweep': corpusContract(3, 'd4e25bb96771ed2fe6133198780f4280f7d83336eb6a9633ca49243d8b42f227'),
   'woostack-address-comments': corpusContract(3, '6a5d04522d1f10af74ee69300a49f2fe23aa7e3357b8cb6223399e8511d6c0a5'),

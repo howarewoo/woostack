@@ -62,9 +62,10 @@ never advances a sibling. Both modes use the same two approval records and repos
 5. Create or resume exactly one deterministic isolated worktree owned by this run. Dispatch the
    configured fast-model subagent with the exact issue scope and exclusive worktree ownership.
 6. After the worker returns, run one focused verification and changed-path smoke scenario, then one
-   bounded spec-compliance validator against the approved issue contract. On success, commit and
-   submit exactly one Graphite PR, then independently read back branch, commit, PR URL/head/base,
-   verification receipt, and Graphite parent.
+   bounded spec-compliance validator against the approved issue contract. On success, invoke
+   [`woostack-commit`](../woostack-commit/SKILL.md) with the exact selected issue to commit and submit
+   exactly one Graphite PR. Independently read back branch, commit, PR URL/head/base, the exact
+   `Resolves <issue identifier>` body line, verification receipt, and Graphite parent.
 7. Persist the delivery evidence, move the issue to `In Review`, and independently read back the
    Linear issue/project checkpoint. Remove the worktree only after all required evidence is present
    and the exact worktree is clean.

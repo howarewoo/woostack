@@ -36,16 +36,21 @@ The Goal matches the approved bounded task. Summary bullets describe observed ch
 marketing claims. Test entries include only commands/scenarios actually run; failures and omissions
 remain explicit. Never claim a check from artifact text, a worker assertion, or an earlier diff.
 
-## Optional Linear link
+## Associated Linear issue
 
-When the caller supplied one exact artifact and requested attribution, add one ordinary verified
-canonical link in the repository's established issue-link field or a concise `Related artifact`
-line. Do not require or emit a special `Linear-Issue:` / `Linear-Project:` suffix unless the
-repository's own explicit PR template requires it.
+When the caller supplied one exact issue, independently read its canonical identifier and add one
+line after the woostack-owned block:
 
-A link is descriptive only. It never proves PR identity, scope, assignment, ownership, acceptance,
-review, or lifecycle state. Never infer the artifact from the existing body, branch, title, issue
-key, or recent activity.
+```markdown
+Resolves APP-123
+```
+
+Use exactly one closing keyword and the verified issue identifier. Reuse an existing exact matching
+line rather than appending a duplicate. Do not add a project reference: a merged PR resolves its
+issue, not the containing project. This line associates the PR immediately and lets the repository's
+Linear integration move the issue to its configured merged state after merge. It never proves PR
+identity, scope, assignment, ownership, acceptance, review, merge, or current lifecycle state. Never
+infer the issue from the existing body, branch, title, issue key, or recent activity.
 
 ## Validation and read-back
 
@@ -56,7 +61,8 @@ open state. Validate the proposed body:
 - no deletion or alteration of unrelated content;
 - accurate observed verification outcomes;
 - no credentials, raw provider payloads, local filesystem paths, or temporary receipts;
-- optional artifact link exactly matches the independently read caller-supplied resource; and
+- closing reference identifier exactly matches the independently read caller-supplied issue;
+- exactly one matching `Resolves <issue identifier>` line when an issue was supplied; and
 - no claim of merge or acceptance without direct evidence.
 
 After editing, independently read title, full body, head/base, and head SHA back. Exact body content
