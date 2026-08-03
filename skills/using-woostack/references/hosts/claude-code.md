@@ -37,6 +37,8 @@ to entry 0, or re-run after editing config).
 
 - **woostack-execute (dispatch):** the no-per-call-cwd case — prompt pin + self-pin guard —
   is the normal path here.
+- **woostack-execute (and overnight):** route the implementation worker at the `fast` tier per
+  call; the controller retains project admission, verification, and delivery boundaries.
 - **woostack-commit (fast drafting):** route the drafting subagent at the `fast` tier
   per-call.
 - **woostack-review (local swarm):** dispatch every active angle task via `Task`, letting the

@@ -31,6 +31,8 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
 
 - **woostack-review (local swarm):** dispatch angle workers in parallel and let the host
   schedule or queue them.
+- **woostack-execute (and overnight):** use the session's configured `fast` implementation model
+  before dispatch; per-call model pinning remains unavailable.
 - **woostack-eval (comparative dispatch):** submit the two isolated workers for each
   candidate/baseline inseparable pair together through Composer's parallel-subagent primitive.
   Cursor exposes no concrete per-call model pin; `session-default` is provable only when the
