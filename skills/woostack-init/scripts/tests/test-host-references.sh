@@ -46,18 +46,18 @@ assert_not_contains "$omp" 'agent: oracle' "OMP never routes to the unavailable 
 assert_contains "$omp" "Never generate or repair project workers during review" "OMP forbids review-time generation"
 assert_contains "$omp" "Only an exact caller-selected artifact or explicit persistence request selects Linear" "OMP requires exact or explicit selection"
 assert_contains "$omp" "policy may supply validated defaults only after selection; it never selects artifact mode or" "OMP limits policy to post-selection defaults"
-assert_contains "$omp" "Without either selection, make no Linear call" "OMP preserves no-selection no-call behavior"
+assert_contains "$omp" "Without build/plan selection or proved fix root cause, make no Linear call" "OMP preserves pre-proof no-call behavior"
 assert_contains "$omp" "Failure after selected persistence blocks only the" "OMP scopes selected persistence failure"
 
 hermes="$(cat "$H/hermes.md")"
 assert_contains "$hermes" 'native `delegate_task`' "Hermes keeps native default"
-assert_contains "$hermes" "Neither route requires Linear" "Hermes does not require Linear"
+assert_contains "$hermes" "Neither route requires Linear for normal" "Hermes keeps non-fix artifacts optional"
 assert_contains "$hermes" "omp --profile <engineer> -p --cwd <worktree> <prompt>" "Hermes pins conceptual OMP argv"
 assert_contains "$hermes" "Arguments are values, not shell source" "Hermes quarantines task text"
 assert_contains "$hermes" "distinct Hermes/OMP sessions and role credentials" "Hermes isolates paired roles"
 assert_contains "$hermes" "Only an exact caller-selected artifact or explicit persistence request selects Linear" "Hermes requires exact or explicit selection"
-assert_contains "$hermes" "Without either selection, both profiles make no Linear call" "Hermes preserves no-selection no-call behavior"
-assert_contains "$hermes" "Repository policy or a successful preflight alone" "Hermes rejects policy and preflight as selectors"
+assert_contains "$hermes" "Without either selection, both profiles make no Linear call for non-fix workflows" "Hermes preserves non-fix no-call behavior"
+assert_contains "$hermes" "Repository policy or a successful preflight alone cannot select artifact mode" "Hermes rejects policy and preflight as selectors"
 
 review="$(cat "$S/woostack-review/SKILL.md")"
 assert_eq "$([[ "$review" == *"after angle detection"* ]] && echo y)" "y" \
@@ -79,7 +79,6 @@ for page in "$DOCS/harnesses/index.mdx" "$DOCS/harnesses/omp.mdx" "$DOCS/harness
 done
 assert_contains "$(cat "$DOCS/harnesses/omp.mdx")" "skills/using-woostack/references/hosts/omp.md" "OMP docs link canonical adapter"
 assert_contains "$(cat "$DOCS/harnesses/hermes.mdx")" "skills/using-woostack/references/hosts/hermes.md" "Hermes docs link canonical adapter"
-assert_contains "$(cat "$DOCS/harnesses/omp.mdx")" "Neither profile requires a Linear principal or issue" "OMP docs keep artifacts optional"
-assert_contains "$(cat "$DOCS/harnesses/hermes.mdx")" "Neither route requires Linear" "Hermes docs keep artifacts optional"
+assert_contains "$(cat "$DOCS/harnesses/hermes.mdx")" "Artifact-free operation remains available for non-fix workflows" "Hermes docs qualify artifact-free operation"
 
 finish

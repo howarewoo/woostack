@@ -9,10 +9,11 @@ woostack is a multiperson development workflow with repository-first evidence an
 artifacts. The user's approved workflow contract defines scope and approval. Git and GitHub own
 source, branches, commits, pull requests, reviews, and merge evidence. Default init may make
 authenticated read-only Linear setup calls to validate non-secret defaults, but that narrow
-exception selects no artifact and permits no provider write. Otherwise, an exact caller-supplied
-artifact or explicit persistence request selects Linear; without one, commands make no provider
-call. Selected fix/build/standalone-plan persistence uses one project with a parent plan issue and
-one native child issue per increment. Those artifacts never authorize repository work.
+exception selects no artifact and permits no provider write. Build/standalone-plan persistence
+requires exact selection or an explicit persistence request and uses one project with a parent plan
+issue and one native child issue per increment. A proved fix prompt binds or creates one issue after
+proof.
+Artifacts never authorize repository work.
 
 ## The build loop
 
@@ -27,13 +28,13 @@ Ordered increments remain independently shippable and map to reviewable PRs. Wit
 artifact or explicit persistence request, the workflow makes no Linear call.
 
 Bounded one-PR work takes a smaller route. [woostack-fix](/docs/skills/woostack-fix) proves a root
-cause, approves one fix contract, and optionally persists its explicitly selected one-increment
-plan project. [woostack-change](/docs/skills/woostack-change) executes one explicit bounded
-enhancement/refactor without contacting Linear.
+cause, approves one fix contract, and after proof binds or creates exactly one compatible issue.
+[woostack-change](/docs/skills/woostack-change) executes one explicit bounded enhancement/refactor
+without contacting Linear.
 
-An explicit fix/build abandonment stops repository work and moves any existing plan project to the
-configured canceled status, with independent read-back. Normal handoff, replanning, and blockers do
-not close the project, and no project is created merely to record an artifact-free abandonment.
+An explicit build/plan abandonment stops repository work and moves an existing plan project to the
+configured canceled status, with independent read-back. New fix issues are preserved; normal
+handoff, replanning, and blockers do not close projects, and no project is created for a fix issue.
 
 ## Three hard gates
 
@@ -52,7 +53,7 @@ steps, not additional approval gates. Silence never clears a gate.
 | --- | --- | --- |
 | Use when | One bounded fix/change can ship in one PR | A feature needs multiple independently shippable increments |
 | Active contract | Approved goal/fix contract | Approved specification plus dependency-aware plan |
-| Linear plan | Fix: project → parent plan issue → one increment child. Change: none | Project → parent plan issue → one child per increment |
+| Linear plan | Fix: one compatible issue after root-cause proof. Change: none | Project → parent plan issue → one child per increment |
 | Evidence | Direct repository/PR evidence | Direct repository/PR evidence per increment |
 | Code delivery | One GitHub PR | One GitHub PR per increment |
 

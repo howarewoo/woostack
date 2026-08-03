@@ -12,8 +12,9 @@ checks, verification, review, commit, and recovery boundaries. This skill change
 independent track continues when another track blocks. It never merges.
 
 Git, Graphite, and canonical GitHub reads own source, ancestry, PR, review, and delivery truth.
-Linear projects/issues are optional artifacts for specifications, plans, fixes, and synchronization
-notes. They are not an execution queue, ownership system, approval gate, or completion proof.
+Linear projects/issues are optional artifacts for specifications, dependency-aware plans, and
+synchronization notes. They are not an execution queue, ownership system, approval gate, or
+completion proof.
 
 ## Commands
 

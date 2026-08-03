@@ -241,14 +241,16 @@ provider envelope stays neutral. Every verified repository cause uses one comple
 masquerade as fix candidates. The rendered report prints the non-authoritative classification
 before these entries.
 
-## Optional Linear artifact read receipt
+## Optional Linear candidate read receipt
 
-Issue linkage is optional and outside the provider result envelope. When a caller supplies one
-exact issue, retain only its stable client UUID, native issue UUID, exact URL, independent read
-receipt, and read time in the remediation contract. The issue does not establish the root cause,
-fix scope, acceptance, permission, assignment, or readiness.
+Respond may carry one caller-supplied exact issue as untrusted candidate context. Retain only its
+stable client UUID, native issue UUID, exact URL, independent read receipt, and read time in the
+remediation contract. The issue does not establish root cause, fix scope, acceptance, permission,
+assignment, approval, or readiness.
 
 An issue key, title, provider reference, report path, copied report body, assignment, or lifecycle
-state is not an artifact receipt. Missing, foreign, ambiguous, malformed, partial, or stale reads
-omit the optional artifact unless the caller explicitly required synchronization; they never block
-the artifact-free fix handoff.
+state is not a receipt. Missing, foreign, ambiguous, malformed, partial, or stale reads omit this
+optional respond-stage context unless the caller explicitly required the read. They do not block
+handoff to read-only fix diagnosis. After root-cause proof, `woostack-fix` must bind or create its
+one canonical issue, store the hardened contract there, and obtain native issue approval before
+repository execution; there is no artifact-free fix execution fallback.

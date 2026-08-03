@@ -45,8 +45,11 @@ A unit pins:
 - isolated role credentials/config roots; and
 - one expected evidence handback.
 
-Neither profile requires a Linear principal or issue. Linear may be configured independently when
-the caller requests exact artifact reads/writes.
+Build and standalone-plan runs require an exact project or explicit persistence request. A proved new
+fix prompt is the narrow exception: after root-cause proof it binds or creates one compatible issue
+through the configured official MCP. Neither profile requires a Linear principal or issue for normal
+non-fix operation; a proved fix requires that configured capability and blocks before execution when
+the required read, mutation, or independent read-back fails.
 
 Before the first coder dispatch, create or resolve the canonical task worktree, then follow the
 canonical [Hermes bound-unit setup](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/hermes.md#bound-unit-manifest-and-binding).
@@ -73,20 +76,14 @@ then reads the canonical PR/head/diff itself and performs independent review.
 
 ## Linear artifacts
 
-Only an exact caller-selected artifact or explicit persistence request selects Linear. When
-selected, configure the official endpoint independently in each profile:
-
-```text
-https://mcp.linear.app/mcp
-```
-
-Credentials stay in each profile's own MCP/OAuth secret environment and never enter repository
-config, prompts, logs, staged launcher files, or generated output. Follow the
+Build and standalone-plan runs select Linear only with an exact project or explicit persistence
+request. A proved new fix prompt is the narrow exception: after root-cause proof it binds or creates
+one compatible issue. Credentials stay in each profile's own MCP/OAuth secret environment and never
+enter repository config, prompts, logs, staged launcher files, or generated output. Follow the
 [Linear artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md).
 
-Artifact access may read or synchronize a spec, plan, fix, or review note. It cannot authorize
-worker dispatch, edits, commit, review, or acceptance. Without an exact artifact or explicit
-persistence request, make no Linear call. `woostack-change` never contacts Linear.
+Artifact access cannot authorize worker dispatch, edits, commit, review, or acceptance. Before proof,
+a fix makes no Linear call. `woostack-change` never contacts Linear.
 
 ## Recovery
 

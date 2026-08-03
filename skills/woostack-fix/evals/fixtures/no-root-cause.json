@@ -1,7 +1,27 @@
 {
   "symptom": "cache requests intermittently time out",
   "reproduced": true,
-  "investigation": ["captured timeout at the API boundary", "compared the healthy request path"],
+  "investigation": [
+    "captured timeout at the API boundary",
+    "compared the healthy request path"
+  ],
   "rootCause": null,
-  "requestedPlanPath": ".woostack/fixes/cache-stampede.md"
+  "requestedPlanPath": ".woostack/fixes/cache-stampede.md",
+  "debugDispatch": {
+    "promptContext": "free-form prompt only",
+    "issueArgument": "deferred-until-root-cause-proof",
+    "providerCalls": 0
+  },
+  "repositoryEventLog": [
+    {
+      "eventType": "diagnosis-started",
+      "sequence": 1
+    },
+    {
+      "eventType": "root-cause-unproved",
+      "sequence": 2,
+      "resultBranchCreated": false,
+      "resultRepositoryMutationCount": 0
+    }
+  ]
 }

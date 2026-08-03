@@ -1,8 +1,8 @@
 # Linear plan synchronization procedure
 
-This procedure writes an approved fix/build/standalone plan into one exact Linear project. It runs
-only after the caller supplies an exact resource or explicitly requests persistence. Repository
-policy alone never selects this procedure. It owns no workflow gate, phase, assignment, execution,
+This procedure writes an approved build/standalone-plan into one exact Linear project. It runs only
+after the caller supplies an exact resource or explicitly requests persistence. Repository policy
+alone never selects this procedure. It owns no workflow gate, phase, assignment, execution,
 acceptance, or repository authority.
 
 Use the [optional artifact contract](../../woostack-init/references/artifact-backends.md) and
@@ -22,7 +22,7 @@ never retry with a replacement UUID.
 
 ## Specification synchronization
 
-After the workflow's specification or fix-contract approval gate has cleared, persist the exact
+After the build/standalone-plan approved specification/plan gate has cleared, persist the exact
 approved context to the project. Record:
 
 - stable artifact and content revision identities;
@@ -37,9 +37,8 @@ Independently read every append or update back.
 
 ## Plan hierarchy synchronization
 
-After `woostack-fix` returns its approved contract, standalone `woostack-plan` finishes its graph,
-or `woostack-build` hardens the candidate graph returned by delegated planning, persist exactly
-once:
+After `woostack-plan` finishes its graph or `woostack-build` hardens the candidate graph returned by
+delegated planning, persist exactly once:
 
 1. one parent plan issue in the project containing the complete ordered plan, base assumptions,
    cross-increment verification strategy, and open blockers;
@@ -72,9 +71,8 @@ They never select a worker, grant permission, clear the execution handoff, or pr
 ## Explicit abandonment
 
 Follow the neutral canonical artifact contract's
-[fix/build project-closure procedure](../../woostack-init/references/artifact-backends.md#fixbuild-project-closure).
+[project-backed workflow closure procedure](../../woostack-init/references/artifact-backends.md#project-backed-workflow-closure).
 This build-owned synchronization procedure does not redefine closure steps.
-
 ## Delivery notes
 
 Concise synchronization notes may be appended after repository results have been directly verified.

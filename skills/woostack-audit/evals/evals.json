@@ -140,13 +140,13 @@
       ]
     },
     {
-      "id": "routes-remediation-without-linear-artifact",
-      "prompt": "Classify this bounded audit follow-up without calling a provider, network, GitHub, Git, or Linear and without modifying files. Facts: the sanitized audit report is valid but explicitly non-authoritative; it proposes one bounded remediation contract; the user asks to implement it now; no Linear issue artifact was supplied and Linear MCP is unavailable. Return exactly one JSON object with keys status, reasonCode, reportAuthority, linearMutationCount, repositoryMutationCount, fixDispatched, and localDevelopmentArtifactCreated.",
+      "id": "routes-remediation-to-fix-diagnosis",
+      "prompt": "Classify this bounded audit follow-up without calling a provider, network, GitHub, Git, or Linear and without modifying files. Facts: the sanitized audit report is valid but explicitly non-authoritative; it proposes one bounded remediation contract; the user asks to implement it now; no Linear issue was supplied and Linear MCP is unavailable. Return exactly one JSON object with keys status, reasonCode, reportAuthority, linearMutationCount, repositoryMutationCount, fixDispatched, and localDevelopmentArtifactCreated.",
       "fixtures": [],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The report remains non-authoritative evidence and the bounded contract routes to woostack-fix for independent diagnosis and approval without any Linear prerequisite; no Linear or repository mutation and no local development artifact occurs during this classification.",
+      "expected": "The report remains non-authoritative evidence and routes to woostack-fix read-only diagnosis without a Linear call at this classification boundary. After root-cause proof, fix must bind or create its canonical issue and obtain native issue approval before repository execution. No Linear or repository mutation and no local development artifact occurs during this classification.",
       "assertions": [
         {
           "id": "fix-handoff-ready",
@@ -156,10 +156,10 @@
           "critical": true
         },
         {
-          "id": "linear-not-required",
+          "id": "linear-deferred-until-fix-proof",
           "kind": "final-json-path-equals",
           "pointer": "/reasonCode",
-          "expected": "linear-artifact-optional",
+          "expected": "linear-deferred-until-fix-root-cause-proof",
           "critical": true
         },
         {

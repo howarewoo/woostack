@@ -41,11 +41,20 @@ for needle in (
     "same approved plan",
     "exact persisted artifact context when present",
     "No implementation Git artifact exists before an explicit `Go` or",
-    "explicit abandonment must set an existing exact fix/build project's native status",
-    "If no project exists, report that there is nothing to close",
+    "Explicit abandonment must set an existing exact build",
+    "when an exact persisted build\nproject exists",
+    "If no exact project exists, report that there is nothing to close",
     "Hand off**, **Replan**, and blocker handling are not abandonment",
 ):
     require("build", needle)
+
+forbidden_build_scope = (
+    r"historical project-backed fix",
+    r"new prompt-created.*fix issue",
+    r"exact-reused fix issue",
+)
+for pattern in forbidden_build_scope:
+    forbid("build", pattern)
 
 require("ideate", "approved design lives in the conversation")
 require("ideate", "optional Linear persistence")

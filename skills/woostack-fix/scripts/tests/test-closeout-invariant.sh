@@ -1,243 +1,235 @@
 #!/usr/bin/env bash
-# Structural contract for diagnosis, approval, explicitly selected plan persistence, and delivery.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)"
 python3 - "$ROOT" <<'PY'
-import json, re, sys
+import copy,hashlib,json,re,sys,unicodedata
 from pathlib import Path
-text=re.sub(r"\s+"," ",(Path(sys.argv[1])/"skills/woostack-fix/SKILL.md").read_text())
+root=Path(sys.argv[1]); failures=[]
+skill=re.sub(r"\s+"," ",(root/"skills/woostack-fix/SKILL.md").read_text())
+artifact=re.sub(r"\s+"," ",(root/"skills/woostack-init/references/artifact-backends.md").read_text())
+combined=f"{skill} {artifact}"
+
+def fingerprint(value):
+    if not isinstance(value,dict) or set(value) != {"title","description","dependencies"}: raise ValueError("fingerprint input fields")
+    if not isinstance(value["title"],str) or not isinstance(value["description"],str) or not isinstance(value["dependencies"],list): raise ValueError("fingerprint input types")
+    whitespace={*(range(0x0009,0x000E)),0x0020,0x0085,0x00A0,0x1680,*range(0x2000,0x200B),0x2028,0x2029,0x202F,0x205F,0x3000}
+    def normalize(text): return unicodedata.normalize("NFC",text).replace("\r\n","\n").replace("\r","\n")
+    def trim_explicit(text):
+        start=0; end=len(text)
+        while start<end and ord(text[start]) in whitespace: start+=1
+        while end>start and ord(text[end-1]) in whitespace: end-=1
+        return text[start:end]
+    def collapse_title(text):
+        output=[]; in_run=False
+        for char in text:
+            if ord(char) in whitespace:
+                if not in_run: output.append(" ")
+                in_run=True
+            else: output.append(char); in_run=False
+        return trim_explicit("".join(output))
+    dependencies=[]; seen=set()
+    for dependency in value["dependencies"]:
+        if not isinstance(dependency,dict) or set(dependency) != {"direction","kind","targetId"}: raise ValueError("dependency fields")
+        if any(not isinstance(dependency[key],str) for key in ("direction","kind","targetId")): raise ValueError("dependency types")
+        projected=tuple(normalize(dependency[key]) for key in ("direction","kind","targetId"))
+        if projected[0] not in {"blocks","depends-on"} or projected[1]!="native-issue" or not projected[2]: raise ValueError("dependency projection")
+        if projected in seen: raise ValueError("duplicate dependency")
+        seen.add(projected); dependencies.append(projected)
+    dependencies.sort()
+    canonical={
+        "title":collapse_title(normalize(value["title"])),
+        "description":normalize(value["description"]),
+        "dependencies":[{"direction":d,"kind":k,"targetId":t} for d,k,t in dependencies],
+    }
+    encoded=json.dumps(canonical,ensure_ascii=False,separators=(",",":")).encode("utf-8")
+    return "sha256:"+hashlib.sha256(encoded).hexdigest()
+
+vectors=[
+    ({"title":"  Café\t refresh  ","description":"\r\nOne line \t\r\nTwo  spaces\r\n","dependencies":[{"direction":"blocks","kind":"native-issue","targetId":"z"},{"direction":"depends-on","kind":"native-issue","targetId":"a"}]},"sha256:603c1feee4d9d2cf2f83b309609655153096d17c4b987bc82e9268dcdcfacf8a"),
+    ({"title":"Cafe\u0301 refresh","description":"\nOne line \t\nTwo  spaces\n","dependencies":[{"direction":"depends-on","kind":"native-issue","targetId":"a"},{"direction":"blocks","kind":"native-issue","targetId":"z"}]},"sha256:603c1feee4d9d2cf2f83b309609655153096d17c4b987bc82e9268dcdcfacf8a"),
+    ({"title":"Cache refresh!","description":"One line\nTwo  spaces","dependencies":[]},"sha256:d628b361d4b1bf159e541cea20c1817dffa5e5f2229c7c8278486961068129e0"),
+    ({"title":"\u00a0A\u0085B\u00a0","description":"raw","dependencies":[{"direction":"blocks","kind":"native-issue","targetId":"x"}]},"sha256:0ac4af60e7fdc72dfa898a8961925f23d7808a20ff9c5cd1bf34c6d4297ff249"),
+    ({"title":"\ufeffA\u200bB\u001cC","description":"raw","dependencies":[]},"sha256:5f716498cd632e6dfac9dfe79b1d451c766ff50ca9551cd8a7619dafab67664d")]
+for vector,expected in vectors:
+    if fingerprint(vector)!=expected: failures.append("fingerprint golden vector")
+if fingerprint(vectors[0][0])!=fingerprint(vectors[1][0]): failures.append("NFC/order equality")
+if fingerprint(vectors[0][0])==fingerprint({**vectors[0][0],"description":"material change"}): failures.append("material inequality")
+if fingerprint(vectors[3][0])!=fingerprint({**vectors[3][0],"title":" A B "}): failures.append("explicit NBSP/NEL title normalization")
+if fingerprint(vectors[4][0])==fingerprint({**vectors[4][0],"title":"ABC"}): failures.append("BOM/ZWSP/control separator preservation")
+try: fingerprint({**vectors[0][0],"dependencies":[vectors[0][0]["dependencies"][0],vectors[0][0]["dependencies"][0]]})
+except ValueError: pass
+else: failures.append("fingerprint rejects duplicate dependency")
+
 checks={
- "selected project":r"When the caller supplies an exact Linear project or explicitly requests persistence, the approved fix plan is persisted as one project",
- "exact project without policy":r"`--project` selects one exact existing plan project.*persisted there, even when repository Linear policy is absent",
- "no implicit provider access":r"Without either selection, make no Linear read or write",
- "policy not authority":r"policy may supply validated non-secret defaults only after selection and never authorizes a provider write",
- "one gate":r"exactly one hard gate.*approve-to-execute",
- "project hierarchy":r"one selected project containing the proved diagnosis.*one parent plan issue.*one native child issue",
- "repository and team verification":r"verify the canonical repository association and resolved caller-selected workspace/team",
- "proved root cause":r"root cause and causal chain",
- "no patch in debug":r"Do not patch during diagnosis",
- "hardened contract":r"Produce one reviewable bounded contract",
- "explicit approval":r"request explicit.*approve-to-execute",
- "no preapproval write":r"Do not create a branch, worktree, edit, commit, PR, or artifact write before approval",
- "isolated execute":r"dispatch exactly the approved bounded increment to `woostack-execute`",
- "exact execution context":r"exact persisted project, parent plan issue, and increment child context",
- "red green":r"observes the failing reproduction.*observes it passing",
- "scope invalidates":r"scope expansion.*invalidates approval",
- "review and commit":r"Require task-wide contract and quality review.*woostack-commit",
- "artifact narrow exception":r"Except for the workflow-owned canceled project transition on explicit abandonment.*do not mutate assignment, ownership, status",
- "abandon any phase":r"Explicit abandonment may occur at any phase",
- "canonical closure":r"canonical.*fix/build project-closure procedure",
- "cancel persisted project":r"exact persisted fix project exists.*native status must be set to the validated.*projectStatuses\.canceled",
- "no project no creation":r"no project exists.*nothing to close.*never create one merely to cancel",
- "non-abandon outcomes":r"distinct from handoff, replanning, and blocker handling.*leave project status unchanged",
- "closure failure":r"failed or unknown closure.*artifact blocker.*never resumes repository work",
- "repository readback":r"independently read its commit/head/base/body",
- "never merge":r"never merges",
-}
-failures=[name for name,pat in checks.items() if not re.search(pat,text,re.I|re.S)]
-if re.search(r"--issue|Linear-Issue:|must.*exactly one managed issue",text,re.I|re.S):
- failures.append("legacy issue-only lifecycle returned")
-
-root = Path(sys.argv[1])
-evals = json.loads((root / "skills/woostack-fix/evals/evals.json").read_text())
-
-def case_for_fixture(fixture_name, *, prompt_contains=None):
- cases = [
-  case for case in evals["cases"]
-  if case.get("fixtures") == [fixture_name]
-  and (prompt_contains is None or prompt_contains in case.get("prompt", ""))
- ]
- if len(cases) != 1:
-  failures.append(f"{fixture_name}: expected one declared eval case, found {len(cases)}")
-  return {"assertions": [], "prompt": ""}
- case = cases[0]
- if f"fixtures/{fixture_name}" not in case["prompt"]:
-  failures.append(f"{fixture_name}: eval prompt does not name its declared fixture")
- return case
-
-def assertions(case):
- return {assertion.get("pointer"): assertion.get("expected") for assertion in case["assertions"]}
-
-def complete_pages(pages):
- return (
-  bool(pages)
-  and pages[-1].get("complete") is True
-  and pages[-1].get("hasNextPage") is False
-  and [page.get("page") for page in pages] == list(range(1, len(pages) + 1))
- )
-
-def context_matches(resource, intended):
- return all(resource.get(key) == intended.get(key) for key in ("contentIdentity", "revision", "contentHash"))
-
-selected = json.loads((root / "skills/woostack-fix/evals/fixtures/selected-project-persistence.json").read_text())
-selected_case = case_for_fixture("selected-project-persistence.json", prompt_contains="immediately after explicit")
-selected_assertions = assertions(selected_case)
-selected_project = selected["selectedProjectRead"]["fresh"]
-if (
- selected["caller"]["workspaceId"] != selected_project["workspaceId"]
- or selected["caller"]["teamId"] != selected_project["teamId"]
- or selected["repositoryOrigin"] != selected_project["repository"]
-):
- failures.append("selected-project fixture does not verify caller repository/workspace/team")
-for resource, pages in selected["preMutationHierarchyReads"].items():
- if not complete_pages(pages):
-  failures.append(f"selected-project fixture has incomplete pre-write {resource} pages")
-
-parent_before = selected["preMutationHierarchyReads"]["parents"][0]["items"][0]
-child_before = selected["preMutationHierarchyReads"]["children"][0]["items"][0]
-approved = selected["approvedFix"]
-events = selected["providerEvents"]
-project_write, project_read, parent_write, parent_read, child_write, child_read, relation_read = events
-if (
- project_write["target"] != selected_project["id"]
- or project_write["clientId"] != selected["caller"]["clientIds"]["project"]
- or not context_matches(project_write, approved["projectContext"])
- or project_read["fresh"]["id"] != selected_project["id"]
- or project_read["fresh"]["clientId"] != project_write["clientId"]
- or not context_matches(project_read["fresh"], approved["projectContext"])
- or project_read["fresh"]["repository"] != selected["repositoryOrigin"]
- or project_read["fresh"]["workspaceId"] != selected["caller"]["workspaceId"]
- or project_read["fresh"]["teamId"] != selected["caller"]["teamId"]
-):
- failures.append("selected-project approved project context is not independently read back")
-if (
- parent_write["target"] != parent_before["id"]
- or parent_write["clientId"] != selected["caller"]["clientIds"]["parent"]
- or not context_matches(parent_write, approved["parentPlan"])
- or parent_read["fresh"]["id"] != parent_before["id"]
- or parent_read["fresh"]["clientId"] != parent_write["clientId"]
- or not context_matches(parent_read["fresh"], approved["parentPlan"])
- or parent_read["fresh"]["projectMembership"] != selected_project["id"]
-):
- failures.append("selected-project parent reconciliation is not identity-preserving")
-if (
- child_write["target"] != child_before["id"]
- or child_write["clientId"] != selected["caller"]["clientIds"]["child"]
- or child_write["taskId"] != approved["increment"]["taskId"]
- or not context_matches(child_write, approved["increment"])
- or child_read["fresh"]["id"] != child_before["id"]
- or child_read["fresh"]["clientId"] != child_write["clientId"]
- or child_read["fresh"]["taskId"] != approved["increment"]["taskId"]
- or not context_matches(child_read["fresh"], approved["increment"])
- or child_read["fresh"]["parentLink"] != parent_before["id"]
- or child_read["fresh"]["projectMembership"] != selected_project["id"]
- or relation_read["fresh"].get("complete") is not True
- or relation_read["fresh"].get("items") != selected["preMutationHierarchyReads"]["relations"][0]["items"]
-):
- failures.append("selected-project child/relation reconciliation is not completely read back")
-for pointer, expected in {
- "/projectId": selected_project["id"],
- "/projectCreated": False,
- "/preMutationHierarchyReadComplete": True,
- "/parentPlanIssueId": parent_read["fresh"]["id"],
- "/incrementChildIssueIds": [child_read["fresh"]["id"]],
- "/hierarchyReadBackVerified": True,
- "/approvedProjectContextReadBackVerified": True,
-}.items():
- if selected_assertions.get(pointer) != expected:
-  failures.append(f"selected-project fixture is not grounded at {pointer}")
-selected_pointers = [assertion.get("pointer") for assertion in selected_case["assertions"]]
-selected_context_index = selected_pointers.index("/approvedProjectContextReadBackVerified")
-selected_context_assertion = selected_case["assertions"][selected_context_index]
-if (
- selected_context_assertion.get("critical") is not True
- or selected_context_index > selected_pointers.index("/executionDelegated")
-):
- failures.append("selected-project context read-back is not a critical pre-delegation assertion")
-
-partial = selected["partialReadScenario"]
-partial_case = case_for_fixture("selected-project-persistence.json", prompt_contains="partialReadScenario")
-partial_assertions = assertions(partial_case)
-partial_pages = partial["preMutationHierarchyReads"]["parents"]
-if (
- partial_pages[-1].get("complete") is not False
- or partial["providerEvents"] != []
- or partial_assertions.get("/providerMutationCount") != 0
- or partial_assertions.get("/projectCreated") is not False
- or partial_assertions.get("/executionDelegated") is not False
-):
- failures.append("selected-project partial read must block without mutation or delegation")
-
-created = json.loads((root / "skills/woostack-fix/evals/fixtures/explicit-project-create.json").read_text())
-created_case = case_for_fixture("explicit-project-create.json")
-created_assertions = assertions(created_case)
-created_events = created["providerEvents"]
-created_operations = [event["operation"] for event in created_events]
-if created_operations != [
- "lookup-project-by-client-id",
- "create-project",
- "read-project-by-client-id",
- "create-parent",
- "read-parent",
- "create-child",
- "read-child",
-]:
- failures.append("explicit-create transcript does not preserve recovery ordering")
-absence, project_create, project_read = created_events[:3]
-recovered = project_read.get("freshMatches", [])
-if (
- absence.get("clientId") != created["caller"]["clientIds"]["project"]
- or absence.get("freshMatches") != []
- or absence.get("complete") is not True
- or project_create.get("clientId") != absence.get("clientId")
- or project_create.get("outcome") != "timeout-unknown"
- or not context_matches(project_create, created["approvedFix"]["projectContext"])
- or project_read.get("clientId") != project_create.get("clientId")
- or project_read.get("complete") is not True
- or len(recovered) != 1
- or recovered[0].get("clientId") != project_create.get("clientId")
- or not context_matches(recovered[0], created["approvedFix"]["projectContext"])
-):
- failures.append("explicit-create recovery does not prove absence then resolve one same-ID project context")
-
-for index, context_key in ((3, "parentPlan"), (5, "increment")):
- write = created_events[index]
- fresh = created_events[index + 1]["fresh"]
- intended = created["approvedFix"][context_key]
- if (
-  write.get("clientId") not in created["caller"]["clientIds"].values()
-  or fresh.get("clientId") != write.get("clientId")
-  or fresh.get("id") != write["response"].get("id")
-  or not context_matches(write["response"], intended)
-  or not context_matches(fresh, intended)
- ):
-  failures.append(f"explicit-create {write['operation']} read-back changed identity or approved context")
-for pointer, expected in {
- "/absenceProvedBeforeCreate": True,
- "/projectMutationId": created["caller"]["clientIds"]["project"],
- "/parentMutationId": created["caller"]["clientIds"]["parent"],
- "/childMutationIds": [created["caller"]["clientIds"]["child"]],
- "/createAttempts": {
-  "project": 1,
-  "parent": 1,
-  "children": 1,
-  "parentChildLinks": 1,
- },
- "/retryMatchedExistingHierarchy": True,
- "/replacementCreated": False,
- "/approvedProjectContextReadBackVerified": True,
-}.items():
- if created_assertions.get(pointer) != expected:
-  failures.append(f"explicit-create fixture is not grounded at {pointer}")
-created_context_assertion = next(
- assertion for assertion in created_case["assertions"]
- if assertion.get("pointer") == "/approvedProjectContextReadBackVerified"
-)
-if created_context_assertion.get("critical") is not True:
- failures.append("explicit-create project context read-back assertion is not critical")
-if sum(event["operation"] == "create-project" for event in created_events) != 1:
- failures.append("explicit-create retry replays the project create")
-
-classified = json.loads((root / "skills/woostack-fix/evals/fixtures/exact-project-classification.json").read_text())
-classified_case = case_for_fixture("exact-project-classification.json")
-decision_assertion = assertions(classified_case).get("/decisions", {})
-if set(decision_assertion) != set(classified["candidates"]):
- failures.append("exact-project classification candidates do not match the fixture")
-if re.search(r"decisions must classify\b", classified_case.get("prompt", ""), re.I):
- failures.append("exact-project classification prompt contains the answer")
+"debug boundary":r"free-form prompt only.*fix-origin.*omit/defer.*--issue.*prohibit all provider",
+"driver default":r"Use a subagent when available by default",
+"driver degradation":r"explicitly requested subagent is unavailable.*disclose the degradation.*run inline only when safe",
+"no project grammar":r"no `--project` path",
+"proved root cause":r"root cause and causal chain",
+"no patch":r"Do not patch during diagnosis",
+"no issue before proof":r"before root-cause proof.*no provider read or write",
+"one issue":r"bind exactly one issue",
+"exact compatibility":r"native work-item type.*Reject an incompatible project-backed build/plan artifact",
+"exact native team":r"Accept any native team in the resolved caller-selected workspace.*configured team defaults apply only when creating",
+"stable create":r"stable client mutation identity",
+"same identity recovery":r"same mutation identity",
+"independent readback":r"independently read.*back",
+"official MCP":r"authenticated official Linear MCP",
+"security":r"Never read, print, copy, or request credentials",
+"one gate":r"one hard gate.*approve-to-execute",
+"approval record":r"fixApprovalRecord.*issueId.*canonicalContentFingerprint.*approvedBy.*approvedAt.*approvalEventRef",
+"execute issue":r"woostack-execute.*--issue.*exactly one matching `fixApprovalRecord`",
+"native approval":r"responsible user.*approve the exact Linear issue revision.*approve-to-execute comment or decision",
+"no sibling plan payload":r"write only the selected title and description plus required dependencies",
+"explicit whitespace":r"U\+0009.*U\+3000.*U\+FEFF.*U\+200B",
+"native dependency projection":r"blocks.*blockedBy.*direction.*kind.*targetId.*native-issue",
+"projection exclusions":r"Exclude project membership, parent/child containment, duplicate, related",
+"review":r"Require task-wide contract and quality review.*woostack-commit.*final exact issue/relation/approval-record recheck",
+"delivery":r"independently read the write back",
+"abandon":r"preserve the exact bound or created issue",
+"closure distinction":r"Project cancellation applies only to project-backed build/plan workflows",
+"executor-ready fields":r"observed and expected behavior.*direct evidence.*ordered file/symbol.*documentation, migration effects",
+"approval fingerprint":r"canonicalContentFingerprint.*Normalize `title`.*Normalize `description`.*native-relation read",
+"approval provenance":r"approvedBy.*stable native principal ID.*approvedAt.*approvalEventRef.*explicit approval",
+"material invalidation":r"material.*invalidates approval.*unrelated comments.*metadata.*do not",
+"recheck cadence":r"before execution.*after every worker handback.*before every redispatch.*immediately before commit",
+"linear failure boundary":r"required Linear read.*blocks.*no conversational",
+"never merge":r"never merges"}
+for n,p in checks.items():
+    if not re.search(p,combined,re.I|re.S): failures.append(n)
+if re.search(r"fix plan is persisted as one project|fixes use one project.*parent plan issue.*child increment",skill,re.I|re.S): failures.append("fix hierarchy")
+if "historicalProjectBackedFix" in combined or "fixApprovalReceipt" in combined: failures.append("removed fix compatibility shape")
+if re.search(r"title/description/plan/dependency payload",skill,re.I|re.S): failures.append("production sibling plan payload")
+if not re.search(r"write only the selected title and description plus required dependencies",skill,re.I|re.S): failures.append("production description-only plan proof")
+evals=json.loads((root/"skills/woostack-fix/evals/evals.json").read_text()); ids={c["id"] for c in evals["cases"]}
+for x in ("blocks-before-issue-when-root-cause-is-unproven","fix-debug-defers-supplied-issue-before-proof","plain-prompt-safe-creates-one-issue","exact-issue-reuses-only-that-issue","ambiguous-foreign-conflicting-identities-block","timeout-recovery-reuses-same-mutation-identity"):
+ if x not in ids: failures.append(f"missing eval {x}")
+for x in ("exact-project-classification.json","explicit-project-create.json","selected-project-persistence.json"):
+ if (root/"skills/woostack-fix/evals/fixtures"/x).exists(): failures.append(f"obsolete {x}")
+f=json.loads((root/"skills/woostack-fix/evals/fixtures/approved-fix.json").read_text()); snapshots=f.get("approvalSnapshots")
+if not isinstance(snapshots,dict) or set(snapshots)!={"positive","artifactOnly"}: failures.append("approval snapshots must have positive and artifactOnly")
+else:
+ positive=snapshots["positive"]; artifact_only=snapshots["artifactOnly"]
+ def deep_normalize(value):
+  if isinstance(value,dict): return {key:deep_normalize(value[key]) for key in sorted(value)}
+  if isinstance(value,list): return [deep_normalize(item) for item in value]
+  return value
+ def snapshot_events(snapshot,name):
+  events=snapshot.get("eventTranscript")
+  if not isinstance(events,list) or not events: failures.append(f"{name} raw event transcript")
+  if not isinstance(snapshot.get("issue"),dict) or not isinstance(snapshot.get("readBack"),dict): failures.append(f"{name} raw issue/read-back fields")
+  if not isinstance(events,list): return []
+  seen=set()
+  for expected_sequence,event in enumerate(events,1):
+   if not isinstance(event,dict) or not all(key in event for key in ("eventId","sequence","source","kind","causalRefs")): failures.append(f"{name} event shape"); continue
+   if event["eventId"] in seen or event["sequence"]!=expected_sequence: failures.append(f"{name} event identity/order")
+   seen.add(event["eventId"])
+   if not isinstance(event["causalRefs"],list) or any(ref not in seen for ref in event["causalRefs"]): failures.append(f"{name} event causal references")
+  return events
+ positive_events=snapshot_events(positive,"positive"); artifact_events=snapshot_events(artifact_only,"artifactOnly")
+ forbidden={"afterIssueReadBack","issueIdentityMatched","fingerprintMatched","otherPrerequisitesSatisfied","approvalAfterReadBack","approvalCausallyReferencesReadBack"}
+ for name,snapshot in (("positive",positive),("artifactOnly",artifact_only)):
+  if any(key in snapshot for key in forbidden): failures.append(f"{name} exposes derived approval booleans")
+ responsible=[event for event in positive_events if isinstance(event,dict) and event.get("source")=="provider" and event.get("kind")=="responsible-user-native-approval"]
+ negative_responsible=[event for event in artifact_events if isinstance(event,dict) and event.get("kind")=="responsible-user-native-approval"]
+ if len(responsible)!=1: failures.append("positive responsible native approval event count")
+ if negative_responsible: failures.append("artifactOnly responsible native approval event")
+ if len(positive_events)!=len(artifact_events)+1: failures.append("approval counterfactual event count")
+ elif len(responsible)==1:
+  without_responsible_snapshot=copy.deepcopy(positive); counterfactual_events=without_responsible_snapshot["eventTranscript"]; responsible_event_id=responsible[0].get("eventId")
+  matching_indexes=[index for index,event in enumerate(counterfactual_events) if isinstance(event,dict) and event.get("eventId")==responsible_event_id]
+  if len(matching_indexes)!=1: failures.append("counterfactual responsible event removal")
+  else:
+   counterfactual_events.pop(matching_indexes[0])
+   if deep_normalize(without_responsible_snapshot)!=deep_normalize(artifact_only): failures.append("approval snapshots differ beyond one event")
+   drifted_artifact_only=copy.deepcopy(artifact_only); drifted_artifact_only["repositoryState"]["mutationCount"]+=1
+   if deep_normalize(without_responsible_snapshot)==deep_normalize(drifted_artifact_only): failures.append("repository state drift escaped snapshot comparison")
+ issue=positive.get("issue",{}); read_back=positive.get("readBack",{})
+ if issue.get("issueId")!=read_back.get("issueId"): failures.append("positive issue identity derivation")
+ if issue.get("canonicalContentFingerprint")!=read_back.get("canonicalContentFingerprint"): failures.append("positive fingerprint derivation")
+ if issue.get("issueId")!=artifact_only.get("issue",{}).get("issueId") or issue.get("canonicalContentFingerprint")!=artifact_only.get("issue",{}).get("canonicalContentFingerprint"): failures.append("scenario raw identity/fingerprint mismatch")
+ if responsible:
+  approval=responsible[0]; readback_events=[event for event in positive_events if isinstance(event,dict) and event.get("kind")=="issue-read-back"]
+  if len(readback_events)!=1: failures.append("positive issue read-back event count")
+  else:
+   readback=readback_events[0]
+   if approval.get("sequence",0)<=readback.get("sequence",0): failures.append("approval sequence does not follow read-back")
+   if readback.get("eventId") not in approval.get("causalRefs",[]): failures.append("approval causal reference does not name read-back")
+  approval_record={key:approval.get(key) for key in ("issueId","canonicalContentFingerprint","approvedBy","approvedAt","approvalEventRef")}
+  if approval_record!={
+   "issueId":issue.get("issueId"),
+   "canonicalContentFingerprint":issue.get("canonicalContentFingerprint"),
+   "approvedBy":"user-adam",
+   "approvedAt":"2026-08-02T18:41:00Z",
+   "approvalEventRef":"comment-approval-241",
+  } or approval.get("actor")!="user-adam" or approval.get("role")!="responsible-user" or approval.get("decision")!="approve-to-execute" or approval.get("explicit") is not True:
+   failures.append("responsible native approval provenance")
+def native_projection(event,name):
+ raw=event.get("nativeRelations")
+ if not isinstance(raw,list) or not raw:
+  failures.append(f"{name} native relation read")
+  return []
+ directions={"blocks":"blocks","blockedBy":"depends-on"}
+ projected=[]
+ seen=set()
+ for relation in raw:
+  if not isinstance(relation,dict) or set(relation)!={"type","targetId"} or relation.get("type") not in directions or not isinstance(relation.get("targetId"),str) or not relation["targetId"]:
+   failures.append(f"{name} native relation shape")
+   continue
+  item={"direction":directions[relation["type"]],"kind":"native-issue","targetId":relation["targetId"]}
+  key=(item["direction"],item["kind"],item["targetId"])
+  if key in seen: failures.append(f"{name} duplicate projected relation")
+  seen.add(key); projected.append(item)
+ return sorted(projected,key=lambda item:(item["direction"],item["kind"],item["targetId"]))
+c=f["canonicalContent"]; canonical_input={"title":c["title"],"description":c["description"],"dependencies":c["dependencies"]}; expected_fingerprint="sha256:a58a9de055b26c0618e0ddc71eead9f1bf6ddf5f66bf49768c6488a4b74a1a12"
+if fingerprint(canonical_input)!=expected_fingerprint: failures.append("fixture fingerprint digest")
+for issue_key in ("suppliedIssue","createdIssue"):
+ issue=f[issue_key]
+ if "plan" in issue["content"] or issue["content"]["description"]!=c["description"] or issue["content"]["dependencies"]!=c["dependencies"]: failures.append(f"{issue_key} stores a plan outside the description")
+ if "fixApprovalRecord" in issue: failures.append(f"{issue_key} exposes derived approval record")
+ if any(key in issue for key in ("status","decision","result","expected","outputOracle")): failures.append(f"{issue_key} exposes derived oracle")
+if "plan" in c: failures.append("canonical plan projection")
+authority=f.get("authority",{})
+if {key:authority.get(key) for key in ("approvalEventRef","approvedBy","approvedAt","fixApprovalSource")}!={"approvalEventRef":"comment-approval-241","approvedBy":"user-adam","approvedAt":"2026-08-02T18:41:00Z","fixApprovalSource":"responsible-user-native-approval"}: failures.append("fixture approval authority")
+case_b=f["invocationRecords"].get("caseB",{}); events=f["providerEvents"]
+for event_key in ("caseAReadBack","caseBReadBack"):
+ if native_projection(events.get(event_key,{}),event_key)!=c["dependencies"]: failures.append(f"{event_key} native relation projection")
+if case_b.get("issueArgument") is not None: failures.append("caseB must be plain prompt")
+if case_b.get("providerEventRefs") != ["caseBCreateAttempt","caseBReadBack"]: failures.append("caseB ordered provider refs")
+if case_b.get("workflowEventRefs") != []: failures.append("caseB approval refs must be empty")
+attempt=events.get("caseBCreateAttempt",{}); readback=events.get("caseBReadBack",{})
+if attempt.get("type")!="issue-create-attempt" or attempt.get("sequence")!=1 or attempt.get("eventId")!="caseB-create-attempt-242": failures.append("caseB raw create attempt")
+if attempt.get("clientMutationId")!="12222222-2222-4222-8222-222222222222" or attempt.get("configuredTeamId")!=f["config"]["teamId"]: failures.append("caseB create identity/team")
+if attempt.get("causalRefs")!=[]: failures.append("caseB create attempt causal refs")
+if readback.get("type")!="issue-create-read-back" or readback.get("sequence")!=2 or readback.get("eventId")!="caseB-read-back-242": failures.append("caseB raw read-back")
+if readback.get("causalRefs")!=["caseB-create-attempt-242"]: failures.append("caseB read-back causal link")
+if any(readback.get(key)!=attempt.get(key) for key in ("issueId","clientMutationId")): failures.append("caseB read-back identity binding")
+if readback.get("canonicalContentFingerprint")!=expected_fingerprint or readback.get("independentReadBack") is not True or readback.get("readComplete") is not True: failures.append("caseB read-back content completeness")
+created=f["createdIssue"]
+if created.get("issueId")!=readback.get("issueId") or created.get("clientMutationId")!=readback.get("clientMutationId"): failures.append("caseB created issue binding")
+if created.get("content")!=c: failures.append("caseB created content raw match")
+eval_case=next((case for case in evals["cases"] if case.get("id")=="plain-prompt-safe-creates-one-issue"),{})
+assertions={assertion.get("id"):assertion for assertion in eval_case.get("assertions",[])}
+if assertions.get("created-record-null-before-approval",{}).get("expected","missing") is not None: failures.append("caseB pre-approval null record assertion")
+if assertions.get("created-approval-event-refs-empty",{}).get("expected","missing") != []: failures.append("caseB pre-approval event refs assertion")
+if assertions.get("created-ready-for-decision",{}).get("expected","missing") is not True: failures.append("caseB ready-for-decision assertion")
+if assertions.get("created-issue-count",{}).get("expected","missing") != 1: failures.append("caseB created issue count assertion")
+for token in (f["contract"]["identities"]["worktree"],f["contract"]["identities"]["branch"],"## Ordered implementation steps","## Acceptance criteria","## Verification contract","## Documentation and migration effects"):
+ if token not in c["description"]: failures.append("incomplete persisted description")
+stale=f["staleMaterialRevision"]; changed_input={"title":c["title"],"description":stale["changedDescription"],"dependencies":stale["changedDependencies"]}; changed_fingerprint=fingerprint(changed_input)
+if changed_fingerprint==expected_fingerprint or changed_fingerprint==fingerprint(canonical_input): failures.append("material description change did not change fingerprint")
+if not (stale["sameIssueId"]=="issue-app-241" and stale["changedField"]=="description"): failures.append("stale raw provider event")
+metadata=f["metadataOnlyRevision"]
+if not (metadata["sameIssueId"]=="issue-app-241" and metadata["commentAdded"] and metadata["statusChanged"]): failures.append("metadata raw provider events")
+unavailable=f["unavailableLinear"]
+if unavailable.get("missingCapabilities") != ["exact issue read", "independent read-back"]: failures.append("unavailable raw capabilities")
+for section in ("unavailableLinear","authority","safeCreate","exactReuse","blockedIdentities","timeoutRecovery"):
+ if any(key in f[section] for key in ("status","decision","candidateDecisions","executionDelegated","providerMutationCount","localFallback","replacementCreated","allCandidatesRejected","createAttempts")): failures.append(f"{section} exposes derived workflow output")
+if "candidateIdentities" in f["blockedIdentities"] or not f["blockedIdentities"].get("providerSnapshots"): failures.append("candidate identities must derive from one provider snapshot list")
+if f["timeoutRecovery"].get("clientMutationId") != f["timeoutRecovery"].get("retryClientMutationId"): failures.append("timeout raw mutation identity")
+exact_reuse=f["exactReuse"]
+if exact_reuse.get("resolvedWorkspaceId")!=f["config"]["workspaceId"] or exact_reuse.get("resolvedTeamId")==f["config"]["teamId"] or exact_reuse.get("resolvedIssue")!=exact_reuse.get("suppliedIssue"): failures.append("exact supplied issue native-team admission")
 if failures:
- print("fix contract violations:",file=sys.stderr)
- print("\n".join(f"- {f}" for f in failures),file=sys.stderr)
- raise SystemExit(1)
-print("conditional fix plan contract: ok")
+ print("fix contract violations:",file=sys.stderr); print("\n".join(f"- {x}" for x in failures),file=sys.stderr); raise SystemExit(1)
+print("fix issue contract: ok")
 PY

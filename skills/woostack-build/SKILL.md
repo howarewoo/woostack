@@ -55,7 +55,7 @@ persist the selected Linear plan once → approve execution → execute → revi
 
 The workflow may return from a ready plan to planning only before implementation begins. Explicit
 abandonment may occur at any phase and follows the shared
-[fix/build project-closure invariant](../woostack-init/references/artifact-backends.md#fixbuild-project-closure).
+[project-backed workflow closure invariant](../woostack-init/references/artifact-backends.md#project-backed-workflow-closure).
 
 ## Exactly three hard gates
 
@@ -84,12 +84,12 @@ clears a gate.
 
 An incompatible executor is a blocker, not a reason to silently change the contract. **Replan**
 returns to planning only when Git/GitHub evidence proves no implementation branch or PR exists.
-**Abandon** is explicit abandonment: stop repository work and, when an exact persisted project
-exists, close it through the canonical
-[fix/build project-closure procedure](../woostack-init/references/artifact-backends.md#fixbuild-project-closure)
-before returning. If no project exists, report that there is nothing to close and never create one
-merely to cancel it.
-**Hand off**, **Replan**, and blocker handling are not abandonment and do not close the project.
+**Abandon** is explicit abandonment: stop repository work and, when an exact persisted build
+project exists, close it through the canonical
+[project-backed closure procedure](../woostack-init/references/artifact-backends.md#project-backed-workflow-closure)
+before returning. If no exact project exists, report that there is nothing to close and never create
+merely to cancel it. **Hand off**, **Replan**, and blocker handling are not abandonment and do not
+close the project.
 
 ## Hard constraints
 
@@ -110,10 +110,9 @@ merely to cancel it.
   incomplete read-back stops at the boundary and reports the precise blocker.
 - **Stop before implementation.** No implementation Git artifact exists before an explicit `Go` or
   `Run overnight`; required artifact synchronization records the plan but never supplies approval.
-- **Close persisted projects on abandonment.** At execution handoff or any earlier/later phase,
-  explicit abandonment must set an existing exact fix/build project's native status to the
-  validated `projectStatuses.canceled` mapping and prove it by independent read-back. A failed or
-  unknown closure is a truthful artifact blocker at the retained stable retry boundary and never
-  resumes repository work.
+- **Close persisted projects on abandonment.** Explicit abandonment must set an existing exact build
+  project to validated `projectStatuses.canceled` and prove it by independent read-back. Failed or
+  unknown closure is a truthful artifact blocker at the retained retry boundary and never resumes
+  repository work.
 - **Never merge.** Build may deliver a reviewed stack, a handoff, abandonment, or a truthful
   blocker; merge remains human-owned.

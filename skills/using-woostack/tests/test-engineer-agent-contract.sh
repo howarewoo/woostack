@@ -45,12 +45,13 @@ for pattern, message in (
 
 for pattern, message in (
     (r"one explicit approved bounded task or dependency-aware plan", "approved input is not required"),
-    (r"Artifact-free execution is the default and makes no Linear call", "controller retains mandatory Linear context"),
+    (r"Artifact-free execution is permitted only for standalone input and makes no Linear call", "standalone artifact-free admission is not explicit"),
+    (r"fix-origin execution.*fixApprovalRecord.*issueId.*canonicalContentFingerprint.*approvedBy.*approvedAt.*approvalEventRef.*exact `--issue`", "fix execution does not require exact issue approval provenance"),
+    (r"after every worker handback.*before every redispatch.*immediately before commit", "fix approval is not rechecked at worker and commit boundaries"),
+    (r"Only when the caller selected ordinary artifact mode.*exact supplied project/issue", "ordinary artifact writes are not explicitly selected"),
     (r"Selection admits one task per controller cycle", "controller may advance multiple tasks"),
     (r"canonical worktree contract.*creating.*resuming a worktree", "worktree isolation is not required"),
     (r"controller independently rechecks.*task contract.*deterministic path.*git worktree list", "returned evidence is not independently checked"),
-    (r"Artifact-free execution makes no Linear call", "artifact-free work is not supported"),
-    (r"Only when the caller selected artifact mode", "artifact writes are not explicitly selected"),
 ):
     require("controller", pattern, message)
 

@@ -81,8 +81,9 @@ transitions, or relates a Linear resource.
 
 Every rendered report states `Authority: non-authoritative diagnostic evidence`. A remediation
 candidate is evidence for a later `woostack-fix`, `woostack-change`, or `woostack-build` workflow,
-not a fix plan, issue contract, acceptance criterion, or permission to mutate. Those workflows may
-remain artifact-free or synchronize an exact optional artifact.
+not a fix plan, issue contract, acceptance criterion, or permission to mutate. `woostack-change`
+remains Linear-free; build persistence follows build selection; a fix binds or creates its required
+canonical issue only after independently proving root cause.
 
 ## Workflow
 
@@ -135,8 +136,8 @@ independently verified, the report may link it as context; the artifact is not t
 authority.
 
 Repository remediation enters [`woostack-fix`](../woostack-fix/SKILL.md), which re-proves the root
-cause, hardens the contract, and obtains explicit approval before mutation. No issue creation,
-assignment, ownership receipt, or Linear lifecycle gate is required. Audit cannot manufacture a
+cause, hardens the contract, then binds or creates one canonical issue and obtains native issue
+approval before mutation. Audit performs none of those issue operations and cannot manufacture a
 repository-mutating handoff from its report.
 
 ## Hard constraints
