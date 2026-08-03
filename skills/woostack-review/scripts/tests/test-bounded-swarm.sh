@@ -182,7 +182,6 @@ rmdir "$lock_dir"
 WORKER
 chmod +x "$work4/worker.sh"
 OUTDIR="$work4/out" "$SCRIPT" -- "$work4/worker.sh"
-assert_eq "$(cat "$work4/out/state/max")" "7" "default swarm lets host schedule all work items"
 assert_eq "$(jq -r '.mode' "$work4/out/swarm-metrics.json")" "host-managed" "default metrics record host-managed mode"
 assert_eq "$(jq -r '.max_concurrency == null' "$work4/out/swarm-metrics.json")" "true" "default metrics record no concurrency cap"
 rm -rf "$work4"

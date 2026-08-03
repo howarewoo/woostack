@@ -35,21 +35,17 @@ GOOGLE="$ROOT/skills/woostack-review/prompts/google.md"
 OPENCODE="$ROOT/skills/woostack-review/prompts/opencode.md"
 OPENAI="$ROOT/skills/woostack-review/prompts/openai.md"
 
-# Generic Stage 3 is the source of truth for local hosts.
+# The simplified Review surface retains the isolation and authority boundary without duplicating
+# host-specific dispatch prose.
+assert_file_contains "$REVIEW_SKILL" \
+  "fresh read-only profiles/sessions distinct from the implementing coder" \
+  "Review requires fresh worker isolation from the implementing coder"
 assert_file_matches "$REVIEW_SKILL" \
-  "independent worker mapped.*plain/general/default reviewer profile" \
-  "Stage 3 selects a plain/general/default independent reviewer"
-assert_file_matches "$REVIEW_SKILL" \
-  "paired coding profile.*ineligible for default or independent review.*barred from.*accepting its own work.*coder self-check.*implementation evidence only" \
-  "coding self-check remains implementation evidence, never independent review or self-acceptance"
-assert_file_matches "$REVIEW_SKILL" "fresh[[:space:]]+independent reviewer profile/session" \
-  "Stage 3 requires a fresh isolated reviewer context"
-assert_file_contains "$REVIEW_SKILL" "Review workers are advisory only" \
-  "delegated review workers remain advisory only"
-assert_file_contains "$REVIEW_SKILL" "skill://woostack-review" \
-  "Stage 3 forbids loading the woostack-review skill into workers"
-assert_file_contains "$REVIEW_SKILL" "The worker brief is self-contained" \
-  "worker brief tells auto-injected skill hosts to ignore the orchestrator"
+  "Workers cannot edit source/tests, post to GitHub, access Linear.*accept work, or merge" \
+  "Review workers remain read-only and advisory"
+assert_file_contains "$REVIEW_SKILL" \
+  'prompts/_worker-header.md' \
+  "Review links the canonical worker contract"
 
 # Provider templates that dispatch local subagents must carry the same boundary
 # as an explicit prohibition, not merely mention the forbidden scope token.

@@ -37,8 +37,7 @@ assert_contains "$(cat "$ROOT/skills/woostack-review/prompts/_orchestrator-heade
 assert_contains "$(cat "$ROOT/skills/woostack-review/prompts/_worker-header.md")" 'acceptance |' "worker schema includes acceptance"
 assert_contains "$(cat "$ROOT/skills/woostack-review/prompts/_orchestrator-header.md")" '`acceptance`' "orchestrator registers acceptance"
 assert_contains "$(cat "$ROOT/skills/woostack-review/prompts/_orchestrator-header.md")" '"acceptance"' "orchestrator schema/attribution includes acceptance"
-assert_contains "$(cat "$ROOT/skills/woostack-review/SKILL.md")" '`intent.md`' "skill documents intent artifact"
-assert_contains "$(cat "$ROOT/skills/woostack-review/SKILL.md")" '`acceptance`' "skill documents acceptance angle"
+assert_contains "$(cat "$ROOT/skills/woostack-review/SKILL.md")" 'multi-angle swarm pass' "skill documents one multi-angle pass"
 assert_contains "$(cat "$ROOT/skills/woostack-review/prompts/anthropic.md")" 'acceptance' "Anthropic standard effort includes acceptance"
 
 finish
