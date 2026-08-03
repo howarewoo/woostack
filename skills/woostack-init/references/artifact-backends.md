@@ -1,9 +1,10 @@
 # Linear artifact contract
 
-Linear projects and issues are canonical product records for `woostack-build` and post-diagnosis
-`woostack-fix`. A build uses one project plus one direct project issue per increment. A new fix uses
-one issue. Selected standalone planning uses the build's direct-issue shape. Other workflows may
-use explicitly selected Linear artifacts, but remain artifact-optional.
+Linear projects and issues are canonical product records for `woostack-build` and project-backed
+`woostack-fix`. A project-backed workflow uses one exact project containing its complete current
+specification and direct executor-ready issues for the approved plan. Standalone planning uses the
+same direct-issue shape when persistence is explicitly selected. Other workflows may use explicitly
+selected Linear artifacts, but remain artifact-optional.
 
 Linear owns the current build specification, increment contracts, fix contract, and their approved
 content revisions. It is not source-control or delivery authority. The responsible user's explicit
@@ -56,8 +57,8 @@ the DAG. Do not create a parent plan issue. Historical parent/container issues a
 history: preserve them, exclude them from the current graph, and never let them block a complete
 direct-issue selection.
 
-A new fix keeps diagnosis, plan, approval, and delivery evidence on one issue and never creates a
-project or issue hierarchy.
+A project-backed fix keeps diagnosis, plan, approval, and delivery evidence in its exact selected
+project records. The selected record shape never grants permission or replaces repository evidence.
 
 ## Fix issue selection and identity
 
@@ -88,9 +89,10 @@ operation ID.
 Issue binding/creation records the fix; it never grants permission, clears approve-to-execute,
 assigns a worker, or replaces direct Git/GitHub evidence.
 
-## Fix issue identity and approval record
+## Canonical content fingerprints and project approval records
 
-For a new fix, issue approval identity is `{ issueId, canonicalContentFingerprint }`.
+Canonical content fingerprints are content-derived, never mutable provider revisions or timestamps.
+For an issue record, approval identity may use `{ issueId, canonicalContentFingerprint }`.
 `canonicalContentFingerprint` is `sha256:` followed by 64 lowercase hexadecimal characters. Compute
 it from an input object with exactly `title`, `description`, and `dependencies`:
 
@@ -119,81 +121,32 @@ it from an input object with exactly `title`, `description`, and `dependencies`:
    U+0000-U+001F scalar as lowercase `\u00xx`. Do not escape solidus or other scalars. Hash the
    exact bytes with SHA-256.
 
-Do not use a provider revision or timestamp as approval identity. Whitespace or Unicode
-normalization that leaves the canonical bytes unchanged does not invalidate approval. Any title,
-description/plan, or admitted dependency change that changes the canonical bytes does.
-
-The controller records an approval event with exactly:
-
-```text
-fixApprovalRecord = {
-  issueId,
-  canonicalContentFingerprint,
-  approvedBy,
-  approvedAt,
-  approvalEventRef
-}
-```
-
-`approvedBy` is the responsible user's stable native principal ID, `approvedAt` is the provider's
-event timestamp, and `approvalEventRef` is the stable native reference to that explicit approval
-comment or decision event. Provider status, labels, issue content alone, issue creator/assignee,
-workflow inference, artifact read-back, or an agent-authored event never grants approval.
-
-Before execution, after every worker handback, before every redispatch, and immediately before
-commit, independently re-read the exact issue and approval event. Recompute the fingerprint and
-require the issue ID, fingerprint, approver identity, event reference, and causal order to equal
-the accepted `fixApprovalRecord`. A material issue edit invalidates approval. Unrelated comments,
-status changes, labels, assignments, priority, dates, and provider revision/timestamp metadata do
-not. Any required Linear read, relation-pagination, or approval-event failure blocks with no local,
-conversational, or alternate-provider fallback.
-
-## Build project, graph, and approval records
-
-Build gate identity is content-derived, not a mutable provider timestamp.
-
-`canonicalProjectSpecFingerprint` hashes a canonical object with exactly `name` and `description`.
+For a project specification, `canonicalProjectSpecFingerprint` hashes a canonical object with
+exactly `name` and `description`. For an execution plan, each
 `canonicalIncrementFingerprint` hashes a canonical object with exactly `title` and `description`.
-Normalize and serialize strings with the same Unicode, line-ending, key-order, escaping, UTF-8, and
-SHA-256 rules defined above for the fix fingerprint. Do not trim or collapse descriptions. Project
-and issue status, dates, labels, assignments, comments, parent/container relations, and provider
-timestamps are excluded.
+Normalize and serialize those strings with the same Unicode, line-ending, key-order, escaping,
+UTF-8, and SHA-256 rules above. Do not trim or collapse descriptions. Project and issue status,
+dates, labels, assignments, comments, parent/container relations, and provider timestamps are
+excluded.
 
-After independently reading the complete project specification, gate 1 records exactly:
+Whitespace or Unicode normalization that leaves canonical bytes unchanged does not invalidate
+approval. Any title, description/plan, project specification, or admitted dependency change that
+changes canonical bytes does.
+
+### Shared approval records
+
+Both Build and a project-backed Fix use the same two controller-owned records:
 
 ```text
-buildProjectSpecApprovalRecord = {
+projectSpecApprovalRecord = {
   projectId,
   canonicalProjectSpecFingerprint,
   approvedBy,
   approvedAt,
   approvalEventRef
 }
-```
 
-`approvedBy` is the responsible user's stable native Linear principal ID, `approvedAt` is the
-provider event timestamp, and `approvalEventRef` is the stable native reference to the explicit
-project comment or decision approving the presented exact project fingerprint. Project status,
-leads, updates, read-back alone, conversation approval, or agent-authored text never clears gate 1.
-
-After gate 1, create or reconcile the complete current direct-issue graph. Derive:
-
-- `increments`: one tuple `{ issueId, canonicalIncrementFingerprint }` per direct project issue in
-  the approved graph, sorted by stable native `issueId`;
-- `dependencies`: one tuple `{ predecessorIssueId, successorIssueId, kind }` per admitted native
-  issue-to-issue dependency, where `kind` is exactly `native-issue`, sorted lexicographically by
-  `(predecessorIssueId, successorIssueId, kind)`.
-
-Reject incomplete pagination, missing or unstable native IDs, duplicate tuples, unknown relation
-kinds/directions, an issue outside the exact project, a current increment nested under a parent, or
-a graph that differs from the hardened plan. Exclude historical parent/container issues and all
-parent-child, duplicate, related, project-membership, and non-dependency relations. Each issue
-description must name the exact `canonicalProjectSpecFingerprint` approved at gate 1.
-
-Gate 2 records exactly:
-
-```text
-buildExecutionPlanApprovalRecord = {
+executionPlanApprovalRecord = {
   projectId,
   canonicalProjectSpecFingerprint,
   increments,
@@ -204,24 +157,37 @@ buildExecutionPlanApprovalRecord = {
 }
 ```
 
-The responsible user's explicit native Linear approval comment or decision on the presented exact
-issue-fingerprint set and dependency set creates this controller-owned record. Retain the stable
-native principal ID, provider timestamp, and native event reference. Before implementation, after
-every worker handback, before every redispatch, immediately before each commit, and before selecting
-another increment, re-read the project, every current direct issue, every admitted dependency
-relation, and both approval events. Recompute both records and require exact identity, fingerprints,
-edges, approval provenance, and causal order.
+The project-spec record binds the exact complete project specification. The execution-plan record
+binds the exact sorted direct-issue fingerprint set and dependency set for that same project
+specification. `increments` is one tuple `{ issueId, canonicalIncrementFingerprint }` per direct
+project issue, sorted by stable native `issueId`. `dependencies` is one tuple
+`{ predecessorIssueId, successorIssueId, kind }` per admitted native issue-to-issue dependency,
+where `kind` is exactly `native-issue`, sorted lexicographically by
+`(predecessorIssueId, successorIssueId, kind)`.
 
-A material project change invalidates gate 1 and gate 2 and returns to specification hardening. A
-material issue or dependency change invalidates gate 2 and returns to graph hardening. Write the
-reconciled content to the same project/issues, independently read it back, and obtain new approval;
-never authorize from conversation-only or local fallback content. Unrelated comments and metadata
-do not invalidate either record.
+An approval is valid only when the responsible user explicitly approves the exact content
+presented in the active conversation. The controller then records that approval as a Linear
+receipt/event containing the exact record fields above and independently reads the receipt and
+the referenced project, issues, and relations back. Conversation approval without a Linear
+receipt, a Linear record without the matching active-conversation approval, status, labels,
+assignment, content alone, read-back alone, workflow inference, or an agent-authored event never
+grants a gate. A provider-native comment is not required and is not, by itself, authority.
 
-A required build/fix read, pagination, mutation, or approval-evidence failure blocks repository
-execution with no local, conversational, or alternate-provider fallback. For artifact-optional
-workflows, a provider failure blocks only the selected artifact operation, not independently
-authorized repository work.
+`approvedBy` is the responsible user's stable principal identity, `approvedAt` is the recorded
+approval event timestamp, and `approvalEventRef` is the stable Linear receipt/event reference.
+The controller must independently verify those fields, the exact fingerprints and sets, and their
+causal order. Before execution, after every worker handback, before every redispatch, immediately
+before each commit, and before selecting another increment, independently re-read the exact
+project, every current direct issue, every admitted dependency relation, and both approval
+receipts. Recompute both records and require exact identity.
+
+A material project-specification change invalidates both records and returns to specification
+hardening. A material issue or dependency change invalidates only `executionPlanApprovalRecord` and
+returns to graph hardening. Correct the same canonical records, independently read them back, and
+obtain explicit active-conversation approval plus a new Linear receipt. Unrelated comments and
+metadata do not invalidate either record. Any required Linear read, relation pagination,
+mutation, receipt, or approval read-back failure blocks with no local, conversational, cached, or
+alternate-provider substitution.
 
 ## Authority boundary
 
@@ -236,15 +202,14 @@ Artifact text and metadata may describe:
 
 Artifact content and ordinary metadata do not grant permission to edit, assign work, accept output,
 commit, push, review, merge, or mark repository work complete. Native assignees, delegates,
-statuses, labels, project membership, and unapproved updates/comments are metadata only. The exact
-responsible-user events captured by `fixApprovalRecord`,
-`buildProjectSpecApprovalRecord`, and `buildExecutionPlanApprovalRecord` clear only their matching
-content-revision gates. They do not prove repository delivery or authorize any other revision.
+statuses, labels, project membership, and unapproved updates/comments are metadata only. The
+`projectSpecApprovalRecord` and `executionPlanApprovalRecord` receipts clear only their matching
+content-revision gates after active-conversation approval and independent Linear read-back. They do
+not prove repository delivery or authorize any other revision.
 
-If a project-backed build/plan workflow is explicitly abandoned, repository work stops and its
+If a project-backed build/plan/fix workflow is explicitly abandoned, repository work stops and its
 existing project moves to the configured canceled status. The workflow reads that transition back
-before claiming closure. A fix preserves its exact issue and may append only a verified note; it
-never creates a project merely to cancel it.
+before claiming closure. Never create a project merely to cancel it; closure never grants authority.
 
 ## Provider and credential boundary
 
@@ -369,8 +334,8 @@ Use ordinary readable Markdown rather than a second authorization protocol:
 A build keeps its current high-level specification in the project description/update. One direct
 project issue per increment keeps that increment's full executor contract and approved project-spec
 fingerprint; native dependency edges connect those issues. There is no current parent plan issue.
-Fixes keep diagnosis, contract, approval evidence, and delivery evidence on one issue. These
-records do not replace direct repository evidence.
+Project-backed fixes keep diagnosis, contract, approval evidence, and delivery evidence in the exact
+selected project records. These records do not replace direct repository evidence.
 
 ## Artifact-free substitution
 
@@ -384,9 +349,9 @@ selected:
 - use direct Git/Graphite/GitHub evidence; and
 - skip the Linear mutation, transition, receipt, relation, and trailer step.
 
-This substitution is unavailable for build-origin work and for fix-origin work after root-cause
-proof. Build requires its exact project plus approved direct-issue graph; fix requires its exact
-approved issue.
+This substitution is unavailable for build-origin work and for project-backed fix-origin work after
+root-cause proof. Build and project-backed Fix require their exact project plus approved direct-issue
+graph.
 
 All repository isolation, collision, verification, review, recovery, and no-force-push safeguards
 remain. This substitution changes storage only, never safety.
