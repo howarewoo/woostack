@@ -99,7 +99,7 @@ mutation, review independence, or acceptance authority.
 | `/woostack-bootstrap <goal>`, scaffold a new web/mobile/API project | `woostack-bootstrap` |
 | `/woostack-build <goal> [--project <exact Linear URL-or-UUID>]`, build a feature from one canonical project specification through two exact Linear revision approvals | `woostack-build` |
 | `/woostack-fix <prompt> [--issue <exact Linear URL-or-UUID>] [--inline\|--subagent]`, diagnose a free-form defect, bind/create one issue after root-cause proof, and execute only after approval | `woostack-fix` |
-| `/woostack-change <goal>`, implement an artifact-free bounded non-bug enhancement or refactor that fits one reviewable PR | `woostack-change` |
+| `/woostack-change <goal>`, implement a small bounded non-bug enhancement or refactor directly in one isolated worktree and one reviewable PR | `woostack-change` |
 | `/woostack-plan <approved specification> [--project <exact Linear URL-or-UUID>]`, produce a PR-sized dependency-aware direct-issue plan; standalone persistence is optional | `woostack-plan` |
 | `/woostack-execute <approved plan-or-task> [--project <exact Linear URL-or-UUID>] [--issue <exact Linear URL-or-UUID>] [--inline\|--subagent]`, execute approved work; fix/build origins require their exact approval records | `woostack-execute` |
 | `/woostack-execute-overnight <approved plan> [--project <exact Linear URL-or-UUID>] [--inline\|--subagent]`, execute unattended; build origin requires its exact approved project graph | `woostack-execute-overnight` |

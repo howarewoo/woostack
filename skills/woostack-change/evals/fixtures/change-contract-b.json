@@ -1,13 +1,12 @@
 {
-  "goal": "Resume settings label change",
-  "stableTaskId": "settings-label",
-  "recoverableStates": [
-    {
-      "worktree": ".woostack/worktrees/tasks/settings-label",
-      "branch": "change/settings-label",
-      "head": "bbbbbbbb",
-      "clean": true
-    }
-  ],
-  "collisions": []
+  "taskId": "settings-label",
+  "repository": "https://github.com/acme/app",
+  "base": "main@aaaaaaaa",
+  "worktree": ".woostack/worktrees/tasks/settings-label",
+  "branch": "change/settings-label",
+  "parent": "main@aaaaaaaa",
+  "head": "bbbbbbbb",
+  "status": "clean",
+  "pullRequests": [],
+  "resumeEvidence": "direct Git and Graphite facts"
 }

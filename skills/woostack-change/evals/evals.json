@@ -3,546 +3,126 @@
   "skill": "woostack-change",
   "cases": [
     {
-      "id": "artifact-free-change-preflights-one-clean-worktree",
-      "prompt": "Evaluate fixtures/change-contract-a.json at admission. Do not mutate Git or files. Return exactly one JSON object using the keys status, artifactMode, linearCallCount, canonicalRepositoryVerified, baseVerified, collisionFree, worktreeAction, executionDelegated, and mergeAllowed.",
+      "id": "bounded-admission-creates-one-isolated-worktree",
+      "prompt": "Evaluate fixtures/change-contract-a.json at admission. Do not mutate Git or files. Explain whether the request is admitted, what must be verified before mutation, and whether one isolated worktree and Graphite branch may be created.",
       "fixtures": [
         "change-contract-a.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "A bounded non-bug change remains artifact-free, verifies repository/base/collisions, selects one isolated worktree creation, then is ready for execution without Linear or merge.",
+      "expected": "A bounded non-bug request is admitted only after repository, base, dirty-state, and collision facts are checked; one deterministic isolated worktree and branch may then be created, with no duplicate workspace or merge.",
       "assertions": [
         {
-          "id": "admitted",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "ready",
+          "id": "admission-boundary",
+          "kind": "qualitative",
+          "rubric": "Does the response keep classification and repository preflight read-only, identify the bounded scope, and require a single isolated worktree/branch rather than editing the primary checkout?",
           "critical": true
         },
         {
-          "id": "artifact-free",
-          "kind": "final-json-path-equals",
-          "pointer": "/artifactMode",
-          "expected": "off",
-          "critical": true
-        },
-        {
-          "id": "no-linear",
-          "kind": "final-json-path-equals",
-          "pointer": "/linearCallCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "repository",
-          "kind": "final-json-path-equals",
-          "pointer": "/canonicalRepositoryVerified",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "base",
-          "kind": "final-json-path-equals",
-          "pointer": "/baseVerified",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "collision-free",
-          "kind": "final-json-path-equals",
-          "pointer": "/collisionFree",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "create-worktree",
-          "kind": "final-json-path-equals",
-          "pointer": "/worktreeAction",
-          "expected": "create",
-          "critical": true
-        },
-        {
-          "id": "not-yet-delegated",
-          "kind": "final-json-path-equals",
-          "pointer": "/executionDelegated",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "never-merge",
-          "kind": "final-json-path-equals",
-          "pointer": "/mergeAllowed",
-          "expected": false,
+          "id": "delivery-limit",
+          "kind": "qualitative",
+          "rubric": "Does the response preserve the one-PR limit and forbid merge?",
           "critical": true
         }
       ]
     },
     {
-      "id": "artifact-free-change-resumes-exact-worktree",
-      "prompt": "Evaluate fixtures/change-contract-b.json recovery state. Do not mutate Git or files. Return exactly one JSON object using the keys status, artifactMode, linearCallCount, worktreeAction, exactTaskRecovered, headVerified, duplicateWorktreeCreated, and mergeAllowed.",
+      "id": "exact-worktree-resumes-from-direct-evidence",
+      "prompt": "Evaluate fixtures/change-contract-b.json as an interrupted Change run. Do not mutate Git or files. Explain the safe resume action and the facts that must be reread before continuing.",
       "fixtures": [
         "change-contract-b.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "One exact recoverable task/worktree/head resumes; no duplicate, Linear call, or merge is allowed.",
+      "expected": "The exact task, worktree, branch, parent, and head are resumed from direct Git/Graphite facts without creating a duplicate; unknown or incomplete work remains retained.",
       "assertions": [
         {
-          "id": "recoverable",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "ready",
+          "id": "resume-boundary",
+          "kind": "qualitative",
+          "rubric": "Does the response attach to the exact existing worktree and branch only after rereading repository, parent, head, status, and PR facts, with no duplicate creation?",
           "critical": true
         },
         {
-          "id": "artifact-free",
-          "kind": "final-json-path-equals",
-          "pointer": "/artifactMode",
-          "expected": "off",
-          "critical": true
-        },
-        {
-          "id": "no-linear",
-          "kind": "final-json-path-equals",
-          "pointer": "/linearCallCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "resume",
-          "kind": "final-json-path-equals",
-          "pointer": "/worktreeAction",
-          "expected": "resume",
-          "critical": true
-        },
-        {
-          "id": "exact-task",
-          "kind": "final-json-path-equals",
-          "pointer": "/exactTaskRecovered",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "head",
-          "kind": "final-json-path-equals",
-          "pointer": "/headVerified",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "no-duplicate",
-          "kind": "final-json-path-equals",
-          "pointer": "/duplicateWorktreeCreated",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "never-merge",
-          "kind": "final-json-path-equals",
-          "pointer": "/mergeAllowed",
-          "expected": false,
+          "id": "retain-on-uncertainty",
+          "kind": "qualitative",
+          "rubric": "Does the response retain the workspace when outcome or cleanliness is not proven and give a concrete direct-evidence resume boundary?",
           "critical": true
         }
       ]
     },
     {
-      "id": "artifact-free-change-delegates-bounded-execution",
-      "prompt": "Evaluate fixtures/change-contract-c.json after successful preflight. Do not implement. Return exactly one JSON object using the keys status, artifactMode, linearCallCount, executionDelegated, executionSkill, boundedContractPreserved, sourceControlAllowed, and mergeAllowed.",
+      "id": "bounded-implementation-runs-focused-smoke",
+      "prompt": "Evaluate fixtures/change-contract-c.json after successful preflight. Do not implement or mutate Git. Explain the implementation and verification boundaries for the accepted scope.",
       "fixtures": [
         "change-contract-c.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The exact bounded contract delegates to woostack-execute without provider access; source-control delivery remains outside the first implementation grant and merge remains forbidden.",
+      "expected": "Implementation includes every requested change within the allowed path, runs focused verification and the changed-path smoke scenario, and blocks delivery on failure without widening scope.",
       "assertions": [
         {
-          "id": "delegated",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "delegated",
+          "id": "scope-preserved",
+          "kind": "qualitative",
+          "rubric": "Does the response implement the complete accepted scope while excluding non-goals and refusing scope expansion?",
           "critical": true
         },
         {
-          "id": "artifact-free",
-          "kind": "final-json-path-equals",
-          "pointer": "/artifactMode",
-          "expected": "off",
-          "critical": true
-        },
-        {
-          "id": "no-linear",
-          "kind": "final-json-path-equals",
-          "pointer": "/linearCallCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "execution-delegated",
-          "kind": "final-json-path-equals",
-          "pointer": "/executionDelegated",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "execute-skill",
-          "kind": "final-json-path-equals",
-          "pointer": "/executionSkill",
-          "expected": "woostack-execute",
-          "critical": true
-        },
-        {
-          "id": "contract-preserved",
-          "kind": "final-json-path-equals",
-          "pointer": "/boundedContractPreserved",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "no-source-control",
-          "kind": "final-json-path-equals",
-          "pointer": "/sourceControlAllowed",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "never-merge",
-          "kind": "final-json-path-equals",
-          "pointer": "/mergeAllowed",
-          "expected": false,
+          "id": "verification-boundary",
+          "kind": "qualitative",
+          "rubric": "Does the response require both focused verification and changed-path smoke, and block delivery when either is not observed passing?",
           "critical": true
         }
       ]
     },
     {
-      "id": "artifact-free-change-reviews-complete-uncommitted-diff",
-      "prompt": "Evaluate fixtures/change-contract-d.json at implementation handback. Do not mutate files or Git. Return exactly one JSON object using the keys status, linearCallCount, completeDiffRead, verificationObserved, specificationReview, qualityReview, commitAuthorized, and mergeAllowed.",
-      "fixtures": [
-        "change-contract-d.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The controller reads the complete uncommitted diff and observed checks, then performs specification and quality review before withholding commit until both pass.",
-      "assertions": [
-        {
-          "id": "reviewing",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "reviewing",
-          "critical": true
-        },
-        {
-          "id": "no-linear",
-          "kind": "final-json-path-equals",
-          "pointer": "/linearCallCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "complete-diff",
-          "kind": "final-json-path-equals",
-          "pointer": "/completeDiffRead",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "verification",
-          "kind": "final-json-path-equals",
-          "pointer": "/verificationObserved",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "spec-pass",
-          "kind": "final-json-path-equals",
-          "pointer": "/specificationReview",
-          "expected": "pass",
-          "critical": true
-        },
-        {
-          "id": "quality-block",
-          "kind": "final-json-path-equals",
-          "pointer": "/qualityReview",
-          "expected": "blocked",
-          "critical": true
-        },
-        {
-          "id": "commit-withheld",
-          "kind": "final-json-path-equals",
-          "pointer": "/commitAuthorized",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "never-merge",
-          "kind": "final-json-path-equals",
-          "pointer": "/mergeAllowed",
-          "expected": false,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "artifact-free-change-authorizes-one-commit-after-review",
-      "prompt": "Evaluate fixtures/change-contract-e.json after both uncommitted-diff reviews pass. Do not run Git. Return exactly one JSON object using the keys status, linearCallCount, sameDiffVerified, reviewsPassed, commitActionsAuthorized, commitSkill, pushOrSubmitAuthorized, and mergeAllowed.",
-      "fixtures": [
-        "change-contract-e.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Only the same verified and reviewed diff receives one bounded woostack-commit action; no broader source-control or merge authority is granted.",
-      "assertions": [
-        {
-          "id": "commit-ready",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "commit-ready",
-          "critical": true
-        },
-        {
-          "id": "no-linear",
-          "kind": "final-json-path-equals",
-          "pointer": "/linearCallCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "same-diff",
-          "kind": "final-json-path-equals",
-          "pointer": "/sameDiffVerified",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "reviews",
-          "kind": "final-json-path-equals",
-          "pointer": "/reviewsPassed",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "one-action",
-          "kind": "final-json-path-equals",
-          "pointer": "/commitActionsAuthorized",
-          "expected": 1,
-          "critical": true
-        },
-        {
-          "id": "commit-skill",
-          "kind": "final-json-path-equals",
-          "pointer": "/commitSkill",
-          "expected": "woostack-commit",
-          "critical": true
-        },
-        {
-          "id": "no-extra-source-control",
-          "kind": "final-json-path-equals",
-          "pointer": "/pushOrSubmitAuthorized",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "never-merge",
-          "kind": "final-json-path-equals",
-          "pointer": "/mergeAllowed",
-          "expected": false,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "artifact-free-change-submits-one-pr-and-reads-it-back",
-      "prompt": "Evaluate fixtures/change-contract-f.json delivery evidence without performing remote operations. Return exactly one JSON object using the keys status, linearCallCount, prCount, canonicalPrReadBackVerified, headBaseVerified, reviewResult, mergeAllowed, and terminalOutcome.",
+      "id": "successful-delivery-reads-back-and-cleans",
+      "prompt": "Evaluate fixtures/change-contract-f.json after implementation and passing checks. Do not perform remote operations. Explain the success boundary, delivery evidence, and cleanup decision.",
       "fixtures": [
         "change-contract-f.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "One submitted PR is independently read back at its exact head/base, reviewed cleanly, and handed back without Linear or merge.",
+      "expected": "Exactly one complete PR is read back at the verified commit/head/base, and only a verified clean successful worktree is removed.",
       "assertions": [
         {
-          "id": "delivered",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "delivered",
+          "id": "one-pr-delivery",
+          "kind": "qualitative",
+          "rubric": "Does the response allow at most one Graphite-submitted PR and independently verify repository, branch, parent, commit, changed paths, PR URL, head/base, and open state?",
           "critical": true
         },
         {
-          "id": "no-linear",
-          "kind": "final-json-path-equals",
-          "pointer": "/linearCallCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "one-pr",
-          "kind": "final-json-path-equals",
-          "pointer": "/prCount",
-          "expected": 1,
-          "critical": true
-        },
-        {
-          "id": "pr-readback",
-          "kind": "final-json-path-equals",
-          "pointer": "/canonicalPrReadBackVerified",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "head-base",
-          "kind": "final-json-path-equals",
-          "pointer": "/headBaseVerified",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "review-pass",
-          "kind": "final-json-path-equals",
-          "pointer": "/reviewResult",
-          "expected": "pass",
-          "critical": true
-        },
-        {
-          "id": "never-merge",
-          "kind": "final-json-path-equals",
-          "pointer": "/mergeAllowed",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "handoff",
-          "kind": "final-json-path-equals",
-          "pointer": "/terminalOutcome",
-          "expected": "reviewed-pr-handoff",
+          "id": "success-cleanup",
+          "kind": "qualitative",
+          "rubric": "Does the response remove only the isolated worktree after successful delivery and independently verified cleanliness, while retaining the branch?",
           "critical": true
         }
       ]
     },
     {
-      "id": "artifact-free-change-blocks-identity-or-collision-drift",
-      "prompt": "Evaluate every scenario in fixtures/change-contract-g.json independently before the next mutation. Return exactly one JSON object using the keys status, decisions, linearCallCount, repositoryMutationCount, duplicateWorktreeCreated, and mergeAllowed.",
+      "id": "identity-collision-or-scope-drift-retains-worktree",
+      "prompt": "Evaluate fixtures/change-contract-g.json before any next mutation. Do not mutate Git or files. Explain the safe outcome for each recorded drift or collision.",
       "fixtures": [
         "change-contract-g.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Repository, base, branch, worktree, head, scope, or collision drift blocks before mutation while the workflow remains Linear-free.",
+      "expected": "Repository, base, branch, worktree, head, or scope drift blocks mutation; the existing workspace is retained and exact direct Git/Graphite/GitHub resume evidence is returned.",
       "assertions": [
         {
-          "id": "blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "blocked",
+          "id": "no-mutation-on-drift",
+          "kind": "qualitative",
+          "rubric": "Does the response block before mutation for every identity, ancestry, collision, or scope-drift condition and avoid duplicate workspaces?",
           "critical": true
         },
         {
-          "id": "all-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/decisions",
-          "expected": {
-            "foreignRepository": "blocked",
-            "baseDrift": "blocked",
-            "branchCollision": "blocked",
-            "worktreeCollision": "blocked",
-            "headDrift": "blocked",
-            "scopeExpansion": "blocked"
-          },
-          "critical": true
-        },
-        {
-          "id": "no-linear",
-          "kind": "final-json-path-equals",
-          "pointer": "/linearCallCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "no-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "no-duplicate",
-          "kind": "final-json-path-equals",
-          "pointer": "/duplicateWorktreeCreated",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "never-merge",
-          "kind": "final-json-path-equals",
-          "pointer": "/mergeAllowed",
-          "expected": false,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "artifact-free-change-never-contacts-linear-or-merges",
-      "prompt": "Evaluate fixtures/change-contract-h.json across admission, execution, review, and delivery. Do not perform any operation. Return exactly one JSON object using the keys artifactMode, linearReadCount, linearWriteCount, localDevelopmentRecordCreated, prTrailers, mergeAllowed, and authoritySource.",
-      "fixtures": [
-        "change-contract-h.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Change has no Linear or local development-record surface at any phase; the approved in-run contract authorizes work, Git/GitHub prove delivery, no artifact trailer is added, and merge remains human-owned.",
-      "assertions": [
-        {
-          "id": "artifact-mode-off",
-          "kind": "final-json-path-equals",
-          "pointer": "/artifactMode",
-          "expected": "off",
-          "critical": true
-        },
-        {
-          "id": "no-linear-reads",
-          "kind": "final-json-path-equals",
-          "pointer": "/linearReadCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "no-linear-writes",
-          "kind": "final-json-path-equals",
-          "pointer": "/linearWriteCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "no-local-ledger",
-          "kind": "final-json-path-equals",
-          "pointer": "/localDevelopmentRecordCreated",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "no-artifact-trailers",
-          "kind": "final-json-path-equals",
-          "pointer": "/prTrailers",
-          "expected": [],
-          "critical": true
-        },
-        {
-          "id": "never-merge",
-          "kind": "final-json-path-equals",
-          "pointer": "/mergeAllowed",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "workflow-authority",
-          "kind": "final-json-path-equals",
-          "pointer": "/authoritySource",
-          "expected": "approved-in-run-contract",
+          "id": "resume-evidence",
+          "kind": "qualitative",
+          "rubric": "Does the response retain the worktree and name the exact repository, base, path, branch, parent, head/status/diff, verification, and PR state needed to resume?",
           "critical": true
         }
       ]

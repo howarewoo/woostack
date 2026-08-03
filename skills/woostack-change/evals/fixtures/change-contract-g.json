@@ -1,35 +1,16 @@
 {
+  "taskId": "cache-key",
   "checks": {
-    "foreignRepository": {
-      "recordedRepository": "https://github.com/acme/app",
-      "observedRepository": "https://github.com/other/app"
-    },
-    "baseDrift": {
-      "recordedBase": "main@1111111",
-      "observedBase": "main@2222222"
-    },
-    "branchCollision": {
-      "expectedBranch": "change/cache-key",
-      "observedOwner": "other-task"
-    },
-    "worktreeCollision": {
-      "expectedPath": ".woostack/worktrees/tasks/cache-key",
-      "observedOwner": "other-task"
-    },
-    "headDrift": {
-      "recordedHead": "1111111",
-      "observedHead": "2222222"
-    },
-    "scopeExpansion": {
-      "approvedPaths": [
-        "src/cache.ts"
-      ],
-      "observedPaths": [
-        "src/cache.ts",
-        "src/session.ts"
-      ]
-    }
+    "foreignRepository": "recorded and observed repositories differ",
+    "baseDrift": "recorded and observed base commits differ",
+    "branchCollision": "derived branch belongs to another task",
+    "worktreeCollision": "deterministic path belongs to another task",
+    "headDrift": "recorded and observed heads differ",
+    "scopeExpansion": "observed paths exceed accepted paths"
   },
-  "providerEvents": [],
-  "repositoryMutationEvents": []
+  "directEvidence": {
+    "repositoryMutationEvents": [],
+    "providerEvents": []
+  },
+  "requiredAction": "retain worktree and return exact resume boundary"
 }

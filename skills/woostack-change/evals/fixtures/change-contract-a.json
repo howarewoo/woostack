@@ -6,7 +6,10 @@
     "branch": "main",
     "sha": "aaaaaaaa"
   },
-  "existingTaskState": [],
+  "taskId": "settings-label",
+  "expectedWorktree": ".woostack/worktrees/tasks/settings-label",
+  "expectedBranch": "change/settings-label",
   "collisions": [],
-  "expectedWorktree": ".woostack/worktrees/tasks/settings-label"
+  "dirtyState": "clean",
+  "pullRequests": []
 }

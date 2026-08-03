@@ -1,14 +1,23 @@
 {
-  "pullRequests": [
-    {
-      "url": "https://github.com/acme/app/pull/42",
-      "head": "cccccccc",
-      "base": "main",
-      "readBackVerified": true
-    }
+  "taskId": "settings-label",
+  "repository": "https://github.com/acme/app",
+  "worktree": ".woostack/worktrees/tasks/settings-label",
+  "branch": "change/settings-label",
+  "parent": "main@aaaaaaaa",
+  "commit": "cccccccc",
+  "changedPaths": [
+    "src/settings/label.ts"
   ],
-  "review": {
+  "verification": {
+    "focused": "pass",
+    "smoke": "pass"
+  },
+  "pullRequest": {
+    "url": "https://github.com/acme/app/pull/42",
     "head": "cccccccc",
-    "result": "pass"
-  }
+    "base": "main",
+    "state": "open",
+    "readBackVerified": true
+  },
+  "worktreeAfterDelivery": "clean"
 }

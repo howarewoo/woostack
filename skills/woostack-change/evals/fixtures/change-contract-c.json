@@ -1,5 +1,5 @@
 {
-  "goal": "Rename one bounded settings label",
+  "taskId": "settings-label",
   "contract": {
     "scope": [
       "src/settings/label.ts"
@@ -9,12 +9,24 @@
     ],
     "acceptance": [
       "new label renders"
+    ],
+    "verification": [
+      "focused settings check",
+      "changed-label smoke"
     ]
   },
   "preflight": {
     "repository": true,
     "base": true,
     "worktree": true,
+    "branch": true,
     "collisions": false
+  },
+  "implementation": {
+    "changedPaths": [
+      "src/settings/label.ts"
+    ],
+    "focusedVerification": "pass",
+    "smoke": "pass"
   }
 }
