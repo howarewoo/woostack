@@ -1,5 +1,14 @@
 # woostack-review configuration
 
+## Public mode
+
+The only public invocation is `/woostack-review <PR#>`, which requires one exact existing pull
+request. Configuration cannot create a local-diff target or expose alternate command modes.
+Internal worker tier routing (`fast`, `standard`, `deep`) remains available to the swarm and
+validators; it is not a user-selectable review mode. See [commands.md](commands.md) for the
+public surface and [`../prompts/_orchestrator-header.md`](../prompts/_orchestrator-header.md) for
+the canonical posting contract.
+
 ## Event-floor rule (prior threads)
 
 `prior-findings.json` (unresolved + resolved threads on the *current* PR) is still produced for incremental mode, but it is used for one thing only: **open** prior threads are an event floor — a non-empty set keeps the new review at minimum `REQUEST_CHANGES`. Resolved threads do not gate the event; a clean incremental pass can `APPROVE`.
@@ -83,9 +92,7 @@ Full schema (every key shown; all optional):
       "renovate[bot]"
     ],
     "release_rollup_pattern": "^(staging|release|chore\\(release\\))",
-    "force_tier": "deep",
     "fix_commands": ["pnpm lint:fix", "pnpm format"],
-    "disable_adversarial": false,
     "chunking": {
       "max_loc": 4000
     }
@@ -102,11 +109,12 @@ Key reference (JSON has no comments, so the per-key semantics live here):
 - **`project_rules`** — fnmatch globs appended to auto-discovered `rules.md`.
 - **`authors_skip`** — PR author logins that short-circuit the entire review. Defaults: `dependabot[bot]`, `renovate[bot]`, `github-actions[bot]`. Set to `[]` to opt out.
 - **`release_rollup_pattern`** — Python regex on the PR title; default: `^(staging|release|chore\(release\))` (note `\\(` to escape the paren in JSON). An empty string opts out.
-- **`force_tier`** — `fast` or `deep`. Single-run override from config.
 - **`models`** — **root-level** per-tier model overrides (moved out of `review.models`; a lingering `review.models` is now a hard loader error — `woostack-doctor` warns on it too). Each tier leaf is a model-slug string, an object `{ "model": "<slug>", "effort": "<level>" }`, or a non-empty ordered array of those forms. Array entry 0 is the primary used wherever one concrete model is required; later entries remain available to hosts such as OMP that enact fallback routing. `effort` is one of `minimal | low | medium | high | xhigh` (empty = unset). Use flat `models.fast` / `.standard` / `.deep` as provider-agnostic fallbacks, or provider-scoped maps such as `models.openai.deep`, `models.anthropic.standard`, `models.google.standard`, and `models.openrouter.fast` when the same repo is reviewed by multiple coding agents. The action input `inputs.model` still wins. Effort is consumed by OpenAI/Codex (`load-prompt.sh`) and by Anthropic per-call spawns (`prompts/anthropic.md`, where it is the sole tier differentiator now that every Anthropic tier is `claude-opus-4-8`), config-first over the built-in tier default.
-- **`fix_commands`** — reserved for `--loop` mode (issue #15).
-- **`disable_adversarial`** — cost-sensitive opt-out for the prosecutor+defender validator (issue #13). When `true`, only the defender pass runs and its output becomes `findings.json` directly.
+- **`fix_commands`** — reserved for implementation workflows; review never executes them.
 - **`metrics`**: opt in to per-angle signal/noise metrics (bool, default `false`) — emit `findings.metrics.json` per run and fold a rolling `.woostack/metrics.json` aggregate (local only). Each angle also carries `overlap_total` + `overlap_with` (how often another angle raised the same issue, on the raw pre-validation set — a redundancy signal). Aggregate schema is v3; an older aggregate is reseeded on first fold. See Stage 6 in the root skill.
 - **`chunking.max_loc`** — diff-chunking threshold (issue #14). When the post-ignore diff exceeds this many changed lines, prefetch splits it into chunks honoring workspace package roots > top-level dirs > file-LOC-balanced groups; each angle fans out as angles × chunks parallel sub-agents. `0` disables chunking; default is 4000.
 
-**Precedence**: for the angle set, `angles.force` beats `angles.skip` when the same angle is listed in both. For model resolution, precedence is: explicit comment override (`--fast` / `--deep`) → action input `inputs.force_tier` → `review.force_tier` in config → action input `inputs.model` → `models.<provider>.<tier>` → flat `models.<tier>` → table default in `prompts/_orchestrator-header.md`. `ignore` is applied to both file paths and the per-file diff sections before angle gates evaluate.
+**Precedence**: for the angle set, `angles.force` beats `angles.skip` when the same angle is listed
+in both. Internal model resolution consults `models.<provider>.<tier>` before flat
+`models.<tier>` and then the canonical defaults in `prompts/_orchestrator-header.md`. `ignore` is
+applied to both file paths and the per-file diff sections before angle gates evaluate.
