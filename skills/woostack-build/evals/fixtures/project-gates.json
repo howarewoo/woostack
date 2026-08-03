@@ -1,7 +1,14 @@
 {
   "shape": {
+    "pullRequestCount": 2,
+    "kind": "multi-increment-build",
+    "canonicalProjectResolved": true,
+    "projectSpecApproved": true,
+    "executionPlanApproved": false
+  },
+  "boundedAlternative": {
     "pullRequestCount": 1,
-    "kind": "change",
-    "designApproved": true
+    "kind": "bounded-change",
+    "canonicalProjectResolved": false
   }
 }

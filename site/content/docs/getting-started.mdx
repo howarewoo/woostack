@@ -1,13 +1,12 @@
 ---
 title: Getting started
-description: Install woostack, initialize local support with automatic safe Linear defaults, and optionally configure an engineer pair.
+description: Install woostack, initialize safe Linear defaults, and optionally configure an engineer pair.
 ---
 
 <Callout type="info">
-  The user's approved workflow contract defines scope. Git and GitHub own code, branches, pull
-  requests, reviews, and merges. Linear records caller-selected build/standalone-plan artifacts
-  or explicitly requested plan persistence, plus one issue for a proved new fix after root-cause
-  proof. It never authorizes repository work.
+  Linear owns current product scope and execution contracts for builds and post-diagnosis fixes.
+  Git and GitHub own code, branches, pull requests, reviews, and merges. The responsible user's
+  exact native Linear approval event clears only the matching fix/build revision gate.
 </Callout>
 
 ## 1. Install the skills
@@ -35,8 +34,8 @@ and does not create a specification, plan, fix, issue, project, branch, or PR. E
 attempts safe read-only Linear default discovery through the host-exposed official MCP. Missing or
 incomplete Linear capability is reported separately and never blocks local initialization.
 
-Read [Configuration](/docs/configuration) for optional policy. Build and plan persistence require
-explicit selection; a proved fix prompt binds or creates one issue after proof and needs no project.
+Read [Configuration](/docs/configuration) for policy. Every build resolves or creates one Linear
+project. A proved fix binds or creates one Linear issue after proof and needs no project.
 
 ## 3. Choose the workflow
 
@@ -50,8 +49,8 @@ explicit selection; a proved fix prompt binds or creates one issue after proof a
 | Address unresolved PR threads | `/woostack-address-comments` |
 | Show current repository work state | `/woostack-status` |
 
-The selected workflow's contract and approval gates authorize work. An issue or project is never a
-prerequisite merely to run a command.
+The selected workflow's contract and approval gates authorize work. Linear records are required for
+fix/build product authority but do not replace repository-delivery evidence.
 
 ## 4. Automatic Linear default setup
 
@@ -69,14 +68,15 @@ is a separately reported setup skip/blocker and does not fail ordinary local ini
 Authentication stays in the host's MCP/OAuth secret store. Never place API keys, credentials,
 tokens, or authorization headers in repository config, prompts, logs, or generated files.
 
-The `linear` configuration supplies validated defaults for caller-selected exact build/plan
-resources or explicitly requested build/plan persistence. For a proved new fix without an exact
-issue, its configured team is used only to create that one issue after root-cause proof. It cannot
-authorize a write. Before selected persistence or fix issue creation, the workflow verifies the
-canonical repository association and resolves caller-selected workspace/team for exact resources
-or the configured team for new-fix creation, then independently reads back the exact mutation.
-Build/plan use one project, one parent plan issue, and one native child issue per increment; new
-fixes use one issue. `woostack-change` never contacts Linear.
+The `linear` configuration supplies validated defaults after a workflow requires or selects Linear.
+Build uses them to create its canonical project when no exact project was supplied. A proved new fix
+uses its configured team to create one issue when no exact issue was supplied. Policy cannot
+authorize a provider write. Before access, the workflow verifies canonical repository association
+and workspace/team; after every mutation or approval event, it independently reads the exact record
+back.
+
+Build uses one project for the high-level specification, one direct issue per increment, and native
+issue dependencies. Fix uses one issue. `woostack-change` never contacts Linear.
 
 ## 5. Optional: configure a Hermes + OMP engineer pair
 
@@ -91,8 +91,8 @@ Create distinct Hermes and OMP profiles/sessions, role-owned credential/config r
 engineer name, and a canonical worktree contract. Confirm the installed OMP CLI invocation and use
 an argument-safe PTY interface. Profile names alone are not isolation.
 
-The pairing works without Linear. If a unit will read/write persisted plan artifacts, connect the
-official MCP independently in each profile and keep their secret stores and sessions distinct.
+For fix/build units, connect the official MCP independently in each profile and keep their secret
+stores and sessions distinct. Artifact-optional units need it only when explicitly selected.
 
 Follow the exact setup and dispatch boundaries on the [Hermes](/docs/harnesses/hermes) and
 [OMP](/docs/harnesses/omp) pages.
@@ -118,7 +118,7 @@ hardens its contract, and a proved fix route binds or creates one issue after ro
   <Card title="Engineer agents" href="/docs/concepts/engineer-agents" description="Decision, implementation, review, and acceptance separation." />
   <Card title="Hermes" href="/docs/harnesses/hermes" description="Optional decision-maker and independent reviewer adapter." />
   <Card title="OMP" href="/docs/harnesses/omp" description="Host-owned workers and the optional isolated coder role." />
-  <Card title="Official Linear MCP" href="https://mcp.linear.app/mcp" description="Build/plan persistence and the proved-fix issue path." />
+  <Card title="Official Linear MCP" href="https://mcp.linear.app/mcp" description="Canonical build projects, increment plans, and post-diagnosis fix issues." />
 </Cards>
 
 ## Recommended companions

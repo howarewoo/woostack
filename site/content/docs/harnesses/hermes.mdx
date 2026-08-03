@@ -5,8 +5,8 @@ description: Optional decision-maker profile, native delegation, and isolated OM
 
 Hermes can use woostack in two ways. Its native `delegate_task` route is the default. An explicit
 Hermes + OMP pairing makes Hermes the decision-maker and independent reviewer while a separate OMP
-profile implements one bounded task. Linear is optional for build/plan persistence and is the narrow
-post-proof issue context for new fixes; it never authorizes work.
+profile implements one bounded task. Build and post-proof fix paths require their exact canonical
+Linear records and approval events; other artifact use remains optional.
 
 See the canonical
 [Hermes host adapter](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/hermes.md)
@@ -19,7 +19,7 @@ leaf worker unless the task genuinely needs another independent decomposition la
 dependency-independent tasks within the configured concurrency limit.
 
 A child gets fresh context, so the dispatch must contain every contract, path, invariant, and
-handback field it needs. Hermes owns scope, synthesis, workflow gates, and acceptance.
+handback field it needs. Hermes owns scope, synthesis, gate enforcement, and acceptance.
 
 ## Optional Hermes + OMP engineer pair
 
@@ -92,16 +92,17 @@ Repository: REPOSITORY_PATH. Approved bounded contract: TASK_CONTRACT.
 No paired step merges.
 ## Linear artifacts
 
-Build and standalone-plan runs select Linear only with an exact project or explicit persistence
-request. A proved new fix prompt is the narrow exception: after root-cause proof it binds or creates
-one compatible issue through the configured official MCP. Credentials remain in each profile's own
-MCP/OAuth secret store. Follow the
+Build always resolves one exact Linear project or creates one from validated defaults before
+ideation. A proved new fix binds or creates one issue after root-cause proof. Each profile uses its
+own official MCP/OAuth secret store and independently proves the required project/issue,
+fingerprints, dependencies, responsible-user approval events, and read-backs. Follow the
 [Linear artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md).
 
-Artifact access never supplies assignment, dispatch, commit, review, or acceptance authority. Before
-proof, a fix makes no Linear call. After proof, a required fix issue read/write/read-back failure
-blocks before execution; it has no artifact-free fallback. `woostack-change` never contacts Linear.
-Artifact-free operation remains available for non-fix workflows and fix diagnosis before proof.
+The exact responsible-user approval event clears only its matching fix/build content revision.
+Linear never supplies assignment, dispatch, commit, review, product acceptance, or repository
+delivery truth. Before proof, a fix makes no Linear call. Required capability failure blocks
+fix/build at the retained boundary; artifact-optional workflows can continue without their selected
+artifact operation. `woostack-change` never contacts Linear.
 
 ## Recovery
 

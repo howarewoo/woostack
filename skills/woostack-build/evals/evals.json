@@ -3,168 +3,104 @@
   "skill": "woostack-build",
   "cases": [
     {
-      "id": "routes-selected-hardened-build-to-overnight-with-exact-context",
-      "prompt": "Evaluate fixtures/build-state.json selectedOvernight after the execution handoff choice. Do not mutate anything. Return exactly one JSON object using the keys status, artifactModeSelected, canonicalRepositoryVerified, workspaceTeamVerified, projectId, projectCreated, preMutationHierarchyReadComplete, persistenceChronologyVerified, parentPlanIssueId, incrementChildIssueIds, mutationClientIds, approvedProjectContextReadBackVerified, hierarchyReadBackVerified, providerPersistencePasses, hardGates, terminalChoice, executionSkill, executionArtifactContext, and mergeAllowed.",
+      "id": "routes-approved-build-to-overnight-with-exact-context",
+      "prompt": "Evaluate fixtures/approved-build.json at the execution handoff without contacting any provider or mutating the repository. Independently validate the canonical project, direct increment issues, native dependencies, both responsible-user approval records, and terminal choice. Return exactly one JSON object with keys status, projectId, projectSpecFingerprint, directIssueIds, nativeDependencies, projectSpecApprovalVerified, executionPlanApprovalVerified, hardGates, terminalChoice, executionSkill, contextForwarded, repositoryMutationCount, and mergeAllowed.",
       "fixtures": [
-        "build-state.json"
+        "approved-build.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The caller-selected existing project was reconciled once after graph hardening without replacement creation; provider preflight and complete pre-mutation hierarchy reads preceded all writes, and the approved specification context and complete hierarchy were independently read back. Exactly three gates remain, Run overnight routes the same approved plan plus exact project/parent/children context to woostack-execute-overnight, and merge remains forbidden.",
+      "expected": "The exact project and two direct executor-ready issues form a complete dependency graph. Both native responsible-user approvals match the current fingerprints, exactly two gates are cleared, Run overnight selects woostack-execute-overnight with the complete exact context, no repository mutation occurs, and merge remains forbidden.",
       "assertions": [
         {
-          "id": "ready",
+          "id": "build-ready",
           "kind": "final-json-path-equals",
           "pointer": "/status",
           "expected": "ready",
           "critical": true
         },
         {
-          "id": "selected",
-          "kind": "final-json-path-equals",
-          "pointer": "/artifactModeSelected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "repo",
-          "kind": "final-json-path-equals",
-          "pointer": "/canonicalRepositoryVerified",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "workspace-team",
-          "kind": "final-json-path-equals",
-          "pointer": "/workspaceTeamVerified",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "project",
+          "id": "build-exact-project",
           "kind": "final-json-path-equals",
           "pointer": "/projectId",
           "expected": "project-build-42",
           "critical": true
         },
         {
-          "id": "project-not-recreated",
+          "id": "build-direct-issue-graph",
           "kind": "final-json-path-equals",
-          "pointer": "/projectCreated",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "complete-pre-mutation-hierarchy-read",
-          "kind": "final-json-path-equals",
-          "pointer": "/preMutationHierarchyReadComplete",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "explicit-persistence-chronology",
-          "kind": "final-json-path-equals",
-          "pointer": "/persistenceChronologyVerified",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "parent",
-          "kind": "final-json-path-equals",
-          "pointer": "/parentPlanIssueId",
-          "expected": "issue-build-parent-42",
-          "critical": true
-        },
-        {
-          "id": "children",
-          "kind": "final-json-path-equals",
-          "pointer": "/incrementChildIssueIds",
+          "pointer": "/directIssueIds",
           "expected": [
-            "issue-build-child-1",
-            "issue-build-child-2"
+            "issue-storage",
+            "issue-api"
           ],
           "critical": true
         },
         {
-          "id": "stable-write-identities",
+          "id": "build-native-dependencies",
           "kind": "final-json-path-equals",
-          "pointer": "/mutationClientIds",
-          "expected": {
-            "projectContext": "42000000-0000-4000-8000-000000000000",
-            "parent": "42000000-0000-4000-8000-000000000001",
-            "children": [
-              "42000000-0000-4000-8000-000000000002",
-              "42000000-0000-4000-8000-000000000003"
-            ],
-            "relations": [
-              "42000000-0000-4000-8000-000000000004"
+          "pointer": "/nativeDependencies",
+          "expected": [
+            [
+              "issue-storage",
+              "issue-api"
             ]
-          },
+          ],
           "critical": true
         },
         {
-          "id": "approved-project-context-read-back",
+          "id": "build-project-approval",
           "kind": "final-json-path-equals",
-          "pointer": "/approvedProjectContextReadBackVerified",
+          "pointer": "/projectSpecApprovalVerified",
           "expected": true,
           "critical": true
         },
         {
-          "id": "readback",
+          "id": "build-plan-approval",
           "kind": "final-json-path-equals",
-          "pointer": "/hierarchyReadBackVerified",
+          "pointer": "/executionPlanApprovalVerified",
           "expected": true,
           "critical": true
         },
         {
-          "id": "one-persistence",
-          "kind": "final-json-path-equals",
-          "pointer": "/providerPersistencePasses",
-          "expected": 1,
-          "critical": true
-        },
-        {
-          "id": "three-gates",
+          "id": "build-two-gates",
           "kind": "final-json-path-equals",
           "pointer": "/hardGates",
           "expected": [
-            "design-approval",
-            "spec-approval",
-            "execution-handoff"
+            "project-spec-approval",
+            "execution-plan-approval"
           ],
           "critical": true
         },
         {
-          "id": "overnight",
+          "id": "build-overnight-choice",
           "kind": "final-json-path-equals",
           "pointer": "/terminalChoice",
-          "expected": "run-overnight",
-          "critical": true
+          "expected": "Run overnight"
         },
         {
-          "id": "overnight-skill",
+          "id": "build-overnight-skill",
           "kind": "final-json-path-equals",
           "pointer": "/executionSkill",
           "expected": "woostack-execute-overnight",
           "critical": true
         },
         {
-          "id": "exact-context",
+          "id": "build-context-forwarded",
           "kind": "final-json-path-equals",
-          "pointer": "/executionArtifactContext",
-          "expected": {
-            "projectId": "project-build-42",
-            "parentPlanIssueId": "issue-build-parent-42",
-            "incrementChildIssueIds": [
-              "issue-build-child-1",
-              "issue-build-child-2"
-            ]
-          },
+          "pointer": "/contextForwarded",
+          "expected": true,
           "critical": true
         },
         {
-          "id": "never-merge",
+          "id": "build-no-repository-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationCount",
+          "expected": 0
+        },
+        {
+          "id": "build-never-merges",
           "kind": "final-json-path-equals",
           "pointer": "/mergeAllowed",
           "expected": false,
@@ -173,362 +109,132 @@
       ]
     },
     {
-      "id": "repository-policy-alone-keeps-build-artifact-free",
-      "prompt": "Evaluate fixtures/build-state.json policyOnly as a build with a complete approved specification and tracked Linear policy but no exact artifact or explicit persistence request. Do not contact a provider. Return exactly one JSON object using the keys status, artifactModeSelected, providerReadCount, providerWriteCount, repositoryPolicyUsedForSelection, candidateGraphReturned, graphHardened, nextAction, and mergeAllowed.",
+      "id": "creates-canonical-project-before-ideation",
+      "prompt": "Evaluate fixtures/project-admission.json as a new woostack-build invocation with no exact project. Do not contact a provider or mutate the repository. Validate the configured repository, workspace, team, official MCP preflight, stable operation identity, absence proof, create response, and independent read-back. Return exactly one JSON object with keys status, officialMcpVerified, projectCreated, projectId, operationIdentityPreserved, independentReadBackVerified, nextStep, repositoryMutationCount.",
       "fixtures": [
-        "build-state.json"
+        "project-admission.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Tracked policy cannot select artifacts or authorize provider access. Build delegates candidate planning without provider mutation, hardens the graph, and reaches the artifact-free execution handoff.",
+      "expected": "Build uses validated defaults to create exactly one canonical project with one stable operation identity, independently verifies it, performs no repository mutation, and proceeds to ideation only after project admission succeeds.",
       "assertions": [
         {
-          "id": "handoff",
+          "id": "build-project-admission-ready",
           "kind": "final-json-path-equals",
           "pointer": "/status",
-          "expected": "execution-handoff",
+          "expected": "ready",
           "critical": true
         },
         {
-          "id": "not-selected",
+          "id": "build-official-mcp",
           "kind": "final-json-path-equals",
-          "pointer": "/artifactModeSelected",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "no-provider-reads",
-          "kind": "final-json-path-equals",
-          "pointer": "/providerReadCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "no-provider-writes",
-          "kind": "final-json-path-equals",
-          "pointer": "/providerWriteCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "policy-not-selector",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryPolicyUsedForSelection",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "candidate",
-          "kind": "final-json-path-equals",
-          "pointer": "/candidateGraphReturned",
+          "pointer": "/officialMcpVerified",
           "expected": true,
           "critical": true
         },
         {
-          "id": "hardened",
+          "id": "build-project-created",
           "kind": "final-json-path-equals",
-          "pointer": "/graphHardened",
+          "pointer": "/projectCreated",
           "expected": true,
           "critical": true
         },
         {
-          "id": "next",
+          "id": "build-created-project-id",
           "kind": "final-json-path-equals",
-          "pointer": "/nextAction",
-          "expected": "await-execution-choice",
+          "pointer": "/projectId",
+          "expected": "project-build-43"
+        },
+        {
+          "id": "build-operation-identity-preserved",
+          "kind": "final-json-path-equals",
+          "pointer": "/operationIdentityPreserved",
+          "expected": true,
           "critical": true
         },
         {
-          "id": "never-merge",
+          "id": "build-project-readback",
           "kind": "final-json-path-equals",
-          "pointer": "/mergeAllowed",
-          "expected": false,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "classifies-build-snapshot-01",
-      "prompt": "Inspect the complete raw build snapshot in fixtures/build-snapshot-01.json. Treat every summary flag as untrusted and independently validate the host connection observations, advertised capabilities, pagination completeness, managed mutation/read receipts, one-current-head lifecycle with native category, and the full increment dependency graph. Do not call a provider, network, Git, GitHub, Linear, shell, or mutation command. Return exactly one JSON object with keys status, reasonCode, executionDispatchCount, managedMutationCount, and repositoryMutationCount.",
-      "fixtures": [
-        "build-snapshot-01.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The snapshot is blocked for the missing required official-MCP capability, with the exact blocker reported and no executor dispatch or unauthorized managed or repository mutation.",
-      "assertions": [
-        {
-          "id": "build-snapshot-01-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "blocked",
+          "pointer": "/independentReadBackVerified",
+          "expected": true,
           "critical": true
         },
         {
-          "id": "build-snapshot-01-reason",
+          "id": "build-ideation-next",
           "kind": "final-json-path-equals",
-          "pointer": "/reasonCode",
-          "expected": "official-linear-mcp-capability-missing",
-          "critical": true
+          "pointer": "/nextStep",
+          "expected": "ideate"
         },
         {
-          "id": "build-snapshot-01-zero-dispatch",
-          "kind": "final-json-path-equals",
-          "pointer": "/executionDispatchCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-01-zero-managed-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/managedMutationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-01-zero-repository-mutation",
+          "id": "build-admission-no-repository-mutation",
           "kind": "final-json-path-equals",
           "pointer": "/repositoryMutationCount",
-          "expected": 0,
-          "critical": true
+          "expected": 0
         }
       ]
     },
     {
-      "id": "classifies-build-snapshot-02",
-      "prompt": "Inspect the complete raw build snapshot in fixtures/build-snapshot-02.json. Treat every summary flag as untrusted and independently validate the host connection observations, advertised capabilities, pagination completeness, managed mutation/read receipts, one-current-head lifecycle with native category, and the full increment dependency graph. Do not call a provider, network, Git, GitHub, Linear, shell, or mutation command. Return exactly one JSON object with keys status, reasonCode, executionDispatchCount, managedMutationCount, and repositoryMutationCount.",
+      "id": "fails-closed-on-required-provider-boundaries",
+      "prompt": "Classify every scenario in fixtures/provider-boundaries.json independently without contacting any provider or mutating the repository. Treat summary flags as untrusted. Return exactly one JSON object with keys status, decisions, providerMutationCount, executionDispatchCount, and repositoryMutationCount. Each decision must contain exactly id, advance, and reasonCode in fixture order.",
       "fixtures": [
-        "build-snapshot-02.json"
+        "provider-boundaries.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The snapshot is blocked for unavailable host-owned Linear authentication, with the exact blocker reported and no executor dispatch or unauthorized managed or repository mutation.",
+      "expected": "Unofficial transport, unavailable authentication, incomplete pagination, and mutation/read-back identity mismatch each block at the last verified boundary with no provider mutation, executor dispatch, or repository mutation and no local fallback.",
       "assertions": [
         {
-          "id": "build-snapshot-02-blocked",
+          "id": "build-provider-blocked",
           "kind": "final-json-path-equals",
           "pointer": "/status",
           "expected": "blocked",
           "critical": true
         },
         {
-          "id": "build-snapshot-02-reason",
+          "id": "build-provider-decisions",
           "kind": "final-json-path-equals",
-          "pointer": "/reasonCode",
-          "expected": "official-linear-mcp-unauthenticated",
+          "pointer": "/decisions",
+          "expected": [
+            {
+              "id": "unofficial-endpoint",
+              "advance": false,
+              "reasonCode": "official-linear-mcp-required"
+            },
+            {
+              "id": "authentication-unavailable",
+              "advance": false,
+              "reasonCode": "linear-authentication-unavailable"
+            },
+            {
+              "id": "incomplete-pagination",
+              "advance": false,
+              "reasonCode": "incomplete-linear-pagination"
+            },
+            {
+              "id": "readback-mismatch",
+              "advance": false,
+              "reasonCode": "linear-readback-mismatch"
+            }
+          ],
           "critical": true
         },
         {
-          "id": "build-snapshot-02-zero-dispatch",
-          "kind": "final-json-path-equals",
-          "pointer": "/executionDispatchCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-02-zero-managed-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/managedMutationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-02-zero-repository-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "classifies-build-snapshot-03",
-      "prompt": "Inspect the complete raw build snapshot in fixtures/build-snapshot-03.json. Treat every summary flag as untrusted and independently validate the host connection observations, advertised capabilities, pagination completeness, managed mutation/read receipts, one-current-head lifecycle with native category, and the full increment dependency graph. Do not call a provider, network, Git, GitHub, Linear, shell, or mutation command. Return exactly one JSON object with keys status, reasonCode, executionDispatchCount, managedMutationCount, and repositoryMutationCount.",
-      "fixtures": [
-        "build-snapshot-03.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The snapshot is blocked because managed pagination is not proven complete, with the exact blocker reported and no executor dispatch or unauthorized managed or repository mutation.",
-      "assertions": [
-        {
-          "id": "build-snapshot-03-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "blocked",
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-03-reason",
-          "kind": "final-json-path-equals",
-          "pointer": "/reasonCode",
-          "expected": "managed-pagination-incomplete",
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-03-zero-dispatch",
-          "kind": "final-json-path-equals",
-          "pointer": "/executionDispatchCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-03-zero-managed-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/managedMutationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-03-zero-repository-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "classifies-build-snapshot-04",
-      "prompt": "Inspect the complete raw build snapshot in fixtures/build-snapshot-04.json. Treat every summary flag as untrusted and independently validate the host connection observations, advertised capabilities, pagination completeness, managed mutation/read receipts, one-current-head lifecycle with native category, and the full increment dependency graph. Do not call a provider, network, Git, GitHub, Linear, shell, or mutation command. Return exactly one JSON object with keys status, reasonCode, executionDispatchCount, managedMutationCount, and repositoryMutationCount.",
-      "fixtures": [
-        "build-snapshot-04.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The snapshot is blocked because a managed independent read-back is incomplete, with the exact blocker reported and no executor dispatch or unauthorized managed or repository mutation.",
-      "assertions": [
-        {
-          "id": "build-snapshot-04-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "blocked",
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-04-reason",
-          "kind": "final-json-path-equals",
-          "pointer": "/reasonCode",
-          "expected": "managed-read-back-incomplete",
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-04-zero-dispatch",
-          "kind": "final-json-path-equals",
-          "pointer": "/executionDispatchCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-04-zero-managed-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/managedMutationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-04-zero-repository-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "classifies-build-snapshot-05",
-      "prompt": "Inspect the complete raw build snapshot in fixtures/build-snapshot-05.json. Treat every summary flag as untrusted and independently validate the host connection observations, advertised capabilities, pagination completeness, managed mutation/read receipts, one-current-head lifecycle with native category, and the full increment dependency graph. Do not call a provider, network, Git, GitHub, Linear, shell, or mutation command. Return exactly one JSON object with keys status, reasonCode, executionDispatchCount, managedMutationCount, and repositoryMutationCount.",
-      "fixtures": [
-        "build-snapshot-05.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The snapshot is blocked because a mutation and its independent read receipt disagree, with the exact blocker reported and no executor dispatch or unauthorized managed or repository mutation.",
-      "assertions": [
-        {
-          "id": "build-snapshot-05-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "blocked",
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-05-reason",
-          "kind": "final-json-path-equals",
-          "pointer": "/reasonCode",
-          "expected": "mutation-read-receipt-mismatch",
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-05-zero-dispatch",
-          "kind": "final-json-path-equals",
-          "pointer": "/executionDispatchCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-05-zero-managed-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/managedMutationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-05-zero-repository-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "blocks-duplicate-parent-plan-issues",
-      "prompt": "Inspect fixtures/build-snapshot-06.json as a selected project hierarchy snapshot. Do not mutate anything. Return exactly one JSON object with keys status, reasonCode, executionDispatchCount, providerMutationCount, and repositoryMutationCount.",
-      "fixtures": [
-        "build-snapshot-06.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Two current parent plan issues for one selected plan make the hierarchy ambiguous and block before dispatch or mutation.",
-      "assertions": [
-        {
-          "id": "blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "blocked",
-          "critical": true
-        },
-        {
-          "id": "reason",
-          "kind": "final-json-path-equals",
-          "pointer": "/reasonCode",
-          "expected": "multiple-parent-plan-issues",
-          "critical": true
-        },
-        {
-          "id": "no-dispatch",
-          "kind": "final-json-path-equals",
-          "pointer": "/executionDispatchCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "no-provider-mutation",
+          "id": "build-provider-zero-mutation",
           "kind": "final-json-path-equals",
           "pointer": "/providerMutationCount",
+          "expected": 0
+        },
+        {
+          "id": "build-provider-zero-dispatch",
+          "kind": "final-json-path-equals",
+          "pointer": "/executionDispatchCount",
           "expected": 0,
           "critical": true
         },
         {
-          "id": "no-repo-mutation",
+          "id": "build-provider-zero-repository-mutation",
           "kind": "final-json-path-equals",
           "pointer": "/repositoryMutationCount",
           "expected": 0,
@@ -537,409 +243,208 @@
       ]
     },
     {
-      "id": "blocks-child-parent-membership-drift",
-      "prompt": "Inspect fixtures/build-snapshot-07.json as a selected project hierarchy snapshot. Do not mutate anything. Return exactly one JSON object with keys status, reasonCode, executionDispatchCount, providerMutationCount, and repositoryMutationCount.",
+      "id": "rejects-noncanonical-build-authority",
+      "prompt": "Classify every scenario in fixtures/authority-inputs.json without contacting a provider or mutating the repository. Return exactly one JSON object with keys status, decisions, providerMutationCount, executionDispatchCount, and repositoryMutationCount. Each decision must contain exactly id, advance, and reasonCode in fixture order.",
       "fixtures": [
-        "build-snapshot-07.json"
+        "authority-inputs.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "An increment child attached to the wrong parent fails hierarchy verification before dispatch or mutation.",
+      "expected": "A local specification, a standalone Linear document, and conversation-only approval cannot replace the canonical build project or its exact native approval events. Every scenario blocks without provider mutation, dispatch, repository mutation, or alternate authority fallback.",
       "assertions": [
         {
-          "id": "blocked",
+          "id": "build-authority-blocked",
           "kind": "final-json-path-equals",
           "pointer": "/status",
           "expected": "blocked",
           "critical": true
         },
         {
-          "id": "reason",
+          "id": "build-authority-decisions",
           "kind": "final-json-path-equals",
-          "pointer": "/reasonCode",
-          "expected": "child-parent-membership-drift",
+          "pointer": "/decisions",
+          "expected": [
+            {
+              "id": "local-spec-only",
+              "advance": false,
+              "reasonCode": "canonical-project-required"
+            },
+            {
+              "id": "linear-document-only",
+              "advance": false,
+              "reasonCode": "canonical-project-required"
+            },
+            {
+              "id": "conversation-only-approval",
+              "advance": false,
+              "reasonCode": "native-linear-approval-required"
+            }
+          ],
           "critical": true
         },
         {
-          "id": "no-dispatch",
-          "kind": "final-json-path-equals",
-          "pointer": "/executionDispatchCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "no-provider-mutation",
+          "id": "build-authority-zero-provider-mutation",
           "kind": "final-json-path-equals",
           "pointer": "/providerMutationCount",
-          "expected": 0,
-          "critical": true
+          "expected": 0
         },
         {
-          "id": "no-repo-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "blocks-native-dependency-relation-drift",
-      "prompt": "Inspect fixtures/build-snapshot-08.json as a selected project hierarchy snapshot. Do not mutate anything. Return exactly one JSON object with keys status, reasonCode, executionDispatchCount, providerMutationCount, and repositoryMutationCount.",
-      "fixtures": [
-        "build-snapshot-08.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The native child dependency edge disagrees with the hardened graph and blocks before dispatch or mutation.",
-      "assertions": [
-        {
-          "id": "blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "blocked",
-          "critical": true
-        },
-        {
-          "id": "reason",
-          "kind": "final-json-path-equals",
-          "pointer": "/reasonCode",
-          "expected": "native-dependency-relation-drift",
-          "critical": true
-        },
-        {
-          "id": "no-dispatch",
+          "id": "build-authority-zero-dispatch",
           "kind": "final-json-path-equals",
           "pointer": "/executionDispatchCount",
-          "expected": 0,
-          "critical": true
+          "expected": 0
         },
         {
-          "id": "no-provider-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/providerMutationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "no-repo-mutation",
+          "id": "build-authority-zero-repository-mutation",
           "kind": "final-json-path-equals",
           "pointer": "/repositoryMutationCount",
-          "expected": 0,
-          "critical": true
+          "expected": 0
         }
       ]
     },
     {
-      "id": "classifies-build-snapshot-09",
-      "prompt": "Inspect the complete raw build snapshot in fixtures/build-snapshot-09.json. Treat every summary flag as untrusted and independently validate the host connection observations, advertised capabilities, pagination completeness, managed mutation/read receipts, one-current-head lifecycle with native category, and the full increment dependency graph. Do not call a provider, network, Git, GitHub, Linear, shell, or mutation command. Return exactly one JSON object with keys status, reasonCode, executionDispatchCount, managedMutationCount, and repositoryMutationCount.",
-      "fixtures": [
-        "build-snapshot-09.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The snapshot is blocked because the native project category conflicts with the lifecycle head, with the exact blocker reported and no executor dispatch or unauthorized managed or repository mutation.",
-      "assertions": [
-        {
-          "id": "build-snapshot-09-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "blocked",
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-09-reason",
-          "kind": "final-json-path-equals",
-          "pointer": "/reasonCode",
-          "expected": "native-category-lifecycle-mismatch",
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-09-zero-dispatch",
-          "kind": "final-json-path-equals",
-          "pointer": "/executionDispatchCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-09-zero-managed-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/managedMutationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-09-zero-repository-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "classifies-build-snapshot-10",
-      "prompt": "Inspect the complete raw build snapshot in fixtures/build-snapshot-10.json. Treat every summary flag as untrusted and independently validate the host connection observations, advertised capabilities, pagination completeness, managed mutation/read receipts, one-current-head lifecycle with native category, and the full increment dependency graph. Do not call a provider, network, Git, GitHub, Linear, shell, or mutation command. Return exactly one JSON object with keys status, reasonCode, executionDispatchCount, managedMutationCount, and repositoryMutationCount.",
-      "fixtures": [
-        "build-snapshot-10.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The snapshot is blocked because a required native increment dependency relation is absent, with the exact blocker reported and no executor dispatch or unauthorized managed or repository mutation.",
-      "assertions": [
-        {
-          "id": "build-snapshot-10-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "blocked",
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-10-reason",
-          "kind": "final-json-path-equals",
-          "pointer": "/reasonCode",
-          "expected": "increment-dependency-relation-missing",
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-10-zero-dispatch",
-          "kind": "final-json-path-equals",
-          "pointer": "/executionDispatchCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-10-zero-managed-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/managedMutationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-10-zero-repository-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "classifies-build-snapshot-11",
-      "prompt": "Inspect the complete raw build snapshot in fixtures/build-snapshot-11.json. Treat every summary flag as untrusted and independently validate the host connection observations, advertised capabilities, pagination completeness, managed mutation/read receipts, one-current-head lifecycle with native category, and the full increment dependency graph. Do not call a provider, network, Git, GitHub, Linear, shell, or mutation command. Return exactly one JSON object with keys status, reasonCode, executionDispatchCount, managedMutationCount, and repositoryMutationCount.",
-      "fixtures": [
-        "build-snapshot-11.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The snapshot is blocked because an increment relation points outside the exact project graph, with the exact blocker reported and no executor dispatch or unauthorized managed or repository mutation.",
-      "assertions": [
-        {
-          "id": "build-snapshot-11-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "blocked",
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-11-reason",
-          "kind": "final-json-path-equals",
-          "pointer": "/reasonCode",
-          "expected": "increment-dependency-relation-foreign",
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-11-zero-dispatch",
-          "kind": "final-json-path-equals",
-          "pointer": "/executionDispatchCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-11-zero-managed-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/managedMutationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-11-zero-repository-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "classifies-build-snapshot-12",
-      "prompt": "Inspect the complete raw build snapshot in fixtures/build-snapshot-12.json. Treat every summary flag as untrusted and independently validate the host connection observations, advertised capabilities, pagination completeness, managed mutation/read receipts, one-current-head lifecycle with native category, and the full increment dependency graph. Do not call a provider, network, Git, GitHub, Linear, shell, or mutation command. Return exactly one JSON object with keys status, reasonCode, executionDispatchCount, managedMutationCount, and repositoryMutationCount.",
-      "fixtures": [
-        "build-snapshot-12.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The snapshot is blocked because the complete native increment dependency graph contains a cycle, with the exact blocker reported and no executor dispatch or unauthorized managed or repository mutation.",
-      "assertions": [
-        {
-          "id": "build-snapshot-12-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "blocked",
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-12-reason",
-          "kind": "final-json-path-equals",
-          "pointer": "/reasonCode",
-          "expected": "increment-dependency-cycle",
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-12-zero-dispatch",
-          "kind": "final-json-path-equals",
-          "pointer": "/executionDispatchCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-12-zero-managed-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/managedMutationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "build-snapshot-12-zero-repository-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0,
-          "critical": true
-        }
-      ]
-    },
-    {
-      "id": "enforces-project-gates-and-bounded-routing",
-      "prompt": "Apply the lifecycle classification contract to fixtures/project-gates.json without provider, Git, or repository mutations. Return exactly one JSON object with keys developmentAuthority, linearRole, hardGates, route, projectCreated, advance, and repositoryEffects.",
+      "id": "enforces-two-gates-and-bounded-routing",
+      "prompt": "Apply the workflow classification contract to fixtures/project-gates.json without provider, Git, or repository mutations. Return exactly one JSON object with keys developmentAuthority, linearRole, hardGates, buildAdvance, boundedRoute, projectCreatedForBoundedRoute, and repositoryEffects.",
       "fixtures": [
         "project-gates.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The approved user and workflow contract is the development authority; Linear contributes artifact evidence only. Exactly three ordered gates govern multi-increment work, and one bounded issue routes away before project creation.",
+      "expected": "Linear is canonical product authority for the multi-increment build, exactly two ordered content-bound approvals govern it, execution remains blocked until gate two, and an independently bounded one-PR change routes away without creating a project or mutating the repository.",
       "assertions": [
         {
-          "id": "gates-authority",
+          "id": "build-linear-product-authority",
           "kind": "final-json-path-equals",
           "pointer": "/developmentAuthority",
-          "expected": "approved-user-and-workflow-contract",
+          "expected": "canonical-linear-project-and-direct-issues",
           "critical": true
         },
         {
-          "id": "gates-linear-role",
+          "id": "build-linear-role",
           "kind": "final-json-path-equals",
           "pointer": "/linearRole",
-          "expected": "artifact-evidence-only",
-          "critical": true
+          "expected": "product-scope-and-plan-authority"
         },
         {
-          "id": "gates-exact-order",
+          "id": "build-gate-order",
           "kind": "final-json-path-equals",
           "pointer": "/hardGates",
           "expected": [
-            "design-approval",
-            "spec-approval",
-            "execution-handoff"
+            "project-spec-approval",
+            "execution-plan-approval"
           ],
           "critical": true
         },
         {
-          "id": "gates-bounded-route",
+          "id": "build-gate-two-pending",
           "kind": "final-json-path-equals",
-          "pointer": "/route",
+          "pointer": "/buildAdvance",
+          "expected": false
+        },
+        {
+          "id": "build-bounded-route",
+          "kind": "final-json-path-equals",
+          "pointer": "/boundedRoute",
           "expected": "woostack-change",
           "critical": true
         },
         {
-          "id": "gates-no-project",
+          "id": "build-bounded-no-project",
           "kind": "final-json-path-equals",
-          "pointer": "/projectCreated",
+          "pointer": "/projectCreatedForBoundedRoute",
           "expected": false,
           "critical": true
         },
         {
-          "id": "gates-no-advance",
-          "kind": "final-json-path-equals",
-          "pointer": "/advance",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "gates-no-effects",
+          "id": "build-routing-no-effects",
           "kind": "final-json-path-equals",
           "pointer": "/repositoryEffects",
-          "expected": [],
-          "critical": true
+          "expected": []
         }
       ]
     },
     {
-      "id": "fails-closed-on-selected-hierarchy-conflicts",
-      "prompt": "Evaluate every case in fixtures/hierarchy-conflict.json without provider, Git, or repository mutation. Preserve fixture order. Return exactly one JSON object with key results, an array whose objects have exactly id, advance, reasonCode, and repositoryEffects.",
+      "id": "fails-closed-on-project-graph-and-approval-drift",
+      "prompt": "Evaluate every scenario in fixtures/graph-conflicts.json without provider, Git, or repository mutation. Preserve fixture order. Return exactly one JSON object with key results, an array whose objects have exactly id, advance, invalidatedGates, reasonCode, and repositoryEffects.",
       "fixtures": [
-        "hierarchy-conflict.json"
+        "graph-conflicts.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Foreign repository association, unresolved workspace/team, multiple parent plan issues, stale child identity, relation drift, and incomplete read-back each fail closed without repository effects.",
+      "expected": "Foreign repository association, unresolved workspace or team, duplicate direct task identity, stale project approval, stale execution-plan approval, native dependency drift, and incomplete read-back each fail closed and invalidate only the causally affected gates without repository effects.",
       "assertions": [
         {
-          "id": "conflict-results",
+          "id": "build-drift-results",
           "kind": "final-json-path-equals",
           "pointer": "/results",
           "expected": [
             {
-              "id": "conflict-a",
+              "id": "foreign-repository",
               "advance": false,
-              "reasonCode": "foreign-repository",
+              "invalidatedGates": [
+                1,
+                2
+              ],
+              "reasonCode": "foreign-project-repository",
               "repositoryEffects": []
             },
             {
-              "id": "conflict-b",
+              "id": "workspace-team-mismatch",
               "advance": false,
-              "reasonCode": "unresolved-workspace-team",
+              "invalidatedGates": [
+                1,
+                2
+              ],
+              "reasonCode": "project-workspace-team-mismatch",
               "repositoryEffects": []
             },
             {
-              "id": "conflict-c",
+              "id": "duplicate-current-task",
               "advance": false,
-              "reasonCode": "multiple-parent-plan-issues",
+              "invalidatedGates": [
+                2
+              ],
+              "reasonCode": "duplicate-current-task-identity",
               "repositoryEffects": []
             },
             {
-              "id": "conflict-d",
+              "id": "stale-project-approval",
               "advance": false,
-              "reasonCode": "stale-child-identity",
+              "invalidatedGates": [
+                1,
+                2
+              ],
+              "reasonCode": "project-spec-approval-stale",
               "repositoryEffects": []
             },
             {
-              "id": "conflict-e",
+              "id": "stale-plan-approval",
               "advance": false,
-              "reasonCode": "native-dependency-relation-drift",
+              "invalidatedGates": [
+                2
+              ],
+              "reasonCode": "execution-plan-approval-stale",
               "repositoryEffects": []
             },
             {
-              "id": "conflict-f",
+              "id": "dependency-drift",
               "advance": false,
-              "reasonCode": "incomplete-hierarchy-readback",
+              "invalidatedGates": [
+                2
+              ],
+              "reasonCode": "native-dependency-drift",
+              "repositoryEffects": []
+            },
+            {
+              "id": "incomplete-readback",
+              "advance": false,
+              "invalidatedGates": [
+                2
+              ],
+              "reasonCode": "incomplete-linear-readback",
               "repositoryEffects": []
             }
           ],
@@ -949,52 +454,61 @@
     },
     {
       "id": "refuses-unsafe-project-replan",
-      "prompt": "Apply the replan contract to fixtures/project-replan.json without provider, Git, or repository mutations. Return exactly one JSON object with keys advance, reasonCode, preservedClientIds, ordinalDefinesAncestry, and repositoryEffects.",
+      "prompt": "Apply the replan contract to fixtures/project-replan.json without provider, Git, or repository mutations. Return exactly one JSON object with keys advance, reasonCode, preservedTaskIds, approvalInvalidated, ordinalDefinesAncestry, providerMutationCount, and repositoryEffects.",
       "fixtures": [
         "project-replan.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Replanning preserves stable issue identities, refuses evidence-bearing removal, and never derives dependency ancestry from ordinals.",
+      "expected": "Replanning preserves stable direct-issue identities, refuses removal of an increment carrying repository evidence, never derives ancestry from ordinals, invalidates execution-plan approval for a material graph change, and performs no mutation.",
       "assertions": [
         {
-          "id": "replan-no-advance",
+          "id": "build-replan-blocked",
           "kind": "final-json-path-equals",
           "pointer": "/advance",
           "expected": false,
           "critical": true
         },
         {
-          "id": "replan-refusal",
+          "id": "build-replan-reason",
           "kind": "final-json-path-equals",
           "pointer": "/reasonCode",
-          "expected": "evidence-bearing-issue-removal-refused",
-          "critical": true
+          "expected": "evidence-bearing-increment-removal"
         },
         {
-          "id": "replan-identities",
+          "id": "build-replan-identities",
           "kind": "final-json-path-equals",
-          "pointer": "/preservedClientIds",
+          "pointer": "/preservedTaskIds",
           "expected": [
-            "10000000-0000-4000-8000-000000000001",
-            "10000000-0000-4000-8000-000000000002"
-          ],
+            "storage",
+            "api"
+          ]
+        },
+        {
+          "id": "build-replan-invalidates-plan-approval",
+          "kind": "final-json-path-equals",
+          "pointer": "/approvalInvalidated",
+          "expected": "execution-plan-approval",
           "critical": true
         },
         {
-          "id": "replan-ordinal-not-ancestry",
+          "id": "build-replan-ordinal-not-ancestry",
           "kind": "final-json-path-equals",
           "pointer": "/ordinalDefinesAncestry",
-          "expected": false,
-          "critical": true
+          "expected": false
         },
         {
-          "id": "replan-no-effects",
+          "id": "build-replan-no-provider-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/providerMutationCount",
+          "expected": 0
+        },
+        {
+          "id": "build-replan-no-repository-effects",
           "kind": "final-json-path-equals",
           "pointer": "/repositoryEffects",
-          "expected": [],
-          "critical": true
+          "expected": []
         }
       ]
     }

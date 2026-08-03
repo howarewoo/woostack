@@ -13,23 +13,20 @@ AUTHORITY="$ROOT/skills/woostack-init/references/artifact-backends.md"
 assert_literal() { # file literal message
   local text
   text="$(cat "$1")"
-  if [[ "$text" == *"$2"* ]]; then pass; else
-    fail "$3"
-    echo "    ${file#"$ROOT/"} does not contain [$2]"
-  fi
+  if [[ "$text" == *"$2"* ]]; then pass; else fail "$3"; fi
 }
 
 for file in "$SKILL" "$PROCEDURE" "$CONTEXT" "$AUTHORITY"; do
   if [ -f "$file" ]; then pass; else fail "required workflow reference exists: ${file#"$ROOT/"}"; fi
 done
 
-# The root keeps the complete gate sequence and discloses Linear references at the plan boundary.
 for heading in \
   '## Overview' \
-  '## Authority and artifact context' \
+  '## Commands' \
   '## Fixed chain' \
-  '## Exactly three hard gates' \
-  '## Terminal choices at the execution handoff' \
+  '## Exactly two hard gates' \
+  '## Direct increment contract' \
+  '## Terminal choices at gate 2' \
   '## Hard constraints'; do
   assert_literal "$SKILL" "$heading" "root retains workflow section: $heading"
 done
@@ -38,54 +35,47 @@ assert_literal "$SKILL" \
   'root links the shared artifact contract'
 assert_literal "$SKILL" \
   '[repository/project context procedure](references/linear-context.md)' \
-  'root links the optional project context procedure'
+  'root links the project context procedure'
 assert_literal "$SKILL" \
   '[Linear synchronization procedure](references/linear-procedure.md)' \
   'root links the provider synchronization procedure'
-assert_literal "$SKILL" \
-  'An exact caller-supplied project or explicit persistence request selects artifact mode' \
-  'root requires exact or explicit selection for plan persistence'
 
 root_lines="$(wc -l < "$SKILL" | tr -d ' ')"
-if [ "$root_lines" -le 500 ]; then pass; else
-  fail "root stays at or below approximately 500 lines (actual: $root_lines)"
+if [ "$root_lines" -le 180 ]; then pass; else
+  fail "root stays concise (actual: $root_lines)"
 fi
 
-# Provider details remain progressively disclosed behind the plan-persistence branch.
 for heading in \
-  '## Selection or creation' \
-  '## Specification synchronization' \
-  '## Plan hierarchy synchronization' \
+  '## Build project lifecycle' \
+  '## Increment graph synchronization' \
+  '## Standalone plan' \
+  '## Approval preparation' \
   '## Delivery notes' \
   '## Failures and resume'; do
   assert_literal "$PROCEDURE" "$heading" "Linear procedure retains section: $heading"
 done
 for heading in \
-  '## Admission' \
-  '## Configuration' \
-  '## Artifact fields' \
-  '## Trust and reads' \
-  '## Handback'; do
+  '## Resolution' \
+  '## Project specification read' \
+  '## Direct increment graph read' \
+  '## Drift and failure'; do
   assert_literal "$CONTEXT" "$heading" "Linear context retains section: $heading"
 done
 
 assert_literal "$PROCEDURE" \
-  'It owns no workflow gate,' \
-  'synchronization procedure cannot grant workflow authority'
+  'It owns no workflow gate' \
+  'synchronization procedure cannot clear approval'
 assert_literal "$CONTEXT" \
-  'Missing, multiple, partial, foreign, stale, or conflicting results block the selected artifact' \
-  'artifact context failures stay scoped'
+  'A status, lead, label, update, conversation response, agent-authored comment' \
+  'context rejects non-authoritative approval signals'
 assert_literal "$CONTEXT" \
-  'A mutation response alone is not proof' \
-  'artifact context preserves independent read-back'
+  'There is no local, conversational, cached, or alternate-provider execution fallback' \
+  'required build authority fails closed'
 assert_literal "$AUTHORITY" \
-  'default until the caller selects artifact mode' \
-  'shared contract preserves artifact-free operation'
-assert_literal "$AUTHORITY" \
-  'uses one project, one parent plan issue, and' \
-  'shared contract declares the required plan hierarchy'
+  'Do not create a parent plan issue' \
+  'shared contract forbids the retired plan wrapper'
 assert_literal "$AUTHORITY" \
   'Report repository delivery and artifact synchronization as separate outcomes' \
-  'shared contract reports repository and artifact results separately'
+  'shared contract separates repository and Linear results'
 
 finish

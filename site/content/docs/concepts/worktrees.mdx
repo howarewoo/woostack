@@ -1,6 +1,6 @@
 ---
 title: Parallelism with worktrees
-description: How woostack isolates bounded implementation work without requiring Linear.
+description: How woostack isolates bounded implementation work independently from artifact storage.
 ---
 
 Worktrees isolate tracked writes. They do not own scope, approval, status, or acceptance. The
@@ -10,8 +10,8 @@ defines collision checks, ancestry, recovery, and teardown.
 ## One worktree per bounded task
 
 Each active task has one controller/run identity, one branch, one worktree, one allowed surface, and
-at most one implementation PR. An exact caller-supplied Linear issue UUID may appear as optional
-context, but the active approved contract always supplies stable task/run identity.
+at most one implementation PR. Required fix/build Linear identities and approvals or selected
+optional artifact IDs may accompany the contract, but stable task/run identity remains separate.
 
 ```text
 .woostack/worktrees/tasks/<stable-task-id>
@@ -36,8 +36,8 @@ The start point comes from the approved dependency plan and verified Git ancestr
 | Independent feature root | frozen base commit | frozen base branch |
 | Dependency child | finalized head of its declared Git parent | declared parent branch |
 
-Titles, nearby branches, optional artifact relations, and task order do not substitute for declared
-dependencies and Git ancestry.
+Titles, nearby branches, artifact relations alone, and task order do not substitute for the
+approved dependency graph and Git ancestry.
 
 ## The primary tree stays clean
 
@@ -62,5 +62,5 @@ the Git top level before writing.
 - **Review reopen:** reattach only the existing verified branch/head when its deterministic path is
   free and the branch is checked out nowhere; never invent or adopt an unrelated checkout.
 
-Optional artifact synchronization occurs after repository evidence exists. Missing provider access
-never weakens the local collision or ancestry checks.
+Artifact synchronization and delivery evidence remain separate. Missing required provider access
+blocks fix/build admission but never weakens local collision or ancestry checks.

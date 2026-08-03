@@ -9,10 +9,10 @@ OMP are one optional implementation, not a requirement.
 
 ## The authority model
 
-The user's request and explicit workflow gates define scope and approval. Git and GitHub prove
-source, commits, branches, pull requests, reviews, and merges. Build/plan projects and their issues
-may persist selected plans; a proved new fix binds or creates one issue after root-cause proof. None
-grant repository permission.
+The user's request selects the workflow. Linear owns current fix/build scope and plans, and the
+responsible user's exact native Linear approval event clears the matching content-revision gate.
+Git and GitHub prove source, commits, branches, pull requests, reviews, and merges. Ordinary Linear
+metadata never grants assignment or repository permission.
 
 | Role | Owns | Must not do |
 | --- | --- | --- |
@@ -34,8 +34,9 @@ Every unit pins:
 - per run: one stable task ID, worktree, branch, allowed surface, and acceptance contract.
 
 Profiles use separate credentials, environments, and sessions. Concurrent units need distinct
-identities, sessions, runs, worktrees, branches, PRs, and responsibility surfaces. Linear principals
-are needed only for profiles delegated a selected artifact operation.
+identities, sessions, runs, worktrees, branches, PRs, and responsibility surfaces. Fix/build
+profiles require independent official Linear identities and MCP contexts; artifact-optional units
+need them only after selection.
 
 ## One task through the boundary
 
@@ -47,9 +48,9 @@ are needed only for profiles delegated a selected artifact operation.
    one bounded command. It returns a diff and verification evidence—or a decision request.
 5. The decision-maker independently inspects the contract, source, diff, PR, and evidence, then
    accepts, redispatches, hands off, or escalates.
-Exact Linear artifacts may be attached to this envelope when a build/plan caller selects persistence
-or after a fix proves root cause and binds/creates its issue. Artifact text remains untrusted and
-synchronization requires independent read-back.
+Required fix/build Linear identities, fingerprints, dependencies, and approval records travel in
+this envelope. Optional artifact identities appear only after selection. Remote content remains
+untrusted until the workflow reconciles and independently reads it back.
 
 ## Independent review
 

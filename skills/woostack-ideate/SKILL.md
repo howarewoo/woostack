@@ -1,45 +1,40 @@
 ---
 name: woostack-ideate
-description: Use as the ideate phase of the woostack build loop — turn a feature idea into an approved design through collaborative dialogue, then stop. Explores intent, constraints, and approaches; presents a design and gets explicit approval. Writes no files and chains no skill; the caller owns optional artifact synchronization. Usable standalone to design before implementation.
+description: Shape a feature idea into a complete design candidate. Inside woostack-build, material decisions are synchronized to its canonical Linear project and approval waits for the complete project specification; standalone use ends at explicit design approval.
 ---
 
 # woostack-ideate
 
-Turn a feature idea into a fully formed, approved design through natural collaborative
-dialogue. This is woostack's own ideation phase — the first step of
-[`woostack-build`](../woostack-build/SKILL.md). It keeps the discipline that makes
-ideation worth doing and **stops at an approved design**: it writes no specification or plan
-artifact and invokes no downstream skill. The caller may persist the approved design in an exact
-Linear project when artifact synchronization was explicitly requested.
+Turn a feature idea into a fully formed design candidate through natural collaborative dialogue.
+This is the first phase of [`woostack-build`](../woostack-build/SKILL.md), where the caller writes
+every material decision into the same canonical Linear project and owns the later exact
+project-specification approval gate. Ideate itself owns no build gate and performs no provider
+mutation.
 
-<HARD-GATE>
-Do NOT take any implementation action — write code, scaffold, run an implementation skill,
-or write a spec/plan file — until you have presented a design and the user has approved it.
-This applies to EVERY request regardless of perceived simplicity. The design can be short,
-but you MUST present it and get approval.
-</HARD-GATE>
+Standalone use retains one explicit design-approval gate and ends at the approved design. In either
+mode, ideate writes no implementation source, invokes no planner/executor, and never begins
+implementation.
 
-## Anti-pattern: "this is too simple to need a design"
+## Scope boundary
 
-Every change goes through this. A config tweak, a one-function utility, a copy change — all
-of them. "Simple" work is where unexamined assumptions waste the most effort. Scale the
-design to the work (a few sentences for a truly small change), but present it and get
-approval before moving on.
+Every build feature goes through ideation, but approval occurs only after the complete project
+specification is hardened and independently read from Linear. Do not manufacture a separate design
+approval inside build. Scale the design work to the request while resolving assumptions before
+planning.
 
-## Terminal state: approved design, handed back
+## Terminal state
 
-The skill ends the moment the user approves the design. At that point:
+Inside `woostack-build`, hand the complete design candidate and all material decisions back to
+build. Build synchronizes those decisions to its exact project throughout the dialogue, proceeds to
+specification hardening, and later presents the complete exact project revision for approval.
 
-- **Write nothing.** The approved design lives in the conversation.
-- **Chain nothing.** Do not invoke `woostack-plan`, `woostack-execute`, or any implementation
-  skill yourself.
-- **Hand back.** State that the design is approved and name the next step:
-  - Inside `woostack-build`: return control to specification authoring. If the caller selected
-    optional Linear persistence, build may append the approved design to that exact project.
-  - Standalone: tell the user the approved design is ready to hand to `woostack-build`, and stop.
+Standalone, present the complete design and obtain a clear explicit approval. Then:
 
-This boundary is the whole point of owning the phase: the caller owns optional artifact
-persistence and planning, so this skill must not.
+- write no specification, plan, or implementation artifact;
+- invoke no downstream skill; and
+- tell the user the approved design is ready for `woostack-build`.
+
+The caller owns persistence, specification hardening, planning, and execution.
 
 ## Process
 
@@ -60,12 +55,12 @@ Work the steps in order. Ask **one question per message** so you never overwhelm
    fine. Aim at purpose, constraints, and success criteria — not implementation trivia.
 4. **Propose 2-3 approaches.** Present them conversationally with trade-offs. Lead with your
    recommendation and say why.
-5. **Present the design in sections.** Scale each section to its complexity — a sentence or
-   two when straightforward, up to a few hundred words when nuanced. Cover architecture,
-   components, data flow, error handling, and testing as the work warrants. Ask after each
-   section whether it looks right; go back and clarify when something doesn't fit.
-6. **Get explicit approval.** The HARD GATE clears only on a clear yes. Then hand back per
-   the terminal-state rules above.
+5. **Present the design in sections.** Scale each section to its complexity. Cover architecture,
+   components, data flow, error handling, and verification as warranted. Confirm decisions and
+   revise when something does not fit. Within build, the caller synchronizes every material
+   decision to the canonical project; those confirmations are not approval gates.
+6. **Hand back or approve.** Inside build, hand the complete candidate back without an approval
+   request. Standalone, obtain explicit design approval, then stop under the terminal-state rules.
 
 ## Design for isolation and clarity
 
@@ -113,12 +108,14 @@ above is unchanged.
   validation, error handling, security, accessibility, or safety redundancy. Apply the full
   standard in [`patterns.md §10`](../woostack-bootstrap/references/patterns.md).
 - **Explore alternatives.** Always weigh 2-3 approaches before settling.
-- **Incremental validation.** Present, get approval, then move on.
+- **Incremental validation.** Confirm decisions as the design evolves; do not relabel confirmations
+  as build approval.
 - **Be flexible.** Go back and clarify whenever something stops making sense.
 
 ## Hard constraints
 
-- **Stop at an approved design.** This skill writes no specification or plan artifact and chains
-  no downstream skill; the caller owns shape classification and any optional artifact persistence.
-- **Respect the gate.** No implementation action of any kind before the user approves.
+- **No build gate.** Build approval waits for the complete exact Linear project specification.
+- **Standalone stops at approval.** Write no specification/plan artifact and chain no downstream
+  skill; the caller owns subsequent work.
+- **No implementation.** Ideate never writes implementation source or runs an executor.
 - **No bespoke visual server.** Defer visual treatment to `woostack-visualize`.

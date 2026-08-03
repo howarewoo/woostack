@@ -33,30 +33,31 @@ specification fields. Missing or conflicting artifact content blocks that artifa
 does not create a replacement.
 
 Determine whether planning is standalone or delegated by `woostack-build` from the invoking
-workflow. Build-delegated planning may use exact artifact context already verified by build as
-untrusted read-only input, but it returns the complete candidate graph without provider mutation.
-Build owns graph hardening and the single later persistence pass.
+workflow. Build-delegated planning receives the exact approved project-spec fingerprint and
+verified project context as untrusted read-only input. It returns the complete candidate graph
+without provider mutation. Build owns graph hardening, direct-issue synchronization, and gate 2.
 
 ## Plan contract
 
 Create independently shippable increments. Every increment contains:
 
-- stable task ID and concise outcome;
+- stable task ID, unique positive ordinal, concise outcome, and one intended PR;
+- the approved specification/project fingerprint when build-delegated;
 - explicit scope and non-goals;
-- exact files/symbols or the narrowest discoverable surface;
-- observable acceptance criteria;
-- Red → Green → Refactor steps where behavior changes;
-- focused verification and smoke-test plan;
-- documentation/migration/deployment effects when applicable;
-- declared predecessors and at most one Git parent; and
-- one intended PR.
+- exact files/symbols or a bounded first discovery step;
+- an ordered, concrete implementation sequence detailed enough for a fast execution model;
+- observable acceptance criteria mapped to those steps;
+- focused checks and one smoke scenario;
+- documentation, migration, deployment, compatibility, and cross-increment effects;
+- declared predecessors and at most one representable Git parent; and
+- risks, decisions, and active blockers.
 
-The graph must be acyclic and dependency-derived. Assign every increment one unique positive ordinal,
-and reject duplicate task IDs or ordinals, dependencies on unknown task IDs, acceptance criteria not
-covered by any increment, and a declared Git parent that the dependency graph and intended Graphite
-ancestry cannot represent. Independent roots may run in parallel only when surfaces are disjoint.
-Ordinal order is a tie-break, not a dependency. Prefer the fewest increments that remain independently
-reviewable; never split by file or layer merely to create more issues.
+Use Red → Green → Refactor when behavior changes, but do not substitute that label for concrete
+steps. The graph must be acyclic and dependency-derived. Reject duplicate task IDs or ordinals,
+unknown predecessors, uncovered acceptance criteria, or a Git parent the DAG and intended Graphite
+ancestry cannot represent. Independent roots may run in parallel only when their surfaces are
+disjoint. Ordinal order is a tie-break, not a dependency. Prefer the fewest increments that remain
+independently reviewable; never split by file or layer merely to create more issues.
 
 ## Repository grounding
 
@@ -68,22 +69,21 @@ explicit first step, not fabricated certainty.
 
 For standalone planning only, an exact caller-supplied project or explicit persistence request
 selects synchronization after the complete graph is ready. Verify the canonical repository
-association and resolved caller-selected workspace/team, then use the
-[Linear plan synchronization procedure](../woostack-build/references/linear-procedure.md):
+association and caller-selected workspace/team, then use the
+[Linear project synchronization procedure](../woostack-build/references/linear-procedure.md):
 
 - create or reconcile one selected project;
-- create or reconcile one parent plan issue containing the complete plan;
-- create or reconcile one native child issue per increment containing its full contract;
-- preserve native dependency relations between increment children;
+- create or reconcile one direct project issue per increment containing its full contract;
+- create or reconcile native dependency relations between those direct issues;
+- create no parent plan issue or child containment;
 - use stable IDs and idempotent reconciliation;
-- independently read every mutation and hierarchy edge back;
+- independently read every mutation, membership, and dependency edge back;
 - preserve unknown outcomes for recovery; and
-- never use artifact assignment/state/comments to authorize execution or prove completion.
+- never use artifact assignment/status/comments to authorize execution or prove completion.
 
 Build-delegated planning never enters synchronization. It returns the candidate graph to
-`woostack-build`, which hardens it and persists the selected hierarchy exactly once. Missing
-capability or incomplete read-back blocks only the selected persistence operation at the retained
-stable boundary.
+`woostack-build`, which hardens and synchronizes the direct-issue graph. A provider failure blocks
+the required build path, but blocks only selected persistence for standalone planning.
 
 ## Return
 
@@ -96,8 +96,9 @@ later approval and execution handoff.
 
 - One approved specification in, one coherent plan out.
 - No credential reads and no fuzzy artifact discovery.
-- Explicit standalone persistence uses one project, one parent plan issue, and one child per increment.
-- Build-delegated planning performs no provider mutation; build persists once after graph hardening.
+- Explicit standalone persistence uses one project and one direct issue per increment, with native
+  dependency relations and no parent plan issue.
+- Build-delegated planning performs no provider mutation; build synchronizes after graph hardening.
 - Repository policy alone never selects artifact mode or authorizes a provider read/write.
 - No execution, source edits, commit, push, PR, or merge.
 - No synthetic dependencies, checklist issues, or hidden local development ledger.

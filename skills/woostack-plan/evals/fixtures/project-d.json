@@ -1,20 +1,24 @@
 {
   "callerWorkflow": "woostack-build",
-  "selectedArtifactContext": {
-    "projectMembership": "project-build-evidence",
-    "parentLink": "issue-build-evidence-parent"
+  "readOnlyProjectContext": {
+    "nativeProjectRef": "project-build-evidence",
+    "approvedProjectSpecFingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
   },
   "candidateGraph": {
     "tasks": [
       {
         "id": "storage",
-        "predecessors": []
+        "ordinal": 10,
+        "predecessors": [],
+        "executorReady": true
       },
       {
         "id": "api",
+        "ordinal": 20,
         "predecessors": [
           "storage"
-        ]
+        ],
+        "executorReady": true
       }
     ]
   },

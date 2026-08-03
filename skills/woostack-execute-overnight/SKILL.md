@@ -1,6 +1,6 @@
 ---
 name: woostack-execute-overnight
-description: Execute an approved dependency-aware plan unattended through isolated Graphite worktrees, verification, bounded review sweeps, and a truthful terminal handback. Optional Linear artifacts may mirror the plan and evidence. Never merges.
+description: Execute an approved dependency-aware plan unattended through isolated Graphite worktrees, verification, bounded review sweeps, and truthful handback. Build origin requires its exact approved Linear project graph; standalone plans remain artifact-optional. Never merges.
 ---
 
 # woostack-execute-overnight
@@ -12,9 +12,9 @@ checks, verification, review, commit, and recovery boundaries. This skill change
 independent track continues when another track blocks. It never merges.
 
 Git, Graphite, and canonical GitHub reads own source, ancestry, PR, review, and delivery truth.
-Linear projects/issues are optional artifacts for specifications, dependency-aware plans, and
-synchronization notes. They are not an execution queue, ownership system, approval gate, or
-completion proof.
+Build-origin input requires the exact project, direct increment issues, native dependency graph, and
+two content-bound approval records produced by `woostack-build`. Standalone plans remain
+artifact-optional. Linear never assigns workers or proves repository delivery.
 
 ## Commands
 
@@ -23,15 +23,18 @@ completion proof.
 /woostack-execute-overnight <approved plan> --project <exact Linear URL|UUID> [--inline|--subagent]
 ```
 
-Without an exact artifact flag, make no Linear call. `--project` opts into context/synchronization
-under the [optional artifact contract](../woostack-init/references/artifact-backends.md); it never
-authorizes execution. `--inline` and `--subagent` select the execute driver only.
+Standalone input without an exact artifact flag makes no Linear call. Build-origin input MUST carry
+`--project` and both exact build approval records under the
+[Linear artifact contract](../woostack-init/references/artifact-backends.md). `--inline` and
+`--subagent` select the execute driver only.
 
 ## Admission
 
 Require:
 
 - one complete explicitly approved implementation plan;
+- for build origin, exact matching `buildProjectSpecApprovalRecord` and
+  `buildExecutionPlanApprovalRecord` plus the required `--project`;
 - stable task IDs, complete bounded contracts, acceptance/verification/smoke clauses, and exclusive
   responsibility surfaces;
 - an acyclic dependency graph with one declared Git parent per dependent task;
@@ -45,10 +48,12 @@ and fully paginated GitHub PR/review/check/thread state. Reject duplicate checko
 commits, or PRs; unexplained work; moved ancestry; overlapping surfaces; stale plans; ambiguous
 recovery; or a task that cannot be safely bounded without human judgment.
 
-If exact artifact context was supplied, read it independently and compare its specification/plan
-fields with the approved plan. Conflict blocks artifact use and the affected task; it does not
-rewrite the plan. Missing provider access blocks only requested synchronization unless persistence
-was explicitly part of the deliverable.
+For build origin, independently re-read the complete project specification, all current direct
+issues, native dependencies, and responsible-user approval events and require exact equality with
+both approval records. Repeat at every boundary required by the execution controller. Drift,
+incomplete pagination, provider unavailability, or conflict blocks affected execution with no local
+or alternate-provider fallback. For selected standalone artifacts, conflict blocks only artifact
+use/synchronization and never rewrites the approved plan.
 
 ## Fixed execution loop
 
@@ -69,6 +74,11 @@ task:
    and ancestry; and
 9. hand back direct evidence and remove only a completed task's exact clean worktree.
 
+For build origin, the controller repeats the exact project/issue/dependency/approval-record check
+after every worker handback, before every redispatch, immediately before commit, and before
+selecting another increment. Drift returns to `woostack-build`; unattended execution never amends
+the approved project specification or graph.
+
 Never process two dependent tasks concurrently. Independent roots may run concurrently only when
 paths/surfaces, runs, profiles, worktrees, branches, PRs, and provider sessions are disjoint.
 
@@ -84,7 +94,7 @@ It must not invent or change:
 - security/privacy posture, destructive migration, or data-loss handling;
 - dependency edges or Graphite parentage;
 - ownership/allocation, approval gates, or merge policy; or
-- optional artifact content that conflicts with repository evidence.
+- canonical or selected artifact content that conflicts with repository evidence.
 
 A decision outside those bounds blocks only its task and descendants. Preserve the exact question
 and continue another dependency-independent track only when the complete graph and responsibility
@@ -99,7 +109,8 @@ Classify every stop:
 - **track-local review or submission failure** — preserve branch/PR evidence and block only tasks
   that depend on that head;
 - **shared invariant failure** — stop every affected track;
-- **provider/artifact failure** — stop synchronization only, unless persistence is required; and
+- **required build provider failure** — stop affected execution at the last verified boundary;
+- **optional standalone artifact failure** — stop synchronization only; and
 - **unknown mutation outcome** — re-read the exact Git/Graphite/GitHub or artifact identity before
   retrying anything.
 
@@ -138,16 +149,17 @@ A task failure, blocker, pause, ordinary handoff, or replan is not abandonment a
 project open. A failed or unknown closure becomes a truthful terminal artifact blocker with the
 stable project identity and safe retry boundary; unattended execution does not resume.
 
-## Optional artifact synchronization
+## Artifact synchronization
 
-Only when selected, mirror the approved plan and requested task/PR evidence to the exact project or
-issue. Perform one minimal mutation at a real boundary, use a stable operation ID, preserve
-unrelated content, and independently read back the target. Except for the workflow-owned fix/build
-project closure above, do not mutate assignee, delegate, native status, relations, membership, or
-archival state unless the caller explicitly requested that exact metadata operation.
+For build origin or selected standalone persistence, mirror only directly observed task/PR evidence
+to the exact project or issue. Perform one minimal mutation at a real boundary, use a stable
+operation ID, preserve unrelated content, and independently read back the target. Delivery notes do
+not change approved project/issue content or dependencies. Except for project closure, do not mutate
+assignee, delegate, native status, relations, membership, or archival state.
 
-Artifact synchronization results are reported separately. Never delay safe repository handback
-merely to manufacture an artifact lifecycle.
+Artifact synchronization results are reported separately. A required build approval-record failure
+blocks before repository mutation; a delivery-note failure after verified repository delivery does
+not erase that repository evidence.
 
 ## Terminal handback
 
@@ -159,7 +171,7 @@ Return one truthful report derived from fresh reads:
   verdicts, commit SHA, PR URL/head/base, checks/threads, and safe resume boundary;
 - completed, blocked, skipped-descendant, and still-independent sets;
 - Graphite stack ancestry and sweep outcome;
-- optional artifact URL/UUID and synchronization result; and
+- required or selected artifact URL/UUID, approval rechecks, and synchronization result; and
 - every unresolved decision or unknown mutation outcome.
 
 Use task states `completed`, `blocked`, `skipped-dependent`, or `not-started`; do not call submitted
@@ -168,7 +180,8 @@ directly observed.
 
 ## Hard constraints
 
-- No Linear issue/project prerequisite.
+- No Linear prerequisite for standalone plans; build origin requires its exact approved project
+  graph.
 - No inferred approval, ownership, acceptance, or artifact context.
 - No local plan/report as a substitute for the approved input contract.
 - No self-review, self-acceptance, force-push, protected-primary edit, or merge.

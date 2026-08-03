@@ -45,11 +45,10 @@ A unit pins:
 - isolated role credentials/config roots; and
 - one expected evidence handback.
 
-Build and standalone-plan runs require an exact project or explicit persistence request. A proved new
-fix prompt is the narrow exception: after root-cause proof it binds or creates one compatible issue
-through the configured official MCP. Neither profile requires a Linear principal or issue for normal
-non-fix operation; a proved fix requires that configured capability and blocks before execution when
-the required read, mutation, or independent read-back fails.
+Build and post-proof fix runs require exact canonical Linear records and approval events. Build
+resolves or creates one project before ideation; fix binds or creates one issue after root-cause
+proof. Both profiles independently require the configured official MCP capability. Artifact-
+optional workflows need no Linear principal unless explicitly selected.
 
 Before the first coder dispatch, create or resolve the canonical task worktree, then follow the
 canonical [Hermes bound-unit setup](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/hermes.md#bound-unit-manifest-and-binding).
@@ -76,14 +75,15 @@ then reads the canonical PR/head/diff itself and performs independent review.
 
 ## Linear artifacts
 
-Build and standalone-plan runs select Linear only with an exact project or explicit persistence
-request. A proved new fix prompt is the narrow exception: after root-cause proof it binds or creates
-one compatible issue. Credentials stay in each profile's own MCP/OAuth secret environment and never
-enter repository config, prompts, logs, staged launcher files, or generated output. Follow the
+Build always uses one exact Linear project; a proved new fix uses one exact issue. Credentials stay
+in each profile's own MCP/OAuth secret environment and never enter repository config, prompts, logs,
+staged launcher files, or generated output. Follow the
 [Linear artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md).
 
-Artifact access cannot authorize worker dispatch, edits, commit, review, or acceptance. Before proof,
-a fix makes no Linear call. `woostack-change` never contacts Linear.
+The responsible user's exact native Linear approval event clears only its matching fix/build
+content revision. It does not authorize worker assignment, dispatch, edits, commits, review,
+product acceptance, or repository delivery claims. Before proof, fix makes no Linear call.
+`woostack-change` never contacts Linear.
 
 ## Recovery
 

@@ -1,0 +1,65 @@
+{
+  "repository": "https://github.com/acme/widgets",
+  "project": {
+    "id": "project-build-42",
+    "url": "https://linear.app/acme/project/build-42-project-build-42",
+    "workspace": "acme",
+    "team": "APP",
+    "repository": "https://github.com/acme/widgets",
+    "canonicalProjectSpecFingerprint": "sha256:4242424242424242424242424242424242424242424242424242424242424242",
+    "independentReadComplete": true
+  },
+  "issues": [
+    {
+      "id": "issue-storage",
+      "taskId": "storage",
+      "ordinal": 10,
+      "nativeProjectRef": "project-build-42",
+      "parentId": null,
+      "canonicalIncrementFingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "executorReady": true,
+      "independentReadComplete": true
+    },
+    {
+      "id": "issue-api",
+      "taskId": "api",
+      "ordinal": 20,
+      "nativeProjectRef": "project-build-42",
+      "parentId": null,
+      "canonicalIncrementFingerprint": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "executorReady": true,
+      "independentReadComplete": true
+    }
+  ],
+  "dependencies": [
+    {
+      "predecessor": "issue-storage",
+      "successor": "issue-api",
+      "independentReadComplete": true
+    }
+  ],
+  "approvals": {
+    "projectSpec": {
+      "approvedBy": "user-lead",
+      "fingerprint": "sha256:4242424242424242424242424242424242424242424242424242424242424242",
+      "nativeEventId": "comment-project-spec-approved",
+      "independentReadComplete": true
+    },
+    "executionPlan": {
+      "approvedBy": "user-lead",
+      "issueFingerprints": [
+        "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ],
+      "dependencies": [
+        [
+          "issue-storage",
+          "issue-api"
+        ]
+      ],
+      "nativeEventId": "comment-execution-plan-approved",
+      "independentReadComplete": true
+    }
+  },
+  "requestedAction": "Run overnight"
+}
