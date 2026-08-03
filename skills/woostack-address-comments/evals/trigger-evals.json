@@ -3,27 +3,34 @@
   "skill": "woostack-address-comments",
   "cases": [
     {
-      "id": "open-threads-rate-limit-pr",
-      "query": "PR #2410 has six open reviewer conversations about its rate-limit implementation. Verify each concern, update the branch where the concern is valid, and explain any disagreement in the conversation where it was raised.",
+      "id": "exact-pr-open-threads",
+      "query": "PR #2410 has six open reviewer conversations about its rate-limit implementation. Verify each concern, make the smallest in-contract fixes where valid, explain invalid requests in their conversations, and resolve every handled thread.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-address-comments"
     },
     {
-      "id": "requested-changes-billing-pr",
-      "query": "A maintainer requested changes on PR #2438 and three conversations remain open. Reconcile those specific requests with the code, make the warranted updates, and communicate the outcome back on each conversation.",
+      "id": "requested-changes-single-pr",
+      "query": "A maintainer requested changes on exact PR #2438 and three conversations remain open. Reconcile those requests with the current code, reply with evidence on each, and leave only unsafe decisions unresolved.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-address-comments"
+    },
+    {
+      "id": "branch-only-request",
+      "query": "The current branch probably has review feedback. Find its pull request from recent activity and address the comments.",
+      "shouldTrigger": false,
+      "expectedSkill": "woostack-status",
+      "conflictsWith": ["woostack-address-comments"]
     },
     {
       "id": "fresh-single-pr-inspection",
-      "query": "No one has inspected PR #2462 yet. Examine its diff for defects and missing coverage and return the validated findings without changing the branch.",
+      "query": "No one has inspected PR #2462 yet. Examine its diff for defects and missing coverage and return validated findings without changing the branch.",
       "shouldTrigger": false,
       "expectedSkill": "woostack-review",
       "conflictsWith": ["woostack-address-comments"]
     },
     {
-      "id": "whole-stack-release-readiness",
-      "query": "The current Graphite series contains four dependent pull requests at different feedback stages. Work across the entire chain from the oldest dependency onward until every branch is ready to merge or progress is genuinely blocked.",
+      "id": "whole-stack-request",
+      "query": "The current Graphite series contains four dependent pull requests at different feedback stages. Work across the entire chain from the oldest dependency onward until every branch is ready or genuinely blocked.",
       "shouldTrigger": false,
       "expectedSkill": "woostack-sweep",
       "conflictsWith": ["woostack-address-comments"]

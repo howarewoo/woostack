@@ -1,27 +1,29 @@
 #!/usr/bin/env bash
-# Structural contract for advisory thread analysis workers.
+# Structural contract for deterministic thread handling.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)"
 python3 - "$ROOT" <<'PY'
-import re, sys
+import re
+import sys
 from pathlib import Path
-text=re.sub(r"\s+"," ",(Path(sys.argv[1])/"skills/woostack-address-comments/prompts/address.md").read_text())
-checks={
- "fanout":r"Optional worker fan-out",
- "record":r"threadId, file, line, finding, recommended, reasoning, reply, fix_plan",
- "no worker mutations":r"must not edit files, commit, push, reply, resolve, mutate GitHub/Linear",
- "gate":r"Phase 2.*Silence is not approval",
- "fix plan":r"fix plan in the FIX option text",
- "override confirmation":r"override becomes FIX.*bounded confirm",
- "head recheck":r"re-read the canonical PR/head",
- "uncommitted batching":r"do not commit per thread",
- "actual pushed sha":r"real pushed head/commit before drafting `Fixed in <sha>`",
- "unknown recovery":r"Unknown outcomes require discovery before retry",
+
+text = re.sub(r"\s+", " ", (Path(sys.argv[1]) / "skills/woostack-address-comments/SKILL.md").read_text())
+checks = {
+    "stable snapshot": r"head and complete thread snapshot as the round identity",
+    "drift restart": r"head or thread set changes.*restart discovery",
+    "complete handling": r"Process the complete snapshot",
+    "safe classification": r"Classify it as `valid`, `invalid`, `obsolete`, `out-of-scope`, or `unsafe-decision`",
+    "smallest fix": r"smallest complete correction inside the approved PR/task contract",
+    "invalid no edit": r"Do not edit source.*evidence explaining why",
+    "unsafe blocker": r"Leave the thread open and report the exact.*decision required",
+    "reply before resolve": r"reply exists.*canonical PR head contains the valid fix",
+    "read back": r"Re-read the thread and resolution state",
+    "unknown recovery": r"Unknown mutation outcomes require discovery before retry",
 }
-failures=[name for name,pat in checks.items() if not re.search(pat,text,re.I|re.S)]
+failures = [name for name, pattern in checks.items() if not re.search(pattern, text, re.I | re.S)]
 if failures:
- print("address worker contract violations:",file=sys.stderr)
- print("\n".join(f"- {f}" for f in failures),file=sys.stderr)
- raise SystemExit(1)
-print("advisory address worker contract: ok")
+    print("address worker contract violations:", file=sys.stderr)
+    print("\n".join(f"- {failure}" for failure in failures), file=sys.stderr)
+    raise SystemExit(1)
+print("deterministic address worker contract: ok")
 PY

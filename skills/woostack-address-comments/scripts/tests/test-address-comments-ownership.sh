@@ -1,31 +1,33 @@
 #!/usr/bin/env bash
-# Structural contract for repository-first comment addressing.
+# Structural contract for exact-PR thread addressing.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)"
 python3 - "$ROOT" <<'PY'
-import re, sys
+import re
+import sys
 from pathlib import Path
-root=Path(sys.argv[1])
-skill=re.sub(r"\s+"," ",(root/"skills/woostack-address-comments/SKILL.md").read_text())
-prompt=re.sub(r"\s+"," ",(root/"skills/woostack-address-comments/prompts/address.md").read_text())
-checks=[
- (skill,r"No issue, assignment, owner, lifecycle receipt, or trailer is required","artifact-free boundary"),
- (skill,r"GitHub owns PR identity, head, threads, replies, and resolution state","GitHub authority"),
- (skill,r"Never select by title, recent activity, or first search result","exact PR selection"),
- (skill,r"Missing or conflicting artifact access blocks only artifact-dependent","artifact degradation"),
- (skill,r"Commit and submit.*woostack-commit","commit boundary"),
- (skill,r"Unknown mutation outcome requires discovery before retry","idempotent recovery"),
- (prompt,r"Silence is not approval","interactive gate"),
- (prompt,r"A fix never requires an issue, project, trailer, assignment, lifecycle event, or artifact receipt","worker artifact-free path"),
- (prompt,r"re-read the canonical PR/head.*target thread","fresh side-effect preflight"),
-]
-failures=[msg for text,pat,msg in checks if not re.search(pat,text,re.I|re.S)]
-for text,label in ((skill,"skill"),(prompt,"prompt")):
- if re.search(r"assignmentAccepted|Linear-Issue:|must.*exact issue.*before",text,re.I|re.S):
-  failures.append(f"{label}: obsolete issue authority returned")
+
+text = re.sub(r"\s+", " ", (Path(sys.argv[1]) / "skills/woostack-address-comments/SKILL.md").read_text())
+checks = {
+    "exact PR required": r"`PR#` is required.*exactly one existing open PR",
+    "no inference": r"never infers a PR from a branch, title, activity, or search result",
+    "deterministic order": r"Sort unresolved top-level threads by path, line, and stable thread ID",
+    "valid fix": r"Valid concern\.\*\* Apply the smallest complete correction",
+    "focused verification": r"Run focused verification for the changed behavior",
+    "invalid no edit": r"Invalid, obsolete, or out-of-scope\.\*\* Do not edit source",
+    "unsafe stays open": r"Unsafe decision\.\*\* Do not edit or resolve.*Leave the thread open",
+    "evidence reply": r"Evidence reply\.\*\* After the relevant evidence is verified",
+    "resolution readback": r"Resolve and read back\.\*\* Resolve only after the reply exists",
+    "all threads": r"Continue until every discovered thread is handled",
+    "never merge": r"Never reset, stash, overwrite, force-push, or merge",
+}
+failures = [name for name, pattern in checks.items() if not re.search(pattern, text, re.I | re.S)]
+for forbidden in ("Linear", "artifact", "--interactive"):
+    if forbidden.lower() in text.lower():
+        failures.append(f"obsolete {forbidden} path")
 if failures:
- print("address-comments contract violations:",file=sys.stderr)
- print("\n".join(f"- {f}" for f in failures),file=sys.stderr)
- raise SystemExit(1)
-print("repository-first address-comments contract: ok")
+    print("address-comments contract violations:", file=sys.stderr)
+    print("\n".join(f"- {failure}" for failure in failures), file=sys.stderr)
+    raise SystemExit(1)
+print("exact-PR address-comments contract: ok")
 PY
