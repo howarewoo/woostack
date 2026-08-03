@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Structural contract for explicitly selected Linear plan persistence in the build loop.
+# Structural contract for canonical Linear build authority.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
@@ -18,56 +18,58 @@ paths = {
     "overnight": root / "skills/woostack-execute-overnight/SKILL.md",
 }
 text = {name: path.read_text(encoding="utf-8") for name, path in paths.items()}
+flat = {name: re.sub(r"\s+", " ", value) for name, value in text.items()}
 failures = []
 
 def require(name, needle):
-    if needle not in text[name]:
+    if needle not in flat[name]:
         failures.append(f"{name}: missing {needle!r}")
 
 def forbid(name, pattern):
-    if re.search(pattern, text[name], re.I | re.S):
+    if re.search(pattern, flat[name], re.I):
         failures.append(f"{name}: matches forbidden pattern {pattern!r}")
 
 for needle in (
-    "## Exactly three hard gates",
-    "**design-approval**",
-    "**spec-approval**",
-    "**execution-handoff**",
-    "make no Linear read or write",
-    "policy may provide validated non-secret defaults",
-    "without provider mutation",
-    "only then synchronize the selected hierarchy once",
-    "exact persisted project, parent plan issue, and increment child context",
-    "same approved plan",
-    "exact persisted artifact context when present",
-    "No implementation Git artifact exists before an explicit `Go` or",
-    "Explicit abandonment must set an existing exact build",
-    "when an exact persisted build\nproject exists",
-    "If no exact project exists, report that there is nothing to close",
-    "Hand off**, **Replan**, and blocker handling are not abandonment",
+    "## Exactly two hard gates",
+    "**project-spec-approval**",
+    "**execution-plan-approval**",
+    "Build has no artifact-free fallback",
+    "Resolve the exact supplied project or create exactly one project",
+    "delegate candidate planning without provider mutation",
+    "one direct project issue per independently shippable increment",
+    "Native dependency relations between those issues encode the plan DAG",
+    "Every material spec/plan update is written to Linear",
+    "No implementation branch, worktree, commit, or PR may exist before",
+    "Go**",
+    "Run overnight**",
+    "Hand off**",
+    "Build never merges",
 ):
     require("build", needle)
 
-forbidden_build_scope = (
-    r"historical project-backed fix",
-    r"new prompt-created.*fix issue",
-    r"exact-reused fix issue",
-)
-for pattern in forbidden_build_scope:
+for pattern in (
+    r"exactly three hard gates",
+    r"\*\*design-approval\*\*",
+    r"\*\*spec-approval\*\*",
+    r"parent plan issue containing",
+    r"artifact-free execution handoff",
+):
     forbid("build", pattern)
 
-require("ideate", "approved design lives in the conversation")
-require("ideate", "optional Linear persistence")
-require("harden", "Linear is never required and never owns approval")
-require("plan", "one parent plan issue containing the complete plan")
-require("execute", "Exact Linear project/issue artifacts are optional")
-require("overnight", "Optional Linear artifacts may mirror the plan and evidence")
+require("ideate", "same canonical Linear project")
+require("ideate", "project-specification approval gate")
+require("harden", "Every material build update is written to the same canonical Linear record")
+require("harden", "independently read back")
+require("plan", "Build-delegated planning performs no provider mutation")
+require("plan", "one direct issue per increment")
+require("execute", "Fix/build origin is different: its exact Linear identity and approval record are required")
+require("overnight", "Build-origin input requires the exact project")
 
-for name in text:
-    forbid(name, r"(?:requires?|must have) (?:an? |one |exact )?(?:managed )?Linear (?:issue|project)")
+for name in ("ideate", "harden", "plan"):
+    forbid(name, r"one parent plan issue")
 
 if failures:
-    print("explicitly selected build persistence contract violations:", file=sys.stderr)
+    print("canonical Linear build contract violations:", file=sys.stderr)
     for failure in failures:
         print(f"  - {failure}", file=sys.stderr)
     raise SystemExit(1)

@@ -1,91 +1,97 @@
-# Linear plan synchronization procedure
+# Linear project synchronization procedure
 
-This procedure writes an approved build/standalone-plan into one exact Linear project. It runs only
-after the caller supplies an exact resource or explicitly requests persistence. Repository policy
-alone never selects this procedure. It owns no workflow gate, phase, assignment, execution,
-acceptance, or repository authority.
+This procedure writes one canonical build or selected standalone-plan record to one exact Linear
+project. It owns no workflow gate, phase, assignment, execution, acceptance, or repository
+authority. Use the [Linear artifact contract](../../woostack-init/references/artifact-backends.md)
+and [project context procedure](linear-context.md) for every read and write.
 
-Use the [optional artifact contract](../../woostack-init/references/artifact-backends.md) and
-[project context procedure](linear-context.md) for every read and write.
+## Build project lifecycle
 
-## Selection or creation
+Build resolves or creates the exact project before ideation. During ideation and specification
+hardening:
 
-For an existing artifact, resolve only the exact caller-supplied project URL/stable UUID. For
-explicitly requested creation, allocate one stable project mutation UUID before the first write and
-retain it through recovery. Never discover or reuse a project by title or recent activity.
+1. keep one evolving complete high-level specification in the same project;
+2. after every material decision, re-read the exact project, preserve unrelated human-authored
+   content, write the smallest complete corrected specification, and independently read it back;
+3. retain stable project identity and mutation identity; and
+4. never request project-spec approval until a complete hardening pass yields no new question.
 
-Before creation, verify the canonical repository and caller-selected workspace/team, read by the
-stable identity, and prove the resource is absent. After creation, independently read the exact
-project back and verify its identity, canonical repository association, resolved workspace/team,
-and requested initial content. An unknown outcome is recovered by re-reading the same identity;
-never retry with a replacement UUID.
+After the responsible user approves the exact project fingerprint, do not rewrite the specification
+silently. A material correction invalidates both build approval records and returns to project-spec
+hardening.
 
-## Specification synchronization
+## Increment graph synchronization
 
-After the build/standalone-plan approved specification/plan gate has cleared, persist the exact
-approved context to the project. Record:
+Build-delegated `woostack-plan` returns a complete candidate graph without provider mutation. Build
+hardens it, then synchronizes:
 
-- stable artifact and content revision identities;
-- canonical repository and frozen source revision when relevant;
-- the exact approved design/specification body;
-- the approval observation as provenance, not as provider-owned authority; and
-- supersession of an earlier artifact revision when one exists.
+1. one direct project issue per current increment;
+2. complete executor-ready issue descriptions containing the approved project-spec fingerprint;
+3. direct project membership and no parent/container relation; and
+4. native issue-to-issue dependency relations matching the hardened DAG.
 
-Corrections preserve the content identity, increment its revision, and identify the exact superseded
-native record. Never overwrite history ambiguously or create a second current specification.
-Independently read every append or update back.
+Allocate stable client-generated issue and relation mutation UUIDs before first writes and retain
+them through recovery. For each issue:
 
-## Plan hierarchy synchronization
+1. read the exact current target when it exists;
+2. preserve unrelated human-authored content;
+3. write the smallest complete corrected title/description/project-membership payload;
+4. independently read native identity, content, project membership, parent absence, revision, and
+   mutation identity back; and
+5. compute `canonicalIncrementFingerprint` only from the independently read canonical fields.
 
-After `woostack-plan` finishes its graph or `woostack-build` hardens the candidate graph returned by
-delegated planning, persist exactly once:
+Then write missing native dependency relations. Independently read the complete relation set back
+and compare normalized predecessor→successor tuples with the hardened DAG. Never simulate
+dependencies in prose alone.
 
-1. one parent plan issue in the project containing the complete ordered plan, base assumptions,
-   cross-increment verification strategy, and open blockers;
-2. one native child issue under that parent for every increment, containing the plan's stable task
-   ID, exact scope/non-goals, acceptance criteria, implementation sequence, verification/smoke
-   plan, ordinal, intended PR, and declared predecessors; and
-3. native dependency relations directly between increment child issues.
+For a caller-supplied existing project, reconcile matching current direct issues by stable native
+identity and stable task ID. Preserve historical parent plan issues and children as noncanonical
+history. Never detach, migrate, archive, delete, reparent, or rewrite them. If current direct-issue
+identity is ambiguous, stop rather than guess or create a replacement.
 
-The parent plan issue is a non-executable artifact container, not a dependency node or implementation
-task. Do not create checklist issues, layer/file wrappers, or sub-issues beneath increments merely
-to duplicate prose.
+Do not create a parent plan issue, child containment, placeholder issue, duplicate relation, or
+replacement resource after an unknown outcome.
 
-Reconcile idempotently:
+## Standalone plan
 
-1. allocate and retain stable mutation IDs before writes;
-2. read the complete existing project, parent issue, child issue, and relation sets;
-3. match only by stable identity, never title;
-4. create or update only the selected missing/stale records;
-5. verify every issue, parent-child link, and dependency relation through independent complete
-   read-back; and
-6. preserve the same identities when an outcome is unknown.
+When standalone `woostack-plan` explicitly selects persistence, it may create or update one project
+and the same direct-issue dependency graph. It owns no build approval record and does not imply
+execution authorization. Without explicit persistence, standalone planning makes no provider call.
 
-Never remove, detach, or reset an increment child that carries verified implementation evidence.
-Preserve its stable identity and current hierarchy membership; conflicting replans stop before
-provider mutation.
+## Approval preparation
 
-Issue state, assignee, delegate, label, parent, project, and relation fields describe the artifact.
-They never select a worker, grant permission, clear the execution handoff, or prove implementation.
+Before build gate 1, return the exact project URL/UUID, complete independently read specification,
+`canonicalProjectSpecFingerprint`, and provider revision/read time; direct the responsible user to
+record a native Linear project approval comment or decision naming that exact fingerprint.
 
-## Explicit abandonment
+Before build gate 2:
 
-Follow the neutral canonical artifact contract's
-[project-backed workflow closure procedure](../../woostack-init/references/artifact-backends.md#project-backed-workflow-closure).
-This build-owned synchronization procedure does not redefine closure steps.
+1. re-read and match the gate-1 project fingerprint and approval record;
+2. completely paginate all current direct issues and native dependency relations;
+3. verify each executor contract, project membership, parent absence, stable identity, and
+   fingerprint;
+4. verify normalized dependencies exactly match the hardened acyclic graph; and
+5. return the exact sorted increment and dependency sets plus read times; direct the responsible
+   user to record a native Linear project approval comment or decision naming that exact set.
+
+No successful mutation response, Linear status, conversation response, comment content without a
+matching responsible-user event, assignment, update, or read-back alone is approval.
+
 ## Delivery notes
 
-Concise synchronization notes may be appended after repository results have been directly verified.
-Notes belong on the matching increment child and may reference canonical PR URLs, commit SHAs,
-observed verification, or review state. Read those facts from Git/GitHub first. A note does not
-establish the fact it records.
+After repository execution, write only concise delivery evidence derived from Git/Graphite/GitHub:
+canonical PR URLs, commit SHAs, changed paths, observed verification, review result, and blockers.
+A note records evidence; it does not establish the fact it records. Read the exact issue/project
+back after writing and report artifact and repository outcomes separately.
 
 ## Failures and resume
 
 A missing capability, failed read, unknown mutation, incomplete pagination, conflicting revision,
-or foreign resource stops at the last verified artifact boundary. Report exact retained IDs and the
-next safe artifact action. Do not create a replacement or replay an already verified write.
+foreign resource, stale approval, or mismatched fingerprint/edge blocks the required build path at
+the last verified boundary. Preserve stable identities and exact retry state. Never create a
+replacement, replay a verified write, or use local/conversational/alternate-provider content for
+execution.
 
-Missing capability blocks the selected artifact operation. A failure after persistence was selected
-blocks the plan deliverable and execution handoff at the last verified artifact boundary. Repository
-policy never selects persistence or authorizes a fallback provider write.
+Explicit abandonment follows the shared
+[project-backed workflow closure](../../woostack-init/references/artifact-backends.md#project-backed-workflow-closure).
+Handoff, replan, pauses, and blockers leave project status unchanged.

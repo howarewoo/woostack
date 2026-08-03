@@ -1,13 +1,13 @@
 ---
 title: Workflow maps
-description: "Bootstrap, Build, Fix, and Change under one repository-first authority model with optional, workflow-specific Linear artifacts."
+description: "Bootstrap, Build, Fix, and Change under split Linear product authority and repository delivery truth."
 ---
 
-Every repository-changing woostack workflow starts from an explicit user goal and an active workflow
-contract. Git and GitHub own implementation truth. Build and standalone-plan workflows record Linear
-hierarchies only when the caller supplies an exact project or explicitly requests persistence. A
-proved `/woostack-fix` prompt binds or creates one issue after root-cause proof; before proof it
-makes no provider call. Policy alone makes no provider call.
+Every repository-changing woostack workflow starts from an explicit user goal. Linear owns the
+current product specification and execution contracts for builds and post-diagnosis fixes; exact
+responsible-user native Linear approval events clear their matching revision gates. Git and GitHub
+own implementation and delivery truth. Bootstrap, change, standalone planning, and other artifact
+use retain their documented optional boundaries.
 
 ## Route by work shape
 
@@ -40,15 +40,16 @@ write barrier or repository authority.
 ## Build
 
 ```text
-ideate → approve design → harden specification → approve specification →
-delegate candidate planning without provider mutation → harden increments →
-persist one selected Linear hierarchy once → approve execution → execute → review → hand back
+resolve/create canonical Linear project → ideate and harden evolving project specification →
+approve exact project-spec revision → plan and harden direct increment issues →
+synchronize native dependencies → approve exact execution-plan revision set →
+execute → review → hand back
 ```
 
-Build owns exactly three gates. Its approved plan orders independently shippable increments, each
-with at most one PR. Dependency-independent disjoint increments may execute concurrently in
-separate worktrees. Selected persistence uses one project, one parent plan issue, and one native
-child issue per increment.
+Build owns exactly two gates. Its approved direct-issue graph orders independently shippable
+increments, each with at most one PR. Dependency-independent disjoint increments may execute
+concurrently in separate worktrees. Every build uses one project for its high-level specification
+and one direct issue per increment; there is no parent plan issue.
 
 ## Fix
 
@@ -101,23 +102,29 @@ Build, Fix, and Change hand approved work to [woostack-execute](/docs/skills/woo
 [woostack-execute-overnight](/docs/skills/woostack-execute-overnight) replaces only human stop
 points. It does not weaken scope, verification, review, collision, or merge boundaries.
 
-## Linear plan branch
+## Linear fix/build paths
 
-```
-build/standalone-plan caller supplies exact project or explicitly requests persistence
-  → verify canonical repository association and resolved caller-selected workspace/team
-  → use tracked policy only for validated post-selection defaults
-  → preflight official authenticated MCP capability without reading credentials
-  → create/reconcile one selected project and parent plan issue
-  → create/reconcile one native child issue per increment
-  → persist native dependency relations
-  → independently read every write and hierarchy edge back
-  → execution handoff
+```text
+build
+  → resolve exact project or create one from validated defaults before ideation
+  → synchronize every material specification decision to that project
+  → read back and approve the exact project-spec fingerprint in Linear
+  → create/reconcile one direct executor-ready issue per increment
+  → persist native issue dependencies
+  → read back and approve the exact issue/dependency set in Linear
+  → execute
+
+fix
+  → diagnose without provider access
+  → bind exact issue or create one from validated defaults after root-cause proof
+  → write/read back the complete diagnosis and executor-ready plan
+  → approve that exact issue revision in Linear
+  → execute
 ```
 
-A proved `/woostack-fix` prompt instead binds or creates one exact compatible issue after root-cause
-proof, writes the complete plan there, and requires a responsible-user native approval event on that
-exact revision. It does not enter the project hierarchy. Before proof it makes no provider call.
+Every mutation and approval event is independently read back. Required failure blocks at the last
+verified boundary. Artifact-optional workflows make no Linear call without exact selection or an
+explicit persistence request.
 
 If a project-backed build/plan workflow is explicitly abandoned, repository work stops and its
 existing project moves to the configured canceled status. The workflow reads that transition back

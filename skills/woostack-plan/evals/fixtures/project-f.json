@@ -3,7 +3,8 @@
     "persistenceRequest": "persist",
     "clientIds": {
       "project": "60000000-0000-4000-8000-000000000000",
-      "parent": "60000000-0000-4000-8000-000000000001"
+      "storage": "60000000-0000-4000-8000-000000000001",
+      "dependency": "60000000-0000-4000-8000-000000000002"
     }
   },
   "providerEvents": [
@@ -11,31 +12,33 @@
       "operation": "create-project",
       "clientId": "60000000-0000-4000-8000-000000000000",
       "response": {
-        "id": "project-parent-fail"
+        "id": "project-direct-readback"
       }
     },
     {
       "operation": "read-project",
       "fresh": {
         "clientId": "60000000-0000-4000-8000-000000000000",
-        "id": "project-parent-fail"
+        "id": "project-direct-readback",
+        "complete": true
       }
     },
     {
-      "operation": "create-parent",
+      "operation": "create-direct-issue",
       "clientId": "60000000-0000-4000-8000-000000000001",
       "response": {
-        "clientId": "60000000-0000-4000-8000-000000000001",
-        "id": "issue-parent-f",
-        "projectMembership": "project-parent-fail"
+        "id": "issue-storage",
+        "nativeProjectRef": "project-direct-readback"
       }
     },
     {
-      "operation": "read-parent",
+      "operation": "read-direct-issue",
       "fresh": {
         "clientId": "60000000-0000-4000-8000-000000000001",
-        "id": "issue-parent-f",
-        "projectMembership": null
+        "id": "issue-storage",
+        "nativeProjectRef": null,
+        "parentId": null,
+        "complete": true
       }
     }
   ]

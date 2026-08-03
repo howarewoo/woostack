@@ -3,10 +3,10 @@
     "exactProjectUrl": "https://linear.app/acme/project/plan-a-project-plan-a",
     "persistenceRequest": "persist",
     "clientIds": {
-      "projectContext": "41000000-0000-4000-8000-000000000000",
-      "parent": "41000000-0000-4000-8000-000000000001",
-      "storage": "41000000-0000-4000-8000-000000000002",
-      "api": "41000000-0000-4000-8000-000000000003"
+      "project": "41000000-0000-4000-8000-000000000000",
+      "storage": "41000000-0000-4000-8000-000000000001",
+      "api": "41000000-0000-4000-8000-000000000002",
+      "dependency": "41000000-0000-4000-8000-000000000003"
     }
   },
   "repository": {
@@ -21,11 +21,6 @@
     "selectedId": "team-app",
     "projectMembership": "team-app"
   },
-  "approvedSpecificationContext": {
-    "contentIdentity": "plan-a-approved-specification",
-    "revision": 4,
-    "contentHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-  },
   "providerEvents": [
     {
       "operation": "read-selected-project",
@@ -33,143 +28,72 @@
         "id": "project-plan-a",
         "repository": "https://github.com/acme/app",
         "workspaceId": "workspace-acme",
-        "teamId": "team-app",
-        "contentIdentity": "plan-a-approved-specification",
-        "revision": 3,
-        "contentHash": "sha256:9999999999999999999999999999999999999999999999999999999999999999"
+        "teamId": "team-app"
       }
     },
     {
-      "operation": "list-parent-page",
-      "page": 1,
-      "items": [
-        {
-          "id": "issue-plan-a-parent",
-          "contentIdentity": "plan-a-parent",
-          "revision": 3,
-          "projectMembership": "project-plan-a"
-        }
-      ],
-      "hasNextPage": false,
+      "operation": "list-direct-issues",
+      "items": [],
       "complete": true
     },
     {
-      "operation": "list-child-page",
-      "page": 1,
-      "items": [
-        {
-          "id": "issue-plan-a-1",
-          "taskId": "storage",
-          "parentLink": "issue-plan-a-parent",
-          "projectMembership": "project-plan-a"
-        },
-        {
-          "id": "issue-plan-a-2",
-          "taskId": "api",
-          "parentLink": "issue-plan-a-parent",
-          "projectMembership": "project-plan-a"
-        }
-      ],
-      "hasNextPage": false,
+      "operation": "list-native-dependencies",
+      "items": [],
       "complete": true
     },
     {
-      "operation": "list-relation-page",
-      "page": 1,
-      "items": [
-        {
-          "from": "issue-plan-a-2",
-          "blockedBy": "issue-plan-a-1"
-        }
-      ],
-      "hasNextPage": false,
-      "complete": true
-    },
-    {
-      "operation": "update-project",
-      "clientId": "41000000-0000-4000-8000-000000000000",
-      "target": "project-plan-a",
-      "contentIdentity": "plan-a-approved-specification",
-      "revision": 4,
-      "contentHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-    },
-    {
-      "operation": "read-project",
-      "fresh": {
-        "clientId": "41000000-0000-4000-8000-000000000000",
-        "id": "project-plan-a",
-        "repository": "https://github.com/acme/app",
-        "workspaceId": "workspace-acme",
-        "teamId": "team-app",
-        "contentIdentity": "plan-a-approved-specification",
-        "revision": 4,
-        "contentHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-      }
-    },
-    {
-      "operation": "update-parent",
+      "operation": "create-direct-issue",
       "clientId": "41000000-0000-4000-8000-000000000001",
-      "target": "issue-plan-a-parent",
-      "contentIdentity": "plan-a-parent",
-      "revision": 4
+      "response": {
+        "id": "issue-plan-a-storage"
+      }
     },
     {
-      "operation": "read-parent",
+      "operation": "read-direct-issue",
       "fresh": {
+        "id": "issue-plan-a-storage",
         "clientId": "41000000-0000-4000-8000-000000000001",
-        "id": "issue-plan-a-parent",
-        "contentIdentity": "plan-a-parent",
-        "revision": 4,
-        "projectMembership": "project-plan-a"
-      }
-    },
-    {
-      "operation": "update-child",
-      "clientId": "41000000-0000-4000-8000-000000000002",
-      "target": "issue-plan-a-1",
-      "taskId": "storage",
-      "revision": 4
-    },
-    {
-      "operation": "read-child",
-      "fresh": {
-        "clientId": "41000000-0000-4000-8000-000000000002",
-        "id": "issue-plan-a-1",
         "taskId": "storage",
-        "revision": 4,
-        "parentLink": "issue-plan-a-parent",
-        "projectMembership": "project-plan-a"
+        "nativeProjectRef": "project-plan-a",
+        "parentId": null,
+        "executorReady": true
       }
     },
     {
-      "operation": "update-child",
-      "clientId": "41000000-0000-4000-8000-000000000003",
-      "target": "issue-plan-a-2",
-      "taskId": "api",
-      "revision": 4
+      "operation": "create-direct-issue",
+      "clientId": "41000000-0000-4000-8000-000000000002",
+      "response": {
+        "id": "issue-plan-a-api"
+      }
     },
     {
-      "operation": "read-child",
+      "operation": "read-direct-issue",
       "fresh": {
-        "clientId": "41000000-0000-4000-8000-000000000003",
-        "id": "issue-plan-a-2",
+        "id": "issue-plan-a-api",
+        "clientId": "41000000-0000-4000-8000-000000000002",
         "taskId": "api",
-        "revision": 4,
-        "parentLink": "issue-plan-a-parent",
-        "projectMembership": "project-plan-a"
+        "nativeProjectRef": "project-plan-a",
+        "parentId": null,
+        "executorReady": true
       }
     },
     {
-      "operation": "read-relation-set",
-      "fresh": {
-        "items": [
-          {
-            "from": "issue-plan-a-2",
-            "blockedBy": "issue-plan-a-1"
-          }
-        ],
-        "complete": true
+      "operation": "create-native-dependency",
+      "clientId": "41000000-0000-4000-8000-000000000003",
+      "response": {
+        "predecessor": "issue-plan-a-storage",
+        "successor": "issue-plan-a-api"
       }
+    },
+    {
+      "operation": "read-native-dependencies",
+      "items": [
+        {
+          "predecessor": "issue-plan-a-storage",
+          "successor": "issue-plan-a-api"
+        }
+      ],
+      "complete": true
     }
   ]
 }

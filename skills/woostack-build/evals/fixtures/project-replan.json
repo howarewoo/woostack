@@ -1,34 +1,39 @@
 {
-  "developmentAuthority": "approved-user-and-workflow-contract",
-  "linearRole": "artifact-evidence-only",
-  "projectId": "project-native-1",
-  "phase": "ready",
+  "nativeProjectRef": "project-native-1",
+  "projectSpecFingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "issues": [
     {
-      "clientId": "10000000-0000-4000-8000-000000000001",
+      "taskId": "storage",
       "nativeId": "issue-1",
       "ordinal": 20,
-      "title": "Add storage contract",
-      "blockedBy": [],
+      "predecessors": [],
       "evidence": []
     },
     {
-      "clientId": "10000000-0000-4000-8000-000000000002",
+      "taskId": "api",
       "nativeId": "issue-2",
       "ordinal": 10,
-      "title": "Wire API adapter",
-      "blockedBy": ["10000000-0000-4000-8000-000000000001"],
-      "evidence": ["commit:0123456789abcdef0123456789abcdef01234567"]
+      "predecessors": [
+        "storage"
+      ],
+      "evidence": [
+        "commit:0123456789abcdef0123456789abcdef01234567"
+      ]
     }
   ],
   "requestedReplan": {
-    "retain": ["10000000-0000-4000-8000-000000000001"],
-    "remove": ["10000000-0000-4000-8000-000000000002"],
+    "retain": [
+      "storage"
+    ],
+    "remove": [
+      "api"
+    ],
     "add": {
-      "clientId": "10000000-0000-4000-8000-000000000003",
+      "taskId": "receipt",
       "ordinal": 30,
-      "title": "Expose reconciliation receipt",
-      "blockedBy": ["10000000-0000-4000-8000-000000000001"]
+      "predecessors": [
+        "storage"
+      ]
     }
   }
 }

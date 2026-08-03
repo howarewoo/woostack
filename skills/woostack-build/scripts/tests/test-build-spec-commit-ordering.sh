@@ -22,60 +22,59 @@ for file in "$BUILD_SKILL" "$PROCEDURE" "$CONTEXT" "$AUTHORITY"; do
 done
 
 assert_literal "$BUILD_SKILL" \
-  'An exact caller-supplied project or explicit persistence request selects artifact mode' \
-  'build enters artifact mode only after exact or explicit selection'
+  'Resolve the exact supplied project or create exactly one project' \
+  'build always resolves or creates its canonical project'
 assert_literal "$BUILD_SKILL" \
-  'The user'\''s request and the three explicit gates authorize this workflow' \
-  'workflow gates, not artifacts, authorize work'
+  'Build has no artifact-free fallback' \
+  'build has no artifact-free authority fallback'
 assert_literal "$BUILD_SKILL" \
-  'make no Linear read or write' \
-  'build remains artifact-free without selection'
+  'ideate and synchronize evolving project specification' \
+  'build synchronizes material specification decisions'
 assert_literal "$BUILD_SKILL" \
-  'ideate → approve design → harden specification → approve specification →' \
-  'build preserves the ordered design and specification gates'
+  'approve exact project-spec revision' \
+  'project specification approval precedes planning'
 assert_literal "$BUILD_SKILL" \
-  'delegate candidate planning without provider mutation → harden increment graph →' \
-  'build delegates planning before graph hardening'
+  'delegate candidate planning without provider mutation' \
+  'build delegates candidate planning without provider writes'
 assert_literal "$BUILD_SKILL" \
-  'persist the selected Linear plan once → approve execution →' \
-  'build persists once after hardening and before execution'
+  'synchronize/read back direct issues and native dependencies' \
+  'build synchronizes the direct issue graph'
 assert_literal "$BUILD_SKILL" \
-  'Build owns exactly these three barriers, in this order' \
-  'build retains exactly three explicit gates'
+  'approve exact execution-plan revision set' \
+  'execution-plan approval follows complete graph synchronization'
 assert_literal "$BUILD_SKILL" \
-  'No implementation branch, worktree,' \
-  'implementation stays behind execution approval'
+  '## Exactly two hard gates' \
+  'build has exactly two explicit gates'
 assert_literal "$BUILD_SKILL" \
-  'Build never creates a docs-only base PR and never merges' \
-  'retired docs-only approval PR remains absent'
+  'No implementation branch, worktree, commit, or PR may exist before' \
+  'implementation stays behind exact Linear execution-plan approval'
+assert_literal "$BUILD_SKILL" \
+  'Build never merges' \
+  'build never merges'
 
 assert_literal "$PROCEDURE" \
-  'only after the caller supplies an exact resource or explicitly requests persistence' \
-  'Linear procedure requires exact or explicit selection'
+  'one direct project issue per current increment' \
+  'plan graph has one direct issue per increment'
 assert_literal "$PROCEDURE" \
-  'one parent plan issue in the project' \
-  'plan hierarchy has one parent issue'
+  'direct project membership and no parent/container relation' \
+  'increment issues have no wrapper hierarchy'
 assert_literal "$PROCEDURE" \
-  'one native child issue under that parent for every increment' \
-  'plan hierarchy has one child per increment'
+  'complete executor-ready issue descriptions' \
+  'increment issues contain executable plans'
 assert_literal "$PROCEDURE" \
-  'Independently read every append or update back' \
-  'artifact writes require independent read-back'
-assert_literal "$PROCEDURE" \
-  'blocks the plan deliverable and execution handoff' \
-  'selected persistence failure blocks plan handoff'
-
+  'Independently read the complete relation set back' \
+  'native dependencies require complete read-back'
 assert_literal "$CONTEXT" \
-  'Repository policy alone never selects artifact mode or' \
-  'repository policy cannot select provider access'
+  'Gate 1 requires an independently read complete project snapshot' \
+  'project approval binds an exact canonical revision'
 assert_literal "$CONTEXT" \
-  'They do not assign an engineer, clear a workflow gate, authorize' \
-  'provider fields remain descriptive'
+  'Gate 2 requires complete exact issue fingerprints' \
+  'execution approval binds the complete direct issue graph'
 assert_literal "$AUTHORITY" \
-  'No woostack command requires an issue or project merely to run' \
-  'shared artifact authority is optional'
+  'Linear projects and issues are canonical product records for `woostack-build`' \
+  'shared contract makes build records canonical'
 assert_literal "$AUTHORITY" \
-  'This substitution changes storage only, never safety' \
-  'artifact-free storage preserves safety'
+  'Graphite, and canonical GitHub reads prove source, ancestry, PR, review, and merge facts.' \
+  'source-control truth remains separate'
 
 finish

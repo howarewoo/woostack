@@ -64,17 +64,18 @@ framing pages are committed. Deploy notes live in [`site/README.md`](site/README
 
 ## Consumer development artifacts
 
-Linear is optional and never development authority. `/woostack-init` may use the official Linear
-MCP for automatic authenticated read-only setup discovery; that exception never selects artifact mode
-or permits a provider write. Build and standalone-plan workflows require an exact project or explicit
-persistence request; otherwise they make no Linear read or write. Selected build/standalone-plan
-persistence uses one project, one parent plan issue, and one native child issue per increment. A
-proved new `/woostack-fix` prompt is the narrow exception: after root-cause proof it binds one exact
-issue or creates one configured-team issue, with no project/parent/child hierarchy. Before proof it
-makes no provider call. `woostack-change`
-never contacts Linear. Explicit abandonment closes only project-backed build/plan (or historical fix)
-projects through configured canceled status/read-back; new fix abandonment preserves its exact issue and
-may append only a verified note. Handoff, replanning, and blockers leave project status unchanged.
+Linear is canonical product authority for every build and every proved fix. `/woostack-init` may
+use the official Linear MCP for automatic authenticated read-only setup discovery; that exception
+never authorizes a provider write. Build resolves one exact project or creates one from validated
+defaults before ideation. The project holds the evolving high-level specification; one direct
+project issue per increment holds its executor-ready plan, with native issue dependencies encoding
+the DAG. Build never creates a parent plan issue. A new `/woostack-fix` prompt remains provider-free
+until root-cause proof, then binds one exact issue or creates one configured-team issue. The issue
+holds the complete diagnosis and fix plan. The responsible user's native Linear approval event
+clears only the matching content revision before execution. `woostack-change` never contacts
+Linear. Explicit build abandonment closes the exact project through configured canceled
+status/read-back; fix abandonment preserves its issue and may append only a verified note. Handoff,
+replanning, and blockers leave project status unchanged.
 
 The user's request and each workflow's explicit approval gates authorize repository work; artifacts
 record that work and never grant permission, assignment, ownership, acceptance, or source-control

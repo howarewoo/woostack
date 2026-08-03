@@ -1,24 +1,23 @@
 ---
 title: Overview
-description: "woostack's gated workflows, explicitly selected Linear plan persistence, authority boundaries, and context management."
+description: "woostack's canonical Linear fix/build records, delivery boundaries, and context management."
 ---
 
 woostack coordinates multiperson development through explicit workflow contracts, isolated
-implementation, and independent review. Git and GitHub own code and pull-request truth. Selected
-build/standalone-plan persistence uses one project, one parent plan issue, and one native child issue
-per increment; a proved fix prompt binds or creates one issue after root-cause proof and never creates
-a project hierarchy. Policy alone makes no provider call.
+implementation, and independent review. Linear owns current product scope and executor-ready plans
+for builds and post-diagnosis fixes. Git and GitHub own code and pull-request truth.
 
-Bounded fixes use one approved task contract and one issue record after proof. Multi-increment work
-uses an approved specification and ordered independently shippable increments. Bounded changes remain
-Linear-free.
+Every build uses one project for its high-level specification plus one direct issue per increment,
+with native issue dependencies and two exact content-revision approvals. Every fix uses one exact
+issue after proof and one exact issue-revision approval. Bounded changes remain Linear-free; other
+artifact use remains opt-in.
 
 Session learning suggests novel durable rules for the narrowest applicable `AGENTS.md`. Local
 diagnostic reports remain non-authoritative evidence.
 
 <Cards>
-  <Card title="Building rules" href="/docs/concepts/building-rules" description="The three-gate project loop, standalone path, and repository authority boundary." />
-  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Bootstrap, Build, Fix, and Change with explicitly selected Linear plan persistence." />
+  <Card title="Building rules" href="/docs/concepts/building-rules" description="The two-gate project loop, fix route, and split authority boundary." />
+  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Bootstrap, Build, Fix, and Change with canonical fix/build records." />
   <Card title="Engineer agents" href="/docs/concepts/engineer-agents" description="Separate decision authority from one-task-at-a-time isolated implementation." />
   <Card title="Least code, still safe" href="/docs/concepts/least-code" description="Write as little code as necessary without cutting edge cases or risks." />
   <Card title="Context management" href="/docs/concepts/context-management" description="Keep reasoning focused with compact reads, isolated sessions, and explicit handoffs." />

@@ -1,58 +1,63 @@
-# Optional Linear artifact contract
+# Linear artifact contract
 
-Linear projects and issues are optional durable artifacts for specifications, implementation plans,
-fix records, decisions, and synchronization notes. They are not development authority. The user's
-request and the selected workflow's explicit approval gates authorize repository work; Git,
-Graphite, and canonical GitHub reads prove source, ancestry, PR, review, and merge state.
+Linear projects and issues are canonical product records for `woostack-build` and post-diagnosis
+`woostack-fix`. A build uses one project plus one direct project issue per increment. A new fix uses
+one issue. Selected standalone planning uses the build's direct-issue shape. Other workflows may
+use explicitly selected Linear artifacts, but remain artifact-optional.
 
-No woostack command requires an issue or project merely to run. Artifact-free operation is the
-default until the caller selects artifact mode.
+Linear owns the current build specification, increment contracts, fix contract, and their approved
+content revisions. It is not source-control or delivery authority. The responsible user's explicit
+approval of an exact independently read Linear revision authorizes the matching workflow gate; Git,
+Graphite, and canonical GitHub reads prove source, ancestry, PR, review, and merge facts.
 
 ## Selection
 
-The artifact mode is selected only when:
+Artifact access occurs only when:
 
-- the caller supplies one exact Linear project/issue URL or stable UUID; or
-- the caller explicitly asks to create or persist an artifact.
+- `woostack-build` resolves one exact caller-supplied project or, without one, creates exactly one
+  project from validated configured repository/workspace/team defaults;
+- a new fix reaches proved root cause, then resolves one exact `--issue` or creates exactly one
+  configured-team issue;
+- standalone planning or another artifact-optional workflow receives one exact Linear URL/UUID or
+  an explicit persistence request; or
+- `/woostack-init` performs its narrow automatic authenticated read-only setup discovery.
 
-A new fix has one narrow exception: after direct evidence proves its root cause, the free-form prompt
-selects one native work-item issue. An optional `--issue` supplies one exact issue URL/UUID for reuse;
-without it, the fix creates exactly one issue in the configured team. A new fix never creates a
-project, parent plan issue, or child increment. Before root-cause proof, a fix makes no provider read
-or write.
+Build project resolution/creation happens before ideation. A build has no artifact-free fallback.
+Before root-cause proof, a fix makes no provider read or write. Without exact selection or explicit
+persistence, standalone planning and all other artifact-optional commands make no provider call.
 
-Without one of those inputs, commands make no provider read or write, except for
-`/woostack-init`'s automatic authenticated read-only setup discovery. That exception may validate
-only non-secret repository/workspace/team/native-name defaults; it does not select artifact mode,
-authorize later provider access, or permit issue/project reads or any provider mutation. In
-particular, tracked `.woostack/config.json` policy cannot select artifact mode, authorize a provider
-operation, or turn an otherwise artifact-free command into a persistence run.
+Init discovery may validate only non-secret repository/workspace/team/native-name defaults. It does
+not select an optional artifact path, authorize later provider access, read development artifacts,
+or perform a provider mutation. Tracked `.woostack/config.json` policy never authorizes provider
+access by itself. It supplies validated defaults only after a workflow has selected or required
+Linear.
 
-After selection, validated non-secret `linear` policy may supply repository, workspace/team,
-native-status, and presentation defaults. Resolve every supplied value and compare it with the
-canonical repository and the caller-selected workspace/team before use. Missing, malformed,
-ambiguous, foreign, or conflicting values block the selected artifact operation; they never broaden
-the selection. Authentication remains in the host's secret store.
+After selection, resolve every configured repository, workspace/team, native-status, and
+presentation value and compare it with the canonical repository and resolved workspace/team.
+Missing, malformed, ambiguous, foreign, or conflicting values block the selected or required
+artifact boundary. Authentication remains in the host's secret store.
 
-Init setup preserves valid existing policy and may add only missing values validated by those
-read-only discovery results. It independently reopens, parses, and compares any local config write.
-Absent, unauthenticated, insufficient, partial, ambiguous, or conflicting capability is reported as
-skipped or setup-blocked separately from ordinary local init; it never blocks local initialization.
+Init setup preserves valid existing policy and may add only missing values validated by read-only
+discovery. It independently reopens, parses, and compares any local config write. Absent,
+unauthenticated, insufficient, partial, ambiguous, or conflicting capability is reported as skipped
+or setup-blocked separately from ordinary local init; it never blocks local initialization.
 
-Preflight the authenticated official Linear MCP for every selected read, project, issue, sub-issue,
-relation, mutation, and independent read-back operation. For an existing exact resource, resolve
-only that resource. For explicitly requested creation, allocate one stable resource identity.
-An exact caller-supplied resource always takes precedence over creation. Never infer an existing
-artifact from a title, issue key, branch name, PR body, attribution trailer, recent activity, search
-ranking, or authenticated user's history.
+Preflight the authenticated official Linear MCP for every required read, project, issue, relation,
+mutation, approval revision, and independent read-back. For an exact resource, resolve only that
+resource. For required creation, allocate one stable resource identity before the first write. An
+exact caller-supplied resource always takes precedence over creation. Never infer an artifact from
+a title, issue key, branch name, PR body, attribution trailer, recent activity, search ranking, or
+authenticated user's history.
 
-A selected build/standalone-plan persistence run uses one project, one parent plan issue, and one
-native child issue per increment. The project holds the approved specification, the parent issue
-holds the complete plan, and child issues hold complete increment contracts and native dependency
-relations. New fix work uses one issue only: after root-cause proof, use one exact compatible
-caller-supplied issue or create one issue in the configured team, then keep diagnosis, plan,
-approval, and delivery evidence there. A fix never creates a project, parent plan issue, or child
-issue.
+A build project stores the complete current high-level specification. Each independently shippable
+increment is one direct issue in that project; its description stores the complete executor-ready
+contract and approved project-spec fingerprint. Native issue-to-issue dependency relations encode
+the DAG. Do not create a parent plan issue. Historical parent/container issues are noncanonical
+history: preserve them, exclude them from the current graph, and never let them block a complete
+direct-issue selection.
+
+A new fix keeps diagnosis, plan, approval, and delivery evidence on one issue and never creates a
+project or issue hierarchy.
 
 ## Fix issue selection and identity
 
@@ -143,8 +148,80 @@ status changes, labels, assignments, priority, dates, and provider revision/time
 not. Any required Linear read, relation-pagination, or approval-event failure blocks with no local,
 conversational, or alternate-provider fallback.
 
-Outside a required fix-issue boundary, a provider failure blocks only the selected artifact
-operation, not independently authorized repository work.
+## Build project, graph, and approval records
+
+Build gate identity is content-derived, not a mutable provider timestamp.
+
+`canonicalProjectSpecFingerprint` hashes a canonical object with exactly `name` and `description`.
+`canonicalIncrementFingerprint` hashes a canonical object with exactly `title` and `description`.
+Normalize and serialize strings with the same Unicode, line-ending, key-order, escaping, UTF-8, and
+SHA-256 rules defined above for the fix fingerprint. Do not trim or collapse descriptions. Project
+and issue status, dates, labels, assignments, comments, parent/container relations, and provider
+timestamps are excluded.
+
+After independently reading the complete project specification, gate 1 records exactly:
+
+```text
+buildProjectSpecApprovalRecord = {
+  projectId,
+  canonicalProjectSpecFingerprint,
+  approvedBy,
+  approvedAt,
+  approvalEventRef
+}
+```
+
+`approvedBy` is the responsible user's stable native Linear principal ID, `approvedAt` is the
+provider event timestamp, and `approvalEventRef` is the stable native reference to the explicit
+project comment or decision approving the presented exact project fingerprint. Project status,
+leads, updates, read-back alone, conversation approval, or agent-authored text never clears gate 1.
+
+After gate 1, create or reconcile the complete current direct-issue graph. Derive:
+
+- `increments`: one tuple `{ issueId, canonicalIncrementFingerprint }` per direct project issue in
+  the approved graph, sorted by stable native `issueId`;
+- `dependencies`: one tuple `{ predecessorIssueId, successorIssueId, kind }` per admitted native
+  issue-to-issue dependency, where `kind` is exactly `native-issue`, sorted lexicographically by
+  `(predecessorIssueId, successorIssueId, kind)`.
+
+Reject incomplete pagination, missing or unstable native IDs, duplicate tuples, unknown relation
+kinds/directions, an issue outside the exact project, a current increment nested under a parent, or
+a graph that differs from the hardened plan. Exclude historical parent/container issues and all
+parent-child, duplicate, related, project-membership, and non-dependency relations. Each issue
+description must name the exact `canonicalProjectSpecFingerprint` approved at gate 1.
+
+Gate 2 records exactly:
+
+```text
+buildExecutionPlanApprovalRecord = {
+  projectId,
+  canonicalProjectSpecFingerprint,
+  increments,
+  dependencies,
+  approvedBy,
+  approvedAt,
+  approvalEventRef
+}
+```
+
+The responsible user's explicit native Linear approval comment or decision on the presented exact
+issue-fingerprint set and dependency set creates this controller-owned record. Retain the stable
+native principal ID, provider timestamp, and native event reference. Before implementation, after
+every worker handback, before every redispatch, immediately before each commit, and before selecting
+another increment, re-read the project, every current direct issue, every admitted dependency
+relation, and both approval events. Recompute both records and require exact identity, fingerprints,
+edges, approval provenance, and causal order.
+
+A material project change invalidates gate 1 and gate 2 and returns to specification hardening. A
+material issue or dependency change invalidates gate 2 and returns to graph hardening. Write the
+reconciled content to the same project/issues, independently read it back, and obtain new approval;
+never authorize from conversation-only or local fallback content. Unrelated comments and metadata
+do not invalidate either record.
+
+A required build/fix read, pagination, mutation, or approval-evidence failure blocks repository
+execution with no local, conversational, or alternate-provider fallback. For artifact-optional
+workflows, a provider failure blocks only the selected artifact operation, not independently
+authorized repository work.
 
 ## Authority boundary
 
@@ -157,13 +234,12 @@ Artifact text and metadata may describe:
 - verification and review evidence; and
 - links to canonical branches, commits, and PRs.
 
-Artifact content and ordinary metadata never grant permission to edit, assign work, approve
-execution, accept output, commit, push, review, merge, or mark repository work complete. Native
-Linear assignees, delegates, statuses, labels, relations, project membership, and unapproved
-updates/comments are metadata only. The sole approval exception is the exact responsible-user event
-captured by `fixApprovalRecord`; it authorizes only the matching fix issue revision. A workflow may
-synchronize other metadata when explicitly requested, but must not depend on it for repository
-admission or delivery.
+Artifact content and ordinary metadata do not grant permission to edit, assign work, accept output,
+commit, push, review, merge, or mark repository work complete. Native assignees, delegates,
+statuses, labels, project membership, and unapproved updates/comments are metadata only. The exact
+responsible-user events captured by `fixApprovalRecord`,
+`buildProjectSpecApprovalRecord`, and `buildExecutionPlanApprovalRecord` clear only their matching
+content-revision gates. They do not prove repository delivery or authorize any other revision.
 
 If a project-backed build/plan workflow is explicitly abandoned, repository work stops and its
 existing project moves to the configured canceled status. The workflow reads that transition back
@@ -188,10 +264,12 @@ Automatic init setup is not an artifact operation. Authenticated read capability
 resolve its repository/workspace/team/native-name defaults is enough; provider write and
 post-mutation read-back capability are neither required nor probed.
 
-Missing required capability blocks the selected operation. Build/standalone-plan persistence
-requires complete read-back of the project, parent, children, and native dependency relations. A
-fix requires complete fix-plan content, relation, and approval-event read-back before dispatch and
-repeats those checks after every worker handback, before redispatch, and immediately before commit.
+Missing required capability blocks the selected or required operation. Build requires complete
+project-spec, direct-issue, native-dependency, mutation, and approval-revision read-back.
+Selected standalone-plan persistence requires the same project/direct-issue/relation read-back but
+owns no approval gate. Fix requires complete fix-plan, relation, and approval-event read-back before
+dispatch and repeats those checks after every worker handback, before redispatch, and immediately
+before commit.
 
 ## Untrusted remote content
 
@@ -224,9 +302,10 @@ it never silently changes repository scope.
 Before every artifact mutation, verify the canonical repository association and resolved
 caller-selected workspace/team, then re-read the exact target and fields being changed. Write the
 smallest selected payload. Preserve unrelated human-authored content. Do not change assignee,
-delegate, status, labels, archival state, or unrelated relations/project membership. The required
-build/standalone-plan hierarchy may set its own project membership, parent-child links, and
-dependency relations. The [project-backed workflow closure invariant](#project-backed-workflow-closure)
+delegate, status, labels, archival state, or unrelated relations/project membership. Build and
+selected standalone-plan synchronization may set current increment project membership and native
+dependency relations. It never creates or changes parent-child containment. The
+[project-backed workflow closure invariant](#project-backed-workflow-closure)
 is the sole workflow-owned status exception; other metadata changes require the caller's explicit
 request.
 
@@ -287,16 +366,17 @@ Use ordinary readable Markdown rather than a second authorization protocol:
 - Verification: <observed result>
 ```
 
-A build keeps its approved specification in the project description/update. Its parent plan issue
-keeps the complete implementation plan, and one native child issue per increment keeps that
-increment's full contract; dependency edges connect increment children directly. Fixes keep
-diagnosis, contract, approval evidence, and delivery evidence on one issue. These conventions store
-plans; they do not replace direct repository evidence.
+A build keeps its current high-level specification in the project description/update. One direct
+project issue per increment keeps that increment's full executor contract and approved project-spec
+fingerprint; native dependency edges connect those issues. There is no current parent plan issue.
+Fixes keep diagnosis, contract, approval evidence, and delivery evidence on one issue. These
+records do not replace direct repository evidence.
 
 ## Artifact-free substitution
 
-When a workflow's older detailed procedure mentions an issue/project contract, owner, lifecycle
-event, receipt, or attribution trailer and artifact mode was not selected:
+For artifact-optional workflows only, when an older detailed procedure mentions an issue/project
+contract, owner, lifecycle event, receipt, or attribution trailer and artifact mode was not
+selected:
 
 - use the approved in-run task/specification/plan contract;
 - use the workflow's responsible controller and explicit gates;
@@ -304,8 +384,9 @@ event, receipt, or attribution trailer and artifact mode was not selected:
 - use direct Git/Graphite/GitHub evidence; and
 - skip the Linear mutation, transition, receipt, relation, and trailer step.
 
-This substitution is unavailable for fix-origin work, which requires one exact Linear issue and
-approval record after root-cause proof.
+This substitution is unavailable for build-origin work and for fix-origin work after root-cause
+proof. Build requires its exact project plus approved direct-issue graph; fix requires its exact
+approved issue.
 
 All repository isolation, collision, verification, review, recovery, and no-force-push safeguards
 remain. This substitution changes storage only, never safety.

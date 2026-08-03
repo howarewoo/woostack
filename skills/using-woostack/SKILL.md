@@ -61,26 +61,27 @@ Do not run `/woostack-init`, create `.woostack/`, scaffold code, or add config u
 user explicitly asks for that behavior or the loaded task-specific skill requires it as part
 of an approved workflow.
 
-**Artifact invariant:** Linear projects and issues are optional durable artifacts for feature
-specifications and implementation plans, but one exact Linear issue is mandatory for a proved fix.
-Linear content never selects work, owns a branch, or replaces direct Git/GitHub evidence. The one
-approval exception is the responsible user's exact native approval event on a fix issue revision;
-it clears only that matching fix execution gate. `/woostack-init` may make authenticated read-only
-setup calls through the official Linear MCP to validate non-secret defaults, but it cannot select
-persistence, read artifact content, or perform a provider write. Build and standalone-plan commands
-require an exact project or explicit persistence request; otherwise they make no Linear read or
-write. After root-cause proof, `/woostack-fix` binds one exact issue in the selected workspace or
-creates one configured-team issue, writes and reads back the complete plan, and requires explicit
-native approval. Before proof it makes no provider call. Selected build/plan persistence uses one
-project, one parent plan issue, and one native child issue per increment; a fix never creates a
-project hierarchy. `woostack-change` never contacts Linear. Tracked policy supplies validated
-defaults only after selection and cannot authorize provider writes. Verify canonical repository and
-workspace/team before selected writes. Exact resources take precedence over creation. Explicit
-abandonment closes only project-backed build/plan projects through configured canceled status and
-independent read-back; fix abandonment preserves its exact issue and may append only a verified
-note. Handoff, replanning, and blockers leave project status unchanged. Follow the
-[Linear artifact contract](../woostack-init/references/artifact-backends.md); every mutation
-requires independent read-back.
+**Artifact invariant:** Linear is the canonical product record for builds and, after root-cause
+proof, fixes. A build requires one exact project containing the complete current high-level
+specification plus one direct project issue per increment containing executor-ready steps; native
+issue dependencies encode the DAG. A fix requires one exact issue containing its diagnosis and
+executor-ready plan. Build creates its project from validated defaults when the caller supplies
+none; fix creates its issue after proof when the caller supplies none.
+
+The responsible user approves exact independently read content revisions. Build has two gates:
+project-spec revision, then complete issue/dependency revision set. Fix has one issue-revision gate.
+Those exact approval events authorize only their matching workflow transition. Linear assignment,
+status, labels, or content alone never authorize work, and Linear never replaces direct
+Git/Graphite/GitHub source-control evidence.
+
+Other workflows remain artifact-optional. `/woostack-init` may make authenticated read-only setup
+calls through the official Linear MCP to validate non-secret defaults; it cannot select persistence,
+read artifact content, or write. `woostack-change` never contacts Linear. Tracked policy supplies
+validated defaults only after a workflow selects or requires Linear and never authorizes unrelated
+provider access. Every mutation uses the official MCP and independent read-back. Explicit
+abandonment closes only project-backed build/plan projects through configured canceled status;
+handoff, replanning, and blockers leave project status unchanged. Follow the
+[Linear artifact contract](../woostack-init/references/artifact-backends.md).
 
 **Engineer-agent invariant:** a host that pairs a decision-maker with a coder must follow the
 [provider-neutral engineer-agent authority protocol](references/engineer-agents.md). Each active
@@ -96,13 +97,13 @@ mutation, review independence, or acceptance authority.
 |---|---|
 | `/woostack-init [path] [--migrate-legacy]`, initialize or repair the `.woostack/` workspace, or explicitly migrate tracked legacy development records | `woostack-init` |
 | `/woostack-bootstrap <goal>`, scaffold a new web/mobile/API project | `woostack-bootstrap` |
-| `/woostack-build <goal> [--project <exact Linear URL-or-UUID>]`, build a feature through the woostack loop and optionally persist one explicitly selected plan hierarchy | `woostack-build` |
+| `/woostack-build <goal> [--project <exact Linear URL-or-UUID>]`, build a feature from one canonical project specification through two exact Linear revision approvals | `woostack-build` |
 | `/woostack-fix <prompt> [--issue <exact Linear URL-or-UUID>] [--inline\|--subagent]`, diagnose a free-form defect, bind/create one issue after root-cause proof, and execute only after approval | `woostack-fix` |
 | `/woostack-change <goal>`, implement an artifact-free bounded non-bug enhancement or refactor that fits one reviewable PR | `woostack-change` |
-| `/woostack-plan <approved specification> [--project <exact Linear URL-or-UUID>]`, produce a PR-sized dependency-aware plan and optionally persist its explicitly selected standalone hierarchy | `woostack-plan` |
-| `/woostack-execute <approved plan-or-task> [--project <exact Linear URL-or-UUID>] [--issue <exact Linear URL-or-UUID>] [--inline\|--subagent]`, execute approved work as bounded Graphite PRs | `woostack-execute` |
-| `/woostack-execute-overnight <approved plan> [--project <exact Linear URL-or-UUID>] [--inline\|--subagent]`, execute approved work unattended with a truthful terminal handback | `woostack-execute-overnight` |
-| `/woostack-sweep [PR#] [--base R] [--interactive]`, drive a stack of PRs to a clean review; optional exact artifacts may receive notes | `woostack-sweep` |
+| `/woostack-plan <approved specification> [--project <exact Linear URL-or-UUID>]`, produce a PR-sized dependency-aware direct-issue plan; standalone persistence is optional | `woostack-plan` |
+| `/woostack-execute <approved plan-or-task> [--project <exact Linear URL-or-UUID>] [--issue <exact Linear URL-or-UUID>] [--inline\|--subagent]`, execute approved work; fix/build origins require their exact approval records | `woostack-execute` |
+| `/woostack-execute-overnight <approved plan> [--project <exact Linear URL-or-UUID>] [--inline\|--subagent]`, execute unattended; build origin requires its exact approved project graph | `woostack-execute-overnight` |
+| `/woostack-sweep [PR#] [--base R] [--interactive]`, drive a stack to clean review while retaining any required fix/build origin approval context | `woostack-sweep` |
 | `/woostack-commit [--issue <exact Linear URL-or-UUID>]`, commit session-relevant changes and update PR fields; artifact synchronization is optional | `woostack-commit` |
 | `/woostack-review [PR#] [--issue <exact Linear URL-or-UUID>] [--project <exact Linear URL-or-UUID>]`, review a PR or local diff with optional artifact intent | `woostack-review` |
 | `/woostack-audit <target> [--all] [--simplify\|--prod-only]`, audit standing code (a file/dir/repo at rest) for simplification + production-readiness, report-only | `woostack-audit` |

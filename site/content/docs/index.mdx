@@ -1,6 +1,6 @@
 ---
 title: What is woostack?
-description: Evidence-driven workflows with selected build/plan persistence and a proved-fix issue path.
+description: Evidence-driven delivery with canonical Linear fix/build records and repository truth.
 ---
 
 woostack is a model-agnostic collection of gated software-development skills for planning,
@@ -10,13 +10,13 @@ implementation, review, diagnostics, and reusable knowledge.
 pnpx skills add howarewoo/woostack
 ```
 
-- **Repository-first truth:** the user's approved workflow contract authorizes work; Git and GitHub
-  prove source, branches, pull requests, reviews, and merge state.
-- **Explicit durable plans:** caller-selected build/standalone-plan persistence uses one project,
-  one parent plan issue, and one native child issue per increment. A proved new fix prompt binds or
-  creates one compatible issue after root-cause proof and never creates a project hierarchy. Linear
-  remains optional for non-fix workflows and for fix diagnosis before root-cause proof; a proved new
-  fix requires the configured official MCP issue path before implementation.
+- **Split canonical truth:** Linear owns current fix/build product scope and execution plans; Git
+  and GitHub prove source, branches, pull requests, reviews, and merge state.
+- **Simple durable shape:** every build uses one project for its high-level specification plus one
+  direct issue per independently shippable increment, with native dependency relations. Every
+  post-diagnosis fix uses one issue for diagnosis, executor-ready plan, approval, and delivery notes.
+- **Exact revision approval:** the responsible user's native Linear approval event clears only the
+  matching content fingerprint; material edits invalidate that gate.
 - **Decision-maker/coder separation:** the generic
   [engineer-agent contract](/docs/concepts/engineer-agents) keeps scope, independent review, and
   acceptance separate from isolated implementation.
@@ -30,30 +30,29 @@ pnpx skills add howarewoo/woostack
 
 ## Why woostack?
 
-The collection keeps the whole delivery loop coherent without requiring a local development
-ledger or a particular provider:
+The collection keeps the whole delivery loop coherent without requiring a local development ledger:
 
 - one install and one routing surface;
-- explicit approval gates and bounded task contracts;
-- safe concurrency through declared dependencies and isolated worktrees;
+- exact content-bound approval gates and executor-ready task contracts;
+- safe concurrency through native dependencies and isolated worktrees;
 - decision-maker/coder role separation;
 - portable execution across supported harnesses;
-- optional plan persistence only for an exact artifact or explicit persistence request.
+- canonical Linear product records for fix/build, with optional artifacts elsewhere.
 
-For build/standalone-plan and other optional artifact operations, without an exact artifact or
-explicit persistence request commands make no Linear call. A proved new fix is the narrow exception:
-diagnosis remains provider-free until root-cause proof, then an exact issue wins or the configured
-team creates one issue, with successful write/read-back required. Tracked policy provides validated
-defaults only after the relevant selection or fix proof and cannot authorize provider writes.
+Build resolves an exact project or creates one from validated defaults before ideation. Fix
+diagnosis stays provider-free until root-cause proof, then binds an exact issue or creates one in
+the configured team. Every write and approval event is independently read back. Tracked policy
+supplies validated defaults only after the workflow requires or selects Linear and cannot authorize
+unrelated provider writes.
 
 ## Where to go next
 
 <Cards>
-  <Card title="Getting started" href="/docs/getting-started" description="Install, initialize local support, and optionally connect Linear artifacts." />
+  <Card title="Getting started" href="/docs/getting-started" description="Install, initialize local support, and configure Linear for fix/build workflows." />
   <Card title="Configuration" href="/docs/configuration" description="Set non-secret repository policy." />
   <Card title="Engineer agents" href="/docs/concepts/engineer-agents" description="Understand decision, coding, review, and acceptance boundaries." />
   <Card title="Core concepts" href="/docs/concepts" description="The build loop, context management, worktrees, and status tracking." />
   <Card title="Harnesses" href="/docs/harnesses" description="Supported hosts, profile isolation, and native capability differences." />
-  <Card title="woostack-build" href="/docs/skills/woostack-build" description="Drive a feature from idea to a reviewed PR stack, optionally persisting one explicitly selected plan hierarchy." />
+  <Card title="woostack-build" href="/docs/skills/woostack-build" description="Drive one canonical project specification and approved direct-issue plan to a reviewed PR stack." />
   <Card title="All skills" href="/docs/skills/using-woostack" description="Per-skill reference, generated from each SKILL.md." />
 </Cards>

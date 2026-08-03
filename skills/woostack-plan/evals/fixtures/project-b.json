@@ -1,39 +1,25 @@
 {
-  "caller": {
-    "persistenceRequest": "persist"
-  },
-  "preflights": {
-    "missingConnection": {
-      "connectionAvailable": false,
-      "requiredCapabilities": [
-        "project.read",
-        "project.write",
-        "issue.read",
-        "issue.write",
-        "relation.read",
-        "relation.write",
-        "independent-read-back"
-      ],
-      "officialCapabilities": []
+  "scenarios": [
+    {
+      "id": "missing-connection",
+      "persistenceSelected": true,
+      "officialMcpConnected": false,
+      "missingCapabilities": [
+        "project-read",
+        "issue-read",
+        "issue-write",
+        "dependency-read",
+        "dependency-write"
+      ]
     },
-    "partialCapability": {
-      "connectionAvailable": true,
-      "requiredCapabilities": [
-        "project.read",
-        "project.write",
-        "issue.read",
-        "issue.write",
-        "relation.read",
-        "relation.write",
-        "independent-read-back"
-      ],
-      "officialCapabilities": [
-        "project.read",
-        "project.write",
-        "issue.read",
-        "issue.write",
-        "relation.read"
+    {
+      "id": "partial-direct-graph-capability",
+      "persistenceSelected": true,
+      "officialMcpConnected": true,
+      "missingCapabilities": [
+        "dependency-read",
+        "dependency-write"
       ]
     }
-  }
+  ]
 }

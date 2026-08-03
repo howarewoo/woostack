@@ -1,0 +1,44 @@
+{
+  "scenarios": [
+    {
+      "id": "unofficial-endpoint",
+      "endpoint": "https://linear.example.invalid/mcp",
+      "authenticated": true,
+      "preflightComplete": true
+    },
+    {
+      "id": "authentication-unavailable",
+      "endpoint": "https://mcp.linear.app/mcp",
+      "authenticated": false,
+      "preflightComplete": true
+    },
+    {
+      "id": "incomplete-pagination",
+      "endpoint": "https://mcp.linear.app/mcp",
+      "authenticated": true,
+      "preflightComplete": true,
+      "issuePages": [
+        {
+          "page": 1,
+          "hasNextPage": true,
+          "complete": false
+        }
+      ]
+    },
+    {
+      "id": "readback-mismatch",
+      "endpoint": "https://mcp.linear.app/mcp",
+      "authenticated": true,
+      "preflightComplete": true,
+      "mutation": {
+        "operationIdentity": "22222222-2222-4222-8222-222222222222",
+        "nativeProjectRef": "project-build-44"
+      },
+      "independentRead": {
+        "operationIdentity": "33333333-3333-4333-8333-333333333333",
+        "nativeProjectRef": "project-build-44",
+        "complete": true
+      }
+    }
+  ]
+}

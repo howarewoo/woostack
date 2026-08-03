@@ -1,8 +1,0 @@
-{
-  "approvedDesign": {
-    "kind": "non-bug-change",
-    "independentlyShippableInOnePullRequest": true
-  },
-  "linearProjects": [],
-  "expectedRoute": "woostack-change"
-}

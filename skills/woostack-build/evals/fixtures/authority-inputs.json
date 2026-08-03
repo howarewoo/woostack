@@ -1,0 +1,22 @@
+{
+  "scenarios": [
+    {
+      "id": "local-spec-only",
+      "localSpecification": ".woostack/specs/cache.md",
+      "exactProject": null,
+      "validatedDefaults": null
+    },
+    {
+      "id": "linear-document-only",
+      "linearDocumentId": "document-cache-plan",
+      "exactProject": null,
+      "validatedDefaults": null
+    },
+    {
+      "id": "conversation-only-approval",
+      "nativeProjectRef": "project-build-45",
+      "conversationApproval": "looks good",
+      "nativeApprovalEvent": null
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 ---
 title: Configuration
-description: Non-secret repository policy, automatic safe Linear defaults, and explicitly selected plan persistence.
+description: Non-secret repository policy and safe Linear defaults for required fix/build records.
 ---
 
 woostack reads non-secret repository policy from `.woostack/config.json`.
@@ -9,12 +9,11 @@ automatically attempts safe read-only Linear default discovery when the host exp
 authenticated MCP. Missing or incomplete Linear setup never blocks local initialization. The file
 never contains credentials or grants permission to perform repository work.
 
-The active request and workflow gates define scope and approval. Git and GitHub own code, branches,
-commits, pull requests, reviews, and merge truth. Init's discovery calls neither select persistence
-nor authorize later provider access. A validated `linear` object supplies defaults for caller-selected
-exact build/plan artifacts or explicitly requested build/plan persistence, and supplies its configured
-team for a proved `/woostack-fix` that creates one issue without an exact issue; it cannot authorize a
-write.
+Linear owns current fix/build product scope and execution plans. Git and GitHub own code, branches,
+commits, pull requests, reviews, and merge truth. Init's discovery calls authorize no later access.
+A validated `linear` object supplies defaults after a workflow requires or selects Linear: build
+uses them for canonical project creation when needed, and a proved fix uses the configured team for
+one-issue creation when needed. Policy cannot authorize a write or clear an approval gate.
 
 Tracked legacy records remain local unless the user explicitly invokes the guarded
 `/woostack-init --migrate-legacy` route. The
@@ -23,8 +22,8 @@ owns its import, preservation, recovery, and deletion boundaries.
 
 The init template ships four top-level keys: `models`, `review`, `respond`, and `status`. Other
 supported settings use built-in defaults. [woostack-doctor](/docs/skills/woostack-doctor) checks
-static policy; selected build/standalone-plan persistence and post-proof fix issue binding prove live
-Linear capability before use.
+static policy; build and post-proof fix admission prove required live Linear capability, while
+standalone artifact use remains opt-in.
 
 **OMP exception:** woostack uses
 [host-owned role routing](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md)
@@ -36,7 +35,7 @@ There are nine top-level settings:
 
 | Setting | Read by | Tunes |
 | --- | --- | --- |
-| `linear` | Automatic read-only setup in [woostack-init](/docs/skills/woostack-init), then explicitly selected artifact operations in build, fix, plan, and supporting workflows | stores validated non-secret repository, workspace, team, and native-name defaults; never selects persistence or authorizes a provider write |
+| `linear` | Automatic read-only setup in [woostack-init](/docs/skills/woostack-init), required build/post-proof fix records, and selected standalone artifacts | stores validated non-secret repository, workspace, team, and native-name defaults; never authorizes a provider write or content approval |
 | `review` | [woostack-review](/docs/skills/woostack-review) | the PR review engine: angles, noise, validation |
 | `models` | [woostack-review](/docs/skills/woostack-review), [woostack-audit](/docs/skills/woostack-audit), and host subagent drivers | shared model selection and tier parameters for hosts that consume repository model configuration; ignored by OMP |
 | `audit` | [woostack-audit](/docs/skills/woostack-audit) | standing-code audit angles, filtering, chunking, and output |
@@ -49,8 +48,8 @@ There are nine top-level settings:
 ## A complete repository-policy example
 
 The example omits `linear`: init adds that object only when authenticated read-only discovery
-produces complete validated defaults. Its presence still does not select artifact mode. JSON has no
-comments, so each key is explained below.
+produces complete validated defaults. Its presence does not authorize access; build/fix requirements
+or explicit standalone selection do. JSON has no comments, so each key is explained below.
 
 ```json
 {
@@ -93,9 +92,9 @@ comments, so each key is explained below.
 }
 ```
 
-## Linear plan configuration
+## Linear configuration
 
-Artifact-enabled profiles connect to the official endpoint:
+Required fix/build and selected artifact-enabled profiles connect to the official endpoint:
 
 ```text
 https://mcp.linear.app/mcp
@@ -105,23 +104,22 @@ Authentication stays in the host's MCP/OAuth secret store. No API key, credentia
 value, or credential-file path belongs in repository configuration, prompts, logs, generated files,
 or artifacts. Workflows prove capability without reading the secret.
 
-The `linear` object provides repository/workspace/team and native-name defaults for selected build/plan
-artifact operations. For a proved new fix without an exact issue, its configured team is the creation
-target. Default init may populate missing fields from authenticated read-only discovery and independently
-validates any local config write; it preserves valid existing values. That narrow setup does not select
-artifact mode, read an artifact, require provider write/read-back capability, or authorize later provider
-access.
+The `linear` object provides repository/workspace/team and native-name defaults after a workflow
+requires or selects Linear. Build uses them when creating its one canonical project; a proved new
+fix without an exact issue uses the configured team as its one-issue creation target. Default init
+may populate missing fields from authenticated read-only discovery and independently validates any
+local config write. That narrow setup reads no development artifact, probes no write, and grants no
+later access.
 
-Before a selected mutation, the workflow verifies the canonical repository association, then resolves
-the caller-selected workspace/team for an exact resource or the configured team for new-fix creation,
-and rejects missing, malformed, ambiguous, foreign, or conflicting values. It then preflights every
-project, issue, sub-issue, relation, mutation, and independent read-back capability needed for the
-selected hierarchy.
+Before required or selected access, the workflow verifies the canonical repository association and
+workspace/team, then preflights every complete project, issue, relation, comment/decision,
+mutation, pagination, and independent read-back capability needed at that boundary.
 
-Build and standalone-plan persistence uses one project, one parent plan issue, and one native child
-issue per increment. A proved new fix prompt instead binds or creates exactly one compatible issue
-after root-cause proof and never creates a project hierarchy. Missing capability blocks the selected
-artifact operation at its retained safe boundary. Before proof, fix makes no Linear call.
+Build uses one project containing its evolving high-level specification, one direct issue per
+increment containing complete executor-ready steps, and native issue dependency relations. A proved
+new fix binds or creates one issue after root-cause proof and never creates a project hierarchy.
+Missing required capability blocks fix/build at the retained safe boundary; selected standalone
+artifact failure blocks only that optional operation. Before proof, fix makes no Linear call.
 `woostack-change` ignores the `linear` object.
 
 `linear.projectStatuses.canceled` names the native status used to close an existing project-backed
@@ -387,10 +385,10 @@ worktrees are cut from.
 
 <Callout type="info">
   Init scaffolds `models`, `review`, `respond`, and `status`, then automatically adds validated
-  Linear defaults when safe authenticated discovery succeeds. Provider connectivity remains
-  optional for ordinary local workflows. [woostack-doctor](/docs/skills/woostack-doctor) validates
-  static policy; explicit live checks can prove artifact connectivity without blocking repository
-  workflows.
+  Linear defaults when safe authenticated discovery succeeds. Missing connectivity never blocks
+  local initialization, but required fix/build boundaries later fail closed.
+  [woostack-doctor](/docs/skills/woostack-doctor) validates static policy; explicit live checks
+  prove artifact connectivity.
 </Callout>
 
 ## Where to go next

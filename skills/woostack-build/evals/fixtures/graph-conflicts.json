@@ -1,0 +1,57 @@
+{
+  "scenarios": [
+    {
+      "id": "foreign-repository",
+      "projectRepository": "https://github.com/acme/other",
+      "canonicalRepository": "https://github.com/acme/widgets"
+    },
+    {
+      "id": "workspace-team-mismatch",
+      "projectWorkspace": "other",
+      "selectedWorkspace": "acme"
+    },
+    {
+      "id": "duplicate-current-task",
+      "issues": [
+        {
+          "id": "issue-a",
+          "taskId": "storage"
+        },
+        {
+          "id": "issue-b",
+          "taskId": "storage"
+        }
+      ]
+    },
+    {
+      "id": "stale-project-approval",
+      "projectFingerprint": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "approvedFingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "id": "stale-plan-approval",
+      "currentIssueFingerprints": [
+        "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ],
+      "approvedIssueFingerprints": [
+        "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    },
+    {
+      "id": "dependency-drift",
+      "hardenedDependencies": [
+        [
+          "issue-storage",
+          "issue-api"
+        ]
+      ],
+      "nativeDependencies": []
+    },
+    {
+      "id": "incomplete-readback",
+      "projectReadComplete": true,
+      "issuePaginationComplete": false,
+      "relationPaginationComplete": true
+    }
+  ]
+}

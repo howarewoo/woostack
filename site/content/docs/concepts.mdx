@@ -1,34 +1,37 @@
 ---
 title: Core concepts
-description: Repository-first authority, explicitly selected plan persistence, and the gated build loop.
+description: Repository delivery evidence, canonical Linear fix/build records, and the two-gate build loop.
 ---
 
 import { ContextEconomy } from '@/components/concepts/context-economy';
 
-woostack is a multiperson development workflow with repository-first evidence and optional Linear
-artifacts. The user's approved workflow contract defines scope and approval. Git and GitHub own
-source, branches, commits, pull requests, reviews, and merge evidence. Default init may make
-authenticated read-only Linear setup calls to validate non-secret defaults, but that narrow
-exception selects no artifact and permits no provider write. Build/standalone-plan persistence
-requires exact selection or an explicit persistence request and uses one project with a parent plan
-issue and one native child issue per increment. A proved fix prompt binds or creates one issue after
-proof.
-Artifacts never authorize repository work.
+woostack is a multiperson development workflow with two distinct truth domains. Linear owns the
+current product specification and execution contracts for builds and post-diagnosis fixes. Git and
+GitHub own source, branches, commits, pull requests, reviews, and merge evidence. A build always
+uses one project containing its high-level specification plus one direct issue per increment;
+native issue dependencies encode the plan. A proved fix binds or creates one issue containing its
+diagnosis and executor-ready plan. Other workflows remain artifact-optional.
+
+Default init may make authenticated read-only Linear setup calls to validate non-secret defaults,
+but that narrow exception permits no provider write. Exact responsible-user Linear approval events
+clear only the matching fix/build content-revision gates.
 
 ## The build loop
 
 [woostack-build](/docs/skills/woostack-build) handles work expected to require multiple
 independently shippable increments. It chains a fixed sequence:
 
-> ideate → **approve design** → harden specification → **approve spec** → delegate candidate
-> planning without provider mutation → harden the increment graph → persist one selected hierarchy
-> once → **execution handoff** → execute and review one increment at a time
+> resolve or create one canonical Linear project → ideate and harden its evolving specification →
+> **approve exact project-spec revision** → plan and harden direct increment issues → synchronize
+> native dependencies → **approve exact execution-plan revision set** → execute and review one
+> increment at a time
 
-Ordered increments remain independently shippable and map to reviewable PRs. Without an exact
-artifact or explicit persistence request, the workflow makes no Linear call.
+Ordered increments remain independently shippable and map to reviewable PRs. Build has no
+artifact-free fallback.
 
 Bounded one-PR work takes a smaller route. [woostack-fix](/docs/skills/woostack-fix) proves a root
-cause, approves one fix contract, and after proof binds or creates exactly one compatible issue.
+cause, writes one complete fix contract to one bound or newly created issue, and executes only after
+the responsible user approves that exact issue revision in Linear.
 [woostack-change](/docs/skills/woostack-change) executes one explicit bounded enhancement/refactor
 without contacting Linear.
 
@@ -36,29 +39,31 @@ An explicit build/plan abandonment stops repository work and moves an existing p
 configured canceled status, with independent read-back. New fix issues are preserved; normal
 handoff, replanning, and blockers do not close projects, and no project is created for a fix issue.
 
-## Three hard gates
+## Two hard gates
 
-The multi-issue build loop advances past exactly three points only after an explicit answer:
+The multi-increment build loop advances past exactly two content-bound Linear approvals:
 
-1. **Design approval** accepts the proposed design.
-2. **Written-spec approval** accepts the hardened specification before increment planning.
-3. **Execution handoff** chooses Go, Run overnight, or Hand off after the plan is ready.
+1. **Project-spec approval** accepts the exact current high-level project specification before
+   increment planning.
+2. **Execution-plan approval** accepts the exact complete set of direct increment issue revisions
+   and native dependency edges before repository implementation.
 
-Persistence, read-back, planning, implementation checks, review, and progress updates are work
-steps, not additional approval gates. Silence never clears a gate.
+Material spec or plan changes are written back to the same canonical Linear records and invalidate
+the matching approval. Synchronization, read-back, planning, implementation checks, review, and
+progress updates are work steps, not additional gates.
 
 ## Two delivery shapes
 
 | | Standalone work | Multi-increment work |
 | --- | --- | --- |
 | Use when | One bounded fix/change can ship in one PR | A feature needs multiple independently shippable increments |
-| Active contract | Approved goal/fix contract | Approved specification plus dependency-aware plan |
-| Linear plan | Fix: one compatible issue after root-cause proof. Change: none | Project → parent plan issue → one child per increment |
-| Evidence | Direct repository/PR evidence | Direct repository/PR evidence per increment |
+| Active contract | Fix: one approved issue revision. Change: one explicit goal | Approved project-spec revision plus approved direct-issue graph |
+| Linear plan | Fix: one issue after root-cause proof. Change: none | One project → one direct issue per increment + native dependencies |
+| Evidence | Linear owns fix scope/plan; Git/GitHub prove delivery | Linear owns spec/plan; Git/GitHub prove delivery per increment |
 | Code delivery | One GitHub PR | One GitHub PR per increment |
 
-These shapes are chosen by work size, not by storage provider. Linear persistence never changes the
-approval, implementation, verification, or review gates.
+These shapes are chosen by work size. Linear is required for fix/build product authority but never
+replaces direct repository delivery evidence.
 
 ## Context economy
 
@@ -86,12 +91,13 @@ rather than every input. Review prefetch gathers the relevant diff, metadata, an
 once for independent analysis. Status and development workflows retain only the verified MCP
 identities and receipts required for the current decision.
 
-Automatic init setup and selected artifact access use the host's authenticated official Linear MCP
-connection. Init needs only read capability and validates local config writes independently; it
-never reads an artifact or probes a provider write. Selected artifact operations verify the
-canonical repository association and resolved caller-selected workspace/team, prove the exact
-capabilities they need without reading credentials, and independently read mutations back. Tracked
-policy provides defaults only after selection and cannot authorize provider writes.
+Automatic init setup and every required or selected artifact access uses the host's authenticated
+official Linear MCP connection. Init needs only read capability and validates local config writes
+independently; it never reads a development artifact or probes a provider write. Fix/build
+operations verify the canonical repository association and resolved workspace/team, prove the exact
+capabilities they need without reading credentials, and independently read mutations and approval
+events back. Tracked policy supplies validated defaults only after a workflow requires or selects
+Linear and cannot authorize unrelated provider writes.
 
 ### Decision-makers and coders stay isolated
 
@@ -114,8 +120,8 @@ See [Engineer agents](/docs/concepts/engineer-agents) for the provider-neutral b
 ## Where to go next
 
 <Cards>
-  <Card title="Getting started" href="/docs/getting-started" description="Initialize local support and optionally configure an isolated engineer pair or Linear artifacts." />
-  <Card title="Building rules" href="/docs/concepts/building-rules" description="Follow the three gates and choose the smallest workflow for the work." />
+  <Card title="Getting started" href="/docs/getting-started" description="Initialize local support and configure the required Linear defaults for fix/build workflows." />
+  <Card title="Building rules" href="/docs/concepts/building-rules" description="Follow the two build gates and choose the smallest workflow for the work." />
   <Card title="Status tracking" href="/docs/concepts/status-tracking" description="Derive a fresh board from Git, Graphite, and GitHub with optional artifacts." />
   <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Bootstrap, Build, Fix, and Change under one authority model." />
   <Card title="Context management" href="/docs/concepts/context-management" description="Keep sessions compact and turn durable lessons into reviewed instruction suggestions." />

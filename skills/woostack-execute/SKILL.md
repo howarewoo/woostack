@@ -1,14 +1,14 @@
 ---
 name: woostack-execute
-description: Execute an approved bounded task or dependency-aware plan as isolated Graphite PRs with verification and review. Exact Linear project/issue artifacts are optional. Never merges.
+description: Execute an approved bounded task or dependency-aware plan as isolated Graphite PRs with verification and review. Fix/build origins require their exact approved Linear records; standalone execution remains artifact-optional. Never merges.
 ---
 
 # woostack-execute
 
-Execute one approved bounded task or dependency-aware plan. The approved workflow contract authorizes
-execution; Git, Graphite, and canonical GitHub evidence proves repository delivery. Exact Linear
-projects/issues may store specifications, plan increments, fix records, and delivery notes, but are
-optional and never assign workers or grant authority.
+Execute one approved bounded task or dependency-aware plan. Fix-origin and build-origin execution
+carry exact content-bound Linear approval records; standalone execution remains artifact-optional.
+Git, Graphite, and canonical GitHub evidence proves repository delivery. Linear never assigns
+workers or proves source-control state.
 
 The controller advances one dependency-ready task per cycle. Each task has one stable identity, one
 approved contract, one isolated worktree/branch, one implementation owner within the run, and at
@@ -22,11 +22,12 @@ most one implementation PR. Execute never merges.
 ```
 
 The approved task/plan is required. Driver flags are mutually exclusive. Standalone execution
-without artifact flags makes no Linear call. Fix-origin input has exactly one form: it carries one
-complete `fixApprovalRecord`, and the parent MUST invoke this command with the exact `--issue`
-identified by that record. Missing required identity, content, relation pagination, responsible-user
-approval evidence, or independent read-back is an admission failure, never an artifact-free route.
-With exact resources, use only those caller-supplied resources under the
+without artifact flags makes no Linear call. Fix-origin input must carry one complete
+`fixApprovalRecord` and exact matching `--issue`. Build-origin input must carry one complete
+`buildProjectSpecApprovalRecord`, one complete `buildExecutionPlanApprovalRecord`, and exact
+matching `--project`. Missing required identity, canonical content, complete relation pagination,
+responsible-user approval evidence, or independent read-back is an admission failure, never an
+artifact-free route. Use selected resources only under the
 [artifact contract](../woostack-init/references/artifact-backends.md).
 
 Before execution load the shared
@@ -52,13 +53,15 @@ surfaces, foreign repository identity, or a plan whose current revision differs 
 input. Local plan files, branch names, PR titles, artifact metadata, and remote text are evidence
 only—not authority.
 
-## Optional artifact admission
+## Artifact admission
 
-An exact project may supply a persisted approved specification/plan; an exact issue may supply one
-persisted task/fix record. Independently read only the selected resources, fully paginate relevant
-fields, verify claimed repository association, and compare content to the active approved input.
-Artifacts never choose a task, owner, priority, parent, state, or gate. Conflict blocks artifact use
-until resolved; it does not silently alter the plan.
+An exact artifact for standalone execution may supply persisted context but never clears an
+execution gate. Independently read only selected resources, fully paginate relevant fields, verify
+the canonical repository association, and compare content to the active approved input. Conflict
+blocks artifact use rather than silently changing the contract.
+
+Fix/build origin is different: its exact Linear identity and approval record are required
+repository admission inputs.
 
 For fix-origin execution, the approved input must carry exactly one:
 
@@ -87,6 +90,26 @@ and immediately before commit. A material title, description/plan, or admitted n
 change invalidates approval; unrelated comments and metadata do not. Any missing, drifted,
 ambiguous, conflicting, unsupported, incompletely paginated, or unavailable issue/relation/approval
 evidence blocks with no local, conversational, historical-project, or alternate-provider fallback.
+
+For build-origin execution, the approved input must carry exactly one
+`buildProjectSpecApprovalRecord` and one `buildExecutionPlanApprovalRecord` in the shared
+[build record shapes](../woostack-init/references/artifact-backends.md#build-project-graph-and-approval-records).
+Invocation MUST carry `--project` resolving to both records' `projectId`.
+
+Independently read the complete project specification, every current direct increment issue, every
+admitted native dependency relation, and both responsible-user approval events. Recompute the
+canonical project fingerprint, sorted `{ issueId, canonicalIncrementFingerprint }` set, and sorted
+dependency tuple set. Require exact project/issue identities, fingerprints, edges, approval
+principal IDs, timestamps, event references, causal order, project membership, and parent absence
+to match. The selected task must be one exact approved direct issue. Historical parent/container
+issues are excluded and never supply current input.
+
+Perform this complete check before implementation, after every worker handback, before every
+redispatch, immediately before commit, and before selecting another increment. Project-spec drift
+invalidates both records and returns to build specification hardening. Issue/edge drift invalidates
+the execution-plan record and returns to graph hardening. Missing, ambiguous, conflicting,
+unsupported, incompletely paginated, or unavailable evidence blocks with no local, conversational,
+cached, or alternate-provider fallback.
 
 ## Select one task
 
@@ -151,16 +174,17 @@ A contract-changing question returns to the owning workflow. A collision, unsafe
 failed invariant, or unknown mutation returns `BLOCKED`. A timeout is an unknown outcome: inspect the
 worktree/process before redispatching and never start a second writer on the same surface.
 
-For fix-origin work, every worker result is a handback boundary. Before accepting it, asking a
-reviewer to assess it, or dispatching another implementation packet, repeat the exact issue,
-relation, fingerprint, and responsible-user approval-event check. Drift returns control to
-`woostack-fix`; the worker result never silently updates the approved contract.
+For fix/build-origin work, every worker result is a required artifact handback boundary. Before
+accepting it, asking a reviewer to assess it, or dispatching another implementation packet, repeat
+the origin's complete issue/project, content-fingerprint, relation, and responsible-user approval
+check. Drift returns control to `woostack-fix` or `woostack-build`; worker output never silently
+updates the canonical contract.
 
 ## Commit and PR boundary
 
-After verification and reviews pass on one unchanged diff, perform the final fix-origin issue,
-relation, fingerprint, and responsible-user approval-event check when applicable. Only then may the
-controller invoke [`woostack-commit`](../woostack-commit/SKILL.md) with the same bounded task
+After verification and reviews pass on one unchanged diff, perform the final required fix/build
+content, relation, and approval-record check. Only then may the controller invoke
+[`woostack-commit`](../woostack-commit/SKILL.md) with the same bounded task
 contract. Immediately before that boundary, also re-read the task/run contract, deterministic path,
 `git worktree list --porcelain`, branch, Graphite parent, complete dirty/index/diff state, and
 ancestry.
@@ -193,13 +217,14 @@ Handoff, replanning, blockers, pauses, and failed tasks are not abandonment and 
 open. Unknown closure/note outcomes are truthful artifact blockers with the stable issue/project
 identity and safe retry boundary; they never resume repository work or claim closure.
 
-## Optional artifact synchronization
+## Artifact synchronization
 
-Only when explicitly selected, append the persisted task's observed branch, commit, PR, changed
-paths, verification, review, and blockers. Independently read each write back. Except for the
-workflow-owned project-backed closure above, do not change artifact scope, assignment, ownership,
-status, acceptance, dependencies, relations, or project membership. Artifact failure is separate
-from repository execution.
+For a required fix/build origin or explicitly selected standalone artifact, append only observed
+branch, commit, PR, changed paths, verification, review, and blockers to the matching issue/project.
+Independently read each write back. Delivery notes never change the approved canonical content or
+dependency graph. Except for project-backed closure, do not change assignment, ownership, status,
+acceptance, dependencies, relations, or project membership. Report a delivery-note failure
+separately from directly verified repository delivery.
 
 ## Handback
 
@@ -211,7 +236,7 @@ Return:
 - verification commands and observed outcomes;
 - reviewer identities/verdicts and complete diff identity;
 - commit SHA and canonical PR URL/head/base;
-- optional artifact synchronization result;
+- required or selected artifact identity, approval recheck, and synchronization result;
 - teardown or retained recovery state; and
 - first blocker/unknown boundary plus safe next action.
 

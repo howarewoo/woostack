@@ -1,0 +1,30 @@
+{
+  "command": "/woostack-build Bound cache freshness",
+  "exactProjectSupplied": false,
+  "validatedDefaults": {
+    "repository": "https://github.com/acme/widgets",
+    "workspace": "acme",
+    "team": "APP"
+  },
+  "officialMcpPreflight": {
+    "endpoint": "https://mcp.linear.app/mcp",
+    "authenticated": true,
+    "complete": true
+  },
+  "operationIdentity": "11111111-1111-4111-8111-111111111111",
+  "preCreateRead": {
+    "matchingOperationIds": [],
+    "complete": true
+  },
+  "createResponse": {
+    "nativeProjectRef": "project-build-43"
+  },
+  "independentRead": {
+    "nativeProjectRef": "project-build-43",
+    "operationIdentity": "11111111-1111-4111-8111-111111111111",
+    "repository": "https://github.com/acme/widgets",
+    "workspace": "acme",
+    "team": "APP",
+    "complete": true
+  }
+}

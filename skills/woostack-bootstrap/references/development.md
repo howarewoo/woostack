@@ -25,34 +25,35 @@ Review config and explicitly non-authoritative diagnostic output may remain unde
 review metrics `.woostack/metrics.json` are gitignored. None determine development scope, phase,
 approval, assignment, dependencies, or acceptance.
 
-## Optional Linear artifacts
+## Linear product records
 
-The approved workflow contract owns scope, gates, and acceptance. Git, Graphite, and canonical
-GitHub evidence own repository execution and delivery. Linear is optional persistence:
+Linear is canonical product authority for builds and post-diagnosis fixes. Git, Graphite, and
+canonical GitHub evidence remain authoritative for repository execution and delivery:
 
-- a feature project/update may store an approved design or specification;
-- increment issues may mirror an approved implementation plan and dependency graph; and
-- a standalone issue may store a bounded fix or change contract.
+- a build project stores the evolving high-level specification;
+- one direct project issue per build increment stores the complete executor-ready plan and native
+  dependency edges encode the DAG; and
+- one fix issue stores the proved diagnosis and complete executor-ready fix plan.
 
-Artifact-free workflows use the same gates and repository evidence without contacting Linear.
-Never create a project or issue merely because a command runs. When the caller explicitly selects
-artifact persistence, follow the canonical
-[optional artifact contract](../../woostack-init/references/artifact-backends.md) for exact identity,
-untrusted-data handling, narrow mutations, stable operation IDs, and independent read-back.
+The responsible user's exact native Linear approval event clears only its matching content
+revision. It does not assign a worker, prove source-control state, or replace review or acceptance.
+Every mutation uses stable operation identity and independent read-back under the canonical
+[artifact contract](../../woostack-init/references/artifact-backends.md).
 
-Linear documents and local spec, plan, fix, progress, or overnight files are not development
-authority. `.woostack/config.json` is non-secret repository policy; an optional `linear` object may
-provide provider hints but never credentials, permission, ownership, lifecycle, or acceptance.
-Provider authentication stays in the host's official Linear MCP/OAuth connection. Missing
-authentication blocks only an explicitly requested artifact read/write/read-back. Woostack does not
-issue custom Linear HTTP/GraphQL requests or consume repository credentials. GitHub GraphQL remains
-valid only for GitHub source-control operations such as review-thread handling.
+Linear documents and local spec, plan, fix, progress, or overnight files are not build/fix product
+authority. `.woostack/config.json` is non-secret repository policy; its `linear` object may provide
+validated repository/workspace/team/native-name defaults but never credentials, write permission,
+or approval. Provider authentication stays in the host's official Linear MCP/OAuth connection.
+Missing required capability blocks build or a proved fix at its retained boundary. Woostack does
+not issue custom Linear HTTP/GraphQL requests or consume repository credentials. GitHub GraphQL
+remains valid only for GitHub source-control operations such as review-thread handling.
 
-Storage changes neither workflow intent nor approval policy.
-[`woostack-build`](../../woostack-build/SKILL.md) preserves exactly three hard gates: design
-approval, written-spec approval, and execution handoff. Those gates live in the active conversation
-and approved in-run contract. When selected, project updates may mirror the approved design/spec
-and issues may mirror the plan after each gate; no artifact event creates or replaces a gate.
+Artifact-optional workflows retain their documented selection boundary. Missing optional artifact
+access blocks only that artifact operation. `woostack-change` never contacts Linear.
+
+[`woostack-build`](../../woostack-build/SKILL.md) uses two approvals: the exact project
+specification revision, then the exact complete direct-issue graph. Material edits invalidate the
+matching approval and return to specification hardening or graph hardening.
 
 `woostack-bootstrap` is greenfield only. Before design or target access, it routes an
 existing-repository bug to `woostack-fix`, a bounded one-PR non-bug request to `woostack-change`,
