@@ -5,7 +5,8 @@ description: Optional decision-maker profile, native delegation, and isolated OM
 
 Hermes can use woostack in two ways. Its native `delegate_task` route is the default. An explicit
 Hermes + OMP pairing makes Hermes the decision-maker and independent reviewer while a separate OMP
-profile implements one bounded task. Neither route requires Linear.
+profile implements one bounded task. Linear is optional for build/plan persistence and is the narrow
+post-proof issue context for new fixes; it never authorizes work.
 
 See the canonical
 [Hermes host adapter](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/hermes.md)
@@ -89,23 +90,18 @@ Repository: REPOSITORY_PATH. Approved bounded contract: TASK_CONTRACT.
 ```
 
 No paired step merges.
-
 ## Linear artifacts
 
-Only exact caller-selected artifacts or explicit persistence requests select Linear. When selected,
-each profile may connect independently to the official Linear MCP at:
-
-```text
-https://mcp.linear.app/mcp
-```
-
-Credentials remain in each profile's own MCP/OAuth secret store. Do not share tokens/sessions or
-place credentials in repository config, prompts, logs, staged files, or generated output. Follow the
+Build and standalone-plan runs select Linear only with an exact project or explicit persistence
+request. A proved new fix prompt is the narrow exception: after root-cause proof it binds or creates
+one compatible issue through the configured official MCP. Credentials remain in each profile's own
+MCP/OAuth secret store. Follow the
 [Linear artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md).
 
-Artifact access may synchronize specifications, plans, fixes, or review notes. It never supplies
-assignment, dispatch, commit, review, or acceptance authority. Without an exact artifact or explicit
-persistence request, make no Linear call. `woostack-change` never contacts Linear.
+Artifact access never supplies assignment, dispatch, commit, review, or acceptance authority. Before
+proof, a fix makes no Linear call. After proof, a required fix issue read/write/read-back failure
+blocks before execution; it has no artifact-free fallback. `woostack-change` never contacts Linear.
+Artifact-free operation remains available for non-fix workflows and fix diagnosis before proof.
 
 ## Recovery
 

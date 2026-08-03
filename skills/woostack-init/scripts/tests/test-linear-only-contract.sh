@@ -82,12 +82,20 @@ config = json.loads((root / "skills/woostack-init/templates/config.json").read_t
 if "linear" in config and config["linear"] != {}:
     failures.append("templates/config.json: Linear defaults must be absent or opt-in and empty")
 
-for name in ("woostack-build", "woostack-fix", "woostack-plan"):
+for name in ("woostack-build", "woostack-plan"):
     text = re.sub(r"\s+", " ", (root / "skills" / name / "SKILL.md").read_text(encoding="utf-8"))
     if not re.search(r"Without .*make no Linear (?:read or write|call)|Otherwise make no Linear read or write", text, re.I):
         failures.append(f"{name}: does not require explicit artifact selection")
     if not re.search(r"policy.*(?:cannot|never).*authorize.*provider (?:read or )?write|policy alone.*no provider", text, re.I):
         failures.append(f"{name}: repository policy can still appear to authorize provider access")
+
+fix = re.sub(r"\s+", " ", (root / "skills" / "woostack-fix" / "SKILL.md").read_text(encoding="utf-8"))
+if not re.search(r"Before root-cause proof.*no provider", fix, re.I):
+    failures.append("woostack-fix: pre-proof provider boundary missing")
+if not re.search(r"without `--issue`.*create exactly one native work-item issue", fix, re.I):
+    failures.append("woostack-fix: plain-prompt issue creation exception missing")
+if re.search(r"one project.*parent plan issue.*child increment", fix, re.I):
+    failures.append("woostack-fix: new fix hierarchy remains")
 
 change = re.sub(r"\s+", " ", (root / "skills/woostack-change/SKILL.md").read_text(encoding="utf-8"))
 if not re.search(r"never reads or writes Linear", change, re.I):

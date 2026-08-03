@@ -1,11 +1,13 @@
 ---
 title: Workflow maps
-description: Bootstrap, Build, Fix, and Change under one repository-first authority model with explicitly selected Linear plans.
+description: "Bootstrap, Build, Fix, and Change under one repository-first authority model with optional, workflow-specific Linear artifacts."
 ---
 
 Every repository-changing woostack workflow starts from an explicit user goal and an active workflow
-contract. Git and GitHub own implementation truth. Linear records plans only when the caller
-supplies an exact artifact or explicitly requests persistence; policy alone makes no provider call.
+contract. Git and GitHub own implementation truth. Build and standalone-plan workflows record Linear
+hierarchies only when the caller supplies an exact project or explicitly requests persistence. A
+proved `/woostack-fix` prompt binds or creates one issue after root-cause proof; before proof it
+makes no provider call. Policy alone makes no provider call.
 
 ## Route by work shape
 
@@ -51,14 +53,29 @@ child issue per increment.
 ## Fix
 
 ```text
-classify → reproduce → prove root cause → harden fix contract →
-approve → optionally persist one selected Linear hierarchy → execute → review → hand back
+prompt → reproduce → prove root cause → harden fix contract →
+bind/create one issue → native issue approval → execute → review → hand back
 ```
 
-Fix has one explicit approve-to-execute gate. It never substitutes a symptom patch for root-cause
-proof. An exact `--project` persists the approved diagnosis, parent fix plan issue, and single
-increment child even without repository policy. Without exact selection or an explicit persistence
-request, fix makes no Linear call.
+Fix has one explicit approve-to-execute gate and never substitutes a symptom patch for root-cause
+proof. After proof, an exact `--issue` reuses any compatible native work item in the selected
+workspace; it does not need to equal the configured default team. A plain prompt creates one
+configured-team issue with stable identity/read-back. A fix has no `--project` path and never
+creates a project hierarchy.
+
+The complete diagnosis and self-contained execution plan live on that issue. Approval binds one
+`fixApprovalRecord`: issue identity, canonical fingerprint of title/description/native
+dependencies, responsible user's stable native principal ID, provider event timestamp, and stable
+approval-event reference. The controller derives the dependency projection from fully paginated
+native `blocks`/`blockedBy` relations and rejects incomplete or unsupported relation evidence.
+Status, labels, assignment, issue content alone, workflow inference, read-back, and agent-authored
+events do not approve execution.
+
+Execution re-reads the exact issue, relations, and approval event before implementation, after
+every worker handback, before redispatch, and immediately before commit. A material plan or admitted
+dependency edit invalidates approval; unrelated comments and metadata do not. Required Linear
+failures block without a local, conversational, historical-project, or alternate-provider fallback.
+Before root-cause proof, fix makes no provider call.
 
 ## Change
 
@@ -86,8 +103,8 @@ points. It does not weaken scope, verification, review, collision, or merge boun
 
 ## Linear plan branch
 
-```text
-caller supplies exact resource or explicitly requests persistence
+```
+build/standalone-plan caller supplies exact project or explicitly requests persistence
   → verify canonical repository association and resolved caller-selected workspace/team
   → use tracked policy only for validated post-selection defaults
   → preflight official authenticated MCP capability without reading credentials
@@ -98,14 +115,15 @@ caller supplies exact resource or explicitly requests persistence
   → execution handoff
 ```
 
-Exact caller-supplied resources take precedence over creation. `woostack-change` has no Linear
-branch. Missing capability or incomplete read-back blocks the selected artifact operation at the
-retained stable boundary.
+A proved `/woostack-fix` prompt instead binds or creates one exact compatible issue after root-cause
+proof, writes the complete plan there, and requires a responsible-user native approval event on that
+exact revision. It does not enter the project hierarchy. Before proof it makes no provider call.
 
-If a fix or build is explicitly abandoned at execution handoff or at any other time, repository work
-stops and any existing plan project moves to the configured canceled status. The workflow reads that
-transition back before claiming closure. It does not create a project merely to cancel it, and a
-normal handoff, replan, or blocker leaves the project open.
+If a project-backed build/plan workflow is explicitly abandoned, repository work stops and its
+existing project moves to the configured canceled status. The workflow reads that transition back
+before claiming closure. A fix preserves its exact issue and may append only a verified note; it
+never creates a project merely to cancel it. A normal handoff, replan, or blocker leaves project
+status unchanged.
 
 ## Terminal outcomes
 
@@ -114,7 +132,7 @@ Every route returns one of:
 - verified reviewed PR or reviewed stack;
 - approved handoff before implementation;
 - truthful blocker with exact safe resume boundary; or
-- explicit abandonment preserving recoverable repository evidence and closing any existing
-  fix/build project as canceled.
+- explicit abandonment preserving recoverable repository evidence and closing an existing build/plan
+  project as canceled. Fix issues are preserved.
 
 No woostack development workflow merges.

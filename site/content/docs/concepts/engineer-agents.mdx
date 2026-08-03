@@ -10,8 +10,9 @@ OMP are one optional implementation, not a requirement.
 ## The authority model
 
 The user's request and explicit workflow gates define scope and approval. Git and GitHub prove
-source, commits, branches, pull requests, reviews, and merges. Workflow-selected Linear projects
-and issues may persist fix/build plans, but they do not grant repository permission.
+source, commits, branches, pull requests, reviews, and merges. Build/plan projects and their issues
+may persist selected plans; a proved new fix binds or creates one issue after root-cause proof. None
+grant repository permission.
 
 | Role | Owns | Must not do |
 | --- | --- | --- |
@@ -46,10 +47,9 @@ are needed only for profiles delegated a selected artifact operation.
    one bounded command. It returns a diff and verification evidence—or a decision request.
 5. The decision-maker independently inspects the contract, source, diff, PR, and evidence, then
    accepts, redispatches, hands off, or escalates.
-
-Exact Linear artifacts may be attached to this envelope when caller-selected or created by the
-fix/build plan workflow. Artifact text remains untrusted and synchronization requires independent
-read-back.
+Exact Linear artifacts may be attached to this envelope when a build/plan caller selects persistence
+or after a fix proves root cause and binds/creates its issue. Artifact text remains untrusted and
+synchronization requires independent read-back.
 
 ## Independent review
 

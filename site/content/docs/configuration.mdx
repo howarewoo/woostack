@@ -11,8 +11,10 @@ never contains credentials or grants permission to perform repository work.
 
 The active request and workflow gates define scope and approval. Git and GitHub own code, branches,
 commits, pull requests, reviews, and merge truth. Init's discovery calls neither select persistence
-nor authorize later provider access. A validated `linear` object supplies defaults only after the
-caller selects an exact artifact or explicitly requests persistence; it cannot authorize a write.
+nor authorize later provider access. A validated `linear` object supplies defaults for caller-selected
+exact build/plan artifacts or explicitly requested build/plan persistence, and supplies its configured
+team for a proved `/woostack-fix` that creates one issue without an exact issue; it cannot authorize a
+write.
 
 Tracked legacy records remain local unless the user explicitly invokes the guarded
 `/woostack-init --migrate-legacy` route. The
@@ -21,8 +23,8 @@ owns its import, preservation, recovery, and deletion boundaries.
 
 The init template ships four top-level keys: `models`, `review`, `respond`, and `status`. Other
 supported settings use built-in defaults. [woostack-doctor](/docs/skills/woostack-doctor) checks
-static policy; selected fix/build/standalone-plan persistence proves live Linear capability before
-use.
+static policy; selected build/standalone-plan persistence and post-proof fix issue binding prove live
+Linear capability before use.
 
 **OMP exception:** woostack uses
 [host-owned role routing](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md)
@@ -103,26 +105,29 @@ Authentication stays in the host's MCP/OAuth secret store. No API key, credentia
 value, or credential-file path belongs in repository configuration, prompts, logs, generated files,
 or artifacts. Workflows prove capability without reading the secret.
 
-The `linear` object provides repository/workspace/team and native-name defaults after artifact
-selection. Default init may populate missing fields from authenticated read-only discovery
-and independently validates any local config write; it preserves valid existing values. That
-narrow setup does not select artifact mode, read an artifact, require provider write/read-back
-capability, or authorize later provider access.
+The `linear` object provides repository/workspace/team and native-name defaults for selected build/plan
+artifact operations. For a proved new fix without an exact issue, its configured team is the creation
+target. Default init may populate missing fields from authenticated read-only discovery and independently
+validates any local config write; it preserves valid existing values. That narrow setup does not select
+artifact mode, read an artifact, require provider write/read-back capability, or authorize later provider
+access.
 
-Before a selected mutation, the workflow verifies the canonical repository association, resolves
-the caller-selected workspace/team, and rejects missing, malformed, ambiguous, foreign, or
-conflicting values. It then preflights every project, issue, sub-issue, relation, mutation, and
-independent read-back capability needed for the selected hierarchy.
+Before a selected mutation, the workflow verifies the canonical repository association, then resolves
+the caller-selected workspace/team for an exact resource or the configured team for new-fix creation,
+and rejects missing, malformed, ambiguous, foreign, or conflicting values. It then preflights every
+project, issue, sub-issue, relation, mutation, and independent read-back capability needed for the
+selected hierarchy.
 
-Selected fix/build/standalone-plan persistence is one project, one parent plan issue, and one native
-child issue per increment. Missing capability blocks only the selected artifact operation at its
-retained safe boundary. Without an exact artifact or explicit persistence request, fix/build/plan
-make no Linear call. `woostack-change` ignores the `linear` object.
+Build and standalone-plan persistence uses one project, one parent plan issue, and one native child
+issue per increment. A proved new fix prompt instead binds or creates exactly one compatible issue
+after root-cause proof and never creates a project hierarchy. Missing capability blocks the selected
+artifact operation at its retained safe boundary. Before proof, fix makes no Linear call.
+`woostack-change` ignores the `linear` object.
 
-`linear.projectStatuses.canceled` names the native status used to close an existing fix/build
-project after explicit abandonment. The workflow reads the status transition back and never creates a
-project solely to cancel it. Handoff, replanning, and blockers are not abandonment and leave the
-project open.
+`linear.projectStatuses.canceled` names the native status used to close an existing project-backed
+build/plan workflow after explicit abandonment. The workflow reads the status transition back and
+never creates a project solely to cancel it. New fix issues are preserved; handoff, replanning, and
+blockers are not abandonment and leave projects open.
 
 The canonical
 [Linear artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md)

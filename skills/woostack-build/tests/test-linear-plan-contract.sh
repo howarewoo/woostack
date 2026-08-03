@@ -29,6 +29,10 @@ def require(name, needle):
     if needle not in text[name]:
         failures.append(f"{name}: missing {needle!r}")
 
+def forbid(name, pattern):
+    if re.search(pattern, text[name], re.I):
+        failures.append(f"{name}: matches forbidden pattern {pattern!r}")
+
 for needle in (
     "One approved specification in, one coherent plan out",
     "Explicit standalone persistence uses one project, one parent plan issue, and one child per increment",
@@ -56,15 +60,16 @@ for needle in (
 require("harden", "Artifact-free hardening")
 require("harden", "blocks only artifact synchronization")
 require("artifact", "optional durable artifacts for specifications, implementation plans")
-require("artifact", "Artifact mode is selected only when")
+require("artifact", "artifact mode is selected only")
 require("artifact", "policy cannot select artifact mode")
-require("artifact", "canonical repository association and resolved")
-require("artifact", "untrusted data")
+require("artifact", "remote prose is untrusted")
 require("context", "independent complete read-back")
 require("context", "Repository policy alone never selects artifact mode")
 require("context", "caller-selected workspace/team")
-require("artifact", "## Fix/build project closure")
-require("artifact", "if none exists, report that there is nothing to close")
+require("context", "project-backed abandonment")
+require("context", "specification/plan context")
+require("artifact", "## Project-backed workflow closure")
+require("artifact", "If no exact project exists")
 require("artifact", "projectStatuses.canceled")
 require("artifact", "update only that project's native status")
 require("artifact", "canceled status name/ID")
@@ -72,8 +77,16 @@ require("artifact", "retained stable retry boundary")
 require("procedure", "## Explicit abandonment")
 require("procedure", "neutral canonical artifact contract")
 require("procedure", "does not redefine closure steps")
+require("procedure", "build/standalone-plan approved specification/plan gate")
 require("procedure", "Independently read every")
 require("procedure", "Never remove, detach, or reset an increment child that carries verified implementation evidence")
+
+for name, pattern in (
+    ("context", r"fix/build abandonment"),
+    ("context", r"specification/fix context"),
+    ("procedure", r"fix-contract approval gate"),
+):
+    forbid(name, pattern)
 
 if "linear-procedure.md" in text["artifact"]:
     failures.append("artifact: closure contract must not link back to the build-owned procedure")

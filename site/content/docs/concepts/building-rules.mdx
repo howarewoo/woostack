@@ -5,14 +5,15 @@ description: The three-gate build loop, bounded one-PR routes, and explicitly se
 
 Woostack separates workflow authority from durable artifacts. The user's request and explicit gates
 authorize work. Git and GitHub own source, branches, commits, pull requests, reviews, and merge
-evidence. Linear plan projects record approved fix/build/standalone plans only after caller
-selection and never grant repository permission.
+evidence. Build and standalone-plan projects record approved plans only after caller selection and
+never grant repository permission. A proved fix prompt records one issue after root-cause proof and
+never creates a project hierarchy.
 
 ## Choose the smallest workflow
 
 | Shape | Commands | Active contract | Linear behavior |
 | --- | --- | --- | --- |
-| Bounded bug or regression | [woostack-fix](/docs/skills/woostack-fix) | proven root cause plus one approved fix contract | selected persistence → project, parent plan issue, one increment child |
+| Bounded bug or regression | [woostack-fix](/docs/skills/woostack-fix) | proven root cause plus one approved fix contract | one compatible issue after proof; no project |
 | Bounded non-bug change | [woostack-change](/docs/skills/woostack-change) | one explicit goal/contract | none |
 | Multi-increment feature | [woostack-build](/docs/skills/woostack-build) | approved specification plus dependency-aware plan | selected persistence → project, parent plan issue, one child per increment |
 | Greenfield codebase | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | complete approved design | exact artifact or explicit persistence request only |
@@ -59,23 +60,32 @@ it cannot trigger a provider read/write or authorize a mutation. Before a select
 workflow verifies the canonical repository association and resolved caller-selected workspace/team,
 then preflights the host's official Linear MCP without reading the API key/OAuth credential.
 
-Selected fix/build/standalone-plan persistence stores:
+Selected build/standalone-plan persistence stores:
 
-- one project containing the approved specification or diagnosis/fix context;
+- one project containing the approved specification or implementation plan;
 - one parent plan issue containing the complete plan;
 - one native child issue per increment containing its full contract;
 - native dependency relations between increment children; and
 - notes derived from already-observed repository results.
 
+A proved fix prompt binds or creates one issue after root-cause proof and never uses this hierarchy.
 Every mutation uses a stable identity and independent read-back. Exact resources take precedence
-over creation. `woostack-change` never contacts Linear. Without selection, fix/build/plan make no
-Linear call. Linear still does not assign the worker, own a branch, prove tests or review, approve
-execution, accept work, or override Git/GitHub evidence.
+over creation. `woostack-change` never contacts Linear. Before proof, a fix makes no Linear call.
+
+Fix approval records one `fixApprovalRecord`: issue identity, canonical fingerprint of the exact
+title/description/native dependency projection, responsible user's stable native principal ID,
+provider event timestamp, and stable approval-event reference. Status, labels, assignment, issue
+content alone, workflow inference, read-back, and agent-authored events do not approve execution.
+Fix-origin execution rechecks the exact issue, fully paginated native `blocks`/`blockedBy`
+dependencies, and approval event before implementation, after every worker handback, before
+redispatch, and immediately before commit. A material plan or admitted dependency edit invalidates
+approval; unrelated metadata does not. Required Linear failures block without fallback.
 
 Explicit abandonment is the one workflow-owned project-status transition. At execution handoff or
-any other phase, a fix/build workflow stops repository work, sets an existing plan project to the
-configured canceled status, and independently reads the transition back. It never creates a project
-only to cancel it. Handoff, replanning, and blockers leave the project open.
+any other phase, a build/plan workflow stops repository work, sets an existing plan project to the
+configured canceled status, and independently reads the transition back. Fix issues are preserved;
+no project is created solely to cancel anything. Handoff, replanning, and blockers leave the
+project open.
 
 ## Authority boundaries
 
@@ -84,7 +94,7 @@ only to cancel it. Handoff, replanning, and blockers leave the project open.
 | User request and workflow gates | scope, decisions, approvals, acceptance criteria |
 | Git and GitHub | source, ancestry, commits, PRs, checks, reviews, merge evidence |
 | Graphite | stack and branch operations |
-| Linear plan project | durable specification/fix context, parent plan, increment children, and notes |
+| Linear project/issue artifacts | build/plan projects hold durable specifications, parent plans, increment children, and notes; new fixes bind one issue only |
 | Audit, QA, response reports | sanitized non-authoritative diagnostic evidence |
 
 The [engineer-agent contract](/docs/concepts/engineer-agents) keeps decision-making, isolated

@@ -4,513 +4,978 @@
   "cases": [
     {
       "id": "blocks-before-issue-when-root-cause-is-unproven",
-      "prompt": "Evaluate the bounded synthetic fix investigation in fixtures/no-root-cause.json. Its requestedPlanPath is a legacy request, not authority. Do not edit, create, or mutate anything. Apply the packaged skill contract and return exactly one JSON object using the keys status, rootCauseEstablished, issueBound, branchCreated, localDevelopmentRecordCreated, and mergeAllowed.",
+      "prompt": "Review the supplied workspace snapshot and return a JSON record describing the diagnosis state and observed lifecycle or repository events.",
       "fixtures": [
         "no-root-cause.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The flow blocks before issue binding or Git because no root cause is proved, rejects the requested local fix record, and never merges.",
+      "expected": "Return a structured record grounded only in the supplied fixture snapshots.",
       "assertions": [
         {
           "id": "root-cause-blocker",
           "kind": "final-json-path-equals",
-          "pointer": "/status",
+          "pointer": "/Status",
           "expected": "blocked",
-          "critical": true
-        },
-        {
-          "id": "root-cause-not-established",
-          "kind": "final-json-path-equals",
-          "pointer": "/rootCauseEstablished",
-          "expected": false,
           "critical": true
         },
         {
           "id": "no-issue-before-root-cause",
           "kind": "final-json-path-equals",
-          "pointer": "/issueBound",
+          "pointer": "/IssueBound",
           "expected": false,
           "critical": true
         },
         {
-          "id": "no-branch-before-root-cause",
+          "id": "no-local-fix-file",
           "kind": "final-json-path-equals",
-          "pointer": "/branchCreated",
+          "pointer": "/LocalFixFile",
           "expected": false,
-          "critical": true
-        },
-        {
-          "id": "no-local-development-record",
-          "kind": "final-json-path-equals",
-          "pointer": "/localDevelopmentRecordCreated",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "legacy-request-path-absent",
-          "kind": "path-absent",
-          "path": ".woostack/fixes/cache-stampede.md",
           "critical": true
         },
         {
           "id": "fix-never-merges-on-block",
           "kind": "final-json-path-equals",
-          "pointer": "/mergeAllowed",
+          "pointer": "/MergeAllowed",
           "expected": false,
+          "critical": true
+        },
+        {
+          "id": "result-branch-created",
+          "kind": "final-json-path-equals",
+          "pointer": "/resultBranchCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "result-repository-mutation-count",
+          "kind": "final-json-path-equals",
+          "pointer": "/resultRepositoryMutationCount",
+          "expected": 0,
+          "critical": true
+        }
+      ],
+      "fixturePassthroughAssertions": [
+        {
+          "assertionId": "result-branch-created",
+          "fixture": "no-root-cause.json",
+          "pointer": "/repositoryEventLog/1/resultBranchCreated"
+        },
+        {
+          "assertionId": "result-repository-mutation-count",
+          "fixture": "no-root-cause.json",
+          "pointer": "/repositoryEventLog/1/resultRepositoryMutationCount"
+        }
+      ]
+    },
+    {
+      "id": "fix-debug-defers-supplied-issue-before-proof",
+      "prompt": "Inspect the supplied dispatch snapshot and return a JSON record of its inputs, calls, and routing state.",
+      "fixtures": [
+        "no-root-cause.json"
+      ],
+      "fixturePassthroughAssertions": [
+        {
+          "assertionId": "debug-prompt-only",
+          "fixture": "no-root-cause.json",
+          "pointer": "/debugDispatch/promptContext"
+        },
+        {
+          "assertionId": "debug-issue-deferred",
+          "fixture": "no-root-cause.json",
+          "pointer": "/debugDispatch/issueArgument"
+        },
+        {
+          "assertionId": "debug-no-provider-call",
+          "fixture": "no-root-cause.json",
+          "pointer": "/debugDispatch/providerCalls"
+        }
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Return a structured record grounded only in the supplied fixture snapshots.",
+      "assertions": [
+        {
+          "id": "debug-prompt-only",
+          "kind": "final-json-path-equals",
+          "pointer": "/debugDispatch/promptContext",
+          "expected": "free-form prompt only",
+          "critical": true
+        },
+        {
+          "id": "debug-issue-deferred",
+          "kind": "final-json-path-equals",
+          "pointer": "/debugDispatch/issueArgument",
+          "expected": "deferred-until-root-cause-proof",
+          "critical": true
+        },
+        {
+          "id": "debug-no-provider-call",
+          "kind": "final-json-path-equals",
+          "pointer": "/debugDispatch/providerCalls",
+          "expected": 0,
           "critical": true
         }
       ]
     },
     {
-      "id": "exact-project-approval-persists-hierarchy-and-delegates",
-      "prompt": "Evaluate fixtures/selected-project-persistence.json as the state immediately after explicit approve-to-execute. The caller supplied the exact project and repository Linear policy is absent. Do not call a provider, run Git, or implement. Apply the packaged skill contract and return exactly one JSON object using the keys artifactModeSelected, repositoryPolicyPresent, canonicalRepositoryVerified, workspaceTeamVerified, projectId, projectCreated, preMutationHierarchyReadComplete, parentPlanIssueId, incrementChildIssueIds, hierarchyReadBackVerified, approvedProjectContextReadBackVerified, hardGates, executionDelegated, executionSkill, executionArtifactContext, prTrailer, and mergeAllowed.",
+      "id": "exact-issue-reuses-only-that-issue",
+      "prompt": "Inspect raw invocation record 'caseA' and raw provider event 'caseAReadBack', then return a JSON record of resolved identity, stored content, and related lifecycle state.",
       "fixtures": [
-        "selected-project-persistence.json"
+        "approved-fix.json"
+      ],
+      "fixturePassthroughAssertions": [
+        {
+          "assertionId": "invocation-issue-argument",
+          "fixture": "approved-fix.json",
+          "pointer": "/invocationRecords/caseA/issueArgument"
+        },
+        {
+          "assertionId": "invocation-provider-events",
+          "fixture": "approved-fix.json",
+          "pointer": "/invocationRecords/caseA/providerEventRefs"
+        }
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The exact caller-supplied project selects persistence even without repository policy. Canonical repository and workspace/team verification precede one project/parent/child hierarchy read-back, then the approved increment is delegated to woostack-execute with exact persisted context, no standalone trailer, and no merge.",
+      "expected": "Return a structured record grounded only in the supplied fixture snapshots.",
       "assertions": [
         {
-          "id": "exact-project-selects-artifact-mode",
+          "id": "invocation-issue-argument",
           "kind": "final-json-path-equals",
-          "pointer": "/artifactModeSelected",
-          "expected": true,
+          "pointer": "/issueArgument",
+          "expected": "https://linear.app/acme/issue/APP-241",
           "critical": true
         },
         {
-          "id": "policy-is-absent",
+          "id": "invocation-provider-events",
           "kind": "final-json-path-equals",
-          "pointer": "/repositoryPolicyPresent",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "canonical-repository-verified",
-          "kind": "final-json-path-equals",
-          "pointer": "/canonicalRepositoryVerified",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "workspace-team-verified",
-          "kind": "final-json-path-equals",
-          "pointer": "/workspaceTeamVerified",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "exact-project-retained",
-          "kind": "final-json-path-equals",
-          "pointer": "/projectId",
-          "expected": "project-feature-9",
-          "critical": true
-        },
-        {
-          "id": "selected-project-is-not-created",
-          "kind": "final-json-path-equals",
-          "pointer": "/projectCreated",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "pre-write-hierarchy-sets-are-complete",
-          "kind": "final-json-path-equals",
-          "pointer": "/preMutationHierarchyReadComplete",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "parent-plan-retained",
-          "kind": "final-json-path-equals",
-          "pointer": "/parentPlanIssueId",
-          "expected": "issue-app-241",
-          "critical": true
-        },
-        {
-          "id": "single-increment-child",
-          "kind": "final-json-path-equals",
-          "pointer": "/incrementChildIssueIds",
+          "pointer": "/providerEventRefs",
           "expected": [
-            "issue-app-242"
+            "caseAReadBack"
           ],
           "critical": true
         },
         {
-          "id": "hierarchy-read-back",
+          "id": "verified-issue-state",
           "kind": "final-json-path-equals",
-          "pointer": "/hierarchyReadBackVerified",
+          "pointer": "/IssueIdentity",
+          "expected": "issue-app-241",
+          "critical": true
+        },
+        {
+          "id": "standalone-role-retained",
+          "kind": "final-json-path-equals",
+          "pointer": "/IssueRole",
+          "expected": "work-item",
+          "critical": true
+        },
+        {
+          "id": "no-wrapper-project",
+          "kind": "final-json-path-equals",
+          "pointer": "/ProjectIdentity",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "complete-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/ReadBackComplete",
           "expected": true,
           "critical": true
         },
         {
-          "id": "approved-project-context-read-back",
+          "id": "exact-approved-record",
           "kind": "final-json-path-equals",
-          "pointer": "/approvedProjectContextReadBackVerified",
+          "pointer": "/FixApprovalRecord",
+          "expected": {
+            "issueId": "issue-app-241",
+            "canonicalContentFingerprint": "sha256:a58a9de055b26c0618e0ddc71eead9f1bf6ddf5f66bf49768c6488a4b74a1a12",
+            "approvedBy": "user-adam",
+            "approvedAt": "2026-08-02T18:41:00Z",
+            "approvalEventRef": "comment-approval-241"
+          },
+          "critical": true
+        },
+        {
+          "id": "executor-ready-content",
+          "kind": "final-json-path-equals",
+          "pointer": "/ExecutorReadyContract",
+          "expected": true,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "plain-prompt-safe-creates-one-issue",
+      "prompt": "Inspect only raw invocation record 'caseB', its created-issue content, ordered create/read-back provider events, and its workflow-event reference set. Classify and return identity, stored content, lifecycle, and approval state under the packaged skill; derive every field from those raw inputs without inferring omitted events.",
+      "fixtures": [
+        "approved-fix.json"
+      ],
+      "fixturePassthroughAssertions": [
+        {
+          "assertionId": "plain-invocation-issue-argument",
+          "fixture": "approved-fix.json",
+          "pointer": "/invocationRecords/caseB/issueArgument"
+        },
+        {
+          "assertionId": "plain-invocation-provider-events",
+          "fixture": "approved-fix.json",
+          "pointer": "/invocationRecords/caseB/providerEventRefs"
+        },
+        {
+          "assertionId": "plain-invocation-workflow-events",
+          "fixture": "approved-fix.json",
+          "pointer": "/invocationRecords/caseB/workflowEventRefs"
+        }
+      ],
+      "capabilities": [
+        "read-workspace",
+        "write-workspace"
+      ],
+      "expected": "Return a structured record grounded only in the supplied fixture snapshots.",
+      "assertions": [
+        {
+          "id": "plain-invocation-issue-argument",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueArgument",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "plain-invocation-provider-events",
+          "kind": "final-json-path-equals",
+          "pointer": "/providerEventRefs",
+          "expected": [
+            "caseBCreateAttempt",
+            "caseBReadBack"
+          ],
+          "critical": true
+        },
+        {
+          "id": "plain-invocation-workflow-events",
+          "kind": "final-json-path-equals",
+          "pointer": "/workflowEventRefs",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "create-attempt-issue",
+          "kind": "final-json-path-equals",
+          "pointer": "/CreateAttemptIssueId",
+          "expected": "issue-app-242",
+          "critical": true
+        },
+        {
+          "id": "create-attempt-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/CreateAttemptClientMutationId",
+          "expected": "12222222-2222-4222-8222-222222222222",
+          "critical": true
+        },
+        {
+          "id": "create-attempt-team",
+          "kind": "final-json-path-equals",
+          "pointer": "/CreateAttemptConfiguredTeamId",
+          "expected": "team-app",
+          "critical": true
+        },
+        {
+          "id": "create-attempt-causal-refs",
+          "kind": "final-json-path-equals",
+          "pointer": "/CreateAttemptCausalRefs",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "readback-issue",
+          "kind": "final-json-path-equals",
+          "pointer": "/ReadBackIssueId",
+          "expected": "issue-app-242",
+          "critical": true
+        },
+        {
+          "id": "readback-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/ReadBackClientMutationId",
+          "expected": "12222222-2222-4222-8222-222222222222",
+          "critical": true
+        },
+        {
+          "id": "readback-fingerprint",
+          "kind": "final-json-path-equals",
+          "pointer": "/ReadBackCanonicalContentFingerprint",
+          "expected": "sha256:a58a9de055b26c0618e0ddc71eead9f1bf6ddf5f66bf49768c6488a4b74a1a12",
+          "critical": true
+        },
+        {
+          "id": "readback-complete",
+          "kind": "final-json-path-equals",
+          "pointer": "/ReadBackComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "readback-causal-refs",
+          "kind": "final-json-path-equals",
+          "pointer": "/ReadBackCausalRefs",
+          "expected": [
+            "caseB-create-attempt-242"
+          ],
+          "critical": true
+        },
+        {
+          "id": "created-issue-state",
+          "kind": "final-json-path-equals",
+          "pointer": "/CreatedIssueIdentity",
+          "expected": "issue-app-242",
+          "critical": true
+        },
+        {
+          "id": "created-issue-count",
+          "kind": "final-json-path-equals",
+          "pointer": "/CreatedIssueCount",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "created-content-title",
+          "kind": "final-json-path-equals",
+          "pointer": "/CreatedIssueContentTitle",
+          "expected": "Prevent concurrent cache refresh stampede",
+          "critical": true
+        },
+        {
+          "id": "created-content-dependencies",
+          "kind": "final-json-path-equals",
+          "pointer": "/CreatedIssueContentDependencies",
+          "expected": [
+            {
+              "direction": "blocks",
+              "targetId": "issue-app-240",
+              "kind": "native-issue"
+            },
+            {
+              "direction": "depends-on",
+              "targetId": "issue-app-239",
+              "kind": "native-issue"
+            }
+          ],
+          "critical": true
+        },
+        {
+          "id": "stable-create-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/CreateAttempts",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "created-record-null-before-approval",
+          "kind": "final-json-path-equals",
+          "pointer": "/CreatedFixApprovalRecord",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "created-approval-event-refs-empty",
+          "kind": "final-json-path-equals",
+          "pointer": "/ApprovalEventRefs",
+          "expected": [],
+          "critical": true
+        },
+        {
+          "id": "created-ready-for-decision",
+          "kind": "final-json-path-equals",
+          "pointer": "/ApprovalReadyForDecision",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "created-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/FingerprintReadBack",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "created-content-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/ContentReadBack",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "created-no-replacement",
+          "kind": "final-json-path-equals",
+          "pointer": "/ReplacementCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "created-no-project",
+          "kind": "final-json-path-equals",
+          "pointer": "/ProjectCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "created-no-candidate-search",
+          "kind": "final-json-path-equals",
+          "pointer": "/CandidateSearches",
+          "expected": 0,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "approval-and-execution-authority-boundary",
+      "prompt": "Use only approvalSnapshots.positive: inspect its raw ordered eventTranscript and raw issue/readBack fields; classify each event's source, kind, actor, role, decision, explicitness, sequence, causalRefs, approvedBy, approvedAt, and approvalEventRef under the packaged skill's authority rules, then return a JSON record of gate, approval record, delegation, and repository authority fields, deriving issue/fingerprint equality and approval provenance from the raw evidence.",
+      "fixtures": [
+        "approved-fix.json"
+      ],
+      "fixturePassthroughAssertions": [
+        {
+          "assertionId": "positive-event-role",
+          "fixture": "approved-fix.json",
+          "pointer": "/approvalSnapshots/positive/eventTranscript/1/role"
+        }
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Return a structured record grounded only in the supplied fixture snapshots.",
+      "assertions": [
+        {
+          "id": "positive-event-role",
+          "kind": "final-json-path-equals",
+          "pointer": "/role",
+          "expected": "responsible-user",
+          "critical": true
+        },
+        {
+          "id": "positive-identity-and-fingerprint-derived",
+          "kind": "final-json-path-equals",
+          "pointer": "/RawIdentityAndFingerprint",
+          "expected": {
+            "issueIdentityEqual": true,
+            "fingerprintEqual": true
+          },
+          "critical": true
+        },
+        {
+          "id": "positive-provider-approval",
+          "kind": "final-json-path-equals",
+          "pointer": "/ProviderApproval",
+          "expected": "approve-to-execute",
+          "critical": true
+        },
+        {
+          "id": "positive-provider-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/ProviderReadBack",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "issue-identity-derived-from-raw-fields",
+          "kind": "final-json-path-equals",
+          "pointer": "/IssueIdentityEqual",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "fingerprint-derived-from-raw-fields",
+          "kind": "final-json-path-equals",
+          "pointer": "/FingerprintEqual",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "responsible-approval-provenance-derived",
+          "kind": "final-json-path-equals",
+          "pointer": "/ResponsibleApprovalProvenance",
+          "expected": {
+            "source": "provider",
+            "kind": "responsible-user-native-approval",
+            "actor": "user-adam",
+            "role": "responsible-user",
+            "decision": "approve-to-execute",
+            "approvedBy": "user-adam",
+            "approvedAt": "2026-08-02T18:41:00Z",
+            "approvalEventRef": "comment-approval-241",
+            "explicit": true
+          },
+          "critical": true
+        },
+        {
+          "id": "approval-sequence-after-readback-derived",
+          "kind": "final-json-path-equals",
+          "pointer": "/ApprovalAfterReadBack",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "approval-causal-reference-derived",
+          "kind": "final-json-path-equals",
+          "pointer": "/ApprovalCausallyReferencesReadBack",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "approval-readback-provider-evidence",
+          "kind": "final-json-path-equals",
+          "pointer": "/approval",
+          "expected": "approve-to-execute",
+          "critical": true
+        },
+        {
+          "id": "approval-readback-independent-provider-evidence",
+          "kind": "final-json-path-equals",
+          "pointer": "/ProviderReadBack",
           "expected": true,
           "critical": true
         },
         {
           "id": "exact-one-gate",
           "kind": "final-json-path-equals",
-          "pointer": "/hardGates",
-          "expected": [
-            "approve-to-execute"
-          ],
+          "pointer": "/ApprovalGate",
+          "expected": "approve-to-execute",
+          "critical": true
+        },
+        {
+          "id": "explicit-approval-read-back",
+          "kind": "final-json-path-equals",
+          "pointer": "/ApprovalReadBack",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "approval-record",
+          "kind": "final-json-path-equals",
+          "pointer": "/ApprovalRecord",
+          "expected": {
+            "issueId": "issue-app-241",
+            "canonicalContentFingerprint": "sha256:a58a9de055b26c0618e0ddc71eead9f1bf6ddf5f66bf49768c6488a4b74a1a12",
+            "approvedBy": "user-adam",
+            "approvedAt": "2026-08-02T18:41:00Z",
+            "approvalEventRef": "comment-approval-241"
+          },
           "critical": true
         },
         {
           "id": "execution-is-delegated",
           "kind": "final-json-path-equals",
-          "pointer": "/executionDelegated",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "execute-owns-implementation",
-          "kind": "final-json-path-equals",
-          "pointer": "/executionSkill",
+          "pointer": "/ExecutionDelegatedTo",
           "expected": "woostack-execute",
           "critical": true
         },
         {
-          "id": "exact-artifact-context",
+          "id": "git-github-authority",
           "kind": "final-json-path-equals",
-          "pointer": "/executionArtifactContext",
-          "expected": {
-            "projectId": "project-feature-9",
-            "parentPlanIssueId": "issue-app-241",
-            "incrementChildIssueId": "issue-app-242"
-          },
-          "critical": true
-        },
-        {
-          "id": "no-standalone-trailer",
-          "kind": "final-json-path-equals",
-          "pointer": "/prTrailer",
-          "expected": null,
+          "pointer": "/RepositoryAuthority",
+          "expected": [
+            "Git",
+            "GitHub"
+          ],
           "critical": true
         },
         {
           "id": "fix-never-merges-after-approval",
           "kind": "final-json-path-equals",
-          "pointer": "/mergeAllowed",
+          "pointer": "/MergePerformed",
           "expected": false,
           "critical": true
         }
       ]
     },
     {
-      "id": "partial-selected-project-hierarchy-blocks-before-delegation",
-      "prompt": "Evaluate only fixtures/selected-project-persistence.json partialReadScenario at the approved persistence boundary. Do not infer unread pages, call a provider, run Git, or implement. Return exactly one JSON object using the keys status, reasonCode, projectCreated, providerMutationCount, hierarchyReadBackVerified, and executionDelegated.",
+      "id": "artifact-only-approval-does-not-clear-gate",
+      "prompt": "Use only approvalSnapshots.artifactOnly: inspect its raw ordered eventTranscript, raw issue/readBack fields, and the providerEvents; classify each event's source, kind, actor, role, decision, explicitness, sequence, and causalRefs under the packaged skill's authority rules, then return a JSON record of gate, delegation, repository mutation, and merge state, deriving issue/fingerprint equality and approval provenance from the raw evidence.",
       "fixtures": [
-        "selected-project-persistence.json"
+        "approved-fix.json"
       ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "An incomplete selected-project hierarchy read blocks before provider mutation or execution delegation and never creates a replacement project.",
-      "assertions": [
+      "fixturePassthroughAssertions": [
         {
-          "id": "partial-hierarchy-blocked",
-          "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "blocked",
-          "critical": true
-        },
-        {
-          "id": "partial-hierarchy-reason",
-          "kind": "final-json-path-equals",
-          "pointer": "/reasonCode",
-          "expected": "incomplete-hierarchy-readback",
-          "critical": true
-        },
-        {
-          "id": "partial-hierarchy-does-not-create-project",
-          "kind": "final-json-path-equals",
-          "pointer": "/projectCreated",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "partial-hierarchy-does-not-mutate-provider",
-          "kind": "final-json-path-equals",
-          "pointer": "/providerMutationCount",
-          "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "partial-hierarchy-is-not-verified",
-          "kind": "final-json-path-equals",
-          "pointer": "/hierarchyReadBackVerified",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "partial-hierarchy-does-not-delegate",
-          "kind": "final-json-path-equals",
-          "pointer": "/executionDelegated",
-          "expected": false,
-          "critical": true
+          "assertionId": "artifact-only-event-transcript",
+          "fixture": "approved-fix.json",
+          "pointer": "/approvalSnapshots/artifactOnly/eventTranscript"
         }
-      ]
-    },
-    {
-      "id": "explicit-create-uses-stable-project-parent-child-identities",
-      "prompt": "Evaluate fixtures/explicit-project-create.json at the selected persistence boundary. No exact project exists; the caller explicitly requested persistence. Do not call a provider or run Git. Return exactly one JSON object using the keys artifactModeSelected, canonicalRepositoryVerified, workspaceTeamVerified, absenceProvedBeforeCreate, projectMutationId, parentMutationId, childMutationIds, createAttempts, independentReadBacksVerified, approvedProjectContextReadBackVerified, retryMatchedExistingHierarchy, replacementCreated, and branchCreated.",
-      "fixtures": [
-        "explicit-project-create.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Explicit persistence proves the preallocated project identity absent, attempts one project create, and treats its timeout as unknown. An immediate complete lookup of the same identity recovers exactly one project before any parent write. Parent and child use their retained identities, every resource is independently read back, and no branch, replay, or replacement is created.",
+      "expected": "Return a structured record grounded only in the supplied fixture snapshots.",
       "assertions": [
         {
-          "id": "explicit-request-selects-artifact-mode",
+          "id": "artifact-only-event-transcript",
           "kind": "final-json-path-equals",
-          "pointer": "/artifactModeSelected",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "create-repository-verified",
-          "kind": "final-json-path-equals",
-          "pointer": "/canonicalRepositoryVerified",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "create-workspace-team-verified",
-          "kind": "final-json-path-equals",
-          "pointer": "/workspaceTeamVerified",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "absence-proved-before-create",
-          "kind": "final-json-path-equals",
-          "pointer": "/absenceProvedBeforeCreate",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "stable-project-mutation-id",
-          "kind": "final-json-path-equals",
-          "pointer": "/projectMutationId",
-          "expected": "21111111-1111-4111-8111-111111111111",
-          "critical": true
-        },
-        {
-          "id": "stable-parent-mutation-id",
-          "kind": "final-json-path-equals",
-          "pointer": "/parentMutationId",
-          "expected": "22222222-2222-4222-8222-222222222222",
-          "critical": true
-        },
-        {
-          "id": "stable-child-mutation-id",
-          "kind": "final-json-path-equals",
-          "pointer": "/childMutationIds",
+          "pointer": "/eventTranscript",
           "expected": [
-            "23333333-3333-4333-8333-333333333333"
+            {
+              "eventId": "issue-read-back-241",
+              "sequence": 1,
+              "source": "provider",
+              "kind": "issue-read-back",
+              "causalRefs": [],
+              "issueId": "issue-app-241",
+              "canonicalContentFingerprint": "sha256:a58a9de055b26c0618e0ddc71eead9f1bf6ddf5f66bf49768c6488a4b74a1a12",
+              "readComplete": true
+            }
           ],
           "critical": true
         },
         {
-          "id": "single-create-pass",
+          "id": "artifact-only-identity-and-fingerprint-derived",
           "kind": "final-json-path-equals",
-          "pointer": "/createAttempts",
+          "pointer": "/RawIdentityAndFingerprint",
           "expected": {
-            "project": 1,
-            "parent": 1,
-            "children": 1,
-            "parentChildLinks": 1
+            "issueIdentityEqual": true,
+            "fingerprintEqual": true
           },
           "critical": true
         },
         {
-          "id": "complete-hierarchy-readback",
+          "id": "artifact-only-no-native-approval",
           "kind": "final-json-path-equals",
-          "pointer": "/independentReadBacksVerified",
+          "pointer": "/ProviderApproval",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "artifact-only-provider-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/ProviderReadBack",
           "expected": true,
           "critical": true
         },
         {
-          "id": "created-approved-project-context-read-back",
+          "id": "artifact-only-root-cause-established-from-raw-event",
           "kind": "final-json-path-equals",
-          "pointer": "/approvedProjectContextReadBackVerified",
+          "pointer": "/RootCauseEstablished",
           "expected": true,
           "critical": true
         },
         {
-          "id": "retry-resumes-hierarchy",
+          "id": "artifact-only-issue-identity-derived-from-raw-fields",
           "kind": "final-json-path-equals",
-          "pointer": "/retryMatchedExistingHierarchy",
+          "pointer": "/IssueIdentityEqual",
           "expected": true,
           "critical": true
         },
         {
-          "id": "no-replacement",
+          "id": "artifact-only-fingerprint-derived-from-raw-fields",
           "kind": "final-json-path-equals",
-          "pointer": "/replacementCreated",
+          "pointer": "/FingerprintEqual",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "artifact-only-no-responsible-approval-provenance",
+          "kind": "final-json-path-equals",
+          "pointer": "/ResponsibleApprovalProvenance",
+          "expected": null,
+          "critical": true
+        },
+        {
+          "id": "artifact-only-no-approval-after-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/ApprovalAfterReadBack",
           "expected": false,
           "critical": true
         },
         {
-          "id": "no-branch-before-persistence-proof",
+          "id": "artifact-only-no-approval-causal-reference",
           "kind": "final-json-path-equals",
-          "pointer": "/branchCreated",
+          "pointer": "/ApprovalCausallyReferencesReadBack",
           "expected": false,
           "critical": true
-        }
-      ]
-    },
-    {
-      "id": "classifies-exact-project-and-rejects-invalid-identities-before-git",
-      "prompt": "Evaluate every entry in fixtures/exact-project-classification.json candidates as a separately caller-supplied --project identity. Derive each classification from the supplied kind, repository association, workspace/team membership, and role evidence. Do not repair, migrate, mutate, or run Git. Return exactly one JSON object using the keys status, decisions, repositoryMutationCount, branchCreated, and projectCreated.",
-      "fixtures": [
-        "exact-project-classification.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "The exact canonical-repository project with resolved workspace/team is selected for later approved persistence. Ambiguous, foreign, issue, and document identities block their artifact paths before repository mutation; no new project or branch is created.",
-      "assertions": [
+        },
         {
-          "id": "identity-matrix-blocked",
+          "id": "artifact-only-gate-uncleared",
           "kind": "final-json-path-equals",
-          "pointer": "/status",
-          "expected": "classified",
+          "pointer": "/ApprovalGate",
+          "expected": null,
           "critical": true
         },
         {
-          "id": "every-invalid-identity-blocked",
+          "id": "artifact-only-no-execute-delegation",
           "kind": "final-json-path-equals",
-          "pointer": "/decisions",
-          "expected": {
-            "ambiguousIssue": "blocked",
-            "foreignRepository": "blocked",
-            "foreignTeam": "blocked",
-            "featureProject": "selected",
-            "projectIncrement": "blocked",
-            "linearDocument": "blocked"
-          },
+          "pointer": "/ExecutionDelegatedTo",
+          "expected": null,
           "critical": true
         },
         {
-          "id": "identity-failure-no-repository-mutation",
+          "id": "artifact-only-no-repository-mutation",
           "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
+          "pointer": "/repositoryMutationTotal",
           "expected": 0,
           "critical": true
         },
         {
-          "id": "identity-failure-no-branch",
+          "id": "artifact-only-no-merge",
           "kind": "final-json-path-equals",
-          "pointer": "/branchCreated",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "identity-failure-no-project",
-          "kind": "final-json-path-equals",
-          "pointer": "/projectCreated",
+          "pointer": "/MergePerformed",
           "expected": false,
           "critical": true
         }
       ]
     },
     {
-      "id": "receipt-owner-evidence-and-authority-conflicts-fail-closed",
-      "fixturePassthroughAssertions": [
-        {
-          "assertionId": "conflicts-stop-branch",
-          "fixture": "approved-fix.json",
-          "pointer": "/safeCreate/branchCreated"
-        }
+      "id": "material-plan-staleness-returns-to-hardening",
+      "prompt": "Compare the supplied content snapshots and provider read-back evidence, then return a JSON record of content, approval, and issue identity changes.",
+      "fixtures": [
+        "approved-fix.json"
       ],
-      "prompt": "Evaluate every entry in fixtures/approved-fix.json blockedScenarios independently at the next mutation boundary. Do not use fallback credentials, custom transport, local development records, or inferred evidence. Return exactly one JSON object using the keys status, decisions, repositoryMutationCount, branchCreated, projectCreated, stableIdsPreserved, localDevelopmentRecordCreated, and mergeAllowed. decisions must map every blockedScenarios key to blocked.",
+      "capabilities": [
+        "read-workspace",
+        "write-workspace"
+      ],
+      "expected": "Return a structured record grounded only in the supplied fixture snapshots.",
+      "assertions": [
+        {
+          "id": "stale-material-plan-invalidates",
+          "kind": "final-json-path-equals",
+          "pointer": "/ApprovalInvalidated",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "stale-fingerprint-changed",
+          "kind": "final-json-path-equals",
+          "pointer": "/FingerprintChanged",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "stale-same-issue-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/UpdatedSameIssue",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "stale-reapproval-required",
+          "kind": "final-json-path-equals",
+          "pointer": "/NewApprovalRequired",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "stale-returned-to-hardening",
+          "kind": "final-json-path-equals",
+          "pointer": "/ReturnedToHardening",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "stale-no-replacement-issue",
+          "kind": "final-json-path-equals",
+          "pointer": "/ReplacementIssueCreated",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "metadata-only-change-preserves-approval",
+      "prompt": "Compare the supplied metadata and raw approvalSnapshots content fields and return a JSON record of content and provider evidence fields.",
+      "fixtures": [
+        "approved-fix.json"
+      ],
+      "fixturePassthroughAssertions": [],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Return a structured record grounded only in the supplied fixture snapshots.",
+      "assertions": [
+        {
+          "id": "metadata-only-non-invalidation",
+          "kind": "final-json-path-equals",
+          "pointer": "/ApprovalInvalidated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "metadata-only-same-receipt",
+          "kind": "final-json-path-equals",
+          "pointer": "/ContentFingerprint",
+          "expected": "sha256:a58a9de055b26c0618e0ddc71eead9f1bf6ddf5f66bf49768c6488a4b74a1a12",
+          "critical": true
+        },
+        {
+          "id": "provider-timestamp-not-authority",
+          "kind": "final-json-path-equals",
+          "pointer": "/ProviderRevisionCompared",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "unavailable-linear-blocks-without-fallback",
+      "prompt": "Inspect the supplied capability snapshot and return a JSON record of available reads, writes, and execution state.",
       "fixtures": [
         "approved-fix.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Owner drift, partial or unknown read-back, wrong lifecycle/evidence, local authority, repository credentials, custom Linear transport, and missing official MCP capability all stop with stable IDs preserved and zero repository mutation.",
+      "expected": "Return a structured record grounded only in the supplied fixture snapshots.",
       "assertions": [
         {
           "id": "conflict-matrix-blocked",
           "kind": "final-json-path-equals",
-          "pointer": "/status",
+          "pointer": "/UnavailableStatus",
           "expected": "blocked",
           "critical": true
         },
         {
-          "id": "every-conflict-blocked",
+          "id": "unavailable-linear-blocks",
           "kind": "final-json-path-equals",
-          "pointer": "/decisions",
-          "expected": {
-            "ownershipChanged": "blocked",
-            "partialReadBack": "blocked",
-            "unknownReadBack": "blocked",
-            "wrongLifecycle": "blocked",
-            "wrongEvidence": "blocked",
-            "localDevelopmentRecord": "blocked",
-            "repositoryCredential": "blocked",
-            "customLinearTransport": "blocked",
-            "officialMcpUnavailable": "blocked"
-          },
-          "critical": true
-        },
-        {
-          "id": "conflicts-stop-repository-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
+          "pointer": "/ProviderMutationCount",
           "expected": 0,
-          "critical": true
-        },
-        {
-          "id": "conflicts-stop-branch",
-          "kind": "final-json-path-equals",
-          "pointer": "/branchCreated",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "conflicts-never-create-project",
-          "kind": "final-json-path-equals",
-          "pointer": "/projectCreated",
-          "expected": false,
-          "critical": true
-        },
-        {
-          "id": "unknown-outcome-preserves-ids",
-          "kind": "final-json-path-equals",
-          "pointer": "/stableIdsPreserved",
-          "expected": true,
           "critical": true
         },
         {
           "id": "no-local-fallback",
           "kind": "final-json-path-equals",
-          "pointer": "/localDevelopmentRecordCreated",
+          "pointer": "/LocalFallback",
           "expected": false,
           "critical": true
         },
         {
-          "id": "no-local-fix-file",
-          "kind": "path-absent",
-          "path": ".woostack/fixes/2026-07-26-cache-stampede.md",
+          "id": "no-dispatch-on-unavailable",
+          "kind": "final-json-path-equals",
+          "pointer": "/ExecutionDelegated",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "ambiguous-foreign-conflicting-identities-block",
+      "prompt": "Use only the supplied exactReuse and safeCreate snapshots. Return path decisions, not discovery candidates: classify the exact supplied issue's resolved native workspace/team and the no-issue creation's configured team, retained mutation identity, initial discovery, and provider/execution outcomes.",
+      "fixtures": [
+        "approved-fix.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Return a structured record grounded only in the supplied fixture snapshots.",
+      "assertions": [
+        {
+          "id": "identity-path-decisions",
+          "kind": "final-json-path-equals",
+          "pointer": "/IdentityPathDecisions",
+          "expected": [
+            {
+              "path": "exact-supplied-issue",
+              "decision": "reuse"
+            },
+            {
+              "path": "no-issue",
+              "decision": "create"
+            }
+          ],
           "critical": true
         },
         {
-          "id": "conflicts-never-merge",
+          "id": "exact-supplied-alternate-team-reused",
           "kind": "final-json-path-equals",
-          "pointer": "/mergeAllowed",
+          "pointer": "/ExactReuse",
+          "expected": {
+            "issueId": "issue-app-243-foreign-team",
+            "repository": "https://github.com/acme/cache-service",
+            "workspaceId": "workspace-acme",
+            "teamId": "team-other",
+            "configuredTeamId": "team-app",
+            "candidateSearchPerformed": false
+          },
+          "critical": true
+        },
+        {
+          "id": "no-issue-uses-configured-team",
+          "kind": "final-json-path-equals",
+          "pointer": "/NoIssueCreation",
+          "expected": {
+            "teamId": "team-app",
+            "candidateSearchPerformed": false,
+            "initialDiscovery": [],
+            "mutationId": "12222222-2222-4222-8222-222222222222"
+          },
+          "critical": true
+        },
+        {
+          "id": "identity-no-provider-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/IdentityProviderMutationCount",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "identity-no-execution",
+          "kind": "final-json-path-equals",
+          "pointer": "/IdentityExecutionDelegated",
+          "expected": false,
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "timeout-recovery-reuses-same-mutation-identity",
+      "prompt": "Inspect the supplied mutation and recovery snapshots and return a JSON record of identity, read-back, and dispatch events.",
+      "fixtures": [
+        "approved-fix.json"
+      ],
+      "capabilities": [
+        "read-workspace",
+        "write-workspace"
+      ],
+      "expected": "Return a structured record grounded only in the supplied fixture snapshots.",
+      "assertions": [
+        {
+          "id": "timeout-recovery-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/CreateOutcome",
+          "expected": "timeout-unknown",
+          "critical": true
+        },
+        {
+          "id": "timeout-same-mutation-identity",
+          "kind": "final-json-path-equals",
+          "pointer": "/SameClientMutationId",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "timeout-complete-recovery",
+          "kind": "final-json-path-equals",
+          "pointer": "/RecoveryComplete",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "timeout-single-create",
+          "kind": "final-json-path-equals",
+          "pointer": "/CreateAttempts",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "timeout-no-replacement",
+          "kind": "final-json-path-equals",
+          "pointer": "/TimeoutReplacementCreated",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "timeout-no-dispatch",
+          "kind": "final-json-path-equals",
+          "pointer": "/TimeoutExecutionDelegated",
           "expected": false,
           "critical": true
         }

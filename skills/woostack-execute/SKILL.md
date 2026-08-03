@@ -21,11 +21,13 @@ most one implementation PR. Execute never merges.
 /woostack-execute <approved task-or-plan> [--project <exact Linear URL-or-UUID>] [--issue <exact Linear URL-or-UUID>] [--inline|--subagent]
 ```
 
-The approved task/plan is required. Driver flags are mutually exclusive. Without artifact flags,
-make no Linear call. With them, use only exact caller-supplied resources under the
-[optional artifact contract](../woostack-init/references/artifact-backends.md). Missing artifact
-access blocks only requested synchronization unless persistence is explicitly part of the
-deliverable.
+The approved task/plan is required. Driver flags are mutually exclusive. Standalone execution
+without artifact flags makes no Linear call. Fix-origin input has exactly one form: it carries one
+complete `fixApprovalRecord`, and the parent MUST invoke this command with the exact `--issue`
+identified by that record. Missing required identity, content, relation pagination, responsible-user
+approval evidence, or independent read-back is an admission failure, never an artifact-free route.
+With exact resources, use only those caller-supplied resources under the
+[artifact contract](../woostack-init/references/artifact-backends.md).
 
 Before execution load the shared
 [engineer-agent authority protocol](../using-woostack/references/engineer-agents.md),
@@ -57,6 +59,34 @@ persisted task/fix record. Independently read only the selected resources, fully
 fields, verify claimed repository association, and compare content to the active approved input.
 Artifacts never choose a task, owner, priority, parent, state, or gate. Conflict blocks artifact use
 until resolved; it does not silently alter the plan.
+
+For fix-origin execution, the approved input must carry exactly one:
+
+```text
+fixApprovalRecord = {
+  issueId,
+  canonicalContentFingerprint,
+  approvedBy,
+  approvedAt,
+  approvalEventRef
+}
+```
+
+Invocation MUST carry `--issue` whose exact URL/UUID resolves to `issueId`. Artifact-free,
+degraded, project-backed, and omitted-artifact routes MUST NOT accept fix-origin input.
+Independently read the exact issue, completely paginate relevant issue relations and approval
+events, and recompute the fingerprint using the shared
+[fix identity algorithm](../woostack-init/references/artifact-backends.md#fix-issue-identity-and-approval-record).
+Require exact issue ID, fingerprint, responsible-user native principal ID, approval timestamp,
+stable approval-event reference, and causal order to match the record. Provider status, labels,
+assignment, issue content alone, workflow inference, an agent-authored event, or read-back alone
+does not approve execution.
+
+Perform this check before implementation, after every worker handback, before every redispatch,
+and immediately before commit. A material title, description/plan, or admitted native dependency
+change invalidates approval; unrelated comments and metadata do not. Any missing, drifted,
+ambiguous, conflicting, unsupported, incompletely paginated, or unavailable issue/relation/approval
+evidence blocks with no local, conversational, historical-project, or alternate-provider fallback.
 
 ## Select one task
 
@@ -121,11 +151,17 @@ A contract-changing question returns to the owning workflow. A collision, unsafe
 failed invariant, or unknown mutation returns `BLOCKED`. A timeout is an unknown outcome: inspect the
 worktree/process before redispatching and never start a second writer on the same surface.
 
+For fix-origin work, every worker result is a handback boundary. Before accepting it, asking a
+reviewer to assess it, or dispatching another implementation packet, repeat the exact issue,
+relation, fingerprint, and responsible-user approval-event check. Drift returns control to
+`woostack-fix`; the worker result never silently updates the approved contract.
+
 ## Commit and PR boundary
 
-After verification and reviews pass on one unchanged diff, the controller invokes
-[`woostack-commit`](../woostack-commit/SKILL.md) with the same bounded task contract. Immediately
-before the boundary, re-read the task/run contract, deterministic path,
+After verification and reviews pass on one unchanged diff, perform the final fix-origin issue,
+relation, fingerprint, and responsible-user approval-event check when applicable. Only then may the
+controller invoke [`woostack-commit`](../woostack-commit/SKILL.md) with the same bounded task
+contract. Immediately before that boundary, also re-read the task/run contract, deterministic path,
 `git worktree list --porcelain`, branch, Graphite parent, complete dirty/index/diff state, and
 ancestry.
 
@@ -139,29 +175,29 @@ On unknown outcome, rediscover before retrying. Never duplicate a commit, branch
 After verified delivery, tear down only the exact clean task worktree. Preserve it on failure,
 collision, blocker, handoff, or unknown outcome.
 
-## Fix/build abandonment
+## Abandonment
 
-If the user or owning controller explicitly abandons a fix/build at any point after execution
-handoff, stop admitting or dispatching work, cancel every active implementation, review, commit, or
-submission driver before its next mutation, and preserve its current branch/worktree/PR evidence
-without cleanup. Re-read Git, Graphite, and GitHub after cancellation and verify every driver is
-quiescent before project closure or handback.
+When the user explicitly abandons a fix/build after handoff, stop admitting or dispatching work,
+cancel every active implementation, review, commit, or submission driver before its next mutation,
+preserve current branch/worktree/PR evidence, re-read Git/Graphite/GitHub, and verify every driver is
+quiescent before closure or handback.
 
-When an exact plan project exists, follow the
-[Linear artifact contract](../woostack-init/references/artifact-backends.md) to set only that
-project's native status to the configured `projectStatuses.canceled` value and independently read
-the closure back. If no exact persisted project exists, report that there is nothing to close and
-make no provider write. Do not create a project merely to cancel it or bulk-change issue states.
+For a project-backed build/plan task, when an exact plan project exists, follow the canonical
+[project-backed workflow closure](../woostack-init/references/artifact-backends.md#project-backed-workflow-closure):
+set only its native status to configured `projectStatuses.canceled` and independently read it back.
+A fix's exact issue is not a project: preserve it and append only a verified minimal note. If no
+exact persisted project exists, report that there is nothing to close and make no provider write.
+Do not create a project merely to cancel it or bulk-change issue states.
 
 Handoff, replanning, blockers, pauses, and failed tasks are not abandonment and leave the project
-open. An unavailable, failed, or unknown closure returns a truthful artifact blocker with the stable
-project identity and safe retry boundary; it never resumes repository work or claims closure.
+open. Unknown closure/note outcomes are truthful artifact blockers with the stable issue/project
+identity and safe retry boundary; they never resume repository work or claim closure.
 
 ## Optional artifact synchronization
 
 Only when explicitly selected, append the persisted task's observed branch, commit, PR, changed
 paths, verification, review, and blockers. Independently read each write back. Except for the
-workflow-owned fix/build project closure above, do not change artifact scope, assignment, ownership,
+workflow-owned project-backed closure above, do not change artifact scope, assignment, ownership,
 status, acceptance, dependencies, relations, or project membership. Artifact failure is separate
 from repository execution.
 

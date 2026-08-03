@@ -5,8 +5,9 @@ description: Install woostack, initialize local support with automatic safe Line
 
 <Callout type="info">
   The user's approved workflow contract defines scope. Git and GitHub own code, branches, pull
-  requests, reviews, and merges. Linear records plans only for an exact caller-selected artifact or
-  explicit persistence request and never authorizes repository work.
+  requests, reviews, and merges. Linear records caller-selected build/standalone-plan artifacts
+  or explicitly requested plan persistence, plus one issue for a proved new fix after root-cause
+  proof. It never authorizes repository work.
 </Callout>
 
 ## 1. Install the skills
@@ -34,8 +35,8 @@ and does not create a specification, plan, fix, issue, project, branch, or PR. E
 attempts safe read-only Linear default discovery through the host-exposed official MCP. Missing or
 incomplete Linear capability is reported separately and never blocks local initialization.
 
-Read [Configuration](/docs/configuration) for optional policy. Artifact-free workflows require no
-provider connection or persistence selection.
+Read [Configuration](/docs/configuration) for optional policy. Build and plan persistence require
+explicit selection; a proved fix prompt binds or creates one issue after proof and needs no project.
 
 ## 3. Choose the workflow
 
@@ -68,12 +69,14 @@ is a separately reported setup skip/blocker and does not fail ordinary local ini
 Authentication stays in the host's MCP/OAuth secret store. Never place API keys, credentials,
 tokens, or authorization headers in repository config, prompts, logs, or generated files.
 
-The `linear` configuration supplies validated defaults only after a later caller supplies an exact
-resource or explicitly requests persistence. It cannot trigger provider access or authorize a
-write. Before selected persistence, the workflow verifies the canonical repository association and
-resolved caller-selected workspace/team, then stores one project, one parent plan issue, and one
-native child issue per increment with independent read-back. `woostack-change` never contacts
-Linear.
+The `linear` configuration supplies validated defaults for caller-selected exact build/plan
+resources or explicitly requested build/plan persistence. For a proved new fix without an exact
+issue, its configured team is used only to create that one issue after root-cause proof. It cannot
+authorize a write. Before selected persistence or fix issue creation, the workflow verifies the
+canonical repository association and resolves caller-selected workspace/team for exact resources
+or the configured team for new-fix creation, then independently reads back the exact mutation.
+Build/plan use one project, one parent plan issue, and one native child issue per increment; new
+fixes use one issue. `woostack-change` never contacts Linear.
 
 ## 5. Optional: configure a Hermes + OMP engineer pair
 
@@ -105,7 +108,7 @@ provider capabilities. It never requests credentials or queries production durin
 
 [woostack-respond](/docs/skills/woostack-respond) writes sanitized local diagnostic reports and
 keeps raw provider evidence transient. Reports are advisory; a remediation route independently
-hardens its fix/change/build contract and may run artifact-free.
+hardens its contract, and a proved fix route binds or creates one issue after root-cause proof.
 
 ## Setup references
 
@@ -115,7 +118,7 @@ hardens its fix/change/build contract and may run artifact-free.
   <Card title="Engineer agents" href="/docs/concepts/engineer-agents" description="Decision, implementation, review, and acceptance separation." />
   <Card title="Hermes" href="/docs/harnesses/hermes" description="Optional decision-maker and independent reviewer adapter." />
   <Card title="OMP" href="/docs/harnesses/omp" description="Host-owned workers and the optional isolated coder role." />
-  <Card title="Official Linear MCP" href="https://mcp.linear.app/mcp" description="Supported connection for optional Linear artifacts." />
+  <Card title="Official Linear MCP" href="https://mcp.linear.app/mcp" description="Build/plan persistence and the proved-fix issue path." />
 </Cards>
 
 ## Recommended companions

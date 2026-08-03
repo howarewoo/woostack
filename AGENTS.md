@@ -65,13 +65,16 @@ framing pages are committed. Deploy notes live in [`site/README.md`](site/README
 ## Consumer development artifacts
 
 Linear is optional and never development authority. `/woostack-init` may use the official Linear
-MCP for automatic authenticated read-only setup discovery; that narrow exception never selects
-artifact mode or permits a provider write. Outside that setup, an exact caller-supplied resource or
-explicit persistence request selects Linear artifact mode; otherwise commands make no Linear read
-or write. Selected fix/build/standalone plan persistence uses one project, one parent plan issue,
-and one native child issue per increment; `woostack-change` never contacts Linear. Explicit
-abandonment at any phase closes an existing persisted fix/build project through the configured
-canceled project status and independent read-back; handoff, replanning, and blockers leave it open.
+MCP for automatic authenticated read-only setup discovery; that exception never selects artifact mode
+or permits a provider write. Build and standalone-plan workflows require an exact project or explicit
+persistence request; otherwise they make no Linear read or write. Selected build/standalone-plan
+persistence uses one project, one parent plan issue, and one native child issue per increment. A
+proved new `/woostack-fix` prompt is the narrow exception: after root-cause proof it binds one exact
+issue or creates one configured-team issue, with no project/parent/child hierarchy. Before proof it
+makes no provider call. `woostack-change`
+never contacts Linear. Explicit abandonment closes only project-backed build/plan (or historical fix)
+projects through configured canceled status/read-back; new fix abandonment preserves its exact issue and
+may append only a verified note. Handoff, replanning, and blockers leave project status unchanged.
 
 The user's request and each workflow's explicit approval gates authorize repository work; artifacts
 record that work and never grant permission, assignment, ownership, acceptance, or source-control

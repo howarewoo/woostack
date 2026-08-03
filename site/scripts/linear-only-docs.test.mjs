@@ -33,6 +33,8 @@ const PATHS = [
   'site/content/docs/concepts/engineer-agents.mdx',
   'site/content/docs/harnesses/hermes.mdx',
   'site/content/docs/harnesses/omp.mdx',
+  'skills/using-woostack/references/hosts/omp.md',
+  'site/content/docs/harnesses/index.mdx',
 ];
 
 let files;
@@ -125,18 +127,17 @@ function fencedBlocks(value) {
   return [...value.matchAll(/```[^\n]*\n([\s\S]*?)```/g)].map((match) => match[1]);
 }
 
-test('Linear provider access requires unnegated explicit selection', () => {
+test('Linear access distinguishes the proved fix issue exception from build/plan selection', () => {
   for (const relativePath of [
     'AGENTS.md',
+    'README.md',
     'skills/using-woostack/SKILL.md',
     'skills/woostack-init/references/artifact-backends.md',
     'skills/woostack-build/SKILL.md',
-    'skills/woostack-fix/SKILL.md',
     'skills/woostack-plan/SKILL.md',
     'site/content/docs/getting-started.mdx',
     'site/content/docs/concepts.mdx',
     'site/content/docs/concepts/building-rules.mdx',
-    'site/content/docs/concepts/workflows.mdx',
   ]) {
     const claim = semanticClauses(read(relativePath)).find(
       (clause) =>
@@ -144,18 +145,83 @@ test('Linear provider access requires unnegated explicit selection', () => {
         /select|persist|provider|Linear|artifact mode/i.test(clause) &&
         !NEGATION.test(clause)
     );
-    assert.ok(claim, `${relativePath}: must contain an unnegated explicit-selection claim`);
+    assert.ok(claim, `${relativePath}: build/plan explicit-selection claim missing`);
   }
+  const fix = read('skills/woostack-fix/SKILL.md').replace(/\s+/g, ' ');
+  assert.match(fix, /Before root-cause proof.*no provider read or write/i);
+  assert.match(fix, /without `--issue`.*create exactly one native work-item issue/i);
+  assert.match(fix, /no `--project` path/i);
+});
+test('new fix provider boundary and driver selection are explicit', () => {
+  for (const relativePath of [
+    'README.md',
+    'site/content/docs/index.mdx',
+    'skills/using-woostack/references/hosts/omp.md',
+    'site/content/docs/harnesses/index.mdx',
+  ]) {
+    const text = read(relativePath).replace(/\s+/g, ' ');
+    assert.match(text, /Linear remains optional for non-fix workflows and for fix diagnosis before root-cause proof/i,
+      `${relativePath}: must qualify provider optionality`);
+    assert.match(text, /proved new fix requires the configured official MCP issue path before implementation/i,
+      `${relativePath}: must require official issue path after proof`);
+  }
+  const fix = read('skills/woostack-fix/SKILL.md').replace(/\s+/g, ' ');
+  assert.match(fix, /`--inline` and `--subagent` select only the read-only debug driver and are mutually exclusive/i);
+  assert.match(fix, /Use a subagent when available by default/i);
+  assert.match(fix, /explicitly requested subagent is unavailable.*disclose the degradation.*run inline only when safe/i);
+  assert.doesNotMatch(fix, /No driver flag uses inline read-only diagnosis/i);
+  assert.doesNotMatch(fix, /blocks diagnosis when it is unavailable/i);
+});
+test('authored public surfaces keep optional selection boundary and narrow new-fix exception', () => {
+  const surfaces = new Map([
+    [
+      'README.md',
+      {
+        selection: /Build\/standalone-plan projects require exact selection or explicit persistence/i,
+        fix: /proved new fix prompt binds or creates one issue after root-cause proof/i,
+      },
+    ],
+    [
+      'site/content/docs/getting-started.mdx',
+      {
+        selection: /Build and plan persistence require explicit selection/i,
+        fix: /proved fix prompt binds or creates one issue after proof/i,
+      },
+    ],
+    [
+      'site/content/docs/index.mdx',
+      {
+        selection: /caller-selected build\/standalone-plan persistence/i,
+        fix: /proved new fix prompt binds or creates one compatible issue after root-cause proof/i,
+      },
+    ],
+    [
+      'site/content/docs/configuration.mdx',
+      {
+        selection: /exact build\/plan artifacts or explicitly requested build\/plan persistence/i,
+        fix: /proved `\/woostack-fix` that creates one issue without an exact issue/i,
+      },
+    ],
+  ]);
 
-  const negated = semanticClauses('Linear is never used regardless of an explicit persistence request.');
-  assert.equal(
-    negated.some((clause) => /explicit persistence request/i.test(clause) && !NEGATION.test(clause)),
-    false,
-    'negated persistence prose must not satisfy explicit-selection semantics'
-  );
+  for (const [relativePath, { selection, fix }] of surfaces) {
+    const text = read(relativePath).replace(/\s+/g, ' ');
+    assert.match(text, selection, `${relativePath}: build/plan selection boundary is missing`);
+    assert.match(text, fix, `${relativePath}: proved new-fix issue exception is missing`);
+    assert.doesNotMatch(
+      text,
+      /Linear records plans only for an exact caller-selected artifact or explicit persistence request|Without an exact artifact or explicit persistence request, commands make no Linear call/i,
+      `${relativePath}: stale universal no-call claim remains`
+    );
+    assert.doesNotMatch(
+      text,
+      /(?:linear object|defaults).{0,80}(?:only after artifact selection|only after the caller supplies an exact resource)/i,
+      `${relativePath}: stale default-selection-only claim remains`
+    );
+  }
 });
 
-test('the persisted plan uses one project, one parent plan issue, and one child per increment', () => {
+test('build and standalone-plan persistence keeps one hierarchy while new fixes keep one issue', () => {
   for (const relativePath of [
     'README.md',
     'AGENTS.md',
@@ -172,6 +238,10 @@ test('the persisted plan uses one project, one parent plan issue, and one child 
     assert.match(text, /one (?:native )?child issue.{0,80}(?:per|for every) increment/i,
       `${relativePath}: must state one child issue per increment`);
   }
+  const fix = read('skills/woostack-fix/SKILL.md').replace(/\s+/g, ' ');
+  assert.match(fix, /bind exactly one issue/i);
+  assert.doesNotMatch(fix, /fix plan is persisted as one project/i);
+  assert.doesNotMatch(fix, /one project.*parent plan issue.*child increment/i);
 });
 
 test('selected Linear capability is proved without reading repository credentials', () => {
@@ -192,15 +262,15 @@ test('selected Linear capability is proved without reading repository credential
 
 test('selected persistence fails safely and every mutation is read back', () => {
   const contract = read('skills/woostack-init/references/artifact-backends.md').replace(/\s+/g, ' ');
-  assert.match(contract, /Missing provider capability cannot authorize a fallback write/i);
-  assert.match(contract, /Once persistence is explicitly selected.{0,260}block its execution handoff or completion on failure/i);
+  assert.match(contract, /Missing required capability blocks the selected operation/i);
+  assert.match(contract, /fix requires complete fix-plan content, relation, and approval-event read-back before dispatch/i);
   assert.match(contract, /perform a new independent complete read/i);
 
   const procedure = read('skills/woostack-build/references/linear-procedure.md').replace(/\s+/g, ' ');
   assert.match(procedure, /verify every issue, parent-child link, and dependency relation through independent complete read-back/i);
 });
 
-test('abandonment closes an existing fix/build project without creating one', () => {
+test('abandonment closes only project-backed workflows and preserves new fix issues', () => {
   for (const relativePath of [
     'README.md',
     'AGENTS.md',
@@ -208,7 +278,6 @@ test('abandonment closes an existing fix/build project without creating one', ()
     'skills/woostack-init/references/artifact-backends.md',
     'skills/woostack-build/SKILL.md',
     'skills/woostack-build/references/linear-context.md',
-    'skills/woostack-fix/SKILL.md',
     'site/content/docs/configuration.mdx',
     'site/content/docs/concepts.mdx',
     'site/content/docs/concepts/building-rules.mdx',
@@ -217,38 +286,34 @@ test('abandonment closes an existing fix/build project without creating one', ()
     const content = read(relativePath).replace(/\s+/g, ' ');
     assert.match(content, /explicit(?:ly)?(?:\s+\S+){0,3}\s+abandon/i,
       `${relativePath}: must cover explicit abandonment`);
-    assert.match(
-      content,
-      /(?:abandon.{0,500}(?:existing|persisted|exact|project exists).{0,200}project.{0,250}(?:cancel|canceled|close)|(?:cancel|canceled|close).{0,250}(?:existing|persisted|exact).{0,200}project.{0,250}abandon)/i,
-      `${relativePath}: abandonment must close an existing fix/build project as canceled`
-    );
-    assert.match(
-      content,
-      /(?:abandon.{0,2000}(?:independent(?:ly)?.{0,50}read(?:-back| back)|reads?.{0,60}(?:closure|transition|status).{0,30}back)|(?:independent(?:ly)?.{0,50}read(?:-back| back)|reads?.{0,60}(?:closure|transition|status).{0,30}back).{0,1200}abandon)/i,
-    );
-    assert.match(
-      content,
+    assert.match(content,
+      /(?:abandon.{0,500}(?:(?:existing|persisted|exact|project exists|project-backed).{0,200}project.{0,250}(?:cancel|canceled|close)|project-backed.{0,250}(?:cancel|canceled|close))|(?:cancel|canceled|close).{0,250}(?:existing|persisted|exact|project-backed).{0,200}project.{0,250}abandon)/i,
+      `${relativePath}: project-backed abandonment must close an existing project`);
+    assert.match(content,
+      /(?:abandon.{0,2000}(?:independent(?:ly)?.{0,50}read(?:-back| back)|read-back|status\/read-back|reads?.{0,60}(?:closure|transition|status).{0,30}back)|(?:independent(?:ly)?.{0,50}read(?:-back| back)|read-back|status\/read-back|reads?.{0,60}(?:closure|transition|status).{0,30}back).{0,1200}abandon)/i);
+    assert.match(content,
       /(?:handoff|hand off).{0,140}(?:replan|replanning).{0,140}blocker.{0,220}(?:not abandonment|do not close|leave.{0,60}open|unchanged|do not)/i,
-      `${relativePath}: non-abandonment outcomes must leave the project open`
-    );
+      `${relativePath}: non-abandonment outcomes must leave the project open`);
   }
-
+  const fix = read('skills/woostack-fix/SKILL.md').replace(/\s+/g, ' ');
+  assert.match(fix, /preserve the exact bound or created issue.{0,160}do not create or close a project for a fix/i);
+  assert.match(fix, /verified abandonment note|append only.*verified.*note/i);
+  assert.doesNotMatch(fix, /projectStatuses\.canceled/i);
   const contract = read('skills/woostack-init/references/artifact-backends.md').replace(/\s+/g, ' ');
   assert.match(contract, /projectStatuses\.canceled|configured canceled/i);
   assert.match(contract, /(?:do not|never)[^.]{0,160}create a project merely to cancel it/i);
   assert.match(contract, /update only that project's native status/i);
   assert.match(contract, /independently re-read the exact project/i);
-
   const procedure = read('skills/woostack-build/references/linear-procedure.md').replace(/\s+/g, ' ');
   assert.match(procedure, /neutral canonical artifact contract/i);
   assert.doesNotMatch(procedure, /update only that project's native status/i);
   assert.doesNotMatch(contract, /linear-procedure\.md/i);
 });
 
-test('explicit creation never fuzzy-matches an exact existing project', () => {
+test('explicit creation never fuzzy-matches an exact existing resource', () => {
   const contract = read('skills/woostack-init/references/artifact-backends.md').replace(/\s+/g, ' ');
   assert.match(contract, /exact caller-supplied resource always takes precedence over creation/i);
-  assert.match(contract, /Never infer an existing artifact from a title/i);
+  assert.match(contract, /Never infer (?:an existing )?artifact from a title/i);
 
   const procedure = read('skills/woostack-build/references/linear-procedure.md').replace(/\s+/g, ' ');
   assert.match(procedure, /Never discover or reuse a project by title or recent activity/i);
@@ -266,18 +331,27 @@ test('woostack-change has no Linear command or synchronization surface', () => {
     'workflow docs must keep change artifact-free');
 });
 
-test('Linear artifacts never authorize repository work', () => {
+test('only exact native fix approval authorizes repository work', () => {
   for (const relativePath of [
     'README.md',
     'AGENTS.md',
-    'skills/using-woostack/SKILL.md',
-    'skills/woostack-init/references/artifact-backends.md',
     'skills/woostack-build/SKILL.md',
-    'skills/woostack-fix/SKILL.md',
     'site/content/docs/concepts.mdx',
   ]) {
     assertContains(relativePath, /(?:never\s+(?:grant|authorize)|do not assign permission|never\s+authorizes)/i,
-      'must preserve the repository authority boundary');
+      'must preserve the ordinary artifact authority boundary');
+  }
+  for (const relativePath of [
+    'skills/using-woostack/SKILL.md',
+    'skills/woostack-init/references/artifact-backends.md',
+    'skills/woostack-fix/SKILL.md',
+  ]) {
+    assertContains(relativePath,
+      /responsible[-\s]user(?:'s)?[\s\S]{0,240}(?:approvalEventRef|approval event|explicit approval comment|native approval event)/i,
+      'must require the responsible user native approval event');
+    assertContains(relativePath,
+      /matching fix execution gate|matching fix issue revision|exact issue revision authorizes execution/i,
+      'must bind approval authority to one exact fix revision');
   }
 });
 
@@ -285,7 +359,7 @@ test('authored setup order keeps initialization, role isolation, binding, and di
   assertInOrder('README.md', [
     ['initialization', /\b2\.\s+Initialization\b/i],
     ['repository policy', /\b4\.\s+Repository Policy\b/i],
-    ['post-selection Linear setup', /\b5\.\s+Linear Plan Persistence\b/i],
+    ['post-selection Linear setup', /\b5\.\s+Linear Artifact Context\b/i],
   ]);
   assertInOrder('site/content/docs/getting-started.mdx', [
     ['initialize local support', /\b2\.\s+Initialize local support\b/i],
@@ -295,7 +369,7 @@ test('authored setup order keeps initialization, role isolation, binding, and di
   ]);
   assertInOrder('skills/using-woostack/references/hosts/hermes.md', [
     ['provision profiles', /\b1\.\s+provision distinct\b/i],
-    ['configure selected MCP', /\b2\.\s+only for caller-selected artifacts\b/i],
+    ['configure selected MCP', /\b2\.\s+for caller-selected build\/standalone artifacts or a proved fix's required issue/i],
     ['split credentials', /\b3\.\s+split repository\/GitHub credentials\b/i],
     ['install launchers', /\b4\.\s+install and checksum-check\b/i],
     ['preflight fresh sessions', /\b5\.\s+start fresh sessions\b/i],

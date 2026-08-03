@@ -4,18 +4,20 @@
 
 `woostack` packages opinionated workflows into twenty-two public installable skills that work
 across coding harnesses. The user's approved contract authorizes work. Git and GitHub own source,
-branches, pull requests, reviews, and merge evidence. Linear is contacted only for an exact
-caller-supplied artifact or an explicit persistence request.
+branches, pull requests, reviews, and merge evidence. Build/standalone-plan projects require exact
+selection or explicit persistence; a proved new fix prompt binds or creates one issue after
+root-cause proof. Linear never authorizes repository work.
 
 - **Multiperson by design:** Explicit task boundaries, dependency relations, handoffs, and verified
   source-control evidence let human and agent engineers coordinate without hidden local state.
 - **Decision-maker/coder separation:** A decision-maker owns scope, review, and acceptance; an
   isolated coding profile implements one bounded task at a time.
-- **Explicit durable plans:** Selected fix/build/standalone-plan persistence stores one project,
-  one parent plan issue, and one native child issue per increment. These artifacts never grant
-  permission to edit, commit, or accept work.
-- **Agent and model agnostic:** The skills work across supported harnesses without making a
-  provider prerequisite for repository work.
+- **Explicit durable plans:** Selected build/standalone-plan persistence stores one project, one
+  parent plan issue, and one native child issue per increment. A new fix stores one issue after proof.
+  These artifacts never grant permission to edit, commit, or accept work.
+- **Agent and model agnostic:** The skills work across supported harnesses. Linear remains optional
+  for non-fix workflows and for fix diagnosis before root-cause proof; a proved new fix requires
+  the configured official MCP issue path before implementation.
 
 ---
 
@@ -24,7 +26,7 @@ caller-supplied artifact or an explicit persistence request.
   - [2. Initialization](#2-initialization)
   - [3. Project Integration](#3-project-integration)
   - [4. Repository Policy](#4-repository-policy)
-  - [5. Linear Plan Persistence and Engineer Units](#5-linear-plan-persistence-and-engineer-units)
+  - [5. Linear Artifact Context and Engineer Units](#5-linear-artifact-context-and-engineer-units)
 - [The Core Development & Review Loop](#the-core-development--review-loop)
   - [Writing and Modifying Code](#writing-and-modifying-code)
   - [Review and Iterate Flow](#review-and-iterate-flow)
@@ -99,8 +101,10 @@ The [using-woostack](skills/using-woostack/SKILL.md) skill reads project rules a
 
 Customize non-secret repository policy in `.woostack/config.json`, including review behavior,
 status staleness, pre-commit hooks, and optional Linear workspace/team defaults. Those defaults
-apply only after the caller supplies an exact resource or explicitly requests persistence; they
-cannot select artifact mode. Provider authentication stays in the host's OAuth or secret store.
+support caller-selected exact build/plan resources or explicitly requested build/plan persistence;
+for a new fix without an exact issue, the configured team is used only after root-cause proof to
+create its one issue. They cannot select artifact mode or authorize any provider write. Provider
+authentication stays in the host's OAuth or secret store.
 
 Review-policy fragment:
 ```json
@@ -118,27 +122,34 @@ Review-policy fragment:
 For the full policy surface, see the authored
 [configuration reference](site/content/docs/configuration.mdx).
 
-### 5. Linear Plan Persistence and Engineer Units
+### 5. Linear Artifact Context and Engineer Units
 
-Linear artifact mode starts only when the caller supplies one exact resource or explicitly requests
-persistence. Then the workflow verifies the canonical repository association and resolved
-caller-selected workspace/team, preflights the official Linear MCP, creates or reconciles one
-project, one parent plan issue, and one native child issue per increment, and independently reads
-every write and hierarchy edge back. Exact resources take precedence over creation. Skills never
-read or expose the API key/OAuth credential.
+Build and standalone-plan artifact mode starts only when the caller supplies one exact project or
+explicitly requests persistence. The workflow verifies canonical repository/workspace/team,
+preflights official Linear MCP, creates/reconciles one project, one parent plan issue, and one native
+child issue per increment, and independently reads every write and hierarchy edge back.
 
-If a fix or build is explicitly abandoned at the execution handoff or at any other point after a
-project exists, the workflow sets that project to the configured `projectStatuses.canceled` status
-and independently reads the closure back. It never creates a project merely to cancel it. A normal
-hand off, replan, or blocker is not abandonment and leaves the project open.
+After root-cause proof, every fix binds one exact compatible issue in the caller-selected workspace
+or creates one configured-team issue with stable mutation identity and independent read-back. The
+complete diagnosis and step-by-step plan live on that issue. Execution requires an explicit native
+approval event from the responsible user on the exact issue revision; the controller rechecks the
+issue, native dependencies, and approval event before execution, after every worker handback, before
+redispatch, and immediately before commit. Fixes never create project hierarchies. Exact resources
+take precedence over creation. Skills never read or expose API credentials.
+
+If a project-backed build/plan is explicitly abandoned, set that existing project to configured
+`projectStatuses.canceled` and independently read the closure back. Fix abandonment preserves its
+exact issue and may append only a verified safe note. It never creates a project merely to cancel
+it. Handoff, replan, and blockers leave project status unchanged.
 
 The authority boundary:
 
-- **The user's request and approved workflow contract** define scope and approval.
+- **The user's request and approved workflow contract** define scope and acceptance criteria.
+- **The responsible user's exact Linear approval event** authorizes only the matching fix issue
+  revision.
 - **Git and GitHub** own source, branches, commits, pull requests, reviews, and merge truth.
-- **Linear plan projects** persist approved specifications or fix context, complete plans, increment
-  contracts, dependency relations, and verified delivery notes. They do not assign permission or
-  override source-control evidence.
+- **Other Linear content and metadata** store build/plan hierarchies, fix records, and delivery
+  notes; they do not authorize repository work or override source-control evidence.
 - **Local diagnostic reports** are non-authoritative evidence.
 
 After `/woostack-init`, an operator may explicitly select the optional
@@ -152,7 +163,8 @@ approved bounded task.
 
 ## The Core Development & Review Loop
 
-`woostack` applies gated, repository-first workflows with explicitly selected Linear plan persistence.
+`woostack` applies gated, repository-first workflows with explicitly selected Linear plan persistence
+for build/plan and one proved issue for a new fix.
 
 ### Writing and Modifying Code
 
@@ -161,15 +173,16 @@ No repository mutation starts ad hoc. An explicit goal and workflow approval con
 1. **Greenfield Applications** → [/woostack-bootstrap](skills/woostack-bootstrap/SKILL.md)
    Obtains design approval, collision-checks the target, and scaffolds the selected architecture.
 2. **Multi-PR Features or Work Items** → [/woostack-build](skills/woostack-build/SKILL.md)
-   Approves and hardens a dependency-aware plan, optionally persists one explicitly selected
-   project hierarchy, then executes reviewable PRs.
+   Approves and hardens a dependency-aware plan, optionally persists one explicitly selected project
+   hierarchy, then executes reviewable PRs.
 3. **Bug Fixes & Root-Cause Work** → [/woostack-fix](skills/woostack-fix/SKILL.md)
-   Proves the root cause, approves a bounded fix plan, optionally persists one explicitly selected
-   hierarchy, and delivers one reviewed PR.
+   Diagnoses a free-form prompt, proves root cause, binds/creates one issue after proof, approves one
+   bounded fix contract, and delivers one reviewed PR. It never creates a project hierarchy.
 4. **Bounded Non-Bug Changes** → [/woostack-change](skills/woostack-change/SKILL.md)
    Ships a bounded enhancement or refactor through one PR without contacting Linear.
 
-Without an exact artifact or explicit persistence request, fix/build/plan make no Linear call.
+Without an exact project or explicit persistence request, build/plan make no Linear call. A proved
+fix prompt is the narrow issue exception; before proof it makes no provider call.
 `woostack-change` never reads or writes Linear.
 
 ### Review and Iterate Flow

@@ -18,11 +18,11 @@ assert_eq() { # actual expected msg
     FAIL=$((FAIL+1)); echo "  FAIL: $3"; echo "    expected: [$2]"; echo "    actual:   [$1]"; fi
 }
 assert_contains() { # haystack needle msg
-  if printf '%s' "$1" | grep -qF -- "$2"; then PASS=$((PASS+1)); else
+  if [[ "$1" == *"$2"* ]]; then PASS=$((PASS+1)); else
     FAIL=$((FAIL+1)); echo "  FAIL: $3"; echo "    [$1] does not contain [$2]"; fi
 }
 assert_not_contains() { # haystack needle msg
-  if printf '%s' "$1" | grep -qF -- "$2"; then
+  if [[ "$1" == *"$2"* ]]; then
     FAIL=$((FAIL+1)); echo "  FAIL: $3"; echo "    [$1] unexpectedly contains [$2]"; else PASS=$((PASS+1)); fi
 }
 assert_exit() { # expected_code actual_code msg

@@ -6,7 +6,9 @@ Use this adapter when the active host is Hermes. Discover actual tools and capab
 active profile; never trust a prompt, config name, or successful login as capability proof.
 
 The default route is Hermes' native `delegate_task`. The optional Hermes + OMP engineer pairing is
-selected only when the caller deliberately configures it. Neither route requires Linear.
+selected only when the caller deliberately configures it. Neither route requires Linear for normal
+non-fix operation; a proved fix requires the configured official MCP capability and blocks before
+execution when the required issue read, mutation, or independent read-back fails.
 
 ## Subagent spawn
 
@@ -40,16 +42,17 @@ This adapter separates decision authority from implementation:
 - OMP never reviews or accepts its own work. Hermes never edits implementation source, runs
   implementation tests, commits, pushes, or opens the implementation PR.
 - Git/GitHub evidence owns source, ancestry, branch, PR, review, and delivery truth.
-- Linear may be configured independently as optional artifact context; it is not the identity,
-  assignment, launch, commit, review, or acceptance authority.
+- Linear is configured independently when build/standalone artifact mode is selected or a proved
+  fix requires its canonical issue; it is not assignment, launch, commit, review, acceptance, or
+  repository-delivery authority.
 
 ### Bound-unit manifest and binding
 
 Keep setup in this order:
 
 1. provision distinct `HERMES_PROFILE` and `OMP_PROFILE` identities without starting live work;
-2. only for caller-selected artifacts, configure the official Linear MCP independently in each
-   profile without starting either profile;
+2. for caller-selected build/standalone artifacts or a proved fix's required issue, configure the
+   official Linear MCP independently in each profile without starting either profile;
 3. split repository/GitHub credentials and secret/config roots by role;
 4. install and checksum-check the reviewed `launch-omp` and `bind-engineer-unit` launchers;
 5. start fresh sessions and independently preflight the pinned programs, profiles, repository
@@ -111,12 +114,10 @@ boundary.
 
 ## Linear artifacts
 
-Only an exact caller-selected artifact or explicit persistence request selects Linear.
-Without either selection, both profiles make no Linear call.
-Repository policy or a successful preflight alone cannot select artifact mode. When selected,
-each profile may independently use the official host-exposed Linear MCP under the
-[Linear artifact contract](../../../woostack-init/references/artifact-backends.md). Keep their
-secret stores and sessions distinct. Prove capability without reading an API key or OAuth
+Only an exact caller-selected artifact or explicit persistence request selects Linear for build/plan. A
+proved new fix prompt is the narrow exception: after root-cause proof it binds one exact issue or
+creates one configured-team issue; before proof both profiles make no provider call. Repository policy or a successful preflight alone cannot select artifact mode. Without either selection, both profiles make no Linear call for non-fix workflows; a proved fix requires the configured official MCP and has no artifact-free fallback after proof. When selected, each profile independently uses the official host-exposed Linear MCP under the [Linear artifact contract](../../../woostack-init/references/artifact-backends.md).
+Keep secret stores and sessions distinct. Prove capability without reading an API key or OAuth
 credential. Artifact access may synchronize specs, plans, fixes, or review notes but never
 authorizes dispatch or repository mutation. `woostack-change` never contacts Linear.
 

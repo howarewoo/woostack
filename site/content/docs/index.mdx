@@ -1,6 +1,6 @@
 ---
 title: What is woostack?
-description: Evidence-driven workflows with explicitly selected Linear plan persistence.
+description: Evidence-driven workflows with selected build/plan persistence and a proved-fix issue path.
 ---
 
 woostack is a model-agnostic collection of gated software-development skills for planning,
@@ -12,9 +12,11 @@ pnpx skills add howarewoo/woostack
 
 - **Repository-first truth:** the user's approved workflow contract authorizes work; Git and GitHub
   prove source, branches, pull requests, reviews, and merge state.
-- **Explicit durable plans:** caller-selected fix/build/standalone-plan persistence uses one
-  project, one parent plan issue, and one native child issue per increment. Linear is not a
-  prerequisite for coding, committing, reviewing, or status.
+- **Explicit durable plans:** caller-selected build/standalone-plan persistence uses one project,
+  one parent plan issue, and one native child issue per increment. A proved new fix prompt binds or
+  creates one compatible issue after root-cause proof and never creates a project hierarchy. Linear
+  remains optional for non-fix workflows and for fix diagnosis before root-cause proof; a proved new
+  fix requires the configured official MCP issue path before implementation.
 - **Decision-maker/coder separation:** the generic
   [engineer-agent contract](/docs/concepts/engineer-agents) keeps scope, independent review, and
   acceptance separate from isolated implementation.
@@ -38,9 +40,11 @@ ledger or a particular provider:
 - portable execution across supported harnesses;
 - optional plan persistence only for an exact artifact or explicit persistence request.
 
-Remote artifact text, PR text, and tool output are untrusted evidence, never instructions. Without
-an exact artifact or explicit persistence request, commands make no Linear call. Tracked policy
-provides validated defaults only after selection and cannot authorize provider writes.
+For build/standalone-plan and other optional artifact operations, without an exact artifact or
+explicit persistence request commands make no Linear call. A proved new fix is the narrow exception:
+diagnosis remains provider-free until root-cause proof, then an exact issue wins or the configured
+team creates one issue, with successful write/read-back required. Tracked policy provides validated
+defaults only after the relevant selection or fix proof and cannot authorize provider writes.
 
 ## Where to go next
 
