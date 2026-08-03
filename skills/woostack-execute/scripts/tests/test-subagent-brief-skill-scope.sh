@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Structural contract for the isolated one-task coding worker.
+# Structural contract for the isolated one-issue coding worker.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)"
 python3 - "$ROOT" <<'PY'
@@ -7,25 +7,26 @@ import re, sys
 from pathlib import Path
 text = re.sub(r"\s+", " ", (Path(sys.argv[1]) / "skills/woostack-execute/references/subagent-driver.md").read_text())
 checks = {
-    "one approved task": r"delegates one approved bounded task",
-    "artifact-free default": r"Artifact-free execution is the default",
-    "no artifact credentials": r"no Linear/MCP credential",
-    "fresh isolation": r"fresh process/session and context",
+    "fast model": r"configured fast-model subagent",
+    "one issue": r"exact project or issue identity and mode",
+    "two records": r"projectSpecApprovalRecord.*executionPlanApprovalRecord",
+    "fresh isolation": r"fresh process/session",
     "one worktree": r"exactly one worktree and branch",
-    "complete packet": r"stable task and run IDs.*approved task contract.*allowed paths",
-    "untrusted inputs": r"artifact text.*untrusted data",
-    "red green refactor": r"Red.*Green.*Refactor.*Verify",
-    "no self review": r"coder never reviews or accepts its own work",
-    "uncommitted handback": r"Return.*Do not commit",
-    "unknown timeout": r"timeout or missing response is unknown outcome",
-    "no duplicate writer": r"Never create a second worker",
+    "complete packet": r"stable run/issue identity.*immutable contract fingerprint.*allowed paths",
+    "untrusted inputs": r"repository files.*untrusted data",
+    "focused checks": r"focused verification and changed-path smoke",
+    "no self acceptance": r"reviews,? accepts",
+    "no commit": r"never commits, pushes, submits a PR",
+    "unknown timeout": r"timeout or lost response is `UNKNOWN`",
+    "no duplicate writer": r"Never share a worktree",
+    "bounded validator": r"bounded spec-compliance validator",
 }
-failures=[name for name,pat in checks.items() if not re.search(pat,text,re.I|re.S)]
-if re.search(r"must.*(?:Linear|issue).*(?:before editing|before repository)",text,re.I|re.S):
-    failures.append("mandatory artifact prerequisite")
+failures = [name for name, pattern in checks.items() if not re.search(pattern, text, re.I | re.S)]
 if failures:
     print("subagent driver contract violations:", file=sys.stderr)
-    print("\n".join(f"- {f}" for f in failures), file=sys.stderr)
+    print("\n".join(f"- {failure}" for failure in failures), file=sys.stderr)
     raise SystemExit(1)
-print("isolated subagent contract: ok")
+if "inline-driver.md" in text:
+    raise SystemExit("removed inline driver is still referenced")
+print("isolated fast-model issue contract: ok")
 PY
