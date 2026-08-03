@@ -32,7 +32,6 @@ export const PUBLIC_ORDER = [
   'woostack-sweep',
   'woostack-qa',
   'woostack-audit',
-  'woostack-respond',
   'woostack-eval',
 ];
 export const INTERNAL_ORDER = ['woostack-harden', 'woostack-ideate'];

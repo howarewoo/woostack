@@ -32,7 +32,6 @@ valid_config='{
   },
   "models": {},
   "review": {},
-  "respond": {},
   "status": {
     "staleDays": 14
   }

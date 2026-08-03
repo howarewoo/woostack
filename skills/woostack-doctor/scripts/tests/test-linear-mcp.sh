@@ -11,7 +11,7 @@ trap 'rm -rf "$TMP"' EXIT
 
 complete_config() {
   jq -cn '{
-    models:{},review:{},respond:{},status:{staleDays:14},
+    models:{},review:{},status:{staleDays:14},
     linear:{
       repository:"https://github.com/acme/widgets",workspace:"acme",team:"ENG",
       projectStatuses:{

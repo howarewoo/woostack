@@ -36,7 +36,6 @@ require(r"before dispatch, after every worker handback, before every redispatch"
 for obsolete, name in (
     ("fixApprovalRecord", "fix-only approval record"),
     ("approve-to-execute", "issue approval wording"),
-    ("woostack-respond", "Respond handoff"),
     ("one hard gate", "one-gate wording"),
     ("bind exactly one issue", "one-issue binding"),
     ("closeout", "one-issue closeout"),

@@ -15,7 +15,7 @@
         {"id":"missing-no-selection","kind":"final-json-path-equals","pointer":"/artifactModeSelected","expected":false,"critical":true},
         {"id":"missing-no-provider-write","kind":"final-json-path-equals","pointer":"/providerMutationCount","expected":0,"critical":true},
         {"id":"missing-local-validation","kind":"final-json-path-equals","pointer":"/doctorDisposition","expected":"run-local-validation","critical":true},
-        {"id":"missing-config-preserved","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true}
+        {"id":"missing-config-preserved","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:40d2be2356e0ae8f728a66fecbce83594f987ce97a80935795c4eb38ff9b8026","critical":true}
       ]
     },
     {
@@ -31,7 +31,7 @@
         {"id":"auth-code","kind":"final-json-path-equals","pointer":"/linearReasonCode","expected":"linear-mcp-unauthenticated","critical":true},
         {"id":"auth-no-selection","kind":"final-json-path-equals","pointer":"/artifactModeSelected","expected":false,"critical":true},
         {"id":"auth-no-provider-write","kind":"final-json-path-equals","pointer":"/providerMutationCount","expected":0,"critical":true},
-        {"id":"auth-config-preserved","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true}
+        {"id":"auth-config-preserved","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:40d2be2356e0ae8f728a66fecbce83594f987ce97a80935795c4eb38ff9b8026","critical":true}
       ]
     },
     {
@@ -47,7 +47,7 @@
         {"id":"identity-code","kind":"final-json-path-equals","pointer":"/linearReasonCode","expected":"linear-workspace-team-resolution","critical":true},
         {"id":"identity-no-selection","kind":"final-json-path-equals","pointer":"/artifactModeSelected","expected":false,"critical":true},
         {"id":"identity-no-provider-write","kind":"final-json-path-equals","pointer":"/providerMutationCount","expected":0,"critical":true},
-        {"id":"identity-config-preserved","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true}
+        {"id":"identity-config-preserved","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:40d2be2356e0ae8f728a66fecbce83594f987ce97a80935795c4eb38ff9b8026","critical":true}
       ]
     },
     {
@@ -63,7 +63,7 @@
         {"id":"mapping-code","kind":"final-json-path-equals","pointer":"/linearReasonCode","expected":"linear-native-mapping-invalid","critical":true},
         {"id":"mapping-no-selection","kind":"final-json-path-equals","pointer":"/artifactModeSelected","expected":false,"critical":true},
         {"id":"mapping-no-provider-write","kind":"final-json-path-equals","pointer":"/providerMutationCount","expected":0,"critical":true},
-        {"id":"mapping-config-preserved","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true}
+        {"id":"mapping-config-preserved","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:40d2be2356e0ae8f728a66fecbce83594f987ce97a80935795c4eb38ff9b8026","critical":true}
       ]
     },
     {
@@ -80,7 +80,7 @@
         {"id":"read-only-no-provider-write","kind":"final-json-path-equals","pointer":"/providerMutationCount","expected":0,"critical":true},
         {"id":"read-only-no-write-requirement","kind":"final-json-path-equals","pointer":"/providerWriteCapabilityRequired","expected":false,"critical":true},
         {"id":"read-only-no-readback-requirement","kind":"final-json-path-equals","pointer":"/providerReadBackRequired","expected":false,"critical":true},
-        {"id":"read-only-config-preserved","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true}
+        {"id":"read-only-config-preserved","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:40d2be2356e0ae8f728a66fecbce83594f987ce97a80935795c4eb38ff9b8026","critical":true}
       ]
     },
     {
@@ -97,7 +97,7 @@
         {"id":"read-back-no-provider-write","kind":"final-json-path-equals","pointer":"/providerMutationCount","expected":0,"critical":true},
         {"id":"read-back-no-write-requirement","kind":"final-json-path-equals","pointer":"/providerWriteCapabilityRequired","expected":false,"critical":true},
         {"id":"read-back-not-required","kind":"final-json-path-equals","pointer":"/providerReadBackRequired","expected":false,"critical":true},
-        {"id":"read-back-config-preserved","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true}
+        {"id":"read-back-config-preserved","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:40d2be2356e0ae8f728a66fecbce83594f987ce97a80935795c4eb38ff9b8026","critical":true}
       ]
     },
     {
@@ -117,7 +117,6 @@
         {"id":"success-no-write-requirement","kind":"final-json-path-equals","pointer":"/providerWriteCapabilityRequired","expected":false,"critical":true},
         {"id":"success-no-readback-requirement","kind":"final-json-path-equals","pointer":"/providerReadBackRequired","expected":false,"critical":true},
         {"id":"success-writes-started-locally","kind":"final-json-path-equals","pointer":"/writesStarted","expected":true,"critical":true},
-        {"id":"respond-directory-materialized","kind":"path-exists","path":"fixtures/project/.woostack/respond/.gitkeep"},
         {"id":"gitignore-created","kind":"path-exists","path":"fixtures/project/.woostack/.gitignore"},
         {"id":"no-local-specs","kind":"path-absent","path":"fixtures/project/.woostack/specs","critical":true},
         {"id":"no-local-plans","kind":"path-absent","path":"fixtures/project/.woostack/plans","critical":true},
@@ -126,9 +125,9 @@
         {"id":"doctor-invocation","kind":"final-json-path-equals","pointer":"/doctorInvocation","expected":["bash","fixtures/tools/doctor.sh","--live-receipt","fixtures/receipts/success.json","fixtures/project"],"critical":true},
         {"id":"doctor-target","kind":"final-json-path-equals","pointer":"/doctorTarget","expected":"fixtures/project","critical":true},
         {"id":"doctor-succeeded","kind":"final-json-path-equals","pointer":"/doctorExitCode","expected":0,"critical":true},
-        {"id":"config-before-hash","kind":"final-json-path-equals","pointer":"/configBeforeSha256","expected":"070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
-        {"id":"config-after-hash","kind":"final-json-path-equals","pointer":"/configAfterSha256","expected":"070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
-        {"id":"config-preserved","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:070eb6cfc5e56b50a7026b8ed0bd6874bf11437b43347ae798dc54996de71ca9","critical":true},
+        {"id":"config-before-hash","kind":"final-json-path-equals","pointer":"/configBeforeSha256","expected":"40d2be2356e0ae8f728a66fecbce83594f987ce97a80935795c4eb38ff9b8026","critical":true},
+        {"id":"config-after-hash","kind":"final-json-path-equals","pointer":"/configAfterSha256","expected":"40d2be2356e0ae8f728a66fecbce83594f987ce97a80935795c4eb38ff9b8026","critical":true},
+        {"id":"config-preserved","kind":"file-sha256-equals","file":"fixtures/project/.woostack/config.json","sha256":"sha256:40d2be2356e0ae8f728a66fecbce83594f987ce97a80935795c4eb38ff9b8026","critical":true},
         {"id":"existing-note-preserved","kind":"file-sha256-equals","file":"fixtures/project/.woostack/existing-note.txt","sha256":"sha256:60ba63428d6029222a9d092142fcdc64d045d93650e0c25cb25cd7f319351fae","critical":true}
       ]
     },

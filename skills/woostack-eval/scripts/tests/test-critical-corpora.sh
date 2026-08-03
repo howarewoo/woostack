@@ -29,7 +29,6 @@ packages=(
   skills/woostack-address-comments
   skills/woostack-debug
   skills/woostack-audit
-  skills/woostack-respond
   skills/woostack-visualize
   skills/woostack-init
   skills/woostack-doctor
@@ -70,14 +69,13 @@ const expectedPackages = [
   'skills/woostack-address-comments',
   'skills/woostack-debug',
   'skills/woostack-audit',
-  'skills/woostack-respond',
   'skills/woostack-visualize',
   'skills/woostack-init',
   'skills/woostack-doctor',
   'skills/woostack-status',
 ];
 const same = (left, right) => JSON.stringify(left) === JSON.stringify(right);
-if (!same(packages, expectedPackages) || new Set(packages).size !== 17) {
+if (!same(packages, expectedPackages) || new Set(packages).size !== 16) {
   throw new Error(`critical package enumeration changed: ${JSON.stringify(packages)}`);
 }
 
@@ -336,13 +334,6 @@ const requiredContractProofs = {
     'remediation defers Linear until fix root-cause proof': [['fix-handoff-ready'], ['linear-deferred-until-fix-proof'], ['report-remains-evidence'], ['fix-dispatched'], ['no-local-development-fallback']],
     'no remote mutation fix or merge': [['no-code-host-post'], ['no-linear-mutation-receipt'], ['no-audit-fix'], ['no-audit-merge'], ['no-linear-mutation-on-rejection'], ['no-repository-mutation-on-rejection']],
   },
-  'woostack-respond': {
-    'report-only output is sanitized and non-authoritative': [['report-only-completes'], ['report-is-not-authority'], ['sanitized-report-is-eligible'], ['candidate-is-only-proposed']],
-    'report-only path has no side effects': [['no-linear-read-without-explicit-identity'], ['report-only-no-linear-mutation'], ['report-only-no-source-mutation'], ['report-only-no-dispatch'], ['no-local-development-artifact']],
-    'remediation routes to read-only fix diagnosis': [['fix-handoff-ready'], ['linear-deferred-to-fix'], ['safe-report-survives'], ['remediation-routed-to-fix'], ['classification-does-not-mutate-repository'], ['no-local-fix-spec-plan']],
-    'verified issue remains candidate until native fix approval': [['fix-diagnosis-handoff'], ['artifact-linked'], ['stable-issue-id-retained'], ['native-issue-id-retained'], ['artifact-read-back-is-complete'], ['repository-mutation-not-yet-authorized'], ['native-fix-approval-required'], ['assignment-not-required'], ['handoff-never-creates-local-authority']],
-    'unknown required fix issue outcome blocks repository work': [['artifact-sync-blocks'], ['ambiguous-recovery-reason'], ['stable-id-is-preserved'], ['no-duplicate-create'], ['no-replacement-uuid'], ['no-artifact-is-linked'], ['repository-work-blocked-on-required-fix-issue'], ['no-local-recovery-authority']],
-  },
   'woostack-visualize': {
     'exact managed source with complete read-back': [['valid-visualize-status'], ['valid-visualize-provenance'], ['valid-visualize-managed'], ['valid-visualize-readback']],
     'remote text encoded and output disposable': [['valid-visualize-encoding'], ['valid-visualize-disposable'], ['valid-visualize-not-authority'], ['valid-visualize-no-side-effects']],
@@ -559,7 +550,6 @@ const approvedCorpusContracts = {
   'woostack-address-comments': corpusContract(5, '63f3418aa58f54d6f1f4bef11ee283be2527b2501daf9b62d347c1cc6e1722d7'),
   'woostack-debug': corpusContract(2, '5d91d8f4c305cc987c5d8c301782601c89cbfafcad389d3ad98d8e0764843883'),
   'woostack-audit': corpusContract(2, 'c5699a63c26c01ef94d575ba1d2a6815ba68bae249db74f7f7f07eaeb7f100f4'),
-  'woostack-respond': corpusContract(4, '7734796a5faf1c78b587591068a8eb6a8e1ea95105730b90742f10e91f601ae7'),
   'woostack-visualize': corpusContract(2, '21d14268415178885c8df7cce00604065fc775c03f0ac6dc201d0523705655cb'),
   'woostack-init': corpusContract(24, '4070c2cd92674759c910ae37b246b99b749055e99c0b08f4f74833cf798096ed'),
   'woostack-doctor': corpusContract(3, '35017c9cc26a9ec68d10e1480b13dd4d29b1b8d793324267354a8e2751304eee'),

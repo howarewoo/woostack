@@ -108,7 +108,6 @@ mutation, review independence, or acceptance authority.
 | `/woostack-review <PR#>`, review one exact existing PR through one detected multi-angle swarm and the two adversarial validators, then post one batched native GitHub Review; report-only, never edits or merges | `woostack-review` |
 | `/woostack-audit <target> [--all] [--simplify\|--prod-only]`, audit standing code (a file/dir/repo at rest) for simplification + production-readiness, report-only | `woostack-audit` |
 | `/woostack-qa <url> [focus…] [--stop-first]`, exploratory-QA a running app in a real browser, report-only findings under `.woostack/qa/` | `woostack-qa` |
-| `/woostack-respond <signal> [scope…]`, investigate bounded production errors, write a sanitized report, and gate fix handoffs | `woostack-respond` |
 | `/woostack-eval <skill-path> [--behavior\|--triggers\|--all] [--runs <1..10>] [--baseline-ref <git-ref>\|--baseline-path <skill-dir>]`, evaluate an approved skill corpus without editing the target skill | `woostack-eval` |
 | `/woostack-address-comments <PR#>`, address every unresolved thread on one exact existing PR with the smallest in-contract fix or evidence-backed pushback, verified replies, and resolution reads | `woostack-address-comments` |
 | `/woostack-status [branch|PR#|exact Linear URL-or-UUID]`, show the read-only repository-derived work board | `woostack-status` |

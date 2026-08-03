@@ -13,8 +13,6 @@ creates a spec, plan, fix, issue, project, branch, PR, or lifecycle state.
 ```text
 /woostack-init [path]
 /woostack-init [path] --migrate-legacy
-/woostack-init [path] --respond
-/woostack-init [path] --no-respond
 ```
 
 Every run attempts automatic Linear setup. `--migrate-legacy` remains an explicit optional mode and
@@ -30,7 +28,7 @@ does not change the setup or artifact-selection boundaries below.
    policy without an exact approved repair.
 3. Create missing local support paths only:
    - `.woostack/config.json` from the shipped non-secret template;
-   - local diagnostic report roots for doctor, audit, QA, and response;
+   - local diagnostic report roots for doctor, audit, and QA;
    - worktree/recovery support declared by the canonical worktree contract; and
    - the three managed project OMP role agents by running
      `bash <wi>/scripts/provision-omp-agents.sh <canonical-repository>`. This
@@ -79,30 +77,6 @@ For `--migrate-legacy`, follow the
 [canonical legacy migration contract](references/legacy-migration.md). The route is explicitly
 one-way: any unknown or partial outcome preserves every local source, and deletion requires the
 contract's fresh terminal proof plus explicit approval.
-
-## Optional response setup
-
-Use `--respond` to opt in or `--no-respond` to skip. In an interactive run with neither flag, ask
-`Set up production error response? [y/N]`.
-
-1. Inspect only declared dependencies, configuration filenames, instrumentation imports, and
-   environment-variable **names**. Never read or print credential values.
-2. Show detected providers and ask sequentially for `provider, environment, window, maximum groups, and remediation`.
-   `missing authentication is a warning` and next action, not an init failure.
-3. Semantically merge only accepted values into `.woostack/config.json`; `preserve every sibling and unknown top-level namespace`.
-4. Create the ignored evidence root from the shipped placeholder:
-
-   | Destination | Template |
-   |---|---|
-   | `.woostack/respond/.gitkeep` | `templates/respond/.gitkeep` |
-
-Under `--no-clobber`, any conflicting existing value or unsafe path blocks that field without
-rewriting siblings. Under `--force`, replacement still requires explicit response setup and may
-change only the accepted response subtree; a destructive, malformed, or symlinked destination is a
-hard error.
-
-The setup never queries production, changes provider configuration, validates secret values, or
-turns observability configuration into development authority.
 
 ## Hard constraints
 

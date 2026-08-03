@@ -14,7 +14,7 @@ This is a published collection of skills, not an application codebase. It packag
 decisions for building new web, mobile, and API projects so agents can install it with
 `pnpx skills add howarewoo/woostack`.
 
-The public command/adoption surface has twenty-two skills:
+The public command/adoption surface has twenty-one skills:
 
 - [`using-woostack`](skills/using-woostack/SKILL.md)
 - [`woostack-init`](skills/woostack-init/SKILL.md)
@@ -36,14 +36,13 @@ The public command/adoption surface has twenty-two skills:
 - [`woostack-sweep`](skills/woostack-sweep/SKILL.md)
 - [`woostack-qa`](skills/woostack-qa/SKILL.md)
 - [`woostack-audit`](skills/woostack-audit/SKILL.md)
-- [`woostack-respond`](skills/woostack-respond/SKILL.md)
 - [`woostack-eval`](skills/woostack-eval/SKILL.md)
 
 The collection also installs two internal sub-skills:
 [`woostack-ideate`](skills/woostack-ideate/SKILL.md) and
 [`woostack-harden`](skills/woostack-harden/SKILL.md). `woostack-build` delegates its ideate
 phase to the former and its harden phase to the latter. Both are bundled building blocks, not
-`/woostack-*` commands: they have no routing row and are absent from the twenty-two-skill command
+`/woostack-*` commands: they have no routing row and are absent from the twenty-one-skill command
 surface above.
 
 There is no application source code, app lockfile, build, or CI for this repo's own
@@ -99,7 +98,7 @@ delegation, and Hermes retains acceptance authority. The canonical contracts liv
 [`Hermes host reference`](skills/using-woostack/references/hosts/hermes.md); cross-link them rather
 than duplicating their evidence schemas.
 
-This collection still has twenty-two public command/adoption skills at twenty-four fixed `SKILL.md`
+This collection still has twenty-one public command/adoption skills at twenty-three fixed `SKILL.md`
 locations. Linear support adds neither a command-routing row nor a per-provider skill.
 
 ## Modes
@@ -115,7 +114,7 @@ do not add application code, app build configs, or app lockfiles **outside the s
 **Mode B: run a woostack command.** Use this when the user asks for `/woostack-init`,
 `/woostack-bootstrap`, `/woostack-build`, `/woostack-fix`, `/woostack-change`, `/woostack-plan`, `/woostack-execute`, `/woostack-execute-overnight`, `/woostack-commit`,
 `/woostack-review`, `/woostack-address-comments`, `/woostack-status`, `/woostack-visualize`, `/woostack-debug`,
-`/woostack-tdd`, `/woostack-doctor`, `/woostack-sweep`, `/woostack-qa`, `/woostack-audit`, `/woostack-respond`, or `/woostack-eval`, including intent-equivalent wording. Load the matching skill
+`/woostack-tdd`, `/woostack-doctor`, `/woostack-sweep`, `/woostack-qa`, `/woostack-audit`, or `/woostack-eval`, including intent-equivalent wording. Load the matching skill
 before acting. For bootstrap work, the output belongs in a fresh repo in a different
 directory, not in this repo.
 
@@ -152,7 +151,7 @@ directory, not in this repo.
   pages need no manual edit: they regenerate from each `SKILL.md` at build time (see the
   documentation-site exception above). When in doubt, run `pnpm -C site build` to confirm the
   site still builds.
-- Do not move or rename any of the twenty-four `SKILL.md` files (the twenty-two public command/adoption
+- Do not move or rename any of the twenty-three `SKILL.md` files (the twenty-one public command/adoption
   skills plus internal `woostack-ideate` and `woostack-harden`).
 - Do not rename files under
   [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/) without
@@ -185,8 +184,6 @@ directory, not in this repo.
   [`skills/woostack-qa/SKILL.md`](skills/woostack-qa/SKILL.md)
 - Standing-code audit engine (public command; repoints the review swarm at an all-added diff of a
   target, report-only): [`skills/woostack-audit/SKILL.md`](skills/woostack-audit/SKILL.md)
-- Production-error response engine (public command; reads bounded telemetry, writes a sanitized
-  report, and gates any fix handoff): [`skills/woostack-respond/SKILL.md`](skills/woostack-respond/SKILL.md)
 - Skill behavior and trigger evaluation engine (public command; approved corpora, isolated paired
   comparisons, transient reports, no target skill edits):
   [`skills/woostack-eval/SKILL.md`](skills/woostack-eval/SKILL.md)

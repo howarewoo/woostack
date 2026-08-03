@@ -15,7 +15,7 @@ for each phase:
 | Review | `woostack-review` |
 | Audit standing code (simplify + production-readiness) | `woostack-audit` |
 | Exploratory-QA a running app in the browser | `woostack-qa` |
-| Investigate bounded production errors and prepare gated fixes | `woostack-respond` |
+| Production errors, Sentry issues, and monitoring defects | `woostack-fix` |
 | Evaluate approved behavior and trigger corpora for a skill without editing it | `woostack-eval` |
 | Address review feedback | `woostack-address-comments` |
 

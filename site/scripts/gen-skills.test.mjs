@@ -127,7 +127,7 @@ test('renderPage emits title/description, source link, internal note for sub-ski
   assert.match(ideate, /Internal sub-skill/);
 });
 
-test('navOrder preserves the exact 22-public and 2-internal skill order', () => {
+test('navOrder preserves the exact 21-public and 2-internal skill order', () => {
   const expectedPublic = [
     'using-woostack',
     'woostack-init',
@@ -149,17 +149,16 @@ test('navOrder preserves the exact 22-public and 2-internal skill order', () => 
     'woostack-sweep',
     'woostack-qa',
     'woostack-audit',
-    'woostack-respond',
     'woostack-eval',
   ];
   const expectedInternal = ['woostack-harden', 'woostack-ideate'];
   const expected = [...expectedPublic, ...expectedInternal];
 
-  assert.equal(PUBLIC_ORDER.length, 22);
+  assert.equal(PUBLIC_ORDER.length, 21);
   assert.deepEqual(PUBLIC_ORDER, expectedPublic);
   assert.deepEqual(INTERNAL_ORDER, expectedInternal);
-  assert.equal(expected.length, 24);
-  assert.equal(new Set(expected).size, 24);
+  assert.equal(expected.length, 23);
+  assert.equal(new Set(expected).size, 23);
   assert.deepEqual(navOrder([...expected].reverse()), expected);
 });
 
@@ -183,7 +182,7 @@ test('configuration docs follow the scaffold and Linear contract', async () => {
     readFile(path.join(repoRoot, 'skills', 'woostack-audit', 'SKILL.md'), 'utf8'),
   ]);
   const template = JSON.parse(templateRaw);
-  assert.deepEqual(Object.keys(template), ['models', 'review', 'respond', 'status']);
+  assert.deepEqual(Object.keys(template), ['models', 'review', 'status']);
   assert.equal(template.linear, undefined);
   assert.equal(template.artifacts, undefined);
 
@@ -192,25 +191,25 @@ test('configuration docs follow the scaffold and Linear contract', async () => {
   const example = JSON.parse(exampleMatch[1]);
   assert.deepEqual(
     Object.keys(example).sort(),
-    ['audit', 'base_branch', 'commit', 'models', 'respond', 'review', 'review_sweep', 'status']
+    ['audit', 'base_branch', 'commit', 'models', 'review', 'review_sweep', 'status']
   );
   assert.ok(example.models);
   assert.equal(example.linear, undefined);
   assert.equal(example.artifacts, undefined);
   assert.equal(example.audit.models, undefined);
 
-  assert.match(configuration, /ships four\s+top-level keys: `models`, `review`, `respond`, and `status`/);
-  assert.match(configuration, /There are nine top-level settings:/);
+  assert.match(configuration, /ships three\s+top-level keys: `models`, `review`, and `status`/);
+  assert.match(configuration, /There are eight top-level settings:/);
   assert.doesNotMatch(configuration, /\| `artifacts` \|/);
   assert.match(configuration, /\| `linear` \|/);
   assert.match(configuration, /\| `audit` \|/);
-  assert.match(configuration, /^## Linear plan configuration$/m);
+  assert.match(configuration, /^## Linear configuration$/m);
   assert.match(configuration, /^## Audit engine$/m);
   assert.match(configuration, /`audit\.severity_floor`/);
   assert.match(configuration, /Root model tiers also drive \[woostack-audit\]/);
   assert.match(configuration, /automatically attempts safe read-only Linear default discovery/);
   assert.match(configuration, /Missing or incomplete Linear setup never blocks local initialization/);
-  assert.match(configuration, /neither select persistence\s+nor authorize later provider access/);
+  assert.match(configuration, /neither selects artifact persistence\s+nor authorizes later\s+provider access/);
 
   const { fm, body } = parseFrontmatter(auditRaw, 'woostack-audit');
   const renderedBody = rewriteLinks(

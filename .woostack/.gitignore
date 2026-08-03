@@ -7,5 +7,4 @@ metrics.json
 *.local.*
 visuals/
 qa/evidence/
-respond/evidence/
 worktrees/
