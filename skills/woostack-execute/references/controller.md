@@ -90,20 +90,23 @@ Review`; persist issue branch/worktree/run evidence and project resume checkpoin
 boundary. Do not alter approved content, dependency edges, assignment, ownership, or acceptance.
 
 Before commit, re-read records, selected issue, predecessor, worktree, branch, diff, and Graphite
-parent. The only delivery sequence is:
+parent. Invoke [`woostack-commit`](../../woostack-commit/SKILL.md) with the exact selected issue. The
+only delivery sequence is:
 
 ```text
 verified diff → commit → Git/Graphite read-back → one Graphite PR submission
-→ canonical PR/head/base read-back → verification receipt + Linear read-back
+→ canonical PR/head/base + `Resolves <issue identifier>` read-back
+→ verification receipt + Linear read-back
 ```
-Only after canonical PR and verification read-back may the controller persist delivery evidence,
-move the issue to `In Review`, and independently read back the issue and project checkpoint.
+Only after canonical PR, closing-reference, and verification read-back may the controller persist
+delivery evidence, move the issue to `In Review`, and independently read back the issue and project
+checkpoint.
 
 
-Successful submission requires branch, commit, PR, matching head/base, Graphite parent, verification
-receipt, issue/project read-back, and a clean exact worktree. On unknown submission, rediscover and
-continue only from the first absent boundary; never duplicate a commit, branch, or PR. Execute never
-reviews, merges, or claims acceptance.
+Successful submission requires branch, commit, PR, matching head/base, exactly one closing reference
+for the selected issue, Graphite parent, verification receipt, issue/project read-back, and a clean
+exact worktree. On unknown submission, rediscover and continue only from the first absent boundary;
+never duplicate a commit, branch, or PR. Execute never reviews, merges, or claims acceptance.
 
 ## Stop markers and evidence
 

@@ -36,8 +36,10 @@ for name in refs:
  if f"references/{name}" not in skill: failures.append(f"missing dispatch {name}")
 reference_checks={
  "Graphite authority":r"Linear is not required.*never selects the branch, worktree, parent, commit, PR, or submission authority",
- "artifact-free PR":r"Artifact-free PRs have no Linear trailer requirement",
- "ordinary link":r"one ordinary canonical link",
+ "artifact-free PR":r"Artifact-free PRs have no Linear reference requirement",
+ "issue close reference":r"`Resolves <issue identifier>` line",
+ "merge lifecycle boundary":r"only after the PR merges",
+ "no project close reference":r"Do not add a project reference",
  "body preservation":r"Preserve repository-required templates.*human-authored context",
  "body validation":r"Before the edit verify the canonical repository.*current head branch/SHA.*After editing, independently read title, full body",
  "artifact readback":r"independently read the mutation back",
