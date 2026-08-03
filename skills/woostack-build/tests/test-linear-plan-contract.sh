@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Structural contract for direct-issue planning and optional standalone persistence.
+# Structural contract for strict sequential direct-issue planning.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
@@ -8,74 +8,66 @@ import re
 import sys
 from pathlib import Path
 
-root = Path(sys.argv[1])
-paths = {
-    "plan": root / "skills/woostack-plan/SKILL.md",
-    "build": root / "skills/woostack-build/SKILL.md",
-    "harden": root / "skills/woostack-harden/SKILL.md",
-    "artifact": root / "skills/woostack-init/references/artifact-backends.md",
-    "context": root / "skills/woostack-build/references/linear-context.md",
-    "procedure": root / "skills/woostack-build/references/linear-procedure.md",
-}
-text = {
-    name: re.sub(r"\s+", " ", path.read_text(encoding="utf-8"))
-    for name, path in paths.items()
-}
+plan = (Path(sys.argv[1]) / "skills/woostack-plan/SKILL.md").read_text(encoding="utf-8")
+text = re.sub(r"\s+", " ", plan)
 failures = []
 
-def require(name, needle):
-    if needle not in text[name]:
-        failures.append(f"{name}: missing {needle!r}")
 
-def forbid(name, pattern):
-    if re.search(pattern, text[name], re.I):
-        failures.append(f"{name}: matches forbidden pattern {pattern!r}")
+def require(needle):
+    if needle not in text:
+        failures.append(f"plan: missing {needle!r}")
 
-for needle in (
-    "One approved specification in, one coherent plan out",
-    "Every increment contains",
-    "an ordered, concrete implementation sequence detailed enough for a fast execution model",
-    "one direct issue per increment",
-    "native dependency relations",
-    "no parent plan issue or child containment",
-    "Build-delegated planning performs no provider mutation",
-    "build synchronizes after graph hardening",
-    "unique positive ordinal",
-    "duplicate task IDs or ordinals",
-    "unknown predecessors",
-    "uncovered acceptance criteria",
-    "a Git parent the DAG and intended Graphite ancestry cannot represent",
-):
-    require("plan", needle)
+
+def forbid(pattern):
+    if re.search(pattern, text, re.I):
+        failures.append(f"plan: matches forbidden pattern {pattern!r}")
 
 for needle in (
-    "one direct project issue per independently shippable increment",
-    "approve exact project-spec revision",
-    "approve exact execution-plan revision set",
+    "`--project` is mandatory",
+    "exact existing Linear project",
+    "never creates or selects an implicit project",
+    "one complete approved specification",
+    "approved specification fingerprint",
+    "exactly one direct project issue for each execution increment",
+    "Never create a parent, container, checklist, layer, or plan issue",
+    "stable task ID, unique positive ordinal",
+    "exactly one intended PR",
+    "exact scope and explicit non-goals",
+    "exact files and symbols, or one bounded first discovery step",
+    "ordered, concrete implementation steps",
+    "observable acceptance criteria, each mapped to an implementation step",
+    "focused checks and one executable smoke scenario",
+    "cross-increment effects",
+    "risks and active blockers",
+    "explicit stop marker",
+    "declared Graphite parent",
+    "500 or fewer hand-written changed lines",
+    "Generated files and lockfiles may exceed",
+    "explicitly approved deletion-only PR",
+    "strict sequential chain",
+    "positive integers `1..N`",
+    "ordinal k (2..N): ordinal k-1 → ordinal k",
+    "exactly the matching predecessor edge",
+    "Independently read every project, issue, membership",
+    "Delegated planning performs no provider read or mutation",
+    "wrapper hardens the candidate and then synchronizes",
+    "owns no approval gate",
+    "implementation, source edit, commit, branch, PR, review, merge",
 ):
-    require("build", needle)
+    require(needle)
 
-require("harden", "same direct project issue")
-require("artifact", "Do not create a parent plan issue")
-require("artifact", "one direct project issue per increment")
-require("artifact", "buildProjectSpecApprovalRecord")
-require("artifact", "buildExecutionPlanApprovalRecord")
-require("context", "complete exact issue fingerprints")
-require("context", "normalized native dependencies")
-require("procedure", "complete executor-ready issue descriptions")
-require("procedure", "Independently read the complete relation set back")
-require("procedure", "Without explicit persistence, standalone planning makes no provider call")
-require("procedure", "Explicit abandonment follows the shared")
-
-for name in text:
-    forbid(name, r"one project, one parent plan issue")
-
-retired_planning = root / "skills/woostack-plan/references/linear-planning.md"
-if retired_planning.exists():
-    failures.append("plan: orphaned duplicate linear-planning.md must remain deleted")
+for pattern in (
+    r"artifact-free",
+    r"conversational-only",
+    r"may create (?:a |an )?(?:new |implicit )?project",
+    r"parallel(?:izable)? roots?",
+    r"general DAG",
+    r"one project, one parent plan issue",
+):
+    forbid(pattern)
 
 if failures:
-    print("direct-issue planning contract violations:", file=sys.stderr)
+    print("strict sequential Plan contract violations:", file=sys.stderr)
     for failure in failures:
         print(f"  - {failure}", file=sys.stderr)
     raise SystemExit(1)

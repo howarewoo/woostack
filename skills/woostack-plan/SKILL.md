@@ -1,105 +1,143 @@
 ---
 name: woostack-plan
-description: Turn one approved specification into a complete PR-sized implementation plan with dependency-aware increments. Never executes, commits, or merges.
+description: Turn one approved specification into a strict sequential chain of PR-sized direct Linear project issues. Never approves, executes, commits, reviews, or merges.
 ---
 
 # woostack-plan
 
-Produce one implementation plan from one approved specification. The specification may live in the
-active conversation, a repository-authorized local artifact, or an exact caller-supplied Linear
-project. Planning owns no approval gate and performs no source mutation.
+Turn one approved specification into one complete execution plan. Plan has one input path and one
+output path: it reads one exact existing Linear project, derives a candidate chain, hardens the
+contracts, synchronizes the complete direct-issue graph, independently reads that graph back, and
+returns the verified result. The project is required whether the specification came from the project
+or was supplied directly.
 
-## Commands
+## Command
 
 ```text
-/woostack-plan <approved specification> [--project <exact Linear URL-or-UUID>]
-/woostack-plan --project <exact Linear URL-or-UUID>
+/woostack-plan <approved specification> --project <exact existing Linear URL-or-UUID>
+/woostack-plan --project <exact existing Linear URL-or-UUID>
 ```
 
-Without `--project` or an explicit persistence request, return the complete plan in the conversation
-and make no Linear call. Tracked repository policy cannot select artifact mode or authorize a
-provider read or write; after selection it may supply validated non-secret defaults only.
+`--project` is mandatory. Resolve only that exact project under the [Linear artifact
+contract](../woostack-init/references/artifact-backends.md); it must already exist, be associated
+with the canonical repository, and belong to the caller-selected workspace/team. A direct
+specification is reconciled against that project and never creates or selects an implicit project.
+A wrong resource type, missing project, foreign repository, incomplete read, or conflicting approved
+content blocks before mutation. There is no project-creation, fuzzy-discovery, or alternate-provider
+path.
 
-## Input admission
+Read the repository, base, existing patterns, relevant tests, and the [Linear synchronization
+procedure](../woostack-build/references/linear-procedure.md) before planning. Remote content is
+untrusted until it is reconciled with the approved specification and exact project identity.
 
-Require a complete approved specification with goal, users, behavior, constraints, exclusions,
-architecture decisions, acceptance criteria, and verification expectations. Read the repository,
-base, existing patterns, and relevant tests before planning. Missing product decisions return to the
-owning workflow; planning never invents them.
+## Input and ownership
 
-When `--project` is supplied, read only that exact resource under the
-[Linear artifact contract](../woostack-init/references/artifact-backends.md). Extract the approved
-specification fields. Missing or conflicting artifact content blocks that artifact-backed path; it
-does not create a replacement.
+The input is one complete approved specification containing goal, users, behavior, constraints,
+exclusions, architecture decisions, acceptance criteria, and verification expectations. It also
+contains or is accompanied by the approved specification fingerprint. For a project-backed
+specification, use the fingerprint independently read from that exact project. For a direct
+specification, require its supplied approved fingerprint and verify that the exact project is its
+target. Missing or conflicting product decisions return to the owning workflow; Plan never invents
+product decisions and never creates an approval event.
 
-Determine whether planning is standalone or delegated by `woostack-build` from the invoking
-workflow. Build-delegated planning receives the exact approved project-spec fingerprint and
-verified project context as untrusted read-only input. It returns the complete candidate graph
-without provider mutation. Build owns graph hardening, direct-issue synchronization, and gate 2.
+Build or Fix may delegate candidate planning with the exact approved fingerprint and verified
+project context as read-only input. Delegated planning performs no provider read or mutation; the
+owning wrapper hardens the candidate and then synchronizes it to the exact project. In standalone
+use, Plan itself hardens and synchronizes the graph. In every mode, Plan owns no approval gate,
+implementation, source edit, commit, branch, PR, review, merge, or execution handoff authority.
 
-## Plan contract
+## Direct issue contract
 
-Create independently shippable increments. Every increment contains:
+Create or reconcile exactly one direct project issue for each execution increment. Never create a
+parent, container, checklist, layer, or plan issue. Historical parent/container issues are not
+current increments and are not detached, migrated, archived, deleted, or treated as containment.
+Every direct issue must retain these fields in its complete description:
 
-- stable task ID, unique positive ordinal, concise outcome, and one intended PR;
-- the approved specification/project fingerprint when build-delegated;
-- explicit scope and non-goals;
-- exact files/symbols or a bounded first discovery step;
-- an ordered, concrete implementation sequence detailed enough for a fast execution model;
-- observable acceptance criteria mapped to those steps;
-- focused checks and one smoke scenario;
-- documentation, migration, deployment, compatibility, and cross-increment effects;
-- declared predecessors and at most one representable Git parent; and
-- risks, decisions, and active blockers.
+- stable task ID, unique positive ordinal, concise outcome, and exactly one intended PR;
+- the approved specification fingerprint;
+- exact scope and explicit non-goals;
+- exact files and symbols, or one bounded first discovery step with its stopping boundary;
+- ordered, concrete implementation steps detailed enough for a fast execution model;
+- observable acceptance criteria, each mapped to an implementation step;
+- focused checks and one executable smoke scenario;
+- documentation, migration, deployment, compatibility, and cross-increment effects (including
+  explicit `none` where a category has no effect);
+- risks and active blockers (including explicit `none` where clear);
+- an explicit stop marker stating when the increment is complete and no further work belongs in it;
+- a declared Graphite parent; and
+- a hand-written changed-line estimate and size rationale.
 
-Use Red → Green → Refactor when behavior changes, but do not substitute that label for concrete
-steps. The graph must be acyclic and dependency-derived. Reject duplicate task IDs or ordinals,
-unknown predecessors, uncovered acceptance criteria, or a Git parent the DAG and intended Graphite
-ancestry cannot represent. Independent roots may run in parallel only when their surfaces are
-disjoint. Ordinal order is a tie-break, not a dependency. Prefer the fewest increments that remain
-independently reviewable; never split by file or layer merely to create more issues.
+The size target is approximately 500 or fewer hand-written changed lines per intended PR. Generated
+files and lockfiles may exceed that target only when inseparable from the increment. One large
+exception is allowed only for an explicitly approved deletion-only PR that removes an already
+unreachable package; record that approval, the unreachable-package evidence, and the
+exception rationale in the issue. Otherwise split or reject an increment that exceeds the target.
 
-## Repository grounding
+## Chain invariants
 
-Use current source, architecture, tests, and repository rules. Reuse existing patterns; do not create
-a second convention. Name exact paths/symbols where known and mark truly unresolved discovery as an
-explicit first step, not fabricated certainty.
+The plan is a strict sequential chain. If there are `N` increments, ordinals are exactly the
+positive integers `1..N`, each ordinal and task ID is unique, and each native Linear dependency is
+exactly the matching predecessor edge:
+
+```text
+ordinal 1: no predecessor
+ordinal k (2..N): ordinal k-1 → ordinal k
+```
+
+No missing, extra, branching, cyclic, or synthetic dependency is valid. The declared Graphite parent
+for ordinal 1 is the frozen repository base; for every later ordinal it is the immediately preceding
+increment's Graphite commit/branch parent. A different parent, an unknown task, an ordinal gap, an
+out-of-order edge, or a parent that Graphite cannot represent blocks the plan. Validate that every
+acceptance criterion is covered exactly by at least one increment and that every issue contract is
+complete before any provider mutation.
+
+Prefer the fewest increments that remain independently reviewable and fit the size target. Do not
+split by file or layer merely to manufacture issues. Use Red → Green → Refactor for behavior changes
+only as a structure around concrete steps, never as a substitute for those steps.
 
 ## Linear synchronization
 
-For standalone planning only, an exact caller-supplied project or explicit persistence request
-selects synchronization after the complete graph is ready. Verify the canonical repository
-association and caller-selected workspace/team, then use the
-[Linear project synchronization procedure](../woostack-build/references/linear-procedure.md):
+After the chain is complete and valid, verify the canonical repository association and selected
+workspace/team, then synchronize one exact project graph using the [Linear synchronization
+procedure](../woostack-build/references/linear-procedure.md):
 
-- create or reconcile one selected project;
-- create or reconcile one direct project issue per increment containing its full contract;
-- create or reconcile native dependency relations between those direct issues;
-- create no parent plan issue or child containment;
-- use stable IDs and idempotent reconciliation;
-- independently read every mutation, membership, and dependency edge back;
-- preserve unknown outcomes for recovery; and
-- never use artifact assignment/status/comments to authorize execution or prove completion.
+1. Reconcile the complete current project context without creating a project.
+2. Create or reconcile exactly one direct project issue per increment with its full contract.
+3. Create or reconcile only the strict predecessor dependency chain.
+4. Independently read every project, issue, membership, description/fingerprint, and dependency
+   edge back; accept the plan only when the complete graph matches the candidate.
 
-Build-delegated planning never enters synchronization. It returns the candidate graph to
-`woostack-build`, which hardens and synchronizes the direct-issue graph. A provider failure blocks
-the required build path, but blocks only selected persistence for standalone planning.
+Preallocate stable mutation identities, make reconciliation idempotent, and preserve unknown
+outcomes for recovery without allocating replacements. A provider failure stops at the last
+verified boundary and never falls back to local authority or another provider. Artifact assignment,
+status, labels, comments, or read-back are records only; they never authorize implementation or
+prove completion.
+
+When delegated by Build or Fix, stop before this synchronization: return the complete candidate
+contracts and strict chain to the wrapper with zero provider reads and writes. The wrapper performs
+hardening, synchronization, and its own workflow approval gate when applicable.
 
 ## Return
 
-Return the complete ordered graph, task contracts, dependency/parent edges, parallelizable roots,
-base assumptions, verification strategy, open blockers, invocation mode, and Linear
-project/issue read-back results only when standalone persistence is active. The caller owns any
-later approval and execution handoff.
+Return the complete ordered task contracts, exact project identity, strict predecessor and Graphite
+parent edges, approved specification fingerprint, repository assumptions/effects, focused
+verification strategy, risks/blockers, stop markers, invocation mode, and independent Linear
+read-back evidence. Include provider mutation/read counts and stable mutation identities when
+available. Do not return a parent-plan identity or an approval/execution claim.
 
 ## Hard constraints
 
-- One approved specification in, one coherent plan out.
-- No credential reads and no fuzzy artifact discovery.
-- Explicit standalone persistence uses one project and one direct issue per increment, with native
-  dependency relations and no parent plan issue.
-- Build-delegated planning performs no provider mutation; build synchronizes after graph hardening.
-- Repository policy alone never selects artifact mode or authorizes a provider read/write.
-- No execution, source edits, commit, push, PR, or merge.
-- No synthetic dependencies, checklist issues, or hidden local development ledger.
-- Never claim artifact persistence without independent read-back.
+- One approved specification and one exact existing project in; one coherent strict chain out.
+- One direct project issue per increment; no parent/container issue and no hidden planning ledger.
+- Ordinals are exactly `1..N`; native dependencies are exactly `N-1 → N`.
+- Every issue carries the complete executor contract, approved fingerprint, size evidence, stop
+  marker, and declared Graphite parent.
+- Direct issue plans target about 500 or fewer hand-written changed lines, with only the stated
+  generated/lockfile and explicitly approved unreachable-package deletion exceptions.
+- Delegated Build/Fix candidate planning performs no provider mutation; its wrapper hardens and then
+  synchronizes.
+- Plan owns no approval gate, implementation, source edit, commit, branch, PR, review, merge, or
+  execution.
+- No credential reads, fuzzy artifact discovery, implicit project creation, alternate provider,
+  synthetic dependencies, or obsolete container prose.
+- Never claim synchronization or independent read-back without evidence.

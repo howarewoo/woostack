@@ -1,161 +1,44 @@
 {
   "scenarios": {
-    "caseA": {
-      "acceptanceCriteria": [
-        "criterion-a"
-      ],
+    "duplicate-task-id": {
+      "acceptanceCriteria": ["criterion-a", "criterion-b"],
       "increments": [
-        {
-          "taskId": "task-a",
-          "ordinal": 1,
-          "covers": [
-            "criterion-a"
-          ],
-          "predecessors": []
-        },
-        {
-          "taskId": "task-a",
-          "ordinal": 2,
-          "covers": [],
-          "predecessors": []
-        }
+        {"taskId": "task-a", "ordinal": 1, "covers": ["criterion-a"], "predecessors": [], "stopMarker": "done"},
+        {"taskId": "task-a", "ordinal": 2, "covers": ["criterion-b"], "predecessors": ["task-a"], "stopMarker": "done"}
       ]
     },
-    "caseB": {
-      "acceptanceCriteria": [
-        "criterion-a"
-      ],
+    "ordinal-gap": {
+      "acceptanceCriteria": ["criterion-a", "criterion-b"],
       "increments": [
-        {
-          "taskId": "task-a",
-          "ordinal": 1,
-          "covers": [
-            "criterion-a"
-          ],
-          "predecessors": []
-        },
-        {
-          "taskId": "task-b",
-          "ordinal": 1,
-          "covers": [],
-          "predecessors": []
-        }
+        {"taskId": "task-a", "ordinal": 1, "covers": ["criterion-a"], "predecessors": [], "stopMarker": "done"},
+        {"taskId": "task-b", "ordinal": 3, "covers": ["criterion-b"], "predecessors": ["task-a"], "stopMarker": "done"}
       ]
     },
-    "caseC": {
-      "acceptanceCriteria": [
-        "criterion-a"
-      ],
+    "wrong-predecessor": {
+      "acceptanceCriteria": ["criterion-a", "criterion-b", "criterion-c"],
       "increments": [
-        {
-          "taskId": "task-a",
-          "ordinal": 1,
-          "covers": [
-            "criterion-a"
-          ],
-          "predecessors": [
-            "task-missing"
-          ]
-        }
+        {"taskId": "task-a", "ordinal": 1, "covers": ["criterion-a"], "predecessors": [], "stopMarker": "done"},
+        {"taskId": "task-b", "ordinal": 2, "covers": ["criterion-b"], "predecessors": [], "stopMarker": "done"},
+        {"taskId": "task-c", "ordinal": 3, "covers": ["criterion-c"], "predecessors": ["task-b"], "stopMarker": "done"}
       ]
     },
-    "caseD": {
-      "acceptanceCriteria": [
-        "criterion-a",
-        "criterion-b"
-      ],
+    "missing-stop-marker": {
+      "acceptanceCriteria": ["criterion-a"],
       "increments": [
-        {
-          "taskId": "task-a",
-          "ordinal": 1,
-          "covers": [
-            "criterion-a"
-          ],
-          "predecessors": []
-        }
+        {"taskId": "task-a", "ordinal": 1, "covers": ["criterion-a"], "predecessors": []}
       ]
     },
-    "caseE": {
-      "acceptanceCriteria": [
-        "criterion-a",
-        "criterion-b"
-      ],
+    "oversized-pr": {
+      "acceptanceCriteria": ["criterion-a"],
       "increments": [
         {
           "taskId": "task-a",
           "ordinal": 1,
-          "covers": [
-            "criterion-a"
-          ],
+          "covers": ["criterion-a"],
           "predecessors": [],
-          "gitParent": null
-        },
-        {
-          "taskId": "task-b",
-          "ordinal": 2,
-          "covers": [
-            "criterion-b"
-          ],
-          "predecessors": [],
-          "gitParent": "task-a"
-        }
-      ]
-    },
-    "caseF": {
-      "acceptanceCriteria": [
-        "criterion-a"
-      ],
-      "increments": [
-        {
-          "taskId": "task-a",
-          "ordinal": 0,
-          "covers": [
-            "criterion-a"
-          ],
-          "predecessors": []
-        }
-      ]
-    },
-    "caseG": {
-      "acceptanceCriteria": [
-        "criterion-a",
-        "criterion-b"
-      ],
-      "increments": [
-        {
-          "taskId": "task-a",
-          "ordinal": 1,
-          "covers": [
-            "criterion-a"
-          ],
-          "predecessors": [
-            "task-b"
-          ]
-        },
-        {
-          "taskId": "task-b",
-          "ordinal": 2,
-          "covers": [
-            "criterion-b"
-          ],
-          "predecessors": [
-            "task-a"
-          ]
-        }
-      ]
-    },
-    "caseH": {
-      "acceptanceCriteria": [
-        "criterion-a"
-      ],
-      "increments": [
-        {
-          "taskId": "task-a",
-          "ordinal": true,
-          "covers": [
-            "criterion-a"
-          ],
-          "predecessors": []
+          "stopMarker": "done",
+          "handWrittenChangedLines": 501,
+          "sizeException": null
         }
       ]
     }

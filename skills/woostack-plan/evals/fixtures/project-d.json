@@ -8,13 +8,13 @@
     "tasks": [
       {
         "id": "storage",
-        "ordinal": 10,
+        "ordinal": 1,
         "predecessors": [],
         "executorReady": true
       },
       {
         "id": "api",
-        "ordinal": 20,
+        "ordinal": 2,
         "predecessors": [
           "storage"
         ],
