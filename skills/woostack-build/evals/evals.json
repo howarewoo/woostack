@@ -3,104 +3,36 @@
   "skill": "woostack-build",
   "cases": [
     {
-      "id": "routes-approved-build-to-overnight-with-exact-context",
-      "prompt": "Evaluate fixtures/approved-build.json at the execution handoff without contacting any provider or mutating the repository. Independently validate the canonical project, direct increment issues, native dependencies, both responsible-user approval records, and terminal choice. Return exactly one JSON object with keys status, projectId, projectSpecFingerprint, directIssueIds, nativeDependencies, projectSpecApprovalVerified, executionPlanApprovalVerified, hardGates, terminalChoice, executionSkill, contextForwarded, repositoryMutationCount, and mergeAllowed.",
-      "fixtures": [
-        "approved-build.json"
-      ],
+      "id": "routes-approved-build-to-normal-execute",
+      "prompt": "An exact canonical Linear project, its strict direct-issue chain, projectSpecApprovalRecord, and executionPlanApprovalRecord have all been independently read back and match the active-conversation approvals. State Build's next action without contacting a provider or mutating a repository. Return exactly one JSON object with keys status, nextSkill, alternateExecutionChoiceOffered, and mergeAllowed.",
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The exact project and two direct executor-ready issues form a complete dependency graph. Both native responsible-user approvals match the current fingerprints, exactly two gates are cleared, Run overnight selects woostack-execute-overnight with the complete exact context, no repository mutation occurs, and merge remains forbidden.",
+      "expected": "Build is ready and invokes normal woostack-execute. It offers no alternate execution choice and never merges.",
       "assertions": [
         {
-          "id": "build-ready",
+          "id": "approved-build-ready",
           "kind": "final-json-path-equals",
           "pointer": "/status",
           "expected": "ready",
           "critical": true
         },
         {
-          "id": "build-exact-project",
+          "id": "approved-build-normal-execute",
           "kind": "final-json-path-equals",
-          "pointer": "/projectId",
-          "expected": "project-build-42",
+          "pointer": "/nextSkill",
+          "expected": "woostack-execute",
           "critical": true
         },
         {
-          "id": "build-direct-issue-graph",
+          "id": "approved-build-no-alternative",
           "kind": "final-json-path-equals",
-          "pointer": "/directIssueIds",
-          "expected": [
-            "issue-storage",
-            "issue-api"
-          ],
+          "pointer": "/alternateExecutionChoiceOffered",
+          "expected": false,
           "critical": true
         },
         {
-          "id": "build-native-dependencies",
-          "kind": "final-json-path-equals",
-          "pointer": "/nativeDependencies",
-          "expected": [
-            [
-              "issue-storage",
-              "issue-api"
-            ]
-          ],
-          "critical": true
-        },
-        {
-          "id": "build-project-approval",
-          "kind": "final-json-path-equals",
-          "pointer": "/projectSpecApprovalVerified",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "build-plan-approval",
-          "kind": "final-json-path-equals",
-          "pointer": "/executionPlanApprovalVerified",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "build-two-gates",
-          "kind": "final-json-path-equals",
-          "pointer": "/hardGates",
-          "expected": [
-            "project-spec-approval",
-            "execution-plan-approval"
-          ],
-          "critical": true
-        },
-        {
-          "id": "build-overnight-choice",
-          "kind": "final-json-path-equals",
-          "pointer": "/terminalChoice",
-          "expected": "Run overnight"
-        },
-        {
-          "id": "build-overnight-skill",
-          "kind": "final-json-path-equals",
-          "pointer": "/executionSkill",
-          "expected": "woostack-execute-overnight",
-          "critical": true
-        },
-        {
-          "id": "build-context-forwarded",
-          "kind": "final-json-path-equals",
-          "pointer": "/contextForwarded",
-          "expected": true,
-          "critical": true
-        },
-        {
-          "id": "build-no-repository-mutation",
-          "kind": "final-json-path-equals",
-          "pointer": "/repositoryMutationCount",
-          "expected": 0
-        },
-        {
-          "id": "build-never-merges",
+          "id": "approved-build-never-merges",
           "kind": "final-json-path-equals",
           "pointer": "/mergeAllowed",
           "expected": false,

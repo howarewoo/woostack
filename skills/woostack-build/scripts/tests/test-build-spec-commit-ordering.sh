@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Legacy filename retained so existing test runners keep discovering the build ordering contract.
+# Legacy filename retained so existing test runners keep discovering the Build chain contract.
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)"
 source "$ROOT/skills/woostack-init/scripts/tests/assert.sh"
@@ -22,35 +22,49 @@ for file in "$BUILD_SKILL" "$PROCEDURE" "$CONTEXT" "$AUTHORITY"; do
 done
 
 assert_literal "$BUILD_SKILL" \
-  'Resolve the exact supplied project or create exactly one project' \
-  'build always resolves or creates its canonical project'
+  'resolve/create canonical project' \
+  'build resolves or creates its canonical project first'
 assert_literal "$BUILD_SKILL" \
-  'Build has no artifact-free fallback' \
-  'build has no artifact-free authority fallback'
+  'Ideate →' \
+  'Build enters Ideate after project resolution'
 assert_literal "$BUILD_SKILL" \
-  'ideate and synchronize evolving project specification' \
-  'build synchronizes material specification decisions'
+  'Harden →' \
+  'Build hardens before project approval'
 assert_literal "$BUILD_SKILL" \
-  'approve exact project-spec revision' \
-  'project specification approval precedes planning'
+  'project-spec approval in the active conversation' \
+  'project approval is an active-conversation stop'
 assert_literal "$BUILD_SKILL" \
-  'delegate candidate planning without provider mutation' \
-  'build delegates candidate planning without provider writes'
+  'projectSpecApprovalRecord' \
+  'project approval is recorded in Linear'
 assert_literal "$BUILD_SKILL" \
-  'synchronize/read back direct issues and native dependencies' \
-  'build synchronizes the direct issue graph'
+  'Plan →' \
+  'planning follows project approval'
 assert_literal "$BUILD_SKILL" \
-  'approve exact execution-plan revision set' \
-  'execution-plan approval follows complete graph synchronization'
+  'candidate strict sequential direct-issue chain' \
+  'delegated planning returns a strict candidate'
 assert_literal "$BUILD_SKILL" \
-  '## Exactly two hard gates' \
-  'build has exactly two explicit gates'
+  'performs no provider read or mutation' \
+  'delegated planning does not mutate Linear'
 assert_literal "$BUILD_SKILL" \
-  'No implementation branch, worktree, commit, or PR may exist before' \
-  'implementation stays behind exact Linear execution-plan approval'
+  'execution-plan approval in the active conversation' \
+  'plan approval is an active-conversation stop'
+assert_literal "$BUILD_SKILL" \
+  'executionPlanApprovalRecord' \
+  'plan approval is recorded in Linear'
+assert_literal "$BUILD_SKILL" \
+  'Build always invokes' \
+  'second approval has one normal Execute path'
 assert_literal "$BUILD_SKILL" \
   'Build never merges' \
-  'build never merges'
+  'Build never merges'
+
+for forbidden in 'Run overnight' 'Hand off' 'Replan' 'Abandon' 'parallel roots' 'terminal choices'; do
+  if [[ "$(cat "$BUILD_SKILL")" == *"$forbidden"* ]]; then
+    fail "Build removes retired routing menu: $forbidden"
+  else
+    pass
+  fi
+done
 
 assert_literal "$PROCEDURE" \
   'one direct project issue per current increment' \
@@ -72,7 +86,7 @@ assert_literal "$CONTEXT" \
   'execution approval binds the complete direct issue graph'
 assert_literal "$AUTHORITY" \
   'Linear projects and issues are canonical product records for `woostack-build`' \
-  'shared contract makes build records canonical'
+  'shared contract makes Build records canonical'
 assert_literal "$AUTHORITY" \
   'Graphite, and canonical GitHub reads prove source, ancestry, PR, review, and merge facts.' \
   'source-control truth remains separate'
