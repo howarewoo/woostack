@@ -2,476 +2,95 @@
   "config": {
     "repository": "https://github.com/acme/cache-service",
     "workspaceId": "workspace-acme",
-    "teamId": "team-app",
-    "teamKey": "APP"
+    "teamId": "team-app"
   },
-  "prompt": "Concurrent refreshes outlive the shared lock and stampede the origin.",
-  "rootCause": {
-    "established": true,
-    "summary": "the lock expiry is shorter than the protected refresh",
-    "evidence": [
-      "src/cache.ts:44",
-      "tests/cache.test.ts:81"
-    ]
+  "input": {
+    "kind": "production-monitoring",
+    "rawText": "Cache refresh stampedes appeared after the lock-expiry alert.",
+    "sourceIssueId": "issue-source-241",
+    "sourceIssueType": "work-item"
   },
-  "contract": {
-    "observed": "Concurrent callers overlap after the shared lock expires during refresh.",
-    "expectedBehavior": "One refresh owns the lock for the complete protected operation.",
-    "evidence": [
-      "src/cache.ts:44",
-      "tests/cache.test.ts:81"
-    ],
-    "rootCauseChain": "The refresh takes longer than the shared lock expiry, so a second caller acquires the lock before the first protected operation finishes and both call the origin.",
-    "goal": "Keep one refresh owner for the complete protected operation and prevent origin stampedes.",
-    "scope": [
-      "src/cache.ts",
-      "tests/cache.test.ts"
-    ],
-    "outOfScope": [
-      "cache storage provider replacement"
-    ],
-    "implementationSteps": [
-      "Update the lock lifetime calculation in src/cache.ts around the refresh owner and preserve release/error handling.",
-      "Add deterministic contention and expiry cases in tests/cache.test.ts for overlapping callers.",
-      "Run the focused regression and changed-path smoke checks before handback."
-    ],
-    "selectedFix": "Extend the shared lock lifetime around the protected refresh so ownership covers the complete operation.",
-    "rejectedAlternatives": [
-      "Do not replace the cache provider; it is outside scope.",
-      "Do not add an arbitrary retry or suppress concurrent callers; that hides the expiry defect."
-    ],
-    "acceptance": [
-      "one refresh owns the lock for the complete protected operation",
-      "concurrent callers reuse the refreshed value",
-      "the origin is called once for deterministic overlapping callers",
-      "lock release and refresh errors remain safe"
-    ],
-    "risksAndBlockers": [
-      "Risk: extending ownership must not leave a lock held after refresh failure.",
-      "Risk: timing-sensitive tests must use deterministic coordination rather than sleeps.",
-      "Blocker: unavailable focused test capability or an unexpected lock-provider contract stops execution before handback."
-    ],
-    "redGreenRefactor": {
-      "red": "Reproduce two coordinated callers overlapping after the current lock expires.",
-      "green": "Extend the lock lifetime and make the focused contention test pass with one origin call.",
-      "refactor": "Remove test-only duplication while preserving error, release, and timeout coverage."
-    },
-    "focusedChecks": [
-      "reproduce concurrent refresh overlap",
-      "run focused cache tests",
-      "run the changed-path assertion for lock release and origin call count"
-    ],
-    "smokeScenario": "Start two callers against one expiring refresh and observe that the second caller reuses the first refreshed value without a second origin call.",
-    "integrationBase": "main",
-    "graphiteParent": "main",
-    "identities": {
-      "taskId": "fix-cache-refresh-stampede",
-      "runId": "0d73a5c2-890f-40cf-8066-0f40a3728190",
-      "worktree": "/synthetic/cache-service/.woostack/worktrees/tasks/fix-cache-refresh-stampede",
-      "branch": "fix/cache-refresh-stampede",
-      "incrementId": "fix-cache-refresh-stampede"
-    },
-    "docsMigrationEffects": "No consumer migration is required; update the fix contract and focused fixture/eval documentation only.",
-    "dependencies": [
-      {
-        "direction": "blocks",
-        "targetId": "issue-app-240",
-        "kind": "native-issue"
-      },
-      {
-        "direction": "depends-on",
-        "targetId": "issue-app-239",
-        "kind": "native-issue"
-      }
-    ]
+  "debug": {
+    "rootCauseEstablished": true,
+    "summary": "The lock expires before the protected refresh completes.",
+    "evidence": ["src/cache.js:42", "test/cache.test.js:88", "runtime:refresh-overlap"],
+    "providerCallsBeforeProof": 0,
+    "repositoryMutationCount": 0
   },
-  "canonicalContent": {
-    "title": "Prevent concurrent cache refresh stampede",
-    "description": "## Observed and expected behavior\n- **Observed:** Concurrent callers overlap after the shared lock expires during refresh.\n- **Expected:** One refresh owns the lock for the complete protected operation.\n\n## Evidence and root cause\n- **Direct evidence:** src/cache.ts:44, tests/cache.test.ts:81\n- **Root-cause chain:** The refresh takes longer than the shared lock expiry, so a second caller acquires the lock before the first protected operation finishes and both call the origin.\n\n## Goal and scope\n- **Goal:** Keep one refresh owner for the complete protected operation and prevent origin stampedes.\n- **In scope:** `src/cache.ts`, `tests/cache.test.ts`\n- **Out of scope:** `cache storage provider replacement`\n\n## Ordered implementation steps\n1. Update the lock lifetime calculation in src/cache.ts around the refresh owner and preserve release/error handling.\n2. Add deterministic contention and expiry cases in tests/cache.test.ts for overlapping callers.\n3. Run the focused regression and changed-path smoke checks before handback.\n\n## Selected fix and rejected alternatives\n- **Selected fix:** Extend the shared lock lifetime around the protected refresh so ownership covers the complete operation.\n- **Rejected alternatives:**\n  - Do not replace the cache provider; it is outside scope.\n  - Do not add an arbitrary retry or suppress concurrent callers; that hides the expiry defect.\n\n## Acceptance criteria\n- one refresh owns the lock for the complete protected operation\n- concurrent callers reuse the refreshed value\n- the origin is called once for deterministic overlapping callers\n- lock release and refresh errors remain safe\n\n## Risks and blockers\n- Risk: extending ownership must not leave a lock held after refresh failure.\n- Risk: timing-sensitive tests must use deterministic coordination rather than sleeps.\n- Blocker: unavailable focused test capability or an unexpected lock-provider contract stops execution before handback.\n\n## Verification contract\n- **Red:** Reproduce two coordinated callers overlapping after the current lock expires.\n- **Green:** Extend the lock lifetime and make the focused contention test pass with one origin call.\n- **Refactor:** Remove test-only duplication while preserving error, release, and timeout coverage.\n- **Focused checks:** reproduce concurrent refresh overlap; run focused cache tests; run the changed-path assertion for lock release and origin call count\n- **Changed-path smoke scenario:** Start two callers against one expiring refresh and observe that the second caller reuses the first refreshed value without a second origin call.\n\n## Integration and execution identities\n- **Integration base:** `main`\n- **Graphite parent:** `main`\n- **Task ID:** `fix-cache-refresh-stampede`\n- **Run ID:** `0d73a5c2-890f-40cf-8066-0f40a3728190`\n- **Worktree:** `/synthetic/cache-service/.woostack/worktrees/tasks/fix-cache-refresh-stampede`\n- **Branch:** `fix/cache-refresh-stampede`\n- **Increment ID:** `fix-cache-refresh-stampede`\n\n## Documentation and migration effects\nNo consumer migration is required; update the fix contract and focused fixture/eval documentation only.\n\n## Relevant dependencies\n- **blocks:** `issue-app-240` (native)\n- **depends-on:** `issue-app-239` (native)",
-    "dependencies": [
-      {
-        "direction": "blocks",
-        "targetId": "issue-app-240",
-        "kind": "native-issue"
-      },
-      {
-        "direction": "depends-on",
-        "targetId": "issue-app-239",
-        "kind": "native-issue"
-      }
-    ]
+  "sourceIssue": {
+    "issueId": "issue-source-241",
+    "titleBefore": "Cache refresh stampede",
+    "descriptionBefore": "Observed production symptom and links.",
+    "titleAfter": "Cache refresh stampede",
+    "descriptionAfter": "Observed production symptom and links.",
+    "projectLinkBefore": null,
+    "projectLinkAfter": "project-fix-241",
+    "changedFields": ["projectLink"],
+    "unrelatedFieldsPreserved": true
   },
-  "suppliedIssue": {
-    "issueId": "issue-app-241",
-    "identifier": "APP-241",
-    "type": "work-item",
+  "projectAdmission": {
+    "projectId": "project-fix-241",
+    "created": true,
     "repository": "https://github.com/acme/cache-service",
     "workspaceId": "workspace-acme",
     "teamId": "team-app",
-    "projectId": null,
-    "providerRevision": "linear-revision-241",
-    "content": {
-      "title": "Prevent concurrent cache refresh stampede",
-      "description": "## Observed and expected behavior\n- **Observed:** Concurrent callers overlap after the shared lock expires during refresh.\n- **Expected:** One refresh owns the lock for the complete protected operation.\n\n## Evidence and root cause\n- **Direct evidence:** src/cache.ts:44, tests/cache.test.ts:81\n- **Root-cause chain:** The refresh takes longer than the shared lock expiry, so a second caller acquires the lock before the first protected operation finishes and both call the origin.\n\n## Goal and scope\n- **Goal:** Keep one refresh owner for the complete protected operation and prevent origin stampedes.\n- **In scope:** `src/cache.ts`, `tests/cache.test.ts`\n- **Out of scope:** `cache storage provider replacement`\n\n## Ordered implementation steps\n1. Update the lock lifetime calculation in src/cache.ts around the refresh owner and preserve release/error handling.\n2. Add deterministic contention and expiry cases in tests/cache.test.ts for overlapping callers.\n3. Run the focused regression and changed-path smoke checks before handback.\n\n## Selected fix and rejected alternatives\n- **Selected fix:** Extend the shared lock lifetime around the protected refresh so ownership covers the complete operation.\n- **Rejected alternatives:**\n  - Do not replace the cache provider; it is outside scope.\n  - Do not add an arbitrary retry or suppress concurrent callers; that hides the expiry defect.\n\n## Acceptance criteria\n- one refresh owns the lock for the complete protected operation\n- concurrent callers reuse the refreshed value\n- the origin is called once for deterministic overlapping callers\n- lock release and refresh errors remain safe\n\n## Risks and blockers\n- Risk: extending ownership must not leave a lock held after refresh failure.\n- Risk: timing-sensitive tests must use deterministic coordination rather than sleeps.\n- Blocker: unavailable focused test capability or an unexpected lock-provider contract stops execution before handback.\n\n## Verification contract\n- **Red:** Reproduce two coordinated callers overlapping after the current lock expires.\n- **Green:** Extend the lock lifetime and make the focused contention test pass with one origin call.\n- **Refactor:** Remove test-only duplication while preserving error, release, and timeout coverage.\n- **Focused checks:** reproduce concurrent refresh overlap; run focused cache tests; run the changed-path assertion for lock release and origin call count\n- **Changed-path smoke scenario:** Start two callers against one expiring refresh and observe that the second caller reuses the first refreshed value without a second origin call.\n\n## Integration and execution identities\n- **Integration base:** `main`\n- **Graphite parent:** `main`\n- **Task ID:** `fix-cache-refresh-stampede`\n- **Run ID:** `0d73a5c2-890f-40cf-8066-0f40a3728190`\n- **Worktree:** `/synthetic/cache-service/.woostack/worktrees/tasks/fix-cache-refresh-stampede`\n- **Branch:** `fix/cache-refresh-stampede`\n- **Increment ID:** `fix-cache-refresh-stampede`\n\n## Documentation and migration effects\nNo consumer migration is required; update the fix contract and focused fixture/eval documentation only.\n\n## Relevant dependencies\n- **blocks:** `issue-app-240` (native)\n- **depends-on:** `issue-app-239` (native)",
-      "dependencies": [
-        {
-          "direction": "blocks",
-          "targetId": "issue-app-240",
-          "kind": "native-issue"
-        },
-        {
-          "direction": "depends-on",
-          "targetId": "issue-app-239",
-          "kind": "native-issue"
-        }
-      ]
-    }
+    "independentReadBack": true,
+    "repositoryMutationCount": 0
   },
-  "createdIssue": {
-    "issueId": "issue-app-242",
-    "identifier": "APP-242",
-    "type": "work-item",
-    "repository": "https://github.com/acme/cache-service",
-    "workspaceId": "workspace-acme",
-    "teamId": "team-app",
-    "projectId": null,
-    "clientMutationId": "12222222-2222-4222-8222-222222222222",
-    "providerRevision": "linear-revision-242",
-    "content": {
-      "title": "Prevent concurrent cache refresh stampede",
-      "description": "## Observed and expected behavior\n- **Observed:** Concurrent callers overlap after the shared lock expires during refresh.\n- **Expected:** One refresh owns the lock for the complete protected operation.\n\n## Evidence and root cause\n- **Direct evidence:** src/cache.ts:44, tests/cache.test.ts:81\n- **Root-cause chain:** The refresh takes longer than the shared lock expiry, so a second caller acquires the lock before the first protected operation finishes and both call the origin.\n\n## Goal and scope\n- **Goal:** Keep one refresh owner for the complete protected operation and prevent origin stampedes.\n- **In scope:** `src/cache.ts`, `tests/cache.test.ts`\n- **Out of scope:** `cache storage provider replacement`\n\n## Ordered implementation steps\n1. Update the lock lifetime calculation in src/cache.ts around the refresh owner and preserve release/error handling.\n2. Add deterministic contention and expiry cases in tests/cache.test.ts for overlapping callers.\n3. Run the focused regression and changed-path smoke checks before handback.\n\n## Selected fix and rejected alternatives\n- **Selected fix:** Extend the shared lock lifetime around the protected refresh so ownership covers the complete operation.\n- **Rejected alternatives:**\n  - Do not replace the cache provider; it is outside scope.\n  - Do not add an arbitrary retry or suppress concurrent callers; that hides the expiry defect.\n\n## Acceptance criteria\n- one refresh owns the lock for the complete protected operation\n- concurrent callers reuse the refreshed value\n- the origin is called once for deterministic overlapping callers\n- lock release and refresh errors remain safe\n\n## Risks and blockers\n- Risk: extending ownership must not leave a lock held after refresh failure.\n- Risk: timing-sensitive tests must use deterministic coordination rather than sleeps.\n- Blocker: unavailable focused test capability or an unexpected lock-provider contract stops execution before handback.\n\n## Verification contract\n- **Red:** Reproduce two coordinated callers overlapping after the current lock expires.\n- **Green:** Extend the lock lifetime and make the focused contention test pass with one origin call.\n- **Refactor:** Remove test-only duplication while preserving error, release, and timeout coverage.\n- **Focused checks:** reproduce concurrent refresh overlap; run focused cache tests; run the changed-path assertion for lock release and origin call count\n- **Changed-path smoke scenario:** Start two callers against one expiring refresh and observe that the second caller reuses the first refreshed value without a second origin call.\n\n## Integration and execution identities\n- **Integration base:** `main`\n- **Graphite parent:** `main`\n- **Task ID:** `fix-cache-refresh-stampede`\n- **Run ID:** `0d73a5c2-890f-40cf-8066-0f40a3728190`\n- **Worktree:** `/synthetic/cache-service/.woostack/worktrees/tasks/fix-cache-refresh-stampede`\n- **Branch:** `fix/cache-refresh-stampede`\n- **Increment ID:** `fix-cache-refresh-stampede`\n\n## Documentation and migration effects\nNo consumer migration is required; update the fix contract and focused fixture/eval documentation only.\n\n## Relevant dependencies\n- **blocks:** `issue-app-240` (native)\n- **depends-on:** `issue-app-239` (native)",
-      "dependencies": [
-        {
-          "direction": "blocks",
-          "targetId": "issue-app-240",
-          "kind": "native-issue"
-        },
-        {
-          "direction": "depends-on",
-          "targetId": "issue-app-239",
-          "kind": "native-issue"
-        }
-      ]
-    }
+  "projectSpec": {
+    "canonicalProjectSpecFingerprint": "sha256:project-spec-241",
+    "title": "Prevent cache refresh stampedes",
+    "rootCauseChain": "Refresh duration exceeds lock expiry, allowing a second owner before completion.",
+    "acceptance": ["One refresh owns the lock for the full protected operation.", "Concurrent callers do not duplicate origin work."],
+    "inScope": ["src/cache.js", "test/cache.test.js"],
+    "outOfScope": ["cache provider replacement"],
+    "readBackComplete": true
   },
-  "staleMaterialRevision": {
-    "sameIssueId": "issue-app-241",
-    "changedDescription": "## Observed and expected behavior\n- **Observed:** Concurrent callers overlap after the shared lock expires during refresh.\n- **Expected:** One refresh owns the lock for the complete protected operation.\n\n## Evidence and root cause\n- **Direct evidence:** src/cache.ts:44, tests/cache.test.ts:81\n- **Root-cause chain:** The refresh takes longer than the shared lock expiry, so a second caller acquires the lock before the first protected operation finishes and both call the origin.\n\n## Goal and scope\n- **Goal:** Keep one refresh owner for the complete protected operation and prevent origin stampedes.\n- **In scope:** `src/cache.ts`, `tests/cache.test.ts`\n- **Out of scope:** `cache storage provider replacement`\n\n## Ordered implementation steps\n1. Update the lock lifetime calculation in src/cache.ts around the refresh owner and preserve release/error handling.\n2. Add deterministic contention and expiry cases in tests/cache.test.ts for overlapping callers.\n3. Run the focused regression and changed-path smoke checks before handback.\n\n## Selected fix and rejected alternatives\n- **Selected fix:** Extend the shared lock ownership lifetime around the protected refresh so ownership covers the complete operation.\n- **Rejected alternatives:**\n  - Do not replace the cache provider; it is outside scope.\n  - Do not add an arbitrary retry or suppress concurrent callers; that hides the expiry defect.\n\n## Acceptance criteria\n- one refresh owns the lock for the complete protected operation\n- concurrent callers reuse the refreshed value\n- the origin is called once for deterministic overlapping callers\n- lock release and refresh errors remain safe\n\n## Risks and blockers\n- Risk: extending ownership must not leave a lock held after refresh failure.\n- Risk: timing-sensitive tests must use deterministic coordination rather than sleeps.\n- Blocker: unavailable focused test capability or an unexpected lock-provider contract stops execution before handback.\n\n## Verification contract\n- **Red:** Reproduce two coordinated callers overlapping after the current lock expires.\n- **Green:** Extend the lock lifetime and make the focused contention test pass with one origin call.\n- **Refactor:** Remove test-only duplication while preserving error, release, and timeout coverage.\n- **Focused checks:** reproduce concurrent refresh overlap; run focused cache tests; run the changed-path assertion for lock release and origin call count\n- **Changed-path smoke scenario:** Start two callers against one expiring refresh and observe that the second caller reuses the first refreshed value without a second origin call.\n\n## Integration and execution identities\n- **Integration base:** `main`\n- **Graphite parent:** `main`\n- **Task ID:** `fix-cache-refresh-stampede`\n- **Run ID:** `0d73a5c2-890f-40cf-8066-0f40a3728190`\n- **Worktree:** `/synthetic/cache-service/.woostack/worktrees/tasks/fix-cache-refresh-stampede`\n- **Branch:** `fix/cache-refresh-stampede`\n- **Increment ID:** `fix-cache-refresh-stampede`\n\n## Documentation and migration effects\nNo consumer migration is required; update the fix contract and focused fixture/eval documentation only.\n\n## Relevant dependencies\n- **blocks:** `issue-app-240` (native)\n- **depends-on:** `issue-app-239` (native)",
-    "changedDependencies": [
-      {
-        "direction": "blocks",
-        "targetId": "issue-app-240",
-        "kind": "native-issue"
-      },
-      {
-        "direction": "depends-on",
-        "targetId": "issue-app-239",
-        "kind": "native-issue"
-      }
+  "executionPlan": {
+    "increments": [
+      {"issueId": "issue-pr-241a", "canonicalIncrementFingerprint": "sha256:increment-241a"},
+      {"issueId": "issue-pr-241b", "canonicalIncrementFingerprint": "sha256:increment-241b"}
     ],
-    "changedField": "description"
-  },
-  "metadataOnlyRevision": {
-    "sameIssueId": "issue-app-241",
-    "providerUpdatedAt": "2026-08-02T18:40:00Z",
-    "commentAdded": true,
-    "statusChanged": true
-  },
-  "unavailableLinear": {
-    "missingCapabilities": [
-      "exact issue read",
-      "independent read-back"
-    ]
-  },
-  "authority": {
-    "providerRevision": "linear-revision-241",
-    "authoritySources": [
-      "Git",
-      "GitHub"
+    "dependencies": [
+      {"predecessorIssueId": "issue-pr-241a", "successorIssueId": "issue-pr-241b", "kind": "native-issue"}
     ],
-    "approvalEventRef": "comment-approval-241",
+    "readBackComplete": true
+  },
+  "projectSpecApprovalRecord": {
+    "projectId": "project-fix-241",
+    "canonicalProjectSpecFingerprint": "sha256:project-spec-241",
     "approvedBy": "user-adam",
-    "approvedAt": "2026-08-02T18:41:00Z",
-    "fixApprovalSource": "responsible-user-native-approval"
+    "approvedAt": "2026-08-03T18:41:00Z",
+    "approvalEventRef": "comment-project-spec-241"
   },
-  "invocationRecords": {
-    "caseA": {
-      "command": "/woostack-fix Concurrent refreshes outlive the shared lock and stampede the origin. --issue https://linear.app/acme/issue/APP-241",
-      "issueArgument": "https://linear.app/acme/issue/APP-241",
-      "providerEventRefs": [
-        "caseAReadBack"
-      ]
-    },
-    "caseB": {
-      "command": "/woostack-fix Concurrent refreshes outlive the shared lock and stampede the origin.",
-      "issueArgument": null,
-      "providerEventRefs": [
-        "caseBCreateAttempt",
-        "caseBReadBack"
-      ],
-      "workflowEventRefs": []
-    }
+  "executionPlanApprovalRecord": {
+    "projectId": "project-fix-241",
+    "canonicalProjectSpecFingerprint": "sha256:project-spec-241",
+    "increments": [
+      {"issueId": "issue-pr-241a", "canonicalIncrementFingerprint": "sha256:increment-241a"},
+      {"issueId": "issue-pr-241b", "canonicalIncrementFingerprint": "sha256:increment-241b"}
+    ],
+    "dependencies": [
+      {"predecessorIssueId": "issue-pr-241a", "successorIssueId": "issue-pr-241b", "kind": "native-issue"}
+    ],
+    "approvedBy": "user-adam",
+    "approvedAt": "2026-08-03T18:45:00Z",
+    "approvalEventRef": "comment-execution-plan-241"
   },
-  "providerEvents": {
-    "caseAReadBack": {
-      "type": "issue-read-back",
-      "issueId": "issue-app-241",
-      "providerRevision": "linear-revision-241",
-      "readComplete": true,
-      "nativeRelations": [
-        {
-          "type": "blocks",
-          "targetId": "issue-app-240"
-        },
-        {
-          "type": "blockedBy",
-          "targetId": "issue-app-239"
-        }
-      ]
-    },
-    "caseBCreateAttempt": {
-      "type": "issue-create-attempt",
-      "eventId": "caseB-create-attempt-242",
-      "sequence": 1,
-      "causalRefs": [],
-      "issueId": "issue-app-242",
-      "clientMutationId": "12222222-2222-4222-8222-222222222222",
-      "configuredTeamId": "team-app"
-    },
-    "caseBReadBack": {
-      "type": "issue-create-read-back",
-      "eventId": "caseB-read-back-242",
-      "sequence": 2,
-      "causalRefs": [
-        "caseB-create-attempt-242"
-      ],
-      "issueId": "issue-app-242",
-      "clientMutationId": "12222222-2222-4222-8222-222222222222",
-      "canonicalContentFingerprint": "sha256:a58a9de055b26c0618e0ddc71eead9f1bf6ddf5f66bf49768c6488a4b74a1a12",
-      "independentReadBack": true,
-      "providerRevision": "linear-revision-242",
-      "readComplete": true,
-      "nativeRelations": [
-        {
-          "type": "blocks",
-          "targetId": "issue-app-240"
-        },
-        {
-          "type": "blockedBy",
-          "targetId": "issue-app-239"
-        }
-      ]
-    }
+  "approvalEvidence": {
+    "projectSpec": {"activeConversationApproval": true, "linearReceiptReadBack": true, "causallyAfterPresentation": true},
+    "executionPlan": {"activeConversationApproval": true, "linearReceiptReadBack": true, "causallyAfterPresentation": true},
+    "repositoryMutationCountBeforeBothApprovals": 0
   },
-  "approvalSnapshots": {
-    "positive": {
-      "rootCause": {
-        "established": true,
-        "summary": "the lock expiry is shorter than the protected refresh"
-      },
-      "issue": {
-        "issueId": "issue-app-241",
-        "canonicalContentFingerprint": "sha256:a58a9de055b26c0618e0ddc71eead9f1bf6ddf5f66bf49768c6488a4b74a1a12"
-      },
-      "readBack": {
-        "issueId": "issue-app-241",
-        "canonicalContentFingerprint": "sha256:a58a9de055b26c0618e0ddc71eead9f1bf6ddf5f66bf49768c6488a4b74a1a12",
-        "providerRevision": "linear-revision-241",
-        "readComplete": true
-      },
-      "eventTranscript": [
-        {
-          "eventId": "issue-read-back-241",
-          "sequence": 1,
-          "source": "provider",
-          "kind": "issue-read-back",
-          "causalRefs": [],
-          "issueId": "issue-app-241",
-          "canonicalContentFingerprint": "sha256:a58a9de055b26c0618e0ddc71eead9f1bf6ddf5f66bf49768c6488a4b74a1a12",
-          "readComplete": true
-        },
-        {
-          "eventId": "comment-approval-241",
-          "sequence": 2,
-          "source": "provider",
-          "kind": "responsible-user-native-approval",
-          "causalRefs": [
-            "issue-read-back-241"
-          ],
-          "issueId": "issue-app-241",
-          "canonicalContentFingerprint": "sha256:a58a9de055b26c0618e0ddc71eead9f1bf6ddf5f66bf49768c6488a4b74a1a12",
-          "decision": "approve-to-execute",
-          "actor": "user-adam",
-          "role": "responsible-user",
-          "approvedBy": "user-adam",
-          "approvedAt": "2026-08-02T18:41:00Z",
-          "approvalEventRef": "comment-approval-241",
-          "explicit": true
-        }
-      ],
-      "repositoryState": {
-        "mutationCount": 0,
-        "mergeObserved": false
-      }
-    },
-    "artifactOnly": {
-      "rootCause": {
-        "established": true,
-        "summary": "the lock expiry is shorter than the protected refresh"
-      },
-      "issue": {
-        "issueId": "issue-app-241",
-        "canonicalContentFingerprint": "sha256:a58a9de055b26c0618e0ddc71eead9f1bf6ddf5f66bf49768c6488a4b74a1a12"
-      },
-      "readBack": {
-        "issueId": "issue-app-241",
-        "canonicalContentFingerprint": "sha256:a58a9de055b26c0618e0ddc71eead9f1bf6ddf5f66bf49768c6488a4b74a1a12",
-        "providerRevision": "linear-revision-241",
-        "readComplete": true
-      },
-      "eventTranscript": [
-        {
-          "eventId": "issue-read-back-241",
-          "sequence": 1,
-          "source": "provider",
-          "kind": "issue-read-back",
-          "causalRefs": [],
-          "issueId": "issue-app-241",
-          "canonicalContentFingerprint": "sha256:a58a9de055b26c0618e0ddc71eead9f1bf6ddf5f66bf49768c6488a4b74a1a12",
-          "readComplete": true
-        }
-      ],
-      "repositoryState": {
-        "mutationCount": 0,
-        "mergeObserved": false
-      }
-    }
+  "invalidation": {
+    "materialSpecChange": {"invalidates": ["projectSpecApprovalRecord", "executionPlanApprovalRecord"], "returnsTo": "project-spec-hardening"},
+    "materialPlanChange": {"invalidates": ["executionPlanApprovalRecord"], "returnsTo": "execution-plan-hardening"},
+    "metadataOnlyChange": {"invalidates": []}
   },
-  "safeCreate": {
-    "issueFlagProvided": false,
-    "configuredTeamId": "team-app",
-    "candidateSearchPerformed": false,
-    "clientMutationId": "12222222-2222-4222-8222-222222222222",
-    "initialDiscovery": [],
-    "createdIssue": {
-      "id": "issue-app-242",
-      "type": "work-item",
-      "repository": "https://github.com/acme/cache-service",
-      "workspaceId": "workspace-acme",
-      "teamId": "team-app",
-      "projectId": null,
-      "storedContract": true
-    }
-  },
-  "exactReuse": {
-    "issueFlagProvided": true,
-    "configuredTeamId": "team-app",
-    "suppliedIssue": "issue-app-243-foreign-team",
-    "resolvedIssue": "issue-app-243-foreign-team",
-    "resolvedWorkspaceId": "workspace-acme",
-    "resolvedTeamId": "team-other",
-    "repository": "https://github.com/acme/cache-service",
-    "candidateSearchPerformed": false
-  },
-  "blockedIdentities": {
-    "providerSnapshots": [
-      {
-        "nativeId": "issue-app-243-a",
-        "nativeType": "work-item",
-        "repository": "https://github.com/acme/cache-service",
-        "workspaceId": "workspace-acme",
-        "teamId": "team-app",
-        "projectMembership": null,
-        "readComplete": true,
-        "relations": [
-          {
-            "kind": "duplicate-current-head",
-            "targetId": "issue-app-243-b"
-          }
-        ]
-      },
-      {
-        "nativeId": "issue-app-243-b",
-        "nativeType": "work-item",
-        "repository": "https://github.com/acme/cache-service",
-        "workspaceId": "workspace-acme",
-        "teamId": "team-app",
-        "projectMembership": null,
-        "readComplete": true,
-        "relations": [
-          {
-            "kind": "duplicate-current-head",
-            "targetId": "issue-app-243-a"
-          }
-        ]
-      },
-      {
-        "nativeId": "issue-app-243-foreign-repository",
-        "nativeType": "work-item",
-        "repository": "https://github.com/other/cache-service",
-        "workspaceId": "workspace-acme",
-        "teamId": "team-app",
-        "projectMembership": null,
-        "readComplete": true,
-        "relations": []
-      },
-      {
-        "nativeId": "issue-app-243-foreign-team",
-        "nativeType": "work-item",
-        "repository": "https://github.com/acme/cache-service",
-        "workspaceId": "workspace-acme",
-        "teamId": "team-other",
-        "projectMembership": null,
-        "readComplete": true,
-        "relations": []
-      },
-      {
-        "nativeId": "project-app-243",
-        "nativeType": "project",
-        "repository": "https://github.com/acme/cache-service",
-        "workspaceId": "workspace-acme",
-        "teamId": "team-app",
-        "projectMembership": "project-app-243",
-        "readComplete": true,
-        "relations": []
-      },
-      {
-        "nativeId": "increment-app-243",
-        "nativeType": "increment",
-        "repository": "https://github.com/acme/cache-service",
-        "workspaceId": "workspace-acme",
-        "teamId": "team-app",
-        "projectMembership": "project-app-243",
-        "readComplete": true,
-        "relations": [
-          {
-            "kind": "parent-project",
-            "targetId": "project-app-243"
-          }
-        ]
-      },
-      {
-        "nativeId": "issue-app-244",
-        "nativeType": "work-item",
-        "repository": "https://github.com/acme/cache-service",
-        "workspaceId": "workspace-acme",
-        "teamId": "team-app",
-        "projectMembership": null,
-        "readComplete": true,
-        "relations": []
-      }
-    ]
-  },
-  "timeoutRecovery": {
-    "clientMutationId": "14444444-4444-4444-8444-444444444444",
-    "recoveryReadBack": {
-      "complete": true,
-      "matchedIssue": "issue-app-246"
-    },
-    "retryClientMutationId": "14444444-4444-4444-8444-444444444444",
-    "providerEvent": {
-      "type": "issue-create-timeout",
-      "mutationId": "14444444-4444-4444-8444-444444444444"
-    }
+  "dispatch": {
+    "nextSkill": "woostack-execute",
+    "projectId": "project-fix-241",
+    "repositoryMutationCountBeforeExecute": 0,
+    "mergePerformed": false
   }
 }

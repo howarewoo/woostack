@@ -1,27 +1,27 @@
 {
-  "symptom": "cache requests intermittently time out",
-  "reproduced": true,
-  "investigation": [
-    "captured timeout at the API boundary",
-    "compared the healthy request path"
-  ],
-  "rootCause": null,
-  "requestedPlanPath": ".woostack/fixes/cache-stampede.md",
-  "debugDispatch": {
-    "promptContext": "free-form prompt only",
-    "issueArgument": "deferred-until-root-cause-proof",
-    "providerCalls": 0
+  "input": {
+    "kind": "sentry-event",
+    "rawText": "Cache requests intermittently time out.",
+    "sourceIssueId": "issue-source-unverified"
   },
-  "repositoryEventLog": [
-    {
-      "eventType": "diagnosis-started",
-      "sequence": 1
-    },
-    {
-      "eventType": "root-cause-unproved",
-      "sequence": 2,
-      "resultBranchCreated": false,
-      "resultRepositoryMutationCount": 0
-    }
-  ]
+  "debug": {
+    "rootCauseEstablished": false,
+    "evidence": ["captured timeout at the API boundary", "healthy path comparison was inconclusive"],
+    "providerCallsBeforeProof": 0
+  },
+  "projectAdmission": {
+    "projectCreated": false,
+    "projectId": null,
+    "sourceLinkWritten": false
+  },
+  "repository": {
+    "branchCreated": false,
+    "worktreeCreated": false,
+    "mutationCount": 0
+  },
+  "dispatch": {
+    "nextSkill": null,
+    "status": "blocked",
+    "reason": "root-cause-proof-required"
+  }
 }

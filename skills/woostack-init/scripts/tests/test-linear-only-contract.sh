@@ -60,26 +60,25 @@ for pattern, message in (
 
 build = flat(root / "skills/woostack-build/SKILL.md")
 for pattern, message in (
-    (r"Build has no artifact-free fallback", "build still appears artifact-optional"),
-    (r"Resolve the exact supplied project or create exactly one project", "build project admission missing"),
-    (r"Exactly two hard gates", "two-gate build contract missing"),
-    (r"one direct project issue per increment", "direct increment shape missing"),
+    (r"always resolves the exact supplied project or creates exactly one project", "build project admission missing"),
+    (r"exactly two content approvals", "two-approval build contract missing"),
+    (r"candidate strict sequential direct-issue chain", "direct increment shape missing"),
 ):
     require("woostack-build", build, pattern, message)
 
 fix = flat(root / "skills/woostack-fix/SKILL.md")
 for pattern, message in (
-    (r"Before root-cause proof.*no provider", "pre-proof provider boundary missing"),
-    (r"without `--issue`.*create exactly one native work-item issue", "plain-prompt issue creation missing"),
-    (r"approve-to-execute", "single fix approval gate missing"),
+    (r"Before root-cause proof, Fix makes no provider call", "pre-proof provider boundary missing"),
+    (r"omitted, Fix creates exactly one project after root-cause proof", "plain-input project creation missing"),
+    (r"exactly the two shared project-backed approval receipts", "shared Fix approvals missing"),
 ):
     require("woostack-fix", fix, pattern, message)
-if re.search(r"one project.*parent plan issue.*child increment", fix, re.I):
-    failures.append("woostack-fix: project hierarchy remains")
+if re.search(r"fixApprovalRecord|approve-to-execute|bind exactly one issue", fix, re.I):
+    failures.append("woostack-fix: retired one-issue approval contract remains")
 
 plan = flat(root / "skills/woostack-plan/SKILL.md")
-require("woostack-plan", plan, r"Without `--project` or an explicit persistence request.*make no Linear call", "standalone selection boundary missing")
-require("woostack-plan", plan, r"one direct issue per increment", "standalone direct-issue persistence missing")
+require("woostack-plan", plan, r"`--project` is mandatory", "exact-project selection boundary missing")
+require("woostack-plan", plan, r"exactly one direct project issue for each execution increment", "direct-issue persistence missing")
 
 change = flat(root / "skills/woostack-change/SKILL.md")
 require("woostack-change", change, r"never reads or writes Linear", "change is not Linear-free")
