@@ -18,9 +18,10 @@ Build never merges.
 /woostack-build --project <exact Linear URL-or-UUID>
 ```
 
-Build always resolves the exact supplied project or creates exactly one project from validated
-repository/workspace/team defaults before starting the conversation. It has no artifact-free
-fallback. Before acting, load and apply the shared
+Build always resolves the exact supplied project or creates exactly one project whose name starts
+with `[Build] ` and otherwise derives from the accepted goal. Supplied projects retain their
+existing names. Build uses validated repository/workspace/team defaults before starting the
+conversation and has no artifact-free fallback. Before acting, load and apply the shared
 [Linear artifact contract](../woostack-init/references/artifact-backends.md), the
 [repository/project context procedure](references/linear-context.md), and the
 [Linear synchronization procedure](references/linear-procedure.md). Those references own

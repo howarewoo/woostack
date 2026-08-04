@@ -26,9 +26,11 @@ creates a competing issue plan, performs implementation, or owns delivery review
              [--issue <exact Linear URL-or-UUID>] [--inline|--subagent]
 ```
 
-`--project` is optional: when supplied it is one exact canonical project URL or stable UUID; when
-omitted, Fix creates exactly one project after root-cause proof using validated repository,
-workspace, and team defaults. `--issue` is optional source context, not the fix contract. It may
+`--project` is optional: when supplied it is one exact canonical project URL or stable UUID and
+retains its existing name. When omitted, Fix creates exactly one project after root-cause proof
+whose name starts with `[Fix] ` and otherwise derives from the proved correction, using validated
+repository, workspace, and team defaults. `--issue` is optional source context, not the fix
+contract. It may
 identify one exact Linear issue or a source issue associated with the supplied input; it is never
 repurposed as the canonical project, rewritten as a plan, closed, or treated as approval. A source
 issue is left unchanged except for the supported link to the canonical project. A supplied PR is

@@ -22,6 +22,8 @@ require(r"Debug\s*→\s*Ideate\s*→\s*Harden.*project-spec approval.*Linear.*Pl
 require(r"accepts a goal or untrusted Linear, GitHub, Sentry, or monitoring input", "untrusted input coverage")
 require(r"root-cause proof.*create or update a project.*branch.*worktree.*mutate the repository", "proof write barrier")
 require(r"owns one canonical project", "one canonical project")
+require(r"name starts with `\[Fix\] `", "prefixed fix project name")
+require(r"supplied.*project.*retains its existing name", "supplied project name preservation")
 require(r"source issue.*never repurposed|never repurpos(?:e|ed) a supplied source\s+issue", "source issue preservation")
 require(r"multiple direct PR-linked issues", "multiple direct PR issues")
 require(r"projectSpecApprovalRecord", "project approval record")
@@ -52,6 +54,10 @@ if blocked["repository"]["mutationCount"] != 0 or blocked["debug"]["providerCall
 
 if fixture["projectAdmission"]["projectId"] != "project-fix-241" or not fixture["projectAdmission"]["independentReadBack"]:
     failures.append("canonical project admission")
+if fixture["projectAdmission"]["name"] != "[Fix] Prevent cache refresh stampedes":
+    failures.append("fix project name prefix")
+if not fixture["projectSpec"]["title"].startswith("[Fix] "):
+    failures.append("fix project specification title prefix")
 source = fixture["sourceIssue"]
 if source["changedFields"] != ["projectLink"] or not source["unrelatedFieldsPreserved"]:
     failures.append("source issue changed beyond project link")
