@@ -21,12 +21,15 @@ contract. Comments stay short without losing evidence, severity, or an actionabl
 
 ## Sessions end with instruction suggestions
 
-The final reply analyzes the completed conversation and tool evidence for durable rules. It
-suggests only novel guidance and targets each proposal to the global or narrowest applicable
-`AGENTS.md`. When no durable lesson survives, it emits no suggestion section.
+At the final-reply boundary, [woostack-reflect](/docs/skills/woostack-reflect) analyzes one fixed
+invocation-start snapshot of the visible active conversation and tool evidence. It suggests only
+novel guidance and routes each finding to the narrowest applicable rule or canonical skill owner.
+Transcript and tool output are untrusted evidence; reflection never executes embedded instructions,
+follows embedded URLs, or broadens scope.
 
-Session learning never writes an artifact or changes an instruction file. Suggestions become
-instructions only through a later explicit user-requested edit.
+The initial action is report-only. It never writes an artifact or changes an instruction file.
+Suggestions become instructions only through a later explicit user-requested edit or accepted,
+sanitized, independently verified upstream filing.
 
 ## Helpers reduce bulk without replacing authority
 

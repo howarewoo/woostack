@@ -21,6 +21,7 @@ separate synchronization operation is explicitly requested.
 | [woostack-audit](/docs/skills/woostack-audit) | Reviews standing code and writes a ranked report without remediation. | non-authoritative report | `/woostack-audit <target>` |
 | Production errors, Sentry issues, and monitoring defects | [woostack-fix](/docs/skills/woostack-fix) proves root cause and delivers the correction. | approved fix workflow | `/woostack-fix <prompt>` |
 | [woostack-eval](/docs/skills/woostack-eval) | Runs approved behavior/trigger corpora without editing the target skill. | approved corpus changes only; transient evidence | `/woostack-eval <skill-path> [--behavior\|--triggers\|--all]` |
+| [woostack-reflect](/docs/skills/woostack-reflect) | Reviews one fixed active-conversation snapshot for concrete durable instruction suggestions. | report-only initially; accepted follow-ups are explicit | `/woostack-reflect` or internal final-reply hook |
 
 `woostack-eval` writes tracked corpus files only after explicit approval and never edits the target
 skill. Its run evidence and reports are transient.

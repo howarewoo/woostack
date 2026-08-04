@@ -33,8 +33,8 @@ review JSON-artifact and inline-comment contract is governed separately by
   decode.
 - User requests for more detail override the terse default. Answer the requested depth without
   restoring filler.
-- At a final reply, apply [Session learning](session-learning.md); omit its suggestion section when
-  no novel durable rule survives.
+- At a final reply, invoke [woostack-reflect](../../woostack-reflect/SKILL.md). Keep both suggestion
+  headings when clean and emit `No durable improvement identified.` when no finding survives.
 
 ## Internal terse rules
 
