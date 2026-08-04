@@ -54,8 +54,9 @@ At the start of work in a repository:
 6. Load and apply the shared
    [Output Discipline](references/output-discipline.md) to every user-facing reply. It keeps the
    answer compact without compressing evidence, risk, or required contract fields.
-7. Load and apply [Session learning](references/session-learning.md) at every final user-facing
-   reply.
+7. Invoke [woostack-reflect](../woostack-reflect/SKILL.md) at every final user-facing reply. It
+   analyzes the fixed invocation-start snapshot and reports only concrete durable suggestions.
+
 
 Do not run `/woostack-init`, create `.woostack/`, scaffold code, or add config unless the
 user explicitly asks for that behavior or the loaded task-specific skill requires it as part
@@ -109,6 +110,7 @@ mutation, review independence, or acceptance authority.
 | `/woostack-audit <target> [--all] [--simplify\|--prod-only]`, audit standing code (a file/dir/repo at rest) for simplification + production-readiness, report-only | `woostack-audit` |
 | `/woostack-qa <url> [focus…] [--stop-first]`, exploratory-QA a running app in a real browser, report-only findings under `.woostack/qa/` | `woostack-qa` |
 | `/woostack-eval <skill-path> [--behavior\|--triggers\|--all] [--runs <1..10>] [--baseline-ref <git-ref>\|--baseline-path <skill-dir>]`, evaluate an approved skill corpus without editing the target skill | `woostack-eval` |
+| `/woostack-reflect`, review the current active conversation through this invocation for concrete durable instruction suggestions; report-only initially and never recursive | `woostack-reflect` |
 | `/woostack-address-comments <PR#>`, address every unresolved thread on one exact existing PR with the smallest in-contract fix or evidence-backed pushback, verified replies, and resolution reads | `woostack-address-comments` |
 | `/woostack-status [branch|PR#|exact Linear URL-or-UUID]`, show the read-only repository-derived work board | `woostack-status` |
 | `/woostack-visualize <source> [for <audience>]`, render a source as audience-tailored HTML | `woostack-visualize` |

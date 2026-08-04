@@ -17,7 +17,7 @@ for each phase:
 | Exploratory-QA a running app in the browser | `woostack-qa` |
 | Production errors, Sentry issues, and monitoring defects | `woostack-fix` |
 | Evaluate approved behavior and trigger corpora for a skill without editing it | `woostack-eval` |
-| Address review feedback | `woostack-address-comments` |
+| Reflect on the fixed active-conversation snapshot for concrete durable instruction suggestions | `woostack-reflect` |
 
 Each command is discrete and ends by offering the next step. Merge stays with the human.
 
