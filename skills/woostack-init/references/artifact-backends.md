@@ -267,12 +267,35 @@ it never silently changes repository scope.
 Before every artifact mutation, verify the canonical repository association and resolved
 caller-selected workspace/team, then re-read the exact target and fields being changed. Write the
 smallest selected payload. Preserve unrelated human-authored content. Do not change assignee,
-delegate, status, labels, archival state, or unrelated relations/project membership. Build and
-selected standalone-plan synchronization may set current increment project membership and native
-dependency relations. It never creates or changes parent-child containment. The
-[project-backed workflow closure invariant](#project-backed-workflow-closure)
-is the sole workflow-owned status exception; other metadata changes require the caller's explicit
-request.
+delegate, status, labels, archival state, or unrelated relations/project membership, except for the
+[active Execute project-start synchronization](#active-execute-project-start-synchronization)
+exception and the [project-backed workflow closure invariant](#project-backed-workflow-closure).
+Build and selected standalone-plan synchronization may set current increment project membership and
+native dependency relations. It never creates or changes parent-child containment. Other metadata
+changes require the caller's explicit request.
+
+## Active Execute project-start synchronization
+
+Normal Execute has one narrow workflow-owned status exception: in both `--project` and `--issue`
+modes, an exact canonical nonterminal project is synchronized to the configured
+`projectStatuses.started` status when any current direct issue is canonically `In Progress` or `In
+Review`. Read the complete, paginated direct-issue set and the exact project's native identity,
+workspace/team, current status, and revision before resolving or mutating anything. Resolve
+`projectStatuses.started` to exactly one native project status and require its native category to be
+`started`; missing, invalid, ambiguous, foreign, drifted, or incompletely paginated resolution
+blocks.
+
+If every direct issue is still `Backlog`/`Todo`, defer this synchronization until the selected
+issue has transitioned to `In Progress` and that issue transition has independently read back.
+Then synchronize the same exact project before any worktree or source mutation. A completed or
+canceled project is a terminal conflict and blocks without reopening or continuing. Immediately
+before a needed project mutation, re-read the exact project and retain one stable mutation identity.
+An exact existing started status (stable native ID/name and `started` category) is an idempotent
+no-op; otherwise update only the project's native status field. Independently read back the exact
+project and verify its identity, started status ID/name/category, revision, and stable mutation
+identity. Timeout, partial or foreign output, mutation failure, or failed/unknown read-back blocks at
+that boundary without reopening or continuing. The project-status receipt is distinct from issue
+lifecycle and resume-checkpoint evidence.
 
 Use a stable client-generated operation ID when the host API exposes one. After mutation, perform a
 new independent complete read and compare:

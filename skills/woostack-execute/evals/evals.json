@@ -90,6 +90,86 @@
         {"id": "failure-boundary", "kind": "final-json-path-equals", "pointer": "/firstBoundary", "expected": "spec-validator", "critical": true},
         {"id": "failure-next", "kind": "final-json-path-equals", "pointer": "/nextAction", "expected": "repair-confirmed-omission-or-resume", "critical": true}
       ]
+    },
+    {
+      "id": "planned-project-with-in-progress-issue-starts-project",
+      "prompt": "In project mode, first independently read the exact canonical project by stable native ID (including current status and native category), the selected direct issue issue-001 by stable ID (including lifecycle status), and the configured projectStatuses.started mapping. The reads prove this nonterminal project is Planned, issue-001 is In Progress, and exactly one mapping exists with a stable native status ID/name and native category started. Mutate only that exact project to that mapping, then independently re-read it and require an exact ID/name/category/status match confirming started; do not begin repository mutation yet. Return exactly one JSON object with keys status, mode, projectStatusAction, issueTransition, repositoryMutationStarted, and projectStatusReceipt, normalized as status=proceed, mode=project, projectStatusAction=sync-started, issueTransition=already-in-progress, projectStatusReceipt=independent-readback, and repositoryMutationStarted=false.",
+      "capabilities": ["read-workspace"],
+      "expected": "An active direct issue starts the exact project before repository mutation while preserving the issue lifecycle.",
+      "assertions": [
+        {"id": "planned-in-progress-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "proceed", "critical": true},
+        {"id": "planned-in-progress-mode", "kind": "final-json-path-equals", "pointer": "/mode", "expected": "project", "critical": true},
+        {"id": "planned-in-progress-action", "kind": "final-json-path-equals", "pointer": "/projectStatusAction", "expected": "sync-started", "critical": true},
+        {"id": "planned-in-progress-issue", "kind": "final-json-path-equals", "pointer": "/issueTransition", "expected": "already-in-progress", "critical": true},
+        {"id": "planned-in-progress-no-repo-first", "kind": "final-json-path-equals", "pointer": "/repositoryMutationStarted", "expected": false, "critical": true},
+        {"id": "planned-in-progress-receipt", "kind": "final-json-path-equals", "pointer": "/projectStatusReceipt", "expected": "independent-readback", "critical": true}
+      ]
+    },
+    {
+      "id": "planned-project-with-in-review-issue-starts-project",
+      "prompt": "In issue mode, independently read the exact canonical project by stable native ID (including current status and native category), the current direct issue issue-002 by stable ID (including lifecycle status), and the configured projectStatuses.started mapping. The reads prove this nonterminal project is Backlog, issue-002 is In Review, and exactly one mapping exists with a stable native status ID/name and native category started. Mutate only that exact project to that mapping, then independently re-read it and require an exact ID/name/category/status match confirming started; do not advance any sibling. Return exactly one JSON object with keys status, mode, projectStatusAction, issueTransition, siblingsAdvanced, and projectStatusReceipt, normalized as status=proceed, mode=issue, projectStatusAction=sync-started, issueTransition=already-in-review, siblingsAdvanced=false, and projectStatusReceipt=independent-readback.",
+      "capabilities": ["read-workspace"],
+      "expected": "An In Review direct issue also starts the exact project in issue mode without advancing siblings.",
+      "assertions": [
+        {"id": "planned-in-review-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "proceed", "critical": true},
+        {"id": "planned-in-review-mode", "kind": "final-json-path-equals", "pointer": "/mode", "expected": "issue", "critical": true},
+        {"id": "planned-in-review-action", "kind": "final-json-path-equals", "pointer": "/projectStatusAction", "expected": "sync-started", "critical": true},
+        {"id": "planned-in-review-issue", "kind": "final-json-path-equals", "pointer": "/issueTransition", "expected": "already-in-review", "critical": true},
+        {"id": "planned-in-review-no-sibling", "kind": "final-json-path-equals", "pointer": "/siblingsAdvanced", "expected": false, "critical": true},
+        {"id": "planned-in-review-receipt", "kind": "final-json-path-equals", "pointer": "/projectStatusReceipt", "expected": "independent-readback", "critical": true}
+      ]
+    },
+    {
+      "id": "started-project-is-idempotent",
+      "prompt": "First complete independent reads of the exact canonical project by stable native ID (including current status, native ID, name, and category), the configured projectStatuses.started mapping, and the direct issue by stable ID (including lifecycle status). The reads prove the project status exactly matches the configured mapping by stable native ID, name, and native started category, and the issue is In Progress. Because this is an exact stable match, do not issue a project mutation and do not begin repository mutation. Return exactly one JSON object with keys status, projectStatusAction, projectStatusMutation, and repositoryMutationStarted, normalized as status=proceed, projectStatusAction=no-op, projectStatusMutation=false, and repositoryMutationStarted=false.",
+      "capabilities": ["read-workspace"],
+      "expected": "An exact started match is an idempotent no-op and does not issue a project mutation.",
+      "assertions": [
+        {"id": "started-no-op-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "proceed", "critical": true},
+        {"id": "started-no-op-action", "kind": "final-json-path-equals", "pointer": "/projectStatusAction", "expected": "no-op", "critical": true},
+        {"id": "started-no-op-mutation", "kind": "final-json-path-equals", "pointer": "/projectStatusMutation", "expected": false, "critical": true},
+        {"id": "started-no-op-order", "kind": "final-json-path-equals", "pointer": "/repositoryMutationStarted", "expected": false, "critical": true}
+      ]
+    },
+    {
+      "id": "all-planned-transitions-then-starts-project",
+      "prompt": "First independently read the exact Planned project by stable native ID, all direct issue records, and the configured projectStatuses.started mapping. Complete reads prove every direct issue is Backlog or Todo, issue-001 is the selected issue, and exactly one started-category mapping is available. The issue-001 transition mutation has succeeded, and an independent reread of that exact issue proves In Progress. The exact project mutation to the unique configured started mapping has succeeded, and an independent reread of that exact project proves a matching ID/name/category/status. Repository mutation begins only after those issue and project receipts. Return exactly one JSON object with keys status, operationOrder, projectStatusReceipt, and repositoryMutationStarted, normalized as status=proceed, operationOrder=[\"issue-in-progress-readback\",\"project-started-readback\",\"repository-mutation\"], projectStatusReceipt=independent-readback, and repositoryMutationStarted=true.",
+      "capabilities": ["read-workspace"],
+      "expected": "Execution with all direct issues Backlog/Todo defers project synchronization until the selected issue transition, then reads back the project before repository mutation.",
+      "assertions": [
+        {"id": "all-planned-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "proceed", "critical": true},
+        {"id": "all-planned-order", "kind": "final-json-path-equals", "pointer": "/operationOrder", "expected": ["issue-in-progress-readback", "project-started-readback", "repository-mutation"], "critical": true},
+        {"id": "all-planned-receipt", "kind": "final-json-path-equals", "pointer": "/projectStatusReceipt", "expected": "independent-readback", "critical": true},
+        {"id": "all-planned-repo", "kind": "final-json-path-equals", "pointer": "/repositoryMutationStarted", "expected": true, "critical": true}
+      ]
+    },
+    {
+      "id": "terminal-project-conflict-blocks",
+      "prompt": "Independently read the exact canonical project by stable native ID and the direct issue by stable ID before any mutation. The reads prove the issue is In Progress and the canonical project is terminal (its exact status is Completed or Canceled), so this is a terminal project conflict rather than a recoverable status mismatch. Do not reopen or mutate the project, transition the issue, or mutate the repository. Return exactly one JSON object with keys status, reason, mutationAllowed, issueTransitionAttempted, projectReopened, and repositoryMutationStarted, normalized as status=blocked, reason=terminal-project-conflict, mutationAllowed=false, issueTransitionAttempted=false, projectReopened=false, and repositoryMutationStarted=false.",
+      "capabilities": ["read-workspace"],
+      "expected": "A terminal project conflict blocks without reopening the project, changing the issue, or mutating the repository.",
+      "assertions": [
+        {"id": "terminal-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "blocked", "critical": true},
+        {"id": "terminal-reason", "kind": "final-json-path-equals", "pointer": "/reason", "expected": "terminal-project-conflict", "critical": true},
+        {"id": "terminal-no-mutation", "kind": "final-json-path-equals", "pointer": "/mutationAllowed", "expected": false, "critical": true},
+        {"id": "terminal-no-issue-transition", "kind": "final-json-path-equals", "pointer": "/issueTransitionAttempted", "expected": false, "critical": true},
+        {"id": "terminal-no-reopen", "kind": "final-json-path-equals", "pointer": "/projectReopened", "expected": false, "critical": true},
+        {"id": "terminal-no-repo", "kind": "final-json-path-equals", "pointer": "/repositoryMutationStarted", "expected": false, "critical": true}
+      ]
+    },
+    {
+      "id": "project-status-unknown-boundary-blocks",
+      "prompt": "Independently read the exact nonterminal project by stable native ID and the direct issue by stable ID before starting the project-status operation. The issue read-back independently proves In Progress, so set issueLifecycleReadBack=true. Resolve the unique configured started mapping, attempt the mutation against that exact project and mapping, and treat a timeout or any independent read-back that is failed, partial, foreign, or unknown as the failed boundary: the exact project status read-back is not proven. Do not reopen the project, start repository mutation, or retry with a different identity; retain the same operation identity. Return exactly one JSON object with keys status, firstBoundary, issueLifecycleReadBack, repositoryMutationStarted, projectReopened, and retryIdentity, normalized as status=blocked, firstBoundary=project-status-readback, issueLifecycleReadBack=true, repositoryMutationStarted=false, projectReopened=false, and retryIdentity=same-project-status-operation.",
+      "capabilities": ["read-workspace"],
+      "expected": "A failed or unknown project status mutation/read-back blocks before repository mutation, retains the stable identity, and never reopens the project.",
+      "assertions": [
+        {"id": "unknown-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "blocked", "critical": true},
+        {"id": "unknown-boundary", "kind": "final-json-path-equals", "pointer": "/firstBoundary", "expected": "project-status-readback", "critical": true},
+        {"id": "unknown-issue-readback", "kind": "final-json-path-equals", "pointer": "/issueLifecycleReadBack", "expected": true, "critical": true},
+        {"id": "unknown-no-repo", "kind": "final-json-path-equals", "pointer": "/repositoryMutationStarted", "expected": false, "critical": true},
+        {"id": "unknown-no-reopen", "kind": "final-json-path-equals", "pointer": "/projectReopened", "expected": false, "critical": true},
+        {"id": "unknown-stable-identity", "kind": "final-json-path-equals", "pointer": "/retryIdentity", "expected": "same-project-status-operation", "critical": true}
+      ]
     }
   ]
 }

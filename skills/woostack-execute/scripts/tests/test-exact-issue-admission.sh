@@ -12,6 +12,7 @@ from pathlib import Path
 root = Path(sys.argv[1])
 skill = re.sub(r"\s+", " ", (root / "skills/woostack-execute/SKILL.md").read_text())
 controller = re.sub(r"\s+", " ", (root / "skills/woostack-execute/references/controller.md").read_text())
+artifact = re.sub(r"\s+", " ", (root / "skills/woostack-init/references/artifact-backends.md").read_text())
 driver = re.sub(r"\s+", " ", (root / "skills/woostack-execute/references/subagent-driver.md").read_text())
 checks = [
     (skill, r"Exactly one of `--project` or `--issue` is required", "exact resource admission missing"),
@@ -49,6 +50,21 @@ checks = [
     (controller, r"Controller-owned screenshot evidence", "controller screenshot ownership missing"),
     (controller, r"Never post a screenshot to a GitHub PR or external hosting", "controller GitHub/external screenshot prohibition missing"),
     (controller, r"non-authoritative.*mandatory Linear lifecycle.*Git/Graphite/GitHub evidence", "controller screenshot evidence authority boundary missing"),
+    (skill, r"active Execute project-start synchronization", "execute project-status contract cross-link missing"),
+    (skill, r"both `--project` and `--issue` modes", "both execute modes missing project-status gate"),
+    (skill, r"`Backlog`/`Todo`.*`In Progress`.*project", "unstarted plus in-progress lifecycle outcome missing"),
+    (skill, r"`Backlog`/`Todo`.*`In Review`.*project", "unstarted plus in-review lifecycle outcome missing"),
+    (skill, r"exact started match is idempotent", "exact started no-op outcome missing"),
+    (skill, r"all direct issues.*`Backlog`/`Todo`.*`In Progress` transition.*synchroniz", "all-unstarted transition/sync outcome missing"),
+    (controller, r"Completed or canceled projects", "terminal project conflict outcome missing"),
+    (controller, r"failed/unknown mutation or read-back", "failed or unknown project mutation outcome missing"),
+    (artifact, r"complete, paginated direct-issue set", "artifact direct-issue pagination contract missing"),
+    (artifact, r"exactly one native project status.*native category.*`started`", "native started status resolution missing"),
+    (artifact, r"Immediately before a needed project mutation, re-read the exact project.*stable mutation identity", "project mutation pre-read/identity missing"),
+    (artifact, r"exact existing started status.*idempotent no-op", "artifact idempotency contract missing"),
+    (artifact, r"completed or canceled project.*terminal conflict.*blocks", "artifact terminal blocking contract missing"),
+    (artifact, r"update only the project's native status field", "one-field project mutation contract missing"),
+    (artifact, r"Independently read back the exact project.*stable mutation identity", "project mutation read-back missing"),
     (driver, r"configured fast-model subagent", "driver fast model missing"),
 ]
 for text, pattern, message in checks:
