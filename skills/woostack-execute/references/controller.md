@@ -83,6 +83,20 @@ omission through the same worker; do not broaden the check into unrelated analys
 A timeout or missing response is `UNKNOWN`, not failure; inspect process and worktree before any
 redispatch.
 
+### Controller-owned screenshot evidence
+
+Immediately after successful focused UI validation and image inspection, when validation produced
+screenshots and before commit, the controller selects exactly one final representative safe
+screenshot. It refuses any screenshot visibly containing secrets, credentials, or personal data:
+warn, continue repository delivery, and never claim it was posted. For a safe screenshot, use
+Linear's supported attachment flow to attach it to the exact admitted Linear issue and post one
+inline comment that renders the image beneath a short scenario/state caption.
+Claim screenshot success only after a fresh independent comment/image read-back proves the exact
+comment contains both caption and image. Any upload, comment, or read-back failure is best-effort
+Linear evidence failure: warn, continue repository delivery, and never claim success. Screenshot
+evidence is non-authoritative and does not replace mandatory Linear lifecycle or
+Git/Graphite/GitHub evidence. Never post a screenshot to a GitHub PR or external hosting.
+
 ## Linear and PR boundaries
 
 Read back each Linear write. Move the issue only through `Backlog`/`Todo` → `In Progress` → `In

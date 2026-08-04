@@ -62,10 +62,11 @@ never advances a sibling. Both modes use the same two approval records and repos
 5. Create or resume exactly one deterministic isolated worktree owned by this run. Dispatch the
    configured fast-model subagent with the exact issue scope and exclusive worktree ownership.
 6. After the worker returns, run one focused verification and changed-path smoke scenario, then one
-   bounded spec-compliance validator against the approved issue contract. On success, invoke
-   [`woostack-commit`](../woostack-commit/SKILL.md) with the exact selected issue to commit and submit
-   exactly one Graphite PR. Independently read back branch, commit, PR URL/head/base, the exact
-   `Resolves <issue identifier>` body line, verification receipt, and Graphite parent.
+   bounded spec-compliance validator against the approved issue contract. When validation produces
+   screenshots, apply [Controller-owned screenshot evidence](references/controller.md#controller-owned-screenshot-evidence) before commit. On success, invoke [`woostack-commit`](../woostack-commit/SKILL.md)
+   with the exact selected issue to commit and submit exactly one Graphite PR. Independently read
+   back branch, commit, PR URL/head/base, the exact `Resolves <issue identifier>` body line,
+   verification receipt, and Graphite parent.
 7. Persist the delivery evidence, move the issue to `In Review`, and independently read back the
    Linear issue/project checkpoint. Remove the worktree only after all required evidence is present
    and the exact worktree is clean.
@@ -98,9 +99,12 @@ Linear writes, and work in another worktree.
 
 The worker edits only its isolated worktree and returns changed paths, diff identity, focused check
 and smoke observations, and one status. It does not commit, push, submit a PR, change Linear, review,
-validate its own acceptance, or advance the controller. The controller runs only one focused
-verification/smoke and one small bounded spec-compliance validator. Repair confirmed omissions in
-scope; broad quality findings, redesigns, and unrelated cleanup return to the owning workflow.
+validate its own acceptance, or advance the controller. The controller owns screenshot inspection,
+safe selection, attachment upload, inline comment, and fresh comment/image read-back; the worker never
+receives Linear, attachment, browser, GitHub-write, commit, PR, review, acceptance, or sibling
+authority. The controller runs only one focused verification/smoke and one small bounded
+spec-compliance validator. Repair confirmed omissions in scope; broad quality findings, redesigns,
+and unrelated cleanup return to the owning workflow.
 
 ## Linear and repository lifecycle
 

@@ -40,6 +40,15 @@ checks = [
     (controller, r"woostack-commit.*exact selected issue", "controller does not pass the exact issue to commit"),
     (controller, r"exactly one closing reference for the selected issue", "controller closing-reference read-back missing"),
     (controller, r"fresh independent Linear, Git, Graphite, and GitHub evidence", "resume evidence missing"),
+    (skill, r"\[Controller-owned screenshot evidence\]\(references/controller\.md#controller-owned-screenshot-evidence\)", "skill screenshot controller cross-link missing"),
+    (controller, r"Immediately after successful focused UI validation and image inspection.*when validation produced screenshots and before commit.*exactly one final representative safe screenshot", "controller screenshot trigger/selection missing"),
+    (controller, r"refuses any screenshot visibly containing secrets, credentials, or personal data.*warn.*continue repository delivery.*never claim it was posted", "controller sensitive-data refusal missing"),
+    (controller, r"supported attachment flow.*exact admitted Linear issue.*post one inline comment that renders the image beneath a short scenario/state caption", "controller issue attachment/comment missing"),
+    (controller, r"fresh independent comment/image read-back.*exact comment contains.*both caption and image", "controller caption/image read-back missing"),
+    (controller, r"upload, comment, or read-back failure.*best-effort Linear evidence failure.*warn.*continue repository delivery.*never claim success", "controller best-effort continuation missing"),
+    (controller, r"Controller-owned screenshot evidence", "controller screenshot ownership missing"),
+    (controller, r"Never post a screenshot to a GitHub PR or external hosting", "controller GitHub/external screenshot prohibition missing"),
+    (controller, r"non-authoritative.*mandatory Linear lifecycle.*Git/Graphite/GitHub evidence", "controller screenshot evidence authority boundary missing"),
     (driver, r"configured fast-model subagent", "driver fast model missing"),
 ]
 for text, pattern, message in checks:
