@@ -4,6 +4,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 python3 - "$ROOT" <<'PY'
+import json
 import re
 import sys
 from pathlib import Path
@@ -11,6 +12,7 @@ from pathlib import Path
 root = Path(sys.argv[1])
 paths = {
     "build": root / "skills/woostack-build/SKILL.md",
+    "context": root / "skills/woostack-build/references/linear-context.md",
     "ideate": root / "skills/woostack-ideate/SKILL.md",
     "harden": root / "skills/woostack-harden/SKILL.md",
     "plan": root / "skills/woostack-plan/SKILL.md",
@@ -54,6 +56,18 @@ for needle in (
     "canonical fingerprints",
 ):
     require("build", needle)
+
+require("build", "name starts with `[Build] `")
+require("build", "Supplied projects retain their existing names")
+require("context", "name starts with `[Build] `")
+fixture = json.loads(
+    (root / "skills/woostack-build/evals/fixtures/project-admission.json").read_text()
+)
+expected_project_name = "[Build] Bound cache freshness"
+if fixture["createResponse"]["name"] != expected_project_name:
+    failures.append("build: create request does not use the [Build] project prefix")
+if fixture["independentRead"]["name"] != expected_project_name:
+    failures.append("build: independent read does not verify the prefixed project name")
 
 chain_pattern = re.compile(
     r"resolve/create canonical project\s*→\s*"

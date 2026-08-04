@@ -30,6 +30,7 @@
   },
   "projectAdmission": {
     "projectId": "project-fix-241",
+    "name": "[Fix] Prevent cache refresh stampedes",
     "created": true,
     "repository": "https://github.com/acme/cache-service",
     "workspaceId": "workspace-acme",
@@ -39,7 +40,7 @@
   },
   "projectSpec": {
     "canonicalProjectSpecFingerprint": "sha256:project-spec-241",
-    "title": "Prevent cache refresh stampedes",
+    "title": "[Fix] Prevent cache refresh stampedes",
     "rootCauseChain": "Refresh duration exceeds lock expiry, allowing a second owner before completion.",
     "acceptance": ["One refresh owns the lock for the full protected operation.", "Concurrent callers do not duplicate origin work."],
     "inScope": ["src/cache.js", "test/cache.test.js"],

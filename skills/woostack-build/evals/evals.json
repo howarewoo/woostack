@@ -42,14 +42,14 @@
     },
     {
       "id": "creates-canonical-project-before-ideation",
-      "prompt": "Evaluate fixtures/project-admission.json as a new woostack-build invocation with no exact project. Do not contact a provider or mutate the repository. Validate the configured repository, workspace, team, official MCP preflight, stable operation identity, absence proof, create response, and independent read-back. Return exactly one JSON object with keys status, officialMcpVerified, projectCreated, projectId, operationIdentityPreserved, independentReadBackVerified, nextStep, repositoryMutationCount.",
+      "prompt": "Evaluate fixtures/project-admission.json as a new woostack-build invocation with no exact project. Do not contact a provider or mutate the repository. Validate the configured repository, workspace, team, official MCP preflight, stable operation identity, prefixed project name, absence proof, create response, and independent read-back. Return exactly one JSON object with keys status, officialMcpVerified, projectCreated, projectId, projectName, operationIdentityPreserved, independentReadBackVerified, nextStep, repositoryMutationCount.",
       "fixtures": [
         "project-admission.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Build uses validated defaults to create exactly one canonical project with one stable operation identity, independently verifies it, performs no repository mutation, and proceeds to ideation only after project admission succeeds.",
+      "expected": "Build uses validated defaults to create exactly one canonical project named `[Build] Bound cache freshness` with one stable operation identity, independently verifies it, performs no repository mutation, and proceeds to ideation only after project admission succeeds.",
       "assertions": [
         {
           "id": "build-project-admission-ready",
@@ -77,6 +77,13 @@
           "kind": "final-json-path-equals",
           "pointer": "/projectId",
           "expected": "project-build-43"
+        },
+        {
+          "id": "build-created-project-name",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectName",
+          "expected": "[Build] Bound cache freshness",
+          "critical": true
         },
         {
           "id": "build-operation-identity-preserved",

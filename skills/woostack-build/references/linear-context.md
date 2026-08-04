@@ -18,8 +18,9 @@ rules. Use the [Linear synchronization procedure](linear-procedure.md) for mutat
 3. If `--project` supplied an exact URL/stable UUID, read only that project and verify its identity,
    workspace/team, and canonical repository association.
 4. Otherwise allocate one stable client mutation UUID, prove that no project exists for that
-   operation identity, create exactly one project in the resolved workspace/team, independently
-   read it back, and retain the exact native identity.
+   operation identity, and create exactly one project in the resolved workspace/team. Its name
+   starts with `[Build] ` and otherwise derives from the accepted goal. Independently read the
+   project back, verify the exact name, and retain its native identity.
 5. Preflight official Linear MCP capabilities for complete project reads, paginated direct-issue
    reads, native dependency-relation reads, project/issue writes, relation writes, comments/updates
    used as approval evidence, and independent read-back.

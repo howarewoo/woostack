@@ -37,11 +37,12 @@
     },
     {
       "id": "canonical-project-preserves-source-record",
-      "prompt": "After root-cause proof, Fix admits canonical project project-fix-241 and independently reads it back. It adds only a supported projectLink to the source issue, preserves unrelated fields, and Plan returns direct issues issue-pr-241a and issue-pr-241b. Return JSON with projectId, projectReadBackVerified, sourceChangedFields, sourceUnrelatedFieldsPreserved, and directIssueIds.",
+      "prompt": "After root-cause proof, Fix creates canonical project project-fix-241 named `[Fix] Prevent cache refresh stampedes` and independently reads it back. It adds only a supported projectLink to the source issue, preserves unrelated fields, and Plan returns direct issues issue-pr-241a and issue-pr-241b. Return JSON with projectId, projectName, projectReadBackVerified, sourceChangedFields, sourceUnrelatedFieldsPreserved, and directIssueIds.",
       "capabilities": ["read-workspace"],
-      "expected": "Fix keeps one canonical project, changes only the source issue's supported project link, and admits both direct plan issues.",
+      "expected": "Fix keeps one canonical project with the required `[Fix] ` name prefix, changes only the source issue's supported project link, and admits both direct plan issues.",
       "assertions": [
         {"id":"one-project","kind":"final-json-path-equals","pointer":"/projectId","expected":"project-fix-241","critical":true},
+        {"id":"prefixed-project-name","kind":"final-json-path-equals","pointer":"/projectName","expected":"[Fix] Prevent cache refresh stampedes","critical":true},
         {"id":"project-readback","kind":"final-json-path-equals","pointer":"/projectReadBackVerified","expected":true,"critical":true},
         {"id":"source-only-link","kind":"final-json-path-equals","pointer":"/sourceChangedFields","expected":["projectLink"],"critical":true},
         {"id":"source-preserved","kind":"final-json-path-equals","pointer":"/sourceUnrelatedFieldsPreserved","expected":true,"critical":true},
