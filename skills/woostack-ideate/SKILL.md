@@ -40,25 +40,39 @@ not verification.
 
 ## Dialogue and synchronization
 
-Ask **one question per message**. Brainstorm exhaustively, but stay on the requested feature and
-resolve upstream decisions first. Cover the problem and evidence, users, desired behavior,
-constraints, non-goals, interfaces/data, failure and security cases, operational effects,
-acceptance, and verification as applicable. Inspect only bounded relevant repository context to
-find questions; never turn a convention or inconsistency into a decision without asking. Options
-and a recommendation may help the user decide, but the recommendation is not a decision.
+Brainstorm exhaustively within the requested feature and resolve upstream decisions first. Ask every
+currently known independent question together in one clearly numbered batch, preserving exhaustive
+in-scope coverage across the problem and evidence, users, desired behavior, constraints, non-goals,
+interfaces/data, failure and security cases, operational effects, acceptance, and verification as
+applicable. A batch may contain one question only when it is the sole currently eligible question.
+Order questions by dependency layer: do not ask a
+dependent question until its upstream decision is verified. A later batch may contain only questions
+that become dependent after verified answers or questions that remained unresolved or ambiguous in an
+earlier batch; do not defer a question that was already known to be independent. Options and an
+explicit recommendation may help the user decide, but the recommendation is not a decision. Inspect
+only bounded relevant repository context to find questions; never turn a convention or inconsistency
+into a decision without asking.
 
-After each material user verification:
+After each user reply that contains one or more verified decisions, perform exactly one synchronization
+cycle before asking the next batch:
 
-1. Re-read the exact project and current revision, preserving unrelated human-authored content.
-2. Write the smallest complete high-level specification containing only explicitly verified
-   decisions. Do not write placeholders, inferred defaults, or a competing local artifact.
+1. Re-read the exact project and current revision.
+2. Write one smallest complete high-level specification update containing only the explicit,
+   unambiguous decisions in that reply. Preserve unrelated human-authored content and do not write
+   placeholders, inferred defaults, or a competing local artifact.
 3. Independently read the exact project back, verify its identity/content/revision, and compute the
    canonical project-specification fingerprint.
-4. Continue the dialogue only from that independently read content.
 
-If the read, mutation, pagination, identity, revision, or read-back is missing, foreign,
-ambiguous, conflicting, or unknown, stop at the last verified boundary. Do not substitute
-conversation content or a cached/local copy.
+Partial or ambiguous answers remain unresolved: persist only explicit, unambiguous decisions from the
+reply and carry every unresolved item into a later eligible batch. A reply with no explicit,
+unambiguous verified decision causes no synchronization write; keep its questions unresolved. Do not
+start the next batch until the one read, one write, and one independent read-back cycle for a reply
+containing verified decisions is complete. Continue the dialogue only from that independently read
+content.
+
+If the read, mutation, pagination, identity, revision, or read-back is missing, foreign, ambiguous,
+conflicting, or unknown, stop at the last verified boundary. Do not substitute conversation content
+or a cached/local copy.
 
 ## Single handoff
 
