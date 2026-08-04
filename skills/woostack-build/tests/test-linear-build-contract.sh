@@ -99,6 +99,24 @@ for pattern in (
     forbid("build", pattern)
 
 require("ideate", "one exact Linear project")
+require(
+    "ideate",
+    "Ask every currently known independent question together in one clearly numbered batch",
+)
+require(
+    "ideate",
+    "A batch may contain one question only when it is the sole currently eligible question",
+)
+require(
+    "ideate",
+    "A later batch may contain only questions that become dependent after verified answers or questions that remained unresolved or ambiguous in an earlier batch",
+)
+require(
+    "ideate",
+    "After each user reply that contains one or more verified decisions, perform exactly one synchronization cycle",
+)
+require("ideate", "one read, one write, and one independent read-back cycle")
+forbid("ideate", r"Ask \*\*one question per message\*\*")
 require("harden", "writes only what the user validates")
 require("plan", "Delegated planning performs no provider read or mutation")
 require("plan", "strict sequential chain")
