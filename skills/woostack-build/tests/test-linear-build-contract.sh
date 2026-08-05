@@ -13,6 +13,8 @@ root = Path(sys.argv[1])
 paths = {
     "build": root / "skills/woostack-build/SKILL.md",
     "context": root / "skills/woostack-build/references/linear-context.md",
+    "procedure": root / "skills/woostack-build/references/linear-procedure.md",
+    "artifact": root / "skills/woostack-init/references/artifact-backends.md",
     "ideate": root / "skills/woostack-ideate/SKILL.md",
     "harden": root / "skills/woostack-harden/SKILL.md",
     "plan": root / "skills/woostack-plan/SKILL.md",
@@ -60,6 +62,43 @@ for needle in (
 require("build", "name starts with `[Build] `")
 require("build", "Supplied projects retain their existing names")
 require("context", "name starts with `[Build] `")
+for needle in (
+    "Approval Ask presentation",
+    "gate 1 displays only the",
+    "exact canonical Linear project link",
+    "gate 2 displays only the",
+    "exact relevant direct-issue links",
+    "Do not paste any project, specification, issue, or dependency body",
+    "canonical fingerprint",
+    "dependency tuple",
+    "read-back payload",
+    "untrusted, non-authoritative pointers",
+):
+    require("artifact", needle)
+
+for name in ("build", "context", "procedure"):
+    require(name, "Approval Ask presentation")
+    require(name, "exact canonical Linear project link")
+    require(name, "exact relevant direct-issue links")
+    forbid(name, r"do not paste")
+    for pattern in (
+        r"present the complete",
+        r"present that exact specification",
+        r"present the exact sorted .*dependency",
+        r"present the exact issue-fingerprint .*dependency",
+    ):
+        forbid(name, pattern)
+
+evals = json.loads((root / "skills/woostack-build/evals/evals.json").read_text())
+eval_ids = {case["id"] for case in evals["cases"]}
+for expected in (
+    "renders-link-only-project-spec-ask",
+    "renders-link-only-execution-plan-ask",
+):
+    if expected not in eval_ids:
+        failures.append(f"build: missing eval {expected}")
+
+
 fixture = json.loads(
     (root / "skills/woostack-build/evals/fixtures/project-admission.json").read_text()
 )

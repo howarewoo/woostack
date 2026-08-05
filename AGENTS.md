@@ -70,12 +70,13 @@ never authorizes a provider write. Build resolves one exact project or creates o
 defaults before ideation. The project holds the evolving high-level specification; one direct
 project issue per increment holds its executor-ready plan, with native issue dependencies encoding
 the DAG. Build never creates a parent plan issue. A new `/woostack-fix` prompt remains provider-free
-until root-cause proof, then binds one exact issue or creates one configured-team issue. The issue
-holds the complete diagnosis and fix plan. The responsible user's native Linear approval event
-clears only the matching content revision before execution. `woostack-change` never contacts
-Linear. Explicit build abandonment closes the exact project through configured canceled
-status/read-back; fix abandonment preserves its issue and may append only a verified note. Handoff,
-replanning, and blockers leave project status unchanged.
+until root-cause proof, then resolves one exact project or creates one from configured defaults.
+The project holds the complete diagnosis and fix specification; a strict direct-issue chain holds
+the executor-ready plan. The responsible user's two native Linear approval events clear only the
+matching project-spec and execution-plan revisions before execution. `woostack-change` never
+contacts Linear. Explicit build or project-backed Fix abandonment closes the exact project through
+configured canceled status/read-back; source issues are preserved. Handoff, replanning, and
+blockers leave project status unchanged.
 
 The user's request and each workflow's explicit approval gates authorize repository work; artifacts
 record that work and never grant permission, assignment, ownership, acceptance, or source-control

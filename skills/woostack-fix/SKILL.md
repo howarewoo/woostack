@@ -88,15 +88,17 @@ materially change scope or safety.
 
 ### 3. Project-spec approval
 
-Present the complete independently read canonical project and its
-`canonicalProjectSpecFingerprint` in the active conversation. Continue only after the responsible
-user explicitly approves that exact content. Record the shared `projectSpecApprovalRecord` in
-Linear, then independently read back the record and exact project before proceeding. The shared
+Present gate 1's exact canonical Linear project link under the shared
+[Approval Ask presentation rule](../woostack-init/references/artifact-backends.md#approval-ask-presentation)
+while retaining the complete independently read project and exact fingerprint internally. Continue
+only after the responsible user explicitly approves that Ask. Record the shared
+`projectSpecApprovalRecord` in Linear, then independently read back the record and exact project
+before proceeding. The shared
 [approval-record contract](../woostack-init/references/artifact-backends.md#shared-approval-records)
-owns the exact fields, active-conversation provenance, causal order, receipt identity, and
-read-back evidence.
+owns the exact fields, active-conversation provenance, causal order, receipt identity, and read-back
+evidence.
 
-Conversation approval without its Linear receipt, a receipt without the matching active-conversation
+Conversation approval without a Linear receipt, a receipt without the matching active-conversation
 approval, status, labels, assignment, project content, read-back alone, an agent-authored event, or
 any provider response never clears this gate. A required Linear capability, mutation, pagination,
 or independent read-back failure blocks at the verified boundary with no local or alternate-provider
@@ -119,9 +121,10 @@ No repository mutation occurs during planning or hardening.
 
 ### 5. Execution-plan approval
 
-Present the complete independently read direct-issue set and native dependency set for the same
-canonical project and approved specification in the active conversation. Continue only after the
-responsible user explicitly approves that exact execution plan. Record the shared
+Present gate 2's exact relevant direct-issue links under the shared
+[Approval Ask presentation rule](../woostack-init/references/artifact-backends.md#approval-ask-presentation)
+while retaining the complete independently read issue and dependency sets internally. Continue only
+after the responsible user explicitly approves that Ask. Record the shared
 `executionPlanApprovalRecord` in Linear, then independently read back both approval records, the
 project, every direct issue, and all admitted dependencies.
 

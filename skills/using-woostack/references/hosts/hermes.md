@@ -119,10 +119,10 @@ boundary.
 
 Build always selects Linear: resolve its exact supplied project or create one from validated
 defaults before ideation, then retain both exact content-bound approval records through execution.
-A proved new fix binds one exact issue or creates one configured-team issue; before proof both
-profiles make no fix provider call. Standalone/other artifact use still requires an exact caller
-selection or explicit persistence request. Repository policy supplies defaults only after selection
-or a build/fix requirement; it never authorizes unrelated access.
+After proof, a new Fix likewise resolves or creates one project and its strict direct-issue plan;
+before proof both profiles make no Fix provider call. Standalone/other artifact use still requires
+an exact caller selection or explicit persistence request. Repository policy supplies defaults
+only after selection or a build/Fix requirement; it never authorizes unrelated access.
 
 Each profile independently uses the official host-exposed Linear MCP under the
 [Linear artifact contract](../../../woostack-init/references/artifact-backends.md). Keep secret

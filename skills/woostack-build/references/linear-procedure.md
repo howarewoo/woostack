@@ -2,7 +2,8 @@
 
 This procedure writes one canonical build or selected standalone-plan record to one exact Linear
 project. It owns no workflow gate, phase, assignment, execution, acceptance, or repository
-authority. Use the [Linear artifact contract](../../woostack-init/references/artifact-backends.md)
+authority. Use the [Linear artifact contract](../../woostack-init/references/artifact-backends.md),
+including its [link-only Approval Ask presentation rule](../../woostack-init/references/artifact-backends.md#approval-ask-presentation),
 and [project context procedure](linear-context.md) for every read and write.
 
 ## Build project lifecycle
@@ -16,10 +17,11 @@ hardening:
 3. retain stable project identity and mutation identity; and
 4. never request project-spec approval until a complete hardening pass yields no new question.
 
-After the responsible user explicitly approves the exact project specification in the active
-conversation, record that approval in the Linear `projectSpecApprovalRecord` and independently read
-the receipt back. Do not rewrite the specification silently. A material correction invalidates both
-shared approval records and returns to project-spec hardening.
+After the responsible user explicitly approves gate 1's link-only Ask in the active conversation,
+record that approval in the Linear `projectSpecApprovalRecord` and independently read the receipt
+back. Keep the exact project specification and fingerprint internal under the shared presentation
+rule; never rewrite the specification silently. A material correction invalidates both shared
+approval records and returns to project-spec hardening.
 
 ## Increment graph synchronization
 
@@ -61,10 +63,11 @@ execution authorization. Without explicit persistence, standalone planning makes
 
 ## Approval preparation
 
-Before the project-spec gate, return the exact project URL/UUID, complete independently read
-specification, `canonicalProjectSpecFingerprint`, and provider revision/read time. Present that
-exact specification in the active conversation for explicit approval, record the approval in
-`projectSpecApprovalRecord`, and independently read the Linear receipt back.
+Before the project-spec gate, independently read the complete project specification and retain its
+exact `canonicalProjectSpecFingerprint`, provider revision, and read time internally. Present gate
+1's exact canonical Linear project link under the shared
+[Approval Ask presentation rule](../../woostack-init/references/artifact-backends.md#approval-ask-presentation).
+Record the approval in `projectSpecApprovalRecord` and independently read the Linear receipt back.
 
 Before the execution-plan gate:
 
@@ -73,9 +76,11 @@ Before the execution-plan gate:
 3. verify each executor contract, project membership, parent absence, stable identity, and
    fingerprint;
 4. verify normalized dependencies exactly match the hardened acyclic graph; and
-5. return the exact sorted increment and dependency sets. Present that exact set in the active
-   conversation for explicit approval, record it in `executionPlanApprovalRecord`, and independently
-   read the Linear receipt back.
+5. retain the exact sorted increment and dependency sets internally. Present gate 2's exact relevant
+   direct-issue links under the shared
+   [Approval Ask presentation rule](../../woostack-init/references/artifact-backends.md#approval-ask-presentation).
+   Record the approval in `executionPlanApprovalRecord` and independently read the Linear receipt
+   back.
 
 No successful mutation response, Linear status, conversation response without a matching Linear
 receipt, assignment, update, or read-back alone is approval. A provider-native comment is neither

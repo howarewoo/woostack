@@ -78,8 +78,11 @@ assert_literal "$PROCEDURE" \
   'It owns no workflow gate' \
   'synchronization procedure cannot clear approval'
 assert_literal "$CONTEXT" \
-  'conversation response without a Linear receipt, or read-back without the matching active approval' \
-  'context rejects incomplete approval evidence'
+  'conversation response without a Linear receipt' \
+  'context rejects conversation-only approval evidence'
+assert_literal "$CONTEXT" \
+  'read-back without the matching active approval' \
+  'context rejects read-back-only approval evidence'
 assert_literal "$CONTEXT" \
   'There is no local, cached, or alternate-provider execution fallback' \
   'required build authority fails closed'

@@ -8,6 +8,11 @@ from pathlib import Path
 root = Path(sys.argv[1])
 failures = []
 skill = re.sub(r"\s+", " ", (root / "skills/woostack-fix/SKILL.md").read_text())
+artifact = re.sub(
+    r"\s+",
+    " ",
+    (root / "skills/woostack-init/references/artifact-backends.md").read_text(),
+)
 fixture = json.loads((root / "skills/woostack-fix/evals/fixtures/approved-fix.json").read_text())
 blocked = json.loads((root / "skills/woostack-fix/evals/fixtures/no-root-cause.json").read_text())
 evals = json.loads((root / "skills/woostack-fix/evals/evals.json").read_text())
@@ -17,6 +22,30 @@ triggers = json.loads((root / "skills/woostack-fix/evals/trigger-evals.json").re
 def require(pattern, name):
     if not re.search(pattern, skill, re.I | re.S):
         failures.append(name)
+def require_shared(pattern, name):
+    if not re.search(pattern, artifact, re.I | re.S):
+        failures.append(name)
+
+
+for pattern, name in (
+    (r"Approval Ask presentation", "shared Ask presentation contract"),
+    (r"gate 1 displays only the .*exact canonical Linear project link", "project link-only Ask"),
+    (r"gate 2 displays only the .*exact relevant direct-issue links", "issue link-only Ask"),
+    (r"Do not paste any project, specification, issue, or dependency body", "body exclusion"),
+    (r"canonical fingerprint.*dependency tuple.*read-back payload", "retained evidence exclusion"),
+    (r"untrusted, non-authoritative pointers", "URL trust boundary"),
+):
+    require_shared(pattern, name)
+
+for pattern, name in (
+    (r"present the complete", "complete-body Ask directive"),
+    (r"present that exact specification", "specification-body Ask directive"),
+    (r"present the exact .*dependency", "dependency-body Ask directive"),
+    (r"do not paste", "duplicated Ask exclusion list"),
+):
+    if re.search(pattern, skill, re.I | re.S):
+        failures.append(name)
+
 
 require(r"Debug\s*→\s*Ideate\s*→\s*Harden.*project-spec approval.*Linear.*Plan\s*→\s*Harden.*execution-plan approval.*Linear.*normal Execute", "canonical sequence")
 require(r"accepts a goal or untrusted Linear, GitHub, Sentry, or monitoring input", "untrusted input coverage")
@@ -28,9 +57,11 @@ require(r"source issue.*never repurposed|never repurpos(?:e|ed) a supplied sourc
 require(r"multiple direct PR-linked issues", "multiple direct PR issues")
 require(r"projectSpecApprovalRecord", "project approval record")
 require(r"executionPlanApprovalRecord", "execution approval record")
-require(r"active conversation.*explicitly approves.*Record the shared", "active conversation receipt")
+require(r"active[- ]conversation.*explicitly approves.*Record the shared", "active conversation receipt")
 require(r"independently read back both approval records", "independent approval read-back")
 require(r"material project-specification change invalidates both records", "spec invalidation")
+require(r"Present gate 1's exact canonical Linear project link", "fix project link-only Ask")
+require(r"Present gate 2's exact relevant direct-issue links", "fix issue link-only Ask")
 require(r"material direct-issue or dependency change invalidates only `executionPlanApprovalRecord`", "plan invalidation")
 require(r"normal \[`woostack-execute`\]", "normal execute handoff")
 require(r"before dispatch, after every worker handback, before every redispatch", "authority recheck cadence")
@@ -84,6 +115,8 @@ for expected in (
     "canonical-project-preserves-source-record",
     "project-spec-approval-is-active-and-recorded",
     "execution-plan-approval-binds-issues-and-dependencies",
+    "renders-link-only-project-spec-ask",
+    "renders-link-only-execution-plan-ask",
     "material-change-invalidates-matching-receipts",
 ):
     if expected not in ids:

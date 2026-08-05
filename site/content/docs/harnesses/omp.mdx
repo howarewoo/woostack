@@ -45,10 +45,10 @@ A unit pins:
 - isolated role credentials/config roots; and
 - one expected evidence handback.
 
-Build and post-proof fix runs require exact canonical Linear records and approval events. Build
-resolves or creates one project before ideation; fix binds or creates one issue after root-cause
-proof. Both profiles independently require the configured official MCP capability. Artifact-
-optional workflows need no Linear principal unless explicitly selected.
+Build and post-proof Fix runs require exact canonical Linear records and approval events. Build
+resolves or creates one project before ideation; after root-cause proof, Fix resolves or creates one
+project and its strict direct-issue plan. Both profiles independently require the configured
+official MCP capability. Artifact-optional workflows need no Linear principal unless selected.
 
 Before the first coder dispatch, create or resolve the canonical task worktree, then follow the
 canonical [Hermes bound-unit setup](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/hermes.md#bound-unit-manifest-and-binding).
@@ -75,14 +75,16 @@ then reads the canonical PR/head/diff itself and performs independent review.
 
 ## Linear artifacts
 
-Build always uses one exact Linear project; a proved new fix uses one exact issue. Credentials stay
-in each profile's own MCP/OAuth secret environment and never enter repository config, prompts, logs,
-staged launcher files, or generated output. Follow the
+Build always uses one exact Linear project; after root-cause proof, a new Fix resolves or creates
+one exact project and its strict direct-issue plan. Credentials stay in each profile's own
+MCP/OAuth secret environment and never enter repository config, prompts, logs, staged launcher
+files, or generated output. Follow the
 [Linear artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md).
 
-The responsible user's exact native Linear approval event clears only its matching fix/build
-content revision. It does not authorize worker assignment, dispatch, edits, commits, review,
-product acceptance, or repository delivery claims. Before proof, fix makes no Linear call.
+The responsible user's two exact native Linear approval events clear only the matching fix/build
+project-specification and execution-plan revisions. They do not authorize worker assignment,
+dispatch, edits, commits, review, product acceptance, or repository delivery claims. Before proof,
+Fix makes no Linear call.
 `woostack-change` never contacts Linear.
 
 ## Recovery

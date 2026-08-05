@@ -65,13 +65,14 @@ of an approved workflow.
 **Artifact invariant:** Linear is the canonical product record for builds and, after root-cause
 proof, fixes. A build requires one exact project containing the complete current high-level
 specification plus one direct project issue per increment containing executor-ready steps; native
-issue dependencies encode the DAG. A fix requires one exact issue containing its diagnosis and
-executor-ready plan. Build creates its project from validated defaults when the caller supplies
-none; fix creates its issue after proof when the caller supplies none.
+issue dependencies encode the DAG. After proof, a Fix requires one exact project containing its
+complete diagnosis and specification plus a strict direct-issue plan. Build creates its project
+from validated defaults when the caller supplies none; Fix creates its project and direct issues
+after proof when exact records were not supplied.
 
-The responsible user approves exact independently read content revisions. Build has two gates:
-project-spec revision, then complete issue/dependency revision set. Fix has one issue-revision gate.
-Those exact approval events authorize only their matching workflow transition. Linear assignment,
+The responsible user approves exact independently read content revisions. Build and Fix each have
+two gates: project-spec revision, then complete issue/dependency revision set. Those exact approval
+events authorize only their matching workflow transition. Linear assignment,
 status, labels, or content alone never authorize work, and Linear never replaces direct
 Git/Graphite/GitHub source-control evidence.
 
@@ -79,9 +80,9 @@ Other workflows remain artifact-optional. `/woostack-init` may make authenticate
 calls through the official Linear MCP to validate non-secret defaults; it cannot select persistence,
 read artifact content, or write. `woostack-change` never contacts Linear. Tracked policy supplies
 validated defaults only after a workflow selects or requires Linear and never authorizes unrelated
-provider access. Every mutation uses the official MCP and independent read-back. Explicit
-abandonment closes only project-backed build/plan projects through configured canceled status;
-handoff, replanning, and blockers leave project status unchanged. Follow the
+provider access. Every mutation uses the official MCP and independent read-back. Explicit build or
+project-backed Fix abandonment closes the exact project through configured canceled status/read-back;
+source issues are preserved. Handoff, replanning, and blockers leave project status unchanged. Follow the
 [Linear artifact contract](../woostack-init/references/artifact-backends.md).
 
 **Engineer-agent invariant:** a host that pairs a decision-maker with a coder must follow the
@@ -99,7 +100,7 @@ mutation, review independence, or acceptance authority.
 | `/woostack-init [path] [--migrate-legacy]`, initialize or repair the `.woostack/` workspace, or explicitly migrate tracked legacy development records | `woostack-init` |
 | `/woostack-bootstrap <goal>`, scaffold a new web/mobile/API project | `woostack-bootstrap` |
 | `/woostack-build <goal> [--project <exact Linear URL-or-UUID>]`, build a feature from one canonical project specification through two exact Linear revision approvals | `woostack-build` |
-| `/woostack-fix <prompt> [--issue <exact Linear URL-or-UUID>] [--inline\|--subagent]`, diagnose a free-form defect, bind/create one issue after root-cause proof, and execute only after approval | `woostack-fix` |
+| `/woostack-fix <prompt> [--project <exact Linear URL-or-UUID>] [--issue <exact Linear URL-or-UUID>] [--inline\|--subagent]`, diagnose a free-form defect, resolve/create its project and direct-issue plan after root-cause proof, and execute only after both approvals | `woostack-fix` |
 | `/woostack-change <goal>`, implement a small bounded non-bug enhancement or refactor directly in one isolated worktree and one reviewable PR | `woostack-change` |
 | `/woostack-plan <approved specification> [--project <exact Linear URL-or-UUID>]`, produce a PR-sized dependency-aware direct-issue plan; standalone persistence is optional | `woostack-plan` |
 | `/woostack-execute <approved plan-or-task> [--project <exact Linear URL-or-UUID>] [--issue <exact Linear URL-or-UUID>] [--inline\|--subagent]`, execute approved work; fix/build origins require their exact approval records | `woostack-execute` |

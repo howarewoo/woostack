@@ -13,10 +13,11 @@ pnpx skills add howarewoo/woostack
 - **Split canonical truth:** Linear owns current fix/build product scope and execution plans; Git
   and GitHub prove source, branches, pull requests, reviews, and merge state.
 - **Simple durable shape:** every build uses one project for its high-level specification plus one
-  direct issue per independently shippable increment, with native dependency relations. Every
-  post-diagnosis fix uses one issue for diagnosis, executor-ready plan, approval, and delivery notes.
-- **Exact revision approval:** the responsible user's native Linear approval event clears only the
-  matching content fingerprint; material edits invalidate that gate.
+  direct issue per independently shippable increment, with native dependency relations. After
+  proof, every Fix uses one project for its complete specification plus a strict direct-issue chain.
+- **Exact revision approval:** the responsible user's two native Linear approval events clear only
+  the matching project-specification and execution-plan fingerprints; material edits invalidate
+  the affected gate.
 - **Decision-maker/coder separation:** the generic
   [engineer-agent contract](/docs/concepts/engineer-agents) keeps scope, independent review, and
   acceptance separate from isolated implementation.
@@ -40,10 +41,10 @@ The collection keeps the whole delivery loop coherent without requiring a local 
 - canonical Linear product records for fix/build, with optional artifacts elsewhere.
 
 Build resolves an exact project or creates one from validated defaults before ideation. Fix
-diagnosis stays provider-free until root-cause proof, then binds an exact issue or creates one in
-the configured team. Every write and approval event is independently read back. Tracked policy
-supplies validated defaults only after the workflow requires or selects Linear and cannot authorize
-unrelated provider writes.
+diagnosis stays provider-free until root-cause proof, then resolves or creates a project for the
+complete fix specification and its direct-issue plan. Every write and approval event is
+independently read back. Tracked policy supplies validated defaults only after the workflow
+requires or selects Linear and cannot authorize unrelated provider writes.
 
 ## Where to go next
 

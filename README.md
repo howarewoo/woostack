@@ -13,8 +13,8 @@ supplies source-control or delivery truth.
 - **Decision-maker/coder separation:** A decision-maker owns scope, review, and acceptance; an
   isolated coding profile implements one bounded task at a time.
 - **Canonical executor-ready records:** Every build uses one project plus one direct issue per
-  increment. Every proved new fix uses one issue. Their approved revisions contain complete,
-  ordered implementation plans suitable for a fast execution model.
+  increment. After proof, every new Fix uses one project plus a strict direct-issue chain. Their
+  approved project-specification and execution-plan revisions remain executor-ready.
 - **Agent and model agnostic:** The skills work across supported harnesses. Builds and proved fixes
   require the configured official MCP path; artifact use remains optional in other workflows.
 
@@ -100,9 +100,9 @@ The [using-woostack](skills/using-woostack/SKILL.md) skill reads project rules a
 
 Customize non-secret repository policy in `.woostack/config.json`, including review behavior,
 status staleness, pre-commit hooks, and Linear workspace/team defaults. Build uses those defaults
-to create its canonical project when the caller supplies no exact project. A new fix uses the
-configured team only after root-cause proof to create its canonical issue. Policy cannot authorize
-provider writes or clear either Linear approval gate. Provider authentication stays in the host's
+to create its canonical project when the caller supplies no exact project. A new Fix uses them only
+after root-cause proof to create its canonical project and strict direct-issue chain. Policy cannot
+authorize provider writes or clear either Linear approval gate. Provider authentication stays in the
 OAuth or secret store.
 
 Review-policy fragment:
@@ -138,16 +138,19 @@ rechecks the project, all direct issues, native dependencies, and both approval 
 execution, after every worker handback, before redispatch, immediately before commit, and before
 selecting another increment.
 
-After root-cause proof, every fix binds one exact compatible issue in the caller-selected workspace
-or creates one configured-team issue with stable mutation identity and independent read-back. The
-complete diagnosis and executor-ready step-by-step plan live on that issue. Execution requires the
-responsible user's native approval event on the exact issue revision. Fixes never create projects.
-Exact resources take precedence over creation. Skills never read or expose API credentials.
+After root-cause proof, every fix resolves one exact compatible project in the caller-selected
+workspace or creates one from configured defaults with stable mutation identity and independent
+read-back. The project holds the complete diagnosis and fix specification; a strict direct-issue
+chain holds the executor-ready plan. The responsible user approves the project specification and
+then the exact direct-issue/dependency set before execution. The shared
+[Linear artifact contract](skills/woostack-init/references/artifact-backends.md#approval-ask-presentation)
+defines the link-only approval Ask and retained evidence. Exact resources take precedence over
+creation. Skills never read or expose API credentials.
 
-If a build is explicitly abandoned, set its exact project to configured
-`projectStatuses.canceled` and independently read the closure back. Fix abandonment preserves its
-exact issue and may append only a verified safe note. It never creates a project merely to cancel
-it. Handoff, replan, and blockers leave project status unchanged.
+If a build or project-backed Fix is explicitly abandoned, set its exact project to configured
+`projectStatuses.canceled` and independently read the closure back. Source issues are preserved,
+and no project is created solely to cancel anything. Handoff, replan, and blockers leave project
+status unchanged.
 
 The authority boundary:
 
@@ -182,8 +185,8 @@ No repository mutation starts ad hoc. An explicit goal and workflow contract com
    Maintains one canonical project specification, hardens one direct issue per increment, obtains
    the two exact Linear approvals, then executes reviewable PRs.
 3. **Bug Fixes & Root-Cause Work** → [/woostack-fix](skills/woostack-fix/SKILL.md)
-   Diagnoses a free-form prompt, proves root cause, binds or creates one issue, obtains approval of
-   its complete fix contract, and delivers one reviewed PR.
+   Diagnoses a free-form prompt, proves root cause, binds or creates one project and its direct
+   issue plan, obtains both exact Linear approvals, and delivers one reviewed PR.
 4. **Bounded Non-Bug Changes** → [/woostack-change](skills/woostack-change/SKILL.md)
    Ships a bounded enhancement or refactor through one PR without contacting Linear.
 

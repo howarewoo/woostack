@@ -54,29 +54,30 @@ and one direct issue per increment; there is no parent plan issue.
 ## Fix
 
 ```text
-prompt → reproduce → prove root cause → harden fix contract →
-bind/create one issue → native issue approval → execute → review → hand back
+prompt → reproduce → prove root cause → resolve/create canonical project →
+ideate and harden project specification → active-conversation project-spec link approval →
+plan and harden direct issues → active-conversation direct-issue link approval →
+execute → review → hand back
 ```
 
-Fix has one explicit approve-to-execute gate and never substitutes a symptom patch for root-cause
-proof. After proof, an exact `--issue` reuses any compatible native work item in the selected
-workspace; it does not need to equal the configured default team. A plain prompt creates one
-configured-team issue with stable identity/read-back. A fix has no `--project` path and never
-creates a project hierarchy.
+Fix owns the same two project-backed approval gates as Build and never substitutes a symptom patch
+for root-cause proof. After proof, an exact `--project` is reused or one project is created from
+validated defaults. An exact source `--issue` remains source context and is preserved apart from its
+supported project link; it is not repurposed as a plan issue. The complete diagnosis and
+specification live on the canonical project, with executor-ready contracts on direct issues and
+native dependencies between them.
 
-The complete diagnosis and self-contained execution plan live on that issue. Approval binds one
-`fixApprovalRecord`: issue identity, canonical fingerprint of title/description/native
-dependencies, responsible user's stable native principal ID, provider event timestamp, and stable
-approval-event reference. The controller derives the dependency projection from fully paginated
-native `blocks`/`blockedBy` relations and rejects incomplete or unsupported relation evidence.
-Status, labels, assignment, issue content alone, workflow inference, read-back, and agent-authored
-events do not approve execution.
+Both approval gates use the shared
+[Linear artifact contract's link-only Ask presentation](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#approval-ask-presentation).
+The responsible user's active-conversation approvals still require matching Linear receipts and
+independent read-back.
 
-Execution re-reads the exact issue, relations, and approval event before implementation, after
-every worker handback, before redispatch, and immediately before commit. A material plan or admitted
-dependency edit invalidates approval; unrelated comments and metadata do not. Required Linear
-failures block without a local, conversational, historical-project, or alternate-provider fallback.
-Before root-cause proof, fix makes no provider call.
+Execution re-reads the exact project, direct issues, native relations, and both approval records
+before implementation, after every worker handback, before redispatch, and immediately before
+commit. A material project change invalidates both records; an issue or dependency change
+invalidates only the execution-plan record. Required Linear failures block without a local,
+conversational, historical-project, or alternate-provider fallback. Before root-cause proof, Fix
+makes no provider call.
 
 ## Change
 
@@ -116,9 +117,11 @@ build
 
 fix
   → diagnose without provider access
-  → bind exact issue or create one from validated defaults after root-cause proof
-  → write/read back the complete diagnosis and executor-ready plan
-  → approve that exact issue revision in Linear
+  → bind/create canonical project after root-cause proof
+  → write/read back the complete project specification and executor-ready direct issues
+  → approve the project-spec Ask with only the exact canonical project link
+  → approve the execution-plan Ask with only the exact relevant direct-issue links
+  → independently read back both receipts, the project, issues, and native dependencies
   → execute
 ```
 
@@ -126,11 +129,10 @@ Every mutation and approval event is independently read back. Required failure b
 verified boundary. Artifact-optional workflows make no Linear call without exact selection or an
 explicit persistence request.
 
-If a project-backed build/plan workflow is explicitly abandoned, repository work stops and its
-existing project moves to the configured canceled status. The workflow reads that transition back
-before claiming closure. A fix preserves its exact issue and may append only a verified note; it
-never creates a project merely to cancel it. A normal handoff, replan, or blocker leaves project
-status unchanged.
+If a project-backed build/plan/Fix workflow is explicitly abandoned, repository work stops and its
+exact existing canonical project moves to the configured canceled status. The workflow reads that
+transition back before claiming closure. Any source issue remains preserved apart from its supported
+project link. A normal handoff, replan, or blocker leaves project status unchanged.
 
 ## Terminal outcomes
 
@@ -139,7 +141,8 @@ Every route returns one of:
 - verified reviewed PR or reviewed stack;
 - approved handoff before implementation;
 - truthful blocker with exact safe resume boundary; or
-- explicit abandonment preserving recoverable repository evidence and closing an existing build/plan
-  project as canceled. Fix issues are preserved.
+- explicit abandonment preserving recoverable repository evidence and closing the exact existing
+  build/plan/Fix project as canceled after independent read-back. Any source issue is preserved
+  apart from its supported project link.
 
 No woostack development workflow merges.

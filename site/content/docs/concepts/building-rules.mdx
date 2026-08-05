@@ -12,7 +12,7 @@ source, branches, commits, pull requests, reviews, and merge evidence.
 
 | Shape | Commands | Active contract | Linear behavior |
 | --- | --- | --- | --- |
-| Bounded bug or regression | [woostack-fix](/docs/skills/woostack-fix) | proved root cause plus one approved exact issue revision | one bound/created issue after proof; no project |
+| Bounded bug or regression | [woostack-fix](/docs/skills/woostack-fix) | proved root cause plus approved project-spec and direct-issue revisions | canonical project, direct increment issues, native dependencies |
 | Bounded non-bug change | [woostack-change](/docs/skills/woostack-change) | one explicit goal/contract | none |
 | Multi-increment feature | [woostack-build](/docs/skills/woostack-build) | approved project-spec revision plus approved direct-issue graph | required project, direct increment issues, native dependencies |
 | Greenfield codebase | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | complete approved design | exact artifact or explicit persistence request only |
@@ -33,14 +33,15 @@ execute → review → hand back
 
 The only hard gates are:
 
-1. **Project-spec approval** — the responsible user approves the exact high-level project
-   fingerprint in a native Linear project comment or decision before planning.
-2. **Execution-plan approval** — the responsible user approves the exact direct-issue fingerprint
-   set and native dependency set in Linear before any implementation branch, worktree, commit, or
-   PR exists.
+1. **Project-spec approval:** The responsible user approves the exact project-spec revision through
+   the shared link-only Ask.
+2. **Execution-plan approval:** The responsible user approves the exact direct-issue and dependency
+   revision set through the shared link-only Ask.
 
-Material updates are written to the same canonical Linear records and invalidate the matching gate.
-Planning, hardening, synchronization, and read-back are work steps, not extra gates.
+The shared [Linear artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#approval-ask-presentation)
+defines this link-only Ask presentation and its untrusted, non-authoritative URLs. Material updates
+to canonical Linear records invalidate the matching gate. Planning, hardening, synchronization,
+and read-back are work steps, not extra gates.
 
 ## Execution invariants
 
@@ -56,8 +57,8 @@ Planning, hardening, synchronization, and read-back are work steps, not extra ga
 ## Canonical Linear records
 
 Build always resolves one exact project or creates one from validated repository/workspace/team
-defaults before ideation. It has no artifact-free fallback. Fix remains provider-free during
-diagnosis, then binds one exact issue or creates one in the configured team after root-cause proof.
+defaults before ideation. It has no artifact-free fallback. After root-cause proof, Fix resolves one
+exact project or creates one from validated defaults and uses that same project-backed two-gate path.
 Other artifact-capable workflows remain opt-in.
 
 The build record contains:
@@ -72,19 +73,19 @@ There is no parent plan issue or child containment. Every mutation uses a stable
 independent read-back. Exact resources take precedence over creation. `woostack-change` never
 contacts Linear.
 
-Fix approval records one `fixApprovalRecord`: issue identity, canonical fingerprint of the exact
-title/description/native dependency projection, responsible user's stable native principal ID,
-provider event timestamp, and stable approval-event reference. Status, labels, assignment, issue
-content alone, workflow inference, read-back, and agent-authored events do not approve execution.
-Fix-origin execution rechecks the exact issue, fully paginated native `blocks`/`blockedBy`
-dependencies, and approval event before implementation, after every worker handback, before
-redispatch, and immediately before commit. A material plan or admitted dependency edit invalidates
-approval; unrelated metadata does not. Required Linear failures block without fallback.
+Project-backed Fix uses the same two approval records as Build: a project-spec revision followed by
+the direct-issue and native-dependency execution-plan revision. Its complete diagnosis and
+specification live on the canonical project, while each direct issue carries its executor-ready
+contract. The active-conversation Asks follow the shared link-only presentation contract, while the
+complete approval records and read-back evidence remain internal to the controller and are
+independently rechecked before dispatch, after every worker handback, before redispatch, and
+immediately before commit. Material project changes invalidate both records; issue or dependency
+changes invalidate only the execution-plan record.
 
-Explicit abandonment is the one workflow-owned project-status transition. A build/plan workflow
-stops repository work, sets an existing project to configured canceled status, and independently
-reads the transition back. Fix issues are preserved; no project is created solely to cancel
-anything. Handoff, replanning, and blockers leave the project open.
+Explicit abandonment is the one workflow-owned project-status transition. A build/plan or
+project-backed Fix stops repository work, sets its existing project to configured canceled status,
+and independently reads the transition back. Source issues are preserved; no project is created
+solely to cancel anything. Handoff, replanning, and blockers leave the project open.
 
 ## Authority boundaries
 
