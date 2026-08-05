@@ -26,4 +26,8 @@ gitignored, so humanize the source `SKILL.md`, never the generated MDX.
 
 - Keep authored pages in sync with the skills they describe (see the root `AGENTS.md` hard
   constraints).
+- In an isolated worktree without `site/node_modules`, run
+  `pnpm -C site install --frozen-lockfile` from the repository root before building. Never
+  symlink `node_modules` from another checkout because Turbopack rejects dependency links that
+  point outside the current project root.
 - Run `pnpm build` to confirm the site still builds.
