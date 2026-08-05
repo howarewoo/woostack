@@ -55,6 +55,8 @@ for pattern, message in (
     (r"executionPlanApprovalRecord", "execution-plan approval record missing"),
     (r"project-specification change invalidates both.*issue or dependency change invalidates only", "approval invalidation rules missing"),
     (r"projectStatuses\.canceled", "canceled-status mapping missing"),
+    (r"server-generated.*approvalEventRef.*same.*event.*independently.*read", "server-generated approval receipt finalization missing"),
+    (r"provisional.*never clears.*gate", "provisional approval event can appear authoritative"),
 ):
     require("artifact-backends.md", contract, pattern, message)
 
@@ -79,6 +81,12 @@ if re.search(r"fixApprovalRecord|approve-to-execute|bind exactly one issue", fix
 plan = flat(root / "skills/woostack-plan/SKILL.md")
 require("woostack-plan", plan, r"`--project` is mandatory", "exact-project selection boundary missing")
 require("woostack-plan", plan, r"exactly one direct project issue for each execution increment", "direct-issue persistence missing")
+require(
+    "woostack-plan",
+    plan,
+    r"verification command.*repository-local script or path.*already exist.*predecessor increment.*same increment.*create",
+    "planned verification existence check missing",
+)
 
 change = flat(root / "skills/woostack-change/SKILL.md")
 require("woostack-change", change, r"(never reads or writes Linear|makes no Linear call)", "change is not Linear-free")
