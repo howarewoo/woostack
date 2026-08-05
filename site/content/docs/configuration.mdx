@@ -121,10 +121,19 @@ Missing required capability blocks at the retained safe boundary; selected stand
 failure blocks only that optional operation. Before root-cause proof, Fix makes no provider call.
 `woostack-change` ignores the `linear` object.
 
+`linear.projectStatuses.started` names the native status used when Execute observes any direct issue
+in `In Progress` or `In Review`. It resolves to exactly one status in the selected workspace/team
+and must have native category `started`. Execute updates only the exact project's status, with a
+stable mutation identity and independent read-back; an exact match is an idempotent no-op. If all
+direct issues are `Backlog`/`Todo`, synchronization waits until the selected issue transitions
+to `In Progress` and reads back before repository mutation.
+
 `linear.projectStatuses.canceled` names the native status used to close an existing project-backed
-Build, Fix, or standalone Plan workflow after explicit abandonment. The workflow reads the status
-transition back and never creates a project solely to cancel it. Source issues, handoff, replanning,
-and blockers are not abandonment and leave projects open.
+Build, Fix, or standalone Plan workflow after explicit abandonment. It must resolve to exactly one
+native status with category `canceled`; the workflow pre-reads the exact project, updates only its
+status with a stable mutation identity, and independently reads the transition back. The workflow
+never creates a project solely to cancel it. Source issues, handoff, replanning, and blockers are not
+abandonment and leave projects open.
 
 The canonical
 [Linear artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md)

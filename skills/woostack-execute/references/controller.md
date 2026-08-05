@@ -38,14 +38,36 @@ scope, allocation, records, or boundaries.
 Project mode repeatedly runs one cycle; issue mode runs one cycle for the selected issue only.
 
 ```text
-admit → select lowest unfinished ordinal → prove predecessor/base
-  → persist/read back In Progress + resume checkpoint
+admit → read exact project + complete direct-issue set
+  → select lowest unfinished ordinal → prove predecessor/base
+  → active issue? resolve/read back projectStatuses.started
+  → all direct issues are `Backlog`/`Todo`? persist/read back selected issue In Progress
+  → all direct issues are `Backlog`/`Todo`? resolve/read back projectStatuses.started
+  → persist issue intent + resume checkpoint
   → create or resume one worktree → dispatch fast-model worker
   → focused verification/smoke → bounded spec validator
   → commit/Graphite submit → read back branch/commit/PR/receipt
   → persist delivery evidence + read back In Review
   → clean-worktree teardown → (project: stop marker? pause : next ordinal)
 ```
+
+### Project status gate
+
+Both modes apply the shared [active Execute project-start synchronization](../../woostack-init/references/artifact-backends.md#active-execute-project-start-synchronization)
+contract to the exact canonical nonterminal project before any worktree or source mutation.
+Independently read the exact project and complete, paginated direct-issue set. If any direct issue is
+`In Progress` or `In Review`, resolve `projectStatuses.started` to exactly one native status,
+require native category `started`, and synchronize the project before issue lifecycle work. If all
+direct issues are `Backlog`/`Todo`, first transition only the selected issue to `In Progress`
+and independently read that issue transition back, then synchronize the project before repository
+mutation. An exact started project status is an idempotent no-op.
+
+The gate pre-reads the exact project immediately before mutation, retains one stable mutation
+identity, and mutates only the project's native status field. Independently read back project
+identity, status ID/name/category, revision, and mutation identity. Completed or canceled projects,
+missing or invalid mappings, drift, incomplete pagination, timeout, partial/foreign output, or
+failed/unknown mutation or read-back block at the boundary without reopening or continuing. Keep
+the project-status receipt separate from issue lifecycle and resume-checkpoint evidence.
 
 An issue is unfinished until canonical Linear state and delivery evidence show `In Review` for this
 workflow. Project mode selects the lowest unfinished ordinal in the approved direct-issue order.
@@ -101,7 +123,9 @@ Git/Graphite/GitHub evidence. Never post a screenshot to a GitHub PR or external
 
 Read back each Linear write. Move the issue only through `Backlog`/`Todo` → `In Progress` → `In
 Review`; persist issue branch/worktree/run evidence and project resume checkpoint after the relevant
-boundary. Do not alter approved content, dependency edges, assignment, ownership, or acceptance.
+boundary. Apply the shared project status gate before repository mutation and independently read back
+its separate project-status receipt. Do not alter approved content, dependency edges, assignment,
+ownership, or acceptance.
 
 Before commit, re-read records, selected issue, predecessor, worktree, branch, diff, and Graphite
 parent. Invoke [`woostack-commit`](../../woostack-commit/SKILL.md) with the exact selected issue. The
