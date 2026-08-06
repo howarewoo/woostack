@@ -1,6 +1,6 @@
 ---
 title: Core concepts
-description: Repository delivery evidence, canonical Linear fix/build records, and the two-gate build loop.
+description: Repository delivery evidence, canonical Linear fix/build records, and two-gate project loops.
 ---
 
 import { ContextEconomy } from '@/components/concepts/context-economy';
@@ -9,8 +9,8 @@ woostack is a multiperson development workflow with two distinct truth domains. 
 current product specification and execution contracts for builds and post-diagnosis fixes. Git and
 GitHub own source, branches, commits, pull requests, reviews, and merge evidence. A build always
 uses one project containing its high-level specification plus one direct issue per increment;
-native issue dependencies encode the plan. A proved fix binds or creates one issue containing its
-diagnosis and executor-ready plan. Other workflows remain artifact-optional.
+native issue dependencies encode the plan. After proof, a Fix uses one project for its complete
+specification plus a strict direct-issue chain. Other workflows remain artifact-optional.
 
 Default init may make authenticated read-only Linear setup calls to validate non-secret defaults,
 but that narrow exception permits no provider write. Exact responsible-user Linear approval events
@@ -30,23 +30,24 @@ Ordered increments remain independently shippable and map to reviewable PRs. Bui
 artifact-free fallback.
 
 Bounded one-PR work takes a smaller route. [woostack-fix](/docs/skills/woostack-fix) proves a root
-cause, writes one complete fix contract to one bound or newly created issue, and executes only after
-the responsible user approves that exact issue revision in Linear.
+cause, resolves or creates one project for the complete fix specification, synchronizes its strict
+direct-issue chain, and executes only after the responsible user approves both exact revisions.
 [woostack-change](/docs/skills/woostack-change) executes one explicit bounded enhancement/refactor
 without contacting Linear.
 
-An explicit build/plan abandonment stops repository work and moves an existing plan project to the
-configured canceled status, with independent read-back. New fix issues are preserved; normal
-handoff, replanning, and blockers do not close projects, and no project is created for a fix issue.
+Explicit build or project-backed Fix abandonment stops repository work and moves the existing
+project to configured canceled status, with independent read-back. Source issues are preserved; no
+project is created solely to cancel anything. Normal handoff, replanning, and blockers leave the
+project open.
 
 ## Two hard gates
 
-The multi-increment build loop advances past exactly two content-bound Linear approvals:
+Build and project-backed Fix advance past exactly two content-bound Linear approvals:
 
 1. **Project-spec approval** accepts the exact current high-level project specification before
-   increment planning.
-2. **Execution-plan approval** accepts the exact complete set of direct increment issue revisions
-   and native dependency edges before repository implementation.
+   direct-issue planning.
+2. **Execution-plan approval** accepts the exact complete set of direct issue revisions and native
+   dependency edges before repository implementation.
 
 Material spec or plan changes are written back to the same canonical Linear records and invalidate
 the matching approval. Synchronization, read-back, planning, implementation checks, review, and
@@ -57,9 +58,9 @@ progress updates are work steps, not additional gates.
 | | Standalone work | Multi-increment work |
 | --- | --- | --- |
 | Use when | One bounded fix/change can ship in one PR | A feature needs multiple independently shippable increments |
-| Active contract | Fix: one approved issue revision. Change: one explicit goal | Approved project-spec revision plus approved direct-issue graph |
-| Linear plan | Fix: one issue after root-cause proof. Change: none | One project → one direct issue per increment + native dependencies |
-| Evidence | Linear owns fix scope/plan; Git/GitHub prove delivery | Linear owns spec/plan; Git/GitHub prove delivery per increment |
+| Active contract | Fix: approved project-spec revision plus approved direct-issue graph. Change: one explicit goal | Approved project-spec revision plus approved direct-issue graph |
+| Linear plan | Fix: one project after root-cause proof → direct issues + native dependencies. Change: none | One project → one direct issue per increment + native dependencies |
+| Evidence | Linear owns fix specification/plan; Git/GitHub prove delivery | Linear owns spec/plan; Git/GitHub prove delivery per increment |
 | Code delivery | One GitHub PR | One GitHub PR per increment |
 
 These shapes are chosen by work size. Linear is required for fix/build product authority but never

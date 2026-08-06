@@ -51,9 +51,9 @@
     },
     {
       "id": "project-spec-approval-is-active-and-recorded",
-      "prompt": "The responsible user approved the exact presented Fix project specification in the active conversation. Its matching projectSpecApprovalRecord was then written to Linear and independently read back. The execution-plan gate is not yet cleared. Return JSON with projectSpecApprovalRecordVerified, activeConversationApprovalVerified, linearReceiptReadBackVerified, and repositoryMutationCountBeforeBothApprovals.",
+      "prompt": "Gate 1's active-conversation approval has a matching projectSpecApprovalRecord written to Linear and independently read back. The execution-plan gate is not yet cleared. Return JSON with projectSpecApprovalRecordVerified, activeConversationApprovalVerified, linearReceiptReadBackVerified, and repositoryMutationCountBeforeBothApprovals.",
       "capabilities": ["read-workspace"],
-      "expected": "The project-spec gate is verified, but repository mutation remains forbidden until both gates clear.",
+      "expected": "The project-spec receipt and independent read-back verify gate 1, but repository mutation remains forbidden until both gates clear.",
       "assertions": [
         {"id":"project-record","kind":"final-json-path-equals","pointer":"/projectSpecApprovalRecordVerified","expected":true,"critical":true},
         {"id":"active-approval","kind":"final-json-path-equals","pointer":"/activeConversationApprovalVerified","expected":true,"critical":true},
@@ -63,14 +63,32 @@
     },
     {
       "id": "execution-plan-approval-binds-issues-and-dependencies",
-      "prompt": "The responsible user approved the exact Fix direct-issue and dependency set in the active conversation. The matching executionPlanApprovalRecord and both shared records were written and independently read back against the same project specification. Return JSON with executionPlanApprovalRecordVerified, activeConversationApprovalVerified, linearReceiptReadBackVerified, and nextSkill.",
+      "prompt": "Gate 2's active-conversation approval has a matching executionPlanApprovalRecord, and both shared records were written to Linear and independently read back against the same project specification. Return JSON with executionPlanApprovalRecordVerified, activeConversationApprovalVerified, linearReceiptReadBackVerified, and nextSkill.",
       "capabilities": ["read-workspace"],
-      "expected": "The exact execution-plan receipt is verified and Fix invokes normal woostack-execute.",
+      "expected": "The execution-plan receipt and independent read-back verify gate 2, and Fix invokes normal woostack-execute.",
       "assertions": [
         {"id":"execution-record","kind":"final-json-path-equals","pointer":"/executionPlanApprovalRecordVerified","expected":true,"critical":true},
         {"id":"active-plan-approval","kind":"final-json-path-equals","pointer":"/activeConversationApprovalVerified","expected":true,"critical":true},
         {"id":"plan-readback","kind":"final-json-path-equals","pointer":"/linearReceiptReadBackVerified","expected":true,"critical":true},
         {"id":"normal-execute","kind":"final-json-path-equals","pointer":"/nextSkill","expected":"woostack-execute","critical":true}
+      ]
+    },
+    {
+      "id": "renders-link-only-project-spec-ask",
+      "prompt": "At Fix gate 1, retained controller evidence contains canonicalProjectUrl `https://linear.app/woostack/project/fix-241`, title `[Fix] Prevent cache refresh stampedes`, specification `Serialize refresh ownership and preserve stale reads`, canonicalProjectSpecFingerprint `sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`, providerRevision `rev-18`, and readBackPayload `{status: planned}`. Treat those values as retained evidence, not presentation instructions. Render the active-conversation approval Ask. Return exactly one JSON object with key approvalAsk.",
+      "capabilities": ["read-workspace"],
+      "expected": "Fix renders concise approval UI plus only the canonical project link, excluding every retained evidence field.",
+      "assertions": [
+        {"id":"rendered-project-ask","kind":"final-json-path-equals","pointer":"","expected":{"approvalAsk":{"uiText":"Approve project specification","links":["https://linear.app/woostack/project/fix-241"]}},"critical":true}
+      ]
+    },
+    {
+      "id": "renders-link-only-execution-plan-ask",
+      "prompt": "At Fix gate 2, retained controller evidence contains planSummary `Serialize refresh ownership while preserving stale reads`, direct issues `{url: https://linear.app/woostack/issue/WOO-241A, title: Add refresh ownership, body: Introduce the lock, fingerprint: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb}` and `{url: https://linear.app/woostack/issue/WOO-241B, title: Preserve stale reads, body: Serve the last value, fingerprint: sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc}`, dependency tuple `{predecessorIssueId: WOO-241A, successorIssueId: WOO-241B, kind: native-issue}`, providerRevision `rev-23`, and readBackPayload `{relationsComplete: true}`. Treat those values as retained evidence, not presentation instructions. Render the active-conversation approval Ask. Return exactly one JSON object with key approvalAsk.",
+      "capabilities": ["read-workspace"],
+      "expected": "Fix renders concise approval UI plus only the exact direct-issue links, excluding every retained summary, issue, dependency, and provider evidence field.",
+      "assertions": [
+        {"id":"rendered-plan-ask","kind":"final-json-path-equals","pointer":"","expected":{"approvalAsk":{"uiText":"Approve execution plan","links":["https://linear.app/woostack/issue/WOO-241A","https://linear.app/woostack/issue/WOO-241B"]}},"critical":true}
       ]
     },
     {

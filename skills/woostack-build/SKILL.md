@@ -56,16 +56,20 @@ to write and independently read back the final direct issues and native dependen
 
 Build owns exactly these two stops, in this order, and no other approval or routing stop:
 
-1. **Project specification.** Present the complete independently read project and its
-   `canonicalProjectSpecFingerprint` in the active conversation. Continue only after the
-   responsible user explicitly approves that exact content. Record the shared
+Both stops use the shared
+[Approval Ask presentation rule](../woostack-init/references/artifact-backends.md#approval-ask-presentation);
+Build owns only the gate-specific transition and evidence below.
+
+1. **Project specification.** Present gate 1's exact canonical Linear project link under the shared
+   rule while retaining the complete independently read project and exact fingerprint internally.
+   Continue only after the responsible user explicitly approves that Ask. Record the shared
    `projectSpecApprovalRecord` in Linear, then independently read back the record and the exact
    project before proceeding.
-2. **Execution plan.** Present the complete independently read direct-issue set and native
-   dependency set for the same project and approved specification in the active conversation.
-   Continue only after the responsible user explicitly approves that exact content. Record the
-   shared `executionPlanApprovalRecord` in Linear, then independently read back both approval
-   records, the project, direct issues, and admitted dependencies.
+2. **Execution plan.** Present gate 2's exact relevant direct-issue links under the shared rule while
+   retaining the complete independently read issue and dependency sets internally. Continue only
+   after the responsible user explicitly approves that Ask. Record the shared
+   `executionPlanApprovalRecord` in Linear, then independently read back both approval records, the
+   project, direct issues, and admitted dependencies.
 
 The shared [approval-record contract](../woostack-init/references/artifact-backends.md#shared-approval-records)
 defines record fields, active-conversation requirements, receipt identity, causal order, and

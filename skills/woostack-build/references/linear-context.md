@@ -7,8 +7,9 @@ never authorizes provider access for unrelated workflows.
 
 Use the [Linear artifact contract](../../woostack-init/references/artifact-backends.md) for the
 canonical fingerprints, shared `projectSpecApprovalRecord` and `executionPlanApprovalRecord`,
-active-conversation approval, Linear receipts, independent read-back, trust, and provider-failure
-rules. Use the [Linear synchronization procedure](linear-procedure.md) for mutations.
+active-conversation approval, [link-only Approval Ask presentation](../../woostack-init/references/artifact-backends.md#approval-ask-presentation),
+Linear receipts, independent read-back, trust, and provider-failure rules. Use the [Linear
+synchronization procedure](linear-procedure.md) for mutations.
 
 ## Resolution
 
@@ -36,13 +37,14 @@ specification. Preserve unrelated human-authored content and treat it as untrust
 `canonicalProjectSpecFingerprint` from the exact admitted project fields. Record native identity,
 workspace/team, canonical repository association, provider revision/timestamp when available,
 pagination completeness, read time, and source.
-
 Gate 1 requires an independently read complete project snapshot and a matching
-`projectSpecApprovalRecord`. The responsible user must explicitly approve the exact presented
-project specification in the active conversation; the controller records that approval in Linear
-and independently reads the receipt back. A status, lead, label, update, assignment, content,
-conversation response without a Linear receipt, or read-back without the matching active approval
-never clears gate 1.
+`projectSpecApprovalRecord`. Under the shared
+[Approval Ask presentation rule](../../woostack-init/references/artifact-backends.md#approval-ask-presentation),
+show gate 1's exact canonical Linear project link while retaining the complete snapshot and exact
+fingerprint internally. The responsible user must explicitly approve that Ask; the controller
+records the approval in Linear and independently reads the receipt back. A status, lead, label,
+update, assignment, or content never clears gate 1. A conversation response without a Linear receipt,
+or read-back without the matching active approval never clears gate 1.
 
 ## Direct increment graph read
 
@@ -63,14 +65,14 @@ differs from the hardened plan.
 
 Historical parent plan issues and their children are noncanonical history. Preserve them, exclude
 them from current graph selection, and never detach, migrate, archive, delete, or reconcile them.
-Their parent-child or stale dependency relations do not block a complete current direct-issue
-graph.
-
 Gate 2 requires complete exact issue fingerprints, normalized native dependencies, and a matching
-`executionPlanApprovalRecord`. The responsible user must explicitly approve the exact presented
-issue-fingerprint and dependency set in the active conversation; the controller records that
-approval in Linear and independently reads the receipt back. Re-read the project and both shared
-approval records before admitting gate 2 so the project fingerprint still matches gate 1.
+`executionPlanApprovalRecord`. Under the shared
+[Approval Ask presentation rule](../../woostack-init/references/artifact-backends.md#approval-ask-presentation),
+show gate 2's exact relevant direct-issue links while retaining the complete exact issue and
+dependency sets internally. The responsible user must explicitly approve that Ask; the controller
+records the approval in Linear and independently reads the receipt back. Re-read the project and
+both shared approval records before admitting gate 2 so the project fingerprint still matches
+gate 1.
 
 ## Drift and failure
 

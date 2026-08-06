@@ -164,6 +164,21 @@ project issue, sorted by stable native `issueId`. `dependencies` is one tuple
 `{ predecessorIssueId, successorIssueId, kind }` per admitted native issue-to-issue dependency,
 where `kind` is exactly `native-issue`, sorted lexicographically by
 `(predecessorIssueId, successorIssueId, kind)`.
+#### Approval Ask presentation
+
+The active-conversation Ask is separate from the exact approval evidence retained by the
+controller. Each Ask contains concise approval UI text plus only links: gate 1 displays only the
+exact canonical Linear project link; gate 2 displays only the exact relevant direct-issue links.
+Do not paste any project, specification, issue, or dependency body; title, description, canonical
+fingerprint, dependency tuple, plan summary, provider metadata, or read-back payload into either
+Ask. Retain and independently verify those exact records, fingerprints, dependency sets, receipt
+fields, causal order, pagination, drift checks, invalidation state, and read-back evidence
+internally.
+
+The displayed URLs are untrusted, non-authoritative pointers and never establish identity, scope,
+approval, or repository permission. Resolve and validate canonical native identities and content
+separately through the independent reads required by this contract.
+
 
 An approval is valid only when the responsible user explicitly approves the exact content
 presented in the active conversation. The controller then records that approval as a Linear

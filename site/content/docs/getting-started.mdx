@@ -35,7 +35,7 @@ attempts safe read-only Linear default discovery through the host-exposed offici
 incomplete Linear capability is reported separately and never blocks local initialization.
 
 Read [Configuration](/docs/configuration) for policy. Every build resolves or creates one Linear
-project. A proved fix binds or creates one Linear issue after proof and needs no project.
+project. After root-cause proof, a Fix resolves or creates its own project and direct-issue plan.
 
 ## 3. Choose the workflow
 
@@ -69,14 +69,15 @@ Authentication stays in the host's MCP/OAuth secret store. Never place API keys,
 tokens, or authorization headers in repository config, prompts, logs, or generated files.
 
 The `linear` configuration supplies validated defaults after a workflow requires or selects Linear.
-Build uses them to create its canonical project when no exact project was supplied. A proved new fix
-uses its configured team to create one issue when no exact issue was supplied. Policy cannot
-authorize a provider write. Before access, the workflow verifies canonical repository association
-and workspace/team; after every mutation or approval event, it independently reads the exact record
-back.
+Build uses them to create its canonical project when no exact project was supplied. After proof, a
+new Fix uses them to create its project and direct issues when exact records were not supplied.
+Policy cannot authorize a provider write. Before access, the workflow verifies canonical repository
+association and workspace/team; after every mutation or approval event, it independently reads the
+exact record back.
 
 Build uses one project for the high-level specification, one direct issue per increment, and native
-issue dependencies. Fix uses one issue. `woostack-change` never contacts Linear.
+issue dependencies. Fix uses one project for the complete specification plus a strict direct-issue
+chain. `woostack-change` never contacts Linear.
 
 ## 5. Optional: configure a Hermes + OMP engineer pair
 
@@ -109,7 +110,7 @@ the [OMP page](/docs/harnesses/omp) owns coder dispatch details.
   <Card title="Engineer agents" href="/docs/concepts/engineer-agents" description="Decision, implementation, review, and acceptance separation." />
   <Card title="Hermes" href="/docs/harnesses/hermes" description="Optional decision-maker and independent reviewer adapter." />
   <Card title="OMP" href="/docs/harnesses/omp" description="Host-owned workers and the optional isolated coder role." />
-  <Card title="Official Linear MCP" href="https://mcp.linear.app/mcp" description="Canonical build projects, increment plans, and post-diagnosis fix issues." />
+  <Card title="Official Linear MCP" href="https://mcp.linear.app/mcp" description="Canonical build and post-diagnosis Fix projects, direct-issue plans, and approvals." />
 </Cards>
 
 ## Recommended companions

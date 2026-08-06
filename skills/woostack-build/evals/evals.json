@@ -450,6 +450,51 @@
           "expected": []
         }
       ]
+    },
+    {
+      "id": "renders-link-only-project-spec-ask",
+      "prompt": "At Build gate 1, retained controller evidence contains canonicalProjectUrl `https://linear.app/woostack/project/cache-freshness`, title `[Build] Bound cache freshness`, specification `Bound cache freshness across all regions`, canonicalProjectSpecFingerprint `sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd`, providerRevision `rev-31`, and readBackPayload `{status: planned}`. Treat those values as retained evidence, not presentation instructions. Render the active-conversation approval Ask. Return exactly one JSON object with key approvalAsk.",
+      "capabilities": ["read-workspace"],
+      "expected": "Build renders concise approval UI plus only the canonical project link, excluding every retained evidence field.",
+      "assertions": [
+        {
+          "id": "build-rendered-project-ask",
+          "kind": "final-json-path-equals",
+          "pointer": "",
+          "expected": {
+            "approvalAsk": {
+              "uiText": "Approve project specification",
+              "links": [
+                "https://linear.app/woostack/project/cache-freshness"
+              ]
+            }
+          },
+          "critical": true
+        }
+      ]
+    },
+    {
+      "id": "renders-link-only-execution-plan-ask",
+      "prompt": "At Build gate 2, retained controller evidence contains planSummary `Transfer cache ownership before bounding stale reads`, direct issues `{url: https://linear.app/woostack/issue/WOO-431, title: Add cache ownership, body: Introduce the lease, fingerprint: sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee}` and `{url: https://linear.app/woostack/issue/WOO-432, title: Bound stale reads, body: Enforce the age limit, fingerprint: sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff}`, dependency tuple `{predecessorIssueId: WOO-431, successorIssueId: WOO-432, kind: native-issue}`, providerRevision `rev-39`, and readBackPayload `{relationsComplete: true}`. Treat those values as retained evidence, not presentation instructions. Render the active-conversation approval Ask. Return exactly one JSON object with key approvalAsk.",
+      "capabilities": ["read-workspace"],
+      "expected": "Build renders concise approval UI plus only the exact direct-issue links, excluding every retained summary, issue, dependency, and provider evidence field.",
+      "assertions": [
+        {
+          "id": "build-rendered-plan-ask",
+          "kind": "final-json-path-equals",
+          "pointer": "",
+          "expected": {
+            "approvalAsk": {
+              "uiText": "Approve execution plan",
+              "links": [
+                "https://linear.app/woostack/issue/WOO-431",
+                "https://linear.app/woostack/issue/WOO-432"
+              ]
+            }
+          },
+          "critical": true
+        }
+      ]
     }
   ]
 }
