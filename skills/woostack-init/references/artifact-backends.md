@@ -190,6 +190,14 @@ grants a gate. A provider-native comment is not required and is not, by itself, 
 
 `approvedBy` is the responsible user's stable principal identity, `approvedAt` is the recorded
 approval event timestamp, and `approvalEventRef` is the stable Linear receipt/event reference.
+
+When the official MCP exposes a server-generated receipt identity only after event creation, create
+exactly one provisional event containing every approval-record field except `approvalEventRef`.
+That provisional event is allocation evidence, not an approval record, and it never clears any
+gate. Derive `approvalEventRef` from the returned stable native identity, update that same event
+exactly once, then independently read and verify the complete final record before continuing. An
+unknown create or update outcome blocks at that same identity; never allocate a second event,
+fabricate a reference, or treat a partial response as approval.
 The controller must independently verify those fields, the exact fingerprints and sets, and their
 causal order. Before execution, after every worker handback, before every redispatch, immediately
 before each commit, and before selecting another increment, independently re-read the exact

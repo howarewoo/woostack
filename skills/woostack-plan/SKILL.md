@@ -67,6 +67,13 @@ Every direct issue must retain these fields in its complete description:
 - a declared Graphite parent; and
 - a hand-written changed-line estimate and size rationale.
 
+Before admitting any verification command or smoke scenario, independently verify each named
+repository-local script or path already exists at the frozen base, is created by a predecessor
+increment whose native dependency orders it before use, or will be created by the same increment
+before use. Verify a manifest-defined command against its exact manifest entry and state any
+external runtime prerequisite. A missing or invented command blocks plan persistence; never defer
+existence checking to Execute.
+
 The size target is approximately 500 or fewer hand-written changed lines per intended PR. Generated
 files and lockfiles may exceed that target only when inseparable from the increment. One large
 exception is allowed only for an explicitly approved deletion-only PR that removes an already
