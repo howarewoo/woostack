@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
-import { readFile, readdir } from 'node:fs/promises';
+import { lstat, readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { before, test } from 'node:test';
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '..', '..');
 const NEGATION = /\b(?:no|not|never|without|cannot|can't|does not|do not|must not|regardless)\b/i;
-const WOO_167_RESERVED_FILES = Object.freeze([
+const WOO_167_RETIRED_FILES = Object.freeze([
   'skills/using-woostack/references/engineer-agents.md',
   'skills/using-woostack/references/hosts/hermes.md',
   'skills/woostack-init/scripts/gen-omp-agents.sh',
@@ -41,7 +41,6 @@ const PATHS = [
   'skills/using-woostack/SKILL.md',
   'skills/using-woostack/references/hosts/README.md',
   'skills/using-woostack/references/model-tiers.md',
-  ...WOO_167_RESERVED_FILES,
   'skills/woostack-review/SKILL.md',
   'skills/woostack-review/prompts/_orchestrator-header.md',
   'skills/woostack-doctor/scripts/checks/omp-agents.sh',
@@ -392,7 +391,7 @@ test('Hermes is one external engineer over one persistent OMP process', () => {
   assert.doesNotMatch(guide, /omp --profile <profile>\s+-p\b/i);
 });
 
-test('canonical host routing excludes retained Hermes and includes OMP', () => {
+test('canonical host routing excludes retired Hermes and includes OMP', () => {
   const links = [...read('skills/using-woostack/references/hosts/README.md')
     .matchAll(/^- \[`([^`]+)`\]\(([^/)]+)\.md\)$/gm)]
     .filter(([, slug, target]) => slug === target)
@@ -400,9 +399,7 @@ test('canonical host routing excludes retained Hermes and includes OMP', () => {
     .sort();
   assert.deepEqual(links, ['antigravity', 'claude-code', 'codex', 'cursor', 'omp', 'opencode']);
   assert.ok(links.includes('omp'), 'OMP must remain dispatchable');
-  assert.ok(!links.includes('hermes'), 'retained Hermes adapter must not be dispatchable');
-  assert.ok(files.has('skills/using-woostack/references/hosts/hermes.md'),
-    'Hermes adapter remains present for WOO-167');
+  assert.ok(!links.includes('hermes'), 'retired Hermes adapter must not be dispatchable');
   assert.match(read('skills/using-woostack/references/model-tiers.md'),
     /supported coding-host allowlist.*hosts\/README\.md/is,
     'model-tier routing must obey the canonical host gate');
@@ -412,23 +409,18 @@ test('supported navigation keeps Hermes out of coding harnesses', () => {
   assert.match(read('site/content/docs/meta.json'), /"hermes"/i);
   assert.doesNotMatch(read('site/content/docs/harnesses/meta.json'), /"hermes"/i);
   assert.doesNotMatch(read('site/content/docs/concepts/meta.json'), /"engineer-agents"/i);
-  const retiredAuthoredPages = new Set([
-    'site/content/docs/concepts/engineer-agents.mdx',
-    'site/content/docs/harnesses/hermes.mdx',
-  ]);
   for (const relativePath of authoredSitePaths) {
-    if (retiredAuthoredPages.has(relativePath)) continue;
     const content = read(relativePath);
     assert.doesNotMatch(content,
       /\/docs\/harnesses\/hermes|\/docs\/concepts\/engineer-agents|references\/hosts\/hermes\.md|references\/engineer-agents\.md/i,
       `${relativePath}: supported authored page reaches a retired path or route`);
   }
   const sourceRegistry = read('site/lib/source.ts');
-  assert.match(sourceRegistry, /'concepts\/engineer-agents\.mdx': true/);
-  assert.match(sourceRegistry, /'harnesses\/hermes\.mdx': true/);
-  assert.match(sourceRegistry,
-    /files\.filter\([\s\S]*file\.type !== 'page'[\s\S]*retiredPagePaths\[file\.path\] !== true/,
-    'docs source must exclude both retained pages from routes and aggregate feeds');
+  assert.doesNotMatch(sourceRegistry,
+    /retiredPagePaths|concepts\/engineer-agents\.mdx|harnesses\/hermes\.mdx|files\.filter\(/,
+    'docs source must not retain the retired-page registry, paths, or filter');
+  assert.match(sourceRegistry, /source:\s*docs\.toFumadocsSource\(\)/,
+    'docs loader must consume the generated docs source directly');
   assert.match(read('site/content/docs/harnesses/omp.mdx'), /three neutral project workers/i);
   assert.match(read('skills/using-woostack/references/hosts/omp.md'), /agent:\s+woostack-fast/i);
   assert.match(read('skills/woostack-review/SKILL.md'), /fresh read-only profiles\/sessions/i);
@@ -447,10 +439,14 @@ test('approval relay remains responsible-user and receipt bound', () => {
   assert.match(contract, /Linear receipt\/event/i);
 });
 
-test('reserved WOO-167 assets remain unreachable and the WOO-166 Review mode is absent', () => {
-  assert.equal(WOO_167_RESERVED_FILES.length, 6, 'WOO-167 whole-file inventory must stay exact');
-  for (const relativePath of WOO_167_RESERVED_FILES) {
-    assert.ok(files.has(relativePath), `${relativePath}: retained WOO-167 asset was removed too early`);
+test('retired WOO-167 assets are absent and the WOO-166 Review mode is absent', async () => {
+  assert.equal(WOO_167_RETIRED_FILES.length, 6, 'WOO-167 whole-file inventory must stay exact');
+  for (const relativePath of WOO_167_RETIRED_FILES) {
+    await assert.rejects(
+      lstat(path.join(REPO_ROOT, relativePath)),
+      (error) => error?.code === 'ENOENT',
+      `${relativePath}: retired WOO-167 asset still exists`
+    );
   }
 
   assert.equal(WOO_166_REVIEW_PATHS.length, 12, 'WOO-166 focused path inventory must stay exact');
@@ -463,17 +459,13 @@ test('reserved WOO-167 assets remain unreachable and the WOO-166 Review mode is 
       `${relativePath}: removed Hermes-direct Review wording remains`);
   }
 
-  const reservedPaths = new Set(WOO_167_RESERVED_FILES);
-  const supportedPaths = [...new Set([...PATHS, ...authoredSitePaths])]
-    .filter((relativePath) => !reservedPaths.has(relativePath));
+  const supportedPaths = [...new Set([...PATHS, ...authoredSitePaths])];
   const retiredReference =
-    /engineer-agents\.md|hosts\/hermes\.md|gen-omp-agents\.sh|\/docs\/(?:concepts\/engineer-agents|harnesses\/hermes)/i;
+    /engineer-agents\.md|hosts\/hermes\.md|(?:test-)?gen-omp-agents\.sh|(?:concepts\/engineer-agents|harnesses\/hermes)\.mdx|\/docs\/(?:concepts\/engineer-agents|harnesses\/hermes)/i;
   for (const relativePath of supportedPaths) {
     const content = read(relativePath);
-    if (relativePath !== 'site/lib/source.ts') {
-      assert.doesNotMatch(content, retiredReference,
-        `${relativePath}: supported surface reaches a WOO-167 file or old route`);
-    }
+    assert.doesNotMatch(content, retiredReference,
+      `${relativePath}: supported surface reaches a WOO-167 file or old route`);
     for (const marker of REVIEW_MODE_MARKERS) {
       assert.ok(!content.includes(marker),
         `${relativePath}: supported surface activates removed Review marker ${marker}`);
