@@ -9,6 +9,18 @@ description: Install woostack, initialize safe Linear defaults, and optionally c
   exact native Linear approval event clears only the matching fix/build revision gate.
 </Callout>
 
+## Dependencies
+
+Prepare these tools before installing woostack:
+
+- An [agent harness](/docs/harnesses) that supports Agent Skills.
+- Node.js and pnpm. The installation command below uses `pnpx`.
+- Bash, Git, the GitHub CLI (`gh`), the Graphite CLI (`gt`), and `jq`. Authenticate both CLIs
+  and initialize Graphite for the target repository before running a workflow that delivers a PR.
+- An authenticated official Linear MCP connection for `/woostack-build` and post-diagnosis
+  `/woostack-fix`. Local initialization and Linear-free workflows such as `/woostack-change` do
+  not require it.
+
 ## 1. Install the skills
 
 Install the collection with the package manager supported by your skill host:
