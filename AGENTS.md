@@ -91,14 +91,11 @@ skills prove capability without reading, printing, or copying it. `.woostack/con
 only non-secret defaults that apply after artifact selection; tracked policy cannot select artifact
 mode or authorize provider writes. Local diagnostic reports are non-authoritative.
 
-The generic engineer contract separates decisions from implementation. Hermes is a decision-maker
-and independent PR reviewer/commenter only: it does not edit source, run implementation or tests,
-commit, push, or open implementation PRs. Its isolated OMP coding profile works on one approved
-bounded task at a time. Only an explicit `/woostack-review` permits independent reviewer
-delegation, and Hermes retains acceptance authority. The canonical contracts live in
-[`engineer-agents.md`](skills/using-woostack/references/engineer-agents.md) and the
-[`Hermes host reference`](skills/using-woostack/references/hosts/hermes.md); cross-link them rather
-than duplicating their evidence schemas.
+External engineers such as Hermes are outside the installed woostack host/runtime surface. Hermes
+may drive one persistent OMP session as an external decision-maker and reviewer, but woostack is
+installed only in OMP or another coding harness. The external-engineer decision, escalation,
+approval relay, and evidence contract lives in the authored [Hermes guide](site/content/docs/hermes.mdx);
+it does not make Hermes a supported host or grant it implementation authority.
 
 This collection still has twenty-two public command/adoption skills at twenty-four fixed `SKILL.md`
 locations. Linear support adds neither a command-routing row nor a per-provider skill.

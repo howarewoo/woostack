@@ -3,10 +3,21 @@ import { loader } from 'fumadocs-core/source';
 import { lucideIconsPlugin } from 'fumadocs-core/source/lucide-icons';
 import { docsContentRoute, docsImageRoute, docsRoute } from './shared';
 
-// See https://fumadocs.dev/docs/headless/source-api for more info
+const retiredPagePaths: Record<string, true> = {
+  'concepts/engineer-agents.mdx': true,
+  'harnesses/hermes.mdx': true,
+};
+const docsSource = docs.toFumadocsSource();
+
+// WOO-167 deletes these retained files. Until then, exclude them from every route and aggregate
+// backed by this source; removing navigation entries alone does not make a page unreachable.
 export const source = loader({
   baseUrl: docsRoute,
-  source: docs.toFumadocsSource(),
+  source: {
+    files: docsSource.files.filter(
+      (file) => file.type !== 'page' || retiredPagePaths[file.path] !== true,
+    ),
+  },
   plugins: [lucideIconsPlugin()],
 });
 

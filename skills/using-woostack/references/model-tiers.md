@@ -30,13 +30,13 @@ Three capability classes: **per-call model routing** (the spawn accepts an expli
 resolve the effective tier and pass everything it specifies), **single model per session**
 (resolve one run model up front; per-tier behavior collapses onto it), and **host-owned role
 routing** (the spawn selects a role-backed worker; the host owns the concrete model).
-Host-owned role routing is non-degraded and bypasses repository model resolution. Which class a
-host falls in, its spawn mechanics, its fixed role mapping where applicable, its per-skill notes,
-and its host-level fallback behavior live in one file per host under
-[`hosts/`](hosts/README.md). The provider table and `resolve-model.sh` remain unchanged for CI and
-other hosts that consume repository model configuration.
-
-**Host mechanics:** before any host-dependent step (subagent dispatch, scaffold, draft), load `skills/using-woostack/references/hosts/<current-host>.md`; no matching file -> treat the host as having no per-call routing and say so (degraded).
+Host-owned role routing is non-degraded and bypasses repository model resolution. The canonical
+[supported coding-host allowlist](hosts/README.md) gates routing before capability classification:
+only an exact allowlisted slug may load its linked host mechanics. File presence alone never makes
+a host routable. For an allowlisted host, its capability class, spawn mechanics, fixed role
+mapping where applicable, per-skill notes, and host-level fallback behavior live in that linked
+host file. The provider table and `resolve-model.sh` remain unchanged for CI and other supported
+hosts that consume repository model configuration.
 
 ## Override precedence (generic)
 

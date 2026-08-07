@@ -25,7 +25,7 @@ supplies source-control or delivery truth.
   - [2. Initialization](#2-initialization)
   - [3. Project Integration](#3-project-integration)
   - [4. Repository Policy](#4-repository-policy)
-  - [5. Linear Artifact Context and Engineer Units](#5-linear-artifact-context-and-engineer-units)
+  - [5. Linear Product Context and External Engineers](#5-linear-product-context-and-external-engineers)
 - [The Core Development & Review Loop](#the-core-development--review-loop)
   - [Writing and Modifying Code](#writing-and-modifying-code)
   - [Review and Iterate Flow](#review-and-iterate-flow)
@@ -121,7 +121,7 @@ Review-policy fragment:
 For the full policy surface, see the authored
 [configuration reference](site/content/docs/configuration.mdx).
 
-### 5. Linear Product Context and Engineer Units
+### 5. Linear Product Context and External Engineers
 
 Build resolves one exact project or creates one from validated defaults before ideation. The
 workflow verifies canonical repository/workspace/team, preflights the official Linear MCP, and
@@ -162,11 +162,11 @@ The authority boundary:
 - **Linear delivery notes** record observed source-control evidence but cannot create it.
 - **Local diagnostic reports** are non-authoritative evidence.
 
-After `/woostack-init`, an operator may explicitly select the optional
-[Hermes decision-maker + isolated OMP adapter](site/content/docs/getting-started.mdx). The generic
-[engineer-agent contract](skills/using-woostack/references/engineer-agents.md) separates decisions
-from implementation: the decision-maker reviews and accepts; the isolated coder implements one
-approved bounded task.
+Hermes is an external engineer, not an installed woostack host or runtime. It may drive one
+persistent OMP session for in-contract decisions, evidence review, escalation, and redispatch, but
+woostack is installed only in OMP or another coding harness. The
+[Hermes guide](site/content/docs/hermes.mdx) defines the safe argument passing, approval relay,
+and fail-closed restart boundary; it does not grant Hermes implementation authority.
 
 ---
 

@@ -49,17 +49,6 @@ Request the mapped worker once and let OMP perform host-owned recovery. Missing 
 missing required receipt is a capability failure. It never permits switching profiles, weakening
 worktree isolation, or treating absent evidence as success.
 
-## Isolated implementation profile
-
-In the optional Hermes engineer pairing, a separate profile-pinned OMP process may act as the coder
-for one approved bounded task. That mode follows the
-[engineer-agent contract](../engineer-agents.md) and
-[Hermes adapter](hermes.md). It is deliberately distinct from native OMP worker routing and is
-never activated implicitly.
-
-The isolated coder owns implementation and self-check only. It does not own scope, approval,
-independent review, acceptance, artifact mutation, or merge. Git worktree isolation and distinct
-role credentials provide the actual safety boundary; profile names alone do not.
 
 ## Linear product records
 

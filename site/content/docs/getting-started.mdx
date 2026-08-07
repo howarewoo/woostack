@@ -1,6 +1,6 @@
 ---
 title: Getting started
-description: Install woostack, initialize safe Linear defaults, and optionally configure an engineer pair.
+description: Install woostack in a coding harness, initialize safe Linear defaults, and optionally use an external engineer.
 ---
 
 <Callout type="info">
@@ -91,39 +91,29 @@ Build uses one project for the high-level specification, one direct issue per in
 issue dependencies. Fix uses one project for the complete specification plus a strict direct-issue
 chain. `woostack-change` never contacts Linear.
 
-## 5. Optional: configure a Hermes + OMP engineer pair
+## 5. Use an external engineer (optional)
 
-The pair is one adapter for the [engineer-agent contract](/docs/concepts/engineer-agents):
+Hermes is external to woostack. Do not install woostack in Hermes or treat Hermes as a supported
+coding harness. If you use Hermes, install woostack in OMP, start one persistent OMP process, and
+use Hermes only for in-contract decisions, escalation, approval relay, evidence review, and bounded
+redispatch. OMP remains the isolated coding harness and retains implementation authority for its
+approved task; Hermes never edits implementation source or accepts without direct evidence.
 
-- Hermes decides, performs independent review, comments, accepts, redispatches, and escalates.
-- One isolated OMP profile implements one approved bounded task in one collision-safe worktree.
-- Hermes never codes; OMP never reviews or accepts its own work.
-- Git/GitHub evidence remains authoritative.
-
-Create distinct Hermes and OMP profiles/sessions, role-owned credential/config roots, a stable
-engineer name, and a canonical worktree contract. Confirm the installed OMP CLI invocation and use
-an argument-safe PTY interface. Profile names alone are not isolation.
-
-For fix/build units, connect the official MCP independently in each profile and keep their secret
-stores and sessions distinct. Artifact-optional units need it only when explicitly selected.
-
-Follow the exact setup and dispatch boundaries on the [Hermes](/docs/harnesses/hermes) and
-[OMP](/docs/harnesses/omp) pages.
-
-The canonical [Hermes bound-unit setup](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/hermes.md#bound-unit-manifest-and-binding)
-owns the setup sequence and manifest contract. Follow it once rather than copying the schema here;
-the [OMP page](/docs/harnesses/omp) owns coder dispatch details.
+The [Hermes guide](/docs/hermes) is the sole setup guide. It covers argument-safe `terminal`/`process`
+use, responsible-user approval relayed verbatim through the same persistent OMP process, matching
+Linear receipts, and fail-closed restart/replay behavior. It also documents optional manual cleanup
+of legacy launchers; woostack never installs or removes those files automatically.
 
 ## Setup references
 
 <Cards>
   <Card title="Configuration" href="/docs/configuration" description="Non-secret repository policy and automatic safe Linear defaults." />
   <Card title="Building rules" href="/docs/concepts/building-rules" description="Workflow routing, gates, execution, and authority boundaries." />
-  <Card title="Engineer agents" href="/docs/concepts/engineer-agents" description="Decision, implementation, review, and acceptance separation." />
-  <Card title="Hermes" href="/docs/harnesses/hermes" description="Optional decision-maker and independent reviewer adapter." />
-  <Card title="OMP" href="/docs/harnesses/omp" description="Host-owned workers and the optional isolated coder role." />
+  <Card title="Hermes as an external engineer" href="/docs/hermes" description="Drive one persistent OMP process without installing woostack in Hermes." />
+  <Card title="OMP" href="/docs/harnesses/omp" description="Host-owned project workers and native OMP routing." />
   <Card title="Official Linear MCP" href="https://mcp.linear.app/mcp" description="Canonical build and post-diagnosis Fix projects, direct-issue plans, and approvals." />
 </Cards>
+
 
 ## Recommended companions
 

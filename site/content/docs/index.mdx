@@ -18,9 +18,9 @@ pnpx skills add howarewoo/woostack
 - **Exact revision approval:** the responsible user's two native Linear approval events clear only
   the matching project-specification and execution-plan fingerprints; material edits invalidate
   the affected gate.
-- **Decision-maker/coder separation:** the generic
-  [engineer-agent contract](/docs/concepts/engineer-agents) keeps scope, independent review, and
-  acceptance separate from isolated implementation.
+- **External-engineer boundary:** Hermes is documented at the
+  [top-level Hermes guide](/docs/hermes) as an external engineer that may drive one persistent
+  OMP session; it is not a supported installed host or coding runtime.
 - **Non-authoritative diagnostics:** local reports are evidence, not permission or lifecycle state.
 - **Agent- and model-agnostic:** the same skill logic supports
   [multiple harnesses](/docs/harnesses).
@@ -36,8 +36,8 @@ The collection keeps the whole delivery loop coherent without requiring a local 
 - one install and one routing surface;
 - exact content-bound approval gates and executor-ready task contracts;
 - safe concurrency through native dependencies and isolated worktrees;
-- decision-maker/coder role separation;
-- portable execution across supported harnesses;
+- external engineers can review harness evidence without receiving implementation authority;
+- portable execution across supported coding harnesses;
 - canonical Linear product records for fix/build, with optional artifacts elsewhere.
 
 Build resolves an exact project or creates one from validated defaults before ideation. Fix
@@ -51,9 +51,9 @@ requires or selects Linear and cannot authorize unrelated provider writes.
 <Cards>
   <Card title="Getting started" href="/docs/getting-started" description="Install, initialize local support, and configure Linear for fix/build workflows." />
   <Card title="Configuration" href="/docs/configuration" description="Set non-secret repository policy." />
-  <Card title="Engineer agents" href="/docs/concepts/engineer-agents" description="Understand decision, coding, review, and acceptance boundaries." />
+  <Card title="Hermes as an external engineer" href="/docs/hermes" description="Drive one persistent OMP session without installing woostack in Hermes." />
   <Card title="Core concepts" href="/docs/concepts" description="The build loop, context management, worktrees, and status tracking." />
-  <Card title="Harnesses" href="/docs/harnesses" description="Supported hosts, profile isolation, and native capability differences." />
+  <Card title="Harnesses" href="/docs/harnesses" description="Supported coding harnesses, native capability differences, and OMP workers." />
   <Card title="woostack-build" href="/docs/skills/woostack-build" description="Drive one canonical project specification and approved direct-issue plan to a reviewed PR stack." />
   <Card title="All skills" href="/docs/skills/using-woostack" description="Per-skill reference, generated from each SKILL.md." />
 </Cards>

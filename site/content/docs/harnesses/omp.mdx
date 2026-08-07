@@ -1,12 +1,10 @@
 ---
 title: omp (Oh My Pi)
-description: Host-owned worker routing and an optional isolated implementation profile.
+description: Host-owned worker routing and project-scoped OMP workers.
 ---
 
-OMP has two distinct woostack uses. Native in-process OMP routes work through project-scoped
-role workers provisioned by `woostack-init`. In the optional
-[Hermes engineer pairing](/docs/harnesses/hermes), a separate profile-pinned OMP process implements
-one approved bounded task. Selecting one mode never activates the other.
+OMP is a supported coding harness. It routes work through project-scoped role workers provisioned
+by `woostack-init`; woostack is installed here, not in an external engineer such as Hermes.
 
 ## Native OMP worker routing
 
@@ -30,55 +28,13 @@ subagents](https://omp.sh/docs/subagents), and the canonical
 [host adapter](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md)
 for the exact mapping and lifecycle.
 
-## Isolated coder in the Hermes pairing
-
-This path is explicit and optional. Hermes owns the active contract, decisions, independent review,
-comments, acceptance, and escalation. The pinned OMP profile owns implementation and self-check for
-one bounded task in one collision-safe worktree.
-
-A unit pins:
-
-- one stable engineer name and OMP profile/session;
-- one distinct Hermes profile/session;
-- one canonical worktree, branch, base, and current head;
-- one complete bounded contract and permitted surface;
-- isolated role credentials/config roots; and
-- one expected evidence handback.
-
-Build and post-proof Fix runs require exact canonical Linear records and approval events. Build
-resolves or creates one project before ideation; after root-cause proof, Fix resolves or creates one
-project and its strict direct-issue plan. Both profiles independently require the configured
-official MCP capability. Artifact-optional workflows need no Linear principal unless selected.
-
-Before the first coder dispatch, create or resolve the canonical task worktree, then follow the
-canonical [Hermes bound-unit setup](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/hermes.md#bound-unit-manifest-and-binding).
-Dispatch begins only after that setup binds the unit successfully.
-
-### Dispatch
-
-Confirm the installed CLI's exact argv with `omp --help`. The conceptual command is:
-
-```text
-omp --profile <engineer> -p --cwd <worktree> <prompt>
-```
-
-Use an argument-safe PTY/process API. Never paste task or artifact prose into shell source. Require
-the worker to verify profile, cwd, repository, branch, base/head, and allowed paths before writing.
-
-The first dispatch implements and verifies only. It returns an uncommitted diff, exact commands and
-observed results, or a decision request. It does not commit, push, open/update a PR, review itself,
-accept work, mutate artifacts, or merge.
-
-Hermes inspects the complete diff and performs specification then quality review. Only after a pass
-may it redispatch the same OMP profile/worktree for one bounded `/woostack-commit` action. Hermes
-then reads the canonical PR/head/diff itself and performs independent review.
 
 ## Linear artifacts
 
 Build always uses one exact Linear project; after root-cause proof, a new Fix resolves or creates
-one exact project and its strict direct-issue plan. Credentials stay in each profile's own
-MCP/OAuth secret environment and never enter repository config, prompts, logs, staged launcher
-files, or generated output. Follow the
+one exact project and its strict direct-issue plan. OMP credentials stay in its host-owned
+MCP/OAuth secret environment and never enter repository config, prompts, logs, or generated output.
+Follow the
 [Linear artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md).
 
 The responsible user's two exact native Linear approval events clear only the matching fix/build

@@ -102,14 +102,16 @@ corpus exists. Do not alter the package to make validation pass.
 > **HOST MECHANICS**
 >
 > **Host mechanics:** before any host-dependent step (subagent dispatch, scaffold, draft), load
-> `skills/using-woostack/references/hosts/<current-host>.md`; no matching file -> treat the host as
-> having no per-call routing and say so (degraded).
+> the canonical supported coding-host allowlist in
+> `skills/using-woostack/references/hosts/README.md`. Require the current host to exactly match an
+> allowlisted slug, then load only that slug's linked host file. An unlisted host has no per-call
+> routing even if a same-named file exists; say that routing is degraded.
 
-That canonical directive and the loaded file's `woostack-eval` note own host primitive names and
-knob forms; do not duplicate or guess them here. Prove the generic isolation, pair, evidence,
-deadline, and teardown laws below against those mechanics before manifest freeze. A missing host
-file or absent comparative mechanic never authorizes a silent fallback; only the explicit
-candidate-only qualitative smoke decision below may degrade.
+That canonical gate and the loaded file's `woostack-eval` note own host primitive names and knob
+forms; do not duplicate or guess them here. Prove the generic isolation, pair, evidence, deadline,
+and teardown laws below against those mechanics before manifest freeze. An unsupported host or
+absent comparative mechanic never authorizes a silent fallback; only the explicit candidate-only
+qualitative smoke decision below may degrade.
 
 Use `validate.mjs`, `prepare.mjs`, `aggregate.mjs`, and `render-report.mjs` only for deterministic
 local evidence processing. Never call a provider API, SDK, model endpoint, or network client

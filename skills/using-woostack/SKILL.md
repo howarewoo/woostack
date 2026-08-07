@@ -47,15 +47,12 @@ At the start of work in a repository:
 3. Check whether the user's request maps to one of the woostack skills below.
 4. Load the mapped skill before asking clarifying questions, making edits, opening PRs, or
    posting review feedback.
-5. When work uses a decision-maker/coding-profile pair, load the shared
-   [engineer-agent authority protocol](references/engineer-agents.md) before allocation,
-   dispatch, review, or acceptance. Host references bind concrete profiles; they never redefine
-   the authority split.
-6. Load and apply the shared
-   [Output Discipline](references/output-discipline.md) to every user-facing reply. It keeps the
-   answer compact without compressing evidence, risk, or required contract fields.
-7. Invoke [woostack-reflect](../woostack-reflect/SKILL.md) at every final user-facing reply. It
-   analyzes the fixed invocation-start snapshot and reports only concrete durable suggestions.
+5. Load and apply the shared
+   [Output Discipline](references/output-discipline.md) to every user-facing reply. It keeps
+   the answer compact without compressing evidence, risk, or required contract fields.
+6. Invoke [woostack-reflect](../woostack-reflect/SKILL.md) at every final user-facing reply. It
+   analyzes the fixed invocation-start snapshot and reports only concrete durable instruction
+   suggestions.
 
 
 Do not run `/woostack-init`, create `.woostack/`, scaffold code, or add config unless the
@@ -85,13 +82,6 @@ project-backed Fix abandonment closes the exact project through configured cance
 source issues are preserved. Handoff, replanning, and blockers leave project status unchanged. Follow the
 [Linear artifact contract](../woostack-init/references/artifact-backends.md).
 
-**Engineer-agent invariant:** a host that pairs a decision-maker with a coder must follow the
-[provider-neutral engineer-agent authority protocol](references/engineer-agents.md). Each active
-unit pins one standing authority envelope, one stable `ENGINEER_NAME`, one decision-maker
-profile/session, one isolated coding profile/session, and one run. When Linear artifact persistence
-is active, provider identities and contexts stay separate and artifact operations follow the
-artifact contract. Host mechanics and reviewer delegation never weaken role isolation, bounded
-mutation, review independence, or acceptance authority.
 
 ## Command Routing
 
