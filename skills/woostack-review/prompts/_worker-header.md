@@ -15,12 +15,11 @@ Every artifact you write under `$OUTDIR/findings.*.json` (default `/tmp/pr-revie
 - **Write your execution receipt as your LAST action.** After writing your real findings array, and
   just before EXIT, write `$OUTDIR/receipt.<angle>.json` (chunked:
   `$OUTDIR/receipt.<angle>.<chunk>.json`) as a JSON object:
-  `{"angle":"<angle>","chunk":<chunk-id-or-null>,"runner":"<host or provider>","model":"<resolved model>","tier":"<fast|standard|deep>","ts":"<ISO-8601 timestamp>","reviewerProfile":"<host-bound reviewer profile>","reviewerSessionId":"<fresh reviewer session ID>","reviewerPrincipalId":"<native reviewer principal ID>","reviewerCredentialContextId":"<non-secret reviewer credential-context ID>","authority":"advisory-only"}`.
-  `runner`, `model`, and every supplied reviewer-identity field MUST be non-empty. In an
-  engineer-unit run, copy the exact non-secret reviewer binding supplied by the controller; never
-  infer it, substitute the implementing coder or decision-maker, or use a profile/token-store name
-  as a native principal. `verify-receipts.sh` compares it with the controller-owned identity
-  manifest and rejects a missing, foreign, shared-session, or shared-credential binding.
+  `{"angle":"<angle>","chunk":<chunk-id-or-null>,"runner":"<host or provider>","model":"<resolved model>","tier":"<fast|standard|deep>","ts":"<ISO-8601 timestamp>","authority":"advisory-only"}`.
+  `runner`, `model`, and `tier` MUST be non-empty. A generic local worker SHOULD additionally
+  report its real non-secret host binding as the complete set `reviewerProfile`,
+  `reviewerSessionId`, `reviewerPrincipalId`, and `reviewerCredentialContextId` when those values
+  are available; never infer them or use a profile/token-store name as a native principal.
 - In the GitHub Actions single-session path, bind the receipt to the producing job attempt:
   `reviewerProfile:"github-actions-single-session"`,
   `reviewerRunAttempt:<GITHUB_RUN_ATTEMPT>`,
@@ -32,21 +31,19 @@ Every artifact you write under `$OUTDIR/findings.*.json` (default `/tmp/pr-revie
   therefore accepts downloaded receipts from an earlier successful producer attempt without
   detaching them from that attempt. This CI sentinel is diff-only execution identity, not a
   development principal or issue authority.
-  A generic non-paired local run without a controller manifest SHOULD report its real host binding
-  when available. Any `reviewerPrincipalId` here binds worker execution only: it is not the native
-  GitHub posting actor ID and can never substitute for the independent GitHub actor read-backs at
-  verdict time.
+  A generic local run SHOULD report its real host binding when available. Any
+  `reviewerPrincipalId` here binds worker execution only: it is not the native GitHub posting
+  actor ID and can never substitute for the independent GitHub actor read-backs at verdict time.
 
-In an engineer-unit run, `$OUTDIR` is a private per-worker namespace outside the implementation
-repository. `$WOO_REVIEW_BINDING_PATH` names the only controller-supplied identity record this
-worker may read. Copy its exact profile, session, principal, and credential-context values into
-the receipt; never scan for or infer peer bindings. Write only this work item's designated
-`findings.*.json` and `receipt.*.json` outputs. The controller harvests those two files after
-execution and independently verifies repository immutability and receipt identity.
+Every local angle worker and validator runs as a fresh read-only advisory reviewer session,
+separate from the coding session. The parent harness owns that isolation: workers may read the
+prefetched review artifacts and write only their designated `findings.*.json` and
+`receipt.*.json` outputs under `$OUTDIR`. They cannot edit the implementation repository, post or
+accept a review, merge, or silently reduce the detected angle or validator set.
 - The receipt distinguishes honest `[]` from a worker that never ran, but it proves execution only
   and is never authoritative contract context, Linear read-back, `reviewResult`, or work acceptance.
-  Missing/invalid identity or any authority other than `"advisory-only"` HARD-FAILS before merge,
-  validation, or post.
+  A missing receipt, invalid required field, incomplete supplied reviewer identity, or any authority
+  other than `"advisory-only"` HARD-FAILS before merge, validation, or post.
 - If your runtime offers a "write file" tool, use it directly — do NOT echo the JSON through a chat channel that prepends prose.
 - **Escape discipline inside string fields.** Every `"description"`, `"fix"`, and `"suggestion"` is a JSON string — inside it, the only valid backslash escapes are `\"`, `\\`, `\/`, `\b`, `\f`, `\n`, `\r`, `\t`, and `\uXXXX`. Bare backslashes in code samples (Windows paths, regex like `\d`, LaTeX) MUST be doubled to `\\`. Tabs and newlines in code samples MUST be `\t` / `\n`, never raw control bytes. The merge step has a fallback sanitizer, but a finding that loses content during sanitization is one that fails to land cleanly on the PR.
 - Before writing each finding's `line` and optional `end_line`, validate the anchor via:
@@ -63,7 +60,7 @@ execution and independently verifies repository immutability and receipt identit
 - **PR metadata** (title, body, headRefOid, headRefName, baseRefName, files, author): `/tmp/pr-review/meta.json`
 - **Enabled angles** (one per line): `/tmp/pr-review/angles.txt`
 - **Project rules** (optional, present only if discovered): `/tmp/pr-review/rules.md`
-- **Current contract** (optional; local/Hermes only): `$OUTDIR/intent.md` — created by the parent
+- **Current contract** (optional; local coding harness only): `$OUTDIR/intent.md` — created by the parent
   controller from the active caller-approved contract under `workflow://active-contract`
   provenance. Exact Linear artifact fields may be appended under `linear://project/<uuid>` or
   `linear://issue/<uuid>` only after official-MCP verification. Its presence enables the

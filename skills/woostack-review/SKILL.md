@@ -87,15 +87,25 @@ block posting rather than silently reducing coverage.
 
 ### 3. Run both adversarial validators
 
-Run two fresh read-only validator sessions against the same complete `raw_findings.json` and exact
-reviewed head, using [`prompts/validator.md`](prompts/validator.md):
+Run the required fresh read-only validator sessions against the same complete
+`raw_findings.json` and exact reviewed head. Normal adversarial mode runs the Prosecutor with
+[`prompts/validator-prosecutor.md`](prompts/validator-prosecutor.md) and the Defender with
+[`prompts/validator.md`](prompts/validator.md); a valid config with `disable_adversarial: true`
+intentionally runs only the Defender.
 
-- Prosecutor writes `$OUTDIR/findings.prosecutor.json`.
-- Defender writes `$OUTDIR/findings.defender.json`.
+- Prosecutor writes `$OUTDIR/findings.prosecutor.json` and `$OUTDIR/receipt.prosecutor.json`.
+- Defender writes `$OUTDIR/findings.defender.json` and `$OUTDIR/receipt.defender.json`.
 
-Verify both validator receipts, then run `scripts/intersect-findings.sh`. The resulting
-**prosecutor/defender intersection** in `$OUTDIR/findings.json` is the only accepted finding set.
-One validator, a self-review, or a union of unvalidated worker output is not a completed pass.
+Immediately before intersection, run the exact validator receipt gate and then the intersection:
+
+```bash
+bash "$WOO_REVIEW_ACTION_PATH/scripts/verify-receipts.sh" --validators
+bash "$WOO_REVIEW_ACTION_PATH/scripts/intersect-findings.sh"
+```
+
+The resulting **prosecutor/defender intersection** in `$OUTDIR/findings.json` is the only accepted
+finding set in normal mode. A missing/invalid required receipt, self-review, or union of
+unvalidated worker output is not a completed pass and blocks posting.
 
 ### 4. Post every accepted finding and one verdict
 
@@ -124,7 +134,7 @@ that was not independently observed.
 ## Hard constraints
 
 - One exact existing PR and one standard public command.
-- One detected multi-angle pass, then both Prosecutor and Defender, then deterministic intersection.
+- One detected multi-angle pass, then both validators normally (Defender only under the explicit config opt-out), then deterministic intersection.
 - Every accepted blocker and nit is posted to that exact PR.
 - Blockers request changes; no-blocker and nit-only results do not block.
 - Review workers are read-only; Review never edits code or merges.
