@@ -4,19 +4,19 @@
   "cases": [
     {
       "id": "bounded-admission-creates-one-isolated-worktree",
-      "prompt": "Evaluate fixtures/change-contract-a.json at admission. Do not mutate Git or files. Explain whether the request is admitted, what must be verified before mutation, and whether one isolated worktree and Graphite branch may be created.",
+      "prompt": "Evaluate fixtures/change-contract-a.json at admission. Do not mutate Git or files. Explain whether the request is admitted, what must be verified before mutation, and whether valid behavior creates and checks out the task branch atomically in the new worktree at the exact start SHA before `gt track --parent <verified-integration-base>`, rejects `git worktree add --detach` plus task-worktree `gt create`, avoids switching or repurposing the primary checkout, and permits one isolated worktree and Graphite branch.",
       "fixtures": [
         "change-contract-a.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "A bounded non-bug request is admitted only after repository, base, dirty-state, and collision facts are checked; one deterministic isolated worktree and branch may then be created, with no duplicate workspace or merge.",
+      "expected": "A bounded non-bug request is admitted only after repository, base, dirty-state, and collision facts are checked; valid creation uses `git worktree add -b <task-branch> <task-worktree> <exact-start-sha>` to create and check out the task branch atomically at the exact start SHA before `gt track --parent <verified-integration-base>`, rejects `git worktree add --detach` plus task-worktree `gt create`, leaves the primary checkout untouched, and preserves one isolated worktree, one PR, and no merge.",
       "assertions": [
         {
           "id": "admission-boundary",
           "kind": "qualitative",
-          "rubric": "Does the response keep classification and repository preflight read-only, identify the bounded scope, and require a single isolated worktree/branch rather than editing the primary checkout?",
+          "rubric": "Does the response keep classification and repository preflight read-only, identify the bounded scope, require `git worktree add -b` to create/check out the task branch atomically in the new worktree at the exact start SHA before `gt track --parent <verified-integration-base>`, reject `git worktree add --detach` plus task-worktree `gt create`, and avoid switching or repurposing the primary checkout?",
           "critical": true
         },
         {

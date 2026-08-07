@@ -19,7 +19,7 @@ required = {
     "bug reroute": r"bug, regression.*woostack-fix",
     "multi-pr reroute": r"multiple PRs.*woostack-build",
     "preflight": r"git worktree list --porcelain.*local and remote branches.*Graphite ancestry.*canonical GitHub PR state",
-    "direct isolation": r"Create one isolated worktree.*one Graphite branch",
+    "direct isolation": r"Create and assert one isolated worktree under the \[canonical worktree contract\]\(\.\./woostack-init/references/worktrees\.md#5-create-and-assert\).*one Graphite-tracked branch",
     "direct implementation": r"implement every change needed for the accepted bounded scope",
     "focused smoke": r"focused verification and the changed-path smoke scenario",
     "one PR": r"submit at most one PR",

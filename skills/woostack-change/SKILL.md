@@ -62,7 +62,7 @@ detached HEAD, duplicate worktrees or branches, unexplained dirty state, conflic
 scope drift, and collisions. Never reset, clean, stash, overwrite, or create around unexpected
 user work.
 
-Create one isolated worktree under the canonical worktree contract, with one Graphite branch
+Create and assert one isolated worktree under the [canonical worktree contract](../woostack-init/references/worktrees.md#5-create-and-assert), with one Graphite-tracked branch
 whose parent is the verified integration base. When exact task, worktree, branch, parent, and head
 facts already exist, attach to that workspace and resume it; never create a duplicate.
 
