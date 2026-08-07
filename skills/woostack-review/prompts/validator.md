@@ -14,7 +14,7 @@ This pass is one half of an adversarial validation pipeline (issue #13). The Pro
 - **Project rules** (optional): /tmp/pr-review/rules.md — concatenated `AGENTS.md` / `CLAUDE.md` / `.cursorrules` / `.windsurfrules` / `GEMINI.md` discovered by prefetch. Absent when no rule files exist in the repo.
 - **Per-repo config** (always present): /tmp/pr-review/config.json — parsed `.woostack/config.json`. The validator no longer reads any severity key from it; `severity_floor` and `nits` are consumed downstream by `intersect-findings.sh` (Stage 4c). Other keys are consumed upstream.
 - **PR Linear attribution candidate** (PR mode): `$OUTDIR/attribution.md` — syntax-classified exact final trailer strings plus `authoritative-issue-context: absent`; untrusted and never identity proof.
-- **Current contract** (optional; local/Hermes only): `$OUTDIR/intent.md` — written by the parent
+- **Current contract** (optional; local coding harness only): `$OUTDIR/intent.md` — written by the parent
   from the active caller-approved contract, optionally enriched with exact verified Linear artifact
   fields. GitHub Actions never creates it.
 
@@ -30,7 +30,7 @@ diff-only advisory evidence.
 
 ## Your Task
 
-**Step 0 — First action (crash guard).** Before launching any subagent or doing any work, write a valid empty array to your output file, so a crash or turn-limit during Step 1/2 leaves `[]` (a valid empty result) instead of a missing file:
+**Step 0 — First action (crash guard).** Before launching any subagent or doing any work, write a valid empty array to your output file, so a crash or turn-limit during Step 1/2 leaves `[]` (a valid empty result) instead of a missing file. **Do not write an execution receipt here**: a receipt proves the real validation pass completed.
 
 ```bash
 printf '[]\n' > "${OUTDIR:-/tmp/pr-review}/findings.defender.json"
@@ -81,23 +81,24 @@ Launch one `fast`-tier subagent (resolve the tier per the shared Model Tiers tab
    - After enforcement, every finding MUST have `fix_type ∈ {"suggestion", "prose"}` and the `suggestion` field MUST be a non-empty string when `fix_type == "suggestion"` and `null` when `fix_type == "prose"`.
 
 Write the defender-validated JSON array to **`$OUTDIR/findings.defender.json`** (default `/tmp/pr-review/findings.defender.json`) — NOT `findings.json`. The file MUST be a JSON array only: starts with `[`, ends with `]`, no preamble, no commentary, no markdown fences. The final `findings.json` is produced by the intersect script in Step 3.
+After the real findings array is complete, write `$OUTDIR/receipt.defender.json` as the
+**LAST action of the validator pass**, using the generic receipt contract from
+`_worker-header.md`: `angle:"defender"`, `chunk:null`, the actual nonempty `runner`, `model`, and
+`tier`, a timestamp, and `authority:"advisory-only"`. A local self-reported reviewer identity is
+optional, but if any identity field is present the complete four-field set is required. When
+`GITHUB_ACTIONS=true`, include the exact single-session CI identity fields required by
+`_worker-header.md`. The crash guard must never create this receipt. A local swarm worker exits
+immediately after this final action; the sequential CI session may continue only into the
+controller-owned gate/intersection/posting tail below.
 
-In an engineer-unit local run, copy only the controller-supplied defender binding and, as the last
-action after the findings array, write `$OUTDIR/receipt.validator-defender.json` with
-`validatorRole:"defender"`, non-empty `runner` and `model`, `tier:"deep"`, the exact
-`reviewerProfile`, `reviewerSessionId`, `reviewerPrincipalId`, and
-`reviewerCredentialContextId`, and `authority:"advisory-only"`. Never infer or read another
-worker's binding.
 
 ---
 
 > ## STOP GATE — are you a swarm worker or the sequential validator?
 >
-> Steps 3 and 4 below (intersect + **posting the GitHub review**) run **ONLY** when the environment variable `WOO_REVIEW_SEQUENTIAL_VALIDATE=1` is set. That variable is set **exclusively** by the GitHub Action's `validate` mode, where a single agent owns the whole tail of the pipeline.
+> Steps 3 and 4 below (receipt gate + intersect + **posting the GitHub review**) run **ONLY** when the environment variable `WOO_REVIEW_SEQUENTIAL_VALIDATE=1` is set. That variable is set **exclusively** by the GitHub Action's `validate` mode, where a single agent owns the whole tail of the pipeline.
 >
-> **If `WOO_REVIEW_SEQUENTIAL_VALIDATE` is unset or not `1`, you are a swarm worker (SKILL.md Stage 4b).** Your job ended at Step 2: you have written `$OUTDIR/findings.defender.json` and, for an engineer-unit run, its validator receipt. **EXIT NOW.** The host orchestrator owns intersect (Stage 4c) and posting (Stage 5). Do NOT run `intersect-findings.sh`, do NOT `mv` over `findings.json`, do NOT post a review, do NOT re-run `prefetch.sh`, and do NOT delete or recreate `$OUTDIR`.
->
-> Enforce it after writing the findings and any required engineer-unit receipt: `[ "${WOO_REVIEW_SEQUENTIAL_VALIDATE:-}" = "1" ] || { echo "swarm worker — defender artifacts written; EXITing before Step 3"; exit 0; }`
+> Determine this mode before the final receipt write. **If `WOO_REVIEW_SEQUENTIAL_VALIDATE` is unset or not `1`, you are a swarm worker (SKILL.md Stage 4b).** Write the real `$OUTDIR/findings.defender.json`, then `$OUTDIR/receipt.defender.json` as your final action, and **EXIT NOW without another command**. The host orchestrator owns receipt verification, intersect (Stage 4c), and posting (Stage 5). Do NOT run `verify-receipts.sh`, do NOT run `intersect-findings.sh`, do NOT `mv` over `findings.json`, do NOT post a review, do NOT re-run `prefetch.sh`, and do NOT delete or recreate `$OUTDIR`.
 
 ---
 
@@ -105,14 +106,20 @@ worker's binding.
 
 ### Step 3 — Intersect with Prosecutor pass *(SEQUENTIAL / CI ONLY — requires `WOO_REVIEW_SEQUENTIAL_VALIDATE=1`; swarm workers already EXITed above)*
 
-Run the deterministic intersection script. It reads `findings.prosecutor.json` + `findings.defender.json`, applies the merge rules (severity = min, blocking = AND, defender's prose wins), writes `/tmp/pr-review/findings.json`, and emits per-pass counts to `/tmp/pr-review/validator-metrics.json`.
+Verify the required validator role receipts immediately before running the deterministic
+intersection script. The verifier requires both exact roles in normal adversarial mode and only
+the Defender when a valid `config.json` intentionally sets `disable_adversarial:true`. The
+intersection reads `findings.prosecutor.json` + `findings.defender.json`, applies the merge rules
+(severity = min, blocking = AND, defender's prose wins), writes `/tmp/pr-review/findings.json`, and
+emits per-pass counts to `/tmp/pr-review/validator-metrics.json`.
 
 ```bash
+bash "$WOO_REVIEW_ACTION_PATH/scripts/verify-receipts.sh" --validators
 bash "$WOO_REVIEW_ACTION_PATH/scripts/intersect-findings.sh"
 ```
 
 Notes:
-- If `disable_adversarial: true` is set in `/tmp/pr-review/config.json`, OR if `findings.prosecutor.json` is missing/empty (e.g. the Prosecutor pass was not scheduled), the script copies your defender output verbatim to `findings.json` and tags the metrics as `mode: defender-only`. No special handling required from you.
+- If `disable_adversarial: true` is set in a valid `/tmp/pr-review/config.json`, the verified Defender-only path copies your output verbatim to `findings.json`. Otherwise, a missing or invalid Prosecutor or Defender receipt blocks before intersection.
 - After this step, `findings.json` is the intersected set that Step 4 posts. Do not re-read `findings.defender.json` for posting.
 
 ### Step 4 — Post Native PR Review *(SEQUENTIAL / CI ONLY — swarm workers already EXITed above)*

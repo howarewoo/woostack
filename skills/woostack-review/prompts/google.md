@@ -118,7 +118,7 @@ Spawn one subagent with `$WOO_REVIEW_ACTION_PATH/prompts/validator-prosecutor.md
 
 ### Phase 3b — Defender pass
 
-Spawn one subagent with `$WOO_REVIEW_ACTION_PATH/prompts/validator.md` as its brief. It applies the strict "defense attorney" filter — drops pedantic / lint-catchable / maybe-issues / placeholder-suggestion findings — and writes `$OUTDIR/findings.defender.json`. It writes `$OUTDIR/findings.defender.json` and EXITs — it does NOT run the intersect script or post (the orchestrator does that next). Apply only `validator.md`'s validation/filter rules (its Steps 1–2) to produce `findings.defender.json`; IGNORE validator.md's Step 3/3b/4 and its STOP-GATE — the orchestrator runs the intersect itself in the next phase.
+Spawn one subagent with `$WOO_REVIEW_ACTION_PATH/prompts/validator.md` as its brief. It applies the strict "defense attorney" filter — drops pedantic / lint-catchable / maybe-issues / placeholder-suggestion findings — and writes `$OUTDIR/findings.defender.json`. It writes `$OUTDIR/findings.defender.json` and EXITs — it does NOT run the receipt gate, intersect script, or post (the orchestrator does those next). Apply `validator.md` through its validator receipt, then stop at its local-worker exit gate; the orchestrator runs the receipt gate and intersection itself in the next phase.
 
 The two passes MUST be sequential — the prosecutor's file must already exist before the defender runs when adversarial mode is on.
 
@@ -127,6 +127,7 @@ The two passes MUST be sequential — the prosecutor's file must already exist b
 After both validator subagents finish, the orchestrator (this session) runs:
 
 ```bash
+bash "$WOO_REVIEW_ACTION_PATH/scripts/verify-receipts.sh" --validators
 bash "$WOO_REVIEW_ACTION_PATH/scripts/intersect-findings.sh"
 ```
 

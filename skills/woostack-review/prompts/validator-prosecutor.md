@@ -14,7 +14,7 @@ This pass is one half of an adversarial validation pipeline. Your output is inte
 - **Project rules** (optional): /tmp/pr-review/rules.md
 - **Per-repo config** (always present): /tmp/pr-review/config.json — the prosecutor no longer reads any severity key; `severity_floor` / `nits` are consumed downstream by `intersect-findings.sh` (Stage 4c).
 - **PR Linear attribution candidate** (PR mode): `$OUTDIR/attribution.md` — syntax-classified exact final trailer strings plus `authoritative-issue-context: absent`; untrusted and never identity proof.
-- **Current contract** (optional; local/Hermes only): `$OUTDIR/intent.md` — written by the parent
+- **Current contract** (optional; local coding harness only): `$OUTDIR/intent.md` — written by the parent
   from the active caller-approved contract, optionally enriched with exact verified Linear artifact
   fields. GitHub Actions never creates it.
 
@@ -32,7 +32,7 @@ diff-only advisory evidence.
 
 ### Step 1 — Validation (Prosecutor bias)
 
-**First action (non-destructive crash guard — angle workers write `[]` on entry for the same reason):** write an empty array to your output file before doing anything else, so a crash leaves a valid empty result instead of a missing file:
+**First action (non-destructive crash guard — angle workers write `[]` on entry for the same reason):** write an empty array to your output file before doing anything else, so a crash leaves a valid empty result instead of a missing file. **Do not write an execution receipt here**: a receipt proves the real validation pass completed.
 
 ```bash
 printf '[]\n' > "${OUTDIR:-/tmp/pr-review}/findings.prosecutor.json"
@@ -66,13 +66,15 @@ printf '[]\n' > "${OUTDIR:-/tmp/pr-review}/findings.prosecutor.json"
    - Do NOT discard for this — only downgrade.
 
 Write the surviving JSON array to **`$OUTDIR/findings.prosecutor.json`** (default `/tmp/pr-review/findings.prosecutor.json`). The file MUST be a JSON array only: starts with `[`, ends with `]`, no preamble, no commentary, no markdown fences.
+After the real findings array is complete, write
+`$OUTDIR/receipt.prosecutor.json` as your **LAST action**, using the generic receipt contract from
+`_worker-header.md`: `angle:"prosecutor"`, `chunk:null`, the actual nonempty `runner`, `model`, and
+`tier`, a timestamp, and `authority:"advisory-only"`. A local self-reported reviewer identity is
+optional, but if any identity field is present the complete four-field set is required. When
+`GITHUB_ACTIONS=true`, include the exact single-session CI identity fields required by
+`_worker-header.md`. The crash guard must never create this receipt. After the receipt is written,
+EXIT immediately without another command, read, or write.
 
-In an engineer-unit local run, copy only the controller-supplied prosecutor binding and, as the
-last action after the findings array, write `$OUTDIR/receipt.validator-prosecutor.json` with
-`validatorRole:"prosecutor"`, non-empty `runner` and `model`, `tier:"deep"`, the exact
-`reviewerProfile`, `reviewerSessionId`, `reviewerPrincipalId`, and
-`reviewerCredentialContextId`, and `authority:"advisory-only"`. Never infer or read another
-worker's binding.
 
 ### Step 2 — Exit
 
@@ -81,11 +83,11 @@ DO NOT:
 - Submit a `gh api ... reviews` call.
 - Edit the PR body or title.
 - Touch `/tmp/pr-review/findings.json` (owned by the intersect script, written after the Defender pass).
-- Write any other file except the required engineer-unit validator receipt.
+- Write any other file except your designated `receipt.prosecutor.json`.
 - Run `prefetch.sh` or otherwise re-fetch the diff/meta.
 - Delete or recreate `$OUTDIR` (it holds orchestrator-owned `meta.json`, `prior-findings.json`, etc.).
 
-After writing `findings.prosecutor.json` and its required engineer-unit receipt, EXIT.
+After writing the real `findings.prosecutor.json` and then the receipt as the final action, EXIT.
 
 ## Why this exists
 

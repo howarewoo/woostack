@@ -1,16 +1,15 @@
 #!/usr/bin/env bash
 # Postflight gate: assert every expected angle (from angles.txt × chunks.txt) wrote
 # a VALID execution receipt. A valid receipt binds the expected work item to its
-# runner/model/tier, advisory-only authority, and (for an engineer-unit run) the
-# controller-owned reviewer identity manifest. For repository-routed Codex/OpenAI
+# runner/model/tier and advisory-only authority. For repository-routed Codex/OpenAI
 # workers, the model must also match the tier mapping. This is the single authority
-# on "did the independently bound angle worker actually execute": empty findings
-# are an honest clean review ONLY when the receipt proves the worker ran.
+# on "did the angle worker actually execute": empty findings are an honest clean
+# review ONLY when the receipt proves the worker ran.
 #
 # Modes:
 #   (default)       gate: emit ::error and exit 1 if any expected angle receipt is invalid.
 #   --list-missing  print invalid "<angle>" or "<angle>.<chunk>" labels, exit 0.
-#   --validators    gate the engineer-unit prosecutor and defender identity receipts.
+#   --validators    gate the required prosecutor/defender role receipts before intersection.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
@@ -25,96 +24,6 @@ case "${1:-}" in
   -h|--help) sed -n '2,12p' "$0"; exit 0 ;;
   *) echo "::error::unknown argument: $1" >&2; exit 2 ;;
 esac
-
-identity_manifest="${WOO_REVIEW_IDENTITY_MANIFEST:-$OUTDIR/reviewer-identities.json}"
-identity_manifest_required=false
-case "${WOO_REVIEW_ENGINEER_UNIT:-}" in
-  1|true|yes) identity_manifest_required=true ;;
-  0|false|no|"") ;;
-  *)
-    echo "::error::WOO_REVIEW_ENGINEER_UNIT must be true/false (or 1/0)" >&2
-    exit 2
-    ;;
-esac
-
-if [ "$identity_manifest_required" = true ] && [ ! -s "$identity_manifest" ]; then
-  echo "::error::engineer-unit review requires a non-empty controller-owned reviewer identity manifest: $identity_manifest" >&2
-  exit 2
-fi
-
-if [ -e "$identity_manifest" ]; then
-  if [ ! -s "$identity_manifest" ] || ! jq -e '
-    def nonempty: type == "string" and length > 0;
-    . as $m
-    | (type == "object")
-    and (.schemaVersion == 1)
-    and ($m.implementingCoder | type == "object"
-      and (.profile | nonempty)
-      and (.sessionId | nonempty)
-      and (.principalId | nonempty)
-      and (.credentialContextId | nonempty))
-    and ($m.decisionMaker | type == "object"
-      and (.profile | nonempty)
-      and (.sessionId | nonempty)
-      and (.principalId | nonempty)
-      and (.credentialContextId | nonempty))
-    and ($m.implementingCoder.profile != $m.decisionMaker.profile)
-    and ($m.implementingCoder.sessionId != $m.decisionMaker.sessionId)
-    and ($m.implementingCoder.principalId != $m.decisionMaker.principalId)
-    and ($m.implementingCoder.credentialContextId != $m.decisionMaker.credentialContextId)
-    and ($m.reviewers | type == "array" and length > 0)
-    and (all($m.reviewers[];
-      (type == "object")
-      and (.angle | nonempty)
-      and ((.chunk == null) or (.chunk | type == "string"))
-      and (.reviewerProfile | nonempty)
-      and (.reviewerSessionId | nonempty)
-      and (.reviewerPrincipalId | nonempty)
-      and (.reviewerCredentialContextId | nonempty)
-      and (.reviewerProfile != $m.implementingCoder.profile)
-      and (.reviewerProfile != $m.decisionMaker.profile)
-      and (.reviewerSessionId != $m.implementingCoder.sessionId)
-      and (.reviewerSessionId != $m.decisionMaker.sessionId)
-      and (.reviewerPrincipalId != $m.implementingCoder.principalId)
-      and (.reviewerPrincipalId != $m.decisionMaker.principalId)
-      and (.reviewerCredentialContextId != $m.implementingCoder.credentialContextId)
-      and (.reviewerCredentialContextId != $m.decisionMaker.credentialContextId)
-    ))
-    and (($m.reviewers | map([.angle, (.chunk // "")] | join("\u0000")) | unique | length)
-      == ($m.reviewers | length))
-    and (($m.reviewers | map(.reviewerProfile) | unique | length) == ($m.reviewers | length))
-    and (($m.reviewers | map(.reviewerSessionId) | unique | length) == ($m.reviewers | length))
-    and (($m.reviewers | map(.reviewerPrincipalId) | unique | length) == ($m.reviewers | length))
-    and (($m.reviewers | map(.reviewerCredentialContextId) | unique | length)
-      == ($m.reviewers | length))
-  ' "$identity_manifest" >/dev/null 2>&1; then
-    echo "::error::invalid reviewer identity manifest: $identity_manifest" >&2
-    exit 2
-  fi
-fi
-
-receipt_matches_identity_manifest() { # angle chunk receipt
-  local angle="$1" chunk="$2" receipt="$3"
-  jq -e --arg a "$angle" --arg c "$chunk" --slurpfile receipt "$receipt" '
-    . as $m
-    | [
-        $m.reviewers[]
-        | select(
-            .angle == $a
-            and (
-              (($c == "") and ((.chunk == null) or (.chunk == "")))
-              or (.chunk == $c)
-            )
-          )
-      ] as $bindings
-    | ($bindings | length) == 1
-      and ($receipt | length) == 1
-      and ($receipt[0].reviewerProfile == $bindings[0].reviewerProfile)
-      and ($receipt[0].reviewerSessionId == $bindings[0].reviewerSessionId)
-      and ($receipt[0].reviewerPrincipalId == $bindings[0].reviewerPrincipalId)
-      and ($receipt[0].reviewerCredentialContextId == $bindings[0].reviewerCredentialContextId)
-  ' "$identity_manifest" >/dev/null 2>&1
-}
 
 receipt_matches_ci_identity() { # receipt
   local receipt="$1" attempt session principal credential
@@ -151,126 +60,34 @@ receipt_matches_ci_identity() { # receipt
     ' "$receipt" >/dev/null 2>&1
 }
 
+angles=()
+chunks=("")
 if [ "$mode" = "validators" ]; then
-  [ "$identity_manifest_required" = true ] || {
-    echo "::error::validator identity receipts are required only for an engineer-unit review" >&2
-    exit 2
-  }
-  if ! jq -e '
-    def nonempty: type == "string" and length > 0;
-    . as $m
-    | ($m.validators | type == "array" and length == 2)
-    and (($m.validators | map(.role) | sort) == ["defender", "prosecutor"])
-    and (all($m.validators[];
-      (type == "object")
-      and (.reviewerProfile | nonempty)
-      and (.reviewerSessionId | nonempty)
-      and (.reviewerPrincipalId | nonempty)
-      and (.reviewerCredentialContextId | nonempty)
-    ))
-    and (
-      (
-        [
-          $m.implementingCoder | {
-            reviewerProfile: .profile,
-            reviewerSessionId: .sessionId,
-            reviewerPrincipalId: .principalId,
-            reviewerCredentialContextId: .credentialContextId
-          },
-          $m.decisionMaker | {
-            reviewerProfile: .profile,
-            reviewerSessionId: .sessionId,
-            reviewerPrincipalId: .principalId,
-            reviewerCredentialContextId: .credentialContextId
-          }
-        ] + $m.reviewers + $m.validators
-      ) as $all
-      | (($all | map(.reviewerProfile) | unique | length) == ($all | length))
-      and (($all | map(.reviewerSessionId) | unique | length) == ($all | length))
-      and (($all | map(.reviewerPrincipalId) | unique | length) == ($all | length))
-      and (($all | map(.reviewerCredentialContextId) | unique | length) == ($all | length))
-    )
-  ' "$identity_manifest" >/dev/null 2>&1; then
-    echo "::error::invalid or non-independent validator identity bindings" >&2
+  if [ -s "$OUTDIR/config.json" ] &&
+    jq -e 'type == "object" and .disable_adversarial == true' "$OUTDIR/config.json" >/dev/null 2>&1; then
+    angles=("defender")
+  else
+    angles=("prosecutor" "defender")
+  fi
+else
+  angles_file="$OUTDIR/angles.txt"
+  if [ ! -s "$angles_file" ]; then
+    echo "::error::missing or empty angles file: $angles_file" >&2
     exit 2
   fi
 
-  validator_failed=false
-  for validator_role in prosecutor defender; do
-    validator_receipt="$OUTDIR/receipt.validator-${validator_role}.json"
-    if [ ! -s "$validator_receipt" ] || ! jq -e \
-      --arg role "$validator_role" \
-      --slurpfile receipt "$validator_receipt" '
-        . as $m
-        | [.validators[] | select(.role == $role)] as $bindings
-        | ($bindings | length) == 1
-        and ($receipt | length) == 1
-        and ($receipt[0] | type == "object")
-        and ($receipt[0].validatorRole == $role)
-        and (($receipt[0].runner // "") | type == "string" and length > 0)
-        and (($receipt[0].model // "") | type == "string" and length > 0)
-        and ($receipt[0].tier == "deep")
-        and ($receipt[0].authority == "advisory-only")
-        and ($receipt[0].reviewerProfile == $bindings[0].reviewerProfile)
-        and ($receipt[0].reviewerSessionId == $bindings[0].reviewerSessionId)
-        and ($receipt[0].reviewerPrincipalId == $bindings[0].reviewerPrincipalId)
-        and ($receipt[0].reviewerCredentialContextId == $bindings[0].reviewerCredentialContextId)
-      ' "$identity_manifest" >/dev/null 2>&1; then
-      echo "::error::invalid or missing validator identity receipt: validator-${validator_role}" >&2
-      validator_failed=true
-    fi
-  done
-  [ "$validator_failed" = false ] || exit 1
-  exit 0
-fi
-
-angles_file="$OUTDIR/angles.txt"
-if [ ! -s "$angles_file" ]; then
-  echo "::error::missing or empty angles file: $angles_file" >&2
-  exit 2
-fi
-
-angles=()
-while IFS= read -r a; do [ -n "$a" ] && angles+=("$a"); done < "$angles_file"
-if [ "${#angles[@]}" -eq 0 ]; then
-  echo "::error::no angles found in $angles_file" >&2
-  exit 2
-fi
-
-chunks=("")
-chunks_file="$OUTDIR/chunks.txt"
-if [ -s "$chunks_file" ]; then
-  chunks=()
-  while IFS= read -r c; do [ -n "$c" ] && chunks+=("$c"); done < "$chunks_file"
-  [ "${#chunks[@]}" -eq 0 ] && chunks=("")
-fi
-
-if [ -s "$identity_manifest" ]; then
-  manifest_expected_total=$(( ${#angles[@]} * ${#chunks[@]} ))
-  manifest_binding_total="$(jq -r '.reviewers | length' "$identity_manifest")"
-  [ "$manifest_binding_total" -eq "$manifest_expected_total" ] || {
-    echo "::error::reviewer identity manifest does not exactly cover the expected angle/chunk work set" >&2
+  while IFS= read -r a; do [ -n "$a" ] && angles+=("$a"); done < "$angles_file"
+  if [ "${#angles[@]}" -eq 0 ]; then
+    echo "::error::no angles found in $angles_file" >&2
     exit 2
-  }
-  for manifest_angle in "${angles[@]}"; do
-    for manifest_chunk in "${chunks[@]}"; do
-      manifest_binding_count="$(
-        jq -r --arg a "$manifest_angle" --arg c "$manifest_chunk" '
-          [.reviewers[] | select(
-            .angle == $a
-            and (
-              (($c == "") and ((.chunk == null) or (.chunk == "")))
-              or (.chunk == $c)
-            )
-          )] | length
-        ' "$identity_manifest"
-      )"
-      [ "$manifest_binding_count" -eq 1 ] || {
-        echo "::error::reviewer identity manifest lacks one exact binding for ${manifest_angle}${manifest_chunk:+.$manifest_chunk}" >&2
-        exit 2
-      }
-    done
-  done
+  fi
+
+  chunks_file="$OUTDIR/chunks.txt"
+  if [ -s "$chunks_file" ]; then
+    chunks=()
+    while IFS= read -r c; do [ -n "$c" ] && chunks+=("$c"); done < "$chunks_file"
+    [ "${#chunks[@]}" -eq 0 ] && chunks=("")
+  fi
 fi
 
 receipt_path() { # angle chunk
@@ -327,10 +144,8 @@ receipt_needs_openai_model_check() { # file
 
 # Valid iff: JSON object; .angle == angle; (.chunk matches, or both empty/null);
 # .runner, .model, and .tier are non-empty; .authority is advisory-only; any
-# supplied reviewer identity is complete. An engineer-unit manifest additionally
-# binds that identity to the host-selected reviewer and excludes the implementing
-# coder and decision-maker identities/credential contexts. GitHub Actions uses
-# its explicit single-session CI identity shape when no manifest is present.
+# supplied reviewer identity is complete. GitHub Actions additionally requires
+# its explicit single-session CI identity shape.
 is_valid_receipt() { # angle chunk file
   local angle="$1" chunk="$2" f="$3" tier model expected
   [ -s "$f" ] || return 1
@@ -360,9 +175,7 @@ is_valid_receipt() { # angle chunk file
     )
   ' "$f" >/dev/null 2>&1 || return 1
 
-  if [ -s "$identity_manifest" ]; then
-    receipt_matches_identity_manifest "$angle" "$chunk" "$f" || return 1
-  elif [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+  if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
     receipt_matches_ci_identity "$f" || return 1
   fi
 
@@ -386,6 +199,15 @@ for angle in "${angles[@]}"; do
     fi
   done
 done
+if [ "$mode" = "validators" ]; then
+  if [ "${#missing[@]}" -gt 0 ]; then
+    miss_csv="$(IFS=', '; echo "${missing[*]}")"
+    echo "::error::woostack-review: validator role receipt(s) missing or invalid: ${miss_csv}. The adversarial validation pass is NOT complete; refusing intersection." >&2
+    exit 1
+  fi
+  echo "verify-receipts: all ${#angles[@]} required validator role receipt(s) valid."
+  exit 0
+fi
 
 if [ "$mode" = "list" ]; then
   for m in ${missing[@]+"${missing[@]}"}; do printf '%s\n' "$m"; done

@@ -154,45 +154,22 @@ woo167_reserved_files = (
 for relative in woo167_reserved_files:
     read_raw(relative)
 
-# WOO-166 owns only these mixed-file dormant Review branches/tests/prompt contracts.
-# The marker map records their current boundaries without snapshotting their prose.
-woo166_dormant_locations = {
-    "skills/woostack-review/prompts/_worker-header.md": ("engineer-unit",),
-    "skills/woostack-review/prompts/validator-prosecutor.md": ("engineer-unit",),
-    "skills/woostack-review/prompts/validator.md": ("engineer-unit",),
-    "skills/woostack-review/references/ci.md": ("Hermes",),
-    "skills/woostack-review/scripts/resolve-outdir.sh": ("WOO_REVIEW_ENGINEER_UNIT",),
-    "skills/woostack-review/scripts/run-bounded-swarm.sh": (
-        "WOO_REVIEW_ENGINEER_UNIT",
-        "WOO_REVIEW_IDENTITY_MANIFEST",
-        "reviewer-identities.json",
-    ),
-    "skills/woostack-review/scripts/verify-receipts.sh": (
-        "WOO_REVIEW_ENGINEER_UNIT",
-        "WOO_REVIEW_IDENTITY_MANIFEST",
-        "reviewer-identities.json",
-        "implementingCoder",
-        "decisionMaker",
-    ),
-    "skills/woostack-review/scripts/tests/test-bounded-swarm.sh": (
-        "WOO_REVIEW_ENGINEER_UNIT",
-        "reviewer-identities.json",
-        "implementingCoder",
-        "decisionMaker",
-    ),
-    "skills/woostack-review/scripts/tests/test-verify-receipts-identity.sh": (
-        "WOO_REVIEW_ENGINEER_UNIT",
-        "reviewer-identities.json",
-        "implementingCoder",
-        "decisionMaker",
-    ),
-}
-for relative, markers in woo166_dormant_locations.items():
-    body = read_raw(relative)
-    for marker in markers:
-        if marker not in body:
-            failures.append(f"{relative}: retained WOO-166 marker missing: {marker}")
-
+# WOO-166 removes the dormant mixed-file Review mode while retaining one generic
+# local advisory path and the CI path.
+woo166_review_paths = (
+    "skills/woostack-review/prompts/_orchestrator-header.md",
+    "skills/woostack-review/prompts/_worker-header.md",
+    "skills/woostack-review/prompts/validator-prosecutor.md",
+    "skills/woostack-review/prompts/validator.md",
+    "skills/woostack-review/references/ci.md",
+    "skills/woostack-review/scripts/resolve-outdir.sh",
+    "skills/woostack-review/scripts/run-bounded-swarm.sh",
+    "skills/woostack-review/scripts/verify-receipts.sh",
+    "skills/woostack-review/scripts/tests/test-bounded-swarm.sh",
+    "skills/woostack-review/scripts/tests/test-verify-receipts-identity.sh",
+    "skills/woostack-review/scripts/tests/test-review-payload-ranges.sh",
+    "skills/woostack-review/evals/evals.json",
+)
 exact_review_mode_markers = (
     "WOO_REVIEW_ENGINEER_UNIT",
     "WOO_REVIEW_IDENTITY_MANIFEST",
@@ -200,11 +177,28 @@ exact_review_mode_markers = (
     "implementingCoder",
     "decisionMaker",
 )
-retained_review_text = "\n".join(read_raw(path) for path in woo166_dormant_locations)
-for marker in exact_review_mode_markers:
-    if marker not in retained_review_text:
-        failures.append(f"WOO-166 inventory does not retain exact marker: {marker}")
+for relative in woo166_review_paths:
+    body = read_raw(relative)
+    for marker in exact_review_mode_markers:
+        if marker in body:
+            failures.append(f"{relative}: removed Review marker remains: {marker}")
+    if re.search(r"engineer-unit|local/Hermes|Hermes-direct|\bHermes\b", body, re.I):
+        failures.append(f"{relative}: removed Hermes-direct Review wording remains")
 
+review_runtime = " ".join(read(path) for path in woo166_review_paths)
+require(review_runtime, r"generic local", "Review no longer documents one generic local path")
+require(review_runtime, r"authority[\"`: ]+advisory-only|advisory-only authority",
+        "Review no longer requires advisory worker authority")
+require(review_runtime, r"missing.*receipt.*hard-fail|hard-fails.*missing.*receipt",
+        "Review no longer hard-fails a missing local worker receipt")
+require(review_runtime, r"github-actions-single-session",
+        "Review no longer retains the CI single-session sentinel")
+require(review_runtime, r"fresh read-only advisory reviewer session",
+        "Review no longer keeps local workers read-only")
+require(review_runtime, r"prosecutor.*defender.*intersect|intersection.*prosecutor.*defender",
+        "Review no longer retains both validator passes and intersection")
+require(review_runtime, r"native GitHub.*IDs.*differ|native actor-ID gate",
+        "Review no longer retains the native GitHub actor safeguard")
 # Scan every supported source and authored text surface. Reserved bodies, their tests, and
 # assertion-only boundary tests are records rather than callsites; generated, gitignored skill
 # pages mirror their source and are not a second surface. The top-level guide is scanned for mode
@@ -215,7 +209,7 @@ assertion_only_paths = {
     "skills/woostack-doctor/scripts/tests/test-omp-agents.sh",
     "site/scripts/linear-only-docs.test.mjs",
 }
-reserved_paths = set(woo167_reserved_files) | set(woo166_dormant_locations)
+reserved_paths = set(woo167_reserved_files)
 text_suffixes = {".md", ".mdx", ".sh", ".mjs", ".js", ".json", ".yml", ".yaml"}
 skip_parts = {".git", ".next", ".woostack", "node_modules"}
 supported_texts = {}
@@ -267,7 +261,7 @@ for relative, body in supported_texts.items():
         failures.append(f"{relative}: supported surface reaches a reserved launcher")
     for marker in exact_review_mode_markers:
         if marker in body:
-            failures.append(f"{relative}: supported surface activates dormant Review marker {marker}")
+            failures.append(f"{relative}: supported surface activates removed Review marker {marker}")
 if failures:
     print("FAIL: external-engineer and harness boundary", file=sys.stderr)
     for failure in failures:

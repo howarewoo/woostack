@@ -89,8 +89,8 @@ HEAD_SHA=deadbeef \
   IMPLEMENTATION_AUTHOR_GITHUB_USER_ID= \
   AUTH_LOGIN=apparently-distinct-reviewer \
   PR_AUTHOR=apparently-distinct-author \
-  HERMES_PROFILE=hermes-engineer \
-  TOKEN_STORE_NAME=hermes-token-cache \
+  REVIEWER_PROFILE=local-reviewer \
+  TOKEN_STORE_NAME=local-review-token-cache \
   python3 "$work/builder.py" > "$work/missing-actor.json"
 assert_eq "$(jq -r '.event' "$work/missing-actor.json")" "COMMENT" "missing native author proof cannot approve"
 assert_contains "$(jq -r '.body' "$work/missing-actor.json")" '**Status: APPROVED** — No validated findings.' "missing-proof COMMENT preserves computed status line"

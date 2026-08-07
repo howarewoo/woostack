@@ -24,18 +24,11 @@ if [ -z "${OUTDIR:-}" ]; then
   # shellcheck source=skills/woostack-review/scripts/resolve-root.sh
   source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-root.sh"
   _wr_hash="$(printf '%s' "$WOOSTACK_ROOT" | { sha1sum 2>/dev/null || shasum; } | cut -c1-12)"
-  # Engineer-unit workers must never receive a writable path inside the implementation
-  # repository. Keep that default external even when the workspace has .woostack.
-  case "${WOO_REVIEW_ENGINEER_UNIT:-}" in
-    1|true|yes) _wr_base="/tmp" ;;
-    *)
-      if [ -d "${WOOSTACK_ROOT}/.woostack" ]; then
-        _wr_base="${WOOSTACK_ROOT}/.woostack/tmp"
-      else
-        _wr_base="/tmp"
-      fi
-      ;;
-  esac
+  if [ -d "${WOOSTACK_ROOT}/.woostack" ]; then
+    _wr_base="${WOOSTACK_ROOT}/.woostack/tmp"
+  else
+    _wr_base="/tmp"
+  fi
   if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
     OUTDIR="${_wr_base}/pr-review-${_wr_hash}"
   else

@@ -8,8 +8,8 @@ detect ─► fan-out (parallel angle workers) ─► merge ─► skeptical val
 
 The first-party composite action in `action.yml` and reusable workflow in
 `.github/workflows/reusable-review.yml` ship a **diff-only advisory** review. GitHub Actions has no
-host-exposed Linear MCP channel, so this path deliberately differs from a local/Hermes review:
-it never reads the managed issue contract and never runs the contract-aware `acceptance` angle.
+host-exposed Linear MCP channel, so this path deliberately differs from a local coding-harness
+review: it never reads the managed issue contract and never runs the contract-aware `acceptance` angle.
 
 ## Companion GitHub Action
 
@@ -70,7 +70,7 @@ secret store under the canonical
 - Worker execution receipts and the posted GitHub Review are advisory-only evidence. Even an
   `APPROVE` event means only the native GitHub code-review verdict; it claims neither Linear
   read-back nor issue acceptance.
-- A separately authenticated Hermes controller or responsible human may later resolve the exact
+- A separately authenticated controller or responsible human may later resolve the exact
   attribution through official MCP and reconcile the GitHub receipt under the canonical
   [status conventions](../../woostack-status/references/conventions.md). That is a separate read,
   authority check, and typed-event workflow; CI never performs or predicts it.

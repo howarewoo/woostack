@@ -13,37 +13,20 @@ const WOO_167_RESERVED_FILES = Object.freeze([
   'site/content/docs/concepts/engineer-agents.mdx',
   'site/content/docs/harnesses/hermes.mdx',
 ]);
-const WOO_166_DORMANT_REVIEW_LOCATIONS = Object.freeze(new Map([
-  ['skills/woostack-review/prompts/_worker-header.md', ['engineer-unit']],
-  ['skills/woostack-review/prompts/validator-prosecutor.md', ['engineer-unit']],
-  ['skills/woostack-review/prompts/validator.md', ['engineer-unit']],
-  ['skills/woostack-review/references/ci.md', ['Hermes']],
-  ['skills/woostack-review/scripts/resolve-outdir.sh', ['WOO_REVIEW_ENGINEER_UNIT']],
-  ['skills/woostack-review/scripts/run-bounded-swarm.sh', [
-    'WOO_REVIEW_ENGINEER_UNIT',
-    'WOO_REVIEW_IDENTITY_MANIFEST',
-    'reviewer-identities.json',
-  ]],
-  ['skills/woostack-review/scripts/verify-receipts.sh', [
-    'WOO_REVIEW_ENGINEER_UNIT',
-    'WOO_REVIEW_IDENTITY_MANIFEST',
-    'reviewer-identities.json',
-    'implementingCoder',
-    'decisionMaker',
-  ]],
-  ['skills/woostack-review/scripts/tests/test-bounded-swarm.sh', [
-    'WOO_REVIEW_ENGINEER_UNIT',
-    'reviewer-identities.json',
-    'implementingCoder',
-    'decisionMaker',
-  ]],
-  ['skills/woostack-review/scripts/tests/test-verify-receipts-identity.sh', [
-    'WOO_REVIEW_ENGINEER_UNIT',
-    'reviewer-identities.json',
-    'implementingCoder',
-    'decisionMaker',
-  ]],
-]));
+const WOO_166_REVIEW_PATHS = Object.freeze([
+  'skills/woostack-review/prompts/_orchestrator-header.md',
+  'skills/woostack-review/prompts/_worker-header.md',
+  'skills/woostack-review/prompts/validator-prosecutor.md',
+  'skills/woostack-review/prompts/validator.md',
+  'skills/woostack-review/references/ci.md',
+  'skills/woostack-review/scripts/resolve-outdir.sh',
+  'skills/woostack-review/scripts/run-bounded-swarm.sh',
+  'skills/woostack-review/scripts/verify-receipts.sh',
+  'skills/woostack-review/scripts/tests/test-bounded-swarm.sh',
+  'skills/woostack-review/scripts/tests/test-verify-receipts-identity.sh',
+  'skills/woostack-review/scripts/tests/test-review-payload-ranges.sh',
+  'skills/woostack-review/evals/evals.json',
+]);
 const REVIEW_MODE_MARKERS = Object.freeze([
   'WOO_REVIEW_ENGINEER_UNIT',
   'WOO_REVIEW_IDENTITY_MANIFEST',
@@ -84,7 +67,7 @@ const PATHS = [
   'site/content/docs/harnesses/omp.mdx',
   'skills/using-woostack/references/hosts/omp.md',
   'site/content/docs/harnesses/index.mdx',
-  ...WOO_166_DORMANT_REVIEW_LOCATIONS.keys(),
+  ...WOO_166_REVIEW_PATHS,
 ];
 
 let files;
@@ -464,31 +447,23 @@ test('approval relay remains responsible-user and receipt bound', () => {
   assert.match(contract, /Linear receipt\/event/i);
 });
 
-test('reserved WOO-167 assets and the WOO-166 mode remain present but unreachable', () => {
+test('reserved WOO-167 assets remain unreachable and the WOO-166 Review mode is absent', () => {
   assert.equal(WOO_167_RESERVED_FILES.length, 6, 'WOO-167 whole-file inventory must stay exact');
   for (const relativePath of WOO_167_RESERVED_FILES) {
     assert.ok(files.has(relativePath), `${relativePath}: retained WOO-167 asset was removed too early`);
   }
 
-  assert.equal(WOO_166_DORMANT_REVIEW_LOCATIONS.size, 9,
-    'WOO-166 mixed-file inventory must stay exact');
-  for (const [relativePath, markers] of WOO_166_DORMANT_REVIEW_LOCATIONS) {
+  assert.equal(WOO_166_REVIEW_PATHS.length, 12, 'WOO-166 focused path inventory must stay exact');
+  for (const relativePath of WOO_166_REVIEW_PATHS) {
     const content = read(relativePath);
-    for (const marker of markers) {
-      assert.ok(content.includes(marker), `${relativePath}: missing retained marker ${marker}`);
+    for (const marker of REVIEW_MODE_MARKERS) {
+      assert.ok(!content.includes(marker), `${relativePath}: removed Review marker remains: ${marker}`);
     }
-  }
-  const dormantReviewText = [...WOO_166_DORMANT_REVIEW_LOCATIONS.keys()]
-    .map((relativePath) => read(relativePath))
-    .join('\n');
-  for (const marker of REVIEW_MODE_MARKERS) {
-    assert.ok(dormantReviewText.includes(marker), `WOO-166 inventory omits exact marker ${marker}`);
+    assert.doesNotMatch(content, /engineer-unit|local\/Hermes|Hermes-direct|\bHermes\b/i,
+      `${relativePath}: removed Hermes-direct Review wording remains`);
   }
 
-  const reservedPaths = new Set([
-    ...WOO_167_RESERVED_FILES,
-    ...WOO_166_DORMANT_REVIEW_LOCATIONS.keys(),
-  ]);
+  const reservedPaths = new Set(WOO_167_RESERVED_FILES);
   const supportedPaths = [...new Set([...PATHS, ...authoredSitePaths])]
     .filter((relativePath) => !reservedPaths.has(relativePath));
   const retiredReference =
@@ -501,7 +476,7 @@ test('reserved WOO-167 assets and the WOO-166 mode remain present but unreachabl
     }
     for (const marker of REVIEW_MODE_MARKERS) {
       assert.ok(!content.includes(marker),
-        `${relativePath}: supported surface activates dormant Review marker ${marker}`);
+        `${relativePath}: supported surface activates removed Review marker ${marker}`);
     }
     if (relativePath !== 'site/content/docs/hermes.mdx') {
       assert.doesNotMatch(content, /\b(?:launch-omp|bind-engineer-unit)\b/,

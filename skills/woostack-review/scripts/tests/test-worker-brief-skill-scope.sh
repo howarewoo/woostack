@@ -37,8 +37,8 @@ OPENAI="$ROOT/skills/woostack-review/prompts/openai.md"
 
 # The simplified Review surface retains the isolation and authority boundary without duplicating
 # host-specific dispatch prose.
-assert_file_contains "$REVIEW_SKILL" \
-  "fresh read-only profiles/sessions distinct from the implementing coder" \
+assert_file_matches "$REVIEW_SKILL" \
+  "fresh read-only profiles/sessions distinct from the implementing[[:space:]]+coder" \
   "Review requires fresh worker isolation from the implementing coder"
 assert_file_matches "$REVIEW_SKILL" \
   "Workers cannot edit source/tests, post to GitHub, access Linear.*accept work, or merge" \
