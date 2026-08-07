@@ -96,7 +96,28 @@ intentionally runs only the Defender.
 - Prosecutor writes `$OUTDIR/findings.prosecutor.json` and `$OUTDIR/receipt.prosecutor.json`.
 - Defender writes `$OUTDIR/findings.defender.json` and `$OUTDIR/receipt.defender.json`.
 
-Immediately before intersection, run the exact validator receipt gate and then the intersection:
+A generic local controller first resolves the current host through the
+[`using-woostack` host references](../using-woostack/references/hosts/README.md), then runs the
+required validator sessions sequentially. For each dispatch, it retains the exact controller-known
+`runner`, resolved `model`, `tier`, and `reviewerProfile` (the worker selector/profile passed to the
+host), derives `reviewerPrincipalId` as `<host>:<reviewerProfile>`, and records the adapter-sourced
+`reviewerSessionId` and `reviewerCredentialContextId` returned from the spawn. After the role exits,
+it records the SHA-256 digests of that role's findings and receipt in controller memory before
+starting the next role. After every required role has
+exited, the controller writes `$OUTDIR/validator-bindings.json` with `schemaVersion: 2` and a
+`validators` object keyed by role. Each role contains the recorded identity plus `findingsSha256`
+and `receiptSha256` as lowercase `sha256:`-prefixed 64-character hexadecimal strings. Workers may
+neither read nor write this post-dispatch manifest. Immediately before intersection, bind the
+unchanged artifacts to it:
+
+```bash
+bash "$WOO_REVIEW_ACTION_PATH/scripts/verify-receipts.sh" --validators-local
+bash "$WOO_REVIEW_ACTION_PATH/scripts/intersect-findings.sh"
+```
+
+Every local coding harness must use this bound gate; a host that cannot provide the required
+sequential sessions and controller-held digests blocks instead of falling back. Only the
+GitHub Actions sequential path uses the generic CI-identity gate:
 
 ```bash
 bash "$WOO_REVIEW_ACTION_PATH/scripts/verify-receipts.sh" --validators

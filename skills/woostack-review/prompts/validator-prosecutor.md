@@ -69,9 +69,13 @@ Write the surviving JSON array to **`$OUTDIR/findings.prosecutor.json`** (defaul
 After the real findings array is complete, write
 `$OUTDIR/receipt.prosecutor.json` as your **LAST action**, using the generic receipt contract from
 `_worker-header.md`: `angle:"prosecutor"`, `chunk:null`, the actual nonempty `runner`, `model`, and
-`tier`, a timestamp, and `authority:"advisory-only"`. A local self-reported reviewer identity is
-optional, but if any identity field is present the complete four-field set is required. When
-`GITHUB_ACTIONS=true`, include the exact single-session CI identity fields required by
+`tier`, a timestamp, and `authority:"advisory-only"`. A local identity is optional unless this
+sequential dispatch supplied the role's own controller binding; in that case include its exact
+`reviewerProfile`, `reviewerSessionId`, `reviewerPrincipalId`, and
+`reviewerCredentialContextId`. Never inspect another role's artifacts or `validator-bindings.json`;
+the controller records this role's artifact digests after exit and creates the manifest only after
+all required roles exit. If any identity field is present, the complete four-field set is required.
+When `GITHUB_ACTIONS=true`, include the exact single-session CI identity fields required by
 `_worker-header.md`. The crash guard must never create this receipt. After the receipt is written,
 EXIT immediately without another command, read, or write.
 

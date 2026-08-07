@@ -68,8 +68,11 @@ boundary; optional artifact failure blocks only the selected optional operation.
 
 - `woostack-review`: after angle detection and before any summary, angle, or validator worker,
   discover the active task-agent registry and require every distinct selector needed by the
-  complete planned run. Missing support aborts the whole swarm before launch. Missing receipts
-  still fail the existing hard receipt gate.
+  complete planned run. Missing support aborts the whole swarm before launch. For validators,
+  `reviewerSessionId` is the exact opaque agent ID returned by `task`;
+  `reviewerCredentialContextId` is `omp:task:<agent-id>`. Feed both into
+  [Review's bound-validator sequence](../../../woostack-review/SKILL.md). Missing receipts still
+  fail the existing hard receipt gate.
 - `woostack-execute`: map the implementation worker to `agent: woostack-fast`; the project
   controller owns admission, verification, and delivery.
 - `woostack-commit`: map optional fast drafting to `agent: woostack-fast`; draft inline if

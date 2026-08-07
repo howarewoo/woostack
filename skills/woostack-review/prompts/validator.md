@@ -84,9 +84,13 @@ Write the defender-validated JSON array to **`$OUTDIR/findings.defender.json`** 
 After the real findings array is complete, write `$OUTDIR/receipt.defender.json` as the
 **LAST action of the validator pass**, using the generic receipt contract from
 `_worker-header.md`: `angle:"defender"`, `chunk:null`, the actual nonempty `runner`, `model`, and
-`tier`, a timestamp, and `authority:"advisory-only"`. A local self-reported reviewer identity is
-optional, but if any identity field is present the complete four-field set is required. When
-`GITHUB_ACTIONS=true`, include the exact single-session CI identity fields required by
+`tier`, a timestamp, and `authority:"advisory-only"`. A local identity is optional unless this
+sequential dispatch supplied the role's own controller binding; in that case include its exact
+`reviewerProfile`, `reviewerSessionId`, `reviewerPrincipalId`, and
+`reviewerCredentialContextId`. Never inspect another role's artifacts or `validator-bindings.json`;
+the controller records this role's artifact digests after exit and creates the manifest only after
+all required roles exit. If any identity field is present, the complete four-field set is required.
+When `GITHUB_ACTIONS=true`, include the exact single-session CI identity fields required by
 `_worker-header.md`. The crash guard must never create this receipt. A local swarm worker exits
 immediately after this final action; the sequential CI session may continue only into the
 controller-owned gate/intersection/posting tail below.

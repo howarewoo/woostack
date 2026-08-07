@@ -9,18 +9,23 @@ from pathlib import Path
 
 text = re.sub(r"\s+", " ", (Path(sys.argv[1]) / "skills/woostack-sweep/SKILL.md").read_text())
 checks = {
+    "branch command target": r"/woostack-sweep \[PR#\|branch\]",
+    "exact branch binding": r"With `branch`, require one exact branch-name match.*bind that submitted branch to its canonical GitHub PR",
+    "reject inferred branch": r"never infer the branch from a title, activity, issue data, or search order",
+    "reject unsubmitted branch": r"Reject an unsubmitted branch.*ambiguous membership",
     "bottom-up": r"Process each in-range PR from oldest dependency to tip",
     "pre-existing address": r"Address pre-existing threads.*before review",
     "review exactly once": r"Invoke exactly one canonical multi-angle.*woostack-review <PR#>",
     "new findings": r"Address new findings.*every new finding",
-    "re-review needs progress": r"repeat this same PR's Address → one Review → Address sequence only when Address produced new code or new evidence",
-    "restack changed head": r"When the head changed, restack affected descendants.*read back every affected head/base/ancestry",
-    "no-progress stop": r"blocker remains unresolved without new code or evidence, halt.*do not restack or re-review",
-    "advance nits": r"only nits and all nits are resolved, advance to the next PR without re-review",
+    "all head changes invalidate review": r"Any explained head change produced by Address invalidates the prior Review for every finding severity",
+    "restack changed head": r"restack affected descendants.*read back every affected head/base/ancestry.*repeat this PR's one Review → Address sequence",
+    "unchanged progress": r"On an unchanged head, repeat after a blocking Review only when Address produced new evidence",
+    "no-progress stop": r"blocker remains unresolved without new evidence, halt.*do not restack or re-review",
+    "advance unchanged nits": r"only nits and every nit was resolved on the unchanged head, advance without re-review",
     "unchanged halt": r"same blocker recurs on an unchanged head with no new code or evidence",
     "clean gate": r"no unresolved blocker or nit.*replies/resolution reads are verified",
     "stack ready": r"every in-range submitted PR is clean and Graphite ancestry and heads are current",
-    "fail closed": r"missing/partial review, unknown check, changed head, or unsafe decision is blocked",
+    "fail closed": r"missing/partial review, unknown check, or unsafe decision is blocked",
 }
 failures = [name for name, pattern in checks.items() if not re.search(pattern, text, re.I | re.S)]
 for forbidden in ("Linear", "artifact", "--interactive", "--full"):

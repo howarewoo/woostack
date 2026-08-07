@@ -93,7 +93,7 @@ Stay within each angle's scope; do not let `bugs` flag a design issue or vice ve
 
 Merge all `findings.<angle>.json` arrays into `$OUTDIR/raw_findings.json` (use `$WOO_REVIEW_ACTION_PATH/scripts/merge-findings.sh`).
 
-Then run TWO opposing-bias validation passes followed by a deterministic intersection (issue #13). In local Codex with model-routed subagents, spawn both validator passes with the resolved `deep` model (`gpt-5.5` by default). In Codex Action / single-session mode, sequence them inside the single agentic loop using `bash` to invoke the intersect script. Read `disable_adversarial` first:
+Then run TWO opposing-bias validation passes followed by a deterministic intersection (issue #13). Local Codex must use two fresh sequential `deep` subagents and the bound-validator contract in `SKILL.md` Stage 3; a host without that isolation blocks. Codex Action / GitHub Actions sequences both passes inside its single agentic loop under the CI identity contract. Read `disable_adversarial` first:
 
 ```bash
 DISABLE_ADV="$(jq -r '.disable_adversarial // false' $OUTDIR/config.json 2>/dev/null || echo false)"
@@ -107,10 +107,15 @@ Apply `$WOO_REVIEW_ACTION_PATH/prompts/validator-prosecutor.md` against `raw_fin
 
 Apply `$WOO_REVIEW_ACTION_PATH/prompts/validator.md` against `raw_findings.json`. Bias: try to prove each finding wrong; drop pedantic / lint-catchable / "maybe" findings; enforce the comment-shape + `fix_type` rules. Write surviving findings to `$OUTDIR/findings.defender.json`, then write its validator receipt as the pass's final action. Stop at the local-worker exit gate; the orchestrator runs the receipt gate and intersection itself in the next phase.
 
+
 ### Phase 3c — Intersect
 
 ```bash
-bash "$WOO_REVIEW_ACTION_PATH/scripts/verify-receipts.sh" --validators
+if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+  bash "$WOO_REVIEW_ACTION_PATH/scripts/verify-receipts.sh" --validators
+else
+  bash "$WOO_REVIEW_ACTION_PATH/scripts/verify-receipts.sh" --validators-local
+fi
 bash "$WOO_REVIEW_ACTION_PATH/scripts/intersect-findings.sh"
 ```
 
