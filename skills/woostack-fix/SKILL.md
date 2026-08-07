@@ -64,6 +64,10 @@ Fix makes no provider call and carries no artifact identity. Use a subagent when
 default; if an explicitly requested subagent is unavailable, disclose the degradation and run
 inline only when safe.
 
+### 1.5. Target-repository admission
+
+After Debug proves the root cause, compare the proved causal target repository with the invocation repository using trusted Git/GitHub evidence, then non-mutatingly verify that the active checkout is the exact writable owning checkout. Missing, ambiguous, foreign, read-only, unwritable, absent, or wrong checkout blocks before every provider, artifact, or repository effect. A supplied `--project` or `--issue` cannot bypass this guard. Preserve the matching writable path and offer only `retarget-reinvoke-in-exact-writable-owning-repository` or `diagnosis-only`; never clone, switch, mutate, or invent a workaround.
+
 ### 2. Resolve the project, then Ideate and Harden
 
 After Debug returns root-cause proof, resolve the exact supplied project or create exactly one

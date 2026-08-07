@@ -65,6 +65,15 @@ require(r"Present gate 2's exact relevant direct-issue links", "fix issue link-o
 require(r"material direct-issue or dependency change invalidates only `executionPlanApprovalRecord`", "plan invalidation")
 require(r"normal \[`woostack-execute`\]", "normal execute handoff")
 require(r"before dispatch, after every worker handback, before every redispatch", "authority recheck cadence")
+require(r"Debug.*Target-repository admission.*Resolve the project", "target-repository guard ordering")
+require(r"compare the proved causal target repository with the invocation repository using trusted Git/GitHub evidence", "trusted target and invocation repositories")
+require(r"non-mutatingly verify that the active checkout is the exact writable owning checkout", "exact writable owning checkout")
+require(r"Missing, ambiguous, foreign, read-only, unwritable, absent, or wrong checkout blocks before every provider, artifact, or repository effect", "fail-closed target boundary")
+require(r"supplied `--project` or `--issue` cannot bypass", "supplied artifact non-bypass")
+require(r"Preserve the matching writable path", "matching writable path preservation")
+require(r"offer only `retarget-reinvoke-in-exact-writable-owning-repository` or `diagnosis-only`", "exact safe outcomes")
+require(r"never clone, switch, mutate, or invent a workaround", "no target workaround")
+
 
 for obsolete, name in (
     ("fixApprovalRecord", "fix-only approval record"),
@@ -121,6 +130,47 @@ for expected in (
 ):
     if expected not in ids:
         failures.append(f"missing eval {expected}")
+target_case = next((case for case in evals["cases"] if case["id"] == "target-repository-boundary-precedes-provider-admission"), None)
+if target_case is None:
+    failures.append("missing target repository boundary eval")
+else:
+    if "fixtures" in target_case:
+        failures.append("target repository boundary eval must be no-fixture")
+    if any(assertion.get("critical") is not True for assertion in target_case["assertions"]):
+        failures.append("target repository boundary assertions must be critical")
+    def require_target_assertion(pointer, expected, name):
+        matches = [
+            assertion for assertion in target_case["assertions"]
+            if assertion.get("pointer") == pointer and assertion.get("expected") == expected
+        ]
+        if len(matches) != 1 or matches[0].get("critical") is not True:
+            failures.append(name)
+    for pointer, expected, name in (
+        ("/foreignTarget/status", "blocked", "foreign target decision"),
+        ("/foreignTarget/reason", "target-repository-mismatch", "foreign target reason"),
+        ("/foreignTarget/safeOutcomes", ["retarget-reinvoke-in-exact-writable-owning-repository", "diagnosis-only"], "foreign target outcomes"),
+        ("/foreignTarget/providerCalls", 0, "foreign target provider effects"),
+        ("/foreignTarget/projectCreated", False, "foreign target project effects"),
+        ("/foreignTarget/sourceLinkWritten", False, "foreign target source effects"),
+        ("/foreignTarget/repositoryMutationCount", 0, "foreign target repository effects"),
+        ("/foreignTarget/suppliedArtifactBypass", False, "foreign target artifact bypass"),
+        ("/matchingUnwritable/status", "blocked", "unwritable target decision"),
+        ("/matchingUnwritable/reason", "writable-target-checkout-required", "unwritable target reason"),
+        ("/matchingUnwritable/safeOutcomes", ["retarget-reinvoke-in-exact-writable-owning-repository", "diagnosis-only"], "unwritable target outcomes"),
+        ("/matchingUnwritable/providerCalls", 0, "unwritable target provider effects"),
+        ("/matchingUnwritable/projectCreated", False, "unwritable target project effects"),
+        ("/matchingUnwritable/sourceLinkWritten", False, "unwritable target source effects"),
+        ("/matchingUnwritable/repositoryMutationCount", 0, "unwritable target repository effects"),
+        ("/matchingUnwritable/suppliedArtifactBypass", False, "unwritable target artifact bypass"),
+        ("/matchingWritable/status", "continue", "writable target decision"),
+        ("/matchingWritable/nextPhase", "canonical-project-admission", "writable target next phase"),
+        ("/matchingWritable/classificationEffects/providerCalls", 0, "writable classification provider effects"),
+        ("/matchingWritable/classificationEffects/projectCreated", False, "writable classification project effects"),
+        ("/matchingWritable/classificationEffects/sourceLinkWritten", False, "writable classification source effects"),
+        ("/matchingWritable/classificationEffects/repositoryMutationCount", 0, "writable classification repository effects"),
+    ):
+        require_target_assertion(pointer, expected, name)
+
 if not any(case["id"] == "production-monitoring-defect-routes-to-fix" for case in triggers["cases"]):
     failures.append("missing production trigger")
 
