@@ -1,18 +1,28 @@
 # Host references
 
-One file per host, loaded **only when a skill runs under that host**. Consuming skills keep
-their generic invariants (law) inline — never-silent degradation, gates, the capability
-questions to answer — and reach the per-host mechanics here through one canonical directive:
+Per-host mechanics are available only for this explicit coding-host allowlist:
 
-**Host mechanics:** before any host-dependent step (subagent dispatch, scaffold, draft), load `skills/using-woostack/references/hosts/<current-host>.md`; no matching file -> treat the host as having no per-call routing and say so (degraded).
+- [`claude-code`](claude-code.md)
+- [`codex`](codex.md)
+- [`cursor`](cursor.md)
+- [`antigravity`](antigravity.md)
+- [`opencode`](opencode.md)
+- [`omp`](omp.md)
 
-Host files hold *mechanics* (primitive names, knob forms, agent selectors, generator
-invocations); consuming skills hold *law*. A mechanics sentence must live in exactly one
-host file — never duplicated back into a skill.
+File presence does not add a host to the supported surface. Before any host-dependent step
+(subagent dispatch, scaffold, draft), require `<current-host>` to exactly match one allowlisted
+slug above and only then load that slug's linked file. A host outside the allowlist has no
+per-call routing; do not construct or read `hosts/<current-host>.md`, and say that routing is
+degraded.
+
+Consuming skills keep their generic invariants (law) inline — never-silent degradation, gates,
+and the capability questions to answer. Host files hold *mechanics* (primitive names, knob forms,
+agent selectors, generator invocations); consuming skills hold *law*. A mechanics sentence must
+live in exactly one host file — never duplicated back into a skill.
 
 ## Section contract
 
-Every host file carries these six sections, in order:
+Every allowlisted host file carries these six sections, in order:
 
 1. **Detection** — capability signals that identify the host.
 2. **Subagent spawn** — primitive name; per-call `model`/`effort` knob (yes/no + form);

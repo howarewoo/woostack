@@ -181,12 +181,17 @@ separately through the independent reads required by this contract.
 
 
 An approval is valid only when the responsible user explicitly approves the exact content
-presented in the active conversation. The controller then records that approval as a Linear
-receipt/event containing the exact record fields above and independently reads the receipt and
-the referenced project, issues, and relations back. Conversation approval without a Linear
-receipt, a Linear record without the matching active-conversation approval, status, labels,
-assignment, content alone, read-back alone, workflow inference, or an agent-authored event never
-grants a gate. A provider-native comment is not required and is not, by itself, authority.
+presented in the active conversation. For an external engineer relay, the responsible user's
+response must travel verbatim, without summarization, rewriting, or replay, through the same
+persistent OMP process that presented the Ask. Hermes may transmit that response but may not author
+or transform it. A restarted or different process, copied response, summarized response, or stale
+transcript fails closed and requires a fresh Ask and active-conversation approval. The controller
+then records that approval as a Linear receipt/event containing the exact record fields above and
+independently reads the receipt and the referenced project, issues, and relations back. Conversation
+approval without a Linear receipt, a Linear record without the matching active-conversation
+approval, status, labels, assignment, content alone, read-back alone, workflow inference, or an
+agent-authored event never grants a gate. A provider-native comment is not required and is not,
+by itself, authority.
 
 `approvedBy` is the responsible user's stable principal identity, `approvedAt` is the recorded
 approval event timestamp, and `approvalEventRef` is the stable Linear receipt/event reference.

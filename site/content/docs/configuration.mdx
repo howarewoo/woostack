@@ -139,11 +139,11 @@ The canonical
 [Linear artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md)
 owns identity, untrusted-data handling, hierarchy, failure boundaries, and synchronization receipts.
 
-In the published Hermes + OMP pair, configuration does not blur roles. Hermes is the decision-maker
-and independent PR reviewer/commenter only; the isolated OMP profile holds implementation
-credentials and codes one assigned issue at a time. Only an explicit `/woostack-review` may
-delegate independent review analysis, and Hermes still decides acceptance. Follow the complete
-[Getting started](/docs/getting-started) setup.
+Hermes is an external engineer, not a supported coding harness or installed woostack runtime. If
+used, Hermes drives one persistent OMP process for in-contract decisions and evidence review;
+woostack remains installed only in OMP or another coding harness. The
+[Hermes guide](/docs/hermes) owns safe argument passing, escalation, verbatim approval relay, and
+fail-closed restart/replay behavior.
 
 ## Review engine
 
@@ -382,8 +382,8 @@ worktrees are cut from.
 ## Where to go next
 
 <Cards>
-  <Card title="Getting started" href="/docs/getting-started" description="Initialize locally with automatic safe Linear defaults, then optionally configure Hermes + OMP." />
-  <Card title="Engineer agents" href="/docs/concepts/engineer-agents" description="Decision, coding, handoff, review, and acceptance boundaries." />
+  <Card title="Getting started" href="/docs/getting-started" description="Initialize locally with automatic safe Linear defaults, then optionally use an external Hermes engineer." />
+  <Card title="Hermes as an external engineer" href="/docs/hermes" description="Drive one persistent OMP process without installing woostack in Hermes." />
   <Card title="woostack-review" href="/docs/skills/woostack-review" description="The review engine that reads every review.* key." />
   <Card title="woostack-init" href="/docs/skills/woostack-init" description="Creates local support and automatically configures safe non-secret Linear defaults when authenticated read access exists." />
   <Card title="woostack-doctor" href="/docs/skills/woostack-doctor" description="Checks policy and optional live artifact connectivity." />

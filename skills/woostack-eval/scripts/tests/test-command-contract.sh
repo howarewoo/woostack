@@ -151,10 +151,13 @@ const semanticRequirements = [
     label: 'canonical host mechanics directive',
     check: (source) => hasAll(source, [
       /HOST MECHANICS/i,
-      /skills\/using-woostack\/references\/hosts\/<current-host>\.md/i,
+      /skills\/using-woostack\/references\/hosts\/README\.md/i,
+      /(?:allowlist|allowlisted)/i,
+      /exact(?:ly)? match/i,
+      /then load only.{0,120}linked host file/i,
       /before (?:any host-dependent step|preparation|dispatch)/i,
     ]),
-    fixture: 'HOST MECHANICS. Load skills/using-woostack/references/hosts/<current-host>.md before any host-dependent step.',
+    fixture: 'HOST MECHANICS. Before any host-dependent step, load skills/using-woostack/references/hosts/README.md. Require the host to exactly match the allowlist, then load only its linked host file.',
   },
   {
     label: 'unsupported-host candidate-only decision',

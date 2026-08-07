@@ -101,23 +101,17 @@ capabilities they need without reading credentials, and independently read mutat
 events back. Tracked policy supplies validated defaults only after a workflow requires or selects
 Linear and cannot authorize unrelated provider writes.
 
-### Decision-makers and coders stay isolated
+### External engineers and coding harnesses
 
-An engineer unit separates judgment from implementation:
+Hermes is an external engineer, not a supported coding harness or installed woostack runtime. If
+used, it drives one persistent OMP process. Woostack remains installed in OMP or another coding
+harness, where project-scoped workers implement and verify bounded tasks.
 
-- The **decision-maker** owns the contract, in-scope decisions, independent code/PR review,
-  acceptance, redispatch, handoff, and escalation. It does not edit source or run implementation.
-- The **isolated coder** receives one approved task and one worktree. It analyzes, implements,
-  verifies, and returns evidence, but does not change scope or accept its own work.
-
-Hermes as decision-maker plus OMP as coder is the first published adapter. Hermes dispatches with
-exactly `omp --profile <engineer> -p --cwd <repo> <prompt>`, then independently inspects the
-result. Only an explicit user invocation of
-[woostack-review](/docs/skills/woostack-review) permits delegation to independent reviewer
-profiles; the decision-maker still owns the verdict and acceptance.
-
-See [Engineer agents](/docs/concepts/engineer-agents) for the provider-neutral boundary and
-[Hermes](/docs/harnesses/hermes) for the concrete setup.
+Hermes may make in-contract decisions, review OMP evidence, escalate contract changes to the
+responsible user, relay exact approval responses verbatim through the same OMP process, and
+redispatch bounded corrections. It may not edit implementation source, run implementation
+commands, or replace direct Git/GitHub evidence. See the [Hermes guide](/docs/hermes) for the
+external boundary and fail-closed approval relay.
 
 ## Where to go next
 

@@ -4,18 +4,65 @@ import path from 'node:path';
 import { before, test } from 'node:test';
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '..', '..');
-const UNIT_SCHEMA =
-  '{schemaVersion:1,engineerName,repository,omp:{profile,program,environment},hermes:{profile,program,environment}}';
 const NEGATION = /\b(?:no|not|never|without|cannot|can't|does not|do not|must not|regardless)\b/i;
-const HERMES_CODER_NEGATION_PREFIX =
-  /\b(?:no|not|never|without|cannot|can't|does not|do not|must not)\b(?:\s+\w+){0,2}\s*$/i;
-const HERMES_CODER_CLAIM =
-  /\bHermes\s+(?:codes?|implements?|edits?|writes?|modifies?|runs\s+(?:implementation|tests?)|commits?|pushes?|opens?\s+(?:an?\s+)?implementation\s+PR)\b|\bHermes\s+(?:is|acts\s+as|serves\s+as)\s+(?:an?\s+|the\s+)?(?:coder|coding\s+(?:agent|profile|worker)|implementation\s+(?:agent|profile|worker))\b|\b(?:ask|use|dispatch)\s+Hermes\s+to\s+(?:code|implement|edit|test|commit|push)\b/gi;
+const WOO_167_RESERVED_FILES = Object.freeze([
+  'skills/using-woostack/references/engineer-agents.md',
+  'skills/using-woostack/references/hosts/hermes.md',
+  'skills/woostack-init/scripts/gen-omp-agents.sh',
+  'skills/woostack-init/scripts/tests/test-gen-omp-agents.sh',
+  'site/content/docs/concepts/engineer-agents.mdx',
+  'site/content/docs/harnesses/hermes.mdx',
+]);
+const WOO_166_DORMANT_REVIEW_LOCATIONS = Object.freeze(new Map([
+  ['skills/woostack-review/prompts/_worker-header.md', ['engineer-unit']],
+  ['skills/woostack-review/prompts/validator-prosecutor.md', ['engineer-unit']],
+  ['skills/woostack-review/prompts/validator.md', ['engineer-unit']],
+  ['skills/woostack-review/references/ci.md', ['Hermes']],
+  ['skills/woostack-review/scripts/resolve-outdir.sh', ['WOO_REVIEW_ENGINEER_UNIT']],
+  ['skills/woostack-review/scripts/run-bounded-swarm.sh', [
+    'WOO_REVIEW_ENGINEER_UNIT',
+    'WOO_REVIEW_IDENTITY_MANIFEST',
+    'reviewer-identities.json',
+  ]],
+  ['skills/woostack-review/scripts/verify-receipts.sh', [
+    'WOO_REVIEW_ENGINEER_UNIT',
+    'WOO_REVIEW_IDENTITY_MANIFEST',
+    'reviewer-identities.json',
+    'implementingCoder',
+    'decisionMaker',
+  ]],
+  ['skills/woostack-review/scripts/tests/test-bounded-swarm.sh', [
+    'WOO_REVIEW_ENGINEER_UNIT',
+    'reviewer-identities.json',
+    'implementingCoder',
+    'decisionMaker',
+  ]],
+  ['skills/woostack-review/scripts/tests/test-verify-receipts-identity.sh', [
+    'WOO_REVIEW_ENGINEER_UNIT',
+    'reviewer-identities.json',
+    'implementingCoder',
+    'decisionMaker',
+  ]],
+]));
+const REVIEW_MODE_MARKERS = Object.freeze([
+  'WOO_REVIEW_ENGINEER_UNIT',
+  'WOO_REVIEW_IDENTITY_MANIFEST',
+  'reviewer-identities.json',
+  'implementingCoder',
+  'decisionMaker',
+]);
+
 const PATHS = [
   'README.md',
   'AGENTS.md',
   'skills/using-woostack/SKILL.md',
-  'skills/using-woostack/references/hosts/hermes.md',
+  'skills/using-woostack/references/hosts/README.md',
+  'skills/using-woostack/references/model-tiers.md',
+  ...WOO_167_RESERVED_FILES,
+  'skills/woostack-review/SKILL.md',
+  'skills/woostack-review/prompts/_orchestrator-header.md',
+  'skills/woostack-doctor/scripts/checks/omp-agents.sh',
+  'site/lib/source.ts',
   'skills/woostack-init/references/artifact-backends.md',
   'skills/woostack-build/SKILL.md',
   'skills/woostack-build/references/linear-context.md',
@@ -24,17 +71,20 @@ const PATHS = [
   'skills/woostack-fix/SKILL.md',
   'skills/woostack-change/SKILL.md',
   'site/content/docs/index.mdx',
+  'site/content/docs/meta.json',
+  'site/content/docs/concepts/meta.json',
+  'site/content/docs/harnesses/meta.json',
   'site/content/docs/getting-started.mdx',
+  'site/content/docs/hermes.mdx',
   'site/content/docs/configuration.mdx',
   'site/content/docs/concepts.mdx',
   'site/content/docs/concepts/building-rules.mdx',
   'site/content/docs/concepts/workflows.mdx',
   'site/content/docs/concepts/index.mdx',
-  'site/content/docs/concepts/engineer-agents.mdx',
-  'site/content/docs/harnesses/hermes.mdx',
   'site/content/docs/harnesses/omp.mdx',
   'skills/using-woostack/references/hosts/omp.md',
   'site/content/docs/harnesses/index.mdx',
+  ...WOO_166_DORMANT_REVIEW_LOCATIONS.keys(),
 ];
 
 let files;
@@ -99,18 +149,6 @@ function semanticClauses(value) {
     .filter(Boolean);
 }
 
-function hasPositiveHermesCoderClaim(clause) {
-  HERMES_CODER_CLAIM.lastIndex = 0;
-  for (const match of clause.matchAll(HERMES_CODER_CLAIM)) {
-    const prefix = clause.slice(0, match.index);
-    const localPrefix = prefix.replace(
-      /^.*(?:\b(?:and|but|while|whereas|although)\b|[;.!?])/is,
-      ''
-    );
-    if (!HERMES_CODER_NEGATION_PREFIX.test(localPrefix)) return true;
-  }
-  return false;
-}
 
 function assertInOrder(relativePath, steps) {
   const content = normalize(read(relativePath));
@@ -123,368 +161,351 @@ function assertInOrder(relativePath, steps) {
   }
 }
 
-function fencedBlocks(value) {
-  return [...value.matchAll(/```[^\n]*\n([\s\S]*?)```/g)].map((match) => match[1]);
-}
 
-test('Linear access distinguishes the proved fix issue exception from build/plan selection', () => {
+test('Linear access follows the canonical project and direct-issue contract', () => {
   for (const relativePath of [
-    'AGENTS.md',
     'README.md',
-    'skills/using-woostack/SKILL.md',
     'skills/woostack-init/references/artifact-backends.md',
     'skills/woostack-build/SKILL.md',
-    'skills/woostack-plan/SKILL.md',
+    'skills/woostack-fix/SKILL.md',
     'site/content/docs/getting-started.mdx',
-    'site/content/docs/concepts.mdx',
-    'site/content/docs/concepts/building-rules.mdx',
-  ]) {
-    const claim = semanticClauses(read(relativePath)).find(
-      (clause) =>
-        /explicit(?:ly)? (?:asks?|requests?|request).*persist|explicit persistence request/i.test(clause) &&
-        /select|persist|provider|Linear|artifact mode/i.test(clause) &&
-        !NEGATION.test(clause)
-    );
-    assert.ok(claim, `${relativePath}: build/plan explicit-selection claim missing`);
-  }
-  const fix = read('skills/woostack-fix/SKILL.md').replace(/\s+/g, ' ');
-  assert.match(fix, /Before root-cause proof.*no provider read or write/i);
-  assert.match(fix, /without `--issue`.*create exactly one native work-item issue/i);
-  assert.match(fix, /no `--project` path/i);
-});
-test('new fix provider boundary and driver selection are explicit', () => {
-  for (const relativePath of [
-    'README.md',
-    'site/content/docs/index.mdx',
-    'skills/using-woostack/references/hosts/omp.md',
-    'site/content/docs/harnesses/index.mdx',
   ]) {
     const text = read(relativePath).replace(/\s+/g, ' ');
-    assert.match(text, /Linear remains optional for non-fix workflows and for fix diagnosis before root-cause proof/i,
-      `${relativePath}: must qualify provider optionality`);
-    assert.match(text, /proved new fix requires the configured official MCP issue path before implementation/i,
-      `${relativePath}: must require official issue path after proof`);
+    assert.match(text, /one (?:exact )?(?:canonical )?project/i,
+      `${relativePath}: canonical project claim missing`);
+    assert.match(text, /one direct (?:project )?issue per|one direct issue in that project|project issue per increment|increment is one direct issue|direct-issue (?:set|chain)|direct issues/i,
+      `${relativePath}: direct issue per increment claim missing`);
   }
   const fix = read('skills/woostack-fix/SKILL.md').replace(/\s+/g, ' ');
-  assert.match(fix, /`--inline` and `--subagent` select only the read-only debug driver and are mutually exclusive/i);
+  assert.match(fix, /Before root-cause proof, Fix makes no provider (?:call|read or write)/i);
+  assert.match(fix, /After Debug returns root-cause proof.*resolve the exact supplied project or create exactly one canonical project/i);
+  assert.match(fix, /`--issue` is optional source context, not the fix contract/i);
+});
+
+test('new fix provider boundary and driver selection are explicit', () => {
+  const contract = read('skills/woostack-init/references/artifact-backends.md').replace(/\s+/g, ' ');
+  assert.match(contract, /Build project resolution\/creation happens before ideation.*build has no artifact-free fallback/i);
+  assert.match(contract, /Before root-cause proof, a fix makes no provider read or write/i);
+  assert.match(contract, /Without exact selection or explicit persistence, standalone planning and all other artifact-optional commands make no provider call/i);
+
+  const fix = read('skills/woostack-fix/SKILL.md').replace(/\s+/g, ' ');
+  assert.match(fix, /`--inline` and `--subagent` select only the read-only Debug driver and are mutually exclusive/i);
   assert.match(fix, /Use a subagent when available by default/i);
   assert.match(fix, /explicitly requested subagent is unavailable.*disclose the degradation.*run inline only when safe/i);
-  assert.doesNotMatch(fix, /No driver flag uses inline read-only diagnosis/i);
-  assert.doesNotMatch(fix, /blocks diagnosis when it is unavailable/i);
 });
-test('authored public surfaces keep optional selection boundary and narrow new-fix exception', () => {
+
+test('authored public surfaces keep the canonical project and direct-issue boundary', () => {
   const surfaces = new Map([
-    [
-      'README.md',
-      {
-        selection: /Build\/standalone-plan projects require exact selection or explicit persistence/i,
-        fix: /proved new fix prompt binds or creates one issue after root-cause proof/i,
-      },
-    ],
-    [
-      'site/content/docs/getting-started.mdx',
-      {
-        selection: /Build and plan persistence require explicit selection/i,
-        fix: /proved fix prompt binds or creates one issue after proof/i,
-      },
-    ],
-    [
-      'site/content/docs/index.mdx',
-      {
-        selection: /caller-selected build\/standalone-plan persistence/i,
-        fix: /proved new fix prompt binds or creates one compatible issue after root-cause proof/i,
-      },
-    ],
-    [
-      'site/content/docs/configuration.mdx',
-      {
-        selection: /exact build\/plan artifacts or explicitly requested build\/plan persistence/i,
-        fix: /proved `\/woostack-fix` that creates one issue without an exact issue/i,
-      },
-    ],
+    ['README.md', [
+      /Build resolves one exact project/i,
+      /new Fix uses one project plus a strict direct-issue chain/i,
+    ]],
+    ['site/content/docs/getting-started.mdx', [
+      /Build uses one project for the high-level specification/i,
+      /Fix uses one project for the complete specification/i,
+    ]],
+    ['site/content/docs/index.mdx', [
+      /every build uses one project .* plus one direct issue per independently shippable increment/i,
+      /every Fix uses one project .* strict direct-issue chain/i,
+    ]],
   ]);
 
-  for (const [relativePath, { selection, fix }] of surfaces) {
+  for (const [relativePath, patterns] of surfaces) {
     const text = read(relativePath).replace(/\s+/g, ' ');
-    assert.match(text, selection, `${relativePath}: build/plan selection boundary is missing`);
-    assert.match(text, fix, `${relativePath}: proved new-fix issue exception is missing`);
-    assert.doesNotMatch(
-      text,
-      /Linear records plans only for an exact caller-selected artifact or explicit persistence request|Without an exact artifact or explicit persistence request, commands make no Linear call/i,
-      `${relativePath}: stale universal no-call claim remains`
-    );
-    assert.doesNotMatch(
-      text,
-      /(?:linear object|defaults).{0,80}(?:only after artifact selection|only after the caller supplies an exact resource)/i,
-      `${relativePath}: stale default-selection-only claim remains`
-    );
+    for (const pattern of patterns) {
+      assert.match(text, pattern, `${relativePath}: canonical project/direct-issue claim is missing`);
+    }
   }
 });
 
-test('build and standalone-plan persistence keeps one hierarchy while new fixes keep one issue', () => {
-  for (const relativePath of [
-    'README.md',
-    'AGENTS.md',
-    'skills/using-woostack/SKILL.md',
-    'skills/woostack-init/references/artifact-backends.md',
-    'skills/woostack-build/references/linear-procedure.md',
-    'skills/woostack-plan/SKILL.md',
-    'site/content/docs/getting-started.mdx',
-    'site/content/docs/concepts/building-rules.mdx',
-  ]) {
+test('build and standalone-plan persistence keeps direct issues without a parent plan', () => {
+  const surfaces = new Map([
+    ['skills/woostack-init/references/artifact-backends.md', [
+      /independently shippable increment.*one direct issue/i,
+      /Do not create a parent plan issue/i,
+    ]],
+    ['skills/woostack-build/references/linear-procedure.md', [
+      /one direct project issue per current increment/i,
+      /no parent\/container relation/i,
+    ]],
+    ['skills/woostack-plan/SKILL.md', [
+      /one direct project issue for each execution increment/i,
+      /Never create a parent, container, checklist, layer, or plan issue/i,
+    ]],
+    ['site/content/docs/getting-started.mdx', [
+      /Build uses one project for the high-level specification, one direct issue per increment/i,
+    ]],
+  ]);
+  for (const [relativePath, patterns] of surfaces) {
     const text = read(relativePath).replace(/\s+/g, ' ');
-    assert.match(text, /one(?: exact Linear)? project/i, `${relativePath}: must state one project`);
-    assert.match(text, /one parent plan issue/i, `${relativePath}: must state one parent plan issue`);
-    assert.match(text, /one (?:native )?child issue.{0,80}(?:per|for every) increment/i,
-      `${relativePath}: must state one child issue per increment`);
+    for (const pattern of patterns) {
+      assert.match(text, pattern, `${relativePath}: direct issue hierarchy claim is missing`);
+    }
   }
   const fix = read('skills/woostack-fix/SKILL.md').replace(/\s+/g, ' ');
-  assert.match(fix, /bind exactly one issue/i);
+  assert.match(fix, /one canonical project/i);
   assert.doesNotMatch(fix, /fix plan is persisted as one project/i);
   assert.doesNotMatch(fix, /one project.*parent plan issue.*child increment/i);
 });
 
 test('selected Linear capability is proved without reading repository credentials', () => {
+  const contract = read('skills/woostack-init/references/artifact-backends.md');
+  assert.match(contract, /Authentication remains in the host's secret store/i,
+    'contract must identify host-owned credentials');
+  assert.match(contract, /Init discovery may validate only non-secret repository\/workspace\/team\/native-name defaults/i,
+    'init discovery must stay non-secret');
   for (const relativePath of [
-    'skills/woostack-init/references/artifact-backends.md',
     'skills/woostack-build/SKILL.md',
     'skills/woostack-fix/SKILL.md',
-    'site/content/docs/configuration.mdx',
-    'site/content/docs/getting-started.mdx',
   ]) {
-    const content = read(relativePath);
-    assert.match(content, /API key|OAuth credential|credentials/i,
-      `${relativePath}: must identify host-owned credentials`);
-    assert.match(content, /(?:never|without)\s+(?:inspect(?:ing)?|read(?:ing)?|expos(?:e|ing)|print(?:ing)?|copy(?:ing)?|place|store)|without reading the secret/i,
-      `${relativePath}: must not read or expose credentials`);
+    assert.match(read(relativePath), /shared[\s\S]{0,80}Linear artifact contract/i,
+      `${relativePath}: must load the shared artifact contract`);
   }
 });
 
 test('selected persistence fails safely and every mutation is read back', () => {
   const contract = read('skills/woostack-init/references/artifact-backends.md').replace(/\s+/g, ' ');
-  assert.match(contract, /Missing required capability blocks the selected operation/i);
-  assert.match(contract, /fix requires complete fix-plan content, relation, and approval-event read-back before dispatch/i);
-  assert.match(contract, /perform a new independent complete read/i);
+  assert.match(contract, /Missing required capability blocks the selected or required operation/i);
+  assert.match(contract, /Fix requires complete fix-plan, relation, and approval-event read-back before dispatch/i);
+  assert.match(contract, /After every mutation, perform a new independent complete read/i);
 
   const procedure = read('skills/woostack-build/references/linear-procedure.md').replace(/\s+/g, ' ');
-  assert.match(procedure, /verify every issue, parent-child link, and dependency relation through independent complete read-back/i);
+  assert.match(procedure, /one direct project issue per current increment/i);
+  assert.match(procedure, /independently read native identity, content, project membership, parent absence/i);
+  assert.match(procedure, /independently read the complete relation set back/i);
 });
 
-test('abandonment closes only project-backed workflows and preserves new fix issues', () => {
-  for (const relativePath of [
-    'README.md',
-    'AGENTS.md',
-    'skills/using-woostack/SKILL.md',
-    'skills/woostack-init/references/artifact-backends.md',
-    'skills/woostack-build/SKILL.md',
-    'skills/woostack-build/references/linear-context.md',
-    'site/content/docs/configuration.mdx',
-    'site/content/docs/concepts.mdx',
-    'site/content/docs/concepts/building-rules.mdx',
-    'site/content/docs/concepts/workflows.mdx',
-  ]) {
-    const content = read(relativePath).replace(/\s+/g, ' ');
-    assert.match(content, /explicit(?:ly)?(?:\s+\S+){0,3}\s+abandon/i,
-      `${relativePath}: must cover explicit abandonment`);
-    assert.match(content,
-      /(?:abandon.{0,500}(?:(?:existing|persisted|exact|project exists|project-backed).{0,200}project.{0,250}(?:cancel|canceled|close)|project-backed.{0,250}(?:cancel|canceled|close))|(?:cancel|canceled|close).{0,250}(?:existing|persisted|exact|project-backed).{0,200}project.{0,250}abandon)/i,
-      `${relativePath}: project-backed abandonment must close an existing project`);
-    assert.match(content,
-      /(?:abandon.{0,2000}(?:independent(?:ly)?.{0,50}read(?:-back| back)|read-back|status\/read-back|reads?.{0,60}(?:closure|transition|status).{0,30}back)|(?:independent(?:ly)?.{0,50}read(?:-back| back)|read-back|status\/read-back|reads?.{0,60}(?:closure|transition|status).{0,30}back).{0,1200}abandon)/i);
-    assert.match(content,
-      /(?:handoff|hand off).{0,140}(?:replan|replanning).{0,140}blocker.{0,220}(?:not abandonment|do not close|leave.{0,60}open|unchanged|do not)/i,
-      `${relativePath}: non-abandonment outcomes must leave the project open`);
-  }
-  const fix = read('skills/woostack-fix/SKILL.md').replace(/\s+/g, ' ');
-  assert.match(fix, /preserve the exact bound or created issue.{0,160}do not create or close a project for a fix/i);
-  assert.match(fix, /verified abandonment note|append only.*verified.*note/i);
-  assert.doesNotMatch(fix, /projectStatuses\.canceled/i);
+test('abandonment closes only project-backed workflows and preserves source issues', () => {
   const contract = read('skills/woostack-init/references/artifact-backends.md').replace(/\s+/g, ' ');
-  assert.match(contract, /projectStatuses\.canceled|configured canceled/i);
-  assert.match(contract, /(?:do not|never)[^.]{0,160}create a project merely to cancel it/i);
-  assert.match(contract, /update only that project's native status/i);
-  assert.match(contract, /independently re-read the exact project/i);
-  const procedure = read('skills/woostack-build/references/linear-procedure.md').replace(/\s+/g, ' ');
-  assert.match(procedure, /neutral canonical artifact contract/i);
-  assert.doesNotMatch(procedure, /update only that project's native status/i);
-  assert.doesNotMatch(contract, /linear-procedure\.md/i);
+  assert.match(contract, /Explicit abandonment is a terminal workflow action/i);
+  assert.match(contract, /one exact persisted project/i);
+  assert.match(contract, /existing project moves to the configured canceled status/i);
+  assert.match(contract, /verify the canonical repository association and resolved workspace\/team/i);
+  assert.match(contract, /update only that project's native status to the resolved canceled status/i);
+  assert.match(contract, /independently re-read the exact project and verify its identity, canceled status/i);
+  assert.match(contract, /never resumes repository work/i);
+  assert.match(contract, /Handoff, replan, and blocker handling leave project status unchanged/i);
+  assert.match(contract, /Never create a project merely to cancel it/i);
+
+  const procedure = read('skills/woostack-build/references/linear-procedure.md');
+  assert.match(procedure, /Explicit abandonment follows the shared[\s\S]{0,100}project-backed workflow closure/i);
+  assert.match(procedure, /Handoff, replan, pauses, and blockers leave project status unchanged/i);
+
+  const fix = read('skills/woostack-fix/SKILL.md').replace(/\s+/g, ' ');
+  assert.match(fix, /If an exact source issue was supplied.*preserve its title, description, status, assignment, labels, relations, comments, and lifecycle/i);
+  assert.doesNotMatch(fix, /projectStatuses\.canceled/i);
 });
 
 test('explicit creation never fuzzy-matches an exact existing resource', () => {
   const contract = read('skills/woostack-init/references/artifact-backends.md').replace(/\s+/g, ' ');
   assert.match(contract, /exact caller-supplied resource always takes precedence over creation/i);
-  assert.match(contract, /Never infer (?:an existing )?artifact from a title/i);
+  assert.match(contract, /Never infer an artifact from\s+a title/i);
 
   const procedure = read('skills/woostack-build/references/linear-procedure.md').replace(/\s+/g, ' ');
-  assert.match(procedure, /Never discover or reuse a project by title or recent activity/i);
-  assert.match(procedure, /stable project mutation UUID/i);
+  assert.match(procedure, /stable client-generated (?:issue and relation )?mutation UUID/i);
 });
+
 
 test('woostack-change has no Linear command or synchronization surface', () => {
   const change = read('skills/woostack-change/SKILL.md');
-  assert.match(change, /always\s+artifact-free and never reads or writes Linear/i);
+  assert.match(change, /makes no Linear call and invokes no other woostack workflow/i);
   assert.doesNotMatch(change, /--issue|--project|artifact synchronization|Linear-Issue:/i);
 
-  assertContains('skills/using-woostack/SKILL.md', /`\/woostack-change <goal>`[^\n]*artifact-free/i,
-    'routing must keep change artifact-free');
+  assertContains('skills/using-woostack/SKILL.md', /`\/woostack-change <goal>`[^\n]*one isolated worktree/i,
+    'routing must keep Change repository-local');
   assertContains('site/content/docs/concepts/workflows.mdx', /Change[\s\S]{0,500}never reads or writes Linear/i,
-    'workflow docs must keep change artifact-free');
+    'workflow docs must keep Change artifact-free');
 });
+
+
 
 test('only exact native fix approval authorizes repository work', () => {
-  for (const relativePath of [
-    'README.md',
-    'AGENTS.md',
-    'skills/woostack-build/SKILL.md',
-    'site/content/docs/concepts.mdx',
-  ]) {
-    assertContains(relativePath, /(?:never\s+(?:grant|authorize)|do not assign permission|never\s+authorizes)/i,
+  for (const relativePath of ['README.md', 'AGENTS.md']) {
+    assertContains(relativePath,
+      /Linear never\s+supplies source-control or delivery truth|artifacts?[\s\S]{0,80}never (?:grant|authorize)|do not assign permission/i,
       'must preserve the ordinary artifact authority boundary');
   }
-  for (const relativePath of [
-    'skills/using-woostack/SKILL.md',
-    'skills/woostack-init/references/artifact-backends.md',
-    'skills/woostack-fix/SKILL.md',
-  ]) {
-    assertContains(relativePath,
-      /responsible[-\s]user(?:'s)?[\s\S]{0,240}(?:approvalEventRef|approval event|explicit approval comment|native approval event)/i,
-      'must require the responsible user native approval event');
-    assertContains(relativePath,
-      /matching fix execution gate|matching fix issue revision|exact issue revision authorizes execution/i,
-      'must bind approval authority to one exact fix revision');
-  }
+  assertContains('skills/woostack-build/SKILL.md',
+    /(?:artifacts?|records?)[\s\S]{0,120}(?:never|do not)[\s\S]{0,80}(?:grant|authorize|assign)[\s\S]{0,40}(?:permission|authority)/i,
+    'Build must preserve the artifact permission boundary');
+  assertContains('site/content/docs/concepts.mdx',
+    /Linear is required[\s\S]{0,100}but never\s+replaces direct repository delivery evidence/i,
+    'concepts must preserve repository delivery authority');
+  assertContains('skills/using-woostack/SKILL.md',
+    /responsible user[\s\S]{0,300}approval\s+events/i,
+    'using-woostack must require responsible-user approval events');
+  assertContains('skills/using-woostack/SKILL.md',
+    /(?:matching workflow gate|exact (?:content|project|issue) (?:revision|record)|project-spec(?:ification)? revision|execution-plan revision)/i,
+    'using-woostack must bind approval authority to one exact content revision');
+
+  assertContains('skills/woostack-init/references/artifact-backends.md',
+    /responsible[-\s]user(?:'s)?[\s\S]{0,800}(?:approvalEventRef|approval\s+event|explicit approval comment|native approval\s+event)/i,
+    'artifact contract must require the responsible user native approval event');
+  assertContains('skills/woostack-init/references/artifact-backends.md',
+    /(?:matching workflow gate|exact (?:content|project|issue) (?:revision|record)|project-spec(?:ification)? revision|execution-plan revision)/i,
+    'artifact contract must bind approval authority to one exact content revision');
+
+  assertContains('skills/woostack-fix/SKILL.md',
+    /responsible user explicitly approves that Ask[\s\S]{0,180}projectSpecApprovalRecord/i,
+    'Fix must bind project-spec approval to the responsible user');
+  assertContains('skills/woostack-fix/SKILL.md',
+    /responsible user explicitly approves that Ask[\s\S]{0,180}executionPlanApprovalRecord/i,
+    'Fix must bind execution-plan approval to the responsible user');
+  assertContains('skills/woostack-fix/SKILL.md',
+    /exact canonical Linear project link[\s\S]{0,220}exact fingerprint/i,
+    'Fix must bind project approval to the exact canonical project fingerprint');
+  assertContains('skills/woostack-fix/SKILL.md',
+    /exact relevant direct-issue links[\s\S]{0,220}complete independently read issue and dependency sets/i,
+    'Fix must bind execution approval to the exact independently read plan set');
 });
 
-test('authored setup order keeps initialization, role isolation, binding, and dispatch sequenced', () => {
+test('authored setup order keeps initialization and the external-engineer guide sequenced', () => {
   assertInOrder('README.md', [
     ['initialization', /\b2\.\s+Initialization\b/i],
     ['repository policy', /\b4\.\s+Repository Policy\b/i],
-    ['post-selection Linear setup', /\b5\.\s+Linear Artifact Context\b/i],
+    ['external engineer context', /\b5\.\s+Linear Product Context and External Engineers\b/i],
   ]);
+  const sectionFiveTocLine = read('README.md')
+    .split('\n')
+    .find((line) => line.includes('](#5-linear-product-context-and-external-engineers)'));
+  assert.match(sectionFiveTocLine ?? '', /^ {2}- /,
+    'README.md: section 5 must remain nested under Getting Started');
   assertInOrder('site/content/docs/getting-started.mdx', [
     ['initialize local support', /\b2\.\s+Initialize local support\b/i],
     ['choose workflow', /\b3\.\s+Choose the workflow\b/i],
     ['automatic Linear defaults', /\b4\.\s+Automatic Linear default setup\b/i],
-    ['configure engineer pair', /\b5\.\s+Optional:\s+configure a Hermes \+ OMP engineer pair\b/i],
-  ]);
-  assertInOrder('skills/using-woostack/references/hosts/hermes.md', [
-    ['provision profiles', /\b1\.\s+provision distinct\b/i],
-    ['configure selected MCP', /\b2\.\s+for caller-selected build\/standalone artifacts or a proved fix's required issue/i],
-    ['split credentials', /\b3\.\s+split repository\/GitHub credentials\b/i],
-    ['install launchers', /\b4\.\s+install and checksum-check\b/i],
-    ['preflight fresh sessions', /\b5\.\s+start fresh sessions\b/i],
-    ['bind after worktree', /\b6\.\s+only after the bounded task and canonical worktree exist\b/i],
+    ['external engineer', /5\. Use an external engineer \(optional\)/i],
   ]);
 });
 
-test('authored engineer pages keep one canonical bound-unit manifest and link to it', () => {
-  const canonicalPath = 'skills/using-woostack/references/hosts/hermes.md';
-  const owners = [];
-  let occurrenceCount = 0;
-
-  for (const relativePath of [canonicalPath, ...authoredSitePaths]) {
-    const count = read(relativePath).split(UNIT_SCHEMA).length - 1;
-    occurrenceCount += count;
-    if (count > 0) owners.push(relativePath);
-  }
-
-  assert.equal(occurrenceCount, 1, 'installed contract and authored MDX must contain UNIT_SCHEMA once');
-  assert.deepEqual(owners, [canonicalPath], 'Hermes host reference must own the only UNIT_SCHEMA');
-
-  const canonical = read(canonicalPath);
-  assert.match(canonical, /^### Bound-unit manifest and binding$/m,
-    `${canonicalPath}: must own the canonical heading and generated anchor`);
-  assert.match(canonical, /(?:\bunit\.json\b.{0,50}\b0600\b|\b0600\b.{0,50}\bunit\.json\b)/is,
-    `${canonicalPath}: must stage unit.json with mode 0600`);
-  assert.match(canonical, /\bbind-engineer-unit\b/i,
-    `${canonicalPath}: must use the reviewed static binder`);
-  assert.match(canonical, /(?:\bunit-authority\.json\b.{0,60}\b0400\b|\b0400\b.{0,60}\bunit-authority\.json\b)/is,
-    `${canonicalPath}: must verify mode-0400 adjacent authority`);
-  assertInOrder(canonicalPath, [
-    ['canonical worktree', /\bcanonical\b.{0,50}\bworktree\b/is],
-    ['unit manifest', /\bunit\.json\b/i],
-    ['static binder', /\bbind-engineer-unit\b/i],
-    ['bound authority', /\bunit-authority\.json\b/i],
-    ['dispatch', /\bdispatch\b/i],
-  ]);
-
-  for (const relativePath of [
-    'site/content/docs/getting-started.mdx',
-    'site/content/docs/harnesses/hermes.mdx',
-    'site/content/docs/harnesses/omp.mdx',
+test('Hermes is one external engineer over one persistent OMP process', () => {
+  const guide = read('site/content/docs/hermes.mdx').replace(/\s+/g, ' ');
+  for (const pattern of [
+    /external engineer/i,
+    /not a supported woostack host or installed woostack runtime/i,
+    /(?:install woostack only|woostack is installed only) in OMP or another supported coding harness/i,
+    /one persistent OMP process/i,
+    /process.*PTY|PTY.*process/i,
+    /arguments? (?:are|as) values, not shell source/i,
+    /in-contract decisions?/i,
+    /responsible user/i,
+    /escalat/i,
+    /verbatim and unmodified/i,
+    /same persistent OMP process/i,
+    /matching Linear receipt/i,
+    /evidence/i,
+    /redispatch/i,
+    /restarted or different OMP process/i,
+    /copied response.*summarized response.*replayed transcript/i,
+    /legacy.*launch-omp|launch-omp.*legacy/i,
+    /bind-engineer-unit/i,
+    /omp --profile <profile> --cwd <worktree> <prompt>/i,
+    /(?:-p|--print).*non-interactive mode.*exit after one response/i,
+    /retain the interactive process handle/i,
   ]) {
-    assert.match(
-      read(relativePath),
-      /https:\/\/github\.com\/howarewoo\/woostack\/blob\/main\/skills\/using-woostack\/references\/hosts\/hermes\.md#bound-unit-manifest-and-binding/,
-      `${relativePath}: must link to the installed canonical bound-unit contract`
-    );
+    assert.match(guide, pattern, `Hermes guide missing ${pattern}`);
   }
+  assert.doesNotMatch(guide, /Hermes (?:codes?|implements?|edits?|commits?|pushes?)/i);
+  assert.doesNotMatch(guide, /omp --profile <profile>\s+-p\b/i);
 });
 
-test('authored engineer guidance preserves role isolation and forbids self-review', () => {
-  for (const relativePath of [
-    'site/content/docs/getting-started.mdx',
-    'site/content/docs/concepts.mdx',
+test('canonical host routing excludes retained Hermes and includes OMP', () => {
+  const links = [...read('skills/using-woostack/references/hosts/README.md')
+    .matchAll(/^- \[`([^`]+)`\]\(([^/)]+)\.md\)$/gm)]
+    .filter(([, slug, target]) => slug === target)
+    .map(([, slug]) => slug)
+    .sort();
+  assert.deepEqual(links, ['antigravity', 'claude-code', 'codex', 'cursor', 'omp', 'opencode']);
+  assert.ok(links.includes('omp'), 'OMP must remain dispatchable');
+  assert.ok(!links.includes('hermes'), 'retained Hermes adapter must not be dispatchable');
+  assert.ok(files.has('skills/using-woostack/references/hosts/hermes.md'),
+    'Hermes adapter remains present for WOO-167');
+  assert.match(read('skills/using-woostack/references/model-tiers.md'),
+    /supported coding-host allowlist.*hosts\/README\.md/is,
+    'model-tier routing must obey the canonical host gate');
+});
+
+test('supported navigation keeps Hermes out of coding harnesses', () => {
+  assert.match(read('site/content/docs/meta.json'), /"hermes"/i);
+  assert.doesNotMatch(read('site/content/docs/harnesses/meta.json'), /"hermes"/i);
+  assert.doesNotMatch(read('site/content/docs/concepts/meta.json'), /"engineer-agents"/i);
+  const retiredAuthoredPages = new Set([
     'site/content/docs/concepts/engineer-agents.mdx',
     'site/content/docs/harnesses/hermes.mdx',
-    'site/content/docs/harnesses/omp.mdx',
-  ]) {
-    const claim = semanticClauses(read(relativePath)).find(hasPositiveHermesCoderClaim);
-    assert.equal(claim, undefined, `${relativePath}: Hermes must not be described as the coder`);
+  ]);
+  for (const relativePath of authoredSitePaths) {
+    if (retiredAuthoredPages.has(relativePath)) continue;
+    const content = read(relativePath);
+    assert.doesNotMatch(content,
+      /\/docs\/harnesses\/hermes|\/docs\/concepts\/engineer-agents|references\/hosts\/hermes\.md|references\/engineer-agents\.md/i,
+      `${relativePath}: supported authored page reaches a retired path or route`);
   }
-
-  assert.equal(
-    hasPositiveHermesCoderClaim('Hermes implements code and never merges.'),
-    true,
-    'an unrelated trailing negation must not mask a positive Hermes coder claim'
-  );
-  assert.equal(
-    hasPositiveHermesCoderClaim('The workflow never merges and Hermes implements code.'),
-    true,
-    'an unrelated leading conjunct must not mask a positive Hermes coder claim'
-  );
-  assert.equal(
-    hasPositiveHermesCoderClaim('Never ask Hermes to implement code.'),
-    false,
-    'negation scoped to the Hermes coding predicate must remain valid guidance'
-  );
-  assert.equal(
-    hasPositiveHermesCoderClaim('Hermes does not implement code.'),
-    false,
-    'negation within the Hermes coding predicate must remain valid guidance'
-  );
-
-  assert.match(
-    read('site/content/docs/harnesses/hermes.mdx'),
-    /Do not ask OMP to review its own work/i,
-    'Hermes decision-maker prompt must forbid OMP self-review'
-  );
+  const sourceRegistry = read('site/lib/source.ts');
+  assert.match(sourceRegistry, /'concepts\/engineer-agents\.mdx': true/);
+  assert.match(sourceRegistry, /'harnesses\/hermes\.mdx': true/);
+  assert.match(sourceRegistry,
+    /files\.filter\([\s\S]*file\.type !== 'page'[\s\S]*retiredPagePaths\[file\.path\] !== true/,
+    'docs source must exclude both retained pages from routes and aggregate feeds');
+  assert.match(read('site/content/docs/harnesses/omp.mdx'), /three neutral project workers/i);
+  assert.match(read('skills/using-woostack/references/hosts/omp.md'), /agent:\s+woostack-fast/i);
+  assert.match(read('skills/woostack-review/SKILL.md'), /fresh read-only profiles\/sessions/i);
+  assert.match(read('skills/woostack-review/prompts/_orchestrator-header.md'),
+    /fresh read-only reviewer session/i);
 });
 
-test('Hermes page contains the complete decision-maker handoff', () => {
-  const relativePath = 'site/content/docs/harnesses/hermes.mdx';
-  const prompt = fencedBlocks(read(relativePath)).find(
-    (block) => /decision-making engineer/i.test(block) && /\bENGINEER_NAME\b/.test(block)
-  );
-  assert.ok(prompt, `${relativePath}: missing copyable decision-maker prompt`);
-  for (const placeholder of [
-    'ENGINEER_NAME',
-    'HERMES_PROFILE',
-    'OMP_PROFILE',
-    'REPOSITORY_PATH',
-    'TASK_CONTRACT',
-  ]) {
-    assert.match(prompt, new RegExp(`\\b${placeholder}\\b`), `${relativePath}: missing ${placeholder}`);
+test('approval relay remains responsible-user and receipt bound', () => {
+  const contract = read('skills/woostack-init/references/artifact-backends.md').replace(/\s+/g, ' ');
+  assert.match(contract, /responsible user's response must travel verbatim, without summarization/i);
+  assert.match(contract, /same persistent OMP process/i);
+  assert.match(contract, /Hermes may transmit.*may not author or transform/i);
+  assert.match(contract, /restarted or different process.*fails closed/i);
+  assert.match(contract, /fresh Ask and active-conversation approval/i);
+  assert.match(contract, /matching active-conversation approval/i);
+  assert.match(contract, /Linear receipt\/event/i);
+});
+
+test('reserved WOO-167 assets and the WOO-166 mode remain present but unreachable', () => {
+  assert.equal(WOO_167_RESERVED_FILES.length, 6, 'WOO-167 whole-file inventory must stay exact');
+  for (const relativePath of WOO_167_RESERVED_FILES) {
+    assert.ok(files.has(relativePath), `${relativePath}: retained WOO-167 asset was removed too early`);
   }
-  for (let step = 1; step <= 16; step += 1) {
-    assert.match(prompt, new RegExp(`(?:^|\\n)${step}\\.`), `${relativePath}: missing step ${step}`);
+
+  assert.equal(WOO_166_DORMANT_REVIEW_LOCATIONS.size, 9,
+    'WOO-166 mixed-file inventory must stay exact');
+  for (const [relativePath, markers] of WOO_166_DORMANT_REVIEW_LOCATIONS) {
+    const content = read(relativePath);
+    for (const marker of markers) {
+      assert.ok(content.includes(marker), `${relativePath}: missing retained marker ${marker}`);
+    }
   }
-  assert.match(prompt, /implementation and verification only/i);
-  assert.match(prompt, /complete uncommitted diff/i);
-  assert.match(prompt, /task-specification review/i);
-  assert.match(prompt, /independent quality review/i);
-  assert.match(prompt, /same OMP profile for exactly one bounded \/woostack-commit action/i);
-  assert.match(prompt, /Independently read the submitted PR, head, base, and complete diff/i);
-  assert.match(prompt, /Post your own GitHub review comments or verdict/i);
-  assert.match(prompt, /Never merge/i);
+  const dormantReviewText = [...WOO_166_DORMANT_REVIEW_LOCATIONS.keys()]
+    .map((relativePath) => read(relativePath))
+    .join('\n');
+  for (const marker of REVIEW_MODE_MARKERS) {
+    assert.ok(dormantReviewText.includes(marker), `WOO-166 inventory omits exact marker ${marker}`);
+  }
+
+  const reservedPaths = new Set([
+    ...WOO_167_RESERVED_FILES,
+    ...WOO_166_DORMANT_REVIEW_LOCATIONS.keys(),
+  ]);
+  const supportedPaths = [...new Set([...PATHS, ...authoredSitePaths])]
+    .filter((relativePath) => !reservedPaths.has(relativePath));
+  const retiredReference =
+    /engineer-agents\.md|hosts\/hermes\.md|gen-omp-agents\.sh|\/docs\/(?:concepts\/engineer-agents|harnesses\/hermes)/i;
+  for (const relativePath of supportedPaths) {
+    const content = read(relativePath);
+    if (relativePath !== 'site/lib/source.ts') {
+      assert.doesNotMatch(content, retiredReference,
+        `${relativePath}: supported surface reaches a WOO-167 file or old route`);
+    }
+    for (const marker of REVIEW_MODE_MARKERS) {
+      assert.ok(!content.includes(marker),
+        `${relativePath}: supported surface activates dormant Review marker ${marker}`);
+    }
+    if (relativePath !== 'site/content/docs/hermes.mdx') {
+      assert.doesNotMatch(content, /\b(?:launch-omp|bind-engineer-unit)\b/,
+        `${relativePath}: supported surface reaches a reserved launcher`);
+    }
+  }
 });
