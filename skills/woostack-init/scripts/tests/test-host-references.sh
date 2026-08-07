@@ -34,8 +34,8 @@ done
 host_index="$(cat "$H/README.md")"
 assert_contains "$host_index" '[`omp`](omp.md)' "hosts: OMP is dispatchable"
 assert_not_contains "$host_index" '[`hermes`](hermes.md)' "hosts: Hermes is excluded from dispatch"
-assert_eq "$([ -f "$H/hermes.md" ] && echo y)" "y" \
-  "hosts: retired Hermes body remains reserved for the deletion increment"
+assert_eq "$([ ! -e "$H/hermes.md" ] && [ ! -L "$H/hermes.md" ] && echo y)" "y" \
+  "hosts: retired Hermes adapter is absent"
 
 model_tiers="$(cat "$S/using-woostack/references/model-tiers.md")"
 assert_contains "$model_tiers" "hosts/README.md" "model tiers links host adapters"

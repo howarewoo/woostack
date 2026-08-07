@@ -34,8 +34,8 @@ def forbid(text, pattern, message):
     if re.search(pattern, text, re.I | re.S):
         failures.append(message)
 
-# File presence is deliberately insufficient for dispatch. Parse the canonical Markdown
-# allowlist and model the router's gate so a retained adapter cannot become callable.
+# Dispatch is defined only by the canonical Markdown allowlist. A stray host file must
+# never become callable merely because it exists.
 host_index_path = "skills/using-woostack/references/hosts/README.md"
 host_index = read_raw(host_index_path)
 host_links = re.findall(r"(?m)^- \[`([^`]+)`\]\(([^/)]+)\.md\)$", host_index)
@@ -56,11 +56,9 @@ def routed_host_file(host):
     return f"skills/using-woostack/references/hosts/{host}.md"
 
 if routed_host_file("hermes") is not None:
-    failures.append("canonical host router can dispatch retained Hermes adapter")
+    failures.append("canonical host router can dispatch retired Hermes adapter")
 if routed_host_file("omp") != "skills/using-woostack/references/hosts/omp.md":
     failures.append("canonical host router does not dispatch OMP")
-if not (root / "skills/using-woostack/references/hosts/hermes.md").is_file():
-    failures.append("retained Hermes adapter missing before deletion increment")
 
 model_tiers = read("skills/using-woostack/references/model-tiers.md")
 require(model_tiers, r"supported coding-host allowlist.*hosts/README\.md",
@@ -141,9 +139,8 @@ for relative in (
     forbid(text, r"/docs/harnesses/hermes|/docs/concepts/engineer-agents|references/hosts/hermes\.md",
            f"{relative}: retired Hermes/engineer-agent navigation remains")
 
-# WOO-167 owns six whole-file deletions. The first four are reserved implementation and
-# tests; the final two are deliberately unlinked authored pages.
-woo167_reserved_files = (
+# WOO-167 owns these six whole-file retirements. Keep the exact paths as negative evidence.
+woo167_retired_files = (
     "skills/using-woostack/references/engineer-agents.md",
     "skills/using-woostack/references/hosts/hermes.md",
     "skills/woostack-init/scripts/gen-omp-agents.sh",
@@ -151,8 +148,10 @@ woo167_reserved_files = (
     "site/content/docs/concepts/engineer-agents.mdx",
     "site/content/docs/harnesses/hermes.mdx",
 )
-for relative in woo167_reserved_files:
-    read_raw(relative)
+for relative in woo167_retired_files:
+    path = root / relative
+    if path.exists() or path.is_symlink():
+        failures.append(f"retired WOO-167 path still exists: {relative}")
 
 # WOO-166 removes the dormant mixed-file Review mode while retaining one generic
 # local advisory path and the CI path.
@@ -199,17 +198,16 @@ require(review_runtime, r"prosecutor.*defender.*intersect|intersection.*prosecut
         "Review no longer retains both validator passes and intersection")
 require(review_runtime, r"native GitHub.*IDs.*differ|native actor-ID gate",
         "Review no longer retains the native GitHub actor safeguard")
-# Scan every supported source and authored text surface. Reserved bodies, their tests, and
-# assertion-only boundary tests are records rather than callsites; generated, gitignored skill
-# pages mirror their source and are not a second surface. The top-level guide is scanned for mode
-# markers, but its two launcher names are allowed solely as optional manual-cleanup names.
+# Scan every supported source and authored text surface. Assertion-only boundary tests are
+# records rather than callsites; generated, gitignored skill pages mirror their source and are
+# not a second surface. The top-level guide is scanned for mode markers, but its two launcher
+# names are allowed solely as optional manual-cleanup names.
 assertion_only_paths = {
     "skills/using-woostack/tests/test-harness-agent-boundary.sh",
     "skills/woostack-init/scripts/tests/test-host-references.sh",
     "skills/woostack-doctor/scripts/tests/test-omp-agents.sh",
     "site/scripts/linear-only-docs.test.mjs",
 }
-reserved_paths = set(woo167_reserved_files)
 text_suffixes = {".md", ".mdx", ".sh", ".mjs", ".js", ".json", ".yml", ".yaml"}
 skip_parts = {".git", ".next", ".woostack", "node_modules"}
 supported_texts = {}
@@ -219,7 +217,7 @@ for path in sorted(root.rglob("*")):
     relative = path.relative_to(root).as_posix()
     if relative.startswith("site/content/docs/skills/"):
         continue
-    if relative in reserved_paths or relative in assertion_only_paths:
+    if relative in assertion_only_paths:
         continue
     if path.suffix not in text_suffixes:
         continue
@@ -234,11 +232,14 @@ for retired_page in (
     "concepts/engineer-agents.mdx",
     "harnesses/hermes.mdx",
 ):
-    require(source_registry, re.escape(f"'{retired_page}': true"),
-            f"docs source does not exclude retained page: {retired_page}")
-require(source_registry,
-        r"files\.filter\([\s\S]*file\.type !== 'page'[\s\S]*retiredPagePaths\[file\.path\] !== true",
-        "docs source does not filter retained pages from routes and aggregate feeds")
+    forbid(source_registry, re.escape(retired_page),
+           f"docs source still names retired page: {retired_page}")
+forbid(source_registry, r"\bretiredPagePaths\b",
+       "docs source retains the temporary retired-page registry")
+forbid(source_registry, r"files\.filter\(",
+       "docs source retains the temporary retired-page filter")
+require(source_registry, r"source:\s*docs\.toFumadocsSource\(\)",
+        "docs loader does not consume the generated docs source directly")
 old_surface_reference = re.compile(
     r"skills/using-woostack/references/engineer-agents\.md"
     r"|skills/using-woostack/references/hosts/hermes\.md"
@@ -251,7 +252,7 @@ old_surface_reference = re.compile(
     re.I | re.M,
 )
 for relative, body in supported_texts.items():
-    if relative != source_registry_path and old_surface_reference.search(body):
+    if old_surface_reference.search(body):
         failures.append(f"{relative}: supported surface reaches a WOO-167 asset or old route")
     if relative != host_index_path and re.search(r"hosts/<current-host>\.md", body):
         failures.append(f"{relative}: supported surface bypasses the canonical host allowlist")
