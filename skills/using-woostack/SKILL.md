@@ -50,10 +50,11 @@ At the start of work in a repository:
 5. Load and apply the shared
    [Output Discipline](references/output-discipline.md) to every user-facing reply. It keeps
    the answer compact without compressing evidence, risk, or required contract fields.
-6. Invoke [woostack-reflect](../woostack-reflect/SKILL.md) at every final user-facing reply. It
-   analyzes the fixed invocation-start snapshot and reports only concrete durable instruction
-   suggestions.
-
+6. At an ordinary final-reply boundary, apply [woostack-reflect](../woostack-reflect/SKILL.md)'s
+   canonical candidate gate before loading or invoking it: the session already contains a concrete
+   observed preventable instruction gap that could yield a durable instruction finding. If no
+   candidate is admitted, emit no reflection headings. An explicit `/woostack-reflect` invocation
+   always runs exactly once.
 
 Do not run `/woostack-init`, create `.woostack/`, scaffold code, or add config unless the
 user explicitly asks for that behavior or the loaded task-specific skill requires it as part

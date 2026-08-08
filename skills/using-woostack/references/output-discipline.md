@@ -33,8 +33,12 @@ review JSON-artifact and inline-comment contract is governed separately by
   decode.
 - User requests for more detail override the terse default. Answer the requested depth without
   restoring filler.
-- At a final reply, invoke [woostack-reflect](../../woostack-reflect/SKILL.md). Keep both suggestion
-  headings when clean and emit `No durable improvement identified.` when no finding survives.
+- At a final reply, apply [woostack-reflect](../../woostack-reflect/SKILL.md)'s canonical candidate
+  gate before loading or invoking it: the session already contains a concrete observed preventable
+  instruction gap that could yield a durable instruction finding. If no candidate is admitted, emit
+  no reflection headings. An explicit `/woostack-reflect` invocation always runs exactly once. Keep
+  both suggestion headings when a pass is admitted and emit `No durable improvement identified.` when
+  no finding survives.
 
 ## Internal terse rules
 

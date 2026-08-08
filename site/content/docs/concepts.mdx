@@ -76,10 +76,10 @@ coding sessions, and independent review.
 
 ### Session reflection becomes instruction suggestions
 
-At the end of each session, [woostack-reflect](/docs/skills/woostack-reflect) reviews the fixed
-invocation-start snapshot of the active conversation and tool evidence for durable project rules.
-It suggests only novel rules that are likely to help future sessions and routes each finding to the
-global or narrowest applicable `AGENTS.md` or canonical skill owner.
+At an ordinary final-reply boundary, [woostack-reflect](/docs/skills/woostack-reflect) is loaded only
+when the session already contains a concrete observed preventable instruction gap that could yield a
+durable instruction finding. Its candidate gate is canonical; a qualifying reply runs one report-only
+pass, while a reply with no candidate emits no reflection headings.
 
 
 Diagnostic outputs from audit, QA, or production-response workflows are similarly

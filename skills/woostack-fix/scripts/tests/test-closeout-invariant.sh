@@ -48,6 +48,18 @@ for pattern, name in (
 
 
 require(r"Debug\s*→\s*Ideate\s*→\s*Harden.*project-spec approval.*Linear.*Plan\s*→\s*Harden.*execution-plan approval.*Linear.*normal Execute", "canonical sequence")
+require(r"Before root-cause proof, load only the routing and output rules.*woostack-debug.*references that Debug directly requires", "debug-only pre-proof loading")
+require(r"Immediately after Debug returns root-cause proof and exact writable target-repository admission succeeds, load.*Linear artifact contract.*woostack-build.*woostack-ideate.*woostack-harden", "post-admission downstream loading")
+if not (
+    skill.index("Before root-cause proof, load only")
+    < skill.index("### 1. Debug, read-only")
+    < skill.index("### 1.5. Target-repository admission")
+    < skill.index("Immediately after Debug returns root-cause proof")
+    < skill.index("### 2. Resolve the project")
+):
+    failures.append("loading boundary ordering")
+if "Before acting, load and apply the shared" in skill:
+    failures.append("eager pre-proof loading wording")
 require(r"accepts a goal or untrusted Linear, GitHub, Sentry, or monitoring input", "untrusted input coverage")
 require(r"root-cause proof.*create or update a project.*branch.*worktree.*mutate the repository", "proof write barrier")
 require(r"owns one canonical project", "one canonical project")
