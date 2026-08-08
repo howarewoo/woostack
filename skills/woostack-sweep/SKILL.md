@@ -25,13 +25,16 @@ empty range reports `nothing to sweep` and is not a clean result.
 ## Resolve and bind the stack
 
 1. Resolve the canonical repository, base, current worktree/branch, and Graphite graph.
-2. Build the ordered in-range branch set from Graphite ancestry and read every submitted PR's
+2. At binding, record each exact PR worktree as `sweep-owned` or `caller-owned` with controller
+   ownership from explicit controller input; never infer ownership from paths, branch names,
+   repository state, or checkout shape.
+3. Build the ordered in-range branch set from Graphite ancestry and read every submitted PR's
    complete current head/base/state/check/review/thread data.
-3. Reject an unsubmitted branch, duplicate PR, moved head, cycle, gap, ambiguous membership, or any
+4. Reject an unsubmitted branch, duplicate PR, moved head, cycle, gap, ambiguous membership, or any
    disagreement among Git, Graphite, and GitHub. Never submit a missing PR.
-4. For each PR, bind the canonical PR number, head and base SHAs/branches, changed paths, complete
+5. For each PR, bind the canonical PR number, head and base SHAs/branches, changed paths, complete
    thread snapshot, and task contract. A head or thread-set change invalidates that round.
-5. Load `review_sweep.max_rounds` from `.woostack/config.json`; require a positive integer and
+6. Load `review_sweep.max_rounds` from `.woostack/config.json`; require a positive integer and
    default to `3` when absent. A malformed value warns and falls back to `3`. Bind that cap before
    any PR enters the loop.
 
@@ -89,12 +92,27 @@ Afterward independently read every affected descendant's head/base/ancestry and 
 checks for conflict-touched behavior. Re-review each materially changed PR through its next bound
 round. Unknown mutation outcomes require complete discovery before retry.
 
+## Worktree closeout
+
+Follow the [canonical worktree contract](../woostack-init/references/worktrees.md#canonical-worktree-contract) for each exact PR worktree.
+After each PR independently reaches the existing verified clean boundary, re-read the exact path,
+`git worktree list --porcelain`, clean index/diff, canonical PR head/base, and Graphite ancestry.
+Remove only a Sweep-owned exact worktree when those reads prove successful closeout; preserve
+caller-owned worktrees even when clean.
+Always retain the primary worktree regardless of controller ownership.
+Retain any dirty, blocked, collided, handed-off, failed-read, or otherwise unsafe worktree, recording
+ownership, path/listing, branch/head/parent, dirty/index/diff, first unverified boundary, and exact
+safe next action.
+If a closeout operation has an unknown outcome, rediscover complete evidence before retry.
+Perform closeout immediately after each PR, before advancing to the next PR, and return removed and
+retained evidence.
+
 ## Return
 
 Return the canonical repository, base, and bottom-up stack order; for every PR, its current head/base,
 rounds, findings and thread IDs, checks, changed paths, verification, and `clean|blocked|skipped-unsubmitted`
 status; exact Address evidence and resolution reads; any restack operation and affected descendants;
-and remaining blockers with the safe resume boundary.
+and remaining blockers with the safe resume boundary; for worktrees, return separate `removed` and `retained` evidence entries with ownership, path/listing, branch/head/parent, dirty/index/diff, first unverified boundary, and exact safe next action.
 
 Never merge, claim acceptance, or report a review, check, reply, resolution, head, or ancestry result
 not directly observed.
