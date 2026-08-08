@@ -37,13 +37,9 @@ issue is left unchanged except for the supported link to the canonical project. 
 read as repository context only; multiple direct PR-linked issues may be admitted later by Plan.
 `--inline` and `--subagent` select only the read-only Debug driver and are mutually exclusive.
 
-Before acting, load and apply the shared
-[Linear artifact contract](../woostack-init/references/artifact-backends.md), the
-[Build project wrapper](../woostack-build/SKILL.md), and the internal
-[`woostack-ideate`](../woostack-ideate/SKILL.md) and
-[`woostack-harden`](../woostack-harden/SKILL.md) contracts. The shared artifact contract owns
-canonical project identity, fingerprints, relation pagination, stable mutation identities,
-approval-record fields, and independent read-back; this wrapper does not duplicate them.
+## Context-loading boundary
+
+Before root-cause proof, load only the routing and output rules, this skill, [`woostack-debug`](../woostack-debug/SKILL.md), and the references that Debug directly requires. Do not load the Linear artifact contract, [`woostack-build`](../woostack-build/SKILL.md), [`woostack-ideate`](../woostack-ideate/SKILL.md), or [`woostack-harden`](../woostack-harden/SKILL.md) before proof.
 
 ## Fixed sequence
 
@@ -67,6 +63,7 @@ inline only when safe.
 ### 1.5. Target-repository admission
 
 After Debug proves the root cause, compare the proved causal target repository with the invocation repository using trusted Git/GitHub evidence, then non-mutatingly verify that the active checkout is the exact writable owning checkout. Missing, ambiguous, foreign, read-only, unwritable, absent, or wrong checkout blocks before every provider, artifact, or repository effect. A supplied `--project` or `--issue` cannot bypass this guard. Preserve the matching writable path and offer only `retarget-reinvoke-in-exact-writable-owning-repository` or `diagnosis-only`; never clone, switch, mutate, or invent a workaround.
+Immediately after Debug returns root-cause proof and exact writable target-repository admission succeeds, load the [Linear artifact contract](../woostack-init/references/artifact-backends.md), the [Build project wrapper](../woostack-build/SKILL.md), and the internal [`woostack-ideate`](../woostack-ideate/SKILL.md) and [`woostack-harden`](../woostack-harden/SKILL.md) contracts. This downstream loading occurs before canonical-project resolution and before any provider effect. The shared artifact contract owns canonical project identity, fingerprints, relation pagination, stable mutation identities, approval-record fields, and independent read-back; this wrapper does not duplicate them.
 
 ### 2. Resolve the project, then Ideate and Harden
 

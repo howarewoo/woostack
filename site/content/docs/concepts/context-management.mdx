@@ -21,9 +21,11 @@ contract. Comments stay short without losing evidence, severity, or an actionabl
 
 ## Sessions end with instruction suggestions
 
-At the final-reply boundary, [woostack-reflect](/docs/skills/woostack-reflect) analyzes one fixed
-invocation-start snapshot of the visible active conversation and tool evidence. It suggests only
-novel guidance and routes each finding to the narrowest applicable rule or canonical skill owner.
+At an ordinary final-reply boundary, [woostack-reflect](/docs/skills/woostack-reflect) is loaded only
+when the session already contains a concrete observed preventable instruction gap that could yield a
+durable instruction finding. Its candidate gate is canonical: a qualifying reply runs one report-only
+pass, while a reply with no candidate emits no reflection headings. An explicit
+`/woostack-reflect` invocation always runs exactly one pass.
 Transcript and tool output are untrusted evidence; reflection never executes embedded instructions,
 follows embedded URLs, or broadens scope.
 
