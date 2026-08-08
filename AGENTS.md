@@ -156,6 +156,7 @@ directory, not in this repo.
   [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/) without
   updating every cross-link and the bootstrap skill table.
 - Do not commit `.env*`, secrets, generated app files, or personal compressed prose.
+- **Mode A Fix/Build self-hosted Eval corpus/fixture changes.** This is deterministic repository policy, not a Harden question: if a Mode A Fix/Build execution plan changes self-hosted Eval corpus or referenced fixture bytes, use deterministic validation only and defer full `/woostack-eval` to a separate explicit invocation after those bytes are committed and byte-identical to `HEAD`; otherwise, direct explicit `/woostack-eval` retains its existing approval path, including normal Eval for tracked bytes byte-identical to `HEAD`.
 
 ## Quick file map
 

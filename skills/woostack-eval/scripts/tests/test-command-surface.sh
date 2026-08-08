@@ -90,8 +90,12 @@ require(agents.count("[`woostack-eval`](skills/woostack-eval/SKILL.md)") == 1, "
 require(agents.count("[`woostack-reflect`](skills/woostack-reflect/SKILL.md)") == 1, "AGENTS.md public list must register woostack-reflect once")
 require("[`skills/woostack-eval/SKILL.md`](skills/woostack-eval/SKILL.md)" in agents, "AGENTS.md quick map must register woostack-eval once")
 require("[`skills/woostack-reflect/SKILL.md`](skills/woostack-reflect/SKILL.md)" in agents, "AGENTS.md quick map must register woostack-reflect once")
-require(agents.count("`/woostack-eval`") == 1, "AGENTS.md must route Mode B to woostack-eval exactly once")
+mode_b = re.search(r"^\*\*Mode B:.*?(?=^## Hard constraints)", agents, re.M | re.S)
+require(mode_b is not None and len(re.findall(r"`/woostack-eval`", mode_b.group(0))) == 1, "AGENTS.md must route Mode B to woostack-eval exactly once")
 require(agents.count("`/woostack-reflect`") == 1, "AGENTS.md must route Mode B to woostack-reflect exactly once")
+require("if a Mode A Fix/Build execution plan changes self-hosted Eval corpus or referenced fixture bytes, use deterministic validation only and defer full `/woostack-eval` to a separate explicit invocation after those bytes are committed and byte-identical to `HEAD`" in agents, "AGENTS.md must defer Mode A Fix/Build-changed self-hosted Eval bytes through the deterministic branch")
+require("otherwise, direct explicit `/woostack-eval` retains its existing approval path, including normal Eval for tracked bytes byte-identical to `HEAD`" in agents, "AGENTS.md must preserve direct explicit Eval approval and the byte-identical branch")
+require("This is deterministic repository policy, not a Harden question" in agents, "AGENTS.md must keep self-hosted Eval policy outside Harden")
 
 actual_fixed = sorted(path.parent.name for path in (root / "skills").glob("*/SKILL.md"))
 require(actual_fixed == sorted(fixed), f"fixed SKILL.md surface mismatch: {actual_fixed!r}")
