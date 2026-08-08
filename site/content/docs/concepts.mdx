@@ -21,10 +21,11 @@ clear only the matching fix/build content-revision gates.
 [woostack-build](/docs/skills/woostack-build) handles work expected to require multiple
 independently shippable increments. It chains a fixed sequence:
 
-> resolve or create one canonical Linear project → ideate and harden its evolving specification →
-> **approve exact project-spec revision** → plan and harden direct increment issues → synchronize
-> native dependencies → **approve exact execution-plan revision set** → execute and review one
-> increment at a time
+> resolve or create one canonical Linear project → admit its exact baseline → ideate and harden the
+> specification in a secure local draft → **approve the complete displayed project specification**
+> → synchronize, read back, and receipt that revision → plan and harden locally keyed direct
+> increment issues → **approve the complete displayed execution plan** → synchronize native issues
+> and dependencies, read them back, receipt the graph, and execute one increment at a time
 
 Ordered increments remain independently shippable and map to reviewable PRs. Build has no
 artifact-free fallback.
@@ -44,13 +45,15 @@ project open.
 
 Build and project-backed Fix advance past exactly two content-bound Linear approvals:
 
-1. **Project-spec approval** accepts the exact current high-level project specification before
-   direct-issue planning.
-2. **Execution-plan approval** accepts the exact complete set of direct issue revisions and native
-   dependency edges before repository implementation.
+1. **Project-spec approval** accepts the complete exact local project specification. Only then does
+   one bounded synchronization save it to Linear; exact read-back precedes the matching receipt.
+2. **Execution-plan approval** accepts the complete exact locally keyed issue contracts and
+   dependency graph. Only then does one bounded synchronization create or reconcile native records;
+   exact graph and identity read-back precedes the matching receipt and implementation.
 
-Material spec or plan changes are written back to the same canonical Linear records and invalidate
-the matching approval. Synchronization, read-back, planning, implementation checks, review, and
+The local manifest is permission-restricted working state, never product authority. Material
+baseline drift, read-back mismatch, process loss, or content changes require reconciliation and a
+fresh complete Ask. Synchronization, read-back, planning, implementation checks, review, and
 progress updates are work steps, not additional gates.
 
 ## Two delivery shapes

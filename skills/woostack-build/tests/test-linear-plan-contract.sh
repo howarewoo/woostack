@@ -50,7 +50,10 @@ for needle in (
     "exactly the matching predecessor edge",
     "Independently read every project, issue, membership",
     "Delegated planning performs no provider read or mutation",
-    "wrapper hardens the candidate and then synchronizes",
+    "atomically records complete candidate contracts",
+    "wrapper hardens and displays the complete candidate",
+    "Standalone Plan",
+    "synchronization is unchanged",
     "owns no approval gate",
     "implementation, source edit, commit, branch, PR, review, merge",
 ):

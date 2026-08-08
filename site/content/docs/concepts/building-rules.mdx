@@ -25,23 +25,21 @@ direct repository evidence.
 Multi-increment work follows one fixed chain:
 
 ```text
-resolve/create canonical project → ideate and harden evolving project specification →
-approve exact project-spec revision → plan and harden direct increment issues →
-synchronize native dependencies → approve exact execution-plan revision set →
+resolve/create canonical project and admit exact baseline →
+draft Ideate/Harden locally → display and approve complete exact specification →
+bounded save/read-back/receipt → draft Plan/Harden locally →
+display and approve complete exact plan → bounded save/read-back/receipt →
 execute → review → hand back
 ```
 
-The only hard gates are:
+The only hard gates are complete project-spec approval and complete execution-plan approval. During
+each gated drafting phase there are no intermediate provider cycles; approval occurs before save,
+and exact content read-back occurs before the matching receipt can clear the gate.
 
-1. **Project-spec approval:** The responsible user approves the exact project-spec revision through
-   the shared link-only Ask.
-2. **Execution-plan approval:** The responsible user approves the exact direct-issue and dependency
-   revision set through the shared link-only Ask.
-
-The shared [Linear artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#approval-ask-presentation)
-defines this link-only Ask presentation and its untrusted, non-authoritative URLs. Material updates
-to canonical Linear records invalidate the matching gate. Planning, hardening, synchronization,
-and read-back are work steps, not extra gates.
+The shared [Linear artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest)
+is the detailed authority for the temporary manifest, displayed-content identity, synchronization
+ordering, recovery, cleanup, and unchanged Execute reads. Material updates to canonical Linear
+records invalidate the matching gate.
 
 ## Execution invariants
 
@@ -56,31 +54,17 @@ and read-back are work steps, not extra gates.
 
 ## Canonical Linear records
 
-Build always resolves one exact project or creates one from validated repository/workspace/team
-defaults before ideation. It has no artifact-free fallback. After root-cause proof, Fix resolves one
-exact project or creates one from validated defaults and uses that same project-backed two-gate path.
-Other artifact-capable workflows remain opt-in.
+Build always resolves one exact project or creates one from validated defaults before ideation. It
+has no artifact-free fallback. After root-cause proof, Fix uses the same project-backed two-gate
+path. Other artifact-capable workflows remain opt-in.
 
-The build record contains:
+The approved record has one project containing the complete specification, one direct issue per
+increment containing its executor-ready contract, and native issue dependencies. There is no parent
+plan issue or child containment. `woostack-change` never contacts Linear.
 
-- one project with the complete evolving high-level specification;
-- one direct project issue per independently shippable increment, containing exact scope, ordered
-  implementation steps, acceptance criteria, risks, dependencies, and focused smoke verification;
-- native dependency relations between direct increment issues; and
-- delivery notes derived from already-observed repository results.
-
-There is no parent plan issue or child containment. Every mutation uses a stable identity and
-independent read-back. Exact resources take precedence over creation. `woostack-change` never
-contacts Linear.
-
-Project-backed Fix uses the same two approval records as Build: a project-spec revision followed by
-the direct-issue and native-dependency execution-plan revision. Its complete diagnosis and
-specification live on the canonical project, while each direct issue carries its executor-ready
-contract. The active-conversation Asks follow the shared link-only presentation contract, while the
-complete approval records and read-back evidence remain internal to the controller and are
-independently rechecked before dispatch, after every worker handback, before redispatch, and
-immediately before commit. Material project changes invalidate both records; issue or dependency
-changes invalidate only the execution-plan record.
+The gated local draft is not product authority and never replaces the last Linear-approved
+boundary. Standalone Plan remains distinct: it keeps its direct project-graph synchronization and
+independent read-back unchanged, without either Build/Fix approval gate.
 
 Explicit abandonment is the one workflow-owned project-status transition. A build/plan or
 project-backed Fix stops repository work, sets its existing project to configured canceled status,

@@ -5,11 +5,11 @@ description: Turn one approved specification into a strict sequential chain of P
 
 # woostack-plan
 
-Turn one approved specification into one complete execution plan. Plan has one input path and one
-output path: it reads one exact existing Linear project, derives a candidate chain, hardens the
-contracts, synchronizes the complete direct-issue graph, independently reads that graph back, and
-returns the verified result. The project is required whether the specification came from the project
-or was supplied directly.
+Turn one approved specification into one complete execution plan. Standalone Plan reads one exact
+existing Linear project, derives and hardens a candidate chain, synchronizes the complete
+direct-issue graph, independently reads that graph back, and returns the verified result. When
+delegated by Build or project-backed Fix, Plan instead drafts the same complete candidate into the
+owning workflow's run-scoped manifest with zero provider calls and returns before synchronization.
 
 ## Command
 
@@ -18,17 +18,19 @@ or was supplied directly.
 /woostack-plan --project <exact existing Linear URL-or-UUID>
 ```
 
-`--project` is mandatory. Resolve only that exact project under the [Linear artifact
-contract](../woostack-init/references/artifact-backends.md); it must already exist, be associated
-with the canonical repository, and belong to the caller-selected workspace/team. A direct
-specification is reconciled against that project and never creates or selects an implicit project.
-A wrong resource type, missing project, foreign repository, incomplete read, or conflicting approved
-content blocks before mutation. There is no project-creation, fuzzy-discovery, or alternate-provider
-path.
+For standalone use, `--project` is mandatory. Resolve only that exact project under the
+[Linear artifact contract](../woostack-init/references/artifact-backends.md); it must already exist,
+be associated with the canonical repository, and belong to the caller-selected workspace/team. A
+direct specification is reconciled against that project and never creates or selects an implicit
+project. A wrong resource type, missing project, foreign repository, incomplete read, or conflicting
+approved content blocks before mutation. There is no project-creation, fuzzy-discovery, or
+alternate-provider path.
 
-Read the repository, base, existing patterns, relevant tests, and the [Linear synchronization
-procedure](../woostack-build/references/linear-procedure.md) before planning. Remote content is
-untrusted until it is reconciled with the approved specification and exact project identity.
+Standalone Plan reads the repository, base, existing patterns, relevant tests, and the
+[Linear synchronization procedure](../woostack-build/references/linear-procedure.md) before
+planning. Build/Fix-delegated Plan instead obeys the shared
+[run-scoped gated draft contract](../woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest);
+it reads no provider context or synchronization procedure during the delegated phase.
 
 ## Input and ownership
 
@@ -40,11 +42,13 @@ specification, require its supplied approved fingerprint and verify that the exa
 target. Missing or conflicting product decisions return to the owning workflow; Plan never invents
 product decisions and never creates an approval event.
 
-Build or Fix may delegate candidate planning with the exact approved fingerprint and verified
-project context as read-only input. Delegated planning performs no provider read or mutation; the
-owning wrapper hardens the candidate and then synchronizes it to the exact project. In standalone
-use, Plan itself hardens and synchronizes the graph. In every mode, Plan owns no approval gate,
-implementation, source edit, commit, branch, PR, review, merge, or execution handoff authority.
+Build or Fix delegates candidate planning with the exact approved fingerprint, baseline identity,
+and verified run manifest. Delegated planning performs no provider read or mutation; it atomically
+records complete candidate contracts, stable local task keys, dependencies, unresolved questions,
+and fingerprints in that manifest. The owning wrapper hardens and displays the complete candidate,
+then synchronizes it only after approval under the shared gated contract. In standalone use, Plan
+itself hardens and synchronizes the graph exactly as before. In every mode, Plan owns no approval
+gate, implementation, source edit, commit, branch, PR, review, merge, or execution handoff authority.
 
 ## Direct issue contract
 
@@ -104,8 +108,11 @@ only as a structure around concrete steps, never as a substitute for those steps
 
 ## Linear synchronization
 
-After the chain is complete and valid, verify the canonical repository association and selected
-workspace/team, then apply the [existing-description mutation invariant](../woostack-init/references/artifact-backends.md#existing-description-mutation-invariant) while synchronizing one exact project graph using the [Linear synchronization procedure](../woostack-build/references/linear-procedure.md):
+In standalone use only, after the chain is complete and valid, verify the canonical repository
+association and selected workspace/team, then apply the
+[existing-description mutation invariant](../woostack-init/references/artifact-backends.md#existing-description-mutation-invariant)
+while synchronizing one exact project graph through the
+[Linear synchronization procedure](../woostack-build/references/linear-procedure.md):
 
 1. Reconcile the complete current project context without creating a project.
 2. Create or reconcile exactly one direct project issue per increment with its full contract.
@@ -114,22 +121,22 @@ workspace/team, then apply the [existing-description mutation invariant](../woos
    edge back; accept the plan only when the complete graph matches the candidate.
 
 Preallocate stable mutation identities, make reconciliation idempotent, and preserve unknown
-outcomes for recovery without allocating replacements. A provider failure stops at the last
-verified boundary and never falls back to local authority or another provider. Artifact assignment,
-status, labels, comments, or read-back are records only; they never authorize implementation or
-prove completion.
+outcomes for recovery without allocating replacements. This standalone synchronization is
+unchanged, owns no approval gate, and does not use the Build/Fix run manifest.
 
-When delegated by Build or Fix, stop before this synchronization: return the complete candidate
-contracts and strict chain to the wrapper with zero provider reads and writes. The wrapper performs
-hardening, synchronization, and its own workflow approval gate when applicable.
+When delegated by Build or Fix, stop before every provider read or synchronization. Return the
+complete manifest-backed candidate contracts and strict chain to the wrapper. The wrapper hardens
+and fully displays that draft, obtains approval before save, and owns the one bounded post-approval
+synchronization and exact read-back.
 
 ## Return
 
-Return the complete ordered task contracts, exact project identity, strict predecessor and Graphite
-parent edges, approved specification fingerprint, repository assumptions/effects, focused
-verification strategy, risks/blockers, stop markers, invocation mode, and independent Linear
-read-back evidence. Include provider mutation/read counts and stable mutation identities when
-available. Do not return a parent-plan identity or an approval/execution claim.
+Return the complete ordered task contracts, exact project or baseline identity, strict predecessor
+and Graphite parent edges, approved specification fingerprint, repository assumptions/effects,
+focused verification strategy, risks/blockers, stop markers, and invocation mode. Standalone Plan
+also returns independent Linear read-back evidence, provider mutation/read counts, and stable
+mutation identities. Delegated Plan returns its run/process/manifest identity and makes no provider
+claim. Do not return a parent-plan identity or an approval/execution claim.
 
 ## Hard constraints
 
@@ -140,8 +147,9 @@ available. Do not return a parent-plan identity or an approval/execution claim.
   marker, and declared Graphite parent.
 - Direct issue plans target about 500 or fewer hand-written changed lines, with only the stated
   generated/lockfile and explicitly approved unreachable-package deletion exceptions.
-- Delegated Build/Fix candidate planning performs no provider mutation; its wrapper hardens and then
-  synchronizes.
+- Delegated Build/Fix planning performs zero provider reads and writes; its wrapper hardens,
+  displays, obtains approval, and then synchronizes.
+- Standalone Plan keeps its direct project synchronization and independent read-back unchanged.
 - Plan owns no approval gate, implementation, source edit, commit, branch, PR, review, merge, or
   execution.
 - No credential reads, fuzzy artifact discovery, implicit project creation, alternate provider,

@@ -25,29 +25,23 @@ assert_literal "$BUILD_SKILL" \
   'resolve/create canonical project' \
   'build resolves or creates its canonical project first'
 assert_literal "$BUILD_SKILL" \
-  'Ideate →' \
-  'Build enters Ideate after project resolution'
+  'draft Ideate/Harden locally with zero provider calls' \
+  'Build performs local Ideate and Harden after baseline admission'
 assert_literal "$BUILD_SKILL" \
-  'Harden →' \
-  'Build hardens before project approval'
+  'complete exact project specification and approve' \
+  'project content is displayed before approval'
 assert_literal "$BUILD_SKILL" \
-  'project-spec approval in the active conversation' \
-  'project approval is an active-conversation stop'
+  'pre-save drift read → one bounded sync → exact content read-back → receipt/read-back' \
+  'project approval precedes save and read-back precedes receipt'
 assert_literal "$BUILD_SKILL" \
   'projectSpecApprovalRecord' \
   'project approval is recorded in Linear'
 assert_literal "$BUILD_SKILL" \
-  'Plan →' \
-  'planning follows project approval'
+  'draft delegated Plan/Harden locally with zero provider calls' \
+  'planning is provider-free before approval'
 assert_literal "$BUILD_SKILL" \
-  'candidate strict sequential direct-issue chain' \
-  'delegated planning returns a strict candidate'
-assert_literal "$BUILD_SKILL" \
-  'performs no provider read or mutation' \
-  'delegated planning does not mutate Linear'
-assert_literal "$BUILD_SKILL" \
-  'execution-plan approval in the active conversation' \
-  'plan approval is an active-conversation stop'
+  'complete exact execution plan and approve' \
+  'complete plan is displayed before approval'
 assert_literal "$BUILD_SKILL" \
   'executionPlanApprovalRecord' \
   'plan approval is recorded in Linear'
@@ -70,25 +64,25 @@ assert_literal "$PROCEDURE" \
   'one direct project issue per current increment' \
   'plan graph has one direct issue per increment'
 assert_literal "$PROCEDURE" \
-  'direct project membership and no parent/container relation' \
-  'increment issues have no wrapper hierarchy'
-assert_literal "$PROCEDURE" \
   'complete executor-ready issue descriptions' \
   'increment issues contain executable plans'
 assert_literal "$PROCEDURE" \
-  'Independently read the complete relation set back' \
+  'independently read the complete relation set' \
   'native dependencies require complete read-back'
 assert_literal "$CONTEXT" \
-  'Gate 1 requires an independently read complete project snapshot' \
-  'project approval binds an exact canonical revision'
+  'That exact snapshot is gate 1' \
+  'gate 1 starts from one admitted exact baseline'
 assert_literal "$CONTEXT" \
-  'Gate 2 requires complete exact issue fingerprints' \
-  'execution approval binds the complete direct issue graph'
+  'Delegated Plan and Harden then make zero provider reads and writes' \
+  'gate 2 drafting has no intermediate provider cycle'
+assert_literal "$AUTHORITY" \
+  'only after that exact content read-back, record the matching' \
+  'receipt creation follows exact content read-back'
 assert_literal "$AUTHORITY" \
   'Linear projects and issues are canonical product records for `woostack-build`' \
   'shared contract makes Build records canonical'
 assert_literal "$AUTHORITY" \
-  'Graphite, and canonical GitHub reads prove source, ancestry, PR, review, and merge facts.' \
+  'Git, Graphite, and canonical GitHub' \
   'source-control truth remains separate'
 
 finish

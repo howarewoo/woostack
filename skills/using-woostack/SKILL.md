@@ -61,27 +61,25 @@ user explicitly asks for that behavior or the loaded task-specific skill require
 of an approved workflow.
 
 **Artifact invariant:** Linear is the canonical product record for builds and, after root-cause
-proof, fixes. A build requires one exact project containing the complete current high-level
-specification plus one direct project issue per increment containing executor-ready steps; native
-issue dependencies encode the DAG. After proof, a Fix requires one exact project containing its
-complete diagnosis and specification plus a strict direct-issue plan. Build creates its project
-from validated defaults when the caller supplies none; Fix creates its project and direct issues
-after proof when exact records were not supplied.
+proof, project-backed fixes. Each uses one exact project, one direct issue per execution increment,
+native issue dependencies, and two exact responsible-user approval events.
 
-The responsible user approves exact independently read content revisions. Build and Fix each have
-two gates: project-spec revision, then complete issue/dependency revision set. Those exact approval
-events authorize only their matching workflow transition. Linear assignment,
-status, labels, or content alone never authorize work, and Linear never replaces direct
-Git/Graphite/GitHub source-control evidence.
+After exact baseline admission, gated Ideate, Harden, and Build/Fix-delegated Plan work uses a
+permission-restricted run manifest and performs no intermediate provider cycles. Each active Ask
+shows the complete exact local content; approval precedes the one bounded save, exact content
+read-back precedes the receipt, and exact receipt/read-back precedes gate clearance. Standalone Plan
+keeps its direct synchronization unchanged. Follow the
+[Linear artifact contract](../woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest)
+for the detailed causal and recovery contract.
 
-Other workflows remain artifact-optional. `/woostack-init` may make authenticated read-only setup
-calls through the official Linear MCP to validate non-secret defaults; it cannot select persistence,
-read artifact content, or write. `woostack-change` never contacts Linear. Tracked policy supplies
-validated defaults only after a workflow selects or requires Linear and never authorizes unrelated
-provider access. Every mutation uses the official MCP and independent read-back. Explicit build or
-project-backed Fix abandonment closes the exact project through configured canceled status/read-back;
-source issues are preserved. Handoff, replanning, and blockers leave project status unchanged. Follow the
-[Linear artifact contract](../woostack-init/references/artifact-backends.md).
+Linear assignment, status, labels, content, or an unreceipted response never authorizes work, and
+Linear never replaces direct Git/Graphite/GitHub source-control evidence. Other workflows remain
+artifact-optional. `/woostack-init` may make authenticated read-only setup calls through the
+official Linear MCP to validate non-secret defaults; it cannot select persistence, read development
+artifact content, or write. `woostack-change` never contacts Linear. Explicit Build or
+project-backed Fix abandonment cleans the run manifest and closes the exact project through
+configured canceled status/read-back; source issues are preserved. Handoff, replanning, and
+blockers leave project status unchanged.
 
 
 ## Command Routing

@@ -37,25 +37,24 @@ def forbid(name, pattern):
 
 for needle in (
     "## Fixed chain",
-    "resolve/create canonical project",
-    "Ideate",
-    "Harden",
-    "project-spec approval in the active conversation",
-    "execution-plan approval in the active conversation",
+    "admit gate 1 baseline",
+    "draft Ideate/Harden locally with zero provider calls",
+    "display complete exact project specification and approve",
+    "pre-save drift read",
+    "one bounded sync",
+    "exact content read-back",
+    "receipt/read-back",
+    "manifest cleanup",
     "normal Execute",
     "## Exactly two approval stops",
-    "owns exactly these two stops",
     "projectSpecApprovalRecord",
     "executionPlanApprovalRecord",
-    "recorded and independently read back in Linear",
-    "no artifact-free fallback",
     "candidate strict sequential direct-issue chain",
     "performs no provider read or mutation",
     "Build always invokes",
     "Build never merges",
     "last verified boundary",
     "repository association",
-    "canonical fingerprints",
 ):
     require("build", needle)
 
@@ -63,60 +62,121 @@ require("build", "name starts with `[Build] `")
 require("build", "Supplied projects retain their existing names")
 require("context", "name starts with `[Build] `")
 for needle in (
-    "Approval Ask presentation",
-    "gate 1 displays only the",
-    "exact canonical Linear project link",
-    "gate 2 displays only the",
-    "exact relevant direct-issue links",
-    "Do not paste any project, specification, issue, or dependency body",
-    "canonical fingerprint",
-    "dependency tuple",
-    "read-back payload",
-    "untrusted, non-authoritative pointers",
+    "#### Run-scoped gated draft manifest",
+    "exact Linear baseline",
+    "host OS temporary-directory facility",
+    "owner-only `0700`",
+    "owner read/write `0600`",
+    "atomically renames it over the manifest",
+    "stableTaskMappings",
+    "unresolvedQuestions",
+    "Ideate, both Harden passes, and Build/Fix-delegated Plan",
+    "zero Linear or other provider reads and writes",
+    "complete exact local content to be saved",
+    "not a summary or pointer-only presentation",
+    "responsible user's matching approval must occur before any draft content is saved",
+    "immediately re-read the exact Linear targets",
+    "exact content read-back",
+    "only after that exact content read-back",
+    "stable local task key to the one native issue ID",
+    "An unreceipted approval is consumed and cannot be replayed",
+    "different/restarted process",
+    "fresh complete Ask",
+    "Remove the manifest and its run-scoped temporary directory",
+    "local draft as the last approved Linear boundary",
+    "These Execute-era safety reads are unchanged",
 ):
     require("artifact", needle)
 
-for needle in (
-    "## Existing-description mutation invariant",
-    "Creation and mutation are separate contracts",
-    "complete intended description in the create payload",
-    "**Existing record:** never replace a full description",
-    "Build one smallest safe atomic patch",
-    "smallest exact text span that is unique in the current description",
-    "one readable Markdown section with a unique heading and unambiguous bounds (including EOF)",
-    "expected prior text/section",
-    "Never send a reconstructed whole description",
-    "Missing, duplicate, stale, unsupported, partial, or unknown",
-    "never retry the full",
-    "allocate a new identity",
-    "Afterward, completely independently re-read and verify",
-    "preservation of unrelated description content",
+for obsolete in (
+    r"gate 1 displays only the",
+    r"gate 2 displays only the",
+    r"Do not paste any project",
+    r"After each user reply.*synchronization cycle",
+    r"minimum serial read-patch-read",
 ):
-    require("artifact", needle)
-for name in ("procedure", "ideate", "harden", "plan"):
-    require(name, "existing-description mutation invariant")
+    forbid("artifact", obsolete)
+    forbid("build", obsolete)
+    forbid("ideate", obsolete)
 
-for name in ("build", "context", "procedure"):
-    require(name, "Approval Ask presentation")
-    require(name, "exact canonical Linear project link")
-    require(name, "exact relevant direct-issue links")
-    forbid(name, r"do not paste")
-    for pattern in (
-        r"present the complete",
-        r"present that exact specification",
-        r"present the exact sorted .*dependency",
-        r"present the exact issue-fingerprint .*dependency",
-    ):
-        forbid(name, pattern)
+for name in ("build", "context", "procedure", "ideate", "harden", "plan"):
+    require(name, "manifest")
+
+require("ideate", "makes no provider call")
+require("harden", "performs zero provider reads and writes")
+
+require("plan", "Standalone Plan")
+require("plan", "unchanged")
+require("plan", "When delegated by Build or Fix, stop before every provider read or synchronization")
 
 evals = json.loads((root / "skills/woostack-build/evals/evals.json").read_text())
 eval_ids = {case["id"] for case in evals["cases"]}
 for expected in (
-    "renders-link-only-project-spec-ask",
-    "renders-link-only-execution-plan-ask",
+    "renders-complete-project-spec-ask",
+    "renders-complete-execution-plan-ask",
+    "blocks-unreceipted-approval-replay",
+    "enforces-run-manifest-boundaries",
+    "blocks-unverified-manifest-cleanup",
 ):
     if expected not in eval_ids:
         failures.append(f"build: missing eval {expected}")
+
+required_increment_fields = {
+    "stableTaskKey",
+    "url",
+    "ordinal",
+    "outcome",
+    "title",
+    "description",
+    "scope",
+    "nonGoals",
+    "targets",
+    "steps",
+    "acceptanceCriteria",
+    "verification",
+    "effects",
+    "risks",
+    "blockers",
+    "stopMarker",
+    "graphiteParent",
+    "changedLineEstimate",
+    "sizeRationale",
+    "fingerprint",
+}
+for label, eval_path in (
+    ("build", root / "skills/woostack-build/evals/evals.json"),
+    ("fix", root / "skills/woostack-fix/evals/evals.json"),
+):
+    cases = json.loads(eval_path.read_text())["cases"]
+    plan_case = next(
+        (case for case in cases if case["id"] == "renders-complete-execution-plan-ask"),
+        None,
+    )
+    if plan_case is None:
+        failures.append(f"{label}: missing complete execution-plan Ask eval")
+        continue
+    increments = plan_case["assertions"][0]["expected"]["approvalAsk"]["increments"]
+    for index, increment in enumerate(increments, start=1):
+        missing = required_increment_fields - increment.keys()
+        if missing:
+            failures.append(
+                f"{label}: increment {index} approval Ask misses {sorted(missing)}"
+            )
+
+manifest_fixture = json.loads(
+    (root / "skills/woostack-build/evals/fixtures/manifest-boundaries.json").read_text()
+)
+manifest_ids = [scenario["id"] for scenario in manifest_fixture["scenarios"]]
+expected_manifest_ids = [
+    "valid-atomic-update",
+    "broad-directory-permissions",
+    "symlinked-manifest",
+    "foreign-owner",
+    "process-identity-mismatch",
+    "non-atomic-replacement",
+]
+if manifest_ids != expected_manifest_ids:
+    failures.append("build: manifest boundary fixture is incomplete or out of order")
 
 
 fixture = json.loads(
@@ -129,18 +189,18 @@ if fixture["independentRead"]["name"] != expected_project_name:
     failures.append("build: independent read does not verify the prefixed project name")
 
 chain_pattern = re.compile(
-    r"resolve/create canonical project\s*→\s*"
-    r"Ideate\s*→\s*"
-    r"Harden\s*→\s*"
-    r"project-spec approval in the active conversation.*?→\s*"
-    r"Plan\s*→\s*"
-    r"Harden\s*→\s*"
-    r"execution-plan approval in the active conversation.*?→\s*"
-    r"normal Execute",
+    r"resolve/create canonical project and admit gate 1 baseline\s*→\s*"
+    r"draft Ideate/Harden locally with zero provider calls\s*→\s*"
+    r"display complete exact project specification and approve\s*→\s*"
+    r"pre-save drift read.*?receipt/read-back\s*→\s*"
+    r"draft delegated Plan/Harden locally with zero provider calls\s*→\s*"
+    r"display complete exact execution plan and approve\s*→\s*"
+    r"pre-save drift read.*?receipt/read-back\s*→\s*"
+    r"manifest cleanup\s*→\s*normal Execute",
     re.S,
 )
 if not chain_pattern.search(text["build"]):
-    failures.append("build: fixed chain is missing or out of order")
+    failures.append("build: deferred synchronization chain is missing or out of order")
 
 for pattern in (
     r"terminal choices",
@@ -157,7 +217,7 @@ for pattern in (
 ):
     forbid("build", pattern)
 
-require("ideate", "one exact Linear project")
+require("ideate", "permission-restricted run-scoped JSON manifest")
 require(
     "ideate",
     "Ask every currently known independent question together in one clearly numbered batch",
@@ -168,16 +228,13 @@ require(
 )
 require(
     "ideate",
-    "A later batch may contain only questions that become dependent after verified answers or questions that remained unresolved or ambiguous in an earlier batch",
+    "atomically replace the manifest draft once",
 )
-require(
-    "ideate",
-    "After each user reply that contains one or more verified decisions, perform exactly one synchronization cycle",
-)
-require("ideate", "minimum serial read-patch-read sequence")
-require("ideate", "For each required region in order")
-forbid("ideate", r"Ask \*\*one question per message\*\*")
-require("harden", "writes only what the user validates")
+require("ideate", "makes no provider call")
+forbid("ideate", r"synchronization cycle")
+forbid("ideate", r"read-patch-read")
+require("harden", "performs zero provider reads and writes")
+require("harden", "atomically replace the affected manifest draft content")
 require("plan", "Delegated planning performs no provider read or mutation")
 require("plan", "strict sequential chain")
 

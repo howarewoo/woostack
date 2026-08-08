@@ -240,21 +240,25 @@ test('selected Linear capability is proved without reading repository credential
     'skills/woostack-build/SKILL.md',
     'skills/woostack-fix/SKILL.md',
   ]) {
-    assert.match(read(relativePath), /shared[\s\S]{0,80}Linear artifact contract/i,
-      `${relativePath}: must load the shared artifact contract`);
+    assert.match(read(relativePath), /(?:shared[\s\S]{0,80})?Linear artifact contract/i,
+      `${relativePath}: must load the Linear artifact contract`);
   }
 });
 
-test('selected persistence fails safely and every mutation is read back', () => {
+test('gated drafts defer provider synchronization until complete approval', () => {
   const contract = read('skills/woostack-init/references/artifact-backends.md').replace(/\s+/g, ' ');
-  assert.match(contract, /Missing required capability blocks the selected or required operation/i);
-  assert.match(contract, /Fix requires complete fix-plan, relation, and approval-event read-back before dispatch/i);
-  assert.match(contract, /After every mutation, perform a new independent complete read/i);
+  assert.match(contract, /host OS temporary-directory facility.*0700.*0600/i);
+  assert.match(contract, /zero Linear or other provider reads and writes/i);
+  assert.match(contract, /complete exact local content to be saved, not a summary or pointer-only presentation/i);
+  assert.match(contract, /approval must occur before any draft content is saved/i);
+  assert.match(contract, /only after that exact content read-back, record/i);
+  assert.match(contract, /unreceipted approval is consumed and cannot be replayed/i);
+  assert.match(contract, /Execute-era safety reads are unchanged/i);
 
   const procedure = read('skills/woostack-build/references/linear-procedure.md').replace(/\s+/g, ' ');
   assert.match(procedure, /one direct project issue per current increment/i);
-  assert.match(procedure, /independently read native identity, content, project membership, parent absence/i);
-  assert.match(procedure, /independently read the complete relation set back/i);
+  assert.match(procedure, /independently read every issue's native identity, stable-key mapping/i);
+  assert.match(procedure, /independently read the complete relation set/i);
 });
 
 test('abandonment closes only project-backed workflows and preserves source issues', () => {
@@ -314,31 +318,31 @@ test('only exact native fix approval authorizes repository work', () => {
     /Linear is required[\s\S]{0,100}but never\s+replaces direct repository delivery evidence/i,
     'concepts must preserve repository delivery authority');
   assertContains('skills/using-woostack/SKILL.md',
-    /responsible user[\s\S]{0,300}approval\s+events/i,
+    /responsible[-\s]user[\s\S]{0,300}approval\s+events/i,
     'using-woostack must require responsible-user approval events');
   assertContains('skills/using-woostack/SKILL.md',
-    /(?:matching workflow gate|exact (?:content|project|issue) (?:revision|record)|project-spec(?:ification)? revision|execution-plan revision)/i,
-    'using-woostack must bind approval authority to one exact content revision');
+    /complete exact local content|displayed-content approval identity/i,
+    'using-woostack must bind approval authority to one exact displayed content revision');
 
   assertContains('skills/woostack-init/references/artifact-backends.md',
     /responsible[-\s]user(?:'s)?[\s\S]{0,800}(?:approvalEventRef|approval\s+event|explicit approval comment|native approval\s+event)/i,
     'artifact contract must require the responsible user native approval event');
   assertContains('skills/woostack-init/references/artifact-backends.md',
-    /(?:matching workflow gate|exact (?:content|project|issue) (?:revision|record)|project-spec(?:ification)? revision|execution-plan revision)/i,
-    'artifact contract must bind approval authority to one exact content revision');
+    /complete exact local content|displayedApprovalIdentity/i,
+    'artifact contract must bind approval authority to one exact displayed content revision');
 
   assertContains('skills/woostack-fix/SKILL.md',
-    /responsible user explicitly approves that Ask[\s\S]{0,180}projectSpecApprovalRecord/i,
-    'Fix must bind project-spec approval to the responsible user');
+    /responsible user explicitly approves that exact display[\s\S]{0,300}projectSpecApprovalRecord/i,
+    'Fix must bind displayed project-spec approval to its ordered receipt');
   assertContains('skills/woostack-fix/SKILL.md',
-    /responsible user explicitly approves that Ask[\s\S]{0,180}executionPlanApprovalRecord/i,
-    'Fix must bind execution-plan approval to the responsible user');
+    /### 5\. Execution-plan approval[\s\S]{0,2000}executionPlanApprovalRecord/i,
+    'Fix must bind displayed execution-plan approval to its ordered receipt');
   assertContains('skills/woostack-fix/SKILL.md',
-    /exact canonical Linear project link[\s\S]{0,220}exact fingerprint/i,
-    'Fix must bind project approval to the exact canonical project fingerprint');
+    /Display the complete exact project specification[\s\S]{0,260}exact content[\s\S]{0,100}projectSpecApprovalRecord/i,
+    'Fix must show complete project content and read it back before receipt');
   assertContains('skills/woostack-fix/SKILL.md',
-    /exact relevant direct-issue links[\s\S]{0,220}complete independently read issue and dependency sets/i,
-    'Fix must bind execution approval to the exact independently read plan set');
+    /Display the complete exact ordered direct-issue contracts[\s\S]{0,350}stable task keys to native issue IDs/i,
+    'Fix must show the complete plan and verify native identity mapping');
 });
 
 test('authored setup order keeps initialization and the external-engineer guide sequenced', () => {

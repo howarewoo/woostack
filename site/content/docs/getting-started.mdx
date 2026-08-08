@@ -82,10 +82,12 @@ tokens, or authorization headers in repository config, prompts, logs, or generat
 
 The `linear` configuration supplies validated defaults after a workflow requires or selects Linear.
 Build uses them to create its canonical project when no exact project was supplied. After proof, a
-new Fix uses them to create its project and direct issues when exact records were not supplied.
-Policy cannot authorize a provider write. Before access, the workflow verifies canonical repository
-association and workspace/team; after every mutation or approval event, it independently reads the
-exact record back.
+new Fix uses them to create its canonical project and direct issues. Policy cannot authorize a
+provider write. Before access, the workflow verifies canonical repository association and
+workspace/team. Gated Build and project-backed Fix then admit an exact Linear baseline, keep
+question and hardening changes in a secure local draft, display the complete proposed content for
+approval, and only afterward perform one bounded save. Exact content or graph read-back precedes
+the matching approval receipt; both are independently read before the gate clears.
 
 Build uses one project for the high-level specification, one direct issue per increment, and native
 issue dependencies. Fix uses one project for the complete specification plus a strict direct-issue

@@ -20,80 +20,78 @@ Build never merges.
 
 Build always resolves the exact supplied project or creates exactly one project whose name starts
 with `[Build] ` and otherwise derives from the accepted goal. Supplied projects retain their
-existing names. Build uses validated repository/workspace/team defaults before starting the
-conversation and has no artifact-free fallback. Before acting, load and apply the shared
+existing names. Build verifies the canonical repository association, then uses validated
+repository/workspace/team defaults before starting the conversation and has no artifact-free
+fallback. Before acting, load and apply the shared
 [Linear artifact contract](../woostack-init/references/artifact-backends.md), the
 [repository/project context procedure](references/linear-context.md), and the
-[Linear synchronization procedure](references/linear-procedure.md). Those references own
-repository association, provider capability, stable identities, canonical fingerprints,
-independent read-back, and truthful blocker behavior; this wrapper does not restate them.
+[Linear synchronization procedure](references/linear-procedure.md). The shared artifact contract is
+the single authority for baseline admission, the permission-restricted run manifest, complete
+displayed-content approval identity, approval-before-save ordering, one bounded synchronization,
+native identity mapping, drift/failure recovery, cleanup, and unchanged Execute safety reads. This
+wrapper does not restate those rules.
 
 ## Fixed chain
 
 ```text
-resolve/create canonical project →
-Ideate →
-Harden →
-project-spec approval in the active conversation, recorded and independently read back in Linear →
-Plan →
-Harden →
-execution-plan approval in the active conversation, recorded and independently read back in Linear →
-normal Execute
+resolve/create canonical project and admit gate 1 baseline →
+draft Ideate/Harden locally with zero provider calls →
+display complete exact project specification and approve →
+pre-save drift read → one bounded sync → exact content read-back → receipt/read-back →
+draft delegated Plan/Harden locally with zero provider calls →
+display complete exact execution plan and approve →
+pre-save drift read → one bounded sync → exact graph read-back → receipt/read-back →
+manifest cleanup → normal Execute
 ```
 
-Invoke [`woostack-ideate`](../woostack-ideate/SKILL.md) for exhaustive user-verified decisions
-and synchronization of the evolving project specification. Ideate has no approval gate. Invoke
-[`woostack-harden`](../woostack-harden/SKILL.md) to reconcile bounded repository evidence with
-that specification; hardening owns no approval gate.
+Invoke [`woostack-ideate`](../woostack-ideate/SKILL.md) for exhaustive user-verified decisions and
+[`woostack-harden`](../woostack-harden/SKILL.md) to reconcile bounded repository evidence. Both work
+only in the shared run-scoped manifest after baseline admission, make no provider call while gated,
+and own no approval gate.
 
-After the first approval, invoke [`woostack-plan`](../woostack-plan/SKILL.md) with the exact
-approved project fingerprint and project identity. When delegated by Build, Plan returns only a
-candidate strict sequential direct-issue chain and performs no provider read or mutation. Build
-then invokes Harden again, admits that candidate, and uses the linked synchronization procedure
-to write and independently read back the final direct issues and native dependencies.
+After the first receipt reads back exactly, invoke
+[`woostack-plan`](../woostack-plan/SKILL.md) with the exact approved project fingerprint and project
+identity. When delegated by Build, Plan returns only a candidate strict sequential direct-issue
+chain and performs no provider read or mutation. Harden admits the candidate into the manifest.
+Only after the responsible user approves the complete exact displayed plan does Build perform the
+shared single bounded post-approval synchronization.
 
 ## Exactly two approval stops
 
 Build owns exactly these two stops, in this order, and no other approval or routing stop:
 
-Both stops use the shared
-[Approval Ask presentation rule](../woostack-init/references/artifact-backends.md#approval-ask-presentation);
-Build owns only the gate-specific transition and evidence below.
+Both stops obey the shared
+[gated manifest and displayed-content approval contract](../woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest);
+Build owns only the gate-specific transition:
 
-1. **Project specification.** Present gate 1's exact canonical Linear project link under the shared
-   rule while retaining the complete independently read project and exact fingerprint internally.
-   Continue only after the responsible user explicitly approves that Ask. Record the shared
-   `projectSpecApprovalRecord` in Linear, then independently read back the record and the exact
-   project before proceeding.
-2. **Execution plan.** Present gate 2's exact relevant direct-issue links under the shared rule while
-   retaining the complete independently read issue and dependency sets internally. Continue only
-   after the responsible user explicitly approves that Ask. Record the shared
-   `executionPlanApprovalRecord` in Linear, then independently read back both approval records, the
-   project, direct issues, and admitted dependencies.
+1. **Project specification.** Display the complete exact local specification and its approval
+   identity. After explicit responsible-user approval, apply the shared immediate drift read,
+   bounded save, exact content read-back, receipt write, and receipt/read-back order. Continue only
+   when `projectSpecApprovalRecord` and its referenced project match exactly.
+2. **Execution plan.** Display every complete exact direct-issue contract and dependency tuple.
+   After explicit responsible-user approval, apply the same order, including stable local-task-key
+   to native-issue-ID mapping. Continue only when `executionPlanApprovalRecord`, both shared
+   receipts, and the referenced project graph match exactly.
+
+No draft provider cycle occurs before either approval. A baseline or displayed-content mismatch,
+process/manifest loss, or any failure before the exact receipt read-back invalidates the approval
+and requires a fresh complete Ask. An unreceipted approval cannot be replayed. The local draft never
+replaces the last Linear-approved boundary.
 
 The shared [approval-record contract](../woostack-init/references/artifact-backends.md#shared-approval-records)
-defines record fields, active-conversation requirements, receipt identity, causal order, and
-read-back evidence. Conversation approval without its Linear receipt, a receipt without the
-matching active-conversation approval, status, assignment, labels, content, read-back alone, or an
-agent-authored event never clears a stop.
-
-Apply the shared [invalidation rules](../woostack-init/references/artifact-backends.md#shared-approval-records):
-a material specification change invalidates both records and returns to specification hardening; a
-material direct-issue or dependency change invalidates only `executionPlanApprovalRecord` and
-returns to graph hardening. Reconcile the same canonical records, read them back, and obtain fresh
-active-conversation approval before continuing.
+defines record fields and invalidation. A material specification change invalidates both records; a
+material direct-issue or dependency change invalidates only `executionPlanApprovalRecord`.
 
 ## Execute transition
 
-After the second approval has been recorded and independently read back, Build always invokes
-normal [`woostack-execute`](../woostack-execute/SKILL.md) with the exact project identity,
-`projectSpecApprovalRecord`, `executionPlanApprovalRecord`, canonical fingerprints, direct-issue
-set, native dependencies, and frozen repository base. Execute owns implementation, focused
-verification, Linear progress evidence, and repository delivery under its own contract. Build does
-not select another execution mode, create a local authority, or merge.
+After the second approval has completed the ordered exact read-backs and the run manifest is
+cleaned up, Build always invokes normal [`woostack-execute`](../woostack-execute/SKILL.md) with the
+exact project identity, `projectSpecApprovalRecord`, `executionPlanApprovalRecord`, canonical
+fingerprints, direct-issue set, native dependencies, and frozen repository base. Execute owns
+implementation, focused verification, Linear progress evidence, and repository delivery under its
+own contract. Its pre-dispatch, handback, redispatch, pre-commit, and next-increment reads remain
+unchanged. Build does not select another execution mode, create a local authority, or merge.
 
-Any required Linear read, relation pagination, mutation, approval receipt, or independent
-read-back failure blocks at the last verified boundary with no local, conversational, cached, or
-alternate-provider substitution. Artifact records never replace Git/Graphite/GitHub evidence or
-grant repository permission. This wrapper creates no competing project, plan record, approval
-procedure, or delivery path; the linked contracts are authoritative.
+Any required provider or manifest boundary failure blocks at the last verified boundary with no
+local, conversational, cached, or alternate-provider substitution. Artifact records never replace
+Git/Graphite/GitHub evidence or grant repository permission.
