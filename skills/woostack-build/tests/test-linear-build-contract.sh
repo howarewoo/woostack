@@ -76,6 +76,26 @@ for needle in (
 ):
     require("artifact", needle)
 
+for needle in (
+    "## Existing-description mutation invariant",
+    "Creation and mutation are separate contracts",
+    "complete intended description in the create payload",
+    "**Existing record:** never replace a full description",
+    "Build one smallest safe atomic patch",
+    "smallest exact text span that is unique in the current description",
+    "one readable Markdown section with a unique heading and unambiguous bounds (including EOF)",
+    "expected prior text/section",
+    "Never send a reconstructed whole description",
+    "Missing, duplicate, stale, unsupported, partial, or unknown",
+    "never retry the full",
+    "allocate a new identity",
+    "Afterward, completely independently re-read and verify",
+    "preservation of unrelated description content",
+):
+    require("artifact", needle)
+for name in ("procedure", "ideate", "harden", "plan"):
+    require(name, "existing-description mutation invariant")
+
 for name in ("build", "context", "procedure"):
     require(name, "Approval Ask presentation")
     require(name, "exact canonical Linear project link")
@@ -154,7 +174,8 @@ require(
     "ideate",
     "After each user reply that contains one or more verified decisions, perform exactly one synchronization cycle",
 )
-require("ideate", "one read, one write, and one independent read-back cycle")
+require("ideate", "minimum serial read-patch-read sequence")
+require("ideate", "For each required region in order")
 forbid("ideate", r"Ask \*\*one question per message\*\*")
 require("harden", "writes only what the user validates")
 require("plan", "Delegated planning performs no provider read or mutation")

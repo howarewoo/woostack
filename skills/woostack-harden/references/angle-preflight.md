@@ -3,7 +3,7 @@
 Use this short pre-flight while hardening an admitted exact Linear project or direct-issue plan. It
 is a prompt selector, not an approval gate or a second review rubric. The canonical angle names and
 configuration live in [`woostack-review`'s `VALID_ANGLES`](../../woostack-review/scripts/load-config.sh)
-and the authoritative rubrics live in [`woostack-review/prompts/angles/`](../../woostack-review/prompts/angles/).
+and the authoritative rubrics live under `skills/woostack-review/prompts/angles/`.
 Link to those lenses; do not copy their checklists here.
 
 ## Prompts

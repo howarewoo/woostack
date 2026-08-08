@@ -56,19 +56,17 @@ into a decision without asking.
 After each user reply that contains one or more verified decisions, perform exactly one synchronization
 cycle before asking the next batch:
 
-1. Re-read the exact project and current revision.
-2. Write one smallest complete high-level specification update containing only the explicit,
-   unambiguous decisions in that reply. Preserve unrelated human-authored content and do not write
-   placeholders, inferred defaults, or a competing local artifact.
-3. Independently read the exact project back, verify its identity/content/revision, and compute the
-   canonical project-specification fingerprint.
+1. Determine the minimum ordered set of non-overlapping description spans or sections needed to
+   persist only the explicit, unambiguous decisions in that reply.
+2. For each required region in order, re-read the exact project and current revision, apply one
+   atomic patch under the shared [existing-description mutation invariant](../woostack-init/references/artifact-backends.md#existing-description-mutation-invariant), then independently read the exact project back and verify its identity, content, and revision before continuing. Preserve unrelated human-authored content and do not write placeholders, inferred defaults, or a competing local artifact.
+3. From the final independent read-back, compute the canonical project-specification fingerprint.
 
 Partial or ambiguous answers remain unresolved: persist only explicit, unambiguous decisions from the
 reply and carry every unresolved item into a later eligible batch. A reply with no explicit,
 unambiguous verified decision causes no synchronization write; keep its questions unresolved. Do not
-start the next batch until the one read, one write, and one independent read-back cycle for a reply
-containing verified decisions is complete. Continue the dialogue only from that independently read
-content.
+start the next batch until the minimum serial read-patch-read sequence for every required region is
+complete. Continue the dialogue only from the final independently read content.
 
 If the read, mutation, pagination, identity, revision, or read-back is missing, foreign, ambiguous,
 conflicting, or unknown, stop at the last verified boundary. Do not substitute conversation content
