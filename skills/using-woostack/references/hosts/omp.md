@@ -6,6 +6,9 @@ Use this adapter inside an active Oh My Pi session. Discover the actual `task`, 
 capabilities available in the session. Repository rules and the selected workflow skill remain
 authoritative. Linear remains optional for non-Fix workflows and for Fix diagnosis before root-cause proof; a proved new Fix requires the configured official MCP project/issue path before implementation.
 
+When a woostack skill is invoked, rename the active session with a concise title derived from the
+user's current goal. Do not use the slash-command name as the title.
+
 ## Subagent spawn
 
 OMP's `task` primitive accepts a worker selector but no per-call model/tier/effort argument.

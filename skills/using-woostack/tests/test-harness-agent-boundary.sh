@@ -75,6 +75,11 @@ agents = read("AGENTS.md")
 readme = read("README.md")
 hermes = read("site/content/docs/hermes.mdx")
 
+require(omp, r"rename the active session.*current goal.*slash-command",
+        "OMP guidance does not rename sessions from the current goal")
+forbid(using, r"rename the active session|slash-command name",
+       "using-woostack contains OMP-specific session naming guidance")
+
 for text, label in ((using, "using-woostack"), (omp, "OMP guidance"),
                     (doctor, "doctor"), (review, "Review"),
                     (orchestrator, "Review orchestrator")):
