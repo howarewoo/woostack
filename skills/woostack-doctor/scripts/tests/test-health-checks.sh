@@ -35,9 +35,9 @@ if command -v jq >/dev/null 2>&1; then
     issueStates: {
       planned: "Backlog",
       executing: "In Progress",
-      inReview: "In Review",
+      inReview: "In Progress",
       done: "Done",
-      blocked: "Blocked"
+      blocked: "In Progress"
     }
   }' "$r2/.woostack/config.json" >"$tmp"
   mv "$tmp" "$r2/.woostack/config.json"

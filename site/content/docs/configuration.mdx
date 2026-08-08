@@ -121,12 +121,26 @@ Missing required capability blocks at the retained safe boundary; selected stand
 failure blocks only that optional operation. Before root-cause proof, Fix makes no provider call.
 `woostack-change` ignores the `linear` object.
 
-`linear.projectStatuses.started` names the native status used when Execute observes any direct issue
-in `In Progress` or `In Review`. It resolves to exactly one status in the selected workspace/team
-and must have native category `started`. Execute updates only the exact project's status, with a
-stable mutation identity and independent read-back; an exact match is an idempotent no-op. If all
-direct issues are `Backlog`/`Todo`, synchronization waits until the selected issue transitions
-to `In Progress` and reads back before repository mutation.
+`linear.projectStatuses.started` names the native project status used when Execute observes any
+direct issue matching the configured `linear.issueStates.executing` or `linear.issueStates.inReview`
+mapping by stable native identity and category. It resolves to exactly one status in the selected
+workspace/team and must have native category `started`. Execute updates only the exact project's
+status, with a stable mutation identity and independent read-back; an exact match is an idempotent
+no-op. If all direct issues are `Backlog`/`Todo`, synchronization waits until the selected issue
+transitions to the resolved executing mapping and reads back before repository mutation.
+
+`linear.issueStates.executing` and `linear.issueStates.inReview` name the native issue states used by
+Execute for active and delivered lifecycle evidence. Execute resolves both mappings to exactly one
+native state in the selected workspace/team and compares stable ID, name, and category rather than
+using a literal native status name as authority. The resolved `inReview` mapping must have native
+category `started`. The full independently read delivery checkpoint, not state alone, proves a
+delivered issue and gates teardown, resume, and sibling progression.
+
+Default-only teams without a custom review status should set `linear.issueStates.inReview` to
+`In Progress`, which may be the same native state as `executing`. Existing teams may keep a valid
+custom `In Review` mapping. Manual migration changes only the mapped value in the repository
+configuration; workflows never create, rename, or substitute Linear statuses, and no automatic
+provider or configuration migration occurs.
 
 `linear.projectStatuses.canceled` names the native status used to close an existing project-backed
 Build, Fix, or standalone Plan workflow after explicit abandonment. It must resolve to exactly one
