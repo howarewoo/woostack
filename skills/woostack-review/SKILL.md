@@ -41,6 +41,10 @@ coder. The controller owns exact-PR admission, receipt verification, accepted fi
 posting, and any separately resolved review authority. Workers cannot edit source/tests, post to
 GitHub, access Linear or controller credentials, accept work, or merge.
 
+Review admission is valid for the exact current PR head and diff without Graphite parent-head
+synchronization. Review does not classify parent conflicts; Sweep alone owns the canonical
+mergeability conflict gate.
+
 Before host-dependent dispatch, load the current
 [host reference](../using-woostack/references/hosts/README.md). Missing required selectors or
 identity isolation blocks before the first worker; do not silently substitute another profile or

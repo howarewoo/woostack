@@ -28,13 +28,17 @@ empty range reports `nothing to sweep` and is not a clean result.
 2. At binding, record each exact PR worktree as `sweep-owned` or `caller-owned` with controller
    ownership from explicit controller input; never infer ownership from paths, branch names,
    repository state, or checkout shape.
-3. Build the ordered in-range branch set from Graphite ancestry and read every submitted PR's
-   complete current head/base/state/check/review/thread data.
-4. Reject an unsubmitted branch, duplicate PR, moved head, cycle, gap, ambiguous membership, or any
-   disagreement among Git, Graphite, and GitHub. Never submit a missing PR.
+3. Build the ordered in-range branch set from Graphite ancestry, resolve each Graphite parent
+   identity and ancestry membership separately from parent-head synchronization, and read every
+   submitted PR's complete current head/base/state/check/review/thread data.
+4. Reject an unsubmitted branch, duplicate PR, moved head, cycle, gap, ambiguous membership, or
+   disagreement among Git, Graphite, and GitHub about PR identity, head/base, or ancestry
+   membership. A parent-head synchronization mismatch is informational, not an identity
+   disagreement.
 5. For each PR, bind the canonical PR number, head and base SHAs/branches, changed paths, complete
-   thread snapshot, and task contract. An external, unexplained, or unverified head or thread-set
-   change invalidates that round; verified Address/restack transitions are governed by the explicit
+   thread snapshot, task contract, and canonical GitHub mergeability for the exact PR/current
+   Graphite parent pair. An external, unexplained, or unverified head or thread-set change
+   invalidates that round; verified Address/restack transitions are governed by the explicit
    round-outcome branch.
 6. Load `review_sweep.max_rounds` from `.woostack/config.json`; require a positive integer and
    default to `3` when absent. A malformed value warns and falls back to `3`. Bind that cap before
@@ -46,6 +50,17 @@ select the stack, expand scope, authorize a restack, clear a review, or request 
 ## Bottom-up PR loop
 
 Process each in-range PR from oldest dependency to tip. For each PR and each current head:
+
+Before Address or Review, apply the bound canonical GitHub mergeability gate for the exact
+PR/current Graphite parent pair. `MERGEABLE` permits exactly one canonical Review sequence and
+clean eligibility even when parent-head synchronization is stale. `CONFLICTING` enters the existing
+guarded restack/reconciliation boundary. Missing, partial, stale, ambiguous, or otherwise
+non-conclusive mergeability evidence, including `UNKNOWN`, blocks. Parent-head synchronization
+mismatch alone is informational, does not invalidate a round, and never triggers restack. Sweep owns
+this conflict gate; direct Review remains valid for an exact current head/diff without parent
+synchronization and does not classify conflicts.
+After every Address or restack head transition, re-read and re-bind canonical GitHub mergeability for the exact current PR/current Graphite parent pair before any subsequent Address, Review, or clean-eligibility decision; never carry forward a prior mergeability result. A missing, partial, stale, ambiguous, or otherwise non-conclusive re-read or re-bind blocks.
+
 
 1. **Address pre-existing threads.** Read the complete unresolved-thread snapshot before review. If
    nonempty, invoke [`woostack-address-comments`](../woostack-address-comments/SKILL.md) and require
@@ -92,7 +107,10 @@ A PR is clean only after its current head has completed the applicable Review/Ad
 no unresolved blocker or nit, and all replies/resolution reads are verified. For a changed head with
 zero blockers, the correction-only delta proof, focused verification, descendant restack, and complete
 head/base/ancestry/thread read-back are also required before the clean gate. A stack is ready only
-when every in-range submitted PR is clean and Graphite ancestry and heads are current.
+when every in-range submitted PR is clean, Graphite parent identity and ancestry membership are
+verified, and canonical GitHub mergeability for each exact PR/current parent pair is conclusive and
+`MERGEABLE`. Parent-head synchronization mismatch alone is informational, does not invalidate a
+round, and never triggers restack.
 
 ## Restack affected descendants
 
@@ -109,6 +127,7 @@ both PR intents, stage only resolved paths, and stop when a product or scope dec
 Afterward independently read every affected descendant's head/base/ancestry and re-run focused
 checks for conflict-touched behavior. Re-review each materially changed PR through its next bound
 round. Unknown mutation outcomes require complete discovery before retry.
+After every restack head transition, the affected PRs' complete read-back must include a fresh canonical GitHub mergeability re-read and re-bind for each exact current PR/current Graphite parent pair before any subsequent Address, Review, or clean-eligibility decision; never carry forward the pre-restack result.
 
 ## Worktree closeout
 
