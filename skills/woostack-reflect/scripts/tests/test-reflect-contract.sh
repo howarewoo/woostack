@@ -9,9 +9,6 @@ OUTPUT="$ROOT/skills/using-woostack/references/output-discipline.md"
 [ -f "$SKILL" ] || { echo "missing woostack-reflect skill" >&2; exit 1; }
 [ -f "$ROUTER" ] || { echo "missing using-woostack router" >&2; exit 1; }
 SKILL_TEXT="$(tr '\n' ' ' < "$SKILL" | tr -s ' ')"
-ROUTER_TEXT="$(tr '\n' ' ' < "$ROUTER" | tr -s ' ')"
-OUTPUT_TEXT="$(tr '\n' ' ' < "$OUTPUT" | tr -s ' ')"
-REFLECT_CANDIDATE_PREDICATE='the session already contains a concrete observed preventable instruction gap that could yield a durable instruction finding'
 for phrase in \
   'canonical owner of the candidate gate for the internal final-reply hook' \
   'An explicit `/woostack-reflect` invocation always runs exactly one Reflect pass.' \
@@ -49,58 +46,6 @@ do
     exit 1
   }
 done
-grep -Fq 'review the current active conversation through this invocation' "$ROUTER" || {
-  echo "woostack-reflect route has stale invocation wording" >&2
-  exit 1
-}
-grep -Fq '| `/woostack-reflect`' "$ROUTER" || {
-  echo "woostack-reflect is not publicly routed" >&2
-  exit 1
-}
-grep -Fq 'canonical candidate gate' <<< "$ROUTER_TEXT" || {
-  echo "router does not cross-link the canonical candidate gate" >&2
-  exit 1
-}
-grep -Fq "$REFLECT_CANDIDATE_PREDICATE" <<< "$ROUTER_TEXT" || {
-  echo "router omits the evaluable candidate predicate" >&2
-  exit 1
-}
-grep -Fq "$REFLECT_CANDIDATE_PREDICATE" <<< "$OUTPUT_TEXT" || {
-  echo "output discipline omits the evaluable candidate predicate" >&2
-  exit 1
-}
-grep -Fq 'no reflection headings' <<< "$ROUTER_TEXT" || {
-  echo "router does not encode the no-candidate path" >&2
-  exit 1
-}
-grep -Fq 'always runs exactly once' <<< "$ROUTER_TEXT" || {
-  echo "router does not preserve exactly-once explicit reflection" >&2
-  exit 1
-}
-grep -Fq 'canonical candidate' <<< "$OUTPUT_TEXT" || {
-  echo "output discipline does not cross-link the canonical candidate gate" >&2
-  exit 1
-}
-grep -Fq 'no reflection headings' <<< "$OUTPUT_TEXT" || {
-  echo "output discipline does not encode the no-candidate path" >&2
-  exit 1
-}
-grep -Fq 'always runs exactly once' <<< "$OUTPUT_TEXT" || {
-  echo "output discipline does not preserve exactly-once explicit reflection" >&2
-  exit 1
-}
-grep -Fq 'Keep both suggestion' <<< "$OUTPUT_TEXT" || {
-  echo "output discipline does not require clean suggestion headings" >&2
-  exit 1
-}
-grep -Fq 'No durable improvement identified.' "$OUTPUT" || {
-  echo "output discipline does not require the clean-result marker" >&2
-  exit 1
-}
-grep -Fq '[woostack-reflect](../../woostack-reflect/SKILL.md)' "$OUTPUT" || {
-  echo "output discipline does not cross-link woostack-reflect" >&2
-  exit 1
-}
 
 python3 - "$ROOT" <<'PY'
 import re
@@ -115,6 +60,27 @@ def read(path: str) -> str:
 def require(condition: bool, message: str) -> None:
     if not condition:
         raise SystemExit(message)
+
+contract_text = {
+    'router': re.sub(r"\s+", " ", read('skills/using-woostack/SKILL.md')),
+    'output discipline': re.sub(r"\s+", " ", read('skills/using-woostack/references/output-discipline.md')),
+}
+for source, phrase, message in [
+    ('router', 'review the current active conversation through this invocation', 'router has stale invocation wording'),
+    ('router', '| `/woostack-reflect`', 'woostack-reflect is not publicly routed'),
+    ('router', 'canonical candidate gate', 'router does not cross-link the canonical candidate gate'),
+    ('router', 'the session already contains a concrete observed preventable instruction gap', 'router omits the evaluable candidate predicate'),
+    ('output discipline', 'the session already contains a concrete observed preventable instruction gap', 'output discipline omits the evaluable candidate predicate'),
+    ('router', 'no reflection headings', 'router does not encode the no-candidate path'),
+    ('router', 'always runs exactly once', 'router does not preserve exactly-once explicit reflection'),
+    ('output discipline', 'canonical candidate', 'output discipline does not cross-link the canonical candidate gate'),
+    ('output discipline', 'no reflection headings', 'output discipline does not encode the no-candidate path'),
+    ('output discipline', 'always runs exactly once', 'output discipline does not preserve exactly-once explicit reflection'),
+    ('output discipline', 'Keep both suggestion', 'output discipline does not require clean suggestion headings'),
+    ('output discipline', 'No durable improvement identified.', 'output discipline does not require the clean-result marker'),
+    ('output discipline', '[woostack-reflect](../../woostack-reflect/SKILL.md)', 'output discipline does not cross-link woostack-reflect'),
+]:
+    require(phrase in contract_text[source], message)
 
 public = [
     'using-woostack', 'woostack-init', 'woostack-bootstrap', 'woostack-build',
