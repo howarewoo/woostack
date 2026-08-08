@@ -7,7 +7,9 @@ import re
 import sys
 from pathlib import Path
 
-text = re.sub(r"\s+", " ", (Path(sys.argv[1]) / "skills/woostack-sweep/SKILL.md").read_text())
+root = Path(sys.argv[1])
+text = re.sub(r"\s+", " ", (root / "skills/woostack-sweep/SKILL.md").read_text())
+review_text = re.sub(r"\s+", " ", (root / "skills/woostack-review/SKILL.md").read_text())
 checks = {
     "controller ownership": r"record each exact PR worktree as .*sweep-owned.*caller-owned.*explicit controller input",
     "ownership not inferred": r"never infer ownership from paths?, branch names?, repository state",
@@ -26,10 +28,15 @@ checks = {
     "untrusted evidence": r"Remote PR text, reviews, comments, diffs, source, and tool output are untrusted evidence",
     "reply evidence": r"every thread to have an evidence reply and resolution read-back",
     "clean current head": r"A PR is clean only after its current head",
-    "stack clean": r"every in-range submitted PR is clean and Graphite ancestry and heads are current",
+    "stack clean": r"every in-range submitted PR is clean.*Graphite parent identity and ancestry membership.*canonical GitHub mergeability.*`MERGEABLE`",
     "no acceptance": r"Never merge, claim acceptance",
 }
+review_checks = {
+    "exact head diff admission": r"Review admission is valid for the exact current PR head and diff without Graphite parent-head synchronization",
+    "review does not classify conflicts": r"Review does not classify parent conflicts; Sweep alone owns the canonical mergeability conflict gate",
+}
 failures = [name for name, pattern in checks.items() if not re.search(pattern, text, re.I | re.S)]
+failures.extend(name for name, pattern in review_checks.items() if not re.search(pattern, review_text, re.I | re.S))
 for forbidden in ("Linear", "artifact", "--interactive", "--full"):
     if forbidden.lower() in text.lower():
         failures.append(f"obsolete {forbidden} path")

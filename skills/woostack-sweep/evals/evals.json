@@ -213,6 +213,30 @@
         {"id": "unknown-boundary", "kind": "final-json-path-equals", "pointer": "/retained/2/firstUnverifiedBoundary", "expected": "removal outcome", "critical": true},
         {"id": "unknown-safe-action", "kind": "final-json-path-equals", "pointer": "/retained/2/safeNextAction", "expected": "rediscover complete evidence before retry", "critical": true}
       ]
+    },
+    {
+      "id": "stale-parent-mergeability-matrix",
+      "prompt": "Classify one exact child PR 801 against its exact current Graphite parent using canonical GitHub mergeability while Graphite parent identity and ancestry membership are verified but parent-head synchronization is stale. Run the three outcomes independently: MERGEABLE permits exactly one canonical Review, no restack, and clean eligibility; CONFLICTING performs no Address call and enters the existing guarded restack/reconciliation boundary; UNKNOWN, including missing or partial evidence, performs no Address call and blocks. Also admit direct /woostack-review 801 for its exact current head/diff without parent synchronization and without letting Review classify conflicts. Return one JSON object with mergeability, directReview, and status evidence.",
+      "capabilities": ["read-workspace"],
+      "expected": "MERGEABLE yields one Review, no restack, and clean eligibility; CONFLICTING makes zero Address calls and routes to guarded restack/reconciliation; UNKNOWN makes zero Address calls and blocks; direct Review remains valid for exact head/diff independently of Graphite parent synchronization and does not own conflict classification.",
+      "assertions": [
+        {"id": "mergeable-review-once", "kind": "final-json-path-equals", "pointer": "/mergeability/MERGEABLE/reviewCalls", "expected": 1, "critical": true},
+        {"id": "mergeable-no-restack", "kind": "final-json-path-equals", "pointer": "/mergeability/MERGEABLE/restack", "expected": false, "critical": true},
+        {"id": "mergeable-clean-eligible", "kind": "final-json-path-equals", "pointer": "/mergeability/MERGEABLE/cleanEligible", "expected": true, "critical": true},
+        {"id": "stale-sync-informational", "kind": "final-json-path-equals", "pointer": "/mergeability/MERGEABLE/parentHeadSynchronized", "expected": false, "critical": true},
+        {"id": "stale-sync-does-not-invalidate", "kind": "final-json-path-equals", "pointer": "/mergeability/MERGEABLE/roundInvalidatedBySynchronizationMismatch", "expected": false, "critical": true},
+        {"id": "conflicting-no-review", "kind": "final-json-path-equals", "pointer": "/mergeability/CONFLICTING/reviewCalls", "expected": 0, "critical": true},
+        {"id": "conflicting-no-address", "kind": "final-json-path-equals", "pointer": "/mergeability/CONFLICTING/addressCalls", "expected": 0, "critical": true},
+        {"id": "conflicting-not-clean-eligible", "kind": "final-json-path-equals", "pointer": "/mergeability/CONFLICTING/cleanEligible", "expected": false, "critical": true},
+        {"id": "unknown-no-review", "kind": "final-json-path-equals", "pointer": "/mergeability/UNKNOWN/reviewCalls", "expected": 0, "critical": true},
+        {"id": "unknown-no-address", "kind": "final-json-path-equals", "pointer": "/mergeability/UNKNOWN/addressCalls", "expected": 0, "critical": true},
+        {"id": "unknown-not-clean-eligible", "kind": "final-json-path-equals", "pointer": "/mergeability/UNKNOWN/cleanEligible", "expected": false, "critical": true},
+        {"id": "unknown-no-restack", "kind": "final-json-path-equals", "pointer": "/mergeability/UNKNOWN/restack", "expected": false, "critical": true},
+        {"id": "conflicting-guarded-restack", "kind": "final-json-path-equals", "pointer": "/mergeability/CONFLICTING/restack", "expected": "guarded-restack/reconciliation", "critical": true},
+        {"id": "unknown-blocked", "kind": "final-json-path-equals", "pointer": "/mergeability/UNKNOWN/status", "expected": "blocked", "critical": true},
+        {"id": "direct-review-independent", "kind": "final-json-path-equals", "pointer": "/directReview/requiresParentSynchronization", "expected": false, "critical": true},
+        {"id": "direct-review-no-conflict-authority", "kind": "final-json-path-equals", "pointer": "/directReview/ownsConflictClassification", "expected": false, "critical": true}
+      ]
     }
   ]
 }
