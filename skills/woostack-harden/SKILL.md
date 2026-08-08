@@ -49,9 +49,7 @@ For the first material inconsistency:
    the evidence. Offer a recommendation only as an explicitly unverified recommendation.
 3. Wait for explicit user validation. **Never silently change a specification or plan from
    repository evidence, even when the repository convention appears unambiguous or safer.**
-4. After a correction is validated, re-read the exact target, preserve unrelated human-authored
-   content, write the smallest complete corrected content to that same record, and independently
-   read it back before asking the next question.
+4. After a correction is validated, re-read the exact target, apply the shared [existing-description mutation invariant](../woostack-init/references/artifact-backends.md#existing-description-mutation-invariant), preserve unrelated human-authored content, write the smallest corrected content to that same record, and independently read it back before asking the next question.
 5. For plan changes, independently verify the affected direct issue(s) and complete native
    dependency set; preserve historical parent/container issues and never simulate dependencies in
    prose.

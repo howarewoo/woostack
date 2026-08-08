@@ -302,6 +302,32 @@ Build and selected standalone-plan synchronization may set current increment pro
 native dependency relations. It never creates or changes parent-child containment. Other metadata
 changes require the caller's explicit request.
 
+## Existing-description mutation invariant
+
+Creation and mutation are separate contracts:
+
+- **Creation:** a new project or issue may receive its complete intended description in the create
+  payload, followed by the required complete independent read-back.
+- **Existing record:** never replace a full description. Immediately before mutation, completely
+  re-read the exact target (description, revision/content identity, and all relevant paginated
+  updates/comments/relations) and retain it as the patch base. Build one smallest safe atomic patch:
+  either the smallest exact text span that is unique in the current description, or one readable
+  Markdown section with a unique heading and unambiguous bounds (including EOF). Require the
+  expected prior text/section, and replace or insert only that bounded region through the supported
+  narrow payload.
+  Never send a reconstructed whole description.
+- Missing, duplicate, stale, unsupported, partial, or unknown target/span/section/boundary state
+  blocks at that boundary. A failed, partial, or unknown outcome also blocks; never retry the full
+  description or allocate a new identity.
+- Afterward, completely independently re-read and verify native identity, the intended patch,
+  preservation of unrelated description content, revision/content identity, canonical fingerprints,
+  approval records, and drift state. Missing or failed read-back blocks.
+
+A description patch changes no unrelated fields, including title, assignee, delegate, status, labels,
+archival state, unrelated relations, or project membership. Separately selected metadata mutations
+defer to their applicable existing contracts; this invariant does not add fingerprint or approval
+requirements to those contracts.
+
 ## Active Execute project-start synchronization
 
 Normal Execute has one narrow workflow-owned status exception: in both `--project` and `--issue`

@@ -38,10 +38,12 @@ them through recovery. For each issue:
 
 1. read the exact current target when it exists;
 2. preserve unrelated human-authored content;
-3. write the smallest complete corrected title/description/project-membership payload;
-4. independently read native identity, content, project membership, parent absence, revision, and
-   mutation identity back; and
-5. compute `canonicalIncrementFingerprint` only from the independently read canonical fields.
+3. apply the [existing-description mutation invariant](../../woostack-init/references/artifact-backends.md#existing-description-mutation-invariant) to any existing description and write its supported description patch as a standalone mutation;
+4. write the smallest corrected title and project-membership payload as separately selected
+   metadata mutations under their applicable contracts;
+5. independently read native identity, content, title, project membership, parent absence, revision,
+   and every mutation identity back; and
+6. compute `canonicalIncrementFingerprint` only from the independently read canonical fields.
 
 Then write missing native dependency relations. Independently read the complete relation set back
 and compare normalized predecessor→successor tuples with the hardened DAG. Never simulate

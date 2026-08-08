@@ -105,8 +105,7 @@ only as a structure around concrete steps, never as a substitute for those steps
 ## Linear synchronization
 
 After the chain is complete and valid, verify the canonical repository association and selected
-workspace/team, then synchronize one exact project graph using the [Linear synchronization
-procedure](../woostack-build/references/linear-procedure.md):
+workspace/team, then apply the [existing-description mutation invariant](../woostack-init/references/artifact-backends.md#existing-description-mutation-invariant) while synchronizing one exact project graph using the [Linear synchronization procedure](../woostack-build/references/linear-procedure.md):
 
 1. Reconcile the complete current project context without creating a project.
 2. Create or reconcile exactly one direct project issue per increment with its full contract.
