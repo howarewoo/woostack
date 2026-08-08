@@ -22,9 +22,9 @@
     "resolved": {
       "planned": {"id": "40000000-0000-4000-8000-000000000001", "name": "Backlog", "category": "backlog"},
       "executing": {"id": "40000000-0000-4000-8000-000000000002", "name": "In Progress", "category": "started"},
-      "inReview": {"id": "40000000-0000-4000-8000-000000000003", "name": "In Review", "category": "started"},
+      "inReview": {"id": "40000000-0000-4000-8000-000000000002", "name": "In Progress", "category": "started"},
       "done": {"id": "40000000-0000-4000-8000-000000000004", "name": "Done", "category": "completed"},
-      "blocked": {"id": "40000000-0000-4000-8000-000000000005", "name": "Blocked", "category": "started"}
+      "blocked": {"id": "40000000-0000-4000-8000-000000000002", "name": "In Progress", "category": "started"}
     }
   },
   "capabilities": {

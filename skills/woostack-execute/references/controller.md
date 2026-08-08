@@ -39,15 +39,16 @@ Project mode repeatedly runs one cycle; issue mode runs one cycle for the select
 
 ```text
 admit → read exact project + complete direct-issue set
+  → resolve configured issueStates.executing/inReview identities and categories
   → select lowest unfinished ordinal → prove predecessor/base
   → active issue? resolve/read back projectStatuses.started
-  → all direct issues are `Backlog`/`Todo`? persist/read back selected issue In Progress
+  → all direct issues are `Backlog`/`Todo`? persist/read back selected issue executing mapping
   → all direct issues are `Backlog`/`Todo`? resolve/read back projectStatuses.started
   → persist issue intent + resume checkpoint
   → create or resume one worktree → dispatch fast-model worker
   → focused verification/smoke → bounded spec validator
   → commit/Graphite submit → read back branch/commit/PR/receipt
-  → persist delivery evidence + read back In Review
+  → persist + independently read back full delivery checkpoint → read back inReview mapping/no-op
   → clean-worktree teardown → (project: stop marker? pause : next ordinal)
 ```
 
@@ -55,24 +56,30 @@ admit → read exact project + complete direct-issue set
 
 Both modes apply the shared [active Execute project-start synchronization](../../woostack-init/references/artifact-backends.md#active-execute-project-start-synchronization)
 contract to the exact canonical nonterminal project before any worktree or source mutation.
-Independently read the exact project and complete, paginated direct-issue set. If any direct issue is
-`In Progress` or `In Review`, resolve `projectStatuses.started` to exactly one native status,
-require native category `started`, and synchronize the project before issue lifecycle work. If all
-direct issues are `Backlog`/`Todo`, first transition only the selected issue to `In Progress`
-and independently read that issue transition back, then synchronize the project before repository
-mutation. An exact started project status is an idempotent no-op.
+Independently read the exact project and complete, paginated direct-issue set. Resolve the configured
+`linear.issueStates.executing` and `linear.issueStates.inReview` mappings to exactly one native
+issue state each, compare stable native identity and category rather than literal names, and require
+both resolved mappings to have native category `started` before any issue-lifecycle, worktree, or
+source mutation. If any direct issue matches either resolved mapping, resolve
+`projectStatuses.started`, require native category `started`, and
+synchronize the project before issue lifecycle work. If all direct issues are `Backlog`/`Todo`,
+first transition only the selected issue to the resolved executing mapping and independently read
+that issue transition back, then synchronize the project before repository mutation. An exact
+started project status is an idempotent no-op.
 
 The gate pre-reads the exact project immediately before mutation, retains one stable mutation
 identity, and mutates only the project's native status field. Independently read back project
 identity, status ID/name/category, revision, and mutation identity. Completed or canceled projects,
-missing or invalid mappings, drift, incomplete pagination, timeout, partial/foreign output, or
-failed/unknown mutation or read-back block at the boundary without reopening or continuing. Keep
-the project-status receipt separate from issue lifecycle and resume-checkpoint evidence.
+missing, ambiguous, foreign, or non-started mappings, drift, incomplete pagination, timeout,
+partial/foreign output, or failed/unknown mutation or read-back block at the boundary without
+reopening or continuing. Keep the project-status receipt separate from issue lifecycle and
+resume-checkpoint evidence.
 
-An issue is unfinished until canonical Linear state and delivery evidence show `In Review` for this
-workflow. Project mode selects the lowest unfinished ordinal in the approved direct-issue order.
-Issue mode executes only its exact selected issue and never advances siblings. There is no queue
-inference, activity inference, status-only selection, or more than one admitted issue per cycle.
+An issue is unfinished until its canonical Linear state matches the resolved
+`linear.issueStates.inReview` mapping and the complete delivery checkpoint is independently read
+back. Project mode selects the lowest unfinished ordinal in the approved direct-issue order. Issue
+mode executes only its exact selected issue and never advances siblings. There is no queue inference,
+activity inference, status-only selection, or more than one admitted issue per cycle.
 
 ### Predecessor and Graphite proof
 
@@ -121,11 +128,14 @@ Git/Graphite/GitHub evidence. Never post a screenshot to a GitHub PR or external
 
 ## Linear and PR boundaries
 
-Read back each Linear write. Move the issue only through `Backlog`/`Todo` → `In Progress` → `In
-Review`; persist issue branch/worktree/run evidence and project resume checkpoint after the relevant
-boundary. Apply the shared project status gate before repository mutation and independently read back
-its separate project-status receipt. Do not alter approved content, dependency edges, assignment,
-ownership, or acceptance.
+Read back each Linear write. Move the issue only through `Backlog`/`Todo` → the resolved
+`linear.issueStates.executing` mapping → the resolved `linear.issueStates.inReview` mapping;
+when the two mappings share one native status, independently read the idempotent no-op instead of
+issuing a second mutation. Persist issue branch/worktree/run evidence and independently read back
+every field of the full delivery checkpoint before the inReview transition or no-op can authorize
+delivery. Apply the shared project status gate before repository mutation and independently read
+back its separate project-status receipt. Do not alter approved content, dependency edges,
+assignment, ownership, or acceptance.
 
 Before commit, re-read records, selected issue, predecessor, worktree, branch, diff, and Graphite
 parent. Invoke [`woostack-commit`](../../woostack-commit/SKILL.md) with the exact selected issue. The
@@ -137,14 +147,19 @@ verified diff → commit → Git/Graphite read-back → one Graphite PR submissi
 → verification receipt + Linear read-back
 ```
 Only after canonical PR, closing-reference, and verification read-back may the controller persist
-delivery evidence, move the issue to `In Review`, and independently read back the issue and project
-checkpoint.
+the complete delivery checkpoint. Independently read back every persisted checkpoint field before
+resolving and reading back the configured inReview mapping or its idempotent no-op when it is the
+same native status as executing. The completed checkpoint read-back and lifecycle result together
+form the finished predicate: a missing, partial, failed, or unknown checkpoint read-back blocks
+teardown, resume, and sibling progression even when the native issue status already matches
+inReview.
 
 
 Successful submission requires branch, commit, PR, matching head/base, exactly one closing reference
-for the selected issue, Graphite parent, verification receipt, issue/project read-back, and a clean
-exact worktree. On unknown submission, rediscover and continue only from the first absent boundary;
-never duplicate a commit, branch, or PR. Execute never reviews, merges, or claims acceptance.
+for the selected issue, Graphite parent, verification receipt, full delivery checkpoint,
+issue/project read-back, and a clean exact worktree. On unknown submission, rediscover and continue
+only from the first absent boundary; never duplicate a commit, branch, or PR. Execute never reviews,
+merges, or claims acceptance.
 
 ## Stop markers and evidence
 

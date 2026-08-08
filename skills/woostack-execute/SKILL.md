@@ -54,14 +54,18 @@ never advances a sibling. Both modes use the same two approval records and repos
 Before any worktree or source mutation in both `--project` and `--issue` modes, apply the shared
 [active Execute project-start synchronization](../woostack-init/references/artifact-backends.md#active-execute-project-start-synchronization)
 contract to the exact canonical nonterminal project. Independently read the complete, paginated
-direct-issue set and project status. If any direct issue is `In Progress` or `In Review`, resolve
-`linear.projectStatuses.started`, require native category `started`, and make the exact project
-started (or record an exact started no-op) before continuing. If all direct issues are
-`Backlog`/`Todo`, defer the gate until the selected issue transitions to `In Progress` and reads
-back; then synchronize the project before repository work. Terminal project conflict, mapping
-failure, drift, timeout, partial/foreign output, or failed/unknown read-back blocks without
-reopening or continuing. The project-status receipt is independent of the issue lifecycle receipt
-and resume-checkpoint evidence.
+direct-issue set and project status, then resolve `linear.issueStates.executing` and
+`linear.issueStates.inReview` to exactly one native issue state each and require both resolved
+mappings to have native category `started` before any issue-lifecycle, worktree, or source mutation.
+If any direct issue matches either resolved mapping by stable native identity and category, resolve
+`linear.projectStatuses.started`, require its native category `started`, and make the exact project
+started (or record an exact started no-op) before continuing. Do not use a literal native status
+name as authority. If all direct issues are
+`Backlog`/`Todo`, defer the gate until the selected issue transitions to the resolved executing
+mapping and reads back; then synchronize the project before repository work. Terminal project
+conflict, missing/ambiguous/foreign/non-started mapping, drift, timeout, partial/foreign output, or
+failed/unknown read-back blocks without reopening or continuing. The project-status receipt is
+independent of the issue lifecycle receipt and resume-checkpoint evidence.
 
 The gate mutates only the project's native status with one stable mutation identity and independently
 reads back project identity, status ID/name/category, revision, and operation identity. An exact
@@ -70,15 +74,17 @@ started match is idempotent.
 ## Project controller
 
 1. Read the complete approved project graph and classify every direct issue by its immutable ordinal.
-2. Select the lowest-ordinal unfinished issue. An issue is unfinished until its canonical state and
-   delivery evidence prove `In Review`; never select by activity, assignment, title, or status alone.
+2. Select the lowest-ordinal unfinished issue. An issue is unfinished until its canonical state
+   matches the resolved `linear.issueStates.inReview` mapping and the full delivery checkpoint is
+   independently read back; never select by activity, assignment, title, or status alone.
 3. For a non-root issue, prove its immediate predecessor's exact branch/head and Graphite parent.
    For the first issue, prove the frozen integration base. Reject a missing, moved, or conflicting
    predecessor. No other issue is admitted in the same cycle.
 4. Apply the active project status gate. When all direct issues are `Backlog`/`Todo`, persist and
-   independently read back the selected issue's `In Progress` transition first, then synchronize and independently read
-   back the project's configured started status. Keep the project-status receipt distinct from the
-   issue lifecycle receipt and project resume checkpoint.
+   independently read back the selected issue's transition to the resolved
+   `linear.issueStates.executing` mapping first, then synchronize and independently read back the
+   project's configured started status. Keep the project-status receipt distinct from the issue
+   lifecycle receipt and project resume checkpoint.
 5. Create or resume exactly one deterministic isolated worktree owned by this run. Dispatch the
    configured fast-model subagent with the exact issue scope and exclusive worktree ownership.
 6. After the worker returns, run one focused verification and changed-path smoke scenario, then one
@@ -87,9 +93,14 @@ started match is idempotent.
    with the exact selected issue to commit and submit exactly one Graphite PR. Independently read
    back branch, commit, PR URL/head/base, the exact `Resolves <issue identifier>` body line,
    verification receipt, and Graphite parent.
-7. Persist the delivery evidence, move the issue to `In Review`, and independently read back the
-   Linear issue/project checkpoint. Remove the worktree only after all required evidence is present
-   and the exact worktree is clean.
+7. Persist the complete delivery checkpoint and independently read back every persisted checkpoint
+   field. Only after that full read-back succeeds, resolve and independently read back the configured
+   `linear.issueStates.inReview` mapping and transition the issue from the resolved executing mapping
+   to it. If executing and inReview resolve to the same native status, independently read the
+   idempotent no-op instead of issuing a second mutation. Neither transition result can authorize
+   teardown, resume, or sibling progression without the completed checkpoint read-back. The checkpoint
+   must distinguish active from delivered work. Remove the worktree only after all required evidence
+   is present and the exact worktree is clean.
 8. Re-read the project and records, then continue with the next lowest unfinished issue unless the
    project contains a verified stop marker. A stop marker pauses before the next issue and leaves
    the project open with exact resume evidence.
@@ -104,12 +115,16 @@ same run and state; rediscover existing commits or PRs before retrying and never
 
 Issue mode performs exactly the selected issue's cycle once: admit its matching project records,
 prove its predecessor/base and Graphite parent, apply the active project status gate (including
-the selected issue's `In Progress` transition when all direct issues are `Backlog`/`Todo`), then
-dispatch one fast-model subagent in its isolated worktree. The gate's project-status receipt stays
-separate from issue lifecycle and resume-checkpoint evidence. Verify and validate the one issue,
-submit and read back one PR, persist delivery evidence, move/read back `In Review`, and remove the
-clean worktree. Issue mode never advances siblings, even when the selected issue succeeds. Failures
-retain exact recovery evidence.
+the selected issue's transition to the resolved `linear.issueStates.executing` mapping when all
+direct issues are `Backlog`/`Todo`), then dispatch one fast-model subagent in its isolated worktree.
+The gate's project-status receipt stays separate from issue lifecycle and resume-checkpoint
+evidence. Verify and validate the one issue, submit and read back one PR, then persist and
+independently read back every field of the complete delivery checkpoint. Only after that full
+read-back succeeds, move and read back the configured `linear.issueStates.inReview` mapping. If
+executing and inReview resolve to one native status, independently read the idempotent no-op instead
+of issuing a second mutation. The lifecycle result authorizes removal of the clean worktree only
+with the completed checkpoint read-back and all other required evidence. Issue mode never advances
+siblings, even when the selected issue succeeds. Failures retain exact recovery evidence.
 
 ## Worker and verification boundary
 
@@ -130,10 +145,14 @@ and unrelated cleanup return to the owning workflow.
 
 ## Linear and repository lifecycle
 
-For each admitted issue, the only lifecycle transitions are `Backlog` or `Todo` → `In Progress` →
-`In Review`, with an independent read-back after each transition. Persist observed branch, commit,
-PR, verification, checkpoint, and blocker evidence without changing the approved specification,
-issue graph, assignment, or ownership.
+For each admitted issue, the only lifecycle transitions are `Backlog` or `Todo` → the resolved
+`linear.issueStates.executing` mapping → the resolved `linear.issueStates.inReview` mapping, with
+an independent read-back after each transition or an independently read idempotent no-op when the
+two mappings share one native status. Persist observed branch, commit, PR, verification, and the
+full delivery checkpoint, then independently read back every persisted checkpoint field before the
+inReview transition or idempotent no-op can authorize teardown, resume, or sibling progression.
+Canonical state alone never proves delivery. Do not change the approved specification, issue graph,
+assignment, or ownership.
 
 Successful PR submission requires all of: exact branch and commit, Graphite parent/read-back, one
 canonical PR read-back with matching head/base, verification receipt, Linear issue/project read-back,
