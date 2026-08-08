@@ -340,7 +340,7 @@ review → address-comments per PR.
 
 | Key | Type | Default | Meaning |
 | --- | --- | --- | --- |
-| `review_sweep.max_rounds` | integer > 0 | `3` | Maximum review→address rounds per PR before the sweep declares it blocked. Any Address-produced head change, including a nit fix, requires another round; resolved nits on an unchanged head advance without re-review. A non-positive or non-integer value warns and falls back to `3`. |
+| `review_sweep.max_rounds` | integer > 0 | `3` | Maximum review→address rounds per PR before the sweep declares it blocked. Freeze the Review's zero-blocker/blocker classification before Address; thread resolution cannot erase a blocker. A changed head reruns Review when that frozen result contains a blocker (including a mixed set). Correction-only delta proof means the entire pre/post-head delta is limited solely to corrections for the exact recorded non-blocking Review findings; unrelated, partial, or unverified deltas block. A zero-blocker Address-produced head may advance without re-review only with that proof, focused verification, full reply/resolution evidence, descendant restack, and complete head/base/ancestry/thread read-back. A non-positive or non-integer value warns and falls back to `3`. |
 
 ## Commit hook
 

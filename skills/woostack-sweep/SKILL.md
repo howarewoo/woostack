@@ -33,7 +33,9 @@ empty range reports `nothing to sweep` and is not a clean result.
 4. Reject an unsubmitted branch, duplicate PR, moved head, cycle, gap, ambiguous membership, or any
    disagreement among Git, Graphite, and GitHub. Never submit a missing PR.
 5. For each PR, bind the canonical PR number, head and base SHAs/branches, changed paths, complete
-   thread snapshot, and task contract. A head or thread-set change invalidates that round.
+   thread snapshot, and task contract. An external, unexplained, or unverified head or thread-set
+   change invalidates that round; verified Address/restack transitions are governed by the explicit
+   round-outcome branch.
 6. Load `review_sweep.max_rounds` from `.woostack/config.json`; require a positive integer and
    default to `3` when absent. A malformed value warns and falls back to `3`. Bind that cap before
    any PR enters the loop.
@@ -57,23 +59,39 @@ Process each in-range PR from oldest dependency to tip. For each PR and each cur
    [`woostack-review <PR#>`](../woostack-review/SKILL.md) pass for this current head that posts all
    blockers and nits. Do not reuse a result from another head or substitute self-review. Record all
    posted blocking findings and nits.
-3. **Address new findings.** Refresh the current thread snapshot and address every new finding with
-   the exact Address Comments contract. Require evidence replies and resolution reads for all
-4. **Choose the round outcome.** First compare the bound head after Address. Any explained head
-   change produced by Address invalidates the prior Review for every finding severity: restack
-   affected descendants using the boundary below, read back every affected head/base/ancestry, then
-   repeat this PR's one Review → Address sequence on the new current head. An unexplained head
-   change is blocked. On an unchanged head, repeat after a blocking Review only when Address
-   produced new evidence; if a blocker remains unresolved without new evidence, halt with that
-   exact blocker and do not restack or re-review. If Review found only nits and every nit was
-   resolved on the unchanged head, advance without re-review. A missing/partial review, unknown
-   check, or unsafe decision is blocked, not clean.
+3. **Address new findings.** Before Address, freeze the zero-blocker/blocker classification from the
+   complete just-completed Review result. Address thread resolution cannot erase a blocker
+   classification for this round. Refresh the current thread snapshot and address every new finding
+   with the exact Address Comments contract. Require full reply/resolution evidence for all findings,
+   including actor-gated native COMMENT outcomes.
+4. **Choose the round outcome.** The computed zero-blocker outcome is frozen from the complete
+   just-completed Review result; it governs over Address resolution and any actor-gated native COMMENT.
+   First compare the bound head after Address:
+   - An explained head change is a change produced by Address with complete evidence. If the change is
+     unexplained, partial, or otherwise unsafe, fail closed and block.
+   - When the finding set contains a blocker, including a mixed blocker/non-blocking set, an explained
+     head change invalidates the prior Review: perform descendant restack using the boundary below,
+     complete head/base/ancestry/thread read-back, then rerun this PR's one Review → Address sequence
+     on the new current head within the bound. A blocker change therefore reruns Review; a mixed set
+     retains the same invalidation and rerun.
+   - Correction-only delta proof means the entire pre/post-head delta is limited solely to corrections
+     for the exact recorded non-blocking Review findings. Unrelated, partial, or unverified deltas
+     fail closed and block.
+   - With a zero-blocker changed-head outcome, correction-only delta proof, focused verification, full
+     reply/resolution evidence, descendant restack, and complete head/base/ancestry/thread read-back
+     all pass, advance without re-review. The changed head then becomes the current clean candidate;
+     any failed or missing proof blocks.
+   - On an unchanged head, repeat after a blocking Review only when Address produced new evidence; if
+     a blocker remains unresolved without new evidence, halt with that exact blocker and do not restack
+     or re-review. A missing/partial Review, unknown check, or unsafe decision is blocked, not clean.
 5. **Halt repeated blockers.** If the same blocker recurs on an unchanged head with no new code or
    evidence, halt and return that exact blocker and safe resume boundary. Do not spend another round
    or claim progress.
 
 A PR is clean only after its current head has completed the applicable Review/Address sequence, has
-no unresolved blocker or nit, and all replies/resolution reads are verified. A stack is ready only
+no unresolved blocker or nit, and all replies/resolution reads are verified. For a changed head with
+zero blockers, the correction-only delta proof, focused verification, descendant restack, and complete
+head/base/ancestry/thread read-back are also required before the clean gate. A stack is ready only
 when every in-range submitted PR is clean and Graphite ancestry and heads are current.
 
 ## Restack affected descendants
