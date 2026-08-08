@@ -54,23 +54,59 @@
       ]
     },
     {
-      "id": "nit-fix-head-change-reviews-again",
-      "prompt": "Sweep exact PR 501. Its first current-head review reports one nit. Address fixes that nit with code, producing a new verified head and resolving the thread. Re-review the new head before declaring the PR clean. Return one JSON object with reviewCalls, heads, ordered events, thread resolution, and status.",
+      "id": "nit-fix-head-change-advances",
+      "prompt": "Sweep exact PR 501. Its first current-head review reports one nit and no blockers. Address fixes that nit with a correction-only code delta, producing a new verified head and resolving the thread. Do not re-review the new head when the correction-only proof, focused verification, full reply/resolution evidence, descendant restack, and complete head/base/ancestry/thread read-back all pass. Return one JSON object with reviewCalls, heads, ordered events, thread resolution, verification, restack, readBack, and status.",
       "capabilities": ["read-workspace"],
-      "expected": "The Address-produced head change invalidates the first review even though the finding was a nit, so the new head receives a second review before clean status.",
+      "expected": "A zero-blocker nit-only Address-produced correction-only head change advances without a second review; the new head is verified and the PR is clean.",
       "assertions": [
-        {"id": "new-head-reviewed", "kind": "final-json-path-equals", "pointer": "/reviewCalls", "expected": 2, "critical": true},
+        {"id": "one-review", "kind": "final-json-path-equals", "pointer": "/reviewCalls", "expected": 1, "critical": true},
         {"id": "head-changed", "kind": "final-json-path-equals", "pointer": "/heads", "expected": ["sha-501-a", "sha-501-b"], "critical": true},
-        {"id": "address-before-new-head-review", "kind": "final-json-path-equals", "pointer": "/events", "expected": ["review:sha-501-a", "address:sha-501-a->sha-501-b", "review:sha-501-b"], "critical": true},
+        {"id": "address-without-rereview", "kind": "final-json-path-equals", "pointer": "/events", "expected": ["review:sha-501-a", "address:sha-501-a->sha-501-b", "verify:focused", "restack:descendants", "readBack:complete", "advance:sha-501-b"], "critical": true},
         {"id": "nit-resolved", "kind": "final-json-path-equals", "pointer": "/threadResolution", "expected": true, "critical": true},
+        {"id": "full-reply-resolution-evidence", "kind": "final-json-path-equals", "pointer": "/findings/repliesAndResolutions", "expected": true, "critical": true},
+        {"id": "correction-only-proof", "kind": "final-json-path-equals", "pointer": "/verification/correctionOnly", "expected": true, "critical": true},
+        {"id": "focused-verification", "kind": "final-json-path-equals", "pointer": "/verification/focused", "expected": true, "critical": true},
+        {"id": "descendant-restack", "kind": "final-json-path-equals", "pointer": "/restack/descendants", "expected": true, "critical": true},
+        {"id": "complete-evidence", "kind": "final-json-path-equals", "pointer": "/readBack/complete", "expected": true, "critical": true},
+        {"id": "clean", "kind": "final-json-path-equals", "pointer": "/status", "expected": "clean", "critical": true}
+      ]
+    },
+    {
+      "id": "non-blocking-correction-only-head-advances",
+      "prompt": "Sweep exact PR 511. Its current-head review reports two non-blocking findings and no blockers. Address applies a correction-only code delta, producing verified head sha-511-b, with every finding replied to and resolved. Prove the delta is correction-only, run focused verification, restack affected descendants, and read back every affected head/base/ancestry/thread before advancing without re-review. Return one JSON object with reviewCalls, heads, events, findings, verification, restack, readBack, and status.",
+      "capabilities": ["read-workspace"],
+      "expected": "A zero-blocker ordinary non-blocking correction-only head change uses one Review, advances without re-review, and is clean only after all evidence and read-backs pass.",
+      "assertions": [
+        {"id": "one-review", "kind": "final-json-path-equals", "pointer": "/reviewCalls", "expected": 1, "critical": true},
+        {"id": "correction-head", "kind": "final-json-path-equals", "pointer": "/heads", "expected": ["sha-511-a", "sha-511-b"], "critical": true},
+        {"id": "advance-no-rereview", "kind": "final-json-path-equals", "pointer": "/events", "expected": ["review:sha-511-a", "address:sha-511-a->sha-511-b", "verify:focused", "restack:descendants", "readBack:complete", "advance:sha-511-b"], "critical": true},
+        {"id": "zero-blockers", "kind": "final-json-path-equals", "pointer": "/findings/blockers", "expected": [], "critical": true},
+        {"id": "full-reply-resolution-evidence", "kind": "final-json-path-equals", "pointer": "/findings/repliesAndResolutions", "expected": true, "critical": true},
+        {"id": "correction-only-proof", "kind": "final-json-path-equals", "pointer": "/verification/correctionOnly", "expected": true, "critical": true},
+        {"id": "focused-verification", "kind": "final-json-path-equals", "pointer": "/verification/focused", "expected": true, "critical": true},
+        {"id": "descendant-restack", "kind": "final-json-path-equals", "pointer": "/restack/descendants", "expected": true, "critical": true},
+        {"id": "complete-readback", "kind": "final-json-path-equals", "pointer": "/readBack/complete", "expected": true, "critical": true},
+        {"id": "clean", "kind": "final-json-path-equals", "pointer": "/status", "expected": "clean", "critical": true}
+      ]
+    },
+    {
+      "id": "mixed-findings-head-change-reruns",
+      "prompt": "Sweep exact PR 521. Its current-head review reports blocker B1 and one non-blocking finding. Address resolves both with a new verified head sha-521-b, restacks affected descendants, and reads back all affected heads/bases/ancestry and thread evidence. Because the finding set is mixed and includes a blocker, rerun Review on sha-521-b before declaring the PR clean. Return one JSON object with reviewCalls, heads, events, restack, readBack, and status.",
+      "capabilities": ["read-workspace"],
+      "expected": "A mixed blocker/non-blocking finding set retains explained-head invalidation and reruns on the new head; the second review is required before clean status.",
+      "assertions": [
+        {"id": "rerun", "kind": "final-json-path-equals", "pointer": "/reviewCalls", "expected": 2, "critical": true},
+        {"id": "head-changed", "kind": "final-json-path-equals", "pointer": "/heads", "expected": ["sha-521-a", "sha-521-b"], "critical": true},
+        {"id": "rerun-order", "kind": "final-json-path-equals", "pointer": "/events", "expected": ["review:sha-521-a", "address:sha-521-a->sha-521-b", "restack:descendants", "readBack:complete", "review:sha-521-b"], "critical": true},
+        {"id": "restack-readback", "kind": "final-json-path-equals", "pointer": "/readBack/complete", "expected": true, "critical": true},
         {"id": "clean", "kind": "final-json-path-equals", "pointer": "/status", "expected": "clean", "critical": true}
       ]
     },
     {
       "id": "max-rounds-blocks-next-head-review",
-      "prompt": "Sweep exact PR 601 with review_sweep.max_rounds set to 2. Review sha-601-a finds a nit and Address fixes it with code at sha-601-b. Review sha-601-b finds another nit and Address fixes it with code at sha-601-c. Before reviewing sha-601-c, enforce the configured round cap. Return one JSON object with reviewCalls, reviewedHeads, currentHead, events, status, and safeResumeBoundary.",
+      "prompt": "Sweep exact PR 601 with review_sweep.max_rounds set to 2. Review sha-601-a finds blocker B601 and Address fixes it with code at sha-601-b. Review sha-601-b finds another blocker B602 and Address fixes it with code at sha-601-c. Before reviewing sha-601-c, enforce the configured round cap. Return one JSON object with reviewCalls, reviewedHeads, currentHead, events, status, and safeResumeBoundary.",
       "capabilities": ["read-workspace"],
-      "expected": "The two configured rounds run, but the second Address-produced head cannot start a third review; the sweep blocks on sha-601-c with an exact resume boundary.",
+      "expected": "The two configured blocking rounds run, but the second Address-produced head cannot start a third review; the sweep blocks on sha-601-c with an exact resume boundary.",
       "assertions": [
         {"id": "review-cap", "kind": "final-json-path-equals", "pointer": "/reviewCalls", "expected": 2, "critical": true},
         {"id": "reviewed-heads", "kind": "final-json-path-equals", "pointer": "/reviewedHeads", "expected": ["sha-601-a", "sha-601-b"], "critical": true},
