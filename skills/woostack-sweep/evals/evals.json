@@ -4,23 +4,23 @@
   "cases": [
     {
       "id": "bottom-up-preexisting-then-clean",
-      "prompt": "Drive a two-PR Graphite stack bottom-up: PR 101 is the lower dependency and has one pre-existing unresolved thread; PR 102 is its descendant and has none. For each current head, read canonical head and threads, address pre-existing threads before invoking exactly one /woostack-review <PR#> pass, then address all new findings. PR 101 review is clean; PR 102 review has two nits that are resolved. Return one JSON object with order, addressCalls, reviewCalls, rounds, threads, and status.",
+      "prompt": "Drive a two-PR Graphite stack bottom-up: PR 101 is the lower dependency and has one pre-existing unresolved thread; PR 102 is its descendant and has none. For each current head, read canonical head and threads, address pre-existing threads before invoking exactly one /woostack-review <PR#> pass, then address all new findings. PR 101 review is clean; PR 102 review has two nits that Address resolves with evidence replies and no code or head change. Return one JSON object with order, addressCalls, reviewCalls, rounds, threads, and status.",
       "capabilities": ["read-workspace"],
-      "expected": "PR 101 is addressed before one review and PR 102 is reviewed once; resolved nits do not trigger re-review; both PRs are clean in bottom-up order.",
+      "expected": "PR 101 is addressed before one review and PR 102 is reviewed once; nits resolved on the unchanged PR 102 head do not trigger re-review; both PRs are clean in bottom-up order.",
       "assertions": [
         {"id": "order", "kind": "final-json-path-equals", "pointer": "/order", "expected": [101, 102], "critical": true},
         {"id": "old-thread-before-review", "kind": "final-json-path-equals", "pointer": "/events/0", "expected": "address:101:pre-existing", "critical": true},
         {"id": "review-once-each", "kind": "final-json-path-equals", "pointer": "/reviewCalls", "expected": {"101": 1, "102": 1}, "critical": true},
         {"id": "nit-addressed", "kind": "final-json-path-equals", "pointer": "/threads/102", "expected": {"nitsResolved": ["N1", "N2"], "unresolved": []}, "critical": true},
-        {"id": "no-nit-rereview", "kind": "final-json-path-equals", "pointer": "/rounds/102", "expected": 1, "critical": true},
+        {"id": "unchanged-head-nits-do-not-rereview", "kind": "final-json-path-equals", "pointer": "/rounds/102", "expected": 1, "critical": true},
         {"id": "clean", "kind": "final-json-path-equals", "pointer": "/status", "expected": "clean", "critical": true}
       ]
     },
     {
       "id": "blocker-round-restacks-and-reviews-again",
-      "prompt": "Drive a three-PR Graphite stack bottom-up. PR 201's one review finds blocker B1; Address resolves it with new code, and descendants PR 202 and PR 203 require restacking. After reading back every affected head/base/ancestry, repeat Address then exactly one Review for PR 201; the second review is clean. Address all new findings and return complete evidence for heads, restack, review calls, thread replies/resolutions, and status.",
+      "prompt": "Drive a three-PR Graphite stack bottom-up. PR 201's one review finds blocker B1; Address resolves it with new code, and descendants PR 202 and PR 203 require restacking. After reading back every affected head/base/ancestry, repeat one Review then Address for PR 201 on its new head; the second review is clean. Return complete evidence for heads, restack, review calls, thread replies/resolutions, and status.",
       "capabilities": ["read-workspace"],
-      "expected": "A blocker round repeats only for the same PR after affected descendants are restacked; all current heads and thread evidence are read back before the stack is clean.",
+      "expected": "A code-producing blocker round restacks affected descendants and reviews the new PR 201 head before another Address stage; all current heads and thread evidence are read back before the stack is clean.",
       "assertions": [
         {"id": "review-count", "kind": "final-json-path-equals", "pointer": "/reviewCalls/201", "expected": 2, "critical": true},
         {"id": "restack-descendants", "kind": "final-json-path-equals", "pointer": "/restack/affected", "expected": [202, 203], "critical": true},
@@ -39,6 +39,55 @@
         {"id": "no-extra-review", "kind": "final-json-path-equals", "pointer": "/reviewCalls", "expected": 2, "critical": true},
         {"id": "exact-blocker", "kind": "final-json-path-equals", "pointer": "/blocker", "expected": "B7 on sha-301", "critical": true},
         {"id": "resume", "kind": "final-json-path-equals", "pointer": "/safeResumeBoundary", "expected": "new code or evidence on PR 301", "critical": true}
+      ]
+    },
+    {
+      "id": "exact-branch-target-rejects-near-misses",
+      "prompt": "Resolve three /woostack-sweep targets from the current Graphite graph without changing source control: `adam/exact` is one exact submitted branch bound to canonical PR 401, `feature` is not exact and could refer to two branches, and `adam/local-only` is one exact but unsubmitted branch. Never infer a target or submit a missing PR. Return one JSON object with targets.exact, targets.ambiguous, and targets.unsubmitted.",
+      "capabilities": ["read-workspace"],
+      "expected": "Only the exact submitted branch binds PR 401; the inferred ambiguous target and exact unsubmitted branch are blocked without submission.",
+      "assertions": [
+        {"id": "exact-pr-binding", "kind": "final-json-path-equals", "pointer": "/targets/exact", "expected": {"status": "bound", "branch": "adam/exact", "pr": 401}, "critical": true},
+        {"id": "ambiguous-rejected", "kind": "final-json-path-equals", "pointer": "/targets/ambiguous/status", "expected": "blocked-ambiguous", "critical": true},
+        {"id": "unsubmitted-rejected", "kind": "final-json-path-equals", "pointer": "/targets/unsubmitted/status", "expected": "skipped-unsubmitted", "critical": true},
+        {"id": "no-submission", "kind": "final-json-path-equals", "pointer": "/submittedMissingPr", "expected": false, "critical": true}
+      ]
+    },
+    {
+      "id": "nit-fix-head-change-reviews-again",
+      "prompt": "Sweep exact PR 501. Its first current-head review reports one nit. Address fixes that nit with code, producing a new verified head and resolving the thread. Re-review the new head before declaring the PR clean. Return one JSON object with reviewCalls, heads, ordered events, thread resolution, and status.",
+      "capabilities": ["read-workspace"],
+      "expected": "The Address-produced head change invalidates the first review even though the finding was a nit, so the new head receives a second review before clean status.",
+      "assertions": [
+        {"id": "new-head-reviewed", "kind": "final-json-path-equals", "pointer": "/reviewCalls", "expected": 2, "critical": true},
+        {"id": "head-changed", "kind": "final-json-path-equals", "pointer": "/heads", "expected": ["sha-501-a", "sha-501-b"], "critical": true},
+        {"id": "address-before-new-head-review", "kind": "final-json-path-equals", "pointer": "/events", "expected": ["review:sha-501-a", "address:sha-501-a->sha-501-b", "review:sha-501-b"], "critical": true},
+        {"id": "nit-resolved", "kind": "final-json-path-equals", "pointer": "/threadResolution", "expected": true, "critical": true},
+        {"id": "clean", "kind": "final-json-path-equals", "pointer": "/status", "expected": "clean", "critical": true}
+      ]
+    },
+    {
+      "id": "max-rounds-blocks-next-head-review",
+      "prompt": "Sweep exact PR 601 with review_sweep.max_rounds set to 2. Review sha-601-a finds a nit and Address fixes it with code at sha-601-b. Review sha-601-b finds another nit and Address fixes it with code at sha-601-c. Before reviewing sha-601-c, enforce the configured round cap. Return one JSON object with reviewCalls, reviewedHeads, currentHead, events, status, and safeResumeBoundary.",
+      "capabilities": ["read-workspace"],
+      "expected": "The two configured rounds run, but the second Address-produced head cannot start a third review; the sweep blocks on sha-601-c with an exact resume boundary.",
+      "assertions": [
+        {"id": "review-cap", "kind": "final-json-path-equals", "pointer": "/reviewCalls", "expected": 2, "critical": true},
+        {"id": "reviewed-heads", "kind": "final-json-path-equals", "pointer": "/reviewedHeads", "expected": ["sha-601-a", "sha-601-b"], "critical": true},
+        {"id": "new-head-unreviewed", "kind": "final-json-path-equals", "pointer": "/currentHead", "expected": "sha-601-c", "critical": true},
+        {"id": "ordered-cap", "kind": "final-json-path-equals", "pointer": "/events", "expected": ["review:sha-601-a", "address:sha-601-a->sha-601-b", "review:sha-601-b", "address:sha-601-b->sha-601-c", "block:max-rounds"], "critical": true},
+        {"id": "blocked", "kind": "final-json-path-equals", "pointer": "/status", "expected": "blocked", "critical": true},
+        {"id": "resume", "kind": "final-json-path-equals", "pointer": "/safeResumeBoundary", "expected": "increase review_sweep.max_rounds above 2, then review PR 601 at sha-601-c", "critical": true}
+      ]
+    },
+    {
+      "id": "max-rounds-default-and-malformed-fallback",
+      "prompt": "Classify two sweep configurations without calling GitHub or changing files. Scenario absent has no review_sweep.max_rounds key. Scenario malformed sets review_sweep.max_rounds to zero. In each scenario, a PR keeps producing explained new heads after Address and would otherwise start a fourth Review → Address round. Apply the configured fallback boundary and return exactly one JSON object with absent and malformed objects, each containing cap, warning, reviewCalls, and status.",
+      "capabilities": ["read-workspace"],
+      "expected": "Both scenarios use the default cap of three and block before a fourth review; only the malformed value emits a warning.",
+      "assertions": [
+        {"id": "absent-default", "kind": "final-json-path-equals", "pointer": "/absent", "expected": {"cap": 3, "warning": false, "reviewCalls": 3, "status": "blocked"}, "critical": true},
+        {"id": "malformed-fallback", "kind": "final-json-path-equals", "pointer": "/malformed", "expected": {"cap": 3, "warning": true, "reviewCalls": 3, "status": "blocked"}, "critical": true}
       ]
     }
   ]

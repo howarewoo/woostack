@@ -10,7 +10,7 @@
     },
     {
       "id": "middle-stack-blocker",
-      "query": "PR #2260 sits in the middle of a five-branch series. Sweep the whole containing stack bottom-up, repeat review only after a blocking round and descendant restack, and advance after resolved nits.",
+      "query": "PR #2260 sits in the middle of a five-branch series. Sweep the whole containing stack bottom-up, re-review every Address-produced head change, and advance after resolved nits only when the head stays unchanged.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-sweep"
     },
@@ -27,6 +27,12 @@
       "shouldTrigger": false,
       "expectedSkill": "woostack-address-comments",
       "conflictsWith": ["woostack-sweep"]
+    },
+    {
+      "id": "exact-branch-stack-sweep",
+      "query": "Sweep the Graphite stack containing exact branch adam/payment-timeouts, but reject the request if that branch is ambiguous or has no submitted pull request.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-sweep"
     }
   ]
 }

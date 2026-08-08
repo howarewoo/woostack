@@ -41,6 +41,23 @@
         {"id": "all-findings-posted", "kind": "qualitative", "rubric": "Does acceptedFindingComments account for every accepted blocker and nit, using inline or general comments as needed?", "critical": true},
         {"id": "no-merge-or-edit", "kind": "final-json-path-equals", "pointer": "/mergesOrEdits", "expected": false, "critical": true}
       ]
+    },
+    {
+      "id": "local-validators-bind-native-host-sessions",
+      "prompt": "Classify local validator binding without dispatching agents or changing files. OMP returns exact sequential agent IDs omp-prosecutor-17 and omp-defender-22. The controller retains its dispatch profile woostack-deep, derives principal omp:woostack-deep, records the native IDs and artifact digests, creates the schema-v2 manifest only after both exits, runs the local gate, then intersects. Also map one native worker ID for each supported adapter: claude-1, codex-1, cursor-1, agy-1, opencode-1, and omp-1, and classify a host that returns no stable ID. Return exactly one JSON object with keys dispatchOrder, sessionBindings, credentialContextBindings, principalBinding, adapterCredentialContexts, manifestWrittenAfterExits, gate, intersectionAfterGate, and missingIdStatus.",
+      "capabilities": ["read-workspace"],
+      "expected": "The controller binds every supported adapter's documented native ID formula, sources profile/principal from dispatch metadata, writes the manifest post-exit, uses --validators-local before intersection, and blocks a host without a stable native ID.",
+      "assertions": [
+        {"id": "sequential", "kind": "final-json-path-equals", "pointer": "/dispatchOrder", "expected": ["prosecutor-exit", "defender-exit", "manifest"], "critical": true},
+        {"id": "native-sessions", "kind": "final-json-path-equals", "pointer": "/sessionBindings", "expected": {"prosecutor": "omp-prosecutor-17", "defender": "omp-defender-22"}, "critical": true},
+        {"id": "credential-contexts", "kind": "final-json-path-equals", "pointer": "/credentialContextBindings", "expected": {"prosecutor": "omp:task:omp-prosecutor-17", "defender": "omp:task:omp-defender-22"}, "critical": true},
+        {"id": "principal-source", "kind": "final-json-path-equals", "pointer": "/principalBinding", "expected": "omp:woostack-deep", "critical": true},
+        {"id": "all-adapters", "kind": "final-json-path-equals", "pointer": "/adapterCredentialContexts", "expected": {"claude-code": "claude-code:task:claude-1", "codex": "codex:worker:codex-1", "cursor": "cursor:composer:cursor-1", "antigravity": "antigravity:context:agy-1", "opencode": "opencode:subagent:opencode-1", "omp": "omp:task:omp-1"}, "critical": true},
+        {"id": "post-exit-manifest", "kind": "final-json-path-equals", "pointer": "/manifestWrittenAfterExits", "expected": true, "critical": true},
+        {"id": "bound-gate", "kind": "final-json-path-equals", "pointer": "/gate", "expected": "--validators-local", "critical": true},
+        {"id": "gate-before-intersection", "kind": "final-json-path-equals", "pointer": "/intersectionAfterGate", "expected": true, "critical": true},
+        {"id": "missing-id-blocks", "kind": "final-json-path-equals", "pointer": "/missingIdStatus", "expected": "blocked", "critical": true}
+      ]
     }
   ]
 }

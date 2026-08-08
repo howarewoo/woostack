@@ -93,16 +93,20 @@ DISABLE_ADV="$(jq -r '.disable_adversarial // false' $OUTDIR/config.json 2>/dev/
 
 ### Phase 3a — Prosecutor pass (skip if `DISABLE_ADV == true`)
 
-If the OpenCode runtime supports per-call routing, spawn a `deep`-tier subagent with `$WOO_REVIEW_ACTION_PATH/prompts/validator-prosecutor.md`; otherwise apply the same prompt within the main loop. Bias: assume each finding is real; drop only the demonstrably wrong. Write surviving findings to `$OUTDIR/findings.prosecutor.json`.
+Spawn a fresh `deep`-tier subagent with `$WOO_REVIEW_ACTION_PATH/prompts/validator-prosecutor.md`; a local runtime without fresh subagent isolation blocks instead of continuing in the main loop. It assumes each finding is real, drops only the demonstrably wrong, writes `$OUTDIR/findings.prosecutor.json` and its receipt, then exits.
 
 ### Phase 3b — Defender pass
 
-Spawn another `deep`-tier subagent (or continue the main loop) with `$WOO_REVIEW_ACTION_PATH/prompts/validator.md`. Bias: defense attorney — drop pedantic / lint-catchable / "maybe" findings, enforce comment-shape + `fix_type` rules. Write surviving findings to `$OUTDIR/findings.defender.json`, then write its validator receipt as the pass's final action. Stop at the local-worker exit gate; the orchestrator runs the receipt gate and intersection itself in the next phase.
+After the Prosecutor exits and its binding and artifact digests are recorded in controller memory, spawn another fresh `deep`-tier subagent with `$WOO_REVIEW_ACTION_PATH/prompts/validator.md`. It applies the defense-attorney filter, writes `$OUTDIR/findings.defender.json` and its receipt, then exits. The controller creates the schema-v2 manifest only after every required role exits.
 
 ### Phase 3c — Intersect
 
 ```bash
-bash "$WOO_REVIEW_ACTION_PATH/scripts/verify-receipts.sh" --validators
+if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+  bash "$WOO_REVIEW_ACTION_PATH/scripts/verify-receipts.sh" --validators
+else
+  bash "$WOO_REVIEW_ACTION_PATH/scripts/verify-receipts.sh" --validators-local
+fi
 bash "$WOO_REVIEW_ACTION_PATH/scripts/intersect-findings.sh"
 ```
 

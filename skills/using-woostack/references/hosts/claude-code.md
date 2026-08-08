@@ -41,8 +41,11 @@ to entry 0, or re-run after editing config).
   call; the controller retains project admission, verification, and delivery boundaries.
 - **woostack-commit (fast drafting):** route the drafting subagent at the `fast` tier
   per-call.
-- **woostack-review (local swarm):** dispatch every active angle task via `Task`, letting the
-  host schedule; workers are `general-purpose`.
+- **woostack-review (local swarm):** dispatch every active angle task via `Task`, letting the host
+  schedule; workers are `general-purpose`. For validators, `reviewerSessionId` is the exact opaque
+  agent ID returned by `Task`; `reviewerCredentialContextId` is
+  `claude-code:task:<agent-id>`. Feed both into
+  [Review's bound-validator sequence](../../../woostack-review/SKILL.md).
 - **woostack-eval (comparative dispatch):** place both isolated `general-purpose` workers for
   each candidate/baseline inseparable pair in the same `Task` dispatch turn, alongside other
   intact pairs within capacity. Pin the same concrete `model` (and exposed effort) on both

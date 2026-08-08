@@ -19,7 +19,10 @@ Every artifact you write under `$OUTDIR/findings.*.json` (default `/tmp/pr-revie
   `runner`, `model`, and `tier` MUST be non-empty. A generic local worker SHOULD additionally
   report its real non-secret host binding as the complete set `reviewerProfile`,
   `reviewerSessionId`, `reviewerPrincipalId`, and `reviewerCredentialContextId` when those values
-  are available; never infer them or use a profile/token-store name as a native principal.
+  are available; never infer them or use a profile/token-store name as a native principal. A local
+  validator MUST report only the exact binding supplied to its own sequential dispatch, then exit;
+  the controller records artifact digests and creates `validator-bindings.json` only after every
+  required validator has exited. Validators never read or write that manifest.
 - In the GitHub Actions single-session path, bind the receipt to the producing job attempt:
   `reviewerProfile:"github-actions-single-session"`,
   `reviewerRunAttempt:<GITHUB_RUN_ATTEMPT>`,

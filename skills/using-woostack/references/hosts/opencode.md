@@ -31,8 +31,11 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
 ## Per-skill notes
 
 - **woostack-review (local swarm):** dispatch angle workers via the runtime primitive (see
-  `skills/woostack-review/prompts/opencode.md`); cap concurrency (`N=1`) only when the build
-  lacks parallelism.
+  `skills/woostack-review/prompts/opencode.md`); cap concurrency (`N=1`) only when the build lacks
+  parallelism. For validators, `reviewerSessionId` is the exact opaque worker ID returned by each
+  `@subagent` dispatch; `reviewerCredentialContextId` is
+  `opencode:subagent:<worker-id>`. Feed both into
+  [Review's bound-validator sequence](../../../woostack-review/SKILL.md).
 - **woostack-execute (and overnight):** route implementation workers at the `fast` tier per call;
   preserve the controller's project admission and delivery boundaries.
 - **woostack-eval (comparative dispatch):** submit the candidate and baseline as two isolated
