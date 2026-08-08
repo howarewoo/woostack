@@ -19,9 +19,9 @@
   "issueStates": {"complete": true, "resolved": {
     "planned": {"name": "Backlog", "category": "backlog"},
     "executing": {"name": "In Progress", "category": "started"},
-    "inReview": {"name": "In Review", "category": "started"},
+    "inReview": {"name": "In Progress", "category": "started"},
     "done": {"name": "Done", "category": "completed"},
-    "blocked": {"name": "Blocked", "category": "started"}
+    "blocked": {"name": "In Progress", "category": "started"}
   }},
   "capabilities": {
     "projectRead": true, "projectWrite": true,

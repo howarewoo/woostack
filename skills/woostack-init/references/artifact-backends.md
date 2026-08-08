@@ -332,24 +332,28 @@ requirements to those contracts.
 
 Normal Execute has one narrow workflow-owned status exception: in both `--project` and `--issue`
 modes, an exact canonical nonterminal project is synchronized to the configured
-`projectStatuses.started` status when any current direct issue is canonically `In Progress` or `In
-Review`. Read the complete, paginated direct-issue set and the exact project's native identity,
-workspace/team, current status, and revision before resolving or mutating anything. Resolve
-`projectStatuses.started` to exactly one native project status and require its native category to be
-`started`; missing, invalid, ambiguous, foreign, drifted, or incompletely paginated resolution
-blocks.
+`projectStatuses.started` status when any current direct issue's independently read native status
+matches the configured `linear.issueStates.executing` or `linear.issueStates.inReview` mapping by
+stable native identity and category. Read the complete, paginated direct-issue set and the exact
+project's native identity, workspace/team, current status, and revision before resolving or mutating
+anything. Resolve both issue-state mappings to exactly one native issue state, compare stable ID,
+name, and category rather than literal status names, and require both resolved mappings to have
+native category `started` before any issue-lifecycle, worktree, or source mutation. Resolve
+`projectStatuses.started` to exactly one native project status and require its native category to
+be `started`; missing, invalid, ambiguous, foreign, drifted, or
+incompletely paginated resolution blocks.
 
 If every direct issue is still `Backlog`/`Todo`, defer this synchronization until the selected
-issue has transitioned to `In Progress` and that issue transition has independently read back.
-Then synchronize the same exact project before any worktree or source mutation. A completed or
-canceled project is a terminal conflict and blocks without reopening or continuing. Immediately
-before a needed project mutation, re-read the exact project and retain one stable mutation identity.
-An exact existing started status (stable native ID/name and `started` category) is an idempotent
-no-op; otherwise update only the project's native status field. Independently read back the exact
-project and verify its identity, started status ID/name/category, revision, and stable mutation
-identity. Timeout, partial or foreign output, mutation failure, or failed/unknown read-back blocks at
-that boundary without reopening or continuing. The project-status receipt is distinct from issue
-lifecycle and resume-checkpoint evidence.
+issue has transitioned to the resolved `issueStates.executing` mapping and that issue transition has
+independently read back. Then synchronize the same exact project before any worktree or source
+mutation. A completed or canceled project is a terminal conflict and blocks without reopening or
+continuing. Immediately before a needed project mutation, re-read the exact project and retain one
+stable mutation identity. An exact existing started status (stable native ID/name and `started`
+category) is an idempotent no-op; otherwise update only the project's native status field.
+Independently read back the exact project and verify its identity, started status ID/name/category,
+revision, and stable mutation identity. Timeout, partial or foreign output, mutation failure, or
+failed/unknown read-back blocks at that boundary without reopening or continuing. The project-status
+receipt is distinct from issue lifecycle and resume-checkpoint evidence.
 
 Use a stable client-generated operation ID when the host API exposes one. After mutation, perform a
 new independent complete read and compare:

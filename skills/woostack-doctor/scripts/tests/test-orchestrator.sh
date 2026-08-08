@@ -25,9 +25,9 @@ valid_config='{
     "issueStates": {
       "planned": "Backlog",
       "executing": "In Progress",
-      "inReview": "In Review",
+      "inReview": "In Progress",
       "done": "Done",
-      "blocked": "Blocked"
+      "blocked": "In Progress"
     }
   },
   "models": {},

@@ -18,7 +18,7 @@ complete_config() {
         backlog:"Backlog",planned:"Planned",started:"Started",
         completed:"Completed",canceled:"Canceled"
       },
-      issueStates:{planned:"Backlog",executing:"In Progress",inReview:"In Review",done:"Done",blocked:"Blocked"}
+      issueStates:{planned:"Backlog",executing:"In Progress",inReview:"In Progress",done:"Done",blocked:"In Progress"}
     }
   }'
 }
@@ -39,9 +39,9 @@ complete_receipt() {
     issueStates:{complete:true,resolved:{
       planned:{name:"Backlog",category:"backlog"},
       executing:{name:"In Progress",category:"started"},
-      inReview:{name:"In Review",category:"started"},
+      inReview:{name:"In Progress",category:"started"},
       done:{name:"Done",category:"completed"},
-      blocked:{name:"Blocked",category:"started"}
+      blocked:{name:"In Progress",category:"started"}
     }},
     capabilities:{
       projectRead:true,projectWrite:true,projectUpdateRead:true,projectUpdateWrite:true,
