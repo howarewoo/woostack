@@ -14,6 +14,25 @@ evals = json.loads((root / "skills/woostack-sweep/evals/evals.json").read_text()
 max_round_case = next((case for case in evals["cases"] if case.get("id") == "max-rounds-blocks-next-head-review"), None)
 mergeability_case = next((case for case in evals["cases"] if case.get("id") == "stale-parent-mergeability-matrix"), None)
 fixture_failures = []
+actions_case = next((case for case in evals["cases"] if case.get("id") == "actions-checks-do-not-gate"), None)
+if not actions_case:
+    fixture_failures.append("Actions/check independence fixture missing")
+else:
+    action_assertion_ids = {assertion.get("id") for assertion in actions_case.get("assertions", [])}
+    required_action_ids = {
+        "bottom-up-order", "pending-check-input", "failed-check-input",
+        "zero-check-blockers", "clean-prs", "ready-stack",
+    }
+    missing_action_ids = required_action_ids - action_assertion_ids
+    if missing_action_ids:
+        fixture_failures.append(f"Actions/check independence assertions missing: {sorted(missing_action_ids)}")
+    action_prompt = actions_case.get("prompt", "").lower()
+    action_expected = actions_case.get("expected", "").lower()
+    if "pending" not in action_prompt or "failed" not in action_prompt or "check" not in action_prompt:
+        fixture_failures.append("Actions/check independence prompt must encode pending and failed checks")
+    if "bottom-up" not in action_expected or "ready" not in action_expected:
+        fixture_failures.append("Actions/check independence expected outcome must encode bottom-up readiness")
+
 if not max_round_case:
     fixture_failures.append("max-rounds fixture missing")
 else:
@@ -42,8 +61,8 @@ checks = {
     "branch command target": r"/woostack-sweep \[PR#\|branch\]",
     "exact branch binding": r"With `branch`, require one exact branch-name match.*bind that submitted branch to its canonical GitHub PR",
     "reject inferred branch": r"never infer the branch from a title, activity, issue data, or search order",
-    "reject unsubmitted branch": r"Reject an unsubmitted branch.*ambiguous membership",
     "bottom-up": r"Process each in-range PR from oldest dependency to tip",
+    "reject unsubmitted branch": r"Reject an unsubmitted branch.*ambiguous membership",
     "pre-existing address": r"Address pre-existing threads.*before review",
     "review exactly once": r"Invoke exactly one canonical multi-angle.*woostack-review <PR#>",
     "new findings": r"Address new findings.*every new finding",
@@ -57,8 +76,8 @@ checks = {
     "conflicting guarded restack": r"`CONFLICTING` enters the existing guarded restack/reconciliation boundary",
     "unknown mergeability blocks": r"non-conclusive mergeability evidence, including `UNKNOWN`, blocks",
     "sync mismatch informational": r"Parent-head synchronization mismatch alone is informational, does not invalidate a round, and never triggers restack",
+    "fail closed": r"missing/partial review or unsafe decision is blocked",
     "stack ready": r"Graphite parent identity and ancestry membership.*canonical GitHub mergeability.*conclusive and `MERGEABLE`",
-    "fail closed": r"missing/partial review, unknown check, or unsafe decision is blocked",
     "unsafe correction delta blocks": r"unrelated, partial, or unverified deltas.*block",
     "correction-only proof": r"correction-only delta proof",
     "complete address evidence": r"full reply/resolution evidence",
@@ -72,7 +91,7 @@ checks = {
 }
 failures = [name for name, pattern in checks.items() if not re.search(pattern, text, re.I | re.S)]
 failures.extend(fixture_failures)
-for forbidden in ("Linear", "artifact", "--interactive", "--full", "every finding severity", "only nits and every nit", "a head or thread-set change invalidates that round"):
+for forbidden in ("Linear", "artifact", "--interactive", "--full", "every finding severity", "only nits and every nit", "a head or thread-set change invalidates that round", "unknown check"):
     if forbidden.lower() in text.lower():
         failures.append(f"obsolete {forbidden} path")
 if failures:
