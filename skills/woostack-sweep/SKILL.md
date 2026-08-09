@@ -98,7 +98,7 @@ After every Address or restack head transition, re-read and re-bind canonical Gi
      any failed or missing proof blocks.
    - On an unchanged head, repeat after a blocking Review only when Address produced new evidence; if
      a blocker remains unresolved without new evidence, halt with that exact blocker and do not restack
-     or re-review. A missing/partial Review, unknown check, or unsafe decision is blocked, not clean.
+     or re-review. A missing/partial Review or unsafe decision is blocked, not clean.
 5. **Halt repeated blockers.** If the same blocker recurs on an unchanged head with no new code or
    evidence, halt and return that exact blocker and safe resume boundary. Do not spend another round
    or claim progress.

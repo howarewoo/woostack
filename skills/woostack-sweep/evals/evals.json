@@ -17,6 +17,20 @@
       ]
     },
     {
+      "id": "actions-checks-do-not-gate",
+      "prompt": "Drive a deterministic two-PR Graphite stack bottom-up: PR 811 is the lower dependency and PR 812 is its descendant. GitHub Actions/check data is complete but reports pending checks for PR 811 and failed checks for PR 812. All Sweep-owned gates pass for both PRs; observe and report the check inputs without using any Action/check result to gate Address, Review, advancement, clean status, closeout, or stack readiness. Return one JSON object with order, checks, checkCausedBlockers, cleanPrs, and stackStatus.",
+      "capabilities": ["read-workspace"],
+      "expected": "Pending and failed GitHub Actions/check inputs are observed and reported but cause zero blockers; PR 811 then PR 812 advance bottom-up, both PRs are clean, and the stack is ready.",
+      "assertions": [
+        {"id": "bottom-up-order", "kind": "final-json-path-equals", "pointer": "/order", "expected": [811, 812], "critical": true},
+        {"id": "pending-check-input", "kind": "final-json-path-equals", "pointer": "/checks/811", "expected": {"status": "pending"}, "critical": true},
+        {"id": "failed-check-input", "kind": "final-json-path-equals", "pointer": "/checks/812", "expected": {"status": "failed"}, "critical": true},
+        {"id": "zero-check-blockers", "kind": "final-json-path-equals", "pointer": "/checkCausedBlockers", "expected": [], "critical": true},
+        {"id": "clean-prs", "kind": "final-json-path-equals", "pointer": "/cleanPrs", "expected": [811, 812], "critical": true},
+        {"id": "ready-stack", "kind": "final-json-path-equals", "pointer": "/stackStatus", "expected": "ready", "critical": true}
+      ]
+    },
+    {
       "id": "blocker-round-restacks-and-reviews-again",
       "prompt": "Drive a three-PR Graphite stack bottom-up. PR 201's one review finds blocker B1; Address resolves it with new code, and descendants PR 202 and PR 203 require restacking. After reading back every affected head/base/ancestry, repeat one Review then Address for PR 201 on its new head; the second review is clean. Return complete evidence for heads, restack, review calls, thread replies/resolutions, and status.",
       "capabilities": ["read-workspace"],
