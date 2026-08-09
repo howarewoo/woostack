@@ -1,92 +1,79 @@
 # Linear project synchronization procedure
 
-This procedure writes one canonical build or selected standalone-plan record to one exact Linear
-project. It owns no workflow gate, phase, assignment, execution, acceptance, or repository
-authority. Use the [Linear artifact contract](../../woostack-init/references/artifact-backends.md),
-including its [link-only Approval Ask presentation rule](../../woostack-init/references/artifact-backends.md#approval-ask-presentation),
-and [project context procedure](linear-context.md) for every read and write.
+This procedure applies provider mutations for one canonical Build/Fix gated save or one standalone
+Plan graph. It owns no workflow gate, assignment, execution, acceptance, or repository authority.
+The [Linear artifact contract](../../woostack-init/references/artifact-backends.md) is the single
+authority for gated manifest state, displayed approval identity, causal ordering, drift/recovery,
+identity mapping, cleanup, and read-back. The [project context procedure](linear-context.md) owns
+baseline admission.
 
 ## Build project lifecycle
 
-Build resolves or creates the exact project before ideation. During ideation and specification
-hardening:
+Build resolves or creates the exact project and admits the gate 1 baseline before ideation. Ideate
+and specification Harden update only the permission-restricted run manifest and make zero provider
+calls. This procedure is not invoked until the responsible user approves the complete exact
+specification displayed in the active conversation.
 
-1. keep one evolving complete high-level specification in the same project;
-2. after every material decision, re-read the exact project, preserve unrelated human-authored
-   content, write the smallest complete corrected specification, and independently read it back;
-3. retain stable project identity and mutation identity; and
-4. never request project-spec approval until a complete hardening pass yields no new question.
-
-After the responsible user explicitly approves gate 1's link-only Ask in the active conversation,
-record that approval in the Linear `projectSpecApprovalRecord` and independently read the receipt
-back. Keep the exact project specification and fingerprint internal under the shared presentation
-rule; never rewrite the specification silently. A material correction invalidates both shared
-approval records and returns to project-spec hardening.
+After approval, perform only the shared immediate pre-save drift read and one bounded
+synchronization. Write the exact approved specification under the existing-record invariant,
+independently read the content back, then record and independently read back
+`projectSpecApprovalRecord` and its referenced project. Do not save intermediate decisions,
+question replies, or hardening corrections. Drift or failure consumes the approval and requires a
+fresh baseline and complete Ask.
 
 ## Increment graph synchronization
 
-Build-delegated `woostack-plan` returns a complete candidate graph without provider mutation. Build
-hardens it, then synchronizes:
+Build/Fix-delegated `woostack-plan` and Harden populate only the gate 2 manifest with a complete
+candidate graph. They make zero provider calls. This procedure starts only after responsible-user
+approval of every complete exact issue contract and dependency tuple displayed in the active
+conversation.
+
+After the immediate baseline drift read matches, perform one bounded synchronization of:
 
 1. one direct project issue per current increment;
 2. complete executor-ready issue descriptions containing the approved project-spec fingerprint;
 3. direct project membership and no parent/container relation; and
-4. native issue-to-issue dependency relations matching the hardened DAG.
+4. native issue-to-issue dependency relations matching the approved graph.
 
-Allocate stable client-generated issue and relation mutation UUIDs before first writes and retain
-them through recovery. For each issue:
+Use the manifest's preallocated stable client-generated issue and relation mutation UUIDs.
 
-1. read the exact current target when it exists;
-2. preserve unrelated human-authored content;
-3. apply the [existing-description mutation invariant](../../woostack-init/references/artifact-backends.md#existing-description-mutation-invariant) to any existing description and write its supported description patch as a standalone mutation;
-4. write the smallest corrected title and project-membership payload as separately selected
-   metadata mutations under their applicable contracts;
-5. independently read native identity, content, title, project membership, parent absence, revision,
-   and every mutation identity back; and
-6. compute `canonicalIncrementFingerprint` only from the independently read canonical fields.
+Before the Ask, reconcile every retained baseline issue with exactly one stable local task key.
+Reuse a prior verified stable-key mapping when present; otherwise display one explicit proposed
+baseline issue→task-key mapping for responsible-user approval. Ambiguous, duplicate, or unmatched
+retained issues block instead of falling through to allocation. After approval, reuse each retained
+native issue ID and allocate exactly one native ID only for a task key whose approved mapping is
+explicitly new; record every newly allocated mapping atomically and never remap it. Existing
+descriptions use the
+[existing-description mutation invariant](../../woostack-init/references/artifact-backends.md#existing-description-mutation-invariant).
+Preserve unrelated human-authored content and historical parent/container records.
 
-Then write missing native dependency relations. Independently read the complete relation set back
-and compare normalized predecessor→successor tuples with the hardened DAG. Never simulate
-dependencies in prose alone.
+After the bounded writes, independently read every issue's native identity, stable-key mapping,
+content, title, project membership, parent absence, revision, mutation identity, and canonical
+fingerprint. Then independently read the complete relation set and compare exact normalized
+predecessor→successor tuples with the approved display. Only that exact graph read-back permits
+recording `executionPlanApprovalRecord`; independently read both receipts and every referenced
+record before clearing gate 2.
 
-For a caller-supplied existing project, reconcile matching current direct issues by stable native
-identity and stable task ID. Preserve historical parent plan issues and children as noncanonical
-history. Never detach, migrate, archive, delete, reparent, or rewrite them. If current direct-issue
-identity is ambiguous, stop rather than guess or create a replacement.
-
-Do not create a parent plan issue, child containment, placeholder issue, duplicate relation, or
-replacement resource after an unknown outcome.
+Do not create a parent plan issue, child containment, placeholder issue, duplicate relation,
+replacement resource, or second synchronization cycle under the same approval.
 
 ## Standalone plan
 
-When standalone `woostack-plan` explicitly selects persistence, it may create or update one project
-and the same direct-issue dependency graph. It owns no shared approval record and does not imply
-execution authorization. Without explicit persistence, standalone planning makes no provider call.
+Standalone `woostack-plan` keeps its existing behavior unchanged: it directly creates or updates
+the exact selected project's direct-issue dependency graph, independently reads the complete graph
+back, and owns no shared approval record or execution authorization. It does not use the gated
+Build/Fix run manifest.
 
 ## Approval preparation
 
-Before the project-spec gate, independently read the complete project specification and retain its
-exact `canonicalProjectSpecFingerprint`, provider revision, and read time internally. Present gate
-1's exact canonical Linear project link under the shared
-[Approval Ask presentation rule](../../woostack-init/references/artifact-backends.md#approval-ask-presentation).
-Record the approval in `projectSpecApprovalRecord` and independently read the Linear receipt back.
+For gated Build/Fix work, prepare each Ask only from the complete manifest under the shared
+[displayed-content approval identity](../../woostack-init/references/artifact-backends.md#complete-displayed-content-approval-identity).
+Display the full exact content. Approval precedes every save; exact content read-back precedes
+receipt creation; exact receipt and referenced-record read-back precedes gate clearance.
 
-Before the execution-plan gate:
-
-1. re-read and match the project fingerprint and `projectSpecApprovalRecord`;
-2. completely paginate all current direct issues and native dependency relations;
-3. verify each executor contract, project membership, parent absence, stable identity, and
-   fingerprint;
-4. verify normalized dependencies exactly match the hardened acyclic graph; and
-5. retain the exact sorted increment and dependency sets internally. Present gate 2's exact relevant
-   direct-issue links under the shared
-   [Approval Ask presentation rule](../../woostack-init/references/artifact-backends.md#approval-ask-presentation).
-   Record the approval in `executionPlanApprovalRecord` and independently read the Linear receipt
-   back.
-
-No successful mutation response, Linear status, conversation response without a matching Linear
-receipt, assignment, update, or read-back alone is approval. A provider-native comment is neither
-required nor sufficient.
+No successful mutation response, Linear status, assignment, update, conversation response without
+the ordered receipt, or read-back alone is approval. An unreceipted approval cannot replay after
+drift, process loss, manifest loss, unknown outcome, or mismatch.
 
 ## Delivery notes
 
@@ -98,11 +85,11 @@ back after writing and report artifact and repository outcomes separately.
 ## Failures and resume
 
 A missing capability, failed read, unknown mutation, incomplete pagination, conflicting revision,
-foreign resource, stale approval, or mismatched fingerprint/edge blocks the required build path at
-the last verified boundary. Preserve stable identities and exact retry state. Never create a
-replacement, replay a verified write, or use local/conversational/alternate-provider content for
-execution.
+foreign resource, stale approval, mismatched fingerprint/edge, process loss, or manifest failure
+blocks at the last verified boundary. Follow the shared same-identity recovery rule and present a
+fresh complete Ask; never replay an unreceipted approval, create a replacement, or use the local
+draft as authority.
 
 Explicit abandonment follows the shared
-[project-backed workflow closure](../../woostack-init/references/artifact-backends.md#project-backed-workflow-closure).
-Handoff, replan, pauses, and blockers leave project status unchanged.
+[project-backed workflow closure](../../woostack-init/references/artifact-backends.md#project-backed-workflow-closure),
+including manifest cleanup. Handoff, replan, pauses, and blockers leave project status unchanged.

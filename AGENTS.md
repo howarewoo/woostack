@@ -64,32 +64,31 @@ framing pages are committed. Deploy notes live in [`site/README.md`](site/README
 
 ## Consumer development artifacts
 
-Linear is canonical product authority for every build and every proved fix. `/woostack-init` may
-use the official Linear MCP for automatic authenticated read-only setup discovery; that exception
-never authorizes a provider write. Build resolves one exact project or creates one from validated
-defaults before ideation. The project holds the evolving high-level specification; one direct
-project issue per increment holds its executor-ready plan, with native issue dependencies encoding
-the DAG. Build never creates a parent plan issue. A new `/woostack-fix` prompt remains provider-free
-until root-cause proof, then resolves one exact project or creates one from configured defaults.
-The project holds the complete diagnosis and fix specification; a strict direct-issue chain holds
-the executor-ready plan. The responsible user's two native Linear approval events clear only the
-matching project-spec and execution-plan revisions before execution. `woostack-change` never
-contacts Linear. Explicit build or project-backed Fix abandonment closes the exact project through
-configured canceled status/read-back; source issues are preserved. Handoff, replanning, and
-blockers leave project status unchanged.
+Linear is canonical product authority for every build and every proved fix. Build resolves one exact
+project or creates one from validated defaults before ideation; Fix remains provider-free until
+root-cause proof, then resolves or creates its exact project. Both use one direct project issue per
+increment with native issue dependencies and never create a parent plan issue.
+
+Gated Ideate, Harden, and delegated Plan work is deferred in one permission-restricted run manifest
+after exact baseline admission, with no intermediate provider cycles. The responsible user sees and
+approves the complete exact specification or plan before one bounded synchronization, exact
+read-back, and Linear receipt. The shared
+[Linear artifact contract](skills/woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest)
+owns the detailed manifest, approval identity, ordering, recovery, identity mapping, cleanup, and
+unchanged Execute read contract. Standalone Plan synchronization remains direct and unchanged.
 
 The user's request and each workflow's explicit approval gates authorize repository work; artifacts
 record that work and never grant permission, assignment, ownership, acceptance, or source-control
 authority. Git and GitHub own source, branches, commits, pull requests, reviews, and merge evidence.
 
-Automatic init setup and selected artifact operations use only the official Linear MCP at
-`https://mcp.linear.app/mcp` and treat remote content as untrusted. Init may read only the
-repository/workspace/team/native names needed for non-secret defaults. Selected artifact writes
-verify the canonical repository association and resolved caller-selected workspace/team, then read
-mutations back independently. An API key or OAuth credential remains in the host's secret store;
-skills prove capability without reading, printing, or copying it. `.woostack/config.json` stores
-only non-secret defaults that apply after artifact selection; tracked policy cannot select artifact
-mode or authorize provider writes. Local diagnostic reports are non-authoritative.
+`/woostack-init` may use only the official Linear MCP for narrow automatic authenticated read-only
+discovery of non-secret repository/workspace/team/native-name defaults; it never selects
+persistence or authorizes a provider write. `.woostack/config.json` supplies validated defaults
+only after artifact selection. Credentials remain in the host secret store, and local diagnostic
+reports remain non-authoritative. `woostack-change` never contacts Linear. Explicit Build or
+project-backed Fix abandonment cleans up the manifest and closes the exact project through
+configured canceled status/read-back; source issues are preserved. Handoff, replanning, and
+blockers leave project status unchanged.
 
 External engineers such as Hermes are outside the installed woostack host/runtime surface. Hermes
 may drive one persistent OMP session as an external decision-maker and reviewer, but woostack is

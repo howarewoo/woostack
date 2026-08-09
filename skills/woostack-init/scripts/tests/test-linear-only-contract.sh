@@ -42,23 +42,42 @@ for pattern, message in (
     (r"canonical product records for `woostack-build` and project-backed `woostack-fix`", "canonical fix/build role missing"),
     (r"Each independently shippable increment is one direct issue in that project", "direct build issue shape missing"),
     (r"Do not create a parent plan issue", "retired build wrapper is not forbidden"),
-    (r"project-backed fix keeps diagnosis, plan, approval, and delivery evidence", "project-backed fix record shape missing"),
     (r"not source-control or delivery authority", "source-control authority boundary missing"),
-    (r"active conversation.*Linear.*receipt.*independently.*read", "active approval receipt authority missing"),
-    (r"automatic authenticated read-only setup discovery", "automatic init exception missing"),
-    (r"Tracked `.woostack/config\.json` policy never authorizes provider access by itself", "policy authority boundary missing"),
-    (r"exact caller-supplied resource always takes precedence over creation", "exact-resource precedence missing"),
-    (r"host's authenticated official Linear MCP", "official transport boundary missing"),
-    (r"stable client-generated operation ID", "idempotent mutation rule missing"),
-    (r"perform a new independent complete read", "read-back rule missing"),
+    (r"Run-scoped gated draft manifest", "gated manifest authority missing"),
+    (r"host OS temporary-directory facility.*0700.*0600", "restricted OS-temp manifest missing"),
+    (r"atomically renames it over the manifest", "atomic manifest update missing"),
+    (r"zero Linear or other provider reads and writes", "provider-free gated drafting missing"),
+    (r"complete exact local content to be saved, not a summary or pointer-only presentation", "complete displayed content missing"),
+    (r"approval must occur before any draft content is saved", "approval-before-save ordering missing"),
+    (r"immediately re-read the exact Linear targets", "immediate pre-save drift read missing"),
+    (r"only after that exact content read-back, record", "read-back-before-receipt ordering missing"),
+    (r"stable local task key to the one native issue ID", "native identity mapping missing"),
+    (r"prior stable-key mappings.*explicit proposed native-issue.*task-key mapping", "retained issue reconciliation missing"),
+    (r"optimistic revision/content-identity precondition.*immediate fresh read", "mid-cycle drift protection missing"),
+    (r"unreceipted approval is consumed and cannot be replayed", "unreceipted approval replay guard missing"),
+    (r"different/restarted process.*requires a fresh complete Ask", "process-loss invalidation missing"),
+    (r"Remove the manifest and its run-scoped temporary directory", "manifest cleanup missing"),
+    (r"local draft.*never replaces.*last Linear-approved boundary", "local authority boundary missing"),
+    (r"Standalone `woostack-plan`.*unchanged", "standalone Plan distinction missing"),
+    (r"Execute-era safety reads are unchanged", "Execute read preservation missing"),
     (r"projectSpecApprovalRecord", "project-spec approval record missing"),
     (r"executionPlanApprovalRecord", "execution-plan approval record missing"),
     (r"project-specification change invalidates both.*issue or dependency change invalidates only", "approval invalidation rules missing"),
-    (r"projectStatuses\.canceled", "canceled-status mapping missing"),
-    (r"server-generated.*approvalEventRef.*same.*event.*independently.*read", "server-generated approval receipt finalization missing"),
-    (r"provisional.*never clears.*gate", "provisional approval event can appear authoritative"),
+    (r"exact caller-supplied resource always takes precedence over creation", "exact-resource precedence safeguard missing"),
+    (r"official Linear MCP", "official-MCP-only transport safeguard missing"),
+    (r"provisional event.*never clears any gate", "provisional receipt non-authority missing"),
+    (r"preallocated.*mutation identities", "stable operation identity safeguard missing"),
+    (r"independently read back", "independent read-back safeguard missing"),
 ):
     require("artifact-backends.md", contract, pattern, message)
+
+for obsolete in (
+    r"gate 1 displays only the",
+    r"gate 2 displays only the",
+    r"Do not paste any project",
+):
+    if re.search(obsolete, contract, re.I):
+        failures.append(f"artifact-backends.md: obsolete approval presentation remains: {obsolete}")
 
 build = flat(root / "skills/woostack-build/SKILL.md")
 for pattern, message in (

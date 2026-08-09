@@ -43,7 +43,7 @@ assert_literal "$SKILL" \
   'executionPlanApprovalRecord' \
   'root names the shared execution approval record'
 assert_literal "$SKILL" \
-  'active conversation' \
+  'active-conversation' \
   'root requires active-conversation approval'
 assert_literal "$SKILL" \
   'normal [`woostack-execute`]' \
@@ -68,8 +68,8 @@ for heading in \
 done
 for heading in \
   '## Resolution' \
-  '## Project specification read' \
-  '## Direct increment graph read' \
+  '## Project specification baseline' \
+  '## Direct increment graph baseline' \
   '## Drift and failure'; do
   assert_literal "$CONTEXT" "$heading" "Linear context retains section: $heading"
 done
@@ -77,20 +77,20 @@ done
 assert_literal "$PROCEDURE" \
   'It owns no workflow gate' \
   'synchronization procedure cannot clear approval'
+assert_literal "$PROCEDURE" \
+  'Approval precedes every save; exact content read-back precedes' \
+  'procedure preserves approval/save/read-back/receipt ordering'
 assert_literal "$CONTEXT" \
-  'conversation response without a Linear receipt' \
-  'context rejects conversation-only approval evidence'
+  'an unreceipted response cannot replay' \
+  'context rejects approval replay'
 assert_literal "$CONTEXT" \
-  'read-back without the matching active approval' \
-  'context rejects read-back-only approval evidence'
-assert_literal "$CONTEXT" \
-  'There is no local, cached, or alternate-provider execution fallback' \
+  'no local, cached, or alternate-provider execution fallback' \
   'required build authority fails closed'
 assert_literal "$AUTHORITY" \
   'Do not create a parent plan issue' \
   'shared contract forbids the retired plan wrapper'
 assert_literal "$AUTHORITY" \
-  'Report repository delivery and artifact synchronization as separate outcomes' \
-  'shared contract separates repository and Linear results'
+  'These Execute-era safety reads are unchanged' \
+  'deferred sync preserves Execute safety reads'
 
 finish

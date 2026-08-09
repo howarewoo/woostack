@@ -28,26 +28,31 @@ def require_shared(pattern, name):
 
 
 for pattern, name in (
-    (r"Approval Ask presentation", "shared Ask presentation contract"),
-    (r"gate 1 displays only the .*exact canonical Linear project link", "project link-only Ask"),
-    (r"gate 2 displays only the .*exact relevant direct-issue links", "issue link-only Ask"),
-    (r"Do not paste any project, specification, issue, or dependency body", "body exclusion"),
-    (r"canonical fingerprint.*dependency tuple.*read-back payload", "retained evidence exclusion"),
-    (r"untrusted, non-authoritative pointers", "URL trust boundary"),
+    (r"Run-scoped gated draft manifest", "shared manifest contract"),
+    (r"host OS temporary-directory facility.*0700.*0600", "restricted OS-temp manifest"),
+    (r"zero Linear or other provider reads and writes", "no intermediate provider cycle"),
+    (r"complete exact local content to be saved.*not a summary or pointer-only presentation", "complete displayed content"),
+    (r"approval must occur before any draft content is saved", "approval-before-save"),
+    (r"immediately re-read the exact Linear targets", "immediate pre-save drift read"),
+    (r"only after that exact content read-back, record", "read-back-before-receipt"),
+    (r"stable local task key to the one native issue ID", "stable native identity mapping"),
+    (r"unreceipted approval is consumed and cannot be replayed", "approval replay guard"),
+    (r"different/restarted process.*fresh complete Ask", "process-loss invalidation"),
+    (r"Remove the manifest and its run-scoped temporary directory", "manifest cleanup"),
+    (r"Execute-era safety reads are unchanged", "unchanged Execute checks"),
 ):
     require_shared(pattern, name)
 
 for pattern, name in (
-    (r"present the complete", "complete-body Ask directive"),
-    (r"present that exact specification", "specification-body Ask directive"),
-    (r"present the exact .*dependency", "dependency-body Ask directive"),
-    (r"do not paste", "duplicated Ask exclusion list"),
+    (r"gate 1 displays only the", "obsolete project-pointer-only Ask"),
+    (r"gate 2 displays only the", "obsolete issue-pointer-only Ask"),
+    (r"Do not paste any project", "obsolete body exclusion"),
 ):
-    if re.search(pattern, skill, re.I | re.S):
+    if re.search(pattern, artifact, re.I | re.S):
         failures.append(name)
 
 
-require(r"Debug\s*→\s*Ideate\s*→\s*Harden.*project-spec approval.*Linear.*Plan\s*→\s*Harden.*execution-plan approval.*Linear.*normal Execute", "canonical sequence")
+require(r"Debug.*gate 1 baseline.*local Ideate/Harden.*complete specification Ask.*bounded sync/read-back/receipt.*gate 2 baseline.*local Plan/Harden.*complete plan Ask.*bounded sync/read-back/receipt.*normal Execute", "canonical sequence")
 require(r"Before root-cause proof, load only the routing and output rules.*woostack-debug.*references that Debug directly requires", "debug-only pre-proof loading")
 require(r"Immediately after Debug returns root-cause proof and exact writable target-repository admission succeeds, load.*Linear artifact contract.*woostack-build.*woostack-ideate.*woostack-harden", "post-admission downstream loading")
 if not (
@@ -69,11 +74,12 @@ require(r"source issue.*never repurposed|never repurpos(?:e|ed) a supplied sourc
 require(r"multiple direct PR-linked issues", "multiple direct PR issues")
 require(r"projectSpecApprovalRecord", "project approval record")
 require(r"executionPlanApprovalRecord", "execution approval record")
-require(r"active[- ]conversation.*explicitly approves.*Record the shared", "active conversation receipt")
-require(r"independently read back both approval records", "independent approval read-back")
+require(r"responsible user explicitly approves that exact display.*projectSpecApprovalRecord", "active project approval before save/read-back/receipt")
+require(r"responsible user explicitly approves that exact display.*executionPlanApprovalRecord", "active plan approval before save/read-back/receipt")
+require(r"independently read back both receipts", "independent approval read-back")
 require(r"material project-specification change invalidates both records", "spec invalidation")
-require(r"Present gate 1's exact canonical Linear project link", "fix project link-only Ask")
-require(r"Present gate 2's exact relevant direct-issue links", "fix issue link-only Ask")
+require(r"Display the complete exact project specification", "complete project Ask")
+require(r"Display the complete exact ordered direct-issue contracts", "complete plan Ask")
 require(r"material direct-issue or dependency change invalidates only `executionPlanApprovalRecord`", "plan invalidation")
 require(r"normal \[`woostack-execute`\]", "normal execute handoff")
 require(r"before dispatch, after every worker handback, before every redispatch", "authority recheck cadence")
@@ -136,8 +142,9 @@ for expected in (
     "canonical-project-preserves-source-record",
     "project-spec-approval-is-active-and-recorded",
     "execution-plan-approval-binds-issues-and-dependencies",
-    "renders-link-only-project-spec-ask",
-    "renders-link-only-execution-plan-ask",
+    "renders-complete-project-spec-ask",
+    "renders-complete-execution-plan-ask",
+    "blocks-unreceipted-approval-replay",
     "material-change-invalidates-matching-receipts",
 ):
     if expected not in ids:

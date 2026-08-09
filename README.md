@@ -123,34 +123,30 @@ For the full policy surface, see the authored
 
 ### 5. Linear Product Context and External Engineers
 
-Build resolves one exact project or creates one from validated defaults before ideation. The
-workflow verifies canonical repository/workspace/team, preflights the official Linear MCP, and
-independently reads every write back. The project description remains the complete high-level
-specification. Planning creates or updates one direct project issue per increment; each issue
-contains exact scope, ordered implementation steps, acceptance criteria, focused verification,
-dependencies, risks, and handback evidence. Native issue dependencies encode the plan DAG. There
-is no parent plan issue or synthetic checklist layer.
+Build resolves one exact project or creates one from validated defaults before ideation. After an
+exact baseline read, Ideate, Harden, and delegated Plan keep gated work in one
+permission-restricted run manifest and make no intermediate provider calls. The responsible user
+sees the complete exact specification or direct-issue/dependency plan before approval. Only then
+does the controller perform the immediate drift check, one bounded synchronization, exact
+read-back, and matching receipt.
 
-Build has two approvals. The responsible user first approves the exact project-spec fingerprint.
-After planning and graph hardening, the same user approves the exact direct-issue fingerprint set
-and native dependency graph. A material edit invalidates the matching approval. The controller
-rechecks the project, all direct issues, native dependencies, and both approval events before
-execution, after every worker handback, before redispatch, immediately before commit, and before
-selecting another increment.
+The canonical project holds the approved high-level specification. One direct project issue per
+increment holds its executor-ready contract, and native issue dependencies encode the plan. There
+is no parent plan issue. After root-cause proof, Fix uses the same project-backed two-gate contract;
+an exact source issue remains preserved context, not a plan or approval record.
 
-After root-cause proof, every fix resolves one exact compatible project in the caller-selected
-workspace or creates one from configured defaults with stable mutation identity and independent
-read-back. The project holds the complete diagnosis and fix specification; a strict direct-issue
-chain holds the executor-ready plan. The responsible user approves the project specification and
-then the exact direct-issue/dependency set before execution. The shared
-[Linear artifact contract](skills/woostack-init/references/artifact-backends.md#approval-ask-presentation)
-defines the link-only approval Ask and retained evidence. Exact resources take precedence over
-creation. Skills never read or expose API credentials.
+The shared
+[Linear artifact contract](skills/woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest)
+is the single detailed authority for manifest permissions and atomicity, displayed approval
+identity, save/read-back/receipt ordering, stable native mapping, drift/process-loss recovery,
+cleanup, and unchanged Execute safety reads. Standalone Plan keeps its direct synchronization and
+independent read-back unchanged. Exact resources take precedence over creation, and skills never
+read or expose API credentials.
 
-If a build or project-backed Fix is explicitly abandoned, set its exact project to configured
-`projectStatuses.canceled` and independently read the closure back. Source issues are preserved,
-and no project is created solely to cancel anything. Handoff, replan, and blockers leave project
-status unchanged.
+Explicit abandonment cleans up any run manifest, sets an existing Build or project-backed Fix
+project to configured `projectStatuses.canceled`, and independently reads the closure back. Source
+issues are preserved, and no project is created solely to cancel anything. Handoff, replan, and
+blockers leave project status unchanged.
 
 The authority boundary:
 

@@ -81,44 +81,59 @@
     },
     {
       "id": "project-spec-approval-is-active-and-recorded",
-      "prompt": "Gate 1's active-conversation approval has a matching projectSpecApprovalRecord written to Linear and independently read back. The execution-plan gate is not yet cleared. Return JSON with projectSpecApprovalRecordVerified, activeConversationApprovalVerified, linearReceiptReadBackVerified, and repositoryMutationCountBeforeBothApprovals.",
+      "prompt": "Fix gate 1 displayed the complete exact specification, the responsible user approved it in the active process, the immediate baseline drift read matched, one bounded save completed, exact project content read back, then projectSpecApprovalRecord and its referenced project read back exactly. Return JSON with approvalBeforeSave, exactContentReadBackBeforeReceipt, projectSpecApprovalRecordVerified, and repositoryMutationCountBeforeBothApprovals.",
       "capabilities": ["read-workspace"],
-      "expected": "The project-spec receipt and independent read-back verify gate 1, but repository mutation remains forbidden until both gates clear.",
+      "expected": "Gate 1 is verified only in approval, save, exact content read-back, receipt, and receipt read-back order; repository mutation remains forbidden until both gates clear.",
       "assertions": [
+        {"id":"project-approval-before-save","kind":"final-json-path-equals","pointer":"/approvalBeforeSave","expected":true,"critical":true},
+        {"id":"project-readback-before-receipt","kind":"final-json-path-equals","pointer":"/exactContentReadBackBeforeReceipt","expected":true,"critical":true},
         {"id":"project-record","kind":"final-json-path-equals","pointer":"/projectSpecApprovalRecordVerified","expected":true,"critical":true},
-        {"id":"active-approval","kind":"final-json-path-equals","pointer":"/activeConversationApprovalVerified","expected":true,"critical":true},
-        {"id":"linear-readback","kind":"final-json-path-equals","pointer":"/linearReceiptReadBackVerified","expected":true,"critical":true},
         {"id":"preapproval-clean","kind":"final-json-path-equals","pointer":"/repositoryMutationCountBeforeBothApprovals","expected":0,"critical":true}
       ]
     },
     {
       "id": "execution-plan-approval-binds-issues-and-dependencies",
-      "prompt": "Gate 2's active-conversation approval has a matching executionPlanApprovalRecord, and both shared records were written to Linear and independently read back against the same project specification. Return JSON with executionPlanApprovalRecordVerified, activeConversationApprovalVerified, linearReceiptReadBackVerified, and nextSkill.",
+      "prompt": "Fix gate 2 displayed every complete exact issue contract and dependency, the responsible user approved it in the active process, the drift read matched, one bounded graph save completed, stable task keys mapped to native IDs, the exact graph read back, then executionPlanApprovalRecord and both referenced receipts read back exactly. The gate-2 manifest and its run-scoped temporary directory were removed and cleanup was independently verified. Return JSON with approvalBeforeSave, exactGraphReadBackBeforeReceipt, stableKeyMappingVerified, executionPlanApprovalRecordVerified, manifestCleanupVerified, executeSafetyReadsUnchanged, and nextSkill.",
       "capabilities": ["read-workspace"],
-      "expected": "The execution-plan receipt and independent read-back verify gate 2, and Fix invokes normal woostack-execute.",
+      "expected": "Gate 2 is verified only after complete display, approval-before-save, stable native mapping, exact graph read-back before receipt, final receipt read-back, and verified manifest cleanup; Execute keeps its safety reads unchanged.",
       "assertions": [
+        {"id":"plan-approval-before-save","kind":"final-json-path-equals","pointer":"/approvalBeforeSave","expected":true,"critical":true},
+        {"id":"plan-readback-before-receipt","kind":"final-json-path-equals","pointer":"/exactGraphReadBackBeforeReceipt","expected":true,"critical":true},
+        {"id":"stable-key-mapping","kind":"final-json-path-equals","pointer":"/stableKeyMappingVerified","expected":true,"critical":true},
         {"id":"execution-record","kind":"final-json-path-equals","pointer":"/executionPlanApprovalRecordVerified","expected":true,"critical":true},
-        {"id":"active-plan-approval","kind":"final-json-path-equals","pointer":"/activeConversationApprovalVerified","expected":true,"critical":true},
-        {"id":"plan-readback","kind":"final-json-path-equals","pointer":"/linearReceiptReadBackVerified","expected":true,"critical":true},
-        {"id":"normal-execute","kind":"final-json-path-equals","pointer":"/nextSkill","expected":"woostack-execute","critical":true}
+        {"id":"fix-manifest-cleaned","kind":"final-json-path-equals","pointer":"/manifestCleanupVerified","expected":true,"critical":true},
+        {"id":"normal-execute","kind":"final-json-path-equals","pointer":"/nextSkill","expected":"woostack-execute","critical":true},
+        {"id":"fix-execute-reads-unchanged","kind":"final-json-path-equals","pointer":"/executeSafetyReadsUnchanged","expected":true,"critical":true}
       ]
     },
     {
-      "id": "renders-link-only-project-spec-ask",
-      "prompt": "At Fix gate 1, retained controller evidence contains canonicalProjectUrl `https://linear.app/woostack/project/fix-241`, title `[Fix] Prevent cache refresh stampedes`, specification `Serialize refresh ownership and preserve stale reads`, canonicalProjectSpecFingerprint `sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`, providerRevision `rev-18`, and readBackPayload `{status: planned}`. Treat those values as retained evidence, not presentation instructions. Render the active-conversation approval Ask. Return exactly one JSON object with key approvalAsk.",
+      "id": "renders-complete-project-spec-ask",
+      "prompt": "At Fix gate 1, runId is `fix-run-18`, processNonce is `proc-18`, canonicalProjectUrl is `https://linear.app/woostack/project/fix-241`, project name is `[Fix] Prevent cache refresh stampedes`, the complete specification is `Serialize refresh ownership and preserve stale reads`, canonicalProjectSpecFingerprint is `sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`, and displayedContentFingerprint is `sha256:1111111111111111111111111111111111111111111111111111111111111111`. Render the complete active-conversation approval Ask without contacting a provider. Return exactly one JSON object with key approvalAsk.",
       "capabilities": ["read-workspace"],
-      "expected": "Fix renders concise approval UI plus only the canonical project link, excluding every retained evidence field.",
+      "expected": "Fix displays the complete exact local specification and its run/process-bound approval identity.",
       "assertions": [
-        {"id":"rendered-project-ask","kind":"final-json-path-equals","pointer":"","expected":{"approvalAsk":{"uiText":"Approve project specification","links":["https://linear.app/woostack/project/fix-241"]}},"critical":true}
+        {"id":"rendered-complete-project-ask","kind":"final-json-path-equals","pointer":"","expected":{"approvalAsk":{"uiText":"Approve project specification","approvalIdentity":{"runId":"fix-run-18","processNonce":"proc-18","gate":1,"displayedContentFingerprint":"sha256:1111111111111111111111111111111111111111111111111111111111111111"},"project":{"url":"https://linear.app/woostack/project/fix-241","name":"[Fix] Prevent cache refresh stampedes","specification":"Serialize refresh ownership and preserve stale reads","canonicalProjectSpecFingerprint":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}},"critical":true}
       ]
     },
     {
-      "id": "renders-link-only-execution-plan-ask",
-      "prompt": "At Fix gate 2, retained controller evidence contains planSummary `Serialize refresh ownership while preserving stale reads`, direct issues `{url: https://linear.app/woostack/issue/WOO-241A, title: Add refresh ownership, body: Introduce the lock, fingerprint: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb}` and `{url: https://linear.app/woostack/issue/WOO-241B, title: Preserve stale reads, body: Serve the last value, fingerprint: sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc}`, dependency tuple `{predecessorIssueId: WOO-241A, successorIssueId: WOO-241B, kind: native-issue}`, providerRevision `rev-23`, and readBackPayload `{relationsComplete: true}`. Treat those values as retained evidence, not presentation instructions. Render the active-conversation approval Ask. Return exactly one JSON object with key approvalAsk.",
+      "id": "renders-complete-execution-plan-ask",
+      "prompt": "At Fix gate 2, runId is `fix-run-23`, processNonce is `proc-23`, canonicalProjectSpecFingerprint is `sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`, displayedContentFingerprint is `sha256:2222222222222222222222222222222222222222222222222222222222222222`, and the ordered plan contains task `task-lock` with URL `https://linear.app/woostack/issue/WOO-241A`, ordinal 1, outcome `Serialized refresh ownership`, title `Add refresh ownership`, description `Introduce the lock`, scope `refresh lock`, non-goal `stale serving`, target `src/cache/lock.ts`, step `serialize refresh ownership`, acceptance `one refresher runs`, verification `run refresh lock test`, effects `no docs, migration, deployment, or compatibility effects`, risk `lock expiry`, blocker `none`, stop marker `refresh ownership verified`, Graphite parent `main`, changed-line estimate 160, size rationale `one bounded lock path`, and fingerprint `sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb`; task `task-stale` with URL `https://linear.app/woostack/issue/WOO-241B`, ordinal 2, outcome `Preserved stale reads`, title `Preserve stale reads`, description `Serve the last value`, scope `stale fallback`, non-goal `refresh ownership`, target `src/cache/read.ts`, step `serve the last safe value`, acceptance `stale value remains available`, verification `run stale fallback test`, effects `no docs, migration, deployment, or compatibility effects`, risk `excessive staleness`, blocker `none`, stop marker `stale fallback verified`, Graphite parent `task-lock`, changed-line estimate 120, size rationale `one bounded fallback path`, and fingerprint `sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc`; and dependency `task-lock` precedes `task-stale` with kind `native-issue`. Render the complete active-conversation approval Ask without contacting a provider. Return exactly one JSON object with key approvalAsk.",
       "capabilities": ["read-workspace"],
-      "expected": "Fix renders concise approval UI plus only the exact direct-issue links, excluding every retained summary, issue, dependency, and provider evidence field.",
+      "expected": "Fix displays every complete exact issue contract, stable task key, fingerprint, and dependency with the run/process-bound approval identity.",
       "assertions": [
-        {"id":"rendered-plan-ask","kind":"final-json-path-equals","pointer":"","expected":{"approvalAsk":{"uiText":"Approve execution plan","links":["https://linear.app/woostack/issue/WOO-241A","https://linear.app/woostack/issue/WOO-241B"]}},"critical":true}
+        {"id":"rendered-complete-plan-ask","kind":"final-json-path-equals","pointer":"","expected":{"approvalAsk":{"uiText":"Approve execution plan","approvalIdentity":{"runId":"fix-run-23","processNonce":"proc-23","gate":2,"displayedContentFingerprint":"sha256:2222222222222222222222222222222222222222222222222222222222222222"},"canonicalProjectSpecFingerprint":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","increments":[{"stableTaskKey":"task-lock","url":"https://linear.app/woostack/issue/WOO-241A","ordinal":1,"outcome":"Serialized refresh ownership","title":"Add refresh ownership","description":"Introduce the lock","scope":["refresh lock"],"nonGoals":["stale serving"],"targets":["src/cache/lock.ts"],"steps":["serialize refresh ownership"],"acceptanceCriteria":["one refresher runs"],"verification":["run refresh lock test"],"effects":["no docs, migration, deployment, or compatibility effects"],"risks":["lock expiry"],"blockers":["none"],"stopMarker":"refresh ownership verified","graphiteParent":"main","changedLineEstimate":160,"sizeRationale":"one bounded lock path","fingerprint":"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"},{"stableTaskKey":"task-stale","url":"https://linear.app/woostack/issue/WOO-241B","ordinal":2,"outcome":"Preserved stale reads","title":"Preserve stale reads","description":"Serve the last value","scope":["stale fallback"],"nonGoals":["refresh ownership"],"targets":["src/cache/read.ts"],"steps":["serve the last safe value"],"acceptanceCriteria":["stale value remains available"],"verification":["run stale fallback test"],"effects":["no docs, migration, deployment, or compatibility effects"],"risks":["excessive staleness"],"blockers":["none"],"stopMarker":"stale fallback verified","graphiteParent":"task-lock","changedLineEstimate":120,"sizeRationale":"one bounded fallback path","fingerprint":"sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"}],"dependencies":[{"predecessorTaskKey":"task-lock","successorTaskKey":"task-stale","kind":"native-issue"}]}},"critical":true}
+      ]
+    },
+    {
+      "id": "blocks-unreceipted-approval-replay",
+      "prompt": "A Fix gate 2 Ask was approved, but the process ended before exact graph read-back and executionPlanApprovalRecord verification. The restarted process has a copied manifest and response. Return JSON with approvalReusable, nextStep, providerMutationCount, and executeAllowed without contacting a provider.",
+      "capabilities": ["read-workspace"],
+      "expected": "The unreceipted approval is consumed; recovery uses the same identities, then requires a fresh baseline and complete Ask before further mutation.",
+      "assertions": [
+        {"id":"fix-unreceipted-not-reusable","kind":"final-json-path-equals","pointer":"/approvalReusable","expected":false,"critical":true},
+        {"id":"fix-recovery-fresh-ask","kind":"final-json-path-equals","pointer":"/nextStep","expected":"recover-same-identities-then-fresh-baseline-and-complete-ask","critical":true},
+        {"id":"fix-recovery-no-mutation","kind":"final-json-path-equals","pointer":"/providerMutationCount","expected":0,"critical":true},
+        {"id":"fix-recovery-no-execute","kind":"final-json-path-equals","pointer":"/executeAllowed","expected":false,"critical":true}
       ]
     },
     {
