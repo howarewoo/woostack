@@ -3,9 +3,9 @@
 This procedure applies provider mutations for one canonical Build/Fix gated save or one standalone
 Plan graph. It owns no workflow gate, assignment, execution, acceptance, or repository authority.
 The [Linear artifact contract](../../woostack-init/references/artifact-backends.md) is the single
-authority for gated manifest state, displayed approval identity, causal ordering, drift/recovery,
-identity mapping, cleanup, and read-back. The [project context procedure](linear-context.md) owns
-baseline admission.
+authority for gated manifest state, displayed approval identity, causal ordering, canonical
+issue-reference/nullable-parent preflight, drift/recovery, identity mapping, cleanup, and
+read-back. The [project context procedure](linear-context.md) owns baseline admission.
 
 ## Build project lifecycle
 
@@ -28,32 +28,40 @@ candidate graph. They make zero provider calls. This procedure starts only after
 approval of every complete exact issue contract and dependency tuple displayed in the active
 conversation.
 
-After the immediate baseline drift read matches, perform one bounded synchronization of:
+After the immediate baseline drift read matches, run the shared
+[graph-write preflight](../../woostack-init/references/artifact-backends.md#canonical-issue-references-nullable-parents-and-graph-write-preflight).
+Failure before issue creation has zero provider and repository mutation; a failed post-create
+read-back retains exactly one same-identity creation and permits no membership or relation write.
+
+After that preflight, perform one bounded synchronization of:
 
 1. one direct project issue per current increment;
 2. complete executor-ready issue descriptions containing the approved project-spec fingerprint;
 3. direct project membership and no parent/container relation; and
 4. native issue-to-issue dependency relations matching the approved graph.
 
-Use the manifest's preallocated stable client-generated issue and relation mutation UUIDs.
+Use the manifest's preallocated stable client-generated issue and relation mutation identities. A
+new issue's create identity may be used only after the shared pre-create checks; project-membership
+and relation identities may be used only after the canonical-reference read-back succeeds.
 
 Before the Ask, reconcile every retained baseline issue with exactly one stable local task key.
-Reuse a prior verified stable-key mapping when present; otherwise display one explicit proposed
-baseline issue→task-key mapping for responsible-user approval. Ambiguous, duplicate, or unmatched
-retained issues block instead of falling through to allocation. After approval, reuse each retained
-native issue ID and allocate exactly one native ID only for a task key whose approved mapping is
-explicitly new; record every newly allocated mapping atomically and never remap it. Existing
-descriptions use the
+Reuse a prior verified canonical issue-reference mapping when present; otherwise display one explicit
+proposed baseline canonical-reference→task-key mapping for responsible-user approval. Ambiguous,
+duplicate, or unmatched retained issues block instead of falling through to allocation. After
+approval, reuse each retained canonical reference and allocate exactly one canonical reference only
+for a task key whose approved mapping is explicitly new; record every newly allocated mapping
+atomically and never remap it. Existing descriptions use the
 [existing-description mutation invariant](../../woostack-init/references/artifact-backends.md#existing-description-mutation-invariant).
-Preserve unrelated human-authored content and historical parent/container records.
 
-After the bounded writes, independently read every issue's native identity, stable-key mapping,
-content, title, project membership, parent absence, revision, mutation identity, and canonical
-fingerprint. Then independently read the complete relation set and compare exact normalized
-predecessor→successor tuples with the approved display. Only that exact graph read-back permits
-recording `executionPlanApprovalRecord`; independently read both receipts and every referenced
-record before clearing gate 2.
+After the bounded writes, independently read every issue's canonical issue reference, provider-native
+identity, stable-key mapping, content, title, project membership, validated nullable-parent state,
+revision, mutation identity, and canonical fingerprint. Then independently read the complete relation
+set and compare exact normalized predecessor→successor tuples with the approved display. Only that
+exact graph read-back permits recording `executionPlanApprovalRecord`; independently read both
+receipts and every referenced record before clearing gate 2.
 
+Standalone Plan uses the same canonical issue-reference, complete-pagination, exact endpoint
+round-trip, scope, and nullable-parent preflight before its unchanged direct graph synchronization.
 Do not create a parent plan issue, child containment, placeholder issue, duplicate relation,
 replacement resource, or second synchronization cycle under the same approval.
 

@@ -25,11 +25,11 @@ repository/workspace/team defaults before starting the conversation and has no a
 fallback. Before acting, load and apply the shared
 [Linear artifact contract](../woostack-init/references/artifact-backends.md), the
 [repository/project context procedure](references/linear-context.md), and the
-[Linear synchronization procedure](references/linear-procedure.md). The shared artifact contract is
+[`Linear synchronization procedure`](references/linear-procedure.md). The shared artifact contract is
 the single authority for baseline admission, the permission-restricted run manifest, complete
-displayed-content approval identity, approval-before-save ordering, one bounded synchronization,
-native identity mapping, drift/failure recovery, cleanup, and unchanged Execute safety reads. This
-wrapper does not restate those rules.
+displayed-content approval identity, approval-before-save ordering, canonical issue-reference/
+nullable-parent preflight, native project/team identity, drift/failure recovery, cleanup, and
+unchanged Execute safety reads. This wrapper does not restate those rules.
 
 ## Fixed chain
 
@@ -69,9 +69,11 @@ Build owns only the gate-specific transition:
    bounded save, exact content read-back, receipt write, and receipt/read-back order. Continue only
    when `projectSpecApprovalRecord` and its referenced project match exactly.
 2. **Execution plan.** Display every complete exact direct-issue contract and dependency tuple.
-   After explicit responsible-user approval, apply the same order, including stable local-task-key
-   to native-issue-ID mapping. Continue only when `executionPlanApprovalRecord`, both shared
-   receipts, and the referenced project graph match exactly.
+   After explicit responsible-user approval, run the shared
+   [graph-write preflight](../woostack-init/references/artifact-backends.md#canonical-issue-references-nullable-parents-and-graph-write-preflight)
+   and bounded synchronization, including the stable local task-key to canonical-issue-reference
+   mapping. Continue only when `executionPlanApprovalRecord`, both shared receipts, and the
+   referenced project graph match exactly.
 
 No draft provider cycle occurs before either approval. A baseline or displayed-content mismatch,
 process/manifest loss, or any failure before the exact receipt read-back invalidates the approval

@@ -498,7 +498,7 @@
     },
     {
       "id": "renders-complete-execution-plan-ask",
-      "prompt": "At Build gate 2, runId is `build-run-39`, processNonce is `proc-39`, canonicalProjectSpecFingerprint is `sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd`, displayedContentFingerprint is `sha256:2222222222222222222222222222222222222222222222222222222222222222`, and the complete ordered plan has task `task-cache-owner` mapped to `https://linear.app/woostack/issue/WOO-431` with ordinal 1, outcome `Lease-owned cache refresh`, title `Add cache ownership`, description `Introduce the lease`, scope `lease acquisition`, non-goal `cache eviction`, target `src/cache/owner.ts`, step `implement lease acquisition`, acceptance `one owner refreshes`, verification `run cache owner test`, effects `no docs, migration, deployment, or compatibility effects`, risk `lease expiry`, blocker `none`, stop marker `lease ownership verified`, Graphite parent `main`, changed-line estimate 180, size rationale `one bounded cache owner`, and fingerprint `sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee`; task `task-stale-bound` mapped to `https://linear.app/woostack/issue/WOO-432` with ordinal 2, outcome `Age-bounded stale reads`, title `Bound stale reads`, description `Enforce the age limit`, scope `stale-age enforcement`, non-goal `lease ownership`, target `src/cache/read.ts`, step `enforce maximum stale age`, acceptance `expired values are rejected`, verification `run stale read test`, effects `no docs, migration, deployment, or compatibility effects`, risk `clock skew`, blocker `none`, stop marker `stale bound verified`, Graphite parent `task-cache-owner`, changed-line estimate 140, size rationale `one bounded read path`, and fingerprint `sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff`; and dependency `task-cache-owner` precedes `task-stale-bound` with kind `native-issue`. Render the complete active-conversation approval Ask without contacting a provider. Return exactly one JSON object with key approvalAsk.",
+      "prompt": "At Build gate 2, runId is `build-run-39`, processNonce is `proc-39`, canonicalProjectSpecFingerprint is `sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd`, displayedContentFingerprint is `sha256:2222222222222222222222222222222222222222222222222222222222222222`, and the complete ordered plan has task `task-cache-owner` mapped to canonical issue reference `WOO-431` with canonical link `https://linear.app/woostack/issue/WOO-431`, ordinal 1, outcome `Lease-owned cache refresh`, title `Add cache ownership`, description `Introduce the lease`, scope `lease acquisition`, non-goal `cache eviction`, target `src/cache/owner.ts`, step `implement lease acquisition`, acceptance `one owner refreshes`, verification `run cache owner test`, effects `no docs, migration, deployment, or compatibility effects`, risks `lease expiry`, blocker `none`, stop marker `lease ownership verified`, Graphite parent `main`, changed-line estimate 180, size rationale `one bounded cache owner`, fingerprint `sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee`; task `task-stale-bound` maps to canonical issue reference `WOO-432` with canonical link `https://linear.app/woostack/issue/WOO-432`, ordinal 2, outcome `Age-bounded stale reads`, title `Bound stale reads`, description `Enforce the age limit`, scope `stale-age enforcement`, non-goal `lease ownership`, target `src/cache/read.ts`, step `enforce maximum stale age`, acceptance `expired values are rejected`, verification `run stale read test`, effects `no docs, migration, deployment, or compatibility effects`, risks `clock skew`, blocker `none`, stop marker `stale bound verified`, Graphite parent `task-cache-owner`, changed-line estimate 140, size rationale `one bounded read path`, fingerprint `sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff`, and dependency `task-cache-owner blocks task-stale-bound` of kind `native-issue`. Return exactly one JSON object containing the complete approvalAsk.",
       "capabilities": ["read-workspace"],
       "expected": "Build displays every complete exact issue contract, stable task key, fingerprint, and dependency together with the run/process-bound approval identity.",
       "assertions": [
@@ -519,8 +519,9 @@
               "increments": [
                 {
                   "stableTaskKey": "task-cache-owner",
-                  "url": "https://linear.app/woostack/issue/WOO-431",
+                  "canonicalIssueReference": "WOO-431",
                   "title": "Add cache ownership",
+                  "url": "https://linear.app/woostack/issue/WOO-431",
                   "description": "Introduce the lease",
                   "ordinal": 1,
                   "outcome": "Lease-owned cache refresh",
@@ -541,8 +542,9 @@
                 },
                 {
                   "stableTaskKey": "task-stale-bound",
-                  "url": "https://linear.app/woostack/issue/WOO-432",
+                  "canonicalIssueReference": "WOO-432",
                   "title": "Bound stale reads",
+                  "url": "https://linear.app/woostack/issue/WOO-432",
                   "description": "Enforce the age limit",
                   "ordinal": 2,
                   "outcome": "Age-bounded stale reads",
@@ -612,6 +614,124 @@
         {"id":"build-recovery-fresh-ask","kind":"final-json-path-equals","pointer":"/nextStep","expected":"recover-same-identities-then-fresh-baseline-and-complete-ask","critical":true},
         {"id":"build-recovery-no-mutation","kind":"final-json-path-equals","pointer":"/providerMutationCount","expected":0,"critical":true},
         {"id":"build-recovery-no-execute","kind":"final-json-path-equals","pointer":"/executeAllowed","expected":false,"critical":true}
+      ]
+    },
+    {
+      "id": "validates-canonical-issue-references-before-graph-writes",
+      "prompt": "Classify every scenario in fixtures/provider-read-shapes.json independently without contacting a provider or mutating a repository. Apply the official-MCP canonical issue-reference, complete-pagination, exact endpoint round-trip, exact repository/workspace/team/project scope, nullable-parent, and new-task same-identity recovery contract before any direct project-membership or native-relation graph write. Return exactly one JSON object with keys status, decisions, issueCreateCount, projectMembershipMutationCount, relationMutationCount, providerMutationCount, and repositoryMutationCount. Each decision must contain exactly id, advance, and reasonCode in fixture order. Count every recorded issue create, project-membership write, and relation write as one provider mutation. A failed post-create read-back must not retry or permit membership, relation, or repository mutation; a successful post-create identity/scope/repository read-back binds the returned canonical reference before one recorded membership write and its read-back, then any relation write.",
+      "fixtures": [
+        "provider-read-shapes.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Canonical parentless issues advance when both relation endpoints and repository associations are complete and the parent is explicitly null or omitted only after the field was requested and pagination completed. A canonical child, unrequested parent field, mixed non-round-tripping relation endpoint, repository/workspace/team/project mismatch, or failed new-task post-create read-back blocks. The failed read-back retains exactly one creation without retry and permits no later mutation. The successful new-task scenario binds its returned canonical reference after complete identity/scope/repository read-back, then performs and reads back exactly one project-membership write before one relation write through canonical endpoints.",
+      "assertions": [
+        {
+          "id": "build-read-shapes-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "build-read-shapes-decisions",
+          "kind": "final-json-path-equals",
+          "pointer": "/decisions",
+          "expected": [
+            {
+              "id": "canonical-parentless-valid-relation",
+              "advance": true,
+              "reasonCode": "canonical-parentless-and-relation-verified"
+            },
+            {
+              "id": "canonical-child-blocked",
+              "advance": false,
+              "reasonCode": "current-issue-has-canonical-parent"
+            },
+            {
+              "id": "parent-id-unrequested-unknown",
+              "advance": false,
+              "reasonCode": "parent-state-unknown"
+            },
+            {
+              "id": "mixed-non-round-tripping-relation-endpoint",
+              "advance": false,
+              "reasonCode": "relation-endpoint-does-not-round-trip"
+            },
+            {
+              "id": "canonical-parent-omitted-after-request",
+              "advance": true,
+              "reasonCode": "requested-parent-omission-normalized-null"
+            },
+            {
+              "id": "repository-association-mismatch",
+              "advance": false,
+              "reasonCode": "repository-association-mismatch"
+            },
+            {
+              "id": "workspace-association-mismatch",
+              "advance": false,
+              "reasonCode": "workspace-association-mismatch"
+            },
+            {
+              "id": "team-association-mismatch",
+              "advance": false,
+              "reasonCode": "team-association-mismatch"
+            },
+            {
+              "id": "project-association-mismatch",
+              "advance": false,
+              "reasonCode": "project-association-mismatch"
+            },
+            {
+              "id": "new-task-readback-failure",
+              "advance": false,
+              "reasonCode": "new-task-post-create-readback-failed"
+            },
+            {
+              "id": "new-task-readback-success",
+              "advance": true,
+              "reasonCode": "new-task-readback-binds-before-graph-writes"
+            }
+          ],
+          "critical": true
+        },
+        {
+          "id": "build-read-shapes-two-creates",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueCreateCount",
+          "expected": 2,
+          "critical": true
+        },
+        {
+          "id": "build-read-shapes-one-membership-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/projectMembershipMutationCount",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "build-read-shapes-one-relation-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/relationMutationCount",
+          "expected": 1,
+          "critical": true
+        },
+        {
+          "id": "build-read-shapes-four-provider-mutations",
+          "kind": "final-json-path-equals",
+          "pointer": "/providerMutationCount",
+          "expected": 4,
+          "critical": true
+        },
+        {
+          "id": "build-read-shapes-zero-repository-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
+          "critical": true
+        }
       ]
     }
   ]

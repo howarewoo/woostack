@@ -1,0 +1,497 @@
+{
+  "scenarios": [
+    {
+      "id": "canonical-parentless-valid-relation",
+      "request": {
+        "endpoint": "https://mcp.linear.app/mcp",
+        "repository": "https://github.com/howarewoo/woostack",
+        "workspaceId": "workspace-woo",
+        "teamId": "team-woo",
+        "projectId": "project-build-43",
+        "issue": {
+          "reference": "WOO-143",
+          "parentFieldRequested": true,
+          "parentId": null,
+          "pagesComplete": true,
+          "roundTrip": {
+            "reference": "WOO-143",
+            "repository": "https://github.com/howarewoo/woostack",
+            "workspaceId": "workspace-woo",
+            "teamId": "team-woo",
+            "projectId": "project-build-43"
+          }
+        },
+        "targetIssue": {
+          "reference": "WOO-144",
+          "parentFieldRequested": true,
+          "parentId": null,
+          "pagesComplete": true,
+          "roundTrip": {
+            "reference": "WOO-144",
+            "repository": "https://github.com/howarewoo/woostack",
+            "workspaceId": "workspace-woo",
+            "teamId": "team-woo",
+            "projectId": "project-build-43"
+          }
+        },
+        "relation": {
+          "kind": "native-issue",
+          "direction": "blocks",
+          "sourceReference": "WOO-143",
+          "targetReference": "WOO-144",
+          "endpointRepresentation": {
+            "source": "WOO-143",
+            "target": "WOO-144"
+          },
+          "pagesComplete": true,
+          "roundTrip": true
+        }
+      }
+    },
+    {
+      "id": "canonical-child-blocked",
+      "request": {
+        "endpoint": "https://mcp.linear.app/mcp",
+        "repository": "https://github.com/howarewoo/woostack",
+        "workspaceId": "workspace-woo",
+        "teamId": "team-woo",
+        "projectId": "project-build-43",
+        "issue": {
+          "reference": "WOO-144",
+          "parentFieldRequested": true,
+          "parentId": "WOO-142",
+          "pagesComplete": true,
+          "roundTrip": {
+            "reference": "WOO-144",
+            "repository": "https://github.com/howarewoo/woostack",
+            "workspaceId": "workspace-woo",
+            "teamId": "team-woo",
+            "projectId": "project-build-43"
+          },
+          "parentRoundTrip": "WOO-142"
+        },
+        "relation": {
+          "kind": "native-issue",
+          "direction": "blocks",
+          "sourceReference": "WOO-144",
+          "targetReference": "WOO-145",
+          "endpointRepresentation": {
+            "source": "WOO-144",
+            "target": "WOO-145"
+          },
+          "pagesComplete": true,
+          "roundTrip": true
+        }
+      }
+    },
+    {
+      "id": "parent-id-unrequested-unknown",
+      "request": {
+        "endpoint": "https://mcp.linear.app/mcp",
+        "repository": "https://github.com/howarewoo/woostack",
+        "workspaceId": "workspace-woo",
+        "teamId": "team-woo",
+        "projectId": "project-build-43",
+        "issue": {
+          "reference": "WOO-143",
+          "parentFieldRequested": false,
+          "pagesComplete": true,
+          "roundTrip": {
+            "reference": "WOO-143",
+            "repository": "https://github.com/howarewoo/woostack",
+            "workspaceId": "workspace-woo",
+            "teamId": "team-woo",
+            "projectId": "project-build-43"
+          }
+        },
+        "relation": {
+          "kind": "native-issue",
+          "direction": "blocks",
+          "sourceReference": "WOO-143",
+          "targetReference": "WOO-144",
+          "endpointRepresentation": {
+            "source": "WOO-143",
+            "target": "WOO-144"
+          },
+          "pagesComplete": true,
+          "roundTrip": true
+        }
+      }
+    },
+    {
+      "id": "mixed-non-round-tripping-relation-endpoint",
+      "request": {
+        "endpoint": "https://mcp.linear.app/mcp",
+        "repository": "https://github.com/howarewoo/woostack",
+        "workspaceId": "workspace-woo",
+        "teamId": "team-woo",
+        "projectId": "project-build-43",
+        "issue": {
+          "reference": "WOO-143",
+          "parentFieldRequested": true,
+          "parentId": null,
+          "pagesComplete": true,
+          "roundTrip": {
+            "reference": "WOO-143",
+            "repository": "https://github.com/howarewoo/woostack",
+            "workspaceId": "workspace-woo",
+            "teamId": "team-woo",
+            "projectId": "project-build-43"
+          }
+        },
+        "relation": {
+          "kind": "native-issue",
+          "direction": "blocks",
+          "sourceReference": "WOO-143",
+          "targetReference": "WOO-144",
+          "endpointRepresentation": {
+            "source": "WOO-143",
+            "target": "22222222-2222-4222-8222-222222222222"
+          },
+          "pagesComplete": true,
+          "roundTrip": false
+        }
+      }
+    },
+    {
+      "id": "canonical-parent-omitted-after-request",
+      "request": {
+        "endpoint": "https://mcp.linear.app/mcp",
+        "repository": "https://github.com/howarewoo/woostack",
+        "workspaceId": "workspace-woo",
+        "teamId": "team-woo",
+        "projectId": "project-build-43",
+        "issue": {
+          "reference": "WOO-146",
+          "parentFieldRequested": true,
+          "pagesComplete": true,
+          "roundTrip": {
+            "reference": "WOO-146",
+            "repository": "https://github.com/howarewoo/woostack",
+            "workspaceId": "workspace-woo",
+            "teamId": "team-woo",
+            "projectId": "project-build-43"
+          }
+        },
+        "targetIssue": {
+          "reference": "WOO-147",
+          "parentFieldRequested": true,
+          "parentId": null,
+          "pagesComplete": true,
+          "roundTrip": {
+            "reference": "WOO-147",
+            "repository": "https://github.com/howarewoo/woostack",
+            "workspaceId": "workspace-woo",
+            "teamId": "team-woo",
+            "projectId": "project-build-43"
+          }
+        },
+        "relation": {
+          "kind": "native-issue",
+          "direction": "blocks",
+          "sourceReference": "WOO-146",
+          "targetReference": "WOO-147",
+          "endpointRepresentation": {
+            "source": "WOO-146",
+            "target": "WOO-147"
+          },
+          "pagesComplete": true,
+          "roundTrip": true
+        }
+      }
+    },
+    {
+      "id": "repository-association-mismatch",
+      "request": {
+        "endpoint": "https://mcp.linear.app/mcp",
+        "repository": "https://github.com/howarewoo/woostack",
+        "workspaceId": "workspace-woo",
+        "teamId": "team-woo",
+        "projectId": "project-build-43",
+        "issue": {
+          "reference": "WOO-148",
+          "parentFieldRequested": true,
+          "parentId": null,
+          "pagesComplete": true,
+          "roundTrip": {
+            "reference": "WOO-148",
+            "repository": "https://github.com/acme/other",
+            "workspaceId": "workspace-woo",
+            "teamId": "team-woo",
+            "projectId": "project-build-43"
+          }
+        },
+        "targetIssue": {
+          "reference": "WOO-149",
+          "parentFieldRequested": true,
+          "parentId": null,
+          "pagesComplete": true,
+          "roundTrip": {
+            "reference": "WOO-149",
+            "repository": "https://github.com/howarewoo/woostack",
+            "workspaceId": "workspace-woo",
+            "teamId": "team-woo",
+            "projectId": "project-build-43"
+          }
+        },
+        "relation": {
+          "kind": "native-issue",
+          "direction": "blocks",
+          "sourceReference": "WOO-148",
+          "targetReference": "WOO-149",
+          "endpointRepresentation": {
+            "source": "WOO-148",
+            "target": "WOO-149"
+          },
+          "pagesComplete": true,
+          "roundTrip": true
+        }
+      }
+    },
+    {
+      "id": "workspace-association-mismatch",
+      "request": {
+        "endpoint": "https://mcp.linear.app/mcp",
+        "repository": "https://github.com/howarewoo/woostack",
+        "workspaceId": "workspace-woo",
+        "teamId": "team-woo",
+        "projectId": "project-build-43",
+        "issue": {
+          "reference": "WOO-151",
+          "parentFieldRequested": true,
+          "parentId": null,
+          "pagesComplete": true,
+          "roundTrip": {
+            "reference": "WOO-151",
+            "repository": "https://github.com/howarewoo/woostack",
+            "workspaceId": "workspace-other",
+            "teamId": "team-woo",
+            "projectId": "project-build-43"
+          }
+        },
+        "targetIssue": {
+          "reference": "WOO-152",
+          "parentFieldRequested": true,
+          "parentId": null,
+          "pagesComplete": true,
+          "roundTrip": {
+            "reference": "WOO-152",
+            "repository": "https://github.com/howarewoo/woostack",
+            "workspaceId": "workspace-woo",
+            "teamId": "team-woo",
+            "projectId": "project-build-43"
+          }
+        },
+        "relation": {
+          "kind": "native-issue",
+          "direction": "blocks",
+          "sourceReference": "WOO-151",
+          "targetReference": "WOO-152",
+          "endpointRepresentation": {
+            "source": "WOO-151",
+            "target": "WOO-152"
+          },
+          "pagesComplete": true,
+          "roundTrip": true
+        }
+      }
+    },
+    {
+      "id": "team-association-mismatch",
+      "request": {
+        "endpoint": "https://mcp.linear.app/mcp",
+        "repository": "https://github.com/howarewoo/woostack",
+        "workspaceId": "workspace-woo",
+        "teamId": "team-woo",
+        "projectId": "project-build-43",
+        "issue": {
+          "reference": "WOO-153",
+          "parentFieldRequested": true,
+          "parentId": null,
+          "pagesComplete": true,
+          "roundTrip": {
+            "reference": "WOO-153",
+            "repository": "https://github.com/howarewoo/woostack",
+            "workspaceId": "workspace-woo",
+            "teamId": "team-other",
+            "projectId": "project-build-43"
+          }
+        },
+        "targetIssue": {
+          "reference": "WOO-154",
+          "parentFieldRequested": true,
+          "parentId": null,
+          "pagesComplete": true,
+          "roundTrip": {
+            "reference": "WOO-154",
+            "repository": "https://github.com/howarewoo/woostack",
+            "workspaceId": "workspace-woo",
+            "teamId": "team-woo",
+            "projectId": "project-build-43"
+          }
+        },
+        "relation": {
+          "kind": "native-issue",
+          "direction": "blocks",
+          "sourceReference": "WOO-153",
+          "targetReference": "WOO-154",
+          "endpointRepresentation": {
+            "source": "WOO-153",
+            "target": "WOO-154"
+          },
+          "pagesComplete": true,
+          "roundTrip": true
+        }
+      }
+    },
+    {
+      "id": "project-association-mismatch",
+      "request": {
+        "endpoint": "https://mcp.linear.app/mcp",
+        "repository": "https://github.com/howarewoo/woostack",
+        "workspaceId": "workspace-woo",
+        "teamId": "team-woo",
+        "projectId": "project-build-43",
+        "issue": {
+          "reference": "WOO-155",
+          "parentFieldRequested": true,
+          "parentId": null,
+          "pagesComplete": true,
+          "roundTrip": {
+            "reference": "WOO-155",
+            "repository": "https://github.com/howarewoo/woostack",
+            "workspaceId": "workspace-woo",
+            "teamId": "team-woo",
+            "projectId": "project-other"
+          }
+        },
+        "targetIssue": {
+          "reference": "WOO-156",
+          "parentFieldRequested": true,
+          "parentId": null,
+          "pagesComplete": true,
+          "roundTrip": {
+            "reference": "WOO-156",
+            "repository": "https://github.com/howarewoo/woostack",
+            "workspaceId": "workspace-woo",
+            "teamId": "team-woo",
+            "projectId": "project-build-43"
+          }
+        },
+        "relation": {
+          "kind": "native-issue",
+          "direction": "blocks",
+          "sourceReference": "WOO-155",
+          "targetReference": "WOO-156",
+          "endpointRepresentation": {
+            "source": "WOO-155",
+            "target": "WOO-156"
+          },
+          "pagesComplete": true,
+          "roundTrip": true
+        }
+      }
+    },
+    {
+      "id": "new-task-readback-failure",
+      "request": {
+        "endpoint": "https://mcp.linear.app/mcp",
+        "repository": "https://github.com/howarewoo/woostack",
+        "workspaceId": "workspace-woo",
+        "teamId": "team-woo",
+        "projectId": "project-build-43",
+        "stableTaskKey": "task-new",
+        "stableTaskMapping": null,
+        "preCreateChecksComplete": true,
+        "create": {
+          "mutationIdentity": "33333333-3333-4333-8333-333333333333",
+          "attempts": 1,
+          "returnedReference": "WOO-148"
+        },
+        "postCreateRead": {
+          "reference": "WOO-148",
+          "parentFieldRequested": true,
+          "pagesComplete": false,
+          "roundTrip": false
+        }
+      }
+    },
+    {
+      "id": "new-task-readback-success",
+      "request": {
+        "endpoint": "https://mcp.linear.app/mcp",
+        "repository": "https://github.com/howarewoo/woostack",
+        "workspaceId": "workspace-woo",
+        "teamId": "team-woo",
+        "projectId": "project-build-43",
+        "stableTaskKey": "task-new-success",
+        "stableTaskMapping": null,
+        "preCreateChecksComplete": true,
+        "create": {
+          "mutationIdentity": "44444444-4444-4444-8444-444444444444",
+          "attempts": 1,
+          "returnedReference": "WOO-149"
+        },
+        "postCreateRead": {
+          "reference": "WOO-149",
+          "parentFieldRequested": true,
+          "parentId": null,
+          "pagesComplete": true,
+          "roundTrip": {
+            "reference": "WOO-149",
+            "repository": "https://github.com/howarewoo/woostack",
+            "workspaceId": "workspace-woo",
+            "teamId": "team-woo",
+            "projectId": null
+          }
+        },
+        "boundStableTaskMapping": "WOO-149",
+        "projectMembership": {
+          "issueReference": "WOO-149",
+          "projectId": "project-build-43",
+          "mutationIdentity": "55555555-5555-4555-8555-555555555555"
+        },
+        "postMembershipRead": {
+          "reference": "WOO-149",
+          "parentFieldRequested": true,
+          "parentId": null,
+          "pagesComplete": true,
+          "roundTrip": {
+            "reference": "WOO-149",
+            "repository": "https://github.com/howarewoo/woostack",
+            "workspaceId": "workspace-woo",
+            "teamId": "team-woo",
+            "projectId": "project-build-43"
+          }
+        },
+        "targetIssue": {
+          "reference": "WOO-150",
+          "parentFieldRequested": true,
+          "parentId": null,
+          "pagesComplete": true,
+          "roundTrip": {
+            "reference": "WOO-150",
+            "repository": "https://github.com/howarewoo/woostack",
+            "workspaceId": "workspace-woo",
+            "teamId": "team-woo",
+            "projectId": "project-build-43"
+          }
+        },
+        "relation": {
+          "kind": "native-issue",
+          "direction": "blocks",
+          "sourceReference": "WOO-149",
+          "targetReference": "WOO-150",
+          "endpointRepresentation": {
+            "source": "WOO-149",
+            "target": "WOO-150"
+          },
+          "mutationIdentity": "66666666-6666-4666-8666-666666666666",
+          "pagesComplete": true,
+          "roundTrip": true
+        },
+        "graphWritesAfterReadBack": true
+      }
+    }
+  ]
+}

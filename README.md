@@ -138,7 +138,8 @@ an exact source issue remains preserved context, not a plan or approval record.
 The shared
 [Linear artifact contract](skills/woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest)
 is the single detailed authority for manifest permissions and atomicity, displayed approval
-identity, save/read-back/receipt ordering, stable native mapping, drift/process-loss recovery,
+identity, save/read-back/receipt ordering, stable canonical-issue-reference mapping with
+provider-native identities retained only as implementation details, drift/process-loss recovery,
 cleanup, and unchanged Execute safety reads. Standalone Plan keeps its direct synchronization and
 independent read-back unchanged. Exact resources take precedence over creation, and skills never
 read or expose API credentials.

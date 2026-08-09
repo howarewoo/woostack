@@ -35,7 +35,10 @@ for pattern, name in (
     (r"approval must occur before any draft content is saved", "approval-before-save"),
     (r"immediately re-read the exact Linear targets", "immediate pre-save drift read"),
     (r"only after that exact content read-back, record", "read-back-before-receipt"),
-    (r"stable local task key to the one native issue ID", "stable native identity mapping"),
+    (r"stable local task key to canonical issue reference", "stable canonical-reference mapping"),
+    (r"canonical issue-reference/nullable-parent preflight", "shared issue-parent preflight"),
+    (r"exact endpoint round trip", "exact canonical endpoint round-trip"),
+    (r"unknown parent state", "unknown parent fail-closed"),
     (r"unreceipted approval is consumed and cannot be replayed", "approval replay guard"),
     (r"different/restarted process.*fresh complete Ask", "process-loss invalidation"),
     (r"Remove the manifest and its run-scoped temporary directory", "manifest cleanup"),
@@ -121,6 +124,17 @@ if source["changedFields"] != ["projectLink"] or not source["unrelatedFieldsPres
     failures.append("source issue changed beyond project link")
 if len(fixture["executionPlan"]["increments"]) != 2:
     failures.append("multiple direct increments")
+if {
+    increment["stableTaskKey"]: increment["canonicalIssueReference"]
+    for increment in fixture["executionPlan"]["increments"]
+} != {"task-lock": "WOO-242", "task-stale": "WOO-243"}:
+    failures.append("stable canonical-reference mappings")
+if fixture["executionPlan"]["dependencies"] != [{
+    "predecessorIssueReference": "WOO-242",
+    "successorIssueReference": "WOO-243",
+    "kind": "native-issue",
+}]:
+    failures.append("canonical dependency endpoints")
 if fixture["approvalEvidence"]["repositoryMutationCountBeforeBothApprovals"] != 0:
     failures.append("pre-approval repository mutation")
 
@@ -146,6 +160,7 @@ for expected in (
     "renders-complete-execution-plan-ask",
     "blocks-unreceipted-approval-replay",
     "material-change-invalidates-matching-receipts",
+    "validates-fix-source-before-project-link",
 ):
     if expected not in ids:
         failures.append(f"missing eval {expected}")

@@ -24,7 +24,7 @@ creates a competing issue plan, performs implementation, or owns delivery review
 
 ```text
 /woostack-fix <goal-or-untrusted-input> [--project <exact Linear URL-or-UUID>]
-             [--issue <exact Linear URL-or-UUID>] [--inline|--subagent]
+             [--issue <exact canonical Linear issue reference>] [--inline|--subagent]
 ```
 
 `--project` is optional: when supplied it is one exact canonical project URL or stable UUID and
@@ -72,17 +72,19 @@ succeeds, load the [Linear artifact contract](../woostack-init/references/artifa
 canonical-project resolution and before any provider effect. The shared artifact contract is the
 single authority for baseline admission, the permission-restricted run manifest, complete
 displayed-content approval identity, approval-before-save ordering, bounded synchronization,
-stable-key/native-ID mapping, drift/recovery, cleanup, approval receipts, and unchanged Execute
-reads.
+canonical issue-reference/nullable-parent preflight, stable-key/canonical-reference mapping,
+drift/recovery, cleanup, approval receipts, and unchanged Execute reads.
 
 ### 2. Resolve the project, then Ideate and Harden
 
 After Debug returns root-cause proof, resolve the exact supplied project or create exactly one
-canonical project from validated repository/workspace/team defaults. Verify the canonical
-repository association and independently read back the project. If an exact source issue was
-supplied, independently verify it and add only the supported project link; preserve its title,
-description, status, assignment, labels, relations, comments, and lifecycle. Reject an ambiguous,
-foreign, archived, incompatible, or incompletely read source without changing it.
+canonical project from validated repository/workspace/team defaults. Verify the canonical repository
+association and independently read back the project. If an exact canonical issue reference was
+supplied, independently verify it through the official MCP, including selectable identity,
+workspace/team/project scope, complete pagination, exact endpoint round trip, and nullable-parent
+state, then add only the supported project link; preserve its title, description, status, assignment,
+labels, relations, comments, and lifecycle. Reject an ambiguous, foreign, archived, incompatible,
+unknown-parent, or incompletely read source without changing it.
 
 Admit the shared gate 1 baseline and manifest, then invoke
 [`woostack-ideate`](../woostack-ideate/SKILL.md) with the proved diagnosis. Ideate and
@@ -125,13 +127,14 @@ stable task keys, and dependencies in the manifest until gate 2 approval. Never 
 source issue as a plan issue. No provider or repository mutation occurs during planning or hardening.
 
 ### 5. Execution-plan approval
-
 Display the complete exact ordered direct-issue contracts, fingerprints, stable task keys, and
-dependency tuples under the shared gated contract. Only after the responsible user explicitly
-approves that exact display may Fix perform the immediate pre-save drift read and one bounded
-synchronization. Atomically bind stable task keys to native issue IDs, independently read back the
-exact graph, then record `executionPlanApprovalRecord` and independently read back both receipts and
-every referenced record before clearing the gate.
+canonical issue-reference/dependency tuples under the shared gated contract. Only after the
+responsible user explicitly approves that exact display may Fix perform the immediate pre-save
+drift read, shared
+[graph-write preflight](../woostack-init/references/artifact-backends.md#canonical-issue-references-nullable-parents-and-graph-write-preflight),
+and one bounded synchronization. Atomically bind stable task keys to canonical issue references,
+independently read back the exact graph, then record `executionPlanApprovalRecord` and independently
+read back both receipts and every referenced record before clearing the gate.
 
 A material project-specification change invalidates both records; a material direct-issue or
 dependency change invalidates only `executionPlanApprovalRecord`. Every invalidation requires a
