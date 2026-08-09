@@ -16,13 +16,13 @@ reconcile, assign, transition, comment, accept, merge, or repair.
 
 ```text
 /woostack-status
-/woostack-status <branch|PR#|exact Linear URL-or-UUID>
+/woostack-status <branch|PR#|exact Linear project URL-or-UUID|exact canonical Linear issue reference>
 ```
 
 With no target, inspect the canonical repository's current Graphite work surface. A branch or PR
-narrows the repository view. An exact Linear URL/UUID opts into artifact enrichment; it is not a
-work prerequisite. Never infer an artifact from a title, issue key, branch, trailer, recent
-activity, current user, or search ranking.
+narrows the repository view. An exact Linear project URL/UUID or exact caller-supplied canonical
+issue reference opts into artifact enrichment; it is not a work prerequisite. Never infer an
+artifact from a title, issue key, branch, trailer, recent activity, current user, or search ranking.
 
 ## Repository snapshot
 
@@ -45,7 +45,7 @@ review, thread, or merge state as success.
 
 ## Optional artifact enrichment
 
-Only for exact caller-supplied Linear resources, follow the
+Only for an exact caller-supplied Linear project URL/UUID or canonical issue reference, follow the
 [optional artifact contract](../woostack-init/references/artifact-backends.md):
 
 - discover official host-exposed MCP read capabilities;

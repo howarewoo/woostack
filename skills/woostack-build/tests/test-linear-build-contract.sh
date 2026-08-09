@@ -77,8 +77,12 @@ for needle in (
     "responsible user's matching approval must occur before any draft content is saved",
     "immediately re-read the exact Linear targets",
     "exact content read-back",
-    "only after that exact content read-back",
-    "stable local task key to the one native issue ID",
+    "stableTaskMappings",
+    "canonical issue reference",
+    "explicitly requested and all pagination",
+    "unknown parent state",
+    "exact endpoint round trip",
+    "zero provider and repository mutation",
     "An unreceipted approval is consumed and cannot be replayed",
     "different/restarted process",
     "fresh complete Ask",
@@ -87,7 +91,6 @@ for needle in (
     "These Execute-era safety reads are unchanged",
 ):
     require("artifact", needle)
-
 for obsolete in (
     r"gate 1 displays only the",
     r"gate 2 displays only the",
@@ -102,12 +105,13 @@ for obsolete in (
 for name in ("build", "context", "procedure", "ideate", "harden", "plan"):
     require(name, "manifest")
 
-require("ideate", "makes no provider call")
-require("harden", "performs zero provider reads and writes")
+for name in ("build", "context", "procedure"):
+    require(name, "canonical issue-reference")
+    require(name, "nullable-parent")
 
-require("plan", "Standalone Plan")
-require("plan", "unchanged")
-require("plan", "When delegated by Build or Fix, stop before every provider read or synchronization")
+require("context", "before any direct project-membership or native-relation graph write")
+require("procedure", "zero provider and repository mutation")
+require("harden", "canonical issue references")
 
 evals = json.loads((root / "skills/woostack-build/evals/evals.json").read_text())
 eval_ids = {case["id"] for case in evals["cases"]}
@@ -117,6 +121,7 @@ for expected in (
     "blocks-unreceipted-approval-replay",
     "enforces-run-manifest-boundaries",
     "blocks-unverified-manifest-cleanup",
+    "validates-canonical-issue-references-before-graph-writes",
 ):
     if expected not in eval_ids:
         failures.append(f"build: missing eval {expected}")
@@ -124,6 +129,7 @@ for expected in (
 required_increment_fields = {
     "stableTaskKey",
     "url",
+    "canonicalIssueReference",
     "ordinal",
     "outcome",
     "title",
@@ -179,6 +185,24 @@ if manifest_ids != expected_manifest_ids:
     failures.append("build: manifest boundary fixture is incomplete or out of order")
 
 
+shape_fixture = json.loads(
+    (root / "skills/woostack-build/evals/fixtures/provider-read-shapes.json").read_text()
+)
+expected_shape_ids = [
+    "canonical-parentless-valid-relation",
+    "canonical-child-blocked",
+    "parent-id-unrequested-unknown",
+    "mixed-non-round-tripping-relation-endpoint",
+    "canonical-parent-omitted-after-request",
+    "repository-association-mismatch",
+    "workspace-association-mismatch",
+    "team-association-mismatch",
+    "project-association-mismatch",
+    "new-task-readback-failure",
+    "new-task-readback-success",
+]
+if [scenario["id"] for scenario in shape_fixture["scenarios"]] != expected_shape_ids:
+    failures.append("build: provider read-shape fixture is incomplete or out of order")
 fixture = json.loads(
     (root / "skills/woostack-build/evals/fixtures/project-admission.json").read_text()
 )

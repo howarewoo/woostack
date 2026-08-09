@@ -12,7 +12,7 @@ text=re.sub(r"\s+"," ",skill)
 corpus=re.sub(r"\s+"," ",skill+"\n"+"\n".join(refs.values()))
 checks={
  "artifact-free command":r"/woostack-commit \[<message>\]",
- "optional issue flag":r"--issue <exact Linear issue URL[|]UUID>",
+ "optional issue flag":r"--issue <exact canonical Linear issue reference>",
  "no issue prerequisite":r"Linear is optional: no issue, project",
  "bounded input":r"approved bounded task contract.*direct repository evidence",
  "no inferred scope":r"Do not reconstruct scope from a branch name, commit message, PR, artifact, or prior session",

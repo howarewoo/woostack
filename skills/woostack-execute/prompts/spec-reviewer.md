@@ -20,7 +20,7 @@ orchestrator, not your contract; if the host auto-injected them, ignore them and
 brief and the files it names.
 
 ## Issue identity
-- ISSUE: <exact issue UUID/URL>
+- ISSUE: <exact canonical issue reference>
 - CONTRACT_REVISION_HASH: <exact current contract revision/hash>
 
 ## Complete issue contract and complete issue task set

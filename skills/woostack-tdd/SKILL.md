@@ -52,7 +52,7 @@ The target is either:
 |---|---|---|
 | **code** | exact code surface plus a bounded observable test contract | test-only handoff to the executor |
 | **PR** | exact canonical PR URL/number plus a bounded observable test contract | test-only handoff bounded to that PR |
-| **Linear artifact** | exact project/issue URL-or-UUID plus a verified bounded test contract | the same handoff with optional artifact context |
+| **Linear artifact** | exact project URL-or-UUID or canonical issue reference plus a verified bounded test contract | the same handoff with optional artifact context |
 | **none** | none | ask what to test; do not guess or mutate |
 
 Only an explicit target plus complete test contract authorizes delegation. No Linear project,

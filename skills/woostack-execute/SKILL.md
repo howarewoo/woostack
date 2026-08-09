@@ -14,7 +14,7 @@ resume evidence but never proves source-control state.
 
 ```text
 /woostack-execute <approved plan> --project <exact Linear URL-or-UUID>
-/woostack-execute <approved plan> --issue <exact Linear URL-or-UUID>
+/woostack-execute <approved plan> --issue <exact canonical Linear issue reference>
 ```
 
 Exactly one of `--project` or `--issue` is required. Execute has no local, implicit, or concurrent
@@ -23,8 +23,9 @@ perform review or merge operations.
 
 ## Admission: one exact resource and two matching records
 
-Require one exact project or one exact direct issue, supplied by URL or UUID, plus exactly one
-matching `projectSpecApprovalRecord` and one matching `executionPlanApprovalRecord`:
+Require one exact project supplied by URL or UUID, or one exact direct issue supplied by canonical
+issue reference, plus exactly one matching `projectSpecApprovalRecord` and one matching
+`executionPlanApprovalRecord`:
 
 ```text
 projectSpecApprovalRecord = {

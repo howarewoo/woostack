@@ -1,7 +1,7 @@
 # Optional Linear commit association
 
-Load this reference only when the caller supplied one exact Linear issue URL/UUID. The normal
-commit/PR path is artifact-free and does not read this file.
+Load this reference only when the caller supplied one exact canonical Linear issue reference. The
+normal commit/PR path is artifact-free and does not read this file.
 
 Follow the canonical
 [optional artifact contract](../../woostack-init/references/artifact-backends.md). Git, Graphite, and

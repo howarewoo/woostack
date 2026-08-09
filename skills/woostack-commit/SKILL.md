@@ -19,7 +19,7 @@ from recent activity, amends unrelated commits, or stages unrelated work.
 ```text
 /woostack-commit [<message>]
 /woostack-commit --no-pr-update [<message>]
-/woostack-commit --issue <exact Linear issue URL|UUID> [<message>]
+/woostack-commit --issue <exact canonical Linear issue reference> [<message>]
 ```
 
 `--issue` associates the verified Linear issue with the PR, adds its merge-closing reference, and

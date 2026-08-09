@@ -7,10 +7,10 @@ provider access for unrelated workflows.
 
 The [Linear artifact contract](../../woostack-init/references/artifact-backends.md) is the single
 authority for the run manifest, displayed-content approval identity, post-approval ordering,
-stable-key/native-ID mapping, drift and process-loss recovery, cleanup, fingerprints, receipts,
-independent read-back, and unchanged Execute reads. Use the
-[Linear synchronization procedure](linear-procedure.md) only for the bounded post-approval save or
-standalone Plan.
+stable-key/canonical-issue-reference mapping, nullable-parent validation, drift and process-loss
+recovery, cleanup, fingerprints, receipts, independent read-back, and unchanged Execute reads. Use
+the [Linear synchronization procedure](linear-procedure.md) only for the bounded post-approval save
+or standalone Plan.
 
 ## Resolution
 
@@ -23,13 +23,15 @@ standalone Plan.
    operation identity, and create exactly one project in the resolved workspace/team. Its name
    starts with `[Build] ` and otherwise derives from the accepted goal. Independently read the
    project back, verify the exact name, and retain its native identity.
-5. Preflight official Linear MCP capabilities for complete project reads, paginated direct-issue
-   reads, native dependency-relation reads, project/issue writes, relation writes, comments/updates
-   used as approval evidence, and independent read-back.
+5. Preflight official Linear MCP capabilities for complete project reads, selectable direct-issue
+   identity/project/team/parent fields, complete paginated issue and relation reads, canonical
+   issue-reference endpoint round trips, project/issue writes, relation writes, comments/updates used
+   as approval evidence, and independent read-back.
 
-Do not use names, slugs, recent activity, search ranking, issue keys, branch names, or PR text as
-identity. Never fuzzy-discover a caller-selected resource. Unknown create outcomes retain the same
-operation identity and stop for recovery; never create a replacement.
+Do not use names, slugs, recent activity, search ranking, issue titles, branch names, or PR text as
+identity. Canonical issue references are the sole issue endpoint representation; project and team
+identity remains provider-native. Never fuzzy-discover a caller-selected resource. Unknown create
+outcomes retain the same operation identity and stop for recovery; never create a replacement.
 
 ## Project specification baseline
 
@@ -52,14 +54,22 @@ After the gate 1 receipt and referenced project read back exactly, list every is
 project with complete pagination. Select only current issues that:
 
 - belong directly to the project;
-- have no parent/container issue;
-- expose an unambiguous native identity that can be retained beside a stable local task key; and
+- expose one canonical issue reference that round-trips through the official MCP under the exact
+  workspace/team/project scope;
+- have `parent = null`, where null is admitted only for an explicitly returned null or an omitted
+  `parentId` after that field was explicitly requested and all issue pagination is complete; and
 - do not conflict with the approved `canonicalProjectSpecFingerprint`.
 
-Read all relevant native issue-to-issue dependency relations with complete pagination. Normalize
-only admitted `depends-on`/`blocks` relations into predecessor→successor tuples. Reject duplicates,
-unknown direction/kind, missing endpoints, endpoints outside the exact current project graph,
-cycles, ambiguous ordering, or multiple current heads for one stable task identity.
+Read all relevant native issue-to-issue dependency relations with complete pagination. Every relation
+source and target uses the same canonical issue-reference representation and exact workspace/team/
+project scope, then independently round-trips through its official-MCP endpoint. Normalize only
+admitted `depends-on`/`blocks` relations into predecessor→successor tuples. Reject unknown parent
+state, duplicates, unknown direction/kind, missing endpoints, endpoints outside the exact current
+project graph, cycles, ambiguous ordering, or multiple current heads for one stable task identity.
+
+This selectable-field, complete-pagination, endpoint-round-trip, and parent-state preflight runs
+before any direct project-membership or native-relation graph write. A failed preflight blocks with
+zero provider and repository mutation.
 
 Historical parent plan issues and their children are noncanonical history. Preserve them, exclude
 them from the gate 2 baseline, and never detach, migrate, archive, delete, or reconcile them. Store

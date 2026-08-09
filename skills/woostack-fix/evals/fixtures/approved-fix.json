@@ -7,7 +7,7 @@
   "input": {
     "kind": "production-monitoring",
     "rawText": "Cache refresh stampedes appeared after the lock-expiry alert.",
-    "sourceIssueId": "issue-source-241",
+    "sourceIssueReference": "WOO-241",
     "sourceIssueType": "work-item"
   },
   "debug": {
@@ -18,7 +18,7 @@
     "repositoryMutationCount": 0
   },
   "sourceIssue": {
-    "issueId": "issue-source-241",
+    "canonicalIssueReference": "WOO-241",
     "titleBefore": "Cache refresh stampede",
     "descriptionBefore": "Observed production symptom and links.",
     "titleAfter": "Cache refresh stampede",
@@ -49,11 +49,11 @@
   },
   "executionPlan": {
     "increments": [
-      {"issueId": "issue-pr-241a", "canonicalIncrementFingerprint": "sha256:increment-241a"},
-      {"issueId": "issue-pr-241b", "canonicalIncrementFingerprint": "sha256:increment-241b"}
+      {"stableTaskKey": "task-lock", "canonicalIssueReference": "WOO-242", "canonicalIncrementFingerprint": "sha256:increment-241a"},
+      {"stableTaskKey": "task-stale", "canonicalIssueReference": "WOO-243", "canonicalIncrementFingerprint": "sha256:increment-241b"}
     ],
     "dependencies": [
-      {"predecessorIssueId": "issue-pr-241a", "successorIssueId": "issue-pr-241b", "kind": "native-issue"}
+      {"predecessorIssueReference": "WOO-242", "successorIssueReference": "WOO-243", "kind": "native-issue"}
     ],
     "readBackComplete": true
   },
@@ -68,11 +68,11 @@
     "projectId": "project-fix-241",
     "canonicalProjectSpecFingerprint": "sha256:project-spec-241",
     "increments": [
-      {"issueId": "issue-pr-241a", "canonicalIncrementFingerprint": "sha256:increment-241a"},
-      {"issueId": "issue-pr-241b", "canonicalIncrementFingerprint": "sha256:increment-241b"}
+      {"issueId": "WOO-242", "canonicalIncrementFingerprint": "sha256:increment-241a"},
+      {"issueId": "WOO-243", "canonicalIncrementFingerprint": "sha256:increment-241b"}
     ],
     "dependencies": [
-      {"predecessorIssueId": "issue-pr-241a", "successorIssueId": "issue-pr-241b", "kind": "native-issue"}
+      {"predecessorIssueId": "WOO-242", "successorIssueId": "WOO-243", "kind": "native-issue"}
     ],
     "approvedBy": "user-adam",
     "approvedAt": "2026-08-03T18:45:00Z",

@@ -369,6 +369,54 @@
           "critical": true
         }
       ]
+    },
+    {
+      "id": "validates-provider-read-shapes-before-standalone-sync",
+      "prompt": "Classify two independent standalone Plan graph preflights without contacting a provider or mutating a repository. Scenario `canonical-parentless` has canonical reference `WOO-301`, matching workspace/team/project/repository scope, `parentFieldRequested: true`, omitted `parentId`, complete issue and relation pagination, and canonical relation endpoints that round-trip. Scenario `mixed-endpoint` has the same valid issue shape but resolves the target relation endpoint through a provider UUID instead of its canonical issue reference and fails the endpoint round trip. Return exactly one JSON object with keys status, decisions, providerMutationCount, and repositoryMutationCount. Each decision must contain exactly id, advance, and reasonCode in scenario order.",
+      "fixtures": [],
+      "capabilities": [],
+      "expected": "Standalone Plan normalizes the requested omitted parent to null and advances the fully canonical graph, while the mixed endpoint blocks before every provider or repository mutation.",
+      "assertions": [
+        {
+          "id": "plan-provider-shape-status",
+          "kind": "final-json-path-equals",
+          "pointer": "/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "plan-provider-shape-decisions",
+          "kind": "final-json-path-equals",
+          "pointer": "/decisions",
+          "expected": [
+            {
+              "id": "canonical-parentless",
+              "advance": true,
+              "reasonCode": "canonical-parentless-graph-verified"
+            },
+            {
+              "id": "mixed-endpoint",
+              "advance": false,
+              "reasonCode": "relation-endpoint-does-not-round-trip"
+            }
+          ],
+          "critical": true
+        },
+        {
+          "id": "plan-provider-shape-zero-provider-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/providerMutationCount",
+          "expected": 0,
+          "critical": true
+        },
+        {
+          "id": "plan-provider-shape-zero-repository-mutation",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryMutationCount",
+          "expected": 0,
+          "critical": true
+        }
+      ]
     }
   ]
 }

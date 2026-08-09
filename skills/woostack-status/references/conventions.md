@@ -82,9 +82,10 @@ Never repair, remove, clean, reset, stash, reassign, attach, or create from stat
 
 ## Optional artifact columns
 
-Artifact mode starts only from an exact caller-supplied Linear project/issue URL or stable UUID. Read
-that resource through official host-exposed MCP capabilities, complete relevant pagination, verify
-its identity and claimed canonical repository, and retain the revision used.
+Artifact mode starts only from an exact caller-supplied Linear project URL/stable UUID or canonical
+issue reference. Read that resource through official host-exposed MCP capabilities, complete
+relevant pagination, verify its identity and claimed canonical repository, and retain the revision
+used.
 
 An artifact may contribute only display context:
 

@@ -11,14 +11,15 @@ Git, or GitHub remains the source of truth; generated HTML is a disposable readi
 ## Command
 
 - `/woostack-visualize <source> [for <audience>]`
-  - `<source>` is an exact Linear project/issue URL or client UUID, an exact canonical PR URL/number,
-    an immutable Git blob/path, a repository file/directory that can be pinned to an immutable blob,
-    or a repo-grounded concept whose claims can be pinned to immutable blobs or an exact PR.
+  - `<source>` is an exact Linear project URL/client UUID, a canonical Linear issue reference, an
+    exact canonical PR URL/number, an immutable Git blob/path, a repository file/directory that can
+    be pinned to an immutable blob, or a repo-grounded concept whose claims can be pinned to
+    immutable blobs or an exact PR.
   - `<audience>` is `engineer`, `non-technical`, `investor`, or a free-form reader description.
     It defaults to `engineer`.
   - Examples:
     - `/woostack-visualize 11111111-1111-4111-8111-111111111111 for an investor`
-    - `/woostack-visualize https://linear.app/acme/issue/APP-42/cache-guard for an engineer`
+    - `/woostack-visualize APP-42 for an engineer`
     - `/woostack-visualize https://github.com/acme/widgets/pull/42 for a non-technical PM`
     - `/woostack-visualize packages/api for a security auditor`
 
@@ -38,7 +39,8 @@ Resolve the explicit source once:
    composition. For a directory, state selection criteria and omissions.
 2. **Canonical PR.** Independently read the exact repository, PR URL/number, head/base, diff, and
    relevant review facts. A PR needs no Linear attribution.
-3. **Optional Linear artifact.** Accept only an exact project/issue URL or stable UUID. Load the
+3. **Optional Linear artifact.** Accept only an exact project URL/stable UUID or canonical issue
+   reference. Load the
    [optional artifact contract](../woostack-init/references/artifact-backends.md), use official
    host-exposed MCP read capabilities, resolve only that resource, and completely read the
    specification/fix/plan fields needed by the render.
