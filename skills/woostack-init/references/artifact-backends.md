@@ -194,19 +194,52 @@ it from an input object with exactly `title`, `description`, and `dependencies`:
 2. Normalize `title` by replacing each run made only of the following code points with one ASCII
    space, then trim using that same set: U+0009-U+000D, U+0020, U+0085, U+00A0, U+1680,
    U+2000-U+200A, U+2028, U+2029, U+202F, U+205F, and U+3000. BOM U+FEFF, zero-width space U+200B,
-   and U+001C-U+001F are not whitespace and must be preserved. Normalize `description` only by the
-   shared string normalization above; do not trim or collapse it.
-3. Derive `dependencies` from a complete, paginated native-relation read of the exact issue. Admit
+   and U+001C-U+001F are not whitespace and must be preserved. Normalize the Markdown-bearing
+   `description` with the shared string normalization above and then apply the named
+   `providerPresentationCanonicalization` below; do not trim or collapse any other description
+   content.
+3. **`providerPresentationCanonicalization`** is the one shared, narrowly admitted provider
+   presentation normalization for project, increment, issue, and displayed-content fingerprints.
+   Apply it only after NFC and line-ending normalization, and only to Markdown-bearing prose
+   strings. Scan lines in order while preserving every byte not covered here:
+   - outside fenced code (a fence is a line with at most three leading spaces followed by a run of
+     at least three backticks or tildes, closed by the same character and at least that run length),
+     canonicalize syntactic unordered `-` and `*` list markers while retaining their transition
+     pattern. A marker is one `-` or `*` followed by whitespace on a non-indented-code line. In scan
+     order, map the first observed marker run to `*`; whenever the source marker changes, toggle the
+     canonical marker between `*` and `-`. Preserve the current canonical marker across intervening
+     prose so mixed-marker list boundaries cannot collide with a uniform-marker form. Preserve all
+     indentation, marker-following whitespace, text, and line endings. Do not observe or rewrite
+     thematic breaks or any marker inside fenced or indented code;
+   - outside fenced and indented code, normalize zero-or-more blank lines immediately after a
+     top-level ATX heading (one to six `#` characters followed by whitespace or end-of-line, with
+     no leading indentation) to exactly one empty line only when that blank run is followed by a
+     subsequent nonblank line. Stop before any blank line whose expanded indentation is four or
+     more columns. At end of string, leave the blank suffix unchanged; the terminal-LF rule below
+     governs it. Remove only those immediately following blank lines and insert that one empty line.
+     Do not otherwise reflow, trim, or collapse whitespace. Indented or container-nested headings
+     remain byte-sensitive because the line scanner cannot prove their Markdown block context;
+   - at the end of the Markdown-bearing string, normalize the presence or absence of exactly one
+     terminal LF to exactly one terminal LF: append one when absent and preserve one when present.
+     If two or more terminal LFs are present, leave that suffix unchanged; those forms remain
+     byte-sensitive to each other and to the zero/one-LF forms.
+   Indented code is determined by expanded leading indentation columns: each space advances one
+   column and each tab advances to the next four-column stop; four or more columns (including
+   `  \t`) are indented code, including blank-line continuation. Hard breaks (two trailing spaces
+   or a trailing backslash), ordered lists, code, indentation, semantic text, and every unsupported
+   difference remain byte-sensitive.
+4. Derive `dependencies` from a complete, paginated native-relation read of the exact issue. Admit
    only issue-to-issue `blocks` and `blockedBy` relations. Project the issue-local direction to
    objects with exactly `direction`, `kind`, and `targetId`: `blocks` becomes
    `{"direction":"blocks","kind":"native-issue","targetId":"<canonical target issue reference>"}` and
-   `blockedBy` becomes `{"direction":"depends-on","kind":"native-issue","targetId":"<canonical target issue reference>"}`.
+   `blockedBy` becomes
+   `{"direction":"depends-on","kind":"native-issue","targetId":"<canonical target issue reference>"}`.
    Exclude project membership, parent/child containment, duplicate, related, and every other
    relation class. Reject incomplete pagination, a missing/unstable canonical target reference, an
    unknown relation type or direction, extra projected fields, or duplicate projected tuples.
-4. Sort dependency objects lexicographically by NFC-normalized Unicode scalar-value order on
+5. Sort dependency objects lexicographically by NFC-normalized Unicode scalar-value order on
    `(direction, kind, targetId)`.
-5. Create the canonical object with top-level keys in the exact order `title`, `description`,
+6. Create the canonical object with top-level keys in the exact order `title`, `description`,
    `dependencies`; emit every dependency object's keys in the exact order `direction`, `kind`,
    `targetId`. Serialize as compact JSON with no optional whitespace. Emit non-control Unicode
    scalars literally as UTF-8; escape quotation mark and reverse solidus; use `\b`, `\t`, `\n`,
@@ -218,9 +251,17 @@ For a project specification, `canonicalProjectSpecFingerprint` hashes a canonica
 exactly `name` and `description`. For an execution plan, each
 `canonicalIncrementFingerprint` hashes a canonical object with exactly `title` and `description`.
 Normalize and serialize those strings with the same Unicode, line-ending, key-order, escaping,
-UTF-8, and SHA-256 rules above. Do not trim or collapse descriptions. Project and issue status,
-dates, labels, assignments, comments, parent/container relations, and provider timestamps are
-excluded.
+UTF-8, and SHA-256 rules above, applying `providerPresentationCanonicalization` to their
+Markdown-bearing descriptions. The displayed-content fingerprint uses the same named
+canonicalization for every Markdown-bearing displayed value before the stable-key and dependency
+identity envelope is serialized. Do not trim or collapse descriptions outside the named
+normalization. Project and issue status, dates, labels, assignments, comments, parent/container
+relations, and provider timestamps are excluded.
+
+Native provider bytes remain exact read-back evidence. Compare their canonical fingerprints only:
+presentation changes admitted by `providerPresentationCanonicalization` leave approval valid and
+continue the same receipt with no second Ask; a canonical mismatch or any other read-back failure
+consumes the approval and requires a fresh complete Ask before another receipt or mutation.
 
 Whitespace or Unicode normalization that leaves canonical bytes unchanged does not invalidate
 approval. Any title, description/plan, project specification, or admitted dependency change that

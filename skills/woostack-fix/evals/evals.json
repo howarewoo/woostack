@@ -172,6 +172,72 @@
         {"id":"fix-source-two-provider-mutations","kind":"final-json-path-equals","pointer":"/providerMutationCount","expected":2,"critical":true},
         {"id":"fix-source-zero-repository-mutation","kind":"final-json-path-equals","pointer":"/repositoryMutationCount","expected":0,"critical":true}
       ]
+    },
+    {
+      "id": "accepts-provider-presentation-equivalence",
+      "prompt": "Evaluate fixtures/provider-presentation-canonicalization.json for a project-backed Fix approval whose native Linear read-back changes only the admitted provider presentation, including a uniform unordered-marker rewrite and presence versus absence of exactly one terminal LF. Compare canonical fingerprints under providerPresentationCanonicalization while retaining native bytes as evidence; unordered-marker transition patterns and two or more terminal LFs remain sensitive, including on a final ATX heading where EOF blank suffixes are not heading-spacing input. Return exactly one JSON object with keys status, approvalAskCount, boundedSaveCount, readBackCount, receiptCount, and secondAskCount.",
+      "fixtures": [
+        "provider-presentation-canonicalization.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Presentation-only normalization keeps the approved Fix valid: one Ask, one bounded save, one read-back, one receipt, and no second Ask.",
+      "assertions": [
+        {"id":"fix-presentation-status","kind":"final-json-path-equals","pointer":"/status","expected":"ready","critical":true},
+        {"id":"fix-presentation-one-ask","kind":"final-json-path-equals","pointer":"/approvalAskCount","expected":1,"critical":true},
+        {"id":"fix-presentation-one-save","kind":"final-json-path-equals","pointer":"/boundedSaveCount","expected":1,"critical":true},
+        {"id":"fix-presentation-one-readback","kind":"final-json-path-equals","pointer":"/readBackCount","expected":1,"critical":true},
+        {"id":"fix-presentation-one-receipt","kind":"final-json-path-equals","pointer":"/receiptCount","expected":1,"critical":true},
+        {"id":"fix-presentation-no-second-ask","kind":"final-json-path-equals","pointer":"/secondAskCount","expected":0,"critical":true}
+      ]
+    },
+    {
+      "id": "requires-fresh-ask-for-semantic-provider-change",
+      "prompt": "Evaluate every entry in semanticMutations from fixtures/provider-presentation-canonicalization.json for a project-backed Fix approval. Compare project description, increment description, issue description, and displayed content separately against the approved provider form. Each provider form changes semantic Markdown text, not only presentation. Retain native bytes as evidence; each comparison consumes the original approval, creates no receipt, and requires a fresh complete Ask. Return exactly one JSON object with keys status and results; each result must contain exactly id, canonicalMatch, receiptCount, and freshAsk.",
+      "fixtures": [
+        "provider-presentation-canonicalization.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Semantic changes on project, increment, issue, and displayed-content surfaces are canonical mismatches with zero receipt and a fresh Ask.",
+      "assertions": [
+        {"id":"fix-semantic-status","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
+        {"id":"fix-semantic-results","kind":"final-json-path-equals","pointer":"/results","expected":[{"id":"project-description","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"increment-description","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"issue-description","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"displayed-content","canonicalMatch":false,"receiptCount":0,"freshAsk":true}],"critical":true}
+      ]
+    },
+    {
+      "id": "rejects-mixed-marker-transition-canonical-mismatch",
+      "prompt": "Evaluate markerTransitions in fixtures/provider-presentation-canonicalization.json for a project-backed Fix approval. First confirm the uniformDash and uniformStar forms compare canonically equal, then compare uniformDash with mixedDashStar. The mixed transition changes Markdown list boundaries, so consume the approval, create no receipt, and require a fresh complete Ask. Return exactly one JSON object with keys status, canonicalMatch, receiptCount, and freshAsk.",
+      "fixtures": [
+        "provider-presentation-canonicalization.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "A mixed unordered-marker transition is a canonical mismatch with zero receipt and a fresh Ask.",
+      "assertions": [
+        {"id":"fix-marker-transition-status","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
+        {"id":"fix-marker-transition-mismatch","kind":"final-json-path-equals","pointer":"/canonicalMatch","expected":false,"critical":true},
+        {"id":"fix-marker-transition-no-receipt","kind":"final-json-path-equals","pointer":"/receiptCount","expected":0,"critical":true},
+        {"id":"fix-marker-transition-fresh-ask","kind":"final-json-path-equals","pointer":"/freshAsk","expected":true,"critical":true}
+      ]
+    },
+    {
+      "id": "rejects-terminal-lf-canonical-mismatch",
+      "prompt": "Evaluate fixtures/provider-presentation-canonicalization.json for project-backed Fix terminal-LF read-back mismatches. Compare one terminal LF versus two, two versus three, and the final ATX heading with two versus three terminal LFs. Native bytes are exact evidence; every canonical mismatch consumes approval, creates no receipt, and requires a fresh complete Ask. Return exactly one JSON object with keys status and results; each result must contain exactly id, canonicalMatch, receiptCount, and freshAsk.",
+      "fixtures": [
+        "provider-presentation-canonicalization.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "All one-vs-two, two-vs-three, and final-heading two-vs-three terminal-LF comparisons are canonical mismatches with zero receipt and a fresh Ask.",
+      "assertions": [
+        {"id":"fix-terminal-lf-mismatch-status","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
+        {"id":"fix-terminal-lf-mismatches","kind":"final-json-path-equals","pointer":"/results","expected":[{"id":"one-vs-two","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"two-vs-three","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"final-heading-two-vs-three","canonicalMatch":false,"receiptCount":0,"freshAsk":true}],"critical":true}
+      ]
     }
   ]
 }

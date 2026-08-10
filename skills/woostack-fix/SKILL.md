@@ -114,6 +114,10 @@ and requires a fresh complete Ask. An unreceipted approval cannot be replayed, a
 never replaces the last Linear-approved boundary. No repository mutation occurs before this gate
 clears.
 
+Fix compares the shared
+[`providerPresentationCanonicalization`](../woostack-init/references/artifact-backends.md#canonical-content-fingerprints-and-project-approval-records)
+fingerprints while retaining native provider bytes as exact read-back evidence.
+
 ### 4. Plan and Harden
 
 After the first receipt and referenced project read back exactly, admit gate 2's fresh baseline and

@@ -43,6 +43,12 @@ for pattern, name in (
     (r"different/restarted process.*fresh complete Ask", "process-loss invalidation"),
     (r"Remove the manifest and its run-scoped temporary directory", "manifest cleanup"),
     (r"Execute-era safety reads are unchanged", "unchanged Execute checks"),
+    (r"providerPresentationCanonicalization", "provider presentation canonicalization"),
+    (r"Native provider bytes remain exact read-back evidence.*canonical fingerprints", "native bytes and canonical comparison"),
+    (r"no second Ask.*fresh complete Ask", "presentation equivalence recovery"),
+    (r"presence or absence of exactly one terminal LF", "terminal LF equivalence"),
+    (r"two or more terminal LFs.*byte-sensitive", "multiple terminal LF sensitivity"),
+    (r"At end of string, leave the blank suffix unchanged", "final heading EOF boundary"),
 ):
     require_shared(pattern, name)
 
@@ -161,9 +167,65 @@ for expected in (
     "blocks-unreceipted-approval-replay",
     "material-change-invalidates-matching-receipts",
     "validates-fix-source-before-project-link",
+    "accepts-provider-presentation-equivalence",
+    "requires-fresh-ask-for-semantic-provider-change",
+    "rejects-mixed-marker-transition-canonical-mismatch",
+    "rejects-terminal-lf-canonical-mismatch",
 ):
     if expected not in ids:
         failures.append(f"missing eval {expected}")
+
+def require_eval_fields(case_id, expected_values):
+    case = next((item for item in evals["cases"] if item["id"] == case_id), None)
+    if case is None:
+        return
+    assertions = {
+        assertion.get("pointer"): assertion.get("expected")
+        for assertion in case.get("assertions", [])
+    }
+    for pointer, expected in expected_values.items():
+        if assertions.get(pointer) != expected:
+            failures.append(f"{case_id} does not assert {pointer}={expected!r}")
+
+require_eval_fields(
+    "accepts-provider-presentation-equivalence",
+    {
+        "/approvalAskCount": 1,
+        "/boundedSaveCount": 1,
+        "/readBackCount": 1,
+        "/receiptCount": 1,
+        "/secondAskCount": 0,
+    },
+)
+require_eval_fields(
+    "requires-fresh-ask-for-semantic-provider-change",
+    {
+        "/results": [
+            {"id": "project-description", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "increment-description", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "issue-description", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "displayed-content", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+        ],
+    },
+)
+require_eval_fields(
+    "rejects-mixed-marker-transition-canonical-mismatch",
+    {
+        "/canonicalMatch": False,
+        "/receiptCount": 0,
+        "/freshAsk": True,
+    },
+)
+require_eval_fields(
+    "rejects-terminal-lf-canonical-mismatch",
+    {
+        "/results": [
+            {"id": "one-vs-two", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "two-vs-three", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "final-heading-two-vs-three", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+        ],
+    },
+)
 target_case = next((case for case in evals["cases"] if case["id"] == "target-repository-boundary-precedes-provider-admission"), None)
 if target_case is None:
     failures.append("missing target repository boundary eval")

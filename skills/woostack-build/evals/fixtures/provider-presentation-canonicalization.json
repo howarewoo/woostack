@@ -1,0 +1,35 @@
+{
+  "approved": {
+    "project": {"name":"[Build] Markdown approval equivalence","description":"## Goal\n\n- Keep the lease\n- Preserve the hard break  \n  continuation\n1. Preserve ordered semantics\n    - Preserve indented code\n  \t- literal\n  \t# literal\n```md\n- Preserve fenced marker\n```\n"},
+    "increment": {"title":"Preserve provider presentation","description":"## Goal\n\n- Keep the lease\n- Preserve the hard break  \n  continuation\n1. Preserve ordered semantics\n    - Preserve indented code\n  \t- literal\n  \t# literal\n```md\n- Preserve fenced marker\n```\n"},
+    "issue": {"title":"Preserve provider presentation","description":"## Goal\n\n- Keep the lease\n- Preserve the hard break  \n  continuation\n1. Preserve ordered semantics\n    - Preserve indented code\n  \t- literal\n  \t# literal\n```md\n- Preserve fenced marker\n```\n","dependencies":[{"direction":"blocks","kind":"native-issue","targetId":"WOO-901"}]},
+    "displayedContent":"## Goal\n\n- Keep the lease\n- Preserve the hard break  \n  continuation\n1. Preserve ordered semantics\n    - Preserve indented code\n  \t- literal\n  \t# literal\n```md\n- Preserve fenced marker\n```\n"
+  },
+  "provider": {
+    "project": {"name":"[Build] Markdown approval equivalence","description":"## Goal\n* Keep the lease\n* Preserve the hard break  \n  continuation\n1. Preserve ordered semantics\n    - Preserve indented code\n  \t- literal\n  \t# literal\n```md\n- Preserve fenced marker\n```\n"},
+    "increment": {"title":"Preserve provider presentation","description":"## Goal\n* Keep the lease\n* Preserve the hard break  \n  continuation\n1. Preserve ordered semantics\n    - Preserve indented code\n  \t- literal\n  \t# literal\n```md\n- Preserve fenced marker\n```\n"},
+    "issue": {"title":"Preserve provider presentation","description":"## Goal\n* Keep the lease\n* Preserve the hard break  \n  continuation\n1. Preserve ordered semantics\n    - Preserve indented code\n  \t- literal\n  \t# literal\n```md\n- Preserve fenced marker\n```\n","dependencies":[{"direction":"blocks","kind":"native-issue","targetId":"WOO-901"}]},
+    "displayedContent":"## Goal\n* Keep the lease\n* Preserve the hard break  \n  continuation\n1. Preserve ordered semantics\n    - Preserve indented code\n  \t- literal\n  \t# literal\n```md\n- Preserve fenced marker\n```\n"
+  },
+  "semanticMutations": {
+    "projectDescription": {"name":"[Build] Markdown approval equivalence","description":"## Goal\n* Drop the lease\n* Preserve the hard break  \n  continuation\n1. Preserve ordered semantics\n    - Preserve indented code\n  \t- literal\n  \t# literal\n```md\n- Preserve fenced marker\n```\n"},
+    "incrementDescription": {"title":"Preserve provider presentation","description":"## Goal\n* Drop the lease\n* Preserve the hard break  \n  continuation\n1. Preserve ordered semantics\n    - Preserve indented code\n  \t- literal\n  \t# literal\n```md\n- Preserve fenced marker\n```\n"},
+    "issueDescription": {"title":"Preserve provider presentation","description":"## Goal\n* Drop the lease\n* Preserve the hard break  \n  continuation\n1. Preserve ordered semantics\n    - Preserve indented code\n  \t- literal\n  \t# literal\n```md\n- Preserve fenced marker\n```\n","dependencies":[{"direction":"blocks","kind":"native-issue","targetId":"WOO-901"}]},
+    "displayedContent":"## Goal\n* Drop the lease\n* Preserve the hard break  \n  continuation\n1. Preserve ordered semantics\n    - Preserve indented code\n  \t- literal\n  \t# literal\n```md\n- Preserve fenced marker\n```\n"
+  },
+  "markerTransitions": {
+    "uniformDash":"- first\n- second\n- third\n",
+    "uniformStar":"* first\n* second\n* third\n",
+    "mixedDashStar":"- first\n* second\n* third\n"
+  },
+  "terminalLf": {
+    "withoutTerminalLf":"terminal LF equivalence",
+    "withOneTerminalLf":"terminal LF equivalence\n",
+    "withTwoTerminalLfs":"terminal LF equivalence\n\n",
+    "withThreeTerminalLfs":"terminal LF equivalence\n\n\n",
+    "finalHeadingWithoutTerminalLf":"## Final heading",
+    "finalHeadingWithOneTerminalLf":"## Final heading\n",
+    "finalHeadingWithTwoTerminalLfs":"## Final heading\n\n",
+    "finalHeadingWithThreeTerminalLfs":"## Final heading\n\n\n"
+  }
+}

@@ -46,10 +46,12 @@ project open.
 Build and project-backed Fix advance past exactly two content-bound Linear approvals:
 
 1. **Project-spec approval** accepts the complete exact local project specification. Only then does
-   one bounded synchronization save it to Linear; exact read-back precedes the matching receipt.
+   one bounded synchronization save it to Linear; native content read-back is compared by the
+   shared provider-presentation canonical fingerprint before the matching receipt.
 2. **Execution-plan approval** accepts the complete exact locally keyed issue contracts and
    dependency graph. Only then does one bounded synchronization create or reconcile native records;
-   exact graph and identity read-back precedes the matching receipt and implementation.
+   native graph and identity read-back is compared by the shared canonical fingerprints before the
+   matching receipt and implementation.
 
 The local manifest is permission-restricted working state, never product authority. Material
 baseline drift, read-back mismatch, process loss, or content changes require reconciliation and a
