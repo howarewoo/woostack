@@ -99,6 +99,16 @@ risks and blockers, validation/security/data-loss/accessibility/compatibility co
 Red → Green → Refactor and changed-path smoke strategy, repository parent-branch intent, and
 documentation or migration effects. Keep it self-contained and executor-ready; ask only decisions
 that materially change scope or safety.
+At both gated artifacts, Fix requires a safe removal/simplification analysis before additive work.
+Ideate records viable removal opportunities before additive proposals; Harden challenges an additive
+draft when bounded evidence shows the same contract can be met by deletion or simplification. Carry
+the selected removal, or executor-ready bounded evidence for why addition is necessary, from the
+approved project specification into the delegated execution plan. Preserve behavior and safety
+parity: never drop validation, error handling, security, accessibility, compatibility, data-loss
+protection, or deliberate safety redundancy. The canonical
+[least-code doctrine](../woostack-bootstrap/references/patterns.md#10-least-code--comments) is the
+source of truth; Execute's existing smallest-complete-change and behavior-preserving
+simplification contract remains unchanged.
 
 ### 3. Project-spec approval
 

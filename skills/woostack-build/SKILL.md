@@ -57,6 +57,16 @@ identity. When delegated by Build, Plan returns only a candidate strict sequenti
 chain and performs no provider read or mutation. Harden admits the candidate into the manifest.
 Only after the responsible user approves the complete exact displayed plan does Build perform the
 shared single bounded post-approval synchronization.
+At both approval boundaries, Build requires a safe removal/simplification analysis before additive
+work. Ideate records viable removal opportunities before additive proposals, and Harden challenges
+an additive draft when bounded evidence shows the same contract can be met by deletion or
+simplification. The complete approved specification and delegated execution plan carry the selected
+removal or the executor-ready evidence for why addition is necessary. Preserve behavior and safety
+parity: this analysis never drops validation, error handling, security, accessibility,
+compatibility, data-loss protection, or deliberate safety redundancy. The canonical
+[least-code doctrine](../woostack-bootstrap/references/patterns.md#10-least-code--comments) is the
+source of truth; Execute's existing smallest-complete-change and behavior-preserving
+simplification contract remains unchanged.
 
 ## Exactly two approval stops
 

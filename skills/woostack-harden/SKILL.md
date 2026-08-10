@@ -40,6 +40,13 @@ draft, then inspect only the bounded repository files, configuration,
 tests, documentation, and conventions that can bear on its decisions. Use
 [the angle pre-flight](references/angle-preflight.md) to choose relevant reconciliation prompts;
 the canonical Review lenses remain authoritative.
+At both specification and planning boundaries, Harden performs the removal-first check before
+accepting additive work. It challenges an additive draft when bounded evidence shows the same
+contract can be met by deletion or simplification, then asks the user to validate the safe
+removal—or the bounded reason addition remains necessary—without dropping behavior or safety
+requirements. Record that validated analysis in the manifest and link the canonical
+[least-code doctrine](../woostack-bootstrap/references/patterns.md#10-least-code--comments) rather
+than duplicating it.
 
 For the first material inconsistency:
 

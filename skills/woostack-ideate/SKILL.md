@@ -33,6 +33,13 @@ behavior, constraint, exclusion, architecture decision, acceptance criterion, an
 expectation before it is persisted. Silence, a plausible answer, or an agent-authored summary is
 not verification.
 
+At the specification boundary, Ideate records viable removal opportunities before additive
+proposals. For each opportunity, capture the user's verified choice of safe deletion or
+simplification, or the bounded reason it cannot meet the contract; never infer that addition is
+necessary. Carry this removal-first analysis into the complete specification, using the canonical
+[least-code doctrine](../woostack-bootstrap/references/patterns.md#10-least-code--comments) without
+dropping its safety requirements.
+
 ## Dialogue and local drafting
 
 Brainstorm exhaustively within the requested feature and resolve upstream decisions first. Ask every

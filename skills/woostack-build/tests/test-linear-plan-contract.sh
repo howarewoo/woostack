@@ -52,6 +52,8 @@ for needle in (
     "Delegated planning performs no provider read or mutation",
     "atomically records complete candidate contracts",
     "wrapper hardens and displays the complete candidate",
+    "executor-ready removal-before-addition analysis",
+    "safe deletion or simplification opportunities first",
     "Standalone Plan",
     "synchronization is unchanged",
     "owns no approval gate",

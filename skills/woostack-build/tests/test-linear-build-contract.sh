@@ -18,6 +18,7 @@ paths = {
     "ideate": root / "skills/woostack-ideate/SKILL.md",
     "harden": root / "skills/woostack-harden/SKILL.md",
     "plan": root / "skills/woostack-plan/SKILL.md",
+    "fix": root / "skills/woostack-fix/SKILL.md",
     "execute": root / "skills/woostack-execute/SKILL.md",
 }
 text = {name: path.read_text(encoding="utf-8") for name, path in paths.items()}
@@ -117,6 +118,16 @@ for name in ("build", "context", "procedure"):
 require("context", "before any direct project-membership or native-relation graph write")
 require("procedure", "zero provider and repository mutation")
 require("harden", "canonical issue references")
+
+removal_first_contract = {
+    "build": "safe removal/simplification analysis before additive work",
+    "fix": "safe removal/simplification analysis before additive work",
+    "ideate": "records viable removal opportunities before additive proposals",
+    "harden": "challenges an additive draft when bounded evidence shows the same contract can be met by deletion or simplification",
+    "plan": "executor-ready removal-before-addition analysis",
+}
+for name, needle in removal_first_contract.items():
+    require(name, needle)
 
 evals = json.loads((root / "skills/woostack-build/evals/evals.json").read_text())
 eval_ids = {case["id"] for case in evals["cases"]}
