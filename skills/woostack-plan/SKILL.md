@@ -66,6 +66,9 @@ Every direct issue must retain these fields in its complete description:
 - exact scope and explicit non-goals;
 - exact files and symbols, or one bounded first discovery step with its stopping boundary;
 - ordered, concrete implementation steps detailed enough for a fast execution model;
+- an executor-ready removal-before-addition analysis: consider safe deletion or simplification
+  opportunities first, then record bounded evidence for the selected removal or why addition is
+  necessary;
 - observable acceptance criteria, each mapped to an implementation step;
 - focused checks and one executable smoke scenario;
 - documentation, migration, deployment, compatibility, and cross-increment effects (including
