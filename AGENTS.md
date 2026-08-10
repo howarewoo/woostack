@@ -1,9 +1,5 @@
 # AGENTS.md
 
-This repository follows woostack. At the start of work, use
-[`using-woostack`](skills/using-woostack/SKILL.md) to load repo rules and route
-`/woostack-*` requests to the matching skill.
-
 Follow this file first when it conflicts with generic agent defaults. `.claude/CLAUDE.md` is a
 symlink to this file, and Antigravity CLI (`agy`) reads `AGENTS.md` natively, so this is the
 single source of truth across agents.
