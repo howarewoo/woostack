@@ -46,6 +46,13 @@ conflicting, unsupported, or incompletely paginated evidence blocks before repos
 A material specification, issue, or dependency change invalidates the matching record and returns
 to the owning approval workflow; statuses, labels, assignments, and comments do not authorize
 execution.
+### Repository ancestry admission
+
+Before any worktree or source mutation, read the approved stable parent-branch intent and last
+admitted tip, then apply the shared
+[repository advancement contract](../woostack-init/references/artifact-backends.md#repository-ancestry-is-separate-from-approval-identity)
+to fresh Git/Graphite/GitHub evidence. Execute carries the resulting current admitted tip and any
+retained start/head into worktree discovery; it does not duplicate the shared decision matrix.
 
 `--project` is **project mode**. `--issue` is **issue mode** and selects only that exact issue; it
 never advances a sibling. Both modes use the same two approval records and repository admission.
@@ -78,9 +85,10 @@ started match is idempotent.
 2. Select the lowest-ordinal unfinished issue. An issue is unfinished until its canonical state
    matches the resolved `linear.issueStates.inReview` mapping and the full delivery checkpoint is
    independently read back; never select by activity, assignment, title, or status alone.
-3. For a non-root issue, prove its immediate predecessor's exact branch/head and Graphite parent.
-   For the first issue, prove the frozen integration base. Reject a missing, moved, or conflicting
-   predecessor. No other issue is admitted in the same cycle.
+3. For a non-root issue, read its immediate predecessor's complete delivery checkpoint, canonical
+   parent branch, and current head; for the first issue, read the canonical integration parent branch
+   and last admitted tip. Apply the shared repository advancement contract and carry its admitted
+   result into worktree discovery. No other issue is admitted in the same cycle.
 4. Apply the active project status gate. When all direct issues are `Backlog`/`Todo`, persist and
    independently read back the selected issue's transition to the resolved
    `linear.issueStates.executing` mapping first, then synchronize and independently read back the
@@ -109,15 +117,16 @@ started match is idempotent.
 A successful issue cycle has no orphan worktree. A failed, blocked, interrupted, colliding, or
 unknown boundary retains the worktree and records the first unknown boundary, branch, commit/PR
 (if any), dirty state, Graphite parent, verification receipt, Linear read-back, and exact safe
-resume action. Resume only after independent Linear, Git, Graphite, and GitHub evidence proves the
-same run and state; rediscover existing commits or PRs before retrying and never create a duplicate.
-
-## Issue controller
+resume action. Resume only after fresh independent Linear, Git, Graphite, and GitHub evidence proves
+the same run and state and the shared repository advancement contract admits that evidence.
+Rediscover existing commits or PRs before retrying and never create a duplicate.
 
 Issue mode performs exactly the selected issue's cycle once: admit its matching project records,
-prove its predecessor/base and Graphite parent, apply the active project status gate (including
-the selected issue's transition to the resolved `linear.issueStates.executing` mapping when all
-direct issues are `Backlog`/`Todo`), then dispatch one fast-model subagent in its isolated worktree.
+prove its predecessor's canonical parent branch and compatible current head (or the integration
+parent branch for a root) under the repository ancestry contract, apply the active project status
+gate (including the selected issue's transition to the resolved
+`linear.issueStates.executing` mapping when all direct issues are `Backlog`/`Todo`), then dispatch
+one fast-model subagent in its isolated worktree.
 The gate's project-status receipt stays separate from issue lifecycle and resume-checkpoint
 evidence. Verify and validate the one issue, submit and read back one PR, then persist and
 independently read back every field of the complete delivery checkpoint. Only after that full
@@ -131,7 +140,8 @@ siblings, even when the selected issue succeeds. Failures retain exact recovery 
 
 Every implementation is delegated to the configured fast-model subagent; the controller must not
 substitute local work or claim a dispatch it did not perform. The packet contains the exact issue,
-immutable contract fingerprint, allowed paths, worktree path, base/predecessor, Graphite parent,
+immutable contract fingerprint, allowed paths, worktree path, canonical parent branch/current
+admitted tip, retained start/head when resuming, Graphite parent,
 acceptance, and explicit prohibitions on scope changes, credentials, source-control boundaries,
 Linear writes, and work in another worktree.
 

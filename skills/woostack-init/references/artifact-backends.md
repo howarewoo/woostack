@@ -298,6 +298,44 @@ project issue, sorted lexicographically by canonical issue reference. `dependenc
 `{ predecessorIssueId, successorIssueId, kind }` per admitted native issue-to-issue dependency,
 where `kind` is exactly `native-issue`, sorted lexicographically by
 `(predecessorIssueId, successorIssueId, kind)` using the canonical issue-reference values.
+
+### Repository ancestry is separate from approval identity
+
+Stable canonical parent-branch intent is approved content. State it in the complete project
+specification and each affected increment description so the existing description-derived
+`canonicalProjectSpecFingerprint`, `canonicalIncrementFingerprint`, and displayed-content
+fingerprint bind it. Do not add a separate Git field to an approval record or fingerprint envelope.
+Mutable observed refs, heads, commits, parent tips, worktrees, Graphite state, and PR-base movement
+remain repository evidence outside content receipt identity and never invalidate a receipt by
+themselves.
+
+The repository admission boundary reads that canonical parent-branch intent from the matching
+approved content and records the last independently admitted parent tip outside the approval
+records. **Compatible advancement** means
+that fresh Git/Graphite/GitHub reads prove the same canonical parent branch/ref, a newly observed tip
+that is a descendant of the last admitted tip, unchanged task/specification/plan/dependency
+contract, no rewrite, and no conflict or duplicate ancestry. Missing, partial, ambiguous, or
+contradictory ancestry evidence is not compatible.
+
+Every newly observed descendant tip must match fresh canonical delivery evidence for that exact head,
+including current-head reviews and checks required by the owning workflow. For a dependency child,
+the tip must also equal the commit and canonical PR head in the predecessor's freshly and
+independently read complete delivery checkpoint. Descendant ancestry alone is insufficient; a
+missing, partial, stale, or mismatched checkpoint, review, or check is blocking repository drift.
+
+For compatible advancement, retain every matching approval record owned by the invoking workflow;
+a workflow with no approval gate instead preserves its approved-specification fingerprint. Return
+the explicit action `re-admit-current-parent-tip`; do not reopen a content gate or ask for new
+content approval.
+Fresh work starts at the newly admitted current parent tip. Existing work preserves its recorded
+start and head, then revalidates ancestry, diff identity, and PR base against the current parent
+branch. It is never silently rebased, reset, recreated, or attached to another branch.
+
+Branch identity or parent-branch changes, rewrites or non-descendant tips, conflicts, duplicate
+ancestry, incomplete or inconsistent Git/Graphite/GitHub evidence, delivery-evidence mismatch, or
+material project, increment, dependency, or approval-record drift remain fail-closed. Content drift
+follows the approval invalidation rules below even when repository ancestry is otherwise compatible.
+
 #### Run-scoped gated draft manifest
 
 Build and project-backed Fix use this contract for specification and delegated-plan drafting.
@@ -465,7 +503,9 @@ fabricate a reference, or treat a partial response as approval.
 Before execution, after every worker handback, before every redispatch, immediately before each
 commit, and before selecting another increment, independently re-read the exact project, every
 current direct issue, every admitted dependency relation, and both approval receipts. Recompute both
-records and require exact identity. These Execute-era safety reads are unchanged by deferred gated
+records and require exact identity. Independently re-admit the canonical repository parent branch,
+its current tip, the selected branch/head, ancestry, diff, and PR base under the repository
+advancement contract above. These Execute-era safety reads are unchanged by deferred gated
 synchronization.
 
 A material project-specification change invalidates both records and returns to specification

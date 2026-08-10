@@ -13,14 +13,14 @@
         {"assertionId": "exact-project-retained","fixture": "overnight-state.json","pointer": "/projectUpdates/1/envelope/projectId"},
         {"assertionId": "exact-project-retained","fixture": "overnight-state.json","pointer": "/projectUpdates/2/envelope/projectId"}
       ],
-      "prompt": "Classify fixtures/overnight-state.json as a bounded unattended state-machine exercise without calling providers, Git, GitHub, Linear, a review engine, or mutating files. Trust only complete independent read-backs. Derive tracks from native dependency IDs, stable issue IDs, and exact Git-parent records, using ordinal only to order simultaneously ready roots. Return exactly one JSON object with keys projectId, trackIssueOrder, issueOutcomes, cleanReviewReceiptIds, projectProgressSource, handbackStatus, needsYou, localReportAuthored, localReportAccepted, acceptanceAllowed, and mergeAllowed. Use APP-21 blocked, APP-22 clean, APP-23 not-attempted, projectProgressSource verified-issue-records, handbackStatus partial+blockers, and needsYou APP-21 then APP-23. A separately rooted issue is clean only when driver observations, controller-owned issue evidence, GitHub review, and Linear reviewResult receipts are complete. Set both local-report fields, acceptanceAllowed, and mergeAllowed false.",
+      "prompt": "Classify fixtures/overnight-state.json as a bounded unattended state-machine exercise without calling providers, Git, GitHub, Linear, a review engine, or mutating files. Trust only complete independent read-backs. Derive tracks from native dependency IDs, stable issue IDs, and exact Git-parent records, using ordinal only to order simultaneously ready roots. Apply repositoryAdmissionScenarios and return exactly one JSON object with keys projectId, trackIssueOrder, issueOutcomes, cleanReviewReceiptIds, repositoryAdmissions, retainedState, projectProgressSource, handbackStatus, needsYou, localReportAuthored, localReportAccepted, acceptanceAllowed, and mergeAllowed. Map compatibleRoot and compatibleDependencyChild to re-admit-current-parent-tip; map branchIdentityChange, rewrite, nonDescendant, conflict, duplicateAncestry, incompleteEvidence, deliveryMismatch, materialSpecDrift, and materialPlanDrift to blocked. Preserve the compatible-root retained start/head, report revalidated ancestry, diff, and prBase, and report no silent rebase, reset, or recreate. Use APP-21 blocked, APP-22 clean, APP-23 not-attempted, projectProgressSource verified-issue-records, handbackStatus partial+blockers, and needsYou APP-21 then APP-23. A separately rooted issue is clean only when driver observations, controller-owned issue evidence, GitHub review, and Linear reviewResult receipts are complete. Set both local-report fields, acceptanceAllowed, and mergeAllowed false.",
       "fixtures": [
         "overnight-state.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Track APP-21 blocks on its missing full-review receipt, APP-23 remains unattempted because its exact parent track is blocked, and independent root APP-22 is review-clean only from complete driver observations plus controller-owned issue, GitHub review, and Linear receipts. Project progress derives from verified issue records; no local report, acceptance, or merge is allowed.",
+      "expected": "Compatible root and dependency-child tips are re-admitted only from their complete canonical branch, ancestry, exact-head delivery, review, and check evidence; the child also matches its predecessor checkpoint and canonical PR head. Retained start/head survive with ancestry, diff, and PR-base revalidation. Every named incompatible or incomplete case blocks. APP-21 blocks on its missing full-review receipt, APP-23 remains unattempted, and independent root APP-22 is review-clean from complete remote receipts. No local report, acceptance, or merge is allowed.",
       "assertions": [
         {
           "id": "exact-project-retained",
@@ -112,6 +112,125 @@
           "id": "blocked-project-not-accepted",
           "kind": "final-json-path-equals",
           "pointer": "/acceptanceAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "overnight-compatible-root-readmitted",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryAdmissions/compatibleRoot",
+          "expected": "re-admit-current-parent-tip",
+          "critical": true
+        },
+        {
+          "id": "overnight-compatible-child-readmitted",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryAdmissions/compatibleDependencyChild",
+          "expected": "re-admit-current-parent-tip",
+          "critical": true
+        },
+        {
+          "id": "overnight-branch-change-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryAdmissions/branchIdentityChange",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "overnight-rewrite-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryAdmissions/rewrite",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "overnight-non-descendant-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryAdmissions/nonDescendant",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "overnight-conflict-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryAdmissions/conflict",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "overnight-duplicate-ancestry-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryAdmissions/duplicateAncestry",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "overnight-incomplete-evidence-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryAdmissions/incompleteEvidence",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "overnight-delivery-mismatch-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryAdmissions/deliveryMismatch",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "overnight-material-spec-drift-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryAdmissions/materialSpecDrift",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "overnight-material-plan-drift-blocked",
+          "kind": "final-json-path-equals",
+          "pointer": "/repositoryAdmissions/materialPlanDrift",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "overnight-retained-start-preserved",
+          "kind": "final-json-path-equals",
+          "pointer": "/retainedState/recordedStart",
+          "expected": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "critical": true
+        },
+        {
+          "id": "overnight-retained-head-preserved",
+          "kind": "final-json-path-equals",
+          "pointer": "/retainedState/recordedHead",
+          "expected": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "critical": true
+        },
+        {
+          "id": "overnight-retained-state-revalidated",
+          "kind": "final-json-path-equals",
+          "pointer": "/retainedState/revalidate",
+          "expected": ["ancestry", "diff", "prBase"],
+          "critical": true
+        },
+        {
+          "id": "overnight-no-silent-rebase",
+          "kind": "final-json-path-equals",
+          "pointer": "/retainedState/silentRebase",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "overnight-no-silent-reset",
+          "kind": "final-json-path-equals",
+          "pointer": "/retainedState/silentReset",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "overnight-no-silent-recreate",
+          "kind": "final-json-path-equals",
+          "pointer": "/retainedState/silentRecreate",
           "expected": false,
           "critical": true
         },

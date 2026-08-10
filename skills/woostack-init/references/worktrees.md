@@ -36,30 +36,38 @@ the stable task ID or any repository identity.
 
 ## 2. Verified start point
 
-A caller supplies one complete task-bound ancestry contract. Never substitute the current checkout,
-current branch tip, ordinal adjacency, a PR title, or inferred local ownership.
+A caller supplies one complete task-bound ancestry contract whose stable canonical parent-branch
+intent is bound by the approved content. Apply the shared
+[repository advancement contract](artifact-backends.md#repository-ancestry-is-separate-from-approval-identity)
+to its last independently admitted parent tip. Mutable observed refs, heads, commits, and tips
+remain repository evidence outside content approval identity. Never substitute the current
+checkout, current branch tip, ordinal adjacency, a PR title, or inferred local ownership.
 
 ### Standalone bounded task
 
 Resolve the integration branch with `<wi>/scripts/resolve-base.sh`; never hard-code `main` or
-`staging`. Retain the exact branch and commit SHA from independent Git/GitHub reads. The branch
-starts at that commit and Graphite tracks the integration branch. A moved base on resume is drift,
-not permission to rebase silently.
+`staging`. Retain the exact canonical branch/ref and admitted tip from independent Git/GitHub
+reads. Apply the shared repository advancement contract before using any newly observed tip for
+fresh work.
 
 ### Plan dependency root
 
-A root starts at the immutable commit SHA frozen by the approved plan and tracks the exact approved
-base branch. Multiple roots may start there in parallel only when the complete approved DAG proves
-no dependency path and task IDs, responsibility surfaces, runs, worktrees, branches, and PRs are
-disjoint.
+A root starts from its stable approved parent branch intent and last admitted tip. Fresh work may
+start only at the latest tip after the compatible-advancement admission above. Multiple roots may
+start there in parallel only when the complete approved DAG proves no dependency path and task IDs,
+responsibility surfaces, runs, worktrees, branches, and PRs are disjoint.
 
 ### Plan dependency child
 
-A child declares exactly one predecessor as its Git parent. Require that predecessor's exact branch,
-finalized head, canonical PR, and review/merge state to agree. Start the child at that exact head and
-pass the same parent branch to `gt track --parent`. Every non-parent predecessor must have canonical
-GitHub merge evidence represented in the child's permitted ancestry. Reject inferred order,
-rewritten heads, open non-parent dependencies, or partial proof.
+A child declares exactly one predecessor as its Git parent. Require that predecessor's canonical
+branch identity, complete delivery checkpoint, commit, canonical PR identity/head/base, fully
+paginated current-head reviews/checks and merge state, and Graphite parent to agree. Apply the
+shared repository advancement contract before using a newly observed descendant head for fresh
+child work. Start retained work from its recorded state and revalidate ancestry, diff, and PR base;
+never silently rebase, reset, recreate, or attach it to a different branch. Every non-parent
+predecessor must have canonical GitHub merge evidence represented in the child's permitted ancestry.
+Reject inferred order, rewritten heads, open non-parent dependencies, duplicate ancestry, conflicts,
+or partial proof.
 
 ## 3. Direct identity and collision evidence
 
@@ -90,8 +98,10 @@ Classify the complete direct-evidence snapshot:
 1. **All absent:** the deterministic path is absent from the filesystem and worktree inventory, and
    no local/remote branch, commit, or canonical PR already represents the task.
 2. **One exact retained state:** resume only when the deterministic path, worktree listing, branch,
-   start SHA, parent, ancestry, dirty/index/diff state, commits, and PR facts agree with the same
-   approved task/run contract or completely verified handoff successor.
+   recorded start SHA/head, parent branch, ancestry, dirty/index/diff state, commits, and PR facts
+   agree with the same approved task/run contract or completely verified handoff successor. A
+   compatible descendant tip on the same canonical parent branch does not invalidate content
+   receipts: preserve the retained start/head and freshly revalidate ancestry, diff, and PR base.
 3. **Verified review-reopen:** the prior implementation worktree is absent, the same canonical
    branch and PR/head remain, the approved review-fix contract names the same stable task, the
    deterministic path is free, and the branch is not checked out anywhere.
@@ -107,9 +117,10 @@ After the complete snapshot proves the intended operation collision-free:
 
 1. verify the deterministic path is absent from both the filesystem and
    `git worktree list --porcelain`;
-2. for new work, use `git worktree add -b <branch> <path> <exact-start-sha>` so Git exclusively
-   rejects an existing branch, path, or checkout; for verified review-reopen, attach only the
-   already verified canonical branch with `git worktree add <path> <branch>`;
+2. for fresh work, use `git worktree add -b <branch> <path> <latest-admitted-parent-tip>` after
+   compatible parent-tip re-admission so Git exclusively rejects an existing branch, path, or
+   checkout; for verified review-reopen, attach only the already verified canonical branch with
+   `git worktree add <path> <branch>`;
 3. use `gt track --parent <branch>` for the approved Graphite parent;
 4. verify physical path, common Git root, branch, HEAD/start, Graphite parent, and absence of another
    checkout; and

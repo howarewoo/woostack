@@ -100,9 +100,9 @@
     },
     {
       "id": "resume-reuses-existing-pr",
-      "prompt": "A resumed project issue has its executing and configured inReview mappings independently resolved by stable native identity/category, a persisted delivery checkpoint still pending clean-worktree verification (deliveryCheckpoint=pending-clean), commit commit-002, and canonical PR https://github.com/acme/repo/pull/2 proven by independent Linear, Git, Graphite, and GitHub reads, while its worktree is retained dirty. Return exactly one JSON object with keys status, reason, existingCommit, existingPr, deliveryCheckpoint, duplicateCreated, worktreeState, and resumeBoundary.",
+      "prompt": "A resumed project issue has its executing and configured inReview mappings independently resolved by stable native identity/category, a persisted delivery checkpoint still pending clean-worktree verification (deliveryCheckpoint=pending-clean), commit commit-002, and canonical PR https://github.com/acme/repo/pull/2 proven by independent Linear, Git, Graphite, and GitHub reads, while its worktree is retained dirty. Approved parent-branch intent and fresh repository reads agree on canonical branch \"refs/heads/main\"; last admitted tip \"parent-001\" and current tip \"parent-002\" have proven descendant ancestry and complete exact-head delivery, review, and check evidence. The retained work recorded start \"parent-001\" and head \"commit-002\", and ancestry, diff identity, and PR base were revalidated without rebasing, resetting, or recreating it. Also classify branch-identity change, non-descendant ancestry, conflict, duplicate ancestry, incomplete evidence, delivery mismatch, and material drift. Return exactly one JSON object with keys status, reason, existingCommit, existingPr, deliveryCheckpoint, duplicateCreated, worktreeState, resumeBoundary, repositoryAdmission, and incompatibleEvidence.",
       "capabilities": ["read-workspace"],
-      "expected": "Interruption after PR submission resumes from the existing commit and PR without duplicate submission; the retained worktree is not removed until clean verification.",
+      "expected": "Interruption after PR submission resumes from the existing commit and PR only after compatible parent advancement re-admits the current tip and revalidates the retained start/head, ancestry, diff, and PR base. Every incompatible or incomplete repository-evidence case blocks. The retained worktree is not removed until clean verification.",
       "assertions": [
         {"id": "resume-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "resume", "critical": true},
         {"id": "resume-reason", "kind": "final-json-path-equals", "pointer": "/reason", "expected": "existing-delivery-evidence", "critical": true},
@@ -111,7 +111,23 @@
         {"id": "resume-no-duplicate", "kind": "final-json-path-equals", "pointer": "/duplicateCreated", "expected": false, "critical": true},
         {"id": "resume-retained", "kind": "final-json-path-equals", "pointer": "/worktreeState", "expected": "retained-dirty", "critical": true},
         {"id": "resume-boundary", "kind": "final-json-path-equals", "pointer": "/resumeBoundary", "expected": "clean-and-readback", "critical": true},
-        {"id": "resume-checkpoint", "kind": "final-json-path-equals", "pointer": "/deliveryCheckpoint", "expected": "pending-clean", "critical": true}
+        {"id": "resume-checkpoint", "kind": "final-json-path-equals", "pointer": "/deliveryCheckpoint", "expected": "pending-clean", "critical": true},
+        {"id": "resume-parent-re-admitted", "kind": "final-json-path-equals", "pointer": "/repositoryAdmission/status", "expected": "re-admitted", "critical": true},
+        {"id": "resume-stable-parent-branch", "kind": "final-json-path-equals", "pointer": "/repositoryAdmission/canonicalParentBranch", "expected": "refs/heads/main", "critical": true},
+        {"id": "resume-branch-identity-proven", "kind": "final-json-path-equals", "pointer": "/repositoryAdmission/branchIdentityStable", "expected": true, "critical": true},
+        {"id": "resume-last-tip", "kind": "final-json-path-equals", "pointer": "/repositoryAdmission/lastAdmittedTip", "expected": "parent-001", "critical": true},
+        {"id": "resume-current-tip", "kind": "final-json-path-equals", "pointer": "/repositoryAdmission/currentAdmittedTip", "expected": "parent-002", "critical": true},
+        {"id": "resume-descendant-ancestry", "kind": "final-json-path-equals", "pointer": "/repositoryAdmission/currentDescendsFromLast", "expected": true, "critical": true},
+        {"id": "resume-start-preserved", "kind": "final-json-path-equals", "pointer": "/repositoryAdmission/retainedStart", "expected": "parent-001", "critical": true},
+        {"id": "resume-head-preserved", "kind": "final-json-path-equals", "pointer": "/repositoryAdmission/retainedHead", "expected": "commit-002", "critical": true},
+        {"id": "resume-revalidation-complete", "kind": "final-json-path-equals", "pointer": "/repositoryAdmission/revalidated", "expected": ["ancestry","diff","prBase"], "critical": true},
+        {"id": "resume-branch-change-blocks", "kind": "final-json-path-equals", "pointer": "/incompatibleEvidence/branchIdentityChange", "expected": "blocked", "critical": true},
+        {"id": "resume-non-descendant-blocks", "kind": "final-json-path-equals", "pointer": "/incompatibleEvidence/nonDescendant", "expected": "blocked", "critical": true},
+        {"id": "resume-conflict-blocks", "kind": "final-json-path-equals", "pointer": "/incompatibleEvidence/conflict", "expected": "blocked", "critical": true},
+        {"id": "resume-duplicate-ancestry-blocks", "kind": "final-json-path-equals", "pointer": "/incompatibleEvidence/duplicateAncestry", "expected": "blocked", "critical": true},
+        {"id": "resume-incomplete-evidence-blocks", "kind": "final-json-path-equals", "pointer": "/incompatibleEvidence/incompleteEvidence", "expected": "blocked", "critical": true},
+        {"id": "resume-delivery-mismatch-blocks", "kind": "final-json-path-equals", "pointer": "/incompatibleEvidence/deliveryMismatch", "expected": "blocked", "critical": true},
+        {"id": "resume-material-drift-blocks", "kind": "final-json-path-equals", "pointer": "/incompatibleEvidence/materialDrift", "expected": "blocked", "critical": true}
       ]
     },
     {

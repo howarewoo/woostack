@@ -12,10 +12,13 @@ commit, and recovery boundaries, while retaining this skill's bounded review-swe
 independent-track recovery safety. This command is explicit project-only; it never becomes a Build
 choice, creates or revises a project, and never merges.
 
-Git, Graphite, and canonical GitHub reads own source, ancestry, PR, review, and delivery truth.
-Project input requires the exact project, direct increment issues, native dependency graph, and the
-two content-bound approval records required by the normal Execute admission. Linear never assigns
-workers or proves repository delivery.
+Git, Graphite, and canonical GitHub reads own source, ancestry, PR, review, and delivery truth. The
+shared [repository advancement contract](../woostack-init/references/artifact-backends.md#repository-ancestry-is-separate-from-approval-identity)
+keeps branch/ref/head movement outside content receipt identity while requiring fresh ancestry
+re-admission and all collision, rewrite, and PR-base safeguards. Project input requires the exact
+project, direct increment issues, native dependency graph, and the two content-bound approval
+records required by the normal Execute admission. Linear never assigns workers or proves repository
+delivery.
 
 ## Commands
 
@@ -36,16 +39,18 @@ Require:
   [`woostack-execute` admission](../woostack-execute/SKILL.md#admission-one-exact-resource-and-two-matching-records);
 - stable task IDs, complete bounded contracts, acceptance/verification/smoke clauses, and exclusive
   responsibility surfaces;
-- an acyclic dependency graph with one declared Git parent per dependent task;
-- canonical repository, configured integration base, and frozen start commit;
+- an acyclic dependency graph with one declared stable canonical parent branch per dependent task;
+- canonical repository, configured integration parent branch, and last independently admitted tip;
 - explicit unattended handoff (`Run overnight` or intent-equivalent wording); and
 - no unresolved decision that requires product, security, data-loss, or scope judgment.
 
 Read repository policy, deterministic task paths, `git worktree list --porcelain`, filesystem state,
 local/remote branches and commits, complete dirty/index/diff state, Git/Graphite ancestry, and fully
-paginated GitHub PR/review/check/thread state. Reject duplicate checkouts, branches, commits, or
-PRs; unexplained work; moved ancestry; overlapping surfaces; stale plans; ambiguous recovery; or a
-task that cannot be safely bounded without human judgment.
+paginated GitHub PR/review/check/thread state. Apply the shared repository advancement contract to
+the approved parent-branch intent, last admitted tip, and current evidence, then carry its admitted
+tip and retained-work state into the normal controller. Independently reject duplicate checkouts,
+branches, commits, or PRs; unexplained work; overlapping surfaces; stale plans; ambiguous recovery;
+or a task that cannot be safely bounded without human judgment.
 
 Independently re-read the complete project specification, all current direct issues, native
 dependencies, and responsible-user approval events and require exact equality with both approval
@@ -60,7 +65,9 @@ issue:
 
 1. derive the currently dependency-ready issue set from the approved DAG and repository evidence;
 2. admit each selected issue only when its deterministic path is collision-free;
-3. create/verify its isolated worktree and Graphite branch at the exact approved base/parent head;
+3. create/verify its isolated worktree and Graphite branch from the latest compatible admitted
+   parent-branch tip; retained work preserves its recorded start/head and is never silently rebased,
+   reset, recreated, or reassigned;
 4. dispatch the configured fast implementation worker under the
    [normal Execute worker boundary](../woostack-execute/SKILL.md#worker-and-verification-boundary)
    through Red → Green → Refactor, focused verification, and smoke observation;
@@ -72,11 +79,8 @@ issue:
    and ancestry; and
 9. hand back direct evidence and remove only a completed issue's exact clean worktree.
 
-The controller repeats the exact project/issue/dependency/approval-record check after every worker
-handback, before every redispatch, immediately before commit, and before selecting another
-increment. Never process two dependent issues concurrently. Independent roots may run concurrently
-only when paths/surfaces, runs, profiles, worktrees, branches, PRs, and provider sessions are
-disjoint.
+Never process two dependent issues concurrently. Independent roots may run concurrently only when
+paths/surfaces, runs, profiles, worktrees, branches, PRs, and provider sessions are disjoint.
 
 ## Autonomous decision policy
 
@@ -157,7 +161,7 @@ repository delivery does not erase that repository evidence.
 ## Terminal handback
 Return one truthful report derived from fresh reads:
 
-- canonical repository and frozen base;
+- canonical repository, stable parent branch, and last admitted parent tip;
 - exact approved project identity, project specification, direct issue DAG, and both approval
   records/rechecks;
 - per issue: status, worktree/branch/parent, changed paths, verification/smoke results, reviewer

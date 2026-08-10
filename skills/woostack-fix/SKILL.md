@@ -73,7 +73,9 @@ canonical-project resolution and before any provider effect. The shared artifact
 single authority for baseline admission, the permission-restricted run manifest, complete
 displayed-content approval identity, approval-before-save ordering, bounded synchronization,
 canonical issue-reference/nullable-parent preflight, stable-key/canonical-reference mapping,
-drift/recovery, cleanup, approval receipts, and unchanged Execute reads.
+drift/recovery, cleanup, approval receipts, and unchanged Execute reads. The shared
+[repository advancement contract](../woostack-init/references/artifact-backends.md#repository-ancestry-is-separate-from-approval-identity)
+separately governs compatible parent-tip re-admission; Fix does not restate or weaken it.
 
 ### 2. Resolve the project, then Ideate and Harden
 
@@ -94,9 +96,9 @@ reads and writes while gated, and own no approval gate or repository mutation.
 The project specification must include the observed and expected behavior, root-cause chain and
 evidence, goal and acceptance criteria, in/out-of-scope surfaces, ordered implementation intent,
 risks and blockers, validation/security/data-loss/accessibility/compatibility considerations,
-Red → Green → Refactor and changed-path smoke strategy, repository/base intent, and documentation
-or migration effects. Keep it self-contained and executor-ready; ask only decisions that
-materially change scope or safety.
+Red → Green → Refactor and changed-path smoke strategy, repository parent-branch intent, and
+documentation or migration effects. Keep it self-contained and executor-ready; ask only decisions
+that materially change scope or safety.
 
 ### 3. Project-spec approval
 
@@ -150,21 +152,21 @@ invalidate matching content receipts.
 After both shared approval records and every referenced record read back exactly, remove the
 run-scoped manifest and invoke normal [`woostack-execute`](../woostack-execute/SKILL.md) with the
 project identity, `projectSpecApprovalRecord`, `executionPlanApprovalRecord`, canonical
-fingerprints, direct-issue set, native dependencies, and frozen repository base. Execute owns
+fingerprints, direct-issue set, native dependencies, approved parent-branch intent, and its last
+admitted tip. Execute applies the shared repository advancement contract to those inputs and owns
 implementation, focused verification, progress evidence, and repository delivery under its own
 contract. Fix does not select an alternate execution mode or create a local authority record.
 
-Recheck the exact project, direct issues, dependencies, and both approval records before dispatch,
-after every worker handback, before every redispatch, and immediately before any repository
-mutation. These Execute-era safety reads remain unchanged. Any new root cause, scope, dependency,
-migration, unsafe edge, stale fingerprint, or failed required read-back returns to the first
-unproved boundary. Preserve unrelated work and do not use source artifacts as permission.
+Any new root
+cause, scope, dependency, migration, unsafe edge, stale fingerprint, or failed required read-back
+returns to the first unproved boundary. Preserve unrelated work and do not use source artifacts as
+permission.
 
 ## Return
 
 Return the proved root cause or blocker; exact canonical project identity and independent read-back;
 source-input identity and the unchanged-except-for-project-link result; both shared approval records
-and their active-conversation/Linear read-back evidence; stable task, worktree, branch, base, and
-increment identities; exact changed paths; concrete verification and smoke results; and risks,
-blockers, and the safe resume boundary. Never claim a diagnosis, approval, repository mutation,
-execution, delivery, or provider state not directly observed.
+and their active-conversation/Linear read-back evidence; stable task, worktree, branch, parent
+branch/tip, and increment identities; exact changed paths; concrete verification and smoke results;
+risks, blockers, and the safe resume boundary. Never claim a diagnosis, approval, repository
+mutation, execution, delivery, or provider state not directly observed.

@@ -24,7 +24,8 @@ The controller sends all context directly; a link or prior conversation is insuf
 - matching `projectSpecApprovalRecord` and `executionPlanApprovalRecord` fingerprints as read-only
   evidence;
 - canonical repository and exact isolated worktree path;
-- frozen integration base or exact predecessor branch/head and Graphite parent;
+- canonical parent branch/current admitted tip, retained start/head when resuming, and Graphite
+  parent;
 - allowed paths and exclusive writable surface;
 - acceptance clauses, one focused verification/smoke scenario, and bounded validator input;
 - current diff/recovery identity when resuming; and
@@ -55,7 +56,8 @@ requires controller inspection before another writer is considered.
 ## Controller handback and repair
 
 The controller independently rechecks the approval records, selected issue, worktree, branch,
-Graphite parent, complete dirty/index/diff state, and process boundary after every handback. It then
+canonical parent branch/current admitted tip, retained start/head, Graphite parent, complete
+dirty/index/diff state, and process boundary after every handback. It then
 runs one bounded spec-compliance validator against the same diff. Only an observed omission within
 the exact issue contract may be repaired by redispatching this same configured fast-model route
 with a refreshed packet and diff identity. Do not broaden the bounded validator or add unrelated
@@ -63,8 +65,9 @@ cleanup.
 
 ## Return contract
 
-Return exactly the run and issue IDs, mode/ordinal, worktree/branch/base or predecessor/Graphite
-parent, sorted changed paths, diff identity, commands and observed results, smoke observations,
+Return exactly the run and issue IDs, mode/ordinal, worktree/branch, canonical parent branch/current
+admitted tip, retained start/head when resuming, Graphite parent, sorted changed paths, diff identity,
+commands and observed results, smoke observations,
 validator input boundary (if supplied), blocker or requested decision, and final status. No commit,
 PR, Linear, review, merge, acceptance, or sibling-progress claim may appear without direct controller
 read-back evidence.
