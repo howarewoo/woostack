@@ -83,6 +83,77 @@
     "executionPlan": {"activeConversationApproval": true, "linearReceiptReadBack": true, "causallyAfterPresentation": true},
     "repositoryMutationCountBeforeBothApprovals": 0
   },
+  "repositoryAdvancement": {
+    "approvalRecordsUnchanged": true,
+    "sameBranchDescendant": {
+      "parentBranch": "refs/heads/main",
+      "previouslyAdmittedTip": "sha256:parent-tip-old",
+      "newTip": "sha256:parent-tip-new",
+      "sameCanonicalBranch": true,
+      "newTipIsDescendant": true,
+      "taskContractUnchanged": true,
+      "deliveryEvidence": {
+        "checkpointHead": "sha256:parent-tip-new",
+        "canonicalPrHead": "sha256:parent-tip-new",
+        "checkpointHeadMatches": true,
+        "canonicalPrHeadMatches": true,
+        "currentHeadReviewsVerified": true,
+        "currentHeadChecksVerified": true
+      },
+      "action": "re-admit-current-parent-tip",
+      "invalidatesApprovalRecords": [],
+      "freshWorkStart": "sha256:parent-tip-new",
+      "retainedWork": {
+        "preserveStartAndHead": true,
+        "revalidate": ["ancestry", "diff", "prBase"],
+        "silentRebase": false,
+        "silentReset": false,
+        "silentRecreate": false
+      }
+    },
+    "unverifiedDescendant": {
+      "status": "blocked",
+      "reason": "current-head-delivery-evidence-mismatch",
+      "invalidatesApprovalRecords": []
+    },
+    "branchIdentityChange": {
+      "status": "blocked",
+      "reason": "parent-branch-identity-changed",
+      "invalidatesApprovalRecords": []
+    },
+    "rewrite": {
+      "status": "blocked",
+      "reason": "parent-tip-rewritten-or-not-descendant",
+      "invalidatesApprovalRecords": []
+    },
+    "conflict": {
+      "status": "blocked",
+      "reason": "parent-ancestry-conflict",
+      "invalidatesApprovalRecords": []
+    },
+    "duplicateAncestry": {
+      "status": "blocked",
+      "reason": "duplicate-parent-ancestry",
+      "invalidatesApprovalRecords": []
+    },
+    "incompleteEvidence": {
+      "status": "blocked",
+      "reason": "parent-ancestry-evidence-incomplete",
+      "invalidatesApprovalRecords": []
+    },
+    "materialSpecDrift": {
+      "status": "blocked",
+      "invalidates": ["projectSpecApprovalRecord", "executionPlanApprovalRecord"],
+      "returnsTo": "project-spec-hardening",
+      "executeAllowed": false
+    },
+    "materialPlanDrift": {
+      "status": "blocked",
+      "invalidates": ["executionPlanApprovalRecord"],
+      "returnsTo": "execution-plan-hardening",
+      "executeAllowed": false
+    }
+  },
   "invalidation": {
     "materialSpecChange": {"invalidates": ["projectSpecApprovalRecord", "executionPlanApprovalRecord"], "returnsTo": "project-spec-hardening"},
     "materialPlanChange": {"invalidates": ["executionPlanApprovalRecord"], "returnsTo": "execution-plan-hardening"},

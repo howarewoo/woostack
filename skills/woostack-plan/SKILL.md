@@ -26,11 +26,15 @@ project. A wrong resource type, missing project, foreign repository, incomplete 
 approved content blocks before mutation. There is no project-creation, fuzzy-discovery, or
 alternate-provider path.
 
-Standalone Plan reads the repository, base, existing patterns, relevant tests, and the
+Standalone Plan reads the repository, canonical parent branch and last admitted tip, existing
+patterns, relevant tests, and the
 [Linear synchronization procedure](../woostack-build/references/linear-procedure.md) before
 planning. Build/Fix-delegated Plan instead obeys the shared
 [run-scoped gated draft contract](../woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest);
 it reads no provider context or synchronization procedure during the delegated phase.
+Repository parent-tip admission follows the shared
+[repository advancement contract](../woostack-init/references/artifact-backends.md#repository-ancestry-is-separate-from-approval-identity);
+Plan owns only the approved parent-branch intent and last-admitted-tip handoff.
 
 ## Input and ownership
 
@@ -72,7 +76,7 @@ Every direct issue must retain these fields in its complete description:
 - a hand-written changed-line estimate and size rationale.
 
 Before admitting any verification command or smoke scenario, independently verify each named
-repository-local script or path already exists at the frozen base, is created by a predecessor
+repository-local script or path already exists at the last admitted repository parent tip, is created by a predecessor
 increment whose native dependency orders it before use, or will be created by the same increment
 before use. Verify a manifest-defined command against its exact manifest entry and state any
 external runtime prerequisite. A missing or invented command blocks plan persistence; never defer
@@ -96,9 +100,11 @@ ordinal k (2..N): ordinal k-1 → ordinal k
 ```
 
 No missing, extra, branching, cyclic, or synthetic dependency is valid. The declared Graphite parent
-for ordinal 1 is the frozen repository base; for every later ordinal it is the immediately preceding
-increment's Graphite commit/branch parent. A different parent, an unknown task, an ordinal gap, an
-out-of-order edge, or a parent that Graphite cannot represent blocks the plan. Validate that every
+for ordinal 1 is the approved integration parent branch; for every later ordinal it is the
+immediately preceding increment's Graphite parent branch. Bind that stable parent-branch intent in
+each complete issue description and carry the last admitted tip as separate repository evidence for
+Execute's shared advancement check. A different branch identity, unknown task, ordinal gap,
+out-of-order edge, or parent that Graphite cannot represent blocks the plan. Validate that every
 acceptance criterion is covered exactly by at least one increment and that every issue contract is
 complete before any provider mutation.
 

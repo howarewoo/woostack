@@ -29,7 +29,9 @@ fallback. Before acting, load and apply the shared
 the single authority for baseline admission, the permission-restricted run manifest, complete
 displayed-content approval identity, approval-before-save ordering, canonical issue-reference/
 nullable-parent preflight, native project/team identity, drift/failure recovery, cleanup, and
-unchanged Execute safety reads. This wrapper does not restate those rules.
+unchanged Execute safety reads. The shared
+[repository advancement contract](../woostack-init/references/artifact-backends.md#repository-ancestry-is-separate-from-approval-identity)
+governs parent-branch re-admission; this wrapper does not restate those rules.
 
 ## Fixed chain
 
@@ -85,15 +87,15 @@ Build compares the shared
 fingerprints while retaining native provider bytes as exact read-back evidence.
 
 The shared [approval-record contract](../woostack-init/references/artifact-backends.md#shared-approval-records)
-defines record fields and invalidation. A material specification change invalidates both records; a
-material direct-issue or dependency change invalidates only `executionPlanApprovalRecord`.
+defines record fields and content invalidation.
 
 ## Execute transition
 
 After the second approval has completed the ordered exact read-backs and the run manifest is
 cleaned up, Build always invokes normal [`woostack-execute`](../woostack-execute/SKILL.md) with the
 exact project identity, `projectSpecApprovalRecord`, `executionPlanApprovalRecord`, canonical
-fingerprints, direct-issue set, native dependencies, and frozen repository base. Execute owns
+fingerprints, direct-issue set, native dependencies, approved parent-branch intent, and the last
+admitted tip. Execute applies the shared repository advancement contract to those inputs and owns
 implementation, focused verification, Linear progress evidence, and repository delivery under its
 own contract. Its pre-dispatch, handback, redispatch, pre-commit, and next-increment reads remain
 unchanged. Build does not select another execution mode, create a local authority, or merge.

@@ -28,14 +28,20 @@ Git reject an existing branch, path, or checkout. A retained task resumes only w
 fact agrees with the same approved contract or completely verified handoff. Partial, foreign, or
 competing state blocks without reset, stash, deletion, adoption, or create-around.
 
-The start point comes from the approved dependency plan and verified Git ancestry:
+The parent branch intent and last admitted tip come from approved content and verified Git ancestry.
+A same-branch descendant tip is compatible only when fresh delivery-checkpoint and current-head
+review/check evidence match that exact tip. Fresh work then starts at the latest re-admitted tip,
+while retained work preserves its recorded start/head and revalidates ancestry, diff, and PR base
+without silent rebase, reset, or recreate.
 
-| Task kind | Branch start | Graphite parent |
+| Task kind | Fresh branch start | Graphite parent |
 | --- | --- | --- |
-| Standalone task | exact integration-base commit | integration branch |
-| Independent feature root | frozen base commit | frozen base branch |
-| Dependency child | finalized head of its declared Git parent | declared parent branch |
+| Standalone task | latest compatible tip of the integration branch | integration branch |
+| Independent feature root | latest compatible tip of the approved parent branch | approved parent branch |
+| Dependency child | latest compatible tip/head of its declared Git parent | declared parent branch |
 
+Branch identity changes, rewrites, conflicts, duplicate ancestry, delivery-evidence mismatch, and
+incomplete evidence block.
 Titles, nearby branches, artifact relations alone, and task order do not substitute for the
 approved dependency graph and Git ancestry.
 

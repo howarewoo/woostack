@@ -8,8 +8,10 @@ provider access for unrelated workflows.
 The [Linear artifact contract](../../woostack-init/references/artifact-backends.md) is the single
 authority for the run manifest, displayed-content approval identity, post-approval ordering,
 stable-key/canonical-issue-reference mapping, nullable-parent validation, drift and process-loss
-recovery, cleanup, fingerprints, receipts, independent read-back, and unchanged Execute reads. Use
-the [Linear synchronization procedure](linear-procedure.md) only for the bounded post-approval save
+recovery, cleanup, fingerprints, receipts, independent read-back, and unchanged Execute reads. The
+shared [repository advancement contract](../../woostack-init/references/artifact-backends.md#repository-ancestry-is-separate-from-approval-identity)
+separately governs compatible parent-tip re-admission; use the
+[Linear synchronization procedure](linear-procedure.md) only for the bounded post-approval save
 or standalone Plan.
 
 ## Resolution
