@@ -323,8 +323,10 @@ the tip must also equal the commit and canonical PR head in the predecessor's fr
 independently read complete delivery checkpoint. Descendant ancestry alone is insufficient; a
 missing, partial, stale, or mismatched checkpoint, review, or check is blocking repository drift.
 
-For compatible advancement, retain both matching approval records and return the explicit action
-`re-admit-current-parent-tip`; do not reopen either content gate or ask for a new content approval.
+For compatible advancement, retain every matching approval record owned by the invoking workflow;
+a workflow with no approval gate instead preserves its approved-specification fingerprint. Return
+the explicit action `re-admit-current-parent-tip`; do not reopen a content gate or ask for new
+content approval.
 Fresh work starts at the newly admitted current parent tip. Existing work preserves its recorded
 start and head, then revalidates ancestry, diff identity, and PR base against the current parent
 branch. It is never silently rebased, reset, recreated, or attached to another branch.

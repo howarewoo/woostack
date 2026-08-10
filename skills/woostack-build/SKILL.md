@@ -97,8 +97,7 @@ exact project identity, `projectSpecApprovalRecord`, `executionPlanApprovalRecor
 fingerprints, direct-issue set, native dependencies, approved parent-branch intent, and the last
 admitted tip. Execute applies the shared repository advancement contract to those inputs and owns
 implementation, focused verification, Linear progress evidence, and repository delivery under its
-own contract. Its pre-dispatch, handback, redispatch, pre-commit, and next-increment reads remain
-unchanged. Build does not select another execution mode, create a local authority, or merge.
+own contract. Build does not select another execution mode, create a local authority, or merge.
 
 Any required provider or manifest boundary failure blocks at the last verified boundary with no
 local, conversational, cached, or alternate-provider substitution. Artifact records never replace

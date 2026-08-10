@@ -4,11 +4,11 @@
   "cases": [
     {
       "id": "routes-approved-build-to-normal-execute",
-      "prompt": "An exact canonical Linear project, its strict direct-issue chain, projectSpecApprovalRecord, and executionPlanApprovalRecord have all been independently read back and match the active-conversation approvals. The gate-2 manifest and its run-scoped temporary directory were removed and cleanup was independently verified. State Build's next action and whether deferred synchronization changed Execute's pre-dispatch, handback, redispatch, pre-commit, or next-increment safety reads. Do not contact a provider or mutate a repository. Return exactly one JSON object with keys status, nextSkill, manifestCleanupVerified, executeSafetyReadsUnchanged, alternateExecutionChoiceOffered, and mergeAllowed.",
+      "prompt": "An exact canonical Linear project, its strict direct-issue chain, projectSpecApprovalRecord, and executionPlanApprovalRecord have all been independently read back and match the active-conversation approvals. Approved parent-branch intent is \"refs/heads/main\", and fresh Git, Graphite, and GitHub evidence independently binds the last admitted parent tip as \"sha256:main-tip-17\". The gate-2 manifest and its run-scoped temporary directory were removed and cleanup was independently verified. State Build's next action and whether deferred synchronization changed Execute's safety reads. Also classify otherwise identical handoffs when the parent-branch evidence or admitted-tip evidence is missing. Do not contact a provider or mutate a repository. Return exactly one JSON object with keys status, nextSkill, manifestCleanupVerified, executeSafetyReadsUnchanged, executeHandoff, missingParentBranchEvidence, missingAdmittedTipEvidence, alternateExecutionChoiceOffered, and mergeAllowed.",
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "After verified gate-2 manifest cleanup, Build invokes normal woostack-execute with its safety-read cadence unchanged, offers no alternate execution choice, and never merges.",
+      "expected": "After verified gate-2 manifest cleanup, Build invokes normal woostack-execute with approved parent-branch intent and the separately verified last admitted tip in the handoff. Missing evidence for either value blocks Execute. The safety-read cadence remains unchanged, no alternate execution choice is offered, and Build never merges.",
       "assertions": [
         {
           "id": "approved-build-ready",
@@ -36,6 +36,48 @@
           "kind": "final-json-path-equals",
           "pointer": "/executeSafetyReadsUnchanged",
           "expected": true,
+          "critical": true
+        },
+        {
+          "id": "approved-build-parent-branch-carried",
+          "kind": "final-json-path-equals",
+          "pointer": "/executeHandoff/approvedParentBranchIntent",
+          "expected": "refs/heads/main",
+          "critical": true
+        },
+        {
+          "id": "approved-build-admitted-tip-carried",
+          "kind": "final-json-path-equals",
+          "pointer": "/executeHandoff/lastAdmittedParentTip",
+          "expected": "sha256:main-tip-17",
+          "critical": true
+        },
+        {
+          "id": "approved-build-missing-parent-branch-blocks",
+          "kind": "final-json-path-equals",
+          "pointer": "/missingParentBranchEvidence/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "approved-build-missing-parent-branch-no-execute",
+          "kind": "final-json-path-equals",
+          "pointer": "/missingParentBranchEvidence/executeAllowed",
+          "expected": false,
+          "critical": true
+        },
+        {
+          "id": "approved-build-missing-tip-blocks",
+          "kind": "final-json-path-equals",
+          "pointer": "/missingAdmittedTipEvidence/status",
+          "expected": "blocked",
+          "critical": true
+        },
+        {
+          "id": "approved-build-missing-tip-no-execute",
+          "kind": "final-json-path-equals",
+          "pointer": "/missingAdmittedTipEvidence/executeAllowed",
+          "expected": false,
           "critical": true
         },
         {

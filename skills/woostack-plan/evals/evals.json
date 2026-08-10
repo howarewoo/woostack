@@ -4,14 +4,14 @@
   "cases": [
     {
       "id": "synchronizes-existing-exact-project-strict-chain",
-      "prompt": "Read fixtures/project-a.json as a standalone woostack-plan invocation. The caller supplies one exact existing Linear project and an approved specification fingerprint. Reconcile exactly two direct project issues with task IDs storage and api, ordinals 1 and 2, one native dependency storage → api, complete executor contracts including stop markers and Graphite parents, and independent read-back. Do not mutate the repository. Return exactly one JSON object with keys status, invocationMode, artifactModeSelected, existingProjectRequired, projectCreated, directIssueIds, parentPlanIssueCount, ordinals, nativeDependencies, graphReadBackVerified, repositoryMutationCount, approvalOwned, and executionOwned.",
+      "prompt": "Read fixtures/project-a.json as a standalone woostack-plan invocation. The caller supplies one exact existing Linear project and an approved specification fingerprint. Reconcile exactly two direct project issues with task IDs storage and api, ordinals 1 and 2, one native dependency storage → api, complete executor contracts including stop markers and Graphite parents, and independent read-back. Treat approved parent-branch intent in each issue as content and the last admitted parent tips under repository as separate mutable evidence. Do not mutate the repository. Return exactly one JSON object with keys status, invocationMode, artifactModeSelected, existingProjectRequired, projectCreated, directIssueIds, parentPlanIssueCount, ordinals, nativeDependencies, approvedParentBranchIntents, graphiteParents, lastAdmittedParentTips, graphReadBackVerified, repositoryMutationCount, approvalOwned, and executionOwned.",
       "fixtures": [
         "project-a.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "The exact existing project is reused, two direct issues are reconciled with contiguous ordinals and the sole strict predecessor edge, no parent issue or project is created, the complete graph is independently read back, and Plan neither approves nor executes.",
+      "expected": "The exact existing project is reused, two direct issues form the sole strict predecessor edge, the root Graphite parent is the approved integration branch, and the child Graphite parent is the immediately preceding increment branch. Stable branch intent remains content while each increment's last admitted tip is separate repository evidence. No parent issue or project is created; Plan neither approves nor executes.",
       "assertions": [
         {
           "id": "plan-existing-project-required",
@@ -64,6 +64,48 @@
               "issue-plan-a-api"
             ]
           ],
+          "critical": true
+        },
+        {
+          "id": "plan-root-approved-parent-intent",
+          "kind": "final-json-path-equals",
+          "pointer": "/approvedParentBranchIntents/storage",
+          "expected": "refs/heads/main",
+          "critical": true
+        },
+        {
+          "id": "plan-child-approved-parent-intent",
+          "kind": "final-json-path-equals",
+          "pointer": "/approvedParentBranchIntents/api",
+          "expected": "refs/heads/plan-a-storage",
+          "critical": true
+        },
+        {
+          "id": "plan-root-graphite-parent",
+          "kind": "final-json-path-equals",
+          "pointer": "/graphiteParents/storage",
+          "expected": "refs/heads/main",
+          "critical": true
+        },
+        {
+          "id": "plan-child-graphite-parent",
+          "kind": "final-json-path-equals",
+          "pointer": "/graphiteParents/api",
+          "expected": "refs/heads/plan-a-storage",
+          "critical": true
+        },
+        {
+          "id": "plan-root-admitted-tip-separated",
+          "kind": "final-json-path-equals",
+          "pointer": "/lastAdmittedParentTips/storage",
+          "expected": "sha256:main-tip-17",
+          "critical": true
+        },
+        {
+          "id": "plan-child-admitted-tip-separated",
+          "kind": "final-json-path-equals",
+          "pointer": "/lastAdmittedParentTips/api",
+          "expected": "sha256:storage-tip-18",
           "critical": true
         },
         {

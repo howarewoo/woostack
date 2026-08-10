@@ -11,7 +11,22 @@
   },
   "repository": {
     "gitOrigin": "https://github.com/acme/app",
-    "projectAssociation": "https://github.com/acme/app"
+    "projectAssociation": "https://github.com/acme/app",
+    "integrationParentBranch": "refs/heads/main",
+    "incrementBranches": {
+      "storage": "refs/heads/plan-a-storage",
+      "api": "refs/heads/plan-a-api"
+    },
+    "lastAdmittedParentTips": {
+      "storage": {
+        "parentBranch": "refs/heads/main",
+        "tip": "sha256:main-tip-17"
+      },
+      "api": {
+        "parentBranch": "refs/heads/plan-a-storage",
+        "tip": "sha256:storage-tip-18"
+      }
+    }
   },
   "workspace": {
     "selectedId": "workspace-acme",
@@ -56,7 +71,9 @@
         "taskId": "storage",
         "nativeProjectRef": "project-plan-a",
         "parentId": null,
-        "executorReady": true
+        "executorReady": true,
+        "approvedParentBranchIntent": "refs/heads/main",
+        "graphiteParentBranch": "refs/heads/main"
       }
     },
     {
@@ -74,7 +91,9 @@
         "taskId": "api",
         "nativeProjectRef": "project-plan-a",
         "parentId": null,
-        "executorReady": true
+        "executorReady": true,
+        "approvedParentBranchIntent": "refs/heads/plan-a-storage",
+        "graphiteParentBranch": "refs/heads/plan-a-storage"
       }
     },
     {

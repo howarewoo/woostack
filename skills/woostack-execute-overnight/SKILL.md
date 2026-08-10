@@ -79,11 +79,8 @@ issue:
    and ancestry; and
 9. hand back direct evidence and remove only a completed issue's exact clean worktree.
 
-The controller repeats the exact project/issue/dependency/approval-record check and reapplies the
-shared repository advancement contract after every worker handback, before every redispatch,
-immediately before commit, and before selecting another increment. Never process two dependent
-issues concurrently. Independent roots may run concurrently only when paths/surfaces, runs,
-profiles, worktrees, branches, PRs, and provider sessions are disjoint.
+Never process two dependent issues concurrently. Independent roots may run concurrently only when
+paths/surfaces, runs, profiles, worktrees, branches, PRs, and provider sessions are disjoint.
 
 ## Autonomous decision policy
 

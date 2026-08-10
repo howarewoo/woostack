@@ -157,9 +157,7 @@ admitted tip. Execute applies the shared repository advancement contract to thos
 implementation, focused verification, progress evidence, and repository delivery under its own
 contract. Fix does not select an alternate execution mode or create a local authority record.
 
-Recheck the exact project, direct issues, dependencies, both approval records, and repository
-ancestry before dispatch, after every worker handback, before every redispatch, and immediately
-before any repository mutation. These Execute-era safety reads remain unchanged. Any new root
+Any new root
 cause, scope, dependency, migration, unsafe edge, stale fingerprint, or failed required read-back
 returns to the first unproved boundary. Preserve unrelated work and do not use source artifacts as
 permission.

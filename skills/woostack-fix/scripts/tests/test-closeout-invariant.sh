@@ -91,7 +91,7 @@ require(r"Display the complete exact project specification", "complete project A
 require(r"Display the complete exact ordered direct-issue contracts", "complete plan Ask")
 require(r"material direct-issue or dependency change invalidates only `executionPlanApprovalRecord`", "plan invalidation")
 require(r"normal \[`woostack-execute`\]", "normal execute handoff")
-require(r"before dispatch, after every worker handback, before every redispatch", "authority recheck cadence")
+require(r"shared repository advancement contract", "shared repository advancement authority")
 require(r"Debug.*Target-repository admission.*Resolve the project", "target-repository guard ordering")
 require(r"compare the proved causal target repository with the invocation repository using trusted Git/GitHub evidence", "trusted target and invocation repositories")
 require(r"non-mutatingly verify that the active checkout is the exact writable owning checkout", "exact writable owning checkout")
