@@ -34,7 +34,8 @@ execute → review → hand back
 
 The only hard gates are complete project-spec approval and complete execution-plan approval. During
 each gated drafting phase there are no intermediate provider cycles; approval occurs before save,
-and exact content read-back occurs before the matching receipt can clear the gate.
+and native content/graph read-back is compared by the shared provider-presentation canonical
+fingerprint before the matching receipt can clear the gate.
 
 The shared [Linear artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest)
 is the detailed authority for the temporary manifest, displayed-content identity, synchronization

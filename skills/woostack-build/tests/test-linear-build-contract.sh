@@ -89,6 +89,11 @@ for needle in (
     "Remove the manifest and its run-scoped temporary directory",
     "local draft as the last approved Linear boundary",
     "These Execute-era safety reads are unchanged",
+    "providerPresentationCanonicalization",
+    "presence or absence of exactly one terminal LF",
+    "two or more terminal LFs",
+    "byte-sensitive",
+    "At end of string, leave the blank suffix unchanged",
 ):
     require("artifact", needle)
 for obsolete in (
@@ -122,9 +127,88 @@ for expected in (
     "enforces-run-manifest-boundaries",
     "blocks-unverified-manifest-cleanup",
     "validates-canonical-issue-references-before-graph-writes",
+    "accepts-provider-presentation-equivalence",
+    "requires-fresh-ask-for-semantic-provider-change",
+    "rejects-mixed-marker-transition-canonical-mismatch",
+    "rejects-terminal-lf-canonical-mismatch",
 ):
     if expected not in eval_ids:
         failures.append(f"build: missing eval {expected}")
+
+def require_eval_fields(case_id, expected_values):
+    case = next((item for item in evals["cases"] if item["id"] == case_id), None)
+    if case is None:
+        return
+    assertions = {
+        assertion.get("pointer"): assertion.get("expected")
+        for assertion in case.get("assertions", [])
+    }
+    for pointer, expected in expected_values.items():
+        if assertions.get(pointer) != expected:
+            failures.append(f"build: {case_id} does not assert {pointer}={expected!r}")
+
+require_eval_fields(
+    "accepts-provider-presentation-equivalence",
+    {
+        "/approvalAskCount": 1,
+        "/boundedSaveCount": 1,
+        "/readBackCount": 1,
+        "/receiptCount": 1,
+        "/secondAskCount": 0,
+    },
+)
+require_eval_fields(
+    "requires-fresh-ask-for-semantic-provider-change",
+    {
+        "/results": [
+            {"id": "project-description", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "increment-description", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "issue-description", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "displayed-content", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+        ],
+    },
+)
+require_eval_fields(
+    "rejects-mixed-marker-transition-canonical-mismatch",
+    {
+        "/canonicalMatch": False,
+        "/receiptCount": 0,
+        "/freshAsk": True,
+    },
+)
+require_eval_fields(
+    "rejects-terminal-lf-canonical-mismatch",
+    {
+        "/results": [
+            {"id": "one-vs-two", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "two-vs-three", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "final-heading-two-vs-three", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+        ],
+    },
+)
+
+for fixture_path in (
+    root / "skills/woostack-build/evals/fixtures/provider-presentation-canonicalization.json",
+    root / "skills/woostack-fix/evals/fixtures/provider-presentation-canonicalization.json",
+):
+    fixture = json.loads(fixture_path.read_text())
+    if "expected" in fixture:
+        failures.append(f"{fixture_path}: eval fixture must not contain an oracle")
+    semantic_mutations = fixture.get("semanticMutations")
+    marker_transitions = fixture.get("markerTransitions")
+    if (
+        "terminalLf" not in fixture
+        or not isinstance(semantic_mutations, dict)
+        or set(marker_transitions or {}) != {"uniformDash", "uniformStar", "mixedDashStar"}
+    ):
+        failures.append(f"{fixture_path}: package fixture misses mismatch forms")
+    elif set(semantic_mutations) != {
+        "projectDescription",
+        "incrementDescription",
+        "issueDescription",
+        "displayedContent",
+    }:
+        failures.append(f"{fixture_path}: package fixture misses semantic surfaces")
 
 required_increment_fields = {
     "stableTaskKey",

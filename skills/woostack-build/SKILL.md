@@ -80,6 +80,10 @@ process/manifest loss, or any failure before the exact receipt read-back invalid
 and requires a fresh complete Ask. An unreceipted approval cannot be replayed. The local draft never
 replaces the last Linear-approved boundary.
 
+Build compares the shared
+[`providerPresentationCanonicalization`](../woostack-init/references/artifact-backends.md#canonical-content-fingerprints-and-project-approval-records)
+fingerprints while retaining native provider bytes as exact read-back evidence.
+
 The shared [approval-record contract](../woostack-init/references/artifact-backends.md#shared-approval-records)
 defines record fields and invalidation. A material specification change invalidates both records; a
 material direct-issue or dependency change invalidates only `executionPlanApprovalRecord`.
