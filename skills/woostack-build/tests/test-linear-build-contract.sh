@@ -150,6 +150,7 @@ for expected in (
     "blocks-unverified-manifest-cleanup",
     "validates-canonical-issue-references-before-graph-writes",
     "accepts-provider-presentation-equivalence",
+    "rejects-unsupported-ordered-marker-boundaries",
     "requires-fresh-ask-for-semantic-provider-change",
     "rejects-mixed-marker-transition-canonical-mismatch",
     "rejects-terminal-lf-canonical-mismatch",
@@ -177,6 +178,25 @@ require_eval_fields(
         "/readBackCount": 1,
         "/receiptCount": 1,
         "/secondAskCount": 0,
+    },
+)
+require_eval_fields(
+    "rejects-unsupported-ordered-marker-boundaries",
+    {
+        "/results": [
+            {"id": "two-leading-spaces", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "leading-tab", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "nested-container", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "fenced-code", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "indented-code", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "missing-whitespace", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "repeated-delimiter", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "unicode-digits", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "changed-number", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "changed-delimiter", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "changed-text", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "changed-order", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+        ],
     },
 )
 require_eval_fields(
@@ -218,10 +238,30 @@ for fixture_path in (
         failures.append(f"{fixture_path}: eval fixture must not contain an oracle")
     semantic_mutations = fixture.get("semanticMutations")
     marker_transitions = fixture.get("markerTransitions")
+    ordered_markers = fixture.get("orderedMarkers")
+    expected_ordered_markers = {
+        "zeroLeadingSpace",
+        "oneLeadingSpace",
+        "zeroLeadingSpaceParen",
+        "oneLeadingSpaceParen",
+        "twoLeadingSpaces",
+        "leadingTab",
+        "nestedContainer",
+        "fencedCode",
+        "indentedCode",
+        "missingWhitespace",
+        "repeatedDelimiter",
+        "unicodeDigits",
+        "changedNumber",
+        "changedDelimiter",
+        "changedText",
+        "changedOrder",
+    }
     if (
         "terminalLf" not in fixture
         or not isinstance(semantic_mutations, dict)
         or set(marker_transitions or {}) != {"uniformDash", "uniformStar", "mixedDashStar"}
+        or set(ordered_markers or {}) != expected_ordered_markers
     ):
         failures.append(f"{fixture_path}: package fixture misses mismatch forms")
     elif set(semantic_mutations) != {

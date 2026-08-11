@@ -206,12 +206,19 @@ it from an input object with exactly `title`, `description`, and `dependencies`:
    - outside fenced code (a fence is a line with at most three leading spaces followed by a run of
      at least three backticks or tildes, closed by the same character and at least that run length),
      canonicalize syntactic unordered `-` and `*` list markers while retaining their transition
-     pattern. A marker is one `-` or `*` followed by whitespace on a non-indented-code line. In scan
-     order, map the first observed marker run to `*`; whenever the source marker changes, toggle the
-     canonical marker between `*` and `-`. Preserve the current canonical marker across intervening
-     prose so mixed-marker list boundaries cannot collide with a uniform-marker form. Preserve all
-     indentation, marker-following whitespace, text, and line endings. Do not observe or rewrite
-     thematic breaks or any marker inside fenced or indented code;
+     pattern. A marker is one `-` or `*` followed by whitespace on a non-indented-code line. In
+     scan order, map the first observed marker run to `*`; whenever the source marker changes, toggle
+     the canonical marker between `*` and `-`. Preserve the current canonical marker across
+     intervening prose so mixed-marker list boundaries cannot collide with a uniform-marker form.
+     Preserve all indentation, marker-following whitespace, text, and line endings. Do not observe
+     or rewrite thematic breaks or any marker inside fenced or indented code;
+   - outside fenced and indented code, canonicalize a syntactic top-level ordered-list marker by
+     removing exactly zero or one leading ASCII space. Recognize only one or more ASCII digits,
+     `.` or `)`, and at least one following Markdown whitespace character (ASCII space or tab).
+     Preserve the digits, delimiter, following whitespace, item text, line endings, and every other
+     byte. Do not observe or rewrite markers with two or more leading spaces, a leading tab,
+     container or nested indentation, malformed markers, or any marker inside fenced or indented
+     code;
    - outside fenced and indented code, normalize zero-or-more blank lines immediately after a
      top-level ATX heading (one to six `#` characters followed by whitespace or end-of-line, with
      no leading indentation) to exactly one empty line only when that blank run is followed by a
@@ -226,9 +233,9 @@ it from an input object with exactly `title`, `description`, and `dependencies`:
      byte-sensitive to each other and to the zero/one-LF forms.
    Indented code is determined by expanded leading indentation columns: each space advances one
    column and each tab advances to the next four-column stop; four or more columns (including
-   `  \t`) are indented code, including blank-line continuation. Hard breaks (two trailing spaces
-   or a trailing backslash), ordered lists, code, indentation, semantic text, and every unsupported
-   difference remain byte-sensitive.
+   `  \t`) are indented code, including blank-line continuation. Hard breaks (two trailing
+   spaces or a trailing backslash), unsupported ordered-list markers, code, indentation, semantic
+   text, and every other unsupported difference remain byte-sensitive.
 4. Derive `dependencies` from a complete, paginated native-relation read of the exact issue. Admit
    only issue-to-issue `blocks` and `blockedBy` relations. Project the issue-local direction to
    objects with exactly `direction`, `kind`, and `targetId`: `blocks` becomes
@@ -450,8 +457,9 @@ renderer and write the appropriate fixed file:
   specification after NFC and CRLF/CR-to-LF normalization, with exactly one terminal LF;
 - `execution-plan.md` is gate 2's complete ordered issue contracts and dependency tuples. Sort
   issues by positive ordinal and dependencies by `(predecessorTaskKey, successorTaskKey, kind)`;
-  preserve each contract body and its provider-presentation semantics. The renderer does not
-  canonicalize ordered-list markers; that separately versioned behavior belongs to WOO-184.
+  preserve each contract body and its provider-presentation semantics. The renderer preserves
+  native ordered-list bytes; the shared `providerPresentationCanonicalization` rule determines
+  whether an admitted zero/one leading-space marker difference is presentation-equivalent.
 
 The renderer uses one stable Markdown template. `execution-plan.md` starts with
 `# Execution plan`, then emits each ordinal-sorted issue as an `## <ordinal>. <title>` section,
