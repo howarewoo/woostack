@@ -213,7 +213,7 @@ it from an input object with exactly `title`, `description`, and `dependencies`:
      Preserve all indentation, marker-following whitespace, text, and line endings. Do not observe
      or rewrite thematic breaks or any marker inside fenced or indented code;
    - outside fenced and indented code, canonicalize a syntactic top-level ordered-list marker by
-     removing exactly zero or one leading ASCII space. Recognize only one or more ASCII digits,
+     removing exactly zero or one leading ASCII space. Recognize only one through nine ASCII digits,
      `.` or `)`, and at least one following Markdown whitespace character (ASCII space or tab).
      Preserve the digits, delimiter, following whitespace, item text, line endings, and every other
      byte. Do not observe or rewrite markers with two or more leading spaces, a leading tab,

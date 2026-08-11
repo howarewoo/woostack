@@ -165,7 +165,7 @@ else:
                 else:
                     index += 1
                 continue
-            ordered = re.match(r"^ ?[0-9]+[.)][ \t]+.*$", line)
+            ordered = re.match(r"^ ?[0-9]{1,9}[.)][ \t]+.*$", line)
             if ordered:
                 line = line[1:] if line.startswith(" ") else line
             marker = re.match(r"^([ \t]*)([-*])([ \t]+)(.*)$", line)
@@ -222,9 +222,17 @@ else:
             for left, right in (
                 ("zeroLeadingSpace", "oneLeadingSpace"),
                 ("zeroLeadingSpaceParen", "oneLeadingSpaceParen"),
+                ("nineDigitZeroLeadingSpace", "nineDigitOneLeadingSpace"),
+                ("tabWhitespaceZeroLeadingSpace", "tabWhitespaceOneLeadingSpace"),
+                ("multipleWhitespaceZeroLeadingSpace", "multipleWhitespaceOneLeadingSpace"),
             ):
-                if canonicalize_markdown(ordered[left]) != canonicalize_markdown(ordered[right]):
+                canonical_left = canonicalize_markdown(ordered[left])
+                if canonical_left != ordered[left]:
+                    failures.append(f"ordered marker zero-space bytes changed: {left}")
+                if canonical_left != canonicalize_markdown(ordered[right]):
                     failures.append(f"ordered marker pair is not equivalent: {left}/{right}")
+            if canonicalize_markdown(ordered["tenDigitZeroLeadingSpace"]) == canonicalize_markdown(ordered["tenDigitOneLeadingSpace"]):
+                failures.append("ten-digit ordered marker boundary was normalized")
             for left, right in (
                 ("zeroLeadingSpace", "twoLeadingSpaces"),
                 ("zeroLeadingSpace", "leadingTab"),
@@ -252,6 +260,8 @@ else:
                 "changedDelimiter",
                 "changedText",
                 "changedOrder",
+                "tenDigitZeroLeadingSpace",
+                "tenDigitOneLeadingSpace",
             ):
                 if canonicalize_markdown(ordered[name]) != normalize_global_markdown(ordered[name]):
                     failures.append(f"unsupported ordered marker bytes changed: {name}")

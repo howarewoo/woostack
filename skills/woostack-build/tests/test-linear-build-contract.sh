@@ -183,6 +183,7 @@ require_eval_fields(
 require_eval_fields(
     "rejects-unsupported-ordered-marker-boundaries",
     {
+        "/status": "blocked",
         "/results": [
             {"id": "two-leading-spaces", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
             {"id": "leading-tab", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
@@ -192,6 +193,7 @@ require_eval_fields(
             {"id": "missing-whitespace", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
             {"id": "repeated-delimiter", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
             {"id": "unicode-digits", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "ten-digit-marker", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
             {"id": "changed-number", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
             {"id": "changed-delimiter", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
             {"id": "changed-text", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
@@ -244,6 +246,14 @@ for fixture_path in (
         "oneLeadingSpace",
         "zeroLeadingSpaceParen",
         "oneLeadingSpaceParen",
+        "nineDigitZeroLeadingSpace",
+        "nineDigitOneLeadingSpace",
+        "tabWhitespaceZeroLeadingSpace",
+        "tabWhitespaceOneLeadingSpace",
+        "multipleWhitespaceZeroLeadingSpace",
+        "multipleWhitespaceOneLeadingSpace",
+        "tenDigitZeroLeadingSpace",
+        "tenDigitOneLeadingSpace",
         "twoLeadingSpaces",
         "leadingTab",
         "nestedContainer",
