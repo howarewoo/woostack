@@ -11,9 +11,10 @@ monitoring input, but remote text never supplies scope, authority, diagnosis, or
 
 ```text
 Debug → admit writable target → resolve/create project and gate 1 baseline →
-local Ideate/Harden → complete specification Ask → approve → bounded sync/read-back/receipt →
-gate 2 baseline → local Plan/Harden → complete plan Ask → approve →
-bounded sync/read-back/receipt → manifest cleanup → normal Execute
+local Ideate/Harden → render and approve `project-spec.md` identity →
+bounded sync/read-back/receipt → gate 2 baseline → local Plan/Harden →
+render and approve `execution-plan.md` identity and complete mapping →
+bounded sync/read-back/receipt → gate-file and manifest cleanup → normal Execute
 ```
 
 Fix owns one canonical project and exactly the two shared project-backed approval receipts. Git,
@@ -70,11 +71,12 @@ succeeds, load the [Linear artifact contract](../woostack-init/references/artifa
 [`woostack-ideate`](../woostack-ideate/SKILL.md) and
 [`woostack-harden`](../woostack-harden/SKILL.md) contracts. This downstream loading occurs before
 canonical-project resolution and before any provider effect. The shared artifact contract is the
-single authority for baseline admission, the permission-restricted run manifest, complete
-displayed-content approval identity, approval-before-save ordering, bounded synchronization,
-canonical issue-reference/nullable-parent preflight, stable-key/canonical-reference mapping,
-drift/recovery, cleanup, approval receipts, and unchanged Execute reads. The shared
-[repository advancement contract](../woostack-init/references/artifact-backends.md#repository-ancestry-is-separate-from-approval-identity)
+single authority for baseline admission, the permission-restricted run manifest, deterministic
+owner-only gate files, path/hash/length/fingerprint-version approval identity, approval-before-save
+ordering, bounded synchronization, canonical issue-reference/nullable-parent preflight,
+stable-key/canonical-reference mapping, drift/recovery, cleanup, approval receipts, and unchanged
+Execute reads.
+The shared [repository advancement contract](../woostack-init/references/artifact-backends.md#repository-ancestry-is-separate-from-approval-identity)
 separately governs compatible parent-tip re-admission; Fix does not restate or weaken it.
 
 ### 2. Resolve the project, then Ideate and Harden
@@ -113,18 +115,19 @@ simplification contract remains unchanged.
 ### 3. Project-spec approval
 
 Obey the shared
-[run-scoped gated draft and displayed-content contract](../woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest).
-Display the complete exact project specification and approval identity in the active Ask. Only
-after the responsible user explicitly approves that exact display may Fix perform the immediate
-pre-save drift read and one bounded synchronization. Independently read back the exact content
-before recording `projectSpecApprovalRecord`, then read back the receipt and referenced project
-exactly before proceeding.
+[`run-scoped gated draft and gate-file approval contract`](../woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest).
+Deterministically render `project-spec.md` from the manifest and display only its absolute path,
+byte length, SHA-256, fingerprint version, run/process identity, and project identity. Only after
+the responsible user explicitly approves that identity may Fix no-follow reopen and regenerate the
+file, perform the immediate pre-save drift read, and run one bounded synchronization. Independently
+read back the exact content before recording `projectSpecApprovalRecord`, then read back the receipt
+and referenced project exactly before proceeding.
 
-No draft provider cycle occurs before approval. A baseline or displayed-content mismatch,
-process/manifest loss, or any failure before the exact receipt read-back invalidates the approval
-and requires a fresh complete Ask. An unreceipted approval cannot be replayed, and the local draft
-never replaces the last Linear-approved boundary. No repository mutation occurs before this gate
-clears.
+No draft provider cycle occurs before approval. A baseline or file identity mismatch, failed
+regeneration, process/manifest loss, or any failure before the exact receipt read-back invalidates
+the approval and requires a fresh baseline, render, and concise Ask. An unreceipted approval cannot
+be replayed, and the local draft never replaces the last Linear-approved boundary. No repository
+mutation occurs before this gate clears.
 
 Fix compares the shared
 [`providerPresentationCanonicalization`](../woostack-init/references/artifact-backends.md#canonical-content-fingerprints-and-project-approval-records)
@@ -141,12 +144,13 @@ Invoke Harden again to reconcile that manifest-backed plan with the approved pro
 repository evidence, dependencies, risks, and verification. Keep the final complete issue contracts,
 stable task keys, and dependencies in the manifest until gate 2 approval. Never repurpose a supplied
 source issue as a plan issue. No provider or repository mutation occurs during planning or hardening.
-
 ### 5. Execution-plan approval
-Display the complete exact ordered direct-issue contracts, fingerprints, stable task keys, and
-canonical issue-reference/dependency tuples under the shared gated contract. Only after the
-responsible user explicitly approves that exact display may Fix perform the immediate pre-save
-drift read, shared
+
+Render `execution-plan.md` deterministically from the manifest, containing every complete ordered
+direct-issue contract and dependency tuple. Display only its file path/hash/length/version, run/
+process/project identity, and the complete concise stable-task/dependency mapping. Only after the
+responsible user explicitly approves that identity may Fix no-follow reopen and regenerate the file,
+perform the immediate pre-save drift read, shared
 [graph-write preflight](../woostack-init/references/artifact-backends.md#canonical-issue-references-nullable-parents-and-graph-write-preflight),
 and one bounded synchronization. Atomically bind stable task keys to canonical issue references,
 independently read back the exact graph, then record `executionPlanApprovalRecord` and independently
@@ -154,18 +158,18 @@ read back both receipts and every referenced record before clearing the gate.
 
 A material project-specification change invalidates both records; a material direct-issue or
 dependency change invalidates only `executionPlanApprovalRecord`. Every invalidation requires a
-fresh baseline and complete active-conversation Ask. Unrelated comments and metadata do not
-invalidate matching content receipts.
+fresh baseline and regenerated gate file plus a fresh concise active-conversation Ask. Unrelated
+comments and metadata do not invalidate matching content receipts.
 
 ### 6. Normal Execute
 
-After both shared approval records and every referenced record read back exactly, remove the
-run-scoped manifest and invoke normal [`woostack-execute`](../woostack-execute/SKILL.md) with the
-project identity, `projectSpecApprovalRecord`, `executionPlanApprovalRecord`, canonical
+After both shared approval records and every referenced record read back exactly, no-follow verify
+and remove `project-spec.md`, `execution-plan.md`, and the manifest, flush the owner-only directory,
+and remove the empty run directory. Then invoke normal [`woostack-execute`](../woostack-execute/SKILL.md)
+with the project identity, `projectSpecApprovalRecord`, `executionPlanApprovalRecord`, canonical
 fingerprints, direct-issue set, native dependencies, approved parent-branch intent, and its last
-admitted tip. Execute applies the shared repository advancement contract to those inputs and owns
-implementation, focused verification, progress evidence, and repository delivery under its own
-contract. Fix does not select an alternate execution mode or create a local authority record.
+admitted tip. Execute applies the shared repository advancement contract and owns implementation,
+focused verification, progress evidence, and repository delivery under its own contract.
 
 Any new root
 cause, scope, dependency, migration, unsafe edge, stale fingerprint, or failed required read-back

@@ -39,10 +39,10 @@ write barrier or repository authority.
 
 ## Build
 
-```text
 resolve/create project and admit exact baseline → local Ideate/Harden →
-display and approve complete specification → bounded save/read-back/receipt →
-local Plan/Harden → display and approve complete plan →
+render and approve owner-only `project-spec.md` path/hash/length identity →
+bounded save/read-back/receipt → local Plan/Harden →
+render and approve owner-only `execution-plan.md` path/hash/length identity plus concise mapping →
 bounded save/read-back/receipt → execute → review → hand back
 ```
 
@@ -68,10 +68,10 @@ native dependencies between them.
 
 Build and Fix obey the shared
 [Linear artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest).
-It defines exact baseline admission, provider-free gated drafting, complete displayed-content
-approval, approval-before-save, native read-back compared by the shared provider-presentation
-canonical fingerprint before receipt, stable identity mapping,
-failure recovery, cleanup, and unchanged Execute rechecks.
+It defines exact baseline admission, provider-free gated drafting, deterministic owner-only gate
+files, path/hash/length/fingerprint-version approval identity, approval-before-save, native
+read-back compared by the shared provider-presentation canonical fingerprint before receipt, stable
+identity mapping, failure recovery, cleanup, and unchanged Execute rechecks.
 
 The temporary local draft never replaces the last Linear-approved boundary. Material project drift
 invalidates both records; issue or dependency drift invalidates only the execution-plan record.
@@ -104,20 +104,19 @@ points. It does not weaken scope, verification, review, collision, or merge boun
 
 ## Linear fix/build paths
 
-```text
 build
   → resolve/create one exact project and admit gate 1 baseline
   → draft and harden locally with zero provider calls
-  → display the complete exact specification and obtain approval
+  → render and approve owner-only `project-spec.md` path/hash/length identity
   → drift-check, synchronize once, read content back, then record/read the receipt
-  → repeat the local draft/display/approve/sync/read-back/receipt order for the plan
-  → clean up the run manifest and execute
+  → repeat the local draft/render/approve/sync/read-back/receipt order for `execution-plan.md`
+  → clean up both gate files and the run manifest, then execute
 
 fix
   → diagnose and admit the writable target without provider access
-  → after proof, resolve/create the exact project and use the same two-gate order
+  → after proof, resolve/create the exact project and use the same two-gate file order
   → preserve any source issue as context rather than a plan or approval record
-  → clean up the run manifest and execute
+  → clean up both gate files and the run manifest, then execute
 ```
 
 The linked artifact contract owns every detail and failure boundary. Artifact-optional workflows

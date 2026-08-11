@@ -29,10 +29,12 @@ def require_shared(pattern, name):
 
 for pattern, name in (
     (r"Run-scoped gated draft manifest", "shared manifest contract"),
-    (r"host OS temporary-directory facility.*0700.*0600", "restricted OS-temp manifest"),
+    (r"owner-only.*Markdown gate files", "owner-only file identity"),
+    (r"no-follow.*owner.*regular", "no-follow file checks"),
     (r"zero Linear or other provider reads and writes", "no intermediate provider cycle"),
-    (r"complete exact local content to be saved.*not a summary or pointer-only presentation", "complete displayed content"),
-    (r"approval must occur before any draft content is saved", "approval-before-save"),
+    (r"render from the current manifest", "deterministic project and plan render"),
+    (r"deterministic", "deterministic rendering"),
+    (r"approval.*before any draft content is saved", "approval-before-save"),
     (r"immediately re-read the exact Linear targets", "immediate pre-save drift read"),
     (r"only after that exact content read-back, record", "read-back-before-receipt"),
     (r"stable local task key to canonical issue reference", "stable canonical-reference mapping"),
@@ -40,12 +42,12 @@ for pattern, name in (
     (r"exact endpoint round trip", "exact canonical endpoint round-trip"),
     (r"unknown parent state", "unknown parent fail-closed"),
     (r"unreceipted approval is consumed and cannot be replayed", "approval replay guard"),
-    (r"different/restarted process.*fresh complete Ask", "process-loss invalidation"),
-    (r"Remove the manifest and its run-scoped temporary directory", "manifest cleanup"),
+    (r"restarted or different process.*fresh file render.*Ask", "process-loss invalidation"),
+    (r"unlink both gate files and the manifest", "gate-file cleanup"),
     (r"Execute-era safety reads are unchanged", "unchanged Execute checks"),
     (r"providerPresentationCanonicalization", "provider presentation canonicalization"),
     (r"Native provider bytes remain exact read-back evidence.*canonical fingerprints", "native bytes and canonical comparison"),
-    (r"no second Ask.*fresh complete Ask", "presentation equivalence recovery"),
+    (r"no second Ask.*fresh.*Ask", "presentation equivalence recovery"),
     (r"presence or absence of exactly one terminal LF", "terminal LF equivalence"),
     (r"two or more terminal LFs.*byte-sensitive", "multiple terminal LF sensitivity"),
     (r"At end of string, leave the blank suffix unchanged", "final heading EOF boundary"),
@@ -56,12 +58,13 @@ for pattern, name in (
     (r"gate 1 displays only the", "obsolete project-pointer-only Ask"),
     (r"gate 2 displays only the", "obsolete issue-pointer-only Ask"),
     (r"Do not paste any project", "obsolete body exclusion"),
+    (r"complete exact local content to be saved", "obsolete complete-inline wording"),
 ):
     if re.search(pattern, artifact, re.I | re.S):
         failures.append(name)
 
 
-require(r"Debug.*gate 1 baseline.*local Ideate/Harden.*complete specification Ask.*bounded sync/read-back/receipt.*gate 2 baseline.*local Plan/Harden.*complete plan Ask.*bounded sync/read-back/receipt.*normal Execute", "canonical sequence")
+require(r"Debug.*gate 1 baseline.*local Ideate/Harden.*project-spec\.md.*bounded sync/read-back/receipt.*gate 2 baseline.*local Plan/Harden.*execution-plan\.md.*bounded sync/read-back/receipt.*normal Execute", "canonical sequence")
 require(r"Before root-cause proof, load only the routing and output rules.*woostack-debug.*references that Debug directly requires", "debug-only pre-proof loading")
 require(r"Immediately after Debug returns root-cause proof and exact writable target-repository admission succeeds, load.*Linear artifact contract.*woostack-build.*woostack-ideate.*woostack-harden", "post-admission downstream loading")
 if not (
@@ -80,15 +83,12 @@ require(r"owns one canonical project", "one canonical project")
 require(r"name starts with `\[Fix\] `", "prefixed fix project name")
 require(r"supplied.*project.*retains its existing name", "supplied project name preservation")
 require(r"source issue.*never repurposed|never repurpos(?:e|ed) a supplied source\s+issue", "source issue preservation")
-require(r"multiple direct PR-linked issues", "multiple direct PR issues")
-require(r"projectSpecApprovalRecord", "project approval record")
-require(r"executionPlanApprovalRecord", "execution approval record")
-require(r"responsible user explicitly approves that exact display.*projectSpecApprovalRecord", "active project approval before save/read-back/receipt")
-require(r"responsible user explicitly approves that exact display.*executionPlanApprovalRecord", "active plan approval before save/read-back/receipt")
+require(r"responsible user explicitly approves that identity.*projectSpecApprovalRecord", "active project approval before save/read-back/receipt")
+require(r"responsible user explicitly approves that identity.*executionPlanApprovalRecord", "active plan approval before save/read-back/receipt")
 require(r"independently read back both receipts", "independent approval read-back")
 require(r"material project-specification change invalidates both records", "spec invalidation")
-require(r"Display the complete exact project specification", "complete project Ask")
-require(r"Display the complete exact ordered direct-issue contracts", "complete plan Ask")
+require(r"project-spec\.md.*absolute path.*byte length.*SHA-256", "project file identity")
+require(r"execution-plan\.md.*complete ordered.*dependency tuple", "plan file body and mapping")
 require(r"material direct-issue or dependency change invalidates only `executionPlanApprovalRecord`", "plan invalidation")
 require(r"normal \[`woostack-execute`\]", "normal execute handoff")
 require(r"shared repository advancement contract", "shared repository advancement authority")
@@ -162,8 +162,8 @@ for expected in (
     "canonical-project-preserves-source-record",
     "project-spec-approval-is-active-and-recorded",
     "execution-plan-approval-binds-issues-and-dependencies",
-    "renders-complete-project-spec-ask",
-    "renders-complete-execution-plan-ask",
+    "renders-project-spec-file-ask",
+    "renders-execution-plan-file-ask",
     "blocks-unreceipted-approval-replay",
     "material-change-invalidates-matching-receipts",
     "validates-fix-source-before-project-link",

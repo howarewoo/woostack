@@ -22,10 +22,11 @@ clear only the matching fix/build content-revision gates.
 independently shippable increments. It chains a fixed sequence:
 
 > resolve or create one canonical Linear project → admit its exact baseline → ideate and harden the
-> specification in a secure local draft → **approve the complete displayed project specification**
-> → synchronize, read back, and receipt that revision → plan and harden locally keyed direct
-> increment issues → **approve the complete displayed execution plan** → synchronize native issues
-> and dependencies, read them back, receipt the graph, and execute one increment at a time
+> specification in a secure local draft → render owner-only `project-spec.md` and approve its
+> path/hash/length identity → synchronize, read back, and receipt that revision → plan and harden
+> locally keyed direct increment issues → render owner-only `execution-plan.md` and approve its
+> path/hash/length identity plus concise task/dependency mapping → synchronize native issues and
+> dependencies, read them back, receipt the graph, and execute one increment at a time
 
 Ordered increments remain independently shippable and map to reviewable PRs. Build has no
 artifact-free fallback.
@@ -45,18 +46,22 @@ project open.
 
 Build and project-backed Fix advance past exactly two content-bound Linear approvals:
 
-1. **Project-spec approval** accepts the complete exact local project specification. Only then does
-   one bounded synchronization save it to Linear; native content read-back is compared by the
-   shared provider-presentation canonical fingerprint before the matching receipt.
-2. **Execution-plan approval** accepts the complete exact locally keyed issue contracts and
-   dependency graph. Only then does one bounded synchronization create or reconcile native records;
-   native graph and identity read-back is compared by the shared canonical fingerprints before the
-   matching receipt and implementation.
+1. **Project-spec approval** accepts the deterministic owner-only `project-spec.md` path, byte
+   length, SHA-256, fingerprint version, run/process identity, project identity, and gate mapping.
+   Only then does one bounded synchronization save the file's complete project body to Linear;
+   native content read-back is compared by the shared provider-presentation canonical fingerprint
+   before the matching receipt.
+2. **Execution-plan approval** accepts the deterministic owner-only `execution-plan.md` path, byte
+   length, SHA-256, fingerprint version, run/process/project identity, and every stable task and
+   dependency tuple. Complete issue contracts remain in the file, not the Ask. Only then does one
+   bounded synchronization create or reconcile native records; native graph and identity read-back
+   is compared by the shared canonical fingerprints before the matching receipt and implementation.
 
-The local manifest is permission-restricted working state, never product authority. Material
-baseline drift, read-back mismatch, process loss, or content changes require reconciliation and a
-fresh complete Ask. Synchronization, read-back, planning, implementation checks, review, and
-progress updates are work steps, not additional gates.
+The local manifest and its two run-scoped gate files are permission-restricted working state, never
+product authority. Material baseline drift, file identity mismatch, read-back mismatch, process loss,
+or content changes require reconciliation, regeneration, and a fresh concise Ask. Synchronization,
+read-back, planning, implementation checks, review, and progress updates are work steps, not
+additional gates.
 
 ## Two delivery shapes
 

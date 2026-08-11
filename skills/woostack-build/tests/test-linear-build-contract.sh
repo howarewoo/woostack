@@ -40,12 +40,12 @@ for needle in (
     "## Fixed chain",
     "admit gate 1 baseline",
     "draft Ideate/Harden locally with zero provider calls",
-    "display complete exact project specification and approve",
+    "render and approve `project-spec.md` by concise file identity",
     "pre-save drift read",
     "one bounded sync",
     "exact content read-back",
     "receipt/read-back",
-    "manifest cleanup",
+    "gate-file and manifest cleanup",
     "normal Execute",
     "## Exactly two approval stops",
     "projectSpecApprovalRecord",
@@ -68,27 +68,31 @@ for needle in (
     "host OS temporary-directory facility",
     "owner-only `0700`",
     "owner read/write `0600`",
-    "atomically renames it over the manifest",
-    "stableTaskMappings",
-    "unresolvedQuestions",
+    "exactly one JSON manifest and at most these two Markdown gate files",
+    "project-spec.md",
+    "execution-plan.md",
+    "no-follow semantics",
+    "regular",
+    "byte length",
+    "SHA-256",
+    "fingerprintVersion",
+    "deterministic",
+    "regeneration",
     "Ideate, both Harden passes, and Build/Fix-delegated Plan",
     "zero Linear or other provider reads and writes",
-    "complete exact local content to be saved",
-    "not a summary or pointer-only presentation",
-    "responsible user's matching approval must occur before any draft content is saved",
+    "responsible user's matching file identity approval must occur before",
     "immediately re-read the exact Linear targets",
     "exact content read-back",
-    "stableTaskMappings",
     "canonical issue reference",
     "explicitly requested and all pagination",
     "unknown parent state",
     "exact endpoint round trip",
     "zero provider and repository mutation",
     "An unreceipted approval is consumed and cannot be replayed",
-    "different/restarted process",
-    "fresh complete Ask",
-    "Remove the manifest and its run-scoped temporary directory",
-    "local draft as the last approved Linear boundary",
+    "changed or replaced file",
+    "fresh concise Ask",
+    "unlink both gate files and the manifest",
+    "treat the local draft as the last approved Linear",
     "These Execute-era safety reads are unchanged",
     "providerPresentationCanonicalization",
     "presence or absence of exactly one terminal LF",
@@ -103,6 +107,9 @@ for obsolete in (
     r"Do not paste any project",
     r"After each user reply.*synchronization cycle",
     r"minimum serial read-patch-read",
+    r"complete displayed-content approval identity",
+    r"complete exact local content to be saved",
+    r"not a summary or pointer-only presentation",
 ):
     forbid("artifact", obsolete)
     forbid("build", obsolete)
@@ -132,8 +139,8 @@ for name, needle in removal_first_contract.items():
 evals = json.loads((root / "skills/woostack-build/evals/evals.json").read_text())
 eval_ids = {case["id"] for case in evals["cases"]}
 for expected in (
-    "renders-complete-project-spec-ask",
-    "renders-complete-execution-plan-ask",
+    "renders-project-spec-file-ask",
+    "renders-execution-plan-file-ask",
     "blocks-unreceipted-approval-replay",
     "enforces-run-manifest-boundaries",
     "blocks-unverified-manifest-cleanup",
@@ -221,48 +228,27 @@ for fixture_path in (
     }:
         failures.append(f"{fixture_path}: package fixture misses semantic surfaces")
 
-required_increment_fields = {
-    "stableTaskKey",
-    "url",
-    "canonicalIssueReference",
-    "ordinal",
-    "outcome",
-    "title",
-    "description",
-    "scope",
-    "nonGoals",
-    "targets",
-    "steps",
-    "acceptanceCriteria",
-    "verification",
-    "effects",
-    "risks",
-    "blockers",
-    "stopMarker",
-    "graphiteParent",
-    "changedLineEstimate",
-    "sizeRationale",
-    "fingerprint",
-}
-for label, eval_path in (
-    ("build", root / "skills/woostack-build/evals/evals.json"),
-    ("fix", root / "skills/woostack-fix/evals/evals.json"),
+for label, eval_path, expected_id in (
+    ("build", root / "skills/woostack-build/evals/evals.json", "renders-execution-plan-file-ask"),
+    ("fix", root / "skills/woostack-fix/evals/evals.json", "renders-execution-plan-file-ask"),
 ):
     cases = json.loads(eval_path.read_text())["cases"]
-    plan_case = next(
-        (case for case in cases if case["id"] == "renders-complete-execution-plan-ask"),
-        None,
-    )
+    plan_case = next((case for case in cases if case["id"] == expected_id), None)
     if plan_case is None:
-        failures.append(f"{label}: missing complete execution-plan Ask eval")
+        failures.append(f"{label}: missing file-backed execution-plan Ask eval")
         continue
-    increments = plan_case["assertions"][0]["expected"]["approvalAsk"]["increments"]
-    for index, increment in enumerate(increments, start=1):
-        missing = required_increment_fields - increment.keys()
-        if missing:
-            failures.append(
-                f"{label}: increment {index} approval Ask misses {sorted(missing)}"
-            )
+    ask = plan_case["assertions"][0]["expected"]["approvalAsk"]
+    identity = ask["approvalIdentity"]
+    gate_file = identity.get("gateFile", {})
+    if not gate_file.get("path", "").endswith("/execution-plan.md"):
+        failures.append(f"{label}: execution-plan Ask does not bind its absolute file path")
+    for field in ("byteLength", "sha256", "fingerprintVersion"):
+        if field not in gate_file:
+            failures.append(f"{label}: execution-plan Ask misses gateFile.{field}")
+    if not identity.get("approvedStableTaskMappings") or not identity.get("approvedDependencies"):
+        failures.append(f"{label}: execution-plan Ask misses approved mapping or dependencies")
+    if "increments" in ask or "specification" in ask:
+        failures.append(f"{label}: file-backed Ask duplicates complete inline content")
 
 manifest_fixture = json.loads(
     (root / "skills/woostack-build/evals/fixtures/manifest-boundaries.json").read_text()
@@ -273,11 +259,18 @@ expected_manifest_ids = [
     "broad-directory-permissions",
     "symlinked-manifest",
     "foreign-owner",
+    "gate-file-changed-bytes",
+    "gate-file-changed-path",
+    "gate-file-wrong-owner",
+    "gate-file-wrong-mode",
+    "gate-file-non-regular",
+    "gate-file-symlink",
     "process-identity-mismatch",
+    "failed-regeneration",
     "non-atomic-replacement",
 ]
 if manifest_ids != expected_manifest_ids:
-    failures.append("build: manifest boundary fixture is incomplete or out of order")
+    failures.append("build: gate-file boundary fixture is incomplete or out of order")
 
 
 shape_fixture = json.loads(
@@ -310,12 +303,12 @@ if fixture["independentRead"]["name"] != expected_project_name:
 chain_pattern = re.compile(
     r"resolve/create canonical project and admit gate 1 baseline\s*→\s*"
     r"draft Ideate/Harden locally with zero provider calls\s*→\s*"
-    r"display complete exact project specification and approve\s*→\s*"
+    r"render and approve `project-spec\.md` by concise file identity\s*→\s*"
     r"pre-save drift read.*?receipt/read-back\s*→\s*"
     r"draft delegated Plan/Harden locally with zero provider calls\s*→\s*"
-    r"display complete exact execution plan and approve\s*→\s*"
+    r"render and approve `execution-plan\.md` by concise file identity and complete mapping\s*→\s*"
     r"pre-save drift read.*?receipt/read-back\s*→\s*"
-    r"manifest cleanup\s*→\s*normal Execute",
+    r"gate-file and manifest cleanup\s*→\s*normal Execute",
     re.S,
 )
 if not chain_pattern.search(text["build"]):

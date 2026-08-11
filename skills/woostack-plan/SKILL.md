@@ -49,10 +49,12 @@ product decisions and never creates an approval event.
 Build or Fix delegates candidate planning with the exact approved fingerprint, baseline identity,
 and verified run manifest. Delegated planning performs no provider read or mutation; it atomically
 records complete candidate contracts, stable local task keys, dependencies, unresolved questions,
-and fingerprints in that manifest. The owning wrapper hardens and displays the complete candidate,
-then synchronizes it only after approval under the shared gated contract. In standalone use, Plan
-itself hardens and synchronizes the graph exactly as before. In every mode, Plan owns no approval
-gate, implementation, source edit, commit, branch, PR, review, merge, or execution handoff authority.
+and fingerprints in that manifest. The owning wrapper hardens the manifest, deterministically
+renders `execution-plan.md`, and displays only its owner-only path/hash/length/version identity plus
+the complete concise stable-task/dependency mapping. It synchronizes only after approval under the
+shared gated contract. In standalone use, Plan itself hardens and synchronizes the graph exactly as
+before. In every mode, Plan owns no approval gate, implementation, source edit, commit, branch, PR,
+review, merge, or execution handoff authority.
 
 ## Direct issue contract
 

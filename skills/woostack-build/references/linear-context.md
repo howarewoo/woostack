@@ -6,10 +6,11 @@ supply validated defaults because Build selected its required Linear path; polic
 provider access for unrelated workflows.
 
 The [Linear artifact contract](../../woostack-init/references/artifact-backends.md) is the single
-authority for the run manifest, displayed-content approval identity, post-approval ordering,
-stable-key/canonical-issue-reference mapping, nullable-parent validation, drift and process-loss
-recovery, cleanup, fingerprints, receipts, independent read-back, and unchanged Execute reads. The
-shared [repository advancement contract](../../woostack-init/references/artifact-backends.md#repository-ancestry-is-separate-from-approval-identity)
+authority for the run manifest, deterministic owner-only gate files, path/byte-length/SHA-256/
+fingerprint-version approval identity, post-approval ordering, stable-key/canonical-issue-reference
+mapping, nullable-parent validation, drift and process-loss recovery, cleanup, fingerprints,
+receipts, independent read-back, and unchanged Execute reads. The shared [repository advancement
+contract](../../woostack-init/references/artifact-backends.md#repository-ancestry-is-separate-from-approval-identity)
 separately governs compatible parent-tip re-admission; use the
 [Linear synchronization procedure](linear-procedure.md) only for the bounded post-approval save
 or standalone Plan.
@@ -45,10 +46,12 @@ association, provider revision/timestamp when available, pagination completeness
 source in the run manifest.
 
 That exact snapshot is gate 1's baseline. Ideate and Harden make zero provider reads and writes
-until the responsible user approves the complete exact displayed specification. The shared contract
-then owns the immediate pre-save comparison, bounded synchronization, exact content read-back,
-`projectSpecApprovalRecord`, and final receipt/read-back. Status, lead, label, update, assignment,
-content alone, or an unreceipted conversation response never clears gate 1.
+until the responsible user approves the owner-only `project-spec.md` path, byte length, SHA-256,
+fingerprint version, run/process identity, and project identity. The shared contract then owns the
+no-follow regeneration and file checks, immediate pre-save comparison, bounded synchronization,
+exact content read-back, `projectSpecApprovalRecord`, and final receipt/read-back. Status, lead,
+label, update, assignment, content alone, or an unreceipted conversation response never clears
+gate 1.
 
 ## Direct increment graph baseline
 
@@ -76,17 +79,20 @@ zero provider and repository mutation.
 Historical parent plan issues and their children are noncanonical history. Preserve them, exclude
 them from the gate 2 baseline, and never detach, migrate, archive, delete, or reconcile them. Store
 the complete exact project, current direct-issue identities/revisions/content, dependencies,
-fingerprints, and gate 1 receipt in the manifest. Delegated Plan and Harden then make zero provider reads and writes
-until the responsible user approves the complete exact displayed plan. The shared
-contract owns the drift comparison, one bounded synchronization, stable-key mapping, exact graph
-read-back, `executionPlanApprovalRecord`, and final receipt/read-back.
+fingerprints, and gate 1 receipt in the manifest. Delegated Plan and Harden then make zero provider
+reads and writes until the responsible user approves the owner-only `execution-plan.md` path/hash/
+length identity and complete concise stable-task/dependency mapping. The shared contract owns the
+drift comparison, one bounded synchronization, stable-key mapping, exact graph read-back,
+`executionPlanApprovalRecord`, and final receipt/read-back.
 
 ## Drift and failure
 
-Before either gated save, compare a fresh complete read with the manifest baseline exactly. Drift
-invalidates the displayed approval and requires fresh baseline admission and a fresh complete Ask;
-an unreceipted response cannot replay. Provider/process/manifest failure follows the shared recovery
-and cleanup contract with no local, cached, or alternate-provider execution fallback.
+Before either gated save, compare a fresh complete read with the manifest baseline exactly and
+revalidate the approved gate file with no-follow, owner, mode, regular-file, regeneration, path,
+length, hash, and process checks. Drift or file identity mismatch invalidates the approval and
+requires fresh baseline admission, regeneration, and a fresh concise Ask; an unreceipted response
+cannot replay. Provider/process/manifest failure follows the shared recovery and cleanup contract
+with no local, cached, or alternate-provider execution fallback.
 
 Before implementation, after every worker handback, before redispatch, immediately before commit,
 and before selecting another increment, repeat the complete project/issue/relation/receipt read:

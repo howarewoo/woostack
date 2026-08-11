@@ -28,8 +28,8 @@ assert_literal "$BUILD_SKILL" \
   'draft Ideate/Harden locally with zero provider calls' \
   'Build performs local Ideate and Harden after baseline admission'
 assert_literal "$BUILD_SKILL" \
-  'complete exact project specification and approve' \
-  'project content is displayed before approval'
+  'render and approve `project-spec.md` by concise file identity' \
+  'project file identity is displayed before approval'
 assert_literal "$BUILD_SKILL" \
   'pre-save drift read → one bounded sync → exact content read-back → receipt/read-back' \
   'project approval precedes save and read-back precedes receipt'
@@ -40,8 +40,8 @@ assert_literal "$BUILD_SKILL" \
   'draft delegated Plan/Harden locally with zero provider calls' \
   'planning is provider-free before approval'
 assert_literal "$BUILD_SKILL" \
-  'complete exact execution plan and approve' \
-  'complete plan is displayed before approval'
+  'render and approve `execution-plan.md` by concise file identity and complete mapping' \
+  'plan file identity and mapping are displayed before approval'
 assert_literal "$BUILD_SKILL" \
   'executionPlanApprovalRecord' \
   'plan approval is recorded in Linear'
@@ -67,13 +67,13 @@ assert_literal "$PROCEDURE" \
   'complete executor-ready issue descriptions' \
   'increment issues contain executable plans'
 assert_literal "$PROCEDURE" \
-  'independently read the complete relation set' \
+  'Then independently read the complete relation' \
   'native dependencies require complete read-back'
 assert_literal "$CONTEXT" \
   'That exact snapshot is gate 1' \
   'gate 1 starts from one admitted exact baseline'
 assert_literal "$CONTEXT" \
-  'Delegated Plan and Harden then make zero provider reads and writes' \
+  'Delegated Plan and Harden then make zero provider' \
   'gate 2 drafting has no intermediate provider cycle'
 assert_literal "$AUTHORITY" \
   'only after that exact content read-back, record the matching' \
