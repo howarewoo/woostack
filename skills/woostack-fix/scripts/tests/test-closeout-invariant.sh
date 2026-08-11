@@ -201,10 +201,10 @@ require_eval_fields(
     "requires-fresh-ask-for-semantic-provider-change",
     {
         "/results": [
-            {"id": "project-description", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
-            {"id": "increment-description", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
-            {"id": "issue-description", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
-            {"id": "displayed-content", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "project-description", "approvalIdentityMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "increment-description", "approvalIdentityMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "issue-description", "approvalIdentityMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "rendered-gate-file", "approvalIdentityMatch": False, "receiptCount": 0, "freshAsk": True},
         ],
     },
 )

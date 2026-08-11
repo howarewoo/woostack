@@ -51,7 +51,7 @@ for needle in (
     "Independently read every project, issue, membership",
     "Delegated planning performs no provider read or mutation",
     "atomically records complete candidate contracts",
-    "wrapper hardens and displays the complete candidate",
+    "displays its gate-file identity plus every concise stable task and dependency mapping",
     "executor-ready removal-before-addition analysis",
     "safe deletion or simplification opportunities first",
     "Standalone Plan",

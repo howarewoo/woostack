@@ -137,7 +137,8 @@ unchanged, owns no approval gate, and does not use the Build/Fix run manifest.
 
 When delegated by Build or Fix, stop before every provider read or synchronization. Return the
 complete manifest-backed candidate contracts and strict chain to the wrapper. The wrapper hardens
-and fully displays that draft, obtains approval before save, and owns the one bounded post-approval
+the manifest, renders `execution-plan.md`, displays its gate-file identity plus every concise stable
+task and dependency mapping, obtains approval before save, and owns the one bounded post-approval
 synchronization and exact read-back.
 
 ## Return

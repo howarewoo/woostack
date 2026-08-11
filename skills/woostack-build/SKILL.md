@@ -74,26 +74,23 @@ simplification contract remains unchanged.
 Build owns exactly these two stops, in this order, and no other approval or routing stop:
 
 Both stops obey the shared
-[gated manifest and gate-file approval contract](../woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest);
-Build owns only the gate-specific transition:
+[gated manifest and gate-file approval contract](../woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest).
+Build owns only these gate-specific displays and successful outcomes:
 
 1. **Project specification.** Deterministically render `project-spec.md` from the manifest and
    display only its absolute path, byte length, SHA-256, fingerprint version, run/process identity,
-   and project identity. After explicit responsible-user approval, reopen and regenerate it with
-   no-follow, owner, mode, regular-file, and process checks, then apply the shared immediate drift
-   read, bounded save, exact content read-back, receipt write, and receipt/read-back order. Continue
-   only when `projectSpecApprovalRecord` and its referenced project match exactly.
+   and project identity. A successful shared synchronization produces an independently verified
+   `projectSpecApprovalRecord` whose referenced project matches exactly.
 2. **Execution plan.** Deterministically render `execution-plan.md` containing every ordered issue
    contract and dependency tuple. Display only its file identity plus the complete concise stable
-   task mapping and dependency mapping. After explicit responsible-user approval, perform the same
-   file checks, graph-write preflight, and bounded synchronization, including stable local task-key
-   to canonical-issue-reference mapping. Continue only when `executionPlanApprovalRecord`, both
-   shared receipts, and the referenced project graph match exactly.
+   task mapping and dependency mapping. A successful shared synchronization binds stable local task
+   keys to canonical issue references and produces an independently verified
+   `executionPlanApprovalRecord` whose referenced project graph matches exactly.
 
-No draft provider cycle occurs before either approval. A baseline or gate-file identity mismatch,
-process/manifest loss, failed regeneration, or any failure before the exact receipt read-back
-invalidates the approval and requires a fresh render and concise Ask. An unreceipted approval cannot
-be replayed. The local draft never replaces the last Linear-approved boundary.
+The linked contract owns file replacement and no-follow checks, drift admission, bounded-save and
+read-back ordering, receipts, recovery, and cleanup. Any failure at those shared boundaries blocks
+Build; an unreceipted approval cannot be replayed, and the local draft never replaces the last
+Linear-approved boundary.
 
 Build compares the shared
 [`providerPresentationCanonicalization`](../woostack-init/references/artifact-backends.md#canonical-content-fingerprints-and-project-approval-records)

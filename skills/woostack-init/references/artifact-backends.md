@@ -199,9 +199,10 @@ it from an input object with exactly `title`, `description`, and `dependencies`:
    `providerPresentationCanonicalization` below; do not trim or collapse any other description
    content.
 3. **`providerPresentationCanonicalization`** is the one shared, narrowly admitted provider
-   presentation normalization for project, increment, issue, and displayed-content fingerprints.
-   Apply it only after NFC and line-ending normalization, and only to Markdown-bearing prose
-   strings. Scan lines in order while preserving every byte not covered here:
+   presentation normalization for project, increment, and issue Markdown, including provider
+   read-back compared with approved gate-file bytes. Apply it only after NFC and line-ending
+   normalization, and only to Markdown-bearing prose strings. Scan lines in order while preserving
+   every byte not covered here:
    - outside fenced code (a fence is a line with at most three leading spaces followed by a run of
      at least three backticks or tildes, closed by the same character and at least that run length),
      canonicalize syntactic unordered `-` and `*` list markers while retaining their transition
@@ -252,16 +253,19 @@ exactly `name` and `description`. For an execution plan, each
 `canonicalIncrementFingerprint` hashes a canonical object with exactly `title` and `description`.
 Normalize and serialize those strings with the same Unicode, line-ending, key-order, escaping,
 UTF-8, and SHA-256 rules above, applying `providerPresentationCanonicalization` to their
-Markdown-bearing descriptions. The displayed-content fingerprint uses the same named
-canonicalization for every Markdown-bearing displayed value before the stable-key and dependency
-identity envelope is serialized. Do not trim or collapse descriptions outside the named
-normalization. Project and issue status, dates, labels, assignments, comments, parent/container
+Markdown-bearing descriptions. When comparing provider content with the approved gate file, apply
+the same named canonicalization to the corresponding Markdown-bearing values while retaining the
+exact gate-file bytes, byte length, and SHA-256 as approval evidence. The immutable stable-task
+mapping and dependency snapshots remain separate identity inputs. Do not trim or collapse
+descriptions outside the named normalization.
+Project and issue status, dates, labels, assignments, comments, parent/container
 relations, and provider timestamps are excluded.
 
 Native provider bytes remain exact read-back evidence. Compare their canonical fingerprints only:
 presentation changes admitted by `providerPresentationCanonicalization` leave approval valid and
 continue the same receipt with no second Ask; a canonical mismatch or any other read-back failure
-consumes the approval and requires a fresh complete Ask before another receipt or mutation.
+consumes the approval and requires a fresh rendered gate file and concise Ask before another receipt
+or mutation.
 
 Whitespace or Unicode normalization that leaves canonical bytes unchanged does not invalidate
 approval. Any title, description/plan, project specification, or admitted dependency change that
@@ -302,9 +306,10 @@ where `kind` is exactly `native-issue`, sorted lexicographically by
 ### Repository ancestry is separate from approval identity
 
 Stable canonical parent-branch intent is approved content. State it in the complete project
-specification and each affected increment description so the existing description-derived
-`canonicalProjectSpecFingerprint`, `canonicalIncrementFingerprint`, and displayed-content
-fingerprint bind it. Do not add a separate Git field to an approval record or fingerprint envelope.
+specification and each affected increment description so the description-derived
+`canonicalProjectSpecFingerprint` and `canonicalIncrementFingerprint`, the exact rendered gate-file
+bytes, and the approved stable-task mapping and dependency snapshots bind it. Do not add a separate
+Git field to an approval record or fingerprint envelope.
 Mutable observed refs, heads, commits, parent tips, worktrees, Graphite state, and PR-base movement
 remain repository evidence outside content receipt identity and never invalidate a receipt by
 themselves.
@@ -447,6 +452,16 @@ renderer and write the appropriate fixed file:
   issues by positive ordinal and dependencies by `(predecessorTaskKey, successorTaskKey, kind)`;
   preserve each contract body and its provider-presentation semantics. The renderer does not
   canonicalize ordered-list markers; that separately versioned behavior belongs to WOO-184.
+
+The renderer uses one stable Markdown template. `execution-plan.md` starts with
+`# Execution plan`, then emits each ordinal-sorted issue as an `## <ordinal>. <title>` section,
+followed by a `Stable task key:` line with `<stableTaskKey>` rendered as inline code and its complete
+description. It ends with
+`## Dependencies` and one
+``- `<predecessorTaskKey>` → `<successorTaskKey>` (`<kind>`)`` line per sorted tuple, or
+`- None.` for a complete empty dependency snapshot. Separate headings, metadata, descriptions, and
+the dependency section with one blank line. Normalize rendered strings to NFC and LF, and end the
+file with exactly one LF; do not otherwise rewrite contract bodies or ordered-list markers.
 
 Rendering must be deterministic: the same manifest value, renderer/fingerprint version, and process
 must produce byte-identical output. Re-render after every manifest replacement and before approval;

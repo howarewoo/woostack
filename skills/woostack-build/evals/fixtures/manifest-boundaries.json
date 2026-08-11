@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "scenarios": [
     {
       "id": "valid-atomic-update",
@@ -7,13 +7,11 @@
       "manifestMode": "0600",
       "ownerMatchesProcessUser": true,
       "manifestSymlink": false,
-      "gateFile": {"pathMatches": true, "mode": "0600", "ownerMatchesProcessUser": true, "regularFile": true, "symlink": false, "byteLengthMatches": true, "sha256Matches": true, "regeneratedMatches": true},
+      "gateFile": {"pathMatches": true, "inodeMatchesApprovedSnapshot": true, "mode": "0600", "ownerMatchesProcessUser": true, "regularFile": true, "symlink": false, "byteLengthMatches": true, "sha256Matches": true, "regeneratedMatches": true},
       "runIdMatches": true,
       "processNonceMatches": true,
-      "exclusiveTemporaryWrite": true,
-      "fileFlushed": true,
-      "atomicRenameCompleted": true,
-      "directoryFlushed": true
+      "manifestAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true},
+      "gateFileAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true}
     },
     {
       "id": "broad-directory-permissions",
@@ -21,13 +19,11 @@
       "manifestMode": "0600",
       "ownerMatchesProcessUser": true,
       "manifestSymlink": false,
-      "gateFile": {"pathMatches": true, "mode": "0600", "ownerMatchesProcessUser": true, "regularFile": true, "symlink": false, "byteLengthMatches": true, "sha256Matches": true, "regeneratedMatches": true},
+      "gateFile": {"pathMatches": true, "inodeMatchesApprovedSnapshot": true, "mode": "0600", "ownerMatchesProcessUser": true, "regularFile": true, "symlink": false, "byteLengthMatches": true, "sha256Matches": true, "regeneratedMatches": true},
       "runIdMatches": true,
       "processNonceMatches": true,
-      "exclusiveTemporaryWrite": true,
-      "fileFlushed": true,
-      "atomicRenameCompleted": true,
-      "directoryFlushed": true
+      "manifestAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true},
+      "gateFileAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true}
     },
     {
       "id": "symlinked-manifest",
@@ -35,13 +31,11 @@
       "manifestMode": "0600",
       "ownerMatchesProcessUser": true,
       "manifestSymlink": true,
-      "gateFile": {"pathMatches": true, "mode": "0600", "ownerMatchesProcessUser": true, "regularFile": true, "symlink": false, "byteLengthMatches": true, "sha256Matches": true, "regeneratedMatches": true},
+      "gateFile": {"pathMatches": true, "inodeMatchesApprovedSnapshot": true, "mode": "0600", "ownerMatchesProcessUser": true, "regularFile": true, "symlink": false, "byteLengthMatches": true, "sha256Matches": true, "regeneratedMatches": true},
       "runIdMatches": true,
       "processNonceMatches": true,
-      "exclusiveTemporaryWrite": true,
-      "fileFlushed": true,
-      "atomicRenameCompleted": true,
-      "directoryFlushed": true
+      "manifestAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true},
+      "gateFileAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true}
     },
     {
       "id": "foreign-owner",
@@ -49,27 +43,35 @@
       "manifestMode": "0600",
       "ownerMatchesProcessUser": false,
       "manifestSymlink": false,
-      "gateFile": {"pathMatches": true, "mode": "0600", "ownerMatchesProcessUser": true, "regularFile": true, "symlink": false, "byteLengthMatches": true, "sha256Matches": true, "regeneratedMatches": true},
+      "gateFile": {"pathMatches": true, "inodeMatchesApprovedSnapshot": true, "mode": "0600", "ownerMatchesProcessUser": true, "regularFile": true, "symlink": false, "byteLengthMatches": true, "sha256Matches": true, "regeneratedMatches": true},
       "runIdMatches": true,
       "processNonceMatches": true,
-      "exclusiveTemporaryWrite": true,
-      "fileFlushed": true,
-      "atomicRenameCompleted": true,
-      "directoryFlushed": true
+      "manifestAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true},
+      "gateFileAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true}
     },
     {
-      "id": "gate-file-changed-bytes",
+      "id": "gate-file-byte-length-mismatch",
       "directoryMode": "0700",
       "manifestMode": "0600",
       "ownerMatchesProcessUser": true,
       "manifestSymlink": false,
-      "gateFile": {"pathMatches": true, "mode": "0600", "ownerMatchesProcessUser": true, "regularFile": true, "symlink": false, "byteLengthMatches": false, "sha256Matches": false, "regeneratedMatches": false},
+      "gateFile": {"pathMatches": true, "inodeMatchesApprovedSnapshot": true, "mode": "0600", "ownerMatchesProcessUser": true, "regularFile": true, "symlink": false, "byteLengthMatches": false, "sha256Matches": true, "regeneratedMatches": true},
       "runIdMatches": true,
       "processNonceMatches": true,
-      "exclusiveTemporaryWrite": true,
-      "fileFlushed": true,
-      "atomicRenameCompleted": true,
-      "directoryFlushed": true
+      "manifestAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true},
+      "gateFileAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true}
+    },
+    {
+      "id": "gate-file-sha256-mismatch",
+      "directoryMode": "0700",
+      "manifestMode": "0600",
+      "ownerMatchesProcessUser": true,
+      "manifestSymlink": false,
+      "gateFile": {"pathMatches": true, "inodeMatchesApprovedSnapshot": true, "mode": "0600", "ownerMatchesProcessUser": true, "regularFile": true, "symlink": false, "byteLengthMatches": true, "sha256Matches": false, "regeneratedMatches": true},
+      "runIdMatches": true,
+      "processNonceMatches": true,
+      "manifestAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true},
+      "gateFileAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true}
     },
     {
       "id": "gate-file-changed-path",
@@ -77,13 +79,11 @@
       "manifestMode": "0600",
       "ownerMatchesProcessUser": true,
       "manifestSymlink": false,
-      "gateFile": {"pathMatches": false, "mode": "0600", "ownerMatchesProcessUser": true, "regularFile": true, "symlink": false, "byteLengthMatches": true, "sha256Matches": true, "regeneratedMatches": true},
+      "gateFile": {"pathMatches": false, "inodeMatchesApprovedSnapshot": true, "mode": "0600", "ownerMatchesProcessUser": true, "regularFile": true, "symlink": false, "byteLengthMatches": true, "sha256Matches": true, "regeneratedMatches": true},
       "runIdMatches": true,
       "processNonceMatches": true,
-      "exclusiveTemporaryWrite": true,
-      "fileFlushed": true,
-      "atomicRenameCompleted": true,
-      "directoryFlushed": true
+      "manifestAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true},
+      "gateFileAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true}
     },
     {
       "id": "gate-file-wrong-owner",
@@ -91,13 +91,11 @@
       "manifestMode": "0600",
       "ownerMatchesProcessUser": true,
       "manifestSymlink": false,
-      "gateFile": {"pathMatches": true, "mode": "0600", "ownerMatchesProcessUser": false, "regularFile": true, "symlink": false, "byteLengthMatches": true, "sha256Matches": true, "regeneratedMatches": true},
+      "gateFile": {"pathMatches": true, "inodeMatchesApprovedSnapshot": true, "mode": "0600", "ownerMatchesProcessUser": false, "regularFile": true, "symlink": false, "byteLengthMatches": true, "sha256Matches": true, "regeneratedMatches": true},
       "runIdMatches": true,
       "processNonceMatches": true,
-      "exclusiveTemporaryWrite": true,
-      "fileFlushed": true,
-      "atomicRenameCompleted": true,
-      "directoryFlushed": true
+      "manifestAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true},
+      "gateFileAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true}
     },
     {
       "id": "gate-file-wrong-mode",
@@ -105,13 +103,11 @@
       "manifestMode": "0600",
       "ownerMatchesProcessUser": true,
       "manifestSymlink": false,
-      "gateFile": {"pathMatches": true, "mode": "0644", "ownerMatchesProcessUser": true, "regularFile": true, "symlink": false, "byteLengthMatches": true, "sha256Matches": true, "regeneratedMatches": true},
+      "gateFile": {"pathMatches": true, "inodeMatchesApprovedSnapshot": true, "mode": "0644", "ownerMatchesProcessUser": true, "regularFile": true, "symlink": false, "byteLengthMatches": true, "sha256Matches": true, "regeneratedMatches": true},
       "runIdMatches": true,
       "processNonceMatches": true,
-      "exclusiveTemporaryWrite": true,
-      "fileFlushed": true,
-      "atomicRenameCompleted": true,
-      "directoryFlushed": true
+      "manifestAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true},
+      "gateFileAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true}
     },
     {
       "id": "gate-file-non-regular",
@@ -119,13 +115,11 @@
       "manifestMode": "0600",
       "ownerMatchesProcessUser": true,
       "manifestSymlink": false,
-      "gateFile": {"pathMatches": true, "mode": "0600", "ownerMatchesProcessUser": true, "regularFile": false, "symlink": false, "byteLengthMatches": true, "sha256Matches": true, "regeneratedMatches": true},
+      "gateFile": {"pathMatches": true, "inodeMatchesApprovedSnapshot": true, "mode": "0600", "ownerMatchesProcessUser": true, "regularFile": false, "symlink": false, "byteLengthMatches": true, "sha256Matches": true, "regeneratedMatches": true},
       "runIdMatches": true,
       "processNonceMatches": true,
-      "exclusiveTemporaryWrite": true,
-      "fileFlushed": true,
-      "atomicRenameCompleted": true,
-      "directoryFlushed": true
+      "manifestAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true},
+      "gateFileAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true}
     },
     {
       "id": "gate-file-symlink",
@@ -133,13 +127,23 @@
       "manifestMode": "0600",
       "ownerMatchesProcessUser": true,
       "manifestSymlink": false,
-      "gateFile": {"pathMatches": true, "mode": "0600", "ownerMatchesProcessUser": true, "regularFile": true, "symlink": true, "byteLengthMatches": true, "sha256Matches": true, "regeneratedMatches": true},
+      "gateFile": {"pathMatches": true, "inodeMatchesApprovedSnapshot": true, "mode": "0600", "ownerMatchesProcessUser": true, "regularFile": true, "symlink": true, "byteLengthMatches": true, "sha256Matches": true, "regeneratedMatches": true},
       "runIdMatches": true,
       "processNonceMatches": true,
-      "exclusiveTemporaryWrite": true,
-      "fileFlushed": true,
-      "atomicRenameCompleted": true,
-      "directoryFlushed": true
+      "manifestAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true},
+      "gateFileAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true}
+    },
+    {
+      "id": "gate-file-changed-inode",
+      "directoryMode": "0700",
+      "manifestMode": "0600",
+      "ownerMatchesProcessUser": true,
+      "manifestSymlink": false,
+      "gateFile": {"pathMatches": true, "inodeMatchesApprovedSnapshot": false, "mode": "0600", "ownerMatchesProcessUser": true, "regularFile": true, "symlink": false, "byteLengthMatches": true, "sha256Matches": true, "regeneratedMatches": true},
+      "runIdMatches": true,
+      "processNonceMatches": true,
+      "manifestAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true},
+      "gateFileAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true}
     },
     {
       "id": "process-identity-mismatch",
@@ -147,13 +151,11 @@
       "manifestMode": "0600",
       "ownerMatchesProcessUser": true,
       "manifestSymlink": false,
-      "gateFile": {"pathMatches": true, "mode": "0600", "ownerMatchesProcessUser": true, "regularFile": true, "symlink": false, "byteLengthMatches": true, "sha256Matches": true, "regeneratedMatches": true},
+      "gateFile": {"pathMatches": true, "inodeMatchesApprovedSnapshot": true, "mode": "0600", "ownerMatchesProcessUser": true, "regularFile": true, "symlink": false, "byteLengthMatches": true, "sha256Matches": true, "regeneratedMatches": true},
       "runIdMatches": true,
       "processNonceMatches": false,
-      "exclusiveTemporaryWrite": true,
-      "fileFlushed": true,
-      "atomicRenameCompleted": true,
-      "directoryFlushed": true
+      "manifestAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true},
+      "gateFileAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true}
     },
     {
       "id": "failed-regeneration",
@@ -161,27 +163,35 @@
       "manifestMode": "0600",
       "ownerMatchesProcessUser": true,
       "manifestSymlink": false,
-      "gateFile": {"pathMatches": true, "mode": "0600", "ownerMatchesProcessUser": true, "regularFile": true, "symlink": false, "byteLengthMatches": true, "sha256Matches": true, "regeneratedMatches": false},
+      "gateFile": {"pathMatches": true, "inodeMatchesApprovedSnapshot": true, "mode": "0600", "ownerMatchesProcessUser": true, "regularFile": true, "symlink": false, "byteLengthMatches": true, "sha256Matches": true, "regeneratedMatches": false},
       "runIdMatches": true,
       "processNonceMatches": true,
-      "exclusiveTemporaryWrite": true,
-      "fileFlushed": true,
-      "atomicRenameCompleted": true,
-      "directoryFlushed": true
+      "manifestAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true},
+      "gateFileAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true}
     },
     {
-      "id": "non-atomic-replacement",
+      "id": "manifest-non-atomic-replacement",
       "directoryMode": "0700",
       "manifestMode": "0600",
       "ownerMatchesProcessUser": true,
       "manifestSymlink": false,
-      "gateFile": {"pathMatches": true, "mode": "0600", "ownerMatchesProcessUser": true, "regularFile": true, "symlink": false, "byteLengthMatches": true, "sha256Matches": true, "regeneratedMatches": true},
+      "gateFile": {"pathMatches": true, "inodeMatchesApprovedSnapshot": true, "mode": "0600", "ownerMatchesProcessUser": true, "regularFile": true, "symlink": false, "byteLengthMatches": true, "sha256Matches": true, "regeneratedMatches": true},
       "runIdMatches": true,
       "processNonceMatches": true,
-      "exclusiveTemporaryWrite": false,
-      "fileFlushed": false,
-      "atomicRenameCompleted": false,
-      "directoryFlushed": false
+      "manifestAtomicWrite": {"exclusiveTemporaryWrite": false, "fileFlushed": false, "atomicRenameCompleted": false, "directoryFlushed": false},
+      "gateFileAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true}
+    },
+    {
+      "id": "gate-file-non-atomic-replacement",
+      "directoryMode": "0700",
+      "manifestMode": "0600",
+      "ownerMatchesProcessUser": true,
+      "manifestSymlink": false,
+      "gateFile": {"pathMatches": true, "inodeMatchesApprovedSnapshot": true, "mode": "0600", "ownerMatchesProcessUser": true, "regularFile": true, "symlink": false, "byteLengthMatches": true, "sha256Matches": true, "regeneratedMatches": true},
+      "runIdMatches": true,
+      "processNonceMatches": true,
+      "manifestAtomicWrite": {"exclusiveTemporaryWrite": true, "fileFlushed": true, "atomicRenameCompleted": true, "directoryFlushed": true},
+      "gateFileAtomicWrite": {"exclusiveTemporaryWrite": false, "fileFlushed": false, "atomicRenameCompleted": false, "directoryFlushed": false}
     }
   ]
 }

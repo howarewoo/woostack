@@ -86,7 +86,7 @@ for pattern, message in (
     (r"expanded leading indentation columns.*next four-column stop", "expanded tab indentation boundary missing"),
     (r"Hard breaks.*ordered lists.*byte-sensitive", "presentation exclusions missing"),
     (r"Native provider bytes remain exact read-back evidence.*canonical fingerprints", "native evidence/canonical comparison missing"),
-    (r"no second Ask.*fresh complete Ask", "presentation approval recovery missing"),
+    (r"no second Ask.*fresh rendered gate file and concise Ask", "presentation approval recovery missing"),
 ):
     require("artifact-backends.md", contract, pattern, message)
 
@@ -181,7 +181,6 @@ else:
         normalized = json.loads(json.dumps(record))
         for entity in ("project", "increment", "issue"):
             normalized[entity]["description"] = canonicalize_markdown(normalized[entity]["description"])
-        normalized["displayedContent"] = canonicalize_markdown(normalized["displayedContent"])
         return normalized
 
     approved = presentation.get("approved")
