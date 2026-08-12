@@ -49,7 +49,7 @@ for pattern, message in (
     (r"host OS temporary-directory facility.*0700.*0600", "restricted OS-temp manifest missing"),
     (r"atomically renames it over the manifest", "atomic manifest update missing"),
     (r"zero Linear or other provider reads and writes", "provider-free gated drafting missing"),
-    (r"complete exact local content to be saved, not a summary or pointer-only presentation", "complete displayed content missing"),
+    (r"complete project body.*complete issue descriptions remain", "complete displayed content missing"),
     (r"approval must occur before any draft content is saved", "approval-before-save ordering missing"),
     (r"immediately re-read the exact Linear targets", "immediate pre-save drift read missing"),
     (r"only after that exact content read-back, record", "read-back-before-receipt ordering missing"),
@@ -57,8 +57,8 @@ for pattern, message in (
     (r"retained baseline issue.*explicit proposed canonical-issue-reference.*task-key mapping", "retained issue reconciliation missing"),
     (r"optimistic revision/content-identity precondition.*immediate fresh read", "mid-cycle drift protection missing"),
     (r"unreceipted approval is consumed and cannot be replayed", "unreceipted approval replay guard missing"),
-    (r"different/restarted process.*requires a fresh complete Ask", "process-loss invalidation missing"),
-    (r"Remove the manifest and its run-scoped temporary directory", "manifest cleanup missing"),
+    (r"restarted or different process.*fresh file render.*Ask", "process-loss invalidation missing"),
+    (r"unlink both gate files and the manifest", "manifest cleanup missing"),
     (r"local draft.*never replaces.*last Linear-approved boundary", "local authority boundary missing"),
     (r"Standalone `woostack-plan`.*unchanged", "standalone Plan distinction missing"),
     (r"Execute-era safety reads are unchanged", "Execute read preservation missing"),
@@ -86,7 +86,7 @@ for pattern, message in (
     (r"expanded leading indentation columns.*next four-column stop", "expanded tab indentation boundary missing"),
     (r"Hard breaks.*ordered lists.*byte-sensitive", "presentation exclusions missing"),
     (r"Native provider bytes remain exact read-back evidence.*canonical fingerprints", "native evidence/canonical comparison missing"),
-    (r"no second Ask.*fresh complete Ask", "presentation approval recovery missing"),
+    (r"no second Ask.*fresh rendered gate file and concise Ask", "presentation approval recovery missing"),
 ):
     require("artifact-backends.md", contract, pattern, message)
 
@@ -181,7 +181,6 @@ else:
         normalized = json.loads(json.dumps(record))
         for entity in ("project", "increment", "issue"):
             normalized[entity]["description"] = canonicalize_markdown(normalized[entity]["description"])
-        normalized["displayedContent"] = canonicalize_markdown(normalized["displayedContent"])
         return normalized
 
     approved = presentation.get("approved")

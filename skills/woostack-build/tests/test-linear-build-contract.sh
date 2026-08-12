@@ -5,6 +5,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 python3 - "$ROOT" <<'PY'
 import json
+import hashlib
+import unicodedata
 import re
 import sys
 from pathlib import Path
@@ -40,12 +42,12 @@ for needle in (
     "## Fixed chain",
     "admit gate 1 baseline",
     "draft Ideate/Harden locally with zero provider calls",
-    "display complete exact project specification and approve",
+    "render and approve `project-spec.md` by concise file identity",
     "pre-save drift read",
     "one bounded sync",
     "exact content read-back",
     "receipt/read-back",
-    "manifest cleanup",
+    "gate-file and manifest cleanup",
     "normal Execute",
     "## Exactly two approval stops",
     "projectSpecApprovalRecord",
@@ -68,27 +70,31 @@ for needle in (
     "host OS temporary-directory facility",
     "owner-only `0700`",
     "owner read/write `0600`",
-    "atomically renames it over the manifest",
-    "stableTaskMappings",
-    "unresolvedQuestions",
+    "exactly one JSON manifest and at most these two Markdown gate files",
+    "project-spec.md",
+    "execution-plan.md",
+    "no-follow semantics",
+    "regular",
+    "byte length",
+    "SHA-256",
+    "fingerprintVersion",
+    "deterministic",
+    "regeneration",
     "Ideate, both Harden passes, and Build/Fix-delegated Plan",
     "zero Linear or other provider reads and writes",
-    "complete exact local content to be saved",
-    "not a summary or pointer-only presentation",
-    "responsible user's matching approval must occur before any draft content is saved",
+    "responsible user's matching file identity approval must occur before",
     "immediately re-read the exact Linear targets",
     "exact content read-back",
-    "stableTaskMappings",
     "canonical issue reference",
     "explicitly requested and all pagination",
     "unknown parent state",
     "exact endpoint round trip",
     "zero provider and repository mutation",
     "An unreceipted approval is consumed and cannot be replayed",
-    "different/restarted process",
-    "fresh complete Ask",
-    "Remove the manifest and its run-scoped temporary directory",
-    "local draft as the last approved Linear boundary",
+    "changed or replaced file",
+    "fresh concise Ask",
+    "unlink both gate files and the manifest",
+    "treat the local draft as the last approved Linear",
     "These Execute-era safety reads are unchanged",
     "providerPresentationCanonicalization",
     "presence or absence of exactly one terminal LF",
@@ -103,6 +109,9 @@ for obsolete in (
     r"Do not paste any project",
     r"After each user reply.*synchronization cycle",
     r"minimum serial read-patch-read",
+    r"complete displayed-content approval identity",
+    r"complete exact local content to be saved",
+    r"not a summary or pointer-only presentation",
 ):
     forbid("artifact", obsolete)
     forbid("build", obsolete)
@@ -132,8 +141,10 @@ for name, needle in removal_first_contract.items():
 evals = json.loads((root / "skills/woostack-build/evals/evals.json").read_text())
 eval_ids = {case["id"] for case in evals["cases"]}
 for expected in (
-    "renders-complete-project-spec-ask",
-    "renders-complete-execution-plan-ask",
+    "renders-project-spec-file-ask",
+    "renders-execution-plan-file-ask",
+    "renders-one-increment-plan-with-empty-dependencies",
+    "renders-gate-files-byte-exactly",
     "blocks-unreceipted-approval-replay",
     "enforces-run-manifest-boundaries",
     "blocks-unverified-manifest-cleanup",
@@ -172,10 +183,10 @@ require_eval_fields(
     "requires-fresh-ask-for-semantic-provider-change",
     {
         "/results": [
-            {"id": "project-description", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
-            {"id": "increment-description", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
-            {"id": "issue-description", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
-            {"id": "displayed-content", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "project-description", "approvalIdentityMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "increment-description", "approvalIdentityMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "issue-description", "approvalIdentityMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "rendered-gate-file", "approvalIdentityMatch": False, "receiptCount": 0, "freshAsk": True},
         ],
     },
 )
@@ -217,52 +228,64 @@ for fixture_path in (
         "projectDescription",
         "incrementDescription",
         "issueDescription",
-        "displayedContent",
+        "renderedGateFile",
     }:
         failures.append(f"{fixture_path}: package fixture misses semantic surfaces")
+    for gate_file in (
+        fixture.get("approvedGateFile"),
+        (semantic_mutations or {}).get("renderedGateFile"),
+    ):
+        if not isinstance(gate_file, dict) or set(gate_file) != {"identity", "utf8"}:
+            failures.append(f"{fixture_path}: rendered gate-file fixture shape is incomplete")
+            continue
+        identity = gate_file["identity"]
+        encoded = gate_file["utf8"].encode("utf-8")
+        if set(identity) != {"path", "byteLength", "sha256", "fingerprintVersion"}:
+            failures.append(f"{fixture_path}: rendered gate-file identity fields are incomplete")
+        elif (
+            identity["byteLength"] != len(encoded)
+            or identity["sha256"] != f"sha256:{hashlib.sha256(encoded).hexdigest()}"
+        ):
+            failures.append(f"{fixture_path}: rendered gate-file length or digest is stale")
 
-required_increment_fields = {
-    "stableTaskKey",
-    "url",
-    "canonicalIssueReference",
-    "ordinal",
-    "outcome",
-    "title",
-    "description",
-    "scope",
-    "nonGoals",
-    "targets",
-    "steps",
-    "acceptanceCriteria",
-    "verification",
-    "effects",
-    "risks",
-    "blockers",
-    "stopMarker",
-    "graphiteParent",
-    "changedLineEstimate",
-    "sizeRationale",
-    "fingerprint",
-}
-for label, eval_path in (
-    ("build", root / "skills/woostack-build/evals/evals.json"),
-    ("fix", root / "skills/woostack-fix/evals/evals.json"),
+for label, eval_path, expected_id in (
+    ("build", root / "skills/woostack-build/evals/evals.json", "renders-execution-plan-file-ask"),
+    ("fix", root / "skills/woostack-fix/evals/evals.json", "renders-execution-plan-file-ask"),
 ):
     cases = json.loads(eval_path.read_text())["cases"]
-    plan_case = next(
-        (case for case in cases if case["id"] == "renders-complete-execution-plan-ask"),
-        None,
-    )
+    plan_case = next((case for case in cases if case["id"] == expected_id), None)
     if plan_case is None:
-        failures.append(f"{label}: missing complete execution-plan Ask eval")
+        failures.append(f"{label}: missing file-backed execution-plan Ask eval")
         continue
-    increments = plan_case["assertions"][0]["expected"]["approvalAsk"]["increments"]
-    for index, increment in enumerate(increments, start=1):
-        missing = required_increment_fields - increment.keys()
-        if missing:
-            failures.append(
-                f"{label}: increment {index} approval Ask misses {sorted(missing)}"
-            )
+    ask = plan_case["assertions"][0]["expected"]["approvalAsk"]
+    identity = ask["approvalIdentity"]
+    gate_file = identity.get("gateFile", {})
+    if not gate_file.get("path", "").endswith("/execution-plan.md"):
+        failures.append(f"{label}: execution-plan Ask does not bind its absolute file path")
+    for field in ("byteLength", "sha256", "fingerprintVersion"):
+        if field not in gate_file:
+            failures.append(f"{label}: execution-plan Ask misses gateFile.{field}")
+    if (
+        not identity.get("approvedStableTaskMappings")
+        or not isinstance(identity.get("approvedDependencies"), list)
+    ):
+        failures.append(f"{label}: execution-plan Ask misses approved mapping or complete dependency array")
+    if "increments" in ask or "specification" in ask:
+        failures.append(f"{label}: file-backed Ask duplicates complete inline content")
+
+empty_dependency_case = next(
+    (case for case in evals["cases"] if case["id"] == "renders-one-increment-plan-with-empty-dependencies"),
+    None,
+)
+if empty_dependency_case is None:
+    failures.append("build: missing one-increment empty-dependency Ask eval")
+else:
+    empty_identity = empty_dependency_case["assertions"][0]["expected"]["approvalAsk"]["approvalIdentity"]
+    if (
+        empty_identity.get("approvedDependencies") != []
+        or len(empty_identity.get("approvedStableTaskMappings", [])) != 1
+    ):
+        failures.append("build: one-increment Ask does not preserve a complete empty dependency snapshot")
 
 manifest_fixture = json.loads(
     (root / "skills/woostack-build/evals/fixtures/manifest-boundaries.json").read_text()
@@ -273,11 +296,161 @@ expected_manifest_ids = [
     "broad-directory-permissions",
     "symlinked-manifest",
     "foreign-owner",
+    "gate-file-byte-length-mismatch",
+    "gate-file-sha256-mismatch",
+    "gate-file-changed-path",
+    "gate-file-wrong-owner",
+    "gate-file-wrong-mode",
+    "gate-file-non-regular",
+    "gate-file-symlink",
+    "gate-file-changed-inode",
     "process-identity-mismatch",
-    "non-atomic-replacement",
+    "failed-regeneration",
+    "manifest-exclusive-temporary-write-failure",
+    "manifest-file-flush-failure",
+    "manifest-atomic-rename-failure",
+    "manifest-directory-flush-failure",
+    "gate-file-exclusive-temporary-write-failure",
+    "gate-file-file-flush-failure",
+    "gate-file-atomic-rename-failure",
+    "gate-file-directory-flush-failure",
 ]
 if manifest_ids != expected_manifest_ids:
-    failures.append("build: manifest boundary fixture is incomplete or out of order")
+    failures.append("build: gate-file boundary fixture is incomplete or out of order")
+
+atomic_fields = {
+    "exclusiveTemporaryWrite",
+    "fileFlushed",
+    "atomicRenameCompleted",
+    "directoryFlushed",
+}
+for scenario in manifest_fixture["scenarios"]:
+    if set(scenario.get("manifestAtomicWrite", {})) != atomic_fields:
+        failures.append(f"build: {scenario['id']} misses manifest atomic-write evidence")
+    if set(scenario.get("gateFileAtomicWrite", {})) != atomic_fields:
+        failures.append(f"build: {scenario['id']} misses gate-file atomic-write evidence")
+    if not isinstance(scenario.get("gateFile", {}).get("inodeMatchesApprovedSnapshot"), bool):
+        failures.append(f"build: {scenario['id']} misses gate-file inode identity")
+
+manifest_by_id = {scenario["id"]: scenario for scenario in manifest_fixture["scenarios"]}
+length_case = manifest_by_id.get("gate-file-byte-length-mismatch", {}).get("gateFile", {})
+sha_case = manifest_by_id.get("gate-file-sha256-mismatch", {}).get("gateFile", {})
+inode_case = manifest_by_id.get("gate-file-changed-inode", {}).get("gateFile", {})
+if not (
+    length_case.get("byteLengthMatches") is False
+    and length_case.get("sha256Matches") is True
+    and length_case.get("regeneratedMatches") is True
+):
+    failures.append("build: byte-length mismatch is not isolated")
+if not (
+    sha_case.get("byteLengthMatches") is True
+    and sha_case.get("sha256Matches") is False
+    and sha_case.get("regeneratedMatches") is True
+):
+    failures.append("build: SHA-256 mismatch is not isolated")
+if not (
+    inode_case.get("inodeMatchesApprovedSnapshot") is False
+    and inode_case.get("pathMatches") is True
+    and inode_case.get("byteLengthMatches") is True
+    and inode_case.get("sha256Matches") is True
+    and inode_case.get("regeneratedMatches") is True
+):
+    failures.append("build: same-path same-byte inode replacement is not isolated")
+atomic_failure_cases = [
+    ("manifest-exclusive-temporary-write-failure", "manifestAtomicWrite", "exclusiveTemporaryWrite"),
+    ("manifest-file-flush-failure", "manifestAtomicWrite", "fileFlushed"),
+    ("manifest-atomic-rename-failure", "manifestAtomicWrite", "atomicRenameCompleted"),
+    ("manifest-directory-flush-failure", "manifestAtomicWrite", "directoryFlushed"),
+    ("gate-file-exclusive-temporary-write-failure", "gateFileAtomicWrite", "exclusiveTemporaryWrite"),
+    ("gate-file-file-flush-failure", "gateFileAtomicWrite", "fileFlushed"),
+    ("gate-file-atomic-rename-failure", "gateFileAtomicWrite", "atomicRenameCompleted"),
+    ("gate-file-directory-flush-failure", "gateFileAtomicWrite", "directoryFlushed"),
+]
+for case_id, failed_record, failed_stage in atomic_failure_cases:
+    scenario = manifest_by_id.get(case_id, {})
+    failed_values = scenario.get(failed_record, {})
+    other_record = (
+        scenario.get("gateFileAtomicWrite", {})
+        if failed_record == "manifestAtomicWrite"
+        else scenario.get("manifestAtomicWrite", {})
+    )
+    if (
+        failed_values.get(failed_stage) is not False
+        or any(
+            value is not True
+            for stage, value in failed_values.items()
+            if stage != failed_stage
+        )
+        or any(value is not True for value in other_record.values())
+    ):
+        failures.append(f"build: {case_id} does not isolate one atomic-write stage")
+
+render_fixture = json.loads(
+    (root / "skills/woostack-build/evals/fixtures/gate-file-rendering.json").read_text()
+)
+render_ids = [case["id"] for case in render_fixture.get("cases", [])]
+if render_ids != [
+    "project-spec-normalizes-unicode-and-line-endings",
+    "execution-plan-sorts-issues-and-dependencies",
+    "execution-plan-empty-dependencies",
+]:
+    failures.append("build: deterministic gate-file rendering fixture is incomplete or out of order")
+renderer_eval = next(
+    (case for case in evals["cases"] if case["id"] == "renders-gate-files-byte-exactly"),
+    None,
+)
+if renderer_eval is not None:
+    rendered_files = next(
+        assertion["expected"]
+        for assertion in renderer_eval["assertions"]
+        if assertion["pointer"] == "/files"
+    )
+    for rendered in rendered_files:
+        encoded = rendered["utf8"].encode("utf-8")
+        if rendered["byteLength"] != len(encoded):
+            failures.append(f"build: {rendered['id']} byte length is stale")
+        if rendered["sha256"] != f"sha256:{hashlib.sha256(encoded).hexdigest()}":
+            failures.append(f"build: {rendered['id']} SHA-256 is stale")
+    project_input = render_fixture["cases"][0]["manifest"]["draft"]["specification"]
+    plan_draft = render_fixture["cases"][1]["manifest"]["draft"]
+    if "\r" not in project_input or unicodedata.normalize("NFC", project_input) == project_input:
+        failures.append("build: project renderer fixture misses NFC or line-ending normalization")
+    if [item["ordinal"] for item in plan_draft["increments"]] == sorted(
+        item["ordinal"] for item in plan_draft["increments"]
+    ):
+        failures.append("build: execution-plan issue input is not deliberately unsorted")
+    dependency_keys = [
+        (item["predecessorTaskKey"], item["successorTaskKey"], item["kind"])
+        for item in plan_draft["dependencies"]
+    ]
+    if dependency_keys == sorted(dependency_keys):
+        failures.append("build: execution-plan dependency input is not deliberately unsorted")
+    empty_render_case = next(
+        (
+            case
+            for case in render_fixture.get("cases", [])
+            if case["id"] == "execution-plan-empty-dependencies"
+        ),
+        None,
+    )
+    if empty_render_case is None:
+        failures.append("build: empty-dependency renderer fixture is missing")
+    else:
+        empty_draft = empty_render_case.get("manifest", {}).get("draft", {})
+        if (
+            empty_draft.get("dependencies") != []
+            or len(empty_draft.get("increments", [])) != 1
+        ):
+            failures.append("build: empty-dependency renderer input is not one increment with []")
+    empty_rendered = next(
+        (rendered for rendered in rendered_files if rendered["id"] == "execution-plan-empty-dependencies"),
+        None,
+    )
+    if (
+        empty_rendered is None
+        or "## Dependencies\n\n- None.\n" not in empty_rendered.get("utf8", "")
+    ):
+        failures.append("build: empty-dependency renderer output misses the exact - None. sentinel")
 
 
 shape_fixture = json.loads(
@@ -310,12 +483,12 @@ if fixture["independentRead"]["name"] != expected_project_name:
 chain_pattern = re.compile(
     r"resolve/create canonical project and admit gate 1 baseline\s*→\s*"
     r"draft Ideate/Harden locally with zero provider calls\s*→\s*"
-    r"display complete exact project specification and approve\s*→\s*"
+    r"render and approve `project-spec\.md` by concise file identity\s*→\s*"
     r"pre-save drift read.*?receipt/read-back\s*→\s*"
     r"draft delegated Plan/Harden locally with zero provider calls\s*→\s*"
-    r"display complete exact execution plan and approve\s*→\s*"
+    r"render and approve `execution-plan\.md` by concise file identity and complete mapping\s*→\s*"
     r"pre-save drift read.*?receipt/read-back\s*→\s*"
-    r"manifest cleanup\s*→\s*normal Execute",
+    r"gate-file and manifest cleanup\s*→\s*normal Execute",
     re.S,
 )
 if not chain_pattern.search(text["build"]):

@@ -508,29 +508,30 @@
       ]
     },
     {
-      "id": "renders-complete-project-spec-ask",
-      "prompt": "At Build gate 1, runId is `build-run-31`, processNonce is `proc-31`, canonicalProjectUrl is `https://linear.app/woostack/project/cache-freshness`, project name is `[Build] Bound cache freshness`, the complete specification is `Bound cache freshness across all regions`, canonicalProjectSpecFingerprint is `sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd`, and displayedContentFingerprint is `sha256:1111111111111111111111111111111111111111111111111111111111111111`. Render the complete active-conversation approval Ask without contacting a provider. Return exactly one JSON object with key approvalAsk.",
+      "id": "renders-project-spec-file-ask",
+      "prompt": "At Build gate 1, runId is `build-run-31`, processNonce is `proc-31`, projectId is `project-cache-freshness`, the owner-only gate file is `/private/tmp/woostack-build-run-31/project-spec.md` with byteLength 34, SHA-256 `sha256:1111111111111111111111111111111111111111111111111111111111111111`, fingerprintVersion `gate-file-v1`, and canonicalProjectSpecFingerprint `sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd`. Render the concise active-conversation approval Ask without contacting a provider. Return exactly one JSON object with key approvalAsk.",
       "capabilities": ["read-workspace"],
-      "expected": "Build displays the complete exact local project specification and its run/process-bound approval identity, not only a Linear link.",
+      "expected": "Build displays only the owner-only project-spec.md path, byte length, SHA-256, fingerprint version, run/process/project identity, and project fingerprint.",
       "assertions": [
         {
-          "id": "build-rendered-complete-project-ask",
+          "id": "build-rendered-project-spec-file-ask",
           "kind": "final-json-path-equals",
           "pointer": "",
           "expected": {
             "approvalAsk": {
-              "uiText": "Approve project specification",
+              "uiText": "Approve project specification file",
               "approvalIdentity": {
                 "runId": "build-run-31",
                 "processNonce": "proc-31",
                 "gate": 1,
-                "displayedContentFingerprint": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
-              },
-              "project": {
-                "url": "https://linear.app/woostack/project/cache-freshness",
-                "name": "[Build] Bound cache freshness",
-                "specification": "Bound cache freshness across all regions",
-                "canonicalProjectSpecFingerprint": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+                "projectId": "project-cache-freshness",
+                "canonicalProjectSpecFingerprint": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "gateFile": {
+                  "path": "/private/tmp/woostack-build-run-31/project-spec.md",
+                  "byteLength": 34,
+                  "sha256": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+                  "fingerprintVersion": "gate-file-v1"
+                }
               }
             }
           },
@@ -539,80 +540,38 @@
       ]
     },
     {
-      "id": "renders-complete-execution-plan-ask",
-      "prompt": "At Build gate 2, runId is `build-run-39`, processNonce is `proc-39`, canonicalProjectSpecFingerprint is `sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd`, displayedContentFingerprint is `sha256:2222222222222222222222222222222222222222222222222222222222222222`, and the complete ordered plan has task `task-cache-owner` mapped to canonical issue reference `WOO-431` with canonical link `https://linear.app/woostack/issue/WOO-431`, ordinal 1, outcome `Lease-owned cache refresh`, title `Add cache ownership`, description `Introduce the lease`, scope `lease acquisition`, non-goal `cache eviction`, target `src/cache/owner.ts`, step `implement lease acquisition`, acceptance `one owner refreshes`, verification `run cache owner test`, effects `no docs, migration, deployment, or compatibility effects`, risks `lease expiry`, blocker `none`, stop marker `lease ownership verified`, Graphite parent `main`, changed-line estimate 180, size rationale `one bounded cache owner`, fingerprint `sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee`; task `task-stale-bound` maps to canonical issue reference `WOO-432` with canonical link `https://linear.app/woostack/issue/WOO-432`, ordinal 2, outcome `Age-bounded stale reads`, title `Bound stale reads`, description `Enforce the age limit`, scope `stale-age enforcement`, non-goal `lease ownership`, target `src/cache/read.ts`, step `enforce maximum stale age`, acceptance `expired values are rejected`, verification `run stale read test`, effects `no docs, migration, deployment, or compatibility effects`, risks `clock skew`, blocker `none`, stop marker `stale bound verified`, Graphite parent `task-cache-owner`, changed-line estimate 140, size rationale `one bounded read path`, fingerprint `sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff`, and dependency `task-cache-owner blocks task-stale-bound` of kind `native-issue`. Return exactly one JSON object containing the complete approvalAsk.",
+      "id": "renders-execution-plan-file-ask",
+      "prompt": "At Build gate 2, runId is `build-run-39`, processNonce is `proc-39`, projectId is `project-cache-freshness`, canonicalProjectSpecFingerprint is `sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd`, and the owner-only execution-plan.md is `/private/tmp/woostack-build-run-39/execution-plan.md` with byteLength 2480, SHA-256 `sha256:2222222222222222222222222222222222222222222222222222222222222222`, fingerprintVersion `gate-file-v1`. The complete mapping is task-cache-owner→WOO-431 and task-stale-bound→WOO-432 with dependency task-cache-owner→task-stale-bound kind native-issue. Render only the concise approval Ask without contacting a provider. Return exactly one JSON object with key approvalAsk.",
       "capabilities": ["read-workspace"],
-      "expected": "Build displays every complete exact issue contract, stable task key, fingerprint, and dependency together with the run/process-bound approval identity.",
+      "expected": "Build displays only execution-plan.md file identity, run/process/project identity, project fingerprint, every stable task mapping, and the dependency tuple; complete issue descriptions remain in the file.",
       "assertions": [
         {
-          "id": "build-rendered-complete-plan-ask",
+          "id": "build-rendered-execution-plan-file-ask",
           "kind": "final-json-path-equals",
           "pointer": "",
           "expected": {
             "approvalAsk": {
-              "uiText": "Approve execution plan",
+              "uiText": "Approve execution plan file",
               "approvalIdentity": {
                 "runId": "build-run-39",
                 "processNonce": "proc-39",
                 "gate": 2,
-                "displayedContentFingerprint": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
-              },
-              "canonicalProjectSpecFingerprint": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-              "increments": [
-                {
-                  "stableTaskKey": "task-cache-owner",
-                  "canonicalIssueReference": "WOO-431",
-                  "title": "Add cache ownership",
-                  "url": "https://linear.app/woostack/issue/WOO-431",
-                  "description": "Introduce the lease",
-                  "ordinal": 1,
-                  "outcome": "Lease-owned cache refresh",
-                  "scope": ["lease acquisition"],
-                  "nonGoals": ["cache eviction"],
-                  "targets": ["src/cache/owner.ts"],
-                  "steps": ["implement lease acquisition"],
-                  "acceptanceCriteria": ["one owner refreshes"],
-                  "verification": ["run cache owner test"],
-                  "effects": ["no docs, migration, deployment, or compatibility effects"],
-                  "risks": ["lease expiry"],
-                  "blockers": ["none"],
-                  "stopMarker": "lease ownership verified",
-                  "graphiteParent": "main",
-                  "changedLineEstimate": 180,
-                  "sizeRationale": "one bounded cache owner",
-                  "fingerprint": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+                "projectId": "project-cache-freshness",
+                "canonicalProjectSpecFingerprint": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "gateFile": {
+                  "path": "/private/tmp/woostack-build-run-39/execution-plan.md",
+                  "byteLength": 2480,
+                  "sha256": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+                  "fingerprintVersion": "gate-file-v1"
                 },
-                {
-                  "stableTaskKey": "task-stale-bound",
-                  "canonicalIssueReference": "WOO-432",
-                  "title": "Bound stale reads",
-                  "url": "https://linear.app/woostack/issue/WOO-432",
-                  "description": "Enforce the age limit",
-                  "ordinal": 2,
-                  "outcome": "Age-bounded stale reads",
-                  "scope": ["stale-age enforcement"],
-                  "nonGoals": ["lease ownership"],
-                  "targets": ["src/cache/read.ts"],
-                  "steps": ["enforce maximum stale age"],
-                  "acceptanceCriteria": ["expired values are rejected"],
-                  "verification": ["run stale read test"],
-                  "effects": ["no docs, migration, deployment, or compatibility effects"],
-                  "risks": ["clock skew"],
-                  "blockers": ["none"],
-                  "stopMarker": "stale bound verified",
-                  "graphiteParent": "task-cache-owner",
-                  "changedLineEstimate": 140,
-                  "sizeRationale": "one bounded read path",
-                  "fingerprint": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-                }
-              ],
-              "dependencies": [
-                {
-                  "predecessorTaskKey": "task-cache-owner",
-                  "successorTaskKey": "task-stale-bound",
-                  "kind": "native-issue"
-                }
-              ]
+                "approvedStableTaskMappings": [
+                  {"stableTaskKey": "task-cache-owner", "canonicalIssueReference": "WOO-431"},
+                  {"stableTaskKey": "task-stale-bound", "canonicalIssueReference": "WOO-432"}
+                ],
+                "approvedDependencies": [
+                  {"predecessorTaskKey": "task-cache-owner", "successorTaskKey": "task-stale-bound", "kind": "native-issue"}
+                ]
+              }
             }
           },
           "critical": true
@@ -621,13 +580,13 @@
     },
     {
       "id": "enforces-run-manifest-boundaries",
-      "prompt": "Classify every scenario in fixtures/manifest-boundaries.json in order. Accept only a permission-restricted, owner-matched, non-symlinked manifest whose run/process identity matches and whose complete replacement uses an exclusive temporary file, file flush, atomic rename, and directory flush. Do not contact a provider or mutate a repository. Return exactly one JSON object with keys status, decisions, providerCallCount, and repositoryMutationCount; each decision must contain exactly id, advance, and reasonCode.",
+      "prompt": "Classify every scenario in fixtures/manifest-boundaries.json in order. Accept only an owner-only `0700` run directory, owner-matched non-symlinked `0600` manifest, matching run/process identity, valid no-follow gate-file path/inode/content/owner/mode/type identity and regeneration, and independently complete manifest and gate-file exclusive-write/file-flush/atomic-rename/directory-flush ordering. Do not contact a provider or mutate a repository. Return exactly one JSON object with keys status, decisions, providerCallCount, and repositoryMutationCount; each decision must contain exactly id, advance, and reasonCode.",
       "fixtures": ["manifest-boundaries.json"],
       "capabilities": ["read-workspace"],
-      "expected": "Only the complete valid atomic update advances; permission, symlink, ownership, process-identity, and atomic-write failures block with zero provider calls and zero repository mutations.",
+      "expected": "Only the complete valid manifest and gate-file update advances; isolated directory, manifest, gate-file path/inode/length/SHA/owner/mode/type/symlink/regeneration, process-identity, and per-file atomic-write failures block with zero provider calls and zero repository mutations.",
       "assertions": [
         {"id":"manifest-boundary-status","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
-        {"id":"manifest-boundary-decisions","kind":"final-json-path-equals","pointer":"/decisions","expected":[{"id":"valid-atomic-update","advance":true,"reasonCode":"manifest-valid"},{"id":"broad-directory-permissions","advance":false,"reasonCode":"manifest-permissions-invalid"},{"id":"symlinked-manifest","advance":false,"reasonCode":"manifest-symlink-rejected"},{"id":"foreign-owner","advance":false,"reasonCode":"manifest-owner-mismatch"},{"id":"process-identity-mismatch","advance":false,"reasonCode":"manifest-process-mismatch"},{"id":"non-atomic-replacement","advance":false,"reasonCode":"manifest-atomic-write-incomplete"}],"critical":true},
+        {"id":"manifest-boundary-decisions","kind":"final-json-path-equals","pointer":"/decisions","expected":[{"id":"valid-atomic-update","advance":true,"reasonCode":"manifest-and-gate-file-valid"},{"id":"broad-directory-permissions","advance":false,"reasonCode":"manifest-permissions-invalid"},{"id":"symlinked-manifest","advance":false,"reasonCode":"manifest-symlink-rejected"},{"id":"foreign-owner","advance":false,"reasonCode":"manifest-owner-mismatch"},{"id":"gate-file-byte-length-mismatch","advance":false,"reasonCode":"gate-file-byte-length-mismatch"},{"id":"gate-file-sha256-mismatch","advance":false,"reasonCode":"gate-file-sha256-mismatch"},{"id":"gate-file-changed-path","advance":false,"reasonCode":"gate-file-path-mismatch"},{"id":"gate-file-wrong-owner","advance":false,"reasonCode":"gate-file-owner-mismatch"},{"id":"gate-file-wrong-mode","advance":false,"reasonCode":"gate-file-permissions-invalid"},{"id":"gate-file-non-regular","advance":false,"reasonCode":"gate-file-type-invalid"},{"id":"gate-file-symlink","advance":false,"reasonCode":"gate-file-symlink-rejected"},{"id":"gate-file-changed-inode","advance":false,"reasonCode":"gate-file-inode-mismatch"},{"id":"process-identity-mismatch","advance":false,"reasonCode":"manifest-process-mismatch"},{"id":"failed-regeneration","advance":false,"reasonCode":"gate-file-regeneration-mismatch"},{"id":"manifest-exclusive-temporary-write-failure","advance":false,"reasonCode":"manifest-exclusive-temporary-write-incomplete"},{"id":"manifest-file-flush-failure","advance":false,"reasonCode":"manifest-file-flush-incomplete"},{"id":"manifest-atomic-rename-failure","advance":false,"reasonCode":"manifest-atomic-rename-incomplete"},{"id":"manifest-directory-flush-failure","advance":false,"reasonCode":"manifest-directory-flush-incomplete"},{"id":"gate-file-exclusive-temporary-write-failure","advance":false,"reasonCode":"gate-file-exclusive-temporary-write-incomplete"},{"id":"gate-file-file-flush-failure","advance":false,"reasonCode":"gate-file-file-flush-incomplete"},{"id":"gate-file-atomic-rename-failure","advance":false,"reasonCode":"gate-file-atomic-rename-incomplete"},{"id":"gate-file-directory-flush-failure","advance":false,"reasonCode":"gate-file-directory-flush-incomplete"}],"critical":true},
         {"id":"manifest-boundary-no-provider","kind":"final-json-path-equals","pointer":"/providerCallCount","expected":0,"critical":true},
         {"id":"manifest-boundary-no-repository-mutation","kind":"final-json-path-equals","pointer":"/repositoryMutationCount","expected":0}
       ]
@@ -650,10 +609,10 @@
       "id": "blocks-unreceipted-approval-replay",
       "prompt": "A Build gate 2 Ask was approved in process `proc-old`, synchronization may have written the approved graph, but the process ended before the content read-back and executionPlanApprovalRecord were independently verified. A restarted process has the same manifest copy and user response. Classify recovery without contacting a provider. Return exactly one JSON object with keys approvalReusable, nextStep, providerMutationCount, and executeAllowed.",
       "capabilities": ["read-workspace"],
-      "expected": "Process loss consumes the unreceipted approval; Build requires same-identity recovery, fresh baseline admission, and a fresh complete Ask before any further mutation or Execute handoff.",
+      "expected": "Process loss consumes the unreceipted approval; Build requires same-identity recovery, fresh baseline admission, a freshly rendered gate file, and a fresh concise Ask before any further mutation or Execute handoff.",
       "assertions": [
         {"id":"build-unreceipted-not-reusable","kind":"final-json-path-equals","pointer":"/approvalReusable","expected":false,"critical":true},
-        {"id":"build-recovery-fresh-ask","kind":"final-json-path-equals","pointer":"/nextStep","expected":"recover-same-identities-then-fresh-baseline-and-complete-ask","critical":true},
+        {"id":"build-recovery-fresh-ask","kind":"final-json-path-equals","pointer":"/nextStep","expected":"recover-same-identities-then-fresh-baseline-render-and-concise-ask","critical":true},
         {"id":"build-recovery-no-mutation","kind":"final-json-path-equals","pointer":"/providerMutationCount","expected":0,"critical":true},
         {"id":"build-recovery-no-execute","kind":"final-json-path-equals","pointer":"/executeAllowed","expected":false,"critical":true}
       ]
@@ -797,22 +756,22 @@
     },
     {
       "id": "requires-fresh-ask-for-semantic-provider-change",
-      "prompt": "Evaluate every entry in semanticMutations from fixtures/provider-presentation-canonicalization.json for a Build approval. Compare project description, increment description, issue description, and displayed content separately against the approved provider form. Each provider form changes semantic Markdown text, not only presentation. Retain native bytes as evidence; each comparison consumes the original approval, creates no receipt, and requires a fresh complete Ask. Return exactly one JSON object with keys status and results; each result must contain exactly id, canonicalMatch, receiptCount, and freshAsk.",
+      "prompt": "Evaluate every entry in semanticMutations from fixtures/provider-presentation-canonicalization.json for a Build approval. Compare the project, increment, and issue descriptions against their approved canonical identities, and compare renderedGateFile with approvedGateFile by exact path, byte length, SHA-256, fingerprint version, and UTF-8 bytes. Each entry changes semantic Markdown rather than admitted presentation. Retain native bytes as evidence; each comparison consumes the original approval, creates no receipt, and requires a freshly rendered file identity and concise Ask. Return exactly one JSON object with keys status and results; each result must contain exactly id, approvalIdentityMatch, receiptCount, and freshAsk.",
       "fixtures": [
         "provider-presentation-canonicalization.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Semantic changes on project, increment, issue, and displayed-content surfaces are canonical mismatches with zero receipt and a fresh Ask.",
+      "expected": "Semantic changes on project, increment, issue, and rendered-gate-file identities all mismatch approval with zero receipt and a fresh concise Ask.",
       "assertions": [
         {"id":"build-semantic-status","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
-        {"id":"build-semantic-results","kind":"final-json-path-equals","pointer":"/results","expected":[{"id":"project-description","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"increment-description","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"issue-description","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"displayed-content","canonicalMatch":false,"receiptCount":0,"freshAsk":true}],"critical":true}
+        {"id":"build-semantic-results","kind":"final-json-path-equals","pointer":"/results","expected":[{"id":"project-description","approvalIdentityMatch":false,"receiptCount":0,"freshAsk":true},{"id":"increment-description","approvalIdentityMatch":false,"receiptCount":0,"freshAsk":true},{"id":"issue-description","approvalIdentityMatch":false,"receiptCount":0,"freshAsk":true},{"id":"rendered-gate-file","approvalIdentityMatch":false,"receiptCount":0,"freshAsk":true}],"critical":true}
       ]
     },
     {
       "id": "rejects-mixed-marker-transition-canonical-mismatch",
-      "prompt": "Evaluate markerTransitions in fixtures/provider-presentation-canonicalization.json for a Build approval. First confirm the uniformDash and uniformStar forms compare canonically equal, then compare uniformDash with mixedDashStar. The mixed transition changes Markdown list boundaries, so consume the approval, create no receipt, and require a fresh complete Ask. Return exactly one JSON object with keys status, canonicalMatch, receiptCount, and freshAsk.",
+      "prompt": "Evaluate markerTransitions in fixtures/provider-presentation-canonicalization.json for a Build approval. First confirm the uniformDash and uniformStar forms compare canonically equal, then compare uniformDash with mixedDashStar. The mixed transition changes Markdown list boundaries, so consume the approval, create no receipt, and require a freshly rendered gate file and concise Ask. Return exactly one JSON object with keys status, canonicalMatch, receiptCount, and freshAsk.",
       "fixtures": [
         "provider-presentation-canonicalization.json"
       ],
@@ -829,7 +788,7 @@
     },
     {
       "id": "rejects-terminal-lf-canonical-mismatch",
-      "prompt": "Evaluate fixtures/provider-presentation-canonicalization.json for Build terminal-LF read-back mismatches. Compare one terminal LF versus two, two versus three, and the final ATX heading with two versus three terminal LFs. Native bytes are exact evidence; every canonical mismatch consumes approval, creates no receipt, and requires a fresh complete Ask. Return exactly one JSON object with keys status and results; each result must contain exactly id, canonicalMatch, receiptCount, and freshAsk.",
+      "prompt": "Evaluate fixtures/provider-presentation-canonicalization.json for Build terminal-LF read-back mismatches. Compare one terminal LF versus two, two versus three, and the final ATX heading with two versus three terminal LFs. Native bytes are exact evidence; every canonical mismatch consumes approval, creates no receipt, and requires a freshly rendered gate file and concise Ask. Return exactly one JSON object with keys status and results; each result must contain exactly id, canonicalMatch, receiptCount, and freshAsk.",
       "fixtures": [
         "provider-presentation-canonicalization.json"
       ],
@@ -840,6 +799,26 @@
       "assertions": [
         {"id":"build-terminal-lf-mismatch-status","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
         {"id":"build-terminal-lf-mismatches","kind":"final-json-path-equals","pointer":"/results","expected":[{"id":"one-vs-two","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"two-vs-three","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"final-heading-two-vs-three","canonicalMatch":false,"receiptCount":0,"freshAsk":true}],"critical":true}
+      ]
+    },
+    {
+      "id": "renders-gate-files-byte-exactly",
+      "prompt": "Render every manifest in fixtures/gate-file-rendering.json under the shared deterministic gate-file contract. Normalize Unicode to NFC and CRLF/CR to LF, emit exactly one terminal LF, sort execution-plan issues by positive ordinal and dependencies by `(predecessorTaskKey, successorTaskKey, kind)`, and use the contract's stable Markdown template without canonicalizing ordered-list markers. Do not contact a provider or mutate a repository. Return exactly one JSON object with keys status and files; each file must contain exactly id, fileName, utf8, byteLength, and sha256 in fixture order.",
+      "fixtures": ["gate-file-rendering.json"],
+      "capabilities": ["read-workspace"],
+      "expected": "Project-spec.md and both execution-plan.md cases render to byte-exact UTF-8, length, and SHA-256 outputs despite decomposed Unicode, mixed line endings, deliberately unsorted issue and dependency inputs, and an empty dependency snapshot.",
+      "assertions": [
+        {"id":"gate-file-rendering-status","kind":"final-json-path-equals","pointer":"/status","expected":"ready","critical":true},
+        {"id":"gate-file-rendering-bytes","kind":"final-json-path-equals","pointer":"/files","expected":[{"id":"project-spec-normalizes-unicode-and-line-endings","fileName":"project-spec.md","utf8":"## Café\n\nShip the change\n","byteLength":26,"sha256":"sha256:8ace9075662192eaed2a16e1866f1759bd8b880c69e7acf3784852a5fa370242"},{"id":"execution-plan-sorts-issues-and-dependencies","fileName":"execution-plan.md","utf8":"# Execution plan\n\n## 1. First café\n\nStable task key: `task-first`\n\nFirst body.\n\n## 2. Second\n\nStable task key: `task-second`\n\nSecond body.\n\n## 3. Third\n\nStable task key: `task-third`\n\nThird body.\n\n## Dependencies\n\n- `task-first` → `task-second` (`native-issue`)\n- `task-second` → `task-third` (`native-issue`)\n","byteLength":315,"sha256":"sha256:994e638cdd4d692d6d82caf47065f186e4927b59742680d8de3dd289b27c053e"},{"id":"execution-plan-empty-dependencies","fileName":"execution-plan.md","utf8":"# Execution plan\n\n## 1. Solo\n\nStable task key: `task-solo`\n\nSolo body.\n\n## Dependencies\n\n- None.\n","byteLength":97,"sha256":"sha256:8562e071c9ddbede219b7610da78a71134a1f3bbb28fe301a001b0a4aecdd8b6"}],"critical":true}
+      ]
+    },
+    {
+      "id": "renders-one-increment-plan-with-empty-dependencies",
+      "prompt": "At Build gate 2, render the concise approval Ask for one approved new task `task-solo` with canonicalIssueReference null and a complete empty approvedDependencies snapshot. The gate file is `/private/tmp/woostack-build-run-solo/execution-plan.md`, byteLength 180, SHA-256 `sha256:3333333333333333333333333333333333333333333333333333333333333333`, fingerprintVersion `gate-file-v1`; runId is `build-run-solo`, processNonce is `proc-solo`, projectId is `project-solo`, and canonicalProjectSpecFingerprint is `sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee`. Do not contact a provider. Return exactly one JSON object with key approvalAsk.",
+      "capabilities": ["read-workspace"],
+      "expected": "A complete empty dependency array is valid for a one-increment execution plan and remains explicitly present in the concise Ask.",
+      "assertions": [
+        {"id":"build-empty-dependencies-ask","kind":"final-json-path-equals","pointer":"","expected":{"approvalAsk":{"uiText":"Approve execution plan file","approvalIdentity":{"runId":"build-run-solo","processNonce":"proc-solo","gate":2,"projectId":"project-solo","canonicalProjectSpecFingerprint":"sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","gateFile":{"path":"/private/tmp/woostack-build-run-solo/execution-plan.md","byteLength":180,"sha256":"sha256:3333333333333333333333333333333333333333333333333333333333333333","fingerprintVersion":"gate-file-v1"},"approvedStableTaskMappings":[{"stableTaskKey":"task-solo","canonicalIssueReference":null}],"approvedDependencies":[]}}},"critical":true}
       ]
     }
   ]

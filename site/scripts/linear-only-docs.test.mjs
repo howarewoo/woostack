@@ -249,7 +249,7 @@ test('gated drafts defer provider synchronization until complete approval', () =
   const contract = read('skills/woostack-init/references/artifact-backends.md').replace(/\s+/g, ' ');
   assert.match(contract, /host OS temporary-directory facility.*0700.*0600/i);
   assert.match(contract, /zero Linear or other provider reads and writes/i);
-  assert.match(contract, /complete exact local content to be saved, not a summary or pointer-only presentation/i);
+  assert.match(contract, /active-conversation Ask displays concise identity.*never its complete body/i);
   assert.match(contract, /approval must occur before any draft content is saved/i);
   assert.match(contract, /only after that exact content read-back, record/i);
   assert.match(contract, /unreceipted approval is consumed and cannot be replayed/i);
@@ -328,21 +328,21 @@ test('only exact native fix approval authorizes repository work', () => {
     /responsible[-\s]user(?:'s)?[\s\S]{0,800}(?:approvalEventRef|approval\s+event|explicit approval comment|native approval\s+event)/i,
     'artifact contract must require the responsible user native approval event');
   assertContains('skills/woostack-init/references/artifact-backends.md',
-    /complete exact local content|displayedApprovalIdentity/i,
-    'artifact contract must bind approval authority to one exact displayed content revision');
+    /displayedApprovalIdentity[\s\S]{0,300}gateFile[\s\S]{0,120}byteLength[\s\S]{0,80}sha256/i,
+    'artifact contract must bind approval authority to one exact gate-file identity');
 
   assertContains('skills/woostack-fix/SKILL.md',
-    /responsible user explicitly approves that exact display[\s\S]{0,300}projectSpecApprovalRecord/i,
-    'Fix must bind displayed project-spec approval to its ordered receipt');
+    /responsible user explicitly approves that identity[\s\S]{0,500}projectSpecApprovalRecord/i,
+    'Fix must bind project-spec gate-file approval to its ordered receipt');
   assertContains('skills/woostack-fix/SKILL.md',
     /### 5\. Execution-plan approval[\s\S]{0,2000}executionPlanApprovalRecord/i,
-    'Fix must bind displayed execution-plan approval to its ordered receipt');
+    'Fix must bind execution-plan gate-file approval to its ordered receipt');
   assertContains('skills/woostack-fix/SKILL.md',
-    /Display the complete exact project specification[\s\S]{0,260}exact content[\s\S]{0,100}projectSpecApprovalRecord/i,
-    'Fix must show complete project content and read it back before receipt');
+    /display only its absolute path[\s\S]{0,500}exact content before recording `projectSpecApprovalRecord`/i,
+    'Fix must show concise project-spec file identity and read exact content back before receipt');
   assertContains('skills/woostack-fix/SKILL.md',
-    /Display the complete exact ordered direct-issue contracts[\s\S]{0,350}stable task keys to native issue IDs/i,
-    'Fix must show the complete plan and verify native identity mapping');
+    /Display only its file path\/hash\/length\/version[\s\S]{0,800}Atomically bind stable task keys to canonical issue references/i,
+    'Fix must show the concise plan identity and verify canonical identity mapping');
 });
 
 test('authored setup order keeps initialization and the external-engineer guide sequenced', () => {
@@ -438,7 +438,7 @@ test('approval relay remains responsible-user and receipt bound', () => {
   assert.match(contract, /same persistent OMP process/i);
   assert.match(contract, /Hermes may transmit.*may not author or transform/i);
   assert.match(contract, /restarted or different process.*fails closed/i);
-  assert.match(contract, /fresh Ask and active-conversation approval/i);
+  assert.match(contract, /fresh file render, identity, Ask, and active-conversation approval/i);
   assert.match(contract, /matching active-conversation approval/i);
   assert.match(contract, /Linear receipt\/event/i);
 });

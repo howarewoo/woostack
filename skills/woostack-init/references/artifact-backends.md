@@ -8,8 +8,8 @@ selected Linear artifacts, but remain artifact-optional.
 
 Linear owns the current build specification, increment contracts, fix contract, and their approved
 content revisions after the ordered synchronization and receipt read-back. It is not source-control
-or delivery authority. The responsible user's explicit approval of the complete exact local content
-displayed in the active conversation authorizes only the matching bounded save; exact Linear
+or delivery authority. The responsible user's explicit approval of the matching owner-only gate file
+identity displayed in the active conversation authorizes only the matching bounded save; exact Linear
 read-back and the matching receipt clear the workflow gate. Git, Graphite, and canonical GitHub
 reads prove source, ancestry, PR, review, and merge facts.
 
@@ -29,9 +29,9 @@ Build project resolution/creation happens before ideation. A build has no artifa
 Before root-cause proof, a fix makes no provider read or write. After a Build or project-backed Fix
 admits its exact initial Linear baseline, its gated drafting follows the
 [run-scoped manifest contract](#run-scoped-gated-draft-manifest) and makes no further provider call
-until the responsible user approves the complete displayed draft. Without exact selection or
-explicit persistence, standalone planning and all other artifact-optional commands make no provider
-call.
+until the responsible user approves the exact gate file identity and concise mapping displayed in the
+Ask. Without exact selection or explicit persistence, standalone planning and all other
+artifact-optional commands make no provider call.
 
 Init discovery may validate only non-secret repository/workspace/team/native-name defaults. It does
 not select an optional artifact path, authorize later provider access, read development artifacts,
@@ -199,9 +199,10 @@ it from an input object with exactly `title`, `description`, and `dependencies`:
    `providerPresentationCanonicalization` below; do not trim or collapse any other description
    content.
 3. **`providerPresentationCanonicalization`** is the one shared, narrowly admitted provider
-   presentation normalization for project, increment, issue, and displayed-content fingerprints.
-   Apply it only after NFC and line-ending normalization, and only to Markdown-bearing prose
-   strings. Scan lines in order while preserving every byte not covered here:
+   presentation normalization for project, increment, and issue Markdown, including provider
+   read-back compared with approved gate-file bytes. Apply it only after NFC and line-ending
+   normalization, and only to Markdown-bearing prose strings. Scan lines in order while preserving
+   every byte not covered here:
    - outside fenced code (a fence is a line with at most three leading spaces followed by a run of
      at least three backticks or tildes, closed by the same character and at least that run length),
      canonicalize syntactic unordered `-` and `*` list markers while retaining their transition
@@ -252,16 +253,19 @@ exactly `name` and `description`. For an execution plan, each
 `canonicalIncrementFingerprint` hashes a canonical object with exactly `title` and `description`.
 Normalize and serialize those strings with the same Unicode, line-ending, key-order, escaping,
 UTF-8, and SHA-256 rules above, applying `providerPresentationCanonicalization` to their
-Markdown-bearing descriptions. The displayed-content fingerprint uses the same named
-canonicalization for every Markdown-bearing displayed value before the stable-key and dependency
-identity envelope is serialized. Do not trim or collapse descriptions outside the named
-normalization. Project and issue status, dates, labels, assignments, comments, parent/container
+Markdown-bearing descriptions. When comparing provider content with the approved gate file, apply
+the same named canonicalization to the corresponding Markdown-bearing values while retaining the
+exact gate-file bytes, byte length, and SHA-256 as approval evidence. The immutable stable-task
+mapping and dependency snapshots remain separate identity inputs. Do not trim or collapse
+descriptions outside the named normalization.
+Project and issue status, dates, labels, assignments, comments, parent/container
 relations, and provider timestamps are excluded.
 
 Native provider bytes remain exact read-back evidence. Compare their canonical fingerprints only:
 presentation changes admitted by `providerPresentationCanonicalization` leave approval valid and
 continue the same receipt with no second Ask; a canonical mismatch or any other read-back failure
-consumes the approval and requires a fresh complete Ask before another receipt or mutation.
+consumes the approval and requires a fresh rendered gate file and concise Ask before another receipt
+or mutation.
 
 Whitespace or Unicode normalization that leaves canonical bytes unchanged does not invalidate
 approval. Any title, description/plan, project specification, or admitted dependency change that
@@ -302,9 +306,10 @@ where `kind` is exactly `native-issue`, sorted lexicographically by
 ### Repository ancestry is separate from approval identity
 
 Stable canonical parent-branch intent is approved content. State it in the complete project
-specification and each affected increment description so the existing description-derived
-`canonicalProjectSpecFingerprint`, `canonicalIncrementFingerprint`, and displayed-content
-fingerprint bind it. Do not add a separate Git field to an approval record or fingerprint envelope.
+specification and each affected increment description so the description-derived
+`canonicalProjectSpecFingerprint` and `canonicalIncrementFingerprint`, the exact rendered gate-file
+bytes, and the approved stable-task mapping and dependency snapshots bind it. Do not add a separate
+Git field to an approval record or fingerprint envelope.
 Mutable observed refs, heads, commits, parent tips, worktrees, Graphite state, and PR-base movement
 remain repository evidence outside content receipt identity and never invalidate a receipt by
 themselves.
@@ -351,14 +356,30 @@ baseline after the gate 1 receipt and before delegated Plan/Harden work. Missing
 foreign, incomplete, or conflicting admission blocks before drafting.
 
 Create one run-scoped directory through the host OS temporary-directory facility, outside the
-repository and every tracked or shared workspace. Set the directory to owner-only `0700` and its
-single JSON manifest to owner read/write `0600`; reject symlinks, broader permissions, or a path
-whose ownership does not match the current process user. Every update writes a complete JSON value
-to a new exclusive `0600` file in that directory, flushes it, atomically renames it over the
-manifest, and flushes the directory. Never append, patch in place, place the manifest in the
-repository, or copy it into a prompt, report, cache, or provider record.
+repository and every tracked or shared workspace. Set the directory to owner-only `0700`. It owns
+exactly one JSON manifest and at most these two Markdown gate files:
 
-The manifest contains exactly the run state needed to reconstruct the displayed draft:
+```text
+<run-directory>/manifest.json
+<run-directory>/project-spec.md
+<run-directory>/execution-plan.md
+```
+
+The manifest and every gate file are owner read/write `0600`; reject symlinks, broader permissions,
+non-regular files, foreign ownership, and unexpected directory entries. Gate files are created
+exclusively and never placed in the repository or copied into a prompt, report, cache, or provider
+record. Every manifest update writes a complete JSON value to a new exclusive `0600` file, flushes
+it, atomically renames it over the manifest, and flushes the directory. Every gate-file replacement
+uses a new exclusive owner-only temporary file, flushes its bytes, atomically renames it to the
+fixed gate filename, and flushes the directory. Never append or patch any file in place.
+
+Before and after every gate-file read, reopen the absolute path with no-follow semantics and verify
+the path remains beneath the owner-only run directory, its owner is the current process user, its
+mode is exactly `0600`, and its type is regular. Reject a symlink, changed path, changed inode after
+the approved snapshot, stale run/process identity, failed length or SHA-256 comparison, or any
+unexpected file. A failed check blocks before provider or repository mutation.
+
+The manifest contains exactly the structured run state needed to regenerate the gate files:
 
 ```text
 {
@@ -390,19 +411,26 @@ The manifest contains exactly the run state needed to reconstruct the displayed 
 }
 ```
 
+`displayedApprovalIdentity.gateFile` is the sole file identity record:
+`{ path, byteLength, sha256, fingerprintVersion }`. The identity also records `runId`,
+`processNonce`, `gate`, `projectId`, and immutable `approvedStableTaskMappings` and
+`approvedDependencies` snapshots relevant to that gate. Keep those approved snapshots distinct from
+the top-level live `stableTaskMappings`, which changes only from an approved `null` to the newly
+created canonical reference during bounded synchronization and is never remapped.
+
 `baseline` retains exact canonical issue references and provider-native identities, revisions, complete
 stable-key mappings, and fingerprints from admission. Each draft increment has one stable local task
-key, title, complete description, fingerprint, and dependency keys. Before gate 2's Ask, reconcile
-every retained baseline issue to exactly one draft task key: reuse a prior independently verified
-mapping, or include one explicit proposed canonical-issue-reference→task-key mapping in the displayed
-approval identity. Ambiguous, duplicate, or unmatched retained issues block; they never become
+key, title, complete description, fingerprint, and dependency keys. Before gate 2's file is rendered,
+reconcile every retained baseline issue to exactly one draft task key: reuse a prior independently
+verified mapping, or record one explicit proposed canonical-issue-reference→task-key mapping in the
+concise mapping manifest. Ambiguous, duplicate, or unmatched retained issues block; they never become
 permission to allocate replacement issues. `stableTaskMappings` maps every local task key to that
 retained canonical issue reference, or to `null` only when the approved task is explicitly new. It is
 updated atomically as new identities become known and never remapped. `mutationIdentities` preallocates
 the stable project, issue, relation, and receipt operation identities needed for one bounded
 synchronization.
-`unresolvedQuestions` is explicit and must be empty before an Ask. `fingerprints` covers the exact
-draft specification, ordered increment set, dependency set, and complete displayed content.
+`unresolvedQuestions` is explicit and must be empty before a file is rendered. `fingerprints` covers
+the exact draft specification, ordered increment set, dependency set, and rendered gate bytes.
 
 After baseline admission, Ideate, both Harden passes, and Build/Fix-delegated Plan use only the
 manifest plus bounded repository evidence. They perform zero Linear or other provider reads and
@@ -412,81 +440,123 @@ Unverified or ambiguous material remains unresolved. The manifest is a permissio
 not product authority: it never replaces, mutates, or supersedes the last Linear-approved boundary
 and can never authorize Execute.
 
-#### Complete displayed-content approval identity
+#### Deterministic gate-file approval identity
 
-The active-conversation Ask must display the complete exact local content to be saved, not a
-summary or pointer-only presentation. Gate 1 displays the exact project identity/link, project name,
-specification text, and `canonicalProjectSpecFingerprint`. Gate 2 displays the same approved project
-fingerprint plus every stable local task key, complete issue title and description, issue
-fingerprint, and exact dependency tuple in deterministic order; include the canonical issue reference
-and link where `stableTaskMappings` already has one. No content may be elided, collapsed, attached
-by reference, or left only in controller state.
+The active-conversation Ask displays concise identity for an owner-only Markdown file, never its
+complete body. Before each Ask, render from the current manifest into UTF-8 bytes using exactly one
+renderer and write the appropriate fixed file:
 
-Canonicalize the displayed stable keys, complete content, and dependency keys under the fingerprint
-rules above. Canonical issue references/links are not inputs to the displayed-content fingerprint,
-but the complete proposed mapping—including retained baseline mappings and explicit `null` entries for
-new tasks—is separately canonicalized as `baselineMappingFingerprint`. Store
-`displayedApprovalIdentity = { runId, processNonce, gate, displayedContentFingerprint,
-baselineMappingFingerprint }` before the Ask. The Ask and the manifest must contain byte-identical
-content and mapping metadata under those canonicalizations. The
-responsible user's explicit response approves only this displayed identity in the same active
-conversation and persistent process. Any edit, regenerated ordering, omitted body, stale transcript,
-copied response, different/restarted process, missing manifest, or identity mismatch invalidates the
-response and requires a fresh complete Ask.
+- `project-spec.md` is gate 1's complete project body, preserving the approved Markdown-bearing
+  specification after NFC and CRLF/CR-to-LF normalization, with exactly one terminal LF;
+- `execution-plan.md` is gate 2's complete ordered issue contracts and dependency tuples. Sort
+  issues by positive ordinal and dependencies by `(predecessorTaskKey, successorTaskKey, kind)`;
+  preserve each contract body and its provider-presentation semantics. The renderer does not
+  canonicalize ordered-list markers; that separately versioned behavior belongs to WOO-184.
+
+The renderer uses one stable Markdown template. `execution-plan.md` starts with
+`# Execution plan`, then emits each ordinal-sorted issue as an `## <ordinal>. <title>` section,
+followed by a `Stable task key:` line with `<stableTaskKey>` rendered as inline code and its complete
+description. It ends with
+`## Dependencies` and one
+``- `<predecessorTaskKey>` → `<successorTaskKey>` (`<kind>`)`` line per sorted tuple, or
+`- None.` for a complete empty dependency snapshot. Separate headings, metadata, descriptions, and
+the dependency section with one blank line. Normalize rendered strings to NFC and LF, and end the
+file with exactly one LF; do not otherwise rewrite contract bodies or ordered-list markers.
+
+Rendering must be deterministic: the same manifest value, renderer/fingerprint version, and process
+must produce byte-identical output. Re-render after every manifest replacement and before approval;
+compare bytes, byte length, and SHA-256 with the file opened no-follow. Regeneration mismatch,
+unexpected terminal-LF count, changed path, changed inode, or a file that is not owner-only and
+regular invalidates the draft before an Ask.
+
+The Ask contains only:
+
+```text
+gateFile: {
+  path: <absolute path>,
+  byteLength: <UTF-8 byte count>,
+  sha256: <sha256:...>,
+  fingerprintVersion: <stable renderer version>
+}
+runId, processNonce, gate, projectId, canonicalProjectSpecFingerprint
+approvedStableTaskMappings: [{ stableTaskKey, canonicalIssueReference|null }]
+approvedDependencies: [{ predecessorTaskKey, successorTaskKey, kind }]
+```
+
+Gate 1 uses the project file and its project identity; gate 2 uses the execution-plan file and the
+same project identity plus every immutable approved stable-task mapping and stable-task dependency
+tuple. The mapping is complete and concise, including retained references and explicit `null`
+entries for new tasks; canonical issue references created during synchronization are recorded only
+in the distinct live mapping and the native graph read-back. Complete issue descriptions remain
+only in `execution-plan.md`; they are not duplicated in the Ask or manifest identity. Store the
+immutable snapshots in `displayedApprovalIdentity` before the Ask. The responsible user's explicit
+response approves only this path/hash/length identity, mapping, dependencies, and the same run/process
+in the active conversation. A changed or replaced file, stale process, copied response, missing
+manifest, failed no-follow reopen, or identity mismatch invalidates the response and requires a
+fresh render and Ask.
 
 #### Approval-before-save synchronization
 
-The responsible user's matching approval must occur before any draft content is saved to Linear.
-After that approval, perform exactly one bounded synchronization cycle:
+The responsible user's matching file identity approval must occur before any draft content is saved
+to Linear. After that approval, reopen the approved absolute path with no-follow semantics and
+revalidate owner, exact `0600` mode, regular-file type, run/process identity, byte length, SHA-256,
+fingerprint version, and regeneration from the unchanged manifest. Any changed path, bytes, inode,
+permissions, owner, symlink, stale process, or failed regeneration blocks before provider or
+repository mutation. Only then perform exactly one bounded synchronization cycle:
 
 1. immediately re-read the exact Linear targets, complete relevant issue/relation pagination,
    revisions, fingerprints, mappings, and matching receipts; compare them with the admitted
    `baseline`;
-2. if and only if the baseline is unchanged, write exactly the approved specification or complete
-   direct-issue/dependency graph, using the preallocated mutation identities and the existing-record
-   mutation invariant where applicable. Before each later target mutation in the cycle, either
-   enforce the retained revision/content identity as an optimistic precondition or immediately
-   re-read that target's changed fields; abort all remaining mutations on drift;
+2. if and only if the baseline and gate file are unchanged, write exactly the approved project
+   specification or complete direct-issue/dependency graph, using the preallocated mutation
+   identities and the existing-record mutation invariant where applicable. Before each later target
+   mutation in the cycle, either enforce the retained revision/content identity as an optimistic
+   precondition or immediately re-read that target's changed fields; abort all remaining mutations
+   on drift;
 3. as each explicitly new issue is created, atomically bind its stable local task key to the one
    canonical issue reference, and reject any remap, duplicate, foreign reference, retained-issue
    mismatch, or dependency endpoint mismatch;
 4. independently read back the exact project, every affected direct issue, membership, complete
    content, native dependency relation, revision, fingerprint, and stable-key-to-canonical-reference
-   mapping;
-   require the approved stable-keyed content and dependency graph to match
-   `displayedContentFingerprint`, and require immutable canonical-reference bindings—both retained
-   baseline mappings and mappings bound after a successful create—to match the verified stable-key
-   mapping separately from provider-native mutation identities, which must match their preallocated
-   `mutationIdentities` records; and
+   mapping. Compare provider content with the approved gate file under the unchanged
+   `providerPresentationCanonicalization`; require immutable canonical-reference bindings—both
+   retained baseline mappings and mappings bound after a successful create—to match the verified
+   stable-key mapping separately from provider-native mutation identities, which must match their
+   preallocated `mutationIdentities` records; and
 5. only after that exact content read-back, record the matching `projectSpecApprovalRecord` or
    `executionPlanApprovalRecord`, then independently read back the receipt and every record it
    references before clearing the gate.
 
 One bounded cycle may contain the minimum ordered mutations needed for that approved graph; it is
 not a per-question, per-answer, or per-decision synchronization loop. Do not save intermediate
-drafts, patch after the approval Ask, or start a second cycle under the same approval.
+drafts, patch after the Ask, or start a second cycle under the same approval.
 
-Pre-save baseline drift, read-back mismatch, remapped identity, incomplete pagination, unknown
-content, manifest/process loss, or failure before an independently verified receipt invalidates the
-approval. An unreceipted approval is consumed and cannot be replayed, summarized, or reused. Recover
-an unknown mutation only by reading the same preallocated identities; even when the remote content
-is found intact, admit a fresh baseline and present a fresh complete Ask before attempting a receipt
-or further mutation. Never allocate replacement identities, infer mappings, or treat the local
-draft as the last approved Linear boundary.
+Pre-save baseline drift, file identity drift, read-back mismatch, remapped identity, incomplete
+pagination, unknown content, manifest/process loss, or failure before an independently verified
+receipt invalidates the approval. An unreceipted approval is consumed and cannot be replayed,
+summarized, or reused. Recover an unknown mutation only by reading the same preallocated identities;
+even when the remote content is found intact, admit a fresh baseline, regenerate the gate file, and
+present a fresh concise Ask before attempting a receipt or further mutation. Never allocate
+replacement identities, infer mappings, or treat the local draft as the last approved Linear
+boundary.
 
-Retain the manifest after the gate 1 receipt only for gate 2 baseline admission, replacing its phase
-state atomically. Remove the manifest and its run-scoped temporary directory immediately after the
-gate 2 receipt and referenced records read back exactly, or when the user explicitly abandons the
-workflow. Missing cleanup blocks a completion claim; cleanup never substitutes for configured
-project closure.
-
-An external engineer relay must carry the responsible user's response verbatim. The responsible
-user's response must travel verbatim, without summarization, rewriting, or replay, through the same
-persistent OMP process that displayed the complete Ask. Hermes may transmit that response but may
-not author or transform it. A restarted or different process fails closed and requires a fresh Ask
-and active-conversation approval. Conversation approval without the ordered synchronization, exact
-read-backs, and final Linear receipt; a Linear record without the matching active-conversation
-approval; status, labels, assignment, content alone,
+Retain the manifest and `project-spec.md` after the gate 1 receipt only for gate 2 baseline admission.
+Create `execution-plan.md` exclusively when the gate 2 draft is complete; never retain more than the
+manifest and these two named gate files. After the gate 2 receipt and referenced records read back
+exactly, no-follow verify both gate files' ownership and `0600` regular-file state, unlink both gate
+files and the manifest, flush the directory, and remove the empty `0700` run directory. On explicit
+abandonment, apply the same verification and unlink sequence to each expected gate file already
+created, require absent not-yet-created gate files to have no directory entry, reject every
+unexpected sibling, then remove the manifest and directory. Missing required completion files,
+unexpected entries, or failed cleanup blocks a completion claim; cleanup never
+substitutes for configured project closure.
+An external engineer relay must carry the responsible user's concise response verbatim. The
+responsible user's response must travel verbatim, without summarization, rewriting, or replay,
+through the same persistent OMP process that rendered and displayed the gate-file identity. Hermes
+may transmit that response but may not author or transform it. A restarted or different process fails
+closed and requires a fresh file render, identity, Ask, and active-conversation approval. Conversation
+approval without the ordered synchronization, exact read-backs, and final Linear receipt; a Linear
+record without the matching active-conversation approval; status, labels, assignment, content alone,
 read-back alone, workflow inference, or an agent-authored event never grants a gate.
 
 `approvedBy` is the responsible user's stable principal identity, `approvedAt` is the recorded

@@ -26,10 +26,10 @@ fallback. Before acting, load and apply the shared
 [Linear artifact contract](../woostack-init/references/artifact-backends.md), the
 [repository/project context procedure](references/linear-context.md), and the
 [`Linear synchronization procedure`](references/linear-procedure.md). The shared artifact contract is
-the single authority for baseline admission, the permission-restricted run manifest, complete
-displayed-content approval identity, approval-before-save ordering, canonical issue-reference/
-nullable-parent preflight, native project/team identity, drift/failure recovery, cleanup, and
-unchanged Execute safety reads. The shared
+the single authority for baseline admission, the permission-restricted run manifest, deterministic
+owner-only gate-file rendering and path/hash/length approval identity, approval-before-save ordering,
+canonical issue-reference/nullable-parent preflight, native project/team identity, drift/failure
+recovery, cleanup, and unchanged Execute safety reads.
 [repository advancement contract](../woostack-init/references/artifact-backends.md#repository-ancestry-is-separate-from-approval-identity)
 governs parent-branch re-admission; this wrapper does not restate those rules.
 
@@ -38,12 +38,12 @@ governs parent-branch re-admission; this wrapper does not restate those rules.
 ```text
 resolve/create canonical project and admit gate 1 baseline →
 draft Ideate/Harden locally with zero provider calls →
-display complete exact project specification and approve →
+render and approve `project-spec.md` by concise file identity →
 pre-save drift read → one bounded sync → exact content read-back → receipt/read-back →
 draft delegated Plan/Harden locally with zero provider calls →
-display complete exact execution plan and approve →
+render and approve `execution-plan.md` by concise file identity and complete mapping →
 pre-save drift read → one bounded sync → exact graph read-back → receipt/read-back →
-manifest cleanup → normal Execute
+gate-file and manifest cleanup → normal Execute
 ```
 
 Invoke [`woostack-ideate`](../woostack-ideate/SKILL.md) for exhaustive user-verified decisions and
@@ -54,8 +54,9 @@ and own no approval gate.
 After the first receipt reads back exactly, invoke
 [`woostack-plan`](../woostack-plan/SKILL.md) with the exact approved project fingerprint and project
 identity. When delegated by Build, Plan returns only a candidate strict sequential direct-issue
-chain and performs no provider read or mutation. Harden admits the candidate into the manifest.
-Only after the responsible user approves the complete exact displayed plan does Build perform the
+chain and performs no provider read or mutation. Harden admits the candidate into the manifest,
+which deterministically renders `execution-plan.md`. Only after the responsible user approves its
+path, byte length, SHA-256, fingerprint version, and complete concise mapping does Build perform the
 shared single bounded post-approval synchronization.
 At both approval boundaries, Build requires a safe removal/simplification analysis before additive
 work. Ideate records viable removal opportunities before additive proposals, and Harden challenges
@@ -73,24 +74,23 @@ simplification contract remains unchanged.
 Build owns exactly these two stops, in this order, and no other approval or routing stop:
 
 Both stops obey the shared
-[gated manifest and displayed-content approval contract](../woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest);
-Build owns only the gate-specific transition:
+[gated manifest and gate-file approval contract](../woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest).
+Build owns only these gate-specific displays and successful outcomes:
 
-1. **Project specification.** Display the complete exact local specification and its approval
-   identity. After explicit responsible-user approval, apply the shared immediate drift read,
-   bounded save, exact content read-back, receipt write, and receipt/read-back order. Continue only
-   when `projectSpecApprovalRecord` and its referenced project match exactly.
-2. **Execution plan.** Display every complete exact direct-issue contract and dependency tuple.
-   After explicit responsible-user approval, run the shared
-   [graph-write preflight](../woostack-init/references/artifact-backends.md#canonical-issue-references-nullable-parents-and-graph-write-preflight)
-   and bounded synchronization, including the stable local task-key to canonical-issue-reference
-   mapping. Continue only when `executionPlanApprovalRecord`, both shared receipts, and the
-   referenced project graph match exactly.
+1. **Project specification.** Deterministically render `project-spec.md` from the manifest and
+   display only its absolute path, byte length, SHA-256, fingerprint version, run/process identity,
+   and project identity. A successful shared synchronization produces an independently verified
+   `projectSpecApprovalRecord` whose referenced project matches exactly.
+2. **Execution plan.** Deterministically render `execution-plan.md` containing every ordered issue
+   contract and dependency tuple. Display only its file identity plus the complete concise stable
+   task mapping and dependency mapping. A successful shared synchronization binds stable local task
+   keys to canonical issue references and produces an independently verified
+   `executionPlanApprovalRecord` whose referenced project graph matches exactly.
 
-No draft provider cycle occurs before either approval. A baseline or displayed-content mismatch,
-process/manifest loss, or any failure before the exact receipt read-back invalidates the approval
-and requires a fresh complete Ask. An unreceipted approval cannot be replayed. The local draft never
-replaces the last Linear-approved boundary.
+The linked contract owns file replacement and no-follow checks, drift admission, bounded-save and
+read-back ordering, receipts, recovery, and cleanup. Any failure at those shared boundaries blocks
+Build; an unreceipted approval cannot be replayed, and the local draft never replaces the last
+Linear-approved boundary.
 
 Build compares the shared
 [`providerPresentationCanonicalization`](../woostack-init/references/artifact-backends.md#canonical-content-fingerprints-and-project-approval-records)

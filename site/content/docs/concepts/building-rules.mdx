@@ -26,21 +26,23 @@ Multi-increment work follows one fixed chain:
 
 ```text
 resolve/create canonical project and admit exact baseline →
-draft Ideate/Harden locally → display and approve complete exact specification →
+draft Ideate/Harden locally → render owner-only `project-spec.md` and approve path/hash/length →
 bounded save/read-back/receipt → draft Plan/Harden locally →
-display and approve complete exact plan → bounded save/read-back/receipt →
-execute → review → hand back
+render owner-only `execution-plan.md` and approve path/hash/length plus concise mapping →
+bounded save/read-back/receipt → execute → review → hand back
 ```
 
-The only hard gates are complete project-spec approval and complete execution-plan approval. During
-each gated drafting phase there are no intermediate provider cycles; approval occurs before save,
-and native content/graph read-back is compared by the shared provider-presentation canonical
-fingerprint before the matching receipt can clear the gate.
+The only hard gates are deterministic project-spec-file approval and execution-plan-file approval.
+During each gated drafting phase there are no intermediate provider cycles; approval occurs before
+save, file identity is revalidated with no-follow and deterministic regeneration, and native
+content/graph read-back is compared by the shared provider-presentation canonical fingerprint before
+the matching receipt can clear the gate.
 
 The shared [Linear artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest)
-is the detailed authority for the temporary manifest, displayed-content identity, synchronization
-ordering, recovery, cleanup, and unchanged Execute reads. Material updates to canonical Linear
-records invalidate the matching gate.
+is the detailed authority for the temporary manifest, owner-only gate files, path/hash/length/
+fingerprint-version identity, synchronization ordering, recovery, cleanup, and unchanged Execute
+reads. Material updates to canonical Linear records invalidate the matching gate.
+
 
 ## Execution invariants
 

@@ -1,6 +1,6 @@
 ---
 name: woostack-ideate
-description: Internal Build/Fix phase that records only user-verified decisions in a permission-restricted run draft and hands back a complete local specification. It is not a public command.
+description: Internal Build/Fix phase that records only user-verified decisions in a permission-restricted run draft and hands back a gate-file-ready local specification. It is not a public command.
 ---
 
 # woostack-ideate
@@ -58,8 +58,8 @@ into a decision without asking.
 After each user reply, persist no provider content. If it contains one or more explicit,
 unambiguous verified decisions, atomically replace the manifest draft once with those decisions and
 the resulting unresolved-question set before asking the next eligible batch. Recompute the exact
-draft specification and displayed-content fingerprints on that atomic replacement. A reply with no
-verified decision causes no draft-content change.
+draft specification fingerprint and the deterministic gate-render fingerprint on that atomic
+replacement. A reply with no verified decision causes no draft-content change.
 
 Partial or ambiguous answers remain unresolved and stay in the manifest for a later eligible batch.
 Never write placeholders, inferred defaults, recommendations, or repository-derived guesses.
@@ -67,18 +67,16 @@ Continue only from the complete current manifest content. A manifest permission,
 identity, atomic-write, or process-continuity failure blocks; Ideate never repairs the boundary by
 contacting Linear or using conversation history as authority.
 
-## Single handoff
-
-When exhaustive brainstorming is complete and the latest complete specification has no unresolved
-user decision, hand back to the owning wrapper:
+When exhaustive brainstorming is complete and the latest specification has no unresolved user
+decision, hand back to the owning wrapper:
 
 - the exact baseline project identity and revision;
-- the complete local specification;
-- its `canonicalProjectSpecFingerprint`;
+- the permission-restricted manifest containing the local specification;
+- its `canonicalProjectSpecFingerprint` and gate-render fingerprint;
 - the empty unresolved-question set; and
 - the exact run/process and manifest identity.
 
-This handoff is not approval. The owning Build or project-backed Fix wrapper owns
-project-specification hardening and the exact `project-spec-approval` gate, then owns planning,
-execution, review, Git/Graphite mutation, and every later transition. Ideate never invokes those
-phases, writes implementation source, or becomes a public command.
+This handoff is not approval. The owning Build or project-backed Fix wrapper owns project-spec
+hardening, deterministic `project-spec.md` rendering and its concise `project-spec-approval` gate,
+then owns planning, execution, review, Git/Graphite mutation, and every later transition. Ideate
+never invokes those phases, writes implementation source, or becomes a public command.
