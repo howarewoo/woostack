@@ -4,10 +4,11 @@
 # Outputs: angles=<csv> to $GITHUB_OUTPUT.
 # Side effects: writes /tmp/pr-review/angles.txt (one angle per line).
 #
-# Angle gating:
-#   bugs      — always on
-#   security  — always on
-#   simplify  — always on
+# Dispatch policy:
+#   bugs      — the singular general correctness pass, always on.
+#   specialists — only deterministic changed-path or changed-line signals below.
+#                 Broad source-file fanout (architecture, comments,
+#                 production-readiness, and simplify) is intentionally absent.
 #   seo       — HARD files (fire on path alone): robots.txt, sitemap.{xml,ts},
 #               app/manifest.{ts,json}. SOFT surfaces (*.html, head/layout/page
 #               files, next.config.*) fire only via a diff token: legacy <meta /
@@ -22,12 +23,14 @@
 #               Otherwise only AI-crawler tokens (GPTBot / PerplexityBot /
 #               ClaudeBot / Google-Extended / anthropic-ai) or JSON-LD schema
 #               types (FAQPage / HowTo / Article / Product / ItemList) fire it.
-#   design    — *.{tsx,jsx,vue,svelte,html,css,scss,sass,less,styl,astro}
-#   react     — *.{tsx,jsx} in the diff. The angle handles non-React .tsx
-#               (e.g. Solid, Preact-only) gracefully, so a package.json check is
-#               unnecessary and breaks monorepos where react lives in workspace
-#               packages, not the root manifest.
-#   database  — *.sql, migrations/ trees (db/supabase/prisma), prisma/schema.prisma,
+#   design   — *.{tsx,jsx,vue,svelte,html,css,scss,sass,less,styl,astro}
+#   react    — *.{tsx,jsx} in the diff. The angle handles non-React .tsx
+#              (e.g. Solid, Preact-only) gracefully, so a package.json check is
+#              unnecessary and breaks monorepos where react lives in workspace
+#              packages, not the root manifest.
+#   security — deterministic auth/secrets/data-flow paths, or high-risk
+#              security tokens on added diff lines (see has_security_* below).
+#   database — *.sql, migrations/ trees (db/supabase/prisma), prisma/schema.prisma,
 #               drizzle.config.{ts,js,mjs}, drizzle/, knexfile.{ts,js},
 #               supabase/(config.toml|seed.sql), OR diff body contains SQL DDL
 #               (CREATE/ALTER/DROP TABLE|INDEX|POLICY|FUNCTION|TRIGGER|SCHEMA|TYPE),
@@ -59,7 +62,8 @@
 #               OpenTelemetry / span. / metrics., bare `catch {}` swallow,
 #               `.catch(() => null|undefined)`, production Mock/Fake/Stub fallback
 #               construction.
-#   types     — *.ts / *.tsx / *.cts / *.mts in diff. TypeScript-only.
+#   types     — declaration-oriented TypeScript paths (types/, typings/, *.d.ts)
+#               or explicit type syntax on an added diff line.
 #   i18n      — locales/, messages/, i18n/, translations/ directory trees,
 #               *.po / *.pot files, or `i18n.t(` / `useTranslations(` /
 #               `<Trans` / `FormattedMessage` tokens in the diff body.
@@ -71,21 +75,10 @@
 #               pnpm-lock.yaml, yarn.lock, bun.lockb, requirements.txt,
 #               pyproject.toml, poetry.lock, uv.lock, go.mod, go.sum,
 #               Cargo.toml, Cargo.lock, Gemfile(.lock), composer.{json,lock}.
-#   architecture — general-purpose source files in the diff:
-#               *.{ts,tsx,cts,mts,js,jsx,mjs,cjs,py,go,rs,java,kt,kts,swift,rb,
-#               php,cs,scala,c,h,cc,cpp,hpp,cxx,m,mm}. Structural-quality /
-#               code-judo pass; skips doc-only and config-only PRs.
 #   skills    — a file named SKILL.md anywhere in the diff (Agent Skill manifest).
 #               Audits the changed skill against Anthropic's skill best-practices
 #               guide. SKILL.md is excluded from the docs gate so a SKILL.md-only
 #               PR routes here, not to docs.
-#   comments  — reuses the general-purpose source-file signal (any *.{ts,js,py,go,…}
-#               in the diff, same as architecture). Audits whether code comments still
-#               match the code the PR changed (comment rot). Always non-blocking.
-#   simplify  — every review. YAGNI / dead-code / duplication delete-list. Defers
-#               structural-shape to architecture when both are enabled.
-#   production-readiness — general-purpose source files in the diff. Resilience/operability
-#               posture (timeouts, retries, idempotency, degradation, resource limits).
 
 set -euo pipefail
 
@@ -261,14 +254,38 @@ has_observability_diff_token() {
   return 1
 }
 
-has_types_signal() {
-  echo "$CHANGED_PATHS" | grep -qE '\.(ts|tsx|cts|mts)$'
+has_security_file() {
+  # Path signals are deliberately narrow and deterministic: these files
+  # establish an authentication, authorization, secret, or user-data boundary.
+  echo "$CHANGED_PATHS" | grep -qiE '(^|/)(auth|authentication|authorization|security|permissions?|polic(y|ies)|sessions?|login|logout|signup|register|oauth|middleware|api|routes?|handlers?|controllers?)(/|\.|$)' && return 0
+  echo "$CHANGED_PATHS" | grep -qiE '(^|/)(\.env(\.[^/]*)?|secrets?)(/|$)' && return 0
+  return 1
 }
 
-has_code_file() {
-  # General-purpose source files. Drives the `architecture` (structural-quality)
-  # angle, which should not fire on doc-only or config-only PRs.
-  echo "$CHANGED_PATHS" | grep -qiE '\.(ts|tsx|cts|mts|js|jsx|mjs|cjs|py|go|rs|java|kt|kts|swift|rb|php|cs|scala|c|h|cc|cpp|hpp|cxx|m|mm)$'
+has_security_diff_token() {
+  # Only added lines can provide a postable security anchor. Keep this list
+  # concrete enough to avoid turning ordinary data plumbing into security work.
+  grep -qiE '^\+.*\b(password|passwd|secret|api[_-]?key|access[_-]?token|refresh[_-]?token|authorization|set-cookie|innerHTML|dangerouslySetInnerHTML|eval\(|exec\(|spawn\(|child_process|readFile\(|writeFile\(|crypto\.|Math\.random\(|fetch\(|axios\.|\.query\(|SELECT[[:space:]]|INSERT[[:space:]]|UPDATE[[:space:]]|DELETE[[:space:]])' "$DIFF"
+}
+has_types_signal() {
+  # TypeScript-only specialist: declaration-oriented paths or explicit type
+  # syntax on an added line in a TypeScript-family diff section.
+  echo "$CHANGED_PATHS" | grep -qE '(^|/)(types?|typings?)/|\.d\.(ts|mts|cts)$' && return 0
+  if grep -q '^diff --git ' "$DIFF"; then
+    awk '
+      /^diff --git / {
+        path=$4
+        sub(/^b\//, "", path)
+        in_ts = path ~ /\.(ts|tsx|cts|mts)$/
+        next
+      }
+      in_ts && /^\+/ && !/^\+\+\+/ && /(interface|type[[:space:]]+[A-Za-z_$]|satisfies[[:space:]]|as[[:space:]]+const)/ { found=1 }
+      END { exit(found ? 0 : 1) }
+    ' "$DIFF"
+    return $?
+  fi
+  echo "$CHANGED_PATHS" | grep -qE '\.(ts|tsx|cts|mts)$' || return 1
+  grep -qE '^\+.*(interface|type[[:space:]]+[A-Za-z_$]|satisfies[[:space:]]|as[[:space:]]+const)' "$DIFF"
 }
 
 has_i18n_file() {
@@ -319,7 +336,11 @@ has_skills_file() {
   echo "$CHANGED_PATHS" | grep -qE '(^|/)SKILL\.md$'
 }
 
-ANGLES=("bugs" "security" "simplify")
+ANGLES=("bugs")
+
+if has_security_file || has_security_diff_token; then
+  ANGLES+=("security")
+fi
 
 if [ -f "$OUTDIR/rules.md" ]; then
   ANGLES+=("conventions")
@@ -385,20 +406,9 @@ if has_deps_file; then
   ANGLES+=("deps")
 fi
 
-if has_code_file; then
-  ANGLES+=("architecture")
-fi
-
-if has_code_file; then
-  ANGLES+=("comments")
-fi
-
-if has_code_file; then
-  ANGLES+=("production-readiness")
-fi
 
 # Merge config.angles.skip into the disable CSV. Config-driven and input-driven
-# disables stack; bugs/security remain protected below.
+# disables stack; the singular bugs pass remains protected below.
 DISABLE="${INPUT_DISABLE_ANGLES:-}"
 if [ -f "$CFG" ] && jq -e '.angles.skip // empty' "$CFG" >/dev/null 2>&1; then
   CFG_SKIP=$(jq -r '.angles.skip | join(",")' "$CFG")
@@ -411,7 +421,7 @@ if [ -f "$CFG" ] && jq -e '.angles.skip // empty' "$CFG" >/dev/null 2>&1; then
   fi
 fi
 
-# Apply disable list. bugs + security + simplify cannot be disabled.
+# Apply disable list. bugs cannot be disabled.
 if [ -n "$DISABLE" ]; then
   IFS=',' read -ra DIS_ARRAY <<< "$DISABLE"
   FILTERED=()
@@ -419,7 +429,7 @@ if [ -n "$DISABLE" ]; then
     keep=1
     for d in "${DIS_ARRAY[@]}"; do
       d_trim=$(echo "$d" | xargs)
-      if [ "$a" = "$d_trim" ] && [ "$a" != "bugs" ] && [ "$a" != "security" ] && [ "$a" != "simplify" ]; then
+      if [ "$a" = "$d_trim" ] && [ "$a" != "bugs" ]; then
         keep=0
         break
       fi

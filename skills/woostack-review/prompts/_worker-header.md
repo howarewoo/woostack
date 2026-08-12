@@ -115,6 +115,13 @@ Every runner MUST write a final `findings.json` (for debugging + potential post-
     "blocking": true,
     "nit": false,
     "title": "Short bold headline (≤60 chars, no trailing punctuation)",
+    "failure_mode": "The new branch returns an unauthenticated record to the caller",
+    "evidence": {
+      "basis": "diff",
+      "detail": "The added return path bypasses the ownership check at line 42",
+      "related_files": []
+    },
+    "confidence": 0.92,
     "description": "One evidence-bearing sentence: the defect, decisive diff evidence, and impact. No fix or title repetition.",
     "fix_type": "suggestion",
     "fix": "One imperative sentence naming the minimum safe change; no rationale already stated above.",
@@ -124,6 +131,15 @@ Every runner MUST write a final `findings.json` (for debugging + potential post-
   }
 ]
 ```
+
+`failure_mode`, `evidence`, and `confidence` are candidate-admission fields, not
+optional narrative decoration. `failure_mode` names one concrete mechanism that can
+fail. `evidence.basis` MUST be exactly `diff`, `execution`, or `contract`, and
+`evidence.detail` MUST describe bounded evidence available in the prefetched diff or
+parent-supplied artifacts; `related_files` may name only files in those artifacts.
+`confidence` is a JSON number in the closed interval `[0, 1]`. Do not use prose
+confidence labels or evidence copied from an external source. Candidates without
+these fields are discarded before `raw_findings.json`.
 
 `angle` is one of `bugs | security | conventions | acceptance | seo | aeo | design | react | database | tests | api | infra | observability | types | i18n | docs | deps | architecture | comments | simplify | production-readiness`.
 
@@ -165,7 +181,7 @@ Fix: <fix>
 
 `deferred_to` is a string (the marker `<ref>`, e.g. `"increment 3"`) or null, set by the defender validator (`validator.md`) when an inline `woostack-defer(<ref>)` marker in the diff covers the gap a finding flags as missing. `intersect-findings.sh` forces any finding carrying a non-empty `deferred_to` to `nit: true, blocking: false` (independent of `severity_floor`, gated by `review.defer_markers`), and the body builder appends a `Deferred to <ref>` line. Never set on `security` findings or on wrong code present in this PR.
 
-The body builder in the posting step (see python snippet above) renders this format automatically from `title` / `description` / `fix` / `fix_type` / `suggestion` / `angle` / `severity` / `blocking` / `nit`. Angle agents and the validator MUST populate `title`, `description`, `fix`, `fix_type`, `angle`, `severity`, and `blocking` for every finding; `nit` is added downstream by the classifier.
+The body builder in the posting step (see python snippet above) renders this format automatically from `title` / `description` / `failure_mode` / `evidence` / `confidence` / `fix` / `fix_type` / `suggestion` / `angle` / `severity` / `blocking` / `nit`. Angle agents and the validator MUST populate `title`, `description`, `failure_mode`, `evidence`, `confidence`, `fix`, `fix_type`, `angle`, `severity`, and `blocking` for every finding; `nit` is added downstream by the classifier.
 
 ## Blocking Criteria
 
@@ -178,11 +194,13 @@ A finding is `blocking: true` only when ALL hold:
   - Security vulnerability with concrete exploit path.
 
 Otherwise `blocking: false`:
-- Style/quality concerns worth surfacing (but not lint-catchable).
+- Style/quality concerns worth surfacing only when they have concrete user-visible correctness, security, data-loss, or contract impact; tooling-owned style and generic maintainability candidates are rejected before `raw_findings.json`.
 - Performance smells (obvious N+1, unnecessary re-render).
-- Missing tests on new business logic.
+- Missing tests on new business logic (non-blocking).
 - Defensive coding improvements.
 - Defensible subjective suggestions.
+Candidate admission rejects lint-catchable/tooling-owned, speculative, pre-existing, style-only, and generic-maintainability candidates even when an angle worker writes them.
+
 
 ## Do NOT Flag
 
