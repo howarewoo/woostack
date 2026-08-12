@@ -84,7 +84,7 @@ for pattern, message in (
     (r"blank line whose expanded indentation is four or more columns", "heading indented-blank boundary missing"),
     (r"presence or absence of exactly one terminal LF.*two or more terminal LFs.*byte-sensitive", "terminal LF normalization boundary missing"),
     (r"expanded leading indentation columns.*next four-column stop", "expanded tab indentation boundary missing"),
-    (r"Hard breaks.*ordered lists.*byte-sensitive", "presentation exclusions missing"),
+    (r"Hard breaks.*unsupported ordered-list markers.*byte-sensitive", "presentation exclusions missing"),
     (r"Native provider bytes remain exact read-back evidence.*canonical fingerprints", "native evidence/canonical comparison missing"),
     (r"no second Ask.*fresh rendered gate file and concise Ask", "presentation approval recovery missing"),
 ):
@@ -104,11 +104,13 @@ try:
 except (OSError, json.JSONDecodeError) as error:
     failures.append(f"presentation fixture unreadable: {error}")
 else:
-    def canonicalize_markdown(value):
+    def normalize_global_markdown(value):
         value = unicodedata.normalize("NFC", value).replace("\r\n", "\n").replace("\r", "\n")
         terminal_lfs = len(value) - len(value.rstrip("\n"))
-        if terminal_lfs <= 1:
-            value = value.rstrip("\n") + "\n"
+        return value.rstrip("\n") + "\n" if terminal_lfs <= 1 else value
+
+    def canonicalize_markdown(value):
+        value = normalize_global_markdown(value)
         lines = value.split("\n")
         result = []
         fence = None
@@ -163,6 +165,18 @@ else:
                 else:
                     index += 1
                 continue
+            ordered = re.match(r"^ ?[0-9]{1,9}[.)][ \t]+.*$", line)
+            if ordered:
+                next_line_is_ordered = (
+                    index + 1 < len(lines)
+                    and re.match(r"^ ?[0-9]{1,9}[.)][ \t]+.*$", lines[index + 1])
+                )
+                terminal_empty = (
+                    index + 1 == len(lines)
+                    or (index + 1 == len(lines) - 1 and lines[index + 1] == "")
+                )
+                if next_line_is_ordered or terminal_empty:
+                    line = line[1:] if line.startswith(" ") else line
             marker = re.match(r"^([ \t]*)([-*])([ \t]+)(.*)$", line)
             thematic = re.fullmatch(
                 r"[ \t]{0,3}(?:-(?:[ \t]*-[ \t]*){2,}|\*(?:[ \t]*\*[ \t]*){2,})",
@@ -210,6 +224,67 @@ else:
                 failures.append("mixed unordered-marker transitions across prose were over-normalized")
             if not expected.get("uniformMarkersEquivalent") or not expected.get("mixedMarkerTransitionsSensitive"):
                 failures.append("marker transition fixture expected flags are incomplete")
+        ordered = presentation.get("orderedMarkers")
+        if not isinstance(ordered, dict):
+            failures.append("ordered marker fixture is missing")
+        else:
+            for left, right in (
+                ("zeroLeadingSpace", "oneLeadingSpace"),
+                ("zeroLeadingSpaceParen", "oneLeadingSpaceParen"),
+                ("nineDigitZeroLeadingSpace", "nineDigitOneLeadingSpace"),
+                ("tabWhitespaceZeroLeadingSpace", "tabWhitespaceOneLeadingSpace"),
+                ("multipleWhitespaceZeroLeadingSpace", "multipleWhitespaceOneLeadingSpace"),
+            ):
+                canonical_left = canonicalize_markdown(ordered[left])
+                if canonical_left != ordered[left]:
+                    failures.append(f"ordered marker zero-space bytes changed: {left}")
+                if canonical_left != canonicalize_markdown(ordered[right]):
+                    failures.append(f"ordered marker pair is not equivalent: {left}/{right}")
+            if canonicalize_markdown("1. item") != canonicalize_markdown(" 1. item"):
+                failures.append("ordered marker pair without terminal LF is not equivalent")
+            if canonicalize_markdown(ordered["continuationZeroLeadingSpace"]) == canonicalize_markdown(ordered["continuationOneLeadingSpace"]):
+                failures.append("ordered marker after blank-line continuation was normalized")
+            if canonicalize_markdown(ordered["tenDigitZeroLeadingSpace"]) == canonicalize_markdown(ordered["tenDigitOneLeadingSpace"]):
+                failures.append("ten-digit ordered marker boundary was normalized")
+            for left, right in (
+                ("zeroLeadingSpace", "twoLeadingSpaces"),
+                ("zeroLeadingSpace", "leadingTab"),
+                ("zeroLeadingSpace", "nestedContainer"),
+                ("zeroLeadingSpace", "missingWhitespace"),
+                ("zeroLeadingSpace", "repeatedDelimiter"),
+                ("zeroLeadingSpace", "unicodeDigits"),
+                ("zeroLeadingSpace", "changedNumber"),
+                ("zeroLeadingSpace", "changedDelimiter"),
+                ("zeroLeadingSpace", "changedText"),
+                ("zeroLeadingSpace", "changedOrder"),
+            ):
+                if canonicalize_markdown(ordered[left]) == canonicalize_markdown(ordered[right]):
+                    failures.append(f"unsupported ordered marker boundary was normalized: {left}/{right}")
+            for name in (
+                "twoLeadingSpaces",
+                "leadingTab",
+                "nestedContainer",
+                "fencedCode",
+                "indentedCode",
+                "missingWhitespace",
+                "repeatedDelimiter",
+                "unicodeDigits",
+                "changedNumber",
+                "changedDelimiter",
+                "changedText",
+                "changedOrder",
+                "tenDigitZeroLeadingSpace",
+                "tenDigitOneLeadingSpace",
+            ):
+                if canonicalize_markdown(ordered[name]) != normalize_global_markdown(ordered[name]):
+                    failures.append(f"unsupported ordered marker bytes changed: {name}")
+            for name in ("fencedCode", "indentedCode"):
+                if " 1. item" not in canonicalize_markdown(ordered[name]):
+                    failures.append(f"ordered marker inside {name} was normalized")
+            if canonicalize_markdown(ordered["nestedContainer"]) != "> 1. item\n":
+                failures.append("container-nested ordered marker was normalized")
+            if not expected.get("orderedMarkerEquivalent") or not expected.get("orderedMarkerBoundariesSensitive"):
+                failures.append("ordered marker fixture expected flags are incomplete")
         headings = presentation.get("headingBoundaries")
         if not isinstance(headings, dict):
             failures.append("heading boundary fixture is missing")

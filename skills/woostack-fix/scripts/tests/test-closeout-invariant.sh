@@ -168,6 +168,7 @@ for expected in (
     "material-change-invalidates-matching-receipts",
     "validates-fix-source-before-project-link",
     "accepts-provider-presentation-equivalence",
+    "rejects-unsupported-ordered-marker-boundaries",
     "requires-fresh-ask-for-semantic-provider-change",
     "rejects-mixed-marker-transition-canonical-mismatch",
     "rejects-terminal-lf-canonical-mismatch",
@@ -205,6 +206,28 @@ require_eval_fields(
             {"id": "increment-description", "approvalIdentityMatch": False, "receiptCount": 0, "freshAsk": True},
             {"id": "issue-description", "approvalIdentityMatch": False, "receiptCount": 0, "freshAsk": True},
             {"id": "rendered-gate-file", "approvalIdentityMatch": False, "receiptCount": 0, "freshAsk": True},
+        ],
+    },
+)
+require_eval_fields(
+    "rejects-unsupported-ordered-marker-boundaries",
+    {
+        "/status": "blocked",
+        "/results": [
+            {"id": "two-leading-spaces", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "leading-tab", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "nested-container", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "fenced-code", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "indented-code", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "missing-whitespace", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "repeated-delimiter", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "unicode-digits", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "ten-digit-marker", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "changed-number", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "changed-delimiter", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "changed-text", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "changed-order", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "blank-line-continuation", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
         ],
     },
 )

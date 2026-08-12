@@ -737,7 +737,7 @@
     },
     {
       "id": "accepts-provider-presentation-equivalence",
-      "prompt": "Evaluate fixtures/provider-presentation-canonicalization.json for a Build approval whose native Linear read-back changes only the admitted provider presentation, including a uniform unordered-marker rewrite and presence versus absence of exactly one terminal LF. Compare canonical fingerprints under providerPresentationCanonicalization while retaining native bytes as evidence; unordered-marker transition patterns and two or more terminal LFs remain sensitive, including on a final ATX heading where EOF blank suffixes are not heading-spacing input. Return exactly one JSON object with keys status, approvalAskCount, boundedSaveCount, readBackCount, receiptCount, and secondAskCount.",
+      "prompt": "Evaluate fixtures/provider-presentation-canonicalization.json for a Build approval whose native Linear read-back changes only the admitted provider presentation, including uniform unordered-marker rewrites, zero versus one leading ASCII space before top-level ordered markers using both `.` and `)`, and presence versus absence of exactly one terminal LF. Compare canonical fingerprints under providerPresentationCanonicalization while retaining native bytes as evidence; two or more leading spaces, tabs, nested/container markers, fenced/indented code, malformed markers, changed numbers/delimiters/order/text, unordered-marker transition patterns, and two or more terminal LFs remain sensitive, including on a final ATX heading where EOF blank suffixes are not heading-spacing input. Return exactly one JSON object with keys status, approvalAskCount, boundedSaveCount, readBackCount, receiptCount, and secondAskCount.",
       "fixtures": [
         "provider-presentation-canonicalization.json"
       ],
@@ -752,6 +752,21 @@
         {"id":"build-presentation-one-readback","kind":"final-json-path-equals","pointer":"/readBackCount","expected":1,"critical":true},
         {"id":"build-presentation-one-receipt","kind":"final-json-path-equals","pointer":"/receiptCount","expected":1,"critical":true},
         {"id":"build-presentation-no-second-ask","kind":"final-json-path-equals","pointer":"/secondAskCount","expected":0,"critical":true}
+      ]
+    },
+    {
+      "id": "rejects-unsupported-ordered-marker-boundaries",
+      "prompt": "Evaluate every negative entry in orderedMarkers from fixtures/provider-presentation-canonicalization.json for a Build approval. Compare each form with zeroLeadingSpace under providerPresentationCanonicalization, except compare tenDigitZeroLeadingSpace with tenDigitOneLeadingSpace to prove the ten-digit boundary remains byte-sensitive and compare continuationZeroLeadingSpace with continuationOneLeadingSpace to prove a blank line followed by a three-space continuation remains byte-sensitive. Two or more leading spaces, a leading tab, container nesting, fenced code, indented code, missing marker whitespace, repeated delimiters, non-ASCII digits, ten-digit prefixes, changed numbers, delimiters, item text, and item order are unsupported differences; each canonical mismatch consumes the approval, creates no receipt, and requires a fresh complete Ask. Return exactly one JSON object with keys status and results; each result must contain exactly id, canonicalMatch, receiptCount, and freshAsk.",
+      "fixtures": [
+        "provider-presentation-canonicalization.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Every unsupported ordered-marker boundary, including the zero/one-leading-space blank-line continuation pair, remains a canonical mismatch with zero receipt and a fresh Ask.",
+      "assertions": [
+        {"id":"build-ordered-boundary-status","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
+        {"id":"build-ordered-boundary-results","kind":"final-json-path-equals","pointer":"/results","expected":[{"id":"two-leading-spaces","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"leading-tab","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"nested-container","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"fenced-code","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"indented-code","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"missing-whitespace","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"repeated-delimiter","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"unicode-digits","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"ten-digit-marker","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"changed-number","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"changed-delimiter","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"changed-text","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"changed-order","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"blank-line-continuation","canonicalMatch":false,"receiptCount":0,"freshAsk":true}],"critical":true}
       ]
     },
     {
