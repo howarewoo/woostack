@@ -213,12 +213,16 @@ it from an input object with exactly `title`, `description`, and `dependencies`:
      Preserve all indentation, marker-following whitespace, text, and line endings. Do not observe
      or rewrite thematic breaks or any marker inside fenced or indented code;
    - outside fenced and indented code, canonicalize a syntactic top-level ordered-list marker by
-     removing exactly zero or one leading ASCII space. Recognize only one through nine ASCII digits,
-     `.` or `)`, and at least one following Markdown whitespace character (ASCII space or tab).
-     Preserve the digits, delimiter, following whitespace, item text, line endings, and every other
-     byte. Do not observe or rewrite markers with two or more leading spaces, a leading tab,
-     container or nested indentation, malformed markers, or any marker inside fenced or indented
-     code;
+     removing exactly zero or one leading ASCII space only when the immediately following line is
+     another recognized top-level zero/one-space ordered marker, or when the marker reaches
+     end-of-string with no content beyond the sole empty sentinel created by one terminal LF.
+     Recognize only one through nine ASCII digits, `.` or `)`, and at least one following Markdown
+     whitespace character (ASCII space or tab). Preserve the digits, delimiter, following
+     whitespace, item text, line endings, and every other byte. A marker followed by a blank line
+     and any later content, continuation line, prose, container, or unsupported context remains
+     byte-sensitive. Do not observe or rewrite markers with two or more leading spaces, a leading
+     tab, container or nested indentation, malformed markers, or any marker inside fenced or
+     indented code;
    - outside fenced and indented code, normalize zero-or-more blank lines immediately after a
      top-level ATX heading (one to six `#` characters followed by whitespace or end-of-line, with
      no leading indentation) to exactly one empty line only when that blank run is followed by a

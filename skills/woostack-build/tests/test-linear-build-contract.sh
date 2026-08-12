@@ -198,6 +198,7 @@ require_eval_fields(
             {"id": "changed-delimiter", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
             {"id": "changed-text", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
             {"id": "changed-order", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
+            {"id": "blank-line-continuation", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
         ],
     },
 )
@@ -244,6 +245,8 @@ for fixture_path in (
     expected_ordered_markers = {
         "zeroLeadingSpace",
         "oneLeadingSpace",
+        "continuationZeroLeadingSpace",
+        "continuationOneLeadingSpace",
         "zeroLeadingSpaceParen",
         "oneLeadingSpaceParen",
         "nineDigitZeroLeadingSpace",

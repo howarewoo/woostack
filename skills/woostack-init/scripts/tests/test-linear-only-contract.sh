@@ -167,7 +167,16 @@ else:
                 continue
             ordered = re.match(r"^ ?[0-9]{1,9}[.)][ \t]+.*$", line)
             if ordered:
-                line = line[1:] if line.startswith(" ") else line
+                next_line_is_ordered = (
+                    index + 1 < len(lines)
+                    and re.match(r"^ ?[0-9]{1,9}[.)][ \t]+.*$", lines[index + 1])
+                )
+                terminal_empty = (
+                    index + 1 == len(lines)
+                    or (index + 1 == len(lines) - 1 and lines[index + 1] == "")
+                )
+                if next_line_is_ordered or terminal_empty:
+                    line = line[1:] if line.startswith(" ") else line
             marker = re.match(r"^([ \t]*)([-*])([ \t]+)(.*)$", line)
             thematic = re.fullmatch(
                 r"[ \t]{0,3}(?:-(?:[ \t]*-[ \t]*){2,}|\*(?:[ \t]*\*[ \t]*){2,})",
@@ -231,6 +240,10 @@ else:
                     failures.append(f"ordered marker zero-space bytes changed: {left}")
                 if canonical_left != canonicalize_markdown(ordered[right]):
                     failures.append(f"ordered marker pair is not equivalent: {left}/{right}")
+            if canonicalize_markdown("1. item") != canonicalize_markdown(" 1. item"):
+                failures.append("ordered marker pair without terminal LF is not equivalent")
+            if canonicalize_markdown(ordered["continuationZeroLeadingSpace"]) == canonicalize_markdown(ordered["continuationOneLeadingSpace"]):
+                failures.append("ordered marker after blank-line continuation was normalized")
             if canonicalize_markdown(ordered["tenDigitZeroLeadingSpace"]) == canonicalize_markdown(ordered["tenDigitOneLeadingSpace"]):
                 failures.append("ten-digit ordered marker boundary was normalized")
             for left, right in (
