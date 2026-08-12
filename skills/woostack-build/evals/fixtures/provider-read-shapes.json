@@ -427,17 +427,66 @@
         "stableTaskKey": "task-new-success",
         "stableTaskMapping": null,
         "preCreateChecksComplete": true,
+      "nativeOperationIdSupported": false,
+      "mutationIdentity": "77777777-7777-4777-8777-777777777777",
+      "approvedTitle": "Implement cache freshness [woostack-mutation:77777777-7777-4777-8777-777777777777]",
+      "approvedDescription": "Implement the cache freshness increment.",
+      "canonicalIncrementFingerprintIncludesSuffix": true,
+      "preCreateRead": {
+        "activeIssuePages": [
+          {
+            "page": 1,
+            "nextCursor": "active-page-2",
+            "complete": true
+          },
+          {
+            "page": 2,
+            "nextCursor": null,
+            "complete": true
+          }
+        ],
+        "archivedIssuePages": [
+          {
+            "page": 1,
+            "nextCursor": "archived-page-2",
+            "complete": true
+          },
+          {
+            "page": 2,
+            "nextCursor": null,
+            "complete": true
+          }
+        ],
+        "matchingSuffixes": [],
+        "scope": {
+          "workspaceId": "workspace-woo",
+          "teamId": "team-woo"
+        },
+        "complete": true
+      },
         "create": {
-          "mutationIdentity": "44444444-4444-4444-8444-444444444444",
+          "mutationIdentity": "77777777-7777-4777-8777-777777777777",
+          "providerNativeIssueId": "issue-native-149",
+          "title": "Implement cache freshness [woostack-mutation:77777777-7777-4777-8777-777777777777]",
+          "description": "Implement the cache freshness increment.",
           "attempts": 1,
           "returnedReference": "WOO-149"
         },
         "postCreateRead": {
+          "providerNativeIssueId": "issue-native-149",
           "reference": "WOO-149",
+          "title": "Implement cache freshness [woostack-mutation:77777777-7777-4777-8777-777777777777]",
+          "description": "Implement the cache freshness increment.",
           "parentFieldRequested": true,
           "parentId": null,
+          "repository": "https://github.com/howarewoo/woostack",
+          "workspaceId": "workspace-woo",
+          "teamId": "team-woo",
+          "projectId": null,
+          "preMembershipState": "absent",
           "pagesComplete": true,
           "roundTrip": {
+            "providerNativeIssueId": "issue-native-149",
             "reference": "WOO-149",
             "repository": "https://github.com/howarewoo/woostack",
             "workspaceId": "workspace-woo",
@@ -445,6 +494,206 @@
             "projectId": null
           }
         },
+        "fallbackRecoveryCases": [
+          {
+            "id": "partial-pagination",
+            "phase": "pre-create",
+            "activeIssuePages": [
+              {
+                "page": 1,
+                "nextCursor": "active-page-2",
+                "complete": false
+              }
+            ],
+            "archivedIssuePages": [
+              {
+                "page": 1,
+                "nextCursor": null,
+                "complete": true
+              }
+            ],
+            "matchingSuffixes": [],
+            "advance": false,
+            "reasonCode": "incomplete-issue-pagination",
+            "createAttempts": 0,
+            "replacementIdentityAllocated": false,
+            "createReplay": false
+          },
+          {
+            "id": "duplicate-suffix",
+            "phase": "pre-create",
+            "matchingSuffixes": [
+              "[woostack-mutation:77777777-7777-4777-8777-777777777777]",
+              "[woostack-mutation:77777777-7777-4777-8777-777777777777]"
+            ],
+            "advance": false,
+            "reasonCode": "duplicate-issue-mutation-suffix",
+            "createAttempts": 0,
+            "replacementIdentityAllocated": false,
+            "createReplay": false
+          },
+          {
+            "id": "foreign-suffix",
+            "phase": "pre-create",
+            "matchingSuffixes": [
+              {
+                "suffix": "[woostack-mutation:77777777-7777-4777-8777-777777777777]",
+                "workspaceId": "workspace-other",
+                "teamId": "team-woo"
+              }
+            ],
+            "advance": false,
+            "reasonCode": "foreign-issue-mutation-suffix",
+            "createAttempts": 0,
+            "replacementIdentityAllocated": false,
+            "createReplay": false
+          },
+          {
+            "id": "malformed-suffix",
+            "phase": "pre-create",
+            "matchingSuffixes": [
+              "[woostack-mutation:not-a-uuid]"
+            ],
+            "advance": false,
+            "reasonCode": "malformed-issue-mutation-suffix",
+            "createAttempts": 0,
+            "replacementIdentityAllocated": false,
+            "createReplay": false
+          },
+          {
+            "id": "drifted-readback",
+            "phase": "unknown-outcome-recovery",
+            "recoveryIdentity": "77777777-7777-4777-8777-777777777777",
+            "candidateCount": 1,
+            "candidateOwnershipValid": true,
+            "readBackTitle": "Implement cache freshness [woostack-mutation:drifted]",
+            "advance": false,
+            "reasonCode": "issue-mutation-title-drift",
+            "createAttempts": 1,
+            "replacementIdentityAllocated": false,
+            "createReplay": false
+          },
+          {
+            "id": "replacement-uuid",
+            "phase": "unknown-outcome-recovery",
+            "recoveryIdentity": "77777777-7777-4777-8777-777777777777",
+            "replacementIdentity": "88888888-8888-4888-8888-888888888888",
+            "advance": false,
+            "reasonCode": "replacement-mutation-identity-forbidden",
+            "createAttempts": 1,
+            "replacementIdentityAllocated": false,
+            "createReplay": false
+          },
+          {
+            "id": "create-replay",
+            "phase": "unknown-outcome-recovery",
+            "recoveryIdentity": "77777777-7777-4777-8777-777777777777",
+            "candidateCount": 0,
+            "advance": false,
+            "reasonCode": "issue-create-replay-forbidden",
+            "createAttempts": 1,
+            "replacementIdentityAllocated": false,
+            "createReplay": false
+          },
+          {
+            "id": "unknown-outcome-partial-pagination",
+            "phase": "unknown-outcome-recovery",
+            "recoveryIdentity": "77777777-7777-4777-8777-777777777777",
+            "recoveryDiscovery": {
+              "activeIssuePages": [{"page": 1, "nextCursor": "active-page-2", "complete": false}],
+              "archivedIssuePages": [{"page": 1, "nextCursor": null, "complete": true}],
+              "complete": false
+            },
+            "candidateCount": 0,
+            "advance": false,
+            "reasonCode": "incomplete-issue-recovery-pagination",
+            "createAttempts": 1,
+            "replacementIdentityAllocated": false,
+            "createReplay": false
+          },
+          {
+            "id": "unknown-outcome-duplicate-suffix",
+            "phase": "unknown-outcome-recovery",
+            "recoveryIdentity": "77777777-7777-4777-8777-777777777777",
+            "recoveryDiscovery": {
+              "activeIssuePages": [{"page": 1, "nextCursor": null, "complete": true}],
+              "archivedIssuePages": [{"page": 1, "nextCursor": null, "complete": true}],
+              "complete": true,
+              "matchingSuffixes": ["[woostack-mutation:77777777-7777-4777-8777-777777777777]", "[woostack-mutation:77777777-7777-4777-8777-777777777777]"]
+            },
+            "candidateCount": 2,
+            "advance": false,
+            "reasonCode": "duplicate-issue-mutation-suffix-after-attempt",
+            "createAttempts": 1,
+            "replacementIdentityAllocated": false,
+            "createReplay": false
+          },
+          {
+            "id": "unknown-outcome-foreign-suffix",
+            "phase": "unknown-outcome-recovery",
+            "recoveryIdentity": "77777777-7777-4777-8777-777777777777",
+            "recoveryDiscovery": {
+              "activeIssuePages": [{"page": 1, "nextCursor": null, "complete": true}],
+              "archivedIssuePages": [{"page": 1, "nextCursor": null, "complete": true}],
+              "complete": true,
+              "matchingSuffixes": [{"suffix": "[woostack-mutation:77777777-7777-4777-8777-777777777777]", "workspaceId": "workspace-other", "teamId": "team-woo"}]
+            },
+            "candidateCount": 1,
+            "advance": false,
+            "reasonCode": "foreign-issue-mutation-suffix-after-attempt",
+            "createAttempts": 1,
+            "replacementIdentityAllocated": false,
+            "createReplay": false
+          },
+          {
+            "id": "unknown-outcome-malformed-suffix",
+            "phase": "unknown-outcome-recovery",
+            "recoveryIdentity": "77777777-7777-4777-8777-777777777777",
+            "recoveryDiscovery": {
+              "activeIssuePages": [{"page": 1, "nextCursor": null, "complete": true}],
+              "archivedIssuePages": [{"page": 1, "nextCursor": null, "complete": true}],
+              "complete": true,
+              "matchingSuffixes": ["[woostack-mutation:not-a-uuid]"]
+            },
+            "candidateCount": 1,
+            "advance": false,
+            "reasonCode": "malformed-issue-mutation-suffix-after-attempt",
+            "createAttempts": 1,
+            "replacementIdentityAllocated": false,
+            "createReplay": false
+          },
+          {
+            "id": "unknown-outcome-same-suffix-success",
+            "phase": "unknown-outcome-recovery",
+            "recoveryIdentity": "77777777-7777-4777-8777-777777777777",
+            "recoveryDiscovery": {
+              "activeIssuePages": [{"page": 1, "nextCursor": "active-page-2", "complete": true}, {"page": 2, "nextCursor": null, "complete": true}],
+              "archivedIssuePages": [{"page": 1, "nextCursor": null, "complete": true}],
+              "complete": true,
+              "matchingSuffixes": ["[woostack-mutation:77777777-7777-4777-8777-777777777777]"]
+            },
+            "candidateCount": 1,
+            "candidateOwnershipValid": true,
+            "readBack": {
+              "providerNativeIssueId": "issue-native-149",
+              "reference": "WOO-149",
+              "title": "Implement cache freshness [woostack-mutation:77777777-7777-4777-8777-777777777777]",
+              "description": "Implement the cache freshness increment.",
+              "parentFieldRequested": true,
+              "parentId": null,
+              "repository": "https://github.com/howarewoo/woostack",
+              "workspaceId": "workspace-woo",
+              "teamId": "team-woo",
+              "projectId": null,
+              "complete": true
+            },
+            "advance": true,
+            "reasonCode": "issue-mutation-recovered",
+            "createAttempts": 1,
+            "replacementIdentityAllocated": false,
+            "createReplay": false
+          }
+        ],
         "boundStableTaskMapping": "WOO-149",
         "projectMembership": {
           "issueReference": "WOO-149",
@@ -489,6 +738,66 @@
           "mutationIdentity": "66666666-6666-4666-8666-666666666666",
           "pagesComplete": true,
           "roundTrip": true
+        },
+        "graphWritesAfterReadBack": true
+      }
+    },
+    {
+      "id": "new-task-native-success",
+      "request": {
+        "endpoint": "https://mcp.linear.app/mcp",
+        "repository": "https://github.com/howarewoo/woostack",
+        "workspaceId": "workspace-woo",
+        "teamId": "team-woo",
+        "projectId": "project-build-43",
+        "stableTaskKey": "task-native",
+        "stableTaskMapping": null,
+        "nativeOperationIdSupported": true,
+        "approvedTitle": "Implement native cache freshness",
+        "approvedDescription": "Implement the cache freshness increment.",
+        "fallbackMarkerPresent": false,
+        "fallbackSuffixPresent": false,
+        "preCreateChecksComplete": true,
+        "create": {
+          "providerNativeIssueId": "issue-native-150",
+          "title": "Implement native cache freshness",
+          "description": "Implement the cache freshness increment.",
+          "attempts": 1,
+          "returnedReference": "WOO-150"
+        },
+        "postCreateRead": {
+          "providerNativeIssueId": "issue-native-150",
+          "reference": "WOO-150",
+          "title": "Implement native cache freshness",
+          "description": "Implement the cache freshness increment.",
+          "parentFieldRequested": true,
+          "parentId": null,
+          "repository": "https://github.com/howarewoo/woostack",
+          "workspaceId": "workspace-woo",
+          "teamId": "team-woo",
+          "projectId": null,
+          "preMembershipState": "absent",
+          "pagesComplete": true,
+          "roundTrip": {
+            "providerNativeIssueId": "issue-native-150",
+            "reference": "WOO-150",
+            "repository": "https://github.com/howarewoo/woostack",
+            "workspaceId": "workspace-woo",
+            "teamId": "team-woo",
+            "projectId": null
+          }
+        },
+        "boundStableTaskMapping": "WOO-150",
+        "projectMembership": {
+          "issueReference": "WOO-150",
+          "projectId": "project-build-43",
+          "mutationIdentity": "native-membership-150"
+        },
+        "postMembershipRead": {
+          "providerNativeIssueId": "issue-native-150",
+          "reference": "WOO-150",
+          "projectId": "project-build-43",
+          "independentlyVerified": true
         },
         "graphWritesAfterReadBack": true
       }

@@ -52,9 +52,59 @@ or setup-blocked separately from ordinary local init; it never blocks local init
 Preflight the authenticated official Linear MCP for every required read, project, issue, relation,
 mutation, approval revision, and independent read-back. For an exact resource, resolve only that
 resource. For required creation, allocate one stable resource identity before the first write. An
-exact caller-supplied resource always takes precedence over creation. Never infer an artifact from
-a title, issue key, branch name, PR body, attribution trailer, recent activity, search ranking, or
+exact caller-supplied resource always takes precedence over creation. Never infer an artifact from a
+title, issue key, branch name, PR body, attribution trailer, recent activity, search ranking, or
 authenticated user's history.
+
+Native client operation identity remains preferred for every project and issue mutation, and the
+native-ID path never adds a fallback marker or title suffix. When the provider does not expose that
+identity for project creation or direct issue creation, use only the fallbacks below; a fallback is
+not permission to relax any canonical-reference, pagination, scope, parent, membership,
+relation-ordering, ambiguity, or read-back requirement.
+
+An exact caller-supplied project is read directly and independently verified for its existing name,
+native project identity, workspace/team, and canonical repository association. Supplied-project
+selection bypasses fallback discovery and project creation; it does not require a native mutation-
+operation identity and does not add a marker or rename the existing project.
+
+### Fallback mutation identities
+
+For project creation without native operation-ID support, preallocate one UUID and reserve the exact
+summary marker `Woostack project mutation ID: <UUID>`. Immediately before the one create attempt,
+completely paginate all active and archived projects in the resolved workspace and team, flatten every
+page, require null terminal cursors, and prove zero exact marker matches. A partial, ambiguous,
+duplicate, foreign, malformed, or nonzero result blocks with zero provider and repository mutation.
+Put the exact marker in the create summary and retain the UUID as the mutation identity. An unknown
+create outcome is recovered only by repeating complete active-and-archived discovery for that same
+marker: exactly one ownership-valid candidate may proceed to an independent direct native-project-ID
+read-back; zero, duplicate, ambiguous, partial, foreign, malformed, or otherwise unknown candidates
+block without a replacement UUID or a second create. Verify the exact project name, workspace/team,
+canonical repository, complete intended specification, native identity, and marker. Updates whose
+response omits summary must preserve the marker; independently re-read the complete project summary
+and reject any loss, change, or unknown marker state. The marker is identity/recovery metadata and is
+excluded from `canonicalProjectSpecFingerprint`; it must not alter the approved project specification.
+
+For direct issue creation without native operation-ID support, preallocate one separate UUID and bind
+it to the exact approved title suffix `[woostack-mutation:<UUID>]`. The suffix is part of the approved
+title and `canonicalIncrementFingerprint`, not a substitute issue endpoint. Immediately before the one
+create attempt, completely paginate all active and archived issue titles in the resolved workspace and
+team, flatten every page, require null terminal cursors, and prove zero exact suffix matches. A partial,
+ambiguous, duplicate, foreign, malformed, or nonzero result blocks with zero provider and repository
+mutation. An unknown outcome is recovered only by complete discovery of that same suffix. Exactly one
+candidate may proceed only after an independent canonical issue-reference round trip verifies native
+issue identity, exact title including the suffix, complete description, canonical repository,
+workspace/team, and nullable parent state. Direct project membership is the sole post-create exception:
+bind the stable task key to the canonical reference, perform exactly one membership write, and
+independently read back the intended membership before any native-relation graph write. Zero, duplicate,
+ambiguous, partial, foreign, malformed, or otherwise unknown candidates fail closed without a
+replacement UUID or create replay. Preserve the suffix and its immutable stable-task mapping
+separately from the canonical issue reference.
+
+These fallback discovery and recovery rules reuse the legacy migration boundary pattern: durable
+identity before mutation, complete zero-match precondition, one create, same-identity read-back
+recovery, and monotonic no-replay failure handling. They apply equally to Build and project-backed
+Fix; supplied-project selection and standalone Plan remain governed by their existing contracts.
+
 
 A build project stores the complete current high-level specification. Each independently shippable
 increment is one direct issue in that project; its description stores the complete executor-ready

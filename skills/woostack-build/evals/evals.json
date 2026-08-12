@@ -98,14 +98,14 @@
     },
     {
       "id": "creates-canonical-project-before-ideation",
-      "prompt": "Evaluate fixtures/project-admission.json as a new woostack-build invocation with no exact project. Do not contact a provider or mutate the repository. Validate the configured repository, workspace, team, official MCP preflight, stable operation identity, prefixed project name, absence proof, create response, and independent read-back. Return exactly one JSON object with keys status, officialMcpVerified, projectCreated, projectId, projectName, operationIdentityPreserved, independentReadBackVerified, nextStep, repositoryMutationCount.",
+      "prompt": "Evaluate fixtures/project-admission.json as a new woostack-build invocation with no exact project. Do not contact a provider or mutate the repository. Validate the configured repository, workspace, team, official MCP preflight, native-operation preference, fallback UUID and exact summary marker, complete active and archived absence proof, prefixed project name, one create, same-marker recovery rules, and independent native-project-ID read-back. Return exactly one JSON object with keys status, officialMcpVerified, projectCreated, projectId, projectName, operationIdentityPreserved, summaryMarkerPreserved, independentReadBackVerified, fallbackRecovery, nextStep, repositoryMutationCount.",
       "fixtures": [
         "project-admission.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Build uses validated defaults to create exactly one canonical project named `[Build] Bound cache freshness` with one stable operation identity, independently verifies it, performs no repository mutation, and proceeds to ideation only after project admission succeeds.",
+      "expected": "Build prefers native project mutation identity and, when unavailable, uses one preallocated UUID as the exact `Woostack project mutation ID: <UUID>` summary marker. Complete active and archived pagination proves zero matches before one create; independent native-ID read-back verifies the marker, scope, repository, name, and specification. Same-marker recovery fails closed for partial, duplicate, foreign, malformed, or drifted matches without replacement UUIDs or create replay, and proceeds to ideation only after project admission succeeds.",
       "assertions": [
         {
           "id": "build-project-admission-ready",
@@ -156,6 +156,77 @@
           "critical": true
         },
         {
+          "id": "build-project-marker-preserved",
+          "kind": "final-json-path-equals",
+          "pointer": "/summaryMarkerPreserved",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "build-project-fallback-recovery-fails-closed",
+          "kind": "final-json-path-equals",
+          "pointer": "/fallbackRecovery",
+          "expected": [
+            {
+              "id": "partial-pagination",
+              "advance": false,
+              "reasonCode": "incomplete-project-pagination",
+              "createAttempts": 0,
+              "replacementIdentityAllocated": false,
+              "createReplay": false
+            },
+            {
+              "id": "duplicate-marker",
+              "advance": false,
+              "reasonCode": "duplicate-project-mutation-marker",
+              "createAttempts": 0,
+              "replacementIdentityAllocated": false,
+              "createReplay": false
+            },
+            {
+              "id": "foreign-marker",
+              "advance": false,
+              "reasonCode": "foreign-project-mutation-marker",
+              "createAttempts": 0,
+              "replacementIdentityAllocated": false,
+              "createReplay": false
+            },
+            {
+              "id": "malformed-marker",
+              "advance": false,
+              "reasonCode": "malformed-project-mutation-marker",
+              "createAttempts": 0,
+              "replacementIdentityAllocated": false,
+              "createReplay": false
+            },
+            {
+              "id": "drifted-recovery-match",
+              "advance": false,
+              "reasonCode": "project-mutation-marker-drift",
+              "createAttempts": 1,
+              "replacementIdentityAllocated": false,
+              "createReplay": false
+            },
+            {
+              "id": "replacement-uuid",
+              "advance": false,
+              "reasonCode": "replacement-mutation-identity-forbidden",
+              "createAttempts": 1,
+              "replacementIdentityAllocated": false,
+              "createReplay": false
+            },
+            {
+              "id": "create-replay",
+              "advance": false,
+              "reasonCode": "project-create-replay-forbidden",
+              "createAttempts": 1,
+              "replacementIdentityAllocated": false,
+              "createReplay": false
+            }
+          ],
+          "critical": true
+        },
+        {
           "id": "build-ideation-next",
           "kind": "final-json-path-equals",
           "pointer": "/nextStep",
@@ -167,6 +238,32 @@
           "pointer": "/repositoryMutationCount",
           "expected": 0
         }
+      ]
+    },
+    {
+      "id": "covers-project-identity-and-unknown-outcome-recovery",
+      "prompt": "Evaluate the project-admission fixture without contacting a provider or mutating a repository. Confirm supplied-project selection reads only the exact project, preserves its existing name and native identity, bypasses fallback discovery and creation, and does not require native mutation-operation identity. Confirm intended specification and fingerprint read-back, summary-omitting update marker preservation, native-supported creation without fallback marker, and same-marker unknown-outcome recovery with complete active and archived discovery, fail-closed partial/duplicate/foreign/malformed cases, one ownership-valid full read-back, and one create attempt.",
+      "fixtures": [
+        "project-admission.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Supplied projects are admitted directly without fallback discovery or creation. Native project operations carry native identity without a marker. Fallback recovery repeats complete discovery with terminal null cursors, fails closed for incomplete or ambiguous evidence, and advances only one exact same-marker candidate after complete specification and native read-back.",
+      "assertions": [
+        {"id":"supplied-project-no-fallback","kind":"final-json-path-equals","pointer":"/suppliedProjectSelection/fallbackDiscoveryPerformed","expected":false,"critical":true},
+        {"id":"supplied-project-no-create","kind":"final-json-path-equals","pointer":"/suppliedProjectSelection/createAttempts","expected":0,"critical":true},
+        {"id":"supplied-project-preserves-name","kind":"final-json-path-equals","pointer":"/suppliedProjectSelection/name","expected":"Existing customer roadmap","critical":true},
+        {"id":"supplied-project-no-native-operation-requirement","kind":"final-json-path-equals","pointer":"/suppliedProjectSelection/nativeOperationIdentityRequired","expected":false,"critical":true},
+        {"id":"project-spec-readback","kind":"final-json-path-equals","pointer":"/independentRead/intendedSpecification","expected":{"description":"Bound cache freshness keeps reads coherent.","update":"Ship cache freshness with bounded invalidation."},"critical":true},
+        {"id":"project-spec-fingerprint","kind":"final-json-path-equals","pointer":"/independentRead/canonicalProjectSpecFingerprint","expected":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","critical":true},
+        {"id":"summary-omitting-update-preserves-marker","kind":"final-json-path-equals","pointer":"/summaryOmittingUpdate/independentSummaryRead/markerPreserved","expected":true,"critical":true},
+        {"id":"native-project-identity-used","kind":"final-json-path-equals","pointer":"/nativeSupportedScenario/nativeOperationIdSupported","expected":true,"critical":true},
+        {"id":"native-project-operation-roundtrip","kind":"final-json-path-equals","pointer":"/nativeSupportedScenario/directRoundTrip/nativeOperationId","expected":"native-project-operation-43","critical":true},
+        {"id":"native-project-no-marker","kind":"final-json-path-equals","pointer":"/nativeSupportedScenario/fallbackMarkerPresent","expected":false,"critical":true},
+        {"id":"native-project-one-create","kind":"final-json-path-equals","pointer":"/nativeSupportedScenario/createAttempts","expected":1,"critical":true},
+        {"id":"recovery-same-marker-advances","kind":"final-json-path-equals","pointer":"/fallbackRecoveryCases/11/advance","expected":true,"critical":true},
+        {"id":"recovery-same-marker-one-create","kind":"final-json-path-equals","pointer":"/fallbackRecoveryCases/11/createAttempts","expected":1,"critical":true}
       ]
     },
     {
@@ -619,14 +716,14 @@
     },
     {
       "id": "validates-canonical-issue-references-before-graph-writes",
-      "prompt": "Classify every scenario in fixtures/provider-read-shapes.json independently without contacting a provider or mutating a repository. Apply the official-MCP canonical issue-reference, complete-pagination, exact endpoint round-trip, exact repository/workspace/team/project scope, nullable-parent, and new-task same-identity recovery contract before any direct project-membership or native-relation graph write. Return exactly one JSON object with keys status, decisions, issueCreateCount, projectMembershipMutationCount, relationMutationCount, providerMutationCount, and repositoryMutationCount. Each decision must contain exactly id, advance, and reasonCode in fixture order. Count every recorded issue create, project-membership write, and relation write as one provider mutation. A failed post-create read-back must not retry or permit membership, relation, or repository mutation; a successful post-create identity/scope/repository read-back binds the returned canonical reference before one recorded membership write and its read-back, then any relation write.",
+      "prompt": "Classify every scenario in fixtures/provider-read-shapes.json independently without contacting a provider or mutating a repository. Apply the official-MCP canonical issue-reference, complete-pagination, exact endpoint round-trip, exact repository/workspace/team/project scope, nullable-parent, and new-task same-identity recovery contract before any direct project-membership or native-relation graph write. Validate fallback issues by reading every field and explicit pre-membership state first, then binding the canonical reference, performing the sole membership write, independently verifying membership, and only then writing relations. Also validate native issue identity with a concrete provider-native ID round-tripped separately from the canonical reference and with no fallback suffix. Return exactly one JSON object with keys status, decisions, issueCreateCount, projectMembershipMutationCount, relationMutationCount, providerMutationCount, repositoryMutationCount, issueFallbackIdentityPreserved, issueFallbackTitleSuffixPreserved, issueFallbackFingerprintIncludesSuffix, issueFallbackPreCreateReadVerified, issueFallbackIndependentReadBackVerified, fallbackRecovery.",
       "fixtures": [
         "provider-read-shapes.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Canonical parentless issues advance when both relation endpoints and repository associations are complete and the parent is explicitly null or omitted only after the field was requested and pagination completed. A canonical child, unrequested parent field, mixed non-round-tripping relation endpoint, repository/workspace/team/project mismatch, or failed new-task post-create read-back blocks. The failed read-back retains exactly one creation without retry and permits no later mutation. The successful new-task scenario binds its returned canonical reference after complete identity/scope/repository read-back, then performs and reads back exactly one project-membership write before one relation write through canonical endpoints.",
+      "expected": "Canonical parentless issues advance when both relation endpoints and repository associations are complete and the parent is explicitly null or omitted only after the field was requested and pagination completed. A canonical child, unrequested parent field, mixed non-round-tripping relation endpoint, repository/workspace/team/project mismatch, or failed new-task post-create read-back blocks. The failed read-back retains exactly one creation without retry and permits no later mutation. The successful native-operation-ID-absent new-task scenario preserves the preallocated mutation identity and exact approved title suffix in the canonical increment fingerprint, proves complete active and archived issue pagination with exact suffix absence, creates exactly once, and binds its returned canonical reference only after full title/description/repository/workspace/team/project/nullable-parent read-back; only then does it perform and read back exactly one project-membership write before one relation write. Invalid, ambiguous, partial, foreign, malformed, drifted, replacement-identity, or replay recovery cases fail closed with the same identity; one exact ownership-valid same-suffix candidate advances after complete read-back without a replacement identity or create replay.",
       "assertions": [
         {
           "id": "build-read-shapes-blocked",
@@ -732,7 +829,168 @@
           "pointer": "/repositoryMutationCount",
           "expected": 0,
           "critical": true
+        },
+        {
+          "id": "build-read-shapes-fallback-identity-preserved",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueFallbackIdentityPreserved",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "build-read-shapes-fallback-title-suffix-preserved",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueFallbackTitleSuffixPreserved",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "build-read-shapes-fallback-fingerprint-includes-suffix",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueFallbackFingerprintIncludesSuffix",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "build-read-shapes-fallback-precreate-read",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueFallbackPreCreateReadVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "build-read-shapes-fallback-independent-readback",
+          "kind": "final-json-path-equals",
+          "pointer": "/issueFallbackIndependentReadBackVerified",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "build-read-shapes-fallback-recovery-fails-closed",
+          "kind": "final-json-path-equals",
+          "pointer": "/fallbackRecovery",
+          "expected": [
+            {
+              "id": "partial-pagination",
+              "advance": false,
+              "reasonCode": "incomplete-issue-pagination",
+              "createAttempts": 0,
+              "replacementIdentityAllocated": false,
+              "createReplay": false
+            },
+            {
+              "id": "duplicate-suffix",
+              "advance": false,
+              "reasonCode": "duplicate-issue-mutation-suffix",
+              "createAttempts": 0,
+              "replacementIdentityAllocated": false,
+              "createReplay": false
+            },
+            {
+              "id": "foreign-suffix",
+              "advance": false,
+              "reasonCode": "foreign-issue-mutation-suffix",
+              "createAttempts": 0,
+              "replacementIdentityAllocated": false,
+              "createReplay": false
+            },
+            {
+              "id": "malformed-suffix",
+              "advance": false,
+              "reasonCode": "malformed-issue-mutation-suffix",
+              "createAttempts": 0,
+              "replacementIdentityAllocated": false,
+              "createReplay": false
+            },
+            {
+              "id": "drifted-readback",
+              "advance": false,
+              "reasonCode": "issue-mutation-title-drift",
+              "createAttempts": 1,
+              "replacementIdentityAllocated": false,
+              "createReplay": false
+            },
+            {
+              "id": "replacement-uuid",
+              "advance": false,
+              "reasonCode": "replacement-mutation-identity-forbidden",
+              "createAttempts": 1,
+              "replacementIdentityAllocated": false,
+              "createReplay": false
+            },
+            {
+              "id": "create-replay",
+              "advance": false,
+              "reasonCode": "issue-create-replay-forbidden",
+              "createAttempts": 1,
+              "replacementIdentityAllocated": false,
+              "createReplay": false
+            },
+            {
+              "id": "unknown-outcome-partial-pagination",
+              "advance": false,
+              "reasonCode": "incomplete-issue-recovery-pagination",
+              "createAttempts": 1,
+              "replacementIdentityAllocated": false,
+              "createReplay": false
+            },
+            {
+              "id": "unknown-outcome-duplicate-suffix",
+              "advance": false,
+              "reasonCode": "duplicate-issue-mutation-suffix-after-attempt",
+              "createAttempts": 1,
+              "replacementIdentityAllocated": false,
+              "createReplay": false
+            },
+            {
+              "id": "unknown-outcome-foreign-suffix",
+              "advance": false,
+              "reasonCode": "foreign-issue-mutation-suffix-after-attempt",
+              "createAttempts": 1,
+              "replacementIdentityAllocated": false,
+              "createReplay": false
+            },
+            {
+              "id": "unknown-outcome-malformed-suffix",
+              "advance": false,
+              "reasonCode": "malformed-issue-mutation-suffix-after-attempt",
+              "createAttempts": 1,
+              "replacementIdentityAllocated": false,
+              "createReplay": false
+            },
+            {
+              "id": "unknown-outcome-same-suffix-success",
+              "advance": true,
+              "reasonCode": "issue-mutation-recovered",
+              "createAttempts": 1,
+              "replacementIdentityAllocated": false,
+              "createReplay": false
+            }
+          ],
+          "critical": true
         }
+      ]
+    },
+    {
+      "id": "uses-native-issue-identity-without-fallback",
+      "prompt": "Evaluate the new-task-native-success scenario in fixtures/provider-read-shapes.json without contacting a provider or mutating a repository. Confirm native operation identity is used, the concrete provider-native issue ID is identical in create and direct canonical round-trip, the canonical reference is retained separately, no fallback UUID/suffix/marker is present, the first read proves explicit pre-membership state and every other field, and membership is the sole write independently verified before relations. Return exactly one JSON object with keys status, nativeIdentityUsed, providerNativeIssueId, createProviderNativeIssueId, directReadProviderNativeIssueId, canonicalReference, fallbackIdentityPresent, fallbackSuffixPresent, preMembershipState, membershipVerifiedBeforeRelations, createAttempts.",
+      "fixtures": [
+        "provider-read-shapes.json"
+      ],
+      "capabilities": [
+        "read-workspace"
+      ],
+      "expected": "Native issue identity is used with one create. The provider-native issue ID matches between create and direct read-back but remains separate from canonical WOO-150; no fallback UUID or suffix is added. The direct read proves absent membership and every other field before the sole membership write, whose independent read-back precedes relations.",
+      "assertions": [
+        {"id":"native-issue-identity-used","kind":"final-json-path-equals","pointer":"/nativeIdentityUsed","expected":true,"critical":true},
+        {"id":"native-issue-create-id","kind":"final-json-path-equals","pointer":"/createProviderNativeIssueId","expected":"issue-native-150","critical":true},
+        {"id":"native-issue-read-id","kind":"final-json-path-equals","pointer":"/directReadProviderNativeIssueId","expected":"issue-native-150","critical":true},
+        {"id":"native-issue-canonical-reference-separate","kind":"final-json-path-equals","pointer":"/canonicalReference","expected":"WOO-150","critical":true},
+        {"id":"native-issue-no-fallback-identity","kind":"final-json-path-equals","pointer":"/fallbackIdentityPresent","expected":false,"critical":true},
+        {"id":"native-issue-no-fallback-suffix","kind":"final-json-path-equals","pointer":"/fallbackSuffixPresent","expected":false,"critical":true},
+        {"id":"native-issue-pre-membership","kind":"final-json-path-equals","pointer":"/preMembershipState","expected":"absent","critical":true},
+        {"id":"native-issue-membership-readback-before-relations","kind":"final-json-path-equals","pointer":"/membershipVerifiedBeforeRelations","expected":true,"critical":true},
+        {"id":"native-issue-one-create","kind":"final-json-path-equals","pointer":"/createAttempts","expected":1,"critical":true}
       ]
     },
     {

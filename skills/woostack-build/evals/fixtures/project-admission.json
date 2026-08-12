@@ -11,22 +11,309 @@
     "authenticated": true,
     "complete": true
   },
+  "nativeOperationIdSupported": false,
   "operationIdentity": "11111111-1111-4111-8111-111111111111",
+  "summaryMarker": "Woostack project mutation ID: 11111111-1111-4111-8111-111111111111",
+  "suppliedProjectSelection": {
+    "exactProjectUrl": "https://linear.app/acme/project/project-existing-9",
+    "nativeProjectRef": "project-existing-9",
+    "name": "Existing customer roadmap",
+    "workspace": "acme",
+    "team": "APP",
+    "repository": "https://github.com/acme/widgets",
+    "fallbackDiscoveryPerformed": false,
+    "createAttempts": 0,
+    "nativeOperationIdentityRequired": false
+  },
+  "intendedSpecification": {
+    "description": "Bound cache freshness keeps reads coherent.",
+    "update": "Ship cache freshness with bounded invalidation.",
+    "canonicalProjectSpecFingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "nativeSupportedScenario": {
+    "nativeOperationIdSupported": true,
+    "nativeProjectMutationId": "native-project-operation-43",
+    "name": "[Build] Native cache freshness",
+    "summary": "Bound cache freshness keeps reads coherent.",
+    "fallbackMarkerPresent": false,
+    "fallbackDiscoveryPerformed": false,
+    "createAttempts": 1,
+    "create": {
+      "nativeProjectRef": "project-native-43",
+      "nativeOperationId": "native-project-operation-43"
+    },
+    "directRoundTrip": {
+      "nativeProjectRef": "project-native-43",
+      "nativeOperationId": "native-project-operation-43",
+      "name": "[Build] Native cache freshness",
+      "fallbackMarkerPresent": false,
+      "complete": true
+    }
+  },
   "preCreateRead": {
+    "activeProjectPages": [
+      {
+        "page": 1,
+        "nextCursor": "active-page-2",
+        "complete": true
+      },
+      {
+        "page": 2,
+        "nextCursor": null,
+        "complete": true
+      }
+    ],
+    "archivedProjectPages": [
+      {
+        "page": 1,
+        "nextCursor": null,
+        "complete": true
+      }
+    ],
     "matchingOperationIds": [],
+    "matchingSummaryMarkers": [],
+    "scope": {
+      "workspace": "acme",
+      "team": "APP"
+    },
     "complete": true
   },
   "createResponse": {
     "nativeProjectRef": "project-build-43",
-    "name": "[Build] Bound cache freshness"
+    "name": "[Build] Bound cache freshness",
+    "summary": "Woostack project mutation ID: 11111111-1111-4111-8111-111111111111",
+    "attempts": 1
   },
   "independentRead": {
     "nativeProjectRef": "project-build-43",
     "name": "[Build] Bound cache freshness",
+    "summary": "Woostack project mutation ID: 11111111-1111-4111-8111-111111111111",
     "operationIdentity": "11111111-1111-4111-8111-111111111111",
     "repository": "https://github.com/acme/widgets",
     "workspace": "acme",
     "team": "APP",
+    "intendedSpecification": {
+      "description": "Bound cache freshness keeps reads coherent.",
+      "update": "Ship cache freshness with bounded invalidation."
+    },
+    "canonicalProjectSpecFingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "markerPreserved": true,
+    "canonicalProjectSpecFingerprintExcludesMarker": true,
     "complete": true
-  }
+  },
+  "summaryOmittingUpdate": {
+    "updateResponse": {
+      "nativeProjectRef": "project-build-43",
+      "summaryOmitted": true
+    },
+    "independentSummaryRead": {
+      "nativeProjectRef": "project-build-43",
+      "summary": "Woostack project mutation ID: 11111111-1111-4111-8111-111111111111",
+      "markerPreserved": true,
+      "complete": true
+    }
+  },
+  "fallbackRecoveryCases": [
+    {
+      "id": "partial-pagination",
+      "phase": "pre-create",
+      "activeProjectPages": [
+        {
+          "page": 1,
+          "nextCursor": "active-page-2",
+          "complete": false
+        }
+      ],
+      "archivedProjectPages": [
+        {
+          "page": 1,
+          "nextCursor": null,
+          "complete": true
+        }
+      ],
+      "matchingSummaryMarkers": [],
+      "advance": false,
+      "reasonCode": "incomplete-project-pagination",
+      "createAttempts": 0,
+      "replacementIdentityAllocated": false,
+      "createReplay": false
+    },
+    {
+      "id": "duplicate-marker",
+      "phase": "pre-create",
+      "matchingSummaryMarkers": [
+        "Woostack project mutation ID: 11111111-1111-4111-8111-111111111111",
+        "Woostack project mutation ID: 11111111-1111-4111-8111-111111111111"
+      ],
+      "advance": false,
+      "reasonCode": "duplicate-project-mutation-marker",
+      "createAttempts": 0,
+      "replacementIdentityAllocated": false,
+      "createReplay": false
+    },
+    {
+      "id": "foreign-marker",
+      "phase": "pre-create",
+      "matchingSummaryMarkers": [
+        {
+          "summary": "Woostack project mutation ID: 11111111-1111-4111-8111-111111111111",
+          "workspace": "other",
+          "team": "APP"
+        }
+      ],
+      "advance": false,
+      "reasonCode": "foreign-project-mutation-marker",
+      "createAttempts": 0,
+      "replacementIdentityAllocated": false,
+      "createReplay": false
+    },
+    {
+      "id": "malformed-marker",
+      "phase": "pre-create",
+      "matchingSummaryMarkers": [
+        "Woostack project mutation ID: not-a-uuid"
+      ],
+      "advance": false,
+      "reasonCode": "malformed-project-mutation-marker",
+      "createAttempts": 0,
+      "replacementIdentityAllocated": false,
+      "createReplay": false
+    },
+    {
+      "id": "drifted-recovery-match",
+      "phase": "unknown-outcome-recovery",
+      "recoveryIdentity": "11111111-1111-4111-8111-111111111111",
+      "candidateCount": 1,
+      "candidateOwnershipValid": true,
+      "readBackSummary": "Woostack project mutation ID: drifted",
+      "advance": false,
+      "reasonCode": "project-mutation-marker-drift",
+      "createAttempts": 1,
+      "replacementIdentityAllocated": false,
+      "createReplay": false
+    },
+    {
+      "id": "replacement-uuid",
+      "phase": "unknown-outcome-recovery",
+      "recoveryIdentity": "11111111-1111-4111-8111-111111111111",
+      "replacementIdentity": "22222222-2222-4222-8222-222222222222",
+      "advance": false,
+      "reasonCode": "replacement-mutation-identity-forbidden",
+      "createAttempts": 1,
+      "replacementIdentityAllocated": false,
+      "createReplay": false
+    },
+    {
+      "id": "create-replay",
+      "phase": "unknown-outcome-recovery",
+      "recoveryIdentity": "11111111-1111-4111-8111-111111111111",
+      "candidateCount": 0,
+      "advance": false,
+      "reasonCode": "project-create-replay-forbidden",
+      "createAttempts": 1,
+      "replacementIdentityAllocated": false,
+      "createReplay": false
+    },
+    {
+      "id": "unknown-outcome-partial-pagination",
+      "phase": "unknown-outcome-recovery",
+      "recoveryIdentity": "11111111-1111-4111-8111-111111111111",
+      "recoveryDiscovery": {
+        "activeProjectPages": [{"page": 1, "nextCursor": "active-page-2", "complete": false}],
+        "archivedProjectPages": [{"page": 1, "nextCursor": null, "complete": true}],
+        "complete": false
+      },
+      "candidateCount": 0,
+      "advance": false,
+      "reasonCode": "incomplete-project-recovery-pagination",
+      "createAttempts": 1,
+      "replacementIdentityAllocated": false,
+      "createReplay": false
+    },
+    {
+      "id": "unknown-outcome-duplicate-marker",
+      "phase": "unknown-outcome-recovery",
+      "recoveryIdentity": "11111111-1111-4111-8111-111111111111",
+      "recoveryDiscovery": {
+        "activeProjectPages": [{"page": 1, "nextCursor": null, "complete": true}],
+        "archivedProjectPages": [{"page": 1, "nextCursor": null, "complete": true}],
+        "complete": true,
+        "matchingSummaryMarkers": ["Woostack project mutation ID: 11111111-1111-4111-8111-111111111111", "Woostack project mutation ID: 11111111-1111-4111-8111-111111111111"]
+      },
+      "candidateCount": 2,
+      "advance": false,
+      "reasonCode": "duplicate-project-mutation-marker-after-attempt",
+      "createAttempts": 1,
+      "replacementIdentityAllocated": false,
+      "createReplay": false
+    },
+    {
+      "id": "unknown-outcome-foreign-marker",
+      "phase": "unknown-outcome-recovery",
+      "recoveryIdentity": "11111111-1111-4111-8111-111111111111",
+      "recoveryDiscovery": {
+        "activeProjectPages": [{"page": 1, "nextCursor": null, "complete": true}],
+        "archivedProjectPages": [{"page": 1, "nextCursor": null, "complete": true}],
+        "complete": true,
+        "matchingSummaryMarkers": [{"summary": "Woostack project mutation ID: 11111111-1111-4111-8111-111111111111", "workspace": "other", "team": "APP"}]
+      },
+      "candidateCount": 1,
+      "advance": false,
+      "reasonCode": "foreign-project-mutation-marker-after-attempt",
+      "createAttempts": 1,
+      "replacementIdentityAllocated": false,
+      "createReplay": false
+    },
+    {
+      "id": "unknown-outcome-malformed-marker",
+      "phase": "unknown-outcome-recovery",
+      "recoveryIdentity": "11111111-1111-4111-8111-111111111111",
+      "recoveryDiscovery": {
+        "activeProjectPages": [{"page": 1, "nextCursor": null, "complete": true}],
+        "archivedProjectPages": [{"page": 1, "nextCursor": null, "complete": true}],
+        "complete": true,
+        "matchingSummaryMarkers": ["Woostack project mutation ID: malformed"]
+      },
+      "candidateCount": 1,
+      "advance": false,
+      "reasonCode": "malformed-project-mutation-marker-after-attempt",
+      "createAttempts": 1,
+      "replacementIdentityAllocated": false,
+      "createReplay": false
+    },
+    {
+      "id": "unknown-outcome-same-marker-success",
+      "phase": "unknown-outcome-recovery",
+      "recoveryIdentity": "11111111-1111-4111-8111-111111111111",
+      "recoveryDiscovery": {
+        "activeProjectPages": [{"page": 1, "nextCursor": "active-page-2", "complete": true}, {"page": 2, "nextCursor": null, "complete": true}],
+        "archivedProjectPages": [{"page": 1, "nextCursor": null, "complete": true}],
+        "complete": true,
+        "matchingSummaryMarkers": ["Woostack project mutation ID: 11111111-1111-4111-8111-111111111111"]
+      },
+      "candidateCount": 1,
+      "candidateOwnershipValid": true,
+      "nativeProjectRef": "project-build-43",
+      "readBack": {
+        "nativeProjectRef": "project-build-43",
+        "operationIdentity": "11111111-1111-4111-8111-111111111111",
+        "name": "[Build] Bound cache freshness",
+        "summary": "Woostack project mutation ID: 11111111-1111-4111-8111-111111111111",
+        "repository": "https://github.com/acme/widgets",
+        "workspace": "acme",
+        "team": "APP",
+        "intendedSpecification": {
+          "description": "Bound cache freshness keeps reads coherent.",
+          "update": "Ship cache freshness with bounded invalidation."
+        },
+        "canonicalProjectSpecFingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "complete": true
+      },
+      "advance": true,
+      "reasonCode": "project-mutation-recovered",
+      "createAttempts": 1,
+      "replacementIdentityAllocated": false,
+      "createReplay": false
+    }
+  ]
 }
