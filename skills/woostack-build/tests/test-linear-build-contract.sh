@@ -521,6 +521,7 @@ expected_shape_ids = [
     "project-association-mismatch",
     "new-task-readback-failure",
     "new-task-readback-success",
+    "new-task-native-success",
 ]
 if [scenario["id"] for scenario in shape_fixture["scenarios"]] != expected_shape_ids:
     failures.append("build: provider read-shape fixture is incomplete or out of order")
@@ -533,6 +534,238 @@ if fixture["createResponse"]["name"] != expected_project_name:
 if fixture["independentRead"]["name"] != expected_project_name:
     failures.append("build: independent read does not verify the prefixed project name")
 
+if (
+    fixture["nativeOperationIdSupported"] is not False
+    or fixture["operationIdentity"] != "11111111-1111-4111-8111-111111111111"
+    or fixture["summaryMarker"]
+    != "Woostack project mutation ID: 11111111-1111-4111-8111-111111111111"
+):
+    failures.append("build: project fallback identity or summary marker is not exact")
+project_precreate = fixture["preCreateRead"]
+if (
+    project_precreate.get("complete") is not True
+    or project_precreate.get("matchingOperationIds") != []
+    or project_precreate.get("matchingSummaryMarkers") != []
+    or not project_precreate.get("activeProjectPages")
+    or not project_precreate.get("archivedProjectPages")
+    or any(
+        page.get("complete") is not True
+        for page in project_precreate["activeProjectPages"]
+        + project_precreate["archivedProjectPages"]
+    )
+    or project_precreate["activeProjectPages"][-1].get("nextCursor") is not None
+    or project_precreate["archivedProjectPages"][-1].get("nextCursor") is not None
+):
+    failures.append("build: project fallback pre-create read lacks complete active/archived absence proof")
+project_create = fixture["createResponse"]
+project_read = fixture["independentRead"]
+if (
+    project_create.get("attempts") != 1
+    or project_create.get("summary") != fixture["summaryMarker"]
+    or project_read.get("operationIdentity") != fixture["operationIdentity"]
+    or project_read.get("summary") != fixture["summaryMarker"]
+    or project_read.get("markerPreserved") is not True
+    or project_read.get("canonicalProjectSpecFingerprintExcludesMarker") is not True
+    or project_read.get("complete") is not True
+):
+    failures.append("build: project fallback create or independent read-back is incomplete")
+if (
+    fixture["suppliedProjectSelection"]["fallbackDiscoveryPerformed"] is not False
+    or fixture["suppliedProjectSelection"]["createAttempts"] != 0
+    or fixture["suppliedProjectSelection"]["nativeOperationIdentityRequired"] is not False
+    or fixture["suppliedProjectSelection"]["name"] != "Existing customer roadmap"
+):
+    failures.append("build: supplied project does not bypass fallback and preserve existing identity")
+if (
+    fixture["independentRead"].get("intendedSpecification")
+    != {
+        "description": fixture["intendedSpecification"]["description"],
+        "update": fixture["intendedSpecification"]["update"],
+    }
+    or fixture["independentRead"].get("canonicalProjectSpecFingerprint")
+    != fixture["intendedSpecification"]["canonicalProjectSpecFingerprint"]
+):
+    failures.append("build: project intended specification or fingerprint read-back is incomplete")
+if (
+    fixture["summaryOmittingUpdate"]["updateResponse"].get("summaryOmitted") is not True
+    or fixture["summaryOmittingUpdate"]["independentSummaryRead"].get("markerPreserved") is not True
+):
+    failures.append("build: summary-omitting update does not independently preserve marker")
+native_project = fixture["nativeSupportedScenario"]
+if (
+    native_project.get("nativeOperationIdSupported") is not True
+    or native_project.get("fallbackMarkerPresent") is not False
+    or native_project.get("fallbackDiscoveryPerformed") is not False
+    or native_project.get("createAttempts") != 1
+    or native_project.get("create", {}).get("nativeOperationId")
+    != native_project.get("nativeProjectMutationId")
+    or native_project.get("directRoundTrip", {}).get("nativeOperationId")
+    != native_project.get("nativeProjectMutationId")
+    or native_project.get("directRoundTrip", {}).get("fallbackMarkerPresent") is not False
+):
+    failures.append("build: native project identity fixture is incomplete or marker-bearing")
+project_recovery = fixture["fallbackRecoveryCases"]
+expected_project_recovery = [
+    ("partial-pagination", "incomplete-project-pagination", 0, False),
+    ("duplicate-marker", "duplicate-project-mutation-marker", 0, False),
+    ("foreign-marker", "foreign-project-mutation-marker", 0, False),
+    ("malformed-marker", "malformed-project-mutation-marker", 0, False),
+    ("drifted-recovery-match", "project-mutation-marker-drift", 1, False),
+    ("replacement-uuid", "replacement-mutation-identity-forbidden", 1, False),
+    ("create-replay", "project-create-replay-forbidden", 1, False),
+    ("unknown-outcome-partial-pagination", "incomplete-project-recovery-pagination", 1, False),
+    ("unknown-outcome-duplicate-marker", "duplicate-project-mutation-marker-after-attempt", 1, False),
+    ("unknown-outcome-foreign-marker", "foreign-project-mutation-marker-after-attempt", 1, False),
+    ("unknown-outcome-malformed-marker", "malformed-project-mutation-marker-after-attempt", 1, False),
+    ("unknown-outcome-same-marker-success", "project-mutation-recovered", 1, True),
+]
+if [
+    (
+        case.get("id"),
+        case.get("reasonCode"),
+        case.get("createAttempts"),
+        case.get("advance"),
+        case.get("replacementIdentityAllocated"),
+        case.get("createReplay"),
+    )
+    for case in project_recovery
+] != [
+    (case_id, reason, attempts, advance, False, False)
+    for case_id, reason, attempts, advance in expected_project_recovery
+]:
+    failures.append("build: project fallback recovery cases are incomplete or replayable")
+
+issue_success = next(
+    (
+        scenario
+        for scenario in shape_fixture["scenarios"]
+        if scenario["id"] == "new-task-readback-success"
+    ),
+    None,
+)
+if issue_success is None:
+    failures.append("build: successful issue fallback scenario is missing")
+else:
+    issue_request = issue_success["request"]
+    issue_identity = "77777777-7777-4777-8777-777777777777"
+    issue_title = f"Implement cache freshness [woostack-mutation:{issue_identity}]"
+    issue_precreate = issue_request["preCreateRead"]
+    issue_create = issue_request["create"]
+    issue_read = issue_request["postCreateRead"]
+    if (
+        issue_request.get("nativeOperationIdSupported") is not False
+        or issue_request.get("mutationIdentity") != issue_identity
+        or issue_request.get("approvedTitle") != issue_title
+        or issue_request.get("canonicalIncrementFingerprintIncludesSuffix") is not True
+        or issue_precreate.get("complete") is not True
+        or issue_precreate.get("matchingSuffixes") != []
+        or issue_precreate.get("scope")
+        != {"workspaceId": "workspace-woo", "teamId": "team-woo"}
+        or not issue_precreate.get("activeIssuePages")
+        or not issue_precreate.get("archivedIssuePages")
+        or any(
+            page.get("complete") is not True
+            for page in issue_precreate["activeIssuePages"]
+            + issue_precreate["archivedIssuePages"]
+        )
+        or any(
+            page.get("nextCursor") is None
+            for page in issue_precreate["activeIssuePages"][:-1]
+            + issue_precreate["archivedIssuePages"][:-1]
+        )
+        or issue_precreate["activeIssuePages"][-1].get("nextCursor") is not None
+        or issue_precreate["archivedIssuePages"][-1].get("nextCursor") is not None
+        or issue_create.get("mutationIdentity") != issue_identity
+        or issue_create.get("providerNativeIssueId") != "issue-native-149"
+        or issue_create.get("title") != issue_title
+        or issue_create.get("attempts") != 1
+        or issue_create.get("returnedReference") != "WOO-149"
+        or issue_read.get("reference") != "WOO-149"
+        or issue_read.get("providerNativeIssueId") != "issue-native-149"
+        or issue_read.get("title") != issue_title
+        or issue_read.get("description") != issue_request["approvedDescription"]
+        or issue_read.get("parentFieldRequested") is not True
+        or issue_read.get("parentId") is not None
+        or issue_read.get("repository") != "https://github.com/howarewoo/woostack"
+        or issue_read.get("workspaceId") != "workspace-woo"
+        or issue_read.get("teamId") != "team-woo"
+        or issue_read.get("projectId") is not None
+        or issue_read.get("preMembershipState") != "absent"
+        or issue_read.get("pagesComplete") is not True
+        or issue_read.get("roundTrip")
+        != {
+            "providerNativeIssueId": "issue-native-149",
+            "reference": "WOO-149",
+            "repository": "https://github.com/howarewoo/woostack",
+            "workspaceId": "workspace-woo",
+            "teamId": "team-woo",
+            "projectId": None,
+        }
+    ):
+        failures.append("build: issue fallback suffix, absence, create, or direct read-back is incomplete")
+    issue_recovery = issue_request["fallbackRecoveryCases"]
+    expected_issue_recovery = [
+        ("partial-pagination", "incomplete-issue-pagination", 0, False),
+        ("duplicate-suffix", "duplicate-issue-mutation-suffix", 0, False),
+        ("foreign-suffix", "foreign-issue-mutation-suffix", 0, False),
+        ("malformed-suffix", "malformed-issue-mutation-suffix", 0, False),
+        ("drifted-readback", "issue-mutation-title-drift", 1, False),
+        ("replacement-uuid", "replacement-mutation-identity-forbidden", 1, False),
+        ("create-replay", "issue-create-replay-forbidden", 1, False),
+        ("unknown-outcome-partial-pagination", "incomplete-issue-recovery-pagination", 1, False),
+        ("unknown-outcome-duplicate-suffix", "duplicate-issue-mutation-suffix-after-attempt", 1, False),
+        ("unknown-outcome-foreign-suffix", "foreign-issue-mutation-suffix-after-attempt", 1, False),
+        ("unknown-outcome-malformed-suffix", "malformed-issue-mutation-suffix-after-attempt", 1, False),
+        ("unknown-outcome-same-suffix-success", "issue-mutation-recovered", 1, True),
+    ]
+    if [
+        (
+            case.get("id"),
+            case.get("reasonCode"),
+            case.get("createAttempts"),
+            case.get("advance"),
+            case.get("replacementIdentityAllocated"),
+            case.get("createReplay"),
+        )
+        for case in issue_recovery
+    ] != [
+        (case_id, reason, attempts, advance, False, False)
+        for case_id, reason, attempts, advance in expected_issue_recovery
+    ]:
+        failures.append("build: issue fallback recovery cases are incomplete or replayable")
+    for case in issue_recovery:
+        if case["phase"] == "unknown-outcome-recovery" and case.get("recoveryIdentity") != issue_identity:
+            failures.append("build: issue fallback recovery changed the mutation identity")
+native_issue = next(
+    (
+        scenario
+        for scenario in shape_fixture["scenarios"]
+        if scenario["id"] == "new-task-native-success"
+    ),
+    None,
+)
+if native_issue is None:
+    failures.append("build: native issue identity scenario is missing")
+else:
+    native_request = native_issue["request"]
+    native_create = native_request["create"]
+    native_read = native_request["postCreateRead"]
+    if (
+        native_request.get("nativeOperationIdSupported") is not True
+        or native_request.get("fallbackMarkerPresent") is not False
+        or native_request.get("fallbackSuffixPresent") is not False
+        or native_create.get("providerNativeIssueId") != "issue-native-150"
+        or native_read.get("providerNativeIssueId") != "issue-native-150"
+        or native_create.get("returnedReference") != "WOO-150"
+        or native_read.get("reference") != "WOO-150"
+        or native_read.get("preMembershipState") != "absent"
+        or native_read.get("projectId") is not None
+        or native_read.get("roundTrip", {}).get("providerNativeIssueId") != "issue-native-150"
+        or native_request.get("projectMembership", {}).get("projectId") != "project-build-43"
+        or native_request.get("postMembershipRead", {}).get("independentlyVerified") is not True
+        or native_create.get("attempts") != 1
+    ):
+        failures.append("build: native issue identity or membership ordering fixture is incomplete")
 chain_pattern = re.compile(
     r"resolve/create canonical project and admit gate 1 baseline\s*→\s*"
     r"draft Ideate/Harden locally with zero provider calls\s*→\s*"

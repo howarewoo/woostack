@@ -21,20 +21,32 @@ or standalone Plan.
 2. Resolve the caller-selected workspace/team. Use validated `.woostack/config.json` values only as
    post-selection defaults.
 3. If `--project` supplied an exact URL/stable UUID, read only that project and verify its identity,
-   workspace/team, and canonical repository association.
-4. Otherwise allocate one stable client mutation UUID, prove that no project exists for that
-   operation identity, and create exactly one project in the resolved workspace/team. Its name
-   starts with `[Build] ` and otherwise derives from the accepted goal. Independently read the
-   project back, verify the exact name, and retain its native identity.
-5. Preflight official Linear MCP capabilities for complete project reads, selectable direct-issue
+   workspace/team, and canonical repository association. Supplied-project selection never performs
+   fallback marker discovery or creates a replacement project; it preserves the supplied project's
+   existing name and native project identity without requiring a native mutation-operation identity.
+4. Otherwise prefer the provider's native project mutation identity. When native operation-ID support
+   is unavailable, preallocate one UUID and reserve the exact summary marker
+   `Woostack project mutation ID: <UUID>`. Immediately before the one create attempt, completely
+   paginate all active and archived projects in the resolved workspace/team, flatten every page,
+   require null terminal cursors, and prove zero exact marker matches. A partial, duplicate, foreign,
+   malformed, ambiguous, or nonzero match blocks before creation. Create exactly one project whose
+   name starts with `[Build] ` and whose summary contains that marker; an unknown outcome is
+   recovered only by repeating the
+   complete active-and-archived discovery for the same marker, never with a replacement UUID or
+   create replay. Exactly one ownership-valid candidate may proceed to an independent native-project-
+   ID read-back, which must verify name, marker, workspace/team, canonical repository, complete
+   intended specification, and native identity. Marker metadata is excluded from the project
+   specification fingerprint and must survive summary-omitting updates.
+5. Independently read the project back, verify the exact name, and retain its native identity.
+6. Preflight official Linear MCP capabilities for complete project reads, selectable direct-issue
    identity/project/team/parent fields, complete paginated issue and relation reads, canonical
    issue-reference endpoint round trips, project/issue writes, relation writes, comments/updates used
    as approval evidence, and independent read-back.
 
-Do not use names, slugs, recent activity, search ranking, issue titles, branch names, or PR text as
-identity. Canonical issue references are the sole issue endpoint representation; project and team
-identity remains provider-native. Never fuzzy-discover a caller-selected resource. Unknown create
-outcomes retain the same operation identity and stop for recovery; never create a replacement.
+Do not use names, slugs, recent activity, issue titles, branch names, or PR text as identity.
+Canonical issue references are the sole issue endpoint representation; project and team identity
+remains provider-native. Unknown create outcomes retain the same operation identity and stop for
+recovery; never create a replacement.
 
 ## Project specification baseline
 
@@ -64,6 +76,21 @@ project with complete pagination. Select only current issues that:
 - have `parent = null`, where null is admitted only for an explicitly returned null or an omitted
   `parentId` after that field was explicitly requested and all issue pagination is complete; and
 - do not conflict with the approved `canonicalProjectSpecFingerprint`.
+When creating a new direct issue, prefer native client operation identity. Without it, preallocate
+one separate UUID only after this complete preflight and bind it to the exact approved title suffix
+`[woostack-mutation:<UUID>]`; the suffix is part of the approved title and
+`canonicalIncrementFingerprint`. Immediately before the one create attempt, completely paginate all
+active and archived issue titles in the resolved workspace/team, flatten every page, require null
+terminal cursors, and prove zero exact suffix matches. Partial, duplicate, foreign, malformed,
+ambiguous, or nonzero matches block before creation. An unknown outcome is recovered only by complete
+discovery of that same suffix: zero, duplicate, foreign, malformed, drifted, partial, or otherwise
+unknown candidates fail closed without a replacement UUID or create replay. Exactly one candidate may
+proceed only after an independent canonical issue-reference round trip verifies the native issue
+identity, exact title including suffix, complete description, repository, workspace/team, and nullable
+parent state. Direct project membership is the sole post-create exception: bind the stable task key to
+the canonical reference, perform exactly one membership write, and independently read back the intended
+membership before any native-relation graph write. Preserve the suffix and stable-task mapping
+separately from the canonical issue reference.
 
 Read all relevant native issue-to-issue dependency relations with complete pagination. Every relation
 source and target uses the same canonical issue-reference representation and exact workspace/team/
