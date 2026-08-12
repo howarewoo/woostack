@@ -50,11 +50,8 @@
 #                                  `^(staging|release|chore\(release\))`
 #                                  applied at use-site. Empty string opts
 #                                  out entirely.)
-#   force_tier          str (provider-agnostic "fast" | "deep" override for this
-#                            run; empty/absent means standard-tier model)
-#   fix_commands        list[str]  (consumed by issue #15 --loop mode)
-#   disable_adversarial bool       (cost-sensitive opt-out for issue #13's
-#                                   prosecutor+defender pipeline; default false)
+#   force_tier          str (provider-agnostic "fast" | "deep" override for angle workers;
+#                            the sole adjudicator always runs at standard tier)
 #   metrics             bool       (issue #41: opt-in per-angle signal/noise
 #                                   metrics emit + rolling aggregate; default
 #                                   false)
@@ -106,10 +103,8 @@ VALID_FLOORS = {"low", "medium", "high"}
 FORCE_TIERS = {"fast", "deep"}
 # Keys recognized inside the `review` block (and the legacy top-level form).
 REVIEW_KEYS = {
-    "angles", "severity_floor", "ignore", "project_rules",
     "authors_skip", "release_rollup_pattern", "fix_commands",
-    "disable_adversarial", "metrics", "chunking", "force_tier", "nits",
-    "defer_markers",
+    "metrics", "chunking", "force_tier", "nits", "defer_markers",
 }
 
 
@@ -241,12 +236,6 @@ if "release_rollup_pattern" in raw:
         except _re.error as exc:
             loud("`release_rollup_pattern` is not a valid regex: {}".format(exc))
     out["release_rollup_pattern"] = pat
-
-if "disable_adversarial" in raw:
-    val = raw["disable_adversarial"]
-    if not isinstance(val, bool):
-        loud("`disable_adversarial` must be a boolean (true/false), got {}".format(type(val).__name__))
-    out["disable_adversarial"] = val
 
 if "metrics" in raw:
     val = raw["metrics"]

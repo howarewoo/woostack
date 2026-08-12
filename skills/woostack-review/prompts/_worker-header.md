@@ -11,26 +11,22 @@ Every artifact you write under `$OUTDIR/findings.*.json` (default `/tmp/pr-revie
 - The file MUST start with `[` and end with `]`.
 - No preamble, no commentary, no "I have completed the review…" sentence, no markdown fences (` ``` `), no trailing chatter.
 - If you have nothing to report, write the literal `[]`.
-- **Write `[]` to your findings file as the FIRST action.** Replace it with the real array just before EXIT. Sub-agents have died mid-run (stream errors, turn-limit interrupts) and left no file at all — the merge step then has no array to merge for that angle. An up-front empty array makes failure non-destructive: the worst case becomes "this angle reported nothing," not "this angle silently dropped out of the review."
-- **Write your execution receipt as your LAST action.** After writing your real findings array, and
-  just before EXIT, write `$OUTDIR/receipt.<angle>.json` (chunked:
-  `$OUTDIR/receipt.<angle>.<chunk>.json`) as a JSON object:
-  `{"angle":"<angle>","chunk":<chunk-id-or-null>,"runner":"<host or provider>","model":"<resolved model>","tier":"<fast|standard|deep>","ts":"<ISO-8601 timestamp>","authority":"advisory-only"}`.
-  `runner`, `model`, and `tier` MUST be non-empty. A generic local worker SHOULD additionally
-  report its real non-secret host binding as the complete set `reviewerProfile`,
-  `reviewerSessionId`, `reviewerPrincipalId`, and `reviewerCredentialContextId` when those values
-  are available; never infer them or use a profile/token-store name as a native principal. A local
-  validator MUST report only the exact binding supplied to its own sequential dispatch, then exit;
-  the controller records artifact digests and creates `validator-bindings.json` only after every
-  required validator has exited. Validators never read or write that manifest.
+- Write `[]` to your findings file as the FIRST action. Replace it with the real array just before
+  EXIT. A missing receipt, invalid required field, incomplete identity, or non-advisory authority
+  hard-fails before finalization.
+- Write your execution receipt as your LAST action. A sole adjudicator writes
+  `$OUTDIR/findings.adjudicator.json` and `$OUTDIR/receipt.adjudicator.json`; angle workers retain
+  their own `findings.<angle>.json` and `receipt.<angle>.json` names. Local adjudicator identity
+  fields must be the exact complete controller binding. GitHub Actions uses the exact single-session
+  run-attempt identity. The controller owns the binding manifest and artifact digests.
 - In the GitHub Actions single-session path, bind the receipt to the producing job attempt:
   `reviewerProfile:"github-actions-single-session"`,
   `reviewerRunAttempt:<GITHUB_RUN_ATTEMPT>`,
   `reviewerSessionId:"github-actions:<GITHUB_RUN_ID>:<GITHUB_RUN_ATTEMPT>"`,
   `reviewerPrincipalId:"github-actions:<GITHUB_REPOSITORY>"`, and
   `reviewerCredentialContextId:"github-actions-provider-only:<GITHUB_RUN_ID>:<GITHUB_RUN_ATTEMPT>"`.
-  Validation derives the session and credential IDs from the receipt's producer attempt and
-  requires it not to exceed the validator job's current attempt. Re-running only validation
+  Receipt verification derives the session and credential IDs from the receipt's producer attempt
+  and requires it not to exceed the finalizer job's current attempt. Re-running only finalization
   therefore accepts downloaded receipts from an earlier successful producer attempt without
   detaching them from that attempt. This CI sentinel is diff-only execution identity, not a
   development principal or issue authority.
@@ -38,15 +34,15 @@ Every artifact you write under `$OUTDIR/findings.*.json` (default `/tmp/pr-revie
   `reviewerPrincipalId` here binds worker execution only: it is not the native GitHub posting
   actor ID and can never substitute for the independent GitHub actor read-backs at verdict time.
 
-Every local angle worker and validator runs as a fresh read-only advisory reviewer session,
+Every local angle worker and adjudicator runs as a fresh read-only advisory reviewer session,
 separate from the coding session. The parent harness owns that isolation: workers may read the
 prefetched review artifacts and write only their designated `findings.*.json` and
 `receipt.*.json` outputs under `$OUTDIR`. They cannot edit the implementation repository, post or
-accept a review, merge, or silently reduce the detected angle or validator set.
+accept a review, merge, or silently reduce the detected angle set or required adjudication.
 - The receipt distinguishes honest `[]` from a worker that never ran, but it proves execution only
   and is never authoritative contract context, Linear read-back, `reviewResult`, or work acceptance.
   A missing receipt, invalid required field, incomplete supplied reviewer identity, or any authority
-  other than `"advisory-only"` HARD-FAILS before merge, validation, or post.
+  other than `"advisory-only"` HARD-FAILS before candidate merge, adjudication, finalization, or post.
 - If your runtime offers a "write file" tool, use it directly — do NOT echo the JSON through a chat channel that prepends prose.
 - **Escape discipline inside string fields.** Every `"description"`, `"fix"`, and `"suggestion"` is a JSON string — inside it, the only valid backslash escapes are `\"`, `\\`, `\/`, `\b`, `\f`, `\n`, `\r`, `\t`, and `\uXXXX`. Bare backslashes in code samples (Windows paths, regex like `\d`, LaTeX) MUST be doubled to `\\`. Tabs and newlines in code samples MUST be `\t` / `\n`, never raw control bytes. The merge step has a fallback sanitizer, but a finding that loses content during sanitization is one that fails to land cleanly on the PR.
 - Before writing each finding's `line` and optional `end_line`, validate the anchor via:
@@ -54,7 +50,7 @@ accept a review, merge, or silently reduce the detected angle or validator set.
   bash "$WOO_REVIEW_ACTION_PATH/scripts/resolve-diff-line.sh" \
     --file "<path>" --line "<N>" --end "<N>"  # omit --end for one line
   ```
-  The helper prints the canonical start for a single-line anchor, `<start>:<end>` for a valid same-hunk range, or `null` when the start is not anchorable on the diff's RIGHT side. DROP the finding when it prints `null`. When a requested range resolves to only the start, omit `end_line` and keep the single-line finding. The merge and intersection steps repeat this validation as final safety nets.
+  The helper prints the canonical start for a single-line anchor, `<start>:<end>` for a valid same-hunk range, or `null` when the start is not anchorable on the diff's RIGHT side. DROP the finding when it prints `null`. When a requested range resolves to only the start, omit `end_line` and keep the single-line finding. Candidate merge and deterministic finalization repeat this validation as safety nets.
 - `$OUTDIR` defaults to a **per-project** path — `/tmp/pr-review-<hash>` derived from the repo's git toplevel (so concurrent reviews of different repos on one machine never share a tree). The orchestrator exports the resolved `OUTDIR` to you; **always prefer the exported `$OUTDIR` env var over any literal `/tmp/pr-review` path throughout this contract.** If `$OUTDIR` is somehow unset, re-derive it by sourcing `scripts/resolve-outdir.sh` — never fall back to a bare `/tmp/pr-review`.
 
 ## Prefetched Artifacts (do NOT re-fetch)
@@ -94,15 +90,15 @@ advisory: neither a finding array, execution receipt, nor GitHub `APPROVE` accep
 responsible controller performs any later acceptance or optional artifact synchronization.
 - **Chunk manifest** (optional, present only when the diff exceeds `chunking.max_loc`): `/tmp/pr-review/chunks.txt` (one chunk id per line) and `/tmp/pr-review/chunks.json` (manifest: `[{id, files, loc, diff_path, boundary}]`). Each chunk also has its own diff at `/tmp/pr-review/diff.chunk-<id>.txt`. When a worker is dispatched with a chunk id (env `CHUNK` non-empty), it MUST read the chunk-specific diff and write findings to `/tmp/pr-review/findings.<angle>.<chunk>.json`. In the GitHub Action this swap happens transparently — `diff.txt` is replaced with the chunk's diff before the worker runs, and the worker's output is renamed afterwards. When `chunks.txt` is absent, chunking did not activate and the diff fits a single worker (no overhead).
 
-If `/tmp/pr-review/rules.md` exists, treat it as an additional rubric on top of the per-angle scope. Each section is prefixed by a `## SOURCE: <path>` header identifying its origin file (`AGENTS.md`, `CLAUDE.md`, `.cursorrules`, `.windsurfrules`, or `GEMINI.md`). Any finding that claims a project-rule violation MUST populate `rule_quote` with a verbatim substring of `rules.md` (the rule text itself, not the source header). The validator discards rule-cited findings whose `rule_quote` is missing or not literally present in `rules.md`.
+If `/tmp/pr-review/rules.md` exists, treat it as an additional rubric on top of the per-angle scope. Each section is prefixed by a `## SOURCE: <path>` header identifying its origin file (`AGENTS.md`, `CLAUDE.md`, `.cursorrules`, `.windsurfrules`, or `GEMINI.md`). Any finding that claims a project-rule violation MUST populate `rule_quote` with a verbatim substring of `rules.md` (the rule text itself, not the source header). The adjudicator discards rule-cited findings whose `rule_quote` is missing or not literally present in `rules.md`.
 
-`woostack-defer(<ref>): <reason>` is an **intentional deferral signal** (issue #224), not a stray `TODO`. Do NOT raise a finding to flag or remove it. Only the defender validator acts on it — it demotes the *separate* missing/not-yet-wired finding the marker covers (see `validator.md`). Treat the marker line itself as inert.
+`woostack-defer(<ref>): <reason>` is an intentional deferral signal, not a stray `TODO`. Do not flag or remove it. Only the evidence adjudicator decides whether a co-located marker covers a separate missing-work finding.
 
 
 
 ## Findings Schema (`/tmp/pr-review/findings.json`)
 
-Every runner MUST write a final `findings.json` (for debugging + potential post-processing parity). Each per-angle step writes to `/tmp/pr-review/findings.<angle>.json`; the orchestrator merges them after validation:
+Every angle worker writes its candidate array to `/tmp/pr-review/findings.<angle>.json`; the orchestrator merges candidates into `raw_findings.json`, runs the adjudicator, and finalizes accepted findings into `findings.json`:
 
 ```json
 [
@@ -127,7 +123,7 @@ Every runner MUST write a final `findings.json` (for debugging + potential post-
     "fix": "One imperative sentence naming the minimum safe change; no rationale already stated above.",
     "suggestion": "verbatim replacement code for the GitHub ```suggestion``` block — REQUIRED when fix_type == \"suggestion\", MUST be null when fix_type == \"prose\"",
     "rule_quote": "exact quoted rule text if rule-based, else null",
-    "deferred_to": "the <ref> of a woostack-defer marker (e.g. \"increment 3\") this finding is deferred to, set by the defender when a marker covers the missing work; else null"
+    "deferred_to": "the <ref> of a woostack-defer marker, set by the evidence adjudicator when a marker covers missing work; else null"
   }
 ]
 ```
@@ -156,7 +152,7 @@ Every finding MUST set `fix_type` to exactly one of:
   - self-contained (does not reference symbols, imports, or context the diff does not already establish).
 - `"prose"` — the change is too large, multi-file, structural, or context-dependent for a one-click block. `suggestion` MUST be `null`; the human-readable `fix` field carries the recommendation.
 
-The validator enforces these rules and will downgrade a violating `fix_type: suggestion` to `fix_type: prose` (clearing `suggestion`) rather than emitting a broken block. When in doubt, prefer `prose` — a usable prose recommendation beats a broken one-click suggestion that loses author trust.
+The evidence adjudicator enforces these rules and will downgrade a violating `fix_type: suggestion` to `fix_type: prose` (clearing `suggestion`) rather than emitting a broken block. When in doubt, prefer `prose` — a usable prose recommendation beats a broken one-click suggestion that loses author trust.
 
 ### Inline Comment Format (rendered on the PR)
 
@@ -179,9 +175,9 @@ Fix: <fix>
 
 `nit` is a boolean set by `intersect-findings.sh` (the floor classifier), **not** by angle agents: `true` marks a validated below-floor non-blocking finding. The body builder renders a `nit: true` finding with a `Nit:` title prefix and a `· NIT` footer tag, and candidate-event computation treats it as neutral (a PR whose only findings are nits has candidate `APPROVE`, with the nits posted inline). Final delivery still applies the independent native GitHub actor-ID gate. A nit is always non-blocking; a below-floor finding that is `blocking: true` stays a normal finding (`nit: false`).
 
-`deferred_to` is a string (the marker `<ref>`, e.g. `"increment 3"`) or null, set by the defender validator (`validator.md`) when an inline `woostack-defer(<ref>)` marker in the diff covers the gap a finding flags as missing. `intersect-findings.sh` forces any finding carrying a non-empty `deferred_to` to `nit: true, blocking: false` (independent of `severity_floor`, gated by `review.defer_markers`), and the body builder appends a `Deferred to <ref>` line. Never set on `security` findings or on wrong code present in this PR.
+`deferred_to` is a string set by the evidence adjudicator when a co-located marker covers a missing-work gap. `intersect-findings.sh` forces a non-empty value to `nit: true, blocking: false` (gated by `review.defer_markers`). Never set on security findings or wrong code present in this PR.
 
-The body builder in the posting step (see python snippet above) renders this format automatically from `title` / `description` / `failure_mode` / `evidence` / `confidence` / `fix` / `fix_type` / `suggestion` / `angle` / `severity` / `blocking` / `nit`. Angle agents and the validator MUST populate `title`, `description`, `failure_mode`, `evidence`, `confidence`, `fix`, `fix_type`, `angle`, `severity`, and `blocking` for every finding; `nit` is added downstream by the classifier.
+The body builder in the posting step (see `_orchestrator-header.md`) renders these fields. Angle agents populate every required candidate field; the adjudicator preserves or normalizes accepted findings, and the finalizer adds `nit`.
 
 ## Blocking Criteria
 

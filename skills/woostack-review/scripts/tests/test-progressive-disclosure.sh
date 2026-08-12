@@ -47,12 +47,10 @@ for text in "$ROOT_TEXT" "$COMMANDS_TEXT" "$CONFIG_TEXT"; do
 done
 assert_fixed "$ROOT_TEXT" 'Internal `fast`/`standard`/`deep` tiers' 'root preserves internal worker tiers'
 
-# The pipeline is one detected multi-angle pass followed by both validators and intersection.
+# The pipeline is one detected multi-angle pass followed by one adjudicator and finalization.
 assert_fixed "$ROOT_TEXT" 'The multi-angle swarm pass' 'root names one multi-angle swarm pass'
-assert_fixed "$ROOT_TEXT" 'prosecutor/defender intersection' 'root names the validator intersection'
-assert_fixed "$ROOT_TEXT" 'findings.prosecutor.json' 'root retains prosecutor artifact'
-assert_fixed "$ROOT_TEXT" 'findings.defender.json' 'root retains defender artifact'
-assert_fixed "$ROOT_TEXT" 'intersect-findings.sh' 'root retains deterministic intersection script'
+assert_matches "$ROOT_TEXT" 'one independent evidence[[:space:]]+adjudicator' 'root names the sole adjudicator'
+assert_fixed "$ROOT_TEXT" 'findings.adjudicator.json' 'root names adjudicator artifact'
 
 # Review is advisory and posting is complete, exact-PR delivery.
 assert_fixed "$ROOT_TEXT" 'Every finding in' 'root requires posting every accepted finding'

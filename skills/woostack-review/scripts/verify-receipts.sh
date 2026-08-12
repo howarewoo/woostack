@@ -9,8 +9,8 @@
 # Modes:
 #   (default)           gate: emit ::error and exit 1 if any expected angle receipt is invalid.
 #   --list-missing      print invalid "<angle>" or "<angle>.<chunk>" labels, exit 0.
-#   --validators        gate prosecutor/defender receipts with the CI identity contract (GitHub Actions only).
-#   --validators-local  additionally bind local validator receipts to the controller-owned manifest.
+#   --validators        gate the sole adjudicator receipt with the CI identity contract (GitHub Actions only).
+#   --validators-local  additionally bind the sole adjudicator receipt to the controller-owned manifest.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
@@ -66,12 +66,7 @@ angles=()
 chunks=("")
 validator_bindings=""
 if [ "$mode" = "validators" ] || [ "$mode" = "validators-local" ]; then
-  if [ -s "$OUTDIR/config.json" ] &&
-    jq -e 'type == "object" and .disable_adversarial == true' "$OUTDIR/config.json" >/dev/null 2>&1; then
-    angles=("defender")
-  else
-    angles=("prosecutor" "defender")
-  fi
+  angles=("adjudicator")
 
   if [ "$mode" = "validators" ] && [ "${GITHUB_ACTIONS:-}" != "true" ]; then
     echo "::error::woostack-review: --validators is only valid in GitHub Actions; local coding harnesses must use --validators-local." >&2
@@ -87,40 +82,27 @@ if [ "$mode" = "validators" ] || [ "$mode" = "validators-local" ]; then
       ! jq -e '
         type == "object"
         and .schemaVersion == 2
-        and (.validators | type == "object")
+        and (.adjudicator | type == "object")
       ' "$validator_bindings" >/dev/null 2>&1; then
-      echo "::error::woostack-review: missing or invalid local validator binding manifest: $validator_bindings" >&2
+      echo "::error::woostack-review: missing or invalid local adjudicator binding manifest: $validator_bindings" >&2
       exit 2
     fi
-    for role in "${angles[@]}"; do
-      if ! jq -e --arg role "$role" '
-        .validators[$role] as $binding
-        | ($binding | type == "object")
-        and ([
-          $binding.runner,
-          $binding.model,
-          $binding.tier,
-          $binding.reviewerProfile,
-          $binding.reviewerSessionId,
-          $binding.reviewerPrincipalId,
-          $binding.reviewerCredentialContextId
-        ] | all(type == "string" and length > 0))
-        and ($binding.findingsSha256 | type == "string" and test("^sha256:[0-9a-f]{64}$"))
-        and ($binding.receiptSha256 | type == "string" and test("^sha256:[0-9a-f]{64}$"))
-      ' "$validator_bindings" >/dev/null 2>&1; then
-        echo "::error::woostack-review: missing or invalid local validator binding for role: $role" >&2
-        exit 2
-      fi
-    done
-    if [ "${#angles[@]}" -gt 1 ] &&
-      ! jq -e '
-        (.validators.prosecutor.reviewerSessionId != .validators.defender.reviewerSessionId)
-        and (
-          .validators.prosecutor.reviewerCredentialContextId
-          != .validators.defender.reviewerCredentialContextId
-        )
-      ' "$validator_bindings" >/dev/null 2>&1; then
-      echo "::error::woostack-review: local prosecutor and defender must use distinct reviewer sessions and credential contexts." >&2
+    if ! jq -e '
+      .adjudicator as $binding
+      | ($binding | type == "object")
+      and ([
+        $binding.runner,
+        $binding.model,
+        $binding.tier,
+        $binding.reviewerProfile,
+        $binding.reviewerSessionId,
+        $binding.reviewerPrincipalId,
+        $binding.reviewerCredentialContextId
+      ] | all(type == "string" and length > 0))
+      and ($binding.findingsSha256 | type == "string" and test("^sha256:[0-9a-f]{64}$"))
+      and ($binding.receiptSha256 | type == "string" and test("^sha256:[0-9a-f]{64}$"))
+    ' "$validator_bindings" >/dev/null 2>&1; then
+      echo "::error::woostack-review: missing or invalid local adjudicator binding" >&2
       exit 2
     fi
   fi
@@ -166,7 +148,7 @@ sha256_file() { # file
   printf 'sha256:%s\n' "$digest"
 }
 
-receipt_matches_local_validator_binding() { # role receipt
+receipt_matches_local_binding() { # role receipt
   local role="$1" receipt="$2" findings findings_sha receipt_sha
   findings="$OUTDIR/findings.$role.json"
   [ -s "$findings" ] || return 1
@@ -177,7 +159,7 @@ receipt_matches_local_validator_binding() { # role receipt
     --arg findings_sha "$findings_sha" \
     --arg receipt_sha "$receipt_sha" \
     --slurpfile bindings "$validator_bindings" '
-      ($bindings[0].validators[$role]) as $expected
+      ($bindings[0].adjudicator) as $expected
       | .runner == $expected.runner
       and .model == $expected.model
       and .tier == $expected.tier
@@ -271,7 +253,7 @@ is_valid_receipt() { # angle chunk file
   fi
 
   if [ "$mode" = "validators-local" ]; then
-    receipt_matches_local_validator_binding "$angle" "$f" || return 1
+    receipt_matches_local_binding "$angle" "$f" || return 1
   fi
 
   if receipt_needs_openai_model_check "$f"; then
@@ -297,10 +279,10 @@ done
 if [ "$mode" = "validators" ] || [ "$mode" = "validators-local" ]; then
   if [ "${#missing[@]}" -gt 0 ]; then
     miss_csv="$(IFS=', '; echo "${missing[*]}")"
-    echo "::error::woostack-review: validator role receipt(s) missing or invalid: ${miss_csv}. The adversarial validation pass is NOT complete; refusing intersection." >&2
+    echo "::error::woostack-review: adjudicator receipt missing or invalid: ${miss_csv}. Final adjudication is NOT complete; refusing finalization." >&2
     exit 1
   fi
-  echo "verify-receipts: all ${#angles[@]} required validator role receipt(s) valid."
+  echo "verify-receipts: adjudicator receipt valid."
   exit 0
 fi
 

@@ -1,4 +1,8 @@
-"""Shared validation and normalization for root ``models`` configuration."""
+"""Shared validation and normalization for root ``models`` configuration.
+
+The review pipeline has one standard-tier evidence adjudicator; fast/standard/deep
+remain valid model tiers for angle workers and provider configuration.
+"""
 
 MODEL_TIERS = {"fast", "standard", "deep"}
 MODEL_PROVIDERS = {"anthropic", "openai", "google", "openrouter"}

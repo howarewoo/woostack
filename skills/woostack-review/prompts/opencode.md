@@ -6,13 +6,13 @@ The shared header above lists prefetched artifacts, findings schema, blocking cr
 
 **Host identifier:** default `opencode` (substitute into the credits line `<host>` placeholder per `_orchestrator-header.md`). When an OpenCode agent persona / subagent profile is identifiable (e.g. `mimo-v2.5`), append it in parentheses: `opencode (mimo-v2.5)`. Read the active profile from the OpenCode runtime when available; otherwise use the bare `opencode` slug.
 
-**Provider / model accuracy.** This file's model table assumes OpenRouter + DeepSeek, but OpenCode can route to *any* provider/model (Anthropic, OpenAI, Google, local, …). For the credits line, follow `_orchestrator-header.md`'s precedence (`WOO_REVIEW_PROVIDER` / `WOO_REVIEW_MODEL` env vars > OpenCode runtime introspection > this file's default > `unknown`) and report what the validator step actually ran on. Do NOT hard-code `openrouter` / `deepseek-v4-pro` into the credits line unless that is genuinely the active route — if mimo-v2.5 is wired to `anthropic` + `claude-sonnet-4-6`, those are the correct values.
+**Provider / model accuracy.** This file's model table assumes OpenRouter + DeepSeek, but OpenCode can route to *any* provider/model (Anthropic, OpenAI, Google, local, …). For the credits line, follow `_orchestrator-header.md`'s precedence (`WOO_REVIEW_PROVIDER` / `WOO_REVIEW_MODEL` env vars > OpenCode runtime introspection > this file's default > `unknown`) and report what the adjudicator actually ran on. Do NOT hard-code `openrouter` / `deepseek-v4-pro` into the credits line unless that is genuinely the active route — if mimo-v2.5 is wired to `anthropic` + `claude-sonnet-4-6`, those are the correct values.
 
 ## Model selection
 
-OpenCode + OpenRouter can route per-subagent if the OpenCode runtime supports it. When spawning each angle / validator subagent, resolve an effective tier in order:
+OpenCode + OpenRouter can route per-subagent if the OpenCode runtime supports it. When spawning each angle or adjudicator subagent, resolve an effective tier in order:
 1. `FORCE_TIER` in Review Context (`fast`/`deep`) when present.
-2. Otherwise the angle/validator `tier:` frontmatter.
+2. Otherwise the angle or adjudicator prompt's `tier:` frontmatter.
 
 Then resolve that effective tier via the shared **Model Tiers** table (canonical at
 [`../../using-woostack/references/model-tiers.md`](../../using-woostack/references/model-tiers.md),
@@ -43,9 +43,9 @@ You are running as a parallel worker for a specific angle.
 - The findings file MUST be a JSON array only — starts with `[`, ends with `]`, no preamble, no markdown fences, no commentary. See *Output Discipline* in `_worker-header.md`. Validate every `line` via `scripts/resolve-diff-line.sh` and drop findings the helper rejects.
 
 ### MODE: validate
-You are running as the final aggregator.
-- Read all `$OUTDIR/findings.<angle>.json` files from the disk.
-- Perform Phase 3 (Self-Validation) below.
+You are running as the final controller.
+- Read all `$OUTDIR/findings.<angle>.json` files from disk.
+- Perform Phase 3 (Evidence Adjudication) below.
 - Perform Phase 4 (Submit Native PR Review) below.
 - Do NOT modify the PR title, PR description, or PR labels.
 - Exit.
@@ -83,23 +83,14 @@ Stay within each angle's scope; do not let one angle flag issues that belong to 
 
 **Retry-once recovery.** Subagents can die mid-run (stream errors, turn-limit interrupts) and leave no findings file. After Phase 2 reports done, before invoking `merge-findings.sh`, scan `$OUTDIR/angles.txt` (× `chunks.txt` when chunked) and check that each expected `findings.<angle>.json` (or `findings.<angle>.<chunk_id>.json`) exists and parses as a JSON array via `jq -e 'type == "array"'`. For any path that fails the check, re-spawn THAT `(angle, chunk)` subagent ONCE with the same brief and model slug. Cap is one retry total per pair — if the retry also fails, leave the file as-is and proceed to Phase 3. The merge step's recovery handles malformed JSON; missing files just mean the angle produced no findings.
 
-## Phase 3 — Adversarial Validation (prosecutor + defender, sequential)
+## Phase 3 — Evidence adjudication
 
-Merge all `findings.<angle>.json` into `$OUTDIR/raw_findings.json` via `$WOO_REVIEW_ACTION_PATH/scripts/merge-findings.sh`. Validation does NOT parallelize; it runs the two opposing-bias passes in sequence, followed by a deterministic intersection (issue #13). Read `disable_adversarial` first:
-
-```bash
-DISABLE_ADV="$(jq -r '.disable_adversarial // false' $OUTDIR/config.json 2>/dev/null || echo false)"
-```
-
-### Phase 3a — Prosecutor pass (skip if `DISABLE_ADV == true`)
-
-Spawn a fresh `deep`-tier subagent with `$WOO_REVIEW_ACTION_PATH/prompts/validator-prosecutor.md`; a local runtime without fresh subagent isolation blocks instead of continuing in the main loop. It assumes each finding is real, drops only the demonstrably wrong, writes `$OUTDIR/findings.prosecutor.json` and its receipt, then exits.
-
-### Phase 3b — Defender pass
-
-After the Prosecutor exits and its binding and artifact digests are recorded in controller memory, spawn another fresh `deep`-tier subagent with `$WOO_REVIEW_ACTION_PATH/prompts/validator.md`. It applies the defense-attorney filter, writes `$OUTDIR/findings.defender.json` and its receipt, then exits. The controller creates the schema-v2 manifest only after every required role exits.
-
-### Phase 3c — Intersect
+Merge angle arrays into `$OUTDIR/raw_findings.json`, then spawn exactly one fresh standard-tier
+adjudicator with `$WOO_REVIEW_ACTION_PATH/prompts/validator.md`. A local runtime without fresh
+isolation blocks. The adjudicator independently checks concrete evidence, confidence/severity,
+changed-line ownership, tooling overlap, deferral, and fix shape; writes
+`findings.adjudicator.json` and `receipt.adjudicator.json`; then exits. Unsupported candidates are
+dropped, not rewritten, in this sole adjudication pass.
 
 ```bash
 if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
@@ -110,7 +101,7 @@ fi
 bash "$WOO_REVIEW_ACTION_PATH/scripts/intersect-findings.sh"
 ```
 
-Produces `$OUTDIR/findings.json` (intersection by `(file, line, title-stem)`; severity = min, blocking = AND). When adversarial is disabled or the prosecutor file is absent, copies defender output verbatim. Disagreement counts in `$OUTDIR/validator-metrics.json`.
+This writes `findings.json` once after receipt, identity, digest, stale-head, and changed-line gates.
 
 ## Phase 4 — Submit Native PR Review
 

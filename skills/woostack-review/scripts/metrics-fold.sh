@@ -22,7 +22,7 @@ PER_RUN="$OUTDIR/findings.metrics.json"
 ROOT="$WOOSTACK_COMMON_ROOT"
 ROLLING="$ROOT/.woostack/metrics.json"
 GITIGNORE="$ROOT/.gitignore"
-SCHEMA_VERSION=3
+SCHEMA_VERSION=4
 
 # Gate: metrics opt-in (default off).
 metrics_enabled="false"
@@ -100,8 +100,7 @@ for angle, rec in (run.get("angles") or {}).items():
         "runs_present": 0,
         "raw_total": 0,
         "kept_total": 0,
-        "dropped_by_defender_total": 0,
-        "dropped_by_prosecutor_total": 0,
+        "dropped_by_adjudicator_total": 0,
         "blocking_total": 0,
         "nit_total": 0,
         "severity_total": {s: 0 for s in SEVS},
@@ -111,8 +110,7 @@ for angle, rec in (run.get("angles") or {}).items():
     slot["runs_present"] += 1
     slot["raw_total"]  += num(rec.get("raw_count"))
     slot["kept_total"] += num(rec.get("kept"))
-    slot["dropped_by_defender_total"]   += num(rec.get("dropped_by_defender"))
-    slot["dropped_by_prosecutor_total"] += num(rec.get("dropped_by_prosecutor"))
+    slot["dropped_by_adjudicator_total"] += num(rec.get("dropped_by_adjudicator"))
     slot["blocking_total"] += num(rec.get("blocking_count"))
     slot.setdefault("nit_total", 0)
     slot["nit_total"] += num(rec.get("nit_count"))

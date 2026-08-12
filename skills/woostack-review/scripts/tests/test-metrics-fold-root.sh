@@ -21,8 +21,8 @@ mkdir -p "$out"
 printf '%s\n' '{"metrics": true}' > "$out/config.json"
 cat > "$out/findings.metrics.json" <<'JSON'
 {
-  "schema_version": 3,
-  "mode": "defender-only",
+  "schema_version": 4,
+  "mode": "adjudicator",
   "degraded": false,
   "angles": {
     "bugs": {"raw_count": 1, "kept": 1, "nit_count": 0, "overlap_total": 0, "overlap_with": {}}

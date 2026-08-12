@@ -38,9 +38,9 @@ You are running as a parallel worker for a specific angle.
 - The findings file MUST be a JSON array only — starts with `[`, ends with `]`, no preamble, no markdown fences, no commentary. See *Output Discipline* in `_worker-header.md`. Validate every `line` via `scripts/resolve-diff-line.sh` and drop findings the helper rejects.
 
 ### MODE: validate
-You are running as the final aggregator.
-- Read all `$OUTDIR/findings.<angle>.json` files from the disk.
-- Perform Phase 3 (Adversarial Validation) below.
+You are running as the final controller.
+- Read all `$OUTDIR/findings.<angle>.json` files from disk.
+- Perform Phase 3 (Evidence Adjudication) below.
 - Perform Phase 4 (Submit Native PR Review) below.
 - Do NOT modify the PR title, PR description, or PR labels.
 - Exit.
@@ -98,33 +98,19 @@ not a missing file. Replace with the final array before EXIT.
 EXIT when done. Do NOT post comments, edit the PR, or touch other angles.
 ```
 
-After every subagent has finished, run `bash $WOO_REVIEW_ACTION_PATH/scripts/merge-findings.sh` — it concatenates every `findings.<angle>*.json` into `raw_findings.json` and applies within-angle dedup so duplicates across chunks collapse to a single entry before validation.
+After every subagent has finished, run `bash $WOO_REVIEW_ACTION_PATH/scripts/merge-findings.sh` — it concatenates every `findings.<angle>*.json` into `raw_findings.json` and applies within-angle dedup so duplicates across chunks collapse before adjudication.
 
 **Retry-once recovery.** Subagent calls can die mid-run (model stream errors, turn-limit interrupts) and leave no findings file. Before invoking `merge-findings.sh`, scan `$OUTDIR/angles.txt` (× `chunks.txt` when chunked) and check that each expected `findings.<angle>.json` (or `findings.<angle>.<chunk_id>.json`) exists and parses as a JSON array via `jq -e 'type == "array"'`. For any path that fails the check, re-dispatch THAT `(angle, chunk)` subagent ONCE with the same brief. Cap is one retry per pair — if the retry also fails, leave the file as-is and proceed. The merge step recovers malformed JSON; missing files just mean the angle produced no findings.
 
-## Phase 3 — Adversarial validation (sequential subagent × 2)
+## Phase 3 — Evidence adjudication
 
-Skip if every per-angle file is empty / missing; status is `APPROVED`.
-
-Otherwise run TWO sequential subagents with opposing biases, then a deterministic intersection (issue #13). Read `disable_adversarial` first:
-
-```bash
-DISABLE_ADV="$(jq -r '.disable_adversarial // false' $OUTDIR/config.json 2>/dev/null || echo false)"
-```
-
-### Phase 3a — Prosecutor pass (skip if `DISABLE_ADV == true`)
-
-Spawn one subagent with `$WOO_REVIEW_ACTION_PATH/prompts/validator-prosecutor.md` as its brief. It assumes each finding is real and drops only the clearly-wrong ones. It writes `$OUTDIR/findings.prosecutor.json` and EXITS — it MUST NOT post a review.
-
-### Phase 3b — Defender pass
-
-Spawn one subagent with `$WOO_REVIEW_ACTION_PATH/prompts/validator.md` as its brief. It applies the strict "defense attorney" filter — drops pedantic / lint-catchable / maybe-issues / placeholder-suggestion findings — and writes `$OUTDIR/findings.defender.json`. It writes `$OUTDIR/findings.defender.json` and EXITs — it does NOT run the receipt gate, intersect script, or post (the orchestrator does those next). Apply `validator.md` through its validator receipt, then stop at its local-worker exit gate; the orchestrator runs the receipt gate and intersection itself in the next phase.
-
-For local runs, execute the bound-validator sequence in `SKILL.md` Stage 3 with the current host
-adapter; an adapter that cannot supply its required bindings blocks. GitHub Actions retains its
-single-session CI identity contract.
-
-### Phase 3c — Intersect (orchestrator)
+Always run the adjudicator, including when `raw_findings.json` is `[]`; an empty candidate set still
+requires the independent adjudicator receipt before approval. Run exactly one fresh standard-tier
+adjudicator with `$WOO_REVIEW_ACTION_PATH/prompts/validator.md` against `raw_findings.json` and the
+exact reviewed head. It independently verifies concrete evidence, confidence/severity, changed-line
+ownership, tooling overlap, deferral, and fix shape, writes `findings.adjudicator.json` and
+`receipt.adjudicator.json`, then exits. Unsupported candidates are dropped, not rewritten, in this
+sole adjudication pass.
 
 ```bash
 if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
@@ -135,7 +121,8 @@ fi
 bash "$WOO_REVIEW_ACTION_PATH/scripts/intersect-findings.sh"
 ```
 
-This produces the final `$OUTDIR/findings.json` (intersection of prosecutor + defender; when adversarial is disabled or the prosecutor file is absent, defender output is copied verbatim). Per-pass and disagreement counts land in `$OUTDIR/validator-metrics.json`.
+The finalizer writes `findings.json` exactly once after receipt, identity, digest, stale-head, and
+changed-line gates.
 
 ## Phase 4 — Submit native PR Review
 
@@ -149,5 +136,5 @@ Do NOT call `gh pr edit`. Do NOT add, remove, or mutate PR labels. The PR title,
 - Use the `gh` CLI for GitHub access.
 - Trust prefetched artifacts.
 - Parallel angle subagents in Phase 2 must complete before Phase 3.
-- Each subagent stays within its angle scope; do not duplicate findings across angles (the validator dedupes).
+- Each subagent stays within its angle scope; do not duplicate findings across angles (the adjudicator deduplicates).
 - `findings.json` is the single source of truth for Phase 4.

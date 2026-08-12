@@ -24,10 +24,10 @@ You are running as a parallel worker for a specific angle.
 - The findings file MUST be a JSON array only — starts with `[`, ends with `]`, no preamble, no markdown fences, no commentary. See *Output Discipline* in `_worker-header.md`. Validate every `line` via `scripts/resolve-diff-line.sh` and drop findings the helper rejects.
 
 ### MODE: validate
-You are running as the final aggregator.
-- Read all `$OUTDIR/findings.<angle>.json` files from the disk.
-- Perform the validation step (Step 3 below).
-- Perform the final output step (Step 4 below): submit one batched native PR Review. The review `event` (APPROVE / COMMENT / REQUEST_CHANGES) is the blocking gate.
+You are running as the final controller.
+- Read all `$OUTDIR/findings.<angle>.json` files from disk.
+- Perform evidence adjudication (Step 3 below).
+- Perform final delivery (Step 4 below): submit one batched native PR Review. The review `event` (APPROVE / COMMENT / REQUEST_CHANGES) is the blocking gate.
 - Do NOT modify the PR title, PR description, or PR labels.
 - Exit.
 
@@ -75,7 +75,7 @@ Resolution rule per spawn:
 4. Resolve **effort** from that same primary entry, provider-scoped then flat (e.g. `jq -r '((.models.anthropic.deep // .models.deep) | if type=="array" then .[0] else . end | if type=="object" then .effort else empty end) // empty' $OUTDIR/config.json`); fall back to the tier default from step 2 when unset.
 5. Pass the resolved slug as `model:` on the Task call, and the resolved effort as `effort:` **when the Task API accepts a reasoning-effort override** (if it accepts only `model`, still pass `model`; never fall back to parent-session inheritance).
 
-The validators are `deep` tier — pass `model: "claude-opus-4-8"` with `effort: "xhigh"` explicitly (when the Task API accepts effort). Opus at high effort applies the stricter false-positive filter that pays for itself in review quality.
+The sole adjudicator is `standard` tier — pass `model: "claude-opus-4-8"` with `effort: "medium"` explicitly when the Task API accepts effort.
 
 **OUTDIR handoff.** `$OUTDIR` defaults to a per-project `/tmp/pr-review-<hash>` (derived from the repo's git toplevel by `scripts/resolve-outdir.sh`) so concurrent reviews of different repos on one machine never share a tree. Resolve it ONCE in the orchestrator — `source "$WOO_REVIEW_ACTION_PATH/scripts/resolve-outdir.sh"` sets and exports `OUTDIR` — then export `OUTDIR` to **every** sub-agent you spawn. Sub-agents prefer the inherited `$OUTDIR`; if it is unset they re-derive via the same helper. Never fall back to a bare `/tmp/pr-review`.
 
@@ -114,37 +114,18 @@ If the Task tool caps practical parallelism below the angle count, spawn in wave
 
 For any path that (a) does not exist, OR (b) does not parse as a JSON array (`jq -e 'type == "array"'` returns non-zero), re-launch THAT subagent ONCE with an identical brief and `model:` slug. Cap is one retry total per `(angle, chunk)` pair — if the retry also fails, leave the file missing/malformed and proceed to merge. The merge step's recovery handles malformed files; missing files simply count as "this angle produced no findings."
 
-After recovery, run `bash $WOO_REVIEW_ACTION_PATH/scripts/merge-findings.sh` — it concatenates every `findings.<angle>*.json` into `raw_findings.json` and applies within-angle dedup so duplicates across chunks collapse to a single entry before validation.
+After recovery, run `bash $WOO_REVIEW_ACTION_PATH/scripts/merge-findings.sh` — it concatenates every `findings.<angle>*.json` into `raw_findings.json` and applies within-angle dedup so duplicates across chunks collapse before adjudication.
 
-## Step 3 — Adversarial Validation (Opus 4.8, prosecutor + defender)
+## Step 3 — Evidence adjudication
 
-Skip if every per-angle file is empty / missing; status is `APPROVED`.
+Always run the adjudicator, including when `raw_findings.json` is `[]`; an empty candidate set still
+requires the independent adjudicator receipt before approval. Spawn exactly one fresh standard-tier
+subagent with `$WOO_REVIEW_ACTION_PATH/prompts/validator.md`. It independently adjudicates evidence,
+concrete failure, confidence/severity, changed-line ownership, tool overlap, defer semantics, and
+fix shape. It writes `$OUTDIR/findings.adjudicator.json` and its receipt, then exits. Unsupported
+candidates are dropped, not rewritten, in this sole adjudication pass.
 
-Otherwise this step runs **two** sequential `claude-opus-4-8` validator subagents with opposing biases, then a deterministic intersection (issue #13). The intersection is the high-confidence set of findings the author sees.
-
-Read `disable_adversarial` from `$OUTDIR/config.json`:
-
-```bash
-DISABLE_ADV="$(jq -r '.disable_adversarial // false' $OUTDIR/config.json 2>/dev/null || echo false)"
-```
-
-### Step 3a — Prosecutor pass (skip if `DISABLE_ADV == true`)
-
-Launch one `claude-opus-4-8` subagent with `$WOO_REVIEW_ACTION_PATH/prompts/validator-prosecutor.md` as its prompt. It assumes each finding is real and only drops the clearly-wrong ones. It writes `$OUTDIR/findings.prosecutor.json` and EXITS — it MUST NOT post a review.
-
-### Step 3b — Defender pass
-
-Launch one `claude-opus-4-8` subagent with `$WOO_REVIEW_ACTION_PATH/prompts/validator.md` as its prompt. It applies the strict "defense attorney" filter — drops pedantic / lint-catchable / maybe-issues / placeholder-suggestion findings — and writes `$OUTDIR/findings.defender.json`. It writes `$OUTDIR/findings.defender.json` and EXITs — it does NOT run the receipt gate, intersect script, or post (the orchestrator does those next). Apply `validator.md` through its validator receipt, then stop at its local-worker exit gate; the orchestrator runs the receipt gate and intersection itself in the next step.
-
-For local runs, execute the bound-validator sequence in `SKILL.md` Stage 3 with the current host
-adapter; an adapter that cannot supply its required bindings blocks. GitHub Actions retains its
-single-session CI identity contract.
-
-### Step 3c — Intersect (orchestrator)
-
-After the validators finish, the orchestrator (this session) runs the bound local gate or the CI
-gate, then intersects:
-
+The controller writes the post-exit binding manifest, verifies it, and finalizes:
 ```bash
 if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
   bash "$WOO_REVIEW_ACTION_PATH/scripts/verify-receipts.sh" --validators
@@ -154,7 +135,8 @@ fi
 bash "$WOO_REVIEW_ACTION_PATH/scripts/intersect-findings.sh"
 ```
 
-This produces the final `$OUTDIR/findings.json` (intersection of prosecutor + defender; when adversarial is disabled or the prosecutor file is absent, defender output is copied verbatim). Per-pass and disagreement counts land in `$OUTDIR/validator-metrics.json` for downstream telemetry.
+This produces `$OUTDIR/findings.json` once from the adjudicator output; deterministic severity,
+defer, ownership, changed-line, stale-head, identity, and digest gates remain mandatory.
 
 ## Step 4 — Submit Native PR Review
 
@@ -167,5 +149,5 @@ Do NOT call `gh pr edit`. Do NOT add, remove, or mutate PR labels. The PR title,
 - Execute every step autonomously — no confirmation prompts.
 - Trust prefetched artifacts. Do NOT re-run `gh pr diff`.
 - Parallel angle subagents in Step 2 must complete before Step 3.
-- Each subagent stays within its angle scope; do not duplicate findings across angles (validator dedupes).
+- Each subagent stays within its angle scope; do not duplicate findings across angles (the adjudicator deduplicates).
 - `findings.json` is the single source of truth for Step 4.
