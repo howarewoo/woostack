@@ -1,0 +1,318 @@
+{
+  "schemaVersion": 1,
+  "name": "woostack-review-ten-pr",
+  "source": {
+    "repository": "https://github.com/withmartian/code-review-benchmark",
+    "commit": "fbc5425c5eec52932aa1303708873d341968fa1c",
+    "license": "MIT"
+  },
+  "selection": {
+    "algorithm": "lowest-two-sha256",
+    "seed": "woostack-review-five-pr-v1",
+    "input": "<seed>\n<original-pr-url>",
+    "casesPerSourceFile": 2
+  },
+  "profile": "core",
+  "cases": [
+    {
+      "project": "cal_dot_com",
+      "id": "cal-dot-com",
+      "sourceFile": "offline/golden_comments/cal_dot_com.json",
+      "rank": 1,
+      "url": "https://github.com/calcom/cal.com/pull/7232",
+      "title": "Comprehensive workflow reminder management for booking lifecycle events",
+      "rankHash": "092cbb2a4a144c2fbf17987f395631a55f9ee1baaf7c8844363b136b6301614f",
+      "goldens": [
+        {
+          "id": "G01",
+          "comment": "Asynchronous functions deleteScheduledEmailReminder and deleteScheduledSMSReminder are called without await inside forEach loops. This occurs during booking rescheduling/cancellation, and workflow/workflow step deletion/updates. Consequently, scheduled workflow reminders may not be reliably cancelled, potentially leaving them active.",
+          "severity": "Medium",
+          "category": "concurrency"
+        },
+        {
+          "id": "G02",
+          "comment": "When immediateDelete is true, the deleteScheduledEmailReminder function cancels the SendGrid email but fails to delete the corresponding WorkflowReminder record from the database. This creates orphaned database entries and is inconsistent with the immediateDelete: false path, which marks the record as cancelled. The SendGrid DELETE API call is also omitted in this path.",
+          "severity": "High",
+          "category": "data"
+        },
+        {
+          "id": "G03",
+          "comment": "The 'cancelled' field is nullable, which can lead to existing records having null values instead of a default of false. This can cause incorrect behavior in the application when checking the cancellation status of reminders.",
+          "severity": "Medium",
+          "category": "data"
+        }
+      ],
+      "caseHash": "sha256:7613355ba73b73a96af09b61726c49aab9be4c25c4fed3a91d5f06a3404c50d3"
+    },
+    {
+      "project": "cal_dot_com",
+      "id": "cal-dot-com-2",
+      "sourceFile": "offline/golden_comments/cal_dot_com.json",
+      "rank": 2,
+      "url": "https://github.com/calcom/cal.com/pull/8087",
+      "title": "Async import of the appStore packages",
+      "rankHash": "3eb4c5aac0c5ef55009f3a32382fa70491a300564c3c88cdf059e3e5f8c2f45b",
+      "goldens": [
+        {
+          "id": "G01",
+          "comment": "Consider adding try-catch around the await to handle import failures gracefully",
+          "severity": "Low",
+          "category": "speculative"
+        },
+        {
+          "id": "G02",
+          "comment": "The code uses forEach with async callbacks, which causes asynchronous operations (e.g., calendar/video event deletions, payment refunds) to run concurrently without being awaited. This 'fire-and-forget' behavior leads to unhandled promise rejections, race conditions, and incomplete cleanup, as surrounding try-catch blocks cannot properly handle errors from these unawaited promises. Replace forEach with for...of loops or Promise.all() with map() to ensure proper sequential execution and error handling.",
+          "severity": "Critical",
+          "category": "concurrency"
+        }
+      ],
+      "caseHash": "sha256:804554a3f05f430c6f8791b2c2429907eed7c96e574da0a296e83505fbc62485"
+    },
+    {
+      "project": "discourse",
+      "id": "discourse",
+      "sourceFile": "offline/golden_comments/discourse.json",
+      "rank": 1,
+      "url": "https://github.com/ai-code-review-evaluation/discourse-graphite/pull/5",
+      "title": "Optimize header layout performance with flexbox mixins",
+      "rankHash": "373f18996fa0c9ae206ea3ed05a40d8f1e36d0db480ac9aec0d11821c54ddbe7",
+      "goldens": [
+        {
+          "id": "G01",
+          "comment": "Mixing float: left with flexbox causes layout issues. Further this PR removes the float-based right alignment for .d-header .panel, which may cause the login panel in the non-Ember/noscript header (where .panel is nested inside .row and not a flex item) to stack under the title instead of remaining right-aligned.",
+          "severity": "Low",
+          "category": "bug"
+        },
+        {
+          "id": "G02",
+          "comment": "-ms-align-items never existed in any version of IE/Edge; the correct legacy property is -ms-flex-align.",
+          "severity": "Low",
+          "category": "bug"
+        },
+        {
+          "id": "G03",
+          "comment": "-webkit-box-ordinal-group and -moz-box-ordinal-group require values starting from 1, not 0. If $val is 0, this will cause incorrect rendering in older browsers, leading to layout issues.",
+          "severity": "Medium",
+          "category": "bug"
+        }
+      ],
+      "caseHash": "sha256:b2d0e838ad522f317bc2e8e1f7c4ea4f65549e45839499a07cb01ec8e6eb1fad"
+    },
+    {
+      "project": "discourse",
+      "id": "discourse-2",
+      "sourceFile": "offline/golden_comments/discourse.json",
+      "rank": 2,
+      "url": "https://github.com/ai-code-review-evaluation/discourse-graphite/pull/10",
+      "title": "FEATURE: Can edit category/host relationships for embedding",
+      "rankHash": "5a6f8eeca7d2fce8d8dd39431fb3703998c8b40ec885bcdef8ba461a99d18fe3",
+      "goldens": [
+        {
+          "id": "G01",
+          "comment": "The EmbeddableHost model's before_validation callback calls self.host.sub! to strip http://, https://, and path segments, but if self.host is nil, this raises NoMethodError.",
+          "severity": "Critical",
+          "category": "bug"
+        },
+        {
+          "id": "G02",
+          "comment": "The update and destroy methods in Admin::EmbeddableHostsController do not validate the existence of the EmbeddableHost record retrieved by ID. If EmbeddableHost.where(id: params[:id]).first returns nil (i.e., the host does not exist), attempting to call methods on the nil object (e.g., save_host or destroy) will result in a NoMethodError.",
+          "severity": "Medium",
+          "category": "bug"
+        },
+        {
+          "id": "G03",
+          "comment": "record_for_host compares lower(host) = ? but does not normalize the parameter’s case, so mixed‑case referer hosts may fail to match even though comparison intends to be case‑insensitive.",
+          "severity": "Medium",
+          "category": "bug"
+        },
+        {
+          "id": "G04",
+          "comment": "Because this migration inserts embeddable_hosts rows with raw SQL, any existing embeddable_hosts values that include http:// or /https:// or path segments won’t go through the EmbeddableHost model’s normalization, so the new host lookup (which compares only the bare host) may fail for migrated data. Consider ensuring that migrated hosts are normalized to the same format as newly created EmbeddableHost records so existing embedding configurations keep working.",
+          "severity": "High",
+          "category": "data"
+        },
+        {
+          "id": "G05",
+          "comment": "The contents of `category_fabricator.rb` and `embeddable_host_fabricator.rb` have been swapped, resulting in the loss of original category fabricators and potentially causing errors in fabricator usage.",
+          "severity": "High",
+          "category": "bug"
+        },
+        {
+          "id": "G06",
+          "comment": "The SQL query in the `app/controllers/admin/embeddable_hosts_controller.rb` file uses string interpolation (`'#{h}'`) to insert values, which is vulnerable to SQL injection. It should use parameter binding or proper quoting to prevent this security vulnerability.",
+          "severity": "Critical",
+          "category": "security"
+        },
+        {
+          "id": "G07",
+          "comment": "The migration accesses execute(...)[0]['id'] without checking if the query returned any rows, which causes a crash when no embed_category setting exists. This can lead to a broken feature when attempting to edit category/host relationships.",
+          "severity": "High",
+          "category": "bug"
+        }
+      ],
+      "caseHash": "sha256:e2a68141674686da1b5919e88d0e9ad08fbd5139540288f8be95d3979192b1c4"
+    },
+    {
+      "project": "grafana",
+      "id": "grafana",
+      "sourceFile": "offline/golden_comments/grafana.json",
+      "rank": 1,
+      "url": "https://github.com/grafana/grafana/pull/76186",
+      "title": "Plugins: Chore: Renamed instrumentation middleware to metrics middleware",
+      "rankHash": "057a904408ee128784befa1db14310e05315554c797e6863cbb9bbce39505301",
+      "goldens": [
+        {
+          "id": "G01",
+          "comment": "The ContextualLoggerMiddleware methods (QueryData, CallResource, CheckHealth, CollectMetrics) panic when a nil request is received. This occurs because they directly access req.PluginContext (via the instrumentContext function) without first checking if req is nil. This is a regression, as previous middleware layers gracefully handled nil requests.",
+          "severity": "High",
+          "category": "bug"
+        },
+        {
+          "id": "G02",
+          "comment": "The traceID is no longer logged for plugin requests. During a refactoring, the tracing import and the logic to extract and add traceID from the context to log parameters were removed from the LoggerMiddleware. The newly introduced ContextualLoggerMiddleware does not add this information, resulting in missing traceID in plugin request logs and impacting debugging and request tracing capabilities.",
+          "severity": "Low",
+          "category": "bug"
+        },
+        {
+          "id": "G03",
+          "comment": "The `TestLogger.FromContext` method returns a new `TestLogger` instance via `NewTestLogger()` instead of returning the receiver (f). This causes logs to be recorded on an un-referenced instance, leading to broken test assertions that expect logs to be recorded on the original logger.",
+          "severity": "High",
+          "category": "bug"
+        }
+      ],
+      "caseHash": "sha256:79939fdd042a0ea6c5716ea4703b185642a6db631adceebff875130f15c5e948"
+    },
+    {
+      "project": "grafana",
+      "id": "grafana-2",
+      "sourceFile": "offline/golden_comments/grafana.json",
+      "rank": 2,
+      "url": "https://github.com/grafana/grafana/pull/106778",
+      "title": "Notification Rule Processing Engine",
+      "rankHash": "22431f8c635efcf6c220a834c4f3db517dd768b400d9de3af9722bc891ab987e",
+      "goldens": [
+        {
+          "id": "G01",
+          "comment": "The rendered GrafanaRuleListItem is missing the required key prop for React list items. This can cause rendering issues when the list order changes.",
+          "severity": "Medium",
+          "category": "bug"
+        },
+        {
+          "id": "G02",
+          "comment": "RuleActionsButtons is invoked with only promRule, but SilenceGrafanaRuleDrawer inside RuleActionsButtons still depends on a Grafana Ruler rule being present, so for Grafana rules coming from list views the 'Silence notifications' menu entry (now driven by Grafana Prom abilities) will toggle showSilenceDrawer without ever rendering the drawer. This means clicking 'Silence notifications' for these rules has no visible effect, even when abilities indicate silencing is allowed.",
+          "severity": "High",
+          "category": "bug"
+        }
+      ],
+      "caseHash": "sha256:b232df032f136ceb014a4135a121dacd62e526a554cbe77e291637aed037ab4e"
+    },
+    {
+      "project": "keycloak",
+      "id": "keycloak",
+      "sourceFile": "offline/golden_comments/keycloak.json",
+      "rank": 1,
+      "url": "https://github.com/ai-code-review-evaluation/keycloak-greptile/pull/1",
+      "title": "Fixing Re-authentication with passkeys",
+      "rankHash": "03deb3947f3e25196eef42d3a45fd879f9b200a66b87b936b15748ee818163d8",
+      "goldens": [
+        {
+          "id": "G01",
+          "comment": "In UsernameForm.authenticate(), isConditionalPasskeysEnabled() is called without passing the required UserModel parameter.",
+          "severity": "Medium",
+          "category": "api"
+        },
+        {
+          "id": "G02",
+          "comment": "With isConditionalPasskeysEnabled(UserModel user) requiring user != null, authenticate(...) will not call webauthnAuth.fillContextForm(context) on the initial login page where context.getUser() is still null, so conditional passkey UI will not be set up for first-time passkey login. Consider whether this should also be enabled when no user has been selected yet so ID-less passkey authentication on the initial login form continues to work.",
+          "severity": "Medium",
+          "category": "speculative"
+        }
+      ],
+      "caseHash": "sha256:33ec5d10fbeb7983ed0f4c1e79e985eead986bec1158b4a090d529d185630fd8"
+    },
+    {
+      "project": "keycloak",
+      "id": "keycloak-2",
+      "sourceFile": "offline/golden_comments/keycloak.json",
+      "rank": 2,
+      "url": "https://github.com/keycloak/keycloak/pull/36882",
+      "title": "Add rolling-updates feature flag and compatibility framework",
+      "rankHash": "4c48bfc85197bff31579c4a0dc943e91d02fee0a855dfd99bd94ae40153d033a",
+      "goldens": [
+        {
+          "id": "G01",
+          "comment": "Incorrect method call for exit codes. The picocli.exit() method calls System.exit() directly, which is problematic:",
+          "severity": "Medium",
+          "category": "bug"
+        },
+        {
+          "id": "G02",
+          "comment": "Need to add changelog/release notes documenting the exit code change and migration guidance",
+          "severity": "Low",
+          "category": "doc_defect"
+        }
+      ],
+      "caseHash": "sha256:7f1a8f6b8ef5c00f90a8687305022ecb87716cec19f5b49a5be9954a1df08c0d"
+    },
+    {
+      "project": "sentry",
+      "id": "sentry",
+      "sourceFile": "offline/golden_comments/sentry.json",
+      "rank": 1,
+      "url": "https://github.com/getsentry/sentry/pull/77754",
+      "title": "feat(ecosystem): Implement cross-system issue synchronization",
+      "rankHash": "19f79f71f9886ad7d9ec56332fda4046855a2aec55babbbdcd08b1327f377de6",
+      "goldens": [
+        {
+          "id": "G01",
+          "comment": "The AssignmentSource dataclass uses queued: datetime = timezone.now() as a default field value, which evaluates timezone.now() once at class definition time and shares that single datetime instance across all objects.",
+          "severity": "Medium",
+          "category": "concurrency"
+        },
+        {
+          "id": "G02",
+          "comment": "The method name has a typo: test_from_dict_inalid_data should be test_from_dict_invalid_data.",
+          "severity": "Low",
+          "category": "style"
+        },
+        {
+          "id": "G03",
+          "comment": "Method name says 'empty_array' but tests empty dict - consider renaming to 'test_from_dict_empty_dict' for clarity.",
+          "severity": "Low",
+          "category": "style"
+        },
+        {
+          "id": "G04",
+          "comment": "to_dict() returns a datetime for queued; if this dict is passed in task kwargs (e.g., via apply_async), JSON serialization may fail depending on the serializer, which can cause enqueue errors.",
+          "severity": "Medium",
+          "category": "bug"
+        }
+      ],
+      "caseHash": "sha256:56d44a0fa6ff4aba92a8cf2e63e516f8c1b6a73f731eee320e05e087f6a8e73b"
+    },
+    {
+      "project": "sentry",
+      "id": "sentry-2",
+      "sourceFile": "offline/golden_comments/sentry.json",
+      "rank": 2,
+      "url": "https://github.com/getsentry/sentry/pull/95633",
+      "title": "feat(uptime): Add ability to use queues to manage parallelism",
+      "rankHash": "208234b24c9a9d9c32e37a94fe728145f0e56ef9efe771a9bf8dc1345cff4bc4",
+      "goldens": [
+        {
+          "id": "G01",
+          "comment": "The magic number 50 for max_wait is used repeatedly throughout the tests. Consider extracting this as a named constant to improve maintainability.",
+          "severity": "Low",
+          "category": "style"
+        },
+        {
+          "id": "G02",
+          "comment": "The test test_thread_queue_parallel_error_handling has a docstring that doesn't match the test implementation.",
+          "severity": "Low",
+          "category": "doc_defect"
+        }
+      ],
+      "caseHash": "sha256:c668226da58eefb5853fa37bf173417c75cb8093873eded2f67030698868df0e"
+    }
+  ]
+}
