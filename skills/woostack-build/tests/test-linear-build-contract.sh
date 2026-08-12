@@ -306,8 +306,14 @@ expected_manifest_ids = [
     "gate-file-changed-inode",
     "process-identity-mismatch",
     "failed-regeneration",
-    "manifest-non-atomic-replacement",
-    "gate-file-non-atomic-replacement",
+    "manifest-exclusive-temporary-write-failure",
+    "manifest-file-flush-failure",
+    "manifest-atomic-rename-failure",
+    "manifest-directory-flush-failure",
+    "gate-file-exclusive-temporary-write-failure",
+    "gate-file-file-flush-failure",
+    "gate-file-atomic-rename-failure",
+    "gate-file-directory-flush-failure",
 ]
 if manifest_ids != expected_manifest_ids:
     failures.append("build: gate-file boundary fixture is incomplete or out of order")
@@ -350,18 +356,34 @@ if not (
     and inode_case.get("regeneratedMatches") is True
 ):
     failures.append("build: same-path same-byte inode replacement is not isolated")
-manifest_atomic = manifest_by_id.get("manifest-non-atomic-replacement", {})
-gate_atomic = manifest_by_id.get("gate-file-non-atomic-replacement", {})
-if not (
-    all(value is False for value in manifest_atomic.get("manifestAtomicWrite", {}).values())
-    and all(value is True for value in manifest_atomic.get("gateFileAtomicWrite", {}).values())
-):
-    failures.append("build: manifest-only atomic replacement failure is missing")
-if not (
-    all(value is True for value in gate_atomic.get("manifestAtomicWrite", {}).values())
-    and all(value is False for value in gate_atomic.get("gateFileAtomicWrite", {}).values())
-):
-    failures.append("build: gate-file-only atomic replacement failure is missing")
+atomic_failure_cases = [
+    ("manifest-exclusive-temporary-write-failure", "manifestAtomicWrite", "exclusiveTemporaryWrite"),
+    ("manifest-file-flush-failure", "manifestAtomicWrite", "fileFlushed"),
+    ("manifest-atomic-rename-failure", "manifestAtomicWrite", "atomicRenameCompleted"),
+    ("manifest-directory-flush-failure", "manifestAtomicWrite", "directoryFlushed"),
+    ("gate-file-exclusive-temporary-write-failure", "gateFileAtomicWrite", "exclusiveTemporaryWrite"),
+    ("gate-file-file-flush-failure", "gateFileAtomicWrite", "fileFlushed"),
+    ("gate-file-atomic-rename-failure", "gateFileAtomicWrite", "atomicRenameCompleted"),
+    ("gate-file-directory-flush-failure", "gateFileAtomicWrite", "directoryFlushed"),
+]
+for case_id, failed_record, failed_stage in atomic_failure_cases:
+    scenario = manifest_by_id.get(case_id, {})
+    failed_values = scenario.get(failed_record, {})
+    other_record = (
+        scenario.get("gateFileAtomicWrite", {})
+        if failed_record == "manifestAtomicWrite"
+        else scenario.get("manifestAtomicWrite", {})
+    )
+    if (
+        failed_values.get(failed_stage) is not False
+        or any(
+            value is not True
+            for stage, value in failed_values.items()
+            if stage != failed_stage
+        )
+        or any(value is not True for value in other_record.values())
+    ):
+        failures.append(f"build: {case_id} does not isolate one atomic-write stage")
 
 render_fixture = json.loads(
     (root / "skills/woostack-build/evals/fixtures/gate-file-rendering.json").read_text()
@@ -370,6 +392,7 @@ render_ids = [case["id"] for case in render_fixture.get("cases", [])]
 if render_ids != [
     "project-spec-normalizes-unicode-and-line-endings",
     "execution-plan-sorts-issues-and-dependencies",
+    "execution-plan-empty-dependencies",
 ]:
     failures.append("build: deterministic gate-file rendering fixture is incomplete or out of order")
 renderer_eval = next(
@@ -402,6 +425,32 @@ if renderer_eval is not None:
     ]
     if dependency_keys == sorted(dependency_keys):
         failures.append("build: execution-plan dependency input is not deliberately unsorted")
+    empty_render_case = next(
+        (
+            case
+            for case in render_fixture.get("cases", [])
+            if case["id"] == "execution-plan-empty-dependencies"
+        ),
+        None,
+    )
+    if empty_render_case is None:
+        failures.append("build: empty-dependency renderer fixture is missing")
+    else:
+        empty_draft = empty_render_case.get("manifest", {}).get("draft", {})
+        if (
+            empty_draft.get("dependencies") != []
+            or len(empty_draft.get("increments", [])) != 1
+        ):
+            failures.append("build: empty-dependency renderer input is not one increment with []")
+    empty_rendered = next(
+        (rendered for rendered in rendered_files if rendered["id"] == "execution-plan-empty-dependencies"),
+        None,
+    )
+    if (
+        empty_rendered is None
+        or "## Dependencies\n\n- None.\n" not in empty_rendered.get("utf8", "")
+    ):
+        failures.append("build: empty-dependency renderer output misses the exact - None. sentinel")
 
 
 shape_fixture = json.loads(

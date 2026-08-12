@@ -29,6 +29,19 @@
           ]
         }
       }
+    },
+    {
+      "id": "execution-plan-empty-dependencies",
+      "gate": 2,
+      "fileName": "execution-plan.md",
+      "manifest": {
+        "draft": {
+          "increments": [
+            {"ordinal": 1, "stableTaskKey": "task-solo", "title": "Solo", "description": "Solo body."}
+          ],
+          "dependencies": []
+        }
+      }
     }
   ]
 }
