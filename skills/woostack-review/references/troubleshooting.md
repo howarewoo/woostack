@@ -3,7 +3,7 @@
 ## Troubleshooting
 
 - **Missing artifacts** in cloud mode — verify the `detect` job uploaded `review-artifacts`.
-- **Empty validator output** — inspect `$OUTDIR/raw_findings.json`. If empty, no angle wrote findings; check each `findings.<angle>.json`.
+- **Empty adjudicator output** — inspect `$OUTDIR/raw_findings.json`. If empty, no angle wrote findings; check each `findings.<angle>.json`.
 - **Sub-agents posting prematurely** — re-read the Stage 3 brief; workers must write JSON only.
 - **`gh api ... /reviews` returns HTTP 422 "Line could not be resolved"** — a finding's `line` field did not map to a `+` or context line on the diff's RIGHT side. The merge step now drops these via `resolve-diff-line.sh`, but mismatches outside the helper's reach can still slip through. Re-run with the resolver enabled (it runs by default in `merge-findings.sh`) and inspect `$OUTDIR/diff-line-cache.json` to see which lookups returned `null`.
 - **Stale findings from a prior run** — `prefetch.sh` now wipes `$OUTDIR` before recreating it. Hosts that skip `prefetch.sh` MUST `rm -rf "$OUTDIR"` themselves; otherwise files like `findings.bugs.json` from an earlier session leak into the merge step.

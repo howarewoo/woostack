@@ -163,7 +163,6 @@ for relative in woo167_retired_files:
 woo166_review_paths = (
     "skills/woostack-review/prompts/_orchestrator-header.md",
     "skills/woostack-review/prompts/_worker-header.md",
-    "skills/woostack-review/prompts/validator-prosecutor.md",
     "skills/woostack-review/prompts/validator.md",
     "skills/woostack-review/references/ci.md",
     "skills/woostack-review/scripts/resolve-outdir.sh",
@@ -199,8 +198,8 @@ require(review_runtime, r"github-actions-single-session",
         "Review no longer retains the CI single-session sentinel")
 require(review_runtime, r"fresh read-only advisory reviewer session",
         "Review no longer keeps local workers read-only")
-require(review_runtime, r"prosecutor.*defender.*intersect|intersection.*prosecutor.*defender",
-        "Review no longer retains both validator passes and intersection")
+require(review_runtime, r"sole evidence adjudicator|one evidence adjudicator",
+        "Review documents one evidence adjudicator after the angle swarm")
 require(review_runtime, r"native GitHub.*IDs.*differ|native actor-ID gate",
         "Review no longer retains the native GitHub actor safeguard")
 # Scan every supported source and authored text surface. Assertion-only boundary tests are

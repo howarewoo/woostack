@@ -1,5 +1,5 @@
 name: 'woostack-review (CI extension)'
-description: 'CI-only, diff-only advisory extension of woostack-review. Runs detect → parallel angle workers → skeptical validator → one batched GitHub Review without Linear MCP access, Linear read-back claims, or issue-acceptance authority.'
+description: 'CI-only, diff-only advisory extension of woostack-review. Runs detect → parallel angle workers → one evidence adjudicator → deterministic finalization and one batched GitHub Review without Linear MCP access, Linear read-back claims, or issue-acceptance authority.'
 author: 'woostack-review'
 
 branding:
@@ -35,7 +35,7 @@ inputs:
     required: false
     default: ''
   mode:
-    description: 'Execution mode: full (sequential) | detect | review | validate-prosecutor | validate. The adversarial validator runs as two passes: validate-prosecutor first (writes findings.prosecutor.json), then validate (writes findings.defender.json, runs intersect-findings.sh, and posts the review). The validate step sets WOO_REVIEW_SEQUENTIAL_VALIDATE=1 so validator.md runs its Step 3/4 orchestration; in the chat-host swarm (SKILL.md Stage 4b) that flag is unset and the defender is a pure worker that exits after findings.defender.json.'
+    description: 'Execution mode: full (sequential) | detect | review | validate. Validate runs one evidence adjudicator against the merged angle candidates, verifies receipts, finalizes findings, and posts the review.'
     required: false
     default: 'full'
   angle:
@@ -118,6 +118,19 @@ runs:
       shell: bash
       run: echo "OUTDIR=/tmp/pr-review" >> "$GITHUB_ENV"
 
+    - name: Validate execution mode
+      shell: bash
+      env:
+        INPUT_MODE: ${{ inputs.mode }}
+      run: |
+        case "$INPUT_MODE" in
+          full|detect|review|validate) ;;
+          *)
+            echo "::error::Unsupported review mode: $INPUT_MODE"
+            exit 1
+            ;;
+        esac
+
     - name: Resolve provider
       id: detect
       shell: bash
@@ -158,13 +171,13 @@ runs:
 
     - name: Detect review angles
       id: angles
-      if: steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'full' || inputs.mode == 'detect' || inputs.mode == 'validate' || inputs.mode == 'validate-prosecutor')
+      if: steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'full' || inputs.mode == 'detect' || inputs.mode == 'validate')
       shell: bash
       env:
         GITHUB_WORKSPACE: ${{ github.workspace }}
         INPUT_DISABLE_ANGLES: ${{ inputs.disable_angles }}
       run: |
-        if [ "${{ inputs.mode }}" = "validate" ] || [ "${{ inputs.mode }}" = "validate-prosecutor" ]; then
+        if [ "${{ inputs.mode }}" = "validate" ]; then
           if [ -f "/tmp/pr-review/angles.txt" ]; then
             CSV=$(paste -sd "," /tmp/pr-review/angles.txt)
             echo "angles=$CSV" >> "$GITHUB_OUTPUT"
@@ -176,17 +189,17 @@ runs:
           bash "${{ github.action_path }}/skills/woostack-review/scripts/detect-angles.sh"
         fi
 
-    - name: Verify angle receipts (validate modes)
-      # Hard-fail BEFORE merge/validate/post if any detected angle produced no valid
+    - name: Verify angle receipts (validate)
+      # Hard-fail BEFORE merge/finalize/post if any detected angle produced no valid
       # execution receipt — i.e. a worker never ran. Prevents a false clean PASS when
       # the runner/auth/bridge was absent. Reads angles.txt (× chunks.txt) and the
       # receipt.*.json downloaded with the per-angle findings artifacts.
-      if: steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'validate' || inputs.mode == 'validate-prosecutor')
+      if: steps.prefetch.outputs.skip != 'true' && inputs.mode == 'validate'
       shell: bash
       run: bash "${{ github.action_path }}/skills/woostack-review/scripts/verify-receipts.sh"
 
-    - name: Merge findings (validate modes)
-      if: steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'validate' || inputs.mode == 'validate-prosecutor')
+    - name: Merge findings (validate)
+      if: steps.prefetch.outputs.skip != 'true' && inputs.mode == 'validate'
       shell: bash
       run: bash "${{ github.action_path }}/skills/woostack-review/scripts/merge-findings.sh"
 
@@ -221,16 +234,13 @@ runs:
 
     - name: Load prompt
       id: load-prompt
-      if: steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'full' || inputs.mode == 'review' || inputs.mode == 'validate' || inputs.mode == 'validate-prosecutor')
+      if: steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'full' || inputs.mode == 'review' || inputs.mode == 'validate')
       shell: bash
       env:
         PROVIDER: ${{ steps.detect.outputs.provider }}
-        ACTION_PATH: ${{ github.action_path }}/skills/woostack-review
-        # The adversarial validator runs as two passes against the same `raw_findings.json`.
-        # `validate-prosecutor` mode loads validator-prosecutor.md (inclusive bias);
-        # `validate` mode loads validator.md (defender bias) which runs the intersect
-        # script + posts the final review. See issue #13.
-        INPUT_PROMPT_OVERRIDE: ${{ (inputs.mode == 'validate' && format('{0}/skills/woostack-review/prompts/validator.md', github.action_path)) || (inputs.mode == 'validate-prosecutor' && format('{0}/skills/woostack-review/prompts/validator-prosecutor.md', github.action_path)) || inputs.prompt_override }}
+        # Validate loads the sole evidence-adjudicator prompt, which runs the
+        # deterministic finalizer and posts the final review.
+        INPUT_PROMPT_OVERRIDE: ${{ (inputs.mode == 'validate' && format('{0}/skills/woostack-review/prompts/validator.md', github.action_path)) || inputs.prompt_override }}
         PR_NUMBER: ${{ steps.pr.outputs.number }}
         GITHUB_REPOSITORY: ${{ github.repository }}
         EVENT_NAME: ${{ github.event_name }}
@@ -247,7 +257,7 @@ runs:
 
     - name: Run review (Anthropic)
       id: run-anthropic
-      if: steps.detect.outputs.provider == 'anthropic' && steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'full' || inputs.mode == 'review' || inputs.mode == 'validate' || inputs.mode == 'validate-prosecutor')
+      if: steps.detect.outputs.provider == 'anthropic' && steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'full' || inputs.mode == 'review' || inputs.mode == 'validate')
       uses: anthropics/claude-code-action@537ffff2eff706bd7e3e1c3daf2d4b39067a9f85 # v1
       with:
         claude_code_oauth_token: ${{ inputs.anthropic_token }}
@@ -269,6 +279,8 @@ runs:
                 "Bash(jq:*)",
                 "Bash(npx:*)",
                 "Bash(node:*)",
+                "Bash(bash \"$WOO_REVIEW_ACTION_PATH/scripts/verify-receipts.sh\" --validators)",
+                "Bash(bash \"$WOO_REVIEW_ACTION_PATH/scripts/intersect-findings.sh\")",
                 "Bash(cat:*)",
                 "Bash(ls:*)",
                 "Bash(grep:*)",
@@ -299,7 +311,6 @@ runs:
                 "Bash(ssh:*)",
                 "Bash(scp:*)",
                 "Bash(rsync:*)",
-                "Bash(bash:*)",
                 "Bash(sh:*)",
                 "Bash(eval:*)",
                 "Bash(source:*)",
@@ -319,7 +330,7 @@ runs:
 
     - name: Run review (OpenAI Codex)
       id: run-openai
-      if: steps.detect.outputs.provider == 'openai' && steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'full' || inputs.mode == 'review' || inputs.mode == 'validate' || inputs.mode == 'validate-prosecutor')
+      if: steps.detect.outputs.provider == 'openai' && steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'full' || inputs.mode == 'review' || inputs.mode == 'validate')
       uses: openai/codex-action@a26d2d4d8b78a694338b8e3715c3630254340b2c # v1 (== v1.8 as of 2026-04-29)
       with:
         openai-api-key: ${{ inputs.openai_api_key }}
@@ -339,7 +350,7 @@ runs:
 
     - name: Run review (Google Gemini)
       id: run-google
-      if: steps.detect.outputs.provider == 'google' && steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'full' || inputs.mode == 'review' || inputs.mode == 'validate' || inputs.mode == 'validate-prosecutor')
+      if: steps.detect.outputs.provider == 'google' && steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'full' || inputs.mode == 'review' || inputs.mode == 'validate')
       # Residual gemini-CLI dependency. Antigravity CLI (`agy`) is gemini CLI's successor, but it
       # has no first-party GitHub Action and authenticates via the system keyring / Google Sign-In
       # with no documented non-interactive API-key path — so it cannot run headlessly in an
@@ -364,7 +375,7 @@ runs:
 
     - name: Run review (OpenRouter via opencode)
       id: run-opencode
-      if: steps.detect.outputs.provider == 'openrouter' && steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'full' || inputs.mode == 'review' || inputs.mode == 'validate' || inputs.mode == 'validate-prosecutor')
+      if: steps.detect.outputs.provider == 'openrouter' && steps.prefetch.outputs.skip != 'true' && (inputs.mode == 'full' || inputs.mode == 'review' || inputs.mode == 'validate')
       # TODO: pin to commit SHA once sst/opencode publishes a verifiable github-v1.15.10 ref.
       # The repo appears to have moved to anomalyco/opencode; verify upstream before pinning.
       uses: sst/opencode/github@v1.15.10

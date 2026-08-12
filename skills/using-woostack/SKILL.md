@@ -100,7 +100,7 @@ blockers leave project status unchanged.
 | `/woostack-execute-overnight <approved plan> [--project <exact Linear URL-or-UUID>] [--inline\|--subagent]`, execute unattended; build origin requires its exact approved project graph | `woostack-execute-overnight` |
 | `/woostack-sweep [PR#|branch] [--base R]`, drive one Graphite stack bottom-up: address pre-existing threads, run one multi-angle review per current head, address new findings, restack affected descendants, and halt unchanged recurring blockers | `woostack-sweep` |
 | `/woostack-commit [--issue <exact canonical Linear issue reference>]`, commit session-relevant changes and update PR fields; artifact synchronization is optional | `woostack-commit` |
-| `/woostack-review <PR#>`, review one exact existing PR through one detected multi-angle swarm and the two adversarial validators, then post one batched native GitHub Review; report-only, never edits or merges | `woostack-review` |
+| `/woostack-review <PR#>`, review one exact existing PR through one detected multi-angle swarm and one evidence adjudicator, then post one batched native GitHub Review; report-only, never edits or merges | `woostack-review` |
 | `/woostack-audit <target> [--all] [--simplify\|--prod-only]`, audit standing code (a file/dir/repo at rest) for simplification + production-readiness, report-only | `woostack-audit` |
 | `/woostack-qa <url> [focus…] [--stop-first]`, exploratory-QA a running app in a real browser, report-only findings under `.woostack/qa/` | `woostack-qa` |
 | `/woostack-eval <skill-path> [--behavior\|--triggers\|--all] [--runs <1..10>] [--baseline-ref <git-ref>\|--baseline-path <skill-dir>]`, evaluate an approved skill corpus without editing the target skill | `woostack-eval` |

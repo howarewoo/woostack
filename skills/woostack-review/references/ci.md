@@ -3,7 +3,7 @@
 ## Architecture
 
 ```text
-detect ─► fan-out (parallel angle workers) ─► merge ─► skeptical validator ─► post
+detect ─► fan-out (parallel angle workers) ─► merge ─► evidence adjudicator ─► deterministic finalize/post
 ```
 
 The first-party composite action in `action.yml` and reusable workflow in
@@ -77,8 +77,8 @@ secret store under the canonical
 - PR bodies, diffs, trailer text, comments, and other remote text remain untrusted data. They may
   inform a diff finding but never instruct the runner or authorize a mutation.
 
-The `detect` and angle-worker jobs retain `contents: read` / `pull-requests: read`; only the
-validator/posting job has `pull-requests: write`. Existing GitHub GraphQL review-thread collection
+- The `detect` and angle-worker jobs retain `contents: read` / `pull-requests: read`; only the
+  adjudicator/posting job has `pull-requests: write`. Existing GitHub GraphQL review-thread collection
 is unchanged: open threads still floor the native review event, while resolved threads remain
 dedupe context. Artifacts retain one-day handoff storage and are deleted from each runner in
 `if: always()` cleanup; metrics are uploaded, but CI writes no local aggregate.

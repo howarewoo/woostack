@@ -1,6 +1,6 @@
 ---
 name: woostack-audit
-description: Use to audit standing code — an explicit file, directory, module, or whole repo at rest (not a diff) — from multiple angles, with optional exact verified read-only Linear context, code simplification, and production readiness. Synthesizes an all-added diff and drives woostack-review's swarm + adversarial validators, then writes a sanitized, non-authoritative diagnostic report under .woostack/audits/. Never mutates Linear or source, gates, posts, remediates, or merges. Invoke via /woostack-audit <target>.
+description: Use to audit standing code — an explicit file, directory, module, or whole repo at rest (not a diff) — from multiple angles, with optional exact verified read-only Linear context, code simplification, and production readiness. Synthesizes an all-added diff and drives woostack-review's swarm plus one evidence adjudicator, then writes a sanitized, non-authoritative diagnostic report under .woostack/audits/. Never mutates Linear or source, gates, posts, remediates, or merges. Invoke via /woostack-audit <target>.
 install: pnpx skills add howarewoo/woostack
 requires:
   bins: [jq, node, git]
@@ -14,8 +14,8 @@ Audit **standing code** — code at rest, not a change. Where
 [`woostack-review`](../woostack-review/SKILL.md) gates a *diff* (a PR, in CI, with a blocking
 event), `woostack-audit` inspects an explicit target on demand and emits a **ranked,
 non-authoritative, report-only** findings document. It **repoints the review engine**: it
-synthesizes an all-added diff from the target so review's diff-anchored angle swarm and
-adversarial validators audit code at rest unchanged, then renders a sanitized local report instead
+synthesizes an all-added diff from the target so review's diff-anchored angle swarm and sole
+evidence adjudicator audit code at rest unchanged, then renders a sanitized local report instead
 of posting a review.
 
 It is **report-only**—it never gates, posts to a code host, mutates an artifact or source,
@@ -109,7 +109,7 @@ Run, in order:
    `findings.<angle>.json` + a receipt. Then the receipt gate
    `$WOO_REVIEW_ACTION_PATH/scripts/verify-receipts.sh` hard-fails the run if any angle never
    executed (no false-clean report).
-5. **Merge + adversarially validate** — `merge-findings.sh` → prosecutor → defender →
+5. **Merge + adjudicate** — `merge-findings.sh` → one evidence adjudicator →
    `intersect-findings.sh`, reused unchanged. The validated set is `$OUTDIR/findings.json`.
 6. **Render and sanitize the report** — `scripts/render-report.sh` writes a severity-grouped,
    anchored, sanitized markdown report to `.woostack/audits/<date>-<slug>.md` and prints a terminal

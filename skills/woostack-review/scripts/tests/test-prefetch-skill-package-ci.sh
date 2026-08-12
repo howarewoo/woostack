@@ -233,33 +233,31 @@ assert_eq "$(OUTDIR="$REVIEW_OUT" bash "$ANCHOR_RESOLVER" --file skills/ci-skill
 assert_eq "$(OUTDIR="$REVIEW_OUT" bash "$ANCHOR_RESOLVER" --file skills/ci-skill/SKILL.md --line 1 --no-cache)" null \
   "CI package context cannot manufacture a finding anchor"
 
-# Validate jobs download the same detection tree plus their in-flight findings.
-# Both validator modes must preserve package artifacts rather than regenerate
-# them from a checkout that may no longer contain the reviewed package.
-for validate_mode in validate validate-adjudicator; do
-  validate_out="$TMP_ROOT/$validate_mode-out"
-  mkdir -p "$validate_out"
-  cp -R "$ARTIFACT/." "$validate_out/"
-  printf '[]\n' >"$validate_out/findings.bugs.json"
-  run_ci_prefetch "$validate_out" "$validate_mode"
-  assert_exit 0 "$RUN_RC" "CI $validate_mode fixture reads preserved package artifacts"
-  if cmp -s "$TMP_ROOT/expected-manifest.json" "$validate_out/skill-packages.json" &&
-    diff -qr "$TMP_ROOT/expected-snapshots" "$validate_out/skill-packages" >/dev/null; then
-    pass
-  else
-    fail "package snapshot CI: $validate_mode must preserve manifest and snapshots byte-for-byte"
-  fi
-  assert_ci_manifest "$validate_out" "$validate_mode artifact remains readable without workspace package" "$EXPECTED_REPO"
-  if cmp -s "$DIFF_FIXTURE" "$validate_out/diff.txt"; then
-    pass
-  else
-    fail "package snapshot CI: $validate_mode must leave diff.txt authoritative"
-  fi
-done
-if [ "$(grep -c '^pr diff ' "$GH_CALL_LOG")" -eq 4 ]; then
+# The validate job downloads the same detection tree plus its in-flight findings.
+# It must preserve package artifacts rather than regenerate them from a checkout
+# that may no longer contain the reviewed package.
+validate_out="$TMP_ROOT/validate-out"
+mkdir -p "$validate_out"
+cp -R "$ARTIFACT/." "$validate_out/"
+printf '[]\n' >"$validate_out/findings.bugs.json"
+run_ci_prefetch "$validate_out" validate
+assert_exit 0 "$RUN_RC" "CI validate fixture reads preserved package artifacts"
+if cmp -s "$TMP_ROOT/expected-manifest.json" "$validate_out/skill-packages.json" &&
+  diff -qr "$TMP_ROOT/expected-snapshots" "$validate_out/skill-packages" >/dev/null; then
   pass
 else
-  fail "package snapshot CI: fixture must execute exactly four actual prefetch diff fetches"
+  fail "package snapshot CI: validate must preserve manifest and snapshots byte-for-byte"
+fi
+assert_ci_manifest "$validate_out" "validate artifact remains readable without workspace package" "$EXPECTED_REPO"
+if cmp -s "$DIFF_FIXTURE" "$validate_out/diff.txt"; then
+  pass
+else
+  fail "package snapshot CI: validate must leave diff.txt authoritative"
+fi
+if [ "$(grep -c '^pr diff ' "$GH_CALL_LOG")" -eq 3 ]; then
+  pass
+else
+  fail "package snapshot CI: fixture must execute exactly three actual prefetch diff fetches"
 fi
 
 # Artifact upload drops an empty snapshot directory. The manifest is sufficient

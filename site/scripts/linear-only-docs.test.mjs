@@ -16,7 +16,6 @@ const WOO_167_RETIRED_FILES = Object.freeze([
 const WOO_166_REVIEW_PATHS = Object.freeze([
   'skills/woostack-review/prompts/_orchestrator-header.md',
   'skills/woostack-review/prompts/_worker-header.md',
-  'skills/woostack-review/prompts/validator-prosecutor.md',
   'skills/woostack-review/prompts/validator.md',
   'skills/woostack-review/references/ci.md',
   'skills/woostack-review/scripts/resolve-outdir.sh',
@@ -453,7 +452,7 @@ test('retired WOO-167 assets are absent and the WOO-166 Review mode is absent', 
     );
   }
 
-  assert.equal(WOO_166_REVIEW_PATHS.length, 12, 'WOO-166 focused path inventory must stay exact');
+  assert.equal(WOO_166_REVIEW_PATHS.length, 11, 'WOO-166 focused path inventory must stay exact');
   for (const relativePath of WOO_166_REVIEW_PATHS) {
     const content = read(relativePath);
     for (const marker of REVIEW_MODE_MARKERS) {

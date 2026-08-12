@@ -3,9 +3,9 @@
 ## Reproducible ten-PR regression benchmark
 
 The [`benchmark.mjs`](benchmark.mjs) harness defines the repository-owned regression benchmark for
-`woostack-review`. It deliberately measures the normal public review contract: detected angle
-workers, independent Prosecutor and Defender validation, deterministic intersection, and native
-GitHub delivery. It is not a cheaper review mode.
+`woostack-review`. It deliberately measures the normal public review contract: evidence-led angle
+workers, one independent adjudicator, deterministic finalization, and native GitHub delivery. It is
+not a cheaper review mode.
 
 The fixed corpus contains two PRs each from Cal.com, Discourse, Grafana, Keycloak, and Sentry. Cases
 are selected from Code Review Bench commit
@@ -72,9 +72,9 @@ overrides are `WOO_BENCHMARK_ORG` and `WOO_BENCHMARK_RUN_ROOT`.
 
 3. Recreate the ten original PRs in a disposable private organization. Use fresh PRs for every run
    so prior reviews cannot enable incremental review or affect thread state. Run the unmodified
-   `/woostack-review <PR#>` workflow once per case. Copy each exact accepted intersection to
+   `/woostack-review <PR#>` workflow once per case. Copy each exact accepted final finding set to
    `<run-root>/cases/<case-id>/findings.json`. A blocked or incomplete review blocks the benchmark;
-   never substitute raw, Prosecutor-only, or Defender-only findings.
+   never substitute raw or pre-adjudication findings.
 
 4. Freeze the candidate and judgment plan:
 
