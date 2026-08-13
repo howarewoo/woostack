@@ -501,10 +501,14 @@ Unverified or ambiguous material remains unresolved. The manifest is a permissio
 not product authority: it never replaces, mutates, or supersedes the last Linear-approved boundary
 and can never authorize Execute.
 
-#### Deterministic gate-file approval identity
+#### Deterministic gate-file approval identity and streamed presentation
 
-The active-conversation Ask displays concise identity for an owner-only Markdown file, never its
-complete body. Before each Ask, render from the current manifest into UTF-8 bytes using exactly one
+The active-conversation approval boundary has two separate messages: first the normal response
+stream carries the complete verified Markdown bytes and their full identity, then an immediately
+following body-free Ask records the responsible user's response. The Ask never carries artifact
+content, a preview, subtitle, pointer-only summary, or identity-bearing option description.
+
+Before each presentation, render from the current manifest into UTF-8 bytes using exactly one
 renderer and write the appropriate fixed file:
 
 - `project-spec.md` is gate 1's complete project body, preserving the approved Markdown-bearing
@@ -518,8 +522,7 @@ renderer and write the appropriate fixed file:
 The renderer uses one stable Markdown template. `execution-plan.md` starts with
 `# Execution plan`, then emits each ordinal-sorted issue as an `## <ordinal>. <title>` section,
 followed by a `Stable task key:` line with `<stableTaskKey>` rendered as inline code and its complete
-description. It ends with
-`## Dependencies` and one
+description. It ends with `## Dependencies` and one
 ``- `<predecessorTaskKey>` → `<successorTaskKey>` (`<kind>`)`` line per sorted tuple, or
 `- None.` for a complete empty dependency snapshot. Separate headings, metadata, descriptions, and
 the dependency section with one blank line. Normalize rendered strings to NFC and LF, and end the
@@ -529,33 +532,51 @@ Rendering must be deterministic: the same manifest value, renderer/fingerprint v
 must produce byte-identical output. Re-render after every manifest replacement and before approval;
 compare bytes, byte length, and SHA-256 with the file opened no-follow. Regeneration mismatch,
 unexpected terminal-LF count, changed path, changed inode, or a file that is not owner-only and
-regular invalidates the draft before an Ask.
+regular invalidates the draft before presentation.
 
-The Ask contains only:
+For the first presentation, and whenever the exact prior displayed bytes and identity are not
+available in the same persistent process, stream the complete verified Markdown artifact immediately
+before the Ask. The stream includes the exact UTF-8 bytes, byte length, SHA-256, absolute path,
+fingerprint version, run/process identity, gate, project identity, and canonical project-spec
+fingerprint. Do not substitute a preview, excerpt, subtitle, pointer, or repeated summary for the
+complete artifact.
+
+For a same-process revision, retain the exact prior displayed bytes and identity only in process
+memory. If the prior bytes, old identity, and current identity all match their no-follow file
+reads, stream one byte-complete unified diff from the old bytes to the new bytes, together with the
+old and new full-file identities. The diff must be independently generated and verified against
+both byte sequences, including its complete old/new path headers and identity records. A missing
+prior, mismatched base, process restart or different process, unverifiable/partial diff, or an
+explicit request for the full artifact falls back to streaming the complete new artifact. Never
+repeat unchanged content as a revision substitute and never approve an unverifiable diff.
+
+The body-free Ask follows that stream immediately and contains only:
 
 ```text
-gateFile: {
-  path: <absolute path>,
-  byteLength: <UTF-8 byte count>,
-  sha256: <sha256:...>,
-  fingerprintVersion: <stable renderer version>
+Ask: {
+  options: ["Accept", "Abandon"],
+  customResponseAvailable: true
 }
-runId, processNonce, gate, projectId, canonicalProjectSpecFingerprint
-approvedStableTaskMappings: [{ stableTaskKey, canonicalIssueReference|null }]
-approvedDependencies: [{ predecessorTaskKey, successorTaskKey, kind }]
 ```
+
+`Accept` approves only the exact identity in the immediately preceding verified stream and must
+arrive through the same persistent process. `Abandon` invokes canonical project closure after the
+shared cleanup verification. Any custom response is a revision or clarification, never approval:
+atomically replace the manifest draft and unresolved-question state, regenerate and verify the file,
+then present the complete artifact or a same-process verified diff followed by a fresh body-free Ask.
+Unknown, malformed, copied, stale, or transformed responses fail closed and require a fresh
+presentation; they never save, synchronize, or clear a gate.
 
 Gate 1 uses the project file and its project identity; gate 2 uses the execution-plan file and the
 same project identity plus every immutable approved stable-task mapping and stable-task dependency
 tuple. The mapping is complete and concise, including retained references and explicit `null`
 entries for new tasks; canonical issue references created during synchronization are recorded only
-in the distinct live mapping and the native graph read-back. Complete issue descriptions remain
-only in `execution-plan.md`; they are not duplicated in the Ask or manifest identity. Store the
-immutable snapshots in `displayedApprovalIdentity` before the Ask. The responsible user's explicit
-response approves only this path/hash/length identity, mapping, dependencies, and the same run/process
-in the active conversation. A changed or replaced file, stale process, copied response, missing
-manifest, failed no-follow reopen, or identity mismatch invalidates the response and requires a
-fresh render and Ask.
+in the distinct live mapping and the native graph read-back. Complete issue descriptions are in the
+streamed file, not the Ask or manifest identity. Store the immutable snapshots in
+`displayedApprovalIdentity` before the Ask. The responsible user's explicit response approves only
+the immediately preceding verified identity and the same run/process in the active conversation. A
+changed or replaced file, stale process, copied response, missing manifest, failed no-follow reopen,
+or identity mismatch invalidates the response and requires fresh rendering and presentation.
 
 #### Approval-before-save synchronization
 

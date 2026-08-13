@@ -160,7 +160,18 @@
     "metadataOnlyChange": {"invalidates": []}
   },
   "dispatch": {
-    "nextSkill": "woostack-execute",
+    "handoff": {
+      "options": ["Stop here", "Execute", "Abandon"],
+      "bodyFree": true,
+      "projectCommand": "/woostack-execute --project <exact Linear URL-or-UUID>",
+      "details": ["projectUrlOrUuid", "projectSpecApprovalReceipt", "executionPlanApprovalReceipt", "canonicalFingerprints", "stableTaskMappings", "dependencies", "approvedParentBranch", "lastAdmittedTip"]
+    },
+    "responses": {
+      "Stop here": {"effects": []},
+      "Execute": {"dispatchCount": 1},
+      "Abandon": {"projectClosed": true, "dispatchCount": 0},
+      "unknownOrCustom": {"askAgain": true}
+    },
     "projectId": "project-fix-241",
     "repositoryMutationCountBeforeExecute": 0,
     "mergePerformed": false

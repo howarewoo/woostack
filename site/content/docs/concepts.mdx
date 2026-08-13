@@ -22,20 +22,22 @@ clear only the matching fix/build content-revision gates.
 independently shippable increments. It chains a fixed sequence:
 
 > resolve or create one canonical Linear project → admit its exact baseline → ideate and harden the
-> specification in a secure local draft → render owner-only `project-spec.md` and approve its
-> path/hash/length identity → synchronize, read back, and receipt that revision → plan and harden
-> locally keyed direct increment issues → render owner-only `execution-plan.md` and approve its
-> path/hash/length identity plus concise task/dependency mapping → synchronize native issues and
-> dependencies, read them back, receipt the graph, and execute one increment at a time
+> specification in a secure local draft → stream the complete verified `project-spec.md` bytes and
+> full identity (or a verified same-process byte-complete diff with old/new identities) immediately
+> before a body-free `Accept`/`Abandon` Ask → synchronize, read back, and receipt that revision →
+> plan and harden locally keyed direct increment issues → stream the complete verified
+> `execution-plan.md` bytes and full identity immediately before a body-free `Accept`/`Abandon` Ask
+> → synchronize native issues and dependencies, read them back, receipt the graph, clean up, and
+> present the verified project handoff
 
 Ordered increments remain independently shippable and map to reviewable PRs. Build has no
 artifact-free fallback.
 
 Bounded one-PR work takes a smaller route. [woostack-fix](/docs/skills/woostack-fix) proves a root
 cause, resolves or creates one project for the complete fix specification, synchronizes its strict
-direct-issue chain, and executes only after the responsible user approves both exact revisions.
-[woostack-change](/docs/skills/woostack-change) executes one explicit bounded enhancement/refactor
-without contacting Linear.
+direct-issue chain after both streamed content approvals, then presents the same user-controlled
+handoff. [woostack-change](/docs/skills/woostack-change) executes one explicit bounded
+enhancement/refactor without contacting Linear.
 
 Explicit build or project-backed Fix abandonment stops repository work and moves the existing
 project to configured canceled status, with independent read-back. Source issues are preserved; no
@@ -46,16 +48,23 @@ project open.
 
 Build and project-backed Fix advance past exactly two content-bound Linear approvals:
 
-1. **Project-spec approval** accepts the deterministic owner-only `project-spec.md` path, byte
-   length, SHA-256, fingerprint version, run/process identity, project identity, and gate mapping.
-   Only then does one bounded synchronization save the file's complete project body to Linear;
-   native content read-back is compared by the shared provider-presentation canonical fingerprint
-   before the matching receipt.
-2. **Execution-plan approval** accepts the deterministic owner-only `execution-plan.md` path, byte
-   length, SHA-256, fingerprint version, run/process/project identity, and every stable task and
-   dependency tuple. Complete issue contracts remain in the file, not the Ask. Only then does one
-   bounded synchronization create or reconcile native records; native graph and identity read-back
-   is compared by the shared canonical fingerprints before the matching receipt and implementation.
+1. **Project-spec approval** streams the exact verified owner-only `project-spec.md` bytes and full
+   identity immediately before a body-free Ask whose explicit options are exactly `Accept` and
+   `Abandon`. A same-process revision streams one byte-complete unified diff with old/new full-file
+   identities; otherwise the complete artifact is streamed. Only acceptance of that immediately
+   preceding identity permits one bounded synchronization and the matching receipt.
+2. **Execution-plan approval** streams every complete verified `execution-plan.md` byte and full
+   identity (or a verified same-process revision diff) immediately before the same body-free
+   `Accept`/`Abandon` Ask. Complete issue contracts and dependencies remain in the streamed file,
+   never in the Ask. Only acceptance permits one bounded graph synchronization, exact read-back, and
+   the matching receipt.
+
+After gate 2, Build/Fix display the exact project URL or UUID, both approval receipts and canonical
+fingerprints, stable task mappings, dependencies, approved parent branch, last admitted tip, and
+`/woostack-execute --project <exact Linear URL-or-UUID>`. A body-free handoff Ask offers exactly
+`Stop here`, `Execute`, and `Abandon`: Stop here returns without mutation, Execute dispatches normal
+Execute once, and Abandon closes the existing project without dispatch. Unknown or custom input asks
+again and fails closed.
 
 The local manifest and its two run-scoped gate files are permission-restricted working state, never
 product authority. Material baseline drift, file identity mismatch, read-back mismatch, process loss,

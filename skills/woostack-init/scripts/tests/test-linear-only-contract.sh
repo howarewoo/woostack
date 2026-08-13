@@ -49,7 +49,7 @@ for pattern, message in (
     (r"host OS temporary-directory facility.*0700.*0600", "restricted OS-temp manifest missing"),
     (r"atomically renames it over the manifest", "atomic manifest update missing"),
     (r"zero Linear or other provider reads and writes", "provider-free gated drafting missing"),
-    (r"complete project body.*complete issue descriptions remain", "complete displayed content missing"),
+    (r"complete verified Markdown bytes.*full identity.*body-free.*Accept.*Abandon", "complete streamed content and minimal Ask missing"),
     (r"approval must occur before any draft content is saved", "approval-before-save ordering missing"),
     (r"immediately re-read the exact Linear targets", "immediate pre-save drift read missing"),
     (r"only after that exact content read-back, record", "read-back-before-receipt ordering missing"),
@@ -57,7 +57,7 @@ for pattern, message in (
     (r"retained baseline issue.*explicit proposed canonical-issue-reference.*task-key mapping", "retained issue reconciliation missing"),
     (r"optimistic revision/content-identity precondition.*immediate fresh read", "mid-cycle drift protection missing"),
     (r"unreceipted approval is consumed and cannot be replayed", "unreceipted approval replay guard missing"),
-    (r"restarted or different process.*fresh file render.*Ask", "process-loss invalidation missing"),
+    (r"process restart.*complete new artifact|restarted or different process.*complete", "process-loss complete fallback missing"),
     (r"unlink both gate files and the manifest", "manifest cleanup missing"),
     (r"local draft.*never replaces.*last Linear-approved boundary", "local authority boundary missing"),
     (r"Standalone `woostack-plan`.*unchanged", "standalone Plan distinction missing"),
@@ -86,7 +86,7 @@ for pattern, message in (
     (r"expanded leading indentation columns.*next four-column stop", "expanded tab indentation boundary missing"),
     (r"Hard breaks.*unsupported ordered-list markers.*byte-sensitive", "presentation exclusions missing"),
     (r"Native provider bytes remain exact read-back evidence.*canonical fingerprints", "native evidence/canonical comparison missing"),
-    (r"no second Ask.*fresh rendered gate file and concise Ask", "presentation approval recovery missing"),
+    (r"same-process.*byte-complete unified diff.*old.*new.*full-file identit", "same-process revision presentation missing"),
 ):
     require("artifact-backends.md", contract, pattern, message)
 

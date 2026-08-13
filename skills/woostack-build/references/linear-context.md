@@ -6,10 +6,12 @@ supply validated defaults because Build selected its required Linear path; polic
 provider access for unrelated workflows.
 
 The [Linear artifact contract](../../woostack-init/references/artifact-backends.md) is the single
-authority for the run manifest, deterministic owner-only gate files, path/byte-length/SHA-256/
-fingerprint-version approval identity, post-approval ordering, stable-key/canonical-issue-reference
-mapping, nullable-parent validation, drift and process-loss recovery, cleanup, fingerprints,
-receipts, independent read-back, and unchanged Execute reads. The shared [repository advancement
+authority for the run manifest, deterministic owner-only gate files, complete streamed artifact
+bytes and identity, same-process byte-complete revision diffs with old/new identities, body-free
+`Accept`/`Abandon` approval Asks, path/byte-length/SHA-256/fingerprint-version identity,
+post-approval ordering, stable-key/canonical-issue-reference mapping, nullable-parent validation,
+drift and process-loss recovery, cleanup, fingerprints, receipts, independent read-back, and
+unchanged Execute reads. The shared [repository advancement
 contract](../../woostack-init/references/artifact-backends.md#repository-ancestry-is-separate-from-approval-identity)
 separately governs compatible parent-tip re-admission; use the
 [Linear synchronization procedure](linear-procedure.md) only for the bounded post-approval save
@@ -58,12 +60,13 @@ association, provider revision/timestamp when available, pagination completeness
 source in the run manifest.
 
 That exact snapshot is gate 1's baseline. Ideate and Harden make zero provider reads and writes
-until the responsible user approves the owner-only `project-spec.md` path, byte length, SHA-256,
-fingerprint version, run/process identity, and project identity. The shared contract then owns the
-no-follow regeneration and file checks, immediate pre-save comparison, bounded synchronization,
-exact content read-back, `projectSpecApprovalRecord`, and final receipt/read-back. Status, lead,
-label, update, assignment, content alone, or an unreceipted conversation response never clears
-gate 1.
+until the shared contract streams the complete verified `project-spec.md` bytes and full identity
+(or a verified same-process byte-complete revision diff with old/new identities) immediately before
+the body-free `Accept`/`Abandon` Ask. The responsible user's acceptance binds only that exact
+preceding identity. The shared contract then owns no-follow regeneration and file checks, immediate
+pre-save comparison, bounded synchronization, exact content read-back, `projectSpecApprovalRecord`,
+and final receipt/read-back. Status, lead, label, update, assignment, content alone, or an
+unreceipted conversation response never clears gate 1.
 
 ## Direct increment graph baseline
 
@@ -107,10 +110,11 @@ Historical parent plan issues and their children are noncanonical history. Prese
 them from the gate 2 baseline, and never detach, migrate, archive, delete, or reconcile them. Store
 the complete exact project, current direct-issue identities/revisions/content, dependencies,
 fingerprints, and gate 1 receipt in the manifest. Delegated Plan and Harden then make zero provider
-reads and writes until the responsible user approves the owner-only `execution-plan.md` path/hash/
-length identity and complete concise stable-task/dependency mapping. The shared contract owns the
-drift comparison, one bounded synchronization, stable-key mapping, exact graph read-back,
-`executionPlanApprovalRecord`, and final receipt/read-back.
+reads and writes until the shared contract streams the complete verified `execution-plan.md` bytes
+and full identity (or a verified same-process byte-complete revision diff with old/new identities)
+immediately before the body-free `Accept`/`Abandon` Ask. The user's acceptance binds only that exact
+preceding identity. The shared contract owns drift comparison, one bounded synchronization,
+stable-key mapping, exact graph read-back, `executionPlanApprovalRecord`, and final receipt/read-back.
 
 ## Drift and failure
 
