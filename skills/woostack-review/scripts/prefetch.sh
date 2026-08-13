@@ -42,11 +42,11 @@ umask 077
 #     lands on a dir that already holds findings.*, so their presence means a
 #     contaminated/active tree. HARD-STOP — do not proceed to merge/validation/
 #     posting with stale artifacts.
-#   - CI (GITHUB_ACTIONS = true): the validate / validate-prosecutor job
-#     legitimately downloads findings.<angle>.json / receipt.<angle>.json into
-#     $OUTDIR BEFORE re-invoking the action (reusable-review.yml), so prefetch
-#     must PRESERVE them and continue — wiping or aborting would destroy the
-#     matrix output the validator must read.
+#   - CI (GITHUB_ACTIONS = true): the validate job legitimately downloads
+#     findings.<angle>.json / receipt.<angle>.json into $OUTDIR BEFORE
+#     re-invoking the action (reusable-review.yml), so prefetch must PRESERVE
+#     them and continue — wiping or aborting would destroy the matrix output
+#     the adjudicator must read.
 # shellcheck source=skills/woostack-review/scripts/resolve-outdir.sh
 source "$(dirname "${BASH_SOURCE[0]:-$0}")/resolve-outdir.sh"
 # shellcheck source=skills/woostack-review/scripts/resolve-root.sh

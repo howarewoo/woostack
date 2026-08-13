@@ -270,9 +270,42 @@ assert_contains "$action_source" "CI-only, diff-only advisory extension" \
   "composite action labels its delivery authority"
 assert_contains "$workflow_source" "exact PR trailer candidate, but no authoritative Linear issue context" \
   "reusable workflow labels uploaded review evidence non-authoritative"
+for obsolete in "validate-prosecutor" "validate-adjudicator" \
+  "disable_adversarial" "findings.prosecutor" "findings.defender"; do
+  assert_not_contains "$action_source" "$obsolete" \
+    "composite action has no removed validator mode/config path: $obsolete"
+  assert_not_contains "$workflow_source" "$obsolete" \
+    "reusable workflow has no removed validator mode/config path: $obsolete"
+done
+assert_eq "$(printf '%s\n' "$workflow_source" | grep -c 'mode: validate')" "1" \
+  "reusable workflow invokes exactly one validate action"
+assert_contains "$workflow_source" "pattern: findings-*" \
+  "single validate job downloads every angle artifact"
+assert_eq "$(printf '%s\n' "$workflow_source" | grep -c 'uses: howarewoo/woostack@a3dcbe88ad7606d722231646c7efc4fa2d6f737f')" "4" \
+  "reusable workflow pins every phase to the single-adjudicator action revision"
+assert_contains "$action_source" "prompts/validator.md" \
+  "validate mode loads the sole evidence adjudicator"
+assert_contains "$action_source" "WOO_REVIEW_SEQUENTIAL_VALIDATE" \
+  "validate mode enables adjudicator finalization and posting"
+assert_file_contains "$ROOT/skills/woostack-review/prompts/validator.md" \
+  'verify-receipts.sh" --validators' \
+  "CI adjudicator receipt gates finalization"
+assert_file_contains "$ROOT/skills/woostack-review/prompts/validator.md" \
+  'intersect-findings.sh' \
+  "verified adjudicator output reaches deterministic finalization"
+assert_contains "$action_source" "Validate execution mode" \
+  "composite action rejects retired and unknown modes"
+assert_contains "$action_source" 'full|detect|review|validate)' \
+  "composite action accepts only the public execution modes"
+assert_contains "$action_source" 'Bash(bash \"$WOO_REVIEW_ACTION_PATH/scripts/verify-receipts.sh\" --validators)' \
+  "Anthropic adjudicator may run the exact receipt gate"
+assert_contains "$action_source" 'Bash(bash \"$WOO_REVIEW_ACTION_PATH/scripts/intersect-findings.sh\")' \
+  "Anthropic adjudicator may run the exact deterministic finalizer"
+assert_not_contains "$action_source" '"Bash(bash:*)"' \
+  "Anthropic runner does not grant arbitrary bash execution"
 
 assert_file_contains "$ROOT/skills/woostack-review/prompts/_worker-header.md" \
-  '"authority":"advisory-only"' \
+  'other than `"advisory-only"`' \
   "worker receipts are explicitly advisory-only"
 assert_file_contains "$ROOT/skills/woostack-review/prompts/_orchestrator-header.md" \
   "no parent-supplied contract context was available" \

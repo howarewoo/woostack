@@ -197,7 +197,7 @@ After writing code, use the verification and iteration loop:
 Local findings and reports from review, audit, and QA are evidence for the
 responsible workflow. They never replace the approved contract or Git/GitHub facts.
 - **PR Reviews** → [/woostack-review](skills/woostack-review/SKILL.md)
-  Fans out sub-agents in parallel to check distinct angles (bugs, security, observability, database, etc.), then runs an adversarial **Skeptical Validator** (prosecutor and defender checks) to eliminate false positives before posting reviews.
+  Runs one evidence-led correctness pass plus narrowly triggered risk specialists, then one independent evidence adjudicator before posting a native review.
 - **Addressing Reviews** → [/woostack-address-comments](skills/woostack-address-comments/SKILL.md)
   Iteratively guides you through resolving, clarifying, or pushing back on PR review comments, applying changes, and pushing commits.
 - **Auditing Standing Code** → [/woostack-audit](skills/woostack-audit/SKILL.md)

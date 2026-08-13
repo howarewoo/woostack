@@ -58,7 +58,7 @@ The review-angle vocabulary runs **earlier**, too. When [`woostack-harden`](/doc
 
 ## Tiers
 
-Each angle runs at a model tier matched to its work: `fast` for rubric and pattern checks, `standard` for reasoning-heavy passes. The skeptical validator that filters every finding runs at `deep`. The tier-to-model mapping per provider lives in [Context management](/docs/concepts/context-management#subagents-isolate-work), and you can override any tier in [Configuration](/docs/configuration#model-selection).
+Each angle runs at a model tier matched to its work: `fast` for rubric and pattern checks, `standard` for reasoning-heavy passes. One evidence adjudicator filters every candidate at `deep`. The tier-to-model mapping per provider lives in [Context management](/docs/concepts/context-management#subagents-isolate-work), and you can override any tier in [Configuration](/docs/configuration#model-selection).
 
 ## Where to go next
 

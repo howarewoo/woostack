@@ -64,7 +64,6 @@ or explicit standalone selection do. JSON has no comments, so each key is explai
     "authors_skip": ["dependabot[bot]", "renovate[bot]"],
     "force_tier": "",
     "chunking": { "max_loc": 4000 },
-    "disable_adversarial": false,
     "defer_markers": true,
     "metrics": false
   },
@@ -316,12 +315,11 @@ On repository-model hosts, the tier resolves by precedence, highest to lowest: a
 matching flat leaf → the provider table default. On omp, only the effective-tier decisions apply;
 the fixed worker map replaces every model-resolution step.
 
-### Chunking, validation, and metrics
+### Chunking, adjudication, and metrics
 
 | Key | Type | Default | Meaning |
 | --- | --- | --- | --- |
 | `review.chunking.max_loc` | integer ≥ 0 | `4000` | Changed-line threshold; a larger diff is split into chunks and each angle fans out across them. `0` disables chunking. |
-| `review.disable_adversarial` | boolean | `false` | `true` skips the skeptical prosecutor pass and uses the defender pass alone, a cost opt-out. |
 | `review.defer_markers` | boolean | `true` | `true` honors inline `woostack-defer(<ref>)` markers, demoting a matching finding to a non-blocking nit. `security` findings are never deferred. |
 | `review.metrics` | boolean | `false` | `true` writes a per-angle signal/noise breakdown, folds a rolling non-authoritative local `.woostack/metrics.json`, and prints advisory `review.angles.skip` suggestions when an optional angle has at least 20 local runs with zero blockers and either zero kept findings or only nit findings. |
 | `review.fix_commands` | array of string | `[]` | Reserved for a future loop mode; parsed but not yet consumed. |

@@ -5,8 +5,8 @@
 The only public invocation is `/woostack-review <PR#>`, which requires one exact existing pull
 request. Configuration cannot create a local-diff target or expose alternate command modes.
 Internal worker tier routing (`fast`, `standard`, `deep`) remains available to the swarm and
-validators; it is not a user-selectable review mode. See [commands.md](commands.md) for the
-public surface and [`../prompts/_orchestrator-header.md`](../prompts/_orchestrator-header.md) for
+the sole evidence adjudicator; it is not a user-selectable review mode. See [commands.md](commands.md)
+for the public surface and [`../prompts/_orchestrator-header.md`](../prompts/_orchestrator-header.md) for
 the canonical posting contract.
 
 ## Event-floor rule (prior threads)
@@ -17,7 +17,7 @@ the canonical posting contract.
 
 `severity_floor` **defaults to `high`** and is a **blocking/visibility threshold**, not a drop gate. Findings at/above the floor are normal findings; validated findings **below** the floor are surfaced as non-blocking **nits** (`Nit:` title prefix, `· NIT` footer) rather than dropped. A below-floor finding that is `blocking: true` is never demoted — it surfaces as a normal blocking finding (blocking overrides the floor). Nits are event-neutral: a PR whose only findings are nits still gets `APPROVE`, with the nits posted inline.
 
-The floor is applied in one place — `scripts/intersect-findings.sh` (Stage 4c) — after the adversarial intersection, so swarm, CI, and defender-only paths agree. Widen the floor per-repo with `review.severity_floor` (`"low"` / `"medium"`).
+The floor is applied in one place — `scripts/intersect-findings.sh` (Stage 4c) — after the sole evidence adjudicator, so swarm and CI paths agree. Widen the floor per-repo with `review.severity_floor` (`"low"` / `"medium"`).
 
 Set **`review.nits: false`** to restore the old behavior: below-floor non-blocking findings are dropped entirely. (Below-floor *blocking* findings still surface — the override is a global safety rule independent of this knob.)
 
@@ -104,7 +104,7 @@ Key reference (JSON has no comments, so the per-key semantics live here):
 - **`angles.force`** — always run these, even if not auto-detected. **`angles.skip`** — never run these (`bugs`/`security`/`simplify` cannot be skipped).
 - **`severity_floor`** — one of `low` | `medium` | `high`; a blocking/visibility threshold, **not** a drop gate. **Default `high`**. Findings below the floor surface as non-blocking nits (see `nits`); set `low`/`medium` to treat more findings as normal (at/above-floor). Applied once by `intersect-findings.sh` (Stage 4c).
 - **`nits`** — `true` | `false`; default **`true`**. When `true`, validated findings below `severity_floor` surface as non-blocking nits instead of being dropped. Set `false` to drop them (the pre-reframe behavior). Below-floor `blocking` findings always surface regardless of this knob.
-- **`defer_markers`** — `true` | `false`; default **`true`**. When `true`, the defender validator honors inline `woostack-defer(<ref>)` markers (authored by `woostack-execute` under an approved plan): a finding that flags work a later increment intentionally completes is demoted to a non-blocking `Deferred to <ref>` nit instead of a normal finding (issue #224). Set `false` to ignore the markers. It never defers `security` findings or wrong code present in this PR; reads the marker from the PR's own diff, so it fetches no other PRs.
+- **`defer_markers`** — `true` | `false`; default **`true`**. When `true`, the evidence adjudicator honors inline `woostack-defer(<ref>)` markers (authored by `woostack-execute` under an approved plan): a finding that flags work a later increment intentionally completes is demoted to a non-blocking `Deferred to <ref>` nit instead of a normal finding (issue #224). Set `false` to ignore the markers. It never defers `security` findings or wrong code present in this PR; reads the marker from the PR's own diff, so it fetches no other PRs.
 - **`ignore`** — fnmatch globs; ignored paths skip angle triggers + diff body.
 - **`project_rules`** — fnmatch globs appended to auto-discovered `rules.md`.
 - **`authors_skip`** — PR author logins that short-circuit the entire review. Defaults: `dependabot[bot]`, `renovate[bot]`, `github-actions[bot]`. Set to `[]` to opt out.

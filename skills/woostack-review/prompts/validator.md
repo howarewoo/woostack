@@ -66,5 +66,10 @@ adjudicator action using the receipt contract in `_worker-header.md`:
 Local dispatch must include only the exact controller-supplied complete binding:
 `reviewerProfile`, `reviewerSessionId`, `reviewerPrincipalId`, and
 `reviewerCredentialContextId`. GitHub Actions must include its exact single-session identity and
-run-attempt fields. Never read or write a binding manifest. After the receipt, exit immediately;
-the controller owns receipt verification, deterministic floor/anchor checks, posting, and verdict.
+run-attempt fields. Never read or write a binding manifest. In the local subagent path, exit
+immediately after the receipt; the controller owns receipt verification, deterministic floor/anchor
+checks, posting, and verdict. In the GitHub Actions single-session path, when
+`WOO_REVIEW_SEQUENTIAL_VALIDATE=1`, continue as that controller: run
+`bash "$WOO_REVIEW_ACTION_PATH/scripts/verify-receipts.sh" --validators`, then
+`bash "$WOO_REVIEW_ACTION_PATH/scripts/intersect-findings.sh"`, and complete the native review
+delivery in `_orchestrator-header.md`. Do not perform any other command during adjudication.

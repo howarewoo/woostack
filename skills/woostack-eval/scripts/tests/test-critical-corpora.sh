@@ -295,11 +295,12 @@ const requiredContractProofs = {
   },
   'woostack-review': {
     'one exact PR is the only public mode': [['accepts-exact-pr'], ['rejects-other-modes'], ['review-read-only']],
-    'one multi-angle swarm is adversarially validated': [
+    'one multi-angle swarm has one evidence adjudicator': [
       ['all-angles'],
       ['one-swarm'],
-      ['both-validators'],
-      ['intersection-after-validation'],
+      ['one-adjudicator'],
+      ['finalization-after-adjudication'],
+      ['no-early-merge'],
     ],
     'accepted findings produce one native PR event': [
       ['blocker-event'],

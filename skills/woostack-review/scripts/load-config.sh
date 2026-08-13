@@ -103,6 +103,7 @@ VALID_FLOORS = {"low", "medium", "high"}
 FORCE_TIERS = {"fast", "deep"}
 # Keys recognized inside the `review` block (and the legacy top-level form).
 REVIEW_KEYS = {
+    "angles", "severity_floor", "ignore", "project_rules",
     "authors_skip", "release_rollup_pattern", "fix_commands",
     "metrics", "chunking", "force_tier", "nits", "defer_markers",
 }
