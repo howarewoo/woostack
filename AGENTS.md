@@ -126,6 +126,9 @@ directory, not in this repo.
   live with `npm view <pkg> version` or an equivalent registry command.
 - No hidden tools. Do not invent CI, app tests, package scripts, or app build steps for this
   repo.
+- Benchmark and evaluation workflows default to local temporary repositories. Creating remote
+  repositories requires the user's prior approval of the exact owner, names, count, purpose, and
+  cleanup plan.
 - Respect branch protection. `main` is protected and requires PRs; never force-push to
   `main`.
 - Use Graphite for source control when mutating history or opening/updating PRs. Prefer
