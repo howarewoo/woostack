@@ -13,18 +13,25 @@ resume evidence but never proves source-control state.
 ## Commands
 
 ```text
-/woostack-execute <approved plan> --project <exact Linear URL-or-UUID>
+/woostack-execute --project <exact Linear URL-or-UUID>
 /woostack-execute <approved plan> --issue <exact canonical Linear issue reference>
 ```
 
 Exactly one of `--project` or `--issue` is required. Execute has no local, implicit, or concurrent
 execution route. Every cycle admits one issue, one isolated worktree, and one PR. Execute does not
-perform review or merge operations.
+perform review or merge operations. The project-only form is the resumable handoff from Build/Fix;
+it is sufficient without chat memory, a deleted gate manifest, or a local plan file.
 
 ## Admission: one exact resource and two matching records
 
-Require one exact project supplied by URL or UUID, or one exact direct issue supplied by canonical
-issue reference, plus exactly one matching `projectSpecApprovalRecord` and one matching
+In project mode, require one exact project supplied by URL or UUID and reconstruct authority from
+fresh official Linear reads of that project's complete specification, current direct-issue graph,
+native dependency relations, both responsible-user approval receipts, and canonical repository
+association. In issue mode, require one exact direct issue and the same complete reads for its
+owning project. Never infer either resource or its records from chat memory, local files, titles,
+branch names, recent activity, or prior transcript.
+
+Require exactly one matching `projectSpecApprovalRecord` and one matching
 `executionPlanApprovalRecord`:
 
 ```text
@@ -38,8 +45,8 @@ executionPlanApprovalRecord = {
 ```
 
 Independently read the selected resource, the complete project specification, every current direct
-issue, all admitted native dependency relations, both native responsible-user approval events,
-and the canonical repository association. Recompute the fingerprints and sorted issue, dependency,
+issue, all admitted native dependency relations, both native responsible-user approval events, and
+the canonical repository association. Recompute the fingerprints and sorted issue, dependency,
 principal, timestamp, event, and causal-order sets. Require exact equality with both records and
 require the selected issue to be a current direct project issue. Missing, stale, ambiguous,
 conflicting, unsupported, or incompletely paginated evidence blocks before repository mutation.

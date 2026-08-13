@@ -26,20 +26,34 @@ Multi-increment work follows one fixed chain:
 
 ```text
 resolve/create canonical project and admit exact baseline →
-draft Ideate/Harden locally → render owner-only `project-spec.md` and approve path/hash/length →
-bounded save/read-back/receipt → draft Plan/Harden locally →
-render owner-only `execution-plan.md` and approve path/hash/length plus concise mapping →
-bounded save/read-back/receipt → execute → review → hand back
+draft Ideate/Harden locally →
+stream complete verified `project-spec.md` bytes and full identity (or a verified same-process
+byte-complete unified diff with old/new identities) immediately before a body-free `Accept`/`Abandon`
+Ask → bounded save/read-back/receipt → draft Plan/Harden locally →
+stream complete verified `execution-plan.md` bytes and full identity (or a verified same-process
+byte-complete unified diff with old/new identities) immediately before a body-free `Accept`/`Abandon`
+Ask → bounded save/read-back/receipt → clean up → present verified project handoff
 ```
 
-The only hard gates are deterministic project-spec-file approval and execution-plan-file approval.
-During each gated drafting phase there are no intermediate provider cycles; approval occurs before
-save, file identity is revalidated with no-follow and deterministic regeneration, and native
-content/graph read-back is compared by the shared provider-presentation canonical fingerprint before
-the matching receipt can clear the gate.
+The only content gates are deterministic project-spec-file approval and execution-plan-file
+approval. Each stream carries the complete exact Markdown bytes and full identity immediately before
+its body-free Ask; a same-process revision may carry only one independently verified byte-complete
+unified diff with old/new full-file identities. During each gated drafting phase there are no
+intermediate provider cycles; acceptance binds only the immediately preceding identity, file identity
+is revalidated with no-follow and deterministic regeneration, and native content/graph read-back is
+compared by the shared provider-presentation canonical fingerprint before the matching receipt can
+clear the gate.
+
+After gate 2, Build/Fix display the exact verified project URL or UUID, both approval receipts and
+canonical fingerprints, stable task mappings, dependencies, approved parent branch, last admitted
+tip, and `/woostack-execute --project <exact Linear URL-or-UUID>`. A body-free handoff Ask offers
+exactly `Stop here`, `Execute`, and `Abandon`: Stop here returns without mutation, Execute invokes
+normal Execute once, and Abandon closes the existing project without dispatch. Unknown or custom
+input fails closed and asks again.
 
 The shared [Linear artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest)
-is the detailed authority for the temporary manifest, owner-only gate files, path/hash/length/
+is the detailed authority for the temporary manifest, owner-only gate files, streamed artifact
+bytes and identity, same-process revision diffs, body-free approval Asks, path/hash/length/
 fingerprint-version identity, synchronization ordering, recovery, cleanup, and unchanged Execute
 reads. Material updates to canonical Linear records invalidate the matching gate.
 

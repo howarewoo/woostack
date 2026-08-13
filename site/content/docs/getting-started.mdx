@@ -84,12 +84,15 @@ The `linear` configuration supplies validated defaults after a workflow requires
 Build uses them to create its canonical project when no exact project was supplied. After proof, a
 new Fix uses them to create its canonical project and direct issues. Policy cannot authorize a
 workspace/team. Gated Build and project-backed Fix then admit an exact Linear baseline, keep
-question and hardening changes in a secure local draft, render owner-only `project-spec.md` or
-`execution-plan.md`, and display only its absolute path, byte length, SHA-256, fingerprint version,
-run/process/project identity, and the complete concise task/dependency mapping. The responsible
-user approves that exact file identity before one bounded save. Native content or graph read-back is
-compared by the shared provider-presentation canonical fingerprint before the matching approval
-receipt; both the native bytes and receipts are independently read before the gate clears.
+question and hardening changes in a secure local draft, and stream the complete verified
+`project-spec.md` or `execution-plan.md` Markdown bytes and full identity immediately before a
+body-free `Accept`/`Abandon` Ask. Same-process revisions may stream one verified byte-complete
+unified diff with old/new full-file identities; otherwise the complete artifact is streamed. The
+responsible user accepts only that exact preceding identity before one bounded save. Native content
+or graph read-back is compared by the shared provider-presentation canonical fingerprint before the
+matching approval receipt; both the native bytes and receipts are independently read before the gate
+clears. After gate 2, Build/Fix display the verified project handoff and ask exactly `Stop here`,
+`Execute`, or `Abandon`; Execute is separately invoked or dispatched only for the selected choice.
 
 Build uses one project for the high-level specification, one direct issue per increment, and native
 issue dependencies. Fix uses one project for the complete specification plus a strict direct-issue

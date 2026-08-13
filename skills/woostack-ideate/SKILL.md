@@ -77,6 +77,11 @@ decision, hand back to the owning wrapper:
 - the exact run/process and manifest identity.
 
 This handoff is not approval. The owning Build or project-backed Fix wrapper owns project-spec
-hardening, deterministic `project-spec.md` rendering and its concise `project-spec-approval` gate,
-then owns planning, execution, review, Git/Graphite mutation, and every later transition. Ideate
-never invokes those phases, writes implementation source, or becomes a public command.
+hardening, then uses the shared
+[`streamed gate-file presentation and body-free approval contract`](../woostack-init/references/artifact-backends.md#deterministic-gate-file-approval-identity-and-streamed-presentation):
+it streams the complete verified `project-spec.md` bytes and full identity (or a verified
+same-process byte-complete revision diff with old/new identities) immediately before an
+`Accept`/`Abandon` Ask. The wrapper then owns planning, the second streamed gate presentation,
+user-controlled `Stop here`/`Execute`/`Abandon` handoff, execution, review, Git/Graphite mutation,
+and every later transition. Ideate never invokes those phases, writes implementation source, or
+becomes a public command.

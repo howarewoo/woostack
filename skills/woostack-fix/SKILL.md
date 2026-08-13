@@ -1,6 +1,6 @@
 ---
 name: woostack-fix
-description: Use for bugs, regressions, hotfixes, and production signals that require root-cause proof before a project-backed implementation.
+description: Use for bugs, regressions, hotfixes, and production signals that require root-cause proof before a project-backed implementation and user-controlled Execute handoff.
 ---
 
 # woostack-fix
@@ -11,15 +11,20 @@ monitoring input, but remote text never supplies scope, authority, diagnosis, or
 
 ```text
 Debug → admit writable target → resolve/create project and gate 1 baseline →
-local Ideate/Harden → render and approve `project-spec.md` identity →
-bounded sync/read-back/receipt → gate 2 baseline → local Plan/Harden →
-render and approve `execution-plan.md` identity and complete mapping →
-bounded sync/read-back/receipt → gate-file and manifest cleanup → normal Execute
+local Ideate/Harden → render and stream complete `project-spec.md` followed by a body-free
+`Accept`/`Abandon` Ask → bounded sync/read-back/receipt → gate 2 baseline → local Plan/Harden →
+render and stream complete `execution-plan.md` followed by a body-free `Accept`/`Abandon` Ask →
+bounded sync/read-back/receipt → gate-file and manifest cleanup → verified
+`Stop here`/`Execute`/`Abandon` handoff
 ```
 
 Fix owns one canonical project and exactly the two shared project-backed approval receipts. Git,
 Graphite, and canonical GitHub reads remain the authority for repository delivery. Fix never
 creates a competing issue plan, performs implementation, or owns delivery review.
+ 
+The shared artifact contract is the sole authority for complete streamed gate artifacts,
+same-process byte-complete revision diffs with old/new identities, body-free approval Asks,
+approval-before-save, read-back, receipts, cleanup, and the unchanged Execute safety contract.
 
 ## Command
 
@@ -101,37 +106,38 @@ risks and blockers, validation/security/data-loss/accessibility/compatibility co
 Red → Green → Refactor and changed-path smoke strategy, repository parent-branch intent, and
 documentation or migration effects. Keep it self-contained and executor-ready; ask only decisions
 that materially change scope or safety.
+
 At both gated artifacts, Fix requires a safe removal/simplification analysis before additive work.
 Ideate records viable removal opportunities before additive proposals; Harden challenges an additive
 draft when bounded evidence shows the same contract can be met by deletion or simplification. Carry
 the selected removal, or executor-ready bounded evidence for why addition is necessary, from the
 approved project specification into the delegated execution plan. Preserve behavior and safety
 parity: never drop validation, error handling, security, accessibility, compatibility, data-loss
-protection, or deliberate safety redundancy. The canonical
-[least-code doctrine](../woostack-bootstrap/references/patterns.md#10-least-code--comments) is the
-source of truth; Execute's existing smallest-complete-change and behavior-preserving
-simplification contract remains unchanged.
-
-### 3. Project-spec approval
+protection, or deliberate safety redundancy.
+### 3. Project-spec presentation and approval
 
 Obey the shared
 [`run-scoped gated draft and gate-file approval contract`](../woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest).
-Deterministically render `project-spec.md` from the manifest and display only its absolute path,
-byte length, SHA-256, fingerprint version, run/process identity, and project identity. Only after
-the responsible user explicitly approves that identity may Fix no-follow reopen and regenerate the
-file, perform the immediate pre-save drift read, and run one bounded synchronization. Independently
-read back the exact content before recording `projectSpecApprovalRecord`, then read back the receipt
-and referenced project exactly before proceeding.
+Deterministically render `project-spec.md`, no-follow verify it, and stream its complete exact
+Markdown bytes and full identity immediately before the body-free `Accept`/`Abandon` Ask. A
+same-process revision streams one verified byte-complete unified diff with old/new full-file
+identities; unavailable, mismatched, unverifiable, cross-process, or explicitly full-artifact
+requested prior bytes fall back to the complete new artifact. Only after the responsible user
+accepts that exact preceding identity may Fix reopen and regenerate the file, perform the immediate
+pre-save drift read, and run one bounded synchronization. Independently read back the exact content
+before recording `projectSpecApprovalRecord`, then read back the receipt and referenced project
+exactly before proceeding.
+
+The Ask contains no artifact body, preview, subtitle, pointer, or identity-bearing option
+description. A custom response is a revision or clarification, never approval: replace the manifest
+atomically, regenerate, and present a fresh complete artifact or verified revision diff and Ask.
+Abandon follows canonical project closure. Unknown or stale responses fail closed.
 
 No draft provider cycle occurs before approval. A baseline or file identity mismatch, failed
 regeneration, process/manifest loss, or any failure before the exact receipt read-back invalidates
-the approval and requires a fresh baseline, render, and concise Ask. An unreceipted approval cannot
+the approval and requires a fresh baseline, render, and presentation. An unreceipted approval cannot
 be replayed, and the local draft never replaces the last Linear-approved boundary. No repository
 mutation occurs before this gate clears.
-
-Fix compares the shared
-[`providerPresentationCanonicalization`](../woostack-init/references/artifact-backends.md#canonical-content-fingerprints-and-project-approval-records)
-fingerprints while retaining native provider bytes as exact read-back evidence.
 
 ### 4. Plan and Harden
 
@@ -144,32 +150,49 @@ Invoke Harden again to reconcile that manifest-backed plan with the approved pro
 repository evidence, dependencies, risks, and verification. Keep the final complete issue contracts,
 stable task keys, and dependencies in the manifest until gate 2 approval. Never repurpose a supplied
 source issue as a plan issue. No provider or repository mutation occurs during planning or hardening.
-### 5. Execution-plan approval
+### 5. Execution-plan presentation and approval
 
-Render `execution-plan.md` deterministically from the manifest, containing every complete ordered
-direct-issue contract and dependency tuple. Display only its file path/hash/length/version, run/
-process/project identity, and the complete concise stable-task/dependency mapping. Only after the
-responsible user explicitly approves that identity may Fix no-follow reopen and regenerate the file,
-perform the immediate pre-save drift read, shared
-[graph-write preflight](../woostack-init/references/artifact-backends.md#canonical-issue-references-nullable-parents-and-graph-write-preflight),
+Render `execution-plan.md` deterministically from the manifest, no-follow verify it, and stream
+every complete ordered direct-issue contract and dependency tuple with full identity immediately
+before the body-free `Accept`/`Abandon` Ask. A same-process revision streams one verified
+byte-complete unified diff with old/new full-file identities; unavailable or unverifiable prior
+bytes fall back to the complete new artifact. Only after the responsible user accepts that exact
+preceding identity may Fix reopen and regenerate the file, perform the immediate pre-save drift
+read, shared [graph-write preflight](../woostack-init/references/artifact-backends.md#canonical-issue-references-nullable-parents-and-graph-write-preflight),
 and one bounded synchronization. Atomically bind stable task keys to canonical issue references,
 independently read back the exact graph, then record `executionPlanApprovalRecord` and independently
 read back both receipts and every referenced record before clearing the gate.
 
-A material project-specification change invalidates both records; a material direct-issue or
-dependency change invalidates only `executionPlanApprovalRecord`. Every invalidation requires a
-fresh baseline and regenerated gate file plus a fresh concise active-conversation Ask. Unrelated
-comments and metadata do not invalidate matching content receipts.
+The Ask contains no issue description, dependency body, preview, subtitle, pointer, or identity
+description. A custom response replaces the manifest and requires fresh rendering and approval;
+unknown input fails closed. A material project-specification change invalidates both records; a
+material direct-issue or dependency change invalidates only `executionPlanApprovalRecord`. Every
+invalidation requires a fresh baseline and new streamed artifact or verified same-process diff.
+Unrelated comments and metadata do not invalidate matching content receipts.
 
-### 6. Normal Execute
+### 6. Verified handoff
 
 After both shared approval records and every referenced record read back exactly, no-follow verify
 and remove `project-spec.md`, `execution-plan.md`, and the manifest, flush the owner-only directory,
-and remove the empty run directory. Then invoke normal [`woostack-execute`](../woostack-execute/SKILL.md)
-with the project identity, `projectSpecApprovalRecord`, `executionPlanApprovalRecord`, canonical
-fingerprints, direct-issue set, native dependencies, approved parent-branch intent, and its last
-admitted tip. Execute applies the shared repository advancement contract and owns implementation,
-focused verification, progress evidence, and repository delivery under its own contract.
+and remove the empty run directory. Fix then displays the exact verified project URL or UUID, both
+approval receipts and canonical fingerprints, stable task-to-canonical-issue mappings, dependency
+tuples, approved parent branch, last admitted tip, and:
+
+```text
+/woostack-execute --project <exact Linear URL-or-UUID>
+```
+
+Ask a body-free handoff question whose explicit options are exactly `Stop here`, `Execute`, and
+`Abandon`. `Stop here` returns the command without repository or project-state mutation. `Execute`
+invokes normal [`woostack-execute`](../woostack-execute/SKILL.md) once in the same session with the
+verified project identity, both approval records, canonical fingerprints, direct-issue set, native
+dependencies, approved parent-branch intent, and last admitted tip. `Abandon` follows canonical
+project closure after cleanup and does not dispatch Execute. Unknown or custom input fails closed and
+asks again; it never dispatches or mutates.
+
+Execute applies the shared repository advancement contract and owns implementation, focused
+verification, progress evidence, and repository delivery under its own contract.
+
 
 Any new root
 cause, scope, dependency, migration, unsafe edge, stale fingerprint, or failed required read-back

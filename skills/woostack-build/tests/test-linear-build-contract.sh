@@ -42,19 +42,19 @@ for needle in (
     "## Fixed chain",
     "admit gate 1 baseline",
     "draft Ideate/Harden locally with zero provider calls",
-    "render and approve `project-spec.md` by concise file identity",
+    "render and present complete `project-spec.md` followed by a body-free `Accept`/`Abandon` Ask",
     "pre-save drift read",
     "one bounded sync",
     "exact content read-back",
     "receipt/read-back",
     "gate-file and manifest cleanup",
-    "normal Execute",
+    "present verified handoff and ask `Stop here`/`Execute`/`Abandon`",
     "## Exactly two approval stops",
     "projectSpecApprovalRecord",
     "executionPlanApprovalRecord",
     "candidate strict sequential direct-issue chain",
     "performs no provider read or mutation",
-    "Build always invokes",
+    "Build then asks a body-free handoff question",
     "Build never merges",
     "last verified boundary",
     "repository association",
@@ -82,7 +82,10 @@ for needle in (
     "regeneration",
     "Ideate, both Harden passes, and Build/Fix-delegated Plan",
     "zero Linear or other provider reads and writes",
-    "responsible user's matching file identity approval must occur before",
+    "complete verified Markdown bytes and their full identity",
+    "For a same-process revision",
+    "body-free Ask",
+    "options: [\"Accept\", \"Abandon\"]",
     "immediately re-read the exact Linear targets",
     "exact content read-back",
     "canonical issue reference",
@@ -92,7 +95,7 @@ for needle in (
     "zero provider and repository mutation",
     "An unreceipted approval is consumed and cannot be replayed",
     "changed or replaced file",
-    "fresh concise Ask",
+    "fresh body-free Ask",
     "unlink both gate files and the manifest",
     "treat the local draft as the last approved Linear",
     "These Execute-era safety reads are unchanged",
@@ -111,7 +114,6 @@ for obsolete in (
     r"minimum serial read-patch-read",
     r"complete displayed-content approval identity",
     r"complete exact local content to be saved",
-    r"not a summary or pointer-only presentation",
 ):
     forbid("artifact", obsolete)
     forbid("build", obsolete)
@@ -144,6 +146,7 @@ for expected in (
     "renders-project-spec-file-ask",
     "renders-execution-plan-file-ask",
     "renders-one-increment-plan-with-empty-dependencies",
+    "renders-same-process-revision-diff-with-fallbacks",
     "renders-gate-files-byte-exactly",
     "blocks-unreceipted-approval-replay",
     "enforces-run-manifest-boundaries",
@@ -310,21 +313,22 @@ for label, eval_path, expected_id in (
     if plan_case is None:
         failures.append(f"{label}: missing file-backed execution-plan Ask eval")
         continue
-    ask = plan_case["assertions"][0]["expected"]["approvalAsk"]
-    identity = ask["approvalIdentity"]
-    gate_file = identity.get("gateFile", {})
+    stream = plan_case["assertions"][0]["expected"]
+    identity = stream["identity"]
+    gate_file = identity
     if not gate_file.get("path", "").endswith("/execution-plan.md"):
-        failures.append(f"{label}: execution-plan Ask does not bind its absolute file path")
+        failures.append(f"{label}: execution-plan stream does not bind its absolute file path")
     for field in ("byteLength", "sha256", "fingerprintVersion"):
         if field not in gate_file:
-            failures.append(f"{label}: execution-plan Ask misses gateFile.{field}")
+            failures.append(f"{label}: execution-plan stream misses identity field {field}")
     if (
-        not identity.get("approvedStableTaskMappings")
-        or not isinstance(identity.get("approvedDependencies"), list)
+        not stream.get("approvedStableTaskMappings")
+        or not isinstance(stream.get("approvedDependencies"), list)
     ):
-        failures.append(f"{label}: execution-plan Ask misses approved mapping or complete dependency array")
-    if "increments" in ask or "specification" in ask:
-        failures.append(f"{label}: file-backed Ask duplicates complete inline content")
+        failures.append(f"{label}: execution-plan stream misses approved mapping or complete dependency array")
+    ask = plan_case["assertions"][1]["expected"]
+    if ask != {"options": ["Accept", "Abandon"], "customResponseAvailable": True, "bodyFree": True}:
+        failures.append(f"{label}: execution-plan Ask is not body-free Accept/Abandon")
 
 empty_dependency_case = next(
     (case for case in evals["cases"] if case["id"] == "renders-one-increment-plan-with-empty-dependencies"),
@@ -333,12 +337,15 @@ empty_dependency_case = next(
 if empty_dependency_case is None:
     failures.append("build: missing one-increment empty-dependency Ask eval")
 else:
-    empty_identity = empty_dependency_case["assertions"][0]["expected"]["approvalAsk"]["approvalIdentity"]
+    empty_assertions = {
+        assertion["pointer"]: assertion["expected"]
+        for assertion in empty_dependency_case["assertions"]
+    }
     if (
-        empty_identity.get("approvedDependencies") != []
-        or len(empty_identity.get("approvedStableTaskMappings", [])) != 1
+        empty_assertions.get("/artifactStream/approvedDependencies") != []
+        or len(empty_assertions.get("/artifactStream/approvedStableTaskMappings", [])) != 1
     ):
-        failures.append("build: one-increment Ask does not preserve a complete empty dependency snapshot")
+        failures.append("build: one-increment stream does not preserve a complete empty dependency snapshot")
 
 manifest_fixture = json.loads(
     (root / "skills/woostack-build/evals/fixtures/manifest-boundaries.json").read_text()
@@ -769,12 +776,12 @@ else:
 chain_pattern = re.compile(
     r"resolve/create canonical project and admit gate 1 baseline\s*→\s*"
     r"draft Ideate/Harden locally with zero provider calls\s*→\s*"
-    r"render and approve `project-spec\.md` by concise file identity\s*→\s*"
+    r"render and present complete `project-spec\.md` followed by a body-free `Accept`/`Abandon` Ask\s*→\s*"
     r"pre-save drift read.*?receipt/read-back\s*→\s*"
     r"draft delegated Plan/Harden locally with zero provider calls\s*→\s*"
-    r"render and approve `execution-plan\.md` by concise file identity and complete mapping\s*→\s*"
+    r"render and present complete `execution-plan\.md` followed by a body-free `Accept`/`Abandon` Ask\s*→\s*"
     r"pre-save drift read.*?receipt/read-back\s*→\s*"
-    r"gate-file and manifest cleanup\s*→\s*normal Execute",
+    r"gate-file and manifest cleanup\s*→\s*present verified handoff and ask `Stop here`/`Execute`/`Abandon`",
     re.S,
 )
 if not chain_pattern.search(text["build"]):
@@ -786,7 +793,6 @@ for pattern in (
     r"run overnight",
     r"hand off",
     r"\breplan\b",
-    r"\babandon\b",
     r"parallel",
     r"parent plan",
     r"artifact-free execution handoff",

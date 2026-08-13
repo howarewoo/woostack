@@ -41,10 +41,12 @@ write barrier or repository authority.
 
 ```text
 resolve/create project and admit exact baseline → local Ideate/Harden →
-render and approve owner-only `project-spec.md` path/hash/length identity →
-bounded save/read-back/receipt → local Plan/Harden →
-render and approve owner-only `execution-plan.md` path/hash/length identity plus concise mapping →
-bounded save/read-back/receipt → execute → review → hand back
+stream complete verified `project-spec.md` bytes and full identity (or a verified same-process
+byte-complete unified diff with old/new identities) immediately before a body-free `Accept`/`Abandon`
+Ask → bounded save/read-back/receipt → local Plan/Harden →
+stream complete verified `execution-plan.md` bytes and full identity (or a verified same-process
+byte-complete unified diff with old/new identities) immediately before a body-free `Accept`/`Abandon`
+Ask → bounded save/read-back/receipt → clean up → verified `Stop here`/`Execute`/`Abandon` handoff
 ```
 
 Build owns exactly two gates. Its approved direct-issue graph orders independently shippable
@@ -57,7 +59,7 @@ and one direct issue per increment; there is no parent plan issue.
 ```text
 prompt → reproduce → prove root cause → admit writable target and canonical project →
 use the same local two-gate drafting and bounded synchronization path as Build →
-execute → review → hand back
+present the verified `Stop here`/`Execute`/`Abandon` handoff
 ```
 
 Fix owns the same two project-backed approval gates as Build and never substitutes a symptom patch
@@ -70,9 +72,17 @@ native dependencies between them.
 Build and Fix obey the shared
 [Linear artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest).
 It defines exact baseline admission, provider-free gated drafting, deterministic owner-only gate
-files, path/hash/length/fingerprint-version approval identity, approval-before-save, native
+files, complete streamed Markdown bytes and identity, same-process byte-complete revision diffs with
+old/new identities, body-free `Accept`/`Abandon` approval Asks, approval-before-save, native
 read-back compared by the shared provider-presentation canonical fingerprint before receipt, stable
 identity mapping, failure recovery, cleanup, and unchanged Execute rechecks.
+
+After gate 2, Build/Fix display the exact verified project URL or UUID, both approval receipts and
+canonical fingerprints, stable task mappings, dependencies, approved parent branch, last admitted
+tip, and `/woostack-execute --project <exact Linear URL-or-UUID>`. The body-free handoff Ask offers
+exactly `Stop here`, `Execute`, and `Abandon`. Stop here returns without repository or project-state
+mutation; Execute invokes normal Execute exactly once in the same session; Abandon closes the
+existing project without dispatch. Unknown or custom input fails closed and asks again.
 
 The temporary local draft never replaces the last Linear-approved boundary. Material project drift
 invalidates both records; issue or dependency drift invalidates only the execution-plan record.
@@ -91,7 +101,7 @@ never reads or writes Linear.
 
 ## Shared execution boundary
 
-Build, Fix, and Change hand approved work to [woostack-execute](/docs/skills/woostack-execute):
+Build and Fix prepare approved work for the separately invoked [woostack-execute](/docs/skills/woostack-execute):
 
 1. resolve canonical repository/base and one collision-safe worktree per task;
 2. implement with Red → Green → Refactor;
@@ -100,8 +110,11 @@ Build, Fix, and Change hand approved work to [woostack-execute](/docs/skills/woo
 5. use [woostack-commit](/docs/skills/woostack-commit) only after the diff passes; and
 6. independently read the PR/head/base/check/review result back.
 
-[woostack-execute-overnight](/docs/skills/woostack-execute-overnight) replaces only human stop
-points. It does not weaken scope, verification, review, collision, or merge boundaries.
+Build/Fix do not execute automatically after gate 2. The user may choose `Stop here` and invoke
+Execute later with the exact project command, choose `Execute` for one same-session dispatch, or
+choose `Abandon` for canonical closure. [woostack-execute-overnight](/docs/skills/woostack-execute-overnight)
+replaces only human stop points after execution begins; it does not weaken scope, verification,
+review, collision, or merge boundaries.
 
 ## Linear fix/build paths
 
@@ -109,16 +122,18 @@ points. It does not weaken scope, verification, review, collision, or merge boun
 build
   → resolve/create one exact project and admit gate 1 baseline
   → draft and harden locally with zero provider calls
-  → render and approve owner-only `project-spec.md` path/hash/length identity
+  → stream complete `project-spec.md` and body-free Accept/Abandon Ask
   → drift-check, synchronize once, read content back, then record/read the receipt
-  → repeat the local draft/render/approve/sync/read-back/receipt order for `execution-plan.md`
-  → clean up both gate files and the run manifest, then execute
+  → repeat local draft/harden/stream/Accept-or-Abandon for `execution-plan.md`
+  → clean up both gate files and the run manifest
+  → present verified project handoff: Stop here, Execute, or Abandon
 
 fix
   → diagnose and admit the writable target without provider access
   → after proof, resolve/create the exact project and use the same two-gate file order
   → preserve any source issue as context rather than a plan or approval record
-  → clean up both gate files and the run manifest, then execute
+  → clean up both gate files and the run manifest
+  → present verified project handoff: Stop here, Execute, or Abandon
 ```
 
 The linked artifact contract owns every detail and failure boundary. Artifact-optional workflows

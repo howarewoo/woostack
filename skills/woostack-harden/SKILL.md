@@ -85,7 +85,11 @@ verify the complete manifest once more:
   run/process/manifest identity.
 
 Hand this one local result back to the owning Build/Fix wrapper. This is not approval and does not
-transition phases. The wrapper renders the owner-only gate file and displays only its path/hash/
-length/version identity and concise mapping, obtains approval, and performs the shared no-follow
-pre-save drift read, one bounded synchronization, exact read-back, receipt sequence, and cleanup.
-Harden invokes none of those activities and never edits implementation source.
+transition phases. The wrapper uses the shared
+[`streamed gate-file presentation and body-free approval contract`](../woostack-init/references/artifact-backends.md#deterministic-gate-file-approval-identity-and-streamed-presentation)
+to stream the complete verified gate artifact and full identity (or a verified same-process
+byte-complete revision diff with old/new identities) immediately before the body-free
+`Accept`/`Abandon` Ask, then performs the shared no-follow pre-save drift read, one bounded
+synchronization, exact read-back, receipt sequence, and cleanup. After gate 2, it owns the
+`Stop here`/`Execute`/`Abandon` handoff. Harden invokes none of those activities and never edits
+implementation source.

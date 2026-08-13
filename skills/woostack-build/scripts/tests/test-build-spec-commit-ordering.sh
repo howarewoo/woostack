@@ -28,8 +28,8 @@ assert_literal "$BUILD_SKILL" \
   'draft Ideate/Harden locally with zero provider calls' \
   'Build performs local Ideate and Harden after baseline admission'
 assert_literal "$BUILD_SKILL" \
-  'render and approve `project-spec.md` by concise file identity' \
-  'project file identity is displayed before approval'
+  'render and present complete `project-spec.md` followed by a body-free `Accept`/`Abandon` Ask' \
+  'complete project artifact stream precedes body-free approval'
 assert_literal "$BUILD_SKILL" \
   'pre-save drift read → one bounded sync → exact content read-back → receipt/read-back' \
   'project approval precedes save and read-back precedes receipt'
@@ -40,19 +40,19 @@ assert_literal "$BUILD_SKILL" \
   'draft delegated Plan/Harden locally with zero provider calls' \
   'planning is provider-free before approval'
 assert_literal "$BUILD_SKILL" \
-  'render and approve `execution-plan.md` by concise file identity and complete mapping' \
-  'plan file identity and mapping are displayed before approval'
+  'render and present complete `execution-plan.md` followed by a body-free `Accept`/`Abandon` Ask' \
+  'complete plan artifact stream precedes body-free approval'
 assert_literal "$BUILD_SKILL" \
   'executionPlanApprovalRecord' \
   'plan approval is recorded in Linear'
 assert_literal "$BUILD_SKILL" \
-  'Build always invokes' \
-  'second approval has one normal Execute path'
+  'Build then asks a body-free handoff question' \
+  'second approval ends at user-controlled handoff'
 assert_literal "$BUILD_SKILL" \
   'Build never merges' \
   'Build never merges'
 
-for forbidden in 'Run overnight' 'Hand off' 'Replan' 'Abandon' 'parallel roots' 'terminal choices'; do
+for forbidden in 'Run overnight' 'Replan' 'parallel roots' 'terminal choices'; do
   if [[ "$(cat "$BUILD_SKILL")" == *"$forbidden"* ]]; then
     fail "Build removes retired routing menu: $forbidden"
   else

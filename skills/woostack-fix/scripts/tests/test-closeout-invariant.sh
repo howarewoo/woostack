@@ -34,6 +34,9 @@ for pattern, name in (
     (r"zero Linear or other provider reads and writes", "no intermediate provider cycle"),
     (r"render from the current manifest", "deterministic project and plan render"),
     (r"deterministic", "deterministic rendering"),
+    (r"stream.*complete.*Markdown bytes.*full identity", "complete streamed artifact"),
+    (r"same-process.*byte-complete unified diff.*old.*new.*identit", "same-process revision diff"),
+    (r"body-free Ask.*Accept.*Abandon", "body-free approval Ask"),
     (r"approval.*before any draft content is saved", "approval-before-save"),
     (r"immediately re-read the exact Linear targets", "immediate pre-save drift read"),
     (r"only after that exact content read-back, record", "read-back-before-receipt"),
@@ -42,12 +45,12 @@ for pattern, name in (
     (r"exact endpoint round trip", "exact canonical endpoint round-trip"),
     (r"unknown parent state", "unknown parent fail-closed"),
     (r"unreceipted approval is consumed and cannot be replayed", "approval replay guard"),
-    (r"restarted or different process.*fresh file render.*Ask", "process-loss invalidation"),
+    (r"process restart.*complete new artifact", "process-loss complete fallback"),
     (r"unlink both gate files and the manifest", "gate-file cleanup"),
     (r"Execute-era safety reads are unchanged", "unchanged Execute checks"),
     (r"providerPresentationCanonicalization", "provider presentation canonicalization"),
     (r"Native provider bytes remain exact read-back evidence.*canonical fingerprints", "native bytes and canonical comparison"),
-    (r"no second Ask.*fresh.*Ask", "presentation equivalence recovery"),
+    (r"fresh.*body-free Ask", "presentation recovery"),
     (r"presence or absence of exactly one terminal LF", "terminal LF equivalence"),
     (r"two or more terminal LFs.*byte-sensitive", "multiple terminal LF sensitivity"),
     (r"At end of string, leave the blank suffix unchanged", "final heading EOF boundary"),
@@ -64,7 +67,7 @@ for pattern, name in (
         failures.append(name)
 
 
-require(r"Debug.*gate 1 baseline.*local Ideate/Harden.*project-spec\.md.*bounded sync/read-back/receipt.*gate 2 baseline.*local Plan/Harden.*execution-plan\.md.*bounded sync/read-back/receipt.*normal Execute", "canonical sequence")
+require(r"Debug.*gate 1 baseline.*local Ideate/Harden.*project-spec\.md.*bounded sync/read-back/receipt.*gate 2 baseline.*local Plan/Harden.*execution-plan\.md.*bounded sync/read-back/receipt.*Stop here.*Execute.*Abandon", "canonical sequence")
 require(r"Before root-cause proof, load only the routing and output rules.*woostack-debug.*references that Debug directly requires", "debug-only pre-proof loading")
 require(r"Immediately after Debug returns root-cause proof and exact writable target-repository admission succeeds, load.*Linear artifact contract.*woostack-build.*woostack-ideate.*woostack-harden", "post-admission downstream loading")
 if not (
@@ -83,14 +86,13 @@ require(r"owns one canonical project", "one canonical project")
 require(r"name starts with `\[Fix\] `", "prefixed fix project name")
 require(r"supplied.*project.*retains its existing name", "supplied project name preservation")
 require(r"source issue.*never repurposed|never repurpos(?:e|ed) a supplied source\s+issue", "source issue preservation")
-require(r"responsible user explicitly approves that identity.*projectSpecApprovalRecord", "active project approval before save/read-back/receipt")
-require(r"responsible user explicitly approves that identity.*executionPlanApprovalRecord", "active plan approval before save/read-back/receipt")
+require(r"accepts that exact preceding identity.*projectSpecApprovalRecord", "active project approval before save/read-back/receipt")
+require(r"accepts that exact preceding identity.*executionPlanApprovalRecord", "active plan approval before save/read-back/receipt")
 require(r"independently read back both receipts", "independent approval read-back")
 require(r"material project-specification change invalidates both records", "spec invalidation")
-require(r"project-spec\.md.*absolute path.*byte length.*SHA-256", "project file identity")
-require(r"execution-plan\.md.*complete ordered.*dependency tuple", "plan file body and mapping")
-require(r"material direct-issue or dependency change invalidates only `executionPlanApprovalRecord`", "plan invalidation")
-require(r"normal \[`woostack-execute`\]", "normal execute handoff")
+require(r"project-spec\.md.*complete exact.*full identity", "project streamed artifact")
+require(r"execution-plan\.md.*complete ordered.*dependency tuple", "plan streamed artifact and mapping")
+require(r"verified project URL or UUID.*woostack-execute.*Stop here.*Execute.*Abandon", "verified handoff")
 require(r"shared repository advancement contract", "shared repository advancement authority")
 require(r"Debug.*Target-repository admission.*Resolve the project", "target-repository guard ordering")
 require(r"compare the proved causal target repository with the invocation repository using trusted Git/GitHub evidence", "trusted target and invocation repositories")
@@ -152,8 +154,14 @@ if set(plan_record) != {"projectId", "canonicalProjectSpecFingerprint", "increme
     failures.append("execution approval record shape")
 if not all(fixture["approvalEvidence"][key]["activeConversationApproval"] and fixture["approvalEvidence"][key]["linearReceiptReadBack"] for key in ("projectSpec", "executionPlan")):
     failures.append("approval evidence")
-if fixture["dispatch"]["nextSkill"] != "woostack-execute":
-    failures.append("normal execute dispatch")
+if fixture["dispatch"]["handoff"]["options"] != ["Stop here", "Execute", "Abandon"] or not fixture["dispatch"]["handoff"]["bodyFree"]:
+    failures.append("verified body-free handoff options")
+if fixture["dispatch"]["handoff"]["projectCommand"] != "/woostack-execute --project <exact Linear URL-or-UUID>":
+    failures.append("project-only handoff command")
+if fixture["dispatch"]["responses"]["Stop here"]["effects"] or fixture["dispatch"]["responses"]["Execute"]["dispatchCount"] != 1:
+    failures.append("handoff Stop here/Execute behavior")
+if fixture["dispatch"]["responses"]["Abandon"] != {"projectClosed": True, "dispatchCount": 0} or not fixture["dispatch"]["responses"]["unknownOrCustom"]["askAgain"]:
+    failures.append("handoff Abandon/fail-closed behavior")
 
 ids = {case["id"] for case in evals["cases"]}
 for expected in (
@@ -164,6 +172,7 @@ for expected in (
     "execution-plan-approval-binds-issues-and-dependencies",
     "renders-project-spec-file-ask",
     "renders-execution-plan-file-ask",
+    "renders-same-process-revision-diff-with-fallbacks",
     "blocks-unreceipted-approval-replay",
     "material-change-invalidates-matching-receipts",
     "validates-fix-source-before-project-link",
