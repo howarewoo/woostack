@@ -15,14 +15,15 @@ setup() {
   : > "$OUTDIR/diff.txt"
 }
 
-# A general-purpose source file enables the comments (comment-rot) angle — comment
-# rot most often surfaces when surrounding code changes, so it shares architecture's gate.
+# Ordinary code no longer fans out into the comment-rot angle; the bugs pass is
+# the only general-purpose review.
 setup "src/index.ts"
 bash "$SCRIPT" >/dev/null 2>&1
-assert_contains "$(cat "$OUTDIR/angles.txt")" "comments" "source file enables comments angle"
+assert_eq "$(grep -cx 'comments' "$OUTDIR/angles.txt" || true)" "0" "source file does not enable comments fanout"
+assert_eq "$(cat "$OUTDIR/angles.txt")" "bugs" "source file keeps singular correctness pass"
 rm -rf "$work"
 
-# A markdown-only PR does NOT enable comments (no code comments to rot).
+# A markdown-only PR does NOT enable comments.
 setup "README.md"
 bash "$SCRIPT" >/dev/null 2>&1
 assert_eq "$(grep -cx 'comments' "$OUTDIR/angles.txt" || true)" "0" "markdown-only does not enable comments"

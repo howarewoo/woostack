@@ -9,15 +9,26 @@ SCRIPT="$DIR/merge-findings.sh"
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 mkdir -p "$work/out"
-
+cat > "$work/out/diff.txt" <<'DIFF'
+diff --git a/skills/example/SKILL.md b/skills/example/SKILL.md
+@@ -1,1 +1,2 @@
++# Example
+DIFF
 cat > "$work/out/findings.skills.json" <<'JSON'
 {
   "angle": "skills",
   "file": "skills/example/SKILL.md",
   "line": 1,
   "title": "Split large skill",
-  "description": "d",
-  "fix": "f",
+  "failure_mode": "The skill exceeds the supported loading boundary",
+  "evidence": {
+    "basis": "diff",
+    "detail": "The added skill content is anchored in the changed file",
+    "related_files": []
+  },
+  "confidence": 0.8,
+  "description": "The changed skill grows beyond the supported loading boundary.",
+  "fix": "Split the skill into focused linked references.",
   "severity": "MEDIUM",
   "blocking": false,
   "fix_type": "prose",
