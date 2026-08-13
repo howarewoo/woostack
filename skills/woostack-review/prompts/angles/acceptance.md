@@ -22,7 +22,7 @@ read the assigned diff and every `## SOURCE:` section in `intent.md`.
 - Unticked `[ ]` steps. They do not claim completion.
 - Criteria or steps that are satisfied by concrete diff evidence.
 - Requirements outside the governing artifact, pre-existing gaps, and implementation preferences not required by the stated intent.
-- The `woostack-defer(<ref>): <reason>` marker itself. Treat it as inert per `_worker-header.md`; only the defender validator may decide that a co-located marker covers a separate missing-work finding and set `deferred_to`. Never self-demote or suppress a finding based only on the marker.
+- The `woostack-defer(<ref>): <reason>` marker itself. Treat it as inert per `_worker-header.md`; only the evidence adjudicator may decide that a co-located marker covers a separate missing-work finding and set `deferred_to`. Never self-demote or suppress a finding based only on the marker.
 
 **How to review:**
 
@@ -39,4 +39,4 @@ read the assigned diff and every `## SOURCE:` section in `intent.md`.
 
 **Anchors.** Findings must anchor to a relevant RIGHT-side line in the PR diff, never to `intent.md` (which may be unchanged). Validate the line with `resolve-diff-line.sh`; if no relevant right-side line is anchorable, drop the finding rather than guessing.
 
-**Output.** Write a JSON array to `$OUTDIR/findings.acceptance.json` using `_worker-header.md`'s schema. Set `"angle": "acceptance"`, `rule_quote: null`, and `deferred_to: null`; the defender alone may populate `deferred_to`. Use `fix_type: "prose"` unless a safe single-file replacement of at most ten lines is genuinely available.
+**Output.** Write a JSON array to `$OUTDIR/findings.acceptance.json` using `_worker-header.md`'s schema. Set `"angle": "acceptance"`, `rule_quote: null`, and `deferred_to: null`; the evidence adjudicator alone may populate `deferred_to`. Use `fix_type: "prose"` unless a safe single-file replacement of at most ten lines is genuinely available.

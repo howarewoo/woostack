@@ -15,11 +15,11 @@ assert_contains "$text" 'Unticked `[ ]` steps' "unticked steps are not completio
 assert_contains "$text" 'code/line reference' "worker validates artifact references"
 assert_contains "$text" 'If `$OUTDIR/intent.md` is absent' "worker no-ops without intent"
 assert_contains "$text" 'write `[]`' "no-intent fallback emits empty findings"
-assert_contains "$text" 'only the defender validator' "defender owns deferral decisions"
+assert_contains "$text" 'evidence adjudicator' "adjudicator owns deferral decisions"
 assert_contains "$text" 'Never self-demote or suppress' "worker cannot trust deferral marker alone"
 assert_contains "$text" 'RIGHT-side line' "worker uses post-patch anchors"
 assert_contains "$text" 'resolve-diff-line.sh' "worker validates anchors"
 assert_contains "$text" '"angle": "acceptance"' "worker emits acceptance schema value"
-assert_contains "$text" 'deferred_to: null' "worker leaves deferred_to to defender"
+assert_contains "$text" 'deferred_to: null' "worker leaves deferred_to to adjudicator"
 
 finish

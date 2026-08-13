@@ -10,11 +10,11 @@ The shared header above lists prefetched artifacts, findings schema, blocking cr
 
 Codex has two execution shapes:
 
-- **Local Codex subagents with a `model` override:** per-call routing is available. Resolve the effective tier for each spawned angle/validator, then pass the mapped OpenAI model in the spawn call's `model` field. Do not omit the field; otherwise the subagent inherits the parent session model and silently defeats the tier mapping.
+- **Local Codex subagents with a `model` override:** per-call routing is available. Resolve the effective tier for each spawned angle or adjudicator, then pass the mapped OpenAI model in the spawn call's `model` field. Do not omit the field; otherwise the subagent inherits the parent session model and silently defeats the tier mapping.
 - **Codex Action / no per-spawn model override:** one model runs the full job. The `tier:` frontmatter is informational only, and the action resolves one session model in `load-prompt.sh`.
 
 The single-session action path resolves one session model in `load-prompt.sh` using this precedence:
-1. `FORCE_TIER` from Review Context (from `/woostack-review --fast` or `--deep`, or `review.force_tier` in config): fast→`gpt-5.5`, deep→`gpt-5.5`. Only `fast` and `deep` are valid `FORCE_TIER` values; the `standard` tier (`gpt-5.5`) is the implicit default when `FORCE_TIER` is unset — see step 3.
+1. `FORCE_TIER` from internal Review Context or `review.force_tier` in config: fast→`gpt-5.5`, deep→`gpt-5.5`. Only `fast` and `deep` are valid `FORCE_TIER` values; the `standard` tier (`gpt-5.5`) is the implicit default when `FORCE_TIER` is unset — see step 3.
 2. `inputs.model` when explicitly set.
 3. Provider defaults (`gpt-5.5` standard).
 
@@ -30,9 +30,10 @@ For per-call local subagents, resolve each spawn with the same precedence, but u
 |---|---|---|
 | `seo`, `aeo`, `i18n`, `docs`, `deps`, `comments`, context summary | `fast` | `gpt-5.5` |
 | all other angle workers | `standard` | `gpt-5.5` |
-| prosecutor and defender validators | `deep` | `gpt-5.5` |
 
-If the spawn API accepts a reasoning-effort override, pass the mapped effort too (`low` for fast, `medium` for standard, `high` for deep). If it only accepts `model`, still pass `model`; do not fall back to parent-model inheritance.
+If the spawn API accepts a reasoning-effort override, pass the mapped effort too (`low` for fast,
+`medium` for standard, `high` for deep). If it only accepts `model`, still pass `model`; do not
+fall back to parent-model inheritance.
 
 ---
 
@@ -51,9 +52,9 @@ You are running as a parallel worker for a specific angle.
 - The findings file MUST be a JSON array only — starts with `[`, ends with `]`, no preamble, no markdown fences, no commentary. See *Output Discipline* in `_worker-header.md`. Validate every `line` via `scripts/resolve-diff-line.sh` and drop findings the helper rejects.
 
 ### MODE: validate
-You are running as the final aggregator.
-- Read all `$OUTDIR/findings.<angle>.json` files from the disk.
-- Perform Phase 3 (Self-Validation) below.
+You are running as the final controller.
+- Read all `$OUTDIR/findings.<angle>.json` files from disk.
+- Perform Phase 3 (Evidence Adjudication) below.
 - Perform Phase 4 (Submit Native PR Review) below.
 - Do NOT modify the PR title, PR description, or PR labels.
 - Exit.
@@ -89,26 +90,14 @@ Stay within each angle's scope; do not let `bugs` flag a design issue or vice ve
 
 **Retry-once recovery.** Angle iterations can be cut short by tool-stream errors or turn-limit interrupts and leave no findings file. After the loop finishes, scan `$OUTDIR/angles.txt` (× `chunks.txt` when chunked) and check that each expected `findings.<angle>.json` (or `findings.<angle>.<chunk_id>.json`) exists and parses as a JSON array via `jq -e 'type == "array"'`. For any path that fails the check, re-run THAT angle iteration ONCE. Cap is one retry per `(angle, chunk)` pair; if the retry also fails, leave the file as-is and proceed to Phase 3 — the merge step recovers malformed JSON, and missing files just mean the angle produced no findings.
 
-## Phase 3 — Adversarial Validation (prosecutor + defender)
+## Phase 3 — Evidence adjudication
 
-Merge all `findings.<angle>.json` arrays into `$OUTDIR/raw_findings.json` (use `$WOO_REVIEW_ACTION_PATH/scripts/merge-findings.sh`).
-
-Then run TWO opposing-bias validation passes followed by a deterministic intersection (issue #13). Local Codex must use two fresh sequential `deep` subagents and the bound-validator contract in `SKILL.md` Stage 3; a host without that isolation blocks. Codex Action / GitHub Actions sequences both passes inside its single agentic loop under the CI identity contract. Read `disable_adversarial` first:
-
-```bash
-DISABLE_ADV="$(jq -r '.disable_adversarial // false' $OUTDIR/config.json 2>/dev/null || echo false)"
-```
-
-### Phase 3a — Prosecutor pass (skip if `DISABLE_ADV == true`)
-
-Apply `$WOO_REVIEW_ACTION_PATH/prompts/validator-prosecutor.md` against `raw_findings.json`. Bias: assume each finding is real; drop only the demonstrably wrong. Write surviving findings to `$OUTDIR/findings.prosecutor.json`.
-
-### Phase 3b — Defender pass
-
-Apply `$WOO_REVIEW_ACTION_PATH/prompts/validator.md` against `raw_findings.json`. Bias: try to prove each finding wrong; drop pedantic / lint-catchable / "maybe" findings; enforce the comment-shape + `fix_type` rules. Write surviving findings to `$OUTDIR/findings.defender.json`, then write its validator receipt as the pass's final action. Stop at the local-worker exit gate; the orchestrator runs the receipt gate and intersection itself in the next phase.
-
-
-### Phase 3c — Intersect
+Merge all angle arrays into `$OUTDIR/raw_findings.json`, then run exactly one fresh standard-tier
+adjudicator using `$WOO_REVIEW_ACTION_PATH/prompts/validator.md`. It independently verifies
+execution/contract evidence, concrete failure, confidence/severity, changed-line ownership, tool
+overlap, defer semantics, and fix shape. It writes `$OUTDIR/findings.adjudicator.json` and
+`$OUTDIR/receipt.adjudicator.json`, then exits. Unsupported candidates are dropped, not rewritten,
+in this sole adjudication pass.
 
 ```bash
 if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
@@ -119,7 +108,8 @@ fi
 bash "$WOO_REVIEW_ACTION_PATH/scripts/intersect-findings.sh"
 ```
 
-This produces the final `$OUTDIR/findings.json` (intersection by `(file, line, title-stem)`; severity = min, blocking = AND). When `disable_adversarial == true` or the prosecutor file is absent, the script copies defender output verbatim. Per-pass and disagreement counts land in `$OUTDIR/validator-metrics.json`.
+The finalizer writes `findings.json` exactly once after receipt, identity, digest, stale-head, and
+changed-line gates.
 
 ## Phase 4 — Submit Native PR Review
 

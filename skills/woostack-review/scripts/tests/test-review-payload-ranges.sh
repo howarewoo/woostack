@@ -103,7 +103,6 @@ assert_not_contains "$(cat "$HEADER")" 'auth_login == pr_author' "login equality
 
 assert_file_contains "$ROOT/skills/woostack-review/prompts/_worker-header.md" 'end_line' "worker contract exposes optional range endpoint"
 assert_file_contains "$HEADER" 'end_line' "orchestrator schema exposes optional range endpoint"
-assert_file_contains "$ROOT/skills/woostack-review/prompts/validator.md" 'end_line' "defender preserves range endpoint"
-assert_file_contains "$ROOT/skills/woostack-review/prompts/validator-prosecutor.md" 'end_line' "prosecutor preserves range endpoint"
+assert_file_contains "$ROOT/skills/woostack-review/prompts/validator.md" 'end_line' "adjudicator preserves range endpoint"
 
 finish

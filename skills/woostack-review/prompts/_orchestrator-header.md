@@ -57,9 +57,9 @@ The prefetch step parses an optional `.woostack/config.json` in the consumer rep
 | `project_rules` | `prefetch.sh` (appends to `rules.md`) | Stage 1 |
 | `authors_skip` | `prefetch.sh` (skips + posts one-line comment; default list applied when absent — issue #19) | Stage 1 |
 | `release_rollup_pattern` | `prefetch.sh` (skips + posts one-line comment when PR title matches; default `^(staging\|release\|chore\(release\))` applied when absent — issue #19) | Stage 1 |
-| `severity_floor` | `intersect-findings.sh` (floor classifier) | Stage 4c — **defaults to `high`**; below-floor validated findings become non-blocking nits, not drops; set `low`/`medium` to treat more findings as normal |
-| `nits` | `intersect-findings.sh` (floor classifier) | Stage 4c — default `true`; `false` drops below-floor non-blocking findings (old behavior). Below-floor blocking findings always surface |
-| `defer_markers` | `intersect-findings.sh` (floor classifier) + `validator.md` (defender) | Stage 4c — default `true`; honors inline `woostack-defer(<ref>)` markers, demoting a covered finding to a `Deferred to <ref>` nit. `false` ignores markers |
+| `severity_floor` | deterministic finalizer (`intersect-findings.sh`) | defaults to **high** |
+| `nits` | deterministic finalizer (`intersect-findings.sh`) | below-floor visibility; default `true` |
+| `defer_markers` | evidence adjudicator + finalizer | default `true`; covered gaps become deferred nits |
 | root `models.fast` / `.standard` / `.deep`; `models.<provider>.<tier>` (leaf: `"<slug>"`, `{model, effort}`, or a non-empty ordered array; entry 0 is primary) | orchestrator prompts (tier resolution) + `load-prompt.sh` (OpenAI effort) | Stage 2 |
 | `fix_commands` | persisted only; consumed by `--loop` mode (#15) | n/a |
 | `chunking.max_loc` | `chunk-diff.sh` (split oversized diff into chunks; default 4000) | Stage 1 |
@@ -93,7 +93,7 @@ This action runs up to twenty-two distinct review angles, auto-selected from the
 | `simplify` | no | LLM only — gated on general-purpose source files in diff (same signal as `architecture`); YAGNI / dead-code / duplication delete-list; defers structural-shape to `architecture` when both run |
 | `production-readiness` | no | LLM only — gated on general-purpose source files in diff; resilience/operability posture (timeouts, retries, idempotency, degradation, resource limits) |
 
-Each angle writes its findings to `/tmp/pr-review/findings.<angle>.json`. The orchestrator merges them into `/tmp/pr-review/findings.json` after the validator pass, then posts inline comments via a single batched GitHub Review. PR labels MUST NOT be mutated — blocking is signalled exclusively through the native `REQUEST_CHANGES` review event.
+Each angle writes its candidates to `/tmp/pr-review/findings.<angle>.json`. The orchestrator merges them into `raw_findings.json`, runs one evidence adjudicator, deterministically finalizes `findings.json`, then posts inline comments via a single batched GitHub Review. PR labels MUST NOT be mutated — blocking is signalled exclusively through the native `REQUEST_CHANGES` review event.
 
 ## Output Contract
 
@@ -188,13 +188,6 @@ ${CONTEXT_DISCLOSURE}
 <!-- woostack-review:sha=${HEAD_SHA} -->
 BODY_EOF
 
-# Surface a degraded independent-validation run. When only Pass B completed,
-# disclose the lower-confidence single-pass result.
-if [ -f /tmp/pr-review/validator-metrics.json ] && \
-   [ "$(jq -r '.degraded // false' /tmp/pr-review/validator-metrics.json 2>/dev/null)" = "true" ]; then
-  printf '\n\n> **Independent validator Pass A was unavailable** — these findings completed one validation pass, so confidence is lower than the usual two-pass review.\n' >> /tmp/pr_review_body.txt
-fi
-
 # 2. Prepare the review payload with inline comments
 python3 -c '
 import json, sys, os, re
@@ -273,12 +266,12 @@ for f in findings:
         body += f"\n\n_Deferred to {dt}; non-blocking._"
     if fix:
         body += f"\n\nFix: {fix}"
-    # Render ```suggestion``` block only when validator-approved as fix_type=suggestion.
+    # Render ```suggestion``` only when the evidence adjudicator approved fix_type=suggestion.
     # fix_type=prose (or missing) → prose-only recommendation, no block.
     if f.get("fix_type") == "suggestion" and f.get("suggestion"):
         # Defense-in-depth: neutralize any line of ≥3 backticks that would close
         # the fence and let agent-supplied content escape into comment Markdown.
-        # Validator step 8 already downgrades these; the renderer rechecks at the
+        # The adjudicator already downgrades these; the renderer rechecks at the
         # GitHub trust boundary.
         safe_lines = []
         for line in f["suggestion"].splitlines():
@@ -409,17 +402,16 @@ The orchestrator agent fills `<host>`, `<provider>`, and `<model>` literally int
 
 Resolution order (highest precedence first):
 
-1. **Env-var override.** If `WOO_REVIEW_HOST`, `WOO_REVIEW_PROVIDER`, or `WOO_REVIEW_MODEL` is set, use that value verbatim. Hosts that already know their identity should set these before invoking the skill — it is the only fully reliable channel.
-2. **Runtime introspection.** Ask the host runtime for the active model / provider of the **validator step** (the deep-tier pass; if adversarial mode is on, the defender). Examples: OpenCode exposes the active model via its config/SDK; Claude Code's `Task` call uses the explicit `model:` arg you just passed; Antigravity CLI prints the active model in `agy models`.
-3. **Orchestrator default.** Fall back to the validator slug declared in this orchestrator prompt (the `deep` row of the Model Tiers table).
-4. **`unknown`.** If none of the above resolves, write `unknown` rather than leaving the placeholder literal.
+2. **Runtime introspection.** Ask the host runtime for the active model/provider of the **evidence adjudicator**.
+3. **Orchestrator default.** Fall back to the adjudicator model declared by the selected provider prompt.
+4. **`unknown`.** If none resolves, write `unknown`.
 
 Field-by-field:
 
-- **`<host>`** — canonical slug for the host agent invoking this skill. Use one of: `claude-code`, `cursor`, `antigravity-cli`, `codex`, `opencode`, or another stable identifier the host advertises. When a sub-agent profile or persona is identifiable (e.g. opencode running the `mimo-v2.5` agent), append it in parentheses: `opencode (mimo-v2.5)`. Detection hints: `CLAUDECODE=1` → `claude-code`; `OPENCODE*` env vars → `opencode`; `AGY_*` / `ANTIGRAVITY_*` → `antigravity-cli`; `CODEX_HOME` → `codex`; `CURSOR*` → `cursor`. Each orchestrator prompt declares a default host identifier near the top — prefer that only after the precedence above is exhausted.
-- **`<provider>`** — `anthropic` / `openai` / `google` / `openrouter` / `bedrock` / `vertex` / etc. Whatever the host is *actually* routing through. `opencode.md` is loaded for any OpenRouter-style orchestration shape, but OpenCode can route to any provider — do NOT assume `openrouter` just because this file was selected.
-- **`<model>`** — the actual validator model slug as the host sees it (e.g. `claude-opus-4-8`, `claude-sonnet-4-6`, `gpt-5.5`, `gemini-3-pro`, `openrouter/deepseek/deepseek-v4-pro`). When `inputs.model`, `models.<provider>.<tier>`, or flat `models.<tier>` in `config.json` overrode the default, report the override value, not the table default.
-
+1. **Env-var override.** If `WOO_REVIEW_HOST`, `WOO_REVIEW_PROVIDER`, or `WOO_REVIEW_MODEL` is set, use that value verbatim.
+2. **Runtime introspection.** Ask the host runtime for the active model/provider of the **evidence adjudicator**.
+3. **Orchestrator default.** Fall back to the adjudicator model declared by the selected provider prompt.
+4. **`unknown`.** If none resolves, write `unknown`.
 ## Findings Schema (`/tmp/pr-review/findings.json`)
 
 Every runner MUST write a final `findings.json` (for debugging + potential post-processing parity). Each per-angle step writes to `/tmp/pr-review/findings.<angle>.json`; the orchestrator merges them after validation:
@@ -440,7 +432,7 @@ Every runner MUST write a final `findings.json` (for debugging + potential post-
     "fix": "One imperative sentence naming the minimum safe change; no rationale already stated above.",
     "suggestion": "verbatim replacement code for the GitHub ```suggestion``` block — REQUIRED when fix_type == \"suggestion\", MUST be null when fix_type == \"prose\"",
     "rule_quote": "exact quoted rule text if rule-based, else null",
-    "deferred_to": "the <ref> of a woostack-defer marker (e.g. \"increment 3\") this finding is deferred to, set by the defender when a marker covers the missing work; else null"
+    "deferred_to": "the <ref> of a woostack-defer marker, set by the evidence adjudicator when a marker covers missing work; else null"
   }
 ]
 ```
@@ -460,7 +452,7 @@ Every finding MUST set `fix_type` to exactly one of:
   - self-contained (does not reference symbols, imports, or context the diff does not already establish).
 - `"prose"` — the change is too large, multi-file, structural, or context-dependent for a one-click block. `suggestion` MUST be `null`; the human-readable `fix` field carries the recommendation.
 
-The validator enforces these rules and will downgrade a violating `fix_type: suggestion` to `fix_type: prose` (clearing `suggestion`) rather than emitting a broken block. When in doubt, prefer `prose` — a usable prose recommendation beats a broken one-click suggestion that loses author trust.
+The evidence adjudicator enforces these rules and will downgrade a violating `fix_type: suggestion` to `fix_type: prose` (clearing `suggestion`) rather than emitting a broken block. When in doubt, prefer `prose` — a usable prose recommendation beats a broken one-click suggestion that loses author trust.
 
 ### Inline Comment Format (rendered on the PR)
 
@@ -483,9 +475,9 @@ Fix: <fix>
 
 `nit` is a boolean set by `intersect-findings.sh` (the floor classifier), **not** by angle agents: `true` marks a validated below-floor non-blocking finding. The body builder renders a `nit: true` finding with a `Nit:` title prefix and a `· NIT` footer tag, and candidate-event computation treats it as neutral (a PR whose only findings are nits has candidate `APPROVE`, with the nits posted inline). Final delivery still applies the independent native GitHub actor-ID gate. A nit is always non-blocking; a below-floor finding that is `blocking: true` stays a normal finding (`nit: false`).
 
-`deferred_to` is a string (the marker `<ref>`, e.g. `"increment 3"`) or null, set by the defender validator (`validator.md`) when an inline `woostack-defer(<ref>)` marker in the diff covers the gap a finding flags as missing. `intersect-findings.sh` forces any finding carrying a non-empty `deferred_to` to `nit: true, blocking: false` (independent of `severity_floor`, gated by `review.defer_markers`), and the body builder appends a `Deferred to <ref>` line. Never set on `security` findings or on wrong code present in this PR.
+`deferred_to` is a string set by the evidence adjudicator when a co-located marker covers a missing-work gap. `intersect-findings.sh` forces a non-empty value to `nit: true, blocking: false` (gated by `review.defer_markers`). Never set on security findings or wrong code present in this PR.
 
-The body builder in the posting step (see python snippet above) renders this format automatically from `title` / `description` / `fix` / `fix_type` / `suggestion` / `angle` / `severity` / `blocking` / `nit`. Angle agents and the validator MUST populate `title`, `description`, `fix`, `fix_type`, `angle`, `severity`, and `blocking` for every finding; `nit` is added downstream by the classifier.
+The body builder in the posting step (see python snippet above) renders this format automatically from `title` / `description` / `fix` / `fix_type` / `suggestion` / `angle` / `severity` / `blocking` / `nit`. Angle agents populate candidate fields; the adjudicator preserves or normalizes accepted findings, and the finalizer adds `nit`.
 
 ## Blocking Criteria
 

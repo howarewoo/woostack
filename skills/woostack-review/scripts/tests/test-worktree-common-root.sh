@@ -44,14 +44,13 @@ mkdir -p "$out/review"
 printf '{"metrics":true}\n' > "$out/review/config.json"
 cat > "$out/review/findings.metrics.json" <<'JSON'
 {
-  "schema_version": 3,
-  "mode": "defender-only",
+  "schema_version": 4,
+  "mode": "adjudicator",
   "degraded": false,
   "bugs": {
     "raw_count": 1,
-    "nit_count": 0,
     "kept_count": 1,
-    "dropped_by_defender": 0,
+    "dropped_by_adjudicator": 0,
     "severity": {"HIGH": 1, "MEDIUM": 0, "LOW": 0}
   }
 }

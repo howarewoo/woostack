@@ -8,17 +8,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 
 echo "[]" > "$MERGED_FILE"
 
-# Final findings file is owned by the validator — exclude it from the merge.
-# Also exclude prosecutor/defender intermediate files (consumed by the
-# intersect step, not the merge step).
+# Final findings are owned by the sole adjudicator and deterministic finalizer. Adjudicator and
+# final artifacts are excluded from candidate merging.
 shopt -s nullglob
 ALL=("$OUTDIR"/findings.*.json)
 FILES=()
 for f in "${ALL[@]+"${ALL[@]}"}"; do
   case "$f" in
-    "$OUTDIR"/findings.json) continue ;;
-    "$OUTDIR"/findings.prosecutor.json) continue ;;
-    "$OUTDIR"/findings.defender.json) continue ;;
+    "$OUTDIR"/findings.json|"$OUTDIR"/findings.adjudicator.json) continue ;;
   esac
   FILES+=("$f")
 done

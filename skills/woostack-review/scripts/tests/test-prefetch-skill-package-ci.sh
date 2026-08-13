@@ -236,7 +236,7 @@ assert_eq "$(OUTDIR="$REVIEW_OUT" bash "$ANCHOR_RESOLVER" --file skills/ci-skill
 # Validate jobs download the same detection tree plus their in-flight findings.
 # Both validator modes must preserve package artifacts rather than regenerate
 # them from a checkout that may no longer contain the reviewed package.
-for validate_mode in validate validate-prosecutor; do
+for validate_mode in validate validate-adjudicator; do
   validate_out="$TMP_ROOT/$validate_mode-out"
   mkdir -p "$validate_out"
   cp -R "$ARTIFACT/." "$validate_out/"

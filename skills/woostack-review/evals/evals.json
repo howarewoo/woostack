@@ -8,55 +8,55 @@
       "capabilities": ["read-workspace"],
       "expected": "Only `/woostack-review 602` is accepted; missing-PR, tier-variant, and working-tree requests are rejected, and review remains read-only.",
       "assertions": [
-        {"id": "accepts-exact-pr", "kind": "final-json-path-equals", "pointer": "/accepted", "expected": true, "critical": true},
-        {"id": "exact-command", "kind": "final-json-path-equals", "pointer": "/acceptedCommand", "expected": "/woostack-review 602", "critical": true},
-        {"id": "rejects-other-modes", "kind": "qualitative", "rubric": "Does rejectedCommands include the missing-PR invocation, --fast invocation, and working-tree/local-diff request?", "critical": true},
-        {"id": "no-local-admission", "kind": "final-json-path-equals", "pointer": "/localDiffAdmitted", "expected": false, "critical": true},
-        {"id": "tiers-are-internal", "kind": "final-json-path-equals", "pointer": "/publicTierVariants", "expected": false, "critical": true},
-        {"id": "review-read-only", "kind": "final-json-path-equals", "pointer": "/readOnly", "expected": true, "critical": true}
+        {"id":"accepts-exact-pr","kind":"final-json-path-equals","pointer":"/accepted","expected":true,"critical":true},
+        {"id":"exact-command","kind":"final-json-path-equals","pointer":"/acceptedCommand","expected":"/woostack-review 602","critical":true},
+        {"id":"rejects-other-modes","kind":"qualitative","rubric":"Does rejectedCommands include the missing-PR invocation, --fast invocation, and working-tree/local-diff request?","critical":true},
+        {"id":"no-local-admission","kind":"final-json-path-equals","pointer":"/localDiffAdmitted","expected":false,"critical":true},
+        {"id":"tiers-are-internal","kind":"final-json-path-equals","pointer":"/publicTierVariants","expected":false,"critical":true},
+        {"id":"review-read-only","kind":"final-json-path-equals","pointer":"/readOnly","expected":true,"critical":true}
       ]
     },
     {
-      "id": "one-swarm-and-two-validator-intersection",
-      "prompt": "Classify this bounded exact-PR review plan without dispatching agents, calling providers, posting, or editing files. The plan detects angles bugs, security, and simplify, dispatches one worker for each detected angle, then runs exactly one prosecutor pass and exactly one defender pass before deterministic intersection. Return exactly one JSON object with keys detectedAngles, swarmPasses, prosecutorPasses, defenderPasses, intersectionPasses, mergeBeforeValidation, and codeEdits.",
-      "capabilities": ["read-workspace"],
-      "expected": "All detected angles run in one multi-angle swarm pass; both adversarial validators run once; intersection follows validation; no code edit occurs.",
-      "assertions": [
-        {"id": "all-angles", "kind": "final-json-path-equals", "pointer": "/detectedAngles", "expected": ["bugs", "security", "simplify"], "critical": true},
-        {"id": "one-swarm", "kind": "final-json-path-equals", "pointer": "/swarmPasses", "expected": 1, "critical": true},
-        {"id": "both-validators", "kind": "qualitative", "rubric": "Does the response report exactly one prosecutor pass and exactly one defender pass?", "critical": true},
-        {"id": "intersection-after-validation", "kind": "final-json-path-equals", "pointer": "/intersectionPasses", "expected": 1, "critical": true},
-        {"id": "no-early-merge", "kind": "final-json-path-equals", "pointer": "/mergeBeforeValidation", "expected": false, "critical": true},
-        {"id": "no-code-edits", "kind": "final-json-path-equals", "pointer": "/codeEdits", "expected": false, "critical": true}
+      "id":"one-swarm-and-one-adjudicator",
+      "prompt":"Classify this bounded exact-PR review plan without dispatching agents, calling providers, posting, or editing files. The plan detects angles bugs, security, and simplify, dispatches one worker for each detected angle, then runs exactly one independent evidence adjudicator and deterministic finalization. Return exactly one JSON object with keys detectedAngles, swarmPasses, adjudicatorPasses, finalizationPasses, mergeBeforeValidation, and codeEdits.",
+      "capabilities":["read-workspace"],
+      "expected":"All detected angles run in one multi-angle swarm pass; one evidence adjudicator runs once; deterministic finalization follows adjudication; no code edit occurs.",
+      "assertions":[
+        {"id":"all-angles","kind":"final-json-path-equals","pointer":"/detectedAngles","expected":["bugs","security","simplify"],"critical":true},
+        {"id":"one-swarm","kind":"final-json-path-equals","pointer":"/swarmPasses","expected":1,"critical":true},
+        {"id":"one-adjudicator","kind":"final-json-path-equals","pointer":"/adjudicatorPasses","expected":1,"critical":true},
+        {"id":"finalization-after-adjudication","kind":"final-json-path-equals","pointer":"/finalizationPasses","expected":1,"critical":true},
+        {"id":"no-early-merge","kind":"final-json-path-equals","pointer":"/mergeBeforeValidation","expected":false,"critical":true},
+        {"id":"no-code-edits","kind":"final-json-path-equals","pointer":"/codeEdits","expected":false,"critical":true}
       ]
     },
     {
-      "id": "accepted-findings-drive-pr-event",
-      "prompt": "Apply the exact-PR reporting boundary to two already-intersected finding sets without calling GitHub or mutating files. Set A contains one accepted blocking finding and one accepted nit; Set B contains only two accepted nits. Return exactly one JSON object with keys blockers, acceptedFindingComments, eventForBlockerSet, eventForNitOnlySet, inlineComments, generalComments, and mergesOrEdits. Every accepted finding must be posted as an inline comment when anchored or a general review comment otherwise. Blockers request changes; nit-only results do not block and approve when the platform permits.",
-      "capabilities": ["read-workspace"],
-      "expected": "Both finding sets post every accepted finding; the blocker set requests changes; the nit-only set approves when permitted; no edit or merge occurs.",
-      "assertions": [
-        {"id": "blocker-event", "kind": "final-json-path-equals", "pointer": "/eventForBlockerSet", "expected": "REQUEST_CHANGES", "critical": true},
-        {"id": "nit-event", "kind": "final-json-path-equals", "pointer": "/eventForNitOnlySet", "expected": "APPROVE", "critical": true},
-        {"id": "all-findings-posted", "kind": "qualitative", "rubric": "Does acceptedFindingComments account for every accepted blocker and nit, using inline or general comments as needed?", "critical": true},
-        {"id": "no-merge-or-edit", "kind": "final-json-path-equals", "pointer": "/mergesOrEdits", "expected": false, "critical": true}
+      "id":"adjudicated-findings-drive-pr-event",
+      "prompt":"Apply the exact-PR reporting boundary to two already-adjudicated finding sets without calling GitHub or mutating files. Set A contains one accepted blocking finding and one accepted nit; Set B contains only two accepted nits. Return exactly one JSON object with keys blockers, acceptedFindingComments, eventForBlockerSet, eventForNitOnlySet, inlineComments, generalComments, and mergesOrEdits. Every accepted finding must be posted as an inline comment when anchored or a general review comment otherwise. Blockers request changes; nit-only results do not block and approve when the platform permits.",
+      "capabilities":["read-workspace"],
+      "expected":"Both finalized finding sets post every accepted finding; the blocker set requests changes; the nit-only set approves when permitted; no edit or merge occurs.",
+      "assertions":[
+        {"id":"blocker-event","kind":"final-json-path-equals","pointer":"/eventForBlockerSet","expected":"REQUEST_CHANGES","critical":true},
+        {"id":"nit-event","kind":"final-json-path-equals","pointer":"/eventForNitOnlySet","expected":"APPROVE","critical":true},
+        {"id":"all-findings-posted","kind":"qualitative","rubric":"Does acceptedFindingComments account for every finalized blocker and nit, using inline or general comments as needed?","critical":true},
+        {"id":"no-merge-or-edit","kind":"final-json-path-equals","pointer":"/mergesOrEdits","expected":false,"critical":true}
       ]
     },
     {
-      "id": "local-validators-bind-native-host-sessions",
-      "prompt": "Classify local validator binding without dispatching agents or changing files. OMP returns exact sequential agent IDs omp-prosecutor-17 and omp-defender-22. The controller retains its dispatch profile woostack-deep, derives principal omp:woostack-deep, records the native IDs and artifact digests, creates the schema-v2 manifest only after both exits, runs the local gate, then intersects. Also map one native worker ID for each supported adapter: claude-1, codex-1, cursor-1, agy-1, opencode-1, and omp-1, and classify a host that returns no stable ID. Return exactly one JSON object with keys dispatchOrder, sessionBindings, credentialContextBindings, principalBinding, adapterCredentialContexts, manifestWrittenAfterExits, gate, intersectionAfterGate, and missingIdStatus.",
-      "capabilities": ["read-workspace"],
-      "expected": "The controller binds every supported adapter's documented native ID formula, sources profile/principal from dispatch metadata, writes the manifest post-exit, uses --validators-local before intersection, and blocks a host without a stable native ID.",
-      "assertions": [
-        {"id": "sequential", "kind": "final-json-path-equals", "pointer": "/dispatchOrder", "expected": ["prosecutor-exit", "defender-exit", "manifest"], "critical": true},
-        {"id": "native-sessions", "kind": "final-json-path-equals", "pointer": "/sessionBindings", "expected": {"prosecutor": "omp-prosecutor-17", "defender": "omp-defender-22"}, "critical": true},
-        {"id": "credential-contexts", "kind": "final-json-path-equals", "pointer": "/credentialContextBindings", "expected": {"prosecutor": "omp:task:omp-prosecutor-17", "defender": "omp:task:omp-defender-22"}, "critical": true},
-        {"id": "principal-source", "kind": "final-json-path-equals", "pointer": "/principalBinding", "expected": "omp:woostack-deep", "critical": true},
-        {"id": "all-adapters", "kind": "final-json-path-equals", "pointer": "/adapterCredentialContexts", "expected": {"claude-code": "claude-code:task:claude-1", "codex": "codex:worker:codex-1", "cursor": "cursor:composer:cursor-1", "antigravity": "antigravity:context:agy-1", "opencode": "opencode:subagent:opencode-1", "omp": "omp:task:omp-1"}, "critical": true},
-        {"id": "post-exit-manifest", "kind": "final-json-path-equals", "pointer": "/manifestWrittenAfterExits", "expected": true, "critical": true},
-        {"id": "bound-gate", "kind": "final-json-path-equals", "pointer": "/gate", "expected": "--validators-local", "critical": true},
-        {"id": "gate-before-intersection", "kind": "final-json-path-equals", "pointer": "/intersectionAfterGate", "expected": true, "critical": true},
-        {"id": "missing-id-blocks", "kind": "final-json-path-equals", "pointer": "/missingIdStatus", "expected": "blocked", "critical": true}
+      "id":"local-adjudicator-binds-native-host-session",
+      "prompt":"Classify local adjudicator binding without dispatching agents or changing files. OMP returns exact native agent ID omp-adjudicator-17. The controller retains dispatch profile woostack-standard, derives principal omp:woostack-standard, records the native ID and artifact digests, creates the schema-v2 manifest only after adjudicator exit, runs the local gate, then finalizes. Also map one native worker ID for each supported adapter: claude-1, codex-1, cursor-1, agy-1, opencode-1, and omp-1, and classify a host that returns no stable ID. Return exactly one JSON object with keys dispatchOrder, sessionBinding, credentialContextBinding, principalBinding, adapterCredentialContexts, manifestWrittenAfterExit, gate, finalizationAfterGate, and missingIdStatus.",
+      "capabilities":["read-workspace"],
+      "expected":"The controller binds every supported adapter's documented native ID formula, sources profile/principal from dispatch metadata, writes the manifest after adjudicator exit, uses --validators-local before finalization, and blocks a host without a stable native ID.",
+      "assertions":[
+        {"id":"sequential","kind":"final-json-path-equals","pointer":"/dispatchOrder","expected":["adjudicator-exit","manifest"],"critical":true},
+        {"id":"native-session","kind":"final-json-path-equals","pointer":"/sessionBinding","expected":"omp-adjudicator-17","critical":true},
+        {"id":"credential-context","kind":"final-json-path-equals","pointer":"/credentialContextBinding","expected":"omp:task:omp-adjudicator-17","critical":true},
+        {"id":"principal-source","kind":"final-json-path-equals","pointer":"/principalBinding","expected":"omp:woostack-standard","critical":true},
+        {"id":"all-adapters","kind":"final-json-path-equals","pointer":"/adapterCredentialContexts","expected":{"claude-code":"claude-code:task:claude-1","codex":"codex:worker:codex-1","cursor":"cursor:composer:cursor-1","antigravity":"antigravity:context:agy-1","opencode":"opencode:subagent:opencode-1","omp":"omp:task:omp-1"},"critical":true},
+        {"id":"post-exit-manifest","kind":"final-json-path-equals","pointer":"/manifestWrittenAfterExit","expected":true,"critical":true},
+        {"id":"bound-gate","kind":"final-json-path-equals","pointer":"/gate","expected":"--validators-local","critical":true},
+        {"id":"gate-before-finalization","kind":"final-json-path-equals","pointer":"/finalizationAfterGate","expected":true,"critical":true},
+        {"id":"missing-id-blocks","kind":"final-json-path-equals","pointer":"/missingIdStatus","expected":"blocked","critical":true}
       ]
     }
   ]
