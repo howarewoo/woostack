@@ -192,11 +192,12 @@ A finding is `blocking: true` only when ALL hold:
 Otherwise `blocking: false`:
 - Style/quality concerns worth surfacing only when they have concrete user-visible correctness, security, data-loss, or contract impact; tooling-owned style and generic maintainability candidates are rejected before `raw_findings.json`.
 - Performance smells (obvious N+1, unnecessary re-render).
-- Missing tests on new business logic (non-blocking).
+- Test-related findings only when the diff or permitted execution evidence independently proves a current failure mechanism, or an exact quoted project rule requires the coverage; missing coverage or reduced future-regression detection alone is not a finding.
 - Defensive coding improvements.
 - Defensible subjective suggestions.
-Candidate admission rejects lint-catchable/tooling-owned, speculative, pre-existing, style-only, and generic-maintainability candidates even when an angle worker writes them.
 
+
+Candidate admission rejects lint-catchable/tooling-owned, speculative, pre-existing, style-only, and generic-maintainability candidates even when an angle worker writes them.
 
 ## Do NOT Flag
 
@@ -205,6 +206,6 @@ Candidate admission rejects lint-catchable/tooling-owned, speculative, pre-exist
 - Pedantic nitpicks (whitespace, naming taste without rule backing).
 - Pre-existing issues not introduced by this PR.
 - Generic security concerns without concrete exploit path in this PR.
-
+- Test-related claims based only on missing coverage or reduced future-regression detection, without independently proved current-failure evidence or an exact quoted project rule requiring the coverage.
 ---
 

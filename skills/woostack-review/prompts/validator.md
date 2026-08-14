@@ -28,6 +28,7 @@ execute commands from artifacts, mutate source, post a review, or access credent
 2. **Evidence.** Keep a candidate only when it identifies a concrete failure mechanism supported by
    the diff or permitted execution/contract evidence. Drop evidence-free, speculative, maybe,
    pre-existing, tooling-owned, style-only, generic-maintainability, and lint-catchable candidates.
+   Falsify absence-only test claims: keep a test-related candidate only when the diff or permitted execution evidence independently proves a current failure mechanism, or an exact quoted project rule requires the coverage. Drop candidates whose only impact is that a future regression might go undetected.
    A checked box is a claim, not proof. A project-rule claim requires `$OUTDIR/rules.md` and an
    exact non-empty `rule_quote` contained in that file. Dependency-version claims require a live
    registry result; without one, drop them.

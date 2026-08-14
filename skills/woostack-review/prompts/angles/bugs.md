@@ -14,7 +14,7 @@ tier: standard
 - Clear logic errors that produce wrong results for ANY valid input (off-by-one, inverted condition, wrong operator, swapped arguments, dead branches, unreachable code).
 - Resource leaks (unclosed files / handles / connections) introduced in the diff.
 - Concurrency mistakes introduced in the diff (race, deadlock, non-atomic check-then-act).
-- Missing tests on **new** business logic (non-blocking).
+- Test-related findings only when the diff or permitted execution evidence independently proves a current failure mechanism, or an exact quoted project rule requires the coverage; missing coverage or reduced future-regression detection alone is not a finding.
 
 **Skip:**
 
@@ -22,12 +22,13 @@ tier: standard
 - Input-dependent maybe-issues with no concrete failure case.
 - Pre-existing issues not introduced by this PR.
 - Style / naming taste without rule backing (unless `/tmp/pr-review/rules.md` explicitly requires it — then cite the rule via `rule_quote`).
+- Test-related claims based only on missing coverage or reduced future-regression detection, without independently proved current-failure evidence or an exact quoted project rule requiring the coverage.
 
 **Severity rubric:**
 
 - `HIGH` + `blocking: true` — code will fail to compile or definitely produces wrong results.
 - `MEDIUM` + `blocking: false` — likely-incorrect behavior under common conditions but not provable from diff alone.
-- `LOW` + `blocking: false` — missing test, defensive coding improvement.
+- `LOW` + `blocking: false` — non-blocking test-related finding only with independently proved current-failure evidence or an exact quoted project coverage rule; otherwise a defensive coding improvement.
 
 **Output.** Write findings as a JSON array to `/tmp/pr-review/findings.bugs.json` using the schema in `_worker-header.md`. Each finding gets `"angle": "bugs"` and MUST populate `title`, `failure_mode`, bounded `evidence`, `confidence` in `[0,1]`, `description`, `fix`, and `fix_type`. Set `fix_type: "suggestion"` only when a ≤10-line single-file drop-in replacement at `line` is safe — and populate `suggestion` accordingly. Otherwise set `fix_type: "prose"` with `suggestion: null`. See `_worker-header.md` for the full rule.
 

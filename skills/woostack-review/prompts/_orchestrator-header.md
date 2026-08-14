@@ -492,7 +492,7 @@ A finding is `blocking: true` only when ALL hold:
 Otherwise `blocking: false`:
 - Style/quality concerns worth surfacing (but not lint-catchable).
 - Performance smells (obvious N+1, unnecessary re-render).
-- Missing tests on new business logic.
+- Test-related findings only when the diff or permitted execution evidence independently proves a current failure mechanism, or an exact quoted project rule requires the coverage; missing coverage or reduced future-regression detection alone is not a finding.
 - Defensive coding improvements.
 - Defensible subjective suggestions.
 
@@ -503,6 +503,7 @@ Otherwise `blocking: false`:
 - Pedantic nitpicks (whitespace, naming taste without rule backing).
 - Pre-existing issues not introduced by this PR.
 - Generic security concerns without concrete exploit path in this PR.
+- Test-related claims based only on missing coverage or reduced future-regression detection, without independently proved current-failure evidence or an exact quoted project rule requiring the coverage.
 
 ---
 
