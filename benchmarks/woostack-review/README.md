@@ -268,7 +268,20 @@ A failed check is evidence that the correction did not clear the approved bounda
 first failed design boundary and preserve the run; do not claim completion, release variance, or a
 larger-cohort result.
 
-## Historical five-PR baseline (2026-08-12)
+## Historical five-PR runs
+
+Keep completed directional runs here in chronological order. Record the exact run identity and
+skill bytes, not only the branch or PR that produced them. A run remains historical evidence even
+when `comparison.passed` is false; do not reinterpret a narrower change-specific acceptance gate as
+the benchmark's directional gate.
+
+| Date | Run | TP / FP / FN | Precision / recall / F2 | Wall time | Exact cost | Directional gate |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| 2026-08-12 | Retained baseline | 4 / 8 / 8 | 33.3% / 33.3% / 33.3% | 38m 34.670s | $159.040697 | Baseline |
+| 2026-08-13 | `woo189-20260813i` | 3 / 6 / 9 | 33.3% / 25.0% / 26.3% | 34m 17.903s | $15.022457 | Failed |
+| 2026-08-14 | `woo-fp-e5ec6afc-tmp2` | 3 / 2 / 9 | 60.0% / 25.0% / 28.3% | 9m 43.285s | $15.6895778 | Failed |
+
+### Retained baseline — 2026-08-12
 
 The retained baseline used `woostack-review` revision
 `249522f3f3f0a33949b28c0515e8db62ef66b413` on Oh My Pi across the five rank-one fixtures. It
@@ -281,3 +294,30 @@ Wall time was 38 minutes 34.670 seconds. Exact controller-session OMP accounting
 across 1,427 model requests: 12,425,670 input tokens, 300,971 output tokens, and 186,126,720
 cache-read tokens. This is one historical observation under the retired workflow, not a price
 forecast, release distribution, ten-PR result, or 50-PR result.
+
+### Single-adjudicator run — 2026-08-13
+
+Run `woo189-20260813i` captured skill fingerprint
+`sha256:52297cb08f418683c5bc0ea89b7c08412f95aaba6b5e455ebf0af2e6aba0400c`.
+It completed 17 candidate-generation jobs, five adjudications, native delivery read-back, semantic
+judging, and exact accounting. The result was 3 TP, 6 FP, and 9 FN: 33.3% precision, 25.0% recall,
+28.6% F1, and 26.3% F2.
+
+Wall time was 34 minutes 17.903 seconds. Exact accounting was $15.022457 across 395 model requests:
+1,339,867 input tokens, 74,903 output tokens, and 12,152,064 cache-read tokens. The run reduced cost
+but did not clear the directional gate: TP, recall, F2, and wall time failed their thresholds.
+
+### Absence-only test-gap evidence gate — 2026-08-14
+
+Run `woo-fp-e5ec6afc-tmp2` captured skill fingerprint
+`sha256:df0cc38a3de1ec0dee7adc32b8659b8bbe564ebd228a8565855d2d00c85321bf`.
+It completed 17 candidate-generation jobs, five adjudications, native delivery read-back, semantic
+judging, and exact accounting. Tightening candidate admission and adjudication for absence-only
+test-gap claims changed the result to 3 TP, 2 FP, and 9 FN: 60.0% precision, 25.0% recall, 35.3% F1,
+and 28.3% F2.
+
+Wall time was 9 minutes 43.285 seconds. Exact accounting was $15.6895778 across 407 model requests:
+1,355,827 input tokens, 85,497 output tokens, and 13,687,296 cache-read tokens. Compared with the
+2026-08-13 run, false positives fell from 6 to 2 while TP, FN, and recall were unchanged. The run
+still did not clear the benchmark's directional gate because TP, recall, and F2 remained below
+their thresholds; `comparison.passed` is `false`.
