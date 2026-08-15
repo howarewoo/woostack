@@ -15,6 +15,18 @@
       "expectedSkill": "woostack-execute-overnight"
     },
     {
+      "id": "offline-until-morning-local-run",
+      "query": "Execute the approved local run manifest run-20260815-999999-unattended overnight while I sleep. Both gate-file approval records match and the task DAG is acyclic; make safe reversible decisions and leave handback records.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-execute-overnight"
+    },
+    {
+      "id": "offline-until-morning-local-run-with-recheck",
+      "query": "Execute the approved local run manifest run-20260815-999999-unattended unattended overnight with --recheck against trunk before starting.",
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-execute-overnight"
+    },
+    {
       "id": "present-for-audit-log-implementation",
       "query": "The managed Linear feature project at https://linear.app/acme/project/audit-log-44444444 has a verified executionApproved project-update head and its ordered increment issues are final. Begin carrying it out now while I am here, and pause for my input if an assumption fails or progress is blocked.",
       "shouldTrigger": false,

@@ -920,6 +920,22 @@
           "critical": true
         }
       ]
+    },
+    {
+      "id": "local-run-overnight-admission-and-execution",
+      "prompt": "Unattended execution receives exact runId \"run-20260815-999999-unattended\" at <repo-root>/.woostack/tmp/runs/run-20260815-999999-unattended/ after Git-ignore and ordered no-follow ancestor proof. The owner-only 0700 directory contains owner-only 0600 regular manifest.json, project-spec.md, execution-plan.md, and .lock files. Matching local projectSpecApprovalRecord and executionPlanApprovalRecord bind the raw gate-file SHA-256, byteLength, and manifest revision; taskExecutions has pending task-1 -> task-2; repoRoot matches. Return exactly one JSON object with keys status, mode, selectedStableTaskKey, selectedOrdinal, commitMode, sweepEnabled, checkpointPersistence, and unattendedContinuationAllowed. Set commitMode to \"artifact-free-without-issue\" and checkpointPersistence to \"manifest-cas\".",
+      "capabilities": ["read-workspace"],
+      "expected": "Exact repository-local run admission selects the pending stable task, then uses artifact-free commit, review sweep, and CAS-persisted task lifecycle/checkpoint state.",
+      "assertions": [
+        {"id": "overnight-run-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "proceed", "critical": true},
+        {"id": "overnight-run-mode", "kind": "final-json-path-equals", "pointer": "/mode", "expected": "run", "critical": true},
+        {"id": "overnight-run-task", "kind": "final-json-path-equals", "pointer": "/selectedStableTaskKey", "expected": "task-1", "critical": true},
+        {"id": "overnight-run-ordinal", "kind": "final-json-path-equals", "pointer": "/selectedOrdinal", "expected": 1, "critical": true},
+        {"id": "overnight-run-commit-mode", "kind": "final-json-path-equals", "pointer": "/commitMode", "expected": "artifact-free-without-issue", "critical": true},
+        {"id": "overnight-run-sweep", "kind": "final-json-path-equals", "pointer": "/sweepEnabled", "expected": true, "critical": true},
+        {"id": "overnight-run-checkpoint", "kind": "final-json-path-equals", "pointer": "/checkpointPersistence", "expected": "manifest-cas", "critical": true},
+        {"id": "overnight-run-continuation", "kind": "final-json-path-equals", "pointer": "/unattendedContinuationAllowed", "expected": true, "critical": true}
+      ]
     }
   ]
 }

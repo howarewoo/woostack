@@ -304,6 +304,129 @@
         {"id": "unknown-no-reopen", "kind": "final-json-path-equals", "pointer": "/projectReopened", "expected": false, "critical": true},
         {"id": "unknown-stable-identity", "kind": "final-json-path-equals", "pointer": "/retryIdentity", "expected": "same-project-status-operation", "critical": true}
       ]
+    },
+    {
+      "id": "local-run-exact-admission-proceeds",
+      "prompt": "Local run mode receives exact runId \"run-20260815-123456-abcdef\" at <repo-root>/.woostack/tmp/runs/run-20260815-123456-abcdef/ after Git-ignore and no-follow ancestor proof. The owner-only 0700 run directory contains owner-only 0600 regular files manifest.json, project-spec.md, execution-plan.md, and .lock. Local projectSpecApprovalRecord and executionPlanApprovalRecord fields and manifest revisions match the raw gate-file SHA-256 and byteLength; manifest status is active; taskExecutions.task-1 is pending at ordinal 1. Return exactly one JSON object with keys status, mode, selectedStableTaskKey, selectedOrdinal, commitMode, checkpointPersistence, and mutationAllowed. Set commitMode to \"artifact-free-without-issue\" and checkpointPersistence to \"manifest-cas\".",
+      "capabilities": ["read-workspace"],
+      "expected": "Exact local run admission admits the repository-local ignored run and matching raw-file-hash approval records, selects the lowest unfinished ordinal, and routes through artifact-free commit and manifest CAS.",
+      "assertions": [
+        {"id": "local-run-proceed", "kind": "final-json-path-equals", "pointer": "/status", "expected": "proceed", "critical": true},
+        {"id": "local-run-mode", "kind": "final-json-path-equals", "pointer": "/mode", "expected": "run", "critical": true},
+        {"id": "local-run-task", "kind": "final-json-path-equals", "pointer": "/selectedStableTaskKey", "expected": "task-1", "critical": true},
+        {"id": "local-run-ordinal", "kind": "final-json-path-equals", "pointer": "/selectedOrdinal", "expected": 1, "critical": true},
+        {"id": "local-run-commit-mode", "kind": "final-json-path-equals", "pointer": "/commitMode", "expected": "artifact-free-without-issue", "critical": true},
+        {"id": "local-run-checkpoint-persistence", "kind": "final-json-path-equals", "pointer": "/checkpointPersistence", "expected": "manifest-cas", "critical": true},
+        {"id": "local-run-mutation-allowed", "kind": "final-json-path-equals", "pointer": "/mutationAllowed", "expected": true, "critical": true}
+      ]
+    },
+    {
+      "id": "local-run-fuzzy-path-rejected",
+      "prompt": "Execute receives \"../runs/latest\" instead of one exact run ID naming <repo-root>/.woostack/tmp/runs/<exact-run-id>/. Repository containment and ordered no-follow ancestor verification cannot succeed. Return exactly one JSON object with keys status, reason, mutationAllowed, and firstBoundary.",
+      "capabilities": ["read-workspace"],
+      "expected": "Fuzzy, traversing, or unverified run paths are rejected before repository mutation.",
+      "assertions": [
+        {"id": "fuzzy-run-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "blocked", "critical": true},
+        {"id": "fuzzy-run-reason", "kind": "final-json-path-equals", "pointer": "/reason", "expected": "exact-run-directory-required", "critical": true},
+        {"id": "fuzzy-run-no-mutation", "kind": "final-json-path-equals", "pointer": "/mutationAllowed", "expected": false, "critical": true},
+        {"id": "fuzzy-run-boundary", "kind": "final-json-path-equals", "pointer": "/firstBoundary", "expected": "local-run-admission", "critical": true}
+      ]
+    },
+    {
+      "id": "local-run-unsafe-permissions-rejected",
+      "prompt": "Local run directory \"run-20260815-123456-insecure\" has mode 0777 or contains a symlinked manifest.json. Strict no-follow admission rejects broader permissions and non-regular files. Return exactly one JSON object with keys status, reason, mutationAllowed, and firstBoundary.",
+      "capabilities": ["read-workspace"],
+      "expected": "Insecure file permissions or symlinks in the local run directory block execution before repository mutation.",
+      "assertions": [
+        {"id": "unsafe-perm-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "blocked", "critical": true},
+        {"id": "unsafe-perm-reason", "kind": "final-json-path-equals", "pointer": "/reason", "expected": "unsafe-local-file-permissions", "critical": true},
+        {"id": "unsafe-perm-no-mutation", "kind": "final-json-path-equals", "pointer": "/mutationAllowed", "expected": false, "critical": true},
+        {"id": "unsafe-perm-boundary", "kind": "final-json-path-equals", "pointer": "/firstBoundary", "expected": "local-file-admission", "critical": true}
+      ]
+    },
+    {
+      "id": "local-run-stale-hash-record-rejected",
+      "prompt": "Local run manifest contains projectSpecApprovalRecord with SHA-256 hash-aaa, but the no-follow read of project-spec.md computes SHA-256 hash-bbb. The local approval record does not match the gate file. Return exactly one JSON object with keys status, reason, mutationAllowed, and firstBoundary.",
+      "capabilities": ["read-workspace"],
+      "expected": "A hash mismatch between a gate file and its local approval record blocks execution.",
+      "assertions": [
+        {"id": "stale-hash-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "blocked", "critical": true},
+        {"id": "stale-hash-reason", "kind": "final-json-path-equals", "pointer": "/reason", "expected": "approval-record-hash-mismatch", "critical": true},
+        {"id": "stale-hash-no-mutation", "kind": "final-json-path-equals", "pointer": "/mutationAllowed", "expected": false, "critical": true},
+        {"id": "stale-hash-boundary", "kind": "final-json-path-equals", "pointer": "/firstBoundary", "expected": "approval-record-verification", "critical": true}
+      ]
+    },
+    {
+      "id": "local-run-abandoned-state-rejected",
+      "prompt": "Local run manifest has status \"abandoned\". Return exactly one JSON object with keys status, reason, mutationAllowed, and firstBoundary.",
+      "capabilities": ["read-workspace"],
+      "expected": "An abandoned local run manifest blocks execution.",
+      "assertions": [
+        {"id": "abandoned-run-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "blocked", "critical": true},
+        {"id": "abandoned-run-reason", "kind": "final-json-path-equals", "pointer": "/reason", "expected": "run-abandoned", "critical": true},
+        {"id": "abandoned-run-no-mutation", "kind": "final-json-path-equals", "pointer": "/mutationAllowed", "expected": false, "critical": true},
+        {"id": "abandoned-run-boundary", "kind": "final-json-path-equals", "pointer": "/firstBoundary", "expected": "manifest-admission", "critical": true}
+      ]
+    },
+    {
+      "id": "local-run-recheck-unchanged-preserves-records",
+      "prompt": "Local run mode is invoked with --recheck. Bounded Harden runs against current trunk and proves rendered project-spec.md and execution-plan.md are byte-identical to the approved gate files. Return exactly one JSON object with keys status, recheckResult, recordsPreserved, and mutationAllowed.",
+      "capabilities": ["read-workspace"],
+      "expected": "Recheck proving byte-identical files preserves existing local approval records and proceeds.",
+      "assertions": [
+        {"id": "recheck-unchanged-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "proceed", "critical": true},
+        {"id": "recheck-unchanged-result", "kind": "final-json-path-equals", "pointer": "/recheckResult", "expected": "byte-identical", "critical": true},
+        {"id": "recheck-unchanged-preserved", "kind": "final-json-path-equals", "pointer": "/recordsPreserved", "expected": true, "critical": true},
+        {"id": "recheck-unchanged-mutation", "kind": "final-json-path-equals", "pointer": "/mutationAllowed", "expected": true, "critical": true}
+      ]
+    },
+    {
+      "id": "local-run-recheck-changed-spec-invalidates",
+      "prompt": "Local run mode is invoked with --recheck. Bounded Harden changes the project-spec.md bytes against current trunk. Return exactly one JSON object with keys status, returnGate, recordsInvalidated, and mutationAllowed.",
+      "capabilities": ["read-workspace"],
+      "expected": "Recheck detecting changed project-spec bytes invalidates both local approval records and returns to gate 1.",
+      "assertions": [
+        {"id": "recheck-spec-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "recheck-invalidated", "critical": true},
+        {"id": "recheck-spec-return-gate", "kind": "final-json-path-equals", "pointer": "/returnGate", "expected": "gate-1-spec-hardening", "critical": true},
+        {"id": "recheck-spec-invalidated", "kind": "final-json-path-equals", "pointer": "/recordsInvalidated", "expected": ["projectSpecApprovalRecord", "executionPlanApprovalRecord"], "critical": true},
+        {"id": "recheck-spec-no-mutation", "kind": "final-json-path-equals", "pointer": "/mutationAllowed", "expected": false, "critical": true}
+      ]
+    },
+    {
+      "id": "local-run-recheck-changed-plan-invalidates",
+      "prompt": "Local run mode is invoked with --recheck. Bounded Harden keeps project-spec.md byte-identical but changes execution-plan.md bytes against current trunk. Return exactly one JSON object with keys status, returnGate, recordsInvalidated, and mutationAllowed.",
+      "capabilities": ["read-workspace"],
+      "expected": "Recheck detecting changed execution-plan bytes invalidates only the gate 2 local approval record and returns to gate 2.",
+      "assertions": [
+        {"id": "recheck-plan-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "recheck-invalidated", "critical": true},
+        {"id": "recheck-plan-return-gate", "kind": "final-json-path-equals", "pointer": "/returnGate", "expected": "gate-2-plan-hardening", "critical": true},
+        {"id": "recheck-plan-invalidated", "kind": "final-json-path-equals", "pointer": "/recordsInvalidated", "expected": ["executionPlanApprovalRecord"], "critical": true},
+        {"id": "recheck-plan-no-mutation", "kind": "final-json-path-equals", "pointer": "/mutationAllowed", "expected": false, "critical": true}
+      ]
+    },
+    {
+      "id": "local-run-cas-checkpoint-resume",
+      "prompt": "A resumed local run reopens manifest.json no-follow. taskExecutions.task-1 is delivered with a complete checkpoint at manifestRevision 2, commit commit-001, and canonical PR pull/1. taskExecutions.task-2 is pending at ordinal 2. Return exactly one JSON object with keys status, selectedOrdinal, predecessorCheckpoint, and duplicateCreated.",
+      "capabilities": ["read-workspace"],
+      "expected": "A local run resumes from the CAS-persisted delivered checkpoint and selects the next pending ordinal without creating duplicate PRs.",
+      "assertions": [
+        {"id": "resume-cas-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "proceed", "critical": true},
+        {"id": "resume-cas-ordinal", "kind": "final-json-path-equals", "pointer": "/selectedOrdinal", "expected": 2, "critical": true},
+        {"id": "resume-cas-predecessor", "kind": "final-json-path-equals", "pointer": "/predecessorCheckpoint", "expected": "persisted-manifest-cas", "critical": true},
+        {"id": "resume-cas-no-dup", "kind": "final-json-path-equals", "pointer": "/duplicateCreated", "expected": false, "critical": true}
+      ]
+    },
+    {
+      "id": "local-run-mirror-write-failure-does-not-invalidate",
+      "prompt": "In local run mode, task delivery completes with commit, PR, verification receipt, and manifest CAS checkpoint persisted and independently read back. An optional background Linear mirror write fails due to network error. Warn, do not block or invalidate local delivery evidence, and allow worktree teardown. Return exactly one JSON object with keys status, mirrorWriteStatus, localDeliveryCheckpoint, and worktreeRemoved.",
+      "capabilities": ["read-workspace"],
+      "expected": "A failed optional mirror write in local run mode emits a warning and does not invalidate authoritative local delivery checkpoints.",
+      "assertions": [
+        {"id": "mirror-fail-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "delivered", "critical": true},
+        {"id": "mirror-fail-mirror-status", "kind": "final-json-path-equals", "pointer": "/mirrorWriteStatus", "expected": "warning-failed", "critical": true},
+        {"id": "mirror-fail-checkpoint", "kind": "final-json-path-equals", "pointer": "/localDeliveryCheckpoint", "expected": "valid", "critical": true},
+        {"id": "mirror-fail-teardown", "kind": "final-json-path-equals", "pointer": "/worktreeRemoved", "expected": true, "critical": true}
+      ]
     }
   ]
 }
