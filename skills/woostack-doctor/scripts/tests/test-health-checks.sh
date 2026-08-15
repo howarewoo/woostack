@@ -20,8 +20,17 @@ if command -v jq >/dev/null 2>&1; then
   for k in $(jq -r 'keys[]' "$HERE/../../../woostack-init/templates/config.json"); do
     bash "$C/config-keys.sh" --fix "$r2" "$k"
   done
+  assert_eq "$(bash "$C/config-keys.sh" "$r2")" "" "after fixing all template keys with default saveArtifacts false, clean"
+
   tmp="$(mktemp)"
+  jq '.linear = {saveArtifacts: true}' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
+  assert_contains "$(bash "$C/config-keys.sh" "$r2")" "linear-policy" "saveArtifacts true requires full provider fields"
+
+  jq '.linear = {saveArtifacts: false, workspace: "Acme"}' "$r2/.woostack/config.json" >"$tmp" && mv "$tmp" "$r2/.woostack/config.json"
+  assert_contains "$(bash "$C/config-keys.sh" "$r2")" "linear-policy" "partial provider fields in false mode fail closed"
+
   jq '.linear = {
+    saveArtifacts: true,
     repository: "https://github.com/acme/widgets",
     workspace: "Acme",
     team: "ENG",
@@ -41,7 +50,7 @@ if command -v jq >/dev/null 2>&1; then
     }
   }' "$r2/.woostack/config.json" >"$tmp"
   mv "$tmp" "$r2/.woostack/config.json"
-  assert_eq "$(bash "$C/config-keys.sh" "$r2")" "" "after fixing all keys, clean"
+  assert_eq "$(bash "$C/config-keys.sh" "$r2")" "" "after configuring full provider fields with saveArtifacts true, clean"
 
   # --fix with no key arg must refuse, not write a bogus "" entry into config.
   r2b="$(mktemp -d)"; mkdir -p "$r2b/.woostack"; echo '{}' > "$r2b/.woostack/config.json"

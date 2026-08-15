@@ -13,6 +13,7 @@ assert_not_contains "$body" "overnight/" "gitignore template does not preserve t
 assert_not_contains "$(cat "$DIR/../../../.gitignore")" ".woostack/overnight/" "repository ignore rules do not preserve the retired report corpus"
 assert_not_contains "$(cat "$DIR/../../../.woostack/.gitignore")" "overnight/" "workspace ignore rules do not preserve the retired report corpus"
 assert_contains "$body" "worktrees/" "gitignore template ignores per-PR worktrees"
+assert_contains "$body" "tmp/" "gitignore template ignores temporary run artifacts"
 
 
 finish

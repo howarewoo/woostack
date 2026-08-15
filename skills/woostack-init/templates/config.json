@@ -1,4 +1,7 @@
 {
+  "linear": {
+    "saveArtifacts": false
+  },
   "models": {},
   "review": {},
   "status": {

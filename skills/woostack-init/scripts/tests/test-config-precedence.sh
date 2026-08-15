@@ -50,4 +50,19 @@ fi
 assert_contains "$(cat "$TMP/err")" "nonblank linear.team" "blank local team fails closed"
 
 assert_contains "$(cat "$HERE/../../templates/gitignore")" "*.local.*" "local config is ignored by the workspace template"
+assert_eq "$(jq -r '.linear.saveArtifacts' "$HERE/../../templates/config.json")" "false" "shipped template defaults linear.saveArtifacts to false"
+
+printf '%s\n' '{"linear":{"saveArtifacts":"invalid"}}' >"$repo/.woostack/config.json"
+rm -f "$repo/.woostack/config.local.json"
+if bash "$RESOLVER" "$repo" >"$TMP/out" 2>"$TMP/err"; then
+  fail "non-boolean saveArtifacts should fail"
+else
+  pass
+fi
+assert_contains "$(cat "$TMP/err")" "linear.saveArtifacts must be a boolean" "invalid saveArtifacts fails closed"
+
+printf '%s\n' '{"linear":{"saveArtifacts":true,"team":"DEFAULT"}}' >"$repo/.woostack/config.json"
+actual="$(bash "$RESOLVER" "$repo")"
+assert_eq "$(jq -r '.linear.saveArtifacts' <<<"$actual")" "true" "boolean saveArtifacts true is preserved"
+
 finish

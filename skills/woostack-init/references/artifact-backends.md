@@ -1,48 +1,53 @@
-# Linear artifact contract
+# Local run artifact and provider mirror contract
 
-Linear projects and issues are canonical product records for `woostack-build` and project-backed
-`woostack-fix`. A project-backed workflow uses one exact project containing its complete current
-specification and direct executor-ready issues for the approved plan. Standalone planning uses the
-same direct-issue shape when persistence is explicitly selected. Other workflows may use explicitly
-selected Linear artifacts, but remain artifact-optional.
+Development artifacts record specifications, proved root cause, increment contracts, implementation
+plans, native dependency graphs, and approved content revisions. The canonical persistent artifact
+store for `woostack-build` and project-backed `woostack-fix` is local in `.woostack/tmp/runs/<run-id>/`.
+Linear is an optional mirror flow gated by `linear.saveArtifacts: true`. By default (`linear.saveArtifacts: false`
+or omitted), Build and Fix operate with default zero-provider local authority.
 
-Linear owns the current build specification, increment contracts, fix contract, and their approved
-content revisions after the ordered synchronization and receipt read-back. It is not source-control
-or delivery authority. The responsible user's explicit approval of the matching owner-only gate file
-identity displayed in the active conversation authorizes only the matching bounded save; exact Linear
-read-back and the matching receipt clear the workflow gate. Git, Graphite, and canonical GitHub
-reads prove source, ancestry, PR, review, and merge facts.
+The responsible user's explicit approval of the matching owner-only gate file displayed in the active
+conversation authorizes the matching local approval record and clears the workflow gate. Git,
+Graphite, and canonical GitHub reads prove source, ancestry, PR, review, and merge facts. Development
+artifacts are not source-control or delivery authority.
 
-## Selection
+## Selection and provider gating
 
-Artifact access occurs only when:
+Local run authority is unconditional: every Build and project-backed Fix allocates or resumes its
+canonical run store under `.woostack/tmp/runs/<run-id>/`.
+
+`linear.saveArtifacts` in `.woostack/config.json` gates all provider (Linear) calls.
+
+When `linear.saveArtifacts` is false or absent:
+
+- zero provider reads or writes occur for development artifacts;
+- an explicit `--project` flag fails closed before any provider access with an error stating that
+  `--project` requires `linear.saveArtifacts: true`;
+- standalone planning without persistence makes no provider call; and
+- `woostack-change` never contacts Linear.
+
+When `linear.saveArtifacts` is true:
 
 - `woostack-build` resolves one exact caller-supplied project or, without one, creates exactly one
   project from validated configured repository/workspace/team defaults;
 - a new fix reaches proved root cause, then resolves or creates exactly one canonical Fix project;
-  an exact `--issue` is optional preserved source context under the rules below;
-- standalone planning or another artifact-optional workflow receives one exact Linear project
-  URL/UUID or canonical issue reference, or an explicit persistence request; or
-- `/woostack-init` performs its narrow automatic authenticated read-only setup discovery.
+  an exact `--issue` is optional preserved source context under the rules below (before root-cause
+  proof, a fix makes no provider read or write);
+- standalone planning mirrors direct issues to the exact selected Linear project when persistence is
+  explicitly requested;
+- bounded post-approval synchronization mirrors approved local artifacts to Linear in one cycle; and
+- provider mirror failure is recorded in the manifest and is nonblocking for local authority.
 
-Build project resolution/creation happens before ideation. A build has no artifact-free fallback.
-Before root-cause proof, a fix makes no provider read or write. After a Build or project-backed Fix
-admits its exact initial Linear baseline, its gated drafting follows the
-[run-scoped manifest contract](#run-scoped-gated-draft-manifest) and makes no further provider call
-until the responsible user approves the exact gate file identity and concise mapping displayed in the
-Ask. Without exact selection or explicit persistence, standalone planning and all other
-artifact-optional commands make no provider call.
-
-Init discovery may validate only non-secret repository/workspace/team/native-name defaults. It does
-not select an optional artifact path, authorize later provider access, read development artifacts,
-or perform a provider mutation. Tracked `.woostack/config.json` policy never authorizes provider
-access by itself. It supplies validated defaults only after a workflow has selected or required
-Linear.
+Init discovery performs only narrow automatic authenticated read-only setup discovery of non-secret
+repository/workspace/team/native-name defaults. It does not select an optional artifact path, authorize
+later provider access, read development artifacts, or perform a provider mutation. Tracked
+`.woostack/config.json` policy never authorizes provider access by itself; it supplies validated
+defaults only after a workflow has selected or required Linear mirroring.
 
 After selection, resolve every configured repository, workspace/team, native-status, and
 presentation value and compare it with the canonical repository and resolved workspace/team.
-Missing, malformed, ambiguous, foreign, or conflicting values block the selected or required
-artifact boundary. Authentication remains in the host's secret store.
+Missing, malformed, ambiguous, foreign, or conflicting values block the selected artifact boundary.
+Authentication remains in the host's secret store.
 
 Init setup preserves valid existing policy and may add only missing values validated by read-only
 discovery. It independently reopens, parses, and compares any local config write. Absent,
@@ -50,16 +55,16 @@ unauthenticated, insufficient, partial, ambiguous, or conflicting capability is 
 or setup-blocked separately from ordinary local init; it never blocks local initialization.
 
 Preflight the authenticated official Linear MCP for every required read, project, issue, relation,
-mutation, approval revision, and independent read-back. For an exact resource, resolve only that
-resource. For required creation, allocate one stable resource identity before the first write. An
-exact caller-supplied resource always takes precedence over creation. Never infer an artifact from a
-title, issue key, branch name, PR body, attribution trailer, recent activity, search ranking, or
-authenticated user's history.
+mutation, approval revision, and independent read-back in the optional mirror flow. For an exact
+resource, resolve only that resource. For required creation, allocate one stable resource identity
+before the first write. An exact caller-supplied resource always takes precedence over creation.
+Never infer an artifact from a title, issue key, branch name, PR body, attribution trailer, recent
+activity, search ranking, or authenticated user's history.
 
 Native client operation identity remains preferred for every project and issue mutation, and the
 native-ID path never adds a fallback marker or title suffix. When the provider does not expose that
-identity for project creation or direct issue creation, use only the fallbacks below; a fallback is
-not permission to relax any canonical-reference, pagination, scope, parent, membership,
+identity for project creation or direct issue creation in the mirror flow, use only the fallbacks below;
+a fallback is not permission to relax any canonical-reference, pagination, scope, parent, membership,
 relation-ordering, ambiguity, or read-back requirement.
 
 An exact caller-supplied project is read directly and independently verified for its existing name,
@@ -105,7 +110,6 @@ identity before mutation, complete zero-match precondition, one create, same-ide
 recovery, and monotonic no-replay failure handling. They apply equally to Build and project-backed
 Fix; supplied-project selection and standalone Plan remain governed by their existing contracts.
 
-
 A build project stores the complete current high-level specification. Each independently shippable
 increment is one direct issue in that project; its description stores the complete executor-ready
 contract and approved project-spec fingerprint. Native issue-to-issue dependency relations encode
@@ -117,6 +121,7 @@ A project-backed fix keeps diagnosis, plan, approval, and delivery evidence in i
 project records. The selected record shape never grants permission or replaces repository evidence.
 
 ## Canonical issue references, nullable parents, and graph-write preflight
+
 This shared canonical issue-reference/nullable-parent preflight governs both an exact Fix source
 issue's first supported project link and bounded graph synchronization. For that source link, the
 Fix controller applies the relevant preflight immediately after project resolution and before gate
@@ -202,10 +207,8 @@ the new issue's direct membership may the workflow allocate one project-membersh
 identity and write that membership. Only its exact membership read-back permits allocation or use
 of relation mutation identities. Every rejection before a graph write has zero mutation of that
 write kind and all later graph-write kinds, plus zero repository mutation. This ordering applies
-equally to Build,
-project-backed Fix, standalone Plan, and relation read-back; no cached, UUID-only, mixed-endpoint,
-or incomplete response can advance it.
-
+equally to Build, project-backed Fix, standalone Plan, and relation read-back; no cached, UUID-only,
+mixed-endpoint, or incomplete response can advance it.
 
 ## Fix source issue selection and identity
 
@@ -235,7 +238,7 @@ replacement.
 ## Canonical content fingerprints and project approval records
 
 Canonical content fingerprints are content-derived, never mutable provider revisions or timestamps.
-For an issue record, approval identity may use `{ issueId, canonicalContentFingerprint }`.
+For an issue record in the optional mirror flow, approval identity may use `{ issueId, canonicalContentFingerprint }`.
 `canonicalContentFingerprint` is `sha256:` followed by 64 lowercase hexadecimal characters. Compute
 it from an input object with exactly `title`, `description`, and `dependencies`:
 
@@ -334,35 +337,54 @@ changes canonical bytes does.
 
 ### Shared approval records
 
-Both Build and a project-backed Fix use the same two controller-owned records:
+Local approval records bind the exact raw UTF-8 SHA-256 and byte length of the rendered gate files:
 
 ```text
 projectSpecApprovalRecord = {
-  projectId,
-  canonicalProjectSpecFingerprint,
+  runId,
+  gate: 1,
+  manifestRevision,
+  sha256,
+  byteLength,
   approvedBy,
+  host,
   approvedAt,
-  approvalEventRef
+  approvalEventId
 }
 
 executionPlanApprovalRecord = {
-  projectId,
-  canonicalProjectSpecFingerprint,
-  increments,
-  dependencies,
+  runId,
+  gate: 2,
+  manifestRevision,
+  sha256,
+  byteLength,
   approvedBy,
+  host,
   approvedAt,
-  approvalEventRef
+  approvalEventId
 }
 ```
 
-The project-spec record binds the exact complete project specification. The execution-plan record
-binds the exact sorted direct-issue fingerprint set and dependency set for that same project
-specification. `increments` is one tuple `{ issueId, canonicalIncrementFingerprint }` per direct
-project issue, sorted lexicographically by canonical issue reference. `dependencies` is one tuple
-`{ predecessorIssueId, successorIssueId, kind }` per admitted native issue-to-issue dependency,
-where `kind` is exactly `native-issue`, sorted lexicographically by
-`(predecessorIssueId, successorIssueId, kind)` using the canonical issue-reference values.
+The project-spec record binds the exact complete project specification gate file (`project-spec.md`).
+The execution-plan record binds the exact ordered issue contracts and dependency snapshot gate file
+(`execution-plan.md`). Both receipts bind the exact `runId`, `gate`, `manifestRevision`, `sha256` (raw
+64-hex lowercase UTF-8 SHA-256), `byteLength`, `approvedBy` (current OS user / principal), `host`
+(hostname), `approvedAt` (ISO-8601 UTC timestamp), and unique `approvalEventId` (UUID).
+
+Receipts survive across process restarts and across distinct processes when resuming the same `<run-id>`
+for identical gate-file bytes and SHA-256.
+
+Receipt invalidation rules:
+- Any material change to the specification (altering `project-spec.md` bytes) invalidates both
+  `projectSpecApprovalRecord` and `executionPlanApprovalRecord` and returns to specification hardening.
+- Any material change to the plan increments, contracts, or dependencies (altering `execution-plan.md`
+  bytes) invalidates only `executionPlanApprovalRecord` and returns to graph hardening, leaving
+  `projectSpecApprovalRecord` intact.
+- Unrelated comments and metadata do not invalidate either record.
+
+When optional Linear mirroring is enabled (`linear.saveArtifacts: true`), the mirror flow also creates
+matching provider approval records and receipts referencing the provider project and canonical issue
+fingerprints.
 
 ### Repository ancestry is separate from approval identity
 
@@ -404,51 +426,91 @@ follows the approval invalidation rules below even when repository ancestry is o
 
 #### Run-scoped gated draft manifest
 
-Build and project-backed Fix use this contract for specification and delegated-plan drafting.
-Standalone `woostack-plan` does not: its existing direct synchronization and independent read-back
-remain unchanged and own no approval gate.
+Build and project-backed Fix use this contract for specification and delegated-plan drafting and
+persistent local artifact authority. Standalone `woostack-plan` does not: its direct synchronization
+and independent read-back remain unchanged and own no approval gate.
 
-Before asking a gated question, admit one exact Linear baseline with a complete independent read:
-native project identity and revision, repository/workspace/team, complete project specification,
-every current direct issue and native dependency relation required by the phase with complete
-pagination, canonical fingerprints, and the latest matching approval receipts. Gate 1 admits this
-baseline after exact project resolution or creation and before Ideate. Gate 2 admits a fresh
-baseline after the gate 1 receipt and before delegated Plan/Harden work. Missing, ambiguous,
-foreign, incomplete, or conflicting admission blocks before drafting.
+Create or resume the run-scoped directory under `.woostack/tmp/runs/<run-id>/`. Resuming an existing
+run requires an explicit, caller-supplied exact `<run-id>` and direct lookup of only that exact path;
+never discover or select a run by latest timestamp, recent activity, title, branch, PR, single-active
+directory, search, or heuristic lookup. On resume admission, perform complete manifest validation:
+prove `runId` equals the requested ID, `workflow` matches the active command (`build` or `fix`),
+`repoRoot` matches the current canonical repository root, and `status` matches valid nonterminal/terminal
+state. A missing run directory, missing manifest, corrupted JSON, ambiguous path, or mismatched
+`runId`/`workflow`/`repoRoot`/`status` fails closed immediately before any state modification or prompt.
 
-Create one run-scoped directory through the host OS temporary-directory facility, outside the
-repository and every tracked or shared workspace. Set the directory to owner-only `0700`. It owns
-exactly one JSON manifest and at most these two Markdown gate files:
+The run store path must reside within the repository's git-ignored `.woostack/tmp/` hierarchy; an
+unignored `.woostack/tmp/` fails closed before admission. Set the run directory to owner-only `0700`.
+Admitted persistent entries in the run directory are exactly `manifest.json`, `project-spec.md` (when
+present), `execution-plan.md` (when present), and `.lock` (persistent internal lock entry):
 
 ```text
-<run-directory>/manifest.json
-<run-directory>/project-spec.md
-<run-directory>/execution-plan.md
+.woostack/tmp/runs/<run-id>/manifest.json
+.woostack/tmp/runs/<run-id>/project-spec.md
+.woostack/tmp/runs/<run-id>/execution-plan.md
+.woostack/tmp/runs/<run-id>/.lock
 ```
 
-The manifest and every gate file are owner read/write `0600`; reject symlinks, broader permissions,
-non-regular files, foreign ownership, and unexpected directory entries. Gate files are created
-exclusively and never placed in the repository or copied into a prompt, report, cache, or provider
-record. Every manifest update writes a complete JSON value to a new exclusive `0600` file, flushes
-it, atomically renames it over the manifest, and flushes the directory. Every gate-file replacement
-uses a new exclusive owner-only temporary file, flushes its bytes, atomically renames it to the
-fixed gate filename, and flushes the directory. Never append or patch any file in place.
+Transient temporary files (`.manifest.<pid>.<nonce>.tmp`, `.project-spec.<pid>.<nonce>.tmp`, and
+`.execution-plan.<pid>.<nonce>.tmp`, mode `0600`) are admitted only during a held update. Reject any
+other or unexpected directory entry. The manifest, gate files, lock file, and transient temporary
+files are owner read/write `0600` regular files owned by the current process user (`getuid()`); reject
+symlinks, broader permissions, non-regular files, foreign ownership, and path traversal attempts.
 
-Before and after every gate-file read, reopen the absolute path with no-follow semantics and verify
-the path remains beneath the owner-only run directory, its owner is the current process user, its
-mode is exactly `0600`, and its type is regular. Reject a symlink, changed path, changed inode after
-the approved snapshot, stale run/process identity, failed length or SHA-256 comparison, or any
-unexpected file. A failed check blocks before provider or repository mutation.
+Before and after every run create, resume, read, and update operation, enforce ordered no-follow
+semantics and verify ownership, permissions, types, and containment across the ancestor and artifact
+hierarchy:
 
-The manifest contains exactly the structured run state needed to regenerate the gate files:
+- repository root `.` and `.woostack` require symlink-free canonical beneath-root ancestry and
+  directory type, rejecting group- or world-writable mutable artifact ancestors;
+- writable `.woostack/tmp`, `runs`, and exact run directory `.woostack/tmp/runs/<run-id>` are
+  owner-only `0700` directories owned by the current process user (`getuid()`), with `.woostack/tmp`
+  admitted by Git ignore;
+- `manifest.json`, `project-spec.md`, `execution-plan.md`, `.lock`, and transient temporary files are
+  owner-only owner read/write `0600` regular files owned by the current process user (`getuid()`) and
+  strictly beneath the run directory.
+
+Reject symlinks at any level in the path, broader permissions, non-regular files (or non-directory for
+ancestors), foreign ownership, changed inodes after snapshot, and path traversal attempts. A failed
+check blocks before workflow advancement.
+
+Gate files are created exclusively and never placed in tracked source or copied into a report or cache.
+
+Manifest updates maintain a strictly monotonic integer `manifestRevision` (starting at 1) and use
+lock-scoped compare-and-swap (CAS) to guarantee cross-process atomicity. To perform an atomic update:
+
+1. open or create the admitted persistent internal lock file (`.woostack/tmp/runs/<run-id>/.lock`, mode
+   `0600`) with `O_NOFOLLOW | O_RDWR | O_CREAT`, then acquire an OS-released exclusive advisory lock
+   across the update cycle; because the operating system releases the advisory lock upon process exit
+   or crash, `.lock` persists safely on disk without failing later updates merely because `.lock` exists;
+2. while holding the lock, revalidate the ancestor hierarchy and `manifest.json` path/owner/mode/type;
+3. read the current on-disk `manifestRevision` and verify it equals the expected prior revision; if
+   mismatched, release the lock and reject the update (CAS mismatch rejection);
+4. write the complete replacement JSON value with `manifestRevision = expected + 1` to a new exclusive
+   temporary file (`.manifest.<pid>.<nonce>.tmp`, mode `0600`) in the run directory;
+5. flush and fsync the temporary file;
+6. atomically rename the temporary file over `manifest.json`;
+7. flush and fsync the run directory; and
+8. release the exclusive advisory lock.
+
+A contender process acquiring the lock after the winner reloads on-disk state, observes the incremented
+revision, and rejects stale writes; two processes never both write revision N+1. Every gate-file replacement
+uses a new exclusive owner-only temporary file in the run directory, flushes and fsyncs its bytes,
+atomically renames it to the fixed gate filename (`project-spec.md` or `execution-plan.md`), and flushes
+the directory. Never append or patch any file in place.
+
+The manifest contains exactly the structured run state needed to regenerate the gate files and track
+optional mirroring:
 
 ```text
 {
-  manifestVersion,
+  manifestVersion: 1,
+  manifestRevision,
   workflow,
   gate,
   runId,
-  processNonce,
+  repoRoot,
+  status: "active" | "completed" | "abandoned",
   baseline: {
     projectId,
     projectRevision,
@@ -468,27 +530,35 @@ The manifest contains exactly the structured run state needed to regenerate the 
   stableTaskMappings,
   mutationIdentities,
   fingerprints,
-  displayedApprovalIdentity
+  displayedApprovalIdentity,
+  mirror: {
+    enabled,
+    projectId,
+    projectRevision,
+    status: "none" | "pending" | "synced" | "failed",
+    error,
+    lastSyncedAt
+  }
 }
 ```
 
 `displayedApprovalIdentity.gateFile` is the sole file identity record:
-`{ path, byteLength, sha256, fingerprintVersion }`. The identity also records `runId`,
-`processNonce`, `gate`, `projectId`, and immutable `approvedStableTaskMappings` and
-`approvedDependencies` snapshots relevant to that gate. Keep those approved snapshots distinct from
-the top-level live `stableTaskMappings`, which changes only from an approved `null` to the newly
-created canonical reference during bounded synchronization and is never remapped.
+`{ path, byteLength, sha256, manifestRevision }`. The identity also records `runId`, `gate`,
+`projectId`, and immutable `approvedStableTaskMappings` and `approvedDependencies` snapshots relevant
+to that gate. Keep those approved snapshots distinct from the top-level live `stableTaskMappings`, which
+changes only from an approved `null` to the newly created canonical reference during bounded
+synchronization and is never remapped.
 
 `baseline` retains exact canonical issue references and provider-native identities, revisions, complete
-stable-key mappings, and fingerprints from admission. Each draft increment has one stable local task
-key, title, complete description, fingerprint, and dependency keys. Before gate 2's file is rendered,
-reconcile every retained baseline issue to exactly one draft task key: reuse a prior independently
-verified mapping, or record one explicit proposed canonical-issue-reference→task-key mapping in the
-concise mapping manifest. Ambiguous, duplicate, or unmatched retained issues block; they never become
-permission to allocate replacement issues. `stableTaskMappings` maps every local task key to that
-retained canonical issue reference, or to `null` only when the approved task is explicitly new. It is
-updated atomically as new identities become known and never remapped. `mutationIdentities` preallocates
-the stable project, issue, relation, and receipt operation identities needed for one bounded
+stable-key mappings, and fingerprints when provider mirroring is admitted. Each draft increment has one
+stable local task key, title, complete description, fingerprint, and dependency keys. Before gate 2's
+file is rendered, reconcile every retained baseline issue to exactly one draft task key: reuse a prior
+independently verified mapping, or record one explicit proposed canonical-issue-reference→task-key
+mapping in the concise mapping manifest. Ambiguous, duplicate, or unmatched retained issues block; they
+never become permission to allocate replacement issues. `stableTaskMappings` maps every local task key
+to that retained canonical issue reference, or to `null` only when the approved task is explicitly new.
+It is updated atomically as new identities become known and never remapped. `mutationIdentities`
+preallocates the stable project, issue, relation, and receipt operation identities needed for one bounded
 synchronization.
 `unresolvedQuestions` is explicit and must be empty before a file is rendered. `fingerprints` covers
 the exact draft specification, ordered increment set, dependency set, and rendered gate bytes.
@@ -496,10 +566,9 @@ the exact draft specification, ordered increment set, dependency set, and render
 After baseline admission, Ideate, both Harden passes, and Build/Fix-delegated Plan use only the
 manifest plus bounded repository evidence. They perform zero Linear or other provider reads and
 writes while asking questions, recording answers, hardening, or producing the delegated candidate.
-Each explicit verified answer atomically replaces the local draft and unresolved-question state.
-Unverified or ambiguous material remains unresolved. The manifest is a permission-restricted draft,
-not product authority: it never replaces, mutates, or supersedes the last Linear-approved boundary
-and can never authorize Execute.
+Each explicit verified answer atomically replaces the local draft and unresolved-question state via
+monotonic CAS. Unverified or ambiguous material remains unresolved. The manifest is the canonical
+local run authority and never depends on intermediate provider cycles.
 
 #### Deterministic gate-file approval identity and streamed presentation
 
@@ -528,18 +597,17 @@ description. It ends with `## Dependencies` and one
 the dependency section with one blank line. Normalize rendered strings to NFC and LF, and end the
 file with exactly one LF; do not otherwise rewrite contract bodies or ordered-list markers.
 
-Rendering must be deterministic: the same manifest value, renderer/fingerprint version, and process
-must produce byte-identical output. Re-render after every manifest replacement and before approval;
-compare bytes, byte length, and SHA-256 with the file opened no-follow. Regeneration mismatch,
-unexpected terminal-LF count, changed path, changed inode, or a file that is not owner-only and
-regular invalidates the draft before presentation.
+Rendering must be deterministic: the same manifest value, renderer version, and inputs must produce
+byte-identical output. Re-render after every manifest replacement and before approval; compare bytes,
+byte length, and SHA-256 with the file opened no-follow. Regeneration mismatch, unexpected terminal-LF
+count, changed path, changed inode, or a file that is not owner-only and regular invalidates the draft
+before presentation.
 
 For the first presentation, and whenever the exact prior displayed bytes and identity are not
 available in the same persistent process, stream the complete verified Markdown artifact immediately
 before the Ask. The stream includes the exact UTF-8 bytes, byte length, SHA-256, absolute path,
-fingerprint version, run/process identity, gate, project identity, and canonical project-spec
-fingerprint. Do not substitute a preview, excerpt, subtitle, pointer, or repeated summary for the
-complete artifact.
+manifest revision, run identity, gate, and project identity. Do not substitute a preview, excerpt,
+subtitle, pointer, or repeated summary for the complete artifact.
 
 For a same-process revision, retain the exact prior displayed bytes and identity only in process
 memory. If the prior bytes, old identity, and current identity all match their no-follow file
@@ -559,13 +627,13 @@ Ask: {
 }
 ```
 
-`Accept` approves only the exact identity in the immediately preceding verified stream and must
-arrive through the same persistent process. `Abandon` invokes canonical project closure after the
-shared cleanup verification. Any custom response is a revision or clarification, never approval:
-atomically replace the manifest draft and unresolved-question state, regenerate and verify the file,
-then present the complete artifact or a same-process verified diff followed by a fresh body-free Ask.
-Unknown, malformed, copied, stale, or transformed responses fail closed and require a fresh
-presentation; they never save, synchronize, or clear a gate.
+`Accept` approves only the exact identity in the immediately preceding verified stream. `Abandon`
+invokes terminal workflow closure: it sets `status: "abandoned"` in the manifest, retains all run
+artifacts, and performs optional mirror closure if mirroring is enabled. Any custom response is a
+revision or clarification, never approval: atomically replace the manifest draft and unresolved-question
+state, regenerate and verify the file, then present the complete artifact or a same-process verified diff
+followed by a fresh body-free Ask. Unknown, malformed, copied, stale, or transformed responses fail
+closed and require a fresh presentation; they never save, synchronize, or clear a gate.
 
 Gate 1 uses the project file and its project identity; gate 2 uses the execution-plan file and the
 same project identity plus every immutable approved stable-task mapping and stable-task dependency
@@ -574,28 +642,25 @@ entries for new tasks; canonical issue references created during synchronization
 in the distinct live mapping and the native graph read-back. Complete issue descriptions are in the
 streamed file, not the Ask or manifest identity. Store the immutable snapshots in
 `displayedApprovalIdentity` before the Ask. The responsible user's explicit response approves only
-the immediately preceding verified identity and the same run/process in the active conversation. A
-changed or replaced file, stale process, copied response, missing manifest, failed no-follow reopen,
-or identity mismatch invalidates the response and requires fresh rendering and presentation.
+the immediately preceding verified identity in the active conversation. A changed or replaced file,
+copied response, missing manifest, failed no-follow reopen, or identity mismatch invalidates the
+response and requires fresh rendering and presentation.
 
-#### Approval-before-save synchronization
+#### Approval-before-save and optional mirror synchronization
 
-The responsible user's matching file identity approval must occur before any draft content is saved
-to Linear. After that approval, reopen the approved absolute path with no-follow semantics and
-revalidate owner, exact `0600` mode, regular-file type, run/process identity, byte length, SHA-256,
-fingerprint version, and regeneration from the unchanged manifest. Any changed path, bytes, inode,
-permissions, owner, symlink, stale process, or failed regeneration blocks before provider or
-repository mutation. Only then perform exactly one bounded synchronization cycle:
+The responsible user's matching file identity approval records the local receipt (`projectSpecApprovalRecord`
+or `executionPlanApprovalRecord`) directly in the run manifest.
+
+When optional Linear mirroring is enabled (`linear.saveArtifacts: true`), perform exactly one bounded
+synchronization cycle after local approval:
 
 1. immediately re-read the exact Linear targets, complete relevant issue/relation pagination,
-   revisions, fingerprints, mappings, and matching receipts; compare them with the admitted
-   `baseline`;
+   revisions, fingerprints, mappings, and matching receipts; compare them with the admitted `baseline`;
 2. if and only if the baseline and gate file are unchanged, write exactly the approved project
-   specification or complete direct-issue/dependency graph, using the preallocated mutation
-   identities and the existing-record mutation invariant where applicable. Before each later target
-   mutation in the cycle, either enforce the retained revision/content identity as an optimistic
-   precondition or immediately re-read that target's changed fields; abort all remaining mutations
-   on drift;
+   specification or complete direct-issue/dependency graph, using the preallocated mutation identities
+   and the existing-record mutation invariant where applicable. Before each later target mutation in
+   the cycle, either enforce the retained revision/content identity as an optimistic precondition or
+   immediately re-read that target's changed fields; abort all remaining mutations on drift;
 3. as each explicitly new issue is created, atomically bind its stable local task key to the one
    canonical issue reference, and reject any remap, duplicate, foreign reference, retained-issue
    mismatch, or dependency endpoint mismatch;
@@ -606,52 +671,42 @@ repository mutation. Only then perform exactly one bounded synchronization cycle
    retained baseline mappings and mappings bound after a successful create—to match the verified
    stable-key mapping separately from provider-native mutation identities, which must match their
    preallocated `mutationIdentities` records; and
-5. only after that exact content read-back, record the matching `projectSpecApprovalRecord` or
-   `executionPlanApprovalRecord`, then independently read back the receipt and every record it
-   references before clearing the gate.
+5. only after that exact content read-back, record the matching provider approval record, then
+   independently read back the receipt and referenced records before updating mirror status in the
+   manifest (`mirror.status = "synced"`).
 
 One bounded cycle may contain the minimum ordered mutations needed for that approved graph; it is
 not a per-question, per-answer, or per-decision synchronization loop. Do not save intermediate
 drafts, patch after the Ask, or start a second cycle under the same approval.
 
-Pre-save baseline drift, file identity drift, read-back mismatch, remapped identity, incomplete
-pagination, unknown content, manifest/process loss, or failure before an independently verified
-receipt invalidates the approval. An unreceipted approval is consumed and cannot be replayed,
-summarized, or reused. Recover an unknown mutation only by reading the same preallocated identities;
-even when the remote content is found intact, admit a fresh baseline, regenerate the gate file, and
-present a fresh concise Ask before attempting a receipt or further mutation. Never allocate
-replacement identities, infer mappings, or treat the local draft as the last approved Linear
-boundary.
+If optional mirroring fails at any step, the error is recorded in the manifest (`mirror.status = "failed"`,
+`mirror.error = "<error message>"`). Mirror failure is nonblocking: local authority, local receipts,
+and workflow progress remain valid.
 
-Retain the manifest and `project-spec.md` after the gate 1 receipt only for gate 2 baseline admission.
-Create `execution-plan.md` exclusively when the gate 2 draft is complete; never retain more than the
-manifest and these two named gate files. After the gate 2 receipt and referenced records read back
-exactly, no-follow verify both gate files' ownership and `0600` regular-file state, unlink both gate
-files and the manifest, flush the directory, and remove the empty `0700` run directory. On explicit
-abandonment, apply the same verification and unlink sequence to each expected gate file already
-created, require absent not-yet-created gate files to have no directory entry, reject every
-unexpected sibling, then remove the manifest and directory. Missing required completion files,
-unexpected entries, or failed cleanup blocks a completion claim; cleanup never
-substitutes for configured project closure.
+When `linear.saveArtifacts: false` (the default), no provider calls are made, and the local receipt
+clears the gate immediately.
+
+Artifact retention on completion and abandonment:
+All run artifacts in `.woostack/tmp/runs/<run-id>/` (`manifest.json`, `project-spec.md`, `execution-plan.md`)
+are retained upon successful completion and upon explicit abandonment. Retaining run artifacts ensures
+an unbroken audit trail and enables exact run resume.
+
 An external engineer relay must carry the responsible user's concise response verbatim. The
 responsible user's response must travel verbatim, without summarization, rewriting, or replay,
-through the same persistent OMP process that rendered and displayed the gate-file identity. Hermes
-may transmit that response but may not author or transform it. A restarted or different process fails
-closed and requires a fresh file render, identity, Ask, and active-conversation approval. Conversation
-approval without the ordered synchronization, exact read-backs, and final Linear receipt; a Linear
-record without the matching active-conversation approval; status, labels, assignment, content alone,
-read-back alone, workflow inference, or an agent-authored event never grants a gate.
+through the active conversation. Hermes may transmit that response but may not author or transform
+it. Conversation approval without matching verified gate-file identity; status, labels, assignment,
+content alone, workflow inference, or an agent-authored event never grants a gate.
 
 `approvedBy` is the responsible user's stable principal identity, `approvedAt` is the recorded
-approval event timestamp, and `approvalEventRef` is the stable Linear receipt/event reference.
+approval event timestamp, and `approvalEventId` is the unique approval event identifier.
 
-When the official MCP exposes a server-generated receipt identity only after event creation, create
-exactly one provisional event containing every approval-record field except `approvalEventRef`.
-That provisional event is allocation evidence, not an approval record, and it never clears any
-gate. Derive `approvalEventRef` from the returned stable native identity, update that same event
-exactly once, then independently read and verify the complete final record before continuing. An
-unknown create or update outcome blocks at that same identity; never allocate a second event,
-fabricate a reference, or treat a partial response as approval.
+When the official MCP exposes a server-generated receipt identity only after event creation during
+the optional mirror flow, create exactly one provisional event containing every approval-record
+field except `approvalEventRef`. That provisional event is allocation evidence, not an approval
+record, and it never clears any gate. Derive `approvalEventRef` from the returned stable native
+identity, update that same event exactly once, then independently read and verify the complete final
+record before continuing. An unknown create or update outcome blocks at that same identity; never
+allocate a second event, fabricate a reference, or treat a partial response as approval.
 
 Before execution, after every worker handback, before every redispatch, immediately before each
 commit, and before selecting another increment, independently re-read the exact project, every
@@ -664,10 +719,8 @@ synchronization.
 A material project-specification change invalidates both records and returns to specification
 hardening. A material issue or dependency change invalidates only `executionPlanApprovalRecord` and
 returns to graph hardening. Correct the same canonical records, independently read them back, and
-obtain explicit active-conversation approval plus a new Linear receipt. Unrelated comments and
-metadata do not invalidate either record. Any required Linear read, relation pagination, mutation,
-receipt, or approval read-back failure blocks with no local, conversational, cached, or
-alternate-provider substitution.
+obtain explicit active-conversation approval. Unrelated comments and metadata do not invalidate
+either record.
 
 ## Authority boundary
 
@@ -684,21 +737,24 @@ Artifact content and ordinary metadata do not grant permission to edit, assign w
 commit, push, review, merge, or mark repository work complete. Native assignees, delegates,
 statuses, labels, project membership, and unapproved updates/comments are metadata only. The
 `projectSpecApprovalRecord` and `executionPlanApprovalRecord` receipts clear only their matching
-content-revision gates after active-conversation approval and independent Linear read-back. They do
-not prove repository delivery or authorize any other revision.
+content-revision gates after active-conversation approval. They do not prove repository delivery
+or authorize any other revision.
 
 If a project-backed build/plan/fix workflow is explicitly abandoned, repository work stops and its
-existing project moves to the configured canceled status. The workflow reads that transition back
-before claiming closure. Never create a project merely to cancel it; closure never grants authority.
+status is recorded as abandoned in the retained run manifest. If optional Linear mirroring is enabled
+and a persisted project exists, the project moves to the configured canceled status and the workflow
+reads that transition back before claiming closure. Never create a project merely to cancel it; closure
+never grants authority.
 
 ## Provider and credential boundary
 
-Use only the host's authenticated official Linear MCP connection. Discover capabilities from the
-active host instead of hard-coding tool names. Never read repository credentials, request API keys,
-use custom HTTP/GraphQL transport, or copy host tokens into a worker, subprocess, prompt, report,
-or file.
+Use only the host's authenticated official Linear MCP connection when provider mirroring is enabled.
+Discover capabilities from the active host instead of hard-coding tool names. Never read repository
+credentials, request API keys, use custom HTTP/GraphQL transport, or copy host tokens into a worker,
+subprocess, prompt, report, or file.
 
-Before a requested artifact operation, prove the minimum capabilities needed for that operation:
+Before a requested artifact operation in the optional mirror flow, prove the minimum capabilities
+needed for that operation:
 
 - exact project/issue read;
 - complete pagination for updates/comments/relations when those fields are used;
@@ -709,7 +765,7 @@ Automatic init setup is not an artifact operation. Authenticated read capability
 resolve its repository/workspace/team/native-name defaults is enough; provider write and
 post-mutation read-back capability are neither required nor probed.
 
-Missing required capability blocks the selected or required operation. Build requires complete
+Missing required capability blocks the selected or required mirror operation. Build requires complete
 project-spec, direct-issue, native-dependency, mutation, and approval-revision read-back.
 Selected standalone-plan persistence requires the same project/direct-issue/relation read-back but
 owns no approval gate. Fix requires complete fix-plan, relation, and approval-event read-back before
@@ -749,9 +805,8 @@ association and resolved caller-selected workspace/team, then re-read the exact 
 being changed. Gated Build/Fix begins with its immediate complete pre-save drift read, then protects
 each later target mutation with an optimistic revision/content-identity precondition or an immediate
 fresh read of that target under the single bounded synchronization order above. Write the smallest
-selected payload. Preserve unrelated
-human-authored content. Do not change assignee, delegate, status, labels, archival state, or
-unrelated relations/project membership, except for the
+selected payload. Preserve unrelated human-authored content. Do not change assignee, delegate, status,
+labels, archival state, or unrelated relations/project membership, except for the
 [active Execute project-start synchronization](#active-execute-project-start-synchronization)
 exception and the [project-backed workflow closure invariant](#project-backed-workflow-closure).
 Build/Fix gated synchronization and selected standalone-plan synchronization may set current
@@ -770,8 +825,7 @@ Creation and mutation are separate contracts:
   either the smallest exact text span that is unique in the current description, or one readable
   Markdown section with a unique heading and unambiguous bounds (including EOF). Require the
   expected prior text/section, and replace or insert only that bounded region through the supported
-  narrow payload.
-  Never send a reconstructed whole description.
+  narrow payload. Never send a reconstructed whole description.
 - Missing, duplicate, stale, unsupported, partial, or unknown target/span/section/boundary state
   blocks at that boundary. A failed, partial, or unknown outcome also blocks; never retry the full
   description or allocate a new identity.
@@ -784,24 +838,24 @@ archival state, unrelated relations, or project membership. Separately selected 
 defer to their applicable existing contracts; this invariant does not add fingerprint or approval
 requirements to those contracts.
 
-The invariant applies inside a gated Build/Fix workflow only during its one approved
-post-approval synchronization cycle. Ideate, Harden, and delegated Plan never invoke it while
-drafting. Standalone Plan continues to invoke it during its unchanged direct synchronization.
+The invariant applies inside a gated Build/Fix workflow only during its post-approval mirror
+synchronization cycle when enabled. Ideate, Harden, and delegated Plan never invoke it while
+drafting. Standalone Plan continues to invoke it during its direct synchronization.
 
 ## Active Execute project-start synchronization
 
-Normal Execute has one narrow workflow-owned status exception: in both `--project` and `--issue`
-modes, an exact canonical nonterminal project is synchronized to the configured
-`projectStatuses.started` status when any current direct issue's independently read native status
-matches the configured `linear.issueStates.executing` or `linear.issueStates.inReview` mapping by
-stable native identity and category. Read the complete, paginated direct-issue set and the exact
-project's native identity, workspace/team, current status, and revision before resolving or mutating
-anything. Resolve both issue-state mappings to exactly one native issue state, compare stable ID,
-name, and category rather than literal status names, and require both resolved mappings to have
-native category `started` before any issue-lifecycle, worktree, or source mutation. Resolve
-`projectStatuses.started` to exactly one native project status and require its native category to
-be `started`; missing, invalid, ambiguous, foreign, drifted, or
-incompletely paginated resolution blocks.
+When optional Linear mirroring is enabled (`linear.saveArtifacts: true`), normal Execute has one
+narrow workflow-owned status exception: in both `--project` and `--issue` modes, an exact canonical
+nonterminal project is synchronized to the configured `projectStatuses.started` status when any
+current direct issue's independently read native status matches the configured
+`linear.issueStates.executing` or `linear.issueStates.inReview` mapping by stable native identity
+and category. Read the complete, paginated direct-issue set and the exact project's native identity,
+workspace/team, current status, and revision before resolving or mutating anything. Resolve both
+issue-state mappings to exactly one native issue state, compare stable ID, name, and category rather
+than literal status names, and require both resolved mappings to have native category `started`
+before any issue-lifecycle, worktree, or source mutation. Resolve `projectStatuses.started` to
+exactly one native project status and require its native category to be `started`; missing, invalid,
+ambiguous, foreign, drifted, or incompletely paginated resolution blocks.
 
 If every direct issue is still `Backlog`/`Todo`, defer this synchronization until the selected
 issue has transitioned to the resolved `issueStates.executing` mapping and that issue transition has
@@ -815,25 +869,15 @@ revision, and stable mutation identity. Timeout, partial or foreign output, muta
 failed/unknown read-back blocks at that boundary without reopening or continuing. The project-status
 receipt is distinct from issue lifecycle and resume-checkpoint evidence.
 
-Use a stable client-generated operation ID when the host API exposes one. After mutation, perform a
-new independent complete read and compare:
-
-- native resource identity;
-- intended content and preserved content;
-- exact changed metadata;
-- provider revision/timestamp when available; and
-- stable operation ID when available.
-
-A successful mutation response is not proof. On timeout, partial output, or unknown outcome, re-read
-the same resource and operation identity before deciding whether anything remains to do. Never
-retry with a new resource or operation ID merely because the first response was unclear.
+When `linear.saveArtifacts: false`, active Execute project-start synchronization is skipped.
 
 ## Project-backed workflow closure
 
 Explicit abandonment is a terminal workflow action, distinct from handoff, replan, or a blocker.
-First remove any gated run manifest and its temporary directory under the cleanup rule above. Then,
-if the active Build, project-backed Fix, or standalone Plan workflow already has one exact
-persisted project, stop repository work and perform only these closure synchronization steps:
+First record `status: "abandoned"` in the run manifest and retain all run artifacts under the
+retention rule above. Then, if optional Linear mirroring is enabled (`linear.saveArtifacts: true`) and
+the active Build, project-backed Fix, or standalone Plan workflow has one exact persisted project,
+stop repository work and perform only these closure synchronization steps:
 
 1. use the retained exact project identity to determine whether a persisted project exists. If no
    exact project exists, report that there is nothing to close and do not create one;
@@ -849,8 +893,8 @@ persisted project, stop repository work and perform only these closure synchroni
 
 Do not archive or delete the project, bulk-change issue states, or create a project merely to
 cancel it. Closure failure or an unknown outcome produces a truthful artifact blocker at the
-retained stable retry boundary and never resumes repository work. Handoff, replan, and blocker
-handling leave project status unchanged.
+retained stable retry boundary and never resumes repository work. If `linear.saveArtifacts: false`,
+no provider closure call is made. Handoff, replan, and blocker handling leave project status unchanged.
 
 ## Suggested artifact shape
 
@@ -873,27 +917,25 @@ Use ordinary readable Markdown rather than a second authorization protocol:
 - Verification: <observed result>
 ```
 
-A build keeps its last approved high-level specification in the project description/update while
-its next gated draft remains only in the run manifest. After gate 2 synchronization, one direct
-project issue per increment keeps that increment's full executor contract and approved project-spec
-fingerprint; native dependency edges connect those issues. There is no current parent plan issue.
-Project-backed fixes use the same boundary. These records do not replace direct repository evidence.
+A build keeps its approved high-level specification in `.woostack/tmp/runs/<run-id>/project-spec.md`
+and its ordered execution plan and contracts in `.woostack/tmp/runs/<run-id>/execution-plan.md`.
+When optional mirroring is enabled, direct project issues mirror each increment's contract and
+approved project-spec fingerprint; native dependency edges connect those issues. There is no parent
+plan issue. Project-backed fixes use the same boundary. These records do not replace direct repository
+evidence.
 
 ## Artifact-free substitution
 
-For artifact-optional workflows only, when an older detailed procedure mentions an issue/project
-contract, owner, lifecycle event, receipt, or attribution trailer and artifact mode was not
-selected:
+Local run artifact authority is unconditional for Build and project-backed Fix. When `linear.saveArtifacts`
+is false or absent, workflows operate with zero provider dependency. When an older detailed procedure
+mentions an issue/project contract, owner, lifecycle event, receipt, or attribution trailer and provider
+mirroring is not enabled:
 
-- use the approved in-run task/specification/plan contract;
+- use the approved in-run task/specification/plan contract in `.woostack/tmp/runs/<run-id>/`;
 - use the workflow's responsible controller and explicit gates;
 - use the stable task/run/worktree identity;
 - use direct Git/Graphite/GitHub evidence; and
 - skip the Linear mutation, transition, receipt, relation, and trailer step.
-
-This substitution is unavailable for build-origin work and for project-backed fix-origin work after
-root-cause proof. Build and project-backed Fix require their exact project plus approved direct-issue
-graph.
 
 All repository isolation, collision, verification, review, recovery, and no-force-push safeguards
 remain. This substitution changes storage only, never safety.
@@ -901,5 +943,5 @@ remain. This substitution changes storage only, never safety.
 ## Reporting
 
 Report repository delivery and artifact synchronization as separate outcomes. Include the exact
-artifact project URL/UUID or canonical issue reference and read-back result only when artifact mode
-was selected. Never claim an artifact read or write that was not independently observed.
+artifact project URL/UUID or canonical issue reference and read-back result only when provider mirroring
+was selected and enabled. Never claim an artifact read or write that was not independently observed.

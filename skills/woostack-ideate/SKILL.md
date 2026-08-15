@@ -15,15 +15,14 @@ call, and makes no implementation or planning handoff of its own.
 The owning Build/Fix wrapper supplies the exact baseline and permission-restricted run-scoped JSON
 manifest admitted under the shared
 [gated draft contract](../woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest).
-Ideate verifies the manifest's run/process identity, restrictive permissions, baseline project
-identity/revision/fingerprint, draft content, stable keys, unresolved questions, and atomic-update
+Ideate verifies the manifest's run identity, restrictive permissions (`0700` directory and `0600`
+regular file), draft content, monotonic revision, unresolved questions, and atomic compare-and-swap
 boundary before using it.
 
 Ideate never resolves, creates, reads, patches, or independently reads back a provider record.
-Missing, stale, foreign, overly permissive, symlinked, process-mismatched, or malformed manifest
-state blocks and returns to the owning wrapper for fresh baseline admission. The local draft is not
-Linear authority and never replaces the last Linear-approved boundary.
-
+Missing, stale, foreign, overly permissive, symlinked, or malformed manifest state blocks and returns
+to the owning wrapper. The local run manifest is the canonical local authority and makes zero provider
+calls.
 ## Non-negotiable content invariant
 
 **No inferred, repository-derived, agent-preferred, or merely plausible content enters the project

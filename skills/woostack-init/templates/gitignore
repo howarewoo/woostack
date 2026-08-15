@@ -4,3 +4,4 @@ metrics.json
 visuals/
 qa/evidence/
 worktrees/
+tmp/
