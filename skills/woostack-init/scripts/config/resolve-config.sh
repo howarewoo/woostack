@@ -22,6 +22,15 @@ config_path="$repo_root/.woostack/config.json"
 if ! config="$(jq -c 'if type == "object" then . else error("root") end' "$(tool_path_arg jq "$config_path")" 2>/dev/null)"; then
   fail ".woostack/config.json must contain an object"
 fi
+if ! jq -e '
+  if has("linear") and (.linear | type == "object") and (.linear | has("saveArtifacts")) then
+    .linear.saveArtifacts | type == "boolean"
+  else
+    true
+  end
+' <<<"$config" >/dev/null 2>&1; then
+  fail ".woostack/config.json linear.saveArtifacts must be a boolean"
+fi
 
 common_dir="$(git -C "$repo_root" rev-parse --git-common-dir 2>/dev/null || true)"
 if [ -n "$common_dir" ]; then

@@ -60,31 +60,32 @@ Do not run `/woostack-init`, create `.woostack/`, scaffold code, or add config u
 user explicitly asks for that behavior or the loaded task-specific skill requires it as part
 of an approved workflow.
 
-**Artifact invariant:** Linear is the canonical product record for builds and, after root-cause
-proof, project-backed fixes. Each uses one exact project, one direct issue per execution increment,
-native issue dependencies, and two exact responsible-user approval events.
+**Artifact invariant:** The canonical persistent product record for builds and, after root-cause
+proof, project-backed fixes is local in `.woostack/tmp/runs/<run-id>/`. Provider mirroring (Linear)
+is an optional mirror flow gated by `linear.saveArtifacts: true` (default `false`). Each workflow uses
+one exact run store under `.woostack/tmp/runs/<run-id>/`, owner-only `0700`/`0600` permissions, monotonic
+revision compare-and-swap updates, raw UTF-8 SHA-256 local receipts, and two exact responsible-user
+approval events.
 
-After exact baseline admission, gated Ideate, Harden, and Build/Fix-delegated Plan work uses a
-permission-restricted run manifest and performs no intermediate provider cycles. Each approval
-presentation streams the complete exact local content and identity (or a verified same-process
-byte-complete revision diff with old/new identities), immediately followed by a body-free
-`Accept`/`Abandon` Ask; approval precedes the one bounded save, exact content read-back precedes the
-receipt, and exact receipt/read-back precedes gate clearance. After gate 2, Build/Fix display the
-verified project handoff and ask `Stop here`, `Execute`, or `Abandon`; Execute is separately invoked
-or dispatched only for the selected choice. Standalone Plan keeps its direct synchronization
-unchanged. Follow the
-[`Linear artifact contract`](../woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest)
+Gated Ideate, Harden, and Build/Fix-delegated Plan work uses the permission-restricted local run
+manifest and performs zero intermediate provider cycles. Each approval presentation streams the complete
+exact local content and identity (or a verified same-process byte-complete revision diff with old/new
+identities), immediately followed by a body-free `Accept`/`Abandon` Ask; approval records the local receipt,
+and optional provider mirroring synchronizes to Linear in one bounded cycle after local approval. After
+gate 2, Build/Fix display the verified project handoff and ask `Stop here`, `Execute`, or `Abandon`;
+Execute is separately invoked or dispatched only for the selected choice. Standalone Plan keeps its
+direct synchronization unchanged. Follow the
+[`Local run artifact and provider mirror contract`](../woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest)
 for the detailed contract.
 
 Linear assignment, status, labels, content, or an unreceipted response never authorizes work, and
-Linear never replaces direct Git/Graphite/GitHub source-control evidence. Other workflows remain
-artifact-optional. `/woostack-init` may make authenticated read-only setup calls through the
+development artifacts never replace direct Git/Graphite/GitHub source-control evidence. Other workflows
+remain artifact-optional. `/woostack-init` may make authenticated read-only setup calls through the
 official Linear MCP to validate non-secret defaults; it cannot select persistence, read development
 artifact content, or write. `woostack-change` never contacts Linear. Explicit Build or
-project-backed Fix abandonment cleans the run manifest and closes the exact project through
-configured canceled status/read-back; source issues are preserved. Handoff, replanning, and
-blockers leave project status unchanged.
-
+project-backed Fix abandonment retains all local run artifacts in `.woostack/tmp/runs/<run-id>/` and,
+when optional mirroring is enabled, closes the exact project through configured canceled status/read-back;
+source issues are preserved. Handoff, replanning, and blockers leave project status unchanged.
 
 ## Command Routing
 
