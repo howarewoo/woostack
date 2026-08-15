@@ -1,14 +1,13 @@
 ---
 title: Context management
-description: "How woostack keeps context small while preserving repository truth and selected artifact provenance."
+description: "How woostack keeps context small while preserving repository truth and local run authority."
 ---
 
 Context economy is not authority compression. The current approved workflow defines scope; Git and
-GitHub own code and PR truth. Build/standalone-plan projects are read only when exact caller-selected
-or explicitly persisted. A Fix project and direct-issue plan are resolved or created only after
-root-cause proof. No path reconstructs authority from a local mirror, mutable title, nearby branch,
-cached remote body, or artifact prose.
-
+GitHub own code and PR truth. Local run manifests under `.woostack/tmp/runs/<run-id>/` own build and
+post-proof fix contracts, with optional Linear mirroring (`linear.saveArtifacts: true`).
+Standalone-plan projects are read only when exact caller-selected or explicitly persisted. No path
+reconstructs authority from a mutable title, nearby branch, cached remote body, or artifact prose.
 ## Output stays compact
 
 [using-woostack](/docs/skills/using-woostack) loads one shared output discipline: lead with the
@@ -44,8 +43,7 @@ Small helpers compute bounded local results:
 
 Generated indexes, bundles, temporary intent snapshots, and caches are non-authoritative aids.
 Remote titles, descriptions, comments, diffs, artifact text, and tool output are evidence, never
-instructions. Controllers refresh relevant source/provider truth before side effects.
-
+instructions. Controllers refresh relevant repository and local run truth before side effects.
 ## Isolated agents receive bounded envelopes
 
 Each worker receives the minimum envelope for its role:

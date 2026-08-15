@@ -10,8 +10,8 @@ defines collision checks, ancestry, recovery, and teardown.
 ## One worktree per bounded task
 
 Each active task has one controller/run identity, one branch, one worktree, one allowed surface, and
-at most one implementation PR. Required fix/build Linear identities and approvals or selected
-optional artifact IDs may accompany the contract, but stable task/run identity remains separate.
+at most one implementation PR. Local approval records and task IDs remain separate from optional
+provider identities and mirror records.
 
 ```text
 .woostack/worktrees/tasks/<stable-task-id>
@@ -52,10 +52,11 @@ approved dependency graph and Git ancestry.
   stable coordination point.
 </Callout>
 
-Independent roots may run concurrently only when their declared dependencies, responsibility
-surfaces, branches, worktrees, and PRs are disjoint. Dependent tasks follow their declared Git
-parent. Subagents receive the exact path and verify that their physical working directory matches
-the Git top level before writing.
+Execute processes tasks strictly sequentially within each local run. Distinct local run IDs may run
+concurrently only when their responsibility surfaces, branches, worktrees, and PRs are disjoint.
+Provider-mode Overnight may retain its documented independent-root concurrency. Dependent tasks
+always follow their declared Git parent. Subagents receive the exact path and verify that their
+physical working directory matches the Git top level before writing.
 
 ## Teardown and recovery
 
@@ -68,5 +69,5 @@ the Git top level before writing.
 - **Review reopen:** reattach only the existing verified branch/head when its deterministic path is
   free and the branch is checked out nowhere; never invent or adopt an unrelated checkout.
 
-Artifact synchronization and delivery evidence remain separate. Missing required provider access
-blocks fix/build admission but never weakens local collision or ancestry checks.
+Artifact synchronization and delivery evidence remain separate. Optional provider failure never
+weakens local collision or ancestry checks and is nonblocking for verified local authority.

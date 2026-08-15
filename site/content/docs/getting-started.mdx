@@ -1,12 +1,13 @@
 ---
 title: Getting started
-description: Install woostack in a coding harness, initialize safe Linear defaults, and optionally use an external engineer.
+description: Install woostack in a coding harness, initialize local support, and optionally configure Linear mirroring or an external engineer.
 ---
 
 <Callout type="info">
-  Linear owns current product scope and execution contracts for builds and post-diagnosis fixes.
-  Git and GitHub own code, branches, pull requests, reviews, and merges. The responsible user's
-  exact native Linear approval event clears only the matching fix/build revision gate.
+  Local run authority in `.woostack/tmp/runs/<run-id>/` owns product scope and execution contracts for
+  builds and post-diagnosis fixes, with optional Linear mirroring (`linear.saveArtifacts: true`). Git
+  and GitHub own code, branches, pull requests, reviews, and merges. The responsible user's exact
+  approval event clears only the matching fix/build gate-file hash.
 </Callout>
 
 ## Dependencies
@@ -17,9 +18,9 @@ Prepare these tools before installing woostack:
 - Node.js and pnpm. The installation command below uses `pnpx`.
 - Bash, Git, the GitHub CLI (`gh`), the Graphite CLI (`gt`), and `jq`. Authenticate both CLIs
   and initialize Graphite for the target repository before running a workflow that delivers a PR.
-- An authenticated official Linear MCP connection for `/woostack-build` and post-diagnosis
-  `/woostack-fix`. Local initialization and Linear-free workflows such as `/woostack-change` do
-  not require it.
+- An authenticated official Linear MCP connection only when optional Linear mirroring is enabled
+  (`linear.saveArtifacts: true`). Local initialization, default local run authority, and
+  Linear-free workflows such as `/woostack-change` do not require it.
 
 ## 1. Install the skills
 
@@ -46,8 +47,9 @@ and does not create a specification, plan, fix, issue, project, branch, or PR. E
 attempts safe read-only Linear default discovery through the host-exposed official MCP. Missing or
 incomplete Linear capability is reported separately and never blocks local initialization.
 
-Read [Configuration](/docs/configuration) for policy. Every build resolves or creates one Linear
-project. After root-cause proof, a Fix resolves or creates its own project and direct-issue plan.
+Read [Configuration](/docs/configuration) for policy. Every build and project-backed Fix allocates
+or resumes an exact local run store under `.woostack/tmp/runs/<run-id>/`. When
+`linear.saveArtifacts: true`, Build and post-proof Fix also resolve or create one Linear project mirror.
 
 ## 3. Choose the workflow
 
@@ -61,10 +63,11 @@ project. After root-cause proof, a Fix resolves or creates its own project and d
 | Address unresolved PR threads | `/woostack-address-comments` |
 | Show current repository work state | `/woostack-status` |
 
-The selected workflow's contract and approval gates authorize work. Linear records are required for
-fix/build product authority but do not replace repository-delivery evidence.
+The selected workflow's contract and approval gates authorize work. Retained local run manifests
+record build/fix product authority and enable exact resume for approved nonterminal runs
+(`/woostack-execute --run <exact-run-id>`), but do not replace repository-delivery evidence.
 
-## 4. Automatic Linear default setup
+## 4. Optional Linear mirror setup
 
 The default `/woostack-init` run discovers only the host-exposed official Linear MCP endpoint:
 
@@ -80,23 +83,24 @@ is a separately reported setup skip/blocker and does not fail ordinary local ini
 Authentication stays in the host's MCP/OAuth secret store. Never place API keys, credentials,
 tokens, or authorization headers in repository config, prompts, logs, or generated files.
 
-The `linear` configuration supplies validated defaults after a workflow requires or selects Linear.
-Build uses them to create its canonical project when no exact project was supplied. After proof, a
-new Fix uses them to create its canonical project and direct issues. Policy cannot authorize a
-workspace/team. Gated Build and project-backed Fix then admit an exact Linear baseline, keep
-question and hardening changes in a secure local draft, and stream the complete verified
-`project-spec.md` or `execution-plan.md` Markdown bytes and full identity immediately before a
-body-free `Accept`/`Abandon` Ask. Same-process revisions may stream one verified byte-complete
-unified diff with old/new full-file identities; otherwise the complete artifact is streamed. The
-responsible user accepts only that exact preceding identity before one bounded save. Native content
-or graph read-back is compared by the shared provider-presentation canonical fingerprint before the
-matching approval receipt; both the native bytes and receipts are independently read before the gate
-clears. After gate 2, Build/Fix display the verified project handoff and ask exactly `Stop here`,
-`Execute`, or `Abandon`; Execute is separately invoked or dispatched only for the selected choice.
+`linear.saveArtifacts: false` is the default in `.woostack/config.json`, keeping workflows
+provider-free. Supplying `--project` when `linear.saveArtifacts` is false or absent fails closed
+immediately with an error stating that `--project` requires `linear.saveArtifacts: true`.
 
-Build uses one project for the high-level specification, one direct issue per increment, and native
-issue dependencies. Fix uses one project for the complete specification plus a strict direct-issue
-chain. `woostack-change` never contacts Linear.
+When `linear.saveArtifacts: true` is configured, the `linear` configuration supplies validated
+defaults for canonical project creation when no exact project was supplied. Gated Build and
+project-backed Fix stream the complete verified `project-spec.md` or `execution-plan.md` Markdown
+bytes and full identity immediately before a body-free `Accept`/`Abandon` Ask. Same-process
+revisions may stream one verified byte-complete unified diff with old/new full-file identities.
+Local raw-hash approval records (`projectSpecApprovalRecord` and `executionPlanApprovalRecord`) are
+recorded upon acceptance, followed by one bounded mirror synchronization cycle. Mirror failure is
+recorded in the manifest and is nonblocking for local authority. All run artifacts in
+`.woostack/tmp/runs/<run-id>/` are retained upon completion and explicit abandonment. After gate 2,
+Build/Fix present the verified `/woostack-execute --run <exact-run-id>` handoff and ask exactly
+`Stop here`, `Execute`, or `Abandon`. A mirrored project identity is evidence, not an alternate
+handoff command.
+
+`woostack-change` never contacts Linear.
 
 ## 5. Use an external engineer (optional)
 
@@ -107,21 +111,20 @@ redispatch. OMP remains the isolated coding harness and retains implementation a
 approved task; Hermes never edits implementation source or accepts without direct evidence.
 
 The [Hermes guide](/docs/hermes) is the sole setup guide. It covers argument-safe `terminal`/`process`
-use, responsible-user approval relayed verbatim through the same persistent OMP process, matching
-Linear receipts, and fail-closed restart/replay behavior. It also documents optional manual cleanup
-of legacy launchers; woostack never installs or removes those files automatically.
+use, responsible-user approval relayed verbatim through the active OMP process, and cross-session
+resume against retained local artifacts without requiring a single process to stay alive forever.
+It also documents optional manual cleanup of legacy launchers; woostack never installs or removes
+those files automatically.
 
 ## Setup references
 
 <Cards>
-  <Card title="Configuration" href="/docs/configuration" description="Non-secret repository policy and automatic safe Linear defaults." />
+  <Card title="Configuration" href="/docs/configuration" description="Non-secret repository policy, local run authority, and optional safe Linear defaults." />
   <Card title="Building rules" href="/docs/concepts/building-rules" description="Workflow routing, gates, execution, and authority boundaries." />
   <Card title="Hermes as an external engineer" href="/docs/hermes" description="Drive one persistent OMP process without installing woostack in Hermes." />
   <Card title="OMP" href="/docs/harnesses/omp" description="Host-owned project workers and native OMP routing." />
-  <Card title="Official Linear MCP" href="https://mcp.linear.app/mcp" description="Canonical build and post-diagnosis Fix projects, direct-issue plans, and approvals." />
+  <Card title="Official Linear MCP" href="https://mcp.linear.app/mcp" description="Optional Linear mirror projects, direct-issue plans, and approval records." />
 </Cards>
-
-
 ## Recommended companions
 
 Independent implementation skills such as framework, database, security, accessibility, or writing

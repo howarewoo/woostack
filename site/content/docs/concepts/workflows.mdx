@@ -1,14 +1,14 @@
 ---
 title: Workflow maps
-description: "Bootstrap, Build, Fix, and Change under split Linear product authority and repository delivery truth."
+description: "Bootstrap, Build, Fix, and Change under local run authority, optional Linear mirroring, and repository delivery truth."
 ---
 
-Every repository-changing woostack workflow starts from an explicit user goal. Linear owns the
-current product specification and execution contracts for builds and post-diagnosis fixes; exact
-responsible-user native Linear approval events clear their matching revision gates. Git and GitHub
-own implementation and delivery truth. Bootstrap, change, standalone planning, and other artifact
-use retain their documented optional boundaries.
-
+Every repository-changing woostack workflow starts from an explicit user goal. Local run manifests
+under `.woostack/tmp/runs/<run-id>/` own current product specifications, increment contracts, and
+approval records for builds and post-diagnosis fixes, with optional Linear mirroring
+(`linear.saveArtifacts: true`). Exact responsible-user approval events clear their matching revision
+gates. Git and GitHub own implementation and delivery truth. Bootstrap, change, standalone planning,
+and other artifact use retain their documented optional boundaries.
 ## Route by work shape
 
 ```mermaid
@@ -40,54 +40,59 @@ write barrier or repository authority.
 ## Build
 
 ```text
-resolve/create project and admit exact baseline → local Ideate/Harden →
+allocate/resume local run and admit baseline (if mirroring) → local Ideate/Harden →
 stream complete verified `project-spec.md` bytes and full identity (or a verified same-process
 byte-complete unified diff with old/new identities) immediately before a body-free `Accept`/`Abandon`
-Ask → bounded save/read-back/receipt → local Plan/Harden →
+Ask → record local approval record (and optional bounded mirror sync) → local Plan/Harden →
 stream complete verified `execution-plan.md` bytes and full identity (or a verified same-process
 byte-complete unified diff with old/new identities) immediately before a body-free `Accept`/`Abandon`
-Ask → bounded save/read-back/receipt → clean up → verified `Stop here`/`Execute`/`Abandon` handoff
+Ask → record local approval record (and optional bounded mirror sync) → retain run artifacts →
+verified `Stop here`/`Execute`/`Abandon` handoff
 ```
 
-Build owns exactly two gates. Its approved direct-issue graph orders independently shippable
-increments, each with at most one PR. Dependency-independent disjoint increments may execute
-concurrently in separate worktrees. Every build uses one project for its high-level specification
-and one direct issue per increment; there is no parent plan issue.
+Build owns exactly two gates. Its approved direct increment graph orders independently shippable
+increments, each with at most one PR. Execute processes one increment at a time in ordinal order
+within a run; distinct run IDs may execute concurrently only through disjoint branches, worktrees,
+and responsibility surfaces. Every build manages one high-level specification and direct increment
+contracts in its retained local run manifest.
 
 ## Fix
 
 ```text
-prompt → reproduce → prove root cause → admit writable target and canonical project →
+prompt → reproduce → prove root cause → admit writable target and allocate/resume local run →
 use the same local two-gate drafting and bounded synchronization path as Build →
 present the verified `Stop here`/`Execute`/`Abandon` handoff
 ```
 
-Fix owns the same two project-backed approval gates as Build and never substitutes a symptom patch
-for root-cause proof. After proof, an exact `--project` is reused or one project is created from
-validated defaults. An exact source `--issue` remains source context and is preserved apart from its
-supported project link; it is not repurposed as a plan issue. The complete diagnosis and
-specification live on the canonical project, with executor-ready contracts on direct issues and
-native dependencies between them.
+Fix owns the same two approval gates as Build and never substitutes a symptom patch for root-cause
+proof. After proof, a canonical local run is allocated or resumed (and when `linear.saveArtifacts: true`,
+an exact `--project` is reused or one project is created from validated defaults). An exact source
+`--issue` remains source context and is preserved apart from its supported project link; it is not
+repurposed as a plan issue. The complete diagnosis and specification live on the local run manifest,
+with executor-ready contracts on direct increments and dependencies between them.
 
 Build and Fix obey the shared
-[Linear artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest).
-It defines exact baseline admission, provider-free gated drafting, deterministic owner-only gate
-files, complete streamed Markdown bytes and identity, same-process byte-complete revision diffs with
-old/new identities, body-free `Accept`/`Abandon` approval Asks, approval-before-save, native
-read-back compared by the shared provider-presentation canonical fingerprint before receipt, stable
-identity mapping, failure recovery, cleanup, and unchanged Execute rechecks.
+[Local run artifact and provider mirror contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest).
+It defines local run store allocation and resume, provider-free gated drafting, deterministic
+owner-only gate files, complete streamed Markdown bytes and identity, same-process byte-complete
+revision diffs with old/new identities, body-free `Accept`/`Abandon` approval Asks, local raw-hash
+approval records, optional bounded mirror synchronization, artifact retention, failure recovery, and
+unchanged Execute rechecks.
 
-After gate 2, Build/Fix display the exact verified project URL or UUID, both approval receipts and
-canonical fingerprints, stable task mappings, dependencies, approved parent branch, last admitted
-tip, and `/woostack-execute --project <exact Linear URL-or-UUID>`. The body-free handoff Ask offers
-exactly `Stop here`, `Execute`, and `Abandon`. Stop here returns without repository or project-state
-mutation; Execute invokes normal Execute exactly once in the same session; Abandon closes the
-existing project without dispatch. Unknown or custom input fails closed and asks again.
+After gate 2, Build/Fix display the exact run ID, both local approval records and gate-file hashes,
+stable task mappings, dependencies, approved parent branch, last admitted tip, and
+`/woostack-execute --run <exact-run-id>`. A mirrored project URL/UUID is evidence only, not an
+alternate Build/Fix handoff. The body-free handoff Ask offers exactly `Stop here`, `Execute`, and
+`Abandon`. Stop here returns the exact resume command without repository or manifest mutation;
+Execute invokes normal Execute once in the same session; Abandon records abandonment without
+dispatch. Unknown or custom input fails closed and asks again.
 
-The temporary local draft never replaces the last Linear-approved boundary. Material project drift
-invalidates both records; issue or dependency drift invalidates only the execution-plan record.
-Before root-cause proof, Fix makes no provider call. Standalone Plan remains outside this gated path
-and keeps its direct synchronization and independent read-back unchanged.
+The manifest is the canonical local run authority. Material `project-spec.md` changes invalidate both
+local approval records; material `execution-plan.md`, increment, or dependency changes invalidate
+only the execution-plan record. Optional mirror drift is recorded as mirror failure and never
+invalidates local authority. Before root-cause proof, Fix makes no provider call. Standalone Plan
+remains outside this gated path and keeps its direct synchronization and independent read-back
+unchanged.
 
 ## Change
 
@@ -111,38 +116,38 @@ Build and Fix prepare approved work for the separately invoked [woostack-execute
 6. independently read the PR/head/base/check/review result back.
 
 Build/Fix do not execute automatically after gate 2. The user may choose `Stop here` and invoke
-Execute later with the exact project command, choose `Execute` for one same-session dispatch, or
-choose `Abandon` for canonical closure. [woostack-execute-overnight](/docs/skills/woostack-execute-overnight)
-replaces only human stop points after execution begins; it does not weaken scope, verification,
-review, collision, or merge boundaries.
+Execute later with the exact command (`/woostack-execute --run <exact-run-id> [--recheck]`), choose
+`Execute` for one same-session dispatch, or choose `Abandon` for canonical closure.
+[woostack-execute-overnight](/docs/skills/woostack-execute-overnight) replaces only human stop points
+after execution begins; it does not weaken scope, verification, review, collision, or merge boundaries.
 
-## Linear fix/build paths
+## Local run and optional Linear fix/build paths
 
 ```text
 build
-  → resolve/create one exact project and admit gate 1 baseline
+  → allocate/resume local run in .woostack/tmp/runs/<run-id>/ (admit gate 1 baseline if mirroring)
   → draft and harden locally with zero provider calls
   → stream complete `project-spec.md` and body-free Accept/Abandon Ask
-  → drift-check, synchronize once, read content back, then record/read the receipt
+  → record local raw-hash approval record (drift-check, mirror once, and read back if mirroring)
   → repeat local draft/harden/stream/Accept-or-Abandon for `execution-plan.md`
-  → clean up both gate files and the run manifest
-  → present verified project handoff: Stop here, Execute, or Abandon
+  → retain all run artifacts in .woostack/tmp/runs/<run-id>/
+  → present verified run handoff: Stop here, Execute, or Abandon
 
 fix
   → diagnose and admit the writable target without provider access
-  → after proof, resolve/create the exact project and use the same two-gate file order
+  → after proof, allocate/resume local run store and use the same two-gate file order
   → preserve any source issue as context rather than a plan or approval record
-  → clean up both gate files and the run manifest
-  → present verified project handoff: Stop here, Execute, or Abandon
+  → retain all run artifacts in .woostack/tmp/runs/<run-id>/
+  → present verified run handoff: Stop here, Execute, or Abandon
 ```
 
 The linked artifact contract owns every detail and failure boundary. Artifact-optional workflows
-make no Linear call without exact selection or an explicit persistence request.
+make no Linear call unless their own contract explicitly selects provider artifact access.
 
-If a project-backed build/plan/Fix workflow is explicitly abandoned, repository work stops and its
-exact existing canonical project moves to the configured canceled status. The workflow reads that
-transition back before claiming closure. Any source issue remains preserved apart from its supported
-project link. A normal handoff, replan, or blocker leaves project status unchanged.
+If a local build/Fix workflow is explicitly abandoned, repository work stops, `status: "abandoned"` is
+recorded in the run manifest, and all run artifacts in `.woostack/tmp/runs/<run-id>/` are retained
+without mutating a mirrored Linear project. Standalone Plan closes its existing project as canceled
+after independent read-back. A normal handoff, replan, or blocker leaves project status unchanged.
 
 ## Terminal outcomes
 
@@ -151,8 +156,9 @@ Every route returns one of:
 - verified reviewed PR or reviewed stack;
 - approved handoff before implementation;
 - truthful blocker with exact safe resume boundary; or
-- explicit abandonment preserving recoverable repository evidence and closing the exact existing
-  build/plan/Fix project as canceled after independent read-back. Any source issue is preserved
-  apart from its supported project link.
+- explicit abandonment preserving recoverable repository evidence, recording `status: "abandoned"`
+  in the run manifest, and retaining all run artifacts. For standalone Plan, the exact existing
+  project is closed as canceled after independent read-back. Any source issue is preserved apart from
+  its supported project link.
 
 No woostack development workflow merges.
