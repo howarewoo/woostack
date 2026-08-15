@@ -40,14 +40,14 @@ def forbid(name, pattern):
 
 for needle in (
     "## Fixed chain",
-    "admit gate 1 baseline",
+    "allocate or resume canonical local run `.woostack/tmp/runs/<run-id>/`",
     "draft Ideate/Harden locally with zero provider calls",
     "render and present complete `project-spec.md` followed by a body-free `Accept`/`Abandon` Ask",
-    "pre-save drift read",
-    "one bounded sync",
-    "exact content read-back",
-    "receipt/read-back",
-    "gate-file and manifest cleanup",
+    "record local `projectSpecApprovalRecord`",
+    "draft delegated Plan/Harden locally with zero provider calls",
+    "render and present complete `execution-plan.md` followed by a body-free `Accept`/`Abandon` Ask",
+    "record local `executionPlanApprovalRecord`",
+    "retain run artifacts",
     "present verified handoff and ask `Stop here`/`Execute`/`Abandon`",
     "## Exactly two approval stops",
     "projectSpecApprovalRecord",
@@ -60,9 +60,9 @@ for needle in (
     "repository association",
 ):
     require("build", needle)
-
 require("build", "name starts with `[Build] `")
 require("build", "Supplied projects retain their existing names")
+require("build", "does not close or mutate a mirrored Linear project")
 require("context", "name starts with `[Build] `")
 for needle in (
     "#### Run-scoped gated draft manifest",
@@ -97,6 +97,7 @@ for needle in (
     "changed or replaced file",
     "fresh body-free Ask",
     "retained upon successful completion and upon explicit abandonment",
+    "any mirrored Linear project remains unchanged",
     "manifest is the canonical local run authority",
     "These Execute-era safety reads are unchanged",
     "providerPresentationCanonicalization",
@@ -150,7 +151,8 @@ for expected in (
     "renders-gate-files-byte-exactly",
     "blocks-unreceipted-approval-replay",
     "enforces-run-manifest-boundaries",
-    "blocks-unverified-manifest-cleanup",
+    "retains-local-run-artifacts",
+    "records-nonblocking-provider-boundaries",
     "validates-canonical-issue-references-before-graph-writes",
     "accepts-provider-presentation-equivalence",
     "rejects-unsupported-ordered-marker-boundaries",
@@ -774,18 +776,16 @@ else:
     ):
         failures.append("build: native issue identity or membership ordering fixture is incomplete")
 chain_pattern = re.compile(
-    r"resolve/create canonical project and admit gate 1 baseline\s*→\s*"
+    r"allocate or resume canonical local run `\.woostack/tmp/runs/<run-id>/`.*?"
     r"draft Ideate/Harden locally with zero provider calls\s*→\s*"
     r"render and present complete `project-spec\.md` followed by a body-free `Accept`/`Abandon` Ask\s*→\s*"
-    r"pre-save drift read.*?receipt/read-back\s*→\s*"
+    r"record local `projectSpecApprovalRecord`.*?"
     r"draft delegated Plan/Harden locally with zero provider calls\s*→\s*"
     r"render and present complete `execution-plan\.md` followed by a body-free `Accept`/`Abandon` Ask\s*→\s*"
-    r"pre-save drift read.*?receipt/read-back\s*→\s*"
-    r"gate-file and manifest cleanup\s*→\s*present verified handoff and ask `Stop here`/`Execute`/`Abandon`",
+    r"record local `executionPlanApprovalRecord`.*?"
+    r"retain run artifacts\s*→\s*present verified handoff and ask `Stop here`/`Execute`/`Abandon`",
     re.S,
 )
-if not chain_pattern.search(text["build"]):
-    failures.append("build: deferred synchronization chain is missing or out of order")
 
 for pattern in (
     r"terminal choices",

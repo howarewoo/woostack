@@ -1,17 +1,20 @@
 # Linear project context
 
-This procedure resolves the one canonical Linear project required by
-[`woostack-build`](../SKILL.md) and admits each exact pre-draft baseline. Repository policy can
-supply validated defaults because Build selected its required Linear path; policy never authorizes
-provider access for unrelated workflows.
+When optional Linear mirroring is enabled (`linear.saveArtifacts: true`), this procedure resolves the
+one canonical Linear project for [`woostack-build`](../SKILL.md) and admits each exact pre-draft
+baseline. When `linear.saveArtifacts` is false or absent, default local mode makes zero provider calls,
+`--project` fails closed before any provider access, and local run authority in
+`.woostack/tmp/runs/<run-id>/` operates with no provider context. Repository policy supplies validated
+defaults only after Linear mirroring is selected and enabled; policy never authorizes provider access
+by itself.
 
 The [Linear artifact contract](../../woostack-init/references/artifact-backends.md) is the single
 authority for the run manifest, deterministic owner-only gate files, complete streamed artifact
 bytes and identity, same-process byte-complete revision diffs with old/new identities, body-free
-`Accept`/`Abandon` approval Asks, path/byte-length/SHA-256/fingerprint-version identity,
-post-approval ordering, stable-key/canonical-issue-reference mapping, nullable-parent validation,
-drift and process-loss recovery, cleanup, fingerprints, receipts, independent read-back, and
-unchanged Execute reads. The shared [repository advancement
+`Accept`/`Abandon` approval Asks, local approval records, optional mirror synchronization,
+stable-key/canonical-issue-reference mapping, nullable-parent validation, drift and process-loss
+recovery, artifact retention, fingerprints, receipts, independent read-back, and unchanged Execute
+reads. The shared [repository advancement
 contract](../../woostack-init/references/artifact-backends.md#repository-ancestry-is-separate-from-approval-identity)
 separately governs compatible parent-tip re-admission; use the
 [Linear synchronization procedure](linear-procedure.md) only for the bounded post-approval save
@@ -59,20 +62,19 @@ the exact admitted fields. Record native identity, workspace/team, canonical rep
 association, provider revision/timestamp when available, pagination completeness, read time, and
 source in the run manifest.
 
-That exact snapshot is gate 1's baseline. Ideate and Harden make zero provider reads and writes
-until the shared contract streams the complete verified `project-spec.md` bytes and full identity
-(or a verified same-process byte-complete revision diff with old/new identities) immediately before
-the body-free `Accept`/`Abandon` Ask. The responsible user's acceptance binds only that exact
-preceding identity. The shared contract then owns no-follow regeneration and file checks, immediate
-pre-save comparison, bounded synchronization, exact content read-back, `projectSpecApprovalRecord`,
-and final receipt/read-back. Status, lead, label, update, assignment, content alone, or an
-unreceipted conversation response never clears gate 1.
-
+That exact snapshot is gate 1's baseline when mirroring is enabled. Ideate and Harden make zero provider
+reads and writes until the shared contract streams the complete verified `project-spec.md` bytes and full
+identity (or a verified same-process byte-complete revision diff with old/new identities) immediately
+before the body-free `Accept`/`Abandon` Ask. The responsible user's acceptance binds only that exact
+preceding identity and produces the local `projectSpecApprovalRecord`. When `linear.saveArtifacts: true`,
+the shared contract performs immediate pre-save comparison, one bounded synchronization, exact content
+read-back, and provider approval record creation. Mirror failures are recorded in the manifest and are
+nonblocking.
 ## Direct increment graph baseline
 
-After the gate 1 receipt and referenced project read back exactly, list every issue directly in the
-project with complete pagination. Select only current issues that:
-
+When Linear mirroring is enabled, after gate 1 approval produces `projectSpecApprovalRecord` and
+optional mirror synchronization completes, list every issue directly in the project with complete
+pagination. Select only current issues that:
 - belong directly to the project;
 - expose one canonical issue reference that round-trips through the official MCP under the exact
   workspace/team/project scope;
@@ -113,25 +115,27 @@ fingerprints, and gate 1 receipt in the manifest. Delegated Plan and Harden then
 reads and writes until the shared contract streams the complete verified `execution-plan.md` bytes
 and full identity (or a verified same-process byte-complete revision diff with old/new identities)
 immediately before the body-free `Accept`/`Abandon` Ask. The user's acceptance binds only that exact
-preceding identity. The shared contract owns drift comparison, one bounded synchronization,
-stable-key mapping, exact graph read-back, `executionPlanApprovalRecord`, and final receipt/read-back.
-
+preceding identity and produces the local `executionPlanApprovalRecord`. When `linear.saveArtifacts: true`,
+the shared contract performs drift comparison, one bounded synchronization, stable-key mapping, exact
+graph read-back, and provider approval record creation; mirror failures are nonblocking.
 ## Drift and failure
 
-Before either gated save, compare a fresh complete read with the manifest baseline exactly and
-revalidate the approved gate file with no-follow, owner, mode, regular-file, regeneration, path,
-length, hash, and process checks. Drift or file identity mismatch invalidates the approval and
-requires fresh baseline admission, regeneration, and a fresh concise Ask; an unreceipted response
-cannot replay. Provider/process/manifest failure follows the shared recovery and cleanup contract
-with no local, cached, or alternate-provider execution fallback.
+Before either gated save, when Linear mirroring is enabled, compare a fresh complete read with the
+manifest baseline and revalidate the approved gate file with no-follow, owner, mode, regular-file,
+regeneration, path, length, and hash checks. Gate-file identity mismatch, owner/mode violations,
+regeneration failure, or manifest tampering invalidates the local approval and requires fresh baseline
+admission, regeneration, and a fresh concise Ask; an unreceipted response cannot replay. Provider read
+or synchronization failures in mirror mode are recorded in the manifest and are nonblocking for local
+authority, artifact retention, or handoff. Local manifest, permission, and gate-file safety failures
+remain strictly blocking.
 
-Before implementation, after every worker handback, before redispatch, immediately before commit,
-and before selecting another increment, repeat the complete project/issue/relation/receipt read:
+When Linear mirroring is enabled, before implementation, after every worker handback, before redispatch,
+immediately before commit, and before selecting another increment in Execute, repeat the provider mirror read:
 
-- project fingerprint drift invalidates both shared approval records;
-- issue fingerprint or dependency drift invalidates `executionPlanApprovalRecord` only;
+- provider project fingerprint drift invalidates provider mirror records;
+- provider issue fingerprint or dependency drift invalidates the provider execution mirror record only;
 - unrelated metadata/comments do not invalidate either record; and
-- missing capability, incomplete pagination, conflicting evidence, malformed content, or unknown
-  provider outcome blocks at the last verified boundary.
+- missing capability, incomplete pagination, or unknown provider outcomes in mirror mode are recorded
+  as mirror status and do not block local authority or handoff.
 
-This Execute-era cadence is unchanged by deferred gated synchronization.
+When `linear.saveArtifacts: false`, provider baseline and drift reads are omitted entirely.

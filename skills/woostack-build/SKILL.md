@@ -5,46 +5,57 @@ description: Prepare a multi-increment feature through two active-conversation a
 
 # woostack-build
 
-Build is a thin controller wrapper around the internal decision and planning phases. It owns one
-canonical project, exactly two content approvals, and the user-controlled handoff into normal
-[`woostack-execute`](../woostack-execute/SKILL.md). Linear is required product authority for the
-build; Git, Graphite, and canonical GitHub reads remain the authority for repository delivery.
-Build never merges.
+Build is a thin controller wrapper around the internal decision and planning phases. It always owns
+persistent local runs under `.woostack/tmp/runs/<run-id>/`, supports exact `--run`, issues
+raw-file-hash local receipts before optional mirrors, retains success/Stop/Abandon artifacts, and
+hands off with `/woostack-execute --run <exact-run-id>`. Local run authority is unconditional; Linear
+is an optional mirror flow gated by `linear.saveArtifacts: true`. Git, Graphite, and canonical
+GitHub reads remain the authority for repository delivery. Build never merges.
 
 ## Commands
 
 ```text
-/woostack-build <goal> [--project <exact Linear URL-or-UUID>]
+/woostack-build <goal> [--project <exact Linear URL-or-UUID>] [--run <exact-run-id>]
+/woostack-build --run <exact-run-id>
 /woostack-build --project <exact Linear URL-or-UUID>
 ```
 
-Build always resolves the exact supplied project or creates exactly one project whose name starts
-with `[Build] ` and otherwise derives from the accepted goal. Supplied projects retain their
-existing names. Build verifies the canonical repository association, then uses validated
-repository/workspace/team defaults before starting the conversation and has no artifact-free
-fallback. Before acting, load and apply the shared
+When `--run <exact-run-id>` is supplied, Build resumes only that exact run directory under
+`.woostack/tmp/runs/<run-id>/` under the shared artifact contract. When omitted, Build creates a new
+persistent local run under `.woostack/tmp/runs/<run-id>/`.
+
+Local run creation and local receipt verification are unconditional. Default local mode makes zero
+provider calls. When `linear.saveArtifacts` is false or absent in `.woostack/config.json`, an explicit
+`--project` flag fails closed before any provider access with an error stating that `--project`
+requires `linear.saveArtifacts: true`. When `linear.saveArtifacts: true`, Build resolves the exact
+supplied project or creates exactly one project whose name starts with `[Build] ` and otherwise
+derives from the accepted goal. Supplied projects retain their existing names. Build verifies the
+canonical repository association, then uses validated repository/workspace/team defaults before
+starting the conversation.
+
+Before acting, load and apply the shared
 [Linear artifact contract](../woostack-init/references/artifact-backends.md), the
 [repository/project context procedure](references/linear-context.md), and the
 [`Linear synchronization procedure`](references/linear-procedure.md). The shared artifact contract is
-the single authority for baseline admission, the permission-restricted run manifest, deterministic
-owner-only gate-file rendering, complete streamed artifact presentation and minimal body-free Ask,
-same-process byte-complete revision diffs, approval-before-save ordering, canonical
-issue-reference/nullable-parent preflight, native project/team identity, drift/failure
-recovery, cleanup, and unchanged Execute safety reads.
+the single authority for run allocation and resume, the permission-restricted run manifest,
+deterministic owner-only gate-file rendering, complete streamed artifact presentation and minimal
+body-free Ask, same-process byte-complete revision diffs, local approval records, optional mirror
+synchronization, canonical issue-reference/nullable-parent preflight, native project/team identity,
+drift/failure recovery, artifact retention, and unchanged Execute safety reads.
 [repository advancement contract](../woostack-init/references/artifact-backends.md#repository-ancestry-is-separate-from-approval-identity)
 governs parent-branch re-admission; this wrapper does not restate those rules.
 
 ## Fixed chain
 
 ```text
-resolve/create canonical project and admit gate 1 baseline →
+allocate or resume canonical local run `.woostack/tmp/runs/<run-id>/` (and admit gate 1 baseline when mirroring) →
 draft Ideate/Harden locally with zero provider calls →
 render and present complete `project-spec.md` followed by a body-free `Accept`/`Abandon` Ask →
-pre-save drift read → one bounded sync → exact content read-back → receipt/read-back →
+record local `projectSpecApprovalRecord` (and perform optional bounded mirror sync/read-back) →
 draft delegated Plan/Harden locally with zero provider calls →
 render and present complete `execution-plan.md` followed by a body-free `Accept`/`Abandon` Ask →
-pre-save drift read → one bounded sync → exact graph read-back → receipt/read-back →
-gate-file and manifest cleanup → present verified handoff and ask `Stop here`/`Execute`/`Abandon`
+record local `executionPlanApprovalRecord` (and perform optional bounded mirror sync/read-back) →
+retain run artifacts → present verified handoff and ask `Stop here`/`Execute`/`Abandon`
 ```
 
 Invoke [`woostack-ideate`](../woostack-ideate/SKILL.md) for exhaustive user-verified decisions and
@@ -83,19 +94,25 @@ Build owns only these gate-specific displays and successful outcomes:
    stream its complete verified Markdown bytes and full identity immediately before a body-free
    `Accept`/`Abandon` Ask. Same-process revisions stream one verified byte-complete unified diff
    with old/new full-file identities; unavailable or unverifiable prior bytes fall back to the
-   complete new artifact. A successful shared synchronization produces an independently verified
-   `projectSpecApprovalRecord` whose referenced project matches exactly.
+   complete new artifact. Accepting produces the local `projectSpecApprovalRecord`. When
+   `linear.saveArtifacts: true`, one bounded mirror synchronization writes the specification and
+   records mirror status in the manifest; mirror failures are nonblocking.
 2. **Execution plan.** Deterministically render `execution-plan.md` containing every ordered issue
    contract and dependency tuple, then stream its complete verified bytes and full identity (or a
-   verified same-process revision diff) immediately before a body-free `Accept`/`Abandon` Ask. A
-   successful shared synchronization binds stable local task keys to canonical issue references and
-   produces an independently verified `executionPlanApprovalRecord` whose referenced project graph
-   matches exactly.
+   verified same-process revision diff) immediately before a body-free `Accept`/`Abandon` Ask.
+   Accepting produces the local `executionPlanApprovalRecord`. When `linear.saveArtifacts: true`,
+   one bounded mirror synchronization binds stable local task keys to canonical issue references
+   and records mirror status in the manifest; mirror failures are nonblocking.
+
+Cross-session continuation is permitted only for independently verified unchanged local receipts.
+Receipts survive across process restarts and distinct processes when resuming the same `<run-id>`
+for independently verified identical gate-file bytes and SHA-256.
 
 The linked shared contract owns the presentation, file replacement and no-follow checks, drift
-admission, bounded-save and read-back ordering, receipts, recovery, and cleanup. Any failure at
-those shared boundaries blocks Build; an unreceipted approval cannot be replayed, and the local
-draft never replaces the last Linear-approved boundary.
+admission, local receipts, optional mirror synchronization, recovery, and artifact retention. All
+run artifacts in `.woostack/tmp/runs/<run-id>/` are retained upon successful completion and upon
+explicit abandonment. Any failure at shared local boundaries blocks Build; an unreceipted approval
+cannot be replayed, and the local draft never replaces the last approved boundary.
 
 
 Build compares the shared
@@ -107,28 +124,29 @@ defines record fields and content invalidation.
 
 ## Verified handoff
 
-After the second approval has completed the ordered exact read-backs and the run manifest is
-cleaned up, Build displays the exact verified project URL or UUID, both approval receipts and
-canonical fingerprints, stable task-to-canonical-issue mappings, dependency tuples, approved parent
-branch, last admitted tip, and the exact project-only command:
+After the second approval produces `executionPlanApprovalRecord` (and optional mirror synchronization
+completes or records nonblocking failure), Build displays the exact run ID, both local approval
+receipts and canonical fingerprints, stable task mappings, dependency tuples, approved parent
+branch, last admitted tip, optional mirror mappings and status (when mirroring was enabled), and the
+exact handoff command:
 
 ```text
-/woostack-execute --project <exact Linear URL-or-UUID>
+/woostack-execute --run <exact-run-id>
 ```
 
 Build then asks a body-free handoff question whose explicit options are exactly `Stop here`,
-`Execute`, and `Abandon`. `Stop here` returns the command without repository or project-state
+`Execute`, and `Abandon`. `Stop here` returns the command without repository, run, or project-state
 mutation. `Execute` invokes normal [`woostack-execute`](../woostack-execute/SKILL.md) once in the
-same session with the verified project identity, `projectSpecApprovalRecord`,
+same session with `--run <exact-run-id>`, the verified run identity, `projectSpecApprovalRecord`,
 `executionPlanApprovalRecord`, canonical fingerprints, direct-issue set, native dependencies,
-approved parent-branch intent, and last admitted tip. `Abandon` follows canonical project closure
-after cleanup and does not dispatch Execute. Unknown or custom input fails closed and asks again;
-it never dispatches or mutates.
+approved parent-branch intent, and last admitted tip. `Abandon` records `status: "abandoned"` in the
+manifest, retains run artifacts, does not close or mutate a mirrored Linear project, and does not
+dispatch Execute. Unknown or custom input fails closed and asks again; it never dispatches or
+mutates.
 
 Execute applies the shared repository advancement contract to those inputs and owns implementation,
-focused verification, Linear progress evidence, and repository delivery under its own contract.
-Build does not select another execution mode, create a local authority, or merge.
+focused verification, progress evidence, and repository delivery under its own contract. Build does
+not select another execution mode, create a competing authority, or merge.
 
-Any required provider or manifest boundary failure blocks at the last verified boundary with no
-local, conversational, cached, or alternate-provider substitution. Artifact records never replace
-Git/Graphite/GitHub evidence or grant repository permission.
+Any required local manifest boundary failure blocks at the last verified boundary. Artifact records
+never replace Git/Graphite/GitHub evidence or grant repository permission.

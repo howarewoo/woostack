@@ -1,31 +1,31 @@
 # Linear project synchronization procedure
 
-This procedure applies provider mutations for one canonical Build/Fix gated save or one standalone
-Plan graph. It owns no workflow gate, assignment, execution, acceptance, or repository authority.
-The [Linear artifact contract](../../woostack-init/references/artifact-backends.md) is the single
+This procedure applies provider mutations for Build/Fix optional post-approval mirror synchronization
+(when `linear.saveArtifacts: true`) or one standalone Plan graph. It owns no workflow gate,
+assignment, execution, acceptance, or repository authority. The
+[Linear artifact contract](../../woostack-init/references/artifact-backends.md) is the single
 authority for gated manifest state, deterministic owner-only gate files, complete streamed artifact
 bytes and identity, same-process byte-complete revision diffs with old/new identities, body-free
-`Accept`/`Abandon` approval Asks, path/hash/length approval identity, causal ordering,
-canonical issue-reference/nullable-parent preflight, drift/recovery, identity mapping, cleanup, and
-read-back. The [project context procedure](linear-context.md) owns baseline admission.
+`Accept`/`Abandon` approval Asks, local approval records, optional mirror synchronization,
+canonical issue-reference/nullable-parent preflight, drift/recovery, identity mapping, artifact
+retention, and read-back. The [project context procedure](linear-context.md) owns baseline admission.
 
 ## Build project lifecycle
 
-Build resolves or creates the exact project and admits the gate 1 baseline before ideation. Ideate
-and specification Harden update only the permission-restricted run manifest and make zero provider
-calls. This procedure is not invoked until the shared contract streams the complete verified
-`project-spec.md` bytes and full identity (or a verified same-process byte-complete revision diff
-with old/new identities) immediately before its body-free `Accept`/`Abandon` Ask. The acceptance
-binds only that exact preceding identity. Reopen and regenerate the file with no-follow owner/mode/
-regular-file/process checks before proceeding.
+Build allocates or resumes the canonical run under `.woostack/tmp/runs/<run-id>/` and admits the gate
+1 baseline before ideation when mirroring is enabled. Ideate and specification Harden update only the
+permission-restricted run manifest and make zero provider calls. This procedure is not invoked until
+the shared contract streams the complete verified `project-spec.md` bytes and full identity (or a
+verified same-process byte-complete revision diff with old/new identities) immediately before its
+body-free `Accept`/`Abandon` Ask. The acceptance binds only that exact preceding identity and produces
+the local `projectSpecApprovalRecord`.
 
-After acceptance, perform only the shared immediate pre-save drift read and one bounded
-synchronization. Write the exact approved specification under the existing-record invariant,
-independently read the content back, then record and independently read back
-`projectSpecApprovalRecord` and its referenced project. Do not save intermediate decisions,
-question replies, or hardening corrections. Drift or failure consumes the approval and requires a
-fresh baseline, file regeneration, and fresh streamed presentation.
-
+When `linear.saveArtifacts: true`, perform only the shared immediate pre-save drift read and one
+bounded synchronization after local approval. Write the exact approved specification under the
+existing-record invariant, independently read the content back, then record and independently read
+back the provider receipt and referenced project. Update `mirror.status = "synced"` in the manifest;
+mirror failure is recorded as `mirror.status = "failed"` and is nonblocking. Do not save intermediate
+decisions, question replies, or hardening corrections.
 ## Increment graph synchronization
 
 Build/Fix-delegated `woostack-plan` and Harden populate only the gate 2 manifest with a complete
@@ -63,10 +63,10 @@ atomically and never remap it. Existing descriptions use the
 After the bounded writes, independently read every issue's canonical issue reference, provider-native
 identity, stable-key mapping, content, title, project membership, validated nullable-parent state,
 revision, mutation identity, and canonical fingerprint. Then independently read the complete relation
-set and compare exact normalized predecessor→successor tuples with the approved display. Only that
-exact graph read-back permits recording `executionPlanApprovalRecord`; independently read both
-receipts and every referenced record before clearing gate 2.
-
+set and compare exact normalized predecessor→successor tuples with the approved display. That exact
+graph read-back permits recording the provider approval record; independently read referenced records
+and update `mirror.status = "synced"`. Mirror failures are recorded in the manifest and are nonblocking
+for local approval or handoff.
 Standalone Plan uses the same canonical issue-reference, complete-pagination, exact endpoint
 round-trip, scope, and nullable-parent preflight before its unchanged direct graph synchronization.
 Do not create a parent plan issue, child containment, placeholder issue, duplicate relation,
@@ -98,13 +98,15 @@ canonical PR URLs, commit SHAs, changed paths, observed verification, review res
 A note records evidence; it does not establish the fact it records. Read the exact issue/project
 back after writing and report artifact and repository outcomes separately.
 
-A missing capability, failed read, unknown mutation, incomplete pagination, conflicting revision,
-foreign resource, stale approval, mismatched fingerprint/edge, changed or symlinked gate file,
-process loss, or manifest failure blocks at the last verified boundary. Follow the shared
-same-identity recovery rule and present a fresh complete artifact or verified same-process diff and
-body-free Ask; never replay an unreceipted approval, create a replacement, or use the local draft as
-authority.
+A missing local capability, failed local artifact read or write, conflicting manifest revision,
+changed or symlinked gate file, process loss, or manifest failure blocks at the last verified local
+boundary. Follow the shared same-identity recovery rule and present a fresh complete artifact or
+verified same-process diff and body-free Ask; never replay an unreceipted approval, create a
+replacement, or use an unverified draft as authority. Optional mirror capability, provider read,
+pagination, mutation, fingerprint, edge, or read-back failures are recorded as mirror failure and
+remain nonblocking for verified local authority and handoff.
 
 Explicit abandonment follows the shared
 [project-backed workflow closure](../../woostack-init/references/artifact-backends.md#project-backed-workflow-closure),
-including manifest cleanup. Handoff, replan, pauses, and blockers leave project status unchanged.
+recording `status: "abandoned"` and retaining all run artifacts without closing a mirrored Linear project.
+Handoff, replan, pauses, and blockers leave project status unchanged.

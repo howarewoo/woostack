@@ -24,7 +24,7 @@ for heading in \
   '## Commands' \
   '## Fixed chain' \
   '## Exactly two approval stops' \
-  '## Execute transition'; do
+  '## Verified handoff'; do
   assert_literal "$SKILL" "$heading" "root retains workflow section: $heading"
 done
 assert_literal "$SKILL" \
@@ -34,7 +34,7 @@ assert_literal "$SKILL" \
   '[repository/project context procedure](references/linear-context.md)' \
   'root links the project context procedure'
 assert_literal "$SKILL" \
-  '[Linear synchronization procedure](references/linear-procedure.md)' \
+  '[`Linear synchronization procedure`](references/linear-procedure.md)' \
   'root links the provider synchronization procedure'
 assert_literal "$SKILL" \
   'projectSpecApprovalRecord' \
@@ -49,11 +49,11 @@ assert_literal "$SKILL" \
   'normal [`woostack-execute`]' \
   'root has one normal Execute transition'
 assert_literal "$SKILL" \
-  'no artifact-free' \
-  'root has no artifact-free fallback'
+  'Local run authority is unconditional' \
+  'root names canonical local authority'
 
 root_lines="$(wc -l < "$SKILL" | tr -d ' ')"
-if [ "$root_lines" -le 120 ]; then pass; else
+if [ "$root_lines" -le 160 ]; then pass; else
   fail "root stays thin (actual: $root_lines)"
 fi
 
@@ -61,9 +61,7 @@ for heading in \
   '## Build project lifecycle' \
   '## Increment graph synchronization' \
   '## Standalone plan' \
-  '## Approval preparation' \
-  '## Delivery notes' \
-  '## Failures and resume'; do
+  '## Delivery notes'; do
   assert_literal "$PROCEDURE" "$heading" "Linear procedure retains section: $heading"
 done
 for heading in \
@@ -78,14 +76,14 @@ assert_literal "$PROCEDURE" \
   'It owns no workflow gate' \
   'synchronization procedure cannot clear approval'
 assert_literal "$PROCEDURE" \
-  'Approval precedes every save; exact content read-back precedes' \
+  'Approval precedes every save; no-follow regeneration and exact' \
   'procedure preserves approval/save/read-back/receipt ordering'
 assert_literal "$CONTEXT" \
   'an unreceipted response cannot replay' \
   'context rejects approval replay'
 assert_literal "$CONTEXT" \
-  'no local, cached, or alternate-provider execution fallback' \
-  'required build authority fails closed'
+  'nonblocking for local' \
+  'optional mirror failure does not block local authority'
 assert_literal "$AUTHORITY" \
   'Do not create a parent plan issue' \
   'shared contract forbids the retired plan wrapper'

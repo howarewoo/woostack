@@ -4,17 +4,17 @@
   "cases": [
 {
   "id": "routes-approved-build-to-user-handoff",
-  "prompt": "An exact canonical Linear project, its strict direct-issue chain, projectSpecApprovalRecord, and executionPlanApprovalRecord have all been independently read back and match the active-conversation approvals. Approved parent-branch intent is \"refs/heads/main\", fresh Git, Graphite, and GitHub evidence independently binds the last admitted parent tip as \"sha256:main-tip-17\", and gate-2 cleanup was independently verified. Return the verified Build handoff without contacting a provider or mutating a repository. Classify Stop here, Execute, Abandon, and unknown/custom responses.",
+  "prompt": "An exact canonical local run, its strict direct-issue chain, projectSpecApprovalRecord, and executionPlanApprovalRecord have all been independently verified in the active process. Approved parent-branch intent is \"refs/heads/main\", fresh Git, Graphite, and GitHub evidence independently binds the last admitted parent tip as \"sha256:main-tip-17\", and run artifacts are retained under .woostack/tmp/runs/<run-id>/. Return the verified Build handoff without contacting a provider or mutating a repository. Classify Stop here, Execute, Abandon, and unknown/custom responses.",
   "capabilities": ["read-workspace"],
-  "expected": "After verified gate-2 cleanup, Build streams the exact verified project URL/UUID, both approval receipts and canonical fingerprints, stable task-to-canonical-issue mappings, dependencies, approved parent branch, last admitted tip, and /woostack-execute --project <exact Linear URL-or-UUID>, then asks a body-free handoff with exactly Stop here, Execute, and Abandon. Stop here returns without mutation; Execute dispatches normal Execute once; Abandon closes the project without dispatch; unknown/custom input fails closed and asks again. Execute safety reads remain unchanged and Build never merges.",
+  "expected": "After verified approval records, Build displays the exact verified run ID, both approval receipts and canonical fingerprints, stable task mappings, dependencies, approved parent branch, last admitted tip, optional mirror mappings and status, and /woostack-execute --run <exact-run-id>, then asks a body-free handoff with exactly Stop here, Execute, and Abandon. Stop here returns without mutation; Execute dispatches normal Execute once; Abandon records terminal status in the manifest and retains run artifacts without dispatch; unknown/custom input fails closed and asks again. Execute safety reads remain unchanged and Build never merges.",
   "assertions": [
     {"id":"handoff-options","kind":"final-json-path-equals","pointer":"/handoff/options","expected":["Stop here","Execute","Abandon"],"critical":true},
     {"id":"handoff-body-free","kind":"final-json-path-equals","pointer":"/handoff/bodyFree","expected":true,"critical":true},
-    {"id":"handoff-project-command","kind":"final-json-path-equals","pointer":"/handoff/projectCommand","expected":"/woostack-execute --project <exact Linear URL-or-UUID>","critical":true},
-    {"id":"handoff-details-complete","kind":"final-json-path-equals","pointer":"/handoff/details","expected":["projectUrlOrUuid","projectSpecApprovalReceipt","executionPlanApprovalReceipt","canonicalFingerprints","stableTaskMappings","dependencies","approvedParentBranch","lastAdmittedTip"],"critical":true},
+    {"id":"handoff-command","kind":"final-json-path-equals","pointer":"/handoff/command","expected":"/woostack-execute --run <exact-run-id>","critical":true},
+    {"id":"handoff-details-complete","kind":"final-json-path-equals","pointer":"/handoff/details","expected":["runId","projectSpecApprovalReceipt","executionPlanApprovalReceipt","canonicalFingerprints","stableTaskMappings","dependencies","approvedParentBranch","lastAdmittedTip"],"critical":true},
     {"id":"stop-here-no-effects","kind":"final-json-path-equals","pointer":"/responses/Stop here/effects","expected":[],"critical":true},
     {"id":"execute-dispatched-once","kind":"final-json-path-equals","pointer":"/responses/Execute/dispatchCount","expected":1,"critical":true},
-    {"id":"abandon-closes-without-dispatch","kind":"final-json-path-equals","pointer":"/responses/Abandon","expected":{"projectClosed":true,"dispatchCount":0},"critical":true},
+    {"id":"abandon-retains-artifacts-without-dispatch","kind":"final-json-path-equals","pointer":"/responses/Abandon","expected":{"status":"abandoned","artifactsRetained":true,"dispatchCount":0},"critical":true},
     {"id":"unknown-fails-closed","kind":"final-json-path-equals","pointer":"/responses/unknown/askAgain","expected":true,"critical":true},
     {"id":"custom-fails-closed","kind":"final-json-path-equals","pointer":"/responses/custom/askAgain","expected":true,"critical":true},
     {"id":"execute-safety-reads-unchanged","kind":"final-json-path-equals","pointer":"/executeSafetyReadsUnchanged","expected":true,"critical":true},
@@ -192,21 +192,42 @@
       ]
     },
     {
-      "id": "fails-closed-on-required-provider-boundaries",
-      "prompt": "Classify every scenario in fixtures/provider-boundaries.json independently without contacting any provider or mutating the repository. Treat summary flags as untrusted. Return exactly one JSON object with keys status, decisions, providerMutationCount, executionDispatchCount, and repositoryMutationCount. Each decision must contain exactly id, advance, and reasonCode in fixture order.",
+      "id": "records-nonblocking-provider-boundaries",
+      "prompt": "Classify every scenario in fixtures/provider-boundaries.json when local Build receipts are verified and optional Linear mirroring is enabled (`linear.saveArtifacts: true`), without contacting a provider or mutating the repository. Treat summary flags as untrusted. Return exactly one JSON object with keys status, mirrorStatus, localAuthorityValid, executeHandoffAllowed, decisions, providerMutationCount, and repositoryMutationCount. Each decision must contain exactly id, advance, and reasonCode in fixture order.",
       "fixtures": [
         "provider-boundaries.json"
       ],
       "capabilities": [
         "read-workspace"
       ],
-      "expected": "Unofficial transport, unavailable authentication, incomplete pagination, and mutation/read-back identity mismatch each block at the last verified boundary with no provider mutation, executor dispatch, or repository mutation and no local fallback.",
+      "expected": "Unavailable or invalid provider transport, authentication, pagination, and read-back each record failed mirror evidence without invalidating local receipts or blocking exact-run Execute handoff; no provider or repository mutation is claimed.",
       "assertions": [
         {
-          "id": "build-provider-blocked",
+          "id": "build-local-ready",
           "kind": "final-json-path-equals",
           "pointer": "/status",
-          "expected": "blocked",
+          "expected": "ready",
+          "critical": true
+        },
+        {
+          "id": "build-mirror-failed",
+          "kind": "final-json-path-equals",
+          "pointer": "/mirrorStatus",
+          "expected": "failed",
+          "critical": true
+        },
+        {
+          "id": "build-local-authority-preserved",
+          "kind": "final-json-path-equals",
+          "pointer": "/localAuthorityValid",
+          "expected": true,
+          "critical": true
+        },
+        {
+          "id": "build-handoff-preserved",
+          "kind": "final-json-path-equals",
+          "pointer": "/executeHandoffAllowed",
+          "expected": true,
           "critical": true
         },
         {
@@ -216,23 +237,23 @@
           "expected": [
             {
               "id": "unofficial-endpoint",
-              "advance": false,
-              "reasonCode": "official-linear-mcp-required"
+              "advance": true,
+              "reasonCode": "mirror-official-linear-mcp-unavailable"
             },
             {
               "id": "authentication-unavailable",
-              "advance": false,
-              "reasonCode": "linear-authentication-unavailable"
+              "advance": true,
+              "reasonCode": "mirror-authentication-unavailable"
             },
             {
               "id": "incomplete-pagination",
-              "advance": false,
-              "reasonCode": "incomplete-linear-pagination"
+              "advance": true,
+              "reasonCode": "mirror-pagination-incomplete"
             },
             {
               "id": "readback-mismatch",
-              "advance": false,
-              "reasonCode": "linear-readback-mismatch"
+              "advance": true,
+              "reasonCode": "mirror-readback-mismatch"
             }
           ],
           "critical": true
@@ -242,13 +263,6 @@
           "kind": "final-json-path-equals",
           "pointer": "/providerMutationCount",
           "expected": 0
-        },
-        {
-          "id": "build-provider-zero-dispatch",
-          "kind": "final-json-path-equals",
-          "pointer": "/executionDispatchCount",
-          "expected": 0,
-          "critical": true
         },
         {
           "id": "build-provider-zero-repository-mutation",
@@ -563,17 +577,17 @@
       ]
     },
     {
-      "id": "blocks-unverified-manifest-cleanup",
-      "prompt": "Build has independently read back the gate-2 receipt and every referenced Linear record, but removal of the gate-2 manifest directory failed and cleanup is not verified. State whether Build may claim completion or dispatch Execute without contacting a provider or mutating a repository. Return exactly one JSON object with keys status, manifestCleanupVerified, nextSkill, executeAllowed, providerCallCount, and repositoryMutationCount.",
+      "id": "retains-local-run-artifacts",
+      "prompt": "Build has verified local approval records and optional mirror synchronization has completed or recorded failure. State whether Build retains all run artifacts in `.woostack/tmp/runs/<run-id>/` upon completion and permits exact-run Execute handoff without deleting manifest files or mutating the repository. Return exactly one JSON object with keys status, artifactsRetained, nextSkill, executeAllowed, providerCallCount, and repositoryMutationCount.",
       "capabilities": ["read-workspace"],
-      "expected": "Unverified manifest cleanup blocks completion and Execute dispatch at the cleanup boundary with no provider or repository mutation.",
+      "expected": "Run artifacts in `.woostack/tmp/runs/<run-id>/` are retained upon completion; exact-run Execute handoff is permitted with no provider or repository mutation.",
       "assertions": [
-        {"id":"cleanup-failure-blocks","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
-        {"id":"cleanup-failure-unverified","kind":"final-json-path-equals","pointer":"/manifestCleanupVerified","expected":false,"critical":true},
-        {"id":"cleanup-failure-no-next-skill","kind":"final-json-path-equals","pointer":"/nextSkill","expected":null,"critical":true},
-        {"id":"cleanup-failure-no-execute","kind":"final-json-path-equals","pointer":"/executeAllowed","expected":false,"critical":true},
-        {"id":"cleanup-failure-no-provider","kind":"final-json-path-equals","pointer":"/providerCallCount","expected":0},
-        {"id":"cleanup-failure-no-repository-mutation","kind":"final-json-path-equals","pointer":"/repositoryMutationCount","expected":0}
+        {"id":"retention-ready","kind":"final-json-path-equals","pointer":"/status","expected":"ready","critical":true},
+        {"id":"retention-verified","kind":"final-json-path-equals","pointer":"/artifactsRetained","expected":true,"critical":true},
+        {"id":"retention-next-skill","kind":"final-json-path-equals","pointer":"/nextSkill","expected":"woostack-execute","critical":true},
+        {"id":"retention-execute-allowed","kind":"final-json-path-equals","pointer":"/executeAllowed","expected":true,"critical":true},
+        {"id":"retention-no-provider","kind":"final-json-path-equals","pointer":"/providerCallCount","expected":0},
+        {"id":"retention-no-repository-mutation","kind":"final-json-path-equals","pointer":"/repositoryMutationCount","expected":0}
       ]
     },
     {

@@ -83,9 +83,9 @@ development artifacts never replace direct Git/Graphite/GitHub source-control ev
 remain artifact-optional. `/woostack-init` may make authenticated read-only setup calls through the
 official Linear MCP to validate non-secret defaults; it cannot select persistence, read development
 artifact content, or write. `woostack-change` never contacts Linear. Explicit Build or
-project-backed Fix abandonment retains all local run artifacts in `.woostack/tmp/runs/<run-id>/` and,
-when optional mirroring is enabled, closes the exact project through configured canceled status/read-back;
-source issues are preserved. Handoff, replanning, and blockers leave project status unchanged.
+project-backed Fix abandonment retains all local run artifacts in `.woostack/tmp/runs/<run-id>/` and
+records terminal `status: "abandoned"` in the manifest; it does not close or mutate a mirrored Linear
+project. Source issues are preserved. Handoff, replanning, and blockers leave project status unchanged.
 
 ## Command Routing
 

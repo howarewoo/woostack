@@ -326,8 +326,8 @@ else:
 
 build = flat(root / "skills/woostack-build/SKILL.md")
 for pattern, message in (
-    (r"always resolves the exact supplied project or creates exactly one project", "build project admission missing"),
-    (r"exactly two content approvals", "two-approval build contract missing"),
+    (r"resolves the exact supplied project or creates exactly one project", "build project admission missing"),
+    (r"two active-conversation approval receipts", "two-approval build contract missing"),
     (r"candidate strict sequential direct-issue chain", "direct increment shape missing"),
 ):
     require("woostack-build", build, pattern, message)
@@ -336,7 +336,7 @@ fix = flat(root / "skills/woostack-fix/SKILL.md")
 for pattern, message in (
     (r"Before root-cause proof, Fix makes no provider call", "pre-proof provider boundary missing"),
     (r"omitted, Fix creates exactly one project after root-cause proof", "plain-input project creation missing"),
-    (r"exactly the two shared project-backed approval receipts", "shared Fix approvals missing"),
+    (r"exactly the two shared local approval receipts", "shared Fix approvals missing"),
 ):
     require("woostack-fix", fix, pattern, message)
 if re.search(r"fixApprovalRecord|approve-to-execute|bind exactly one issue", fix, re.I):

@@ -93,9 +93,9 @@
     },
     {
       "id": "execution-plan-approval-binds-issues-and-dependencies",
-      "prompt": "Fix gate 2 streamed the complete verified execution-plan.md bytes and full identity immediately before a body-free Accept/Abandon Ask; the responsible user accepted those exact bytes in the active process. The immediate file and graph drift checks matched, one bounded graph save completed, stable task keys mapped to canonical issue references, the exact graph read back, then executionPlanApprovalRecord and both referenced receipts read back exactly. The gate files, manifest, and run-scoped temporary directory were removed and cleanup was independently verified. Return JSON with approvalBeforeSave, exactGraphReadBackBeforeReceipt, stableKeyMappingVerified, stableTaskMappings, canonicalDependencies, executionPlanApprovalRecordVerified, manifestCleanupVerified, handoff, responses, and executeSafetyReadsUnchanged.",
+      "prompt": "Fix gate 2 streamed the complete verified execution-plan.md bytes and full identity immediately before a body-free Accept/Abandon Ask; the responsible user accepted those exact bytes in the active process. The immediate file and graph drift checks matched, one bounded graph save completed, stable task keys mapped to canonical issue references, the exact graph read back, then executionPlanApprovalRecord and both referenced receipts read back exactly. Run artifacts under .woostack/tmp/runs/<run-id>/ are retained. Return JSON with approvalBeforeSave, exactGraphReadBackBeforeReceipt, stableKeyMappingVerified, stableTaskMappings, canonicalDependencies, executionPlanApprovalRecordVerified, artifactsRetained, handoff, responses, executeSafetyReadsUnchanged.",
       "capabilities": ["read-workspace"],
-      "expected": "Gate 2 is verified only after complete streamed artifact identity, body-free Accept/Abandon approval, approval-before-save, exact stable-key/canonical-reference mapping, canonical dependency endpoints, exact graph read-back before receipt, final receipt read-back, and verified cleanup. Fix then presents the complete handoff and asks exactly Stop here, Execute, or Abandon.",
+      "expected": "Gate 2 is verified only after complete streamed artifact identity, body-free Accept/Abandon approval, approval-before-save, exact stable-key/canonical-reference mapping, canonical dependency endpoints, exact graph read-back before receipt, and final receipt read-back. All run artifacts are retained. Fix then presents the complete handoff and asks exactly Stop here, Execute, or Abandon.",
       "assertions": [
         {"id":"plan-approval-before-save","kind":"final-json-path-equals","pointer":"/approvalBeforeSave","expected":true,"critical":true},
         {"id":"plan-readback-before-receipt","kind":"final-json-path-equals","pointer":"/exactGraphReadBackBeforeReceipt","expected":true,"critical":true},
@@ -103,13 +103,13 @@
         {"id":"exact-stable-key-mappings","kind":"final-json-path-equals","pointer":"/stableTaskMappings","expected":{"task-lock":"WOO-242","task-stale":"WOO-243"},"critical":true},
         {"id":"canonical-dependency-endpoints","kind":"final-json-path-equals","pointer":"/canonicalDependencies","expected":[{"predecessorIssueReference":"WOO-242","successorIssueReference":"WOO-243","kind":"native-issue"}],"critical":true},
         {"id":"execution-record","kind":"final-json-path-equals","pointer":"/executionPlanApprovalRecordVerified","expected":true,"critical":true},
-        {"id":"fix-manifest-cleaned","kind":"final-json-path-equals","pointer":"/manifestCleanupVerified","expected":true,"critical":true},
+        {"id":"fix-artifacts-retained","kind":"final-json-path-equals","pointer":"/artifactsRetained","expected":true,"critical":true},
         {"id":"handoff-options","kind":"final-json-path-equals","pointer":"/handoff/options","expected":["Stop here","Execute","Abandon"],"critical":true},
         {"id":"handoff-body-free","kind":"final-json-path-equals","pointer":"/handoff/bodyFree","expected":true,"critical":true},
-        {"id":"project-command","kind":"final-json-path-equals","pointer":"/handoff/projectCommand","expected":"/woostack-execute --project <exact Linear URL-or-UUID>","critical":true},
+        {"id":"handoff-command","kind":"final-json-path-equals","pointer":"/handoff/command","expected":"/woostack-execute --run <exact-run-id>","critical":true},
         {"id":"stop-here-no-effects","kind":"final-json-path-equals","pointer":"/responses/Stop here/effects","expected":[],"critical":true},
         {"id":"execute-dispatch-once","kind":"final-json-path-equals","pointer":"/responses/Execute/dispatchCount","expected":1,"critical":true},
-        {"id":"abandon-close","kind":"final-json-path-equals","pointer":"/responses/Abandon","expected":{"projectClosed":true,"dispatchCount":0},"critical":true},
+        {"id":"abandon-retain-status","kind":"final-json-path-equals","pointer":"/responses/Abandon","expected":{"status":"abandoned","artifactsRetained":true,"dispatchCount":0},"critical":true},
         {"id":"unknown-custom-fail-closed","kind":"final-json-path-equals","pointer":"/responses/unknownOrCustom/askAgain","expected":true,"critical":true},
         {"id":"fix-execute-reads-unchanged","kind":"final-json-path-equals","pointer":"/executeSafetyReadsUnchanged","expected":true,"critical":true}
       ]
@@ -217,13 +217,15 @@
       ]
     },
     {
-      "id": "provider-or-readback-failure-blocks",
-      "prompt": "Classify a Fix invocation whose required Linear capability or independent read-back is unavailable. Return the boundary state and repository mutation count.",
+      "id": "provider-or-readback-failure-is-nonblocking",
+      "prompt": "Classify a Fix invocation whose optional Linear mirror capability, pagination, mutation, receipt, or independent read-back is unavailable when `linear.saveArtifacts: true`, after both local receipts are verified. Return exactly one JSON object with keys status, mirrorStatus, localAuthorityValid, executeHandoffAllowed, and repositoryMutationCount.",
       "capabilities": ["read-workspace"],
-      "expected": "Required provider, pagination, mutation, receipt, or independent read-back failure blocks at the last verified boundary with no local fallback or repository mutation.",
+      "expected": "The mirror failure is recorded as failed evidence but does not invalidate verified local receipts or block exact-run Execute handoff; repository mutation remains zero.",
       "assertions": [
-        {"id": "blocked", "kind": "final-json-path-equals", "pointer": "/status", "expected": "blocked", "critical": true},
-        {"id": "no-fallback", "kind": "final-json-path-equals", "pointer": "/localFallback", "expected": false, "critical": true},
+        {"id": "local-ready", "kind": "final-json-path-equals", "pointer": "/status", "expected": "ready", "critical": true},
+        {"id": "mirror-failed", "kind": "final-json-path-equals", "pointer": "/mirrorStatus", "expected": "failed", "critical": true},
+        {"id": "local-authority-valid", "kind": "final-json-path-equals", "pointer": "/localAuthorityValid", "expected": true, "critical": true},
+        {"id": "handoff-allowed", "kind": "final-json-path-equals", "pointer": "/executeHandoffAllowed", "expected": true, "critical": true},
         {"id": "no-repository-mutation", "kind": "final-json-path-equals", "pointer": "/repositoryMutationCount", "expected": 0, "critical": true}
       ]
     },

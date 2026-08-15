@@ -22,8 +22,8 @@ for file in "$BUILD_SKILL" "$PROCEDURE" "$CONTEXT" "$AUTHORITY"; do
 done
 
 assert_literal "$BUILD_SKILL" \
-  'resolve/create canonical project' \
-  'build resolves or creates its canonical project first'
+  'allocate or resume canonical local run' \
+  'build allocates or resumes its canonical local run'
 assert_literal "$BUILD_SKILL" \
   'draft Ideate/Harden locally with zero provider calls' \
   'Build performs local Ideate and Harden after baseline admission'
@@ -31,11 +31,8 @@ assert_literal "$BUILD_SKILL" \
   'render and present complete `project-spec.md` followed by a body-free `Accept`/`Abandon` Ask' \
   'complete project artifact stream precedes body-free approval'
 assert_literal "$BUILD_SKILL" \
-  'pre-save drift read → one bounded sync → exact content read-back → receipt/read-back' \
-  'project approval precedes save and read-back precedes receipt'
-assert_literal "$BUILD_SKILL" \
-  'projectSpecApprovalRecord' \
-  'project approval is recorded in Linear'
+  'record local `projectSpecApprovalRecord`' \
+  'project approval produces local projectSpecApprovalRecord'
 assert_literal "$BUILD_SKILL" \
   'draft delegated Plan/Harden locally with zero provider calls' \
   'planning is provider-free before approval'
@@ -43,8 +40,8 @@ assert_literal "$BUILD_SKILL" \
   'render and present complete `execution-plan.md` followed by a body-free `Accept`/`Abandon` Ask' \
   'complete plan artifact stream precedes body-free approval'
 assert_literal "$BUILD_SKILL" \
-  'executionPlanApprovalRecord' \
-  'plan approval is recorded in Linear'
+  'record local `executionPlanApprovalRecord`' \
+  'plan approval produces local executionPlanApprovalRecord'
 assert_literal "$BUILD_SKILL" \
   'Build then asks a body-free handoff question' \
   'second approval ends at user-controlled handoff'
@@ -79,8 +76,8 @@ assert_literal "$AUTHORITY" \
   'only after that exact content read-back, record the matching' \
   'receipt creation follows exact content read-back'
 assert_literal "$AUTHORITY" \
-  'Linear projects and issues are canonical product records for `woostack-build`' \
-  'shared contract makes Build records canonical'
+  'The canonical persistent artifact store for `woostack-build`' \
+  'shared contract makes local run canonical'
 assert_literal "$AUTHORITY" \
   'Git, Graphite, and canonical GitHub' \
   'source-control truth remains separate'
