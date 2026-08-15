@@ -29,7 +29,7 @@ def require_shared(pattern, name):
 
 for pattern, name in (
     (r"Run-scoped gated draft manifest", "shared manifest contract"),
-    (r"owner-only.*Markdown gate files", "owner-only file identity"),
+    (r"owner-only.*regular files", "owner-only file identity"),
     (r"no-follow.*owner.*regular", "no-follow file checks"),
     (r"zero Linear or other provider reads and writes", "no intermediate provider cycle"),
     (r"render from the current manifest", "deterministic project and plan render"),
@@ -37,16 +37,16 @@ for pattern, name in (
     (r"stream.*complete.*Markdown bytes.*full identity", "complete streamed artifact"),
     (r"same-process.*byte-complete unified diff.*old.*new.*identit", "same-process revision diff"),
     (r"body-free Ask.*Accept.*Abandon", "body-free approval Ask"),
-    (r"approval.*before any draft content is saved", "approval-before-save"),
+    (r"matching file identity approval records the local receipt", "approval-before-save"),
     (r"immediately re-read the exact Linear targets", "immediate pre-save drift read"),
     (r"only after that exact content read-back, record", "read-back-before-receipt"),
     (r"stable local task key to canonical issue reference", "stable canonical-reference mapping"),
     (r"canonical issue-reference/nullable-parent preflight", "shared issue-parent preflight"),
     (r"exact endpoint round trip", "exact canonical endpoint round-trip"),
     (r"unknown parent state", "unknown parent fail-closed"),
-    (r"unreceipted approval is consumed and cannot be replayed", "approval replay guard"),
+    (r"Unknown, malformed, copied, stale, or transformed responses fail closed", "approval replay guard"),
     (r"process restart.*complete new artifact", "process-loss complete fallback"),
-    (r"unlink both gate files and the manifest", "gate-file cleanup"),
+    (r"Artifact retention on completion and abandonment", "artifact retention"),
     (r"Execute-era safety reads are unchanged", "unchanged Execute checks"),
     (r"providerPresentationCanonicalization", "provider presentation canonicalization"),
     (r"Native provider bytes remain exact read-back evidence.*canonical fingerprints", "native bytes and canonical comparison"),
@@ -67,7 +67,7 @@ for pattern, name in (
         failures.append(name)
 
 
-require(r"Debug.*gate 1 baseline.*local Ideate/Harden.*project-spec\.md.*bounded sync/read-back/receipt.*gate 2 baseline.*local Plan/Harden.*execution-plan\.md.*bounded sync/read-back/receipt.*Stop here.*Execute.*Abandon", "canonical sequence")
+require(r"Debug.*admit writable target.*allocate or resume canonical local run.*local Ideate/Harden.*project-spec\.md.*record local `projectSpecApprovalRecord`.*local Plan/Harden.*execution-plan\.md.*record local `executionPlanApprovalRecord`.*retain run artifacts.*Stop here.*Execute.*Abandon", "canonical sequence")
 require(r"Before root-cause proof, load only the routing and output rules.*woostack-debug.*references that Debug directly requires", "debug-only pre-proof loading")
 require(r"Immediately after Debug returns root-cause proof and exact writable target-repository admission succeeds, load.*Linear artifact contract.*woostack-build.*woostack-ideate.*woostack-harden", "post-admission downstream loading")
 if not (
@@ -75,14 +75,14 @@ if not (
     < skill.index("### 1. Debug, read-only")
     < skill.index("### 1.5. Target-repository admission")
     < skill.index("Immediately after Debug returns root-cause proof")
-    < skill.index("### 2. Resolve the project")
+    < skill.index("### 2. Allocate or resume canonical run")
 ):
     failures.append("loading boundary ordering")
 if "Before acting, load and apply the shared" in skill:
     failures.append("eager pre-proof loading wording")
 require(r"accepts a goal or untrusted Linear, GitHub, Sentry, or monitoring input", "untrusted input coverage")
 require(r"root-cause proof.*create or update a project.*branch.*worktree.*mutate the repository", "proof write barrier")
-require(r"owns one canonical project", "one canonical project")
+require(r"owns one canonical local run", "one canonical local run")
 require(r"name starts with `\[Fix\] `", "prefixed fix project name")
 require(r"supplied.*project.*retains its existing name", "supplied project name preservation")
 require(r"source issue.*never repurposed|never repurpos(?:e|ed) a supplied source\s+issue", "source issue preservation")
@@ -92,9 +92,9 @@ require(r"independently read back both receipts", "independent approval read-bac
 require(r"material project-specification change invalidates both records", "spec invalidation")
 require(r"project-spec\.md.*complete exact.*full identity", "project streamed artifact")
 require(r"execution-plan\.md.*complete ordered.*dependency tuple", "plan streamed artifact and mapping")
-require(r"verified project URL or UUID.*woostack-execute.*Stop here.*Execute.*Abandon", "verified handoff")
+require(r"exact run ID.*approval receipts.*woostack-execute --run <exact-run-id>.*Stop here.*Execute.*Abandon", "verified handoff")
 require(r"shared repository advancement contract", "shared repository advancement authority")
-require(r"Debug.*Target-repository admission.*Resolve the project", "target-repository guard ordering")
+require(r"Debug.*Target-repository admission.*Allocate or resume canonical run", "target-repository guard ordering")
 require(r"compare the proved causal target repository with the invocation repository using trusted Git/GitHub evidence", "trusted target and invocation repositories")
 require(r"non-mutatingly verify that the active checkout is the exact writable owning checkout", "exact writable owning checkout")
 require(r"Missing, ambiguous, foreign, read-only, unwritable, absent, or wrong checkout blocks before every provider, artifact, or repository effect", "fail-closed target boundary")
@@ -148,19 +148,20 @@ if fixture["approvalEvidence"]["repositoryMutationCountBeforeBothApprovals"] != 
 
 project_record = fixture["projectSpecApprovalRecord"]
 plan_record = fixture["executionPlanApprovalRecord"]
-if set(project_record) != {"projectId", "canonicalProjectSpecFingerprint", "approvedBy", "approvedAt", "approvalEventRef"}:
+expected_record_fields = {"runId", "gate", "manifestRevision", "sha256", "byteLength", "approvedBy", "host", "approvedAt", "approvalEventId"}
+if set(project_record) != expected_record_fields:
     failures.append("project approval record shape")
-if set(plan_record) != {"projectId", "canonicalProjectSpecFingerprint", "increments", "dependencies", "approvedBy", "approvedAt", "approvalEventRef"}:
+if set(plan_record) != expected_record_fields:
     failures.append("execution approval record shape")
-if not all(fixture["approvalEvidence"][key]["activeConversationApproval"] and fixture["approvalEvidence"][key]["linearReceiptReadBack"] for key in ("projectSpec", "executionPlan")):
+if not all(fixture["approvalEvidence"][key]["activeConversationApproval"] and fixture["approvalEvidence"][key]["localReceiptVerified"] for key in ("projectSpec", "executionPlan")):
     failures.append("approval evidence")
 if fixture["dispatch"]["handoff"]["options"] != ["Stop here", "Execute", "Abandon"] or not fixture["dispatch"]["handoff"]["bodyFree"]:
     failures.append("verified body-free handoff options")
-if fixture["dispatch"]["handoff"]["projectCommand"] != "/woostack-execute --project <exact Linear URL-or-UUID>":
-    failures.append("project-only handoff command")
+if fixture["dispatch"]["handoff"]["command"] != "/woostack-execute --run <exact-run-id>":
+    failures.append("exact-run handoff command")
 if fixture["dispatch"]["responses"]["Stop here"]["effects"] or fixture["dispatch"]["responses"]["Execute"]["dispatchCount"] != 1:
     failures.append("handoff Stop here/Execute behavior")
-if fixture["dispatch"]["responses"]["Abandon"] != {"projectClosed": True, "dispatchCount": 0} or not fixture["dispatch"]["responses"]["unknownOrCustom"]["askAgain"]:
+if fixture["dispatch"]["responses"]["Abandon"] != {"status": "abandoned", "dispatchCount": 0, "artifactsRetained": True} or not fixture["dispatch"]["responses"]["unknownOrCustom"]["askAgain"]:
     failures.append("handoff Abandon/fail-closed behavior")
 
 ids = {case["id"] for case in evals["cases"]}

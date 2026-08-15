@@ -58,29 +58,40 @@
     "readBackComplete": true
   },
   "projectSpecApprovalRecord": {
-    "projectId": "project-fix-241",
-    "canonicalProjectSpecFingerprint": "sha256:project-spec-241",
+    "runId": "fix-run-241",
+    "gate": 1,
+    "manifestRevision": 2,
+    "sha256": "sha256:project-spec-241",
+    "byteLength": 1240,
     "approvedBy": "user-adam",
+    "host": "darwin",
     "approvedAt": "2026-08-03T18:41:00Z",
-    "approvalEventRef": "comment-project-spec-241"
+    "approvalEventId": "event-project-spec-241"
   },
   "executionPlanApprovalRecord": {
+    "runId": "fix-run-241",
+    "gate": 2,
+    "manifestRevision": 4,
+    "sha256": "sha256:execution-plan-241",
+    "byteLength": 2480,
+    "approvedBy": "user-adam",
+    "host": "darwin",
+    "approvedAt": "2026-08-03T18:45:00Z",
+    "approvalEventId": "event-execution-plan-241"
+  },
+  "mirrorEvidence": {
     "projectId": "project-fix-241",
-    "canonicalProjectSpecFingerprint": "sha256:project-spec-241",
     "increments": [
       {"issueId": "WOO-242", "canonicalIncrementFingerprint": "sha256:increment-241a"},
       {"issueId": "WOO-243", "canonicalIncrementFingerprint": "sha256:increment-241b"}
     ],
     "dependencies": [
       {"predecessorIssueId": "WOO-242", "successorIssueId": "WOO-243", "kind": "native-issue"}
-    ],
-    "approvedBy": "user-adam",
-    "approvedAt": "2026-08-03T18:45:00Z",
-    "approvalEventRef": "comment-execution-plan-241"
+    ]
   },
   "approvalEvidence": {
-    "projectSpec": {"activeConversationApproval": true, "linearReceiptReadBack": true, "causallyAfterPresentation": true},
-    "executionPlan": {"activeConversationApproval": true, "linearReceiptReadBack": true, "causallyAfterPresentation": true},
+    "projectSpec": {"activeConversationApproval": true, "localReceiptVerified": true, "causallyAfterPresentation": true},
+    "executionPlan": {"activeConversationApproval": true, "localReceiptVerified": true, "causallyAfterPresentation": true},
     "repositoryMutationCountBeforeBothApprovals": 0
   },
   "repositoryAdvancement": {
@@ -163,16 +174,16 @@
     "handoff": {
       "options": ["Stop here", "Execute", "Abandon"],
       "bodyFree": true,
-      "projectCommand": "/woostack-execute --project <exact Linear URL-or-UUID>",
-      "details": ["projectUrlOrUuid", "projectSpecApprovalReceipt", "executionPlanApprovalReceipt", "canonicalFingerprints", "stableTaskMappings", "dependencies", "approvedParentBranch", "lastAdmittedTip"]
+      "command": "/woostack-execute --run <exact-run-id>",
+      "details": ["runId", "projectSpecApprovalReceipt", "executionPlanApprovalReceipt", "canonicalFingerprints", "stableTaskMappings", "dependencies", "approvedParentBranch", "lastAdmittedTip"]
     },
     "responses": {
       "Stop here": {"effects": []},
       "Execute": {"dispatchCount": 1},
-      "Abandon": {"projectClosed": true, "dispatchCount": 0},
+      "Abandon": {"status": "abandoned", "dispatchCount": 0, "artifactsRetained": true},
       "unknownOrCustom": {"askAgain": true}
     },
-    "projectId": "project-fix-241",
+    "runId": "fix-run-241",
     "repositoryMutationCountBeforeExecute": 0,
     "mergePerformed": false
   }

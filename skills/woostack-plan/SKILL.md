@@ -140,9 +140,9 @@ unchanged, owns no approval gate, and does not use the Build/Fix run manifest.
 When delegated by Build or Fix, stop before every provider read or synchronization. Return the
 complete manifest-backed candidate contracts and strict chain to the wrapper. The wrapper hardens
 the manifest, renders `execution-plan.md`, displays its gate-file identity plus every concise stable
-task and dependency mapping, obtains approval before save, and owns the one bounded post-approval
-synchronization and exact read-back.
-
+task and dependency mapping, obtains local approval, records `executionPlanApprovalRecord`, and
+owns optional post-approval mirror synchronization (when `linear.saveArtifacts: true`) and exact
+read-back.
 ## Return
 
 Return the complete ordered task contracts, exact project or baseline identity, strict predecessor
@@ -162,7 +162,7 @@ claim. Do not return a parent-plan identity or an approval/execution claim.
 - Direct issue plans target about 500 or fewer hand-written changed lines, with only the stated
   generated/lockfile and explicitly approved unreachable-package deletion exceptions.
 - Delegated Build/Fix planning performs zero provider reads and writes; its wrapper hardens,
-  displays, obtains approval, and then synchronizes.
+  displays, obtains local approval, and optionally synchronizes when mirroring is enabled.
 - Standalone Plan keeps its direct project synchronization and independent read-back unchanged.
 - Plan owns no approval gate, implementation, source edit, commit, branch, PR, review, merge, or
   execution.

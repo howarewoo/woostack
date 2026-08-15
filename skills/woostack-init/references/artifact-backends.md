@@ -627,13 +627,15 @@ Ask: {
 }
 ```
 
-`Accept` approves only the exact identity in the immediately preceding verified stream. `Abandon`
-invokes terminal workflow closure: it sets `status: "abandoned"` in the manifest, retains all run
-artifacts, and performs optional mirror closure if mirroring is enabled. Any custom response is a
-revision or clarification, never approval: atomically replace the manifest draft and unresolved-question
-state, regenerate and verify the file, then present the complete artifact or a same-process verified diff
-followed by a fresh body-free Ask. Unknown, malformed, copied, stale, or transformed responses fail
-closed and require a fresh presentation; they never save, synchronize, or clear a gate.
+`Accept` approves only the exact identity in the immediately preceding verified stream. For Build
+and project-backed Fix, `Abandon` invokes terminal local workflow closure: it sets
+`status: "abandoned"` in the manifest, retains all run artifacts, and does not close or mutate a
+mirrored Linear project. Standalone Plan follows the provider-backed closure rule below. Any custom
+response is a revision or clarification, never approval: atomically replace the manifest draft and
+unresolved-question state, regenerate and verify the file, then present the complete artifact or a
+same-process verified diff followed by a fresh body-free Ask. Unknown, malformed, copied, stale, or
+transformed responses fail closed and require a fresh presentation; they never save, synchronize,
+or clear a gate.
 
 Gate 1 uses the project file and its project identity; gate 2 uses the execution-plan file and the
 same project identity plus every immutable approved stable-task mapping and stable-task dependency
@@ -740,11 +742,10 @@ statuses, labels, project membership, and unapproved updates/comments are metada
 content-revision gates after active-conversation approval. They do not prove repository delivery
 or authorize any other revision.
 
-If a project-backed build/plan/fix workflow is explicitly abandoned, repository work stops and its
-status is recorded as abandoned in the retained run manifest. If optional Linear mirroring is enabled
-and a persisted project exists, the project moves to the configured canceled status and the workflow
-reads that transition back before claiming closure. Never create a project merely to cancel it; closure
-never grants authority.
+If a Build or project-backed Fix workflow is explicitly abandoned, repository work stops, its
+status is recorded as abandoned in the retained run manifest, and any mirrored Linear project
+remains unchanged. Standalone Plan and execution workflows follow their owning provider-backed
+closure contracts. Artifact closure never grants repository authority.
 
 ## Provider and credential boundary
 
@@ -874,10 +875,13 @@ When `linear.saveArtifacts: false`, active Execute project-start synchronization
 ## Project-backed workflow closure
 
 Explicit abandonment is a terminal workflow action, distinct from handoff, replan, or a blocker.
-First record `status: "abandoned"` in the run manifest and retain all run artifacts under the
-retention rule above. Then, if optional Linear mirroring is enabled (`linear.saveArtifacts: true`) and
-the active Build, project-backed Fix, or standalone Plan workflow has one exact persisted project,
-stop repository work and perform only these closure synchronization steps:
+Build and project-backed Fix first record `status: "abandoned"` in the run manifest, retain all run
+artifacts under the retention rule above, stop repository work, and leave any mirrored Linear
+project unchanged.
+
+Standalone Plan and execution workflows that own provider-backed closure may continue with only
+these synchronization steps when `linear.saveArtifacts: true` and one exact persisted project
+exists:
 
 1. use the retained exact project identity to determine whether a persisted project exists. If no
    exact project exists, report that there is nothing to close and do not create one;
@@ -894,7 +898,8 @@ stop repository work and perform only these closure synchronization steps:
 Do not archive or delete the project, bulk-change issue states, or create a project merely to
 cancel it. Closure failure or an unknown outcome produces a truthful artifact blocker at the
 retained stable retry boundary and never resumes repository work. If `linear.saveArtifacts: false`,
-no provider closure call is made. Handoff, replan, and blocker handling leave project status unchanged.
+no provider closure call is made. Handoff, replan, and blocker handling leave project status
+unchanged.
 
 ## Suggested artifact shape
 
