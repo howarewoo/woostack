@@ -14,6 +14,7 @@ skill = re.sub(r"\s+", " ", (root / "skills/woostack-execute/SKILL.md").read_tex
 controller = re.sub(r"\s+", " ", (root / "skills/woostack-execute/references/controller.md").read_text())
 artifact = re.sub(r"\s+", " ", (root / "skills/woostack-init/references/artifact-backends.md").read_text())
 driver = re.sub(r"\s+", " ", (root / "skills/woostack-execute/references/subagent-driver.md").read_text())
+repo_rules = re.sub(r"\s+", " ", (root / "AGENTS.md").read_text())
 checks = [
     (skill, r"`--project`, `--issue`, and `--run` are mutually exclusive; exactly one is required", "exact resource admission missing"),
     (skill, r"projectSpecApprovalRecord.*executionPlanApprovalRecord", "matching approval records missing"),
@@ -81,6 +82,9 @@ checks = [
     (controller, r"manifest CAS delivery checkpoint persistence.*no-follow manifest reopen", "controller manifest CAS sequence missing"),
     (controller, r"strictly sequential within each run.*Distinct run IDs may execute concurrently", "concurrency rules missing"),
     (artifact, r"`taskExecutions` maps every approved stable task key exactly once.*`active`.*before worktree or source mutation.*`blocked`.*exact safe resume action.*`delivered`.*complete checkpoint", "shared task execution schema missing"),
+    (repo_rules, r"Merge authority is human-only.*never mark a PR ready.*auto-merge.*enqueue.*merge.*`gh pr ready`.*`gh pr merge`", "repository human-only merge boundary missing"),
+    (skill, r"`Delivered`, `complete`, `finish`, and `execute` stop at that verified open-PR boundary.*No user wording overrides this capability boundary.*exact current user message.*proven wording still cannot override", "Execute terminal no-merge boundary missing"),
+    (controller, r"terminal repository mutation is Graphite PR submission or update.*never marks a PR ready.*auto-merge.*merge queue.*retargets.*merges.*explicit merge request.*workflow conflict", "controller terminal no-merge boundary missing"),
 ]
 for text, pattern, message in checks:
     if not re.search(pattern, text, re.I | re.S):
@@ -117,6 +121,24 @@ required_cases = {
 }
 if not required_cases <= case_ids:
     raise SystemExit(f"mapped delivery eval cases missing: {sorted(required_cases - case_ids)}")
+no_merge_cases = {
+    "verified-delivery-stops-at-open-pr",
+    "explicit-merge-request-conflicts",
+}
+if not no_merge_cases <= case_ids:
+    raise SystemExit(f"no-merge eval cases missing: {sorted(no_merge_cases - case_ids)}")
+for case_id in no_merge_cases:
+    case = next(case for case in evals["cases"] if case["id"] == case_id)
+    prompt = case["prompt"].lower()
+    if "merge" not in prompt or "return exactly one json object" not in prompt:
+        raise SystemExit(f"{case_id}: deterministic merge-boundary prompt missing")
+    assertions = {assertion["pointer"]: assertion["expected"] for assertion in case["assertions"]}
+    if assertions.get("/mergeMutation") is not False:
+        raise SystemExit(f"{case_id}: merge mutation is not forbidden")
+    if assertions.get("/readyTransition") is not False:
+        raise SystemExit(f"{case_id}: ready transition is not forbidden")
+    if assertions.get("/mergeQueueMutation") is not False:
+        raise SystemExit(f"{case_id}: merge queue mutation is not forbidden")
 for case_id in required_cases:
     prompt = next(case["prompt"] for case in evals["cases"] if case["id"] == case_id)
     if not case_id.startswith("local-run-") and case_id != "project-selects-lowest-unfinished" and "inReview" not in prompt:

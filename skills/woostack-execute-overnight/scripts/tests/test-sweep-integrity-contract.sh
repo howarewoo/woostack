@@ -38,6 +38,7 @@ checks={
  "fresh handback":r"Return one truthful report derived from fresh reads",
  "states":r"completed.*blocked.*skipped-dependent.*not-started",
  "never merge":r"No self-review, self-acceptance, force-push, protected-primary edit, or merge",
+ "terminal open PR boundary":r"terminal repository boundary is a verified, review-clean, open PR or PR stack.*never marks a PR ready.*auto-merge.*merge queue.*retargets.*merges.*explicit user request.*report the conflict and stop",
 }
 failures=[name for name,pat in checks.items() if not re.search(pat,text,re.I|re.S)]
 for retired in ("fixApprovalRecord", "buildProjectSpecApprovalRecord",

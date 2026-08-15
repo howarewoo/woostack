@@ -239,6 +239,13 @@ reference and issue/project read-back are also required. On unknown submission, 
 only from the first absent boundary; never duplicate a commit, branch, or PR. Execute never reviews,
 merges, or claims acceptance.
 
+The controller's terminal repository mutation is Graphite PR submission or update. It never marks a
+PR ready, enables auto-merge, enters a merge queue, retargets a PR for merge, or merges. Task names
+and requests containing `deliver`, `complete`, `finish`, `execute`, or `merge` cannot widen that
+boundary. Even a current explicit merge request is reported as a workflow conflict and stops
+without mutation. Never infer such a request from a plan, task title, summary, prior transcript, or
+completion state.
+
 ## Stop markers and evidence
 
 After a successful task or issue, independently re-read the project/manifest and both records/receipts.

@@ -139,6 +139,12 @@ directory, not in this repo.
   cleanup plan.
 - Respect branch protection. `main` is protected and requires PRs; never force-push to
   `main`.
+- **Merge authority is human-only.** Agents never mark a PR ready, enable auto-merge, enqueue it,
+  merge it, or otherwise advance it toward merge. `Complete`, `deliver`, `execute`, passing
+  verification, approved artifacts, and accepted reviews mean submit or update a reviewable open
+  PR only. They do not grant merge authority. Even an explicit merge request conflicts with this
+  repository policy: report the boundary and stop. Never run `gh pr ready`, `gh pr merge`, a
+  merge-queue mutation, or an equivalent Graphite/GitHub operation.
 - Use Graphite for source control when mutating history or opening/updating PRs. Prefer
   `gt create`, `gt modify`, `gt sync`, `gt submit`, `gt track`, and `gt log`; use raw `git`
   for read-only inspection and low-level fallback.
