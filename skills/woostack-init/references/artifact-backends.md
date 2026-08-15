@@ -528,6 +528,14 @@ optional mirroring:
     unresolvedQuestions
   },
   stableTaskMappings,
+  taskExecutions: {
+    "<stableTaskKey>": {
+      ordinal,
+      status: "pending" | "active" | "blocked" | "delivered",
+      resumeEvidence,
+      deliveryCheckpoint
+    }
+  },
   mutationIdentities,
   fingerprints,
   displayedApprovalIdentity,
@@ -562,6 +570,20 @@ preallocates the stable project, issue, relation, and receipt operation identiti
 synchronization.
 `unresolvedQuestions` is explicit and must be empty before a file is rendered. `fingerprints` covers
 the exact draft specification, ordered increment set, dependency set, and rendered gate bytes.
+
+`taskExecutions` maps every approved stable task key exactly once and records its immutable ordinal,
+current execution status, `resumeEvidence`, and `deliveryCheckpoint`. A complete delivery checkpoint
+is `{ stableTaskKey, ordinal, branch, commitSha, prUrl, prHead, prBase, graphiteParent,
+verificationReceipt, deliveredAt }`. Build and Fix initialize every approved task as
+`{ status: "pending", resumeEvidence: null, deliveryCheckpoint: null }` before handoff. Execute
+CAS-replaces the manifest to record `active` plus its exact task/worktree/branch/parent/start intent
+before worktree or source mutation, `blocked` plus the first unknown boundary and exact safe resume
+action, or `delivered` plus the complete checkpoint after canonical read-back. Each lifecycle write
+increments `manifestRevision`; the next cycle independently reopens the manifest no-follow.
+`status: "completed"` is valid only when every task execution is `delivered` with a complete independently verified
+checkpoint. A mismatched key/ordinal, delivered task without a complete checkpoint, non-delivered
+task with a completion checkpoint, missing active/blocked resume evidence, delivered task retaining
+resume evidence, stale revision, or partial state blocks resume and sibling progression.
 
 After baseline admission, Ideate, both Harden passes, and Build/Fix-delegated Plan use only the
 manifest plus bounded repository evidence. They perform zero Linear or other provider reads and

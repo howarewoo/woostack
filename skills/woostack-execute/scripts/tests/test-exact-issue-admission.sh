@@ -15,32 +15,32 @@ controller = re.sub(r"\s+", " ", (root / "skills/woostack-execute/references/con
 artifact = re.sub(r"\s+", " ", (root / "skills/woostack-init/references/artifact-backends.md").read_text())
 driver = re.sub(r"\s+", " ", (root / "skills/woostack-execute/references/subagent-driver.md").read_text())
 checks = [
-    (skill, r"Exactly one of `--project` or `--issue` is required", "exact resource admission missing"),
+    (skill, r"`--project`, `--issue`, and `--run` are mutually exclusive; exactly one is required", "exact resource admission missing"),
     (skill, r"projectSpecApprovalRecord.*executionPlanApprovalRecord", "matching approval records missing"),
     (skill, r"canonicalProjectSpecFingerprint.*increments.*dependencies", "shared approval record fields missing"),
-    (skill, r"lowest-ordinal unfinished issue", "lowest unfinished ordinal selection missing"),
+    (skill, r"lowest-ordinal unfinished (task or issue|issue)", "lowest unfinished ordinal selection missing"),
     (skill, r"stop marker", "stop-marker behavior missing"),
     (skill, r"issue mode.*never advances siblings", "issue mode may advance siblings"),
     (skill, r"configured fast-model subagent", "fast-model dispatch missing"),
     (skill, r"one focused verification.*one small bounded spec-compliance validator", "narrow verification boundary missing"),
-    (skill, r"Backlog` or `Todo` → the resolved .*issueStates\.executing.*issueStates\.inReview", "mapped Linear lifecycle missing"),
+    (skill, r"unstarted/Backlog/Todo → executing → complete/inReview.*independent read-back", "mapped Linear lifecycle missing"),
     (skill, r"branch, commit, PR URL/head/base.*verification receipt", "successful delivery evidence missing"),
     (skill, r"woostack-commit.*exact selected issue.*`Resolves <issue identifier>`", "selected issue closing reference missing"),
     (skill, r"clean exact worktree", "clean-worktree gate missing"),
     (skill, r"never create a duplicate", "duplicate resume protection missing"),
-    (controller, r"--project` xor `--issue", "controller exact resource admission missing"),
+    (controller, r"Execute accepts exactly one of `--project`, `--issue`, or `--run`", "controller exact resource admission missing"),
     (controller, r"canonicalProjectSpecFingerprint.*increments.*dependencies", "controller shared approval fields missing"),
     (controller, r"incomplete pagination.*blocks before", "controller evidence gate missing"),
     (controller, r"select lowest unfinished ordinal", "controller deterministic selection missing"),
-    (controller, r"immediate predecessor's exact branch", "predecessor proof missing"),
+    (controller, r"immediate predecessor's complete delivery checkpoint", "predecessor proof missing"),
     (controller, r"one worktree", "controller worktree ownership missing"),
     (controller, r"fast-model subagent", "controller fast dispatch missing"),
     (controller, r"bounded spec-compliance validator", "controller validator missing"),
-    (controller, r"Backlog`/`Todo` → the resolved .*issueStates\.executing.*issueStates\.inReview", "mapped controller lifecycle missing"),
+    (controller, r"all direct issues are `Backlog`/`Todo`.*selected issue.*resolved executing mapping.*synchronize the project", "mapped controller lifecycle missing"),
     (controller, r"Successful submission requires branch, commit, PR", "controller PR gate missing"),
     (controller, r"woostack-commit.*exact selected issue", "controller does not pass the exact issue to commit"),
-    (controller, r"exactly one closing reference for the selected issue", "controller closing-reference read-back missing"),
-    (controller, r"fresh independent Linear, Git, Graphite, and GitHub evidence", "resume evidence missing"),
+    (controller, r"exactly one closing reference", "controller closing-reference read-back missing"),
+    (controller, r"fresh independent evidence", "resume evidence missing"),
     (skill, r"\[Controller-owned screenshot evidence\]\(references/controller\.md#controller-owned-screenshot-evidence\)", "skill screenshot controller cross-link missing"),
     (controller, r"Immediately after successful focused UI validation and image inspection.*when validation produced screenshots and before commit.*exactly one final representative safe screenshot", "controller screenshot trigger/selection missing"),
     (controller, r"refuses any screenshot visibly containing secrets, credentials, or personal data.*warn.*continue repository delivery.*never claim it was posted", "controller sensitive-data refusal missing"),
@@ -54,7 +54,7 @@ checks = [
     (skill, r"both `--project` and `--issue` modes", "both execute modes missing project-status gate"),
     (skill, r"issueStates\.executing.*issueStates\.inReview.*both resolved\s+mappings.*native category.*started", "configured issue-state resolution missing"),
     (skill, r"independently read back every persisted checkpoint field.*teardown.*resume.*sibling progression", "checkpoint-gated delivery missing"),
-    (controller, r"full delivery checkpoint.*idempotent no-op.*teardown.*resume.*sibling", "controller checkpoint/idempotency missing"),
+    (controller, r"full delivery checkpoint.*teardown.*resume.*sibling", "controller checkpoint/idempotency missing"),
     (artifact, r"issueStates\.executing.*issueStates\.inReview.*both resolved mappings.*native category.*started", "artifact issue-state resolution missing"),
     (artifact, r"exact existing started status.*idempotent no-op", "artifact idempotency contract missing"),
     (skill, r"exact started match is idempotent", "exact started no-op outcome missing"),
@@ -68,6 +68,19 @@ checks = [
     (artifact, r"completed or canceled project.*terminal conflict.*blocks", "artifact terminal blocking contract missing"),
     (artifact, r"update only the project's native status field", "one-field project mutation contract missing"),
     (driver, r"configured fast-model subagent", "driver fast model missing"),
+    (skill, r"In local run mode \(`--run`\), require one exact run identifier", "local run mode missing"),
+    (skill, r"`<repo-root>/\.woostack/tmp/runs/<exact-run-id>/`", "repository-local exact run path missing"),
+    (skill, r"Prove `\.woostack/tmp/` is covered by Git ignore.*reopen.*in order with no-follow semantics.*mode exactly `0700`", "local run ancestor/ignore admission missing"),
+    (skill, r"manifest\.json.*project-spec\.md.*execution-plan\.md.*`\.lock`.*owner-only `0600` regular-file", "local files permission check missing"),
+    (skill, r"projectSpecApprovalRecord.*executionPlanApprovalRecord.*manifestRevision.*sha256.*byteLength.*approvedBy.*host.*approvedAt.*approvalEventId", "local raw-file approval records missing"),
+    (skill, r"When `--recheck` is provided with `--run`.*woostack-harden", "recheck harden invocation missing"),
+    (skill, r"invoke .*woostack-commit.*without `--issue` and.*without a `Resolves` line", "artifact-free commit invocation missing in local mode"),
+    (skill, r"before worktree or source mutation.*CAS-update.*taskExecutions\[stableTaskKey\].*`active`.*from `active` to `delivered` only.*complete delivery checkpoint.*Increment.*manifestRevision.*reopen the manifest and gate files no-follow", "manifest task lifecycle CAS missing"),
+    (skill, r"mirror writes.*best effort only.*never invalidates, blocks, or overwrites the authoritative local checkpoint", "local mirror failure resilience missing"),
+    (controller, r"In local run mode, accept one exact `<exact-run-id>`", "controller local run admission missing"),
+    (controller, r"manifest CAS delivery checkpoint persistence.*no-follow manifest reopen", "controller manifest CAS sequence missing"),
+    (controller, r"strictly sequential within each run.*Distinct run IDs may execute concurrently", "concurrency rules missing"),
+    (artifact, r"`taskExecutions` maps every approved stable task key exactly once.*`active`.*before worktree or source mutation.*`blocked`.*exact safe resume action.*`delivered`.*complete checkpoint", "shared task execution schema missing"),
 ]
 for text, pattern, message in checks:
     if not re.search(pattern, text, re.I | re.S):
@@ -91,12 +104,22 @@ required_cases = {
     "in-review-mapping-foreign-blocks",
     "in-review-mapping-non-started-blocks",
     "executing-mapping-non-started-blocks",
+    "local-run-exact-admission-proceeds",
+    "local-run-fuzzy-path-rejected",
+    "local-run-unsafe-permissions-rejected",
+    "local-run-stale-hash-record-rejected",
+    "local-run-abandoned-state-rejected",
+    "local-run-recheck-unchanged-preserves-records",
+    "local-run-recheck-changed-spec-invalidates",
+    "local-run-recheck-changed-plan-invalidates",
+    "local-run-cas-checkpoint-resume",
+    "local-run-mirror-write-failure-does-not-invalidate",
 }
 if not required_cases <= case_ids:
     raise SystemExit(f"mapped delivery eval cases missing: {sorted(required_cases - case_ids)}")
 for case_id in required_cases:
     prompt = next(case["prompt"] for case in evals["cases"] if case["id"] == case_id)
-    if case_id != "project-selects-lowest-unfinished" and "inReview" not in prompt:
+    if not case_id.startswith("local-run-") and case_id != "project-selects-lowest-unfinished" and "inReview" not in prompt:
         raise SystemExit(f"{case_id}: configured inReview mapping missing")
     if case_id in {
         "delivery-same-state-is-idempotent",
