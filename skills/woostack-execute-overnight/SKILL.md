@@ -194,6 +194,12 @@ Use task states `completed`, `blocked`, `skipped-dependent`, or `not-started`; d
 submitted or reviewed work merged. Never claim test, review, PR, artifact, or completion evidence
 that was not directly observed.
 
+Overnight's terminal repository boundary is a verified, review-clean, open PR or PR stack. It never
+marks a PR ready, enables auto-merge, enters a merge queue, retargets a PR for merge, or merges.
+`Completed`, `delivered`, and a clean sweep describe evidence at that open-PR boundary only. No task
+wording, completion state, inferred request, or explicit user request can widen this unattended
+workflow into merge authority; report the conflict and stop without that mutation.
+
 ## Hard constraints
 
 - Exactly one of `--project` or `--run` is required; no issue or alternate-driver mode.
