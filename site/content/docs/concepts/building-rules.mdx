@@ -1,103 +1,105 @@
 ---
 title: Building rules
-description: The two-gate canonical-Linear build loop and bounded one-PR routes.
+description: The two-gate local-authority build loop, optional Linear mirroring, and bounded one-PR routes.
 ---
 
-Woostack separates product authority from repository delivery evidence. Linear owns the current
-specification and execution contracts for builds and post-diagnosis fixes. The responsible user's
-native Linear approval event clears only the matching exact content revision. Git and GitHub own
-source, branches, commits, pull requests, reviews, and merge evidence.
+Woostack separates product authority from repository delivery evidence. Local run manifests under
+`.woostack/tmp/runs/<run-id>/` own the current specification and execution contracts for builds and
+post-diagnosis fixes, with optional Linear mirroring (`linear.saveArtifacts: true`). The responsible
+user's approval event clears only the matching exact gate-file hash. Git and GitHub own source,
+branches, commits, pull requests, reviews, and merge evidence.
 
 ## Choose the smallest workflow
 
 | Shape | Commands | Active contract | Linear behavior |
 | --- | --- | --- | --- |
-| Bounded bug or regression | [woostack-fix](/docs/skills/woostack-fix) | proved root cause plus approved project-spec and direct-issue revisions | canonical project, direct increment issues, native dependencies |
+| Bounded bug or regression | [woostack-fix](/docs/skills/woostack-fix) | proved root cause plus approved project-spec and direct-issue revisions | local run manifest, direct increment contracts, dependencies (optional Linear mirror) |
 | Bounded non-bug change | [woostack-change](/docs/skills/woostack-change) | one explicit goal/contract | none |
-| Multi-increment feature | [woostack-build](/docs/skills/woostack-build) | approved project-spec revision plus approved direct-issue graph | required project, direct increment issues, native dependencies |
+| Multi-increment feature | [woostack-build](/docs/skills/woostack-build) | approved project-spec revision plus approved direct-issue graph | local run manifest, direct increment contracts, dependencies (optional Linear mirror) |
 | Greenfield codebase | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | complete approved design | exact artifact or explicit persistence request only |
 
-Route by work shape. Linear records do not turn ambiguous scope into a complete contract or replace
-direct repository evidence.
+Route by work shape. Development records do not turn ambiguous scope into a complete contract or
+replace direct repository evidence.
 
 ## The two-gate build loop
 
 Multi-increment work follows one fixed chain:
 
 ```text
-resolve/create canonical project and admit exact baseline →
+allocate/resume local run and admit exact baseline (if mirroring) →
 draft Ideate/Harden locally →
 stream complete verified `project-spec.md` bytes and full identity (or a verified same-process
 byte-complete unified diff with old/new identities) immediately before a body-free `Accept`/`Abandon`
-Ask → bounded save/read-back/receipt → draft Plan/Harden locally →
+Ask → record local approval record (and optional bounded mirror sync) → draft Plan/Harden locally →
 stream complete verified `execution-plan.md` bytes and full identity (or a verified same-process
 byte-complete unified diff with old/new identities) immediately before a body-free `Accept`/`Abandon`
-Ask → bounded save/read-back/receipt → clean up → present verified project handoff
+Ask → record local approval record (and optional bounded mirror sync) → retain run artifacts →
+present verified run handoff
 ```
 
 The only content gates are deterministic project-spec-file approval and execution-plan-file
 approval. Each stream carries the complete exact Markdown bytes and full identity immediately before
 its body-free Ask; a same-process revision may carry only one independently verified byte-complete
-unified diff with old/new full-file identities. During each gated drafting phase there are no
-intermediate provider cycles; acceptance binds only the immediately preceding identity, file identity
-is revalidated with no-follow and deterministic regeneration, and native content/graph read-back is
-compared by the shared provider-presentation canonical fingerprint before the matching receipt can
-clear the gate.
+unified diff with old/new full-file identities. Acceptance records the local raw-hash approval record
+(`projectSpecApprovalRecord` or `executionPlanApprovalRecord`). During each gated drafting phase there
+are no intermediate provider cycles. When `linear.saveArtifacts: true`, one bounded cycle mirrors
+approved artifacts to Linear; mirror failure is recorded in the manifest and is nonblocking for local
+authority.
 
-After gate 2, Build/Fix display the exact verified project URL or UUID, both approval receipts and
-canonical fingerprints, stable task mappings, dependencies, approved parent branch, last admitted
-tip, and `/woostack-execute --project <exact Linear URL-or-UUID>`. A body-free handoff Ask offers
-exactly `Stop here`, `Execute`, and `Abandon`: Stop here returns without mutation, Execute invokes
-normal Execute once, and Abandon closes the existing project without dispatch. Unknown or custom
-input fails closed and asks again.
+After gate 2, Build/Fix display the exact run ID, both local approval records and gate-file hashes,
+stable task mappings, dependencies, approved parent branch, last admitted tip, and
+`/woostack-execute --run <exact-run-id>`. A mirrored project URL/UUID is evidence only, not an
+alternate Build/Fix handoff. A body-free handoff Ask offers exactly `Stop here`, `Execute`, and
+`Abandon`: Stop here returns without mutation, Execute invokes normal Execute once, and Abandon
+records abandonment without dispatch. Unknown or custom input fails closed and asks again.
 
-The shared [Linear artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest)
-is the detailed authority for the temporary manifest, owner-only gate files, streamed artifact
-bytes and identity, same-process revision diffs, body-free approval Asks, path/hash/length/
-fingerprint-version identity, synchronization ordering, recovery, cleanup, and unchanged Execute
-reads. Material updates to canonical Linear records invalidate the matching gate.
-
+The shared [Local run artifact and provider mirror contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest)
+is the detailed authority for the run manifest, owner-only gate files, streamed artifact bytes and
+identity, same-process revision diffs, body-free approval Asks, raw-hash approval records, retention,
+and unchanged Execute reads. Material updates to approved gate files or specifications invalidate the
+matching gate.
 
 ## Execution invariants
 
 - One independently shippable increment maps to at most one PR.
+- Execute accepts `--run <exact-run-id> [--recheck]`, `--project <...>`, or `--issue <...>`. Sequential
+  execution within each run; distinct runs in isolated worktrees may run concurrently when
+  responsibility surfaces do not collide.
 - Each active task has one controller identity, branch, collision-safe worktree, allowed surface,
   and current head.
-- Dependency-independent disjoint tasks may run concurrently; prerequisites advance first.
 - The implementation worker returns an uncommitted diff and evidence. The controller performs
   specification and quality review before authorizing commit/PR delivery.
 - Graphite preserves stack ancestry. GitHub proves PR/head/base/check/review/merge state.
 - Every workflow stops on scope, ancestry, collision, evidence, or review drift. No workflow merges.
 
-## Canonical Linear records
+## Canonical local records and optional Linear mirroring
 
-Build always resolves one exact project or creates one from validated defaults before ideation. It
-has no artifact-free fallback. After root-cause proof, Fix uses the same project-backed two-gate
-path. Other artifact-capable workflows remain opt-in.
+Build and project-backed Fix operate with canonical persistent local run authority under
+`.woostack/tmp/runs/<run-id>/` by default (`linear.saveArtifacts: false`). Supplying `--project` when
+`linear.saveArtifacts` is false or absent fails closed immediately.
 
-The approved record has one project containing the complete specification, one direct issue per
-increment containing its executor-ready contract, and native issue dependencies. There is no parent
-plan issue or child containment. `woostack-change` never contacts Linear.
+When `linear.saveArtifacts: true`, approved local artifacts mirror to one Linear project containing the
+complete specification, direct increment issues, and native issue dependencies. There is no parent plan
+issue or child containment. `woostack-change` never contacts Linear.
 
-The gated local draft is not product authority and never replaces the last Linear-approved
-boundary. Standalone Plan remains distinct: it keeps its direct project-graph synchronization and
-independent read-back unchanged, without either Build/Fix approval gate.
+The manifest is the canonical local run authority. Standalone Plan remains distinct: it keeps its direct
+project-graph synchronization and independent read-back unchanged, without either Build/Fix approval
+gate.
 
-Explicit abandonment is the one workflow-owned project-status transition. A build/plan or
-project-backed Fix stops repository work, sets its existing project to configured canceled status,
-and independently reads the transition back. Source issues are preserved; no project is created
-solely to cancel anything. Handoff, replanning, and blockers leave the project open.
+Explicit abandonment sets `status: "abandoned"` in the run manifest and retains all run artifacts in
+`.woostack/tmp/runs/<run-id>/` without mutating a mirrored Linear project. Standalone Plan closes its
+existing project as canceled after independent read-back. Handoff, replanning, and blockers leave the
+project open.
 
 ## Authority boundaries
 
 | Surface | Authority |
 | --- | --- |
 | User request | initiates the selected workflow |
-| Responsible-user native Linear approval event | exact fix/build content-revision gate |
-| Linear project/issue records | current fix/build product scope, plans, native dependencies, and notes |
+| Responsible-user approval event | exact fix/build gate-file raw-hash approval record |
+| Local run manifest (`.woostack/tmp/runs/<run-id>/`) | current fix/build product scope, plans, contracts, and local approval records (mirrored to Linear when `linear.saveArtifacts: true`) |
 | Git and GitHub | source, ancestry, commits, PRs, checks, reviews, merge evidence |
 | Graphite | stack and branch operations |
 | Audit, QA, response reports | sanitized non-authoritative diagnostic evidence |
-
 The [Hermes guide](/docs/hermes) documents how an external engineer can review harness evidence
 without receiving implementation authority or changing the approval gates.

@@ -1,28 +1,30 @@
 ---
 title: Overview
-description: "woostack's canonical Linear fix/build records, delivery boundaries, and context management."
+description: "woostack's local run authority, optional Linear mirror records, delivery boundaries, and context management."
 ---
 
 woostack coordinates multiperson development through explicit workflow contracts, isolated
-implementation, and independent review. Linear owns current product scope and executor-ready plans
-for builds and post-diagnosis fixes. Git and GitHub own code and pull-request truth.
+implementation, and independent review. Local run manifests under `.woostack/tmp/runs/<run-id>/`
+own current product scope, increment contracts, and approval records for builds and post-diagnosis
+fixes, with optional Linear mirroring (`linear.saveArtifacts: true`). Git and GitHub own code and
+pull-request truth.
 
-Every build uses one project for its high-level specification plus one direct issue per increment,
-with native issue dependencies and two exact content-revision approvals. After root-cause proof,
-every Fix uses one project for its complete specification plus a strict direct-issue chain and the
-same two approvals. Bounded changes remain Linear-free; other artifact use remains opt-in.
+Every build manages one high-level specification plus direct increment contracts with dependency
+relations in its retained run manifest, with two exact content-revision approvals. After root-cause
+proof, every Fix uses the same local run structure for its complete specification plus a strict
+direct-issue chain and the same two approvals. Bounded changes remain artifact-free; other artifact
+use remains opt-in.
 
 [woostack-reflect](/docs/skills/woostack-reflect) suggests novel durable rules from a fixed
 active-conversation snapshot and routes each finding to the narrowest applicable rule or canonical
 skill owner. Local diagnostic reports remain non-authoritative evidence.
 
 <Cards>
-  <Card title="Building rules" href="/docs/concepts/building-rules" description="The two-gate project loop, fix route, and split authority boundary." />
-  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Bootstrap, Build, Fix, and Change with canonical fix/build records." />
-  <Card title="Hermes as an external engineer" href="/docs/hermes" description="Use Hermes outside woostack to drive one persistent OMP process." />
+  <Card title="Building rules" href="/docs/concepts/building-rules" description="The two-gate local-authority loop, fix route, and split authority boundary." />
+  <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Bootstrap, Build, Fix, and Change with local run authority and optional Linear mirroring." />
   <Card title="Least code, still safe" href="/docs/concepts/least-code" description="Write as little code as necessary without cutting edge cases or risks." />
   <Card title="Context management" href="/docs/concepts/context-management" description="Keep reasoning focused with compact reads, isolated sessions, and explicit handoffs." />
-  <Card title="Parallelism with worktrees" href="/docs/concepts/worktrees" description="Isolate bounded tasks in separate Git worktrees for safe concurrency." />
+  <Card title="Parallelism with worktrees" href="/docs/concepts/worktrees" description="Isolate sequential run tasks and concurrent disjoint runs in separate Git worktrees." />
   <Card title="Tracking work" href="/docs/concepts/status-tracking" description="Derive a current board from Git, Graphite, and GitHub with optional artifacts." />
   <Card title="Review angles" href="/docs/concepts/review-angles" description="All 22 review angles: what each one audits, when it auto-fires, and which model tier it runs at." />
   <Card title="Utilities" href="/docs/concepts/utilities" description="Use read-only and diagnostic skills without creating a second development record." />

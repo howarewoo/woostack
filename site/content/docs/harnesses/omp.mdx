@@ -18,7 +18,8 @@ behavior; repository model leaves are ignored.
 - After review angle detection, OMP verifies the complete planned selector set in the active agent
   registry before launching any summary, angle, or validator worker.
 - Review never generates or repairs agents and never launches a partial swarm.
-- Batch dependency-independent bounded tasks in one dispatch.
+- Execute dispatches one implementation task at a time per local run; disjoint run IDs may dispatch
+  concurrently.
 - Pass the exact worktree and complete task contract.
 - Workers return observations/changes; the controller owns synthesis and acceptance.
 - If the spawn API cannot set cwd, pin it in the prompt and require the worker to verify it.
@@ -29,19 +30,21 @@ subagents](https://omp.sh/docs/subagents), and the canonical
 for the exact mapping and lifecycle.
 
 
-## Linear artifacts
+## Local run artifacts and optional Linear mirroring
 
-Build always uses one exact Linear project; after root-cause proof, a new Fix resolves or creates
-one exact project and its strict direct-issue plan. OMP credentials stay in its host-owned
-MCP/OAuth secret environment and never enter repository config, prompts, logs, or generated output.
-Follow the
-[Linear artifact contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md).
+Build and project-backed Fix operate with canonical persistent local authority under
+`.woostack/tmp/runs/<run-id>/` by default (`linear.saveArtifacts: false`). When
+`linear.saveArtifacts: true`, approved artifacts mirror to Linear. OMP credentials stay in its
+host-owned MCP/OAuth secret environment and never enter repository config, prompts, logs, or
+generated output. Follow the
+[Local run artifact and provider mirror contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md).
 
-The responsible user's two exact native Linear approval events clear only the matching fix/build
-project-specification and execution-plan revisions. They do not authorize worker assignment,
-dispatch, edits, commits, review, product acceptance, or repository delivery claims. Before proof,
-Fix makes no Linear call.
-`woostack-change` never contacts Linear.
+The responsible user's two exact approval events create local raw-hash approval records for the
+matching fix/build project-specification and execution-plan gate files. Run artifacts are retained
+upon completion and abandonment for the audit trail. An approved nonterminal run can resume exactly
+with `/woostack-execute --run <exact-run-id> [--recheck]`. Retained artifacts do not authorize worker
+assignment, dispatch, edits, commits, review, product acceptance, or repository delivery claims.
+Before proof, Fix makes no Linear call. `woostack-change` never contacts Linear.
 
 ## Recovery
 

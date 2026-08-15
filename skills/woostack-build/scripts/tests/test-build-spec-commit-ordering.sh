@@ -17,6 +17,12 @@ assert_literal() { # file literal message
   if [[ "$text" == *"$2"* ]]; then pass; else fail "$3"; fi
 }
 
+assert_normalized_literal() { # file literal message
+  local text
+  text="$(tr -s '[:space:]' ' ' < "$1")"
+  if [[ "$text" == *"$2"* ]]; then pass; else fail "$3"; fi
+}
+
 for file in "$BUILD_SKILL" "$PROCEDURE" "$CONTEXT" "$AUTHORITY"; do
   if [ -f "$file" ]; then pass; else fail "required build contract exists: ${file#"$ROOT/"}"; fi
 done
@@ -75,11 +81,14 @@ assert_literal "$CONTEXT" \
 assert_literal "$AUTHORITY" \
   'only after that exact content read-back, record the matching' \
   'receipt creation follows exact content read-back'
-assert_literal "$AUTHORITY" \
-  'The canonical persistent artifact store for `woostack-build`' \
-  'shared contract makes local run canonical'
-assert_literal "$AUTHORITY" \
-  'Git, Graphite, and canonical GitHub' \
+assert_normalized_literal "$AUTHORITY" \
+  'The canonical persistent artifact store for `woostack-build` and project-backed `woostack-fix` is local in `.woostack/tmp/runs/<run-id>/`.' \
+  'shared contract makes the local run store canonical'
+assert_normalized_literal "$AUTHORITY" \
+  'workflow gate. Git, Graphite, and canonical GitHub reads prove source' \
+  'direct Git, Graphite, and canonical GitHub reads prove source facts'
+assert_normalized_literal "$AUTHORITY" \
+  'artifacts are not source-control or delivery authority' \
   'source-control truth remains separate'
 
 finish

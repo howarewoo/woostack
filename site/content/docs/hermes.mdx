@@ -8,12 +8,13 @@ Woostack is installed only in OMP or another supported coding harness. Hermes ma
 decisions and review evidence from outside that installation, but it never receives implementation
 authority and must not be installed as a coding harness for this collection.
 
-## One persistent OMP session
+## One persistent OMP session per live interaction
 
-Start one persistent OMP process in the coding harness and keep the same process identity for the
-whole bounded task. Do not create a second process for a retry, approval, or redispatch. The OMP
-session owns the isolated worktree, project-scoped worker routing, implementation, and focused
-verification; the external engineer owns the contract boundary and synthesis.
+Keep one OMP process identity for each active bounded interaction. Do not switch processes during a
+retry, approval relay, or redispatch. The OMP session owns the isolated worktree, project-scoped
+worker routing, implementation, and focused verification; the external engineer owns the contract
+boundary and synthesis. A later session may resume retained unchanged approved local artifacts only
+through the exact run admission described below.
 
 Use the harness's argument-safe interactive `process` or PTY interface with an argument vector.
 Arguments are values, not shell source: pass the profile, cwd, and initial prompt as values. Confirm
@@ -49,20 +50,28 @@ Escalate any contract change, new path, changed acceptance criterion, unresolved
 question outside the approved task to the responsible user. Do not turn a user question into an
 implicit approval. Stop OMP at the last verified boundary while waiting.
 
-Build and project-backed Fix approvals have two authorities: the responsible user's explicit
-active-conversation approval of the exact Ask, and the matching Linear receipt for that exact
-revision. When Hermes presents an Ask, only the responsible user's response may approve it. Relay
-that response **verbatim and unmodified** through the same persistent OMP process that presented the
-Ask. Hermes may transmit the response but may not author, summarize, rewrite, splice, or replay it.
-A Linear record, status, assignment, label, cached transcript, or Hermes-authored message is not an
-approval.
+Build and project-backed Fix approvals bind the responsible user's explicit active-conversation
+approval of the exact Ask to the rendered gate file's raw UTF-8 SHA-256 and byte length
+(`projectSpecApprovalRecord` and `executionPlanApprovalRecord`), with optional matching Linear
+receipts when mirroring is enabled (`linear.saveArtifacts: true`). When Hermes presents an Ask in an
+active conversation, only the responsible user's response may approve it. Relay that response
+**verbatim and unmodified** through the same persistent OMP process that presented the Ask. Hermes
+may transmit the response but may not author, summarize, rewrite, splice, or replay it. A Linear
+record, status, assignment, label, cached transcript, or Hermes-authored message is not an approval.
 
-A restarted or different OMP process, a copied response, a summarized response, a replayed
-transcript, or an unknown/partial receipt fails closed. Present a fresh Ask in the active
-conversation, obtain a fresh responsible-user response, create or read back the matching Linear
-receipt, and only then continue through that same process. Material specification or execution-plan
-changes invalidate the affected approval and require the corresponding gate again.
+Live approval responses must travel verbatim through the active session. Once approved, local
+approval records and retained run artifacts in `.woostack/tmp/runs/<run-id>/` persist safely across
+process restarts and distinct processes for identical gate-file bytes and hashes. Resuming an
+approved run with `/woostack-execute --run <exact-run-id> [--recheck]` validates the retained
+manifest, gate files, and local approval records without requiring the original OMP process to
+remain alive.
 
+In contrast, during an active conversation, a restarted or different OMP process, copied response,
+summarized response, replayed transcript, or unknown/partial approval record fails closed. Present a
+fresh Ask in the active conversation, obtain a fresh responsible-user response, record the matching
+local approval record (and optional mirror sync), and only then continue through that same process.
+Material specification or execution-plan changes invalidate the affected approval and require the corresponding
+gate again.
 ## Evidence review and bounded redispatch
 
 Review OMP's exact worktree and branch/head identity, changed paths, complete diff, commands and

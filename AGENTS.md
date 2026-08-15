@@ -60,18 +60,26 @@ framing pages are committed. Deploy notes live in [`site/README.md`](site/README
 
 ## Consumer development artifacts
 
-Linear is canonical product authority for every build and every proved fix. Build resolves one exact
-project or creates one from validated defaults before ideation; Fix remains provider-free until
-root-cause proof, then resolves or creates its exact project. Both use one direct project issue per
-increment with native issue dependencies and never create a parent plan issue.
+The canonical persistent artifact store for `woostack-build` and project-backed `woostack-fix` is
+local in `.woostack/tmp/runs/<run-id>/`. Linear is an optional mirror flow gated by
+`linear.saveArtifacts: true` in `.woostack/config.json`. By default (`linear.saveArtifacts: false` or
+omitted), Build and Fix operate with default zero-provider local authority. Supplying `--project`
+when `linear.saveArtifacts` is false or absent fails closed immediately.
 
-Gated Ideate, Harden, and delegated Plan work is deferred in one permission-restricted run manifest
-after exact baseline admission, with no intermediate provider cycles. The responsible user sees and
-approves the complete exact specification or plan before one bounded synchronization, exact
-read-back, and Linear receipt. The shared
-[Linear artifact contract](skills/woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest)
-owns the detailed manifest, approval identity, ordering, recovery, identity mapping, cleanup, and
-unchanged Execute read contract. Standalone Plan synchronization remains direct and unchanged.
+Gated Ideate, Harden, and delegated Plan work is managed in one permission-restricted run manifest
+with zero provider cycles. The responsible user sees and approves the complete exact specification
+or plan gate file, recording local raw-hash approval records (`projectSpecApprovalRecord` and
+`executionPlanApprovalRecord`). When `linear.saveArtifacts: true`, approved local artifacts mirror to
+Linear in one bounded post-approval cycle; mirror failure is recorded in the manifest and is
+nonblocking for local authority. Resuming work uses `/woostack-execute --run <exact-run-id> [--recheck]`,
+`/woostack-build --run <exact-run-id>`, or `/woostack-fix --run <exact-run-id>`. All run artifacts in
+`.woostack/tmp/runs/<run-id>/` are retained upon completion and upon explicit abandonment to preserve
+an unbroken audit trail. Explicit abandonment sets `status: "abandoned"` in the manifest and does not
+mutate a mirrored Linear project. Standalone Plan synchronization remains direct and unchanged. The
+shared
+[Local run artifact and provider mirror contract](skills/woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest)
+owns the detailed manifest, approval identity, ordering, recovery, identity mapping, retention, and
+Execute read contract.
 
 The user's request and each workflow's explicit approval gates authorize repository work; artifacts
 record that work and never grant permission, assignment, ownership, acceptance, or source-control
@@ -81,20 +89,20 @@ authority. Git and GitHub own source, branches, commits, pull requests, reviews,
 discovery of non-secret repository/workspace/team/native-name defaults; it never selects
 persistence or authorizes a provider write. `.woostack/config.json` supplies validated defaults
 only after artifact selection. Credentials remain in the host secret store, and local diagnostic
-reports remain non-authoritative. `woostack-change` never contacts Linear. Explicit Build or
-project-backed Fix abandonment cleans up the manifest and closes the exact project through
-configured canceled status/read-back; source issues are preserved. Handoff, replanning, and
+reports remain non-authoritative. `woostack-change` never contacts Linear. Handoff, replanning, and
 blockers leave project status unchanged.
 
 External engineers such as Hermes are outside the installed woostack host/runtime surface. Hermes
 may drive one persistent OMP session as an external decision-maker and reviewer, but woostack is
-installed only in OMP or another coding harness. The external-engineer decision, escalation,
-approval relay, and evidence contract lives in the authored [Hermes guide](site/content/docs/hermes.mdx);
-it does not make Hermes a supported host or grant it implementation authority.
+installed only in OMP or another coding harness. When Hermes participates in an active conversation,
+the responsible user's live approval response must be relayed verbatim; cross-session resume against
+retained unchanged local artifacts and verified local approval records does not require the original
+process to stay alive. The external-engineer decision, escalation, approval relay, and evidence
+contract lives in the authored [Hermes guide](site/content/docs/hermes.mdx); it does not make Hermes a supported host
+or grant it implementation authority.
 
 This collection still has twenty-two public command/adoption skills at twenty-four fixed `SKILL.md`
 locations. Linear support adds neither a command-routing row nor a per-provider skill.
-
 ## Modes
 
 Identify the mode before acting.
