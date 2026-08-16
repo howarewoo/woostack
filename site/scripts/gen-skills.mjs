@@ -20,7 +20,6 @@ export const PUBLIC_ORDER = [
   'woostack-change',
   'woostack-plan',
   'woostack-execute',
-  'woostack-execute-overnight',
   'woostack-commit',
   'woostack-review',
   'woostack-address-comments',

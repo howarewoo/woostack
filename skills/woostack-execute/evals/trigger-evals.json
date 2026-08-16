@@ -33,11 +33,10 @@
       "expectedSkill": "woostack-execute"
     },
     {
-      "id": "overnight-execution",
+      "id": "unattended-execution",
       "query": "Execute the approved project unattended overnight and keep going without waiting for me; leave remote blocker and handoff records.",
-      "shouldTrigger": false,
-      "expectedSkill": "woostack-execute-overnight",
-      "conflictsWith": ["woostack-execute"]
+      "shouldTrigger": true,
+      "expectedSkill": "woostack-execute"
     },
     {
       "id": "plan-not-execute",

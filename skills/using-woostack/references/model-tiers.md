@@ -2,10 +2,9 @@
 
 Canonical tier→model mapping for the woostack collection. `woostack-review` (angle workers +
 validator), `woostack-audit` (audit workers), and other consumers resolve tiers through this file.
-Normal [`woostack-execute`](../../woostack-execute/SKILL.md) implementation workers, including the
-unattended project controller in [`woostack-execute-overnight`](../../woostack-execute-overnight/SKILL.md),
-are always bound to the `fast` tier. Each consumer keeps only its own **runtime bindings** (env
-vars, config paths, dispatch calls) and points at the precedence rules below — there is no second
+Normal [`woostack-execute`](../../woostack-execute/SKILL.md) implementation workers are always
+bound to the `fast` tier. Each consumer keeps only its own **runtime bindings** (env vars, config
+paths, dispatch calls) and points at the precedence rules below — there is no second
 copy of this table.
 
 Tiers are `fast | standard | deep`. A prompt or template declares a `tier:` in frontmatter; the

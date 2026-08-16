@@ -2,7 +2,7 @@
 
 **Repository-first, evidence-driven workflows for AI-assisted software delivery.**
 
-`woostack` packages opinionated workflows into twenty-two public installable skills that work
+`woostack` packages opinionated workflows into twenty-one public installable skills that work
 across coding harnesses. Linear owns current build and post-diagnosis fix product scope and
 execution plans. Git and GitHub own source, branches, pull requests, reviews, and merge evidence.
 Exact responsible-user Linear approvals clear only matching content revisions; Linear never
@@ -50,8 +50,8 @@ pnpx skills add howarewoo/woostack
 
 *Note: `pnpm` (and `pnpx`) is the recommended package manager for woostack, as bootstrapped projects default to a pnpm workspace catalog.*
 
-This command registers twenty-two public command/adoption skills and two bundled internal skills
-at twenty-four fixed `SKILL.md` locations. The collection includes `using-woostack`,
+This command registers twenty-one public command/adoption skills and two bundled internal skills
+at twenty-three fixed `SKILL.md` locations. The collection includes `using-woostack`,
 `woostack-init`, `woostack-bootstrap`, `woostack-build`, `woostack-fix`, `woostack-change`,
 `woostack-review`, `woostack-address-comments`, `woostack-eval`, and `woostack-reflect`, among the
 rest, plus its two internal helpers.

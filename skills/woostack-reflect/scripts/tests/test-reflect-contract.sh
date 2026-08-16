@@ -85,22 +85,22 @@ for source, phrase, message in [
 public = [
     'using-woostack', 'woostack-init', 'woostack-bootstrap', 'woostack-build',
     'woostack-fix', 'woostack-change', 'woostack-plan', 'woostack-execute',
-    'woostack-execute-overnight', 'woostack-commit', 'woostack-review',
-    'woostack-address-comments', 'woostack-status', 'woostack-visualize',
+    'woostack-commit', 'woostack-review', 'woostack-address-comments',
+    'woostack-status', 'woostack-visualize',
     'woostack-debug', 'woostack-tdd', 'woostack-doctor', 'woostack-sweep',
     'woostack-qa', 'woostack-audit', 'woostack-eval', 'woostack-reflect',
 ]
 internal = ['woostack-harden', 'woostack-ideate']
 fixed = public + internal
-require(len(public) == 22 and len(fixed) == 24 and len(set(fixed)) == 24, 'invalid expected command counts')
+require(len(public) == 21 and len(fixed) == 23 and len(set(fixed)) == 23, 'invalid expected command counts')
 
 agents = read('AGENTS.md')
-section = re.search(r'The public command/adoption surface has twenty-two skills:\s*(.*?)\nThe collection also installs', agents, re.S)
-require(section is not None, 'AGENTS.md does not declare the 22-skill public surface')
+section = re.search(r'The public command/adoption surface has twenty-one skills:\s*(.*?)\nThe collection also installs', agents, re.S)
+require(section is not None, 'AGENTS.md does not declare the 21-skill public surface')
 agent_public = re.findall(r'^- \[`([^`]+)`\]\(skills/[^)]+/SKILL\.md\)$', section.group(1), re.M)
 require(agent_public == public, f'AGENTS.md public order mismatch: {agent_public!r}')
-require('twenty-two public command/adoption skills at twenty-four fixed' in agents, 'AGENTS.md count is stale')
-require('twenty-four `SKILL.md` files (the twenty-two public command/adoption' in agents, 'AGENTS.md fixed-path count is stale')
+require('twenty-one public command/adoption skills at twenty-three fixed' in agents, 'AGENTS.md count is stale')
+require('twenty-three `SKILL.md` files (the twenty-one public command/adoption' in agents, 'AGENTS.md fixed-path count is stale')
 
 actual_fixed = sorted(path.parent.name for path in (root / 'skills').glob('*/SKILL.md'))
 require(actual_fixed == sorted(fixed), f'fixed SKILL.md surface mismatch: {actual_fixed!r}')
@@ -110,8 +110,8 @@ routes = re.findall(r'^\| `/([^`\s]+)', routing, re.M)
 expected_routes = [
     'woostack-init', 'woostack-bootstrap', 'woostack-build', 'woostack-fix',
     'woostack-change', 'woostack-plan', 'woostack-execute',
-    'woostack-execute-overnight', 'woostack-sweep', 'woostack-commit',
-    'woostack-review', 'woostack-audit', 'woostack-qa', 'woostack-eval',
+    'woostack-sweep', 'woostack-commit', 'woostack-review',
+    'woostack-audit', 'woostack-qa', 'woostack-eval',
     'woostack-reflect', 'woostack-address-comments', 'woostack-status',
     'woostack-visualize', 'woostack-debug', 'woostack-tdd', 'woostack-doctor',
 ]
@@ -130,7 +130,7 @@ for source in ['site/content/docs/concepts.mdx', 'site/content/docs/concepts/con
     require('concrete observed preventable instruction gap' in folded, f'{source} omits the candidate gate')
     require('no reflection headings' in folded, f'{source} omits the no-candidate result')
 folded_index = re.sub(r"\s+", " ", read('site/content/docs/index.mdx'))
-require('twenty-two public command/adoption skills at twenty-four fixed `SKILL.md` locations' in folded_index, 'site index count is stale')
+require('twenty-one public command/adoption skills at twenty-three fixed `SKILL.md` locations' in folded_index, 'site index count is stale')
 
 active_files = [
     'AGENTS.md', 'README.md', 'CONTRIBUTING.md',

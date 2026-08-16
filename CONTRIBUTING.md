@@ -1,6 +1,6 @@
 # Contributing
 
-This repo is a **published collection of skills**, not a codebase. Contributions are edits to the skills — the Markdown under `skills/` plus the support files a skill ships (HTML templates, the review engine's shell scripts and prompts, JSON config). The public command/adoption surface is `using-woostack`, `woostack-init`, `woostack-bootstrap`, `woostack-build`, `woostack-fix`, `woostack-change`, `woostack-plan`, `woostack-execute`, `woostack-execute-overnight`, `woostack-commit`, `woostack-review`, `woostack-address-comments`, `woostack-status`, `woostack-visualize`, `woostack-debug`, `woostack-tdd`, `woostack-doctor`, `woostack-sweep`, `woostack-qa`, `woostack-audit`, `woostack-eval`, and `woostack-reflect`. The collection also ships `woostack-ideate` and `woostack-harden` as internal sub-skills.
+This repo is a **published collection of skills**, not a codebase. Contributions are edits to the skills — the Markdown under `skills/` plus the support files a skill ships (HTML templates, the review engine's shell scripts and prompts, JSON config). The public command/adoption surface is `using-woostack`, `woostack-init`, `woostack-bootstrap`, `woostack-build`, `woostack-fix`, `woostack-change`, `woostack-plan`, `woostack-execute`, `woostack-commit`, `woostack-review`, `woostack-address-comments`, `woostack-status`, `woostack-visualize`, `woostack-debug`, `woostack-tdd`, `woostack-doctor`, `woostack-sweep`, `woostack-qa`, `woostack-audit`, `woostack-eval`, and `woostack-reflect`. The collection also ships `woostack-ideate` and `woostack-harden` as internal sub-skills.
 
 See [AGENTS.md](AGENTS.md) for the full repo contract; this file is the short contributor's version.
 
@@ -26,7 +26,6 @@ See [AGENTS.md](AGENTS.md) for the full repo contract; this file is the short co
 | Change the harden phase (the build loop's stress-test step) | `skills/woostack-harden/SKILL.md` |
 | Change the plan phase (the build loop's planning step) | `skills/woostack-plan/SKILL.md` |
 | Change the execute phase (the build loop's implementation step) | `skills/woostack-execute/SKILL.md` |
-| Change the overnight execute phase (unattended autonomous run, remote-record terminal handback) | `skills/woostack-execute-overnight/SKILL.md` |
 | Change the stack review-sweep engine (`/woostack-sweep`) | `skills/woostack-sweep/SKILL.md` |
 | Change the commit / PR update workflow | `skills/woostack-commit/SKILL.md` |
 | Change the review engine | `skills/woostack-review/SKILL.md`, `skills/woostack-review/scripts/`, `skills/woostack-review/prompts/` |
@@ -68,7 +67,7 @@ See [AGENTS.md](AGENTS.md) for the full repo contract; this file is the short co
 - Keep examples short. The skill describes intent; project-local docs cover the specifics.
 - **Cross-link rather than duplicate.** If a fact lives in `architecture.md`, link to it from `patterns.md`; don't restate.
 - **Preserve the public surface.** Linear development authority does not create skills or command-routing rows.
-  Keep the twenty-two public command/adoption skills and all twenty-four fixed `SKILL.md` files
+  Keep the twenty-one public command/adoption skills and all twenty-three fixed `SKILL.md` files
   named in [AGENTS.md](AGENTS.md).
 - Keep each `SKILL.md` in sync with its references. Its `description` must state *when* to use the skill, not summarize the workflow — a workflow summary causes agents to skip the references.
 
