@@ -86,8 +86,6 @@ boundary; optional artifact failure blocks only the selected optional operation.
   actions ran with the required identical model and effort; an unprovable identity, host fallback
   divergence, or model/effort divergence fails the mechanics proof. A host mode unable to start
   both siblings in the same batch fails comparative preflight.
-- `woostack-execute-overnight`: host recovery capacity is advisory; exhausted recovery halts the
-  affected track at its normal blocker boundary.
 
 ## Degradation
 

@@ -22,7 +22,6 @@ packages=(
   skills/woostack-plan
   skills/woostack-fix
   skills/woostack-execute
-  skills/woostack-execute-overnight
   skills/woostack-commit
   skills/woostack-review
   skills/woostack-sweep
@@ -62,7 +61,6 @@ const expectedPackages = [
   'skills/woostack-plan',
   'skills/woostack-fix',
   'skills/woostack-execute',
-  'skills/woostack-execute-overnight',
   'skills/woostack-commit',
   'skills/woostack-review',
   'skills/woostack-sweep',
@@ -192,13 +190,6 @@ const requiredContractProofs = {
     'admission requires the exact record pair': [['admission-blocked'], ['admission-no-mutation']],
     'resume reuses existing delivery state': [['resume-pr'], ['resume-no-duplicate'], ['resume-retained']],
     'failure retains the worktree': [['failure-retained'], ['failure-boundary'], ['failure-next']],
-  },
-  'woostack-execute-overnight': {
-    'blocked tracks preserve remote handback evidence': [['partial-blocked-handback'], ['blocked-project-not-accepted'], ['handback-rendered-remotely']],
-    'every receipt family gates acceptance': [['missing-worker-blocks'], ['missing-controller-receipt-blocks'], ['missing-review-blocks'], ['missing-mutation-readback-blocks']],
-    'resume and project mutation authority stay exact': [['foreign-run-blocks'], ['stale-run-blocks'], ['lead-authority-covers-every-project-mutation-family'], ['non-lead-cannot-mutate-project']],
-    'coding workers remain observation only': [['worker-attempts-no-mutation'], ['worker-allocates-no-event-uuid'], ['controller-owns-boundaries']],
-    'no local authority or merge': [['no-local-report-path'], ['overnight-never-merges']],
   },
   'woostack-commit': {
     'standalone and increment issue closing references are exact': [
@@ -596,7 +587,6 @@ const approvedCorpusContracts = {
   'woostack-plan': corpusContract(6, 'c56e213b01593d261b065aa36938b9f3c2d10edb3b3b564d2ba19207e210fe47'),
   'woostack-fix': corpusContract(13, '9f02e7d6c5dff2f855807505d0f0015aef3a10c52de1daa0ae02a3451632e125'),
   'woostack-execute': corpusContract(20, 'cacd633577ff66e44835cf82eeb22dbb1e12b6d36ae7101e8aa9abbd3e1d110d'),
-  'woostack-execute-overnight': corpusContract(8, 'ef93b1b70e63ccef67e2f515041ace0d9652180d1303ce0b71652da6940416d6'),
   'woostack-commit': corpusContract(14, '57744b56bda3545bbdeccc32b9662c41d48f0f67814342f4f0102022337edc33'),
   'woostack-review': corpusContract(4, '2fee6498867b94b403c3125bf7812dc794f5ea4ccb791fd55d01a06dcafca171'),
   'woostack-sweep': corpusContract(12, '5a0f1bbeb7917fd8037e404a23c6acc2d7baf8bd7beb23efff5220e31289f4aa'),

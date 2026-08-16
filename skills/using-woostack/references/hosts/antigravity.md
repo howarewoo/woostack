@@ -36,7 +36,7 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
   `reviewerCredentialContextId` is `antigravity:context:<instance-id>`. Feed both into
   [Review's bound-validator sequence](../../../woostack-review/SKILL.md). The CI runner remains
   `run-gemini-cli` (Antigravity cannot run headless there).
-- **woostack-execute (and overnight):** resolve the session model from the `fast` tier before
+- **woostack-execute:** resolve the session model from the `fast` tier before
   dispatch; all implementation workers share that session model.
 - **woostack-eval (comparative dispatch):** instantiate the two isolated-context workers for
   each candidate/baseline inseparable pair in the same dynamic orchestration turn. There is no

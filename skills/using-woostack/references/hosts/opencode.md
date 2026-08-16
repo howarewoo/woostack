@@ -36,7 +36,7 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
   `@subagent` dispatch; `reviewerCredentialContextId` is
   `opencode:subagent:<worker-id>`. Feed both into
   [Review's bound-validator sequence](../../../woostack-review/SKILL.md).
-- **woostack-execute (and overnight):** route implementation workers at the `fast` tier per call;
+- **woostack-execute:** route implementation workers at the `fast` tier per call;
   preserve the controller's project admission and delivery boundaries.
 - **woostack-eval (comparative dispatch):** submit the candidate and baseline as two isolated
   `@subagent` workers in the same parallel dispatch, keeping every inseparable pair intact.

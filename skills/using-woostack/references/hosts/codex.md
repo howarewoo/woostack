@@ -38,7 +38,7 @@ host — no spawn-time auth probe exists; switch manually by promoting an entry 
   `reviewerCredentialContextId` is `codex:worker:<worker-id>`. Feed both into
   [Review's bound-validator sequence](../../../woostack-review/SKILL.md). The CI single-session
   `load-prompt.sh` / `resolve-model.sh` path remains self-contained.
-- **woostack-execute (and overnight):** local implementation workers use the `fast` tier with
+- **woostack-execute:** local implementation workers use the `fast` tier with
   its resolved model and `reasoning_effort`; Codex Action applies its documented session collapse.
 - **woostack-eval (comparative dispatch):** local Codex can start the two isolated workers in
   each candidate/baseline inseparable pair together and pin the same concrete `model` plus

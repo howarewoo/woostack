@@ -11,8 +11,7 @@ confirmed defect here instead of guessing. It owns no approval gate, writes no r
 provider state, and hands back evidence plus a bounded remediation candidate.
 
 It is a public command, `/woostack-debug <target>`, and an internal hook used by
-[`woostack-execute`](../woostack-execute/SKILL.md),
-[`woostack-execute-overnight`](../woostack-execute-overnight/SKILL.md), and
+[`woostack-execute`](../woostack-execute/SKILL.md) and
 [`woostack-review`](../woostack-review/SKILL.md). It always runs autonomously.
 
 <IRON-LAW>

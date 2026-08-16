@@ -10,7 +10,7 @@ This is a published collection of skills, not an application codebase. It packag
 decisions for building new web, mobile, and API projects so agents can install it with
 `pnpx skills add howarewoo/woostack`.
 
-The public command/adoption surface has twenty-two skills:
+The public command/adoption surface has twenty-one skills:
 
 - [`using-woostack`](skills/using-woostack/SKILL.md)
 - [`woostack-init`](skills/woostack-init/SKILL.md)
@@ -20,7 +20,6 @@ The public command/adoption surface has twenty-two skills:
 - [`woostack-change`](skills/woostack-change/SKILL.md)
 - [`woostack-plan`](skills/woostack-plan/SKILL.md)
 - [`woostack-execute`](skills/woostack-execute/SKILL.md)
-- [`woostack-execute-overnight`](skills/woostack-execute-overnight/SKILL.md)
 - [`woostack-commit`](skills/woostack-commit/SKILL.md)
 - [`woostack-review`](skills/woostack-review/SKILL.md)
 - [`woostack-address-comments`](skills/woostack-address-comments/SKILL.md)
@@ -39,7 +38,7 @@ The collection also installs two internal sub-skills:
 [`woostack-ideate`](skills/woostack-ideate/SKILL.md) and
 [`woostack-harden`](skills/woostack-harden/SKILL.md). `woostack-build` delegates its ideate
 phase to the former and its harden phase to the latter. Both are bundled building blocks, not
-`/woostack-*` commands: they have no routing row and are absent from the twenty-two-skill command
+`/woostack-*` commands: they have no routing row and are absent from the twenty-one-skill command
 surface above.
 
 There is no application source code, app lockfile, build, or CI for this repo's own
@@ -101,7 +100,7 @@ process to stay alive. The external-engineer decision, escalation, approval rela
 contract lives in the authored [Hermes guide](site/content/docs/hermes.mdx); it does not make Hermes a supported host
 or grant it implementation authority.
 
-This collection still has twenty-two public command/adoption skills at twenty-four fixed `SKILL.md`
+This collection still has twenty-one public command/adoption skills at twenty-three fixed `SKILL.md`
 locations. Linear support adds neither a command-routing row nor a per-provider skill.
 ## Modes
 
@@ -114,7 +113,7 @@ do not add application code, app build configs, or app lockfiles **outside the s
 `site/` is also Mode A.
 
 **Mode B: run a woostack command.** Use this when the user asks for `/woostack-init`,
-`/woostack-bootstrap`, `/woostack-build`, `/woostack-fix`, `/woostack-change`, `/woostack-plan`, `/woostack-execute`, `/woostack-execute-overnight`, `/woostack-commit`,
+`/woostack-bootstrap`, `/woostack-build`, `/woostack-fix`, `/woostack-change`, `/woostack-plan`, `/woostack-execute`, `/woostack-commit`,
 `/woostack-review`, `/woostack-address-comments`, `/woostack-status`, `/woostack-visualize`, `/woostack-debug`,
 `/woostack-tdd`, `/woostack-doctor`, `/woostack-sweep`, `/woostack-qa`, `/woostack-audit`, `/woostack-eval`, or `/woostack-reflect`, including intent-equivalent wording. Load the matching skill
 before acting. For bootstrap work, the output belongs in a fresh repo in a different
@@ -162,7 +161,7 @@ directory, not in this repo.
   pages need no manual edit: they regenerate from each `SKILL.md` at build time (see the
   documentation-site exception above). When in doubt, run `pnpm -C site build` to confirm the
   site still builds.
-- Do not move or rename any of the twenty-four `SKILL.md` files (the twenty-two public command/adoption
+- Do not move or rename any of the twenty-three `SKILL.md` files (the twenty-one public command/adoption
   skills plus internal `woostack-ideate` and `woostack-harden`).
 - Do not rename files under
   [`skills/woostack-bootstrap/references/`](skills/woostack-bootstrap/references/) without
@@ -187,9 +186,7 @@ directory, not in this repo.
   [`skills/woostack-plan/SKILL.md`](skills/woostack-plan/SKILL.md)
 - Plan-execution engine for the build loop (public command):
   [`skills/woostack-execute/SKILL.md`](skills/woostack-execute/SKILL.md)
-- Overnight (unattended, autonomous) plan-execution engine (public command):
-  [`skills/woostack-execute-overnight/SKILL.md`](skills/woostack-execute-overnight/SKILL.md)
-- Stack review-sweep engine (public command + delegated-to by execute-overnight):
+- Stack review-sweep engine (public command):
   [`skills/woostack-sweep/SKILL.md`](skills/woostack-sweep/SKILL.md)
 - Exploratory browser QA engine (public command; drives a running app via the `agent-browser`
   CLI, report-only findings under `.woostack/qa/`):

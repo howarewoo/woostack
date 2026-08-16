@@ -85,10 +85,6 @@ const workflows: readonly Workflow[] = [
     ],
     branches: [
       { label: 'Go', steps: [{ label: 'Reviewed PR stack', kind: 'terminal' }] },
-      {
-        label: 'Run overnight',
-        steps: [{ label: 'Reviewed or truthfully blocked stack plus morning report', kind: 'terminal' }],
-      },
       { label: 'Hand off', steps: [{ label: 'Ready artifacts with no implementation PR', kind: 'terminal' }] },
     ],
   },

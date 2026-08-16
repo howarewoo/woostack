@@ -54,9 +54,8 @@ approved dependency graph and Git ancestry.
 
 Execute processes tasks strictly sequentially within each local run. Distinct local run IDs may run
 concurrently only when their responsibility surfaces, branches, worktrees, and PRs are disjoint.
-Provider-mode Overnight may retain its documented independent-root concurrency. Dependent tasks
-always follow their declared Git parent. Subagents receive the exact path and verify that their
-physical working directory matches the Git top level before writing.
+Dependent tasks always follow their declared Git parent. Subagents receive the exact path and verify
+that their physical working directory matches the Git top level before writing.
 
 ## Teardown and recovery
 

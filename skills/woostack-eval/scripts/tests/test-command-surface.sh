@@ -56,7 +56,6 @@ public = [
     "woostack-change",
     "woostack-plan",
     "woostack-execute",
-    "woostack-execute-overnight",
     "woostack-commit",
     "woostack-review",
     "woostack-address-comments",
@@ -73,19 +72,19 @@ public = [
 ]
 internal = ["woostack-harden", "woostack-ideate"]
 fixed = public + internal
-require(len(public) == 22 and len(fixed) == 24 and len(set(fixed)) == 24, "invalid expected command counts")
+require(len(public) == 21 and len(fixed) == 23 and len(set(fixed)) == 23, "invalid expected command counts")
 
 agents = read("AGENTS.md")
 agent_section = re.search(
-    r"The public command/adoption surface has twenty-two skills:\s*(.*?)\nThe collection also installs",
+    r"The public command/adoption surface has twenty-one skills:\s*(.*?)\nThe collection also installs",
     agents,
     re.S,
 )
-require(agent_section is not None, "AGENTS.md does not declare the 22-skill public surface")
+require(agent_section is not None, "AGENTS.md does not declare the 21-skill public surface")
 agent_public = re.findall(r"^- \[`([^`]+)`\]\(skills/[^)]+/SKILL\.md\)$", agent_section.group(1), re.M)
 require(agent_public == public, f"AGENTS.md public order mismatch: {agent_public!r}")
-require("This collection still has twenty-two public command/adoption skills at twenty-four fixed" in agents, "AGENTS.md missing 22-public/24-fixed invariant")
-require("twenty-four `SKILL.md` files (the twenty-two public command/adoption" in agents, "AGENTS.md fixed-path constraint is stale")
+require("This collection still has twenty-one public command/adoption skills at twenty-three fixed" in agents, "AGENTS.md missing 21-public/23-fixed invariant")
+require("twenty-three `SKILL.md` files (the twenty-one public command/adoption" in agents, "AGENTS.md fixed-path constraint is stale")
 require(agents.count("[`woostack-eval`](skills/woostack-eval/SKILL.md)") == 1, "AGENTS.md public list must register woostack-eval once")
 require(agents.count("[`woostack-reflect`](skills/woostack-reflect/SKILL.md)") == 1, "AGENTS.md public list must register woostack-reflect once")
 require("[`skills/woostack-eval/SKILL.md`](skills/woostack-eval/SKILL.md)" in agents, "AGENTS.md quick map must register woostack-eval once")
@@ -110,7 +109,6 @@ expected_routes = [
     "woostack-change",
     "woostack-plan",
     "woostack-execute",
-    "woostack-execute-overnight",
     "woostack-sweep",
     "woostack-commit",
     "woostack-review",
@@ -158,12 +156,12 @@ contributing = read("CONTRIBUTING.md")
 development = read("skills/woostack-bootstrap/references/development.md")
 concepts = read("site/content/docs/concepts/index.mdx")
 utilities = read("site/content/docs/concepts/utilities.mdx")
-require("twenty-two public command/adoption skills and two bundled internal skills at twenty-four fixed" in folded_readme, "README count is stale")
+require("twenty-one public command/adoption skills and two bundled internal skills at twenty-three fixed" in folded_readme, "README count is stale")
 require("[/woostack-eval](skills/woostack-eval/SKILL.md)" in readme, "README catalog omits woostack-eval")
 require("[/woostack-reflect](skills/woostack-reflect/SKILL.md)" in readme, "README catalog omits woostack-reflect")
 require("| Change skill evaluation (`/woostack-eval`) |" in contributing, "CONTRIBUTING map omits woostack-eval")
 require("| Change session reflection (`/woostack-reflect`) |" in contributing, "CONTRIBUTING map omits woostack-reflect")
-require("twenty-two public command/adoption skills and all twenty-four fixed" in contributing, "CONTRIBUTING count is stale")
+require("twenty-one public command/adoption skills and all twenty-three fixed" in contributing, "CONTRIBUTING count is stale")
 require("| Evaluate approved behavior and trigger corpora for a skill without editing it | `woostack-eval` |" in development, "bootstrap adoption map omits woostack-eval")
 require("| Reflect on the fixed active-conversation snapshot for concrete durable instruction suggestions | `woostack-reflect` |" in development, "bootstrap adoption map omits woostack-reflect")
 require('href="/docs/concepts/utilities"' in concepts, "authored concept overview omits the utilities surface")
@@ -177,10 +175,10 @@ require(re.search(r"never edits the target skill", folded_utilities, re.I) is no
 
 adoption = "\n".join((agents, readme, contributing, routing, development, concepts, utilities))
 stale = re.compile(
-    r"twenty-one\s+(?:public(?:\s+command/adoption)?\s+skills|fixed\s+`SKILL\.md`)|"
-    r"twenty-one\s+public|21\s+public|"
-    r"twenty-three\s+(?:public(?:\s+command/adoption)?\s+skills|fixed\s+`SKILL\.md`)|"
-    r"twenty-three\s+public|23\s+public|"
+    r"twenty-two\s+(?:public(?:\s+command/adoption)?\s+skills|fixed\s+`SKILL\.md`)|"
+    r"twenty-two\s+public|22\s+public|"
+    r"twenty-four\s+(?:public(?:\s+command/adoption)?\s+skills|fixed\s+`SKILL\.md`)|"
+    r"twenty-four\s+public|24\s+public|"
     r"twenty-six\s+(?:fixed\s+)?`SKILL\.md`|26\s+fixed",
 )
 require(stale.search(adoption) is None, "stale public/fixed adoption count remains")
