@@ -7,7 +7,9 @@ capabilities available in the session. Repository rules and the selected workflo
 authoritative. Linear remains optional for non-Fix workflows and for Fix diagnosis before root-cause proof; a proved new Fix requires the configured official MCP project/issue path before implementation.
 
 When a woostack skill is invoked, rename the active session with a concise title derived from the
-user's current goal. Do not use the slash-command name as the title.
+user's current goal. For `woostack-change`, `woostack-build`, and `woostack-fix`, derive the title
+from the user's input goal; a resume-only Build or Fix invocation uses the exact verified run goal.
+Do not use the slash-command name, project or run identifier, or an untrusted remote title.
 
 ## Subagent spawn
 

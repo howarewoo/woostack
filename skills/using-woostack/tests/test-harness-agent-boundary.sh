@@ -74,11 +74,20 @@ orchestrator = read("skills/woostack-review/prompts/_orchestrator-header.md")
 agents = read("AGENTS.md")
 readme = read("README.md")
 hermes = read("site/content/docs/hermes.mdx")
+change = read("skills/woostack-change/SKILL.md")
+build = read("skills/woostack-build/SKILL.md")
+fix = read("skills/woostack-fix/SKILL.md")
 
-require(omp, r"rename the active session.*current goal.*slash-command",
-        "OMP guidance does not rename sessions from the current goal")
-forbid(using, r"rename the active session|slash-command name",
-       "using-woostack contains OMP-specific session naming guidance")
+require(omp, r"woostack-change.*woostack-build.*woostack-fix.*input goal",
+        "OMP guidance does not name Change, Build, and Fix sessions from the input goal")
+require(omp, r"resume-only Build or Fix.*verified run goal",
+        "OMP guidance does not name resumed Build and Fix sessions from the verified run goal")
+require(omp, r"slash-command name.*project or run identifier.*untrusted remote title",
+        "OMP guidance permits identifier or untrusted-title session names")
+for text, label in ((using, "using-woostack"), (change, "Change"),
+                    (build, "Build"), (fix, "Fix")):
+    forbid(text, r"\bOMP\b|hosts/omp\.md|active-session naming|rename the (?:active )?session",
+           f"{label} contains host-specific session naming guidance")
 
 for text, label in ((using, "using-woostack"), (omp, "OMP guidance"),
                     (doctor, "doctor"), (review, "Review"),
