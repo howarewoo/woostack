@@ -40,7 +40,7 @@ empty range reports `nothing to sweep` and is not a clean result.
    Graphite parent pair. An external, unexplained, or unverified head or thread-set change
    invalidates that round; verified Address/restack transitions are governed by the explicit
    round-outcome branch.
-6. Load `review_sweep.max_rounds` from `.woostack/config.json`; require a positive integer and
+6. Load `review_sweep.max_rounds` from effective repository configuration; require a positive integer and
    default to `3` when absent. A malformed value warns and falls back to `3`. Bind that cap before
    any PR enters the loop.
 

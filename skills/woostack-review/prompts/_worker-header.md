@@ -64,7 +64,7 @@ accept a review, merge, or silently reduce the detected angle set or required ad
   provenance. Exact Linear artifact fields may be appended under `linear://project/<uuid>` or
   `linear://issue/<uuid>` only after official-MCP verification. Its presence enables the
   `acceptance` worker; GitHub Actions never creates it.
-- **Per-repo config** (always present, defaults to `{"severity_floor":"high"}`): `/tmp/pr-review/config.json` — parsed from `.woostack/config.json` in the consumer repo.
+- **Per-repo config** (always present, defaults to `{"severity_floor":"high"}`): `/tmp/pr-review/config.json` — parsed from effective repository configuration in the consumer repo.
 - **Incremental base SHA** (always present, may be empty): `/tmp/pr-review/last_sha.txt` — non-empty means `diff.txt` covers only the new commits since the last woostack-review pass. Treat findings as scoped to those commits.
 - **Prior review threads** (always present in PR mode, may be `[]`): `/tmp/pr-review/prior-findings.json` — array of `{file, line, title, author, status}` from the unchanged GitHub GraphQL `reviewThreads` read. Angle workers MUST ignore it. The posting event floor counts only `status: "open"`; `status: "resolved"` remains dedupe context and never withholds native approval.
 - **PR Linear attribution candidate** (PR mode): `$OUTDIR/attribution.md` — exact syntax-classified

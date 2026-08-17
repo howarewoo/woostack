@@ -47,15 +47,18 @@ new angles are shared with `woostack-review`, which also runs them on source-tou
 
 ## Per-repo configuration
 
-Drop an optional sibling **`audit`** block in `.woostack/config.json`:
+Drop an optional sibling **`audit`** block in `.woostack/config.json` (or override locally in
+`.woostack/config.local.json` under the
+[effective configuration contract](../woostack-init/references/artifact-backends.md#effective-repository-configuration-and-precedence)):
 
 ```json
 { "audit": { "severity_floor": "high", "angles": { "skip": ["deps"] }, "ignore": ["**/*.generated.ts"] } }
 ```
 
 Audit-local keys are `angles.force` / `angles.skip`, `severity_floor`, `ignore`,
-`chunking.max_loc`, and `report_dir`. `scripts/load-audit-config.sh` hard-fails on an unknown
-key.
+`chunking.max_loc`, and `report_dir`. `scripts/load-audit-config.sh` reads effective configuration
+via the canonical resolver and hard-fails on an unknown key. Alternate config paths such as
+`AUDIT_CONFIG_FILE` are not supported.
 
 Model selection uses the shared root `models` object, not `audit.models`. Use
 `models.<tier>` or `models.<provider>.<tier>` as described in the canonical

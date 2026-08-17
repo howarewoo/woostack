@@ -42,7 +42,16 @@ Prefetch auto-discovers project rule files (`AGENTS.md`, `CLAUDE.md`, `.cursorru
 
 ## Per-repo Configuration (`.woostack/config.json`)
 
-Drop an optional `.woostack/config.json` in the consumer repo to tune the review without forking the skill. **Review settings nest under a top-level `review` object** so the file can hold sibling config namespaces for other woostack tools without collision; keys outside `review` are ignored by the review loader. Prefetch parses the `review` block into `$OUTDIR/config.json` (canonical copy, flattened); downstream stages read from there. Missing file = defaults (`severity_floor: high`). **All keys are optional — specify only the ones you want to override; the rest keep their built-in defaults.** Invalid JSON, a non-object `review`, or an unknown key *inside* `review` → loud `::error file=.woostack/config.json,line=N::<msg>` annotation and the workflow fails (no silent fallback). Sibling top-level keys outside `review` are ignored, not errors.
+Drop an optional `.woostack/config.json` (and optional primary-checkout `.woostack/config.local.json`)
+in the consumer repo to tune the review under the canonical
+[effective configuration contract](../../woostack-init/references/artifact-backends.md#effective-repository-configuration-and-precedence).
+**Review settings nest under a top-level `review` object** so the file can hold sibling config namespaces
+for other woostack tools without collision; keys outside `review` are ignored by the review loader.
+Prefetch parses effective configuration into `$OUTDIR/config.json` (canonical copy, flattened);
+downstream stages read from there. Missing files = defaults (`severity_floor: high`). **All keys are optional —
+specify only the ones you want to override; the rest keep their built-in defaults.** Invalid JSON, an empty
+config file, a non-object `review`, or an unknown key *inside* `review` → loud
+`::error file=.woostack/config.json,line=N::<msg>` annotation and the workflow fails (no false-pass on typos).
 
 > **Transition note:** review keys placed at the top level (the pre-nesting layout) are still accepted but emit a deprecation `::warning`. Migrate them under `review`. The one exception is `models`, which is a deliberate root-level sibling of `review` (see below) — a nested `review.models` is a hard error, not a deprecation.
 

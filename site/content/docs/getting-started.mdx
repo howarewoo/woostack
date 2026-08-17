@@ -46,7 +46,9 @@ worktree support, the three project-scoped OMP role workers, and the project-sco
 extension with its local settings entry. It preserves other project agents and extensions
 and does not create a specification, plan, fix, issue, project, branch, or PR. Every run also
 attempts safe read-only Linear default discovery through the host-exposed official MCP. Missing or
-incomplete Linear capability is reported separately and never blocks local initialization.
+incomplete Linear capability is reported separately and never blocks local initialization. Optional
+developer overrides may be placed in `.woostack/config.local.json` in the primary checkout (ignored
+by Git).
 
 Read [Configuration](/docs/configuration) for policy. Every build and project-backed Fix allocates
 or resumes an exact local run store under `.woostack/tmp/runs/<run-id>/`. When

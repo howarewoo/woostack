@@ -25,7 +25,7 @@ When `--run <exact-run-id>` is supplied, Build resumes only that exact run direc
 persistent local run under `.woostack/tmp/runs/<run-id>/`.
 
 Local run creation and local receipt verification are unconditional. Default local mode makes zero
-provider calls. When `linear.saveArtifacts` is false or absent in `.woostack/config.json`, an explicit
+provider calls. When `linear.saveArtifacts` is false or absent in effective repository configuration, an explicit
 `--project` flag fails closed before any provider access with an error stating that `--project`
 requires `linear.saveArtifacts: true`. When `linear.saveArtifacts: true`, Build resolves the exact
 supplied project or creates exactly one project whose name starts with `[Build] ` and otherwise

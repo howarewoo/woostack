@@ -41,7 +41,7 @@ Every mutation uses stable operation identity and independent read-back under th
 [artifact contract](../../woostack-init/references/artifact-backends.md).
 
 Linear documents and local spec, plan, fix, progress, or overnight files are not build/fix product
-authority. `.woostack/config.json` is non-secret repository policy; its `linear` object may provide
+authority. Effective repository configuration (`.woostack/config.json` plus optional local override) is non-secret policy; its `linear` object may provide
 validated repository/workspace/team/native-name defaults but never credentials, write permission,
 or approval. Provider authentication stays in the host's official Linear MCP/OAuth connection.
 Missing required capability blocks build or a proved fix at its retained boundary. Woostack does

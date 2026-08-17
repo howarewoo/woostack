@@ -56,7 +56,7 @@ full precedence above.
 On repository-model hosts, each consumer binds these to its own surface. For example
 `woostack-review` binds them to
 `FORCE_TIER` (Review Context) › `inputs.model` (action.yml) › **root** `models.<provider>.<tier>` /
-`models.<tier>` in the consumer `.woostack/config.json` (canonicalized into
+`models.<tier>` in consumer effective repository configuration (canonicalized into
 `/tmp/pr-review/config.json`), resolved by `scripts/load-prompt.sh` (`default_model_for()` is the
 Bash mirror of the Anthropic/OpenAI/Google/OpenRouter columns — keep it in sync with this table).
 
