@@ -149,9 +149,10 @@ started match is idempotent. Local run mode (`--run`) bypasses provider status s
    - In local run mode, a task is unfinished unless its `taskExecutions[stableTaskKey].status` is
      `delivered` and its complete delivery checkpoint is independently read back.
 3. For a non-root task/issue, read its immediate predecessor's complete delivery checkpoint, canonical
-   parent branch, and current head; for the first task/issue, read the canonical integration parent branch
-   and last admitted tip. Apply the shared repository advancement contract and carry its admitted
-   result into worktree discovery. No other task or issue is admitted in the same cycle.
+   parent branch, and current head (reading available checks for observation only); for the first task/issue,
+   read the canonical integration parent branch and last admitted tip. Apply the shared repository
+   advancement contract and carry its admitted result into worktree discovery. No other task or issue is
+   admitted in the same cycle.
 4. In provider modes, apply the active project status gate. When all direct issues are `Backlog`/`Todo`,
    persist and independently read back the selected issue's transition to the resolved
    `linear.issueStates.executing` mapping first, then synchronize and independently read back the
@@ -265,7 +266,7 @@ closed, and proven wording still cannot override this no-merge boundary.
 ## Stop, interruption, and handback
 
 A stop marker is an independently read control record that pauses selection; it is not an execution
-failure. Interruptions, blocked decisions, failed checks, collisions, and unknown provider or
+failure. Interruptions, blocked decisions, collisions, and unknown provider or
 source-control outcomes preserve the current project/run and worktree. Handback reports the exact
 project/run/issue and approval-record revisions, selected ordinal, predecessor/Graphite parent,
 worktree/branch, changed paths, verification/validator results, delivery and Git evidence, known PR,

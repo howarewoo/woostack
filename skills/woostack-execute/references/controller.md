@@ -140,9 +140,9 @@ inference, activity inference, status-only selection, or more than one admitted 
 
 For ordinal one, read the canonical integration parent branch and last admitted tip. For every later
 ordinal, read the immediate predecessor's complete delivery checkpoint, canonical parent branch,
-commit and canonical PR head, current-head reviews/checks, and Graphite parent before creating or
-attaching the child. Apply the shared repository advancement contract to that evidence. The selected
-task's branch must retain exactly the declared parent branch.
+commit and canonical PR head, current-head reviews (reading available checks for observation only),
+and Graphite parent before creating or attaching the child. Apply the shared repository advancement
+contract to that evidence. The selected task's branch must retain exactly the declared parent branch.
 
 ### Worktree discovery and recovery
 

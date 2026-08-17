@@ -15,8 +15,10 @@ Take one logical snapshot:
    `git worktree list --porcelain`, local/remote branches and commits, and complete
    dirty/index/diff state;
 3. inventory Graphite parent/stack ancestry; and
-4. fully paginate canonical GitHub PRs, commits, reviews, checks, threads, and merge evidence for
+4. fully paginate canonical GitHub PRs, commits, reviews, threads, and merge evidence for
    candidate branches.
+
+Read available checks separately as best-effort observable data; their missing or incomplete state cannot derive `unknown` or another row state.
 
 Match facts by canonical repository and exact path/checkout/branch/head/PR identity. Titles,
 timestamps, issue keys, PR trailers, recent activity, current user, and artifact fields are not
@@ -43,13 +45,12 @@ Derive one state from current direct evidence:
 
 - `local` — task branch/worktree exists with no canonical PR;
 - `draft` — exact open PR is draft;
-- `in-review` — exact open non-draft PR lacks a complete clean review/check/thread result;
-- `review-clean` — current PR head has required checks passing, the required full review result, and
-  no unresolved blocking thread;
+- `in-review` — exact open non-draft PR lacks a complete clean review/thread result;
+- `review-clean` — current PR head has the required full review result and no unresolved blocking
+  thread;
 - `merged` — canonical GitHub proves the exact PR/head was merged;
-- `blocked` — a directly observed collision, failed/unknown required check, changes-requested review,
-  unresolved blocking thread, dependency/ancestry mismatch, or explicit workflow blocker prevents
-  progress; and
+- `blocked` — a directly observed collision, changes-requested review, unresolved blocking thread,
+  dependency/ancestry mismatch, or explicit workflow blocker prevents progress; and
 - `unknown` — required Git/Graphite/GitHub evidence is missing, partial, conflicting, ambiguous, or
   unstable.
 
@@ -59,11 +60,12 @@ relation, or project phase.
 
 ## Reviews, checks, and threads
 
-A clean result binds the exact current repository, PR number/URL, head SHA, base, diff, check suite,
+A clean review result binds the exact current repository, PR number/URL, head SHA, base, diff,
 review result, and complete unresolved-thread set. A result from another head is stale. Self-review,
 partial reviewer output, command success without read-back, or an absent page cannot prove clean.
+Check outcomes and check-read completeness are observable-only and do not alter row state.
 
-Display unknown and failed checks separately. Treat an unresolved thread as blocking when the review
+Display unknown, pending, and failed checks separately. Treat an unresolved thread as blocking when the review
 contract or thread disposition says it blocks; never silently dismiss it from title or age.
 
 ## Worktrees and collisions
@@ -114,7 +116,7 @@ Return exactly one repository next action per row, selected from direct facts:
 2. finish local implementation and verification;
 3. submit the exact branch;
 4. address blocking findings or threads;
-5. wait for required checks/review;
+5. wait for required review;
 6. re-review a changed head;
 7. restack an ancestry mismatch;
 8. merge through the repository's normal process; or

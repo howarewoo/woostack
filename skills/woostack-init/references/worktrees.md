@@ -61,10 +61,11 @@ responsibility surfaces, runs, worktrees, branches, and PRs are disjoint.
 
 A child declares exactly one predecessor as its Git parent. Require that predecessor's canonical
 branch identity, complete delivery checkpoint, commit, canonical PR identity/head/base, fully
-paginated current-head reviews/checks and merge state, and Graphite parent to agree. Apply the
-shared repository advancement contract before using a newly observed descendant head for fresh
-child work. Start retained work from its recorded state and revalidate ancestry, diff, and PR base;
-never silently rebase, reset, recreate, or attach it to a different branch. Every non-parent
+paginated current-head reviews, merge state, and Graphite parent to agree; read available checks for
+observation only (incomplete or unavailable check reads never block). Apply the shared repository
+advancement contract before using a newly observed descendant head for fresh child work. Start
+retained work from its recorded state and revalidate ancestry, diff, and PR base; never silently
+rebase, reset, recreate, or attach it to a different branch. Every non-parent
 predecessor must have canonical GitHub merge evidence represented in the child's permitted ancestry.
 Reject inferred order, rewritten heads, open non-parent dependencies, duplicate ancestry, conflicts,
 or partial proof.
@@ -78,9 +79,9 @@ Before create, resume, review-reopen, handoff, commit, or teardown, take one com
 - filesystem existence at the deterministic path;
 - local and remote branches/commits;
 - staged, unstaged, untracked, conflict, and diff state in the relevant checkout;
-- Graphite parent/stack ancestry; and
-- fully paginated canonical GitHub PR head/base/state/reviews/checks/threads.
-
+- Graphite parent/stack ancestry;
+- fully paginated canonical GitHub PR head/base/state/reviews/threads; and
+- available GitHub checks for observation only (incomplete or unavailable check reads never block).
 The task/run identity comes from the active approved controller contract or one completely verified
 handoff packet. Repository reads cannot invent, replace, or transfer that identity. Branch display
 text, a directory name, chat, recent activity, and artifact fields are never allocation evidence.

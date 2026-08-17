@@ -457,6 +457,34 @@
         {"id": "explicit-merge-no-mutation", "kind": "final-json-path-equals", "pointer": "/mergeMutation", "expected": false, "critical": true},
         {"id": "explicit-merge-handoff", "kind": "final-json-path-equals", "pointer": "/nextAction", "expected": "report-open-pr", "critical": true}
       ]
+    },
+    {
+      "id": "compatible-advancement-with-failed-checks",
+      "prompt": "A non-root task in local run mode has approved records and its predecessor PR has an independently verified delivery checkpoint, matching commit and canonical PR head, approved reviews, but failed GitHub checks. Approved parent-branch intent and fresh repository reads agree on canonical refs/heads/main and the descendant tip. Return exactly one JSON object with keys status, observedChecks, checkCausedBlockers, repositoryAdmission, and nextBoundary. Set observedChecks to [\"failed\"], checkCausedBlockers to [], and repositoryAdmission to {\"status\": \"re-admitted\", \"action\": \"re-admit-current-parent-tip\"}.",
+      "capabilities": ["read-workspace"],
+      "expected": "Failed GitHub checks are reported for observation only; compatible advancement proceeds without check-caused blockers when predecessor delivery checkpoint, reviews, and ancestry pass.",
+      "assertions": [
+        {"id": "failed-checks-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "continue", "critical": true},
+        {"id": "failed-checks-observed", "kind": "final-json-path-equals", "pointer": "/observedChecks", "expected": ["failed"], "critical": true},
+        {"id": "failed-checks-no-blockers", "kind": "final-json-path-equals", "pointer": "/checkCausedBlockers", "expected": [], "critical": true},
+        {"id": "failed-checks-admission-status", "kind": "final-json-path-equals", "pointer": "/repositoryAdmission/status", "expected": "re-admitted", "critical": true},
+        {"id": "failed-checks-admission-action", "kind": "final-json-path-equals", "pointer": "/repositoryAdmission/action", "expected": "re-admit-current-parent-tip", "critical": true},
+        {"id": "failed-checks-dispatch", "kind": "final-json-path-equals", "pointer": "/nextBoundary", "expected": "dispatch-fast-model", "critical": true}
+      ]
+    },
+    {
+      "id": "compatible-advancement-with-pending-checks",
+      "prompt": "A non-root task in local run mode has approved records and its predecessor PR has an independently verified delivery checkpoint, matching commit and canonical PR head, approved reviews, but pending GitHub checks. Approved parent-branch intent and fresh repository reads agree on canonical refs/heads/main and the descendant tip. Return exactly one JSON object with keys status, observedChecks, checkCausedBlockers, repositoryAdmission, and nextBoundary. Set observedChecks to [\"pending\"], checkCausedBlockers to [], and repositoryAdmission to {\"status\": \"re-admitted\", \"action\": \"re-admit-current-parent-tip\"}.",
+      "capabilities": ["read-workspace"],
+      "expected": "Pending GitHub checks are reported for observation only; compatible advancement proceeds without check-caused blockers when predecessor delivery checkpoint, reviews, and ancestry pass.",
+      "assertions": [
+        {"id": "pending-checks-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "continue", "critical": true},
+        {"id": "pending-checks-observed", "kind": "final-json-path-equals", "pointer": "/observedChecks", "expected": ["pending"], "critical": true},
+        {"id": "pending-checks-no-blockers", "kind": "final-json-path-equals", "pointer": "/checkCausedBlockers", "expected": [], "critical": true},
+        {"id": "pending-checks-admission-status", "kind": "final-json-path-equals", "pointer": "/repositoryAdmission/status", "expected": "re-admitted", "critical": true},
+        {"id": "pending-checks-admission-action", "kind": "final-json-path-equals", "pointer": "/repositoryAdmission/action", "expected": "re-admit-current-parent-tip", "critical": true},
+        {"id": "pending-checks-dispatch", "kind": "final-json-path-equals", "pointer": "/nextBoundary", "expected": "dispatch-fast-model", "critical": true}
+      ]
     }
   ]
 }

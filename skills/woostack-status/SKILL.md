@@ -31,10 +31,12 @@ artifact from a title, issue key, branch, trailer, recent activity, current user
    contracts, filesystem state, `git worktree list --porcelain`, local/remote branches and commits,
    complete dirty/index/diff state, and Graphite ancestry.
 3. Fetch canonical GitHub PR metadata for candidate branches with complete pagination: number/URL,
-   state, head/base branches and SHAs, draft state, checks, reviews, unresolved threads, and merge
-   evidence.
+   state, head/base branches and SHAs, draft state, reviews, unresolved threads, and merge
+   evidence. Read available checks separately as best-effort observable data for display; missing or
+   incomplete check pages never reject the snapshot or affect row state derivation.
 4. Match branch to PR by canonical repository plus exact head ref/SHA. Reject duplicate checkouts,
-   branches, commits, or PRs; ambiguous matches; stale heads; moved bases; or incomplete pages.
+   branches, commits, or PRs; ambiguous matches; stale heads; moved bases; or incomplete required
+   non-check pages.
 5. Reconcile each deterministic path and retained task/run contract directly against Git, Graphite,
    worktree, dirty-state, and GitHub facts. Contract metadata never overrides repository state.
 6. Freeze the complete snapshot before rendering. If a material read changes mid-snapshot, restart
@@ -73,10 +75,10 @@ Derive coarse state only from direct facts:
 |---|---|
 | `local` | task branch/worktree exists with no canonical PR |
 | `draft` | exact canonical PR is open and draft |
-| `in-review` | exact canonical PR is open, not draft, and review/check/thread outcome is not clean |
-| `review-clean` | current head has required checks passing, full review evidence, and no unresolved blocking thread |
+| `in-review` | exact canonical PR is open, not draft, and review/thread outcome is not clean |
+| `review-clean` | current head has full review evidence and no unresolved blocking thread |
 | `merged` | canonical GitHub proves the exact PR/head was merged |
-| `blocked` | collision, failed/unknown required check, unresolved blocking review/thread, dependency mismatch, or explicit workflow blocker |
+| `blocked` | collision, changes-requested review, unresolved blocking review/thread, dependency mismatch, or explicit workflow blocker |
 | `unknown` | required repository evidence is missing, conflicting, incomplete, or unstable |
 
 `review-clean` is not product acceptance. `merged` is repository history, not proof that an optional
@@ -93,7 +95,7 @@ action:
 - finish local implementation/verification;
 - submit the exact branch;
 - address blocking findings/threads;
-- wait for required checks/review;
+- wait for required review;
 - re-review a changed head;
 - restack an ancestry mismatch;
 - merge through the repository's normal process; or
