@@ -24,8 +24,10 @@ does not change the setup or artifact-selection boundaries below.
 
 1. Resolve the canonical target repository without changing it. Verify repository root, branch,
    working state, existing `.woostack/` files, and collision/symlink/path safety.
-2. Read existing configuration and preserve every valid user-owned value. Never clobber reports or
-   policy without an exact approved repair.
+2. Read existing configuration under the
+   [effective configuration contract](references/artifact-backends.md#effective-repository-configuration-and-precedence)
+   and preserve every valid user-owned value. Never clobber reports or policy without an exact
+   approved repair.
 3. Create missing local support paths only:
    - `.woostack/config.json` from the shipped non-secret template;
    - local diagnostic report roots for doctor, audit, and QA;
@@ -58,7 +60,9 @@ the existing config schema. Authenticated read access is sufficient: do not requ
 provider write or post-mutation read-back capability. Credentials remain in the host's MCP/OAuth
 store.
 
-Preserve every valid existing `.woostack/config.json` value. Semantically add only missing,
+Preserve every valid existing tracked `.woostack/config.json` value under the
+[effective configuration contract](references/artifact-backends.md#effective-repository-configuration-and-precedence).
+Semantically add only missing,
 validated, non-secret `linear` repository/workspace/team/native-name defaults; never replace a
 valid value merely because discovery differs. After a local config write, independently reopen and
 parse the file, compare the intended fields and preserved siblings, and report the write configured

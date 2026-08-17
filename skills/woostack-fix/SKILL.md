@@ -43,7 +43,7 @@ When `--run <exact-run-id>` is supplied, Fix resumes only that exact run directo
 creates a new persistent local run under `.woostack/tmp/runs/<run-id>/`.
 
 Local run creation and local receipt verification are unconditional. Default local mode makes zero
-provider calls. When `linear.saveArtifacts` is false or absent in `.woostack/config.json`, an explicit
+provider calls. When `linear.saveArtifacts` is false or absent in effective repository configuration, an explicit
 `--project` or Linear `--issue` flag fails closed before any provider access with an error stating
 that provider arguments require `linear.saveArtifacts: true`.
 

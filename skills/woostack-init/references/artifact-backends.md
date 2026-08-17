@@ -16,7 +16,7 @@ artifacts are not source-control or delivery authority.
 Local run authority is unconditional: every Build and project-backed Fix allocates or resumes its
 canonical run store under `.woostack/tmp/runs/<run-id>/`.
 
-`linear.saveArtifacts` in `.woostack/config.json` gates all provider (Linear) calls.
+`linear.saveArtifacts` in effective repository configuration gates all provider (Linear) calls.
 
 When `linear.saveArtifacts` is false or absent:
 
@@ -40,8 +40,8 @@ When `linear.saveArtifacts` is true:
 
 Init discovery performs only narrow automatic authenticated read-only setup discovery of non-secret
 repository/workspace/team/native-name defaults. It does not select an optional artifact path, authorize
-later provider access, read development artifacts, or perform a provider mutation. Tracked
-`.woostack/config.json` policy never authorizes provider access by itself; it supplies validated
+later provider access, read development artifacts, or perform a provider mutation. Effective
+repository configuration never authorizes provider access by itself; it supplies validated
 defaults only after a workflow has selected or required Linear mirroring.
 
 After selection, resolve every configured repository, workspace/team, native-status, and
@@ -53,6 +53,42 @@ Init setup preserves valid existing policy and may add only missing values valid
 discovery. It independently reopens, parses, and compares any local config write. Absent,
 unauthenticated, insufficient, partial, ambiguous, or conflicting capability is reported as skipped
 or setup-blocked separately from ordinary local init; it never blocks local initialization.
+
+
+## Effective repository configuration and precedence
+
+Woostack resolves non-secret repository policy through one canonical layered configuration resolver:
+
+1. **Tracked base** — `.woostack/config.json` in the target repository root.
+2. **Optional primary-checkout override** — `.woostack/config.local.json` in the primary Git checkout
+   root (resolved via `git rev-parse --git-common-dir`).
+
+### Layered merge rules
+
+- **Recursive object overlay:** sibling objects merge recursively.
+- **Replacement:** a local scalar, array, or null replaces the base value at that key. There is no
+  array concatenation or null deletion.
+- **Absent configuration:** if both base and local files are absent, consumers preserve their built-in
+  defaults.
+- **Worktree inheritance:** linked worktrees automatically inherit the primary checkout's
+  `.woostack/config.local.json`.
+
+### Safety and validation
+
+- **Fail-closed:** an empty, malformed, non-object, unreadable, symlink, non-regular, orphan local,
+  or credential-like configuration file fails closed immediately with the offending path.
+- **Non-secret policy:** both base and local files contain non-secret repository policy only. Local
+  overrides are ignored by Git (`*.local.*` in `.woostack/.gitignore`). Provider authentication
+  remains strictly in the host's secret store.
+- **Doctor validation:** `woostack-doctor` validates effective configuration at runtime, while template
+  presence checks and auto-repairs apply strictly to the tracked base `.woostack/config.json`.
+- **OMP model exception:** OMP uses host-owned role routing and ignores model configuration in both
+  base and local layers; provider authentication remains host-managed.
+
+### Migration and removed contracts
+
+- `AUDIT_CONFIG_FILE` is removed; all consumers read effective configuration via the canonical resolver.
+- Review empty-config fallback is removed; an empty `.woostack/config.json` fails closed as malformed.
 
 Preflight the authenticated official Linear MCP for every required read, project, issue, relation,
 mutation, approval revision, and independent read-back in the optional mirror flow. For an exact
@@ -907,9 +943,11 @@ exists:
 
 1. use the retained exact project identity to determine whether a persisted project exists. If no
    exact project exists, report that there is nothing to close and do not create one;
-2. validate `.woostack/config.json` only for post-selection defaults, resolve
-   `projectStatuses.canceled` to exactly one native canceled-category project status, and prove
-   exact project-update, stable mutation-identity, and independent read-back capability;
+2. validate effective repository configuration under the
+   [effective configuration contract](#effective-repository-configuration-and-precedence) only for
+   post-selection defaults, resolve `projectStatuses.canceled` to exactly one native
+   canceled-category project status, and prove exact project-update, stable mutation-identity, and
+   independent read-back capability;
 3. verify the canonical repository association and resolved workspace/team for that exact project;
 4. immediately before mutation, re-read its native identity, current status, and revision, then
    allocate or retain one stable closure mutation identity;

@@ -48,7 +48,7 @@ artifact; that later workflow is not part of this run.
 
 ## Per-repo Config (`/tmp/pr-review/config.json`)
 
-The prefetch step parses an optional `.woostack/config.json` in the consumer repo and writes a canonical JSON copy to `/tmp/pr-review/config.json`. Missing file = `{"severity_floor":"high"}` (the noise-control default). The full schema is documented in `SKILL.md`; runners only need to know which keys are consumed at which stage:
+The prefetch step parses optional effective configuration (`.woostack/config.json` plus optional primary-checkout `.woostack/config.local.json`) in the consumer repo and writes a canonical JSON copy to `/tmp/pr-review/config.json`. Missing files = `{"severity_floor":"high"}` (the noise-control default). The full schema is documented in `SKILL.md`; runners only need to know which keys are consumed at which stage:
 
 | Key | Consumed by | When |
 |---|---|---|

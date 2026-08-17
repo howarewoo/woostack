@@ -71,7 +71,7 @@ Use the caller's observed verification results only when the working-tree identi
 verified state. If source changed after verification, return to the calling workflow for its smoke
 test and required review. Never claim a test or check passed without observed output.
 
-If `.woostack/config.json` defines a nonempty `commit.command`, independently verify the current
+If effective repository configuration defines a nonempty `commit.command`, independently verify the current
 config and run it exactly once before staging. A failure blocks. If it changes files, invalidate the
 prior verification and return to the caller.
 

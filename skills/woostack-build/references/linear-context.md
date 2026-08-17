@@ -23,7 +23,7 @@ or standalone Plan.
 ## Resolution
 
 1. Resolve the canonical repository URL from trusted Git/GitHub evidence.
-2. Resolve the caller-selected workspace/team. Use validated `.woostack/config.json` values only as
+2. Resolve the caller-selected workspace/team. Use validated effective repository configuration values only as
    post-selection defaults.
 3. If `--project` supplied an exact URL/stable UUID, read only that project and verify its identity,
    workspace/team, and canonical repository association. Supplied-project selection never performs

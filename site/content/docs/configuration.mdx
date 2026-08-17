@@ -3,10 +3,17 @@ title: Configuration
 description: Non-secret repository policy, local run authority, and optional safe Linear defaults.
 ---
 
-woostack reads non-secret repository policy from `.woostack/config.json`.
-[woostack-init](/docs/skills/woostack-init) creates it without requiring a provider connection and
-automatically attempts safe read-only Linear default discovery when the host exposes the official
-authenticated MCP. Missing or incomplete Linear setup never blocks local initialization. The file
+woostack resolves non-secret repository policy by layering tracked base configuration with an
+optional primary-checkout local override:
+
+1. **Tracked base** (`.woostack/config.json`) — committed repository policy.
+2. **Optional local override** (`.woostack/config.local.json`) — gitignored (`*.local.*`) developer
+   overrides in the primary checkout. Linked worktrees automatically inherit the primary checkout's
+   local configuration.
+
+[woostack-init](/docs/skills/woostack-init) creates the base file without requiring a provider connection
+and automatically attempts safe read-only Linear default discovery when the host exposes the official
+authenticated MCP. Missing or incomplete Linear setup never blocks local initialization. Configuration
 never contains credentials or grants permission to perform repository work.
 
 Local run manifests in `.woostack/tmp/runs/<run-id>/` own current Build/Fix product scope and execution
@@ -26,6 +33,46 @@ The init template ships four top-level keys: `linear`, `models`, `review`, and `
 [woostack-doctor](/docs/skills/woostack-doctor) checks static policy; Build and post-proof Fix manage
 local runs, while provider mirror connectivity is checked when `linear.saveArtifacts: true`.
 
+
+### Layered merge rules
+
+- **Recursive overlay:** objects merge recursively. A local scalar, array, or null replaces the base value.
+- **Absent configuration:** when both `.woostack/config.json` and `.woostack/config.local.json` are absent,
+  each consumer preserves its existing built-in defaults.
+- **Fail-closed safety:** an empty, malformed, non-object, unreadable, symlink, non-regular, orphan local,
+  or credential-like configuration file fails closed immediately with the offending path.
+- **Non-secret only:** base and local configuration files contain non-secret policy only. Provider
+  credentials stay strictly in the host's secret store.
+- **Doctor runtime distinction:** [woostack-doctor](/docs/skills/woostack-doctor) validates effective
+  configuration at runtime; template presence checks and auto-repairs apply strictly to the tracked
+  base `.woostack/config.json`.
+
+### Layered override example
+
+Given a tracked base `.woostack/config.json`:
+
+```json
+{
+  "linear": {
+    "repository": "https://github.com/acme/widgets",
+    "workspace": "acme",
+    "team": "ENG"
+  }
+}
+```
+
+And a primary-checkout `.woostack/config.local.json`:
+
+```json
+{
+  "linear": {
+    "team": "LOCAL-ENG"
+  }
+}
+```
+
+The canonical resolver merges them into effective policy with `"team": "LOCAL-ENG"` while
+preserving `"repository"` and `"workspace"`.
 **OMP exception:** woostack uses
 [host-owned role routing](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md)
 through three init-managed project workers. OMP ignores `.woostack/config.json` model settings and
@@ -406,9 +453,14 @@ worktrees are cut from.
   Linear defaults when safe authenticated discovery succeeds. Missing connectivity never blocks
   local initialization. Build and Fix operate with default local run authority under
   `.woostack/tmp/runs/<run-id>/`; setting `linear.saveArtifacts: true` enables optional Linear mirroring.
-  [woostack-doctor](/docs/skills/woostack-doctor) validates static policy; explicit live checks
+  [woostack-doctor](/docs/skills/woostack-doctor) validates effective runtime policy; explicit live checks
   prove optional artifact connectivity.
 </Callout>
+
+## Migration notes
+
+- `AUDIT_CONFIG_FILE` is removed: [woostack-audit](/docs/skills/woostack-audit) reads effective configuration through the canonical resolver.
+- Review empty-config fallback is removed: an empty `.woostack/config.json` fails closed as malformed instead of falling back to default values.
 
 ## Where to go next
 
