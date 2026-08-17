@@ -2278,6 +2278,45 @@
           "critical": true
         }
       ]
+    },
+    {
+      "id": "status-derives-review-clean-with-failed-checks",
+      "prompt": "A repository PR row has open non-draft status on canonical GitHub with head matching the current branch commit, approved full review evidence, zero unresolved blocking threads, no worktree collision, but failed GitHub Actions checks. Return exactly one JSON object with keys state, observedChecks, checkCausedBlockers, reviewClean, and nextAction. Set observedChecks to [\"failed\"], checkCausedBlockers to [], reviewClean to true, state to \"review-clean\", and nextAction to \"merge through the repository's normal process\".",
+      "capabilities": ["read-workspace"],
+      "expected": "Status derives review-clean when full review evidence passes with no unresolved blocking threads, regardless of failed check outcomes. Available checks are reported separately.",
+      "assertions": [
+        {"id": "clean-state-failed-checks", "kind": "final-json-path-equals", "pointer": "/state", "expected": "review-clean", "critical": true},
+        {"id": "clean-observed-failed-checks", "kind": "final-json-path-equals", "pointer": "/observedChecks", "expected": ["failed"], "critical": true},
+        {"id": "clean-no-blockers-failed-checks", "kind": "final-json-path-equals", "pointer": "/checkCausedBlockers", "expected": [], "critical": true},
+        {"id": "clean-review-clean-failed-checks", "kind": "final-json-path-equals", "pointer": "/reviewClean", "expected": true, "critical": true},
+        {"id": "clean-next-action-failed-checks", "kind": "final-json-path-equals", "pointer": "/nextAction", "expected": "merge through the repository's normal process", "critical": true}
+      ]
+    },
+    {
+      "id": "status-derives-review-clean-with-pending-checks",
+      "prompt": "A repository PR row has open non-draft status on canonical GitHub with head matching the current branch commit, approved full review evidence, zero unresolved blocking threads, no worktree collision, but pending GitHub Actions checks. Return exactly one JSON object with keys state, observedChecks, checkCausedBlockers, reviewClean, and nextAction. Set observedChecks to [\"pending\"], checkCausedBlockers to [], reviewClean to true, state to \"review-clean\", and nextAction to \"merge through the repository's normal process\".",
+      "capabilities": ["read-workspace"],
+      "expected": "Status derives review-clean when full review evidence passes with no unresolved blocking threads, regardless of pending check outcomes. Available checks are reported separately.",
+      "assertions": [
+        {"id": "clean-state-pending-checks", "kind": "final-json-path-equals", "pointer": "/state", "expected": "review-clean", "critical": true},
+        {"id": "clean-observed-pending-checks", "kind": "final-json-path-equals", "pointer": "/observedChecks", "expected": ["pending"], "critical": true},
+        {"id": "clean-no-blockers-pending-checks", "kind": "final-json-path-equals", "pointer": "/checkCausedBlockers", "expected": [], "critical": true},
+        {"id": "clean-review-clean-pending-checks", "kind": "final-json-path-equals", "pointer": "/reviewClean", "expected": true, "critical": true},
+        {"id": "clean-next-action-pending-checks", "kind": "final-json-path-equals", "pointer": "/nextAction", "expected": "merge through the repository's normal process", "critical": true}
+      ]
+    },
+    {
+      "id": "status-independent-failure-blocks-despite-checks",
+      "prompt": "A repository PR row has open non-draft status on canonical GitHub with passing GitHub Actions checks, but an unresolved changes-requested review and blocking review thread. Return exactly one JSON object with keys state, observedChecks, checkCausedBlockers, reviewClean, and nextAction. Set observedChecks to [\"passed\"], checkCausedBlockers to [], reviewClean to false, state to \"blocked\", and nextAction to \"address blocking findings or threads\".",
+      "capabilities": ["read-workspace"],
+      "expected": "Status correctly blocks on independent review and thread failures even when all GitHub checks pass.",
+      "assertions": [
+        {"id": "blocked-state-review-failure", "kind": "final-json-path-equals", "pointer": "/state", "expected": "blocked", "critical": true},
+        {"id": "blocked-observed-passed-checks", "kind": "final-json-path-equals", "pointer": "/observedChecks", "expected": ["passed"], "critical": true},
+        {"id": "blocked-no-check-blockers", "kind": "final-json-path-equals", "pointer": "/checkCausedBlockers", "expected": [], "critical": true},
+        {"id": "blocked-review-clean-false", "kind": "final-json-path-equals", "pointer": "/reviewClean", "expected": false, "critical": true},
+        {"id": "blocked-next-action", "kind": "final-json-path-equals", "pointer": "/nextAction", "expected": "address blocking findings or threads", "critical": true}
+      ]
     }
   ]
 }

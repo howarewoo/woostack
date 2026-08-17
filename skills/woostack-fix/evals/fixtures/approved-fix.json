@@ -13,7 +13,11 @@
   "debug": {
     "rootCauseEstablished": true,
     "summary": "The lock expires before the protected refresh completes.",
-    "evidence": ["src/cache.js:42", "test/cache.test.js:88", "runtime:refresh-overlap"],
+    "evidence": [
+      "src/cache.js:42",
+      "test/cache.test.js:88",
+      "runtime:refresh-overlap"
+    ],
     "providerCallsBeforeProof": 0,
     "repositoryMutationCount": 0
   },
@@ -25,7 +29,9 @@
     "descriptionAfter": "Observed production symptom and links.",
     "projectLinkBefore": null,
     "projectLinkAfter": "project-fix-241",
-    "changedFields": ["projectLink"],
+    "changedFields": [
+      "projectLink"
+    ],
     "unrelatedFieldsPreserved": true
   },
   "projectAdmission": {
@@ -42,18 +48,38 @@
     "canonicalProjectSpecFingerprint": "sha256:project-spec-241",
     "title": "[Fix] Prevent cache refresh stampedes",
     "rootCauseChain": "Refresh duration exceeds lock expiry, allowing a second owner before completion.",
-    "acceptance": ["One refresh owns the lock for the full protected operation.", "Concurrent callers do not duplicate origin work."],
-    "inScope": ["src/cache.js", "test/cache.test.js"],
-    "outOfScope": ["cache provider replacement"],
+    "acceptance": [
+      "One refresh owns the lock for the full protected operation.",
+      "Concurrent callers do not duplicate origin work."
+    ],
+    "inScope": [
+      "src/cache.js",
+      "test/cache.test.js"
+    ],
+    "outOfScope": [
+      "cache provider replacement"
+    ],
     "readBackComplete": true
   },
   "executionPlan": {
     "increments": [
-      {"stableTaskKey": "task-lock", "canonicalIssueReference": "WOO-242", "canonicalIncrementFingerprint": "sha256:increment-241a"},
-      {"stableTaskKey": "task-stale", "canonicalIssueReference": "WOO-243", "canonicalIncrementFingerprint": "sha256:increment-241b"}
+      {
+        "stableTaskKey": "task-lock",
+        "canonicalIssueReference": "WOO-242",
+        "canonicalIncrementFingerprint": "sha256:increment-241a"
+      },
+      {
+        "stableTaskKey": "task-stale",
+        "canonicalIssueReference": "WOO-243",
+        "canonicalIncrementFingerprint": "sha256:increment-241b"
+      }
     ],
     "dependencies": [
-      {"predecessorIssueReference": "WOO-242", "successorIssueReference": "WOO-243", "kind": "native-issue"}
+      {
+        "predecessorIssueReference": "WOO-242",
+        "successorIssueReference": "WOO-243",
+        "kind": "native-issue"
+      }
     ],
     "readBackComplete": true
   },
@@ -82,16 +108,34 @@
   "mirrorEvidence": {
     "projectId": "project-fix-241",
     "increments": [
-      {"issueId": "WOO-242", "canonicalIncrementFingerprint": "sha256:increment-241a"},
-      {"issueId": "WOO-243", "canonicalIncrementFingerprint": "sha256:increment-241b"}
+      {
+        "issueId": "WOO-242",
+        "canonicalIncrementFingerprint": "sha256:increment-241a"
+      },
+      {
+        "issueId": "WOO-243",
+        "canonicalIncrementFingerprint": "sha256:increment-241b"
+      }
     ],
     "dependencies": [
-      {"predecessorIssueId": "WOO-242", "successorIssueId": "WOO-243", "kind": "native-issue"}
+      {
+        "predecessorIssueId": "WOO-242",
+        "successorIssueId": "WOO-243",
+        "kind": "native-issue"
+      }
     ]
   },
   "approvalEvidence": {
-    "projectSpec": {"activeConversationApproval": true, "localReceiptVerified": true, "causallyAfterPresentation": true},
-    "executionPlan": {"activeConversationApproval": true, "localReceiptVerified": true, "causallyAfterPresentation": true},
+    "projectSpec": {
+      "activeConversationApproval": true,
+      "localReceiptVerified": true,
+      "causallyAfterPresentation": true
+    },
+    "executionPlan": {
+      "activeConversationApproval": true,
+      "localReceiptVerified": true,
+      "causallyAfterPresentation": true
+    },
     "repositoryMutationCountBeforeBothApprovals": 0
   },
   "repositoryAdvancement": {
@@ -109,14 +153,21 @@
         "checkpointHeadMatches": true,
         "canonicalPrHeadMatches": true,
         "currentHeadReviewsVerified": true,
-        "currentHeadChecksVerified": true
+        "observedChecks": [
+          "failed"
+        ],
+        "checkCausedBlockers": []
       },
       "action": "re-admit-current-parent-tip",
       "invalidatesApprovalRecords": [],
       "freshWorkStart": "sha256:parent-tip-new",
       "retainedWork": {
         "preserveStartAndHead": true,
-        "revalidate": ["ancestry", "diff", "prBase"],
+        "revalidate": [
+          "ancestry",
+          "diff",
+          "prBase"
+        ],
         "silentRebase": false,
         "silentReset": false,
         "silentRecreate": false
@@ -154,34 +205,75 @@
     },
     "materialSpecDrift": {
       "status": "blocked",
-      "invalidates": ["projectSpecApprovalRecord", "executionPlanApprovalRecord"],
+      "invalidates": [
+        "projectSpecApprovalRecord",
+        "executionPlanApprovalRecord"
+      ],
       "returnsTo": "project-spec-hardening",
       "executeAllowed": false
     },
     "materialPlanDrift": {
       "status": "blocked",
-      "invalidates": ["executionPlanApprovalRecord"],
+      "invalidates": [
+        "executionPlanApprovalRecord"
+      ],
       "returnsTo": "execution-plan-hardening",
       "executeAllowed": false
     }
   },
   "invalidation": {
-    "materialSpecChange": {"invalidates": ["projectSpecApprovalRecord", "executionPlanApprovalRecord"], "returnsTo": "project-spec-hardening"},
-    "materialPlanChange": {"invalidates": ["executionPlanApprovalRecord"], "returnsTo": "execution-plan-hardening"},
-    "metadataOnlyChange": {"invalidates": []}
+    "materialSpecChange": {
+      "invalidates": [
+        "projectSpecApprovalRecord",
+        "executionPlanApprovalRecord"
+      ],
+      "returnsTo": "project-spec-hardening"
+    },
+    "materialPlanChange": {
+      "invalidates": [
+        "executionPlanApprovalRecord"
+      ],
+      "returnsTo": "execution-plan-hardening"
+    },
+    "metadataOnlyChange": {
+      "invalidates": []
+    }
   },
   "dispatch": {
     "handoff": {
-      "options": ["Stop here", "Execute", "Abandon"],
+      "options": [
+        "Stop here",
+        "Execute",
+        "Abandon"
+      ],
       "bodyFree": true,
       "command": "/woostack-execute --run <exact-run-id>",
-      "details": ["runId", "projectSpecApprovalReceipt", "executionPlanApprovalReceipt", "canonicalFingerprints", "stableTaskMappings", "dependencies", "approvedParentBranch", "lastAdmittedTip"]
+      "details": [
+        "runId",
+        "projectSpecApprovalReceipt",
+        "executionPlanApprovalReceipt",
+        "canonicalFingerprints",
+        "stableTaskMappings",
+        "dependencies",
+        "approvedParentBranch",
+        "lastAdmittedTip"
+      ]
     },
     "responses": {
-      "Stop here": {"effects": []},
-      "Execute": {"dispatchCount": 1},
-      "Abandon": {"status": "abandoned", "dispatchCount": 0, "artifactsRetained": true},
-      "unknownOrCustom": {"askAgain": true}
+      "Stop here": {
+        "effects": []
+      },
+      "Execute": {
+        "dispatchCount": 1
+      },
+      "Abandon": {
+        "status": "abandoned",
+        "dispatchCount": 0,
+        "artifactsRetained": true
+      },
+      "unknownOrCustom": {
+        "askAgain": true
+      }
     },
     "runId": "fix-run-241",
     "repositoryMutationCountBeforeExecute": 0,

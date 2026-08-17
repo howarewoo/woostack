@@ -13,6 +13,7 @@ root = Path(sys.argv[1])
 skill = re.sub(r"\s+", " ", (root / "skills/woostack-execute/SKILL.md").read_text())
 controller = re.sub(r"\s+", " ", (root / "skills/woostack-execute/references/controller.md").read_text())
 artifact = re.sub(r"\s+", " ", (root / "skills/woostack-init/references/artifact-backends.md").read_text())
+worktrees = re.sub(r"\s+", " ", (root / "skills/woostack-init/references/worktrees.md").read_text())
 driver = re.sub(r"\s+", " ", (root / "skills/woostack-execute/references/subagent-driver.md").read_text())
 repo_rules = re.sub(r"\s+", " ", (root / "AGENTS.md").read_text())
 checks = [
@@ -85,6 +86,9 @@ checks = [
     (repo_rules, r"Merge authority is human-only.*never mark a PR ready.*auto-merge.*enqueue.*merge.*`gh pr ready`.*`gh pr merge`", "repository human-only merge boundary missing"),
     (skill, r"`Delivered`, `complete`, `finish`, and `execute` stop at that verified open-PR boundary.*No user wording overrides this capability boundary.*exact current user message.*proven wording still cannot override", "Execute terminal no-merge boundary missing"),
     (controller, r"terminal repository mutation is Graphite PR submission or update.*never marks a PR ready.*auto-merge.*merge queue.*retargets.*merges.*explicit merge request.*workflow conflict", "controller terminal no-merge boundary missing"),
+    (artifact, r"Available current-head checks are read and reported for observation only; check outcomes and check-read completeness are never compatible-advancement blockers", "artifact checks observable-only contract missing"),
+    (controller, r"current-head reviews \(reading available checks for observation only\)", "controller checks observable-only contract missing"),
+    (worktrees, r"available GitHub checks for observation only \(incomplete or unavailable check reads never block\)", "worktrees observable-only check contract missing"),
 ]
 for text, pattern, message in checks:
     if not re.search(pattern, text, re.I | re.S):
@@ -95,6 +99,12 @@ if "inline-driver.md" in skill.lower() + controller.lower() + driver.lower():
     raise SystemExit("removed inline driver is still referenced")
 if re.search(r"(direct issue|issue lifecycle|issue status).{0,100}`In (Progress|Review)`", skill + controller, re.I | re.S):
     raise SystemExit("literal issue status name remains lifecycle authority")
+if re.search(r"failed checks", controller, re.I):
+    raise SystemExit("controller failed checks blocker remained")
+if re.search(r"reviews/checks/threads", worktrees + artifact + controller, re.I):
+    raise SystemExit("combined mandatory reviews/checks/threads remains in worktree/artifact/controller contract")
+if re.search(r"fully paginated[^.;]{0,160}\bchecks\b", worktrees + artifact, re.I):
+    raise SystemExit("mandatory check pagination remains in worktree/artifact contract")
 evals = json.loads((root / "skills/woostack-execute/evals/evals.json").read_text())
 case_ids = {case["id"] for case in evals["cases"]}
 required_cases = {
@@ -118,6 +128,8 @@ required_cases = {
     "local-run-recheck-changed-plan-invalidates",
     "local-run-cas-checkpoint-resume",
     "local-run-mirror-write-failure-does-not-invalidate",
+    "compatible-advancement-with-failed-checks",
+    "compatible-advancement-with-pending-checks",
 }
 if not required_cases <= case_ids:
     raise SystemExit(f"mapped delivery eval cases missing: {sorted(required_cases - case_ids)}")
@@ -141,7 +153,7 @@ for case_id in no_merge_cases:
         raise SystemExit(f"{case_id}: merge queue mutation is not forbidden")
 for case_id in required_cases:
     prompt = next(case["prompt"] for case in evals["cases"] if case["id"] == case_id)
-    if not case_id.startswith("local-run-") and case_id != "project-selects-lowest-unfinished" and "inReview" not in prompt:
+    if not case_id.startswith("local-run-") and not case_id.startswith("compatible-advancement-") and case_id != "project-selects-lowest-unfinished" and "inReview" not in prompt:
         raise SystemExit(f"{case_id}: configured inReview mapping missing")
     if case_id in {
         "delivery-same-state-is-idempotent",
@@ -165,6 +177,13 @@ for case_id in required_cases:
         or "independently read back every field of the full delivery checkpoint" not in prompt
     ):
         raise SystemExit(f"{case_id}: distinct-state transition contract missing")
+for check_case_id in ("compatible-advancement-with-failed-checks", "compatible-advancement-with-pending-checks"):
+    case = next(case for case in evals["cases"] if case["id"] == check_case_id)
+    assertions = {assertion["pointer"]: assertion["expected"] for assertion in case["assertions"]}
+    if assertions.get("/checkCausedBlockers") != []:
+        raise SystemExit(f"{check_case_id}: checkCausedBlockers is not empty")
+    if not assertions.get("/observedChecks"):
+        raise SystemExit(f"{check_case_id}: observedChecks is missing")
 project_select = next(case for case in evals["cases"] if case["id"] == "project-selects-lowest-unfinished")
 checkpoint_assertion = next(
     assertion for assertion in project_select["assertions"] if assertion["id"] == "project-checkpoint"
@@ -172,8 +191,7 @@ checkpoint_assertion = next(
 if (
     "predecessorDeliveryCheckpoint" not in project_select["prompt"]
     or checkpoint_assertion["pointer"] != "/predecessorDeliveryCheckpoint"
-    or checkpoint_assertion["expected"]
-    != {"issueId": "issue-001", "ordinal": 1, "status": "complete"}
+    or checkpoint_assertion["expected"] != {"issueId": "issue-001", "ordinal": 1, "status": "complete"}
 ):
     raise SystemExit("project selection checkpoint is not keyed to delivered ordinal 1")
 print("sequential exact-resource execution admission: ok")

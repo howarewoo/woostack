@@ -164,6 +164,14 @@ if fixture["dispatch"]["responses"]["Stop here"]["effects"] or fixture["dispatch
 if fixture["dispatch"]["responses"]["Abandon"] != {"status": "abandoned", "dispatchCount": 0, "artifactsRetained": True} or not fixture["dispatch"]["responses"]["unknownOrCustom"]["askAgain"]:
     failures.append("handoff Abandon/fail-closed behavior")
 
+delivery_evidence = fixture["repositoryAdvancement"]["sameBranchDescendant"]["deliveryEvidence"]
+if "currentHeadChecksVerified" in delivery_evidence:
+    failures.append("approved-fix.json still contains obsolete currentHeadChecksVerified")
+if delivery_evidence.get("checkCausedBlockers") != []:
+    failures.append("approved-fix.json checkCausedBlockers is not empty list")
+if not delivery_evidence.get("observedChecks"):
+    failures.append("approved-fix.json observedChecks is missing")
+
 ids = {case["id"] for case in evals["cases"]}
 for expected in (
     "root-cause-proof-precedes-project-and-repository",
@@ -257,6 +265,20 @@ require_eval_fields(
             {"id": "two-vs-three", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
             {"id": "final-heading-two-vs-three", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
         ],
+    },
+)
+require_eval_fields(
+    "compatible-parent-advancement-preserves-approvals",
+    {
+        "/compatibleAdvancement/deliveryEvidence/observedChecks": ["failed"],
+        "/compatibleAdvancement/deliveryEvidence/checkCausedBlockers": [],
+    },
+)
+require_eval_fields(
+    "dependency-parent-advancement-requires-delivery-checkpoint",
+    {
+        "/compatibleAdvancement/deliveryEvidence/observedChecks": ["failed"],
+        "/compatibleAdvancement/deliveryEvidence/checkCausedBlockers": [],
     },
 )
 target_case = next((case for case in evals["cases"] if case["id"] == "target-repository-boundary-precedes-provider-admission"), None)

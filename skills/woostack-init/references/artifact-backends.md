@@ -442,10 +442,12 @@ contract, no rewrite, and no conflict or duplicate ancestry. Missing, partial, a
 contradictory ancestry evidence is not compatible.
 
 Every newly observed descendant tip must match fresh canonical delivery evidence for that exact head,
-including current-head reviews and checks required by the owning workflow. For a dependency child,
-the tip must also equal the commit and canonical PR head in the predecessor's freshly and
-independently read complete delivery checkpoint. Descendant ancestry alone is insufficient; a
-missing, partial, stale, or mismatched checkpoint, review, or check is blocking repository drift.
+including current-head reviews required by the owning workflow. Available current-head checks are
+read and reported for observation only; check outcomes and check-read completeness are never
+compatible-advancement blockers. For a dependency child, the tip must also equal the commit and
+canonical PR head in the predecessor's freshly and independently read complete delivery checkpoint.
+Descendant ancestry alone is insufficient; a missing, partial, stale, or mismatched checkpoint or
+review is blocking repository drift.
 
 For compatible advancement, retain every matching approval record owned by the invoking workflow;
 a workflow with no approval gate instead preserves its approved-specification fingerprint. Return
