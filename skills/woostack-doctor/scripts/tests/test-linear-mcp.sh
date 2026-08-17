@@ -13,6 +13,7 @@ complete_config() {
   jq -cn '{
     models:{},review:{},status:{staleDays:14},
     linear:{
+      saveArtifacts:true,
       repository:"https://github.com/acme/widgets",workspace:"acme",team:"ENG",
       projectStatuses:{
         backlog:"Backlog",planned:"Planned",started:"Started",
@@ -81,10 +82,10 @@ run_doctor "$local_team"
 assert_exit 0 "$RC" "valid primary-checkout local team override passes static diagnosis"
 
 invalid_local="$(make_repo invalid-local)"
-printf '%s\n' '{"linear":{"team":"ENG","workspace":"forbidden"}}' >"$invalid_local/.woostack/config.local.json"
+printf '%s\n' '{"linear":{"team":"ENG","apiKey":"forbidden"}}' >"$invalid_local/.woostack/config.local.json"
 run_doctor "$invalid_local"
-assert_exit 1 "$RC" "unsupported local policy keys fail static diagnosis"
-assert_contains "$OUTPUT" "may override only" "invalid local override is actionable"
+assert_exit 1 "$RC" "credential-like local policy keys fail static diagnosis"
+assert_contains "$OUTPUT" ".woostack/config.local.json contains credential-like key: linear.apiKey" "invalid local override is actionable"
 
 blank_policy="$(make_repo blank-policy)"
 jq '.linear.workspace="   "' "$blank_policy/.woostack/config.json" >"$blank_policy/config.tmp"
@@ -104,13 +105,18 @@ mv "$bad_selector/config.tmp" "$bad_selector/.woostack/config.json"
 run_doctor "$bad_selector"
 assert_exit 1 "$RC" "backend selector fails static diagnosis"
 assert_contains "$OUTPUT" "development backend selectors are not supported" "selector finding is actionable"
+bad_selector_local="$(make_repo selector-local)"
+printf '%s\n' '{"artifacts":{"specPlan":"markdown"}}' >"$bad_selector_local/.woostack/config.local.json"
+run_doctor "$bad_selector_local"
+assert_exit 1 "$RC" "local backend selector fails static diagnosis"
+assert_contains "$OUTPUT" "development backend selectors are not supported" "local selector finding is actionable"
 
 bad_secret="$(make_repo secret)"
 jq '.linear.apiKey="secret"' "$bad_secret/.woostack/config.json" >"$bad_secret/config.tmp"
 mv "$bad_secret/config.tmp" "$bad_secret/.woostack/config.json"
 run_doctor "$bad_secret"
 assert_exit 1 "$RC" "credential-like Linear key fails static diagnosis"
-assert_contains "$OUTPUT" "credential-like configuration key" "credential finding names the violated boundary"
+assert_contains "$OUTPUT" ".woostack/config.json contains credential-like key: linear.apiKey" "credential finding names the violated boundary"
 
 bad_mapping="$(make_repo mapping)"
 jq 'del(.linear.issueStates.blocked)' "$bad_mapping/.woostack/config.json" >"$bad_mapping/config.tmp"

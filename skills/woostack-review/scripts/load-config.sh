@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Loads .woostack/config.json from the consumer repo and emits canonical JSON
-# to /tmp/pr-review/config.json. Missing file -> defaults (severity_floor=high).
+# Loads effective .woostack configuration and emits canonical JSON
+# to /tmp/pr-review/config.json. Missing config -> defaults (severity_floor=high).
 # Invalid JSON or invalid schema -> loud GitHub-style ::error annotation and
 # non-zero exit (per issue #11 acceptance bullet 4).
 #
@@ -78,25 +78,33 @@ source "$SCRIPT_DIR/resolve-root.sh"
 mkdir -p "$OUTDIR"
 
 ROOT="$WOOSTACK_ROOT"
-CFG_PATH="$ROOT/.woostack/config.json"
+CONFIG_RESOLVER="$SCRIPT_DIR/../../woostack-init/scripts/config/resolve-config.sh"
 
-if [ ! -f "$CFG_PATH" ]; then
-  echo '{"severity_floor":"high"}' > "$OUTDIR/config.json"
-  echo "load-config: no .woostack/config.json at $CFG_PATH, using defaults (severity_floor=high)"
-  exit 0
+resolver_err="$(mktemp)"
+if ! effective_config="$(bash "$CONFIG_RESOLVER" "$ROOT" 2>"$resolver_err")"; then
+  err_msg="$(cat "$resolver_err")"
+  rm -f "$resolver_err"
+  [ -n "$err_msg" ] || err_msg="resolve-config failed"
+  sys_err_msg="${err_msg#resolve-config: }"
+  printf '::error file=.woostack/config.json::%s\n' "$sys_err_msg" >&2
+  exit 1
 fi
+rm -f "$resolver_err"
+
+effective_file="$(mktemp)"
+printf '%s\n' "$effective_config" >"$effective_file"
+trap 'rm -f "$effective_file"' EXIT
 
 # Inline python3 parser using the stdlib `json` module (no third-party deps).
 # On a decode error we emit `::error file=...,line=...,col=...::<msg>` so the
 # GH annotation links straight to the offending line.
-PYTHONDONTWRITEBYTECODE=1 python3 - "$CFG_PATH" "$OUTDIR/config.json" "$SCRIPT_DIR" <<'PY'
+PYTHONDONTWRITEBYTECODE=1 python3 - "$effective_file" "$OUTDIR/config.json" "$SCRIPT_DIR" <<'PY'
 import json
 import sys
 
-sys.path.insert(0, sys.argv[3])
+src, dst, script_dir = sys.argv[1], sys.argv[2], sys.argv[3]
+sys.path.insert(0, script_dir)
 from model_config import normalize_models
-
-src, dst = sys.argv[1], sys.argv[2]
 
 VALID_ANGLES = {"bugs", "security", "conventions", "acceptance", "seo", "aeo", "design", "react", "database", "tests", "api", "infra", "observability", "types", "i18n", "docs", "deps", "architecture", "skills", "comments", "simplify", "production-readiness"}
 VALID_FLOORS = {"low", "medium", "high"}
@@ -107,6 +115,7 @@ REVIEW_KEYS = {
     "authors_skip", "release_rollup_pattern", "fix_commands",
     "metrics", "chunking", "force_tier", "nits", "defer_markers",
 }
+ALLOWED_TOP_KEYS = REVIEW_KEYS | {"models", "linear", "audit", "status", "base_branch", "specs", "plans", "fixes", "overnight"}
 
 
 def loud(msg, line=None, col=None):
@@ -132,16 +141,12 @@ with open(src, "r") as fh:
     text = fh.read()
 
 if text.strip() == "":
-    # Empty file is equivalent to defaults.
-    with open(dst, "w") as fh:
-        json.dump({"severity_floor": "high"}, fh)
-    print("load-config: .woostack/config.json is empty, using defaults (severity_floor=high)")
-    sys.exit(0)
-
-try:
-    raw = json.loads(text)
-except json.JSONDecodeError as exc:
-    loud(exc.msg, exc.lineno, exc.colno)
+    raw = {}
+else:
+    try:
+        raw = json.loads(text)
+    except json.JSONDecodeError as exc:
+        loud(exc.msg, exc.lineno, exc.colno)
 
 if not isinstance(raw, dict):
     loud("top-level JSON must be an object, got {}".format(type(raw).__name__))
@@ -170,7 +175,7 @@ if "review" in raw:
 else:
     rc = raw
     legacy_review = sorted(set(rc.keys()) & REVIEW_KEYS)
-    unknown = sorted(set(rc.keys()) - REVIEW_KEYS - {"models"})
+    unknown = sorted(set(rc.keys()) - ALLOWED_TOP_KEYS)
     if unknown:
         loud("unknown top-level key(s): {} (review settings now nest under `review`)".format(", ".join(unknown)))
     if legacy_review:

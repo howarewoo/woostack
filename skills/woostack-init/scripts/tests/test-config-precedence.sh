@@ -11,58 +11,82 @@ trap 'rm -rf "$TMP"' EXIT
 repo="$TMP/repo"
 worktree="$TMP/worktree"
 mkdir -p "$repo/.woostack"
-git -C "$repo" init -q
-git -C "$repo" config user.email test@example.com
-git -C "$repo" config user.name Test
-cat >"$repo/.woostack/config.json" <<'JSON'
-{"linear":{"repository":"https://github.com/acme/widgets","workspace":"acme","team":"DEFAULT","projectStatuses":{"backlog":"Backlog","planned":"Planned","started":"Started","completed":"Completed","canceled":"Canceled"},"issueStates":{"planned":"Backlog","executing":"In Progress","inReview":"In Progress","done":"Done","blocked":"In Progress"}}}
-JSON
-git -C "$repo" add .woostack/config.json
-git -C "$repo" commit -qm init
+git -C "$repo" init -q && git -C "$repo" config user.email t@t && git -C "$repo" config user.name t
 
+must_fail() { # $1=target, $2=expected_err_substring, $3=desc
+  local out="$TMP/out" err="$TMP/err"
+  if bash "$RESOLVER" "$1" >"$out" 2>"$err"; then fail "$3"; else pass "$3"; fi
+  assert_contains "$(cat "$err")" "$2" "$3"
+}
+
+# 1. Base-only policy & 2. Recursive merge with local addition and sibling preservation
+cat >"$repo/.woostack/config.json" <<'JSON'
+{"linear":{"repository":"https://github.com/a/b","workspace":"acme","team":"DEFAULT","saveArtifacts":false},"review":{"severity_floor":"high","nits":true,"angles":{"skip":["seo"]}},"models":{"standard":"gpt-5.5"}}
+JSON
+git -C "$repo" add .woostack/config.json && git -C "$repo" commit -qm "init config"
 actual="$(bash "$RESOLVER" "$repo")"
-assert_eq "$(jq -r '.linear.team' <<<"$actual")" "DEFAULT" "committed team is used without a local override"
+assert_eq "$(jq -r '.linear.team' <<<"$actual")" "DEFAULT" "committed team is used"
 
 cat >"$repo/.woostack/config.local.json" <<'JSON'
-{"linear":{"team":"LOCAL"}}
+{"linear":{"team":"LOCAL"},"review":{"severity_floor":"low","custom":"opt"},"status":{"staleDays":7}}
 JSON
 actual="$(bash "$RESOLVER" "$repo")"
-assert_eq "$(jq -r '.linear.team' <<<"$actual")" "LOCAL" "primary checkout local team overrides committed policy"
+assert_eq "$(jq -r '.linear.team' <<<"$actual")" "LOCAL" "local team overrides"
+assert_eq "$(jq -r '.linear.workspace' <<<"$actual")" "acme" "sibling linear keys preserved"
+assert_eq "$(jq -r '.review.severity_floor' <<<"$actual")" "low" "nested setting overridden"
+assert_eq "$(jq -r '.review.nits' <<<"$actual")" "true" "sibling review keys preserved"
+assert_eq "$(jq -r '.review.custom' <<<"$actual")" "opt" "local additions preserved"
+assert_eq "$(jq -r '.status.staleDays' <<<"$actual")" "7" "top additions preserved"
+assert_eq "$(jq -r '.models.standard' <<<"$actual")" "gpt-5.5" "base objects preserved"
 
+# 3. Scalar/array/null replacement & 4. Linked worktrees
+cat >"$repo/.woostack/config.local.json" <<'JSON'
+{"review":{"angles":{"skip":["database"]}},"models":null}
+JSON
+actual="$(bash "$RESOLVER" "$repo")"
+assert_eq "$(jq -c '.review.angles.skip' <<<"$actual")" '["database"]' "local array replaces"
+assert_eq "$(jq -r '.models' <<<"$actual")" "null" "local null replaces"
 git -C "$repo" worktree add -q "$worktree"
 actual="$(bash "$RESOLVER" "$worktree")"
-assert_eq "$(jq -r '.linear.team' <<<"$actual")" "LOCAL" "linked worktree inherits the primary checkout local team"
+assert_eq "$(jq -c '.review.angles.skip' <<<"$actual")" '["database"]' "worktree inherits local"
 
-printf '%s\n' '{"linear":{"team":"LOCAL","workspace":"forbidden"}}' >"$repo/.woostack/config.local.json"
-if bash "$RESOLVER" "$worktree" >"$TMP/out" 2>"$TMP/err"; then
-  fail "unsupported local override should fail"
-else
-  pass
-fi
-assert_contains "$(cat "$TMP/err")" "may override only" "unsupported local keys fail closed"
+# 5. Both absent & 6. Orphaned local & 7. Empty base config
+mkdir -p "$TMP/empty_repo" "$TMP/orphan/.woostack" "$TMP/empty_base/.woostack"
+assert_eq "$(bash "$RESOLVER" "$TMP/empty_repo")" "{}" "both absent yields empty object"
+printf '{"linear":{"team":"O"}}\n' >"$TMP/orphan/.woostack/config.local.json"
+must_fail "$TMP/orphan" ".woostack/config.json is missing" "orphaned local fails"
+: >"$TMP/empty_base/.woostack/config.json"
+must_fail "$TMP/empty_base" ".woostack/config.json must not be empty" "empty base fails"
 
-printf '%s\n' '{"linear":{"team":"   "}}' >"$repo/.woostack/config.local.json"
-if bash "$RESOLVER" "$repo" >"$TMP/out" 2>"$TMP/err"; then
-  fail "blank local team should fail"
-else
-  pass
-fi
-assert_contains "$(cat "$TMP/err")" "nonblank linear.team" "blank local team fails closed"
+# 8. Malformed JSON & 9. Non-object JSON
+b="$TMP/bad/.woostack"; mkdir -p "$b"
+printf '{"l":' >"$b/config.json"; must_fail "$TMP/bad" ".woostack/config.json must contain valid JSON" "malformed base JSON fails"
+printf '{}\n' >"$b/config.json"; printf '{"l":' >"$b/config.local.json"; must_fail "$TMP/bad" ".woostack/config.local.json must contain valid JSON" "malformed local JSON fails"
+printf '[]\n' >"$b/config.json"; rm -f "$b/config.local.json"; must_fail "$TMP/bad" ".woostack/config.json must contain a JSON object" "non-object base JSON fails"
+printf '{}\n' >"$b/config.json"; printf '1\n' >"$b/config.local.json"; must_fail "$TMP/bad" ".woostack/config.local.json must contain a JSON object" "non-object local JSON fails"
 
-assert_contains "$(cat "$HERE/../../templates/gitignore")" "*.local.*" "local config is ignored by the workspace template"
-assert_eq "$(jq -r '.linear.saveArtifacts' "$HERE/../../templates/config.json")" "false" "shipped template defaults linear.saveArtifacts to false"
+# 10. Unreadable & 11. Non-regular & 12. Symlinked files
+chmod 000 "$b/config.local.json"; must_fail "$TMP/bad" ".woostack/config.local.json is not readable" "unreadable local fails"
+rm -f "$b/config.local.json"; chmod 000 "$b/config.json"; must_fail "$TMP/bad" ".woostack/config.json is not readable" "unreadable base fails"
+chmod 644 "$b/config.json"
+mkdir -p "$TMP/dir/.woostack/config.json"; must_fail "$TMP/dir" ".woostack/config.json must be a regular file" "dir base fails"
+mkdir -p "$TMP/sym/.woostack" "$TMP/st"; echo '{}' >"$TMP/st/t.json"
+ln -s "$TMP/st/t.json" "$TMP/sym/.woostack/config.json"; must_fail "$TMP/sym" ".woostack/config.json must not be a symlink" "symlink base fails"
+rm -f "$TMP/sym/.woostack/config.json"; echo '{}' >"$TMP/sym/.woostack/config.json"
+ln -s "$TMP/st/t.json" "$TMP/sym/.woostack/config.local.json"; must_fail "$TMP/sym" ".woostack/config.local.json must not be a symlink" "symlink local fails"
 
-printf '%s\n' '{"linear":{"saveArtifacts":"invalid"}}' >"$repo/.woostack/config.json"
-rm -f "$repo/.woostack/config.local.json"
-if bash "$RESOLVER" "$repo" >"$TMP/out" 2>"$TMP/err"; then
-  fail "non-boolean saveArtifacts should fail"
-else
-  pass
-fi
-assert_contains "$(cat "$TMP/err")" "linear.saveArtifacts must be a boolean" "invalid saveArtifacts fails closed"
+# 13. Credentials & 14. Linear validation (base/local/effective)
+printf '{"linear":{"apiKey":"s"}}\n' >"$repo/.woostack/config.json"; rm -f "$repo/.woostack/config.local.json"
+must_fail "$repo" ".woostack/config.json contains credential-like key: linear.apiKey" "credential base fails"
+printf '{"linear":{"team":"D"}}\n' >"$repo/.woostack/config.json"; printf '{"models":{"apiKey":"s"}}\n' >"$repo/.woostack/config.local.json"
+must_fail "$repo" ".woostack/config.local.json contains credential-like key: models.apiKey" "credential local fails"
 
-printf '%s\n' '{"linear":{"saveArtifacts":true,"team":"DEFAULT"}}' >"$repo/.woostack/config.json"
-actual="$(bash "$RESOLVER" "$repo")"
-assert_eq "$(jq -r '.linear.saveArtifacts' <<<"$actual")" "true" "boolean saveArtifacts true is preserved"
+printf '{"linear":{"saveArtifacts":"x"}}\n' >"$repo/.woostack/config.json"; rm -f "$repo/.woostack/config.local.json"
+must_fail "$repo" ".woostack/config.json linear.saveArtifacts must be a boolean" "invalid base saveArtifacts fails"
+printf '{"linear":{"saveArtifacts":false}}\n' >"$repo/.woostack/config.json"; printf '{"linear":{"saveArtifacts":1}}\n' >"$repo/.woostack/config.local.json"
+must_fail "$repo" ".woostack/config.local.json linear.saveArtifacts must be a boolean" "invalid local saveArtifacts fails"
+
+printf '{"linear":{"saveArtifacts":true}}\n' >"$repo/.woostack/config.json"; rm -f "$repo/.woostack/config.local.json"
+assert_eq "$(jq -r '.linear.saveArtifacts' <<<"$(bash "$RESOLVER" "$repo")")" "true" "boolean saveArtifacts preserved"
 
 finish

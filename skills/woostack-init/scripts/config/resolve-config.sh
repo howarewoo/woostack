@@ -17,45 +17,121 @@ fail() {
 
 [ "$#" -eq 1 ] || usage
 repo_root="$(cd "$1" 2>/dev/null && pwd -P)" || fail "repository root is unavailable"
-config_path="$repo_root/.woostack/config.json"
-[ -f "$config_path" ] || fail ".woostack/config.json is missing"
-if ! config="$(jq -c 'if type == "object" then . else error("root") end' "$(tool_path_arg jq "$config_path")" 2>/dev/null)"; then
-  fail ".woostack/config.json must contain an object"
-fi
-if ! jq -e '
-  if has("linear") and (.linear | type == "object") and (.linear | has("saveArtifacts")) then
-    .linear.saveArtifacts | type == "boolean"
-  else
-    true
-  end
-' <<<"$config" >/dev/null 2>&1; then
-  fail ".woostack/config.json linear.saveArtifacts must be a boolean"
-fi
 
 common_dir="$(git -C "$repo_root" rev-parse --git-common-dir 2>/dev/null || true)"
 if [ -n "$common_dir" ]; then
   case "$common_dir" in
     /*) common_root="$common_dir" ;;
-    *) common_root="$repo_root/$common_dir" ;;
+    *) common_root="$(cd "$repo_root/$common_dir" 2>/dev/null && pwd -P || true)" ;;
   esac
-  primary_root="$(cd "$(dirname "$common_root")" 2>/dev/null && pwd -P)" || fail "Git common directory is invalid"
+  if [ -n "$common_root" ] && [ -d "$common_root" ]; then
+    primary_root="$(cd "$(dirname "$common_root")" 2>/dev/null && pwd -P)" || fail "Git common directory is invalid"
+  else
+    fail "Git common directory is invalid"
+  fi
 else
   primary_root="$repo_root"
 fi
 
+config_path="$repo_root/.woostack/config.json"
 local_path="$primary_root/.woostack/config.local.json"
-[ -e "$local_path" ] || { printf '%s\n' "$config"; exit 0; }
-[ -f "$local_path" ] || fail ".woostack/config.local.json must be a regular file"
-if ! local_config="$(jq -c '
-  if type == "object"
-    and keys == ["linear"]
-    and (.linear | type == "object" and keys == ["team"])
-    and (.linear.team | type == "string" and test("\\S"))
-  then .
-  else error("shape")
-  end
-' "$(tool_path_arg jq "$local_path")" 2>/dev/null)"; then
-  fail ".woostack/config.local.json may override only a nonblank linear.team"
+
+has_config=0
+has_local=0
+if [ -e "$config_path" ] || [ -L "$config_path" ]; then
+  has_config=1
+fi
+if [ -e "$local_path" ] || [ -L "$local_path" ]; then
+  has_local=1
 fi
 
-jq -c --arg team "$(jq -r '.linear.team' <<<"$local_config")" '.linear.team = $team' <<<"$config"
+if [ "$has_config" -eq 0 ] && [ "$has_local" -eq 0 ]; then
+  printf '{}\n'
+  exit 0
+fi
+
+if [ "$has_config" -eq 0 ]; then
+  fail ".woostack/config.json is missing"
+fi
+
+read_and_validate_file() {
+  local file_path="$1"
+  local display_name="$2"
+
+  if [ -L "$file_path" ]; then
+    fail "$display_name must not be a symlink"
+  fi
+  if [ ! -f "$file_path" ]; then
+    fail "$display_name must be a regular file"
+  fi
+  if [ ! -r "$file_path" ]; then
+    fail "$display_name is not readable"
+  fi
+  if [ ! -s "$file_path" ]; then
+    fail "$display_name must not be empty"
+  fi
+
+  local content
+  if ! content="$(jq -e -c 'if type == "object" then . else error("non-object") end' "$(tool_path_arg jq "$file_path")" 2>/dev/null)"; then
+    if jq -e . "$(tool_path_arg jq "$file_path")" >/dev/null 2>&1; then
+      fail "$display_name must contain a JSON object"
+    else
+      if [ -z "$(tr -d '[:space:]' < "$file_path")" ]; then
+        fail "$display_name must not be empty"
+      else
+        fail "$display_name must contain valid JSON"
+      fi
+    fi
+  fi
+
+  local cred_key
+  cred_key="$(jq -r '
+    [
+      paths as $p
+      | ($p | map(tostring) | join(".")) as $name
+      | select($name | test("api.?key|token|secret|password|authorization|credential"; "i"))
+      | $name
+    ] | first // empty
+  ' <<<"$content" 2>/dev/null || true)"
+  if [ -n "$cred_key" ]; then
+    fail "$display_name contains credential-like key: $cred_key"
+  fi
+
+  printf '%s\n' "$content"
+}
+
+base_config="$(read_and_validate_file "$config_path" ".woostack/config.json")"
+
+if [ "$has_local" -eq 1 ]; then
+  local_config="$(read_and_validate_file "$local_path" ".woostack/config.local.json")"
+  effective="$(jq -n --argjson base "$base_config" --argjson local "$local_config" '
+    def deep_merge(base; local):
+      if (base | type) == "object" and (local | type) == "object" then
+        reduce (local | keys_unsorted)[] as $k (
+          base;
+          if (base | has($k)) and (base[$k] | type) == "object" and (local[$k] | type) == "object" then
+            .[$k] = deep_merge(base[$k]; local[$k])
+          else
+            .[$k] = local[$k]
+          end
+        )
+      else
+        local
+      end;
+    deep_merge($base; $local)
+  ')"
+else
+  effective="$base_config"
+fi
+
+if jq -e 'has("linear") and (.linear | type == "object") and (.linear | has("saveArtifacts"))' <<<"$effective" >/dev/null 2>&1; then
+  if ! jq -e '.linear.saveArtifacts | type == "boolean"' <<<"$effective" >/dev/null 2>&1; then
+    if [ "$has_local" -eq 1 ] && jq -e 'has("linear") and (.linear | type == "object") and (.linear | has("saveArtifacts"))' <<<"$local_config" >/dev/null 2>&1; then
+      fail ".woostack/config.local.json linear.saveArtifacts must be a boolean"
+    else
+      fail ".woostack/config.json linear.saveArtifacts must be a boolean"
+    fi
+  fi
+fi
+
+printf '%s\n' "$effective"

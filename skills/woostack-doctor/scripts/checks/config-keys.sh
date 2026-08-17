@@ -32,7 +32,7 @@ if [ ! -f "$CFG" ] || ! jq -e 'type == "object"' "$CFG" >/dev/null 2>&1; then
 fi
 
 resolver_error="$(mktemp)"
-if [ ! -x "$CONFIG_RESOLVER" ] || ! effective_config="$(bash "$CONFIG_RESOLVER" "$WOO_ROOT" 2>"$resolver_error")"; then
+if [ ! -f "$CONFIG_RESOLVER" ] || ! effective_config="$(bash "$CONFIG_RESOLVER" "$WOO_ROOT" 2>"$resolver_error")"; then
   detail="$(cat "$resolver_error")"
   rm -f "$resolver_error"
   [ -n "$detail" ] || detail="layered config resolver is unavailable"
@@ -50,7 +50,7 @@ while IFS= read -r key; do
   fi
 done < <(jq -r 'keys[]' "$TEMPLATE")
 
-if jq -e 'has("artifacts")' "$CFG" >/dev/null; then
+if jq -e 'has("artifacts")' "$EFFECTIVE_CFG" >/dev/null; then
   emit error linear-policy report ".woostack/config.json" "development backend selectors are not supported"
 fi
 credential_path="$(jq -r '

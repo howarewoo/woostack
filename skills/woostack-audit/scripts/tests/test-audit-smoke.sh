@@ -13,7 +13,7 @@ AUDIT_TARGET="$t" bash "$DIR/build-target-diff.sh" >/dev/null 2>&1
 assert_eq "$(grep -c '^diff --git' "$OUTDIR/diff.txt")" "1" "synthetic diff built"
 
 # Stage 2: audit config emits forced angles.
-AUDIT_CONFIG_FILE="$t/none.json" bash "$DIR/load-audit-config.sh" >/dev/null 2>&1
+WOOSTACK_ROOT="$t" bash "$DIR/load-audit-config.sh" >/dev/null 2>&1
 assert_contains "$(cat "$OUTDIR/config.json")" "simplify" "config forces simplify"
 
 # Stage N: render a hand-seeded findings.json (swarm output is mocked — wiring test, not model).

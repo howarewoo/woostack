@@ -15,6 +15,11 @@ repo1="$(mktemp -d)"; ( cd "$repo1" && git init -q && git commit -q --allow-empt
 mkdir -p "$repo1/.woostack"; printf '{"base_branch":"trunk"}\n' > "$repo1/.woostack/config.json"
 assert_eq "$(resolved "$repo1")" "trunk" "config base_branch wins"
 
+# 1b. local config overrides base_branch
+printf '{"base_branch":"local-trunk"}\n' > "$repo1/.woostack/config.local.json"
+assert_eq "$(resolved "$repo1")" "local-trunk" "local config overrides base_branch"
+rm -f "$repo1/.woostack/config.local.json"
+
 # 2. unset config -> remote default branch (origin/HEAD)
 origin="$(mktemp -d)"; ( cd "$origin" && git init -q --bare )
 repo2="$(mktemp -d)"

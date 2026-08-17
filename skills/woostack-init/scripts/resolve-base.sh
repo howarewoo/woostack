@@ -8,7 +8,7 @@
 #
 # Precedence:
 #   1. explicit WOOSTACK_BASE_BRANCH override (host pins, tests) — honored as-is
-#   2. .woostack/config.json -> base_branch, if set and non-empty
+#   2. effective .woostack config -> base_branch, if set and non-empty
 #   3. git symbolic-ref refs/remotes/origin/HEAD -> the remote default branch
 #   4. main — fallback when there is no remote / fresh repo
 #
@@ -27,16 +27,20 @@ fi
 export WOOSTACK_ROOT
 
 if [ -z "${WOOSTACK_BASE_BRANCH:-}" ]; then
+  _wb_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
+  _resolver="$_wb_dir/config/resolve-config.sh"
   _wb_cfg="$WOOSTACK_ROOT/.woostack/config.json"
-  _wb_base=""
-  if [ -f "$_wb_cfg" ]; then
-    if command -v jq >/dev/null 2>&1; then
-      _wb_base="$(jq -r '.base_branch // empty' "$_wb_cfg" 2>/dev/null || true)"
-    else
+
+  if [ -e "$_wb_cfg" ] || [ -L "$_wb_cfg" ]; then
+    if ! command -v jq >/dev/null 2>&1; then
       printf 'woostack: %s exists but jq is unavailable; cannot read base_branch\n' "$_wb_cfg" >&2
       return 1 2>/dev/null || exit 1
     fi
   fi
+
+  _effective="$(bash "$_resolver" "$WOOSTACK_ROOT")" || { return 1 2>/dev/null || exit 1; }
+  _wb_base="$(jq -r '.base_branch // empty' <<<"$_effective" 2>/dev/null || true)"
+
   if [ -z "$_wb_base" ]; then
     _wb_base="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || true)"
     _wb_base="${_wb_base#origin/}"
