@@ -11,6 +11,13 @@ user's current goal. For `woostack-change`, `woostack-build`, and `woostack-fix`
 from the user's input goal; a resume-only Build or Fix invocation uses the exact verified run goal.
 Do not use the slash-command name, project or run identifier, or an untrusted remote title.
 
+Invoke the registered tool `woostack_rename_session` with `{ "title": "<derived-title>" }`. The tool
+is exposed by the local project extension `.omp/extensions/woostack-session-name.ts` provisioned by
+`woostack-init` and loaded via `.omp/settings.json`. It delegates to OMP's automatic session-naming
+API and preserves explicit user titles set via `/rename`. If the tool is absent, extension discovery
+is disabled, or the tool call fails, emit one concise warning (`warning: OMP session renaming
+unavailable; continuing with current session name`) and continue the selected workflow without
+blocking.
 ## Subagent spawn
 
 OMP's `task` primitive accepts a worker selector but no per-call model/tier/effort argument.
@@ -96,6 +103,8 @@ failure that returns to init or gated doctor repair. A workflow may fall back in
 own driver contract explicitly allows it. Preserve the effective tier and report the actual
 missing capability or receipt.
 
+Session-naming degradation is non-blocking: if `woostack_rename_session` is unavailable or fails,
+emit one concise warning and proceed with the workflow.
 ## Recovery and handback
 
 Require each worker to return:

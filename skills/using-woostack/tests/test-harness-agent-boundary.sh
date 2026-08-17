@@ -88,6 +88,24 @@ require(omp, r"resume-only Build or Fix.*verified run goal",
         "OMP guidance does not name resumed Build and Fix sessions from the verified run goal")
 require(omp, r"slash-command name.*project or run identifier.*untrusted remote title",
         "OMP guidance permits identifier or untrusted-title session names")
+require(omp, r"woostack_rename_session",
+        "OMP guidance does not require the exact woostack_rename_session tool")
+require(omp, r"preserves explicit user titles|user-set name takes precedence",
+        "OMP guidance does not require explicit user-title preservation")
+require(omp, r"concise warning.*continu.*without blocking|warning-only|non-blocking",
+        "OMP guidance does not define warning-only non-blocking degradation")
+require(omp, r"\.omp/extensions/woostack-session-name\.ts",
+        "OMP guidance does not name the session-naming extension path")
+require(omp, r"\.omp/settings\.json",
+        "OMP guidance does not name the local settings file")
+init_skill = read("skills/woostack-init/SKILL.md")
+require(init_skill, r"provision-omp-session-name\.sh",
+        "Init skill does not invoke provision-omp-session-name.sh")
+require(init_skill, r"\.omp/extensions/woostack-session-name\.ts",
+        "Init skill does not admit .omp/extensions/woostack-session-name.ts")
+doctor_checks = read("skills/woostack-doctor/references/checks.md")
+require(doctor_checks, r"omp-session-name",
+        "Doctor check catalog does not list omp-session-name")
 for text, label in ((using, "using-woostack"), (change, "Change"),
                     (build, "Build"), (fix, "Fix")):
     forbid(text, r"\bOMP\b|hosts/omp\.md|active-session naming|rename the (?:active )?session",
@@ -223,6 +241,8 @@ assertion_only_paths = {
     "skills/using-woostack/tests/test-harness-agent-boundary.sh",
     "skills/woostack-init/scripts/tests/test-host-references.sh",
     "skills/woostack-doctor/scripts/tests/test-omp-agents.sh",
+    "skills/woostack-doctor/scripts/tests/test-omp-session-name.sh",
+    "skills/woostack-init/scripts/tests/test-provision-omp-session-name.sh",
     "site/scripts/linear-only-docs.test.mjs",
 }
 text_suffixes = {".md", ".mdx", ".sh", ".mjs", ".js", ".json", ".yml", ".yaml"}

@@ -50,6 +50,10 @@ assert_contains "$init" 'bash <wi>/scripts/provision-omp-agents.sh <canonical-re
   "init invokes the provisioner from its installed skill directory"
 assert_not_contains "$init" 'bash skills/woostack-init/scripts/provision-omp-agents.sh' \
   "init does not assume the source repository layout"
+assert_contains "$init" 'bash <wi>/scripts/provision-omp-session-name.sh <canonical-repository>' \
+  "init invokes the session-naming provisioner from its installed skill directory"
+assert_not_contains "$init" 'bash skills/woostack-init/scripts/provision-omp-session-name.sh' \
+  "init does not assume the source repository layout for session naming"
 
 
 omp="$(cat "$H/omp.md")"
@@ -67,6 +71,11 @@ assert_contains "$omp" "policy supplies validated non-secret defaults but never 
 assert_contains "$omp" "Before fix root-cause proof, make no Linear call" "OMP preserves pre-proof fix isolation"
 assert_contains "$omp" "Required provider failure blocks the fix/build" "OMP fails closed for required records"
 
+assert_contains "$omp" "woostack_rename_session" "OMP requires the exact session rename tool"
+assert_contains "$omp" "preserves explicit user titles" "OMP preserves explicit user titles"
+assert_contains "$omp" "warning: OMP session renaming" "OMP defines concise warning degradation"
+assert_contains "$omp" ".omp/extensions/woostack-session-name.ts" "OMP references the extension path"
+assert_contains "$omp" ".omp/settings.json" "OMP references the settings path"
 assert_not_contains "$omp" "Hermes engineer pairing" \
   "OMP does not advertise an external-engineer coder mode"
 assert_not_contains "$omp" "hosts/hermes.md" \
