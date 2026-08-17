@@ -9,8 +9,19 @@ set -uo pipefail
 emit() { printf '%s\t%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" "$5"; }
 command -v jq >/dev/null 2>&1 || exit 0
 WOO_ROOT="${1:-.}"
-CFG="$WOO_ROOT/.woostack/config.json"
-[ -f "$CFG" ] || exit 0
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG_RESOLVER="$HERE/../../../woostack-init/scripts/config/resolve-config.sh"
+
+resolver_error="$(mktemp)"
+if ! effective_config="$(bash "$CONFIG_RESOLVER" "$WOO_ROOT" 2>"$resolver_error")"; then
+  detail="$(cat "$resolver_error")"
+  rm -f "$resolver_error"
+  [ -n "$detail" ] || detail="invalid configuration"
+  emit error models-leaf-shape report ".woostack/config.json" \
+    "config is not valid JSON or the models block is unreadable ($detail)"
+  exit 0
+fi
+rm -f "$resolver_error"
 
 # Emit "path<TAB>problem" per bad leaf. Tier keys are fast|standard|deep; any
 # other key under .models is a provider map whose values are tier leaves.
@@ -46,7 +57,7 @@ problems="$(jq -r '
     | select(.[1] != null)
     | "\(.[0] | clean)\t\(.[1] | clean)"
   end
-' "$CFG" 2>/dev/null)"
+' <<<"$effective_config" 2>/dev/null)"
 rc=$?
 if [ $rc -ne 0 ]; then
   emit error models-leaf-shape report ".woostack/config.json" \

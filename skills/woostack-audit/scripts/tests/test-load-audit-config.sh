@@ -7,10 +7,10 @@ SCRIPT="$DIR/load-audit-config.sh"
 
 EC=0
 run() { # $1=config json, $2=lens (optional). Sets OUTDIR + ERR (parent-visible) + EC.
-  work="$(mktemp -d)"; export OUTDIR="$work/out"; mkdir -p "$OUTDIR"
-  printf '%s' "$1" > "$work/config.json"
+  work="$(mktemp -d)"; export OUTDIR="$work/out"; mkdir -p "$OUTDIR" "$work/.woostack"
+  printf '%s' "$1" > "$work/.woostack/config.json"
   ERR="$work/stderr"
-  AUDIT_CONFIG_FILE="$work/config.json" AUDIT_LENS="${2:-}" bash "$SCRIPT" >/dev/null 2>"$ERR" && EC=0 || EC=$?
+  WOOSTACK_ROOT="$work" AUDIT_LENS="${2:-}" bash "$SCRIPT" >/dev/null 2>"$ERR" && EC=0 || EC=$?
 }
 
 # No audit block -> defaults: force simplify+production-readiness, skip architecture.
@@ -20,10 +20,26 @@ assert_contains "$cfg" "simplify" "force includes simplify"
 assert_contains "$cfg" "production-readiness" "force includes production-readiness"
 assert_contains "$cfg" "architecture" "skip includes architecture"
 
+# Both config files absent -> defaults applied
+absent_work="$(mktemp -d)"; export OUTDIR="$absent_work/out"; mkdir -p "$OUTDIR"
+ERR="$absent_work/stderr"
+WOOSTACK_ROOT="$absent_work" bash "$SCRIPT" >/dev/null 2>"$ERR" && EC=0 || EC=$?
+assert_eq "$EC" "0" "both config files absent ok"
+assert_contains "$(cat "$OUTDIR/config.json")" "simplify" "defaults applied when both files absent"
+
 # Sibling review block is ignored, not an error.
 run '{"review":{"severity_floor":"low"},"audit":{"severity_floor":"medium"}}'
 assert_eq "$EC" "0" "sibling review block ignored"
 assert_contains "$(cat "$OUTDIR/config.json")" "medium" "audit severity_floor applied"
+
+# Local config overrides audit settings
+local_work="$(mktemp -d)"; export OUTDIR="$local_work/out"; mkdir -p "$OUTDIR" "$local_work/.woostack"
+printf '%s' '{"audit":{"severity_floor":"high"}}' > "$local_work/.woostack/config.json"
+printf '%s' '{"audit":{"severity_floor":"low"}}' > "$local_work/.woostack/config.local.json"
+ERR="$local_work/stderr"
+WOOSTACK_ROOT="$local_work" bash "$SCRIPT" >/dev/null 2>"$ERR" && EC=0 || EC=$?
+assert_eq "$EC" "0" "local override applied"
+assert_contains "$(cat "$OUTDIR/config.json")" "low" "audit severity_floor overridden by local config"
 
 # Lens flag simplify keeps the floor, drops production-readiness from force.
 run '{}' 'simplify'; assert_eq "$EC" "0" "lens ok"

@@ -13,6 +13,17 @@ r="$(mktemp -d)"; mkdir -p "$r/.woostack"
 printf '%s\n' '{"models":{"standard":"a/b","deep":{"model":"c/d","effort":"high"},"fast":[{"model":"e/f","effort":"low"},"g/h"],"openai":{"deep":["i/j","k/l"]}}}' > "$r/.woostack/config.json"
 assert_eq "$(bash "$C/models-leaf-shape.sh" "$r")" "" "all valid leaf shapes -> silent"
 
+# local config overriding with valid leaf -> silent
+printf '%s\n' '{"models":{"deep":"local/override"}}' > "$r/.woostack/config.local.json"
+assert_eq "$(bash "$C/models-leaf-shape.sh" "$r")" "" "local config valid leaf override -> silent"
+
+# local config introducing invalid leaf -> error
+printf '%s\n' '{"models":{"fast":[]}}' > "$r/.woostack/config.local.json"
+out="$(bash "$C/models-leaf-shape.sh" "$r")"
+assert_contains "$out" "$(printf 'error\tmodels-leaf-shape')" "local empty array leaf -> error"
+assert_contains "$out" "fast" "names the offending tier path from local"
+rm -f "$r/.woostack/config.local.json"
+
 # empty array -> error
 printf '%s\n' '{"models":{"fast":[]}}' > "$r/.woostack/config.json"
 out="$(bash "$C/models-leaf-shape.sh" "$r")"

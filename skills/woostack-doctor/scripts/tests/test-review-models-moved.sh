@@ -12,6 +12,13 @@ out="$(bash "$C/review-models-moved.sh" "$r")"
 assert_contains "$out" "$(printf 'warn\treview-models-moved')" "review.models present → warn"
 assert_contains "$out" ".woostack/config.json" "names the config file"
 
+# Local config introducing review.models -> warn
+printf '%s\n' '{"review":{"metrics":true}}' > "$r/.woostack/config.json"
+printf '%s\n' '{"review":{"models":{"standard":"x"}}}' > "$r/.woostack/config.local.json"
+out="$(bash "$C/review-models-moved.sh" "$r")"
+assert_contains "$out" "$(printf 'warn\treview-models-moved')" "local review.models present → warn"
+rm -f "$r/.woostack/config.local.json"
+
 printf '%s\n' '{"models":{"openai":{"standard":{"model":"x"}}}}' > "$r/.woostack/config.json"
 assert_eq "$(bash "$C/review-models-moved.sh" "$r")" "" "root models only → silent"
 
