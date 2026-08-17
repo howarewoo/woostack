@@ -36,6 +36,11 @@ does not change the setup or artifact-selection boundaries below.
      `woostack-deep` under `.omp/agents/`, preserves every other agent, ensures exactly one scoped
      `woostack-*.md` rule without overwriting consumer-owned `.omp/agents/.gitignore` lines, and
      never reads model configuration.
+   - the managed project OMP session-naming extension, settings entry, and ignore rules by running
+     `bash <wi>/scripts/provision-omp-session-name.sh <canonical-repository>`. This
+     deterministic provisioner updates only `.omp/extensions/woostack-session-name.ts`,
+     `.omp/settings.json`, and `.omp/.gitignore`, preserves other extensions, settings keys, and
+     ignore lines, and rejects tracked settings.
 4. Perform the automatic read-only [Linear setup](#automatic-linear-setup). Its configured,
    preserved, skipped, or setup-blocked outcome is separate from local initialization.
 5. Validate JSON/schema/path permissions, ignore policy, report roots, managed OMP role agents, and
@@ -83,6 +88,8 @@ contract's fresh terminal proof plus explicit approval.
 - Artifact persistence remains explicit. Automatic Linear setup is read-only, selects no artifact,
   and is never required for successful local initialization or repair.
 - No source edit outside `.woostack/` except the three init-managed `.omp/agents/woostack-*.md`
-  role definitions; no application scaffold.
+  role definitions and the local managed OMP session-naming assets
+  (`.omp/extensions/woostack-session-name.ts`, `.omp/settings.json`, and `.omp/.gitignore`); no
+  application scaffold.
 - No credential read/write, implicit migration, destructive cleanup, commit, push, PR, or merge.
 - Preserve user-owned content and fail closed on symlink/path/collision ambiguity.

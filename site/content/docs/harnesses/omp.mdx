@@ -29,6 +29,25 @@ subagents](https://omp.sh/docs/subagents), and the canonical
 [host adapter](https://github.com/howarewoo/woostack/blob/main/skills/using-woostack/references/hosts/omp.md)
 for the exact mapping and lifecycle.
 
+## Goal-derived session naming
+
+When a woostack workflow (`/woostack-change`, `/woostack-build`, or `/woostack-fix`) is invoked, OMP
+renames the active session to a concise title derived from the trusted goal. A resume-only Build or
+Fix uses the exact verified run goal.
+
+Session naming uses an in-process project extension:
+
+- `woostack-init` provisions the local extension `.omp/extensions/woostack-session-name.ts`, adds
+  standalone ignore rules in `.omp/.gitignore`, and safely merges its explicit path into local
+  `.omp/settings.json`.
+- The extension registers the tool `woostack_rename_session`, which calls OMP's automatic session-naming
+  API. If a user title was explicitly set via `/rename`, the user title is preserved.
+- If the extension is not yet loaded, extensions are disabled, or the tool call fails, naming degrades
+  gracefully with a concise warning without blocking the workflow.
+- OMP loads project extensions and settings at startup; restart OMP after initial installation or
+  repair so the extension becomes active. Tracked or malformed `.omp/settings.json` fails closed
+  to protect shared configuration.
+
 
 ## Local run artifacts and optional Linear mirroring
 

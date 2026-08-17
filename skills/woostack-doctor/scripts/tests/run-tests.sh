@@ -11,6 +11,7 @@ tests=(
   test-repair-handoff.sh
   test-no-stale-paths.sh
   test-omp-agents.sh
+  test-omp-session-name.sh
   test-review-models-moved.sh
 )
 for t in "${tests[@]}"; do
