@@ -47,10 +47,12 @@ At the start of work in a repository:
 3. Check whether the user's request maps to one of the woostack skills below.
 4. Load the mapped skill before asking clarifying questions, making edits, opening PRs, or
    posting review feedback.
-5. Load and apply the shared
+5. Before host-dependent behavior, require the current host to exactly match the canonical
+   [host index](references/hosts/README.md) allowlist and load only that linked adapter.
+6. Load and apply the shared
    [Output Discipline](references/output-discipline.md) to every user-facing reply. It keeps
    the answer compact without compressing evidence, risk, or required contract fields.
-6. At an ordinary final-reply boundary, apply [woostack-reflect](../woostack-reflect/SKILL.md)'s
+7. At an ordinary final-reply boundary, apply [woostack-reflect](../woostack-reflect/SKILL.md)'s
    canonical candidate gate before loading or invoking it: the session already contains a concrete
    observed preventable instruction gap that could yield a durable instruction finding. If no
    candidate is admitted, emit no reflection headings. An explicit `/woostack-reflect` invocation

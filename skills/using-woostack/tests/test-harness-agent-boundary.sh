@@ -67,6 +67,10 @@ require(model_tiers, r"allowlist.*before capability classification|gates routing
         "model-tier routing does not apply the host gate before tier routing")
 
 using = read("skills/using-woostack/SKILL.md")
+require(using, r"references/hosts/README\.md",
+        "using-woostack does not link the canonical host allowlist")
+require(using, r"before host-dependent.*exact.*allowlist.*load only.*linked adapter",
+        "using-woostack does not require exact allowlisted host selection before host-dependent behavior")
 omp = read("skills/using-woostack/references/hosts/omp.md")
 doctor = read("skills/woostack-doctor/scripts/checks/omp-agents.sh")
 review = read("skills/woostack-review/SKILL.md")
