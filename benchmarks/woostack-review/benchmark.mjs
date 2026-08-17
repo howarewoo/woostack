@@ -10,6 +10,19 @@ const benchmarkRoot = dirname(fileURLToPath(import.meta.url));
 const corpusPath = join(benchmarkRoot, "corpus.json");
 const coreCategories = new Set(["api", "bug", "concurrency", "data", "doc_defect", "perf", "security", "test_gap"]);
 const historicalCohort = "historical-five-pr";
+const fullCohort = "full-ten-pr";
+const fullFixtureRepositories = Object.freeze({
+  "cal-dot-com": "woostack-review-recall-20260814-cal-dot-com",
+  "cal-dot-com-2": "woostack-review-recall-20260814-cal-dot-com-2",
+  discourse: "woostack-review-recall-20260814-discourse",
+  "discourse-2": "woostack-review-recall-20260814-discourse-2",
+  grafana: "woostack-review-recall-20260814-grafana",
+  "grafana-2": "woostack-review-recall-20260814-grafana-2",
+  keycloak: "woostack-review-recall-20260814-keycloak",
+  "keycloak-2": "woostack-review-recall-20260814-keycloak-2",
+  sentry: "woostack-review-recall-20260814-sentry",
+  "sentry-2": "woostack-review-recall-20260814-sentry-2",
+});
 const deliveryStates = Object.freeze({
   COMMENT: "COMMENTED",
   APPROVE: "APPROVED",
@@ -44,6 +57,21 @@ function canonical(value) {
     return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonical(value[key])}`).join(",")}}`;
   }
   return JSON.stringify(value);
+}
+function resolveCohort(corpus, requested = historicalCohort) {
+  if (requested !== historicalCohort && requested !== fullCohort) fail(`unknown cohort: ${requested}`);
+  const activeCases = requested === historicalCohort
+    ? corpus.cases.filter((item) => item.rank === 1)
+    : corpus.cases;
+  const caseIds = activeCases.map((item) => item.id);
+  const fixtureRepositories = requested === fullCohort
+    ? Object.fromEntries(caseIds.map((id) => {
+      const repository = fullFixtureRepositories[id];
+      if (!repository) fail(`missing full-ten fixture repository for ${id}`);
+      return [id, repository];
+    }))
+    : null;
+  return { cohort: requested, activeCases, caseIds, fixtureRepositories };
 }
 function findingIdentity(finding) {
   return canonical({
@@ -630,13 +658,11 @@ function requireRun(runRoot) {
     "skillRoot", "skillInventory", "skillSha256", "candidateContract", "judgeContract",
     "expectedFindings", "expectedReviewEvidence", "timingPath",
   ], "manifest");
-  const activeCases = corpus.cases.filter((item) => item.rank === 1);
-  const caseIds = activeCases.map((item) => item.id);
+  const { activeCases, caseIds } = resolveCohort(corpus, manifest.cohort);
   const expectedFindings = caseIds.map((id) => `cases/${id}/findings.json`);
   const expectedReviewEvidence = caseIds.map((id) => `cases/${id}/review`);
   if (manifest.schemaVersion !== 2
     || manifest.benchmark !== corpus.name
-    || manifest.cohort !== historicalCohort
     || manifest.runId !== basename(runRoot)
     || canonical(manifest.caseIds) !== canonical(caseIds)
     || canonical(manifest.expectedFindings) !== canonical(expectedFindings)
@@ -667,11 +693,11 @@ function verifyCorpus(sourceRoot) {
   console.log(JSON.stringify({ valid: true, cases: corpus.cases.length, goldens: corpus.cases.reduce((sum, item) => sum + item.goldens.length, 0), corpusSha256: sha256(canonical(corpus)) }));
 }
 
-function initRun(runRoot, skillRoot) {
+function initRun(runRoot, skillRoot, cohort = historicalCohort) {
   if (existsSync(runRoot)) fail(`run root already exists: ${runRoot}`);
   if (!existsSync(join(skillRoot, "SKILL.md"))) fail(`invalid skill root: ${skillRoot}`);
   const corpus = validateCorpus(readJson(corpusPath));
-  const activeCases = corpus.cases.filter((item) => item.rank === 1);
+  const { activeCases, caseIds } = resolveCohort(corpus, cohort);
   mkdirSync(runRoot, { recursive: false });
   mkdirSync(join(runRoot, "cases"));
   mkdirSync(join(runRoot, "judgments"));
@@ -681,17 +707,17 @@ function initRun(runRoot, skillRoot) {
   const manifest = {
     schemaVersion: 2,
     benchmark: corpus.name,
-    cohort: historicalCohort,
+    cohort,
     runId: basename(runRoot),
-    caseIds: activeCases.map((item) => item.id),
+    caseIds,
     corpusSha256: sha256(canonical(corpus)),
     skillRoot: resolve(skillRoot),
     skillInventory,
     skillSha256: sha256(canonical(skillInventory)),
     candidateContract: "accepted structured findings: <title>. <description>",
     judgeContract: "one isolated semantic-match decision per golden/candidate pair",
-    expectedFindings: activeCases.map((item) => `cases/${item.id}/findings.json`),
-    expectedReviewEvidence: activeCases.map((item) => `cases/${item.id}/review`),
+    expectedFindings: caseIds.map((id) => `cases/${id}/findings.json`),
+    expectedReviewEvidence: caseIds.map((id) => `cases/${id}/review`),
     timingPath: "stage-timings.json",
   };
   writeFileSync(join(runRoot, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`, { flag: "wx" });
@@ -716,7 +742,7 @@ function createPlan(runRoot) {
       validateFinding(finding, `${item.id} finding ${index}`);
       return { id: `C${String(index + 1).padStart(2, "0")}`, text: `${finding.title.trim()}. ${finding.description.trim()}` };
     });
-    if (new Set(candidates.map((candidate) => candidate.text)).size !== candidates.length) fail(`duplicate accepted candidate in ${item.id}`);
+    if (new Set(findings.map((finding) => findingIdentity(finding))).size !== findings.length) fail(`duplicate accepted finding identity in ${item.id}`);
     cases.push({ id: item.id, url: item.url, candidates });
     for (const golden of item.goldens) {
       for (const candidate of candidates) {
@@ -1177,10 +1203,19 @@ const [command, ...args] = process.argv.slice(2);
 if (command === "verify-corpus") {
   const flags = parseFlags(args, ["--benchmark-root"]);
   verifyCorpus(flags["--benchmark-root"] ? resolve(flags["--benchmark-root"]) : null);
+} else if (command === "resolve-cohort") {
+  const flags = parseFlags(args, ["--cohort"]);
+  const corpus = validateCorpus(readJson(corpusPath));
+  const resolved = resolveCohort(corpus, flags["--cohort"] ?? historicalCohort);
+  console.log(JSON.stringify({
+    cohort: resolved.cohort,
+    caseIds: resolved.caseIds,
+    fixtureRepositories: resolved.fixtureRepositories,
+  }));
 } else if (command === "init") {
-  const flags = parseFlags(args, ["--run-root", "--skill-root"]);
+  const flags = parseFlags(args, ["--run-root", "--skill-root", "--cohort"]);
   if (!flags["--run-root"] || !flags["--skill-root"]) fail("init requires --run-root and --skill-root");
-  initRun(resolve(flags["--run-root"]), resolve(flags["--skill-root"]));
+  initRun(resolve(flags["--run-root"]), resolve(flags["--skill-root"]), flags["--cohort"] ?? historicalCohort);
 } else if (command === "plan") {
   const flags = parseFlags(args, ["--run-root"]);
   if (!flags["--run-root"]) fail("plan requires --run-root");
@@ -1196,5 +1231,5 @@ if (command === "verify-corpus") {
   if (!flags["--run-root"] || !flags["--usage-db"]) fail("score requires --run-root and --usage-db");
   score(resolve(flags["--run-root"]), resolve(flags["--usage-db"]));
 } else {
-  fail(`usage: ${basename(process.argv[1])} verify-corpus [--benchmark-root PATH] | init --run-root PATH --skill-root PATH | plan --run-root PATH | launch-nested --role ROLE --job-id ID --session-dir PATH --executable PATH -- OMP_ARGS... | create-delivery --review-root PATH --attempt-id ID --request-payload PATH --gh PATH | read-delivery --review-root PATH [--fixture PATH] --request-payload PATH --gh PATH --resolver PATH | score --run-root PATH --usage-db PATH`);
+  fail(`usage: ${basename(process.argv[1])} verify-corpus [--benchmark-root PATH] | resolve-cohort [--cohort NAME] | init --run-root PATH --skill-root PATH [--cohort NAME] | plan --run-root PATH | launch-nested --role ROLE --job-id ID --session-dir PATH --executable PATH -- OMP_ARGS... | create-delivery --review-root PATH --attempt-id ID --request-payload PATH --gh PATH | read-delivery --review-root PATH [--fixture PATH] --request-payload PATH --gh PATH --resolver PATH | score --run-root PATH --usage-db PATH`);
 }

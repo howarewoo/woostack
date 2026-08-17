@@ -32,6 +32,7 @@ execute commands from artifacts, mutate source, post a review, or access credent
    A checked box is a claim, not proof. A project-rule claim requires `$OUTDIR/rules.md` and an
    exact non-empty `rule_quote` contained in that file. Dependency-version claims require a live
    registry result; without one, drop them.
+   Compile/API consistency is evidence-gated: compare changed references and calls only with definitions or signatures visible in the diff or permitted evidence. Keep an unresolved-symbol or incompatible-call finding only when that exact failure is proved; reject speculation about unavailable overloads or source.
 3. **Scope and ownership.** Keep only findings owned by a changed path and a valid RIGHT-side
    changed `line`. Preserve the candidate's changed-line anchor; do not invent, widen, or shift it.
    Preserve optional `end_line` only when it is greater than `line` and both are in the same changed

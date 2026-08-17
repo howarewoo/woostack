@@ -11,6 +11,7 @@ tier: standard
 - Syntax / parse errors that will fail compile.
 - Type errors that will fail typecheck.
 - Missing imports, unresolved references, undefined symbols.
+- Compile/API consistency findings require comparing each changed reference or call with a definition or signature visible in the diff or permitted evidence. Admit an unresolved symbol or incompatible call only when the exact failure is proved; never infer unavailable overloads or source.
 - Clear logic errors that produce wrong results for ANY valid input (off-by-one, inverted condition, wrong operator, swapped arguments, dead branches, unreachable code).
 - Resource leaks (unclosed files / handles / connections) introduced in the diff.
 - Concurrency mistakes introduced in the diff (race, deadlock, non-atomic check-then-act).

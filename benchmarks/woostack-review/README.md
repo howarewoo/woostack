@@ -5,9 +5,22 @@
 [`benchmark.mjs`](benchmark.mjs) owns the deterministic evidence contract for `woostack-review`.
 [`corpus.json`](corpus.json) remains the pinned ten-case Code Review Bench inventory at commit
 `fbc5425c5eec52932aa1303708873d341968fa1c`; `verify-corpus` still verifies all ten cases and all 30
-goldens byte-for-byte. A development run selects only the five retained rank-one cases recorded in
-`manifest.json.caseIds`. That is the only cohort comparable with the historical five-PR baseline.
-
+`goldens` byte-for-byte.
+A development run resolves one cohort through `benchmark.mjs`: the default
+`historical-five-pr` selects the five rank-one cases and remains the historical-baseline mode;
+explicit `full-ten-pr` selects all ten pinned case IDs in corpus order. Full-ten runs use exactly
+these approved private fixture repositories: `cal-dot-com` /
+`woostack-review-recall-20260814-cal-dot-com`, `cal-dot-com-2` /
+`woostack-review-recall-20260814-cal-dot-com-2`, `discourse` /
+`woostack-review-recall-20260814-discourse`, `discourse-2` /
+`woostack-review-recall-20260814-discourse-2`, `grafana` /
+`woostack-review-recall-20260814-grafana`, `grafana-2` /
+`woostack-review-recall-20260814-grafana-2`, `keycloak` /
+`woostack-review-recall-20260814-keycloak`, `keycloak-2` /
+`woostack-review-recall-20260814-keycloak-2`, `sentry` /
+`woostack-review-recall-20260814-sentry`, and `sentry-2` /
+`woostack-review-recall-20260814-sentry-2`. The manifest, evidence paths, planning, timings,
+accounting, and result all use the resolver's exact case set.
 A single completed run is **directional development evidence**. It is not a ten-PR or 50-PR score,
 a release result, or a variance estimate. The benchmark preserves the existing Core definitions of
 TP, FP, FN, precision, recall, F1, and F2. Core includes `api`, `bug`, `concurrency`, `data`,
@@ -16,9 +29,7 @@ not a false positive.
 
 ## Prerequisites
 
-- `git`, `gh`, `jq`, `node`, `omp`, and `sqlite3` on `PATH`.
-- `gh` authenticated to an owner where five fresh private fixture repositories and pull requests
-  may be created.
+- `gh` authenticated to an owner where the selected cohort's fresh private fixture repositories and pull requests may be created.
 - Code Review Bench checked out at `fbc5425c5eec52932aa1303708873d341968fa1c` (the standard local
   checkout is `/tmp/woostack-code-review-benchmark`).
 - Fresh isolated OMP review and judge sessions and the benchmark judge model available through host
@@ -26,22 +37,22 @@ not a false positive.
 - OMP accounting at `$HOME/.omp/stats.db`, or `WOO_BENCHMARK_USAGE_DB` set to the exact database.
   The harness uses exact database rows when present and otherwise reads the same immutable usage
   records from bound session JSONL files; it never recalculates provider prices.
-- A create-new run root outside the repository and five fresh fixture PRs. Existing reviews cannot
-  be reused because incremental state and prior threads change the review contract.
+- A create-new run root outside the repository and fresh fixture PRs for the selected cohort. Existing
+  reviews cannot be reused because incremental state and prior threads change the review contract.
 
 Resolve inputs without creating the run root:
 
 ```bash
-./benchmarks/woostack-review/run.sh --dry-run --org OWNER
+./benchmarks/woostack-review/run.sh --dry-run --org OWNER [--cohort historical-five-pr|full-ten-pr]
 ```
 
 Run the complete directional cohort from the repository root:
 
 ```bash
-./benchmarks/woostack-review/run.sh --org OWNER
+./benchmarks/woostack-review/run.sh --org OWNER [--cohort historical-five-pr|full-ten-pr]
 ```
 
-Use `--run-root PATH`, `WOO_BENCHMARK_RUN_ROOT`, `WOO_BENCHMARK_ORG`, and
+Use `--run-root PATH`, `--cohort NAME`, `WOO_BENCHMARK_RUN_ROOT`, `WOO_BENCHMARK_ORG`, and
 `WOO_BENCHMARK_USAGE_DB` for explicit overrides.
 
 ## Evidence protocol
@@ -53,14 +64,15 @@ Use `--run-root PATH`, `WOO_BENCHMARK_RUN_ROOT`, `WOO_BENCHMARK_ORG`, and
      --benchmark-root /tmp/woostack-code-review-benchmark
    ```
 
-2. Initialize one create-new historical-five-PR run. Initialization snapshots the full corpus and a
-   byte inventory of the complete review skill while creating case directories only for the five
-   rank-one case IDs:
+2. Initialize one create-new run for the selected cohort. Initialization snapshots the full corpus and a
+   byte inventory of the complete review skill while creating case directories for the resolver's
+   exact case IDs:
 
    ```bash
    node benchmarks/woostack-review/benchmark.mjs init \
      --run-root /tmp/woostack-review-five-pr/<run-id> \
-     --skill-root skills/woostack-review
+     --skill-root skills/woostack-review \
+     --cohort historical-five-pr
    ```
 
 3. Recreate each `manifest.json.caseIds` PR privately and run the unmodified public
