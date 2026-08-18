@@ -46,6 +46,17 @@ requirements. Record that validated analysis in the manifest and link the canoni
 [least-code doctrine](../woostack-bootstrap/references/patterns.md#10-least-code--comments) rather
 than duplicating it.
 
+During specification reconciliation, Harden validates the Ideate-owned conditional `## Data models`
+section against bounded repository evidence (existing schemas, migrations, route definitions, and data-layer
+conventions). If bounded evidence indicates table changes (entities/tables, fields/types, constraints,
+relationships, indexes, or migration/backfill) or API changes (method/path, authorization,
+request/response/error shapes, or compatibility), Harden verifies that the single `## Data models` section
+is present and complete across all applicable categories. If the section is missing when table or API changes
+apply, omits applicable details, conflicts with repository conventions, or is present when neither applies,
+Harden treats that condition as a material discrepancy. Present the discrepancy and evidence to the user,
+ask for their decision, and wait for explicit validation. Harden never synthesizes or silently modifies
+the `## Data models` section or any specification content from repository evidence.
+
 For the first material inconsistency:
 
 1. State the exact manifest field or stable task key and the bounded repository evidence,
@@ -69,8 +80,9 @@ plan. Repository evidence can expose a question; it cannot answer one.
 ## Completion and single handoff
 
 Continue until the bounded inspection finds no remaining material inconsistency, every recorded
-correction agrees with explicit user validation, and the unresolved-question set is empty. Then
-verify the complete manifest once more:
+correction agrees with explicit user validation, the conditional `## Data models` section is validated
+(present with all applicable details when table or API changes apply, or omitted when neither applies),
+and the unresolved-question set is empty. Then verify the complete manifest once more:
 
 - for a project specification, return the baseline project identity/revision, local specification,
   `canonicalProjectSpecFingerprint`, deterministic `project-spec.md` render fingerprint, and

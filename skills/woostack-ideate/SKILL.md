@@ -39,6 +39,17 @@ necessary. Carry this removal-first analysis into the complete specification, us
 [least-code doctrine](../woostack-bootstrap/references/patterns.md#10-least-code--comments) without
 dropping its safety requirements.
 
+Ideate owns the conditional collection of the specification's `## Data models` section. When the
+feature or fix modifies or introduces database or storage tables, the section is required and must
+capture all applicable entities/tables, fields/types, constraints, relationships, indexes, and
+migration/backfill details. When the change modifies or introduces public or internal APIs, the
+section is required and must capture all applicable method/path, authorization, request/response/error
+shapes, and compatibility details. If both table and API changes apply, capture both in that single
+`## Data models` section. When neither table nor API changes apply, omit the `## Data models` section
+entirely. A table change or an API change may not omit the section. Like all other specification content,
+every data model and API detail must be explicitly user-verified; never infer, synthesize, or default
+schemas, migrations, or endpoints from repository inspection.
+
 ## Dialogue and local drafting
 
 Brainstorm exhaustively within the requested feature and resolve upstream decisions first. Ask every
@@ -70,7 +81,9 @@ When exhaustive brainstorming is complete and the latest specification has no un
 decision, hand back to the owning wrapper:
 
 - the exact baseline project identity and revision;
-- the permission-restricted manifest containing the local specification;
+- the permission-restricted manifest containing the local specification (including the user-verified
+  conditional `## Data models` section when table or API changes apply, or omitting it when neither
+  applies);
 - its `canonicalProjectSpecFingerprint` and gate-render fingerprint;
 - the empty unresolved-question set; and
 - the exact run/process and manifest identity.
