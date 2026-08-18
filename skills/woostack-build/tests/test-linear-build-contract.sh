@@ -817,10 +817,51 @@ require(
 require("ideate", "makes no provider call")
 forbid("ideate", r"synchronization cycle")
 forbid("ideate", r"read-patch-read")
+
+for needle in (
+    "Ideate owns the conditional collection of the specification's `## Data models` section",
+    "entities/tables",
+    "fields/types",
+    "constraints",
+    "relationships",
+    "indexes",
+    "migration/backfill",
+    "method/path",
+    "authorization",
+    "request/response/error",
+    "compatibility",
+    "single `## Data models` section",
+    "When neither table nor API changes apply, omit the `## Data models` section entirely",
+    "A table change or an API change may not omit the section",
+    "every data model and API detail must be explicitly user-verified",
+    "never infer, synthesize, or default",
+):
+    require("ideate", needle)
 require("harden", "performs zero provider reads and writes")
 require("harden", "atomically replace the affected manifest draft content")
+
+for needle in (
+    "validates the Ideate-owned conditional `## Data models` section against bounded repository evidence",
+    "entities/tables",
+    "fields/types",
+    "constraints",
+    "relationships",
+    "indexes",
+    "migration/backfill",
+    "method/path",
+    "authorization",
+    "request/response/error",
+    "compatibility",
+    "material discrepancy",
+    "Harden never synthesizes",
+    "Never silently change a specification or plan from repository evidence",
+):
+    require("harden", needle)
 require("plan", "Delegated planning performs no provider read or mutation")
 require("plan", "strict sequential chain")
+forbid("plan", r"duplicate.*data model")
+forbid("plan", r"synthesize.*data model")
+forbid("artifact", r"synthesize.*data model")
 
 if failures:
     print("thin canonical Linear build contract violations:", file=sys.stderr)
