@@ -17,7 +17,7 @@
     },
     {
       "id": "target-repository-boundary-precedes-provider-admission",
-      "prompt": "After Debug proves the root cause, classify three independent target-repository decisions without calling providers or mutating artifacts or the repository: a foreign target repository, a matching but unwritable active checkout, and a matching writable active checkout. Return exactly one JSON object with only these three top-level keys: foreignTarget, matchingUnwritable, and matchingWritable. For foreignTarget, output status \"blocked\", reason \"target-repository-mismatch\", safeOutcomes exactly [\"retarget-reinvoke-in-exact-writable-owning-repository\",\"diagnosis-only\"] in that order, providerCalls 0, projectCreated false, sourceLinkWritten false, repositoryMutationCount 0, and suppliedArtifactBypass false. For matchingUnwritable, output status \"blocked\", reason \"writable-target-checkout-required\", safeOutcomes exactly [\"retarget-reinvoke-in-exact-writable-owning-repository\",\"diagnosis-only\"] in that order, providerCalls 0, projectCreated false, sourceLinkWritten false, repositoryMutationCount 0, and suppliedArtifactBypass false. For matchingWritable, output status \"continue\", nextPhase \"canonical-project-admission\", and classificationEffects with providerCalls 0, projectCreated false, sourceLinkWritten false, and repositoryMutationCount 0. Supplied --project and --issue values cannot bypass classification; return no other top-level keys.",
+      "prompt": "After Debug proves the root cause, classify three independent target-repository decisions without calling providers or mutating artifacts or the repository: a foreign target repository, a matching but unwritable active checkout, and a matching writable active checkout. Return exactly one JSON object with only these three top-level keys: foreignTarget, matchingUnwritable, and matchingWritable. For foreignTarget, output status \"blocked\", reason \"target-repository-mismatch\", safeOutcomes exactly [\"retarget-reinvoke-in-exact-writable-owning-repository\",\"diagnosis-only\"] in that order, providerCalls 0, projectCreated false, sourceLinkWritten false, repositoryMutationCount 0, and suppliedArtifactBypass false. For matchingUnwritable, output status \"blocked\", reason \"writable-target-checkout-required\", safeOutcomes [\"retarget-reinvoke-in-exact-writable-owning-repository\",\"diagnosis-only\"], providerCalls 0, projectCreated false, sourceLinkWritten false, repositoryMutationCount 0, and suppliedArtifactBypass false. For matchingWritable, output status \"continue\", nextPhase \"canonical-project-admission\", and classificationEffects with providerCalls 0, projectCreated false, sourceLinkWritten false, and repositoryMutationCount 0.",
       "capabilities": ["read-workspace"],
       "expected": "Foreign targets block with target-repository-mismatch; matching unwritable targets block with writable-target-checkout-required; both expose exactly the ordered safe outcomes retarget-reinvoke-in-exact-writable-owning-repository and diagnosis-only with no provider, project, source, or repository effects and no supplied-artifact bypass. A matching writable target continues to canonical-project-admission with zero effects scoped to classification.",
       "assertions": [
@@ -80,149 +80,10 @@
       ]
     },
     {
-      "id": "project-spec-approval-is-active-and-recorded",
-      "prompt": "Fix gate 1 displayed the exact owner-only project-spec.md path, byte length, SHA-256, canonical fingerprint, and run/process/project identity; the responsible user inspected that file and approved its exact bytes in the active process. The immediate file and baseline drift checks matched, one bounded save completed, exact project content read back, then projectSpecApprovalRecord and its referenced project read back exactly. Return JSON with approvalBeforeSave, exactContentReadBackBeforeReceipt, projectSpecApprovalRecordVerified, and repositoryMutationCountBeforeBothApprovals.",
-      "capabilities": ["read-workspace"],
-      "expected": "Gate 1 is verified only in approval, save, exact content read-back, receipt, and receipt read-back order; repository mutation remains forbidden until both gates clear.",
-      "assertions": [
-        {"id":"project-approval-before-save","kind":"final-json-path-equals","pointer":"/approvalBeforeSave","expected":true,"critical":true},
-        {"id":"project-readback-before-receipt","kind":"final-json-path-equals","pointer":"/exactContentReadBackBeforeReceipt","expected":true,"critical":true},
-        {"id":"project-record","kind":"final-json-path-equals","pointer":"/projectSpecApprovalRecordVerified","expected":true,"critical":true},
-        {"id":"preapproval-clean","kind":"final-json-path-equals","pointer":"/repositoryMutationCountBeforeBothApprovals","expected":0,"critical":true}
-      ]
-    },
-    {
-      "id": "execution-plan-approval-binds-issues-and-dependencies",
-      "prompt": "Fix gate 2 streamed the complete verified execution-plan.md bytes and full identity immediately before a body-free Accept/Abandon Ask; the responsible user accepted those exact bytes in the active process. The immediate file and graph drift checks matched, one bounded graph save completed, stable task keys mapped to canonical issue references, the exact graph read back, then executionPlanApprovalRecord and both referenced receipts read back exactly. Run artifacts under .woostack/tmp/runs/<run-id>/ are retained. Return JSON with approvalBeforeSave, exactGraphReadBackBeforeReceipt, stableKeyMappingVerified, stableTaskMappings, canonicalDependencies, executionPlanApprovalRecordVerified, artifactsRetained, handoff, responses, executeSafetyReadsUnchanged.",
-      "capabilities": ["read-workspace"],
-      "expected": "Gate 2 is verified only after complete streamed artifact identity, body-free Accept/Abandon approval, approval-before-save, exact stable-key/canonical-reference mapping, canonical dependency endpoints, exact graph read-back before receipt, and final receipt read-back. All run artifacts are retained. Fix then presents the complete handoff and asks exactly Stop here, Execute, or Abandon.",
-      "assertions": [
-        {"id":"plan-approval-before-save","kind":"final-json-path-equals","pointer":"/approvalBeforeSave","expected":true,"critical":true},
-        {"id":"plan-readback-before-receipt","kind":"final-json-path-equals","pointer":"/exactGraphReadBackBeforeReceipt","expected":true,"critical":true},
-        {"id":"stable-key-mapping","kind":"final-json-path-equals","pointer":"/stableKeyMappingVerified","expected":true,"critical":true},
-        {"id":"exact-stable-key-mappings","kind":"final-json-path-equals","pointer":"/stableTaskMappings","expected":{"task-lock":"WOO-242","task-stale":"WOO-243"},"critical":true},
-        {"id":"canonical-dependency-endpoints","kind":"final-json-path-equals","pointer":"/canonicalDependencies","expected":[{"predecessorIssueReference":"WOO-242","successorIssueReference":"WOO-243","kind":"native-issue"}],"critical":true},
-        {"id":"execution-record","kind":"final-json-path-equals","pointer":"/executionPlanApprovalRecordVerified","expected":true,"critical":true},
-        {"id":"fix-artifacts-retained","kind":"final-json-path-equals","pointer":"/artifactsRetained","expected":true,"critical":true},
-        {"id":"handoff-options","kind":"final-json-path-equals","pointer":"/handoff/options","expected":["Stop here","Execute","Abandon"],"critical":true},
-        {"id":"handoff-body-free","kind":"final-json-path-equals","pointer":"/handoff/bodyFree","expected":true,"critical":true},
-        {"id":"handoff-command","kind":"final-json-path-equals","pointer":"/handoff/command","expected":"/woostack-execute --run <exact-run-id>","critical":true},
-        {"id":"stop-here-no-effects","kind":"final-json-path-equals","pointer":"/responses/Stop here/effects","expected":[],"critical":true},
-        {"id":"execute-dispatch-once","kind":"final-json-path-equals","pointer":"/responses/Execute/dispatchCount","expected":1,"critical":true},
-        {"id":"abandon-retain-status","kind":"final-json-path-equals","pointer":"/responses/Abandon","expected":{"status":"abandoned","artifactsRetained":true,"dispatchCount":0},"critical":true},
-        {"id":"unknown-custom-fail-closed","kind":"final-json-path-equals","pointer":"/responses/unknownOrCustom/askAgain","expected":true,"critical":true},
-        {"id":"fix-execute-reads-unchanged","kind":"final-json-path-equals","pointer":"/executeSafetyReadsUnchanged","expected":true,"critical":true}
-      ]
-    },
-    {
-      "id": "renders-project-spec-file-ask",
-      "prompt": "At Fix gate 1, runId is `fix-run-18`, processNonce is `proc-18`, projectId is `project-fix-241`, and the verified owner-only project-spec.md bytes are `# Fix specification\\n\\nPrevent stampedes.\\n` at `/private/tmp/woostack-fix-run-18/project-spec.md` with byteLength 48, SHA-256 `sha256:1111111111111111111111111111111111111111111111111111111111111111`, fingerprintVersion `gate-file-v1`, and canonicalProjectSpecFingerprint `sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`. Render the complete normal response stream immediately followed by the body-free approval Ask without contacting a provider. Return exactly one JSON object with keys artifactStream and approvalAsk.",
-      "capabilities": ["read-workspace"],
-      "expected": "Fix streams the complete exact project-spec Markdown bytes and full identity immediately before a body-free Ask whose explicit options are exactly Accept and Abandon; custom responses remain available for revision or clarification.",
-      "assertions": [
-        {"id":"complete-project-stream","kind":"final-json-path-equals","pointer":"/artifactStream","expected":{"kind":"complete","utf8":"# Fix specification\\n\\nPrevent stampedes.\\n","identity":{"path":"/private/tmp/woostack-fix-run-18/project-spec.md","byteLength":48,"sha256":"sha256:1111111111111111111111111111111111111111111111111111111111111111","fingerprintVersion":"gate-file-v1","runId":"fix-run-18","processNonce":"proc-18","gate":1,"projectId":"project-fix-241","canonicalProjectSpecFingerprint":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}},"critical":true},
-        {"id":"project-ask-body-free","kind":"final-json-path-equals","pointer":"/approvalAsk","expected":{"options":["Accept","Abandon"],"customResponseAvailable":true,"bodyFree":true},"critical":true}
-      ]
-    },
-    {
-      "id": "renders-execution-plan-file-ask",
-      "prompt": "At Fix gate 2, runId is `fix-run-23`, processNonce is `proc-23`, projectId is `project-fix-241`, canonicalProjectSpecFingerprint is `sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`, and the verified owner-only execution-plan.md bytes are `# Execution plan\\n\\n## 1. Lock\\nStable task key: \\`task-lock\\`\\n\\nBounded correction.\\n\\n## Dependencies\\n- None.\\n` at `/private/tmp/woostack-fix-run-23/execution-plan.md` with byteLength 2160, SHA-256 `sha256:2222222222222222222222222222222222222222222222222222222222222222`, fingerprintVersion `gate-file-v1`. The complete mapping is task-lock→WOO-242 and task-stale→WOO-243 with dependency task-lock→task-stale kind native-issue. Render the complete normal response stream immediately followed by the body-free approval Ask without contacting a provider. Return exactly one JSON object with keys artifactStream and approvalAsk.",
-      "capabilities": ["read-workspace"],
-      "expected": "Fix streams every complete execution-plan byte and full identity immediately before a body-free Ask whose explicit options are exactly Accept and Abandon; descriptions and dependency tuples are not duplicated in the Ask.",
-      "assertions": [
-        {"id":"complete-execution-plan-stream","kind":"final-json-path-equals","pointer":"/artifactStream","expected":{"kind":"complete","identity":{"path":"/private/tmp/woostack-fix-run-23/execution-plan.md","byteLength":2160,"sha256":"sha256:2222222222222222222222222222222222222222222222222222222222222222","fingerprintVersion":"gate-file-v1","runId":"fix-run-23","processNonce":"proc-23","gate":2,"projectId":"project-fix-241","canonicalProjectSpecFingerprint":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"approvedStableTaskMappings":[{"stableTaskKey":"task-lock","canonicalIssueReference":"WOO-242"},{"stableTaskKey":"task-stale","canonicalIssueReference":"WOO-243"}],"approvedDependencies":[{"predecessorTaskKey":"task-lock","successorTaskKey":"task-stale","kind":"native-issue"}]},"critical":true},
-        {"id":"execution-plan-ask-body-free","kind":"final-json-path-equals","pointer":"/approvalAsk","expected":{"options":["Accept","Abandon"],"customResponseAvailable":true,"bodyFree":true},"critical":true}
-      ]
-    },
-    {
-      "id": "blocks-unreceipted-approval-replay",
-      "prompt": "A Fix gate 2 Ask was approved, but the process ended before exact graph read-back and executionPlanApprovalRecord verification. The restarted process has a copied manifest and response. Return JSON with approvalReusable, nextStep, providerMutationCount, and executeAllowed without contacting a provider.",
-      "capabilities": ["read-workspace"],
-      "expected": "The unreceipted approval is consumed; recovery uses the same identities, then requires a fresh baseline, freshly rendered gate file, and concise Ask before further mutation.",
-      "assertions": [
-        {"id":"fix-unreceipted-not-reusable","kind":"final-json-path-equals","pointer":"/approvalReusable","expected":false,"critical":true},
-        {"id":"fix-recovery-fresh-ask","kind":"final-json-path-equals","pointer":"/nextStep","expected":"recover-same-identities-then-fresh-baseline-render-and-concise-ask","critical":true},
-        {"id":"fix-recovery-no-mutation","kind":"final-json-path-equals","pointer":"/providerMutationCount","expected":0,"critical":true},
-        {"id":"fix-recovery-no-execute","kind":"final-json-path-equals","pointer":"/executeAllowed","expected":false,"critical":true}
-      ]
-    },
-    {
-      "id": "compatible-parent-advancement-preserves-approvals",
-      "prompt": "A Fix has both exact content approval records. Fresh Git, Graphite, and GitHub reads show the same canonical integration parent branch at a newly observed descendant tip with the task contract unchanged. The previously admitted tip is \"sha256:parent-tip-old\" and the new tip is \"sha256:parent-tip-new\". Fresh canonical delivery evidence and reviews are verified for that exact new root tip, with failed checks observed and zero check-caused blockers; this integration-root case has no predecessor delivery checkpoint or predecessor PR. Retained work preserves start/head and revalidates ancestry, diff, and PR base. Return exactly one JSON object with keys compatibleAdvancement, unverifiedRootEvidence, branchIdentityChange, rewrite, conflict, duplicateAncestry, incompleteEvidence, materialSpecDrift, and materialPlanDrift. Compatible advancement must preserve both approval records, re-admit the new tip, and prove delivery facts without check-caused blockers. All other cases must block without invalidating records, except material drift which follows the invalidation rules.",
-      "capabilities": ["read-workspace"],
-      "expected": "Compatible integration-root descendant advancement requires exact-head delivery evidence plus current-head reviews, while check outcomes are observable-only with zero check-caused blockers, and no predecessor checkpoint or predecessor PR. Approval records remain valid, fresh work uses the latest admitted parent tip, and retained work preserves start/head while revalidating ancestry, diff, and PR base. Unverified evidence or incompatible repository movement blocks without approval invalidation; material specification or plan drift follows the existing invalidation boundary.",
-      "assertions": [
-        {"id":"compatible-records-preserved","kind":"final-json-path-equals","pointer":"/compatibleAdvancement/approvalRecordsUnchanged","expected":true,"critical":true},
-        {"id":"compatible-action","kind":"final-json-path-equals","pointer":"/compatibleAdvancement/action","expected":"re-admit-current-parent-tip","critical":true},
-        {"id":"compatible-no-invalidation","kind":"final-json-path-equals","pointer":"/compatibleAdvancement/invalidatesApprovalRecords","expected":[],"critical":true},
-        {"id":"fresh-work-latest-tip","kind":"final-json-path-equals","pointer":"/compatibleAdvancement/freshWorkStart","expected":"sha256:parent-tip-new","critical":true},
-        {"id":"root-delivery-exact-head","kind":"final-json-path-equals","pointer":"/compatibleAdvancement/deliveryEvidence/exactHeadMatches","expected":true,"critical":true},
-        {"id":"root-current-head-reviews","kind":"final-json-path-equals","pointer":"/compatibleAdvancement/deliveryEvidence/currentHeadReviewsVerified","expected":true,"critical":true},
-        {"id":"root-observed-checks","kind":"final-json-path-equals","pointer":"/compatibleAdvancement/deliveryEvidence/observedChecks","expected":["failed"],"critical":true},
-        {"id":"root-check-caused-blockers","kind":"final-json-path-equals","pointer":"/compatibleAdvancement/deliveryEvidence/checkCausedBlockers","expected":[],"critical":true},
-        {"id":"root-no-predecessor-checkpoint","kind":"final-json-path-equals","pointer":"/compatibleAdvancement/predecessorDeliveryCheckpointRequired","expected":false,"critical":true},
-        {"id":"root-no-predecessor-pr","kind":"final-json-path-equals","pointer":"/compatibleAdvancement/predecessorPrHeadRequired","expected":false,"critical":true},
-        {"id":"unverified-root-blocked","kind":"final-json-path-equals","pointer":"/unverifiedRootEvidence/status","expected":"blocked","critical":true},
-        {"id":"unverified-root-no-invalidation","kind":"final-json-path-equals","pointer":"/unverifiedRootEvidence/invalidatesApprovalRecords","expected":[],"critical":true},
-        {"id":"retained-start-head-preserved","kind":"final-json-path-equals","pointer":"/compatibleAdvancement/retainedWork/preserveStartAndHead","expected":true,"critical":true},
-        {"id":"retained-revalidates","kind":"final-json-path-equals","pointer":"/compatibleAdvancement/retainedWork/revalidate","expected":["ancestry","diff","prBase"],"critical":true},
-        {"id":"no-silent-rebase","kind":"final-json-path-equals","pointer":"/compatibleAdvancement/retainedWork/silentRebase","expected":false,"critical":true},
-        {"id":"no-silent-reset","kind":"final-json-path-equals","pointer":"/compatibleAdvancement/retainedWork/silentReset","expected":false,"critical":true},
-        {"id":"no-silent-recreate","kind":"final-json-path-equals","pointer":"/compatibleAdvancement/retainedWork/silentRecreate","expected":false,"critical":true},
-        {"id":"branch-identity-blocked","kind":"final-json-path-equals","pointer":"/branchIdentityChange/status","expected":"blocked","critical":true},
-        {"id":"branch-identity-no-invalidation","kind":"final-json-path-equals","pointer":"/branchIdentityChange/invalidatesApprovalRecords","expected":[],"critical":true},
-        {"id":"rewrite-blocked","kind":"final-json-path-equals","pointer":"/rewrite/status","expected":"blocked","critical":true},
-        {"id":"rewrite-no-invalidation","kind":"final-json-path-equals","pointer":"/rewrite/invalidatesApprovalRecords","expected":[],"critical":true},
-        {"id":"conflict-blocked","kind":"final-json-path-equals","pointer":"/conflict/status","expected":"blocked","critical":true},
-        {"id":"conflict-no-invalidation","kind":"final-json-path-equals","pointer":"/conflict/invalidatesApprovalRecords","expected":[],"critical":true},
-        {"id":"duplicate-ancestry-blocked","kind":"final-json-path-equals","pointer":"/duplicateAncestry/status","expected":"blocked","critical":true},
-        {"id":"duplicate-ancestry-no-invalidation","kind":"final-json-path-equals","pointer":"/duplicateAncestry/invalidatesApprovalRecords","expected":[],"critical":true},
-        {"id":"incomplete-evidence-blocked","kind":"final-json-path-equals","pointer":"/incompleteEvidence/status","expected":"blocked","critical":true},
-        {"id":"incomplete-evidence-no-invalidation","kind":"final-json-path-equals","pointer":"/incompleteEvidence/invalidatesApprovalRecords","expected":[],"critical":true},
-        {"id":"spec-drift-blocked","kind":"final-json-path-equals","pointer":"/materialSpecDrift/status","expected":"blocked","critical":true},
-        {"id":"spec-drift-invalidates-both","kind":"final-json-path-equals","pointer":"/materialSpecDrift/invalidates","expected":["projectSpecApprovalRecord","executionPlanApprovalRecord"],"critical":true},
-        {"id":"spec-drift-return-boundary","kind":"final-json-path-equals","pointer":"/materialSpecDrift/returnsTo","expected":"project-spec-hardening","critical":true},
-        {"id":"spec-drift-no-execute","kind":"final-json-path-equals","pointer":"/materialSpecDrift/executeAllowed","expected":false,"critical":true},
-        {"id":"plan-drift-blocked","kind":"final-json-path-equals","pointer":"/materialPlanDrift/status","expected":"blocked","critical":true},
-        {"id":"plan-drift-invalidates-execution","kind":"final-json-path-equals","pointer":"/materialPlanDrift/invalidates","expected":["executionPlanApprovalRecord"],"critical":true},
-        {"id":"plan-drift-return-boundary","kind":"final-json-path-equals","pointer":"/materialPlanDrift/returnsTo","expected":"execution-plan-hardening","critical":true},
-        {"id":"plan-drift-no-execute","kind":"final-json-path-equals","pointer":"/materialPlanDrift/executeAllowed","expected":false,"critical":true}
-      ]
-    },
-    {
-      "id": "dependency-parent-advancement-requires-delivery-checkpoint",
-      "prompt": "A Fix dependency child has both exact content approval records. Fresh Git, Graphite, and GitHub reads show the same approved predecessor branch at a newly observed descendant tip. The previously admitted tip is \"sha256:predecessor-tip-old\" and the new tip is \"sha256:predecessor-tip-new\". Complete fresh delivery evidence proves that the new tip equals both the predecessor commit and canonical PR head, current-head reviews are verified, and failed checks are observed with zero check-caused blockers. Return exactly one JSON object with keys compatibleAdvancement and unverifiedDescendant. The compatible case must preserve both records, re-admit the new tip, and prove all delivery facts with zero check-caused blockers. The unverified case must block without invalidating either content approval record.",
-      "capabilities": ["read-workspace"],
-      "expected": "A dependency child re-admits a compatible predecessor tip only when the fresh predecessor delivery checkpoint commit and canonical PR head both equal that tip, reviews cover that exact head, and check outcomes are observable-only with zero check blockers. Missing or mismatched delivery evidence blocks without invalidating content approval.",
-      "assertions": [
-        {"id":"dependency-records-preserved","kind":"final-json-path-equals","pointer":"/compatibleAdvancement/approvalRecordsUnchanged","expected":true,"critical":true},
-        {"id":"dependency-action","kind":"final-json-path-equals","pointer":"/compatibleAdvancement/action","expected":"re-admit-current-parent-tip","critical":true},
-        {"id":"dependency-fresh-work-tip","kind":"final-json-path-equals","pointer":"/compatibleAdvancement/freshWorkStart","expected":"sha256:predecessor-tip-new","critical":true},
-        {"id":"dependency-checkpoint-head-matches","kind":"final-json-path-equals","pointer":"/compatibleAdvancement/deliveryEvidence/checkpointHeadMatches","expected":true,"critical":true},
-        {"id":"dependency-pr-head-matches","kind":"final-json-path-equals","pointer":"/compatibleAdvancement/deliveryEvidence/canonicalPrHeadMatches","expected":true,"critical":true},
-        {"id":"dependency-current-head-reviews","kind":"final-json-path-equals","pointer":"/compatibleAdvancement/deliveryEvidence/currentHeadReviewsVerified","expected":true,"critical":true},
-        {"id":"dependency-observed-checks","kind":"final-json-path-equals","pointer":"/compatibleAdvancement/deliveryEvidence/observedChecks","expected":["failed"],"critical":true},
-        {"id":"dependency-check-caused-blockers","kind":"final-json-path-equals","pointer":"/compatibleAdvancement/deliveryEvidence/checkCausedBlockers","expected":[],"critical":true},
-        {"id":"dependency-unverified-blocked","kind":"final-json-path-equals","pointer":"/unverifiedDescendant/status","expected":"blocked","critical":true},
-        {"id":"dependency-unverified-no-invalidation","kind":"final-json-path-equals","pointer":"/unverifiedDescendant/invalidatesApprovalRecords","expected":[],"critical":true}
-      ]
-    },
-    {
-      "id": "material-change-invalidates-matching-receipts",
-      "prompt": "Return JSON identifying which shared approval records are invalidated by: a material project-specification change, a material direct-issue/dependency change, and an unrelated metadata-only change. Use keys materialSpecChange, materialPlanChange, and metadataOnlyChange, each with invalidates.",
-      "capabilities": ["read-workspace"],
-      "expected": "Specification changes invalidate both records, plan changes invalidate only executionPlanApprovalRecord, and metadata changes invalidate neither.",
-      "assertions": [
-        {"id":"spec-invalidation","kind":"final-json-path-equals","pointer":"/materialSpecChange/invalidates","expected":["projectSpecApprovalRecord","executionPlanApprovalRecord"],"critical":true},
-        {"id":"plan-invalidation","kind":"final-json-path-equals","pointer":"/materialPlanChange/invalidates","expected":["executionPlanApprovalRecord"],"critical":true},
-        {"id":"metadata-preserved","kind":"final-json-path-equals","pointer":"/metadataOnlyChange/invalidates","expected":[],"critical":true}
-      ]
-    },
-    {
       "id": "provider-or-readback-failure-is-nonblocking",
-      "prompt": "Classify a Fix invocation whose optional Linear mirror capability, pagination, mutation, receipt, or independent read-back is unavailable when `linear.saveArtifacts: true`, after both local receipts are verified. Return exactly one JSON object with keys status, mirrorStatus, localAuthorityValid, executeHandoffAllowed, and repositoryMutationCount.",
+      "prompt": "Classify a Fix invocation whose optional Linear mirror capability, pagination, mutation, receipt, or independent read-back is unavailable when `linear.saveArtifacts: true`, after local artifacts are written. Return exactly one JSON object with keys status, mirrorStatus, localAuthorityValid, executeHandoffAllowed, and repositoryMutationCount.",
       "capabilities": ["read-workspace"],
-      "expected": "The mirror failure is recorded as failed evidence but does not invalidate verified local receipts or block exact-run Execute handoff; repository mutation remains zero.",
+      "expected": "The mirror failure is recorded as failed evidence but does not block exact-run Execute handoff; repository mutation remains zero.",
       "assertions": [
         {"id": "local-ready", "kind": "final-json-path-equals", "pointer": "/status", "expected": "ready", "critical": true},
         {"id": "mirror-failed", "kind": "final-json-path-equals", "pointer": "/mirrorStatus", "expected": "failed", "critical": true},
@@ -233,7 +94,7 @@
     },
     {
       "id": "validates-fix-source-before-project-link",
-      "prompt": "Classify five independent exact Fix source-issue preflight scenarios without contacting a provider or mutating a repository. `admittedPrelink` has canonical reference `WOO-241`, requested parent field explicitly null, complete issue/relation pagination, exact workspace/team/project/repository scope, no project link, one supported project-link write, and an exact post-write read-back. `alreadyLinkedElsewhere` has the same complete identity, parent, pagination, endpoint, workspace/team, and repository reads but direct membership in a different project. `unknownParent` has the selected scope but did not request the parent field. `incompletePagination` has an explicitly null parent but incomplete relation pagination. `failedLinkReadBack` passes the full preflight, performs one supported project-link write, then cannot independently read that exact link back. Only the selected exact Fix source may use the pre-link exception, an existing foreign project link blocks without mutation, and a failed read-back must not retry or advance. Return exactly one JSON object with status, decisions, sourceLinkMutationCount, providerMutationCount, and repositoryMutationCount. Each decision must contain exactly id, advance, reasonCode, sourceLinkMutationCount, and repositoryMutationCount in the stated order.",
+      "prompt": "Classify five independent exact Fix source-issue preflight scenarios without contacting a provider or mutating a repository. `admittedPrelink` has canonical reference `WOO-241`, requested parent field explicitly null, complete issue/relation pagination, exact workspace/team/project/repository scope, no project link, one supported project-link write, and an exact post-write read-back. `alreadyLinkedElsewhere` has the same complete identity, parent, pagination, endpoint, workspace/team, and repository reads but direct membership in a different project. `unknownParent` has the selected scope but did not request the parent field. `incompletePagination` has an explicitly null parent but incomplete relation pagination. `failedLinkReadBack` passes preflight, attempts one link write, but the post-write read-back fails to prove project membership. Return exactly one JSON object with keys status, decisions, sourceLinkMutationCount, providerMutationCount, and repositoryMutationCount.",
       "capabilities": ["read-workspace"],
       "expected": "The admitted exact source advances after one verified link write. A source already linked to a different project, unknown parent, and incomplete pagination block before mutation. Failed link read-back blocks after one write without retry. Every scenario has zero repository mutation.",
       "assertions": [
@@ -242,97 +103,6 @@
         {"id":"fix-source-two-link-writes","kind":"final-json-path-equals","pointer":"/sourceLinkMutationCount","expected":2,"critical":true},
         {"id":"fix-source-two-provider-mutations","kind":"final-json-path-equals","pointer":"/providerMutationCount","expected":2,"critical":true},
         {"id":"fix-source-zero-repository-mutation","kind":"final-json-path-equals","pointer":"/repositoryMutationCount","expected":0,"critical":true}
-      ]
-    },
-    {
-      "id": "accepts-provider-presentation-equivalence",
-      "prompt": "Evaluate fixtures/provider-presentation-canonicalization.json for a project-backed Fix approval whose native Linear read-back changes only the admitted provider presentation, including uniform unordered-marker rewrites, zero versus one leading ASCII space before top-level ordered markers using both `.` and `)`, and presence versus absence of exactly one terminal LF. Compare canonical fingerprints under providerPresentationCanonicalization while retaining native bytes as evidence; two or more leading spaces, tabs, nested/container markers, fenced/indented code, malformed markers, changed numbers/delimiters/order/text, unordered-marker transition patterns, and two or more terminal LFs remain sensitive, including on a final ATX heading where EOF blank suffixes are not heading-spacing input. Return exactly one JSON object with keys status, approvalAskCount, boundedSaveCount, readBackCount, receiptCount, and secondAskCount.",
-      "fixtures": [
-        "provider-presentation-canonicalization.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Presentation-only normalization keeps the approved Fix valid: one Ask, one bounded save, one read-back, one receipt, and no second Ask.",
-      "assertions": [
-        {"id":"fix-presentation-status","kind":"final-json-path-equals","pointer":"/status","expected":"ready","critical":true},
-        {"id":"fix-presentation-one-ask","kind":"final-json-path-equals","pointer":"/approvalAskCount","expected":1,"critical":true},
-        {"id":"fix-presentation-one-save","kind":"final-json-path-equals","pointer":"/boundedSaveCount","expected":1,"critical":true},
-        {"id":"fix-presentation-one-readback","kind":"final-json-path-equals","pointer":"/readBackCount","expected":1,"critical":true},
-        {"id":"fix-presentation-one-receipt","kind":"final-json-path-equals","pointer":"/receiptCount","expected":1,"critical":true},
-        {"id":"fix-presentation-no-second-ask","kind":"final-json-path-equals","pointer":"/secondAskCount","expected":0,"critical":true}
-      ]
-    },
-    {
-      "id": "rejects-unsupported-ordered-marker-boundaries",
-      "prompt": "Evaluate every negative entry in orderedMarkers from fixtures/provider-presentation-canonicalization.json for a project-backed Fix approval. Compare each form with zeroLeadingSpace under providerPresentationCanonicalization, except compare tenDigitZeroLeadingSpace with tenDigitOneLeadingSpace to prove the ten-digit boundary remains byte-sensitive and compare continuationZeroLeadingSpace with continuationOneLeadingSpace to prove a blank line followed by a three-space continuation remains byte-sensitive. Two or more leading spaces, a leading tab, container nesting, fenced code, indented code, missing marker whitespace, repeated delimiters, non-ASCII digits, ten-digit prefixes, changed numbers, delimiters, item text, and item order are unsupported differences; each canonical mismatch consumes the approval, creates no receipt, and requires a fresh complete Ask. Return exactly one JSON object with keys status and results; each result must contain exactly id, canonicalMatch, receiptCount, and freshAsk.",
-      "fixtures": [
-        "provider-presentation-canonicalization.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Every unsupported ordered-marker boundary, including the zero/one-leading-space blank-line continuation pair, remains a canonical mismatch with zero receipt and a fresh Ask.",
-      "assertions": [
-        {"id":"fix-ordered-boundary-status","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
-        {"id":"fix-ordered-boundary-results","kind":"final-json-path-equals","pointer":"/results","expected":[{"id":"two-leading-spaces","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"leading-tab","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"nested-container","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"fenced-code","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"indented-code","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"missing-whitespace","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"repeated-delimiter","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"unicode-digits","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"ten-digit-marker","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"changed-number","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"changed-delimiter","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"changed-text","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"changed-order","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"blank-line-continuation","canonicalMatch":false,"receiptCount":0,"freshAsk":true}],"critical":true}
-      ]
-    },
-    {
-      "id": "requires-fresh-ask-for-semantic-provider-change",
-      "prompt": "Evaluate every entry in semanticMutations from fixtures/provider-presentation-canonicalization.json for a project-backed Fix approval. Compare the project, increment, and issue descriptions against their approved canonical identities, and compare renderedGateFile with approvedGateFile by exact path, byte length, SHA-256, fingerprint version, and UTF-8 bytes. Each entry changes semantic Markdown rather than admitted presentation. Retain native bytes as evidence; each comparison consumes the original approval, creates no receipt, and requires a freshly rendered file identity and concise Ask. Return exactly one JSON object with keys status and results; each result must contain exactly id, approvalIdentityMatch, receiptCount, and freshAsk.",
-      "fixtures": [
-        "provider-presentation-canonicalization.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "Semantic changes on project, increment, issue, and rendered-gate-file identities all mismatch approval with zero receipt and a fresh concise Ask.",
-      "assertions": [
-        {"id":"fix-semantic-status","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
-        {"id":"fix-semantic-results","kind":"final-json-path-equals","pointer":"/results","expected":[{"id":"project-description","approvalIdentityMatch":false,"receiptCount":0,"freshAsk":true},{"id":"increment-description","approvalIdentityMatch":false,"receiptCount":0,"freshAsk":true},{"id":"issue-description","approvalIdentityMatch":false,"receiptCount":0,"freshAsk":true},{"id":"rendered-gate-file","approvalIdentityMatch":false,"receiptCount":0,"freshAsk":true}],"critical":true}
-      ]
-    },
-    {
-      "id": "rejects-mixed-marker-transition-canonical-mismatch",
-      "prompt": "Evaluate markerTransitions in fixtures/provider-presentation-canonicalization.json for a project-backed Fix approval. First confirm the uniformDash and uniformStar forms compare canonically equal, then compare uniformDash with mixedDashStar. The mixed transition changes Markdown list boundaries, so consume the approval, create no receipt, and require a freshly rendered gate file and concise Ask. Return exactly one JSON object with keys status, canonicalMatch, receiptCount, and freshAsk.",
-      "fixtures": [
-        "provider-presentation-canonicalization.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "A mixed unordered-marker transition is a canonical mismatch with zero receipt and a fresh Ask.",
-      "assertions": [
-        {"id":"fix-marker-transition-status","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
-        {"id":"fix-marker-transition-mismatch","kind":"final-json-path-equals","pointer":"/canonicalMatch","expected":false,"critical":true},
-        {"id":"fix-marker-transition-no-receipt","kind":"final-json-path-equals","pointer":"/receiptCount","expected":0,"critical":true},
-        {"id":"fix-marker-transition-fresh-ask","kind":"final-json-path-equals","pointer":"/freshAsk","expected":true,"critical":true}
-      ]
-    },
-    {
-      "id": "rejects-terminal-lf-canonical-mismatch",
-      "prompt": "Evaluate fixtures/provider-presentation-canonicalization.json for project-backed Fix terminal-LF read-back mismatches. Compare one terminal LF versus two, two versus three, and the final ATX heading with two versus three terminal LFs. Native bytes are exact evidence; every canonical mismatch consumes approval, creates no receipt, and requires a freshly rendered gate file and concise Ask. Return exactly one JSON object with keys status and results; each result must contain exactly id, canonicalMatch, receiptCount, and freshAsk.",
-      "fixtures": [
-        "provider-presentation-canonicalization.json"
-      ],
-      "capabilities": [
-        "read-workspace"
-      ],
-      "expected": "All one-vs-two, two-vs-three, and final-heading two-vs-three terminal-LF comparisons are canonical mismatches with zero receipt and a fresh Ask.",
-      "assertions": [
-        {"id":"fix-terminal-lf-mismatch-status","kind":"final-json-path-equals","pointer":"/status","expected":"blocked","critical":true},
-        {"id":"fix-terminal-lf-mismatches","kind":"final-json-path-equals","pointer":"/results","expected":[{"id":"one-vs-two","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"two-vs-three","canonicalMatch":false,"receiptCount":0,"freshAsk":true},{"id":"final-heading-two-vs-three","canonicalMatch":false,"receiptCount":0,"freshAsk":true}],"critical":true}
-      ]
-    },
-    {
-      "id": "renders-same-process-revision-diff-with-fallbacks",
-      "prompt": "Classify four project-backed Fix approval re-presentation scenarios. `sameProcessMatch` retains the exact previously streamed bytes and identity in the active process, and the no-follow old/new reads match; `processRestart` has the same saved hashes but a different process; `baseMismatch` remains in process but the retained old bytes do not match the old identity; `explicitFull` is an active-process revision whose responsible user requests the complete artifact. Do not contact a provider. Return exactly one JSON object with keys decisions and approvalAsk.",
-      "capabilities": ["read-workspace"],
-      "expected": "Only sameProcessMatch streams one independently verified byte-complete unified diff with old and new full-file identities. Every unavailable or unproved base and an explicit full-artifact request streams the complete new artifact. Each presentation is followed by a body-free Accept/Abandon Ask.",
-      "assertions": [
-        {"id":"fix-revision-boundaries","kind":"final-json-path-equals","pointer":"/decisions","expected":[{"id":"sameProcessMatch","presentation":"diff","byteComplete":true,"oldAndNewFullIdentities":true},{"id":"processRestart","presentation":"complete"},{"id":"baseMismatch","presentation":"complete"},{"id":"explicitFull","presentation":"complete"}],"critical":true},
-        {"id":"fix-revision-ask","kind":"final-json-path-equals","pointer":"/approvalAsk","expected":{"options":["Accept","Abandon"],"customResponseAvailable":true,"bodyFree":true},"critical":true}
       ]
     }
   ]

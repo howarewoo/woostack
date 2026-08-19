@@ -20,8 +20,7 @@ Local run manifests in `.woostack/tmp/runs/<run-id>/` own current Build/Fix prod
 plans. Git and GitHub own code, branches, commits, pull requests, reviews, and merge truth. Init's
 discovery calls authorize no later access. `linear.saveArtifacts: false` is the default: workflows
 operate with default zero-provider local authority. When `linear.saveArtifacts: true`, a validated
-`linear` object supplies defaults for optional Linear mirroring. Policy cannot authorize a write or
-clear an approval gate.
+`linear` object supplies defaults for optional Linear mirroring. Policy cannot authorize a write.
 
 Tracked legacy records remain local unless the user explicitly invokes the guarded
 `/woostack-init --migrate-legacy` route. The
@@ -170,13 +169,11 @@ repository association and workspace/team, then preflights every complete projec
 comment/decision, mutation, pagination, and independent read-back capability needed at that
 boundary.
 
-Build and post-proof Fix manage local runs in `.woostack/tmp/runs/<run-id>/`. Both require exact
-active-conversation approval of the rendered `project-spec.md` and `execution-plan.md` gate files,
-record local raw-hash approval records (`projectSpecApprovalRecord` and
-`executionPlanApprovalRecord`), and perform one bounded mirror synchronization cycle when
-`linear.saveArtifacts: true`. Mirror failure is recorded in the manifest and is nonblocking for
+Build and post-proof Fix manage local runs in `.woostack/tmp/runs/<run-id>/`. Both write plain
+`project-spec.md` and `execution-plan.md` artifacts, and perform one bounded mirror synchronization cycle
+when `linear.saveArtifacts: true`. Mirror failure is recorded in the manifest and is nonblocking for
 local authority. All run artifacts are retained upon completion and explicit abandonment to preserve
-the audit trail. An approved nonterminal run can resume exactly with
+the audit trail. A nonterminal run can resume exactly with
 `/woostack-execute --run <exact-run-id> [--recheck]`. Before root-cause proof, Fix makes no provider
 call. `woostack-change` ignores the `linear` object.
 
@@ -212,16 +209,14 @@ replanning, and blockers are not abandonment and leave projects open.
 
 The canonical
 [Local run artifact and provider mirror contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md)
-owns identity, untrusted-data handling, hierarchy, failure boundaries, local approval records, and
-synchronization receipts.
+owns identity, untrusted-data handling, hierarchy, failure boundaries, and synchronization receipts.
 
 Hermes is an external engineer, not a supported coding harness or installed woostack runtime. If
 used, Hermes drives one persistent OMP process for in-contract decisions and evidence review;
 woostack remains installed only in OMP or another coding harness. When Hermes participates in an
-active conversation, the responsible user's live approval response must be relayed verbatim;
-cross-session resume against retained unchanged local artifacts and verified local approval records
-does not require the original process to stay alive. The
-[Hermes guide](/docs/hermes) owns safe argument passing, escalation, verbatim approval relay, and
+active conversation, the responsible user's live response must be relayed verbatim; cross-session
+resume against retained unchanged local run artifacts does not require the original process to stay
+alive. The [Hermes guide](/docs/hermes) owns safe argument passing, escalation, verbatim relay, and
 fail-closed restart/replay behavior.
 ## Review engine
 

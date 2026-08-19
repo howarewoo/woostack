@@ -1,6 +1,6 @@
 ---
 name: woostack-ideate
-description: Internal Build/Fix phase that records only user-verified decisions in a permission-restricted run draft and hands back a gate-file-ready local specification. It is not a public command.
+description: Internal Build/Fix phase that records only user-verified decisions in a permission-restricted run draft and hands back a plain local specification. It is not a public command.
 ---
 
 # woostack-ideate
@@ -14,7 +14,7 @@ call, and makes no implementation or planning handoff of its own.
 
 The owning Build/Fix wrapper supplies the exact baseline and permission-restricted run-scoped JSON
 manifest admitted under the shared
-[gated draft contract](../woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest).
+[artifact contract](../woostack-init/references/artifact-backends.md#minimal-resumable-manifest-schema).
 Ideate verifies the manifest's run identity, restrictive permissions (`0700` directory and `0600`
 regular file), draft content, monotonic revision, unresolved questions, and atomic compare-and-swap
 boundary before using it.
@@ -23,6 +23,7 @@ Ideate never resolves, creates, reads, patches, or independently reads back a pr
 Missing, stale, foreign, overly permissive, symlinked, or malformed manifest state blocks and returns
 to the owning wrapper. The local run manifest is the canonical local authority and makes zero provider
 calls.
+
 ## Non-negotiable content invariant
 
 **No inferred, repository-derived, agent-preferred, or merely plausible content enters the project
@@ -52,12 +53,12 @@ schemas, migrations, or endpoints from repository inspection.
 
 ## Dialogue and local drafting
 
-Brainstorm exhaustively within the requested feature and resolve upstream decisions first. Ask every
-currently known independent question together in one clearly numbered batch, preserving exhaustive
-in-scope coverage across the problem and evidence, users, desired behavior, constraints, non-goals,
-interfaces/data, failure and security cases, operational effects, acceptance, and verification as
-applicable. A batch may contain one question only when it is the sole currently eligible question.
-Order questions by dependency layer: do not ask a
+Brainstorm exhaustively within the requested feature, ask only for missing decisions, and resolve
+upstream decisions first. Ask every currently known independent question together in one clearly
+numbered batch with complete in-scope coverage across the problem and evidence, users, desired behavior,
+constraints, non-goals, interfaces/data, failure and security cases, operational effects, acceptance, and
+verification as applicable. A batch may contain one question only when it is the sole currently eligible
+question. Order questions by dependency layer: do not ask a
 dependent question until its upstream decision is verified. A later batch may contain only questions
 that become dependent after verified answers or questions that remained unresolved or ambiguous in an
 earlier batch; do not defer a question that was already known to be independent. Options and an
@@ -67,9 +68,8 @@ into a decision without asking.
 
 After each user reply, persist no provider content. If it contains one or more explicit,
 unambiguous verified decisions, atomically replace the manifest draft once with those decisions and
-the resulting unresolved-question set before asking the next eligible batch. Recompute the exact
-draft specification fingerprint and the deterministic gate-render fingerprint on that atomic
-replacement. A reply with no verified decision causes no draft-content change.
+the resulting unresolved-question set before asking the next eligible batch. A reply with no verified
+decision causes no draft-content change.
 
 Partial or ambiguous answers remain unresolved and stay in the manifest for a later eligible batch.
 Never write placeholders, inferred defaults, recommendations, or repository-derived guesses.
@@ -84,16 +84,11 @@ decision, hand back to the owning wrapper:
 - the permission-restricted manifest containing the local specification (including the user-verified
   conditional `## Data models` section when table or API changes apply, or omitting it when neither
   applies);
-- its `canonicalProjectSpecFingerprint` and gate-render fingerprint;
 - the empty unresolved-question set; and
 - the exact run/process and manifest identity.
 
 This handoff is not approval. The owning Build or project-backed Fix wrapper owns project-spec
-hardening, then uses the shared
-[`streamed gate-file presentation and body-free approval contract`](../woostack-init/references/artifact-backends.md#deterministic-gate-file-approval-identity-and-streamed-presentation):
-it streams the complete verified `project-spec.md` bytes and full identity (or a verified
-same-process byte-complete revision diff with old/new identities) immediately before an
-`Accept`/`Abandon` Ask. The wrapper then owns planning, the second streamed gate presentation,
-user-controlled `Stop here`/`Execute`/`Abandon` handoff, execution, review, Git/Graphite mutation,
-and every later transition. Ideate never invokes those phases, writes implementation source, or
-becomes a public command.
+hardening, writes `project-spec.md` directly under the run directory, and manages optional mirror
+synchronization. The wrapper then owns planning, writing `execution-plan.md`, user-controlled
+`Stop here`/`Execute`/`Abandon` handoff, execution, review, Git/Graphite mutation, and every later
+transition. Ideate never invokes those phases, writes implementation source, or becomes a public command.

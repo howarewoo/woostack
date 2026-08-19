@@ -4,7 +4,7 @@
   "cases": [
     {
       "id": "exact-approved-project-increment",
-      "query": "Execute the approved Linear project https://linear.app/acme/project/catalog-11111111. It has matching projectSpecApprovalRecord and executionPlanApprovalRecord, ordered direct issues, and a verified frozen repository base. Run the increments sequentially and pause on a verified stop marker.",
+      "query": "Execute the approved Linear project https://linear.app/acme/project/catalog-11111111. It has direct issues, dependencies, and a verified frozen repository base. Run the increments sequentially and pause on a verified stop marker.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-execute"
     },
@@ -16,19 +16,19 @@
     },
     {
       "id": "exact-approved-local-run",
-      "query": "Execute the approved local run manifest run-20260815-123456-abcdef. Both local project-spec and execution-plan approval records match the gate-file hashes. Run the tasks sequentially.",
+      "query": "Execute the local run manifest run-20260815-123456-abcdef. Both local project-spec.md and execution-plan.md plain Markdown artifacts exist. Run the tasks sequentially.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-execute"
     },
     {
       "id": "exact-approved-local-run-with-recheck",
-      "query": "Execute the approved run run-20260815-123456-abcdef with --recheck to verify that the rendered gate files remain byte-identical before running.",
+      "query": "Execute the run run-20260815-123456-abcdef with --recheck to verify that the plain Markdown artifacts and task mappings remain valid before running.",
       "shouldTrigger": true,
       "expectedSkill": "woostack-execute"
     },
     {
       "id": "unapproved-project",
-      "query": "Start implementing this Linear project even though its project specification and execution plan approvals have not been recorded yet.",
+      "query": "Start implementing this Linear project even though its project specification and execution plan have not been created yet.",
       "shouldTrigger": false,
       "expectedSkill": "woostack-execute"
     },

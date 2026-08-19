@@ -23,40 +23,32 @@ For standalone use, `--project` is mandatory. Resolve only that exact project un
 be associated with the canonical repository, and belong to the caller-selected workspace/team. A
 direct specification is reconciled against that project and never creates or selects an implicit
 project. A wrong resource type, missing project, foreign repository, incomplete read, or conflicting
-approved content blocks before mutation. There is no project-creation, fuzzy-discovery, or
-alternate-provider path.
+content blocks before mutation. There is no project-creation, fuzzy-discovery, or alternate-provider path.
 
 Standalone Plan reads the repository, canonical parent branch and last admitted tip, existing
 patterns, relevant tests, and the
 [Linear synchronization procedure](../woostack-build/references/linear-procedure.md) before
 planning. Build/Fix-delegated Plan instead obeys the shared
-[run-scoped gated draft contract](../woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest);
+[manifest contract](../woostack-init/references/artifact-backends.md#minimal-resumable-manifest-schema);
 it reads no provider context or synchronization procedure during the delegated phase.
 Repository parent-tip admission follows the shared
-[repository advancement contract](../woostack-init/references/artifact-backends.md#repository-ancestry-is-separate-from-approval-identity);
+[repository ancestry contract](../woostack-init/references/artifact-backends.md#repository-ancestry-and-base-change-detection);
 Plan owns only the approved parent-branch intent and last-admitted-tip handoff.
 
 ## Input and ownership
 
-The input is one complete approved specification containing goal, users, behavior, constraints,
-exclusions, architecture decisions, acceptance criteria, and verification expectations. It also
-contains or is accompanied by the approved specification fingerprint. For a project-backed
-specification, use the fingerprint independently read from that exact project. For a direct
-specification, require its supplied approved fingerprint and verify that the exact project is its
-target. Missing or conflicting product decisions return to the owning workflow; Plan never invents
-product decisions and never creates an approval event.
+The input is one complete specification containing goal, users, behavior, constraints, exclusions,
+architecture decisions, acceptance criteria, and verification expectations. Missing or conflicting
+product decisions return to the owning workflow; Plan never invents product decisions and never
+creates an approval event.
 
-Build or Fix delegates candidate planning with the exact approved fingerprint, baseline identity,
-and verified run manifest. Delegated planning performs no provider read or mutation; it atomically
-records complete candidate contracts, stable local task keys, dependencies, unresolved questions,
-and fingerprints in that manifest. The owning wrapper hardens the manifest, then uses the shared
-[`streamed gate-file presentation and body-free approval contract`](../woostack-init/references/artifact-backends.md#deterministic-gate-file-approval-identity-and-streamed-presentation)
-to stream the complete verified `execution-plan.md` bytes and full identity (or a verified
-same-process byte-complete revision diff with old/new identities) immediately before the body-free
-`Accept`/`Abandon` Ask. It synchronizes only after acceptance under the shared gated contract. In
-standalone use, Plan itself hardens and synchronizes the graph exactly as before. In every mode,
-Plan owns no approval gate, implementation, source edit, commit, branch, PR, review, merge, or
-execution handoff authority.
+Build or Fix delegates candidate planning with the readable specification, baseline identity, and
+verified run manifest. Delegated planning performs no provider read or mutation; it atomically
+records complete candidate contracts, stable local task keys, dependencies, and unresolved questions
+in that manifest. The owning wrapper hardens the manifest and writes `execution-plan.md` directly
+under `.woostack/tmp/runs/<run-id>/`. In standalone use, Plan itself hardens and synchronizes the
+graph. In every mode, Plan owns no implementation, source edit, commit, branch, PR, review, merge,
+or execution handoff authority.
 
 ## Direct issue contract
 
@@ -66,7 +58,6 @@ current increments and are not detached, migrated, archived, deleted, or treated
 Every direct issue must retain these fields in its complete description:
 
 - stable task ID, unique positive ordinal, concise outcome, and exactly one intended PR;
-- the approved specification fingerprint;
 - exact scope and explicit non-goals;
 - exact files and symbols, or one bounded first discovery step with its stopping boundary;
 - ordered, concrete implementation steps detailed enough for a fast execution model;
@@ -110,10 +101,10 @@ No missing, extra, branching, cyclic, or synthetic dependency is valid. The decl
 for ordinal 1 is the approved integration parent branch; for every later ordinal it is the
 immediately preceding increment's Graphite parent branch. Bind that stable parent-branch intent in
 each complete issue description and carry the last admitted tip as separate repository evidence for
-Execute's shared advancement check. A different branch identity, unknown task, ordinal gap,
-out-of-order edge, or parent that Graphite cannot represent blocks the plan. Validate that every
-acceptance criterion is covered exactly by at least one increment and that every issue contract is
-complete before any provider mutation.
+Execute's base-change check. A different branch identity, unknown task, ordinal gap, out-of-order edge,
+or parent that Graphite cannot represent blocks the plan. Validate that every acceptance criterion is
+covered exactly by at least one increment and that every issue contract is complete before any provider
+mutation.
 
 Prefer the fewest increments that remain independently reviewable and fit the size target. Do not
 split by file or layer merely to manufacture issues. Use Red → Green → Refactor for behavior changes
@@ -130,8 +121,8 @@ while synchronizing one exact project graph through the
 1. Reconcile the complete current project context without creating a project.
 2. Create or reconcile exactly one direct project issue per increment with its full contract.
 3. Create or reconcile only the strict predecessor dependency chain.
-4. Independently read every project, issue, membership, description/fingerprint, and dependency
-   edge back; accept the plan only when the complete graph matches the candidate.
+4. Independently read every project, issue, membership, description, and dependency edge back; accept
+   the plan only when the complete graph matches the candidate.
 
 Preallocate stable mutation identities, make reconciliation idempotent, and preserve unknown
 outcomes for recovery without allocating replacements. This standalone synchronization is
@@ -139,33 +130,32 @@ unchanged, owns no approval gate, and does not use the Build/Fix run manifest.
 
 When delegated by Build or Fix, stop before every provider read or synchronization. Return the
 complete manifest-backed candidate contracts and strict chain to the wrapper. The wrapper hardens
-the manifest, renders `execution-plan.md`, displays its gate-file identity plus every concise stable
-task and dependency mapping, obtains local approval, records `executionPlanApprovalRecord`, and
-owns optional post-approval mirror synchronization (when `linear.saveArtifacts: true`) and exact
+the manifest, writes `execution-plan.md`, displays every concise stable task and dependency mapping,
+and owns optional post-drafting mirror synchronization (when `linear.saveArtifacts: true`) and exact
 read-back.
+
 ## Return
 
 Return the complete ordered task contracts, exact project or baseline identity, strict predecessor
-and Graphite parent edges, approved specification fingerprint, repository assumptions/effects,
-focused verification strategy, risks/blockers, stop markers, and invocation mode. Standalone Plan
-also returns independent Linear read-back evidence, provider mutation/read counts, and stable
-mutation identities. Delegated Plan returns its run/process/manifest identity and makes no provider
-claim. Do not return a parent-plan identity or an approval/execution claim.
+and Graphite parent edges, repository assumptions/effects, focused verification strategy,
+risks/blockers, stop markers, and invocation mode. Standalone Plan also returns independent Linear
+read-back evidence, provider mutation/read counts, and stable mutation identities. Delegated Plan
+returns its run/process/manifest identity and makes no provider claim. Do not return a parent-plan
+identity or an execution claim.
 
 ## Hard constraints
 
 - One approved specification and one exact existing project in; one coherent strict chain out.
 - One direct project issue per increment; no parent/container issue and no hidden planning ledger.
 - Ordinals are exactly `1..N`; native dependencies are exactly `N-1 → N`.
-- Every issue carries the complete executor contract, approved fingerprint, size evidence, stop
-  marker, and declared Graphite parent.
+- Every issue carries the complete executor contract, size evidence, stop marker, and declared
+  Graphite parent.
 - Direct issue plans target about 500 or fewer hand-written changed lines, with only the stated
   generated/lockfile and explicitly approved unreachable-package deletion exceptions.
 - Delegated Build/Fix planning performs zero provider reads and writes; its wrapper hardens,
-  displays, obtains local approval, and optionally synchronizes when mirroring is enabled.
+  writes plain `execution-plan.md`, and optionally synchronizes when mirroring is enabled.
 - Standalone Plan keeps its direct project synchronization and independent read-back unchanged.
-- Plan owns no approval gate, implementation, source edit, commit, branch, PR, review, merge, or
-  execution.
+- Plan owns no implementation, source edit, commit, branch, PR, review, merge, or execution.
 - No credential reads, fuzzy artifact discovery, implicit project creation, alternate provider,
   synthetic dependencies, or obsolete container prose.
 - Never claim synchronization or independent read-back without evidence.

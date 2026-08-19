@@ -13,7 +13,6 @@ artifact = re.sub(
     " ",
     (root / "skills/woostack-init/references/artifact-backends.md").read_text(),
 )
-fixture = json.loads((root / "skills/woostack-fix/evals/fixtures/approved-fix.json").read_text())
 blocked = json.loads((root / "skills/woostack-fix/evals/fixtures/no-root-cause.json").read_text())
 evals = json.loads((root / "skills/woostack-fix/evals/evals.json").read_text())
 triggers = json.loads((root / "skills/woostack-fix/evals/trigger-evals.json").read_text())
@@ -28,32 +27,18 @@ def require_shared(pattern, name):
 
 
 for pattern, name in (
-    (r"Run-scoped gated draft manifest", "shared manifest contract"),
-    (r"owner-only.*regular files", "owner-only file identity"),
-    (r"no-follow.*owner.*regular", "no-follow file checks"),
-    (r"zero Linear or other provider reads and writes", "no intermediate provider cycle"),
-    (r"render from the current manifest", "deterministic project and plan render"),
-    (r"deterministic", "deterministic rendering"),
-    (r"stream.*complete.*Markdown bytes.*full identity", "complete streamed artifact"),
-    (r"same-process.*byte-complete unified diff.*old.*new.*identit", "same-process revision diff"),
-    (r"body-free Ask.*Accept.*Abandon", "body-free approval Ask"),
-    (r"matching file identity approval records the local receipt", "approval-before-save"),
-    (r"immediately re-read the exact Linear targets", "immediate pre-save drift read"),
-    (r"only after that exact content read-back, record", "read-back-before-receipt"),
-    (r"stable local task key to canonical issue reference", "stable canonical-reference mapping"),
-    (r"canonical issue-reference/nullable-parent preflight", "shared issue-parent preflight"),
-    (r"exact endpoint round trip", "exact canonical endpoint round-trip"),
-    (r"unknown parent state", "unknown parent fail-closed"),
-    (r"Unknown, malformed, copied, stale, or transformed responses fail closed", "approval replay guard"),
-    (r"process restart.*complete new artifact", "process-loss complete fallback"),
-    (r"Artifact retention on completion and abandonment", "artifact retention"),
-    (r"Execute-era safety reads are unchanged", "unchanged Execute checks"),
-    (r"providerPresentationCanonicalization", "provider presentation canonicalization"),
-    (r"Native provider bytes remain exact read-back evidence.*canonical fingerprints", "native bytes and canonical comparison"),
-    (r"fresh.*body-free Ask", "presentation recovery"),
-    (r"presence or absence of exactly one terminal LF", "terminal LF equivalence"),
-    (r"two or more terminal LFs.*byte-sensitive", "multiple terminal LF sensitivity"),
-    (r"At end of string, leave the blank suffix unchanged", "final heading EOF boundary"),
+    (r"Owner-only local run store|canonical persistent store", "shared manifest contract"),
+    (r"owner-only `0600`", "owner-only file identity"),
+    (r"no-follow semantics", "no-follow file checks"),
+    (r"zero provider reads or writes", "no intermediate provider cycle"),
+    (r"Write `project-spec\.md` exactly once", "plain project spec write"),
+    (r"Write `execution-plan\.md` exactly once", "plain execution plan write"),
+    (r"stableTaskMappings", "stable canonical-reference mapping"),
+    (r"canonical issue reference", "canonical issue reference"),
+    (r"unknown parent state|unknown.*parent.*blocks", "unknown parent fail-closed"),
+    (r"Retain `manifest\.json`, `project-spec\.md`, `execution-plan\.md`, and `\.lock`", "artifact retention"),
+    (r"Planning base and Execute choice", "planning base and Execute choice"),
+    (r"`Continue`.*`Revise spec/plan`.*`Stop`", "Execute base choice options"),
 ):
     require_shared(pattern, name)
 
@@ -62,12 +47,18 @@ for pattern, name in (
     (r"gate 2 displays only the", "obsolete issue-pointer-only Ask"),
     (r"Do not paste any project", "obsolete body exclusion"),
     (r"complete exact local content to be saved", "obsolete complete-inline wording"),
+    (r"projectSpecApprovalRecord", "obsolete project approval record"),
+    (r"executionPlanApprovalRecord", "obsolete execution plan approval record"),
+    (r"canonicalProjectSpecFingerprint", "obsolete spec fingerprint"),
+    (r"canonicalIncrementFingerprint", "obsolete increment fingerprint"),
+    (r"providerPresentationCanonicalization", "obsolete presentation canonicalization"),
+    (r"\bstream(?:ed|ing)?.*(?:full|complete).*(?:bytes|content)", "obsolete streaming in artifact"),
 ):
     if re.search(pattern, artifact, re.I | re.S):
         failures.append(name)
 
 
-require(r"Debug.*admit writable target.*allocate or resume canonical local run.*local Ideate/Harden.*project-spec\.md.*record local `projectSpecApprovalRecord`.*local Plan/Harden.*execution-plan\.md.*record local `executionPlanApprovalRecord`.*retain run artifacts.*Stop here.*Execute.*Abandon", "canonical sequence")
+require(r"Debug.*admit writable target.*allocate or resume canonical local run.*local Ideate/Harden.*project-spec\.md.*local Plan/Harden.*execution-plan\.md.*retain run artifacts.*Stop here.*Execute.*Abandon", "canonical sequence")
 require(r"Before root-cause proof, load only the routing and output rules.*woostack-debug.*references that Debug directly requires", "debug-only pre-proof loading")
 require(r"Immediately after Debug returns root-cause proof and exact writable target-repository admission succeeds, load.*Linear artifact contract.*woostack-build.*woostack-ideate.*woostack-harden", "post-admission downstream loading")
 if not (
@@ -86,14 +77,10 @@ require(r"owns one canonical local run", "one canonical local run")
 require(r"name starts with `\[Fix\] `", "prefixed fix project name")
 require(r"supplied.*project.*retains its existing name", "supplied project name preservation")
 require(r"source issue.*never repurposed|never repurpos(?:e|ed) a supplied source\s+issue", "source issue preservation")
-require(r"accepts that exact preceding identity.*projectSpecApprovalRecord", "active project approval before save/read-back/receipt")
-require(r"accepts that exact preceding identity.*executionPlanApprovalRecord", "active plan approval before save/read-back/receipt")
-require(r"independently read back both receipts", "independent approval read-back")
-require(r"material project-specification change invalidates both records", "spec invalidation")
-require(r"project-spec\.md.*complete exact.*full identity", "project streamed artifact")
-require(r"execution-plan\.md.*complete ordered.*dependency tuple", "plan streamed artifact and mapping")
-require(r"exact run ID.*approval receipts.*woostack-execute --run <exact-run-id>.*Stop here.*Execute.*Abandon", "verified handoff")
-require(r"shared repository advancement contract", "shared repository advancement authority")
+require(r"writes plain Markdown `project-spec\.md`", "plain project spec write")
+require(r"writes plain Markdown `execution-plan\.md`", "plain execution plan write")
+require(r"exact run ID.*woostack-execute --run <exact-run-id>.*Stop here.*Execute.*Abandon", "verified handoff")
+require(r"shared.*repository advancement contract", "shared repository advancement authority")
 require(r"Debug.*Target-repository admission.*Allocate or resume canonical run", "target-repository guard ordering")
 require(r"compare the proved causal target repository with the invocation repository using trusted Git/GitHub evidence", "trusted target and invocation repositories")
 require(r"non-mutatingly verify that the active checkout is the exact writable owning checkout", "exact writable owning checkout")
@@ -110,6 +97,9 @@ for obsolete, name in (
     ("one hard gate", "one-gate wording"),
     ("bind exactly one issue", "one-issue binding"),
     ("closeout", "one-issue closeout"),
+    ("projectSpecApprovalRecord", "obsolete project approval record in skill"),
+    ("executionPlanApprovalRecord", "obsolete plan approval record in skill"),
+    ("canonicalProjectSpecFingerprint", "obsolete spec fingerprint in skill"),
 ):
     if obsolete.lower() in skill.lower():
         failures.append(name)
@@ -121,166 +111,17 @@ if blocked["projectAdmission"]["projectCreated"] or blocked["projectAdmission"][
 if blocked["repository"]["mutationCount"] != 0 or blocked["debug"]["providerCallsBeforeProof"] != 0:
     failures.append("blocked fixture side effects")
 
-if fixture["projectAdmission"]["projectId"] != "project-fix-241" or not fixture["projectAdmission"]["independentReadBack"]:
-    failures.append("canonical project admission")
-if fixture["projectAdmission"]["name"] != "[Fix] Prevent cache refresh stampedes":
-    failures.append("fix project name prefix")
-if not fixture["projectSpec"]["title"].startswith("[Fix] "):
-    failures.append("fix project specification title prefix")
-source = fixture["sourceIssue"]
-if source["changedFields"] != ["projectLink"] or not source["unrelatedFieldsPreserved"]:
-    failures.append("source issue changed beyond project link")
-if len(fixture["executionPlan"]["increments"]) != 2:
-    failures.append("multiple direct increments")
-if {
-    increment["stableTaskKey"]: increment["canonicalIssueReference"]
-    for increment in fixture["executionPlan"]["increments"]
-} != {"task-lock": "WOO-242", "task-stale": "WOO-243"}:
-    failures.append("stable canonical-reference mappings")
-if fixture["executionPlan"]["dependencies"] != [{
-    "predecessorIssueReference": "WOO-242",
-    "successorIssueReference": "WOO-243",
-    "kind": "native-issue",
-}]:
-    failures.append("canonical dependency endpoints")
-if fixture["approvalEvidence"]["repositoryMutationCountBeforeBothApprovals"] != 0:
-    failures.append("pre-approval repository mutation")
-
-project_record = fixture["projectSpecApprovalRecord"]
-plan_record = fixture["executionPlanApprovalRecord"]
-expected_record_fields = {"runId", "gate", "manifestRevision", "sha256", "byteLength", "approvedBy", "host", "approvedAt", "approvalEventId"}
-if set(project_record) != expected_record_fields:
-    failures.append("project approval record shape")
-if set(plan_record) != expected_record_fields:
-    failures.append("execution approval record shape")
-if not all(fixture["approvalEvidence"][key]["activeConversationApproval"] and fixture["approvalEvidence"][key]["localReceiptVerified"] for key in ("projectSpec", "executionPlan")):
-    failures.append("approval evidence")
-if fixture["dispatch"]["handoff"]["options"] != ["Stop here", "Execute", "Abandon"] or not fixture["dispatch"]["handoff"]["bodyFree"]:
-    failures.append("verified body-free handoff options")
-if fixture["dispatch"]["handoff"]["command"] != "/woostack-execute --run <exact-run-id>":
-    failures.append("exact-run handoff command")
-if fixture["dispatch"]["responses"]["Stop here"]["effects"] or fixture["dispatch"]["responses"]["Execute"]["dispatchCount"] != 1:
-    failures.append("handoff Stop here/Execute behavior")
-if fixture["dispatch"]["responses"]["Abandon"] != {"status": "abandoned", "dispatchCount": 0, "artifactsRetained": True} or not fixture["dispatch"]["responses"]["unknownOrCustom"]["askAgain"]:
-    failures.append("handoff Abandon/fail-closed behavior")
-
-delivery_evidence = fixture["repositoryAdvancement"]["sameBranchDescendant"]["deliveryEvidence"]
-if "currentHeadChecksVerified" in delivery_evidence:
-    failures.append("approved-fix.json still contains obsolete currentHeadChecksVerified")
-if delivery_evidence.get("checkCausedBlockers") != []:
-    failures.append("approved-fix.json checkCausedBlockers is not empty list")
-if not delivery_evidence.get("observedChecks"):
-    failures.append("approved-fix.json observedChecks is missing")
-
 ids = {case["id"] for case in evals["cases"]}
 for expected in (
     "root-cause-proof-precedes-project-and-repository",
     "production-input-routes-to-fix",
     "canonical-project-preserves-source-record",
-    "project-spec-approval-is-active-and-recorded",
-    "execution-plan-approval-binds-issues-and-dependencies",
-    "renders-project-spec-file-ask",
-    "renders-execution-plan-file-ask",
-    "renders-same-process-revision-diff-with-fallbacks",
-    "blocks-unreceipted-approval-replay",
-    "material-change-invalidates-matching-receipts",
+    "provider-or-readback-failure-is-nonblocking",
     "validates-fix-source-before-project-link",
-    "accepts-provider-presentation-equivalence",
-    "rejects-unsupported-ordered-marker-boundaries",
-    "requires-fresh-ask-for-semantic-provider-change",
-    "rejects-mixed-marker-transition-canonical-mismatch",
-    "rejects-terminal-lf-canonical-mismatch",
 ):
     if expected not in ids:
         failures.append(f"missing eval {expected}")
 
-def require_eval_fields(case_id, expected_values):
-    case = next((item for item in evals["cases"] if item["id"] == case_id), None)
-    if case is None:
-        return
-    assertions = {
-        assertion.get("pointer"): assertion.get("expected")
-        for assertion in case.get("assertions", [])
-    }
-    for pointer, expected in expected_values.items():
-        if assertions.get(pointer) != expected:
-            failures.append(f"{case_id} does not assert {pointer}={expected!r}")
-
-require_eval_fields(
-    "accepts-provider-presentation-equivalence",
-    {
-        "/approvalAskCount": 1,
-        "/boundedSaveCount": 1,
-        "/readBackCount": 1,
-        "/receiptCount": 1,
-        "/secondAskCount": 0,
-    },
-)
-require_eval_fields(
-    "requires-fresh-ask-for-semantic-provider-change",
-    {
-        "/results": [
-            {"id": "project-description", "approvalIdentityMatch": False, "receiptCount": 0, "freshAsk": True},
-            {"id": "increment-description", "approvalIdentityMatch": False, "receiptCount": 0, "freshAsk": True},
-            {"id": "issue-description", "approvalIdentityMatch": False, "receiptCount": 0, "freshAsk": True},
-            {"id": "rendered-gate-file", "approvalIdentityMatch": False, "receiptCount": 0, "freshAsk": True},
-        ],
-    },
-)
-require_eval_fields(
-    "rejects-unsupported-ordered-marker-boundaries",
-    {
-        "/status": "blocked",
-        "/results": [
-            {"id": "two-leading-spaces", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
-            {"id": "leading-tab", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
-            {"id": "nested-container", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
-            {"id": "fenced-code", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
-            {"id": "indented-code", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
-            {"id": "missing-whitespace", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
-            {"id": "repeated-delimiter", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
-            {"id": "unicode-digits", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
-            {"id": "ten-digit-marker", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
-            {"id": "changed-number", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
-            {"id": "changed-delimiter", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
-            {"id": "changed-text", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
-            {"id": "changed-order", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
-            {"id": "blank-line-continuation", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
-        ],
-    },
-)
-require_eval_fields(
-    "rejects-mixed-marker-transition-canonical-mismatch",
-    {
-        "/canonicalMatch": False,
-        "/receiptCount": 0,
-        "/freshAsk": True,
-    },
-)
-require_eval_fields(
-    "rejects-terminal-lf-canonical-mismatch",
-    {
-        "/results": [
-            {"id": "one-vs-two", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
-            {"id": "two-vs-three", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
-            {"id": "final-heading-two-vs-three", "canonicalMatch": False, "receiptCount": 0, "freshAsk": True},
-        ],
-    },
-)
-require_eval_fields(
-    "compatible-parent-advancement-preserves-approvals",
-    {
-        "/compatibleAdvancement/deliveryEvidence/observedChecks": ["failed"],
-        "/compatibleAdvancement/deliveryEvidence/checkCausedBlockers": [],
-    },
-)
-require_eval_fields(
-    "dependency-parent-advancement-requires-delivery-checkpoint",
-    {
-        "/compatibleAdvancement/deliveryEvidence/observedChecks": ["failed"],
-        "/compatibleAdvancement/deliveryEvidence/checkCausedBlockers": [],
-    },
-)
 target_case = next((case for case in evals["cases"] if case["id"] == "target-repository-boundary-precedes-provider-admission"), None)
 if target_case is None:
     failures.append("missing target repository boundary eval")

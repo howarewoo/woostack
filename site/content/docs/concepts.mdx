@@ -1,13 +1,13 @@
 ---
 title: Core concepts
-description: Repository delivery evidence, local run authority with optional Linear mirroring, and two-gate project loops.
+description: Repository delivery evidence, local run authority with optional Linear mirroring, and plain artifact project loops.
 ---
 
 import { ContextEconomy } from '@/components/concepts/context-economy';
 
 woostack is a multiperson development workflow with two distinct truth domains. Local run manifests
 in `.woostack/tmp/runs/<run-id>/` own current product specifications, increment contracts, and
-approval records for builds and post-diagnosis fixes, with optional Linear mirroring
+manifest state for builds and post-diagnosis fixes, with optional Linear mirroring
 (`linear.saveArtifacts: true`). Git and GitHub own source, branches, commits, pull requests, reviews,
 and merge evidence. A build always manages one high-level specification plus direct increment
 contracts with dependency relations in its retained local run manifest. After proof, a Fix uses the
@@ -15,29 +15,23 @@ same local run structure for its complete specification plus a strict direct-iss
 workflows remain artifact-optional.
 
 Default init may make authenticated read-only Linear setup calls to validate non-secret defaults,
-but that narrow exception permits no provider write. Exact responsible-user approval events clear only
-the matching fix/build gate-file hash.
-
+but that narrow exception permits no provider write.
 ## The build loop
 
 [woostack-build](/docs/skills/woostack-build) handles work expected to require multiple
 independently shippable increments. It chains a fixed sequence:
 
 > allocate or resume local run in `.woostack/tmp/runs/<run-id>/` (and admit baseline if mirroring) →
-> ideate and harden the specification in a secure local draft → stream the complete verified
-> `project-spec.md` bytes and full identity (or a verified same-process byte-complete diff with old/new
-> identities) immediately before a body-free `Accept`/`Abandon` Ask → record local approval record
-> (and optional mirror sync) → plan and harden locally keyed direct increment contracts → stream the
-> complete verified `execution-plan.md` bytes and full identity immediately before a body-free
-> `Accept`/`Abandon` Ask → record local approval record (and optional mirror sync) → retain run
-> artifacts → present verified run handoff
+> ideate and harden the specification in a local draft → write `project-spec.md` (and optional mirror
+> sync) → plan and harden locally keyed direct increment contracts → write `execution-plan.md` (and
+> optional mirror sync) → retain run artifacts → present verified run handoff
 
 Ordered increments remain independently shippable and map to reviewable PRs. Build operates with
 default local run authority under `.woostack/tmp/runs/<run-id>/`.
 
 Bounded one-PR work takes a smaller route. [woostack-fix](/docs/skills/woostack-fix) proves a root
 cause, allocates or resumes its local run store for the complete fix specification, synchronizes its
-strict direct-issue chain after both streamed content approvals, then presents the same
+strict direct-issue chain after writing both plain artifacts, then presents the same
 user-controlled handoff. [woostack-change](/docs/skills/woostack-change) executes one explicit bounded
 enhancement/refactor without contacting Linear.
 
@@ -46,43 +40,38 @@ the run manifest, and retains all run artifacts without mutating a mirrored Line
 Plan closes its existing project as canceled after independent read-back. Normal handoff, replanning,
 and blockers leave project status unchanged.
 
-## Two hard gates
+## Plain readable artifacts and user-controlled handoff
 
-Build and project-backed Fix advance past exactly two content-bound approvals:
+Build and project-backed Fix write plain Markdown working documents directly under
+`.woostack/tmp/runs/<run-id>/`:
 
-1. **Project-spec approval** streams the exact verified owner-only `project-spec.md` bytes and full
-   identity immediately before a body-free Ask whose explicit options are exactly `Accept` and
-   `Abandon`. A same-process revision streams one byte-complete unified diff with old/new full-file
-   identities; otherwise the complete artifact is streamed. Only acceptance of that immediately
-   preceding identity records the local raw-hash `projectSpecApprovalRecord` and permits optional
-   mirror synchronization.
-2. **Execution-plan approval** streams every complete verified `execution-plan.md` byte and full
-   identity (or a verified same-process revision diff) immediately before the same body-free
-   `Accept`/`Abandon` Ask. Complete issue contracts and dependencies remain in the streamed file,
-   never in the Ask. Only acceptance records the local raw-hash `executionPlanApprovalRecord` and
-   permits optional mirror synchronization.
+1. **`project-spec.md`** contains the complete user-verified high-level specification. When
+   `linear.saveArtifacts: true`, one bounded mirror synchronization writes the specification to
+   Linear; mirror failures are nonblocking.
+2. **`execution-plan.md`** contains every ordered increment contract and dependency tuple. When
+   `linear.saveArtifacts: true`, one bounded mirror synchronization binds stable task keys to
+   canonical issue references; mirror failures are nonblocking.
 
-After gate 2, Build/Fix display the exact run ID, both local approval records and gate-file hashes,
-stable task mappings, dependencies, approved parent branch, last admitted tip, and
+After both files are written, Build/Fix display the exact run ID, readable artifact paths, stable task
+mappings, dependencies, planning parent branch, planning parent tip, and
 `/woostack-execute --run <exact-run-id>`. When mirroring is enabled, they also display the project
 URL/UUID as evidence, never as the Build/Fix handoff command. A body-free handoff Ask offers exactly
 `Stop here`, `Execute`, and `Abandon`: Stop here returns without mutation, Execute dispatches normal
 Execute once, and Abandon records abandonment without dispatch. Unknown or custom input asks again
 and fails closed.
 
-The local manifest and its two run-scoped gate files in `.woostack/tmp/runs/<run-id>/` are retained
-upon completion and abandonment to preserve an unbroken audit trail. An approved nonterminal run can
-resume exactly by run ID. Material baseline drift, file identity mismatch, read-back mismatch, or
-content changes require reconciliation, regeneration, and a fresh concise Ask. Synchronization,
-read-back, planning, implementation checks, review, and progress updates are work steps, not
-additional gates.
+When the repository integration parent tip moves after planning, Execute detects the change and asks
+the user to choose `Continue`, `Revise spec/plan`, or `Stop` before any source mutation.
 
+The local manifest and its plain Markdown artifacts in `.woostack/tmp/runs/<run-id>/` are retained
+upon completion and abandonment to preserve an unbroken audit trail. An approved nonterminal run can
+resume exactly by run ID.
 ## Two delivery shapes
 
 | | Standalone work | Multi-increment work |
 | --- | --- | --- |
 | Use when | One bounded fix/change can ship in one PR | A feature needs multiple independently shippable increments |
-| Active contract | Fix: approved project-spec revision plus approved direct-issue graph. Change: one explicit goal | Approved project-spec revision plus approved direct-issue graph |
+| Active contract | Fix: complete specification plus direct-issue plan. Change: one explicit goal | Complete specification plus direct-issue plan |
 | Development plan | Fix: local run manifest after root-cause proof → direct increment contracts + dependencies (optional Linear mirror). Change: none | Local run manifest → direct increment contracts + dependencies (optional Linear mirror) |
 | Evidence | Local run manifest owns spec/plan (optional Linear mirror); Git/GitHub prove delivery | Local run manifest owns spec/plan (optional Linear mirror); Git/GitHub prove delivery per increment |
 | Code delivery | One GitHub PR | One GitHub PR per increment |
@@ -115,9 +104,9 @@ build workflow and obtains its own approval contract.
 
 Small helpers gather and compress deterministic repository context so agents consume a result
 rather than every input. Review prefetch gathers the relevant diff, metadata, and repository rules
-once for independent analysis. Local Build/Fix runs retain only their verified manifest, approval
-records, and repository delivery evidence. Provider-mode workflows retain only the verified MCP
-identities and synchronization receipts required for the current decision.
+once for independent analysis. Local Build/Fix runs retain only their verified manifest and
+repository delivery evidence. Provider-mode workflows retain only the verified MCP identities and
+synchronization receipts required for the current decision.
 
 Automatic init setup and optional artifact access use the host's authenticated official Linear MCP
 connection. Init needs only read capability and validates local config writes independently; it
@@ -137,14 +126,15 @@ Hermes may make in-contract decisions, review OMP evidence, escalate contract ch
 responsible user, relay exact approval responses verbatim through the same OMP process, and
 redispatch bounded corrections. It may not edit implementation source, run implementation
 commands, or replace direct Git/GitHub evidence. Live approval responses must be relayed verbatim;
-cross-session resume against retained unchanged local artifacts and verified local approval records
-does not require the original process to stay alive. See the [Hermes guide](/docs/hermes) for the
-external boundary and fail-closed approval relay.
+cross-session resume against retained unchanged local artifacts does not require the original
+process to stay alive. See the [Hermes guide](/docs/hermes) for the external boundary and
+fail-closed approval relay.
+
 ## Where to go next
 
 <Cards>
   <Card title="Getting started" href="/docs/getting-started" description="Initialize local support and optionally configure Linear mirroring for fix/build workflows." />
-  <Card title="Building rules" href="/docs/concepts/building-rules" description="Follow the two build gates and choose the smallest workflow for the work." />
+  <Card title="Building rules" href="/docs/concepts/building-rules" description="Follow the build lifecycle and choose the smallest workflow for the work." />
   <Card title="Status tracking" href="/docs/concepts/status-tracking" description="Derive a fresh board from Git, Graphite, and GitHub with optional artifacts." />
   <Card title="Workflow maps" href="/docs/concepts/workflows" description="Compare Bootstrap, Build, Fix, and Change under one authority model." />
   <Card title="Context management" href="/docs/concepts/context-management" description="Keep sessions compact and turn durable lessons into reviewed instruction suggestions." />

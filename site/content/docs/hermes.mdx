@@ -50,28 +50,21 @@ Escalate any contract change, new path, changed acceptance criterion, unresolved
 question outside the approved task to the responsible user. Do not turn a user question into an
 implicit approval. Stop OMP at the last verified boundary while waiting.
 
-Build and project-backed Fix approvals bind the responsible user's explicit active-conversation
-approval of the exact Ask to the rendered gate file's raw UTF-8 SHA-256 and byte length
-(`projectSpecApprovalRecord` and `executionPlanApprovalRecord`), with optional matching Linear
-receipts when mirroring is enabled (`linear.saveArtifacts: true`). When Hermes presents an Ask in an
-active conversation, only the responsible user's response may approve it. Relay that response
-**verbatim and unmodified** through the same persistent OMP process that presented the Ask. Hermes
+Build and project-backed Fix workflows write plain Markdown `project-spec.md` and `execution-plan.md`
+files, with optional matching Linear mirroring when enabled (`linear.saveArtifacts: true`). When Hermes
+presents an Ask in an active conversation, only the responsible user's response may decide it. Relay that
+response **verbatim and unmodified** through the same persistent OMP process that presented the Ask. Hermes
 may transmit the response but may not author, summarize, rewrite, splice, or replay it. A Linear
-record, status, assignment, label, cached transcript, or Hermes-authored message is not an approval.
+record, status, assignment, label, cached transcript, or Hermes-authored message is not a decision.
 
-Live approval responses must travel verbatim through the active session. Once approved, local
-approval records and retained run artifacts in `.woostack/tmp/runs/<run-id>/` persist safely across
-process restarts and distinct processes for identical gate-file bytes and hashes. Resuming an
-approved run with `/woostack-execute --run <exact-run-id> [--recheck]` validates the retained
-manifest, gate files, and local approval records without requiring the original OMP process to
-remain alive.
+Live user responses must travel verbatim through the active session. Retained run artifacts in
+`.woostack/tmp/runs/<run-id>/` persist safely across process restarts and distinct processes. Resuming a
+run with `/woostack-execute --run <exact-run-id> [--recheck]` validates the retained manifest and plain
+artifacts without requiring the original OMP process to remain alive.
 
 In contrast, during an active conversation, a restarted or different OMP process, copied response,
-summarized response, replayed transcript, or unknown/partial approval record fails closed. Present a
-fresh Ask in the active conversation, obtain a fresh responsible-user response, record the matching
-local approval record (and optional mirror sync), and only then continue through that same process.
-Material specification or execution-plan changes invalidate the affected approval and require the corresponding
-gate again.
+summarized response, or replayed transcript fails closed. Present a fresh Ask in the active conversation,
+obtain a fresh responsible-user response, and only then continue through that same process.
 ## Evidence review and bounded redispatch
 
 Review OMP's exact worktree and branch/head identity, changed paths, complete diff, commands and

@@ -9,10 +9,10 @@ text = re.sub(r"\s+", " ", (Path(sys.argv[1]) / "skills/woostack-execute/referen
 checks = {
     "fast model": r"configured fast-model subagent",
     "one issue": r"exact project or issue identity and mode",
-    "two records": r"projectSpecApprovalRecord.*executionPlanApprovalRecord",
+    "plain artifacts": r"project-spec\.md.*execution-plan\.md",
     "fresh isolation": r"fresh process/session",
     "one worktree": r"exactly one worktree and branch",
-    "complete packet": r"stable run/issue identity.*immutable contract fingerprint.*allowed paths",
+    "complete packet": r"stable run/issue identity.*allowed paths",
     "untrusted inputs": r"repository files.*untrusted data",
     "focused checks": r"focused verification and changed-path smoke",
     "no self acceptance": r"reviews,? accepts",

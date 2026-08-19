@@ -431,7 +431,6 @@
       "mutationIdentity": "77777777-7777-4777-8777-777777777777",
       "approvedTitle": "Implement cache freshness [woostack-mutation:77777777-7777-4777-8777-777777777777]",
       "approvedDescription": "Implement the cache freshness increment.",
-      "canonicalIncrementFingerprintIncludesSuffix": true,
       "preCreateRead": {
         "activeIssuePages": [
           {
@@ -483,7 +482,7 @@
           "workspaceId": "workspace-woo",
           "teamId": "team-woo",
           "projectId": null,
-          "preMembershipState": "absent",
+          "observedProjectMembership": null,
           "pagesComplete": true,
           "roundTrip": {
             "providerNativeIssueId": "issue-native-149",
@@ -776,7 +775,7 @@
           "workspaceId": "workspace-woo",
           "teamId": "team-woo",
           "projectId": null,
-          "preMembershipState": "absent",
+          "observedProjectMembership": null,
           "pagesComplete": true,
           "roundTrip": {
             "providerNativeIssueId": "issue-native-150",

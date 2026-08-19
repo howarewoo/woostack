@@ -37,8 +37,8 @@ the stable task ID or any repository identity.
 ## 2. Verified start point
 
 A caller supplies one complete task-bound ancestry contract whose stable canonical parent-branch
-intent is bound by the approved content. Apply the shared
-[repository advancement contract](artifact-backends.md#repository-ancestry-is-separate-from-approval-identity)
+Apply the shared
+[repository ancestry contract](artifact-backends.md#repository-ancestry-and-base-change-detection)
 to its last independently admitted parent tip. Mutable observed refs, heads, commits, and tips
 remain repository evidence outside content approval identity. Never substitute the current
 checkout, current branch tip, ordinal adjacency, a PR title, or inferred local ownership.
@@ -53,7 +53,7 @@ fresh work.
 ### Plan dependency root
 
 A root starts from its stable approved parent branch intent and last admitted tip. Fresh work may
-start only at the latest tip after the compatible-advancement admission above. Multiple roots may
+start only at the latest tip after parent-tip admission. Multiple roots may
 start there in parallel only when the complete approved DAG proves no dependency path and task IDs,
 responsibility surfaces, runs, worktrees, branches, and PRs are disjoint.
 

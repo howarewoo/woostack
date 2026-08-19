@@ -26,8 +26,7 @@ for needle in (
     "`--project` is mandatory",
     "exact existing Linear project",
     "never creates or selects an implicit project",
-    "one complete approved specification",
-    "approved specification fingerprint",
+    "one complete specification",
     "exactly one direct project issue for each execution increment",
     "Never create a parent, container, checklist, layer, or plan issue",
     "stable task ID, unique positive ordinal",
@@ -51,13 +50,12 @@ for needle in (
     "Independently read every project, issue, membership",
     "Delegated planning performs no provider read or mutation",
     "atomically records complete candidate contracts",
-    "displays its gate-file identity plus every concise stable task and dependency mapping",
+    "displays every concise stable task and dependency mapping",
     "executor-ready removal-before-addition analysis",
     "safe deletion or simplification opportunities first",
     "Standalone Plan",
     "synchronization is unchanged",
-    "owns no approval gate",
-    "implementation, source edit, commit, branch, PR, review, merge",
+    "owns no implementation, source edit, commit, branch, PR, review, merge",
 ):
     require(needle)
 

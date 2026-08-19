@@ -34,28 +34,22 @@ assert_literal "$BUILD_SKILL" \
   'draft Ideate/Harden locally with zero provider calls' \
   'Build performs local Ideate and Harden after baseline admission'
 assert_literal "$BUILD_SKILL" \
-  'render and present complete `project-spec.md` followed by a body-free `Accept`/`Abandon` Ask' \
-  'complete project artifact stream precedes body-free approval'
-assert_literal "$BUILD_SKILL" \
-  'record local `projectSpecApprovalRecord`' \
-  'project approval produces local projectSpecApprovalRecord'
+  'writes plain Markdown `project-spec.md`' \
+  'plain project-spec writing'
 assert_literal "$BUILD_SKILL" \
   'draft delegated Plan/Harden locally with zero provider calls' \
-  'planning is provider-free before approval'
+  'planning is provider-free before writing'
 assert_literal "$BUILD_SKILL" \
-  'render and present complete `execution-plan.md` followed by a body-free `Accept`/`Abandon` Ask' \
-  'complete plan artifact stream precedes body-free approval'
-assert_literal "$BUILD_SKILL" \
-  'record local `executionPlanApprovalRecord`' \
-  'plan approval produces local executionPlanApprovalRecord'
+  'writes plain Markdown `execution-plan.md`' \
+  'plain execution-plan writing'
 assert_literal "$BUILD_SKILL" \
   'Build then asks a body-free handoff question' \
-  'second approval ends at user-controlled handoff'
+  'ends at user-controlled handoff'
 assert_literal "$BUILD_SKILL" \
-  'Build never merges' \
+  'Never merges' \
   'Build never merges'
 
-for forbidden in 'Run overnight' 'Replan' 'parallel roots' 'terminal choices'; do
+for forbidden in 'Run overnight' 'Replan' 'parallel roots' 'terminal choices' 'projectSpecApprovalRecord' 'executionPlanApprovalRecord'; do
   if [[ "$(cat "$BUILD_SKILL")" == *"$forbidden"* ]]; then
     fail "Build removes retired routing menu: $forbidden"
   else
@@ -73,22 +67,19 @@ assert_literal "$PROCEDURE" \
   'Then independently read the complete relation' \
   'native dependencies require complete read-back'
 assert_literal "$CONTEXT" \
-  'That exact snapshot is gate 1' \
-  'gate 1 starts from one admitted exact baseline'
+  'That exact snapshot is the baseline when mirroring is enabled' \
+  'starts from one admitted exact baseline'
 assert_literal "$CONTEXT" \
   'Delegated Plan and Harden then make zero provider' \
-  'gate 2 drafting has no intermediate provider cycle'
-assert_literal "$AUTHORITY" \
-  'only after that exact content read-back, record the matching' \
-  'receipt creation follows exact content read-back'
+  'drafting has no intermediate provider cycle'
 assert_normalized_literal "$AUTHORITY" \
-  'The canonical persistent artifact store for `woostack-build` and project-backed `woostack-fix` is local in `.woostack/tmp/runs/<run-id>/`.' \
+  'The canonical persistent store for `woostack-build` and project-backed `woostack-fix` is `.woostack/tmp/runs/<run-id>/`.' \
   'shared contract makes the local run store canonical'
 assert_normalized_literal "$AUTHORITY" \
-  'workflow gate. Git, Graphite, and canonical GitHub reads prove source' \
+  'Git, Graphite, and canonical GitHub reads prove source, ancestry, pull-request, review, and merge facts.' \
   'direct Git, Graphite, and canonical GitHub reads prove source facts'
 assert_normalized_literal "$AUTHORITY" \
-  'artifacts are not source-control or delivery authority' \
-  'source-control truth remains separate'
+  'Merge authority remains human-only and outside every woostack workflow.' \
+  'merge authority remains human-only'
 
 finish
