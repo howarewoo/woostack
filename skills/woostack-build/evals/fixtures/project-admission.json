@@ -17,7 +17,7 @@
   "suppliedProjectSelection": {
     "exactProjectUrl": "https://linear.app/acme/project/project-existing-9",
     "nativeProjectRef": "project-existing-9",
-    "name": "Existing customer roadmap",
+    "existingNameInput": "Existing customer roadmap",
     "workspace": "acme",
     "team": "APP",
     "repository": "https://github.com/acme/widgets",
@@ -27,8 +27,7 @@
   },
   "intendedSpecification": {
     "description": "Bound cache freshness keeps reads coherent.",
-    "update": "Ship cache freshness with bounded invalidation.",
-    "canonicalProjectSpecFingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    "update": "Ship cache freshness with bounded invalidation."
   },
   "nativeSupportedScenario": {
     "nativeOperationIdSupported": true,
@@ -96,9 +95,7 @@
       "description": "Bound cache freshness keeps reads coherent.",
       "update": "Ship cache freshness with bounded invalidation."
     },
-    "canonicalProjectSpecFingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "markerPreserved": true,
-    "canonicalProjectSpecFingerprintExcludesMarker": true,
     "complete": true
   },
   "summaryOmittingUpdate": {
@@ -306,7 +303,6 @@
           "description": "Bound cache freshness keeps reads coherent.",
           "update": "Ship cache freshness with bounded invalidation."
         },
-        "canonicalProjectSpecFingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "complete": true
       },
       "advance": true,

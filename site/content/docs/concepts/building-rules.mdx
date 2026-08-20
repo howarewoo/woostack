@@ -1,63 +1,57 @@
 ---
 title: Building rules
-description: The two-gate local-authority build loop, optional Linear mirroring, and bounded one-PR routes.
+description: The plain-artifact local-authority build loop, optional Linear mirroring, and bounded one-PR routes.
 ---
 
 Woostack separates product authority from repository delivery evidence. Local run manifests under
 `.woostack/tmp/runs/<run-id>/` own the current specification and execution contracts for builds and
-post-diagnosis fixes, with optional Linear mirroring (`linear.saveArtifacts: true`). The responsible
-user's approval event clears only the matching exact gate-file hash. Git and GitHub own source,
-branches, commits, pull requests, reviews, and merge evidence.
+post-diagnosis fixes, with optional Linear mirroring (`linear.saveArtifacts: true`). Git and GitHub own
+source, branches, commits, pull requests, reviews, and merge evidence.
 
 ## Choose the smallest workflow
 
 | Shape | Commands | Active contract | Linear behavior |
 | --- | --- | --- | --- |
-| Bounded bug or regression | [woostack-fix](/docs/skills/woostack-fix) | proved root cause plus approved project-spec and direct-issue revisions | local run manifest, direct increment contracts, dependencies (optional Linear mirror) |
+| Bounded bug or regression | [woostack-fix](/docs/skills/woostack-fix) | proved root cause plus plain specification and direct-issue plan | local run manifest, direct increment contracts, dependencies (optional Linear mirror) |
 | Bounded non-bug change | [woostack-change](/docs/skills/woostack-change) | one explicit goal/contract | none |
-| Multi-increment feature | [woostack-build](/docs/skills/woostack-build) | approved project-spec revision plus approved direct-issue graph | local run manifest, direct increment contracts, dependencies (optional Linear mirror) |
+| Multi-increment feature | [woostack-build](/docs/skills/woostack-build) | plain specification plus direct-issue graph | local run manifest, direct increment contracts, dependencies (optional Linear mirror) |
 | Greenfield codebase | [woostack-bootstrap](/docs/skills/woostack-bootstrap) | complete approved design | exact artifact or explicit persistence request only |
 
 Route by work shape. Development records do not turn ambiguous scope into a complete contract or
 replace direct repository evidence.
 
-## The two-gate build loop
+## The plain-artifact build loop
 
 Multi-increment work follows one fixed chain:
 
 ```text
 allocate/resume local run and admit exact baseline (if mirroring) →
 draft Ideate/Harden locally →
-stream complete verified `project-spec.md` bytes and full identity (or a verified same-process
-byte-complete unified diff with old/new identities) immediately before a body-free `Accept`/`Abandon`
-Ask → record local approval record (and optional bounded mirror sync) → draft Plan/Harden locally →
-stream complete verified `execution-plan.md` bytes and full identity (or a verified same-process
-byte-complete unified diff with old/new identities) immediately before a body-free `Accept`/`Abandon`
-Ask → record local approval record (and optional bounded mirror sync) → retain run artifacts →
+write `project-spec.md` (and optional bounded mirror sync) →
+draft Plan/Harden locally →
+write `execution-plan.md` (and optional bounded mirror sync) →
+retain run artifacts →
 present verified run handoff
 ```
 
-The only content gates are deterministic project-spec-file approval and execution-plan-file
-approval. Each stream carries the complete exact Markdown bytes and full identity immediately before
-its body-free Ask; a same-process revision may carry only one independently verified byte-complete
-unified diff with old/new full-file identities. Acceptance records the local raw-hash approval record
-(`projectSpecApprovalRecord` or `executionPlanApprovalRecord`). During each gated drafting phase there
-are no intermediate provider cycles. When `linear.saveArtifacts: true`, one bounded cycle mirrors
-approved artifacts to Linear; mirror failure is recorded in the manifest and is nonblocking for local
-authority.
+Build and project-backed Fix write plain Markdown `project-spec.md` and `execution-plan.md` working
+documents directly under `.woostack/tmp/runs/<run-id>/`. During each drafting phase there are no
+intermediate provider cycles. When `linear.saveArtifacts: true`, one bounded cycle mirrors artifacts
+to Linear; mirror failure is recorded in the manifest and is nonblocking for local authority.
 
-After gate 2, Build/Fix display the exact run ID, both local approval records and gate-file hashes,
-stable task mappings, dependencies, approved parent branch, last admitted tip, and
+After both files are written, Build/Fix display the exact run ID, readable artifact paths, stable task
+mappings, dependencies, planning parent branch, planning parent tip, and
 `/woostack-execute --run <exact-run-id>`. A mirrored project URL/UUID is evidence only, not an
 alternate Build/Fix handoff. A body-free handoff Ask offers exactly `Stop here`, `Execute`, and
 `Abandon`: Stop here returns without mutation, Execute invokes normal Execute once, and Abandon
 records abandonment without dispatch. Unknown or custom input fails closed and asks again.
 
-The shared [Local run artifact and provider mirror contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest)
-is the detailed authority for the run manifest, owner-only gate files, streamed artifact bytes and
-identity, same-process revision diffs, body-free approval Asks, raw-hash approval records, retention,
-and unchanged Execute reads. Material updates to approved gate files or specifications invalidate the
-matching gate.
+When the integration parent tip changes after planning, Execute reports the difference and asks
+the user to choose `Continue`, `Revise spec/plan`, or `Stop` before any source mutation.
+
+The shared [Local run artifact and provider mirror contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#minimal-resumable-manifest-schema)
+is the detailed authority for the run manifest, plain Markdown artifacts, mirror synchronization,
+retention, and unchanged Execute reads.
 
 ## Execution invariants
 
@@ -78,7 +72,7 @@ Build and project-backed Fix operate with canonical persistent local run authori
 `.woostack/tmp/runs/<run-id>/` by default (`linear.saveArtifacts: false`). Supplying `--project` when
 `linear.saveArtifacts` is false or absent fails closed immediately.
 
-When `linear.saveArtifacts: true`, approved local artifacts mirror to one Linear project containing the
+When `linear.saveArtifacts: true`, local artifacts mirror to one Linear project containing the
 complete specification, direct increment issues, and native issue dependencies. There is no parent plan
 issue or child containment. `woostack-change` never contacts Linear.
 
@@ -95,11 +89,10 @@ project open.
 
 | Surface | Authority |
 | --- | --- |
-| User request | initiates the selected workflow |
-| Responsible-user approval event | exact fix/build gate-file raw-hash approval record |
-| Local run manifest (`.woostack/tmp/runs/<run-id>/`) | current fix/build product scope, plans, contracts, and local approval records (mirrored to Linear when `linear.saveArtifacts: true`) |
+| User request and decisions | initiates the selected workflow and authorizes decisions |
+| Local run manifest (`.woostack/tmp/runs/<run-id>/`) | current fix/build product scope, plans, contracts, and execution state (mirrored to Linear when `linear.saveArtifacts: true`) |
 | Git and GitHub | source, ancestry, commits, PRs, checks, reviews, merge evidence |
 | Graphite | stack and branch operations |
 | Audit, QA, response reports | sanitized non-authoritative diagnostic evidence |
 The [Hermes guide](/docs/hermes) documents how an external engineer can review harness evidence
-without receiving implementation authority or changing the approval gates.
+without receiving implementation authority.

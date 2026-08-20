@@ -9,7 +9,6 @@ python3 - "$ROOT" <<'PY'
 import json
 import re
 import sys
-import unicodedata
 from pathlib import Path
 
 root = Path(sys.argv[1])
@@ -41,55 +40,35 @@ for pattern, message in (
 
 contract = flat(root / "skills/woostack-init/references/artifact-backends.md")
 for pattern, message in (
-    (r"canonical persistent artifact store for `woostack-build` and project-backed `woostack-fix` is local in `\.woostack/tmp/runs/<run-id>/`", "canonical fix/build local authority missing"),
-    (r"Each independently shippable increment is one direct issue in that project", "direct build issue shape missing"),
+    (r"canonical persistent store for `woostack-build` and project-backed `woostack-fix` is `\.woostack/tmp/runs/<run-id>/`", "canonical fix/build local authority missing"),
     (r"Do not create a parent plan issue", "retired build wrapper is not forbidden"),
-    (r"not source-control or delivery authority", "source-control authority boundary missing"),
-    (r"Run-scoped gated draft manifest", "gated manifest authority missing"),
-    (r"\.woostack/tmp/runs/<run-id>/.*0700.*0600", "restricted local run manifest directory missing"),
-    (r"atomically rename the temporary file over `manifest\.json`", "atomic manifest update missing"),
-    (r"monotonic integer `manifestRevision`.*compare-and-swap", "monotonic revision CAS missing"),
-    (r"zero Linear or other provider reads and writes", "provider-free gated drafting missing"),
-    (r"linear\.saveArtifacts.*in `\.woostack/config\.json` gates all provider", "linear.saveArtifacts provider gating missing"),
-    (r"complete verified Markdown bytes.*full identity.*body-free.*Accept.*Abandon", "complete streamed content and minimal Ask missing"),
-    (r"approval records the local receipt", "local receipt recording missing"),
-    (r"retained upon successful completion and upon explicit abandonment", "retained run artifacts missing"),
-    (r"stableTaskMappings.*canonical issue reference", "canonical issue identity mapping missing"),
-    (r"retained baseline issue.*explicit proposed canonical-issue-reference.*task-key mapping", "retained issue reconciliation missing"),
-    (r"optimistic revision/content-identity precondition.*immediate fresh read", "mid-cycle drift protection missing"),
-    (r"process restart or different process.*complete new artifact", "process-loss complete fallback missing"),
-    (r"manifest is the canonical local run authority", "local authority boundary missing"),
-    (r"Standalone `woostack-plan`.*unchanged", "standalone Plan distinction missing"),
-    (r"Execute-era safety reads are unchanged", "Execute read preservation missing"),
-    (r"projectSpecApprovalRecord", "project-spec approval record missing"),
-    (r"executionPlanApprovalRecord", "execution-plan approval record missing"),
-    (r"project-specification change invalidates both.*issue or dependency change invalidates only", "approval invalidation rules missing"),
-    (r"exact caller-supplied resource always takes precedence over creation", "exact-resource precedence safeguard missing"),
-    (r"official Linear MCP's canonical issue reference.*WOO-144", "canonical issue-reference contract missing"),
-    (r"bare provider issue UUID is not a canonical issue reference", "UUID-only issue endpoint prohibition missing"),
-    (r"parentId.*explicitly requested.*pagination", "nullable-parent admission contract missing"),
-    (r"unknown parent state.*never becomes `null`", "unknown parent fail-closed rule missing"),
-    (r"Before every direct-issue.*graph write", "graph-write preflight ordering missing"),
-    (r"mixed endpoint.*non-round-tripping", "endpoint round-trip guard missing"),
-    (r"zero provider mutation.*zero repository mutation", "zero-mutation blocker missing"),
-    (r"provisional event.*never clears any gate", "provisional receipt non-authority missing"),
-    (r"preallocated.*mutation identities", "stable operation identity safeguard missing"),
-    (r"independently read back", "independent read-back safeguard missing"),
-    (r"providerPresentationCanonicalization", "named provider presentation canonicalization missing"),
-    (r"outside fenced and indented code", "code-boundary presentation scope missing"),
-    (r"unordered `-` and `\*` list markers while retaining their transition pattern", "unordered-marker transition normalization missing"),
-    (r"top-level ATX heading.*no leading indentation", "ATX heading container boundary missing"),
-    (r"blank line whose expanded indentation is four or more columns", "heading indented-blank boundary missing"),
-    (r"presence or absence of exactly one terminal LF.*two or more terminal LFs.*byte-sensitive", "terminal LF normalization boundary missing"),
-    (r"expanded leading indentation columns.*next four-column stop", "expanded tab indentation boundary missing"),
-    (r"Hard breaks.*unsupported ordered-list markers.*byte-sensitive", "presentation exclusions missing"),
-    (r"Native provider bytes remain exact read-back evidence.*canonical fingerprints", "native evidence/canonical comparison missing"),
-    (r"same-process.*byte-complete unified diff.*old.*new.*full-file identit", "same-process revision presentation missing"),
-    (r"caller-supplied exact `<run-id>`.*direct lookup of only that exact path", "exact resume admission missing"),
-    (r"runId, repoRoot, status: \"active\".*\"completed\".*\"abandoned\"", "manifest resume identity fields missing"),
-    (r"never discover or select a run by latest timestamp.*search, or heuristic lookup", "heuristic run discovery prohibition missing"),
-    (r"lock-scoped compare-and-swap.*OS-released exclusive advisory lock", "lock-scoped CAS missing"),
-    (r"ordered no-follow semantics.*ownership, permissions, types, and containment.*ancestor and artifact hierarchy", "hierarchical ancestor no-follow checks missing"),
+    (r"linear\.saveArtifacts.*gates every provider call", "linear.saveArtifacts provider gating missing"),
+    (r"zero provider reads or writes", "zero provider reads or writes when gating disabled missing"),
+    (r"Merge authority remains human-only and outside every woostack workflow", "merge authority boundary missing"),
+    (r"prefer provider-native operation identities|stable mutation identities", "stable mutation identities missing"),
+    (r"Woostack project mutation ID: <UUID>", "project mutation identity fallback marker missing"),
+    (r"\[woostack-mutation:<UUID>\]", "issue mutation identity fallback suffix missing"),
+    (r"official Linear MCP's stable human-facing identifier, such as `WOO-144`, is the canonical issue reference", "canonical issue-reference definition missing"),
+    (r"stableTaskMappings.*maps every local stable task key to one canonical issue reference", "stable task mapping definition missing"),
+    (r"parentId.*Normalize an explicitly returned null parent to `null`|parent state is unknown and blocks", "nullable-parent validation missing"),
+    (r"no-follow semantics", "no-follow semantics missing"),
+    (r"directory mode is exactly `0700`", "directory 0700 mode missing"),
+    (r"owner-only `0600`", "regular file 0600 mode missing"),
+    (r"Write `project-spec\.md` exactly once", "plain project spec single write missing"),
+    (r"Write `execution-plan\.md` exactly once", "plain execution plan single write missing"),
+    (r"Never patch, replace, regenerate, or rewrite either final artifact", "immutable artifact write invariant missing"),
+    (r"atomically rename it to the final path", "atomic rename update missing"),
+    (r"compare-and-swap", "compare-and-swap update missing"),
+    (r"taskExecutions\[stableTaskKey\]", "task executions checkpoints missing"),
+    (r"Planning base and Execute choice", "planning base and Execute choice missing"),
+    (r"If the current tip equals the planning tip, continue without a question", "matching planning tip rule missing"),
+    (r"If the same branch has a different tip, make zero mutations", "different base tip mutation rule missing"),
+    (r"`Continue`.*`Revise spec/plan`.*`Stop`", "Execute base choice options missing"),
+    (r"independently read back", "independent read-back missing"),
+    (r"full project fields.*complete direct membership set.*complete dependency graph", "mirror sync read-back fields missing"),
+    (r"existing-description mutation invariant", "existing-description mutation invariant missing"),
+    (r"Never replace an existing full description", "existing description replacement prohibition missing"),
+    (r"Retain `manifest\.json`, `project-spec\.md`, `execution-plan\.md`, and `\.lock`", "retained run artifacts missing"),
 ):
     require("artifact-backends.md", contract, pattern, message)
 
@@ -97,237 +76,20 @@ for obsolete in (
     r"gate 1 displays only the",
     r"gate 2 displays only the",
     r"Do not paste any project",
+    r"projectSpecApprovalRecord",
+    r"executionPlanApprovalRecord",
+    r"canonicalProjectSpecFingerprint",
+    r"canonicalIncrementFingerprint",
+    r"providerPresentationCanonicalization",
+    r"\bstream(?:ed|ing)?.*(?:full|complete).*(?:bytes|content)",
 ):
     if re.search(obsolete, contract, re.I):
-        failures.append(f"artifact-backends.md: obsolete approval presentation remains: {obsolete}")
-
-presentation_fixture = root / "skills/woostack-init/scripts/tests/fixtures/provider-presentation-canonicalization.json"
-try:
-    presentation = json.loads(presentation_fixture.read_text(encoding="utf-8"))
-except (OSError, json.JSONDecodeError) as error:
-    failures.append(f"presentation fixture unreadable: {error}")
-else:
-    def normalize_global_markdown(value):
-        value = unicodedata.normalize("NFC", value).replace("\r\n", "\n").replace("\r", "\n")
-        terminal_lfs = len(value) - len(value.rstrip("\n"))
-        return value.rstrip("\n") + "\n" if terminal_lfs <= 1 else value
-
-    def canonicalize_markdown(value):
-        value = normalize_global_markdown(value)
-        lines = value.split("\n")
-        result = []
-        fence = None
-        def expanded_indent_columns(line):
-            columns = 0
-            for character in line:
-                if character == " ":
-                    columns += 1
-                elif character == "\t":
-                    columns += 4 - (columns % 4)
-                else:
-                    break
-            return columns
-        marker_source = None
-        marker_canonical = "*"
-        index = 0
-        while index < len(lines):
-            line = lines[index]
-            if expanded_indent_columns(line) >= 4:
-                result.append(line)
-                index += 1
-                continue
-            opening = re.match(r"^[ ]{0,3}(`{3,}|~{3,})", line)
-            if fence is not None:
-                result.append(line)
-                if re.match(rf"^[ ]{{0,3}}{re.escape(fence[0])}{{{fence[1]},}}[ \t]*$", line):
-                    fence = None
-                index += 1
-                continue
-            if opening:
-                result.append(line)
-                fence = (opening.group(1)[0], len(opening.group(1)))
-                index += 1
-                continue
-            if re.match(r"^#{1,6}(?:[ \t]+.*|[ \t]*)$", line):
-                next_index = index + 1
-                while (
-                    next_index < len(lines)
-                    and re.fullmatch(r"[ \t]*", lines[next_index])
-                    and expanded_indent_columns(lines[next_index]) < 4
-                ):
-                    next_index += 1
-                result.append(line)
-                blocked_by_indented_blank = (
-                    next_index < len(lines)
-                    and re.fullmatch(r"[ \t]*", lines[next_index])
-                    and expanded_indent_columns(lines[next_index]) >= 4
-                )
-                if next_index < len(lines) and not blocked_by_indented_blank:
-                    index = next_index
-                    result.append("")
-                else:
-                    index += 1
-                continue
-            ordered = re.match(r"^ ?[0-9]{1,9}[.)][ \t]+.*$", line)
-            if ordered:
-                next_line_is_ordered = (
-                    index + 1 < len(lines)
-                    and re.match(r"^ ?[0-9]{1,9}[.)][ \t]+.*$", lines[index + 1])
-                )
-                terminal_empty = (
-                    index + 1 == len(lines)
-                    or (index + 1 == len(lines) - 1 and lines[index + 1] == "")
-                )
-                if next_line_is_ordered or terminal_empty:
-                    line = line[1:] if line.startswith(" ") else line
-            marker = re.match(r"^([ \t]*)([-*])([ \t]+)(.*)$", line)
-            thematic = re.fullmatch(
-                r"[ \t]{0,3}(?:-(?:[ \t]*-[ \t]*){2,}|\*(?:[ \t]*\*[ \t]*){2,})",
-                line,
-            )
-            if marker and not thematic:
-                if marker_source is not None and marker.group(2) != marker_source:
-                    marker_canonical = "-" if marker_canonical == "*" else "*"
-                marker_source = marker.group(2)
-                line = f"{marker.group(1)}{marker_canonical}{marker.group(3)}{marker.group(4)}"
-            result.append(line)
-            index += 1
-        return "\n".join(result)
-
-    def canonical_record(record):
-        normalized = json.loads(json.dumps(record))
-        for entity in ("project", "increment", "issue"):
-            normalized[entity]["description"] = canonicalize_markdown(normalized[entity]["description"])
-        return normalized
-
-    approved = presentation.get("approved")
-    provider = presentation.get("provider")
-    semantic = presentation.get("semanticMutation")
-    expected = presentation.get("expected")
-    if not all(isinstance(value, dict) for value in (approved, provider, semantic, expected)):
-        failures.append("presentation fixture shape is incomplete")
-    else:
-        if canonical_record(approved) != canonical_record(provider):
-            failures.append("provider presentation form is not canonically equivalent")
-        if canonical_record(approved) == canonical_record(semantic):
-            failures.append("semantic mutation was admitted as equivalent")
-        if not expected.get("presentationEquivalent") or not expected.get("semanticMutationDifferent"):
-            failures.append("presentation fixture expected flags are incomplete")
-        transitions = presentation.get("markerTransitions")
-        if not isinstance(transitions, dict):
-            failures.append("marker transition fixture is missing")
-        else:
-            if canonicalize_markdown(transitions["uniformDash"]) != canonicalize_markdown(transitions["uniformStar"]):
-                failures.append("uniform unordered markers are not canonically equivalent")
-            if canonicalize_markdown(transitions["uniformDash"]) == canonicalize_markdown(transitions["mixedDashStar"]):
-                failures.append("mixed unordered-marker transitions were over-normalized")
-            if canonicalize_markdown(transitions["uniformDashAcrossProse"]) != canonicalize_markdown(transitions["uniformStarAcrossProse"]):
-                failures.append("uniform unordered markers across prose are not canonically equivalent")
-            if canonicalize_markdown(transitions["uniformDashAcrossProse"]) == canonicalize_markdown(transitions["mixedAcrossProse"]):
-                failures.append("mixed unordered-marker transitions across prose were over-normalized")
-            if not expected.get("uniformMarkersEquivalent") or not expected.get("mixedMarkerTransitionsSensitive"):
-                failures.append("marker transition fixture expected flags are incomplete")
-        ordered = presentation.get("orderedMarkers")
-        if not isinstance(ordered, dict):
-            failures.append("ordered marker fixture is missing")
-        else:
-            for left, right in (
-                ("zeroLeadingSpace", "oneLeadingSpace"),
-                ("zeroLeadingSpaceParen", "oneLeadingSpaceParen"),
-                ("nineDigitZeroLeadingSpace", "nineDigitOneLeadingSpace"),
-                ("tabWhitespaceZeroLeadingSpace", "tabWhitespaceOneLeadingSpace"),
-                ("multipleWhitespaceZeroLeadingSpace", "multipleWhitespaceOneLeadingSpace"),
-            ):
-                canonical_left = canonicalize_markdown(ordered[left])
-                if canonical_left != ordered[left]:
-                    failures.append(f"ordered marker zero-space bytes changed: {left}")
-                if canonical_left != canonicalize_markdown(ordered[right]):
-                    failures.append(f"ordered marker pair is not equivalent: {left}/{right}")
-            if canonicalize_markdown("1. item") != canonicalize_markdown(" 1. item"):
-                failures.append("ordered marker pair without terminal LF is not equivalent")
-            if canonicalize_markdown(ordered["continuationZeroLeadingSpace"]) == canonicalize_markdown(ordered["continuationOneLeadingSpace"]):
-                failures.append("ordered marker after blank-line continuation was normalized")
-            if canonicalize_markdown(ordered["tenDigitZeroLeadingSpace"]) == canonicalize_markdown(ordered["tenDigitOneLeadingSpace"]):
-                failures.append("ten-digit ordered marker boundary was normalized")
-            for left, right in (
-                ("zeroLeadingSpace", "twoLeadingSpaces"),
-                ("zeroLeadingSpace", "leadingTab"),
-                ("zeroLeadingSpace", "nestedContainer"),
-                ("zeroLeadingSpace", "missingWhitespace"),
-                ("zeroLeadingSpace", "repeatedDelimiter"),
-                ("zeroLeadingSpace", "unicodeDigits"),
-                ("zeroLeadingSpace", "changedNumber"),
-                ("zeroLeadingSpace", "changedDelimiter"),
-                ("zeroLeadingSpace", "changedText"),
-                ("zeroLeadingSpace", "changedOrder"),
-            ):
-                if canonicalize_markdown(ordered[left]) == canonicalize_markdown(ordered[right]):
-                    failures.append(f"unsupported ordered marker boundary was normalized: {left}/{right}")
-            for name in (
-                "twoLeadingSpaces",
-                "leadingTab",
-                "nestedContainer",
-                "fencedCode",
-                "indentedCode",
-                "missingWhitespace",
-                "repeatedDelimiter",
-                "unicodeDigits",
-                "changedNumber",
-                "changedDelimiter",
-                "changedText",
-                "changedOrder",
-                "tenDigitZeroLeadingSpace",
-                "tenDigitOneLeadingSpace",
-            ):
-                if canonicalize_markdown(ordered[name]) != normalize_global_markdown(ordered[name]):
-                    failures.append(f"unsupported ordered marker bytes changed: {name}")
-            for name in ("fencedCode", "indentedCode"):
-                if " 1. item" not in canonicalize_markdown(ordered[name]):
-                    failures.append(f"ordered marker inside {name} was normalized")
-            if canonicalize_markdown(ordered["nestedContainer"]) != "> 1. item\n":
-                failures.append("container-nested ordered marker was normalized")
-            if not expected.get("orderedMarkerEquivalent") or not expected.get("orderedMarkerBoundariesSensitive"):
-                failures.append("ordered marker fixture expected flags are incomplete")
-        headings = presentation.get("headingBoundaries")
-        if not isinstance(headings, dict):
-            failures.append("heading boundary fixture is missing")
-        else:
-            if "## Heading\n    \nBody" not in canonicalize_markdown(headings["indentedBlankAfterHeading"]):
-                failures.append("indented blank line after heading was normalized away")
-            if canonicalize_markdown(headings["nestedWithoutBlank"]) == canonicalize_markdown(headings["nestedWithBlank"]):
-                failures.append("nested heading spacing was over-normalized")
-            if not expected.get("indentedHeadingBlankSensitive") or not expected.get("nestedHeadingSpacingSensitive"):
-                failures.append("heading boundary fixture expected flags are incomplete")
-        canonical_provider = canonical_record(provider)
-        for fragment_name, fragment in expected.get("preservedFragments", {}).items():
-            if fragment not in canonical_provider["issue"]["description"]:
-                failures.append(f"presentation fixture loses {fragment_name}")
-        if provider["issue"]["description"] == approved["issue"]["description"]:
-            failures.append("presentation fixture does not contain a provider presentation delta")
-        terminal = presentation.get("terminalLf")
-        if not isinstance(terminal, dict):
-            failures.append("terminal LF fixture is missing")
-        else:
-            if canonicalize_markdown(terminal["withoutTerminalLf"]) != canonicalize_markdown(terminal["withOneTerminalLf"]):
-                failures.append("one terminal LF presence is not normalized")
-            if canonicalize_markdown(terminal["withTwoTerminalLfs"]) == canonicalize_markdown(terminal["withThreeTerminalLfs"]):
-                failures.append("multiple terminal LFs were over-normalized")
-            if not expected.get("terminalLfEquivalent") or not expected.get("multipleTerminalLfsSensitive"):
-                failures.append("terminal LF fixture expected flags are incomplete")
-            if canonicalize_markdown(terminal["finalHeadingWithoutTerminalLf"]) != canonicalize_markdown(terminal["finalHeadingWithOneTerminalLf"]):
-                failures.append("final heading zero/one terminal LF presence is not normalized")
-            if canonicalize_markdown(terminal["finalHeadingWithTwoTerminalLfs"]) == canonicalize_markdown(terminal["finalHeadingWithThreeTerminalLfs"]):
-                failures.append("final heading multiple terminal LFs were over-normalized")
-            if canonicalize_markdown(terminal["finalHeadingWithTwoTerminalLfs"]) == canonicalize_markdown(terminal["finalHeadingWithOneTerminalLf"]):
-                failures.append("final heading multiple terminal LFs matched the one-LF form")
-            if not expected.get("finalHeadingTerminalLfEquivalent") or not expected.get("finalHeadingMultipleTerminalLfsSensitive"):
-                failures.append("final heading terminal LF fixture expected flags are incomplete")
-
+        failures.append(f"artifact-backends.md: obsolete term remains: {obsolete}")
 
 build = flat(root / "skills/woostack-build/SKILL.md")
 for pattern, message in (
-    (r"resolves the exact supplied project or creates exactly one project", "build project admission missing"),
-    (r"two active-conversation approval receipts", "two-approval build contract missing"),
+    (r"resolves the exact.*supplied.*project or creates exactly one.*project|\[Build\] ", "build project admission missing"),
+    (r"writes plain Markdown `project-spec\.md` and `execution-plan\.md`", "plain spec and plan build contract missing"),
     (r"candidate strict sequential direct-issue chain", "direct increment shape missing"),
 ):
     require("woostack-build", build, pattern, message)
@@ -336,11 +98,11 @@ fix = flat(root / "skills/woostack-fix/SKILL.md")
 for pattern, message in (
     (r"Before root-cause proof, Fix makes no provider call", "pre-proof provider boundary missing"),
     (r"omitted, Fix creates exactly one project after root-cause proof", "plain-input project creation missing"),
-    (r"exactly the two shared local approval receipts", "shared Fix approvals missing"),
+    (r"writes plain Markdown `project-spec\.md` and `execution-plan\.md`", "shared Fix plain artifacts missing"),
 ):
     require("woostack-fix", fix, pattern, message)
-if re.search(r"fixApprovalRecord|approve-to-execute|bind exactly one issue", fix, re.I):
-    failures.append("woostack-fix: retired one-issue approval contract remains")
+if re.search(r"fixApprovalRecord|approve-to-execute|bind exactly one issue|projectSpecApprovalRecord|executionPlanApprovalRecord", fix, re.I):
+    failures.append("woostack-fix: retired approval contract remains")
 
 plan = flat(root / "skills/woostack-plan/SKILL.md")
 require("woostack-plan", plan, r"`--project` is mandatory", "exact-project selection boundary missing")

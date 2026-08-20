@@ -66,20 +66,19 @@ omitted), Build and Fix operate with default zero-provider local authority. Supp
 when `linear.saveArtifacts` is false or absent fails closed immediately.
 
 Gated Ideate, Harden, and delegated Plan work is managed in one permission-restricted run manifest
-with zero provider cycles. The responsible user sees and approves the complete exact specification
-or plan gate file, recording local raw-hash approval records (`projectSpecApprovalRecord` and
-`executionPlanApprovalRecord`). When `linear.saveArtifacts: true`, approved local artifacts mirror to
-Linear in one bounded post-approval cycle; mirror failure is recorded in the manifest and is
+with zero provider cycles. Build and Fix write plain `project-spec.md` and `execution-plan.md`
+directly under `.woostack/tmp/runs/<run-id>/` and proceed directly to a user-controlled handoff
+(`Stop here`, `Execute`, `Abandon`). When `linear.saveArtifacts: true`, local artifacts mirror to
+Linear in bounded post-drafting cycles; mirror failure is recorded in the manifest and is
 nonblocking for local authority. Resuming work uses `/woostack-execute --run <exact-run-id> [--recheck]`,
 `/woostack-build --run <exact-run-id>`, or `/woostack-fix --run <exact-run-id>`. All run artifacts in
 `.woostack/tmp/runs/<run-id>/` are retained upon completion and upon explicit abandonment to preserve
 an unbroken audit trail. Explicit abandonment sets `status: "abandoned"` in the manifest and does not
 mutate a mirrored Linear project. Standalone Plan synchronization remains direct and unchanged. The
 shared
-[Local run artifact and provider mirror contract](skills/woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest)
-owns the detailed manifest, approval identity, ordering, recovery, identity mapping, retention, and
-Execute read contract.
-
+[Local run artifact and provider mirror contract](skills/woostack-init/references/artifact-backends.md#minimal-resumable-manifest-schema)
+owns the detailed manifest, ordering, recovery, identity mapping, retention, and Execute read
+contract.
 The user's request and each workflow's explicit approval gates authorize repository work; artifacts
 record that work and never grant permission, assignment, ownership, acceptance, or source-control
 authority. Git and GitHub own source, branches, commits, pull requests, reviews, and merge evidence.
@@ -94,9 +93,8 @@ blockers leave project status unchanged.
 External engineers such as Hermes are outside the installed woostack host/runtime surface. Hermes
 may drive one persistent OMP session as an external decision-maker and reviewer, but woostack is
 installed only in OMP or another coding harness. When Hermes participates in an active conversation,
-the responsible user's live approval response must be relayed verbatim; cross-session resume against
-retained unchanged local artifacts and verified local approval records does not require the original
-process to stay alive. The external-engineer decision, escalation, approval relay, and evidence
+the responsible user's live response must be relayed verbatim; cross-session resume against
+retained unchanged local run artifacts does not require the original process to stay alive.
 contract lives in the authored [Hermes guide](site/content/docs/hermes.mdx); it does not make Hermes a supported host
 or grant it implementation authority.
 

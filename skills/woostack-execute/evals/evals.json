@@ -86,23 +86,10 @@
       ]
     },
     {
-      "id": "admission-requires-record-pair",
-      "prompt": "Execute receives exact project project-1 with a matching projectSpecApprovalRecord but no executionPlanApprovalRecord. Return exactly one JSON object with keys status, reason, mutationAllowed, selectedResource, and missingRecords. Do not mutate anything.",
-      "capabilities": ["read-workspace"],
-      "expected": "An exact project without both matching approval records is blocked before repository mutation.",
-      "assertions": [
-        {"id": "admission-blocked", "kind": "final-json-path-equals", "pointer": "/status", "expected": "blocked", "critical": true},
-        {"id": "admission-reason", "kind": "final-json-path-equals", "pointer": "/reason", "expected": "matching-approval-records-required", "critical": true},
-        {"id": "admission-no-mutation", "kind": "final-json-path-equals", "pointer": "/mutationAllowed", "expected": false, "critical": true},
-        {"id": "admission-resource", "kind": "final-json-path-equals", "pointer": "/selectedResource", "expected": "project-1", "critical": true},
-        {"id": "admission-missing", "kind": "final-json-path-equals", "pointer": "/missingRecords", "expected": ["executionPlanApprovalRecord"], "critical": true}
-      ]
-    },
-    {
       "id": "resume-reuses-existing-pr",
-      "prompt": "A resumed project issue has its executing and configured inReview mappings independently resolved by stable native identity/category, a persisted delivery checkpoint still pending clean-worktree verification (deliveryCheckpoint=pending-clean), commit commit-002, and canonical PR https://github.com/acme/repo/pull/2 proven by independent Linear, Git, Graphite, and GitHub reads, while its worktree is retained dirty. Approved parent-branch intent and fresh repository reads agree on canonical branch \"refs/heads/main\"; last admitted tip \"parent-001\" and current tip \"parent-002\" have proven descendant ancestry and complete exact-head delivery, review, and check evidence. The retained work recorded start \"parent-001\" and head \"commit-002\", and ancestry, diff identity, and PR base were revalidated without rebasing, resetting, or recreating it. Also classify branch-identity change, non-descendant ancestry, conflict, duplicate ancestry, incomplete evidence, delivery mismatch, and material drift. Return exactly one JSON object with keys status, reason, existingCommit, existingPr, deliveryCheckpoint, duplicateCreated, worktreeState, resumeBoundary, repositoryAdmission, and incompatibleEvidence.",
+      "prompt": "A resumed project issue has its executing and configured inReview mappings independently resolved by stable native identity/category, a persisted delivery checkpoint still pending clean-worktree verification (deliveryCheckpoint=pending-clean), commit commit-002, and canonical PR https://github.com/acme/repo/pull/2 proven by independent Linear, Git, Graphite, and GitHub reads, while its worktree is retained dirty. The manifest records canonical parent branch refs/heads/main and planning tip parent-001; a fresh exact read observes the same branch and tip. Revalidate the retained start, head, ancestry, diff, and PR base without creating a duplicate or removing the dirty worktree. Return exactly one JSON object with keys status, reason, existingCommit, existingPr, duplicateCreated, worktreeState, resumeBoundary, deliveryCheckpoint, and repositoryBaseCheck.",
       "capabilities": ["read-workspace"],
-      "expected": "Interruption after PR submission resumes from the existing commit and PR only after compatible parent advancement re-admits the current tip and revalidates the retained start/head, ancestry, diff, and PR base. Every incompatible or incomplete repository-evidence case blocks. The retained worktree is not removed until clean verification.",
+      "expected": "Interruption after PR submission resumes from the existing commit and PR only when an exact fresh read observes the unchanged planning branch and tip and revalidates retained delivery evidence.",
       "assertions": [
         {"id": "resume-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "resume", "critical": true},
         {"id": "resume-reason", "kind": "final-json-path-equals", "pointer": "/reason", "expected": "existing-delivery-evidence", "critical": true},
@@ -112,22 +99,11 @@
         {"id": "resume-retained", "kind": "final-json-path-equals", "pointer": "/worktreeState", "expected": "retained-dirty", "critical": true},
         {"id": "resume-boundary", "kind": "final-json-path-equals", "pointer": "/resumeBoundary", "expected": "clean-and-readback", "critical": true},
         {"id": "resume-checkpoint", "kind": "final-json-path-equals", "pointer": "/deliveryCheckpoint", "expected": "pending-clean", "critical": true},
-        {"id": "resume-parent-re-admitted", "kind": "final-json-path-equals", "pointer": "/repositoryAdmission/status", "expected": "re-admitted", "critical": true},
-        {"id": "resume-stable-parent-branch", "kind": "final-json-path-equals", "pointer": "/repositoryAdmission/canonicalParentBranch", "expected": "refs/heads/main", "critical": true},
-        {"id": "resume-branch-identity-proven", "kind": "final-json-path-equals", "pointer": "/repositoryAdmission/branchIdentityStable", "expected": true, "critical": true},
-        {"id": "resume-last-tip", "kind": "final-json-path-equals", "pointer": "/repositoryAdmission/lastAdmittedTip", "expected": "parent-001", "critical": true},
-        {"id": "resume-current-tip", "kind": "final-json-path-equals", "pointer": "/repositoryAdmission/currentAdmittedTip", "expected": "parent-002", "critical": true},
-        {"id": "resume-descendant-ancestry", "kind": "final-json-path-equals", "pointer": "/repositoryAdmission/currentDescendsFromLast", "expected": true, "critical": true},
-        {"id": "resume-start-preserved", "kind": "final-json-path-equals", "pointer": "/repositoryAdmission/retainedStart", "expected": "parent-001", "critical": true},
-        {"id": "resume-head-preserved", "kind": "final-json-path-equals", "pointer": "/repositoryAdmission/retainedHead", "expected": "commit-002", "critical": true},
-        {"id": "resume-revalidation-complete", "kind": "final-json-path-equals", "pointer": "/repositoryAdmission/revalidated", "expected": ["ancestry","diff","prBase"], "critical": true},
-        {"id": "resume-branch-change-blocks", "kind": "final-json-path-equals", "pointer": "/incompatibleEvidence/branchIdentityChange", "expected": "blocked", "critical": true},
-        {"id": "resume-non-descendant-blocks", "kind": "final-json-path-equals", "pointer": "/incompatibleEvidence/nonDescendant", "expected": "blocked", "critical": true},
-        {"id": "resume-conflict-blocks", "kind": "final-json-path-equals", "pointer": "/incompatibleEvidence/conflict", "expected": "blocked", "critical": true},
-        {"id": "resume-duplicate-ancestry-blocks", "kind": "final-json-path-equals", "pointer": "/incompatibleEvidence/duplicateAncestry", "expected": "blocked", "critical": true},
-        {"id": "resume-incomplete-evidence-blocks", "kind": "final-json-path-equals", "pointer": "/incompatibleEvidence/incompleteEvidence", "expected": "blocked", "critical": true},
-        {"id": "resume-delivery-mismatch-blocks", "kind": "final-json-path-equals", "pointer": "/incompatibleEvidence/deliveryMismatch", "expected": "blocked", "critical": true},
-        {"id": "resume-material-drift-blocks", "kind": "final-json-path-equals", "pointer": "/incompatibleEvidence/materialDrift", "expected": "blocked", "critical": true}
+        {"id": "resume-base-status", "kind": "final-json-path-equals", "pointer": "/repositoryBaseCheck/status", "expected": "unchanged", "critical": true},
+        {"id": "resume-base-branch", "kind": "final-json-path-equals", "pointer": "/repositoryBaseCheck/canonicalParentBranch", "expected": "refs/heads/main", "critical": true},
+        {"id": "resume-planning-tip", "kind": "final-json-path-equals", "pointer": "/repositoryBaseCheck/planningTip", "expected": "parent-001", "critical": true},
+        {"id": "resume-current-tip", "kind": "final-json-path-equals", "pointer": "/repositoryBaseCheck/currentTip", "expected": "parent-001", "critical": true},
+        {"id": "resume-revalidation-complete", "kind": "final-json-path-equals", "pointer": "/repositoryBaseCheck/revalidated", "expected": ["ancestry", "diff", "prBase"], "critical": true}
       ]
     },
     {
@@ -307,16 +283,16 @@
     },
     {
       "id": "local-run-exact-admission-proceeds",
-      "prompt": "Local run mode receives exact runId \"run-20260815-123456-abcdef\" at <repo-root>/.woostack/tmp/runs/run-20260815-123456-abcdef/ after Git-ignore and no-follow ancestor proof. The owner-only 0700 run directory contains owner-only 0600 regular files manifest.json, project-spec.md, execution-plan.md, and .lock. Local projectSpecApprovalRecord and executionPlanApprovalRecord fields and manifest revisions match the raw gate-file SHA-256 and byteLength; manifest status is active; taskExecutions.task-1 is pending at ordinal 1. Return exactly one JSON object with keys status, mode, selectedStableTaskKey, selectedOrdinal, commitMode, checkpointPersistence, and mutationAllowed. Set commitMode to \"artifact-free-without-issue\" and checkpointPersistence to \"manifest-cas\".",
+      "prompt": "Local run mode receives exact runId \"run-20260815-123456-abcdef\" at <repo-root>/.woostack/tmp/runs/run-20260815-123456-abcdef/ after Git-ignore and ordered no-follow ancestor proof. The owner-only 0700 run directory contains owner-only 0600 regular files manifest.json, project-spec.md, execution-plan.md, and .lock. The current plain-artifact manifest schema has exact artifact paths, stableTaskMappings, dependencies, and a pending taskExecutions.task-1 entry. The recorded canonical parent branch and planning tip exactly match fresh repository reads. Return exactly one JSON object with keys status, mode, selectedStableTaskKey, selectedOrdinal, commitMode, checkpointPersistence, and mutationAllowed.",
       "capabilities": ["read-workspace"],
-      "expected": "Exact local run admission admits the repository-local ignored run and matching raw-file-hash approval records, selects the lowest unfinished ordinal, and routes through artifact-free commit and manifest CAS.",
+      "expected": "Exact local run admission admits owner-only plain artifacts and the minimal manifest, selects the lowest unfinished task, and routes delivery through manifest checkpoint replacement.",
       "assertions": [
         {"id": "local-run-proceed", "kind": "final-json-path-equals", "pointer": "/status", "expected": "proceed", "critical": true},
         {"id": "local-run-mode", "kind": "final-json-path-equals", "pointer": "/mode", "expected": "run", "critical": true},
         {"id": "local-run-task", "kind": "final-json-path-equals", "pointer": "/selectedStableTaskKey", "expected": "task-1", "critical": true},
         {"id": "local-run-ordinal", "kind": "final-json-path-equals", "pointer": "/selectedOrdinal", "expected": 1, "critical": true},
         {"id": "local-run-commit-mode", "kind": "final-json-path-equals", "pointer": "/commitMode", "expected": "artifact-free-without-issue", "critical": true},
-        {"id": "local-run-checkpoint-persistence", "kind": "final-json-path-equals", "pointer": "/checkpointPersistence", "expected": "manifest-cas", "critical": true},
+        {"id": "local-run-checkpoint-persistence", "kind": "final-json-path-equals", "pointer": "/checkpointPersistence", "expected": "atomic-manifest-replacement", "critical": true},
         {"id": "local-run-mutation-allowed", "kind": "final-json-path-equals", "pointer": "/mutationAllowed", "expected": true, "critical": true}
       ]
     },
@@ -345,15 +321,16 @@
       ]
     },
     {
-      "id": "local-run-stale-hash-record-rejected",
-      "prompt": "Local run manifest contains projectSpecApprovalRecord with SHA-256 hash-aaa, but the no-follow read of project-spec.md computes SHA-256 hash-bbb. The local approval record does not match the gate file. Return exactly one JSON object with keys status, reason, mutationAllowed, and firstBoundary.",
+      "id": "local-run-legacy-approval-schema-rejected",
+      "prompt": "A retained pre-change run uses a legacy manifest schema containing projectSpecApprovalRecord, executionPlanApprovalRecord, gate-file SHA-256, and byteLength fields. Execute must not convert, reinterpret, or partially admit that schema. Return exactly one JSON object with keys status, reason, mutationAllowed, retainedUnchanged, and firstBoundary.",
       "capabilities": ["read-workspace"],
-      "expected": "A hash mismatch between a gate file and its local approval record blocks execution.",
+      "expected": "A pre-change approval-and-hash manifest is rejected as an unsupported legacy schema and retained unchanged.",
       "assertions": [
-        {"id": "stale-hash-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "blocked", "critical": true},
-        {"id": "stale-hash-reason", "kind": "final-json-path-equals", "pointer": "/reason", "expected": "approval-record-hash-mismatch", "critical": true},
-        {"id": "stale-hash-no-mutation", "kind": "final-json-path-equals", "pointer": "/mutationAllowed", "expected": false, "critical": true},
-        {"id": "stale-hash-boundary", "kind": "final-json-path-equals", "pointer": "/firstBoundary", "expected": "approval-record-verification", "critical": true}
+        {"id": "legacy-schema-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "blocked", "critical": true},
+        {"id": "legacy-schema-reason", "kind": "final-json-path-equals", "pointer": "/reason", "expected": "legacy-run-schema-unsupported", "critical": true},
+        {"id": "legacy-schema-no-mutation", "kind": "final-json-path-equals", "pointer": "/mutationAllowed", "expected": false, "critical": true},
+        {"id": "legacy-schema-retained", "kind": "final-json-path-equals", "pointer": "/retainedUnchanged", "expected": true, "critical": true},
+        {"id": "legacy-schema-boundary", "kind": "final-json-path-equals", "pointer": "/firstBoundary", "expected": "manifest-schema-admission", "critical": true}
       ]
     },
     {
@@ -366,42 +343,6 @@
         {"id": "abandoned-run-reason", "kind": "final-json-path-equals", "pointer": "/reason", "expected": "run-abandoned", "critical": true},
         {"id": "abandoned-run-no-mutation", "kind": "final-json-path-equals", "pointer": "/mutationAllowed", "expected": false, "critical": true},
         {"id": "abandoned-run-boundary", "kind": "final-json-path-equals", "pointer": "/firstBoundary", "expected": "manifest-admission", "critical": true}
-      ]
-    },
-    {
-      "id": "local-run-recheck-unchanged-preserves-records",
-      "prompt": "Local run mode is invoked with --recheck. Bounded Harden runs against current trunk and proves rendered project-spec.md and execution-plan.md are byte-identical to the approved gate files. Return exactly one JSON object with keys status, recheckResult, recordsPreserved, and mutationAllowed.",
-      "capabilities": ["read-workspace"],
-      "expected": "Recheck proving byte-identical files preserves existing local approval records and proceeds.",
-      "assertions": [
-        {"id": "recheck-unchanged-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "proceed", "critical": true},
-        {"id": "recheck-unchanged-result", "kind": "final-json-path-equals", "pointer": "/recheckResult", "expected": "byte-identical", "critical": true},
-        {"id": "recheck-unchanged-preserved", "kind": "final-json-path-equals", "pointer": "/recordsPreserved", "expected": true, "critical": true},
-        {"id": "recheck-unchanged-mutation", "kind": "final-json-path-equals", "pointer": "/mutationAllowed", "expected": true, "critical": true}
-      ]
-    },
-    {
-      "id": "local-run-recheck-changed-spec-invalidates",
-      "prompt": "Local run mode is invoked with --recheck. Bounded Harden changes the project-spec.md bytes against current trunk. Return exactly one JSON object with keys status, returnGate, recordsInvalidated, and mutationAllowed.",
-      "capabilities": ["read-workspace"],
-      "expected": "Recheck detecting changed project-spec bytes invalidates both local approval records and returns to gate 1.",
-      "assertions": [
-        {"id": "recheck-spec-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "recheck-invalidated", "critical": true},
-        {"id": "recheck-spec-return-gate", "kind": "final-json-path-equals", "pointer": "/returnGate", "expected": "gate-1-spec-hardening", "critical": true},
-        {"id": "recheck-spec-invalidated", "kind": "final-json-path-equals", "pointer": "/recordsInvalidated", "expected": ["projectSpecApprovalRecord", "executionPlanApprovalRecord"], "critical": true},
-        {"id": "recheck-spec-no-mutation", "kind": "final-json-path-equals", "pointer": "/mutationAllowed", "expected": false, "critical": true}
-      ]
-    },
-    {
-      "id": "local-run-recheck-changed-plan-invalidates",
-      "prompt": "Local run mode is invoked with --recheck. Bounded Harden keeps project-spec.md byte-identical but changes execution-plan.md bytes against current trunk. Return exactly one JSON object with keys status, returnGate, recordsInvalidated, and mutationAllowed.",
-      "capabilities": ["read-workspace"],
-      "expected": "Recheck detecting changed execution-plan bytes invalidates only the gate 2 local approval record and returns to gate 2.",
-      "assertions": [
-        {"id": "recheck-plan-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "recheck-invalidated", "critical": true},
-        {"id": "recheck-plan-return-gate", "kind": "final-json-path-equals", "pointer": "/returnGate", "expected": "gate-2-plan-hardening", "critical": true},
-        {"id": "recheck-plan-invalidated", "kind": "final-json-path-equals", "pointer": "/recordsInvalidated", "expected": ["executionPlanApprovalRecord"], "critical": true},
-        {"id": "recheck-plan-no-mutation", "kind": "final-json-path-equals", "pointer": "/mutationAllowed", "expected": false, "critical": true}
       ]
     },
     {
@@ -459,31 +400,58 @@
       ]
     },
     {
-      "id": "compatible-advancement-with-failed-checks",
-      "prompt": "A non-root task in local run mode has approved records and its predecessor PR has an independently verified delivery checkpoint, matching commit and canonical PR head, approved reviews, but failed GitHub checks. Approved parent-branch intent and fresh repository reads agree on canonical refs/heads/main and the descendant tip. Return exactly one JSON object with keys status, observedChecks, checkCausedBlockers, repositoryAdmission, and nextBoundary. Set observedChecks to [\"failed\"], checkCausedBlockers to [], and repositoryAdmission to {\"status\": \"re-admitted\", \"action\": \"re-admit-current-parent-tip\"}.",
+      "id": "predecessor-failed-checks-observed-only",
+      "prompt": "A non-root task in local run mode has a predecessor with an independently verified delivered checkpoint, matching commit and canonical PR head, and satisfied review requirements. Available current-head GitHub checks are failed. The recorded parent branch and planning tip exactly match fresh repository reads. Return exactly one JSON object with keys status, observedChecks, checkCausedBlockers, predecessorObservation, and nextBoundary. Set observedChecks to [\"failed\"], checkCausedBlockers to [], and predecessorObservation to {\"deliveryCheckpoint\":\"complete\",\"reviews\":\"satisfied\",\"baseTip\":\"unchanged\"}.",
       "capabilities": ["read-workspace"],
-      "expected": "Failed GitHub checks are reported for observation only; compatible advancement proceeds without check-caused blockers when predecessor delivery checkpoint, reviews, and ancestry pass.",
+      "expected": "Failed GitHub checks are reported for observation only and create no blocker when predecessor delivery, reviews, and the unchanged planning base are independently observed.",
       "assertions": [
         {"id": "failed-checks-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "continue", "critical": true},
         {"id": "failed-checks-observed", "kind": "final-json-path-equals", "pointer": "/observedChecks", "expected": ["failed"], "critical": true},
         {"id": "failed-checks-no-blockers", "kind": "final-json-path-equals", "pointer": "/checkCausedBlockers", "expected": [], "critical": true},
-        {"id": "failed-checks-admission-status", "kind": "final-json-path-equals", "pointer": "/repositoryAdmission/status", "expected": "re-admitted", "critical": true},
-        {"id": "failed-checks-admission-action", "kind": "final-json-path-equals", "pointer": "/repositoryAdmission/action", "expected": "re-admit-current-parent-tip", "critical": true},
+        {"id": "failed-checks-predecessor", "kind": "final-json-path-equals", "pointer": "/predecessorObservation", "expected": {"deliveryCheckpoint": "complete", "reviews": "satisfied", "baseTip": "unchanged"}, "critical": true},
         {"id": "failed-checks-dispatch", "kind": "final-json-path-equals", "pointer": "/nextBoundary", "expected": "dispatch-fast-model", "critical": true}
       ]
     },
     {
-      "id": "compatible-advancement-with-pending-checks",
-      "prompt": "A non-root task in local run mode has approved records and its predecessor PR has an independently verified delivery checkpoint, matching commit and canonical PR head, approved reviews, but pending GitHub checks. Approved parent-branch intent and fresh repository reads agree on canonical refs/heads/main and the descendant tip. Return exactly one JSON object with keys status, observedChecks, checkCausedBlockers, repositoryAdmission, and nextBoundary. Set observedChecks to [\"pending\"], checkCausedBlockers to [], and repositoryAdmission to {\"status\": \"re-admitted\", \"action\": \"re-admit-current-parent-tip\"}.",
+      "id": "predecessor-pending-checks-observed-only",
+      "prompt": "A non-root task in local run mode has a predecessor with an independently verified delivered checkpoint, matching commit and canonical PR head, and satisfied review requirements. Available current-head GitHub checks are pending. The recorded parent branch and planning tip exactly match fresh repository reads. Return exactly one JSON object with keys status, observedChecks, checkCausedBlockers, predecessorObservation, and nextBoundary. Set observedChecks to [\"pending\"], checkCausedBlockers to [], and predecessorObservation to {\"deliveryCheckpoint\":\"complete\",\"reviews\":\"satisfied\",\"baseTip\":\"unchanged\"}.",
       "capabilities": ["read-workspace"],
-      "expected": "Pending GitHub checks are reported for observation only; compatible advancement proceeds without check-caused blockers when predecessor delivery checkpoint, reviews, and ancestry pass.",
+      "expected": "Pending GitHub checks are reported for observation only and create no blocker when predecessor delivery, reviews, and the unchanged planning base are independently observed.",
       "assertions": [
         {"id": "pending-checks-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "continue", "critical": true},
         {"id": "pending-checks-observed", "kind": "final-json-path-equals", "pointer": "/observedChecks", "expected": ["pending"], "critical": true},
         {"id": "pending-checks-no-blockers", "kind": "final-json-path-equals", "pointer": "/checkCausedBlockers", "expected": [], "critical": true},
-        {"id": "pending-checks-admission-status", "kind": "final-json-path-equals", "pointer": "/repositoryAdmission/status", "expected": "re-admitted", "critical": true},
-        {"id": "pending-checks-admission-action", "kind": "final-json-path-equals", "pointer": "/repositoryAdmission/action", "expected": "re-admit-current-parent-tip", "critical": true},
+        {"id": "pending-checks-predecessor", "kind": "final-json-path-equals", "pointer": "/predecessorObservation", "expected": {"deliveryCheckpoint": "complete", "reviews": "satisfied", "baseTip": "unchanged"}, "critical": true},
         {"id": "pending-checks-dispatch", "kind": "final-json-path-equals", "pointer": "/nextBoundary", "expected": "dispatch-fast-model", "critical": true}
+      ]
+    },
+    {
+      "id": "unchanged-planning-tip-proceeds",
+      "prompt": "In local run mode, an exact fresh read proves the canonical integration parent branch is unchanged and its current tip equals the planning tip recorded in the manifest. Proceed without asking or changing the manifest first. Return exactly one JSON object with keys status, planningTip, currentTip, questionAsked, and nextBoundary. Set status to \"proceed\", planningTip to \"tip-001\", currentTip to \"tip-001\", questionAsked to false, and nextBoundary to \"dispatch-fast-model\".",
+      "capabilities": ["read-workspace"],
+      "expected": "When the current integration tip exactly matches the planning tip, Execute proceeds without user interaction.",
+      "assertions": [
+        {"id": "unchanged-tip-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "proceed", "critical": true},
+        {"id": "unchanged-tip-planning", "kind": "final-json-path-equals", "pointer": "/planningTip", "expected": "tip-001", "critical": true},
+        {"id": "unchanged-tip-current", "kind": "final-json-path-equals", "pointer": "/currentTip", "expected": "tip-001", "critical": true},
+        {"id": "unchanged-tip-no-question", "kind": "final-json-path-equals", "pointer": "/questionAsked", "expected": false, "critical": true},
+        {"id": "unchanged-tip-dispatch", "kind": "final-json-path-equals", "pointer": "/nextBoundary", "expected": "dispatch-fast-model", "critical": true}
+      ]
+    },
+    {
+      "id": "changed-planning-tip-asks-options",
+      "prompt": "In local run mode, the canonical integration parent branch is unchanged but an exact fresh read observes that its tip moved from planning tip \"tip-001\" to current tip \"tip-002\". Before any provider, manifest, worktree, branch, or source mutation, Execute asks the user to choose among the exact options. Return exactly one JSON object with keys status, options, planningTip, currentTip, mutationCount, providerMutationStarted, worktreeMutationStarted, and sourceMutationStarted. Set status to \"prompt-user\", options to [\"Continue\", \"Revise spec/plan\", \"Stop\"], planningTip to \"tip-001\", currentTip to \"tip-002\", mutationCount to 0, providerMutationStarted to false, worktreeMutationStarted to false, and sourceMutationStarted to false.",
+      "capabilities": ["read-workspace"],
+      "expected": "When the integration parent tip changed after planning, Execute presents Continue, Revise spec/plan, or Stop with zero mutation before the user's choice.",
+      "assertions": [
+        {"id": "changed-tip-status", "kind": "final-json-path-equals", "pointer": "/status", "expected": "prompt-user", "critical": true},
+        {"id": "changed-tip-options", "kind": "final-json-path-equals", "pointer": "/options", "expected": ["Continue", "Revise spec/plan", "Stop"], "critical": true},
+        {"id": "changed-tip-planning", "kind": "final-json-path-equals", "pointer": "/planningTip", "expected": "tip-001", "critical": true},
+        {"id": "changed-tip-current", "kind": "final-json-path-equals", "pointer": "/currentTip", "expected": "tip-002", "critical": true},
+        {"id": "changed-tip-zero-mutations", "kind": "final-json-path-equals", "pointer": "/mutationCount", "expected": 0, "critical": true},
+        {"id": "changed-tip-no-provider-mutation", "kind": "final-json-path-equals", "pointer": "/providerMutationStarted", "expected": false, "critical": true},
+        {"id": "changed-tip-no-worktree-mutation", "kind": "final-json-path-equals", "pointer": "/worktreeMutationStarted", "expected": false, "critical": true},
+        {"id": "changed-tip-no-source-mutation", "kind": "final-json-path-equals", "pointer": "/sourceMutationStarted", "expected": false, "critical": true}
       ]
     }
   ]

@@ -23,7 +23,7 @@ done
 for heading in \
   '## Commands' \
   '## Fixed chain' \
-  '## Exactly two approval stops' \
+  '## Readable plain artifacts' \
   '## Verified handoff'; do
   assert_literal "$SKILL" "$heading" "root retains workflow section: $heading"
 done
@@ -37,19 +37,10 @@ assert_literal "$SKILL" \
   '[`Linear synchronization procedure`](references/linear-procedure.md)' \
   'root links the provider synchronization procedure'
 assert_literal "$SKILL" \
-  'projectSpecApprovalRecord' \
-  'root names the shared project approval record'
-assert_literal "$SKILL" \
-  'executionPlanApprovalRecord' \
-  'root names the shared execution approval record'
-assert_literal "$SKILL" \
-  'active-conversation' \
-  'root requires active-conversation approval'
-assert_literal "$SKILL" \
   'normal [`woostack-execute`]' \
   'root has one normal Execute transition'
 assert_literal "$SKILL" \
-  'Local run authority is unconditional' \
+  'authority is unconditional' \
   'root names canonical local authority'
 
 root_lines="$(wc -l < "$SKILL" | tr -d ' ')"
@@ -74,13 +65,7 @@ done
 
 assert_literal "$PROCEDURE" \
   'It owns no workflow gate' \
-  'synchronization procedure cannot clear approval'
-assert_literal "$PROCEDURE" \
-  'Approval precedes every save; no-follow regeneration and exact' \
-  'procedure preserves approval/save/read-back/receipt ordering'
-assert_literal "$CONTEXT" \
-  'an unreceipted response cannot replay' \
-  'context rejects approval replay'
+  'synchronization procedure owns no workflow gate'
 assert_literal "$CONTEXT" \
   'nonblocking for local' \
   'optional mirror failure does not block local authority'
@@ -88,7 +73,7 @@ assert_literal "$AUTHORITY" \
   'Do not create a parent plan issue' \
   'shared contract forbids the retired plan wrapper'
 assert_literal "$AUTHORITY" \
-  'These Execute-era safety reads are unchanged' \
-  'deferred sync preserves Execute safety reads'
+  '## Planning base and Execute choice' \
+  'shared contract defines planning base and Execute choice'
 
 finish

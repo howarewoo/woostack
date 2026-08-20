@@ -5,10 +5,10 @@ description: "Bootstrap, Build, Fix, and Change under local run authority, optio
 
 Every repository-changing woostack workflow starts from an explicit user goal. Local run manifests
 under `.woostack/tmp/runs/<run-id>/` own current product specifications, increment contracts, and
-approval records for builds and post-diagnosis fixes, with optional Linear mirroring
-(`linear.saveArtifacts: true`). Exact responsible-user approval events clear their matching revision
-gates. Git and GitHub own implementation and delivery truth. Bootstrap, change, standalone planning,
-and other artifact use retain their documented optional boundaries.
+manifest state for builds and post-diagnosis fixes, with optional Linear mirroring
+(`linear.saveArtifacts: true`). Git and GitHub own implementation and delivery truth. Bootstrap,
+change, standalone planning, and other artifact use retain their documented optional boundaries.
+
 ## Route by work shape
 
 ```mermaid
@@ -41,58 +41,49 @@ write barrier or repository authority.
 
 ```text
 allocate/resume local run and admit baseline (if mirroring) → local Ideate/Harden →
-stream complete verified `project-spec.md` bytes and full identity (or a verified same-process
-byte-complete unified diff with old/new identities) immediately before a body-free `Accept`/`Abandon`
-Ask → record local approval record (and optional bounded mirror sync) → local Plan/Harden →
-stream complete verified `execution-plan.md` bytes and full identity (or a verified same-process
-byte-complete unified diff with old/new identities) immediately before a body-free `Accept`/`Abandon`
-Ask → record local approval record (and optional bounded mirror sync) → retain run artifacts →
+write `project-spec.md` (and optional bounded mirror sync) → local Plan/Harden →
+write `execution-plan.md` (and optional bounded mirror sync) → retain run artifacts →
 verified `Stop here`/`Execute`/`Abandon` handoff
 ```
 
-Build owns exactly two gates. Its approved direct increment graph orders independently shippable
-increments, each with at most one PR. Execute processes one increment at a time in ordinal order
-within a run; distinct run IDs may execute concurrently only through disjoint branches, worktrees,
-and responsibility surfaces. Every build manages one high-level specification and direct increment
-contracts in its retained local run manifest.
+Build writes plain `project-spec.md` and `execution-plan.md` Markdown files. Its execution plan orders
+independently shippable increments, each with at most one PR. Execute processes one increment at a time
+in ordinal order within a run; distinct run IDs may execute concurrently only through disjoint branches,
+worktrees, and responsibility surfaces. Every build manages one high-level specification and direct
+increment contracts in its retained local run manifest.
 
 ## Fix
 
 ```text
 prompt → reproduce → prove root cause → admit writable target and allocate/resume local run →
-use the same local two-gate drafting and bounded synchronization path as Build →
+use the same local plain-artifact and bounded synchronization path as Build →
 present the verified `Stop here`/`Execute`/`Abandon` handoff
 ```
 
-Fix owns the same two approval gates as Build and never substitutes a symptom patch for root-cause
-proof. After proof, a canonical local run is allocated or resumed (and when `linear.saveArtifacts: true`,
-an exact `--project` is reused or one project is created from validated defaults). An exact source
+Fix requires root-cause proof before any project or plan creation and never substitutes a symptom patch.
+After proof, a canonical local run is allocated or resumed (and when `linear.saveArtifacts: true`, an
+exact `--project` is reused or one project is created from validated defaults). An exact source
 `--issue` remains source context and is preserved apart from its supported project link; it is not
 repurposed as a plan issue. The complete diagnosis and specification live on the local run manifest,
 with executor-ready contracts on direct increments and dependencies between them.
 
 Build and Fix obey the shared
-[Local run artifact and provider mirror contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest).
-It defines local run store allocation and resume, provider-free gated drafting, deterministic
-owner-only gate files, complete streamed Markdown bytes and identity, same-process byte-complete
-revision diffs with old/new identities, body-free `Accept`/`Abandon` approval Asks, local raw-hash
-approval records, optional bounded mirror synchronization, artifact retention, failure recovery, and
-unchanged Execute rechecks.
+[Local run artifact and provider mirror contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md#minimal-resumable-manifest-schema).
+It defines local run store allocation and resume, provider-free drafting, plain Markdown artifact files,
+optional bounded mirror synchronization, artifact retention, failure recovery, base-change detection,
+and unchanged Execute safety reads.
 
-After gate 2, Build/Fix display the exact run ID, both local approval records and gate-file hashes,
-stable task mappings, dependencies, approved parent branch, last admitted tip, and
+After both files are written, Build/Fix display the exact run ID, readable artifact paths, stable task
+mappings, dependencies, planning parent branch, planning parent tip, and
 `/woostack-execute --run <exact-run-id>`. A mirrored project URL/UUID is evidence only, not an
 alternate Build/Fix handoff. The body-free handoff Ask offers exactly `Stop here`, `Execute`, and
 `Abandon`. Stop here returns the exact resume command without repository or manifest mutation;
-Execute invokes normal Execute once in the same session; Abandon records abandonment without
-dispatch. Unknown or custom input fails closed and asks again.
+Execute invokes normal Execute once in the same session; Abandon records abandonment without dispatch.
+Unknown or custom input fails closed and asks again.
 
-The manifest is the canonical local run authority. Material `project-spec.md` changes invalidate both
-local approval records; material `execution-plan.md`, increment, or dependency changes invalidate
-only the execution-plan record. Optional mirror drift is recorded as mirror failure and never
-invalidates local authority. Before root-cause proof, Fix makes no provider call. Standalone Plan
-remains outside this gated path and keeps its direct synchronization and independent read-back
-unchanged.
+The manifest is the canonical local run authority. Optional mirror drift is recorded as mirror failure
+and never invalidates local authority. Before root-cause proof, Fix makes no provider call. Standalone
+Plan remains outside this path and keeps its direct synchronization and independent read-back unchanged.
 
 ## Change
 
@@ -115,25 +106,24 @@ Build and Fix prepare approved work for the separately invoked [woostack-execute
 5. use [woostack-commit](/docs/skills/woostack-commit) only after the diff passes; and
 6. independently read the PR/head/base/check/review result back.
 
-Build/Fix do not execute automatically after gate 2. The user may choose `Stop here` and invoke
-Execute later with the exact command (`/woostack-execute --run <exact-run-id> [--recheck]`), choose
-`Execute` for one same-session dispatch, or choose `Abandon` for canonical closure.
+Build/Fix do not execute automatically. The user may choose `Stop here` and invoke Execute later with
+the exact command (`/woostack-execute --run <exact-run-id> [--recheck]`), choose `Execute` for one
+same-session dispatch, or choose `Abandon` for canonical closure.
 
 ## Local run and optional Linear fix/build paths
 
 ```text
 build
-  → allocate/resume local run in .woostack/tmp/runs/<run-id>/ (admit gate 1 baseline if mirroring)
+  → allocate/resume local run in .woostack/tmp/runs/<run-id>/ (admit baseline if mirroring)
   → draft and harden locally with zero provider calls
-  → stream complete `project-spec.md` and body-free Accept/Abandon Ask
-  → record local raw-hash approval record (drift-check, mirror once, and read back if mirroring)
-  → repeat local draft/harden/stream/Accept-or-Abandon for `execution-plan.md`
+  → write `project-spec.md` (drift-check, mirror once, and read back if mirroring)
+  → draft/harden execution plan and write `execution-plan.md`
   → retain all run artifacts in .woostack/tmp/runs/<run-id>/
   → present verified run handoff: Stop here, Execute, or Abandon
 
 fix
   → diagnose and admit the writable target without provider access
-  → after proof, allocate/resume local run store and use the same two-gate file order
+  → after proof, allocate/resume local run store and use the same plain-artifact path
   → preserve any source issue as context rather than a plan or approval record
   → retain all run artifacts in .woostack/tmp/runs/<run-id>/
   → present verified run handoff: Stop here, Execute, or Abandon

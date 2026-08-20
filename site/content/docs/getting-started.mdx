@@ -6,8 +6,7 @@ description: Install woostack in a coding harness, initialize local support, and
 <Callout type="info">
   Local run authority in `.woostack/tmp/runs/<run-id>/` owns product scope and execution contracts for
   builds and post-diagnosis fixes, with optional Linear mirroring (`linear.saveArtifacts: true`). Git
-  and GitHub own code, branches, pull requests, reviews, and merges. The responsible user's exact
-  approval event clears only the matching fix/build gate-file hash.
+  and GitHub own code, branches, pull requests, reviews, and merges.
 </Callout>
 
 ## Dependencies
@@ -91,18 +90,13 @@ provider-free. Supplying `--project` when `linear.saveArtifacts` is false or abs
 immediately with an error stating that `--project` requires `linear.saveArtifacts: true`.
 
 When `linear.saveArtifacts: true` is configured, the `linear` configuration supplies validated
-defaults for canonical project creation when no exact project was supplied. Gated Build and
-project-backed Fix stream the complete verified `project-spec.md` or `execution-plan.md` Markdown
-bytes and full identity immediately before a body-free `Accept`/`Abandon` Ask. Same-process
-revisions may stream one verified byte-complete unified diff with old/new full-file identities.
-Local raw-hash approval records (`projectSpecApprovalRecord` and `executionPlanApprovalRecord`) are
-recorded upon acceptance, followed by one bounded mirror synchronization cycle. Mirror failure is
-recorded in the manifest and is nonblocking for local authority. All run artifacts in
-`.woostack/tmp/runs/<run-id>/` are retained upon completion and explicit abandonment. After gate 2,
-Build/Fix present the verified `/woostack-execute --run <exact-run-id>` handoff and ask exactly
-`Stop here`, `Execute`, or `Abandon`. A mirrored project identity is evidence, not an alternate
-handoff command.
-
+defaults for canonical project creation when no exact project was supplied. Build and
+project-backed Fix write plain Markdown `project-spec.md` and `execution-plan.md` files directly
+under `.woostack/tmp/runs/<run-id>/`, followed by one bounded mirror synchronization cycle. Mirror
+failure is recorded in the manifest and is nonblocking for local authority. All run artifacts in
+`.woostack/tmp/runs/<run-id>/` are retained upon completion and explicit abandonment. Build/Fix
+present the verified `/woostack-execute --run <exact-run-id>` handoff and ask exactly `Stop here`,
+`Execute`, or `Abandon`. A mirrored project identity is evidence, not an alternate handoff command.
 `woostack-change` never contacts Linear.
 
 ## 5. Use an external engineer (optional)
@@ -126,7 +120,7 @@ those files automatically.
   <Card title="Building rules" href="/docs/concepts/building-rules" description="Workflow routing, gates, execution, and authority boundaries." />
   <Card title="Hermes as an external engineer" href="/docs/hermes" description="Drive one persistent OMP process without installing woostack in Hermes." />
   <Card title="OMP" href="/docs/harnesses/omp" description="Host-owned project workers and native OMP routing." />
-  <Card title="Official Linear MCP" href="https://mcp.linear.app/mcp" description="Optional Linear mirror projects, direct-issue plans, and approval records." />
+  <Card title="Official Linear MCP" href="https://mcp.linear.app/mcp" description="Optional Linear mirror projects, direct-issue plans, and issue contracts." />
 </Cards>
 ## Recommended companions
 

@@ -20,9 +20,8 @@ context. Never share a worktree, session, branch, or writable surface with anoth
 The controller sends all context directly; a link or prior conversation is insufficient:
 
 - exact project or issue identity and mode;
-- stable run ID, issue ordinal, and immutable contract fingerprint;
-- matching `projectSpecApprovalRecord` and `executionPlanApprovalRecord` fingerprints as read-only
-  evidence;
+- stable run ID, issue ordinal, and immutable task key;
+- readable artifact paths and execution plan contract as read-only context;
 - canonical repository and exact isolated worktree path;
 - canonical parent branch/current admitted tip, retained start/head when resuming, and Graphite
   parent;
@@ -41,33 +40,18 @@ Missing, stale, contradictory, or unsafe packet input returns `BLOCKED` before e
    controller-owned boundaries.
 2. Run only the smallest contract-relevant focused check or reproduction when one is required.
 3. Implement the smallest complete change within the packet's allowed paths.
-4. Simplify without changing the approved behavior.
-5. Run the one requested focused verification and changed-path smoke scenario. Record exact commands,
-   exit results, and observations; do not claim checks that were not run.
-6. Return sorted changed paths, diff identity, concise summary, verification/smoke receipt, and one
-   status: `PASS`, `NEEDS_CONTEXT`, `BLOCKED`, or `UNKNOWN`.
+4. Run only the assigned focused verification and changed-path smoke scenario; do not run broad
+   test suites, unrelated linters, or formatters.
+5. If the implementation is blocked, return `BLOCKED` with the exact root cause, observed obstacle,
+   and clean worktree state; do not guess or attempt a workaround.
+6. Hand back the observed result to the controller:
 
-The worker never commits, pushes, submits a PR, writes Linear, changes lifecycle state, reviews,
-accepts, merges, edits plans, changes dependencies, or advances to another issue. A contract or
-product decision question returns `NEEDS_CONTEXT`; a collision, unsafe instruction, unavailable
-capability, or failing invariant returns `BLOCKED`. A timeout or lost response is `UNKNOWN` and
-requires controller inspection before another writer is considered.
-
-## Controller handback and repair
-
-The controller independently rechecks the approval records, selected issue, worktree, branch,
-canonical parent branch/current admitted tip, retained start/head, Graphite parent, complete
-dirty/index/diff state, and process boundary after every handback. It then
-runs one bounded spec-compliance validator against the same diff. Only an observed omission within
-the exact issue contract may be repaired by redispatching this same configured fast-model route
-with a refreshed packet and diff identity. Do not broaden the bounded validator or add unrelated
-cleanup.
-
-## Return contract
+## Worker return contract
 
 Return exactly the run and issue IDs, mode/ordinal, worktree/branch, canonical parent branch/current
 admitted tip, retained start/head when resuming, Graphite parent, sorted changed paths, diff identity,
-commands and observed results, smoke observations,
-validator input boundary (if supplied), blocker or requested decision, and final status. No commit,
-PR, Linear, review, merge, acceptance, or sibling-progress claim may appear without direct controller
-read-back evidence.
+focused check and smoke results, observed smoke observations, validator input boundary (if supplied),
+blocker or requested decision, and final status.
+
+No commit, PR, Linear, review, merge, acceptance, or sibling-progression claim may appear without
+direct controller read-back evidence.

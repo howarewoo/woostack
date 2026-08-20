@@ -66,28 +66,25 @@ of an approved workflow.
 proof, project-backed fixes is local in `.woostack/tmp/runs/<run-id>/`. Provider mirroring (Linear)
 is an optional mirror flow gated by `linear.saveArtifacts: true` (default `false`). Each workflow uses
 one exact run store under `.woostack/tmp/runs/<run-id>/`, owner-only `0700`/`0600` permissions, monotonic
-revision compare-and-swap updates, raw UTF-8 SHA-256 local receipts, and two exact responsible-user
-approval events.
+revision compare-and-swap updates, and retained plain Markdown artifacts (`project-spec.md` and
+`execution-plan.md`).
 
 Gated Ideate, Harden, and Build/Fix-delegated Plan work uses the permission-restricted local run
-manifest and performs zero intermediate provider cycles. Each approval presentation streams the complete
-exact local content and identity (or a verified same-process byte-complete revision diff with old/new
-identities), immediately followed by a body-free `Accept`/`Abandon` Ask; approval records the local receipt,
-and optional provider mirroring synchronizes to Linear in one bounded cycle after local approval. After
-gate 2, Build/Fix display the verified project handoff and ask `Stop here`, `Execute`, or `Abandon`;
-Execute is separately invoked or dispatched only for the selected choice. Standalone Plan keeps its
-direct synchronization unchanged. Follow the
-[`Local run artifact and provider mirror contract`](../woostack-init/references/artifact-backends.md#run-scoped-gated-draft-manifest)
+manifest and performs zero intermediate provider cycles. After plain `project-spec.md` and
+`execution-plan.md` are written, Build/Fix display the verified project handoff and ask `Stop here`,
+`Execute`, or `Abandon`; Execute is separately invoked or dispatched only for the selected choice.
+Standalone Plan keeps its direct synchronization unchanged. Follow the
+[`Local run artifact and provider mirror contract`](../woostack-init/references/artifact-backends.md#minimal-resumable-manifest-schema)
 for the detailed contract.
 
-Linear assignment, status, labels, content, or an unreceipted response never authorizes work, and
-development artifacts never replace direct Git/Graphite/GitHub source-control evidence. Other workflows
-remain artifact-optional. `/woostack-init` may make authenticated read-only setup calls through the
-official Linear MCP to validate non-secret defaults; it cannot select persistence, read development
-artifact content, or write. `woostack-change` never contacts Linear. Explicit Build or
-project-backed Fix abandonment retains all local run artifacts in `.woostack/tmp/runs/<run-id>/` and
-records terminal `status: "abandoned"` in the manifest; it does not close or mutate a mirrored Linear
-project. Source issues are preserved. Handoff, replanning, and blockers leave project status unchanged.
+Linear assignment, status, labels, content, or metadata never authorizes work, and development
+artifacts never replace direct Git/Graphite/GitHub source-control evidence. Other workflows remain
+artifact-optional. `/woostack-init` may make authenticated read-only setup calls through the official
+Linear MCP to validate non-secret defaults; it cannot select persistence, read development artifact
+content, or write. `woostack-change` never contacts Linear. Explicit Build or project-backed Fix
+abandonment retains all local run artifacts in `.woostack/tmp/runs/<run-id>/` and records terminal
+`status: "abandoned"` in the manifest; it does not close or mutate a mirrored Linear project. Source
+issues are preserved. Handoff, replanning, and blockers leave project status unchanged.
 
 ## Command Routing
 
@@ -95,11 +92,11 @@ project. Source issues are preserved. Handoff, replanning, and blockers leave pr
 |---|---|
 | `/woostack-init [path] [--migrate-legacy]`, initialize or repair the `.woostack/` workspace, or explicitly migrate tracked legacy development records | `woostack-init` |
 | `/woostack-bootstrap <goal>`, scaffold a new web/mobile/API project | `woostack-bootstrap` |
-| `/woostack-build <goal> [--project <exact Linear URL-or-UUID>]`, prepare one canonical project through two exact Linear revision approvals, then hand off with `Stop here`, `Execute`, or `Abandon` | `woostack-build` |
-| `/woostack-fix <prompt> [--project <exact Linear URL-or-UUID>] [--issue <exact canonical Linear issue reference>] [--inline\|--subagent]`, diagnose a free-form defect, resolve/create its project and direct-issue plan after root-cause proof, then hand off with `Stop here`, `Execute`, or `Abandon` after both approvals | `woostack-fix` |
+| `/woostack-build <goal> [--project <exact Linear URL-or-UUID>]`, prepare one canonical project and execution plan, then hand off with `Stop here`, `Execute`, or `Abandon` | `woostack-build` |
+| `/woostack-fix <prompt> [--project <exact Linear URL-or-UUID>] [--issue <exact canonical Linear issue reference>] [--inline\|--subagent]`, diagnose a free-form defect, resolve/create its project and direct-issue plan after root-cause proof, then hand off with `Stop here`, `Execute`, or `Abandon` | `woostack-fix` |
 | `/woostack-change <goal>`, implement a small bounded non-bug enhancement or refactor directly in one isolated worktree and one reviewable PR | `woostack-change` |
 | `/woostack-plan <approved specification> [--project <exact Linear URL-or-UUID>]`, produce a PR-sized dependency-aware direct-issue plan; standalone persistence is optional | `woostack-plan` |
-| `/woostack-execute <approved plan-or-task> [--project <exact Linear URL-or-UUID>] [--issue <exact canonical Linear issue reference>] [--run <exact-run-id>] [--recheck]`, execute approved work from fresh exact Linear project/graph/receipt reads or an exact local run manifest, and Git/Graphite/GitHub ancestry evidence; fix/build origins require their exact approval records | `woostack-execute` |
+| `/woostack-execute <approved plan-or-task> [--project <exact Linear URL-or-UUID>] [--issue <exact canonical Linear issue reference>] [--run <exact-run-id>] [--recheck]`, execute approved work from fresh exact Linear project/graph reads or an exact local run manifest, and Git/Graphite/GitHub ancestry evidence | `woostack-execute` |
 | `/woostack-sweep [PR#|branch] [--base R]`, drive one Graphite stack bottom-up: address pre-existing threads, run one multi-angle review per current head, address new findings, restack affected descendants, and halt unchanged recurring blockers | `woostack-sweep` |
 | `/woostack-commit [--issue <exact canonical Linear issue reference>]`, commit session-relevant changes and update PR fields; artifact synchronization is optional | `woostack-commit` |
 | `/woostack-review <PR#>`, review one exact existing PR through one detected multi-angle swarm and one evidence adjudicator, then post one batched native GitHub Review; report-only, never edits or merges | `woostack-review` |

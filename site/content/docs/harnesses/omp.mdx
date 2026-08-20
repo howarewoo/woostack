@@ -53,18 +53,16 @@ Session naming uses an in-process project extension:
 
 Build and project-backed Fix operate with canonical persistent local authority under
 `.woostack/tmp/runs/<run-id>/` by default (`linear.saveArtifacts: false`). When
-`linear.saveArtifacts: true`, approved artifacts mirror to Linear. OMP credentials stay in its
+`linear.saveArtifacts: true`, local artifacts mirror to Linear. OMP credentials stay in its
 host-owned MCP/OAuth secret environment and never enter repository config, prompts, logs, or
 generated output. Follow the
 [Local run artifact and provider mirror contract](https://github.com/howarewoo/woostack/blob/main/skills/woostack-init/references/artifact-backends.md).
 
-The responsible user's two exact approval events create local raw-hash approval records for the
-matching fix/build project-specification and execution-plan gate files. Run artifacts are retained
-upon completion and abandonment for the audit trail. An approved nonterminal run can resume exactly
-with `/woostack-execute --run <exact-run-id> [--recheck]`. Retained artifacts do not authorize worker
-assignment, dispatch, edits, commits, review, product acceptance, or repository delivery claims.
-Before proof, Fix makes no Linear call. `woostack-change` never contacts Linear.
-
+Build and project-backed Fix write plain Markdown `project-spec.md` and `execution-plan.md` files.
+Run artifacts are retained upon completion and abandonment for the audit trail. A nonterminal run can
+resume exactly with `/woostack-execute --run <exact-run-id> [--recheck]`. Retained artifacts do not
+authorize worker assignment, dispatch, edits, commits, review, product acceptance, or repository
+delivery claims. Before proof, Fix makes no Linear call. `woostack-change` never contacts Linear.
 ## Recovery
 
 Stop on profile, cwd, worktree, branch, ancestry, credential, process-exit, verification, review, or
